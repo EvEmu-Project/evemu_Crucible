@@ -287,8 +287,9 @@ PyObject *ConfigDB::GetMap(uint32 solarSystemID) {
         "   itemID,"
         "   itemName,"
         "   typeID,"
-        "   x,y,z,"
+		"   groupID,"
         "   solarSystemID AS locationID,"
+		"   x,y,z,"
         "   NULL AS orbitID,"
         "   NULL AS destinations,"
         "   NULL AS xMin,"
@@ -373,7 +374,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
     if (!sDatabase.RunQuery(res,
         " SELECT "
         " groupID "
-        " FROM eveNames "
+        " FROM evenames "
         " WHERE itemID = %u ", celestialID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -384,7 +385,6 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
         codelog(SERVICE__ERROR, "Unable to find celestial object %u", celestialID);
         return NULL;
     }
-
     uint32 groupID = row.GetUInt(0);
 
     std::string query = "";
@@ -392,50 +392,50 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
     switch (groupID) {
     case EVEDB::invGroups::Sun:
             query = " SELECT "
-                    "    CONCAT( FORMAT( temperature, 0 ) , \" K\" ) AS temperature, "
+                    "    temperature, "
                     "    spectralClass, "
-                    "    FORMAT( luminosity, 5 ) as luminosity, "
-                    "    CONCAT( FORMAT( CAST( age /60 /60 /24 /365 /1000000 AS UNSIGNED INTEGER ) *1000000, 0 ) , \" Years\" ) AS age, "
-                    "    CONCAT( FORMAT( radius /1000, 0 ) , \" km\" ) AS radius "
+                    "    luminosity, "
+                    "    age, "
+                    "    radius "
                     " FROM mapCelestialStatistics "
                     " WHERE celestialID = %u ";
             break;
     case EVEDB::invGroups::Planet:
             query = " SELECT "
-                    "    CONCAT( FORMAT( temperature, 0 ) , \" K\" ) AS temperature, "
-                    "    CONCAT( FORMAT( orbitRadius / 1.49598E11, 3), \" AU\") AS \"Orbit Radius\", "
-                    "    FORMAT( eccentricity, 3) AS eccentricity, "
-                    "    CONCAT( FORMAT( massDust / POW(10, ROUND(LOG10(massDust), 0)), 1), \"e+0\", ROUND(LOG10(massDust), 0), \" kg\") AS mass, "
-                    "    CONCAT( FORMAT( density, 1), \" g/cm^3\") AS density, "
-                    "    CONCAT( FORMAT( surfaceGravity, 1), \" m/s^2\") AS \"Surface Gravity\", "
-                    "    CONCAT( FORMAT( escapeVelocity / 1000, 1), \" km/s\") AS \"Escape Velocity\", "
-                    "    CONCAT( FORMAT( orbitPeriod / 864000, 0), \" days\") AS \"Orbit Period\", "
-                    "    CONCAT( FORMAT( pressure / 100000, 0), \" kPa\") AS pressure, "
-                    "    CONCAT( FORMAT( radius /1000, 0), \" km\") AS radius "
+                    "	 temperature, "
+                    "    orbitRadius, "
+                    "    eccentricity, "
+                    "    massDust, "
+                    "    density, "
+                    "    surfaceGravity, "
+                    "    escapeVelocity, "
+                    "    orbitPeriod, "
+                    "    pressure, "
+                    "    radius "
                     " FROM mapCelestialStatistics "
                     " WHERE celestialID = %u ";
             break;
     case EVEDB::invGroups::Moon:
             query = " SELECT "
-                    "    CONCAT( FORMAT( temperature, 0 ) , \" K\" ) AS temperature, "
-                    "    CONCAT( FORMAT( orbitRadius, 0), \" km\") AS \"Orbit Radius\", "
-                    "    CONCAT( FORMAT( massDust / POW(10, ROUND(LOG10(massDust), 0)), 1), \"e+0\", ROUND(LOG10(massDust), 0), \" kg\") AS mass, "
-                    "    CONCAT( FORMAT( density, 1), \" g/cm^3\") AS density, "
-                    "    CONCAT( FORMAT( surfaceGravity, 1), \" m/s^2\") AS \"Surface Gravity\", "
-                    "    CONCAT( FORMAT( escapeVelocity / 1000, 1), \" km/s\") AS \"Escape Velocity\", "
-                    "    CONCAT( FORMAT( orbitPeriod / 864000, 3), \" days\") AS \"Orbit Period\", "
-                    "    CONCAT( FORMAT( pressure / 100000, 0), \" kPa\") AS pressure, "
-                    "    CONCAT( FORMAT( radius /1000, 0), \" km\") AS radius "
+                    "    temperature, "
+                    "    orbitRadius, "
+                    "    massDust, "
+                    "    density, "
+                    "    surfaceGravity, "
+                    "    escapeVelocity, "
+                    "    orbitPeriod, "
+                    "    pressure, "
+                    "    radius "
                     " FROM mapCelestialStatistics "
                     " WHERE celestialID = %u ";
             break;
     case EVEDB::invGroups::Asteroid_Belt:
             query = " SELECT "
-                    "    CONCAT( FORMAT( orbitRadius, 0), \" km\") AS \"Orbit Radius\", "
-                    "    FORMAT( eccentricity, 3) AS eccentricity, "
-                    "    CONCAT( FORMAT( massDust / POW(10, ROUND(LOG10(massDust), 0)), 1), \"e+0\", ROUND(LOG10(massDust), 0), \" kg\") AS mass, "
-                    "    CONCAT( FORMAT( density, 1), \" g/cm^3\") AS density, "
-                    "    CONCAT( FORMAT( orbitPeriod / 864000, 0), \" days\") AS \"Orbit Period\" "
+                    "    orbitRadius, "
+                    "    eccentricity, "
+                    "    massDust, "
+                    "    density, "
+                    "    orbitPeriod "
                     " FROM mapCelestialStatistics "
                     " WHERE celestialID = %u ";
             break;
@@ -451,7 +451,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
         return NULL;
     }
 
-    return DBResultToRowset(res);
+    return DBResultToCRowset(res);
 }
 
 PyRep *ConfigDB::GetTextsForGroup(const std::string & langID, uint32 textgroup) {

@@ -62,6 +62,7 @@ SET( admin_INCLUDE
      "${TARGET_INCLUDE_DIR}/admin/AlertService.h"
      "${TARGET_INCLUDE_DIR}/admin/AllCommands.h"
      "${TARGET_INCLUDE_DIR}/admin/AllCommandsList.h"
+	 "${TARGET_INCLUDE_DIR}/admin/ClientStatLogger.h"
      "${TARGET_INCLUDE_DIR}/admin/CommandDB.h"
      "${TARGET_INCLUDE_DIR}/admin/CommandDispatcher.h"
 	 "${TARGET_INCLUDE_DIR}/admin/DevToolsProviderService.h"
@@ -71,6 +72,7 @@ SET( admin_INCLUDE
 SET( admin_SOURCE
      "${TARGET_SOURCE_DIR}/admin/AlertService.cpp"
      "${TARGET_SOURCE_DIR}/admin/AllCommands.cpp"
+	 "${TARGET_SOURCE_DIR}/admin/ClientStatLogger.cpp"
      "${TARGET_SOURCE_DIR}/admin/CommandDB.cpp"
      "${TARGET_SOURCE_DIR}/admin/CommandDispatcher.cpp"
 	 "${TARGET_SOURCE_DIR}/admin/DevToolsProviderService.cpp"

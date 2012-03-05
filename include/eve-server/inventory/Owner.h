@@ -86,9 +86,12 @@ protected:
 
 	// Actual loading stuff:
 	template<class _Ty>
-	static RefPtr<_Ty> _LoadOwner(ItemFactory &factory, uint32 ownerID,
+	static RefPtr<_Ty> _LoadOwner(
+		ItemFactory &factory, 
+		uint32 ownerID,
 		// InventoryItem stuff:
-		const ItemType &type, const ItemData &data
+		const ItemType &type, 
+		const ItemData &data
 	);
 
 	static uint32 _Spawn(ItemFactory &factory,

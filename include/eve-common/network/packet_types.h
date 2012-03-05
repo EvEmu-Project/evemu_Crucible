@@ -171,7 +171,7 @@ enum EVERookieShipTypes {
 #include "tables/invCategories.h"
 typedef EVEDB::invCategories::invCategories EVEItemCategories;
 
-//from eveFlags DB table
+//from invFlags DB table
 typedef enum EVEItemFlags
 {
 	flagAutoFit						= 0,
@@ -251,8 +251,7 @@ typedef enum EVEItemFlags
 	flagRigSlot6					= 98,	//Rig power slot 7
 	flagRigSlot7					= 99,	//Rig power slot 8
 
-	flagFactoryOperationFirst		= 100,
-	flagFactoryOperationLast		= 115,
+	flagFactoryOperation			= 100,
 
 	flagCorpSecurityAccessGroup2	= 116,
 	flagCorpSecurityAccessGroup3	= 117,
@@ -264,7 +263,6 @@ typedef enum EVEItemFlags
 	flagSecondaryStorage			= 122,	//Secondary Storage
 	flagCaptainsQuarters			= 123,	//Captains Quarters
 	flagWisPromenade				= 124,	//Wis Promenade
-    //Const: "flagWorldSpace" => "124"
 
 	flagSubSystem0					= 125,	//Sub system slot 0
 	flagSubSystem1					= 126,	//Sub system slot 1
@@ -301,7 +299,7 @@ typedef enum EVEItemFlags
 	flagResearchFacilitySlotFirst	= 200,
 	flagResearchFacilitySlotLast	= 255,
 
-	flagClone						= 400
+	//flagClone						= 400
 } EVEItemFlags;
 
 //for use in the new module manager
