@@ -41,7 +41,13 @@ ClientStatLogger::~ClientStatLogger() {
 }
 
 PyResult ClientStatLogger::Handle_LogString(PyCallArgs &call) {
-	sLog.Log("ClientStatLogger", "Called LogString stub");
+	Call_SingleStringArg args;
+	if(!args.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "Failed to decode arguments");
+		return NULL;
+	}
 
-	return new PyNone();
+	sLog.Error("LogFromClient", "This came from client: %s", args.arg.c_str());
+
+	return NULL;
 }
