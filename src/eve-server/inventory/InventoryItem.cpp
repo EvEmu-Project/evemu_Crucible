@@ -636,7 +636,13 @@ void InventoryItem::GetItemRow( PyPackedRow* into ) const
     into->SetField( "ownerID",    new PyInt( ownerID() ) );
 	into->SetField( "locationID", new PyLong( locationID() ) );
     into->SetField( "flagID",     new PyInt( flag() ) );
-    into->SetField( "quantity",   new PyInt( quantity() ) );
+	if(singleton())
+	{
+		into->SetField( "quantity",   new PyInt( -1 ) );
+	} else
+	{
+        into->SetField( "quantity",   new PyInt( quantity() ) );
+	}
     into->SetField( "groupID",    new PyInt( groupID() ) );
     into->SetField( "categoryID", new PyInt( categoryID() ) );
     into->SetField( "customInfo", new PyString( customInfo() ) );
