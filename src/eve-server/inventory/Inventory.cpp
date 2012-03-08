@@ -58,8 +58,8 @@ Inventory *Inventory::Cast(InventoryItemRef item)
 		case EVEDB::invCategories::Subsystem:
 		case EVEDB::invCategories::AncientRelics:
 		case EVEDB::invCategories::Decryptors:
-		case EVEDB::invCategories::InfrastructureUpgrades:
-		case EVEDB::invCategories::SovereigntyStructures:
+		case EVEDB::invCategories::StructureUpgrade:
+		case EVEDB::invCategories::SovereigntyStructure:
 		case EVEDB::invCategories::PlanetaryInteraction:
 		case EVEDB::invCategories::PlanetaryResources:
 		case EVEDB::invCategories::PlanetaryCommodities:

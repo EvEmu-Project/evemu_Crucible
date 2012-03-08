@@ -32,12 +32,8 @@ StationDB::StationDB()
 	g_station_db_storage.load();
 }
 
-PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
-	
-	return g_station_db_storage.find(solarSystemID)->Clone();
-
-	// old code for reference.
-	/*DBQueryResult res;
+PyPackedRow *StationDB::GetSolarSystem(uint32 solarSystemID) {
+	DBQueryResult res;
 	
 	if(!sDatabase.RunQuery(res,
 		"SELECT "
@@ -50,10 +46,7 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 		" factionID,"				// nr
 		" sunTypeID,"				// nr
 		" regionID,"
-		//crap
-		" NULL AS allianceID,"		// nr
-		" 0 AS sovereigntyLevel,"	// nr
-		" 0 AS constellationSovereignty"	// nr
+		" 0 AS wormholeClassID"
 		" FROM mapSolarSystems"		
 		" WHERE solarSystemID=%u", solarSystemID
 	))
@@ -67,8 +60,8 @@ PyRep *StationDB::GetSolarSystem(uint32 solarSystemID) {
 		_log(SERVICE__ERROR, "Error in GetSolarSystem query: no solarsystem for id %d", solarSystemID);
 		return NULL;
 	}
-	
-	return(DBRowToRow(row));*/
+
+	return(DBRowToPackedRow(row));
 }
 
 /*
