@@ -121,7 +121,7 @@ class StationDB : public ServiceDB
 public:
 	StationDB();
 
-	PyRep *GetSolarSystem(uint32 ssid);
+	PyPackedRow *GetSolarSystem(uint32 ssid);
 	PyRep *DoGetStation(uint32 ssid);
 	PyRep *GetStationItemBits(uint32 sid);
 
