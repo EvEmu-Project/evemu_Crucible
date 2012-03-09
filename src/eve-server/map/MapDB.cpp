@@ -85,6 +85,23 @@ PyObject *MapDB::GetStationServiceInfo() {
 	return DBResultToRowset(res);
 }
 
+PyObject *MapDB::GetStationCount() {
+	DBQueryResult res;
+
+	if(!sDatabase.RunQuery(res,
+		" SELECT "
+		"	stationID "
+		" FROM staStations "
+		" WHERE solarSystemID "
+		))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+		return NULL;
+	}
+	
+	return DBResultToRowset(res);
+}
+
 
 
 

@@ -106,10 +106,7 @@ RefPtr<_Ty> Ship::_LoadShip(ItemFactory &factory, uint32 shipID,
     return ShipRef( new Ship(factory, shipID, shipType, data ) );
 }
 
-ShipRef Ship::Spawn(ItemFactory &factory,
-    // InventoryItem stuff:
-    ItemData &data
-) {
+ShipRef Ship::Spawn(ItemFactory &factory, ItemData &data) {
     uint32 shipID = Ship::_Spawn( factory, data );
     if( shipID == 0 )
         return ShipRef();
@@ -148,10 +145,7 @@ ShipRef Ship::Spawn(ItemFactory &factory,
     return sShipRef;
 }
 
-uint32 Ship::_Spawn(ItemFactory &factory,
-    // InventoryItem stuff:
-    ItemData &data
-) {
+uint32 Ship::_Spawn(ItemFactory &factory, ItemData &data) {
     // make sure it's a ship
     const ShipType *st = factory.GetShipType(data.typeID);
     if(st == NULL)
@@ -574,7 +568,7 @@ void Ship::RepairModules()
 
 int32 Ship::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
 {
-	return 1;
+	return m_ModuleManager->Activate( itemID, effectName, targetID, repeat );
 }
 
 void Ship::Deactivate(int32 itemID, std::string effectName)

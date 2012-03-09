@@ -39,6 +39,7 @@ MapService::MapService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(MapService, GetStuckSystems)
 	PyCallable_REG_CALL(MapService, GetHistory)
 	PyCallable_REG_CALL(MapService, GetIncursionGlobalReport)
+	PyCallable_REG_CALL(MapService, GetStationCount)
 }
 
 MapService::~MapService() {
@@ -135,4 +136,11 @@ PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call) {
 	sLog.Debug("Server", "Called GetIncursionGlobalReport Stub.");
 
 	return NULL;
+}
+
+PyResult MapService::Handle_GetStationCount(PyCallArgs &call) {
+	
+	sLog.Debug("Server", "Called GetStationCount stub.");
+
+	return new PyDict;
 }

@@ -153,6 +153,7 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
 		dict->SetItemString("fleetProxy", new PyNone());
 		dict->SetItemString("infoGatheringMgr", new PyNone());
 		dict->SetItemString("clientStatLogger", new PyNone());
+		dict->SetItemString("repairSvc", new PyNone());
 
 		//register it
 		m_manager->cache_service->GiveCache(str, (PyRep **)&dict);

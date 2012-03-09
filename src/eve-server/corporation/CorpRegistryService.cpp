@@ -66,6 +66,7 @@ public:
         // STUBBS
         PyCallable_REG_CALL(CorpRegistryBound, GetMember)
         PyCallable_REG_CALL(CorpRegistryBound, GetMembers)
+		PyCallable_REG_CALL(CorpRegistryBound, GetSharesByShareholder)
 
         
     }
@@ -98,6 +99,7 @@ public:
     // STUBBS
     PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(GetMembers)
+	PyCallable_DECL_CALL(GetSharesByShareholder)
 
     
 
@@ -1000,4 +1002,10 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
     m_manager->entity_list.Multicast("OnCorporationChanged", "corpid", &answer, mct);
 
     return m_db.GetCorporation(notif.key);
+}
+
+PyResult CorpRegistryBound::Handle_GetSharesByShareholder(PyCallArgs &call) {
+	sLog.Log("CorpRegisrtyBound", "Called GetSharesByShareholder stub.");
+
+	return NULL;
 }

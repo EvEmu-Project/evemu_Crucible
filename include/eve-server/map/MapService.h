@@ -47,6 +47,7 @@ protected:
 	PyCallable_DECL_CALL(GetStuckSystems)
 	PyCallable_DECL_CALL(GetHistory)
 	PyCallable_DECL_CALL(GetIncursionGlobalReport)
+	PyCallable_DECL_CALL(GetStationCount)
 };
 
 #endif

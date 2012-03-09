@@ -336,6 +336,7 @@
 #include "ship/ShipService.h"
 #include "ship/TargetManager.h"
 #include "ship/dgmtypeattributeinfo.h"
+#include "ship/RepairService.h"
 
 #include "spawn/SpawnDB.h"
 #include "spawn/SpawnManager.h"

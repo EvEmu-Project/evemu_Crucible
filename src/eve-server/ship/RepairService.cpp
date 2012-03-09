@@ -20,42 +20,29 @@
 	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
 	http://www.gnu.org/copyleft/lesser.txt.
 	------------------------------------------------------------------------------------
-	Author:		Zhur
+	Author:		Reve
 */
 
+#include "EVEServerPCH.h"
 
-#ifndef __CORPORATION_SERVICE_H_INCL__
-#define __CORPORATION_SERVICE_H_INCL__
+PyCallable_Make_InnerDispatcher(RepairService)
 
-#include "corporation/CorporationDB.h"
-#include "PyService.h"
-
-class CorporationService : public PyService
+RepairService::RepairService(PyServiceMgr *mgr)
+: PyService(mgr, "repairSvc"),
+  m_dispatch(new Dispatcher(this))
 {
-public:
-	CorporationService(PyServiceMgr *mgr);
-	virtual ~CorporationService();
+	_SetCallDispatcher(m_dispatch);
 
-protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
+	PyCallable_REG_CALL(RepairService, UnasembleItems);
+}
 
-	CorporationDB m_db;
+RepairService::~RepairService() {
+	delete m_dispatch;
+}
 
-	PyCallable_DECL_CALL(GetFactionInfo)
-	PyCallable_DECL_CALL(GetCorpInfo)
-	PyCallable_DECL_CALL(GetNPCDivisions)
-	PyCallable_DECL_CALL(GetEmploymentRecord)
-	PyCallable_DECL_CALL(GetMedalsReceived)
-	PyCallable_DECL_CALL(GetAllCorpMedals)
-	PyCallable_DECL_CALL(GetRecruitmentAdTypes)
-	PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria)
-};
+PyResult RepairService::Handle_UnasembleItems(PyCallArgs &call) {
 
+	sLog.Log("RepairService", "Called UnasembleItems stub.");
 
-
-
-
-#endif
-
-
+	return NULL;
+}

@@ -587,16 +587,16 @@ bool SystemManager::BuildDynamicEntity(Client *who, const DBSystemDynamicEntity 
 
 void SystemManager::AddClient(Client *who) {
     AddEntity( who );
-	//m_entities[who->GetID()] = who;
-	//m_entityChanged = true;
+	m_entities[who->GetID()] = who;
+	m_entityChanged = true;
 	//this is actually handled in SetPosition via UpdateBubble.
-	//if(who->IsInSpace()) {
-	//	bubbles.Add(who, false);
-	//}
+	if(who->IsInSpace()) {
+		bubbles.Add(who, false);
+	}
 	_log(CLIENT__TRACE, "%s: Added to system manager for %u", who->GetName(), m_systemID);
 
     // Add character's Ship Item Ref to Solar System dynamic inventory:
-    //AddItemToInventory( who->GetShip() );
+    AddItemToInventory( who->GetShip() );
 }
 
 void SystemManager::RemoveClient(Client *who) {
@@ -604,7 +604,7 @@ void SystemManager::RemoveClient(Client *who) {
 	_log(CLIENT__TRACE, "%s: Removed from system manager for %u", who->GetName(), m_systemID);
 
     // Remove character's Ship Item Ref from Solar System dynamic inventory:
-    //RemoveItemFromInventory( who->GetShip() );
+    RemoveItemFromInventory( who->GetShip() );
 }
 
 void SystemManager::AddNPC(NPC *who) {
@@ -668,7 +668,7 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 
     AddBall_header head;
 	head.packet_type = 0;
-	head.sequence = ss.stamp;
+	//head.sequence = ss.stamp;
     stateBuffer->Append( head );
 
 
@@ -709,10 +709,12 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 	for(; cur != end; ++cur)
     {
 		SystemEntity* ent = *cur;
-        //_log(COMMON__WARNING, "Encoding entity %u", ent->GetID());
+        _log(COMMON__WARNING, "Encoding entity %u", ent->GetID());
 
 		//ss.damageState
 		ss.damageState[ ent->GetID() ] = ent->MakeDamageState();
+
+		//ss.aggressors
 
 		//ss.slims
 		ss.slims->AddItem( new PyObject( "foo.SlimItem", ent->MakeSlimItem() ) );
@@ -726,8 +728,6 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
     SafeDelete( stateBuffer );
 	
 	//ss.gangCorps
-
-	//ss.aggressors
 
 	//ss.droneState
 	ss.droneState = m_db.GetSolDroneState( m_systemID );

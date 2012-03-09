@@ -208,6 +208,7 @@ int main( int argc, char* argv[] )
 	services.RegisterService(new PlanetMgrService(&services));
 	services.RegisterService(new PosMgrService(&services));
 	services.RegisterService(new RamProxyService(&services));
+	services.RegisterService(new RepairService(&services));
 	services.RegisterService(new ReprocessingService(&services));
 	services.RegisterService(new ShipService(&services));
 	services.RegisterService(new SkillMgrService(&services));
