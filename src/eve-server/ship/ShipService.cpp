@@ -303,8 +303,8 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
 
     // THIS IS A HACK AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
     // SO SAVE THE UNDOCK ALIGN-TO POINT AND TELL CLIENT WE JUST UNDOCKED
-   // call.client->SetUndockAlignToPoint( dest );
-   // call.client->SetJustUndocking( true );
+    call.client->SetUndockAlignToPoint( dest );
+    call.client->SetJustUndocking( true );
     // --- END HACK ---
 
     return NULL;
@@ -1106,6 +1106,40 @@ PyResult ShipBound::Handle_LeaveShip(PyCallArgs &call){
 
 PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call) 
 {
-	return new PyNone;
-}
+	uint32 oldShip;
+	uint32 newShip;
+	Call_TwoIntegerArgs args;
+	if(!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "Failed to decode arguments");
+        //TODO: throw exception
+        return NULL;
+    }
 
+	newShip = args.arg1;
+	oldShip = args.arg2;
+
+	ShipRef newShipRef = m_manager->item_factory.GetShip(newShip);
+	ShipRef oldShipRef = m_manager->item_factory.GetShip(oldShip);
+
+	//call.client->System()->bubbles.Remove( call.client, true );
+	call.client->BoardShip(newShipRef);
+
+	//call.client->System()->bubbles.Add(call.client, true);
+
+	PyDict* dict = new PyDict();
+
+	dict->SetItemString("instanceID", new PyInt(0));
+	dict->SetItemString("online", new PyBool(false));
+	dict->SetItemString("damage", new PyFloat(0));
+	dict->SetItemString("charge", new PyFloat(0));
+	dict->SetItemString("skillPoints", new PyInt(0));
+	dict->SetItemString("armorDamage", new PyFloat(0));
+	dict->SetItemString("shieldCharge", new PyFloat(0));
+	dict->SetItemString("incapacitated", new PyBool(false));
+
+	PyTuple* rsp = new PyTuple(1);
+
+	rsp->SetItem(0, dict);
+
+	return (PyRep*)rsp;
+}

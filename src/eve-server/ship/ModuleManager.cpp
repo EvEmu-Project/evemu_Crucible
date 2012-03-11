@@ -648,6 +648,17 @@ int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targ
 {
 	sLog.Debug("Activate","Needs to be implemented");
 	return 1;
+	GenericModule * mod = m_Modules->GetModule(itemID);
+	if( mod != NULL )
+	{
+		ModuleCommand cmd = _translateEffectName(effectName);
+       // mod->getItem()->PutOnline();
+		if(cmd == ONLINE)
+			mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
+		//there needs to be more cases here i just don't know what they're called yet
+	}
+
+    return 1;
 }
 
 void ModuleManager::Deactivate(uint32 itemID, std::string effectName)

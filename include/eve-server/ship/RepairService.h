@@ -23,31 +23,22 @@
 	Author:		Reve
 */
 
-#include "EVEServerPCH.h"
+#ifndef __REPAIRSERVICE_SERVICE_INCL_H__
+#define __REPAIRSERVICE_SERVICE_INCL_H__
 
-PyCallable_Make_InnerDispatcher(ClientStatLogger)
+#include "PyService.h"
 
-ClientStatLogger::ClientStatLogger(PyServiceMgr *mgr)
-:PyService(mgr, "clientStatLogger"),
-m_dispatch(new Dispatcher(this))
-{
-	_SetCallDispatcher(m_dispatch);
+class RepairService: public PyService {
 
-	PyCallable_REG_CALL(ClientStatLogger, LogString);
-}
+public:
+	RepairService(PyServiceMgr* mgr);
+	virtual ~RepairService();
 
-ClientStatLogger::~ClientStatLogger() {
-	delete m_dispatch;
-}
+protected:
+	class Dispatcher;
+	Dispatcher *const m_dispatch;
 
-PyResult ClientStatLogger::Handle_LogString(PyCallArgs &call) {
-	Call_SingleStringArg args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "Failed to decode arguments");
-		return NULL;
-	}
+	PyCallable_DECL_CALL(UnasembleItems);
+};
 
-	sLog.Error("LogFromClient", "This came from client: %s", args.arg.c_str());
-
-	return NULL;
-}
+#endif

@@ -35,6 +35,7 @@ public:
 	PyObject *GetStationExtraInfo();
 	PyObject *GetStationOpServices();
 	PyObject *GetStationServiceInfo();
+	PyObject *GetStationCount();
 	
 protected:
 };

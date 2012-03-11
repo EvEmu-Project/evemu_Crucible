@@ -53,5 +53,5 @@ PyResult UserService::Handle_GetCreateDate( PyCallArgs& call )
 {
     sLog.Debug( "UserService", "Called GetCreateDate stub." );
 
-	return NULL;
+	return new PyLong((long)Win32TimeNow());
 }

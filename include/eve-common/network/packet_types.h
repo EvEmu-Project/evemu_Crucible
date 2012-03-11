@@ -299,7 +299,7 @@ typedef enum EVEItemFlags
 	flagResearchFacilitySlotFirst	= 200,
 	flagResearchFacilitySlotLast	= 255,
 
-	//flagClone						= 400
+	flagClone						= 400
 } EVEItemFlags;
 
 //for use in the new module manager

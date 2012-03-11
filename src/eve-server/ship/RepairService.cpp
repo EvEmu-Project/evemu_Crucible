@@ -25,29 +25,24 @@
 
 #include "EVEServerPCH.h"
 
-PyCallable_Make_InnerDispatcher(ClientStatLogger)
+PyCallable_Make_InnerDispatcher(RepairService)
 
-ClientStatLogger::ClientStatLogger(PyServiceMgr *mgr)
-:PyService(mgr, "clientStatLogger"),
-m_dispatch(new Dispatcher(this))
+RepairService::RepairService(PyServiceMgr *mgr)
+: PyService(mgr, "repairSvc"),
+  m_dispatch(new Dispatcher(this))
 {
 	_SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(ClientStatLogger, LogString);
+	PyCallable_REG_CALL(RepairService, UnasembleItems);
 }
 
-ClientStatLogger::~ClientStatLogger() {
+RepairService::~RepairService() {
 	delete m_dispatch;
 }
 
-PyResult ClientStatLogger::Handle_LogString(PyCallArgs &call) {
-	Call_SingleStringArg args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "Failed to decode arguments");
-		return NULL;
-	}
+PyResult RepairService::Handle_UnasembleItems(PyCallArgs &call) {
 
-	sLog.Error("LogFromClient", "This came from client: %s", args.arg.c_str());
+	sLog.Log("RepairService", "Called UnasembleItems stub.");
 
 	return NULL;
 }

@@ -647,12 +647,14 @@ DST_WARPEXIT = 11
         <objectInline>
           <stringInline value="util.KeyVal" />
           <dictInline>
+          <!--
             <dictInlineEntry key="stamp">
               <int name="stamp" />
             </dictInlineEntry>
+            -->
             <dictInlineEntry key="state">
               <!-- this is the big nasty state buffer -->
-              <buffer name="destiny_state" />
+              <buffer name="destiny_state" /> 
             </dictInlineEntry>
             <dictInlineEntry key="ego">
               <int name="ego" />

@@ -160,7 +160,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
         if(!sDatabase.RunQuery(res,
             "SELECT "
             " entity.itemID AS locationID,"
-            " entity.itemName as locationName,"
+            " entity.itemName AS locationName,"
             " entity.x AS x,"
             " entity.y AS y,"
             " entity.z AS z,"

@@ -450,7 +450,7 @@ void Client::MoveToLocation( uint32 location, const GPoint& pt )
             NULL, NULL
         );
 
-        GetShip()->Move( solarSystemID, flagShipOffline );
+        GetShip()->Move( solarSystemID, flagAutoFit );
         GetShip()->Relocate( pt );
     }
     else
@@ -513,7 +513,7 @@ void Client::BoardShip(ShipRef new_ship) {
         m_system->RemoveClient(this);
 
     _SetSelf( new_ship );
-    //m_char->MoveInto( *new_ship, flagPilot, true );
+  //  m_char->MoveInto( *new_ship, flagPilot, true );
 
     new_ship->GetOperator()->SetOperatorObject(this);
 
@@ -541,6 +541,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     {
         mSession.Clear( "stationid" );
 		mSession.Clear( "stationid2" );
+		mSession.Clear( "worldspaceid" );
 
         mSession.SetInt( "solarsystemid", character->solarSystemID() );
         mSession.SetInt( "locationid", character->solarSystemID() );
@@ -551,6 +552,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
 
         mSession.SetInt( "stationid", character->stationID() );
 		mSession.SetInt( "stationid2", character->stationID() );
+		mSession.SetInt( "worldspaceid", character->stationID() );
         mSession.SetInt( "locationid", character->stationID() );
     }
     mSession.SetInt( "solarsystemid2", character->solarSystemID() );
@@ -564,7 +566,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     mSession.SetLong( "rolesAtHQ", character->rolesAtHQ() );
     mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
 
-    mSession.SetInt( "shipid", character->locationID() );
+    mSession.SetInt( "shipid", GetShipID() );
 }
 
 void Client::_UpdateSession2( uint32 characterID )
@@ -620,6 +622,7 @@ void Client::_UpdateSession2( uint32 characterID )
     {
         mSession.Clear( "stationid" );
 		mSession.Clear( "stationid2" );
+		mSession.Clear( "worldspaceid" );
 
         mSession.SetInt( "solarsystemid", solarSystemID );
         mSession.SetInt( "locationid", solarSystemID );
@@ -1102,16 +1105,16 @@ bool Client::SelectCharacter( uint32 char_id )
     }
 
     ShipRef ship = m_services.item_factory.GetShip( GetShipID() );
-    if( !ship )
-    {
+   if( !ship )
+   {
         // Release the item factory now that the ItemFactory is finished being used:
         m_services.item_factory.UnsetUsingClient();
         return false;
-    }
+   }
 
-    ship->Load( m_services.item_factory, GetShipID() );
+   ship->Load( m_services.item_factory, GetShipID() );
 
-    BoardShip( ship );
+   BoardShip( ship );
 
     if( !EnterSystem( true ) )
     {
