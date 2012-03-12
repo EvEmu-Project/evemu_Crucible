@@ -114,7 +114,6 @@ public:
 	virtual void MakeDamageState(DoDestinyDamageState &into) const = 0;
 	//return ownership of a new damage state tuple (calls MakeDamageState)
 	PyTuple *MakeDamageState() const;
-	
 	//Im not happy with these being here..
 	virtual void TargetAdded(SystemEntity *who) = 0;
 	virtual void TargetLost(SystemEntity *who) = 0;

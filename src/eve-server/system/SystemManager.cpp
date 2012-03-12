@@ -668,7 +668,7 @@ void SystemManager::MakeSetState(const SystemBubble *bubble, DoDestiny_SetState 
 
     AddBall_header head;
 	head.packet_type = 0;
-	//head.sequence = ss.stamp;
+	head.sequence = ss.stamp;
     stateBuffer->Append( head );
 
 

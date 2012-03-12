@@ -1361,13 +1361,11 @@ void DestinyManager::SendGateActivity() const {
 void DestinyManager::SendSetState(const SystemBubble *b) const {
 	DoDestiny_SetState ss;
 	
-	//ss.stamp = GetStamp();
+	ss.stamp = GetStamp();
 	ss.ego = m_self->GetID();
 	m_system->MakeSetState(b, ss);
 
 	PyTuple *tmp = ss.Encode();
-	//PyTuple* tmp = new PyTuple(1);
-	//tmp->SetItem(0, new PyNone());
 	SendSingleDestinyUpdate(&tmp, true);	//consumed
 }
 

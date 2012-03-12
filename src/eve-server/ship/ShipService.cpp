@@ -1116,30 +1116,18 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call)
     }
 
 	newShip = args.arg1;
-	oldShip = args.arg2;
 
-	ShipRef newShipRef = m_manager->item_factory.GetShip(newShip);
-	ShipRef oldShipRef = m_manager->item_factory.GetShip(oldShip);
+	ShipRef newShipRef = call.client->services().item_factory.GetShip(newShip);
 
-	//call.client->System()->bubbles.Remove( call.client, true );
+	call.client->System()->bubbles.Remove(call.client, true );
 	call.client->BoardShip(newShipRef);
 
-	//call.client->System()->bubbles.Add(call.client, true);
+	call.client->System()->bubbles.Add(call.client, true);
 
-	PyDict* dict = new PyDict();
+	PyTuple* rsp = new PyTuple(3);
+	rsp->SetItem(0, new PyDict);
+	rsp->SetItem(1, new PyDict);
+	rsp->SetItem(2, new PyDict);
 
-	dict->SetItemString("instanceID", new PyInt(0));
-	dict->SetItemString("online", new PyBool(false));
-	dict->SetItemString("damage", new PyFloat(0));
-	dict->SetItemString("charge", new PyFloat(0));
-	dict->SetItemString("skillPoints", new PyInt(0));
-	dict->SetItemString("armorDamage", new PyFloat(0));
-	dict->SetItemString("shieldCharge", new PyFloat(0));
-	dict->SetItemString("incapacitated", new PyBool(false));
-
-	PyTuple* rsp = new PyTuple(1);
-
-	rsp->SetItem(0, dict);
-
-	return (PyRep*)rsp;
+	return rsp;
 }
