@@ -111,10 +111,14 @@ Inventory *Inventory::Cast(InventoryItemRef item)
         case EVEDB::invGroups::Audit_Log_Secure_Container:
         case EVEDB::invGroups::Cargo_Container:
         case EVEDB::invGroups::Freight_Container:
-        case EVEDB::invGroups::Spawn_Container:				 return CargoContainerRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Station:						 return StationRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Character:					 return CharacterRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Solar_System:				 return SolarSystemRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Spawn_Container:				
+			return CargoContainerRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Station:						 
+			return StationRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Character:					
+			return CharacterRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Solar_System:				 
+			return SolarSystemRef::StaticCast( item ).get();
     }
 
     // maybe add extra debug info on what for type or item.
