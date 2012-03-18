@@ -43,6 +43,14 @@
 /*
  * Configuration
  */
+// BOOST_DATE_TIME_NO_LIB
+// Disable linking of boost date_time library.
+#cmakedefine BOOST_DATE_TIME_NO_LIB 1
+
+// BOOST_REGEX_NO_LIB
+// Disable linking of boost regex library
+#cmakedefine BOOST_REGEX_NO_LIB 1
+
 // NDEBUG
 // Define this if you want a non-debug (release) build
 // CMake passes this as a command-line define.
@@ -55,6 +63,6 @@
 // The version of source.
 //#define EVEMU_VERSION "@PROJECT_VERSION@"
 
-// TINYXML_USE_STL
+// TIXML_USE_STL
 // Define this if tinyxml should use native STL.
-#cmakedefine TINYXML_USE_STL 1
+#cmakedefine TIXML_USE_STL 1
