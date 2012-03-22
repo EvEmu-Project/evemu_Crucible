@@ -292,12 +292,6 @@ void StationEntity::EncodeDestiny( Buffer& into ) const
 		main.formationID = 0xFF;
         into.Append( main );
 
-        const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
-        into.Append( nameLen );
-
-        const Buffer::iterator<uint16> name = into.end<uint16>();
-        into.ResizeAt( name, nameLen );
-        utf8::utf8to16( itemName.begin(), itemName.end(), name );
 	}
 */
     BallHeader head;
@@ -323,13 +317,6 @@ void StationEntity::EncodeDestiny( Buffer& into ) const
     miniball.z = 27878.900;
     miniball.radius = 1639.241;
     into.Append( miniball );
-
-    const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
-    into.Append( nameLen );
-
-    const Buffer::iterator<uint16> name = into.end<uint16>();
-    into.ResizeAt( name, nameLen );
-    utf8::utf8to16( itemName.begin(), itemName.end(), name );
 }
 
 void StationEntity::MakeDamageState(DoDestinyDamageState &into) const {

@@ -110,13 +110,6 @@ void SystemPlanetEntity::EncodeDestiny( Buffer& into ) const
     DSTBALL_RIGID_Struct main;
 	main.formationID = 0xFF;
     into.Append( main );
-
-    const uint8 nameLen = utf8::distance( data.itemName.begin(), data.itemName.end() );
-    into.Append( nameLen );
-
-    const Buffer::iterator<uint16> name = into.end<uint16>();
-    into.ResizeAt( name, nameLen );
-    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), name );
 }
 
 SystemStationEntity::SystemStationEntity(SystemManager *system, const DBSystemEntity &entity)
@@ -148,13 +141,6 @@ void SystemStationEntity::EncodeDestiny( Buffer& into ) const
     miniball.z = 27878.900;
     miniball.radius = 1639.241;
     into.Append( miniball );
-
-    const uint8 nameLen = utf8::distance( data.itemName.begin(), data.itemName.end() );
-    into.Append( nameLen );
-
-    const Buffer::iterator<uint16> name = into.end<uint16>();
-    into.ResizeAt( name, nameLen );
-    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), name );
 }
 
 PyDict *SystemStationEntity::MakeSlimItem() const {
@@ -228,13 +214,6 @@ void SystemAsteroidBeltEntity::EncodeDestiny( Buffer& into ) const
     DSTBALL_RIGID_Struct main;
 	main.formationID = 0xFF;
     into.Append( main );
-
-    const uint8 nameLen = utf8::distance( data.itemName.begin(), data.itemName.end() );
-    into.Append( nameLen );
-
-    const Buffer::iterator<uint16> name = into.end<uint16>();
-    into.ResizeAt( name, nameLen );
-    utf8::utf8to16( data.itemName.begin(), data.itemName.end(), name );
 }
 
 bool SystemAsteroidBeltEntity::LoadExtras(SystemDB *db) {
@@ -332,13 +311,6 @@ void SystemDungeonEntranceEntity::EncodeDestiny( Buffer& into ) const
     miniball.z = 27878.900;
     miniball.radius = 1639.241;
     into.Append( miniball );
-
-    const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
-    into.Append( nameLen );
-
-    const Buffer::iterator<uint16> name = into.end<uint16>();
-    into.ResizeAt( name, nameLen );
-    utf8::utf8to16( itemName.begin(), itemName.end(), name );
 }
 
 

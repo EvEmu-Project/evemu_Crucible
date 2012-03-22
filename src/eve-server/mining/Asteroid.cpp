@@ -136,13 +136,6 @@ void AsteroidEntity::EncodeDestiny( Buffer& into ) const
         DSTBALL_STOP_Struct main;
 		main.formationID = 0xFF;
         into.Append( main );
-
-        const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
-        into.Append( nameLen );
-
-        const Buffer::iterator<uint16> name = into.end<uint16>();
-        into.ResizeAt( name, nameLen );
-        utf8::utf8to16( itemName.begin(), itemName.end(), name );
 	}
 */
     BallHeader head;
@@ -170,12 +163,6 @@ void AsteroidEntity::EncodeDestiny( Buffer& into ) const
     miniball.radius = 1639.241;
     into.Append( miniball );
 */
-    const uint8 nameLen = utf8::distance( itemName.begin(), itemName.end() );
-    into.Append( nameLen );
-
-    const Buffer::iterator<uint16> name = into.end<uint16>();
-    into.ResizeAt( name, nameLen );
-    utf8::utf8to16( itemName.begin(), itemName.end(), name );
 }
 
 void AsteroidEntity::MakeDamageState(DoDestinyDamageState &into) const {
