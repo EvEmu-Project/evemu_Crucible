@@ -313,7 +313,7 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_SetSpeedFraction">
+  <elementDef name="DoDestiny_CmdSetSpeedFraction">
 	  <tupleInline>
 	    <!-- 0 -->
 	    <stringInline value="SetSpeedFraction" />
@@ -369,7 +369,7 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_FollowBall">
+  <elementDef name="DoDestiny_CmdFollowBall">
 	  <tupleInline>
 	    <!-- 0 -->
 	    <stringInline value="FollowBall" />
@@ -386,7 +386,7 @@ DST_WARPEXIT = 11
   <elementDef name="DoDestiny_CmdStop">
 	  <tupleInline>
 	    <!-- 0 -->
-	    <stringInline value="CmdStop" />
+	    <stringInline value="Stop" />
 	    <!-- 1 -->
 	    <tupleInline>
 		    <!-- 0 -->
@@ -398,7 +398,7 @@ DST_WARPEXIT = 11
   <elementDef name="DoDestiny_CmdGotoDirection">
 	  <tupleInline>
 	    <!-- 0 -->
-	    <stringInline value="CmdGotoDirection" />
+	    <stringInline value="GotoDirection" />
 	    <!-- 1 -->
 	    <tupleInline>
 		    <int name="entityID" />
@@ -409,7 +409,7 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_AlignTo">
+  <elementDef name="DoDestiny_CmdAlignTo">
     <tupleInline>
       <!-- 0 -->
       <stringInline value="AlignTo" />
@@ -497,7 +497,7 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_SetMaxSpeed">
+  <elementDef name="DoDestiny_CmdSetMaxSpeed">
 	  <tupleInline>
 	    <!-- 0 -->
 	    <stringInline value="SetMaxSpeed" />
@@ -509,7 +509,7 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_WarpTo">
+  <elementDef name="DoDestiny_CmdWarpTo">
 	  <tupleInline>
 	    <!-- 0 -->
 	    <stringInline value="WarpTo" />
@@ -555,7 +555,7 @@ DST_WARPEXIT = 11
 	  </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_Orbit">
+  <elementDef name="DoDestiny_CmdOrbit">
 	  <tupleInline>
 	    <!-- 0 -->
 	    <stringInline value="Orbit" />

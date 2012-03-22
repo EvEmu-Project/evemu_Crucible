@@ -289,10 +289,6 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
             call.client->z() - dockOrientation.z*1.0e6
         );
 
-	//move away from dock
-    //call.client->Destiny()->AlignTo( dest, true );
-    //call.client->Destiny()->SetSpeedFraction( 1.0, true );
-	
 	//prevent client from stopping ship automatically stopping - this is sloppy
 
     //revert custom info, for testing.

@@ -868,7 +868,7 @@ void DestinyManager::Halt(bool update) {
 		std::vector<PyTuple *> updates;
 		
 		{
-		DoDestiny_SetSpeedFraction du;
+		DoDestiny_CmdSetSpeedFraction du;
 		du.entityID = m_self->GetID();
 		du.fraction = 0.0;
 	
@@ -936,7 +936,7 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
 	}
 	
 	if(update) {
-		DoDestiny_Orbit du;
+		DoDestiny_CmdOrbit du;
 		du.entityID = m_self->GetID();
 		du.orbitEntityID = who->GetID();
 		du.distance = uint32(distance);
@@ -1006,7 +1006,7 @@ void DestinyManager::SetSpeedFraction(double fraction, bool update) {
 	_UpdateDerrived();
 	
 	if(update) {
-		DoDestiny_SetSpeedFraction du;
+		DoDestiny_CmdSetSpeedFraction du;
 		du.entityID = m_self->GetID();
 		du.fraction = fraction;
 		
@@ -1221,7 +1221,7 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
 		std::vector<PyTuple *> updates;
 		
 		{
-		DoDestiny_WarpTo du;
+		DoDestiny_CmdWarpTo du;
 		du.entityID = m_self->GetID();
 		du.dest_x = where.x;
 		du.dest_y = where.y;
@@ -1330,7 +1330,7 @@ void DestinyManager::SendJumpIn() const {
 	effect.active = 0;
 	updates.push_back(effect.Encode());
 
-	DoDestiny_SetSpeedFraction ssf;
+	DoDestiny_CmdSetSpeedFraction ssf;
 	ssf.entityID = m_self->GetID();
 	ssf.fraction = 0.0;
 	updates.push_back(ssf.Encode());
@@ -1461,7 +1461,7 @@ void DestinyManager::SendEjectShip(const ShipRef capsuleRef, const ShipRef oldSh
     //du_slimItemOldShip.
 
     // Set Capsule's max velocity:
-    DoDestiny_SetMaxSpeed du_setMaxSpeed;
+    DoDestiny_CmdSetMaxSpeed du_setMaxSpeed;
     du_setMaxSpeed.entityID = capsuleRef->itemID();
     du_setMaxSpeed.speed = capsuleRef->GetAttribute(AttrMaxVelocity).get_float();
     updates.push_back(du_setMaxSpeed.Encode());

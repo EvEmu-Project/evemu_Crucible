@@ -41,18 +41,18 @@ public:
 
         m_strBoundObjectName = "BeyonceBound";
 		
-		PyCallable_REG_CALL(BeyonceBound, FollowBall)
-		PyCallable_REG_CALL(BeyonceBound, Orbit)
-		PyCallable_REG_CALL(BeyonceBound, AlignTo)
+		PyCallable_REG_CALL(BeyonceBound, CmdFollowBall)
+		PyCallable_REG_CALL(BeyonceBound, CmdOrbit)
+		PyCallable_REG_CALL(BeyonceBound, CmdAlignTo)
 		PyCallable_REG_CALL(BeyonceBound, CmdGotoDirection)
-        PyCallable_REG_CALL(BeyonceBound, GotoBookmark)
-		PyCallable_REG_CALL(BeyonceBound, SetSpeedFraction)
+        PyCallable_REG_CALL(BeyonceBound, CmdGotoBookmark)
+		PyCallable_REG_CALL(BeyonceBound, CmdSetSpeedFraction)
 		PyCallable_REG_CALL(BeyonceBound, CmdStop)
-		PyCallable_REG_CALL(BeyonceBound, WarpToStuff)
-		PyCallable_REG_CALL(BeyonceBound, Dock)
-		PyCallable_REG_CALL(BeyonceBound, StargateJump)
+		PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuff)
+		PyCallable_REG_CALL(BeyonceBound, CmdDock)
+		PyCallable_REG_CALL(BeyonceBound, CmdStargateJump)
 		PyCallable_REG_CALL(BeyonceBound, UpdateStateRequest)
-		PyCallable_REG_CALL(BeyonceBound, WarpToStuffAutopilot)
+		PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuffAutopilot)
 
 		if(c->Destiny() != NULL)
 			c->Destiny()->SendSetState(c->Bubble());
@@ -63,18 +63,18 @@ public:
 		delete this;
 	}
 	
-	PyCallable_DECL_CALL(FollowBall)
-	PyCallable_DECL_CALL(Orbit)
-	PyCallable_DECL_CALL(AlignTo)
+	PyCallable_DECL_CALL(CmdFollowBall)
+	PyCallable_DECL_CALL(CmdOrbit)
+	PyCallable_DECL_CALL(CmdAlignTo)
 	PyCallable_DECL_CALL(CmdGotoDirection)
-    PyCallable_DECL_CALL(GotoBookmark)
-	PyCallable_DECL_CALL(SetSpeedFraction)
+    PyCallable_DECL_CALL(CmdGotoBookmark)
+	PyCallable_DECL_CALL(CmdSetSpeedFraction)
 	PyCallable_DECL_CALL(CmdStop)
-	PyCallable_DECL_CALL(WarpToStuff)
-	PyCallable_DECL_CALL(Dock)
-	PyCallable_DECL_CALL(StargateJump)
+	PyCallable_DECL_CALL(CmdWarpToStuff)
+	PyCallable_DECL_CALL(CmdDock)
+	PyCallable_DECL_CALL(CmdStargateJump)
 	PyCallable_DECL_CALL(UpdateStateRequest)
-	PyCallable_DECL_CALL(WarpToStuffAutopilot)
+	PyCallable_DECL_CALL(CmdWarpToStuffAutopilot)
 
 protected:
 	Dispatcher *const m_dispatch;
@@ -134,7 +134,7 @@ PyResult BeyonceService::Handle_(PyCallArgs &call) {
 }
 */
 
-PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
 	Call_FollowBall args;
 	if(!args.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: Failed to decode arguments.", call.client->GetName());
@@ -174,7 +174,7 @@ PyResult BeyonceBound::Handle_FollowBall(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult BeyonceBound::Handle_SetSpeedFraction(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdSetSpeedFraction(PyCallArgs &call) {
 	Call_SingleRealArg arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
@@ -197,7 +197,7 @@ PyResult BeyonceBound::Handle_SetSpeedFraction(PyCallArgs &call) {
  * AlignTo to have it respond with gotopoint.
  * @author Xanarox
 */
-PyResult BeyonceBound::Handle_AlignTo(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
 	CallAlignTo arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
@@ -246,7 +246,7 @@ PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult BeyonceBound::Handle_GotoBookmark(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
 
 	if( !(call.tuple->GetItem( 0 )->IsInt()) )
     {
@@ -308,7 +308,7 @@ PyResult BeyonceBound::Handle_GotoBookmark(PyCallArgs &call) {
     return NULL;
 }
 
-PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
 	Call_Orbit arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
@@ -347,7 +347,7 @@ PyResult BeyonceBound::Handle_Orbit(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
 	CallWarpToStuff arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
@@ -579,7 +579,7 @@ PyResult BeyonceBound::Handle_WarpToStuff(PyCallArgs &call) {
 	return NULL;
 }
 
-PyResult BeyonceBound::Handle_WarpToStuffAutopilot(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
 	CallWarpToStuffAutopilot arg;
 	
 	if(!arg.Decode(&call.tuple)) {
@@ -638,12 +638,12 @@ PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
 	}
 		
 
-	//destiny->Stop();
+	destiny->Stop();
 
 	return NULL;
 }
 
-PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
     Call_TwoIntegerArgs arg;
 	if(!arg.Decode(&call.tuple)) {
 		codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
@@ -666,7 +666,7 @@ PyResult BeyonceBound::Handle_Dock(PyCallArgs &call) {
     return destiny->AttemptDockOperation();
 }
 
-PyResult BeyonceBound::Handle_StargateJump(PyCallArgs &call) {
+PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
 	//Call_TwoIntegerArgs arg;
 	Call_StargateJump arg;
 	if(!arg.Decode(&call.tuple)) {
