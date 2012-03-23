@@ -905,7 +905,7 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
 	}
 	
 	if(update) {
-		DoDestiny_FollowBall du;
+		DoDestiny_CmdFollowBall du;
 		du.entityID = m_self->GetID();
 		du.ballID = who->GetID();
 		du.unknown = uint32(distance);
