@@ -1,5 +1,5 @@
 # Introduction
-EVEmu modified to support the latest Crucible client
+EVEmu modified to support the latest Crucible client v353549
 
 # Disclaimer
 
