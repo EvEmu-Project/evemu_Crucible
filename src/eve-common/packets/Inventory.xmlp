@@ -190,9 +190,7 @@
   <elementDef name="Rsp_ItemGetInfo">
     <objectInline>
       <stringInline value="util.KeyVal" />
-	    
-		      <element name="entry" type="Rsp_CommonGetInfo_Entry" />
-	    
+		  <element name="entry" type="Rsp_CommonGetInfo_Entry" />	    
     </objectInline>
   </elementDef>
 
