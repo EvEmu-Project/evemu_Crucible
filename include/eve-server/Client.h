@@ -139,6 +139,7 @@ public:
 	double GetBounty() const                        { return GetChar() ? GetChar()->bounty() : 0.0; }
 	double GetSecurityRating() const                { return GetChar() ? GetChar()->securityRating() : 0.0; }
 	double GetBalance() const                       { return GetChar() ? GetChar()->balance() : 0.0; }
+	double GetAurBalance() const					{ return GetChar() ? GetChar()->aurBalance() : 0.0; }
 
 	bool AddBalance(double amount);
 
