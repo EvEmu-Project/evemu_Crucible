@@ -1007,9 +1007,11 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
 
         if( m_manager->LookupService("slash") != NULL )
             static_cast<SlashService *>(m_manager->LookupService("slash"))->SlashCommand( call.client, message );
+
+        message = " ";      // Still transmit some message but minimal so that chat window is not "locked" by client for not getting a chat
     }
-    else
-	    res->second->SendMessage( call.client, message.c_str() );
+
+    res->second->SendMessage( call.client, message.c_str() );
 
     return new PyInt( 1 );
 }
