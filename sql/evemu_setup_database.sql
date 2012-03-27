@@ -1,5 +1,5 @@
 use evemu;
-source inc15-mysql5-v1.sql;
+source cru11-mysql5-innoDB-v1.sql;
 source ofic-updates.sql;
 source evemu_static-dump.sql;
 source evemu_dynamic-dump.sql;
