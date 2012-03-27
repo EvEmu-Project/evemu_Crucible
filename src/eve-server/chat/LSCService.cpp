@@ -1001,7 +1001,16 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
         return NULL;
     }
 
-	res->second->SendMessage( call.client, message.c_str() );
+    if( message.at(0) == '.' )
+    {
+        sLog.Debug( "LSCService::Handle_SendMessage()", "CALL to SlashService->SlashCmd() via LSC Service, baby!" );
+
+        if( m_manager->LookupService("slash") != NULL )
+            static_cast<SlashService *>(m_manager->LookupService("slash"))->SlashCommand( call.client, message );
+    }
+    else
+	    res->second->SendMessage( call.client, message.c_str() );
+
     return new PyInt( 1 );
 }
 

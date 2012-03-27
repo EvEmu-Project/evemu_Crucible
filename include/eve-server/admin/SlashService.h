@@ -35,6 +35,8 @@ public:
 	SlashService(PyServiceMgr *mgr, CommandDispatcher *cd);
 	virtual ~SlashService();
 
+    PyResult SlashCommand(Client * client, std::string command);
+
 protected:
 	class Dispatcher;
 	Dispatcher *const m_dispatch;

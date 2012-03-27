@@ -93,12 +93,6 @@ PyBoundObject *SlashService::_CreateBoundObject(Client *c, PyTuple *bind_args) {
 
 PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
 {
-    if( !( call.client->GetAccountRole() & ROLE_SLASH ) )
-    {
-        _log( SERVICE__ERROR, "%s: Client '%s' used a slash command but does not have ROLE_SLASH. Modified client?", GetName(), call.client->GetName() );
-        throw PyException( MakeCustomError( "You need to have ROLE_SLASH to execute commands." ) );
-    }
-
     Call_SingleWStringSoftArg arg;
     if( !arg.Decode( &call.tuple ) )
     {
@@ -106,7 +100,18 @@ PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
         return NULL;
     }
 
-    sLog.Debug( "SlashService::Handle_SlashCmd()", "Slash command called: '%s'", arg.arg.c_str() );
+    return SlashCommand( call.client, arg.arg );
+}
 
-    return m_commandDispatch->Execute( call.client, arg.arg.c_str() );
+PyResult SlashService::SlashCommand(Client * client, std::string command)
+{
+    if( !( client->GetAccountRole() & ROLE_SLASH ) )
+    {
+        _log( SERVICE__ERROR, "%s: Client '%s' used a slash command but does not have ROLE_SLASH. Modified client?", GetName(), client->GetName() );
+        throw PyException( MakeCustomError( "You need to have ROLE_SLASH to execute commands." ) );
+    }
+
+    sLog.Debug( "SlashService::Handle_SlashCmd()", "Slash command called: '%s'", command.c_str() );
+
+    return m_commandDispatch->Execute( client, command.c_str() );
 }
