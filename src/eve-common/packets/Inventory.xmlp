@@ -189,21 +189,10 @@
   
   <elementDef name="Rsp_ItemGetInfo">
     <objectInline>
-      <stringInline value="util.Row" />
-	    <dictInline>
-	      <dictInlineEntry key="header">
-		      <listInline>
-		        <stringInline value="itemID" />
-		        <stringInline value="invItem" />
-		        <stringInline value="activeEffects" />
-		        <stringInline value="attributes" />
-		        <stringInline value="time" />
-          </listInline>
-	      </dictInlineEntry>
-	      <dictInlineEntry key="line">
+      <stringInline value="util.KeyVal" />
+	    
 		      <element name="entry" type="Rsp_CommonGetInfo_Entry" />
-	      </dictInlineEntry>
-	    </dictInline>
+	    
     </objectInline>
   </elementDef>
 
