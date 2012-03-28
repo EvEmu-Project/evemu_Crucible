@@ -1452,7 +1452,7 @@ bool InventoryDB::GetSolarSystem(uint32 solarSystemID, SolarSystemData &into) {
     into.factionID = (row.IsNull(15) ? 0 : row.GetUInt(15));
     into.radius = row.GetDouble(16);
     into.sunTypeID = row.GetUInt(17);
-    into.securityClass = row.GetText(18);
+    into.securityClass = (row.IsNull(18) ? (std::string("")) : row.GetText(18));
 
     return true;
 }
