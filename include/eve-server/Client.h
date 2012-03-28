@@ -121,7 +121,7 @@ public:
 	uint64 GetRolesAtHQ() const                     { return mSession.GetCurrentLong( "rolesAtHQ" ); }
 	uint64 GetRolesAtOther() const                  { return mSession.GetCurrentLong( "rolesAtOther" ); }
 
-	uint32 GetShipID() const                        { return mSession.GetCurrentInt( "shipid" ); }
+	uint32 GetShipID() const                        { return m_shipId; }
     uint32 GetGangRole() const                      { return mSession.GetCurrentInt( "gangrole" ); }
 
 	// character data
@@ -139,6 +139,7 @@ public:
 	double GetBounty() const                        { return GetChar() ? GetChar()->bounty() : 0.0; }
 	double GetSecurityRating() const                { return GetChar() ? GetChar()->securityRating() : 0.0; }
 	double GetBalance() const                       { return GetChar() ? GetChar()->balance() : 0.0; }
+	double GetAurBalance() const					{ return GetChar() ? GetChar()->aurBalance() : 0.0; }
 
 	bool AddBalance(double amount);
 
@@ -260,6 +261,8 @@ protected:
     uint32 m_dockStationID;
 	void _ExecuteJump();
     bool m_needToDock;
+
+	uint32 m_shipId;
 
     // THESE VARIABLES ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
     // Capt: the reason why the client sends stop is because we undock with the shit already

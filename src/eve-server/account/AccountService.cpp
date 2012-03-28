@@ -46,30 +46,47 @@ AccountService::~AccountService() {
 }
 
 PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
-	Call_SingleArg args;
-	if(!args.Decode(&call.tuple)) {
-		args.arg = new PyInt(0);
+	const int32 ACCOUNT_KEY_AURUM = 1200;
+
+	bool hasAccountKey = false;
+	int32 accountKey = 0;
+	if (call.byname.find("accountKey") != call.byname.end())
+	{
+		hasAccountKey = true;
+		accountKey = call.byname.find("accountKey")->second->AsInt()->value();
 	}
+
+	if (call.tuple->size() >= 1)
+	{
+		Call_SingleArg args;
+		if(!args.Decode(&call.tuple)) {
+			args.arg = new PyInt(0);
+		}
 	
-	//we can get an integer or a boolean right now...
-	bool corporate_wallet = false;
+		//we can get an integer or a boolean right now...
+		bool corporate_wallet = false;
 	
-	if( args.arg->IsInt() )
-		corporate_wallet = ( args.arg->AsInt()->value() != 0 );
-	else if( args.arg->IsBool() )
-		corporate_wallet = args.arg->AsBool()->value();
-	else
-    {
-		codelog(CLIENT__ERROR, "Invalid arguments");
-		return NULL;
+		if( args.arg->IsInt() )
+			corporate_wallet = ( args.arg->AsInt()->value() != 0 );
+		else if( args.arg->IsBool() )
+			corporate_wallet = args.arg->AsBool()->value();
+		else
+		{
+			codelog(CLIENT__ERROR, "Invalid arguments");
+			return NULL;
+		}
+	
+		if(corporate_wallet)
+			//corporate wallet
+			return new PyFloat( m_db.GetCorpBalance( call.client->GetCorporationID() ) );
+		else
+			//personal wallet
+			return new PyFloat( call.client->GetBalance() );
 	}
-	
-	if(corporate_wallet)
-        //corporate wallet
-		return new PyFloat( m_db.GetCorpBalance( call.client->GetCorporationID() ) );
-    else
-        //personal wallet
-		return new PyFloat( call.client->GetBalance() );
+	else if (hasAccountKey && accountKey == ACCOUNT_KEY_AURUM)
+	{
+		return new PyFloat(call.client->GetAurBalance());
+	}
 }
 
 //givecash takes (ownerID, retval['qty'], retval['reason'][:40])

@@ -517,7 +517,9 @@ void Client::BoardShip(ShipRef new_ship) {
 
     new_ship->GetOperator()->SetOperatorObject(this);
 
-    mSession.SetInt( "shipid", new_ship->itemID() );
+	m_shipId = new_ship->itemID();
+	if (IsInSpace())
+		mSession.SetInt( "shipid", new_ship->itemID() );
 
     GetShip()->UpdateModules();
 
@@ -565,8 +567,6 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     mSession.SetLong( "rolesAtBase", character->rolesAtBase() );
     mSession.SetLong( "rolesAtHQ", character->rolesAtHQ() );
     mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
-
-    mSession.SetInt( "shipid", GetShipID() );
 }
 
 void Client::_UpdateSession2( uint32 characterID )
@@ -646,7 +646,9 @@ void Client::_UpdateSession2( uint32 characterID )
     mSession.SetLong( "rolesAtHQ", rolesAtHQ );
     mSession.SetLong( "rolesAtOther", rolesAtOther );
 
-    mSession.SetInt( "shipid", shipID );
+	m_shipId = shipID;
+	if (IsInSpace())
+		mSession.SetInt( "shipid", shipID );
 }
 
 void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel )
