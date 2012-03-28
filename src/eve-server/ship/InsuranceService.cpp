@@ -29,43 +29,37 @@
 
 PyCallable_Make_InnerDispatcher(InsuranceService)
 
-
-/*
 class InsuranceBound
 : public PyBoundObject {
 public:
 	
-	class Dispatcher
-	: public PyCallableDispatcher<InsuranceBound> {
-	public:
-		Dispatcher(InsuranceBound *c)
-		: PyCallableDispatcher<InsuranceBound>(c) {}
-	};
+	PyCallable_Make_Dispatcher(InsuranceBound)
 	
-	InsuranceBound(PyServiceMgr *mgr, InsuranceDB *db)
-	: PyBoundObject(mgr, "InsuranceBound"),
+	InsuranceBound(PyServiceMgr *mgr, ShipDB* db)
+	: PyBoundObject(mgr),
 	  m_db(db),
 	  m_dispatch(new Dispatcher(this))
 	{
 		_SetCallDispatcher(m_dispatch);
-		
-		PyCallable_REG_CALL(InsuranceBound, )
-		PyCallable_REG_CALL(InsuranceBound, )
+
+		PyCallable_REG_CALL(InsuranceBound, GetInsurancePrice)
+
+		m_strBoundObjectName = "InsuranceBound";
 	}
-	virtual ~InsuranceBound() {}
+
+	virtual ~InsuranceBound() { delete m_dispatch; }
 	virtual void Release() {
 		//I hate this statement
 		delete this;
 	}
-	
-	PyCallable_DECL_CALL()
-	PyCallable_DECL_CALL()
+
+	PyCallable_DECL_CALL(GetInsurancePrice)
+
 
 protected:
-	InsuranceDB *const m_db;
+	ShipDB* m_db;
 	Dispatcher *const m_dispatch;
 };
-*/
 
 
 InsuranceService::InsuranceService(PyServiceMgr *mgr)
@@ -75,23 +69,31 @@ InsuranceService::InsuranceService(PyServiceMgr *mgr)
 	_SetCallDispatcher(m_dispatch);
 
 	PyCallable_REG_CALL(InsuranceService, GetContractForShip)
-	//PyCallable_REG_CALL(InsuranceService, )
 }
 
 InsuranceService::~InsuranceService() {
 	delete m_dispatch;
 }
 
-
-/*
 PyBoundObject* InsuranceService::_CreateBoundObject( Client* c, const PyRep* bind_args )
 {
 	_log( CLIENT__MESSAGE, "InsuranceService bind request for:" );
 	bind_args->Dump( CLIENT__MESSAGE, "    " );
 
 	return new InsuranceBound( m_manager, &m_db );
-}*/
+}
 
+PyResult InsuranceService::Handle_GetInsurancePrice( PyCallArgs& call )
+{
+	sLog.Debug("InsuranceService", "Called GetInsurancePrice stub" );
+	return new PyFloat(0.0);
+}
+
+PyResult InsuranceBound::Handle_GetInsurancePrice( PyCallArgs& call )
+{
+	sLog.Debug("InsuranceBound", "Called GetInsurancePrice stub" );
+	return new PyFloat(0.0);
+}
 
 PyResult InsuranceService::Handle_GetContractForShip( PyCallArgs& call )
 {
