@@ -517,6 +517,7 @@ void Client::BoardShip(ShipRef new_ship) {
 
     new_ship->GetOperator()->SetOperatorObject(this);
 
+	m_shipId = new_ship->itemID();
 	if (IsInSpace())
 		mSession.SetInt( "shipid", new_ship->itemID() );
 
