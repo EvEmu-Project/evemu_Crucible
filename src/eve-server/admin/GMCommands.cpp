@@ -230,7 +230,7 @@ PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const S
 
     sLog.Log( "Command", "Translocate to %u.", loc );
 
-	GPoint p( 0.0f, 1000000.0f, 0.0f ); //when going to a system, who knows where to stick them... could find a stargate and stick them near it I guess...
+	GPoint p( 0.0f, 0.0f, 1000000000.0f ); //when going to a system, who knows where to stick them... could find a stargate and stick them near it I guess...
 
 		
 	if( !IsStation( loc ) && !IsSolarSystem( loc ) )
