@@ -1,5 +1,53 @@
 <elements>
 
+  <elementDef name="Call_CreateMailingList">
+    <tupleInline>
+      <string name="name" />
+      <int name="defaultAccess" />
+      <int name="defaultMemberAccess" />
+      <int name="mailCost" optional="true" default="0" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_MemberList">
+    <tupleInline>
+      <int name="listID" />
+      <list name="memberIDs" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_ClearEntityAccess">
+    <tupleInline>
+      <int name="listID" />
+      <int name="entityID" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_SetEntityAccess">
+    <tupleInline>
+      <int name="listID" />
+      <int name="entityID" />
+      <int name="access" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_SetDefaultAccess">
+    <tupleInline>
+      <int name="listID" />
+      <int name="defaultAccess" />
+      <int name="defaultMemberAccess" />
+      <int name="mailCost" optional="true" default="0" />
+    </tupleInline>
+  </elementDef>
+  
+  <elementDef name="Call_SaveWelcomeMail">
+    <tupleInline>
+      <int name ="listID" />
+      <string name="title" />
+      <string name="body" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_EditLabel">
     <tupleInline>
       <int name="labelId" />
