@@ -567,6 +567,9 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     mSession.SetLong( "rolesAtBase", character->rolesAtBase() );
     mSession.SetLong( "rolesAtHQ", character->rolesAtHQ() );
     mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
+
+	if (IsInSpace())
+		mSession.SetInt("shipid", GetShipID());
 }
 
 void Client::_UpdateSession2( uint32 characterID )
