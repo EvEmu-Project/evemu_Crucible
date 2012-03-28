@@ -752,7 +752,9 @@ void Client::Killed(Damage &fatal_blow) {
 		//this updates m_self and manages destiny updates as needed.
 		BoardShip((ShipRef)capsule);
 
-		mSession.SetInt("shipid", capsule->itemID() );
+		m_shipId = capsule->itemID();
+		if (IsInSpace())
+			mSession.SetInt("shipid", capsule->itemID() );
 
 		//This sends the RemoveBall for the old ship.
 
