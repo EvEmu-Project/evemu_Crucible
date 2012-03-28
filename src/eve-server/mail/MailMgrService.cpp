@@ -83,17 +83,26 @@ PyResult MailMgrService::Handle_PrimeOwners(PyCallArgs &call)
 
 PyResult MailMgrService::Handle_SyncMail(PyCallArgs &call)
 {
-	Call_TwoIntegerArgs args;
-	if (!args.Decode(&call.tuple))
+	int firstId = 0, secondId = 0;
+
+	if (call.tuple->size() == 2 && !call.tuple->GetItem(0)->IsNone() && !call.tuple->GetItem(1)->IsNone())
 	{
-		codelog(CLIENT__ERROR, "Failed to decode SyncMail args");
-		return NULL;
+		Call_TwoIntegerArgs args;
+		if (!args.Decode(&call.tuple))
+		{
+			codelog(CLIENT__ERROR, "Failed to decode SyncMail args");
+			return NULL;
+		}
+
+		// referring to a mail id range
+		int firstId = args.arg1, secondId = args.arg2;
 	}
 
-	// referring to mail ids
-	int firstId = args.arg1, secondId = args.arg2;
-
-	return NULL;
+	PyDict* dummy = new PyDict;
+	dummy->SetItemString("oldMail", new PyNone());
+	dummy->SetItemString("newMail", new PyList());
+	dummy->SetItemString("mailStatus", new PyList());
+	return new PyObject("util.KeyVal", dummy);
 }
 
 PyResult MailMgrService::Handle_AssignLabels(PyCallArgs &call)
