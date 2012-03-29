@@ -65,7 +65,7 @@ bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
 	}
 
 	DBerror error;
-	if (!sDatabase.RunQuery(error, "INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, %s, %u, %u)", bit, args.name.c_str(), args.color, characterID))
+	if (!sDatabase.RunQuery(error, "INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, '%s', %u, %u)", bit, args.name.c_str(), args.color, characterID))
 	{
 		codelog(SERVICE__ERROR, "Failed to insert new mail label into database");
 		// since this is an out parameter, make sure we assign this even in case of an error
@@ -93,15 +93,15 @@ void MailDB::EditLabel(int characterID, Call_EditLabel& args) const
 	if (args.name.length() == 0)
 		sDatabase.RunQuery(error, "UPDATE mailLabel SET color = %u WHERE bit = %u AND ownerID = %u", args.color, bit, characterID);
 	else if (args.color == -1)
-		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s WHERE bit = %u AND ownerID = %u", args.name.c_str(), bit, characterID);
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = '%s' WHERE bit = %u AND ownerID = %u", args.name.c_str(), bit, characterID);
 	else
-		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s, color = %u WHERE bit = %u AND ownerID = %u", args.name.c_str(), args.color, bit, characterID);
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = '%s', color = %u WHERE bit = %u AND ownerID = %u", args.name.c_str(), args.color, bit, characterID);
 }
 
 int MailDB::BitFromLabelID(int id)
 {
 	// lets hope the compiler can do this better; I guess it still beats a floating point log, though
-	for (int i = 0; i < sizeof(int); i++)
+	for (int i = 0; i < (sizeof(int)*8); i++)
 		if ((id & (1 << i)) > 0)
 			return i;
 
