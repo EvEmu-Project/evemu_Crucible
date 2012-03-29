@@ -97,8 +97,8 @@ PyBoundObject *ShipService::_CreateBoundObject(Client *c, const PyRep *bind_args
 }
 
 PyResult ShipBound::Handle_Board(PyCallArgs &call) {
-    //Call_SingleIntegerArg args;
-	Call_TwoIntegerArgs args;
+    Call_SingleIntegerArg args;
+	//Call_TwoIntegerArgs args;
 
     // Save position for old ship
     GPoint shipPosition = call.client->GetPosition();
@@ -112,9 +112,9 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
     }
 	
     // Get ShipRef of the ship we want to board:
-	ShipRef boardShipRef = m_manager->item_factory.GetShip( args.arg1 );                 // This is too inefficient, use line below
+	ShipRef boardShipRef = m_manager->item_factory.GetShip( args.arg );                 // This is too inefficient, use line below
     //ShipRef boardShipRef = call.client->System()->GetShipFromInventory( args.arg );
-    ShipEntity * pShipEntity = (ShipEntity *)(call.client->System()->get( args.arg1 ));
+    ShipEntity * pShipEntity = (ShipEntity *)(call.client->System()->get( args.arg ));
 
     if(call.client->IsInSpace())
     {
@@ -125,7 +125,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
 		if( !boardShipRef )
         {
-			sLog.Error("ShipBound::Handle_Board()", "%s: Failed to get new ship %u.", call.client->GetName(), args.arg1);
+			sLog.Error("ShipBound::Handle_Board()", "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
 		}
 		else
 		{
@@ -206,7 +206,7 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
     // Player is NOT in space, so board ship as if in station:
     if( !boardShipRef ) {
-        sLog.Error("ShipBound::Handle_Board()", "%s: Failed to get new ship %u.", call.client->GetName(), args.arg1);
+        sLog.Error("ShipBound::Handle_Board()", "%s: Failed to get new ship %u.", call.client->GetName(), args.arg);
     }
     else
 	{
