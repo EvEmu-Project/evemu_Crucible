@@ -152,8 +152,6 @@
 #include "PyServiceCD.h"
 #include "PyServiceMgr.h"
 
-#include "InfoGatheringMgr.h"
-
 #include "account/AccountDB.h"
 #include "account/AccountService.h"
 #include "account/AuthService.h"
@@ -229,7 +227,7 @@
 #include "fleet/FleetProxy.h"
 
 // info gathering stuff
-#include "infogathering/InfoGathering.h"
+#include "infogathering/InfoGatheringMgr.h"
 
 // item stuff
 #include "inventory/AttributeEnum.h"

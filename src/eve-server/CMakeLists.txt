@@ -28,8 +28,7 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/PyServiceCD.h"
      "${TARGET_INCLUDE_DIR}/PyServiceMgr.h"
      "${TARGET_INCLUDE_DIR}/ServiceDB.h"
-     "${TARGET_INCLUDE_DIR}/LiveUpdateDB.h"
-     "${TARGET_INCLUDE_DIR}/InfoGatheringMgr.h" )
+     "${TARGET_INCLUDE_DIR}/LiveUpdateDB.h" )
 SET( SOURCE
      "${TARGET_SOURCE_DIR}/Client.cpp"
      "${TARGET_SOURCE_DIR}/ClientSession.cpp"
@@ -42,8 +41,7 @@ SET( SOURCE
      "${TARGET_SOURCE_DIR}/PyService.cpp"
      "${TARGET_SOURCE_DIR}/PyServiceMgr.cpp"
      "${TARGET_SOURCE_DIR}/ServiceDB.cpp"
-     "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp" 
-     "${TARGET_SOURCE_DIR}/InfoGatheringMgr.cpp" )
+     "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp" )
 
 SET( account_INCLUDE
      "${TARGET_INCLUDE_DIR}/account/AccountDB.h"
@@ -236,9 +234,9 @@ SET( fleet_SOURCE
 	  "${TARGET_SOURCE_DIR}/fleet/FleetProxy.cpp" )
 	  
 SET( infogathering_INCLUDE
-	  "${TARGET_INCLUDE_DIR}/infogathering/InfoGathering.h" )
+	  "${TARGET_INCLUDE_DIR}/infogathering/InfoGatheringMgr.h" )
 SET( infogathering_SOURCE
-	  "${TARGET_SOURCE_DIR}/infogathering/InfoGathering.cpp" )
+	  "${TARGET_SOURCE_DIR}/infogathering/InfoGatheringMgr.cpp" )
 	  
 SET( inventory_INCLUDE
      "${TARGET_INCLUDE_DIR}/inventory/AttributeEnum.h"
