@@ -89,7 +89,7 @@ PyRep *CertificateMgrDB::GetCertificateClasses() {
 		return(NULL);
 	}
 
-	return(DBResultToIndexRowset(res, "classID"));
+	return DBResultToIntRowDict(res, 0);
 }
 
 

@@ -1692,7 +1692,8 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.role = GetAccountRole();
     ack.address = GetAddress();
     ack.inDetention = new PyNone;
-    ack.client_hash = new PyList;
+	// no client update available
+    ack.client_hash = new PyNone;
     ack.user_clientid = GetAccountID();
     ack.live_updates = sLiveUpdateDB.GetUpdates();
     
