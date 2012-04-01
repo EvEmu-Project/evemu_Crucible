@@ -27,7 +27,7 @@
 
 int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom)
 {
-	// built a string with ',' seperated char ids
+	// build a string with ',' seperated char ids
 	std::string toStr;
 	for (size_t i = 0; i < toCharacterIDs.size(); i++)
 	{
@@ -43,11 +43,15 @@ int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID,
 	// ugh - buffer doesn't give us the actual buffer.. what the?
 	std::string bodyCompressedStr(bodyCompressed.begin<char>(), bodyCompressed.end<char>());
 
+	// escape it to not break the query with special characters
+	std::string bodyEscaped;
+	sDatabase.DoEscapeString(bodyEscaped, bodyCompressedStr);
+
 	DBerror err;
 	uint32 messageID;
 	bool status = sDatabase.RunQueryLID(err, messageID, 
 		"INSERT INTO mailMessage (senderID, toCharacterIDs, toListID, toCorpOrAllianceID, title, body, sentDate, statusMask, labelMask, unread) "
-		" VALUES (%u, '%s', %d, %d, '%s', '%s', " I64u ", 0, 0, 1)", sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(), bodyCompressedStr.c_str(), Win32TimeNow());
+		" VALUES (%u, '%s', %d, %d, '%s', '%s', " I64u ", 0, 0, 1)", sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(), bodyEscaped.c_str(), Win32TimeNow());
 
 	if (!status)
 		return 0;
