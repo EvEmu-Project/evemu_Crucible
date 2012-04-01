@@ -34,6 +34,7 @@ MailMgrService::MailMgrService(PyServiceMgr *mgr)
 {
 	_SetCallDispatcher(m_dispatch);
 
+	PyCallable_REG_CALL(MailMgrService, SendMail);
 	PyCallable_REG_CALL(MailMgrService, PrimeOwners);
 	PyCallable_REG_CALL(MailMgrService, SyncMail);
 	PyCallable_REG_CALL(MailMgrService, GetMailHeaders);
@@ -67,6 +68,19 @@ MailMgrService::MailMgrService(PyServiceMgr *mgr)
 MailMgrService::~MailMgrService() {
 	delete m_dispatch;
 	delete m_db;
+}
+
+PyResult MailMgrService::Handle_SendMail(PyCallArgs &call)
+{
+	Call_SendMail args;
+	if (!args.Decode(&call.tuple))
+	{
+		codelog(CLIENT__ERROR, "Failed to decode SendMail args");
+		return NULL;
+	}
+	
+	int sender = call.client->GetCharacterID();
+	return new PyInt(m_db->SendMail(sender, args.toCharacterIDs, args.toListID, args.toCorpOrAllianceID, args.title, args.body, args.isReplyTo, args.isForwardedFrom));
 }
 
 PyResult MailMgrService::Handle_PrimeOwners(PyCallArgs &call)
@@ -185,7 +199,9 @@ PyResult MailMgrService::Handle_GetBody(PyCallArgs &call)
 		codelog(CLIENT__ERROR, "Failed to decode GetBody args");
 		return NULL;
 	}
-	return NULL;
+	
+	m_db->SetMailUnread(args.messageId, args.isUnread);
+	return m_db->GetMailBody(args.messageId);
 }
 
 PyResult MailMgrService::Handle_GetLabels(PyCallArgs &call)
@@ -228,6 +244,9 @@ PyResult MailMgrService::Handle_MarkAsRead(PyCallArgs &call)
 		return NULL;
 	}
 
+	for (size_t i = 0; i < args.ints.size(); i++)
+		m_db->SetMailUnread(args.ints[i], false);
+
 	return NULL;
 }
 
@@ -268,6 +287,9 @@ PyResult MailMgrService::Handle_MarkAsUnread(PyCallArgs &call)
 		codelog(CLIENT__ERROR, "Failed to decode MarkAsUnread args");
 		return NULL;
 	}
+
+	for (size_t i = 0; i < args.ints.size(); i++)
+		m_db->SetMailUnread(args.ints[i], true);
 
 	return NULL;
 }

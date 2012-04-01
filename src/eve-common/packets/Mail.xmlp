@@ -1,5 +1,17 @@
 <elements>
 
+  <elementDef name="Call_SendMail">
+    <tupleInline>
+      <listInt name="toCharacterIDs" />
+      <int name="toListID" none_marker="-1" />
+      <int name="toCorpOrAllianceID" none_marker="-1" />
+      <wstring name="title" />
+      <wstring name="body" />
+      <bool name="isReplyTo" none_marker="0" />
+      <bool name="isForwardedFrom" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_CreateMailingList">
     <tupleInline>
       <wstring name="name" />

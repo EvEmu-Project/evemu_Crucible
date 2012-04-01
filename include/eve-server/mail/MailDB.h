@@ -41,6 +41,10 @@ public:
 	void DeleteLabel(int characterID, int labelID) const;
 	void EditLabel(int characterID, Call_EditLabel& args) const;
 
+	PyString* GetMailBody(int id) const;
+	void SetMailUnread(int id, bool unread);
+	int SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom);
+
 protected:
 	static int BitFromLabelID(int id);
 };
