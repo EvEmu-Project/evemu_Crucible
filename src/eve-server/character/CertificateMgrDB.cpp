@@ -81,6 +81,7 @@ PyRep *CertificateMgrDB::GetCertificateClasses() {
 		"SELECT"
 		" classID,"
 		" className,"
+		" classNameID,"
 		" description,"
 		" 0 AS dataID"
 		" FROM crtClasses"))
