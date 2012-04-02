@@ -323,6 +323,7 @@ bool CorpRegistryBound::JoinCorporation(Client *who, uint32 newCorpID, const Cor
 PyResult CorpRegistryBound::Handle_GetMember(PyCallArgs &call) {
 //    uint32 item = 0;
     //item += 1;
+	sLog.Debug( "CorpRegistryBound", "Called GetMember stub." );
     return NULL;
 }
 
@@ -384,6 +385,8 @@ PyClass
         dict["N=707075:302"]=0x1CC2383E961BFA8
 */
 PyResult CorpRegistryBound::Handle_GetMembers(PyCallArgs &call) {
+	
+	sLog.Debug( "CorpRegistryBound", "Called GetMembers stub." );
     return NULL;
 }
 

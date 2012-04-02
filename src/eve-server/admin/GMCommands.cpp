@@ -1163,3 +1163,30 @@ PyResult Command_kenny( Client* who, CommandDB* db, PyServiceMgr* services, cons
 	return NULL;
 }
 
+PyResult Command_kill( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+	if( args.argCount() == 2 )
+	{
+		if( !args.isNumber( 1 ) )
+			{
+				throw PyException( MakeCustomError( "Argument 1 should be a character ID" ) );
+			}
+		uint32 entity = atoi( args.arg( 1 ).c_str() );
+
+        InventoryItemRef itemRef = services->item_factory.GetShip(entity);
+        if( itemRef == NULL )
+            throw PyException( MakeCustomError("/kill NOT supported on non-ship types at this time") );
+
+        // WARNING: This cast of SystemEntity * to DynamicSystemEntity * will CRASH if the get() does not return
+        // an object that IS a DynamicSystemEntity!!!
+        DynamicSystemEntity * shipEntity = (DynamicSystemEntity *)(who->System()->get(entity));
+        shipEntity->Destiny()->SendTerminalExplosion();
+        shipEntity->Bubble()->Remove(shipEntity, true);
+        //itemRef->Delete();
+	}
+	else
+		throw PyException( MakeCustomError("Correct Usage: /kill <entityID>") );
+	
+	return NULL;
+}
+

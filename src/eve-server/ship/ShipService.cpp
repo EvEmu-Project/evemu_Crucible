@@ -280,15 +280,18 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     call.client->MoveToLocation(call.client->GetSystemID(), dockPosition);
 
 	//calculate undock movement
-    //GPoint dest = GPoint( call.client->x()+10000, call.client->y(), call.client->z() );
 	GPoint dest = 
         GPoint
         (
-            call.client->x() + dockOrientation.x*1.0e6,
-            call.client->y() + dockOrientation.y*1.0e6,
-            call.client->z() - dockOrientation.z*1.0e6
+            dockOrientation.x,
+            dockOrientation.y,
+            dockOrientation.z * (-1.0)      // This sign reversal is needed to correct staStationTypes z coordinate on dockOrientation due to CCP unification of coordinate systems
         );
 
+	//move away from dock
+    //call.client->Destiny()->AlignTo( dest, true );
+    //call.client->Destiny()->SetSpeedFraction( 1.0, true );
+	
 	//prevent client from stopping ship automatically stopping - this is sloppy
 
     //revert custom info, for testing.

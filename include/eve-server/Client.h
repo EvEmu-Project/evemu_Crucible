@@ -152,6 +152,7 @@ public:
 	bool SelectCharacter( uint32 char_id );
 	void JoinCorporationUpdate(uint32 corp_id);
 	void SavePosition();
+    void SaveAllToDatabase();
 	void UpdateSkillTraining();
 	
 	double GetPropulsionStrength() const;

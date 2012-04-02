@@ -117,7 +117,8 @@ bool SystemManager::_LoadSystemCelestials() {
 		        bubbles.Add(stationEntity, true);
 		        m_entityChanged = true;
             }
-            else
+            else if(( itemFactory().GetItem( cur->itemID )->groupID() == EVEDB::invGroups::Stargate ) ||
+               ( itemFactory().GetItem( cur->itemID )->groupID() == EVEDB::invGroups::Asteroid_Belt ))
             {
                 SimpleSystemEntity *se = SimpleSystemEntity::MakeEntity(this, *cur);
 		        if(se == NULL) {
@@ -131,6 +132,22 @@ bool SystemManager::_LoadSystemCelestials() {
 		        }
 		        m_entities[se->GetID()] = se;
 		        bubbles.Add(se, false);
+		        m_entityChanged = true;
+            }
+            else
+            {
+                SimpleSystemEntity *se = SimpleSystemEntity::MakeEntity(this, *cur);
+		        if(se == NULL) {
+			        codelog(SERVICE__ERROR, "Failed to create entity for item %u (type %u)", cur->itemID, cur->typeID);
+			        continue;
+		        }
+		        if(!se->LoadExtras(&m_db)) {
+			        _log(SERVICE__ERROR, "Failed to load additional data for entity %u. Skipping.", se->GetID());
+			        delete se;
+			        continue;
+		        }
+		        m_entities[se->GetID()] = se;
+		        //bubbles.Add(se, false);
 		        m_entityChanged = true;
             }
         }

@@ -70,8 +70,7 @@ Client::~Client() {
 
         // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
-        //mModulesMgr.SaveModules();                            // Save fitted Modules attributes to DB
-        GetShip()->SaveAttributes();                        // Save Ship's attributes to DB
+        GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
         GetChar()->SaveCharacter();                         // Save Character info to DB
         GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 
@@ -1271,6 +1270,14 @@ void Client::SavePosition() {
         return;
     }
     GetShip()->Relocate( m_destiny->GetPosition() );
+}
+
+void Client::SaveAllToDatabase()
+{
+    SavePosition();
+    GetChar()->SaveSkillQueue();
+    GetShip()->SaveShip();
+    GetChar()->SaveCharacter();
 }
 
 bool Client::LaunchDrone(InventoryItemRef drone) {
