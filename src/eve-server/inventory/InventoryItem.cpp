@@ -962,8 +962,11 @@ void InventoryItem::SetOnline(bool newval) {
     ogf.env_target = m_locationID;
     ogf.env_effectID = ogf.effectID;
     ogf.startTime = ogf.when;
-    ogf.duration = INT_MAX; //I think this should be infinity (0x07 may be infinity?)
-    ogf.repeat = 0;
+    ogf.duration = -1; //INT_MAX; //I think this should be infinity (0x07 may be infinity?)
+    if(newval)
+        ogf.repeat = new PyInt(0);
+    else
+        ogf.repeat = new PyBool(false);
     ogf.randomSeed = new PyNone();
     ogf.error = new PyNone();
 

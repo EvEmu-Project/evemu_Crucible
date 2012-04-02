@@ -47,7 +47,7 @@
       </listInline>
       <long name="startTime" />
       <long name="duration" /> <!-- seen an 0x07! I think it means infinite. -->
-      <int name="repeat" />
+      <raw name="repeat" />
       <raw name="randomSeed" />
       <raw name="error" />
       <!-- <raw name="stall" /> -->

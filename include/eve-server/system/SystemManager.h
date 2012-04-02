@@ -29,7 +29,8 @@
 #include "system/BubbleManager.h"
 #include "system/SystemDB.h"
 
-#define ONE_AU_IN_METERS 1.495978707e11     // 1 astronomical unit in meters
+//#define ONE_AU_IN_METERS 1.495978707e11     // 1 astronomical unit in meters
+#define ONE_AU_IN_METERS 149598000000.0     // 1 astronomical unit in meters, per EVElopedia: http://wiki.eveonline.com/en/wiki/Astronomical_Unit
 #define BASE_WARP_SPEED 3.0                 // base default max warp speed of 3.0 AU/s
 
 class PyRep;

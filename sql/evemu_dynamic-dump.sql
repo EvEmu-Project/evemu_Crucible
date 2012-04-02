@@ -793,16 +793,6 @@ CREATE TABLE `chrSkillQueue` (
 	`level` INT(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
-DROP TABLE IF EXISTS `dgmEffectsInfo`;
-CREATE TABLE `dgmEffectsInfo` (
-  `effectID` int(11) NOT NULL,
-  `targetAttributeID` int(11) NOT NULL,
-  `sourceAttributeID` int(11) NOT NULL,
-  `calculationTypeID` int(11) NOT NULL,
-  `reverseCalculationTypeID` int(11) NOT NULL,
-  PRIMARY KEY (`effectID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 -- Mail subsystem
 DROP TABLE IF EXISTS `mailLabel`;
 CREATE TABLE `mailLabel` (

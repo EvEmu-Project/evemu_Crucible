@@ -62,6 +62,7 @@ protected:
 	void _BubblecastRemoveBall(SystemEntity *about_who);
 	
 	const double m_radius2;	//radius squared.
+    const double m_position_check_radius_sqrd;  // (radius + BUBBLE_HYSTERESIS_METERS) squared
     static uint32 m_bubbleIncrementer;
     uint32 m_bubbleID;
 	std::map<uint32, SystemEntity *> m_entities;	//we do not own these.

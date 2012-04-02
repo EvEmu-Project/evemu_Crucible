@@ -525,8 +525,8 @@ DST_WARPEXIT = 11
 		    <real name="dest_z" />
 		    <!-- 4 -->
 		    <int name="distance" />
-		    <!-- 5 -->
-		    <int name="u5" />
+		    <!-- 5: warp speed in AU/s times 10 -->
+		    <int name="warpSpeed" />
 	    </tupleInline>
 	  </tupleInline>
   </elementDef>
@@ -733,7 +733,9 @@ DST_WARPEXIT = 11
 	    <tupleInline>
 		    <int name="entityID" />
 		    <!-- seen 1206 -->
-		    <int name="unknown" />
+		    <int name="unknownInt" />
+            <!-- always seems to be false -->
+            <bool name="unknownBool" />
 	    </tupleInline>
 	  </tupleInline>
   </elementDef>
