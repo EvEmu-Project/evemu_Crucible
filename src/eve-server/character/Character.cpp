@@ -139,7 +139,8 @@ CharacterData::CharacterData(
     uint32 _careerSpecialityID,
     uint64 _startDateTime,
     uint64 _createDateTime,
-    uint64 _corporationDateTime)
+    uint64 _corporationDateTime,
+    uint32 _shipID)
 : accountID(_accountID),
   title(_title),
   description(_desc),
@@ -163,7 +164,8 @@ CharacterData::CharacterData(
   careerSpecialityID(_careerSpecialityID),
   startDateTime(_startDateTime),
   createDateTime(_createDateTime),
-  corporationDateTime(_corporationDateTime)
+  corporationDateTime(_corporationDateTime),
+  shipID(_shipID)
 {
 }
 
@@ -338,7 +340,8 @@ Character::Character(
   m_careerSpecialityID(_charData.careerSpecialityID),
   m_startDateTime(_charData.startDateTime),
   m_createDateTime(_charData.createDateTime),
-  m_corporationDateTime(_charData.corporationDateTime)
+  m_corporationDateTime(_charData.corporationDateTime),
+  m_shipID(_charData.shipID)
 {
     // allow characters to be only singletons
     //assert(singleton() && quantity() == -1);
@@ -1022,7 +1025,8 @@ void Character::SaveCharacter()
             careerSpecialityID(),
             startDateTime(),
             createDateTime(),
-            corporationDateTime()
+            corporationDateTime(),
+            shipID()
         )
     );
 
@@ -1072,6 +1076,11 @@ void Character::SaveCertificates() const
 		itemID(),
 		m_certificates
 		);
+}
+
+void Character::SetActiveShip(uint32 shipID)
+{
+    m_shipID = shipID;
 }
 
 void Character::_CalculateTotalSPTrained()

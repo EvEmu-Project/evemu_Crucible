@@ -516,9 +516,10 @@ void Client::BoardShip(ShipRef new_ship) {
 
     new_ship->GetOperator()->SetOperatorObject(this);
 
-	m_shipId = new_ship->itemID();
-	if (IsInSpace())
-		mSession.SetInt( "shipid", new_ship->itemID() );
+    m_shipId = new_ship->itemID();
+    m_char->SetActiveShip(m_shipId);
+    if (IsInSpace())
+        mSession.SetInt( "shipid", new_ship->itemID() );
 
     GetShip()->UpdateModules();
 
@@ -649,6 +650,8 @@ void Client::_UpdateSession2( uint32 characterID )
     mSession.SetLong( "rolesAtOther", rolesAtOther );
 
 	m_shipId = shipID;
+    if( m_char != NULL )
+        m_char->SetActiveShip(m_shipId);
 	if (IsInSpace())
 		mSession.SetInt( "shipid", shipID );
 }

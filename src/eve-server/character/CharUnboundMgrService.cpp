@@ -375,8 +375,10 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     ShipRef ship_item = m_manager->item_factory.SpawnShip( shipItem );
 
 	// Set shipID
-	DBQueryResult res;
-	sDatabase.RunQuery(res, "UPDATE character_ SET shipID = %u WHERE characterID = %u", ship_item->itemID(), char_item->itemID());
+	//DBQueryResult res;
+	//sDatabase.RunQuery(res, "UPDATE character_ SET shipID = %u WHERE characterID = %u", ship_item->itemID(), char_item->itemID());
+    char_item->SetActiveShip( ship_item->itemID() );
+    char_item->SaveCharacter();
 
     if( !ship_item ) {
         codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());

@@ -928,7 +928,8 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
         "  chr.careerSpecialityID,"
         "  chr.startDateTime,"
         "  chr.createDateTime,"
-        "  chr.corporationDateTime"
+        "  chr.corporationDateTime,"
+        "  chr.shipID"
         " FROM character_ AS chr"
         " LEFT JOIN corporation AS crp USING (corporationID)"
         " WHERE characterID = %u",
@@ -966,6 +967,7 @@ bool InventoryDB::GetCharacter(uint32 characterID, CharacterData &into) {
     into.startDateTime = row.GetUInt64( 19 );
     into.createDateTime = row.GetUInt64( 20 );
     into.corporationDateTime = row.GetUInt64( 21 );
+    into.shipID = row.GetUInt( 22 );
 
     return true;
 }
@@ -1144,7 +1146,8 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         "  careerSpecialityID = %u,"
         "  startDateTime = " I64u ","
         "  createDateTime = " I64u ","
-        "  corporationDateTime = " I64u
+        "  corporationDateTime = " I64u ","
+        "  shipID = %u"
         " WHERE characterID = %u",
         data.accountID,
         titleEsc.c_str(),
@@ -1168,6 +1171,7 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         data.startDateTime,
         data.createDateTime,
         data.corporationDateTime,
+        data.shipID,
         characterID))
     {
         _log(DATABASE__ERROR, "Failed to save character %u: %s.", characterID, err.c_str());
