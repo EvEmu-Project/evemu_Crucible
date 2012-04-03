@@ -51,10 +51,8 @@ protected:
 	PyCallable_DECL_CALL(LookupCorporationTickers)
 	PyCallable_DECL_CALL(LookupStations)
 	PyCallable_DECL_CALL(LookupKnownLocationsByGroup)
-	//PyCallable_DECL_CALL()
 
-	//overloaded in order to support bound objects:
-	//virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+	PyCallable_DECL_CALL(LookupEvePlayerCharacters)
 };
 
 

@@ -70,8 +70,7 @@ Client::~Client() {
 
         // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
-        //mModulesMgr.SaveModules();                            // Save fitted Modules attributes to DB
-        GetShip()->SaveAttributes();                        // Save Ship's attributes to DB
+        GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
         GetChar()->SaveCharacter();                         // Save Character info to DB
         GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 
@@ -567,6 +566,9 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     mSession.SetLong( "rolesAtBase", character->rolesAtBase() );
     mSession.SetLong( "rolesAtHQ", character->rolesAtHQ() );
     mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
+
+	if (IsInSpace())
+		mSession.SetInt("shipid", GetShipID());
 }
 
 void Client::_UpdateSession2( uint32 characterID )
@@ -1270,6 +1272,14 @@ void Client::SavePosition() {
     GetShip()->Relocate( m_destiny->GetPosition() );
 }
 
+void Client::SaveAllToDatabase()
+{
+    SavePosition();
+    GetChar()->SaveSkillQueue();
+    GetShip()->SaveShip();
+    GetChar()->SaveCharacter();
+}
+
 bool Client::LaunchDrone(InventoryItemRef drone) {
 #if 0
 drop 166328265
@@ -1689,7 +1699,8 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.role = GetAccountRole();
     ack.address = GetAddress();
     ack.inDetention = new PyNone;
-    ack.client_hash = new PyList;
+	// no client update available
+    ack.client_hash = new PyNone;
     ack.user_clientid = GetAccountID();
     ack.live_updates = sLiveUpdateDB.GetUpdates();
     

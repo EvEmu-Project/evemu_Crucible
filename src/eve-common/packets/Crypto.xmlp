@@ -231,7 +231,7 @@
 			  </dictInline>
 		  </dictInlineEntry>
 		  <dictInlineEntry key="client_hash">
-			  <list name="client_hash" />
+			  <raw name="client_hash" />
 		  </dictInlineEntry>
 		  <dictInlineEntry key="user_clientid">
 			  <long name="user_clientid" />

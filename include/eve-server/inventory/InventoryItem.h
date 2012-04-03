@@ -175,6 +175,8 @@ public:
     void DisableSaveTimer() { return m_saveTimer.Disable(); };
     bool CheckSaveTimer(bool iReset = true) { return m_saveTimer.Check( iReset ); };
 
+    void SaveItem();  //save the item to the DB.
+
     /*
      * Attribute access:
      */
@@ -282,8 +284,6 @@ protected:
         // InventoryItem stuff:
         ItemData &data
     );
-
-    void SaveItem();  //save the item to the DB.
 
     void SendItemChange(uint32 toID, std::map<int32, PyRep *> &changes) const;
     void SetOnline(bool newval);

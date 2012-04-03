@@ -244,20 +244,3 @@ PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria( PyCallArgs& cal
 
 	return rs.Encode();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

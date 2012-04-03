@@ -25,6 +25,87 @@
 
 #include "EVEServerPCH.h"
 
+PyRep* MailDB::GetMailStatus(int charId)
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT messageID, statusMask, labelMask FROM mailMessage WHERE toCharacterIDs LIKE '%%%u%%'", charId))
+		return NULL;
+	return DBResultToCRowset(res);
+}
+
+PyRep* MailDB::GetNewMail(int charId)
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT messageID, senderID, toCharacterIDs, toListID, toCorpOrAllianceID, title, sentDate FROM mailMessage WHERE toCharacterIDs LIKE '%%%u%%'", charId))
+		return NULL;
+	return DBResultToCRowset(res);
+}
+
+int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom)
+{
+	// build a string with ',' seperated char ids
+	std::string toStr;
+	for (size_t i = 0; i < toCharacterIDs.size(); i++)
+	{
+		toStr += itoa(toCharacterIDs[i]);
+		// only add ',' when this isn't the last ID
+		if (i != (toCharacterIDs.size() - 1))
+			toStr += ",";
+	}
+
+	// sanitize these ids
+	if (toListID == -1)
+		toListID = 0;
+	if (toCorpOrAllianceID == -1)
+		toCorpOrAllianceID = 0;
+
+	// compress the body
+	Buffer bodyCompressed;
+	Buffer bodyInput(body.begin(), body.end());
+	DeflateData(bodyInput, bodyCompressed);
+
+	// ugh - buffer doesn't give us the actual buffer.. what the?
+	std::string bodyCompressedStr(bodyCompressed.begin<char>(), bodyCompressed.end<char>());
+
+	// escape it to not break the query with special characters
+	std::string bodyEscaped;
+	sDatabase.DoEscapeString(bodyEscaped, bodyCompressedStr);
+
+	// default label is 1 = Inbox
+	const int defaultLabel = 1;
+
+	DBerror err;
+	uint32 messageID;
+	bool status = sDatabase.RunQueryLID(err, messageID, 
+		"INSERT INTO mailMessage (senderID, toCharacterIDs, toListID, toCorpOrAllianceID, title, body, sentDate, statusMask, labelMask, unread) "
+		" VALUES (%u, '%s', %d, %d, '%s', '%s', " I64u ", 0, %u, 1)", sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(), bodyEscaped.c_str(), Win32TimeNow(), defaultLabel);
+
+	if (!status)
+		return 0;
+	return messageID;
+}
+
+PyString* MailDB::GetMailBody(int id) const
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT body FROM mailMessage WHERE messageID = %u", id))
+		return NULL;
+	if (res.GetRowCount() <= 0)
+		return NULL;
+
+	DBResultRow row;
+	if (!res.GetRow(row) || row.IsNull(0))
+		return NULL;
+
+	return new PyString(row.GetText(0), row.ColumnLength(0));
+}
+
+void MailDB::SetMailUnread(int id, bool unread)
+{
+	DBerror unused;
+	sDatabase.RunQuery(unused, "UPDATE mailMessage SET unread = %u WHERE messageID = %u", (unread ? 1 : 0), id);
+}
+
 PyRep* MailDB::GetLabels(int characterID) const
 {
 	DBQueryResult res;
@@ -65,7 +146,7 @@ bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
 	}
 
 	DBerror error;
-	if (!sDatabase.RunQuery(error, "INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, %s, %u, %u)", bit, args.name.c_str(), args.color, characterID))
+	if (!sDatabase.RunQuery(error, "INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, '%s', %u, %u)", bit, args.name.c_str(), args.color, characterID))
 	{
 		codelog(SERVICE__ERROR, "Failed to insert new mail label into database");
 		// since this is an out parameter, make sure we assign this even in case of an error
@@ -93,15 +174,15 @@ void MailDB::EditLabel(int characterID, Call_EditLabel& args) const
 	if (args.name.length() == 0)
 		sDatabase.RunQuery(error, "UPDATE mailLabel SET color = %u WHERE bit = %u AND ownerID = %u", args.color, bit, characterID);
 	else if (args.color == -1)
-		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s WHERE bit = %u AND ownerID = %u", args.name.c_str(), bit, characterID);
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = '%s' WHERE bit = %u AND ownerID = %u", args.name.c_str(), bit, characterID);
 	else
-		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = %s, color = %u WHERE bit = %u AND ownerID = %u", args.name.c_str(), args.color, bit, characterID);
+		sDatabase.RunQuery(error, "UPDATE mailLabel SET name = '%s', color = %u WHERE bit = %u AND ownerID = %u", args.name.c_str(), args.color, bit, characterID);
 }
 
 int MailDB::BitFromLabelID(int id)
 {
 	// lets hope the compiler can do this better; I guess it still beats a floating point log, though
-	for (int i = 0; i < sizeof(int); i++)
+	for (int i = 0; i < (sizeof(int)*8); i++)
 		if ((id & (1 << i)) > 0)
 			return i;
 

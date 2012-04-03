@@ -43,6 +43,7 @@ public:
 
     PyRep *GetMyApplications(uint32 charID);
     PyRep *GetApplications(uint32 corpID);
+	PyRep *GetMyShares(uint32 charID);
     PyObject *GetEmploymentRecord(uint32 charID);
     PyObject *GetMedalsReceived(uint32 charID);
 

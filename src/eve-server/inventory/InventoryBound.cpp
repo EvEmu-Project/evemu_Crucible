@@ -159,7 +159,12 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
             sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'qty' from call.byname dictionary." );
             return NULL;
         }
-        uint32 quantity = call.byname.find("qty")->second->AsInt()->value();
+        
+        uint32 quantity = 0;
+        if( call.byname.find("qty")->second->IsNone() )
+            quantity = 1;
+        else
+            quantity = call.byname.find("qty")->second->AsInt()->value();
 
         std::vector<int32> items;
         items.push_back(args.itemID);
@@ -389,7 +394,15 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             else
             {
                 //Unlike the other validate item requests, fitting an item requires a skill check, which means passing the character
-				if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+                // (This also allows for flagAutoFit when someone drags a module or a stack of modules onto the middle of the fitting
+                // window and NOT onto a specific slot.  'flagAutoFit' means "put this module into which ever slot makes sense")
+                if( (flag == flagAutoFit) )
+                {
+                    sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: handling adding modules where flag = flagAutoFit not yet supported!!!" );
+                    // uint32 newFlag = c->GetShip()->FindAvailableModuleSlot( newItem );
+                    // c->GetShip()->AddItem( newFlag, newItem );
+                }
+				else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
 				{
 					c->GetShip()->AddItem( flag, newItem );
 				}
@@ -431,7 +444,15 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
         else
         {
 			//Unlike the other validate item requests, fitting an item requires a skill check
-			if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+            // (This also allows for flagAutoFit when someone drags a module or a stack of modules onto the middle of the fitting
+            // window and NOT onto a specific slot.  'flagAutoFit' means "put this module into which ever slot makes sense")
+            if( (flag == flagAutoFit) )
+            {
+                sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: handling adding modules where flag = flagAutoFit not yet supported!!!" );
+                // uint32 newFlag = c->GetShip()->FindAvailableModuleSlot( sourceItem );
+                // c->GetShip()->AddItem( newFlag, sourceItem );
+            }
+			else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
 			{
 				c->GetShip()->AddItem( flag, sourceItem );
 			}

@@ -82,6 +82,8 @@ LookupService::LookupService(PyServiceMgr *mgr)
 	PyCallable_REG_CALL(LookupService, LookupCorporationTickers)
 	PyCallable_REG_CALL(LookupService, LookupStations)
 	PyCallable_REG_CALL(LookupService, LookupKnownLocationsByGroup)
+
+	PyCallable_REG_CALL(LookupService, LookupEvePlayerCharacters)
 	//PyCallable_REG_CALL(LookupService, )
 }
 
@@ -99,6 +101,15 @@ PyBoundObject* LookupService::_CreateBoundObject( Client* c, const PyRep* bind_a
 	return new LookupSvcBound( m_manager, &m_db );
 }*/
 
+PyResult LookupService::Handle_LookupEvePlayerCharacters(PyCallArgs& call) {
+	Call_LookupStringInt args;
+	if (!args.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "Wrong incoming param in LookupEvePlayerCharacters");
+		return NULL;
+	}
+
+	return m_db.LookupPlayerChars(args.searchString.c_str(), args.searchOption ? true : false);
+}
 
 PyResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
 	Call_LookupStringInt args;

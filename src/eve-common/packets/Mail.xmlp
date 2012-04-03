@@ -1,11 +1,23 @@
 <elements>
 
+  <elementDef name="Call_SendMail">
+    <tupleInline>
+      <listInt name="toCharacterIDs" />
+      <int name="toListID" none_marker="-1" />
+      <int name="toCorpOrAllianceID" none_marker="-1" />
+      <wstring name="title" />
+      <wstring name="body" />
+      <bool name="isReplyTo" none_marker="0" />
+      <bool name="isForwardedFrom" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_CreateMailingList">
     <tupleInline>
-      <string name="name" />
+      <wstring name="name" />
       <int name="defaultAccess" />
       <int name="defaultMemberAccess" />
-      <int name="mailCost" optional="true" default="0" />
+      <int name="mailCost" none_marker="0" />
     </tupleInline>
   </elementDef>
   
@@ -36,30 +48,30 @@
       <int name="listID" />
       <int name="defaultAccess" />
       <int name="defaultMemberAccess" />
-      <int name="mailCost" optional="true" default="0" />
+      <int name="mailCost" none_marker="0" />
     </tupleInline>
   </elementDef>
   
   <elementDef name="Call_SaveWelcomeMail">
     <tupleInline>
       <int name ="listID" />
-      <string name="title" />
-      <string name="body" />
+      <wstring name="title" />
+      <wstring name="body" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="Call_EditLabel">
     <tupleInline>
       <int name="labelId" />
-      <string name="name" optional="true" />
-      <int name="color" optional="true" default="-1" />
+      <wstring name="name" none_marker="" />
+      <int name="color" none_marker="-1" />
     </tupleInline>
   </elementDef>
   
   <elementDef name="Call_CreateLabel">
     <tupleInline>
-      <string name="name" />
-      <int name="color" optional="true" />
+      <wstring name="name" />
+      <int name="color" none_marker="0" />
     </tupleInline>
   </elementDef>
   
