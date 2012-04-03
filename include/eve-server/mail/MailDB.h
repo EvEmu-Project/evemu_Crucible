@@ -44,6 +44,8 @@ public:
 	PyString* GetMailBody(int id) const;
 	void SetMailUnread(int id, bool unread);
 	int SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom);
+	PyRep* GetNewMail(int charId);
+	PyRep* GetMailStatus(int charId);
 
 protected:
 	static int BitFromLabelID(int id);

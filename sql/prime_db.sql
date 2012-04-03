@@ -58,7 +58,7 @@ INSERT INTO character_
   corporationDateTime, startDateTime, createDateTime,
   ancestryID, careerID, schoolID, careerSpecialityID, gender,
   stationID, solarSystemID, constellationID, regionID,
-  0 AS online, 2 AS freeRespecs, 0 AS nextRespec, 0 AS deletePrepareDateTime
+  0 AS online, 2 AS freeRespecs, 0 AS nextRespec, 0 AS deletePrepareDateTime, 0 AS shipID
  FROM characterStatic;
 
 /*

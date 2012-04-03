@@ -25,6 +25,22 @@
 
 #include "EVEServerPCH.h"
 
+PyRep* MailDB::GetMailStatus(int charId)
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT messageID, statusMask, labelMask FROM mailMessage WHERE toCharacterIDs LIKE '%%%u%%'", charId))
+		return NULL;
+	return DBResultToCRowset(res);
+}
+
+PyRep* MailDB::GetNewMail(int charId)
+{
+	DBQueryResult res;
+	if (!sDatabase.RunQuery(res, "SELECT messageID, senderID, toCharacterIDs, toListID, toCorpOrAllianceID, title, sentDate FROM mailMessage WHERE toCharacterIDs LIKE '%%%u%%'", charId))
+		return NULL;
+	return DBResultToCRowset(res);
+}
+
 int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom)
 {
 	// build a string with ',' seperated char ids
@@ -32,8 +48,16 @@ int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID,
 	for (size_t i = 0; i < toCharacterIDs.size(); i++)
 	{
 		toStr += itoa(toCharacterIDs[i]);
-		toStr += ",";
+		// only add ',' when this isn't the last ID
+		if (i != (toCharacterIDs.size() - 1))
+			toStr += ",";
 	}
+
+	// sanitize these ids
+	if (toListID == -1)
+		toListID = 0;
+	if (toCorpOrAllianceID == -1)
+		toCorpOrAllianceID = 0;
 
 	// compress the body
 	Buffer bodyCompressed;
@@ -47,11 +71,14 @@ int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID,
 	std::string bodyEscaped;
 	sDatabase.DoEscapeString(bodyEscaped, bodyCompressedStr);
 
+	// default label is 1 = Inbox
+	const int defaultLabel = 1;
+
 	DBerror err;
 	uint32 messageID;
 	bool status = sDatabase.RunQueryLID(err, messageID, 
 		"INSERT INTO mailMessage (senderID, toCharacterIDs, toListID, toCorpOrAllianceID, title, body, sentDate, statusMask, labelMask, unread) "
-		" VALUES (%u, '%s', %d, %d, '%s', '%s', " I64u ", 0, 0, 1)", sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(), bodyEscaped.c_str(), Win32TimeNow());
+		" VALUES (%u, '%s', %d, %d, '%s', '%s', " I64u ", 0, %u, 1)", sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(), bodyEscaped.c_str(), Win32TimeNow(), defaultLabel);
 
 	if (!status)
 		return 0;
