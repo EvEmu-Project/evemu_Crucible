@@ -50,6 +50,7 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
 
     m_dockStationID = 0;
     m_justUndocked = false;
+    m_justUndockedCount = 0;
     m_needToDock = false;
 
     bKennyfied = false;     // by default, we do NOT want chat messages kennyfied, LOL

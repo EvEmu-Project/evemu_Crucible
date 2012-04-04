@@ -832,6 +832,7 @@ void DestinyManager::Stop(bool update) {
         dest.normalize();
         GotoDirection( dest, true );
         SetSpeedFraction( 1.0, true );
+        _UpdateDerrived();
     }
     else
     {

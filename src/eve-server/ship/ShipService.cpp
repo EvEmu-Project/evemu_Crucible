@@ -285,7 +285,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
         (
             dockOrientation.x,
             dockOrientation.y,
-            dockOrientation.z * (-1.0)      // This sign reversal is needed to correct staStationTypes z coordinate on dockOrientation due to CCP unification of coordinate systems
+            dockOrientation.z// * (-1.0)      // This sign reversal is needed to correct staStationTypes z coordinate on dockOrientation due to CCP unification of coordinate systems
         );
 
 	//move away from dock

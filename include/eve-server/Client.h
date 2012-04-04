@@ -173,7 +173,16 @@ public:
     void SetPendingDockOperation(bool needToDock) { m_needToDock = needToDock; }
 
     // THESE FUNCTIONS ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
-    void SetJustUndocking(bool justUndocking) { m_justUndocked = justUndocking; }
+    void SetJustUndocking(bool justUndocking)
+    {
+        if( m_justUndockedCount == 0 )
+            m_justUndockedCount = 1;
+        else
+            m_justUndockedCount--;
+
+        if( m_justUndockedCount == 1 )
+            m_justUndocked = justUndocking;
+    }
     bool GetJustUndocking() { return m_justUndocked; };
     void SetUndockAlignToPoint(GPoint &dest);
     void GetUndockAlignToPoint(GPoint &dest);
@@ -275,6 +284,7 @@ protected:
     // It all makes more sense this way.
 
     bool m_justUndocked;
+    int m_justUndockedCount;
     GPoint m_undockAlignToPoint;
     // --- END HACK VARIABLES FOR UNDOCK ---
 
