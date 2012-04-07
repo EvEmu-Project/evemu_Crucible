@@ -52,6 +52,14 @@ IF( MSVC )
   #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
   #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
   #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+ELSEIF( GNUC )
+  #
+  # Setup some recommended compiler flags.
+  #
+  # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
+  # override the setup.
+  #
+  SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 ENDIF( MSVC )
 
 SET( EVEMU_SOURCE_SCM ""
