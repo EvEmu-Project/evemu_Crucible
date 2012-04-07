@@ -128,7 +128,7 @@ CharacterData::CharacterData(
     double _skillPoints,
     uint32 _corporationID,
     uint32 _allianceID,
-	uint32 _warFactionID,
+    uint32 _warFactionID,
     uint32 _stationID,
     uint32 _solarSystemID,
     uint32 _constellationID,
@@ -345,7 +345,7 @@ Character::Character(
 {
     // allow characters to be only singletons
     //assert(singleton() && quantity() == -1);
-	assert(singleton());
+    assert(singleton());
 
     // Activate Save Info Timer with somewhat randomized timer value:
     //SetSaveTimerExpiry( MakeRandomInt( (10 * 60), (15 * 60) ) );        // Randomize save timer expiry to between 10 and 15 minutes
@@ -427,11 +427,11 @@ bool Character::_Load()
     if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
         return false;
 
-	// Calculate total SP trained and store in internal variable:
+    // Calculate total SP trained and store in internal variable:
     _CalculateTotalSPTrained();
 
-	if( !m_factory.db().LoadCertificates( itemID(), m_certificates ) )
-		return false;
+    if( !m_factory.db().LoadCertificates( itemID(), m_certificates ) )
+        return false;
 
     return Owner::_Load();
 }
@@ -505,27 +505,27 @@ bool Character::HasSkillTrainedToLevel(uint32 skillTypeID, uint32 skillLevel) co
     SkillRef requiredSkill;
 
     // First, check for existence of skill trained or in training:
-	requiredSkill = GetSkill( skillTypeID );
-	if( !requiredSkill )
-		return false;
+    requiredSkill = GetSkill( skillTypeID );
+    if( !requiredSkill )
+        return false;
 
     // Second, check for required minimum level of skill, note it must already be trained to this level:
-	if( requiredSkill->GetAttribute(AttrSkillLevel) < skillLevel )
-		return false;
+    if( requiredSkill->GetAttribute(AttrSkillLevel) < skillLevel )
+        return false;
 
     return true;
 }
 
 bool Character::HasCertificate( uint32 certificateID ) const
 {
-	uint32 i = 0;
-	for( i = 0; i < m_certificates.size(); i++ )
-	{
-		if( m_certificates.at( i ).certificateID == certificateID )
-			return true;
-	}
-  
-	return false;
+    uint32 i = 0;
+    for( i = 0; i < m_certificates.size(); i++ )
+    {
+        if( m_certificates.at( i ).certificateID == certificateID )
+            return true;
+    }
+
+    return false;
 }
 
 SkillRef Character::GetSkill(uint32 skillTypeID) const
@@ -640,20 +640,20 @@ bool Character::InjectSkillIntoBrain(SkillRef skill)
 bool Character::InjectSkillIntoBrain(SkillRef skill, uint8 level)
 {
     Client *c = m_factory.entity_list.FindCharacter( itemID() );
-	
+
 
     SkillRef oldSkill = GetSkill( skill->typeID() );
     if( oldSkill )
     {
 
-		//oldSkill->attributes.SetNotify(true);
-		//oldSkill->Set_skillLevel( level );
-		//oldSkill->Set_skillPoints( pow(2, ( 2.5 * level ) - 2.5 ) * SKILL_BASE_POINTS * ( oldSkill->attributes.GetInt( oldSkill->attributes.Attr_skillTimeConstant ) ) );
-        
+        //oldSkill->attributes.SetNotify(true);
+        //oldSkill->Set_skillLevel( level );
+        //oldSkill->Set_skillPoints( pow(2, ( 2.5 * level ) - 2.5 ) * SKILL_BASE_POINTS * ( oldSkill->attributes.GetInt( oldSkill->attributes.Attr_skillTimeConstant ) ) );
+
         oldSkill->SetAttribute(AttrSkillLevel, level);
         EvilNumber eTmp = skill->GetAttribute(AttrSkillTimeConstant) * ( pow(2,( 2.5 * level) - 2.5 ) * EVIL_SKILL_BASE_POINTS );
         oldSkill->SetAttribute(AttrSkillPoints, eTmp);
-		return true;
+        return true;
     }
 
     // are we injecting from a stack of skills?
@@ -671,12 +671,12 @@ bool Character::InjectSkillIntoBrain(SkillRef skill, uint8 level)
         single_skill->MoveInto( *this, flagSkill );
     }
     else
-		skill->MoveInto( *this, flagSkill );
+        skill->MoveInto( *this, flagSkill );
 
     skill->SetAttribute(AttrSkillLevel, level);
-	//TODO: get right number of skill points
-	
-	//skill->Set_skillPoints( pow(2,( 2.5 * level) - 2.5 ) * SKILL_BASE_POINTS * ( skill->attributes.GetInt( skill->attributes.Attr_skillTimeConstant ) ) );
+    //TODO: get right number of skill points
+
+    //skill->Set_skillPoints( pow(2,( 2.5 * level) - 2.5 ) * SKILL_BASE_POINTS * ( skill->attributes.GetInt( skill->attributes.Attr_skillTimeConstant ) ) );
 
     EvilNumber tmp = pow(2,( 2.5 * level) - 2.5 ) * EVIL_SKILL_BASE_POINTS;
     EvilNumber eTmp = skill->GetAttribute(AttrSkillTimeConstant);
@@ -697,31 +697,31 @@ void Character::AddToSkillQueue(uint32 typeID, uint8 level)
 
 bool Character::GrantCertificate( uint32 certificateID )
 {
-	cCertificates i;
-	i.certificateID = certificateID;
-	i.grantDate = Win32TimeNow();
-	i.visibilityFlags = true;
-	m_certificates.push_back( i );
-	
-	return true;
+    cCertificates i;
+    i.certificateID = certificateID;
+    i.grantDate = Win32TimeNow();
+    i.visibilityFlags = true;
+    m_certificates.push_back( i );
+
+    return true;
 }
 
 
 void Character::UpdateCertificate( uint32 certificateID, bool pub )
 {
-	uint32 i;
-	for( i = 0; i < m_certificates.size(); i ++ )
-	{
-		if( m_certificates.at( i ).certificateID == certificateID )
-		{
-			m_certificates.at( i ).visibilityFlags = pub ;
-		}
-	}
+    uint32 i;
+    for( i = 0; i < m_certificates.size(); i ++ )
+    {
+        if( m_certificates.at( i ).certificateID == certificateID )
+        {
+            m_certificates.at( i ).visibilityFlags = pub ;
+        }
+    }
 }
 
 void Character::GetCertificates( Certificates &crt )
 {
-	crt = m_certificates;
+    crt = m_certificates;
 }
 
 void Character::ClearSkillQueue()
@@ -792,7 +792,7 @@ void Character::UpdateSkillQueue()
     }
 
     EvilNumber nextStartTime = EvilTimeNow();
-    
+
     while( !m_skillQueue.empty() )
     {
         if( !currentTraining )
@@ -893,11 +893,11 @@ PyDict *Character::CharGetInfo() {
     }
 
     PyDict *result = new PyDict;
-	Rsp_CommonGetInfo_Entry entry;
+    Rsp_CommonGetInfo_Entry entry;
 
-	if(!Populate(entry))
-		return NULL;
-	result->SetItem(new PyInt(m_itemID), new PyObject("util.KeyVal", entry.Encode()));
+    if(!Populate(entry))
+        return NULL;
+    result->SetItem(new PyInt(m_itemID), new PyObject("util.KeyVal", entry.Encode()));
 
     //now encode skills...
     std::vector<InventoryItemRef> skills;
@@ -949,12 +949,12 @@ PyTuple *Character::GetSkillQueue() {
         list->AddItem( el.Encode() );
     }
 
-	// now encapsulate it in a tuple with the free points
-	PyTuple *tuple = new PyTuple(2);
-	tuple->SetItem(0, list);
-	// sending 0, as done on retail, doesn't fuck up calculation for some reason
-	// so we can take the same shortcut here
-	tuple->SetItem(1, new PyInt(0));
+    // now encapsulate it in a tuple with the free points
+    PyTuple *tuple = new PyTuple(2);
+    tuple->SetItem(0, list);
+    // sending 0, as done on retail, doesn't fuck up calculation for some reason
+    // so we can take the same shortcut here
+    tuple->SetItem(1, new PyInt(0));
 
     return tuple;
 }
@@ -1055,7 +1055,7 @@ void Character::SaveCharacter()
     for(; cur != end; cur++)
         cur->get()->SaveAttributes();
         //cur->get()->mAttributeMap.Save();
-	SaveCertificates();
+    SaveCertificates();
 }
 
 void Character::SaveSkillQueue() const {
@@ -1068,14 +1068,14 @@ void Character::SaveSkillQueue() const {
     );
 }
 
-void Character::SaveCertificates() const 
+void Character::SaveCertificates() const
 {
-	_log( ITEM__TRACE, "Saving Implants of character %u", itemID() );
+    _log( ITEM__TRACE, "Saving Implants of character %u", itemID() );
 
-	m_factory.db().SaveCertificates(
-		itemID(),
-		m_certificates
-		);
+    m_factory.db().SaveCertificates(
+        itemID(),
+        m_certificates
+        );
 }
 
 void Character::SetActiveShip(uint32 shipID)

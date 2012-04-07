@@ -77,13 +77,13 @@ int vasprintf( char** strp, const char* fmt, va_list ap )
     return size;
 }
 
-int mkdir( const char* pathname, int mode ) 
-{ 
-    int result = CreateDirectory( pathname, NULL ); 
+int mkdir( const char* pathname, int mode )
+{
+    int result = CreateDirectory( pathname, NULL );
 
-    /* mkdir returns 0 for success, opposite of CreateDirectory() */ 
-    return ( result ? 0 : -1 ); 
-} 
+    /* mkdir returns 0 for success, opposite of CreateDirectory() */
+    return ( result ? 0 : -1 );
+}
 
 #else /* !WIN32 */
 

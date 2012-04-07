@@ -68,8 +68,8 @@ void EVEClientSession::Reset()
 
 void EVEClientSession::QueuePacket( const PyPacket* p )
 {
-	if (p == NULL)
-		return;
+    if (p == NULL)
+        return;
     PyPacket* packet = p->Clone();
 
     if (packet == NULL)
@@ -199,7 +199,7 @@ PyPacket* EVEClientSession::_HandleAuthentication( PyRep* rep )
     //just to be sure
     CryptoChallengePacket ccp;
     if( !ccp.Decode( &rep ) )
-		sLog.Error("Network", "%s: Received invalid crypto challenge!", GetAddress().c_str());
+        sLog.Error("Network", "%s: Received invalid crypto challenge!", GetAddress().c_str());
     else if( _VerifyLogin( ccp ) )
         mPacketHandler = &EVEClientSession::_HandleFuncResult;
 
@@ -210,7 +210,7 @@ PyPacket* EVEClientSession::_HandleFuncResult( PyRep* rep )
 {
     CryptoHandshakeResult hr;
     if( !hr.Decode( &rep ) )
-		sLog.Error("Network", "%s: Received invalid crypto handshake result!", GetAddress().c_str());
+        sLog.Error("Network", "%s: Received invalid crypto handshake result!", GetAddress().c_str());
     else if( _VerifyFuncResult( hr ) )
         mPacketHandler = &EVEClientSession::_HandlePacket;
 
@@ -224,7 +224,7 @@ PyPacket* EVEClientSession::_HandlePacket( PyRep* rep )
     PyPacket* p = new PyPacket;
     if( !p->Decode( &rep ) ) //rep is consumed here
     {
-		sLog.Error("Network", "%s: Failed to decode packet rep", GetAddress().c_str());
+        sLog.Error("Network", "%s: Failed to decode packet rep", GetAddress().c_str());
         SafeDelete( p );
     }
     else

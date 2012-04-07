@@ -17,7 +17,7 @@ SET( TARGET_SOURCE_DIR "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}" )
 SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/asio.hpp" )
 SET( SOURCE
-	 "${TARGET_SOURCE_DIR}/dummy.cpp" )
+     "${TARGET_SOURCE_DIR}/dummy.cpp" )
 
 #####################
 # Setup the library #

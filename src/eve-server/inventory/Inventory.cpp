@@ -54,52 +54,52 @@ Inventory *Inventory::Cast(InventoryItemRef item)
         case EVEDB::invCategories::Deployable:
         case EVEDB::invCategories::Reaction:
         case EVEDB::invCategories::Asteroid:
-		case EVEDB::invCategories::Apparel:
-		case EVEDB::invCategories::Subsystem:
-		case EVEDB::invCategories::AncientRelics:
-		case EVEDB::invCategories::Decryptors:
-		case EVEDB::invCategories::StructureUpgrade:
-		case EVEDB::invCategories::SovereigntyStructure:
-		case EVEDB::invCategories::PlanetaryInteraction:
-		case EVEDB::invCategories::PlanetaryResources:
-		case EVEDB::invCategories::PlanetaryCommodities:
-		case EVEDB::invCategories::Orbitals:
-		case EVEDB::invCategories::Placeables:
-		case EVEDB::invCategories::Effects:
-		case EVEDB::invCategories::Lights:
-		case EVEDB::invCategories::Cells:
+        case EVEDB::invCategories::Apparel:
+        case EVEDB::invCategories::Subsystem:
+        case EVEDB::invCategories::AncientRelics:
+        case EVEDB::invCategories::Decryptors:
+        case EVEDB::invCategories::StructureUpgrade:
+        case EVEDB::invCategories::SovereigntyStructure:
+        case EVEDB::invCategories::PlanetaryInteraction:
+        case EVEDB::invCategories::PlanetaryResources:
+        case EVEDB::invCategories::PlanetaryCommodities:
+        case EVEDB::invCategories::Orbitals:
+        case EVEDB::invCategories::Placeables:
+        case EVEDB::invCategories::Effects:
+        case EVEDB::invCategories::Lights:
+        case EVEDB::invCategories::Cells:
             sLog.Warning("Inventory", "unhandled item categoryID used on cast");
             break;
 
-		case EVEDB::invCategories::Owner:
-			sLog.Warning("Inventory", "Owner item categoryID used on cast");
+        case EVEDB::invCategories::Owner:
+            sLog.Warning("Inventory", "Owner item categoryID used on cast");
 
-			//return OwnerRef::StaticCast( item ).get();
+            //return OwnerRef::StaticCast( item ).get();
 
             break;
-		case EVEDB::invCategories::WorldSpace:
-			sLog.Warning("Inventory", "WorldSpace item categoryID used on cast");
+        case EVEDB::invCategories::WorldSpace:
+            sLog.Warning("Inventory", "WorldSpace item categoryID used on cast");
             break;
-		case EVEDB::invCategories::Skill:
-			sLog.Warning("Inventory", "Skill item categoryID used on cast");
-			//return SkillRef::StaticCast( item ).get();
-			break;
-		case EVEDB::invCategories::Celestial:
-			sLog.Warning("Inventoy", "Celestial item categoryID used on cast");
-			//don't know ho to do this but it's missing in a lot of places in the log
-			//it says that the return is not of Inventory type
-			//return CelestialObjectRef::StaticCast( item ).get();
-			break;
-		case EVEDB::invCategories::Station:
-			sLog.Warning("Inventory", "Station item categoryID used on cast");
-			return StationRef::StaticCast( item ).get();
-			break;
+        case EVEDB::invCategories::Skill:
+            sLog.Warning("Inventory", "Skill item categoryID used on cast");
+            //return SkillRef::StaticCast( item ).get();
+            break;
+        case EVEDB::invCategories::Celestial:
+            sLog.Warning("Inventoy", "Celestial item categoryID used on cast");
+            //don't know ho to do this but it's missing in a lot of places in the log
+            //it says that the return is not of Inventory type
+            //return CelestialObjectRef::StaticCast( item ).get();
+            break;
+        case EVEDB::invCategories::Station:
+            sLog.Warning("Inventory", "Station item categoryID used on cast");
+            return StationRef::StaticCast( item ).get();
+            break;
         case EVEDB::invCategories::Structure:
-			sLog.Warning("Inventory", "Structure item categoryID used on cast");
+            sLog.Warning("Inventory", "Structure item categoryID used on cast");
             return StructureRef::StaticCast( item ).get();
             break;
         case EVEDB::invCategories::Ship:
-			sLog.Warning("Inventory", "Ship item categoryID used on cast");
+            sLog.Warning("Inventory", "Ship item categoryID used on cast");
             return ShipRef::StaticCast( item ).get();
             break;
     }
@@ -111,14 +111,14 @@ Inventory *Inventory::Cast(InventoryItemRef item)
         case EVEDB::invGroups::Audit_Log_Secure_Container:
         case EVEDB::invGroups::Cargo_Container:
         case EVEDB::invGroups::Freight_Container:
-        case EVEDB::invGroups::Spawn_Container:				
-			return CargoContainerRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Station:						 
-			return StationRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Character:					
-			return CharacterRef::StaticCast( item ).get();
-        case EVEDB::invGroups::Solar_System:				 
-			return SolarSystemRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Spawn_Container:
+            return CargoContainerRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Station:
+            return StationRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Character:
+            return CharacterRef::StaticCast( item ).get();
+        case EVEDB::invGroups::Solar_System:
+            return SolarSystemRef::StaticCast( item ).get();
     }
 
     // maybe add extra debug info on what for type or item.
@@ -215,23 +215,23 @@ void Inventory::DeleteContents(ItemFactory &factory)
 
 CRowSet* Inventory::List( EVEItemFlags _flag, uint32 forOwner ) const
 {
-	PyList *keywords = new PyList();
-	keywords->AddItem(new_tuple(new PyString("stacksize"), new PyToken("util.StackSize")));
-	keywords->AddItem(new_tuple(new PyString("singleton"), new PyToken("util.Singleton")));
+    PyList *keywords = new PyList();
+    keywords->AddItem(new_tuple(new PyString("stacksize"), new PyToken("util.StackSize")));
+    keywords->AddItem(new_tuple(new PyString("singleton"), new PyToken("util.Singleton")));
 
-	DBRowDescriptor* header = new DBRowDescriptor(keywords);
-	header->AddColumn( "itemID",     DBTYPE_I8 );
-	header->AddColumn( "typeID",     DBTYPE_I4 );
-	header->AddColumn( "ownerID",    DBTYPE_I4 );
-	header->AddColumn( "locationID", DBTYPE_I8 );
-	header->AddColumn( "flagID",     DBTYPE_I2 );
-	header->AddColumn( "quantity",   DBTYPE_I4 );
-	header->AddColumn( "groupID",    DBTYPE_I2 );
-	header->AddColumn( "categoryID", DBTYPE_I4 );
-	header->AddColumn( "customInfo", DBTYPE_STR );
+    DBRowDescriptor* header = new DBRowDescriptor(keywords);
+    header->AddColumn( "itemID",     DBTYPE_I8 );
+    header->AddColumn( "typeID",     DBTYPE_I4 );
+    header->AddColumn( "ownerID",    DBTYPE_I4 );
+    header->AddColumn( "locationID", DBTYPE_I8 );
+    header->AddColumn( "flagID",     DBTYPE_I2 );
+    header->AddColumn( "quantity",   DBTYPE_I4 );
+    header->AddColumn( "groupID",    DBTYPE_I2 );
+    header->AddColumn( "categoryID", DBTYPE_I4 );
+    header->AddColumn( "customInfo", DBTYPE_STR );
 
-	//header->AddColumn( "singleton",  DBTYPE_BOOL );
-	//header->AddColumn( "stacksize" , DBTYPE_I4 );
+    //header->AddColumn( "singleton",  DBTYPE_BOOL );
+    //header->AddColumn( "stacksize" , DBTYPE_I4 );
 
     CRowSet* rowset = new CRowSet( &header );
     List( rowset, _flag, forOwner );
@@ -251,8 +251,8 @@ void Inventory::List( CRowSet* into, EVEItemFlags _flag, uint32 forOwner ) const
         if(    ( i->flag() == _flag       || _flag == flagAnywhere )
             && ( i->ownerID() == forOwner || forOwner == 0 ) )
         {
-			PyPackedRow* row = into->NewRow();
-			i->GetItemRow( row );
+            PyPackedRow* row = into->NewRow();
+            i->GetItemRow( row );
         }
     }
 }

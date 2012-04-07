@@ -47,10 +47,10 @@
   </elementDef>
 
   <elementDef name="Call_TrashItems">
-	  <tupleInline>
-		  <listInt name="items" />
-		  <int name="locationID" />
-	  </tupleInline>
+      <tupleInline>
+          <listInt name="items" />
+          <int name="locationID" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="Call_Add_3">
@@ -116,14 +116,14 @@
   <elementDef name="Call_GetJournal">
     <tupleInline>
       <int name="accountKey" />
-		  <long name="fromDate" none_marker="0" />
-		  <!-- may be None (but probably wont be) -->
-		  <int name="refTypeID" none_marker="0" />
-		  <!-- may be None -->
-		  <raw name="corpAccount" none_marker="0" />
-		  <!-- soft bool -->
-		  <raw name="refID"/>
-		  <!-- may be None -->
+          <long name="fromDate" none_marker="0" />
+          <!-- may be None (but probably wont be) -->
+          <int name="refTypeID" none_marker="0" />
+          <!-- may be None -->
+          <raw name="corpAccount" none_marker="0" />
+          <!-- soft bool -->
+          <raw name="refID"/>
+          <!-- may be None -->
       <int name="rev" />
     </tupleInline>
   </elementDef>
@@ -154,13 +154,13 @@
       <int name="env_shipID" />
       <raw name="env_other" />
       <!-- not sure if charID, shipID and other is needed anymore. -->
-	    <long name="startTime" />
-	    <!-- saw 0x7 placeholder -->
-	    <int name="duration"/>
-	    <!-- saw 0 -->
-	    <int name="repeat"/>
-	    <!-- randomSeed -->
-	    <raw name="randomSeed" />
+        <long name="startTime" />
+        <!-- saw 0x7 placeholder -->
+        <int name="duration"/>
+        <!-- saw 0 -->
+        <int name="repeat"/>
+        <!-- randomSeed -->
+        <raw name="randomSeed" />
     </listInline>
   </elementDef>
 
@@ -186,39 +186,39 @@
       </dictInlineEntry>
     </dictInline>
   </elementDef>
-  
+
   <elementDef name="Rsp_ItemGetInfo">
     <objectInline>
       <stringInline value="util.KeyVal" />
-		  <element name="entry" type="Rsp_CommonGetInfo_Entry" />	    
+          <element name="entry" type="Rsp_CommonGetInfo_Entry" />
     </objectInline>
   </elementDef>
 
   <elementDef name="Rsp_CommonGetInfo">
     <objectInline>
       <stringInline value="util.IndexRowset" />
-	    <dictInline>
-	      <dictInlineEntry key="header">
-		      <listInline>
-		        <stringInline value="itemID" />
-		        <stringInline value="invItem" />
-		        <stringInline value="activeEffects" />
-		        <stringInline value="attributes" />
-		        <stringInline value="time" />
+        <dictInline>
+          <dictInlineEntry key="header">
+              <listInline>
+                <stringInline value="itemID" />
+                <stringInline value="invItem" />
+                <stringInline value="activeEffects" />
+                <stringInline value="attributes" />
+                <stringInline value="time" />
           </listInline>
-	      </dictInlineEntry>
-	      <dictInlineEntry key="RowClass">
+          </dictInlineEntry>
+          <dictInlineEntry key="RowClass">
           <tokenInline value="util.Row" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="idName">
-		      <stringInline value="itemID" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="items">
+          </dictInlineEntry>
+          <dictInlineEntry key="idName">
+              <stringInline value="itemID" />
+          </dictInlineEntry>
+          <dictInlineEntry key="items">
           <!-- For ShipGetInfo: contains a single Rsp_CommonGetInfo_Entry for the ship -->
           <!-- For CharGetInfo: contains an Rsp_CommonGetInfo_Entry for the char and each of their skills (and implants?) -->
-		      <dictInt name="items" />
-	      </dictInlineEntry>
-	    </dictInline>
+              <dictInt name="items" />
+          </dictInlineEntry>
+        </dictInline>
     </objectInline>
   </elementDef>
 
@@ -233,100 +233,100 @@
 
   <elementDef name="Call_GetOptionsForItemTypes">
     <tupleInline>
-	    <dictInt name="typeIDs" />
+        <dictInt name="typeIDs" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="Rsp_GetOptionsForItemTypes">
-	  <dictInt name="typeIDs" />
+      <dictInt name="typeIDs" />
   </elementDef>
 
   <elementDef name="Rsp_GetOptionsForItemTypes_Arg">
     <objectInline>
-	    <stringInline value="util.KeyVal" />
-		  <dictInline>
-			  <dictInlineEntry key="isRecyclable">
-				  <bool name="isRecyclable" />
-			  </dictInlineEntry>
-			  <dictInlineEntry key="isRefinable">
-				  <bool name="isRefinable" />
-			  </dictInlineEntry>
-		  </dictInline>
+        <stringInline value="util.KeyVal" />
+          <dictInline>
+              <dictInlineEntry key="isRecyclable">
+                  <bool name="isRecyclable" />
+              </dictInlineEntry>
+              <dictInlineEntry key="isRefinable">
+                  <bool name="isRefinable" />
+              </dictInlineEntry>
+          </dictInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="Rsp_GetReprocessingInfo">
-	  <dictInline>
-		  <dictInlineEntry key="wetake">
-			  <listInline name="wetake">
-				  <real name="tax" />
-				  <real name="reputation" />
-			  </listInline>
-		  </dictInlineEntry>
-		  <dictInlineEntry key="yield">
-			  <real name="yield" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="combinedyield">
-			  <real name="combinedyield" />
-		  </dictInlineEntry>
-	  </dictInline>
+      <dictInline>
+          <dictInlineEntry key="wetake">
+              <listInline name="wetake">
+                  <real name="tax" />
+                  <real name="reputation" />
+              </listInline>
+          </dictInlineEntry>
+          <dictInlineEntry key="yield">
+              <real name="yield" />
+          </dictInlineEntry>
+          <dictInlineEntry key="combinedyield">
+              <real name="combinedyield" />
+          </dictInlineEntry>
+      </dictInline>
   </elementDef>
 
   <!-- this is ugly, but we dont really have a better way to deal with it right now. -->
   <!-- Don't change headerX ! -->
   <elementDef name="Rsp_GetQuote">
     <objectInline>
-	    <stringInline value="util.Row" />
-		  <dictInline>
-			  <dictInlineEntry key="header">
-				  <listInline>
-					  <stringInline value="quantityToProcess" />
-					  <stringInline value="leftOvers" />
-					  <stringInline value="playerStanding" />
-					  <stringInline value="recoverables" />
-				  </listInline>
-			  </dictInlineEntry>
-			  <dictInlineEntry key="line">
-				  <listInline>
-					  <int name="quantityToProcess" />
-					  <int name="leftOvers" />
-					  <real name="playerStanding" />
+        <stringInline value="util.Row" />
+          <dictInline>
+              <dictInlineEntry key="header">
+                  <listInline>
+                      <stringInline value="quantityToProcess" />
+                      <stringInline value="leftOvers" />
+                      <stringInline value="playerStanding" />
+                      <stringInline value="recoverables" />
+                  </listInline>
+              </dictInlineEntry>
+              <dictInlineEntry key="line">
+                  <listInline>
+                      <int name="quantityToProcess" />
+                      <int name="leftOvers" />
+                      <real name="playerStanding" />
             <objectInline name="recoverables">
               <stringInline value="util.Rowset" />
-						  <dictInline>
-							  <dictInlineEntry key="header">
-								  <listInline>
-									  <stringInline value="typeID" />
-									  <stringInline value="unrecoverable" />
-									  <stringInline value="station" />
-									  <stringInline value="client" />
-								  </listInline>
-							  </dictInlineEntry>
-							  <dictInlineEntry key="RowClass">
-								  <tokenInline value="util.Row" />
-							  </dictInlineEntry>
-							  <dictInlineEntry key="lines">
-								  <list name="lines" />
-							  </dictInlineEntry>
-						  </dictInline>
+                          <dictInline>
+                              <dictInlineEntry key="header">
+                                  <listInline>
+                                      <stringInline value="typeID" />
+                                      <stringInline value="unrecoverable" />
+                                      <stringInline value="station" />
+                                      <stringInline value="client" />
+                                  </listInline>
+                              </dictInlineEntry>
+                              <dictInlineEntry key="RowClass">
+                                  <tokenInline value="util.Row" />
+                              </dictInlineEntry>
+                              <dictInlineEntry key="lines">
+                                  <list name="lines" />
+                              </dictInlineEntry>
+                          </dictInline>
             </objectInline>
-				  </listInline>
-			  </dictInlineEntry>
-		  </dictInline>
+                  </listInline>
+              </dictInlineEntry>
+          </dictInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="Rsp_GetQuotes">
-	  <dictInt name="quotes" />
+      <dictInt name="quotes" />
   </elementDef>
 
   <elementDef name="Rsp_GetQuote_Recoverables_Line">
-	  <listInline>
-		  <int name="typeID" />
-		  <int name="unrecoverable" />
-		  <int name="station" />
-		  <int name="client" />
-	  </listInline>
+      <listInline>
+          <int name="typeID" />
+          <int name="unrecoverable" />
+          <int name="station" />
+          <int name="client" />
+      </listInline>
   </elementDef>
 
   <elementDef name="Call_Drop2">
@@ -345,63 +345,63 @@
     </elementDef>
 
     <elementDef name="Call_Reprocess">
-	  <tupleInline>
-		  <listInt name="items" />
-		  <int name="ownerID" none_marker="0" />
-		  <int name="flag" none_marker="0" />
-		  <bool name="unknown" />
-		  <listStr name="skipChecks" />
-	  </tupleInline>
+      <tupleInline>
+          <listInt name="items" />
+          <int name="ownerID" none_marker="0" />
+          <int name="flag" none_marker="0" />
+          <bool name="unknown" />
+          <listStr name="skipChecks" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="Call_GetQuotes">
-	  <tupleInline>
-		  <listInt name="itemIDs" />
-	  </tupleInline>
+      <tupleInline>
+          <listInt name="itemIDs" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="Rsp_GetBlueprintAttributes">
-	  <dictInline>
-		  <dictInlineEntry key="blueprintID">
-			  <int name="blueprintID" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="productTypeID">
-			  <int name="productTypeID" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="copy">
-			  <bool name="copy" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="productivityLevel">
-			  <int name="productivityLevel" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="materialLevel">
-			  <int name="materialLevel" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="wastageFactor">
-			  <real name="wastageFactor" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="manufacturingTime">
-			  <int name="manufacturingTime" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="maxProductionLimit">
-			  <int name="maxProductionLimit" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="licensedProductionRunsRemaining">
-			  <int name="licensedProductionRunsRemaining" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="researchMaterialTime">
-			  <int name="researchMaterialTime" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="researchTechTime">
-			  <int name="researchTechTime" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="researchProductivityTime">
-			  <int name="researchProductivityTime" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="researchCopyTime">
-			  <int name="researchCopyTime" />
-		  </dictInlineEntry>
-	  </dictInline>
+      <dictInline>
+          <dictInlineEntry key="blueprintID">
+              <int name="blueprintID" />
+          </dictInlineEntry>
+          <dictInlineEntry key="productTypeID">
+              <int name="productTypeID" />
+          </dictInlineEntry>
+          <dictInlineEntry key="copy">
+              <bool name="copy" />
+          </dictInlineEntry>
+          <dictInlineEntry key="productivityLevel">
+              <int name="productivityLevel" />
+          </dictInlineEntry>
+          <dictInlineEntry key="materialLevel">
+              <int name="materialLevel" />
+          </dictInlineEntry>
+          <dictInlineEntry key="wastageFactor">
+              <real name="wastageFactor" />
+          </dictInlineEntry>
+          <dictInlineEntry key="manufacturingTime">
+              <int name="manufacturingTime" />
+          </dictInlineEntry>
+          <dictInlineEntry key="maxProductionLimit">
+              <int name="maxProductionLimit" />
+          </dictInlineEntry>
+          <dictInlineEntry key="licensedProductionRunsRemaining">
+              <int name="licensedProductionRunsRemaining" />
+          </dictInlineEntry>
+          <dictInlineEntry key="researchMaterialTime">
+              <int name="researchMaterialTime" />
+          </dictInlineEntry>
+          <dictInlineEntry key="researchTechTime">
+              <int name="researchTechTime" />
+          </dictInlineEntry>
+          <dictInlineEntry key="researchProductivityTime">
+              <int name="researchProductivityTime" />
+          </dictInlineEntry>
+          <dictInlineEntry key="researchCopyTime">
+              <int name="researchCopyTime" />
+          </dictInlineEntry>
+      </dictInline>
   </elementDef>
 
 </elements>

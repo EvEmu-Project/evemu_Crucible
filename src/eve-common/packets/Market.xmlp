@@ -87,20 +87,20 @@
       <bool name="located" none_marker="false" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_ModifyCharOrder">
     <tupleInline>
       <int name="orderID" />
       <real name="new_price" />
-	  <bool name="bid" soft="true" />
-	  <int name="stationID" />
-	  <int name="solarSystemID" />
-	  <real name="old_price" />
-	  <int name="quantity" />
-	  <long name="duration" />
+      <bool name="bid" soft="true" />
+      <int name="stationID" />
+      <int name="solarSystemID" />
+      <real name="old_price" />
+      <int name="quantity" />
+      <long name="duration" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_CancelCharOrder">
     <tupleInline>
       <int name="orderID" />
@@ -113,19 +113,19 @@
       <raw name="order" />
       <!-- Reason: Add or Expiry (probably a "Change" or something too) -->
       <string name="reason" />
-	    <bool name="isCorp" />
+        <bool name="isCorp" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_CharGetNewTransactions">
     <tupleInline>
       <int name="buySell" none_marker="-1" />
       <int name="typeID" none_marker="0" />
-	  <int name="clientID" none_marker="0" />
-	  <int name="quantity"/>
-	  <long name="fromDate" none_marker="0" />
-	  <real name="maxPrice" none_marker="0" />
-	  <raw name="minPrice"/>
+      <int name="clientID" none_marker="0" />
+      <int name="quantity"/>
+      <long name="fromDate" none_marker="0" />
+      <real name="maxPrice" none_marker="0" />
+      <raw name="minPrice"/>
     </tupleInline>
   </elementDef>
 

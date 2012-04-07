@@ -31,47 +31,47 @@ PaperDollService::PaperDollService(PyServiceMgr* mgr)
 : PyService(mgr, "paperDollServer"),
   m_dispatch(new Dispatcher(this))
 {
-	_SetCallDispatcher(m_dispatch);
+    _SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(PaperDollService, GetPaperDollData)
-	PyCallable_REG_CALL(PaperDollService, ConvertAndSavePaperDoll)
-	PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterFull)
-	PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterLimited)
-	PyCallable_REG_CALL(PaperDollService, GetPaperDollPortraitDataFor)
-	PyCallable_REG_CALL(PaperDollService, GetMyPaperDollData)
+    PyCallable_REG_CALL(PaperDollService, GetPaperDollData)
+    PyCallable_REG_CALL(PaperDollService, ConvertAndSavePaperDoll)
+    PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterFull)
+    PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterLimited)
+    PyCallable_REG_CALL(PaperDollService, GetPaperDollPortraitDataFor)
+    PyCallable_REG_CALL(PaperDollService, GetMyPaperDollData)
 }
 
 PaperDollService::~PaperDollService() {
-	delete m_dispatch;
+    delete m_dispatch;
 }
 
 PyResult PaperDollService::Handle_GetPaperDollData(PyCallArgs &call) {
-	return new PyList;
+    return new PyList;
 }
 
 PyResult PaperDollService::Handle_ConvertAndSavePaperDoll(PyCallArgs &call) {
-	return NULL;
+    return NULL;
 }
 
 PyResult PaperDollService::Handle_UpdateExistingCharacterFull(PyCallArgs &call) {
-	return NULL;
+    return NULL;
 }
 
 PyResult PaperDollService::Handle_UpdateExistingCharacterLimited(PyCallArgs &call) {
-	return NULL;
+    return NULL;
 }
 
 PyResult PaperDollService::Handle_GetPaperDollPortraitDataFor(PyCallArgs &call) {
-	return NULL;
+    return NULL;
 }
 
-PyResult PaperDollService::Handle_GetMyPaperDollData(PyCallArgs &call) 
+PyResult PaperDollService::Handle_GetMyPaperDollData(PyCallArgs &call)
 {
-	PyDict* args = new PyDict;
+    PyDict* args = new PyDict;
 
-	args->SetItemString( "colors", new PyDict );
-	args->SetItemString( "modifiers", new PyDict );
-	args->SetItemString( "sculpts", new PyDict );
+    args->SetItemString( "colors", new PyDict );
+    args->SetItemString( "modifiers", new PyDict );
+    args->SetItemString( "sculpts", new PyDict );
 
-	return new PyObject("util.KeyVal", args);
+    return new PyObject("util.KeyVal", args);
 }

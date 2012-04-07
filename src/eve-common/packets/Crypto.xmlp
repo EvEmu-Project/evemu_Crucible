@@ -7,50 +7,50 @@
 
   <elementDef name="VersionExchangeServer">
     <tupleInline>
-	    <int name="birthday" />
-	    <int name="macho_version" />
-	    <int name="user_count" />
-	    <real name="version_number" />
-	    <int name="build_version" />
-	    <string name="project_version" />
-	    <!-- update_info -->
-	    <none />
+        <int name="birthday" />
+        <int name="macho_version" />
+        <int name="user_count" />
+        <real name="version_number" />
+        <int name="build_version" />
+        <string name="project_version" />
+        <!-- update_info -->
+        <none />
     </tupleInline>
   </elementDef>
-  
+
   <!-- doesn't have the update_info -->
    <elementDef name="VersionExchangeClient">
     <tupleInline>
-	    <int name="birthday" />
-	    <int name="macho_version" />
-	    <int name="user_count" />
-	    <real name="version_number" />
-	    <int name="build_version" />
-	    <string name="project_version" />
+        <int name="birthday" />
+        <int name="macho_version" />
+        <int name="user_count" />
+        <real name="version_number" />
+        <int name="build_version" />
+        <string name="project_version" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="NetCommand_QC">
-	  <tupleInline>
-		  <none />
-		  <stringInline value="QC" />
-	  </tupleInline>
+      <tupleInline>
+          <none />
+          <stringInline value="QC" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="NetCommand_VK">
-	  <tupleInline>
-		  <none />
-		  <stringInline value="VK" />
-		  <string name="vipKey" />
-	  </tupleInline>
+      <tupleInline>
+          <none />
+          <stringInline value="VK" />
+          <string name="vipKey" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="CryptoRequestPacket">
     <tupleInline>
-	    <!-- 0 -->
-	    <string name="keyVersion" />
-	    <!-- 1 -->
-	    <dict name="keyParams" />
+        <!-- 0 -->
+        <string name="keyVersion" />
+        <!-- 1 -->
+        <dict name="keyParams" />
     </tupleInline>
   </elementDef>
 
@@ -76,167 +76,167 @@
 
   <elementDef name="CryptoChallengePacket">
     <tupleInline>
-	    <!-- 0 -->
-	    <string name="clientChallenge" />
-	    <!-- 1 -->
-	    <dictInline>
-	      <dictInlineEntry key="macho_version">
-		      <int name="macho_version" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_version">
-		      <real name="boot_version" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_build">
-		      <int name="boot_build" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_codename">
-		      <string name="boot_codename" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_region">
-		      <string name="boot_region" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="user_name">
-		      <wstring name="user_name" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="user_password">
-		      <objectEx name="user_password" type="PasswordString" optional="true" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="user_password_hash">
-		      <string name="user_password_hash" none_marker="" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="user_languageid">
-		      <wstring name="user_languageid" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="user_affiliateid">
-		      <int name="user_affiliateid" />
-	      </dictInlineEntry>
-	    </dictInline>
+        <!-- 0 -->
+        <string name="clientChallenge" />
+        <!-- 1 -->
+        <dictInline>
+          <dictInlineEntry key="macho_version">
+              <int name="macho_version" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_version">
+              <real name="boot_version" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_build">
+              <int name="boot_build" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_codename">
+              <string name="boot_codename" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_region">
+              <string name="boot_region" />
+          </dictInlineEntry>
+          <dictInlineEntry key="user_name">
+              <wstring name="user_name" />
+          </dictInlineEntry>
+          <dictInlineEntry key="user_password">
+              <objectEx name="user_password" type="PasswordString" optional="true" />
+          </dictInlineEntry>
+          <dictInlineEntry key="user_password_hash">
+              <string name="user_password_hash" none_marker="" />
+          </dictInlineEntry>
+          <dictInlineEntry key="user_languageid">
+              <wstring name="user_languageid" />
+          </dictInlineEntry>
+          <dictInlineEntry key="user_affiliateid">
+              <int name="user_affiliateid" />
+          </dictInlineEntry>
+        </dictInline>
     </tupleInline>
   </elementDef>
 
   <elementDef name="CryptoServerHandshake">
     <tupleInline>
-	    <!-- 0: serverChallenge -->
-	    <string name="serverChallenge" />
-	    <!-- 1: func -->
-	    <tupleInline>
+        <!-- 0: serverChallenge -->
+        <string name="serverChallenge" />
+        <!-- 1: func -->
+        <tupleInline>
         <!-- 0: marshaled code -->
         <raw name="func_marshaled_code" />
-		    <!-- 1: verification -->
-		    <raw name="verification" />
-	    </tupleInline>
-	    <!-- 2: context -->
-	    <dictStr name="context" />
-	    <!-- 3: response -->
-	    <dictInline>
-	      <dictInlineEntry key="challenge_responsehash">
-		      <string name="challenge_responsehash" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="macho_version">
-		      <int name="macho_version" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_version">
-		      <real name="boot_version" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_build">
-		      <int name="boot_build" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_codename">
-		      <string name="boot_codename" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="boot_region">
-		      <string name="boot_region" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="cluster_usercount">
-		      <int name="cluster_usercount" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="proxy_nodeid">
-		      <int name="proxy_nodeid" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="user_logonqueueposition">
-		      <int name="user_logonqueueposition" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="config_vals">
-		      <dictInline>
-			      <dictInlineEntry key="imageserverurl">
-				      <string name="imageserverurl" />
-				  </dictInlineEntry>  
-			  </dictInline>
-		  </dictInlineEntry>
-	    </dictInline>
+            <!-- 1: verification -->
+            <raw name="verification" />
+        </tupleInline>
+        <!-- 2: context -->
+        <dictStr name="context" />
+        <!-- 3: response -->
+        <dictInline>
+          <dictInlineEntry key="challenge_responsehash">
+              <string name="challenge_responsehash" />
+          </dictInlineEntry>
+          <dictInlineEntry key="macho_version">
+              <int name="macho_version" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_version">
+              <real name="boot_version" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_build">
+              <int name="boot_build" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_codename">
+              <string name="boot_codename" />
+          </dictInlineEntry>
+          <dictInlineEntry key="boot_region">
+              <string name="boot_region" />
+          </dictInlineEntry>
+          <dictInlineEntry key="cluster_usercount">
+              <int name="cluster_usercount" />
+          </dictInlineEntry>
+          <dictInlineEntry key="proxy_nodeid">
+              <int name="proxy_nodeid" />
+          </dictInlineEntry>
+          <dictInlineEntry key="user_logonqueueposition">
+              <int name="user_logonqueueposition" />
+          </dictInlineEntry>
+          <dictInlineEntry key="config_vals">
+              <dictInline>
+                  <dictInlineEntry key="imageserverurl">
+                      <string name="imageserverurl" />
+                  </dictInlineEntry>
+              </dictInline>
+          </dictInlineEntry>
+        </dictInline>
     </tupleInline>
   </elementDef>
 
   <elementDef name="CryptoHandshakeResult">
     <tupleInline>
-	    <!-- 0 -->
-	    <string name="challenge_responsehash" />
-	    <!-- 1 -->
-	    <string name="func_output" />
-	    <!-- 2 -->
-	    <raw name="func_result" />
+        <!-- 0 -->
+        <string name="challenge_responsehash" />
+        <!-- 1 -->
+        <string name="func_output" />
+        <!-- 2 -->
+        <raw name="func_result" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="LiveUpdateInner">
-	<objectInline>
-		<stringInline value="util.KeyVal" />
-		<dictInline>
-		    <dictInlineEntry key="codeType">
-			    <string name="codeType" />
-		    </dictInlineEntry>
-		    <dictInlineEntry key="objectID">
-			    <string name="objectID" />
-			</dictInlineEntry>
-			<dictInlineEntry key="methodName">
-				<string name="methodName" />
-			</dictInlineEntry>
-			<dictInlineEntry key="code">
-			    <string name="code" />
-			</dictInlineEntry>
-		</dictInline>
-	</objectInline>
+    <objectInline>
+        <stringInline value="util.KeyVal" />
+        <dictInline>
+            <dictInlineEntry key="codeType">
+                <string name="codeType" />
+            </dictInlineEntry>
+            <dictInlineEntry key="objectID">
+                <string name="objectID" />
+            </dictInlineEntry>
+            <dictInlineEntry key="methodName">
+                <string name="methodName" />
+            </dictInlineEntry>
+            <dictInlineEntry key="code">
+                <string name="code" />
+            </dictInlineEntry>
+        </dictInline>
+    </objectInline>
   </elementDef>
 
   <elementDef name="CryptoHandshakeAck">
-	  <dictInline>
-		  <dictInlineEntry key="live_updates">
-			  <list name="live_updates" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="session_init">
-			  <dictInline>
-				  <dictInlineEntry key="languageID">
-					  <string name="jit" />
-				  </dictInlineEntry>
-				  <dictInlineEntry key="userid">
-					  <int name="userid" />
-				  </dictInlineEntry>
-				  <dictInlineEntry key="maxSessionTime">
-					  <!-- Seen 'None' -->
-					  <raw name="maxSessionTime" />
-				  </dictInlineEntry>
-				  <dictInlineEntry key="userType">
-					  <int name="userType" />
-				  </dictInlineEntry>
-				  <dictInlineEntry key="role">
-					  <long name="role" />
-				  </dictInlineEntry>
-				  <dictInlineEntry key="address">
-					  <string name="address" />
-				  </dictInlineEntry>
-				  <dictInlineEntry key="inDetention">
-					  <!-- Seen 'None' -->
-					  <raw name="inDetention" />
-				  </dictInlineEntry>
-			  </dictInline>
-		  </dictInlineEntry>
-		  <dictInlineEntry key="client_hash">
-			  <raw name="client_hash" />
-		  </dictInlineEntry>
-		  <dictInlineEntry key="user_clientid">
-			  <long name="user_clientid" />
-		  </dictInlineEntry>
-	  </dictInline>
+      <dictInline>
+          <dictInlineEntry key="live_updates">
+              <list name="live_updates" />
+          </dictInlineEntry>
+          <dictInlineEntry key="session_init">
+              <dictInline>
+                  <dictInlineEntry key="languageID">
+                      <string name="jit" />
+                  </dictInlineEntry>
+                  <dictInlineEntry key="userid">
+                      <int name="userid" />
+                  </dictInlineEntry>
+                  <dictInlineEntry key="maxSessionTime">
+                      <!-- Seen 'None' -->
+                      <raw name="maxSessionTime" />
+                  </dictInlineEntry>
+                  <dictInlineEntry key="userType">
+                      <int name="userType" />
+                  </dictInlineEntry>
+                  <dictInlineEntry key="role">
+                      <long name="role" />
+                  </dictInlineEntry>
+                  <dictInlineEntry key="address">
+                      <string name="address" />
+                  </dictInlineEntry>
+                  <dictInlineEntry key="inDetention">
+                      <!-- Seen 'None' -->
+                      <raw name="inDetention" />
+                  </dictInlineEntry>
+              </dictInline>
+          </dictInlineEntry>
+          <dictInlineEntry key="client_hash">
+              <raw name="client_hash" />
+          </dictInlineEntry>
+          <dictInlineEntry key="user_clientid">
+              <long name="user_clientid" />
+          </dictInlineEntry>
+      </dictInline>
   </elementDef>
 
 </elements>

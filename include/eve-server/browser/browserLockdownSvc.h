@@ -14,8 +14,8 @@ protected:
 
     PyCallable_DECL_CALL(GetFlaggedSitesHash)
     PyCallable_DECL_CALL(GetFlaggedSitesList)
-	PyCallable_DECL_CALL(GetDefaultHomePage)
-        
+    PyCallable_DECL_CALL(GetDefaultHomePage)
+
 };
 #endif // browserLockdownSvc_h__
 

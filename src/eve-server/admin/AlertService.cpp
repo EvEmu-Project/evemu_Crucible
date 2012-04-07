@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur, Captnoord
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Zhur, Captnoord
 */
 
 #include "EVEServerPCH.h"
@@ -29,20 +29,20 @@ PyCallable_Make_InnerDispatcher(AlertService)
 
 AlertService::AlertService(PyServiceMgr *mgr) : PyService(mgr, "alert"), m_dispatch(new Dispatcher(this)), traceLogger(NULL)
 {
-	_SetCallDispatcher(m_dispatch);
+    _SetCallDispatcher(m_dispatch);
 
-	m_dispatch->RegisterCall("BeanCount", &AlertService::Handle_BeanCount);
-	m_dispatch->RegisterCall("BeanDelivery", &AlertService::Handle_BeanDelivery);
-	m_dispatch->RegisterCall("SendClientStackTraceAlert", &AlertService::Handle_SendClientStackTraceAlert);
+    m_dispatch->RegisterCall("BeanCount", &AlertService::Handle_BeanCount);
+    m_dispatch->RegisterCall("BeanDelivery", &AlertService::Handle_BeanDelivery);
+    m_dispatch->RegisterCall("SendClientStackTraceAlert", &AlertService::Handle_SendClientStackTraceAlert);
 
 #ifdef DEV_DEBUG_TREAT
-	traceLogger = new PyTraceLog("evemu_client_stack_trace.txt", true, true);
+    traceLogger = new PyTraceLog("evemu_client_stack_trace.txt", true, true);
 #endif//DEV_DEBUG_TREAT
 }
 
 AlertService::~AlertService()
 {
-	delete m_dispatch;
+    delete m_dispatch;
 }
 
 /** Basically BeanCount means that a error has occurred in the client python code, and it asks
@@ -53,18 +53,18 @@ AlertService::~AlertService()
   */
 PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 
-	PyTuple *result = new PyTuple(2);
+    PyTuple *result = new PyTuple(2);
 
-	// what we are sending back is just a static mErrorID and the command not to do anything with it.
+    // what we are sending back is just a static mErrorID and the command not to do anything with it.
 #ifdef DEV_DEBUG_TREAT
-	result->items[0] = new PyNone();
+    result->items[0] = new PyNone();
 #else
-	result->items[0] = new PyInt(34135);	//ErrorID
+    result->items[0] = new PyInt(34135);    //ErrorID
 #endif//DEV_DEBUG_TREAT
-	
-	result->items[1] = new PyInt(0);		//loggingMode, 0=local, 1=DB (Capt: This isn't correct at all as it seems..)
 
-	return (PyRep*)result;
+    result->items[1] = new PyInt(0);        //loggingMode, 0=local, 1=DB (Capt: This isn't correct at all as it seems..)
+
+    return (PyRep*)result;
 }
 
 /** The client "stacks" up the python "stack" traces and sends them every 15 minutes.
@@ -73,16 +73,16 @@ PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
   */
 PyResult AlertService::Handle_BeanDelivery( PyCallArgs& call )
 {
-	/* Unhandled for now as we have no interest in receiving batched python stack traces
-	 * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
-	 */
-	return new PyNone;
+    /* Unhandled for now as we have no interest in receiving batched python stack traces
+     * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
+     */
+    return new PyNone;
 }
 
 /**
  * @brief The client sends us a python stack trace, from which we could make up what we did wrong.
  *
- * 
+ *
  *
  * @param[in] call is the python packet that contains the info for this function
  *
@@ -94,7 +94,7 @@ PyResult AlertService::Handle_BeanDelivery( PyCallArgs& call )
 PyResult AlertService::Handle_SendClientStackTraceAlert(PyCallArgs &call) {
 
 #ifdef DEV_DEBUG_TREAT
-	traceLogger->logTrace(*call.tuple);
+    traceLogger->logTrace(*call.tuple);
 #endif//DEV_DEBUG_TREAT
-	return new PyNone();
+    return new PyNone();
 }

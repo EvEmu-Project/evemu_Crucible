@@ -50,9 +50,9 @@ public:
         PyCallable_REG_CALL(InvBrokerBound, TrashItems)
     }
     virtual ~InvBrokerBound()
-	{
-		delete m_dispatch;
-	}
+    {
+        delete m_dispatch;
+    }
 
     virtual void Release() {
         //I hate this statement
@@ -77,31 +77,31 @@ InvBrokerService::InvBrokerService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(InvBrokerService, GetItemDescriptor)
+    PyCallable_REG_CALL(InvBrokerService, GetItemDescriptor)
 }
 
 PyResult InvBrokerService::Handle_GetItemDescriptor(PyCallArgs &call)
 {
-	// not really clear on the use of this one? just a general header update?!
-	// from Inventory::List
+    // not really clear on the use of this one? just a general header update?!
+    // from Inventory::List
 
-	PyList *keywords = new PyList();
-	keywords->AddItem(new_tuple(new PyString("stacksize"), new PyToken("util.StackSize")));
-	keywords->AddItem(new_tuple(new PyString("singleton"), new PyToken("util.Singleton")));
+    PyList *keywords = new PyList();
+    keywords->AddItem(new_tuple(new PyString("stacksize"), new PyToken("util.StackSize")));
+    keywords->AddItem(new_tuple(new PyString("singleton"), new PyToken("util.Singleton")));
 
-	DBRowDescriptor* header = new DBRowDescriptor(keywords);
-	header->AddColumn( "itemID",     DBTYPE_I8 );
-	header->AddColumn( "typeID",     DBTYPE_I4 );
-	header->AddColumn( "ownerID",    DBTYPE_I4 );
-	header->AddColumn( "locationID", DBTYPE_I8 );
-	header->AddColumn( "flagID",     DBTYPE_I2 );
-	header->AddColumn( "quantity",   DBTYPE_I4 );
-	header->AddColumn( "groupID",    DBTYPE_I2 );
-	header->AddColumn( "categoryID", DBTYPE_I4 );
-	header->AddColumn( "customInfo", DBTYPE_STR );
+    DBRowDescriptor* header = new DBRowDescriptor(keywords);
+    header->AddColumn( "itemID",     DBTYPE_I8 );
+    header->AddColumn( "typeID",     DBTYPE_I4 );
+    header->AddColumn( "ownerID",    DBTYPE_I4 );
+    header->AddColumn( "locationID", DBTYPE_I8 );
+    header->AddColumn( "flagID",     DBTYPE_I2 );
+    header->AddColumn( "quantity",   DBTYPE_I4 );
+    header->AddColumn( "groupID",    DBTYPE_I2 );
+    header->AddColumn( "categoryID", DBTYPE_I4 );
+    header->AddColumn( "customInfo", DBTYPE_STR );
 
-	//header->AddColumn( "singleton",  DBTYPE_BOOL );
-	return header;
+    //header->AddColumn( "singleton",  DBTYPE_BOOL );
+    return header;
 }
 
 InvBrokerService::~InvBrokerService() {
@@ -132,7 +132,7 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
     }
     //bool passive = (args.arg2 != 0);  //no idea what this is for.
 
-	m_manager->item_factory.SetUsingClient( call.client );
+    m_manager->item_factory.SetUsingClient( call.client );
     // TODO: this line is insufficient for some object types, like containers in space, so expand it
     // by having a switch that acts differently based on either categoryID or groupID or both:
     Inventory *inventory = m_manager->item_factory.GetInventory( args.arg1 );
@@ -172,8 +172,8 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
             break;
 
         case containerGlobal:
-			flag = flagNone;
-			break;
+            flag = flagNone;
+            break;
 
         case containerSolarSystem:
         case containerScrapHeap:
@@ -225,19 +225,19 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
         _log(SERVICE__ERROR, "Character %u tried to rename item %u of character %u.", call.client->GetCharacterID(), item->itemID(), item->ownerID());
         return NULL;
     }
-	
+
     item->Rename( args.itemName.c_str() );
 
 
-	// This call as-is is NOT correct for any item category other than ships,
+    // This call as-is is NOT correct for any item category other than ships,
     // so until we can get the right string argument for other kinds of session updates,
     // we need to block this call so our characters don't "board" non-ship objects:
     if( item->categoryID() == EVEDB::invCategories::Ship )
-	    call.client->UpdateSession("shipid", item->itemID() );
+        call.client->UpdateSession("shipid", item->itemID() );
 
     // Release the item factory now that the ItemFactory is finished being used:
     m_manager->item_factory.UnsetUsingClient();
-	
+
     return NULL;
 }
 

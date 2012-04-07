@@ -99,7 +99,7 @@ public:
 
     const char* GetText( uint32 index ) const { return mRow[ index ]; }
     int32 GetInt( uint32 index ) const;
-	bool GetBool( uint32 index ) const;
+    bool GetBool( uint32 index ) const;
     uint32 GetUInt( uint32 index ) const;
     int64 GetInt64( uint32 index ) const;
     uint64 GetUInt64( uint32 index ) const;

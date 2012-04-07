@@ -31,7 +31,7 @@ INT_DYN(makeupID)
 INT(skinID)
 INT(backgroundID)
 INT(lightID)
-	
+
 REAL(headRotation1)
 REAL(headRotation2)
 REAL(headRotation3)

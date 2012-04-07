@@ -34,15 +34,15 @@ PasswordString::PasswordString( PyWString* password )
 
 PyWString* PasswordString::GetPassword() const
 {
-	return GetArgs()->GetItem( 1 )->AsWString();
+    return GetArgs()->GetItem( 1 )->AsWString();
 }
 
 PyTuple* PasswordString::_CreateArgs( PyWString* password )
 {
-	PyTuple* head = new PyTuple( 2 );
-	head->SetItem( 0, new PyToken( "util.PasswordString" ) );
-	head->SetItem( 1, password );
+    PyTuple* head = new PyTuple( 2 );
+    head->SetItem( 0, new PyToken( "util.PasswordString" ) );
+    head->SetItem( 1, password );
 
-	return head;
+    return head;
 }
 

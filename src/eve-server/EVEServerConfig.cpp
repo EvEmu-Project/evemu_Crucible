@@ -35,10 +35,10 @@ EVEServerConfig::EVEServerConfig()
 
     // Set sane defaults
 
-	// rates
-	rates.skillRate = 1.0;
-	rates.npcBountyMultiply = 1.0;
-	rates.secRate = 1.0;
+    // rates
+    rates.skillRate = 1.0;
+    rates.npcBountyMultiply = 1.0;
+    rates.secRate = 1.0;
 
     // account
     account.autoAccountRole = 0;
@@ -46,10 +46,10 @@ EVEServerConfig::EVEServerConfig()
 
     // character
     character.startBalance = 6666000000.0f;
-	character.startStation = 0;
-	character.startSecRating = 0.0;
-	character.startCorporation = 0;
-	character.terminationDelay = 90 /*s*/;
+    character.startStation = 0;
+    character.startSecRating = 0.0;
+    character.startCorporation = 0;
+    character.terminationDelay = 90 /*s*/;
 
     // database
     database.host = "localhost";
@@ -62,14 +62,14 @@ EVEServerConfig::EVEServerConfig()
     files.logDir = "../log/";
     files.logSettings = "../etc/log.ini";
     files.cacheDir = "../server_cache/";
-	files.imageDir = "../image_cache/";
+    files.imageDir = "../image_cache/";
 
     // net
     net.port = 26000;
-	net.imageServer = "localhost";
-	net.imageServerPort = 26001;
-	net.apiServer = "localhost";
-	net.apiServerPort = 50001;
+    net.imageServer = "localhost";
+    net.imageServerPort = 26001;
+    net.apiServer = "localhost";
+    net.apiServerPort = 50001;
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
@@ -107,7 +107,7 @@ bool EVEServerConfig::ProcessRates( const TiXmlElement* ele )
 
     RemoveParser( "skillRate" );
     RemoveParser( "secRate" );
-	RemoveParser( "npcBountyMultiply" );
+    RemoveParser( "npcBountyMultiply" );
 
     return result;
 }
@@ -131,7 +131,7 @@ bool EVEServerConfig::ProcessCharacter( const TiXmlElement* ele )
     AddValueParser( "startStation", character.startStation );
     AddValueParser( "startSecRating", character.startSecRating );
     AddValueParser( "startCorporation", character.startCorporation );
-	AddValueParser( "terminationDelay", character.terminationDelay );
+    AddValueParser( "terminationDelay", character.terminationDelay );
 
     const bool result = ParseElementChildren( ele );
 
@@ -139,7 +139,7 @@ bool EVEServerConfig::ProcessCharacter( const TiXmlElement* ele )
     RemoveParser( "startStation" );
     RemoveParser( "startSecRating" );
     RemoveParser( "startCorporation" );
-	RemoveParser( "terminationDelay" );
+    RemoveParser( "terminationDelay" );
 
     return result;
 }
@@ -168,14 +168,14 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
     AddValueParser( "logDir",      files.logDir );
     AddValueParser( "logSettings", files.logSettings );
     AddValueParser( "cacheDir",    files.cacheDir );
-	AddValueParser( "imageDir",	   files.imageDir );
+    AddValueParser( "imageDir",       files.imageDir );
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "logDir" );
     RemoveParser( "logSettings" );
     RemoveParser( "cacheDir" );
-	RemoveParser( "imageDir" );
+    RemoveParser( "imageDir" );
 
     return result;
 }
@@ -184,17 +184,17 @@ bool EVEServerConfig::ProcessNet( const TiXmlElement* ele )
 {
     AddValueParser( "port", net.port );
     AddValueParser( "imageServerPort", net.imageServerPort);
-	AddValueParser( "imageServer", net.imageServer);
+    AddValueParser( "imageServer", net.imageServer);
     AddValueParser( "apiServerPort", net.apiServerPort);
     AddValueParser( "apiServer", net.apiServer);
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "port" );
-	RemoveParser( "imageServerPort" );
-	RemoveParser( "imageServer" );
-	RemoveParser( "apiServerPort" );
-	RemoveParser( "apiServer" );
+    RemoveParser( "imageServerPort" );
+    RemoveParser( "imageServer" );
+    RemoveParser( "apiServerPort" );
+    RemoveParser( "apiServer" );
 
     return result;
 }

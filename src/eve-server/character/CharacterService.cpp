@@ -319,7 +319,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
     // add 1 unit of "Clone Grade Alpha"
     ItemData itemCloneAlpha( 164, char_item->itemID(), char_item->locationID(), flagClone, 1 );
-	itemCloneAlpha.customInfo="active";
+    itemCloneAlpha.customInfo="active";
     initInvItem = m_manager->item_factory.SpawnItem( itemCloneAlpha );
 
     if( !initInvItem )
@@ -469,20 +469,20 @@ PyResult CharacterService::Handle_GetHomeStation( PyCallArgs& call )
 {
     //returns the station ID of the station where this player's Clone is
 
-	uint32 clone;
-	m_db.GetActiveClone(call.client->GetCharacterID(),clone);
+    uint32 clone;
+    m_db.GetActiveClone(call.client->GetCharacterID(),clone);
 
-	return new PyInt( m_manager->item_factory.GetItem(clone)->locationID() );
+    return new PyInt( m_manager->item_factory.GetItem(clone)->locationID() );
 }
 
 PyResult CharacterService::Handle_GetCloneTypeID( PyCallArgs& call )
 {
-	uint32 clone;
-	//we get the typeID of the active clone.
-	//this works without restarting the server and recaching
-	//everything after we upgrade the clone
-	m_db.GetActiveCloneType(call.client->GetCharacterID(),clone);
-	return new PyInt(clone);
+    uint32 clone;
+    //we get the typeID of the active clone.
+    //this works without restarting the server and recaching
+    //everything after we upgrade the clone
+    m_db.GetActiveCloneType(call.client->GetCharacterID(),clone);
+    return new PyInt(clone);
 }
 
 PyResult CharacterService::Handle_GetRecentShipKillsAndLosses( PyCallArgs& call )

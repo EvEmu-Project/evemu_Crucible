@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Aknor Jaden
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Aknor Jaden
 */
 
 
@@ -72,19 +72,19 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "203", "Authentication failure." );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "105", "Invalid characterID." );
+        return BuildErrorXMLResponse( "105", "Invalid characterID." );
     }
 
     // Make calls to the APICharacterDB class to grab all data for this call and populate the xml structure with that data
@@ -237,19 +237,19 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "203", "Authentication failure." );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "105", "Invalid characterID." );
+        return BuildErrorXMLResponse( "105", "Invalid characterID." );
     }
 
     // Make calls to the APICharacterDB class to grab all data for this call and populate the xml structure with that data
@@ -311,7 +311,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
         }
     }
 
-	// EXAMPLE:
+    // EXAMPLE:
     std::vector<std::string> rowset;
     _BuildXMLHeader();
     {
@@ -361,19 +361,19 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillInTraining(const AP
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-	if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "203", "Authentication failure." );
+        return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-	if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
-		return BuildErrorXMLResponse( "105", "Invalid characterID." );
+        return BuildErrorXMLResponse( "105", "Invalid characterID." );
     }
 
     // Make calls to the APICharacterDB class to grab all data for this call and populate the xml structure with that data
@@ -431,7 +431,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillInTraining(const AP
         queueSkillEndTime.push_back( skillEndTime );
     }
 
-	// EXAMPLE:
+    // EXAMPLE:
     std::vector<std::string> rowset;
     _BuildXMLHeader();
     {

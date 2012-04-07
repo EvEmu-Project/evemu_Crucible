@@ -9,27 +9,27 @@
       <!-- 0: clientinfo -->
       <dictInline soft="true">
         <dictInlineEntry key="version.project">
-	        <string name="project_version" />
+            <string name="project_version" />
         </dictInlineEntry>
         <dictInlineEntry key="code.version">
-	        <int name="code_version" />
+            <int name="code_version" />
         </dictInlineEntry>
         <dictInlineEntry key="version.build">
-	        <int name="build_version" />
+            <int name="build_version" />
         </dictInlineEntry>
         <dictInlineEntry key="languageID">
-	        <string name="languageID" />
+            <string name="languageID" />
         </dictInlineEntry>
         <!--
         <dictInlineEntry key="os.hashid">
-	        <int name="os_hashid" />
+            <int name="os_hashid" />
         </dictInlineEntry>
         -->
         <dictInlineEntry key="affiliate.ID">
-	        <int name="affiliate" />
+            <int name="affiliate" />
         </dictInlineEntry>
         <dictInlineEntry key="version.number">
-	        <real name="version_number" />
+            <real name="version_number" />
         </dictInlineEntry>
       </dictInline>
       <!-- 1 -->
@@ -45,13 +45,13 @@
       <!-- 0: serverinfo -->
       <dictInline>
         <dictInlineEntry key="version.project">
-	        <string name="project_version" />
+            <string name="project_version" />
         </dictInlineEntry>
         <dictInlineEntry key="version.build">
-	        <int name="build_version" />
+            <int name="build_version" />
         </dictInlineEntry>
         <dictInlineEntry key="version.number">
-	        <real name="version_number" />
+            <real name="version_number" />
         </dictInlineEntry>
       </dictInline>
       <!-- 1: userID -->
@@ -60,10 +60,10 @@
       <long name="role" />
       <!-- 3 -->
       <substreamInline>
-	      <tupleInline>
-		      <dict name="cachables" />
-		      <dict name="services" />
-	      </tupleInline>
+          <tupleInline>
+              <dict name="cachables" />
+              <dict name="services" />
+          </tupleInline>
       </substreamInline>
       <!-- 4: proxyNodeID -->
       <int name="proxyNodeID" />

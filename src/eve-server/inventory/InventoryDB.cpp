@@ -702,13 +702,13 @@ bool InventoryDB::LoadTypeAttributes(uint32 typeID, EVEAttributeMgr &into) {
 #else
 
     DgmTypeAttributeSet *attrset = sDgmTypeAttrMgr.GetDmgTypeAttributeSet(typeID);
-    
+
     // if not found return true because there can be items without attributes I guess
     if (attrset == NULL)
         return true;
 
     DgmTypeAttributeSet::AttrSetItr itr = attrset->begin();
-    
+
     for (; itr != attrset->end(); itr++) {
         if ((*itr)->number.get_type() == evil_number_int)
             into.SetInt((EVEAttributeMgr::Attr)(*itr)->attributeID, static_cast<int32>((*itr)->number.get_int()));
@@ -1067,14 +1067,14 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
         "   logonMinutes, corporationID, corpRole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther,"
         "   corporationDateTime, startDateTime, createDateTime,"
         "   ancestryID, careerID, schoolID, careerSpecialityID, gender,"
-		"   stationID, solarSystemID, constellationID, regionID, freeRespecs, nextRespec)"
+        "   stationID, solarSystemID, constellationID, regionID, freeRespecs, nextRespec)"
         " VALUES"
         // CharacterData:
         "  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
         "   %u, %u, "I64u ", "I64u ", "I64u ", "I64u ", "I64u ", "
         "   "I64u ", " I64u ", " I64u ","
         "   %u, %u, %u, %u, %u,"
-		"   %u, %u, %u, %u, %u, %u)",
+        "   %u, %u, %u, %u, %u, %u)",
         // CharacterData:
         characterID, data.accountID, titleEsc.c_str(), descriptionEsc.c_str(), data.bounty, data.balance, data.securityRating, "No petition",
         data.logonMinutes, data.corporationID, corpData.corpRole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther,
@@ -1327,15 +1327,15 @@ bool InventoryDB::DeleteCharacter(uint32 characterID) {
         _log(DATABASE__MESSAGE, "Ignoring error.");
     }
 
-	// certificates
-	if( !sDatabase.RunQuery( err,
-		 "DELETE FROM chrCertificates"
-		 " WHERE characterID=%u", characterID))
-	{
-		_log(DATABASE__ERROR, "Failed to delete certificates of character %u: %s", characterID, err.c_str() );
-		// ignore the error
-		_log(DATABASE__MESSAGE, "Ignoring error." );
-	}
+    // certificates
+    if( !sDatabase.RunQuery( err,
+         "DELETE FROM chrCertificates"
+         " WHERE characterID=%u", characterID))
+    {
+        _log(DATABASE__ERROR, "Failed to delete certificates of character %u: %s", characterID, err.c_str() );
+        // ignore the error
+        _log(DATABASE__MESSAGE, "Ignoring error." );
+    }
 
     // character_
     if(!sDatabase.RunQuery(err,
@@ -1525,78 +1525,78 @@ bool InventoryDB::LoadSkillQueue(uint32 characterID, SkillQueue &into) {
 
 bool InventoryDB::LoadCertificates( uint32 characterID, Certificates &into )
 {
-	DBQueryResult res;
+    DBQueryResult res;
 
-	if( !sDatabase.RunQuery( res,
-		 "SELECT"
-	 	 " certificateID,"
-		 " grantDate,"
-		 " visibilityFlags"
-		 " FROM chrCertificates"
-		 " WHERE characterID=%u",
-		 characterID ))
-	{
-		_log(DATABASE__ERROR, "Failed to query certificates of character %u: %s", characterID, res.error.c_str() );
-		return false;
-	}
+    if( !sDatabase.RunQuery( res,
+         "SELECT"
+          " certificateID,"
+         " grantDate,"
+         " visibilityFlags"
+         " FROM chrCertificates"
+         " WHERE characterID=%u",
+         characterID ))
+    {
+        _log(DATABASE__ERROR, "Failed to query certificates of character %u: %s", characterID, res.error.c_str() );
+        return false;
+    }
 
-	DBResultRow row;
-	while( res.GetRow( row ) )
-	{
-		currentCertificates i;
-		i.certificateID = row.GetUInt( 0 );
-		i.grantDate = row.GetUInt64( 1 );
-		i.visibilityFlags = row.GetUInt( 2 );
+    DBResultRow row;
+    while( res.GetRow( row ) )
+    {
+        currentCertificates i;
+        i.certificateID = row.GetUInt( 0 );
+        i.grantDate = row.GetUInt64( 1 );
+        i.visibilityFlags = row.GetUInt( 2 );
 
-		into.push_back( i );
-	}
+        into.push_back( i );
+    }
 
-	return true;
+    return true;
 
 }
 
 bool InventoryDB::SaveCertificates( uint32 characterID, const Certificates &from )
 {
-	DBerror err;
+    DBerror err;
 
-	if( !sDatabase.RunQuery( err,
-		 "DELETE"
-		 " FROM chrCertificates"
-		 " WHERE characterID = %u",
-		 characterID ))
-	{
-		_log(DATABASE__ERROR, "Failed to delete certificates of character %u: %s", characterID, err.c_str() );
-		return false;
-	}
+    if( !sDatabase.RunQuery( err,
+         "DELETE"
+         " FROM chrCertificates"
+         " WHERE characterID = %u",
+         characterID ))
+    {
+        _log(DATABASE__ERROR, "Failed to delete certificates of character %u: %s", characterID, err.c_str() );
+        return false;
+    }
 
-	if( from.empty( ) )
-		return true;
+    if( from.empty( ) )
+        return true;
 
-	std::string query;
+    std::string query;
 
-	for(size_t i = 0; i < from.size(); i++)
-	{
-		const currentCertificates &im = from[ i ];
+    for(size_t i = 0; i < from.size(); i++)
+    {
+        const currentCertificates &im = from[ i ];
 
-		char buf[ 64 ];
-		snprintf( buf, 64, "(NULL, %u, %u, "I64u", %u)", characterID, im.certificateID, im.grantDate, im.visibilityFlags );
-		if( i != 0 )
-		query += ',';
-		query += buf;
+        char buf[ 64 ];
+        snprintf( buf, 64, "(NULL, %u, %u, "I64u", %u)", characterID, im.certificateID, im.grantDate, im.visibilityFlags );
+        if( i != 0 )
+        query += ',';
+        query += buf;
 
-	}
+    }
 
-	if( !sDatabase.RunQuery( err,
-		 "INSERT"
-		 " INTO chrCertificates (id, characterID, certificateID, grantDate, visibilityFlags)"
-		 " VALUES %s",
-		 query.c_str() ))
-	{
-		_log(DATABASE__ERROR, "Failed to insert certificates of character %u: %s", characterID, err.c_str() );
-		return false;
-	}
+    if( !sDatabase.RunQuery( err,
+         "INSERT"
+         " INTO chrCertificates (id, characterID, certificateID, grantDate, visibilityFlags)"
+         " VALUES %s",
+         query.c_str() ))
+    {
+        _log(DATABASE__ERROR, "Failed to insert certificates of character %u: %s", characterID, err.c_str() );
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
@@ -1645,155 +1645,155 @@ bool InventoryDB::SaveSkillQueue(uint32 characterID, const SkillQueue &queue) {
 }
 bool InventoryDB::GetTypeID(uint32 itemID, uint32 &typeID)
 {
-	DBQueryResult res;
-	DBResultRow row;
-	
-	if(!sDatabase.RunQuery(res,
-		" SELECT "
-		" typeID "
-		" FROM entity "
-		" WHERE itemID = %u ",itemID))
-	{
-		_log(DATABASE__ERROR, "Failed to query for itemID = %u", itemID);
-	}
+    DBQueryResult res;
+    DBResultRow row;
+
+    if(!sDatabase.RunQuery(res,
+        " SELECT "
+        " typeID "
+        " FROM entity "
+        " WHERE itemID = %u ",itemID))
+    {
+        _log(DATABASE__ERROR, "Failed to query for itemID = %u", itemID);
+    }
 
     if(!res.GetRow(row)) {
         _log(DATABASE__ERROR, "Item of type %u not found.", itemID);
         return false;
     }
 
-	typeID = row.GetUInt(0);
+    typeID = row.GetUInt(0);
     return true;
 }
 
 bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
 {
-	DBQueryResult res;
-	DBResultRow row;
+    DBQueryResult res;
+    DBResultRow row;
 
-	if(!sDatabase.RunQuery(res,
-		" SELECT "
-		" groupID "
-		" FROM invtypes "
-		" WHERE typeID = '%u' ",
-		typeID))
-	{
-		_log(DATABASE__ERROR, "Failed to get groupID for typeID = %u", typeID);
-	}
-	
-	if(!res.GetRow(row)) {
+    if(!sDatabase.RunQuery(res,
+        " SELECT "
+        " groupID "
+        " FROM invtypes "
+        " WHERE typeID = '%u' ",
+        typeID))
+    {
+        _log(DATABASE__ERROR, "Failed to get groupID for typeID = %u", typeID);
+    }
+
+    if(!res.GetRow(row)) {
         _log(DATABASE__ERROR, "Item of type %u not found.", typeID);
         return false;
     }
 
-	uint32 groupID = row.GetUInt(0);
+    uint32 groupID = row.GetUInt(0);
 
-	//TODO: put in invCat
-	switch( groupID) {
-		case EVEDB::invGroups::Rig_Armor:
-		case EVEDB::invGroups::Rig_Astronautic:
-		case EVEDB::invGroups::Rig_Drones:
-		case EVEDB::invGroups::Rig_Electronics:
-		case EVEDB::invGroups::Rig_Electronics_Superiority:
-		case EVEDB::invGroups::Rig_Energy_Grid:
-		case EVEDB::invGroups::Rig_Energy_Weapon:
-		case EVEDB::invGroups::Rig_Hybrid_Weapon:
-		case EVEDB::invGroups::Rig_Launcher:
-		case EVEDB::invGroups::Rig_Mining:
-		case EVEDB::invGroups::Rig_Projectile_Weapon:
-		case EVEDB::invGroups::Rig_Security_Transponder:
-		case EVEDB::invGroups::Rig_Shield:
+    //TODO: put in invCat
+    switch( groupID) {
+        case EVEDB::invGroups::Rig_Armor:
+        case EVEDB::invGroups::Rig_Astronautic:
+        case EVEDB::invGroups::Rig_Drones:
+        case EVEDB::invGroups::Rig_Electronics:
+        case EVEDB::invGroups::Rig_Electronics_Superiority:
+        case EVEDB::invGroups::Rig_Energy_Grid:
+        case EVEDB::invGroups::Rig_Energy_Weapon:
+        case EVEDB::invGroups::Rig_Hybrid_Weapon:
+        case EVEDB::invGroups::Rig_Launcher:
+        case EVEDB::invGroups::Rig_Mining:
+        case EVEDB::invGroups::Rig_Projectile_Weapon:
+        case EVEDB::invGroups::Rig_Security_Transponder:
+        case EVEDB::invGroups::Rig_Shield:
 
-			into = 0;
-			return true;
-	}
+            into = 0;
+            return true;
+    }
 
 
-	if(!sDatabase.RunQuery(res,
-		" SELECT "
-		" effectID "
-		" FROM dgmTypeEffects "
-		" WHERE typeID = '%u' AND ( effectID = 11 OR effectID = 12 OR effectID = 13 ) ",
-		typeID))
-	{
-		_log(DATABASE__ERROR, "Failed to get slot for typeID = %u", typeID);
-	}
+    if(!sDatabase.RunQuery(res,
+        " SELECT "
+        " effectID "
+        " FROM dgmTypeEffects "
+        " WHERE typeID = '%u' AND ( effectID = 11 OR effectID = 12 OR effectID = 13 ) ",
+        typeID))
+    {
+        _log(DATABASE__ERROR, "Failed to get slot for typeID = %u", typeID);
+    }
 
-	if(!res.GetRow(row)) {
+    if(!res.GetRow(row)) {
         _log(DATABASE__ERROR, "Item of type %u not found.", typeID);
         return false;
     }
 
-	uint32 slotType = row.GetUInt(0);
+    uint32 slotType = row.GetUInt(0);
 
-	//such crap...
-	if( slotType == 11 ) {
-		into = 1;
-		return true;
-	} else if( slotType == 12 ) {
-		into = 3;
-		return true;
-	} else if( slotType == 13 ){
-		into = 2;
-		return true;
-	} else
-		throw PyException( MakeCustomError( "Item of type: %u is not fittable (could be a rig, as they haven't been implemented)", typeID ) );
+    //such crap...
+    if( slotType == 11 ) {
+        into = 1;
+        return true;
+    } else if( slotType == 12 ) {
+        into = 3;
+        return true;
+    } else if( slotType == 13 ){
+        into = 2;
+        return true;
+    } else
+        throw PyException( MakeCustomError( "Item of type: %u is not fittable (could be a rig, as they haven't been implemented)", typeID ) );
 
 }
 
 bool InventoryDB::GetOpenPowerSlots(uint32 slotType, ShipRef ship, uint32 &into)
 {
-	DBQueryResult res;
-	uint32 attributeID = 0;
-	uint32 firstFlag;
-	DBResultRow row;
-	uint32 slotsOnShip;
+    DBQueryResult res;
+    uint32 attributeID = 0;
+    uint32 firstFlag;
+    DBResultRow row;
+    uint32 slotsOnShip;
 
-	if( slotType == 0 )
-	{
-		//TODO: Implement Rigs
-		attributeID = 1137;
-		firstFlag = 92; //rigslot0
-		//slotsOnShip = ship->rigSlots();
+    if( slotType == 0 )
+    {
+        //TODO: Implement Rigs
+        attributeID = 1137;
+        firstFlag = 92; //rigslot0
+        //slotsOnShip = ship->rigSlots();
         slotsOnShip = static_cast<uint32>(ship->GetAttribute(AttrRigSlots).get_int());
-	}
-	else if( slotType == 1 )
-	{
-		attributeID = 12;
-		firstFlag = 11; //lowslot0
-		//slotsOnShip = ship->lowSlots();
+    }
+    else if( slotType == 1 )
+    {
+        attributeID = 12;
+        firstFlag = 11; //lowslot0
+        //slotsOnShip = ship->lowSlots();
         slotsOnShip = static_cast<uint32>(ship->GetAttribute(AttrLowSlots).get_int());
-	}
-	else if( slotType == 2 )
-	{
-		attributeID = 13;
-		firstFlag = 19; //medslot0
-		//slotsOnShip = ship->medSlots();
+    }
+    else if( slotType == 2 )
+    {
+        attributeID = 13;
+        firstFlag = 19; //medslot0
+        //slotsOnShip = ship->medSlots();
         slotsOnShip = static_cast<uint32>(ship->GetAttribute(AttrMedSlots).get_int());
-	}
-	else if( slotType == 3 )
-	{
-		attributeID = 14;
-		firstFlag = 27; //hislot0
-		//slotsOnShip = ship->hiSlots();
+    }
+    else if( slotType == 3 )
+    {
+        attributeID = 14;
+        firstFlag = 27; //hislot0
+        //slotsOnShip = ship->hiSlots();
         slotsOnShip = static_cast<uint32>(ship->GetAttribute(AttrHiSlots).get_int());
-	}	
-	
-	for( uint32 flag = firstFlag; flag < (firstFlag + slotsOnShip); flag++ )
-	{
+    }
+
+    for( uint32 flag = firstFlag; flag < (firstFlag + slotsOnShip); flag++ )
+    {
         // this is far from efficient as we are iterating trough all of the ships item slots.... every iteration... so this will be slow when you got loads of players
         // with a single free slot.
-    	if(ship->IsEmptyByFlag((EVEItemFlags)flag))
-		{
-			into = flag;
-			return true;
-		}
-	}
+        if(ship->IsEmptyByFlag((EVEItemFlags)flag))
+        {
+            into = flag;
+            return true;
+        }
+    }
 
-	//Only time it should make it this far...
-	throw PyException( MakeCustomError( "There are no available slots" ));
+    //Only time it should make it this far...
+    throw PyException( MakeCustomError( "There are no available slots" ));
 
-	return false;
+    return false;
 
 }
 

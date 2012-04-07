@@ -34,39 +34,39 @@ COMMAND( getattr, ROLE_ADMIN,
 COMMAND( setattr, ROLE_ADMIN,
          "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
 COMMAND( fit, ROLE_ADMIN,
-		"(itemID) - Fits selected item to active ship." )
+        "(itemID) - Fits selected item to active ship." )
 COMMAND( giveskill, ROLE_ADMIN,
-		"(itemID) - gives skills to fit item." )
+        "(itemID) - gives skills to fit item." )
 COMMAND( online, ROLE_ADMIN,
-		"(entityID) - online all modules on the ship of the entityID. entityID=me=>online my modules" )
+        "(entityID) - online all modules on the ship of the entityID. entityID=me=>online my modules" )
 COMMAND( unload, ROLE_ADMIN,
-		"(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )
+        "(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )
 COMMAND( heal, ROLE_ADMIN,
-		"(entityID) - heal the character with the entityID" )
+        "(entityID) - heal the character with the entityID" )
 COMMAND( repairmodules, ROLE_ADMIN,
-		"(entityID) (itemID) - repair the modules of the character with the entityID" )
+        "(entityID) (itemID) - repair the modules of the character with the entityID" )
 COMMAND( unspawn, ROLE_ADMIN,
-		"(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )
+        "(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )
 COMMAND( giveskills, ROLE_ADMIN,
-		"(itemID) - gives skills to character." )
+        "(itemID) - gives skills to character." )
 COMMAND( dogma, ROLE_ADMIN,
-		"(attribute) - change item attribute value" )
+        "(attribute) - change item attribute value" )
 COMMAND( kick, ROLE_ADMIN,
-		"(charName) - kicks [charName] from the server")
+        "(charName) - kicks [charName] from the server")
 COMMAND( ban, ROLE_ADMIN,
-		"(charName) - bans player's account from the server")
+        "(charName) - bans player's account from the server")
 COMMAND( unban, ROLE_ADMIN,
-		"(charName) - removes ban on player's account")
+        "(charName) - removes ban on player's account")
 COMMAND( kenny, ROLE_ADMIN,
         "(ON,OFF,0,1) - enable/disable the Kenny Translator for your chatting entertainment!")
 COMMAND( kill, ROLE_ADMIN,
         "(entityID) - insta-pops a destroyable ship, drone, structure, if applicable")
 /*COMMAND( entity, ROLE_ADMIN,
-		"(entityID) - unknown" )
+        "(entityID) - unknown" )
 COMMAND( chatban, ROLE_ADMIN,
-		"(characterID) - bans character from channel" )
+        "(characterID) - bans character from channel" )
 COMMAND( whois, ROLE_ADMIN,
-		"(characterName) - returns information on character")
+        "(characterName) - returns information on character")
 COMMAND( giveallskills, ROLE_ADMIN,
-		"(characterID) - gives all skills to character")
+        "(characterID) - gives all skills to character")
 */

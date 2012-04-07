@@ -42,7 +42,7 @@ CachedObjectMgr::~CachedObjectMgr()
     CachedObjMapItr cur, end;
     cur = m_cachedObjects.begin();
     end = m_cachedObjects.end();
-    
+
     for(; cur != end; cur++) {
         SafeDelete( cur->second );
     }
@@ -54,8 +54,8 @@ CachedObjectMgr::~CachedObjectMgr()
 CachedObjectMgr::CacheRecord::CacheRecord() : objectID(NULL), timestamp(0), version(0), cache(NULL) {}
 CachedObjectMgr::CacheRecord::~CacheRecord()
 {
-	PyDecRef( objectID );
-	PyDecRef( cache );
+    PyDecRef( objectID );
+    PyDecRef( cache );
 }
 
 PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const
@@ -120,7 +120,7 @@ void CachedObjectMgr::UpdateCacheFromSS(const std::string &objectID, PySubStream
 {
     PyCachedObjectDecoder cache;
     if(!cache.Decode(in_cached_data)) {
-		sLog.Error("CachedObjMgr","Failed to decode stream");
+        sLog.Error("CachedObjMgr","Failed to decode stream");
         return;
     }
 
@@ -153,10 +153,10 @@ void CachedObjectMgr::UpdateCache(const PyRep *objectID, PyRep **in_cached_data)
 
     Buffer* data = new Buffer;
     bool res = MarshalDeflate( cached_data, *data );
-	PyDecRef( cached_data );
+    PyDecRef( cached_data );
 
     if( res ) {
-	    PyBuffer* buf = new PyBuffer( &data );
+        PyBuffer* buf = new PyBuffer( &data );
         _UpdateCache( objectID, &buf );
     } else {
         sLog.Error( "Cached Obj Mgr", "Failed to marshal or deflate new cache object." );
@@ -172,9 +172,9 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer)
     r->timestamp = Win32TimeNow();
     r->objectID = objectID->Clone();
 
-	// retake ownership
+    // retake ownership
     r->cache = *buffer;
-	*buffer = NULL;
+    *buffer = NULL;
 
     r->version = CRC32::Generate( &r->cache->content()[0], r->cache->content().size() );
 
@@ -185,11 +185,11 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **buffer)
 
     if(res != m_cachedObjects.end()) {
 
-		sLog.Debug("CachedObjMgr","Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->content().size(), res->second->version); 
-		SafeDelete( res->second );
+        sLog.Debug("CachedObjMgr","Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->content().size(), res->second->version);
+        SafeDelete( res->second );
     }
 
-	sLog.Debug("CachedObjMgr","Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->content().size(), r->version);
+    sLog.Debug("CachedObjMgr","Registering new cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), r->cache->content().size(), r->version);
 
     m_cachedObjects[str] = r;
 }
@@ -244,7 +244,7 @@ PyObject *CachedObjectMgr::GetCachedObject(const PyRep *objectID)
     else
         co.compressed = true;
 
-	sLog.Debug("CachedObjMgr","Returning cached object '%s' with checksum 0x%x", str.c_str(), co.version);
+    sLog.Debug("CachedObjMgr","Returning cached object '%s' with checksum 0x%x", str.c_str(), co.version);
 
     PyObject *result = co.Encode();
     co.cache = NULL;    //avoid a copy
@@ -362,14 +362,14 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     header.version = res->second->version;
     header.magic = CacheFileMagic;
     header.length = res->second->cache->content().size();
-    
+
     if(fwrite(&header, sizeof(header), 1, f) != 1) {
         fclose(f);
         return false;
     }
-    
+
     if(fwrite(&res->second->cache->content()[0], sizeof(uint8), header.length, f) != header.length) {
-    	assert(false);
+        assert(false);
         fclose(f);
         return false;
     }
@@ -418,14 +418,14 @@ PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char*
     FILE* f = fopen( abs_fname, "rb" );
 
     if( f == NULL ) {
-		sLog.Error("CachedObjMgr","Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror( errno ) );
+        sLog.Error("CachedObjMgr","Unable to open cache file '%s' for oname '%s': %s", abs_fname, oname, strerror( errno ) );
         return false;
     }
 
     uint64 file_length = filesize( f );
     if( file_length == 0 )
     {
-		sLog.Error("CachedObjMgr","Unable to stat cache file '%s' for oname '%s'", abs_fname, oname );
+        sLog.Error("CachedObjMgr","Unable to stat cache file '%s' for oname '%s'", abs_fname, oname );
         fclose( f );
         return false;
     }
@@ -433,7 +433,7 @@ PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char*
     Buffer* buf = new Buffer(static_cast<size_t>(file_length));
 
     if( file_length != fread( &( *buf )[0], sizeof( uint8 ), static_cast<size_t>(file_length), f ) ) {
-		sLog.Error("CachedObjMgr","Unable to read cache file '%s' for oname '%s%': %s", abs_fname, oname, strerror( errno ) );
+        sLog.Error("CachedObjMgr","Unable to read cache file '%s' for oname '%s%': %s", abs_fname, oname, strerror( errno ) );
 
         SafeDelete( buf );
         fclose( f );
@@ -442,7 +442,7 @@ PySubStream* CachedObjectMgr::LoadCachedFile( const char* abs_fname, const char*
 
     fclose( f );
 
-	sLog.Debug("CachedObjMgr","Loaded cache file for '%s': length %u", oname, file_length );
+    sLog.Debug("CachedObjMgr","Loaded cache file for '%s': length %u", oname, file_length );
 
     return new PySubStream( new PyBuffer( &buf ) );
 }
@@ -601,14 +601,14 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss)
 
     ss->DecodeData();
     if(ss->decoded() == NULL) {
-		sLog.Error("PyCachedObjectDecoder","Unable to decode initial stream for PycachedObject");
+        sLog.Error("PyCachedObjectDecoder","Unable to decode initial stream for PycachedObject");
 
         PyDecRef( ss );
         return false;
     }
 
     if(!ss->decoded()->IsObject()) {
-		sLog.Error("PyCachedObjectDecoder","Cache substream does not contain an object: %s", ss->decoded()->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache substream does not contain an object: %s", ss->decoded()->TypeString());
 
         PyDecRef( ss );
         return false;
@@ -617,7 +617,7 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss)
     //TODO: could check type string, dont care... (should be objectCaching.CachedObject)
 
     if(!po->arguments()->IsTuple()) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's args is not a tuple: %s", po->arguments()->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache object's args is not a tuple: %s", po->arguments()->TypeString());
 
         PyDecRef( ss );
         return false;
@@ -625,14 +625,14 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss)
     PyTuple *args = (PyTuple *) po->arguments();
 
     if(args->items.size() != 7) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's args tuple has %lu elements instead of 7", args->items.size());
+        sLog.Error("PyCachedObjectDecoder","Cache object's args tuple has %lu elements instead of 7", args->items.size());
 
         PyDecRef( ss );
         return false;
     }
 
     if(!args->items[0]->IsTuple()) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not a Tuple: %s", 0, args->items[0]->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not a Tuple: %s", 0, args->items[0]->TypeString());
 
         PyDecRef( ss );
         return false;
@@ -645,32 +645,32 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss)
         return false;
     }*/
     if(!args->items[2]->IsInt()) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not an Integer: %s", 2, args->items[2]->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not an Integer: %s", 2, args->items[2]->TypeString());
         PyDecRef( ss );
         return false;
     }
 
     if(!args->items[3]->IsInt()) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not an Integer: %s", 3, args->items[3]->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not an Integer: %s", 3, args->items[3]->TypeString());
         PyDecRef( ss );
         return false;
     }
 
     if(!args->items[5]->IsInt()) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not a : %s", 5, args->items[5]->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache object's arg %d is not a : %s", 5, args->items[5]->TypeString());
         PyDecRef( ss );
         return false;
     }
 
     PyTuple *objVt = (PyTuple *) args->items[0];
     if(!objVt->items[0]->IsInt()) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's version tuple %d is not an Integer: %s", 0, objVt->items[0]->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache object's version tuple %d is not an Integer: %s", 0, objVt->items[0]->TypeString());
         PyDecRef( ss );
         return false;
     }
 
     if(!objVt->items[1]->IsInt()) {
-		sLog.Error("PyCachedObjectDecoder","Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
+        sLog.Error("PyCachedObjectDecoder","Cache object's version tuple %d is not an Integer: %s", 1, objVt->items[1]->TypeString());
         PyDecRef( ss );
         return false;
     }
@@ -697,14 +697,14 @@ bool PyCachedObjectDecoder::Decode(PySubStream **in_ss)
         PyBuffer* buf = args->items[4]->AsBuffer();
 
         PyIncRef( buf );
-		cache = new PySubStream( buf );
+        cache = new PySubStream( buf );
     } else if(args->items[4]->IsString()) {
         //this is a data buffer, likely compressed, not sure why it comes through as a string...
         PyString* str = args->items[4]->AsString();
 
         cache = new PySubStream( new PyBuffer( *str ) );
     } else {
-		sLog.Error("PyCachedObjectMgr", "Cache object's arg %d is not a substream or buffer: %s", 4, args->items[4]->TypeString());
+        sLog.Error("PyCachedObjectMgr", "Cache object's arg %d is not a substream or buffer: %s", 4, args->items[4]->TypeString());
         PyDecRef( ss );
         return false;
     }
@@ -808,13 +808,13 @@ bool PyCachedCall::Decode(PySubStream **in_ss)
 
     ss->DecodeData();
     if(ss->decoded() == NULL) {
-		sLog.Error("PyCachedCall","Unable to decode initial stream for PyCachedCall");
+        sLog.Error("PyCachedCall","Unable to decode initial stream for PyCachedCall");
         PyDecRef( ss );
         return false;
     }
 
     if(!ss->decoded()->IsDict()) {
-		sLog.Error("PyCachedCall","Cached call substream does not contain a dict: %s", ss->decoded()->TypeString());
+        sLog.Error("PyCachedCall","Cached call substream does not contain a dict: %s", ss->decoded()->TypeString());
         PyDecRef( ss );
         return false;
     }

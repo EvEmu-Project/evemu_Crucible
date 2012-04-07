@@ -27,47 +27,47 @@
 
 PyList* LiveUpdateDB::GenerateUpdates()
 {
-	const char* query = "SELECT updateID, updateName, description, machoVersionMin, machoVersionMax, buildNumberMin, buildNumberMax, methodName, objectID, codeType, code FROM liveupdates";
-	DBQueryResult res;
+    const char* query = "SELECT updateID, updateName, description, machoVersionMin, machoVersionMax, buildNumberMin, buildNumberMax, methodName, objectID, codeType, code FROM liveupdates";
+    DBQueryResult res;
 
-	if (!sDatabase.RunQuery(res, query))
-	{
-		codelog(DATABASE__ERROR, "Couldn't get live updates from database: %s", res.error.c_str());
-		return NULL;
-	}
+    if (!sDatabase.RunQuery(res, query))
+    {
+        codelog(DATABASE__ERROR, "Couldn't get live updates from database: %s", res.error.c_str());
+        return NULL;
+    }
 
-	// setup the descriptor
-	DBRowDescriptor* header = new DBRowDescriptor();
-	header->AddColumn("updateID", DBTYPE_I4);
-	header->AddColumn("updateName", DBTYPE_WSTR);
-	header->AddColumn("description", DBTYPE_WSTR);
-	header->AddColumn("machoVersionMin", DBTYPE_I4);
-	header->AddColumn("machoVersionMax", DBTYPE_I4);
-	header->AddColumn("buildNumberMin", DBTYPE_I4);
-	header->AddColumn("buildNumberMax", DBTYPE_I4);
-	header->AddColumn("code", DBTYPE_STR);
+    // setup the descriptor
+    DBRowDescriptor* header = new DBRowDescriptor();
+    header->AddColumn("updateID", DBTYPE_I4);
+    header->AddColumn("updateName", DBTYPE_WSTR);
+    header->AddColumn("description", DBTYPE_WSTR);
+    header->AddColumn("machoVersionMin", DBTYPE_I4);
+    header->AddColumn("machoVersionMax", DBTYPE_I4);
+    header->AddColumn("buildNumberMin", DBTYPE_I4);
+    header->AddColumn("buildNumberMax", DBTYPE_I4);
+    header->AddColumn("code", DBTYPE_STR);
 
-	// we need to manually create PyPackedRows since we don't want everything from the query in them
-	PyList* list = new PyList(res.GetRowCount());
-	int listIndex = 0;
-	DBResultRow row;
-	while (res.GetRow(row))
-	{
-		PyPackedRow* packedRow = new PyPackedRow(header);
-		for (int i = 0; i < 7; i++)
-			packedRow->SetField(i, DBColumnToPyRep(row, i));
-		PyIncRef(header);
+    // we need to manually create PyPackedRows since we don't want everything from the query in them
+    PyList* list = new PyList(res.GetRowCount());
+    int listIndex = 0;
+    DBResultRow row;
+    while (res.GetRow(row))
+    {
+        PyPackedRow* packedRow = new PyPackedRow(header);
+        for (int i = 0; i < 7; i++)
+            packedRow->SetField(i, DBColumnToPyRep(row, i));
+        PyIncRef(header);
 
-		LiveUpdateInner inner;
-		// binary data so we can't expect strlen to get it right
-		inner.code = std::string(row.GetText(10), row.ColumnLength(10));
-		inner.codeType = row.GetText(9);
-		inner.objectID = row.GetText(8);
-		inner.methodName = row.GetText(7);
-		packedRow->SetField(static_cast<uint32>(7) /* code */, inner.Encode());
+        LiveUpdateInner inner;
+        // binary data so we can't expect strlen to get it right
+        inner.code = std::string(row.GetText(10), row.ColumnLength(10));
+        inner.codeType = row.GetText(9);
+        inner.objectID = row.GetText(8);
+        inner.methodName = row.GetText(7);
+        packedRow->SetField(static_cast<uint32>(7) /* code */, inner.Encode());
 
-		list->SetItem(listIndex++, packedRow);
-	}
+        list->SetItem(listIndex++, packedRow);
+    }
 
-	return list;
+    return list;
 }

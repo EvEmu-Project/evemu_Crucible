@@ -5,5 +5,5 @@ COMMAND( roid, ROLE_ADMIN,
 COMMAND( growbelt, ROLE_ADMIN,
          "- Trigger asteroid growth in the current belt." )
 COMMAND( spawnbelt, ROLE_ADMIN,
-		 "- Creates a new asteroid belt." )
+         "- Creates a new asteroid belt." )
 

@@ -58,20 +58,20 @@ int main( int argc, char* argv[] )
     // Load server configuration
     if( !sConfig.ParseFile( CONFIG_FILE ) )
     {
-		printf("ERROR: Loading server configuration '%s' failed.", CONFIG_FILE );
+        printf("ERROR: Loading server configuration '%s' failed.", CONFIG_FILE );
         //sLog.Error( "server init", "Loading server configuration '%s' failed.", CONFIG_FILE );
         std::cout << std::endl << "press any key to exit...";  std::cin.get();
         return 1;
     }
 
-	sLog.InitializeLogging(sConfig.files.logDir);
+    sLog.InitializeLogging(sConfig.files.logDir);
     sLog.Log("server init", "Loading server configuration...");
 
-	sLog.Log("", "" );
-	sLog.Log("version", "EVEmu "EVEMU_VERSION );
-	sLog.Log("", "" );
+    sLog.Log("", "" );
+    sLog.Log("version", "EVEmu "EVEMU_VERSION );
+    sLog.Log("", "" );
     sLog.Log("source", "get at "EVEMU_SOURCE_LOCATION );
-	sLog.Log("", "" );
+    sLog.Log("", "" );
     sLog.Log("server init", "\n"
         "\tSupported Client: %s\n"
         "\tVersion %.2f\n"
@@ -95,7 +95,7 @@ int main( int argc, char* argv[] )
     // open up the log file if specified ( will be removed )
     if( !sConfig.files.logDir.empty() )
     {
-		std::string logFile = sConfig.files.logDir + "eve-server.log";
+        std::string logFile = sConfig.files.logDir + "eve-server.log";
         if( log_open_logfile( logFile.c_str() ) )
             sLog.Success( "server init", "Found log directory %s", sConfig.files.logDir.c_str() );
         else
@@ -131,7 +131,7 @@ int main( int argc, char* argv[] )
         std::cout << std::endl << "press any key to exit...";  std::cin.get();
         return 1;
     }
-	//make the item factory
+    //make the item factory
     ItemFactory item_factory( sEntityList );
 
     //now, the service manager...
@@ -147,91 +147,91 @@ int main( int argc, char* argv[] )
      */
     sLog.Log("server init", "Creating services.");
 
-	// Please keep the services list clean so it's easyier to find something
+    // Please keep the services list clean so it's easyier to find something
 
-	services.RegisterService(new AccountService(&services));
-	services.RegisterService(new AgentMgrService(&services));
-	services.RegisterService(new AggressionMgrService(&services));
-	services.RegisterService(new AlertService(&services));
+    services.RegisterService(new AccountService(&services));
+    services.RegisterService(new AgentMgrService(&services));
+    services.RegisterService(new AggressionMgrService(&services));
+    services.RegisterService(new AlertService(&services));
     services.RegisterService(new AuthService(&services));
-	services.RegisterService(new BillMgrService(&services));
-	services.RegisterService(new BeyonceService(&services));
+    services.RegisterService(new BillMgrService(&services));
+    services.RegisterService(new BeyonceService(&services));
     services.RegisterService(new BookmarkService(&services));
-	services.RegisterService(new BrowserLockDownService(&services));
+    services.RegisterService(new BrowserLockDownService(&services));
     services.RegisterService(new BulkMgrService(&services));
-	services.RegisterService(new CertificateMgrService(&services));
+    services.RegisterService(new CertificateMgrService(&services));
     services.RegisterService(new CharacterService(&services));
-	services.RegisterService(new CharFittingMgrService(&services));
-	services.RegisterService(new CharUnboundMgrService(&services));
+    services.RegisterService(new CharFittingMgrService(&services));
+    services.RegisterService(new CharUnboundMgrService(&services));
     services.RegisterService(new CharMgrService(&services));
-	services.RegisterService(new ClientStatLogger(&services));
+    services.RegisterService(new ClientStatLogger(&services));
     services.RegisterService(new ClientStatsMgr(&services));
-	services.RegisterService(new ConfigService(&services));
-	services.RegisterService(new CorpBookmarkMgrService(&services));
-	services.RegisterService(new CorpMgrService(&services));
+    services.RegisterService(new ConfigService(&services));
+    services.RegisterService(new CorpBookmarkMgrService(&services));
+    services.RegisterService(new CorpMgrService(&services));
     services.RegisterService(new CorporationService(&services));
-	services.RegisterService(new CorpRegistryService(&services));
-	services.RegisterService(new CorpStationMgrService(&services));
-	services.RegisterService(new ContractMgrService(&services));
-	services.RegisterService(new ContractProxyService(&services));
-	services.RegisterService(new DevToolsProviderService(&services));
-	services.RegisterService(new DogmaIMService(&services));
-	services.RegisterService(new DogmaService(&services));
-	services.RegisterService(new DungeonExplorationMgrService(&services));
-	services.RegisterService(new DungeonService(&services));
-	services.RegisterService(new FactionWarMgrService(&services));
-	services.RegisterService(new FactoryService(&services));
-	services.RegisterService(new FleetProxyService(&services));
-	services.RegisterService(new HoloscreenMgrService(&services));
-	services.RegisterService(new InfoGatheringMgr(&services));
-	services.RegisterService(new InsuranceService(&services));
-	services.RegisterService(new InvBrokerService(&services));
-	services.RegisterService(new JumpCloneService(&services));
-	services.RegisterService(new KeeperService(&services));
-	services.RegisterService(new LanguageService(&services));
-	services.RegisterService(new LocalizationServerService(&services));
-	services.RegisterService(new LookupService(&services));
-	services.RegisterService(new LPService(&services));
-	services.RegisterService(services.lsc_service = new LSCService(&services, &command_dispatcher));
-	services.RegisterService(new MailMgrService(&services));
-	services.RegisterService(new MailingListMgrService(&services));
-	services.RegisterService(new MapService(&services));
-	services.RegisterService(new MarketProxyService(&services));
+    services.RegisterService(new CorpRegistryService(&services));
+    services.RegisterService(new CorpStationMgrService(&services));
+    services.RegisterService(new ContractMgrService(&services));
+    services.RegisterService(new ContractProxyService(&services));
+    services.RegisterService(new DevToolsProviderService(&services));
+    services.RegisterService(new DogmaIMService(&services));
+    services.RegisterService(new DogmaService(&services));
+    services.RegisterService(new DungeonExplorationMgrService(&services));
+    services.RegisterService(new DungeonService(&services));
+    services.RegisterService(new FactionWarMgrService(&services));
+    services.RegisterService(new FactoryService(&services));
+    services.RegisterService(new FleetProxyService(&services));
+    services.RegisterService(new HoloscreenMgrService(&services));
+    services.RegisterService(new InfoGatheringMgr(&services));
+    services.RegisterService(new InsuranceService(&services));
+    services.RegisterService(new InvBrokerService(&services));
+    services.RegisterService(new JumpCloneService(&services));
+    services.RegisterService(new KeeperService(&services));
+    services.RegisterService(new LanguageService(&services));
+    services.RegisterService(new LocalizationServerService(&services));
+    services.RegisterService(new LookupService(&services));
+    services.RegisterService(new LPService(&services));
+    services.RegisterService(services.lsc_service = new LSCService(&services, &command_dispatcher));
+    services.RegisterService(new MailMgrService(&services));
+    services.RegisterService(new MailingListMgrService(&services));
+    services.RegisterService(new MapService(&services));
+    services.RegisterService(new MarketProxyService(&services));
     services.RegisterService(new MissionMgrService(&services));
     services.RegisterService(new NetService(&services));
-	services.RegisterService(new NotificationMgrService(&services));
+    services.RegisterService(new NotificationMgrService(&services));
     services.RegisterService(services.cache_service = new ObjCacheService(&services, sConfig.files.cacheDir.c_str()));
-	services.RegisterService(new OnlineStatusService(&services));
-	services.RegisterService(new PaperDollService(&services));
-	services.RegisterService(new PetitionerService(&services));
-	services.RegisterService(new PhotoUploadService(&services));
-	services.RegisterService(new PlanetMgrService(&services));
-	services.RegisterService(new PosMgrService(&services));
-	services.RegisterService(new RamProxyService(&services));
-	services.RegisterService(new RepairService(&services));
-	services.RegisterService(new ReprocessingService(&services));
-	services.RegisterService(new ShipService(&services));
-	services.RegisterService(new SkillMgrService(&services));
-	services.RegisterService(new SlashService(&services, &command_dispatcher));
-	services.RegisterService(new SovereigntyMgrService(&services));
-	services.RegisterService(new Standing2Service(&services));
-	services.RegisterService(new StationService(&services));
+    services.RegisterService(new OnlineStatusService(&services));
+    services.RegisterService(new PaperDollService(&services));
+    services.RegisterService(new PetitionerService(&services));
+    services.RegisterService(new PhotoUploadService(&services));
+    services.RegisterService(new PlanetMgrService(&services));
+    services.RegisterService(new PosMgrService(&services));
+    services.RegisterService(new RamProxyService(&services));
+    services.RegisterService(new RepairService(&services));
+    services.RegisterService(new ReprocessingService(&services));
+    services.RegisterService(new ShipService(&services));
+    services.RegisterService(new SkillMgrService(&services));
+    services.RegisterService(new SlashService(&services, &command_dispatcher));
+    services.RegisterService(new SovereigntyMgrService(&services));
+    services.RegisterService(new Standing2Service(&services));
+    services.RegisterService(new StationService(&services));
     services.RegisterService(new StationSvcService(&services));
-	services.RegisterService(new TutorialService(&services));
-	services.RegisterService(new UserService(&services));
+    services.RegisterService(new TutorialService(&services));
+    services.RegisterService(new UserService(&services));
     services.RegisterService(new VoiceMgrService(&services));
     services.RegisterService(new WarRegistryService(&services));
-    
+
     sLog.Log("server init", "Priming cached objects.");
     services.cache_service->PrimeCache();
     sLog.Log("server init", "finished priming");
 
-	// start up the image server
-	sImageServer.Run();
+    // start up the image server
+    sImageServer.Run();
 
-	// start up the api server
+    // start up the api server
     sAPIServer.CreateServices( services );
-	sAPIServer.Run();
+    sAPIServer.Run();
 
     services.serviceDB().SetServerOnlineStatus(true);
 

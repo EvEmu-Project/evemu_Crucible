@@ -51,7 +51,7 @@
       <int name="mode" />
       <bool name="subscribed" />
       <int name="estimatedMemberCount" />
-	  </listInline>
+      </listInline>
   </elementDef>
 
   <elementDef name="ChannelJoinChannelInfo">
@@ -142,7 +142,7 @@
             <stringInline value="charID" />
             <stringInline value="corpID" />
             <stringInline value="allianceID" />
-			<stringInline value="warFactionID" />
+            <stringInline value="warFactionID" />
             <stringInline value="role" />
             <stringInline value="extra" />
           </listInline>
@@ -162,7 +162,7 @@
       <int name="charID" />
       <int name="corpID" />
       <int name="allianceID" />
-	  <int name="warFactionID" />
+      <int name="warFactionID" />
       <long name="role" />
       <raw name="extra" />
     </listInline>
@@ -208,7 +208,7 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-	      <element name="cachedcall" type="objectCaching_CachedMethodCallResult" />
+          <element name="cachedcall" type="objectCaching_CachedMethodCallResult" />
       </substreamInline>
     </tupleInline>
   </elementDef>
@@ -227,8 +227,8 @@
       <!-- 0 -->
       <substreamInline>
         <!-- list of complex elements, one for each requested channel
-	      with details about the channel -->
-	      <list name="channels" />
+          with details about the channel -->
+          <list name="channels" />
       </substreamInline>
     </tupleInline>
   </elementDef>
@@ -246,11 +246,11 @@
         <int name="senderType" />
       </listInline>
       <!-- 3: whoRole -->
-	    <long name="role" />
+        <long name="role" />
       <!-- 4: whoCorpRole -->
-	    <long name="corp_role" />
-	    <!-- 5: not sure its factionID -->
-	    <int name="factionID" default="0" none_marker="0" />
+        <long name="corp_role" />
+        <!-- 5: not sure its factionID -->
+        <int name="factionID" default="0" none_marker="0" />
     </tupleInline>
   </elementDef>
 
@@ -263,9 +263,9 @@
       <!-- 2 -->
       <string name="method" />
       <!-- 3 -->
-	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
+        <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
-	    <tuple name="arguments" />
+        <tuple name="arguments" />
     </tupleInline>
   </elementDef>
 
@@ -278,7 +278,7 @@
       <!-- 2 -->
       <stringInline value="SendMessage" />
       <!-- 3: sender info -->
-	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
+        <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
       <tupleInline>
         <!-- 0 -->
@@ -296,7 +296,7 @@
       <!-- 2 -->
       <stringInline value="JoinChannel" />
       <!-- 3: sender info -->
-	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
+        <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
       <tupleInline>
       </tupleInline>
@@ -328,7 +328,7 @@
       <!-- 2 -->
       <stringInline value="LeaveChannel" />
       <!-- 3: sender info -->
-	    <elementPtr type="OnLSC_SenderInfo" name="sender" />
+        <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
       <tupleInline>
       </tupleInline>
@@ -341,7 +341,7 @@
       <list name="channels" />
       <!-- 1 -->
       <bool name="unsubscribe" />
-	  <!-- 2 -->
+      <!-- 2 -->
       <long name="unknown" />
     </tupleInline>
   </elementDef>
@@ -390,7 +390,7 @@
         <stringInline value="util.Row" />
         <dictInline>
           <dictInlineEntry key="header">
-	          <listInline>
+              <listInline>
               <stringInline value="messageID" />
               <stringInline value="senderID" />
               <stringInline value="subject" />
@@ -402,7 +402,7 @@
             </listInline>
           </dictInlineEntry>
           <dictInlineEntry key="line">
-	          <listInline>
+              <listInline>
               <int name="messageID" />
               <int name="senderID" />
               <string name="subject" />
@@ -454,14 +454,14 @@
       <wstring name="searchString" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="CallGetMembers">
     <tupleInline>
       <!-- 0 -->
       <raw name="channel" />
     </tupleInline>
   </elementDef>
-  
+
 </elements>
 
 

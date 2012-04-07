@@ -151,7 +151,7 @@ PyTuple *DBResultToTupleSet(DBQueryResult &result) {
     uint32 cc = result.ColumnCount();
     if(cc == 0)
         return new PyTuple(0);
-    
+
     uint32 r;
 
     PyTuple *res = new PyTuple(2);
@@ -204,7 +204,7 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 
     if(cc == 0 || cc < key_index)
         return res;
-    
+
     //list off the column names:
     PyList *header = new PyList(cc);
     args->SetItemString("header", header);
@@ -239,7 +239,7 @@ PyObject *DBRowToKeyVal(DBResultRow &row) {
 
     PyDict *args = new PyDict();
     PyObject *res = new PyObject( "util.KeyVal", args );
-    
+
     uint32 cc = row.ColumnCount();
     for( uint32 r = 0; r < cc; r++ )
         args->SetItemString( row.ColumnName(r), DBColumnToPyRep(row, r));
@@ -391,16 +391,16 @@ void DBResultToIntIntlistDict( DBQueryResult &result, std::map<int32, PyRep *> &
     {
         uint32 k = row.GetUInt(0);
         if( k != last_key )
-		{
-			//watch for overwrite, no guarantee we are dealing with a key.
-			std::map<int32, PyRep *>::iterator res = into.find(k);
-			if( res != into.end() )
-				//log an error or warning?
-				PyDecRef( res->second );
+        {
+            //watch for overwrite, no guarantee we are dealing with a key.
+            std::map<int32, PyRep *>::iterator res = into.find(k);
+            if( res != into.end() )
+                //log an error or warning?
+                PyDecRef( res->second );
 
-			into[k] = l = new PyList();
-			last_key = k;
-		}
+            into[k] = l = new PyList();
+            last_key = k;
+        }
 
         l->AddItemInt( row.GetInt( 1 ) );
     }
@@ -416,13 +416,13 @@ void FillPackedRow( const DBResultRow& row, PyPackedRow* into )
 PyPackedRow* CreatePackedRow( const DBResultRow& row, DBRowDescriptor* header )
 {
     PyPackedRow* res = new PyPackedRow( header );
-	FillPackedRow( row, res );
+    FillPackedRow( row, res );
     return res;
 }
 
 PyList *DBResultToPackedRowList( DBQueryResult &result )
 {
-	DBRowDescriptor *header = new DBRowDescriptor( result );
+    DBRowDescriptor *header = new DBRowDescriptor( result );
 
     PyList *res = new PyList( result.GetRowCount() );
 
@@ -445,8 +445,8 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
     size_t row_count = result.GetRowCount();
     PyList * list = new PyList( row_count );
 
-	DBResultRow row;
-	uint32 i = 0;
+    DBResultRow row;
+    uint32 i = 0;
     while( result.GetRow(row) )
     {
         list->SetItem( i++, CreatePackedRow( row, header ) );
@@ -462,7 +462,7 @@ PyTuple *DBResultToPackedRowListTuple( DBQueryResult &result )
 
 PyDict *DBResultToPackedRowDict( DBQueryResult &result, const char *key )
 {
-	uint32 cc = result.ColumnCount();
+    uint32 cc = result.ColumnCount();
     uint32 key_index;
 
     for(key_index = 0; key_index < cc; key_index++)
@@ -480,7 +480,7 @@ PyDict *DBResultToPackedRowDict( DBQueryResult &result, const char *key )
 
 PyDict *DBResultToPackedRowDict( DBQueryResult &result, uint32 key_index )
 {
-	DBRowDescriptor *header = new DBRowDescriptor( result );
+    DBRowDescriptor *header = new DBRowDescriptor( result );
 
     PyDict *res = new PyDict();
 
@@ -526,21 +526,21 @@ PyDict *DBResultToPackedRowDict( DBQueryResult &result, uint32 key_index )
 PyObjectEx *DBResultToCRowset( DBQueryResult &result )
 {
     DBRowDescriptor *header = new DBRowDescriptor( result );
-	CRowSet *rowset = new CRowSet( &header );
+    CRowSet *rowset = new CRowSet( &header );
 
-	DBResultRow row;
-	while( result.GetRow( row ) )
-	{
-		PyPackedRow* into = rowset->NewRow();
-		FillPackedRow( row, into );
-	}
+    DBResultRow row;
+    while( result.GetRow( row ) )
+    {
+        PyPackedRow* into = rowset->NewRow();
+        FillPackedRow( row, into );
+    }
 
-	return rowset;
+    return rowset;
 }
 
 PyObjectEx *DBResultToCIndexedRowset( DBQueryResult &result, const char *key )
 {
-	uint32 cc = result.ColumnCount();
+    uint32 cc = result.ColumnCount();
     uint32 key_index;
 
     for(key_index = 0; key_index < cc; key_index++)
@@ -557,17 +557,17 @@ PyObjectEx *DBResultToCIndexedRowset( DBQueryResult &result, const char *key )
 }
 
 PyObjectEx *DBResultToCIndexedRowset(DBQueryResult &result, uint32 key_index) {
-	DBRowDescriptor *header = new DBRowDescriptor( result );
-	CIndexedRowSet *rowset = new CIndexedRowSet( &header );
+    DBRowDescriptor *header = new DBRowDescriptor( result );
+    CIndexedRowSet *rowset = new CIndexedRowSet( &header );
 
-	DBResultRow row;
-	while( result.GetRow( row ) )
-	{
-		PyPackedRow* into = rowset->NewRow( DBColumnToPyRep(row, key_index) );
-		FillPackedRow( row, into );
-	}
+    DBResultRow row;
+    while( result.GetRow( row ) )
+    {
+        PyPackedRow* into = rowset->NewRow( DBColumnToPyRep(row, key_index) );
+        FillPackedRow( row, into );
+    }
 
-	return rowset;
+    return rowset;
 }
 
 PyPackedRow *DBRowToPackedRow( DBResultRow &row )

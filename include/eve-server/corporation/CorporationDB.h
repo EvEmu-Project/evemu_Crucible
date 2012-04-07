@@ -43,7 +43,7 @@ public:
 
     PyRep *GetMyApplications(uint32 charID);
     PyRep *GetApplications(uint32 corpID);
-	PyRep *GetMyShares(uint32 charID);
+    PyRep *GetMyShares(uint32 charID);
     PyObject *GetEmploymentRecord(uint32 charID);
     PyObject *GetMedalsReceived(uint32 charID);
 
@@ -77,7 +77,7 @@ public:
     uint32 GetStationCorporationCEO(uint32 stationID);
     uint32 GetCorporationCEO(uint32 corpID);
 
-	uint32 GetCloneTypeCostByID(uint32 cloneTypeID);
+    uint32 GetCloneTypeCostByID(uint32 cloneTypeID);
 
     bool GetCurrentApplicationInfo(uint32 charID, uint32 corpID, ApplicationInfo &app);
     bool InsertApplication(const ApplicationInfo & aInfo);
@@ -88,8 +88,8 @@ public:
     bool UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif);
     bool UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyDict * notif);
     bool UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif);
-	
-	bool ChangeCloneType(uint32 characterID, uint32 typeID);
+
+    bool ChangeCloneType(uint32 characterID, uint32 typeID);
 
     PyDict* GetBookmarks(uint32 corporationID);
 

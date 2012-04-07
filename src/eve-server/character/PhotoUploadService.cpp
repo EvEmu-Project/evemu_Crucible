@@ -28,31 +28,31 @@
 PyCallable_Make_InnerDispatcher(PhotoUploadService)
 
 PhotoUploadService::PhotoUploadService(PyServiceMgr* mgr)
-	: PyService(mgr, "photoUploadSvc"), m_dispatch(new Dispatcher(this))
+    : PyService(mgr, "photoUploadSvc"), m_dispatch(new Dispatcher(this))
 {
-	_SetCallDispatcher(m_dispatch);
+    _SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(PhotoUploadService, Upload)
+    PyCallable_REG_CALL(PhotoUploadService, Upload)
 }
 
 PhotoUploadService::~PhotoUploadService()
 {
-	delete m_dispatch;
+    delete m_dispatch;
 }
 
 PyResult PhotoUploadService::Handle_Upload(PyCallArgs &call)
 {
-	Call_SingleStringArg arg;
-	if (!arg.Decode(&call.tuple))
-	{
-		codelog(CLIENT__ERROR, "Failed to decode args for Upload call");
-		return NULL;
-	}
+    Call_SingleStringArg arg;
+    if (!arg.Decode(&call.tuple))
+    {
+        codelog(CLIENT__ERROR, "Failed to decode args for Upload call");
+        return NULL;
+    }
 
-	sLog.Log("photo upload", "Received image from account %i, size: %i", call.client->GetAccountID(), arg.arg.size());
+    sLog.Log("photo upload", "Received image from account %i, size: %i", call.client->GetAccountID(), arg.arg.size());
 
-	std::tr1::shared_ptr<std::vector<char> > data(new std::vector<char>(arg.arg.begin(), arg.arg.end()));
-	sImageServer.ReportNewImage(call.client->GetAccountID(), data);
+    std::tr1::shared_ptr<std::vector<char> > data(new std::vector<char>(arg.arg.begin(), arg.arg.end()));
+    sImageServer.ReportNewImage(call.client->GetAccountID(), data);
 
-	return new PyBool(true);
+    return new PyBool(true);
 }

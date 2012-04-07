@@ -61,12 +61,12 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
         sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", buf->size(), PACKET_SIZE_LIMIT );
     else
     {
-		//DumpBuffer( buf, PACKET_OUTBOUND );
+        //DumpBuffer( buf, PACKET_OUTBOUND );
         // write length
         *bufLen = ( buf->size() - sizeof( uint32 ) );
-		
+
         Send( &buf );
-		
+
     }
 
     SafeDelete( buf );
@@ -87,10 +87,10 @@ PyRep* EVETCPConnection::PopRep()
         if( PACKET_SIZE_LIMIT < packet->size() )
             sLog.Error( "Network", "Packet length %lu exceeds hardcoded packet length limit %u.", packet->size(), PACKET_SIZE_LIMIT );
         else
-		{
-			//DumpBuffer( packet, PACKET_INBOUND );
+        {
+            //DumpBuffer( packet, PACKET_INBOUND );
             res = InflateUnmarshal( *packet );
-		}
+        }
     }
 
     SafeDelete( packet );
@@ -146,51 +146,51 @@ void EVETCPConnection::ClearBuffers()
 
 void EVETCPConnection::DumpBuffer( Buffer* buf, packet_direction packet_direction)
 {
-	/*
-	FILE *logpacket;
-	char timestamp[16];
-	time_t rawtime = time(0);
-	tm *now = localtime(&rawtime);
-	strftime(timestamp,16,"%y%m%d_%H%M%S",now);
+    /*
+    FILE *logpacket;
+    char timestamp[16];
+    time_t rawtime = time(0);
+    tm *now = localtime(&rawtime);
+    strftime(timestamp,16,"%y%m%d_%H%M%S",now);
 
-	logpacket = fopen(strcat("c:\\logs\\",strcat(timestamp,".txt")), "w");
-	Buffer:: size_type index;
-	for(index=0; index<= packet->size(); index++)
-	{
-		fputs(packet->Get(index), logpacket); 
-	}
-	*/
-	
-	FILE *logpacket;
-	char timestamp[16];
-	time_t rawtime = time(0);
-	tm *now = localtime(&rawtime);
-	strftime(timestamp,16,"%y%m%d_%H%M%S",now);
-	
-	std::string path = EVEMU_ROOT_DIR"packet_log/";
-	path += timestamp;
-	if(packet_direction == PACKET_INBOUND)
-	{
-		path += "_client_";
-	} else
-	{
-		path += "_server_";
-	}
+    logpacket = fopen(strcat("c:\\logs\\",strcat(timestamp,".txt")), "w");
+    Buffer:: size_type index;
+    for(index=0; index<= packet->size(); index++)
+    {
+        fputs(packet->Get(index), logpacket);
+    }
+    */
 
-	path += ".txt";
+    FILE *logpacket;
+    char timestamp[16];
+    time_t rawtime = time(0);
+    tm *now = localtime(&rawtime);
+    strftime(timestamp,16,"%y%m%d_%H%M%S",now);
 
-	logpacket = fopen(path.c_str(), "w");
+    std::string path = EVEMU_ROOT_DIR"packet_log/";
+    path += timestamp;
+    if(packet_direction == PACKET_INBOUND)
+    {
+        path += "_client_";
+    } else
+    {
+        path += "_server_";
+    }
 
-	Buffer::iterator<uint8> cur, end;
-	cur = buf->begin<uint8>();
-	end = buf->end<uint8>();
-	for(; cur != end; ++cur)
-	{
-		uint8 test = *cur;	
+    path += ".txt";
 
-		fputc(test, logpacket);
-	}
-	fclose(logpacket);
+    logpacket = fopen(path.c_str(), "w");
+
+    Buffer::iterator<uint8> cur, end;
+    cur = buf->begin<uint8>();
+    end = buf->end<uint8>();
+    for(; cur != end; ++cur)
+    {
+        uint8 test = *cur;
+
+        fputc(test, logpacket);
+    }
+    fclose(logpacket);
 }
 
 

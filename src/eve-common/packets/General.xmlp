@@ -5,69 +5,69 @@
   <elementDef name="util_Row">
     <objectInline>
       <stringInline value="util.Row" />
-	    <dictInline>
-	      <dictInlineEntry key="header">
-		      <listStr name="header" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="line">
-		      <list name="line" />
-	      </dictInlineEntry>
-	    </dictInline>
+        <dictInline>
+          <dictInlineEntry key="header">
+              <listStr name="header" />
+          </dictInlineEntry>
+          <dictInlineEntry key="line">
+              <list name="line" />
+          </dictInlineEntry>
+        </dictInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="util_Rowset">
     <objectInline>
       <stringInline value="util.Rowset" />
-	    <dictInline>
-	      <dictInlineEntry key="header">
-		      <listStr name="header" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="RowClass">
+        <dictInline>
+          <dictInlineEntry key="header">
+              <listStr name="header" />
+          </dictInlineEntry>
+          <dictInlineEntry key="RowClass">
           <tokenInline value="util.Row" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="lines">
-		      <list name="lines" />
-	      </dictInlineEntry>
-	    </dictInline>
+          </dictInlineEntry>
+          <dictInlineEntry key="lines">
+              <list name="lines" />
+          </dictInlineEntry>
+        </dictInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="util_IndexRowset">
     <objectInline>
       <stringInline value="util.IndexRowset" />
-	    <dictInline>
-	      <dictInlineEntry key="header">
-		      <listStr name="header" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="RowClass">
+        <dictInline>
+          <dictInlineEntry key="header">
+              <listStr name="header" />
+          </dictInlineEntry>
+          <dictInlineEntry key="RowClass">
           <tokenInline value="util.Row" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="idName">
-		      <string name="idName" />
-	      </dictInlineEntry>
-	      <dictInlineEntry key="items">
-		      <dictInt name="items" />
-	      </dictInlineEntry>
-	    </dictInline>
+          </dictInlineEntry>
+          <dictInlineEntry key="idName">
+              <string name="idName" />
+          </dictInlineEntry>
+          <dictInlineEntry key="items">
+              <dictInt name="items" />
+          </dictInlineEntry>
+        </dictInline>
     </objectInline>
   </elementDef>
 
   <!-- this object is not really an object type on live, just convenience here -->
   <elementDef name="util_Tupleset">
     <tupleInline>
-	    <listStr name="header" />
-	    <list name="lines" />
+        <listStr name="header" />
+        <list name="lines" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="list_rowset">
     <tupleInline>
-	    <!-- 0 -->
-	    <listStr name="header" />
-	    <!-- 1 -->
-	    <!-- each element of this list is a list itself, with one element per element in header -->
-	    <list name="lines" />
+        <!-- 0 -->
+        <listStr name="header" />
+        <!-- 1 -->
+        <!-- each element of this list is a list itself, with one element per element in header -->
+        <list name="lines" />
     </tupleInline>
   </elementDef>
 
@@ -76,16 +76,16 @@
   <!--
   <elementDef name="dbutil_RowList">
     <objectEx name="root" type2="true">
-	  <tupleInline>
-	    <tupleInline>
-		  <string name="type" default="dbutil.RowList" type1="true" />
-	    </tupleInline>
-	    <dictInline>
-		  <dictInlineEntry key="header">
+      <tupleInline>
+        <tupleInline>
+          <string name="type" default="dbutil.RowList" type1="true" />
+        </tupleInline>
+        <dictInline>
+          <dictInlineEntry key="header">
         <raw name="header" />
-		  </dictInlineEntry>
-	    </dictInline>
-	  </tupleInline>
+          </dictInlineEntry>
+        </dictInline>
+      </tupleInline>
     </objectEx>
   </elementDef>
 
@@ -162,7 +162,7 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-		    <element type="list_rowset" name="rowset" />
+            <element type="list_rowset" name="rowset" />
       </substreamInline>
     </tupleInline>
   </elementDef>
@@ -170,7 +170,7 @@
   <elementDef name="CallMachoResolveObject">
     <tupleInline>
       <!-- 0 -->
-	    <raw name="bindParams" />
+        <raw name="bindParams" />
       <!-- 1 -->
       <int name="justQuery" />
     </tupleInline>
@@ -186,37 +186,37 @@
   </elementDef>
 
   <elementDef name="CallMachoBindObject_call">
-	  <tupleInline>
-	    <!-- 0 -->
-	    <string name="method_name" />
-	    <!-- 1 -->
-	    <tuple name="arguments" />
-	    <!-- 2 -->
-	    <dict name="dict_arguments" />
-	  </tupleInline>
+      <tupleInline>
+        <!-- 0 -->
+        <string name="method_name" />
+        <!-- 1 -->
+        <tuple name="arguments" />
+        <!-- 2 -->
+        <dict name="dict_arguments" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="CallMachoBindObject">
     <tupleInline>
       <!-- 0 -->
-	    <raw name="bindParams" />
+        <raw name="bindParams" />
       <!-- 1 -->
-	    <!-- either 'None', or a CallMachoBindObject_call -->
-	    <raw name="call" />
+        <!-- either 'None', or a CallMachoBindObject_call -->
+        <raw name="call" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="BoundObject">
-	  <substructInline>
-	    <substreamInline>
-		    <tupleInline>
-		      <!-- 0 -->
-		      <string name="bindspec" />
-		      <!-- 1 -->
-		      <long name="timestamp" />
-		    </tupleInline>
-	    </substreamInline>
-	  </substructInline>
+      <substructInline>
+        <substreamInline>
+            <tupleInline>
+              <!-- 0 -->
+              <string name="bindspec" />
+              <!-- 1 -->
+              <long name="timestamp" />
+            </tupleInline>
+        </substreamInline>
+      </substructInline>
   </elementDef>
 
   <elementDef name="RspMachoBindObject">
@@ -225,9 +225,9 @@
       <substreamInline>
         <tupleInline>
           <!-- 0 -->
-		      <element name="bind" type="BoundObject" />
+              <element name="bind" type="BoundObject" />
           <!-- 1 -->
-		      <raw name="call_return" />
+              <raw name="call_return" />
         </tupleInline>
       </substreamInline>
     </tupleInline>
@@ -243,7 +243,7 @@
       <tupleInline>
       <!-- 0 -->
       <substreamInline>
-	      <raw name="payload" />
+          <raw name="payload" />
       </substreamInline>
       </tupleInline>
     </tupleInline>
@@ -251,11 +251,11 @@
 
   <elementDef name="macho_WrongMachoNode">
     <objectInline>
-	    <stringInline value="macho.WrongMachoNode" />
+        <stringInline value="macho.WrongMachoNode" />
       <dictInline>
-	      <dictInlineEntry key="payload">
-	        <int name="nodeID" />
-	      </dictInlineEntry>
+          <dictInlineEntry key="payload">
+            <int name="nodeID" />
+          </dictInlineEntry>
       </dictInline>
     </objectInline>
   </elementDef>
@@ -268,7 +268,7 @@
       <int name="exception_type" />
       <tupleInline>
         <substreamInline>
-	        <raw name="payload" />
+            <raw name="payload" />
         </substreamInline>
       </tupleInline>
     </tupleInline>
@@ -279,17 +279,17 @@
       <!-- 0 -->
       <int name="integer0" />
       <!-- 1 -->
-	    <!-- maps _something_ to a timestamp -->
+        <!-- maps _something_ to a timestamp -->
       <dictInt name="entries" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="CallGetInventoryFromId">
     <tupleInline>
-	    <!-- 0 -->
-	    <int name="entityID" />
-	    <!-- 1 -->
-	    <int name="passive" />
+        <!-- 0 -->
+        <int name="entityID" />
+        <!-- 1 -->
+        <int name="passive" />
     </tupleInline>
   </elementDef>
 
@@ -297,7 +297,7 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-		    <element name="bind" type="BoundObject" />
+            <element name="bind" type="BoundObject" />
       </substreamInline>
     </tupleInline>
   </elementDef>
@@ -320,8 +320,8 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-	      <element name="rowset" type="util_Rowset" />
-	    </substreamInline>
+          <element name="rowset" type="util_Rowset" />
+        </substreamInline>
     </tupleInline>
   </elementDef>
 
@@ -358,7 +358,7 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-	      <listInt name="guests" />
+          <listInt name="guests" />
       </substreamInline>
     </tupleInline>
   </elementDef>
@@ -390,11 +390,11 @@
         <!-- 0 -->
         <int name="clueless" default="0" />
         <!-- 1 -->
-	      <dict name="changes" />
+          <dict name="changes" />
       </tupleInline>
       <!-- 1 -->
       <!-- this is actually optional... -->
-	    <listInt name="nodesOfInterest" />
+        <listInt name="nodesOfInterest" />
     </tupleInline>
   </elementDef>
 
@@ -423,8 +423,8 @@
 
   <elementDef name="ServerNotification_ReleaseObj">
     <tupleInline>
-	    <string name="boundID" />
-	    <long name="timestamp" />
+        <string name="boundID" />
+        <long name="timestamp" />
     </tupleInline>
   </elementDef>
 

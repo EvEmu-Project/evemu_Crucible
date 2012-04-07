@@ -108,19 +108,19 @@ double CargoContainer::GetCapacity(EVEItemFlags flag) const
 
 void CargoContainer::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c)
 {
-	CharacterRef character = c->GetChar();
-	
+    CharacterRef character = c->GetChar();
+
     if( flag == flagCargoHold )
-	{
-		//get all items in cargohold
-		EvilNumber capacityUsed(0);
-		std::vector<InventoryItemRef> items;
-		c->GetShip()->FindByFlag(flag, items);
-		for(uint32 i = 0; i < items.size(); i++){
-			capacityUsed += items[i]->GetAttribute(AttrVolume);
-		}
-		if( capacityUsed + item->GetAttribute(AttrVolume) > c->GetShip()->GetAttribute(AttrCapacity) )
-			throw PyException( MakeCustomError( "Not enough cargo space!") );
+    {
+        //get all items in cargohold
+        EvilNumber capacityUsed(0);
+        std::vector<InventoryItemRef> items;
+        c->GetShip()->FindByFlag(flag, items);
+        for(uint32 i = 0; i < items.size(); i++){
+            capacityUsed += items[i]->GetAttribute(AttrVolume);
+        }
+        if( capacityUsed + item->GetAttribute(AttrVolume) > c->GetShip()->GetAttribute(AttrCapacity) )
+            throw PyException( MakeCustomError( "Not enough cargo space!") );
     }
 }
 
@@ -160,124 +160,124 @@ using namespace Destiny;
 
 ContainerEntity::ContainerEntity(
     CargoContainerRef container,
-	SystemManager *system,
-	PyServiceMgr &services,
-	const GPoint &position)
+    SystemManager *system,
+    PyServiceMgr &services,
+    const GPoint &position)
 : DynamicSystemEntity(new DestinyManager(this, system), container),
   m_system(system),
   m_services(services)
 {
     _containerRef = container;
-	m_destiny->SetPosition(position, false);
+    m_destiny->SetPosition(position, false);
 }
 
 void ContainerEntity::Process() {
-	SystemEntity::Process();
+    SystemEntity::Process();
 }
 
 void ContainerEntity::ForcedSetPosition(const GPoint &pt) {
-	m_destiny->SetPosition(pt, false);
+    m_destiny->SetPosition(pt, false);
 }
 
 void ContainerEntity::EncodeDestiny( Buffer& into ) const
 {
-	const GPoint& position = GetPosition();
+    const GPoint& position = GetPosition();
     const std::string itemName( GetName() );
 
-	/*if(m_orbitingID != 0) {
-		#pragma pack(1)
-		struct AddBall_Orbit {
-			BallHeader head;
-			MassSector mass;
-			ShipSector ship;
-			DSTBALL_ORBIT_Struct main;
-			NameStruct name;
-		};
-		#pragma pack()
-		
-		into.resize(start 
-			+ sizeof(AddBall_Orbit) 
-			+ slen*sizeof(uint16) );
-		uint8 *ptr = &into[start];
-		AddBall_Orbit *item = (AddBall_Orbit *) ptr;
-		ptr += sizeof(AddBall_Orbit);
-		
-		item->head.entityID = GetID();
-		item->head.mode = Destiny::DSTBALL_ORBIT;
-		item->head.radius = m_self->radius();
-		item->head.x = x();
-		item->head.y = y();
-		item->head.z = z();
-		item->head.sub_type = IsMassive | IsFree;
-		
-		item->mass.mass = m_self->mass();
-		item->mass.unknown51 = 0;
-		item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-		item->mass.corpID = GetCorporationID();
-		item->mass.unknown64 = 0xFFFFFFFF;
-		
-		item->ship.max_speed = m_self->maxVelocity();
-		item->ship.velocity_x = m_self->maxVelocity();	//hacky hacky
-		item->ship.velocity_y = 0.0;
-		item->ship.velocity_z = 0.0;
-		item->ship.agility = 1.0;	//hacky
-		item->ship.speed_fraction = 0.133f;	//just strolling around. TODO: put in speed fraction!
-		
-		item->main.unknown116 = 0xFF;
-		item->main.followID = m_orbitingID;
-		item->main.followRange = 6000.0f;
-		
-		item->name.name_len = slen;	// in number of unicode chars
-		//strcpy_fake_unicode(item->name.name, GetName());
-	} else {
+    /*if(m_orbitingID != 0) {
+        #pragma pack(1)
+        struct AddBall_Orbit {
+            BallHeader head;
+            MassSector mass;
+            ShipSector ship;
+            DSTBALL_ORBIT_Struct main;
+            NameStruct name;
+        };
+        #pragma pack()
+
+        into.resize(start
+            + sizeof(AddBall_Orbit)
+            + slen*sizeof(uint16) );
+        uint8 *ptr = &into[start];
+        AddBall_Orbit *item = (AddBall_Orbit *) ptr;
+        ptr += sizeof(AddBall_Orbit);
+
+        item->head.entityID = GetID();
+        item->head.mode = Destiny::DSTBALL_ORBIT;
+        item->head.radius = m_self->radius();
+        item->head.x = x();
+        item->head.y = y();
+        item->head.z = z();
+        item->head.sub_type = IsMassive | IsFree;
+
+        item->mass.mass = m_self->mass();
+        item->mass.unknown51 = 0;
+        item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+        item->mass.corpID = GetCorporationID();
+        item->mass.unknown64 = 0xFFFFFFFF;
+
+        item->ship.max_speed = m_self->maxVelocity();
+        item->ship.velocity_x = m_self->maxVelocity();    //hacky hacky
+        item->ship.velocity_y = 0.0;
+        item->ship.velocity_z = 0.0;
+        item->ship.agility = 1.0;    //hacky
+        item->ship.speed_fraction = 0.133f;    //just strolling around. TODO: put in speed fraction!
+
+        item->main.unknown116 = 0xFF;
+        item->main.followID = m_orbitingID;
+        item->main.followRange = 6000.0f;
+
+        item->name.name_len = slen;    // in number of unicode chars
+        //strcpy_fake_unicode(item->name.name, GetName());
+    } else {
         BallHeader head;
-		head.entityID = GetID();
-		head.mode = Destiny::DSTBALL_STOP;
-		head.radius = GetRadius();
-		head.x = position.x;
-		head.y = position.y;
-		head.z = position.z;
-		head.sub_type = IsMassive | IsFree;
+        head.entityID = GetID();
+        head.mode = Destiny::DSTBALL_STOP;
+        head.radius = GetRadius();
+        head.x = position.x;
+        head.y = position.y;
+        head.z = position.z;
+        head.sub_type = IsMassive | IsFree;
         into.Append( head );
 
         MassSector mass;
-		mass.mass = GetMass();
-		mass.cloak = 0;
-		mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-		mass.corpID = GetCorporationID();
-		mass.allianceID = GetAllianceID();
+        mass.mass = GetMass();
+        mass.cloak = 0;
+        mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
+        mass.corpID = GetCorporationID();
+        mass.allianceID = GetAllianceID();
         into.Append( mass );
 
         ShipSector ship;
-		ship.max_speed = GetMaxVelocity();
-		ship.velocity_x = 0.0;
-		ship.velocity_y = 0.0;
-		ship.velocity_z = 0.0;
+        ship.max_speed = GetMaxVelocity();
+        ship.velocity_x = 0.0;
+        ship.velocity_y = 0.0;
+        ship.velocity_z = 0.0;
         ship.unknown_x = 0.0;
         ship.unknown_y = 0.0;
         ship.unknown_z = 0.0;
-		ship.agility = GetAgility();
-		ship.speed_fraction = 0.0;
+        ship.agility = GetAgility();
+        ship.speed_fraction = 0.0;
         into.Append( ship );
 
         DSTBALL_STOP_Struct main;
-		main.formationID = 0xFF;
+        main.formationID = 0xFF;
         into.Append( main );
 
-	}
+    }
 */
     BallHeader head;
-	head.entityID = GetID();
-	head.mode = Destiny::DSTBALL_RIGID;
-	head.radius = GetRadius();
-	head.x = position.x;
-	head.y = position.y;
-	head.z = position.z;
-	head.sub_type = /*HasMiniBalls | */IsGlobal;
+    head.entityID = GetID();
+    head.mode = Destiny::DSTBALL_RIGID;
+    head.radius = GetRadius();
+    head.x = position.x;
+    head.y = position.y;
+    head.z = position.z;
+    head.sub_type = /*HasMiniBalls | */IsGlobal;
     into.Append( head );
 
     DSTBALL_RIGID_Struct main;
-	main.formationID = 0xFF;
+    main.formationID = 0xFF;
     into.Append( main );
 
 /*
@@ -295,11 +295,11 @@ void ContainerEntity::EncodeDestiny( Buffer& into ) const
 
 void ContainerEntity::MakeDamageState(DoDestinyDamageState &into) const
 {
-	into.shield = 0.0;//(m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
-	into.tau = 100000;	//no freaking clue.
-	into.timestamp = Win32TimeNow();
-//	armor damage isn't working...
-	into.armor = 0.0;//1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
-	into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
+    into.shield = 0.0;//(m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
+    into.tau = 100000;    //no freaking clue.
+    into.timestamp = Win32TimeNow();
+//    armor damage isn't working...
+    into.armor = 0.0;//1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
+    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
 }
 

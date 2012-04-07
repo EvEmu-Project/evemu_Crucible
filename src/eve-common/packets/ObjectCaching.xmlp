@@ -53,61 +53,61 @@
   <elementDef name="objectCaching_CachedMethodCallResult">
     <objectInline>
       <stringInline value="objectCaching.CachedMethodCallResult" />
-	    <tupleInline>
-	      <!-- 0: details -->
-	      <dictInline>
-		      <dictInlineEntry key="sessionInfo">
+        <tupleInline>
+          <!-- 0: details -->
+          <dictInline>
+              <dictInlineEntry key="sessionInfo">
             <!-- sessionInfo: if this field is present, then it contains a string which
                  is the string of a key in the session. The value of that element in the
                  current session is used as part of the key for the cache item.
             -->
-		        <string name="sessionInfo" />
-		      </dictInlineEntry>
-		      <dictInlineEntry key="versionCheck">
+                <string name="sessionInfo" />
+              </dictInlineEntry>
+              <dictInlineEntry key="versionCheck">
             <tupleInline>
               <!-- these fields are one of:
                    (always, never, (set of times))
               -->
               <!-- 0: clientWhen: expiry in the client -->
-		          <string name="clientWhen" />
-		          <!-- 1: proxyWhen: expiry on the proxy, may be None -->
-		          <string name="proxyWhen" />
-		          <!-- 2: serverWhen: expiry on the server, may be None -->
-		          <string name="serverWhen" />
-	          </tupleInline>
-		      </dictInlineEntry>
-	      </dictInline>
-	      <!-- 1: result -->
+                  <string name="clientWhen" />
+                  <!-- 1: proxyWhen: expiry on the proxy, may be None -->
+                  <string name="proxyWhen" />
+                  <!-- 2: serverWhen: expiry on the server, may be None -->
+                  <string name="serverWhen" />
+              </tupleInline>
+              </dictInlineEntry>
+          </dictInline>
+          <!-- 1: result -->
         <raw name="call_return" />
-	      <!-- 2: version -->
-	      <listInline>
-		      <!-- 0 -->
-		      <long name="timeStamp" />
-		      <!-- 1: binascii.crc_hqx(call_return, (macho.version + 170472)) -->
-		      <int name="version" />
-	      </listInline>
-	    </tupleInline>
+          <!-- 2: version -->
+          <listInline>
+              <!-- 0 -->
+              <long name="timeStamp" />
+              <!-- 1: binascii.crc_hqx(call_return, (macho.version + 170472)) -->
+              <int name="version" />
+          </listInline>
+        </tupleInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="objectCaching_CachedMethodCallResult_object">
     <objectInline>
       <stringInline value="objectCaching.CachedMethodCallResult" />
-	    <tupleInline>
-	      <!-- 0: details -->
-	      <dictInline>
-		      <dictInlineEntry key="versionCheck">
+        <tupleInline>
+          <!-- 0: details -->
+          <dictInline>
+              <dictInlineEntry key="versionCheck">
             <!-- almost all simple objects on live use never...
                 a few use run, we default to run to be more flexible. -->
             <string name="versionCheck" default="run" />
-		      </dictInlineEntry>
-	      </dictInline>
-	      <!-- 1: result, in this case it is always a util.CachedObject hint -->
+              </dictInlineEntry>
+          </dictInline>
+          <!-- 1: result, in this case it is always a util.CachedObject hint -->
         <!-- <element type="objectCaching_CachedObject_spec" name="object" /> -->
         <raw name="object" />
-	      <!-- 2: version, never present on a cached object cached method -->
+          <!-- 2: version, never present on a cached object cached method -->
         <none />
-	    </tupleInline>
+        </tupleInline>
     </objectInline>
   </elementDef>
 
@@ -148,7 +148,7 @@
       </tupleInline>
     </objectInline>
   </elementDef>
-  
+
   <!-- A representation of a simple cached method call objectID, with no arguments -->
   <elementDef name="MethodCallID">
     <tupleInline>
@@ -177,13 +177,13 @@
         <int name="sessionValue" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="CallGetCachableObject">
     <tupleInline>
       <!-- 0 -->
       <bool name="shared" />
       <!-- 1 -->
-	    <!-- either a string or a tuple -->
+        <!-- either a string or a tuple -->
       <raw name="objectID" />
       <!-- 2 -->
       <tupleInline>
@@ -201,7 +201,7 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-	      <element type="objectCaching_CachedObject_spec" name="object" />
+          <element type="objectCaching_CachedObject_spec" name="object" />
       </substreamInline>
     </tupleInline>
   </elementDef>

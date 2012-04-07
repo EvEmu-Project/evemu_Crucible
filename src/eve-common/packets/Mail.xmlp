@@ -20,21 +20,21 @@
       <int name="mailCost" none_marker="0" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_MemberList">
     <tupleInline>
       <int name="listID" />
       <list name="memberIDs" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_ClearEntityAccess">
     <tupleInline>
       <int name="listID" />
       <int name="entityID" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_SetEntityAccess">
     <tupleInline>
       <int name="listID" />
@@ -42,7 +42,7 @@
       <int name="access" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_SetDefaultAccess">
     <tupleInline>
       <int name="listID" />
@@ -51,7 +51,7 @@
       <int name="mailCost" none_marker="0" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_SaveWelcomeMail">
     <tupleInline>
       <int name ="listID" />
@@ -67,43 +67,43 @@
       <int name="color" none_marker="-1" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_CreateLabel">
     <tupleInline>
       <wstring name="name" />
       <int name="color" none_marker="0" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_AssignLabels">
     <tupleInline>
       <listInt name="messageIds" />
       <int name="labelId" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_MailGetBody">
     <tupleInline>
       <int name="messageId" />
       <bool name="isUnread" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="MailLabel">
     <objectInline>
-		<stringInline value="util.KeyVal" />
-		<dictInline>
-		    <dictInlineEntry key="labelID">
-			    <int name="id" />
-		    </dictInlineEntry>
-		    <dictInlineEntry key="name">
-			    <string name="name" />
-			</dictInlineEntry>
-			<dictInlineEntry key="color">
-				<int name="color" />
-			</dictInlineEntry>
-		</dictInline>
+        <stringInline value="util.KeyVal" />
+        <dictInline>
+            <dictInlineEntry key="labelID">
+                <int name="id" />
+            </dictInlineEntry>
+            <dictInlineEntry key="name">
+                <string name="name" />
+            </dictInlineEntry>
+            <dictInlineEntry key="color">
+                <int name="color" />
+            </dictInlineEntry>
+        </dictInline>
     </objectInline>
   </elementDef>
-  
+
 </elements>

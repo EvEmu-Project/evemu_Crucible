@@ -731,7 +731,7 @@ PyObject *CorporationDB::GetEveOwners() {
         "(SELECT"
         " itemID AS ownerID,"
         " itemName AS ownerName,"
-	" 0 AS ownerNameID,"
+    " 0 AS ownerNameID,"
         " typeID"
         " FROM entity"
         " WHERE itemID < 140000000"
@@ -997,20 +997,20 @@ uint32 CorporationDB::GetCorporationCEO(uint32 corpID) {
 }
 
 uint32 CorporationDB::GetCloneTypeCostByID(uint32 cloneTypeID) {
-	DBQueryResult res;
-	if (!sDatabase.RunQuery(res,
-		" SELECT basePrice "
-		" FROM invTypes "
-		" WHERE typeID = %u ", cloneTypeID))
-	{
-		sLog.Error("CorporationDB","Failed to retrieve basePrice of typeID = %u",cloneTypeID);
-	}
-	DBResultRow row;
-	if (!res.GetRow(row)) {
-		sLog.Error("CorporationDB","Query returned no results");
-		return 0;
-	}
-	return row.GetUInt(0);
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        " SELECT basePrice "
+        " FROM invTypes "
+        " WHERE typeID = %u ", cloneTypeID))
+    {
+        sLog.Error("CorporationDB","Failed to retrieve basePrice of typeID = %u",cloneTypeID);
+    }
+    DBResultRow row;
+    if (!res.GetRow(row)) {
+        sLog.Error("CorporationDB","Query returned no results");
+        return 0;
+    }
+    return row.GetUInt(0);
 }
 
 bool CorporationDB::GetCurrentApplicationInfo(uint32 charID, uint32 corpID, ApplicationInfo & aInfo) {
@@ -1286,9 +1286,9 @@ bool CorporationDB::ChangeCloneType(uint32 characterID, uint32 typeID) {
         "WHERE typeID = %u",
         typeID))
     {
-		_log(DATABASE__ERROR, "Failed to change clone type of char %u: %s.", characterID, res.error.c_str());
-		return false;
-	}
+        _log(DATABASE__ERROR, "Failed to change clone type of char %u: %s.", characterID, res.error.c_str());
+        return false;
+    }
 
     DBResultRow row;
     if( !(res.GetRow(row)) )
@@ -1298,53 +1298,52 @@ bool CorporationDB::ChangeCloneType(uint32 characterID, uint32 typeID) {
     }
     std::string typeNameString = row.GetText(1);
 
-	if(sDatabase.RunQuery(res,
-		"UPDATE "
-		"entity "
-		"SET typeID=%u, itemName='%s' "
-		"where ownerID=%u "
-		"and flag='400'",
-		typeID,
+    if(sDatabase.RunQuery(res,
+        "UPDATE "
+        "entity "
+        "SET typeID=%u, itemName='%s' "
+        "where ownerID=%u "
+        "and flag='400'",
+        typeID,
         typeNameString.c_str(),
-		characterID))
-	{
-		_log(DATABASE__ERROR, "Failed to change clone type of char %u: %s.", characterID, res.error.c_str());
-		return false;
-	}
+        characterID))
+    {
+        _log(DATABASE__ERROR, "Failed to change clone type of char %u: %s.", characterID, res.error.c_str());
+        return false;
+    }
     sLog.Debug( "CorporationDB", "Clone upgrade successful" );
-	return true;
+    return true;
 }
 
 PyDict* CorporationDB::GetBookmarks(uint32 corporationID)
 {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res, 
-		"SELECT "
-		" bookmarkID,"
-		" ownerID,"
-		" itemID,"
-		" typeID,"
-		" memo,"
-		" created,"
-		" x,"
-		" y,"
-		" z,"
-		" locationID,"
-		" note,"
-		" creatorID,"
-		" folderID"
-		" FROM bookmarks"
-		" WHERE ownerID = %u",
-		corporationID))
+    if(!sDatabase.RunQuery(res,
+        "SELECT "
+        " bookmarkID,"
+        " ownerID,"
+        " itemID,"
+        " typeID,"
+        " memo,"
+        " created,"
+        " x,"
+        " y,"
+        " z,"
+        " locationID,"
+        " note,"
+        " creatorID,"
+        " folderID"
+        " FROM bookmarks"
+        " WHERE ownerID = %u",
+        corporationID))
     {
         sLog.Error("CorporationDB::GetBookmarks()", "Failed to query corporation bookmarks for corporation %u: %s", corporationID, res.error.c_str());
         return NULL;
     }
-	return DBResultToPackedRowDict(res, "bookmarkID");
+    return DBResultToPackedRowDict(res, "bookmarkID");
     //return DBResultToCRowset(res);
 }
-
 PyRep *CorporationDB::GetMyShares(uint32 charID) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,

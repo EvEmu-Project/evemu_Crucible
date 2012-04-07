@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Aknor Jaden, adapted from ImageServer.h authored by caytchen
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Aknor Jaden, adapted from ImageServer.h authored by caytchen
 */
 
 #include "EVEServerPCH.h"
@@ -71,26 +71,26 @@ asio::const_buffers_1 APIServerConnection::_responseNotFound = asio::buffer(
 , 1187);
 
 APIServerConnection::APIServerConnection(asio::io_service& io)
-	: _socket(io)
+    : _socket(io)
 {
 }
 
 asio::ip::tcp::socket& APIServerConnection::socket()
 {
-	return _socket;
+    return _socket;
 }
 
 void APIServerConnection::Process()
 {
-	// receive all HTTP headers from the client
+    // receive all HTTP headers from the client
     asio::async_read_until(_socket, _buffer, "\r\n\r\n", std::tr1::bind(&APIServerConnection::ProcessHeaders, shared_from_this()));
 }
 
 void APIServerConnection::ProcessHeaders()
 {
-	std::istream stream(&_buffer);
+    std::istream stream(&_buffer);
     std::string query;
-	std::string request;
+    std::string request;
     std::string get_chk_str;
     std::string post_chk_str;
     int pos;
@@ -101,18 +101,18 @@ void APIServerConnection::ProcessHeaders()
     // Clear API Command Call container:
     m_apiCommandCall.clear();
 
-	// Get the first header line, every request line ends with "\r\n"
+    // Get the first header line, every request line ends with "\r\n"
     // GET /service/ServiceHandler.xml.aspx?param1=value&param2=value&param3=value HTTP/1.0\r\n
     // POST /service/ServiceHandler.xml.aspx HTTP/1.0\r\n
-	std::getline(stream, request, '\r');
+    std::getline(stream, request, '\r');
     query = request;
 
-	get_chk_str = request.substr(0,3);
+    get_chk_str = request.substr(0,3);
     post_chk_str = request.substr(0,4);
 
     if (get_chk_str.compare("GET") == 0)
     {
-		sLog.Debug( "APIServerConnection::ProcessHeaders()", "RECEIVED new HTTP GET request..." );
+        sLog.Debug( "APIServerConnection::ProcessHeaders()", "RECEIVED new HTTP GET request..." );
 
         // Format of an HTTP GET query:
         // 0    5     10          20
@@ -122,20 +122,20 @@ void APIServerConnection::ProcessHeaders()
         request = request.substr(4);    // Strip off the "GET " prefix
 
         // Find first space at end of header, if there is one, and strip off the rest of the line, ie the " HTTP/1.0\r\n" string
-	    int del = request.find_first_of(' ');
-	    if (del == std::string::npos)
-	    {
-		    NotFound();
-		    return;
-	    }
+        int del = request.find_first_of(' ');
+        if (del == std::string::npos)
+        {
+            NotFound();
+            return;
+        }
         request = request.substr(0,del);
 
-	    if (!starts_with(request, "/"))
-	    {
-		    NotFound();
-		    return;
-	    }
-	    request = request.substr(1);
+        if (!starts_with(request, "/"))
+        {
+            NotFound();
+            return;
+        }
+        request = request.substr(1);
 
         pos = request.find_first_of('/');
         _service = request.substr(0,pos);
@@ -146,7 +146,7 @@ void APIServerConnection::ProcessHeaders()
         m_apiCommandCall.insert( std::pair<std::string, std::string>( "servicehandler", _service_handler ) );
         request = request.substr(pos+1);
 
-		//// DUPLICATE
+        //// DUPLICATE
         // Parse the query portion of the GET to a series of string pairs ("param", "value") from the URI
         while( (pos = request.find_first_of('=')) >= 0 )
         {
@@ -168,13 +168,13 @@ void APIServerConnection::ProcessHeaders()
             m_apiCommandCall.insert( std::pair<std::string, std::string>( param, value ) );
         }
 
-	    _xmlData = sAPIServer.GetXML(&m_apiCommandCall);
-	    if (!_xmlData)
-	    {
+        _xmlData = sAPIServer.GetXML(&m_apiCommandCall);
+        if (!_xmlData)
+        {
             sLog.Error("APIServerConnection::ProcessHeaders()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
             NotFound();
-		    return;
-	    }
+            return;
+        }
 
         // Print out to the Log with basic info on the API call and all parameters and their values parsed out
         sLog.Debug("APIServerConnection::ProcessHeaders()", "HTTP %s CMD Received: Service: %s, Handler: %s", _http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
@@ -184,15 +184,15 @@ void APIServerConnection::ProcessHeaders()
         for (int i=1; cur != end; cur++, i++)
             sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
 
-	    // first we have to send the responseOK, then our actual result
-	    asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
-		//// DUPLICATE
+        // first we have to send the responseOK, then our actual result
+        asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
+        //// DUPLICATE
     }
     else if (post_chk_str.compare("POST") == 0)
     {
-		sLog.Debug( "APIServerConnection::ProcessHeaders()", "RECEIVED new HTTP POST request..." );
+        sLog.Debug( "APIServerConnection::ProcessHeaders()", "RECEIVED new HTTP POST request..." );
 
-		// Format of an HTTP GET query:
+        // Format of an HTTP GET query:
         //
         // POST /service/ServiceHandler.xml.aspx HTTP/1.0\r\n
         // Content-Type: application/x-www-form-urlencoded\r\n
@@ -201,26 +201,26 @@ void APIServerConnection::ProcessHeaders()
         // \r\n
         // param1=value&param2=value&param3=value\r\n
         // \r\n
-        
+
         _http_cmd_str = post_chk_str;
 
         request = request.substr(5);    // Strip off the "POST " prefix
 
         // Find first space at end of header, if there is one, and strip off the rest of the line, ie the " HTTP/1.0\r\n" string
-	    int del = request.find_first_of(' ');
-	    if (del == std::string::npos)
-	    {
-		    NotFound();
-		    return;
-	    }
+        int del = request.find_first_of(' ');
+        if (del == std::string::npos)
+        {
+            NotFound();
+            return;
+        }
         request = request.substr(0,del);
 
-	    if (!starts_with(request, "/"))
-	    {
-		    NotFound();
-		    return;
-	    }
-	    request = request.substr(1);
+        if (!starts_with(request, "/"))
+        {
+            NotFound();
+            return;
+        }
+        request = request.substr(1);
 
         pos = request.find_first_of('/');
         _service = request.substr(0,pos);
@@ -229,7 +229,7 @@ void APIServerConnection::ProcessHeaders()
         _service_handler = request;
         m_apiCommandCall.insert( std::pair<std::string, std::string>( "servicehandler", _service_handler ) );
 
-		// Read the integer after 'Content-Length:' and use that as the # of bytes in the next step
+        // Read the integer after 'Content-Length:' and use that as the # of bytes in the next step
         while( (request.substr( 0,15 ).compare( "Content-Length:" )) != 0 )
         {
             std::getline(stream, request, '\r');
@@ -239,111 +239,111 @@ void APIServerConnection::ProcessHeaders()
         pos = request.find_first_of(' ');
         request = request.substr( pos+1 );
         uint32 postDataBytes = atoi( request.c_str() );
-		std::getline(stream, request, '\n');
+        std::getline(stream, request, '\n');
 
-		sLog.Debug( "APIServerConnection::ProcessHeaders()", "    POST Content-Length = %u bytes", postDataBytes );
+        sLog.Debug( "APIServerConnection::ProcessHeaders()", "    POST Content-Length = %u bytes", postDataBytes );
 
-		// Keep reading lines until we get past the next "\r\n" line (blank line):
-		while( request.compare( "\r" ) != 0 )
-		{
-			std::getline(stream, request, '\n');
-		}
+        // Keep reading lines until we get past the next "\r\n" line (blank line):
+        while( request.compare( "\r" ) != 0 )
+        {
+            std::getline(stream, request, '\n');
+        }
 
-		std::getline(stream, request, '\n');
-		pos = request.find_first_of('\r');
-		request = request.substr( 0,pos );
+        std::getline(stream, request, '\n');
+        pos = request.find_first_of('\r');
+        request = request.substr( 0,pos );
 
-		if( request.compare( "" ) != 0 )
-		{
-			// Decode the arguments of the POST data block here since asio did NOT stop reading past the first "\r\n\r\n"
-			//// DUPLICATE
-			// Parse the query portion of the GET to a series of string pairs ("param", "value") from the URI
-			sLog.Debug( "APIServerConnection::ProcessHeaders()", "POST data found in ProcessHeaders() !  Parsing..." );
+        if( request.compare( "" ) != 0 )
+        {
+            // Decode the arguments of the POST data block here since asio did NOT stop reading past the first "\r\n\r\n"
+            //// DUPLICATE
+            // Parse the query portion of the GET to a series of string pairs ("param", "value") from the URI
+            sLog.Debug( "APIServerConnection::ProcessHeaders()", "POST data found in ProcessHeaders() !  Parsing..." );
             parameterCount = 0;
-			while( (pos = request.find_first_of('=')) >= 0 )
-			{
+            while( (pos = request.find_first_of('=')) >= 0 )
+            {
                 parameterCount++;
-				param = request.substr(0,pos);
+                param = request.substr(0,pos);
                 std::transform(param.begin(), param.end(), param.begin(), tolower);
-				request = request.substr(pos+1);
-				pos = request.find_first_of('&');
-				if( pos < 0 )
-					value = request;
-				else
-				{
-					value = request.substr(0,pos);
-					request = request.substr(pos);
-					if( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
-						request = request.substr(5);
-					else
-						request = request.substr(1);
-				}
-				m_apiCommandCall.insert( std::pair<std::string, std::string>( param, value ) );
-			}
+                request = request.substr(pos+1);
+                pos = request.find_first_of('&');
+                if( pos < 0 )
+                    value = request;
+                else
+                {
+                    value = request.substr(0,pos);
+                    request = request.substr(pos);
+                    if( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
+                        request = request.substr(5);
+                    else
+                        request = request.substr(1);
+                }
+                m_apiCommandCall.insert( std::pair<std::string, std::string>( param, value ) );
+            }
 
             // Did we somehow not detect a lack of POST data?  If so, and NO parameters were recovered, queue up the trigger for PostProcessHeaders():
             if( parameterCount == 0 )
-		    {
-			    // Call asio::async_read() and feed it the # of bytes from step 1) to get the POST data
-			    // The 'CompleteCondition' for THIS asio::async_read, a parameter that specifies when to stop reading,
-			    // is transfer_exactly(contentLength), where contentLength is the # of bytes we just recovered from the "Content-Length" header
-			    asio::async_read(_socket, _postBuffer, asio::transfer_exactly(postDataBytes), std::tr1::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
-		    }
+            {
+                // Call asio::async_read() and feed it the # of bytes from step 1) to get the POST data
+                // The 'CompleteCondition' for THIS asio::async_read, a parameter that specifies when to stop reading,
+                // is transfer_exactly(contentLength), where contentLength is the # of bytes we just recovered from the "Content-Length" header
+                asio::async_read(_socket, _postBuffer, asio::transfer_exactly(postDataBytes), std::tr1::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
+            }
 
             _xmlData = sAPIServer.GetXML(&m_apiCommandCall);
-			if (!_xmlData)
-			{
-				sLog.Error("APIServerConnection::ProcessHeaders()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
-				NotFound();
-				return;
-			}
+            if (!_xmlData)
+            {
+                sLog.Error("APIServerConnection::ProcessHeaders()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
+                NotFound();
+                return;
+            }
 
-			// Print out to the Log with basic info on the API call and all parameters and their values parsed out
-			sLog.Debug("APIServerConnection::ProcessHeaders()", "HTTP %s CMD Received: Service: %s, Handler: %s", _http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
-			APICommandCall::const_iterator cur, end;
-			cur = m_apiCommandCall.begin();
-			end = m_apiCommandCall.end();
-			for (int i=1; cur != end; cur++, i++)
-				sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
+            // Print out to the Log with basic info on the API call and all parameters and their values parsed out
+            sLog.Debug("APIServerConnection::ProcessHeaders()", "HTTP %s CMD Received: Service: %s, Handler: %s", _http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
+            APICommandCall::const_iterator cur, end;
+            cur = m_apiCommandCall.begin();
+            end = m_apiCommandCall.end();
+            for (int i=1; cur != end; cur++, i++)
+                sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
 
-			// first we have to send the responseOK, then our actual result
-			asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
-			//// DUPLICATE
-		}
-		else
-		{
-			// Call asio::async_read() and feed it the # of bytes from step 1) to get the POST data
-			// The 'CompleteCondition' for THIS asio::async_read, a parameter that specifies when to stop reading,
-			// is transfer_exactly(contentLength), where contentLength is the # of bytes we just recovered from the "Content-Length" header
-			asio::async_read(_socket, _postBuffer, asio::transfer_exactly(postDataBytes), std::tr1::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
-		}
+            // first we have to send the responseOK, then our actual result
+            asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
+            //// DUPLICATE
+        }
+        else
+        {
+            // Call asio::async_read() and feed it the # of bytes from step 1) to get the POST data
+            // The 'CompleteCondition' for THIS asio::async_read, a parameter that specifies when to stop reading,
+            // is transfer_exactly(contentLength), where contentLength is the # of bytes we just recovered from the "Content-Length" header
+            asio::async_read(_socket, _postBuffer, asio::transfer_exactly(postDataBytes), std::tr1::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
+        }
     }
     else
     {
-		NotFound();
-		return;
+        NotFound();
+        return;
     }
 }
 
 void APIServerConnection::ProcessPostData()
 {
-	std::istream stream(&_postBuffer);
+    std::istream stream(&_postBuffer);
     std::string query;
-	std::string request;
+    std::string request;
     int pos;
     std::string param;
     std::string value;
 
     std::getline(stream, request, '\r');
 
-	// Check for empty POST data block, and if empty, return without sending anything back:
-	if( request.compare( "" ) == 0 )
-	{
+    // Check for empty POST data block, and if empty, return without sending anything back:
+    if( request.compare( "" ) == 0 )
+    {
         sLog.Error("APIServerConnection::ProcessPostData()", "POST data block is COMPLETELY EMPTY!!" );
-		asio::async_write(_socket, _responseNoContent, asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+        asio::async_write(_socket, _responseNoContent, asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
         //NotFound();
-		return;
-	}
+        return;
+    }
 
     _http_cmd_str += request;
 
@@ -368,13 +368,13 @@ void APIServerConnection::ProcessPostData()
         m_apiCommandCall.insert( std::pair<std::string, std::string>( param, value ) );
     }
 
-	_xmlData = sAPIServer.GetXML(&m_apiCommandCall);
-	if (!_xmlData)
-	{
+    _xmlData = sAPIServer.GetXML(&m_apiCommandCall);
+    if (!_xmlData)
+    {
         sLog.Error("APIServerConnection::ProcessPostData()", "Unknown or malformed EVEmu API HTTP CMD Received:\r\n%s\r\n", query.c_str());
         NotFound();
-		return;
-	}
+        return;
+    }
 
     // Print out to the Log with basic info on the API call and all parameters and their values parsed out
     sLog.Debug("APIServerConnection::ProcessPostData()", "HTTP %s CMD Received: Service: %s, Handler: %s", _http_cmd_str.c_str(), _service.c_str(), _service_handler.c_str());
@@ -384,50 +384,50 @@ void APIServerConnection::ProcessPostData()
     for (int i=1; cur != end; cur++, i++)
         sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
 
-	// first we have to send the responseOK, then our actual result
-	asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
+    // first we have to send the responseOK, then our actual result
+    asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
 }
 
 void APIServerConnection::SendXML()
 {
-	asio::async_write(_socket, asio::buffer(*_xmlData, _xmlData->size()), asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+    asio::async_write(_socket, asio::buffer(*_xmlData, _xmlData->size()), asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
 }
 
 void APIServerConnection::NotFound()
 {
-	asio::async_write(_socket, _responseNotFound, asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+    asio::async_write(_socket, _responseNotFound, asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
 }
 
 void APIServerConnection::Redirect()
 {
-	asio::async_write(_socket, _responseRedirectBegin, asio::transfer_all(), std::tr1::bind(&APIServerConnection::RedirectLocation, shared_from_this()));
+    asio::async_write(_socket, _responseRedirectBegin, asio::transfer_all(), std::tr1::bind(&APIServerConnection::RedirectLocation, shared_from_this()));
 }
 
 void APIServerConnection::RedirectLocation()
 {
     //std::string extension = _service == "Character" ? "jpg" : "png";
-	std::stringstream url;
-	url << APIServer::FallbackURL << _service;// << "/" << _id;
-	_redirectUrl = url.str();
-	asio::async_write(_socket, asio::buffer(_redirectUrl), asio::transfer_all(), std::tr1::bind(&APIServerConnection::RedirectFinalize, shared_from_this()));
+    std::stringstream url;
+    url << APIServer::FallbackURL << _service;// << "/" << _id;
+    _redirectUrl = url.str();
+    asio::async_write(_socket, asio::buffer(_redirectUrl), asio::transfer_all(), std::tr1::bind(&APIServerConnection::RedirectFinalize, shared_from_this()));
 }
 
 void APIServerConnection::RedirectFinalize()
 {
-	asio::async_write(_socket, _responseRedirectEnd, asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+    asio::async_write(_socket, _responseRedirectEnd, asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
 }
 
 void APIServerConnection::Close()
 {
-	_socket.close();
+    _socket.close();
 }
 
 bool APIServerConnection::starts_with(std::string& haystack, const char *const needle)
 {
-	return haystack.substr(0, strlen(needle)).compare(needle) == 0;
+    return haystack.substr(0, strlen(needle)).compare(needle) == 0;
 }
 
 std::tr1::shared_ptr<APIServerConnection> APIServerConnection::create(asio::io_service& io)
 {
-	return std::tr1::shared_ptr<APIServerConnection>(new APIServerConnection(io));
+    return std::tr1::shared_ptr<APIServerConnection>(new APIServerConnection(io));
 }

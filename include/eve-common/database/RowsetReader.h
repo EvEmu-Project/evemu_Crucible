@@ -188,7 +188,7 @@ protected:
  *
  * @author Zhur, Bloody.Rabbit
  */
-class SetSQLDumper 
+class SetSQLDumper
 : public PyVisitor
 {
 public:

@@ -98,12 +98,12 @@ protected:
     PyCallable_DECL_CALL(LeaveChannels)
     PyCallable_DECL_CALL(LeaveChannel)
     PyCallable_DECL_CALL(CreateChannel)
-	PyCallable_DECL_CALL(Configure)
+    PyCallable_DECL_CALL(Configure)
     PyCallable_DECL_CALL(DestroyChannel)
     PyCallable_DECL_CALL(GetMembers)
     PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(SendMessage)
-	PyCallable_DECL_CALL(Invite)
+    PyCallable_DECL_CALL(Invite)
     PyCallable_DECL_CALL(AccessControl)
 
     PyCallable_DECL_CALL(GetMyMessages)
@@ -114,7 +114,7 @@ protected:
 
 private:
     LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, const char * compkey,
-		uint32 ownerID, bool memberless, const char * password, bool maillist, uint32 cspa, uint32 temporary, uint32 mode);
+        uint32 ownerID, bool memberless, const char * password, bool maillist, uint32 cspa, uint32 temporary, uint32 mode);
     LSCChannel *CreateChannel(uint32 channelID, const char * name, const char * motd, LSCChannel::Type type, bool maillist = false);
     LSCChannel *CreateChannel(uint32 channelID, const char * name, LSCChannel::Type type, bool maillist = false);
     LSCChannel *CreateChannel(uint32 channelID, LSCChannel::Type type);

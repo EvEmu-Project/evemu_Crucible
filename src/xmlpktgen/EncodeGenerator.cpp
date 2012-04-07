@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Zhur
 */
 
 #include "XMLPktGenPCH.h"
@@ -54,43 +54,43 @@ bool ClassEncodeGenerator::ProcessElementDef( const TiXmlElement* field )
     const char* encode_type = GetEncodeType( main );
     fprintf( mOutputFile,
         "%s* %s::Encode() const\n"
-		"{\n"
+        "{\n"
         "    %s* res = NULL;\n"
-		"\n",
+        "\n",
         encode_type, mName,
-		    encode_type
-	);
+            encode_type
+    );
 
     mItemNumber = 0;
-	clear();
+    clear();
 
-	push( "res" );
+    push( "res" );
     if( !ParseElement( main ) )
         return false;
 
     fprintf( mOutputFile,
-		"    return res;\n"
-		"}\n"
-		"\n"
-	);
+        "    return res;\n"
+        "}\n"
+        "\n"
+    );
 
-	return true;
+    return true;
 }
 
 bool ClassEncodeGenerator::ProcessElement( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     fprintf( mOutputFile,
         "    %s = %s.Encode();\n"
-		"\n",
-		top(), name
-	);
+        "\n",
+        top(), name
+    );
 
     pop();
     return true;
@@ -98,28 +98,28 @@ bool ClassEncodeGenerator::ProcessElement( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     const char* v = top();
     fprintf( mOutputFile,
         "    if( NULL == %s )\n"
-		"    {\n"
+        "    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
         "        %s = new PyNone;\n"
         "    }\n"
-		"    else\n"
+        "    else\n"
         "        %s = %s->Encode();\n"
-		"\n",
+        "\n",
         name,
             mName, name,
             v,
 
-		    v, name
+            v, name
     );
 
     pop();
@@ -128,32 +128,32 @@ bool ClassEncodeGenerator::ProcessElementPtr( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessRaw( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
-	const char* v = top();
+    const char* v = top();
     fprintf( mOutputFile,
         "    if( NULL == %s )\n"
-		"    {\n"
+        "    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
         "        %s = new PyNone;\n"
         "    }\n"
-		"    else\n"
-	    "    {\n"
-	    "        %s = %s;\n"
+        "    else\n"
+        "    {\n"
+        "        %s = %s;\n"
         "        PyIncRef( %s );\n"
-		"    }\n"
-		"\n",
+        "    }\n"
+        "\n",
         name,
             mName, name,
             v,
 
-			v, name,
-			name
+            v, name,
+            name
     );
 
     pop();
@@ -162,20 +162,20 @@ bool ClassEncodeGenerator::ProcessRaw( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessInt( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     //this should be done better:
     const char* none_marker = field->Attribute( "none_marker" );
 
-	const char* v = top();
+    const char* v = top();
     if( none_marker != NULL )
         fprintf( mOutputFile,
-			"    if( %s == %s )\n"
+            "    if( %s == %s )\n"
             "        %s = new PyNone;\n"
             "    else\n",
             name, none_marker,
@@ -183,10 +183,10 @@ bool ClassEncodeGenerator::ProcessInt( const TiXmlElement* field )
         );
 
     fprintf( mOutputFile,
-	    "        %s = new PyInt( %s );\n"
-		"\n",
-	    v, name
-	);
+        "        %s = new PyInt( %s );\n"
+        "\n",
+        v, name
+    );
 
     pop();
     return true;
@@ -194,20 +194,20 @@ bool ClassEncodeGenerator::ProcessInt( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessLong( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     //this should be done better:
     const char* none_marker = field->Attribute( "none_marker" );
 
-	const char* v = top();
+    const char* v = top();
     if( none_marker != NULL )
         fprintf( mOutputFile,
-		    "    if( %s == %s )\n"
+            "    if( %s == %s )\n"
             "        %s = new PyNone;\n"
             "    else\n",
             name, none_marker,
@@ -215,10 +215,10 @@ bool ClassEncodeGenerator::ProcessLong( const TiXmlElement* field )
         );
 
     fprintf( mOutputFile,
-		"        %s = new PyLong( %s );\n"
-		"\n",
-		v, name
-	);
+        "        %s = new PyLong( %s );\n"
+        "\n",
+        v, name
+    );
 
     pop();
     return true;
@@ -226,20 +226,20 @@ bool ClassEncodeGenerator::ProcessLong( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessReal( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     //this should be done better:
     const char* none_marker = field->Attribute( "none_marker" );
 
-	const char* v = top();
+    const char* v = top();
     if( none_marker != NULL )
         fprintf( mOutputFile,
-			"    if( %s == %s )\n"
+            "    if( %s == %s )\n"
             "        %s = new PyNone;\n"
             "    else\n",
             name, none_marker,
@@ -247,10 +247,10 @@ bool ClassEncodeGenerator::ProcessReal( const TiXmlElement* field )
         );
 
     fprintf( mOutputFile,
-		"        %s = new PyFloat( %s );\n"
-		"\n",
-		v, name
-	);
+        "        %s = new PyFloat( %s );\n"
+        "\n",
+        v, name
+    );
 
     pop();
     return true;
@@ -258,18 +258,18 @@ bool ClassEncodeGenerator::ProcessReal( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessBool( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     fprintf( mOutputFile,
-		"        %s = new PyBool( %s );\n"
-		"\n",
-		top(), name
-	);
+        "        %s = new PyBool( %s );\n"
+        "\n",
+        top(), name
+    );
 
     pop();
     return true;
@@ -278,10 +278,10 @@ bool ClassEncodeGenerator::ProcessBool( const TiXmlElement* field )
 bool ClassEncodeGenerator::ProcessNone( const TiXmlElement* field )
 {
     fprintf( mOutputFile,
-		"    %s = new PyNone;\n"
-		"\n",
-		top()
-	);
+        "    %s = new PyNone;\n"
+        "\n",
+        top()
+    );
 
     pop();
     return true;
@@ -289,32 +289,32 @@ bool ClassEncodeGenerator::ProcessNone( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessBuffer( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
-	const char* v = top();
+    const char* v = top();
     fprintf( mOutputFile,
         "    if( NULL == %s )\n"
-		"    {\n"
+        "    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty buffer.\");\n"
         "        %s = new PyBuffer( 0 );\n"
         "    }\n"
-		"    else\n"
-	    "    {\n"
-	    "        %s = %s;\n"
+        "    else\n"
+        "    {\n"
+        "        %s = %s;\n"
         "        PyIncRef( %s );\n"
-		"    }\n"
-		"\n",
+        "    }\n"
+        "\n",
         name,
             mName, name,
             v,
 
-			v, name,
-			name
+            v, name,
+            name
     );
 
     pop();
@@ -323,30 +323,30 @@ bool ClassEncodeGenerator::ProcessBuffer( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessString( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     const char* none_marker = field->Attribute( "none_marker" );
 
-	const char* v = top();
+    const char* v = top();
     if( none_marker != NULL )
         fprintf( mOutputFile,
-			"    if( %s == \"%s\" )\n"
+            "    if( %s == \"%s\" )\n"
             "        %s = new PyNone;\n"
             "    else\n",
             name, none_marker,
                 v
-		);
+        );
 
     fprintf( mOutputFile,
-		"        %s = new PyString( %s );\n"
-		"\n",
-		v, name
-	);
+        "        %s = new PyString( %s );\n"
+        "\n",
+        v, name
+    );
 
     pop();
     return true;
@@ -374,30 +374,30 @@ bool ClassEncodeGenerator::ProcessStringInline( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessWString( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     const char* none_marker = field->Attribute( "none_marker" );
 
-	const char* v = top();
+    const char* v = top();
     if( none_marker != NULL )
         fprintf( mOutputFile,
-			"    if( %s == \"%s\" )\n"
+            "    if( %s == \"%s\" )\n"
             "        %s = new PyNone;\n"
             "    else\n",
             name, none_marker,
                 v
-		);
+        );
 
     fprintf( mOutputFile,
-		"        %s = new PyWString( %s );\n"
-		"\n",
-		v, name
-	);
+        "        %s = new PyWString( %s );\n"
+        "\n",
+        v, name
+    );
 
     pop();
     return true;
@@ -445,26 +445,26 @@ bool ClassEncodeGenerator::ProcessToken( const TiXmlElement* field )
             "    else\n",
             name,
                 v
-	    );
+        );
     else
         fprintf( mOutputFile,
             "    if( %s == NULL )\n"
-	        "    {\n"
+            "    {\n"
             "        _log( NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\" );\n"
             "        %s = new PyNone;\n"
             "    }\n"
-	        "    else\n",
+            "    else\n",
             name,
                 mName, name,
                 v
         );
 
     fprintf( mOutputFile,
-	    "    {\n"
+        "    {\n"
         "        %s = %s;\n"
         "        PyIncRef( %s );\n"
-	    "    }\n"
-	    "\n",
+        "    }\n"
+        "\n",
         v, name,
         name
     );
@@ -497,15 +497,15 @@ bool ClassEncodeGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-	bool optional = false;
-	const char* optional_str = field->Attribute( "optional" );
-	if( NULL != optional_str )
-		optional = str2<bool>( optional_str );
+    bool optional = false;
+    const char* optional_str = field->Attribute( "optional" );
+    if( NULL != optional_str )
+        optional = str2<bool>( optional_str );
 
     const char* v = top();
     if( optional )
@@ -582,82 +582,82 @@ bool ClassEncodeGenerator::ProcessObjectInline( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
-	const char* type = field->Attribute( "type" );
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
+    const char* type = field->Attribute( "type" );
     if( type == NULL )
     {
         _log( COMMON__ERROR, "field at line %d is missing the type attribute.", field->Row() );
         return false;
     }
 
-	bool optional = false;
-	const char* optional_str = field->Attribute( "optional" );
-	if( optional_str != NULL )
-		optional = str2<bool>( optional_str );
+    bool optional = false;
+    const char* optional_str = field->Attribute( "optional" );
+    if( optional_str != NULL )
+        optional = str2<bool>( optional_str );
 
-	const char *v = top();
-	if( optional )
-		fprintf( mOutputFile,
-			"    if( %s == NULL )\n"
-			"        %s = new PyNone;\n"
-			"    else\n",
-			name,
-				v
-		);
-	else
-		fprintf( mOutputFile,
-			"    if( %s == NULL )\n"
-			"    {\n"
-			"        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
-			"        %s = new PyNone;\n"
-			"    }\n"
-			"    else\n",
-			name,
-				mName, name,
-				v
-		);
+    const char *v = top();
+    if( optional )
+        fprintf( mOutputFile,
+            "    if( %s == NULL )\n"
+            "        %s = new PyNone;\n"
+            "    else\n",
+            name,
+                v
+        );
+    else
+        fprintf( mOutputFile,
+            "    if( %s == NULL )\n"
+            "    {\n"
+            "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in a PyNone\");\n"
+            "        %s = new PyNone;\n"
+            "    }\n"
+            "    else\n",
+            name,
+                mName, name,
+                v
+        );
 
-	fprintf( mOutputFile,
-		"    {\n"
-		"        %s = %s;\n"
+    fprintf( mOutputFile,
+        "    {\n"
+        "        %s = %s;\n"
         "        PyIncRef( %s );\n"
-		"    }\n"
-		"\n",
-		v, name,
-		name
-	);
+        "    }\n"
+        "\n",
+        v, name,
+        name
+    );
 
-	pop();
+    pop();
     return true;
 }
 
 bool ClassEncodeGenerator::ProcessTuple( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     bool optional = false;
     const char* optional_str = field->Attribute("optional");
     if( optional_str != NULL )
         optional = str2<bool>( optional_str );
 
-	const char* v = top();
+    const char* v = top();
     fprintf( mOutputFile,
         "    if( %s == NULL )\n"
-		"    {\n"
+        "    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty tuple.\");\n"
         "        %s = new PyTuple( 0 );\n"
         "    }\n"
-		"    else\n",
+        "    else\n",
         name,
             mName, name,
             v
@@ -665,22 +665,22 @@ bool ClassEncodeGenerator::ProcessTuple( const TiXmlElement* field )
 
     if( optional )
         fprintf( mOutputFile,
-		    "    if( %s->empty() )\n"
+            "    if( %s->empty() )\n"
             "        %s = new PyNone;\n"
             "    else\n",
             name,
                 v
-		);
+        );
 
     fprintf( mOutputFile,
-		"    {\n"
+        "    {\n"
         "        %s = %s;\n"
         "        PyIncRef( %s );\n"
-		"    }\n"
-		"\n",
+        "    }\n"
+        "\n",
         v, name,
         name
-	);
+    );
 
     pop();
     return true;
@@ -703,16 +703,16 @@ bool ClassEncodeGenerator::ProcessTupleInline( const TiXmlElement* field )
 
     //now we can generate the tuple decl
     fprintf( mOutputFile,
-		"    PyTuple* %s = new PyTuple( %u );\n"
-		"\n",
-		iname, count
-	);
+        "    PyTuple* %s = new PyTuple( %u );\n"
+        "\n",
+        iname, count
+    );
 
     //now we need to queue up all the storage locations for the fields
     //need to be backward
     char varname[64];
     while( count-- > 0 )
-	{
+    {
         snprintf( varname, sizeof( varname ), "%s->items[ %u ]", iname, count );
         push( varname );
     }
@@ -721,10 +721,10 @@ bool ClassEncodeGenerator::ProcessTupleInline( const TiXmlElement* field )
         return false;
 
     fprintf( mOutputFile,
-		"    %s = %s;\n"
-		"\n",
-		top(), iname
-	);
+        "    %s = %s;\n"
+        "\n",
+        top(), iname
+    );
 
 
     pop();
@@ -733,26 +733,26 @@ bool ClassEncodeGenerator::ProcessTupleInline( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessList( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     bool optional = false;
     const char* optional_str = field->Attribute( "optional" );
     if( optional_str != NULL )
         optional = str2<bool>( optional_str );
 
-	const char* v = top();
+    const char* v = top();
     fprintf( mOutputFile,
         "    if( %s == NULL )\n"
-		"    {\n"
+        "    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty list.\");\n"
         "        %s = new PyList;\n"
         "    }\n"
-		"    else\n",
+        "    else\n",
         name,
             mName, name,
             v
@@ -762,20 +762,20 @@ bool ClassEncodeGenerator::ProcessList( const TiXmlElement* field )
         fprintf( mOutputFile,
             "    if( %s->empty() )\n"
             "        %s = new PyNone;\n"
-			"    else\n",
+            "    else\n",
             name,
                 v
-		);
+        );
 
     fprintf( mOutputFile,
-		"    {\n"
+        "    {\n"
         "        %s = %s;\n"
         "        PyIncRef( %s );\n"
-		"    }\n"
-		"\n",
-		v, name,
+        "    }\n"
+        "\n",
+        v, name,
         name
-	);
+    );
 
     pop();
     return true;
@@ -798,16 +798,16 @@ bool ClassEncodeGenerator::ProcessListInline( const TiXmlElement* field )
 
     //now we can generate the list decl
     fprintf( mOutputFile,
-		"    PyList* %s = new PyList( %u );\n"
-		"\n",
-		iname, count
-	);
+        "    PyList* %s = new PyList( %u );\n"
+        "\n",
+        iname, count
+    );
 
     //now we need to queue up all the storage locations for the fields
     //need to be backward
     char varname[64];
     while( count-- > 0 )
-	{
+    {
         snprintf( varname, sizeof( varname ), "%s->items[ %u ]", iname, count );
         push( varname );
     }
@@ -816,10 +816,10 @@ bool ClassEncodeGenerator::ProcessListInline( const TiXmlElement* field )
         return false;
 
     fprintf( mOutputFile,
-		"    %s = %s;\n"
-		"\n",
-		top(), iname
-	);
+        "    %s = %s;\n"
+        "\n",
+        top(), iname
+    );
 
     pop();
     return true;
@@ -827,12 +827,12 @@ bool ClassEncodeGenerator::ProcessListInline( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessListInt( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     char rname[16];
     snprintf( rname, sizeof( rname ), "list%u", mItemNumber++ );
@@ -850,11 +850,11 @@ bool ClassEncodeGenerator::ProcessListInt( const TiXmlElement* field )
         "\n",
         rname,
         name, name,
-		name, name,
-		name, name,
+        name, name,
+        name, name,
         name, name, name,
         rname,
-		    name,
+            name,
         top(), rname
     );
 
@@ -864,12 +864,12 @@ bool ClassEncodeGenerator::ProcessListInt( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessListLong( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     char rname[16];
     snprintf( rname, sizeof( rname ), "list%u", mItemNumber++ );
@@ -887,11 +887,11 @@ bool ClassEncodeGenerator::ProcessListLong( const TiXmlElement* field )
         "\n",
         rname,
         name, name,
-		name, name,
-		name, name,
+        name, name,
+        name, name,
         name, name, name,
         rname,
-		    name,
+            name,
         top(), rname
     );
 
@@ -901,12 +901,12 @@ bool ClassEncodeGenerator::ProcessListLong( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessListStr( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     char rname[16];
     snprintf( rname, sizeof( rname ), "list%u", mItemNumber++ );
@@ -918,17 +918,17 @@ bool ClassEncodeGenerator::ProcessListStr( const TiXmlElement* field )
         "    %s_end = %s.end();\n"
         "    for(; %s_cur != %s_end; %s_cur++)\n"
         "        %s->AddItemString(\n"
-		"            %s_cur->c_str()\n"
+        "            %s_cur->c_str()\n"
         "        );\n"
         "    %s = %s;\n"
         "\n",
         rname,
         name, name,
-		name, name,
-		name, name,
+        name, name,
+        name, name,
         name, name, name,
         rname,
-		    name,
+            name,
         top(), rname
     );
 
@@ -938,26 +938,26 @@ bool ClassEncodeGenerator::ProcessListStr( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessDict( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     bool optional = false;
     const char* optional_str = field->Attribute("optional");
     if( optional_str != NULL )
         optional = str2<bool>( optional_str );
 
-	const char* v = top();
+    const char* v = top();
     fprintf( mOutputFile,
         "    if( %s == NULL )\n"
-		"    {\n"
+        "    {\n"
         "        _log(NET__PACKET_ERROR, \"Encode %s: %s is NULL! hacking in an empty dict.\");\n"
         "        %s = new PyDict;\n"
         "    }\n"
-		"    else\n",
+        "    else\n",
         name,
             mName, name,
             v
@@ -970,17 +970,17 @@ bool ClassEncodeGenerator::ProcessDict( const TiXmlElement* field )
             "    else\n",
             name,
                 v
-		);
+        );
 
     fprintf( mOutputFile,
-		"    {\n"
+        "    {\n"
         "        %s = %s;\n"
         "        PyIncRef( %s );\n"
-		"    }\n"
-		"\n",
+        "    }\n"
+        "\n",
         v, name,
         name
-	);
+    );
 
     pop();
     return true;
@@ -993,17 +993,17 @@ bool ClassEncodeGenerator::ProcessDictInline( const TiXmlElement* field )
     snprintf( iname, sizeof( iname ), "dict%u", mItemNumber++ );
 
     fprintf( mOutputFile,
-		"    PyDict* %s = new PyDict;\n"
-		"\n",
-		iname
-	);
+        "    PyDict* %s = new PyDict;\n"
+        "\n",
+        iname
+    );
 
     //now we process each element, putting it into the dict:
     const TiXmlNode* i = NULL;
 
     uint32 count = 0;
     while( ( i = field->IterateChildren( i ) ) )
-	{
+    {
         if( i->Type() == TiXmlNode::ELEMENT )
         {
             const TiXmlElement* ele = i->ToElement();
@@ -1014,12 +1014,12 @@ bool ClassEncodeGenerator::ProcessDictInline( const TiXmlElement* field )
                 _log( COMMON__ERROR, "non-dictInlineEntry in <dictInline> at line %d, ignoring.", ele->Row() );
                 continue;
             }
-		    const char* key = ele->Attribute( "key" );
-		    if( key == NULL )
+            const char* key = ele->Attribute( "key" );
+            if( key == NULL )
             {
-			    _log( COMMON__ERROR, "<dictInlineEntry> at line %d lacks a key attribute", ele->Row() );
-			    return false;
-		    }
+                _log( COMMON__ERROR, "<dictInlineEntry> at line %d lacks a key attribute", ele->Row() );
+                return false;
+            }
 
             bool keyTypeInt = false;
             const char* keyType = ele->Attribute( "key_type" );
@@ -1031,10 +1031,10 @@ bool ClassEncodeGenerator::ProcessDictInline( const TiXmlElement* field )
             ++count;
 
             fprintf( mOutputFile,
-			    "    PyRep* %s;\n"
-			    "\n",
-			    vname
-		    );
+                "    PyRep* %s;\n"
+                "\n",
+                vname
+            );
             push( vname );
 
             //now process the data part, putting the value into `varname`
@@ -1045,30 +1045,30 @@ bool ClassEncodeGenerator::ProcessDictInline( const TiXmlElement* field )
             //taking the keyType into account
             if( keyTypeInt )
                 fprintf( mOutputFile,
-			        "    %s->SetItem(\n"
+                    "    %s->SetItem(\n"
                     "        new PyInt( %s ), %s\n"
                     "    );\n"
-				    "\n",
-				    iname,
-				        key, vname
-			    );
+                    "\n",
+                    iname,
+                        key, vname
+                );
             else
                 fprintf( mOutputFile,
-			         "    %s->SetItemString(\n"
+                     "    %s->SetItemString(\n"
                      "        \"%s\", %s\n"
                      "    );\n"
-				     "\n",
-				     iname,
-				        key, vname
-			    );
+                     "\n",
+                     iname,
+                        key, vname
+                );
         }
     }
 
     fprintf( mOutputFile,
-		"    %s = %s;\n"
-		"\n",
-		top(), iname
-	);
+        "    %s = %s;\n"
+        "\n",
+        top(), iname
+    );
 
     pop();
     return true;
@@ -1076,37 +1076,37 @@ bool ClassEncodeGenerator::ProcessDictInline( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessDictRaw( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
-	const char* key = field->Attribute( "key" );
-	if( key == NULL )
+    const char* key = field->Attribute( "key" );
+    if( key == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the key attribute, skipping.", field->Row() );
-		return false;
-	}
-	const char* pykey = field->Attribute( "pykey" );
-	if( pykey == NULL )
+        _log( COMMON__ERROR, "field at line %d is missing the key attribute, skipping.", field->Row() );
+        return false;
+    }
+    const char* pykey = field->Attribute( "pykey" );
+    if( pykey == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the pykey attribute, skipping.", field->Row() );
-		return false;
-	}
-	const char* value = field->Attribute( "value" );
-	if( value == NULL )
+        _log( COMMON__ERROR, "field at line %d is missing the pykey attribute, skipping.", field->Row() );
+        return false;
+    }
+    const char* value = field->Attribute( "value" );
+    if( value == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the value attribute, skipping.", field->Row() );
-		return false;
-	}
-	const char* pyvalue = field->Attribute( "pyvalue" );
-	if( pyvalue == NULL )
+        _log( COMMON__ERROR, "field at line %d is missing the value attribute, skipping.", field->Row() );
+        return false;
+    }
+    const char* pyvalue = field->Attribute( "pyvalue" );
+    if( pyvalue == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the pyvalue attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the pyvalue attribute, skipping.", field->Row() );
+        return false;
+    }
 
     char rname[16];
     snprintf( rname, sizeof( rname ), "dict%u", mItemNumber++ );
@@ -1119,7 +1119,7 @@ bool ClassEncodeGenerator::ProcessDictRaw( const TiXmlElement* field )
         "    for(; %s_cur != %s_end; %s_cur++)\n"
         "        %s->SetItem(\n"
         "            new Py%s( %s_cur->first ), new Py%s( %s_cur->second )\n"
-		"        );\n"
+        "        );\n"
         "    %s = %s;\n"
         "\n",
         rname,
@@ -1138,12 +1138,12 @@ bool ClassEncodeGenerator::ProcessDictRaw( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessDictInt( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     char iname[16];
     snprintf( iname, sizeof( iname ), "dict%u", mItemNumber++ );
@@ -1159,7 +1159,7 @@ bool ClassEncodeGenerator::ProcessDictInt( const TiXmlElement* field )
         "\n"
         "        %s->SetItem(\n"
         "            new PyInt( %s_cur->first ), %s_cur->second\n"
-		"        );\n"
+        "        );\n"
         "    }\n"
         "    %s = %s;\n"
         "\n",
@@ -1182,12 +1182,12 @@ bool ClassEncodeGenerator::ProcessDictInt( const TiXmlElement* field )
 
 bool ClassEncodeGenerator::ProcessDictStr( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     char iname[16];
     snprintf( iname, sizeof( iname ), "dict%d", mItemNumber++ );
@@ -1202,8 +1202,8 @@ bool ClassEncodeGenerator::ProcessDictStr( const TiXmlElement* field )
         "        PyIncRef( %s_cur->second );\n"
         "\n"
         "        %s->SetItemString(\n"
-		"            %s_cur->first.c_str(), %s_cur->second\n"
-		"        );\n"
+        "            %s_cur->first.c_str(), %s_cur->second\n"
+        "        );\n"
         "    }\n"
         "    %s = %s;\n"
         "\n",
@@ -1231,10 +1231,10 @@ bool ClassEncodeGenerator::ProcessSubStreamInline( const TiXmlElement* field )
 
     //encode the sub-element into a temp
     fprintf( mOutputFile,
-		"    PyRep* %s;\n"
-		"\n",
-		varname
-	);
+        "    PyRep* %s;\n"
+        "\n",
+        varname
+    );
 
     push( varname );
     if( !ParseElementChildren( field, 1 ) )
@@ -1242,10 +1242,10 @@ bool ClassEncodeGenerator::ProcessSubStreamInline( const TiXmlElement* field )
 
     //now make a substream from the temp at store it where it is needed
     fprintf( mOutputFile,
-		"    %s = new PySubStream( %s );\n"
-		"\n",
-		top(), varname
-	);
+        "    %s = new PySubStream( %s );\n"
+        "\n",
+        top(), varname
+    );
 
     pop();
     return true;
@@ -1258,10 +1258,10 @@ bool ClassEncodeGenerator::ProcessSubStructInline( const TiXmlElement* field )
 
     //encode the sub-element into a temp
     fprintf( mOutputFile,
-		"    PyRep* %s;\n"
-		"\n",
-		varname
-	);
+        "    PyRep* %s;\n"
+        "\n",
+        varname
+    );
 
     push( varname );
     if( !ParseElementChildren( field, 1 ) )
@@ -1269,10 +1269,10 @@ bool ClassEncodeGenerator::ProcessSubStructInline( const TiXmlElement* field )
 
     //now make a substream from the temp at store it where it is needed
     fprintf( mOutputFile,
-		"    %s = new PySubStruct( %s );\n"
-		"\n",
-		top(), varname
-	);
+        "    %s = new PySubStruct( %s );\n"
+        "\n",
+        top(), varname
+    );
 
     pop();
     return true;

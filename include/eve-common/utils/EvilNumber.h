@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Captnoord, Aknor Jaden
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Captnoord, Aknor Jaden
 */
 
 #ifndef EvilNumber_h__
@@ -66,11 +66,11 @@ public:
 
     EvilNumber();
     EvilNumber(int8 val);
-	EvilNumber(uint8 val);
+    EvilNumber(uint8 val);
     EvilNumber(int16 val);
-	EvilNumber(uint16 val);
-	EvilNumber(int32 val);
-	EvilNumber(uint32 val);
+    EvilNumber(uint16 val);
+    EvilNumber(int32 val);
+    EvilNumber(uint32 val);
     EvilNumber(int64 val);
     EvilNumber(uint64 val);     // WARNING:  Possible data corruption here since internal integer type is 'int64'
     EvilNumber(float val);
@@ -81,16 +81,16 @@ public:
     /* EvilNumber manipulation operator handlers                            */
     /************************************************************************/
     EvilNumber operator*(const EvilNumber& val)
-    {	return _Multiply(*this, val);    }
+    {    return _Multiply(*this, val);    }
 
     EvilNumber operator*=(const EvilNumber& val)
-    {	return _SelfMultiply(val);      }
+    {    return _SelfMultiply(val);      }
 
     EvilNumber operator/(const EvilNumber& val)
     {    return _Divide(*this, val);     }
 
     EvilNumber operator/=(const EvilNumber& val)
-    {	return _SelfDivide(val);        }
+    {    return _SelfDivide(val);        }
 
     EvilNumber operator+(const EvilNumber& val)
     {    return _Add(*this, val);        }
@@ -235,7 +235,7 @@ public:
      * @brief ??
      *
      * @param[in] val
-     * @return 
+     * @return
      */
     static EvilNumber sin( const EvilNumber & val );
     static EvilNumber cos( const EvilNumber & val );
@@ -261,14 +261,14 @@ public:
      * @param[in] b
      * @return operator overload function for operator 'a' comparing to a value 'val' of type 'b'
      */
-	#define LOGIC_OPERATOR(a, b) \
-		bool operator a ( b val) \
-		{ \
-			if (this->mType == evil_number_int) \
-				return this->mValue.iVal a static_cast<int64>(val); \
-			else \
-				return this->mValue.fVal a static_cast<double>(val); \
-		}
+    #define LOGIC_OPERATOR(a, b) \
+        bool operator a ( b val) \
+        { \
+            if (this->mType == evil_number_int) \
+                return this->mValue.iVal a static_cast<int64>(val); \
+            else \
+                return this->mValue.fVal a static_cast<double>(val); \
+        }
 
     /**
      * @brief Code generation macro to create all comparison operator overload functions for a specified type
@@ -276,13 +276,13 @@ public:
      * @param[in] a
      * @return all comparison operator overload functions for the specified type
      */
-	#define LOGIC_OPERATORS_FOR( type ) \
-		LOGIC_OPERATOR( <, type ) \
-		LOGIC_OPERATOR( <=, type ) \
-		LOGIC_OPERATOR( >, type ) \
-		LOGIC_OPERATOR( >=, type ) \
-		LOGIC_OPERATOR( ==, type ) \
-		LOGIC_OPERATOR( !=, type )
+    #define LOGIC_OPERATORS_FOR( type ) \
+        LOGIC_OPERATOR( <, type ) \
+        LOGIC_OPERATOR( <=, type ) \
+        LOGIC_OPERATOR( >, type ) \
+        LOGIC_OPERATOR( >=, type ) \
+        LOGIC_OPERATOR( ==, type ) \
+        LOGIC_OPERATOR( !=, type )
 
     /* using a code generating macro to generate logic operator handlers
      * @note expand these if needed.
@@ -297,7 +297,7 @@ public:
     LOGIC_OPERATORS_FOR( const uint64)
     LOGIC_OPERATORS_FOR( const float)
     LOGIC_OPERATORS_FOR( const double)
-    
+
 
     /**
      * @brief converts the EvilNumber value into a string
@@ -413,14 +413,14 @@ protected:
      *
      * increment by 1
      */
-	EvilNumber _SelfIncrement();
+    EvilNumber _SelfIncrement();
 
     /**
      * @brief decrement by 1
      *
      * decrement by 1
      */
-	EvilNumber _SelfDecrement();
+    EvilNumber _SelfDecrement();
 };
 
 #pragma pack(pop)

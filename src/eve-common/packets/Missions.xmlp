@@ -20,8 +20,8 @@
       </tupleInline>
       <dictInline>
         <dictInlineEntry key="loyaltyPoints">
-		      <int name="loyaltyPoints" default="0" />
-	      </dictInlineEntry>
+              <int name="loyaltyPoints" default="0" />
+          </dictInlineEntry>
       </dictInline>
     </tupleInline>
   </elementDef>
@@ -65,11 +65,11 @@
   <elementDef name="GetMyJournalDetails_Result">
     <tupleInline>
       <!-- this is a list of JournalDetails_Mission_Item -->
-	    <list name="missions" />
+        <list name="missions" />
       <!-- this is a list of JournalDetails_Offer_Item -->
-	    <list name="offers" />
+        <list name="offers" />
       <!-- this is a list of JournalDetails_Research_Item -->
-	    <list name="research" />
+        <list name="research" />
     </tupleInline>
   </elementDef>
 

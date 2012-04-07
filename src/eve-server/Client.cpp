@@ -140,7 +140,7 @@ void Client::Process() {
         m_moveState = msIdle;
         switch(s) {
         case msIdle:
-			sLog.Error("Client","%s: Move timer expired when no move is pending.", GetName());
+            sLog.Error("Client","%s: Move timer expired when no move is pending.", GetName());
             break;
         //used to delay stargate animation
         case msJump:
@@ -182,7 +182,7 @@ void Client::SendErrorMsg( const char* fmt, ... )
     vasprintf( &str, fmt, args );
     assert( str );
 
-	sLog.Error("Client","Sending Error Message to %s:", GetName() );
+    sLog.Error("Client","Sending Error Message to %s:", GetName() );
     log_messageVA( CLIENT__ERROR, fmt, args );
     va_end( args );
 
@@ -200,14 +200,14 @@ void Client::SendErrorMsg( const char* fmt, ... )
 
 void Client::SendErrorMsg( const char* fmt, va_list args )
 {
-	char* str = NULL;
-	vasprintf( &str, fmt, args );
-	assert( str );
+    char* str = NULL;
+    vasprintf( &str, fmt, args );
+    assert( str );
 
-	sLog.Error("Client","Sending Error Message to %s:", GetName() );
+    sLog.Error("Client","Sending Error Message to %s:", GetName() );
     log_messageVA( CLIENT__ERROR, fmt, args );
 
-	//want to send some sort of notify with a "ServerMessage" message ID maybe?
+    //want to send some sort of notify with a "ServerMessage" message ID maybe?
     //else maybe a "ChatTxt"??
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
@@ -217,7 +217,7 @@ void Client::SendErrorMsg( const char* fmt, va_list args )
     SendNotification( "OnRemoteMessage", "charid", &tmp );
 
     SafeFree( str );
-	
+
 }
 
 //this displays a modal info dialog on the client side.
@@ -230,7 +230,7 @@ void Client::SendInfoModalMsg( const char* fmt, ... )
     vasprintf( &str, fmt, args );
     assert( str );
 
-	sLog.Log("Client","Info Modal to %s:", GetName() );
+    sLog.Log("Client","Info Modal to %s:", GetName() );
     log_messageVA( CLIENT__MESSAGE, fmt, args );
     va_end( args );
 
@@ -256,7 +256,7 @@ void Client::SendNotifyMsg( const char* fmt, ... )
     vasprintf( &str, fmt, args );
     assert( str );
 
-	sLog.Log("Client","Notify to %s:", GetName() );
+    sLog.Log("Client","Notify to %s:", GetName() );
     log_messageVA( CLIENT__MESSAGE, fmt, args );
     va_end( args );
 
@@ -278,7 +278,7 @@ void Client::SendNotifyMsg( const char* fmt, va_list args )
     vasprintf( &str, fmt, args );
     assert( str );
 
-	sLog.Log("Client","Notify to %s:", GetName() );
+    sLog.Log("Client","Notify to %s:", GetName() );
     log_messageVA( CLIENT__MESSAGE, fmt, args );
 
     //want to send some sort of notify with a "ServerMessage" message ID maybe?
@@ -307,12 +307,12 @@ void Client::SelfChatMessage( const char* fmt, ... )
 
     if( m_channels.empty() )
     {
-		sLog.Error("Client", "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str );
+        sLog.Error("Client", "%s: Tried to send self chat, but we are not joined to any channels: %s", GetName(), str );
         free( str );
         return;
     }
 
-	sLog.Log("Client","%s: Self message on all channels: %s", GetName(), str );
+    sLog.Log("Client","%s: Self message on all channels: %s", GetName(), str );
 
     //this is such a pile of crap, but im not sure whats better.
     //maybe a private message...
@@ -361,7 +361,7 @@ bool Client::EnterSystem(bool login) {
         //find our system manager and register ourself with it.
         m_system = m_services.entity_list.FindOrBootSystem(GetSystemID());
         if(m_system == NULL) {
-			sLog.Error("Client", "Failed to boot system %u for char %s (%u)", GetSystemID(), GetName(), GetCharacterID());
+            sLog.Error("Client", "Failed to boot system %u for char %s (%u)", GetSystemID(), GetName(), GetCharacterID());
             SendErrorMsg("Unable to boot system %u", GetSystemID());
             return false;
         }
@@ -386,25 +386,25 @@ bool Client::UpdateLocation() {
         m_destiny = new DestinyManager(this, m_system);
         //ship should never be NULL.
         m_destiny->SetShipCapabilities( GetShip() );
-        
-		/*if( login )
-		{
-			// We are just logging in, so we need to warp to our last position from a
-			// random vector 15.0AU away:
-			GPoint warpToPoint( GetShip()->position() );
-			GPoint warpFromPoint( GetShip()->position() );
-			warpFromPoint.MakeRandomPointOnSphere( 15.0*ONE_AU_IN_METERS );
-			m_destiny->SetPosition( warpFromPoint, true );
-            WarpTo( warpToPoint, 0.0 );		// Warp ship from the random login point to the position saved on last disconnect
-		}
-		else */
-		{
-        
-			// This is NOT a login, so we always enter a system stopped.
-			m_destiny->Halt(false);
-			//set position.
-			m_destiny->SetPosition(GetShip()->position(), false);
-		}
+
+        /*if( login )
+        {
+            // We are just logging in, so we need to warp to our last position from a
+            // random vector 15.0AU away:
+            GPoint warpToPoint( GetShip()->position() );
+            GPoint warpFromPoint( GetShip()->position() );
+            warpFromPoint.MakeRandomPointOnSphere( 15.0*ONE_AU_IN_METERS );
+            m_destiny->SetPosition( warpFromPoint, true );
+            WarpTo( warpToPoint, 0.0 );        // Warp ship from the random login point to the position saved on last disconnect
+        }
+        else */
+        {
+
+            // This is NOT a login, so we always enter a system stopped.
+            m_destiny->Halt(false);
+            //set position.
+            m_destiny->SetPosition(GetShip()->position(), false);
+        }
     }
 
     return true;
@@ -483,7 +483,7 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
     m_services.item_factory.SetUsingClient( this );
     InventoryItemRef item = m_services.item_factory.GetItem( itemID );
     if( !item ) {
-		sLog.Error("Client","%s: Unable to load item %u", GetName(), itemID);
+        sLog.Error("Client","%s: Unable to load item %u", GetName(), itemID);
         return;
     }
 
@@ -494,7 +494,7 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
 
     if(was_module || (item->flag() >= flagSlotFirst && item->flag() <= flagSlotLast)) {
         //it was equipped, or is now. so mModulesMgr need to know.
-		GetShip()->UpdateModules();
+        GetShip()->UpdateModules();
     }
 
     // Release the item factory now that the ItemFactory is finished being used:
@@ -504,7 +504,7 @@ void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
 void Client::BoardShip(ShipRef new_ship) {
 
     if(!new_ship->singleton()) {
-		sLog.Error("Client","%s: tried to board ship %u, which is not assembled.", GetName(), new_ship->itemID());
+        sLog.Error("Client","%s: tried to board ship %u, which is not assembled.", GetName(), new_ship->itemID());
         SendErrorMsg("You cannot board a ship which is not assembled!");
         return;
     }
@@ -543,8 +543,8 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     if( character->stationID() == 0 )
     {
         mSession.Clear( "stationid" );
-		mSession.Clear( "stationid2" );
-		mSession.Clear( "worldspaceid" );
+        mSession.Clear( "stationid2" );
+        mSession.Clear( "worldspaceid" );
 
         mSession.SetInt( "solarsystemid", character->solarSystemID() );
         mSession.SetInt( "locationid", character->solarSystemID() );
@@ -554,8 +554,8 @@ void Client::_UpdateSession( const CharacterConstRef& character )
         mSession.Clear( "solarsystemid" );
 
         mSession.SetInt( "stationid", character->stationID() );
-		mSession.SetInt( "stationid2", character->stationID() );
-		mSession.SetInt( "worldspaceid", character->stationID() );
+        mSession.SetInt( "stationid2", character->stationID() );
+        mSession.SetInt( "worldspaceid", character->stationID() );
         mSession.SetInt( "locationid", character->stationID() );
     }
     mSession.SetInt( "solarsystemid2", character->solarSystemID() );
@@ -569,8 +569,8 @@ void Client::_UpdateSession( const CharacterConstRef& character )
     mSession.SetLong( "rolesAtHQ", character->rolesAtHQ() );
     mSession.SetLong( "rolesAtOther", character->rolesAtOther() );
 
-	if (IsInSpace())
-		mSession.SetInt("shipid", GetShipID());
+    if (IsInSpace())
+        mSession.SetInt("shipid", GetShipID());
 }
 
 void Client::_UpdateSession2( uint32 characterID )
@@ -596,7 +596,7 @@ void Client::_UpdateSession2( uint32 characterID )
     uint32 rolesAtHQ = 0;
     uint32 rolesAtOther = 0;
     uint32 locationID = 0;
-	uint32 shipID = 0;
+    uint32 shipID = 0;
 
     ((CharacterService *)(m_services.LookupService("character")))->GetCharacterData( characterID, characterDataMap );
 
@@ -618,15 +618,15 @@ void Client::_UpdateSession2( uint32 characterID )
     rolesAtHQ = characterDataMap["rolesAtHQ"];
     rolesAtOther = characterDataMap["rolesAtOther"];
     locationID = characterDataMap["locationID"];
-	shipID = characterDataMap["shipID"];
+    shipID = characterDataMap["shipID"];
 
     mSession.SetInt( "charid", characterID );
     mSession.SetInt( "corpid", corporationID );
     if( stationID == 0 )
     {
         mSession.Clear( "stationid" );
-		mSession.Clear( "stationid2" );
-		mSession.Clear( "worldspaceid" );
+        mSession.Clear( "stationid2" );
+        mSession.Clear( "worldspaceid" );
 
         mSession.SetInt( "solarsystemid", solarSystemID );
         mSession.SetInt( "locationid", solarSystemID );
@@ -636,7 +636,7 @@ void Client::_UpdateSession2( uint32 characterID )
         mSession.Clear( "solarsystemid" );
 
         mSession.SetInt( "stationid", stationID );
-		mSession.SetInt( "stationid2", stationID );
+        mSession.SetInt( "stationid2", stationID );
         mSession.SetInt( "locationid", locationID );
     }
     mSession.SetInt( "solarsystemid2", solarSystemID );
@@ -650,11 +650,11 @@ void Client::_UpdateSession2( uint32 characterID )
     mSession.SetLong( "rolesAtHQ", rolesAtHQ );
     mSession.SetLong( "rolesAtOther", rolesAtOther );
 
-	m_shipId = shipID;
+    m_shipId = shipID;
     if( m_char != NULL )
         m_char->SetActiveShip(m_shipId);
-	if (IsInSpace())
-		mSession.SetInt( "shipid", shipID );
+    if (IsInSpace())
+        mSession.SetInt( "shipid", shipID );
 }
 
 void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel )
@@ -722,7 +722,7 @@ void Client::_SendSessionChange()
     if( scn.changes->empty() )
         return;
 
-	sLog.Log("Client","Session updated, sending session change");
+    sLog.Log("Client","Session updated, sending session change");
     scn.changes->Dump(CLIENT__SESSION, "  Changes: ");
 
     //this is probably not necessary...
@@ -749,7 +749,7 @@ void Client::_SendSessionChange()
     //p->named_payload = new PyDict();
     //p->named_payload->SetItemString( "channel", new PyString( "sessionchange" ) );
 
-    
+
     //_log(CLIENT__IN_ALL, "Sending Session packet:");
     //PyLogDumpVisitor dumper(CLIENT__OUT_ALL, CLIENT__OUT_ALL);
     //p->Dump(CLIENT__OUT_ALL, dumper);
@@ -946,7 +946,7 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti
         p->named_payload->SetItemString("sn", new PyInt(m_nextNotifySequence++));
     }
 
-	sLog.Log("Client","Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
+    sLog.Log("Client","Sending notify of type %s with ID type %s", dest.service.c_str(), dest.bcast_idtype.c_str());
     if(is_log_enabled(CLIENT__NOTIFY_REP))
     {
         PyLogDumpVisitor dumper(CLIENT__NOTIFY_REP, CLIENT__NOTIFY_REP, "", true, true);
@@ -992,7 +992,7 @@ PyDict *Client::MakeSlimItem() const {
 
 void Client::WarpTo(const GPoint &to, double distance) {
     if(m_moveState != msIdle || m_moveTimer.Enabled()) {
-		sLog.Log("Client","%s: WarpTo called when a move is already pending. Ignoring.", GetName());
+        sLog.Log("Client","%s: WarpTo called when a move is already pending. Ignoring.", GetName());
         return;
     }
 
@@ -1002,7 +1002,7 @@ void Client::WarpTo(const GPoint &to, double distance) {
 
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     if(m_moveState != msIdle || m_moveTimer.Enabled()) {
-		sLog.Log("Client","%s: StargateJump called when a move is already pending. Ignoring.", GetName());
+        sLog.Log("Client","%s: StargateJump called when a move is already pending. Ignoring.", GetName());
         return;
     }
 
@@ -1015,7 +1015,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         toGate,
         &solarSystemID, &constellationID, &regionID, &position
     )) {
-		sLog.Error("Client","%s: Failed to query information for stargate %u", GetName(), toGate);
+        sLog.Error("Client","%s: Failed to query information for stargate %u", GetName(), toGate);
         return;
     }
 
@@ -1179,7 +1179,7 @@ double Client::GetPropulsionStrength() const {
     res += GetShip()->GetAttribute( AttrPropulsionPlasmaStrengthBonus );
 
     res += 0.038f;
-    
+
     /**
      * we should watch out here, because we know for a fact that this function returns a floating point.
      * the only reason we know for sure is because we do the "res += 0.038f;" at the end of the bogus calculation.
@@ -1270,7 +1270,7 @@ void Client::TargetsCleared()
 
 void Client::SavePosition() {
     if( !GetShip() || m_destiny == NULL ) {
-		sLog.Debug("Client","%s: Unable to save position. We are probably not in space.", GetName());
+        sLog.Debug("Client","%s: Unable to save position. We are probably not in space.", GetName());
         return;
     }
     GetShip()->Relocate( m_destiny->GetPosition() );
@@ -1323,11 +1323,11 @@ DoDestinyUpdate ,*args= ([(31759,
 #endif
 
     if(!IsSolarSystem(GetLocationID())) {
-		sLog.Log("Client","%s: Trying to launch drone when not in space!", GetName());
+        sLog.Log("Client","%s: Trying to launch drone when not in space!", GetName());
         return false;
     }
 
-	sLog.Log("Client","%s: Launching drone %u", GetName(), drone->itemID());
+    sLog.Log("Client","%s: Launching drone %u", GetName(), drone->itemID());
 
     //first, the item gets moved into space
     //TODO: set customInfo to a tuple: (shipID, None)
@@ -1463,16 +1463,16 @@ void Client::OnCharNowInStation()
 /************************************************************************/
 void Client::DisconnectClient()
 {
-	//initiate closing the client TCP Connection
-	CloseClientConnection();
+    //initiate closing the client TCP Connection
+    CloseClientConnection();
 }
 void Client::BanClient()
 {
-	//send message to client
-	SendNotifyMsg("You have been banned from this server and will be disconnected shortly.  You will no longer be able to log in");
+    //send message to client
+    SendNotifyMsg("You have been banned from this server and will be disconnected shortly.  You will no longer be able to log in");
 
-	//ban the client
-	services().serviceDB().SetAccountBanStatus( GetAccountID(), true );
+    //ban the client
+    services().serviceDB().SetAccountBanStatus( GetAccountID(), true );
 }
 
 /************************************************************************/
@@ -1495,23 +1495,23 @@ uint32 Client::_GetUserCount()
 
 bool Client::_VerifyVersion( VersionExchangeClient& version )
 {
-	sLog.Log("Client","%s: Received Low Level Version Exchange:", GetAddress().c_str());
+    sLog.Log("Client","%s: Received Low Level Version Exchange:", GetAddress().c_str());
     version.Dump(NET__PRES_REP, "    ");
 
     if( version.birthday != EVEBirthday )
-		sLog.Error("Client","%s: Client's birthday does not match ours!", GetAddress().c_str());
+        sLog.Error("Client","%s: Client's birthday does not match ours!", GetAddress().c_str());
 
     if( version.macho_version != MachoNetVersion )
-		sLog.Error("Client","%s: Client's macho_version not match ours!", GetAddress().c_str());
+        sLog.Error("Client","%s: Client's macho_version not match ours!", GetAddress().c_str());
 
     if( version.version_number != EVEVersionNumber )
-		sLog.Error("Client","%s: Client's version_number not match ours!", GetAddress().c_str());
+        sLog.Error("Client","%s: Client's version_number not match ours!", GetAddress().c_str());
 
     if( version.build_version != EVEBuildVersion )
-		sLog.Error("Client","%s: Client's build_version not match ours!", GetAddress().c_str());
+        sLog.Error("Client","%s: Client's build_version not match ours!", GetAddress().c_str());
 
     if( version.project_version != EVEProjectVersion )
-		sLog.Error("Client","%s: Client's project_version not match ours!", GetAddress().c_str());
+        sLog.Error("Client","%s: Client's project_version not match ours!", GetAddress().c_str());
 
 
     return true;
@@ -1525,19 +1525,19 @@ bool Client::_VerifyCrypto( CryptoRequestPacket& cr )
         CryptoAPIRequestParams car;
         if( !car.Decode( cr.keyParams ) )
         {
-			sLog.Error("Client","%s: Received invalid CryptoAPI request!", GetAddress().c_str());
+            sLog.Error("Client","%s: Received invalid CryptoAPI request!", GetAddress().c_str());
         }
         else
         {
-			sLog.Error("Client","%s: Unhandled CryptoAPI request: hashmethod=%s sessionkeylength=%d provider=%s sessionkeymethod=%s", GetAddress().c_str(), car.hashmethod.c_str(), car.sessionkeylength, car.provider.c_str(), car.sessionkeymethod.c_str());
-			sLog.Error("Client","%s: You must change your client to use Placebo crypto in common.ini to talk to this server!\n", GetAddress().c_str());
+            sLog.Error("Client","%s: Unhandled CryptoAPI request: hashmethod=%s sessionkeylength=%d provider=%s sessionkeymethod=%s", GetAddress().c_str(), car.hashmethod.c_str(), car.sessionkeylength, car.provider.c_str(), car.sessionkeymethod.c_str());
+            sLog.Error("Client","%s: You must change your client to use Placebo crypto in common.ini to talk to this server!\n", GetAddress().c_str());
         }
 
         return false;
     }
     else
     {
-		sLog.Debug("Client","%s: Received Placebo crypto request, accepting.", GetAddress().c_str());
+        sLog.Debug("Client","%s: Received Placebo crypto request, accepting.", GetAddress().c_str());
 
         //send out accept response
         PyRep* rsp = new PyString( "OK CC" );
@@ -1559,8 +1559,8 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     /* send passwordVersion required: 1=plain, 2=hashed */
     PyRep* rsp = new PyInt( 2 );
 
-	//sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
-	//sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
+    //sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
+    //sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
 
     if (!services().serviceDB().GetAccountInformation( ccp.user_name.c_str(),  account_info)) {
         goto error_login_auth_failed;
@@ -1574,7 +1574,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
     if (account_info.password.size() != 0) {
-        
+
         size_t ret_len;
         std::wstring w_password;
         std::wstring w_username;
@@ -1650,15 +1650,15 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     server_shake.serverChallenge = "";
     server_shake.func_marshaled_code = new PyBuffer( handshakeFunc, handshakeFunc + sizeof( handshakeFunc ) );
-	server_shake.verification = new PyBool( false );
+    server_shake.verification = new PyBool( false );
     server_shake.cluster_usercount = _GetUserCount();
     server_shake.proxy_nodeid = 0xFFAA;
     server_shake.user_logonqueueposition = _GetQueuePosition();
     // binascii.crc_hqx of marshaled single-element tuple containing 64 zero-bytes string
     server_shake.challenge_responsehash = "55087";
 
-	// the image server used by the client to download images
-	server_shake.imageserverurl = sImageServer.url();
+    // the image server used by the client to download images
+    server_shake.imageserverurl = sImageServer.url();
 
     server_shake.macho_version = MachoNetVersion;
     server_shake.boot_version = EVEVersionNumber;
@@ -1703,11 +1703,11 @@ bool Client::_VerifyFuncResult( CryptoHandshakeResult& result )
     ack.role = GetAccountRole();
     ack.address = GetAddress();
     ack.inDetention = new PyNone;
-	// no client update available
+    // no client update available
     ack.client_hash = new PyNone;
     ack.user_clientid = GetAccountID();
     ack.live_updates = sLiveUpdateDB.GetUpdates();
-    
+
     PyRep* r = ack.Encode();
     mNet->QueueRep( r );
     PyDecRef( r );
@@ -1730,20 +1730,20 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         uint32 nodeID, bindID;
         if( sscanf( req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID ) != 2 )
         {
-			sLog.Error("Client","Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
+            sLog.Error("Client","Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
             return false;
         }
 
         if( nodeID != m_services.GetNodeID() )
         {
-			sLog.Error("Client","Unknown nodeID %u received (expected %u).", nodeID, m_services.GetNodeID());
+            sLog.Error("Client","Unknown nodeID %u received (expected %u).", nodeID, m_services.GetNodeID());
             return false;
         }
 
         dest = services().FindBoundObject( bindID );
         if( dest == NULL )
         {
-			sLog.Error("Client", "Failed to find bound object %u.", bindID);
+            sLog.Error("Client", "Failed to find bound object %u.", bindID);
             return false;
         }
     }
@@ -1753,7 +1753,7 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         dest = services().LookupService( packet->dest.service );
         if( dest == NULL )
         {
-			sLog.Error("Client","Unable to find service to handle call to: %s", packet->dest.service.c_str());
+            sLog.Error("Client","Unable to find service to handle call to: %s", packet->dest.service.c_str());
             packet->dest.Dump(CLIENT__ERROR, "    ");
 #ifndef WIN32
 #   warning TODO: throw proper exception to client (exceptions.ServiceNotFound).
@@ -1762,12 +1762,12 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
         }
     }
 
-	//Debug code
-	if( req.method == "BeanCount" )
-		sLog.Error("Client","BeanCount");
-	else 
-		//this should be sLog.Debug, but because of the number of messages, I left it as .Log for readability, and ease of finding other debug messages
-		sLog.Log("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str());
+    //Debug code
+    if( req.method == "BeanCount" )
+        sLog.Error("Client","BeanCount");
+    else
+        //this should be sLog.Debug, but because of the number of messages, I left it as .Log for readability, and ease of finding other debug messages
+        sLog.Log("Server", "%s call made to %s",req.method.c_str(),packet->dest.service.c_str());
 
     //build arguments
     PyCallArgs args( this, req.arg_tuple, req.arg_dict );
@@ -1787,7 +1787,7 @@ bool Client::Handle_Notify( PyPacket* packet )
     ServerNotification notify;
     if( !notify.Decode( packet->payload ) )
     {
-		sLog.Error("Client","Failed to convert rep into a notify stream");
+        sLog.Error("Client","Failed to convert rep into a notify stream");
         return false;
     }
 
@@ -1801,19 +1801,19 @@ bool Client::Handle_Notify( PyPacket* packet )
         for(; cur != end; cur++)
         {
             if(!element.Decode( *cur )) {
-				sLog.Error("Client","Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
+                sLog.Error("Client","Notification '%s' from %s: Failed to decode element. Skipping.", notify.method.c_str(), GetName());
                 continue;
             }
 
             uint32 nodeID, bindID;
             if(sscanf(element.boundID.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
-				sLog.Error("Client","Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
-					notify.method.c_str(), GetName(), element.boundID.c_str());
+                sLog.Error("Client","Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
+                    notify.method.c_str(), GetName(), element.boundID.c_str());
                 continue;
             }
 
             if(nodeID != m_services.GetNodeID()) {
-				sLog.Error("Client","Notification '%s' from %s: Unknown nodeID %u received (expected %u). Skipping.",
+                sLog.Error("Client","Notification '%s' from %s: Unknown nodeID %u received (expected %u). Skipping.",
                     notify.method.c_str(), GetName(), nodeID, m_services.GetNodeID());
                 continue;
             }
@@ -1823,7 +1823,7 @@ bool Client::Handle_Notify( PyPacket* packet )
     }
     else
     {
-		sLog.Error("Client","Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());
+        sLog.Error("Client","Unhandled notification from %s: unknown method '%s'", GetName(), notify.method.c_str());
         return false;
     }
 
@@ -1833,6 +1833,6 @@ bool Client::Handle_Notify( PyPacket* packet )
 
 void Client::UpdateSession(const char *sessionType, int value)
 {
-	mSession.SetInt(sessionType, value);
+    mSession.SetInt(sessionType, value);
 }
 

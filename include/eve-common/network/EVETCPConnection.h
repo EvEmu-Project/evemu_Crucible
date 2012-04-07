@@ -64,18 +64,18 @@ public:
      */
     PyRep* PopRep();
 
-	/**
-	 * @brief Dumps buffer to file
-	 *
-	 * @param[in] buf Buffer
-	 * @param[in] direction Direction of packet inBound/outBound
-	 */
-	enum packet_direction
-	{
-		PACKET_INBOUND,
-		PACKET_OUTBOUND
-	};
-	void DumpBuffer( Buffer* buf, packet_direction packet_direction);
+    /**
+     * @brief Dumps buffer to file
+     *
+     * @param[in] buf Buffer
+     * @param[in] direction Direction of packet inBound/outBound
+     */
+    enum packet_direction
+    {
+        PACKET_INBOUND,
+        PACKET_OUTBOUND
+    };
+    void DumpBuffer( Buffer* buf, packet_direction packet_direction);
 
 protected:
     /**

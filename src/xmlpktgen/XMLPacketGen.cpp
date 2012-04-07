@@ -102,7 +102,7 @@ bool XMLPacketGen::ParseElements( const TiXmlElement* field )
         "%s\n"
         "\n"
         "#include \"EVECommonPCH.h\"\n"
-	    "\n"
+        "\n"
         "#include \"%s\"\n"
         "\n",
         smGenFileComment,
@@ -127,8 +127,8 @@ bool XMLPacketGen::ParseInclude( const TiXmlElement* field )
     const char* file = field->Attribute( "file" );
     if( file == NULL )
     {
-	    _log( COMMON__ERROR, "field at line %d is missing the file attribute, skipping.", field->Row() );
-	    return false;
+        _log( COMMON__ERROR, "field at line %d is missing the file attribute, skipping.", field->Row() );
+        return false;
     }
 
     fprintf( mHeaderFile,

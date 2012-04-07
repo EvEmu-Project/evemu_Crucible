@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Zhur
 */
 
 #include "EVEServerPCH.h"
@@ -35,10 +35,10 @@ BookmarkService::BookmarkService(PyServiceMgr *mgr)
 : PyService(mgr, "bookmark"),
   m_dispatch(new Dispatcher(this))
 {
-	_SetCallDispatcher(m_dispatch);
+    _SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(BookmarkService, GetBookmarks)
-	PyCallable_REG_CALL(BookmarkService, BookmarkLocation)
+    PyCallable_REG_CALL(BookmarkService, GetBookmarks)
+    PyCallable_REG_CALL(BookmarkService, BookmarkLocation)
     PyCallable_REG_CALL(BookmarkService, DeleteBookmarks)
     PyCallable_REG_CALL(BookmarkService, UpdateBookmark)
 
@@ -47,7 +47,7 @@ BookmarkService::BookmarkService(PyServiceMgr *mgr)
 
 
 BookmarkService::~BookmarkService() {
-	delete m_dispatch;
+    delete m_dispatch;
 }
 
 
@@ -65,12 +65,12 @@ bool BookmarkService::LookupBookmark(uint32 characterID, uint32 bookmarkID, uint
 
 
 PyResult BookmarkService::Handle_GetBookmarks(PyCallArgs &call) {
-	PyTuple* result = new PyTuple(2);
-	
-	result->items[0] = m_db.GetBookmarks(call.client->GetCharacterID());
-	result->items[1] = m_db.GetFolders(call.client->GetCharacterID());
+    PyTuple* result = new PyTuple(2);
 
-	return result;
+    result->items[0] = m_db.GetBookmarks(call.client->GetCharacterID());
+    result->items[1] = m_db.GetFolders(call.client->GetCharacterID());
+
+    return result;
 }
 
 
@@ -101,19 +101,19 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call)
     if ( (call.tuple->size() < 3) )
     {
         sLog.Error( "BookmarkService::Handle_BookmarkLocation()", "%s: call.tuple is of size %u, expected 3.", call.client->GetName(), call.tuple->size() );
-		return NULL;
+        return NULL;
     }
 
     if ( !(call.tuple->IsTuple()) )
     {
-		sLog.Error( "BookmarkService::Handle_BookmarkLocation()", "%s: call.tuple is of the wrong type: '%s'.  Expected PyTuple type.", call.client->GetName(), call.tuple->TypeString() );
-		return NULL;
+        sLog.Error( "BookmarkService::Handle_BookmarkLocation()", "%s: call.tuple is of the wrong type: '%s'.  Expected PyTuple type.", call.client->GetName(), call.tuple->TypeString() );
+        return NULL;
     }
 
     if ( !(call.tuple->GetItem(0)->IsInt()) )
     {
         sLog.Error( "BookmarkService::Handle_BookmarkLocation()", "%s: call.tuple->GetItem(0) is of the wrong type: '%s'.  Expected PyInt type.", call.client->GetName(), call.tuple->GetItem(0)->TypeString() );
-		return NULL;
+        return NULL;
     }
     else
         itemID = call.tuple->GetItem( 0 )->AsInt()->value();
@@ -125,7 +125,7 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call)
     else
     {
         sLog.Error( "BookmarkService::Handle_BookmarkLocation()", "%s: call.tuple->GetItem(1) is of the wrong type: '%s'.  Expected PyString or PyWString type.", call.client->GetName(), call.tuple->GetItem(2)->TypeString() );
-		return NULL;
+        return NULL;
     }
 
     if ( call.tuple->GetItem( 2 )->IsString() )
@@ -135,7 +135,7 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call)
     else
     {
         sLog.Error( "BookmarkService::Handle_BookmarkLocation()", "%s: call.tuple->GetItem(2) is of the wrong type: '%s'.  Expected PyString or PyWString type.", call.client->GetName(), call.tuple->GetItem(3)->TypeString() );
-		return NULL;
+        return NULL;
     }
 
     // Get typeID for this itemID:
@@ -171,9 +171,9 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call)
 
 
     ////////////////////////////////////////
-	// Build return packet:
+    // Build return packet:
     //
-    // (bookmarkID, itemID, typeID, x, y, z, locationID,) 
+    // (bookmarkID, itemID, typeID, x, y, z, locationID,)
     ////////////////////////////////////////
 
     PyTuple* res = NULL;
@@ -198,8 +198,8 @@ PyResult BookmarkService::Handle_DeleteBookmarks(PyCallArgs &call)
 {
     if ( !(call.tuple->GetItem( 0 )->IsList()) )
     {
-		sLog.Error( "BookmarkService::Handle_DeleteBookmarks()", "%s: call.tuple is of the wrong type: '%s'.  Expected PyList type.", call.client->GetName(), call.tuple->TypeString() );
-		return NULL;
+        sLog.Error( "BookmarkService::Handle_DeleteBookmarks()", "%s: call.tuple is of the wrong type: '%s'.  Expected PyList type.", call.client->GetName(), call.tuple->TypeString() );
+        return NULL;
     }
 
     PyList *list = call.tuple->GetItem( 0 )->AsList();
@@ -219,8 +219,8 @@ PyResult BookmarkService::Handle_DeleteBookmarks(PyCallArgs &call)
     }
     else
     {
-		sLog.Error( "BookmarkService::Handle_DeleteBookmarks()", "%s: call.tuple->GetItem( 0 )->AsList()->size() == 0.  Expected size >= 1.", call.client->GetName() );
-		return NULL;
+        sLog.Error( "BookmarkService::Handle_DeleteBookmarks()", "%s: call.tuple->GetItem( 0 )->AsList()->size() == 0.  Expected size >= 1.", call.client->GetName() );
+        return NULL;
     }
 
     return(new PyNone());
@@ -246,8 +246,8 @@ PyResult BookmarkService::Handle_UpdateBookmark(PyCallArgs &call)
     // bookmarkID = call.tuple->GetItem( 0 )->AsInt()->value()
     if ( !(call.tuple->GetItem( 0 )->IsInt()) )
     {
-		sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.tuple->GetItem( 0 ) is of the wrong type: '%s'.  Expected PyInt type.", call.client->GetName(), call.tuple->GetItem( 0 )->TypeString() );
-		return NULL;
+        sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.tuple->GetItem( 0 ) is of the wrong type: '%s'.  Expected PyInt type.", call.client->GetName(), call.tuple->GetItem( 0 )->TypeString() );
+        return NULL;
     }
     else
         bookmarkID = call.tuple->GetItem( 0 )->AsInt()->value();
@@ -255,8 +255,8 @@ PyResult BookmarkService::Handle_UpdateBookmark(PyCallArgs &call)
     // newLabel = call.tuple->GetItem( 3 )->AsWString()->content()
     if ( !(call.tuple->GetItem( 3 )->IsWString()) )
     {
-		sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.tuple->GetItem( 3 ) is of the wrong type: '%s'.  Expected PyWString type.", call.client->GetName(), call.tuple->GetItem( 3 )->TypeString() );
-		return NULL;
+        sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.tuple->GetItem( 3 ) is of the wrong type: '%s'.  Expected PyWString type.", call.client->GetName(), call.tuple->GetItem( 3 )->TypeString() );
+        return NULL;
     }
     else
         newLabel = call.tuple->GetItem( 3 )->AsWString()->content();
@@ -266,8 +266,8 @@ PyResult BookmarkService::Handle_UpdateBookmark(PyCallArgs &call)
     //newNote = call.byname.find("note")->second->AsString() when note == ""
     if( call.byname.find("note") == call.byname.end() )
     {
-		sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.byname.find(\"note\") could not be found.", call.client->GetName() );
-		return NULL;
+        sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.byname.find(\"note\") could not be found.", call.client->GetName() );
+        return NULL;
     }
     else
     {
@@ -277,8 +277,8 @@ PyResult BookmarkService::Handle_UpdateBookmark(PyCallArgs &call)
             newNote = call.byname.find("note")->second->AsString()->content();
         else
         {
-		    sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.byname.find(\"note\")->second is of the wrong type: '%s'.  Expected PyWString or PyString type.", call.client->GetName(), call.byname.find("note")->second->TypeString() );
-		    return NULL;
+            sLog.Error( "BookmarkService::Handle_UpdateBookmark()", "%s: call.byname.find(\"note\")->second is of the wrong type: '%s'.  Expected PyWString or PyString type.", call.client->GetName(), call.byname.find("note")->second->TypeString() );
+            return NULL;
         }
     }
 

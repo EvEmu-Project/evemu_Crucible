@@ -354,7 +354,7 @@ PyRep *ReprocessingServiceBound::_GetQuote(uint32 itemID, const Client *c) const
         {
             uint32 ratio = cur->amountPerBatch * res.quantityToProcess / item->type().portionSize();
 
-			Rsp_GetQuote_Recoverables_Line line;
+            Rsp_GetQuote_Recoverables_Line line;
 
             line.typeID =           cur->typeID;
             line.unrecoverable =    uint32((1.0 - efficiency)           * ratio);

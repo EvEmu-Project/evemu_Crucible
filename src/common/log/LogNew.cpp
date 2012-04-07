@@ -69,11 +69,11 @@ NewLog::NewLog()
 #endif /* WIN32 */
 {
     //// open default logfile
-	//std::string logPath = EVEMU_ROOT_DIR"log/";
+    //std::string logPath = EVEMU_ROOT_DIR"log/";
     //SetLogfileDefault(logPath);
 
     //Debug( "Log", "Log system initiated" );
-	m_initialized = false;
+    m_initialized = false;
 }
 
 NewLog::~NewLog()
@@ -87,12 +87,12 @@ NewLog::~NewLog()
 void NewLog::InitializeLogging( std::string logPath )
 {
     // open default logfile
-	if( logPath.empty() )
-		logPath = EVEMU_ROOT_DIR"log/";
+    if( logPath.empty() )
+        logPath = EVEMU_ROOT_DIR"log/";
 
-	m_initialized = true;
+    m_initialized = true;
 
-	SetLogfileDefault(logPath);
+    SetLogfileDefault(logPath);
 
     Debug( "Log", "Log system initiated" );
 }
@@ -181,8 +181,8 @@ bool NewLog::SetLogfile( FILE* file )
 
 void NewLog::PrintMsg( Color color, char pfx, const char* source, const char* fmt, va_list ap )
 {
-	if( !m_initialized )
-		return;
+    if( !m_initialized )
+        return;
 
     MutexLock l( mMutex );
 
@@ -276,7 +276,7 @@ void NewLog::SetLogfileDefault(std::string logPath)
 
     // open default logfile
     char filename[ MAX_PATH + 1 ];
-	std::string logFile = logPath + "log_%02u-%02u-%04u-%02u-%02u.log";
+    std::string logFile = logPath + "log_%02u-%02u-%04u-%02u-%02u.log";
     snprintf( filename, MAX_PATH + 1, logFile.c_str(),
               t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
     //snprintf( filename, MAX_PATH + 1, EVEMU_ROOT_DIR"log/log_%02u-%02u-%04u-%02u-%02u.log",

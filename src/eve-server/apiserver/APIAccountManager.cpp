@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Aknor Jaden
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Aknor Jaden
 */
 
 
@@ -211,8 +211,8 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
-		return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
-	}
+        return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
+    }
 
     uint32 status = 0;
     uint32 accountID = 0;
@@ -278,7 +278,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICom
 
     uint32 accountID = 0;
     std::vector<std::string> accountInfoList;
-    
+
     if( !(m_db.GetAccountIdFromUserID( pAPICommandCall->find( "userid" )->second, &accountID )) )
     {
         sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: Could not find 'accountID' in 'accountApi' table - exiting with error" );

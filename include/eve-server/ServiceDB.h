@@ -26,7 +26,7 @@
 #ifndef __SERVICEDB_H_INCL__
 #define __SERVICEDB_H_INCL__
 
-/*                                                                              
+/*
  * This object is the home for common DB operations which may be needed by many
  * different service objects. It should be inherited by each service DB
  * implementation.
@@ -72,7 +72,7 @@ public:
     uint32 GetDestinationStargateID(uint32 fromSystem, uint32 toSystem);
 
     bool GetConstant(const char *name, uint32 &into);
-    
+
     //these really want to move back into AccountDB
     bool GiveCash( uint32 characterID, JournalRefType refTypeID, uint32 ownerFromID, uint32 ownerToID, const char *argID1, uint32 accountID, EVEAccountKeys accountKey, double amount, double balance, const char *reason);
     double GetCorpBalance(uint32 corpID);
@@ -84,7 +84,7 @@ public:
     void SetCharacterOnlineStatus(uint32 char_id, bool onoff_status);
 
     void SetAccountOnlineStatus(uint32 accountID, bool onoff_status);
-	void SetAccountBanStatus(uint32 accountID, bool onoff_status);
+    void SetAccountBanStatus(uint32 accountID, bool onoff_status);
 
 protected:
     void ProcessStringChange(const char * key, const std::string & oldValue, const std::string & newValue, PyDict * notif, std::vector<std::string> & dbQ);

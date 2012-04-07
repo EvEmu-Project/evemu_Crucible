@@ -533,35 +533,35 @@ bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
 
 bool AttributeMap::ResetAttribute(uint32 attrID, bool notify)
 {
-	//this isn't particularly efficient, but until I write a better solution, this will do
-	DBQueryResult res;
+    //this isn't particularly efficient, but until I write a better solution, this will do
+    DBQueryResult res;
 
-	if(!sDatabase.RunQuery(res, "SELECT * FROM dgmtypeattributes WHERE typeID='%u'", mItem.typeID())) {
-		sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
-		return false;
-	}
-	
-	DBResultRow row;
-	EvilNumber attrVal;
-	uint32 attributeID;
+    if(!sDatabase.RunQuery(res, "SELECT * FROM dgmtypeattributes WHERE typeID='%u'", mItem.typeID())) {
+        sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
+        return false;
+    }
 
-	int amount = res.GetRowCount();
-	for (int i = 0; i < amount; i++)
-	{
-		res.GetRow(row);
-		attributeID = row.GetUInt(1);
-		if( attributeID == attrID )
-		{
-			if(!row.IsNull(2))
-				attrVal = row.GetUInt64(2);
-			else
-				attrVal = row.GetDouble(3);
+    DBResultRow row;
+    EvilNumber attrVal;
+    uint32 attributeID;
 
-			SetAttribute(attributeID, attrVal, notify);
-		}
-	}
+    int amount = res.GetRowCount();
+    for (int i = 0; i < amount; i++)
+    {
+        res.GetRow(row);
+        attributeID = row.GetUInt(1);
+        if( attributeID == attrID )
+        {
+            if(!row.IsNull(2))
+                attrVal = row.GetUInt64(2);
+            else
+                attrVal = row.GetDouble(3);
 
-	return true;
+            SetAttribute(attributeID, attrVal, notify);
+        }
+    }
+
+    return true;
 
 }
 
@@ -603,7 +603,7 @@ bool AttributeMap::Load()
     return true;
 
 /*
-	/// EXISTING AttributeMap::Load() function
+    /// EXISTING AttributeMap::Load() function
     DBQueryResult res;
 
     if(!sDatabase.RunQuery(res,"SELECT * FROM entity_attributes WHERE itemID='%u'", mItem.itemID())) {
@@ -647,7 +647,7 @@ bool AttributeMap::Load()
             return false;
 
         DgmTypeAttributeSet::AttrSetItr itr = attr_set->attributeset.begin();
-    
+
         // Store all these attributes to the item's AttributeMap
         for (; itr != attr_set->attributeset.end(); itr++)
         {

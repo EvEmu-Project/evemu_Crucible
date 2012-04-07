@@ -37,15 +37,15 @@
 
 UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
 {
-	UserError *err = new UserError( exceptionType );
+    UserError *err = new UserError( exceptionType );
 
-	std::map<std::string, PyRep *>::const_iterator cur, end;
-	cur = args.begin();
-	end = args.end();
-	for(; cur != end; cur++)
-		err->AddKeyword( cur->first.c_str(), cur->second );
+    std::map<std::string, PyRep *>::const_iterator cur, end;
+    cur = args.begin();
+    end = args.end();
+    for(; cur != end; cur++)
+        err->AddKeyword( cur->first.c_str(), cur->second );
 
-	return err;
+    return err;
 }
 
 UserError* MakeCustomError( const char* fmt, ... )
@@ -59,8 +59,8 @@ UserError* MakeCustomError( const char* fmt, ... )
 
     va_end( va );
 
-	UserError* err = new UserError( "CustomError" );
-	err->AddKeyword( "error", new PyString( str ) );
+    UserError* err = new UserError( "CustomError" );
+    err->AddKeyword( "error", new PyString( str ) );
 
     SafeFree( str );
 
@@ -145,10 +145,10 @@ bool DBTYPE_IsCompatible( DBTYPE type, const PyRep* rep )
         case DBTYPE_BYTES:
             return rep->IsBuffer();
 
-			// this looks like a horrible hack, and it is - but one that is used on live!
-			// this works because STR type stuff is just tacked on to the marshal object
+            // this looks like a horrible hack, and it is - but one that is used on live!
+            // this works because STR type stuff is just tacked on to the marshal object
         case DBTYPE_STR:
-			return true;
+            return true;
             //return rep->IsString();
 
         case DBTYPE_WSTR:
@@ -283,7 +283,7 @@ EvilNumber RequiredAgentStanding( EvilNumber AgentLevel, EvilNumber AgentQuality
 
 EvilNumber MissionStandingIncrease( EvilNumber BaseMissionIncrease, EvilNumber YourSocialSkillLevel )
 {
-	return (BaseMissionIncrease * (1 + 0.05 * YourSocialSkillLevel.get_float()));
+    return (BaseMissionIncrease * (1 + 0.05 * YourSocialSkillLevel.get_float()));
 }
 
 EvilNumber AgentEfficiency( EvilNumber AgentLevel, EvilNumber AgentQuality )

@@ -3,14 +3,14 @@
 // crap
 PyCallable_Make_InnerDispatcher(ContractProxyService)
 
-ContractProxyService::ContractProxyService( PyServiceMgr *mgr ) 
-: PyService(mgr, "contractProxy"), 
+ContractProxyService::ContractProxyService( PyServiceMgr *mgr )
+: PyService(mgr, "contractProxy"),
   m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(ContractProxyService, GetLoginInfo)
-	PyCallable_REG_CALL(ContractProxyService, GetMyExpiredContractList)
+    PyCallable_REG_CALL(ContractProxyService, GetMyExpiredContractList)
 }
 
 ContractProxyService::~ContractProxyService()
@@ -19,9 +19,9 @@ ContractProxyService::~ContractProxyService()
 }
 
 PyResult ContractProxyService::Handle_GetMyExpiredContractList(PyCallArgs &call) {
-	sLog.Debug("Server", "Called GetMyExpiredContractList Stub.");
+    sLog.Debug("Server", "Called GetMyExpiredContractList Stub.");
 
-	return NULL;
+    return NULL;
 }
 
 PyResult ContractProxyService::Handle_GetLoginInfo(PyCallArgs &call)

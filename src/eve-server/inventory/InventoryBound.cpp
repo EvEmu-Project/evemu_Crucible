@@ -32,7 +32,7 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyBoundObject(mgr), m_dispatch(new Dispatcher(this)), mInventory(inventory), mFlag(flag)
 {
     _SetCallDispatcher(m_dispatch);
-    
+
     m_strBoundObjectName = "InventoryBound";
 
     PyCallable_REG_CALL(InventoryBound, List)
@@ -43,14 +43,14 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyCallable_REG_CALL(InventoryBound, ReplaceCharges)
     PyCallable_REG_CALL(InventoryBound, MultiMerge)
     PyCallable_REG_CALL(InventoryBound, StackAll)
-	PyCallable_REG_CALL(InventoryBound, StripFitting)
-	PyCallable_REG_CALL(InventoryBound, DestroyFitting)
+    PyCallable_REG_CALL(InventoryBound, StripFitting)
+    PyCallable_REG_CALL(InventoryBound, DestroyFitting)
     PyCallable_REG_CALL(InventoryBound, SetPassword)
 }
 
 InventoryBound::~InventoryBound()
 {
-	delete m_dispatch;
+    delete m_dispatch;
 }
 
 PyResult InventoryBound::Handle_List(PyCallArgs &call) {
@@ -159,7 +159,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
             sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'qty' from call.byname dictionary." );
             return NULL;
         }
-        
+
         uint32 quantity = 0;
         if( call.byname.find("qty")->second->IsNone() )
             quantity = 1;
@@ -196,14 +196,14 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
-    
-	ShipRef ship = call.client->GetShip();
-	uint32 typeID;
-	uint32 powerSlot;
-	uint32 useableSlot;
 
-	
-	if( call.tuple->items.size() == 3 )
+    ShipRef ship = call.client->GetShip();
+    uint32 typeID;
+    uint32 powerSlot;
+    uint32 useableSlot;
+
+
+    if( call.tuple->items.size() == 3 )
     {
         // TODO: Add comments here to describe what kind of client action results in having
         // to use the 'Call_MultiAdd_3' packet structure
@@ -213,23 +213,23 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
             return NULL;
         }
 
-		if((EVEItemFlags)args.flag == 0 )
-		{
+        if((EVEItemFlags)args.flag == 0 )
+        {
 
-			//Get Item TypeID - this is bad
-			InventoryDB::GetTypeID(args.itemIDs[0], typeID);
+            //Get Item TypeID - this is bad
+            InventoryDB::GetTypeID(args.itemIDs[0], typeID);
 
-			//Get Range of slots for item
-			InventoryDB::GetModulePowerSlotByTypeID(typeID, powerSlot);
+            //Get Range of slots for item
+            InventoryDB::GetModulePowerSlotByTypeID(typeID, powerSlot);
 
-			//Get open slots available on ship
-			InventoryDB::GetOpenPowerSlots(powerSlot,ship , useableSlot);			
-			
-			//Set item flag to first useable open slot found
-			args.flag = useableSlot;
+            //Get open slots available on ship
+            InventoryDB::GetOpenPowerSlots(powerSlot,ship , useableSlot);
 
-		}
-		
+            //Set item flag to first useable open slot found
+            args.flag = useableSlot;
+
+        }
+
         //NOTE: They can specify "None" in the quantity field to indicate
         //their intention to move all... we turn this into a 0 for simplicity.
 
@@ -326,33 +326,33 @@ PyResult InventoryBound::Handle_StackAll(PyCallArgs &call) {
 }
 
 PyResult InventoryBound::Handle_StripFitting(PyCallArgs &call) {
-	sLog.Debug("Server", "Called StripFitting Stub.");
+    sLog.Debug("Server", "Called StripFitting Stub.");
 
-	return NULL;
+    return NULL;
 }
 
 PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {
 
-	sLog.Debug("InventoryBound","Called DestroyFittings stub");
+    sLog.Debug("InventoryBound","Called DestroyFittings stub");
 
-	Call_SingleIntegerArg args;
-	if(!args.Decode(&call.tuple)){
-		sLog.Error("Destroy Fittings","Failed to decode args.");
-	}
+    Call_SingleIntegerArg args;
+    if(!args.Decode(&call.tuple)){
+        sLog.Error("Destroy Fittings","Failed to decode args.");
+    }
 
-	//get the actual item
-	InventoryItemRef item = m_manager->item_factory.GetItem(args.arg);
+    //get the actual item
+    InventoryItemRef item = m_manager->item_factory.GetItem(args.arg);
 
-	//remove the rig effects from the ship
-	call.client->GetShip()->RemoveRig(item, mInventory.inventoryID());
+    //remove the rig effects from the ship
+    call.client->GetShip()->RemoveRig(item, mInventory.inventoryID());
 
-	//move the item to the void or w/e
-	call.client->MoveItem(item->itemID(), mInventory.inventoryID(), flagAutoFit);
+    //move the item to the void or w/e
+    call.client->MoveItem(item->itemID(), mInventory.inventoryID(), flagAutoFit);
 
-	//delete the item
-	item->Delete();
+    //delete the item
+    item->Delete();
 
-	return NULL;
+    return NULL;
 }
 
 PyResult InventoryBound::Handle_SetPassword(PyCallArgs &call) {
@@ -366,7 +366,7 @@ PyResult InventoryBound::Handle_SetPassword(PyCallArgs &call) {
 PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint32 quantity, EVEItemFlags flag) {
     //If were here, we can try move all the items (validated)
 
-	std::vector<int32>::const_iterator cur, end;
+    std::vector<int32>::const_iterator cur, end;
     cur = items.begin();
     end = items.end();
     for(; cur != end; cur++) {
@@ -376,8 +376,8 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             continue;
         }
 
-		//Get old position
-		EVEItemFlags old_flag = sourceItem->flag();
+        //Get old position
+        EVEItemFlags old_flag = sourceItem->flag();
 
         //NOTE: a multi add can come in with quantity 0 to indicate "all"
         if( quantity == 0 )
@@ -402,48 +402,48 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                     // uint32 newFlag = c->GetShip()->FindAvailableModuleSlot( newItem );
                     // c->GetShip()->AddItem( newFlag, newItem );
                 }
-				else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
-				{
-					c->GetShip()->AddItem( flag, newItem );
-				}
-				else
-				{
-					mInventory.ValidateAddItem( flag, newItem );
-				}
+                else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+                {
+                    c->GetShip()->AddItem( flag, newItem );
+                }
+                else
+                {
+                    mInventory.ValidateAddItem( flag, newItem );
+                }
 
-				if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
-				{
+                if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
+                {
 
-					c->GetShip()->RemoveItem( newItem, mInventory.inventoryID(), flag );
+                    c->GetShip()->RemoveItem( newItem, mInventory.inventoryID(), flag );
 
-					//Create new item id return result
-					Call_SingleIntegerArg result;
-					result.arg = newItem->itemID();
+                    //Create new item id return result
+                    Call_SingleIntegerArg result;
+                    result.arg = newItem->itemID();
 
-					//Return new item result
-					return result.Encode(); 
+                    //Return new item result
+                    return result.Encode();
 
-				} else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
-					
-					c->GetShip()->RemoveRig( newItem, mInventory.inventoryID() );
+                } else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) {
 
-				} else {
+                    c->GetShip()->RemoveRig( newItem, mInventory.inventoryID() );
 
-					//Move New item to its new location
-					c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh mModulesMgr
+                } else {
 
-					//Create new item id return result
-					Call_SingleIntegerArg result;
-					result.arg = newItem->itemID();
+                    //Move New item to its new location
+                    c->MoveItem(newItem->itemID(), mInventory.inventoryID(), flag); // properly refresh mModulesMgr
 
-					//Return new item result
-					return result.Encode(); 
-				}
+                    //Create new item id return result
+                    Call_SingleIntegerArg result;
+                    result.arg = newItem->itemID();
+
+                    //Return new item result
+                    return result.Encode();
+                }
             }
         }
         else
         {
-			//Unlike the other validate item requests, fitting an item requires a skill check
+            //Unlike the other validate item requests, fitting an item requires a skill check
             // (This also allows for flagAutoFit when someone drags a module or a stack of modules onto the middle of the fitting
             // window and NOT onto a specific slot.  'flagAutoFit' means "put this module into which ever slot makes sense")
             if( (flag == flagAutoFit) )
@@ -452,34 +452,34 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                 // uint32 newFlag = c->GetShip()->FindAvailableModuleSlot( sourceItem );
                 // c->GetShip()->AddItem( newFlag, sourceItem );
             }
-			else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
-			{
-				c->GetShip()->AddItem( flag, sourceItem );
-			}
-			else
-			{
-				mInventory.ValidateAddItem( flag, sourceItem );
-			}
+            else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
+            {
+                c->GetShip()->AddItem( flag, sourceItem );
+            }
+            else
+            {
+                mInventory.ValidateAddItem( flag, sourceItem );
+            }
 
-			if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
-			{
-				c->GetShip()->RemoveItem( sourceItem, mInventory.inventoryID(), flag );
-			} 
-			else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) 
-			{
-				//remove the rig
-				c->GetShip()->RemoveRig(sourceItem, mInventory.inventoryID());
-			} 
-			else 
-			{
+            if(old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7)
+            {
+                c->GetShip()->RemoveItem( sourceItem, mInventory.inventoryID(), flag );
+            }
+            else if(old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7)
+            {
+                //remove the rig
+                c->GetShip()->RemoveRig(sourceItem, mInventory.inventoryID());
+            }
+            else
+            {
 
-				c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
-			
-			}
+                c->MoveItem(sourceItem->itemID(), mInventory.inventoryID(), flag);
+
+            }
         }
 
-		//update modules
-		c->GetShip()->UpdateModules();
+        //update modules
+        c->GetShip()->UpdateModules();
     }
 
     //Return Null if no item was created

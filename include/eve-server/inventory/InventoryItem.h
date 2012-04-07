@@ -136,10 +136,10 @@ public:
     bool Populate(Rsp_CommonGetInfo_Entry &into);
 
     //PyTuple* GetItemRow() const;
-	PyPackedRow* GetItemRow() const;
+    PyPackedRow* GetItemRow() const;
     void GetItemRow( PyPackedRow* into ) const;
 
-	PyPackedRow* GetItemStatusRow() const;
+    PyPackedRow* GetItemStatusRow() const;
     void GetItemStatusRow( PyPackedRow* into ) const;
 
     PyObject *ItemGetInfo();
@@ -155,7 +155,7 @@ public:
     EVEItemFlags            flag() const        { return m_flag; }
     bool                    contraband() const  { return m_contraband; }
     bool                    singleton() const   { return m_singleton; }
-    int32				    quantity() const    { return m_quantity; }
+    int32                    quantity() const    { return m_quantity; }
     const GPoint &          position() const    { return m_position; }
     const std::string &     customInfo() const  { return m_customInfo; }
 
@@ -194,7 +194,7 @@ public:
     bool SetAttribute(uint32 attributeID, uint64 num, bool notify = true);
     bool SetAttribute(uint32 attributeID, double num, bool notify = true);
     bool SetAttribute(uint32 attributeID, EvilNumber num, bool notify = true);
-    
+
     EvilNumber GetAttribute(uint32 attributeID);
     EvilNumber GetAttribute(const uint32 attributeID) const;
 
@@ -216,12 +216,12 @@ public:
      */
     bool SaveAttributes();
 
-	/*
-	 * ResetAttribute
-	 *
-	 *@note this function will force reload the default value for the specified attribute
-	 */
-	bool ResetAttribute(uint32 attrID, bool notify);
+    /*
+     * ResetAttribute
+     *
+     *@note this function will force reload the default value for the specified attribute
+     */
+    bool ResetAttribute(uint32 attrID, bool notify);
     /************************************************************************/
     /* end experimental new attribute system                                */
     /************************************************************************/

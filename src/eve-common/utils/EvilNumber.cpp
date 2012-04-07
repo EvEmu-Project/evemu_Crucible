@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Captnoord, Aknor Jaden
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Captnoord, Aknor Jaden
 */
 
 #include "EVECommonPCH.h"
@@ -90,7 +90,7 @@ EvilNumber::EvilNumber( int64 val ) : mType(evil_number_int)
  */
 EvilNumber::EvilNumber( uint64 val ) : mType(evil_number_int)
 {
-	// TODO: put some check in here for greater than maximum positive integer
+    // TODO: put some check in here for greater than maximum positive integer
     if( val > MAX_EVIL_INTEGER )
         mValue.iVal = MAX_EVIL_INTEGER;     // Intentionally saturate the integer value to maximum positive value if incoming uint64 is larger
     else
@@ -355,7 +355,7 @@ double EvilNumber::get_float()
 {
     if( mType != evil_number_float ) {
         double temp = (double)mValue.iVal;
-            
+
         /* this checks if the type convention ended up on a double overflow */
         if (int64(temp) != mValue.iVal)
             sLog.Warning("EvilNumber", "Invalid call get_float called on a int");
@@ -423,7 +423,7 @@ EvilNumber EvilNumber::_SelfMultiply( const EvilNumber & val )
         // check if we are an integer
         CheckIntegrity();
     }
-	return *this;
+    return *this;
 }
 
 EvilNumber EvilNumber::_Divide( const EvilNumber & val1, const EvilNumber & val2 )
@@ -488,7 +488,7 @@ EvilNumber EvilNumber::_SelfDivide( const EvilNumber & val )
         // check if we are a integer
         CheckIntegrity();
     }
-	return *this;
+    return *this;
 }
 
 EvilNumber EvilNumber::_Add( const EvilNumber & val1, const EvilNumber & val2 )
@@ -546,7 +546,7 @@ EvilNumber EvilNumber::_SelfAdd( const EvilNumber & val )
         // check if we are a integer
         CheckIntegrity();
     }
-	return *this;
+    return *this;
 }
 
 EvilNumber EvilNumber::_Subtract( const EvilNumber & val1, const EvilNumber & val2 )
@@ -604,7 +604,7 @@ EvilNumber EvilNumber::_SelfSubtract( const EvilNumber & val )
         // check if we are a integer
         CheckIntegrity();
     }
-	return *this;
+    return *this;
 }
 
 EvilNumber EvilNumber::_Modulus( const EvilNumber & val1, const EvilNumber & val2 )
@@ -663,12 +663,12 @@ EvilNumber EvilNumber::_SelfModulus( const EvilNumber & val )
         // check if we are a integer
         CheckIntegrity();
     }
-	return *this;
+    return *this;
 }
 
 EvilNumber EvilNumber::_SelfIncrement()
 {
-	return _SelfAdd(EvilNumber(1));
+    return _SelfAdd(EvilNumber(1));
 }
 
 EvilNumber EvilNumber::_SelfDecrement()

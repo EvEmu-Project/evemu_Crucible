@@ -12,12 +12,12 @@ then fix up the types.*/
 
 #ifndef ATTRI
 #define ATTRI(ID, name, default_value, persistent) \
-	ATTR(ID, name, default_value, persistent)
+    ATTR(ID, name, default_value, persistent)
 #endif
 
 #ifndef ATTRD
 #define ATTRD(ID, name, default_value, persistent) \
-	ATTR(ID, name, default_value, persistent)
+    ATTR(ID, name, default_value, persistent)
 #endif
 
 ATTRI(2,isOnline,0,true)
@@ -25,7 +25,7 @@ ATTRD(3,damage,0,true)
 ATTRD(4,mass,1.0,false)
 ATTRI(6,capacitorNeed,0,false)
 ATTRI(8,minRange,0,false)
-ATTRD(9,hp,1.0,false)		//avoiddivideby0
+ATTRD(9,hp,1.0,false)        //avoiddivideby0
 ATTRI(11,powerOutput,0,false)
 ATTRI(12,lowSlots,0,false)
 ATTRI(13,medSlots,0,false)
@@ -231,9 +231,9 @@ ATTRI(259,maxLootValue,0,false)
 ATTRI(260,attackRange,0,false)
 ATTRI(261,killStatusModifier,0,false)
 ATTRI(262,attackStatusModifier,0,false)
-ATTRD(263,shieldCapacity,1.0,false)	//avoiddivideby0
+ATTRD(263,shieldCapacity,1.0,false)    //avoiddivideby0
 ATTRD(264,shieldCharge,0,false)
-ATTRD(265,armorHP,1.0,false)	//avoiddivideby0
+ATTRD(265,armorHP,1.0,false)    //avoiddivideby0
 ATTRI(266,armorDamage,0,false)
 ATTRD(267,armorEmDamageResonance,1,false)
 ATTRD(268,armorExplosiveDamageResonance,1,false)

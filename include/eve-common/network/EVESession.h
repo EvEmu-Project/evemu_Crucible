@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Zhur
 */
 
 #ifndef __EVE_SESSION_H__INCL__
@@ -55,49 +55,49 @@ public:
     /**
      * @param[in] n Connection of this session.
      */
-	EVEClientSession( EVETCPConnection** n );
+    EVEClientSession( EVETCPConnection** n );
     /**
      * @brief Destroys contained connection.
      */
-	virtual ~EVEClientSession();
+    virtual ~EVEClientSession();
 
     /** Wrapper of TCPConnection::GetState(). */
     state_t GetState() const { return mNet->GetState(); }
     /** Wrapper of TCPConnection::GetAddress(). */
-	std::string GetAddress() const { return mNet->GetAddress(); }
+    std::string GetAddress() const { return mNet->GetAddress(); }
 
     /**
      * @brief Resets session.
      *
      * Reset session so we act like client just connected.
      */
-	void Reset();
+    void Reset();
 
     /**
      * @brief Queues new packet.
      *
      * @param[in] p Packed to be queued.
      */
-	void QueuePacket( const PyPacket* p );
+    void QueuePacket( const PyPacket* p );
     /**
      * @brief Queues new packet, retaking ownership.
      *
      * @param[in] p Packed to be queued.
      */
-	void FastQueuePacket( PyPacket** p );
+    void FastQueuePacket( PyPacket** p );
 
     /**
      * @brief Pops new packet from queue.
      *
      * @return Popped packet.
      */
-	PyPacket* PopPacket();
+    PyPacket* PopPacket();
 
-	/**
-	 * @brief Disconnects client from the server
-	 */
-	void CloseClientConnection() { mNet->Disconnect(); }
-	
+    /**
+     * @brief Disconnects client from the server
+     */
+    void CloseClientConnection() { mNet->Disconnect(); }
+
 
 protected:
     /**
@@ -107,9 +107,9 @@ protected:
      */
     virtual void _GetVersion( VersionExchangeServer& version ) = 0;
     /** @return Current count of connected users. */
-	virtual uint32 _GetUserCount() = 0;
+    virtual uint32 _GetUserCount() = 0;
     /** @return Current position in connection queue. */
-	virtual uint32 _GetQueuePosition() = 0;
+    virtual uint32 _GetQueuePosition() = 0;
 
     /**
      * @brief Verifies version.
@@ -128,7 +128,7 @@ protected:
      * @retval true  Verification succeeded; proceeds to next state.
      * @retval false Verification failed; stays in current state.
      */
-	virtual bool _VerifyVIPKey( const std::string& vipKey ) = 0;
+    virtual bool _VerifyVIPKey( const std::string& vipKey ) = 0;
     /**
      * @brief Verifies crypto.
      *
@@ -146,7 +146,7 @@ protected:
      * @retval true  Verification succeeded; proceeds to next state.
      * @retval false Verification failed; stays in current state.
      */
-	virtual bool _VerifyLogin( CryptoChallengePacket& ccp ) = 0;
+    virtual bool _VerifyLogin( CryptoChallengePacket& ccp ) = 0;
     /**
      * @brief Verifies function result.
      *
@@ -155,21 +155,21 @@ protected:
      * @retval true  Verification succeeded; proceeds to next state.
      * @retval false Verification failed; stays in current state.
      */
-	virtual bool _VerifyFuncResult( CryptoHandshakeResult& result ) = 0;
+    virtual bool _VerifyFuncResult( CryptoHandshakeResult& result ) = 0;
 
     /** Connection of this session. */
-	EVETCPConnection* const mNet;
+    EVETCPConnection* const mNet;
 
 private:
     // State machine facility:
-	PyPacket* ( EVEClientSession::*mPacketHandler )( PyRep* rep );
+    PyPacket* ( EVEClientSession::*mPacketHandler )( PyRep* rep );
 
-	PyPacket* _HandleVersion( PyRep* rep );
-	PyPacket* _HandleCommand( PyRep* rep );
-	PyPacket* _HandleCrypto( PyRep* rep );
-	PyPacket* _HandleAuthentication( PyRep* rep );
-	PyPacket* _HandleFuncResult( PyRep* rep );
-	PyPacket* _HandlePacket( PyRep* rep );
+    PyPacket* _HandleVersion( PyRep* rep );
+    PyPacket* _HandleCommand( PyRep* rep );
+    PyPacket* _HandleCrypto( PyRep* rep );
+    PyPacket* _HandleAuthentication( PyRep* rep );
+    PyPacket* _HandleFuncResult( PyRep* rep );
+    PyPacket* _HandlePacket( PyRep* rep );
 };
 
 #endif /* !__EVE_SESSION_H__INCL__ */

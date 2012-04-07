@@ -238,7 +238,7 @@ MarshalStringTable::MarshalStringTable()
 /* lookup a index using a string */
 uint8 MarshalStringTable::LookupIndex( const std::string& str )
 {
-	return LookupIndex( str.c_str() );
+    return LookupIndex( str.c_str() );
 }
 
 /* lookup a index using a string */

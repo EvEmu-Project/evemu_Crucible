@@ -41,43 +41,43 @@ class DBRowDescriptor
 : public PyObjectEx_Type1
 {
 public:
-	DBRowDescriptor();
+    DBRowDescriptor();
 
-	/**
-	 * @param[in] keywords Some sort of keyword list.
-	 */
-	DBRowDescriptor(PyList* keywords);
+    /**
+     * @param[in] keywords Some sort of keyword list.
+     */
+    DBRowDescriptor(PyList* keywords);
 
-	/**
-	 * @param[in] result Query result to build column list from.
-	 */
-	DBRowDescriptor( const DBQueryResult& res );
-	/**
-	 * @param[in] result Row to build column list from.
-	 */
-	DBRowDescriptor( const DBResultRow& row );
+    /**
+     * @param[in] result Query result to build column list from.
+     */
+    DBRowDescriptor( const DBQueryResult& res );
+    /**
+     * @param[in] result Row to build column list from.
+     */
+    DBRowDescriptor( const DBResultRow& row );
 
-	/**
-	 * @return Column count.
-	 */
+    /**
+     * @return Column count.
+     */
     uint32 ColumnCount() const;
-	/**
-	 * @param[in] index Index of column name of which should be returned.
+    /**
+     * @param[in] index Index of column name of which should be returned.
      *
-	 * @return Name of column.
-	 */
+     * @return Name of column.
+     */
     PyString* GetColumnName( uint32 index ) const;
-	/**
-	 * @param[in] index Index of column type of which should be returned.
+    /**
+     * @param[in] index Index of column type of which should be returned.
      *
-	 * @return Type of column.
-	 */
+     * @return Type of column.
+     */
     DBTYPE GetColumnType( uint32 index ) const;
-	/**
-	 * @param[in] name Name of column index of which should be returned.
+    /**
+     * @param[in] name Name of column index of which should be returned.
      *
-	 * @return Index of column; column count if not found.
-	 */
+     * @return Index of column; column count if not found.
+     */
     uint32 FindColumn( const char* name ) const;
     /**
      * @brief Verifies value for certain column.
@@ -90,20 +90,20 @@ public:
      */
     bool VerifyValue( uint32 index, PyRep* value );
 
-	/**
-	 * Adds new column.
-	 *
-	 * @param[in] name Name of new column.
-	 * @param[in] type Type of new column.
-	 */
-	void AddColumn( const char* name, DBTYPE type );
+    /**
+     * Adds new column.
+     *
+     * @param[in] name Name of new column.
+     * @param[in] type Type of new column.
+     */
+    void AddColumn( const char* name, DBTYPE type );
 
 protected:
-	// Helper functions:
-	PyTuple* _GetColumnList() const;
-	PyTuple* _GetColumn(size_t index) const;
+    // Helper functions:
+    PyTuple* _GetColumnList() const;
+    PyTuple* _GetColumn(size_t index) const;
 
-	static PyTuple* _CreateArgs();
+    static PyTuple* _CreateArgs();
 };
 
 /**
@@ -146,11 +146,11 @@ public:
     PyPackedRow* NewRow();
 
 protected:
-	DBRowDescriptor* _GetRowDesc() const;
-	//PyList* _GetColumnList() const;
+    DBRowDescriptor* _GetRowDesc() const;
+    //PyList* _GetColumnList() const;
 
-	static PyTuple* _CreateArgs();
-	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
+    static PyTuple* _CreateArgs();
+    static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
 };
 
 /**
@@ -193,11 +193,11 @@ public:
     PyPackedRow* NewRow( PyRep* key );
 
 protected:
-	DBRowDescriptor* _GetRowDesc() const;
-	//PyList* _GetColumnList() const;
+    DBRowDescriptor* _GetRowDesc() const;
+    //PyList* _GetColumnList() const;
 
-	static PyTuple* _CreateArgs();
-	static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
+    static PyTuple* _CreateArgs();
+    static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
 };
 
 #endif /* !__PY_DATABASE_H__INCL__ */

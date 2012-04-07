@@ -83,11 +83,11 @@ uint64 filesize( const char* filename )
 uint64 filesize( FILE* fd )
 {
 #ifdef WIN32
-	return _filelength( _fileno( fd ) );
+    return _filelength( _fileno( fd ) );
 #else
-	struct stat file_stat;
-	fstat( fileno( fd ), &file_stat );
-	return file_stat.st_size;
+    struct stat file_stat;
+    fstat( fileno( fd ), &file_stat );
+    return file_stat.st_size;
 #endif
 }
 
@@ -116,7 +116,7 @@ uint64 npowof2( uint64 num )
 
 int64 MakeRandomInt( int64 low, int64 high )
 {
-	return (int64)MakeRandomFloat( (double)low, (double)high );
+    return (int64)MakeRandomFloat( (double)low, (double)high );
 }
 
 double MakeRandomFloat( double low, double high )
@@ -125,15 +125,15 @@ double MakeRandomFloat( double low, double high )
         std::swap( low, high );
 
     double diff = high - low;
-	if( diff == 0 )
-		return low;
+    if( diff == 0 )
+        return low;
 
-	static bool seeded = false;
-	if( !seeded )
-	{
-		SeedRandom( (unsigned int)time(0) * (unsigned int)( time(0) % (int)diff ) );
-		seeded = true;
-	}
+    static bool seeded = false;
+    if( !seeded )
+    {
+        SeedRandom( (unsigned int)time(0) * (unsigned int)( time(0) % (int)diff ) );
+        seeded = true;
+    }
 
     return ( low + diff * ( (double)GenerateRandom() / (double)RAND_MAX ) );
 }

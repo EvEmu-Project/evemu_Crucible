@@ -95,7 +95,7 @@ ShipRef ShipOperatorInterface::GetShip() const
 
     sLog.Error( "ShipOperatorInterface::GetShip()", "ERROR: All Operator types should be accounted for" );
     assert(false);
-    
+
     // Hack to get rid of warning, code execution should never reach this point
     ShipRef ret;
     return ret;
@@ -122,7 +122,7 @@ uint32 ShipOperatorInterface::GetLocationID() const
         return m_pClient->GetLocationID();
 //    else if( m_pNPC != NULL )
 //        return ShipRef::StaticCast( m_pNPC->Item() );
-    
+
     sLog.Error( "ShipOperatorInterface::GetLocationID()", "ERROR: All Operator types should be accounted for" );
     assert(false);
 

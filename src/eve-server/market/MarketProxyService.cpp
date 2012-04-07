@@ -523,7 +523,7 @@ PyResult MarketProxyService::Handle_ModifyCharOrder(PyCallArgs &call) {
 
     if(price == args.new_price)
         return NULL;
-    
+
     if(isBuy)
     {
         double money = (price - args.new_price) * quantity;
@@ -538,7 +538,7 @@ PyResult MarketProxyService::Handle_ModifyCharOrder(PyCallArgs &call) {
 
     _InvalidateOrdersCache(typeID);
     _BroadcastOnOwnOrderChanged(call.client->GetRegionID(), args.orderID, "Modify", isCorp); //force a refresh of market data.
-    
+
     return NULL;
 }
 
@@ -557,7 +557,7 @@ PyResult MarketProxyService::Handle_CancelCharOrder(PyCallArgs &call) {
     double price = 0;
     bool isBuy = false;
     bool isCorp = false;
-    
+
     if(!m_db.GetOrderInfo(args.orderID, &ownerID, &typeID, &stationID, &quantity, &price, &isBuy, &isCorp)) {
         codelog(MARKET__ERROR, "%s: Failed to get info about order %u.", call.client->GetName(), args.orderID);
         return NULL;
@@ -599,41 +599,41 @@ PyResult MarketProxyService::Handle_CancelCharOrder(PyCallArgs &call) {
 
 PyResult MarketProxyService::Handle_CharGetNewTransactions(PyCallArgs &call)
 {
-	PyRep *result = NULL;
-	Call_CharGetNewTransactions args;
-	if(!args.Decode(&call.tuple))
-	{
-		codelog(MARKET__ERROR, "Invalid arguments");
-		return NULL;
-	}
+    PyRep *result = NULL;
+    Call_CharGetNewTransactions args;
+    if(!args.Decode(&call.tuple))
+    {
+        codelog(MARKET__ERROR, "Invalid arguments");
+        return NULL;
+    }
 
-	double minPrice;
-	if(args.minPrice->IsInt())
-		minPrice = args.minPrice->AsInt()->value();
-	else if(args.minPrice->IsFloat())
-		minPrice = args.minPrice->AsFloat()->value();
-	else
-	{
-		codelog(CLIENT__ERROR, "%s: Invalid type %s for minPrice argument received.", call.client->GetName(), args.minPrice->TypeString());
-		return NULL;
-	}
+    double minPrice;
+    if(args.minPrice->IsInt())
+        minPrice = args.minPrice->AsInt()->value();
+    else if(args.minPrice->IsFloat())
+        minPrice = args.minPrice->AsFloat()->value();
+    else
+    {
+        codelog(CLIENT__ERROR, "%s: Invalid type %s for minPrice argument received.", call.client->GetName(), args.minPrice->TypeString());
+        return NULL;
+    }
 
-	result = m_db.GetTransactions(args.clientID==0?call.client->GetCharacterID():args.clientID,
-			args.typeID, args.quantity, minPrice, args.maxPrice, args.fromDate, args.buySell);
-	if(result == NULL)
-	{
-		_log(SERVICE__ERROR, "%s: Failed to load CharGetNewTransactions", call.client->GetName());
-		return NULL;
-	}
+    result = m_db.GetTransactions(args.clientID==0?call.client->GetCharacterID():args.clientID,
+            args.typeID, args.quantity, minPrice, args.maxPrice, args.fromDate, args.buySell);
+    if(result == NULL)
+    {
+        _log(SERVICE__ERROR, "%s: Failed to load CharGetNewTransactions", call.client->GetName());
+        return NULL;
+    }
 
-	return result;
+    return result;
 }
 
 PyResult MarketProxyService::Handle_StartupCheck(PyCallArgs &call)
 {
-	//Don't have a clue what this is supposed to do.  If you figure it out, feel free to fill it in :)
+    //Don't have a clue what this is supposed to do.  If you figure it out, feel free to fill it in :)
 
-	return NULL;
+    return NULL;
 }
 
 void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action, bool isCorp, PyRep* order) {
@@ -657,12 +657,12 @@ void MarketProxyService::_BroadcastOnOwnOrderChanged(uint32 regionID, uint32 ord
     std::vector<Client *> clients;
     m_manager->entity_list.FindByRegionID(regionID, clients);
     std::vector<Client *>::iterator cur, end;
-	cur = clients.begin();
-	end = clients.end();
-	for(; cur != end; cur++) {
+    cur = clients.begin();
+    end = clients.end();
+    for(; cur != end; cur++) {
         PySafeIncRef(order);
-		_SendOnOwnOrderChanged(*cur, orderID, action, isCorp, order);
-	}
+        _SendOnOwnOrderChanged(*cur, orderID, action, isCorp, order);
+    }
     PySafeDecRef(order);
 }
 
@@ -670,11 +670,11 @@ void MarketProxyService::_BroadcastOnMarketRefresh(uint32 regionID) {
     std::vector<Client *> clients;
     m_manager->entity_list.FindByRegionID(regionID, clients);
     std::vector<Client *>::iterator cur, end;
-	cur = clients.begin();
-	end = clients.end();
-	for(; cur != end; cur++) {
-		_SendOnMarketRefresh(*cur);
-	}
+    cur = clients.begin();
+    end = clients.end();
+    for(; cur != end; cur++) {
+        _SendOnMarketRefresh(*cur);
+    }
 }
 
 void MarketProxyService::_InvalidateOrdersCache(uint32 typeID)

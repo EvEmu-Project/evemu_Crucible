@@ -124,7 +124,7 @@ uint32 ServiceDB::CreateNewAccount( const char* login, const char* pass, uint64 
 PyObject *ServiceDB::GetSolRow(uint32 systemID) const
 {
     DBQueryResult res;
-    
+
     if(!sDatabase.RunQuery(res,
         //not sure if this is gunna be valid all the time...
         "SELECT "
@@ -141,7 +141,7 @@ PyObject *ServiceDB::GetSolRow(uint32 systemID) const
         _log(SERVICE__ERROR, "Error in GetSolRow query: %s", res.error.c_str());
         return(0);
     }
-    
+
     DBResultRow row;
     if(!res.GetRow(row)) {
         _log(SERVICE__ERROR, "Error in GetSolRow query: unable to find sol info for system %d", systemID);
@@ -154,7 +154,7 @@ PyObject *ServiceDB::GetSolRow(uint32 systemID) const
 //this function is temporary, I dont plan to keep this crap in the DB.
 PyObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
     DBQueryResult res;
-    
+
     if(!sDatabase.RunQuery(res,
         //not sure if this is gunna be valid all the time...
         "SELECT "
@@ -168,7 +168,7 @@ PyObject *ServiceDB::GetSolDroneState(uint32 systemID) const {
         _log(SERVICE__ERROR, "Error in GetSolDroneState query: %s", res.error.c_str());
         return NULL;
     }
-    
+
     return DBResultToRowset(res);
 }
 
@@ -325,7 +325,7 @@ bool ServiceDB::GetStationInfo(uint32 stationID, uint32 *systemID, uint32 *const
 
 uint32 ServiceDB::GetDestinationStargateID(uint32 fromSystem, uint32 toSystem) {
     DBQueryResult res;
-    
+
     if(!sDatabase.RunQuery(res,
         " SELECT "
         "    fromStargate.solarSystemID AS fromSystem,"
@@ -345,7 +345,7 @@ uint32 ServiceDB::GetDestinationStargateID(uint32 fromSystem, uint32 toSystem) {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return(0);
     }
-    
+
     DBResultRow row;
     if(!res.GetRow(row)) {
         codelog(SERVICE__ERROR, "Error in query: no data for %d, %d", fromSystem, toSystem);
@@ -360,7 +360,7 @@ bool ServiceDB::GetConstant(const char *name, uint32 &into) {
 
     std::string escaped;
     sDatabase.DoEscapeString(escaped, name);
-    
+
     if(!sDatabase.RunQuery(res,
     "SELECT"
     "    constantValue"
@@ -372,15 +372,15 @@ bool ServiceDB::GetConstant(const char *name, uint32 &into) {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return false;
     }
-    
+
     DBResultRow row;
     if(!res.GetRow(row)) {
         codelog(SERVICE__ERROR, "Unable to find constant %s", name);
         return false;
     }
-    
+
     into = row.GetUInt(0);
-    
+
     return true;
 }
 
@@ -390,7 +390,7 @@ void ServiceDB::ProcessStringChange(const char * key, const std::string & oldVal
         std::string qValue(key);
 
         sDatabase.DoEscapeString(newEscValue, newValue);
-        
+
         // add to notification
         PyTuple * val = new PyTuple(2);
         val->items[0] = new PyString(oldValue);
@@ -440,7 +440,7 @@ void ServiceDB::ProcessIntChange(const char * key, uint32 oldValue, uint32 newVa
 
 //johnsus - characterOnline mod
 void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool onoff_status) {
-    DBerror err;    
+    DBerror err;
 
     _log(CLIENT__TRACE, "ChrStatus: Setting character %u %s.", char_id, onoff_status ? "Online" : "Offline");
 
@@ -515,18 +515,18 @@ void ServiceDB::SetAccountOnlineStatus(uint32 accountID, bool onoff_status) {
 }
 
 void ServiceDB::SetAccountBanStatus(uint32 accountID, bool onoff_status) {
-	DBerror err;
+    DBerror err;
 
-	_log(CLIENT__TRACE, "AccStatus: %s account %u.", onoff_status ? "Banned" : "Removed ban on", accountID );
+    _log(CLIENT__TRACE, "AccStatus: %s account %u.", onoff_status ? "Banned" : "Removed ban on", accountID );
 
-	if(!sDatabase.RunQuery(err,
-		" UPDATE account "
-		" SET account.banned = %d "
-		" WHERE accountID = %u ",
-		onoff_status, accountID))
-	{
-		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
-	}
+    if(!sDatabase.RunQuery(err,
+        " UPDATE account "
+        " SET account.banned = %d "
+        " WHERE accountID = %u ",
+        onoff_status, accountID))
+    {
+        codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+    }
 }
 
 

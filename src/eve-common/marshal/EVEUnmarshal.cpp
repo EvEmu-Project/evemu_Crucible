@@ -219,22 +219,22 @@ PyRep* UnmarshalStream::LoadIntegerVar()
     const uint32 len = ReadSizeEx();
     const Buffer::const_iterator<uint8> data = Read<uint8>( len );
 
-	if( sizeof( int32 ) >= len )
-	{
+    if( sizeof( int32 ) >= len )
+    {
         int32 intval = 0;
         memcpy( &intval, &*data, len );
 
         return new PyInt( intval );
-	}
-	else if( sizeof( int64 ) >= len )
-	{
+    }
+    else if( sizeof( int64 ) >= len )
+    {
         int64 intval = 0;
         memcpy( &intval, &*data, len );
 
         return new PyLong( intval );
     }
-	else
-	{
+    else
+    {
         //int64 is not big enough
         //just pass it up to the application layer as a buffer...
         return new PyBuffer( data, data + len );
@@ -290,7 +290,7 @@ PyRep* UnmarshalStream::LoadWStringUCS2Char()
     std::string str;
     utf8::utf16to8( wstr, wstr + 1, std::back_inserter( str ) );
 
-	return new PyWString( str );
+    return new PyWString( str );
 }
 
 PyRep* UnmarshalStream::LoadWStringUCS2()
@@ -302,7 +302,7 @@ PyRep* UnmarshalStream::LoadWStringUCS2()
     std::string str;
     utf8::utf16to8( wstr, wstr + len, std::back_inserter( str ) );
 
-	return new PyWString( str );
+    return new PyWString( str );
 }
 
 PyRep* UnmarshalStream::LoadWStringUTF8()
@@ -310,7 +310,7 @@ PyRep* UnmarshalStream::LoadWStringUTF8()
     const uint32 len = ReadSizeEx();
     const Buffer::const_iterator<char> wstr = Read<char>( len );
 
-	return new PyWString( wstr, wstr + len );
+    return new PyWString( wstr, wstr + len );
 }
 
 PyRep* UnmarshalStream::LoadToken()
@@ -323,7 +323,7 @@ PyRep* UnmarshalStream::LoadToken()
 
 PyRep* UnmarshalStream::LoadBuffer()
 {
-	const uint32 len = ReadSizeEx();
+    const uint32 len = ReadSizeEx();
     const Buffer::const_iterator<uint8> data = Read<uint8>( len );
 
     return new PyBuffer( data, data + len );
@@ -492,7 +492,7 @@ PyRep* UnmarshalStream::LoadSubStruct()
 
 PyRep* UnmarshalStream::LoadChecksumedStream()
 {
-	const uint32 sum = Read<uint32>();
+    const uint32 sum = Read<uint32>();
 
     PyRep* ss = LoadRep();
     if( NULL == ss )
@@ -520,26 +520,26 @@ PyRep* UnmarshalStream::LoadPackedRow()
         return NULL;
     }
 
-	// This is only an assumption, though PyPackedRow does not
-	// support anything else ....
+    // This is only an assumption, though PyPackedRow does not
+    // support anything else ....
     PyPackedRow* row = new PyPackedRow( (DBRowDescriptor*)header_element );
 
     // Create size map, sorted from the greatest to the smallest value
     std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
     uint32 cc = row->header()->ColumnCount();
-	size_t sum = 0;
+    size_t sum = 0;
 
     for( uint32 i = 0; i < cc; i++ )
-	{
-		uint8 size = DBTYPE_GetSizeBits( row->header()->GetColumnType( i ) );
+    {
+        uint8 size = DBTYPE_GetSizeBits( row->header()->GetColumnType( i ) );
 
         sizeMap.insert( std::make_pair( size, i ) );
-		sum += size;
-	}
+        sum += size;
+    }
 
-	// make sure there is enough data in buffer
-	sum = ( ( sum + 7 ) >> 3 );
-	unpacked.Resize<uint8>( sum );
+    // make sure there is enough data in buffer
+    sum = ( ( sum + 7 ) >> 3 );
+    unpacked.Resize<uint8>( sum );
 
     Buffer::const_iterator<uint8> unpackedItr = unpacked.begin<uint8>();
     uint8 bitOffset = 0;
@@ -559,7 +559,7 @@ PyRep* UnmarshalStream::LoadPackedRow()
             case DBTYPE_FILETIME:
             {
                 Buffer::const_iterator<int64> v = unpackedItr.As<int64>();
-			    row->SetField( index, new PyLong( *v++ ) );
+                row->SetField( index, new PyLong( *v++ ) );
                 unpackedItr = v.As<uint8>();
             } break;
 
@@ -642,12 +642,12 @@ PyRep* UnmarshalStream::LoadSavedStreamElement()
 {
     const uint32 index = ReadSizeEx();
 
-	PyRep* obj = GetStoredObject( index );
-	if( NULL == obj )
-	{
+    PyRep* obj = GetStoredObject( index );
+    if( NULL == obj )
+    {
         sLog.Error( "Unmarshal", "SavedStreamElement: Got invalid stored object." );
         return NULL;
-	}
+    }
 
     return obj->Clone();
 }
@@ -661,7 +661,7 @@ PyObjectEx* UnmarshalStream::LoadObjectEx( bool is_type_2 )
     PyObjectEx* obj = new PyObjectEx( is_type_2, header );
 
     while( Op_PackedTerminator != Peek<uint8>() )
-	{
+    {
         PyRep* el = LoadRep();
         if( NULL == el )
         {
@@ -691,7 +691,7 @@ PyObjectEx* UnmarshalStream::LoadObjectEx( bool is_type_2 )
             return NULL;
         }
 
-		obj->dict().SetItem( key, value );
+        obj->dict().SetItem( key, value );
     }
     //skip Op_PackedTerminator
     Read<uint8>();

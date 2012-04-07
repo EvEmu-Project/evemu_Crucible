@@ -45,8 +45,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         " entity.itemID as ownerID,"
         " entity.itemName as ownerName,"
         " entity.typeID,"
-		" NULL as ownerNameID,"
-		" 0 as gender"
+        " NULL as ownerNameID,"
+        " 0 as gender"
         " FROM entity "
         " WHERE itemID in (%s)", ids.c_str()))
     {
@@ -60,8 +60,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         if(!sDatabase.RunQuery(res,
             "SELECT "
             " ownerID,ownerName,typeID,"
-			" NULL as ownerNameID,"
-			" 0 as gender"
+            " NULL as ownerNameID,"
+            " 0 as gender"
             " FROM eveStaticOwners "
             " WHERE ownerID in (%s)", ids.c_str()))
         {
@@ -72,24 +72,24 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         res.Reset();
     }
 
-	if(!res.GetRow(row)) {
-		if(!sDatabase.RunQuery(res,
-			"SELECT "
-			" characterID as ownerID,"
-			" itemName as ownerName,"
-			" typeID,"
-			" NULL as ownerNameID,"
-			" 0 as gender"
-			" FROM character_ "
-			" LEFT JOIN entity ON characterID = itemID"
-			" WHERE characterID in (%s)", ids.c_str()))
-		{
-			codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-			return NULL;
-		}
-	} else {
-		res.Reset();
-	}
+    if(!res.GetRow(row)) {
+        if(!sDatabase.RunQuery(res,
+            "SELECT "
+            " characterID as ownerID,"
+            " itemName as ownerName,"
+            " typeID,"
+            " NULL as ownerNameID,"
+            " 0 as gender"
+            " FROM character_ "
+            " LEFT JOIN entity ON characterID = itemID"
+            " WHERE characterID in (%s)", ids.c_str()))
+        {
+            codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
+            return NULL;
+        }
+    } else {
+        res.Reset();
+    }
 
     return(DBResultToTupleSet(res));
 }
@@ -149,7 +149,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
             " mapDenormalize.x AS x,"
             " mapDenormalize.y AS y,"
             " mapDenormalize.z AS z,"
-			" NULL AS locationNameID"
+            " NULL AS locationNameID"
             " FROM mapDenormalize "
             " WHERE itemID in (%s)", ids.c_str()))
         {
@@ -164,7 +164,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
             " entity.x AS x,"
             " entity.y AS y,"
             " entity.z AS z,"
-			" NULL AS locationNameID"
+            " NULL AS locationNameID"
             " FROM entity "
             " WHERE itemID in (%s)", ids.c_str()))
         {
@@ -287,9 +287,9 @@ PyObject *ConfigDB::GetMap(uint32 solarSystemID) {
         "   itemID,"
         "   itemName,"
         "   typeID,"
-		"   groupID,"
+        "   groupID,"
         "   solarSystemID AS locationID,"
-		"   x,y,z,"
+        "   x,y,z,"
         "   NULL AS orbitID,"
         "   NULL AS destinations,"
         "   NULL AS xMin,"
@@ -402,7 +402,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
             break;
     case EVEDB::invGroups::Planet:
             query = " SELECT "
-                    "	 temperature, "
+                    "     temperature, "
                     "    orbitRadius, "
                     "    eccentricity, "
                     "    massDust, "

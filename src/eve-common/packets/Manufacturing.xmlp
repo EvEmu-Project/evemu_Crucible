@@ -2,146 +2,146 @@
 <elements>
 
   <elementDef name="Call_GetJobs2">
-	  <tupleInline>
-		  <int name="ownerID" />
-		  <bool name="completed" />
-		  <long name="fromDate" none_marker="0" />
-		  <long name="toDate" none_marker="-1" />
-	  </tupleInline>
+      <tupleInline>
+          <int name="ownerID" />
+          <bool name="completed" />
+          <long name="fromDate" none_marker="0" />
+          <long name="toDate" none_marker="-1" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="Call_AssemblyLinesSelect">
-	  <tupleInline>
-		  <string name="filter" />
-	  </tupleInline>
+      <tupleInline>
+          <string name="filter" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="PathElement">
-	  <listInline>
-		  <int name="locationID" />
-		  <int name="ownerID" />
-		  <int name="flag" />
-	  </listInline>
+      <listInline>
+          <int name="locationID" />
+          <int name="ownerID" />
+          <int name="flag" />
+      </listInline>
   </elementDef>
 
   <elementDef name="Call_InstallJob">
-	  <tupleInline>
-		  <listInline>
-			  <!-- installationLocationData -->
-			  <listInline>
-				  <!-- invLocation -->
-				  <int name="installationInvLocationID" />
-				  <int name="installationInvLocationGroupID" />
-			  </listInline>
-			  <listInline>
-			  </listInline>
-			  <listInline>
-				  <int name="installationContainerID" />
-				  <int name="installationAssemblyLineID" />
-			  </listInline>
-		  </listInline>
-		  <listInline>
-			  <!-- installedItemLocationData -->
-			  <listInline>
-				  <!-- invLocation -->
-				  <int name="installedItemInvLocationID" />
-				  <int name="installedItemInvLocationGroup" />
-			  </listInline>
-			   <!-- List of PathElements, there is 1 on personal job, 3 on corp job -->
-			  <list name="installedItemPath" />
-			  <listInline>
-				  <!-- itemSpecification -->
-				  <int name="installedItemID" />
-			  </listInline>
-		  </listInline>
-		  <listInline>
-			  <!-- bomLocationData -->
-			  <listInline>
-				  <!-- invLocation -->
-				  <int name="bomInvLocationID" />
-				  <int name="bomInvLocationGroup" />
-			  </listInline>
-			  <!-- List of PathElements, there is 1 on personal job, 3 on corp job -->
-			  <list name="bomPath" />
-			  <listInline>
-			  </listInline>
-		  </listInline>
-		  <int name="flagOutput" />
-		  <int name="runs" />
-		  <int name="activityID" />
-		  <int name="licensedProductionRuns" />
-		  <bool name="isCorpJob" />
-		  <string name="description" />
-	  </tupleInline>
+      <tupleInline>
+          <listInline>
+              <!-- installationLocationData -->
+              <listInline>
+                  <!-- invLocation -->
+                  <int name="installationInvLocationID" />
+                  <int name="installationInvLocationGroupID" />
+              </listInline>
+              <listInline>
+              </listInline>
+              <listInline>
+                  <int name="installationContainerID" />
+                  <int name="installationAssemblyLineID" />
+              </listInline>
+          </listInline>
+          <listInline>
+              <!-- installedItemLocationData -->
+              <listInline>
+                  <!-- invLocation -->
+                  <int name="installedItemInvLocationID" />
+                  <int name="installedItemInvLocationGroup" />
+              </listInline>
+               <!-- List of PathElements, there is 1 on personal job, 3 on corp job -->
+              <list name="installedItemPath" />
+              <listInline>
+                  <!-- itemSpecification -->
+                  <int name="installedItemID" />
+              </listInline>
+          </listInline>
+          <listInline>
+              <!-- bomLocationData -->
+              <listInline>
+                  <!-- invLocation -->
+                  <int name="bomInvLocationID" />
+                  <int name="bomInvLocationGroup" />
+              </listInline>
+              <!-- List of PathElements, there is 1 on personal job, 3 on corp job -->
+              <list name="bomPath" />
+              <listInline>
+              </listInline>
+          </listInline>
+          <int name="flagOutput" />
+          <int name="runs" />
+          <int name="activityID" />
+          <int name="licensedProductionRuns" />
+          <bool name="isCorpJob" />
+          <string name="description" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="MaterialList">
     <objectInline>
-	    <stringInline value="util.Rowset" />
-		  <dictInline>
-			  <dictInlineEntry key="header">
-				  <listInline>
+        <stringInline value="util.Rowset" />
+          <dictInline>
+              <dictInlineEntry key="header">
+                  <listInline>
             <stringInline value="requiredTypeID" />
             <stringInline value="quantity" />
             <stringInline value="damagePerJob" />
             <stringInline value="isSkillCheck" />
             <stringInline value="requiresHP" />
-				  </listInline>
-			  </dictInlineEntry>
-			  <dictInlineEntry key="RowClass">
-				  <tokenInline value="util.Row" />
-			  </dictInlineEntry>
-			  <dictInlineEntry key="lines">
-				  <list name="lines" />
-			  </dictInlineEntry>
-		  </dictInline>
+                  </listInline>
+              </dictInlineEntry>
+              <dictInlineEntry key="RowClass">
+                  <tokenInline value="util.Row" />
+              </dictInlineEntry>
+              <dictInlineEntry key="lines">
+                  <list name="lines" />
+              </dictInlineEntry>
+          </dictInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="MaterialList_Line">
-	  <listInline>
-		  <int name="requiredTypeID" />
-		  <int name="quantity" />
-		  <real name="damagePerJob" />
-		  <int name="isSkillCheck" />
-		  <bool name="requiresHP" />
-	  </listInline>
+      <listInline>
+          <int name="requiredTypeID" />
+          <int name="quantity" />
+          <real name="damagePerJob" />
+          <int name="isSkillCheck" />
+          <bool name="requiresHP" />
+      </listInline>
   </elementDef>
 
   <elementDef name="BillOfMaterials">
     <objectInline>
-	    <stringInline value="util.Row" />
-		  <dictInline>
-			  <dictInlineEntry key="header">
-				  <listInline>
+        <stringInline value="util.Row" />
+          <dictInline>
+              <dictInlineEntry key="header">
+                  <listInline>
             <stringInline value="rawMaterials" />
             <stringInline value="extras" />
             <stringInline value="wasteMaterials" />
             <stringInline value="skills" />
-				  </listInline>
-			  </dictInlineEntry>
-			  <dictInlineEntry key="line">
-				  <listInline name="line">
-					  <element name="rawMaterials" type="MaterialList" />
-					  <element name="extras" type="MaterialList" />
-					  <element name="wasteMaterials" type="MaterialList" />
-					  <dictInt name="skills" />
-				  </listInline>
-			  </dictInlineEntry>
-		  </dictInline>
+                  </listInline>
+              </dictInlineEntry>
+              <dictInlineEntry key="line">
+                  <listInline name="line">
+                      <element name="rawMaterials" type="MaterialList" />
+                      <element name="extras" type="MaterialList" />
+                      <element name="wasteMaterials" type="MaterialList" />
+                      <dictInt name="skills" />
+                  </listInline>
+              </dictInlineEntry>
+          </dictInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="Rsp_InstallJob">
     <objectInline>
-	    <stringInline value="util.KeyVal" />
-		  <dictInline>
-			  <dictInlineEntry key="quote">
+        <stringInline value="util.KeyVal" />
+          <dictInline>
+              <dictInlineEntry key="quote">
           <objectInline>
-				    <stringInline value="util.Row" />
-					  <dictInline>
-						  <dictInlineEntry key="header">
-							  <listInline>
+                    <stringInline value="util.Row" />
+                      <dictInline>
+                          <dictInlineEntry key="header">
+                              <listInline>
                   <stringInline value="bom" />
                   <stringInline value="materialMultiplier" />
                   <stringInline value="charMaterialMultiplier" />
@@ -154,52 +154,52 @@
                   <stringInline value="maxJobStartTime" />
                   <stringInline value="bomLocationData" />
                   <stringInline value="missingMaterials" />
-							  </listInline>
-						  </dictInlineEntry>
-						  <dictInlineEntry key="line">
-							  <listInline>
-								  <element name="bom" type="BillOfMaterials" />
-								  <real name="materialMultiplier" />
-								  <real name="charMaterialMultiplier" />
-								  <real name="timeMultiplier" />
-								  <real name="charTimeMultiplier" />
-								  <real name="cost" />
-								  <real name="installCost" />
-								  <real name="usageCost" />
-								  <int name="productionTime" />
-								  <long name="maxJobStartTime" />
-								  <raw name="bomLocationData" />
-								  <dictInt name="missingMaterials" />
-							  </listInline>
-						  </dictInlineEntry>
-					  </dictInline>
+                              </listInline>
+                          </dictInlineEntry>
+                          <dictInlineEntry key="line">
+                              <listInline>
+                                  <element name="bom" type="BillOfMaterials" />
+                                  <real name="materialMultiplier" />
+                                  <real name="charMaterialMultiplier" />
+                                  <real name="timeMultiplier" />
+                                  <real name="charTimeMultiplier" />
+                                  <real name="cost" />
+                                  <real name="installCost" />
+                                  <real name="usageCost" />
+                                  <int name="productionTime" />
+                                  <long name="maxJobStartTime" />
+                                  <raw name="bomLocationData" />
+                                  <dictInt name="missingMaterials" />
+                              </listInline>
+                          </dictInlineEntry>
+                      </dictInline>
           </objectInline>
-			  </dictInlineEntry>
-			  <dictInlineEntry key="installedItemID">
-				  <int name="installedItemID" default="0" />
-			  </dictInlineEntry>
-		  </dictInline>
+              </dictInlineEntry>
+              <dictInlineEntry key="installedItemID">
+                  <int name="installedItemID" default="0" />
+              </dictInlineEntry>
+          </dictInline>
     </objectInline>
   </elementDef>
 
   <elementDef name="Call_CompleteJob">
-	  <tupleInline>
-		  <listInline>
-			  <!-- installationLocationData -->
-			  <listInline>
-				  <!-- invLocation -->
-				  <int name="invLocationID" />
-				  <int name="invLocationGroupID" />
-			  </listInline>
-			  <listInline>
-			  </listInline>
-			  <listInline>
-				  <int name="containerID" />
-			  </listInline>
-		  </listInline>
-		  <int name="jobID" />
-		  <bool name="cancel" />
-	  </tupleInline>
+      <tupleInline>
+          <listInline>
+              <!-- installationLocationData -->
+              <listInline>
+                  <!-- invLocation -->
+                  <int name="invLocationID" />
+                  <int name="invLocationGroupID" />
+              </listInline>
+              <listInline>
+              </listInline>
+              <listInline>
+                  <int name="containerID" />
+              </listInline>
+          </listInline>
+          <int name="jobID" />
+          <bool name="cancel" />
+      </tupleInline>
   </elementDef>
 
 </elements>

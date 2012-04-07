@@ -4,21 +4,21 @@
   <!-- this is not being used at the moment, more hrer for completeness -->
   <elementDef name="GetFactionInfoRsp">
     <tupleInline>
-	    <!-- 0: factionIDbyNPCCorpID: dict: corpID -> factionID    -->
+        <!-- 0: factionIDbyNPCCorpID: dict: corpID -> factionID    -->
       <dictRaw name="factionIDbyNPCCorpID" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
-	    <!-- 1: factionRegions: dict: factionID -> listInt -->
+        <!-- 1: factionRegions: dict: factionID -> listInt -->
       <dictInt name="factionRegions" />
-	    <!-- 2: factionConstellations: dict: factionID -> listInt -->
+        <!-- 2: factionConstellations: dict: factionID -> listInt -->
       <dictInt name="factionConstellations" />
-	    <!-- 3: factionSolarSystems: dict: factionID -> listInt -->
+        <!-- 3: factionSolarSystems: dict: factionID -> listInt -->
       <dictInt name="factionSolarSystems" />
-	    <!-- 4: factionRaces: dict: factionID -> listInt -->
+        <!-- 4: factionRaces: dict: factionID -> listInt -->
       <dictInt name="factionRaces" />
-	    <!-- 5: factionStationCount: dict: factionID -> count -->
+        <!-- 5: factionStationCount: dict: factionID -> count -->
       <dictRaw name="factionStationCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
-	    <!-- 6: factionSolarSystemCount: dict: factionID -> count -->
+        <!-- 6: factionSolarSystemCount: dict: factionID -> count -->
       <dictRaw name="factionSolarSystemCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
-	    <!-- 7: npcCorpInfo: dict: corpID -> util.Row -->
+        <!-- 7: npcCorpInfo: dict: corpID -> util.Row -->
       <!--
           corporationName,
           corporationID,mainActivityID,secondaryActivityID,

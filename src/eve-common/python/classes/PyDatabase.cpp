@@ -45,52 +45,52 @@ DBRowDescriptor::DBRowDescriptor(PyList* keywords)
 DBRowDescriptor::DBRowDescriptor( const DBQueryResult& res )
 : PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs() )
 {
-	uint32 cc = res.ColumnCount();
+    uint32 cc = res.ColumnCount();
 
-	for( uint32 i = 0; i < cc; i++ )
-		AddColumn( res.ColumnName( i ), res.ColumnType( i ) );
+    for( uint32 i = 0; i < cc; i++ )
+        AddColumn( res.ColumnName( i ), res.ColumnType( i ) );
 }
 
 DBRowDescriptor::DBRowDescriptor( const DBResultRow& row )
 : PyObjectEx_Type1( new PyToken( "blue.DBRowDescriptor" ), _CreateArgs() )
 {
-	uint32 cc = row.ColumnCount();
+    uint32 cc = row.ColumnCount();
 
-	for( uint32 i = 0; i < cc; i++ )
-		AddColumn( row.ColumnName( i ), row.ColumnType( i ) );
+    for( uint32 i = 0; i < cc; i++ )
+        AddColumn( row.ColumnName( i ), row.ColumnType( i ) );
 }
 
 uint32 DBRowDescriptor::ColumnCount() const
 {
-	return _GetColumnList()->size();
+    return _GetColumnList()->size();
 }
 
 PyString* DBRowDescriptor::GetColumnName( uint32 index ) const
 {
-	return _GetColumn( index )->GetItem( 0 )->AsString();
+    return _GetColumn( index )->GetItem( 0 )->AsString();
 }
 
 DBTYPE DBRowDescriptor::GetColumnType( uint32 index ) const
 {
-	return (DBTYPE)_GetColumn( index )->GetItem( 1 )->AsInt()->value();
+    return (DBTYPE)_GetColumn( index )->GetItem( 1 )->AsInt()->value();
 }
 
 uint32 DBRowDescriptor::FindColumn( const char* name ) const
 {
-	uint32 cc = ColumnCount();
+    uint32 cc = ColumnCount();
     PyString* stringName = new PyString( name );
-    
-	for( uint32 i = 0; i < cc; i++ )
+
+    for( uint32 i = 0; i < cc; i++ )
     {
-		if( stringName->hash() == GetColumnName( i )->hash() )
+        if( stringName->hash() == GetColumnName( i )->hash() )
         {
             PyDecRef( stringName );
-			return i;
+            return i;
         }
     }
 
     PyDecRef( stringName );
-	return cc;
+    return cc;
 }
 
 bool DBRowDescriptor::VerifyValue( uint32 index, PyRep* value )
@@ -100,32 +100,32 @@ bool DBRowDescriptor::VerifyValue( uint32 index, PyRep* value )
 
 void DBRowDescriptor::AddColumn( const char* name, DBTYPE type )
 {
-	PyTuple* col = new PyTuple( 2 );
+    PyTuple* col = new PyTuple( 2 );
 
-	col->SetItem( 0, new PyString( name ) );
-	col->SetItem( 1, new PyInt( type ) );
+    col->SetItem( 0, new PyString( name ) );
+    col->SetItem( 1, new PyInt( type ) );
 
-	_GetColumnList()->items.push_back( col );
+    _GetColumnList()->items.push_back( col );
 }
 
 PyTuple* DBRowDescriptor::_GetColumnList() const
 {
-	return GetArgs()->GetItem( 0 )->AsTuple();
+    return GetArgs()->GetItem( 0 )->AsTuple();
 }
 
 PyTuple* DBRowDescriptor::_GetColumn( size_t index ) const
 {
-	return _GetColumnList()->GetItem( index )->AsTuple();
+    return _GetColumnList()->GetItem( index )->AsTuple();
 }
 
 PyTuple* DBRowDescriptor::_CreateArgs()
 {
-	PyTuple* columnList = new PyTuple( 0 );
+    PyTuple* columnList = new PyTuple( 0 );
 
-	PyTuple* args = new PyTuple( 1 );
-	args->SetItem( 0, columnList );
+    PyTuple* args = new PyTuple( 1 );
+    args->SetItem( 0, columnList );
 
-	return args;
+    return args;
 }
 
 /************************************************************************/
@@ -134,7 +134,7 @@ PyTuple* DBRowDescriptor::_CreateArgs()
 CRowSet::CRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-	*rowDesc = NULL;
+    *rowDesc = NULL;
 }
 
 PyPackedRow* CRowSet::NewRow()
@@ -143,50 +143,50 @@ PyPackedRow* CRowSet::NewRow()
     PyIncRef( rowDesc );
 
     PyPackedRow* row = new PyPackedRow( rowDesc );
-    
+
     list().AddItem( row );
-	return row;
+    return row;
 }
 
 DBRowDescriptor* CRowSet::_GetRowDesc() const
 {
-	PyRep* r = FindKeyword( "header" );
-	assert( r );
+    PyRep* r = FindKeyword( "header" );
+    assert( r );
 
-	return (DBRowDescriptor*)r->AsObjectEx();
+    return (DBRowDescriptor*)r->AsObjectEx();
 }
 
 /*PyList* CRowSet::_GetColumnList() const
 {
-	PyRep* r = FindKeyword( "columns" );
-	assert( r );
+    PyRep* r = FindKeyword( "columns" );
+    assert( r );
 
-	return r->AsList();
+    return r->AsList();
 }
 */
 
 PyTuple* CRowSet::_CreateArgs()
 {
-	PyTuple* args = new PyTuple( 1 );
-	args->SetItem( 0, new PyToken( "dbutil.CRowset" ) );
+    PyTuple* args = new PyTuple( 1 );
+    args->SetItem( 0, new PyToken( "dbutil.CRowset" ) );
 
-	return args;
+    return args;
 }
 
 PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 {
-	assert( rowDesc );
+    assert( rowDesc );
 
-	PyDict* keywords = new PyDict;
-	keywords->SetItemString( "header", rowDesc );
+    PyDict* keywords = new PyDict;
+    keywords->SetItemString( "header", rowDesc );
 
-	//uint32 cc = rowDesc->ColumnCount();
-	//PyList* columns = new PyList( cc );
-	//for( uint32 i = 0; i < cc; i++ )
-	//	columns->SetItem( i,  new PyString( *rowDesc->GetColumnName( i ) ) );
-	//keywords->SetItemString( "columns", columns ); //The Type_2 i had no longer used this
+    //uint32 cc = rowDesc->ColumnCount();
+    //PyList* columns = new PyList( cc );
+    //for( uint32 i = 0; i < cc; i++ )
+    //    columns->SetItem( i,  new PyString( *rowDesc->GetColumnName( i ) ) );
+    //keywords->SetItemString( "columns", columns ); //The Type_2 i had no longer used this
 
-	return keywords;
+    return keywords;
 }
 
 /************************************************************************/
@@ -195,7 +195,7 @@ PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 CIndexedRowSet::CIndexedRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-	*rowDesc = NULL;
+    *rowDesc = NULL;
 }
 
 PyPackedRow* CIndexedRowSet::NewRow( PyRep* key )
@@ -204,35 +204,35 @@ PyPackedRow* CIndexedRowSet::NewRow( PyRep* key )
     PyIncRef( rowDesc );
 
     PyPackedRow* row = new PyPackedRow( rowDesc );
-    
-	dict().SetItem( key , row );
-	return row;
+
+    dict().SetItem( key , row );
+    return row;
 }
 
 DBRowDescriptor* CIndexedRowSet::_GetRowDesc() const
 {
-	PyRep* r = FindKeyword( "header" );
-	assert( r );
+    PyRep* r = FindKeyword( "header" );
+    assert( r );
 
-	return (DBRowDescriptor*)r->AsObjectEx();
+    return (DBRowDescriptor*)r->AsObjectEx();
 }
 
 PyTuple* CIndexedRowSet::_CreateArgs()
 {
-	PyTuple* args = new PyTuple( 1 );
-	args->SetItem( 0, new PyToken( "dbutil.CIndexedRowset" ) );
+    PyTuple* args = new PyTuple( 1 );
+    args->SetItem( 0, new PyToken( "dbutil.CIndexedRowset" ) );
 
-	return args;
+    return args;
 }
 
 PyDict* CIndexedRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 {
-	assert( rowDesc );
+    assert( rowDesc );
 
-	PyDict* keywords = new PyDict;
-	keywords->SetItemString( "header", rowDesc );
-	keywords->SetItemString( "columnName", rowDesc->GetColumnName(0) );
+    PyDict* keywords = new PyDict;
+    keywords->SetItemString( "header", rowDesc );
+    keywords->SetItemString( "columnName", rowDesc->GetColumnName(0) );
 
-	
-	return keywords;
+
+    return keywords;
 }

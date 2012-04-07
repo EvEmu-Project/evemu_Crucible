@@ -34,14 +34,14 @@ class LiveUpdateDB : public Singleton<LiveUpdateDB>
 {
 private:
 
-	PyList* GenerateUpdates();
+    PyList* GenerateUpdates();
 
 public:
-	
-	PyList* GetUpdates()
-	{
-		return GenerateUpdates();
-	}
+
+    PyList* GetUpdates()
+    {
+        return GenerateUpdates();
+    }
 };
 
 #define sLiveUpdateDB \

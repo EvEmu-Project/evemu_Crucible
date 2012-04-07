@@ -33,8 +33,8 @@
     <tupleInline>
       <!-- 0 -->
       <substreamInline>
-	      <dictStr name="caches" />
-	    </substreamInline>
+          <dictStr name="caches" />
+        </substreamInline>
     </tupleInline>
   </elementDef>
 
@@ -42,10 +42,10 @@
     <tupleInline>
       <!-- 0 -->
       <int name="charID" />
-	    <!-- 1 -->
-	    <bool name="loadTutorialDungeon" soft="true" />
-	    <!-- 2 -->
-	    <raw name="secondChoiceID" />
+        <!-- 1 -->
+        <bool name="loadTutorialDungeon" soft="true" />
+        <!-- 2 -->
+        <raw name="secondChoiceID" />
     </tupleInline>
   </elementDef>
 
@@ -59,14 +59,14 @@
       <int name="genderID" />
       <!-- 3 -->
       <int name="ancestryID" />
-	    <!-- 4: schoolID -->
-	    <none />
-	    <!-- 5: departmentID -->
-	    <none />
-	    <!-- 6: fieldID -->
-	    <none />
-	    <!-- 7: specialityID -->
-	    <none />
+        <!-- 4: schoolID -->
+        <none />
+        <!-- 5: departmentID -->
+        <none />
+        <!-- 6: fieldID -->
+        <none />
+        <!-- 7: specialityID -->
+        <none />
       <!-- 8 -->
       <int name="IntelligenceAdd" />
       <!-- 9 -->
@@ -96,7 +96,7 @@
       <dictStr name="appearance" />
     </tupleInline>
   </elementDef>
-  
+
     <elementDef name="CallCreateCharacterWithDoll">
     <tupleInline>
       <wstring name="name" />
@@ -120,16 +120,16 @@
 
   <elementDef name="NotifyOnCharNowInStation">
     <tupleInline>
-	    <tupleInline>
-		    <!-- 0 -->
-		    <int name="charID" />
-		    <!-- 1 -->
-		    <int name="corpID" />
-		    <!-- 2 -->
-		    <int name="allianceID" default="0" none_marker="0" />
-		    <!-- 3 -->
-		    <int name="unknown" default="0" none_marker="0" />
-	    </tupleInline>
+        <tupleInline>
+            <!-- 0 -->
+            <int name="charID" />
+            <!-- 1 -->
+            <int name="corpID" />
+            <!-- 2 -->
+            <int name="allianceID" default="0" none_marker="0" />
+            <!-- 3 -->
+            <int name="unknown" default="0" none_marker="0" />
+        </tupleInline>
     </tupleInline>
   </elementDef>
 
@@ -149,10 +149,10 @@
   </elementDef>
 
   <elementDef name="Call_SetNote">
-	  <tupleInline>
-		  <int name="itemID" />
-		  <string name="note" />
-	  </tupleInline>
+      <tupleInline>
+          <int name="itemID" />
+          <string name="note" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="Call_AddOwnerNote">
@@ -189,15 +189,15 @@
       <list name="queue" />
     </tupleInline>
   </elementDef>
-  
+
   <elementDef name="Call_RespecCharacter">
-	<tupleInline>
-		<int name="charisma" />
-		<int name="intelligence" />
-		<int name="memory" />
-		<int name="perception" />
-		<int name="willpower" />
-	</tupleInline>
+    <tupleInline>
+        <int name="charisma" />
+        <int name="intelligence" />
+        <int name="memory" />
+        <int name="perception" />
+        <int name="willpower" />
+    </tupleInline>
   </elementDef>
 
   <elementDef name="Call_InjectSkillIntoBrain">

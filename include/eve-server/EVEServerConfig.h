@@ -41,16 +41,16 @@ public:
      */
     EVEServerConfig();
 
-	/// From <rates/>
-	struct
-	{
-		/// Rate at which skills train compared to normal speed
-		float skillRate;
-		/// Modifier for security rating changes. Changes how fast it goes up/down based on actions
-		float secRate;
-		/// Modifier for npc bounties automatically awarded for shooting down npc enemies.
-		float npcBountyMultiply;
-	} rates;
+    /// From <rates/>
+    struct
+    {
+        /// Rate at which skills train compared to normal speed
+        float skillRate;
+        /// Modifier for security rating changes. Changes how fast it goes up/down based on actions
+        float secRate;
+        /// Modifier for npc bounties automatically awarded for shooting down npc enemies.
+        float npcBountyMultiply;
+    } rates;
 
     /// From <account/>
     struct
@@ -66,14 +66,14 @@ public:
     {
         /// Money balance of new created characters.
         double startBalance;
-		/// Starting station ID for new characters
-		uint32 startStation;
-		/// Starting security rating for new characters.
-		double startSecRating;
-		/// Starting corp ID for new characters
-		uint32 startCorporation;
-		/// Delay for terminating a character in seconds
-		uint32 terminationDelay;
+        /// Starting station ID for new characters
+        uint32 startStation;
+        /// Starting security rating for new characters.
+        double startSecRating;
+        /// Starting corp ID for new characters
+        uint32 startCorporation;
+        /// Delay for terminating a character in seconds
+        uint32 terminationDelay;
     } character;
 
     // From <database/>
@@ -100,8 +100,8 @@ public:
         std::string logSettings;
         /// A directory at which the cache files should be stored.
         std::string cacheDir;
-		// used as the base directory for the image server
-		std::string imageDir;
+        // used as the base directory for the image server
+        std::string imageDir;
     } files;
 
     /// From <net/>
@@ -111,8 +111,8 @@ public:
         uint16 port;
         /// Port at which the imageServer should listen.
         uint16 imageServerPort;
-		/// the imageServer for char images. should be the evemu server external ip/host
-		std::string imageServer;
+        /// the imageServer for char images. should be the evemu server external ip/host
+        std::string imageServer;
         /// Port at which the apiServer should listen.
         uint16 apiServerPort;
         /// the apiServer for API functions. should be the evemu server external ip/host

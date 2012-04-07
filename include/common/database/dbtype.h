@@ -68,7 +68,7 @@ enum DBTYPE
     DBTYPE_UI2            = 0x12,
     DBTYPE_UI4            = 0x13,
     DBTYPE_I8             = 0x14,
-    DBTYPE_UI8	          = 0x15,
+    DBTYPE_UI8              = 0x15,
     DBTYPE_FILETIME       = 0x40, // 64-bit timestamp
     //DBTYPE_GUID         = 0x48, // not supported
     DBTYPE_BYTES          = 0x80,

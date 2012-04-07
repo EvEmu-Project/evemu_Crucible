@@ -40,16 +40,16 @@ class PasswordString
 : public PyObjectEx_Type2
 {
 public:
-	/**
-	 * @param[in] password Password to be stored.
-	 */
-	PasswordString( PyWString* password );
+    /**
+     * @param[in] password Password to be stored.
+     */
+    PasswordString( PyWString* password );
 
-	/** @return Password stored within this object. */
-	PyWString* GetPassword() const;
+    /** @return Password stored within this object. */
+    PyWString* GetPassword() const;
 
 protected:
-	static PyTuple* _CreateArgs( PyWString* password );
+    static PyTuple* _CreateArgs( PyWString* password );
 };
 
 #endif /* !__PY_UTILS_H__INCL__ */

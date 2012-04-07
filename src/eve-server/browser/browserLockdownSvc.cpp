@@ -9,7 +9,7 @@ BrowserLockDownService::BrowserLockDownService( PyServiceMgr *mgr ) : PyService(
 
     PyCallable_REG_CALL(BrowserLockDownService, GetFlaggedSitesHash)
     PyCallable_REG_CALL(BrowserLockDownService, GetFlaggedSitesList)
-	PyCallable_REG_CALL(BrowserLockDownService, GetDefaultHomePage)
+    PyCallable_REG_CALL(BrowserLockDownService, GetDefaultHomePage)
 }
 
 BrowserLockDownService::~BrowserLockDownService() {
@@ -37,7 +37,7 @@ PyString:"util.CachedObject"
     arg_tuple->SetItem(0, new_tuple("Method Call", "server", new_tuple("browserLockdownSvc", "GetFlaggedSitesHash")));
     arg_tuple->SetItem(1, new PyInt(0xACECD));
     arg_tuple->SetItem(2, new_tuple(0x1CC26986D4B75A0, 0xC017));
-    
+
     return new PyObject( "util.CachedObject" , arg_tuple );
 }
 
@@ -70,10 +70,10 @@ PyResult BrowserLockDownService::Handle_GetFlaggedSitesHash(PyCallArgs &call)
 }
 
 PyResult BrowserLockDownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
-	
-	//PyDict* args = new PyDict;
 
-	//return new PyObject( "objectCaching.CachedMethodCallResult", args );
+    //PyDict* args = new PyDict;
+
+    //return new PyObject( "objectCaching.CachedMethodCallResult", args );
 //}
 
         /*PyClass
@@ -112,7 +112,7 @@ PyResult BrowserLockDownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
 
     return new PyObject( "objectCaching.CachedMethodCallResult", arg_tuple );
 }
-    
+
 
 PyResult BrowserLockDownService::Handle_GetDefaultHomePage(PyCallArgs &call) {
     return NULL;

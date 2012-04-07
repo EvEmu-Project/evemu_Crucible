@@ -1,4 +1,4 @@
- 
+
 *** 22/07/2008 ***
 - Added autotools
 
@@ -13,7 +13,7 @@
 - Improved NPC AI to make them consistently follow, orbit and attack.
 - Hybrid and Laser modules consistently fire on NPCs now.
 - Implemented damage code including basic messages.
-- Implemented NPC death logic. 
+- Implemented NPC death logic.
 - Implement code to support asteroids in space.
 - Add new command to spawn an asteroid: /roid (typeID) (radius)
 - Implemented graphics for mining lasers (they do not yet actually mine though)
@@ -49,7 +49,7 @@ alter table chrOwnerNote CHANGE content note TEXT NOT NULL;
   - Place immediate buy orders
   - you prolly need to log out&in before seeing new orders right now.
 - Major destiny (space) work:
-  - Much improved event broadcasting to allow players to 
+  - Much improved event broadcasting to allow players to
     observe the actions of another player.
   - New module manager to handle different weapon types
   - Improved timer support for module activation/deactivation.
@@ -76,7 +76,7 @@ New Table: market_history_old
 *** 07/25/2007 ***
 - Major revelation with destiny updates, fixes 'jumpy' movement in space.
 - Much better understanding of the binary destiny update structure.
-- Significant work on the destiny manager. Server now tracks client movement for 
+- Significant work on the destiny manager. Server now tracks client movement for
   warp, goto direction, and follow movement modes (orbit is the only major mode pending).
 - Some initial drone launching code (not working yet)
 - A bunch of makefile cleanup.

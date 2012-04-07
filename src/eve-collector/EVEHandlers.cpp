@@ -5,14 +5,14 @@
 
 
 void EVECollectDispatcher::Rsp_GetCharactersToSelect(const PyPacket *packet, PyRepTuple **res) {
-	//RspGetCharactersToSelect rsp;
-	_log(COLLECT__ERROR, "Unhandled char list");
+    //RspGetCharactersToSelect rsp;
+    _log(COLLECT__ERROR, "Unhandled char list");
 }
 
 
 void EVECollectDispatcher::Bound_Rsp_List(const PyPacket *packet, PyRepTuple **res) {
-	
-	_log(COLLECT__ERROR, "Unhandled item list");
+
+    _log(COLLECT__ERROR, "Unhandled item list");
 }
 
 

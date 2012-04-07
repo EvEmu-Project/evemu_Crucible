@@ -654,16 +654,16 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
         return false;
     }
 
-	if (payload->items.size() != 1) {
-		codelog(NET__PACKET_ERROR, "invalid tuple length %lu", payload->items.size());
-		PyDecRef(payload);
-		return false;
-	}
-	if (!payload->items[0]->IsTuple()) {
-		codelog(NET__PACKET_ERROR, "non tuple payload[0]");
-		PyDecRef(payload);
-		return false;
-	}
+    if (payload->items.size() != 1) {
+        codelog(NET__PACKET_ERROR, "invalid tuple length %lu", payload->items.size());
+        PyDecRef(payload);
+        return false;
+    }
+    if (!payload->items[0]->IsTuple()) {
+        codelog(NET__PACKET_ERROR, "non tuple payload[0]");
+        PyDecRef(payload);
+        return false;
+    }
 
     PyTuple *payload2 = (PyTuple *) payload->items[0];
     if(payload2->items.size() != 2) {

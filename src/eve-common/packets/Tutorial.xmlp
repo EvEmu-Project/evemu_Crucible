@@ -3,28 +3,28 @@
 <elements>
 
   <elementDef name="Call_GetTutorialInfo">
-	  <tupleInline>
-		  <int name="tutorialID" />
-	  </tupleInline>
+      <tupleInline>
+          <int name="tutorialID" />
+      </tupleInline>
   </elementDef>
 
   <elementDef name="Rsp_GetTutorialInfo">
     <objectInline>
       <stringInline value="util.KeyVal" />
-	    <dictInline>
+        <dictInline>
         <dictInlineEntry key="pagecriterias">
           <raw name="pagecriterias" />
-		    </dictInlineEntry>
+            </dictInlineEntry>
         <dictInlineEntry key="pages">
-			    <raw name="pages" />
-		    </dictInlineEntry>
+                <raw name="pages" />
+            </dictInlineEntry>
         <dictInlineEntry key="tutorial">
-			    <raw name="tutorial" />
-		    </dictInlineEntry>
+                <raw name="tutorial" />
+            </dictInlineEntry>
         <dictInlineEntry key="criterias">
-			    <raw name="criterias" />
-		    </dictInlineEntry>
-	    </dictInline>
+                <raw name="criterias" />
+            </dictInlineEntry>
+        </dictInline>
     </objectInline>
   </elementDef>
 

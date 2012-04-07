@@ -7,11 +7,11 @@ namespace NPCAI {
  namespace State {
 
 void _Top::init() {
-	setState<Idle>();
+    setState<Idle>();
 }
 
 void _Top::entry() {
-	_log(NPC__AI_TRACE, "%s: AI has entered state %s", npc()->GetName(), GetStateName());
+    _log(NPC__AI_TRACE, "%s: AI has entered state %s", npc()->GetName(), GetStateName());
 }
 
 void Idle::Process() {

@@ -282,7 +282,7 @@ public:
     bool SetAttribute(uint32 attributeId, EvilNumber &num, bool nofity = true);
 
     EvilNumber GetAttribute(uint32 attributeId);
-    
+
     EvilNumber GetAttribute(const uint32 attributeId) const;
 
     /*
@@ -298,7 +298,7 @@ public:
      * except charge attributes but we won't handle them for now
      */
     bool Save();
-    
+
     bool Delete();
 
     // load the default attributes that come with the itemID
@@ -320,19 +320,19 @@ public:
     bool SaveIntAttribute(uint32 attributeID, int64 value);
     bool SaveFloatAttribute(uint32 attributeID, double value);
 
-	/*
-	 * ResetAttribute
-	 *
-	 *@note this function will force reload the default value for the specified attribute
-	 */
-	bool ResetAttribute(uint32 attrID, bool notify);
+    /*
+     * ResetAttribute
+     *
+     *@note this function will force reload the default value for the specified attribute
+     */
+    bool ResetAttribute(uint32 attrID, bool notify);
 
     //void set_item(InventoryItem *item) {mItem = item;}
 
     /**
      * @brief return the begin iterator of the AttributeMap
      *
-     * 
+     *
      *
      * @return the begin iterator of the AttributeMap
      * @note this way to solve the attribute system problems are quite hacky... but atm its needed
@@ -342,7 +342,7 @@ public:
     /**
      * @brief return the end iterator of the AttributeMap
      *
-     * 
+     *
      *
      * @return the end iterator of the AttributeMap
      * @note this way to solve the attribute system problems are quite hacky... but atm its needed

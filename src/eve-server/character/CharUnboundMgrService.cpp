@@ -29,140 +29,140 @@ PyCallable_Make_InnerDispatcher(CharUnboundMgrService)
 
 CharUnboundMgrService::CharUnboundMgrService(PyServiceMgr* mgr)
 : PyService(mgr, "charUnboundMgr"),
-  m_dispatch(new Dispatcher(this)) 
+  m_dispatch(new Dispatcher(this))
 {
-	_SetCallDispatcher(m_dispatch);
+    _SetCallDispatcher(m_dispatch);
 
-	PyCallable_REG_CALL(CharUnboundMgrService, SelectCharacterID)
-	PyCallable_REG_CALL(CharUnboundMgrService, GetCharacterToSelect)
-	PyCallable_REG_CALL(CharUnboundMgrService, GetCharactersToSelect)
-	PyCallable_REG_CALL(CharUnboundMgrService, GetCharacterInfo)
-	PyCallable_REG_CALL(CharUnboundMgrService, IsUserReceivingCharacter)
-	PyCallable_REG_CALL(CharUnboundMgrService, DeleteCharacter)
-	PyCallable_REG_CALL(CharUnboundMgrService, PrepareCharacterForDelete)
-	PyCallable_REG_CALL(CharUnboundMgrService, CancelCharacterDeletePrepare)
-	PyCallable_REG_CALL(CharUnboundMgrService, ValidateNameEx)
-	PyCallable_REG_CALL(CharUnboundMgrService, GetCharCreationInfo)
-	PyCallable_REG_CALL(CharUnboundMgrService, GetCharNewExtraCreationInfo)
-	PyCallable_REG_CALL(CharUnboundMgrService, CreateCharacterWithDoll)
+    PyCallable_REG_CALL(CharUnboundMgrService, SelectCharacterID)
+    PyCallable_REG_CALL(CharUnboundMgrService, GetCharacterToSelect)
+    PyCallable_REG_CALL(CharUnboundMgrService, GetCharactersToSelect)
+    PyCallable_REG_CALL(CharUnboundMgrService, GetCharacterInfo)
+    PyCallable_REG_CALL(CharUnboundMgrService, IsUserReceivingCharacter)
+    PyCallable_REG_CALL(CharUnboundMgrService, DeleteCharacter)
+    PyCallable_REG_CALL(CharUnboundMgrService, PrepareCharacterForDelete)
+    PyCallable_REG_CALL(CharUnboundMgrService, CancelCharacterDeletePrepare)
+    PyCallable_REG_CALL(CharUnboundMgrService, ValidateNameEx)
+    PyCallable_REG_CALL(CharUnboundMgrService, GetCharCreationInfo)
+    PyCallable_REG_CALL(CharUnboundMgrService, GetCharNewExtraCreationInfo)
+    PyCallable_REG_CALL(CharUnboundMgrService, CreateCharacterWithDoll)
 }
 
 CharUnboundMgrService::~CharUnboundMgrService() {
-	delete m_dispatch;
+    delete m_dispatch;
 }
 
 PyResult CharUnboundMgrService::Handle_IsUserReceivingCharacter(PyCallArgs &call) {
-	return new PyBool(false);
+    return new PyBool(false);
 }
 
 PyResult CharUnboundMgrService::Handle_ValidateNameEx(PyCallArgs &call)
 {
-	Call_SingleWStringArg arg;
-	if (!arg.Decode(&call.tuple))
-	{
-		codelog(CLIENT__ERROR, "Failed to decode args for ValidateNameEx call");
-		return NULL;
-	}
+    Call_SingleWStringArg arg;
+    if (!arg.Decode(&call.tuple))
+    {
+        codelog(CLIENT__ERROR, "Failed to decode args for ValidateNameEx call");
+        return NULL;
+    }
 
-	return new PyBool(m_db.ValidateCharName(arg.arg.c_str()));
+    return new PyBool(m_db.ValidateCharName(arg.arg.c_str()));
 }
 
 PyResult CharUnboundMgrService::Handle_SelectCharacterID(PyCallArgs &call) {
-	CallSelectCharacterID arg;
-	if (!arg.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Failed to decode args for SelectCharacterID call");
-		return NULL;
-	}
+    CallSelectCharacterID arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Failed to decode args for SelectCharacterID call");
+        return NULL;
+    }
 
-	call.client->SelectCharacter(arg.charID);
-	return NULL;
+    call.client->SelectCharacter(arg.charID);
+    return NULL;
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharactersToSelect(PyCallArgs &call) {
-	return(m_db.GetCharacterList(call.client->GetAccountID()));
+    return(m_db.GetCharacterList(call.client->GetAccountID()));
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharacterToSelect(PyCallArgs &call) {
-	Call_SingleIntegerArg args;
-	if(!args.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Invalid arguments");
-		return NULL;
-	}
+    Call_SingleIntegerArg args;
+    if(!args.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Invalid arguments");
+        return NULL;
+    }
 
-	PyRep *result = m_db.GetCharSelectInfo(args.arg);
-	if(result == NULL) {
-		_log(CLIENT__ERROR, "Failed to load character %d", args.arg);
-		return NULL;
-	}
+    PyRep *result = m_db.GetCharSelectInfo(args.arg);
+    if(result == NULL) {
+        _log(CLIENT__ERROR, "Failed to load character %d", args.arg);
+        return NULL;
+    }
 
-	return result;
+    return result;
 }
 
 PyResult CharUnboundMgrService::Handle_DeleteCharacter(PyCallArgs &call) {
-	Call_SingleIntegerArg args;
-	if (!args.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Invalid arguments for DeleteCharacter call");
-		return NULL;
-	}
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Invalid arguments for DeleteCharacter call");
+        return NULL;
+    }
 
-	return m_db.DeleteCharacter(call.client->GetAccountID(), args.arg);
+    return m_db.DeleteCharacter(call.client->GetAccountID(), args.arg);
 }
 
 PyResult CharUnboundMgrService::Handle_PrepareCharacterForDelete(PyCallArgs &call) {
-	Call_SingleIntegerArg args;
-	if (!args.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Invalid arguments for PrepareCharacterForDelete call");
-		return NULL;
-	}
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Invalid arguments for PrepareCharacterForDelete call");
+        return NULL;
+    }
 
-	return new PyLong((int64)m_db.PrepareCharacterForDelete(call.client->GetAccountID(), args.arg));
+    return new PyLong((int64)m_db.PrepareCharacterForDelete(call.client->GetAccountID(), args.arg));
 }
 
 PyResult CharUnboundMgrService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call) {
-	Call_SingleIntegerArg args;
-	if (!args.Decode(&call.tuple)) {
-		codelog(CLIENT__ERROR, "Invalid arguments for CancelCharacterDeletePrepare call");
-		return NULL;
-	}
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Invalid arguments for CancelCharacterDeletePrepare call");
+        return NULL;
+    }
 
-	m_db.CancelCharacterDeletePrepare(call.client->GetAccountID(), args.arg);
+    m_db.CancelCharacterDeletePrepare(call.client->GetAccountID(), args.arg);
 
-	// the client doesn't care what we return here
-	return NULL;
+    // the client doesn't care what we return here
+    return NULL;
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharacterInfo(PyCallArgs &call) {
-	return NULL;
+    return NULL;
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharCreationInfo(PyCallArgs &call) {
-	PyDict *result = new PyDict();
+    PyDict *result = new PyDict();
 
-	//send all the cache hints needed for char creation.
-	m_manager->cache_service->InsertCacheHints(
-		ObjCacheService::hCharCreateCachables,
-		result);
-	_log(CLIENT__MESSAGE, "Sending char creation info reply");
+    //send all the cache hints needed for char creation.
+    m_manager->cache_service->InsertCacheHints(
+        ObjCacheService::hCharCreateCachables,
+        result);
+    _log(CLIENT__MESSAGE, "Sending char creation info reply");
 
-	return result;
+    return result;
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharNewExtraCreationInfo(PyCallArgs &call) {
-	PyDict *result = new PyDict();
-	m_manager->cache_service->InsertCacheHints(ObjCacheService::hCharCreateNewExtraCachables, result);
-	_log(CLIENT__MESSAGE, "Sending char new extra creation info reply");
-	return result;
+    PyDict *result = new PyDict();
+    m_manager->cache_service->InsertCacheHints(ObjCacheService::hCharCreateNewExtraCachables, result);
+    _log(CLIENT__MESSAGE, "Sending char new extra creation info reply");
+    return result;
 }
 
 PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call) {
-	CallCreateCharacterWithDoll arg;
-	if (!arg.Decode(call.tuple))
-	{
-		codelog(CLIENT__ERROR, "Failed to decode args for CreateCharacterWithDoll call");
-		return NULL;
-	}
+    CallCreateCharacterWithDoll arg;
+    if (!arg.Decode(call.tuple))
+    {
+        codelog(CLIENT__ERROR, "Failed to decode args for CreateCharacterWithDoll call");
+        return NULL;
+    }
 
-	_log(CLIENT__MESSAGE, "CreateCharacterWithDoll called for '%s'", arg.name.c_str());
+    _log(CLIENT__MESSAGE, "CreateCharacterWithDoll called for '%s'", arg.name.c_str());
     _log(CLIENT__MESSAGE, "  bloodlineID=%u genderID=%u ancestryID=%u",
             arg.bloodlineID, arg.genderID, arg.ancestryID);
 
@@ -187,17 +187,17 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     cdata.accountID = call.client->GetAccountID();
     cdata.gender = arg.genderID;
     cdata.ancestryID = arg.ancestryID;
-	cdata.schoolID = arg.schoolID;
+    cdata.schoolID = arg.schoolID;
 
-	//Set the character's career based on the school they picked.
-	if( m_db.GetCareerBySchool( cdata.schoolID, cdata.careerID ) ) {
-		// Right now we don't know what causes the specialization switch, so just make both values the same
-		cdata.careerSpecialityID = cdata.careerID;
-	} else {
-		codelog(SERVICE__WARNING, "Could not find default School ID %u. Using Caldari Military.", cdata.schoolID);
-		cdata.careerID = 11;
-		cdata.careerSpecialityID = 11;
-	}
+    //Set the character's career based on the school they picked.
+    if( m_db.GetCareerBySchool( cdata.schoolID, cdata.careerID ) ) {
+        // Right now we don't know what causes the specialization switch, so just make both values the same
+        cdata.careerSpecialityID = cdata.careerID;
+    } else {
+        codelog(SERVICE__WARNING, "Could not find default School ID %u. Using Caldari Military.", cdata.schoolID);
+        cdata.careerID = 11;
+        cdata.careerSpecialityID = 11;
+    }
 
     corpData.corpRole = 0;
     corpData.rolesAtAll = 0;
@@ -222,16 +222,16 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         return NULL;
     }
 
-	idata.locationID = cdata.stationID; // Just so our starting items end up in the same place.
+    idata.locationID = cdata.stationID; // Just so our starting items end up in the same place.
 
-	// Change starting corperation based on value in XML file.
-	if( sConfig.character.startCorporation ) { // Skip if 0
-		if( m_db.DoesCorporationExist( sConfig.character.startCorporation ) ) {
-			cdata.corporationID = sConfig.character.startCorporation;
-		} else {
-			codelog(SERVICE__WARNING, "Could not find default Corporation ID %u. Using Career Defaults instead.", sConfig.character.startCorporation);
-		}
-	}
+    // Change starting corperation based on value in XML file.
+    if( sConfig.character.startCorporation ) { // Skip if 0
+        if( m_db.DoesCorporationExist( sConfig.character.startCorporation ) ) {
+            cdata.corporationID = sConfig.character.startCorporation;
+        } else {
+            codelog(SERVICE__WARNING, "Could not find default Corporation ID %u. Using Career Defaults instead.", sConfig.character.startCorporation);
+        }
+    }
     else
     {
         uint32 corporationID;
@@ -246,11 +246,11 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     }
 
     // Added ability to set starting station in xml config by Pyrii
-	if( sConfig.character.startStation ) { // Skip if 0
-		if( !m_db.GetLocationByStation(sConfig.character.startStation, cdata) ) {
-			codelog(SERVICE__WARNING, "Could not find default station ID %u. Using Career Defaults instead.", sConfig.character.startStation);
-		}
-	}
+    if( sConfig.character.startStation ) { // Skip if 0
+        if( !m_db.GetLocationByStation(sConfig.character.startStation, cdata) ) {
+            codelog(SERVICE__WARNING, "Could not find default station ID %u. Using Career Defaults instead.", sConfig.character.startStation);
+        }
+    }
     else
     {
         uint32 stationID;
@@ -362,7 +362,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
 
     // add 1 unit of "Clone Grade Alpha"
     ItemData itemCloneAlpha( 164, char_item->itemID(), char_item->locationID(), flagClone, 1 );
-	itemCloneAlpha.customInfo="active";
+    itemCloneAlpha.customInfo="active";
     initInvItem = m_manager->item_factory.SpawnItem( itemCloneAlpha );
 
     if( !initInvItem )
@@ -374,9 +374,9 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     ItemData shipItem( char_type->shipTypeID(), char_item->itemID(), char_item->locationID(), flagHangar, ship_name.c_str() );
     ShipRef ship_item = m_manager->item_factory.SpawnShip( shipItem );
 
-	// Set shipID
-	//DBQueryResult res;
-	//sDatabase.RunQuery(res, "UPDATE character_ SET shipID = %u WHERE characterID = %u", ship_item->itemID(), char_item->itemID());
+    // Set shipID
+    //DBQueryResult res;
+    //sDatabase.RunQuery(res, "UPDATE character_ SET shipID = %u WHERE characterID = %u", ship_item->itemID(), char_item->itemID());
     char_item->SetActiveShip( ship_item->itemID() );
     char_item->SaveCharacter();
 
@@ -389,8 +389,8 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
 
     _log( CLIENT__MESSAGE, "Sending char create ID %u as reply", char_item->itemID() );
 
-	// we need to report the charID to the ImageServer so it can correctly assign a previously received image
-	sImageServer.ReportNewCharacter(call.client->GetAccountID(), char_item->itemID());
+    // we need to report the charID to the ImageServer so it can correctly assign a previously received image
+    sImageServer.ReportNewCharacter(call.client->GetAccountID(), char_item->itemID());
 
     // Release the item factory now that the character is finished being accessed:
     m_manager->item_factory.UnsetUsingClient();

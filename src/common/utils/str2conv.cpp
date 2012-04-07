@@ -31,31 +31,31 @@ template<>
 bool str2< bool >( const char* str )
 {
     if( !strcasecmp( str, "true" ) )
-	    return true;
+        return true;
     else if( !strcasecmp( str, "false" ) )
-	    return false;
+        return false;
     else if( !strcasecmp( str, "yes" ) )
-	    return true;
+        return true;
     else if( !strcasecmp( str, "no" ) )
-	    return false;
+        return false;
     else if( !strcasecmp( str, "y" ) )
-	    return true;
+        return true;
     else if( !strcasecmp( str, "n" ) )
-	    return false;
+        return false;
     else if( !strcasecmp( str, "on" ) )
-	    return true;
+        return true;
     else if( !strcasecmp( str, "off" ) )
-	    return false;
+        return false;
     else if( !strcasecmp( str, "enable" ) )
-	    return true;
+        return true;
     else if( !strcasecmp( str, "disable" ) )
-	    return false;
+        return false;
     else if( !strcasecmp( str, "enabled" ) )
-	    return true;
+        return true;
     else if( !strcasecmp( str, "disabled" ) )
-	    return false;
+        return false;
     else if( str2< int >( str ) )
-	    return true;
+        return true;
     else
         return false;
 }

@@ -109,11 +109,11 @@ public:
     bool IsInt() const
     {
 #ifdef WIN32
-	#ifdef _M_IX86
+    #ifdef _M_IX86
         /* crash when we missed a convertion... lol */
         if (mType == PyTypeLong)
             __asm{int 3};
-	#endif
+    #endif
 #endif//WIN32
         return mType == PyTypeInt;
     }
@@ -238,7 +238,7 @@ class PyInt : public PyRep
 {
 public:
     PyInt( const int32 i );
-	PyInt( const PyInt& oth );
+    PyInt( const PyInt& oth );
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -260,7 +260,7 @@ class PyLong : public PyRep
 {
 public:
     PyLong( const int64 i );
-	PyLong( const PyLong& oth );
+    PyLong( const PyLong& oth );
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -282,7 +282,7 @@ class PyFloat : public PyRep
 {
 public:
     PyFloat( const double& i );
-	PyFloat( const PyFloat& oth );
+    PyFloat( const PyFloat& oth );
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -304,12 +304,12 @@ class PyBool : public PyRep
 {
 public:
     PyBool( bool i );
-	PyBool( const PyBool& oth );
+    PyBool( const PyBool& oth );
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
-	bool value() const { return mValue; }
+    bool value() const { return mValue; }
 
 protected:
     const bool mValue;
@@ -399,7 +399,7 @@ public:
     template<typename Iter>
     PyString( Iter first, Iter last );
     /** Calls std::string( const std::string& ). */
-	PyString( const std::string& str );
+    PyString( const std::string& str );
 
     /** Copy constructor. */
     PyString( const PyBuffer& buf );
@@ -456,7 +456,7 @@ public:
      * @return the std::string reference.
      */
     const std::string& content() const { return mValue; }
-    
+
     /**
      * @brief Obtains length of string.
      *
@@ -566,8 +566,8 @@ public:
 
     int32 hash() const;
 
-	// This needs to be public for now.
-	storage_type items;
+    // This needs to be public for now.
+    storage_type items;
 
 protected:
     virtual ~PyTuple();
@@ -663,7 +663,7 @@ protected:
     public:
         size_t operator()( const PyRep* _Keyval ) const
         {
-			assert( _Keyval );
+            assert( _Keyval );
 
             return (size_t)_Keyval->hash();
         }
@@ -844,9 +844,9 @@ protected:
 class PyObjectEx_Type1 : public PyObjectEx
 {
 public:
-	PyObjectEx_Type1( PyToken* type, PyTuple* args );
+    PyObjectEx_Type1( PyToken* type, PyTuple* args );
     PyObjectEx_Type1( PyToken* type, PyTuple* args, PyDict* keywords );
-	PyObjectEx_Type1( PyToken* type, PyTuple* args, PyList* keywords );
+    PyObjectEx_Type1( PyToken* type, PyTuple* args, PyList* keywords );
 
     PyToken* GetType() const;
     PyTuple* GetArgs() const;
@@ -856,8 +856,8 @@ public:
 
 protected:
     static PyTuple* _CreateHeader( PyToken* type, PyTuple* args );
-	static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords );
-	static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyList* keywords );
+    static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords );
+    static PyTuple* _CreateHeader( PyToken* type, PyTuple* args, PyList* keywords );
 };
 
 /**
@@ -932,7 +932,7 @@ class PySubStruct : public PyRep
 {
 public:
     PySubStruct( PyRep* t );
-	PySubStruct( const PySubStruct& oth );
+    PySubStruct( const PySubStruct& oth );
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -950,7 +950,7 @@ class PySubStream : public PyRep
 public:
     PySubStream( PyRep* rep );
     PySubStream( PyBuffer* buffer );
-	PySubStream( const PySubStream& oth );
+    PySubStream( const PySubStream& oth );
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -976,7 +976,7 @@ class PyChecksumedStream : public PyRep
 {
 public:
     PyChecksumedStream( PyRep* t, uint32 sum );
-	PyChecksumedStream( const PyChecksumedStream& oth );
+    PyChecksumedStream( const PyChecksumedStream& oth );
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;

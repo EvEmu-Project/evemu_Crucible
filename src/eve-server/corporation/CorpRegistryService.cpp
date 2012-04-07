@@ -66,9 +66,9 @@ public:
         // STUBBS
         PyCallable_REG_CALL(CorpRegistryBound, GetMember)
         PyCallable_REG_CALL(CorpRegistryBound, GetMembers)
-		PyCallable_REG_CALL(CorpRegistryBound, GetSharesByShareholder)
+        PyCallable_REG_CALL(CorpRegistryBound, GetSharesByShareholder)
 
-        
+
     }
     virtual ~CorpRegistryBound() { delete m_dispatch; }
     virtual void Release() {
@@ -99,9 +99,9 @@ public:
     // STUBBS
     PyCallable_DECL_CALL(GetMember)
     PyCallable_DECL_CALL(GetMembers)
-	PyCallable_DECL_CALL(GetSharesByShareholder)
+    PyCallable_DECL_CALL(GetSharesByShareholder)
 
-    
+
 
 protected:
     bool JoinCorporation(Client *who, uint32 newCorpID, const CorpMemberInfo &roles);
@@ -323,7 +323,7 @@ bool CorpRegistryBound::JoinCorporation(Client *who, uint32 newCorpID, const Cor
 PyResult CorpRegistryBound::Handle_GetMember(PyCallArgs &call) {
 //    uint32 item = 0;
     //item += 1;
-	sLog.Debug( "CorpRegistryBound", "Called GetMember stub." );
+    sLog.Debug( "CorpRegistryBound", "Called GetMember stub." );
     return NULL;
 }
 
@@ -385,8 +385,8 @@ PyClass
         dict["N=707075:302"]=0x1CC2383E961BFA8
 */
 PyResult CorpRegistryBound::Handle_GetMembers(PyCallArgs &call) {
-	
-	sLog.Debug( "CorpRegistryBound", "Called GetMembers stub." );
+
+    sLog.Debug( "CorpRegistryBound", "Called GetMembers stub." );
     return NULL;
 }
 
@@ -1008,7 +1008,7 @@ PyResult CorpRegistryBound::Handle_UpdateLogo(PyCallArgs &call) {
 }
 
 PyResult CorpRegistryBound::Handle_GetSharesByShareholder(PyCallArgs &call) {
-	sLog.Log("CorpRegisrtyBound", "Called GetSharesByShareholder stub.");
+    sLog.Log("CorpRegisrtyBound", "Called GetSharesByShareholder stub.");
 
-	return NULL;
+    return NULL;
 }

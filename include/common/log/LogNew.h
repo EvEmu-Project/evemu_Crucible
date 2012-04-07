@@ -44,7 +44,7 @@ class NewLog
 public:
     /// Primary constructor, initializes logging.
     NewLog();
-	NewLog(std::string logPath);
+    NewLog(std::string logPath);
     /// Destructor, closes the logfile.
     ~NewLog();
 
@@ -53,7 +53,7 @@ public:
      *
      * @param[in] logPath is the absolute or relative path where log files are to be stored
      */
-	void InitializeLogging( std::string logPath );
+    void InitializeLogging( std::string logPath );
     /**
      * @brief Logs a message to file.
      *
@@ -184,7 +184,7 @@ protected:
     /**
      * @brief Sets the default logfile.
      */
-	void SetLogfileDefault(std::string logPath);
+    void SetLogfileDefault(std::string logPath);
 
     /// The active logfile.
     FILE* mLogfile;
@@ -193,7 +193,7 @@ protected:
     /// Protection against concurrent log messages
     Mutex mMutex;
 
-	bool m_initialized;
+    bool m_initialized;
 
 #ifdef WIN32
     /// Handle to standard output stream.

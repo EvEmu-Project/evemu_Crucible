@@ -79,10 +79,10 @@ bool DBcore::RunQuery(DBQueryResult &into, const char *query_fmt, ...) {
 
     //give them the result set.
     into.SetResult(&result, col_count);
-	
-	//DEBUG STUFF
-	//sLog.Debug("%s",query);
-	//End Debug Stuff
+
+    //DEBUG STUFF
+    //sLog.Debug("%s",query);
+    //End Debug Stuff
 
 
     return true;
@@ -190,7 +190,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
         sLog.Error("DBCore Query", "Query: %s failed", query);
         if(errnum != NULL)
             *errnum = err.GetErrNo();
-        
+
         /* @note possible buffer overflow because the size of 'errbuf' is unknown.
          * @todo check if this function is actualy used and of so... change the strcpy to strncpy.
          */
@@ -206,7 +206,7 @@ bool DBcore::RunQuery(const char* query, int32 querylen, char* errbuf, MYSQL_RES
             *result = NULL;
             if (errnum)
                 *errnum = UINT_MAX;
- 
+
             /* @note possible buffer overflow because the size of 'errbuf' is unknown.
              * @todo check if this function is actualy used and of so... change the strcpy to strncpy.
              */
@@ -524,13 +524,13 @@ void DBQueryResult::SetResult( MYSQL_RES** res, uint32 colCount )
     mColumnCount = colCount;
 
     if( NULL != mResult )
-	{
-		mFields = new MYSQL_FIELD*[ ColumnCount() ];
-	    
-		// we are
-		for( uint32 i = 0; i < ColumnCount(); ++i )
-			mFields[ i ] = mysql_fetch_field( mResult );
-	}
+    {
+        mFields = new MYSQL_FIELD*[ ColumnCount() ];
+
+        // we are
+        for( uint32 i = 0; i < ColumnCount(); ++i )
+            mFields[ i ] = mysql_fetch_field( mResult );
+    }
 }
 
 DBResultRow::DBResultRow()
@@ -568,13 +568,13 @@ int32 DBResultRow::GetInt( uint32 index ) const
 bool DBResultRow::GetBool( uint32 index ) const
 {
 #ifdef COLUMN_BOUNDS_CHECKING
-	if( index >= ColumnCount() )
-	{
-		sLog.Error( "DBCore Result Row", "GetInt: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
-		return 0;       //nothing better to do...
-	}
+    if( index >= ColumnCount() )
+    {
+        sLog.Error( "DBCore Result Row", "GetInt: Column index %u exceeds number of columns (%u) in row", index, ColumnCount() );
+        return 0;       //nothing better to do...
+    }
 #endif
-	return GetText(index)[0] == 1;
+    return GetText(index)[0] == 1;
 }
 
 uint32 DBResultRow::GetUInt( uint32 index ) const

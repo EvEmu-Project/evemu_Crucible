@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Zhur
 */
 
 #include "XMLPktGenPCH.h"
@@ -51,19 +51,19 @@ bool ClassDestructGenerator::ProcessElementDef( const TiXmlElement* field )
 
     fprintf( mOutputFile,
         "%s::~%s()\n"
-		"{\n",
+        "{\n",
         name, name
-	);
+    );
 
     if( !ParseElementChildren( field ) )
         return false;
 
     fprintf( mOutputFile,
-		"}\n"
-		"\n"
-	);
+        "}\n"
+        "\n"
+    );
 
-	return true;
+    return true;
 }
 
 bool ClassDestructGenerator::ProcessElement( const TiXmlElement* field )
@@ -73,34 +73,34 @@ bool ClassDestructGenerator::ProcessElement( const TiXmlElement* field )
 
 bool ClassDestructGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     fprintf( mOutputFile,
-		"    SafeDelete( %s );\n",
-		name
-	);
+        "    SafeDelete( %s );\n",
+        name
+    );
 
     return true;
 }
 
 bool ClassDestructGenerator::ProcessRaw( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     fprintf( mOutputFile,
-		"    PySafeDecRef( %s );\n",
-		name
-	);
+        "    PySafeDecRef( %s );\n",
+        name
+    );
 
     return true;
 }
@@ -132,17 +132,17 @@ bool ClassDestructGenerator::ProcessNone( const TiXmlElement* field )
 
 bool ClassDestructGenerator::ProcessBuffer( const TiXmlElement* field )
 {
-	const char* name = field->Attribute( "name" );
-	if( name == NULL )
+    const char* name = field->Attribute( "name" );
+    if( name == NULL )
     {
-		_log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
-		return false;
-	}
+        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+        return false;
+    }
 
     fprintf( mOutputFile,
-		"    PySafeDecRef( %s );\n",
-		name
-	);
+        "    PySafeDecRef( %s );\n",
+        name
+    );
 
     return true;
 }
@@ -177,8 +177,8 @@ bool ClassDestructGenerator::ProcessToken( const TiXmlElement* field )
     }
 
     fprintf( mOutputFile,
-	    "    PySafeDecRef( %s );\n",
-	    name
+        "    PySafeDecRef( %s );\n",
+        name
     );
 
     return true;
@@ -193,7 +193,7 @@ bool ClassDestructGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
@@ -216,15 +216,15 @@ bool ClassDestructGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
-	fprintf( mOutputFile,
-		"    PySafeDecRef( %s );\n",
-		name
-	);
+    fprintf( mOutputFile,
+        "    PySafeDecRef( %s );\n",
+        name
+    );
 
     return true;
 }
@@ -233,15 +233,15 @@ bool ClassDestructGenerator::ProcessTuple( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
     fprintf( mOutputFile,
-		"    PySafeDecRef( %s );\n",
-		name
-	);
+        "    PySafeDecRef( %s );\n",
+        name
+    );
 
     return true;
 }
@@ -255,15 +255,15 @@ bool ClassDestructGenerator::ProcessList( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
     fprintf( mOutputFile,
-		"    PySafeDecRef( %s );\n",
-		name
-	);
+        "    PySafeDecRef( %s );\n",
+        name
+    );
 
     return true;
 }
@@ -291,15 +291,15 @@ bool ClassDestructGenerator::ProcessDict( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
 
     fprintf( mOutputFile,
-		"    PySafeDecRef( %s );\n",
-		name
-	);
+        "    PySafeDecRef( %s );\n",
+        name
+    );
 
     return true;
 }
@@ -331,7 +331,7 @@ bool ClassDestructGenerator::ProcessDictInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
@@ -342,11 +342,11 @@ bool ClassDestructGenerator::ProcessDictInt( const TiXmlElement* field )
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
         "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"        PyDecRef( %s_cur->second );\n"
+        "        PyDecRef( %s_cur->second );\n"
         "\n",
         name, name,
-		name, name,
-		name, name,
+        name, name,
+        name, name,
         name, name, name,
         name
     );
@@ -358,7 +358,7 @@ bool ClassDestructGenerator::ProcessDictStr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if( name == NULL )
-	{
+    {
         _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
         return false;
     }
@@ -369,11 +369,11 @@ bool ClassDestructGenerator::ProcessDictStr( const TiXmlElement* field )
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
         "    for(; %s_cur != %s_end; %s_cur++)\n"
-		"        PyDecRef( %s_cur->second );\n"
+        "        PyDecRef( %s_cur->second );\n"
         "\n",
         name, name,
-		name, name,
-		name, name,
+        name, name,
+        name, name,
         name, name, name,
         name
     );

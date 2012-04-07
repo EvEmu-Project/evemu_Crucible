@@ -1,6 +1,6 @@
 <elements>
-	
-	<elementDef name="RspGetSystemSovereigntyInfo">
+
+    <elementDef name="RspGetSystemSovereigntyInfo">
     <tupleInline>
       <int name="contested" />
       <int name="corporationID" />
@@ -10,6 +10,6 @@
       <int name="allianceID" />
       <int name="solarSystemID" />
     </tupleInline>
-	</elementDef>
+    </elementDef>
 
 </elements>

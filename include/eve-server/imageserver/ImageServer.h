@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:		caytchen
+    Author:        caytchen
 */
 
 #ifndef __IMAGESERVER__H__INCL__
@@ -31,10 +31,10 @@
 #include <memory>
 #include <string>
 #if defined( MSVC )
-	#include <unordered_map>
+    #include <unordered_map>
 #else
-	#include <tr1/unordered_map>
-	#include <tr1/memory>
+    #include <tr1/unordered_map>
+    #include <tr1/memory>
 #endif
 #include <asio.hpp>
 
@@ -54,46 +54,46 @@ class ImageServerListener;
 class ImageServer : public Singleton<ImageServer>
 {
 public:
-	ImageServer();
-	void Run();
+    ImageServer();
+    void Run();
 
-	std::string& url();
+    std::string& url();
 
     void ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData);
-	void ReportNewCharacter(uint32 creatorAccountID, uint32 characterID);
+    void ReportNewCharacter(uint32 creatorAccountID, uint32 characterID);
 
-	std::string GetFilePath(std::string& category, uint32 id, uint32 size);
+    std::string GetFilePath(std::string& category, uint32 id, uint32 size);
     std::tr1::shared_ptr<std::vector<char> > GetImage(std::string& category, uint32 id, uint32 size);
 
-	static const char *const Categories[];
-	static const uint32 CategoryCount;
+    static const char *const Categories[];
+    static const uint32 CategoryCount;
 
-	// used when the ImageServer can't find the image requested
-	// this way we don't have to transfer over all the static NPC images
-	static const char *const FallbackURL;
+    // used when the ImageServer can't find the image requested
+    // this way we don't have to transfer over all the static NPC images
+    static const char *const FallbackURL;
 
 private:
-	void RunInternal();
-	bool ValidateCategory(std::string& category);
-	bool ValidateSize(std::string& category, uint32 size);
-	static bool CreateNewDirectory(std::string& path);
+    void RunInternal();
+    bool ValidateCategory(std::string& category);
+    bool ValidateSize(std::string& category, uint32 size);
+    static bool CreateNewDirectory(std::string& path);
 
     std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char> > /*imageData*/> _limboImages;
-	std::auto_ptr<asio::thread> _ioThread;
-	std::auto_ptr<asio::io_service> _io;
-	std::auto_ptr<ImageServerListener> _listener;
-	std::string _url;
-	std::string _basePath;
-	asio::detail::mutex _limboLock;
+    std::auto_ptr<asio::thread> _ioThread;
+    std::auto_ptr<asio::io_service> _io;
+    std::auto_ptr<ImageServerListener> _listener;
+    std::string _url;
+    std::string _basePath;
+    asio::detail::mutex _limboLock;
 
-	class Lock
-	{
-	public:
-		Lock(asio::detail::mutex& mutex);
-		~Lock();
-	private:
-		asio::detail::mutex& _mutex;
-	};
+    class Lock
+    {
+    public:
+        Lock(asio::detail::mutex& mutex);
+        ~Lock();
+    private:
+        asio::detail::mutex& _mutex;
+    };
 };
 
 #define sImageServer \

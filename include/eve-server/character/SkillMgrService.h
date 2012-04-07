@@ -1,26 +1,26 @@
 /*
-	------------------------------------------------------------------------------------
-	LICENSE:
-	------------------------------------------------------------------------------------
-	This file is part of EVEmu: EVE Online Server Emulator
-	Copyright 2006 - 2011 The EVEmu Team
-	For the latest information visit http://evemu.org
-	------------------------------------------------------------------------------------
-	This program is free software; you can redistribute it and/or modify it under
-	the terms of the GNU Lesser General Public License as published by the Free Software
-	Foundation; either version 2 of the License, or (at your option) any later
-	version.
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT
-	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-	You should have received a copy of the GNU Lesser General Public License along with
-	this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-	Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-	http://www.gnu.org/copyleft/lesser.txt.
-	------------------------------------------------------------------------------------
-	Author:		Zhur
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Zhur
 */
 
 #ifndef _SKILLMGR_SERVICE_H
@@ -32,80 +32,80 @@
 
 class SkillMgrService : public PyService {
 public:
-	SkillMgrService(PyServiceMgr *mgr);
-	virtual ~SkillMgrService();
+    SkillMgrService(PyServiceMgr *mgr);
+    virtual ~SkillMgrService();
 
 protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
+    class Dispatcher;
+    Dispatcher *const m_dispatch;
 
-	CharacterDB m_db;
+    CharacterDB m_db;
 
-	//overloaded in order to support bound objects:
-	virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+    //overloaded in order to support bound objects:
+    virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 };
 
 class SkillMgrBound
 : public PyBoundObject
 {
 public:
-	SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db);
-	virtual ~SkillMgrBound();
+    SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db);
+    virtual ~SkillMgrBound();
 
-	virtual void Release();
+    virtual void Release();
 
-	/**
-	 * InjectSkillIntoBrain
-	 *
-	 * Injects a list of skills into a characters brain.
-	 */
-	PyCallable_DECL_CALL(InjectSkillIntoBrain)
+    /**
+     * InjectSkillIntoBrain
+     *
+     * Injects a list of skills into a characters brain.
+     */
+    PyCallable_DECL_CALL(InjectSkillIntoBrain)
 
-	/**
-	 * CharStartTrainingSkillByTypeID
-	 *
-	 * Starts training a characters skill based on typeID
-	 */
-	PyCallable_DECL_CALL(CharStartTrainingSkillByTypeID)
-	PyCallable_DECL_CALL(CharStopTrainingSkill)
-	PyCallable_DECL_CALL(GetEndOfTraining)
-	PyCallable_DECL_CALL(GetSkillHistory)
-	PyCallable_DECL_CALL(CharAddImplant)
-	PyCallable_DECL_CALL(RemoveImplantFromCharacter)
-	
-	/**
-	 * GetSkillQueueAndFreePoints
-	 *
-	 * Gets the list of skill currently in
-	 * the skill queue for a character and the free points.
-	 */	
-	PyCallable_DECL_CALL(GetSkillQueueAndFreePoints)
+    /**
+     * CharStartTrainingSkillByTypeID
+     *
+     * Starts training a characters skill based on typeID
+     */
+    PyCallable_DECL_CALL(CharStartTrainingSkillByTypeID)
+    PyCallable_DECL_CALL(CharStopTrainingSkill)
+    PyCallable_DECL_CALL(GetEndOfTraining)
+    PyCallable_DECL_CALL(GetSkillHistory)
+    PyCallable_DECL_CALL(CharAddImplant)
+    PyCallable_DECL_CALL(RemoveImplantFromCharacter)
 
-	/**
-	 * SaveSkillQueue
-	 *
-	 * Saves a list of character skills received
-	 * from the client.
-	 */
-	PyCallable_DECL_CALL(SaveSkillQueue)
+    /**
+     * GetSkillQueueAndFreePoints
+     *
+     * Gets the list of skill currently in
+     * the skill queue for a character and the free points.
+     */
+    PyCallable_DECL_CALL(GetSkillQueueAndFreePoints)
 
-	/**
-	 * AddToEndOfSkillQueue
-	 *
-	 * Adds a skill to end of a characters skill 
-	 * queue.
-	 */
-	PyCallable_DECL_CALL(AddToEndOfSkillQueue)
+    /**
+     * SaveSkillQueue
+     *
+     * Saves a list of character skills received
+     * from the client.
+     */
+    PyCallable_DECL_CALL(SaveSkillQueue)
 
-	PyCallable_DECL_CALL(RespecCharacter)
-	PyCallable_DECL_CALL(GetRespecInfo)
-	PyCallable_DECL_CALL(GetCharacterAttributeModifiers)
+    /**
+     * AddToEndOfSkillQueue
+     *
+     * Adds a skill to end of a characters skill
+     * queue.
+     */
+    PyCallable_DECL_CALL(AddToEndOfSkillQueue)
+
+    PyCallable_DECL_CALL(RespecCharacter)
+    PyCallable_DECL_CALL(GetRespecInfo)
+    PyCallable_DECL_CALL(GetCharacterAttributeModifiers)
 
 protected:
-	class Dispatcher;
-	Dispatcher *const m_dispatch;
+    class Dispatcher;
+    Dispatcher *const m_dispatch;
 
-	CharacterDB &m_db;
+    CharacterDB &m_db;
 };
 
 #endif
