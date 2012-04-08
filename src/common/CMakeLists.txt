@@ -179,7 +179,7 @@ ADD_LIBRARY( "${TARGET_NAME}"
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/CommonPCH.h"
-                  "${TARGEN_SOURCE_DIR}/common.cpp" )
+                  "${TARGET_SOURCE_DIR}/common.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${MYSQL_LIBRARIES}
                        ${GANGSTA_LIBRARIES}
