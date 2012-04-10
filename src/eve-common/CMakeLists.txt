@@ -4,34 +4,6 @@
 # Author: Bloody.Rabbit
 #
 
-################
-# Dependencies #
-################
-ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/utils"
-                  "${PROJECT_BINARY_DIR}/dep/utils" )
-
-FIND_PACKAGE( "Boost"   QUIET )
-FIND_PACKAGE( "UTF8CPP" QUIET )
-MARK_AS_ADVANCED( Boost_DIR Boost_LIB_DIAGNOSTIC_DEFINITIONS )
-
-IF( NOT Boost_FOUND )
-  ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/boost"
-                    "${PROJECT_BINARY_DIR}/dep/boost" )
-
-  SET( Boost_FOUND        TRUE )
-  SET( Boost_INCLUDE_DIRS ${boost_INCLUDE_DIRS} )
-  SET( Boost_LIBRARIES    "boost" )
-ENDIF( NOT Boost_FOUND )
-
-IF( NOT UTF8CPP_FOUND )
-  ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/utf8cpp"
-                    "${PROJECT_BINARY_DIR}/dep/utf8cpp" )
-
-  SET( UTF8CPP_FOUND        TRUE )
-  SET( UTF8CPP_INCLUDE_DIRS ${utf8cpp_INCLUDE_DIRS} )
-  SET( UTF8CPP_LIBRARIES    "utf8cpp" )
-ENDIF( NOT UTF8CPP_FOUND )
-
 ##############
 # Initialize #
 ##############
@@ -39,19 +11,6 @@ SET( TARGET_NAME        "eve-common" )
 SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${TARGET_NAME}" )
-
-SET( TARGET_INCLUDE_DIRS
-     ${Boost_INCLUDE_DIRS}
-     ${UTF8CPP_INCLUDE_DIRS}
-     ${utils_INCLUDE_DIRS}
-     ${common_INCLUDE_DIRS}
-     "${TARGET_INCLUDE_DIR}"
-     "${TARGET_PACKETS_DIR}" )
-
-# Export directories
-SET( ${TARGET_NAME}_INCLUDE_DIRS
-     ${TARGET_INCLUDE_DIRS}
-     PARENT_SCOPE )
 
 #########
 # Files #
@@ -210,7 +169,14 @@ SET( utils_SOURCE
 #####################
 # Setup the library #
 #####################
-INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${UTF8CPP_INCLUDE_DIR}" )
+
+INCLUDE_DIRECTORIES( "${utils_INCLUDE_DIR}" )
+
+INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_PACKETS_DIR}" )
 
 SOURCE_GROUP( "include"                  FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\cache"           FILES ${cache_INCLUDE} )
@@ -260,7 +226,11 @@ ADD_LIBRARY( "${TARGET_NAME}"
              ${utils_INCLUDE}          ${utils_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/EVECommonPCH.h"
-                  "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
-TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "common" "utils" )
+                  "EVECommonPCH.h"
+                  "utils/EVEUtils.cpp" )
+
+######################
+# Export directories #
+######################
+SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )
+SET( ${TARGET_NAME}_PACKETS_DIR "${TARGET_PACKETS_DIR}" PARENT_SCOPE )

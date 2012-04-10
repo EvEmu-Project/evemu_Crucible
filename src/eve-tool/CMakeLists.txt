@@ -11,15 +11,6 @@ SET( TARGET_NAME        "eve-tool" )
 SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
-SET( TARGET_INCLUDE_DIRS
-     ${eve-common_INCLUDE_DIRS}
-     "${TARGET_INCLUDE_DIR}" )
-
-# Export directories
-SET( ${TARGET_NAME}_INCLUDE_DIRS
-     ${TARGET_INCLUDE_DIRS}
-     PARENT_SCOPE )
-
 #########
 # Files #
 #########
@@ -33,7 +24,14 @@ SET( SOURCE
 ########################
 # Setup the executable #
 ########################
-INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
+INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
+
+INCLUDE_DIRECTORIES( "${utils_INCLUDE_DIR}" )
+
+INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${eve-common_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( "${eve-common_PACKETS_DIR}" )
+INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
 
 SOURCE_GROUP( "include" FILES ${INCLUDE} )
 SOURCE_GROUP( "src"     FILES ${SOURCE} )
@@ -42,10 +40,18 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE} ${SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/EVEToolPCH.h"
-                  "${TARGET_SOURCE_DIR}/main.cpp" )
+                  "EVEToolPCH.h"
+                  "main.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "eve-common" )
+                       "eve-common" "common"
+                       "utils"
+                       ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES}
+                       ${PROJECT_STANDARD_LIBRARIES} )
 
 INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
+
+######################
+# Export directories #
+######################
+SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )

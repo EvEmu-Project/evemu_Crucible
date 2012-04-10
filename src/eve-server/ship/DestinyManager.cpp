@@ -936,8 +936,7 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
         SendSingleDestinyUpdate(&tmp);    //consumed
     }
 
-    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f",
-                m_self->GetName(), who->GetName(), m_velocity.length() );
+    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f", this->m_self->GetName(), who->GetName(), m_velocity );
 
     // Forcibly set Speed since it doesn't get updated when Following upon Undock from stations:
     SetSpeedFraction( m_activeSpeedFraction, true );
@@ -1101,8 +1100,7 @@ void DestinyManager::AlignTo(const GPoint &direction, bool update) {
         SendSingleDestinyUpdate(&tmp);    //consumed
     }
 
-    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f",
-                m_self->GetName(), direction.x, direction.y, direction.z, m_velocity.length() );
+    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f", this->m_self->GetName(), direction.x, direction.y, direction.z, m_velocity );
 }
 
 void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
@@ -1121,8 +1119,7 @@ void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
     //Clear any pending docking operation since the user set a new course:
     m_self->CastToClient()->SetPendingDockOperation( false );
 
-    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f",
-                m_self->GetName(), direction.x, direction.y, direction.z, m_velocity.length() );
+    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f", this->m_self->GetName(), direction.x, direction.y, direction.z, m_velocity );
 
     if(update) {
         DoDestiny_CmdGotoDirection du;

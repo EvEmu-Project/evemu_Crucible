@@ -53,7 +53,7 @@ void BubbleManager::Process() {
         std::vector<SystemEntity *> wanderers;
 
         {
-            std::vector<SystemBubble *>::iterator cur, end;
+            std::vector<SystemBubble *>::const_iterator cur, end;
             cur = m_bubbles.begin();
             end = m_bubbles.end();
             for(; cur != end; ++cur) {

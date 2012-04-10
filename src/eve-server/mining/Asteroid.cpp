@@ -1,3 +1,8 @@
+
+#include "EVEServerPCH.h"
+
+using namespace Destiny;
+
 /*
     ------------------------------------------------------------------------------------
     LICENSE:
