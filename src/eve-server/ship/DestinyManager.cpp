@@ -1153,18 +1153,15 @@ PyResult DestinyManager::AttemptDockOperation()
     // Calculate 1000m out from docking bay along dock orientation vector away from station:
     stationOrigin.x += stationDockPoint.x;
     stationOrigin.y += stationDockPoint.y;
-    stationOrigin.z -= stationDockPoint.z;
+    stationOrigin.z += stationDockPoint.z;
     stationOrigin.x += 1000 * stationDockOrientation.x;
     stationOrigin.y += 1000 * stationDockOrientation.y;
-    stationOrigin.z += (-1) * (1000 * stationDockOrientation.z);
-    //stationDockPoint.x += 1000 * stationDockOrientation.x;
-    //stationDockPoint.y += 1000 * stationDockOrientation.y;
-    //stationDockPoint.z += 1000 * stationDockOrientation.z;
+    stationOrigin.z += 1000 * stationDockOrientation.z;
 
     OnDockingAccepted da;
-    da.end_x = stationOrigin.x; //stationDockPoint.x;
-    da.end_y = stationOrigin.y; //stationDockPoint.y;
-    da.end_z = stationOrigin.z; //stationDockPoint.z;
+    da.end_x = stationOrigin.x;
+    da.end_y = stationOrigin.y;
+    da.end_z = stationOrigin.z;
     da.start_x = position.x;
     da.start_y = position.y;
     da.start_z = position.z;
@@ -1181,7 +1178,7 @@ PyResult DestinyManager::AttemptDockOperation()
 
     // Verify range to station is within docking perimeter of 500 meters:
     // (there is something WRONG with this as it will become true even when the client says ship is still about 14km from station)
-    if( (rangeToStation - station->GetRadius()) > 500 )
+    if( (rangeToStation - station->GetRadius()) > 1500 )
     {
         // WARNING: DO NOT uncomment the following line as it for some reason causes HEAP corruption to occur on auto-docking
         //who->SetPendingDockOperation( true );   // Set client object into state that a Docking operation is pending

@@ -241,6 +241,7 @@ SET( infogathering_SOURCE
 SET( inventory_INCLUDE
      "${TARGET_INCLUDE_DIR}/inventory/AttributeEnum.h"
      "${TARGET_INCLUDE_DIR}/inventory/AttributeMgr.h"
+	 "${TARGET_INCLUDE_DIR}/inventory/EffectsEnum.h"
      "${TARGET_INCLUDE_DIR}/inventory/EVEAttributeMgr.h"
      "${TARGET_INCLUDE_DIR}/inventory/EVEAttributes.h"
      "${TARGET_INCLUDE_DIR}/inventory/InvBrokerService.h"
@@ -399,9 +400,18 @@ SET( shipmodules_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/Modules/Modules.h"
      "${TARGET_INCLUDE_DIR}/ship/Modules/PassiveModules.h"
      "${TARGET_INCLUDE_DIR}/ship/Modules/RigModule.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/SubSystemModules.h" )
+     "${TARGET_INCLUDE_DIR}/ship/Modules/SubSystemModules.h"
+     "${TARGET_INCLUDE_DIR}/ship/Modules/propulsion_modules/Afterburner.h"
+	 )
 SET( shipmodules_SOURCE
-                                                )
+     "${TARGET_SOURCE_DIR}/ship/Modules/ActiveModules.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Modules/ModuleDB.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Modules/ModuleEffects.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Modules/PassiveModules.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Modules/RigModule.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Modules/SubSystemModules.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Modules/propulsion_modules/Afterburner.cpp"
+	 )
      #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp"
      #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp" )
 
@@ -409,7 +419,8 @@ SET( shipmodulecomponents_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/Modules/components/ActiveModuleProcessingComponent.h"
      "${TARGET_INCLUDE_DIR}/ship/Modules/components/ModifyShipAttributesComponent.h" )
 SET( shipmodulecomponents_SOURCE
-                                                )
+     "${TARGET_SOURCE_DIR}/ship/Modules/components/ActiveModuleProcessingComponent.cpp"
+     "${TARGET_SOURCE_DIR}/ship/Modules/components/ModifyShipAttributesComponent.cpp" )
      #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp"
      #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp" )
 

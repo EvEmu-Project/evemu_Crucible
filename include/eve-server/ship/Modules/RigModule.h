@@ -26,31 +26,15 @@
 #ifndef RIG_MODULE_H
 #define RIG_MODULE_H
 
+
 class RigModule : public PassiveModule
 {
 public:
+	
+	RigModule(InventoryItemRef item, ShipRef ship);
+	~RigModule();
 
-    RigModule(InventoryItemRef item, ShipRef ship)
-    {
-        m_Item = item;
-        m_Ship = ship;
-        m_Effects = new ModuleEffects(m_Item->typeID());
-        m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
-    }
-
-    ~RigModule()
-    {
-        //delete members
-        delete m_Effects;
-        delete m_ShipAttrComp;
-
-        //null ptrs
-        m_Effects = NULL;
-        m_ShipAttrComp = NULL;
-    }
-
-    //not much to do here... hopefully there won't be
-    virtual ModulePowerLevel GetModulePowerLevel()                { return RIG; }
+	ModulePowerLevel GetModulePowerLevel();
 
 };
 

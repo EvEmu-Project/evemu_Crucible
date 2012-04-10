@@ -32,58 +32,17 @@
 class PassiveModule : public GenericModule
 {
 public:
-    PassiveModule(InventoryItemRef item, ShipRef ship)
-    {
-        m_Item = item;
-        m_Ship = ship;
-        m_Effects = new ModuleEffects(m_Item->typeID());
-        m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
-    }
+	PassiveModule(InventoryItemRef item, ShipRef ship);
+	~PassiveModule();
 
-    ~PassiveModule()
-    {
-        //delete members
-        delete m_Effects;
-        delete m_ShipAttrComp;
-
-        //null ptrs
-        m_Effects = NULL;
-        m_ShipAttrComp = NULL;
-    }
-
-    void Offline()
-    {
-        //remove item attributes
-        m_Effects->SetDefaultEffectAsActive();
-        for(uint32 i = 0; i < m_Effects->GetSizeOfAttributeList(); i++)
-        {
-            m_ShipAttrComp->ModifyShipAttribute(m_Effects->GetTargetAttributeID(i), m_Effects->GetSourceAttributeID(i), m_Effects->GetReverseCalculationType(i));
-        }
-
-        //change item state
-        m_Item->PutOffline();
-    }
-
-    void Online()
-    {
-        //add item attributes
-        m_Effects->SetDefaultEffectAsActive();
-        for(uint32 i = 0; i < m_Effects->GetSizeOfAttributeList(); i++)
-        {
-            m_ShipAttrComp->ModifyShipAttribute(m_Effects->GetTargetAttributeID(i), m_Effects->GetSourceAttributeID(i), m_Effects->GetCalculationType(i));
-        }
-
-        //change item state
-        m_Item->PutOnline();
-    }
-
-
+	void Offline();
+	void Online();
 
 protected:
-    ModifyShipAttributesComponent * m_ShipAttrComp;
+	ModifyShipAttributesComponent * m_ShipAttrComp;
 
-    //inheritance crap
-    PassiveModule() { }
+	//inheritance crap
+	PassiveModule() { }
 
 };
 

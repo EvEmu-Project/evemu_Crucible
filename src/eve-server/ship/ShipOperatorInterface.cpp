@@ -116,6 +116,21 @@ CharacterRef ShipOperatorInterface::GetChar() const
     return ret;
 }
 
+DestinyManager * ShipOperatorInterface::GetDestiny()
+{
+    if( m_pClient != NULL )
+        return m_pClient->Destiny();
+//    else if( m_pNPC != NULL )
+//        return m_pNPC->Destiny();
+
+    sLog.Error( "ShipOperatorInterface::GetDestiny()", "ERROR: All Operator types should be accounted for" );
+    assert(false);
+
+    // Hack to get rid of warning, code execution should never reach this point
+    DestinyManager * ret = NULL;
+    return ret;
+}
+
 uint32 ShipOperatorInterface::GetLocationID() const
 {
     if( m_pClient != NULL )

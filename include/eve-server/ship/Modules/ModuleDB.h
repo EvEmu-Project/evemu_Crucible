@@ -23,87 +23,22 @@
     Author:        Luck
 */
 
-
-
-
 #ifndef MODULE_DB_H
 #define MODULE_DB_H
 
 #include "ServiceDB.h"
+
 
 //yes, a moduleDB class.  This will not be fun
 class ModuleDB : public ServiceDB
 {
 public:
 
-    static void GetDgmEffects(uint32 effectID, DBQueryResult &res)
-    {
-        if(sDatabase.RunQuery(res,
-            " SELECT "
-            " effectName, "
-            " effectCategory, "
-            " preExpression, "
-            " postExpression, "
-            " description, "
-            " guid, "
-            " graphicID, "
-            " isOffensive, "
-            " isAssistance, "
-            " durationAttributeID, "
-            " trackingSpeedAttributeID, "
-            " dischargeAttributeID, "
-            " rangeAttributeID, "
-            " falloffAttributeID, "
-            " disallowAutoRepeat, "
-            " published, "
-            " displayName, "
-            " isWarpSafe, "
-            " rangeChance, "
-            " electronicChance, "
-            " propulsionChance, "
-            " distribution, "
-            " sfxName, "
-            " npcUsageChanceAttributeID, "
-            " npcActivationChanceAttributeID, "
-            " fittingUsageChanceAttributeID "
-            " FROM dgmEffects "
-            " WHERE effectID = '%u' ",
-            effectID))
-        {
-            _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        }
-    }
+	static void GetDgmEffects(uint32 effectID, DBQueryResult &res);
+	static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res);
+    static void GetDgmEffectsActions(uint32 effectID, DBQueryResult &res);
+	static void GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res);
 
-    static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res)
-    {
-        if(sDatabase.RunQuery(res,
-            " SELECT "
-            " targetAttributeID, "
-            " sourceAttributeID, "
-            " calculationTypeID, "
-            " reverseCalculationTypeID "
-            " FROM dgmEffectsInfo "
-            " WHERE effectID = '%u' ",
-            effectID))
-        {
-            _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        }
-    }
-
-    static void GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res)
-    {
-        if(sDatabase.RunQuery(res,
-            " SELECT "
-            " effectID, "
-            " isDefault "
-            " FROM dgmTypeEffects "
-            " WHERE typeID = '%u' ",
-            typeID))
-        {
-            _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        }
-
-    }
 };
 
 

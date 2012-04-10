@@ -232,6 +232,7 @@
 // item stuff
 #include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"
+#include "inventory/EffectsEnum.h"
 #include "inventory/EVEAttributeMgr.h"
 #include "inventory/InvBrokerService.h"
 #include "inventory/Inventory.h"
@@ -314,6 +315,7 @@
 
 #include "ship/Modules/components/ActiveModuleProcessingComponent.h"
 #include "ship/Modules/components/ModifyShipAttributesComponent.h"
+
 #include "ship/Modules/ModuleDB.h"
 #include "ship/Modules/ModuleFactory.h"
 #include "ship/Modules/Modules.h"
@@ -323,6 +325,9 @@
 #include "ship/Modules/PassiveModules.h"
 #include "ship/Modules/RigModule.h"
 #include "ship/Modules/SubSystemModules.h"
+
+#include "ship/Modules/propulsion_modules/Afterburner.h"
+
 #include "ship/ModuleManager.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
