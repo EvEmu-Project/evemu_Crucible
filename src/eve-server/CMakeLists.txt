@@ -4,6 +4,28 @@
 # Author: Bloody.Rabbit
 #
 
+################
+# Dependencies #
+################
+ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/asio"
+                  "${PROJECT_BINARY_DIR}/dep/asio" )
+
+FIND_PACKAGE( "Lua" QUIET )
+MARK_AS_ADVANCED( Lua_DIR )
+
+IF( NOT WIN32 )
+  FIND_PACKAGE( "ICONV" REQUIRED )
+ENDIF( NOT WIN32 )
+
+IF( NOT LUA_FOUND )
+  ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/lua"
+                    "${PROJECT_BINARY_DIR}/dep/lua" )
+
+  SET( LUA_FOUND        TRUE )
+  SET( LUA_INCLUDE_DIRS ${lua_INCLUDE_DIRS} )
+  SET( LUA_LIBRARIES    "lua" )
+ENDIF( NOT LUA_FOUND )
+
 ##############
 # Initialize #
 ##############
@@ -11,6 +33,17 @@ SET( TARGET_NAME        "eve-server" )
 SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_UTILS_DIR   "${PROJECT_SOURCE_DIR}/utils" )
+
+SET( TARGET_INCLUDE_DIRS
+     ${LUA_INCLUDE_DIRS}
+     ${asio_INCLUDE_DIRS}
+     ${eve-common_INCLUDE_DIRS}
+     "${TARGET_INCLUDE_DIR}" )
+
+# Export directories
+SET( ${TARGET_NAME}_INCLUDE_DIRS
+     ${TARGET_INCLUDE_DIRS}
+     PARENT_SCOPE )
 
 #########
 # Files #
@@ -115,19 +148,16 @@ SET( authorisation_INCLUDE
      "${TARGET_INCLUDE_DIR}/authorisation/BinAsciiModule.h"
      "${TARGET_INCLUDE_DIR}/authorisation/PasswordModule.h"
      "${TARGET_INCLUDE_DIR}/authorisation/ShaModule.h" )
-
 SET( authorisation_SOURCE
      "${TARGET_SOURCE_DIR}/authorisation/PasswordModule.cpp" )
 
 SET( browser_INCLUDE
      "${TARGET_INCLUDE_DIR}/browser/browserLockdownSvc.h" )
-
 SET( browser_SOURCE
      "${TARGET_SOURCE_DIR}/browser/browserLockdownSvc.cpp" )
 
 SET( bulk_INCLUDE
      "${TARGET_INCLUDE_DIR}/bulk/BulkMgrService.h" )
-
 SET( bulk_SOURCE
      "${TARGET_SOURCE_DIR}/bulk/BulkMgrService.cpp" )
 
@@ -525,19 +555,7 @@ SET( imageserver_SOURCE
 ########################
 # Setup the executable #
 ########################
-INCLUDE_DIRECTORIES( "${GANGSTA_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${MYSQL_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${LUA_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${TINYXML_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${UTF8CPP_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${ASIO_INCLUDE_DIR}" )
-
-INCLUDE_DIRECTORIES( "${utils_INCLUDE_DIR}" )
-
-INCLUDE_DIRECTORIES( "${common_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${eve-common_INCLUDE_DIR}" )
-INCLUDE_DIRECTORIES( "${eve-common_PACKETS_DIR}" )
-INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
 
 SOURCE_GROUP( "include"                FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\account"       FILES ${account_INCLUDE} )
@@ -658,21 +676,13 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${apiserver_INCLUDE}      ${apiserver_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "EVEServerPCH.h"
-                  "main.cpp" )
+                  "${TARGET_INCLUDE_DIR}/EVEServerPCH.h"
+                  "${TARGET_SOURCE_DIR}/main.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "eve-common" "common"
-                       "utils"
-                       ${GANGSTA_LIBRARIES} ${TINYXML_LIBRARIES}
-                       ${MYSQL_LIBRARIES} ${ZLIB_LIBRARIES}
-                       ${PROJECT_STANDARD_LIBRARIES} )
+                       "eve-common"
+                       ${LUA_LIBRARIES} )
 
 INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
 INSTALL( FILES "${TARGET_UTILS_DIR}/eve-server.xml"
          DESTINATION "etc" )
-
-######################
-# Export directories #
-######################
-SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )
