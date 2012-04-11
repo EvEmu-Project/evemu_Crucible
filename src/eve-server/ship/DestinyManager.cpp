@@ -936,7 +936,7 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
         SendSingleDestinyUpdate(&tmp);    //consumed
     }
 
-    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f", this->m_self->GetName(), who->GetName(), m_velocity );
+    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f", this->m_self->GetName(), who->GetName(), m_maxVelocity );
 
     // Forcibly set Speed since it doesn't get updated when Following upon Undock from stations:
     SetSpeedFraction( m_activeSpeedFraction, true );
@@ -1100,7 +1100,7 @@ void DestinyManager::AlignTo(const GPoint &direction, bool update) {
         SendSingleDestinyUpdate(&tmp);    //consumed
     }
 
-    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f", this->m_self->GetName(), direction.x, direction.y, direction.z, m_velocity );
+    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f", this->m_self->GetName(), direction.x, direction.y, direction.z, m_maxVelocity );
 }
 
 void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
@@ -1119,7 +1119,7 @@ void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
     //Clear any pending docking operation since the user set a new course:
     m_self->CastToClient()->SetPendingDockOperation( false );
 
-    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f", this->m_self->GetName(), direction.x, direction.y, direction.z, m_velocity );
+    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f", this->m_self->GetName(), direction.x, direction.y, direction.z, m_maxVelocity );
 
     if(update) {
         DoDestiny_CmdGotoDirection du;
@@ -1150,13 +1150,14 @@ PyResult DestinyManager::AttemptDockOperation()
     GVector stationDockOrientation = static_cast< StationEntity*>( station )->GetStationObject()->GetStationType()->dockOrientation();
     const GPoint &position = who->GetPosition();
 
-    // Calculate 1000m out from docking bay along dock orientation vector away from station:
-    stationOrigin.x += stationDockPoint.x;
-    stationOrigin.y += stationDockPoint.y;
-    stationOrigin.z += stationDockPoint.z;
-    stationOrigin.x += 1000 * stationDockOrientation.x;
-    stationOrigin.y += 1000 * stationDockOrientation.y;
-    stationOrigin.z += 1000 * stationDockOrientation.z;
+    // Leave stationOrigin alone, so that docking perimeter is a sphere centered on the station's center coordinate, not the undock point
+    //// Calculate 1000m out from docking bay along dock orientation vector away from station:
+    //stationOrigin.x += stationDockPoint.x;
+    //stationOrigin.y += stationDockPoint.y;
+    //stationOrigin.z += stationDockPoint.z;
+    //stationOrigin.x += 1000 * stationDockOrientation.x;
+    //stationOrigin.y += 1000 * stationDockOrientation.y;
+    //stationOrigin.z += 1000 * stationDockOrientation.z;
 
     OnDockingAccepted da;
     da.end_x = stationOrigin.x;
