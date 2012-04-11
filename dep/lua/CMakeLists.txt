@@ -90,5 +90,5 @@ ADD_LIBRARY( "${TARGET_NAME}"
 
 # Disable safety warnings because this is a C library
 IF( WIN32 )
-    ADD_DEFINITIONS( /D _CRT_SECURE_NO_WARNINGS )
+    ADD_DEFINITIONS( "-D_CRT_SECURE_NO_WARNINGS" )
 ENDIF( WIN32 )

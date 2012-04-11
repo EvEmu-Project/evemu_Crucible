@@ -33,27 +33,27 @@
 class ModifyShipAttributesComponent
 {
 public:
-	ModifyShipAttributesComponent(GenericModule * mod, ShipRef ship);
-	~ModifyShipAttributesComponent();
+    ModifyShipAttributesComponent(GenericModule * mod, ShipRef ship);
+    ~ModifyShipAttributesComponent();
 
-	void ModifyShipAttribute(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type);
+    void ModifyShipAttribute(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type);
 
-	void ModifyTargetShipAttribute(uint32 targetItemID, uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type );
+    void ModifyTargetShipAttribute(uint32 targetItemID, uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type );
 
 private:
 
-	void _modifyShipAttributes(ShipRef ship, uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type);
+    void _modifyShipAttributes(ShipRef ship, uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type);
 
-	EvilNumber _calculateNewValue(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type, std::vector<GenericModule *> mods);
+    EvilNumber _calculateNewValue(uint32 targetAttrID, uint32 sourceAttrID, EVECalculationType type, std::vector<GenericModule *> mods);
 
-	EvilNumber _calculateNewAttributeValue( EvilNumber sourceAttr, EvilNumber targetAttr, EVECalculationType type, int stackNumber );
+    EvilNumber _calculateNewAttributeValue( EvilNumber sourceAttr, EvilNumber targetAttr, EVECalculationType type, int stackNumber );
 
-	std::vector<GenericModule *> _sortModules(uint32 sortAttrID, std::vector<GenericModule *> mods);
+    std::vector<GenericModule *> _sortModules(uint32 sortAttrID, std::vector<GenericModule *> mods);
 
 
-	//internal access to owner
-	GenericModule *m_Mod;
-	ShipRef m_Ship;
+    //internal access to owner
+    GenericModule *m_Mod;
+    ShipRef m_Ship;
 
 };
 

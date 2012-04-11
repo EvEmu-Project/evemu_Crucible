@@ -32,17 +32,17 @@
 class PassiveModule : public GenericModule
 {
 public:
-	PassiveModule(InventoryItemRef item, ShipRef ship);
-	~PassiveModule();
+    PassiveModule(InventoryItemRef item, ShipRef ship);
+    ~PassiveModule();
 
-	void Offline();
-	void Online();
+    void Offline();
+    void Online();
 
 protected:
-	ModifyShipAttributesComponent * m_ShipAttrComp;
+    ModifyShipAttributesComponent * m_ShipAttrComp;
 
-	//inheritance crap
-	PassiveModule() { }
+    //inheritance crap
+    PassiveModule() { }
 
 };
 

@@ -34,10 +34,10 @@ class ModuleDB : public ServiceDB
 {
 public:
 
-	static void GetDgmEffects(uint32 effectID, DBQueryResult &res);
-	static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res);
+    static void GetDgmEffects(uint32 effectID, DBQueryResult &res);
+    static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res);
     static void GetDgmEffectsActions(uint32 effectID, DBQueryResult &res);
-	static void GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res);
+    static void GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res);
 
 };
 

@@ -30,10 +30,10 @@ class SubSystemModule : public PassiveModule
 {
 public:
 
-	SubSystemModule(InventoryItemRef item, ShipRef ship);
-	~SubSystemModule();
+    SubSystemModule(InventoryItemRef item, ShipRef ship);
+    ~SubSystemModule();
 
-	ModulePowerLevel GetModulePowerLevel();
+    ModulePowerLevel GetModulePowerLevel();
 };
 
 #endif

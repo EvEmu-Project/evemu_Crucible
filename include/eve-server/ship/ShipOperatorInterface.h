@@ -60,14 +60,14 @@ public:
 
     // Pass Through calls to Operator object:
     // CLIENT Object calls:
-	void SendNotifyMsg( const char* fmt, va_list args );
-	void SendErrorMsg( const char* fmt, va_list args );
-	const char *GetName() const;
-	ShipRef GetShip() const;
-	CharacterRef GetChar() const;
+    void SendNotifyMsg( const char* fmt, va_list args );
+    void SendErrorMsg( const char* fmt, va_list args );
+    const char *GetName() const;
+    ShipRef GetShip() const;
+    CharacterRef GetChar() const;
     DestinyManager * GetDestiny();
-	uint32 GetLocationID() const;
-	void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
+    uint32 GetLocationID() const;
+    void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
 
     // NPC Object calls:
     // none
