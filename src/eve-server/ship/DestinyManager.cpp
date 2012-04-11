@@ -937,7 +937,7 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
     }
 
     sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f",
-                m_self->GetName(), who->GetName(), m_maxVelocity.length() );
+                m_self->GetName(), who->GetName(), m_maxVelocity );
 
     // Forcibly set Speed since it doesn't get updated when Following upon Undock from stations:
     SetSpeedFraction( m_activeSpeedFraction, true );
@@ -1102,7 +1102,7 @@ void DestinyManager::AlignTo(const GPoint &direction, bool update) {
     }
 
     sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f",
-                m_self->GetName(), direction.x, direction.y, direction.z, m_maxVelocity.length() );
+                m_self->GetName(), direction.x, direction.y, direction.z, m_maxVelocity );
 }
 
 void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
@@ -1122,7 +1122,7 @@ void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
     m_self->CastToClient()->SetPendingDockOperation( false );
 
     sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f",
-                m_self->GetName(), direction.x, direction.y, direction.z, m_maxVelocity.length() );
+                m_self->GetName(), direction.x, direction.y, direction.z, m_maxVelocity );
 
     if(update) {
         DoDestiny_CmdGotoDirection du;
