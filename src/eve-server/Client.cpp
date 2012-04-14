@@ -1023,7 +1023,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 
     m_moveSystemID = solarSystemID;
     m_movePoint = position;
-    m_movePoint.MakeRandomPointOnSphere( 10000 );   // Make Jump-In point a random spot on a 10km radius sphere about the stargate
+    m_movePoint.MakeRandomPointOnSphere( 15000 );   // Make Jump-In point a random spot on a 10km radius sphere about the stargate
 
     m_destiny->SendJumpOut(fromGate);
     //TODO: send 'effects.GateActivity' on 'toGate' at the same time
