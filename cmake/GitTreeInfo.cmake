@@ -1,5 +1,7 @@
 # - Obtain tree info
 # Obtains useful information about a Git tree.
+# Expects that git has already been found and
+# appropriate variables set up (GIT_EXECUTABLE).
 #
 # GIT_TREE_INFO( PATH <prefix> )
 #   PATH     - path to the Git tree
@@ -13,9 +15,6 @@
 #
 
 MACRO( GIT_TREE_INFO PATH PREFIX )
-  # Find required Git package
-  FIND_PACKAGE( "Git" REQUIRED )
-
   # Obtain branch name
   EXECUTE_PROCESS( COMMAND "${GIT_EXECUTABLE}" symbolic-ref HEAD
                    WORKING_DIRECTORY "${PATH}"

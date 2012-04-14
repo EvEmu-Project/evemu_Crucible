@@ -28,6 +28,7 @@ MARK_AS_ADVANCED( EVEMU_ROOT_DIR )
 # Tests #
 #########
 INCLUDE( "CheckSymbolExists" )
+INCLUDE( "DetectScmVersion" )
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TestX64" )
 
@@ -62,18 +63,8 @@ ELSEIF( GNUC )
   SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 ENDIF( MSVC )
 
-SET( EVEMU_SOURCE_SCM ""
-     CACHE STRING "Source SCM in use; valid values: '', 'svn', 'git'" )
-
-IF( EVEMU_SOURCE_SCM STREQUAL "svn" )
-  FIND_PACKAGE( "Subversion" REQUIRED )
-  Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" EVEMU_SVN )
-  SET( PROJECT_VERSION "r${EVEMU_SVN_WC_LAST_CHANGED_REV}" )
-ELSEIF( EVEMU_SOURCE_SCM STREQUAL "git" )
-  INCLUDE( "GitTreeInfo" )
-  GIT_TREE_INFO( "${PROJECT_SOURCE_DIR}" EVEMU_GIT )
-  SET( PROJECT_VERSION "${EVEMU_GIT_VERSION}" )
-ENDIF( EVEMU_SOURCE_SCM STREQUAL "svn" )
+# Pull version from SCM, if any
+DETECT_SCM_VERSION( "${PROJECT_SOURCE_DIR}" PROJECT_VERSION )
 
 ######################
 # Advertise config.h #
