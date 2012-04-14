@@ -462,7 +462,7 @@ const char* DBQueryResult::ColumnName( uint32 index ) const
 #ifdef COLUMN_BOUNDS_CHECKING
     if( index >= ColumnCount() )
     {
-        sLog.Error( "DBCore Query Result", "ColumnName: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount() );
+        sLog.Error( "DBCore Query Result", "ColumnName: Column index %d exceeds number of columns (%s) in row\n", index, ColumnCount() );
         return "(ERROR)";      //nothing better to do...
     }
 #endif
@@ -474,7 +474,7 @@ DBTYPE DBQueryResult::ColumnType( uint32 index ) const
 #ifdef COLUMN_BOUNDS_CHECKING
     if( index >= ColumnCount() )
     {
-        sLog.Error( "DBCore Query Result", "ColumnType: Column index %d exceeds number of columns (%s) in row\n", column, ColumnCount() );
+        sLog.Error( "DBCore Query Result", "ColumnType: Column index %d exceeds number of columns (%s) in row\n", index, ColumnCount() );
         return DBTYPE_STR;     //nothing better to do...
     }
 #endif
