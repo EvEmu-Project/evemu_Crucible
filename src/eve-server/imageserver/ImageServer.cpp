@@ -189,6 +189,12 @@ void ImageServer::Run()
     _ioThread = std::auto_ptr<asio::thread>(new asio::thread(std::tr1::bind(&ImageServer::RunInternal, this)));
 }
 
+void ImageServer::Stop()
+{
+    _io->stop();
+    _ioThread->join();
+}
+
 void ImageServer::RunInternal()
 {
     _io = std::auto_ptr<asio::io_service>(new asio::io_service());

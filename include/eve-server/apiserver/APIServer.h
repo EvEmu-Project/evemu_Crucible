@@ -58,6 +58,7 @@ class APIServer : public Singleton<APIServer>
 public:
     APIServer();
     void Run();
+    void Stop();
     void CreateServices(const PyServiceMgr &services);
 
     std::string& url();

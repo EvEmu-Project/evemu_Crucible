@@ -56,6 +56,7 @@ class ImageServer : public Singleton<ImageServer>
 public:
     ImageServer();
     void Run();
+    void Stop();
 
     std::string& url();
 

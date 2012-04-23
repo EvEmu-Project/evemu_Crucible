@@ -102,6 +102,12 @@ void APIServer::Run()
     _ioThread = std::unique_ptr<asio::thread>(new asio::thread(std::tr1::bind(&APIServer::RunInternal, this)));
 }
 
+void APIServer::Stop()
+{
+    _io->stop();
+    _ioThread->join();
+}
+
 void APIServer::RunInternal()
 {
     _io = std::unique_ptr<asio::io_service>(new asio::io_service());

@@ -281,9 +281,17 @@ int main( int argc, char* argv[] )
 
     sLog.Log("server shutdown", "Main loop stopped" );
 
+    // Shutting down EVE Client TCP listener
     tcps.Close();
-
     sLog.Log("server shutdown", "TCP listener stopped." );
+
+    // Shutting down API Server:
+    sAPIServer.Stop();
+    sLog.Log("server shutdown", "Image Server TCP listener stopped." );
+
+    // Shutting down Image Server:
+    sImageServer.Stop();
+    sLog.Log("server shutdown", "API Server TCP listener stopped." );
 
     services.serviceDB().SetServerOnlineStatus(false);
 
@@ -297,7 +305,7 @@ int main( int argc, char* argv[] )
 //    _CrtDumpMemoryLeaks();
 //#endif /* defined( MSVC ) && !defined( NDEBUG ) */
 
-    std::cout << std::endl << "press any key to exit...";  std::cin.get();
+    std::cout << std::endl << "press the ENTER key to exit...";  std::cin.get();
 
     return 0;
 }
