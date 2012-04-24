@@ -12,6 +12,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8 FATAL_ERROR )
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
+SET( PROJECT_VERSION             "0.7.9" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
