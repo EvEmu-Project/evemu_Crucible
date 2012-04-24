@@ -61,7 +61,11 @@
 
 // EVEMU_VERSION
 // The version of source.
-//#define EVEMU_VERSION "@PROJECT_VERSION@"
+#define EVEMU_VERSION "@PROJECT_VERSION@"
+
+// EVEMU_REPOSITORY
+// The URL of the source repository.
+#define EVEMU_REPOSITORY "@PROJECT_REPOSITORY@"
 
 // TIXML_USE_STL
 // Define this if tinyxml should use native STL.

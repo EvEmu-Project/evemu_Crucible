@@ -37,10 +37,4 @@ static const char *const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";
 
 static const int32 EVEBirthday = 170472;
 
-// EVEMU_VERSION
-// The version of source.
-#define EVEMU_SOURCE_LOCATION "http://www.github.com/evemuproject/evemu_crucible"
-#define EVEMU_VERSION "0.7.9"
-
-
 #endif
