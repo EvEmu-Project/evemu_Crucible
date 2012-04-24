@@ -8,11 +8,12 @@
 #   <prefix> - prefix for output variables
 #
 # Following variables are defined:
-#   <prefix>_BRANCH    - name of current branch
-#   <prefix>_HASH      - short commit hash
-#   <prefix>_TAG_EXACT - tag of exact current commit
-#   <prefix>_TAG_LAST  - last tag relative to current commit
-#   <prefix>_VERSION   - a nice version string
+#   <prefix>_BRANCH     - name of current branch
+#   <prefix>_HASH       - short commit hash
+#   <prefix>_TAG_EXACT  - tag of exact current commit
+#   <prefix>_TAG_LAST   - last tag relative to current commit
+#   <prefix>_ORIGIN_URL - URL of remote origin
+#   <prefix>_VERSION    - a nice version string
 #
 
 MACRO( GIT_TREE_INFO PATH PREFIX )
@@ -42,6 +43,13 @@ MACRO( GIT_TREE_INFO PATH PREFIX )
   EXECUTE_PROCESS( COMMAND "${GIT_EXECUTABLE}" describe --tags --abbrev=0
                    WORKING_DIRECTORY "${PATH}"
                    OUTPUT_VARIABLE "${PREFIX}_TAG_LAST"
+                   OUTPUT_STRIP_TRAILING_WHITESPACE
+                   ERROR_QUIET )
+
+  # Obtain origin URL
+  EXECUTE_PROCESS( COMMAND "${GIT_EXECUTABLE}" config --get remote.origin.url
+                   WORKING_DIRECTORY "${PATH}"
+                   OUTPUT_VARIABLE "${PREFIX}_ORIGIN_URL"
                    OUTPUT_STRIP_TRAILING_WHITESPACE
                    ERROR_QUIET )
 

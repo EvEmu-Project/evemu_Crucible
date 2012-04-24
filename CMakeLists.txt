@@ -13,6 +13,7 @@ PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
 SET( PROJECT_VERSION             "0.7.9" )
+SET( PROJECT_REPOSITORY          "http://www.github.com/evemuproject/evemu_crucible" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
@@ -29,7 +30,7 @@ MARK_AS_ADVANCED( EVEMU_ROOT_DIR )
 # Tests #
 #########
 INCLUDE( "CheckSymbolExists" )
-INCLUDE( "DetectScmVersion" )
+INCLUDE( "DetectScm" )
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TestX64" )
 
@@ -65,7 +66,7 @@ ELSEIF( GNUC )
 ENDIF( MSVC )
 
 # Pull version from SCM, if any
-DETECT_SCM_VERSION( "${PROJECT_SOURCE_DIR}" PROJECT_VERSION )
+DETECT_SCM( "${PROJECT_SOURCE_DIR}" PROJECT_VERSION PROJECT_REPOSITORY )
 
 ######################
 # Advertise config.h #
