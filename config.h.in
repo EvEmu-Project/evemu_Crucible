@@ -55,9 +55,9 @@
 // Define this if you want a non-debug (release) build
 // CMake passes this as a command-line define.
 
-// EVEMU_ROOT_DIR
-// The root of EVEmu workspace.
-#define EVEMU_ROOT_DIR "@EVEMU_ROOT_DIR@"
+// EVEMU_ROOT
+// The root directory of EVEmu workspace.
+#define EVEMU_ROOT "@EVEMU_ROOT@"
 
 // EVEMU_VERSION
 // The version of source.

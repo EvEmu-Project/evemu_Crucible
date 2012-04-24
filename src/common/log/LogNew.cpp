@@ -69,7 +69,7 @@ NewLog::NewLog()
 #endif /* WIN32 */
 {
     //// open default logfile
-    //std::string logPath = EVEMU_ROOT_DIR"log/";
+    //std::string logPath = EVEMU_ROOT "/log/";
     //SetLogfileDefault(logPath);
 
     //Debug( "Log", "Log system initiated" );
@@ -88,7 +88,7 @@ void NewLog::InitializeLogging( std::string logPath )
 {
     // open default logfile
     if( logPath.empty() )
-        logPath = EVEMU_ROOT_DIR"log/";
+        logPath = EVEMU_ROOT "/log/";
 
     m_initialized = true;
 
@@ -279,7 +279,7 @@ void NewLog::SetLogfileDefault(std::string logPath)
     std::string logFile = logPath + "log_%02u-%02u-%04u-%02u-%02u.log";
     snprintf( filename, MAX_PATH + 1, logFile.c_str(),
               t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
-    //snprintf( filename, MAX_PATH + 1, EVEMU_ROOT_DIR"log/log_%02u-%02u-%04u-%02u-%02u.log",
+    //snprintf( filename, MAX_PATH + 1, EVEMU_ROOT "/log/log_%02u-%02u-%04u-%02u-%02u.log",
     //          t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
 
     if( SetLogfile( filename ) )

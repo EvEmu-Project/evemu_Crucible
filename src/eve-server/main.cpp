@@ -30,7 +30,7 @@
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 
-static const char* const CONFIG_FILE = EVEMU_ROOT_DIR"etc/eve-server.xml";
+static const char* const CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 static const uint32 MAIN_LOOP_DELAY = 10; // delay 10 ms.
 
 static volatile bool RunLoops = true;

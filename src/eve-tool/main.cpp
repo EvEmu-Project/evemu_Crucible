@@ -28,9 +28,9 @@
 #include "main.h"
 #include "Commands.h"
 
-const char* const CACHE_DIR =         EVEMU_ROOT_DIR"cache";
-const char* const LOG_FILE =          EVEMU_ROOT_DIR"log/eve-tool.log";
-const char* const LOG_SETTINGS_FILE = EVEMU_ROOT_DIR"etc/log.ini";
+const char* const CACHE_DIR =         EVEMU_ROOT "/cache";
+const char* const LOG_FILE =          EVEMU_ROOT "/log/eve-tool.log";
+const char* const LOG_SETTINGS_FILE = EVEMU_ROOT "/etc/log.ini";
 
 int main( int argc, char* argv[] )
 {

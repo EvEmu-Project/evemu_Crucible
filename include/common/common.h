@@ -40,7 +40,7 @@
  *        MSVC, GNUC, MINGW, (other)
  *   c) the configuration
  *        NDEBUG, (debug)
- *        EVEMU_ROOT_DIR
+ *        EVEMU_ROOT
  *        EVEMU_VERSION
  *        TINYXML_USE_STL
  *

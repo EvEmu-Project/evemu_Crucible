@@ -22,9 +22,9 @@ SET( CMAKE_MODULE_PATH
 ###########
 # Options #
 ###########
-SET( EVEMU_ROOT_DIR "..////"
-     CACHE PATH "The root of EVEmu workspace." )
-MARK_AS_ADVANCED( EVEMU_ROOT_DIR )
+SET( EVEMU_ROOT ".."
+     CACHE PATH "The root directory of EVEmu workspace." )
+MARK_AS_ADVANCED( EVEMU_ROOT )
 
 #########
 # Tests #
