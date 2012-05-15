@@ -26,7 +26,7 @@
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
-// supported client is Crucible v1.0.1 build 336683
+// supported client is Crucible v1.6.5 build 360229
 
 static const uint16 MachoNetVersion = 320;
 static const double EVEVersionNumber = 7.31;
@@ -39,8 +39,8 @@ static const int32 EVEBirthday = 170472;
 
 // EVEMU_VERSION
 // The version of source.
-#define EVEMU_SOURCE_LOCATION "http://www.github.com/evemuproject/evemu_crucible"
-#define EVEMU_VERSION "0.7.9"
+#define EVEMU_SOURCE_LOCATION "http://www.github.com/evemuproject/evemu_server"
+#define EVEMU_VERSION "0.7.11"
 
 
 #endif
