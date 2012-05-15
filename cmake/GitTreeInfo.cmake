@@ -57,19 +57,18 @@ MACRO( GIT_TREE_INFO PATH PREFIX )
   IF( "${PREFIX}_TAG_EXACT" )
     # We have an exact tag, use that and nothing else
     SET( "${PREFIX}_VERSION" "${${PREFIX}_TAG_EXACT}" )
-  ELSEIF( "${PREFIX}_TAG_LAST" )
-    IF( "${PREFIX}_BRANCH" )
-      # We have the last tag and a branch, use tag + branch + hash
-      SET( "${PREFIX}_VERSION" "${${PREFIX}_TAG_LAST}-${${PREFIX}_BRANCH}-${${PREFIX}_HASH}" )
-    ELSE( "${PREFIX}_BRANCH" )
-      # We have the last tag but no branch, use tag + hash
-      SET( "${PREFIX}_VERSION" "${${PREFIX}_TAG_LAST}-${${PREFIX}_HASH}" )
-    ENDIF( "${PREFIX}_BRANCH" )
-  ELSEIF( "${PREFIX}_BRANCH" )
-    # No last tag but we have a branch, use branch + hash
-    SET( "${PREFIX}_VERSION" "${${PREFIX}_BRANCH}-${${PREFIX}_HASH}" )
   ELSE( "${PREFIX}_TAG_EXACT" )
-    # No last tag and no branch, use only hash
+    # Set version to hash (hash is always available)
     SET( "${PREFIX}_VERSION" "${${PREFIX}_HASH}" )
+
+    # If we have branch name, prepend it
+    IF( "${PREFIX}_BRANCH" )
+      SET( "${PREFIX}_VERSION" "${${PREFIX}_BRANCH}-${${PREFIX}_VERSION}" )
+    ENDIF( "${PREFIX}_BRANCH" )
+
+    # If we have last tag, prepend it
+    IF( "${PREFIX}_TAG_LAST" )
+      SET( "${PREFIX}_VERSION" "${${PREFIX}_TAG_LAST}-${${PREFIX}_VERSION}" )
+    ENDIF( "${PREFIX}_TAG_LAST" )
   ENDIF( "${PREFIX}_TAG_EXACT" )
 ENDMACRO( GIT_TREE_INFO )
