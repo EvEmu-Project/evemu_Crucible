@@ -142,12 +142,11 @@
 /* Post-include                                                          */
 /*************************************************************************/
 
-// if not defined, define va_copy
-// using memcpy() because of possible array implementation
-#ifndef va_copy
-#   define va_copy( a, b ) \
-    ( memcpy( &( a ), &( b ), sizeof( va_list ) ) )
-#endif /* !va_copy */
+/* If not defined, define va_copy.
+   Using memcpy() because of possible array implementation. */
+#ifndef HAVE_VA_COPY
+#   define va_copy( a, b ) ::memcpy( &( a ), &( b ), sizeof( va_list ) )
+#endif /* !HAVE_VA_COPY */
 
 // define finite() and isnan()
 #if defined( MSVC ) || defined( MINGW )

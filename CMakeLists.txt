@@ -29,14 +29,16 @@ MARK_AS_ADVANCED( EVEMU_ROOT )
 #########
 # Tests #
 #########
-INCLUDE( "CheckSymbolExists" )
+INCLUDE( "CheckCXXSymbolExists" )
 INCLUDE( "DetectScm" )
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TestX64" )
 
 TEST_X64( X64 )
-CHECK_SYMBOL_EXISTS( "__FreeBSD__" "" FREE_BSD )
 SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
+
+CHECK_CXX_SYMBOL_EXISTS( __FreeBSD__ "" FREE_BSD )
+CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
 
 #################
 # Configuration #
