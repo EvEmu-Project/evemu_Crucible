@@ -28,23 +28,6 @@
 
 /*
  * Custom config include.
- *
- * config.h (along with command-line parameters) should
- * describe the following (using defines listed below;
- * the default is in parenthesis):
- *
- *   a) the target platform
- *        X64, (x86)
- *        WIN32, CYGWIN, FREE_BSD, APPLE, (other)
- *   b) the compiler
- *        MSVC, GNUC, MINGW, (other)
- *   c) the configuration
- *        NDEBUG, (debug)
- *        EVEMU_ROOT
- *        EVEMU_VERSION
- *        TINYXML_USE_STL
- *
- * The rest of code relies on these defines.
  */
 #ifdef HAVE_CONFIG_H
 #   include "config.h"
@@ -54,47 +37,27 @@
 /* Pre-include                                                           */
 /*************************************************************************/
 
-/*
- * Pre-include platform-specific
- */
-
 // Define basic Windows configuration
 #ifdef WIN32
-#   define WIN32_LEAN_AND_MEAN
 #   define _WIN32_WINNT 0x0500 // building for Win2k
+#   define WIN32_LEAN_AND_MEAN
 #   define NOMINMAX
 #endif /* !WIN32 */
 
-/*
- * Pre-include compiler-specific
- */
-
 // Visual Studio configuration
 #ifdef MSVC
-// 'identifier' : class 'type' needs to have dll-interface to be used by clients of class 'type2'
-//#   pragma warning( disable : 4251 )
-// 'function': was declared deprecated
-//#   pragma warning( disable : 4996 )
-
 #   define _CRT_SECURE_NO_WARNINGS                  1
 #   define _CRT_SECURE_NO_DEPRECATE                 1
 #   define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
-
-#   ifndef NDEBUG
-#       define _CRTDBG_MAP_ALLOC 1
-#   endif /* !NDEBUG */
-
-#   define _SCL_SECURE_NO_WARNINGS 1
+#   define _CRTDBG_MAP_ALLOC                        1
+#   define _SCL_SECURE_NO_WARNINGS                  1
 #endif /* _MSC_VER */
 
 /*************************************************************************/
 /* Include                                                               */
 /*************************************************************************/
 
-/*
- * Standard library includes
- */
-
+// Standard library includes
 #include <cassert>
 #include <cerrno>
 #include <cfloat>
@@ -107,10 +70,7 @@
 #include <cstring>
 #include <ctime>
 
-/*
- * Standard Template Library includes
- */
-
+// Standard Template Library includes
 #include <algorithm>
 #include <list>
 #include <map>
@@ -129,22 +89,19 @@
  *       but it gives you the general idea.
  */
 
-#include <functional>
-
 #ifdef MSVC
+#   include <functional>
 #   include <tuple>
 #   include <unordered_map>
 #   include <unordered_set>
 #else /* !MSVC */
+#   include <tr1/functional>
 #   include <tr1/tuple>
 #   include <tr1/unordered_map>
 #   include <tr1/unordered_set>
 #endif /* !MSVC */
 
-/*
- * Platform-dependent includes
- */
-
+// Platform-dependent includes
 #ifdef WIN32
 #   include <process.h>
 #   include <windows.h>
@@ -161,10 +118,7 @@
 #   include <unistd.h>
 #endif /* !WIN32 */
 
-/*
- * Compiler-dependent includes.
- */
-
+// Compiler-dependent includes.
 #ifdef MSVC
 #   include <io.h>
 #   include <sys/stat.h>
@@ -188,15 +142,6 @@
 /* Post-include                                                          */
 /*************************************************************************/
 
-// 'undefine' min / max so that there won't be major conflicts regarding std
-#ifdef min
-#   undef min
-#endif /* min */
-
-#ifdef max
-#  undef max
-#endif /* max */
-
 // if not defined, define va_copy
 // using memcpy() because of possible array implementation
 #ifndef va_copy
@@ -215,13 +160,6 @@ using std::isnan;
 #   define finite __finite
 #   define isnan  __isnan
 #endif /* !MSVC && !MINGW && !APPLE && !FREE_BSD */
-
-// dll interface stuff
-#ifdef MSVC
-#  define DLLFUNC extern "C" __declspec( dllexport )
-#else /* !WIN32 */
-#  define DLLFUNC extern "C"
-#endif /* !WIN32 */
 
 // Typedefs for integers
 #if defined( MSVC ) || defined( MINGW )
