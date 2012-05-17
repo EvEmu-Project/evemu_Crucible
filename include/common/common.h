@@ -148,17 +148,24 @@
 #   define va_copy( a, b ) ::memcpy( &( a ), &( b ), sizeof( va_list ) )
 #endif /* !HAVE_VA_COPY */
 
-// define finite() and isnan()
-#if defined( MSVC ) || defined( MINGW )
+// Define finite() and isnan()
+#if defined( HAVE__FINITE )
 #   define finite _finite
-#   define isnan  _isnan
-#elif defined( FREE_BSD ) || defined( APPLE )
-using std::finite;
-using std::isnan;
-#else /* !MSVC && !MINGW && !APPLE && !FREE_BSD */
+#elif defined( HAVE___FINITE )
 #   define finite __finite
-#   define isnan  __isnan
-#endif /* !MSVC && !MINGW && !APPLE && !FREE_BSD */
+#elif defined( HAVE_STD_FINITE )
+#   define finite std::finite
+#elif defined( HAVE_STD_ISFINITE )
+#   define finite std::isfinite
+#endif
+
+#if defined( HAVE__ISNAN )
+#   define isnan _isnan
+#elif defined( HAVE___ISNAN )
+#   define isnan __isnan
+#elif defined( HAVE_STD_ISNAN )
+#   define isnan std::isnan
+#endif
 
 // Typedefs for integers
 #if defined( MSVC ) || defined( MINGW )

@@ -43,6 +43,35 @@
 /*************************************************************************/
 /* Feature defines                                                       */
 /*************************************************************************/
+
+// HAVE__FINITE
+// Define if _finite is available.
+#cmakedefine HAVE__FINITE 1
+
+// HAVE__ISNAN
+// Define if _isnan is available.
+#cmakedefine HAVE__ISNAN 1
+
+// HAVE___FINITE
+// Define if __finite is available.
+#cmakedefine HAVE___FINITE 1
+
+// HAVE___ISNAN
+// Define if __isnan is available.
+#cmakedefine HAVE___ISNAN 1
+
+// HAVE_STD_FINITE
+// Define if std::finite is available.
+#cmakedefine HAVE_STD_FINITE 1
+
+// HAVE_STD_ISFINITE
+// Define if std::isfinite is available.
+#cmakedefine HAVE_STD_ISFINITE 1
+
+// HAVE_STD_ISNAN
+// Define if std::isnan is available.
+#cmakedefine HAVE_STD_ISNAN 1
+
 // HAVE_VA_COPY
 // Define if va_copy is available.
 #cmakedefine HAVE_VA_COPY 1

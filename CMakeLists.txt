@@ -38,6 +38,16 @@ TEST_X64( X64 )
 SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
 
 CHECK_CXX_SYMBOL_EXISTS( __FreeBSD__ "" FREE_BSD )
+
+CHECK_CXX_SYMBOL_EXISTS( _finite "cfloat" HAVE__FINITE )
+CHECK_CXX_SYMBOL_EXISTS( _isnan  "cfloat" HAVE__ISNAN )
+
+CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath" HAVE___FINITE )
+CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath" HAVE___ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath" HAVE_STD_FINITE )
+CHECK_CXX_SYMBOL_EXISTS( std::isfinite "cmath" HAVE_STD_ISFINITE )
+CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath" HAVE_STD_ISNAN )
+
 CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
 
 #################
