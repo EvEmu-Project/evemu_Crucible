@@ -49,9 +49,12 @@
 #   define _CRT_SECURE_NO_WARNINGS                  1
 #   define _CRT_SECURE_NO_DEPRECATE                 1
 #   define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
-#   define _CRTDBG_MAP_ALLOC                        1
 #   define _SCL_SECURE_NO_WARNINGS                  1
 #endif /* _MSC_VER */
+
+#ifdef HAVE_CRTDBG_H
+#   define _CRTDBG_MAP_ALLOC 1
+#endif /* HAVE_CRTDBG_H */
 
 // We must "explicitly request" the format strings ...
 #ifdef HAVE_INTTYPES_H
@@ -124,6 +127,12 @@
 #endif /* !WIN32 */
 
 // Feature includes
+#ifdef HAVE_CRTDBG_H
+#   include <crtdbg.h>
+    // This is necessary to track leaks introduced by operator new()
+#   define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
+#endif /* HAVE_CRTDBG_H */
+
 #ifdef HAVE_INTTYPES_H
 #   include <inttypes.h>
 #endif /* HAVE_INTTYPES_H */
@@ -142,9 +151,7 @@
 // Visual Studio memory leak detection includes
 #ifdef MSVC
 #   ifndef NDEBUG
-#       include <crtdbg.h>
 //#       include <vld.h>  // Only enable if you have VLD installed
-//#       define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
 #   endif /* !NDEBUG */
 #endif /* MSVC */
 

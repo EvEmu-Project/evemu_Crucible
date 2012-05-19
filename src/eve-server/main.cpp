@@ -38,10 +38,10 @@ dgmtypeattributemgr * _sDgmTypeAttrMgr;
 
 int main( int argc, char* argv[] )
 {
-#if defined( MSVC ) && !defined( NDEBUG )
+#if defined( HAVE_CRTDBG_H ) && !defined( NDEBUG )
     // Under Visual Studio setup memory leak detection
     _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
-#endif /* defined( MSVC ) && !defined( NDEBUG ) */
+#endif /* defined( HAVE_CRTDBG_H ) && !defined( NDEBUG ) */
 
     printf("Copyright (C) 2006-2011 EVEmu Team. http://evemu.org/\n");
     printf("This program is free software; you can redistribute it and/or modify it under\n");
