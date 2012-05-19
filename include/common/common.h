@@ -137,6 +137,10 @@
 #   include <inttypes.h>
 #endif /* HAVE_INTTYPES_H */
 
+#ifdef HAVE_VLD_H
+#   include <vld.h>
+#endif /* HAVE_VLD_H */
+
 // Compiler-dependent includes.
 #ifdef MSVC
 #   include <io.h>
@@ -147,13 +151,6 @@
 #   include <sys/time.h>
 #   include <sys/types.h>
 #endif /* !MSVC */
-
-// Visual Studio memory leak detection includes
-#ifdef MSVC
-#   ifndef NDEBUG
-//#       include <vld.h>  // Only enable if you have VLD installed
-#   endif /* !NDEBUG */
-#endif /* MSVC */
 
 /*************************************************************************/
 /* Post-include                                                          */

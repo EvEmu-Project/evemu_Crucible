@@ -52,6 +52,10 @@
 // Define if inttypes.h is available.
 #cmakedefine HAVE_INTTYPES_H 1
 
+// HAVE_VLD_H
+// Define if vld.h is available.
+#cmakedefine HAVE_VLD_H 1
+
 // HAVE__FINITE
 // Define if _finite is available.
 #cmakedefine HAVE__FINITE 1
