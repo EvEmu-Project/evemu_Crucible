@@ -62,8 +62,8 @@ PyRep *RamProxyDB::GetJobs2(const uint32 ownerID, const bool completed, const ui
         " LEFT JOIN ramAssemblyLineStations AS station ON assemblyLine.containerID = station.stationID"
         " WHERE job.ownerID = %u"
         " AND job.completedStatusID %s 0"
-        " AND job.installTime >= " I64u
-        " AND job.endProductionTime <= " I64u
+        " AND job.installTime >= " PRIu64
+        " AND job.endProductionTime <= " PRIu64
         " GROUP BY job.jobID",
         ownerID, (completed ? "!=" : "="), fromDate, toDate))
     {
@@ -271,7 +271,7 @@ bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, con
         " (ownerID, installerID, assemblyLineID, installedItemID, installTime, beginProductionTime, endProductionTime, description, runs, outputFlag,"
         " completedStatusID, installedInSolarSystemID, licensedProductionRuns)"
         " VALUES"
-        " (%u, %u, %u, %u, " I64u ", " I64u ", " I64u ", '%s', %u, %d, 0, %u, %li)",
+        " (%u, %u, %u, %u, " PRIu64 ", " PRIu64 ", " PRIu64 ", '%s', %u, %d, 0, %u, %li)",
         ownerID, installerID, assemblyLineID, installedItemID, Win32TimeNow(), beginProductionTime, endProductionTime, description,
         runs, (int)outputFlag, installedInSolarSystem, licensedProductionRuns))
     {
@@ -282,7 +282,7 @@ bool RamProxyDB::InstallJob(const uint32 ownerID, const  uint32 installerID, con
     // update nextFreeTime
     if(!sDatabase.RunQuery(err,
         "UPDATE ramAssemblyLines"
-        " SET nextFreeTime = " I64u
+        " SET nextFreeTime = " PRIu64
         " WHERE assemblyLineID = %u",
         endProductionTime, assemblyLineID))
     {

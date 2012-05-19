@@ -30,12 +30,15 @@ MARK_AS_ADVANCED( EVEMU_ROOT )
 # Tests #
 #########
 INCLUDE( "CheckCXXSymbolExists" )
+INCLUDE( "CheckIncludeFile" )
 INCLUDE( "DetectScm" )
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TestX64" )
 
 TEST_X64( X64 )
 SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
+
+CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
 
 CHECK_CXX_SYMBOL_EXISTS( __FreeBSD__ "" FREE_BSD )
 

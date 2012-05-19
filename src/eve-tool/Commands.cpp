@@ -231,7 +231,7 @@ void PrintTimeNow( const Seperator& cmd )
 {
     const char* cmdName = cmd.arg( 0 ).c_str();
 
-    sLog.Log( cmdName, "Now in Win32 time: "I64u".", Win32TimeNow() );
+    sLog.Log( cmdName, "Now in Win32 time: "PRIu64".", Win32TimeNow() );
 }
 
 void ObjectToSQL( const Seperator& cmd )
@@ -319,7 +319,7 @@ void TimeToString( const Seperator& cmd )
         const std::string& timeStr = cmd.arg( i );
 
         uint64 t;
-        sscanf( timeStr.c_str(), I64u, &t );
+        sscanf( timeStr.c_str(), SCNu64, &t );
         const std::string time = Win32TimeToString( t );
 
         sLog.Log( cmdName, "%s is %s.", timeStr.c_str(), time.c_str() );
