@@ -88,6 +88,14 @@
 // Define if va_copy is available.
 #cmakedefine HAVE_VA_COPY 1
 
+// HAVE_STRTOLL
+// Define if strtoll is available.
+#cmakedefine HAVE_STRTOLL 1
+
+// HAVE_STRTOULL
+// Define if strtoull is available.
+#cmakedefine HAVE_STRTOULL 1
+
 // HAVE_STRDUP
 // Define if strdup is available.
 #cmakedefine HAVE_STRDUP 1

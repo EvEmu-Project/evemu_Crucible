@@ -276,6 +276,16 @@ typedef unsigned __int64 uint64;
 tm* localtime_r( const time_t* timep, tm* result );
 #endif /* !HAVE_LOCALTIME_R */
 
+// Define strtoll
+#ifndef HAVE_STRTOLL
+#   define strtoll _strtoi64
+#endif /* !HAVE_STRTOLL */
+
+// Define strtoull
+#ifndef HAVE_STRTOULL
+#   define strtoull _strtoui64
+#endif /* !HAVE_STRTOULL */
+
 // Define strdup
 #ifndef HAVE_STRDUP
 #   define strdup _strdup
@@ -340,11 +350,6 @@ uint32 GetTickCount();
 #   define S_IRWXO      0
 
 #   define snprintf _snprintf
-
-//#   define strtoq   _strtoi64
-//#   define strtouq  _strtoui64
-#   define strtoll  _strtoi64
-#   define strtoull _strtoui64
 
 #   if( _MSC_VER < 1500 )
 #       define vsnprintf _vsnprintf
