@@ -37,36 +37,45 @@ INCLUDE( "TestX64" )
 
 TEST_X64( X64 )
 
+# Headers
 CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
 CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
 CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
 
+# cfloat
 CHECK_CXX_SYMBOL_EXISTS( _finite "cfloat" HAVE__FINITE )
 CHECK_CXX_SYMBOL_EXISTS( _isnan  "cfloat" HAVE__ISNAN )
 
+# cmath
 CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath" HAVE___FINITE )
 CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath" HAVE___ISNAN )
 CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath" HAVE_STD_FINITE )
 CHECK_CXX_SYMBOL_EXISTS( std::isfinite "cmath" HAVE_STD_ISFINITE )
 CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath" HAVE_STD_ISNAN )
 
+# cstdarg
 CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
 
+# cstdio
 CHECK_CXX_SYMBOL_EXISTS(  snprintf "cstdio" HAVE_SNPRINTF )
 CHECK_CXX_SYMBOL_EXISTS( vsnprintf "cstdio" HAVE_VSNPRINTF )
 CHECK_CXX_SYMBOL_EXISTS(  asprintf "cstdio" HAVE_ASPRINTF )
 CHECK_CXX_SYMBOL_EXISTS( vasprintf "cstdio" HAVE_VASPRINTF )
 
+# cstdlib
 CHECK_CXX_SYMBOL_EXISTS( strtoll  "cstdlib" HAVE_STRTOLL )
 CHECK_CXX_SYMBOL_EXISTS( strtoull "cstdlib" HAVE_STRTOULL )
 
+# cstring
 CHECK_CXX_SYMBOL_EXISTS( strdup      "cstring" HAVE_STRDUP )
 CHECK_CXX_SYMBOL_EXISTS( strcasecmp  "cstring" HAVE_STRCASECMP )
 CHECK_CXX_SYMBOL_EXISTS( strncasecmp "cstring" HAVE_STRNCASECMP )
 
+# ctime
 CHECK_CXX_SYMBOL_EXISTS( localtime_r "ctime" HAVE_LOCALTIME_R )
 CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 
+# sys/socket.h
 CHECK_CXX_SYMBOL_EXISTS( MSG_NOSIGNAL "sys/socket.h" HAVE_MSG_NOSIGNAL )
 CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
 

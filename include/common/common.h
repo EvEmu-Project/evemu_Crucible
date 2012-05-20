@@ -96,7 +96,6 @@
  * Note: my fellow developers please read 'http://en.wikipedia.org/wiki/Technical_Report_1'. I know its a wiki page
  *       but it gives you the general idea.
  */
-
 #ifdef MSVC
 #   include <functional>
 #   include <tuple>
@@ -115,15 +114,15 @@
 #   include <windows.h>
 #   include <winsock2.h>
 #else /* !WIN32 */
-#   include <arpa/inet.h>
 #   include <dirent.h>
 #   include <execinfo.h>
 #   include <fcntl.h>
 #   include <netdb.h>
-#   include <netinet/in.h>
 #   include <pthread.h>
-#   include <sys/socket.h>
 #   include <unistd.h>
+#   include <arpa/inet.h>
+#   include <netinet/in.h>
+#   include <sys/socket.h>
 #endif /* !WIN32 */
 
 // Feature includes
