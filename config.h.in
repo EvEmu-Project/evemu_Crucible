@@ -88,6 +88,22 @@
 // Define if va_copy is available.
 #cmakedefine HAVE_VA_COPY 1
 
+// HAVE_SNPRINTF
+// Define if snprintf is available.
+#cmakedefine HAVE_SNPRINTF 1
+
+// HAVE_VSNPRINTF
+// Define if vsnprintf is available.
+#cmakedefine HAVE_VSNPRINTF 1
+
+// HAVE_ASPRINTF
+// Define if asprintf is available.
+#cmakedefine HAVE_ASPRINTF 1
+
+// HAVE_VASPRINTF
+// Define if vasprintf is available.
+#cmakedefine HAVE_VASPRINTF 1
+
 // HAVE_STRTOLL
 // Define if strtoll is available.
 #cmakedefine HAVE_STRTOLL 1

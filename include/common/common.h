@@ -276,6 +276,26 @@ typedef unsigned __int64 uint64;
 tm* localtime_r( const time_t* timep, tm* result );
 #endif /* !HAVE_LOCALTIME_R */
 
+// Define snprintf
+#ifndef HAVE_SNPRINTF
+#   define snprintf _snprintf
+#endif /* !HAVE_SNPRINTF */
+
+// Define vsnprintf
+#ifndef HAVE_VSNPRINTF
+#   define vsnprintf _vsnprintf
+#endif /* !HAVE_VSNPRINTF */
+
+// Define asprintf
+#ifndef HAVE_ASPRINTF
+int asprintf( char** strp, const char* fmt, ... );
+#endif /* !HAVE_ASPRINTF */
+
+// Define vasprintf
+#ifndef HAVE_VASPRINTF
+int vasprintf( char** strp, const char* fmt, va_list ap );
+#endif /* !HAVE_VASPRINTF */
+
 // Define strtoll
 #ifndef HAVE_STRTOLL
 #   define strtoll _strtoi64
@@ -325,8 +345,6 @@ typedef void* thread_return_t;
  */
 #ifdef WIN32
 int gettimeofday( timeval* tv, void* reserved );
-int asprintf( char** strp, const char* fmt, ... );
-int vasprintf( char** strp, const char* fmt, va_list ap );
 int mkdir( const char* pathname, int mode );
 
 #else /* !WIN32 */
@@ -348,12 +366,6 @@ uint32 GetTickCount();
 #   define S_IRWXU      0
 #   define S_IRWXG      0
 #   define S_IRWXO      0
-
-#   define snprintf _snprintf
-
-#   if( _MSC_VER < 1500 )
-#       define vsnprintf _vsnprintf
-#   endif /* _MSC_VER < 1500 */
 #endif /* MSVC */
 
 #ifdef WIN32

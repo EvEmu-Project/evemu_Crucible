@@ -47,6 +47,49 @@ tm* localtime_r( const time_t* timep, tm* result )
 }
 #endif /* !HAVE_LOCALTIME_R */
 
+#ifndef HAVE_ASPRINTF
+int asprintf( char** strp, const char* fmt, ... )
+{
+    va_list ap;
+
+    va_start( ap, fmt );
+    int res = ::vasprintf( strp, fmt, ap );
+    va_end( ap );
+
+    return res;
+}
+#endif /* !HAVE_ASPRINTF */
+
+#ifndef HAVE_VASPRINTF
+int vasprintf( char** strp, const char* fmt, va_list ap )
+{
+    //va_list ap_temp;
+    //va_copy(ap_temp, ap);
+    //int size = ::vsnprintf(NULL, 0, fmt, ap);
+    int size = 0x8000;
+
+    char* buff = (char*)::malloc( size + 1 );
+    if( buff == NULL )
+        return -1;
+
+    size = ::vsnprintf( buff, size, fmt, ap );
+    if( size < 0 )
+    {
+        SafeFree( buff );
+    }
+    else
+    {
+        // do not waste memory
+        buff = (char*)::realloc( buff, size + 1 );
+        buff[size] = '\0';
+
+        (*strp) = buff;
+    }
+
+    return size;
+}
+#endif /* !HAVE_VASPRINTF */
+
 #ifdef WIN32
 
 int gettimeofday( timeval* tp, void* reserved )
@@ -58,45 +101,6 @@ int gettimeofday( timeval* tp, void* reserved )
     tp->tv_usec = tb.millitm * 1000;
 
     return 0;
-}
-
-int asprintf( char** strp, const char* fmt, ... )
-{
-    va_list ap;
-
-    va_start( ap, fmt );
-    int res = vasprintf( strp, fmt, ap );
-    va_end( ap );
-
-    return res;
-}
-
-int vasprintf( char** strp, const char* fmt, va_list ap )
-{
-    //va_list ap_temp;
-    //va_copy(ap_temp, ap);
-    //int size = vsnprintf(NULL, 0, fmt, ap);
-    int size = 0x8000;
-
-    char* buff = (char*)malloc( size + 1 );
-    if( buff == NULL )
-        return -1;
-
-    size = vsnprintf( buff, size, fmt, ap );
-    if( size < 0 )
-    {
-        SafeFree( buff );
-    }
-    else
-    {
-        // do not waste memory
-        buff = (char*)realloc( buff, size + 1 );
-        buff[size] = '\0';
-
-        (*strp) = buff;
-    }
-
-    return size;
 }
 
 int mkdir( const char* pathname, int mode )
