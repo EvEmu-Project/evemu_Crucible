@@ -82,8 +82,7 @@ SET( ${TARGET_NAME}_INCLUDE_DIRS
 #########
 SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/common.h"
-     "${TARGET_INCLUDE_DIR}/compat.h"
-     "${TARGET_INCLUDE_DIR}/CommonPCH.h" )
+     "${TARGET_INCLUDE_DIR}/compat.h" )
 SET( SOURCE
      "${TARGET_SOURCE_DIR}/compat.cpp" )
 
@@ -181,7 +180,7 @@ ADD_LIBRARY( "${TARGET_NAME}"
              ${utils_INCLUDE}     ${utils_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/CommonPCH.h"
+                  "${TARGET_INCLUDE_DIR}/common.h"
                   "${TARGET_SOURCE_DIR}/compat.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${MYSQL_LIBRARIES}

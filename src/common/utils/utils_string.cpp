@@ -23,7 +23,7 @@
     Author:     Captnoord, Bloody.Rabbit
 */
 
-#include "CommonPCH.h"
+#include "common.h"
 
 #include "utils/utils_string.h"
 

@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "CommonPCH.h"
+#include "common.h"
 
 #ifndef HAVE_LOCALTIME_R
 tm* localtime_r( const time_t* timep, tm* result )

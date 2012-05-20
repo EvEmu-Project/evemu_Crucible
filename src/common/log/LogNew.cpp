@@ -23,7 +23,7 @@
     Author:     Captnoord
 */
 
-#include "CommonPCH.h"
+#include "common.h"
 
 #include "log/LogNew.h"
 #include "log/logtypes.h"

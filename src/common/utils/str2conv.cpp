@@ -23,7 +23,7 @@
     Author:     Bloody.Rabbit
 */
 
-#include "CommonPCH.h"
+#include "common.h"
 
 #include "utils/str2conv.h"
 
