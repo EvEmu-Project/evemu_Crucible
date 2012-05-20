@@ -63,30 +63,36 @@ int asprintf( char** strp, const char* fmt, ... )
 #ifndef HAVE_VASPRINTF
 int vasprintf( char** strp, const char* fmt, va_list ap )
 {
-    //va_list ap_temp;
-    //va_copy(ap_temp, ap);
-    //int size = ::vsnprintf(NULL, 0, fmt, ap);
-    int size = 0x8000;
+    // Size of the buffer (doubled each cycle)
+    size_t size = 0x40 >> 1;
+    // Return code
+    int code;
 
-    char* buff = (char*)::malloc( size + 1 );
-    if( buff == NULL )
-        return -1;
+    // No buffer yet
+    *strp = NULL;
 
-    size = ::vsnprintf( buff, size, fmt, ap );
-    if( size < 0 )
+    do
     {
-        SafeFree( buff );
-    }
-    else
-    {
-        // do not waste memory
-        buff = (char*)::realloc( buff, size + 1 );
-        buff[size] = '\0';
+        // Double the size of buffer
+        size <<= 1;
+        // Reallocate the buffer
+        *strp = (char*)::realloc( *strp, size );
 
-        (*strp) = buff;
-    }
+        // Try to print into the buffer
+        code = ::vsnprintf( *strp, size, fmt, ap );
+        // Check for truncation
+        if( size <= code )
+            // Output truncated
+            code = -1;
+    } while( 0 > code );
 
-    return size;
+    // Reallocate to save memory
+    *strp = (char*)::realloc( *strp, code + 1 );
+    // Terminate the string
+    (*strp)[ code ] = '\0';
+
+    // Return the code
+    return code;
 }
 #endif /* !HAVE_VASPRINTF */
 
