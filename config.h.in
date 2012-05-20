@@ -13,32 +13,12 @@
 // Define this if you are on Windows.
 // CMake passes this as a command-line define.
 
-// CYGWIN
-// Define this if you are under CYGWIN.
-#cmakedefine CYGWIN 1
-
-// FREE_BSD
-// Define this if you are on FreeBSD.
-#cmakedefine FREE_BSD 1
-
-// APPLE
-// Define this if you are on Apple's OS.
-#cmakedefine APPLE 1
-
 /*************************************************************************/
 /* Compiler defines                                                      */
 /*************************************************************************/
 // MSVC
 // Define this if you are using Microsoft C++ Compiler.
 #cmakedefine MSVC 1
-
-// GNUC
-// Define this if you are using GNU C++ compiler.
-#cmakedefine GNUC 1
-
-// MINGW
-// Define this if you are using MinGW C++ compiler.
-#cmakedefine MINGW 1
 
 /*************************************************************************/
 /* Feature defines                                                       */

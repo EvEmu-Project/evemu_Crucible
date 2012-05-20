@@ -363,8 +363,7 @@ static ASCENT_FORCEINLINE uint32 int32abs2uint32( const int value )
 /// Fastest Method of float2int32
 static ASCENT_FORCEINLINE int float2int32(const float value)
 {
-//#if !defined(X64) && ASCENT_COMPILER == COMPILER_MICROSOFT
-    #if !defined(X64) && !defined(MINGW)
+#if defined( MSVC ) && !defined( X64 )
     int i;
     __asm {
         fld value
@@ -383,7 +382,7 @@ static ASCENT_FORCEINLINE int float2int32(const float value)
 /// Fastest Method of double2int32
 static ASCENT_FORCEINLINE int double2int32(const double value)
 {
-#if !defined(X64) && ASCENT_COMPILER == COMPILER_MICROSOFT
+#if defined( MSVC ) && !defined( X64 )
     int i;
     __asm {
         fld value
