@@ -303,11 +303,6 @@ int mkdir( const char* pathname, int mode );
 #   define INVALID_SOCKET ( -1 )
 #   define SOCKET_ERROR   ( -1 )
 
-#   ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-#       define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP \
-            { 0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, __LOCK_INITIALIZER }
-#   endif /* !PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP */
-
 typedef int SOCKET;
 
 void Sleep( uint32 x );
