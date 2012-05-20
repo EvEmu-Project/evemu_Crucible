@@ -150,10 +150,10 @@ void BaseTCPServer::Close()
 void BaseTCPServer::StartLoop()
 {
 #ifdef WIN32
-    _beginthread( BaseTCPServer::TCPServerLoop, 0, this );
+    CreateThread( NULL, 0, TCPServerLoop, this, 0, NULL );
 #else
     pthread_t thread;
-    pthread_create( &thread, NULL, &BaseTCPServer::TCPServerLoop, this );
+    pthread_create( &thread, NULL, TCPServerLoop, this );
 #endif
 }
 
@@ -204,15 +204,25 @@ void BaseTCPServer::ListenNewConnections()
     }
 }
 
-thread_return_t BaseTCPServer::TCPServerLoop( void* arg )
+#ifdef WIN32
+DWORD WINAPI BaseTCPServer::TCPServerLoop( LPVOID arg )
+#else /* !WIN32 */
+void* BaseTCPServer::TCPServerLoop( void* arg )
+#endif /* !WIN32 */
 {
-    BaseTCPServer* tcps = reinterpret_cast<BaseTCPServer*>( arg );
+    BaseTCPServer* tcps = reinterpret_cast< BaseTCPServer* >( arg );
     assert( tcps != NULL );
 
-    THREAD_RETURN( tcps->TCPServerLoop() );
+    tcps->TCPServerLoop();
+
+#ifdef WIN32
+    return 0;
+#else /* !WIN32 */
+    return NULL;
+#endif /* !WIN32 */
 }
 
-thread_return_t BaseTCPServer::TCPServerLoop()
+void BaseTCPServer::TCPServerLoop()
 {
 #ifdef WIN32
     SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
@@ -246,7 +256,4 @@ thread_return_t BaseTCPServer::TCPServerLoop()
 #ifndef WIN32
     sLog.Log( "Threading", "Ending TCPServerLoop with thread ID %d", pthread_self() );
 #endif
-
-    THREAD_RETURN( NULL );
 }
-

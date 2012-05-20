@@ -321,18 +321,6 @@ int vasprintf( char** strp, const char* fmt, va_list ap );
 #   define strncasecmp _strnicmp
 #endif /* !HAVE_STRNCASECMP */
 
-// Return thread macro's
-// URL: http://msdn.microsoft.com/en-us/library/hw264s73(VS.80).aspx
-// Important Quote: "_endthread and _endthreadex cause C++ destructors pending in the thread not to be called."
-// Result: mem leaks under windows
-#ifdef WIN32
-#   define THREAD_RETURN( x ) ( x )
-typedef void thread_return_t;
-#else /* !WIN32 */
-#   define THREAD_RETURN( x ) return ( x )
-typedef void* thread_return_t;
-#endif /* !WIN32 */
-
 // Basic programming tips
 // URL: http://nedprod.com/programs/index.html
 // Note: always nullify pointers after deletion, why? because its safer on a MT application

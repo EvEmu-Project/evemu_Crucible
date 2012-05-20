@@ -222,7 +222,7 @@ void TCPConnection::StartLoop()
 {
     // Spawn new thread
 #ifdef WIN32
-    _beginthread( TCPConnectionLoop, 0, this );
+    CreateThread( NULL, 0, TCPConnectionLoop, this, 0, NULL );
 #else
     pthread_t thread;
     pthread_create( &thread, NULL, TCPConnectionLoop, this );
@@ -472,15 +472,25 @@ void TCPConnection::ClearBuffers()
     SafeDelete( mRecvBuf );
 }
 
-thread_return_t TCPConnection::TCPConnectionLoop( void* arg )
+#ifdef WIN32
+DWORD WINAPI TCPConnection::TCPConnectionLoop( LPVOID arg )
+#else /* !WIN32 */
+void* TCPConnection::TCPConnectionLoop( void* arg )
+#endif /* !WIN32 */
 {
-    TCPConnection* tcpc = reinterpret_cast<TCPConnection*>( arg );
+    TCPConnection* tcpc = reinterpret_cast< TCPConnection* >( arg );
     assert( tcpc != NULL );
 
-    THREAD_RETURN( tcpc->TCPConnectionLoop() );
+    tcpc->TCPConnectionLoop();
+
+#ifdef WIN32
+    return 0;
+#else /* !WIN32 */
+    return NULL;
+#endif /* !WIN32 */
 }
 
-thread_return_t TCPConnection::TCPConnectionLoop()
+void TCPConnection::TCPConnectionLoop()
 {
 #ifdef WIN32
     SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
@@ -514,7 +524,4 @@ thread_return_t TCPConnection::TCPConnectionLoop()
 #ifndef WIN32
     sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %d", pthread_self() );
 #endif
-
-    THREAD_RETURN( NULL );
 }
-
