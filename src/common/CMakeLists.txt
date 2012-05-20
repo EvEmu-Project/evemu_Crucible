@@ -82,9 +82,10 @@ SET( ${TARGET_NAME}_INCLUDE_DIRS
 #########
 SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/common.h"
+     "${TARGET_INCLUDE_DIR}/compat.h"
      "${TARGET_INCLUDE_DIR}/CommonPCH.h" )
 SET( SOURCE
-     "${TARGET_SOURCE_DIR}/common.cpp" )
+     "${TARGET_SOURCE_DIR}/compat.cpp" )
 
 SET( database_INCLUDE
      "${TARGET_INCLUDE_DIR}/database/dbcore.h"
@@ -124,10 +125,12 @@ SET( utils_INCLUDE
      "${TARGET_INCLUDE_DIR}/utils/crc32.h"
      "${TARGET_INCLUDE_DIR}/utils/Deflate.h"
      "${TARGET_INCLUDE_DIR}/utils/DirWalker.h"
+     "${TARGET_INCLUDE_DIR}/utils/FastInt.h"
      "${TARGET_INCLUDE_DIR}/utils/gpoint.h"
      "${TARGET_INCLUDE_DIR}/utils/Lock.h"
      "${TARGET_INCLUDE_DIR}/utils/misc.h"
      "${TARGET_INCLUDE_DIR}/utils/RefPtr.h"
+     "${TARGET_INCLUDE_DIR}/utils/SafeMem.h"
      "${TARGET_INCLUDE_DIR}/utils/Seperator.h"
      "${TARGET_INCLUDE_DIR}/utils/Singleton.h"
      "${TARGET_INCLUDE_DIR}/utils/str2conv.h"
@@ -179,7 +182,7 @@ ADD_LIBRARY( "${TARGET_NAME}"
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/CommonPCH.h"
-                  "${TARGET_SOURCE_DIR}/common.cpp" )
+                  "${TARGET_SOURCE_DIR}/compat.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${MYSQL_LIBRARIES}
                        ${GANGSTA_LIBRARIES}

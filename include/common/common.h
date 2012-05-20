@@ -26,25 +26,19 @@
 #ifndef __COMMON_H__INCL__
 #define __COMMON_H__INCL__
 
-/*
- * Custom config include.
- */
+/*************************************************************************/
+/* Header configuration                                                  */
+/*************************************************************************/
 #ifdef HAVE_CONFIG_H
 #   include "config.h"
 #endif /* HAVE_CONFIG_H */
 
-/*************************************************************************/
-/* Pre-include                                                           */
-/*************************************************************************/
-
-// Define basic Windows configuration
 #ifdef WIN32
 #   define _WIN32_WINNT 0x0500 // building for Win2k
 #   define WIN32_LEAN_AND_MEAN
 #   define NOMINMAX
 #endif /* !WIN32 */
 
-// Visual Studio configuration
 #ifdef MSVC
 #   define _CRT_SECURE_NO_WARNINGS                  1
 #   define _CRT_SECURE_NO_DEPRECATE                 1
@@ -56,13 +50,13 @@
 #   define _CRTDBG_MAP_ALLOC 1
 #endif /* HAVE_CRTDBG_H */
 
-// We must "explicitly request" the format strings ...
 #ifdef HAVE_INTTYPES_H
+    // We must "explicitly request" the format strings ...
 #   define __STDC_FORMAT_MACROS 1
 #endif /* HAVE_INTTYPES_H */
 
 /*************************************************************************/
-/* Include                                                               */
+/* Includes                                                              */
 /*************************************************************************/
 
 // Standard library includes
@@ -108,7 +102,6 @@
 #   include <tr1/unordered_set>
 #endif /* !MSVC */
 
-// Platform-dependent includes
 #ifdef WIN32
 #   include <process.h>
 #   include <windows.h>
@@ -125,7 +118,16 @@
 #   include <sys/socket.h>
 #endif /* !WIN32 */
 
-// Feature includes
+#ifdef MSVC
+#   include <io.h>
+#   include <sys/stat.h>
+#   include <sys/timeb.h>
+#else /* !MSVC */
+#   include <sys/stat.h>
+#   include <sys/time.h>
+#   include <sys/types.h>
+#endif /* !MSVC */
+
 #ifdef HAVE_CRTDBG_H
 #   include <crtdbg.h>
     // This is necessary to track leaks introduced by operator new()
@@ -140,260 +142,12 @@
 #   include <vld.h>
 #endif /* HAVE_VLD_H */
 
-// Compiler-dependent includes.
-#ifdef MSVC
-#   include <io.h>
-#   include <sys/stat.h>
-#   include <sys/timeb.h>
-#else /* !MSVC */
-#   include <sys/stat.h>
-#   include <sys/time.h>
-#   include <sys/types.h>
-#endif /* !MSVC */
-
 /*************************************************************************/
-/* Post-include                                                          */
+/* Other stuff included by default                                       */
 /*************************************************************************/
+#include "compat.h"
 
-/* If not defined, define va_copy.
-   Using memcpy() because of possible array implementation. */
-#ifndef HAVE_VA_COPY
-#   define va_copy( a, b ) ::memcpy( &( a ), &( b ), sizeof( va_list ) )
-#endif /* !HAVE_VA_COPY */
-
-// Define finite() and isnan()
-#if defined( HAVE__FINITE )
-#   define finite _finite
-#elif defined( HAVE___FINITE )
-#   define finite __finite
-#elif defined( HAVE_STD_FINITE )
-#   define finite std::finite
-#elif defined( HAVE_STD_ISFINITE )
-#   define finite std::isfinite
-#endif
-
-#if defined( HAVE__ISNAN )
-#   define isnan _isnan
-#elif defined( HAVE___ISNAN )
-#   define isnan __isnan
-#elif defined( HAVE_STD_ISNAN )
-#   define isnan std::isnan
-#endif
-
-/*
- * u?int(8|16|32|64)
- */
-#ifdef HAVE_INTTYPES_H
-typedef  int8_t   int8;
-typedef uint8_t  uint8;
-typedef  int16_t  int16;
-typedef uint16_t uint16;
-typedef  int32_t  int32;
-typedef uint32_t uint32;
-typedef  int64_t  int64;
-typedef uint64_t uint64;
-#else /* !HAVE_INTTYPES_H */
-typedef   signed __int8   int8;
-typedef unsigned __int8  uint8;
-typedef   signed __int16  int16;
-typedef unsigned __int16 uint16;
-typedef   signed __int32  int32;
-typedef unsigned __int32 uint32;
-typedef   signed __int64  int64;
-typedef unsigned __int64 uint64;
-#endif /* !HAVE_INTTYPES_H */
-
-/*
- * PRI[diouxX](8|16|32|64)
- * SCN[diouxX](8|16|32|64)
- */
-#ifndef HAVE_INTTYPES_H
-#   define PRId8 "hhd"
-#   define PRIi8 "hhi"
-#   define PRIo8 "hho"
-#   define PRIu8 "hhu"
-#   define PRIx8 "hhx"
-#   define PRIX8 "hhX"
-
-#   define PRId16 "hd"
-#   define PRIi16 "hi"
-#   define PRIo16 "ho"
-#   define PRIu16 "hu"
-#   define PRIx16 "hx"
-#   define PRIX16 "hX"
-
-#   define PRId32 "I32d"
-#   define PRIi32 "I32i"
-#   define PRIo32 "I32o"
-#   define PRIu32 "I32u"
-#   define PRIx32 "I32x"
-#   define PRIX32 "I32X"
-
-#   define PRId64 "I64d"
-#   define PRIi64 "I64i"
-#   define PRIo64 "I64o"
-#   define PRIu64 "I64u"
-#   define PRIx64 "I64x"
-#   define PRIX64 "I64X"
-
-#   define SCNd8 "hhd"
-#   define SCNi8 "hhi"
-#   define SCNo8 "hho"
-#   define SCNu8 "hhu"
-#   define SCNx8 "hhx"
-
-#   define SCNd16 "hd"
-#   define SCNi16 "hi"
-#   define SCNo16 "ho"
-#   define SCNu16 "hu"
-#   define SCNx16 "hx"
-
-#   define SCNd32 "I32d"
-#   define SCNi32 "I32i"
-#   define SCNo32 "I32o"
-#   define SCNu32 "I32u"
-#   define SCNx32 "I32x"
-
-#   define SCNd64 "I64d"
-#   define SCNi64 "I64i"
-#   define SCNo64 "I64o"
-#   define SCNu64 "I64u"
-#   define SCNx64 "I64x"
-#endif /* !HAVE_INTTYPES_H */
-
-// Define MSG_NOSIGNAL
-#ifndef HAVE_MSG_NOSIGNAL
-#   ifdef HAVE_SO_NOSIGPIPE
-#       define MSG_NOSIGNAL SO_NOSIGPIPE
-#   else /* !HAVE_SO_NOSIGPIPE */
-#       define MSG_NOSIGNAL 0
-#   endif /* !HAVE_SO_NOSIGPIPE */
-#endif /* !HAVE_MSG_NOSIGNAL */
-
-// Define localtime_r
-#ifndef HAVE_LOCALTIME_R
-tm* localtime_r( const time_t* timep, tm* result );
-#endif /* !HAVE_LOCALTIME_R */
-
-// Define snprintf
-#ifndef HAVE_SNPRINTF
-#   define snprintf _snprintf
-#endif /* !HAVE_SNPRINTF */
-
-// Define vsnprintf
-#ifndef HAVE_VSNPRINTF
-#   define vsnprintf _vsnprintf
-#endif /* !HAVE_VSNPRINTF */
-
-// Define asprintf
-#ifndef HAVE_ASPRINTF
-int asprintf( char** strp, const char* fmt, ... );
-#endif /* !HAVE_ASPRINTF */
-
-// Define vasprintf
-#ifndef HAVE_VASPRINTF
-int vasprintf( char** strp, const char* fmt, va_list ap );
-#endif /* !HAVE_VASPRINTF */
-
-// Define strtoll
-#ifndef HAVE_STRTOLL
-#   define strtoll _strtoi64
-#endif /* !HAVE_STRTOLL */
-
-// Define strtoull
-#ifndef HAVE_STRTOULL
-#   define strtoull _strtoui64
-#endif /* !HAVE_STRTOULL */
-
-// Define strdup
-#ifndef HAVE_STRDUP
-#   define strdup _strdup
-#endif /* !HAVE_STRDUP */
-
-// Define strcasecmp
-#ifndef HAVE_STRCASECMP
-#   define strcasecmp _stricmp
-#endif /* !HAVE_STRCASECMP */
-
-// Define strncasecmp
-#ifndef HAVE_STRNCASECMP
-#   define strncasecmp _strnicmp
-#endif /* !HAVE_STRNCASECMP */
-
-// Basic programming tips
-// URL: http://nedprod.com/programs/index.html
-// Note: always nullify pointers after deletion, why? because its safer on a MT application
-#define SafeDelete( p )      { if( p != NULL ) { delete p; p = NULL; } }
-#define SafeDeleteArray( p ) { if( p != NULL ) { delete[] p; p = NULL; } }
-#define SafeFree( p )        { if( p != NULL ) { free( p ); p = NULL; } }
-
-/*
- * Post-include platform-dependent
- */
-#ifndef WIN32
-#   define INVALID_SOCKET ( -1 )
-#   define SOCKET_ERROR   ( -1 )
-
-typedef int SOCKET;
-
-void   Sleep( uint32 x );
-uint32 GetTickCount();
-int    CreateDirectory( const char* name, void* );
-#endif /* !WIN32 */
-
-#ifdef WIN32
-#  define ASCENT_FORCEINLINE __forceinline
-#else
-#  define ASCENT_FORCEINLINE inline
-#endif
-
-// fast int abs
-static ASCENT_FORCEINLINE int int32abs( const int value )
-{
-    return (value ^ (value >> 31)) - (value >> 31);
-}
-
-// fast int abs and recast to unsigned
-static ASCENT_FORCEINLINE uint32 int32abs2uint32( const int value )
-{
-    return (uint32)(value ^ (value >> 31)) - (value >> 31);
-}
-
-/// Fastest Method of float2int32
-static ASCENT_FORCEINLINE int float2int32(const float value)
-{
-#if defined( MSVC ) && !defined( X64 )
-    int i;
-    __asm {
-        fld value
-        frndint
-        fistp i
-    }
-    return i;
-#else
-    union { int asInt[2]; double asDouble; } n;
-    n.asDouble = value + 6755399441055744.0;
-
-    return n.asInt [0];
-#endif
-}
-
-/// Fastest Method of double2int32
-static ASCENT_FORCEINLINE int double2int32(const double value)
-{
-#if defined( MSVC ) && !defined( X64 )
-    int i;
-    __asm {
-        fld value
-        frndint
-        fistp i
-    }
-    return i;
-#else
-  union { int asInt[2]; double asDouble; } n;
-  n.asDouble = value + 6755399441055744.0;
-  return n.asInt [0];
-#endif
-}
+#include "utils/FastInt.h"
+#include "utils/SafeMem.h"
 
 #endif /* !__COMMON_H__INCL__ */
