@@ -302,12 +302,6 @@ int mkdir( const char* pathname, int mode );
 #       define MSG_NOSIGNAL SO_NOSIGPIPE
 #   endif
 
-#   ifndef PATH_MAX
-#       define MAX_PATH 1024
-#   else /* PATH_MAX */
-#       define MAX_PATH PATH_MAX
-#   endif /* PATH_MAX */
-
 #   ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 #       define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP \
             { 0, 0, 0, PTHREAD_MUTEX_RECURSIVE_NP, __LOCK_INITIALIZER }
