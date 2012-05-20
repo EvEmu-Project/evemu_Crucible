@@ -343,29 +343,16 @@ typedef void* thread_return_t;
 /*
  * Post-include platform-dependent
  */
-#ifdef WIN32
-int mkdir( const char* pathname, int mode );
-
-#else /* !WIN32 */
+#ifndef WIN32
 #   define INVALID_SOCKET ( -1 )
 #   define SOCKET_ERROR   ( -1 )
 
 typedef int SOCKET;
 
-void Sleep( uint32 x );
+void   Sleep( uint32 x );
 uint32 GetTickCount();
-
+int    CreateDirectory( const char* name, void* );
 #endif /* !WIN32 */
-
-/*
- * Post-include compiler-specific
- */
-
-#ifdef MSVC
-#   define S_IRWXU      0
-#   define S_IRWXG      0
-#   define S_IRWXO      0
-#endif /* MSVC */
 
 #ifdef WIN32
 #  define ASCENT_FORCEINLINE __forceinline

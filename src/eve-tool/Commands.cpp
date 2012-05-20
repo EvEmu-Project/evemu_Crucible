@@ -517,7 +517,7 @@ void StuffExtract( const Seperator& cmd )
                 {
                     if( ENOENT == errno )
                     {
-                        if( -1 == mkdir( pathname.c_str(), ( S_IRWXU | S_IRWXG | S_IRWXO ) ) )
+                        if( 0 == CreateDirectory( pathname.c_str(), NULL ) )
                         {
                             sLog.Error( cmdName, "Failed to make intermediate directory %s: %s", pathname.c_str(), strerror( errno ) );
                             break;
