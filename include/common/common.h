@@ -262,6 +262,15 @@ typedef unsigned __int64 uint64;
 #   define SCNx64 "I64x"
 #endif /* !HAVE_INTTYPES_H */
 
+// Define MSG_NOSIGNAL
+#ifndef HAVE_MSG_NOSIGNAL
+#   ifdef HAVE_SO_NOSIGPIPE
+#       define MSG_NOSIGNAL SO_NOSIGPIPE
+#   else /* !HAVE_SO_NOSIGPIPE */
+#       define MSG_NOSIGNAL 0
+#   endif /* !HAVE_SO_NOSIGPIPE */
+#endif /* !HAVE_MSG_NOSIGNAL */
+
 // Return thread macro's
 // URL: http://msdn.microsoft.com/en-us/library/hw264s73(VS.80).aspx
 // Important Quote: "_endthread and _endthreadex cause C++ destructors pending in the thread not to be called."
@@ -285,8 +294,6 @@ typedef void* thread_return_t;
  * Post-include platform-dependent
  */
 #ifdef WIN32
-#   define MSG_NOSIGNAL 0
-
 int gettimeofday( timeval* tv, void* reserved );
 int asprintf( char** strp, const char* fmt, ... );
 int vasprintf( char** strp, const char* fmt, va_list ap );
@@ -295,12 +302,6 @@ int mkdir( const char* pathname, int mode );
 #else /* !WIN32 */
 #   define INVALID_SOCKET ( -1 )
 #   define SOCKET_ERROR   ( -1 )
-
-#   if defined( FREE_BSD )
-#       define MSG_NOSIGNAL 0
-#   elif defined( APPLE )
-#       define MSG_NOSIGNAL SO_NOSIGPIPE
-#   endif
 
 #   ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 #       define PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP \
