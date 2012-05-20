@@ -55,6 +55,10 @@ CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath" HAVE_STD_ISNAN )
 
 CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
 
+CHECK_CXX_SYMBOL_EXISTS( strdup      "cstring" HAVE_STRDUP )
+CHECK_CXX_SYMBOL_EXISTS( strcasecmp  "cstring" HAVE_STRCASECMP )
+CHECK_CXX_SYMBOL_EXISTS( strncasecmp "cstring" HAVE_STRNCASECMP )
+
 CHECK_CXX_SYMBOL_EXISTS( localtime_r "ctime" HAVE_LOCALTIME_R )
 CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 

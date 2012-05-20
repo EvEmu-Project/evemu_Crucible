@@ -276,6 +276,21 @@ typedef unsigned __int64 uint64;
 tm* localtime_r( const time_t* timep, tm* result );
 #endif /* !HAVE_LOCALTIME_R */
 
+// Define strdup
+#ifndef HAVE_STRDUP
+#   define strdup _strdup
+#endif /* !HAVE_STRDUP */
+
+// Define strcasecmp
+#ifndef HAVE_STRCASECMP
+#   define strcasecmp _stricmp
+#endif /* !HAVE_STRCASECMP */
+
+// Define strncasecmp
+#ifndef HAVE_STRNCASECMP
+#   define strncasecmp _strnicmp
+#endif /* !HAVE_STRNCASECMP */
+
 // Return thread macro's
 // URL: http://msdn.microsoft.com/en-us/library/hw264s73(VS.80).aspx
 // Important Quote: "_endthread and _endthreadex cause C++ destructors pending in the thread not to be called."
@@ -324,9 +339,7 @@ uint32 GetTickCount();
 #   define S_IRWXG      0
 #   define S_IRWXO      0
 
-#   define snprintf            _snprintf
-#   define strncasecmp         _strnicmp
-#   define strcasecmp          _stricmp
+#   define snprintf _snprintf
 
 //#   define strtoq   _strtoi64
 //#   define strtouq  _strtoui64
@@ -335,11 +348,7 @@ uint32 GetTickCount();
 
 #   if( _MSC_VER < 1500 )
 #       define vsnprintf _vsnprintf
-#   else /* _MSC_VER >= 1500 */
-#       ifndef strdup
-#           define strdup _strdup
-#       endif /* !strdup */
-#   endif /* _MSC_VER >= 1500 */
+#   endif /* _MSC_VER < 1500 */
 #endif /* MSVC */
 
 #ifdef WIN32
