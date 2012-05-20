@@ -142,11 +142,6 @@ ENDIF( CMAKE_CROSSCOMPILING )
 #################
 # EVEmu targets #
 #################
-SET( EVEMU_COLLECTOR_ENABLE OFF
-     CACHE BOOL "Build eve-collector." )
-SET( EVEMU_TOOL_ENABLE      OFF
-     CACHE BOOL "Build eve-tool." )
-
 ADD_SUBDIRECTORY( "doc" )
 ADD_SUBDIRECTORY( "src/common" )
 
@@ -156,14 +151,8 @@ ENDIF( NOT CMAKE_CROSSCOMPILING )
 
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
-
-IF( EVEMU_COLLECTOR_ENABLE )
-  ADD_SUBDIRECTORY( "src/eve-collector" )
-ENDIF( EVEMU_COLLECTOR_ENABLE )
-
-IF( EVEMU_TOOL_ENABLE )
-  ADD_SUBDIRECTORY( "src/eve-tool" )
-ENDIF( EVEMU_TOOL_ENABLE )
+ADD_SUBDIRECTORY( "src/eve-collector" )
+ADD_SUBDIRECTORY( "src/eve-tool" )
 
 ##################
 # Targets export #
