@@ -97,18 +97,6 @@ int vasprintf( char** strp, const char* fmt, va_list ap )
 #endif /* !HAVE_VASPRINTF */
 
 #ifdef WIN32
-
-int gettimeofday( timeval* tp, void* reserved )
-{
-    timeb tb;
-    ftime( &tb );
-
-    tp->tv_sec  = (long)tb.time;
-    tp->tv_usec = tb.millitm * 1000;
-
-    return 0;
-}
-
 int mkdir( const char* pathname, int mode )
 {
     int result = CreateDirectory( pathname, NULL );
@@ -116,9 +104,7 @@ int mkdir( const char* pathname, int mode )
     /* mkdir returns 0 for success, opposite of CreateDirectory() */
     return ( result ? 0 : -1 );
 }
-
 #else /* !WIN32 */
-
 void Sleep( uint32 x )
 {
     if( 0 < x )
@@ -130,7 +116,7 @@ uint32 GetTickCount()
     timeval tv;
     gettimeofday( &tv, NULL );
 
-    return ( tv.tv_sec * 1000 ) + ( tv.tv_usec / 1000 );
+    return tv.tv_sec  * 1000
+         + tv.tv_usec / 1000;
 }
-
 #endif /* !WIN32 */

@@ -152,23 +152,29 @@ const int32 Timer::GetTimeSeconds() {
 
 const int32 Timer::SetCurrentTime()
 {
-    struct timeval read_time;
     int32 this_time;
 
-    gettimeofday(&read_time,0);
-    this_time = read_time.tv_sec * 1000 + read_time.tv_usec / 1000;
+#ifdef WIN32
+    timeb tb;
+    ::ftime( &tb );
 
-    if (last_time == 0)
-    {
+    this_time = tb.time * 1000
+              + tb.millitm;
+    current_seconds = tb.time;
+#else /* !WIN32 */
+    timeval tv;
+    gettimeofday( &tv, NULL );
+
+    this_time = tv.tv_sec  * 1000
+              + tv.tv_usec / 1000;
+    current_seconds = tv.tv_sec;
+#endif /* !WIN32 */
+
+    if( last_time == 0 )
         current_time = 0;
-    }
     else
-    {
         current_time += this_time - last_time;
-    }
 
     last_time = this_time;
-    current_seconds = read_time.tv_sec;
-
     return current_time;
 }

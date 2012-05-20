@@ -344,7 +344,6 @@ typedef void* thread_return_t;
  * Post-include platform-dependent
  */
 #ifdef WIN32
-int gettimeofday( timeval* tv, void* reserved );
 int mkdir( const char* pathname, int mode );
 
 #else /* !WIN32 */
