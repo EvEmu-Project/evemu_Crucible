@@ -101,24 +101,4 @@ uint32 GetTickCount()
     return ( tv.tv_sec * 1000 ) + ( tv.tv_usec / 1000 );
 }
 
-#   ifndef __CYGWIN__
-
-char* strupr( char* tmp )
-{
-    for( size_t i = 0; 0 != tmp[i]; ++i )
-        tmp[i] = toupper( tmp[i] );
-
-    return tmp;
-}
-
-char* strlwr( char* tmp )
-{
-    for( size_t i = 0; 0 != tmp[i]; ++i )
-        tmp[i] = tolower( tmp[i] );
-
-    return tmp;
-}
-
-#   endif /* !__CYGWIN__ */
-
 #endif /* !WIN32 */

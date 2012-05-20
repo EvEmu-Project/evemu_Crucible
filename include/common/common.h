@@ -318,12 +318,6 @@ typedef int SOCKET;
 void Sleep( uint32 x );
 uint32 GetTickCount();
 
-#   ifndef CYGWIN
-
-char* strupr( char* tmp );
-char* strlwr( char* tmp );
-
-#   endif /* !CYGWIN */
 #endif /* !WIN32 */
 
 /*
