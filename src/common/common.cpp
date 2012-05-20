@@ -25,6 +25,28 @@
 
 #include "CommonPCH.h"
 
+#ifndef HAVE_LOCALTIME_R
+tm* localtime_r( const time_t* timep, tm* result )
+{
+#   ifdef HAVE_LOCALTIME_S
+    const errno_t err = ::localtime_s( result, timep );
+    if( 0 != err )
+    {
+        errno = err;
+        return NULL;
+    }
+#   else /* !HAVE_LOCALTIME_S */
+    /* This is quite dangerous stuff (not necessarily
+       thread-safe), but what can we do? Also,
+       there is a chance that localtime will use
+       thread-specific memory (MS's localtime does that). */
+    ::memcpy( result, ::localtime( timep ), sizeof( tm ) );
+#   endif /* !HAVE_LOCALTIME_S */
+
+    return result;
+}
+#endif /* !HAVE_LOCALTIME_R */
+
 #ifdef WIN32
 
 int gettimeofday( timeval* tp, void* reserved )

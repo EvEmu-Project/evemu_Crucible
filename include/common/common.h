@@ -271,6 +271,11 @@ typedef unsigned __int64 uint64;
 #   endif /* !HAVE_SO_NOSIGPIPE */
 #endif /* !HAVE_MSG_NOSIGNAL */
 
+// Define localtime_r
+#ifndef HAVE_LOCALTIME_R
+tm* localtime_r( const time_t* timep, tm* result );
+#endif /* !HAVE_LOCALTIME_R */
+
 // Return thread macro's
 // URL: http://msdn.microsoft.com/en-us/library/hw264s73(VS.80).aspx
 // Important Quote: "_endthread and _endthreadex cause C++ destructors pending in the thread not to be called."
@@ -322,7 +327,6 @@ uint32 GetTickCount();
 #   define snprintf            _snprintf
 #   define strncasecmp         _strnicmp
 #   define strcasecmp          _stricmp
-#   define localtime_r( x, y ) localtime_s( y, x )
 
 //#   define strtoq   _strtoi64
 //#   define strtouq  _strtoui64
@@ -337,19 +341,6 @@ uint32 GetTickCount();
 #       endif /* !strdup */
 #   endif /* _MSC_VER >= 1500 */
 #endif /* MSVC */
-
-#ifdef MINGW
-/*
- * Define localtime_r as a call to localtime.
- *
- * The page below says that MS's version of localtime uses
- * thread-specific storage, so this should not be a problem.
- *
- * http://msdn.microsoft.com/en-us/library/bf12f0hc(VS.80).aspx
- */
-#   define localtime_r( x, y ) \
-    ( (tm*)( memcpy( ( y ), localtime( x ), sizeof( tm ) ) ) )
-#endif /* MINGW */
 
 #ifdef WIN32
 #  define ASCENT_FORCEINLINE __forceinline

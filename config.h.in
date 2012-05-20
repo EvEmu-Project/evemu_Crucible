@@ -88,6 +88,14 @@
 // Define if va_copy is available.
 #cmakedefine HAVE_VA_COPY 1
 
+// HAVE_LOCALTIME_R
+// Define if localtime_r is available.
+#cmakedefine HAVE_LOCALTIME_R 1
+
+// HAVE_LOCALTIME_S
+// Define if localtime_s is available.
+#cmakedefine HAVE_LOCALTIME_S 1
+
 // HAVE_MSG_NOSIGNAL
 // Define if MSG_NOSIGNAL is available.
 #cmakedefine HAVE_MSG_NOSIGNAL 1
