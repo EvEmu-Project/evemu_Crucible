@@ -137,6 +137,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         // TODO: Add comments here to describe what kind of client action results in having
         // to use the 'Call_Add_2' packet structure
         // * Moving cargo items from ship cargo bay to a container in space goes here
+        // * Qty missing, so query it from the itemRef
         Call_Add_2 args;
         //chances are its trying to transfer into a cargo container
         if(!args.Decode(&call.tuple))
@@ -154,17 +155,18 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         else
             flag = call.byname.find("flag")->second->AsInt()->value();
 
+        uint32 quantity = 0;
         if( call.byname.find("qty") == call.byname.end() )
         {
-            sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'qty' from call.byname dictionary." );
-            return NULL;
+            quantity = 1;   // Auto quantity - force _ExecAdd() to compare actual quantity to this
         }
-
-        uint32 quantity = 0;
-        if( call.byname.find("qty")->second->IsNone() )
-            quantity = 1;
         else
-            quantity = call.byname.find("qty")->second->AsInt()->value();
+        {
+            if( call.byname.find("qty")->second->IsNone() )
+                quantity = 1;
+            else
+                quantity = call.byname.find("qty")->second->AsInt()->value();
+        }
 
         std::vector<int32> items;
         items.push_back(args.itemID);

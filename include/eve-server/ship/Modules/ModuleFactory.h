@@ -143,12 +143,12 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 
             // Weapon Modules Subgroup:
             case EVEDB::invGroups::Energy_Weapon:                           return (new ActiveModule(item, ship)); break;    // Active
-            case EVEDB::invGroups::Projectile_Weapon:                       return NULL;    // Active
+            case EVEDB::invGroups::Projectile_Weapon:                       return (new ActiveModule(item, ship)); break;    // Active
             case EVEDB::invGroups::Gyrostabilizer:                          return (new PassiveModule(item, ship)); break;
             case EVEDB::invGroups::Energy_Vampire:                          return NULL;    // Active
             case EVEDB::invGroups::Energy_Destabilizer:                     return NULL;    // Active
             case EVEDB::invGroups::Smart_Bomb:                              return NULL;    // Active
-            case EVEDB::invGroups::Hybrid_Weapon:                           return NULL;    // Active
+            case EVEDB::invGroups::Hybrid_Weapon:                           return (new ActiveModule(item, ship)); break;   // Active
             case EVEDB::invGroups::Heat_Sink:                               return (new PassiveModule(item, ship)); break;
             case EVEDB::invGroups::Magnetic_Field_Stabilizer:               return (new PassiveModule(item, ship)); break;
             case EVEDB::invGroups::Ballistic_Control_system:                return (new PassiveModule(item, ship)); break;
