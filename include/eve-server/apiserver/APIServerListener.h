@@ -28,7 +28,6 @@
 
 #include <memory>
 #include "apiserver/APIServerConnection.h"
-#include <asio.hpp>
 
 /**
  * \class APIServerListener

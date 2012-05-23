@@ -36,7 +36,6 @@
     #include <tr1/unordered_map>
     #include <tr1/memory>
 #endif
-#include <asio.hpp>
 
 class ImageServerListener;
 
