@@ -130,8 +130,6 @@
 
 #ifdef HAVE_CRTDBG_H
 #   include <crtdbg.h>
-    // This is necessary to track leaks introduced by operator new()
-#   define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
 #endif /* HAVE_CRTDBG_H */
 
 #ifdef HAVE_INTTYPES_H
