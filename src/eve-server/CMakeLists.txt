@@ -7,11 +7,7 @@
 ################
 # Dependencies #
 ################
-ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/asio"
-                  "${PROJECT_BINARY_DIR}/dep/asio" )
-
 FIND_PACKAGE( "Lua" QUIET )
-MARK_AS_ADVANCED( Lua_DIR )
 
 IF( NOT WIN32 )
   FIND_PACKAGE( "ICONV" REQUIRED )
@@ -25,6 +21,7 @@ IF( NOT LUA_FOUND )
   SET( LUA_INCLUDE_DIRS ${lua_INCLUDE_DIRS} )
   SET( LUA_LIBRARIES    "lua" )
 ENDIF( NOT LUA_FOUND )
+MARK_AS_ADVANCED( Lua_DIR )
 
 ##############
 # Initialize #
@@ -36,7 +33,6 @@ SET( TARGET_UTILS_DIR   "${PROJECT_SOURCE_DIR}/utils" )
 
 SET( TARGET_INCLUDE_DIRS
      ${LUA_INCLUDE_DIRS}
-     ${asio_INCLUDE_DIRS}
      ${eve-common_INCLUDE_DIRS}
      "${TARGET_INCLUDE_DIR}" )
 

@@ -7,11 +7,25 @@
 ################
 # Dependencies #
 ################
+ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/asio"
+                  "${PROJECT_BINARY_DIR}/dep/asio" )
+
 FIND_PACKAGE( "Threads" REQUIRED )
 
+FIND_PACKAGE( "Boost"   QUIET )
 FIND_PACKAGE( "Gangsta" QUIET )
 FIND_PACKAGE( "TinyXML" QUIET )
 FIND_PACKAGE( "ZLIB"    QUIET )
+
+IF( NOT Boost_FOUND )
+  ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/boost"
+                    "${PROJECT_BINARY_DIR}/dep/boost" )
+
+  SET( Boost_FOUND        TRUE )
+  SET( Boost_INCLUDE_DIRS ${boost_INCLUDE_DIRS} )
+  SET( Boost_LIBRARIES    "boost" )
+ENDIF( NOT Boost_FOUND )
+MARK_AS_ADVANCED( Boost_DIR Boost_LIB_DIAGNOSTIC_DEFINITIONS )
 
 IF( NOT GANGSTA_FOUND )
   ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/gangsta"
@@ -66,10 +80,12 @@ SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
 SET( TARGET_INCLUDE_DIRS
+     ${Boost_INCLUDE_DIRS}
      ${MYSQL_INCLUDE_DIRS}
      ${GANGSTA_INCLUDE_DIRS}
      ${TINYXML_INCLUDE_DIRS}
      ${ZLIB_INCLUDE_DIRS}
+     ${asio_INCLUDE_DIRS}
      "${TARGET_INCLUDE_DIR}" )
 
 # Export directories
