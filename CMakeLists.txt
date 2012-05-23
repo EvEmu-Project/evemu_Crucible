@@ -47,6 +47,7 @@ CHECK_CXX_SYMBOL_EXISTS( _finite "cfloat" HAVE__FINITE )
 CHECK_CXX_SYMBOL_EXISTS( _isnan  "cfloat" HAVE__ISNAN )
 
 # cmath
+CHECK_CXX_SYMBOL_EXISTS( asinh         "cmath" HAVE_ASINH )
 CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath" HAVE___FINITE )
 CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath" HAVE___ISNAN )
 CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath" HAVE_STD_FINITE )

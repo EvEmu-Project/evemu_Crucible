@@ -121,6 +121,10 @@ typedef unsigned __int64 uint64;
 /*************************************************************************/
 /* cfloat, cmath                                                         */
 /*************************************************************************/
+#ifndef HAVE_ASINH
+#   define asinh boost::math::asinh
+#endif /* !HAVE_ASINH */
+
 #if defined( HAVE__FINITE )
 #   define finite _finite
 #elif defined( HAVE___FINITE )

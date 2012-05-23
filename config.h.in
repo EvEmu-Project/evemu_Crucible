@@ -41,6 +41,10 @@
 /*************************************************************************/
 /* Feature defines                                                       */
 /*************************************************************************/
+// HAVE_ASINH
+// Define if asinh is available.
+#cmakedefine HAVE_ASINH 1
+
 // HAVE__FINITE
 // Define if _finite is available.
 #cmakedefine HAVE__FINITE 1

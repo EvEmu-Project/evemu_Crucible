@@ -140,6 +140,10 @@
 #   include <vld.h>
 #endif /* HAVE_VLD_H */
 
+#ifndef HAVE_ASINH
+#   include <boost/math/special_functions.hpp>
+#endif /* !HAVE_ASINH */
+
 /************************************************************************/
 /* Dependencies                                                         */
 /************************************************************************/
