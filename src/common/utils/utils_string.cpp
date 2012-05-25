@@ -23,7 +23,7 @@
     Author:     Captnoord, Bloody.Rabbit
 */
 
-#include "CommonPCH.h"
+#include "common.h"
 
 #include "utils/utils_string.h"
 
@@ -161,7 +161,7 @@ const char* itoa( int64 num )
     static char buf[ _ITOA_BUFLEN ];
     memset( buf, 0, _ITOA_BUFLEN );
 
-    snprintf( buf, _ITOA_BUFLEN, I64d, num );
+    snprintf( buf, _ITOA_BUFLEN, PRId64, num );
 
     return buf;
 }

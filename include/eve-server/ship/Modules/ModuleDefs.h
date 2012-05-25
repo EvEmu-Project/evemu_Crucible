@@ -32,13 +32,13 @@
 //this is to avoid include complications and multiple dependancies etc..
 enum ModuleCommand
 {
-	CMD_ERROR,
-	ONLINE,
-	OFFLINE,
-	ACTIVATE,
-	DEACTIVATE,
-	OVERLOAD,       //idk if this is used yet - or what it's called :)
-	DEOVERLOAD,     //idk if this is used
+    CMD_ERROR,
+    ONLINE,
+    OFFLINE,
+    ACTIVATE,
+    DEACTIVATE,
+    OVERLOAD,       //idk if this is used yet - or what it's called :)
+    DEOVERLOAD,     //idk if this is used
     LOAD_CHARGE,
     RELOAD_CHARGE,
     UNLOAD_CHARGE
@@ -102,11 +102,11 @@ enum ModuleStackingPenaltyState
 //this may or may not be redundant...idk
 enum ModulePowerLevel
 {
-	HIGH_POWER,
-	MEDIUM_POWER,
-	LOW_POWER,
-	RIG,
-	SUBSYSTEM
+    HIGH_POWER,
+    MEDIUM_POWER,
+    LOW_POWER,
+    RIG,
+    SUBSYSTEM
 };
 
 //calculation types
@@ -115,97 +115,97 @@ enum EVECalculationType
 {
     NONE,
     AUTO,
-	ADD,
-	SUBTRACT,
-	DIVIDE,
-	MULTIPLY,
-	ADD_PERCENT,
+    ADD,
+    SUBTRACT,
+    DIVIDE,
+    MULTIPLY,
+    ADD_PERCENT,
     REV_ADD_PERCENT,
-	SUBTRACT_PERCENT,
+    SUBTRACT_PERCENT,
     REV_SUBTRACT_PERCENT,
-	ADD_AS_PERCENT,
-	SUBTRACT_AS_PERCENT
-	//more will show up, im sure
+    ADD_AS_PERCENT,
+    SUBTRACT_AS_PERCENT
+    //more will show up, im sure
 };
 
 
 //TODO - check mem usage
 static EvilNumber Add(EvilNumber &val1, EvilNumber &val2)
 {
-	return val1 + val2;
+    return val1 + val2;
 }
 
 static EvilNumber Subtract(EvilNumber &val1, EvilNumber &val2)
 {
-	return val1 - val2;
+    return val1 - val2;
 }
 
 static EvilNumber Divide(EvilNumber &val1, EvilNumber &val2)
 {
-	return ( val1 / val2 );
+    return ( val1 / val2 );
 }
 
 static EvilNumber Multiply(EvilNumber &val1, EvilNumber &val2)
 {
-	return val1 * val2;
+    return val1 * val2;
 }
 
 static EvilNumber AddPercent(EvilNumber &val1, EvilNumber &val2)
 {
-	return val1 + ( val1 * val2	);
+    return val1 + ( val1 * val2    );
 }
 
 static EvilNumber ReverseAddPercent(EvilNumber &val1, EvilNumber &val2)
 {
     EvilNumber val3 = 1;
-	return val1 / (val3 + val2);
+    return val1 / (val3 + val2);
 }
 
 static EvilNumber SubtractPercent(EvilNumber &val1, EvilNumber &val2)
 {
-	return val1 - ( val1 * val2 );
+    return val1 - ( val1 * val2 );
 }
 
 static EvilNumber ReverseSubtractPercent(EvilNumber &val1, EvilNumber &val2)
 {
     EvilNumber val3 = 1;
-	return val1 / ( val3 - val2 );
+    return val1 / ( val3 - val2 );
 }
 
 static EvilNumber AddAsPercent(EvilNumber &val1, EvilNumber &val2)
 {
-	EvilNumber val3 = 100;
-	return val1 + ( val1 * (val2 / val3) );
+    EvilNumber val3 = 100;
+    return val1 + ( val1 * (val2 / val3) );
 }
 
 static EvilNumber SubtractAsPercent(EvilNumber &val1, EvilNumber &val2)
 {
-	EvilNumber val3 = 1;
-	EvilNumber val4 = 100;
+    EvilNumber val3 = 1;
+    EvilNumber val4 = 100;
 
-	return val1 / ( val3 + ( val2 / val4 ));
+    return val1 / ( val3 + ( val2 / val4 ));
 }
 
 static EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attrMod, EVECalculationType type)
 {
-	switch(type)
-	{
+    switch(type)
+    {
         case NONE :                     return attrVal;
         case AUTO :                     return attrVal;                             // AUTO NOT SUPPORTED AT THIS TIME !!!
-	    case ADD :					    return Add(attrVal, attrMod);
-	    case SUBTRACT :				    return Subtract(attrVal, attrMod);
-	    case DIVIDE :				    return Divide(attrVal, attrMod);
-	    case MULTIPLY :				    return Multiply(attrVal, attrMod);
-	    case ADD_PERCENT :			    return AddPercent(attrVal, attrMod);
+        case ADD :                        return Add(attrVal, attrMod);
+        case SUBTRACT :                    return Subtract(attrVal, attrMod);
+        case DIVIDE :                    return Divide(attrVal, attrMod);
+        case MULTIPLY :                    return Multiply(attrVal, attrMod);
+        case ADD_PERCENT :                return AddPercent(attrVal, attrMod);
         case REV_ADD_PERCENT :          return ReverseAddPercent(attrVal, attrMod);
-	    case SUBTRACT_PERCENT :		    return SubtractPercent(attrVal, attrMod);
+        case SUBTRACT_PERCENT :            return SubtractPercent(attrVal, attrMod);
         case REV_SUBTRACT_PERCENT :     return ReverseSubtractPercent(attrVal, attrMod);
-	    case ADD_AS_PERCENT :		    return AddAsPercent(attrVal, attrMod);
-	    case SUBTRACT_AS_PERCENT :      return SubtractAsPercent(attrVal, attrMod);
-	}
+        case ADD_AS_PERCENT :            return AddAsPercent(attrVal, attrMod);
+        case SUBTRACT_AS_PERCENT :      return SubtractAsPercent(attrVal, attrMod);
+    }
 
-	sLog.Error("CalculateNewAttributeValue", "Unknown EveCalculationType used");
-	assert(false);
+    sLog.Error("CalculateNewAttributeValue", "Unknown EveCalculationType used");
+    assert(false);
     return NULL;
 }
 

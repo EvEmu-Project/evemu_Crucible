@@ -278,7 +278,7 @@ PyRep *MarketDB::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
     // this would also allow us to put together an index as well...
     if(!sDatabase.RunQuery(res,
         "SELECT"
-        "    transactionDateTime-(transactionDateTime%%" I64d ") AS historyDate,"
+        "    transactionDateTime-(transactionDateTime%%" PRId64 ") AS historyDate,"
         "    MIN(price) AS lowPrice,"
         "    MAX(price) AS highPrice,"
         "    AVG(price) AS avgPrice,"
@@ -312,7 +312,7 @@ bool MarketDB::BuildOldPriceHistory() {
         " SELECT"
         "    regionID,"
         "    typeID,"
-        "    transactionDateTime-(transactionDateTime%%" I64d ") AS historyDate,"
+        "    transactionDateTime-(transactionDateTime%%" PRId64 ") AS historyDate,"
         "    MIN(price) AS lowPrice,"
         "    MAX(price) AS highPrice,"
         "    AVG(price) AS avgPrice,"
@@ -321,7 +321,7 @@ bool MarketDB::BuildOldPriceHistory() {
         " FROM market_transactions "
         " WHERE"
         "    transactionType=%d AND "    //both buy and sell transactions get recorded, only compound one set of data... choice was arbitrary.
-        "    (transactionDateTime-(transactionDateTime%%" I64d ")) < " I64d
+        "    (transactionDateTime-(transactionDateTime%%" PRId64 ")) < " PRId64
         " GROUP BY regionID, typeID, historyDate",
             Win32Time_Day,
             TransactionTypeBuy,
@@ -338,7 +338,7 @@ bool MarketDB::BuildOldPriceHistory() {
         "DELETE FROM"
         "    market_transactions"
         " WHERE"
-        "    historyDate < " I64d,
+        "    historyDate < " PRId64,
         cutoff_time))
 
     {
@@ -783,7 +783,7 @@ bool MarketDB::RecordTransaction(
         "    price, transactionType, clientID, regionID, stationID,"
         "    corpTransaction"
         " ) VALUES ("
-        "    NULL, " I64u ", %u, %u,"
+        "    NULL, " PRIu64 ", %u, %u,"
         "    %f, %d, %u, %u, %u, 0"
         " )",
             Win32TimeNow(), typeID, quantity,
@@ -830,7 +830,7 @@ uint32 MarketDB::_StoreOrder(
         "    isCorp, solarSystemID, escrow, jumps "
         " ) VALUES ("
         "    %u, %u, %u, %u, "
-        "    %u, %u, %f, %u, %u, " I64u ", "
+        "    %u, %u, %f, %u, %u, " PRIu64 ", "
         "    1, %u, 0, %u, %u, "
         "    %u, %u, 0, 1"
         " )",
@@ -859,7 +859,7 @@ PyRep *MarketDB::GetTransactions(uint32 characterID, uint32 typeID, uint32 quant
         " FROM market_transactions "
         " WHERE clientID=%u AND (typeID=%u OR 0=%u) AND"
         " quantity>=%u AND price>=%f AND (price<=%f OR 0=%f) AND"
-        " transactionDateTime>=" I64u " AND (transactionType=%d OR -1=%d)",
+        " transactionDateTime>=" PRIu64 " AND (transactionType=%d OR -1=%d)",
         characterID, typeID, typeID, quantity, minPrice, maxPrice, maxPrice, fromDate, buySell, buySell))
     {
         codelog( MARKET__ERROR, "Error in query: %s", res.error.c_str() );

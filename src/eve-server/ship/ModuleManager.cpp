@@ -31,15 +31,15 @@
 ModuleContainer::ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSlots, uint32 rigSlots, uint32 subSystemSlots,
     uint32 turretSlots, uint32 launcherSlots, ModuleManager * myManager)
 {
-	m_LowSlots = lowSlots;
-	m_MediumSlots = medSlots;
-	m_HighSlots = highSlots;
-	m_RigSlots = rigSlots;
-	m_SubSystemSlots = subSystemSlots;
+    m_LowSlots = lowSlots;
+    m_MediumSlots = medSlots;
+    m_HighSlots = highSlots;
+    m_RigSlots = rigSlots;
+    m_SubSystemSlots = subSystemSlots;
     m_TurretSlots = turretSlots;
     m_LauncherSlots = launcherSlots;
 
-	_initializeModuleContainers();
+    _initializeModuleContainers();
 
     m_TotalTurretsFitted = 0;
     m_TotalLaunchersFitted = 0;
@@ -82,27 +82,27 @@ ModuleContainer::~ModuleContainer()
 
 void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
 {
-	switch(_checkBounds(flag))
-	{
+    switch(_checkBounds(flag))
+    {
         case NaT:
             sLog.Error("ModuleContainer::AddModule()","Flag Out of bounds");
             break;
-	    case slotTypeSubSystem:
+        case slotTypeSubSystem:
             m_SubSystemModules[flag - flagSubSystem0] = mod;
             break;
-	    case slotTypeRig:
+        case slotTypeRig:
             m_RigModules[flag - flagRigSlot0] = mod;
             break;
-	    case slotTypeLowPower:
+        case slotTypeLowPower:
             m_LowSlotModules[flag - flagLowSlot0] = mod;
             break;
-	    case slotTypeMedPower:
+        case slotTypeMedPower:
             m_MediumSlotModules[flag - flagMedSlot0] = mod;
             break;
-	    case slotTypeHiPower:
+        case slotTypeHiPower:
             m_HighSlotModules[flag - flagHiSlot0] = mod;
             break;
-	}
+    }
 
     // Maintain Turret and Launcher Fitted module counts:
     if( mod->isTurretFitted() )
@@ -121,7 +121,7 @@ void ModuleContainer::RemoveModule(EVEItemFlags flag)
 {
     GenericModule * mod = GetModule(flag);
 
-	_removeModule(mod->flag(), mod);
+    _removeModule(mod->flag(), mod);
 
     //delete the module
     delete mod;
@@ -132,7 +132,7 @@ void ModuleContainer::RemoveModule(uint32 itemID)
 {
     GenericModule * mod = GetModule(itemID);
 
-	_removeModule(mod->flag(), mod);
+    _removeModule(mod->flag(), mod);
 
     //delete the module
     delete mod;
@@ -141,73 +141,73 @@ void ModuleContainer::RemoveModule(uint32 itemID)
 
 GenericModule * ModuleContainer::GetModule(EVEItemFlags flag)
 {
-	switch(_checkBounds(flag))
-	{
+    switch(_checkBounds(flag))
+    {
         case NaT:
             sLog.Error("ModuleContainer::AddModule()","Flag Out of bounds");
-            break; 
-	    case slotTypeSubSystem:
+            break;
+        case slotTypeSubSystem:
             return m_SubSystemModules[flag - flagSubSystem0];
             break;
-	    case slotTypeRig:
+        case slotTypeRig:
             return m_RigModules[flag - flagRigSlot0];
             break;
-	    case slotTypeLowPower:
+        case slotTypeLowPower:
             return m_LowSlotModules[flag - flagLowSlot0];
             break;
-	    case slotTypeMedPower:
+        case slotTypeMedPower:
             return m_MediumSlotModules[flag - flagMedSlot0];
             break;
-	    case slotTypeHiPower:
+        case slotTypeHiPower:
             return m_HighSlotModules[flag - flagHiSlot0];
             break;
-	}
-	
-	return NULL;
+    }
+
+    return NULL;
 }
 
 GenericModule * ModuleContainer::GetModule(uint32 itemID)
 {
-	//iterate through the list and see if we have it
-	uint8 r;
-	for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++)
-	{
+    //iterate through the list and see if we have it
+    uint8 r;
+    for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++)
+    {
         if( !(m_HighSlotModules[r] == NULL) )
-		    if(m_HighSlotModules[r]->itemID() == itemID)
-			    return m_HighSlotModules[r];
-	}
+            if(m_HighSlotModules[r]->itemID() == itemID)
+                return m_HighSlotModules[r];
+    }
 
-	for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++)
-	{
+    for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++)
+    {
         if( !(m_MediumSlotModules[r] == NULL) )
-		    if(m_MediumSlotModules[r]->itemID() == itemID)
-			    return m_MediumSlotModules[r];
-	}
+            if(m_MediumSlotModules[r]->itemID() == itemID)
+                return m_MediumSlotModules[r];
+    }
 
-	for(r = 0; r < MAX_LOW_SLOT_COUNT; r++)
-	{
+    for(r = 0; r < MAX_LOW_SLOT_COUNT; r++)
+    {
         if( !(m_LowSlotModules[r] == NULL) )
-		    if(m_LowSlotModules[r]->itemID() == itemID)
-			    return m_LowSlotModules[r];
-	}
+            if(m_LowSlotModules[r]->itemID() == itemID)
+                return m_LowSlotModules[r];
+    }
 
-	for(r = 0; r < MAX_ASSEMBLY_COUNT; r++)
-	{
+    for(r = 0; r < MAX_ASSEMBLY_COUNT; r++)
+    {
         if( !(m_SubSystemModules[r] == NULL) )
-		    if(m_SubSystemModules[r]->itemID() == itemID)
-			    return m_SubSystemModules[r];
-	}
+            if(m_SubSystemModules[r]->itemID() == itemID)
+                return m_SubSystemModules[r];
+    }
 
-	for(r = 0; r < MAX_RIG_COUNT; r++)
-	{
+    for(r = 0; r < MAX_RIG_COUNT; r++)
+    {
         if( !(m_RigModules[r] == NULL) )
-		    if(m_RigModules[r]->itemID() == itemID)
-			    return m_RigModules[r];
-	}
+            if(m_RigModules[r]->itemID() == itemID)
+                return m_RigModules[r];
+    }
 
-	sLog.Warning("ModuleContainer::GetModule()","Search for itemID: %u yielded no results", itemID);
+    sLog.Warning("ModuleContainer::GetModule()","Search for itemID: %u yielded no results", itemID);
 
-	return NULL;  //we don't
+    return NULL;  //we don't
 }
 
 
@@ -282,62 +282,62 @@ uint32 ModuleContainer::GetFittedModuleCountByGroup(uint32 groupID)
 
 void ModuleContainer::SaveModules()
 {
-	uint8 r;
-	for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++)
-	{
+    uint8 r;
+    for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++)
+    {
         if( !(m_HighSlotModules[r] == NULL) )
             m_HighSlotModules[r]->getItem()->SaveItem();
-	}
+    }
 
-	for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++)
-	{
+    for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++)
+    {
         if( !(m_MediumSlotModules[r] == NULL) )
             m_MediumSlotModules[r]->getItem()->SaveItem();
-	}
+    }
 
-	for(r = 0; r < MAX_LOW_SLOT_COUNT; r++)
-	{
+    for(r = 0; r < MAX_LOW_SLOT_COUNT; r++)
+    {
         if( !(m_LowSlotModules[r] == NULL) )
             m_LowSlotModules[r]->getItem()->SaveItem();
-	}
+    }
 
-	for(r = 0; r < MAX_ASSEMBLY_COUNT; r++)
-	{
+    for(r = 0; r < MAX_ASSEMBLY_COUNT; r++)
+    {
         if( !(m_SubSystemModules[r] == NULL) )
             m_SubSystemModules[r]->getItem()->SaveItem();
-	}
+    }
 
-	for(r = 0; r < MAX_RIG_COUNT; r++)
-	{
+    for(r = 0; r < MAX_RIG_COUNT; r++)
+    {
         if( !(m_RigModules[r] == NULL) )
             m_RigModules[r]->getItem()->SaveItem();
-	}
+    }
 
 }
 
 void ModuleContainer::_removeModule(EVEItemFlags flag, GenericModule * mod)
 {
     switch(_checkBounds(flag))
-	{
+    {
     case NaT:
         sLog.Error("ModuleContainer::_removeModule()","Flag Out of bounds");
-        break; 
-	case slotTypeSubSystem:
+        break;
+    case slotTypeSubSystem:
         m_SubSystemModules[flag-flagSubSystem0] = NULL;
         break;
-	case slotTypeRig:
+    case slotTypeRig:
         m_RigModules[flag-flagRigSlot0] = NULL;
         break;
-	case slotTypeLowPower:
+    case slotTypeLowPower:
         m_LowSlotModules[flag-flagLowSlot0] = NULL;
         break;
-	case slotTypeMedPower:
+    case slotTypeMedPower:
         m_MediumSlotModules[flag-flagMedSlot0] = NULL;
         break;
-	case slotTypeHiPower:
+    case slotTypeHiPower:
         m_HighSlotModules[flag-flagHiSlot0] = NULL;
         break;
-	}
+    }
 
     // Maintain Turret and Launcher Fitted module counts:
     if( mod->isTurretFitted() )
@@ -362,99 +362,99 @@ void ModuleContainer::_removeModule(EVEItemFlags flag, GenericModule * mod)
 
 void ModuleContainer::_process(processType p)
 {
-	//high slots
-	_processEx(p, highSlot);
+    //high slots
+    _processEx(p, highSlot);
 
-	//med slots
-	_processEx(p, mediumSlot);
+    //med slots
+    _processEx(p, mediumSlot);
 
-	//low slots
-	_processEx(p, lowSlot);
+    //low slots
+    _processEx(p, lowSlot);
 }
 
 void ModuleContainer::_processEx(processType p, slotType t)
 {
-	uint8 r, COUNT;
+    uint8 r, COUNT;
 
-	GenericModule **cur;
+    GenericModule **cur;
 
-	switch(t)
-	{
-	case highSlot:		
-		COUNT = MAX_HIGH_SLOT_COUNT;
-		cur = m_HighSlotModules;
-		break;
-	case mediumSlot:	
-		COUNT = MAX_MEDIUM_SLOT_COUNT;
-		cur = m_MediumSlotModules;
-		break;
-	case lowSlot:		
-		COUNT = MAX_LOW_SLOT_COUNT;		
-		cur = m_LowSlotModules;
-		break;
-	case rigSlot:		
-		COUNT = MAX_RIG_COUNT;
-		cur = m_RigModules;
-		break;  
-	case subSystemSlot:	
-		COUNT = MAX_ASSEMBLY_COUNT;
-		cur = m_SubSystemModules;
-		break;
-	}
+    switch(t)
+    {
+    case highSlot:
+        COUNT = MAX_HIGH_SLOT_COUNT;
+        cur = m_HighSlotModules;
+        break;
+    case mediumSlot:
+        COUNT = MAX_MEDIUM_SLOT_COUNT;
+        cur = m_MediumSlotModules;
+        break;
+    case lowSlot:
+        COUNT = MAX_LOW_SLOT_COUNT;
+        cur = m_LowSlotModules;
+        break;
+    case rigSlot:
+        COUNT = MAX_RIG_COUNT;
+        cur = m_RigModules;
+        break;
+    case subSystemSlot:
+        COUNT = MAX_ASSEMBLY_COUNT;
+        cur = m_SubSystemModules;
+        break;
+    }
 
-	switch(p)
-	{
-	case typeOnlineAll:
-		for(r = 0; r < COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
+    switch(p)
+    {
+    case typeOnlineAll:
+        for(r = 0; r < COUNT; r++, cur++)
+        {
+            if(*cur == NULL)
+                continue;
 
-			(*cur)->Online();
-		}
-		break;
+            (*cur)->Online();
+        }
+        break;
 
-	case typeOfflineAll:
-		for(r = 0; r < COUNT; r++, cur++)
-		{
-			if(cur == NULL)
-				continue;
+    case typeOfflineAll:
+        for(r = 0; r < COUNT; r++, cur++)
+        {
+            if(cur == NULL)
+                continue;
 
-			(*cur)->Offline();
-		}
-		break;
+            (*cur)->Offline();
+        }
+        break;
 
-	case typeDeactivateAll:
-		for(r = 0; r < COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
+    case typeDeactivateAll:
+        for(r = 0; r < COUNT; r++, cur++)
+        {
+            if(*cur == NULL)
+                continue;
 
-			(*cur)->Deactivate();
-		}
-		break;
+            (*cur)->Deactivate();
+        }
+        break;
 
-	case typeUnloadAll:
-		for(r = 0; r < COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
+    case typeUnloadAll:
+        for(r = 0; r < COUNT; r++, cur++)
+        {
+            if(*cur == NULL)
+                continue;
 
-			(*cur)->Unload();
-		}
-		break;
+            (*cur)->Unload();
+        }
+        break;
 
-	case typeProcessAll:
-		for(r = 0; r < COUNT; r++, cur++)
-		{
-			if(*cur == NULL)
-				continue;
+    case typeProcessAll:
+        for(r = 0; r < COUNT; r++, cur++)
+        {
+            if(*cur == NULL)
+                continue;
 
             (*cur)->Process();
-		}
+        }
 
         break;
-	}
+    }
 }
 
 //TODO - make this better -Luck
@@ -482,65 +482,65 @@ EVEItemSlotType ModuleContainer::_checkBounds(uint32 flag)
 
 bool ModuleContainer::_isLowSlot(uint32 flag)
 {
-	if( flag >= flagLowSlot0 && flag <= flagLowSlot7 )
-	{
-		if( (flag - flagLowSlot0) < m_LowSlots )
-			return true;
-		else
-			sLog.Error("ModuleContainer::_isLowSlot()", "this shouldn't happen");
-	}
+    if( flag >= flagLowSlot0 && flag <= flagLowSlot7 )
+    {
+        if( (flag - flagLowSlot0) < m_LowSlots )
+            return true;
+        else
+            sLog.Error("ModuleContainer::_isLowSlot()", "this shouldn't happen");
+    }
 
     return false;
 }
 
 bool ModuleContainer::_isMediumSlot(uint32 flag)
 {
-	if( flag >= flagMedSlot0 && flag <= flagMedSlot7 )
-	{
-		if( (flag - flagMedSlot0) < m_MediumSlots )
-			return true;
-		else
-			sLog.Error("ModuleContainer::_isMediumSlot()", "this shouldn't happen");
-	}
+    if( flag >= flagMedSlot0 && flag <= flagMedSlot7 )
+    {
+        if( (flag - flagMedSlot0) < m_MediumSlots )
+            return true;
+        else
+            sLog.Error("ModuleContainer::_isMediumSlot()", "this shouldn't happen");
+    }
 
     return false;
 }
 
 bool ModuleContainer::_isHighSlot(uint32 flag)
 {
-	if( flag >= flagHiSlot0 && flag <= flagHiSlot7 )
-	{
-		if( (flag - flagHiSlot0) < m_HighSlots )
-			return true;
-		else
-			sLog.Error("ModuleContainer::_isHighSlot()", "this shouldn't happen");
-	}
+    if( flag >= flagHiSlot0 && flag <= flagHiSlot7 )
+    {
+        if( (flag - flagHiSlot0) < m_HighSlots )
+            return true;
+        else
+            sLog.Error("ModuleContainer::_isHighSlot()", "this shouldn't happen");
+    }
 
     return false;
 }
 
 bool ModuleContainer::_isRigSlot(uint32 flag)
 {
-	if( flag >= flagRigSlot0 && flag <= flagRigSlot7 )
-	{
-		if( (flag - flagRigSlot0) < m_RigSlots )
-			return true;
-		else
-			sLog.Error("ModuleContainer::_isRigSlot()", "this shouldn't happen");
-	}
+    if( flag >= flagRigSlot0 && flag <= flagRigSlot7 )
+    {
+        if( (flag - flagRigSlot0) < m_RigSlots )
+            return true;
+        else
+            sLog.Error("ModuleContainer::_isRigSlot()", "this shouldn't happen");
+    }
 
     return false;
 }
 
 bool ModuleContainer::_isSubSystemSlot(uint32 flag)
 {
-	if( flag >= flagSubSystem0 && flag <= flagSubSystem7 )
-	{
-		if( (flag - flagSubSystem0) < m_SubSystemSlots )
-			return true;
-		else
-			sLog.Error("ModuleContainer::_isSubSystemSlot()", "this shouldn't happen");
-	}
+    if( flag >= flagSubSystem0 && flag <= flagSubSystem7 )
+    {
+        if( (flag - flagSubSystem0) < m_SubSystemSlots )
+            return true;
+        else
+            sLog.Error("ModuleContainer::_isSubSystemSlot()", "this shouldn't happen");
+    }
 
     return false;
 }
@@ -579,18 +579,18 @@ void ModuleContainer::_initializeModuleContainers()
 ModuleManager::ModuleManager(Ship *const ship)
 {
     // Create ModuleContainer object and initialize with sizes for all slot banks for this ship:
-	m_Modules = new ModuleContainer((uint32)ship->GetAttribute(AttrLowSlots).get_int(),
-									(uint32)ship->GetAttribute(AttrMedSlots).get_int(),
-									(uint32)ship->GetAttribute(AttrHiSlots).get_int(),
-									(uint32)ship->GetAttribute(AttrRigSlots).get_int(),
-									(uint32)ship->GetAttribute(AttrSubSystemSlot).get_int(),
+    m_Modules = new ModuleContainer((uint32)ship->GetAttribute(AttrLowSlots).get_int(),
+                                    (uint32)ship->GetAttribute(AttrMedSlots).get_int(),
+                                    (uint32)ship->GetAttribute(AttrHiSlots).get_int(),
+                                    (uint32)ship->GetAttribute(AttrRigSlots).get_int(),
+                                    (uint32)ship->GetAttribute(AttrSubSystemSlot).get_int(),
                                     (uint32)ship->GetAttribute(AttrTurretSlotsLeft).get_int(),
                                     (uint32)ship->GetAttribute(AttrLauncherSlotsLeft).get_int(),
                                     this);
 
     // Store reference to the Ship object to which the ModuleManager belongs:
-	m_Ship = ship;
-    
+    m_Ship = ship;
+
     // Load modules, rigs and subsystems from Ship's inventory into ModuleContainer:
     uint32 flagIndex;
     for(flagIndex=flagLowSlot0; flagIndex<=flagLowSlot7; flagIndex++)
@@ -636,9 +636,9 @@ ModuleManager::ModuleManager(Ship *const ship)
 
 ModuleManager::~ModuleManager()
 {
-	//module cleanup is handled in the ModuleContainer destructor
-	delete m_Modules;
-	m_Modules = NULL;
+    //module cleanup is handled in the ModuleContainer destructor
+    delete m_Modules;
+    m_Modules = NULL;
 }
 
 bool ModuleManager::IsSlotOccupied(uint32 flag)
@@ -678,13 +678,13 @@ void ModuleManager::_SendErrorMessage(const char *fmt, ...)
 
 bool ModuleManager::InstallRig(InventoryItemRef item, EVEItemFlags flag)
 {
-	if(item->groupID() >= 773 && item->groupID() <= 786 && item->groupID() != 783)
+    if(item->groupID() >= 773 && item->groupID() <= 786 && item->groupID() != 783)
     {
-		_fitModule(item,flag);
+        _fitModule(item,flag);
         return true;
     }
-	else
-		sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a rig", m_Ship->GetOperator()->GetName(), item->itemID());
+    else
+        sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a rig", m_Ship->GetOperator()->GetName(), item->itemID());
 
     return false;
 }
@@ -698,31 +698,31 @@ void ModuleManager::UninstallRig(uint32 itemID)
 
 bool ModuleManager::SwapSubSystem(InventoryItemRef item, EVEItemFlags flag)
 {
-	if(item->groupID() >= 954 && item->groupID() <= 958)
+    if(item->groupID() >= 954 && item->groupID() <= 958)
     {
-		_fitModule(item,flag);
+        _fitModule(item,flag);
         return true;
     }
-	else
-		sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a subsystem", m_Ship->GetOperator()->GetName(), item->itemID());
+    else
+        sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a subsystem", m_Ship->GetOperator()->GetName(), item->itemID());
 
     return false;
 }
 
 bool ModuleManager::FitModule(InventoryItemRef item, EVEItemFlags flag)
 {
-	if(item->categoryID() == EVEDB::invCategories::Module)
+    if(item->categoryID() == EVEDB::invCategories::Module)
     {
         // Attempt to fit the module
-		if( _fitModule(item, flag) )
+        if( _fitModule(item, flag) )
         {
             // Now that module is successfully fitted, attempt to put it Online:
             Online(item->itemID());
             return true;
         }
     }
-	else
-		sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a module", m_Ship->GetOperator()->GetName(), item->itemID());
+    else
+        sLog.Debug("ModuleManager","%s tried to fit item %u, which is not a module", m_Ship->GetOperator()->GetName(), item->itemID());
 
     return false;
 }
@@ -740,7 +740,7 @@ void ModuleManager::UnfitModule(uint32 itemID)
 bool ModuleManager::_fitModule(InventoryItemRef item, EVEItemFlags flag)
 {
     bool verifyFailed = false;
-	GenericModule * mod = ModuleFactory(item, ShipRef(m_Ship));
+    GenericModule * mod = ModuleFactory(item, ShipRef(m_Ship));
 
     // Check for max turret modules allowed:
     if( mod->isTurretFitted() && (m_Modules->GetFittedTurretCount() == m_Ship->GetMaxTurrentHardpoints().get_int()) )
@@ -814,33 +814,33 @@ void ModuleManager::OfflineAll()
 
 int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targetID, uint32 repeat)
 {
-	//sLog.Debug("Activate","Needs to be implemented");
-	//return 1;
+    //sLog.Debug("Activate","Needs to be implemented");
+    //return 1;
 
-	GenericModule * mod = m_Modules->GetModule(itemID);
-	if( mod != NULL )
-	{
-		ModuleCommand cmd = _translateEffectName(effectName);
+    GenericModule * mod = m_Modules->GetModule(itemID);
+    if( mod != NULL )
+    {
+        ModuleCommand cmd = _translateEffectName(effectName);
         mod->getItem()->PutOnline();
-		//if(cmd == ONLINE)
-		//	mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
-		//there needs to be more cases here i just don't know what they're called yet
-	}
+        //if(cmd == ONLINE)
+        //    mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
+        //there needs to be more cases here i just don't know what they're called yet
+    }
 
     return 1;
 }
 
 void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
 {
-	GenericModule * mod = m_Modules->GetModule(itemID);
-	if( mod != NULL )
-	{
-		ModuleCommand cmd = _translateEffectName(effectName);
+    GenericModule * mod = m_Modules->GetModule(itemID);
+    if( mod != NULL )
+    {
+        ModuleCommand cmd = _translateEffectName(effectName);
         mod->getItem()->PutOffline();
-		//if(cmd == OFFLINE)
-		//	mod->Offline();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
-		//there needs to be more cases here i just don't know what they're called yet
-	}
+        //if(cmd == OFFLINE)
+        //    mod->Offline();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
+        //there needs to be more cases here i just don't know what they're called yet
+    }
 }
 
 void ModuleManager::DeactivateAllModules()
@@ -984,7 +984,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
         break;
     }
 
-	return mods;
+    return mods;
 }
 
 void ModuleManager::SaveModules()
@@ -1017,20 +1017,20 @@ void ModuleManager::_processExternalEffect(SubEffect * s)
 
 ModuleCommand ModuleManager::_translateEffectName(std::string s)
 {
-	//slow but it's better to do it once then many times as it gets passed around in modules or w/e
-	//all modules should expect a ModuleCommand instead of a string
+    //slow but it's better to do it once then many times as it gets passed around in modules or w/e
+    //all modules should expect a ModuleCommand instead of a string
 
-	//slightly faster version for when I know what things are really called
-	//might as well use, but will definately not be right
-	
-	switch(s[0])
-	{
-	case 'a': return ACTIVATE;
-	case 'd': return s[2] == 'a' ? DEACTIVATE : DEOVERLOAD;
-	case 'o': return s[1] == 'n' ? ONLINE : (s[1] == 'f' ? OFFLINE : OVERLOAD); //compound booleans ftw
-	}
-	
-	return CMD_ERROR;
+    //slightly faster version for when I know what things are really called
+    //might as well use, but will definately not be right
+
+    switch(s[0])
+    {
+    case 'a': return ACTIVATE;
+    case 'd': return s[2] == 'a' ? DEACTIVATE : DEOVERLOAD;
+    case 'o': return s[1] == 'n' ? ONLINE : (s[1] == 'f' ? OFFLINE : OVERLOAD); //compound booleans ftw
+    }
+
+    return CMD_ERROR;
 }
 
 #pragma endregion

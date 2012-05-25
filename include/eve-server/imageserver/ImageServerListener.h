@@ -28,7 +28,6 @@
 
 #include <memory>
 #include "imageserver/ImageServerConnection.h"
-#include <asio.hpp>
 
 /**
  * \class ImageServerListener

@@ -9,7 +9,15 @@
 ##############
 SET( TARGET_NAME        "lua" )
 SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}/src" )
-SET( TARGET_SOURCE_DIR "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}/src" )
+SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}/src" )
+
+SET( TARGET_INCLUDE_DIRS
+     "${TARGET_INCLUDE_DIR}" )
+
+# Export directories
+SET( ${TARGET_NAME}_INCLUDE_DIRS
+     ${TARGET_INCLUDE_DIRS}
+     PARENT_SCOPE )
 
 #########
 # Files #
@@ -75,17 +83,12 @@ SET( SOURCE
 #####################
 # Setup the library #
 #####################
-INCLUDE_DIRECTORIES( "${TARGET_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
 
 ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE} ${SOURCE} )
 
-######################
-# Export directories #
-######################
-SET( ${TARGET_NAME}_INCLUDE_DIR "${TARGET_INCLUDE_DIR}" PARENT_SCOPE )
-
 # Disable safety warnings because this is a C library
-IF (WIN32)
-    ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
-ENDIF (WIN32)
+IF( WIN32 )
+    ADD_DEFINITIONS( "-D_CRT_SECURE_NO_WARNINGS" )
+ENDIF( WIN32 )

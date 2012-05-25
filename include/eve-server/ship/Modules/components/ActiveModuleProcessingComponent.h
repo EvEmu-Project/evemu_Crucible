@@ -33,24 +33,24 @@ class ActiveModuleProcessingComponent
 {
 public:
 
-	ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod);
-	~ActiveModuleProcessingComponent();
+    ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod);
+    ~ActiveModuleProcessingComponent();
 
-	void DeactivateCycle();
+    void DeactivateCycle();
 
-	bool ShouldProcessActiveCycle();
+    bool ShouldProcessActiveCycle();
 
-	void ProcessActiveCycle();
+    void ProcessActiveCycle();
 
 private:
-	//internal storage and record keeping
-	bool m_Stop;
+    //internal storage and record keeping
+    bool m_Stop;
 
 
-	//internal access to owner
-	GenericModule *m_Mod;
-	ShipRef m_Ship;
-	ModifyShipAttributesComponent * m_ShipAttrModComp;
+    //internal access to owner
+    GenericModule *m_Mod;
+    ShipRef m_Ship;
+    ModifyShipAttributesComponent * m_ShipAttrModComp;
 
 };
 

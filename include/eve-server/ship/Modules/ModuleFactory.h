@@ -38,15 +38,15 @@
 static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 {
 
-	if( item->categoryID() != EVEDB::invCategories::Module )
-	{
-		sLog.Error("ModuleFactory","Cannot create module from non module type item");
-		assert(false);
-	}
-	else
-	{
-		switch(item->groupID())
-		{
+    if( item->categoryID() != EVEDB::invCategories::Module )
+    {
+        sLog.Error("ModuleFactory","Cannot create module from non module type item");
+        assert(false);
+    }
+    else
+    {
+        switch(item->groupID())
+        {
             // Armor Modules Subgroup:
             case EVEDB::invGroups::Damage_Control:                          return (new ActiveModule(item, ship)); break;    // Active
             case EVEDB::invGroups::Armor_Repair_Unit:                       return NULL;    // Active

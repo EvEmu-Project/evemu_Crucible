@@ -184,7 +184,7 @@ bool ClassDumpGenerator::ProcessLong( const TiXmlElement* field )
     }
 
     fprintf( mOutputFile,
-        "    _log( l_type, \"%%s%s=\" I64d, pfx, %s );\n"
+        "    _log( l_type, \"%%s%s=\" PRId64, pfx, %s );\n"
         "\n",
         name, name
     );
@@ -591,7 +591,7 @@ bool ClassDumpGenerator::ProcessListLong( const TiXmlElement* field )
         "    %s_cur = %s.begin();\n"
         "    %s_end = %s.end();\n"
         "    for( int %s_index = 0; %s_cur != %s_end; %s_cur++, %s_index++ )\n"
-        "        _log( l_type, \"%%s   [%%02d] \" I64d, pfx, %s_index, *%s_cur );\n"
+        "        _log( l_type, \"%%s   [%%02d] \" PRId64, pfx, %s_index, *%s_cur );\n"
         "\n",
         name, name,
         name, name,

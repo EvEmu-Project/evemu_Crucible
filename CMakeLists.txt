@@ -7,279 +7,174 @@
 ###############
 # CMake setup #
 ###############
-CMAKE_MINIMUM_REQUIRED( VERSION 2.6 FATAL_ERROR )
+CMAKE_MINIMUM_REQUIRED( VERSION 2.8 FATAL_ERROR )
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
-SET( PROJECT_VERSION             "0.7-experimental" )
+SET( PROJECT_VERSION             "0.7.11" )
+SET( PROJECT_REPOSITORY          "http://www.github.com/evemuproject/evemu_crucible" )
 
 SET( CMAKE_MODULE_PATH
      "${PROJECT_SOURCE_DIR}/cmake"
      "${CMAKE_MODULE_PATH}" )
 
-INCLUDE( "CheckSymbolExists" )
-
-INCLUDE( "TargetBuildPCH" )
-INCLUDE( "TestX64" )
-
 ###########
 # Options #
 ###########
-SET( EVEMU_COLLECTOR_ENABLE OFF
-     CACHE BOOL   "Build eve-collector." )
-SET( EVEMU_DOC_ENABLE       OFF
-     CACHE BOOL   "Generate HTML documentation (requires Doxygen)." )
-SET( EVEMU_SOURCE_SCM       ""
-     CACHE STRING "Source SCM in use; valid values: '', 'svn', 'git'" )
-SET( EVEMU_TOOL_ENABLE      OFF
-     CACHE BOOL   "Build eve-tool." )
-
-SET( EVEMU_ROOT_DIR "..////"
-     CACHE PATH "The root of EVEmu workspace." )
-MARK_AS_ADVANCED( EVEMU_ROOT_DIR )
-
-SET( TINYXML_USE_STL ON
-     CACHE BOOL "tinyxml will use native STL." )
-MARK_AS_ADVANCED( TINYXML_USE_STL )
-
-# Mark a bunch of stuff as advanced
-MARK_AS_ADVANCED(Boost_DIR Boost_LIB_DIAGNOSTIC_DEFINITIONS CMAKE_INSTALL_PREFIX Lua_DIR)
+SET( EVEMU_ROOT ".."
+     CACHE PATH "The root directory of EVEmu workspace." )
+MARK_AS_ADVANCED( EVEMU_ROOT )
 
 #########
 # Tests #
 #########
+INCLUDE( "CheckCXXSymbolExists" )
+INCLUDE( "CheckIncludeFile" )
+INCLUDE( "DetectScm" )
+INCLUDE( "TargetBuildPCH" )
+INCLUDE( "TestX64" )
+
 TEST_X64( X64 )
 
-CHECK_SYMBOL_EXISTS( "__FreeBSD__" "" FREE_BSD )
+# Headers
+CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
+CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
+CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
 
-SET( GNUC ${CMAKE_COMPILER_IS_GNUCXX} )
+# cfloat
+CHECK_CXX_SYMBOL_EXISTS( _finite "cfloat" HAVE__FINITE )
+CHECK_CXX_SYMBOL_EXISTS( _isnan  "cfloat" HAVE__ISNAN )
 
-################
-# Dependencies #
-################
-FIND_PACKAGE( "Threads" REQUIRED )
+# cmath
+CHECK_CXX_SYMBOL_EXISTS( asinh         "cmath" HAVE_ASINH )
+CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath" HAVE___FINITE )
+CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath" HAVE___ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath" HAVE_STD_FINITE )
+CHECK_CXX_SYMBOL_EXISTS( std::isfinite "cmath" HAVE_STD_ISFINITE )
+CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath" HAVE_STD_ISNAN )
 
-IF (WIN32)
-    FIND_PACKAGE( "MySQL" 5.0 QUIET )
-    FIND_PACKAGE( "ZLIB" QUIET )
-    FIND_PACKAGE( "Boost" QUIET )
-ELSE()
-    FIND_PACKAGE( "MySQL" 5.0 REQUIRED )
-    FIND_PACKAGE( "ZLIB" REQUIRED )
-    
-    FIND_PACKAGE( "Boost" REQUIRED )
-    LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-ENDIF (WIN32)
+# cstdarg
+CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
 
+# cstdio
+CHECK_CXX_SYMBOL_EXISTS(  snprintf "cstdio" HAVE_SNPRINTF )
+CHECK_CXX_SYMBOL_EXISTS( vsnprintf "cstdio" HAVE_VSNPRINTF )
+CHECK_CXX_SYMBOL_EXISTS(  asprintf "cstdio" HAVE_ASPRINTF )
+CHECK_CXX_SYMBOL_EXISTS( vasprintf "cstdio" HAVE_VASPRINTF )
 
-IF ( NOT WIN32)
-    FIND_PACKAGE( "ICONV" REQUIRED )
-ENDIF ( NOT WIN32 )
+# cstdlib
+CHECK_CXX_SYMBOL_EXISTS( strtoll  "cstdlib" HAVE_STRTOLL )
+CHECK_CXX_SYMBOL_EXISTS( strtoull "cstdlib" HAVE_STRTOULL )
 
-IF( EVEMU_DOC_ENABLE )
-    FIND_PACKAGE( "Doxygen" REQUIRED )
-ENDIF( EVEMU_DOC_ENABLE )
+# cstring
+CHECK_CXX_SYMBOL_EXISTS( strdup      "cstring" HAVE_STRDUP )
+CHECK_CXX_SYMBOL_EXISTS( strcasecmp  "cstring" HAVE_STRCASECMP )
+CHECK_CXX_SYMBOL_EXISTS( strncasecmp "cstring" HAVE_STRNCASECMP )
 
-IF( NOT EVEMU_SOURCE_REVISION )
-    IF( EVEMU_SOURCE_SCM STREQUAL "svn" )
-        FIND_PACKAGE( "Subversion" REQUIRED )
-    ELSEIF( EVEMU_SOURCE_SCM STREQUAL "git" )
-        FIND_PACKAGE( "Git" REQUIRED )
-    ENDIF( EVEMU_SOURCE_SCM STREQUAL "svn" )
-ENDIF( NOT EVEMU_SOURCE_REVISION )
+# ctime
+CHECK_CXX_SYMBOL_EXISTS( localtime_r "ctime" HAVE_LOCALTIME_R )
+CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 
-FIND_PACKAGE( "Gangsta" QUIET )
-FIND_PACKAGE( "Lua" QUIET )
-FIND_PACKAGE( "TinyXML" QUIET )
-FIND_PACKAGE( "UTF8CPP" QUIET )
+# sys/socket.h
+CHECK_CXX_SYMBOL_EXISTS( MSG_NOSIGNAL "sys/socket.h" HAVE_MSG_NOSIGNAL )
+CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
 
 #################
 # Configuration #
 #################
-IF( WIN32 )
-    SET( PROJECT_STANDARD_LIBRARIES "wsock32" ${CMAKE_THREAD_LIBS_INIT} )
-ELSE( WIN32 )
-    SET( PROJECT_STANDARD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT} )
-ENDIF( WIN32 )
-
 IF( MSVC )
-    #
-    # This is here as we usually use pre-built MySQL binaries which are
-    # compiled with /MT (use static libc); building with /MD (use DLL libc)
-    # results in linker warning during the linking stage, however the resultant
-    # binary works and is even a little bit smaller due to the dynamic linking.
-    #
-    # For now we supress the linker warning by forcing static libc.
-    #
-    #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
-    #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
-    #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
-    #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
-    #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
-    
-    # to avoid linking any boost libs
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D \"BOOST_DATE_TIME_NO_LIB\" /D \"BOOST_REGEX_NO_LIB\"" )
-    
+  #
+  # This is here as we usually use pre-built MySQL binaries which are
+  # compiled with /MT (use static libc); building with /MD (use DLL libc)
+  # results in linker warning during the linking stage, however the resultant
+  # binary works and is even a little bit smaller due to the dynamic linking.
+  #
+  # For now we supress the linker warning by forcing static libc.
+  #
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
+  #
+  # Setup some recommended compiler flags.
+  #
+  # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
+  # override the setup.
+  #
+  SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 ENDIF( MSVC )
 
-IF ( NOT MSVC )
-    # to avoid linking any boost libs
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -DBOOST_DATE_TIME_NO_LIB -DBOOST_REGEX_NO_LIB" )
-ENDIF ( NOT MSVC )
+# Pull version from SCM, if any
+DETECT_SCM( "${PROJECT_SOURCE_DIR}" SCM_VERSION SCM_REPOSITORY )
+IF( SCM_VERSION AND SCM_REPOSITORY )
+  # Check that SCM_VERSION starts with PROJECT_VERSION
+  STRING( FIND "${SCM_VERSION}" "${PROJECT_VERSION}" VERSION_INDEX )
+  IF( NOT VERSION_INDEX EQUAL 0 )
+    MESSAGE( AUTHOR_WARNING "Version mismatch, please update PROJECT_VERSION in CMakeLists.txt" )
+  ENDIF( NOT VERSION_INDEX EQUAL 0 )
 
-IF( NOT EVEMU_SOURCE_REVISION )
-    IF( EVEMU_SOURCE_SCM STREQUAL "svn" )
-        Subversion_WC_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
+  # Set project version and repository
+  SET( PROJECT_VERSION    "${SCM_VERSION}" )
+  SET( PROJECT_REPOSITORY "${SCM_REPOSITORY}" )
+ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 
-        SET( EVEMU_SOURCE_REVISION "r${${PROJECT_NAME}_WC_LAST_CHANGED_REV}"
-             CACHE STRING "Revision of the source." )
-        MARK_AS_ADVANCED( EVEMU_SOURCE_REVISION )
-    ELSEIF( EVEMU_SOURCE_SCM STREQUAL "git" )
-        GIT_TREE_INFO( "${PROJECT_SOURCE_DIR}" "${PROJECT_NAME}" )
-
-        SET( EVEMU_SOURCE_REVISION "${${PROJECT_NAME}_HASH_SHORT}"
-             CACHE STRING "Revision of the source." )
-        MARK_AS_ADVANCED( EVEMU_SOURCE_REVISION )
-    ENDIF( EVEMU_SOURCE_SCM STREQUAL "svn" )
-ENDIF( NOT EVEMU_SOURCE_REVISION )
-
-IF( EVEMU_SOURCE_REVISION )
-    SET( PROJECT_VERSION "${PROJECT_VERSION}-${EVEMU_SOURCE_REVISION}" )
-ENDIF( EVEMU_SOURCE_REVISION )
-
-############
-# config.h #
-############
-CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.in"
-                "${PROJECT_BINARY_DIR}/config.h"
-                ESCAPE_QUOTES @ONLY )
-
+######################
+# Advertise config.h #
+######################
 ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
 INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
-
-############################
-# Distributed dependencies #
-############################
-ADD_SUBDIRECTORY( "dep/utils" )
-
-IF( NOT GANGSTA_FOUND )
-    ADD_SUBDIRECTORY( "dep/gangsta" )
-
-    SET( GANGSTA_FOUND       TRUE )
-    SET( GANGSTA_INCLUDE_DIR "${gangsta_INCLUDE_DIR}" )
-    SET( GANGSTA_LIBRARIES   "gangsta" )
-ENDIF( NOT GANGSTA_FOUND )
-
-IF( NOT LUA_FOUND )
-    ADD_SUBDIRECTORY( "dep/lua" )
-
-    SET( LUA_FOUND       TRUE )
-    SET( LUA_INCLUDE_DIR "${lua_INCLUDE_DIR}" )
-    SET( LUA_LIBRARIES   "lua" )
-ENDIF( NOT LUA_FOUND )
-
-IF( NOT TINYXML_FOUND )
-    ADD_SUBDIRECTORY( "dep/tinyxml" )
-
-    SET( TINYXML_FOUND       TRUE )
-    SET( TINYXML_INCLUDE_DIR "${tinyxml_INCLUDE_DIR}" )
-    SET( TINYXML_LIBRARIES   "tinyxml" )
-ENDIF( NOT TINYXML_FOUND )
-
-IF( NOT UTF8CPP_FOUND )
-    ADD_SUBDIRECTORY( "dep/utf8cpp" )
-
-    SET( UTF8CPP_FOUND       TRUE )
-    SET( UTF8CPP_INCLUDE_DIR "${utf8cpp_INCLUDE_DIR}" )
-    SET( UTF8CPP_LIBRARIES   "utf8cpp" )
-ENDIF( NOT UTF8CPP_FOUND )
-
-IF(NOT BOOST_FOUND)
-    ADD_SUBDIRECTORY("dep/boost")
-    
-    SET(BOOST_FOUND TRUE)
-    SET(Boost_INCLUDE_DIR "${boost_INCLUDE_DIR}")
-    SET(Boost_DIR "${boost_INCLUDE_DIR}")
-    SET(BOOST_LIBRARIES "boost")
-    
-    #LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-ENDIF(NOT BOOST_FOUND)
-
-IF(NOT MYSQL_FOUND)
-    ADD_SUBDIRECTORY("dep/mysql/include")
-    
-    SET(MYSQL_FOUND TRUE)
-    SET(MYSQL_INCLUDE_DIR "${mysql_INCLUDE_DIR}")
-    SET(MYSQL_LIBRARIES "${mysql_INCLUDE_DIR}/../lib/opt/libmysql.lib")
-ENDIF(NOT MYSQL_FOUND)
-
-IF(NOT ZLIB_FOUND)
-    ADD_SUBDIRECTORY("dep/zlib")
-    
-    SET(ZLIB_FOUND TRUE)
-    SET(ZLIB_INCLUDE_DIR "${zlib_INCLUDE_DIR}")
-    SET(ZLIB_LIBRARIES "zlib")
-ENDIF(NOT ZLIB_FOUND)
-
-ADD_SUBDIRECTORY( "dep/asio" )
-SET ( ASIO_INCLUDE_DIR "${asio_INCLUDE_DIR}" )
-
-###########################
-# Generated documentation #
-###########################
-IF( EVEMU_DOC_ENABLE )
-    ADD_SUBDIRECTORY( "doc" )
-ENDIF( EVEMU_DOC_ENABLE )
 
 ##################
 # Targets import #
 ##################
 IF( CMAKE_CROSSCOMPILING )
-    SET( EVEMU_TARGETS_IMPORT ""
-         CACHE FILEPATH "Path to an import script generated during a native build." )
-    MARK_AS_ADVANCED( EVEMU_TARGETS_IMPORT )
+  SET( EVEMU_TARGETS_IMPORT ""
+       CACHE FILEPATH "Path to an import script generated during a native build." )
+  MARK_AS_ADVANCED( EVEMU_TARGETS_IMPORT )
 
-    IF( EVEMU_TARGETS_IMPORT )
-        INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
-    ENDIF( EVEMU_TARGETS_IMPORT )
+  IF( EVEMU_TARGETS_IMPORT )
+    INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
+  ENDIF( EVEMU_TARGETS_IMPORT )
 ENDIF( CMAKE_CROSSCOMPILING )
 
-################
-# EVEmu source #
-################
+#################
+# EVEmu targets #
+#################
+ADD_SUBDIRECTORY( "doc" )
 ADD_SUBDIRECTORY( "src/common" )
 
 IF( NOT CMAKE_CROSSCOMPILING )
-    ADD_SUBDIRECTORY( "src/xmlpktgen" )
+  ADD_SUBDIRECTORY( "src/xmlpktgen" )
 ENDIF( NOT CMAKE_CROSSCOMPILING )
 
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
-
-IF( EVEMU_COLLECTOR_ENABLE )
-    ADD_SUBDIRECTORY( "src/eve-collector" )
-ENDIF( EVEMU_COLLECTOR_ENABLE )
-
-IF( EVEMU_TOOL_ENABLE )
-    ADD_SUBDIRECTORY( "src/eve-tool" )
-ENDIF( EVEMU_TOOL_ENABLE )
+ADD_SUBDIRECTORY( "src/eve-collector" )
+ADD_SUBDIRECTORY( "src/eve-tool" )
 
 ##################
 # Targets export #
 ##################
 IF( NOT CMAKE_CROSSCOMPILING )
-    SET( EVEMU_TARGETS_EXPORT ""
-         CACHE FILEPATH "Path to an import script to generate (for cross-compiling)." )
-    MARK_AS_ADVANCED( EVEMU_TARGETS_EXPORT )
+  SET( EVEMU_TARGETS_EXPORT ""
+       CACHE FILEPATH "Path to an import script to generate (for cross-compiling)." )
+  MARK_AS_ADVANCED( EVEMU_TARGETS_EXPORT )
 
-    IF( EVEMU_TARGETS_EXPORT )
-        EXPORT( TARGETS "xmlpktgen"
-                FILE "${EVEMU_TARGETS_EXPORT}" )
-    ENDIF( EVEMU_TARGETS_EXPORT )
+  IF( EVEMU_TARGETS_EXPORT )
+    EXPORT( TARGETS "xmlpktgen"
+            FILE "${EVEMU_TARGETS_EXPORT}" )
+  ENDIF( EVEMU_TARGETS_EXPORT )
 ENDIF( NOT CMAKE_CROSSCOMPILING )
+
+#####################
+# Generate config.h #
+#####################
+CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.in"
+                "${PROJECT_BINARY_DIR}/config.h"
+                ESCAPE_QUOTES @ONLY )
 
 ###############
 # CPack setup #

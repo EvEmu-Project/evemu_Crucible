@@ -42,16 +42,16 @@ class ShipOperatorInterface;
  */
 class ShipTypeData {
 public:
-	ShipTypeData(
-		uint32 _weaponTypeID = 0,
-		uint32 _miningTypeID = 0,
-		uint32 _skillTypeID = 0
-	);
+    ShipTypeData(
+        uint32 _weaponTypeID = 0,
+        uint32 _miningTypeID = 0,
+        uint32 _skillTypeID = 0
+    );
 
-	// Content:
-	uint32 mWeaponTypeID;
-	uint32 mMiningTypeID;
-	uint32 mSkillTypeID;
+    // Content:
+    uint32 mWeaponTypeID;
+    uint32 mMiningTypeID;
+    uint32 mSkillTypeID;
 };
 
 /**
@@ -220,25 +220,25 @@ public:
      */
     void SaveShip();
 
-	/* begin new module manager interface */
+    /* begin new module manager interface */
     uint32 FindAvailableModuleSlot( InventoryItemRef item );
     EvilNumber GetMaxTurrentHardpoints() { return GetAttribute(AttrTurretSlotsLeft); }
     EvilNumber GetMaxLauncherHardpoints() { return GetAttribute(AttrLauncherSlotsLeft); }
-	void AddItem( EVEItemFlags flag, InventoryItemRef item);
-	void RemoveItem( InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag );
-	void UpdateModules();
-	void UnloadModule(uint32 itemID);
-	void UnloadAllModules();
-	void RepairModules();
-	int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
-	void Deactivate(int32 itemID, std::string effectName);
-	void ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge);
-	void RemoveRig(InventoryItemRef item, uint32 inventoryID);
-	void Process();
-	void DeactivateAllModules();
-	void OnlineAll();
+    void AddItem( EVEItemFlags flag, InventoryItemRef item);
+    void RemoveItem( InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag );
+    void UpdateModules();
+    void UnloadModule(uint32 itemID);
+    void UnloadAllModules();
+    void RepairModules();
+    int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
+    void Deactivate(int32 itemID, std::string effectName);
+    void ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge);
+    void RemoveRig(InventoryItemRef item, uint32 inventoryID);
+    void Process();
+    void DeactivateAllModules();
+    void OnlineAll();
     ShipOperatorInterface * GetOperator() { return m_pOperator; }
-	std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
+    std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
 
 protected:
     Ship(

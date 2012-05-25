@@ -194,11 +194,15 @@ protected:
      *
      * @param[in] arg Pointer to TCPConnection.
      */
-    static thread_return_t TCPConnectionLoop( void* arg );
+#ifdef WIN32
+    static DWORD WINAPI TCPConnectionLoop( LPVOID arg );
+#else /* !WIN32 */
+    static void* TCPConnectionLoop( void* arg );
+#endif /* !WIN32 */
     /**
      * @brief Loop for worker threads.
      */
-    thread_return_t TCPConnectionLoop();
+    void TCPConnectionLoop();
 
     /** Protection of socket and associated variables. */
     mutable Mutex mMSock;
