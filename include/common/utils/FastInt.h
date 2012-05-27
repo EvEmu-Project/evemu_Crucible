@@ -20,24 +20,60 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Bloody.Rabbit
+    Author:        Aim, Captnoord, Zhur, Bloody.Rabbit
 */
 
-#ifndef __COMMON_PCH_H__INCL__
-#define __COMMON_PCH_H__INCL__
+#ifndef __UTILS__FAST_INT_H__INCL__
+#define __UTILS__FAST_INT_H__INCL__
 
-#include "common.h"
+// fast int abs
+inline int32 int32abs( const int32 value )
+{
+    return (value ^ (value >> 31)) - (value >> 31);
+}
 
-/************************************************************************/
-/* dep includes                                                         */
-/************************************************************************/
-#include <mysql.h>
-#include <mysqld_error.h>
-#include <errmsg.h>
+// fast int abs and recast to unsigned
+inline uint32 int32abs2uint32( const int32 value )
+{
+    return (uint32)(value ^ (value >> 31)) - (value >> 31);
+}
 
-#include <tinyxml.h>
+/// Fastest Method of float2int32
+inline int32 float2int32( const float value )
+{
+#if defined( MSVC ) && !defined( X64 )
+    int32 i;
+    __asm {
+        fld value
+        frndint
+        fistp i
+    }
+    return i;
+#else
+    union { int32 asInt[2]; double asDouble; } n;
+    n.asDouble = value + 6755399441055744.0;
 
-#include <zlib.h>
+    return n.asInt[0];
+#endif
+}
 
-#endif /* !__COMMON_PCH_H__INCL__ */
+/// Fastest Method of double2int32
+inline int32 double2int32( const double value )
+{
+#if defined( MSVC ) && !defined( X64 )
+    int32 i;
+    __asm {
+        fld value
+        frndint
+        fistp i
+    }
+    return i;
+#else
+  union { int32 asInt[2]; double asDouble; } n;
+  n.asDouble = value + 6755399441055744.0;
 
+  return n.asInt[0];
+#endif
+}
+
+#endif /* !__UTILS__FAST_INT_H__INCL__ */

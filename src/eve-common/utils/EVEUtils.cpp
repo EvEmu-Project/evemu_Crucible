@@ -28,13 +28,6 @@
 #include "python/classes/PyExceptions.h"
 #include "utils/EVEUtils.h"
 
-#if defined( MSVC )
-    #include <boost/math/special_functions.hpp>
-    #define asinh boost::math::asinh
-#else
-    #include <math.h>
-#endif
-
 UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
 {
     UserError *err = new UserError( exceptionType );

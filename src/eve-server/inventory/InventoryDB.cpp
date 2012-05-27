@@ -1071,8 +1071,8 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
         " VALUES"
         // CharacterData:
         "  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
-        "   %u, %u, "I64u ", "I64u ", "I64u ", "I64u ", "I64u ", "
-        "   "I64u ", " I64u ", " I64u ","
+        "   %u, %u, "PRIu64", "PRIu64", "PRIu64", "PRIu64", "PRIu64", "
+        "   "PRIu64", "PRIu64", "PRIu64","
         "   %u, %u, %u, %u, %u,"
         "   %u, %u, %u, %u, %u, %u)",
         // CharacterData:
@@ -1092,7 +1092,7 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
         "INSERT INTO chrEmployment"
         "  (characterID, corporationID, startDate, deleted)"
         " VALUES"
-        "  (%u, %u, " I64u ", 0)",
+        "  (%u, %u, " PRIu64 ", 0)",
         characterID, data.corporationID, Win32TimeNow()))
     {
         _log(DATABASE__ERROR, "Failed to insert employment info of character %u: %s.", characterID, err.c_str());
@@ -1144,9 +1144,9 @@ bool InventoryDB::SaveCharacter(uint32 characterID, const CharacterData &data) {
         "  careerID = %u,"
         "  schoolID = %u,"
         "  careerSpecialityID = %u,"
-        "  startDateTime = " I64u ","
-        "  createDateTime = " I64u ","
-        "  corporationDateTime = " I64u ","
+        "  startDateTime = " PRIu64 ","
+        "  createDateTime = " PRIu64 ","
+        "  corporationDateTime = " PRIu64 ","
         "  shipID = %u"
         " WHERE characterID = %u",
         data.accountID,
@@ -1187,11 +1187,11 @@ bool InventoryDB::SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &d
     if(!sDatabase.RunQuery(err,
         "UPDATE character_"
         " SET"
-        "  corpRole = " I64u ","
-        "  rolesAtAll = " I64u ","
-        "  rolesAtBase = " I64u ","
-        "  rolesAtHQ = " I64u ","
-        "  rolesAtOther = " I64u
+        "  corpRole = " PRIu64 ","
+        "  rolesAtAll = " PRIu64 ","
+        "  rolesAtBase = " PRIu64 ","
+        "  rolesAtHQ = " PRIu64 ","
+        "  rolesAtOther = " PRIu64
         " WHERE characterID = %u",
         data.corpRole,
         data.rolesAtAll,
@@ -1579,7 +1579,7 @@ bool InventoryDB::SaveCertificates( uint32 characterID, const Certificates &from
         const currentCertificates &im = from[ i ];
 
         char buf[ 64 ];
-        snprintf( buf, 64, "(NULL, %u, %u, "I64u", %u)", characterID, im.certificateID, im.grantDate, im.visibilityFlags );
+        snprintf( buf, 64, "(NULL, %u, %u, "PRIu64", %u)", characterID, im.certificateID, im.grantDate, im.visibilityFlags );
         if( i != 0 )
         query += ',';
         query += buf;

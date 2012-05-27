@@ -28,7 +28,6 @@
 
 #include <memory>
 #include <vector>
-#include <asio.hpp>
 
 /**
  * \class ImageServerConnection

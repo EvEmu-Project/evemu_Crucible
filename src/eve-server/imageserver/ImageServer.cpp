@@ -53,21 +53,17 @@ ImageServer::ImageServer()
     if (_basePath[_basePath.size() - 1] != '/')
         _basePath += "/";
 
-    CreateNewDirectory(_basePath);
+    CreateDirectory( _basePath.c_str(), NULL );
 
     for (int i = 0; i < CategoryCount; i++) {
         std::string subdir = _basePath;
         subdir.append(Categories[i]);
-        CreateNewDirectory(subdir);
+
+        CreateDirectory( subdir.c_str(), NULL );
     }
 
     sLog.Log("image server", "our URL: %s", _url.c_str());
     sLog.Log("image server", "our base: %s", _basePath.c_str());
-}
-
-bool ImageServer::CreateNewDirectory(std::string& path)
-{
-    return mkdir(path.c_str(), 0777) == 0;
 }
 
 void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData)

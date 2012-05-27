@@ -110,11 +110,15 @@ protected:
      *
      * @param[in] arg Pointer to BaseTCPServer.
      */
-    static thread_return_t TCPServerLoop( void* arg );
+#ifdef WIN32
+    static DWORD WINAPI TCPServerLoop( LPVOID arg );
+#else /* !WIN32 */
+    static void* TCPServerLoop( void* arg );
+#endif /* !WIN32 */
     /**
      * @brief Loop for worker threads.
      */
-    thread_return_t TCPServerLoop();
+    void TCPServerLoop();
 
     /** Mutex to protect socket and associated variables. */
     mutable Mutex mMSock;

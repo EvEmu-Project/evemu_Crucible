@@ -173,9 +173,9 @@ bool Ship::_Load()
     bool loadSuccess = InventoryItem::_Load();      // Attributes are loaded here!
 
     // TODO: MOVE THIS TO Ship::Load() or some other place AFTER InventoryItem::mAttributeMap has been loaded
-	// allocate the module manager, only the first time:
+    // allocate the module manager, only the first time:
     if( m_ModuleManager == NULL )
-	    m_ModuleManager = new ModuleManager(this);
+        m_ModuleManager = new ModuleManager(this);
 
     // check for module manager load success
     if( m_ModuleManager == NULL )
@@ -231,47 +231,47 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
             throw PyException( MakeCustomError( "%s has no corporate hangars.", item->itemName().c_str() ) );
     }
     else if( flag == flagCargoHold )
-	{
-		//get all items in cargohold
-		EvilNumber capacityUsed(0);
-		std::vector<InventoryItemRef> items;
-		m_pOperator->GetShip()->FindByFlag(flag, items);        // Operator assumed to be Client *
-		for(uint32 i = 0; i < items.size(); i++){
-			capacityUsed += items[i]->GetAttribute(AttrVolume);
-		}
-		if( capacityUsed + item->GetAttribute(AttrVolume) > m_pOperator->GetShip()->GetAttribute(AttrCapacity) )    // Operator assumed to be Client *
-			throw PyException( MakeCustomError( "Not enough cargo space!") );
-	}
-	else if( (flag >= flagLowSlot0)  &&  (flag <= flagHiSlot7) )
-	{
+    {
+        //get all items in cargohold
+        EvilNumber capacityUsed(0);
+        std::vector<InventoryItemRef> items;
+        m_pOperator->GetShip()->FindByFlag(flag, items);        // Operator assumed to be Client *
+        for(uint32 i = 0; i < items.size(); i++){
+            capacityUsed += items[i]->GetAttribute(AttrVolume);
+        }
+        if( capacityUsed + item->GetAttribute(AttrVolume) > m_pOperator->GetShip()->GetAttribute(AttrCapacity) )    // Operator assumed to be Client *
+            throw PyException( MakeCustomError( "Not enough cargo space!") );
+    }
+    else if( (flag >= flagLowSlot0)  &&  (flag <= flagHiSlot7) )
+    {
         if( m_pOperator->IsClient() )
-		    if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
-			    throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
-		if(!ValidateItemSpecifics(item))
-			throw PyException( MakeCustomError( "Your ship cannot equip this module" ) );
+            if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
+                throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+        if(!ValidateItemSpecifics(item))
+            throw PyException( MakeCustomError( "Your ship cannot equip this module" ) );
         if( m_ModuleManager->IsSlotOccupied(flag) )
             throw PyException( MakeUserError( "SlotAlreadyOccupied" ) );
-		if(item->categoryID() == EVEDB::invCategories::Charge) {
-			InventoryItemRef module;
-			m_pOperator->GetShip()->FindSingleByFlag(flag, module);     // Operator assumed to be Client *
-			if(module->GetAttribute(AttrChargeSize) != item->GetAttribute(AttrChargeSize) )
-				throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
-			if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
-				throw PyException( MakeCustomError( "Incorrect charge type for this module.") );
-		}
-	}
-	else if( (flag >= flagRigSlot0)  &&  (flag <= flagRigSlot7) )
-	{
+        if(item->categoryID() == EVEDB::invCategories::Charge) {
+            InventoryItemRef module;
+            m_pOperator->GetShip()->FindSingleByFlag(flag, module);     // Operator assumed to be Client *
+            if(module->GetAttribute(AttrChargeSize) != item->GetAttribute(AttrChargeSize) )
+                throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
+            if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
+                throw PyException( MakeCustomError( "Incorrect charge type for this module.") );
+        }
+    }
+    else if( (flag >= flagRigSlot0)  &&  (flag <= flagRigSlot7) )
+    {
         if( m_pOperator->IsClient() )
-    		if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
-			    throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
-		if(m_pOperator->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))        // Operator assumed to be Client *
-			throw PyException( MakeCustomError( "Your ship cannot fit this size module" ) );
-		if( m_pOperator->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > m_pOperator->GetShip()->GetAttribute(AttrUpgradeCapacity) )   // Operator assumed to be Client *
-			throw PyException( MakeCustomError( "Your ship cannot handle the extra calibration" ) );
-	}
-	else if( (flag >= flagSubSystem0)  &&  (flag <= flagSubSystem7) )
-	{
+            if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
+                throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
+        if(m_pOperator->GetShip()->GetAttribute(AttrRigSize) != item->GetAttribute(AttrRigSize))        // Operator assumed to be Client *
+            throw PyException( MakeCustomError( "Your ship cannot fit this size module" ) );
+        if( m_pOperator->GetShip()->GetAttribute(AttrUpgradeLoad) + item->GetAttribute(AttrUpgradeCost) > m_pOperator->GetShip()->GetAttribute(AttrUpgradeCapacity) )   // Operator assumed to be Client *
+            throw PyException( MakeCustomError( "Your ship cannot handle the extra calibration" ) );
+    }
+    else if( (flag >= flagSubSystem0)  &&  (flag <= flagSubSystem7) )
+    {
         if( m_pOperator->IsClient() )
             if(!Skill::FitModuleSkillCheck(item, character))        // SKIP THIS SKILL CHECK if Operator is NOT Client *
                 throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
@@ -540,16 +540,16 @@ uint32 Ship::FindAvailableModuleSlot( InventoryItemRef item )
 
 void Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)
 {
-	
-	ValidateAddItem( flag, item );
-					
-	//it's a new module, make sure it's state starts at offline so that it is added correctly
-	if( item->categoryID() != EVEDB::invCategories::Charge )
-		item->PutOffline();
+
+    ValidateAddItem( flag, item );
+
+    //it's a new module, make sure it's state starts at offline so that it is added correctly
+    if( item->categoryID() != EVEDB::invCategories::Charge )
+        item->PutOffline();
 
     // TODO: Somehow, if this returns FALSE, the item->Move() above has to be "undone"... can we do the move AFTER attempting to fit?
     // what if we pass the flag into FitModule().... then if it returns true, the item->Move() can be called
-	if( m_ModuleManager->FitModule(item, flag) )
+    if( m_ModuleManager->FitModule(item, flag) )
         item->Move(m_pOperator->GetLocationID(), flag);  //TODO - check this
 }
 

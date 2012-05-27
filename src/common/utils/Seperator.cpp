@@ -23,7 +23,7 @@
     Author:        Zhur, Bloody.Rabbit
 */
 
-#include "CommonPCH.h"
+#include "common.h"
 
 #include "log/LogNew.h"
 #include "utils/Seperator.h"

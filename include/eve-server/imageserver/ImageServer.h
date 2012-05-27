@@ -36,7 +36,6 @@
     #include <tr1/unordered_map>
     #include <tr1/memory>
 #endif
-#include <asio.hpp>
 
 class ImageServerListener;
 
@@ -77,7 +76,6 @@ private:
     void RunInternal();
     bool ValidateCategory(std::string& category);
     bool ValidateSize(std::string& category, uint32 size);
-    static bool CreateNewDirectory(std::string& path);
 
     std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char> > /*imageData*/> _limboImages;
     std::auto_ptr<asio::thread> _ioThread;

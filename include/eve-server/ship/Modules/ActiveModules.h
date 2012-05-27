@@ -33,23 +33,23 @@
 class ActiveModule : public GenericModule
 {
 public:
-	ActiveModule(InventoryItemRef item, ShipRef ship);
+    ActiveModule(InventoryItemRef item, ShipRef ship);
     ~ActiveModule();
 
-	void Process();
-	void Offline();
-	void Online();
-	void Activate(uint32 targetID);
-	void Deactivate();
+    void Process();
+    void Offline();
+    void Online();
+    void Activate(uint32 targetID);
+    void Deactivate();
 
-	//access functions
-	ModulePowerLevel GetModulePowerLevel()					{ return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
+    //access functions
+    ModulePowerLevel GetModulePowerLevel()                    { return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
 
-	bool isHighPower()										{ return m_Effects->isHighSlot(); }
-	bool isMediumPower()									{ return m_Effects->isMediumSlot(); }
-	bool isLowPower()										{ return m_Effects->isLowSlot(); }
-	bool isRig()											{ return false; }
-	bool isSubSystem()										{ return false; }
+    bool isHighPower()                                        { return m_Effects->isHighSlot(); }
+    bool isMediumPower()                                    { return m_Effects->isMediumSlot(); }
+    bool isLowPower()                                        { return m_Effects->isLowSlot(); }
+    bool isRig()                                            { return false; }
+    bool isSubSystem()                                        { return false; }
     bool requiresTarget()
     {
         if( m_Effects->HasDefaultEffect() )
@@ -59,10 +59,10 @@ public:
     }
 
 protected:
-	ModifyShipAttributesComponent * m_ShipAttrComp;
-	uint32 targetID;  //passed to us by activate
+    ModifyShipAttributesComponent * m_ShipAttrComp;
+    uint32 targetID;  //passed to us by activate
 
-	//inheritance crap
+    //inheritance crap
     ActiveModule() {}
 };
 

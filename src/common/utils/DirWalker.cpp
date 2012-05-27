@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "CommonPCH.h"
+#include "common.h"
 
 #include "utils/DirWalker.h"
 

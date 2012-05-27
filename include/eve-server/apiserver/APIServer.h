@@ -34,8 +34,6 @@
     #include <tr1/unordered_map>
 #endif
 
-#include <asio.hpp>
-
 #include "APIServerConnection.h"
 #include "EVEServerPCH.h"
 

@@ -30,11 +30,11 @@
 class RigModule : public PassiveModule
 {
 public:
-	
-	RigModule(InventoryItemRef item, ShipRef ship);
-	~RigModule();
 
-	ModulePowerLevel GetModulePowerLevel();
+    RigModule(InventoryItemRef item, ShipRef ship);
+    ~RigModule();
+
+    ModulePowerLevel GetModulePowerLevel();
 
 };
 

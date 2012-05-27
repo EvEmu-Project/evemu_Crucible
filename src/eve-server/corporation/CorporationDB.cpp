@@ -550,8 +550,8 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
     // Set new corp
     if (!sDatabase.RunQuery(err,
         "UPDATE character_ SET "
-        "   corporationID = %u, corporationDateTime = "I64u", "
-        "   corpRole = "I64u", rolesAtAll = "I64u", rolesAtBase = "I64u", rolesAtHQ = "I64u", rolesAtOther = "I64u" "
+        "   corporationID = %u, corporationDateTime = "PRIu64", "
+        "   corpRole = "PRIu64", rolesAtAll = "PRIu64", rolesAtBase = "PRIu64", rolesAtHQ = "PRIu64", rolesAtOther = "PRIu64" "
         "   WHERE characterID = %u",
             corpID, Win32TimeNow(),
             roles.corpRole, roles.rolesAtAll, roles.rolesAtBase, roles.rolesAtHQ, roles.rolesAtOther,
@@ -577,7 +577,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 
     // Add new employment history record
     if (!sDatabase.RunQuery(err,
-        "INSERT INTO chrEmployment VALUES (%u, %u, "I64u", 0)",
+        "INSERT INTO chrEmployment VALUES (%u, %u, "PRIu64", 0)",
         charID, corpID, Win32TimeNow()
         ))
     {
@@ -931,7 +931,7 @@ bool CorporationDB::InsertApplication(const ApplicationInfo & aInfo) {
         " corporationID, characterID, applicationText, roles, grantableRoles, status, "
         " applicationDateTime, deleted, lastCorpUpdaterID "
         " ) VALUES ( "
-        " %u, %u, '%s', " I64u ", " I64u ", %u, " I64u ", %u, %u "
+        " %u, %u, '%s', " PRIu64 ", " PRIu64 ", %u, " PRIu64 ", %u, %u "
         " ) ", aInfo.corpID, aInfo.charID, safeMessage.c_str(), aInfo.role,
                aInfo.grantRole, aInfo.status, aInfo.appTime, aInfo.deleted, aInfo.lastCID))
     {
