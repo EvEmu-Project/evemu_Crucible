@@ -45,6 +45,7 @@ ConfigService::ConfigService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(ConfigService, GetMultiInvTypesEx)
     PyCallable_REG_CALL(ConfigService, GetStationSolarSystemsByOwner)
     PyCallable_REG_CALL(ConfigService, GetCelestialStatistic)
+    PyCallable_REG_CALL(ConfigService, GetDynamicCelestials)
 }
 
 ConfigService::~ConfigService() {
@@ -301,5 +302,13 @@ PyResult ConfigService::Handle_GetCelestialStatistic(PyCallArgs &call) {
     return m_db.GetCelestialStatistic(arg.arg);
 }
 
+PyResult ConfigService::Handle_GetDynamicCelestials(PyCallArgs &call){
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "Bad arguments");
+        return NULL;
+    }
 
+    return m_db.GetDynamicCelestials(arg.arg);
+}
 
