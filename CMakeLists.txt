@@ -17,9 +17,8 @@ SET( PROJECT_VENDOR              "The EVEmu development team" )
 SET( PROJECT_VERSION             "0.7.11" )
 SET( PROJECT_REPOSITORY          "http://www.github.com/evemuproject/evemu_crucible" )
 
-SET( CMAKE_MODULE_PATH
-     "${PROJECT_SOURCE_DIR}/cmake"
-     "${CMAKE_MODULE_PATH}" )
+LIST( APPEND CMAKE_MODULE_PATH
+      "${PROJECT_SOURCE_DIR}/cmake" )
 
 ###########
 # Options #
@@ -44,17 +43,15 @@ CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
 CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
 CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
 
-# cfloat
-CHECK_CXX_SYMBOL_EXISTS( _finite "cfloat" HAVE__FINITE )
-CHECK_CXX_SYMBOL_EXISTS( _isnan  "cfloat" HAVE__ISNAN )
-
-# cmath
-CHECK_CXX_SYMBOL_EXISTS( asinh         "cmath" HAVE_ASINH )
-CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath" HAVE___FINITE )
-CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath" HAVE___ISNAN )
-CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath" HAVE_STD_FINITE )
-CHECK_CXX_SYMBOL_EXISTS( std::isfinite "cmath" HAVE_STD_ISFINITE )
-CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath" HAVE_STD_ISNAN )
+# cfloat, cmath
+CHECK_CXX_SYMBOL_EXISTS( asinh         "cmath"  HAVE_ASINH )
+CHECK_CXX_SYMBOL_EXISTS( _finite       "cfloat" HAVE__FINITE )
+CHECK_CXX_SYMBOL_EXISTS( _isnan        "cfloat" HAVE__ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath"  HAVE___FINITE )
+CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath"  HAVE___ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath"  HAVE_STD_FINITE )
+CHECK_CXX_SYMBOL_EXISTS( std::isfinite "cmath"  HAVE_STD_ISFINITE )
+CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath"  HAVE_STD_ISNAN )
 
 # cstdarg
 CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
