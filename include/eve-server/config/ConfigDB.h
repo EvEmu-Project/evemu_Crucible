@@ -47,6 +47,12 @@ public:
     PyObject *ListLanguages();
     PyRep *GetStationSolarSystemsByOwner(uint32 ownerID);
     PyRep *GetCelestialStatistic(uint32 celestialID);
+    /**
+    * @brief Retrieves dynamic, celestial objects for a given solar system
+    *
+    * @param[in] solarSystemID  ID of the solar system whose objects are being retrieved
+    */
+    PyRep *GetDynamicCelestials(uint32 solarSystemID);
     PyRep *GetTextsForGroup(const std::string & langID, uint32 textgroup);
 
 protected:

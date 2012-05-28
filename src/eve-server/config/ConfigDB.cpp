@@ -454,6 +454,37 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
     return DBResultToCRowset(res);
 }
 
+PyRep *ConfigDB::GetDynamicCelestials(uint32 solarSystemID) {
+
+    sLog.Error("ConfigDB::GetDynamicCelestials", "This query is intentionally made to yield an empty result.  It must be re-worked to provide actual data!");
+
+    const std::string query = " SELECT "
+                              "     `itemID`, "
+                              "     `entity`.`typeID`, "
+                              "     `invTypes`.`groupID`, "
+                              "     `itemName`, "
+                              "     0, " // This field refers to the orbitID of the dynamic celestial and needs to be implemented
+                              "     0, " // This field refers to the boolean value of isConnector.  It may signify some sort of mission jump bridge
+                              "     `x`, "
+                              "     `y`, "
+                              "     `z` "
+                              " FROM `entity` JOIN `invTypes` ON `entity`.`typeID` = `invTypes`.`typeID`"
+                              " WHERE "
+                              "     `locationID` = %u AND " // In the future, the locationID field needs to be constrained to being a solarSystemID
+                              "     `groupID` = -1"; // This is set to -1 because we do not know what the ID(s) of dynamic celestials is/are.
+
+    DBQueryResult result;
+    DBResultRow currentRow;
+
+    if (!sDatabase.RunQuery(result, query.c_str(), solarSystemID))
+    {
+        codelog(SERVICE__ERROR, "Error in query: %s", result.error.c_str());
+        return NULL;
+    }
+
+    return DBResultToRowset(result);
+}
+
 PyRep *ConfigDB::GetTextsForGroup(const std::string & langID, uint32 textgroup) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT textLabel, `text` FROM intro WHERE langID = '%s' AND textgroup = %u", langID.c_str(), textgroup))

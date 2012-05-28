@@ -440,7 +440,7 @@ void Client::MoveToLocation( uint32 location, const GPoint& pt )
     {
         // Entering a solarsystem
         // source is GetLocation()
-        // destinaion is location
+        // destination is location
         stationID = 0;
         solarSystemID = location;
 
