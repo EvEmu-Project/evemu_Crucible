@@ -64,7 +64,7 @@ template<>
 int64 str2< int64 >( const char* str )
 {
     int64 v = 0;
-    sscanf( str, SCNd64, &v );
+    sscanf( str, "%"SCNd64, &v );
     return v;
 }
 
@@ -72,7 +72,7 @@ template<>
 uint64 str2< uint64 >( const char* str )
 {
     uint64 v = 0;
-    sscanf( str, SCNu64, &v );
+    sscanf( str, "%"SCNu64, &v );
     return v;
 }
 
