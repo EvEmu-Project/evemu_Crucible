@@ -78,7 +78,7 @@ int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID,
     uint32 messageID;
     bool status = sDatabase.RunQueryLID(err, messageID,
         "INSERT INTO mailMessage (senderID, toCharacterIDs, toListID, toCorpOrAllianceID, title, body, sentDate, statusMask, labelMask, unread) "
-        " VALUES (%u, '%s', %d, %d, '%s', '%s', " PRIu64 ", 0, %u, 1)", sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(), bodyEscaped.c_str(), Win32TimeNow(), defaultLabel);
+        " VALUES (%u, '%s', %d, %d, '%s', '%s', %" PRIu64 ", 0, %u, 1)", sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(), bodyEscaped.c_str(), Win32TimeNow(), defaultLabel);
 
     if (!status)
         return 0;

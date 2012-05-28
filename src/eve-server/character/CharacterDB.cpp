@@ -33,7 +33,7 @@ CharacterDB::CharacterDB()
 bool CharacterDB::ReportRespec(uint32 characterId)
 {
     DBerror error;
-    if (!sDatabase.RunQuery(error, "UPDATE character_ SET freeRespecs = freeRespecs - 1, nextRespec = " PRIu64 " WHERE characterId = %u AND freeRespecs > 0",
+    if (!sDatabase.RunQuery(error, "UPDATE character_ SET freeRespecs = freeRespecs - 1, nextRespec = %" PRIu64 " WHERE characterId = %u AND freeRespecs > 0",
         Win32TimeNow() + Win32Time_Year, characterId))
         return false;
     return true;
@@ -65,7 +65,7 @@ bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uin
 
         // reflect this in the database, too
         DBerror err;
-        sDatabase.RunQuery(err, "UPDATE character_ SET freeRespecs = %u, nextRespec = " PRIu64 " WHERE characterId = %u",
+        sDatabase.RunQuery(err, "UPDATE character_ SET freeRespecs = %u, nextRespec = %" PRIu64 " WHERE characterId = %u",
             out_freeRespecs, out_nextRespec, characterId);
     }
 
@@ -82,7 +82,7 @@ uint64 CharacterDB::PrepareCharacterForDelete(uint32 accountID, uint32 charID)
 
     DBerror error;
     uint32 affectedRows;
-    sDatabase.RunQuery(error, affectedRows, "UPDATE character_ SET deletePrepareDateTime = " PRIu64 " WHERE accountID = %u AND characterID = %u", deleteTime, accountID, charID);
+    sDatabase.RunQuery(error, affectedRows, "UPDATE character_ SET deletePrepareDateTime = %" PRIu64 " WHERE accountID = %u AND characterID = %u", deleteTime, accountID, charID);
     if (affectedRows != 1)
         return 0;
 
@@ -102,7 +102,7 @@ PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
 {
     DBerror error;
     uint32 affectedRows;
-    sDatabase.RunQuery(error, affectedRows, "DELETE FROM character_ WHERE deletePrepareDateTime > 0 AND deletePrepareDateTime <= " PRIu64 " AND accountID = %u AND characterID = %u", Win32TimeNow(), accountID, charID);
+    sDatabase.RunQuery(error, affectedRows, "DELETE FROM character_ WHERE deletePrepareDateTime > 0 AND deletePrepareDateTime <= %" PRIu64 " AND accountID = %u AND characterID = %u", Win32TimeNow(), accountID, charID);
 
     if (affectedRows == 1)
     {
@@ -194,7 +194,7 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
         " securityRating,character_.balance, 0 As aurBalance,character_.stationID,solarSystemID,constellationID,regionID,"
         " petitionMessage,logonMinutes,tickerName, %u AS worldSpaceID, '%s' AS shipName, %u AS shipTypeID, %u AS unreadMailCount,"
         " %u AS upcomingEventCount, %u AS unprocessedNotifications, %u AS daysLeft, %u AS userType, 0 AS paperDollState, 0 AS newPaperdollState,"
-        " 0 AS oldPaperdollState, skillPoints, " PRIu64 " AS skillQueueEndTime, " PRIu64 " AS allianceMemberStartDate, " PRIu64 " AS startDate,"
+        " 0 AS oldPaperdollState, skillPoints, %" PRIu64 " AS skillQueueEndTime, %" PRIu64 " AS allianceMemberStartDate, %" PRIu64 " AS startDate,"
         " 0 AS locationSecurity"
         " FROM character_ "
         "    LEFT JOIN entity ON characterID = itemID"
