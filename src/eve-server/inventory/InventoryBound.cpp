@@ -204,7 +204,6 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
     uint32 powerSlot;
     uint32 useableSlot;
 
-
     if( call.tuple->items.size() == 3 )
     {
         // TODO: Add comments here to describe what kind of client action results in having
@@ -247,8 +246,17 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
             return NULL;
         }
 
+	uint32 flag = 0;
+	if( call.byname.find("flag") == call.byname.end() )
+	{
+	    sLog.Debug( "InventoryBound::Handle_MultiAdd()", "Cannot find key 'flag' from call.byname dictionary." );
+	    flag = flagCargoHold;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
+	}
+	else
+	    flag = call.byname.find("flag")->second->AsInt()->value();
+
         // no quantity given, assume 1
-        return _ExecAdd( call.client, args.itemIDs, 1, mFlag );
+        return _ExecAdd( call.client, args.itemIDs, 1, (EVEItemFlags)flag );
     }
     else if( call.tuple->items.size() == 1 )
     {
