@@ -787,6 +787,9 @@ def IsJunkLocation(locationID):
 
 */
 
+// This is the 
+#define EVEMU_MINIMUM_ID 140000000
+
 #define IsAgent(itemID) \
     ((itemID >= 3008416) && (itemID < 3020000))
 
@@ -826,7 +829,8 @@ def IsJunkLocation(locationID):
 #define IsScenarioItem(itemID) \
     ((itemID >= 90000000) && (itemID < 100000000))
 
-
+#define IsNonStaticItem(itemID) \
+    (itemID >= EVEMU_MINIMUM_ID)
 
 #endif
 

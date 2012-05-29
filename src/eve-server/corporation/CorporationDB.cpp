@@ -734,13 +734,13 @@ PyObject *CorporationDB::GetEveOwners() {
     " 0 AS ownerNameID,"
         " typeID"
         " FROM entity"
-        " WHERE itemID < 140000000"
+        " WHERE itemID < %u"
         " AND itemID NOT IN ( SELECT ownerID from eveStaticOwners ) )"
         " UNION ALL "
         "(SELECT"
         " ownerID, ownerName, 0 AS ownerNameID, typeID"
         " FROM eveStaticOwners)"
-        " ORDER BY ownerID" ) )
+        " ORDER BY ownerID", EVEMU_MINIMUM_ID ) )
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return NULL;

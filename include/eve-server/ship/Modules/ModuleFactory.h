@@ -38,7 +38,7 @@
 static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 {
 
-    if( item->categoryID() != EVEDB::invCategories::Module )
+    if( (item->categoryID() != EVEDB::invCategories::Module) && (item->categoryID() != EVEDB::invCategories::Subsystem) )
     {
         sLog.Error("ModuleFactory","Cannot create module from non module type item");
         assert(false);
@@ -216,11 +216,11 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
             /************************************/
             /*        SubSystem Modules         */
             /************************************/
-            case EVEDB::invGroups::Defensive_Systems:                       return NULL;
-            case EVEDB::invGroups::Electronic_Systems:                      return NULL;
-            case EVEDB::invGroups::Offensive_Systems:                       return NULL;
-            case EVEDB::invGroups::Propulsion_Systems:                      return NULL;
-            case EVEDB::invGroups::Engineering_Systems:                     return NULL;
+            case EVEDB::invGroups::Defensive_Systems:                       return (new SubSystemModule(item, ship)); break;
+            case EVEDB::invGroups::Electronic_Systems:                      return (new SubSystemModule(item, ship)); break;
+            case EVEDB::invGroups::Offensive_Systems:                       return (new SubSystemModule(item, ship)); break;
+            case EVEDB::invGroups::Propulsion_Systems:                      return (new SubSystemModule(item, ship)); break;
+            case EVEDB::invGroups::Engineering_Systems:                     return (new SubSystemModule(item, ship)); break;
 
 
             default:

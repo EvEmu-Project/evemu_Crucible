@@ -37,7 +37,7 @@ PyObject *LSCDB::LookupChars(const char *match, bool exact) {
             "    characterID, itemName AS characterName, typeID"
             " FROM character_"
             "  LEFT JOIN entity ON characterID = itemID"
-            " WHERE characterID >= 140000000"))
+            " WHERE characterID >= %u", EVEMU_MINIMUM_ID))
         {
             _log(SERVICE__ERROR, "Error in LookupChars query: %s", res.error.c_str());
             return NULL;
@@ -80,7 +80,7 @@ PyObject *LSCDB::LookupOwners(const char *match, bool exact) {
         " FROM character_"
         "  LEFT JOIN entity ON characterID = itemID"
         "  LEFT JOIN invTypes ON entity.typeID = invTypes.typeID"
-        " WHERE character_.characterID >= 140000000"
+        " WHERE character_.characterID >= %u"
         "  AND entity.itemName %s '%s'"
         " UNION "
         "SELECT"
@@ -90,7 +90,7 @@ PyObject *LSCDB::LookupOwners(const char *match, bool exact) {
         " FROM corporation"
         "  LEFT JOIN invTypes ON groupID = 2"
         " WHERE corporation.corporationName %s '%s'",
-        (exact?"=":"RLIKE"), matchEsc.c_str(), (exact?"=":"RLIKE"), matchEsc.c_str()))
+        EVEMU_MINIMUM_ID, (exact?"=":"RLIKE"), matchEsc.c_str(), (exact?"=":"RLIKE"), matchEsc.c_str()))
     {
         _log(DATABASE__ERROR, "Failed to lookup player char '%s': %s.", matchEsc.c_str(), res.error.c_str());
         return NULL;
@@ -110,9 +110,9 @@ PyObject *LSCDB::LookupPlayerChars(const char *match, bool exact) {
         " characterID, itemName AS characterName, typeID"
         " FROM character_"
         "  LEFT JOIN entity ON characterID = itemID"
-        " WHERE characterID >= 140000000"
+        " WHERE characterID >= %u"
         "  AND itemName %s '%s'",
-        exact?"=":"RLIKE", matchEsc.c_str()))
+        EVEMU_MINIMUM_ID, exact?"=":"RLIKE", matchEsc.c_str()))
     {
         _log(DATABASE__ERROR, "Failed to lookup player char '%s': %s.", matchEsc.c_str(), res.error.c_str());
         return NULL;

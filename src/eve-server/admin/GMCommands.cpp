@@ -253,26 +253,38 @@ PyResult Command_giveisk( Client* who, CommandDB* db, PyServiceMgr* services, co
 {
 
     if( args.argCount() < 3 ) {
-        throw PyException( MakeCustomError("Correct Usage: /giveisk [entityID (0=self)] [amount]") );
+        throw PyException( MakeCustomError("Correct Usage: /giveisk [entityID ('me'=self)] [amount]") );
     }
 
+    // Check for target (arg #1) for either a number or the string "me":
+    std::string target = "";
     if( !args.isNumber( 1 ) )
-        throw PyException( MakeCustomError( "Argument 1 should be an entity ID (0=self)" ) );
-    uint32 entity = atoi( args.arg( 1 ).c_str() );
+    {
+        target = args.arg( 1 );
+        if( target != "me" )
+            throw PyException( MakeCustomError( "Argument 1 should be an entity ID ('me'=self)" ) );
+    }
+
+    // If target (arg #1) is not the string "me" then decode number from argument string, otherwise get this character's ID:
+    uint32 entity;
+    if( target == "" )
+        entity = atoi( args.arg( 1 ).c_str() );
+    else
+        entity = who->GetCharacterID();
 
     if( !args.isNumber( 2 ) )
         throw PyException( MakeCustomError( "Argument 2 should be an amount of ISK" ) );
     double amount = strtod( args.arg( 2 ).c_str(), NULL );
 
     Client* tgt;
-    if( 0 == entity )
-        tgt = who;
-    else
+    if( entity >= EVEMU_MINIMUM_ID )
     {
         tgt = services->entity_list.FindCharacter( entity );
         if( NULL == tgt )
             throw PyException( MakeCustomError( "Unable to find character %u", entity ) );
     }
+    else
+        throw PyException( MakeCustomError( "Invalid entityID for characters %u", entity ) );
 
     tgt->AddBalance( amount );
     return new PyString( "Operation successful." );
@@ -638,9 +650,22 @@ PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, co
         throw PyException( MakeCustomError("Correct Usage: /setattr [itemID] [attributeID] [value]") );
     }
 
+    // Check for target (arg #1) for either a number or the string "myship":
+    uint32 itemID = 0;
+    std::string target = "";
     if( !args.isNumber( 1 ) )
-        throw PyException( MakeCustomError( "1st argument must be itemID (got %s).", args.arg( 1 ).c_str() ) );
-    const uint32 itemID = atoi( args.arg( 1 ).c_str() );
+    {
+        target = args.arg( 1 );
+        if( target != "myship" )
+            throw PyException( MakeCustomError( "1st argument should be an entity ID ('myship'=current ship) (got %s).", args.arg( 1 ).c_str() ) );
+        
+        itemID = who->GetShipID();
+    }
+    else
+    {
+        // target (arg #1) is a number, so decode it and move on:
+        itemID = atoi( args.arg( 1 ).c_str() );
+    }
 
     if( !args.isNumber( 2 ) )
         throw PyException( MakeCustomError( "2nd argument must be attributeID (got %s).", args.arg( 2 ).c_str() ) );
@@ -649,6 +674,9 @@ PyResult Command_setattr( Client* who, CommandDB* db, PyServiceMgr* services, co
     if( !args.isNumber( 3 ) )
         throw PyException( MakeCustomError( "3rd argument must be value (got %s).", args.arg( 3 ).c_str() ) );
     const double value = atof( args.arg( 3 ).c_str() );
+
+    if( itemID < EVEMU_MINIMUM_ID )
+        throw PyException( MakeCustomError( "1st argument must be a valid 'entity' table itemID (got %s) that MUST be larger >= 140000000.", args.arg( 1 ).c_str() ) );
 
     InventoryItemRef item = services->item_factory.GetItem( itemID );
     if( !item )
