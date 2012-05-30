@@ -1674,7 +1674,7 @@ bool InventoryDB::GetModulePowerSlotByTypeID(uint32 typeID, uint32 &into)
     if(!sDatabase.RunQuery(res,
         " SELECT "
         " groupID "
-        " FROM invtypes "
+        " FROM invTypes "
         " WHERE typeID = '%u' ",
         typeID))
     {
