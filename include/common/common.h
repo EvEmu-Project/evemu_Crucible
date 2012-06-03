@@ -147,21 +147,22 @@
 /************************************************************************/
 /* Dependencies                                                         */
 /************************************************************************/
+// Boost.Asio
 #include <asio.hpp>
-
+// MySQL
 #include <mysql.h>
 #include <mysqld_error.h>
 #include <errmsg.h>
-
+// TinyXML
 #include <tinyxml.h>
-
+// zlib
 #include <zlib.h>
 
 /*************************************************************************/
 /* Other stuff included by default                                       */
 /*************************************************************************/
 #include "compat.h"
-
+// utils
 #include "utils/FastInt.h"
 #include "utils/SafeMem.h"
 
