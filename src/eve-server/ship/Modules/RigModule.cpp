@@ -23,7 +23,7 @@
     Author:        Luck
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 RigModule::RigModule(InventoryItemRef item, ShipRef ship)

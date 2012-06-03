@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 NPCAIMgr::NPCAIMgr(NPC *who)
 : m_state(Idle),

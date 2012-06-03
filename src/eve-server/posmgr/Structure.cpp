@@ -23,7 +23,7 @@
     Author:     Aknor Jaden
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 /*

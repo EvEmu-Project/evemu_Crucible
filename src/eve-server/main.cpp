@@ -23,7 +23,7 @@
     Author:     Zhur, mmcs
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 #include "EVEVersion.h"
 #include <iostream>
 

@@ -25,7 +25,7 @@
 
 #include <vector>
 #include <cmath>
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 //#include "ship/Modules/components/ModifyShipAttributesComponent.h"
 
 

@@ -23,7 +23,7 @@
     Author:        caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 #ifndef MSVC
     // This is needed to build the server under linux using GCC

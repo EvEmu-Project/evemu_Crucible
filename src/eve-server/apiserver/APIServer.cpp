@@ -23,7 +23,7 @@
     Author:        Aknor Jaden, adapted from ImageServer.h authored by caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 #include <iostream>
 #include <fstream>
 

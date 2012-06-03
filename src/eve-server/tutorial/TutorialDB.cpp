@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
     DBQueryResult res;

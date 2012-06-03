@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 uint32 SystemBubble::m_bubbleIncrementer = 0;
 

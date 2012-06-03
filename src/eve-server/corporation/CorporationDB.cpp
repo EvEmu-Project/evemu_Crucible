@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 PyObject *CorporationDB::ListCorpStations(uint32 corp_id) {
     DBQueryResult res;

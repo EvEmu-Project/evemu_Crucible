@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 #ifndef INT_MAX
 #   define INT_MAX 0x7FFFFFFF

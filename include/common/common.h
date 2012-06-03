@@ -44,6 +44,9 @@
 #   define _CRT_SECURE_NO_DEPRECATE                 1
 #   define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
 #   define _SCL_SECURE_NO_WARNINGS                  1
+
+// Disable 'this' used in base member initializer list warning
+#   pragma warning( disable : 4355 )
 #endif /* _MSC_VER */
 
 #ifdef HAVE_CRTDBG_H
@@ -149,6 +152,10 @@
 /************************************************************************/
 // Boost.Asio
 #include <asio.hpp>
+// Gangsta
+#include <GaPreReqs.h>
+#include <GaMath.h>
+#include <GaTypes.h>
 // MySQL
 #include <mysql.h>
 #include <mysqld_error.h>

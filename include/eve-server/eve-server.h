@@ -23,45 +23,26 @@
     Author:     Zhur
 */
 
-#ifndef __EVE_SERVER_PCH_H__INCL__
-#define __EVE_SERVER_PCH_H__INCL__
-
-// Disable 'this' used in base member initializer list warning
-#pragma warning(disable: 4355)
-
-#include "common.h"
-
-/************************************************************************/
-/* dep includes                                                         */
-/************************************************************************/
-#include <Base64.h>
-
-#include <GaPreReqs.h>
-#include <GaMath.h>
-#include <GaTypes.h>
-
-#include <mysql.h>
-
-#include <lua.h>
-
-#include <tinyxml.h>
-
-#include <utf8.h>
+#ifndef __EVE_SERVER_H__INCL__
+#define __EVE_SERVER_H__INCL__
 
 /************************************************************************/
 /* common includes                                                      */
 /************************************************************************/
-#include "database/dbcore.h"
+#include "common.h"
 
+// database
+#include "database/dbcore.h"
+// log
 #include "log/LogNew.h"
 #include "log/logsys.h"
-
+// network
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"
 #include "network/TCPServer.h"
-
+// threading
 #include "threading/Mutex.h"
-
+// utils
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
 #include "utils/EvilNumber.h"
@@ -75,29 +56,31 @@
 #include "utils/XMLParserEx.h"
 #include "utils/Util.h"
 
-
 /************************************************************************/
 /* eve-common includes                                                  */
 /************************************************************************/
+#include "eve-common.h"
 
+// authorisation
 #include "authorisation/PasswordModule.h"
+// cache
 #include "cache/CachedObjectMgr.h"
-
+// database
 #include "database/EVEDBUtils.h"
-
+// destiny
 #include "destiny/DestinyBinDump.h"
 #include "destiny/DestinyStructs.h"
-
+// network
 #include "network/EVETCPConnection.h"
 #include "network/EVETCPServer.h"
 #include "network/EVEPktDispatch.h"
 #include "network/EVESession.h"
-
+// marshal
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEMarshalOpcodes.h"
 #include "marshal/EVEMarshalStringTable.h"
 #include "marshal/EVEUnmarshal.h"
-
+// packets
 #include "packets/AccountPkts.h"
 #include "packets/CorporationPkts.h"
 #include "packets/Crypto.h"
@@ -118,44 +101,50 @@
 #include "packets/Trade.h"
 #include "packets/Tutorial.h"
 #include "packets/Mail.h"
-
+// python
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
 #include "python/PyPacket.h"
 #include "python/PyDumpVisitor.h"
 #include "python/PyLookupDump.h"
 #include "python/PyXMLGenerator.h"
-
 #include "python/classes/PyDatabase.h"
 #include "python/classes/PyExceptions.h"
 #include "python/classes/PyUtils.h"
-
+// tables
 #include "tables/invCategories.h"
 #include "tables/invGroups.h"
-
+// utils
 #include "utils/EVEUtils.h"
 #include "utils/EvilNumber.h"
-
 
 /************************************************************************/
 /* eve-server includes                                                  */
 /************************************************************************/
+// iconv
+#ifndef WIN32
+#   include <iconv.h>
+#endif
+// Lua
+#include <lua.h>
+
 #include "Client.h"
 #include "ClientSession.h"
 #include "EntityList.h"
 #include "EVEServerConfig.h"
+#include "LiveUpdateDB.h"
 #include "NetService.h"
 #include "PyBoundObject.h"
 #include "PyCallable.h"
 #include "PyServiceCD.h"
 #include "PyServiceMgr.h"
-
+// account
 #include "account/AccountDB.h"
 #include "account/AccountService.h"
 #include "account/AuthService.h"
 #include "account/ClientStatMgrService.h"
 #include "account/UserService.h"
-
+// admin
 #include "admin/AlertService.h"
 #include "admin/AllCommands.h"
 #include "admin/ClientStatLogger.h"
@@ -164,18 +153,16 @@
 #include "admin/DevToolsProviderService.h"
 #include "admin/PetitionerService.h"
 #include "admin/SlashService.h"
-
+// browser
 #include "browser/browserLockdownSvc.h"
-
+// bulk
 #include "bulk/BulkMgrService.h"
-
+// contractproxy
 #include "contractproxy/contractProxy.h"
-
-// client object cache stuff
+// cache
 #include "cache/ObjCacheService.h"
 #include "cache/ObjCacheDB.h"
-
-// character stuff
+// character
 #include "character/CertificateMgrDB.h"
 #include "character/CertificateMgrService.h"
 #include "character/Character.h"
@@ -190,8 +177,7 @@
 #include "character/PaperDollService.h"
 #include "character/PhotoUploadService.h"
 #include "character/AggressionMgrService.h"
-
-// chat stuff
+// chat
 #include "chat/kenny.h"
 #include "chat/LookupService.h"
 #include "chat/LSCChannel.h"
@@ -199,13 +185,11 @@
 #include "chat/LSCService.h"
 #include "chat/OnlineStatusService.h"
 #include "chat/VoiceMgrService.h"
-
-// server config stuff
+// config
 #include "config/ConfigDB.h"
 #include "config/ConfigService.h"
 #include "config/LanguageService.h"
-
-// corporation stuff
+// corporation
 #include "corporation/CorpBookmarkMgrService.h"
 #include "corporation/CorpMgrService.h"
 #include "corporation/CorporationCarrier.h"
@@ -214,20 +198,16 @@
 #include "corporation/CorpRegistryService.h"
 #include "corporation/CorpStationMgrService.h"
 #include "corporation/LPService.h"
-
-// dogma crap dono what this is
+// dogmaim
 #include "dogmaim/DogmaIMDB.h"
 #include "dogmaim/DogmaIMService.h"
 #include "dogmaim/DogmaDB.h"
 #include "dogmaim/DogmaService.h"
-
-// fleet stuff
+// fleet
 #include "fleet/FleetProxy.h"
-
-// info gathering stuff
+// infogathering
 #include "infogathering/InfoGatheringMgr.h"
-
-// item stuff
+// inventory
 #include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"
 #include "inventory/EffectsEnum.h"
@@ -241,59 +221,51 @@
 #include "inventory/ItemRef.h"
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
-
-// localization stuff
+// localization
 #include "localization/localizationServerService.h"
-
-// mail stuff
+// mail
 #include "mail/MailMgrService.h"
 #include "mail/MailingListMgrService.h"
 #include "mail/NotificationMgrService.h"
 #include "mail/MailDB.h"
-
-// factory stuff
+// manufacturing
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/FactoryDB.h"
 #include "manufacturing/FactoryService.h"
 #include "manufacturing/RamProxyDB.h"
 #include "manufacturing/RamProxyService.h"
-
-//services:
+// missions
 #include "missions/AgentMgrService.h"
 #include "missions/DungeonExplorationMgrService.h"
 #include "missions/MissionMgrService.h"
 #include "missions/Agent.h"
 #include "missions/MissionDB.h"
-
+// mining
 #include "mining/Asteroid.h"
 #include "mining/AsteroidBeltManager.h"
 #include "mining/MiningDB.h"
 #include "mining/ReprocessingDB.h"
 #include "mining/ReprocessingService.h"
-
+// map
 #include "map/MapDB.h"
 #include "map/MapService.h"
-
+// market
 #include "market/BillMgrService.h"
 #include "market/ContractMgrService.h"
 #include "market/MarketDB.h"
 #include "market/MarketProxyService.h"
-
-//NPC
+// npc
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
-
-//planetary interaction
+// planetint
 #include "planetint/planetMgr.h"
-
-//POS
+// posmgr
 #include "posmgr/PosMgrDB.h"
 #include "posmgr/PosMgrService.h"
 #include "posmgr/Structure.h"
-
-//sovereignty stuff
+// sovereignty
 #include "sovereignty/SovereigntyMgrService.h"
-
+// system
 #include "system/BookmarkDB.h"
 #include "system/BookmarkService.h"
 #include "system/BubbleManager.h"
@@ -310,22 +282,7 @@
 #include "system/SystemEntities.h"
 #include "system/SystemEntity.h"
 #include "system/SystemManager.h"
-
-#include "ship/Modules/components/ActiveModuleProcessingComponent.h"
-#include "ship/Modules/components/ModifyShipAttributesComponent.h"
-
-#include "ship/Modules/ModuleDB.h"
-#include "ship/Modules/ModuleFactory.h"
-#include "ship/Modules/Modules.h"
-#include "ship/Modules/ModuleDefs.h"
-#include "ship/Modules/ModuleEffects.h"
-#include "ship/Modules/ActiveModules.h"
-#include "ship/Modules/PassiveModules.h"
-#include "ship/Modules/RigModule.h"
-#include "ship/Modules/SubSystemModules.h"
-
-#include "ship/Modules/propulsion_modules/Afterburner.h"
-
+// ship
 #include "ship/ModuleManager.h"
 #include "ship/BeyonceService.h"
 #include "ship/DestinyManager.h"
@@ -338,33 +295,48 @@
 #include "ship/TargetManager.h"
 #include "ship/dgmtypeattributeinfo.h"
 #include "ship/RepairService.h"
-
+// ship/Modules
+#include "ship/Modules/ModuleDB.h"
+#include "ship/Modules/ModuleFactory.h"
+#include "ship/Modules/Modules.h"
+#include "ship/Modules/ModuleDefs.h"
+#include "ship/Modules/ModuleEffects.h"
+#include "ship/Modules/ActiveModules.h"
+#include "ship/Modules/PassiveModules.h"
+#include "ship/Modules/RigModule.h"
+#include "ship/Modules/SubSystemModules.h"
+// ship/Modules/components
+#include "ship/Modules/components/ActiveModuleProcessingComponent.h"
+#include "ship/Modules/components/ModifyShipAttributesComponent.h"
+// ship/Modules/propulsion_modules
+#include "ship/Modules/propulsion_modules/Afterburner.h"
+// spawn
 #include "spawn/SpawnDB.h"
 #include "spawn/SpawnManager.h"
-
+// standing
 #include "standing/FactionWarMgrDB.h"
 #include "standing/FactionWarMgrService.h"
 #include "standing/Standing2Service.h"
 #include "standing/StandingDB.h"
 #include "standing/WarRegistryService.h"
-
+// station
 #include "station/HoloscreenMgrService.h"
 #include "station/JumpCloneService.h"
 #include "station/Station.h"
 #include "station/StationDB.h"
 #include "station/StationService.h"
 #include "station/StationSvcService.h"
-
+// trade
 #include "trade/TradeService.h"
 #include "trade/TradeDB.h"
-
+// tutorial
 #include "tutorial/TutorialDB.h"
 #include "tutorial/TutorialService.h"
-
+// imageserver
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerConnection.h"
 #include "imageserver/ImageServerListener.h"
-
+// apiserver
 #include "apiserver/APIServiceDB.h"
 #include "apiserver/APIAccountDB.h"
 #include "apiserver/APICharacterDB.h"
@@ -381,8 +353,4 @@
 #include "apiserver/APIMapManager.h"
 #include "apiserver/APIServerManager.h"
 
-#include "LiveUpdateDB.h"
-
-
-
-#endif//__EVE_SERVER_PCH_H__INCL__
+#endif /* !__EVE_SERVER_H__INCL__ */

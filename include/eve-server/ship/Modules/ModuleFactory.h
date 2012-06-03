@@ -27,7 +27,7 @@
 #ifndef __MODULEFACTORY_H__
 #define __MODULEFACTORY_H__
 
-//#include "EVEServerPCH.h"
+//#include "eve-server.h"
 #include "ActiveModules.h"
 #include "PassiveModules.h"
 #include "RigModule.h"

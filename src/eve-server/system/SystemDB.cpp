@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into) {
     DBQueryResult res;

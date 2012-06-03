@@ -23,7 +23,7 @@
     Author:        Luck
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 //#include "ship/Modules/Modules.h"
 //#include "ship/Modules/components/ModifyShipAttributesComponent.h"
 

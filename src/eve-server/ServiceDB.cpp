@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 /**
  * @todo add auto account stuff ...//sConfig.account.autoAccountRole

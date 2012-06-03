@@ -27,7 +27,7 @@
 #define __SHIPOPERATORINTERFACE_H_INCL__
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 class ShipOperatorInterface

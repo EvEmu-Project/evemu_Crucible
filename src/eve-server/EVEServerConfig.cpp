@@ -23,7 +23,7 @@
     Author:     Zhur, Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 /*************************************************************************/
 /* EVEServerConfig                                                       */

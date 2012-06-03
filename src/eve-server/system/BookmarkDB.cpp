@@ -23,7 +23,7 @@
     Author:        Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 PyObjectEx *BookmarkDB::GetBookmarks(uint32 ownerID) {

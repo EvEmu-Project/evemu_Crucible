@@ -45,11 +45,11 @@ SET( ${TARGET_NAME}_INCLUDE_DIRS
 # Files #
 #########
 SET( INCLUDE
+     "${TARGET_INCLUDE_DIR}/eve-server.h"
      "${TARGET_INCLUDE_DIR}/Client.h"
      "${TARGET_INCLUDE_DIR}/ClientSession.h"
      "${TARGET_INCLUDE_DIR}/EntityList.h"
      "${TARGET_INCLUDE_DIR}/EVEServerConfig.h"
-     "${TARGET_INCLUDE_DIR}/EVEServerPCH.h"
      "${TARGET_INCLUDE_DIR}/NetService.h"
      "${TARGET_INCLUDE_DIR}/PyBoundObject.h"
      "${TARGET_INCLUDE_DIR}/PyCallable.h"
@@ -672,7 +672,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${apiserver_INCLUDE}      ${apiserver_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/EVEServerPCH.h"
+                  "${TARGET_INCLUDE_DIR}/eve-server.h"
                   "${TARGET_SOURCE_DIR}/main.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common"

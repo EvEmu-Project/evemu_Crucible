@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &into) {
 

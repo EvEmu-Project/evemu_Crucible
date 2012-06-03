@@ -24,7 +24,7 @@
 */
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 PyObject *LSCDB::LookupChars(const char *match, bool exact) {
     DBQueryResult res;

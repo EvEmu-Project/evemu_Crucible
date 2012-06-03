@@ -26,7 +26,7 @@
 #ifndef __SHIP__H__INCL__
 #define __SHIP__H__INCL__
 
-//#include "EVEServerPCH.h"
+//#include "eve-server.h"
 
 #include "inventory/ItemType.h"
 #include "inventory/Inventory.h"

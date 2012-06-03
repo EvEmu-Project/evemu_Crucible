@@ -23,7 +23,7 @@
     Author:     Zhur, Captnoord
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 #include "inventory/InventoryBound.h"
 
 PyCallable_Make_InnerDispatcher(InventoryBound)

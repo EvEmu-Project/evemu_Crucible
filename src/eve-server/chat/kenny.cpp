@@ -24,7 +24,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 #define NORMAL         0
 #define KENNYSPEAK     1

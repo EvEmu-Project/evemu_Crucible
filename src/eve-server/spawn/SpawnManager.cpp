@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 SpawnGroup::Entry::Entry(
     uint32 _spawnGroupID,

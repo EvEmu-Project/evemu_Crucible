@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 PyCallable::PyCallable()
 : m_serviceDispatch(NULL)

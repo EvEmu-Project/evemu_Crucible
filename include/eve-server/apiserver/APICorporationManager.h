@@ -26,7 +26,7 @@
 #ifndef __APICORPORATIONMANAGER__H__INCL__
 #define __APICORPORATIONMANAGER__H__INCL__
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 /**
  * \class APICorporationManager

@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 // Set the maximum number for any user-created bookmark.
 const uint32 BookmarkService::MAX_BOOKMARK_ID = 0xFFFFFFFF;

@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 CommandDispatcher::CommandDispatcher( PyServiceMgr& services )
 : m_services( services )

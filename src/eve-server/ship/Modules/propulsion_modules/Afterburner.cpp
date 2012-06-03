@@ -23,7 +23,7 @@
     Author:        Luck
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 Afterburner::Afterburner( InventoryItemRef item, ShipRef ship )

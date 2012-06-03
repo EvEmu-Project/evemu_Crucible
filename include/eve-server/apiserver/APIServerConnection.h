@@ -29,7 +29,7 @@
 #include <memory>
 #include <vector>
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 typedef std::map<std::string, std::string> APICommandCall;
 

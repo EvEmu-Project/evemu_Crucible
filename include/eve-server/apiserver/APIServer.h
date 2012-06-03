@@ -35,7 +35,7 @@
 #endif
 
 #include "APIServerConnection.h"
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 class APIServerListener;
 class APIServiceManager;

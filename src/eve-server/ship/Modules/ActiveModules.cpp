@@ -24,7 +24,7 @@
 */
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 ActiveModule::ActiveModule(InventoryItemRef item, ShipRef ship)

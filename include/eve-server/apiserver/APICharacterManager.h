@@ -26,7 +26,7 @@
 #ifndef __APICHARACTERMANAGER__H__INCL__
 #define __APICHARACTERMANAGER__H__INCL__
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 class APICharacterDB;
 

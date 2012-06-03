@@ -26,7 +26,7 @@
 #ifndef __APIADMINMANAGER__H__INCL__
 #define __APIADMINMANAGER__H__INCL__
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 /**
  * \class APIAdminManager

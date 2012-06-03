@@ -24,7 +24,7 @@
 */
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 Agent::Agent(uint32 id)

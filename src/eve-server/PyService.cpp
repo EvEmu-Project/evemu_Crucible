@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 PyService::PyService(PyServiceMgr *mgr, const char *serviceName)

@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup *> &into) {
     DBQueryResult res;

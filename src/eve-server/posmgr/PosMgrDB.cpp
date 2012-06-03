@@ -25,7 +25,7 @@
 
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 PyRep *PosMgrDB::GetControlTowerFuelRequirements() {
     DBQueryResult res;
