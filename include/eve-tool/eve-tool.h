@@ -23,30 +23,22 @@
     Author:        Bloody.Rabbit
 */
 
-#ifndef __EVE_TOOL_PCH_H__INCL__
-#define __EVE_TOOL_PCH_H__INCL__
-
-#include "common.h"
-
-/************************************************************************/
-/* dep includes                                                         */
-/************************************************************************/
-#include <Base64.h>
-
-#include <mysql.h>
-
-#include <TriFile.h>
+#ifndef __EVE_TOOL_H__INCL__
+#define __EVE_TOOL_H__INCL__
 
 /************************************************************************/
 /* common includes                                                      */
 /************************************************************************/
-#include "database/dbtype.h"
+#include "common.h"
 
+// database
+#include "database/dbtype.h"
+// log
 #include "log/logsys.h"
 #include "log/LogNew.h"
-
+// threading
 #include "threading/Mutex.h"
-
+// utils
 #include "utils/Buffer.h"
 #include "utils/crc32.h"
 #include "utils/misc.h"
@@ -59,27 +51,29 @@
 /************************************************************************/
 /* eve-common includes                                                  */
 /************************************************************************/
-#include "cache/CachedObjectMgr.h"
+#include "eve-common.h"
 
+// cache
+#include "cache/CachedObjectMgr.h"
+// database
 #include "database/RowsetReader.h"
 #include "database/RowsetToSQL.h"
-
+// destiny
 #include "destiny/DestinyBinDump.h"
-
+// marshal
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEMarshalStringTable.h"
 #include "marshal/EVEUnmarshal.h"
-
+// network
 #include "network/packet_types.h"
-
+// packets
 #include "packets/General.h"
-
+// python
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"
-
+// python/classes
 #include "python/classes/PyDatabase.h"
-
+// utils
 #include "utils/EVEUtils.h"
 
-#endif /* !__EVE_TOOL_PCH_H__INCL__ */
-
+#endif /* !__EVE_TOOL_H__INCL__ */

@@ -59,6 +59,8 @@
 /************************************************************************/
 // Base64 encoding utilities
 #include <Base64.h>
+// Utility for reading trifiles.
+#include <TriFile.h>
 // UTF8-CPP
 #include <utf8.h>
 
