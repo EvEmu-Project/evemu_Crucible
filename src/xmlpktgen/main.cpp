@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "XMLPktGenPCH.h"
+#include "xmlpktgen.h"
 
 #include "XMLPacketGen.h"
 
@@ -140,7 +140,3 @@ void usage()
             "  -h              Show this help and exit\n"
     );
 }
-
-
-
-

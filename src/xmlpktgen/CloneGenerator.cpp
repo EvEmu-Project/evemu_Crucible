@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "XMLPktGenPCH.h"
+#include "xmlpktgen.h"
 
 #include "CloneGenerator.h"
 

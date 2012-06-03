@@ -26,19 +26,15 @@
 #ifndef __XMLPKTGEN_H__INCL__
 #define __XMLPKTGEN_H__INCL__
 
-#include "common.h"
-
-/************************************************************************/
-/* dep includes                                                         */
-/************************************************************************/
-#include <tinyxml.h>
-
 /************************************************************************/
 /* common includes                                                      */
 /************************************************************************/
+#include "common.h"
+
+// log
 #include "log/logsys.h"
 #include "log/LogNew.h"
-
+// utils
 #include "utils/str2conv.h"
 #include "utils/utils_string.h"
 #include "utils/XMLParserEx.h"
