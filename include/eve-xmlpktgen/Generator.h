@@ -27,7 +27,7 @@
 #define __GENERATOR_H_INCL__
 
 /**
- * @brief Generic class for xmlpktgen's generators.
+ * @brief Generic class for eve-xmlpktgen's generators.
  *
  * All children classes must call RegisterProcessors
  * during construction!

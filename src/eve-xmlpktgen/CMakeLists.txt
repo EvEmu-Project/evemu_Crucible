@@ -7,7 +7,7 @@
 ##############
 # Initialize #
 ##############
-SET( TARGET_NAME        "xmlpktgen" )
+SET( TARGET_NAME        "eve-xmlpktgen" )
 SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
@@ -24,7 +24,7 @@ SET( ${TARGET_NAME}_INCLUDE_DIRS
 # Files #
 #########
 SET( INCLUDE
-     "${TARGET_INCLUDE_DIR}/xmlpktgen.h"
+     "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h"
      "${TARGET_INCLUDE_DIR}/Generator.h"
      "${TARGET_INCLUDE_DIR}/CloneGenerator.h"
      "${TARGET_INCLUDE_DIR}/ConstructGenerator.h"
@@ -58,7 +58,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE} ${SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/xmlpktgen.h"
+                  "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h"
                   "${TARGET_SOURCE_DIR}/main.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "common" )

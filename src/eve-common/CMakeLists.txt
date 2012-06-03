@@ -227,11 +227,11 @@ SOURCE_GROUP( "src\\utils"           FILES ${utils_SOURCE} )
 
 FILE( MAKE_DIRECTORY "${TARGET_PACKETS_DIR}/packets" )
 ADD_CUSTOM_COMMAND( OUTPUT ${packets_INCLUDE} ${packets_SOURCE}
-                    COMMAND "xmlpktgen"
+                    COMMAND "eve-xmlpktgen"
                     ARGS -I "${TARGET_PACKETS_DIR}/packets"
                          -S "${TARGET_PACKETS_DIR}/packets"
                          ${packets_XMLP}
-                    DEPENDS "xmlpktgen"
+                    DEPENDS "eve-xmlpktgen"
                     COMMENT "Generating packet files..." )
 
 ADD_LIBRARY( "${TARGET_NAME}"

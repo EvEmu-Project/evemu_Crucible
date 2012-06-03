@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "xmlpktgen.h"
+#include "eve-xmlpktgen.h"
 
 #include "ConstructGenerator.h"
 

@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "xmlpktgen.h"
+#include "eve-xmlpktgen.h"
 
 #include "XMLPacketGen.h"
 
@@ -132,7 +132,7 @@ int main( int argc, char* argv[] )
 
 void usage()
 {
-    printf( "Usage: xmlpktgen [OPTIONS] FILE [FILE [...]]\n"
+    printf( "Usage: eve-xmlpktgen [OPTIONS] FILE [FILE [...]]\n"
             "\n"
             "Options:\n"
             "  -I directory    Output header files to directory\n"

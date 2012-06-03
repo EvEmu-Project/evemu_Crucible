@@ -3,4 +3,4 @@
 .libs
 Makefile
 Makefile.in
-xmlpktgen
+eve-xmlpktgen

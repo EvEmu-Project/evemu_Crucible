@@ -23,8 +23,8 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __XMLPKTGEN_H__INCL__
-#define __XMLPKTGEN_H__INCL__
+#ifndef __EVE_XMLPKTGEN_H__INCL__
+#define __EVE_XMLPKTGEN_H__INCL__
 
 /************************************************************************/
 /* common includes                                                      */
@@ -39,4 +39,4 @@
 #include "utils/utils_string.h"
 #include "utils/XMLParserEx.h"
 
-#endif /* !__XMLPKTGEN_H__INCL__ */
+#endif /* !__EVE_XMLPKTGEN_H__INCL__ */
