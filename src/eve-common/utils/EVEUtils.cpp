@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "python/classes/PyExceptions.h"
 #include "utils/EVEUtils.h"

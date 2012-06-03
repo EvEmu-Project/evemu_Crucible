@@ -101,7 +101,7 @@ bool XMLPacketGen::ParseElements( const TiXmlElement* field )
     fprintf( mSourceFile,
         "%s\n"
         "\n"
-        "#include \"EVECommonPCH.h\"\n"
+        "#include \"eve-common.h\"\n"
         "\n"
         "#include \"%s\"\n"
         "\n",

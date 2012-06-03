@@ -45,7 +45,7 @@ SET( ${TARGET_NAME}_INCLUDE_DIRS
 # Files #
 #########
 SET( INCLUDE
-     "${TARGET_INCLUDE_DIR}/EVECommonPCH.h"
+     "${TARGET_INCLUDE_DIR}/eve-common.h"
      "${TARGET_INCLUDE_DIR}/EVEVersion.h" )
 SET( SOURCE
      "" )
@@ -248,7 +248,7 @@ ADD_LIBRARY( "${TARGET_NAME}"
              ${utils_INCLUDE}          ${utils_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/EVECommonPCH.h"
+                  "${TARGET_INCLUDE_DIR}/eve-common.h"
                   "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "common" "utils" )

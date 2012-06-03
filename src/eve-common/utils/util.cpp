@@ -17,7 +17,7 @@
  *
  */
 
-#include "EVECommonPCH.h" // I don't want to include this here..
+#include "eve-common.h" // I don't want to include this here..
 #include "common.h"
 //#include "Threading/Threading.h"
 

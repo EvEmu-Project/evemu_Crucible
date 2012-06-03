@@ -23,33 +23,25 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __EVE_COMMON_PCH_H__INCL__
-#define __EVE_COMMON_PCH_H__INCL__
-
-#include "common.h"
-
-/************************************************************************/
-/* dep includes                                                         */
-/************************************************************************/
-#include <Base64.h>
-
-#include <mysql.h>
-
-#include <utf8.h>
+#ifndef __EVE_COMMON_H__INCL__
+#define __EVE_COMMON_H__INCL__
 
 /************************************************************************/
 /* common includes                                                      */
 /************************************************************************/
-#include "database/dbtype.h"
+#include "common.h"
 
+// database
+#include "database/dbtype.h"
+// log
 #include "log/logsys.h"
 #include "log/LogNew.h"
-
+// network
 #include "network/Socket.h"
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"
 #include "network/TCPServer.h"
-
+// utils
 #include "utils/Buffer.h"
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
@@ -62,4 +54,12 @@
 #include "utils/utils_time.h"
 #include "utils/Util.h"
 
-#endif /* !__EVE_COMMON_PCH_H__INCL__ */
+/************************************************************************/
+/* eve-common includes                                                  */
+/************************************************************************/
+// Base64 encoding utilities
+#include <Base64.h>
+// UTF8-CPP
+#include <utf8.h>
+
+#endif /* !__EVE_COMMON_H__INCL__ */

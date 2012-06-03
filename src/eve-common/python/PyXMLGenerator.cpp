@@ -23,7 +23,7 @@
     Author:     Zhur, mmcs
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "python/PyXMLGenerator.h"
 #include "python/PyRep.h"

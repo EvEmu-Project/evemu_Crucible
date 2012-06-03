@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "network/EVEPktDispatch.h"
 #include "packets/AccountPkts.h"

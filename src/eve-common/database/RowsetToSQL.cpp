@@ -23,7 +23,7 @@
     Author:     Zhur, Bloody.Rabbit
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "database/RowsetToSQL.h"
 

@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "destiny/DestinyBinDump.h"
 #include "destiny/DestinyStructs.h"
