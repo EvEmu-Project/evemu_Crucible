@@ -23,20 +23,63 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __EVE_XMLPKTGEN_H__INCL__
-#define __EVE_XMLPKTGEN_H__INCL__
-
-/************************************************************************/
-/* eve-core includes                                                    */
-/************************************************************************/
 #include "eve-core.h"
 
-// log
-#include "log/logsys.h"
-#include "log/LogNew.h"
-// utils
 #include "utils/str2conv.h"
-#include "utils/utils_string.h"
-#include "utils/XMLParserEx.h"
 
-#endif /* !__EVE_XMLPKTGEN_H__INCL__ */
+template<>
+bool str2< bool >( const char* str )
+{
+    if( !strcasecmp( str, "true" ) )
+        return true;
+    else if( !strcasecmp( str, "false" ) )
+        return false;
+    else if( !strcasecmp( str, "yes" ) )
+        return true;
+    else if( !strcasecmp( str, "no" ) )
+        return false;
+    else if( !strcasecmp( str, "y" ) )
+        return true;
+    else if( !strcasecmp( str, "n" ) )
+        return false;
+    else if( !strcasecmp( str, "on" ) )
+        return true;
+    else if( !strcasecmp( str, "off" ) )
+        return false;
+    else if( !strcasecmp( str, "enable" ) )
+        return true;
+    else if( !strcasecmp( str, "disable" ) )
+        return false;
+    else if( !strcasecmp( str, "enabled" ) )
+        return true;
+    else if( !strcasecmp( str, "disabled" ) )
+        return false;
+    else if( str2< int >( str ) )
+        return true;
+    else
+        return false;
+}
+
+template<>
+int64 str2< int64 >( const char* str )
+{
+    int64 v = 0;
+    sscanf( str, "%"SCNd64, &v );
+    return v;
+}
+
+template<>
+uint64 str2< uint64 >( const char* str )
+{
+    uint64 v = 0;
+    sscanf( str, "%"SCNu64, &v );
+    return v;
+}
+
+template<>
+long double str2< long double >( const char* str )
+{
+    long double v = 0.0;
+    sscanf( str, "%Lf", &v );
+    return v;
+}

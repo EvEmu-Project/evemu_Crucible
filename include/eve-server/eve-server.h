@@ -27,9 +27,9 @@
 #define __EVE_SERVER_H__INCL__
 
 /************************************************************************/
-/* common includes                                                      */
+/* eve-core includes                                                    */
 /************************************************************************/
-#include "common.h"
+#include "eve-core.h"
 
 // database
 #include "database/dbcore.h"

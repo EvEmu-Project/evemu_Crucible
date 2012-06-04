@@ -12,7 +12,7 @@ SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
 SET( TARGET_INCLUDE_DIRS
-     ${common_INCLUDE_DIRS}
+     ${eve-core_INCLUDE_DIRS}
      "${TARGET_INCLUDE_DIR}" )
 
 # Export directories
@@ -61,4 +61,4 @@ TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h"
                   "${TARGET_SOURCE_DIR}/main.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "common" )
+                       "eve-core" )

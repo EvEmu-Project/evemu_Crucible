@@ -143,7 +143,7 @@ ENDIF( CMAKE_CROSSCOMPILING )
 # EVEmu targets #
 #################
 ADD_SUBDIRECTORY( "doc" )
-ADD_SUBDIRECTORY( "src/common" )
+ADD_SUBDIRECTORY( "src/eve-core" )
 
 IF( NOT CMAKE_CROSSCOMPILING )
   ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )

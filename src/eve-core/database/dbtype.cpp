@@ -23,20 +23,43 @@
     Author:     Bloody.Rabbit
 */
 
-#ifndef __EVE_XMLPKTGEN_H__INCL__
-#define __EVE_XMLPKTGEN_H__INCL__
-
-/************************************************************************/
-/* eve-core includes                                                    */
-/************************************************************************/
 #include "eve-core.h"
 
-// log
-#include "log/logsys.h"
-#include "log/LogNew.h"
-// utils
-#include "utils/str2conv.h"
-#include "utils/utils_string.h"
-#include "utils/XMLParserEx.h"
+#include "database/dbtype.h"
 
-#endif /* !__EVE_XMLPKTGEN_H__INCL__ */
+uint8 DBTYPE_GetSizeBits( DBTYPE type )
+{
+    switch( type )
+    {
+        case DBTYPE_I8:
+        case DBTYPE_UI8:
+        case DBTYPE_R8:
+        case DBTYPE_CY:
+        case DBTYPE_FILETIME:
+            return 64;
+        case DBTYPE_I4:
+        case DBTYPE_UI4:
+        case DBTYPE_R4:
+            return 32;
+        case DBTYPE_I2:
+        case DBTYPE_UI2:
+            return 16;
+        case DBTYPE_I1:
+        case DBTYPE_UI1:
+            return 8;
+        case DBTYPE_BOOL:
+            return 1;
+        case DBTYPE_BYTES:
+        case DBTYPE_STR:
+        case DBTYPE_WSTR:
+            return 0;
+    }
+
+    return 0;
+}
+
+uint8 DBTYPE_GetSizeBytes( DBTYPE type )
+{
+    return ( ( DBTYPE_GetSizeBits( type ) + 7 ) >> 3 );
+}
+

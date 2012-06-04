@@ -20,48 +20,60 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Bloody.Rabbit
+    Author:     Zhur
 */
 
-#ifndef __EVE_COMMON_H__INCL__
-#define __EVE_COMMON_H__INCL__
-
-/************************************************************************/
-/* eve-core includes                                                    */
-/************************************************************************/
 #include "eve-core.h"
 
-// database
-#include "database/dbtype.h"
-// log
-#include "log/logsys.h"
-#include "log/LogNew.h"
-// network
-#include "network/Socket.h"
-#include "network/StreamPacketizer.h"
-#include "network/TCPConnection.h"
-#include "network/TCPServer.h"
-// utils
-#include "utils/Buffer.h"
-#include "utils/crc32.h"
-#include "utils/Deflate.h"
-#include "utils/misc.h"
-#include "utils/RefPtr.h"
-#include "utils/Singleton.h"
-#include "utils/timer.h"
-#include "utils/utils_hex.h"
-#include "utils/utils_string.h"
 #include "utils/utils_time.h"
-#include "utils/Util.h"
 
-/************************************************************************/
-/* eve-common includes                                                  */
-/************************************************************************/
-// Base64 encoding utilities
-#include <Base64.h>
-// Utility for reading trifiles.
-#include <TriFile.h>
-// UTF8-CPP
-#include <utf8.h>
+const uint64 Win32Time_Second = 10000000L;
+const uint64 Win32Time_Minute = Win32Time_Second*60;
+const uint64 Win32Time_Hour = Win32Time_Minute*60;
+const uint64 Win32Time_Day = Win32Time_Hour*24;
+const uint64 Win32Time_Month = Win32Time_Day*30;
+const uint64 Win32Time_Year = Win32Time_Month*12;
 
-#endif /* !__EVE_COMMON_H__INCL__ */
+static const uint64 SECS_BETWEEN_EPOCHS = 11644473600LL;
+static const uint64 SECS_TO_100NS = 10000000; // 10^7
+
+uint64 UnixTimeToWin32Time( time_t sec, uint32 nsec ) {
+    return(
+        (((uint64) sec) + SECS_BETWEEN_EPOCHS) * SECS_TO_100NS
+        + (nsec / 100)
+    );
+}
+
+void Win32TimeToUnixTime( uint64 win32t, time_t &unix_time, uint32 &nsec ) {
+    win32t -= (SECS_BETWEEN_EPOCHS * SECS_TO_100NS);
+    nsec = (win32t % SECS_TO_100NS) * 100;
+    win32t /= SECS_TO_100NS;
+    unix_time = win32t;
+}
+
+std::string Win32TimeToString(uint64 win32t) {
+    time_t unix_time;
+    uint32 nsec;
+    Win32TimeToUnixTime(win32t, unix_time, nsec);
+
+    char buf[256];
+    strftime(buf, 256,
+#ifdef WIN32
+        "%Y-%m-%d %X",
+#else
+        "%F %T",
+#endif /* !WIN32 */
+    localtime(&unix_time));
+
+    return(buf);
+}
+
+uint64 Win32TimeNow() {
+#ifdef WIN32
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    return((uint64(ft.dwHighDateTime) << 32) | uint64(ft.dwLowDateTime));
+#else
+    return(UnixTimeToWin32Time(time(NULL), 0));
+#endif
+}

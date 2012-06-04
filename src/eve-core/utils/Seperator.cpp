@@ -20,60 +20,69 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Bloody.Rabbit
+    Author:        Zhur, Bloody.Rabbit
 */
 
-#ifndef __EVE_TOOL_H__INCL__
-#define __EVE_TOOL_H__INCL__
-
-/************************************************************************/
-/* eve-core includes                                                    */
-/************************************************************************/
 #include "eve-core.h"
 
-// database
-#include "database/dbtype.h"
-// log
-#include "log/logsys.h"
 #include "log/LogNew.h"
-// threading
-#include "threading/Mutex.h"
-// utils
-#include "utils/Buffer.h"
-#include "utils/crc32.h"
-#include "utils/misc.h"
-#include "utils/RefPtr.h"
 #include "utils/Seperator.h"
-#include "utils/timer.h"
-#include "utils/utils_string.h"
-#include "utils/utils_time.h"
 
 /************************************************************************/
-/* eve-common includes                                                  */
+/* Seperator                                                            */
 /************************************************************************/
-#include "eve-common.h"
+Seperator::Seperator( const char* str, const char* divs, const char* quotes )
+{
+    size_t len = strlen( str );
+    bool inQuote = false;
+    std::string* cur = NULL;
 
-// cache
-#include "cache/CachedObjectMgr.h"
-// database
-#include "database/RowsetReader.h"
-#include "database/RowsetToSQL.h"
-// destiny
-#include "destiny/DestinyBinDump.h"
-// marshal
-#include "marshal/EVEMarshal.h"
-#include "marshal/EVEMarshalStringTable.h"
-#include "marshal/EVEUnmarshal.h"
-// network
-#include "network/packet_types.h"
-// packets
-#include "packets/General.h"
-// python
-#include "python/PyRep.h"
-#include "python/PyVisitor.h"
-// python/classes
-#include "python/classes/PyDatabase.h"
-// utils
-#include "utils/EVEUtils.h"
+    for(; 0 < len; ++str, --len )
+    {
+        const char c = *str;
+        const bool isDiv = ( NULL != strchr( divs, c ) );
+        const bool isQuote = ( NULL != strchr( quotes, c ) );
 
-#endif /* !__EVE_TOOL_H__INCL__ */
+        if( !inQuote )
+        {
+            if( NULL == cur )
+            {
+                if( !isDiv )
+                {
+                    mArgs.push_back( "" );
+                    cur = &mArgs.back();
+
+                    if( isQuote )
+                        inQuote = true;
+                    else
+                        cur->push_back( c );
+                }
+            }
+            else
+            {
+                if( isDiv )
+                    cur = NULL;
+                else
+                    cur->push_back( c );
+            }
+        }
+        else
+        {
+            if( NULL != cur )
+            {
+                if( isQuote )
+                    cur = NULL;
+                else
+                    cur->push_back( c );
+            }
+            else
+            {
+                if( isDiv )
+                    inQuote = false;
+                else
+                    sLog.Error( "Seperator", "Invalid input." );
+            }
+        }
+    }
+}
+

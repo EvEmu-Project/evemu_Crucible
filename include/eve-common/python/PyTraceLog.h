@@ -26,7 +26,7 @@
 #ifndef PY_TRACE_LOG_H
 #define PY_TRACE_LOG_H
 
-#include "common.h"
+#include "eve-core.h"
 #include "PyRep.h"
 
 /* ascents cross platform color thingy's */

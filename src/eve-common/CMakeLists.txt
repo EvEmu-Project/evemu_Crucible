@@ -32,7 +32,7 @@ SET( TARGET_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_INCLUDE_DIRS
      ${UTF8CPP_INCLUDE_DIRS}
      ${utils_INCLUDE_DIRS}
-     ${common_INCLUDE_DIRS}
+     ${eve-core_INCLUDE_DIRS}
      "${TARGET_INCLUDE_DIR}"
      "${TARGET_PACKETS_DIR}" )
 
@@ -251,4 +251,4 @@ TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-common.h"
                   "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "common" "utils" )
+                       "eve-core" "utils" )

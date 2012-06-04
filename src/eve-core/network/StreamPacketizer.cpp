@@ -20,23 +20,68 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Bloody.Rabbit
+    Author:        Zhur
 */
 
-#ifndef __EVE_XMLPKTGEN_H__INCL__
-#define __EVE_XMLPKTGEN_H__INCL__
-
-/************************************************************************/
-/* eve-core includes                                                    */
-/************************************************************************/
 #include "eve-core.h"
 
-// log
-#include "log/logsys.h"
-#include "log/LogNew.h"
-// utils
-#include "utils/str2conv.h"
-#include "utils/utils_string.h"
-#include "utils/XMLParserEx.h"
+#include "network/StreamPacketizer.h"
 
-#endif /* !__EVE_XMLPKTGEN_H__INCL__ */
+StreamPacketizer::~StreamPacketizer()
+{
+    ClearBuffers();
+}
+
+void StreamPacketizer::InputData( const Buffer& data )
+{
+    mBuffer.AppendSeq( data.begin<uint8>(), data.end<uint8>() );
+}
+
+void StreamPacketizer::Process()
+{
+    Buffer::const_iterator<uint8> cur, end;
+    cur = mBuffer.begin<uint8>();
+    end = mBuffer.end<uint8>();
+    while( true )
+    {
+        if( sizeof( uint32 ) > ( end - cur ) )
+            break;
+
+        const Buffer::const_iterator<uint32> len = cur.As<uint32>();
+        const Buffer::const_iterator<uint8> start = ( len + 1 ).As<uint8>();
+
+        if( *len > (uint32)( end - start ) )
+            break;
+
+        mPackets.push( new Buffer( start, start + *len ) );
+        cur = ( start + *len );
+    }
+
+    if( cur != mBuffer.begin<uint8>() )
+        mBuffer.AssignSeq( cur, end );
+}
+
+Buffer* StreamPacketizer::PopPacket()
+{
+    Buffer* ret = NULL;
+    if( !mPackets.empty() )
+    {
+        ret = mPackets.front();
+        mPackets.pop();
+    }
+
+    return ret;
+}
+
+void StreamPacketizer::ClearBuffers()
+{
+    Buffer* buf;
+    while( ( buf = PopPacket() ) )
+        SafeDelete( buf );
+}
+
+
+
+
+
+
