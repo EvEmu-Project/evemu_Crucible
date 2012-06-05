@@ -558,4 +558,12 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_UpdateBulk">
+    <tupleInline>
+      <int name="changeID" />
+      <string name="hashValue" />
+      <int name="branch" />
+    </tupleInline>
+  </elementDef>
+
  </elements>

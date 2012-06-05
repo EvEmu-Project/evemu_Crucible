@@ -40,8 +40,14 @@ BulkMgrService::~BulkMgrService() {
 
 PyResult BulkMgrService::Handle_UpdateBulk(PyCallArgs &call)
 {
+    Call_UpdateBulk args;
+    if(!args.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Invalid arguments");
+	return NULL;
+    }
+
     PyDict* test = new PyDict();
-    test->SetItemString("type", new PyInt(0));
+    test->SetItemString("type", new PyInt(updateBulkStatusOK));
     test->SetItemString("allowUnsubmitted", new PyBool(false));
 
     return test;

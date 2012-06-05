@@ -34,6 +34,16 @@ public:
     BulkMgrService(PyServiceMgr *mgr);
     virtual ~BulkMgrService();
 
+private:
+    enum bulkStatus {
+        updateBulkStatusOK               = 0,
+	updateBulkStatusWrongBranch      = 1,
+	updateBulkStatusHashMismatch     = 2,
+	updateBulkStatusClientNewer      = 3,
+	updateBulkStatusNeedToUpdate     = 4,
+	updateBulkStatusTooManyRevisions = 5
+    };
+
 protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
