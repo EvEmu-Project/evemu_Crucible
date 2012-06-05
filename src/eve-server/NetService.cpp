@@ -49,7 +49,6 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
     if(!m_manager->cache_service->IsCacheLoaded(str))
     {
         PyDict *dict = new PyDict;
-
         /* ServiceCallGPCS.py:197
         where = self.machoNet.serviceInfo[service]
         if where:
@@ -158,12 +157,11 @@ PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
         //register it
         m_manager->cache_service->GiveCache(str, (PyRep **)&dict);
     }
+
     PyRep* serverinfo = m_manager->cache_service->GetCacheHint(str);
     PyDecRef( str );
 
     PyDict* initvals = new PyDict();
-    //send all the cache hints needed for server info.
-    m_manager->cache_service->InsertCacheHints(ObjCacheService::hLoginCachables, initvals);
 
     PyTuple* result = new PyTuple( 2 );
     result->SetItem( 0, serverinfo );
