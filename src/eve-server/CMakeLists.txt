@@ -682,3 +682,5 @@ INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
 INSTALL( FILES "${TARGET_UTILS_DIR}/eve-server.xml"
          DESTINATION "etc" )
+INSTALL( FILES "${TARGET_UTILS_DIR}/devtools.raw"
+         DESTINATION "etc" )
