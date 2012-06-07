@@ -70,7 +70,7 @@ public:
      * @retval true  Parsing successful.
      * @retval false Error occurred during parsing.
      */
-    bool ParseFile( const char* file ) const;
+    bool ParseFile( const char* file );
     /**
      * @brief Parses element using registered parsers.
      *
@@ -108,6 +108,8 @@ public:
      * @brief Clears all parsers.
      */
     void ClearParsers();
+
+    TiXmlDocument *m_pXML_Document;
 
 private:
     /** Parser storage. */

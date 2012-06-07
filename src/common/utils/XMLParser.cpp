@@ -40,16 +40,16 @@ XMLParser::~XMLParser()
     ClearParsers();
 }
 
-bool XMLParser::ParseFile( const char* file ) const
+bool XMLParser::ParseFile( const char* file )
 {
-    TiXmlDocument doc( file );
-    if( !doc.LoadFile() )
+    m_pXML_Document = new TiXmlDocument( file );
+    if( !m_pXML_Document->LoadFile() )
     {
-        sLog.Error( "XMLParser", "Unable to load '%s': %s.", file, doc.ErrorDesc() );
+        sLog.Error( "XMLParser", "Unable to load '%s': %s.", file, m_pXML_Document->ErrorDesc() );
         return false;
     }
 
-    TiXmlElement* root = doc.RootElement();
+    TiXmlElement* root = m_pXML_Document->RootElement();
     if( NULL == root )
     {
         sLog.Error( "XMLParser", "Unable to find root in '%s'.", file );
@@ -65,7 +65,7 @@ bool XMLParser::ParseElement( const TiXmlElement* element ) const
     if( mParsers.end() == res )
     {
         sLog.Error( "XMLParser", "Unknown element '%s' at line %d.", element->Value(), element->Row() );
-        return false;
+        return true;    // Ignore any unanticipated XML tags and structures and continue parsing the rest of the XML
     }
 
     return res->second->Parse( element );
