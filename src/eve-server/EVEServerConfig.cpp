@@ -39,6 +39,7 @@ EVEServerConfig::EVEServerConfig()
     rates.skillRate = 1.0;
     rates.npcBountyMultiply = 1.0;
     rates.secRate = 1.0;
+    rates.corporationStartupCost = 1599800;
 
     // account
     account.autoAccountRole = 0;
@@ -102,12 +103,14 @@ bool EVEServerConfig::ProcessRates( const TiXmlElement* ele )
     AddValueParser( "skillRate", rates.skillRate );
     AddValueParser( "secRate", rates.secRate );
     AddValueParser( "npcBountyMultiply", rates.npcBountyMultiply );
+    AddValueParser( "corporationStartupCost", rates.corporationStartupCost );
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "skillRate" );
     RemoveParser( "secRate" );
     RemoveParser( "npcBountyMultiply" );
+    RemoveParser( "corporationStartupCost" );
 
     return result;
 }
