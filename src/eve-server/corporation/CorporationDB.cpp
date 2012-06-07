@@ -74,7 +74,7 @@ PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
         "   shape1,shape2,shape3,color1,color2,color3,typeface,memberLimit,"
         "   allowedMemberRaceIDs,url,taxRate,minimumJoinStanding,division1,"
         "   division2,division3,division4,division5,division6,division7,"
-        "   allianceID,deleted"
+        "   allianceID,deleted,isRecruiting"
         " FROM corporation"
 //no idea what the criteria should be here...
         " WHERE stationID=%u",
@@ -343,14 +343,14 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
         "   taxRate, minimumJoinStanding, corporationType, hasPlayerPersonnelManager, sendCharTerminationMessage, "
         "   creatorID, ceoID, stationID, raceID, allianceID, shares, memberCount, memberLimit, "
         "   allowedMemberRaceIDs, graphicID, color1, color2, color3, shape1, shape2, shape3, "
-        "   typeface "
+        "   typeface, isRecruiting "
         "   ) "
         " SELECT "
         "       '%s', '%s', '%s', '%s', "
         "       %lf, 0, 2, 0, 1, "
         "       %u, %u, %u, chrBloodlines.raceID, 0, 1000, 0, 10, "
         "       chrBloodlines.raceID, 0, %s, %s, %s, %s, %s, %s, "
-        "       NULL "
+        "       NULL, %u "
         "    FROM entity "
         "       LEFT JOIN bloodlineTypes USING (typeID) "
         "       LEFT JOIN chrBloodlines USING (bloodlineID) "
@@ -358,12 +358,13 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, uint32 charID
         cName.c_str(), cDesc.c_str(), cTick.c_str(), cURL.c_str(),
         corpInfo.taxRate,
         charID, charID, stationID,
-        _IoN(corpInfo.color1).c_str(),
-        _IoN(corpInfo.color2).c_str(),
-        _IoN(corpInfo.color3).c_str(),
-        _IoN(corpInfo.shape1).c_str(),
-        _IoN(corpInfo.shape2).c_str(),
-        _IoN(corpInfo.shape3).c_str(),
+	_IoN(corpInfo.color1).c_str(),
+	_IoN(corpInfo.color2).c_str(),
+	_IoN(corpInfo.color3).c_str(),
+	_IoN(corpInfo.shape1).c_str(),
+	_IoN(corpInfo.shape2).c_str(),
+	_IoN(corpInfo.shape3).c_str(),
+	corpInfo.applicationEnabled,
         charID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -419,7 +420,7 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
         "   allianceID,shares,memberCount,memberLimit,allowedMemberRaceIDs,"
         "   graphicID,shape1,shape2,shape3,color1,color2,color3,typeface,"
         "   division1,division2,division3,division4,division5,division6,"
-        "   division7,deleted"
+        "   division7,deleted,isRecruiting"
         " FROM corporation "
         " WHERE corporationID = %u ", newCorpID
         ))
@@ -477,7 +478,7 @@ bool CorporationDB::CreateCorporationChangePacket(Notify_OnCorporaionChanged & c
         "   allianceID,shares,memberCount,memberLimit,allowedMemberRaceIDs,"
         "   graphicID,shape1,shape2,shape3,color1,color2,color3,typeface,"
         "   division1,division2,division3,division4,division5,division6,"
-        "   division7,deleted"
+        "   division7,deleted,isRecruiting"
         " FROM corporation "
         " WHERE corporationID = %u ", oldCorpID
         ))
@@ -600,7 +601,7 @@ bool CorporationDB::CreateCorporationCreatePacket(Notify_OnCorporaionChanged & c
         "   allianceID,shares,memberCount,memberLimit,allowedMemberRaceIDs,"
         "   graphicID,shape1,shape2,shape3,color1,color2,color3,typeface,"
         "   division1,division2,division3,division4,division5,division6,"
-        "   division7,deleted"
+        "   division7,deleted,isRecruiting"
         " FROM corporation "
         " WHERE corporationID = %u ", newCorpID
         ))
@@ -701,7 +702,7 @@ PyObject *CorporationDB::GetCorporation(uint32 corpID) {
         "   allianceID,shares,memberCount,memberLimit,allowedMemberRaceIDs,"
         "   graphicID,shape1,shape2,shape3,color1,color2,color3,typeface,"
         "   division1,division2,division3,division4,division5,division6,"
-        "   division7,deleted"
+        "   division7,deleted,isRecruiting"
         " FROM corporation "
         " WHERE corporationID = %u", corpID))
     {
