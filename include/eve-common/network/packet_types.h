@@ -399,7 +399,6 @@ typedef enum {    //chrStandingChanges.eventTypeID
 
 
 enum:uint64 {
-    //Incursion Roles
     ROLE_CL                    = 549755813888L,
     ROLE_CR                    = 1099511627776L,
     ROLE_CM                    = 2199023255552L,
@@ -457,89 +456,63 @@ enum {
     corpRoleLocationTypeBase = 2LL,
     corpRoleLocationTypeOther = 3LL,
 };
-
-typedef uint64 CorpRoleFlags;
-static const CorpRoleFlags corpRoleDirector = 1LL;
-static const CorpRoleFlags corpRolePersonnelManager = 128LL;
-static const CorpRoleFlags corpRoleAccountant = 256LL;
-static const CorpRoleFlags corpRoleSecurityOfficer = 512LL;
-static const CorpRoleFlags corpRoleFactoryManager = 1024LL;
-static const CorpRoleFlags corpRoleStationManager = 2048LL;
-static const CorpRoleFlags corpRoleAuditor = 4096LL;
-static const CorpRoleFlags corpRoleHangarCanTake1 = 8192LL;
-static const CorpRoleFlags corpRoleHangarCanTake2 = 16384LL;
-static const CorpRoleFlags corpRoleHangarCanTake3 = 32768LL;
-static const CorpRoleFlags corpRoleHangarCanTake4 = 65536LL;
-static const CorpRoleFlags corpRoleHangarCanTake5 = 131072LL;
-static const CorpRoleFlags corpRoleHangarCanTake6 = 262144LL;
-static const CorpRoleFlags corpRoleHangarCanTake7 = 524288LL;
-static const CorpRoleFlags corpRoleHangarCanQuery1 = 1048576LL;
-static const CorpRoleFlags corpRoleHangarCanQuery2 = 2097152LL;
-static const CorpRoleFlags corpRoleHangarCanQuery3 = 4194304LL;
-static const CorpRoleFlags corpRoleHangarCanQuery4 = 8388608LL;
-static const CorpRoleFlags corpRoleHangarCanQuery5 = 16777216LL;
-static const CorpRoleFlags corpRoleHangarCanQuery6 = 33554432LL;
-static const CorpRoleFlags corpRoleHangarCanQuery7 = 67108864LL;
-static const CorpRoleFlags corpRoleAccountCanTake1 = 134217728LL;
-static const CorpRoleFlags corpRoleAccountCanTake2 = 268435456LL;
-static const CorpRoleFlags corpRoleAccountCanTake3 = 536870912LL;
-static const CorpRoleFlags corpRoleAccountCanTake4 = 1073741824LL;
-static const CorpRoleFlags corpRoleAccountCanTake5 = 2147483648LL;
-static const CorpRoleFlags corpRoleAccountCanTake6 = 4294967296LL;
-static const CorpRoleFlags corpRoleAccountCanTake7 = 8589934592LL;
-static const CorpRoleFlags corpRoleAccountCanQuery1 = 17179869184LL;
-static const CorpRoleFlags corpRoleAccountCanQuery2 = 34359738368LL;
-static const CorpRoleFlags corpRoleAccountCanQuery3 = 68719476736LL;
-static const CorpRoleFlags corpRoleAccountCanQuery4 = 137438953472LL;
-static const CorpRoleFlags corpRoleAccountCanQuery5 = 274877906944LL;
-static const CorpRoleFlags corpRoleAccountCanQuery6 = 549755813888LL;
-static const CorpRoleFlags corpRoleAccountCanQuery7 = 1099511627776LL;
-static const CorpRoleFlags corpRoleEquipmentConfig = 2199023255552LL;
-static const CorpRoleFlags corpRoleContainerCanTake1 = 4398046511104LL;
-static const CorpRoleFlags corpRoleContainerCanTake2 = 8796093022208LL;
-static const CorpRoleFlags corpRoleContainerCanTake3 = 17592186044416LL;
-static const CorpRoleFlags corpRoleContainerCanTake4 = 35184372088832LL;
-static const CorpRoleFlags corpRoleContainerCanTake5 = 70368744177664LL;
-static const CorpRoleFlags corpRoleContainerCanTake6 = 140737488355328LL;
-static const CorpRoleFlags corpRoleContainerCanTake7 = 281474976710656LL;
-static const CorpRoleFlags corpRoleCanRentOffice = 562949953421312LL;
-static const CorpRoleFlags corpRoleCanRentFactorySlot = 1125899906842624LL;
-static const CorpRoleFlags corpRoleCanRentResearchSlot = 2251799813685248LL;
-static const CorpRoleFlags corpRoleJuniorAccountant = 4503599627370496LL;
-static const CorpRoleFlags corpRoleStarbaseConfig = 9007199254740992LL;
-static const CorpRoleFlags corpRoleTrader = 18014398509481984LL;
-static const CorpRoleFlags corpRoleChatManager = 36028797018963968LL;
-//some combos:
-static const CorpRoleFlags corpRoleAllHangar =
-        corpRoleHangarCanTake1|corpRoleHangarCanTake2|
-        corpRoleHangarCanTake3|corpRoleHangarCanTake4|
-        corpRoleHangarCanTake5|corpRoleHangarCanTake6|
-        corpRoleHangarCanTake7|corpRoleHangarCanQuery1|
-        corpRoleHangarCanQuery2|corpRoleHangarCanQuery3|
-        corpRoleHangarCanQuery4|corpRoleHangarCanQuery5|
-        corpRoleHangarCanQuery6|corpRoleHangarCanQuery7;
-static const CorpRoleFlags corpRoleAllAccount = corpRoleJuniorAccountant |
-        corpRoleAccountCanTake1|corpRoleAccountCanTake2|
-        corpRoleAccountCanTake3|corpRoleAccountCanTake4|
-        corpRoleAccountCanTake5|corpRoleAccountCanTake6|
-        corpRoleAccountCanTake7|corpRoleAccountCanQuery1|
-        corpRoleAccountCanQuery2|corpRoleAccountCanQuery3|
-        corpRoleAccountCanQuery4|corpRoleAccountCanQuery5|
-        corpRoleAccountCanQuery6|corpRoleAccountCanQuery7;
-static const CorpRoleFlags corpRoleAllContainer =
-        corpRoleContainerCanTake1|corpRoleContainerCanTake2|
-        corpRoleContainerCanTake3|corpRoleContainerCanTake4|
-        corpRoleContainerCanTake5|corpRoleContainerCanTake6|
-        corpRoleContainerCanTake7;
-static const CorpRoleFlags corpRoleAllOffice = corpRoleCanRentOffice|corpRoleCanRentFactorySlot|corpRoleCanRentResearchSlot;
-static const CorpRoleFlags corpRoleAll =
-        corpRoleAllHangar | corpRoleAllAccount | corpRoleAllContainer |
-        corpRoleAllOffice |
-        corpRoleDirector | corpRolePersonnelManager | corpRoleAccountant |
-        corpRoleSecurityOfficer | corpRoleFactoryManager |
-        corpRoleStationManager | corpRoleAuditor | corpRoleStarbaseConfig |
-        corpRoleEquipmentConfig | corpRoleTrader | corpRoleChatManager;
-
+typedef enum:uint64 {
+    corpRoleDirector 		= 1L,
+    corpRolePersonnelManager 	= 128L,
+    corpRoleAccountant 		= 256L,
+    corpRoleSecurityOfficer 	= 512L,
+    corpRoleFactoryManager 	= 1024L,
+    corpRoleStationManager 	= 2048L,
+    corpRoleAuditor		= 4096L,
+    corpRoleHangarCanTake1 	= 8192L,
+    corpRoleHangarCanTake2 	= 16384L,
+    corpRoleHangarCanTake3 	= 32768L,
+    corpRoleHangarCanTake4 	= 65536L,
+    corpRoleHangarCanTake5 	= 131072L,
+    corpRoleHangarCanTake6 	= 262144L,
+    corpRoleHangarCanTake7 	= 524288L,
+    corpRoleHangarCanQuery1 	= 1048576L,
+    corpRoleHangarCanQuery2 	= 2097152L,
+    corpRoleHangarCanQuery3 	= 4194304L,
+    corpRoleHangarCanQuery4 	= 8388608L,
+    corpRoleHangarCanQuery5 	= 16777216L,
+    corpRoleHangarCanQuery6 	= 33554432L,
+    corpRoleHangarCanQuery7 	= 67108864L,
+    corpRoleAccountCanTake1 	= 134217728L,
+    corpRoleAccountCanTake2 	= 268435456L,
+    corpRoleAccountCanTake3 	= 536870912L,
+    corpRoleAccountCanTake4 	= 1073741824L,
+    corpRoleAccountCanTake5 	= 2147483648L,
+    corpRoleAccountCanTake6 	= 4294967296L,
+    corpRoleAccountCanTake7 	= 8589934592L,
+    corpRoleDiplomat 		= 17179869184L,
+    corpRoleEquipmentConfig 	= 2199023255552L,
+    corpRoleContainerCanTake1 	= 4398046511104L,
+    corpRoleContainerCanTake2 	= 8796093022208L,
+    corpRoleContainerCanTake3 	= 17592186044416L,
+    corpRoleContainerCanTake4 	= 35184372088832L,
+    corpRoleContainerCanTake5 	= 70368744177664L,
+    corpRoleContainerCanTake6 	= 140737488355328L,
+    corpRoleContainerCanTake7 	= 281474976710656L,
+    corpRoleCanRentOffice 	= 562949953421312L,
+    corpRoleCanRentFactorySlot 	= 1125899906842624L,
+    corpRoleCanRentResearchSlot = 2251799813685248L,
+    corpRoleJuniorAccountant 	= 4503599627370496L,
+    corpRoleStarbaseConfig 	= 9007199254740992L,
+    corpRoleTrader 		= 18014398509481984L,
+    corpRoleChatManager 	= 36028797018963968L,
+    corpRoleContractManager 	= 72057594037927936L,
+    corpRoleStarbaseCaretaker 	= 288230376151711744L,
+    corpRoleFittingManager 	= 576460752303423488L,
+    corpRoleInfrastructureTacticalOfficer = 144115188075855872L,
+    
+    //Some Combos
+    corpRoleAllHangar		= (corpRoleHangarCanTake1|corpRoleHangarCanTake2|corpRoleHangarCanTake3|corpRoleHangarCanTake4|corpRoleHangarCanTake5|corpRoleHangarCanTake6|corpRoleHangarCanTake7|corpRoleHangarCanQuery1|corpRoleHangarCanQuery2|corpRoleHangarCanQuery3|corpRoleHangarCanQuery4|corpRoleHangarCanQuery5|corpRoleHangarCanQuery6|corpRoleHangarCanQuery7),
+    corpRoleAllAccount 		= (corpRoleJuniorAccountant|corpRoleAccountCanTake1|corpRoleAccountCanTake2|corpRoleAccountCanTake3|corpRoleAccountCanTake4|corpRoleAccountCanTake5|corpRoleAccountCanTake6|corpRoleAccountCanTake7),
+    corpRoleAllContainer 	= (corpRoleContainerCanTake1|corpRoleContainerCanTake2|corpRoleContainerCanTake3|corpRoleContainerCanTake4|corpRoleContainerCanTake5|corpRoleContainerCanTake6|corpRoleContainerCanTake7),
+    corpRoleAllOffice =		 (corpRoleCanRentOffice|corpRoleCanRentFactorySlot|corpRoleCanRentResearchSlot),
+    corpRoleAll 		= (corpRoleAllHangar | corpRoleAllAccount | corpRoleAllContainer | corpRoleAllOffice | corpRoleDirector | corpRolePersonnelManager | corpRoleAccountant | corpRoleSecurityOfficer | corpRoleFactoryManager | corpRoleStationManager | corpRoleAuditor | corpRoleStarbaseConfig |corpRoleEquipmentConfig | corpRoleTrader | corpRoleChatManager),
+} CorpRoleFlags;
 
 //these come from dgmEffects.
 typedef enum {

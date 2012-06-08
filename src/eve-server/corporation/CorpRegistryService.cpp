@@ -218,12 +218,7 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
     }
 
     //first make sure the char can even afford it.
-    uint32 corp_costu;
-    if(!m_db.GetConstant("corporationStartupCost", corp_costu)) {
-        codelog(SERVICE__ERROR, "%s: Failed to determine corporation costs.", call.client->GetName());
-        return(new PyInt(0));
-    }
-    int32 corp_cost = corp_costu;
+    int32 corp_cost = sConfig.rates.corporationStartupCost;
 
     if(call.client->GetBalance() < double(corp_cost)) {
         _log(SERVICE__ERROR, "%s: Cannot afford corporation startup costs!", call.client->GetName());

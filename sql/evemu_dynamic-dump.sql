@@ -404,6 +404,7 @@ CREATE TABLE `corporation` (
   `division7` varchar(100) default '7th division',
   `balance` double NOT NULL default '0',
   `deleted` tinyint(3) unsigned NOT NULL default '0',
+  `isRecruiting` tinyint(1) unsigned NOT NULL default '0',
   PRIMARY KEY  (`corporationID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

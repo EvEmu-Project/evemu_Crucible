@@ -5,6 +5,7 @@ a likely exception to this goal).
 -->
 <eve-server>
     <rates>
+        <!-- <corporationStartupCost>1599800</corporationStartupCost> -->
         <!-- <skillRate>1.0</skillRate> -->
         <!-- <secRate>1.0</secRate> -->
         <!-- <npcBountyMultiply>1.0</npcBountyMultiply> -->

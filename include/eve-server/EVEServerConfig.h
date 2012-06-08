@@ -50,6 +50,8 @@ public:
         float secRate;
         /// Modifier for npc bounties automatically awarded for shooting down npc enemies.
         float npcBountyMultiply;
+	/// Startup Cost to create a corporation.
+	double corporationStartupCost;
     } rates;
 
     /// From <account/>

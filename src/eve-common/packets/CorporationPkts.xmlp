@@ -46,7 +46,8 @@
       <raw name="color1" />
       <raw name="color2" />
       <raw name="color3" />
-      <raw name="unknown" />
+      <raw name="typeface" />
+      <int name="applicationEnabled" />
     </tupleInline>
   </elementDef>
 
