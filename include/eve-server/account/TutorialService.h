@@ -27,7 +27,7 @@
 #ifndef __TUTORIALSVC_SERVICE_H_INCL__
 #define __TUTORIALSVC_SERVICE_H_INCL__
 
-#include "tutorial/TutorialDB.h"
+#include "account/TutorialDB.h"
 #include "PyService.h"
 
 class TutorialService : public PyService
@@ -52,10 +52,4 @@ protected:
     PyCallable_DECL_CALL(GetTutorialsAndConnections)
 };
 
-
-
-
-
 #endif
-
-

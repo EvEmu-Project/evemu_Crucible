@@ -23,19 +23,25 @@
     Author:        Luck
 */
 
+#ifndef __TRADE_SERVICE_H_INCL__
+#define __TRADE_SERVICE_H_INCL__
 
-#ifndef __TRADEDB_H_INCL__
-#define __TRADEDB_H_INCL__
+#include "PyService.h"
 
-class TradeDB
-: public ServiceDB
+class TradeService : public PyService
 {
 public:
+    TradeService(PyServiceMgr *mgr);
+    virtual ~TradeService();
+
+protected:
+    class Dispatcher;
+    Dispatcher *const m_dispatch;
+
+    virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+
+    PyCallable_DECL_CALL(InitiateTrade)
 
 };
 
-
-
-
-
-#endif
+#endif//__TRADE_SERVICE_H_INCL__

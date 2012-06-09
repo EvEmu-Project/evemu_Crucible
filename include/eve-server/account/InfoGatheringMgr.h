@@ -20,29 +20,27 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        ozatomic
 */
 
-#ifndef __TRADE_SERVICE_H_INCL__
-#define __TRADE_SERVICE_H_INCL__
+
+#ifndef __INFOGATHERINGMGR_SERVICE_H_INCL__
+#define __INFOGATHERINGMGR_SERVICE_H_INCL__
 
 #include "PyService.h"
-#include "trade/TradeDB.h"
 
-class TradeService : public PyService
+class InfoGatheringMgr : public PyService
 {
 public:
-    TradeService(PyServiceMgr *mgr);
-    virtual ~TradeService();
+    InfoGatheringMgr(PyServiceMgr *mgr);
+    virtual ~InfoGatheringMgr();
 
 protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
-
-    PyCallable_DECL_CALL(InitiateTrade)
-
+    PyCallable_DECL_CALL(GetStateAndConfig);
+    PyCallable_DECL_CALL(LogInfoEventsFromClient);
 };
 
-#endif//__TRADE_SERVICE_H_INCL__
+#endif

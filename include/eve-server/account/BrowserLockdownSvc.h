@@ -20,40 +20,26 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Captnoord
 */
 
+#ifndef __ACCOUNT__BROWSER_LOCKDOWN_SVC_H__INCL__
+#define __ACCOUNT__BROWSER_LOCKDOWN_SVC_H__INCL__
 
-#ifndef __POSMGRSVC_SERVICE_H_INCL__
-#define __POSMGRSVC_SERVICE_H_INCL__
-
-#include "posmgr/PosMgrDB.h"
 #include "PyService.h"
 
-class PosMgrService
-: public PyService
+class BrowserLockDownService : public PyService
 {
 public:
-    PosMgrService(PyServiceMgr *mgr);
-    virtual ~PosMgrService();
-
+    BrowserLockDownService(PyServiceMgr *mgr);
+    ~BrowserLockDownService();
 protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    PosMgrDB m_db;
+    PyCallable_DECL_CALL(GetFlaggedSitesHash)
+    PyCallable_DECL_CALL(GetFlaggedSitesList)
+    PyCallable_DECL_CALL(GetDefaultHomePage)
 
-    PyCallable_DECL_CALL(GetControlTowerFuelRequirements)
-    //PyCallable_DECL_CALL()
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 };
-
-
-
-
-
-#endif
-
-
+#endif /* !__ACCOUNT__BROWSER_LOCKDOWN_SVC_H__INCL__ */

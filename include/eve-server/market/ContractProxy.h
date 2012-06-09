@@ -20,33 +20,27 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        ozatomic
+    Author:        Captnoord
 */
 
+#ifndef __MARKET__CONTRACT_PROXY_H__INCL__
+#define __MARKET__CONTRACT_PROXY_H__INCL__
 
-#ifndef __INFOGATHERINGMGR_SERVICE_H_INCL__
-#define __INFOGATHERINGMGR_SERVICE_H_INCL__
-
-#include "tutorial/TutorialDB.h"
 #include "PyService.h"
 
-class InfoGatheringMgr : public PyService
+class ContractProxyService
+: public PyService
 {
 public:
-    InfoGatheringMgr(PyServiceMgr *mgr);
-    virtual ~InfoGatheringMgr();
+    ContractProxyService(PyServiceMgr *mgr);
+    ~ContractProxyService();
 
 protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    PyCallable_DECL_CALL(GetStateAndConfig);
-    PyCallable_DECL_CALL(LogInfoEventsFromClient);
+    PyCallable_DECL_CALL(GetLoginInfo)
+    PyCallable_DECL_CALL(GetMyExpiredContractList)
 };
 
-
-
-
-
-#endif
-
+#endif /* !__MARKET__CONTRACT_PROXY_H__INCL__ */

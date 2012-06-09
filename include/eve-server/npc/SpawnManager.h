@@ -26,7 +26,7 @@
 #ifndef __SPAWN_MANAGER_H__
 #define __SPAWN_MANAGER_H__
 
-#include "spawn/SpawnDB.h"
+#include "npc/SpawnDB.h"
 
 class SystemManager;
 class PyServiceMgr;
@@ -138,8 +138,4 @@ protected:
     std::map<uint32, SpawnEntry *> m_spawns;    //we own these.
 };
 
-
 #endif
-
-
-

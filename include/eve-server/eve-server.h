@@ -62,8 +62,6 @@
 #include "eve-common.h"
 
 #include "EVEVersion.h"
-// authorisation
-#include "authorisation/PasswordModule.h"
 // cache
 #include "cache/CachedObjectMgr.h"
 // database
@@ -143,7 +141,11 @@
 #include "account/AccountDB.h"
 #include "account/AccountService.h"
 #include "account/AuthService.h"
+#include "account/BrowserLockdownSvc.h"
 #include "account/ClientStatMgrService.h"
+#include "account/InfoGatheringMgr.h"
+#include "account/TutorialDB.h"
+#include "account/TutorialService.h"
 #include "account/UserService.h"
 // admin
 #include "admin/AlertService.h"
@@ -170,13 +172,10 @@
 #include "apiserver/APIServerManager.h"
 #include "apiserver/APIServiceDB.h"
 #include "apiserver/APIServiceManager.h"
-// browser
-#include "browser/browserLockdownSvc.h"
-// bulk
-#include "bulk/BulkMgrService.h"
-// contractproxy
-#include "contractproxy/contractProxy.h"
+// authorisation
+#include "authorisation/PasswordModule.h"
 // cache
+#include "cache/BulkMgrService.h"
 #include "cache/ObjCacheService.h"
 #include "cache/ObjCacheDB.h"
 // character
@@ -207,6 +206,7 @@
 #include "config/ConfigDB.h"
 #include "config/ConfigService.h"
 #include "config/LanguageService.h"
+#include "config/LocalizationServerService.h"
 // corporation
 #include "corporation/CorpBookmarkMgrService.h"
 #include "corporation/CorpMgrService.h"
@@ -221,14 +221,10 @@
 #include "dogmaim/DogmaIMService.h"
 #include "dogmaim/DogmaDB.h"
 #include "dogmaim/DogmaService.h"
-// fleet
-#include "fleet/FleetProxy.h"
 // imageserver
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerConnection.h"
 #include "imageserver/ImageServerListener.h"
-// infogathering
-#include "infogathering/InfoGatheringMgr.h"
 // inventory
 #include "inventory/AttributeEnum.h"
 #include "inventory/AttributeMgr.h"
@@ -243,8 +239,6 @@
 #include "inventory/ItemRef.h"
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
-// localization
-#include "localization/localizationServerService.h"
 // mail
 #include "mail/MailDB.h"
 #include "mail/MailMgrService.h"
@@ -274,19 +268,20 @@
 // market
 #include "market/BillMgrService.h"
 #include "market/ContractMgrService.h"
+#include "market/ContractProxy.h"
 #include "market/MarketDB.h"
 #include "market/MarketProxyService.h"
+#include "market/TradeService.h"
 // npc
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
-// planetint
-#include "planetint/planetMgr.h"
-// posmgr
-#include "posmgr/PosMgrDB.h"
-#include "posmgr/PosMgrService.h"
-#include "posmgr/Structure.h"
-// sovereignty
-#include "sovereignty/SovereigntyMgrService.h"
+#include "npc/SpawnDB.h"
+#include "npc/SpawnManager.h"
+// pos
+#include "pos/PlanetMgr.h"
+#include "pos/PosMgrDB.h"
+#include "pos/PosMgrService.h"
+#include "pos/Structure.h"
 // system
 #include "system/BookmarkDB.h"
 #include "system/BookmarkService.h"
@@ -310,6 +305,7 @@
 #include "ship/DestinyManager.h"
 #include "ship/dgmtypeattributeinfo.h"
 #include "ship/Drone.h"
+#include "ship/FleetProxy.h"
 #include "ship/InsuranceService.h"
 #include "ship/Ship.h"
 #include "ship/ShipDB.h"
@@ -332,12 +328,10 @@
 #include "ship/modules/components/ModifyShipAttributesComponent.h"
 // ship/modules/propulsion_modules
 #include "ship/modules/propulsion_modules/Afterburner.h"
-// spawn
-#include "spawn/SpawnDB.h"
-#include "spawn/SpawnManager.h"
 // standing
 #include "standing/FactionWarMgrDB.h"
 #include "standing/FactionWarMgrService.h"
+#include "standing/SovereigntyMgrService.h"
 #include "standing/Standing2Service.h"
 #include "standing/StandingDB.h"
 #include "standing/WarRegistryService.h"
@@ -348,11 +342,5 @@
 #include "station/StationDB.h"
 #include "station/StationService.h"
 #include "station/StationSvcService.h"
-// trade
-#include "trade/TradeService.h"
-#include "trade/TradeDB.h"
-// tutorial
-#include "tutorial/TutorialDB.h"
-#include "tutorial/TutorialService.h"
 
 #endif /* !__EVE_SERVER_H__INCL__ */
