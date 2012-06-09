@@ -61,6 +61,7 @@
 /************************************************************************/
 #include "eve-common.h"
 
+#include "EVEVersion.h"
 // authorisation
 #include "authorisation/PasswordModule.h"
 // cache

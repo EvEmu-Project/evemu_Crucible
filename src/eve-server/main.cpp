@@ -24,8 +24,6 @@
 */
 
 #include "eve-server.h"
-#include "EVEVersion.h"
-#include <iostream>
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );

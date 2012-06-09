@@ -25,11 +25,6 @@
 
 #include "eve-server.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
-
 APIServerListener::APIServerListener(asio::io_service& io)
 {
     _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.apiServerPort));

@@ -26,10 +26,6 @@
 #ifndef __SHIPOPERATORINTERFACE_H_INCL__
 #define __SHIPOPERATORINTERFACE_H_INCL__
 
-
-#include "eve-server.h"
-
-
 class ShipOperatorInterface
 {
 public:

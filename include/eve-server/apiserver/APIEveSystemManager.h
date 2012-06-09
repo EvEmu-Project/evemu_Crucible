@@ -26,8 +26,6 @@
 #ifndef __APIEVESYSTEMMANAGER__H__INCL__
 #define __APIEVESYSTEMMANAGER__H__INCL__
 
-#include "eve-server.h"
-
 /**
  * \class APIEveSystemManager
  *

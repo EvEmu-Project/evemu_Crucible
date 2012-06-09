@@ -26,8 +26,6 @@
 #ifndef __APISERVERMANAGER__H__INCL__
 #define __APISERVERMANAGER__H__INCL__
 
-#include "eve-server.h"
-
 /**
  * \class APIServerManager
  *

@@ -100,6 +100,7 @@
 #   include <unordered_set>
 #else /* !MSVC */
 #   include <tr1/functional>
+#   include <tr1/memory>
 #   include <tr1/tuple>
 #   include <tr1/unordered_map>
 #   include <tr1/unordered_set>

@@ -26,8 +26,6 @@
 #ifndef __APIMAPANAGER__H__INCL__
 #define __APIMAPANAGER__H__INCL__
 
-#include "eve-server.h"
-
 /**
  * \class APIMapManager
  *

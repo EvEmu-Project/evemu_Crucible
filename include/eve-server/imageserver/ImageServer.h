@@ -28,15 +28,6 @@
 
 #include "utils/Singleton.h"
 
-#include <memory>
-#include <string>
-#if defined( MSVC )
-    #include <unordered_map>
-#else
-    #include <tr1/unordered_map>
-    #include <tr1/memory>
-#endif
-
 class ImageServerListener;
 
 /**

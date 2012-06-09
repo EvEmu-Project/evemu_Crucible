@@ -25,11 +25,6 @@
 
 #include "eve-server.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
-
 asio::const_buffers_1 APIServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: text/xml\r\n\r\n", 43);
                                                         // The last parameter must be exactly the # of chars in the string, otherwise
                                                         // a browser will not recognize the xml structure and think the document is empty

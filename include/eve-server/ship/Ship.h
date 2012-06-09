@@ -26,14 +26,11 @@
 #ifndef __SHIP__H__INCL__
 #define __SHIP__H__INCL__
 
-//#include "eve-server.h"
-
 #include "inventory/ItemType.h"
 #include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
-#include <vector>
 
 class ShipOperatorInterface;
 

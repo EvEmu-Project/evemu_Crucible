@@ -24,9 +24,9 @@
 */
 
 #include "eve-common.h"
-#include "utils/EvilNumber.h"
+
 #include "python/PyRep.h"
-#include <limits.h>
+#include "utils/EvilNumber.h"
 
 const EvilNumber EvilTime_Second = 10000000;
 const EvilNumber EvilTime_Minute = Win32Time_Second * 60;
