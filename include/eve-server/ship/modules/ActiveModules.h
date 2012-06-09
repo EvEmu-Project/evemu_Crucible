@@ -23,27 +23,48 @@
     Author:        Luck
 */
 
-#ifndef PASSIVE_MODULES_H
-#define PASSIVE_MODULES_H
+#ifndef ACTIVE_MODULES_H
+#define ACTIVE_MODULES_H
 
-#include "ship/Modules/Modules.h"
-#include "ship/Modules/components/ModifyShipAttributesComponent.h"
+#include "Modules.h"
+#include "ship/modules/components/ModifyShipAttributesComponent.h"
+#include "ship/modules/components/ActiveModuleProcessingComponent.h"
 
-class PassiveModule : public GenericModule
+class ActiveModule : public GenericModule
 {
 public:
-    PassiveModule(InventoryItemRef item, ShipRef ship);
-    ~PassiveModule();
+    ActiveModule(InventoryItemRef item, ShipRef ship);
+    ~ActiveModule();
 
+    void Process();
     void Offline();
     void Online();
+    void Activate(uint32 targetID);
+    void Deactivate();
+
+    //access functions
+    ModulePowerLevel GetModulePowerLevel()                    { return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
+
+    bool isHighPower()                                        { return m_Effects->isHighSlot(); }
+    bool isMediumPower()                                    { return m_Effects->isMediumSlot(); }
+    bool isLowPower()                                        { return m_Effects->isLowSlot(); }
+    bool isRig()                                            { return false; }
+    bool isSubSystem()                                        { return false; }
+    bool requiresTarget()
+    {
+        if( m_Effects->HasDefaultEffect() )
+            return m_Effects->GetDefaultEffect()->GetIsAssistance() || m_Effects->GetDefaultEffect()->GetIsOffensive();
+        else
+            return false;
+    }
 
 protected:
     ModifyShipAttributesComponent * m_ShipAttrComp;
+    uint32 targetID;  //passed to us by activate
 
     //inheritance crap
-    PassiveModule() { }
-
+    ActiveModule() {}
 };
+
 
 #endif

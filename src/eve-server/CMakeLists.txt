@@ -50,27 +50,27 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/ClientSession.h"
      "${TARGET_INCLUDE_DIR}/EntityList.h"
      "${TARGET_INCLUDE_DIR}/EVEServerConfig.h"
+     "${TARGET_INCLUDE_DIR}/LiveUpdateDB.h"
      "${TARGET_INCLUDE_DIR}/NetService.h"
      "${TARGET_INCLUDE_DIR}/PyBoundObject.h"
      "${TARGET_INCLUDE_DIR}/PyCallable.h"
      "${TARGET_INCLUDE_DIR}/PyService.h"
      "${TARGET_INCLUDE_DIR}/PyServiceCD.h"
      "${TARGET_INCLUDE_DIR}/PyServiceMgr.h"
-     "${TARGET_INCLUDE_DIR}/ServiceDB.h"
-     "${TARGET_INCLUDE_DIR}/LiveUpdateDB.h" )
+     "${TARGET_INCLUDE_DIR}/ServiceDB.h" )
 SET( SOURCE
      "${TARGET_SOURCE_DIR}/Client.cpp"
      "${TARGET_SOURCE_DIR}/ClientSession.cpp"
      "${TARGET_SOURCE_DIR}/EntityList.cpp"
      "${TARGET_SOURCE_DIR}/EVEServerConfig.cpp"
+     "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp"
      "${TARGET_SOURCE_DIR}/main.cpp"
      "${TARGET_SOURCE_DIR}/NetService.cpp"
      "${TARGET_SOURCE_DIR}/PyBoundObject.cpp"
      "${TARGET_SOURCE_DIR}/PyCallable.cpp"
      "${TARGET_SOURCE_DIR}/PyService.cpp"
      "${TARGET_SOURCE_DIR}/PyServiceMgr.cpp"
-     "${TARGET_SOURCE_DIR}/ServiceDB.cpp"
-     "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp" )
+     "${TARGET_SOURCE_DIR}/ServiceDB.cpp" )
 
 SET( account_INCLUDE
      "${TARGET_INCLUDE_DIR}/account/AccountDB.h"
@@ -108,37 +108,37 @@ SET( admin_SOURCE
      "${TARGET_SOURCE_DIR}/admin/SlashService.cpp" )
 
 SET( apiserver_INCLUDE
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServer.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServerListener.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServerConnection.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceDB.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APICacheManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIAccountManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APIAccountDB.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIAccountManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APIAdminManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APICharacterManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICacheManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APICharacterDB.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APICharacterManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APICorporationManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APIEveSystemManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APIMapManager.h"
-     "${TARGET_INCLUDE_DIR}/apiserver/APIServerManager.h" )
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServer.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerConnection.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerListener.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServerManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceDB.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIServiceManager.h" )
 SET( apiserver_SOURCE
-     "${TARGET_SOURCE_DIR}/apiserver/APIServer.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServerListener.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServerConnection.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServiceDB.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APICacheManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServiceManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIAccountManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIAccountDB.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIAccountManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIAdminManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APICharacterManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICacheManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APICharacterDB.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APICharacterManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APICorporationManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIEveSystemManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIMapManager.cpp"
-     "${TARGET_SOURCE_DIR}/apiserver/APIServerManager.cpp" )
+     "${TARGET_SOURCE_DIR}/apiserver/APIServer.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerConnection.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerListener.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServerManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceDB.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIServiceManager.cpp" )
 
 SET( authorisation_INCLUDE
      "${TARGET_INCLUDE_DIR}/authorisation/BinAsciiModule.h"
@@ -179,7 +179,7 @@ SET( contractproxy_SOURCE
      "${TARGET_SOURCE_DIR}/contractproxy/contractProxy.cpp" )
 
 SET( corporation_INCLUDE
-    "${TARGET_INCLUDE_DIR}/corporation/CorpBookmarkMgrService.h"
+     "${TARGET_INCLUDE_DIR}/corporation/CorpBookmarkMgrService.h"
      "${TARGET_INCLUDE_DIR}/corporation/CorpMgrService.h"
      "${TARGET_INCLUDE_DIR}/corporation/CorporationCarrier.h"
      "${TARGET_INCLUDE_DIR}/corporation/CorporationDB.h"
@@ -208,6 +208,7 @@ SET( dogmaim_SOURCE
      "${TARGET_SOURCE_DIR}/dogmaim/DogmaService.cpp" )
 
 SET( character_INCLUDE
+     "${TARGET_INCLUDE_DIR}/character/AggressionMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/CertificateMgrDB.h"
      "${TARGET_INCLUDE_DIR}/character/CertificateMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/Character.h"
@@ -216,13 +217,14 @@ SET( character_INCLUDE
      "${TARGET_INCLUDE_DIR}/character/CharacterService.h"
      "${TARGET_INCLUDE_DIR}/character/CharFittingMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/CharMgrService.h"
-     "${TARGET_INCLUDE_DIR}/character/Skill.h"
-     "${TARGET_INCLUDE_DIR}/character/SkillMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/CharUnboundMgrService.h"
+     "${TARGET_INCLUDE_DIR}/character/PaperDollDB.h"
      "${TARGET_INCLUDE_DIR}/character/PaperDollService.h"
      "${TARGET_INCLUDE_DIR}/character/PhotoUploadService.h"
-     "${TARGET_INCLUDE_DIR}/character/AggressionMgrService.h" )
+     "${TARGET_INCLUDE_DIR}/character/Skill.h"
+     "${TARGET_INCLUDE_DIR}/character/SkillMgrService.h" )
 SET( character_SOURCE
+     "${TARGET_SOURCE_DIR}/character/AggressionMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/CertificateMgrDB.cpp"
      "${TARGET_SOURCE_DIR}/character/CertificateMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/Character.cpp"
@@ -230,12 +232,12 @@ SET( character_SOURCE
      "${TARGET_SOURCE_DIR}/character/CharacterService.cpp"
      "${TARGET_SOURCE_DIR}/character/CharFittingMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/CharMgrService.cpp"
-     "${TARGET_SOURCE_DIR}/character/Skill.cpp"
-     "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp"
      "${TARGET_SOURCE_DIR}/character/CharUnboundMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/character/PaperDollDB.cpp"
      "${TARGET_SOURCE_DIR}/character/PaperDollService.cpp"
      "${TARGET_SOURCE_DIR}/character/PhotoUploadService.cpp"
-     "${TARGET_SOURCE_DIR}/character/AggressionMgrService.cpp" )
+     "${TARGET_SOURCE_DIR}/character/Skill.cpp"
+     "${TARGET_SOURCE_DIR}/character/SkillMgrService.cpp" )
 
 SET( chat_INCLUDE
      "${TARGET_INCLUDE_DIR}/chat/kenny.h"
@@ -255,14 +257,23 @@ SET( chat_SOURCE
      "${TARGET_SOURCE_DIR}/chat/VoiceMgrService.cpp" )
 
 SET( fleet_INCLUDE
-      "${TARGET_INCLUDE_DIR}/fleet/FleetProxy.h" )
+     "${TARGET_INCLUDE_DIR}/fleet/FleetProxy.h" )
 SET( fleet_SOURCE
-      "${TARGET_SOURCE_DIR}/fleet/FleetProxy.cpp" )
+     "${TARGET_SOURCE_DIR}/fleet/FleetProxy.cpp" )
+
+SET( imageserver_INCLUDE
+     "${TARGET_INCLUDE_DIR}/imageserver/ImageServer.h"
+     "${TARGET_INCLUDE_DIR}/imageserver/ImageServerConnection.h"
+     "${TARGET_INCLUDE_DIR}/imageserver/ImageServerListener.h" )
+SET( imageserver_SOURCE
+     "${TARGET_SOURCE_DIR}/imageserver/ImageServer.cpp"
+     "${TARGET_SOURCE_DIR}/imageserver/ImageServerConnection.cpp"
+     "${TARGET_SOURCE_DIR}/imageserver/ImageServerListener.cpp" )
 
 SET( infogathering_INCLUDE
-      "${TARGET_INCLUDE_DIR}/infogathering/InfoGatheringMgr.h" )
+     "${TARGET_INCLUDE_DIR}/infogathering/InfoGatheringMgr.h" )
 SET( infogathering_SOURCE
-      "${TARGET_SOURCE_DIR}/infogathering/InfoGatheringMgr.cpp" )
+     "${TARGET_SOURCE_DIR}/infogathering/InfoGatheringMgr.cpp" )
 
 SET( inventory_INCLUDE
      "${TARGET_INCLUDE_DIR}/inventory/AttributeEnum.h"
@@ -298,15 +309,15 @@ SET( localization_SOURCE
     "${TARGET_SOURCE_DIR}/localization/localizationServerService.cpp" )
 
 SET( mail_INCLUDE
+     "${TARGET_INCLUDE_DIR}/mail/MailDB.h"
      "${TARGET_INCLUDE_DIR}/mail/MailingListMgrService.h"
      "${TARGET_INCLUDE_DIR}/mail/MailMgrService.h"
-     "${TARGET_INCLUDE_DIR}/mail/NotificationMgrService.h"
-     "${TARGET_INCLUDE_DIR}/mail/MailDB.h" )
+     "${TARGET_INCLUDE_DIR}/mail/NotificationMgrService.h" )
 SET( mail_SOURCE
+     "${TARGET_SOURCE_DIR}/mail/MailDB.cpp"
      "${TARGET_SOURCE_DIR}/mail/MailingListMgrService.cpp"
      "${TARGET_SOURCE_DIR}/mail/MailMgrService.cpp"
-     "${TARGET_SOURCE_DIR}/mail/NotificationMgrService.cpp"
-     "${TARGET_SOURCE_DIR}/mail/MailDB.cpp" )
+     "${TARGET_SOURCE_DIR}/mail/NotificationMgrService.cpp" )
 
 SET( manufacturing_INCLUDE
      "${TARGET_INCLUDE_DIR}/manufacturing/Blueprint.h"
@@ -417,38 +428,36 @@ SET( ship_SOURCE
      "${TARGET_SOURCE_DIR}/ship/ShipService.cpp"
      "${TARGET_SOURCE_DIR}/ship/TargetManager.cpp" )
 
-SET( shipmodules_INCLUDE
-     "${TARGET_INCLUDE_DIR}/ship/Modules/ActiveModules.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleDB.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleDefs.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleEffects.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/ModuleFactory.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/Modules.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/PassiveModules.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/RigModule.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/SubSystemModules.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/propulsion_modules/Afterburner.h"
-     )
-SET( shipmodules_SOURCE
-     "${TARGET_SOURCE_DIR}/ship/Modules/ActiveModules.cpp"
-     "${TARGET_SOURCE_DIR}/ship/Modules/ModuleDB.cpp"
-     "${TARGET_SOURCE_DIR}/ship/Modules/ModuleEffects.cpp"
-     "${TARGET_SOURCE_DIR}/ship/Modules/PassiveModules.cpp"
-     "${TARGET_SOURCE_DIR}/ship/Modules/RigModule.cpp"
-     "${TARGET_SOURCE_DIR}/ship/Modules/SubSystemModules.cpp"
-     "${TARGET_SOURCE_DIR}/ship/Modules/propulsion_modules/Afterburner.cpp"
-     )
-     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp"
-     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp" )
+SET( ship_modules_INCLUDE
+     "${TARGET_INCLUDE_DIR}/ship/modules/ActiveModules.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/ModuleDB.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/ModuleDefs.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/ModuleEffects.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/ModuleFactory.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/Modules.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/PassiveModules.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/RigModule.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/SubSystemModules.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/propulsion_modules/Afterburner.h" )
+SET( ship_modules_SOURCE
+     "${TARGET_SOURCE_DIR}/ship/modules/ActiveModules.cpp"
+     "${TARGET_SOURCE_DIR}/ship/modules/ModuleDB.cpp"
+     "${TARGET_SOURCE_DIR}/ship/modules/ModuleEffects.cpp"
+     "${TARGET_SOURCE_DIR}/ship/modules/PassiveModules.cpp"
+     "${TARGET_SOURCE_DIR}/ship/modules/RigModule.cpp"
+     "${TARGET_SOURCE_DIR}/ship/modules/SubSystemModules.cpp"
+     "${TARGET_SOURCE_DIR}/ship/modules/propulsion_modules/Afterburner.cpp" )
+     #"${TARGET_SOURCE_DIR}/ship/modules/.cpp"
+     #"${TARGET_SOURCE_DIR}/ship/modules/.cpp" )
 
-SET( shipmodulecomponents_INCLUDE
-     "${TARGET_INCLUDE_DIR}/ship/Modules/components/ActiveModuleProcessingComponent.h"
-     "${TARGET_INCLUDE_DIR}/ship/Modules/components/ModifyShipAttributesComponent.h" )
-SET( shipmodulecomponents_SOURCE
-     "${TARGET_SOURCE_DIR}/ship/Modules/components/ActiveModuleProcessingComponent.cpp"
-     "${TARGET_SOURCE_DIR}/ship/Modules/components/ModifyShipAttributesComponent.cpp" )
-     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp"
-     #"${TARGET_SOURCE_DIR}/ship/Modules/.cpp" )
+SET( ship_modules_components_INCLUDE
+     "${TARGET_INCLUDE_DIR}/ship/modules/components/ActiveModuleProcessingComponent.h"
+     "${TARGET_INCLUDE_DIR}/ship/modules/components/ModifyShipAttributesComponent.h" )
+SET( ship_modules_components_SOURCE
+     "${TARGET_SOURCE_DIR}/ship/modules/components/ActiveModuleProcessingComponent.cpp"
+     "${TARGET_SOURCE_DIR}/ship/modules/components/ModifyShipAttributesComponent.cpp" )
+     #"${TARGET_SOURCE_DIR}/ship/modules/.cpp"
+     #"${TARGET_SOURCE_DIR}/ship/modules/.cpp" )
 
 SET( spawn_INCLUDE
      "${TARGET_INCLUDE_DIR}/spawn/SpawnDB.h"
@@ -538,16 +547,6 @@ SET( tutorial_SOURCE
      "${TARGET_SOURCE_DIR}/tutorial/TutorialDB.cpp"
      "${TARGET_SOURCE_DIR}/tutorial/TutorialService.cpp" )
 
-SET( imageserver_INCLUDE
-     "${TARGET_INCLUDE_DIR}/imageserver/ImageServer.h"
-     "${TARGET_INCLUDE_DIR}/imageserver/ImageServerListener.h"
-     "${TARGET_INCLUDE_DIR}/imageserver/ImageServerConnection.h" )
-SET( imageserver_SOURCE
-     "${TARGET_SOURCE_DIR}/imageserver/ImageServer.cpp"
-     "${TARGET_SOURCE_DIR}/imageserver/ImageServerListener.cpp"
-     "${TARGET_SOURCE_DIR}/imageserver/ImageServerConnection.cpp" )
-
-
 ########################
 # Setup the executable #
 ########################
@@ -556,6 +555,7 @@ INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
 SOURCE_GROUP( "include"                FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\account"       FILES ${account_INCLUDE} )
 SOURCE_GROUP( "include\\admin"         FILES ${admin_INCLUDE} )
+SOURCE_GROUP( "include\\apiserver"     FILES ${apiserver_INCLUDE} )
 SOURCE_GROUP( "include\\authorisation" FILES ${authorisation_INCLUDE} )
 SOURCE_GROUP( "include\\browser"       FILES ${browser_INCLUDE} )
 SOURCE_GROUP( "include\\bulk"          FILES ${bulk_INCLUDE} )
@@ -567,6 +567,7 @@ SOURCE_GROUP( "include\\dogmaim"       FILES ${dogmaim_INCLUDE} )
 SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
 SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
 SOURCE_GROUP( "include\\fleet"         FILES ${fleet_INCLUDE} )
+SOURCE_GROUP( "include\\imageserver"   FILES ${imageserver_INCLUDE} )
 SOURCE_GROUP( "include\\infogathering" FILES ${infogathering_INCLUDE} )
 SOURCE_GROUP( "include\\inventory"     FILES ${inventory_INCLUDE} )
 SOURCE_GROUP( "include\\localization"  FILES ${localization_INCLUDE} )
@@ -580,8 +581,8 @@ SOURCE_GROUP( "include\\npc"           FILES ${npc_INCLUDE} )
 SOURCE_GROUP( "include\\planetint"     FILES ${planetint_INCLUDE} )
 SOURCE_GROUP( "include\\posmgr"        FILES ${posmgr_INCLUDE} )
 SOURCE_GROUP( "include\\ship"          FILES ${ship_INCLUDE} )
-SOURCE_GROUP( "include\\ship\\Modules" FILES ${shipmodules_INCLUDE} )
-SOURCE_GROUP( "include\\ship\\Modules\\components" FILES ${shipmodulecomponents_INCLUDE})
+SOURCE_GROUP( "include\\ship\\modules" FILES ${ship_modules_INCLUDE} )
+SOURCE_GROUP( "include\\ship\\modules\\components" FILES ${ship_modules_components_INCLUDE} )
 SOURCE_GROUP( "include\\sovereignty"   FILES ${sovereignty_INCLUDE} )
 SOURCE_GROUP( "include\\spawn"         FILES ${spawn_INCLUDE} )
 SOURCE_GROUP( "include\\standing"      FILES ${standing_INCLUDE} )
@@ -589,12 +590,11 @@ SOURCE_GROUP( "include\\station"       FILES ${station_INCLUDE} )
 SOURCE_GROUP( "include\\system"        FILES ${system_INCLUDE} )
 SOURCE_GROUP( "include\\trade"         FILES ${trade_INCLUDE} )
 SOURCE_GROUP( "include\\tutorial"      FILES ${tutorial_INCLUDE} )
-SOURCE_GROUP( "include\\imageserver"   FILES ${imageserver_INCLUDE} )
-SOURCE_GROUP( "include\\apiserver"     FILES ${apiserver_INCLUDE} )
 
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_SOURCE} )
+SOURCE_GROUP( "src\\apiserver"     FILES ${apiserver_SOURCE} )
 SOURCE_GROUP( "src\\authorisation" FILES ${authorisation_SOURCE} )
 SOURCE_GROUP( "src\\browser"       FILES ${browser_SOURCE} )
 SOURCE_GROUP( "src\\bulk"          FILES ${bulk_SOURCE} )
@@ -606,6 +606,7 @@ SOURCE_GROUP( "src\\dogmaim"       FILES ${dogmaim_SOURCE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
 SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
 SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
+SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
 SOURCE_GROUP( "src\\infogathering" FILES ${infogathering_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
 SOURCE_GROUP( "src\\localization"  FILES ${localization_SOURCE} )
@@ -619,8 +620,8 @@ SOURCE_GROUP( "src\\npc"           FILES ${npc_SOURCE} )
 SOURCE_GROUP( "src\\planetint"     FILES ${planetint_SOURCE} )
 SOURCE_GROUP( "src\\posmgr"        FILES ${posmgr_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
-SOURCE_GROUP( "src\\ship\\Modules" FILES ${shipmodules_SOURCE} )
-SOURCE_GROUP( "src\\ship\\Modules\\components" FILES ${shipmodulecomponents_SOURCE} )
+SOURCE_GROUP( "src\\ship\\modules" FILES ${ship_modules_SOURCE} )
+SOURCE_GROUP( "src\\ship\\modules\\components" FILES ${ship_modules_components_SOURCE} )
 SOURCE_GROUP( "src\\sovereignty"   FILES ${sovereignty_SOURCE} )
 SOURCE_GROUP( "src\\spawn"         FILES ${spawn_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
@@ -628,13 +629,12 @@ SOURCE_GROUP( "src\\station"       FILES ${station_SOURCE} )
 SOURCE_GROUP( "src\\system"        FILES ${system_SOURCE} )
 SOURCE_GROUP( "src\\trade"         FILES ${trade_SOURCE} )
 SOURCE_GROUP( "src\\tutorial"      FILES ${tutorial_SOURCE} )
-SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
-SOURCE_GROUP( "src\\apiserver"     FILES ${apiserver_SOURCE} )
 
 ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE}                ${SOURCE}
                 ${account_INCLUDE}        ${account_SOURCE}
                 ${admin_INCLUDE}          ${admin_SOURCE}
+                ${apiserver_INCLUDE}      ${apiserver_SOURCE}
                 ${authorisation_INCLUDE}  ${authorisation_SOURCE}
                 ${browser_INCLUDE}        ${browser_SOURCE}
                 ${bulk_INCLUDE}           ${bulk_SOURCE}
@@ -646,6 +646,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${character_INCLUDE}      ${character_SOURCE}
                 ${chat_INCLUDE}           ${chat_SOURCE}
                 ${fleet_INCLUDE}          ${fleet_SOURCE}
+                ${imageserver_INCLUDE}    ${imageserver_SOURCE}
                 ${infogathering_INCLUDE}  ${infogathering_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
                 ${localization_INCLUDE}   ${localization_SOURCE}
@@ -660,16 +661,14 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${posmgr_INCLUDE}         ${posmgr_SOURCE}
                 ${sovereignty_INCLUDE}    ${sovereignty_SOURCE}
                 ${ship_INCLUDE}           ${ship_SOURCE}
-                ${shipmodules_INCLUDE}    ${shipmodules_SOURCE}
-                ${shipmodulecomponents_INCLUDE} ${shipmodulecomponents_SOURCE}
+                ${ship_modules_INCLUDE}   ${ship_modules_SOURCE}
+                ${ship_modules_components_INCLUDE} ${ship_modules_components_SOURCE}
                 ${spawn_INCLUDE}          ${spawn_SOURCE}
                 ${standing_INCLUDE}       ${standing_SOURCE}
                 ${station_INCLUDE}        ${station_SOURCE}
                 ${system_INCLUDE}         ${system_SOURCE}
                 ${trade_INCLUDE}          ${trade_SOURCE}
-                ${tutorial_INCLUDE}       ${tutorial_SOURCE}
-                ${imageserver_INCLUDE}    ${imageserver_SOURCE}
-                ${apiserver_INCLUDE}      ${apiserver_SOURCE} )
+                ${tutorial_INCLUDE}       ${tutorial_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-server.h"
@@ -681,6 +680,5 @@ TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
 INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
 INSTALL( FILES "${TARGET_UTILS_DIR}/eve-server.xml"
-         DESTINATION "etc" )
-INSTALL( FILES "${TARGET_UTILS_DIR}/devtools.raw"
+               "${TARGET_UTILS_DIR}/devtools.raw"
          DESTINATION "etc" )

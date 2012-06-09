@@ -26,7 +26,7 @@
 #include <vector>
 #include <cmath>
 #include "eve-server.h"
-//#include "ship/Modules/components/ModifyShipAttributesComponent.h"
+//#include "ship/modules/components/ModifyShipAttributesComponent.h"
 
 
 ModifyShipAttributesComponent::ModifyShipAttributesComponent(GenericModule * mod, ShipRef ship)

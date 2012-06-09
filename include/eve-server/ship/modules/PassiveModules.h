@@ -23,34 +23,26 @@
     Author:        Luck
 */
 
-#ifndef ACTIVE_MODULE_PROCESSING_COMPONENT_H
-#define ACTIVE_MODULE_PROCESSING_COMPONENT_H
+#ifndef PASSIVE_MODULES_H
+#define PASSIVE_MODULES_H
 
-#include "ship/Modules/components/ModifyShipAttributesComponent.h"
+#include "ship/modules/Modules.h"
+#include "ship/modules/components/ModifyShipAttributesComponent.h"
 
-
-class ActiveModuleProcessingComponent
+class PassiveModule : public GenericModule
 {
 public:
+    PassiveModule(InventoryItemRef item, ShipRef ship);
+    ~PassiveModule();
 
-    ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod);
-    ~ActiveModuleProcessingComponent();
+    void Offline();
+    void Online();
 
-    void DeactivateCycle();
+protected:
+    ModifyShipAttributesComponent * m_ShipAttrComp;
 
-    bool ShouldProcessActiveCycle();
-
-    void ProcessActiveCycle();
-
-private:
-    //internal storage and record keeping
-    bool m_Stop;
-
-
-    //internal access to owner
-    GenericModule *m_Mod;
-    ShipRef m_Ship;
-    ModifyShipAttributesComponent * m_ShipAttrModComp;
+    //inheritance crap
+    PassiveModule() { }
 
 };
 

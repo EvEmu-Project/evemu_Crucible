@@ -27,8 +27,8 @@
 #ifndef __MODULES_H__
 #define __MODULES_H__
 
-#include "ship/Modules/ModuleDefs.h"
-#include "ship/Modules/ModuleEffects.h"
+#include "ship/modules/ModuleDefs.h"
+#include "ship/modules/ModuleEffects.h"
 #include "inventory/EffectsEnum.h"
 
 

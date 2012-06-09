@@ -23,47 +23,35 @@
     Author:        Luck
 */
 
+#ifndef ACTIVE_MODULE_PROCESSING_COMPONENT_H
+#define ACTIVE_MODULE_PROCESSING_COMPONENT_H
 
-#include "eve-server.h"
-//#include "ship/Modules/components/ActiveModuleProcessingComponent.h"
+#include "ship/modules/components/ModifyShipAttributesComponent.h"
 
 
-ActiveModuleProcessingComponent::ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod)
-: m_Stop( false ), m_Mod( mod ), m_Ship( ship ), m_ShipAttrModComp( shipAttrMod )
+class ActiveModuleProcessingComponent
 {
+public:
 
-}
+    ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod);
+    ~ActiveModuleProcessingComponent();
 
-ActiveModuleProcessingComponent::~ActiveModuleProcessingComponent()
-{
-    //nothing to do yet
-}
+    void DeactivateCycle();
 
-void ActiveModuleProcessingComponent::DeactivateCycle()
-{
-    m_Stop = true;
-}
+    bool ShouldProcessActiveCycle();
 
-//timing and verification function
-bool ActiveModuleProcessingComponent::ShouldProcessActiveCycle()
-{
-    //first check time for cycle timer
+    void ProcessActiveCycle();
 
-    //next check that we have enough capacitor avaiable
-
-    //finally check if we have been told to deactivate
-
-    return false;
-}
-
-void ActiveModuleProcessingComponent::ProcessActiveCycle()
-{
-    //check for stop signal
-    if(m_Stop)
-        return;
-
-    //else consume capacitor
+private:
+    //internal storage and record keeping
+    bool m_Stop;
 
 
-    //then check if we are targeting another ship or not
-}
+    //internal access to owner
+    GenericModule *m_Mod;
+    ShipRef m_Ship;
+    ModifyShipAttributesComponent * m_ShipAttrModComp;
+
+};
+
+#endif

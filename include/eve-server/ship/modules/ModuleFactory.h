@@ -32,7 +32,7 @@
 #include "PassiveModules.h"
 #include "RigModule.h"
 #include "SubSystemModules.h"
-#include "ship/Modules/propulsion_modules/Afterburner.h"
+#include "ship/modules/propulsion_modules/Afterburner.h"
 
 //how you should access the modules
 static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
