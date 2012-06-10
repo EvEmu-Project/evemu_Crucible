@@ -221,10 +221,7 @@ bool SystemAsteroidBeltEntity::LoadExtras(SystemDB *db) {
         return false;
 
     //TODO: fire up the belt manager.
-    //m_manager = new AsteroidBeltManager(new MiningDB(db), data.itemID);
-    //TODO: decide if we are really going to try to use a MiningDB wrapper, or if we
-    // should just cram it into the system DB.. Obviously a mining DB is desirable, but
-    //  we need to solve the issue of who owns the object and where to keep it.
+    //m_manager = new AsteroidBeltManager(data.itemID);
 
     return true;
 }

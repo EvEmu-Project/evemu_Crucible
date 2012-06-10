@@ -338,14 +338,12 @@ SET( mining_INCLUDE
      "${TARGET_INCLUDE_DIR}/mining/Asteroid.h"
      "${TARGET_INCLUDE_DIR}/mining/AsteroidBeltManager.h"
      "${TARGET_INCLUDE_DIR}/mining/MiningCommands.h"
-     "${TARGET_INCLUDE_DIR}/mining/MiningDB.h"
      "${TARGET_INCLUDE_DIR}/mining/ReprocessingDB.h"
      "${TARGET_INCLUDE_DIR}/mining/ReprocessingService.h" )
 SET( mining_SOURCE
      "${TARGET_SOURCE_DIR}/mining/Asteroid.cpp"
      "${TARGET_SOURCE_DIR}/mining/AsteroidBeltManager.cpp"
      "${TARGET_SOURCE_DIR}/mining/MiningCommands.cpp"
-     "${TARGET_SOURCE_DIR}/mining/MiningDB.cpp"
      "${TARGET_SOURCE_DIR}/mining/ReprocessingDB.cpp"
      "${TARGET_SOURCE_DIR}/mining/ReprocessingService.cpp" )
 
