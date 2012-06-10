@@ -32,9 +32,8 @@ public:
 
     PyCallable_Make_Dispatcher(DogmaIMBound)
 
-    DogmaIMBound(PyServiceMgr *mgr, DogmaIMDB *db)
+    DogmaIMBound(PyServiceMgr *mgr)
     : PyBoundObject(mgr),
-      m_db(db),
       m_dispatch(new Dispatcher(this))
     {
         _SetCallDispatcher(m_dispatch);
@@ -82,7 +81,6 @@ public:
 
 protected:
 
-    DogmaIMDB *const m_db;
     Dispatcher *const m_dispatch;
 };
 
@@ -104,7 +102,7 @@ PyBoundObject *DogmaIMService::_CreateBoundObject(Client *c, const PyRep *bind_a
     _log(CLIENT__MESSAGE, "DogmaIMService bind request for:");
     bind_args->Dump(CLIENT__MESSAGE, "    ");
 
-    return(new DogmaIMBound(m_manager, &m_db));
+    return(new DogmaIMBound(m_manager));
 }
 
 PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {
