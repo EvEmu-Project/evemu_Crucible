@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "station/StationDB.h"
+
 storage StationDB::g_station_db_storage;
 
 StationDB::StationDB()

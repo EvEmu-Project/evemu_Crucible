@@ -25,9 +25,14 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "station/HoloscreenMgrService.h"
+
 PyCallable_Make_InnerDispatcher(HoloscreenMgrService)
 
-HoloscreenMgrService::HoloscreenMgrService(PyServiceMgr* mgr) : PyService(mgr, "holoscreenMgr"), m_dispatch(new Dispatcher(this))
+HoloscreenMgrService::HoloscreenMgrService(PyServiceMgr* mgr)
+: PyService(mgr, "holoscreenMgr"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

@@ -26,14 +26,14 @@
 #ifndef __AFTERBURNER_H__
 #define __AFTERBURNER_H__
 
+#include "ship/modules/ActiveModules.h"
 
-class Afterburner : public ActiveModule
+class Afterburner
+: public ActiveModule
 {
 public:
-
     Afterburner( InventoryItemRef item, ShipRef ship );
     ~Afterburner();
-
 
     // Module Action Methods:
     void Load();
@@ -42,7 +42,6 @@ public:
     void Overload();
     void DeOverload();
     void DestroyRig();
-
 };
 
 #endif

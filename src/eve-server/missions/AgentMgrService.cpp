@@ -36,7 +36,11 @@
 
 #include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(AgentMgrService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "missions/Agent.h"
+#include "missions/AgentMgrService.h"
 
 class AgentMgrBound
 : public PyBoundObject {
@@ -79,6 +83,8 @@ protected:
     Dispatcher *const m_dispatch;    //we own this
     Agent *const m_agent;    //we do not own this.
 };
+
+PyCallable_Make_InnerDispatcher(AgentMgrService)
 
 AgentMgrService::AgentMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "agentMgr"),

@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "map/MapDB.h"
+
 PyObject *MapDB::GetPseudoSecurities() {
     DBQueryResult res;
 

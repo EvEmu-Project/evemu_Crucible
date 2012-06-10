@@ -26,6 +26,7 @@
 
 #include "eve-server.h"
 
+#include "ship/modules/ActiveModules.h"
 
 ActiveModule::ActiveModule(InventoryItemRef item, ShipRef ship)
 {

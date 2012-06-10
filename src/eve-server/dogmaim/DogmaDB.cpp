@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "dogmaim/DogmaDB.h"
+
 PyRep *DogmaDB::GetOperand() {
     DBQueryResult res;
 

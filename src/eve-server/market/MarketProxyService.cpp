@@ -25,10 +25,10 @@
 
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(MarketProxyService)
-
-
+#include "EntityList.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "market/MarketProxyService.h"
 
 /*
 class MarketProxyBound
@@ -62,6 +62,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(MarketProxyService)
 
 MarketProxyService::MarketProxyService(PyServiceMgr *mgr)
 : PyService(mgr, "marketProxy"),

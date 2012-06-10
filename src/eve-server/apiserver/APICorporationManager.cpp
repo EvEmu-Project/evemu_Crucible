@@ -23,9 +23,9 @@
     Author:        Aknor Jaden
 */
 
-
 #include "eve-server.h"
 
+#include "apiserver/APICorporationManager.h"
 
 APICorporationManager::APICorporationManager(const PyServiceMgr &services)
 : APIServiceManager(services)

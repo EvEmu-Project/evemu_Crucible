@@ -23,9 +23,9 @@
     Author:        Zhur
 */
 
-
-
 #include "eve-server.h"
+
+#include "PyBoundObject.h"
 
 PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
 : m_manager(mgr),

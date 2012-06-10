@@ -24,9 +24,9 @@
 */
 
 #include "eve-server.h"
-//#include "ContractMgrService.h"
 
-
+#include "PyServiceCD.h"
+#include "market/ContractMgrService.h"
 
 PyCallable_Make_InnerDispatcher(ContractMgrService)
 

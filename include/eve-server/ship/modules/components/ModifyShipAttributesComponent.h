@@ -26,6 +26,11 @@
 #ifndef MODIFY_SHIP_ATTRIBUTES_COMPONENT_H
 #define MODIFY_SHIP_ATTRIBUTES_COMPONENT_H
 
+#include "inventory/ItemRef.h"
+#include "ship/modules/ModuleDefs.h"
+
+class GenericModule;
+
 class ModifyShipAttributesComponent
 {
 public:

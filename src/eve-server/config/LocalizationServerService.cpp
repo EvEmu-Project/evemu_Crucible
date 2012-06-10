@@ -25,9 +25,14 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "config/LocalizationServerService.h"
+
 PyCallable_Make_InnerDispatcher(LocalizationServerService)
 
-LocalizationServerService::LocalizationServerService( PyServiceMgr *mgr ) : PyService(mgr, "localizationServer"), m_dispatch(new Dispatcher(this))
+LocalizationServerService::LocalizationServerService( PyServiceMgr *mgr )
+: PyService(mgr, "localizationServer"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

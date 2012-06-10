@@ -27,6 +27,7 @@
 #ifndef __MODULEMANAGER_H_INCL__
 #define __MODULEMANAGER_H_INCL__
 
+class DestinyManager;
 class InventoryItem;
 class GenericModule;
 class SystemEntity;

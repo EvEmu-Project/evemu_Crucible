@@ -26,6 +26,9 @@
 #ifndef __DESTINYMANAGER_H_INCL__
 #define __DESTINYMANAGER_H_INCL__
 
+#include "PyCallable.h"
+#include "inventory/ItemRef.h"
+
 class SystemEntity;
 class SystemManager;
 class InventoryItem;

@@ -25,6 +25,7 @@
 
 #include "eve-server.h"
 
+#include "ship/modules/RigModule.h"
 
 RigModule::RigModule(InventoryItemRef item, ShipRef ship)
 {

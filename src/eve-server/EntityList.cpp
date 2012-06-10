@@ -25,6 +25,11 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "EntityList.h"
+#include "ship/DestinyManager.h"
+#include "system/SystemManager.h"
+
 EntityList::EntityList() : m_services( NULL ) {}
 EntityList::~EntityList() {
     {

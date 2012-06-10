@@ -23,12 +23,11 @@
     Author:        Zhur
 */
 
-
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(StationSvcService)
-
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "station/StationSvcService.h"
 
 /*
 class StationSvcBound
@@ -67,6 +66,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(StationSvcService)
 
 StationSvcService::StationSvcService(PyServiceMgr *mgr)
 : PyService(mgr, "stationSvc"),

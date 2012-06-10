@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "character/Character.h"
+#include "character/Skill.h"
+#include "inventory/AttributeEnum.h"
+
 /*
  * Skill
  */

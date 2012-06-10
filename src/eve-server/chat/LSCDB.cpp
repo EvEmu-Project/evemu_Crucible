@@ -23,8 +23,10 @@
     Author:        Zhur, Aknor Jaden
 */
 
-
 #include "eve-server.h"
+
+#include "chat/LSCDB.h"
+#include "chat/LSCService.h"
 
 PyObject *LSCDB::LookupChars(const char *match, bool exact) {
     DBQueryResult res;

@@ -25,9 +25,13 @@
 
 #include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(WarRegistryService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "standing/WarRegistryService.h"
 
-class WarRegistryBound : public PyBoundObject {
+class WarRegistryBound
+: public PyBoundObject
+{
 public:
     PyCallable_Make_Dispatcher(WarRegistryBound)
 
@@ -59,6 +63,8 @@ private:
 
     uint32 m_corporationID;
 };
+
+PyCallable_Make_InnerDispatcher(WarRegistryService)
 
 WarRegistryService::WarRegistryService(PyServiceMgr *mgr)
 : PyService(mgr, "warRegistry"),

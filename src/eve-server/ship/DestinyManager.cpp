@@ -25,6 +25,12 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "PyServiceMgr.h"
+#include "ship/DestinyManager.h"
+#include "station/Station.h"
+#include "system/SystemBubble.h"
+#include "system/SystemManager.h"
 
 using namespace Destiny;
 

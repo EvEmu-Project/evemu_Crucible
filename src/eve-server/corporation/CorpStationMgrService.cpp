@@ -25,7 +25,10 @@
 
 #include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(CorpStationMgrService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "chat/LSCService.h"
+#include "corporation/CorpStationMgrService.h"
 
 class CorpStationMgrIMBound
 : public PyBoundObject
@@ -82,6 +85,7 @@ protected:
     const uint32 m_stationID;
 };
 
+PyCallable_Make_InnerDispatcher(CorpStationMgrService)
 
 CorpStationMgrService::CorpStationMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "corpStationMgr"),

@@ -25,6 +25,16 @@
 
 #include "eve-server.h"
 
+#include "EVEServerConfig.h"
+#include "apiserver/APIAccountManager.h"
+#include "apiserver/APIAdminManager.h"
+#include "apiserver/APICharacterManager.h"
+#include "apiserver/APICorporationManager.h"
+#include "apiserver/APIEveSystemManager.h"
+#include "apiserver/APIMapManager.h"
+#include "apiserver/APIServer.h"
+#include "apiserver/APIServerManager.h"
+
 const char *const APIServer::FallbackURL = "http://api.eveonline.com/";
 
 APIServer::APIServer()

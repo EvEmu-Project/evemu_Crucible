@@ -25,6 +25,107 @@
 
 #include "eve-server.h"
 
+#include "EVEServerConfig.h"
+#include "NetService.h"
+// account services
+#include "account/AccountService.h"
+#include "account/AuthService.h"
+#include "account/BrowserLockdownSvc.h"
+#include "account/ClientStatMgrService.h"
+#include "account/InfoGatheringMgr.h"
+#include "account/TutorialService.h"
+#include "account/UserService.h"
+// admin services
+#include "admin/AlertService.h"
+#include "admin/AllCommands.h"
+#include "admin/ClientStatLogger.h"
+#include "admin/CommandDispatcher.h"
+#include "admin/DevToolsProviderService.h"
+#include "admin/PetitionerService.h"
+#include "admin/SlashService.h"
+// apiserver services
+#include "apiserver/APIServer.h"
+// cache services
+#include "cache/BulkMgrService.h"
+#include "cache/ObjCacheService.h"
+// character services
+#include "character/AggressionMgrService.h"
+#include "character/CertificateMgrService.h"
+#include "character/CharacterService.h"
+#include "character/CharFittingMgrService.h"
+#include "character/CharMgrService.h"
+#include "character/CharUnboundMgrService.h"
+#include "character/PaperDollService.h"
+#include "character/PhotoUploadService.h"
+#include "character/SkillMgrService.h"
+// chat services
+#include "chat/LookupService.h"
+#include "chat/LSCService.h"
+#include "chat/OnlineStatusService.h"
+#include "chat/VoiceMgrService.h"
+// config services
+#include "config/ConfigService.h"
+#include "config/LanguageService.h"
+#include "config/LocalizationServerService.h"
+// corporation services
+#include "corporation/CorpBookmarkMgrService.h"
+#include "corporation/CorpMgrService.h"
+#include "corporation/CorporationService.h"
+#include "corporation/CorpRegistryService.h"
+#include "corporation/CorpStationMgrService.h"
+#include "corporation/LPService.h"
+// dogmaim services
+#include "dogmaim/DogmaIMService.h"
+#include "dogmaim/DogmaService.h"
+// imageserver services
+#include "imageserver/ImageServer.h"
+// inventory services
+#include "inventory/InvBrokerService.h"
+// mail services
+#include "mail/MailMgrService.h"
+#include "mail/MailingListMgrService.h"
+#include "mail/NotificationMgrService.h"
+// manufacturing services
+#include "manufacturing/FactoryService.h"
+#include "manufacturing/RamProxyService.h"
+// map services
+#include "map/MapService.h"
+// market services
+#include "market/BillMgrService.h"
+#include "market/ContractMgrService.h"
+#include "market/ContractProxy.h"
+#include "market/MarketProxyService.h"
+// mining services
+#include "mining/ReprocessingService.h"
+// missions services
+#include "missions/AgentMgrService.h"
+#include "missions/DungeonExplorationMgrService.h"
+#include "missions/MissionMgrService.h"
+// pos services
+#include "pos/PlanetMgr.h"
+#include "pos/PosMgrService.h"
+// ship services
+#include "ship/BeyonceService.h"
+#include "ship/FleetProxy.h"
+#include "ship/InsuranceService.h"
+#include "ship/RepairService.h"
+#include "ship/ShipService.h"
+// standing services
+#include "standing/FactionWarMgrService.h"
+#include "standing/SovereigntyMgrService.h"
+#include "standing/Standing2Service.h"
+#include "standing/WarRegistryService.h"
+// station services
+#include "station/HoloscreenMgrService.h"
+#include "station/JumpCloneService.h"
+#include "station/StationService.h"
+#include "station/StationSvcService.h"
+// system services
+#include "system/BookmarkService.h"
+#include "system/DungeonService.h"
+#include "system/KeeperService.h"
+#include "system/ScenarioService.h"
+
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 

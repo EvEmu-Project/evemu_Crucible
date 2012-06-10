@@ -26,13 +26,11 @@
 
 //note, using /slashes from LSC requires ROLE_SLASH
 
-
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(SlashService)
-
-
+#include "PyServiceCD.h"
+#include "admin/CommandDispatcher.h"
+#include "admin/SlashService.h"
 
 /*
 class SlashBound
@@ -66,6 +64,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(SlashService)
 
 SlashService::SlashService(PyServiceMgr *mgr, CommandDispatcher *cd)
 : PyService(mgr, "slash"),

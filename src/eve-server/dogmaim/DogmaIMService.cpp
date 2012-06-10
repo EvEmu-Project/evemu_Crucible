@@ -25,11 +25,16 @@
 
 #include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(DogmaIMService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "dogmaim/DogmaIMService.h"
+#include "system/SystemManager.h"
 
-class DogmaIMBound : public PyBoundObject {
+class DogmaIMBound
+: public PyBoundObject
+{
 public:
-
     PyCallable_Make_Dispatcher(DogmaIMBound)
 
     DogmaIMBound(PyServiceMgr *mgr)
@@ -80,10 +85,10 @@ public:
     PyCallable_DECL_CALL(GetAllInfo)
 
 protected:
-
     Dispatcher *const m_dispatch;
 };
 
+PyCallable_Make_InnerDispatcher(DogmaIMService)
 
 DogmaIMService::DogmaIMService(PyServiceMgr *mgr)
 : PyService(mgr, "dogmaIM"),

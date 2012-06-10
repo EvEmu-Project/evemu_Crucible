@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "character/CertificateMgrDB.h"
+
 //PyRep* CertificateMgrDB::GetMyCertificates( uint32 characterID )
 //{
 //    sLog.Debug( "CertificateMgrDB", "Called GetMyCertificates stub." );

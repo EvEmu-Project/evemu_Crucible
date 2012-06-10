@@ -23,12 +23,11 @@
     Author:        Aknor Jaden
 */
 
-
 #include "eve-server.h"
 
+#include "apiserver/APIAccountManager.h"
 
 std::string APIAccountManager::m_hexCharMap("0123456789ABCDEF");
-
 
 APIAccountManager::APIAccountManager(const PyServiceMgr &services)
 : APIServiceManager(services)

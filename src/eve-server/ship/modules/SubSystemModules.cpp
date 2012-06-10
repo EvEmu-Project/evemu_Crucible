@@ -25,6 +25,7 @@
 
 #include "eve-server.h"
 
+#include "ship/modules/SubSystemModules.h"
 
 SubSystemModule::SubSystemModule(InventoryItemRef item, ShipRef ship)
 {

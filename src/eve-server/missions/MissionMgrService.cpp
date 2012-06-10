@@ -22,12 +22,11 @@
     ------------------------------------------------------------------------------------
     Author:        Zhur
 */
+
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(MissionMgrService)
-
-
+#include "PyServiceCD.h"
+#include "missions/MissionMgrService.h"
 
 /*
 class MissionMgrBound
@@ -61,6 +60,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(MissionMgrService)
 
 MissionMgrService::MissionMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "missionMgr"),

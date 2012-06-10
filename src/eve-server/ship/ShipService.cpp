@@ -25,9 +25,17 @@
 
 #include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(ShipService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "pos/Structure.h"
+#include "ship/DestinyManager.h"
+#include "ship/ShipService.h"
+#include "system/Container.h"
+#include "system/Deployable.h"
+#include "system/SystemManager.h"
 
-class ShipBound : public PyBoundObject
+class ShipBound
+: public PyBoundObject
 {
 public:
     PyCallable_Make_Dispatcher(ShipBound)
@@ -75,6 +83,7 @@ protected:
     Dispatcher *const m_dispatch;
 };
 
+PyCallable_Make_InnerDispatcher(ShipService)
 
 ShipService::ShipService(PyServiceMgr *mgr)
 : PyService(mgr, "ship"),

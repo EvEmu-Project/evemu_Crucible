@@ -26,8 +26,9 @@
 #ifndef __SYSTEMENTITY_H_INCL__
 #define __SYSTEMENTITY_H_INCL__
 
+#include "inventory/InventoryItem.h"
+#include "inventory/ItemRef.h"
 #include "ship/TargetManager.h"
-
 
 class PyDict;
 class PyList;

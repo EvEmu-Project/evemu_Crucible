@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "mining/Asteroid.h"
+#include "mining/AsteroidBeltManager.h"
+
 AsteroidBeltManager::AsteroidBeltManager(uint32 belt_id)
 : m_beltID(belt_id),
   m_growthTimer(ASTEROID_GROWTH_INTERVAL_MS)    //default this to worst case. This will almost certainly be changed with a LoadState()

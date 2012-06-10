@@ -25,6 +25,11 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "inventory/AttributeEnum.h"
+#include "ship/DestinyManager.h"
+#include "system/Container.h"
+
 /*
  * CargoContainer
  */

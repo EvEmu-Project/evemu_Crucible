@@ -25,10 +25,15 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "account/BrowserLockdownSvc.h"
+
 // crap
 PyCallable_Make_InnerDispatcher(BrowserLockdownService)
 
-BrowserLockdownService::BrowserLockdownService( PyServiceMgr *mgr ) : PyService(mgr, "browserLockdownSvc"), m_dispatch(new Dispatcher(this))
+BrowserLockdownService::BrowserLockdownService( PyServiceMgr *mgr )
+: PyService(mgr, "browserLockdownSvc"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 
@@ -41,7 +46,7 @@ BrowserLockdownService::~BrowserLockdownService() {
     delete m_dispatch;
 }
 
-PyObject * GenerateLockdownCachedObject()
+PyObject* GenerateLockdownCachedObject()
 {
 /*
 PyString:"util.CachedObject"

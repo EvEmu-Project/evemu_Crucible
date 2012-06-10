@@ -25,9 +25,14 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "cache/BulkMgrService.h"
+
 PyCallable_Make_InnerDispatcher(BulkMgrService)
 
-BulkMgrService::BulkMgrService( PyServiceMgr *mgr ) : PyService(mgr, "bulkMgr"), m_dispatch(new Dispatcher(this))
+BulkMgrService::BulkMgrService( PyServiceMgr *mgr )
+: PyService(mgr, "bulkMgr"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

@@ -25,6 +25,11 @@
 
 #include "eve-server.h"
 
+#include "EntityList.h"
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "market/TradeService.h"
+
 PyCallable_Make_InnerDispatcher(TradeService);
 
 class TradeBound

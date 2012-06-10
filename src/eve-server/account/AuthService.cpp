@@ -25,13 +25,11 @@
 
 #include "eve-server.h"
 
-class AuthService::Dispatcher
-: public PyCallableDispatcher<AuthService> {
-public:
-    Dispatcher(AuthService *c)
-    : PyCallableDispatcher<AuthService>(c) {}
-};
+#include "EVEServerConfig.h"
+#include "PyServiceCD.h"
+#include "account/AuthService.h"
 
+PyCallable_Make_InnerDispatcher(AuthService)
 
 AuthService::AuthService(PyServiceMgr *mgr)
 : PyService(mgr, "authentication"),

@@ -26,6 +26,8 @@
 #ifndef __APISERVERMANAGER__H__INCL__
 #define __APISERVERMANAGER__H__INCL__
 
+#include "apiserver/APIServiceManager.h"
+
 /**
  * \class APIServerManager
  *

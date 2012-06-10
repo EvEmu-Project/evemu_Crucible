@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "manufacturing/RamProxyDB.h"
+
 PyRep *RamProxyDB::GetJobs2(const uint32 ownerID, const bool completed, const uint64 fromDate, const uint64 toDate) {
     DBQueryResult res;
 

@@ -25,6 +25,11 @@
 
 #include "eve-server.h"
 
+#include "PyServiceMgr.h"
+#include "npc/NPC.h"
+#include "npc/SpawnManager.h"
+#include "system/SystemManager.h"
+
 SpawnGroup::Entry::Entry(
     uint32 _spawnGroupID,
     uint32 _npcTypeID,

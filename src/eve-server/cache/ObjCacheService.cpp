@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+
 const char *const ObjCacheService::LoginCachableObjects[] = {
     "config.BulkData.paperdollResources",
     "config.BulkData.ramactivities",

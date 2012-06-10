@@ -27,6 +27,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "character/CharFittingMgrService.h"
+
 PyCallable_Make_InnerDispatcher(CharFittingMgrService)
 
 CharFittingMgrService::CharFittingMgrService(PyServiceMgr *mgr)

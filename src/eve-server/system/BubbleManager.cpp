@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "system/BubbleManager.h"
+#include "system/SystemBubble.h"
+#include "system/SystemEntity.h"
+
 //upon this interval, check for entities which may have wandered out of their bubble without a major event happening.
 static const uint32 BubbleWanderTimer_S = 30;
 

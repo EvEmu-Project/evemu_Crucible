@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "cache/ObjCacheDB.h"
+
 ObjCacheDB::ObjCacheDB()
 {
     //register all the generators

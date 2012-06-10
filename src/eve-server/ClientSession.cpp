@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "ClientSession.h"
+
 /* Things todo or missing
     [missing]
         * atribute dep's

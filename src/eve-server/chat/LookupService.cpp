@@ -26,9 +26,8 @@
 
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(LookupService)
-
+#include "PyServiceCD.h"
+#include "chat/LookupService.h"
 
 /*
 class LookupSvcBound
@@ -67,6 +66,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(LookupService)
 
 LookupService::LookupService(PyServiceMgr *mgr)
 : PyService(mgr, "lookupSvc"),

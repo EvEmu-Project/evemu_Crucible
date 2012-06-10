@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "ship/Ship.h"
+#include "ship/modules/components/ModifyShipAttributesComponent.h"
+
 ModifyShipAttributesComponent::ModifyShipAttributesComponent(GenericModule * mod, ShipRef ship)
 : m_Mod( mod ), m_Ship( ship )
 {

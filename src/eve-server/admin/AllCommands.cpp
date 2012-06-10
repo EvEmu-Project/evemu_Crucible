@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "admin/AllCommands.h"
+#include "admin/CommandDispatcher.h"
+
 void RegisterAllCommands(CommandDispatcher &into) {
 
     #define COMMAND(name, role, description) \

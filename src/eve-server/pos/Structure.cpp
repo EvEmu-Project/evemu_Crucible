@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "inventory/AttributeEnum.h"
+#include "pos/Structure.h"
+#include "ship/DestinyManager.h"
 
 /*
  * Structure

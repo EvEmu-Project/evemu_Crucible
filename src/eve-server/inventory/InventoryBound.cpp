@@ -24,12 +24,17 @@
 */
 
 #include "eve-server.h"
+
+#include "PyServiceCD.h"
 #include "inventory/InventoryBound.h"
 
 PyCallable_Make_InnerDispatcher(InventoryBound)
 
-InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItemFlags flag) :
-    PyBoundObject(mgr), m_dispatch(new Dispatcher(this)), mInventory(inventory), mFlag(flag)
+InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItemFlags flag)
+: PyBoundObject(mgr),
+  m_dispatch(new Dispatcher(this)),
+  mInventory(inventory),
+  mFlag(flag)
 {
     _SetCallDispatcher(m_dispatch);
 

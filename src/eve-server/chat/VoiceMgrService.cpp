@@ -22,8 +22,11 @@
     ------------------------------------------------------------------------------------
     Author:        Zhur
 */
+
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "chat/VoiceMgrService.h"
 
 PyCallable_Make_InnerDispatcher(VoiceMgrService)
 

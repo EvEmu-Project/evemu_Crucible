@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "character/CharMgrService.h"
+
 PyCallable_Make_InnerDispatcher(CharMgrService)
 
 CharMgrService::CharMgrService(PyServiceMgr *mgr)

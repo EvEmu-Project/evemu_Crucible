@@ -25,10 +25,8 @@
 
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(DungeonService)
-
-
+#include "PyServiceCD.h"
+#include "system/DungeonService.h"
 
 /*
 class DungeonBound
@@ -62,6 +60,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(DungeonService)
 
 DungeonService::DungeonService(PyServiceMgr *mgr)
 : PyService(mgr, "dungeon"),

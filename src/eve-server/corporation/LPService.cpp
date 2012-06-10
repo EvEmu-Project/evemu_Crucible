@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "corporation/LPService.h"
+
 PyCallable_Make_InnerDispatcher(LPService)
 
 LPService::LPService(PyServiceMgr *mgr)

@@ -22,8 +22,11 @@
     ------------------------------------------------------------------------------------
     Author:        Zhur
 */
+
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "pos/PosMgrService.h"
 
 PyCallable_Make_InnerDispatcher(PosMgrService)
 

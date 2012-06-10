@@ -23,9 +23,9 @@
     Author:        Zhur
 */
 
-
 #include "eve-server.h"
 
+#include "missions/Agent.h"
 
 Agent::Agent(uint32 id)
 : m_agentID(id)

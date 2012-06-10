@@ -25,9 +25,14 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "admin/DevToolsProviderService.h"
+
 PyCallable_Make_InnerDispatcher(DevToolsProviderService)
 
-DevToolsProviderService::DevToolsProviderService(PyServiceMgr* mgr) : PyService(mgr, "devToolsProvider"), m_dispatch(new Dispatcher(this))
+DevToolsProviderService::DevToolsProviderService(PyServiceMgr* mgr)
+: PyService(mgr, "devToolsProvider"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

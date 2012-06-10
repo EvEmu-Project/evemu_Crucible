@@ -25,6 +25,11 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "EntityList.h"
+#include "character/Character.h"
+#include "inventory/AttributeEnum.h"
+
 /*
  * CharacterTypeData
  */

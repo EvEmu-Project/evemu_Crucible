@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "mining/AsteroidBeltManager.h"
+#include "system/SystemEntities.h"
+
 using namespace Destiny;
 
 SimpleSystemEntity* SimpleSystemEntity::MakeEntity( SystemManager* system, const DBSystemEntity& entity )

@@ -25,12 +25,16 @@
 
 #include "eve-server.h"
 
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "character/AggressionMgrService.h"
+
 PyCallable_Make_InnerDispatcher(AggressionMgrService)
 
-class AggressionMgrBound : public PyBoundObject
+class AggressionMgrBound
+: public PyBoundObject
 {
 public:
-
     PyCallable_Make_Dispatcher(AggressionMgrBound)
 
     AggressionMgrBound(PyServiceMgr* mgr)
@@ -56,7 +60,6 @@ public:
     }
 
 protected:
-
     PyCallable_DECL_CALL(GetCriminalTimeStamps)
     PyCallable_DECL_CALL(CheckLootRightExceptions)
 

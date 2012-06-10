@@ -26,6 +26,7 @@
 #ifndef __APISERVICEMANAGER__H__INCL__
 #define __APISERVICEMANAGER__H__INCL__
 
+#include "PyServiceMgr.h"
 #include "apiserver/APIServiceDB.h"
 
 namespace EVEAPI {

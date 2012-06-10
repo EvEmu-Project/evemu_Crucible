@@ -25,6 +25,12 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "EntityList.h"
+#include "inventory/EVEAttributeMgr.h"
+#include "inventory/InventoryDB.h"
+#include "inventory/InventoryItem.h"
+
 /*
  * EVEAttributeMgr
  */

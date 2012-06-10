@@ -26,16 +26,16 @@
 #ifndef RIG_MODULE_H
 #define RIG_MODULE_H
 
+#include "ship/modules/PassiveModules.h"
 
-class RigModule : public PassiveModule
+class RigModule
+: public PassiveModule
 {
 public:
-
     RigModule(InventoryItemRef item, ShipRef ship);
     ~RigModule();
 
     ModulePowerLevel GetModulePowerLevel();
-
 };
 
 #endif

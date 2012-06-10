@@ -26,9 +26,8 @@
 #ifndef __APISERVER__H__INCL__
 #define __APISERVER__H__INCL__
 
-#include "APIServerConnection.h"
+#include "APIServerListener.h"
 
-class APIServerListener;
 class APIServiceManager;
 
 /**
