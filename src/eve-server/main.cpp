@@ -155,7 +155,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new BillMgrService(&services));
     services.RegisterService(new BeyonceService(&services));
     services.RegisterService(new BookmarkService(&services));
-    services.RegisterService(new BrowserLockDownService(&services));
+    services.RegisterService(new BrowserLockdownService(&services));
     services.RegisterService(new BulkMgrService(&services));
     services.RegisterService(new CertificateMgrService(&services));
     services.RegisterService(new CharacterService(&services));

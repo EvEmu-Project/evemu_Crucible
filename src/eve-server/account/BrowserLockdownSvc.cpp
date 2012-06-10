@@ -26,22 +26,22 @@
 #include "eve-server.h"
 
 // crap
-PyCallable_Make_InnerDispatcher(BrowserLockDownService)
+PyCallable_Make_InnerDispatcher(BrowserLockdownService)
 
-BrowserLockDownService::BrowserLockDownService( PyServiceMgr *mgr ) : PyService(mgr, "browserLockdownSvc"), m_dispatch(new Dispatcher(this))
+BrowserLockdownService::BrowserLockdownService( PyServiceMgr *mgr ) : PyService(mgr, "browserLockdownSvc"), m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(BrowserLockDownService, GetFlaggedSitesHash)
-    PyCallable_REG_CALL(BrowserLockDownService, GetFlaggedSitesList)
-    PyCallable_REG_CALL(BrowserLockDownService, GetDefaultHomePage)
+    PyCallable_REG_CALL(BrowserLockdownService, GetFlaggedSitesHash)
+    PyCallable_REG_CALL(BrowserLockdownService, GetFlaggedSitesList)
+    PyCallable_REG_CALL(BrowserLockdownService, GetDefaultHomePage)
 }
 
-BrowserLockDownService::~BrowserLockDownService() {
+BrowserLockdownService::~BrowserLockdownService() {
     delete m_dispatch;
 }
 
-PyObject * GenerateLockDownCachedObject()
+PyObject * GenerateLockdownCachedObject()
 {
 /*
 PyString:"util.CachedObject"
@@ -77,7 +77,7 @@ public:
 
 
 
-PyResult BrowserLockDownService::Handle_GetFlaggedSitesHash(PyCallArgs &call)
+PyResult BrowserLockdownService::Handle_GetFlaggedSitesHash(PyCallArgs &call)
 {
     /* if cache hash is correct send CacheOK */
 
@@ -94,7 +94,7 @@ PyResult BrowserLockDownService::Handle_GetFlaggedSitesHash(PyCallArgs &call)
     return new CacheOK();
 }
 
-PyResult BrowserLockDownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
+PyResult BrowserLockdownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
 
     //PyDict* args = new PyDict;
 
@@ -132,13 +132,13 @@ PyResult BrowserLockDownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
         itr_1->SetItem("versionCheck", new_tuple("run", "run", "run"));
 
     arg_tuple->SetItem(0, itr_1);
-    arg_tuple->SetItem(1, GenerateLockDownCachedObject());
+    arg_tuple->SetItem(1, GenerateLockdownCachedObject());
     arg_tuple->SetItem(2, new PyNone());
 
     return new PyObject( "objectCaching.CachedMethodCallResult", arg_tuple );
 }
 
 
-PyResult BrowserLockDownService::Handle_GetDefaultHomePage(PyCallArgs &call) {
+PyResult BrowserLockdownService::Handle_GetDefaultHomePage(PyCallArgs &call) {
     return NULL;
 }
