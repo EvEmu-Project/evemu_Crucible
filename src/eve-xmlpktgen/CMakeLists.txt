@@ -62,3 +62,8 @@ TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_SOURCE_DIR}/main.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-core" )
+
+IF( EVEMU_TARGETS_EXPORT )
+  EXPORT( TARGETS "${TARGET_NAME}"
+          FILE "${EVEMU_TARGETS_EXPORT}" )
+ENDIF( EVEMU_TARGETS_EXPORT )
