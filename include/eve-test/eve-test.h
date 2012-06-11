@@ -20,7 +20,22 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:     Aknor Jaden
+    Author:     Bloody.Rabbit
 */
 
-void UT_EvilNumber();
+#ifndef __EVE_TEST_H__INCL__
+#define __EVE_TEST_H__INCL__
+
+/*************************************************************************/
+/* eve-core                                                              */
+/*************************************************************************/
+#include "eve-core.h"
+
+/*************************************************************************/
+/* eve-common                                                            */
+/*************************************************************************/
+#include "eve-common.h"
+
+#include "utils/EvilNumber.h"
+
+#endif /* !__EVE_TEST_H__INCL__ */

@@ -23,10 +23,9 @@
     Author:     Aknor Jaden
 */
 
-#include "eve-server.h"
+#include "eve-test.h"
 
-
-void UT_EvilNumber()
+int utils_EvilNumberTest( int argc, char* argv[] )
 {
 
     // EVILNUMBER MATH TESTING:
@@ -143,4 +142,5 @@ void UT_EvilNumber()
 
     sLog.Log( "EvilNumber Testing", "<<<<< END" );
 
+    return EXIT_SUCCESS;
 }

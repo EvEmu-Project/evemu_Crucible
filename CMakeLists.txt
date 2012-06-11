@@ -17,8 +17,11 @@ SET( PROJECT_VENDOR              "The EVEmu development team" )
 SET( PROJECT_VERSION             "0.7.11" )
 SET( PROJECT_REPOSITORY          "https://github.com/evemuproject/evemu_server" )
 
+# Append our module path
 LIST( APPEND CMAKE_MODULE_PATH
       "${PROJECT_SOURCE_DIR}/cmake" )
+# Enable testing with CTest
+ENABLE_TESTING()
 
 ###########
 # Options #
@@ -150,6 +153,7 @@ ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
 ADD_SUBDIRECTORY( "src/eve-collector" )
 ADD_SUBDIRECTORY( "src/eve-tool" )
+ADD_SUBDIRECTORY( "src/eve-test" )
 
 # Generate config.h
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.in"
