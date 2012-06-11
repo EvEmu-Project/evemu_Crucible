@@ -23,12 +23,9 @@
     Author:     Captnoord
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 #include "authorisation/PasswordModule.h"
 #include "authorisation/ShaModule.h"
-#ifndef WIN32
-    #include <iconv.h>
-#endif
 
 uint8 mDigest[SHA_DIGEST_SIZE];
 

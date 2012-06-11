@@ -26,9 +26,6 @@
 #ifndef __IMAGESERVERCONNECTION__H__INCL__
 #define __IMAGESERVERCONNECTION__H__INCL__
 
-#include <memory>
-#include <vector>
-
 /**
  * \class ImageServerConnection
  *

@@ -26,13 +26,6 @@
 #ifndef __APISERVERCONNECTION__H__INCL__
 #define __APISERVERCONNECTION__H__INCL__
 
-#include <memory>
-#include <vector>
-
-#include "EVEServerPCH.h"
-
-typedef std::map<std::string, std::string> APICommandCall;
-
 /**
  * \class APIServerConnection
  *

@@ -23,7 +23,7 @@
     Author:     Captnoord
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "marshal/EVEMarshalStringTable.h"
 

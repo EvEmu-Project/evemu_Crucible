@@ -26,10 +26,6 @@
 #ifndef __APISERVICEDB_H_INCL__
 #define __APISERVICEDB_H_INCL__
 
-
-class PyRep;
-
-
 class APIServiceDB
 {
 public:
@@ -119,11 +115,6 @@ public:
      * @retval ?
      */
     bool UpdateUserIdApiRole(uint32 userID, uint32 apiRole);
-
-protected:
-
 };
 
 #endif    //__APISERVICEDB_H_INCL__
-
-

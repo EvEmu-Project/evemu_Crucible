@@ -23,9 +23,7 @@
     Author:     Zhur, mmcs
 */
 
-#include "EVEServerPCH.h"
-#include "EVEVersion.h"
-#include <iostream>
+#include "eve-server.h"
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );

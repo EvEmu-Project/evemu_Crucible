@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 EntityList::EntityList() : m_services( NULL ) {}
 EntityList::~EntityList() {

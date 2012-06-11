@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 const char *const ObjCacheService::LoginCachableObjects[] = {
     "config.BulkData.paperdollResources",

@@ -23,7 +23,7 @@
     Author:        Captnoord
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 dgmtypeattributemgr::dgmtypeattributemgr()
 {

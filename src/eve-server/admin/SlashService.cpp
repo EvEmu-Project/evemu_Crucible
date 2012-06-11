@@ -27,7 +27,7 @@
 //note, using /slashes from LSC requires ROLE_SLASH
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 PyCallable_Make_InnerDispatcher(SlashService)

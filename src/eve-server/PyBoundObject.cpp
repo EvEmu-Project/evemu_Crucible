@@ -25,7 +25,7 @@
 
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
 : m_manager(mgr),

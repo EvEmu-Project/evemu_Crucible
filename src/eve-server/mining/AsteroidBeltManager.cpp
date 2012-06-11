@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 AsteroidBeltManager::AsteroidBeltManager(MiningDB *db, uint32 belt_id)
 : m_beltID(belt_id),

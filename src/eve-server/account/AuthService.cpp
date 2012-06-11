@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 class AuthService::Dispatcher
 : public PyCallableDispatcher<AuthService> {

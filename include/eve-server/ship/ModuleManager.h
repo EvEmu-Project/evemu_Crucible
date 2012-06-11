@@ -33,8 +33,8 @@ class SystemEntity;
 class Client;
 class ModuleManager;
 
-#include "ship/Modules/Modules.h"
-#include "ship/Modules/ModuleDefs.h"
+#include "ship/modules/Modules.h"
+#include "ship/modules/ModuleDefs.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 //upon this interval, check for entities which may have wandered out of their bubble without a major event happening.
 static const uint32 BubbleWanderTimer_S = 30;

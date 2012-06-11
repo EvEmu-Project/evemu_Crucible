@@ -23,7 +23,7 @@
     Authors:    BloodyRabbit, Captnoord, Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEMarshalOpcodes.h"

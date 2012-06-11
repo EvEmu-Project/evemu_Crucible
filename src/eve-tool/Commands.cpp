@@ -23,7 +23,7 @@
     Author:     Zhur, Bloody.Rabbit
 */
 
-#include "EVEToolPCH.h"
+#include "eve-tool.h"
 
 #include "main.h"
 #include "Commands.h"

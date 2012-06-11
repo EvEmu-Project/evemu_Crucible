@@ -24,7 +24,7 @@
 */
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 PyRep *MarketDB::GetStationAsks(uint32 stationID) {
     DBQueryResult res;

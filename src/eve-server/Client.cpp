@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 #include "EVEVersion.h"
 
 static const uint32 PING_INTERVAL_US = 60000;

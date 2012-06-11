@@ -24,7 +24,7 @@
 */
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
 
 std::string APIAccountManager::m_hexCharMap("0123456789ABCDEF");
