@@ -26,7 +26,19 @@
 #include "EVEServerPCH.h"
 
 
-//ModuleContainer class definitions
+
+//////////////////////////////////////////////////////////////////////////////////
+// Modifier class definitions
+#pragma region Modifier
+
+// No functions defined here at this time.
+
+#pragma endregion
+/////////////////////////////// END MODIFIER /////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// ModuleContainer class definitions
 #pragma region ModuleContainerClass
 ModuleContainer::ModuleContainer(uint32 lowSlots, uint32 medSlots, uint32 highSlots, uint32 rigSlots, uint32 subSystemSlots,
     uint32 turretSlots, uint32 launcherSlots, ModuleManager * myManager)
@@ -574,7 +586,8 @@ void ModuleContainer::_initializeModuleContainers()
 /////////////////////////// END MODULECONTAINER //////////////////////////////////
 
 
-//ModuleManager class definitions
+//////////////////////////////////////////////////////////////////////////////////
+// ModuleManager class definitions
 #pragma region ModuleManagerClass
 ModuleManager::ModuleManager(Ship *const ship)
 {
@@ -1034,3 +1047,4 @@ ModuleCommand ModuleManager::_translateEffectName(std::string s)
 }
 
 #pragma endregion
+//////////////////////////////////////////////////////////////////////////////////

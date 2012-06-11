@@ -37,8 +37,36 @@ class ModuleManager;
 #include "ship/Modules/ModuleDefs.h"
 
 
-//container for all ships modules
+//////////////////////////////////////////////////////////////////////////////////
+// Modifier class containing all data to modify an attribute
+#pragma region Modifier
+
+class Modifier
+{
+public:
+    Modifier(uint32 targetAttributeID, uint32 targetID, EvilNumber modifierValue, uint32 calcTypeID, uint32 revCalcTypeID);
+    ~Modifier();
+    
+    //
+    EvilNumber GetModifierValue() { return m_ModifierValue; }
+    void SetModifierValue(EvilNumber newModifierValue) { m_ModifierValue = newModifierValue; }
+
+protected:
+    uint32 m_TargetAttributeID;
+    uint32 m_TargetID;
+    EvilNumber m_ModifierValue;
+    uint32 m_CalculationTypeID;
+    uint32 m_ReverseCalculationTypeID;
+};
+
+#pragma endregion
+/////////////////////////////// END MODIFIER /////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// Container for all ships modules
 #pragma region ModuleContainer
+
 class ModuleContainer
 {
 public:
@@ -145,8 +173,11 @@ private:
 };
 
 #pragma endregion
+/////////////////////////// END MODULECONTAINER //////////////////////////////////
 
-//classes for passing effects around to targets
+
+//////////////////////////////////////////////////////////////////////////////////
+// Classes for passing effects around to targets
 #pragma region Effect Passing
 
 static const uint8 MAX_EFFECT_COUNT = 5;  //arbitrary, lazy etc.  The bigger this number, the larger these message classes will be
@@ -222,8 +253,11 @@ private:
 };
 
 #pragma endregion
+/////////////////////////// END MODULE EFFECTS //////////////////////////////////
 
-//Primary Module Manager
+
+//////////////////////////////////////////////////////////////////////////////////
+// Primary Module Manager class
 #pragma region ModuleManager
 
 class ModuleManager
@@ -288,6 +322,7 @@ private:
 };
 
 #pragma endregion
+/////////////////////////// END MODULE MANAGER //////////////////////////////////
 
 #endif  /* MODULE_MANAGER_H */
 
