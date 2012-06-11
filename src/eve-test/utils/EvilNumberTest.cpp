@@ -27,10 +27,6 @@
 
 int utils_EvilNumberTest( int argc, char* argv[] )
 {
-
-    // EVILNUMBER MATH TESTING:
-    sLog.Log( "EvilNumber Testing", ">>>>> BEGIN" );
-
     EvilNumber fval1(5.0);
     EvilNumber fval2(-12.123);
     EvilNumber ival1(10);
@@ -38,109 +34,106 @@ int utils_EvilNumberTest( int argc, char* argv[] )
     EvilNumber result;
 
     // UNARY:
-    sLog.Log( "EvilNumber Test", "before ival1++   ival1 = %s", ival1.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "before ival1++   ival1 = %s\n", ival1.to_str().c_str(), result.to_str().c_str() );
     result = ival1++;
-    sLog.Log( "EvilNumber Test", "ival1++ = %s", ival1.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "ival1++ = %s\n", ival1.to_str().c_str(), result.to_str().c_str() );
 
-    sLog.Log( "EvilNumber Test", "before ival2--   ival2 = %s", ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "before ival2--   ival2 = %s\n", ival2.to_str().c_str(), result.to_str().c_str() );
     result = ival2--;
-    sLog.Log( "EvilNumber Test", "ival2-- = %s-- = %s", ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "ival2-- = %s-- = %s\n", ival2.to_str().c_str(), result.to_str().c_str() );
 
-    sLog.Log( "EvilNumber Test", "before fval1++   fval1 = %s", fval1.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "before fval1++   fval1 = %s\n", fval1.to_str().c_str(), result.to_str().c_str() );
     result = fval1++;
-    sLog.Log( "EvilNumber Test", "fval1++ = %s++ = %s", fval1.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1++ = %s++ = %s\n", fval1.to_str().c_str(), result.to_str().c_str() );
 
-    sLog.Log( "EvilNumber Test", "before fval2--   fval2 = %s", fval2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "before fval2--   fval2 = %s\n", fval2.to_str().c_str(), result.to_str().c_str() );
     result = fval2--;
-    sLog.Log( "EvilNumber Test", "fval2-- = %s-- = %s", fval2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval2-- = %s-- = %s\n", fval2.to_str().c_str(), result.to_str().c_str() );
 
     // MIXED:
     result = fval1 + ival2;
-    sLog.Log( "EvilNumber Test", "fval1 + ival2 = %s + %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 + ival2 = %s + %s = %s\n", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     result = fval1 - ival2;
-    sLog.Log( "EvilNumber Test", "fval1 - ival2 = %s - %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 - ival2 = %s - %s = %s\n", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     result = fval1 * ival2;
-    sLog.Log( "EvilNumber Test", "fval1 * ival2 = %s * %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 * ival2 = %s * %s = %s\n", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     result = fval1 / ival2;
-    sLog.Log( "EvilNumber Test", "fval1 / ival2 = %s / %s = %s", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 / ival2 = %s / %s = %s\n", fval1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     // BOTH INT:
     result = ival1 + ival2;
-    sLog.Log( "EvilNumber Test", "ival1 + ival2 = %s + %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "ival1 + ival2 = %s + %s = %s\n", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     result = ival1 - ival2;
-    sLog.Log( "EvilNumber Test", "ival1 - ival2 = %s - %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "ival1 - ival2 = %s - %s = %s\n", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     result = ival1 * ival2;
-    sLog.Log( "EvilNumber Test", "ival1 * ival2 = %s * %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "ival1 * ival2 = %s * %s = %s\n", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     result = ival1 / ival2;
-    sLog.Log( "EvilNumber Test", "ival1 / ival2 = %s / %s = %s", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "ival1 / ival2 = %s / %s = %s\n", ival1.to_str().c_str(), ival2.to_str().c_str(), result.to_str().c_str() );
 
     // BOTH FLOAT:
     result = fval1 + fval2;
-    sLog.Log( "EvilNumber Test", "fval1 + fval2 = %s + %s = %s", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 + fval2 = %s + %s = %s\n", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
 
     result = fval1 - fval2;
-    sLog.Log( "EvilNumber Test", "fval1 - fval2 = %s - %s = %s", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 - fval2 = %s - %s = %s\n", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
 
     fval2 = 2.0;
     result = fval1 * fval2;
-    sLog.Log( "EvilNumber Test", "fval1 * fval2 = %s * %s = %s", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 * fval2 = %s * %s = %s\n", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
 
     result = fval1 / fval2;
-    sLog.Log( "EvilNumber Test", "fval1 / fval2 = %s / %s = %s", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
+    ::printf( "fval1 / fval2 = %s / %s = %s\n", fval1.to_str().c_str(), fval2.to_str().c_str(), result.to_str().c_str() );
 
     result = EvilNumber(6.0) + EvilNumber(100);
-    sLog.Log( "EvilNumber Test", "6.0 + 100= %s", result.to_str().c_str() );
+    ::printf( "6.0 + 100= %s\n", result.to_str().c_str() );
 
     result = EvilNumber(52) - EvilNumber(26.0);
-    sLog.Log( "EvilNumber Test", "52 - 26.0= %s", result.to_str().c_str() );
+    ::printf( "52 - 26.0= %s\n", result.to_str().c_str() );
 
     result = EvilNumber(22) * EvilNumber(10);
-    sLog.Log( "EvilNumber Test", "22 * 10= %s", result.to_str().c_str() );
+    ::printf( "22 * 10= %s\n", result.to_str().c_str() );
 
     result = EvilNumber(220.0) / EvilNumber(11);
-    sLog.Log( "EvilNumber Test", "220.0 / 11= %s", result.to_str().c_str() );
+    ::printf( "220.0 / 11= %s\n", result.to_str().c_str() );
 
     result = EvilNumber::sin(EvilNumber(3.14159*1.5));
-    sLog.Log( "EvilNumber Test", "sin(3.14159*1.5)= %f, EvilNumber::sin(3.14159*1.5)= %s", sin(3.14159*1.5), result.to_str().c_str() );
+    ::printf( "sin(3.14159*1.5)= %f, EvilNumber::sin(3.14159*1.5)= %s\n", sin(3.14159*1.5), result.to_str().c_str() );
 
     result = EvilNumber::cos(EvilNumber(3.14159*1.5));
-    sLog.Log( "EvilNumber Test", "cos(-3.14159*1.5)= %f, EvilNumber::cos(-3.14159*1.5)= %s", cos(-3.14159*1.5), result.to_str().c_str() );
+    ::printf( "cos(-3.14159*1.5)= %f, EvilNumber::cos(-3.14159*1.5)= %s\n", cos(-3.14159*1.5), result.to_str().c_str() );
 
     result = EvilNumber::tan(EvilNumber(3.14159*3));
-    sLog.Log( "EvilNumber Test", "tan(-3.14159*3)= %f, EvilNumber:tan(-3.14159*3)= %s", tan(-3.14159*3), result.to_str().c_str() );
+    ::printf( "tan(-3.14159*3)= %f, EvilNumber:tan(-3.14159*3)= %s\n", tan(-3.14159*3), result.to_str().c_str() );
 
     result = EvilNumber::asin(EvilNumber(0.5));
-    sLog.Log( "EvilNumber Test", "asin(0.5)= %f, EvilNumber::asin(0.5)= %s", asin(0.5), result.to_str().c_str() );
+    ::printf( "asin(0.5)= %f, EvilNumber::asin(0.5)= %s\n", asin(0.5), result.to_str().c_str() );
 
     result = EvilNumber::acos(EvilNumber(-0.5));
-    sLog.Log( "EvilNumber Test", "acos(-0.5)= %f, EvilNumber::acos(-0.5)= %s", acos(-0.5), result.to_str().c_str() );
+    ::printf( "acos(-0.5)= %f, EvilNumber::acos(-0.5)= %s\n", acos(-0.5), result.to_str().c_str() );
 
     result = EvilNumber::atan(EvilNumber(3.0));
-    sLog.Log( "EvilNumber Test", "atan(3.0)= %f, EvilNumber::atan(3.0)= %s", atan(3.0), result.to_str().c_str() );
+    ::printf( "atan(3.0)= %f, EvilNumber::atan(3.0)= %s\n", atan(3.0), result.to_str().c_str() );
 
     result = EvilNumber::sqrt(EvilNumber(400.0));
-    sLog.Log( "EvilNumber Test", "sqrt(400.0)= %f, EvilNumber::sqrt(400.0)= %s", sqrt(400.0), result.to_str().c_str() );
+    ::printf( "sqrt(400.0)= %f, EvilNumber::sqrt(400.0)= %s\n", sqrt(400.0), result.to_str().c_str() );
 
     result = EvilNumber::pow(EvilNumber(39.0), EvilNumber(2.0));
-    sLog.Log( "EvilNumber Test", "pow(39.0,2.0)= %f, EvilNumber::pow(39.0,2.0)= %s", pow(39.0,2.0), result.to_str().c_str() );
+    ::printf( "pow(39.0,2.0)= %f, EvilNumber::pow(39.0,2.0)= %s\n", pow(39.0,2.0), result.to_str().c_str() );
 
     result = EvilNumber::log(EvilNumber(1.5));
-    sLog.Log( "EvilNumber Test", "log(1.5)= %f, EvilNumber::log(1.5)= %s", log(1.5), result.to_str().c_str() );
+    ::printf( "log(1.5)= %f, EvilNumber::log(1.5)= %s\n", log(1.5), result.to_str().c_str() );
 
     result = EvilNumber::log10(EvilNumber(1.5));
-    sLog.Log( "EvilNumber Test", "log10(1.5)= %f, EvilNumber::log10(1.5)= %s", log10(1.5), result.to_str().c_str() );
+    ::printf( "log10(1.5)= %f, EvilNumber::log10(1.5)= %s\n", log10(1.5), result.to_str().c_str() );
 
     result = EvilNumber::exp(EvilNumber(1.5));
-    sLog.Log( "EvilNumber Test", "exp(1.5)= %f, EvilNumber::exp(1.5)= %s", exp(1.5), result.to_str().c_str() );
-
-
-    sLog.Log( "EvilNumber Testing", "<<<<< END" );
+    ::printf( "exp(1.5)= %f, EvilNumber::exp(1.5)= %s\n", exp(1.5), result.to_str().c_str() );
 
     return EXIT_SUCCESS;
 }
