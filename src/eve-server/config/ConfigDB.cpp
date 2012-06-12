@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "config/ConfigDB.h"
+
 PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
 #ifndef WIN32
 #warning we need to deal with corporations!

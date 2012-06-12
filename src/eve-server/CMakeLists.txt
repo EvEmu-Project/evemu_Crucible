@@ -164,46 +164,6 @@ SET( cache_SOURCE
      "${TARGET_SOURCE_DIR}/cache/ObjCacheDB.cpp"
      "${TARGET_SOURCE_DIR}/cache/ObjCacheService.cpp" )
 
-SET( config_INCLUDE
-     "${TARGET_INCLUDE_DIR}/config/ConfigDB.h"
-     "${TARGET_INCLUDE_DIR}/config/ConfigService.h"
-     "${TARGET_INCLUDE_DIR}/config/LanguageService.h"
-     "${TARGET_INCLUDE_DIR}/config/LocalizationServerService.h" )
-SET( config_SOURCE
-     "${TARGET_SOURCE_DIR}/config/ConfigDB.cpp"
-     "${TARGET_SOURCE_DIR}/config/ConfigService.cpp"
-     "${TARGET_SOURCE_DIR}/config/LanguageService.cpp"
-     "${TARGET_SOURCE_DIR}/config/LocalizationServerService.cpp" )
-
-SET( corporation_INCLUDE
-     "${TARGET_INCLUDE_DIR}/corporation/CorpBookmarkMgrService.h"
-     "${TARGET_INCLUDE_DIR}/corporation/CorpMgrService.h"
-     "${TARGET_INCLUDE_DIR}/corporation/CorporationCarrier.h"
-     "${TARGET_INCLUDE_DIR}/corporation/CorporationDB.h"
-     "${TARGET_INCLUDE_DIR}/corporation/CorporationService.h"
-     "${TARGET_INCLUDE_DIR}/corporation/CorpRegistryService.h"
-     "${TARGET_INCLUDE_DIR}/corporation/CorpStationMgrService.h"
-     "${TARGET_INCLUDE_DIR}/corporation/LPService.h" )
-SET( corporation_SOURCE
-     "${TARGET_SOURCE_DIR}/corporation/CorpBookmarkMgrService.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/CorpMgrService.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/CorporationDB.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/CorporationService.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/CorpRegistryService.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/CorpStationMgrService.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/LPService.cpp" )
-
-SET( dogmaim_INCLUDE
-     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMDB.h"
-     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMService.h"
-     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaDB.h"
-     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaService.h")
-SET( dogmaim_SOURCE
-     "${TARGET_SOURCE_DIR}/dogmaim/DogmaIMDB.cpp"
-     "${TARGET_SOURCE_DIR}/dogmaim/DogmaIMService.cpp"
-     "${TARGET_SOURCE_DIR}/dogmaim/DogmaDB.cpp"
-     "${TARGET_SOURCE_DIR}/dogmaim/DogmaService.cpp" )
-
 SET( character_INCLUDE
      "${TARGET_INCLUDE_DIR}/character/AggressionMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/CertificateMgrDB.h"
@@ -252,6 +212,44 @@ SET( chat_SOURCE
      "${TARGET_SOURCE_DIR}/chat/LSCService.cpp"
      "${TARGET_SOURCE_DIR}/chat/OnlineStatusService.cpp"
      "${TARGET_SOURCE_DIR}/chat/VoiceMgrService.cpp" )
+
+SET( config_INCLUDE
+     "${TARGET_INCLUDE_DIR}/config/ConfigDB.h"
+     "${TARGET_INCLUDE_DIR}/config/ConfigService.h"
+     "${TARGET_INCLUDE_DIR}/config/LanguageService.h"
+     "${TARGET_INCLUDE_DIR}/config/LocalizationServerService.h" )
+SET( config_SOURCE
+     "${TARGET_SOURCE_DIR}/config/ConfigDB.cpp"
+     "${TARGET_SOURCE_DIR}/config/ConfigService.cpp"
+     "${TARGET_SOURCE_DIR}/config/LanguageService.cpp"
+     "${TARGET_SOURCE_DIR}/config/LocalizationServerService.cpp" )
+
+SET( corporation_INCLUDE
+     "${TARGET_INCLUDE_DIR}/corporation/CorpBookmarkMgrService.h"
+     "${TARGET_INCLUDE_DIR}/corporation/CorpMgrService.h"
+     "${TARGET_INCLUDE_DIR}/corporation/CorporationCarrier.h"
+     "${TARGET_INCLUDE_DIR}/corporation/CorporationDB.h"
+     "${TARGET_INCLUDE_DIR}/corporation/CorporationService.h"
+     "${TARGET_INCLUDE_DIR}/corporation/CorpRegistryService.h"
+     "${TARGET_INCLUDE_DIR}/corporation/CorpStationMgrService.h"
+     "${TARGET_INCLUDE_DIR}/corporation/LPService.h" )
+SET( corporation_SOURCE
+     "${TARGET_SOURCE_DIR}/corporation/CorpBookmarkMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/corporation/CorpMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/corporation/CorporationDB.cpp"
+     "${TARGET_SOURCE_DIR}/corporation/CorporationService.cpp"
+     "${TARGET_SOURCE_DIR}/corporation/CorpRegistryService.cpp"
+     "${TARGET_SOURCE_DIR}/corporation/CorpStationMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/corporation/LPService.cpp" )
+
+SET( dogmaim_INCLUDE
+     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMService.h"
+     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaDB.h"
+     "${TARGET_INCLUDE_DIR}/dogmaim/DogmaService.h")
+SET( dogmaim_SOURCE
+     "${TARGET_SOURCE_DIR}/dogmaim/DogmaIMService.cpp"
+     "${TARGET_SOURCE_DIR}/dogmaim/DogmaDB.cpp"
+     "${TARGET_SOURCE_DIR}/dogmaim/DogmaService.cpp" )
 
 SET( imageserver_INCLUDE
      "${TARGET_INCLUDE_DIR}/imageserver/ImageServer.h"
@@ -340,14 +338,12 @@ SET( mining_INCLUDE
      "${TARGET_INCLUDE_DIR}/mining/Asteroid.h"
      "${TARGET_INCLUDE_DIR}/mining/AsteroidBeltManager.h"
      "${TARGET_INCLUDE_DIR}/mining/MiningCommands.h"
-     "${TARGET_INCLUDE_DIR}/mining/MiningDB.h"
      "${TARGET_INCLUDE_DIR}/mining/ReprocessingDB.h"
      "${TARGET_INCLUDE_DIR}/mining/ReprocessingService.h" )
 SET( mining_SOURCE
      "${TARGET_SOURCE_DIR}/mining/Asteroid.cpp"
      "${TARGET_SOURCE_DIR}/mining/AsteroidBeltManager.cpp"
      "${TARGET_SOURCE_DIR}/mining/MiningCommands.cpp"
-     "${TARGET_SOURCE_DIR}/mining/MiningDB.cpp"
      "${TARGET_SOURCE_DIR}/mining/ReprocessingDB.cpp"
      "${TARGET_SOURCE_DIR}/mining/ReprocessingService.cpp" )
 
@@ -524,11 +520,11 @@ SOURCE_GROUP( "include\\admin"         FILES ${admin_INCLUDE} )
 SOURCE_GROUP( "include\\apiserver"     FILES ${apiserver_INCLUDE} )
 SOURCE_GROUP( "include\\authorisation" FILES ${authorisation_INCLUDE} )
 SOURCE_GROUP( "include\\cache"         FILES ${cache_INCLUDE} )
+SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
+SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
 SOURCE_GROUP( "include\\config"        FILES ${config_INCLUDE} )
 SOURCE_GROUP( "include\\corporation"   FILES ${corporation_INCLUDE} )
 SOURCE_GROUP( "include\\dogmaim"       FILES ${dogmaim_INCLUDE} )
-SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
-SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
 SOURCE_GROUP( "include\\imageserver"   FILES ${imageserver_INCLUDE} )
 SOURCE_GROUP( "include\\inventory"     FILES ${inventory_INCLUDE} )
 SOURCE_GROUP( "include\\mail"          FILES ${mail_INCLUDE} )
@@ -552,11 +548,11 @@ SOURCE_GROUP( "src\\admin"         FILES ${admin_SOURCE} )
 SOURCE_GROUP( "src\\apiserver"     FILES ${apiserver_SOURCE} )
 SOURCE_GROUP( "src\\authorisation" FILES ${authorisation_SOURCE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_SOURCE} )
+SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
+SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
 SOURCE_GROUP( "src\\config"        FILES ${config_SOURCE} )
 SOURCE_GROUP( "src\\corporation"   FILES ${corporation_SOURCE} )
 SOURCE_GROUP( "src\\dogmaim"       FILES ${dogmaim_SOURCE} )
-SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
-SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
 SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
 SOURCE_GROUP( "src\\mail"          FILES ${mail_SOURCE} )
@@ -581,11 +577,11 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${apiserver_INCLUDE}      ${apiserver_SOURCE}
                 ${authorisation_INCLUDE}  ${authorisation_SOURCE}
                 ${cache_INCLUDE}          ${cache_SOURCE}
+                ${character_INCLUDE}      ${character_SOURCE}
+                ${chat_INCLUDE}           ${chat_SOURCE}
                 ${config_INCLUDE}         ${config_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
-                ${character_INCLUDE}      ${character_SOURCE}
-                ${chat_INCLUDE}           ${chat_SOURCE}
                 ${imageserver_INCLUDE}    ${imageserver_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
                 ${mail_INCLUDE}           ${mail_SOURCE}

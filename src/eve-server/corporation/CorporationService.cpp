@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "corporation/CorporationService.h"
+
 PyCallable_Make_InnerDispatcher(CorporationService)
 
 CorporationService::CorporationService(PyServiceMgr *mgr)

@@ -26,6 +26,7 @@
 #ifndef __STRUCTURE__H__INCL__
 #define __STRUCTURE__H__INCL__
 
+#include "inventory/Inventory.h"
 #include "system/SystemEntity.h"
 
 // TODO: We may need to create StructureTypeData and StructureType classes just as Ship.h/Ship.cpp

@@ -23,15 +23,17 @@
     Author:        Zhur
 */
 
-
-
 #include "eve-server.h"
+
+#include "NetService.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
 
 PyCallable_Make_InnerDispatcher(NetService)
 
 NetService::NetService(PyServiceMgr *mgr)
 : PyService(mgr, "machoNet"),
-m_dispatch(new Dispatcher(this))
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

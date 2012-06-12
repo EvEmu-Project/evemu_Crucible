@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "character/Character.h"
+#include "inventory/Owner.h"
+
 Owner::Owner(
     ItemFactory &_factory,
     uint32 _ownerID,

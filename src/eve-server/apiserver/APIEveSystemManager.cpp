@@ -23,9 +23,9 @@
     Author:        Aknor Jaden
 */
 
-
 #include "eve-server.h"
 
+#include "apiserver/APIEveSystemManager.h"
 
 APIEveSystemManager::APIEveSystemManager(const PyServiceMgr &services)
 : APIServiceManager(services)

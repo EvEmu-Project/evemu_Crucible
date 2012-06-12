@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "PyCallable.h"
+#include "admin/CommandDispatcher.h"
+
 CommandDispatcher::CommandDispatcher( PyServiceMgr& services )
 : m_services( services )
 {

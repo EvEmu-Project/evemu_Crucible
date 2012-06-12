@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "standing/FactionWarMgrDB.h"
+
 PyRep *FactionWarMgrDB::GetWarFactions() {
     DBQueryResult res;
 

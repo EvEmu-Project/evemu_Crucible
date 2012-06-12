@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "EVEServerConfig.h"
+#include "imageserver/ImageServer.h"
+#include "imageserver/ImageServerListener.h"
+
 const char *const ImageServer::FallbackURL = "http://image.eveonline.com/";
 
 const char *const ImageServer::Categories[] = {

@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "inventory/AttributeEnum.h"
+#include "ship/DestinyManager.h"
+#include "ship/Drone.h"
+
 using namespace Destiny;
 
 DroneEntity::DroneEntity(

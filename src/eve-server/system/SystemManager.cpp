@@ -25,6 +25,21 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "chat/LSCService.h"
+#include "mining/Asteroid.h"
+#include "npc/NPC.h"
+#include "npc/SpawnManager.h"
+#include "pos/Structure.h"
+#include "ship/Drone.h"
+#include "ship/Ship.h"
+#include "station/Station.h"
+#include "system/Container.h"
+#include "system/Deployable.h"
+#include "system/SolarSystem.h"
+#include "system/SystemBubble.h"
+#include "system/SystemEntities.h"
+#include "system/SystemManager.h"
 
 using namespace Destiny;
 

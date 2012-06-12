@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "EVEServerConfig.h"
+#include "character/Character.h"
+#include "character/CharacterDB.h"
+
 CharacterDB::CharacterDB()
 {
     load_name_validation_set();

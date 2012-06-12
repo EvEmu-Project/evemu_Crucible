@@ -23,9 +23,9 @@
     Author:        Zhur
 */
 
-
-
 #include "eve-server.h"
+
+#include "pos/PosMgrDB.h"
 
 PyRep *PosMgrDB::GetControlTowerFuelRequirements() {
     DBQueryResult res;

@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "character/SkillMgrService.h"
+
 PyCallable_Make_InnerDispatcher(SkillMgrService)
 PyCallable_Make_InnerDispatcher(SkillMgrBound)
 

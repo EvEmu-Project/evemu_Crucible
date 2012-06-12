@@ -24,9 +24,8 @@
 */
 
 #include "eve-server.h"
-//#include "ship/modules/Modules.h"
-//#include "ship/modules/components/ModifyShipAttributesComponent.h"
 
+#include "ship/modules/PassiveModules.h"
 
 PassiveModule::PassiveModule(InventoryItemRef item, ShipRef ship)
 {

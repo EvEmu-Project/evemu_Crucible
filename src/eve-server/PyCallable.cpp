@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "PyCallable.h"
+
 PyCallable::PyCallable()
 : m_serviceDispatch(NULL)
 {

@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "ship/ShipOperatorInterface.h"
+
 void ShipOperatorInterface::SetOperatorObject(Client * pClient)
 {
     m_pClient = pClient;

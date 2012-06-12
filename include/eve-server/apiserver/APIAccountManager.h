@@ -26,9 +26,8 @@
 #ifndef __APIACCOUNTMANAGER__H__INCL__
 #define __APIACCOUNTMANAGER__H__INCL__
 
+#include "apiserver/APIAccountDB.h"
 #include "apiserver/APIServiceManager.h"
-
-class APIAccountDB;
 
 /**
  * \class APIAccountManager

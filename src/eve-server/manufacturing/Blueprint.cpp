@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "manufacturing/Blueprint.h"
+
 /*
  * BlueprintTypeData
  */

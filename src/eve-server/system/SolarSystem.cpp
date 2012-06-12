@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "system/SolarSystem.h"
+
 /*
  * SolarSystemData
  */

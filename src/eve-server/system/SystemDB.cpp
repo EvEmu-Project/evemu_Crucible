@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "system/SystemDB.h"
+
 bool SystemDB::LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into) {
     DBQueryResult res;
 

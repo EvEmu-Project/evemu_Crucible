@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "account/InfoGatheringMgr.h"
 
 PyCallable_Make_InnerDispatcher(InfoGatheringMgr)
 

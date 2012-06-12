@@ -24,8 +24,8 @@
 */
 
 #include "eve-server.h"
-//#include "ModuleDB.h"
 
+#include "ship/modules/ModuleEffects.h"
 
 // ////////////////// MEffect Class ///////////////////////////
 

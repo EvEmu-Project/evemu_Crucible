@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "admin/ClientStatLogger.h"
+
 PyCallable_Make_InnerDispatcher(ClientStatLogger)
 
 ClientStatLogger::ClientStatLogger(PyServiceMgr *mgr)

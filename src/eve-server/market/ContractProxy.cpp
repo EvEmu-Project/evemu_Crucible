@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "market/ContractProxy.h"
+
 // crap
 PyCallable_Make_InnerDispatcher(ContractProxyService)
 

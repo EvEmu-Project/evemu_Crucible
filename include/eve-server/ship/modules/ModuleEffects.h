@@ -26,8 +26,8 @@
 #ifndef MODULE_EFFECTS_H
 #define MODULE_EFFECTS_H
 
-#include "ModuleDB.h"
-
+#include "ship/modules/ModuleDB.h"
+#include "ship/modules/ModuleDefs.h"
 
 class MEffect
 {

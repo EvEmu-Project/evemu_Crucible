@@ -23,16 +23,16 @@
     Author:        Zhur
 */
 
-
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(InsuranceService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "ship/InsuranceService.h"
 
 class InsuranceBound
-: public PyBoundObject {
+: public PyBoundObject
+{
 public:
-
     PyCallable_Make_Dispatcher(InsuranceBound)
 
     InsuranceBound(PyServiceMgr *mgr, ShipDB* db)
@@ -55,12 +55,12 @@ public:
 
     PyCallable_DECL_CALL(GetInsurancePrice)
 
-
 protected:
     ShipDB* m_db;
     Dispatcher *const m_dispatch;
 };
 
+PyCallable_Make_InnerDispatcher(InsuranceService)
 
 InsuranceService::InsuranceService(PyServiceMgr *mgr)
 : PyService(mgr, "insuranceSvc"),

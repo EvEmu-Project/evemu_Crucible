@@ -26,10 +26,12 @@
 #ifndef SUB_SYSTEM_MODULE_H
 #define SUB_SYSTEM_MODULE_H
 
-class SubSystemModule : public PassiveModule
+#include "ship/modules/PassiveModules.h"
+
+class SubSystemModule
+: public PassiveModule
 {
 public:
-
     SubSystemModule(InventoryItemRef item, ShipRef ship);
     ~SubSystemModule();
 

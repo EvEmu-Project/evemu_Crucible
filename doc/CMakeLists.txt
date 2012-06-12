@@ -10,7 +10,7 @@
 FIND_PACKAGE( "Doxygen" )
 
 IF( NOT DOXYGEN_FOUND )
-  MESSAGE( WARNING "Generated documentation won't be available" )
+  MESSAGE( WARNING "If you require generated documentation, please install Doxygen" )
   RETURN()
 ENDIF( NOT DOXYGEN_FOUND )
 

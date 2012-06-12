@@ -26,7 +26,8 @@
 #ifndef __APICHARACTERMANAGER__H__INCL__
 #define __APICHARACTERMANAGER__H__INCL__
 
-class APICharacterDB;
+#include "apiserver/APICharacterDB.h"
+#include "apiserver/APIServiceManager.h"
 
 /**
  * \class APICharacterManager

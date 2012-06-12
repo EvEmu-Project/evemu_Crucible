@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "EntityList.h"
+#include "PyServiceCD.h"
+#include "station/StationService.h"
+
 PyCallable_Make_InnerDispatcher(StationService)
 
 StationService::StationService(PyServiceMgr *mgr)

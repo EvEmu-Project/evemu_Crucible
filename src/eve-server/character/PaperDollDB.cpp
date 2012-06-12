@@ -26,6 +26,8 @@
 
 #include "eve-server.h"
 
+#include "character/PaperDollDB.h"
+
 PyRep* PaperDollDB::GetMyPaperDollData() const {
 
     DBQueryResult res;

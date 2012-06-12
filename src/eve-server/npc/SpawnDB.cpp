@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "npc/SpawnDB.h"
+#include "npc/SpawnManager.h"
+
 bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup *> &into) {
     DBQueryResult res;
 

@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "inventory/AttributeEnum.h"
+#include "ship/Ship.h"
+#include "ship/TargetManager.h"
+#include "system/SystemEntity.h"
 
 TargetManager::TargetManager(SystemEntity *self)
 : m_destroyed(false),

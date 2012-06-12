@@ -28,11 +28,11 @@
 #define __DOGMAIM_SERVICE_H_INCL__
 
 #include "PyService.h"
-#include "dogmaim/DogmaIMDB.h"
 
 class PyRep;
 
-class DogmaIMService : public PyService
+class DogmaIMService
+: public PyService
 {
 public:
     DogmaIMService(PyServiceMgr *mgr);
@@ -42,17 +42,9 @@ protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    DogmaIMDB m_db;
-
     PyCallable_DECL_CALL(GetAttributeTypes)
     //overloaded in order to support bound objects:
     virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 };
 
-
-
-
-
 #endif
-
-

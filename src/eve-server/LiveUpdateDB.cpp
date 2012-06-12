@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "LiveUpdateDB.h"
+
 PyList* LiveUpdateDB::GenerateUpdates()
 {
     const char* query = "SELECT updateID, updateName, description, machoVersionMin, machoVersionMax, buildNumberMin, buildNumberMax, methodName, objectID, codeType, code FROM liveupdates";

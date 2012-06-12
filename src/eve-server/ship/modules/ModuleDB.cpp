@@ -24,8 +24,8 @@
 */
 
 #include "eve-server.h"
-#include "ServiceDB.h"
 
+#include "ship/modules/ModuleDB.h"
 
 void ModuleDB::GetDgmEffects(uint32 effectID, DBQueryResult &res)
 {

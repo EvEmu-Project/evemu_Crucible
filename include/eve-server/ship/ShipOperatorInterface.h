@@ -26,6 +26,12 @@
 #ifndef __SHIPOPERATORINTERFACE_H_INCL__
 #define __SHIPOPERATORINTERFACE_H_INCL__
 
+#include "inventory/ItemRef.h"
+
+class Client;
+class DestinyManager;
+class NPC;
+
 class ShipOperatorInterface
 {
 public:

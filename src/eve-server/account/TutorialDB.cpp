@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "account/TutorialDB.h"
+
 PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
     DBQueryResult res;
 

@@ -23,12 +23,13 @@
     Author:        Reve
 */
 
-
 //work in progress
 
 #include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(PlanetMgrService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "pos/PlanetMgr.h"
 
 class PlanetMgrBound
 : public PyBoundObject
@@ -58,8 +59,9 @@ public:
 
 protected:
     Dispatcher *const m_dispatch;
-
 };
+
+PyCallable_Make_InnerDispatcher(PlanetMgrService)
 
 PlanetMgrService::PlanetMgrService(PyServiceMgr *mgr)
 : PyService(mgr, "planetMgr"),

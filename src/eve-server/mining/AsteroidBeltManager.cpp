@@ -25,16 +25,17 @@
 
 #include "eve-server.h"
 
-AsteroidBeltManager::AsteroidBeltManager(MiningDB *db, uint32 belt_id)
+#include "mining/Asteroid.h"
+#include "mining/AsteroidBeltManager.h"
+
+AsteroidBeltManager::AsteroidBeltManager(uint32 belt_id)
 : m_beltID(belt_id),
-  m_db(db),
   m_growthTimer(ASTEROID_GROWTH_INTERVAL_MS)    //default this to worst case. This will almost certainly be changed with a LoadState()
 {
     m_growthTimer.Start();
 }
 
 AsteroidBeltManager::~AsteroidBeltManager() {
-    delete m_db;
     _Clear();
 }
 

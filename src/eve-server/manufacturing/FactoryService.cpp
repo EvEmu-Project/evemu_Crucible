@@ -22,8 +22,12 @@
     ------------------------------------------------------------------------------------
     Author:        Zhur
 */
+
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "manufacturing/Blueprint.h"
+#include "manufacturing/FactoryService.h"
 
 PyCallable_Make_InnerDispatcher(FactoryService)
 

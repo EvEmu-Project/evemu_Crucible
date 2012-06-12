@@ -23,9 +23,12 @@
     Author:        Zhur
 */
 
-
-
 #include "eve-server.h"
+
+#include "EntityList.h"
+#include "PyService.h"
+#include "PyServiceMgr.h"
+#include "PyBoundObject.h"
 
 PyServiceMgr::PyServiceMgr( uint32 nodeID, EntityList& elist, ItemFactory& ifactory )
 : item_factory( ifactory ),

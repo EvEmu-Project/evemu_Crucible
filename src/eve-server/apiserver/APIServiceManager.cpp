@@ -23,13 +23,13 @@
     Author:        Aknor Jaden
 */
 
-
 #include "eve-server.h"
 
+#include "apiserver/APIServiceManager.h"
+#include "authorisation/PasswordModule.h"
 
 APIServiceManager::APIServiceManager(const PyServiceMgr &services)
-:
-  m_services(services)
+: m_services(services)
 {
     _pXmlDocOuterTag = NULL;
     _pXmlElementStack = NULL;

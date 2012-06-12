@@ -25,11 +25,17 @@
 
 #include "eve-server.h"
 
-//#include "PyCallable.h"
 #include "Client.h"
+#include "admin/AllCommands.h"
+#include "admin/CommandDB.h"
+#include "inventory/AttributeEnum.h"
 #include "inventory/InventoryDB.h"
 #include "inventory/InventoryItem.h"
-#include "inventory/AttributeEnum.h"
+#include "manufacturing/Blueprint.h"
+#include "ship/DestinyManager.h"
+#include "ship/Drone.h"
+#include "system/SystemManager.h"
+#include "system/SystemBubble.h"
 
 PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
 {

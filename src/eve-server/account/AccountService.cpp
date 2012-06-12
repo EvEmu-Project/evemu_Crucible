@@ -25,6 +25,11 @@
 
 #include "eve-server.h"
 
+#include "EntityList.h"
+#include "PyServiceCD.h"
+#include "account/AccountService.h"
+#include "cache/ObjCacheService.h"
+
 PyCallable_Make_InnerDispatcher(AccountService)
 
 AccountService::AccountService(PyServiceMgr *mgr)

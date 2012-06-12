@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "mail/MailDB.h"
+
 PyRep* MailDB::GetMailStatus(int charId)
 {
     DBQueryResult res;

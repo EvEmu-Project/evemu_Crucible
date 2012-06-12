@@ -22,8 +22,12 @@
     ------------------------------------------------------------------------------------
     Author:        Zhur
 */
+
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "standing/FactionWarMgrService.h"
 
 PyCallable_Make_InnerDispatcher(FactionWarMgrService)
 

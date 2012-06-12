@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "ship/dgmtypeattributeinfo.h"
+
 dgmtypeattributemgr::dgmtypeattributemgr()
 {
     // load shit from db

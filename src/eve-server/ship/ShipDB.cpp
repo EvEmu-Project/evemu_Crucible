@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "ship/ShipDB.h"
+
 PyTuple* ShipDB::GetFormations()
 {
     //vicious crap... but this is gunna be a bit of work to load from the DB (nested tuples)

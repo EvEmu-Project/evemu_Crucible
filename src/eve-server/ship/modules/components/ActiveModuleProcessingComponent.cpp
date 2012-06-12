@@ -25,8 +25,9 @@
 
 
 #include "eve-server.h"
-//#include "ship/modules/components/ActiveModuleProcessingComponent.h"
 
+#include "ship/Ship.h"
+#include "ship/modules/components/ActiveModuleProcessingComponent.h"
 
 ActiveModuleProcessingComponent::ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod)
 : m_Stop( false ), m_Mod( mod ), m_Ship( ship ), m_ShipAttrModComp( shipAttrMod )

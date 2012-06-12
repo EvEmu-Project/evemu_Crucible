@@ -27,13 +27,14 @@
 #ifndef __MODULES_H__
 #define __MODULES_H__
 
+#include "inventory/EffectsEnum.h"
+#include "inventory/InventoryItem.h"
+#include "inventory/ItemRef.h"
+#include "ship/Ship.h"
 #include "ship/modules/ModuleDefs.h"
 #include "ship/modules/ModuleEffects.h"
-#include "inventory/EffectsEnum.h"
-
 
 //generic module base class - possibly should inherit from RefPtr...
-
 class GenericModule
 {
 public:

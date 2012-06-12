@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "manufacturing/FactoryDB.h"
+
 PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) const {
     DBQueryResult res;
 

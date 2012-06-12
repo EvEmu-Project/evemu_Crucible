@@ -25,16 +25,14 @@
 
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(KeeperService)
-
-
-
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "system/KeeperService.h"
 
 class KeeperBound
-: public PyBoundObject {
+: public PyBoundObject
+{
 public:
-
     PyCallable_Make_Dispatcher(KeeperBound)
 
     KeeperBound(PyServiceMgr *mgr, SystemDB *db)
@@ -65,6 +63,7 @@ protected:
     Dispatcher *const m_dispatch;   //we own this
 };
 
+PyCallable_Make_InnerDispatcher(KeeperService)
 
 KeeperService::KeeperService(PyServiceMgr *mgr)
 : PyService(mgr, "keeper"),

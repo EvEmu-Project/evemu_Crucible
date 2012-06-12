@@ -28,11 +28,11 @@
 
 #include "PyService.h"
 
-class BrowserLockDownService : public PyService
+class BrowserLockdownService : public PyService
 {
 public:
-    BrowserLockDownService(PyServiceMgr *mgr);
-    ~BrowserLockDownService();
+    BrowserLockdownService(PyServiceMgr *mgr);
+    ~BrowserLockdownService();
 protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;

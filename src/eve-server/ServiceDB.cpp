@@ -25,6 +25,8 @@
 
 #include "eve-server.h"
 
+#include "ServiceDB.h"
+
 /**
  * @todo add auto account stuff ...//sConfig.account.autoAccountRole
  *       accountID = CreateNewAccount( login, pass, sConfig.account.autoAccountRole );

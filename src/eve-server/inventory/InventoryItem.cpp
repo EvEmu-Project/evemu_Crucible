@@ -25,9 +25,15 @@
 
 #include "eve-server.h"
 
-#ifndef INT_MAX
-#   define INT_MAX 0x7FFFFFFF
-#endif
+#include "Client.h"
+#include "EntityList.h"
+#include "character/Skill.h"
+#include "inventory/Owner.h"
+#include "manufacturing/Blueprint.h"
+#include "ship/Ship.h"
+#include "station/Station.h"
+#include "system/Celestial.h"
+#include "system/Container.h"
 
 //const uint32 SKILL_BASE_POINTS = 250;
 const EvilNumber EVIL_SKILL_BASE_POINTS(250);

@@ -27,6 +27,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "ship/FleetProxy.h"
+
 PyCallable_Make_InnerDispatcher(FleetProxyService)
 
 FleetProxyService::FleetProxyService(PyServiceMgr *mgr)

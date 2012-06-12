@@ -25,6 +25,12 @@
 
 #include "eve-server.h"
 
+#include "EVEServerConfig.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "character/CharUnboundMgrService.h"
+#include "imageserver/ImageServer.h"
+
 PyCallable_Make_InnerDispatcher(CharUnboundMgrService)
 
 CharUnboundMgrService::CharUnboundMgrService(PyServiceMgr* mgr)

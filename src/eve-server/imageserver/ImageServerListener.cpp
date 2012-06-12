@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "EVEServerConfig.h"
+#include "imageserver/ImageServerListener.h"
+
 ImageServerListener::ImageServerListener(asio::io_service& io)
 {
     _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.imageServerPort));

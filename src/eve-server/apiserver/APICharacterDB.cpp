@@ -23,9 +23,10 @@
     Author:        Aknor Jaden
 */
 
-
 #include "eve-server.h"
 
+#include "apiserver/APICharacterDB.h"
+#include "inventory/AttributeEnum.h"
 
 APICharacterDB::APICharacterDB()
 {

@@ -25,6 +25,12 @@
 
 #include "eve-server.h"
 
+#include "inventory/AttributeEnum.h"
+#include "npc/NPC.h"
+#include "npc/NPCAI.h"
+#include "ship/DestinyManager.h"
+#include "system/Damage.h"
+
 NPCAIMgr::NPCAIMgr(NPC *who)
 : m_state(Idle),
   m_entityFlyRange2(who->Item()->GetAttribute(AttrEntityFlyRange)*who->Item()->GetAttribute(AttrEntityFlyRange)),

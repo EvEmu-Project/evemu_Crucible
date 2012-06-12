@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "config/ConfigService.h"
+
 PyCallable_Make_InnerDispatcher(ConfigService)
 
 ConfigService::ConfigService(PyServiceMgr *mgr)

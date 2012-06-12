@@ -25,16 +25,20 @@
 
 #include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(DogmaIMService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "dogmaim/DogmaIMService.h"
+#include "system/SystemManager.h"
 
-class DogmaIMBound : public PyBoundObject {
+class DogmaIMBound
+: public PyBoundObject
+{
 public:
-
     PyCallable_Make_Dispatcher(DogmaIMBound)
 
-    DogmaIMBound(PyServiceMgr *mgr, DogmaIMDB *db)
+    DogmaIMBound(PyServiceMgr *mgr)
     : PyBoundObject(mgr),
-      m_db(db),
       m_dispatch(new Dispatcher(this))
     {
         _SetCallDispatcher(m_dispatch);
@@ -81,11 +85,10 @@ public:
     PyCallable_DECL_CALL(GetAllInfo)
 
 protected:
-
-    DogmaIMDB *const m_db;
     Dispatcher *const m_dispatch;
 };
 
+PyCallable_Make_InnerDispatcher(DogmaIMService)
 
 DogmaIMService::DogmaIMService(PyServiceMgr *mgr)
 : PyService(mgr, "dogmaIM"),
@@ -104,7 +107,7 @@ PyBoundObject *DogmaIMService::_CreateBoundObject(Client *c, const PyRep *bind_a
     _log(CLIENT__MESSAGE, "DogmaIMService bind request for:");
     bind_args->Dump(CLIENT__MESSAGE, "    ");
 
-    return(new DogmaIMBound(m_manager, &m_db));
+    return(new DogmaIMBound(m_manager));
 }
 
 PyResult DogmaIMService::Handle_GetAttributeTypes(PyCallArgs &call) {

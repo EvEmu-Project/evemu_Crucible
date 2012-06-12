@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "character/Character.h"
+#include "corporation/CorporationDB.h"
+
 PyObject *CorporationDB::ListCorpStations(uint32 corp_id) {
     DBQueryResult res;
 

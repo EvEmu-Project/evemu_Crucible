@@ -26,6 +26,9 @@
 #ifndef _INVENTORY_BOUND_H
 #define _INVENTORY_BOUND_H
 
+#include "PyBoundObject.h"
+#include "PyService.h"
+
 class InventoryBound
 : public PyBoundObject
 {

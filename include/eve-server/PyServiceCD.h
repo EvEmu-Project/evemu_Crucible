@@ -26,6 +26,7 @@
 #ifndef __PYSERVICECD_H_INCL__
 #define __PYSERVICECD_H_INCL__
 
+#include "Client.h"
 #include "PyCallable.h"
 
 /*

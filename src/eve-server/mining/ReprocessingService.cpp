@@ -22,11 +22,12 @@
     ------------------------------------------------------------------------------------
     Author:     Zhur
 */
+
 #include "eve-server.h"
 
-
-PyCallable_Make_InnerDispatcher(ReprocessingService)
-
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "mining/ReprocessingService.h"
 
 class ReprocessingServiceBound
 : public PyBoundObject
@@ -59,6 +60,8 @@ protected:
 };
 
 PyCallable_Make_InnerDispatcher(ReprocessingServiceBound)
+
+PyCallable_Make_InnerDispatcher(ReprocessingService)
 
 ReprocessingService::ReprocessingService(PyServiceMgr *mgr)
 : PyService(mgr, "reprocessingSvc"),

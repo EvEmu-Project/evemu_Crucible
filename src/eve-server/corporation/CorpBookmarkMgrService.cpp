@@ -25,9 +25,16 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "corporation/CorpBookmarkMgrService.h"
+
 PyCallable_Make_InnerDispatcher(CorpBookmarkMgrService)
 
-CorpBookmarkMgrService::CorpBookmarkMgrService(PyServiceMgr* mgr) : PyService(mgr, "corpBookmarkMgr"), m_dispatch(new Dispatcher(this))
+CorpBookmarkMgrService::CorpBookmarkMgrService(PyServiceMgr* mgr)
+: PyService(mgr, "corpBookmarkMgr"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

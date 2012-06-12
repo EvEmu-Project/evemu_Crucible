@@ -25,6 +25,7 @@
 
 #include "eve-server.h"
 
+#include "ship/modules/propulsion_modules/Afterburner.h"
 
 Afterburner::Afterburner( InventoryItemRef item, ShipRef ship )
 {

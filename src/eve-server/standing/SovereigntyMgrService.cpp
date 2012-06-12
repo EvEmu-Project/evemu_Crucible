@@ -23,10 +23,12 @@
     Author:        Reve
 */
 
-
 //work in progress
 
 #include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "standing/SovereigntyMgrService.h"
 
 PyCallable_Make_InnerDispatcher(SovereigntyMgrService)
 

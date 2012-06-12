@@ -25,6 +25,9 @@
 
 #include "eve-server.h"
 
+#include "PyServiceCD.h"
+#include "character/PaperDollService.h"
+
 PyCallable_Make_InnerDispatcher(PaperDollService)
 
 PaperDollService::PaperDollService(PyServiceMgr* mgr)

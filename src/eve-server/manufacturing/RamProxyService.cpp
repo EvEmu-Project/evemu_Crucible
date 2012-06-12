@@ -22,7 +22,12 @@
     ------------------------------------------------------------------------------------
     Author:     Zhur
 */
+
 #include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "manufacturing/Blueprint.h"
+#include "manufacturing/RamProxyService.h"
 
 PyCallable_Make_InnerDispatcher(RamProxyService)
 

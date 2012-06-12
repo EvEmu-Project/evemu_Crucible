@@ -25,6 +25,10 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "chat/kenny.h"
+#include "chat/LSCChannel.h"
+#include "chat/LSCService.h"
 
 PyRep *LSCChannelChar::Encode() const {
     ChannelJoinChannelCharsLine line;
