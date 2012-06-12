@@ -787,11 +787,15 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
         }
         else if( !args.isNumber( 1 ) )
         {
+            throw PyException( MakeCustomError( "The use of string based Character names for this command is not yet supported!  Use 'me' instead or the entityID of the character to which you wish to give skills." ) );
+            /*
             const char *name = args.arg( 1 ).c_str();
             Client *target = services->entity_list.FindCharacter( name );
             if(target == NULL)
                 throw PyException( MakeCustomError( "Cannot find Character by the name of %s", name ) );
             ownerID = target->GetCharacterID();
+            character = target->GetChar();
+            */
         }
         else
             throw PyException( MakeCustomError( "Argument 1 must be Character ID or Character Name ") );
@@ -813,40 +817,44 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
 
     SkillRef skill;
 
-    if(character->HasSkill( typeID ) )
+    // Make sure Character reference is not NULL before trying to use it:
+    if(character.get() != NULL)
     {
-        // Character already has this skill, so let's get the current level and check to see
-        // if we need to update its level to what's required:
-        SkillRef oldSkill = character->GetSkill( typeID );
-        oldSkillLevel = oldSkill->GetAttribute( AttrSkillLevel );
-
-        // Now check the current level to the required level and update it
-        if( oldSkillLevel < level )
+        if(character->HasSkill( typeID ) )
         {
-            character->InjectSkillIntoBrain( oldSkill, level);
+            // Character already has this skill, so let's get the current level and check to see
+            // if we need to update its level to what's required:
+            SkillRef oldSkill = character->GetSkill( typeID );
+            oldSkillLevel = oldSkill->GetAttribute( AttrSkillLevel );
+
+            // Now check the current level to the required level and update it
+            if( oldSkillLevel < level )
+            {
+                character->InjectSkillIntoBrain( oldSkill, level);
+                return new PyString ( "Gifting skills complete" );
+            }
+        }
+        else
+        {
+            // Character DOES NOT have this skill, so spawn a new one and then add this
+            // to the character with required level and skill points:
+            ItemData idata(
+                typeID,
+                ownerID,
+                0, //temp location
+                flag = (EVEItemFlags)flagSkill,
+                gty
+            );
+
+            InventoryItemRef item = services->item_factory.SpawnItem( idata );
+            skill = SkillRef::StaticCast( item );
+
+            if( !item )
+                throw PyException( MakeCustomError( "Unable to create item of type %s.", item->typeID() ) );
+
+            character->InjectSkillIntoBrain( skill, level);
             return new PyString ( "Gifting skills complete" );
         }
-    }
-    else
-    {
-        // Character DOES NOT have this skill, so spawn a new one and then add this
-        // to the character with required level and skill points:
-        ItemData idata(
-            typeID,
-            ownerID,
-            0, //temp location
-            flag = (EVEItemFlags)flagSkill,
-            gty
-        );
-
-        InventoryItemRef item = services->item_factory.SpawnItem( idata );
-        skill = SkillRef::StaticCast( item );
-
-        if( !item )
-            throw PyException( MakeCustomError( "Unable to create item of type %s.", item->typeID() ) );
-
-        character->InjectSkillIntoBrain( skill, level);
-        return new PyString ( "Gifting skills complete" );
     }
 
     return new PyString ("Skill Gifting Failure");
