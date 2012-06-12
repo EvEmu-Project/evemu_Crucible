@@ -35,7 +35,7 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/HeaderGenerator.h"
      "${TARGET_INCLUDE_DIR}/XMLPacketGen.h" )
 SET( SOURCE
-     "${TARGET_SOURCE_DIR}/main.cpp"
+     "${TARGET_SOURCE_DIR}/eve-xmlpktgen.cpp"
      "${TARGET_SOURCE_DIR}/Generator.cpp"
      "${TARGET_SOURCE_DIR}/CloneGenerator.cpp"
      "${TARGET_SOURCE_DIR}/ConstructGenerator.cpp"
@@ -59,7 +59,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h"
-                  "${TARGET_SOURCE_DIR}/main.cpp" )
+                  "${TARGET_SOURCE_DIR}/eve-xmlpktgen.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-core" )
 
