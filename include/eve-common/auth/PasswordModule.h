@@ -23,8 +23,8 @@
     Author:     Captnoord
 */
 
-#ifndef _PASSWORD_MODULE_H
-#define _PASSWORD_MODULE_H
+#ifndef __AUTH__PASSWORD_MODULE_H__INCL__
+#define __AUTH__PASSWORD_MODULE_H__INCL__
 
 /**
  * \class PasswordModule
@@ -35,57 +35,79 @@
  *
  * @author Captnoord
  * @date January 2009
- * @note these function's aren't MT compatible ATM.
  */
-
-/* small hack, should be easy to fix */
-#define SHA_DIGEST_SIZE 20
-extern uint8 mDigest[SHA_DIGEST_SIZE];
-
 class PasswordModule
 {
 public:
     /**
+     * @brief Generates a SHA-1 hash from a username and a password.
      *
+     * @param[in]  user The username.
+     * @param[in]  pass The password.
+     * @param[out] hash Where to place the resultant SHA-1 hash.
+     *
+     * @note This is a relatively slow function, so I recommend
+     *       not to use it to calculate hashes on the fly.
      */
-    #ifndef WIN32
-    static uint8 * wchar_tToUtf16(uint8 * chars, int charLen);
-    #endif
+    static bool GeneratePassHash(
+        const std::string& user,
+        const std::string& pass,
+        std::string& hash );
+    /**
+     * @brief Generates a SHA-1 hash from a username and a password.
+     *
+     * @param[in]  user    The username.
+     * @param[in]  userLen Length of the username.
+     * @param[in]  pass    The password.
+     * @param[in]  passLen Length of the password.
+     * @param[out] hash    Where to place the resultant SHA-1 hash.
+     *
+     * @note This is a relatively slow function, so I recommend
+     *       not to use it to calculate hashes on the fly.
+     */
+    static bool GeneratePassHash(
+        const char* user, size_t userLen,
+        const char* pass, size_t passLen,
+        std::string& hash );
 
     /**
-     * @brief this functions converts a username and password into a Sha1 hash.
+     * @brief Generates a SHA-1 hash from a username and a password.
      *
+     * The input username and password must be encoded in UTF-16 and
+     * the username must be lowercased and trimmed to give expected
+     * results.
      *
+     * @param[in]  user The username.
+     * @param[in]  pass The password.
+     * @param[out] hash Where to place the resultant SHA-1 hash.
      *
-     * @param[in] userName Unicode username string representation.
-     * @param[in] passWord Unicode password string representation.
-     * @param[out] passWordHash return parameter, returning the Sha1 hash of the userName and passWord
-     * @note this is a relative slow function, so I recommend not to use it to calculate the hashes on the fly.
+     * @note This is a relatively slow function, so I recommend
+     *       not to use it to calculate hashes on the fly.
      */
-    static bool GeneratePassHash(/*in*/std::wstring &userName, /*in*/std::wstring &passWord, /*out*/std::string &passWordHash);
-
+    static bool GeneratePassHash(
+        const std::vector< uint16 >& user,
+        const std::vector< uint16 >& pass,
+        std::string& hash );
     /**
-     * @brief this functions converts a username and password into a Sha1 hash.
+     * @brief Generates a SHA-1 hash from a username and a password.
      *
+     * The input username and password must be encoded in UTF-16 and
+     * the username must be lowercased and trimmed to give expected
+     * results.
      *
+     * @param[in]  user    The username.
+     * @param[in]  userLen Length of the username (in UTF-16 characters).
+     * @param[in]  pass    The password.
+     * @param[in]  passLen Length of the password (in UTF-16 characters).
+     * @param[out] hash    Where to place the resultant SHA-1 hash.
      *
-     * @param[in] userName Unicode username wchar_t string representation.
-     * @param[in] passWord Unicode password wchar_t string representation.
-     * @param[out] passWordHash return parameter, returning the Sha1 hash of the userName and passWord
-     * @note this is a relative slow function, so I recommend not to use it to calculate the hashes on the fly.
+     * @note This is a relatively slow function, so I recommend
+     *       not to use it to calculate hashes on the fly.
      */
-    static bool GeneratePassHash(/*in*/const wchar_t *userName, /*in*/const wchar_t *passWord, /*out*/std::string &passWordHash);
-
-    /**
-     * @brief GenerateHexString generates a hex string from a normal string.
-     *
-     * GenerateHexString generates a hex string from a normal string, which
-     * makes reading non strings easier to read.
-     *
-     * @param[in] str is the object that needs to be "hexified".
-     * @return the hexadecimal representation of str.
-     */
-    static std::string GenerateHexString(const std::string & str);
+    static bool GeneratePassHash(
+        const uint16* user, size_t userLen,
+        const uint16* pass, size_t passLen,
+        std::string& hash );
 };
 
-#endif//_PASSWORD_MODULE_H
+#endif /* !__AUTH__PASSWORD_MODULE_H__INCL__ */

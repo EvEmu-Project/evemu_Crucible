@@ -28,144 +28,101 @@
 #include "auth/PasswordModule.h"
 #include "auth/ShaModule.h"
 
-uint8 mDigest[SHA_DIGEST_SIZE];
-
-#ifndef WIN32
-    uint8 * PasswordModule::wchar_tToUtf16(uint8 * chars, int charLen)
-    {
-        iconv_t cd;
-    size_t iconv_value;
-    cd = iconv_open("UTF-16", "WCHAR_T");
-    long unsigned int len;
-    long unsigned int utf16len;
-    char * utf16;
-    uint8 * utf16start;
-    len = charLen*4;
-    utf16len = charLen*2;
-    cd = iconv_open("UTF-16LE", "UTF-32");
-    utf16 = (char *)calloc(utf16len, 1);
-    utf16start = (uint8*)utf16;
-    iconv_value = iconv(cd, (char**)&chars, &len, &utf16, &utf16len);
-
-    return utf16start;
-    }
-#endif
-
-bool PasswordModule::GeneratePassHash(std::wstring &userName, std::wstring &passWord, std::string &passWordHash)
+bool PasswordModule::GeneratePassHash(
+    const std::string& user,
+    const std::string& pass,
+    std::string& hash )
 {
-    if (userName.size() > 100 || passWord.size() > 100) {
-        sLog.Error("PasswordModule", "username or password is simply to long");
-        return false;
-    }
-
-    std::wstring salt = userName;
-
-    Utils::Strings::trim(salt, true, true);     // comparable to the ".strip" function in python.
-    Utils::Strings::toLowerCase(salt);
-
-    int saltLen = (int)salt.size() * 2;
-    uint8 * saltChar = (uint8*)&salt[0];
-
-    std::wstring init = passWord + salt;
-
-    int saltInitLen = (int)init.size() * 2;
-    uint8 * saltInitChar = (uint8*)&init[0];
-
-    #ifndef WIN32
-        saltChar = wchar_tToUtf16(saltChar, salt.size());
-        saltInitChar = wchar_tToUtf16(saltInitChar, init.size());
-    #endif
-
-    ShaModule::SHAobject shaObj;
-
-    ShaModule::sha_init(&shaObj);
-    ShaModule::sha_update(&shaObj, saltInitChar, saltInitLen);
-
-    int daylySaltLen = SHA_DIGEST_SIZE + saltLen;
-
-    // allocate buffer for the hashing, this way its only allocated once.
-    uint8 * uDaylySalt = (uint8 *)malloc(daylySaltLen);   // first part of the data string
-    uint8 * uDaylySaltPart = &uDaylySalt[SHA_DIGEST_SIZE];      // second part of the data string
-
-    for (int i = 0; i < 1000; i++)
-    {
-        ShaModule::sha_digest(&shaObj, uDaylySalt);
-        memcpy(uDaylySaltPart, saltChar, saltLen);
-
-        ShaModule::sha_init(&shaObj);
-        ShaModule::sha_update(&shaObj, uDaylySalt, daylySaltLen);
-    }
-
-    free(uDaylySalt);
-
-    ShaModule::sha_final(mDigest, &shaObj);
-
-    if (passWordHash.size() != 0)
-        passWordHash = "";
-
-    passWordHash.append((char*)mDigest, SHA_DIGEST_SIZE);
-    return true;
+    // Pass it to the next function
+    return GeneratePassHash(
+        user.c_str(), user.length(),
+        pass.c_str(), pass.length(),
+        hash );
 }
 
-bool PasswordModule::GeneratePassHash(const wchar_t *userName, const wchar_t *passWord, std::string &passWordHash)
+bool PasswordModule::GeneratePassHash(
+    const char* user, size_t userLen,
+    const char* pass, size_t passLen,
+    std::string& hash )
 {
-    if (wcsnlen(userName, 51) > 50 || wcsnlen(passWord, 51) > 50) {
-        sLog.Error("PasswordModule", "username or password is simply to long");
-        return false;
-    }
+    // Convert username and password to UTF-16
+    std::vector< uint16 > username, password;
+    utf8::utf8to16( user, user + userLen,
+                    std::back_inserter( username ) );
+    utf8::utf8to16( pass, pass + passLen,
+                    std::back_inserter( password ) );
 
-    std::wstring salt(userName);
+    // Lowercase the username
+    std::transform( username.begin(), username.end(),
+                    username.begin(), ::tolower );
 
-    Utils::Strings::trim(salt, true, true);     // comparable to the ".strip" function in python.
-    Utils::Strings::toLowerCase(salt);
+    // Find index of first non-space
+    size_t frontIndex = 
+        std::find_if( username.begin(), username.end(),
+                      std::not1( std::ptr_fun( ::isspace ) ) )
+        - username.begin();
+    // Find reverse index of last non-space
+    size_t backIndex  = 
+        std::find_if( username.rbegin(), username.rend(),
+                      std::not1( std::ptr_fun( ::isspace ) ) )
+        - username.rbegin();
+    // Trim the username
+    username.assign( username.begin() + frontIndex,
+                     username.end() - backIndex );
 
-    int saltLen = (int)salt.size() * 2;
-    uint8 * saltChar = (uint8*)&salt[0];
-
-    std::wstring init(passWord);
-    init += salt;
-
-    int saltInitLen = (int)init.size() * 2;
-    uint8 * saltInitChar = (uint8*)&init[0];
-
-    #ifndef WIN32
-        saltChar = wchar_tToUtf16(saltChar, salt.size());
-        saltInitChar = wchar_tToUtf16(saltInitChar, init.size());
-    #endif
-
-    ShaModule::SHAobject shaObj;
-
-    ShaModule::sha_init(&shaObj);
-    ShaModule::sha_update(&shaObj, saltInitChar, saltInitLen);
-
-    int daylySaltLen = SHA_DIGEST_SIZE + saltLen;
-
-    // allocate buffer for the hashing, this way its only allocated once.
-    uint8 * uDaylySalt = (uint8 *)malloc(daylySaltLen);   // first part of the data string
-    uint8 * uDaylySaltPart = &uDaylySalt[SHA_DIGEST_SIZE];      // second part of the data string
-
-    for (int i = 0; i < 1000; i++)
-    {
-        ShaModule::sha_digest(&shaObj, uDaylySalt);
-        memcpy(uDaylySaltPart, saltChar, saltLen);
-
-        ShaModule::sha_init(&shaObj);
-        ShaModule::sha_update(&shaObj, uDaylySalt, daylySaltLen);
-    }
-
-    free(uDaylySalt);
-
-    ShaModule::sha_final(mDigest, &shaObj);
-
-    if (passWordHash.size() != 0)
-        passWordHash = "";
-
-    passWordHash.append((char*)mDigest, SHA_DIGEST_SIZE);
-
-    return true;
+    // Pass it to the next function
+    return GeneratePassHash( username, password, hash );
 }
 
-std::string PasswordModule::GenerateHexString(const std::string & str)
+bool PasswordModule::GeneratePassHash(
+    const std::vector< uint16 >& user,
+    const std::vector< uint16 >& pass,
+    std::string& hash )
 {
-    return ShaModule::Hexify(str.c_str(), str.size());
+    // Pass it to the next function
+    return GeneratePassHash(
+        &user[0], user.size(),
+        &pass[0], pass.size(),
+        hash );
+}
+
+bool PasswordModule::GeneratePassHash(
+    const uint16* user, size_t userLen,
+    const uint16* pass, size_t passLen,
+    std::string& hash )
+{
+    // Define byte pointers (due to readability)
+    const uint8* _user    = reinterpret_cast< const uint8* >( user );
+    size_t       _userLen = userLen * sizeof( uint16 );
+    const uint8* _pass    = reinterpret_cast< const uint8* >( pass );
+    size_t       _passLen = passLen * sizeof( uint16 );
+
+    // Helper digest buffer
+    uint8 digest[ SHA_DIGESTSIZE ];
+
+    // Initialize the hash
+    ShaModule::SHAobject shaObj;
+    ShaModule::sha_init( &shaObj );
+    ShaModule::sha_update( &shaObj, _pass, _passLen );
+    ShaModule::sha_update( &shaObj, _user, _userLen );
+
+    // The hashing loop
+    for( size_t i = 0; i < 1000; ++i )
+    {
+        // Store the digest
+        ShaModule::sha_digest( &shaObj, digest );
+
+        // Rehash the whole stuff
+        ShaModule::sha_init( &shaObj );
+        ShaModule::sha_update( &shaObj, digest, SHA_DIGESTSIZE );
+        ShaModule::sha_update( &shaObj, _user, _userLen );
+    }
+
+    // Obtain the resulting hash
+    ShaModule::sha_final( digest, &shaObj );
+    hash.assign(
+        reinterpret_cast< char* >( digest ),
+        SHA_DIGESTSIZE );
+
+    return true;
 }
