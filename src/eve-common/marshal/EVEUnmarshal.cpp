@@ -712,38 +712,31 @@ bool UnmarshalStream::LoadZeroCompressed( Buffer& into )
         const Buffer::const_iterator<ZeroCompressOpcode> opcode = cur.As<ZeroCompressOpcode>();
         ++cur;
 
+#   define OPCODE_DECODE( opIsZero, opLen )     \
+        if( opIsZero )                          \
+        {                                       \
+            uint8 len = opLen + 1;              \
+            while( 0 < len-- )                  \
+                into.Append<uint8>( 0 );        \
+        }                                       \
+        else                                    \
+        {                                       \
+            const Buffer::const_iterator<uint8> \
+                dataEnd = 8 - opLen < end - cur \
+                          ? cur + ( 8 - opLen ) \
+                          : end;                \
+                                                \
+            into.AppendSeq( cur, dataEnd );     \
+            cur = dataEnd;                      \
+        }
+
         // Decode first part
-        if( opcode->firstIsZero )
-        {
-            uint8 len = ( opcode->firstLen + 1 );
-            while( 0 < len-- )
-                into.Append<uint8>( 0 );
-        }
-        else
-        {
-            const Buffer::const_iterator<uint8> dataEnd = std::min( end, cur + 8 - opcode->firstLen );
-
-            into.AppendSeq( cur, dataEnd );
-            cur = dataEnd;
-        }
-
+        OPCODE_DECODE( opcode->firstIsZero, opcode->firstLen )
         // Decode second part
-        if( opcode->secondIsZero )
-        {
-            uint8 len = ( opcode->secondLen + 1 );
-            while( 0 < len-- )
-                into.Append<uint8>( 0 );
-        }
-        else
-        {
-            const Buffer::const_iterator<uint8> dataEnd = std::min( end, cur + 8 - opcode->secondLen );
+        OPCODE_DECODE( opcode->secondIsZero, opcode->secondLen )
 
-            into.AppendSeq( cur, dataEnd );
-            cur = dataEnd;
-        }
+#   undef OPCODE_DECODE
     }
 
     return true;
 }
-
-

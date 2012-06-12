@@ -590,65 +590,53 @@ bool MarshalStream::SaveZeroCompressed( const Buffer& data )
         Buffer::iterator<ZeroCompressOpcode> opcode = packed.end<ZeroCompressOpcode>();
         packed.ResizeAt( opcode, 1 );
 
+#   define OPCODE_ENCODE( opIsZero, opLen )     \
+        if( 0 == *cur )                         \
+        {                                       \
+            opIsZero = true;                    \
+            opLen    = 7;                       \
+                                                \
+            do                                  \
+            {                                   \
+                ++cur;                          \
+                ++opLen;                        \
+            } while( 7 > opLen && cur < end     \
+                     && 0 == *cur );            \
+        }                                       \
+        else /* 0 != *cur */                    \
+        {                                       \
+            opIsZero = false;                   \
+            opLen    = 0;                       \
+                                                \
+            do                                  \
+            {                                   \
+                packed.Append<uint8>( *cur++ ); \
+                --opLen;                        \
+            } while( 0 < opLen && cur < end     \
+                     && 0 != *cur );            \
+        }
+
         // Encode first part
-        if( 0x00 == *cur )
-        {
-            opcode->firstIsZero = true;
-            opcode->firstLen = -1;
-
-            do
-            {
-                ++cur;
-                ++opcode->firstLen;
-            } while( 7 > opcode->firstLen && ( cur < end ? 0x00 == *cur : false ) );
-        }
-        else
-        {
-            opcode->firstIsZero = false;
-            opcode->firstLen = 8;
-
-            do
-            {
-                packed.Append<uint8>( *cur++ );
-                --opcode->firstLen;
-            } while( 0 < opcode->firstLen && ( cur < end ? 0x00 != *cur : false ) );
-        }
+        OPCODE_ENCODE( opcode->firstIsZero, opcode->firstLen );
 
         // Check whether we have data for second part
-        if( cur >= end )
+        if( end <= cur )
         {
             opcode->secondIsZero = true;
-            opcode->secondLen = 0;
+            opcode->secondLen    = 0;
+            break;
         }
+
         // Encode second part
-        else if( 0x00 == *cur )
-        {
-            opcode->secondIsZero = true;
-            opcode->secondLen = -1;
+        OPCODE_ENCODE( opcode->secondIsZero, opcode->secondLen );
 
-            do
-            {
-                ++cur;
-                ++opcode->secondLen;
-            } while( 7 > opcode->secondLen && ( cur < end ? 0x00 == *cur : false ) );
-        }
-        else
-        {
-            opcode->secondIsZero = false;
-            opcode->secondLen = 8;
-
-            do
-            {
-                packed.Append<uint8>( *cur++ );
-                --opcode->secondLen;
-            } while( 0 < opcode->secondLen && ( cur < end ? 0x00 != *cur : false ) );
-        }
+#   undef OPCODE_ENCODE
     }
 
+    // Write the packed data
     PutSizeEx( packed.size() );
     if( 0 < packed.size() )
         Put( packed.begin<uint8>(), packed.end<uint8>() );
 
     return true;
 }
-
