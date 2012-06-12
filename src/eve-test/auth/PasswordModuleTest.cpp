@@ -26,13 +26,9 @@
 #include "eve-test.h"
 
 // username
-const char   USERNAME[]   = " Hello World ";
-const size_t USERNAME_LEN = sizeof( USERNAME ) - 1;
-
+const std::string USERNAME = " Hello World ";
 // password
-const char   PASSWORD[]   = " Secret Password ";
-const size_t PASSWORD_LEN = sizeof( PASSWORD ) - 1;
-
+const std::string PASSWORD = " Secret Password ";
 // hash
 const uint8 HASH[] =
 {
@@ -47,36 +43,13 @@ int auth_PasswordModuleTest( int argc, char* argv[] )
     // Print input data
     ::printf( "username='%s' (len=%lu)\n"
               "password='%s' (len=%lu)\n",
-              USERNAME, USERNAME_LEN,
-              PASSWORD, PASSWORD_LEN );
-
-    std::wstring wUsername, wPassword;
-
-    // Convert username
-    wUsername.resize( USERNAME_LEN );
-    if( USERNAME_LEN != ::mbstowcs(
-            &wUsername[0],
-            USERNAME, USERNAME_LEN ) )
-    {
-        ::perror( "Cannot convert username to wide string" );
-        return EXIT_FAILURE;
-    }
-
-    // Convert password
-    wPassword.resize( PASSWORD_LEN );
-    if( PASSWORD_LEN != ::mbstowcs(
-            &wPassword[0],
-            PASSWORD, PASSWORD_LEN ) )
-    {
-        ::perror( "Cannot convert password to wide string" );
-        return EXIT_FAILURE;
-    }
+              USERNAME.c_str(), USERNAME.length(),
+              PASSWORD.c_str(), PASSWORD.length() );
 
     // Generate the hash
     std::string hash;
     if( !PasswordModule::GeneratePassHash(
-            wUsername, wPassword,
-            hash ) )
+            USERNAME, PASSWORD, hash ) )
     {
         ::fprintf( stderr, "Cannot generate the hash" );
         return EXIT_FAILURE;
