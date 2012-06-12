@@ -25,7 +25,6 @@
 
 #include "eve-tool.h"
 
-#include "main.h"
 #include "Commands.h"
 
 const char* const CACHE_DIR =         EVEMU_ROOT "/cache";

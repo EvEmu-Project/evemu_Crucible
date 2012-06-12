@@ -25,10 +25,10 @@ SET( ${TARGET_NAME}_INCLUDE_DIRS
 #########
 SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/eve-tool.h"
-     "${TARGET_INCLUDE_DIR}/main.h" )
+     "${TARGET_INCLUDE_DIR}/Commands.h" )
 SET( SOURCE
-     "${TARGET_SOURCE_DIR}/Commands.cpp"
-     "${TARGET_SOURCE_DIR}/main.cpp" )
+     "${TARGET_SOURCE_DIR}/eve-tool.cpp"
+     "${TARGET_SOURCE_DIR}/Commands.cpp" )
 
 ########################
 # Setup the executable #
@@ -43,7 +43,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-tool.h"
-                  "${TARGET_SOURCE_DIR}/main.cpp" )
+                  "${TARGET_SOURCE_DIR}/eve-tool.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common" )
 

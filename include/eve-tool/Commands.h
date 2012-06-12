@@ -59,6 +59,13 @@ const EVEToolCommand* FindCommand( const char* name );
  */
 const EVEToolCommand* FindCommand( const std::string& name );
 
+/** Cache directory to be used. */
+extern const char* const CACHE_DIR;
+/** Log settings file to be used. */
+extern const char* const LOG_SETTINGS_FILE;
+/** Log file to be used. */
+extern const char* const LOG_FILE;
+
 /**
  * @brief Processed given command.
  *
@@ -66,5 +73,36 @@ const EVEToolCommand* FindCommand( const std::string& name );
  */
 void ProcessCommand( const Seperator& cmd );
 
-#endif /* !__COMMANDS_H__INCL__ */
+/**
+ * @brief Processes given string as command.
+ *
+ * @param[in] str String to be processed.
+ */
+void ProcessString( const char* str );
+/**
+ * @brief Processes given string as command.
+ *
+ * @param[in] str String to be processed.
+ */
+void ProcessString( const std::string& str );
 
+/**
+ * @brief Loads commands from given file.
+ *
+ * @param[in] file File to load commands from.
+ */
+void ProcessFile( FILE* file );
+/**
+ * @brief Loads commands from given file.
+ *
+ * @param[in] filename Name of file to load commands from.
+ */
+void ProcessFile( const char* filename );
+/**
+ * @brief Loads commands from given file.
+ *
+ * @param[in] filename Name of file to load commands from.
+ */
+void ProcessFile( const std::string& filename );
+
+#endif /* !__COMMANDS_H__INCL__ */
