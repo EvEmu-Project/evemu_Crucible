@@ -9,10 +9,6 @@
 ################
 FIND_PACKAGE( "Lua" QUIET )
 
-IF( NOT WIN32 )
-  FIND_PACKAGE( "ICONV" REQUIRED )
-ENDIF( NOT WIN32 )
-
 IF( NOT LUA_FOUND )
   ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/lua"
                     "${PROJECT_BINARY_DIR}/dep/lua" )
@@ -147,13 +143,6 @@ SET( apiserver_SOURCE
      "${TARGET_SOURCE_DIR}/apiserver/APIServerManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIServiceDB.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIServiceManager.cpp" )
-
-SET( authorisation_INCLUDE
-     "${TARGET_INCLUDE_DIR}/authorisation/BinAsciiModule.h"
-     "${TARGET_INCLUDE_DIR}/authorisation/PasswordModule.h"
-     "${TARGET_INCLUDE_DIR}/authorisation/ShaModule.h" )
-SET( authorisation_SOURCE
-     "${TARGET_SOURCE_DIR}/authorisation/PasswordModule.cpp" )
 
 SET( cache_INCLUDE
      "${TARGET_INCLUDE_DIR}/cache/BulkMgrService.h"
@@ -518,7 +507,6 @@ SOURCE_GROUP( "include"                FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\account"       FILES ${account_INCLUDE} )
 SOURCE_GROUP( "include\\admin"         FILES ${admin_INCLUDE} )
 SOURCE_GROUP( "include\\apiserver"     FILES ${apiserver_INCLUDE} )
-SOURCE_GROUP( "include\\authorisation" FILES ${authorisation_INCLUDE} )
 SOURCE_GROUP( "include\\cache"         FILES ${cache_INCLUDE} )
 SOURCE_GROUP( "include\\character"     FILES ${character_INCLUDE} )
 SOURCE_GROUP( "include\\chat"          FILES ${chat_INCLUDE} )
@@ -546,7 +534,6 @@ SOURCE_GROUP( "src"                FILES ${SOURCE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_SOURCE} )
 SOURCE_GROUP( "src\\apiserver"     FILES ${apiserver_SOURCE} )
-SOURCE_GROUP( "src\\authorisation" FILES ${authorisation_SOURCE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_SOURCE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
 SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
@@ -575,7 +562,6 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${account_INCLUDE}        ${account_SOURCE}
                 ${admin_INCLUDE}          ${admin_SOURCE}
                 ${apiserver_INCLUDE}      ${apiserver_SOURCE}
-                ${authorisation_INCLUDE}  ${authorisation_SOURCE}
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
                 ${chat_INCLUDE}           ${chat_SOURCE}

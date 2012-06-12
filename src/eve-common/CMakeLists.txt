@@ -12,6 +12,10 @@ ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/utils"
 
 FIND_PACKAGE( "UTF8CPP" QUIET )
 
+IF( NOT WIN32 )
+  FIND_PACKAGE( "ICONV" REQUIRED )
+ENDIF( NOT WIN32 )
+
 IF( NOT UTF8CPP_FOUND )
   ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/utf8cpp"
                     "${PROJECT_BINARY_DIR}/dep/utf8cpp" )
@@ -49,6 +53,13 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/EVEVersion.h" )
 SET( SOURCE
      "" )
+
+SET( auth_INCLUDE
+     "${TARGET_INCLUDE_DIR}/auth/BinAsciiModule.h"
+     "${TARGET_INCLUDE_DIR}/auth/PasswordModule.h"
+     "${TARGET_INCLUDE_DIR}/auth/ShaModule.h" )
+SET( auth_SOURCE
+     "${TARGET_SOURCE_DIR}/auth/PasswordModule.cpp" )
 
 SET( cache_INCLUDE
      "${TARGET_INCLUDE_DIR}/cache/CachedObjectMgr.h" )
@@ -201,6 +212,7 @@ SET( utils_SOURCE
 INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
 
 SOURCE_GROUP( "include"                  FILES ${INCLUDE} )
+SOURCE_GROUP( "include\\auth"            FILES ${auth_INCLUDE} )
 SOURCE_GROUP( "include\\cache"           FILES ${cache_INCLUDE} )
 SOURCE_GROUP( "include\\database"        FILES ${database_INCLUDE} )
 SOURCE_GROUP( "include\\destiny"         FILES ${destiny_INCLUDE} )
@@ -213,6 +225,7 @@ SOURCE_GROUP( "include\\tables"          FILES ${tables_INCLUDE} )
 SOURCE_GROUP( "include\\utils"           FILES ${utils_INCLUDE} )
 
 SOURCE_GROUP( "src"                  FILES ${SOURCE} )
+SOURCE_GROUP( "src\\auth"            FILES ${auth_SOURCE} )
 SOURCE_GROUP( "src\\cache"           FILES ${cache_SOURCE} )
 SOURCE_GROUP( "src\\database"        FILES ${database_SOURCE} )
 SOURCE_GROUP( "src\\destiny"         FILES ${destiny_SOURCE} )
@@ -236,6 +249,7 @@ ADD_CUSTOM_COMMAND( OUTPUT ${packets_INCLUDE} ${packets_SOURCE}
 
 ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE}                ${SOURCE}
+             ${auth_INCLUDE}           ${auth_SOURCE}
              ${cache_INCLUDE}          ${cache_SOURCE}
              ${database_INCLUDE}       ${database_SOURCE}
              ${destiny_INCLUDE}        ${destiny_SOURCE}

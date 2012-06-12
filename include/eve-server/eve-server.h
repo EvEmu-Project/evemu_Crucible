@@ -62,6 +62,8 @@
 #include "eve-common.h"
 
 #include "EVEVersion.h"
+// auth
+#include "auth/PasswordModule.h"
 // cache
 #include "cache/CachedObjectMgr.h"
 // database
@@ -120,10 +122,6 @@
 /************************************************************************/
 /* eve-server includes                                                  */
 /************************************************************************/
-// iconv
-#ifndef WIN32
-#   include <iconv.h>
-#endif
 // Lua
 #include <lua.h>
 

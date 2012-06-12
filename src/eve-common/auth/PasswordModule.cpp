@@ -23,9 +23,10 @@
     Author:     Captnoord
 */
 
-#include "eve-server.h"
-#include "authorisation/PasswordModule.h"
-#include "authorisation/ShaModule.h"
+#include "eve-common.h"
+
+#include "auth/PasswordModule.h"
+#include "auth/ShaModule.h"
 
 uint8 mDigest[SHA_DIGEST_SIZE];
 

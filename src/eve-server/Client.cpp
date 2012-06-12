@@ -28,7 +28,6 @@
 #include "Client.h"
 #include "LiveUpdateDB.h"
 #include "PyBoundObject.h"
-#include "authorisation/PasswordModule.h"
 #include "character/CharacterService.h"
 #include "chat/LSCService.h"
 #include "imageserver/ImageServer.h"
