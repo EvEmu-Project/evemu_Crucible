@@ -258,7 +258,7 @@ public:
 
     /* update the SHA digest */
     static void
-        sha_update(SHAobject *sha_info, SHA_BYTE *buffer, int count)
+        sha_update(SHAobject *sha_info, const SHA_BYTE *buffer, int count)
     {
         int i;
         SHA_INT32 clo;
@@ -296,43 +296,11 @@ public:
     }
 
     static void
-        sha_update(SHAobject *sha_info, std::wstring &value)
+        sha_update(SHAobject *sha_info, const std::wstring &value)
     {
-        int count = (int)value.size()*2;
-        SHA_BYTE *buffer = (SHA_BYTE*)value.c_str();
-        int i;
-        SHA_INT32 clo;
-
-        clo = sha_info->count_lo + ((SHA_INT32) count << 3);
-        if (clo < sha_info->count_lo) {
-            ++sha_info->count_hi;
-        }
-        sha_info->count_lo = clo;
-        sha_info->count_hi += (SHA_INT32) count >> 29;
-        if (sha_info->local) {
-            i = SHA_BLOCKSIZE - sha_info->local;
-            if (i > count) {
-                i = count;
-            }
-            memcpy(((SHA_BYTE *) sha_info->data) + sha_info->local, buffer, i);
-            count -= i;
-            buffer += i;
-            sha_info->local += i;
-            if (sha_info->local == SHA_BLOCKSIZE) {
-                sha_transform(sha_info);
-            }
-            else {
-                return;
-            }
-        }
-        while (count >= SHA_BLOCKSIZE) {
-            memcpy(sha_info->data, buffer, SHA_BLOCKSIZE);
-            buffer += SHA_BLOCKSIZE;
-            count -= SHA_BLOCKSIZE;
-            sha_transform(sha_info);
-        }
-        memcpy(sha_info->data, buffer, count);
-        sha_info->local = count;
+        sha_update( sha_info,
+                    reinterpret_cast< const SHA_BYTE* >( value.c_str() ),
+                    value.size() * sizeof( wchar_t ) );
     }
 
     /* finish computing the SHA digest */
