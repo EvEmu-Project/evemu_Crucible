@@ -36,6 +36,8 @@
 /*************************************************************************/
 #include "eve-common.h"
 
+// auth
+#include "auth/PasswordModule.h"
 // marshal
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEUnmarshal.h"
