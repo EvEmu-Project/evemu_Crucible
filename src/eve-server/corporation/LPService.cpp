@@ -23,7 +23,10 @@
     Author:        Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "corporation/LPService.h"
 
 PyCallable_Make_InnerDispatcher(LPService)
 

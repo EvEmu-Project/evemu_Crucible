@@ -23,7 +23,10 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "corporation/CorpMgrService.h"
 
 PyCallable_Make_InnerDispatcher(CorpMgrService)
 

@@ -23,7 +23,10 @@
     Author:     caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "character/PaperDollService.h"
 
 PyCallable_Make_InnerDispatcher(PaperDollService)
 

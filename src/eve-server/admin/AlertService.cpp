@@ -23,11 +23,17 @@
     Author:        Zhur, Captnoord
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "admin/AlertService.h"
 
 PyCallable_Make_InnerDispatcher(AlertService)
 
-AlertService::AlertService(PyServiceMgr *mgr) : PyService(mgr, "alert"), m_dispatch(new Dispatcher(this)), traceLogger(NULL)
+AlertService::AlertService(PyServiceMgr *mgr)
+: PyService(mgr, "alert"),
+  m_dispatch(new Dispatcher(this)),
+  traceLogger(NULL)
 {
     _SetCallDispatcher(m_dispatch);
 

@@ -23,7 +23,11 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "character/CertificateMgrService.h"
 
 PyCallable_Make_InnerDispatcher(CertificateMgrService)
 

@@ -23,9 +23,10 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(ScenarioService)
+#include "PyServiceCD.h"
+#include "system/ScenarioService.h"
 
 /*
 class ScenarioBound
@@ -59,6 +60,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(ScenarioService)
 
 ScenarioService::ScenarioService(PyServiceMgr *mgr)
 : PyService(mgr, "scenario"),

@@ -23,8 +23,19 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
-#include "EVEVersion.h"
+#include "eve-server.h"
+
+#include "Client.h"
+#include "LiveUpdateDB.h"
+#include "PyBoundObject.h"
+#include "authorisation/PasswordModule.h"
+#include "character/CharacterService.h"
+#include "chat/LSCService.h"
+#include "imageserver/ImageServer.h"
+#include "npc/NPC.h"
+#include "ship/DestinyManager.h"
+#include "ship/ShipOperatorInterface.h"
+#include "system/SystemManager.h"
 
 static const uint32 PING_INTERVAL_US = 60000;
 

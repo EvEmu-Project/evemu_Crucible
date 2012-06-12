@@ -23,7 +23,15 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "character/Character.h"
+#include "manufacturing/Blueprint.h"
+#include "pos/Structure.h"
+#include "ship/Ship.h"
+#include "station/Station.h"
+#include "system/Container.h"
+#include "system/SolarSystem.h"
 
 ItemFactory::ItemFactory(EntityList& el) : entity_list(el) {}
 

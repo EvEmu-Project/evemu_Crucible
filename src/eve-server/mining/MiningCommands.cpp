@@ -23,7 +23,13 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "Client.h"
+#include "PyCallable.h"
+#include "admin/CommandDB.h"
+#include "mining/Asteroid.h"
+#include "system/SystemManager.h"
 
 uint32 GetAsteroidType( double p, const std::map<double, uint32>& roids );
 void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const GVector& position );

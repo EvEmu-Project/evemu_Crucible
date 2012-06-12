@@ -23,7 +23,9 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "config/ConfigDB.h"
 
 PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
 #ifndef WIN32

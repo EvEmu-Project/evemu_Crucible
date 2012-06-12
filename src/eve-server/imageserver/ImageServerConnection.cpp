@@ -23,12 +23,10 @@
     Author:        caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
+#include "imageserver/ImageServer.h"
+#include "imageserver/ImageServerConnection.h"
 
 asio::const_buffers_1 ImageServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
 asio::const_buffers_1 ImageServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);

@@ -26,18 +26,8 @@
 #ifndef __APISERVER__H__INCL__
 #define __APISERVER__H__INCL__
 
-#include <memory>
-#include <string>
-#if defined( MSVC )
-    #include <unordered_map>
-#else
-    #include <tr1/unordered_map>
-#endif
+#include "APIServerListener.h"
 
-#include "APIServerConnection.h"
-#include "EVEServerPCH.h"
-
-class APIServerListener;
 class APIServiceManager;
 
 /**

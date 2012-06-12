@@ -23,11 +23,16 @@
     Author:        Captnoord
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "account/ClientStatMgrService.h"
 
 PyCallable_Make_InnerDispatcher(ClientStatsMgr)
 
-ClientStatsMgr::ClientStatsMgr(PyServiceMgr *mgr) : PyService(mgr, "clientStatsMgr"), m_dispatch(new Dispatcher(this))
+ClientStatsMgr::ClientStatsMgr(PyServiceMgr *mgr)
+: PyService(mgr, "clientStatsMgr"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

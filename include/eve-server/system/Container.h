@@ -26,6 +26,8 @@
 #ifndef __CONTAINER__H__INCL__
 #define __CONTAINER__H__INCL__
 
+#include "inventory/Inventory.h"
+#include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
 
 // TODO: We may need to create CargoContainerTypeData and CargoContainerType classes just as Ship.h/Ship.cpp

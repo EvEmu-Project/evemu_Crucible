@@ -27,14 +27,15 @@
 #ifndef __MODULEMANAGER_H_INCL__
 #define __MODULEMANAGER_H_INCL__
 
+class DestinyManager;
 class InventoryItem;
 class GenericModule;
 class SystemEntity;
 class Client;
 class ModuleManager;
 
-#include "ship/Modules/Modules.h"
-#include "ship/Modules/ModuleDefs.h"
+#include "ship/modules/Modules.h"
+#include "ship/modules/ModuleDefs.h"
 
 
 //container for all ships modules

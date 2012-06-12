@@ -23,9 +23,14 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(CorpRegistryService)
+#include "EVEServerConfig.h"
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "chat/LSCService.h"
+#include "corporation/CorpRegistryService.h"
 
 class CorpRegistryBound
 : public PyBoundObject
@@ -146,7 +151,7 @@ protected:
     CorporationDB& m_db;
 };
 
-
+PyCallable_Make_InnerDispatcher(CorpRegistryService)
 
 CorpRegistryService::CorpRegistryService(PyServiceMgr *mgr)
 : PyService(mgr, "corpRegistry"),

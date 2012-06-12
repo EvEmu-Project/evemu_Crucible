@@ -23,7 +23,10 @@
     Author:     Aknor Jaden
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "mining/Asteroid.h"
+#include "ship/DestinyManager.h"
 
 using namespace Destiny;
 

@@ -23,9 +23,9 @@
     Author:        Aknor Jaden
 */
 
+#include "eve-server.h"
 
-#include "EVEServerPCH.h"
-
+#include "apiserver/APIMapManager.h"
 
 APIMapManager::APIMapManager(const PyServiceMgr &services)
 : APIServiceManager(services)

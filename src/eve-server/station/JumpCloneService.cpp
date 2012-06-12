@@ -23,14 +23,16 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(JumpCloneService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "station/JumpCloneService.h"
 
 class JumpCloneBound
-: public PyBoundObject {
+: public PyBoundObject
+{
 public:
-
     PyCallable_Make_Dispatcher(JumpCloneBound)
 
     JumpCloneBound(PyServiceMgr *mgr, StationDB *db)
@@ -59,7 +61,7 @@ protected:
     Dispatcher *const m_dispatch;    //we own this
 };
 
-
+PyCallable_Make_InnerDispatcher(JumpCloneService)
 
 JumpCloneService::JumpCloneService(PyServiceMgr *mgr)
 : PyService(mgr, "jumpCloneSvc"),

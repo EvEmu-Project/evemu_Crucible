@@ -24,7 +24,9 @@
     Providing clothes to the poor
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "character/PaperDollDB.h"
 
 PyRep* PaperDollDB::GetMyPaperDollData() const {
 

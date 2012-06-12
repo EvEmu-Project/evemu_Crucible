@@ -23,8 +23,14 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
+#include "PyCallable.h"
+#include "character/Character.h"
+#include "manufacturing/Blueprint.h"
+#include "ship/Ship.h"
+#include "station/Station.h"
+#include "system/SolarSystem.h"
 
 bool InventoryDB::GetCategory(EVEItemCategories category, CategoryData &into) {
     DBQueryResult res;

@@ -23,8 +23,10 @@
     Author:        Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
+#include "system/BookmarkDB.h"
+#include "system/BookmarkService.h"
 
 PyObjectEx *BookmarkDB::GetBookmarks(uint32 ownerID) {
     DBQueryResult res;

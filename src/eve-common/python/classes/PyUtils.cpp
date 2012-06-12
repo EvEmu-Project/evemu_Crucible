@@ -23,7 +23,7 @@
     Author:     Bloody.Rabbit
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "python/classes/PyUtils.h"
 

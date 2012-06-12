@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"

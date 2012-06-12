@@ -23,10 +23,10 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
-//#include "ContractMgrService.h"
+#include "eve-server.h"
 
-
+#include "PyServiceCD.h"
+#include "market/ContractMgrService.h"
 
 PyCallable_Make_InnerDispatcher(ContractMgrService)
 

@@ -26,13 +26,8 @@
 #ifndef __KENNY_H_INCL__
 #define __KENNY_H_INCL__
 
-//#include <string>
-
-int is_kennyspeak(char *str);
-
+int  is_kennyspeak(char *str);
 void normal_to_kennyspeak(std::string str, std::string &kenny_text);
-
 void kennyspeak_to_normal(std::string str, std::string &normal_text);
-
 
 #endif

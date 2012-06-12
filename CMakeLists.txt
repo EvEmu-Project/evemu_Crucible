@@ -15,7 +15,7 @@ PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
 SET( PROJECT_VERSION             "0.7.11" )
-SET( PROJECT_REPOSITORY          "http://www.github.com/evemuproject/evemu_crucible" )
+SET( PROJECT_REPOSITORY          "https://github.com/evemuproject/evemu_server" )
 
 LIST( APPEND CMAKE_MODULE_PATH
       "${PROJECT_SOURCE_DIR}/cmake" )
@@ -26,6 +26,16 @@ LIST( APPEND CMAKE_MODULE_PATH
 SET( EVEMU_ROOT ".."
      CACHE PATH "The root directory of EVEmu workspace." )
 MARK_AS_ADVANCED( EVEMU_ROOT )
+
+IF( CMAKE_CROSSCOMPILING )
+  SET( EVEMU_TARGETS_IMPORT ""
+       CACHE FILEPATH "Path to an import script generated during a native build." )
+  MARK_AS_ADVANCED( EVEMU_TARGETS_IMPORT )
+ELSE( CMAKE_CROSSCOMPILING )
+  SET( EVEMU_TARGETS_EXPORT ""
+       CACHE FILEPATH "Path to an import script to generate (for cross-compiling)." )
+  MARK_AS_ADVANCED( EVEMU_TARGETS_EXPORT )
+ENDIF( CMAKE_CROSSCOMPILING )
 
 #########
 # Tests #
@@ -120,57 +130,28 @@ IF( SCM_VERSION AND SCM_REPOSITORY )
   SET( PROJECT_REPOSITORY "${SCM_REPOSITORY}" )
 ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 
-######################
-# Advertise config.h #
-######################
-ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
-INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
-
-##################
-# Targets import #
-##################
-IF( CMAKE_CROSSCOMPILING )
-  SET( EVEMU_TARGETS_IMPORT ""
-       CACHE FILEPATH "Path to an import script generated during a native build." )
-  MARK_AS_ADVANCED( EVEMU_TARGETS_IMPORT )
-
-  IF( EVEMU_TARGETS_IMPORT )
-    INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
-  ENDIF( EVEMU_TARGETS_IMPORT )
-ENDIF( CMAKE_CROSSCOMPILING )
-
 #################
 # EVEmu targets #
 #################
+# Import targets if any
+IF( EVEMU_TARGETS_IMPORT )
+  INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
+ENDIF( EVEMU_TARGETS_IMPORT )
+
+# Advertise config.h
+ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
+INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
+
+# Add all targets
 ADD_SUBDIRECTORY( "doc" )
-ADD_SUBDIRECTORY( "src/common" )
-
-IF( NOT CMAKE_CROSSCOMPILING )
-  ADD_SUBDIRECTORY( "src/xmlpktgen" )
-ENDIF( NOT CMAKE_CROSSCOMPILING )
-
+ADD_SUBDIRECTORY( "src/eve-core" )
+ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
 ADD_SUBDIRECTORY( "src/eve-collector" )
 ADD_SUBDIRECTORY( "src/eve-tool" )
 
-##################
-# Targets export #
-##################
-IF( NOT CMAKE_CROSSCOMPILING )
-  SET( EVEMU_TARGETS_EXPORT ""
-       CACHE FILEPATH "Path to an import script to generate (for cross-compiling)." )
-  MARK_AS_ADVANCED( EVEMU_TARGETS_EXPORT )
-
-  IF( EVEMU_TARGETS_EXPORT )
-    EXPORT( TARGETS "xmlpktgen"
-            FILE "${EVEMU_TARGETS_EXPORT}" )
-  ENDIF( EVEMU_TARGETS_EXPORT )
-ENDIF( NOT CMAKE_CROSSCOMPILING )
-
-#####################
-# Generate config.h #
-#####################
+# Generate config.h
 CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.in"
                 "${PROJECT_BINARY_DIR}/config.h"
                 ESCAPE_QUOTES @ONLY )

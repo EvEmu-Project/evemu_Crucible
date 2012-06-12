@@ -28,7 +28,10 @@
 
 #include "PyService.h"
 
-class DogmaService : public PyService
+#include "dogmaim/DogmaDB.h"
+
+class DogmaService
+: public PyService
 {
 public:
     DogmaService(PyServiceMgr *mgr);

@@ -32,7 +32,7 @@ SET( TARGET_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_INCLUDE_DIRS
      ${UTF8CPP_INCLUDE_DIRS}
      ${utils_INCLUDE_DIRS}
-     ${common_INCLUDE_DIRS}
+     ${eve-core_INCLUDE_DIRS}
      "${TARGET_INCLUDE_DIR}"
      "${TARGET_PACKETS_DIR}" )
 
@@ -45,7 +45,7 @@ SET( ${TARGET_NAME}_INCLUDE_DIRS
 # Files #
 #########
 SET( INCLUDE
-     "${TARGET_INCLUDE_DIR}/EVECommonPCH.h"
+     "${TARGET_INCLUDE_DIR}/eve-common.h"
      "${TARGET_INCLUDE_DIR}/EVEVersion.h" )
 SET( SOURCE
      "" )
@@ -227,11 +227,11 @@ SOURCE_GROUP( "src\\utils"           FILES ${utils_SOURCE} )
 
 FILE( MAKE_DIRECTORY "${TARGET_PACKETS_DIR}/packets" )
 ADD_CUSTOM_COMMAND( OUTPUT ${packets_INCLUDE} ${packets_SOURCE}
-                    COMMAND "xmlpktgen"
+                    COMMAND "eve-xmlpktgen"
                     ARGS -I "${TARGET_PACKETS_DIR}/packets"
                          -S "${TARGET_PACKETS_DIR}/packets"
                          ${packets_XMLP}
-                    DEPENDS "xmlpktgen"
+                    DEPENDS "eve-xmlpktgen"
                     COMMENT "Generating packet files..." )
 
 ADD_LIBRARY( "${TARGET_NAME}"
@@ -248,7 +248,7 @@ ADD_LIBRARY( "${TARGET_NAME}"
              ${utils_INCLUDE}          ${utils_SOURCE} )
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/EVECommonPCH.h"
+                  "${TARGET_INCLUDE_DIR}/eve-common.h"
                   "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "common" "utils" )
+                       "eve-core" "utils" )

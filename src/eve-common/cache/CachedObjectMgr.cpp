@@ -23,7 +23,7 @@
     Author:     Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "cache/CachedObjectMgr.h"
 #include "marshal/EVEMarshal.h"

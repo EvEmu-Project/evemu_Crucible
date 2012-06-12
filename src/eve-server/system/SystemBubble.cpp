@@ -23,7 +23,12 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "ship/DestinyManager.h"
+#include "system/BubbleManager.h"
+#include "system/SystemBubble.h"
+#include "system/SystemEntity.h"
 
 uint32 SystemBubble::m_bubbleIncrementer = 0;
 

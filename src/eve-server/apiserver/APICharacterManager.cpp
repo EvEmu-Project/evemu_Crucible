@@ -23,9 +23,10 @@
     Author:        Aknor Jaden
 */
 
+#include "eve-server.h"
 
-#include "EVEServerPCH.h"
-
+#include "apiserver/APICharacterManager.h"
+#include "inventory/AttributeEnum.h"
 
 APICharacterManager::APICharacterManager(const PyServiceMgr &services)
 : APIServiceManager(services)

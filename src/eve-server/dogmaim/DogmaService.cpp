@@ -23,11 +23,17 @@
     Author:        ozatomic
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "dogmaim/DogmaService.h"
 
 PyCallable_Make_InnerDispatcher(DogmaService)
 
-DogmaService::DogmaService( PyServiceMgr *mgr ) : PyService(mgr, "dogma"), m_dispatch(new Dispatcher(this))
+DogmaService::DogmaService( PyServiceMgr *mgr )
+: PyService(mgr, "dogma"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

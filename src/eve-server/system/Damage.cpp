@@ -23,8 +23,25 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
+#include "Client.h"
+#include "EntityList.h"
+#include "PyServiceMgr.h"
+#include "inventory/AttributeEnum.h"
+#include "mining/Asteroid.h"
+#include "npc/NPC.h"
+#include "npc/SpawnManager.h"
+#include "pos/Structure.h"
+#include "ship/DestinyManager.h"
+#include "ship/Drone.h"
+#include "ship/Ship.h"
+#include "station/Station.h"
+#include "system/Celestial.h"
+#include "system/Container.h"
+#include "system/Damage.h"
+#include "system/Deployable.h"
+#include "system/SystemManager.h"
 
 Damage::Damage(
     SystemEntity *_source,

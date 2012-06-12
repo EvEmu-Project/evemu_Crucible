@@ -23,7 +23,9 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "cache/ObjCacheDB.h"
 
 ObjCacheDB::ObjCacheDB()
 {

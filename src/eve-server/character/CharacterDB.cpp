@@ -23,7 +23,11 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "EVEServerConfig.h"
+#include "character/Character.h"
+#include "character/CharacterDB.h"
 
 CharacterDB::CharacterDB()
 {

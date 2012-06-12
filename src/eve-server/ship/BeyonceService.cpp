@@ -23,14 +23,21 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(BeyonceService)
+#include "PyBoundObject.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "ship/BeyonceService.h"
+#include "ship/DestinyManager.h"
+#include "system/BookmarkService.h"
+#include "system/SystemEntities.h"
+#include "system/SystemManager.h"
 
 class BeyonceBound
-: public PyBoundObject {
+: public PyBoundObject
+{
 public:
-
     PyCallable_Make_Dispatcher(BeyonceBound)
 
     BeyonceBound(PyServiceMgr *mgr, Client *c)
@@ -80,6 +87,7 @@ protected:
     Dispatcher *const m_dispatch;
 };
 
+PyCallable_Make_InnerDispatcher(BeyonceService)
 
 BeyonceService::BeyonceService(PyServiceMgr *mgr)
 : PyService(mgr, "beyonce"),

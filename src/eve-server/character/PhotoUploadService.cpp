@@ -23,12 +23,17 @@
     Author:     caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "character/PhotoUploadService.h"
+#include "imageserver/ImageServer.h"
 
 PyCallable_Make_InnerDispatcher(PhotoUploadService)
 
 PhotoUploadService::PhotoUploadService(PyServiceMgr* mgr)
-    : PyService(mgr, "photoUploadSvc"), m_dispatch(new Dispatcher(this))
+: PyService(mgr, "photoUploadSvc"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

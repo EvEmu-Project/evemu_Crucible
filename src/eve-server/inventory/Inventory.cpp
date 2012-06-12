@@ -23,7 +23,17 @@
     Author:     Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "Client.h"
+#include "PyCallable.h"
+#include "character/Character.h"
+#include "inventory/Inventory.h"
+#include "pos/Structure.h"
+#include "ship/Ship.h"
+#include "station/Station.h"
+#include "system/Container.h"
+#include "system/SolarSystem.h"
 
 /*
  * Inventory

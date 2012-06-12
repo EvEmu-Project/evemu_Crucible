@@ -26,6 +26,7 @@
 #ifndef __SOLAR_SYSTEM__H__INCL__
 #define __SOLAR_SYSTEM__H__INCL__
 
+#include "inventory/Inventory.h"
 #include "system/Celestial.h"
 
 /**

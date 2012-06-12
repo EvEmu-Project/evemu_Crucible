@@ -23,7 +23,10 @@
     Author:        Reve
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "ship/RepairService.h"
 
 PyCallable_Make_InnerDispatcher(RepairService)
 

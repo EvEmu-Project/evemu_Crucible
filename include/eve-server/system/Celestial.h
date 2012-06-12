@@ -27,6 +27,7 @@
 #define __CELESTIAL__H__INCL__
 
 #include "inventory/InventoryItem.h"
+#include "system/SystemEntity.h"
 
 /**
  * Data container for celestial object.

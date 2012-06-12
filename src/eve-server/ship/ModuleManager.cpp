@@ -23,8 +23,13 @@
     Author:        Luck
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
+#include "PyCallable.h"
+#include "ship/Ship.h"
+#include "ship/ModuleManager.h"
+#include "ship/ShipOperatorInterface.h"
+#include "ship/modules/ModuleFactory.h"
 
 //ModuleContainer class definitions
 #pragma region ModuleContainerClass

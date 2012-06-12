@@ -23,7 +23,9 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "mining/ReprocessingDB.h"
 
 bool ReprocessingDB::IsRefinable(const uint32 typeID) {
     DBQueryResult res;

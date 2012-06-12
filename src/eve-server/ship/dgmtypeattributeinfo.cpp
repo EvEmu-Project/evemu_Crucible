@@ -23,7 +23,9 @@
     Author:        Captnoord
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "ship/dgmtypeattributeinfo.h"
 
 dgmtypeattributemgr::dgmtypeattributemgr()
 {

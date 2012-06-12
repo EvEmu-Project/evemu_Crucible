@@ -23,7 +23,7 @@
     Author:     Bloody.Rabbit, Captnoord, Zhur
 */
 
-#include "EVECommonPCH.h"
+#include "eve-common.h"
 
 #include "python/classes/PyDatabase.h"
 #include "python/PyVisitor.h"

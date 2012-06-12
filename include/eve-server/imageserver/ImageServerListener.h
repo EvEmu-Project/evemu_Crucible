@@ -26,7 +26,6 @@
 #ifndef __IMAGESERVERLISTENER__H__INCL__
 #define __IMAGESERVERLISTENER__H__INCL__
 
-#include <memory>
 #include "imageserver/ImageServerConnection.h"
 
 /**

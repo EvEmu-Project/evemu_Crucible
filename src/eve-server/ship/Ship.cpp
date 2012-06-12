@@ -23,7 +23,12 @@
     Author:     Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "character/Character.h"
+#include "ship/DestinyManager.h"
+#include "ship/Ship.h"
+#include "ship/ShipOperatorInterface.h"
 
 /*
  * ShipTypeData

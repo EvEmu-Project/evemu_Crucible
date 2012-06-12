@@ -23,14 +23,11 @@
     Author:        caytchen
 */
 
-#include "EVEServerPCH.h"
-#include <iostream>
-#include <fstream>
+#include "eve-server.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
+#include "EVEServerConfig.h"
+#include "imageserver/ImageServer.h"
+#include "imageserver/ImageServerListener.h"
 
 const char *const ImageServer::FallbackURL = "http://image.eveonline.com/";
 

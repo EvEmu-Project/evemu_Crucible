@@ -23,7 +23,10 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "admin/AllCommands.h"
+#include "admin/CommandDispatcher.h"
 
 void RegisterAllCommands(CommandDispatcher &into) {
 

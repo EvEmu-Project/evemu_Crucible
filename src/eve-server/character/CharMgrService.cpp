@@ -23,7 +23,10 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "character/CharMgrService.h"
 
 PyCallable_Make_InnerDispatcher(CharMgrService)
 

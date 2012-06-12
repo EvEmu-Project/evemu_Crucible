@@ -23,12 +23,10 @@
     Author:        Aknor Jaden, adapted from ImageServer.h authored by caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
+#include "apiserver/APIServer.h"
+#include "apiserver/APIServerConnection.h"
 
 asio::const_buffers_1 APIServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: text/xml\r\n\r\n", 43);
                                                         // The last parameter must be exactly the # of chars in the string, otherwise

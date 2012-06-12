@@ -23,8 +23,11 @@
     Author:        Zhur
 */
 
+#include "eve-server.h"
 
-#include "EVEServerPCH.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "map/MapService.h"
 
 PyCallable_Make_InnerDispatcher(MapService)
 

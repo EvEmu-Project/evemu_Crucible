@@ -23,9 +23,10 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(PetitionerService)
+#include "PyServiceCD.h"
+#include "admin/PetitionerService.h"
 
 /*
 class PetitionerBound
@@ -59,6 +60,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(PetitionerService)
 
 PetitionerService::PetitionerService(PyServiceMgr *mgr)
 : PyService(mgr, "petitioner"),

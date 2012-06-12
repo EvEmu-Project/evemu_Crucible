@@ -1,6 +1,0 @@
-*.a
-.deps
-.libs
-Makefile
-Makefile.in
-xmlpktgen

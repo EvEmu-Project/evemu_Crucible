@@ -29,7 +29,6 @@
 #include "system/SystemEntities.h"
 
 class AsteroidEntity;
-class MiningDB;
 
 static const uint32 ASTEROID_GROWTH_INTERVAL_MS = 3600000;    //RuleI(Mining, AsteroidGrowthInterval_ms)
 
@@ -39,7 +38,7 @@ static const uint32 ASTEROID_GROWTH_INTERVAL_MS = 3600000;    //RuleI(Mining, As
 //once the system matures more.
 class AsteroidBeltManager {
 public:
-    AsteroidBeltManager(MiningDB *db, uint32 belt_id);
+    AsteroidBeltManager(uint32 belt_id);
     virtual ~AsteroidBeltManager();
 
     //Database operations.
@@ -51,7 +50,6 @@ public:
 
 protected:
     const uint32 m_beltID;
-    MiningDB *const m_db;    //we own this.
 
     //runtime state:
     Timer m_growthTimer;

@@ -26,7 +26,7 @@
 #ifndef __APIEVESYSTEMMANAGER__H__INCL__
 #define __APIEVESYSTEMMANAGER__H__INCL__
 
-#include "EVEServerPCH.h"
+#include "apiserver/APIServiceManager.h"
 
 /**
  * \class APIEveSystemManager

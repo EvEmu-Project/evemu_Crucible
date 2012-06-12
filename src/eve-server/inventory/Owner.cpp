@@ -23,7 +23,10 @@
     Author:        Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "character/Character.h"
+#include "inventory/Owner.h"
 
 Owner::Owner(
     ItemFactory &_factory,

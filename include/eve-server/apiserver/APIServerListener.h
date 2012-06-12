@@ -26,7 +26,6 @@
 #ifndef __APISERVERLISTENER__H__INCL__
 #define __APISERVERLISTENER__H__INCL__
 
-#include <memory>
 #include "apiserver/APIServerConnection.h"
 
 /**

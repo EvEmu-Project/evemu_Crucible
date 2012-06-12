@@ -23,8 +23,10 @@
     Author:        Zhur
 */
 
+#include "eve-server.h"
 
-#include "EVEServerPCH.h"
+#include "PyServiceCD.h"
+#include "chat/OnlineStatusService.h"
 
 PyCallable_Make_InnerDispatcher(OnlineStatusService)
 

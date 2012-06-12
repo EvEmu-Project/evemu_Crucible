@@ -29,7 +29,10 @@
 
 #include "PyService.h"
 
-class BookmarkService : public PyService
+#include "system/BookmarkDB.h"
+
+class BookmarkService
+: public PyService
 {
 public:
     static const uint32 MAX_BOOKMARK_ID;
@@ -52,10 +55,4 @@ protected:
     PyCallable_DECL_CALL(UpdateBookmark)
 };
 
-
-
-
-
 #endif
-
-

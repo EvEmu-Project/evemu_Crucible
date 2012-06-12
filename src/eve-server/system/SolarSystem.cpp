@@ -23,7 +23,9 @@
     Author:        Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "system/SolarSystem.h"
 
 /*
  * SolarSystemData

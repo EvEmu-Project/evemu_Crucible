@@ -23,7 +23,11 @@
     Author:        Luck, caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "mail/MailDB.h"
+#include "mail/MailMgrService.h"
 
 PyCallable_Make_InnerDispatcher(MailMgrService)
 

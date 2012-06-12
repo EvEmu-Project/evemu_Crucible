@@ -23,7 +23,11 @@
     Author:     Aknor Jaden
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "inventory/AttributeEnum.h"
+#include "ship/DestinyManager.h"
+#include "system/Deployable.h"
 
 using namespace Destiny;
 

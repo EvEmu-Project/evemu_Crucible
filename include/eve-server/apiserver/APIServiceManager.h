@@ -26,7 +26,8 @@
 #ifndef __APISERVICEMANAGER__H__INCL__
 #define __APISERVICEMANAGER__H__INCL__
 
-#include "EVEServerPCH.h"
+#include "PyServiceMgr.h"
+#include "apiserver/APIServiceDB.h"
 
 namespace EVEAPI {
     namespace CacheStyles {
@@ -54,6 +55,8 @@ namespace EVEAPI {
         };
     }
 }
+
+typedef std::map<std::string, std::string> APICommandCall;
 
 /**
  * \class APIServiceManager

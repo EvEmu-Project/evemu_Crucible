@@ -23,11 +23,10 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(LanguageService)
-
-
+#include "PyServiceCD.h"
+#include "config/LanguageService.h"
 
 /*
 class LanguageBound
@@ -61,6 +60,7 @@ protected:
 };
 */
 
+PyCallable_Make_InnerDispatcher(LanguageService)
 
 LanguageService::LanguageService(PyServiceMgr *mgr)
 : PyService(mgr, "languageSvc"),

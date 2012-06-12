@@ -23,8 +23,11 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
+#include "Client.h"
+#include "PyBoundObject.h"
+#include "PyService.h"
 
 PyService::PyService(PyServiceMgr *mgr, const char *serviceName)
 : m_manager(mgr),

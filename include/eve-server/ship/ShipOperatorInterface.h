@@ -26,9 +26,11 @@
 #ifndef __SHIPOPERATORINTERFACE_H_INCL__
 #define __SHIPOPERATORINTERFACE_H_INCL__
 
+#include "inventory/ItemRef.h"
 
-#include "EVEServerPCH.h"
-
+class Client;
+class DestinyManager;
+class NPC;
 
 class ShipOperatorInterface
 {

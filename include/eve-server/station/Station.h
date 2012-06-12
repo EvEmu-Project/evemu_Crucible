@@ -26,6 +26,7 @@
 #ifndef __STATION__H__INCL__
 #define __STATION__H__INCL__
 
+#include "inventory/Inventory.h"
 #include "inventory/ItemType.h"
 #include "system/Celestial.h"
 

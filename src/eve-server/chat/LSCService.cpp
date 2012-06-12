@@ -24,13 +24,18 @@
 */
 
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(LSCService)
+#include "PyServiceCD.h"
+#include "admin/CommandDispatcher.h"
+#include "admin/SlashService.h"
+#include "chat/LSCService.h"
 
 // Set the base (minimum) and maximum numbers for any user-created chat channel.
 const uint32 LSCService::BASE_CHANNEL_ID = 200000000;
 const uint32 LSCService::MAX_CHANNEL_ID = 0xFFFFFFFF;
+
+PyCallable_Make_InnerDispatcher(LSCService)
 
 LSCService::LSCService(PyServiceMgr *mgr, CommandDispatcher* cd)
 : PyService(mgr, "LSC"),

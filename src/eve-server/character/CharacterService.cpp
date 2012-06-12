@@ -23,7 +23,12 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "EVEServerConfig.h"
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "character/CharacterService.h"
 
 PyCallable_Make_InnerDispatcher(CharacterService)
 

@@ -27,6 +27,8 @@
 #ifndef __TARGETMANAGER_H_INCL__
 #define __TARGETMANAGER_H_INCL__
 
+#include "inventory/ItemRef.h"
+
 class SystemEntity;
 class PyRep;
 class PyTuple;

@@ -23,7 +23,9 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "standing/StandingDB.h"
 
 PyObject *StandingDB::GetNPCStandings() {
     DBQueryResult res;

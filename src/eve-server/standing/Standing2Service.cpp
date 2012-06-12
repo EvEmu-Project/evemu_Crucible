@@ -23,9 +23,11 @@
     Author:        Zhur
 */
 
+#include "eve-server.h"
 
-#include "EVEServerPCH.h"
-
+#include "PyServiceCD.h"
+#include "cache/ObjCacheService.h"
+#include "standing/Standing2Service.h"
 
 PyCallable_Make_InnerDispatcher(Standing2Service)
 

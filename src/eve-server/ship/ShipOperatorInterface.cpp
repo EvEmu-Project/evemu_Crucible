@@ -23,7 +23,10 @@
     Author:        Aknor Jaden
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "Client.h"
+#include "ship/ShipOperatorInterface.h"
 
 void ShipOperatorInterface::SetOperatorObject(Client * pClient)
 {

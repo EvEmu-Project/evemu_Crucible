@@ -23,11 +23,15 @@
     Author:        Bloody.Rabbit
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "account/UserService.h"
 
 PyCallable_Make_InnerDispatcher(UserService)
 
-UserService::UserService(PyServiceMgr *mgr) : PyService(mgr, "userSvc"),
+UserService::UserService(PyServiceMgr *mgr)
+: PyService(mgr, "userSvc"),
   m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);

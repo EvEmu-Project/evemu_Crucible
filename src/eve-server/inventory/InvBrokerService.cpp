@@ -23,10 +23,11 @@
     Author:     Zhur
 */
 
-#include "EVEServerPCH.h"
-#include "inventory/InventoryBound.h"
+#include "eve-server.h"
 
-PyCallable_Make_InnerDispatcher(InvBrokerService)
+#include "PyServiceCD.h"
+#include "inventory/InvBrokerService.h"
+#include "inventory/InventoryBound.h"
 
 class InvBrokerBound
 : public PyBoundObject
@@ -70,6 +71,8 @@ protected:
 
     uint32 m_entityID;
 };
+
+PyCallable_Make_InnerDispatcher(InvBrokerService)
 
 InvBrokerService::InvBrokerService(PyServiceMgr *mgr)
 : PyService(mgr, "invbroker"),

@@ -23,7 +23,9 @@
     Author:     caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "LiveUpdateDB.h"
 
 PyList* LiveUpdateDB::GenerateUpdates()
 {

@@ -23,7 +23,9 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "character/CertificateMgrDB.h"
 
 //PyRep* CertificateMgrDB::GetMyCertificates( uint32 characterID )
 //{

@@ -23,12 +23,16 @@
     Author:     caytchen
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "PyServiceCD.h"
+#include "mail/NotificationMgrService.h"
 
 PyCallable_Make_InnerDispatcher(NotificationMgrService)
 
 NotificationMgrService::NotificationMgrService(PyServiceMgr* mgr)
-: PyService(mgr, "notificationMgr"), m_dispatch(new Dispatcher(this))
+: PyService(mgr, "notificationMgr"),
+  m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 

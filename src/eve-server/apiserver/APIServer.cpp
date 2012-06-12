@@ -23,14 +23,17 @@
     Author:        Aknor Jaden, adapted from ImageServer.h authored by caytchen
 */
 
-#include "EVEServerPCH.h"
-#include <iostream>
-#include <fstream>
+#include "eve-server.h"
 
-#ifndef MSVC
-    // This is needed to build the server under linux using GCC
-    #include <tr1/functional>
-#endif
+#include "EVEServerConfig.h"
+#include "apiserver/APIAccountManager.h"
+#include "apiserver/APIAdminManager.h"
+#include "apiserver/APICharacterManager.h"
+#include "apiserver/APICorporationManager.h"
+#include "apiserver/APIEveSystemManager.h"
+#include "apiserver/APIMapManager.h"
+#include "apiserver/APIServer.h"
+#include "apiserver/APIServerManager.h"
 
 const char *const APIServer::FallbackURL = "http://api.eveonline.com/";
 

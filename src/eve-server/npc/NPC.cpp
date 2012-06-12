@@ -23,7 +23,14 @@
     Author:        Zhur
 */
 
-#include "EVEServerPCH.h"
+#include "eve-server.h"
+
+#include "inventory/AttributeEnum.h"
+#include "npc/NPC.h"
+#include "npc/NPCAI.h"
+#include "npc/SpawnManager.h"
+#include "ship/DestinyManager.h"
+#include "system/SystemManager.h"
 
 using namespace Destiny;
 
