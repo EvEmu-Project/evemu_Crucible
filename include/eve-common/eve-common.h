@@ -63,9 +63,5 @@
 #include <TriFile.h>
 // UTF8-CPP
 #include <utf8.h>
-// iconv
-#ifndef WIN32
-#   include <iconv.h>
-#endif
 
 #endif /* !__EVE_COMMON_H__INCL__ */
