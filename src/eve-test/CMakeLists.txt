@@ -30,6 +30,8 @@ SET( INCLUDE
 # You must NOT use TARGET_SOURCE_DIR (or, to be
 # exact, use absolute paths) when specifying
 # the test sources.
+SET( marshal_SOURCE
+     "marshal/EVEMarshalTest.cpp" )
 SET( utils_SOURCE
      "utils/EvilNumberTest.cpp" )
 
@@ -38,11 +40,12 @@ SET( utils_SOURCE
 ########################
 INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
 
-SOURCE_GROUP( "include"    ${INCLUDE} )
-SOURCE_GROUP( "src\\utils" ${utils_SOURCE} )
+SOURCE_GROUP( "include"      ${INCLUDE} )
+SOURCE_GROUP( "src\\marshal" ${marshal_SOURCE} )
+SOURCE_GROUP( "src\\utils"   ${utils_SOURCE} )
 
 CREATE_TEST_SOURCELIST( TARGET_SOURCELIST "eve-test.cpp"
-                        ${utils_SOURCE}
+                        ${marshal_SOURCE} ${utils_SOURCE}
                         EXTRA_INCLUDE "eve-test.h" )
 
 ADD_EXECUTABLE( "${TARGET_NAME}"
@@ -56,5 +59,7 @@ TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
 #########
 # Tests #
 #########
+ADD_TEST( NAME "EVEMarshalTest"
+          COMMAND "${TARGET_NAME}" "marshal/EVEMarshalTest" )
 ADD_TEST( NAME "EvilNumberTest"
           COMMAND "${TARGET_NAME}" "utils/EvilNumberTest" )

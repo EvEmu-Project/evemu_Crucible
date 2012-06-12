@@ -61,8 +61,6 @@
 // destiny
 #include "destiny/DestinyBinDump.h"
 // marshal
-#include "marshal/EVEMarshal.h"
-#include "marshal/EVEMarshalStringTable.h"
 #include "marshal/EVEUnmarshal.h"
 // network
 #include "network/packet_types.h"
@@ -71,8 +69,6 @@
 // python
 #include "python/PyRep.h"
 #include "python/PyVisitor.h"
-// python/classes
-#include "python/classes/PyDatabase.h"
 // utils
 #include "utils/EVEUtils.h"
 

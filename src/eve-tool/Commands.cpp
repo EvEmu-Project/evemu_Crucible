@@ -35,7 +35,6 @@ void CRC32Text( const Seperator& cmd );
 void ExitProgram( const Seperator& cmd );
 void PrintHelp( const Seperator& cmd );
 void ObjectToSQL( const Seperator& cmd );
-void TestMarshal( const Seperator& cmd );
 void PrintTimeNow( const Seperator& cmd );
 void LoadScript( const Seperator& cmd );
 void TimeToString( const Seperator& cmd );
@@ -52,7 +51,6 @@ const EVEToolCommand EVETOOL_COMMANDS[] =
     { "crc32",     &CRC32Text,          "Computes CRC-32 checksum of given arguments."                    },
     { "exit",      &ExitProgram,        "Quits current session."                                          },
     { "help",      &PrintHelp,          "Lists available commands or prints help about specified one."    },
-    { "mtest",     &TestMarshal,        "Performs marshal test."                                          },
     { "now",       &PrintTimeNow,       "Prints current time in Win32 time format."                       },
     { "obj2sql",   &ObjectToSQL,        "Converts specified cache object into an SQL update."             },
     { "script",    &LoadScript,         "Loads input from specified file(s)."                             },
@@ -174,56 +172,6 @@ void PrintHelp( const Seperator& cmd )
                 sLog.Log( cmdName, "%s: %s", c->name, c->description );
         }
     }
-}
-
-void TestMarshal( const Seperator& cmd )
-{
-    const char* cmdName = cmd.arg( 0 ).c_str();
-
-    DBRowDescriptor *header = new DBRowDescriptor;
-    // Fill header:
-    header->AddColumn( "historyDate", DBTYPE_FILETIME );
-    header->AddColumn( "lowPrice", DBTYPE_CY );
-    header->AddColumn( "highPrice", DBTYPE_CY );
-    header->AddColumn( "avgPrice", DBTYPE_CY );
-    header->AddColumn( "volume", DBTYPE_I8 );
-    header->AddColumn( "orders", DBTYPE_I4 );
-
-    CRowSet* rs = new CRowSet( &header );
-
-    PyPackedRow* row = rs->NewRow();
-    row->SetField( "historyDate", new PyLong( Win32TimeNow() ) );
-    row->SetField( "lowPrice", new PyLong( 18000 ) );
-    row->SetField( "highPrice", new PyLong( 19000 ) );
-    row->SetField( "avgPrice", new PyLong( 18400 ) );
-    row->SetField( "volume", new PyLong( 5463586 ) );
-    row->SetField( "orders", new PyInt( 254 ) );
-
-    sLog.Log( cmdName, "Marshaling..." );
-
-    Buffer marshaled;
-    bool res = MarshalDeflate( rs, marshaled );
-    PyDecRef( rs );
-
-    if( !res )
-    {
-        sLog.Error( cmdName, "Failed to marshal Python object." );
-        return;
-    }
-
-    sLog.Log( cmdName, "Unmarshaling..." );
-
-    PyRep* rep = InflateUnmarshal( marshaled );
-    if( NULL == rep )
-    {
-        sLog.Error( cmdName, "Failed to unmarshal Python object." );
-        return;
-    }
-
-    sLog.Success( cmdName, "Final:" );
-    rep->Dump( stdout, "    " );
-
-    PyDecRef( rep );
 }
 
 void PrintTimeNow( const Seperator& cmd )
