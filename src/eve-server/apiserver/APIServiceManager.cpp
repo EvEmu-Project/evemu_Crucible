@@ -141,23 +141,20 @@ std::tr1::shared_ptr<std::string> APIServiceManager::BuildErrorXMLResponse(std::
 
 bool APIServiceManager::_AuthenticateUserNamePassword(std::string username, std::string password)
 {
+    // Query account info
     AccountInfo account_info;
+    if( !services().serviceDB().GetAccountInformation(
+            username.c_str(), account_info ) )
+        return false;
+
+    // Compute pass hash
     std::string passHash;
-    std::wstring w_username = Utils::Strings::StringToWString( username );
-    std::wstring w_password = Utils::Strings::StringToWString( password );
-    PasswordModule::GeneratePassHash( w_username,w_password,passHash );
-    //std::string hexHash = PasswordModule::GenerateHexString( passHash );
-    //std::string dateTime = Win32TimeToString( Win32TimeNow() );
-
-    if (!services().serviceDB().GetAccountInformation( username.c_str(),  account_info ) )
-    {
+    if( !PasswordModule::GeneratePassHash(
+            username, password, passHash ) )
         return false;
-    }
 
-    if( passHash.compare( account_info.hash ) == 0 )
-        return true;
-    else
-        return false;
+    // Compare the hashes
+    return passHash == account_info.hash;
 }
 
 bool APIServiceManager::_AuthenticateFullAPIQuery(std::string userID, std::string apiKey)

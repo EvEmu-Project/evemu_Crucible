@@ -1583,52 +1583,30 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
     }
 
     /* if we have stored a password we need to create a hash from the username and pass and remove the pass */
-    if (account_info.password.size() != 0) {
-
-        size_t ret_len;
-        std::wstring w_password;
-        std::wstring w_username;
+    if( account_info.password.empty() )
+        account_hash = account_info.hash;
+    else
+    {
+        /* here we generate the password hash ourselves */
         std::string password_hash;
-
-        /* convert from multi byte strings to wide character strings */
-        w_username.resize( ccp.user_name.size() );
-        ret_len = mbstowcs( &w_username[0], ccp.user_name.c_str(), ccp.user_name.size() );
-
-        if (ret_len != ccp.user_name.size()) {
-
-            sLog.Error("Client", "unable to convert username to wide char string, sending LoginAuthFailed");
-            goto error_login_auth_failed;
-
-        }
-
-        w_password.resize( account_info.password.size() );
-        ret_len = mbstowcs(&w_password[0], account_info.password.c_str(), account_info.password.size());
-
-        if (ret_len != account_info.password.size()) {
-
-            sLog.Error("Client", "unable to convert password to wide char string, sending LoginAuthFailed");
-            goto error_login_auth_failed;
-
-        }
-
-         /* here we generate the password hash our selfs */
-        if (!PasswordModule::GeneratePassHash(w_username, w_password, password_hash)) {
-
+        if( !PasswordModule::GeneratePassHash(
+                ccp.user_name,
+                account_info.password,
+                password_hash ) )
+        {
             sLog.Error("Client", "unable to generate password hash, sending LoginAuthFailed");
             goto error_login_auth_failed;
-
         }
 
-        if (!services().serviceDB().UpdateAccountHash(ccp.user_name.c_str(), password_hash)) {
-
+        if( !services().serviceDB().UpdateAccountHash(
+                ccp.user_name.c_str(),
+                password_hash ) )
+        {
             sLog.Error("Client", "unable to update account hash, sending LoginAuthFailed");
             goto error_login_auth_failed;
-
         }
 
         account_hash = password_hash;
-    } else {
-        account_hash = account_info.hash;
     }
 
     /* here we check if the user successfully entered his password or if he failed */
