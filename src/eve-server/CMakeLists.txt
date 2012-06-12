@@ -59,12 +59,12 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/PyServiceMgr.h"
      "${TARGET_INCLUDE_DIR}/ServiceDB.h" )
 SET( SOURCE
+     "${TARGET_SOURCE_DIR}/eve-server.cpp"
      "${TARGET_SOURCE_DIR}/Client.cpp"
      "${TARGET_SOURCE_DIR}/ClientSession.cpp"
      "${TARGET_SOURCE_DIR}/EntityList.cpp"
      "${TARGET_SOURCE_DIR}/EVEServerConfig.cpp"
      "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp"
-     "${TARGET_SOURCE_DIR}/main.cpp"
      "${TARGET_SOURCE_DIR}/NetService.cpp"
      "${TARGET_SOURCE_DIR}/PyBoundObject.cpp"
      "${TARGET_SOURCE_DIR}/PyCallable.cpp"
@@ -601,7 +601,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
 
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-server.h"
-                  "${TARGET_SOURCE_DIR}/main.cpp" )
+                  "${TARGET_SOURCE_DIR}/eve-server.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common"
                        ${LUA_LIBRARIES} )
