@@ -357,12 +357,12 @@ PyObject *MarketDB::GetCorporationBills(uint32 corpID, bool payable)
     if ( payable == true )
     {
         success = sDatabase.RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
-            "externalID, paid externalID2 FROM billspayable WHERE debtorID = %u", corpID);
+            "externalID, paid externalID2 FROM billsPayable WHERE debtorID = %u", corpID);
     }
     else
     {
         success = sDatabase.RunQuery(res, "SELECT billID, billTypeID, debtorID, creditorID, amount, dueDateTime, interest,"
-            "externalID, paid externalID2 FROM billsreceivable WHERE creditorID = %u", corpID);
+            "externalID, paid externalID2 FROM billsReceivable WHERE creditorID = %u", corpID);
     }
 
     if ( success == false )
