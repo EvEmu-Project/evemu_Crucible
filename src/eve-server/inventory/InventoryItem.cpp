@@ -803,7 +803,7 @@ bool InventoryItem::SetFlag(EVEItemFlags new_flag, bool notify) {
         std::map<int32, PyRep *> changes;
 	
 	//send the notify to the new owner.
-	changes[ixFlag] = new PyInt(old_flag);
+	changes[ixFlag] = new PyInt(new_flag);
 	SendItemChange(m_ownerID, changes); //changes is consumed
     }
 }
