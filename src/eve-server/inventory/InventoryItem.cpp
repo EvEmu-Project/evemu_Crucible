@@ -793,6 +793,20 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 
     return true;
 }
+bool InventoryItem::SetFlag(EVEItemFlags new_flag, bool notify) {
+    EVEItemFlags old_flag = m_flag;
+    m_flag = new_flag;
+    
+    SaveItem();
+    
+    if(notify) {
+        std::map<int32, PyRep *> changes;
+	
+	//send the notify to the new owner.
+	changes[ixFlag] = new PyInt(old_flag);
+	SendItemChange(m_ownerID, changes); //changes is consumed
+    }
+}
 
 InventoryItemRef InventoryItem::Split(int32 qty_to_take, bool notify) {
     if(qty_to_take <= 0) {

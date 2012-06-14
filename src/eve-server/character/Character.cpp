@@ -654,10 +654,10 @@ bool Character::InjectSkillIntoBrain(SkillRef skill, uint8 level)
         //oldSkill->attributes.SetNotify(true);
         //oldSkill->Set_skillLevel( level );
         //oldSkill->Set_skillPoints( pow(2, ( 2.5 * level ) - 2.5 ) * SKILL_BASE_POINTS * ( oldSkill->attributes.GetInt( oldSkill->attributes.Attr_skillTimeConstant ) ) );
-
-        oldSkill->SetAttribute(AttrSkillLevel, level);
+	oldSkill->SetAttribute(AttrSkillLevel, level);
         EvilNumber eTmp = skill->GetAttribute(AttrSkillTimeConstant) * ( pow(2,( 2.5 * level) - 2.5 ) * EVIL_SKILL_BASE_POINTS );
         oldSkill->SetAttribute(AttrSkillPoints, eTmp);
+	oldSkill->SetFlag(flagSkill);
         return true;
     }
 
@@ -687,6 +687,7 @@ bool Character::InjectSkillIntoBrain(SkillRef skill, uint8 level)
     EvilNumber eTmp = skill->GetAttribute(AttrSkillTimeConstant);
     eTmp = eTmp * tmp;
     skill->SetAttribute(AttrSkillPoints, eTmp);
+    skill->SetFlag(flagSkill);
 
     return true;
 }

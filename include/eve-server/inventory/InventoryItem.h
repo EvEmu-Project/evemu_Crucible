@@ -115,6 +115,7 @@ public:
     bool ChangeSingleton(bool singleton, bool notify=true);
     bool AlterQuantity(int32 qty_change, bool notify=true);
     bool SetQuantity(uint32 qty_new, bool notify=true);
+    bool SetFlag(EVEItemFlags new_flag, bool notify=true);
     void Relocate(const GPoint &pos);
     void SetCustomInfo(const char *ci);
     ItemFactory *GetItemFactory() { return &m_factory; };
