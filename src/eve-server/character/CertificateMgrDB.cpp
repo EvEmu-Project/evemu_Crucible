@@ -48,7 +48,8 @@ PyRep *CertificateMgrDB::GetCertificateCategories() {
         " categoryID,"
         " categoryName,"
         " description,"
-        " 0 AS dataID"
+        " dataID,"
+	" categoryNameID "
         " FROM crtCategories"))
     {
         _log(DATABASE__ERROR, "Failed to query certificate categories: %s.", res.error.c_str());
