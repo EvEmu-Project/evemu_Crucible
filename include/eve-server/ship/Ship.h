@@ -237,6 +237,10 @@ public:
     ShipOperatorInterface * GetOperator() { return m_pOperator; }
     std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
 
+    // External Methods For use by hostile entities directing effects to this entity:
+    int32 ApplyRemoteEffect() { assert(true); }     // DO NOT CALL THIS YET!!!  This function needs to call down to ModuleManager::RemoveRemoteEffect with the proper argument list.
+    int32 RemoveRemoteEffect() { assert(true); }    // DO NOT CALL THIS YET!!!  This function needs to call down to ModuleManager::RemoveRemoteEffect with the proper argument list.
+
 protected:
     Ship(
         ItemFactory &_factory,

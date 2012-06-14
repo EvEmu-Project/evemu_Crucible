@@ -650,6 +650,13 @@ ModuleManager::ModuleManager(Ship *const ship)
         if( !(itemRef == NULL) )
             _fitModule( itemRef, (EVEItemFlags)flagIndex );
     }
+
+    //modifier maps, we own these
+    m_LocalSubsystemModifierMaps = new ModifierMaps;
+    m_LocalShipSkillModifierMaps = new ModifierMaps;
+    m_LocalModuleRigModifierMaps = new ModifierMaps;
+    m_LocalImplantModifierMaps = new ModifierMaps;
+    m_RemoteModifierMaps = new ModifierMaps;
 }
 
 ModuleManager::~ModuleManager()
@@ -657,6 +664,18 @@ ModuleManager::~ModuleManager()
     //module cleanup is handled in the ModuleContainer destructor
     delete m_Modules;
     m_Modules = NULL;
+
+    //modifier map cleanup is handled in the std::map destructor
+    delete m_LocalSubsystemModifierMaps;
+    delete m_LocalShipSkillModifierMaps;
+    delete m_LocalModuleRigModifierMaps;
+    delete m_LocalImplantModifierMaps;
+    delete m_RemoteModifierMaps;
+    m_LocalSubsystemModifierMaps = NULL;
+    m_LocalShipSkillModifierMaps = NULL;
+    m_LocalModuleRigModifierMaps = NULL;
+    m_LocalImplantModifierMaps = NULL;
+    m_RemoteModifierMaps = NULL;
 }
 
 bool ModuleManager::IsSlotOccupied(uint32 flag)
@@ -1008,6 +1027,114 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
 void ModuleManager::SaveModules()
 {
     m_Modules->SaveModules();
+}
+
+int32 ModuleManager::ApplyRemoteEffect(uint32 attributeID, uint32 originatorID, SystemEntity * systemEntity, ModifierRef modifierRef)
+{
+    //
+
+    return 1;
+}
+
+int32 ModuleManager::RemoveRemoteEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    //
+
+    return 1;
+}
+
+int32 ModuleManager::ApplySubsystemEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    ModifierMap * modMap = NULL;
+
+    if(modifierRef.get() == NULL)
+        return -1;
+
+    if( m_LocalSubsystemModifierMaps->find(attributeID) == m_LocalSubsystemModifierMaps->end() )
+    {
+        // A Modifier Map for this attributeID does not exist, create a new one:
+        modMap = new ModifierMap();
+        if(modMap == NULL)
+            return -1;
+    }
+    else
+    {
+        // A Modifier Map for this attributeID already exists, find it and get its pointer:
+        modMap = m_LocalSubsystemModifierMaps->find(attributeID)->second;
+    }
+
+    // TODO: make use of 'equal_range' to find all modifier objects with same modifier value, then match one to the originatorID
+    // reference:  http://www.cplusplus.com/reference/stl/multimap/equal_range/
+    if( modMap->m_ModifierMap.find(modifierRef->GetModifierValue()) != modMap->m_ModifierMap.end() )
+    {
+        // Modifier entry in this attributeID's Modifier Map already exists (modifierRef->GetModifierValue() found a match),
+        // so check its originatorID and if that matches, DO NOT add this Modifier object to the map as the reference
+        // already exists, the Module class can modify the contents of the Modifier object without really calling this function,
+        // however, to maintain consistent code, the Module classes will always call this function to notify the map class
+        // that the contents of the map was changed, or made 'dirty':
+        modMap->m_MapIsDirty = true;
+    }
+    else
+    {
+        // Modifier entry in this attributeID's Modifier Map does not exist yet, so lets insert it for the first time:
+        // Insert the (modifierValue, ModifierRef) pair into the Modifier Map for this attributeID:
+        modMap->m_ModifierMap.insert(std::pair<double, ModifierRef>(modifierRef->GetModifierValue(), modifierRef));
+        modMap->m_MapIsDirty = true;
+        m_LocalSubsystemModifierMaps->insert(std::pair<uint32, ModifierMap *>(attributeID, modMap));
+    }
+
+    return 1;
+}
+
+int32 ModuleManager::RemoveSubsystemEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    ModifierMap * modMap = NULL;
+
+    if( m_LocalSubsystemModifierMaps->find(attributeID) != m_LocalSubsystemModifierMaps->end() )
+    {
+        modMap = m_LocalSubsystemModifierMaps->find(attributeID)->second;
+        modMap->m_MapIsDirty = true;
+        
+        // TODO: make use of 'equal_range' to find all modifier objects with same modifier value, then match one to the originatorID
+        // reference:  http://www.cplusplus.com/reference/stl/multimap/equal_range/
+        if( modMap->m_ModifierMap.find(modifierRef->GetModifierValue()) != modMap->m_ModifierMap.end() )
+        {
+        }
+    }
+    else
+        return -1;  // Modifier Map for supplied attributeID does not exist, return error value
+
+    return 1;
+}
+
+int32 ModuleManager::ApplyShipSkillEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    return 1;
+}
+
+int32 ModuleManager::RemoveShipSkillEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    return 1;
+}
+
+int32 ModuleManager::ApplyModuleRigEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    return 1;
+}
+
+int32 ModuleManager::RemoveModuleRigEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    return 1;
+}
+
+int32 ModuleManager::ApplyImplantEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    return 1;
+}
+
+int32 ModuleManager::RemoveImplantEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
+{
+    return 1;
 }
 
 void ModuleManager::_processExternalEffect(SubEffect * s)
