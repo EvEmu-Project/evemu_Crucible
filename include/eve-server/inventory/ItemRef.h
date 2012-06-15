@@ -36,6 +36,7 @@ class Certificate;
 class Owner;
 class Structure;
 class CargoContainer;
+class SystemEntity;
 
 class Character;
 class SolarSystem;

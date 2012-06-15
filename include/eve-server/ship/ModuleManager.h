@@ -39,26 +39,41 @@ class ModuleManager;
 
 
 //////////////////////////////////////////////////////////////////////////////////
-// Modifier class containing all data to modify an attribute
+// Modifier classes containing all data to modify an attribute
 #pragma region Modifier
 
 class Modifier
+: public RefObject
 {
 public:
-    Modifier(uint32 targetAttributeID, uint32 targetID, EvilNumber modifierValue, uint32 calcTypeID, uint32 revCalcTypeID);
+    Modifier(uint32 originatorID, uint32 targetAttributeID, uint32 targetID, double modifierValue, uint32 calcTypeID, uint32 revCalcTypeID);
     ~Modifier();
     
-    //
-    EvilNumber GetModifierValue() { return m_ModifierValue; }
-    void SetModifierValue(EvilNumber newModifierValue) { m_ModifierValue = newModifierValue; }
+    double GetModifierValue() { return m_ModifierValue; }
+    void SetModifierValue(double newModifierValue) { m_ModifierValue = newModifierValue; }
 
 protected:
+    uint32 m_OriginatorID;
     uint32 m_TargetAttributeID;
     uint32 m_TargetID;
-    EvilNumber m_ModifierValue;
+    double m_ModifierValue;
     uint32 m_CalculationTypeID;
     uint32 m_ReverseCalculationTypeID;
 };
+
+typedef RefPtr<Modifier> ModifierRef;
+
+class ModifierMap
+{
+public:
+    ModifierMap() { m_MapIsDirty = false; }
+    ~ModifierMap();
+
+    bool m_MapIsDirty;
+    std::multimap<double, ModifierRef> m_ModifierMap;   // Key= modifier value, Value= Modifier class object containing all data describing this modifier for this attribute
+};
+
+typedef std::map<uint32, ModifierMap *> ModifierMaps;   // Key= attributeID, Value= ModifierMap class object containing a map of all modifiers for this attribute
 
 #pragma endregion
 /////////////////////////////// END MODIFIER /////////////////////////////////////
@@ -301,6 +316,22 @@ public:
 
     void SaveModules();
 
+    // External Methods For use by hostile entities directing effects to this entity:
+    int32 ApplyRemoteEffect(uint32 attributeID, uint32 originatorID, SystemEntity * systemEntity, ModifierRef modifierRef);
+    int32 RemoveRemoteEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+
+    int32 ApplySubsystemEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+    int32 RemoveSubsystemEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+
+    int32 ApplyShipSkillEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+    int32 RemoveShipSkillEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+
+    int32 ApplyModuleRigEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+    int32 RemoveModuleRigEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+
+    int32 ApplyImplantEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+    int32 RemoveImplantEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
+
 private:
     bool _fitModule(InventoryItemRef item, EVEItemFlags flag);
 
@@ -319,7 +350,14 @@ private:
     DestinyManager * m_Destiny;
 
     //modules storage, we own this
-    ModuleContainer * m_Modules;
+    ModuleContainer * m_Modules;                    // Holds Module class objects in container arrays, one for each slot bank, rig, subsystem
+
+    //modifier maps, we own these
+    ModifierMaps * m_LocalSubsystemModifierMaps;    // Holds std::map<> maps of Modifiers for attributes applied by SUBSYSTEMS
+    ModifierMaps * m_LocalShipSkillModifierMaps;    // Holds std::map<> maps of Modifiers for attributes applied by SHIPS and SKILLS
+    ModifierMaps * m_LocalModuleRigModifierMaps;    // Holds std::map<> maps of Modifiers for attributes applied by MODULES and RIGS
+    ModifierMaps * m_LocalImplantModifierMaps;      // Holds std::map<> maps of Modifiers for attributes applied by IMPLANTS
+    ModifierMaps * m_RemoteModifierMaps;            // Holds std::map<> maps of Modifiers for attributes applied by EXTERNAL ENTITY MODULES
 };
 
 #pragma endregion
