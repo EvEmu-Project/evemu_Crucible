@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        Luck, Aknor Jaden
 */
 
 
@@ -39,6 +39,46 @@ class ModuleManager;
 
 
 //////////////////////////////////////////////////////////////////////////////////
+//
+// --- Explanation of all this confusing crap in here:
+//
+// We need a map of maps to store modifiers from activated effects of modules, skills, ships, implants, subsystems, rigs, etc
+// So, what we've done here is to create a std::map<uint32 attributeID, ModifierMap>  This contains a ModifierMap class object
+// for each attributeID added to this outer map.  For each attribute that is modified by one or more originators (module, rig,
+// ship, skill, implant, etc), an inner map is created and added to this outer map.  The ModifierMap class contains this inner map,
+// which is actually a std::multimap<double modifierValue, Modifier modifierObject>  The reason we use a multimap here is that
+// a multimap allows multiple key values that are exactly the same, which you'll get if you fit more than one module of the exact
+// same type.  The modifier value is used as the key since we need the list of all modifiers for a single attributeID to be sorted
+// largest modifier value to smallest to zero to smaller negative modifier values to largest negative modifier value.  This sort
+// is needed in order to properly apply stacking penalties.  The stacking penalties as explained here http://wiki.eveuniversity.org/Eve_math
+// indicate that the largest modifier value does not get penalized, but the 2nd largest on down get increasingly larger penalties applied.
+// The penalties will NOT be applied into the Modifier class objects, but only when the ModuleManager class methods process these modifiers
+// onto the attributes AFTER any Module class objects are called to change state and apply either new or updated modifiers into
+// these Modifier Maps.
+//
+// Each Module class object will make the public calls to the ModuleManager to add Modifiers to the Modifier Map for a particular
+// attributeID, so let's talk about these classes.
+//
+// The Modifier class just contains basic information on a single modifier value inserted by an 'originator', some source of the
+// modifier value (module, skill, ship, implant, rig, subsystem, etc).  Every Modifier class object created by an originator
+// is inserted into a ModifierMapType, which is a std::multimap<double modifierValue, ModifierRef modifierRef> structure.  It is
+// a std::multimap<> with double as key value, which are the modifier values themselves so that the multimap can sort the pairs
+// according to the values of the modifier values.
+//
+// Each of these ModifierMapType structures are inserted into one of a handful of ModifierMaps structures, each of which are
+// std::map<uint32 attributeID, ModifierMap * modifierMap>  Each pair is keyed to the attributeID for the attribute that will
+// be modified by the list of modifier values stored in the ModifierMap object.  There are multiple ModifierMaps objects in the
+// ModuleManager class, one for Subsystems, one for Ships and Skills, one for Modules and Rigs, one for Implants, and one for
+// Remotely applied modifiers from external hostile entities.
+//
+// More to follow, and this will be copied to http://wiki.evemu.org
+//
+//     -- Aknor Jaden
+//
+//////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////
 // Modifier classes containing all data to modify an attribute
 #pragma region Modifier
 
@@ -46,22 +86,37 @@ class Modifier
 : public RefObject
 {
 public:
-    Modifier(uint32 originatorID, uint32 targetAttributeID, uint32 targetID, double modifierValue, uint32 calcTypeID, uint32 revCalcTypeID);
+    Modifier(uint32 originatorID, uint32 targetAttributeID, uint32 targetID, bool penaltiesApply, double modifierValue, uint32 calcTypeID, uint32 revCalcTypeID)
+    : RefObject( 0 )
+    {
+        m_OriginatorID = originatorID;
+        m_TargetAttributeID = targetAttributeID;
+        m_TargetID = targetID;
+        m_bPenaltiesApply = penaltiesApply;
+        m_ModifierValue = modifierValue;
+        m_CalculationTypeID = calcTypeID;
+        m_ReverseCalculationTypeID = revCalcTypeID;
+    }
+
     ~Modifier();
     
     double GetModifierValue() { return m_ModifierValue; }
     void SetModifierValue(double newModifierValue) { m_ModifierValue = newModifierValue; }
+    uint32 GetOriginatorID() { return m_OriginatorID; }
 
 protected:
     uint32 m_OriginatorID;
     uint32 m_TargetAttributeID;
     uint32 m_TargetID;
+    bool m_bPenaltiesApply;
     double m_ModifierValue;
     uint32 m_CalculationTypeID;
     uint32 m_ReverseCalculationTypeID;
 };
 
 typedef RefPtr<Modifier> ModifierRef;
+
+typedef std::multimap<double, ModifierRef> ModifierMapType;     // The ModifierRef is NOT owned by the owner of instances of this type
 
 class ModifierMap
 {
@@ -70,7 +125,7 @@ public:
     ~ModifierMap();
 
     bool m_MapIsDirty;
-    std::multimap<double, ModifierRef> m_ModifierMap;   // Key= modifier value, Value= Modifier class object containing all data describing this modifier for this attribute
+    ModifierMapType m_ModifierMap;   // Key= modifier value, Value= Modifier class object containing all data describing this modifier for this attribute
 };
 
 typedef std::map<uint32, ModifierMap *> ModifierMaps;   // Key= attributeID, Value= ModifierMap class object containing a map of all modifiers for this attribute
