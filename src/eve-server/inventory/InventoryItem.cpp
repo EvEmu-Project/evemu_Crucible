@@ -806,6 +806,7 @@ bool InventoryItem::SetFlag(EVEItemFlags new_flag, bool notify) {
 	changes[ixFlag] = new PyInt(new_flag);
 	SendItemChange(m_ownerID, changes); //changes is consumed
     }
+    return true;
 }
 
 InventoryItemRef InventoryItem::Split(int32 qty_to_take, bool notify) {
