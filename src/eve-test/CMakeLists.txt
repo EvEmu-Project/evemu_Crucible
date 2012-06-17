@@ -57,7 +57,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${TARGET_SOURCELIST} )
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-test.h"
-                  "${TARGET_BINARY_DIR}/eve-test.cpp" )
+                  "${CMAKE_CURRENT_BINARY_DIR}/eve-test.cpp" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common" )
 
