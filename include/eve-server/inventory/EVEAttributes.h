@@ -1,4 +1,3 @@
-
 /*this file is generated from the dgmAttributeTypes table.
  echo "select attributeID,attributeName,defaultValue from dgmAttributeTypes" \
     | /mysql -u root -B eve \

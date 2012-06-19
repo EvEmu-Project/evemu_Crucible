@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        Luck, Aknor Jaden
 */
 
 #ifndef MODULE_DB_H
@@ -33,6 +33,11 @@
 class ModuleDB : public ServiceDB
 {
 public:
+
+    static void GetAllDgmEffects(DBQueryResult &res);
+    static void GetAllDgmEffectsInfo(DBQueryResult &res);
+    static void GetAllDgmEffectsActions(DBQueryResult &res);
+    static void GetAllDgmTypeAttributeModifiers(DBQueryResult &res);
 
     static void GetDgmEffects(uint32 effectID, DBQueryResult &res);
     static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res);

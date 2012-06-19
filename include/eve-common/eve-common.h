@@ -26,6 +26,11 @@
 #ifndef __EVE_COMMON_H__INCL__
 #define __EVE_COMMON_H__INCL__
 
+// Disable 'this' used in base member initializer list warning
+#pragma warning(disable: 4355)
+// Disable '=' : conversion from 'double' to 'int', possible loss of data warning
+#pragma warning(disable: 4244)
+
 /************************************************************************/
 /* eve-core includes                                                    */
 /************************************************************************/

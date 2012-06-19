@@ -145,6 +145,58 @@ void MEffect::_Populate(uint32 effectID)
 }
 
 
+// ////////////////////// DGM_Effects_Table Class ////////////////////////////
+DGM_Effects_Table::DGM_Effects_Table()
+{
+    _Populate();
+}
+
+DGM_Effects_Table::~DGM_Effects_Table()
+{
+    // TODO: loop through entire std::map<> and delete ALL entries, calling ~MEffect() on each
+}
+
+void DGM_Effects_Table::_Populate()
+{
+    //first get list of all effects from dgmEffects table
+    DBQueryResult *res = new DBQueryResult();
+    ModuleDB::GetAllDgmEffects(*res);
+
+    //counter
+    MEffect * mEffectPtr;
+    mEffectPtr = NULL;
+    uint32 effectID;
+
+    //go through and populate each effect
+    DBResultRow row;
+    while( res->GetRow(row) )
+    {
+        effectID = row.GetInt(0);
+        mEffectPtr = new MEffect(effectID);
+        m_EffectsMap.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+    }
+
+    //cleanup
+    delete res;
+    res = NULL;
+}
+
+MEffect * DGM_Effects_Table::GetEffect(uint32 effectID)
+{
+    // return MEffect * corresponding to effectID from m_EffectsMap
+    MEffect * mEffectPtr = NULL;
+    std::map<uint32, MEffect *>::iterator mEffectMapIterator;
+
+    if( (mEffectMapIterator = m_EffectsMap.find(effectID)) == m_EffectsMap.end() )
+        return NULL;
+    else
+    {
+        mEffectPtr = mEffectMapIterator->second;
+        return mEffectPtr;
+    }
+}
+
+
 // ////////////////////// ModuleEffects Class ////////////////////////////
 
 ModuleEffects::ModuleEffects(uint32 typeID) : m_typeID( typeID ), m_Cached( false )
@@ -318,5 +370,4 @@ void ModuleEffects::_populate(uint32 typeID)
     //cleanup
     delete res;
     res = NULL;
-
 }

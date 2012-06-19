@@ -1143,11 +1143,99 @@ int32 ModuleManager::RemoveSubsystemEffect(uint32 attributeID, uint32 originator
 
 int32 ModuleManager::ApplyShipSkillEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
 {
+    ModifierMap * modMap = NULL;
+
+    // Make sure the ModifierRef passed in is not NULL:
+    if(modifierRef.get() == NULL)
+        return -1;
+
+    // Check to see if this attributeID does not have a ModifierMap in the Map of ModifierMaps
+    if( m_LocalShipSkillModifierMaps->find(attributeID) == m_LocalShipSkillModifierMaps->end() )
+    {
+        // A Modifier Map for this attributeID does not exist, create a new one:
+        modMap = new ModifierMap();
+        if(modMap == NULL)
+            return -1;
+    }
+    else
+    {
+        // A Modifier Map for this attributeID already exists, find it and get its pointer:
+        modMap = m_LocalShipSkillModifierMaps->find(attributeID)->second;
+    }
+
+    // Check to see if the modifier map has any entries corresponding to the passed-in modifier's value:
+    if( modMap->m_ModifierMap.find(modifierRef->GetModifierValue()) != modMap->m_ModifierMap.end() )
+    {
+        // Modifier entry in this attributeID's Modifier Map already exists (modifierRef->GetModifierValue() found a match),
+        // so check its originatorID and if that matches, DO NOT add this Modifier object to the map as the reference
+        // already exists, the Module class can modify the contents of the Modifier object without really calling this function,
+        // however, to maintain consistent code, the Module classes will always call this function to notify the map class
+        // that the contents of the map was changed, or made 'dirty':
+        modMap->m_MapIsDirty = true;
+        ModifierMapType::iterator cur;
+        std::pair<ModifierMapType::iterator,ModifierMapType::iterator> range;
+        range = modMap->m_ModifierMap.equal_range(modifierRef->GetModifierValue());   // Get the one or more modifier map entries matching this modifier being added
+        for (cur=range.first; cur!=range.second; ++cur)
+            if( cur->second->GetOriginatorID() == originatorID )
+                return 1;   // Yep, we found the Modifier owned by this originatorID, so we return "success" because the Module
+                            // class object already updated this Modifier through its own ModifierRef, we don't need to do anything
+                            // else here except return and prevent ADDING to the ModifierMap
+
+        // For loop searching existing modifiers completed, so this originatorID's Modifier
+        // is NOT in the map yet... Let's add it:
+        modMap->m_ModifierMap.insert(std::pair<double, ModifierRef>(modifierRef->GetModifierValue(), modifierRef));
+    }
+    else
+    {
+        // Modifier entry in this attributeID's Modifier Map does not exist yet, so lets insert it for the first time:
+        // Insert the (modifierValue, ModifierRef) pair into the Modifier Map for this attributeID:
+        modMap->m_ModifierMap.insert(std::pair<double, ModifierRef>(modifierRef->GetModifierValue(), modifierRef));
+        modMap->m_MapIsDirty = true;
+        m_LocalShipSkillModifierMaps->insert(std::pair<uint32, ModifierMap *>(attributeID, modMap));
+    }
+
     return 1;
 }
 
 int32 ModuleManager::RemoveShipSkillEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef)
 {
+    bool bModifierFound = false;
+    ModifierMap * modMap = NULL;
+
+    if( m_LocalShipSkillModifierMaps->find(attributeID) != m_LocalShipSkillModifierMaps->end() )
+    {
+        modMap = m_LocalShipSkillModifierMaps->find(attributeID)->second;
+        modMap->m_MapIsDirty = true;
+        
+        if( modMap->m_ModifierMap.find(modifierRef->GetModifierValue()) != modMap->m_ModifierMap.end() )
+        {
+            modMap->m_MapIsDirty = true;
+            ModifierMapType::iterator cur;
+            std::pair<ModifierMapType::iterator,ModifierMapType::iterator> range;
+            range = modMap->m_ModifierMap.equal_range(modifierRef->GetModifierValue());   // Get the one or more modifier map entries matching this modifier being removed
+            for (cur=range.first; cur!=range.second; ++cur)
+                if( cur->second->GetOriginatorID() == originatorID )
+                {
+                    bModifierFound = true;  // Yep, we found the Modifier owned by this originatorID, so we break out of the for()
+                                            // so we can now remove this exact Modifier object from the multimap
+                    break;
+                }
+
+            if( bModifierFound == true )
+            {
+                // For loop searching existing modifiers completed, so this originatorID's Modifier
+                // was found in the map
+                modMap->m_ModifierMap.insert(std::pair<double, ModifierRef>(modifierRef->GetModifierValue(), modifierRef));
+            }
+            else
+                return -1;  // This modifier's originatorID was not found in the map, so return error code
+        }
+        else
+            return -1;  // This modifier's modifier value was not even found in the map, so return error code
+    }
+    else
+        return -1;  // Modifier Map for supplied attributeID does not exist, return error value
+
     return 1;
 }
 

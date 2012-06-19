@@ -84,7 +84,7 @@ public:
     virtual bool isTurretFitted()
     {
         // Try to make the effect called 'turretFitted' active, if it exists, to test for module being a turret:
-        if( m_Effects->HasEffect(EveEffectEnum::Effect_turretFitted) )
+        if( m_Effects->HasEffect(Effect_turretFitted) )     // Effect_turretFitted from enum EveAttrEnum::Effect_turretFitted
             return true;
         else
             return false;
@@ -93,7 +93,7 @@ public:
     virtual bool isLauncherFitted()
     {
         // Try to make the effect called 'launcherFitted' active, if it exists, to test for module being a launcher:
-        if( m_Effects->HasEffect(EveEffectEnum::Effect_launcherFitted) )
+        if( m_Effects->HasEffect(Effect_launcherFitted) )   // Effect_launcherFitted from enum EveAttrEnum::Effect_launcherFitted
             return true;
         else
             return false;
@@ -101,7 +101,7 @@ public:
 
     virtual bool isMaxGroupFitLimited()
     {
-        if( m_Item->HasAttribute(EveAttrEnum::AttrMaxGroupFitted) )
+        if( m_Item->HasAttribute(AttrMaxGroupFitted) )  // AttrMaxGroupFitted from enum EveAttrEnum::AttrMaxGroupFitted
             return true;
         else
             return false;

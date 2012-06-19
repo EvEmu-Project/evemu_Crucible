@@ -28,6 +28,7 @@
 
 #include "ship/modules/ModuleDB.h"
 #include "ship/modules/ModuleDefs.h"
+#include "utils/Singleton.h"
 
 class MEffect
 {
@@ -121,6 +122,28 @@ private:
     int m_NullifyOnlineEffectEnable;
     int m_NullifiedOnlineEffectID;
 };
+
+
+// This class is a singleton object, containing all Effects loaded from dgmEffects table as memory objects of type MEffect:
+class DGM_Effects_Table
+: public Singleton< DGM_Effects_Table >
+{
+public:
+    DGM_Effects_Table();
+    ~DGM_Effects_Table();
+
+    // Returns pointer to MEffect object corresponding to the effectID supplied:
+    MEffect * GetEffect(uint32 effectID);
+
+protected:
+    void _Populate();
+
+    std::map<uint32, MEffect *> m_EffectsMap;
+};
+
+#define sDGM_Effects_Table \
+    ( DGM_Effects_Table::get() )
+
 
 //class contained by all modules that is populated on construction of the module
 //this will contain all information about the effects of the module

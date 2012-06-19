@@ -27,6 +27,54 @@
 
 #include "ship/modules/ModuleDB.h"
 
+void ModuleDB::GetAllDgmEffects(DBQueryResult &res)
+{
+    if( !sDatabase.RunQuery(res,
+        " SELECT "
+        " effectID "
+        " FROM dgmEffects "
+        " WHERE 1 "))
+    {
+        _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
+void ModuleDB::GetAllDgmEffectsInfo(DBQueryResult &res)
+{
+    if( !sDatabase.RunQuery(res,
+        " SELECT "
+        " effectID "
+        " FROM dgmEffectsInfo "
+        " WHERE 1 "))
+    {
+        _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
+void ModuleDB::GetAllDgmEffectsActions(DBQueryResult &res)
+{
+    if( !sDatabase.RunQuery(res,
+        " SELECT "
+        " effectID "
+        " FROM dgmEffectActions "
+        " WHERE 1 "))
+    {
+        _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
+void ModuleDB::GetAllDgmTypeAttributeModifiers(DBQueryResult &res)
+{
+    if( !sDatabase.RunQuery(res,
+        " SELECT "
+        " typeID "
+        " FROM dgmTypeAttributeModifiers "
+        " WHERE 1 "))
+    {
+        _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
 void ModuleDB::GetDgmEffects(uint32 effectID, DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
