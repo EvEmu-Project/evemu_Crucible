@@ -132,6 +132,9 @@ public:
     DGM_Effects_Table();
     ~DGM_Effects_Table();
 
+    // Initializes the Table:
+    int Initialize();
+
     // Returns pointer to MEffect object corresponding to the effectID supplied:
     MEffect * GetEffect(uint32 effectID);
 

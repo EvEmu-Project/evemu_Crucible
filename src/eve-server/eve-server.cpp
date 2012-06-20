@@ -110,6 +110,7 @@
 #include "ship/InsuranceService.h"
 #include "ship/RepairService.h"
 #include "ship/ShipService.h"
+#include "ship/Modules/ModuleEffects.h"
 // standing services
 #include "standing/FactionWarMgrService.h"
 #include "standing/SovereigntyMgrService.h"
@@ -333,6 +334,10 @@ int main( int argc, char* argv[] )
     sAPIServer.Run();
 
     services.serviceDB().SetServerOnlineStatus(true);
+
+    // start up the image server
+    sLog.Log("server init", "Loading Dynamic Database Table Objects...");
+    sDGM_Effects_Table.Initialize();
 
     sLog.Log("server init", "Init done.");
 

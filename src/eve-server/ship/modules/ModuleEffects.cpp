@@ -148,12 +148,18 @@ void MEffect::_Populate(uint32 effectID)
 // ////////////////////// DGM_Effects_Table Class ////////////////////////////
 DGM_Effects_Table::DGM_Effects_Table()
 {
-    _Populate();
 }
 
 DGM_Effects_Table::~DGM_Effects_Table()
 {
     // TODO: loop through entire std::map<> and delete ALL entries, calling ~MEffect() on each
+}
+
+int DGM_Effects_Table::Initialize()
+{
+    _Populate();
+
+    return 1;
 }
 
 void DGM_Effects_Table::_Populate()
@@ -321,7 +327,7 @@ void ModuleEffects::_populate(uint32 typeID)
     uint32 effectID;
     uint32 isDefault;
 
-    //go through and populate each effect
+    //go through and find each effect, then add pointer to effect to our own map
     DBResultRow row;
     while( res->GetRow(row) )
     {
@@ -337,7 +343,7 @@ void ModuleEffects::_populate(uint32 typeID)
                 break;
 
             default:
-                mEffectPtr = new MEffect( effectID );
+                mEffectPtr = sDGM_Effects_Table.GetEffect(effectID);
                 break;
         }
 
