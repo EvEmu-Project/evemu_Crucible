@@ -30,6 +30,8 @@
 #include "ship/modules/ModuleDefs.h"
 #include "utils/Singleton.h"
 
+
+// ////////////////////// Effects Classs ////////////////////////////
 class MEffect
 {
 public:
@@ -146,7 +148,49 @@ protected:
 
 #define sDGM_Effects_Table \
     ( DGM_Effects_Table::get() )
+//////////////////////////////////////////////////////////////////////////
 
+
+// ////////////////////// Type Modifiers Classes ////////////////////////////
+class TypeModifier
+{
+public:
+    TypeModifier(uint32 effectID);
+    ~TypeModifier();
+
+private:
+    void _Populate(uint32 effectID);
+};
+
+
+// This class is a singleton object, containing all TypeModifiers loaded from
+// dgmTypeAttributeModifier table as memory objects of type TypeModifier:
+class DGM_TypeModifiers_Table
+: public Singleton< DGM_TypeModifiers_Table >
+{
+public:
+    DGM_TypeModifiers_Table();
+    ~DGM_TypeModifiers_Table();
+
+    // Initializes the Table:
+    int Initialize();
+
+    // Returns pointer to MEffect object corresponding to the effectID supplied:
+    TypeModifier * GetModifier(uint32 typeID, uint32 skillID = 0);      // skillID = 0 results in first modifier for this type to be returned
+                                                                        // if there are more than one
+
+protected:
+    void _Populate();
+
+    std::map<uint32, TypeModifier *> m_TypeModifiersMap;
+};
+
+#define sDGM_TypeModifiers_Table \
+    ( DGM_TypeModifiers_Table::get() )
+//////////////////////////////////////////////////////////////////////////
+
+
+// ////////////////////// ModuleEffects Class ////////////////////////////
 
 //class contained by all modules that is populated on construction of the module
 //this will contain all information about the effects of the module
@@ -189,3 +233,4 @@ private:
 };
 
 #endif /* MODULE_EFFECTS_H */
+//////////////////////////////////////////////////////////////////////////
