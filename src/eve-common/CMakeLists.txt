@@ -4,23 +4,6 @@
 # Author: Bloody.Rabbit
 #
 
-################
-# Dependencies #
-################
-ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/utils"
-                  "${PROJECT_BINARY_DIR}/dep/utils" )
-
-FIND_PACKAGE( "UTF8CPP" QUIET )
-
-IF( NOT UTF8CPP_FOUND )
-  ADD_SUBDIRECTORY( "${PROJECT_SOURCE_DIR}/dep/utf8cpp"
-                    "${PROJECT_BINARY_DIR}/dep/utf8cpp" )
-
-  SET( UTF8CPP_FOUND        TRUE )
-  SET( UTF8CPP_INCLUDE_DIRS ${utf8cpp_INCLUDE_DIRS} )
-  SET( UTF8CPP_LIBRARIES    "utf8cpp" )
-ENDIF( NOT UTF8CPP_FOUND )
-
 ##############
 # Initialize #
 ##############
@@ -248,9 +231,11 @@ TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${UTF8CPP_INCLUDE_DIRS}
-                            ${utils_INCLUDE_DIRS}
+                            ${UTILS_INCLUDE_DIRS}
                             ${eve-core_INCLUDE_DIRS}
                             "${TARGET_INCLUDE_DIR}"
                             "${TARGET_PACKETS_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "eve-core" "utils" )
+                       ${UTF8CPP_LIBRARIES}
+                       ${UTILS_LIBRARIES}
+                       "eve-core" )

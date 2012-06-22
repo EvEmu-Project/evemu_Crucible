@@ -26,19 +26,31 @@ ENABLE_TESTING()
 ###########
 # Options #
 ###########
+SET( BOOST_DATE_TIME_NO_LIB ON
+     CACHE BOOL "Disable linking of boost date_time library" )
+SET( BOOST_REGEX_NO_LIB ON
+     CACHE BOOL "Disable linking of boost regex library" )
 SET( EVEMU_ROOT ".."
      CACHE PATH "The root directory of EVEmu workspace." )
-MARK_AS_ADVANCED( EVEMU_ROOT )
+SET( TIXML_USE_STL ON
+     CACHE BOOL "tinyxml will use native STL." )
 
 IF( CMAKE_CROSSCOMPILING )
   SET( EVEMU_TARGETS_IMPORT ""
        CACHE FILEPATH "Path to an import script generated during a native build." )
-  MARK_AS_ADVANCED( EVEMU_TARGETS_IMPORT )
 ELSE( CMAKE_CROSSCOMPILING )
   SET( EVEMU_TARGETS_EXPORT ""
        CACHE FILEPATH "Path to an import script to generate (for cross-compiling)." )
-  MARK_AS_ADVANCED( EVEMU_TARGETS_EXPORT )
 ENDIF( CMAKE_CROSSCOMPILING )
+
+MARK_AS_ADVANCED(
+  BOOST_DATE_TIME_NO_LIB
+  BOOST_REGEX_NO_LIB
+  EVEMU_ROOT
+  EVEMU_TARGETS_IMPORT
+  EVEMU_TARGETS_EXPORT
+  TIXML_USE_STL
+  )
 
 #################
 # Configuration #
@@ -145,20 +157,46 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 CHECK_CXX_SYMBOL_EXISTS( MSG_NOSIGNAL "sys/socket.h" HAVE_MSG_NOSIGNAL )
 CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
 
+############
+# Packages #
+############
+FIND_PACKAGE( "Boost" REQUIRED )
+FIND_PACKAGE( "MySQL" REQUIRED )
+FIND_PACKAGE( "Threads" REQUIRED )
+FIND_PACKAGE( "ZLIB" REQUIRED )
+
+ADD_SUBDIRECTORY( "dep/asio" )
+ADD_SUBDIRECTORY( "dep/gangsta" )
+ADD_SUBDIRECTORY( "dep/lua" )
+ADD_SUBDIRECTORY( "dep/tinyxml" )
+ADD_SUBDIRECTORY( "dep/utf8cpp" )
+ADD_SUBDIRECTORY( "dep/utils" )
+
+MARK_AS_ADVANCED(
+  Boost_DIR
+  Boost_LIB_DIAGNOSTIC_DEFINITIONS
+  )
+
 #################
 # EVEmu targets #
 #################
 INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TargetIncludeDirectories" )
 
+# Advertise config.h
+ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
+INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
+# Generate config.h
+CONFIGURE_FILE(
+  "config.h.in"
+  "config.h"
+  ESCAPE_QUOTES @ONLY
+  )
+
 # Import targets if any
 IF( EVEMU_TARGETS_IMPORT )
   INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
 ENDIF( EVEMU_TARGETS_IMPORT )
-
-# Advertise config.h
-ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
-INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
 
 # Add all targets
 ADD_SUBDIRECTORY( "doc" )
@@ -169,11 +207,6 @@ ADD_SUBDIRECTORY( "src/eve-server" )
 ADD_SUBDIRECTORY( "src/eve-collector" )
 ADD_SUBDIRECTORY( "src/eve-tool" )
 ADD_SUBDIRECTORY( "src/eve-test" )
-
-# Generate config.h
-CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.in"
-                "${PROJECT_BINARY_DIR}/config.h"
-                ESCAPE_QUOTES @ONLY )
 
 ###############
 # CPack setup #
