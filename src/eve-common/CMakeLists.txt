@@ -29,18 +29,6 @@ SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${TARGET_NAME}" )
 
-SET( TARGET_INCLUDE_DIRS
-     ${UTF8CPP_INCLUDE_DIRS}
-     ${utils_INCLUDE_DIRS}
-     ${eve-core_INCLUDE_DIRS}
-     "${TARGET_INCLUDE_DIR}"
-     "${TARGET_PACKETS_DIR}" )
-
-# Export directories
-SET( ${TARGET_NAME}_INCLUDE_DIRS
-     ${TARGET_INCLUDE_DIRS}
-     PARENT_SCOPE )
-
 #########
 # Files #
 #########
@@ -205,8 +193,6 @@ SET( utils_SOURCE
 #####################
 # Setup the library #
 #####################
-INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
-
 SOURCE_GROUP( "include"                  FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\auth"            FILES ${auth_INCLUDE} )
 SOURCE_GROUP( "include\\cache"           FILES ${cache_INCLUDE} )
@@ -260,5 +246,11 @@ ADD_LIBRARY( "${TARGET_NAME}"
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-common.h"
                   "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
+TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
+                            ${UTF8CPP_INCLUDE_DIRS}
+                            ${utils_INCLUDE_DIRS}
+                            ${eve-core_INCLUDE_DIRS}
+                            "${TARGET_INCLUDE_DIR}"
+                            "${TARGET_PACKETS_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-core" "utils" )

@@ -79,20 +79,6 @@ SET( TARGET_NAME        "eve-core" )
 SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
-SET( TARGET_INCLUDE_DIRS
-     ${Boost_INCLUDE_DIRS}
-     ${MYSQL_INCLUDE_DIRS}
-     ${GANGSTA_INCLUDE_DIRS}
-     ${TINYXML_INCLUDE_DIRS}
-     ${ZLIB_INCLUDE_DIRS}
-     ${asio_INCLUDE_DIRS}
-     "${TARGET_INCLUDE_DIR}" )
-
-# Export directories
-SET( ${TARGET_NAME}_INCLUDE_DIRS
-     ${TARGET_INCLUDE_DIRS}
-     PARENT_SCOPE )
-
 #########
 # Files #
 #########
@@ -171,8 +157,6 @@ SET( utils_SOURCE
 #####################
 # Setup the library #
 #####################
-INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
-
 SOURCE_GROUP( "include"            FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\database"  FILES ${database_INCLUDE} )
 SOURCE_GROUP( "include\\log"       FILES ${log_INCLUDE} )
@@ -198,6 +182,14 @@ ADD_LIBRARY( "${TARGET_NAME}"
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-core.h"
                   "${TARGET_SOURCE_DIR}/eve-compat.cpp" )
+TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
+                            ${Boost_INCLUDE_DIRS}
+                            ${MYSQL_INCLUDE_DIRS}
+                            ${GANGSTA_INCLUDE_DIRS}
+                            ${TINYXML_INCLUDE_DIRS}
+                            ${ZLIB_INCLUDE_DIRS}
+                            ${asio_INCLUDE_DIRS}
+                            "${TARGET_INCLUDE_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${MYSQL_LIBRARIES}
                        ${GANGSTA_LIBRARIES}

@@ -27,16 +27,6 @@ SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_UTILS_DIR   "${PROJECT_SOURCE_DIR}/utils" )
 
-SET( TARGET_INCLUDE_DIRS
-     ${LUA_INCLUDE_DIRS}
-     ${eve-common_INCLUDE_DIRS}
-     "${TARGET_INCLUDE_DIR}" )
-
-# Export directories
-SET( ${TARGET_NAME}_INCLUDE_DIRS
-     ${TARGET_INCLUDE_DIRS}
-     PARENT_SCOPE )
-
 #########
 # Files #
 #########
@@ -501,8 +491,6 @@ SET( system_SOURCE
 ########################
 # Setup the executable #
 ########################
-INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
-
 SOURCE_GROUP( "include"                FILES ${INCLUDE} )
 SOURCE_GROUP( "include\\account"       FILES ${account_INCLUDE} )
 SOURCE_GROUP( "include\\admin"         FILES ${admin_INCLUDE} )
@@ -588,6 +576,10 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
 TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-server.h"
                   "${TARGET_SOURCE_DIR}/eve-server.cpp" )
+TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
+                            ${LUA_INCLUDE_DIRS}
+                            ${eve-common_INCLUDE_DIRS}
+                            "${TARGET_INCLUDE_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common"
                        ${LUA_LIBRARIES} )

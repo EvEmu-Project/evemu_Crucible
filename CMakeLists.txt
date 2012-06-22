@@ -45,8 +45,6 @@ ENDIF( CMAKE_CROSSCOMPILING )
 #########
 INCLUDE( "CheckCXXSymbolExists" )
 INCLUDE( "CheckIncludeFile" )
-INCLUDE( "DetectScm" )
-INCLUDE( "TargetBuildPCH" )
 
 # 64-bit system
 IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
@@ -99,6 +97,8 @@ CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
 #################
 # Configuration #
 #################
+INCLUDE( "DetectScm" )
+
 IF( MSVC )
   #
   # This is here as we usually use pre-built MySQL binaries which are
@@ -140,6 +140,9 @@ ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 #################
 # EVEmu targets #
 #################
+INCLUDE( "TargetBuildPCH" )
+INCLUDE( "TargetIncludeDirectories" )
+
 # Import targets if any
 IF( EVEMU_TARGETS_IMPORT )
   INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
