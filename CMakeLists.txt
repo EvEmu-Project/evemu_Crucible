@@ -161,18 +161,19 @@ FIND_PACKAGE( "Doxygen" )
 FIND_PACKAGE( "MySQL" REQUIRED )
 FIND_PACKAGE( "Threads" REQUIRED )
 
+BUILD_PACKAGE( "Lua" )
 BUILD_PACKAGE( "TinyXML" )
 BUILD_PACKAGE( "ZLIB" )
 
 ADD_SUBDIRECTORY( "dep/asio" )
 ADD_SUBDIRECTORY( "dep/gangsta" )
-ADD_SUBDIRECTORY( "dep/lua" )
 ADD_SUBDIRECTORY( "dep/utf8cpp" )
 ADD_SUBDIRECTORY( "dep/utils" )
 
 MARK_AS_ADVANCED(
   Boost_DIR
   Boost_LIB_DIAGNOSTIC_DEFINITIONS
+  Lua_DIR
   )
 
 #################
