@@ -40,6 +40,49 @@ ELSE( CMAKE_CROSSCOMPILING )
   MARK_AS_ADVANCED( EVEMU_TARGETS_EXPORT )
 ENDIF( CMAKE_CROSSCOMPILING )
 
+#################
+# Configuration #
+#################
+INCLUDE( "DetectScm" )
+
+IF( MSVC )
+  #
+  # This is here as we usually use pre-built MySQL binaries which are
+  # compiled with /MT (use static libc); building with /MD (use DLL libc)
+  # results in linker warning during the linking stage, however the resultant
+  # binary works and is even a little bit smaller due to the dynamic linking.
+  #
+  # For now we supress the linker warning by forcing static libc.
+  #
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
+  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
+  #
+  # Setup some recommended compiler flags.
+  #
+  # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
+  # override the setup.
+  #
+  SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
+ENDIF( MSVC )
+
+# Pull version from SCM, if any
+DETECT_SCM( "${PROJECT_SOURCE_DIR}" SCM_VERSION SCM_REPOSITORY )
+IF( SCM_VERSION AND SCM_REPOSITORY )
+  # Check that SCM_VERSION starts with PROJECT_VERSION
+  STRING( FIND "${SCM_VERSION}" "${PROJECT_VERSION}" VERSION_INDEX )
+  IF( NOT VERSION_INDEX EQUAL 0 )
+    MESSAGE( AUTHOR_WARNING "Version mismatch, please update PROJECT_VERSION in CMakeLists.txt" )
+  ENDIF( NOT VERSION_INDEX EQUAL 0 )
+
+  # Set project version and repository
+  SET( PROJECT_VERSION    "${SCM_VERSION}" )
+  SET( PROJECT_REPOSITORY "${SCM_REPOSITORY}" )
+ENDIF( SCM_VERSION AND SCM_REPOSITORY )
+
 #########
 # Tests #
 #########
@@ -93,49 +136,6 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 # sys/socket.h
 CHECK_CXX_SYMBOL_EXISTS( MSG_NOSIGNAL "sys/socket.h" HAVE_MSG_NOSIGNAL )
 CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
-
-#################
-# Configuration #
-#################
-INCLUDE( "DetectScm" )
-
-IF( MSVC )
-  #
-  # This is here as we usually use pre-built MySQL binaries which are
-  # compiled with /MT (use static libc); building with /MD (use DLL libc)
-  # results in linker warning during the linking stage, however the resultant
-  # binary works and is even a little bit smaller due to the dynamic linking.
-  #
-  # For now we supress the linker warning by forcing static libc.
-  #
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
-ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
-  #
-  # Setup some recommended compiler flags.
-  #
-  # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
-  # override the setup.
-  #
-  SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
-ENDIF( MSVC )
-
-# Pull version from SCM, if any
-DETECT_SCM( "${PROJECT_SOURCE_DIR}" SCM_VERSION SCM_REPOSITORY )
-IF( SCM_VERSION AND SCM_REPOSITORY )
-  # Check that SCM_VERSION starts with PROJECT_VERSION
-  STRING( FIND "${SCM_VERSION}" "${PROJECT_VERSION}" VERSION_INDEX )
-  IF( NOT VERSION_INDEX EQUAL 0 )
-    MESSAGE( AUTHOR_WARNING "Version mismatch, please update PROJECT_VERSION in CMakeLists.txt" )
-  ENDIF( NOT VERSION_INDEX EQUAL 0 )
-
-  # Set project version and repository
-  SET( PROJECT_VERSION    "${SCM_VERSION}" )
-  SET( PROJECT_REPOSITORY "${SCM_REPOSITORY}" )
-ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 
 #################
 # EVEmu targets #
