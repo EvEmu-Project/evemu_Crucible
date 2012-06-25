@@ -43,19 +43,21 @@ SET( SOURCE
 SOURCE_GROUP( "include" FILES ${INCLUDE} )
 SOURCE_GROUP( "src"     FILES ${SOURCE} )
 
-ADD_EXECUTABLE( "${TARGET_NAME}"
-                ${INCLUDE} ${SOURCE} )
+IF( NOT EVEMU_TARGETS_IMPORT )
+  ADD_EXECUTABLE( "${TARGET_NAME}"
+                  ${INCLUDE} ${SOURCE} )
 
-TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h"
-                  "${TARGET_SOURCE_DIR}/eve-xmlpktgen.cpp" )
-TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
-                            ${eve-core_INCLUDE_DIRS}
-                            "${TARGET_INCLUDE_DIR}" )
-TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "eve-core" )
+  TARGET_BUILD_PCH( "${TARGET_NAME}"
+                    "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h"
+                    "${TARGET_SOURCE_DIR}/eve-xmlpktgen.cpp" )
+  TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
+                              ${eve-core_INCLUDE_DIRS}
+                              "${TARGET_INCLUDE_DIR}" )
+  TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
+                         "eve-core" )
 
-IF( EVEMU_TARGETS_EXPORT )
-  EXPORT( TARGETS "${TARGET_NAME}"
-          FILE "${EVEMU_TARGETS_EXPORT}" )
-ENDIF( EVEMU_TARGETS_EXPORT )
+  IF( EVEMU_TARGETS_EXPORT )
+    EXPORT( TARGETS "${TARGET_NAME}"
+            FILE "${EVEMU_TARGETS_EXPORT}" )
+  ENDIF( EVEMU_TARGETS_EXPORT )
+ENDIF( NOT EVEMU_TARGETS_IMPORT )
