@@ -154,6 +154,8 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 ############
 # Packages #
 ############
+INCLUDE( "BuildPackage" )
+
 FIND_PACKAGE( "Boost" REQUIRED )
 FIND_PACKAGE( "Doxygen" )
 FIND_PACKAGE( "MySQL" REQUIRED )
