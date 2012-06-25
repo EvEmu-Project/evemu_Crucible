@@ -86,6 +86,7 @@ ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 #########
 # Tests #
 #########
+INCLUDE( "CheckCXXSourceCompiles" )
 INCLUDE( "CheckCXXSymbolExists" )
 INCLUDE( "CheckIncludeFile" )
 
@@ -102,17 +103,21 @@ CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
 CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
 
 # cfloat, cmath
-CHECK_CXX_SYMBOL_EXISTS( asinh         "cmath"  HAVE_ASINH )
-CHECK_CXX_SYMBOL_EXISTS( finite        "cmath"  HAVE_FINITE )
-CHECK_CXX_SYMBOL_EXISTS( isfinite      "cmath"  HAVE_ISFINITE )
-CHECK_CXX_SYMBOL_EXISTS( isnan         "cmath"  HAVE_ISNAN )
-CHECK_CXX_SYMBOL_EXISTS( _finite       "cfloat" HAVE__FINITE )
-CHECK_CXX_SYMBOL_EXISTS( _isnan        "cfloat" HAVE__ISNAN )
-CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath"  HAVE___FINITE )
-CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath"  HAVE___ISNAN )
-CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath"  HAVE_STD_FINITE )
-CHECK_CXX_SYMBOL_EXISTS( std::isfinite "cmath"  HAVE_STD_ISFINITE )
-CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath"  HAVE_STD_ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( asinh    "cmath"  HAVE_ASINH )
+CHECK_CXX_SYMBOL_EXISTS( finite   "cmath"  HAVE_FINITE )
+CHECK_CXX_SYMBOL_EXISTS( isfinite "cmath"  HAVE_ISFINITE )
+CHECK_CXX_SYMBOL_EXISTS( isnan    "cmath"  HAVE_ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( _finite  "cfloat" HAVE__FINITE )
+CHECK_CXX_SYMBOL_EXISTS( _isnan   "cfloat" HAVE__ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( __finite "cmath"  HAVE___FINITE )
+CHECK_CXX_SYMBOL_EXISTS( __isnan  "cmath"  HAVE___ISNAN )
+
+CHECK_CXX_SOURCE_COMPILES( "#include <cmath>
+int main() { return std::finite( 0 ); }"   HAVE_STD_FINITE )
+CHECK_CXX_SOURCE_COMPILES( "#include <cmath>
+int main() { return std::isfinite( 0 ); }" HAVE_STD_ISFINITE )
+CHECK_CXX_SOURCE_COMPILES( "#include <cmath>
+int main() { return std::isnan( 0 ); }"    HAVE_STD_ISNAN )
 
 # cstdarg
 CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
