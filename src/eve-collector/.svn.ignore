@@ -1,6 +1,0 @@
-*.a
-collector
-.deps
-.libs
-Makefile
-Makefile.in
