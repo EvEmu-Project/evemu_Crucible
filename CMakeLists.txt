@@ -103,6 +103,9 @@ CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
 
 # cfloat, cmath
 CHECK_CXX_SYMBOL_EXISTS( asinh         "cmath"  HAVE_ASINH )
+CHECK_CXX_SYMBOL_EXISTS( finite        "cmath"  HAVE_FINITE )
+CHECK_CXX_SYMBOL_EXISTS( isfinite      "cmath"  HAVE_ISFINITE )
+CHECK_CXX_SYMBOL_EXISTS( isnan         "cmath"  HAVE_ISNAN )
 CHECK_CXX_SYMBOL_EXISTS( _finite       "cfloat" HAVE__FINITE )
 CHECK_CXX_SYMBOL_EXISTS( _isnan        "cfloat" HAVE__ISNAN )
 CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath"  HAVE___FINITE )

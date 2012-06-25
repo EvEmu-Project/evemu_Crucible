@@ -45,6 +45,18 @@
 // Define if asinh is available.
 #cmakedefine HAVE_ASINH 1
 
+// HAVE_FINITE
+// Define if finite is available.
+#cmakedefine HAVE_FINITE 1
+
+// HAVE_ISFINITE
+// Define if isfinite is available.
+#cmakedefine HAVE_ISFINITE 1
+
+// HAVE_ISNAN
+// Define if isnan is available.
+#cmakedefine HAVE_ISNAN 1
+
 // HAVE__FINITE
 // Define if _finite is available.
 #cmakedefine HAVE__FINITE 1
