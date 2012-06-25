@@ -120,6 +120,8 @@ private:
     int m_EffectAppliedWhenID;
     int m_EffectAppliedTargetID;
     int m_EffectApplicationTypeID;
+    int m_TargetEquipmentTypeID;
+    std::vector<uint32> m_TargetGroupIDs;
     int m_StackingPenaltyAppliedID;
     int m_NullifyOnlineEffectEnable;
     int m_NullifiedOnlineEffectID;
@@ -151,45 +153,6 @@ protected:
 //////////////////////////////////////////////////////////////////////////
 
 
-// ////////////////////// Type Modifiers Classes ////////////////////////////
-class TypeModifier
-{
-public:
-    TypeModifier(uint32 effectID);
-    ~TypeModifier();
-
-private:
-    void _Populate(uint32 effectID);
-};
-
-
-// This class is a singleton object, containing all TypeModifiers loaded from
-// dgmTypeAttributeModifier table as memory objects of type TypeModifier:
-class DGM_TypeModifiers_Table
-: public Singleton< DGM_TypeModifiers_Table >
-{
-public:
-    DGM_TypeModifiers_Table();
-    ~DGM_TypeModifiers_Table();
-
-    // Initializes the Table:
-    int Initialize();
-
-    // Returns pointer to MEffect object corresponding to the effectID supplied:
-    TypeModifier * GetModifier(uint32 typeID, uint32 skillID = 0);      // skillID = 0 results in first modifier for this type to be returned
-                                                                        // if there are more than one
-
-protected:
-    void _Populate();
-
-    std::map<uint32, TypeModifier *> m_TypeModifiersMap;
-};
-
-#define sDGM_TypeModifiers_Table \
-    ( DGM_TypeModifiers_Table::get() )
-//////////////////////////////////////////////////////////////////////////
-
-
 // ////////////////////// ModuleEffects Class ////////////////////////////
 
 //class contained by all modules that is populated on construction of the module
@@ -211,6 +174,7 @@ public:
     MEffect * GetDefaultEffect() { return m_defaultEffect; }
     MEffect * GetEffect(uint32 effectID);
 
+    std::map<uint32, MEffect *>::const_iterator GetPersistentEffectsConstIterator() { return m_PersistentEffects.begin(); }
     std::map<uint32, MEffect *>::const_iterator GetOnlineEffectsConstIterator() { return m_OnlineEffects.begin(); }
     std::map<uint32, MEffect *>::const_iterator GetActiveEffectsConstIterator() { return m_ActiveEffects.begin(); }
     std::map<uint32, MEffect *>::const_iterator GetOverloadEffectsConstIterator() { return m_OverloadEffects.begin(); }
@@ -220,6 +184,7 @@ private:
     void _populate(uint32 typeID);
 
     //data members
+    std::map<uint32, MEffect *> m_PersistentEffects;
     std::map<uint32, MEffect *> m_OnlineEffects;
     std::map<uint32, MEffect *> m_ActiveEffects;
     std::map<uint32, MEffect *> m_OverloadEffects;

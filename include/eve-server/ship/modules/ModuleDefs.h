@@ -63,16 +63,30 @@ enum ChargeStates
 };
 
 // These are the module states where an effect will, ahem, take 'effect':
-// *** use these values to decode the 'effectAppliedInState' field of the 'dgmEffectsInfo' database table
+// *** use these values to decode the 'effectAppliedInState' field of the 'dgmEffectsActions' database table
 enum ModuleEffectTriggers
 {
+    EFFECT_PERSISTENT,          // means the effect is active AT ALL TIMES; used ONLY for skill, ship, subsystem effects
     EFFECT_ONLINE,              // means the effect takes effect on the target (see below) upon entering the ONLINE state
     EFFECT_ACTIVE,              // used only for ACTIVE modules operating in non-Overloaded mode
     EFFECT_OVERLOAD             // used only for ACTIVE modules operating in Overloaded mode
 };
 
+// These are the target types to which module and other types' effects are applied when activated:
+// *** use these values to decode the 'effectTargetEquipmentType' field of the 'dgmEffectsInfo' database table
+enum EffectTargetEquipmentTypes
+{
+    EQUIP_MODULE,
+    EQUIP_CHARGE,
+    EQUIP_THIS_SHIP,
+    EQUIP_DRONE,
+    EQUIP_EXTERNAL_SHIP,
+    EQUIP_EXTERNAL_SHIP_MODULE,
+    EQUIP_EXTERNAL_SHIP_CHARGE
+};
+
 // These are the targets to which module effects are applied when activated:
-// *** use these values to decode the 'effectAppliedTo' field of the 'dgmEffectsInfo' database table
+// *** use these values to decode the 'effectAppliedTo' field of the 'dgmEffectsActions' database table
 enum ModuleEffectTargets
 {
     SELF,           // means the target of the effect is the module's own attribute(s)
@@ -81,7 +95,7 @@ enum ModuleEffectTargets
 };
 
 // These are the methods by which module effects are applied to the designated target:
-// *** use these values to decode the 'effectApplicationType' field of the 'dgmEffectsInfo' database table
+// *** use these values to decode the 'effectApplicationType' field of the 'dgmEffectsActions' database table
 enum ModuleApplicationTypes
 {
     EFFECT_ONLINE_MAINTAIN,     // applied by PASSIVE or ACTIVE modules where an effect is maintained; means the effect takes effect on the
@@ -92,7 +106,7 @@ enum ModuleApplicationTypes
 };                              // effect on the target (see below) one extra time when in ACTIVATE state after each CYCLE duration expires
 
 // These are the methods by which module effects are applied to the designated target:
-// *** use these values to decode the 'stackingPenaltyApplied' field of the 'dgmEffectsInfo' database table
+// *** use these values to decode the 'stackingPenaltyApplied' field of the 'dgmEffectsActions' database table
 enum ModuleStackingPenaltyState
 {
     NO_PENALTY,
@@ -110,7 +124,7 @@ enum ModulePowerLevel
 };
 
 //calculation types
-// *** use these values to decode the 'calculationTypeID' and the 'reverseCalculationTypeID' fields of the 'dgmEffectsInfo' database table
+// *** use these values to decode the 'calculationTypeID' and the 'reverseCalculationTypeID' fields of the 'dgmEffectsActions' database table
 enum EVECalculationType
 {
     NONE,

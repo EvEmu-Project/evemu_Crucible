@@ -67,7 +67,14 @@ void ModuleDB::GetAllDgmTypeAttributeModifiers(DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
-        " typeID "
+        " typeID, "
+        " skillID, "
+        " targetEquipmentID, "
+        " targetGroupIDs, "
+        " targetAttributeID, "
+        " modifierValue, "
+        " calculationTypeID, "
+        " reverseCalculationTypeID "
         " FROM dgmTypeAttributeModifiers "
         " WHERE 1 "))
     {
