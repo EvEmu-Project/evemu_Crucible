@@ -106,13 +106,12 @@ public:
 
     bool IsInt() const
     {
-#ifdef WIN32
-    #ifdef _M_IX86
+#   if defined( MSVC ) && !defined( X64 )
         /* crash when we missed a convertion... lol */
         if (mType == PyTypeLong)
             __asm{int 3};
-    #endif
-#endif//WIN32
+#   endif /* defined( MSVC ) && !defined( X64 ) */
+
         return mType == PyTypeInt;
     }
 
