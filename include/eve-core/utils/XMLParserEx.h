@@ -165,7 +165,7 @@ public:
     {
         // obtain the text element
         const TiXmlNode* contents = field->FirstChild();
-        if( NULL != contents ? TiXmlNode::TEXT != contents->Type() : false )
+        if( NULL == contents || TiXmlNode::TINYXML_TEXT != contents->Type() )
         {
             sLog.Error( "XMLParser", "Expected a text element in element '%s' at line %d.", field->Value(), field->Row() );
             return false;

@@ -694,7 +694,7 @@ bool ClassEncodeGenerator::ProcessTupleInline( const TiXmlElement* field )
     uint32 count = 0;
     while( ( i = field->IterateChildren( i ) ) )
     {
-        if( i->Type() == TiXmlNode::ELEMENT )
+        if( i->Type() == TiXmlNode::TINYXML_ELEMENT )
             count++;
     }
 
@@ -789,7 +789,7 @@ bool ClassEncodeGenerator::ProcessListInline( const TiXmlElement* field )
     uint32 count = 0;
     while( ( i = field->IterateChildren( i ) ) )
     {
-        if( i->Type() == TiXmlNode::ELEMENT )
+        if( i->Type() == TiXmlNode::TINYXML_ELEMENT )
             count++;
     }
 
@@ -1004,7 +1004,7 @@ bool ClassEncodeGenerator::ProcessDictInline( const TiXmlElement* field )
     uint32 count = 0;
     while( ( i = field->IterateChildren( i ) ) )
     {
-        if( i->Type() == TiXmlNode::ELEMENT )
+        if( i->Type() == TiXmlNode::TINYXML_ELEMENT )
         {
             const TiXmlElement* ele = i->ToElement();
 

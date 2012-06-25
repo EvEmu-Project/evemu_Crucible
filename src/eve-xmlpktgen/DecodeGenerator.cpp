@@ -909,7 +909,7 @@ bool ClassDecodeGenerator::ProcessTupleInline( const TiXmlElement* field )
     uint32 count = 0;
     while( ( i = field->IterateChildren( i ) ) )
     {
-        if( i->Type() == TiXmlNode::ELEMENT )
+        if( i->Type() == TiXmlNode::TINYXML_ELEMENT )
             count++;
     }
 
@@ -1019,7 +1019,7 @@ bool ClassDecodeGenerator::ProcessListInline( const TiXmlElement* field )
     uint32 count = 0;
     while( ( i = field->IterateChildren( i ) ) )
     {
-        if( i->Type() == TiXmlNode::ELEMENT )
+        if( i->Type() == TiXmlNode::TINYXML_ELEMENT )
             count++;
     }
 
@@ -1345,7 +1345,7 @@ bool ClassDecodeGenerator::ProcessDictInline( const TiXmlElement* field )
     uint32 count = 0;
     while( ( i = field->IterateChildren( i ) ) )
     {
-        if( i->Type() == TiXmlNode::ELEMENT )
+        if( i->Type() == TiXmlNode::TINYXML_ELEMENT )
         {
             const TiXmlElement* ele = i->ToElement();
 
@@ -1404,7 +1404,7 @@ bool ClassDecodeGenerator::ProcessDictInline( const TiXmlElement* field )
         count = 0;
         while( ( i = field->IterateChildren( i ) ) )
         {
-            if( i->Type() == TiXmlNode::ELEMENT )
+            if( i->Type() == TiXmlNode::TINYXML_ELEMENT )
             {
                 const TiXmlElement* ele = i->ToElement();
 
@@ -1473,7 +1473,7 @@ bool ClassDecodeGenerator::ProcessDictInline( const TiXmlElement* field )
         count = 0;
         while( ( i = field->IterateChildren( i ) ) )
         {
-            if(i->Type() == TiXmlNode::ELEMENT)
+            if(i->Type() == TiXmlNode::TINYXML_ELEMENT)
             {
                 const TiXmlElement* ele = i->ToElement();
 
