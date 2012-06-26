@@ -47,9 +47,13 @@ INCLUDE( "CheckCXXSymbolExists" )
 INCLUDE( "CheckIncludeFile" )
 INCLUDE( "DetectScm" )
 INCLUDE( "TargetBuildPCH" )
-INCLUDE( "TestX64" )
 
-TEST_X64( X64 )
+# 64-bit system
+IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  SET( X64 ON )
+ELSE()
+  SET( X64 OFF )
+ENDIF()
 
 # Headers
 CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
