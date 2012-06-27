@@ -115,7 +115,6 @@ TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_INCLUDE_DIR}/eve-core.h"
                   "${TARGET_SOURCE_DIR}/eve-compat.cpp" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
-                            ${ASIO_INCLUDE_DIRS}
                             ${Boost_INCLUDE_DIRS}
                             ${MYSQL_INCLUDE_DIRS}
                             ${GANGSTA_INCLUDE_DIRS}
@@ -123,7 +122,6 @@ TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             "${ZLIB_INCLUDE_DIR}"
                             "${TARGET_INCLUDE_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       ${ASIO_LIBRARIES}
                        ${Boost_LIBRARIES}
                        ${MYSQL_LIBRARIES}
                        ${GANGSTA_LIBRARIES}

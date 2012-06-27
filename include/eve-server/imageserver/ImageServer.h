@@ -69,20 +69,20 @@ private:
     bool ValidateSize(std::string& category, uint32 size);
 
     std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char> > /*imageData*/> _limboImages;
-    std::auto_ptr<asio::thread> _ioThread;
-    std::auto_ptr<asio::io_service> _io;
+    std::auto_ptr<boost::asio::detail::thread> _ioThread;
+    std::auto_ptr<boost::asio::io_service> _io;
     std::auto_ptr<ImageServerListener> _listener;
     std::string _url;
     std::string _basePath;
-    asio::detail::mutex _limboLock;
+    boost::asio::detail::mutex _limboLock;
 
     class Lock
     {
     public:
-        Lock(asio::detail::mutex& mutex);
+        Lock(boost::asio::detail::mutex& mutex);
         ~Lock();
     private:
-        asio::detail::mutex& _mutex;
+        boost::asio::detail::mutex& _mutex;
     };
 };
 

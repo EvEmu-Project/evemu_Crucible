@@ -102,7 +102,7 @@ std::string& APIServer::url()
 
 void APIServer::Run()
 {
-    _ioThread = std::unique_ptr<asio::thread>(new asio::thread(std::tr1::bind(&APIServer::RunInternal, this)));
+    _ioThread = std::unique_ptr<boost::asio::detail::thread>(new boost::asio::detail::thread(std::tr1::bind(&APIServer::RunInternal, this)));
 }
 
 void APIServer::Stop()
@@ -113,12 +113,12 @@ void APIServer::Stop()
 
 void APIServer::RunInternal()
 {
-    _io = std::unique_ptr<asio::io_service>(new asio::io_service());
+    _io = std::unique_ptr<boost::asio::io_service>(new boost::asio::io_service());
     _listener = std::unique_ptr<APIServerListener>(new APIServerListener(*_io));
     _io->run();
 }
 
-APIServer::Lock::Lock(asio::detail::mutex& mutex)
+APIServer::Lock::Lock(boost::asio::detail::mutex& mutex)
     : _mutex(mutex)
 {
     _mutex.lock();

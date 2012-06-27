@@ -60,12 +60,12 @@ public:
 private:
     void RunInternal();
 
-    std::unique_ptr<asio::thread> _ioThread;
-    std::unique_ptr<asio::io_service> _io;
+    std::unique_ptr<boost::asio::detail::thread> _ioThread;
+    std::unique_ptr<boost::asio::io_service> _io;
     std::unique_ptr<APIServerListener> _listener;
     std::string _url;
     std::string _basePath;
-    asio::detail::mutex _limboLock;
+    boost::asio::detail::mutex _limboLock;
     bool runonce;
 
     std::tr1::shared_ptr<std::string> m_xmlString;
@@ -75,10 +75,10 @@ private:
     class Lock
     {
     public:
-        Lock(asio::detail::mutex& mutex);
+        Lock(boost::asio::detail::mutex& mutex);
         ~Lock();
     private:
-        asio::detail::mutex& _mutex;
+        boost::asio::detail::mutex& _mutex;
     };
 };
 

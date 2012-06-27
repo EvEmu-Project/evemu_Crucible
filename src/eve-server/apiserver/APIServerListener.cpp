@@ -28,9 +28,9 @@
 #include "EVEServerConfig.h"
 #include "apiserver/APIServerListener.h"
 
-APIServerListener::APIServerListener(asio::io_service& io)
+APIServerListener::APIServerListener(boost::asio::io_service& io)
 {
-    _acceptor = new asio::ip::tcp::acceptor(io, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), sConfig.net.apiServerPort));
+    _acceptor = new boost::asio::ip::tcp::acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), sConfig.net.apiServerPort));
     sLog.Log("api server", "listening on port %i", (sConfig.net.apiServerPort));
     StartAccept();
 }

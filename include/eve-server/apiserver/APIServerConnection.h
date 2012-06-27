@@ -41,12 +41,12 @@
 class APIServerConnection : public std::tr1::enable_shared_from_this<APIServerConnection>
 {
 public:
-    static std::tr1::shared_ptr<APIServerConnection> create(asio::io_service& io);
+    static std::tr1::shared_ptr<APIServerConnection> create(boost::asio::io_service& io);
     void Process();
-    asio::ip::tcp::socket& socket();
+    boost::asio::ip::tcp::socket& socket();
 
 private:
-    APIServerConnection(asio::io_service& io);
+    APIServerConnection(boost::asio::io_service& io);
     void ProcessHeaders();
     void ProcessPostData();
     void SendXML();
@@ -65,16 +65,16 @@ private:
     std::string _http_cmd_str;
     APICommandCall m_apiCommandCall;
 
-    asio::streambuf _buffer;
-    asio::streambuf _postBuffer;
-    asio::ip::tcp::socket _socket;
+    boost::asio::streambuf _buffer;
+    boost::asio::streambuf _postBuffer;
+    boost::asio::ip::tcp::socket _socket;
     std::tr1::shared_ptr<std::vector<char> > _xmlData;
 
-    static asio::const_buffers_1 _responseOK;
-    static asio::const_buffers_1 _responseNotFound;
-    static asio::const_buffers_1 _responseNoContent;
-    static asio::const_buffers_1 _responseRedirectBegin;
-    static asio::const_buffers_1 _responseRedirectEnd;
+    static boost::asio::const_buffers_1 _responseOK;
+    static boost::asio::const_buffers_1 _responseNotFound;
+    static boost::asio::const_buffers_1 _responseNoContent;
+    static boost::asio::const_buffers_1 _responseRedirectBegin;
+    static boost::asio::const_buffers_1 _responseRedirectEnd;
 };
 
 #endif // __APISERVERCONNECTION__H__INCL__

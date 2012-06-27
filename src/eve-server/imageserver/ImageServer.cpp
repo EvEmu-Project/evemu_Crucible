@@ -179,7 +179,7 @@ std::string& ImageServer::url()
 
 void ImageServer::Run()
 {
-    _ioThread = std::auto_ptr<asio::thread>(new asio::thread(std::tr1::bind(&ImageServer::RunInternal, this)));
+    _ioThread = std::auto_ptr<boost::asio::detail::thread>(new boost::asio::detail::thread(std::tr1::bind(&ImageServer::RunInternal, this)));
 }
 
 void ImageServer::Stop()
@@ -190,12 +190,12 @@ void ImageServer::Stop()
 
 void ImageServer::RunInternal()
 {
-    _io = std::auto_ptr<asio::io_service>(new asio::io_service());
+    _io = std::auto_ptr<boost::asio::io_service>(new boost::asio::io_service());
     _listener = std::auto_ptr<ImageServerListener>(new ImageServerListener(*_io));
     _io->run();
 }
 
-ImageServer::Lock::Lock(asio::detail::mutex& mutex)
+ImageServer::Lock::Lock(boost::asio::detail::mutex& mutex)
     : _mutex(mutex)
 {
     _mutex.lock();
