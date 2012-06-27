@@ -96,13 +96,6 @@ INCLUDE( "CheckCXXSourceCompiles" )
 INCLUDE( "CheckCXXSymbolExists" )
 INCLUDE( "CheckIncludeFile" )
 
-# 64-bit system
-IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-  SET( X64 ON )
-ELSE()
-  SET( X64 OFF )
-ENDIF()
-
 # Headers
 CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
 CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )

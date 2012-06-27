@@ -8,10 +8,6 @@
 /*************************************************************************/
 /* Platform defines                                                      */
 /*************************************************************************/
-// X64
-// Define this if you are building for a 64-bit platform.
-#cmakedefine X64 1
-
 // WIN32
 // Define this if you are on Windows.
 // CMake passes this as a command-line define.
