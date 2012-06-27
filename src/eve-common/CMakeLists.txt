@@ -71,15 +71,16 @@ SET( network_SOURCE
 
 SET( packets_INCLUDE
      "${TARGET_PACKETS_DIR}/packets/AccountPkts.h"
+     "${TARGET_PACKETS_DIR}/packets/Character.h"
      "${TARGET_PACKETS_DIR}/packets/CorporationPkts.h"
      "${TARGET_PACKETS_DIR}/packets/Crypto.h"
      "${TARGET_PACKETS_DIR}/packets/Destiny.h"
      "${TARGET_PACKETS_DIR}/packets/DogmaIM.h"
      "${TARGET_PACKETS_DIR}/packets/General.h"
-     "${TARGET_PACKETS_DIR}/packets/Character.h"
      "${TARGET_PACKETS_DIR}/packets/Inventory.h"
-     "${TARGET_PACKETS_DIR}/packets/Language.h"
      "${TARGET_PACKETS_DIR}/packets/LSCPkts.h"
+     "${TARGET_PACKETS_DIR}/packets/Language.h"
+     "${TARGET_PACKETS_DIR}/packets/Mail.h"
      "${TARGET_PACKETS_DIR}/packets/Manufacturing.h"
      "${TARGET_PACKETS_DIR}/packets/Market.h"
      "${TARGET_PACKETS_DIR}/packets/Missions.h"
@@ -88,19 +89,19 @@ SET( packets_INCLUDE
      "${TARGET_PACKETS_DIR}/packets/Standing2.h"
      "${TARGET_PACKETS_DIR}/packets/Trade.h"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.h"
-     "${TARGET_PACKETS_DIR}/packets/Wallet.h"
-     "${TARGET_PACKETS_DIR}/packets/Mail.h" )
+     "${TARGET_PACKETS_DIR}/packets/Wallet.h" )
 SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/AccountPkts.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Character.cpp"
      "${TARGET_PACKETS_DIR}/packets/CorporationPkts.cpp"
      "${TARGET_PACKETS_DIR}/packets/Crypto.cpp"
      "${TARGET_PACKETS_DIR}/packets/Destiny.cpp"
      "${TARGET_PACKETS_DIR}/packets/DogmaIM.cpp"
      "${TARGET_PACKETS_DIR}/packets/General.cpp"
-     "${TARGET_PACKETS_DIR}/packets/Character.cpp"
      "${TARGET_PACKETS_DIR}/packets/Inventory.cpp"
-     "${TARGET_PACKETS_DIR}/packets/Language.cpp"
      "${TARGET_PACKETS_DIR}/packets/LSCPkts.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Language.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Mail.cpp"
      "${TARGET_PACKETS_DIR}/packets/Manufacturing.cpp"
      "${TARGET_PACKETS_DIR}/packets/Market.cpp"
      "${TARGET_PACKETS_DIR}/packets/Missions.cpp"
@@ -109,19 +110,19 @@ SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/Standing2.cpp"
      "${TARGET_PACKETS_DIR}/packets/Trade.cpp"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.cpp"
-     "${TARGET_PACKETS_DIR}/packets/Wallet.cpp"
-     "${TARGET_PACKETS_DIR}/packets/Mail.cpp" )
+     "${TARGET_PACKETS_DIR}/packets/Wallet.cpp" )
 SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/AccountPkts.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Character.xmlp"
      "${TARGET_SOURCE_DIR}/packets/CorporationPkts.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Crypto.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Destiny.xmlp"
      "${TARGET_SOURCE_DIR}/packets/DogmaIM.xmlp"
      "${TARGET_SOURCE_DIR}/packets/General.xmlp"
-     "${TARGET_SOURCE_DIR}/packets/Character.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Inventory.xmlp"
-     "${TARGET_SOURCE_DIR}/packets/Language.xmlp"
      "${TARGET_SOURCE_DIR}/packets/LSCPkts.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Language.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Mail.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Manufacturing.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Market.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Missions.xmlp"
@@ -130,8 +131,7 @@ SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/Standing2.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Trade.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Tutorial.xmlp"
-     "${TARGET_SOURCE_DIR}/packets/Wallet.xmlp"
-     "${TARGET_SOURCE_DIR}/packets/Mail.xmlp" )
+     "${TARGET_SOURCE_DIR}/packets/Wallet.xmlp" )
 
 SET( python_INCLUDE
      "${TARGET_INCLUDE_DIR}/python/PyDumpVisitor.h"
