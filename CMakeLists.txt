@@ -94,12 +94,12 @@ ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 #########
 INCLUDE( "CheckCXXSourceCompiles" )
 INCLUDE( "CheckCXXSymbolExists" )
-INCLUDE( "CheckIncludeFile" )
+INCLUDE( "CheckIncludeFileCXX" )
 
 # Headers
-CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
-CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
-CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
+CHECK_INCLUDE_FILE_CXX( "crtdbg.h"   HAVE_CRTDBG_H )
+CHECK_INCLUDE_FILE_CXX( "inttypes.h" HAVE_INTTYPES_H )
+CHECK_INCLUDE_FILE_CXX( "vld.h"      HAVE_VLD_H )
 
 # Keywords
 CHECK_CXX_SOURCE_COMPILES(
