@@ -110,7 +110,7 @@
 #include "ship/InsuranceService.h"
 #include "ship/RepairService.h"
 #include "ship/ShipService.h"
-#include "ship/Modules/ModuleEffects.h"
+#include "ship/modules/ModuleEffects.h"
 // standing services
 #include "standing/FactionWarMgrService.h"
 #include "standing/SovereigntyMgrService.h"
