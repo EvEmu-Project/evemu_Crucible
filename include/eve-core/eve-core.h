@@ -96,18 +96,18 @@
  * Note: my fellow developers please read 'http://en.wikipedia.org/wiki/Technical_Report_1'. I know its a wiki page
  *       but it gives you the general idea.
  */
-#ifdef MSVC
-#   include <functional>
-#   include <tuple>
-#   include <unordered_map>
-#   include <unordered_set>
-#else /* !MSVC */
+#ifdef HAVE_TR1_PREFIX
 #   include <tr1/functional>
 #   include <tr1/memory>
 #   include <tr1/tuple>
 #   include <tr1/unordered_map>
 #   include <tr1/unordered_set>
-#endif /* !MSVC */
+#else /* !HAVE_TR1_PREFIX */
+#   include <functional>
+#   include <tuple>
+#   include <unordered_map>
+#   include <unordered_set>
+#endif /* !HAVE_TR1_PREFIX */
 
 #ifdef WIN32
 #   include <process.h>

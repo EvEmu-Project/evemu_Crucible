@@ -99,6 +99,7 @@ INCLUDE( "CheckIncludeFileCXX" )
 # Headers
 CHECK_INCLUDE_FILE_CXX( "crtdbg.h"   HAVE_CRTDBG_H )
 CHECK_INCLUDE_FILE_CXX( "inttypes.h" HAVE_INTTYPES_H )
+CHECK_INCLUDE_FILE_CXX( "tr1/tuple"  HAVE_TR1_PREFIX )
 CHECK_INCLUDE_FILE_CXX( "vld.h"      HAVE_VLD_H )
 
 # Keywords
