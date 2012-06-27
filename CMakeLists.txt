@@ -156,10 +156,10 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 ############
 INCLUDE( "BuildPackage" )
 
-FIND_PACKAGE( "Boost" REQUIRED )
 FIND_PACKAGE( "Doxygen" )
 FIND_PACKAGE( "Threads" REQUIRED )
 
+BUILD_PACKAGE( "Boost" )
 BUILD_PACKAGE( "Lua" )
 BUILD_PACKAGE( "MySQL" )
 BUILD_PACKAGE( "TinyXML" )
