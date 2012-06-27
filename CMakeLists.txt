@@ -108,6 +108,11 @@ CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
 CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
 CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
 
+# Keywords
+CHECK_CXX_SOURCE_COMPILES(
+  "int main() { __asm int 3; }\n"
+  HAVE___ASM )
+
 # cfloat, cmath
 CHECK_CXX_SYMBOL_EXISTS( asinh    "cmath"  HAVE_ASINH )
 CHECK_CXX_SYMBOL_EXISTS( finite   "cmath"  HAVE_FINITE )

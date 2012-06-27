@@ -106,12 +106,11 @@ public:
 
     bool IsInt() const
     {
-#   if defined( MSVC ) && !defined( X64 )
+#   ifdef HAVE___ASM
         /* crash when we missed a convertion... lol */
-        if (mType == PyTypeLong)
-            __asm{int 3};
-#   endif /* defined( MSVC ) && !defined( X64 ) */
-
+        if( mType == PyTypeLong )
+            __asm int 3;
+#   endif /* HAVE___ASM */
         return mType == PyTypeInt;
     }
 

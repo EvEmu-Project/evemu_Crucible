@@ -41,7 +41,7 @@ inline uint32 int32abs2uint32( const int32 value )
 /// Fastest Method of float2int32
 inline int32 float2int32( const float value )
 {
-#if defined( MSVC ) && !defined( X64 )
+#ifdef HAVE___ASM
     int32 i;
     __asm {
         fld value
@@ -49,18 +49,18 @@ inline int32 float2int32( const float value )
         fistp i
     }
     return i;
-#else
+#else /* !HAVE___ASM */
     union { int32 asInt[2]; double asDouble; } n;
     n.asDouble = value + 6755399441055744.0;
 
     return n.asInt[0];
-#endif
+#endif /* !HAVE___ASM */
 }
 
 /// Fastest Method of double2int32
 inline int32 double2int32( const double value )
 {
-#if defined( MSVC ) && !defined( X64 )
+#ifdef HAVE___ASM
     int32 i;
     __asm {
         fld value
@@ -68,12 +68,12 @@ inline int32 double2int32( const double value )
         fistp i
     }
     return i;
-#else
+#else /* !HAVE___ASM */
   union { int32 asInt[2]; double asDouble; } n;
   n.asDouble = value + 6755399441055744.0;
 
   return n.asInt[0];
-#endif
+#endif /* !HAVE___ASM */
 }
 
 #endif /* !__UTILS__FAST_INT_H__INCL__ */
