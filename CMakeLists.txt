@@ -155,6 +155,7 @@ CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
 # Packages #
 ############
 FIND_PACKAGE( "Boost" REQUIRED )
+FIND_PACKAGE( "Doxygen" )
 FIND_PACKAGE( "MySQL" REQUIRED )
 FIND_PACKAGE( "Threads" REQUIRED )
 FIND_PACKAGE( "ZLIB" REQUIRED )
@@ -193,7 +194,6 @@ IF( EVEMU_TARGETS_IMPORT )
 ENDIF( EVEMU_TARGETS_IMPORT )
 
 # Add all targets
-ADD_SUBDIRECTORY( "doc" )
 ADD_SUBDIRECTORY( "src/eve-core" )
 ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
@@ -201,6 +201,12 @@ ADD_SUBDIRECTORY( "src/eve-server" )
 ADD_SUBDIRECTORY( "src/eve-collector" )
 ADD_SUBDIRECTORY( "src/eve-tool" )
 ADD_SUBDIRECTORY( "src/eve-test" )
+
+IF( DOXYGEN_FOUND )
+  ADD_SUBDIRECTORY( "doc" )
+ELSE()
+  MESSAGE( WARNING "If you require generated documentation, please install Doxygen" )
+ENDIF( DOXYGEN_FOUND )
 
 ###############
 # CPack setup #
