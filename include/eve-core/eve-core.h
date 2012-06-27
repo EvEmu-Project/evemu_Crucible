@@ -58,6 +58,9 @@
 #   define __STDC_FORMAT_MACROS 1
 #endif /* HAVE_INTTYPES_H */
 
+// Disable auto-linking of any Boost libraries
+#define BOOST_ALL_NO_LIB 1
+
 /*************************************************************************/
 /* Includes                                                              */
 /*************************************************************************/

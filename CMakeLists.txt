@@ -26,10 +26,6 @@ ENABLE_TESTING()
 ###########
 # Options #
 ###########
-SET( BOOST_DATE_TIME_NO_LIB ON
-     CACHE BOOL "Disable linking of boost date_time library" )
-SET( BOOST_REGEX_NO_LIB ON
-     CACHE BOOL "Disable linking of boost regex library" )
 SET( EVEMU_ROOT ".."
      CACHE PATH "The root directory of EVEmu workspace." )
 SET( TIXML_USE_STL ON
@@ -44,8 +40,6 @@ ELSE( CMAKE_CROSSCOMPILING )
 ENDIF( CMAKE_CROSSCOMPILING )
 
 MARK_AS_ADVANCED(
-  BOOST_DATE_TIME_NO_LIB
-  BOOST_REGEX_NO_LIB
   EVEMU_ROOT
   EVEMU_TARGETS_IMPORT
   EVEMU_TARGETS_EXPORT
