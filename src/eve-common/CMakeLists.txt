@@ -236,6 +236,5 @@ TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             "${TARGET_INCLUDE_DIR}"
                             "${TARGET_PACKETS_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       ${UTF8CPP_LIBRARIES}
                        ${UTILS_LIBRARIES}
                        "eve-core" )
