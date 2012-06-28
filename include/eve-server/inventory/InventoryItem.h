@@ -188,6 +188,7 @@ public:
     /************************************************************************/
 private:
     AttributeMap mAttributeMap;
+    AttributeMap mDefaultAttributeMap;
 public:
     bool SetAttribute(uint32 attributeID, int num, bool notify = true);
     bool SetAttribute(uint32 attributeID, uint32 num, bool notify = true);
@@ -198,6 +199,9 @@ public:
 
     EvilNumber GetAttribute(uint32 attributeID);
     EvilNumber GetAttribute(const uint32 attributeID) const;
+
+    EvilNumber GetDefaultAttribute(uint32 attributeID);
+    EvilNumber GetDefaultAttribute(const uint32 attributeID) const;
 
     /*
      * HasAttribute

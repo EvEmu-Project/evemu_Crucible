@@ -120,6 +120,7 @@ InventoryItem::InventoryItem(
 : RefObject( 0 ),
   //attributes(_factory, *this, true, true),
   mAttributeMap(*this),
+  mDefaultAttributeMap(*this),
   m_saveTimer(0,true),
   m_factory(_factory),
   m_itemID(_itemID),
@@ -574,6 +575,7 @@ void InventoryItem::Delete() {
     m_factory.db().DeleteItem( itemID() );
 
     mAttributeMap.Delete();
+    mDefaultAttributeMap.Delete();
 
     //delete ourselves from factory cache
     m_factory._DeleteItem( itemID() );
@@ -1059,6 +1061,16 @@ EvilNumber InventoryItem::GetAttribute( uint32 attributeID )
 EvilNumber InventoryItem::GetAttribute( const uint32 attributeID ) const
 {
      return mAttributeMap.GetAttribute(attributeID);
+}
+
+EvilNumber InventoryItem::GetDefaultAttribute( uint32 attributeID )
+{
+    return mDefaultAttributeMap.GetAttribute(attributeID);
+}
+
+EvilNumber InventoryItem::GetDefaultAttribute( const uint32 attributeID ) const
+{
+     return mDefaultAttributeMap.GetAttribute(attributeID);
 }
 
 bool InventoryItem::HasAttribute(uint32 attributeID)
