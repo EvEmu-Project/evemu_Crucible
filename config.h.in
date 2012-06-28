@@ -133,14 +133,6 @@
 // Define if localtime_s is available.
 #cmakedefine HAVE_LOCALTIME_S 1
 
-// HAVE_MSG_NOSIGNAL
-// Define if MSG_NOSIGNAL is available.
-#cmakedefine HAVE_MSG_NOSIGNAL 1
-
-// HAVE_SO_NOSIGPIPE
-// Define if SO_NOSIGPIPE is available.
-#cmakedefine HAVE_SO_NOSIGPIPE 1
-
 /*************************************************************************/
 /* Configuration                                                         */
 /*************************************************************************/

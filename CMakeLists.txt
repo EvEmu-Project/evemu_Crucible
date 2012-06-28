@@ -150,10 +150,6 @@ CHECK_CXX_SYMBOL_EXISTS( strncasecmp "cstring" HAVE_STRNCASECMP )
 CHECK_CXX_SYMBOL_EXISTS( localtime_r "ctime" HAVE_LOCALTIME_R )
 CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 
-# sys/socket.h
-CHECK_CXX_SYMBOL_EXISTS( MSG_NOSIGNAL "sys/socket.h" HAVE_MSG_NOSIGNAL )
-CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
-
 ############
 # Packages #
 ############

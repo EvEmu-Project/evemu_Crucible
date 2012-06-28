@@ -212,13 +212,13 @@ tm* localtime_r( const time_t* timep, tm* result );
 /*************************************************************************/
 /* sys/socket.h                                                          */
 /*************************************************************************/
-#ifndef HAVE_MSG_NOSIGNAL
-#   ifdef HAVE_SO_NOSIGPIPE
+#ifndef MSG_NOSIGNAL
+#   ifdef SO_NOSIGPIPE
 #       define MSG_NOSIGNAL SO_NOSIGPIPE
-#   else /* !HAVE_SO_NOSIGPIPE */
+#   else /* !SO_NOSIGPIPE */
 #       define MSG_NOSIGNAL 0
-#   endif /* !HAVE_SO_NOSIGPIPE */
-#endif /* !HAVE_MSG_NOSIGNAL */
+#   endif /* !SO_NOSIGPIPE */
+#endif /* !MSG_NOSIGNAL */
 
 /*************************************************************************/
 /* Various other compatibility stuff                                     */
