@@ -121,6 +121,10 @@ typedef unsigned __int64 uint64;
 /*************************************************************************/
 /* cfloat, cmath                                                         */
 /*************************************************************************/
+#ifndef M_PI
+#   define M_PI 3.14159265358979323846
+#endif /* !M_PI */
+
 #ifndef HAVE_ASINH
 #   define asinh boost::math::asinh
 #endif /* !HAVE_ASINH */
