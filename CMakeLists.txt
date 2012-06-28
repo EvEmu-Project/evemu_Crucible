@@ -51,27 +51,24 @@ MARK_AS_ADVANCED(
 #################
 INCLUDE( "DetectScm" )
 
+#
+# Setup some recommended compiler flags.
+#
+# Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
+# override the setup.
+#
 IF( MSVC )
-  #
-  # This is here as we usually use pre-built MySQL binaries which are
-  # compiled with /MT (use static libc); building with /MD (use DLL libc)
-  # results in linker warning during the linking stage, however the resultant
-  # binary works and is even a little bit smaller due to the dynamic linking.
-  #
-  # For now we supress the linker warning by forcing static libc.
-  #
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+  # Turn off some stupid whiny warnings
+  ADD_DEFINITIONS(
+    "-D_CRT_SECURE_NO_WARNINGS"
+    "-D_CRT_SECURE_NO_DEPRECATE"
+    "-D_CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES"
+    "-D_SCL_SECURE_NO_WARNINGS"
+    )
+  # Disable 'this' used in base member initializer list warning
+  SET( CMAKE_CXX_FLAGS "/wd4355 ${CMAKE_CXX_FLAGS}" )
 ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
-  #
-  # Setup some recommended compiler flags.
-  #
-  # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
-  # override the setup.
-  #
+  # Switch to the C++0x standard (required)
   SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 ENDIF( MSVC )
 

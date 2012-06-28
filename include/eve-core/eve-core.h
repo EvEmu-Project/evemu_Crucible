@@ -39,16 +39,6 @@
 #   define NOMINMAX
 #endif /* !WIN32 */
 
-#ifdef MSVC
-#   define _CRT_SECURE_NO_WARNINGS                  1
-#   define _CRT_SECURE_NO_DEPRECATE                 1
-#   define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
-#   define _SCL_SECURE_NO_WARNINGS                  1
-
-// Disable 'this' used in base member initializer list warning
-#   pragma warning( disable : 4355 )
-#endif /* _MSC_VER */
-
 #ifdef HAVE_CRTDBG_H
 #   define _CRTDBG_MAP_ALLOC 1
 #endif /* HAVE_CRTDBG_H */
