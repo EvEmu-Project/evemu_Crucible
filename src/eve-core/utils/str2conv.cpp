@@ -30,29 +30,29 @@
 template<>
 bool str2< bool >( const char* str )
 {
-    if( !strcasecmp( str, "true" ) )
+    if( !::strcasecmp( str, "true" ) )
         return true;
-    else if( !strcasecmp( str, "false" ) )
+    else if( !::strcasecmp( str, "false" ) )
         return false;
-    else if( !strcasecmp( str, "yes" ) )
+    else if( !::strcasecmp( str, "yes" ) )
         return true;
-    else if( !strcasecmp( str, "no" ) )
+    else if( !::strcasecmp( str, "no" ) )
         return false;
-    else if( !strcasecmp( str, "y" ) )
+    else if( !::strcasecmp( str, "y" ) )
         return true;
-    else if( !strcasecmp( str, "n" ) )
+    else if( !::strcasecmp( str, "n" ) )
         return false;
-    else if( !strcasecmp( str, "on" ) )
+    else if( !::strcasecmp( str, "on" ) )
         return true;
-    else if( !strcasecmp( str, "off" ) )
+    else if( !::strcasecmp( str, "off" ) )
         return false;
-    else if( !strcasecmp( str, "enable" ) )
+    else if( !::strcasecmp( str, "enable" ) )
         return true;
-    else if( !strcasecmp( str, "disable" ) )
+    else if( !::strcasecmp( str, "disable" ) )
         return false;
-    else if( !strcasecmp( str, "enabled" ) )
+    else if( !::strcasecmp( str, "enabled" ) )
         return true;
-    else if( !strcasecmp( str, "disabled" ) )
+    else if( !::strcasecmp( str, "disabled" ) )
         return false;
     else if( str2< int >( str ) )
         return true;
@@ -60,26 +60,27 @@ bool str2< bool >( const char* str )
         return false;
 }
 
-template<>
-int64 str2< int64 >( const char* str )
-{
-    int64 v = 0;
-    sscanf( str, "%"SCNd64, &v );
-    return v;
-}
+#define STR2( type, fmt )                       \
+    template<>                                  \
+    type str2< type >( const char* str )        \
+    {                                           \
+        type v = 0;                             \
+        ::sscanf( str, "%"fmt, &v );            \
+        return v;                               \
+    }
 
-template<>
-uint64 str2< uint64 >( const char* str )
-{
-    uint64 v = 0;
-    sscanf( str, "%"SCNu64, &v );
-    return v;
-}
+STR2( int8,  SCNd8 )
+STR2( int16, SCNd16 )
+STR2( int32, SCNd32 )
+STR2( int64, SCNd64 )
 
-template<>
-long double str2< long double >( const char* str )
-{
-    long double v = 0.0;
-    sscanf( str, "%Lf", &v );
-    return v;
-}
+STR2( uint8,  SCNu8 )
+STR2( uint16, SCNu16 )
+STR2( uint32, SCNu32 )
+STR2( uint64, SCNu64 )
+
+STR2( float, "f" )
+STR2( double, "lf" )
+STR2( long double, "Lf" )
+
+#undef STR2
