@@ -404,11 +404,6 @@ int main( int argc, char* argv[] )
 
     log_close_logfile();
 
-    // win crap.
-//#if defined( MSVC ) && !defined( NDEBUG )
-//    _CrtDumpMemoryLeaks();
-//#endif /* defined( MSVC ) && !defined( NDEBUG ) */
-
     std::cout << std::endl << "press the ENTER key to exit...";  std::cin.get();
 
     return 0;
@@ -416,15 +411,21 @@ int main( int argc, char* argv[] )
 
 static void SetupSignals()
 {
-    signal( SIGINT, CatchSignal );
-    signal( SIGTERM, CatchSignal );
-    signal( SIGABRT, CatchSignal );
-#ifdef WIN32
-    signal( SIGBREAK, CatchSignal );
-    signal( SIGABRT_COMPAT, CatchSignal );
-#else
-    signal( SIGHUP, CatchSignal );
-#endif
+    ::signal( SIGINT, CatchSignal );
+    ::signal( SIGTERM, CatchSignal );
+    ::signal( SIGABRT, CatchSignal );
+
+#ifdef SIGABRT_COMPAT
+    ::signal( SIGABRT_COMPAT, CatchSignal );
+#endif /* SIGABRT_COMPAT */
+
+#ifdef SIGBREAK
+    ::signal( SIGBREAK, CatchSignal );
+#endif /* SIGBREAK */
+
+#ifdef SIGHUP
+    ::signal( SIGHUP, CatchSignal );
+#endif /* SIGHUP */
 }
 
 static void CatchSignal( int sig_num )

@@ -75,7 +75,12 @@ ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
   SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 ENDIF( MSVC )
 
-# Pull version from SCM, if any
+#
+# Try to detemine the exact source version using SCM.
+#
+# Also check that the generated version string starts
+# with PROJECT_VERSION, issue a warning otherwise.
+#
 DETECT_SCM( "${PROJECT_SOURCE_DIR}" SCM_VERSION SCM_REPOSITORY )
 IF( SCM_VERSION AND SCM_REPOSITORY )
   # Check that SCM_VERSION starts with PROJECT_VERSION
