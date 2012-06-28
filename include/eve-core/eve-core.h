@@ -44,7 +44,11 @@
 #endif /* HAVE_CRTDBG_H */
 
 #ifdef HAVE_INTTYPES_H
-    // We must "explicitly request" the format strings ...
+// This requires some ugly tinkering because inttypes.h
+// is primarily a C header.
+// Pretend to be C99-compliant
+#   define __STDC_VERSION__     199901L
+// We must "explicitly request" the format strings
 #   define __STDC_FORMAT_MACROS 1
 #endif /* HAVE_INTTYPES_H */
 
