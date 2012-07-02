@@ -7,9 +7,9 @@
 ###############
 # CMake setup #
 ###############
-# We need the CheckCXXSymbolExists module which is distributed
-# with CMake 2.8.6 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.6 FATAL_ERROR )
+# We need a target-specific property INCLUDE_DIRECTORIES which
+# is part of CMake 2.8.8 and later.
+CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
