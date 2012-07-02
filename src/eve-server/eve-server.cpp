@@ -168,9 +168,9 @@ int main( int argc, char* argv[] )
     sLog.Log("server init", "Loading server configuration...");
 
     sLog.Log("", "" );
-    sLog.Log("version", "EVEmu "EVEMU_VERSION );
+    sLog.Log("version", "EVEmu " EVEMU_VERSION );
     sLog.Log("", "" );
-    sLog.Log("source", "get at "EVEMU_REPOSITORY );
+    sLog.Log("source", "get at " EVEMU_REPOSITORY );
     sLog.Log("", "" );
     sLog.Log("server init", "\n"
         "\tSupported Client: %s\n"

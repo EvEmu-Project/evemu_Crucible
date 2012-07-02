@@ -554,8 +554,8 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
     // Set new corp
     if (!sDatabase.RunQuery(err,
         "UPDATE character_ SET "
-        "   corporationID = %u, corporationDateTime = %"PRIu64", "
-        "   corpRole = %"PRIu64", rolesAtAll = %"PRIu64", rolesAtBase = %"PRIu64", rolesAtHQ = %"PRIu64", rolesAtOther = %"PRIu64" "
+        "   corporationID = %u, corporationDateTime = %" PRIu64 ", "
+        "   corpRole = %" PRIu64 ", rolesAtAll = %" PRIu64 ", rolesAtBase = %" PRIu64 ", rolesAtHQ = %" PRIu64 ", rolesAtOther = %" PRIu64 " "
         "   WHERE characterID = %u",
             corpID, Win32TimeNow(),
             roles.corpRole, roles.rolesAtAll, roles.rolesAtBase, roles.rolesAtHQ, roles.rolesAtOther,
@@ -581,7 +581,7 @@ bool CorporationDB::JoinCorporation(uint32 charID, uint32 corpID, uint32 oldCorp
 
     // Add new employment history record
     if (!sDatabase.RunQuery(err,
-        "INSERT INTO chrEmployment VALUES (%u, %u, %"PRIu64", 0)",
+        "INSERT INTO chrEmployment VALUES (%u, %u, %" PRIu64 ", 0)",
         charID, corpID, Win32TimeNow()
         ))
     {

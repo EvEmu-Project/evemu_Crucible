@@ -721,7 +721,7 @@ bool AttributeMap::Save()
 
             DBerror err;
             bool success = sDatabase.RunQuery(err,
-                "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, %"PRId64", NULL)",
+                "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, %" PRId64 ", NULL)",
                 mItem.itemID(), itr->first, itr->second.get_int());
 
             if (!success)

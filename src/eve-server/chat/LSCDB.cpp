@@ -235,7 +235,7 @@ uint32 LSCDB::StoreMail(uint32 senderID, uint32 recipID, const char * subject, c
         " INSERT INTO "
         " eveMail "
         " (channelID, senderID, subject, created) "
-        " VALUES (%u, %u, '%s', %"PRIu64") ",
+        " VALUES (%u, %u, '%s', %" PRIu64 ") ",
         recipID, senderID, escaped.c_str(), sentTime ))
     {
         codelog(SERVICE__ERROR, "Error in query, message header couldn't be saved: %s", err.c_str());

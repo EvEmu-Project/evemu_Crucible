@@ -600,7 +600,7 @@ int64 DBResultRow::GetInt64( uint32 index ) const
     }
 #endif
     //int64 value;
-    //sscanf( GetText( index ), "%"SCNd64, &value );
+    //sscanf( GetText( index ), "%" SCNd64, &value );
     //return value;
 
     //use base 0 on the obscure chance that this is a string column with an 0x hex number in it.

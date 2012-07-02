@@ -1077,8 +1077,8 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
         " VALUES"
         // CharacterData:
         "  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
-        "   %u, %u, %"PRIu64", %"PRIu64", %"PRIu64", %"PRIu64", %"PRIu64", "
-        "   %"PRIu64", %"PRIu64", %"PRIu64","
+        "   %u, %u, %" PRIu64 ", %" PRIu64 ", %" PRIu64 ", %" PRIu64 ", %" PRIu64 ", "
+        "   %" PRIu64 ", %" PRIu64 ", %" PRIu64 ","
         "   %u, %u, %u, %u, %u,"
         "   %u, %u, %u, %u, %u, %u)",
         // CharacterData:
@@ -1585,7 +1585,7 @@ bool InventoryDB::SaveCertificates( uint32 characterID, const Certificates &from
         const currentCertificates &im = from[ i ];
 
         char buf[ 64 ];
-        snprintf( buf, 64, "(NULL, %u, %u, %"PRIu64", %u)", characterID, im.certificateID, im.grantDate, im.visibilityFlags );
+        snprintf( buf, 64, "(NULL, %u, %u, %" PRIu64 ", %u)", characterID, im.certificateID, im.grantDate, im.visibilityFlags );
         if( i != 0 )
         query += ',';
         query += buf;

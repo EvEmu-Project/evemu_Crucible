@@ -562,7 +562,7 @@ void PyCachedObjectDecoder::Dump(FILE *into, const char *pfx, bool contents_too)
     fprintf(into, "%sCached Object:\n", pfx);
     fprintf(into, "%s  ObjectID:\n", pfx);
     objectID->Dump(into, s.c_str());
-    fprintf(into, "%s  Version Time: %"PRIu64"\n", pfx, timestamp);
+    fprintf(into, "%s  Version Time: %" PRIu64 "\n", pfx, timestamp);
     fprintf(into, "%s  Version: %u\n", pfx, version);
     fprintf(into, "%s  NodeID: %u\n", pfx, nodeID);
     fprintf(into, "%s  Shared: %s\n", pfx, shared?"yes":"no");
@@ -580,7 +580,7 @@ void PyCachedObject::Dump(FILE *into, const char *pfx, bool contents_too)
     fprintf(into, "%sCached Object:\n", pfx);
     fprintf(into, "%s  ObjectID:\n", pfx);
         objectID->Dump(into, s.c_str());
-    fprintf(into, "%s  Version Time: %"PRIu64"\n", pfx, timestamp);
+    fprintf(into, "%s  Version Time: %" PRIu64 "\n", pfx, timestamp);
     fprintf(into, "%s  Version: %u\n", pfx, version);
     fprintf(into, "%s  NodeID: %u\n", pfx, nodeID);
     fprintf(into, "%s  Shared: %s\n", pfx, shared?"yes":"no");

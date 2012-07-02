@@ -233,7 +233,7 @@ bool BookmarkDB::SaveNewBookmarkToDatabase(uint32 &bookmarkID, uint32 ownerID, u
     if (!sDatabase.RunQuery(err,
         " INSERT INTO bookmarks "
         " (bookmarkID, ownerID, itemID, typeID, flag, memo, created, x, y, z, locationID)"
-        " VALUES (%u, %u, %u, %u, %u, '%s', %"PRIu64", %f, %f, %f, %u) ",
+        " VALUES (%u, %u, %u, %u, %u, '%s', %" PRIu64 ", %f, %f, %f, %u) ",
         bookmarkID, ownerID, itemID, typeID, flag, memo.c_str(), created, x, y, z, locationID
         ))
     {

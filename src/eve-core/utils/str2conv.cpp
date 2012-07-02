@@ -65,7 +65,7 @@ bool str2< bool >( const char* str )
     type str2< type >( const char* str )        \
     {                                           \
         type v = 0;                             \
-        ::sscanf( str, "%"fmt, &v );            \
+        ::sscanf( str, "%" fmt, &v );           \
         return v;                               \
     }
 

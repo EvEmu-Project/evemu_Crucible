@@ -84,7 +84,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
         data += sizeof(Destiny::MassSector);
         len -= sizeof(Destiny::MassSector);
 
-        _log(into, "   mass=%.2f, cloak=%d, hardmonic=%f, corp=%u, alliance=0x%"PRIx64,
+        _log(into, "   mass=%.2f, cloak=%d, hardmonic=%f, corp=%u, alliance=0x%" PRIx64,
             masschunk->mass, masschunk->cloak, masschunk->Harmonic, masschunk->corpID, masschunk->allianceID);
     }
 
