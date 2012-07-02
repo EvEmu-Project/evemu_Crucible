@@ -106,7 +106,7 @@ CHECK_INCLUDE_FILE_CXX( "vld.h"      HAVE_VLD_H )
 
 # Keywords
 CHECK_CXX_SOURCE_COMPILES(
-  "int main() { __asm int 3; }\n"
+  "int main() { __asm int 3 }\n"
   HAVE___ASM )
 
 # cfloat, cmath
