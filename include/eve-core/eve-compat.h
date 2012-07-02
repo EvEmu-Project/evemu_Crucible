@@ -121,27 +121,37 @@ typedef unsigned __int64 uint64;
 /*************************************************************************/
 /* cfloat, cmath                                                         */
 /*************************************************************************/
+#ifndef M_PI
+#   define M_PI 3.14159265358979323846
+#endif /* !M_PI */
+
 #ifndef HAVE_ASINH
 #   define asinh boost::math::asinh
 #endif /* !HAVE_ASINH */
 
-#if defined( HAVE__FINITE )
-#   define finite _finite
-#elif defined( HAVE___FINITE )
-#   define finite __finite
-#elif defined( HAVE_STD_FINITE )
-#   define finite std::finite
-#elif defined( HAVE_STD_ISFINITE )
-#   define finite std::isfinite
-#endif
+#ifndef HAVE_FINITE
+#   if defined( HAVE_ISFINITE )
+#       define finite isfinite
+#   elif defined( HAVE_STD_FINITE )
+#       define finite std::finite
+#   elif defined( HAVE_STD_ISFINITE )
+#       define finite std::isfinite
+#   elif defined( HAVE__FINITE )
+#       define finite _finite
+#   elif defined( HAVE___FINITE )
+#       define finite __finite
+#   endif /* HAVE___FINITE */
+#endif /* !HAVE_FINITE */
 
-#if defined( HAVE__ISNAN )
-#   define isnan _isnan
-#elif defined( HAVE___ISNAN )
-#   define isnan __isnan
-#elif defined( HAVE_STD_ISNAN )
-#   define isnan std::isnan
-#endif
+#ifndef HAVE_ISNAN
+#   if defined( HAVE_STD_ISNAN )
+#       define isnan std::isnan
+#   elif defined( HAVE__ISNAN )
+#       define isnan _isnan
+#   elif defined( HAVE___ISNAN )
+#       define isnan __isnan
+#   endif /* HAVE___ISNAN */
+#endif /* !HAVE_ISNAN */
 
 /*************************************************************************/
 /* cstdarg                                                               */
@@ -206,13 +216,13 @@ tm* localtime_r( const time_t* timep, tm* result );
 /*************************************************************************/
 /* sys/socket.h                                                          */
 /*************************************************************************/
-#ifndef HAVE_MSG_NOSIGNAL
-#   ifdef HAVE_SO_NOSIGPIPE
+#ifndef MSG_NOSIGNAL
+#   ifdef SO_NOSIGPIPE
 #       define MSG_NOSIGNAL SO_NOSIGPIPE
-#   else /* !HAVE_SO_NOSIGPIPE */
+#   else /* !SO_NOSIGPIPE */
 #       define MSG_NOSIGNAL 0
-#   endif /* !HAVE_SO_NOSIGPIPE */
-#endif /* !HAVE_MSG_NOSIGNAL */
+#   endif /* !SO_NOSIGPIPE */
+#endif /* !MSG_NOSIGNAL */
 
 /*************************************************************************/
 /* Various other compatibility stuff                                     */

@@ -26,16 +26,6 @@
 #ifndef __UTILS__STR2CONV_H__INCL__
 #define __UTILS__STR2CONV_H__INCL__
 
-#ifdef MSVC
-/*
- * Following code produces lots of these, turning them off
- * as they're meaningless.
- *
- * 'conversion' conversion from 'type1' to 'type2', possible loss of data
- */
-#   pragma warning( disable : 4244 )
-#endif /* MSVC */
-
 /**
  * @brief Generic string conversion template.
  *
@@ -77,35 +67,62 @@ bool str2< bool >( const char* str );
  * @return An integer corresponding to content of @a str.
  */
 template<>
+int8 str2< int8 >( const char* str );
+/**
+ * @brief Converts string to integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An integer corresponding to content of @a str.
+ */
+template<>
+int16 str2< int16 >( const char* str );
+/**
+ * @brief Converts string to integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An integer corresponding to content of @a str.
+ */
+template<>
+int32 str2< int32 >( const char* str );
+/**
+ * @brief Converts string to integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An integer corresponding to content of @a str.
+ */
+template<>
 int64 str2< int64 >( const char* str );
-/**
- * @brief Converts string to integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An integer corresponding to content of @a str.
- */
-template<>
-inline int32 str2< int32 >( const char* str ) { return str2< int64 >( str ); }
-/**
- * @brief Converts string to integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An integer corresponding to content of @a str.
- */
-template<>
-inline int16 str2< int16 >( const char* str ) { return str2< int32 >( str ); }
-/**
- * @brief Converts string to integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An integer corresponding to content of @a str.
- */
-template<>
-inline int8 str2< int8 >( const char* str ) { return str2< int16 >( str ); }
 
+/**
+ * @brief Converts string to unsigned integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An unsigned integer corresponding to content of @a str.
+ */
+template<>
+uint8 str2< uint8 >( const char* str );
+/**
+ * @brief Converts string to unsigned integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An unsigned integer corresponding to content of @a str.
+ */
+template<>
+uint16 str2< uint16 >( const char* str );
+/**
+ * @brief Converts string to unsigned integer.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return An unsigned integer corresponding to content of @a str.
+ */
+template<>
+uint32 str2< uint32 >( const char* str );
 /**
  * @brief Converts string to unsigned integer.
  *
@@ -115,34 +132,25 @@ inline int8 str2< int8 >( const char* str ) { return str2< int16 >( str ); }
  */
 template<>
 uint64 str2< uint64 >( const char* str );
-/**
- * @brief Converts string to unsigned integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An unsigned integer corresponding to content of @a str.
- */
-template<>
-inline uint32 str2< uint32 >( const char* str ) { return str2< uint64 >( str ); }
-/**
- * @brief Converts string to unsigned integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An unsigned integer corresponding to content of @a str.
- */
-template<>
-inline uint16 str2<uint16>( const char* str ) { return str2< uint32 >( str ); }
-/**
- * @brief Converts string to unsigned integer.
- *
- * @param[in] str String to be converted.
- *
- * @return An unsigned integer corresponding to content of @a str.
- */
-template<>
-inline uint8 str2<uint8>( const char* str ) { return str2< uint16 >( str ); }
 
+/**
+ * @brief Converts string to real number.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return A real number corresponding to content of @a str.
+ */
+template<>
+float str2< float >( const char* str );
+/**
+ * @brief Converts string to real number.
+ *
+ * @param[in] str String to be converted.
+ *
+ * @return A real number corresponding to content of @a str.
+ */
+template<>
+double str2< double >( const char* str );
 /**
  * @brief Converts string to real number.
  *
@@ -152,31 +160,5 @@ inline uint8 str2<uint8>( const char* str ) { return str2< uint16 >( str ); }
  */
 template<>
 long double str2< long double >( const char* str );
-/**
- * @brief Converts string to real number.
- *
- * @param[in] str String to be converted.
- *
- * @return A real number corresponding to content of @a str.
- */
-template<>
-inline double str2<double>( const char* str ) { return str2< long double >( str ); }
-/**
- * @brief Converts string to real number.
- *
- * @param[in] str String to be converted.
- *
- * @return A real number corresponding to content of @a str.
- */
-template<>
-inline float str2<float>( const char* str ) { return str2< double >( str ); }
-
-#ifdef MSVC
-/*
- * Turn the warning back to default.
- * See above for details.
- */
-#   pragma warning( default : 4244 )
-#endif /* MSVC */
 
 #endif /* !__UTILS__STR2CONV_H__INCL__ */

@@ -4,36 +4,28 @@
 # Author: Bloody.Rabbit
 #
 
-##############
-# Initialize #
-##############
-SET( TARGET_NAME        "gangsta" )
-SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}" )
-SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/dep/${TARGET_NAME}" )
+FIND_PACKAGE( "Gangsta" QUIET )
+IF( GANGSTA_FOUND )
+  # Gangsta found in system
+  RETURN()
+ENDIF()
 
-SET( TARGET_INCLUDE_DIRS
-     "${TARGET_INCLUDE_DIR}" )
+INCLUDE_DIRECTORIES(
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+ADD_LIBRARY(
+  "gangsta"
+  # Source:
+  "GaMath.h"
+  "GaMath.cpp"
+  "GaPreReqs.h"
+  "GaTypes.cpp"
+  "GaTypes.h"
+  )
 
-# Export directories
-SET( ${TARGET_NAME}_INCLUDE_DIRS
-     ${TARGET_INCLUDE_DIRS}
-     PARENT_SCOPE )
-
-#########
-# Files #
-#########
-SET( INCLUDE
-     "${TARGET_INCLUDE_DIR}/GaMath.h"
-     "${TARGET_INCLUDE_DIR}/GaPreReqs.h"
-     "${TARGET_INCLUDE_DIR}/GaTypes.h" )
-SET( SOURCE
-     "${TARGET_SOURCE_DIR}/GaMath.cpp"
-     "${TARGET_SOURCE_DIR}/GaTypes.cpp" )
-
-#####################
-# Setup the library #
-#####################
-INCLUDE_DIRECTORIES( ${TARGET_INCLUDE_DIRS} )
-
-ADD_LIBRARY( "${TARGET_NAME}"
-             ${INCLUDE} ${SOURCE} )
+SET( GANGSTA_INCLUDE_DIRS
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  PARENT_SCOPE )
+SET( GANGSTA_LIBRARIES
+  "gangsta"
+  PARENT_SCOPE )

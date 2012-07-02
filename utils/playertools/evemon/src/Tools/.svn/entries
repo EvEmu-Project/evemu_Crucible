@@ -1,52 +1,0 @@
-10
-
-dir
-2784
-svn://svn.battleclinic.com/EVEMon/EVEMon/trunk/Tools
-svn://svn.battleclinic.com/EVEMon
-
-
-
-2011-05-22T16:42:09.513711Z
-2762
-Jimi
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-18aec19e-6c5d-ac4a-b0cc-1ebaae3e0e25
-
-FXCop
-dir
-
-PatchXMLCreator
-dir
-
-Website
-dir
-
-Nitriq
-dir
-
-XmlGenerator
-dir
-
-Atomiq
-dir
-
-InstallBuilder
-dir
-
-EVEMonCDN
-dir
-

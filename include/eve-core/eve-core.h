@@ -39,24 +39,21 @@
 #   define NOMINMAX
 #endif /* !WIN32 */
 
-#ifdef MSVC
-#   define _CRT_SECURE_NO_WARNINGS                  1
-#   define _CRT_SECURE_NO_DEPRECATE                 1
-#   define _CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES 1
-#   define _SCL_SECURE_NO_WARNINGS                  1
-
-// Disable 'this' used in base member initializer list warning
-#   pragma warning( disable : 4355 )
-#endif /* _MSC_VER */
-
 #ifdef HAVE_CRTDBG_H
 #   define _CRTDBG_MAP_ALLOC 1
 #endif /* HAVE_CRTDBG_H */
 
 #ifdef HAVE_INTTYPES_H
-    // We must "explicitly request" the format strings ...
+// This requires some ugly tinkering because inttypes.h
+// is primarily a C header.
+// Pretend to be C99-compliant
+#   define __STDC_VERSION__     199901L
+// We must "explicitly request" the format strings
 #   define __STDC_FORMAT_MACROS 1
 #endif /* HAVE_INTTYPES_H */
+
+// Disable auto-linking of any Boost libraries
+#define BOOST_ALL_NO_LIB 1
 
 /*************************************************************************/
 /* Includes                                                              */
@@ -93,18 +90,18 @@
  * Note: my fellow developers please read 'http://en.wikipedia.org/wiki/Technical_Report_1'. I know its a wiki page
  *       but it gives you the general idea.
  */
-#ifdef MSVC
-#   include <functional>
-#   include <tuple>
-#   include <unordered_map>
-#   include <unordered_set>
-#else /* !MSVC */
+#ifdef HAVE_TR1_PREFIX
 #   include <tr1/functional>
 #   include <tr1/memory>
 #   include <tr1/tuple>
 #   include <tr1/unordered_map>
 #   include <tr1/unordered_set>
-#endif /* !MSVC */
+#else /* !HAVE_TR1_PREFIX */
+#   include <functional>
+#   include <tuple>
+#   include <unordered_map>
+#   include <unordered_set>
+#endif /* !HAVE_TR1_PREFIX */
 
 #ifdef WIN32
 #   include <process.h>

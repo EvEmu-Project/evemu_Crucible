@@ -7,9 +7,9 @@
 ###############
 # CMake setup #
 ###############
-# We need the CheckCXXSymbolExists module which is distributed
-# with CMake 2.8.6 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.6 FATAL_ERROR )
+# We need a target-specific property INCLUDE_DIRECTORIES which
+# is part of CMake 2.8.8 and later.
+CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
@@ -28,43 +28,106 @@ ENABLE_TESTING()
 ###########
 SET( EVEMU_ROOT ".."
      CACHE PATH "The root directory of EVEmu workspace." )
-MARK_AS_ADVANCED( EVEMU_ROOT )
+SET( TIXML_USE_STL ON
+     CACHE BOOL "tinyxml will use native STL." )
 
 IF( CMAKE_CROSSCOMPILING )
   SET( EVEMU_TARGETS_IMPORT ""
        CACHE FILEPATH "Path to an import script generated during a native build." )
-  MARK_AS_ADVANCED( EVEMU_TARGETS_IMPORT )
 ELSE( CMAKE_CROSSCOMPILING )
   SET( EVEMU_TARGETS_EXPORT ""
        CACHE FILEPATH "Path to an import script to generate (for cross-compiling)." )
-  MARK_AS_ADVANCED( EVEMU_TARGETS_EXPORT )
 ENDIF( CMAKE_CROSSCOMPILING )
+
+MARK_AS_ADVANCED(
+  EVEMU_ROOT
+  EVEMU_TARGETS_IMPORT
+  EVEMU_TARGETS_EXPORT
+  TIXML_USE_STL
+  )
+
+#################
+# Configuration #
+#################
+INCLUDE( "DetectScm" )
+
+#
+# Setup some recommended compiler flags.
+#
+# Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
+# override the setup.
+#
+IF( MSVC )
+  # Turn off some stupid whiny warnings
+  ADD_DEFINITIONS(
+    "-D_CRT_SECURE_NO_WARNINGS"
+    "-D_CRT_SECURE_NO_DEPRECATE"
+    "-D_CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES"
+    "-D_SCL_SECURE_NO_WARNINGS"
+    )
+  # Disable 'this' used in base member initializer list warning
+  SET( CMAKE_CXX_FLAGS "/wd4355 ${CMAKE_CXX_FLAGS}" )
+ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
+  # Switch to the C++0x standard (required)
+  SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
+ENDIF( MSVC )
+
+#
+# Try to detemine the exact source version using SCM.
+#
+# Also check that the generated version string starts
+# with PROJECT_VERSION, issue a warning otherwise.
+#
+DETECT_SCM( "${PROJECT_SOURCE_DIR}" SCM_VERSION SCM_REPOSITORY )
+IF( SCM_VERSION AND SCM_REPOSITORY )
+  # Check that SCM_VERSION starts with PROJECT_VERSION
+  STRING( FIND "${SCM_VERSION}" "${PROJECT_VERSION}" VERSION_INDEX )
+  IF( NOT VERSION_INDEX EQUAL 0 )
+    MESSAGE( AUTHOR_WARNING "Version mismatch, please update PROJECT_VERSION in CMakeLists.txt" )
+  ENDIF( NOT VERSION_INDEX EQUAL 0 )
+
+  # Set project version and repository
+  SET( PROJECT_VERSION    "${SCM_VERSION}" )
+  SET( PROJECT_REPOSITORY "${SCM_REPOSITORY}" )
+ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 
 #########
 # Tests #
 #########
+INCLUDE( "CheckCXXSourceCompiles" )
 INCLUDE( "CheckCXXSymbolExists" )
-INCLUDE( "CheckIncludeFile" )
-INCLUDE( "DetectScm" )
-INCLUDE( "TargetBuildPCH" )
-INCLUDE( "TestX64" )
-
-TEST_X64( X64 )
+INCLUDE( "CheckIncludeFileCXX" )
 
 # Headers
-CHECK_INCLUDE_FILE( "crtdbg.h"   HAVE_CRTDBG_H )
-CHECK_INCLUDE_FILE( "inttypes.h" HAVE_INTTYPES_H )
-CHECK_INCLUDE_FILE( "vld.h"      HAVE_VLD_H )
+CHECK_INCLUDE_FILE_CXX( "crtdbg.h"   HAVE_CRTDBG_H )
+CHECK_INCLUDE_FILE_CXX( "inttypes.h" HAVE_INTTYPES_H )
+CHECK_INCLUDE_FILE_CXX( "tr1/tuple"  HAVE_TR1_PREFIX )
+CHECK_INCLUDE_FILE_CXX( "vld.h"      HAVE_VLD_H )
+
+# Keywords
+CHECK_CXX_SOURCE_COMPILES(
+  "int main() { __asm int 3; }\n"
+  HAVE___ASM )
 
 # cfloat, cmath
-CHECK_CXX_SYMBOL_EXISTS( asinh         "cmath"  HAVE_ASINH )
-CHECK_CXX_SYMBOL_EXISTS( _finite       "cfloat" HAVE__FINITE )
-CHECK_CXX_SYMBOL_EXISTS( _isnan        "cfloat" HAVE__ISNAN )
-CHECK_CXX_SYMBOL_EXISTS( __finite      "cmath"  HAVE___FINITE )
-CHECK_CXX_SYMBOL_EXISTS( __isnan       "cmath"  HAVE___ISNAN )
-CHECK_CXX_SYMBOL_EXISTS( std::finite   "cmath"  HAVE_STD_FINITE )
-CHECK_CXX_SYMBOL_EXISTS( std::isfinite "cmath"  HAVE_STD_ISFINITE )
-CHECK_CXX_SYMBOL_EXISTS( std::isnan    "cmath"  HAVE_STD_ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( asinh    "cmath"  HAVE_ASINH )
+CHECK_CXX_SYMBOL_EXISTS( finite   "cmath"  HAVE_FINITE )
+CHECK_CXX_SYMBOL_EXISTS( isfinite "cmath"  HAVE_ISFINITE )
+CHECK_CXX_SYMBOL_EXISTS( isnan    "cmath"  HAVE_ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( _finite  "cfloat" HAVE__FINITE )
+CHECK_CXX_SYMBOL_EXISTS( _isnan   "cfloat" HAVE__ISNAN )
+CHECK_CXX_SYMBOL_EXISTS( __finite "cmath"  HAVE___FINITE )
+CHECK_CXX_SYMBOL_EXISTS( __isnan  "cmath"  HAVE___ISNAN )
+
+CHECK_CXX_SOURCE_COMPILES(
+  "#include <cmath>\nint main() { return std::finite( 0 ); }\n"
+  HAVE_STD_FINITE )
+CHECK_CXX_SOURCE_COMPILES(
+  "#include <cmath>\nint main() { return std::isfinite( 0 ); }\n"
+  HAVE_STD_ISFINITE )
+CHECK_CXX_SOURCE_COMPILES(
+  "#include <cmath>\nint main() { return std::isnan( 0 ); }\n"
+  HAVE_STD_ISNAN )
 
 # cstdarg
 CHECK_CXX_SYMBOL_EXISTS( va_copy "cstdarg" HAVE_VA_COPY )
@@ -88,65 +151,49 @@ CHECK_CXX_SYMBOL_EXISTS( strncasecmp "cstring" HAVE_STRNCASECMP )
 CHECK_CXX_SYMBOL_EXISTS( localtime_r "ctime" HAVE_LOCALTIME_R )
 CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 
-# sys/socket.h
-CHECK_CXX_SYMBOL_EXISTS( MSG_NOSIGNAL "sys/socket.h" HAVE_MSG_NOSIGNAL )
-CHECK_CXX_SYMBOL_EXISTS( SO_NOSIGPIPE "sys/socket.h" HAVE_SO_NOSIGPIPE )
+############
+# Packages #
+############
+FIND_PACKAGE( "Boost" REQUIRED )
+FIND_PACKAGE( "Doxygen" )
+FIND_PACKAGE( "MySQL" REQUIRED )
+FIND_PACKAGE( "Threads" REQUIRED )
+FIND_PACKAGE( "ZLIB" REQUIRED )
 
-#################
-# Configuration #
-#################
-IF( MSVC )
-  #
-  # This is here as we usually use pre-built MySQL binaries which are
-  # compiled with /MT (use static libc); building with /MD (use DLL libc)
-  # results in linker warning during the linking stage, however the resultant
-  # binary works and is even a little bit smaller due to the dynamic linking.
-  #
-  # For now we supress the linker warning by forcing static libc.
-  #
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_MINSIZEREL     "${CMAKE_CXX_FLAGS_MINSIZEREL}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE}" )
-  #STRING( REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
-ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
-  #
-  # Setup some recommended compiler flags.
-  #
-  # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
-  # override the setup.
-  #
-  SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
-ENDIF( MSVC )
+ADD_SUBDIRECTORY( "dep/asio" )
+ADD_SUBDIRECTORY( "dep/gangsta" )
+ADD_SUBDIRECTORY( "dep/lua" )
+ADD_SUBDIRECTORY( "dep/tinyxml" )
+ADD_SUBDIRECTORY( "dep/utf8cpp" )
+ADD_SUBDIRECTORY( "dep/utils" )
 
-# Pull version from SCM, if any
-DETECT_SCM( "${PROJECT_SOURCE_DIR}" SCM_VERSION SCM_REPOSITORY )
-IF( SCM_VERSION AND SCM_REPOSITORY )
-  # Check that SCM_VERSION starts with PROJECT_VERSION
-  STRING( FIND "${SCM_VERSION}" "${PROJECT_VERSION}" VERSION_INDEX )
-  IF( NOT VERSION_INDEX EQUAL 0 )
-    MESSAGE( AUTHOR_WARNING "Version mismatch, please update PROJECT_VERSION in CMakeLists.txt" )
-  ENDIF( NOT VERSION_INDEX EQUAL 0 )
-
-  # Set project version and repository
-  SET( PROJECT_VERSION    "${SCM_VERSION}" )
-  SET( PROJECT_REPOSITORY "${SCM_REPOSITORY}" )
-ENDIF( SCM_VERSION AND SCM_REPOSITORY )
+MARK_AS_ADVANCED(
+  Boost_DIR
+  Boost_LIB_DIAGNOSTIC_DEFINITIONS
+  )
 
 #################
 # EVEmu targets #
 #################
+INCLUDE( "TargetBuildPCH" )
+INCLUDE( "TargetIncludeDirectories" )
+
+# Advertise config.h
+ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
+INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
+# Generate config.h
+CONFIGURE_FILE(
+  "config.h.in"
+  "config.h"
+  ESCAPE_QUOTES @ONLY
+  )
+
 # Import targets if any
 IF( EVEMU_TARGETS_IMPORT )
   INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
 ENDIF( EVEMU_TARGETS_IMPORT )
 
-# Advertise config.h
-ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
-INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
-
 # Add all targets
-ADD_SUBDIRECTORY( "doc" )
 ADD_SUBDIRECTORY( "src/eve-core" )
 ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
@@ -155,10 +202,11 @@ ADD_SUBDIRECTORY( "src/eve-collector" )
 ADD_SUBDIRECTORY( "src/eve-tool" )
 ADD_SUBDIRECTORY( "src/eve-test" )
 
-# Generate config.h
-CONFIGURE_FILE( "${PROJECT_SOURCE_DIR}/config.h.in"
-                "${PROJECT_BINARY_DIR}/config.h"
-                ESCAPE_QUOTES @ONLY )
+IF( DOXYGEN_FOUND )
+  ADD_SUBDIRECTORY( "doc" )
+ELSE()
+  MESSAGE( WARNING "If you require generated documentation, please install Doxygen" )
+ENDIF( DOXYGEN_FOUND )
 
 ###############
 # CPack setup #

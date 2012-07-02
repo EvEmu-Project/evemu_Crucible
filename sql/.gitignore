@@ -1,1 +1,7 @@
+# we don't want those to be part of the repository:
+# external
 /cru11-mysql5-innoDB-v1.sql
+/inc15-mysql5-v1.sql
+# generated
+/ofic-updates.sql
+/evemu-updates.sql

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<eveapi version="2">
-  <currentTime>2010-03-20 14:09:15</currentTime>
-  <result>
-    <rowset name="mailMessages" key="messageID" columns="messageID,senderID,sentDate,title,toCorpOrAllianceID,toCharacterIDs,toListIDs,read"/>
-  </result>
-  <cachedUntil>2010-03-20 14:39:15</cachedUntil>
-</eveapi>

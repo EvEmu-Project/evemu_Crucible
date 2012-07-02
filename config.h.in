@@ -8,10 +8,6 @@
 /*************************************************************************/
 /* Platform defines                                                      */
 /*************************************************************************/
-// X64
-// Define this if you are building for a 64-bit platform.
-#cmakedefine X64 1
-
 // WIN32
 // Define this if you are on Windows.
 // CMake passes this as a command-line define.
@@ -34,9 +30,20 @@
 // Define if inttypes.h is available.
 #cmakedefine HAVE_INTTYPES_H 1
 
+// HAVE_TR1_PREFIX
+// Define if tr1/ prefix is available.
+#cmakedefine HAVE_TR1_PREFIX 1
+
 // HAVE_VLD_H
 // Define if vld.h is available.
 #cmakedefine HAVE_VLD_H 1
+
+/*************************************************************************/
+/* Keyword defines                                                       */
+/*************************************************************************/
+// HAVE___ASM
+// Define if the keyword __asm is available.
+#cmakedefine HAVE___ASM 1
 
 /*************************************************************************/
 /* Feature defines                                                       */
@@ -44,6 +51,18 @@
 // HAVE_ASINH
 // Define if asinh is available.
 #cmakedefine HAVE_ASINH 1
+
+// HAVE_FINITE
+// Define if finite is available.
+#cmakedefine HAVE_FINITE 1
+
+// HAVE_ISFINITE
+// Define if isfinite is available.
+#cmakedefine HAVE_ISFINITE 1
+
+// HAVE_ISNAN
+// Define if isnan is available.
+#cmakedefine HAVE_ISNAN 1
 
 // HAVE__FINITE
 // Define if _finite is available.
@@ -121,25 +140,9 @@
 // Define if localtime_s is available.
 #cmakedefine HAVE_LOCALTIME_S 1
 
-// HAVE_MSG_NOSIGNAL
-// Define if MSG_NOSIGNAL is available.
-#cmakedefine HAVE_MSG_NOSIGNAL 1
-
-// HAVE_SO_NOSIGPIPE
-// Define if SO_NOSIGPIPE is available.
-#cmakedefine HAVE_SO_NOSIGPIPE 1
-
 /*************************************************************************/
 /* Configuration                                                         */
 /*************************************************************************/
-// BOOST_DATE_TIME_NO_LIB
-// Disable linking of boost date_time library.
-#cmakedefine BOOST_DATE_TIME_NO_LIB 1
-
-// BOOST_REGEX_NO_LIB
-// Disable linking of boost regex library
-#cmakedefine BOOST_REGEX_NO_LIB 1
-
 // NDEBUG
 // Define this if you want a non-debug (release) build
 // CMake passes this as a command-line define.
