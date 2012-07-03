@@ -46,11 +46,6 @@ Vector acceleration = vector_to_goal * accel;
 #ifndef __DESTINY_STRUCTS_H__
 #define __DESTINY_STRUCTS_H__
 
-#ifdef WIN32
-    //VC++ whines a lot about the [0] structure sizes done in here...
-    //#pragma warning(disable:4200)
-#endif//WIN32
-
 namespace Destiny {
 
 #pragma pack(1)

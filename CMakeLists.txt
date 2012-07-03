@@ -65,8 +65,10 @@ IF( MSVC )
     "-D_CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES"
     "-D_SCL_SECURE_NO_WARNINGS"
     )
-  # Disable 'this' used in base member initializer list warning
-  SET( CMAKE_CXX_FLAGS "/wd4355 ${CMAKE_CXX_FLAGS}" )
+  # Disable warnings:
+  #   C4244: '=' : conversion from 'double' to 'int', possible loss of data
+  #   C4355: 'this' used in base member initializer list
+  SET( CMAKE_CXX_FLAGS "/wd4244 /wd4355 ${CMAKE_CXX_FLAGS}" )
 ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
   # Switch to the C++0x standard (required)
   SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
