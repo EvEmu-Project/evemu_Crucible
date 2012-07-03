@@ -84,6 +84,13 @@ bool PyXMLGenerator::VisitString( const PyString* rep )
     return true;
 }
 
+bool PyXMLGenerator::VisitPackedRow( const PyPackedRow* rep )
+{
+    fprintf( mInto, "%s<!-- PyPackedRow stub -->\n", _pfx() );
+
+    return true;
+}
+
 bool PyXMLGenerator::VisitObject( const PyObject* rep )
 {
     fprintf( mInto, "%s<objectInline>\n", _pfx() );
@@ -95,6 +102,13 @@ bool PyXMLGenerator::VisitObject( const PyObject* rep )
     fprintf( mInto, "%s</objectInline>\n", _pfx() );
 
     return res;
+}
+
+bool PyXMLGenerator::VisitObjectEx( const PyObjectEx* rep )
+{
+    fprintf( mInto, "%s<!-- PyObjectEx stub -->\n", _pfx() );
+
+    return true;
 }
 
 bool PyXMLGenerator::VisitSubStruct( const PySubStruct* rep )
@@ -121,6 +135,13 @@ bool PyXMLGenerator::VisitSubStream( const PySubStream* rep )
     fprintf( mInto, "%s</substreamInline>\n", _pfx() );
 
     return res;
+}
+
+bool PyXMLGenerator::VisitChecksumedStream( const PyChecksumedStream* rep )
+{
+    fprintf( mInto, "%s<!-- PyChecksumedStream stub -->\n", _pfx() );
+
+    return true;
 }
 
 bool PyXMLGenerator::VisitDict( const PyDict* rep )
