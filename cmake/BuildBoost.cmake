@@ -3,8 +3,9 @@
 # download and build of source archive.
 #
 
-# Search for the package
-FIND_PACKAGE( "Boost" COMPONENTS "system" )
+# We need "boost::asio::transfer_exactly" which is present
+# in Boost 1.47.0 and later.
+FIND_PACKAGE( "Boost" 1.47.0 COMPONENTS "system" )
 SET( PKG_FOUND "${Boost_FOUND}" )
 
 IF( PKG_FOUND )
