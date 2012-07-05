@@ -3,8 +3,10 @@
 # download and build of source archive.
 #
 
-# Search for the package
-FIND_PACKAGE( "ZLIB" )
+# Version 1.2.3 (July 2005) eliminates potential security
+# vulnerabilities in zlib 1.2.1 and 1.2.2, so all users of those
+# versions should upgrade immediately.
+FIND_PACKAGE( "ZLIB" 1.2.3 )
 SET( PKG_FOUND "${ZLIB_FOUND}" )
 
 IF( PKG_FOUND )
