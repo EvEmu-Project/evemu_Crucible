@@ -3,8 +3,9 @@
 # download and build of source archive.
 #
 
-# Search for the package
-FIND_PACKAGE( "TinyXML" )
+# We need "TiXmlNode::TINYXML_ELEMENT" which is present
+# in TinyXML 2.6.0 and later.
+FIND_PACKAGE( "TinyXML" 2.6.0 )
 SET( PKG_FOUND "${TINYXML_FOUND}" )
 
 IF( PKG_FOUND )
