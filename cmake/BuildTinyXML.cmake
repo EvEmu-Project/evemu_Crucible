@@ -4,7 +4,7 @@
 #
 
 # Search for the package
-FIND_PACKAGE( "TinyXML" QUIET )
+FIND_PACKAGE( "TinyXML" )
 SET( PKG_FOUND "${TINYXML_FOUND}" )
 
 IF( PKG_FOUND )

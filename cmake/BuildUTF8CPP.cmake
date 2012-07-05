@@ -4,7 +4,7 @@
 #
 
 # Search for the package
-FIND_PACKAGE( "UTF8CPP" QUIET )
+FIND_PACKAGE( "UTF8CPP" )
 SET( PKG_FOUND "${UTF8CPP_FOUND}" )
 
 IF( PKG_FOUND )

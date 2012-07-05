@@ -4,7 +4,7 @@
 #
 
 # Search for the package
-FIND_PACKAGE( "Boost" QUIET COMPONENTS "system" )
+FIND_PACKAGE( "Boost" COMPONENTS "system" )
 SET( PKG_FOUND "${Boost_FOUND}" )
 
 IF( PKG_FOUND )

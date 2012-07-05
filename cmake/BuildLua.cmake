@@ -4,7 +4,7 @@
 #
 
 # Search for the package
-FIND_PACKAGE( "Lua" QUIET )
+FIND_PACKAGE( "Lua" )
 SET( PKG_FOUND "${LUA_FOUND}" )
 
 IF( PKG_FOUND )

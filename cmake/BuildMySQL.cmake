@@ -4,7 +4,7 @@
 #
 
 # Search for the package
-FIND_PACKAGE( "MySQL" 5.0 QUIET )
+FIND_PACKAGE( "MySQL" 5.0 )
 SET( PKG_FOUND "${MYSQL_FOUND}" )
 
 IF( PKG_FOUND )

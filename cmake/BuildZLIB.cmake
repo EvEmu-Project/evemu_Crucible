@@ -4,7 +4,7 @@
 #
 
 # Search for the package
-FIND_PACKAGE( "ZLIB" QUIET )
+FIND_PACKAGE( "ZLIB" )
 SET( PKG_FOUND "${ZLIB_FOUND}" )
 
 IF( PKG_FOUND )
