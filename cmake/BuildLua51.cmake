@@ -1,11 +1,11 @@
-# - Build config of Lua
+# - Build config of Lua51
 # Defines several variables needed for automatic
 # download and build of source archive.
 #
 
 # Search for the package
-FIND_PACKAGE( "Lua" )
-SET( PKG_FOUND "${LUA_FOUND}" )
+FIND_PACKAGE( "Lua51" )
+SET( PKG_FOUND "${LUA51_FOUND}" )
 
 IF( PKG_FOUND )
   RETURN()
@@ -13,33 +13,29 @@ ENDIF( PKG_FOUND )
 
 # Cache entries
 SET( LUA_URL
-  "http://www.lua.org/ftp/lua-5.2.1.tar.gz"
+  "http://www.lua.org/ftp/lua-5.1.5.tar.gz"
   CACHE STRING "URL of the Lua source archive" )
 MARK_AS_ADVANCED( LUA_URL )
 
 # Setup the needed variables
 SET( PKG_URL "${LUA_URL}" )
-SET( PKG_MD5 "ae08f641b45d737d12d30291a5e5f6e3" )
-SET( PKG_ARCHIVE_PREFIX "/lua-5.2.1" )
+SET( PKG_MD5 "2e115fe26e435e33b0d5c022e4490567" )
+SET( PKG_ARCHIVE_PREFIX "/lua-5.1.5" )
 
 SET( PKG_CMAKELISTS "
 INCLUDE_DIRECTORIES(
   \"\${CMAKE_CURRENT_SOURCE_DIR}/src\"
   )
 ADD_LIBRARY(
-  \"lua\"
+  \"lua5.1\"
   # Source:
   \"src/lapi.h\"
   \"src/lapi.c\"
   \"src/lauxlib.h\"
   \"src/lauxlib.c\"
   \"src/lbaselib.c\"
-  \"src/lbitlib.c\"
   \"src/lcode.h\"
   \"src/lcode.c\"
-  \"src/lcorolib.c\"
-  \"src/lctype.h\"
-  \"src/lctype.c\"
   \"src/ldblib.c\"
   \"src/ldebug.h\"
   \"src/ldebug.c\"
@@ -77,7 +73,6 @@ ADD_LIBRARY(
   \"src/ltm.h\"
   \"src/ltm.c\"
   \"src/lua.h\"
-  \"src/lua.hpp\"
 # Skip Lua interpreter source
 # \"src/lua.c\"
 # Skip Lua compiler source
@@ -90,12 +85,13 @@ ADD_LIBRARY(
   \"src/lvm.c\"
   \"src/lzio.h\"
   \"src/lzio.c\"
+  \"src/print.c\"
   )
 
 SET( LUA_INCLUDE_DIR
   \"\${CMAKE_CURRENT_SOURCE_DIR}/src\"
   PARENT_SCOPE )
 SET( LUA_LIBRARIES
-  \"lua\"
+  \"lua5.1\"
   PARENT_SCOPE )
 " )
