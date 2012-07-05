@@ -4,12 +4,6 @@
 # Author: Bloody.Rabbit
 #
 
-FIND_PACKAGE( "Gangsta" QUIET )
-IF( GANGSTA_FOUND )
-  # Gangsta found in system
-  RETURN()
-ENDIF()
-
 INCLUDE_DIRECTORIES(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   )
