@@ -82,13 +82,13 @@ uint64 filesize( const char* filename )
 
 uint64 filesize( FILE* fd )
 {
-#ifdef WIN32
-    return _filelength( _fileno( fd ) );
-#else
-    struct stat file_stat;
-    fstat( fileno( fd ), &file_stat );
-    return file_stat.st_size;
-#endif
+#if !defined( HAVE_SYS_STAT_H ) && defined( HAVE_IO_H )
+    return ::filelength( ::fileno( fd ) );
+#else /* defined( HAVE_SYS_STAT_H ) || !defined( HAVE_IO_H ) */
+    struct stat st;
+    ::fstat( ::fileno( fd ), &st );
+    return st.st_size;
+#endif /* defined( HAVE_SYS_STAT_H ) || !defined( HAVE_IO_H ) */
 }
 
 uint64 npowof2( uint64 num )

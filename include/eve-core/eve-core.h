@@ -58,7 +58,6 @@
 /*************************************************************************/
 /* Includes                                                              */
 /*************************************************************************/
-
 // Standard library includes
 #include <cassert>
 #include <cerrno>
@@ -119,16 +118,6 @@
 #   include <sys/socket.h>
 #endif /* !WIN32 */
 
-#ifdef MSVC
-#   include <io.h>
-#   include <sys/stat.h>
-#   include <sys/timeb.h>
-#else /* !MSVC */
-#   include <sys/stat.h>
-#   include <sys/time.h>
-#   include <sys/types.h>
-#endif /* !MSVC */
-
 #ifdef HAVE_CRTDBG_H
 #   include <crtdbg.h>
 #endif /* HAVE_CRTDBG_H */
@@ -136,6 +125,22 @@
 #ifdef HAVE_INTTYPES_H
 #   include <inttypes.h>
 #endif /* HAVE_INTTYPES_H */
+
+#ifdef HAVE_IO_H
+#   include <io.h>
+#endif /* HAVE_IO_H */
+
+#ifdef HAVE_SYS_STAT_H
+#   include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
+
+#ifdef HAVE_SYS_TIME_H
+#   include <sys/time.h>
+#endif /* HAVE_SYS_TIME_H */
+
+#ifdef HAVE_SYS_TIMEB_H
+#   include <sys/timeb.h>
+#endif /* HAVE_SYS_TIMEB_H */
 
 #ifdef HAVE_VLD_H
 #   include <vld.h>

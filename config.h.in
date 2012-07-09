@@ -30,6 +30,22 @@
 // Define if inttypes.h is available.
 #cmakedefine HAVE_INTTYPES_H 1
 
+// HAVE_IO_H
+// Define if io.h is available.
+#cmakedefine HAVE_IO_H 1
+
+// HAVE_SYS_STAT_H
+// Define if sys/stat.h is available.
+#cmakedefine HAVE_SYS_STAT_H 1
+
+// HAVE_SYS_TIME_H
+// Define if sys/time.h is available.
+#cmakedefine HAVE_SYS_TIME_H 1
+
+// HAVE_SYS_TIMEB_H
+// Define if sys/timeb.h is available.
+#cmakedefine HAVE_SYS_TIMEB_H 1
+
 // HAVE_TR1_PREFIX
 // Define if tr1/ prefix is available.
 #cmakedefine HAVE_TR1_PREFIX 1

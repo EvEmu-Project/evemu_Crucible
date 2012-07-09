@@ -154,21 +154,21 @@ const int32 Timer::SetCurrentTime()
 {
     int32 this_time;
 
-#ifdef WIN32
+#if !defined( HAVE_SYS_TIME_H ) && defined( HAVE_SYS_TIMEB_H )
     timeb tb;
     ::ftime( &tb );
 
     this_time = tb.time * 1000
               + tb.millitm;
     current_seconds = tb.time;
-#else /* !WIN32 */
+#else /* defined( HAVE_SYS_TIME_H ) || !defined( HAVE_SYS_TIMEB_H ) */
     timeval tv;
-    gettimeofday( &tv, NULL );
+    ::gettimeofday( &tv, NULL );
 
     this_time = tv.tv_sec  * 1000
               + tv.tv_usec / 1000;
     current_seconds = tv.tv_sec;
-#endif /* !WIN32 */
+#endif /* defined( HAVE_SYS_TIME_H ) || !defined( HAVE_SYS_TIMEB_H ) */
 
     if( last_time == 0 )
         current_time = 0;
