@@ -128,7 +128,7 @@ TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${GANGSTA_LIBRARIES}
                        ${TINYXML_LIBRARIES}
                        "${ZLIB_LIBRARY}"
-                       ${CMAKE_THREAD_LIBS_INIT} )
+                       ${CMAKE_THREAD_LIBS} )
 
 IF( WIN32 )
   TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
