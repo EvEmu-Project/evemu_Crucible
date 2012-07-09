@@ -103,7 +103,6 @@
 #endif /* !HAVE_TR1_PREFIX */
 
 #ifdef WIN32
-#   include <process.h>
 #   include <windows.h>
 #   include <winsock2.h>
 #else /* !WIN32 */
