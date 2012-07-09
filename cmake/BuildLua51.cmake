@@ -4,7 +4,7 @@
 #
 
 # Search for the package
-FIND_PACKAGE( "Lua51" )
+FIND_PACKAGE( "Lua51" 5.1 )
 SET( PKG_FOUND "${LUA51_FOUND}" )
 
 IF( PKG_FOUND )
