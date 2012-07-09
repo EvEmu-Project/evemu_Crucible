@@ -105,15 +105,6 @@ uint64 npowof2( uint64 num )
     return num;
 }
 
-//I didn't even look to see if windows supports random();
-#ifdef WIN32
-#   define SeedRandom srand
-#   define GenerateRandom rand
-#else
-#   define SeedRandom srandom
-#   define GenerateRandom random
-#endif
-
 int64 MakeRandomInt( int64 low, int64 high )
 {
     return (int64)MakeRandomFloat( (double)low, (double)high );
@@ -121,20 +112,16 @@ int64 MakeRandomInt( int64 low, int64 high )
 
 double MakeRandomFloat( double low, double high )
 {
-    if( low > high )
-        std::swap( low, high );
-
-    double diff = high - low;
-    if( diff == 0 )
+    if( low == high )
         return low;
 
     static bool seeded = false;
     if( !seeded )
     {
-        SeedRandom( (unsigned int)time(0) * (unsigned int)( time(0) % (int)diff ) );
+        time_t x = ::time( NULL );
+        ::srand( x * ( x % (time_t)( high - low ) ) );
         seeded = true;
     }
 
-    return ( low + diff * ( (double)GenerateRandom() / (double)RAND_MAX ) );
+    return low + ( high - low ) * ::rand() / RAND_MAX;
 }
-
