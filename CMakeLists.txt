@@ -172,7 +172,6 @@ ADD_SUBDIRECTORY( "dep/utils" )
 MARK_AS_ADVANCED(
   Boost_DIR
   Boost_LIB_DIAGNOSTIC_DEFINITIONS
-  Lua_DIR
   )
 
 #################
