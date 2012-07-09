@@ -128,9 +128,5 @@ TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${GANGSTA_LIBRARIES}
                        ${TINYXML_LIBRARIES}
                        "${ZLIB_LIBRARY}"
+                       ${CMAKE_NET_LIBS}
                        ${CMAKE_THREAD_LIBS} )
-
-IF( WIN32 )
-  TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                         "wsock32" )
-ENDIF( WIN32 )

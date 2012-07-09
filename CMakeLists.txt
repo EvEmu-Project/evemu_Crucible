@@ -52,6 +52,17 @@ MARK_AS_ADVANCED(
 INCLUDE( "DetectScm" )
 
 #
+# Setup some default libraries.
+#
+# We need a bunch of additional network libraries when building
+# for Windows.
+#
+IF( WIN32 )
+  # Create a list of the additional libraries
+  SET( CMAKE_NET_LIBS_INIT "ws2_32" "mswsock" )
+ENDIF( WIN32 )
+
+#
 # Setup some recommended compiler flags.
 #
 # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
@@ -169,6 +180,8 @@ ADD_SUBDIRECTORY( "dep/tinyxml" )
 ADD_SUBDIRECTORY( "dep/utf8cpp" )
 ADD_SUBDIRECTORY( "dep/utils" )
 
+SET( CMAKE_NET_LIBS
+  "${CMAKE_NET_LIBS_INIT}" )
 SET( CMAKE_THREAD_LIBS
   "${CMAKE_THREAD_LIBS_INIT}" )
 
