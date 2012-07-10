@@ -41,14 +41,14 @@
 class ImageServerListener
 {
 public:
-    ImageServerListener(asio::io_service& io);
+    ImageServerListener(boost::asio::io_service& io);
     ~ImageServerListener();
 
 private:
     void StartAccept();
     void HandleAccept(std::tr1::shared_ptr<ImageServerConnection> connection);
 
-    asio::ip::tcp::acceptor* _acceptor;
+    boost::asio::ip::tcp::acceptor* _acceptor;
 };
 
 #endif // __IMAGESERVERLISTENER__H__INCL__

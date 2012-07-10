@@ -171,17 +171,19 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 ############
 # Packages #
 ############
-FIND_PACKAGE( "Boost" REQUIRED )
-FIND_PACKAGE( "Doxygen" )
-FIND_PACKAGE( "MySQL" REQUIRED )
-FIND_PACKAGE( "Threads" REQUIRED )
-FIND_PACKAGE( "ZLIB" REQUIRED )
+INCLUDE( "BuildPackage" )
 
-ADD_SUBDIRECTORY( "dep/asio" )
+FIND_PACKAGE( "Doxygen" )
+FIND_PACKAGE( "Threads" REQUIRED )
+
+BUILD_PACKAGE( "Boost" )
+BUILD_PACKAGE( "Lua51" )
+BUILD_PACKAGE( "MySQL" )
+BUILD_PACKAGE( "TinyXML" )
+BUILD_PACKAGE( "UTF8CPP" )
+BUILD_PACKAGE( "ZLIB" )
+
 ADD_SUBDIRECTORY( "dep/gangsta" )
-ADD_SUBDIRECTORY( "dep/lua" )
-ADD_SUBDIRECTORY( "dep/tinyxml" )
-ADD_SUBDIRECTORY( "dep/utf8cpp" )
 ADD_SUBDIRECTORY( "dep/utils" )
 
 SET( CMAKE_NET_LIBS

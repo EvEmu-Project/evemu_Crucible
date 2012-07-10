@@ -153,7 +153,7 @@
 /* Dependencies                                                         */
 /************************************************************************/
 // Boost.Asio
-#include <asio.hpp>
+#include <boost/asio.hpp>
 // Gangsta
 #include <GaPreReqs.h>
 #include <GaMath.h>

@@ -41,14 +41,14 @@
 class APIServerListener
 {
 public:
-    APIServerListener(asio::io_service& io);
+    APIServerListener(boost::asio::io_service& io);
     ~APIServerListener();
 
 private:
     void StartAccept();
     void HandleAccept(std::tr1::shared_ptr<APIServerConnection> connection);
 
-    asio::ip::tcp::acceptor* _acceptor;
+    boost::asio::ip::tcp::acceptor* _acceptor;
 };
 
 #endif // __APISERVERLISTENER__H__INCL__

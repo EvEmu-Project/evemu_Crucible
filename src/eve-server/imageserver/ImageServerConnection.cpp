@@ -28,17 +28,17 @@
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerConnection.h"
 
-asio::const_buffers_1 ImageServerConnection::_responseOK = asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
-asio::const_buffers_1 ImageServerConnection::_responseNotFound = asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
-asio::const_buffers_1 ImageServerConnection::_responseRedirectBegin = asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
-asio::const_buffers_1 ImageServerConnection::_responseRedirectEnd = asio::buffer("\r\n\r\n", 4);
+boost::asio::const_buffers_1 ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
+boost::asio::const_buffers_1 ImageServerConnection::_responseNotFound = boost::asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
+boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectBegin = boost::asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
+boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectEnd = boost::asio::buffer("\r\n\r\n", 4);
 
-ImageServerConnection::ImageServerConnection(asio::io_service& io)
+ImageServerConnection::ImageServerConnection(boost::asio::io_service& io)
     : _socket(io)
 {
 }
 
-asio::ip::tcp::socket& ImageServerConnection::socket()
+boost::asio::ip::tcp::socket& ImageServerConnection::socket()
 {
     return _socket;
 }
@@ -46,7 +46,7 @@ asio::ip::tcp::socket& ImageServerConnection::socket()
 void ImageServerConnection::Process()
 {
     // receive all HTTP headers from the client
-    asio::async_read_until(_socket, _buffer, "\r\n\r\n", std::tr1::bind(&ImageServerConnection::ProcessHeaders, shared_from_this()));
+    boost::asio::async_read_until(_socket, _buffer, "\r\n\r\n", std::tr1::bind(&ImageServerConnection::ProcessHeaders, shared_from_this()));
 }
 
 void ImageServerConnection::ProcessHeaders()
@@ -109,22 +109,22 @@ void ImageServerConnection::ProcessHeaders()
     }
 
     // first we have to send the responseOK, then our actual result
-    asio::async_write(_socket, _responseOK, asio::transfer_all(), std::tr1::bind(&ImageServerConnection::SendImage, shared_from_this()));
+    boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::tr1::bind(&ImageServerConnection::SendImage, shared_from_this()));
 }
 
 void ImageServerConnection::SendImage()
 {
-    asio::async_write(_socket, asio::buffer(*_imageData, _imageData->size()), asio::transfer_all(), std::tr1::bind(&ImageServerConnection::Close, shared_from_this()));
+    boost::asio::async_write(_socket, boost::asio::buffer(*_imageData, _imageData->size()), boost::asio::transfer_all(), std::tr1::bind(&ImageServerConnection::Close, shared_from_this()));
 }
 
 void ImageServerConnection::NotFound()
 {
-    asio::async_write(_socket, _responseNotFound, asio::transfer_all(), std::tr1::bind(&ImageServerConnection::Close, shared_from_this()));
+    boost::asio::async_write(_socket, _responseNotFound, boost::asio::transfer_all(), std::tr1::bind(&ImageServerConnection::Close, shared_from_this()));
 }
 
 void ImageServerConnection::Redirect()
 {
-    asio::async_write(_socket, _responseRedirectBegin, asio::transfer_all(), std::tr1::bind(&ImageServerConnection::RedirectLocation, shared_from_this()));
+    boost::asio::async_write(_socket, _responseRedirectBegin, boost::asio::transfer_all(), std::tr1::bind(&ImageServerConnection::RedirectLocation, shared_from_this()));
 }
 
 void ImageServerConnection::RedirectLocation()
@@ -133,12 +133,12 @@ void ImageServerConnection::RedirectLocation()
     std::stringstream url;
     url << ImageServer::FallbackURL << _category << "/" << _id << "_" << _size << "." << extension;
     _redirectUrl = url.str();
-    asio::async_write(_socket, asio::buffer(_redirectUrl), asio::transfer_all(), std::tr1::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
+    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl), boost::asio::transfer_all(), std::tr1::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
 }
 
 void ImageServerConnection::RedirectFinalize()
 {
-    asio::async_write(_socket, _responseRedirectEnd, asio::transfer_all(), std::tr1::bind(&ImageServerConnection::Close, shared_from_this()));
+    boost::asio::async_write(_socket, _responseRedirectEnd, boost::asio::transfer_all(), std::tr1::bind(&ImageServerConnection::Close, shared_from_this()));
 }
 
 void ImageServerConnection::Close()
@@ -151,7 +151,7 @@ bool ImageServerConnection::starts_with(std::string& haystack, const char *const
     return haystack.substr(0, strlen(needle)).compare(needle) == 0;
 }
 
-std::tr1::shared_ptr<ImageServerConnection> ImageServerConnection::create(asio::io_service& io)
+std::tr1::shared_ptr<ImageServerConnection> ImageServerConnection::create(boost::asio::io_service& io)
 {
     return std::tr1::shared_ptr<ImageServerConnection>(new ImageServerConnection(io));
 }
