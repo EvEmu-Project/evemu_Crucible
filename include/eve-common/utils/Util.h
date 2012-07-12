@@ -22,11 +22,11 @@
 
 #include "eve-core.h"
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
 #  define KILL_THIS_PROCESS TerminateProcess(GetCurrentProcess(), 0);
-#else
+#else /* !HAVE_WINDOWS_H */
 #  define KILL_THIS_PROCESS kill(getpid(), -9);
-#endif
+#endif /* !HAVE_WINDOWS_H */
 
 
     std::vector<std::string> StrSplit(const std::string &src, const std::string &sep);
@@ -39,7 +39,7 @@
     bool CheckIPs(const char* szIPList);
     int get_tokens(const char* szInput, char** pOutput, int iMaxCount, char cSeperator);
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     typedef struct tagTHREADNAME_INFO
     {
         DWORD dwType; // must be 0x1000
@@ -47,7 +47,7 @@
         DWORD dwThreadID; // thread ID (-1=caller thread)
         DWORD dwFlags; // reserved for future use, must be zero
     } THREADNAME_INFO;
-#endif
+#endif /* HAVE_WINDOWS_H */
 
     int32 GetTimePeriodFromString(const char * str);
     std::string ConvertTimeStampToString(uint32 timestamp);

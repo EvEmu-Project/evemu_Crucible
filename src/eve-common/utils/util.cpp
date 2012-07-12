@@ -63,11 +63,10 @@ vector<string> StrSplit(const string &src, const string &sep)
 #if 0
 void SetThreadName(const char* format, ...)
 {
+#ifdef HAVE_WINDOWS_H
     // This isn't supported on nix?
     va_list ap;
     va_start(ap, format);
-
-#ifdef WIN32
 
     char thread_name[200];
     vsnprintf(thread_name, 200, format, ap);
@@ -82,20 +81,19 @@ void SetThreadName(const char* format, ...)
     {
 #ifdef _WIN64
         RaiseException(0x406D1388, 0, sizeof(info)/sizeof(DWORD), (ULONG_PTR*)&info);
-#else
+#else /* !_WIN64 */
         RaiseException(0x406D1388, 0, sizeof(info)/sizeof(DWORD), (DWORD*)&info);
-#endif
+#endif /* !_WIN64 */
     }
     __except(EXCEPTION_CONTINUE_EXECUTION)
     {
 
     }
 
-#endif
-
     va_end(ap);
+#endif /* HAVE_WINDOWS_H */
 }
-#endif//
+#endif /* 0 */
 
 time_t convTimePeriod ( uint32 dLength, char dType )
 {
@@ -554,28 +552,17 @@ int get_tokens(const char* szInput, char** pOutput, int iMaxCount, char cSeperat
 
 bool CheckIPs(const char* szIPList)
 {
-#ifndef WIN32
-    return true;
-#endif
+#ifdef HAVE_WINDOWS_H
+    char* ip_string = strdup(szIPList);
 
     char* tokens[30];
-    int masks[30];
-    unsigned int ips[30];
-    hostent* ent;
-    char computer_name[100] = {0};
-    char* ip_string = strdup(szIPList);
     int count = get_tokens(ip_string, (char**)tokens, 30, ':');
-    int i, j;
 
-    char* t;
-    bool pass = false;
-#ifdef WIN32
-    DWORD computer_name_len = 100;
-    GetComputerNameA(computer_name, &computer_name_len);
-#endif
-    for(i = 0; i < count; ++i)
+    unsigned int ips[30];
+    int masks[30];
+    for(int i = 0; i < count; ++i)
     {
-        t = strchr(tokens[i], '/');
+        char* t = strchr(tokens[i], '/');
         if( t != NULL )
         {
             *t = 0;
@@ -587,17 +574,22 @@ bool CheckIPs(const char* szIPList)
         ips[i] = inet_addr(tokens[i]);
     }
 
-    ent = gethostbyname(computer_name);
+    char computer_name[100] = {0};
+    DWORD computer_name_len = 100;
+    GetComputerNameA(computer_name, &computer_name_len);
+
+    hostent* ent = gethostbyname(computer_name);
     if( ent == NULL )
     {
         free(ip_string);
         return false;
     }
 
-    for( i = 0; ent->h_addr_list[i] != NULL; ++i )
+    for( int i = 0; ent->h_addr_list[i] != NULL; ++i )
     {
-        pass = false;
-        for( j = 0; j < count; ++j )
+        bool pass = false;
+
+        for( int j = 0; j < count; ++j )
         {
             if( ParseCIDRBan(*(unsigned int*)ent->h_addr_list[i], ips[j], masks[j]) )
             {
@@ -614,6 +606,8 @@ bool CheckIPs(const char* szIPList)
     }
 
     free(ip_string);
+#endif /* HAVE_WINDOWS_H */
+
     return true;
 }
 
@@ -764,44 +758,38 @@ void Strings::toLowerCase(std::wstring& TString)
     std::transform(TString.begin(), TString.end(), TString.begin(), static_cast<int(*)(int)>(::tolower));
 }
 
-#ifndef WIN32
+#ifndef HAVE_WINDOWS_H
 /**
-
  * C++ version char* style "itoa":
-
  */
-
-char* itoa( int value, char* result, int base ) {
-
+char* itoa( int value, char* result, int base )
+{
     // check that the base if valid
-
-    if (base < 2 || base > 16) { *result = 0; return result; }
+    if( base < 2 || base > 16 )
+    {
+        *result = '\0';
+        return result;
+    }
 
     char* out = result;
-
     int quotient = value;
 
     do {
-
         *out = "0123456789abcdef"[ std::abs( quotient % base ) ];
-
         ++out;
-
         quotient /= base;
-
     } while ( quotient );
 
     // Only apply negative sign for base 10
-
-    if ( value < 0 && base == 10) *out++ = '-';
+    if( value < 0 && base == 10 )
+        *out++ = '-';
 
     std::reverse( result, out );
-
-    *out = 0;
+    *out = '\0';
 
     return result;
 }
-#endif
+#endif /* !HAVE_WINDOWS_H */
 
 /************************************************************************/
 /* End of OpenFrag borrowed code                                        */

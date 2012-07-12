@@ -29,24 +29,24 @@
 #include "PyRep.h"
 
 /* ascents cross platform color thingy's */
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
 #  define TRED FOREGROUND_RED | FOREGROUND_INTENSITY
 #  define TGREEN FOREGROUND_GREEN | FOREGROUND_INTENSITY
 #  define TYELLOW FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY
 #  define TNORMAL FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE
 #  define TWHITE TNORMAL | FOREGROUND_INTENSITY
 #  define TBLUE FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY
-#else
+#else /* !HAVE_WINDOWS_H */
 #  define TRED 1
 #  define TGREEN 2
 #  define TYELLOW 3
 #  define TNORMAL 4
 #  define TWHITE 5
 #  define TBLUE 6
-#endif//WIN32
+#endif /* !HAVE_WINDOWS_H */
 
 /* ascents UNIX color thingy's */
-#ifndef WIN32
+#ifndef HAVE_WINDOWS_H
 static const char* colorstrings[TBLUE+1] = {
     "",
     "\033[22;31m",
@@ -57,7 +57,7 @@ static const char* colorstrings[TBLUE+1] = {
     "\033[01;37m",
     "\033[22;34m",
 };
-#endif//WIN32
+#endif /* !HAVE_WINDOWS_H */
 
 /**
  * \class PyTraceLog
@@ -87,10 +87,10 @@ public:
           mInitialized(false),
           mLogToConsole(toConsole),
           mLogToFile(toFile)
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
           ,mStderrHandle(NULL),
           mStdoutHandle(NULL)
-#endif
+#endif /* HAVE_WINDOWS_H */
     {
         if (toFile == true)
         {
@@ -99,14 +99,14 @@ public:
                 printf("[error]PyTraceLog: sorry initializing the output file failed\n");
         }
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
         // get error handle
         if (mLogToConsole == true)
         {
             mStderrHandle = GetStdHandle(STD_ERROR_HANDLE);
             mStdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
         }
-#endif
+#endif /* HAVE_WINDOWS_H */
         mInitialized = true;
     }
 
@@ -302,11 +302,11 @@ protected:
      */
     void _setLogColor(uint32 color)
     {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
         SetConsoleTextAttribute(mStdoutHandle, TNORMAL);
-#else
+#else /* !HAVE_WINDOWS_H */
         puts(colorstrings[TNORMAL]);
-#endif
+#endif /* !HAVE_WINDOWS_H */
     }
 
 private:
@@ -315,9 +315,9 @@ private:
     bool    mLogToConsole;
     bool    mLogToFile;
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     HANDLE mStdoutHandle, mStderrHandle;
-#endif
+#endif /* HAVE_WINDOWS_H */
 };
 
 #endif//PY_TRACE_LOG_H
