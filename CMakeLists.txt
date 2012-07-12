@@ -156,6 +156,7 @@ CHECK_CXX_SYMBOL_EXISTS( vasprintf "cstdio" HAVE_VASPRINTF )
 # cstdlib
 CHECK_CXX_SYMBOL_EXISTS( strtoll  "cstdlib" HAVE_STRTOLL )
 CHECK_CXX_SYMBOL_EXISTS( strtoull "cstdlib" HAVE_STRTOULL )
+CHECK_CXX_SYMBOL_EXISTS( strtof   "cstdlib" HAVE_STRTOF )
 
 # cstring
 CHECK_CXX_SYMBOL_EXISTS( strdup      "cstring" HAVE_STRDUP )

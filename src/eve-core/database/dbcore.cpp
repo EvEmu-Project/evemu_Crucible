@@ -630,12 +630,7 @@ float DBResultRow::GetFloat( uint32 index ) const
         return 0;       //nothing better to do...
     }
 #endif
-
-#ifdef WIN32
-    return (float)atof( GetText( index ) );
-#else
     return strtof( GetText( index ), NULL );
-#endif
 }
 
 double DBResultRow::GetDouble( uint32 index ) const

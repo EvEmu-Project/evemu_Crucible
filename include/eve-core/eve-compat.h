@@ -191,6 +191,10 @@ int vasprintf( char** strp, const char* fmt, va_list ap );
 #   define strtoull _strtoui64
 #endif /* !HAVE_STRTOULL */
 
+#ifndef HAVE_STRTOF
+float strtof( const char* nptr, char** endptr );
+#endif /* !HAVE_STRTOF */
+
 /*************************************************************************/
 /* cstring                                                               */
 /*************************************************************************/

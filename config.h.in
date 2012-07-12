@@ -121,6 +121,10 @@
 // Define if strtoull is available.
 #cmakedefine HAVE_STRTOULL 1
 
+// HAVE_STRTOF
+// Define if strtof is available.
+#cmakedefine HAVE_STRTOF 1
+
 // HAVE_STRDUP
 // Define if strdup is available.
 #cmakedefine HAVE_STRDUP 1

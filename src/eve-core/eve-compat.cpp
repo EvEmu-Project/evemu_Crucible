@@ -25,28 +25,6 @@
 
 #include "eve-core.h"
 
-#ifndef HAVE_LOCALTIME_R
-tm* localtime_r( const time_t* timep, tm* result )
-{
-#   ifdef HAVE_LOCALTIME_S
-    const errno_t err = ::localtime_s( result, timep );
-    if( 0 != err )
-    {
-        errno = err;
-        return NULL;
-    }
-#   else /* !HAVE_LOCALTIME_S */
-    /* This is quite dangerous stuff (not necessarily
-       thread-safe), but what can we do? Also,
-       there is a chance that localtime will use
-       thread-specific memory (MS's localtime does that). */
-    ::memcpy( result, ::localtime( timep ), sizeof( tm ) );
-#   endif /* !HAVE_LOCALTIME_S */
-
-    return result;
-}
-#endif /* !HAVE_LOCALTIME_R */
-
 #ifndef HAVE_ASPRINTF
 int asprintf( char** strp, const char* fmt, ... )
 {
@@ -95,6 +73,36 @@ int vasprintf( char** strp, const char* fmt, va_list ap )
     return code;
 }
 #endif /* !HAVE_VASPRINTF */
+
+#ifndef HAVE_STRTOF
+float strtof( const char* nptr, char** endptr )
+{
+    // Implement using strtod
+    return (float)::strtod( nptr, endptr );
+}
+#endif /* !HAVE_STRTOF */
+
+#ifndef HAVE_LOCALTIME_R
+tm* localtime_r( const time_t* timep, tm* result )
+{
+#   ifdef HAVE_LOCALTIME_S
+    const errno_t err = ::localtime_s( result, timep );
+    if( 0 != err )
+    {
+        errno = err;
+        return NULL;
+    }
+#   else /* !HAVE_LOCALTIME_S */
+    /* This is quite dangerous stuff (not necessarily
+       thread-safe), but what can we do? Also,
+       there is a chance that localtime will use
+       thread-specific memory (MS's localtime does that). */
+    ::memcpy( result, ::localtime( timep ), sizeof( tm ) );
+#   endif /* !HAVE_LOCALTIME_S */
+
+    return result;
+}
+#endif /* !HAVE_LOCALTIME_R */
 
 #ifndef WIN32
 void Sleep( uint32 x )
