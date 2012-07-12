@@ -466,10 +466,7 @@ void DestinyManager::_InitWarp() {
 
     //the client clears massive during warp, presumably so you
     //do not run into things while warping.
-#ifndef WIN32
-#warning TODO: set massive to false!
-#endif
-
+#   pragma message( "TODO: set massive to false!" )
 
     //double warp_speed = m_system->GetWarpSpeed();
     double warp_speed = 0.0;
@@ -1019,13 +1016,14 @@ void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
     //speedBonus affects max velocity.
     //warpSpeedMultiplier
 
-/*#ifndef WIN32
-#warning need to feed inertia to physics model properly
-#endif
+/*
+#   pragma message( "need to feed inertia to physics model properly" )
+
     //do we want to use radius here??? or just adjust CoG?
     Ga::GaVec3 center_of_gravity = Ga::Parameter::VEC3_ZERO;
     Ga::GaVec3 inertia_tensor = Ga::Parameter::VEC3_ONE;
-    m_body->setMassMatrix(mass, center_of_gravity, inertia_tensor);*/
+    m_body->setMassMatrix(mass, center_of_gravity, inertia_tensor);
+*/
 
     m_radius = radius;
     m_mass = mass;
@@ -1356,9 +1354,7 @@ bool DestinyManager::_Turn() {
         }
 
         //else, we need some turning action... apply our "turning" forces
-#ifndef WIN32
-#warning TODO: apply turning force (torque)
-#endif
+#   pragma message( "TODO: apply turning force (torque)" )
         m_body->applyTorque(Ga::GaVec3(0, 0, 0));
 
         if(direction_cross < 0.5) {

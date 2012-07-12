@@ -83,9 +83,8 @@ PyObjectEx *StandingDB::GetCorpStandings(uint32 corporationID) {
 PyObject *StandingDB::GetCharPrimeStandings(uint32 characterID) {
     DBQueryResult res;
 
-#ifndef WIN32
-#warning hacking GetCharPrimeStandings until we know what it does
-#endif
+#   pragma message( "hacking GetCharPrimeStandings until we know what it does" )
+
     if(!sDatabase.RunQuery(res,
         "SELECT "
         " itemID AS ownerID,"

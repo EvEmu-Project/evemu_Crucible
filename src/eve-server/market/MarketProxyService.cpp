@@ -215,10 +215,8 @@ PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
     std::string method_name ("GetOrders_");
     method_name += itoa(args.arg);
     ObjectCachedMethodID method_id(GetName(), method_name.c_str());
-    #ifndef WIN32
-    #warning TODO: temporary solution, make cache objects with arguments
-    #endif
 
+#   pragma message( "TODO: temporary solution, make cache objects with arguments" )
 
     //check to see if this method is in the cache already.
     if(!m_manager->cache_service->IsCacheLoaded(method_id))
