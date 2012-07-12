@@ -57,13 +57,7 @@ std::string Win32TimeToString(uint64 win32t) {
     Win32TimeToUnixTime(win32t, unix_time, nsec);
 
     char buf[256];
-    strftime(buf, 256,
-#ifdef WIN32
-        "%Y-%m-%d %X",
-#else
-        "%F %T",
-#endif /* !WIN32 */
-    localtime(&unix_time));
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&unix_time));
 
     return(buf);
 }
