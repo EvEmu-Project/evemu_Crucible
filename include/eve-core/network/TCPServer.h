@@ -110,11 +110,11 @@ protected:
      *
      * @param[in] arg Pointer to BaseTCPServer.
      */
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     static DWORD WINAPI TCPServerLoop( LPVOID arg );
-#else /* !WIN32 */
+#else /* !HAVE_WINDOWS_H */
     static void* TCPServerLoop( void* arg );
-#endif /* !WIN32 */
+#endif /* !HAVE_WINDOWS_H */
     /**
      * @brief Loop for worker threads.
      */

@@ -32,9 +32,9 @@
 /*************************************************************************/
 Mutex::Mutex()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     InitializeCriticalSection( &mCriticalSection );
-#else
+#else /* !HAVE_WINDOWS_H */
     pthread_mutexattr_t attr;
     pthread_mutexattr_init( &attr );
 
@@ -42,43 +42,43 @@ Mutex::Mutex()
 
     pthread_mutex_init( &mMutex, &attr );
     pthread_mutexattr_destroy( &attr );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }
 
 Mutex::~Mutex()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     DeleteCriticalSection( &mCriticalSection );
-#else
+#else /* !HAVE_WINDOWS_H */
     pthread_mutex_destroy( &mMutex );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }
 
 void Mutex::Lock()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     EnterCriticalSection( &mCriticalSection );
-#else
+#else /* !HAVE_WINDOWS_H */
     pthread_mutex_lock( &mMutex );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }
 
 bool Mutex::TryLock()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     return TRUE == TryEnterCriticalSection( &mCriticalSection );
-#else
+#else /* !HAVE_WINDOWS_H */
     return 0 == pthread_mutex_trylock( &mMutex );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }
 
 void Mutex::Unlock()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     LeaveCriticalSection( &mCriticalSection );
-#else
+#else /* !HAVE_WINDOWS_H */
     pthread_mutex_unlock( &mMutex );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }
 
 /*************************************************************************/

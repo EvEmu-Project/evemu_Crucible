@@ -49,11 +49,11 @@ Socket::~Socket()
     ::shutdown( mSock, 0x01 );
     ::shutdown( mSock, 0x00 );
 
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
     ::closesocket( mSock );
-#else
+#else /* !HAVE_WINSOCK2_H */
     ::close( mSock );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 }
 
 int Socket::connect( const sockaddr* name, unsigned int namelen )
@@ -68,11 +68,11 @@ unsigned int Socket::recv( void* buf, unsigned int len, int flags )
 
 unsigned int Socket::recvfrom( void* buf, unsigned int len, int flags, sockaddr* from, unsigned int* fromlen )
 {
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
     return ::recvfrom( mSock, (char*)buf, len, flags, from, (int*)fromlen );
-#else
+#else /* !HAVE_WINSOCK2_H */
     return ::recvfrom( mSock, buf, len, flags, from, fromlen );
-#endif /* !WIN32 */
+#endif /* !HAVE_WINSOCK2_H */
 }
 
 unsigned int Socket::send( const void* buf, unsigned int len, int flags )
@@ -97,11 +97,11 @@ int Socket::listen( int backlog )
 
 Socket* Socket::accept( sockaddr* addr, unsigned int* addrlen )
 {
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
     SOCKET sock = ::accept( mSock, addr, (int*)addrlen );
-#else
+#else /* !HAVE_WINSOCK2_H */
     SOCKET sock = ::accept( mSock, addr, addrlen );
-#endif /* !WIN32 */
+#endif /* !HAVE_WINSOCK2_H */
 
     if( sock != INVALID_SOCKET )
         return new Socket( sock );
@@ -114,14 +114,14 @@ int Socket::setopt( int level, int optname, const void* optval, unsigned int opt
     return ::setsockopt( mSock, level, optname, (const char*)optval, optlen );
 }
 
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
 int Socket::ioctl( long cmd, unsigned long* argp )
 {
     return ::ioctlsocket( mSock, cmd, argp );
 }
-#else
+#else /* !HAVE_WINSOCK2_H */
 int Socket::fcntl( int cmd, long arg )
 {
     return ::fcntl( mSock, cmd, arg );
 }
-#endif /* !WIN32 */
+#endif /* !HAVE_WINSOCK2_H */

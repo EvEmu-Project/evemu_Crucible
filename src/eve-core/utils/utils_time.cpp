@@ -63,11 +63,11 @@ std::string Win32TimeToString(uint64 win32t) {
 }
 
 uint64 Win32TimeNow() {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
     return((uint64(ft.dwHighDateTime) << 32) | uint64(ft.dwLowDateTime));
-#else
+#else /* !HAVE_WINDOWS_H */
     return(UnixTimeToWin32Time(time(NULL), 0));
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }

@@ -71,16 +71,16 @@ public:
     bool NextFile();
 
 protected:
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     HANDLE mFind;
     WIN32_FIND_DATA mFindData;
     bool mValid;
     bool mFirst;
-#else
+#else /* !HAVE_WINDOWS_H */
     DIR* mDir;
     struct dirent* mFile;
     std::string mSuffix;
-#endif
+#endif /* !HAVE_WINDOWS_H */
 };
 
 #endif // __DIRWALKER_H_INCL__

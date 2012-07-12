@@ -28,9 +28,9 @@
 #include "network/NetUtils.h"
 
 uint32 ResolveIP(const char* hostname, char* errbuf) {
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
     static InitWinsock ws;
-#endif
+#endif /* !HAVE_WINSOCK2_H */
     if( errbuf )
         errbuf[0] = 0;
 
@@ -44,13 +44,12 @@ uint32 ResolveIP(const char* hostname, char* errbuf) {
     hostent* phostent = gethostbyname( hostname );
     if( phostent == NULL)
     {
-#ifdef WIN32
         if( errbuf )
+#ifdef HAVE_WINSOCK2_H
             snprintf( errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %i", WSAGetLastError() );
-#else
-        if( errbuf )
+#else /* !HAVE_WINSOCK2_H */
             snprintf( errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %s", strerror( errno ) );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
         return 0;
     }
 

@@ -195,7 +195,7 @@ protected:
 
     bool m_initialized;
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     /// Handle to standard output stream.
     const HANDLE mStdOutHandle;
     /// Handle to standard error stream.
@@ -203,10 +203,10 @@ protected:
 
     /// Color translation table.
     static const WORD COLOR_TABLE[ COLOR_COUNT ];
-#else
+#else /* !HAVE_WINDOWS_H */
     /// Color translation table.
     static const char* const COLOR_TABLE[ COLOR_COUNT ];
-#endif /* !WIN32 */
+#endif /* !HAVE_WINDOWS_H */
 };
 
 /// Evaluates to a NewLog instance.

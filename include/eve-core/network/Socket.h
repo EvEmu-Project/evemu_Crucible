@@ -50,11 +50,11 @@ public:
     Socket* accept( sockaddr* addr, unsigned int* addrlen );
 
     int setopt( int level, int optname, const void* optval, unsigned int optlen );
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
     int ioctl( long cmd, unsigned long* argp );
-#else
+#else /* !HAVE_WINSOCK2_H */
     int fcntl( int cmd, long arg );
-#endif /* !WIN32 */
+#endif /* !HAVE_WINSOCK2_H */
 
 protected:
     Socket( SOCKET sock );

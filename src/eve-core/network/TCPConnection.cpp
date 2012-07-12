@@ -34,9 +34,9 @@
 const uint32 TCPCONN_RECVBUF_SIZE = 0x1000;
 const uint32 TCPCONN_LOOP_GRANULARITY = 5;
 
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
 static InitWinsock winsock;
-#endif
+#endif /* HAVE_WINSOCK2_H */
 
 TCPConnection::TCPConnection()
 : mSock( NULL ),
@@ -119,11 +119,11 @@ bool TCPConnection::Connect( uint32 rIP, uint16 rPort, char* errbuf )
     if( mSock->connect( (sockaddr*)&server_sin, sizeof( server_sin ) ) == SOCKET_ERROR )
     {
         if( errbuf )
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
             snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::Connect(): connect() failed. Error: %i", WSAGetLastError() );
-#else
+#else /* !HAVE_WINSOCK2_H */
             snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::Connect(): connect() failed. Error: %s", strerror( errno ) );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 
         SafeDelete( mSock );
         return false;
@@ -132,12 +132,12 @@ bool TCPConnection::Connect( uint32 rIP, uint16 rPort, char* errbuf )
     int bufsize = 64 * 1024; // 64kbyte recieve buffer, up from default of 8k
     mSock->setopt( SOL_SOCKET, SO_RCVBUF, (char*) &bufsize, sizeof( bufsize ) );
 
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
     unsigned long nonblocking = 1;
     mSock->ioctl( FIONBIO, &nonblocking );
-#else
+#else /* !HAVE_WINSOCK2_H */
     mSock->fcntl( F_SETFL, O_NONBLOCK );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 
     mrIP = rIP;
     mrPort = rPort;
@@ -221,12 +221,12 @@ bool TCPConnection::Send( Buffer** data )
 void TCPConnection::StartLoop()
 {
     // Spawn new thread
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     CreateThread( NULL, 0, TCPConnectionLoop, this, 0, NULL );
-#else
+#else /* !HAVE_WINDOWS_H */
     pthread_t thread;
     pthread_create( &thread, NULL, TCPConnectionLoop, this );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }
 
 void TCPConnection::WaitLoop()
@@ -331,11 +331,11 @@ bool TCPConnection::SendData( char* errbuf )
 
         if( status == SOCKET_ERROR )
         {
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
             if( WSAGetLastError() == WSAEWOULDBLOCK )
-#else
+#else /* !HAVE_WINSOCK2_H */
             if( errno == EWOULDBLOCK )
-#endif /* !WIN32 */
+#endif /* !HAVE_WINSOCK2_H */
             {
                 // Act like nothing was sent
                 status = 0;
@@ -343,11 +343,11 @@ bool TCPConnection::SendData( char* errbuf )
             else
             {
                 if( errbuf )
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
                     snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %u", WSAGetLastError() );
-#else
+#else /* !HAVE_WINSOCK2_H */
                     snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %s", strerror( errno ) );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 
                 SafeDelete( buf );
                 return false;
@@ -419,22 +419,22 @@ bool TCPConnection::RecvData( char* errbuf )
         }
         else if( status == SOCKET_ERROR )
         {
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
             if ( WSAGetLastError() == WSAEWOULDBLOCK )
-#else
+#else /* !HAVE_WINSOCK2_H */
             if ( errno == EWOULDBLOCK )
-#endif
+#endif /* !HAVE_WINSOCK2_H */
             {
                 return true;
             }
             else
             {
                 if( errbuf )
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
                     snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %i", WSAGetLastError() );
-#else
+#else /* !HAVE_WINSOCK2_H */
                     snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %s", strerror( errno ) );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 
                 return false;
             }
@@ -472,33 +472,33 @@ void TCPConnection::ClearBuffers()
     SafeDelete( mRecvBuf );
 }
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
 DWORD WINAPI TCPConnection::TCPConnectionLoop( LPVOID arg )
-#else /* !WIN32 */
+#else /* !HAVE_WINDOWS_H */
 void* TCPConnection::TCPConnectionLoop( void* arg )
-#endif /* !WIN32 */
+#endif /* !HAVE_WINDOWS_H */
 {
     TCPConnection* tcpc = reinterpret_cast< TCPConnection* >( arg );
     assert( tcpc != NULL );
 
     tcpc->TCPConnectionLoop();
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     return 0;
-#else /* !WIN32 */
+#else /* !HAVE_WINDOWS_H */
     return NULL;
-#endif /* !WIN32 */
+#endif /* !HAVE_WINDOWS_H */
 }
 
 void TCPConnection::TCPConnectionLoop()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
-#endif
+#endif /* HAVE_WINDOWS_H */
 
-#ifndef WIN32
+#ifndef HAVE_WINDOWS_H
     sLog.Log( "Threading", "Starting TCPConnectionLoop with thread ID %d", pthread_self() );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 
     mMLoopRunning.Lock();
 
@@ -521,7 +521,7 @@ void TCPConnection::TCPConnectionLoop()
 
     mMLoopRunning.Unlock();
 
-#ifndef WIN32
+#ifndef HAVE_WINDOWS_H
     sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %d", pthread_self() );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }

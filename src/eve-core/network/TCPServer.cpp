@@ -111,21 +111,21 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
     unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
     mSock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
 
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
     unsigned long nonblocking = 1;
     mSock->ioctl( FIONBIO, &nonblocking );
-#else
+#else /* !HAVE_WINSOCK2_H */
     mSock->fcntl( F_SETFL, O_NONBLOCK );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 
     if( mSock->listen() == SOCKET_ERROR )
     {
         if( errbuf != NULL )
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
             snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "listen() failed, Error: %u", WSAGetLastError() );
-#else
+#else /* !HAVE_WINSOCK2_H */
             snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "listen() failed, Error: %s", strerror( errno ) );
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 
         SafeDelete( mSock );
         return false;
@@ -149,12 +149,12 @@ void BaseTCPServer::Close()
 
 void BaseTCPServer::StartLoop()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     CreateThread( NULL, 0, TCPServerLoop, this, 0, NULL );
-#else
+#else /* !HAVE_WINDOWS_H */
     pthread_t thread;
     pthread_create( &thread, NULL, TCPServerLoop, this );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }
 
 void BaseTCPServer::WaitLoop()
@@ -189,12 +189,12 @@ void BaseTCPServer::ListenNewConnections()
     // Check for pending connects
     while( ( sock = mSock->accept( (sockaddr*)&from, &fromlen ) ) != NULL )
     {
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
         unsigned long nonblocking = 1;
         sock->ioctl( FIONBIO, &nonblocking );
-#else
+#else /* !HAVE_WINSOCK2_H */
         sock->fcntl( F_SETFL, O_NONBLOCK );
-#endif /* !WIN32 */
+#endif /* !HAVE_WINSOCK2_H */
 
         unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
         sock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
@@ -204,33 +204,33 @@ void BaseTCPServer::ListenNewConnections()
     }
 }
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
 DWORD WINAPI BaseTCPServer::TCPServerLoop( LPVOID arg )
-#else /* !WIN32 */
+#else /* !HAVE_WINDOWS_H */
 void* BaseTCPServer::TCPServerLoop( void* arg )
-#endif /* !WIN32 */
+#endif /* !HAVE_WINDOWS_H */
 {
     BaseTCPServer* tcps = reinterpret_cast< BaseTCPServer* >( arg );
     assert( tcps != NULL );
 
     tcps->TCPServerLoop();
 
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     return 0;
-#else /* !WIN32 */
+#else /* !HAVE_WINDOWS_H */
     return NULL;
-#endif /* !WIN32 */
+#endif /* !HAVE_WINDOWS_H */
 }
 
 void BaseTCPServer::TCPServerLoop()
 {
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
     SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
-#endif
+#endif /* HAVE_WINDOWS_H */
 
-#ifndef WIN32
+#ifndef HAVE_WINDOWS_H
     sLog.Log( "Threading", "Starting TCPServerLoop with thread ID %d", pthread_self() );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 
     mMLoopRunning.Lock();
 
@@ -253,7 +253,7 @@ void BaseTCPServer::TCPServerLoop()
 
     mMLoopRunning.Unlock();
 
-#ifndef WIN32
+#ifndef HAVE_WINDOWS_H
     sLog.Log( "Threading", "Ending TCPServerLoop with thread ID %d", pthread_self() );
-#endif
+#endif /* !HAVE_WINDOWS_H */
 }

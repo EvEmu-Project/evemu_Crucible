@@ -33,7 +33,7 @@
 uint32  ResolveIP(const char* hostname, char* errbuf = 0);
 //bool    ParseAddress(const char* iAddress, int32* oIP, int16* oPort, char* errbuf = 0);
 
-#ifdef WIN32
+#ifdef HAVE_WINSOCK2_H
 class InitWinsock
 {
 public:
@@ -47,6 +47,6 @@ public:
         WSACleanup();
     }
 };
-#endif
+#endif /* !HAVE_WINSOCK2_H */
 
 #endif /* !__NET_UTILS_H__INCL__ */

@@ -32,7 +32,7 @@
 /*************************************************************************/
 /* NewLog                                                                */
 /*************************************************************************/
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
 const WORD NewLog::COLOR_TABLE[ COLOR_COUNT ] =
 {
     ( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE                        ), // COLOR_DEFAULT
@@ -45,7 +45,7 @@ const WORD NewLog::COLOR_TABLE[ COLOR_COUNT ] =
     (                  FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY ), // COLOR_CYAN
     ( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY )  // COLOR_WHITE
 };
-#else /* !WIN32 */
+#else /* !HAVE_WINDOWS_H */
 const char* const NewLog::COLOR_TABLE[ COLOR_COUNT ] =
 {
     "\033[" "00"    "m", // COLOR_DEFAULT
@@ -58,15 +58,15 @@ const char* const NewLog::COLOR_TABLE[ COLOR_COUNT ] =
     "\033[" "36;01" "m", // COLOR_CYAN
     "\033[" "37;01" "m"  // COLOR_WHITE
 };
-#endif /* !WIN32 */
+#endif /* !HAVE_WINDOWS_H */
 
 NewLog::NewLog()
 : mLogfile( NULL ),
   mTime( 0 )
-#ifdef WIN32
+#ifdef HAVE_WINDOWS_H
   ,mStdOutHandle( GetStdHandle( STD_OUTPUT_HANDLE ) ),
   mStdErrHandle( GetStdHandle( STD_ERROR_HANDLE ) )
-#endif /* WIN32 */
+#endif /* HAVE_WINDOWS_H */
 {
     //// open default logfile
     //std::string logPath = EVEMU_ROOT "/log/";
@@ -257,11 +257,11 @@ void NewLog::SetColor( Color color )
 
     MutexLock l( mMutex );
 
-#ifdef WIN32
-    SetConsoleTextAttribute( mStdOutHandle, COLOR_TABLE[ color ] );
-#else /* !WIN32 */
-    fputs( COLOR_TABLE[ color ], stdout );
-#endif /* !WIN32 */
+#ifdef HAVE_WINDOWS_H
+    ::SetConsoleTextAttribute( mStdOutHandle, COLOR_TABLE[ color ] );
+#else /* !HAVE_WINDOWS_H */
+    ::fputs( COLOR_TABLE[ color ], stdout );
+#endif /* !HAVE_WINDOWS_H */
 }
 
 void NewLog::SetLogfileDefault(std::string logPath)
