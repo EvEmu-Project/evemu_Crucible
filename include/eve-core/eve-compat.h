@@ -119,6 +119,33 @@ typedef unsigned __int64 uint64;
 #endif /* !HAVE_INTTYPES_H */
 
 /*************************************************************************/
+/* windows.h                                                             */
+/*************************************************************************/
+#ifndef HAVE_WINDOWS_H
+void   Sleep( uint32 x );
+uint32 GetTickCount();
+int    CreateDirectory( const char* name, void* );
+#endif /* !HAVE_WINDOWS_H */
+
+/*************************************************************************/
+/* winsock2.h                                                            */
+/*************************************************************************/
+#ifndef HAVE_WINSOCK2_H
+typedef int SOCKET;
+
+#   define INVALID_SOCKET -1
+#   define SOCKET_ERROR   -1
+#endif /* !HAVE_WINSOCK2_H */
+
+#ifndef MSG_NOSIGNAL
+#   ifdef SO_NOSIGPIPE
+#       define MSG_NOSIGNAL SO_NOSIGPIPE
+#   else /* !SO_NOSIGPIPE */
+#       define MSG_NOSIGNAL 0
+#   endif /* !SO_NOSIGPIPE */
+#endif /* !MSG_NOSIGNAL */
+
+/*************************************************************************/
 /* cfloat, cmath                                                         */
 /*************************************************************************/
 #ifndef M_PI
@@ -256,30 +283,5 @@ float strtof( const char* nptr, char** endptr );
 #ifndef HAVE_LOCALTIME_R
 tm* localtime_r( const time_t* timep, tm* result );
 #endif /* !HAVE_LOCALTIME_R */
-
-/*************************************************************************/
-/* sys/socket.h                                                          */
-/*************************************************************************/
-#ifndef MSG_NOSIGNAL
-#   ifdef SO_NOSIGPIPE
-#       define MSG_NOSIGNAL SO_NOSIGPIPE
-#   else /* !SO_NOSIGPIPE */
-#       define MSG_NOSIGNAL 0
-#   endif /* !SO_NOSIGPIPE */
-#endif /* !MSG_NOSIGNAL */
-
-/*************************************************************************/
-/* Various other compatibility stuff                                     */
-/*************************************************************************/
-#ifndef WIN32
-#   define INVALID_SOCKET -1
-#   define SOCKET_ERROR   -1
-
-typedef int SOCKET;
-
-void   Sleep( uint32 x );
-uint32 GetTickCount();
-int    CreateDirectory( const char* name, void* );
-#endif /* !WIN32 */
 
 #endif /* !__EVE_COMPAT_H__INCL__ */

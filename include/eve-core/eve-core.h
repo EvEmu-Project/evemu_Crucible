@@ -33,12 +33,6 @@
 #   include "config.h"
 #endif /* HAVE_CONFIG_H */
 
-#ifdef WIN32
-#   define _WIN32_WINNT 0x0500 // building for Win2k
-#   define WIN32_LEAN_AND_MEAN
-#   define NOMINMAX
-#endif /* !WIN32 */
-
 #ifdef HAVE_CRTDBG_H
 #   define _CRTDBG_MAP_ALLOC 1
 #endif /* HAVE_CRTDBG_H */
@@ -51,6 +45,12 @@
 // We must "explicitly request" the format strings
 #   define __STDC_FORMAT_MACROS 1
 #endif /* HAVE_INTTYPES_H */
+
+#ifdef HAVE_WINDOWS_H
+#   define _WIN32_WINNT 0x0500 // building for Win2k
+#   define WIN32_LEAN_AND_MEAN
+#   define NOMINMAX
+#endif /* !HAVE_WINDOWS_H */
 
 // Disable auto-linking of any Boost libraries
 #define BOOST_ALL_NO_LIB 1
@@ -102,21 +102,6 @@
 #   include <unordered_set>
 #endif /* !HAVE_TR1_PREFIX */
 
-#ifdef WIN32
-#   include <windows.h>
-#   include <winsock2.h>
-#else /* !WIN32 */
-#   include <dirent.h>
-#   include <execinfo.h>
-#   include <fcntl.h>
-#   include <netdb.h>
-#   include <pthread.h>
-#   include <unistd.h>
-#   include <arpa/inet.h>
-#   include <netinet/in.h>
-#   include <sys/socket.h>
-#endif /* !WIN32 */
-
 #ifdef HAVE_CRTDBG_H
 #   include <crtdbg.h>
 #endif /* HAVE_CRTDBG_H */
@@ -140,6 +125,25 @@
 #ifdef HAVE_VLD_H
 #   include <vld.h>
 #endif /* HAVE_VLD_H */
+
+#ifdef HAVE_WINDOWS_H
+#   include <windows.h>
+#else /* !HAVE_WINDOWS_H */
+#   include <dirent.h>
+#   include <execinfo.h>
+#   include <pthread.h>
+#   include <unistd.h>
+#endif /* !HAVE_WINDOWS_H */
+
+#ifdef HAVE_WINSOCK2_H
+#   include <winsock2.h>
+#else /* !HAVE_WINSOCK2_H */
+#   include <fcntl.h>
+#   include <netdb.h>
+#   include <arpa/inet.h>
+#   include <netinet/in.h>
+#   include <sys/socket.h>
+#endif /* !HAVE_WINSOCK2_H */
 
 #ifndef HAVE_ASINH
 #   include <boost/math/special_functions.hpp>

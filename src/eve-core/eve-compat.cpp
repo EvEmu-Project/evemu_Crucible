@@ -25,6 +25,40 @@
 
 #include "eve-core.h"
 
+#ifndef HAVE_WINDOWS_H
+void Sleep( uint32 x )
+{
+    if( 0 < x )
+        ::usleep( 1000 * x );
+}
+
+uint32 GetTickCount()
+{
+#ifdef HAVE_SYS_TIME_H
+    timeval tv;
+    ::gettimeofday( &tv, NULL );
+
+    return tv.tv_sec  * 1000
+         + tv.tv_usec / 1000;
+#else /* !HAVE_SYS_TIME_H */
+    timeb tb;
+    ::ftime( &tb );
+
+    return tb.time * 1000
+         + tb.millitm;
+#endif /* !HAVE_SYS_TIME_H */
+}
+
+int CreateDirectory( const char* name, void* )
+{
+    // Create the directory with mode 0755
+    return 0 == ::mkdir( name,
+                          S_IRUSR | S_IWUSR | S_IXUSR
+                        | S_IRGRP           | S_IXGRP
+                        | S_IROTH           | S_IXOTH );
+}
+#endif /* !HAVE_WINDOWS_H */
+
 #ifndef HAVE_ASPRINTF
 int asprintf( char** strp, const char* fmt, ... )
 {
@@ -173,37 +207,3 @@ tm* localtime_r( const time_t* timep, tm* result )
     return result;
 }
 #endif /* !HAVE_LOCALTIME_R */
-
-#ifndef WIN32
-void Sleep( uint32 x )
-{
-    if( 0 < x )
-        ::usleep( 1000 * x );
-}
-
-uint32 GetTickCount()
-{
-#ifdef HAVE_SYS_TIME_H
-    timeval tv;
-    ::gettimeofday( &tv, NULL );
-
-    return tv.tv_sec  * 1000
-         + tv.tv_usec / 1000;
-#else /* !HAVE_SYS_TIME_H */
-    timeb tb;
-    ::ftime( &tb );
-
-    return tb.time * 1000
-         + tb.millitm;
-#endif /* !HAVE_SYS_TIME_H */
-}
-
-int CreateDirectory( const char* name, void* )
-{
-    // Create the directory with mode 0755
-    return 0 == ::mkdir( name,
-                          S_IRUSR | S_IWUSR | S_IXUSR
-                        | S_IRGRP           | S_IXGRP
-                        | S_IROTH           | S_IXOTH );
-}
-#endif /* !WIN32 */

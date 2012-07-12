@@ -39,6 +39,14 @@
 // Define if vld.h is available.
 #cmakedefine HAVE_VLD_H 1
 
+// HAVE_WINDOWS_H
+// Define if windows.h is available.
+#cmakedefine HAVE_WINDOWS_H 1
+
+// HAVE_WINSOCK2_H
+// Define if winsock2.h is available.
+#cmakedefine HAVE_WINSOCK2_H 1
+
 /*************************************************************************/
 /* Keyword defines                                                       */
 /*************************************************************************/
