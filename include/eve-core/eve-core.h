@@ -125,21 +125,17 @@
 #   include <inttypes.h>
 #endif /* HAVE_INTTYPES_H */
 
-#ifdef HAVE_IO_H
-#   include <io.h>
-#endif /* HAVE_IO_H */
-
 #ifdef HAVE_SYS_STAT_H
 #   include <sys/stat.h>
-#endif /* HAVE_SYS_STAT_H */
+#else /* !HAVE_SYS_STAT_H */
+#   include <io.h>
+#endif /* !HAVE_SYS_STAT_H */
 
 #ifdef HAVE_SYS_TIME_H
 #   include <sys/time.h>
-#endif /* HAVE_SYS_TIME_H */
-
-#ifdef HAVE_SYS_TIMEB_H
+#else /* !HAVE_SYS_TIME_H */
 #   include <sys/timeb.h>
-#endif /* HAVE_SYS_TIMEB_H */
+#endif /* !HAVE_SYS_TIME_H */
 
 #ifdef HAVE_VLD_H
 #   include <vld.h>
