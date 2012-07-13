@@ -152,23 +152,7 @@ const int32 Timer::GetTimeSeconds() {
 
 const int32 Timer::SetCurrentTime()
 {
-    int32 this_time;
-
-#ifdef HAVE_SYS_TIME_H
-    timeval tv;
-    ::gettimeofday( &tv, NULL );
-
-    this_time = tv.tv_sec  * 1000
-              + tv.tv_usec / 1000;
-    current_seconds = tv.tv_sec;
-#else /* !HAVE_SYS_TIME_H */
-    timeb tb;
-    ::ftime( &tb );
-
-    this_time = tb.time * 1000
-              + tb.millitm;
-    current_seconds = tb.time;
-#endif /* !HAVE_SYS_TIME_H */
+    const int32 this_time = ::GetTickCount();
 
     if( last_time == 0 )
         current_time = 0;
@@ -176,5 +160,7 @@ const int32 Timer::SetCurrentTime()
         current_time += this_time - last_time;
 
     last_time = this_time;
+    current_seconds = this_time / 1000;
+
     return current_time;
 }
