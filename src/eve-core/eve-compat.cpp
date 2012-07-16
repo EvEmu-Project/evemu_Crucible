@@ -88,13 +88,32 @@ int sprintf( std::string& str, const char* fmt, ... )
 
 int vsprintf( std::string& str, const char* fmt, va_list ap )
 {
-    char* buf = NULL;
+    // Return code
+    int code;
+    // Offset within the string
+    size_t offset = str.length();
+    // Size of the buffer
+    size_t size = 0x40;
 
-    int code = ::vasprintf( &buf, fmt, ap );
-    if( 0 <= code )
-        str = buf;
+    do
+    {
+        // Resize the buffer
+        str.resize( offset + size );
 
-    SafeFree( buf );
+        // Try to print into the buffer
+        code = ::vsnprintf( &str[offset], size, fmt, ap );
+        // Check for truncation
+        if( size <= code )
+            // Output truncated
+            code = -1;
+
+        // Double the size of the buffer
+        size <<= 1;
+    } while( 0 > code );
+
+    // Resize to save memory
+    str.resize( offset + code );
+    // Return the code
     return code;
 }
 

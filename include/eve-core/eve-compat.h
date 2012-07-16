@@ -197,7 +197,7 @@ int sprintf( std::string& str, const char* fmt, ... );
  * @param[in]  fmt The format string.
  * @param[in]  ap  Arguments.
  *
- * @return A value returned by <code>vasprintf</code>.
+ * @return A value returned by <code>vsnprintf</code>.
  */
 int vsprintf( std::string& str, const char* fmt, va_list ap );
 
