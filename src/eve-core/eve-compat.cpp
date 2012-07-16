@@ -41,18 +41,16 @@ int asprintf( char** strp, const char* fmt, ... )
 #ifndef HAVE_VASPRINTF
 int vasprintf( char** strp, const char* fmt, va_list ap )
 {
-    // Size of the buffer (doubled each cycle)
-    size_t size = 0x40 >> 1;
     // Return code
     int code;
+    // Size of the buffer (doubled each cycle)
+    size_t size = 0x40;
 
     // No buffer yet
     *strp = NULL;
 
     do
     {
-        // Double the size of buffer
-        size <<= 1;
         // Reallocate the buffer
         *strp = (char*)::realloc( *strp, size );
 
@@ -62,12 +60,15 @@ int vasprintf( char** strp, const char* fmt, va_list ap )
         if( size <= code )
             // Output truncated
             code = -1;
+
+        // Double the size of buffer
+        size <<= 1;
     } while( 0 > code );
 
     // Reallocate to save memory
     *strp = (char*)::realloc( *strp, code + 1 );
     // Terminate the string
-    (*strp)[ code ] = '\0';
+    (*strp)[code] = '\0';
 
     // Return the code
     return code;
