@@ -75,6 +75,33 @@ int vasprintf( char** strp, const char* fmt, va_list ap )
 }
 #endif /* !HAVE_VASPRINTF */
 
+std::string sprintf( const char* fmt, ... )
+{
+    va_list ap;
+    va_start( ap, fmt );
+
+    // The string buffer
+    std::string str;
+    // Print into the buffer
+    int code = ::vsprintf( str, fmt, ap );
+    assert( 0 <= code );
+
+    va_end( ap );
+
+    return str;
+}
+
+std::string vsprintf( const char* fmt, va_list ap )
+{
+    // The string buffer
+    std::string str;
+    // Print into the buffer
+    int code = ::vsprintf( str, fmt, ap );
+    assert( 0 <= code );
+
+    return str;
+}
+
 int sprintf( std::string& str, const char* fmt, ... )
 {
     va_list ap;

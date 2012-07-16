@@ -183,6 +183,25 @@ int vasprintf( char** strp, const char* fmt, va_list ap );
 /**
  * @brief <code>sprintf</code> for <code>std::string</code>.
  *
+ * @param[in] fmt The format string.
+ * @param[in] ... Arguments.
+ *
+ * @return The printed string.
+ */
+std::string sprintf( const char* fmt, ... );
+/**
+ * @brief <code>vsprintf</code> for <code>std::string</code>.
+ *
+ * @param[in] fmt The format string.
+ * @param[in] ap  Arguments.
+ *
+ * @return The printed string.
+ */
+std::string vsprintf( const char* fmt, va_list ap );
+
+/**
+ * @brief <code>sprintf</code> for <code>std::string</code>.
+ *
  * @param[out] str Where to store the result.
  * @param[in]  fmt The format string.
  * @param[in]  ... Arguments.
