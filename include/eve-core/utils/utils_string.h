@@ -191,25 +191,4 @@ void SearchReplace( std::string& subject, const std::string& search, const std::
  */
 void SplitPath( const std::string& path, std::vector<std::string>& into );
 
-/**
- * @brief sprintf() for std::string.
- *
- * @param[in] into Where to store the result.
- * @param[in] fmt  The format string.
- * @param[in] ...  Arguments.
- *
- * @return A value returned by vasprintf().
- */
-int sprintf( std::string& into, const char* fmt, ... );
-/**
- * @brief vsprintf() for std::string.
- *
- * @param[in] into Where to store the result.
- * @param[in] fmt  The format string.
- * @param[in] ap   Arguments.
- *
- * @return A value returned by vasprintf().
- */
-int vsprintf( std::string& into, const char* fmt, va_list ap );
-
 #endif /* !__UTILS__UTILS_STRING_H__INCL__ */

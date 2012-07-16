@@ -75,6 +75,29 @@ int vasprintf( char** strp, const char* fmt, va_list ap )
 }
 #endif /* !HAVE_VASPRINTF */
 
+int sprintf( std::string& str, const char* fmt, ... )
+{
+    va_list ap;
+
+    va_start( ap, fmt );
+    int code = ::vsprintf( str, fmt, ap );
+    va_end( ap );
+
+    return code;
+}
+
+int vsprintf( std::string& str, const char* fmt, va_list ap )
+{
+    char* buf = NULL;
+
+    int code = ::vasprintf( &buf, fmt, ap );
+    if( 0 <= code )
+        str = buf;
+
+    SafeFree( buf );
+    return code;
+}
+
 #ifndef HAVE_STRTOF
 float strtof( const char* nptr, char** endptr )
 {
