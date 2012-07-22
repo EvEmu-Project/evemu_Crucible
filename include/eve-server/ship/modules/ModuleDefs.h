@@ -109,8 +109,8 @@ enum ModuleApplicationTypes
 // *** use these values to decode the 'stackingPenaltyApplied' field of the 'dgmEffectsActions' database table
 enum ModuleStackingPenaltyState
 {
-    NO_PENALTY = 1700,
-    PENALTY
+    NO_STACKING_PENALTY = 1700,
+    STACKING_PENALTY_APPLIES
 };
 
 //this may or may not be redundant...idk
@@ -127,18 +127,20 @@ enum ModulePowerLevel
 // *** use these values to decode the 'calculationTypeID' and the 'reverseCalculationTypeID' fields of the 'dgmEffectsActions' database table
 enum EVECalculationType
 {
-    NONE = 2000,
-    AUTO,
-    ADD,
-    SUBTRACT,
-    DIVIDE,
-    MULTIPLY,
-    ADD_PERCENT,
-    REV_ADD_PERCENT,
-    SUBTRACT_PERCENT,
-    REV_SUBTRACT_PERCENT,
-    ADD_AS_PERCENT,
-    SUBTRACT_AS_PERCENT
+    CALC_NONE = 2000,
+    CALC_AUTO,
+    CALC_ADD,
+    CALC_SUBTRACT,
+    CALC_DIVIDE,
+    CALC_MULTIPLY,
+    CALC_ADD_PERCENT,
+    CALC_REV_ADD_PERCENT,
+    CALC_SUBTRACT_PERCENT,
+    CALC_REV_SUBTRACT_PERCENT,
+    CALC_ADD_AS_PERCENT,
+    CALC_SUBTRACT_AS_PERCENT,
+    CALC_MODIFY_PERCENT_W_PERCENT,
+    CALC_REV_MODIFY_PERCENT_W_PERCENT
     //more will show up, im sure
 };
 
@@ -166,13 +168,13 @@ static EvilNumber Multiply(EvilNumber &val1, EvilNumber &val2)
 
 static EvilNumber AddPercent(EvilNumber &val1, EvilNumber &val2)
 {
-    return val1 + ( val1 * val2    );
+    return val1 + ( val1 * val2 );
 }
 
 static EvilNumber ReverseAddPercent(EvilNumber &val1, EvilNumber &val2)
 {
     EvilNumber val3 = 1;
-    return val1 / (val3 + val2);
+    return val1 / ( val3 + val2 );
 }
 
 static EvilNumber SubtractPercent(EvilNumber &val1, EvilNumber &val2)
@@ -197,25 +199,43 @@ static EvilNumber SubtractAsPercent(EvilNumber &val1, EvilNumber &val2)
     EvilNumber val3 = 1;
     EvilNumber val4 = 100;
 
-    return val1 / ( val3 + ( val2 / val4 ));
+    return val1 / ( val3 + (val2 / val4) );
+}
+
+static EvilNumber ModifyPercentWithPercent(EvilNumber &val1, EvilNumber &val2)
+{
+    EvilNumber val3 = 1;
+    EvilNumber val4 = 100;
+
+    return val1 * (val3 + (val2 / val4) );
+}
+
+static EvilNumber ReverseModifyPercentWithPercent(EvilNumber &val1, EvilNumber &val2)
+{
+    EvilNumber val3 = 1;
+    EvilNumber val4 = 100;
+
+    return val4 * ( (val1 / val2) - 1 );
 }
 
 static EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attrMod, EVECalculationType type)
 {
     switch(type)
     {
-        case NONE :                     return attrVal;
-        case AUTO :                     return attrVal;                             // AUTO NOT SUPPORTED AT THIS TIME !!!
-        case ADD :                        return Add(attrVal, attrMod);
-        case SUBTRACT :                    return Subtract(attrVal, attrMod);
-        case DIVIDE :                    return Divide(attrVal, attrMod);
-        case MULTIPLY :                    return Multiply(attrVal, attrMod);
-        case ADD_PERCENT :                return AddPercent(attrVal, attrMod);
-        case REV_ADD_PERCENT :          return ReverseAddPercent(attrVal, attrMod);
-        case SUBTRACT_PERCENT :            return SubtractPercent(attrVal, attrMod);
-        case REV_SUBTRACT_PERCENT :     return ReverseSubtractPercent(attrVal, attrMod);
-        case ADD_AS_PERCENT :            return AddAsPercent(attrVal, attrMod);
-        case SUBTRACT_AS_PERCENT :      return SubtractAsPercent(attrVal, attrMod);
+        case CALC_NONE :                            return attrVal;
+        case CALC_AUTO :                            return attrVal;                             // AUTO NOT SUPPORTED AT THIS TIME !!!
+        case CALC_ADD :                             return Add(attrVal, attrMod);
+        case CALC_SUBTRACT :                        return Subtract(attrVal, attrMod);
+        case CALC_DIVIDE :                          return Divide(attrVal, attrMod);
+        case CALC_MULTIPLY :                        return Multiply(attrVal, attrMod);
+        case CALC_ADD_PERCENT :                     return AddPercent(attrVal, attrMod);
+        case CALC_REV_ADD_PERCENT :                 return ReverseAddPercent(attrVal, attrMod);
+        case CALC_SUBTRACT_PERCENT :                return SubtractPercent(attrVal, attrMod);
+        case CALC_REV_SUBTRACT_PERCENT :            return ReverseSubtractPercent(attrVal, attrMod);
+        case CALC_ADD_AS_PERCENT :                  return AddAsPercent(attrVal, attrMod);
+        case CALC_SUBTRACT_AS_PERCENT :             return SubtractAsPercent(attrVal, attrMod);
+        case CALC_MODIFY_PERCENT_W_PERCENT :        return ModifyPercentWithPercent(attrVal, attrMod);
+        case CALC_REV_MODIFY_PERCENT_W_PERCENT :    return ReverseModifyPercentWithPercent(attrVal, attrMod);
     }
 
     sLog.Error("CalculateNewAttributeValue", "Unknown EveCalculationType used");

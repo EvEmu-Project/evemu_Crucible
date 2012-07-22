@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `dgmEffectsActions` (
   `nullifyOnlineEffect` int(11) NOT NULL,
   `nullifiedOnlineEffectID` int(11) NOT NULL,
   PRIMARY KEY (`effectID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `dgmEffectsActions`

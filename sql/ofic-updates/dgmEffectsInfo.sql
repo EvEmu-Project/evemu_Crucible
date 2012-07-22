@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `dgmEffectsInfo` (
   `sourceAttributeID` int(11) NOT NULL,
   `calculationTypeID` int(11) NOT NULL,
   `reverseCalculationTypeID` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Dumping data for table `dgmEffectsInfo`
