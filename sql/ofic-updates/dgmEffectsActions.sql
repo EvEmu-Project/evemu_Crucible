@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS `dgmEffectsActions` (
   `effectID` int(11) NOT NULL,
   `effectAppliedInState` int(11) NOT NULL,
   `effectAppliedTo` int(11) NOT NULL,
+  `effectAppliedBehavior` int(11) NOT NULL,
   `effectApplicationType` int(11) NOT NULL,
   `targetEquipmentType` int(11) NOT NULL,
   `targetGroupIDs` text NOT NULL,

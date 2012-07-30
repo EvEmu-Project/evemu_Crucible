@@ -63,7 +63,7 @@ enum ChargeStates
 };
 
 // These are the module states where an effect will, ahem, take 'effect':
-// *** use these values to decode the 'effectAppliedInState' field of the 'dgmEffectsActions' database table
+// *** use these values to decode the 'effectAppliedBehavior' field of the 'dgmEffectsActions' database table
 enum ModuleEffectTriggers
 {
     EFFECT_PERSISTENT = 1300,   // means the effect is active AT ALL TIMES; used ONLY for skill, ship, subsystem effects
@@ -89,9 +89,9 @@ enum EffectTargetEquipmentTypes
 // *** use these values to decode the 'effectAppliedTo' field of the 'dgmEffectsActions' database table
 enum ModuleEffectTargets
 {
-    SELF = 1500,    // means the target of the effect is the module's own attribute(s)
-    SHIP,           // means the target of the effect is the attribute(s) of the ship to which the module is fitted
-    TARGET          // means the target of the effect is the attribute(s) of the current target of the ship to which the module is fitted
+    EFFECT_TARGET_SELF  = 1500, // means the target of the effect is the module's own attribute(s)
+    EFFECT_TARGET_SHIP,         // means the target of the effect is the attribute(s) of the ship to which the module is fitted
+    EFFECT_TARGET_EXTERNAL      // means the target of the effect is the attribute(s) of the current target of the ship to which the module is fitted
 };
 
 // These are the methods by which module effects are applied to the designated target:
@@ -116,11 +116,11 @@ enum ModuleStackingPenaltyState
 //this may or may not be redundant...idk
 enum ModulePowerLevel
 {
-    HIGH_POWER = 1800,
-    MEDIUM_POWER,
-    LOW_POWER,
-    RIG,
-    SUBSYSTEM
+    MODULE_BANK_HIGH_POWER = 1800,
+    MODULE_BANK_MEDIUM_POWER,
+    MODULE_BANK_LOW_POWER,
+    MODULE_BANK_RIG,
+    MODULE_BANK_SUBSYSTEM
 };
 
 //calculation types
