@@ -43,7 +43,7 @@ public:
     void Deactivate();
 
     //access functions
-    ModulePowerLevel GetModulePowerLevel()                    { return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
+    ModulePowerLevel GetModulePowerLevel()                    { return isHighPower() ? MODULE_BANK_HIGH_POWER : ( isMediumPower() ? MODULE_BANK_MEDIUM_POWER : MODULE_BANK_LOW_POWER); }
 
     bool isHighPower()                                        { return m_Effects->isHighSlot(); }
     bool isMediumPower()                                    { return m_Effects->isMediumSlot(); }

@@ -49,5 +49,5 @@ RigModule::~RigModule()
 //not much to do here... hopefully there won't be
 ModulePowerLevel RigModule::GetModulePowerLevel()
 {
-    return RIG;
+    return MODULE_BANK_RIG;
 }

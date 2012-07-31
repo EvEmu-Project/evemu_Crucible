@@ -116,7 +116,7 @@ public:
     virtual bool isSubSystem()                                    { return (m_Item->categoryID() == EVEDB::invCategories::Subsystem); }
 
     //override for rigs and subsystems
-    virtual ModulePowerLevel GetModulePowerLevel()                { return isHighPower() ? HIGH_POWER : ( isMediumPower() ? MEDIUM_POWER : LOW_POWER); }
+    virtual ModulePowerLevel GetModulePowerLevel()                { return isHighPower() ? MODULE_BANK_HIGH_POWER : ( isMediumPower() ? MODULE_BANK_MEDIUM_POWER : MODULE_BANK_LOW_POWER); }
 
 protected:
     InventoryItemRef m_Item;

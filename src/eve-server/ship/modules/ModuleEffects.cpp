@@ -135,23 +135,27 @@ void MEffect::_Populate(uint32 effectID)
     {
         m_EffectAppliedWhenID = row3.GetInt(0);
         m_EffectAppliedTargetID = row3.GetInt(1);
-        m_EffectApplicationTypeID = row3.GetInt(2);
-        m_TargetEquipmentTypeID = row3.GetInt(3);
-        targetGroupIDs = row3.GetText(4);
-        m_StackingPenaltyAppliedID = row3.GetInt(5);
-        m_NullifyOnlineEffectEnable = row3.GetInt(6);
-        m_NullifiedOnlineEffectID = row3.GetInt(7);
+        m_EffectAppliedBehaviorID = row3.GetInt(2);
+        m_EffectApplicationTypeID = row3.GetInt(3);
+        m_TargetEquipmentTypeID = row3.GetInt(4);
+        targetGroupIDs = row3.GetText(5);
+        m_StackingPenaltyAppliedID = row3.GetInt(6);
+        m_NullifyOnlineEffectEnable = row3.GetInt(7);
+        m_NullifiedOnlineEffectID = row3.GetInt(8);
 
-        int pos = 0;
-        std::string tempString = "";
-        std::vector<uint32>::iterator it;
-        pos = targetGroupIDs.find_first_of(',');
-        tempString = targetGroupIDs.substr(0,pos);
-
-        while( (pos = targetGroupIDs.find_first_of(',')) )
+        if( !(targetGroupIDs.empty()) )
         {
+            int pos = 0;
+            std::string tempString = "";
+            std::vector<uint32>::iterator it;
+            pos = targetGroupIDs.find_first_of(',');
             tempString = targetGroupIDs.substr(0,pos);
-            m_TargetGroupIDs.insert( it, (atoi(tempString.c_str())) );
+
+            while( (pos = targetGroupIDs.find_first_of(',')) )
+            {
+                tempString = targetGroupIDs.substr(0,pos);
+                m_TargetGroupIDs.insert( it, (atoi(tempString.c_str())) );
+            }
         }
     }
 

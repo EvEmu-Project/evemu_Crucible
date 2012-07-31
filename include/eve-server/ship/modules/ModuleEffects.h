@@ -119,6 +119,7 @@ private:
     int * m_ReverseCalculationTypeIDs;
     int m_EffectAppliedWhenID;
     int m_EffectAppliedTargetID;
+    int m_EffectAppliedBehaviorID;
     int m_EffectApplicationTypeID;
     int m_TargetEquipmentTypeID;
     std::vector<uint32> m_TargetGroupIDs;

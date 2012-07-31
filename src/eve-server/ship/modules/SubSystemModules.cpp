@@ -49,5 +49,5 @@ SubSystemModule::~SubSystemModule()
 //not much to do here... hopefully there won't be
 ModulePowerLevel SubSystemModule::GetModulePowerLevel()
 {
-    return SUBSYSTEM;
+    return MODULE_BANK_SUBSYSTEM;
 }

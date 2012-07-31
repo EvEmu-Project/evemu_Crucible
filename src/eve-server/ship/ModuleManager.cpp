@@ -979,7 +979,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
 
     switch(level)
     {
-    case HIGH_POWER:
+    case MODULE_BANK_HIGH_POWER:
         for(int i = flagHiSlot0; i < flagHiSlot7 + 1; i++)
         {
             tmp = m_Modules->GetModule((EVEItemFlags)i);
@@ -987,7 +987,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
                 mods.push_back(tmp);
         }
         break;
-    case MEDIUM_POWER:
+    case MODULE_BANK_MEDIUM_POWER:
         for(int i = flagMedSlot0; i < flagMedSlot7 + 1; i++)
         {
             tmp = m_Modules->GetModule((EVEItemFlags)i);
@@ -995,7 +995,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
                 mods.push_back(tmp);
         }
         break;
-    case LOW_POWER:
+    case MODULE_BANK_LOW_POWER:
         for(int i = flagLowSlot0; i < flagLowSlot7 + 1; i++)
         {
             tmp = m_Modules->GetModule((EVEItemFlags)i);
@@ -1003,7 +1003,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
                 mods.push_back(tmp);
         }
         break;
-    case RIG:
+    case MODULE_BANK_RIG:
         for(int i = flagRigSlot0; i < flagRigSlot7 + 1; i++)
         {
             tmp = m_Modules->GetModule((EVEItemFlags)i);
@@ -1011,7 +1011,7 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
                 mods.push_back(tmp);
         }
         break;
-    case SUBSYSTEM:
+    case MODULE_BANK_SUBSYSTEM:
         for(int i = flagSubSystem0; i < flagSubSystem7 + 1; i++)
         {
             tmp = m_Modules->GetModule((EVEItemFlags)i);

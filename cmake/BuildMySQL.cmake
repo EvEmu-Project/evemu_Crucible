@@ -15,12 +15,18 @@ ENDIF( PKG_FOUND )
 IF( WIN32 )
   IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     # Windows 64-bit
-    SET( PKG_NAME "mysql-5.5.25-winx64" )
-    SET( PKG_MD5 "322b459c5bbda38ed93aed3db2b60d08" )
+    SET( PKG_NAME "mysql-5.5.25a-winx64" )
+    SET( PKG_MD5 "80ad4487e09b9b6967c48188aafa888e" )
+#    # Windows 64-bit
+#    SET( PKG_NAME "mysql-noinstall-5.1.63-winx64" )
+#    SET( PKG_MD5 "ae0289b7788666b1254d14b001ff6ba9" )
   ELSE()
     # Windows 32-bit
-    SET( PKG_NAME "mysql-5.5.25-win32" )
-    SET( PKG_MD5 "e4cfff7e06d8c980217f44ea7659a8a2" )
+    SET( PKG_NAME "mysql-5.5.25a-win32" )
+    SET( PKG_MD5 "859a538879d9f8ed06dcdcec9475aa78" )
+#    # Windows 32-bit
+#    SET( PKG_NAME "mysql-5.1.63" )
+#    SET( PKG_MD5 "606c3edc0bba77a033e0b2bf134306d9" )
   ENDIF()
 
   # Windows
@@ -30,12 +36,18 @@ IF( WIN32 )
 ELSE( WIN32 )
   IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     # Linux 64-bit
-    SET( PKG_NAME "mysql-5.5.25-linux2.6-x86_64" )
-    SET( PKG_MD5 "a6ab7957d4e6bbdc253ff1c99901f8b3" )
+    SET( PKG_NAME "mysql-5.5.25a-linux2.6-x86_64" )
+    SET( PKG_MD5 "15f29a6eb9bbd3f03a74aa524e7f1531" )
+#    # Linux 64-bit
+#    SET( PKG_NAME "mysql-5.1.63-linux-x86_64-glibc23" )
+#    SET( PKG_MD5 "594ea37fcd9f29a9e3eddf38e7288e3f" )
   ELSE()
     # Linux 32-bit
-    SET( PKG_NAME "mysql-5.5.25-linux2.6-i686" )
-    SET( PKG_MD5 "0fc793ef21b8ce5817bc276233357d2b" )
+    SET( PKG_NAME "mysql-5.5.25a-linux2.6-i686" )
+    SET( PKG_MD5 "1f054641e48414a28a9adb1c6446e475" )
+#    # Linux 32-bit
+#    SET( PKG_NAME "mysql-5.1.63-linux-i686-glibc23" )
+#    SET( PKG_MD5 "c3a8581320fdd7d11946456d6b3e9d7b" )
   ENDIF()
 
   # Linux
@@ -46,6 +58,7 @@ ENDIF( WIN32 )
 
 # Cache entries
 SET( MYSQL_URL
+#  "http://cdn.mysql.com/Downloads/MySQL-5.1/${PKG_ARCHIVE}"
   "http://cdn.mysql.com/Downloads/MySQL-5.5/${PKG_ARCHIVE}"
   CACHE STRING "URL of the MySQL source archive" )
 MARK_AS_ADVANCED( MYSQL_URL )
