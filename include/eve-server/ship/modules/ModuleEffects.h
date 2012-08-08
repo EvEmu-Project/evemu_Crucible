@@ -32,6 +32,8 @@
 
 
 // ////////////////////// Effects Classs ////////////////////////////
+typedef std::vector<uint32> typeTargetGroupIDlist;
+
 class MEffect
 {
 public:
@@ -74,12 +76,14 @@ public:
     EVECalculationType GetCalculationType(uint32 index)            { return (m_EffectID == 0) ? (EVECalculationType)0 : (EVECalculationType)m_CalculationTypeIDs[index];}
     EVECalculationType GetReverseCalculationType(uint32 index)    { return (m_EffectID == 0) ? (EVECalculationType)0 : (EVECalculationType)m_ReverseCalculationTypeIDs[index];}
 
-    uint32 GetModuleStateWhenEffectApplied(uint32 index)        { return (m_EffectID == 0) ? 0 : m_EffectAppliedWhenID; }
-    uint32 GetTargetTypeToWhichEffectApplied(uint32 index)        { return (m_EffectID == 0) ? 0 : m_EffectAppliedTargetID; }
-    uint32 GetEffectApplicationType(uint32 index)               { return (m_EffectID == 0) ? 0 : m_EffectApplicationTypeID; }
-    uint32 GetStackingPenaltyApplied(uint32 index)              { return (m_EffectID == 0) ? 0 : m_StackingPenaltyAppliedID; }
-    uint32 GetNullifyOnlineEffectEnable(uint32 index)           { return (m_EffectID == 0) ? 0 : m_NullifyOnlineEffectEnable; }
-    uint32 GetNullifiedOnlineEffectID(uint32 index)             { return (m_EffectID == 0) ? 0 : m_NullifiedOnlineEffectID; }
+    uint32 GetModuleStateWhenEffectApplied()                    { return (m_EffectID == 0) ? 0 : m_EffectAppliedWhenID; }
+    uint32 GetTargetTypeToWhichEffectApplied(uint32 index)        { return (m_EffectID == 0) ? 0 : m_EffectAppliedToTargetIDs[index]; }
+    uint32 GetEffectApplicationType(uint32 index)               { return (m_EffectID == 0) ? 0 : m_EffectApplicationTypeIDs[index]; }
+    uint32 GetTargetEquipmentType(uint32 index)                 { return (m_EffectID == 0) ? 0 : m_TargetEquipmentTypeIDs[index]; }
+    typeTargetGroupIDlist * GetTargetGroupIDlist(uint32 index)    { return (m_EffectID == 0) ? 0 : m_TargetGroupIDlists.find(index)->second; }
+    uint32 GetStackingPenaltyApplied(uint32 index)              { return (m_EffectID == 0) ? 0 : m_StackingPenaltyAppliedIDs[index]; }
+    uint32 GetNullifyOnlineEffectEnable()                       { return (m_EffectID == 0) ? 0 : m_NullifyOnlineEffectEnable; }
+    uint32 GetNullifiedOnlineEffectID()                         { return (m_EffectID == 0) ? 0 : m_NullifiedOnlineEffectID; }
 
 private:
     void _Populate(uint32 effectID);
@@ -117,13 +121,13 @@ private:
     int * m_SourceAttributeIDs;
     int * m_CalculationTypeIDs;
     int * m_ReverseCalculationTypeIDs;
+    int * m_EffectAppliedToTargetIDs;
+    int * m_EffectAppliedBehaviorIDs;
+    int * m_EffectApplicationTypeIDs;
+    int * m_TargetEquipmentTypeIDs;
+    std::map<uint32, typeTargetGroupIDlist *> m_TargetGroupIDlists;
+    int * m_StackingPenaltyAppliedIDs;
     int m_EffectAppliedWhenID;
-    int m_EffectAppliedTargetID;
-    int m_EffectAppliedBehaviorID;
-    int m_EffectApplicationTypeID;
-    int m_TargetEquipmentTypeID;
-    std::vector<uint32> m_TargetGroupIDs;
-    int m_StackingPenaltyAppliedID;
     int m_NullifyOnlineEffectEnable;
     int m_NullifiedOnlineEffectID;
 };

@@ -11,7 +11,13 @@ CREATE TABLE IF NOT EXISTS `dgmEffectsInfo` (
   `targetAttributeID` int(11) NOT NULL,
   `sourceAttributeID` int(11) NOT NULL,
   `calculationTypeID` int(11) NOT NULL,
-  `reverseCalculationTypeID` int(11) NOT NULL
+  `reverseCalculationTypeID` int(11) NOT NULL,
+  `effectAppliedTo` int(11) NOT NULL,
+  `effectAppliedBehavior` int(11) NOT NULL,
+  `effectApplicationType` int(11) NOT NULL,
+  `targetEquipmentType` int(11) NOT NULL,
+  `targetGroupIDs` text NOT NULL,
+  `stackingPenaltyApplied` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --

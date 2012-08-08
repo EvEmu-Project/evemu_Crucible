@@ -108,6 +108,8 @@ void MEffect::_Populate(uint32 effectID)
     m_ReverseCalculationTypeIDs = new int[res->GetRowCount()];
 
     int count = 0;
+    std::string targetGroupIDs;
+    typeTargetGroupIDlist * TargetGroupIDs;
 
     while( res->GetRow(row2) )
     {
@@ -115,6 +117,31 @@ void MEffect::_Populate(uint32 effectID)
         m_SourceAttributeIDs[count] = row2.GetInt(1);
         m_CalculationTypeIDs[count] = row2.GetInt(2);
         m_ReverseCalculationTypeIDs[count] = row2.GetInt(3);
+        m_EffectAppliedToTargetIDs[count] = row2.GetInt(4);
+        m_EffectAppliedBehaviorIDs[count] = row2.GetInt(5);
+        m_EffectApplicationTypeIDs[count] = row2.GetInt(6);
+        m_TargetEquipmentTypeIDs[count] = row2.GetInt(7);
+        targetGroupIDs = row2.GetText(8);
+        m_StackingPenaltyAppliedIDs[count] = row2.GetInt(9);
+
+        TargetGroupIDs = new typeTargetGroupIDlist;
+        if( !(targetGroupIDs.empty()) )
+        {
+            int pos = 0;
+            std::string tempString = "";
+            std::vector<uint32>::iterator it;
+            pos = targetGroupIDs.find_first_of(',');
+            tempString = targetGroupIDs.substr(0,pos);
+
+            while( (pos = targetGroupIDs.find_first_of(',')) )
+            {
+                tempString = targetGroupIDs.substr(0,pos);
+                TargetGroupIDs->insert( it, (atoi(tempString.c_str())) );
+            }
+
+            m_TargetGroupIDlists.insert(std::pair<uint32, typeTargetGroupIDlist *>(count, TargetGroupIDs));
+        }
+
         count++;
     }
 
@@ -127,36 +154,14 @@ void MEffect::_Populate(uint32 effectID)
     ModuleDB::GetDgmEffectsActions(effectID, *res);
 
     DBResultRow row3;
-    std::string targetGroupIDs;
 
     if( !(res->GetRow(row3)) )
         sLog.Error("MEffect","Could not populate effect information for effectID: %u from 'dgmEffectsActions table", effectID);
     else
     {
         m_EffectAppliedWhenID = row3.GetInt(0);
-        m_EffectAppliedTargetID = row3.GetInt(1);
-        m_EffectAppliedBehaviorID = row3.GetInt(2);
-        m_EffectApplicationTypeID = row3.GetInt(3);
-        m_TargetEquipmentTypeID = row3.GetInt(4);
-        targetGroupIDs = row3.GetText(5);
-        m_StackingPenaltyAppliedID = row3.GetInt(6);
-        m_NullifyOnlineEffectEnable = row3.GetInt(7);
-        m_NullifiedOnlineEffectID = row3.GetInt(8);
-
-        if( !(targetGroupIDs.empty()) )
-        {
-            int pos = 0;
-            std::string tempString = "";
-            std::vector<uint32>::iterator it;
-            pos = targetGroupIDs.find_first_of(',');
-            tempString = targetGroupIDs.substr(0,pos);
-
-            while( (pos = targetGroupIDs.find_first_of(',')) )
-            {
-                tempString = targetGroupIDs.substr(0,pos);
-                m_TargetGroupIDs.insert( it, (atoi(tempString.c_str())) );
-            }
-        }
+        m_NullifyOnlineEffectEnable = row3.GetInt(1);
+        m_NullifiedOnlineEffectID = row3.GetInt(2);
     }
 
     delete res;
@@ -370,11 +375,11 @@ void ModuleEffects::_populate(uint32 typeID)
             m_defaultEffect = mEffectPtr;
 
         // This switch is assuming that all entries in 'dgmEffectsInfo' for this effectID are applied during the same module state,
-        // which should really be the case anyway, for every effectID, so we just check index 0 of the effectIDs list of attributes
+        // which should really be the case anyway, for every effectID, so we just check the list of attributes
         // that are modified by this effect for which module state during which the effect is active:
         if( mEffectPtr != NULL )
         {
-            switch( mEffectPtr->GetModuleStateWhenEffectApplied(0) )
+            switch( mEffectPtr->GetModuleStateWhenEffectApplied() )
             {
                 case EFFECT_ONLINE:
                     m_OnlineEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
@@ -386,7 +391,7 @@ void ModuleEffects::_populate(uint32 typeID)
                     m_OverloadEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
                     break;
                 default:
-                    sLog.Error("ModuleEffects::_populate()", "Illegal value '%u' obtained from the 'effectAppliedInState' field of the 'dgmEffectsInfo' table", mEffectPtr->GetModuleStateWhenEffectApplied(0));
+                    sLog.Error("ModuleEffects::_populate()", "Illegal value '%u' obtained from the 'effectAppliedInState' field of the 'dgmEffectsInfo' table", mEffectPtr->GetModuleStateWhenEffectApplied());
                     break;
             }
         }

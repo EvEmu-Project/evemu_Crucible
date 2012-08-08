@@ -127,7 +127,13 @@ void ModuleDB::GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res)
         " targetAttributeID, "
         " sourceAttributeID, "
         " calculationTypeID, "
-        " reverseCalculationTypeID "
+        " reverseCalculationTypeID, "
+        " effectAppliedTo, "
+        " effectAppliedBehavior, "
+        " effectApplicationType, "
+        " targetEquipmentType, "
+        " targetGroupIDs, "
+        " stackingPenaltyApplied "
         " FROM dgmEffectsInfo "
         " WHERE effectID = '%u' ",
         effectID))
@@ -141,12 +147,6 @@ void ModuleDB::GetDgmEffectsActions(uint32 effectID, DBQueryResult &res)
     if( !sDatabase.RunQuery(res,
         " SELECT "
         " effectAppliedInState, "
-        " effectAppliedTo, "
-        " effectAppliedBehavior, "
-        " effectApplicationType, "
-        " targetEquipmentType, "
-        " targetGroupIDs, "
-        " stackingPenaltyApplied, "
         " nullifyOnlineEffect, "
         " nullifiedOnlineEffectID "
         " FROM dgmEffectsActions "
