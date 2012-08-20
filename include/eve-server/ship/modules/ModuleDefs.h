@@ -103,7 +103,7 @@ enum ModuleApplicationTypes
                                     // target (see below) upon entering the ONLINE state, then reversed when going out of ONLINE state
     EFFECT_ACTIVE_MAINTAIN,         // applied by ACTIVE modules where an effect is maintained; means the effect takes effect on the
                                     // target (see below) upon entering the ACTIVATE state, then reversed when going out of ACTIVATE state
-    EFFECT_ACTIVE_CONSUME           // applied by ACTIVE modules where an effect is applied cumulatively on each cycle; means the effect takes
+    EFFECT_ACTIVE_ACCUMULATE        // applied by ACTIVE modules where an effect is applied cumulatively on each cycle; means the effect takes
 };                                  // effect on the target (see below) one extra time when in ACTIVATE state after each CYCLE duration expires
 
 // These are the methods by which module effects are applied to the designated target:
