@@ -32,6 +32,7 @@
 MEffect::MEffect(uint32 effectID)
 {
     m_EffectID = effectID;
+	m_EffectLoaded = false;
     _Populate(effectID);
 }
 
@@ -107,7 +108,7 @@ void MEffect::_Populate(uint32 effectID)
     m_CalculationTypeIDs = new int[res->GetRowCount()];
     m_ReverseCalculationTypeIDs = new int[res->GetRowCount()];
 
-    int count = 0;
+	int count = 0;
     std::string targetGroupIDs;
     typeTargetGroupIDlist * TargetGroupIDs;
 
@@ -146,23 +147,32 @@ void MEffect::_Populate(uint32 effectID)
     }
 
     if( count == 0 )
-        sLog.Error("MEffect","Could not populate effect information for effectID: %u from the 'dgmEffectsInfo' table as the SQL query returned ZERO rows", effectID);
+	{
+        ;//sLog.Error("MEffect","Could not populate effect information for effectID: %u from the 'dgmEffectsInfo' table as the SQL query returned ZERO rows", effectID);
+		m_EffectLoaded = false;
+	}
+	else
+	{
+		m_numOfIDs = count;
 
-    m_numOfIDs = count;
+		// Finally, get the info for this effectID from the dgmEffectsActions table:
+		ModuleDB::GetDgmEffectsActions(effectID, *res);
 
-    // Finally, get the info for this effectID from the dgmEffectsActions table:
-    ModuleDB::GetDgmEffectsActions(effectID, *res);
+		DBResultRow row3;
 
-    DBResultRow row3;
+		if( !(res->GetRow(row3)) )
+		{
+			;//sLog.Error("MEffect","Could not populate effect information for effectID: %u from 'dgmEffectsActions table", effectID);
+		}
+		else
+		{
+			m_EffectAppliedWhenID = row3.GetInt(0);
+			m_NullifyOnlineEffectEnable = row3.GetInt(1);
+			m_NullifiedOnlineEffectID = row3.GetInt(2);
+		}
 
-    if( !(res->GetRow(row3)) )
-        sLog.Error("MEffect","Could not populate effect information for effectID: %u from 'dgmEffectsActions table", effectID);
-    else
-    {
-        m_EffectAppliedWhenID = row3.GetInt(0);
-        m_NullifyOnlineEffectEnable = row3.GetInt(1);
-        m_NullifiedOnlineEffectID = row3.GetInt(2);
-    }
+		m_EffectLoaded = true;
+	}
 
     delete res;
     res = NULL;
@@ -197,14 +207,25 @@ void DGM_Effects_Table::_Populate()
     mEffectPtr = NULL;
     uint32 effectID;
 
-    //go through and populate each effect
+	int total_effect_count = 0;
+	int error_count = 0;
+
+	//go through and populate each effect
     DBResultRow row;
     while( res->GetRow(row) )
     {
         effectID = row.GetInt(0);
         mEffectPtr = new MEffect(effectID);
-        m_EffectsMap.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+		if( mEffectPtr->IsEffectLoaded() )
+			m_EffectsMap.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+		else
+			error_count++;
+
+		total_effect_count++;
     }
+
+	if( error_count > 0 )
+		sLog.Error("DGM_Effects_Table::_Populate()","ERROR Populating the DGM_Effects_Table memory object: %u of %u effects failed to load!", error_count, total_effect_count);
 
     //cleanup
     delete res;
