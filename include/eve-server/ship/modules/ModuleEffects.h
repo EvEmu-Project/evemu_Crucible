@@ -85,6 +85,8 @@ public:
     uint32 GetNullifyOnlineEffectEnable()                       { return (m_EffectID == 0) ? 0 : m_NullifyOnlineEffectEnable; }
     uint32 GetNullifiedOnlineEffectID()                         { return (m_EffectID == 0) ? 0 : m_NullifiedOnlineEffectID; }
 
+	bool IsEffectLoaded() { return m_EffectLoaded; }
+
 private:
     void _Populate(uint32 effectID);
 
@@ -130,6 +132,8 @@ private:
     int m_EffectAppliedWhenID;
     int m_NullifyOnlineEffectEnable;
     int m_NullifiedOnlineEffectID;
+
+	bool m_EffectLoaded;
 };
 
 
