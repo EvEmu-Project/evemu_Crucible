@@ -135,7 +135,7 @@ public:
     PyRep* DeleteCharacter(uint32 accountID, uint32 charID);
 
     bool ReportRespec(uint32 characterId);
-    bool GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_nextRespec);
+    bool GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_lastRespec, uint64& out_nextRespec);
 
 private:
     /**

@@ -234,17 +234,20 @@ PyResult SkillMgrBound::Handle_RespecCharacter(PyCallArgs &call)
 PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )
 {
     uint32 freeRespecs;
+    uint64 lastRespec = 0;
     uint64 nextRespec;
     if (!m_db.GetRespecInfo(call.client->GetCharacterID(), freeRespecs, nextRespec))
     {
         // insert dummy values
         freeRespecs = 0;
+        lastRespec = 0;
         nextRespec = 0;
     }
 
     PyDict* result = new PyDict;
+    result->SetItemString( "lastRespecDate", new PyInt( lastRespec ) );
     result->SetItemString( "freeRespecs", new PyInt( freeRespecs ) );
-    result->SetItemString( "nextRespecTime", new PyLong( nextRespec ) );
+    result->SetItemString( "nextTimedRespec", new PyLong( nextRespec ) );
 
     return result;
 }
