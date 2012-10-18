@@ -236,7 +236,7 @@ PyResult SkillMgrBound::Handle_GetRespecInfo( PyCallArgs& call )
     uint32 freeRespecs;
     uint64 lastRespec = 0;
     uint64 nextRespec;
-    if (!m_db.GetRespecInfo(call.client->GetCharacterID(), freeRespecs, nextRespec))
+    if (!m_db.GetRespecInfo(call.client->GetCharacterID(), freeRespecs, lastRespec, nextRespec))
     {
         // insert dummy values
         freeRespecs = 0;
