@@ -46,6 +46,8 @@ CharMgrService::CharMgrService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(CharMgrService, GetFactions)
     PyCallable_REG_CALL(CharMgrService, SetActivityStatus)
     PyCallable_REG_CALL(CharMgrService, GetSettingsInfo)
+    PyCallable_REG_CALL(CharMgrService, GetCharacterDescription)
+    PyCallable_REG_CALL(CharMgrService, SetCharacterDescription)
 }
 
 CharMgrService::~CharMgrService() {
@@ -172,6 +174,44 @@ PyResult CharMgrService::Handle_SetActivityStatus( PyCallArgs& call )
 PyResult CharMgrService::Handle_GetSettingsInfo( PyCallArgs& call )
 {
     sLog.Debug( "CharMgrService", "Called GetSettingsInfo stub." );
+
+    return NULL;
+}
+
+PyResult CharMgrService::Handle_GetCharacterDescription(PyCallArgs &call)
+{
+    //takes characterID
+    Call_SingleIntegerArg args;
+    if(!args.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Invalid arguments");
+        return NULL;
+    }
+
+    m_manager->item_factory.SetUsingClient(call.client);
+    CharacterRef c = m_manager->item_factory.GetCharacter(args.arg);
+    if( !c ) {
+        _log(CLIENT__ERROR, "GetCharacterDescription failed to load character %u.", args.arg);
+        return NULL;
+    }
+
+    return new PyString(c->description());
+}
+
+PyResult CharMgrService::Handle_SetCharacterDescription(PyCallArgs &call)
+{
+    //takes WString of bio
+    Call_SingleWStringSoftArg args;
+    if(!args.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Invalid arguments");
+        return NULL;
+    }
+
+    CharacterRef c = call.client->GetChar();
+    if( !c ) {
+        _log(CLIENT__ERROR, "SetCharacterDescription called with no char!");
+        return NULL;
+    }
+    c->SetDescription(args.arg.c_str());
 
     return NULL;
 }

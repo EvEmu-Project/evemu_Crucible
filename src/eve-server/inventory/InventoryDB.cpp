@@ -1073,20 +1073,20 @@ bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, co
         "   logonMinutes, corporationID, corpRole, rolesAtAll, rolesAtBase, rolesAtHQ, rolesAtOther,"
         "   corporationDateTime, startDateTime, createDateTime,"
         "   ancestryID, careerID, schoolID, careerSpecialityID, gender,"
-        "   stationID, solarSystemID, constellationID, regionID, freeRespecs, nextRespec)"
+        "   stationID, solarSystemID, constellationID, regionID, freeRespecs, lastRespecDateTime, nextRespecDateTime)"
         " VALUES"
         // CharacterData:
         "  (%u, %u, '%s', '%s', %f, %f, %f, '%s',"
         "   %u, %u, %" PRIu64 ", %" PRIu64 ", %" PRIu64 ", %" PRIu64 ", %" PRIu64 ", "
         "   %" PRIu64 ", %" PRIu64 ", %" PRIu64 ","
         "   %u, %u, %u, %u, %u,"
-        "   %u, %u, %u, %u, %u, %u)",
+        "   %u, %u, %u, %u, %u, %u, %u)",
         // CharacterData:
         characterID, data.accountID, titleEsc.c_str(), descriptionEsc.c_str(), data.bounty, data.balance, data.securityRating, "No petition",
         data.logonMinutes, data.corporationID, corpData.corpRole, corpData.rolesAtAll, corpData.rolesAtBase, corpData.rolesAtHQ, corpData.rolesAtOther,
         data.corporationDateTime, data.startDateTime, data.createDateTime,
         data.ancestryID, data.careerID, data.schoolID, data.careerSpecialityID, data.gender,
-        data.stationID, data.solarSystemID, data.constellationID, data.regionID, 2, 0
+        data.stationID, data.solarSystemID, data.constellationID, data.regionID, 2, 0, 0
     )) {
         _log(DATABASE__ERROR, "Failed to insert character %u: %s.", characterID, err.c_str());
         return false;

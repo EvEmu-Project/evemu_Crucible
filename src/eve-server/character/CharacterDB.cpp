@@ -37,23 +37,24 @@ CharacterDB::CharacterDB()
 bool CharacterDB::ReportRespec(uint32 characterId)
 {
     DBerror error;
-    if (!sDatabase.RunQuery(error, "UPDATE character_ SET freeRespecs = freeRespecs - 1, nextRespec = %" PRIu64 " WHERE characterId = %u AND freeRespecs > 0",
-        Win32TimeNow() + Win32Time_Year, characterId))
+    if (!sDatabase.RunQuery(error, "UPDATE character_ SET freeRespecs = freeRespecs - 1, lastRespecDateTime = %" PRIu64 ", nextRespecDateTime = %" PRIu64 " WHERE characterId = %u AND freeRespecs > 0",
+        Win32TimeNow(), Win32TimeNow() + Win32Time_Year, characterId))
         return false;
     return true;
 }
 
-bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_nextRespec)
+bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uint64& out_lastRespec, uint64& out_nextRespec)
 {
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT freeRespecs, nextRespec FROM character_ WHERE characterID = %u", characterId))
+    if (!sDatabase.RunQuery(res, "SELECT freeRespecs, lastRespecDateTime, nextRespecDateTime FROM character_ WHERE characterID = %u", characterId))
         return false;
     if (res.GetRowCount() < 1)
         return false;
     DBResultRow row;
     res.GetRow(row);
     out_freeRespecs = row.GetUInt(0);
-    out_nextRespec = row.GetUInt64(1);
+    out_lastRespec = row.GetUInt64(1);
+    out_nextRespec = row.GetUInt64(2);
 
     // can't have more than two
     if (out_freeRespecs == 2)
@@ -69,7 +70,7 @@ bool CharacterDB::GetRespecInfo(uint32 characterId, uint32& out_freeRespecs, uin
 
         // reflect this in the database, too
         DBerror err;
-        sDatabase.RunQuery(err, "UPDATE character_ SET freeRespecs = %u, nextRespec = %" PRIu64 " WHERE characterId = %u",
+        sDatabase.RunQuery(err, "UPDATE character_ SET freeRespecs = %u, nextRespecDateTime = %" PRIu64 " WHERE characterId = %u",
             out_freeRespecs, out_nextRespec, characterId);
     }
 
