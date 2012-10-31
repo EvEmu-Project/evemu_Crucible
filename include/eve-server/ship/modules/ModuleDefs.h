@@ -92,7 +92,12 @@ enum ModuleEffectAppliedToTargetTypes
 {
     EFFECT_TARGET_SELF  = 1500, // means the target of the effect is the module's own attribute(s)
     EFFECT_TARGET_SHIP,         // means the target of the effect is the attribute(s) of the ship to which the module is fitted
-    EFFECT_TARGET_EXTERNAL      // means the target of the effect is the attribute(s) of the current target of the ship to which the module is fitted
+    EFFECT_TARGET_EXTERNAL,     // means the target of the effect is the attribute(s) of the current target of the ship to which the module is fitted
+	EFFECT_MODULE_ON_SHIP,		// means a module or modules that are fitted to the current ship, this special case will indicate when the effect is
+								// applied to other modules applied to the same ship - the dgmEffectsActions table fields of targetEquipmentType and
+								// targetGroupIDs will have additional information for the Module Manager to make use of this effect
+	EFFECT_LOADED_CHARGE		// means that the effect is from a charge loaded into a weapon module so this will affect the weapon module the charge
+								// is loaded into
 };
 
 // These are the methods by which module effects are applied to the designated target:
@@ -142,7 +147,10 @@ enum EVECalculationType
     CALC_SUBTRACT_AS_PERCENT,
     CALC_MODIFY_PERCENT_W_PERCENT,
     CALC_REV_MODIFY_PERCENT_W_PERCENT,
-    CALC_MWD_AB_EQUATION
+    CALC_MWD_AB_EQUATION,
+	CALC_ECM_JAM_EQUATION,
+	CALC_REDUCE_BY_PERCENT,
+	CALC_REV_REDUCE_BY_PERCENT
     //more will show up, im sure
 };
 
@@ -220,6 +228,22 @@ static EvilNumber ReverseModifyPercentWithPercent(EvilNumber &val1, EvilNumber &
     return val4 * ( (val1 / val2) - 1 );
 }
 
+static EvilNumber ReduceByPercent(EvilNumber &val1, EvilNumber &val2)
+{
+	EvilNumber val3 = 1;
+	EvilNumber val4 = 100;
+
+	return val1 * ( val3 - (val2 / val4) );
+}
+
+static EvilNumber ReverseReduceByPercent(EvilNumber &val1, EvilNumber &val2)
+{
+	EvilNumber val3 = 1;
+	EvilNumber val4 = 100;
+
+	return val1 / ( val3 - (val2 / val4) );
+}
+
 static EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attrMod, EVECalculationType type)
 {
     switch(type)
@@ -238,6 +262,8 @@ static EvilNumber CalculateNewAttributeValue(EvilNumber attrVal, EvilNumber attr
         case CALC_SUBTRACT_AS_PERCENT :             return SubtractAsPercent(attrVal, attrMod);
         case CALC_MODIFY_PERCENT_W_PERCENT :        return ModifyPercentWithPercent(attrVal, attrMod);
         case CALC_REV_MODIFY_PERCENT_W_PERCENT :    return ReverseModifyPercentWithPercent(attrVal, attrMod);
+		case CALC_REDUCE_BY_PERCENT:				return ReduceByPercent(attrVal, attrMod);
+		case CALC_REV_REDUCE_BY_PERCENT :			return ReverseReduceByPercent(attrVal, attrMod);
     }
 
     sLog.Error("CalculateNewAttributeValue", "Unknown EveCalculationType used");
