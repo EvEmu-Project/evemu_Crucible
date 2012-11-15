@@ -103,8 +103,14 @@
       <int name="bloodlineID" />
       <int name="genderID" />
       <int name="ancestryID" />
-      <raw name="charInfo" />
-      <raw name="portraitInfo" />
+      <objectInline>
+        <stringInline value="util.KeyVal"/>
+        <dict name="avatarInfo" />
+      </objectInline>
+      <objectInline>
+        <stringInline value="util.KeyVal"/>
+        <dict name="poseInfo" />
+      </objectInline>
       <int name="schoolID" />
     </tupleInline>
   </elementDef>

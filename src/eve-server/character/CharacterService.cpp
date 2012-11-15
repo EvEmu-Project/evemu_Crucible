@@ -239,7 +239,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
     cdata.corporationDateTime = cdata.startDateTime;
 
     //this builds appearance data from strdict
-    capp.Build(arg.appearance);
+    //capp.Build(arg.appearance);
 
     typedef std::map<uint32, uint32>        CharSkillMap;
     typedef CharSkillMap::iterator          CharSkillMapItr;
@@ -255,7 +255,7 @@ PyResult CharacterService::Handle_CreateCharacter2(PyCallArgs &call) {
 
     //now we have all the data we need, stick it in the DB
     //create char item
-    CharacterRef char_item = m_manager->item_factory.SpawnCharacter(idata, cdata, capp, corpData);
+    CharacterRef char_item = m_manager->item_factory.SpawnCharacter(idata, cdata, corpData);
     if( !char_item ) {
         //a return to the client of 0 seems to be the only means of marking failure
         codelog(CLIENT__ERROR, "Failed to create character '%s'", idata.name.c_str());

@@ -28,17 +28,58 @@
 
 #include "character/PaperDollDB.h"
 
-PyRep* PaperDollDB::GetMyPaperDollData() const {
+PyRep* PaperDollDB::GetPaperDollAvatar(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        " SELECT "
-        " sculptLocationID, weightKeyCategory, weightKeyPrefix "
-        " FROM paperdollsculptinglocations"))
+		" (SELECT hairDarkness FROM avatars WHERE `charID`=%u ) ", charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
         return (NULL);
     }
 
-    return DBResultToRowset(res);
+	DBResultRow row;
+
+	res.GetRow(row);
+
+	return DBRowToRow(row, "util.Row");
+}
+
+PyRep* PaperDollDB::GetPaperDollAvatarColors(uint32 charID) const {
+
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+		" (SELECT colorID, colorNameA, colorNameBC, weight, gloss  FROM avatar_colors WHERE `charID`=%u ) ", charID))
+    {
+        _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
+        return (NULL);
+    }
+
+    return DBResultToCRowset(res);
+}
+
+PyRep* PaperDollDB::GetPaperDollAvatarModifiers(uint32 charID) const {
+
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+		" (SELECT modifierLocationID, paperdollResourceID, paperdollResourceVariation FROM avatar_modifiers WHERE `charID`=%u ) ", charID))
+    {
+        _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
+        return (NULL);
+    }
+
+    return DBResultToCRowset(res);
+}
+
+PyRep* PaperDollDB::GetPaperDollAvatarSculpts(uint32 charID) const {
+
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+		" (SELECT sculptLocationID, weightUpDown, weightLeftRight, weightForwardBack FROM avatar_sculpts WHERE `charID`=%u ) ", charID))
+    {
+        _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
+        return (NULL);
+    }
+
+    return DBResultToCRowset(res);
 }

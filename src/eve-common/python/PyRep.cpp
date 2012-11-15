@@ -770,7 +770,10 @@ bool PyObject::visit( PyVisitor& v ) const
 /************************************************************************/
 /* PyObjectEx                                                           */
 /************************************************************************/
-PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ), mHeader( header ), mIsType2( is_type_2 ), mList( new PyList ), mDict( new PyDict ) {}
+PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ), 
+														  mHeader( header ), mIsType2( is_type_2 ), 
+														  mList( new PyList ), mDict( new PyDict ) {}
+
 PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx ),
   mHeader( oth.header()->Clone() ), mIsType2( oth.isType2() ), mList( new PyList ), mDict( new PyDict )
 {

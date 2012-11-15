@@ -26,6 +26,7 @@
 #ifndef __CHARACTER__H__INCL__
 #define __CHARACTER__H__INCL__
 
+#include "character/CharacterDB.h"
 #include "inventory/ItemType.h"
 #include "inventory/Owner.h"
 #include "inventory/Inventory.h"
@@ -263,65 +264,25 @@ public:
  */
 class CharacterAppearance {
 public:
-    CharacterAppearance();
-    CharacterAppearance(const CharacterAppearance &from);
-    ~CharacterAppearance();
+   uint32 colorID;
+   uint32 colorNameA;
+   uint32 colorNameBC;
+   double weight;
+   double gloss;
 
-#define INT(v) \
-    uint32 v;
-#define INT_DYN(v) \
-    bool IsNull_##v() const \
-    { \
-        return ( v == NULL ); \
-    } \
-    uint32 Get_##v() const \
-    { \
-        return ( IsNull_##v() ? 0 : *v ); \
-    } \
-    void Set_##v(uint32 val)\
-    { \
-        Clear_##v(); \
-        v = new uint32(val); \
-    } \
-    void Clear_##v() \
-    { \
-        if( !IsNull_##v() ) \
-            SafeDelete( v ); \
-        v = NULL; \
-    }
-#define REAL(v) \
-    double v;
-#define REAL_DYN(v) \
-    bool IsNull_##v() const \
-    { \
-        return ( v == NULL ); \
-    } \
-    double Get_##v() const \
-    { \
-        return ( IsNull_##v() ? 0.0 : *v ); \
-    } \
-    void Set_##v(double val) \
-    { \
-        Clear_##v(); \
-        v = new double( val ); \
-    } \
-    void Clear_##v() \
-    { \
-        if( !IsNull_##v() ) \
-            SafeDelete( v ); \
-        v = NULL; \
-    }
-#include "character/CharacterAppearance_fields.h"
+   uint32 modifierLocationID;
+   uint32 paperdollResourceID;
+   uint32 paperdollResourceVariation;
 
-    void Build(const std::map<std::string, PyRep *> &from);
-    void operator=(const CharacterAppearance &from);
+   uint32 sculptID;
+   double weightUpDown;
+   double weightLeftRight;
+   double weightForwardBack;
+   
+   void Build(uint32 ownerID, PyDict* data);
 
-protected:
-#define INT_DYN(v) \
-    uint32 *v;
-#define REAL_DYN(v) \
-    double *v;
-#include "character/CharacterAppearance_fields.h"
+private:
+	CharacterDB m_db;
 };
 
 /**
@@ -380,7 +341,7 @@ public:
      * @param[in] corpData Corporation membership data for new character.
      * @return Pointer to new Character object; NULL if failed.
      */
-    static CharacterRef Spawn(ItemFactory &factory, ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
+    static CharacterRef Spawn(ItemFactory &factory, ItemData &data, CharacterData &charData, CorpMemberInfo &corpData);
 
     /*
      * Primary public interface:
@@ -634,8 +595,7 @@ protected:
         // InventoryItem stuff:
         ItemData &data,
         // Character stuff:
-        CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
-    );
+        CharacterData &charData, CorpMemberInfo &corpData);
 
     uint32 inventoryID() const { return itemID(); }
     PyRep *GetItem() const { return GetItemRow(); }
