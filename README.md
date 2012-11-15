@@ -13,10 +13,11 @@ do with the source code downloaded from this project.
 # Status
 - Login works again
 - Character selection and creation is working
-- Character portraits are working
-- Undocking and Docking is not working
+- Character avatar creation is working
+- Walking in station is now possible
 - Items and Ships display in station
-- Destiny are not sure
+- Undocking and Docking is working
+
 
 # Legal
     ------------------------------------------------------------------------------------
