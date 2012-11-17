@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS `avatar_modifiers` (
 	`paperdollResourceID` int(5) NOT NULL,
 	`paperdollResourceVariation` int(5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
----
---- Dumping data for table `avatar_modifiers`
----
+--
+-- Dumping data for table `avatar_modifiers`
+--

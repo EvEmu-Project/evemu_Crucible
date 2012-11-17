@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS `avatar_colors` (
 	`weight` float(10) NOT NULL,
 	`gloss` float(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
----
---- Dumping data for table `avatar_colors`
----
+--
+-- Dumping data for table `avatar_colors`
+--

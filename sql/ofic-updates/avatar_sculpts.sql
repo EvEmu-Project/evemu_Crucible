@@ -12,6 +12,6 @@ CREATE TABLE IF NOT EXISTS `avatar_sculpts` (
 	`weightLeftRight` float(5),
 	`weightForwardBack` float(5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
----
---- Dumping data for table `avatar_sculpts`
----
+--
+-- Dumping data for table `avatar_sculpts`
+--
