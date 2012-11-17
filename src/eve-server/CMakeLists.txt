@@ -133,7 +133,6 @@ SET( character_INCLUDE
      "${TARGET_INCLUDE_DIR}/character/CertificateMgrDB.h"
      "${TARGET_INCLUDE_DIR}/character/CertificateMgrService.h"
      "${TARGET_INCLUDE_DIR}/character/Character.h"
-     "${TARGET_INCLUDE_DIR}/character/CharacterAppearance_fields.h"
      "${TARGET_INCLUDE_DIR}/character/CharacterDB.h"
      "${TARGET_INCLUDE_DIR}/character/CharacterService.h"
      "${TARGET_INCLUDE_DIR}/character/CharFittingMgrService.h"

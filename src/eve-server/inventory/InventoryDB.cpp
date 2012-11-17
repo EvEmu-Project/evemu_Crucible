@@ -1058,7 +1058,7 @@ static std::string _ToStr(double v) {
     return(buf);
 }
 
-bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, const CharacterAppearance &appData, const CorpMemberInfo &corpData) {
+bool InventoryDB::NewCharacter(uint32 characterID, const CharacterData &data, const CorpMemberInfo &corpData) {
     DBerror err;
 
     std::string titleEsc, descriptionEsc;

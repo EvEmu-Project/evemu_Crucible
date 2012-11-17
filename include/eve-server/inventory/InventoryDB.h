@@ -198,7 +198,7 @@ public:
     bool GetCharacter(uint32 characterID, CharacterData &into);
     bool GetCorpMemberInfo(uint32 characterID, CorpMemberInfo &into);
 
-    bool NewCharacter(uint32 characterID, const CharacterData &data, const CharacterAppearance &appData, const CorpMemberInfo &corpData);
+    bool NewCharacter(uint32 characterID, const CharacterData &data, const CorpMemberInfo &corpData);
     bool SaveCharacter(uint32 characterID, const CharacterData &data);
     bool SaveCorpMemberInfo(uint32 characterID, const CorpMemberInfo &data);
     bool DeleteCharacter(uint32 characterID);

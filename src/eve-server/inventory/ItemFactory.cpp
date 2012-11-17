@@ -241,8 +241,8 @@ BlueprintRef ItemFactory::SpawnBlueprint(ItemData &data, BlueprintData &bpData) 
     return bi;
 }
 
-CharacterRef ItemFactory::SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData) {
-    CharacterRef c = Character::Spawn(*this, data, charData, appData, corpData);
+CharacterRef ItemFactory::SpawnCharacter(ItemData &data, CharacterData &charData, CorpMemberInfo &corpData) {
+    CharacterRef c = Character::Spawn(*this, data, charData, corpData);
     if( !c )
         return CharacterRef();
 

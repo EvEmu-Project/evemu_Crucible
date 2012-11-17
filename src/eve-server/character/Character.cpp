@@ -177,112 +177,105 @@ CharacterData::CharacterData(
 /*
  * CharacterAppearance
  */
-CharacterAppearance::CharacterAppearance() {
-    //NULL all dynamic fields
-#define NULL_FIELD(v) \
-    v = NULL;
 
-#define INT_DYN(v) NULL_FIELD(v)
-#define REAL_DYN(v) NULL_FIELD(v)
-#include "character/CharacterAppearance_fields.h"
-
-#undef NULL_FIELD
-}
-
-CharacterAppearance::CharacterAppearance( const CharacterAppearance& from )
+void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 {
-    //just do deep copy
-    *this = from;
+	CharacterAppearance capp;
+	PyList* colors = new PyList();
+	PyList* modifiers = new PyList();
+	PyObjectEx* appearance;
+	PyList* sculpts = new PyList();
+	
+	colors = data->GetItemString("colors")->AsList();
+	modifiers = data->GetItemString("modifiers")->AsList();
+	appearance = data->GetItemString("appearance")->AsObjectEx();
+	sculpts = data->GetItemString("sculpts")->AsList();
+
+	PyList::const_iterator color_cur, color_end;
+	color_cur = colors->begin();
+	color_end = colors->end();
+
+	for(; color_cur != color_end; color_cur++)
+	{
+		if((*color_cur)->IsObjectEx())
+		{
+			PyObjectEx_Type2* color_obj = (PyObjectEx_Type2*)(*color_cur)->AsObjectEx();
+			PyTuple* color_tuple = color_obj->GetArgs()->AsTuple();
+
+			//color tuple data structure
+			//[0] PyToken
+			//[1] colorID
+			//[2] colorNameA
+			//[3] colorNameBC
+			//[4] weight
+			//[5] gloss
+
+			m_db.SetAvatarColors(ownerID,
+								color_tuple->GetItem(1)->AsInt()->value(),
+								color_tuple->GetItem(2)->AsInt()->value(),
+								color_tuple->GetItem(3)->AsInt()->value(),
+								color_tuple->GetItem(4)->AsFloat()->value(),
+								color_tuple->GetItem(5)->AsFloat()->value());
+			
+		}
+	}
+
+	PyObjectEx_Type2* app_obj = (PyObjectEx_Type2*)appearance;
+	PyTuple* app_tuple = app_obj->GetArgs()->AsTuple();
+
+	m_db.SetAvatar(ownerID, app_tuple->GetItem(1));
+
+	PyList::const_iterator modif_cur, modif_end;
+	modif_cur = modifiers->begin();
+	modif_end = modifiers->end();
+
+	for(; modif_cur != modif_end; modif_cur++)
+	{
+		if((*modif_cur)->IsObjectEx())
+		{
+			PyObjectEx_Type2* modif_obj = (PyObjectEx_Type2*)(*modif_cur)->AsObjectEx();
+			PyTuple* modif_tuple = modif_obj->GetArgs()->AsTuple();
+
+			//color tuple data structure
+			//[0] PyToken
+			//[1] modifierLocationID
+			//[2] paperdollResourceID
+			//[3] paperdollResourceVariation
+			m_db.SetAvatarModifiers(ownerID,
+										modif_tuple->GetItem(1),
+										modif_tuple->GetItem(2),
+										modif_tuple->GetItem(3));
+		}
+	}
+
+	PyList::const_iterator sculpt_cur, sculpt_end;
+	sculpt_cur = sculpts->begin();
+	sculpt_end = sculpts->end();
+
+	for(; sculpt_cur != sculpt_end; sculpt_cur++)
+	{
+		if((*sculpt_cur)->IsObjectEx())
+		{
+			PyObjectEx_Type2* sculpt_obj = (PyObjectEx_Type2*)(*sculpt_cur)->AsObjectEx();
+			PyTuple* sculpt_tuple = sculpt_obj->GetArgs()->AsTuple();
+
+			//sculpts tuple data structure
+			//[0] PyToken
+			//[1] sculptLocationID
+			//[2] weightUpDown
+			//[3] weightLeftRight
+			//[4] weightForwardBack
+
+			m_db.SetAvatarSculpts(ownerID,
+									sculpt_tuple->GetItem(1),
+									sculpt_tuple->GetItem(2),
+									sculpt_tuple->GetItem(3),
+									sculpt_tuple->GetItem(4));
+			
+		}
+	}
 }
 
-CharacterAppearance::~CharacterAppearance()
-{
-    //delete all dynamic fields
-#define CLEAR_FIELD(v) \
-    Clear_##v();
-
-#define INT_DYN(v) CLEAR_FIELD(v)
-#define REAL_DYN(v) CLEAR_FIELD(v)
-#include "character/CharacterAppearance_fields.h"
-
-#undef CLEAR_FIELD
-}
-
-void CharacterAppearance::Build( const std::map<std::string, PyRep*>& from )
-{
-    //builds our contents from strdict
-    std::map<std::string, PyRep*>::const_iterator itr;
-
-    _log(CLIENT__MESSAGE, "  Appearance Data:");
-
-#define INT(v) \
-    itr = from.find( #v ); \
-    if( itr != from.end() ) \
-    { \
-        if( itr->second->IsInt() ) \
-        { \
-            v = itr->second->AsInt()->value(); \
-            _log( CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), v ); \
-        } \
-        else \
-            _log( CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString() ); \
-    }
-#define INT_DYN(v) \
-    itr = from.find( #v ); \
-    if( itr != from.end() ) \
-    { \
-        if( itr->second->IsInt() ) \
-        { \
-            Set_##v( itr->second->AsInt()->value() ); \
-            _log( CLIENT__MESSAGE, "     %s: %u", itr->first.c_str(), Get_##v() ); \
-        } \
-        else \
-            _log( CLIENT__ERROR, "Invalid type for " #v ": expected integer, got %s.", itr->second->TypeString() ); \
-    }
-#define REAL(v) \
-    itr = from.find( #v ); \
-    if( itr != from.end() ) \
-    { \
-        if( itr->second->IsFloat() ) \
-        { \
-            v = itr->second->AsFloat()->value(); \
-            _log( CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), v ); \
-        } \
-        else \
-            _log( CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString() ); \
-    }
-#define REAL_DYN(v) \
-    itr = from.find( #v ); \
-    if( itr != from.end() ) \
-    { \
-        if( itr->second->IsFloat() ) \
-        { \
-            Set_##v( itr->second->AsFloat()->value() ); \
-            _log( CLIENT__MESSAGE, "     %s: %f", itr->first.c_str(), Get_##v() ); \
-        } \
-        else \
-            _log( CLIENT__ERROR, "Invalid type for " #v ": expected real, got %s.", itr->second->TypeString() ); \
-    }
-#include "character/CharacterAppearance_fields.h"
-}
-
-void CharacterAppearance::operator=( const CharacterAppearance& from )
-{
-#define COPY(v) \
-    v = from.v;
-#define COPY_DYN(v) \
-    if(!from.IsNull_##v()) \
-        Set_##v(from.Get_##v());
-
-#define INT(v) COPY(v)
-#define INT_DYN(v) COPY_DYN(v)
-#define REAL(v) COPY(v)
-#define REAL_DYN(v) COPY_DYN(v)
-#include "character/CharacterAppearance_fields.h"
-
-#undef COPY
-#undef COPY_DYN
-}
 
 /*
  * CorpMemberInfo
@@ -377,9 +370,9 @@ CharacterRef Character::Spawn(ItemFactory &factory,
     // InventoryItem stuff:
     ItemData &data,
     // Character stuff:
-    CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
-) {
-    uint32 characterID = Character::_Spawn( factory, data, charData, appData, corpData );
+    CharacterData &charData, CorpMemberInfo &corpData) 
+{
+    uint32 characterID = Character::_Spawn( factory, data, charData, corpData );
     if( characterID == 0 )
         return CharacterRef();
 
@@ -395,8 +388,8 @@ uint32 Character::_Spawn(ItemFactory &factory,
     // InventoryItem stuff:
     ItemData &data,
     // Character stuff:
-    CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData
-) {
+    CharacterData &charData, CorpMemberInfo &corpData) 
+{
     // make sure it's a character
     const CharacterType *ct = factory.GetCharacterType(data.typeID);
     if(ct == NULL)
@@ -414,7 +407,7 @@ uint32 Character::_Spawn(ItemFactory &factory,
         return 0;
 
     // then character
-    if(!factory.db().NewCharacter(characterID, charData, appData, corpData)) {
+    if(!factory.db().NewCharacter(characterID, charData, corpData)) {
         // delete the item
         factory.db().DeleteItem(characterID);
 

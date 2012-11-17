@@ -42,6 +42,10 @@ public:
 
     PyRep *GetCharacterList(uint32 accountID);
     PyRep *GetCharSelectInfo(uint32 characterID);
+	void SetAvatar(uint32 charID, PyRep* hairDarkness);
+	void SetAvatarColors(uint32 charID, uint32 colorID, uint32 colorNameA, uint32 colorNameBC, double weight, double gloss);
+	void SetAvatarModifiers(uint32 charID, PyRep* modifierLocationID,  PyRep* paperdollResourceID, PyRep* paperdollResourceVariation);
+	void SetAvatarSculpts(uint32 charID, PyRep* sculptLocationID, PyRep* weightUpDown, PyRep* weightLeftRight, PyRep* weightForwardBack);
     PyObject *GetCharPublicInfo(uint32 characterID);
     PyObject *GetCharPublicInfo3(uint32 characterID);
     //PyObject *GetAgentPublicInfo(uint32 agentID);

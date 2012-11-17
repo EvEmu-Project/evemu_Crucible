@@ -189,7 +189,7 @@ public:
      * @param[in] corpData Character's corporation-membership data.
      * @return Pointer to new Character object; NULL if spawn failed.
      */
-    CharacterRef SpawnCharacter(ItemData &data, CharacterData &charData, CharacterAppearance &appData, CorpMemberInfo &corpData);
+    CharacterRef SpawnCharacter(ItemData &data, CharacterData &charData, CorpMemberInfo &corpData);
     /**
      * Spawns new ship.
      *

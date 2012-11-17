@@ -613,6 +613,64 @@ bool CharacterDB::DoesCorporationExist(uint32 corpID) {
     return true;
 }
 
+void CharacterDB::SetAvatar(uint32 charID, PyRep* hairDarkness) {
+	//populate the DB wiht avatar information
+	DBerror err;
+	if(!sDatabase.RunQuery(err,
+		"INSERT INTO avatars ("
+		"charID, hairDarkness)"
+		"VALUES (%u, %f)", 
+		charID, hairDarkness->AsFloat()->value()))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+	}
+}
+
+void CharacterDB::SetAvatarColors(uint32 charID, uint32 colorID, uint32 colorNameA, uint32 colorNameBC, double weight, double gloss) {
+	//add avatar colors to the DB
+	DBerror err;
+	if(!sDatabase.RunQuery(err,
+		"INSERT INTO avatar_colors ("
+		"charID, colorID, colorNameA, colorNameBC, weight, gloss)"
+		"VALUES (%u, %u, %u, %u, %f, %f)", 
+		charID, colorID, colorNameA, colorNameBC, weight, gloss))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+	}
+}
+
+void CharacterDB::SetAvatarModifiers(uint32 charID, PyRep* modifierLocationID,  PyRep* paperdollResourceID, PyRep* paperdollResourceVariation) {
+	//add avatar modifiers to the DB
+	DBerror err;
+	if(!sDatabase.RunQuery(err,
+		"INSERT INTO avatar_modifiers ("
+		"charID, modifierLocationID, paperdollResourceID, paperdollResourceVariation)"
+		"VALUES (%u, %u, %u, %u)", 
+		charID, 
+		modifierLocationID->AsInt()->value(), 
+		paperdollResourceID->AsInt()->value(), 
+		paperdollResourceVariation->IsInt() ? paperdollResourceVariation->AsInt()->value() : NULL ))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+	}
+}
+
+void CharacterDB::SetAvatarSculpts(uint32 charID, PyRep* sculptLocationID, PyRep* weightUpDown, PyRep* weightLeftRight, PyRep* weightForwardBack) {
+	//add avatar sculpts to the DB
+	DBerror err;
+	if(!sDatabase.RunQuery(err,
+		"INSERT INTO avatar_sculpts ("
+		"charID, sculptLocationID, weightUpDown, weightLeftRight, weightForwardBack)"
+		"VALUES (%u, %u, %f, %f, %f)", 
+		charID, 
+		sculptLocationID->AsInt()->value(), 
+		weightUpDown->IsFloat() ? weightUpDown->AsFloat()->value() : NULL, 
+		weightLeftRight->IsFloat() ? weightLeftRight->AsFloat()->value() : NULL, 
+		weightForwardBack->IsFloat() ? weightForwardBack->AsFloat()->value() : NULL))
+	{
+		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
+	}
+}
 
 bool CharacterDB::GetSkillsByRace(uint32 raceID, std::map<uint32, uint32> &into) {
     DBQueryResult res;
