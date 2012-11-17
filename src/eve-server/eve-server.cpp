@@ -51,7 +51,6 @@
 // character services
 #include "character/AggressionMgrService.h"
 #include "character/CertificateMgrService.h"
-#include "character/CharacterService.h"
 #include "character/CharFittingMgrService.h"
 #include "character/CharMgrService.h"
 #include "character/CharUnboundMgrService.h"
@@ -260,7 +259,6 @@ int main( int argc, char* argv[] )
     services.RegisterService(new BrowserLockdownService(&services));
     services.RegisterService(new BulkMgrService(&services));
     services.RegisterService(new CertificateMgrService(&services));
-    services.RegisterService(new CharacterService(&services));
     services.RegisterService(new CharFittingMgrService(&services));
     services.RegisterService(new CharUnboundMgrService(&services));
     services.RegisterService(new CharMgrService(&services));

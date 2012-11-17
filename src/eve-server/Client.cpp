@@ -28,13 +28,13 @@
 #include "Client.h"
 #include "LiveUpdateDB.h"
 #include "PyBoundObject.h"
-#include "character/CharacterService.h"
 #include "chat/LSCService.h"
 #include "imageserver/ImageServer.h"
 #include "npc/NPC.h"
 #include "ship/DestinyManager.h"
 #include "ship/ShipOperatorInterface.h"
 #include "system/SystemManager.h"
+#include "character/CharUnboundMgrService.h"
 
 static const uint32 PING_INTERVAL_US = 60000;
 
@@ -583,6 +583,7 @@ void Client::_UpdateSession( const CharacterConstRef& character )
         mSession.SetInt("shipid", GetShipID());
 }
 
+
 void Client::_UpdateSession2( uint32 characterID )
 {
     std::vector<uint32> characterDataVector;
@@ -608,7 +609,7 @@ void Client::_UpdateSession2( uint32 characterID )
     uint32 locationID = 0;
     uint32 shipID = 0;
 
-    ((CharacterService *)(m_services.LookupService("character")))->GetCharacterData( characterID, characterDataMap );
+    ((CharUnboundMgrService *)(m_services.LookupService("charUnboundMgr")))->GetCharacterData( characterID, characterDataMap );
 
     if( characterDataMap.size() == 0 )
     {
