@@ -979,19 +979,23 @@ void InventoryItem::SetOnline(bool newval) {
     ogf.when = Win32TimeNow();
     ogf.start = newval?1:0;
     ogf.active = newval?1:0;
+	//list start
     ogf.env_itemID = ogf.itemID;
     ogf.env_charID = m_ownerID; //??
     ogf.env_shipID = m_locationID;
     ogf.env_target = m_locationID;
     ogf.env_effectID = ogf.effectID;
     ogf.startTime = ogf.when;
-    ogf.duration = -1; //INT_MAX; //I think this should be infinity (0x07 may be infinity?)
-    if(newval)
-        ogf.repeat = new PyInt(0);
+	ogf.duration = ogf.duration; //INT_MAX; //I think this should be infinity (0x07 may be infinity?)
+    //list end
+	if(newval)
+		ogf.repeat = new PyInt(1000);
     else
-        ogf.repeat = new PyBool(false);
+        ogf.repeat = new PyInt(0);
     ogf.randomSeed = new PyNone();
     ogf.error = new PyNone();
+	ogf.env_other = new PyNone();
+	ogf.env_area = new PyList();
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;

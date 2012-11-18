@@ -57,6 +57,10 @@ CharUnboundMgrService::~CharUnboundMgrService() {
     delete m_dispatch;
 }
 
+void CharUnboundMgrService::GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap) {
+    m_db.GetCharacterData( characterID, characterDataMap );
+}
+
 PyResult CharUnboundMgrService::Handle_IsUserReceivingCharacter(PyCallArgs &call) {
     return new PyBool(false);
 }

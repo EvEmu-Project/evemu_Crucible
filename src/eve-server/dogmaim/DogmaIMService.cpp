@@ -48,19 +48,22 @@ public:
         PyCallable_REG_CALL(DogmaIMBound, ShipGetInfo)
         PyCallable_REG_CALL(DogmaIMBound, CharGetInfo)
         PyCallable_REG_CALL(DogmaIMBound, ItemGetInfo)
-        PyCallable_REG_CALL(DogmaIMBound, CheckSendLocationInfo)
+		PyCallable_REG_CALL(DogmaIMBound, GetAllInfo)
+		PyCallable_REG_CALL(DogmaIMBound, GetLocationInfo)
         PyCallable_REG_CALL(DogmaIMBound, GetTargets)
         PyCallable_REG_CALL(DogmaIMBound, GetTargeters)
+		PyCallable_REG_CALL(DogmaIMBound, GetWeaponBankInfoForShip)
+        PyCallable_REG_CALL(DogmaIMBound, GetCharacterBaseAttributes)
+		PyCallable_REG_CALL(DogmaIMBound, CheckSendLocationInfo)
         PyCallable_REG_CALL(DogmaIMBound, Activate)
         PyCallable_REG_CALL(DogmaIMBound, Deactivate)
+		PyCallable_REG_CALL(DogmaIMBound, Overload)
+        PyCallable_REG_CALL(DogmaIMBound, CancelOverloading)
+		PyCallable_REG_CALL(DogmaIMBound, SetModuleOnline)
+		PyCallable_REG_CALL(DogmaIMBound, TakeModuleOffline)
         PyCallable_REG_CALL(DogmaIMBound, AddTarget)
         PyCallable_REG_CALL(DogmaIMBound, RemoveTarget)
         PyCallable_REG_CALL(DogmaIMBound, ClearTargets)
-        PyCallable_REG_CALL(DogmaIMBound, GetWeaponBankInfoForShip)
-        PyCallable_REG_CALL(DogmaIMBound, GetLocationInfo)
-        PyCallable_REG_CALL(DogmaIMBound, GetCharacterBaseAttributes)
-
-        PyCallable_REG_CALL(DogmaIMBound, GetAllInfo)
     }
     virtual ~DogmaIMBound() {delete m_dispatch;}
     virtual void Release() {
@@ -71,18 +74,24 @@ public:
     PyCallable_DECL_CALL(ShipGetInfo)
     PyCallable_DECL_CALL(CharGetInfo)
     PyCallable_DECL_CALL(ItemGetInfo)
-    PyCallable_DECL_CALL(CheckSendLocationInfo)
+	PyCallable_DECL_CALL(GetAllInfo)
+	PyCallable_DECL_CALL(GetWeaponBankInfoForShip)
+    PyCallable_DECL_CALL(GetLocationInfo)
+    PyCallable_DECL_CALL(GetCharacterBaseAttributes)
     PyCallable_DECL_CALL(GetTargets)
     PyCallable_DECL_CALL(GetTargeters)
+	PyCallable_DECL_CALL(CheckSendLocationInfo)
     PyCallable_DECL_CALL(Activate)
     PyCallable_DECL_CALL(Deactivate)
+	PyCallable_DECL_CALL(Overload)
+    PyCallable_DECL_CALL(CancelOverloading)
+	PyCallable_DECL_CALL(SetModuleOnline)
+	PyCallable_DECL_CALL(TakeModuleOffline)
     PyCallable_DECL_CALL(AddTarget)
     PyCallable_DECL_CALL(RemoveTarget)
     PyCallable_DECL_CALL(ClearTargets)
-    PyCallable_DECL_CALL(GetWeaponBankInfoForShip)
-    PyCallable_DECL_CALL(GetLocationInfo)
-    PyCallable_DECL_CALL(GetCharacterBaseAttributes)
-    PyCallable_DECL_CALL(GetAllInfo)
+    
+    
 
 protected:
     Dispatcher *const m_dispatch;
@@ -202,6 +211,21 @@ PyResult DogmaIMBound::Handle_GetTargeters(PyCallArgs &call) {
     return call.client->targets.GetTargeters();
 }
 
+
+PyResult DogmaIMBound::Handle_SetModuleOnline( PyCallArgs& call ) {
+	Call_TwoIntegerArgs args; //locationID, moduleID
+
+	sLog.Warning("Server", "Called SetModuleOnline stub");
+	return NULL;
+}
+
+PyResult DogmaIMBound::Handle_TakeModuleOffline( PyCallArgs& call ) {
+	Call_TwoIntegerArgs args; //locationID, moduleID
+
+	sLog.Warning("Server", "Called TakeModuleOffline stub");
+	return NULL;
+}
+
 PyResult DogmaIMBound::Handle_Activate( PyCallArgs& call )
 {
     Call_Dogma_Activate args;
@@ -281,6 +305,18 @@ PyResult DogmaIMBound::Handle_Activate( PyCallArgs& call )
     }
 
     return NULL;
+}
+
+PyResult DogmaIMBound::Handle_Overload( PyCallArgs& call ) {
+
+	sLog.Warning("Server", "Called Overload stub");
+	return NULL;
+}
+
+PyResult DogmaIMBound::Handle_CancelOverloading( PyCallArgs& call ) {
+
+	sLog.Warning("Server", "Called CancelOverloading stub");
+	return NULL;
 }
 
 PyResult DogmaIMBound::Handle_Deactivate( PyCallArgs& call )
