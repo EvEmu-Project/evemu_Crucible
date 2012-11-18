@@ -194,7 +194,7 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
     //TODO: obey maxLockedTargets
     //m_npc->targets.StartTargeting(by_who, 1000);
     if( m_npc->Item()->GetAttribute(AttrMaxLockedTargets) > m_npc->targets.GetTotalTargets())
-        m_npc->targets.StartTargeting( by_who, 1000 );
+        //m_npc->targets.StartTargeting( by_who, NEED_A_SHIPREF_HERE );		// TO BE UPDATED DUE TO StartTargeting() signature change
 
     switch(m_state) {
     case Idle: {

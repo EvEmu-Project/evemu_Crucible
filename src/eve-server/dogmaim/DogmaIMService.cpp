@@ -318,7 +318,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
 
     ShipRef ship = call.client->GetShip();
 
-    if( !call.client->targets.StartTargeting(target, call.client->targets.TimeToLock( ship, target ) ) )
+    if( !call.client->targets.StartTargeting(target, ship) )
         return NULL;
 
     // For Debugging purposes, put a message in the log to print out the range to the target:
@@ -328,7 +328,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
     sLog.Warning( "DogmaIMBound::Handle_AddTarget()", "TARGET ADDED - Range to Target = %d meters.", rangeToTarget );
 
     Rsp_Dogma_AddTarget rsp;
-    rsp.success = true;
+    rsp.success = true;							// WARNING!  This should be sent ONLY when the TargetManager timer expires, until then we get INSTA-LOCK
     rsp.targets.push_back(target->GetID());
 
     return(rsp.Encode());

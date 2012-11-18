@@ -431,7 +431,7 @@ PyRep *LSCChannel::EncodeChannelSmall(uint32 charID) {
     info.ownerID = m_ownerID;
     info.password = m_password.empty() ? (PyRep*)new PyNone() : (PyRep*)new PyString(m_password);
     info.subscribed = !(m_chars.find(charID) == m_chars.end());
-    info.temporary = m_temporary;
+    info.temporary = (m_temporary == 0) ? false : true;
 
     return info.Encode();
 }

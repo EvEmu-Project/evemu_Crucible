@@ -92,6 +92,9 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
     {
         return new PyFloat(call.client->GetAurBalance());
     }
+
+	// FAILSAFE:
+	return new PyNone();
 }
 
 //givecash takes (ownerID, retval['qty'], retval['reason'][:40])

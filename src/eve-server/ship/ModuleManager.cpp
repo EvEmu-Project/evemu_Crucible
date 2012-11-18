@@ -857,8 +857,10 @@ int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targ
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
     {
-        ModuleCommand cmd = _translateEffectName(effectName);
+        ModuleCommand cmd = _translateEffectName(effectName);	// GET RID of this function, effectName should be passed into the module's calls
         mod->getItem()->PutOnline();
+
+		// We should check for "online" here or something else, then either call the mod->Online() or mod->Activate()
         //if(cmd == ONLINE)
         //    mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
         //there needs to be more cases here i just don't know what they're called yet
@@ -872,9 +874,11 @@ void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
     {
-        ModuleCommand cmd = _translateEffectName(effectName);
+        ModuleCommand cmd = _translateEffectName(effectName);	// GET RID of this function, effectName should be passed into the module's calls
         mod->getItem()->PutOffline();
-        //if(cmd == OFFLINE)
+
+		// We should check for "online" here or something else, then either call the mod->Offline() or mod->Deactivate()
+		//if(cmd == OFFLINE)
         //    mod->Offline();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
         //there needs to be more cases here i just don't know what they're called yet
     }

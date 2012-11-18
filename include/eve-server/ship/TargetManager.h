@@ -45,7 +45,7 @@ public:
     //clear out our targeting information (incoming and outgoing)
     void ClearTargets(bool notify_self=true);
     void ClearTarget(SystemEntity *who);
-    bool StartTargeting(SystemEntity *who, uint32 lock_time);
+    bool StartTargeting(SystemEntity *who, ShipRef ship);
     void ClearAllTargets(bool notify_self=true);
 
     //Methods for AI:

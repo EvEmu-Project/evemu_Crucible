@@ -1124,7 +1124,7 @@ public:
 
 PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call)
 {
-    uint32 oldShip;
+    //uint32 oldShip;
     uint32 newShip;
     Call_TwoIntegerArgs args;
     if(!args.Decode(&call.tuple)) {

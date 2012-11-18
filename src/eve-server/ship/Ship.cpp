@@ -149,6 +149,9 @@ ShipRef Ship::Spawn(ItemFactory &factory, ItemData &data) {
     // Power Load of the ship (new ships have zero load with no modules fitted, of course):
     if( !(sShipRef.get()->HasAttribute(AttrPowerLoad)) )
         sShipRef.get()->SetAttribute(AttrPowerLoad, 0);
+	// Warp Scramble Status of the ship (most ships have zero warp scramble status, but some already have it defined):
+	if( !(sShipRef.get()->HasAttribute(AttrWarpScrambleStatus)) )
+		sShipRef.get()->SetAttribute(AttrWarpScrambleStatus, 0.0);
 
     return sShipRef;
 }

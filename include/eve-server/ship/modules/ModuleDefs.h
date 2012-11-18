@@ -28,6 +28,9 @@
 
 #include "inventory/AttributeEnum.h"
 
+// Important constants pertaining to modules and their operation:
+#define ONLINE_MODULE_IN_SPACE_CAP_PENALTY					0.75		// 75% of your capacitor will be drained when you online a module while in space, if you have it ;)
+
 //more will go here
 //this is to avoid include complications and multiple dependancies etc..
 enum ModuleCommand

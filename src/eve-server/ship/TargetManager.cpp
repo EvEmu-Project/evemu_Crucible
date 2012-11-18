@@ -169,7 +169,7 @@ void TargetManager::TargetLost(SystemEntity *who) {
     m_self->TargetLost(who);
 }
 
-bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {   // needs another argument: "ShipRef ship" to access ship attributes
+bool TargetManager::StartTargeting(SystemEntity *who, ShipRef ship) {   // needs another argument: "ShipRef ship" to access ship attributes
     //first make sure they are not already in the list
     std::map<SystemEntity *, TargetEntry *>::iterator res;
     res = m_targets.find(who);
@@ -183,13 +183,16 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time) {   // n
     if(who == m_self)
         return false;
 
-    //TODO: check against max locked target count
-    uint32 maxLockedTargets = 4;        // hard-coded for now, but this should be queried from ShipRef ship->maxLockedTargets()
+	// Calculate Time to Lock target:
+	uint32 lock_time = TimeToLock( ship, who );
+
+    // Check against max locked target count
+	uint32 maxLockedTargets = ship->GetAttribute(AttrMaxLockedTargets).get_int();
     if( m_targets.size() >= maxLockedTargets )
         return false;
 
-    //TODO: check against max locked target range
-    double maxTargetLockRange = 50000;  // hard-coded for now, but this should be queried from ShipRef ship->maxTargetRange()
+    // Check against max locked target range
+	double maxTargetLockRange = ship->GetAttribute(AttrMaxTargetRange).get_float();
     GVector rangeToTarget( who->GetPosition(), m_self->GetPosition() );
     if( rangeToTarget.length() > maxTargetLockRange )
         return false;
