@@ -227,8 +227,12 @@ public:
     void UnloadModule(uint32 itemID);
     void UnloadAllModules();
     void RepairModules();
+	void Online(uint32 moduleID);
+	void Offline(uint32 moduleID);
     int32 Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
     void Deactivate(int32 itemID, std::string effectName);
+	void Overload();
+	void CancelOverloading();
     void ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge);
     void RemoveRig(InventoryItemRef item, uint32 inventoryID);
     void Process();

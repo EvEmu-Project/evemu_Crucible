@@ -879,11 +879,18 @@ void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
     {
-        ModuleCommand cmd = _translateEffectName(effectName);
-        mod->getItem()->PutOffline();
-        //if(cmd == OFFLINE)
-        //    mod->Offline();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
-        //there needs to be more cases here i just don't know what they're called yet
+		if(effectName == "online")
+		{
+			//ModuleCommand cmd = _translateEffectName(effectName);
+			mod->Offline();
+			//if(cmd == OFFLINE)
+			//    mod->Offline();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
+			//there needs to be more cases here i just don't know what they're called yet
+		}
+		else
+		{
+			mod->Deactivate();
+		}
     }
 }
 
