@@ -214,15 +214,29 @@ PyResult DogmaIMBound::Handle_GetTargeters(PyCallArgs &call) {
 
 PyResult DogmaIMBound::Handle_SetModuleOnline( PyCallArgs& call ) {
 	Call_TwoIntegerArgs args; //locationID, moduleID
+	
+	if( !args.Decode( &call.tuple ) )
+    {
+        codelog( SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName() );
+        return NULL;
+    }
 
-	sLog.Warning("Server", "Called SetModuleOnline stub");
+	call.client->GetShip()->Online(args.arg2);
+
 	return NULL;
 }
 
 PyResult DogmaIMBound::Handle_TakeModuleOffline( PyCallArgs& call ) {
 	Call_TwoIntegerArgs args; //locationID, moduleID
+	
+	if( !args.Decode( &call.tuple ) )
+    {
+        codelog( SERVICE__ERROR, "Unable to decode arguments from '%s'", call.client->GetName() );
+        return NULL;
+    }
 
-	sLog.Warning("Server", "Called TakeModuleOffline stub");
+	call.client->GetShip()->Offline(args.arg2);
+
 	return NULL;
 }
 
@@ -307,18 +321,6 @@ PyResult DogmaIMBound::Handle_Activate( PyCallArgs& call )
     return NULL;
 }
 
-PyResult DogmaIMBound::Handle_Overload( PyCallArgs& call ) {
-
-	sLog.Warning("Server", "Called Overload stub");
-	return NULL;
-}
-
-PyResult DogmaIMBound::Handle_CancelOverloading( PyCallArgs& call ) {
-
-	sLog.Warning("Server", "Called CancelOverloading stub");
-	return NULL;
-}
-
 PyResult DogmaIMBound::Handle_Deactivate( PyCallArgs& call )
 {
     Call_Dogma_Deactivate args;
@@ -332,6 +334,18 @@ PyResult DogmaIMBound::Handle_Deactivate( PyCallArgs& call )
     call.client->GetShip()->Deactivate( args.itemID, args.effectName );
 
     return NULL;
+}
+
+PyResult DogmaIMBound::Handle_Overload( PyCallArgs& call ) {
+
+	sLog.Warning("Server", "Called Overload stub");
+	return NULL;
+}
+
+PyResult DogmaIMBound::Handle_CancelOverloading( PyCallArgs& call ) {
+
+	sLog.Warning("Server", "Called CancelOverloading stub");
+	return NULL;
 }
 
 PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {

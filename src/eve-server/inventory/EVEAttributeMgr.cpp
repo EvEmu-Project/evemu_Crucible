@@ -474,8 +474,8 @@ bool AttributeMap::Change( uint32 attributeID, EvilNumber& old_val, EvilNumber& 
     AttrChange->SetItem(2, new PyInt(mItem.itemID()));
     AttrChange->SetItem(3, new PyInt(attributeID));
     AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
-    AttrChange->SetItem(5, old_val.GetPyObject());
-    AttrChange->SetItem(6, new_val.GetPyObject());
+    AttrChange->SetItem(5, new_val.GetPyObject());
+    AttrChange->SetItem(6, old_val.GetPyObject());
 
     return SendAttributeChanges(AttrChange);
 }
