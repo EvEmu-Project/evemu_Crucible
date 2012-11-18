@@ -851,19 +851,26 @@ void ModuleManager::OfflineAll()
 
 int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targetID, uint32 repeat)
 {
-    //sLog.Debug("Activate","Needs to be implemented");
+    sLog.Debug("Activate","Needs to be implemented");
     //return 1;
 
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
     {
-        ModuleCommand cmd = _translateEffectName(effectName);	// GET RID of this function, effectName should be passed into the module's calls
-        mod->getItem()->PutOnline();
+		if(effectName == "online")
+		{
+			//ModuleCommand cmd = _translateEffectName(effectName);		// GET RID of this function, effectName should be passed into the module's calls
+			mod->Online();
 
-		// We should check for "online" here or something else, then either call the mod->Online() or mod->Activate()
-        //if(cmd == ONLINE)
-        //    mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
-        //there needs to be more cases here i just don't know what they're called yet
+			// We should check for "online" here or something else, then either call the mod->Online() or mod->Activate()
+			//if(cmd == ONLINE)
+		    //    mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
+			//there needs to be more cases here i just don't know what they're called yet
+		}
+		else
+		{
+			mod->Activate(targetID);
+		}
     }
 
     return 1;
@@ -874,13 +881,20 @@ void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
     {
-        ModuleCommand cmd = _translateEffectName(effectName);	// GET RID of this function, effectName should be passed into the module's calls
-        mod->getItem()->PutOffline();
+		if(effectName == "online")
+		{
+			//ModuleCommand cmd = _translateEffectName(effectName);		// GET RID of this function, effectName should be passed into the module's calls
+			mod->Offline();
 
-		// We should check for "online" here or something else, then either call the mod->Offline() or mod->Deactivate()
-		//if(cmd == OFFLINE)
-        //    mod->Offline();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
-        //there needs to be more cases here i just don't know what they're called yet
+			// We should check for "online" here or something else, then either call the mod->Offline() or mod->Deactivate()
+			//if(cmd == OFFLINE)
+			//    mod->Offline();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
+			//there needs to be more cases here i just don't know what they're called yet
+		}
+		else
+		{
+			mod->Deactivate();
+		}
     }
 }
 

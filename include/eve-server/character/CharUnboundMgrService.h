@@ -44,6 +44,8 @@ public:
     CharUnboundMgrService(PyServiceMgr* mgr);
     virtual ~CharUnboundMgrService();
 
+	void GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap);
+
 private:
     class Dispatcher;
     Dispatcher *const m_dispatch;

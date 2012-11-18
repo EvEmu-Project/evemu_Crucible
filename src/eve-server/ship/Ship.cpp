@@ -595,6 +595,16 @@ void Ship::RepairModules()
 
 }
 
+void Ship::Online (uint32 moduleID)
+{
+	m_ModuleManager->Online(moduleID);
+}
+
+void Ship::Offline (uint32 moduleID)
+{
+	m_ModuleManager->Offline(moduleID);
+}
+
 int32 Ship::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
 {
     return m_ModuleManager->Activate( itemID, effectName, targetID, repeat );
@@ -604,6 +614,16 @@ void Ship::Deactivate(int32 itemID, std::string effectName)
 {
     m_ModuleManager->Deactivate(itemID, effectName);
 }
+
+void Ship::Overload()
+{
+
+}
+
+void Ship::CancelOverloading()
+{
+
+	}
 
 void Ship::RemoveRig( InventoryItemRef item, uint32 inventoryID )
 {
