@@ -851,17 +851,24 @@ void ModuleManager::OfflineAll()
 
 int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targetID, uint32 repeat)
 {
-    //sLog.Debug("Activate","Needs to be implemented");
+    sLog.Debug("Activate","Needs to be implemented");
     //return 1;
 
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
     {
-        ModuleCommand cmd = _translateEffectName(effectName);
-        mod->getItem()->PutOnline();
-        //if(cmd == ONLINE)
-        //    mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
-        //there needs to be more cases here i just don't know what they're called yet
+		if(effectName == "online")
+		{
+			//ModuleCommand cmd = _translateEffectName(effectName);
+			mod->Online();
+			//if(cmd == ONLINE)
+		    //    mod->Online();     // this currently fails since m_selectedEffect and m_defaultEffect in the ModuleEffect class are undefined
+	       //there needs to be more cases here i just don't know what they're called yet
+		}
+		else
+		{
+			mod->Activate(targetID);
+		}
     }
 
     return 1;

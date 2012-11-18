@@ -46,7 +46,7 @@
         <int name="env_effectID" />
       </listInline>
       <long name="startTime" />
-      <long name="duration" /> <!-- seen an 0x07! I think it means infinite. -->
+      <real name="duration" /> <!-- it's -1 when offline and 1000? when online -->
       <raw name="repeat" />
       <raw name="randomSeed" />
       <raw name="error" />
