@@ -58,8 +58,8 @@ ENDIF( WIN32 )
 
 # Cache entries
 SET( MYSQL_URL
-#  "http://cdn.mysql.com/Downloads/MySQL-5.1/${PKG_ARCHIVE}"
-  "http://cdn.mysql.com/Downloads/MySQL-5.5/${PKG_ARCHIVE}"
+#  "http://downloads.mysql.com/archives/mysql-5.5/${PKG_ARCHIVE}"
+  "http://downloads.mysql.com/archives/mysql-5.5/${PKG_ARCHIVE}"
   CACHE STRING "URL of the MySQL source archive" )
 MARK_AS_ADVANCED( MYSQL_URL )
 
