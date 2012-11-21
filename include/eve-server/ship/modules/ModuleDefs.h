@@ -93,14 +93,18 @@ enum EffectTargetEquipmentTypes
 // *** use these values to decode the 'effectAppliedTo' field of the 'dgmEffectsInfo' database table
 enum ModuleEffectAppliedToTargetTypes
 {
-    EFFECT_TARGET_SELF  = 1500, // means the target of the effect is the module's own attribute(s)
-    EFFECT_TARGET_SHIP,         // means the target of the effect is the attribute(s) of the ship to which the module is fitted
-    EFFECT_TARGET_EXTERNAL,     // means the target of the effect is the attribute(s) of the current target of the ship to which the module is fitted
-	EFFECT_MODULE_ON_SHIP,		// means a module or modules that are fitted to the current ship, this special case will indicate when the effect is
+    EFFECT_TARGET_SELF  = 1500, // 1500: means the target of the effect is the module's own attribute(s)
+    EFFECT_TARGET_SHIP,         // 1501: means the target of the effect is the attribute(s) of the ship to which the module is fitted
+    EFFECT_TARGET_EXTERNAL,     // 1502: means the target of the effect is the attribute(s) of the current target of the ship to which the module is fitted
+	EFFECT_MODULE_ON_SHIP,		// 1503: means a module or modules that are fitted to the current ship, this special case will indicate when the effect is
 								// applied to other modules applied to the same ship - the dgmEffectsActions table fields of targetEquipmentType and
 								// targetGroupIDs will have additional information for the Module Manager to make use of this effect
-	EFFECT_LOADED_CHARGE		// means that the effect is from a charge loaded into a weapon module so this will affect the weapon module the charge
+	EFFECT_LOADED_CHARGE,		// 1504: means that the effect is from a charge loaded into a weapon module so this will affect the weapon module the charge
 								// is loaded into
+	EFFECT_CHARGE,				// 1505: means that the effect acts upon a charge loaded into a weapon module so this will affect charges of the specified
+								// groupID loaded into any module on the ship
+	EFFECT_CHARACTER			// 1506: means that the effect acts upon the character's attribute specific to the effect
+
 };
 
 // These are the methods by which module effects are applied to the designated target:
