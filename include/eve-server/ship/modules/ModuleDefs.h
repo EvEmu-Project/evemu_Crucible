@@ -129,10 +129,10 @@ enum ModuleStackingPenaltyState
 //this may or may not be redundant...idk
 enum ModulePowerLevel
 {
-    MODULE_BANK_HIGH_POWER = 1800,
-    MODULE_BANK_MEDIUM_POWER,
+    MODULE_BANK_RIG = 1800,
     MODULE_BANK_LOW_POWER,
-    MODULE_BANK_RIG,
+    MODULE_BANK_MEDIUM_POWER,
+    MODULE_BANK_HIGH_POWER,
     MODULE_BANK_SUBSYSTEM
 };
 

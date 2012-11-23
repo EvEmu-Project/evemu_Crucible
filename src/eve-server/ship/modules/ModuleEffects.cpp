@@ -131,6 +131,8 @@ void MEffect::_Populate(uint32 effectID)
             int pos = 0;
             std::string tempString = "";
             std::vector<uint32>::iterator it;
+
+			// WARNING!  This may be insufficient to properly detect and handle an EMPTY "" list of targetGroupIDs
             pos = targetGroupIDs.find_first_of(',');
             tempString = targetGroupIDs.substr(0,pos);
 
