@@ -8,7 +8,7 @@
 # Initialize #
 ##############
 SET( TARGET_NAME        "eve-tool" )
-SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
 #########
@@ -24,7 +24,7 @@ SET( SOURCE
 ########################
 # Setup the executable #
 ########################
-SOURCE_GROUP( "include" FILES ${INCLUDE} )
+SOURCE_GROUP( "src" FILES ${INCLUDE} )
 SOURCE_GROUP( "src"     FILES ${SOURCE} )
 
 ADD_EXECUTABLE( "${TARGET_NAME}"

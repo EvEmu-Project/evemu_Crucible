@@ -8,7 +8,7 @@
 # Initialize #
 ##############
 SET( TARGET_NAME        "eve-core" )
-SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
 #########
@@ -89,12 +89,12 @@ SET( utils_SOURCE
 #####################
 # Setup the library #
 #####################
-SOURCE_GROUP( "include"            FILES ${INCLUDE} )
-SOURCE_GROUP( "include\\database"  FILES ${database_INCLUDE} )
-SOURCE_GROUP( "include\\log"       FILES ${log_INCLUDE} )
-SOURCE_GROUP( "include\\network"   FILES ${network_INCLUDE} )
-SOURCE_GROUP( "include\\threading" FILES ${threading_INCLUDE} )
-SOURCE_GROUP( "include\\utils"     FILES ${utils_INCLUDE} )
+SOURCE_GROUP( "src"            FILES ${INCLUDE} )
+SOURCE_GROUP( "src\\database"  FILES ${database_INCLUDE} )
+SOURCE_GROUP( "src\\log"       FILES ${log_INCLUDE} )
+SOURCE_GROUP( "src\\network"   FILES ${network_INCLUDE} )
+SOURCE_GROUP( "src\\threading" FILES ${threading_INCLUDE} )
+SOURCE_GROUP( "src\\utils"     FILES ${utils_INCLUDE} )
 
 SOURCE_GROUP( "src"            FILES ${SOURCE} )
 SOURCE_GROUP( "src\\database"  FILES ${database_SOURCE} )

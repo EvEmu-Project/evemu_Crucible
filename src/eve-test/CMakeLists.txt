@@ -8,7 +8,7 @@
 # Initialize #
 ##############
 SET( TARGET_NAME        "eve-test" )
-SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 
 #########
@@ -31,7 +31,7 @@ SET( utils_SOURCE
 ########################
 # Setup the executable #
 ########################
-SOURCE_GROUP( "include"      ${INCLUDE} )
+SOURCE_GROUP( "src"      ${INCLUDE} )
 SOURCE_GROUP( "src\\auth"    ${auth_SOURCE} )
 SOURCE_GROUP( "src\\marshal" ${marshal_SOURCE} )
 SOURCE_GROUP( "src\\utils"   ${utils_SOURCE} )

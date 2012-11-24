@@ -8,7 +8,7 @@
 # Initialize #
 ##############
 SET( TARGET_NAME        "eve-common" )
-SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include/${TARGET_NAME}" )
+SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_PACKETS_DIR "${PROJECT_BINARY_DIR}/src/${TARGET_NAME}" )
 
@@ -176,18 +176,18 @@ SET( utils_SOURCE
 #####################
 # Setup the library #
 #####################
-SOURCE_GROUP( "include"                  FILES ${INCLUDE} )
-SOURCE_GROUP( "include\\auth"            FILES ${auth_INCLUDE} )
-SOURCE_GROUP( "include\\cache"           FILES ${cache_INCLUDE} )
-SOURCE_GROUP( "include\\database"        FILES ${database_INCLUDE} )
-SOURCE_GROUP( "include\\destiny"         FILES ${destiny_INCLUDE} )
-SOURCE_GROUP( "include\\marshal"         FILES ${marshal_INCLUDE} )
-SOURCE_GROUP( "include\\network"         FILES ${network_INCLUDE} )
-SOURCE_GROUP( "include\\packets"         FILES ${packets_INCLUDE} )
-SOURCE_GROUP( "include\\python"          FILES ${python_INCLUDE} )
-SOURCE_GROUP( "include\\python\\classes" FILES ${python_classes_INCLUDE} )
-SOURCE_GROUP( "include\\tables"          FILES ${tables_INCLUDE} )
-SOURCE_GROUP( "include\\utils"           FILES ${utils_INCLUDE} )
+SOURCE_GROUP( "src"                  FILES ${INCLUDE} )
+SOURCE_GROUP( "src\\auth"            FILES ${auth_INCLUDE} )
+SOURCE_GROUP( "src\\cache"           FILES ${cache_INCLUDE} )
+SOURCE_GROUP( "src\\database"        FILES ${database_INCLUDE} )
+SOURCE_GROUP( "src\\destiny"         FILES ${destiny_INCLUDE} )
+SOURCE_GROUP( "src\\marshal"         FILES ${marshal_INCLUDE} )
+SOURCE_GROUP( "src\\network"         FILES ${network_INCLUDE} )
+SOURCE_GROUP( "src\\packets"         FILES ${packets_INCLUDE} )
+SOURCE_GROUP( "src\\python"          FILES ${python_INCLUDE} )
+SOURCE_GROUP( "src\\python\\classes" FILES ${python_classes_INCLUDE} )
+SOURCE_GROUP( "src\\tables"          FILES ${tables_INCLUDE} )
+SOURCE_GROUP( "src\\utils"           FILES ${utils_INCLUDE} )
 
 SOURCE_GROUP( "src"                  FILES ${SOURCE} )
 SOURCE_GROUP( "src\\auth"            FILES ${auth_SOURCE} )
