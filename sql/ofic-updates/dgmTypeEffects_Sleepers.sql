@@ -1,6 +1,4 @@
 # Source: Code_Red
-# INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (, );
-
 
 INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30188, 2197);
 INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30188, 569);
@@ -131,9 +129,5 @@ INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30217, 1872);
 INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30217, 10);
 INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30217, 563);
 INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30217, 575);
-INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30218, );
-INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30218, );
-INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30218, );
-INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30218, );
-INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30218, );
+
 
