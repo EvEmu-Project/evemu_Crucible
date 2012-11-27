@@ -1,9 +1,9 @@
 
 --
--- Dumping data for table `dgmeffects`
+-- Dumping data for table `dgmEffects`
 --
 
-INSERT INTO `dgmeffects` (`effectID`, `effectName`, `effectCategory`, `preExpression`, `postExpression`, `description`, `guid`, `iconID`, `isOffensive`, `isAssistance`, `durationAttributeID`, `trackingSpeedAttributeID`, `dischargeAttributeID`, `rangeAttributeID`, `falloffAttributeID`, `disallowAutoRepeat`, `published`, `displayName`, `isWarpSafe`, `rangeChance`, `electronicChance`, `propulsionChance`, `distribution`, `sfxName`, `npcUsageChanceAttributeID`, `npcActivationChanceAttributeID`, `fittingUsageChanceAttributeID`) VALUES
+INSERT INTO `dgmEffects` (`effectID`, `effectName`, `effectCategory`, `preExpression`, `postExpression`, `description`, `guid`, `iconID`, `isOffensive`, `isAssistance`, `durationAttributeID`, `trackingSpeedAttributeID`, `dischargeAttributeID`, `rangeAttributeID`, `falloffAttributeID`, `disallowAutoRepeat`, `published`, `displayName`, `isWarpSafe`, `rangeChance`, `electronicChance`, `propulsionChance`, `distribution`, `sfxName`, `npcUsageChanceAttributeID`, `npcActivationChanceAttributeID`, `fittingUsageChanceAttributeID`) VALUES
 (5081, 'maxTargetingRangeBonusPostPercentPassive', 0, 9627, 9628, NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL, NULL, 0, 0, '', 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL),
 (5077, 'shipBonusThermicShieldResistanceORE3', 0, 16275, 16276, 'Automatically generated effect', NULL, NULL, 1, 1, NULL, NULL, NULL, NULL, NULL, 0, 0, '', 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL),
 (5076, 'shipBonusKineticShieldResistanceORE3', 0, 16273, 16274, 'Automatically generated effect', NULL, NULL, 1, 1, NULL, NULL, NULL, NULL, NULL, 0, 0, '', 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL),

@@ -1,9 +1,9 @@
 
 --
--- Dumping data for table `dgmattributetypes`
+-- Dumping data for table `dgmAttributeTypes`
 --
 
-INSERT INTO `dgmattributetypes` (`attributeID`, `attributeName`, `description`, `iconID`, `defaultValue`, `published`, `displayName`, `unitID`, `stackable`, `highIsGood`, `categoryID`) VALUES
+INSERT INTO `dgmAttributeTypes` (`attributeID`, `attributeName`, `description`, `iconID`, `defaultValue`, `published`, `displayName`, `unitID`, `stackable`, `highIsGood`, `categoryID`) VALUES
 (1839, 'damageDelayDuration', 'The delay in ms until the damage is done to the target. (Allows some FX to be played)', NULL, 10000, 1, NULL, 3, 1, 1, 7),
 (1837, 'rookieShieldBoostBonus', 'Bonus to shield booster repair amount', NULL, 0, 0, NULL, NULL, 1, 1, NULL),
 (1836, 'rookieSPTDamageBonus', 'Bonus to Small Projectile Turret damage', NULL, 0, 0, NULL, NULL, 1, 1, NULL),
