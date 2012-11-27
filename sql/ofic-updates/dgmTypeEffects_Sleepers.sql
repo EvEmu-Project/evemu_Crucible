@@ -1,4 +1,4 @@
-# Source: Code_Red
+-- Source: Code_Red
 
 INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30188, 2197);
 INSERT INTO dgmTypeEffects (typeID, effectID) VALUES (30188, 569);
