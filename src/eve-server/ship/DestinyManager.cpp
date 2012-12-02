@@ -349,7 +349,7 @@ void DestinyManager::_Move() {
     GVector calc_acceleration = vector_to_goal * m_accelerationFactor;    //fric*m/(s*agi*kg) = m/s^2
 
     // Check to see if we have a pending docking operation and attempt to dock if so:
-    if( m_self->CastToClient()->GetPendingDockOperation() )
+    if( m_self->IsClient() && m_self->CastToClient()->GetPendingDockOperation() )
         AttemptDockOperation();
 
     _MoveAccel(calc_acceleration);
@@ -822,10 +822,11 @@ void DestinyManager::EntityRemoved(SystemEntity *who) {
 //Global Actions:
 void DestinyManager::Stop(bool update) {
     //Clear any pending docking operation since the user stopped ship movement:
-    m_self->CastToClient()->SetPendingDockOperation( false );
+	if( m_self->IsClient() )
+		m_self->CastToClient()->SetPendingDockOperation( false );
 
     // THIS IS A HACK AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
-    if( m_self->CastToClient()->GetJustUndocking() )
+    if( m_self->IsClient() && m_self->CastToClient()->GetJustUndocking() )
     {
         // Client just undocked from a station so DO NOT STOP:
         m_self->CastToClient()->SetJustUndocking( false );
@@ -879,7 +880,8 @@ void DestinyManager::Halt(bool update) {
     _UpdateDerrived();
 
     //Clear any pending docking operation since the user halted ship movement:
-    m_self->CastToClient()->SetPendingDockOperation( false );
+	if( m_self->IsClient() )
+		m_self->CastToClient()->SetPendingDockOperation( false );
 
     State = DSTBALL_STOP;
 
@@ -927,7 +929,8 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
     }
 
     //Clear any pending docking operation since the user set a new course:
-    m_self->CastToClient()->SetPendingDockOperation( false );
+	if( m_self->IsClient() )
+		m_self->CastToClient()->SetPendingDockOperation( false );
 
     if(update) {
         DoDestiny_CmdFollowBall du;
@@ -974,9 +977,15 @@ void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {
     }
 }
 
-void DestinyManager::OrbitingCruise(SystemEntity *who, double distance, bool update) {
+void DestinyManager::OrbitingCruise(SystemEntity *who, double distance, bool update, double cruiseSpeed) {
     if(State == DSTBALL_ORBIT && m_targetEntity.second == who && m_targetDistance == distance)
         return;
+
+	if( cruiseSpeed > 0 )
+	{
+		m_maxShipVelocity = cruiseSpeed;
+		_UpdateDerrived();
+	}
 
     State = DSTBALL_ORBIT;
     m_stateStamp = GetStamp()+1;
@@ -1024,6 +1033,14 @@ void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
     Ga::GaVec3 inertia_tensor = Ga::Parameter::VEC3_ONE;
     m_body->setMassMatrix(mass, center_of_gravity, inertia_tensor);
 */
+	// TODO: Get those values from NPC (we don't see NPC class from here)
+	if( m_self->IsNPC() )
+	{
+		radius = m_self->GetRadius();
+		mass = 2500000;
+		agility = 0.138;
+		Inertia = 1.0;
+	}
 
     m_radius = radius;
     m_mass = mass;
@@ -1092,7 +1109,8 @@ void DestinyManager::AlignTo(const GPoint &direction, bool update) {
     }
 
     //Clear any pending docking operation since the user set a new course:
-    m_self->CastToClient()->SetPendingDockOperation( false );
+	if( m_self->IsClient() )
+		m_self->CastToClient()->SetPendingDockOperation( false );
 
     if(update) {
         DoDestiny_GotoPoint du;
@@ -1123,7 +1141,8 @@ void DestinyManager::GotoDirection(const GPoint &direction, bool update) {
     }
 
     //Clear any pending docking operation since the user set a new course:
-    m_self->CastToClient()->SetPendingDockOperation( false );
+	if( m_self->IsClient() )
+		m_self->CastToClient()->SetPendingDockOperation( false );
 
     sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' vectoring to (%f,%f,%f) at velocity %f",
                 m_self->GetName(), direction.x, direction.y, direction.z, m_maxVelocity );
@@ -1297,7 +1316,8 @@ void DestinyManager::WarpTo(const GPoint &where, double distance, bool update) {
     }
 
     //Clear any pending docking operation since the user initiated warp:
-    m_self->CastToClient()->SetPendingDockOperation( false );
+	if( m_self->IsClient() )
+		m_self->CastToClient()->SetPendingDockOperation( false );
 
     State = DSTBALL_WARP;
     m_targetEntity.first = 0;
