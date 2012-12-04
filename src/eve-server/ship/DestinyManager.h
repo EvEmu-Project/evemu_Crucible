@@ -77,7 +77,7 @@ public:
     //Local Movement:
     void Follow(SystemEntity *who, double distance, bool update=true);
     void Orbit(SystemEntity *who, double distance, bool update=true);
-    void OrbitingCruise(SystemEntity *who, double distance, bool update=true);
+    void OrbitingCruise(SystemEntity *who, double distance, bool update=true, double cruiseSpeed=-1.0);
     void SetSpeedFraction(double fraction, bool update=true);
     void AlignTo(const GPoint &direction, bool update=true);
     void GotoDirection(const GPoint &direction, bool update=true);

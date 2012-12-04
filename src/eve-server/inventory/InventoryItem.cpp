@@ -198,7 +198,19 @@ RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
             if( (type.groupID() == EVEDB::invGroups::Spawn_Container) )
                 return CargoContainerRef( new CargoContainer( factory, itemID, type, data ) );
             else
-                return CelestialObjectRef( new CelestialObject( factory, itemID, type, data ) );
+				if( (type.groupID() >= EVEDB::invGroups::Asteroid_Angel_Cartel_Frigate
+							&& type.groupID() <= EVEDB::invGroups::Deadspace_Serpentis_Frigate) 
+							|| (type.groupID() >= 755 /* Asteroid Rogue Drone BattleCruiser */
+							&& type.groupID() <= 761 /* Asteroid Rogue Drone Swarm */) 
+							|| (type.groupID() >= 789 /* Asteroid Angel Cartel Commander Frigate */
+							&& type.groupID() <= 814 /* Asteroid Serpentis Commander Frigate */)
+							|| (type.groupID() >= 843 /* Asteroid Rogue Drone Commander BattleCruiser */
+							&& type.groupID() <= 852 /* Asteroid Serpentis Commander Battleship */)
+							|| (type.groupID() >= 959 /* Deadspace Sleeper Sleepless Sentinel */
+							&& type.groupID() <= 987 /* Deadspace Sleeper Emergent Patroller */) )
+					return InventoryItemRef( new InventoryItem(factory, itemID, type, data) );
+				else
+					return CelestialObjectRef( new CelestialObject( factory, itemID, type, data ) );
         }
 
         ///////////////////////////////////////

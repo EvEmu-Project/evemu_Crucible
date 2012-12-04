@@ -411,6 +411,41 @@ public:
                     system.AddEntity( containerObj );
                     return containerObj;
                 }
+				else if( (entity.groupID >= EVEDB::invGroups::Asteroid_Angel_Cartel_Frigate
+							&& entity.groupID <= EVEDB::invGroups::Deadspace_Serpentis_Frigate) 
+							|| (entity.groupID >= 755 /* Asteroid Rogue Drone BattleCruiser */
+							&& entity.groupID <= 761 /* Asteroid Rogue Drone Swarm */) 
+							|| (entity.groupID >= 789 /* Asteroid Angel Cartel Commander Frigate */
+							&& entity.groupID <= 814 /* Asteroid Serpentis Commander Frigate */)
+							|| (entity.groupID >= 843 /* Asteroid Rogue Drone Commander BattleCruiser */
+							&& entity.groupID <= 852 /* Asteroid Serpentis Commander Battleship */)
+							|| (entity.groupID >= 959 /* Deadspace Sleeper Sleepless Sentinel */
+							&& entity.groupID <= 987 /* Deadspace Sleeper Emergent Patroller */) )
+				{
+                    location.x = entity.x;
+                    location.y = entity.y;
+                    location.z = entity.z;
+
+                    ItemData idata(
+                        entity.typeID,
+                        1,  // owner is EVE System (itemID = 1 from 'entity' table)
+                        entity.locationID,
+                        flagAutoFit,
+                        entity.itemName.c_str(),
+                        location
+                    );
+					
+                    InventoryItemRef npcRef = system.GetServiceMgr()->item_factory.GetItem( entity.itemID );
+                    if( !npcRef )
+                        throw PyException( MakeCustomError( "Unable to spawn item #%u:'%s' of type %u.", entity.itemID, entity.itemName.c_str(), entity.typeID ) );
+
+                    // Add the ItemRef to SystemManagers' Inventory:
+                    system.AddItemToInventory( npcRef );
+
+                    NPC* npcObj = new NPC( &system, *(system.GetServiceMgr()),npcRef, entity.corporationID, entity.allianceID, location );
+                    system.AddEntity( npcObj );
+                    return npcObj;
+				}
                 else
                 {
                     location.x = entity.x;

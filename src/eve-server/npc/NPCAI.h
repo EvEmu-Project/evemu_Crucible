@@ -67,6 +67,8 @@ protected:
     Timer m_shieldBoosterTimer;
     Timer m_armorRepairTimer;
 
+	Timer m_beginFindTarget;
+
     //Timer m_warpScramblerTimer;
     //Timer m_webifierTimer;
 

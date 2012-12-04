@@ -30,6 +30,7 @@
 #include "npc/NPCAI.h"
 #include "ship/DestinyManager.h"
 #include "system/Damage.h"
+#include "system/SystemBubble.h"
 
 NPCAIMgr::NPCAIMgr(NPC *who)
 : m_state(Idle),
@@ -40,10 +41,13 @@ NPCAIMgr::NPCAIMgr(NPC *who)
   m_processTimer(50),    //arbitrary.
   m_mainAttackTimer(1),    //we want this to always trigger the first time through.
   m_shieldBoosterTimer(static_cast<int32>(who->Item()->GetAttribute(AttrEntityShieldBoostDuration).get_int())),
-  m_armorRepairTimer(static_cast<int32>(who->Item()->GetAttribute(AttrEntityArmorRepairDuration).get_int()))
+  m_armorRepairTimer(static_cast<int32>(who->Item()->GetAttribute(AttrEntityArmorRepairDuration).get_int())),
+  m_beginFindTarget(20000)
+
 {
     m_processTimer.Start();
     m_mainAttackTimer.Start();
+	m_beginFindTarget.Start();
 
     // This NPC uses Shield Booster
     if( who->Item()->GetAttribute(AttrEntityShieldBoostDuration) > 0 )
@@ -78,10 +82,32 @@ void NPCAIMgr::Process() {
 
     switch(m_state) {
     case Idle:
-        //TODO: wander around?
-        //TODO: look around for shit to shoot at?
-        //         The parameter proximityRange tells us how far we "see"
-        break;
+		{
+			//TODO: wander around?
+			//TODO: look around for shit to shoot at?
+			//         The parameter proximityRange tells us how far we "see"
+			if( m_beginFindTarget.Check() )
+			{
+				std::set<SystemEntity *> possibleTargets;
+				m_npc->Bubble()->GetEntities(possibleTargets);
+				std::set<SystemEntity *>::iterator cur, end;
+				cur = possibleTargets.begin();
+				end = possibleTargets.end();
+				for(; cur != end; cur++)
+				{
+					// We find a target
+					// TODO: Determine the weakest target to engage
+					if( (*cur)->IsClient() )
+					{
+						// TODO: Check to see if is't a capsule
+						// Target him and begin the process of the attack.
+						this->Targeted((*cur));
+						break;
+					}
+				}
+			}
+			break;
+		}
 
     case Chasing: {
         //NOTE: getting our target like this is pretty weak...
@@ -185,7 +211,13 @@ void NPCAIMgr::_EnterEngaged(SystemEntity *target) {
     if(orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange)) {
         orbit_range = m_npc->Item()->GetAttribute(AttrEntityFlyRange);
     }
-    m_npc->Destiny()->Orbit(target, orbit_range.get_float());
+    //m_npc->Destiny()->Orbit(target, orbit_range.get_float());
+	if( orbit_range.get_float() == 0.0 )
+	{
+		GVector vectorToTarget( m_npc->GetPosition(), target->GetPosition() );
+    	orbit_range = vectorToTarget.length();
+	}
+    m_npc->Destiny()->OrbitingCruise(target, orbit_range.get_float(),true, m_npc->Item()->GetAttribute(AttrEntityCruiseSpeed).get_float());
     m_state = Engaged;
 }
 
@@ -193,8 +225,9 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
     //TODO: determind lock speed.
     //TODO: obey maxLockedTargets
     //m_npc->targets.StartTargeting(by_who, 1000);
-    if( m_npc->Item()->GetAttribute(AttrMaxLockedTargets) > m_npc->targets.GetTotalTargets())
+    //if( m_npc->Item()->GetAttribute(AttrMaxLockedTargets) > m_npc->targets.GetTotalTargets())
         //m_npc->targets.StartTargeting( by_who, NEED_A_SHIPREF_HERE );		// TO BE UPDATED DUE TO StartTargeting() signature change
+    m_npc->targets.StartTargeting( by_who, (uint32)m_npc->Item()->GetAttribute(AttrSpeed).get_int(), (uint32)m_npc->Item()->GetAttribute(AttrMaxAttackTargets).get_int(), m_npc->Item()->GetAttribute(AttrEntityAttackRange).get_float() );
 
     switch(m_state) {
     case Idle: {

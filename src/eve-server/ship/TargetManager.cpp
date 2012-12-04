@@ -206,6 +206,39 @@ bool TargetManager::StartTargeting(SystemEntity *who, ShipRef ship) {   // needs
     return true;
 }
 
+bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time, uint32 maxLockedTargets, double maxTargetLockRange)
+{
+    //first make sure they are not already in the list
+    std::map<SystemEntity *, TargetEntry *>::iterator res;
+    res = m_targets.find(who);
+    if(res != m_targets.end()) {
+        //what to do?
+        _log(TARGET__TRACE, "Told to start targeting %u, but we are already processing them. Ignoring request.", who->GetID());
+        return false;
+    }
+
+    //Check that they aren't targeting themselves
+    if(who == m_self)
+        return false;
+
+    // Check against max locked target count
+    if( m_targets.size() >= maxLockedTargets )
+        return false;
+
+    // Check against max locked target range
+    GVector rangeToTarget( who->GetPosition(), m_self->GetPosition() );
+    if( rangeToTarget.length() > maxTargetLockRange )
+        return false;
+
+    TargetEntry *te = new TargetEntry(who);
+    te->state = TargetEntry::Locking;
+    te->timer.Start(lock_time);
+    m_targets[who] = te;
+
+    _log(TARGET__TRACE, "%u started targeting %u (%u ms lock time)", m_self->GetID(), who->GetID(), lock_time);
+    return true;
+}
+
 void TargetManager::TargetEntry::Dump() const {
     const char *sname = "Unknown State";
     switch(state) {
