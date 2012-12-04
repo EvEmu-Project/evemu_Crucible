@@ -179,11 +179,11 @@ void NPC::EncodeDestiny( Buffer& into ) const
 
         ShipSector ship;
         ship.max_speed = static_cast<float>(GetMaxVelocity());
-        ship.velocity_x = 0.0;
-        ship.velocity_y = 0.0;
-        ship.velocity_z = 0.0;
+        ship.velocity_x = GetVelocity().x;
+        ship.velocity_y = GetVelocity().y;
+        ship.velocity_z = GetVelocity().z;
         ship.agility = static_cast<float>(GetAgility());
-        ship.speed_fraction = 0.0;
+        ship.speed_fraction = (float)(Destiny()->GetSpeedFraction());
         into.Append( ship );
 
         DSTBALL_STOP_Struct main;
