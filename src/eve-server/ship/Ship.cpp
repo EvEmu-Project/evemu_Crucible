@@ -131,6 +131,9 @@ ShipRef Ship::Spawn(ItemFactory &factory, ItemData &data) {
 
     // Check for existence of some attributes that may or may not have already been loaded and set them
     // to default values:
+	// Hull Damage
+	if( !(sShipRef->HasAttribute(AttrDamage)) )
+        sShipRef->SetAttribute(AttrDamage, 0 );
     // Maximum Range Capacitor
     if( !(sShipRef->HasAttribute(AttrMaximumRangeCap)) )
         sShipRef->SetAttribute(AttrMaximumRangeCap, 249999.0 );
@@ -152,6 +155,26 @@ ShipRef Ship::Spawn(ItemFactory &factory, ItemData &data) {
 	// Warp Scramble Status of the ship (most ships have zero warp scramble status, but some already have it defined):
 	if( !(sShipRef.get()->HasAttribute(AttrWarpScrambleStatus)) )
 		sShipRef.get()->SetAttribute(AttrWarpScrambleStatus, 0.0);
+
+	// AttrHullEmDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrHullEmDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrHullEmDamageResonance, 0.0);
+	// AttrHullExplosiveDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrHullExplosiveDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrHullExplosiveDamageResonance, 0.0);
+	// AttrHullKineticDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrHullKineticDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrHullKineticDamageResonance, 0.0);
+	// AttrHullThermalDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrHullThermalDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrHullThermalDamageResonance, 0.0);
+
+	// AttrTurretSlotsLeft
+	if( !(sShipRef.get()->HasAttribute(AttrTurretSlotsLeft)) )
+		sShipRef.get()->SetAttribute(AttrTurretSlotsLeft, 0);
+	// AttrLauncherSlotsLeft
+	if( !(sShipRef.get()->HasAttribute(AttrLauncherSlotsLeft)) )
+		sShipRef.get()->SetAttribute(AttrLauncherSlotsLeft, 0);
 
     return sShipRef;
 }
