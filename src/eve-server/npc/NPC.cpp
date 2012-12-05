@@ -56,12 +56,51 @@ NPC::NPC(
     //NOTE: this is bad if we inherit NPC!
     m_AI = new NPCAIMgr(this);
 
+	// SET ALL ATTRIBUTES MISSING FROM DATABASE BEFORE USING THEM FOR ANYTHING:
+    // Create default dynamic attributes in the AttributeMap:
+    self->SetAttribute(AttrIsOnline,            1);                                             // Is Online
+    self->SetAttribute(AttrShieldCharge,        self->GetAttribute(AttrShieldCapacity));		// Shield Charge
+    self->SetAttribute(AttrArmorDamage,         0.0);                                           // Armor Damage
+    self->SetAttribute(AttrMass,                self->type().attributes.mass());				// Mass
+    self->SetAttribute(AttrRadius,              self->type().attributes.radius());				// Radius
+    self->SetAttribute(AttrVolume,              self->type().attributes.volume());				// Volume
+    self->SetAttribute(AttrCapacity,            self->type().attributes.capacity());			// Capacity
+    self->SetAttribute(AttrInertia,             1);                                             // Inertia
+    self->SetAttribute(AttrCharge,              self->GetAttribute(AttrCapacitorCapacity));		// Set Capacitor Charge to the Capacitor Capacity
+	self->SetAttribute(AttrShieldCharge,        self->GetAttribute(AttrShieldCapacity));		// Shield Charge
+
+	// Agility - WARNING!  NO NPC Ships have Agility, so we're setting it to 1 for ALL NPC ships
+	if( !(self->HasAttribute(AttrAgility)) )
+        self->SetAttribute(AttrAgility, 1 );
+
+	// Hull Damage
+	if( !(self->HasAttribute(AttrDamage)) )
+        self->SetAttribute(AttrDamage, 0 );
+	// AttrHullEmDamageResonance
+	if( !(self->HasAttribute(AttrHullEmDamageResonance)) )
+		self->SetAttribute(AttrHullEmDamageResonance, 0.0);
+	// AttrHullExplosiveDamageResonance
+	if( !(self->HasAttribute(AttrHullExplosiveDamageResonance)) )
+		self->SetAttribute(AttrHullExplosiveDamageResonance, 0.0);
+	// AttrHullKineticDamageResonance
+	if( !(self->HasAttribute(AttrHullKineticDamageResonance)) )
+		self->SetAttribute(AttrHullKineticDamageResonance, 0.0);
+	// AttrHullThermalDamageResonance
+	if( !(self->HasAttribute(AttrHullThermalDamageResonance)) )
+		self->SetAttribute(AttrHullThermalDamageResonance, 0.0);
+
+	// AttrOrbitRange
+	if( !(self->HasAttribute(AttrOrbitRange)) )
+		self->SetAttribute(AttrOrbitRange, 5000);
+
+
+	// Set internal and Destiny values FROM these Attributes, now that they are all setup:
     m_destiny->SetPosition(position, false);
 	m_destiny->SetShipCapabilities(self);
 	m_destiny->SetSpeedFraction(1.0);
 	m_destiny->Halt();
 
-    /* Gets the value from the NPC and put on our own vars */
+	/* Gets the value from the NPC and put on our own vars */
     //m_shieldCharge = self->shieldCharge();
     m_shieldCharge = self->GetAttribute(AttrShieldCapacity).get_float();
     m_armorDamage = 0.0;
@@ -186,7 +225,11 @@ void NPC::EncodeDestiny( Buffer& into ) const
         ship.velocity_y = GetVelocity().y;
         ship.velocity_z = GetVelocity().z;
         ship.agility = static_cast<float>(GetAgility());
+<<<<<<< HEAD
         ship.speed_fraction = (float)(Destiny()->GetSpeedFraction());;
+=======
+        ship.speed_fraction = (float)(Destiny()->GetSpeedFraction());
+>>>>>>> upstream/master
         into.Append( ship );
 
         DSTBALL_STOP_Struct main;
