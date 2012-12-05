@@ -50,63 +50,72 @@ Damage::Damage(
     double _thermal,
     double _em,
     double _explosive,
-    EVEEffectID _effect)
-: kinetic(_kinetic),
-  thermal(_thermal),
-  em(_em),
-  explosive(_explosive),
-  source(_source),
-  weapon(_weapon),
-  charge(),
-  effect(_effect)
+    EVEEffectID _effect): source(_source), charge(), effect(_effect)
 {
+	kinetic = _kinetic;
+	thermal = _thermal;
+	em = _em;
+	explosive = _explosive;
+	weapon = _weapon;
 }
 
 Damage::Damage(
     SystemEntity *_source,
     InventoryItemRef _weapon,
-    EVEEffectID _effect
-    )
-/*: kinetic(_weapon->kineticDamage()),
-  thermal(_weapon->thermalDamage()),
-  em(_weapon->emDamage()),
-  explosive(_weapon->explosiveDamage()),*/
+    EVEEffectID _effect): source(_source), charge(), effect(_effect)
+{
+	if(_weapon->HasAttribute(AttrKineticDamage))
+		kinetic = _weapon->GetAttribute(AttrKineticDamage).get_float();
+	else
+		kinetic = 0.0;
 
-  : kinetic(_weapon->GetAttribute(AttrKineticDamage).get_float()),
-  thermal(_weapon->GetAttribute(AttrThermalDamage).get_float()),
-  em(_weapon->GetAttribute(AttrEmDamage).get_float()),
-  explosive(_weapon->GetAttribute(AttrExplosiveDamage).get_float()),
-  source(_source),
-  weapon(_weapon),
-  charge(),
-  effect(_effect)
-{}
+	if(_weapon->HasAttribute(AttrThermalDamage))
+		thermal = _weapon->GetAttribute(AttrThermalDamage).get_float();
+	else
+		thermal = 0.0;
+
+	if(_weapon->HasAttribute(AttrEmDamage))
+		em = _weapon->GetAttribute(AttrEmDamage).get_float();
+	else
+		em = 0.0;
+
+	if(_weapon->HasAttribute(AttrExplosiveDamage))
+		explosive = _weapon->GetAttribute(AttrExplosiveDamage).get_float();
+	else
+		explosive = 0.0;
+
+	weapon = _weapon;
+}
 
 Damage::Damage(
     SystemEntity *_source,
     InventoryItemRef _weapon,
     InventoryItemRef _charge,
-    EVEEffectID _effect
-    )
-/*: kinetic(_charge->kineticDamage() * _weapon->damageMultiplier()),
-  thermal(_charge->thermalDamage() * _weapon->damageMultiplier()),
-  em(_charge->emDamage() * _weapon->damageMultiplier()),
-  explosive(_charge->explosiveDamage() * _weapon->damageMultiplier()),
-  source(_source),
-  weapon(_weapon),
-  charge(_charge),
-  effect(_effect)
-{}*/
+    EVEEffectID _effect): source(_source), charge(_charge), effect(_effect)
+{
+	if(_charge->HasAttribute(AttrKineticDamage))
+		kinetic = (_charge->GetAttribute(AttrKineticDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float();
+	else
+		kinetic = 0.0;
 
-: kinetic((_charge->GetAttribute(AttrKineticDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float()),
-  thermal((_charge->GetAttribute(AttrThermalDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float()),
-  em((_charge->GetAttribute(AttrEmDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float()),
-  explosive((_charge->GetAttribute(AttrExplosiveDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float()),
-  source(_source),
-  weapon(_weapon),
-  charge(_charge),
-  effect(_effect)
-{}
+	if(_charge->HasAttribute(AttrThermalDamage))
+		thermal = (_charge->GetAttribute(AttrThermalDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float();
+	else
+		thermal = 0.0;
+
+	if(_charge->HasAttribute(AttrEmDamage))
+		em = (_charge->GetAttribute(AttrEmDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float();
+	else
+		em = 0.0;
+
+	if(_charge->HasAttribute(AttrExplosiveDamage))
+		explosive = (_charge->GetAttribute(AttrExplosiveDamage) * _weapon->GetAttribute(AttrDamageMultiplier)).get_float();
+	else
+		explosive = 0.0;
+	
+	weapon = _weapon;
+
+}
 
 Damage::~Damage()
 {
