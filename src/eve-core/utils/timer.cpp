@@ -26,52 +26,55 @@
 #include "eve-core.h"
 
 #include "utils/timer.h"
+#include <ctime>
 
-static int32 current_time = 0;
-static int32 current_seconds = 0;
-static int32 last_time = 0;
+static uint32 currentTime = 0;
+static uint32 currentSeconds = 0;
+static uint32 lastTime = 0;
 
-Timer::Timer(int32 in_timer_time, bool iUseAcurateTiming) {
-    timer_time = in_timer_time;
-    start_time = current_time;
-    set_at_trigger = timer_time;
-    pUseAcurateTiming = iUseAcurateTiming;
-    if (timer_time == 0) {
-        enabled = false;
+Timer::Timer(uint32 inTimerTime, bool useAcurateTiming) {
+    m_timerTime = inTimerTime;
+    m_startTime = currentTime;
+    m_setAtTrigger = m_timerTime;
+    m_useAcurateTiming = useAcurateTiming;
+    
+	if (m_timerTime == 0) {
+        m_enabled = false;
     }
     else {
-        enabled = true;
+        m_enabled = true;
     }
 }
 
-Timer::Timer(int32 start, int32 timer, bool iUseAcurateTiming = false) {
-    timer_time = timer;
-    start_time = start;
-    set_at_trigger = timer_time;
-    pUseAcurateTiming = iUseAcurateTiming;
-    if (timer_time == 0) {
-        enabled = false;
+Timer::Timer(uint32 start, uint32 timer, bool useAcurateTiming = false) {
+    m_timerTime = timer;
+    m_startTime = start;
+    m_setAtTrigger = m_timerTime;
+    m_useAcurateTiming = useAcurateTiming;
+    
+	if (m_timerTime == 0) {
+        m_enabled = false;
     }
     else {
-        enabled = true;
+        m_enabled = true;
     }
 }
 
 /* This function checks if the timer triggered */
-bool Timer::Check(bool iReset)
+bool Timer::Check(bool reset)
 {
     //_CP(Timer_Check);
     if (this==0) {
                 printf( "Null timer during ->Check()!?\n" );
         return true;
     }
-    if (enabled && current_time-start_time > timer_time) {
-        if (iReset) {
-            if (pUseAcurateTiming)
-                start_time += timer_time;
+    if (m_enabled && currentTime - m_startTime > m_timerTime) {
+        if (reset) {
+            if (m_useAcurateTiming)
+                m_startTime += m_timerTime;
             else
-                start_time = current_time; // Reset timer
-            timer_time = set_at_trigger;
+                m_startTime = currentTime; // Reset timer
+            m_timerTime = m_setAtTrigger;
         }
         return true;
     }
@@ -81,86 +84,86 @@ bool Timer::Check(bool iReset)
 
 /* This function disables the timer */
 void Timer::Disable() {
-    enabled = false;
+    m_enabled = false;
 }
 
 void Timer::Enable() {
-    enabled = true;
+    m_enabled = true;
 }
 
 /* This function set the timer and restart it */
-void Timer::Start(int32 set_timer_time, bool ChangeResetTimer) {
-    start_time = current_time;
-    enabled = true;
-    if (set_timer_time != 0)
+void Timer::Start(uint32 setTimerTime, bool changeResetTimer) {
+    m_startTime = currentTime;
+    m_enabled = true;
+    if (setTimerTime != 0)
     {
-        timer_time = set_timer_time;
-        if (ChangeResetTimer == true)
-            set_at_trigger = set_timer_time;
+        m_timerTime = setTimerTime;
+        if (changeResetTimer == true)
+            m_setAtTrigger = setTimerTime;
     }
 }
 
 /* This timer updates the timer without restarting it */
-void Timer::SetTimer(int32 set_timer_time) {
+void Timer::SetTimer(uint32 setTimerTime) {
     /* If we were disabled before => restart the timer */
-    if (!enabled) {
-        start_time = current_time;
-        enabled = true;
+    if (!m_enabled) {
+        m_startTime = currentTime;
+        m_enabled = true;
     }
-    if (set_timer_time != 0) {
-        timer_time = set_timer_time;
-        set_at_trigger = set_timer_time;
+    if (setTimerTime != 0) {
+        m_timerTime = setTimerTime;
+        m_setAtTrigger = setTimerTime;
     }
 }
 
-int32 Timer::GetRemainingTime() const {
-    if (enabled) {
-        if (current_time-start_time > timer_time)
+uint32 Timer::GetRemainingTime() const {
+    if (m_enabled) {
+        if (currentTime - m_startTime > m_timerTime)
             return 0;
         else
-            return (start_time + timer_time) - current_time;
+            return (m_startTime + m_timerTime) - currentTime;
     }
     else {
-        return 0xFFFFFFFF;
+        return -1;
     }
 }
 
-void Timer::SetAtTrigger(int32 in_set_at_trigger, bool iEnableIfDisabled) {
-    set_at_trigger = in_set_at_trigger;
-    if (!Enabled() && iEnableIfDisabled) {
+void Timer::SetAtTrigger(uint32 setAtTrigger, bool enableIfDisabled) {
+    m_setAtTrigger = setAtTrigger;
+    if (!Enabled() && enableIfDisabled) {
         Enable();
     }
 }
 
 void Timer::Trigger()
 {
-    enabled = true;
+    m_enabled = true;
 
-    timer_time = set_at_trigger;
-    start_time = current_time-timer_time-1;
+    m_timerTime = m_setAtTrigger;
+    m_startTime = currentTime - m_timerTime - 1;
 }
 
-const int32 Timer::GetCurrentTime()
+const uint32 Timer::GetCurrentTime()
 {
-    return current_time;
+    return currentTime;
 }
 
 //just to keep all time related crap in one place... not really related to timers.
-const int32 Timer::GetTimeSeconds() {
-    return(current_seconds);
+const uint32 Timer::GetTimeSeconds() {
+    return(currentSeconds);
 }
 
-const int32 Timer::SetCurrentTime()
+const uint32 Timer::SetCurrentTime()
 {
-    const int32 this_time = ::GetTickCount();
+    const uint32 tickCount = ::GetTickCount();
 
-    if( last_time == 0 )
-        current_time = 0;
+    if( lastTime == 0 )
+        currentTime = 0;
     else
-        current_time += this_time - last_time;
+        currentTime += tickCount - lastTime;
 
-    last_time = this_time;
-    current_seconds = this_time / 1000;
+    lastTime = tickCount;
+    currentSeconds = tickCount / 1000;
 
-    return current_time;
+    return currentTime;
 }
