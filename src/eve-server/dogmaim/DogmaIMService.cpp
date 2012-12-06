@@ -378,7 +378,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
     sLog.Warning( "DogmaIMBound::Handle_AddTarget()", "TARGET ADDED - Range to Target = %d meters.", rangeToTarget );
 
     Rsp_Dogma_AddTarget rsp;
-    rsp.success = true;							// WARNING!  This should be sent ONLY when the TargetManager timer expires, until then we get INSTA-LOCK
+    rsp.success = true;
     rsp.targets.push_back(target->GetID());
 
     return(rsp.Encode());
@@ -405,7 +405,7 @@ PyResult DogmaIMBound::Handle_RemoveTarget(PyCallArgs &call) {
     // For Debugging purposes, put a message in the log to print out the range to the target:
     GVector vectorToTarget( call.client->GetPosition(), target->GetPosition() );
     double rangeToTarget = vectorToTarget.length();
-    sLog.Warning( "DogmaIMBound::Handle_AddTarget()", "TARGET REMOVED - Range to Target = %d meters.", rangeToTarget );
+    sLog.Warning( "DogmaIMBound::Handle_RemoveTarget()", "TARGET REMOVED - Range to Target = %d meters.", rangeToTarget );
 
     call.client->targets.ClearTarget(target);
 
