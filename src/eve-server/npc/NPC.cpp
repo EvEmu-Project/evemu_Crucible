@@ -225,11 +225,7 @@ void NPC::EncodeDestiny( Buffer& into ) const
         ship.velocity_y = GetVelocity().y;
         ship.velocity_z = GetVelocity().z;
         ship.agility = static_cast<float>(GetAgility());
-<<<<<<< HEAD
-        ship.speed_fraction = (float)(Destiny()->GetSpeedFraction());;
-=======
         ship.speed_fraction = (float)(Destiny()->GetSpeedFraction());
->>>>>>> upstream/master
         into.Append( ship );
 
         DSTBALL_STOP_Struct main;
