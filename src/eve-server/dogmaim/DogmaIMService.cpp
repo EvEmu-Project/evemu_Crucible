@@ -378,7 +378,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
     sLog.Warning( "DogmaIMBound::Handle_AddTarget()", "TARGET ADDED - Range to Target = %f meters.", rangeToTarget );
 
     Rsp_Dogma_AddTarget rsp;
-    rsp.success = true;							// WARNING!  This should be sent ONLY when the TargetManager timer expires, until then we get INSTA-LOCK
+    rsp.success = true;
     rsp.targets.push_back(target->GetID());
 
     return(rsp.Encode());

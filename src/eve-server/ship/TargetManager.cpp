@@ -184,7 +184,7 @@ bool TargetManager::StartTargeting(SystemEntity *who, ShipRef ship) {   // needs
         return false;
 
 	// Calculate Time to Lock target:
-	uint32 lock_time = TimeToLock( ship, who );
+	uint32 lockTime = TimeToLock( ship, who );
 
     // Check against max locked target count
 	uint32 maxLockedTargets = ship->GetAttribute(AttrMaxLockedTargets).get_int();
@@ -199,14 +199,14 @@ bool TargetManager::StartTargeting(SystemEntity *who, ShipRef ship) {   // needs
 
     TargetEntry *te = new TargetEntry(who);
     te->state = TargetEntry::Locking;
-    te->timer.Start(lock_time);
-    m_targets[who] = te;
+    te->timer.Start(lockTime);
+	m_targets[who] = te;
 
-    _log(TARGET__TRACE, "%u started targeting %u (%u ms lock time)", m_self->GetID(), who->GetID(), lock_time);
+    _log(TARGET__TRACE, "%u started targeting %u (%u ms lock time)", m_self->GetID(), who->GetID(), lockTime);
     return true;
 }
 
-bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time, uint32 maxLockedTargets, double maxTargetLockRange)
+bool TargetManager::StartTargeting(SystemEntity *who, double lockTime, uint32 maxLockedTargets, double maxTargetLockRange)
 {
     //first make sure they are not already in the list
     std::map<SystemEntity *, TargetEntry *>::iterator res;
@@ -232,10 +232,10 @@ bool TargetManager::StartTargeting(SystemEntity *who, uint32 lock_time, uint32 m
 
     TargetEntry *te = new TargetEntry(who);
     te->state = TargetEntry::Locking;
-    te->timer.Start(lock_time);
-    m_targets[who] = te;
+	te->timer.Start(lockTime);
+	m_targets[who] = te;
 
-    _log(TARGET__TRACE, "%u started targeting %u (%u ms lock time)", m_self->GetID(), who->GetID(), lock_time);
+    _log(TARGET__TRACE, "%u started targeting %u (%u ms lock time)", m_self->GetID(), who->GetID(), lockTime);
     return true;
 }
 
@@ -462,20 +462,6 @@ PyList *TargetManager::GetTargeters() const {
 
 uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
 
-    /*double scanRes = ship->attributes.GetReal( ship->attributes.Attr_scanResolution );
-    double sigRad = 25;
-
-        if( target->IsClient() || target->IsNPC() )
-            sigRad = target->Item()->attributes.GetReal( target->Item()->attributes.Attr_signatureRadius );
-
-
-    uint32 time = ( 40000 / ( scanRes ) )/( pow( log( sigRad + sqrt( sigRad * sigRad + 1) ), 2) );
-
-    if( time > 180 )
-        time = 180;
-
-    return time;*/
-
     EvilNumber scanRes = ship->GetAttribute(AttrScanResolution);
     EvilNumber sigRad(25);
 
@@ -484,5 +470,5 @@ uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
 
     EvilNumber time = ( EvilNumber(40000) / ( scanRes ) ) /( e_pow( e_log( sigRad + e_sqrt( sigRad * sigRad + 1) ), 2) );
 
-    return static_cast<uint32>(time.get_int()); // hack...
+	return static_cast<uint32>(time.get_float() * 1000); // Timer uses ms instead of seconds
 }
