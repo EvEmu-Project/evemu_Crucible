@@ -46,7 +46,7 @@ public:
     void ClearTargets(bool notify_self=true);
     void ClearTarget(SystemEntity *who);
     bool StartTargeting(SystemEntity *who, ShipRef ship);
-	bool StartTargeting(SystemEntity *who, uint32 lock_time, uint32 maxLockedTargets, double maxTargetLockRange);
+	bool StartTargeting(SystemEntity *who, double lockTime, uint32 maxLockedTargets, double maxTargetLockRange);
     void ClearAllTargets(bool notify_self=true);
 
     //Methods for AI:
