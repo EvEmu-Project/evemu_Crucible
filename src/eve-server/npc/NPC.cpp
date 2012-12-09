@@ -102,7 +102,7 @@ NPC::NPC(
 
 	/* Gets the value from the NPC and put on our own vars */
     //m_shieldCharge = self->shieldCharge();
-    m_shieldCharge = self->GetAttribute(AttrShieldCharge).get_float();
+    m_shieldCharge = self->GetAttribute(AttrShieldCapacity).get_float();
     m_armorDamage = 0.0;
     m_hullDamage = 0.0;
 

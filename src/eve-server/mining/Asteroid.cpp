@@ -164,11 +164,11 @@ void AsteroidEntity::EncodeDestiny( Buffer& into ) const
 }
 
 void AsteroidEntity::MakeDamageState(DoDestinyDamageState &into) const {
-//    into.shield = m_shieldCharge / m_self->shieldCapacity();
-//    into.tau = 100000;    //no freakin clue.
-//    into.timestamp = Win32TimeNow();
-//    into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
-//    into.structure = 1.0 - (m_hullDamage / m_self->hp());
+    into.shield = 1.0;
+    into.tau = 100000;    //no freakin clue.
+    into.timestamp = Win32TimeNow();
+    into.armor = 1.0;
+    into.structure = 1.0;
 }
 
 

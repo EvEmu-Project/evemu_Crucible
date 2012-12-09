@@ -117,7 +117,7 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
 
             // Mining Modules Subgroup:
             case EVEDB::invGroups::Mining_Laser:                            return NULL;    // Active
-            case EVEDB::invGroups::Strip_Miner:                             return NULL;    // Active
+            case EVEDB::invGroups::Strip_Miner:                             return (new ActiveModule(item, ship)); break;    // Active
             case EVEDB::invGroups::Frequency_Mining_Laser:                  return NULL;    // Active
             case EVEDB::invGroups::Mining_Upgrade:                          return (new PassiveModule(item, ship)); break;
             case EVEDB::invGroups::Gas_Cloud_Harvester:                     return NULL;    // Active

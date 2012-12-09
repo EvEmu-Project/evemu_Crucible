@@ -520,6 +520,10 @@ bool Ship::ValidateItemSpecifics(InventoryItemRef equip) {
     EvilNumber canFitShipType3 = equip->GetAttribute(AttrCanFitShipType3);
     EvilNumber canFitShipType4 = equip->GetAttribute(AttrCanFitShipType4);
 
+	if( canFitShipGroup1 != 0 || canFitShipGroup2 != 0 || canFitShipGroup3 != 0 || canFitShipGroup4 != 0 )
+		if( canFitShipGroup1 != groupID && canFitShipGroup2 != groupID && canFitShipGroup3 != groupID && canFitShipGroup4 != groupID )
+			return false;
+	/*
     if( canFitShipGroup1 != 0 )
         if( canFitShipGroup1 != groupID )
             return false;
@@ -535,7 +539,12 @@ bool Ship::ValidateItemSpecifics(InventoryItemRef equip) {
     if( canFitShipGroup4 != 0 )
         if( canFitShipGroup4 != groupID )
             return false;
+	*/
 
+    if( canFitShipType1 != 0 || canFitShipType2 != 0 || canFitShipType3 != 0 || canFitShipType4 != 0 )
+        if( canFitShipType1 != typeID && canFitShipType2 != typeID && canFitShipType3 != typeID && canFitShipType4 != typeID )
+            return false;
+	/*
     if( canFitShipType1 != 0 )
         if( canFitShipType1 != typeID )
             return false;
@@ -551,7 +560,7 @@ bool Ship::ValidateItemSpecifics(InventoryItemRef equip) {
     if( canFitShipType4 != 0 )
         if( canFitShipType4 != typeID )
             return false;
-
+	*/
     return true;
 
 }
