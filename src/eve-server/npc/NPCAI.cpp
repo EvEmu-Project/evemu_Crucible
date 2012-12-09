@@ -246,6 +246,7 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
     case Idle: 
 		{
         _log(NPC__AI_TRACE, "[%u] Targeted by %u in Idle. Attacking.", m_npc->GetID(), by_who->GetID());
+		
 		_EnterChasing(by_who);	// HACK, doing this, somehow the NPC can orbit
 		/*
         double dist = m_npc->DistanceTo2(by_who);

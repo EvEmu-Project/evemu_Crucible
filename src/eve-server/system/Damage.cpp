@@ -159,6 +159,7 @@ void ItemSystemEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target) {
 		double damageMultiplier = target->Item()->GetAttribute(AttrDamageMultiplier).get_float();
 		d.SumWithMultFactor(damageMultiplier);
 	}
+
     //these are straight additives to the damage.
     //emDamageBonus
     //explosiveDamageBonus
