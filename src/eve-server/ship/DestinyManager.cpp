@@ -1013,9 +1013,9 @@ void DestinyManager::OrbitingCruise(SystemEntity *who, double distance, bool upd
 
 void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
 {
-    double mass = ship->GetAttribute(AttrMass).get_float();               // Aknor: EVEAttributeMgr cant find this
-    double radius = ship->GetAttribute(AttrRadius).get_float();         // Aknor: EVEAttributeMgr cant find this, assertion failed: "mType == evil_number_float", line 189 EvilNumber.h
-    double Inertia = ship->GetAttribute(AttrInertia).get_float();       // Aknor: EVEAttributeMgr cant find this, assertion failed: "mType == evil_number_float", line 189 EvilNumber.h
+    double mass = ship->GetAttribute(AttrMass).get_float();
+    double radius = ship->GetAttribute(AttrRadius).get_float();
+    double Inertia = ship->GetAttribute(AttrInertia).get_float();
     double agility = ship->GetAttribute(AttrAgility).get_float();
     double maxVelocity = ship->GetAttribute(AttrMaxVelocity).get_float();
 
@@ -1033,14 +1033,6 @@ void DestinyManager::SetShipCapabilities(InventoryItemRef ship)
     Ga::GaVec3 inertia_tensor = Ga::Parameter::VEC3_ONE;
     m_body->setMassMatrix(mass, center_of_gravity, inertia_tensor);
 */
-	// TODO: Get those values from NPC (we don't see NPC class from here)
-	if( m_self->IsNPC() )
-	{
-		radius = m_self->GetRadius();
-		mass = 2500000;
-		agility = 0.138;
-		Inertia = 1.0;
-	}
 
     m_radius = radius;
     m_mass = mass;

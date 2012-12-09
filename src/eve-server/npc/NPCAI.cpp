@@ -101,7 +101,8 @@ void NPCAIMgr::Process() {
 					{
 						// TODO: Check to see if is't a capsule
 						// Target him and begin the process of the attack.
-						this->Targeted((*cur));
+						if( !((*cur)->Item()->groupID() == EVEDB::invGroups::Capsule) )
+							this->Targeted((*cur));
 						break;
 					}
 				}
