@@ -273,7 +273,7 @@ PyObject *CorporationDB::ListNPCDivisions() {
 
     if(!sDatabase.RunQuery(res,
         "SELECT "
-        "   divisionID, divisionName, description, leaderType"
+        "   divisionID, divisionName, divisionNameID, description, leaderType, leaderTypeID"
         " FROM crpNPCDivisions"
     ))
     {
@@ -1282,7 +1282,7 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDic
 bool CorporationDB::ChangeCloneType(uint32 characterID, uint32 typeID) {
     DBQueryResult res;
 
-    if(sDatabase.RunQuery(res,
+    if(!sDatabase.RunQuery(res,
         "SELECT "
         " typeID, typeName "
         "FROM "
@@ -1302,12 +1302,12 @@ bool CorporationDB::ChangeCloneType(uint32 characterID, uint32 typeID) {
     }
     std::string typeNameString = row.GetText(1);
 
-    if(sDatabase.RunQuery(res,
+    if(!sDatabase.RunQuery(res.error,
         "UPDATE "
         "entity "
         "SET typeID=%u, itemName='%s' "
-        "where ownerID=%u "
-        "and flag='400'",
+        "WHERE ownerID=%u "
+        "AND flag=400",
         typeID,
         typeNameString.c_str(),
         characterID))

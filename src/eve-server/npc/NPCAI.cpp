@@ -220,10 +220,12 @@ void NPCAIMgr::_EnterEngaged(SystemEntity *target) {
     //m_npc->Destiny()->Follow(target, m_npc->Item()->entityFlyRange());
     //not sure if we should use orbitRange or entityFlyRange...
     EvilNumber orbit_range = m_npc->Item()->GetAttribute(AttrOrbitRange);
-    if(orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange)) {
-        orbit_range = m_npc->Item()->GetAttribute(AttrEntityFlyRange);
+    if( orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange) )
+	{
+        orbit_range = m_npc->Item()->GetAttribute(AttrMaxRange);
+		if( orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange) )
+			orbit_range = m_npc->Item()->GetAttribute(AttrEntityFlyRange);
     }
-    //m_npc->Destiny()->Orbit(target, orbit_range.get_float());
 	if( orbit_range.get_float() == 0.0 )
 	{
 		GVector vectorToTarget( m_npc->GetPosition(), target->GetPosition() );
