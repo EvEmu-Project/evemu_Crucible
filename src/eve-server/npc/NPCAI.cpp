@@ -128,7 +128,7 @@ void NPCAIMgr::Process() {
             //we caught up... off to follow mode. Should orbit, but that
             //isnt working yet.
             _log(NPC__AI_TRACE, "[%u] Was chasing %u, but they are close enough now. Following.", m_npc->GetID(), target->GetID());
-            _EnterFollowing(target);
+            _EnterEngaged(target);
             return;
         }
 
@@ -241,9 +241,13 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
         //m_npc->targets.StartTargeting( by_who, NEED_A_SHIPREF_HERE );		// TO BE UPDATED DUE TO StartTargeting() signature change
     m_npc->targets.StartTargeting( by_who, (uint32)m_npc->Item()->GetAttribute(AttrSpeed).get_int(), (uint32)m_npc->Item()->GetAttribute(AttrMaxAttackTargets).get_int(), m_npc->Item()->GetAttribute(AttrEntityAttackRange).get_float() );
 
-    switch(m_state) {
-    case Idle: {
+    switch(m_state) 
+	{
+    case Idle: 
+		{
         _log(NPC__AI_TRACE, "[%u] Targeted by %u in Idle. Attacking.", m_npc->GetID(), by_who->GetID());
+		_EnterChasing(by_who);	// HACK, doing this, somehow the NPC can orbit
+		/*
         double dist = m_npc->DistanceTo2(by_who);
         if(dist < m_entityAttackRange2.get_float()) {
             _EnterEngaged(by_who);
@@ -251,7 +255,7 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
             _EnterFollowing(by_who);
         } else {
             _EnterChasing(by_who);
-        }
+        }*/
     } break;
     case Chasing:
         _log(NPC__AI_TRACE, "[%u] Targeted by %u while chasing.", m_npc->GetID(), by_who->GetID());
@@ -290,6 +294,13 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
         _log(NPC__AI_TRACE, "[%u] Attack timer expired. Attacking %u.", m_npc->GetID(), target->GetID());
 
         InventoryItemRef self = m_npc->Item();
+
+		// Check to see if the target still in the bubble (Client warped out)
+		if( !m_npc->Bubble()->InBubble(target->GetPosition()) )
+		{
+			m_npc->targets.ClearTarget(target);
+			return;
+		}
 
         //reset the attack timer.
         //NOTE: there is probably a more intelligent way to make this descision.

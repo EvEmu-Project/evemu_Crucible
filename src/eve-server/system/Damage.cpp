@@ -153,6 +153,12 @@ static const char *DamageMessageIDs_Other[6] = {
 void ItemSystemEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target) {
     //m_self->damageMultiplier()
 
+	// Basic damage multiplier
+	if( target->Item()->HasAttribute(AttrDamageMultiplier) )
+	{
+		double damageMultiplier = target->Item()->GetAttribute(AttrDamageMultiplier).get_float();
+		d.SumWithMultFactor(damageMultiplier);
+	}
     //these are straight additives to the damage.
     //emDamageBonus
     //explosiveDamageBonus
