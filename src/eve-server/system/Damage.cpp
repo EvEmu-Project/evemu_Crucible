@@ -335,14 +335,14 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
             //activeExplosiveDamageResonance
             //structureUniformity
 
+			/*	This is already passed on the constructor of Damage
             // If we have a passive or an active module to boost the resistance.
             // The modules itself must provide us this value.
-            hull_damage.em *= m_self->GetAttribute(AttrHullEmDamageResonance).get_float();
-            hull_damage.explosive *= m_self->GetAttribute(AttrHullExplosiveDamageResonance).get_float();
-            hull_damage.kinetic *= m_self->GetAttribute(AttrHullKineticDamageResonance).get_float();
-            hull_damage.thermal *= m_self->GetAttribute(AttrHullThermalDamageResonance).get_float();
-
-
+            //hull_damage.em *= m_self->GetAttribute(AttrHullEmDamageResonance).get_float();
+            //hull_damage.explosive *= m_self->GetAttribute(AttrHullExplosiveDamageResonance).get_float();
+            //hull_damage.kinetic *= m_self->GetAttribute(AttrHullKineticDamageResonance).get_float();
+            //hull_damage.thermal *= m_self->GetAttribute(AttrHullThermalDamageResonance).get_float();
+			*/
             // Not sure about this, but with this we get some random hits... :)
             hull_damage.SumWithMultFactor( random_damage_mult );
             double total_hull_damage = hull_damage.GetTotal();

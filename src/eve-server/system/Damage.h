@@ -53,10 +53,10 @@ public:
                         double _explosive_multiplier ) const
     {
         return Damage( source, weapon,
-                       kinetic * _kinetic_multiplier,
-                       thermal * _thermal_multiplier,
-                       em * _em_multiplier,
-                       explosive * _explosive_multiplier,
+                       kinetic * (_kinetic_multiplier == 0 ? 1.0 : _kinetic_multiplier),
+                       thermal * (_thermal_multiplier == 0 ? 1.0 : _thermal_multiplier),
+                       em * (_em_multiplier == 0 ? 1.0 : _em_multiplier),
+                       explosive * (_explosive_multiplier == 0 ? 1.0 : _explosive_multiplier),
                        effect );
     }
 
