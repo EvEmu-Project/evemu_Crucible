@@ -165,16 +165,6 @@ void NPCAIMgr::Process() {
         //NOTE: getting our target like this is pretty weak...
         SystemEntity *target = m_npc->targets.GetFirstTarget(false);
 
-		// Check if current target is in the NPC's bubble and if not, remove it:
-		std::set<SystemEntity *> possibleTargets;
-		m_npc->Bubble()->GetEntities(possibleTargets);
-		if(possibleTargets.find(target) == possibleTargets.cend())
-		{
-			m_npc->targets.ClearTarget(target);
-			target = NULL;
-			sLog.Debug("NPCAI::Process()", "Current target is no longer in the bubble... deaggressing...");
-		}
-
         if(target == NULL) {
             //no valid target...
             if(m_npc->targets.HasNoTargets()) {
