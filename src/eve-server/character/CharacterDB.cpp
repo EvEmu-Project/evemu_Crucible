@@ -424,6 +424,32 @@ bool CharacterDB::GetActiveCloneType(uint32 characterID, uint32 &typeID) {
     return true;
 }
 
+// Return the Home station of the char based on the active clone
+bool CharacterDB::GetCharHomeStation(uint32 characterID, uint32 &stationID) {
+	uint32 activeCloneID;
+	if( !GetActiveClone(characterID, activeCloneID) )
+	{
+		_log( DATABASE__ERROR, "Could't get the active clone for char %u", characterID );
+		return false;
+	}
+
+	DBQueryResult res;
+	if( !sDatabase.RunQuery(res,
+		"SELECT locationID "
+		"FROM entity "
+		"WHERE itemID = %u",
+		activeCloneID ))
+	{
+		_log(DATABASE__ERROR, "Could't get the location of the clone for char %u", characterID );
+		return false;
+	}
+    
+	DBResultRow row;
+    res.GetRow(row);
+    stationID = row.GetUInt(0);
+	return true;
+}
+
 bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
     DBQueryResult res;
 

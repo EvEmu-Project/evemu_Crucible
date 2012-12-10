@@ -165,16 +165,6 @@ void NPCAIMgr::Process() {
         //NOTE: getting our target like this is pretty weak...
         SystemEntity *target = m_npc->targets.GetFirstTarget(false);
 
-		// Check if current target is in the NPC's bubble and if not, remove it:
-		std::set<SystemEntity *> possibleTargets;
-		m_npc->Bubble()->GetEntities(possibleTargets);
-		if(possibleTargets.find(target) == possibleTargets.cend())
-		{
-			m_npc->targets.ClearTarget(target);
-			target = NULL;
-			sLog.Debug("NPCAI::Process()", "Current target is no longer in the bubble... deaggressing...");
-		}
-
         if(target == NULL) {
             //no valid target...
             if(m_npc->targets.HasNoTargets()) {
@@ -220,10 +210,12 @@ void NPCAIMgr::_EnterEngaged(SystemEntity *target) {
     //m_npc->Destiny()->Follow(target, m_npc->Item()->entityFlyRange());
     //not sure if we should use orbitRange or entityFlyRange...
     EvilNumber orbit_range = m_npc->Item()->GetAttribute(AttrOrbitRange);
-    if(orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange)) {
-        orbit_range = m_npc->Item()->GetAttribute(AttrEntityFlyRange);
+    if( orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange) )
+	{
+        orbit_range = m_npc->Item()->GetAttribute(AttrMaxRange);
+		if( orbit_range > m_npc->Item()->GetAttribute(AttrEntityAttackRange) )
+			orbit_range = m_npc->Item()->GetAttribute(AttrEntityFlyRange);
     }
-    //m_npc->Destiny()->Orbit(target, orbit_range.get_float());
 	if( orbit_range.get_float() == 0.0 )
 	{
 		GVector vectorToTarget( m_npc->GetPosition(), target->GetPosition() );
@@ -246,6 +238,7 @@ void NPCAIMgr::Targeted(SystemEntity *by_who) {
     case Idle: 
 		{
         _log(NPC__AI_TRACE, "[%u] Targeted by %u in Idle. Attacking.", m_npc->GetID(), by_who->GetID());
+		
 		_EnterChasing(by_who);	// HACK, doing this, somehow the NPC can orbit
 		/*
         double dist = m_npc->DistanceTo2(by_who);
