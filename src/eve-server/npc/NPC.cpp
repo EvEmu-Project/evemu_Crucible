@@ -73,21 +73,49 @@ NPC::NPC(
 	if( !(self->HasAttribute(AttrAgility)) )
         self->SetAttribute(AttrAgility, 1 );
 
+	// Shield Resonance
+	// AttrShieldEmDamageResonance
+	if( !(self->HasAttribute(AttrShieldEmDamageResonance)) )
+		self->SetAttribute(AttrShieldEmDamageResonance, 1.0);
+	// AttrShieldExplosiveDamageResonance
+	if( !(self->HasAttribute(AttrShieldExplosiveDamageResonance)) )
+		self->SetAttribute(AttrShieldExplosiveDamageResonance, 1.0);
+	// AttrShieldKineticDamageResonance
+	if( !(self->HasAttribute(AttrShieldKineticDamageResonance)) )
+		self->SetAttribute(AttrShieldKineticDamageResonance, 1.0);
+	// AttrShieldThermalDamageResonance
+	if( !(self->HasAttribute(AttrShieldThermalDamageResonance)) )
+		self->SetAttribute(AttrShieldThermalDamageResonance, 1.0);
+
+	// Armor Resonance
+	// AttrArmorEmDamageResonance
+	if( !(self->HasAttribute(AttrArmorEmDamageResonance)) )
+		self->SetAttribute(AttrArmorEmDamageResonance, 1.0);
+	// AttrArmorExplosiveDamageResonance
+	if( !(self->HasAttribute(AttrArmorExplosiveDamageResonance)) )
+		self->SetAttribute(AttrArmorExplosiveDamageResonance, 1.0);
+	// AttrArmorKineticDamageResonance
+	if( !(self->HasAttribute(AttrArmorKineticDamageResonance)) )
+		self->SetAttribute(AttrArmorKineticDamageResonance, 1.0);
+	// AttrArmorThermalDamageResonance
+	if( !(self->HasAttribute(AttrArmorThermalDamageResonance)) )
+		self->SetAttribute(AttrArmorThermalDamageResonance, 1.0);
+
 	// Hull Damage
 	if( !(self->HasAttribute(AttrDamage)) )
         self->SetAttribute(AttrDamage, 0 );
 	// AttrHullEmDamageResonance
 	if( !(self->HasAttribute(AttrHullEmDamageResonance)) )
-		self->SetAttribute(AttrHullEmDamageResonance, 0.0);
+		self->SetAttribute(AttrHullEmDamageResonance, 1.0);
 	// AttrHullExplosiveDamageResonance
 	if( !(self->HasAttribute(AttrHullExplosiveDamageResonance)) )
-		self->SetAttribute(AttrHullExplosiveDamageResonance, 0.0);
+		self->SetAttribute(AttrHullExplosiveDamageResonance, 1.0);
 	// AttrHullKineticDamageResonance
 	if( !(self->HasAttribute(AttrHullKineticDamageResonance)) )
-		self->SetAttribute(AttrHullKineticDamageResonance, 0.0);
+		self->SetAttribute(AttrHullKineticDamageResonance, 1.0);
 	// AttrHullThermalDamageResonance
 	if( !(self->HasAttribute(AttrHullThermalDamageResonance)) )
-		self->SetAttribute(AttrHullThermalDamageResonance, 0.0);
+		self->SetAttribute(AttrHullThermalDamageResonance, 1.0);
 
 	// AttrOrbitRange
 	if( !(self->HasAttribute(AttrOrbitRange)) )

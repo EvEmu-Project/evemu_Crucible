@@ -156,18 +156,47 @@ ShipRef Ship::Spawn(ItemFactory &factory, ItemData &data) {
 	if( !(sShipRef.get()->HasAttribute(AttrWarpScrambleStatus)) )
 		sShipRef.get()->SetAttribute(AttrWarpScrambleStatus, 0.0);
 
+	// Shield Resonance
+	// AttrShieldEmDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrShieldEmDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrShieldEmDamageResonance, 1.0);
+	// AttrShieldExplosiveDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrShieldExplosiveDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrShieldExplosiveDamageResonance, 1.0);
+	// AttrShieldKineticDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrShieldKineticDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrShieldKineticDamageResonance, 1.0);
+	// AttrShieldThermalDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrShieldThermalDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrShieldThermalDamageResonance, 1.0);
+
+	// Armor Resonance
+	// AttrArmorEmDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrArmorEmDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrArmorEmDamageResonance, 1.0);
+	// AttrArmorExplosiveDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrArmorExplosiveDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrArmorExplosiveDamageResonance, 1.0);
+	// AttrArmorKineticDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrArmorKineticDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrArmorKineticDamageResonance, 1.0);
+	// AttrArmorThermalDamageResonance
+	if( !(sShipRef.get()->HasAttribute(AttrArmorThermalDamageResonance)) )
+		sShipRef.get()->SetAttribute(AttrArmorThermalDamageResonance, 1.0);
+
+	// Hull Resonance
 	// AttrHullEmDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullEmDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullEmDamageResonance, 0.0);
+		sShipRef.get()->SetAttribute(AttrHullEmDamageResonance, 1.0);
 	// AttrHullExplosiveDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullExplosiveDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullExplosiveDamageResonance, 0.0);
+		sShipRef.get()->SetAttribute(AttrHullExplosiveDamageResonance, 1.0);
 	// AttrHullKineticDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullKineticDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullKineticDamageResonance, 0.0);
+		sShipRef.get()->SetAttribute(AttrHullKineticDamageResonance, 1.0);
 	// AttrHullThermalDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullThermalDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullThermalDamageResonance, 0.0);
+		sShipRef.get()->SetAttribute(AttrHullThermalDamageResonance, 1.0);
 
 	// AttrTurretSlotsLeft
 	if( !(sShipRef.get()->HasAttribute(AttrTurretSlotsLeft)) )

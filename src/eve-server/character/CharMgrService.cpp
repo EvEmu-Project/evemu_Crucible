@@ -145,16 +145,26 @@ PyResult CharMgrService::Handle_GetTopBounties( PyCallArgs& call )
 
 PyResult CharMgrService::Handle_GetCloneTypeID( PyCallArgs& call )
 {
-    sLog.Debug( "CharMgrService", "Called GetCloneTypeID stub." );
-
-    return NULL;
+	uint32 typeID;
+	if( !m_db.GetActiveCloneType(call.client->GetCharacterID(), typeID ) )
+	{
+		// This should not happen, because a clone is created at char creation.
+		// We don't have a clone, so return a basic one. cloneTypeID = 9917 (Clone Grade Delta)
+		typeID = 9917;
+		sLog.Debug( "CharMgrService", "Returning a basic clone for Char %u of type %u", call.client->GetCharacterID(), typeID );
+	}
+    return new PyInt(typeID);
 }
 
 PyResult CharMgrService::Handle_GetHomeStation( PyCallArgs& call )
 {
-    sLog.Debug( "CharMgrService", "Called GetHomeStation stub." );
-
-    return NULL;
+	uint32 stationID;
+	if( !m_db.GetCharHomeStation(call.client->GetCharacterID(), stationID) )
+	{
+		sLog.Debug( "CharMgrService", "Could't get the home station for Char %u", call.client->GetCharacterID() );
+		return new PyNone;
+	}
+    return new PyInt(stationID);
 }
 
 PyResult CharMgrService::Handle_GetFactions( PyCallArgs& call )
