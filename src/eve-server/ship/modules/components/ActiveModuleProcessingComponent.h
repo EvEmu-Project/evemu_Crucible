@@ -45,6 +45,7 @@ public:
 private:
     //internal storage and record keeping
     bool m_Stop;
+	Timer m_timer;
 
 
     //internal access to owner
