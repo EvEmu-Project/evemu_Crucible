@@ -60,6 +60,7 @@ public:
 
 protected:
     ModifyShipAttributesComponent * m_ShipAttrComp;
+	ActiveModuleProcessingComponent * m_ActiveModuleProc;
     uint32 targetID;  //passed to us by activate
 
     //inheritance crap

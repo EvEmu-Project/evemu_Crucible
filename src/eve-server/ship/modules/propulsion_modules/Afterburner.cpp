@@ -33,6 +33,7 @@ Afterburner::Afterburner( InventoryItemRef item, ShipRef ship )
     m_Ship = ship;
     m_Effects = new ModuleEffects(m_Item->typeID());
     m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
+	m_ActiveModuleProc = new ActiveModuleProcessingComponent(this, ship ,m_ShipAttrComp);
 }
 
 Afterburner::~Afterburner()

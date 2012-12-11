@@ -30,7 +30,7 @@
 #include "ship/modules/components/ActiveModuleProcessingComponent.h"
 
 ActiveModuleProcessingComponent::ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod)
-: m_Stop( false ), m_Mod( mod ), m_Ship( ship ), m_ShipAttrModComp( shipAttrMod )
+: m_Stop( false ), m_Mod( mod ), m_Ship( ship ), m_ShipAttrModComp( shipAttrMod ), m_timer(0)
 {
 
 }
@@ -49,22 +49,37 @@ void ActiveModuleProcessingComponent::DeactivateCycle()
 bool ActiveModuleProcessingComponent::ShouldProcessActiveCycle()
 {
     //first check time for cycle timer
-
+	if(m_Mod->GetAttribute(AttrDuration).get_int() == 0)
+		return false;
+	
     //next check that we have enough capacitor avaiable
+	if(m_Ship->GetAttribute(AttrCharge) > m_Mod->GetAttribute(AttrCapacitorNeed))
+	{
+		//having enough capacitor to activate the module
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 
     //finally check if we have been told to deactivate
-
-    return false;
+	if(m_Stop)
+		return false;
 }
 
 void ActiveModuleProcessingComponent::ProcessActiveCycle()
 {
+	//TO-DO: Check to see if capacitor is drained at activation or after the cycle
+
     //check for stop signal
     if(m_Stop)
         return;
 
     //else consume capacitor
-
+	m_timer.Start(m_Mod->GetAttribute(AttrDuration).get_int());
+	m_Ship->GetAttribute(AttrCharge) -= m_Mod->GetAttribute(AttrCapacitorNeed);
 
     //then check if we are targeting another ship or not
+	
 }

@@ -411,8 +411,11 @@ void Inventory::AddItem(InventoryItemRef item)
 
         sLog.Debug("Inventory", "Updated location %u to contain item %u with flag %d.", inventoryID(), item->itemID(), (int)item->flag() );
     }
-    //else already here
-    sLog.Debug("Inventory", "unable to updated location %u to contain item %u with flag %d, because it already happend.", inventoryID(), item->itemID(), (int)item->flag() );
+	else
+	{
+		//else already here
+		sLog.Debug("Inventory", "unable to updated location %u to contain item %u with flag %d, because it already happend.", inventoryID(), item->itemID(), (int)item->flag() );
+	}
 }
 
 void Inventory::RemoveItem(uint32 itemID)
@@ -424,7 +427,10 @@ void Inventory::RemoveItem(uint32 itemID)
 
         sLog.Debug("Inventory", "Updated location %u to no longer contain item %u.", inventoryID(), itemID );
     }
-    sLog.Debug("Inventory", "unable to remove %u from %u.", itemID, inventoryID() );
+	else
+	{
+		sLog.Debug("Inventory", "unable to remove %u from %u.", itemID, inventoryID() );
+	}
 }
 
 void Inventory::StackAll(EVEItemFlags locFlag, uint32 forOwner)
