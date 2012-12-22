@@ -496,8 +496,9 @@ PyObject *MarketDB::GetMarketGroups() {
     PyDict *args = new PyDict();
 
     PyDict *parentSets = new PyDict();
-    PyList *header = new PyList();
-
+    //PyList *header = new PyList();
+	
+	/*
     header->AddItemString("marketGroupID");
     header->AddItemString("parentGroupID");
     header->AddItemString("marketGroupName");
@@ -506,12 +507,31 @@ PyObject *MarketDB::GetMarketGroups() {
     header->AddItemString("hasTypes");
     header->AddItemString("types");    //this column really contains an entire list.
     header->AddItemString("dataID");
+	*/
 
+	DBRowDescriptor *header = new DBRowDescriptor();
+
+	header->AddColumn("parentGroupID", DBTYPE_I4);
+	header->AddColumn("marketGroupID", DBTYPE_I4);
+	header->AddColumn("marketGroupName", DBTYPE_WSTR);
+	header->AddColumn("description", DBTYPE_WSTR);
+	header->AddColumn("graphicID", DBTYPE_I4);
+	header->AddColumn("hasTypes", DBTYPE_BOOL);
+	header->AddColumn("iconID", DBTYPE_I4);
+	header->AddColumn("dataID", DBTYPE_I4);
+	header->AddColumn("marketGroupNameID", DBTYPE_I4);
+	header->AddColumn("descriptionID", DBTYPE_I4);
+
+	args->SetItemString("giveMeSets", new PyBool(false));
     args->SetItemString("header", header);
-    args->SetItemString("idName", new PyString("parentGroupID"));
-    args->SetItemString("RowClass", new PyToken("util.Row"));
-    args->SetItemString("idName2", new PyNone);
-    args->SetItemString("items", parentSets);
+	args->SetItemString("allowDuplicateCompoundKeys", new PyBool(false));
+	args->SetItemString("indexName", new PyNone);
+	args->SetItemString("columnName", new PyString("parentGroupID"));
+   // args->SetItemString("idName", new PyString("parentGroupID"));
+   // args->SetItemString("RowClass", new PyToken("util.Row"));
+   // args->SetItemString("idName2", new PyNone);
+   // args->SetItemString("items", parentSets);
+	//args->SetItemString("items", parentSets);
 
     //now fill in items.
     // we have to satisfy this structure... which uses parentGroupID as the
@@ -549,7 +569,8 @@ PyObject *MarketDB::GetMarketGroups() {
         list->AddItem(entry.Encode());
         PySafeIncRef(list);
         if(entry.parentGroupID != -1)
-            parentSets->SetItem(new PyInt(entry.parentGroupID), list);
+            //parentSets->SetItem(new PyInt(entry.parentGroupID), list);
+			parentSets->SetItem(new PyNone, list);
     }
     parentSets->SetItem(new PyNone, parents);
 

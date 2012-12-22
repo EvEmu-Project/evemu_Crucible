@@ -1383,14 +1383,11 @@ void DestinyManager::SendJumpOut(uint32 stargateID) const {
 
     //Clear any pending docking operation since the user set a new course:
     m_self->CastToClient()->SetPendingDockOperation( false );
-
-    {
+    
     DoDestiny_CmdStop du;
     du.entityID = m_self->GetID();
     updates.push_back(du.Encode());
-    }
-
-    {
+    
     //send a warping special effects update...
     DoDestiny_OnSpecialFX10 effect;
     effect.entityID = m_self->GetID();
@@ -1400,7 +1397,6 @@ void DestinyManager::SendJumpOut(uint32 stargateID) const {
     effect.start = 1;
     effect.active = 0;
     updates.push_back(effect.Encode());
-    }
 
     SendDestinyUpdate(updates, false);
 }

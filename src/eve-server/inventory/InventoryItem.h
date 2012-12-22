@@ -131,6 +131,8 @@ public:
     void PutOnline() { SetOnline(true); }
     void PutOffline() { SetOnline(false); }
 
+	void SetActive(bool active, uint32 effectID, double duration, bool repeat);
+
     /*
      * Primary public packet builders:
      */
@@ -156,7 +158,7 @@ public:
     EVEItemFlags            flag() const        { return m_flag; }
     bool                    contraband() const  { return m_contraband; }
     bool                    singleton() const   { return m_singleton; }
-    int32                    quantity() const    { return m_quantity; }
+    int32                   quantity() const    { return m_quantity; }
     const GPoint &          position() const    { return m_position; }
     const std::string &     customInfo() const  { return m_customInfo; }
 
@@ -291,7 +293,7 @@ protected:
     );
 
     void SendItemChange(uint32 toID, std::map<int32, PyRep *> &changes) const;
-    void SetOnline(bool newval);
+    void SetOnline(bool online);
 
     /*
      * Member variables

@@ -33,6 +33,9 @@
 #include "ship/Ship.h"
 #include "ship/modules/ModuleDefs.h"
 #include "ship/modules/ModuleEffects.h"
+#include "ship/ShipOperatorInterface.h"
+#include "ship/DestinyManager.h"
+#include "ship/ModuleManager.h"
 
 //generic module base class - possibly should inherit from RefPtr...
 class GenericModule
