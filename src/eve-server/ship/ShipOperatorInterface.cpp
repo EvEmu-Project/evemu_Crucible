@@ -71,7 +71,6 @@ void ShipOperatorInterface::SendNotification( const char *notifyType, const char
 	else
 	{
 		sLog.Error( "ShipOperatorInterface::SendNotification()", "ERROR: All Operator types should be accounted for" );
-		assert(false);
 	}
 }
 
