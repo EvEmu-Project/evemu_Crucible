@@ -30,38 +30,6 @@
 #include "cache/ObjCacheService.h"
 #include "market/MarketProxyService.h"
 
-/*
-class MarketProxyBound
-: public PyBoundObject {
-public:
-
-    PyCallable_Make_Dispatcher(MarketProxyBound)
-
-    MarketProxyBound(PyServiceMgr *mgr, MarketProxyDB *db)
-    : PyBoundObject(mgr, "MarketProxyBound"),
-      m_db(db),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        PyCallable_REG_CALL(MarketProxyBound, )
-        PyCallable_REG_CALL(MarketProxyBound, )
-    }
-    virtual ~MarketProxyBound() { delete m_dispatch; }
-    virtual void DecRef() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL()
-    PyCallable_DECL_CALL()
-
-protected:
-    MarketProxyDB *const m_db;
-    Dispatcher *const m_dispatch;   //we own this
-};
-*/
-
 PyCallable_Make_InnerDispatcher(MarketProxyService)
 
 MarketProxyService::MarketProxyService(PyServiceMgr *mgr)

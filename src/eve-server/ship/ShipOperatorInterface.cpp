@@ -64,6 +64,16 @@ void ShipOperatorInterface::SendNotifyMsg( const char* fmt, va_list args )
     }
 }
 
+void ShipOperatorInterface::SendNotification( const char *notifyType, const char *idType, PyTuple **payload )
+{
+	if( m_pClient != NULL )
+		m_pClient->SendNotification( notifyType, idType, payload );
+	else
+	{
+		sLog.Error( "ShipOperatorInterface::SendNotification()", "ERROR: All Operator types should be accounted for" );
+	}
+}
+
 void ShipOperatorInterface::SendErrorMsg( const char* fmt, va_list args )
 {
     if( m_pClient != NULL )

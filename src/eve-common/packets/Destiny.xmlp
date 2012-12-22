@@ -754,6 +754,16 @@ DST_WARPEXIT = 11
     </tupleInline>
   </elementDef>
 
+  <elementDef name="DoDestiny_SetMaxSpeed">
+    <tupleInline>
+      <stringInline value="SetMaxSpeed" />
+      <tupleInline>
+        <int name="entityID" />
+        <real name="speedValue" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
 </elements>
 
 

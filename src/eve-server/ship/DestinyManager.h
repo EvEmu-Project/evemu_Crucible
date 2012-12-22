@@ -106,53 +106,53 @@ public:
 protected:
     void ProcessTic();
 
-    SystemEntity *const m_self;    //we do not own this.
-    SystemManager *const m_system;    //we do not own this.
-//    Ga::Body *m_body;        //we own a reference to this
-//    Ga::Shape *m_shape;        //we own a reference to this
+    SystemEntity *const m_self;			//we do not own this.
+    SystemManager *const m_system;		//we do not own this.
+	//Ga::Body *m_body;					//we own a reference to this
+	//Ga::Shape *m_shape;				//we own a reference to this
 
-//    Timer m_destinyTimer;
+	//Timer m_destinyTimer;
     static uint32 m_stamp;
     static Timer m_stampTimer;
-//    uint32 m_lastDestinyTime;    //from Timer::GetTimeSeconds()
+	//uint32 m_lastDestinyTime;			//from Timer::GetTimeSeconds()
 
     //the results of our labors:
-    GPoint m_position;        //in m
-    GVector m_velocity;        //in m/s
-//    GVector m_direction;        //normalized, `m_velocity` stores our magnitude
-//    double m_velocity;        //in m/s, the magnitude of direction
-//    double m_acceleration;    //in m/s^2, should probably be using a vector here too.
+    GPoint m_position;					//in m
+    GVector m_velocity;					//in m/s
+	//GVector m_direction;				//normalized, `m_velocity` stores our magnitude
+	//double m_velocity;				//in m/s, the magnitude of direction
+	//double m_acceleration;			//in m/s^2, should probably be using a vector here too.
 
     //derrived from other params:
     void _UpdateDerrived();
-    double m_maxVelocity;    //in m/s
-    double m_accelerationFactor;    //crazy units
-    double m_velocityAdjuster;        //unitless
+    double m_maxVelocity;				//in m/s
+    double m_accelerationFactor;		//crazy units
+    double m_velocityAdjuster;			//unitless
 
     double m_warpDecelerateFactor;
 
     //User controlled information used by a state to determine what to do.
     Destiny::BallMode State;
-    double m_userSpeedFraction;        //unitless
-    double m_activeSpeedFraction;    //unitless
+    double m_userSpeedFraction;			//unitless
+    double m_activeSpeedFraction;		//unitless
     GPoint m_targetPoint;
     double m_targetDistance;
-    uint32 m_stateStamp;            //some states need to know when they were entered.
+    uint32 m_stateStamp;				//some states need to know when they were entered.
     std::pair<uint32, SystemEntity *> m_targetEntity;   //we do not own the SystemEntity *
-    //SystemEntity *m_targetEntity;    //we do not own this.
+    //SystemEntity *m_targetEntity;		//we do not own this.
 
     //things dictated by our entity's configuration/equipment:
-    double m_radius;            //in m
-    double m_mass;                //in kg
-    double m_maxShipVelocity;    //in m/s
-    double m_shipAgility;        //unitless
+    double m_radius;					//in m
+    double m_mass;						//in kg
+    double m_maxShipVelocity;			//in m/s
+    double m_shipAgility;				//unitless
     double m_shipInertia;
-//    GVector m_inertia;
+	//GVector m_inertia;
 
-    bool _Turn();    //compare m_targetDirection and m_direction, and turn as needed.
-    void _Move();    //apply our velocity and direction to our position for 1 unit of time (a second)
+    bool _Turn();						//compare m_targetDirection and m_direction, and turn as needed.
+    void _Move();						//apply our velocity and direction to our position for 1 unit of time (a second)
     void _Follow();
-    void _Warp();    //carry on our current warp.
+    void _Warp();						//carry on our current warp.
     void _MoveAccel(const GVector &calc_acceleration);
     void _Orbit();
 
@@ -163,14 +163,14 @@ private:
     public:
         WarpState(uint32 start_stamp_, double total_distance_, double speed_, double acceleration_time_, double slow_time_, const GVector &normvec_them_to_us_)
             : start_stamp(start_stamp_), total_distance(total_distance_), speed(speed_), acceleration_time(acceleration_time_), slow_time(slow_time_), normvec_them_to_us(normvec_them_to_us_) {}
-        uint32 start_stamp;    //destiny stamp of when the warp started.
+        uint32 start_stamp;				//destiny stamp of when the warp started.
         double total_distance;
         double speed;
         double acceleration_time;
         double slow_time;
         GVector normvec_them_to_us;
     };
-    const WarpState *m_warpState;    //we own this. Allocated so we can have consts.
+    const WarpState *m_warpState;		//we own this. Allocated so we can have consts.
     void _InitWarp();
 };
 
