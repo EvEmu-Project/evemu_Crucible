@@ -384,7 +384,8 @@ SET( ship_modules_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/modules/PassiveModules.h"
      "${TARGET_INCLUDE_DIR}/ship/modules/RigModule.h"
      "${TARGET_INCLUDE_DIR}/ship/modules/SubSystemModules.h"
-     "${TARGET_INCLUDE_DIR}/ship/modules/propulsion_modules/Afterburner.h" )
+     "${TARGET_INCLUDE_DIR}/ship/modules/propulsion_modules/Afterburner.h" 
+	 "${TARGET_INCLUDE_DIR}/ship/modules/weapon_modules/EnergyTurret.h" )
 SET( ship_modules_SOURCE
      "${TARGET_SOURCE_DIR}/ship/modules/ActiveModules.cpp"
      "${TARGET_SOURCE_DIR}/ship/modules/ModuleDB.cpp"
@@ -392,7 +393,8 @@ SET( ship_modules_SOURCE
      "${TARGET_SOURCE_DIR}/ship/modules/PassiveModules.cpp"
      "${TARGET_SOURCE_DIR}/ship/modules/RigModule.cpp"
      "${TARGET_SOURCE_DIR}/ship/modules/SubSystemModules.cpp"
-     "${TARGET_SOURCE_DIR}/ship/modules/propulsion_modules/Afterburner.cpp" )
+     "${TARGET_SOURCE_DIR}/ship/modules/propulsion_modules/Afterburner.cpp" 
+	 "${TARGET_SOURCE_DIR}/ship/modules/weapon_modules/EnergyTurret.cpp")
     #"${TARGET_SOURCE_DIR}/ship/modules/.cpp"
     #"${TARGET_SOURCE_DIR}/ship/modules/.cpp" )
 

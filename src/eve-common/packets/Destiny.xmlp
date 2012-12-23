@@ -308,7 +308,7 @@ DST_WARPEXIT = 11
             <!-- 0: shipID -->
             <int name="entityID" />
         <!-- entry of type DoDestinyDamageState -->
-        <raw name="state" />
+            <raw name="state" />
         </tupleInline>
       </tupleInline>
   </elementDef>
