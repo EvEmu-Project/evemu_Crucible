@@ -975,9 +975,9 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
 } EffectCategories;*/
 
 
-void InventoryItem::SetOnline(bool newval) {
+void InventoryItem::SetOnline(bool online) {
 
-    SetAttribute(AttrIsOnline, int(newval));
+    SetAttribute(AttrIsOnline, int(online));
 
     Client *c = sEntityList.FindCharacter(m_ownerID);
     if(c == NULL)
@@ -990,29 +990,69 @@ void InventoryItem::SetOnline(bool newval) {
     ogf.itemID = m_itemID;
     ogf.effectID = effectOnline;
     ogf.when = Win32TimeNow();
-    ogf.start = newval?1:0;
-    ogf.active = newval?1:0;
-	//list start
-    ogf.env_itemID = ogf.itemID;
-    ogf.env_charID = m_ownerID; //??
-    ogf.env_shipID = m_locationID;
-    ogf.env_target = m_locationID;
-    ogf.env_effectID = ogf.effectID;
-    ogf.startTime = ogf.when;
-	ogf.duration = ogf.duration; //INT_MAX; //I think this should be infinity (0x07 may be infinity?)
-    //list end
-	if(newval)
-		ogf.repeat = new PyInt(1000);
-    else
-        ogf.repeat = new PyInt(0);
+    ogf.start = online?1:0;
+    ogf.active = online?1:0;
+
+	PyList *environment = new PyList;
+	environment->AddItem(new PyInt(ogf.itemID));
+	environment->AddItem(new PyInt(m_ownerID));
+	environment->AddItem(new PyInt(m_locationID));
+	environment->AddItem(new PyNone);
+	environment->AddItem(new PyNone);
+	environment->AddItem(new PyNone);
+	environment->AddItem(new PyInt(ogf.effectID));
+	
+	ogf.environment = environment;
+	ogf.startTime = ogf.when;
+	ogf.duration = 10000;
+	ogf.repeat = online?new PyInt(1000):new PyInt(0);
     ogf.randomSeed = new PyNone();
     ogf.error = new PyNone();
-	ogf.env_other = new PyNone();
-	ogf.env_area = new PyList();
 
     Notify_OnMultiEvent multi;
     multi.events = new PyList;
     multi.events->AddItem( ogf.Encode() );
+
+    PyTuple* tmp = multi.Encode();   //this is consumed below
+    c->SendNotification("OnMultiEvent", "clientID", &tmp);
+}
+
+void InventoryItem::SetActive(bool active, uint32 effectID, double duration, bool repeat)
+{
+	Client* c = sEntityList.FindCharacter(m_ownerID);
+    if(c == NULL)
+    {
+        sLog.Error("InventoryItem", "unable to set ourselfs online//offline because we can't find the client");
+        return;
+    }
+
+	Notify_OnGodmaShipEffect shipEffect;
+
+	shipEffect.itemID = m_itemID;
+	shipEffect.effectID = effectID;
+	shipEffect.when = Win32TimeNow();
+	shipEffect.start = active?1:0;
+	shipEffect.active = active?1:0;
+
+	PyList* env = new PyList;
+	env->AddItem(new PyInt(m_itemID));
+	env->AddItem(new PyInt(ownerID()));
+	env->AddItem(new PyInt(m_locationID));
+	env->AddItem(new PyNone);				//targetID
+	env->AddItem(new PyNone);				//otherID
+	env->AddItem(new PyNone);				//area
+	env->AddItem(new PyInt(effectID));
+
+	shipEffect.environment = env;
+	shipEffect.startTime = shipEffect.when;
+	shipEffect.duration = duration;
+	shipEffect.repeat = repeat?new PyInt(1000):new PyInt(0);
+	shipEffect.randomSeed = new PyNone;
+	shipEffect.error = new PyNone;
+
+	Notify_OnMultiEvent multi;
+    multi.events = new PyList;
+    multi.events->AddItem(shipEffect.Encode());
 
     PyTuple* tmp = multi.Encode();   //this is consumed below
     c->SendNotification("OnMultiEvent", "clientID", &tmp);

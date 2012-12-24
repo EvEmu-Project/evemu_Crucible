@@ -36,15 +36,7 @@
       <int name="start" />
       <int name="active" />
       <!-- Environment. see ENV_IDX_* -->
-      <listInline>
-        <int name="env_itemID" />
-        <int name="env_charID" />
-        <int name="env_shipID" />
-        <int name="env_target" none_marker="0" default="0"/> <!-- optional -->
-        <raw name="env_other" /> <!-- can be complex -->
-        <list name="env_area" /> <!-- not sure what data goes in here. -->
-        <int name="env_effectID" />
-      </listInline>
+      <list name="environment" /><!--moduleID, ownerID, shipID, targetID, otherID, area, effectID-->
       <long name="startTime" />
       <real name="duration" /> <!-- it's -1 when offline and 1000? when online -->
       <raw name="repeat" />

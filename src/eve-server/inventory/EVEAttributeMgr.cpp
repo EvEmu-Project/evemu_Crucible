@@ -474,32 +474,30 @@ bool AttributeMap::HasAttribute(uint32 attributeID)
 
 bool AttributeMap::Change( uint32 attributeID, EvilNumber& old_val, EvilNumber& new_val )
 {
-    mChanged = true;
-    PyTuple* AttrChange = new PyTuple(7);
-    AttrChange->SetItem(0, new PyString("OnModuleAttributeChange"));
-    AttrChange->SetItem(1, new PyInt(mItem.ownerID()));
-    AttrChange->SetItem(2, new PyInt(mItem.itemID()));
-    AttrChange->SetItem(3, new PyInt(attributeID));
-    AttrChange->SetItem(4, new PyLong(Win32TimeNow()));
-    AttrChange->SetItem(5, new_val.GetPyObject());
-    AttrChange->SetItem(6, old_val.GetPyObject());
+   Notify_OnModuleAttributeChange modChange;
 
-    return SendAttributeChanges(AttrChange);
+	modChange.ownerID = mItem.ownerID();
+	modChange.itemKey = mItem.itemID();
+	modChange.attributeID = attributeID;
+	modChange.time = Win32TimeNow();
+	modChange.newValue = new_val.GetPyObject();
+	modChange.oldValue = old_val.GetPyObject();
+
+	return SendAttributeChanges(modChange.Encode());
 }
 
 bool AttributeMap::Add( uint32 attributeID, EvilNumber& num )
 {
-    mChanged = true;
-    PyTuple* AttrChange = new PyTuple(7);
-    AttrChange->SetItem(0, new PyString( "OnModuleAttributeChange" ));
-    AttrChange->SetItem(1, new PyInt( mItem.ownerID() ));
-    AttrChange->SetItem(2, new PyInt( mItem.itemID() ));
-    AttrChange->SetItem(3, new PyInt( attributeID ));
-    AttrChange->SetItem(4, new PyLong( Win32TimeNow() ));
-    AttrChange->SetItem(5, num.GetPyObject());
-    AttrChange->SetItem(6, num.GetPyObject());
+  Notify_OnModuleAttributeChange modChange;
 
-    return SendAttributeChanges(AttrChange);
+	modChange.ownerID = mItem.ownerID();
+	modChange.itemKey = mItem.itemID();
+	modChange.attributeID = attributeID;
+	modChange.time = Win32TimeNow();
+	modChange.newValue = num.GetPyObject();
+	modChange.oldValue = num.GetPyObject();
+
+	return SendAttributeChanges(modChange.Encode());
 }
 
 bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )

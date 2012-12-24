@@ -71,3 +71,52 @@ void Afterburner::DestroyRig()
 {
 
 }
+
+void Afterburner::Activate(uint32 targetID)
+{
+	m_Ship->SetAttribute(AttrCharge, 134.999996046585);
+	m_Ship->SetAttribute(AttrMaxVelocity, 387);
+	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc, 1.29126213592233);
+	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc2, 0.29126213592233);
+	m_Ship->SetAttribute(AttrMass, 1648000);
+
+	m_Item->SetActive(true, 1253, 10000, true);
+
+	DoDestiny_SetBallMass mass;
+	mass.entityID = m_Ship->itemID();
+	mass.mass = 1648000;
+
+	DoDestiny_SetMaxSpeed speed;
+	speed.entityID = m_Ship->itemID();
+	speed.speedValue = 387.378640776699;
+
+	std::vector<PyTuple *> updates;
+	updates.push_back(mass.Encode());
+	updates.push_back(speed.Encode());
+
+	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, true);
+}
+
+void Afterburner::Deactivate() 
+{
+	m_Ship->SetAttribute(AttrMaxVelocity, 300);
+	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc, 1.41811846689895);
+	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc2, 0.418118466898955);
+	m_Ship->SetAttribute(AttrMass, 1148000);
+
+	m_Item->SetActive(false, 1253, 10000, false);
+
+	DoDestiny_SetMaxSpeed speed;
+	speed.entityID = m_Ship->itemID();
+	speed.speedValue = 300;
+
+	DoDestiny_SetBallMass mass;
+	mass.entityID = m_Ship->itemID();
+	mass.mass = 1148000;
+
+	std::vector<PyTuple *> updates;
+	updates.push_back(speed.Encode());
+	updates.push_back(mass.Encode());
+
+	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, true);
+}

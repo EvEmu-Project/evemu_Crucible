@@ -28,8 +28,7 @@
 
 #include "ship/modules/ActiveModules.h"
 
-class Afterburner
-: public ActiveModule
+class Afterburner: public ActiveModule
 {
 public:
     Afterburner( InventoryItemRef item, ShipRef ship );
@@ -42,6 +41,8 @@ public:
     void Overload();
     void DeOverload();
     void DestroyRig();
+	void Activate(uint32 targetID);
+	void Deactivate();
 };
 
 #endif
