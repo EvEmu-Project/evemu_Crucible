@@ -265,10 +265,22 @@ public:
     /**
      * we store our keeper so we can use it in the various functions.
      * @note capt: the way I see it this isn't really needed... ( design thingy )
+     *
+     * @param[in] item reference to the InventoryItem for which attributes will be managed
      */
     AttributeMap(InventoryItem & item);
 
     /**
+     * we store our keeper so we can use it in the various functions.
+     * @note capt: the way I see it this isn't really needed... ( design thingy )
+	 * @note aknor: this is a secondary constructor that allows the parent object to specify whether this class instance will make use of the 'entity_default_attributes' table or the 'entity_attributes' table
+     *
+     * @param[in] item reference to the InventoryItem for which attributes will be managed
+     * @param[in] bDefaultMap boolean indicating whether this attribute map uses 'entity_default_attributes' table or 'entity_attributes' table
+     */
+    AttributeMap(InventoryItem & item, bool bDefaultMap);
+
+	/**
      * @brief set the attribute with @num
      *
      * set the attribute with @num
@@ -403,6 +415,12 @@ protected:
      *       but that is for the future.
      */
     bool mChanged;
+
+    /**
+     * we set this true to tell the class methods to use attributes from 'entity_default_attributes' table
+	 * instead of the normal 'entity_attributes' table
+     */
+    bool mDefault;
 };
 
 #endif /* __EVE_ATTRIBUTE_MGR__H__INCL__ */
