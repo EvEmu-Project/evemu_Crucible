@@ -350,10 +350,17 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
 /************************************************************************/
 /* Start of new attribute system                                        */
 /************************************************************************/
-AttributeMap::AttributeMap( InventoryItem & item ) : mItem(item), mChanged(false)
+AttributeMap::AttributeMap( InventoryItem & item ) : mItem(item), mChanged(false), mDefault(false)
 {
     // load the initial attributes for this item
     //Load();
+}
+
+AttributeMap::AttributeMap( InventoryItem & item, bool bDefaultMap ) : mItem(item), mChanged(false), mDefault(bDefaultMap)
+{
+    // load the initial attributes for this item, if we are acting as container for "default" attributes
+    //if(mDefault)
+	//	Load();
 }
 
 bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber &num, bool nofity /*= true*/ )
@@ -573,7 +580,7 @@ bool AttributeMap::ResetAttribute(uint32 attrID, bool notify)
 
 bool AttributeMap::Load()
 {
-    /* then we possibly overwrite the attributes value's with the default's.. */
+    /* First, we load default attributes values using existing attribute system */
     DgmTypeAttributeSet *attr_set = sDgmTypeAttrMgr.GetDmgTypeAttributeSet( mItem.typeID() );
     if (attr_set == NULL)
         return false;
@@ -583,13 +590,23 @@ bool AttributeMap::Load()
     for (; itr != attr_set->attributeset.end(); itr++)
         SetAttribute((*itr)->attributeID, (*itr)->number, false);
 
-    /* first we load the saved attributes from the db */
+    /* Then we load the saved attributes from the db, if there are any yet, and overwrite the defaults */
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res, "SELECT * FROM entity_attributes WHERE itemID='%u'", mItem.itemID())) {
-        sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
-        return false;
-    }
+	if(mDefault)
+	{
+		if(!sDatabase.RunQuery(res, "SELECT * FROM entity_default_attributes WHERE itemID='%u'", mItem.itemID())) {
+			sLog.Error("AttributeMap (DEFAULT)", "Error in db load query: %s", res.error.c_str());
+			return false;
+		}
+	}
+	else
+	{
+		if(!sDatabase.RunQuery(res, "SELECT * FROM entity_attributes WHERE itemID='%u'", mItem.itemID())) {
+			sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
+			return false;
+		}
+	}
 
     DBResultRow row;
 
@@ -673,16 +690,33 @@ bool AttributeMap::SaveIntAttribute(uint32 attributeID, int64 value)
 {
     // SAVE INTEGER ATTRIBUTE
     DBerror err;
-    if(!sDatabase.RunQuery(err,
-        "REPLACE INTO entity_attributes"
-        "   (itemID, attributeID, valueInt, valueFloat)"
-        " VALUES"
-        "   (%u, %u, %d, NULL)",
-        mItem.itemID(), attributeID, value)
-    ) {
-        codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
-        return false;
-    }
+
+	if(mDefault)
+	{
+		if(!sDatabase.RunQuery(err,
+			"REPLACE INTO entity_default_attributes"
+			"   (itemID, attributeID, valueInt, valueFloat)"
+			" VALUES"
+			"   (%u, %u, %d, NULL)",
+			mItem.itemID(), attributeID, value)
+		) {
+			codelog(SERVICE__ERROR, "Failed to store DEFAULT attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
+			return false;
+		}
+	}
+	else
+	{
+		if(!sDatabase.RunQuery(err,
+			"REPLACE INTO entity_attributes"
+			"   (itemID, attributeID, valueInt, valueFloat)"
+			" VALUES"
+			"   (%u, %u, %d, NULL)",
+			mItem.itemID(), attributeID, value)
+		) {
+			codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
+			return false;
+		}
+	}
 
     return true;
 }
@@ -691,16 +725,33 @@ bool AttributeMap::SaveFloatAttribute(uint32 attributeID, double value)
 {
     // SAVE FLOAT ATTRIBUTE
     DBerror err;
-    if(!sDatabase.RunQuery(err,
-        "REPLACE INTO entity_attributes"
-        "   (itemID, attributeID, valueInt, valueFloat)"
-        " VALUES"
-        "   (%u, %u, NULL, %f)",
-        mItem.itemID(), attributeID, value)
-    ) {
-        codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
-        return false;
-    }
+
+	if(mDefault)
+	{
+		if(!sDatabase.RunQuery(err,
+			"REPLACE INTO entity_default_attributes"
+			"   (itemID, attributeID, valueInt, valueFloat)"
+			" VALUES"
+			"   (%u, %u, NULL, %f)",
+			mItem.itemID(), attributeID, value)
+		) {
+			codelog(SERVICE__ERROR, "Failed to store DEFAULT attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
+			return false;
+		}
+	}
+	else
+	{
+		if(!sDatabase.RunQuery(err,
+			"REPLACE INTO entity_attributes"
+			"   (itemID, attributeID, valueInt, valueFloat)"
+			" VALUES"
+			"   (%u, %u, NULL, %f)",
+			mItem.itemID(), attributeID, value)
+		) {
+			codelog(SERVICE__ERROR, "Failed to store attribute %d for item %u: %s", attributeID, mItem.itemID(), err.c_str());
+			return false;
+		}
+	}
 
     return true;
 }
@@ -709,6 +760,8 @@ bool AttributeMap::SaveFloatAttribute(uint32 attributeID, double value)
 /* we should save skills */
 bool AttributeMap::Save()
 {
+	bool success = false;
+
     /* if nothing changed... it means this action has been successful we return true... */
     if (mChanged == false)
         return true;
@@ -720,9 +773,19 @@ bool AttributeMap::Save()
         if ( itr->second.get_type() == evil_number_int ) {
 
             DBerror err;
-            bool success = sDatabase.RunQuery(err,
-                "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, %" PRId64 ", NULL)",
-                mItem.itemID(), itr->first, itr->second.get_int());
+
+			if(mDefault)
+			{
+				success = sDatabase.RunQuery(err,
+					"REPLACE INTO entity_default_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, %" PRId64 ", NULL)",
+					mItem.itemID(), itr->first, itr->second.get_int());
+			}
+			else
+			{
+				success = sDatabase.RunQuery(err,
+					"REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, %" PRId64 ", NULL)",
+					mItem.itemID(), itr->first, itr->second.get_int());
+			}
 
             if (!success)
                 sLog.Error("AttributeMap", "unable to save attribute");
@@ -730,9 +793,19 @@ bool AttributeMap::Save()
         } else if (itr->second.get_type() == evil_number_float ) {
 
             DBerror err;
-            bool success = sDatabase.RunQuery(err,
-                "REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, NULL, %f)",
-                mItem.itemID(), itr->first, itr->second.get_float());
+
+			if(mDefault)
+			{
+				success = sDatabase.RunQuery(err,
+					"REPLACE INTO entity_default_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, NULL, %f)",
+					mItem.itemID(), itr->first, itr->second.get_float());
+			}
+			else
+			{
+				success = sDatabase.RunQuery(err,
+					"REPLACE INTO entity_attributes (itemID, attributeID, valueInt, valueFloat) VALUES (%u, %u, NULL, %f)",
+					mItem.itemID(), itr->first, itr->second.get_float());
+			}
 
             if (!success)
                 sLog.Error("AttributeMap", "unable to save attribute");
@@ -752,18 +825,36 @@ bool AttributeMap::SaveAttributes()
 
 bool AttributeMap::Delete()
 {
-    // Remove all attributes from the entity_attributes table for this item:
+    // Remove all attributes from the entity_default_attributes table or entity_attributes table for this item:
     DBerror err;
-    if(!sDatabase.RunQuery(err,
-        "DELETE"
-        " FROM entity_attributes"
-        " WHERE itemID=%u",
-        mItem.itemID()
-    ))
-    {
-        sLog.Error( "", "Failed to delete item %u: %s", mItem.itemID(), err.c_str());
-        return false;
-    }
+    
+	if(mDefault)
+	{
+		if(!sDatabase.RunQuery(err,
+			"DELETE"
+			" FROM entity_default_attributes"
+			" WHERE itemID=%u",
+			mItem.itemID()
+		))
+		{
+			sLog.Error( "AttributeMap::Delete()", "Failed to delete DEFAULT item %u: %s", mItem.itemID(), err.c_str());
+			return false;
+		}
+	}
+	else
+	{
+		if(!sDatabase.RunQuery(err,
+			"DELETE"
+			" FROM entity_attributes"
+			" WHERE itemID=%u",
+			mItem.itemID()
+		))
+		{
+			sLog.Error( "AttributeMap::Delete()", "Failed to delete item %u: %s", mItem.itemID(), err.c_str());
+			return false;
+		}
+	}
+
     return true;
 }
 

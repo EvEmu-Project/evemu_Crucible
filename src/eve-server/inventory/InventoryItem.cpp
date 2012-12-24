@@ -120,7 +120,7 @@ InventoryItem::InventoryItem(
 : RefObject( 0 ),
   //attributes(_factory, *this, true, true),
   mAttributeMap(*this),
-  mDefaultAttributeMap(*this),
+  mDefaultAttributeMap(*this,true),
   m_saveTimer(0,true),
   m_factory(_factory),
   m_itemID(_itemID),
@@ -267,6 +267,7 @@ bool InventoryItem::_Load()
 {
     // load attributes
     mAttributeMap.Load();
+	mDefaultAttributeMap.Load();
 
     // update inventory
     Inventory *inventory = m_factory.GetInventory( locationID(), false );
@@ -399,7 +400,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
 
-            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // THESE SHOULD BE MOVED INTO A Module::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrIsOnline,   1);                                             // Is Online
             itemRef.get()->SetAttribute(AttrDamage,     0.0);                                             // Structure Damage
@@ -426,7 +427,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
 
-            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // THESE SHOULD BE MOVED INTO A Drone::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrIsOnline,       1);                                             // Is Online
             itemRef.get()->SetAttribute(AttrDamage,         0.0);                                             // Structure Damage
@@ -453,7 +454,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
 
-            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // THESE SHOULD BE MOVED INTO A Deployable::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrIsOnline,       1);                                             // Is Online
             itemRef.get()->SetAttribute(AttrDamage,         0.0);                                             // Structure Damage
@@ -480,7 +481,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
 
-            // THESE SHOULD BE MOVED INTO A Asteroid::Spawn() function that does not exist yet
+            // THESE SHOULD BE MOVED INTO AN Asteroid::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrRadius, 500.0);       // Radius
             itemRef.get()->SetAttribute(AttrMass,   1000000.0);    // Mass
@@ -503,7 +504,7 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
 
             InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
 
-            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
+            // THESE SHOULD BE MOVED INTO A Structure::Spawn() function that does not exist yet
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrIsOnline,       1);                                             // Is Online
             itemRef.get()->SetAttribute(AttrDamage,         0.0);                                             // Structure Damage
@@ -1034,39 +1035,63 @@ void InventoryItem::Relocate(const GPoint &pos) {
     SaveItem();
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, int64 num, bool notify /* true */ )
+bool InventoryItem::SetAttribute( uint32 attributeID, int64 num, bool notify /* true */, bool shadow_copy_to_default_set /* false */ )
 {
     EvilNumber devil_number(num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+	bool status = mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+	if(shadow_copy_to_default_set)
+		status = status && mDefaultAttributeMap.SetAttribute(attributeID, devil_number, notify);
+
+	return status;
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, double num, bool notify /* true */ )
+bool InventoryItem::SetAttribute( uint32 attributeID, double num, bool notify /* true */, bool shadow_copy_to_default_set /* false */ )
 {
     EvilNumber devil_number(num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+    bool status = mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+	if(shadow_copy_to_default_set)
+		status = status && mDefaultAttributeMap.SetAttribute(attributeID, devil_number, notify);
+
+	return status;
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, EvilNumber num, bool notify /* true */ )
+bool InventoryItem::SetAttribute( uint32 attributeID, EvilNumber num, bool notify /* true */, bool shadow_copy_to_default_set /* false */ )
 {
-    return mAttributeMap.SetAttribute(attributeID, num, notify);
+    bool status = mAttributeMap.SetAttribute(attributeID, num, notify);
+	if(shadow_copy_to_default_set)
+		status = status && mDefaultAttributeMap.SetAttribute(attributeID, num, notify);
+
+	return status;
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, int num, bool notify /* true */ )
+bool InventoryItem::SetAttribute( uint32 attributeID, int num, bool notify /* true */, bool shadow_copy_to_default_set /* false */ )
 {
     EvilNumber devil_number(num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+    bool status = mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+	if(shadow_copy_to_default_set)
+		status = status && mDefaultAttributeMap.SetAttribute(attributeID, devil_number, notify);
+
+	return status;
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, uint64 num, bool notify /* true */ )
+bool InventoryItem::SetAttribute( uint32 attributeID, uint64 num, bool notify /* true */, bool shadow_copy_to_default_set /* false */ )
 {
     EvilNumber devil_number(*((int64*)&num));
-    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+    bool status = mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+	if(shadow_copy_to_default_set)
+		status = status && mDefaultAttributeMap.SetAttribute(attributeID, devil_number, notify);
+
+	return status;
 }
 
-bool InventoryItem::SetAttribute( uint32 attributeID, uint32 num, bool notify /* true */ )
+bool InventoryItem::SetAttribute( uint32 attributeID, uint32 num, bool notify /* true */, bool shadow_copy_to_default_set /* false */ )
 {
     EvilNumber devil_number((int64)num);
-    return mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+    bool status = mAttributeMap.SetAttribute(attributeID, devil_number, notify);
+	if(shadow_copy_to_default_set)
+		status = status && mDefaultAttributeMap.SetAttribute(attributeID, devil_number, notify);
+
+	return status;
 }
 
 EvilNumber InventoryItem::GetAttribute( uint32 attributeID )
@@ -1096,7 +1121,7 @@ bool InventoryItem::HasAttribute(uint32 attributeID)
 
 bool InventoryItem::SaveAttributes()
 {
-    return mAttributeMap.SaveAttributes();
+	return (mAttributeMap.SaveAttributes() && mDefaultAttributeMap.SaveAttributes());
 }
 
 bool InventoryItem::ResetAttribute(uint32 attrID, bool notify)

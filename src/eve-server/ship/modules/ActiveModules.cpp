@@ -68,6 +68,7 @@ void ActiveModule::Activate(uint32 targetID)
     // PROBLEM:
     //   m_Ship does not have access to DestinyManager
     //   Client DOES have access to DestinyManager, so we need to pass reference to it down through Ship and into ModuleManager
+	//m_Ship->GetOperator()->GetDestiny()->SendSpecialEffect(m_Ship,"effects.laser",?
 }
 
 void ActiveModule::Deactivate()
