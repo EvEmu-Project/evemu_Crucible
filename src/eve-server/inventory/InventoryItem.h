@@ -192,12 +192,12 @@ private:
     AttributeMap mAttributeMap;
     AttributeMap mDefaultAttributeMap;
 public:
-    bool SetAttribute(uint32 attributeID, int num, bool notify = true);
-    bool SetAttribute(uint32 attributeID, uint32 num, bool notify = true);
-    bool SetAttribute(uint32 attributeID, int64 num, bool notify = true);
-    bool SetAttribute(uint32 attributeID, uint64 num, bool notify = true);
-    bool SetAttribute(uint32 attributeID, double num, bool notify = true);
-    bool SetAttribute(uint32 attributeID, EvilNumber num, bool notify = true);
+    bool SetAttribute(uint32 attributeID, int num, bool notify = true, bool shadow_copy_to_default_set = false);
+    bool SetAttribute(uint32 attributeID, uint32 num, bool notify = true, bool shadow_copy_to_default_set = false);
+    bool SetAttribute(uint32 attributeID, int64 num, bool notify = true, bool shadow_copy_to_default_set = false);
+    bool SetAttribute(uint32 attributeID, uint64 num, bool notify = true, bool shadow_copy_to_default_set = false);
+    bool SetAttribute(uint32 attributeID, double num, bool notify = true, bool shadow_copy_to_default_set = false);
+    bool SetAttribute(uint32 attributeID, EvilNumber num, bool notify = true, bool shadow_copy_to_default_set = false);
 
     EvilNumber GetAttribute(uint32 attributeID);
     EvilNumber GetAttribute(const uint32 attributeID) const;

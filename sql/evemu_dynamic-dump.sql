@@ -530,6 +530,21 @@ CREATE TABLE `entity_attributes` (
 
 /*Data for the table `entity_attributes` */
 
+/*Table structure for table `entity_default_attributes` */
+
+DROP TABLE IF EXISTS `entity_default_attributes`;
+
+CREATE TABLE `entity_default_attributes` (
+  `itemID` int(10) unsigned NOT NULL default '0',
+  `attributeID` int(10) unsigned NOT NULL default '0',
+  `valueInt` int(10) default NULL,
+  `valueFloat` double default NULL,
+  PRIMARY KEY  (`itemID`,`attributeID`),
+  KEY `attributeID` (`attributeID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Data for the table `entity_default_attributes` */
+
 /*Table structure for table `eveMail` */
 
 DROP TABLE IF EXISTS `eveMail`;
