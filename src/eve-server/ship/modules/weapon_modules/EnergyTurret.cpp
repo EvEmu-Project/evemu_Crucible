@@ -86,30 +86,90 @@ void EnergyTurret::Activate(uint32 targetID)
 
 	m_Ship->SetAttribute(AttrCharge, 139);
 	
-	Notify_OnDamageMessages dmgMsg;
-	
+	Notify_OnEffectHit effHit;
+	effHit.itemID = m_Item->itemID();
+	effHit.effectID = 10;
+	effHit.targetID = targetID;
+	effHit.damage = 5;
+
+	Notify_OnDamageMessage dmgMsg;
+	dmgMsg.messageID = "AttackHit3";
+	dmgMsg.weapon = 3634;
+	dmgMsg.splash = "";
+	dmgMsg.target = targetID;
+	dmgMsg.damage = 5;
+
+	Notify_OnGodmaShipEffect shipEff;
+	shipEff.itemID = m_Item->itemID();
+	shipEff.effectID = 10;
+	shipEff.when = Win32TimeNow();
+	shipEff.start = 1;
+	shipEff.active = 1;
+
+	PyList* env = new PyList;
+	env->AddItem(new PyInt(shipEff.itemID));
+	env->AddItem(new PyInt(m_Ship->ownerID()));
+	env->AddItem(new PyInt(m_Ship->itemID()));
+	env->AddItem(new PyInt(targetID));
+	env->AddItem(new PyNone);
+	env->AddItem(new PyNone);
+	env->AddItem(new PyInt(10));
+
+	shipEff.environment = env;
+	shipEff.startTime = shipEff.when;
+	shipEff.duration = 1584;
+	shipEff.repeat = new PyInt(1000);
+	shipEff.randomSeed = new PyNone;
+	shipEff.error = new PyNone;
+
+	PyTuple* tmp = new PyTuple(3);
+	tmp->SetItem(0, effHit.Encode());
+	tmp->SetItem(1, dmgMsg.Encode());
+	tmp->SetItem(2, shipEff.Encode());
+
+	std::vector<PyTuple*> events;
+	events.push_back(effHit.Encode());
+	events.push_back(dmgMsg.Encode());
+	events.push_back(shipEff.Encode());
+
+	std::vector<PyTuple*> updates;
+	updates.push_back(dmgChange.Encode());
+
+	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, events, true);
 }
 
 void EnergyTurret::Deactivate() 
 {
-	m_Ship->SetAttribute(AttrMaxVelocity, 300);
-	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc, 1.41811846689895);
-	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc2, 0.418118466898955);
-	m_Ship->SetAttribute(AttrMass, 1148000);
+	Notify_OnGodmaShipEffect shipEff;
+	shipEff.itemID = m_Item->itemID();
+	shipEff.effectID = 10;
+	shipEff.when = Win32TimeNow();
+	shipEff.start = 0;
+	shipEff.active = 0;
 
-	m_Item->SetActive(false, 1253, 10000, false);
+	PyList* env = new PyList;
+	env->AddItem(new PyInt(shipEff.itemID));
+	env->AddItem(new PyInt(m_Ship->ownerID()));
+	env->AddItem(new PyInt(m_Ship->itemID()));
+	env->AddItem(new PyInt(targetID));
+	env->AddItem(new PyNone);
+	env->AddItem(new PyNone);
+	env->AddItem(new PyInt(10));
 
-	DoDestiny_SetMaxSpeed speed;
-	speed.entityID = m_Ship->itemID();
-	speed.speedValue = 300;
+	shipEff.environment = env;
+	shipEff.startTime = shipEff.when;
+	shipEff.duration = 1584;
+	shipEff.repeat = new PyInt(0);
+	shipEff.randomSeed = new PyNone;
+	shipEff.error = new PyNone;
 
-	DoDestiny_SetBallMass mass;
-	mass.entityID = m_Ship->itemID();
-	mass.mass = 1148000;
+	PyList* events = new PyList;
+	events->AddItem(shipEff.Encode());
 
-	std::vector<PyTuple *> updates;
-	updates.push_back(speed.Encode());
-	updates.push_back(mass.Encode());
+	Notify_OnMultiEvent multi;
+	multi.events = events;
 
-	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, true);
+	PyTuple* tmp = multi.Encode();
+
+	m_Ship->GetOperator()->SendDogmaNotification("OnMultiEvent", "clientID", &tmp);
 }

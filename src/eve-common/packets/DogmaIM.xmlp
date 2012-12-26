@@ -126,32 +126,24 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Notify_OnDamageMessages">
+  <elementDef name="Notify_OnDamageMessage">
     <tupleInline>
       <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnDamageMessages" />
+      <stringInline value="OnDamageMessage" />
       <!-- this is a list of Notify_OnDamageMessage_* -->
+      <string name="messageID"/>
       <dictInline>
-        <dictInlineEntry key="isBanked">
-          <bool name="isBanked" />
-        </dictInlineEntry>
-        <dictInlineEntry key="hitQuality">
-          <int name="hitQuality" />
-        </dictInlineEntry>
-        <dictInlineEntry key="weapon">
+        <dictInlineEntry key ="weapon">
           <int name="weapon" />
-        </dictInlineEntry>
-        <dictInlineEntry key="damage">
-          <real name="damage" />
         </dictInlineEntry>
         <dictInlineEntry key="splash">
           <string name="splash" />
         </dictInlineEntry>
-        <dictInlineEntry key="attackType">
-          <string name="attackType" />
-        </dictInlineEntry>
         <dictInlineEntry key="target">
-          <long name="target" />
+          <int name="target" />
+        </dictInlineEntry>
+        <dictInlineEntry key="damage">
+          <real name="damage" />
         </dictInlineEntry>
       </dictInline>
     </tupleInline>

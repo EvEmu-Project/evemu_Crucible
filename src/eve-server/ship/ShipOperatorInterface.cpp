@@ -64,7 +64,7 @@ void ShipOperatorInterface::SendNotifyMsg( const char* fmt, va_list args )
     }
 }
 
-void ShipOperatorInterface::SendNotification( const char *notifyType, const char *idType, PyTuple **payload )
+void ShipOperatorInterface::SendDogmaNotification( const char *notifyType, const char *idType, PyTuple **payload )
 {
 	if( m_pClient != NULL )
 		m_pClient->SendNotification( notifyType, idType, payload );
