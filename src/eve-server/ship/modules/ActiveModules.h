@@ -39,7 +39,7 @@ public:
 	virtual void Process()						{/*do nothing*/}
     void Offline();
     void Online();
-	void Activate(uint32 targetID, std::string effectName);
+	void Activate(uint32 targetID);
     void Deactivate();
 
     //access functions
