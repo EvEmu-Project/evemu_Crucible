@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `dgmEffectsInfo` (
   `effectAppliedBehavior` int(11) NOT NULL,
   `effectApplicationType` int(11) NOT NULL,
   `targetEquipmentType` int(11) NOT NULL,
-  `targetGroupIDs` text NOT NULL,
+  `targetGroupIDs` varchar(200) NOT NULL,
   `stackingPenaltyApplied` int(11) NOT NULL,
   PRIMARY KEY (`effectID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

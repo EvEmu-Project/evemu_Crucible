@@ -31,7 +31,7 @@
 #include "utils/Singleton.h"
 
 
-// ////////////////////// Effects Classs ////////////////////////////
+// ////////////////////// Effects Class ////////////////////////////
 typedef std::vector<uint32> typeTargetGroupIDlist;
 
 class MEffect
@@ -135,7 +135,38 @@ private:
 
 	bool m_EffectLoaded;
 };
+//////////////////////////////////////////////////////////////////////////
 
+
+// ///////////////////// Skill Modifiers Class ///////////////////////////
+class SkillBonusModifier
+{
+public:
+    SkillBonusModifier(uint32 skillID);
+    ~SkillBonusModifier();
+private:
+    void _Populate(uint32 effectID);
+  //`skillID` int(11) NOT NULL,  //`effectID` int(11) NOT NULL,  //`sourceAttributeID` int(11) NOT NULL,  //`targetAttributeID` int(11) NOT NULL,  //`calculationTypeID` int(11) NOT NULL,  //`reverseCalculationTypeID` int(11) NOT NULL,  //`effectAppliedTo` int(11) NOT NULL,  //`targetEquipmentType` int(11) NOT NULL,  //`targetGroupIDs` varchar(200) NOT NULL,  //`targetChargeSize` int(11) NOT NULL,
+
+	bool m_ModifierLoaded;
+};
+//////////////////////////////////////////////////////////////////////////
+
+
+// ///////////////////// Ship Modifiers Class ///////////////////////////
+class ShipBonusModifier
+{
+public:
+    ShipBonusModifier(uint32 effectID);
+    ~ShipBonusModifier();
+private:
+    void _Populate(uint32 effectID);
+  //`effectID` int(11) NOT NULL,  //`attributeSkillID` int(11) NOT NULL,  //`sourceAttributeID` int(11) NOT NULL,  //`targetAttributeID` int(11) NOT NULL,  //`calculationTypeID` int(11) NOT NULL,  //`reverseCalculationTypeID` int(11) NOT NULL,  //`effectAppliedTo` int(11) NOT NULL,  //`targetEquipmentType` int(11) NOT NULL,  //`targetGroupIDs` varchar(200) NOT NULL,  //`targetChargeSize` int(11) NOT NULL,	bool m_EffectLoaded;
+};
+//////////////////////////////////////////////////////////////////////////
+
+
+// //////////////// Permanent Memory Object Classes //////////////////////
 
 // This class is a singleton object, containing all Effects loaded from dgmEffects table as memory objects of type MEffect:
 class DGM_Effects_Table
@@ -159,6 +190,41 @@ protected:
 
 #define sDGM_Effects_Table \
     ( DGM_Effects_Table::get() )
+// -----------------------------------------------------------------------
+
+
+// This class is a singleton object, containing all Effects loaded from dgmSkillBonusModifiers table as memory objects of type MEffect:
+class DGM_Skill_Bonus_Modifiers_Table
+: public Singleton< DGM_Skill_Bonus_Modifiers_Table >
+{
+};
+
+#define sDGM_Skill_Bonus_Modifiers_Table \
+    ( DGM_Skill_Bonus_Modifiers_Table::get() )
+// -----------------------------------------------------------------------
+
+
+// This class is a singleton object, containing all Effects loaded from dgmShipBonusModifiers table as memory objects of type MEffect:
+class DGM_Ship_Bonus_Modifiers_Table
+: public Singleton< DGM_Ship_Bonus_Modifiers_Table >
+{
+};
+
+#define sDGM_Ship_Bonus_Modifiers_Table \
+    ( DGM_Ship_Bonus_Modifiers_Table::get() )
+// -----------------------------------------------------------------------
+
+
+// This class is a singleton object, containing all Modifiers loaded from dgmImplantBonusModifiers table as memory objects of type MEffect:
+//class DGM_Implant_Bonus_Modifiers_Table
+//: public Singleton< DGM_Implant_Bonus_Modifiers_Table >
+//{
+//}
+//
+//#define sDGM_Implant_Bonus_Modifiers_Table \
+//    ( DGM_Implant_Bonus_Modifiers_Table::get() )
+// -----------------------------------------------------------------------
+
 //////////////////////////////////////////////////////////////////////////
 
 
