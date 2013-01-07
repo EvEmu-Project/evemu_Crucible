@@ -740,14 +740,18 @@ void Client::Killed(Damage &fatal_blow) {
     DynamicSystemEntity::Killed(fatal_blow);
 
 
-    if(GetShip()->typeID() == itemTypeCapsule) {
+    if(GetShip()->typeID() == itemTypeCapsule)
+	{
+		sLog.Error( "Client::Killed()", "WARNING!  This is likely to crash the server, DO NOT ATTEMPT To POD KILL until this function properly returns client to the station of your last clone update!" );
         //we have been pod killed... off we go.
 
         //TODO: destroy all implants
 
         //TODO: send them back to their clone.
         m_system->RemoveClient(this);
-    } else {
+    }
+	else
+	{
         //our ship has been destroyed. Off to our capsule.
         //We are currently not keeping our real capsule around in the DB, so we need to make a new one.
 
@@ -789,15 +793,24 @@ void Client::Killed(Damage &fatal_blow) {
         if (IsInSpace())
             mSession.SetInt("shipid", capsule->itemID() );
 
-        //This sends the RemoveBall for the old ship.
+		// THIS SECTION IS STILL A WORK-IN-PROGRESS:
+	/*
+        // Board the capsule
+		Destiny()->SendBoardShip( capsule );
 
+		// Remove from system manager
+		System()->bubbles.Remove( this, true );
 
-
+		// Get ref to SystemEntity for dead ship, then remove it from System manager
+		ShipEntity * pDeadShipEntity = (ShipEntity *)(System()->get( dead_ship->itemID() ));
+		System()->bubbles.Remove( pDeadShipEntity, true );
+        if( pDeadShipEntity != NULL )
+            pDeadShipEntity->~ShipEntity();
+	*/
 
         //kill off the old ship.
         //TODO: figure out anybody else which may be referencing this ship...
         dead_ship->Delete();    //remove from the DB.
-
 
     }
 }

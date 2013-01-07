@@ -386,6 +386,9 @@ bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber &num, bool nofit
             return false;
 
     itr->second = num;
+
+	mChanged = true;	// Mark the map as having been modified
+
     return true;
 }
 

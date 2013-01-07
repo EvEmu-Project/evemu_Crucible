@@ -29,6 +29,7 @@
 #include "ship/DestinyManager.h"
 #include "ship/Ship.h"
 #include "ship/ShipOperatorInterface.h"
+#include "system/BubbleManager.h"
 
 /*
  * ShipTypeData
@@ -119,91 +120,91 @@ ShipRef Ship::Spawn(ItemFactory &factory, ItemData &data) {
     ShipRef sShipRef = Ship::Load( factory, shipID );
 
     // Create default dynamic attributes in the AttributeMap:
-    sShipRef->SetAttribute(AttrIsOnline,            1);                                             // Is Online
-    sShipRef->SetAttribute(AttrShieldCharge,        sShipRef->GetAttribute(AttrShieldCapacity));    // Shield Charge
-    sShipRef->SetAttribute(AttrArmorDamage,         0.0);                                           // Armor Damage
-    sShipRef->SetAttribute(AttrMass,                sShipRef->type().attributes.mass());            // Mass
-    sShipRef->SetAttribute(AttrRadius,              sShipRef->type().attributes.radius());          // Radius
-    sShipRef->SetAttribute(AttrVolume,              sShipRef->type().attributes.volume());          // Volume
-    sShipRef->SetAttribute(AttrCapacity,            sShipRef->type().attributes.capacity());        // Capacity
-    sShipRef->SetAttribute(AttrInertia,             1);                                             // Inertia
-    sShipRef->SetAttribute(AttrCharge,              sShipRef->GetAttribute(AttrCapacitorCapacity)); // Set Capacitor Charge to the Capacitor Capacity
+    sShipRef->SetAttribute(AttrIsOnline,            1, true);												// Is Online
+    sShipRef->SetAttribute(AttrShieldCharge,        sShipRef->GetAttribute(AttrShieldCapacity), true);		// Shield Charge
+    sShipRef->SetAttribute(AttrArmorDamage,         0.0, true);												// Armor Damage
+    sShipRef->SetAttribute(AttrMass,                sShipRef->type().attributes.mass(), true);				// Mass
+    sShipRef->SetAttribute(AttrRadius,              sShipRef->type().attributes.radius(), true);			// Radius
+    sShipRef->SetAttribute(AttrVolume,              sShipRef->type().attributes.volume(), true);			// Volume
+    sShipRef->SetAttribute(AttrCapacity,            sShipRef->type().attributes.capacity(), true);			// Capacity
+    sShipRef->SetAttribute(AttrInertia,             1, true);												// Inertia
+    sShipRef->SetAttribute(AttrCharge,              sShipRef->GetAttribute(AttrCapacitorCapacity), true);	// Set Capacitor Charge to the Capacitor Capacity
 
     // Check for existence of some attributes that may or may not have already been loaded and set them
     // to default values:
 	// Hull Damage
 	if( !(sShipRef->HasAttribute(AttrDamage)) )
-        sShipRef->SetAttribute(AttrDamage, 0 );
-    // Maximum Range Capacitor
+        sShipRef->SetAttribute(AttrDamage, 0, true );
+    // Theoretical Maximum Targeting Range
     if( !(sShipRef->HasAttribute(AttrMaximumRangeCap)) )
-        sShipRef->SetAttribute(AttrMaximumRangeCap, 249999.0 );
+        sShipRef->SetAttribute(AttrMaximumRangeCap, ((double)BUBBLE_RADIUS_METERS), true );
     // Maximum Armor Damage Resonance
     if( !(sShipRef->HasAttribute(AttrArmorMaxDamageResonance)) )
-        sShipRef->SetAttribute(AttrArmorMaxDamageResonance, 1.0f);
+        sShipRef->SetAttribute(AttrArmorMaxDamageResonance, 1.0f, true);
     // Maximum Shield Damage Resonance
     if( !(sShipRef->HasAttribute(AttrShieldMaxDamageResonance)) )
-        sShipRef->SetAttribute(AttrShieldMaxDamageResonance, 1.0f);
+        sShipRef->SetAttribute(AttrShieldMaxDamageResonance, 1.0f, true);
     // Warp Speed Multiplier
     if( !(sShipRef.get()->HasAttribute(AttrWarpSpeedMultiplier)) )
-        sShipRef.get()->SetAttribute(AttrWarpSpeedMultiplier, 1.0f);
+        sShipRef.get()->SetAttribute(AttrWarpSpeedMultiplier, 1.0f, true);
     // CPU Load of the ship (new ships have zero load with no modules fitted, of course):
     if( !(sShipRef.get()->HasAttribute(AttrCpuLoad)) )
-        sShipRef.get()->SetAttribute(AttrCpuLoad, 0);
+        sShipRef.get()->SetAttribute(AttrCpuLoad, 0, true);
     // Power Load of the ship (new ships have zero load with no modules fitted, of course):
     if( !(sShipRef.get()->HasAttribute(AttrPowerLoad)) )
-        sShipRef.get()->SetAttribute(AttrPowerLoad, 0);
+        sShipRef.get()->SetAttribute(AttrPowerLoad, 0, true);
 	// Warp Scramble Status of the ship (most ships have zero warp scramble status, but some already have it defined):
 	if( !(sShipRef.get()->HasAttribute(AttrWarpScrambleStatus)) )
-		sShipRef.get()->SetAttribute(AttrWarpScrambleStatus, 0.0);
+		sShipRef.get()->SetAttribute(AttrWarpScrambleStatus, 0.0, true);
 
 	// Shield Resonance
 	// AttrShieldEmDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrShieldEmDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrShieldEmDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrShieldEmDamageResonance, 1.0, true);
 	// AttrShieldExplosiveDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrShieldExplosiveDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrShieldExplosiveDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrShieldExplosiveDamageResonance, 1.0, true);
 	// AttrShieldKineticDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrShieldKineticDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrShieldKineticDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrShieldKineticDamageResonance, 1.0, true);
 	// AttrShieldThermalDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrShieldThermalDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrShieldThermalDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrShieldThermalDamageResonance, 1.0, true);
 
 	// Armor Resonance
 	// AttrArmorEmDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrArmorEmDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrArmorEmDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrArmorEmDamageResonance, 1.0, true);
 	// AttrArmorExplosiveDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrArmorExplosiveDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrArmorExplosiveDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrArmorExplosiveDamageResonance, 1.0, true);
 	// AttrArmorKineticDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrArmorKineticDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrArmorKineticDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrArmorKineticDamageResonance, 1.0, true);
 	// AttrArmorThermalDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrArmorThermalDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrArmorThermalDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrArmorThermalDamageResonance, 1.0, true);
 
 	// Hull Resonance
 	// AttrHullEmDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullEmDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullEmDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrHullEmDamageResonance, 1.0, true);
 	// AttrHullExplosiveDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullExplosiveDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullExplosiveDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrHullExplosiveDamageResonance, 1.0, true);
 	// AttrHullKineticDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullKineticDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullKineticDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrHullKineticDamageResonance, 1.0, true);
 	// AttrHullThermalDamageResonance
 	if( !(sShipRef.get()->HasAttribute(AttrHullThermalDamageResonance)) )
-		sShipRef.get()->SetAttribute(AttrHullThermalDamageResonance, 1.0);
+		sShipRef.get()->SetAttribute(AttrHullThermalDamageResonance, 1.0, true);
 
 	// AttrTurretSlotsLeft
 	if( !(sShipRef.get()->HasAttribute(AttrTurretSlotsLeft)) )
-		sShipRef.get()->SetAttribute(AttrTurretSlotsLeft, 0);
+		sShipRef.get()->SetAttribute(AttrTurretSlotsLeft, 0, true);
 	// AttrLauncherSlotsLeft
 	if( !(sShipRef.get()->HasAttribute(AttrLauncherSlotsLeft)) )
-		sShipRef.get()->SetAttribute(AttrLauncherSlotsLeft, 0);
+		sShipRef.get()->SetAttribute(AttrLauncherSlotsLeft, 0, true);
 
     return sShipRef;
 }
