@@ -35,6 +35,8 @@ public:
     ~Afterburner();
 
     // Module Action Methods:
+	void Process();
+
     void Load();
     void Unload();
     void Repair();

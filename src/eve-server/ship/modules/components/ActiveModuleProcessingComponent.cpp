@@ -29,15 +29,64 @@
 #include "ship/Ship.h"
 #include "ship/modules/components/ActiveModuleProcessingComponent.h"
 
-ActiveModuleProcessingComponent::ActiveModuleProcessingComponent(GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod)
-: m_Stop( false ), m_Mod( mod ), m_Ship( ship ), m_ShipAttrModComp( shipAttrMod ), m_timer(0)
+ActiveModuleProcessingComponent::ActiveModuleProcessingComponent(InventoryItemRef item, GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod)
+: m_Item( item ), m_Mod( mod ), m_Ship( ship ), m_ShipAttrModComp( shipAttrMod ), m_timer(0)
 {
-
+	m_Stop = false;
 }
 
 ActiveModuleProcessingComponent::~ActiveModuleProcessingComponent()
 {
     //nothing to do yet
+}
+
+/****************************************************
+	A little note about the timer:
+		Timer.Check() has two functions:
+			1. It checks if the timer has runed out 
+			2. It subtracts from the start time
+	Don't be fooled by it's name because if you don't
+	call it in a loop, you won't get the time moving.
+*****************************************************/
+
+
+void ActiveModuleProcessingComponent::Process()
+{
+	//check if we have signal to stop the cycle
+	if(!m_Stop)
+	{
+		//check if the timer runed out & subtract time
+		if(m_timer.Check())
+		{
+			if(ShouldProcessActiveCycle())
+			{
+				//time passed and we can drain cap and make/maintain changes to the attributes
+				sLog.Debug("ActiveModuleProcessingComponent", "Cycle finished, processing...");
+				ProcessActiveCycle();
+			}
+			else
+			{
+				m_Item->SetActive(false, 1253, 0, false);
+				m_Stop = true;
+			}
+		}
+	}
+	else
+	{
+		if(m_timer.Check())
+		{
+			//wait for time to run out and send deactivate to client
+			m_timer.Disable();
+			m_Item->SetActive(false, 1253, 0, false);
+		}
+	}
+		
+}
+
+void ActiveModuleProcessingComponent::ActivateCycle()
+{
+	m_Stop = false;
+	m_timer.Start(m_Mod->GetAttribute(AttrDuration).get_int());
 }
 
 void ActiveModuleProcessingComponent::DeactivateCycle()
@@ -48,11 +97,7 @@ void ActiveModuleProcessingComponent::DeactivateCycle()
 //timing and verification function
 bool ActiveModuleProcessingComponent::ShouldProcessActiveCycle()
 {
-    //first check time for cycle timer
-	if(m_Mod->GetAttribute(AttrDuration).get_int() == 0)
-		return false;
-	
-    //next check that we have enough capacitor avaiable
+    //check that we have enough capacitor avaiable
 	if(m_Ship->GetAttribute(AttrCharge) > m_Mod->GetAttribute(AttrCapacitorNeed))
 	{
 		//having enough capacitor to activate the module
@@ -77,9 +122,30 @@ void ActiveModuleProcessingComponent::ProcessActiveCycle()
         return;
 
     //else consume capacitor
-	m_timer.Start(m_Mod->GetAttribute(AttrDuration).get_int());
-	m_Ship->GetAttribute(AttrCharge) -= m_Mod->GetAttribute(AttrCapacitorNeed);
+	EvilNumber capCapacity = m_Ship->GetAttribute(AttrCharge);
+	EvilNumber capNeed = m_Mod->GetAttribute(AttrCapacitorNeed);
+	capCapacity -= capNeed;
 
-    //then check if we are targeting another ship or not
+	m_Ship->SetAttribute(AttrCharge, capCapacity.get_float());
+
+    //then check if we are targeting another ship or not and apply attribute changes
+	//maybe we can have a check for modules that repeat the same attributes so we
+	//send the changes just once at activation and at deactivation
+
+	//--pseudocode--
+	//if(target != self)
+	//	m_ShipAttrComp->ModifyTargetShipAttribute();
+	//else
+	//	m_ShipAttrComp->ModifyShipAttribute();
+}
+
+void ActiveModuleProcessingComponent::ProcessDeactivateCycle()
+{
+	//check to see who is the target
 	
+	//--pseudocode--
+	//if(target != self)
+	//	m_ShipAttrComp->ModifyTargetShipAttribute();
+	//else
+	//	m_ShipAttrComp->ModifyShipAttribute();
 }

@@ -36,10 +36,10 @@ public:
     ActiveModule(InventoryItemRef item, ShipRef ship);
     ~ActiveModule();
 
-    void Process();
+	virtual void Process()						{/*do nothing*/}
     void Offline();
     void Online();
-    void Activate(uint32 targetID);
+	void Activate(uint32 targetID, std::string effectName);
     void Deactivate();
 
     //access functions

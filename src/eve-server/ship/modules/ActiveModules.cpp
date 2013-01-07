@@ -47,11 +47,6 @@ ActiveModule::~ActiveModule()
     m_ShipAttrComp = NULL;
 }
 
-void ActiveModule::Process()
-{
-
-}
-
 void ActiveModule::Offline()
 {
     m_Item->PutOffline();
@@ -64,12 +59,6 @@ void ActiveModule::Online()
 
 void ActiveModule::Activate(uint32 targetID)
 {
-    // Need to somehow send SpecialFX packet from here by calling DestinyManager::SendSpecialEffect()
-    // PROBLEM:
-    //   m_Ship does not have access to DestinyManager
-    //   Client DOES have access to DestinyManager, so we need to pass reference to it down through Ship and into ModuleManager
-	//m_Ship->GetOperator()->GetDestiny()->SendSpecialEffect(m_Ship,"effects.laser",?
-
 	//This will be handled by the Module class itself (eg. Afterburner.cpp)
 }
 

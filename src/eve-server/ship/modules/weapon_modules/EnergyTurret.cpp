@@ -33,7 +33,7 @@ EnergyTurret::EnergyTurret( InventoryItemRef item, ShipRef ship )
     m_Ship = ship;
     m_Effects = new ModuleEffects(m_Item->typeID());
     m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
-	m_ActiveModuleProc = new ActiveModuleProcessingComponent(this, ship ,m_ShipAttrComp);
+	m_ActiveModuleProc = new ActiveModuleProcessingComponent(item, this, ship ,m_ShipAttrComp);
 }
 
 EnergyTurret::~EnergyTurret()
@@ -41,6 +41,10 @@ EnergyTurret::~EnergyTurret()
 
 }
 
+void EnergyTurret::Process()
+{
+	m_ActiveModuleProc->Process();
+}
 
 void EnergyTurret::Load()
 {
