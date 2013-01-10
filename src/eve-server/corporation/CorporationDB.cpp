@@ -703,9 +703,11 @@ PyObject *CorporationDB::GetCorporation(uint32 corpID) {
         "   taxRate,minimumJoinStanding,corporationType,hasPlayerPersonnelManager,"
         "   sendCharTerminationMessage,creatorID,ceoID,stationID,raceID,"
         "   allianceID,shares,memberCount,memberLimit,allowedMemberRaceIDs,"
-        "   graphicID,shape1,shape2,shape3,color1,color2,color3,typeface,"
+		"   shape1,shape2,shape3,color1,color2,color3,typeface,"
         "   division1,division2,division3,division4,division5,division6,"
-        "   division7,deleted,isRecruiting"
+        "   division7,deleted,isRecruiting,warFactionID,walletDivision1,"
+		"   walletDivision2,walletDivision3,walletDivision4,walletDivision5,"
+		"   walletDivision6,walletDivision7"
         " FROM corporation "
         " WHERE corporationID = %u", corpID))
     {

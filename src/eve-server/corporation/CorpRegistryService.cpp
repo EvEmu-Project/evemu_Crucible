@@ -303,17 +303,7 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
 
 bool CorpRegistryBound::JoinCorporation(Client *who, uint32 newCorpID, const CorpMemberInfo &roles) {
 
-    // Change current user's corporation in DB (incl. member counts)
-    if(!m_db.JoinCorporation(
-            who->GetCharacterID(),
-            newCorpID,
-            who->GetCorporationID(),
-            roles)
-    ) {
-        codelog(CLIENT__ERROR, "Failed to update database for corporation join of '%s' to corp %u", who->GetName(), newCorpID);
-        who->SendErrorMsg("Unable to notify about corp creation. Try logging in again.");
-        return false;
-    }
+	who->GetChar()->JoinCorporation(newCorpID, roles);
 
     who->JoinCorporationUpdate(newCorpID);
     return true;

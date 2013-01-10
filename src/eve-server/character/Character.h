@@ -349,6 +349,7 @@ public:
     bool AlterBalance(double balanceChange);
     void SetLocation(uint32 stationID, uint32 solarSystemID, uint32 constellationID, uint32 regionID);
     void JoinCorporation(uint32 corporationID);
+	void JoinCorporation(uint32 corporationID, const CorpMemberInfo &roles);
     void SetDescription(const char *newDescription);
 
     void Delete();
