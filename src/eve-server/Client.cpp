@@ -1434,7 +1434,7 @@ DoDestinyUpdate ,*args= ([(31759,
 
 //assumes that the backend DB stuff was already done.
 void Client::JoinCorporationUpdate(uint32 corp_id) {
-    GetChar()->JoinCorporation(corp_id);
+    //GetChar()->JoinCorporation(corp_id);
 
     _UpdateSession( GetChar() );
 
