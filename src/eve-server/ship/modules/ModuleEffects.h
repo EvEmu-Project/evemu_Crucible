@@ -146,7 +146,16 @@ public:
     ~SkillBonusModifier();
 private:
     void _Populate(uint32 effectID);
-  //`skillID` int(11) NOT NULL,  //`effectID` int(11) NOT NULL,  //`sourceAttributeID` int(11) NOT NULL,  //`targetAttributeID` int(11) NOT NULL,  //`calculationTypeID` int(11) NOT NULL,  //`reverseCalculationTypeID` int(11) NOT NULL,  //`effectAppliedTo` int(11) NOT NULL,  //`targetEquipmentType` int(11) NOT NULL,  //`targetGroupIDs` varchar(200) NOT NULL,  //`targetChargeSize` int(11) NOT NULL,
+  //`skillID` int(11) NOT NULL,
+  //`effectID` int(11) NOT NULL,
+  //`sourceAttributeID` int(11) NOT NULL,
+  //`targetAttributeID` int(11) NOT NULL,
+  //`calculationTypeID` int(11) NOT NULL,
+  //`reverseCalculationTypeID` int(11) NOT NULL,
+  //`effectAppliedTo` int(11) NOT NULL,
+  //`targetEquipmentType` int(11) NOT NULL,
+  //`targetGroupIDs` varchar(200) NOT NULL,
+  //`targetChargeSize` int(11) NOT NULL,
 
 	bool m_ModifierLoaded;
 };
@@ -161,7 +170,18 @@ public:
     ~ShipBonusModifier();
 private:
     void _Populate(uint32 effectID);
-  //`effectID` int(11) NOT NULL,  //`attributeSkillID` int(11) NOT NULL,  //`sourceAttributeID` int(11) NOT NULL,  //`targetAttributeID` int(11) NOT NULL,  //`calculationTypeID` int(11) NOT NULL,  //`reverseCalculationTypeID` int(11) NOT NULL,  //`effectAppliedTo` int(11) NOT NULL,  //`targetEquipmentType` int(11) NOT NULL,  //`targetGroupIDs` varchar(200) NOT NULL,  //`targetChargeSize` int(11) NOT NULL,	bool m_EffectLoaded;
+  //`effectID` int(11) NOT NULL,
+  //`attributeSkillID` int(11) NOT NULL,
+  //`sourceAttributeID` int(11) NOT NULL,
+  //`targetAttributeID` int(11) NOT NULL,
+  //`calculationTypeID` int(11) NOT NULL,
+  //`reverseCalculationTypeID` int(11) NOT NULL,
+  //`effectAppliedTo` int(11) NOT NULL,
+  //`targetEquipmentType` int(11) NOT NULL,
+  //`targetGroupIDs` varchar(200) NOT NULL,
+  //`targetChargeSize` int(11) NOT NULL,
+
+	bool m_EffectLoaded;
 };
 //////////////////////////////////////////////////////////////////////////
 
