@@ -403,9 +403,17 @@ CREATE TABLE `corporation` (
   `division5` varchar(100) default '5th division',
   `division6` varchar(100) default '6th division',
   `division7` varchar(100) default '7th division',
+  `walletDivision1` varchar(100) default '1st wallet division',
+  `walletDivision2` varchar(100) default '2nd wallet division',
+  `walletDivision3` varchar(100) default '3rd wallet division',
+  `walletDivision4` varchar(100) default '4th wallet division',
+  `walletDivision5` varchar(100) default '5th wallet division',
+  `walletDivision6` varchar(100) default '6th wallet division',
+  `walletDivision7` varchar(100) default '7th wallet division',
   `balance` double NOT NULL default '0',
-  `deleted` tinyint(3) unsigned NOT NULL default '0',
+  `deleted` tinyint(4) NOT NULL default '0',
   `isRecruiting` tinyint(1) unsigned NOT NULL default '0',
+  `warFactionID` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY  (`corporationID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

@@ -472,6 +472,7 @@ void Character::SetLocation(uint32 stationID, uint32 solarSystemID, uint32 const
     SaveCharacter();
 }
 
+//TODO: Delete this method as I dont think we ever going to use it.
 void Character::JoinCorporation(uint32 corporationID) {
     m_corporationID = corporationID;
 
@@ -485,6 +486,18 @@ void Character::JoinCorporation(uint32 corporationID) {
     //TODO: recursively change corp on all our items.
 
     SaveCharacter();
+}
+
+void Character::JoinCorporation(uint32 corporationID, const CorpMemberInfo &roles) {
+	m_corporationID = corporationID;
+
+	m_corpRole = roles.corpRole;
+    m_rolesAtAll = roles.rolesAtAll;
+    m_rolesAtBase = roles.rolesAtBase;
+    m_rolesAtHQ = roles.rolesAtHQ;
+	m_rolesAtOther = roles.rolesAtOther;
+
+	SaveCharacter();
 }
 
 void Character::SetDescription(const char *newDescription) {
