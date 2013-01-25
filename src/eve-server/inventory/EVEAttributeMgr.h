@@ -311,6 +311,9 @@ public:
      */
     bool Save();
 
+	// Allow users to force changed flag to true, indicating that Save() should really save attributes to the database
+	void ForceChanged() { mChanged = true; }
+
     bool Delete();
 
     // load the default attributes that come with the itemID

@@ -230,11 +230,14 @@ int main( int argc, char* argv[] )
         std::cout << std::endl << "press any key to exit...";  std::cin.get();
         return 1;
     }
+
     //make the item factory
     ItemFactory item_factory( sEntityList );
+	sLog.Log("server init", "starting item factory");
 
     //now, the service manager...
     PyServiceMgr services( 888444, sEntityList, item_factory );
+	sLog.Log("server init", "starting service manager");
 
     //setup the command dispatcher
     CommandDispatcher command_dispatcher( services );
@@ -326,12 +329,12 @@ int main( int argc, char* argv[] )
 
     // start up the image server
     sImageServer.Run();
+	sLog.Log("server init", "started image server");
 
     // start up the api server
     sAPIServer.CreateServices( services );
     sAPIServer.Run();
-
-    services.serviceDB().SetServerOnlineStatus(true);
+	sLog.Log("server init", "started API server");
 
     // start up the image server
     sLog.Log("server init", "Loading Dynamic Database Table Objects...");
@@ -339,6 +342,11 @@ int main( int argc, char* argv[] )
 
     sLog.Log("server init", "Init done.");
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	//     !!!  DO NOT PUT ANY INITIALIZATION CODE OR CALLS BELOW THIS LINE   !!!
+	/////////////////////////////////////////////////////////////////////////////////////
+	services.serviceDB().SetServerOnlineStatus(true);
+	sLog.Success("server init", "SERVER IS NOW [ONLINE]");
 
     /*
      * THE MAIN LOOP
@@ -396,6 +404,11 @@ int main( int argc, char* argv[] )
     sLog.Log("server shutdown", "API Server TCP listener stopped." );
 
     services.serviceDB().SetServerOnlineStatus(false);
+	sLog.Log("server init", "SERVER IS NOW [OFFLINE]");
+
+	// Shut down the Item system ensuring ALL items get saved to the database:
+	sLog.Log("server shutdown", "Shutting down Item Factory." );
+	item_factory.~ItemFactory();
 
     sLog.Log("server shutdown", "Cleanup db cache" );
     delete _sDgmTypeAttrMgr;

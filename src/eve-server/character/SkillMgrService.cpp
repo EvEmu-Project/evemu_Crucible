@@ -213,13 +213,16 @@ PyResult SkillMgrBound::Handle_RespecCharacter(PyCallArgs &call)
         codelog(CLIENT__ERROR, "Failed to decode RespecCharacter arguments");
         return NULL;
     }
+	
+	CharacterRef cref = call.client->GetChar();
+	if(cref->GetSkillInTraining() != NULL) 
+		throw(PyException(MakeUserError("RespecSkillInTraining")));
 
     // return early if this is an illegal call
     if (!m_db.ReportRespec(call.client->GetCharacterID()))
         return NULL;
 
     // TODO: validate these values (and their sum)
-    CharacterRef cref = call.client->GetChar();
     cref->SetAttribute(AttrCharisma, spec.charisma);
     cref->SetAttribute(AttrIntelligence, spec.intelligence);
     cref->SetAttribute(AttrMemory, spec.memory);
@@ -261,7 +264,8 @@ PyResult SkillMgrBound::Handle_CharStartTrainingSkillByTypeID( PyCallArgs& call 
         return NULL;
     }
 
-    sLog.Debug( "SkillMgrBound", "Called CharStartTrainingSkillByTypeID stub." );
+	sLog.Error("SkillMgrBound::Handle_CharStartTrainingSkillByTypeID()", "TODO: This is used on resuming skill queue, so should be implemented" );
+    //sLog.Debug( "SkillMgrBound", "Called CharStartTrainingSkillByTypeID stub." );
 
     return NULL;
 }

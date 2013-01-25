@@ -824,10 +824,10 @@ void Character::UpdateSkillQueue()
             EvilNumber SPPerMinute = GetSPPerMin( currentTraining );
             EvilNumber NextLevel = currentTraining->GetAttribute(AttrSkillLevel) + 1;
             EvilNumber SPToNextLevel = currentTraining->GetSPForLevel( NextLevel ) - currentTraining->GetAttribute(AttrSkillPoints);
-            sLog.Debug( "    ", "Training skill at %f SP/min", SPPerMinute.get_float() );
-            sLog.Debug( "    ", "%f SP to next Level of %d", SPToNextLevel.get_float(), NextLevel.get_int() );
+			sLog.Debug( "Character::UpdateSkillQueue()", "  Training skill at %f SP/min", SPPerMinute.get_float() );
+			sLog.Debug( "Character::UpdateSkillQueue()", "  %f SP to next Level of %d", SPToNextLevel.get_float(), NextLevel.get_int() );
 
-            SPPerMinute.to_float();
+			SPPerMinute.to_float();
             SPToNextLevel.to_float();
             nextStartTime.to_float();
             EvilNumber timeTraining = nextStartTime + EvilTime_Minute * SPToNextLevel / SPPerMinute;
@@ -1058,16 +1058,23 @@ void Character::SaveCharacter()
     // Save this character's own attributes:
     SaveAttributes();
 
-    // Loop through all skills and invoke mAttributeMap.SaveAttributes() for each
+    // Loop through all skills and save each one:
     std::vector<InventoryItemRef> skills;
     GetSkillsList( skills );
     std::vector<InventoryItemRef>::iterator cur, end;
     cur = skills.begin();
     end = skills.end();
     for(; cur != end; cur++)
-        cur->get()->SaveAttributes();
-        //cur->get()->mAttributeMap.Save();
-    SaveCertificates();
+		cur->get()->SaveItem();
+        //cur->get()->SaveAttributes();
+
+    // Loop through all items owned by this Character and save each one:
+	// TODO
+
+	// Loop through all contracts or other non-item things owned by this Character and save each one:
+	// TODO
+
+	SaveCertificates();
 }
 
 void Character::SaveSkillQueue() const {

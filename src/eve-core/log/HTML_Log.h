@@ -43,7 +43,7 @@ class HTML_Log
 public:
     /// Primary constructor, initializes logging.
     HTML_Log();
-    HTML_Log(std::string logPath);
+    HTML_Log(std::string logPath, std::string logFilename);
     /// Destructor, closes the logfile.
     ~HTML_Log();
 
@@ -186,6 +186,7 @@ protected:
     void SetLogfileDefault(std::string logPath);
 
     /// The active logfile.
+	std::string mLogFilename;
     FILE* mLogfile;
     /// Current timestamp.
     time_t mTime; // crap there should be 1 generic easy to understand time manager.
@@ -195,11 +196,6 @@ protected:
     bool m_initialized;
 
 #ifdef HAVE_WINDOWS_H
-    /// Handle to standard output stream.
-    const HANDLE mStdOutHandle;
-    /// Handle to standard error stream.
-    const HANDLE mStdErrHandle;
-
     /// Color translation table.
     static const WORD COLOR_TABLE[ COLOR_COUNT ];
 #else /* !HAVE_WINDOWS_H */

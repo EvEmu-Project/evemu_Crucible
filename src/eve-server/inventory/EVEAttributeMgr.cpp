@@ -350,13 +350,13 @@ void ItemAttributeMgr::_SendAttributeChange(Attr attr, PyRep *oldValue, PyRep *n
 /************************************************************************/
 /* Start of new attribute system                                        */
 /************************************************************************/
-AttributeMap::AttributeMap( InventoryItem & item ) : mItem(item), mChanged(false), mDefault(false)
+AttributeMap::AttributeMap( InventoryItem & item ) : mItem(item), mChanged(true), mDefault(false)
 {
     // load the initial attributes for this item
     //Load();
 }
 
-AttributeMap::AttributeMap( InventoryItem & item, bool bDefaultMap ) : mItem(item), mChanged(false), mDefault(bDefaultMap)
+AttributeMap::AttributeMap( InventoryItem & item, bool bDefaultMap ) : mItem(item), mChanged(true), mDefault(bDefaultMap)
 {
     // load the initial attributes for this item, if we are acting as container for "default" attributes
     //if(mDefault)
@@ -550,7 +550,7 @@ bool AttributeMap::ResetAttribute(uint32 attrID, bool notify)
     //this isn't particularly efficient, but until I write a better solution, this will do
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res, "SELECT * FROM dgmtypeattributes WHERE typeID='%u'", mItem.typeID())) {
+    if(!sDatabase.RunQuery(res, "SELECT * FROM dgmTypeAttributes WHERE typeID='%u'", mItem.typeID())) {
         sLog.Error("AttributeMap", "Error in db load query: %s", res.error.c_str());
         return false;
     }
@@ -623,6 +623,8 @@ bool AttributeMap::Load()
             attr_value = row.GetDouble(3);
         SetAttribute(attributeID, attr_value, false);
     }
+
+	mChanged = false;  // map has just been loaded from DB, no need to save
 
     return true;
 
@@ -855,6 +857,10 @@ bool AttributeMap::Delete()
 			return false;
 		}
 	}
+
+	mAttributes.clear();
+
+	mChanged = false; // just synced with database, no need to save
 
     return true;
 }

@@ -188,7 +188,7 @@ public:
     /************************************************************************/
     /* start experimental new attribute system ( semi-operational )         */
     /************************************************************************/
-private:
+protected:
     AttributeMap mAttributeMap;
     AttributeMap mDefaultAttributeMap;
 public:

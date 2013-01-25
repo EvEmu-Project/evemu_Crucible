@@ -62,23 +62,29 @@ const char* const HTML_Log::COLOR_TABLE[ COLOR_COUNT ] =
 
 HTML_Log::HTML_Log()
 : mLogfile( NULL ),
-  mTime( 0 )
-#ifdef HAVE_WINDOWS_H
-  ,mStdOutHandle( GetStdHandle( STD_OUTPUT_HANDLE ) ),
-  mStdErrHandle( GetStdHandle( STD_ERROR_HANDLE ) )
-#endif /* HAVE_WINDOWS_H */
+  mTime( 0 ),
+  mLogFilename( "" )
 {
-    //// open default logfile
-    //std::string logPath = EVEMU_ROOT "/log/";
-    //SetLogfileDefault(logPath);
-
-    //Debug( "Log", "Log system initiated" );
+	assert(false);		// DO NOT EVER call the empty parameter constructor!
     m_initialized = false;
+}
+
+HTML_Log::HTML_Log(std::string logPath, std::string logFilename)
+{
+    // use default logpath if logPath is empty
+    if( logPath.empty() )
+        logPath = EVEMU_ROOT "/log/";
+
+    m_initialized = true;
+
+	SetLogfileDefault(logPath + logFilename);
+
+    Debug( "Log", "Log system initiated" );
 }
 
 HTML_Log::~HTML_Log()
 {
-    Debug( "Log", "Log system shutting down" );
+	Debug( mLogFilename.c_str(), "Log system shutting down" );
 
     // close logfile
     SetLogfile( (FILE*)NULL );
@@ -86,15 +92,15 @@ HTML_Log::~HTML_Log()
 
 void HTML_Log::InitializeLogging( std::string logPath )
 {
-    // open default logfile
+    // use default logpath if logPath is empty
     if( logPath.empty() )
         logPath = EVEMU_ROOT "/log/";
 
     m_initialized = true;
 
-    SetLogfileDefault(logPath);
+    SetLogfileDefault(logPath + mLogFilename);
 
-    Debug( "Log", "Log system initiated" );
+	Debug( mLogFilename.c_str(), "Log system initiated" );
 }
 
 void HTML_Log::Log( const char* source, const char* fmt, ... )
@@ -256,12 +262,6 @@ void HTML_Log::SetColor( Color color )
     assert( 0 <= color && color < COLOR_COUNT );
 
     MutexLock l( mMutex );
-
-#ifdef HAVE_WINDOWS_H
-    ::SetConsoleTextAttribute( mStdOutHandle, COLOR_TABLE[ color ] );
-#else /* !HAVE_WINDOWS_H */
-    ::fputs( COLOR_TABLE[ color ], stdout );
-#endif /* !HAVE_WINDOWS_H */
 }
 
 void HTML_Log::SetLogfileDefault(std::string logPath)

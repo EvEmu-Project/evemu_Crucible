@@ -39,12 +39,22 @@ ItemFactory::~ItemFactory() {
     // items
     {
         std::map<uint32, InventoryItemRef>::const_iterator cur, end;
+		uint32 total_item_count = m_items.size();
+		uint32 items_saved = 0;
+		float current_percent_items_saved = 0.0;
         cur = m_items.begin();
         end = m_items.end();
         for(; cur != end; cur++) {
-            // save attributes of item (because of rechargable attributes)
-            //cur->second->attributes.Save();
+            // save attributes of item
+			cur->second->SaveItem();
+			items_saved++;
+			if( ((float)items_saved / (float)total_item_count) > (current_percent_items_saved + 0.05) )
+			{
+				current_percent_items_saved = (float)items_saved / (float)total_item_count;
+				sLog.Log( "Saving Items:", " %3.2f%% complete...", (current_percent_items_saved * 100.0) );
+			}
         }
+		sLog.Log( "Saving Items:", " 100%% complete!" );
     }
     // types
     {

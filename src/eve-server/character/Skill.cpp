@@ -64,6 +64,7 @@ SkillRef Skill::Spawn(ItemFactory &factory, ItemData &data)
     SkillRef skillRef = Skill::Load( factory, skillID );
 
     skillRef->SetAttribute(AttrIsOnline, 1);      // Is Online
+	skillRef->SaveItem();
 
     return skillRef;
 }

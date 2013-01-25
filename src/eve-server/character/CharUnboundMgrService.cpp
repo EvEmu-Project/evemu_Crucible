@@ -142,6 +142,7 @@ PyResult CharUnboundMgrService::Handle_CancelCharacterDeletePrepare(PyCallArgs &
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharacterInfo(PyCallArgs &call) {
+	_log(CLIENT__MESSAGE, "Called GetCharacterInfo stub");
     return NULL;
 }
 
@@ -391,6 +392,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     //sDatabase.RunQuery(res, "UPDATE character_ SET shipID = %u WHERE characterID = %u", ship_item->itemID(), char_item->itemID());
     char_item->SetActiveShip( ship_item->itemID() );
     char_item->SaveCharacter();
+	ship_item->SaveItem();
 
     if( !ship_item ) {
         codelog(CLIENT__ERROR, "%s: Failed to spawn a starting item", char_item->itemName().c_str());
