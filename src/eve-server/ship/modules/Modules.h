@@ -56,16 +56,16 @@ public:
     //    assert(false); //crash if they don't
     }
 
-    virtual void Process()                                        { /* Do nothing here */ }
-    virtual void Offline()                                        { /* Do nothing here */ }
-    virtual void Online()                                        { /* Do nothing here */ }
-    virtual void Activate(uint32 targetID)                        { /* Do nothing here */ }
-    virtual void Deactivate()                                    { /* Do nothing here */ }
-    virtual void Load(InventoryItemRef charge)                    { /* Do nothing here */ }
-    virtual void Unload()                                        { /* Do nothing here */ }
-    virtual void Overload()                                        { /* Do nothing here */ }
-    virtual void DeOverload()                                    { /* Do nothing here */ }
-    virtual void DestroyRig()                                    { /* Do nothing here */ }
+    virtual void Process()											{ /* Do nothing here */ }
+    virtual void Offline()											{ /* Do nothing here */ }
+    virtual void Online()											{ /* Do nothing here */ }
+	virtual void Activate(uint32 targetID)							{ /* Do nothing here */ }
+    virtual void Deactivate()										{ /* Do nothing here */ }
+    virtual void Load(InventoryItemRef charge)						{ /* Do nothing here */ }
+    virtual void Unload()											{ /* Do nothing here */ }
+    virtual void Overload()											{ /* Do nothing here */ }
+    virtual void DeOverload()										{ /* Do nothing here */ }
+    virtual void DestroyRig()										{ /* Do nothing here */ }
 
 
     virtual void Repair()                                        { m_Item->ResetAttribute(AttrHp, true); }
