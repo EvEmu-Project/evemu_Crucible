@@ -425,8 +425,10 @@ bool Character::_Load()
     if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
         return false;
 
-    // Calculate total SP trained and store in internal variable:
-    _CalculateTotalSPTrained();
+	// Update Skill Queue and Total Skill Points Trained:
+	UpdateSkillQueue();
+    // OLD //// Calculate total SP trained and store in internal variable:
+    // OLD //_CalculateTotalSPTrained();
 
     if( !m_factory.db().LoadCertificates( itemID(), m_certificates ) )
         return false;

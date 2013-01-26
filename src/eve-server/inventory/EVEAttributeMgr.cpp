@@ -624,8 +624,6 @@ bool AttributeMap::Load()
         SetAttribute(attributeID, attr_value, false);
     }
 
-	mChanged = false;  // map has just been loaded from DB, no need to save
-
     return true;
 
 /*
