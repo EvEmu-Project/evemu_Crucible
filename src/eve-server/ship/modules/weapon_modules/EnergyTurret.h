@@ -20,23 +20,23 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        Reve
 */
 
-#ifndef __AFTERBURNER_H__
-#define __AFTERBURNER_H__
+#ifndef __ENERGYTURRET_H__
+#define __ENERGYTURRET_H__
 
 #include "ship/modules/ActiveModules.h"
 
-class Afterburner: public ActiveModule
+class EnergyTurret: public ActiveModule
 {
 public:
-    Afterburner( InventoryItemRef item, ShipRef ship );
-    ~Afterburner();
+    EnergyTurret( InventoryItemRef item, ShipRef ship );
+    ~EnergyTurret();
 
-    // Module Action Methods:
 	void Process();
 
+    // Module Action Methods:
     void Load();
     void Unload();
     void Repair();

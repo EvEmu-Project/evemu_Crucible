@@ -33,7 +33,7 @@ Afterburner::Afterburner( InventoryItemRef item, ShipRef ship )
     m_Ship = ship;
     m_Effects = new ModuleEffects(m_Item->typeID());
     m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
-	m_ActiveModuleProc = new ActiveModuleProcessingComponent(this, ship ,m_ShipAttrComp);
+	m_ActiveModuleProc = new ActiveModuleProcessingComponent(item, this, ship ,m_ShipAttrComp);
 }
 
 Afterburner::~Afterburner()
@@ -41,6 +41,10 @@ Afterburner::~Afterburner()
 
 }
 
+void Afterburner::Process()
+{
+	m_ActiveModuleProc->Process();
+}
 
 void Afterburner::Load()
 {
@@ -74,6 +78,8 @@ void Afterburner::DestroyRig()
 
 void Afterburner::Activate(uint32 targetID)
 {
+	m_ActiveModuleProc->ActivateCycle();
+
 	m_Ship->SetAttribute(AttrCharge, 134.999996046585);
 	m_Ship->SetAttribute(AttrMaxVelocity, 387);
 	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc, 1.29126213592233);
@@ -99,12 +105,12 @@ void Afterburner::Activate(uint32 targetID)
 
 void Afterburner::Deactivate() 
 {
+	m_ActiveModuleProc->DeactivateCycle();
+
 	m_Ship->SetAttribute(AttrMaxVelocity, 300);
 	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc, 1.41811846689895);
 	m_Ship->SetAttribute(AttrSpeedBoostFactorCalc2, 0.418118466898955);
 	m_Ship->SetAttribute(AttrMass, 1148000);
-
-	m_Item->SetActive(false, 1253, 10000, false);
 
 	DoDestiny_SetMaxSpeed speed;
 	speed.entityID = m_Ship->itemID();

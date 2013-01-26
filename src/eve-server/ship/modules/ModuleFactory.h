@@ -32,6 +32,7 @@
 #include "RigModule.h"
 #include "SubSystemModules.h"
 #include "ship/modules/propulsion_modules/Afterburner.h"
+#include "ship/modules/weapon_modules/EnergyTurret.h"
 
 //how you should access the modules
 static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
@@ -141,7 +142,7 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
             case EVEDB::invGroups::Shield_Disruptor:                        return NULL;    // Active
 
             // Weapon Modules Subgroup:
-            case EVEDB::invGroups::Energy_Weapon:                           return (new ActiveModule(item, ship)); break;    // Active
+            case EVEDB::invGroups::Energy_Weapon:                           return (new EnergyTurret(item, ship)); break;    // Active
             case EVEDB::invGroups::Projectile_Weapon:                       return (new ActiveModule(item, ship)); break;    // Active
             case EVEDB::invGroups::Gyrostabilizer:                          return (new PassiveModule(item, ship)); break;
             case EVEDB::invGroups::Energy_Vampire:                          return NULL;    // Active
