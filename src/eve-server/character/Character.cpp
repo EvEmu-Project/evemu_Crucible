@@ -419,21 +419,26 @@ uint32 Character::_Spawn(ItemFactory &factory,
 
 bool Character::_Load()
 {
+	bool bLoadSuccessful = false;
+
     if( !LoadContents( m_factory ) )
         return false;
 
     if( !m_factory.db().LoadSkillQueue( itemID(), m_skillQueue ) )
         return false;
 
+    bLoadSuccessful = Owner::_Load();
+
 	// Update Skill Queue and Total Skill Points Trained:
-	UpdateSkillQueue();
+	if( bLoadSuccessful )
+		UpdateSkillQueue();
     // OLD //// Calculate total SP trained and store in internal variable:
     // OLD //_CalculateTotalSPTrained();
 
     if( !m_factory.db().LoadCertificates( itemID(), m_certificates ) )
         return false;
 
-    return Owner::_Load();
+	return bLoadSuccessful;
 }
 
 void Character::Delete() {

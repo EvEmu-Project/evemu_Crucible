@@ -312,7 +312,7 @@ public:
     bool Save();
 
 	// Allow users to force changed flag to true, indicating that Save() should really save attributes to the database
-	void ForceChanged() { mChanged = true; }
+	void ForceChanged() { ; }//mChanged = true; }
 
     bool Delete();
 

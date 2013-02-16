@@ -370,6 +370,7 @@ bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber &num, bool nofit
     /* most attribute have default value's which are related to the item type */
     if (itr == mAttributes.end()) {
         mAttributes.insert(std::make_pair(attributeId, num));
+		mChanged = true;	// Mark the map as having been modified by a new attribute being added
         if (nofity == true)
             return Add(attributeId, num);
         return true;

@@ -927,7 +927,6 @@ void InventoryItem::SaveItem()
 {
     //_log( ITEM__TRACE, "Saving item %u.", itemID() );
 
-    //mAttributeMap.Save();
     SaveAttributes();
 
     m_factory.db().SaveItem(

@@ -355,10 +355,9 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         //if( !(skillPoints.to_int()) )
         //    sLog.Error( "CharacterService::Handle_CreateCharacter2()", "skillPoints.to_int() failed, resulting in a floating point value larger than a 64-bit signed integer... o.O !!" );
         i->SetAttribute(AttrSkillPoints, skillPoints );
-		i->ForceAttributesChanged();
-		i->ForceDefaultAttributesChanged();
+		//i->ForceAttributesChanged();
+		//i->ForceDefaultAttributesChanged();
         i->SaveAttributes();
-        //i->mAttributeMap.Save();
     }
 
     //now set up some initial inventory:
