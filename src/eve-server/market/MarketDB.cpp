@@ -76,11 +76,11 @@ PyRep *MarketDB::GetRegionBest(uint32 regionID) {
 
     if(!sDatabase.RunQuery(res,
         "SELECT"
-        "    typeID, MAX(price) AS price, volRemaining, stationID "
+        "    typeID, MIN(price) AS price, volRemaining, stationID "
         " FROM market_orders "
-        //" WHERE regionID=%u AND bid=0"
-        " WHERE regionID=%u"
-        " GROUP BY typeID", regionID))
+        " WHERE regionID=%u AND bid=%d"
+        //" WHERE regionID=%u"
+        " GROUP BY typeID", regionID, TransactionTypeSell))
     {
         codelog(MARKET__ERROR, "Error in query: %s", res.error.c_str());
         return NULL;
