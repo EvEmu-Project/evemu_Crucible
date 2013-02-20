@@ -140,7 +140,7 @@ PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
     if(!sDatabase.RunQuery(res,
         "SELECT"
         "    price, volRemaining, typeID, `range`, orderID,"
-        "   volEntered, minVolume, bid, issued, duration,"
+        "   volEntered, minVolume, bid, issued as issueDate, duration,"
         "   stationID, regionID, solarSystemID, jumps"
         " FROM market_orders "
         " WHERE regionID=%u AND typeID=%u AND bid=%d", regionID, typeID, TransactionTypeSell))
@@ -150,6 +150,7 @@ PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
         PyDecRef( tup );
         return NULL;
     }
+    sLog.Debug("MarketDB::GetOrders", "Fetched %d sell orders for type %d", res.GetRowCount(), typeID);
 
     //this is wrong.
     tup->AddItem( DBResultToCRowset( res ) );
@@ -158,7 +159,7 @@ PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
     if(!sDatabase.RunQuery(res,
         "SELECT"
         "    price, volRemaining, typeID, `range`, orderID,"
-        "   volEntered, minVolume, bid, issued, duration,"
+        "   volEntered, minVolume, bid, issued as issueDate, duration,"
         "   stationID, regionID, solarSystemID, jumps"
         " FROM market_orders "
         " WHERE regionID=%u AND typeID=%u AND bid=%d", regionID, typeID, TransactionTypeBuy))
@@ -168,6 +169,7 @@ PyRep *MarketDB::GetOrders( uint32 regionID, uint32 typeID )
         PyDecRef( tup );
         return NULL;
     }
+    sLog.Debug("MarketDB::GetOrders", "Fetched %d buy orders for type %d", res.GetRowCount(), typeID);
 
     //this is wrong.
     tup->AddItem( DBResultToCRowset( res ) );
@@ -182,7 +184,7 @@ PyRep *MarketDB::GetCharOrders(uint32 characterID) {
         "SELECT"
         "   orderID, typeID, charID, regionID, stationID,"
         "   `range`, bid, price, volEntered, volRemaining,"
-        "   issued, orderState, minVolume, contraband,"
+        "   issued as issueDate, orderState, minVolume, contraband,"
         "   accountID, duration, isCorp, solarSystemID,"
         "   escrow"
         " FROM market_orders "
@@ -201,7 +203,7 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
     if(!sDatabase.RunQuery(res,
         "SELECT"
         "    price, volRemaining, typeID, `range`, orderID,"
-        "   volEntered, minVolume, bid, issued, duration,"
+        "   volEntered, minVolume, bid, issued as issueDate, duration,"
         "   stationID, regionID, solarSystemID, jumps"
         " FROM market_orders"
         " WHERE orderID=%u", orderID))
