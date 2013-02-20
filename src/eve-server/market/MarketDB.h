@@ -55,7 +55,7 @@ public:
     PyRep *GetNewPriceHistory(uint32 regionID, uint32 typeID);
     PyRep *GetTransactions(uint32 characterID, uint32 typeID, uint32 quantity, double minPrice, double maxPrice, uint64 fromDate, int buySell);
 
-    PyObject *GetMarketGroups();
+    PyRep *GetMarketGroups();
     PyObject *GetRefTypes();
     PyObject *GetCorporationBills(uint32 corpID, bool payable);
 
