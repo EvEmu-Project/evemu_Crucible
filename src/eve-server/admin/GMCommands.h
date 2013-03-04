@@ -35,6 +35,8 @@ COMMAND( setattr, ROLE_ADMIN,
          "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
 COMMAND( fit, ROLE_ADMIN,
         "(itemID) - Fits selected item to active ship." )
+COMMAND( giveallskills, ROLE_ADMIN,
+        "['me'|<characterID>] - gives ALL skills to designated character or self" )
 COMMAND( giveskill, ROLE_ADMIN,
         "(itemID) - gives skills to fit item." )
 COMMAND( online, ROLE_ADMIN,
@@ -67,6 +69,4 @@ COMMAND( chatban, ROLE_ADMIN,
         "(characterID) - bans character from channel" )
 COMMAND( whois, ROLE_ADMIN,
         "(characterName) - returns information on character")
-COMMAND( giveallskills, ROLE_ADMIN,
-        "(characterID) - gives all skills to character")
 */
