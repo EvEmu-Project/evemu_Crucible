@@ -200,4 +200,50 @@ protected:
     static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
 };
 
+
+/**
+ * @brief Python object "dbutil.CFilterRowset".
+ *
+ * This object contains DBRowDescriptor header
+ * and dict of key->CRowset(PyPackedRows).
+ *
+ * @author positron96
+ */
+class CFilterRowSet
+: public PyObjectEx_Type2
+{
+public:
+    /**
+     * @param[in] rowDesc DBRowDescriptor header to be used.
+     */
+    CFilterRowSet( DBRowDescriptor** rowDesc );
+
+    /**
+     * @return Row count.
+     */
+    size_t GetKeyCount() const { return dict().size(); }
+
+	CRowSet* GetRowset( PyRep *key) const { return (CRowSet*)(dict().GetItem( key )); }
+	
+    /**
+     * @param[in] Index of row to be returned.
+     *
+     * @return Row with given index.
+     */
+    PyPackedRow* GetRow( PyRep* key, uint32 index ) 
+		const { return GetRowset(key)->GetRow( index )->AsPackedRow(); }
+
+    /**
+     * @return New rowset which user may fill.
+     */
+    CRowSet* NewRowset( PyRep* key );
+
+protected:
+    DBRowDescriptor* _GetRowDesc() const;
+    //PyList* _GetColumnList() const;
+
+    static PyTuple* _CreateArgs();
+    static PyDict* _CreateKeywords(DBRowDescriptor* rowDesc);
+};
+
 #endif /* !__PY_DATABASE_H__INCL__ */
