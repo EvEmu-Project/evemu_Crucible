@@ -459,10 +459,18 @@ PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, cons
     {
         if( !(args.isNumber(2)) )
             throw PyException( MakeCustomError( "Argument 2 should be the X distance from your ship in meters you want the item spawned" ) );
-        if( !(args.isNumber(3)) )
-            throw PyException( MakeCustomError( "Argument 3 should be the Y distance from your ship in meters you want the item spawned" ) );
-        if( !(args.isNumber(4)) )
-            throw PyException( MakeCustomError( "Argument 4 should be the Z distance from your ship in meters you want the item spawned" ) );
+
+		if( args.argCount() > 3 )
+			if( !(args.isNumber(3)) )
+	            throw PyException( MakeCustomError( "Argument 3 should be the Y distance from your ship in meters you want the item spawned" ) );
+		else
+            throw PyException( MakeCustomError( "TOO FEW PARAMETERS: Correct Usage: /spawn [typeID(int)/typeName(string)]  with optional X Y Z coordinate as in /spawn [typeID(int/typeName(string)] [x(float)] [y(float)] [z(float)]" ) );
+
+		if( args.argCount() > 4 )
+			if( !(args.isNumber(4)) )
+				throw PyException( MakeCustomError( "Argument 4 should be the Z distance from your ship in meters you want the item spawned" ) );
+		else
+            throw PyException( MakeCustomError( "TOO FEW PARAMETERS: Correct Usage: /spawn [typeID(int)/typeName(string)]  with optional X Y Z coordinate as in /spawn [typeID(int/typeName(string)] [x(float)] [y(float)] [z(float)]" ) );
 
         offsetLocation.x = atoi( args.arg( 2 ).c_str() );
         offsetLocation.y = atoi( args.arg( 3 ).c_str() );
@@ -756,6 +764,111 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
 
         return new PyString( "Creation successful." );
     }
+}
+
+PyResult Command_giveallskills( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args )
+{
+    uint8 level = 5;			// Ensure that ALL skills trained are trained to level 5
+    CharacterRef character;
+    EVEItemFlags flag;
+    uint32 gty = 1;
+    //uint8 oldSkillLevel = 0;
+    EvilNumber oldSkillLevel(0);
+    uint32 ownerID = 0;
+	Client * clientPtr = NULL;
+
+    if( args.argCount() >= 2 )
+    {
+        if( args.isNumber( 1 ) )
+        {
+            ownerID = atoi( args.arg( 1 ).c_str() );
+            clientPtr = services->entity_list.FindCharacter( ownerID );
+			if( clientPtr == NULL )
+				throw PyException( MakeCustomError( "ERROR: Cannot find character #%d", ownerID ) );
+			else
+				character = clientPtr->GetChar();
+        }
+        else if( args.arg( 1 ) == "me" )
+        {
+            ownerID = who->GetCharacterID();
+            character = who->GetChar();
+        }
+        else if( !args.isNumber( 1 ) )
+        {
+            throw PyException( MakeCustomError( "The use of string based Character names for this command is not yet supported!  Use 'me' instead or the entityID of the character to which you wish to give skills." ) );
+            /*
+            const char *name = args.arg( 1 ).c_str();
+            Client *target = services->entity_list.FindCharacter( name );
+            if(target == NULL)
+                throw PyException( MakeCustomError( "Cannot find Character by the name of %s", name ) );
+            ownerID = target->GetCharacterID();
+            character = target->GetChar();
+            */
+        }
+        else
+            throw PyException( MakeCustomError( "Argument 1 must be Character ID or Character Name ") );
+    }
+	else
+        throw PyException( MakeCustomError("Correct Usage: /giveallskills [Character Name or ID]") );
+
+    SkillRef skill;
+
+    // Make sure character reference is not NULL before trying to use it:
+    if( character != NULL )
+    {
+		// Query Database to get list of ALL skills, then LOOP through each one, checking character for skill, setting level to 5:
+		// QUERY DB FOR LIST OF ALL SKILLS:
+		//		SELECT * FROM `invtypes` WHERE `groupID` IN (SELECT groupID FROM invGroups WHERE categoryID = 16)
+		// LOOP through each skill
+		std::vector<uint32> skillList;
+		db->FullSkillList( skillList );
+
+		std::vector<uint32>::const_iterator skill_cur, skill_end;
+		skill_cur = skillList.begin();
+		skill_end = skillList.end();
+
+		uint32 skillID = 0;
+		for( ; skill_cur != skill_end; skill_cur++ )
+		{
+			skillID = *skill_cur;
+			if(character->HasSkill( skillID ) )
+			{
+				// Character already has this skill, so let's get the current level and check to see
+				// if we need to update its level to what's required:
+				SkillRef oldSkill = character->GetSkill( skillID );
+				oldSkillLevel = oldSkill->GetAttribute( AttrSkillLevel );
+
+				// Now check the current level to the required level and update it
+				if( oldSkillLevel < level )
+					character->InjectSkillIntoBrain( oldSkill, level);
+			}
+			else
+			{
+				// Character DOES NOT have this skill, so spawn a new one and then add this
+				// to the character with required level and skill points:
+				ItemData idata(
+					skillID,
+					ownerID,
+					0, //temp location
+					flag = (EVEItemFlags)flagSkill,
+					gty
+				);
+
+				InventoryItemRef item = services->item_factory.SpawnItem( idata );
+				skill = SkillRef::StaticCast( item );
+
+				if( !item )
+					throw PyException( MakeCustomError( "ERROR: Unable to create item of type %s.", item->typeID() ) );
+
+				character->InjectSkillIntoBrain( skill, level);
+			}
+		}
+		// END LOOP
+    }
+	else
+		throw PyException( MakeCustomError( "ERROR: Unable to validate character object, it was found to be NULL!" ) );
+
+    return new PyString ("Skill Gifting Failure");
 }
 
 PyResult Command_giveskills( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args ) {

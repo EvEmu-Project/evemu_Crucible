@@ -170,26 +170,36 @@ int CommandDB::GetAccountID(std::string name) {
 
 }
 
+bool CommandDB::FullSkillList(std::vector<uint32> &skillList) {
 
+    DBQueryResult result;
+    DBResultRow row;
 
+    skillList.clear();
 
+    if (!sDatabase.RunQuery(result,
+        " SELECT * FROM `invtypes` WHERE "
+		" ((`groupID` IN (SELECT groupID FROM invGroups WHERE categoryID = 16)) AND (published = 1)) "
+        ))
+    {
+        codelog(SERVICE__ERROR, "Error in query: %s", result.error.c_str());
+        return (false);
+    }
 
+    while(result.GetRow(row)) {
+		skillList.push_back( (row.GetUInt(0)) );
+    }
 
+	// Because we searched skills with published = 1 and some GM skills are not published but still usable,
+	// we will add them manually here:
+	skillList.push_back( 3755 );	// Jove Frigate
+	skillList.push_back( 3758 );	// Jove Cruiser
+	skillList.push_back( 9955 );	// Polaris
+	skillList.push_back( 10264 );	// Concord
+	skillList.push_back( 11075 );	// Jove Industrial
+	skillList.push_back( 11078 );	// Jove Battleship
+	skillList.push_back( 19430 );	// Omnipotent
+	skillList.push_back( 28604 );	// Tournament Observation
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return true;
+}
