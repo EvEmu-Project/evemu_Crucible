@@ -1,7 +1,7 @@
 -- seeds specified rgion with skills and ships
 
 set @regionid=10000002; -- regionID, this is The Forge
-set @saturation=0.2; -- 20% of stations are filled with orders
+set @saturation=0.6; -- 60% of stations are filled with orders
 -- change "categoryID in (16,6)" to categories you want to be seeded
 
 use evemu;
