@@ -93,7 +93,7 @@ public:
 
 protected:
     virtual void AddItem(InventoryItemRef item);
-    virtual void RemoveItem(uint32 itemID);
+    virtual void RemoveItem(InventoryItemRef item);
 
     virtual bool GetItems(ItemFactory &factory, std::vector<uint32> &into) const { return factory.db().GetItemContents( inventoryID(), into ); }
 

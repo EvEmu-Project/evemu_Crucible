@@ -183,7 +183,7 @@ public:
     /************************************************************************/
     /* start experimental new attribute system ( semi-operational )         */
     /************************************************************************/
-protected:
+private:
     AttributeMap mAttributeMap;
     AttributeMap mDefaultAttributeMap;
 public:
@@ -224,20 +224,6 @@ public:
      *@note this function will force reload the default value for the specified attribute
      */
     bool ResetAttribute(uint32 attrID, bool notify);
-
-	/*
-     * ForceAttributesChanged
-     *
-     *@note this function will force 'changed' on the attribute map, forcing a save to database next time SaveAttributes() is invoked
-     */
-	void ForceAttributesChanged() { mAttributeMap.ForceChanged(); }
-
-	/*
-     * ForceDefaultAttributesChanged
-     *
-     *@note this function will force 'changed' on the default attribute map, forcing a save to database next time SaveAttributes() is invoked
-     */
-	void ForceDefaultAttributesChanged() { mDefaultAttributeMap.ForceChanged(); }
     /************************************************************************/
     /* end experimental new attribute system                                */
     /************************************************************************/

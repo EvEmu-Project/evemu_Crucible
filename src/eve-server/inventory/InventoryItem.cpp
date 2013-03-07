@@ -742,7 +742,7 @@ void InventoryItem::Move(uint32 new_location, EVEItemFlags new_flag, bool notify
     //first, take myself out of my old inventory, if its loaded.
     Inventory *old_inventory = m_factory.GetInventory( old_location, false );
     if(old_inventory != NULL)
-        old_inventory->RemoveItem( itemID() );  //releases its ref
+        old_inventory->RemoveItem( InventoryItemRef( this ) );  //releases its ref
 
     m_locationID = new_location;
     m_flag = new_flag;
