@@ -107,7 +107,12 @@ void MEffect::_Populate(uint32 effectID)
     m_SourceAttributeIDs = new int[res->GetRowCount()];
     m_CalculationTypeIDs = new int[res->GetRowCount()];
     m_ReverseCalculationTypeIDs = new int[res->GetRowCount()];
-
+    m_EffectAppliedToTargetIDs = new int[res->GetRowCount()];
+    m_EffectAppliedBehaviorIDs = new int[res->GetRowCount()];
+    m_EffectApplicationTypeIDs = new int[res->GetRowCount()];
+    m_TargetEquipmentTypeIDs = new int[res->GetRowCount()];
+    m_StackingPenaltyAppliedIDs = new int[res->GetRowCount()];
+    
 	int count = 0;
     std::string targetGroupIDs;
     typeTargetGroupIDlist * TargetGroupIDs;
