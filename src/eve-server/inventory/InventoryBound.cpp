@@ -413,9 +413,12 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                 // window and NOT onto a specific slot.  'flagAutoFit' means "put this module into which ever slot makes sense")
                 if( (flag == flagAutoFit) )
                 {
-                    sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: handling adding modules where flag = flagAutoFit not yet supported!!!" );
-                    // uint32 newFlag = c->GetShip()->FindAvailableModuleSlot( newItem );
-                    // c->GetShip()->AddItem( newFlag, newItem );
+					sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: handling adding modules where flag = flagAutoFit not yet supported!!!" );
+					EVEItemFlags newFlag = (EVEItemFlags)(c->GetShip()->FindAvailableModuleSlot( sourceItem ));
+					if( newFlag == flagIllegal )
+						sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: Attempt to auto-fit module failed!  'flagIllegal' returned from FindAvailableModuleSlot()" );
+					else
+						c->GetShip()->AddItem( newFlag, sourceItem );
                 }
                 else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
                 {
@@ -464,8 +467,11 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             if( (flag == flagAutoFit) )
             {
                 sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: handling adding modules where flag = flagAutoFit not yet supported!!!" );
-                // uint32 newFlag = c->GetShip()->FindAvailableModuleSlot( sourceItem );
-                // c->GetShip()->AddItem( newFlag, sourceItem );
+                EVEItemFlags newFlag = (EVEItemFlags)(c->GetShip()->FindAvailableModuleSlot( sourceItem ));
+                if( newFlag == flagIllegal )
+					sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: Attempt to auto-fit module failed!  'flagIllegal' returned from FindAvailableModuleSlot()" );
+				else
+					c->GetShip()->AddItem( newFlag, sourceItem );
             }
             else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
             {

@@ -72,6 +72,8 @@ public:
      */
     bool GetType(uint32 typeID, TypeData &into);
 
+    bool GetTypeEffectsList(uint32 typeID, std::vector<uint32> &into);
+
     bool GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &into);
 
     /**

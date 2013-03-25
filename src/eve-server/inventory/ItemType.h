@@ -288,6 +288,13 @@ public:
     double volume() const { return(attributes.volume()); }
     double capacity() const { return(attributes.capacity()); }
     EVERace race() const { return(static_cast<EVERace>(attributes.raceID())); }
+	bool HasEffect(uint32 effectID) const
+	{
+		if(std::find(m_effects.begin(), m_effects.end(), effectID)!=m_effects.end())
+			return true;
+		else
+			return false;
+	}
 
 protected:
     ItemType(
@@ -296,7 +303,9 @@ protected:
         const TypeData &_data
     );
 
-    /*
+	std::vector<uint32> m_effects;
+
+	/*
      * Member functions
      */
     // Template helper:

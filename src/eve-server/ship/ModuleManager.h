@@ -151,6 +151,8 @@ public:
     GenericModule * GetModule(EVEItemFlags flag);
     GenericModule * GetModule(uint32 itemID);
 
+	uint32 GetAvailableSlotInBank(EveEffectEnum slotBank);
+
     int NumberOfSameType(uint32 typeID);
 
     //batch processes handlers
@@ -338,6 +340,7 @@ public:
     ~ModuleManager();
 
     bool IsSlotOccupied(uint32 flag);
+	uint32 GetAvailableSlotInBank(EveEffectEnum slotBank);
 
     bool InstallRig(InventoryItemRef item, EVEItemFlags flag);
     void UninstallRig(uint32 itemID);

@@ -153,6 +153,34 @@ bool InventoryDB::GetType(uint32 typeID, TypeData &into) {
     return true;
 }
 
+bool InventoryDB::GetTypeEffectsList(uint32 typeID, std::vector<uint32> &into) {
+    DBQueryResult res;
+
+    if(!sDatabase.RunQuery(res,
+        "SELECT"
+        " effectID,"
+        " FROM dgmTypeEffects"
+        " WHERE typeID=%u",
+        typeID))
+    {
+        _log(DATABASE__ERROR, "Failed to query type %u: %s.", typeID, res.error.c_str());
+        return false;
+    }
+
+	into.clear();
+
+    DBResultRow row;
+    while( res.GetRow( row ) )
+		into.push_back( row.GetUInt(0) );
+
+    if( into.size() == 0 ) {
+        _log(DATABASE__ERROR, "Type %u not found.", typeID);
+        return false;
+    }
+
+	return true;
+}
+
 bool InventoryDB::GetBlueprintType(uint32 blueprintTypeID, BlueprintTypeData &into) {
     DBQueryResult res;
 

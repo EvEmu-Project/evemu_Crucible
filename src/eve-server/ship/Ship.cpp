@@ -598,14 +598,45 @@ bool Ship::ValidateItemSpecifics(InventoryItemRef equip) {
 /* Begin new Module Manager Interface */
 uint32 Ship::FindAvailableModuleSlot( InventoryItemRef item )
 {
-    // TODO:
+	uint32 slotFound = flagIllegal;
+
     // 1) get slot bank (low, med, high, rig, subsystem) from dgmTypeEffects using item->itemID()
     // 2) query this ship's ModuleManager to determine if there are any free slots in that bank,
     //    it should return a slot flag number for the next available slot starting at the lowest number
     //    for that bank
     // 3) return that slot flag number
 
-    return flagAutoFit;
+	if( item->type().HasEffect(Effect_loPower) )
+	{
+		//
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+	}
+	else if( item->type().HasEffect(Effect_medPower) )
+	{
+		//
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+	}
+	else if( item->type().HasEffect(Effect_hiPower) )
+	{
+		//
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+	}
+	else if( item->type().HasEffect(Effect_subSystem) )
+	{
+		//
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+	}
+	else if( item->type().HasEffect(Effect_rigSlot) )
+	{
+		//
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+	}
+	else
+	{
+		// ERROR: This is not a module that fits in any of the slot banks
+	}
+
+    return slotFound;
 }
 
 void Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)

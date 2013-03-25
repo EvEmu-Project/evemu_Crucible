@@ -686,6 +686,12 @@ bool ModuleManager::IsSlotOccupied(uint32 flag)
         return true;
 }
 
+uint32 ModuleManager::GetAvailableSlotInBank(EveEffectEnum slotBank)
+{
+	//
+	return m_Modules->GetAvailableSlotInBank(slotBank);
+}
+
 void ModuleManager::_SendInfoMessage(const char *fmt, ...)
 {
     if( m_Ship->GetOperator() == NULL )     // Operator assumed to be Client *
