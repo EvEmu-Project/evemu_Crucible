@@ -288,6 +288,13 @@ bool ModuleContainer::isSubSystem(uint32 itemID)
     return mod->isSubSystem();
 }
 
+uint32 ModuleContainer::GetAvailableSlotInBank(EveEffectEnum slotBank)
+{
+	// TODO: Implement this!
+	sLog.Error("ModuleContainer::GetAvailableSlotInBank()", "TO BE IMPLEMENTED !!!  slotBank= %u", slotBank);
+	return flagIllegal;
+}
+
 uint32 ModuleContainer::GetFittedModuleCountByGroup(uint32 groupID)
 {
     uint32 moduleCountByGroup = 0;
