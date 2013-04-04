@@ -418,18 +418,18 @@ void Inventory::AddItem(InventoryItemRef item)
 	}
 }
 
-void Inventory::RemoveItem(uint32 itemID)
+void Inventory::RemoveItem(InventoryItemRef item)
 {
-    std::map<uint32, InventoryItemRef>::iterator res = mContents.find( itemID );
+    std::map<uint32, InventoryItemRef>::iterator res = mContents.find( item->itemID() );
     if( res != mContents.end() )
     {
         mContents.erase( res );
 
-        sLog.Debug("Inventory", "Updated location %u to no longer contain item %u.", inventoryID(), itemID );
+        sLog.Debug("Inventory", "Updated location %u to no longer contain item %u.", inventoryID(), item->itemID() );
     }
 	else
 	{
-		sLog.Debug("Inventory", "unable to remove %u from %u.", itemID, inventoryID() );
+		sLog.Debug("Inventory", "unable to remove %u from %u.", item->itemID(), inventoryID() );
 	}
 }
 
