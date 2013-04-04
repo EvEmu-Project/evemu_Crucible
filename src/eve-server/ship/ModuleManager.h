@@ -145,9 +145,9 @@ public:
         uint32 turretSlots, uint32 launcherSlots, ModuleManager * myManager);
     ~ModuleContainer();
 
-    void AddModule(uint32 flag, GenericModule * mod);
-    void RemoveModule(EVEItemFlags flag);
-    void RemoveModule(uint32 itemID);
+    bool AddModule(uint32 flag, GenericModule * mod);
+    bool RemoveModule(EVEItemFlags flag);
+    bool RemoveModule(uint32 itemID);
     GenericModule * GetModule(EVEItemFlags flag);
     GenericModule * GetModule(uint32 itemID);
 

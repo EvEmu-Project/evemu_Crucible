@@ -608,28 +608,23 @@ uint32 Ship::FindAvailableModuleSlot( InventoryItemRef item )
 
 	if( item->type().HasEffect(Effect_loPower) )
 	{
-		//
 		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
 	}
 	else if( item->type().HasEffect(Effect_medPower) )
 	{
-		//
-		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_medPower);
 	}
 	else if( item->type().HasEffect(Effect_hiPower) )
 	{
-		//
-		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_hiPower);
 	}
 	else if( item->type().HasEffect(Effect_subSystem) )
 	{
-		//
-		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_subSystem);
 	}
 	else if( item->type().HasEffect(Effect_rigSlot) )
 	{
-		//
-		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_loPower);
+		slotFound = m_ModuleManager->GetAvailableSlotInBank(Effect_rigSlot);
 	}
 	else
 	{

@@ -97,27 +97,43 @@ ModuleContainer::~ModuleContainer()
     m_SubSystemModules = NULL;
 }
 
-void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
+bool ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
 {
     switch(_checkBounds(flag))
     {
         case NaT:
             sLog.Error("ModuleContainer::AddModule()","Flag Out of bounds");
+			return false;
             break;
         case slotTypeSubSystem:
-            m_SubSystemModules[flag - flagSubSystem0] = mod;
+			if( m_SubSystemModules[flag - flagSubSystem0] == NULL )
+				m_SubSystemModules[flag - flagSubSystem0] = mod;
+			else
+				return false;
             break;
         case slotTypeRig:
-            m_RigModules[flag - flagRigSlot0] = mod;
+			if( m_RigModules[flag - flagRigSlot0] == NULL )
+	            m_RigModules[flag - flagRigSlot0] = mod;
+			else
+				return false;
             break;
         case slotTypeLowPower:
-            m_LowSlotModules[flag - flagLowSlot0] = mod;
+			if( m_LowSlotModules[flag - flagLowSlot0] == NULL )
+	            m_LowSlotModules[flag - flagLowSlot0] = mod;
+			else
+				return false;
             break;
         case slotTypeMedPower:
-            m_MediumSlotModules[flag - flagMedSlot0] = mod;
+			if( m_MediumSlotModules[flag - flagMedSlot0] == NULL )
+	            m_MediumSlotModules[flag - flagMedSlot0] = mod;
+			else
+				return false;
             break;
         case slotTypeHiPower:
-            m_HighSlotModules[flag - flagHiSlot0] = mod;
+			if( m_HighSlotModules[flag - flagHiSlot0] == NULL )
+	            m_HighSlotModules[flag - flagHiSlot0] = mod;
+			else
+				return false;
             break;
     }
 
@@ -132,28 +148,40 @@ void ModuleContainer::AddModule(uint32 flag, GenericModule * mod)
         m_ModulesFittedByGroupID.find(mod->getItem()->groupID())->second += 1;
     else
         m_ModulesFittedByGroupID.insert(std::pair<uint32,uint32>(mod->getItem()->groupID(), 1));
+
+	return true;
 }
 
-void ModuleContainer::RemoveModule(EVEItemFlags flag)
+bool ModuleContainer::RemoveModule(EVEItemFlags flag)
 {
     GenericModule * mod = GetModule(flag);
 
+	if( mod == NULL )
+		return false;	// NO module pointer found at this slot flag, DO NOT attempt to dereference
+
     _removeModule(mod->flag(), mod);
 
     //delete the module
     delete mod;
     mod = NULL;
+
+	return true;
 }
 
-void ModuleContainer::RemoveModule(uint32 itemID)
+bool ModuleContainer::RemoveModule(uint32 itemID)
 {
     GenericModule * mod = GetModule(itemID);
 
+	if( mod == NULL )
+		return false;	// NO module pointer found at this slot flag, DO NOT attempt to dereference
+
     _removeModule(mod->flag(), mod);
 
     //delete the module
     delete mod;
     mod = NULL;
+
+	return true;
 }
 
 GenericModule * ModuleContainer::GetModule(EVEItemFlags flag)
@@ -290,9 +318,42 @@ bool ModuleContainer::isSubSystem(uint32 itemID)
 
 uint32 ModuleContainer::GetAvailableSlotInBank(EveEffectEnum slotBank)
 {
-	// TODO: Implement this!
-	sLog.Error("ModuleContainer::GetAvailableSlotInBank()", "TO BE IMPLEMENTED !!!  slotBank= %u", slotBank);
-	return flagIllegal;
+	uint32 slot = 0;
+	uint32 slotFound = flagIllegal;
+
+	switch (slotBank)
+	{
+		case Effect_loPower:
+			for( slot=0; slot <= m_LowSlots; slot++)
+				if( m_LowSlotModules[slot] == NULL )
+					slotFound = slot + flagLowSlot0;
+			break;
+		case Effect_medPower:
+			for( slot=0; slot <= m_MediumSlots; slot++)
+				if( m_MediumSlotModules[slot] == NULL )
+					slotFound = slot + flagMedSlot0;
+			break;
+		case Effect_hiPower:
+			for( slot=0; slot <= m_HighSlots; slot++)
+				if( m_HighSlotModules[slot] == NULL )
+					slotFound = slot + flagHiSlot0;
+			break;
+		case Effect_rigSlot:
+			for( slot=0; slot <= m_RigSlots; slot++)
+				if( m_RigModules[slot] == NULL )
+					slotFound = slot + flagRigSlot0;
+			break;
+		case Effect_subSystem:
+			for( slot=0; slot <= m_SubSystemSlots; slot++)
+				if( m_SubSystemModules[slot] == NULL )
+					slotFound = slot + flagSubSystem0;
+			break;
+		default:
+			// ERROR: This is not a module that fits in any of the slot banks
+			break;
+	}
+
+	return slotFound;
 }
 
 uint32 ModuleContainer::GetFittedModuleCountByGroup(uint32 groupID)
@@ -695,7 +756,8 @@ bool ModuleManager::IsSlotOccupied(uint32 flag)
 
 uint32 ModuleManager::GetAvailableSlotInBank(EveEffectEnum slotBank)
 {
-	//
+	// Call into ModuleContainer class with slotBank effectID to have it check for and return any available slot flag in
+	// in the specified slot bank:
 	return m_Modules->GetAvailableSlotInBank(slotBank);
 }
 
