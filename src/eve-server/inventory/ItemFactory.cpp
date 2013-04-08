@@ -53,10 +53,10 @@ ItemFactory::~ItemFactory() {
 			if( ((float)items_saved / (float)total_item_count) > (current_percent_items_saved + 0.05) )
 			{
 				current_percent_items_saved = (float)items_saved / (float)total_item_count;
-				sLog.Log( "Saving Items:", " %3.2f%% complete...", (current_percent_items_saved * 100.0) );
+				sLog.Log( "Saving Items", " %3.2f%%", (current_percent_items_saved * 100.0) );
 			}
         }
-		sLog.Log( "Saving Items:", " 100%% complete!" );
+		sLog.Log( "Saving Items", " COMPLETE!" );
     }
     // types
     {

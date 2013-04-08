@@ -404,20 +404,19 @@ int main( int argc, char* argv[] )
     sLog.Log("server shutdown", "API Server TCP listener stopped." );
 
     services.serviceDB().SetServerOnlineStatus(false);
-	sLog.Log("server init", "SERVER IS NOW [OFFLINE]");
-
-	// Shut down the Item system ensuring ALL items get saved to the database:
-	sLog.Log("server shutdown", "Shutting down Item Factory." );
-	item_factory.~ItemFactory();
+	sLog.Log("server shutdown", "SERVER IS NOW [OFFLINE]");
 
     sLog.Log("server shutdown", "Cleanup db cache" );
     delete _sDgmTypeAttrMgr;
 
     log_close_logfile();
 
-    std::cout << std::endl << "press the ENTER key to exit...";  std::cin.get();
+    //std::cout << std::endl << "press the ENTER key to exit...";  std::cin.get();
 
-    return 0;
+	// Shut down the Item system ensuring ALL items get saved to the database:
+	sLog.Log("server shutdown", "Shutting down Item Factory." );
+
+	return 0;
 }
 
 static void SetupSignals()
