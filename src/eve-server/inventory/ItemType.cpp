@@ -316,8 +316,11 @@ _Ty *ItemType::_LoadType(ItemFactory &factory, uint32 typeID,
 }
 
 bool ItemType::_Load(ItemFactory &factory) {
+	// load type effects
+	factory.db().GetTypeEffectsList( m_id, m_effects );
+
     // load type attributes
-    return attributes.Load( factory.db() );
+    return (attributes.Load( factory.db() ));
 }
 
 

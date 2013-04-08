@@ -158,7 +158,7 @@ bool InventoryDB::GetTypeEffectsList(uint32 typeID, std::vector<uint32> &into) {
 
     if(!sDatabase.RunQuery(res,
         "SELECT"
-        " effectID,"
+        " effectID"
         " FROM dgmTypeEffects"
         " WHERE typeID=%u",
         typeID))

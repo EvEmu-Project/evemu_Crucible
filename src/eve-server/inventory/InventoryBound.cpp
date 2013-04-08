@@ -408,17 +408,23 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             }
             else
             {
-                //Unlike the other validate item requests, fitting an item requires a skill check, which means passing the character
+                // Unlike the other validate item requests, fitting an item requires a skill check, which means passing the character
                 // (This also allows for flagAutoFit when someone drags a module or a stack of modules onto the middle of the fitting
                 // window and NOT onto a specific slot.  'flagAutoFit' means "put this module into which ever slot makes sense")
                 if( (flag == flagAutoFit) )
                 {
 					sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: handling adding modules where flag = flagAutoFit not yet supported!!!" );
-					EVEItemFlags newFlag = (EVEItemFlags)(c->GetShip()->FindAvailableModuleSlot( sourceItem ));
+					EVEItemFlags newFlag = (EVEItemFlags)(c->GetShip()->FindAvailableModuleSlot( newItem ));
 					if( newFlag == flagIllegal )
+					{
 						sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: Attempt to auto-fit module failed!  'flagIllegal' returned from FindAvailableModuleSlot()" );
+						return NULL;
+					}
 					else
-						c->GetShip()->AddItem( newFlag, sourceItem );
+					{
+						c->GetShip()->AddItem( newFlag, newItem );
+						flag = newFlag;
+					}
                 }
                 else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
                 {
@@ -461,7 +467,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
         }
         else
         {
-            //Unlike the other validate item requests, fitting an item requires a skill check
+            // Unlike the other validate item requests, fitting an item requires a skill check
             // (This also allows for flagAutoFit when someone drags a module or a stack of modules onto the middle of the fitting
             // window and NOT onto a specific slot.  'flagAutoFit' means "put this module into which ever slot makes sense")
             if( (flag == flagAutoFit) )
@@ -469,9 +475,15 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                 sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: handling adding modules where flag = flagAutoFit not yet supported!!!" );
                 EVEItemFlags newFlag = (EVEItemFlags)(c->GetShip()->FindAvailableModuleSlot( sourceItem ));
                 if( newFlag == flagIllegal )
+				{
 					sLog.Error( "InventoryBound::_ExecAdd()", "ERROR: Attempt to auto-fit module failed!  'flagIllegal' returned from FindAvailableModuleSlot()" );
+					return NULL;
+				}
 				else
+				{
 					c->GetShip()->AddItem( newFlag, sourceItem );
+					flag = newFlag;
+				}
             }
             else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
             {

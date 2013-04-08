@@ -324,29 +324,44 @@ uint32 ModuleContainer::GetAvailableSlotInBank(EveEffectEnum slotBank)
 	switch (slotBank)
 	{
 		case Effect_loPower:
-			for( slot=0; slot <= m_LowSlots; slot++)
+			for( slot=0; slot < m_LowSlots; slot++)
 				if( m_LowSlotModules[slot] == NULL )
+				{
 					slotFound = slot + flagLowSlot0;
+					break;
+				}
 			break;
 		case Effect_medPower:
-			for( slot=0; slot <= m_MediumSlots; slot++)
+			for( slot=0; slot < m_MediumSlots; slot++)
 				if( m_MediumSlotModules[slot] == NULL )
+				{
 					slotFound = slot + flagMedSlot0;
+					break;
+				}
 			break;
 		case Effect_hiPower:
-			for( slot=0; slot <= m_HighSlots; slot++)
+			for( slot=0; slot < m_HighSlots; slot++)
 				if( m_HighSlotModules[slot] == NULL )
+				{
 					slotFound = slot + flagHiSlot0;
+					break;
+				}
 			break;
 		case Effect_rigSlot:
-			for( slot=0; slot <= m_RigSlots; slot++)
+			for( slot=0; slot < m_RigSlots; slot++)
 				if( m_RigModules[slot] == NULL )
+				{
 					slotFound = slot + flagRigSlot0;
+					break;
+				}
 			break;
 		case Effect_subSystem:
-			for( slot=0; slot <= m_SubSystemSlots; slot++)
+			for( slot=0; slot < m_SubSystemSlots; slot++)
 				if( m_SubSystemModules[slot] == NULL )
+				{
 					slotFound = slot + flagSubSystem0;
+					break;
+				}
 			break;
 		default:
 			// ERROR: This is not a module that fits in any of the slot banks
