@@ -38,7 +38,7 @@
 ClientSession::ClientSession() : mSession( new PyDict ), mDirty( false )
 {
     /* default value of attribute */
-    PyTuple* v = new_tuple(new PyNone, new PyLong(0x4000000000000000));
+    PyTuple* v = new_tuple(new PyNone, new PyLong(0x4000000000000000LL));
     mSession->SetItemString( "role", v );
 }
 
