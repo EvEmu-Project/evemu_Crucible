@@ -66,7 +66,7 @@ PyString:"util.CachedObject"
 
     arg_tuple->SetItem(0, new_tuple("Method Call", "server", new_tuple("browserLockdownSvc", "GetFlaggedSitesHash")));
     arg_tuple->SetItem(1, new PyInt(0xACECD));
-    arg_tuple->SetItem(2, new_tuple(0x1CC26986D4B75A0, 0xC017));
+    arg_tuple->SetItem(2, new_tuple(new PyLong(0x1CC26986D4B75A0LL), new PyInt(0xC017) ) );
 
     return new PyObject( "util.CachedObject" , arg_tuple );
 }

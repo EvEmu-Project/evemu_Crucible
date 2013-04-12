@@ -599,7 +599,7 @@ PyResult CorpStationMgrIMBound::Handle_GetStationOffices( PyCallArgs& call )
 
     arg_tuple->SetItem(0, itr_1);
     arg_tuple->SetItem(1, new PySubStream( new PyList() ) );
-    arg_tuple->SetItem(2, new_tuple(129533580031608440, 52428965));
+    arg_tuple->SetItem(2, new_tuple(new PyLong(129533580031608440LL), new PyInt(52428965) ) );
     return new PyObject( "objectCaching.CachedMethodCallResult", arg_tuple );
 }
 

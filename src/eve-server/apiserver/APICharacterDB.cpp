@@ -277,7 +277,7 @@ bool APICharacterDB::GetCharacterSkillQueue(uint32 characterID, std::vector<std:
 
     DBResultRow row;
     bool row_found = false;
-    uint32 prev_orderIndex = 4294967295;
+    uint32 prev_orderIndex = 4294967295UL;
     while( res.GetRow( row ) )
     {
         row_found = true;
