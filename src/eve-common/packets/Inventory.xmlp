@@ -143,24 +143,31 @@
   <elementDef name="EntityEffectState">
     <listInline>
       <!--
-        the first 7 fields are the standard effect `environment`
-        fields indexed by ENV_IDX_*, see OnGodmaShipEffect
+      the first 7 fields are the standard effect `environment`
+      fields indexed by ENV_IDX_*, see OnGodmaShipEffect
+      ENV_IDX_SELF = 0
+      ENV_IDX_CHAR = 1
+      ENV_IDX_SHIP = 2
+      ENV_IDX_TARGET = 3
+      ENV_IDX_OTHER = 4
+      ENV_IDX_AREA = 5
+      ENV_IDX_EFFECT = 6
       -->
-
       <int name="env_itemID" />
-      <int name="env_effectID" />
-      <int name="env_target" none_marker="0" default="0" />
       <int name="env_charID" />
       <int name="env_shipID" />
+      <int name="env_target" none_marker="0" default="0" />
       <raw name="env_other" />
+      <raw name="env_area" />
+      <int name="env_effectID" />
       <!-- not sure if charID, shipID and other is needed anymore. -->
-        <long name="startTime" />
-        <!-- saw 0x7 placeholder -->
-        <int name="duration"/>
-        <!-- saw 0 -->
-        <int name="repeat"/>
-        <!-- randomSeed -->
-        <raw name="randomSeed" />
+      <long name="startTime" />
+      <!-- saw 0x7 placeholder -->
+      <int name="duration"/>
+      <!-- saw 0 -->
+      <int name="repeat"/>
+      <!-- randomSeed -->
+      <raw name="randomSeed" />
     </listInline>
   </elementDef>
 
