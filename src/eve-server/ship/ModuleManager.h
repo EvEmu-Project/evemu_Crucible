@@ -173,6 +173,7 @@ public:
     uint32 GetFittedLauncherCount() { return m_TotalLaunchersFitted; }
     uint32 GetFittedModuleCountByGroup(uint32 groupID);
 
+	void GetModuleListOfRefs(std::vector<InventoryItemRef> * pModuleList);
     void SaveModules();
 
 private:
@@ -372,6 +373,7 @@ public:
     GenericModule * GetModule(EVEItemFlags flag)    { return m_Modules->GetModule(flag); }
     GenericModule * GetModule(uint32 itemID)        { return m_Modules->GetModule(itemID); }
 
+	void GetModuleListOfRefs(std::vector<InventoryItemRef> * pModuleList);
     void SaveModules();
 
     // External Methods For use by hostile entities directing effects to this entity:

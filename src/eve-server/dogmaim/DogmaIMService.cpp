@@ -443,6 +443,8 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
         return NULL;
     }
 
+	// ========================================================================
+	// Create the response dictionary:
     PyDict *rsp = new PyDict;
 
     rsp->SetItemString("charInfo", new PyNone);
@@ -453,7 +455,8 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
     rsp->SetItemString("shipState", new PyNone);
 
 
-
+	// ========================================================================
+	// Setting "charInfo" in the Dictionary:
     if(args.arg1)
     {
         PyDict *charResult = call.client->GetChar()->CharGetInfo();
@@ -464,7 +467,18 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
 
         rsp->SetItemString("charInfo", charResult);
     }
-    if(args.arg2)
+	// ========================================================================
+
+
+	// ========================================================================
+	// Setting "locationInfo" in the Dictionary:
+	// TODO
+	// ========================================================================
+
+
+	// ========================================================================
+	// Setting "shipInfo" in the Dictionary:
+	if(args.arg2)
     {
         PyDict *shipResult = call.client->GetShip()->ShipGetInfo();
         if(shipResult == NULL) {
@@ -473,7 +487,17 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
         }
         rsp->SetItemString("shipInfo", shipResult);
     }
+	// ========================================================================
 
+
+	// ========================================================================
+	// Setting "shipModifiedCharAttribs" in the Dictionary:
+	// TODO
+	// ========================================================================
+
+
+	// ========================================================================
+	// Setting "shipState" in the Dictionary:
     //Get some attributes about the ship and its modules for shipState
     PyTuple *rspShipState = new PyTuple(3);
 
@@ -495,6 +519,8 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
     rspShipState->items[2] = new BuiltinSet();
 
     rsp->SetItemString("shipState", rspShipState);
-    return new PyObject( "util.KeyVal", rsp );
+
+
+	return new PyObject( "util.KeyVal", rsp );
 }
 

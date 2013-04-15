@@ -390,27 +390,20 @@ PyDict *Ship::ShipGetState()
         return NULL;
     }
 
+	// Create new dictionary for "shipState":
     PyDict *result = new PyDict;
 
+	// Create entry in "shipState" dictionary for Ship itself:
     result->SetItem(new PyInt(itemID()), GetItemStatusRow());
-    /*
-    std::vector<InventoryItemRef> equipped;
-    std::vector<InventoryItemRef> integrated;
 
-    FindByFlagRange( flagLowSlot0, flagFixedSlot, equipped );
-    FindByFlagRange( flagRigSlot0, flagRigSlot7, integrated );
+	// Create entries in "shipState" dictionary for ALL modules, rigs, and subsystems present on ship:
+	std::vector<InventoryItemRef> moduleList;
+	m_ModuleManager->GetModuleListOfRefs( &moduleList );
 
-    equipped.insert(equipped.end(), integrated.begin(), integrated.end() );
+	for(int i=0; i<moduleList.size(); i++)
+		result->SetItem(new PyInt(moduleList.at(i)->itemID()), moduleList.at(i)->GetItemStatusRow());
 
-    std::vector<InventoryItemRef>::iterator cur, end;
-    cur = equipped.begin();
-    end = equipped.end();
-    for(; cur != end; cur++)
-    {
-        result->SetItem(new PyInt((*cur)->itemID()), (*cur)->GetItemStatusRow());
-    }
-    */
-    return result;
+	return result;
 }
 
 void Ship::AddItem(InventoryItemRef item)

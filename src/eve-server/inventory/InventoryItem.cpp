@@ -615,13 +615,13 @@ PyPackedRow* InventoryItem::GetItemStatusRow() const
 void InventoryItem::GetItemStatusRow( PyPackedRow* into ) const
 {
     into->SetField( "instanceID",    new PyLong( itemID() ) );
-    into->SetField( "online",        new PyBool( 0 ) );
-    into->SetField( "damage",        new PyFloat( 0 ) );
-    into->SetField( "charge",        new PyFloat( 0 ) );
-    into->SetField( "skillPoints",   new PyInt( 0 ) );
-    into->SetField( "armorDamage",   new PyFloat( 0 ) );
-    into->SetField( "shieldCharge",  new PyFloat( 0 ) );
-    into->SetField( "incapacitated", new PyBool( 0 ) );
+	into->SetField( "online",        new PyBool( (mAttributeMap.HasAttribute(AttrIsOnline) ? GetAttribute(AttrIsOnline).get_int() : 0) ) );
+    into->SetField( "damage",        new PyFloat( (mAttributeMap.HasAttribute(AttrDamage) ? GetAttribute(AttrDamage).get_float() : 0) ) );
+    into->SetField( "charge",        new PyFloat( (mAttributeMap.HasAttribute(AttrCharge) ? GetAttribute(AttrCharge).get_float() : 0) ) );
+    into->SetField( "skillPoints",   new PyInt( (mAttributeMap.HasAttribute(AttrSkillPoints) ? GetAttribute(AttrSkillPoints).get_int() : 0) ) );
+    into->SetField( "armorDamage",   new PyFloat( (mAttributeMap.HasAttribute(AttrArmorDamageAmount) ? GetAttribute(AttrArmorDamageAmount).get_float() : 0.0) ) );
+    into->SetField( "shieldCharge",  new PyFloat( (mAttributeMap.HasAttribute(AttrShieldCharge) ? GetAttribute(AttrShieldCharge).get_float() : 0.0) ) );
+    into->SetField( "incapacitated", new PyBool( (mAttributeMap.HasAttribute(AttrIsIncapacitated) ? GetAttribute(AttrIsIncapacitated).get_int() : 0) ) );
 }
 
 PyPackedRow* InventoryItem::GetItemRow() const
