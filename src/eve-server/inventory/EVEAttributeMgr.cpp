@@ -395,6 +395,7 @@ bool AttributeMap::SetAttribute( uint32 attributeId, EvilNumber &num, bool nofit
 
 EvilNumber AttributeMap::GetAttribute( uint32 attributeId )
 {
+	// ENSURE this code and that in AttributeMap::GetAttribute(const uint32 attributeId) const are IDENTICAL
     AttrMapItr itr = mAttributes.find(attributeId);
     if (itr != mAttributes.end()) {
         return itr->second;
@@ -432,6 +433,7 @@ EvilNumber AttributeMap::GetAttribute( uint32 attributeId )
 
 EvilNumber AttributeMap::GetAttribute( const uint32 attributeId ) const
 {
+	// IDENTICAL CODE to AttributeMap::GetAttribute(uint32 attributeId) defined directly above
     AttrMapConstItr itr = mAttributes.find(attributeId);
     if (itr != mAttributes.end()) {
         return itr->second;
@@ -469,6 +471,17 @@ EvilNumber AttributeMap::GetAttribute( const uint32 attributeId ) const
 
 bool AttributeMap::HasAttribute(uint32 attributeID)
 {
+	// ENSURE this code and that in AttributeMap::HasAttribute(const uint32 attributeID) const are IDENTICAL
+    AttrMapConstItr itr = mAttributes.find(attributeID);
+    if (itr != mAttributes.end())
+        return true;
+    else
+        return false;
+}
+
+bool AttributeMap::HasAttribute(const uint32 attributeID) const
+{
+	// IDENTICAL CODE to AttributeMap::HasAttribute(uint32 attributeID) defined directly above
     AttrMapConstItr itr = mAttributes.find(attributeID);
     if (itr != mAttributes.end())
         return true;

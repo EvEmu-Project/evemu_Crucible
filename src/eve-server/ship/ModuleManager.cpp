@@ -380,6 +380,40 @@ uint32 ModuleContainer::GetFittedModuleCountByGroup(uint32 groupID)
         return m_ModulesFittedByGroupID.find(groupID)->second;
 }
 
+void ModuleContainer::GetModuleListOfRefs(std::vector<InventoryItemRef> * pModuleList)
+{
+    uint8 r;
+    for(r = 0; r < MAX_HIGH_SLOT_COUNT; r++)
+    {
+        if( !(m_HighSlotModules[r] == NULL) )
+			pModuleList->push_back( m_HighSlotModules[r]->getItem() );
+    }
+
+    for(r = 0; r < MAX_MEDIUM_SLOT_COUNT; r++)
+    {
+        if( !(m_MediumSlotModules[r] == NULL) )
+            pModuleList->push_back( m_MediumSlotModules[r]->getItem() );
+    }
+
+    for(r = 0; r < MAX_LOW_SLOT_COUNT; r++)
+    {
+        if( !(m_LowSlotModules[r] == NULL) )
+            pModuleList->push_back( m_LowSlotModules[r]->getItem() );
+    }
+
+    for(r = 0; r < MAX_ASSEMBLY_COUNT; r++)
+    {
+        if( !(m_SubSystemModules[r] == NULL) )
+            pModuleList->push_back( m_SubSystemModules[r]->getItem() );
+    }
+
+    for(r = 0; r < MAX_RIG_COUNT; r++)
+    {
+        if( !(m_RigModules[r] == NULL) )
+            pModuleList->push_back( m_RigModules[r]->getItem() );
+    }
+}
+
 void ModuleContainer::SaveModules()
 {
     uint8 r;
@@ -699,7 +733,13 @@ ModuleManager::ModuleManager(Ship *const ship)
         InventoryItemRef itemRef;
         m_Ship->FindSingleByFlag( (EVEItemFlags)flagIndex, itemRef );
         if( !(itemRef == NULL) )
+		{
             _fitModule( itemRef, (EVEItemFlags)flagIndex );
+			if( itemRef->GetAttribute(AttrIsOnline).get_int() == 1 )
+				Online(itemRef->itemID());
+			else
+				Offline(itemRef->itemID());
+		}
     }
 
     for(flagIndex=flagMedSlot0; flagIndex<=flagMedSlot7; flagIndex++)
@@ -707,7 +747,13 @@ ModuleManager::ModuleManager(Ship *const ship)
         InventoryItemRef itemRef;
         m_Ship->FindSingleByFlag( (EVEItemFlags)flagIndex, itemRef );
         if( !(itemRef == NULL) )
+		{
             _fitModule( itemRef, (EVEItemFlags)flagIndex );
+			if( itemRef->GetAttribute(AttrIsOnline).get_int() == 1 )
+				Online(itemRef->itemID());
+			else
+				Offline(itemRef->itemID());
+		}
     }
 
     for(flagIndex=flagHiSlot0; flagIndex<=flagHiSlot7; flagIndex++)
@@ -715,7 +761,13 @@ ModuleManager::ModuleManager(Ship *const ship)
         InventoryItemRef itemRef;
         m_Ship->FindSingleByFlag( (EVEItemFlags)flagIndex, itemRef );
         if( !(itemRef == NULL) )
+		{
             _fitModule( itemRef, (EVEItemFlags)flagIndex );
+			if( itemRef->GetAttribute(AttrIsOnline).get_int() == 1 )
+				Online(itemRef->itemID());
+			else
+				Offline(itemRef->itemID());
+		}
     }
 
     for(flagIndex=flagRigSlot0; flagIndex<=flagRigSlot7; flagIndex++)
@@ -723,7 +775,14 @@ ModuleManager::ModuleManager(Ship *const ship)
         InventoryItemRef itemRef;
         m_Ship->FindSingleByFlag( (EVEItemFlags)flagIndex, itemRef );
         if( !(itemRef == NULL) )
+		{
             _fitModule( itemRef, (EVEItemFlags)flagIndex );
+			// We don't think Rigs need the Online attribute set, but keep this code here in case we do:
+			//if( itemRef->GetAttribute(AttrIsOnline).get_int() == 1 )
+			//	Online(itemRef->itemID());
+			//else
+			//	Offline(itemRef->itemID());
+		}
     }
 
     for(flagIndex=flagSubSystem0; flagIndex<=flagSubSystem7; flagIndex++)
@@ -731,7 +790,14 @@ ModuleManager::ModuleManager(Ship *const ship)
         InventoryItemRef itemRef;
         m_Ship->FindSingleByFlag( (EVEItemFlags)flagIndex, itemRef );
         if( !(itemRef == NULL) )
+		{
             _fitModule( itemRef, (EVEItemFlags)flagIndex );
+			// We don't think Subsystems need the Online attribute set, but keep this code here in case we do:
+			//if( itemRef->GetAttribute(AttrIsOnline).get_int() == 1 )
+			//	Online(itemRef->itemID());
+			//else
+			//	Offline(itemRef->itemID());
+		}
     }
 
     //modifier maps, we own these
@@ -1130,6 +1196,11 @@ std::vector<GenericModule *> ModuleManager::GetStackedItems(uint32 typeID, Modul
     }
 
     return mods;
+}
+
+void ModuleManager::GetModuleListOfRefs(std::vector<InventoryItemRef> * pModuleList)
+{
+	m_Modules->GetModuleListOfRefs(pModuleList);
 }
 
 void ModuleManager::SaveModules()

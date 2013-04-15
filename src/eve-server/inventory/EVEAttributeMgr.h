@@ -306,6 +306,8 @@ public:
      */
     bool HasAttribute(uint32 attributeID);
 
+    bool HasAttribute(const uint32 attributeID) const;
+
     /* ATM we don't load or save as we assume that all attribute modifiers are calculated on the fly
      * except charge attributes but we won't handle them for now
      */
