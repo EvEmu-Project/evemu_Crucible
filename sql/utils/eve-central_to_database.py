@@ -162,8 +162,8 @@ if (option_valid == 0):
 db = MySQLdb.connect(
         host = "127.0.0.1",
         user = "root",
-        passwd = "z8tiq0ls2md6",
-        db = "evemu_server" )
+        passwd = "password",
+        db = "evemu" )
 
 # MySQLDB: prepare a cursor object using cursor() method
 cursor = db.cursor()

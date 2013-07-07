@@ -43,22 +43,22 @@ a likely exception to this goal).
         <username>eve</username>
         <password>eve</password>
         <db>evemu</db>
-        <!-- <port>3306</port> -->
+        <port>3306</port>
     </database>
 
     <files>
-        <!-- <logDir>../log/</logDir> -->
-        <!-- <logSettings>../etc/log.ini</logSettings> -->
-        <!-- <cacheDir>../server_cache/</cacheDir> -->
-        <!-- <imageDir>../image_cache/</imageDir> -->
+        <logDir>../log/</logDir>
+        <logSettings>../etc/log.ini</logSettings>
+        <cacheDir>../server_cache/</cacheDir>
+        <imageDir>../image_cache/</imageDir>
     </files>
 
     <net>
-        <!-- <port>26000</port> -->
-        <!-- <imageServer>localhost</imageServer> -->
-        <!-- <imageServerPort>26001</imageServerPort> -->
-        <!-- <apiServer>localhost</apiServer> -->
-        <!-- <apiServerPort>50001</apiServerPort> -->
+        <port>26000</port>
+        <imageServer>localhost</imageServer>
+        <imageServerPort>26001</imageServerPort>
+        <apiServer>localhost</apiServer>
+        <apiServerPort>64</apiServerPort>
     </net>
 
 </eve-server>
