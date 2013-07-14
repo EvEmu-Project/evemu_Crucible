@@ -5,8 +5,9 @@
 -- Table structure for table `dgmEffectsActions`
 --
 
-DROP TABLE IF EXISTS `dgmEffectsActions`;
-CREATE TABLE IF NOT EXISTS `dgmEffectsActions` (
+-- DROP TABLE IF EXISTS `dgmEffectsActions`;
+-- IF NOT EXISTS
+CREATE TABLE `dgmEffectsActions` (
   `effectID` int(11) NOT NULL,
   `effectAppliedInState` int(11) NOT NULL,
   `nullifyOnlineEffect` int(11) NOT NULL,
@@ -17,6 +18,4 @@ CREATE TABLE IF NOT EXISTS `dgmEffectsActions` (
 --
 -- Dumping data for table `dgmEffectsActions`
 --
-
-
 

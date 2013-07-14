@@ -70,6 +70,14 @@ stylecop.*
 *.dbmdl
 Generated_Code #added for RIA/Silverlight projects
 *.bak
+*.backup
+*.old
+*.orig
+*.original
+
+# Reports
+*.log
+*.rpt
 
 # evemu deps
 MySQL/

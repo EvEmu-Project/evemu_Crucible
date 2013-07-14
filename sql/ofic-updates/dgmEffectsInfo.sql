@@ -5,8 +5,9 @@
 -- Table structure for table `dgmEffectsInfo`
 --
 
-DROP TABLE IF EXISTS `dgmEffectsInfo`;
-CREATE TABLE IF NOT EXISTS `dgmEffectsInfo` (
+-- DROP TABLE IF EXISTS `dgmEffectsInfo`;
+-- IF NOT EXISTS
+CREATE TABLE `dgmEffectsInfo` (
   `effectID` int(11) NOT NULL,
   `targetAttributeID` int(11) NOT NULL,
   `sourceAttributeID` int(11) NOT NULL,
@@ -24,6 +25,4 @@ CREATE TABLE IF NOT EXISTS `dgmEffectsInfo` (
 --
 -- Dumping data for table `dgmEffectsInfo`
 --
-
-
 
