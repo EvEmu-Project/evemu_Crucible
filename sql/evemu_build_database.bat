@@ -8,10 +8,12 @@ if "%3"=="" goto usage
 mkdir db_import_logs
 
 echo Merging OFIC and EVEmu updates:
-rm ofic-updates.sql
-rm evemu-updates.sql
-call .\utils\merge-ofic-updates.bat
-call .\utils\merge-evemu-updates.bat
+del ofic-updates.sql
+del evemu-updates.sql
+cd utils
+call merge-ofic-updates.bat
+call merge-evemu-updates.bat
+cd ..
 echo DONE!
 
 echo Creating database '%3'...
