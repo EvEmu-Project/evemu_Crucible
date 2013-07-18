@@ -32,64 +32,25 @@
 /*************************************************************************/
 /* HTML_Log                                                                */
 /*************************************************************************/
-#ifdef HAVE_WINDOWS_H
-const WORD HTML_Log::COLOR_TABLE[ COLOR_COUNT ] =
-{
-    ( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE                        ), // COLOR_DEFAULT
-    ( 0                                                                          ), // COLOR_BLACK
-    ( FOREGROUND_RED                                      | FOREGROUND_INTENSITY ), // COLOR_RED
-    (                  FOREGROUND_GREEN                   | FOREGROUND_INTENSITY ), // COLOR_GREEN
-    ( FOREGROUND_RED | FOREGROUND_GREEN                   | FOREGROUND_INTENSITY ), // COLOR_YELLOW
-    (                                     FOREGROUND_BLUE | FOREGROUND_INTENSITY ), // COLOR_BLUE
-    ( FOREGROUND_RED                    | FOREGROUND_BLUE | FOREGROUND_INTENSITY ), // COLOR_MAGENTA
-    (                  FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY ), // COLOR_CYAN
-    ( FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY )  // COLOR_WHITE
-};
-#else /* !HAVE_WINDOWS_H */
-const char* const HTML_Log::COLOR_TABLE[ COLOR_COUNT ] =
-{
-    "\033[" "00"    "m", // COLOR_DEFAULT
-    "\033[" "30;22" "m", // COLOR_BLACK
-    "\033[" "31;22" "m", // COLOR_RED
-    "\033[" "32;22" "m", // COLOR_GREEN
-    "\033[" "33;01" "m", // COLOR_YELLOW
-    "\033[" "34;01" "m", // COLOR_BLUE
-    "\033[" "35;22" "m", // COLOR_MAGENTA
-    "\033[" "36;01" "m", // COLOR_CYAN
-    "\033[" "37;01" "m"  // COLOR_WHITE
-};
-#endif /* !HAVE_WINDOWS_H */
-
 HTML_Log::HTML_Log()
-: mLogfile( NULL ),
-  mTime( 0 ),
-  mLogFilename( "" )
 {
+	mLogfile = NULL;
+	mTime = 0;
+	mLogFilename = "";
 	assert(false);		// DO NOT EVER call the empty parameter constructor!
     m_initialized = false;
 }
 
 HTML_Log::HTML_Log(std::string logPath, std::string logFilename)
+	: Basic_Log(logPath,logFilename)
 {
-    // use default logpath if logPath is empty
-    if( logPath.empty() )
-        logPath = EVEMU_ROOT "/log/";
-
-    m_initialized = true;
-
-	SetLogfileDefault(logPath + logFilename);
-
-    Debug( "Log", "Log system initiated" );
 }
 
 HTML_Log::~HTML_Log()
 {
-	Debug( mLogFilename.c_str(), "Log system shutting down" );
-
-    // close logfile
-    SetLogfile( (FILE*)NULL );
 }
 
+/*
 void HTML_Log::InitializeLogging( std::string logPath )
 {
     // use default logpath if logPath is empty
@@ -155,7 +116,7 @@ void HTML_Log::Debug( const char* source, const char* fmt, ... )
 
         va_end( ap );
     }
-//#endif /* !NDEBUG */
+//#endif // !NDEBUG
 }
 
 bool HTML_Log::SetLogfile( const char* filename )
@@ -184,6 +145,7 @@ bool HTML_Log::SetLogfile( FILE* file )
     mLogfile = file;
     return true;
 }
+*/
 
 void HTML_Log::PrintMsg( Color color, char pfx, const char* source, const char* fmt, va_list ap )
 {

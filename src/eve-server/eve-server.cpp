@@ -338,7 +338,9 @@ int main( int argc, char* argv[] )
 
     // start up the image server
     sLog.Log("server init", "Loading Dynamic Database Table Objects...");
-    sDGM_Effects_Table.Initialize();
+
+	// Create In-Memory Database Objects for Critical Systems, such as ModuleManager:
+	sDGM_Effects_Table.Initialize();
 
     sLog.Log("server init", "Init done.");
 

@@ -36,6 +36,8 @@
 // log
 #include "log/LogNew.h"
 #include "log/logsys.h"
+#include "log/Basic_Log.h"
+#include "log/HTML_Log.h"
 // network
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"

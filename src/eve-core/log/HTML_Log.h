@@ -27,6 +27,7 @@
 #define __LOG__HTML_LOG_H__INCL__
 
 #include "threading/Mutex.h"
+#include "Basic_Log.h"
 
 /**
  * @brief An HTML logging system.
@@ -39,6 +40,7 @@
  * @date January 2013
  */
 class HTML_Log
+: public Basic_Log
 {
 public:
     /// Primary constructor, initializes logging.
@@ -46,95 +48,95 @@ public:
     HTML_Log(std::string logPath, std::string logFilename);
     /// Destructor, closes the logfile.
     ~HTML_Log();
+ 
+    ///**
+    // * @brief Initializes and sets the Log file path.
+    // *
+    // * @param[in] logPath is the absolute or relative path where log files are to be stored
+    // */
+    //void InitializeLogging( std::string logPath );
+    ///**
+    // * @brief Logs a message to file.
+    // *
+    // * @param[in] source is the source from where the message is printed.
+    // * @param[in] fmt is the message itself.
+    // */
+    //void Log( const char* source, const char* fmt, ... );
+    ///**
+    // * @brief Logs error message to console and file.
+    // *
+    // * @param[in] source is the source from where the message is printed.
+    // * @param[in] fmt is the error message itself.
+    // */
+    //void Error( const char* source, const char* fmt, ... );
+    ///**
+    // * @brief Logs a warning message to file.
+    // *
+    // * @param[in] source is the source from where the message is printed.
+    // * @param[in] fmt is the message itself.
+    // */
+    //void Warning( const char* source, const char* fmt, ... );
+    ///**
+    // * @brief Logs a success message to file.
+    // *
+    // * @param[in] source is the source from where the message is printed.
+    // * @param[in] fmt is the message itself.
+    // */
+    //void Success( const char* source, const char* fmt, ... );
+    ///**
+    // * @brief Logs a debug message to file and console.
+    // *
+    // * Optimized out on a release build.
+    // *
+    // * @param[in] source is the source from where the message is printed.
+    // * @param[in] fmt is the message itself.
+    // */
+    //void Debug( const char* source, const char* fmt, ... );
 
-    /**
-     * @brief Initializes and sets the Log file path.
-     *
-     * @param[in] logPath is the absolute or relative path where log files are to be stored
-     */
-    void InitializeLogging( std::string logPath );
-    /**
-     * @brief Logs a message to file.
-     *
-     * @param[in] source is the source from where the message is printed.
-     * @param[in] fmt is the message itself.
-     */
-    void Log( const char* source, const char* fmt, ... );
-    /**
-     * @brief Logs error message to console and file.
-     *
-     * @param[in] source is the source from where the message is printed.
-     * @param[in] fmt is the error message itself.
-     */
-    void Error( const char* source, const char* fmt, ... );
-    /**
-     * @brief Logs a warning message to file.
-     *
-     * @param[in] source is the source from where the message is printed.
-     * @param[in] fmt is the message itself.
-     */
-    void Warning( const char* source, const char* fmt, ... );
-    /**
-     * @brief Logs a success message to file.
-     *
-     * @param[in] source is the source from where the message is printed.
-     * @param[in] fmt is the message itself.
-     */
-    void Success( const char* source, const char* fmt, ... );
-    /**
-     * @brief Logs a debug message to file and console.
-     *
-     * Optimized out on a release build.
-     *
-     * @param[in] source is the source from where the message is printed.
-     * @param[in] fmt is the message itself.
-     */
-    void Debug( const char* source, const char* fmt, ... );
+    ///**
+    // * @brief Sets the logfile to be used.
+    // *
+    // * @param[in] filename A name of file.
+    // *
+    // * @retval true  The new logfile was successfully opened.
+    // * @retval false Failed to open the new logfile.
+    // */
+    //bool SetLogfile( const char* filename );
+    ///**
+    // * @brief Sets the logfile to be used.
+    // *
+    // * Passed @a file is closed during destruction.
+    // *
+    // * @param[in] file A handle to file.
+    // *
+    // * @retval true  The new logfile was successfully opened.
+    // * @retval false Failed to open the new logfile.
+    // */
+    //bool SetLogfile( FILE* file );
 
-    /**
-     * @brief Sets the logfile to be used.
-     *
-     * @param[in] filename A name of file.
-     *
-     * @retval true  The new logfile was successfully opened.
-     * @retval false Failed to open the new logfile.
-     */
-    bool SetLogfile( const char* filename );
-    /**
-     * @brief Sets the logfile to be used.
-     *
-     * Passed @a file is closed during destruction.
-     *
-     * @param[in] file A handle to file.
-     *
-     * @retval true  The new logfile was successfully opened.
-     * @retval false Failed to open the new logfile.
-     */
-    bool SetLogfile( FILE* file );
-
-    /**
-     * @brief Sets the log system time every main loop.
-     *
-     * @param[in] time is the timestamp.
-     */
-    void SetTime( time_t time ) { mTime = time; }
+    ///**
+    // * @brief Sets the log system time every main loop.
+    // *
+    // * @param[in] time is the timestamp.
+    // */
+    //void SetTime( time_t time ) { mTime = time; }
 
 protected:
-    /// A convenience color enum.
-    enum Color
-    {
-        COLOR_DEFAULT, ///< A default color.
-        COLOR_BLACK,   ///< Black color.
-        COLOR_RED,     ///< Red color.
-        COLOR_GREEN,   ///< Green color.
-        COLOR_YELLOW,  ///< Yellow color.
-        COLOR_BLUE,    ///< Blue color.
-        COLOR_MAGENTA, ///< Magenta color.
-        COLOR_CYAN,    ///< Cyan color.
-        COLOR_WHITE,   ///< White color.
+    ///// A convenience color enum.
+    //enum Color
+    //{
+    //    COLOR_DEFAULT, ///< A default color.
+    //    COLOR_BLACK,   ///< Black color.
+    //    COLOR_RED,     ///< Red color.
+    //    COLOR_GREEN,   ///< Green color.
+    //    COLOR_YELLOW,  ///< Yellow color.
+    //    COLOR_BLUE,    ///< Blue color.
+    //    COLOR_MAGENTA, ///< Magenta color.
+    //    COLOR_CYAN,    ///< Cyan color.
+    //    COLOR_WHITE,   ///< White color.
 
-        COLOR_COUNT    ///< Number of colors.
-    };
+    //    COLOR_COUNT    ///< Number of colors.
+    //};
 
     /**
      * @brief Prints a message.
@@ -185,23 +187,23 @@ protected:
      */
     void SetLogfileDefault(std::string logPath);
 
-    /// The active logfile.
-	std::string mLogFilename;
-    FILE* mLogfile;
-    /// Current timestamp.
-    time_t mTime; // crap there should be 1 generic easy to understand time manager.
-    /// Protection against concurrent log messages
-    Mutex mMutex;
-
-    bool m_initialized;
-
-#ifdef HAVE_WINDOWS_H
-    /// Color translation table.
-    static const WORD COLOR_TABLE[ COLOR_COUNT ];
-#else /* !HAVE_WINDOWS_H */
-    /// Color translation table.
-    static const char* const COLOR_TABLE[ COLOR_COUNT ];
-#endif /* !HAVE_WINDOWS_H */
+//    /// The active logfile.
+//	std::string mLogFilename;
+//    FILE* mLogfile;
+//    /// Current timestamp.
+//    time_t mTime; // crap there should be 1 generic easy to understand time manager.
+//    /// Protection against concurrent log messages
+//    Mutex mMutex;
+//
+//    bool m_initialized;
+//
+//#ifdef HAVE_WINDOWS_H
+//    /// Color translation table.
+//    static const WORD COLOR_TABLE[ COLOR_COUNT ];
+//#else /* !HAVE_WINDOWS_H */
+//    /// Color translation table.
+//    static const char* const COLOR_TABLE[ COLOR_COUNT ];
+//#endif /* !HAVE_WINDOWS_H */
 };
 
 #endif /* !__LOG__HTML_LOG_H__INCL__ */

@@ -3,6 +3,9 @@
 # Edit Settings Below #
 #######################
 
+x
+    THIS SHOULD TAKE COMMAND LINE ARGS FOR THESE:igh ghf hgh
+
 host="localhost"	#Database Host
 port="3306"		#Database Port
 user="evemu"		#Database Username
