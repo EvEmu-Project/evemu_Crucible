@@ -481,8 +481,8 @@ void DestinyManager::_InitWarp() {
 
     if( shipRef )
     {
-        double baseWarpSpeed = m_self->CastToClient()->GetShip()->GetAttribute(AttrBaseWarpSpeed).get_float();
-        double warpSpeedMultiplier = m_self->CastToClient()->GetShip()->GetAttribute(AttrWarpSpeedMultiplier).get_float();
+        double baseWarpSpeed = shipRef->GetAttribute(AttrBaseWarpSpeed).get_float();
+        double warpSpeedMultiplier = shipRef->GetAttribute(AttrWarpSpeedMultiplier).get_float();
 
         //warp_speed = (double)(m_self->CastToClient()->GetShip()->GetAttribute(AttrWarpSpeedMultiplier).get_float()) * ONE_AU_IN_METERS;
         warp_speed = baseWarpSpeed * ((double)BASE_WARP_SPEED) * warpSpeedMultiplier * ((double)ONE_AU_IN_METERS);
@@ -492,6 +492,12 @@ void DestinyManager::_InitWarp() {
         sLog.Error( "DestinyManager::_InitWarp()", "ERROR - shipRef was NULL so default base warp speed of 3.0AU/s is being used.  This should not happen!" );
         warp_speed = m_system->GetWarpSpeed();
     }
+
+	m_warpNumerator = 2.0f;
+	m_warpDenomenator = 3.0f;
+	m_warpExpFactor = 1.0f;
+	m_warpVelocityMagnitudeFactorDivisor = 3.0f;
+	m_warpDecelerateFactor = 0.60;	// this value is getting the warps in Amsen from gate to station about 10AU pretty dang close
 
     if(1.5*warp_distance < warp_speed) {//not positive on this conditional
         warp_speed = 1.5*warp_distance;
@@ -589,15 +595,13 @@ void DestinyManager::_Warp() {
         //warp_completely_done
 
         // TODO: Adjust these equations because warp-in final position depends on them
-        // and is still wrong.  Also, see how these work when you change the
-        // maximum warp speed in AU/s, it is hard-coded to 3.0AU/s in SystemManager.cpp
-        // in the SystemManager::GetWarpSpeed() function.
-        double v58 = (((m_warpState->acceleration_time + (m_warpState->total_distance/m_warpState->speed) - seconds_into_warp) )) - (2.0f/3.0f);
+        // and is still wrong.
+        double v58 = (((m_warpState->acceleration_time + (m_warpState->total_distance/m_warpState->speed) - seconds_into_warp) )) - (m_warpNumerator/m_warpDenomenator);
 
-        velocity_magnitude = exp(v58) * m_warpState->speed / 3.0f;
+        velocity_magnitude = exp(m_warpExpFactor * v58) * m_warpState->speed / m_warpVelocityMagnitudeFactorDivisor;
 
-        dist_remaining = velocity_magnitude;// / 1.65;
-        //dist_remaining = m_warpDecelerateFactor * velocity_magnitude;
+        //dist_remaining = velocity_magnitude;// / 1.65;
+        dist_remaining = velocity_magnitude * m_warpDecelerateFactor;
 
         if(velocity_magnitude < 0)
             velocity_magnitude = -velocity_magnitude;
@@ -615,7 +619,7 @@ void DestinyManager::_Warp() {
 
             // HACK: broadcast our position every tic once inside radius of destination bubble
             // This temporarily fixes the warp-in bug that led to incorrect position of ship at end of warp
-            SetPosition( GetPosition(), true, false, true );
+            //SetPosition( GetPosition(), true, false, true );
         }
 
         //note, this should actually be checked AFTER we change new_velocity.

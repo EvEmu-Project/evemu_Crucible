@@ -14,7 +14,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
-SET( PROJECT_VERSION             "0.7.11" )
+SET( PROJECT_VERSION             "this is not used anymore, CMake pulls version from Git Tree Info (cmake/GitTreeInfo.cmake)" )
 SET( PROJECT_REPOSITORY          "https://github.com/evemuproject/evemu_server" )
 
 # Append our module path

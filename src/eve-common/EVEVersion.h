@@ -26,10 +26,11 @@
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
-// supported client is Crucible v1.6.5 build 360229
-
-static const uint16 MachoNetVersion = 320;
+// Client version info
+// (supported client is Crucible v1.6.5 build 360229)
+// (this is ALL CPP information needed by the client)
 static const double EVEVersionNumber = 7.31;
+static const uint16 MachoNetVersion = 320;
 static const int32 EVEBuildVersion = 360229;
 static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 static const char *const EVEProjectRegion = "ccp";

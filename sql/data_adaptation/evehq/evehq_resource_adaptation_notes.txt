@@ -1,0 +1,172 @@
+
+' Module State codes found here:
+' F:\projects\eve_tools\evehq\EveHQ.HQF\Classes\FittingItems.vb
+
+<Serializable()> Public Enum ModuleStates
+    Offline = 1
+    Inactive = 2
+    Active = 4
+    Overloaded = 8
+    Gang = 16
+    Fleet = 32
+End Enum
+
+
+' Calculation Types:
+' F:\projects\eve_tools\evehq\EveHQ.HQF\Classes\Effect.vb
+
+Public Enum EffectType As Integer
+    All = 0
+    Item = 1
+    Group = 2
+    Category = 3
+    MarketGroup = 4
+    Skill = 5
+    Slot = 6
+    Attribute = 7
+End Enum
+
+Public Enum EffectCalcType As Integer
+    Percentage = 0 ' Simply percentage variation (+/-)
+    Addition = 1 ' For adding values
+    Difference = 2 ' For resistances
+    Velocity = 3 ' For AB/MWD calculations
+    Absolute = 4 ' For setting values
+    Multiplier = 5 ' Damage multiplier
+    AddPositive = 6 ' Adding positive values only
+    AddNegative = 7 ' Adding negative values only
+    Subtraction = 8 ' Subtracting positive values
+    CloakedVelocity = 9 ' Bonus for dealing with cloaked velocity
+    SkillLevel = 10 ' Add one to the existing value
+    SkillLevelxAtt = 11 ' Multiply the attribute by the skill level
+    AbsoluteMax = 12 ' Set value only if higher than the existing value
+    AbsoluteMin = 13 ' Set value only if lower than the existing value
+    CapBoosters = 14 ' For cap and fueled shield boosters
+End Enum
+
+Public Enum EffectStackType As Integer
+    None = 0
+    Standard = 1
+    Group = 2
+    Item = 3
+End Enum
+
+
+' Calculation Type Definitions:
+' F:\projects\eve_tools\evehq\EveHQ.HQF\Classes\Fitting.vb
+
+' FEffect.AffectedValue is essentially the "input" value for the attribute modification formulas shown below:
+' NewShip.Attributes(Att) is essentially the target attribute being modified which is many times used as an input as well
+' 
+
+Select Case FEffect.CalcType
+    Case EffectCalcType.Percentage
+        NewShip.Attributes(Att) = NewShip.Attributes(Att) * (1 + (FEffect.AffectedValue / 100))
+    Case EffectCalcType.Addition
+        NewShip.Attributes(Att) = NewShip.Attributes(Att) + FEffect.AffectedValue
+    Case EffectCalcType.Difference ' Used for resistances
+        If FEffect.AffectedValue <= 0 Then
+            NewShip.Attributes(Att) = ((100 - NewShip.Attributes(Att)) * (-FEffect.AffectedValue / 100)) + NewShip.Attributes(Att)
+        Else
+            NewShip.Attributes(Att) = (NewShip.Attributes(Att) * (-FEffect.AffectedValue / 100)) + NewShip.Attributes(Att)
+        End If
+    Case EffectCalcType.Velocity
+        NewShip.Attributes(Att) = CDbl(NewShip.Attributes(Att)) + (CDbl(NewShip.Attributes(Att)) * (CDbl(NewShip.Attributes("10010")) / CDbl(NewShip.Attributes("10002")) * (FEffect.AffectedValue / 100)))
+    Case EffectCalcType.Absolute
+        NewShip.Attributes(Att) = FEffect.AffectedValue
+    Case EffectCalcType.Multiplier
+        NewShip.Attributes(Att) = NewShip.Attributes(Att) * FEffect.AffectedValue
+    Case EffectCalcType.AddPositive
+        If FEffect.AffectedValue > 0 Then
+            NewShip.Attributes(Att) = NewShip.Attributes(Att) + FEffect.AffectedValue
+        End If
+    Case EffectCalcType.AddNegative
+        If FEffect.AffectedValue < 0 Then
+            NewShip.Attributes(Att) = NewShip.Attributes(Att) + FEffect.AffectedValue
+        End If
+    Case EffectCalcType.Subtraction
+        NewShip.Attributes(Att) = NewShip.Attributes(Att) - FEffect.AffectedValue
+    Case EffectCalcType.CloakedVelocity
+        NewShip.Attributes(Att) = -100 + ((100 + NewShip.Attributes(Att)) * (FEffect.AffectedValue / 100))
+    Case EffectCalcType.SkillLevel
+        NewShip.Attributes(Att) = FEffect.AffectedValue
+    Case EffectCalcType.SkillLevelxAtt
+        NewShip.Attributes(Att) = FEffect.AffectedValue
+    Case EffectCalcType.AbsoluteMax
+        NewShip.Attributes(Att) = Math.Max(FEffect.AffectedValue, NewShip.Attributes(Att))
+    Case EffectCalcType.AbsoluteMin
+        NewShip.Attributes(Att) = Math.Min(FEffect.AffectedValue, NewShip.Attributes(Att))
+    Case EffectCalcType.CapBoosters
+        NewShip.Attributes(Att) = Math.Min(NewShip.Attributes(Att) - FEffect.AffectedValue, 0)
+End Select
+
+
+' Effect Handling Terms Translator:
+
+EVEHQ (Effects.csv)         EVEMU (dgmEffectsInfo table) ' Modules and Charges Only !
+      (Effects.ods)
+
+(MISSING)                   effectID
+AffectingAttribute          sourceAttributeID
+AffectingType               (n/a) EffectType (see codes above, not sure how to use this)
+AffectingID                 (n/a) groupID of module/ship/charge/etc that has this effectID
+AffectedAttribute           targetAttributeID
+AffectedType                (n/a) EffectType (see codes above, not sure how to use this)
+AffectedID                  targetGroupIDs (if any)
+StackNerf                   stackingPenaltyApplied
+PerLevel                    (n/a) (boolean [0,1] used to indicate whether effect is from a skill or non-skill, so it uses the skill level in the calculation or not)
+CalcType                    calculationTypeID
+State                       effectAppliedInState
+# (MISSING)                   targetEquipmentType           -- probably dont need this since module classes will know
+# (MISSING)                   effectAppliedTo               -- probably dont need this since module classes will know
+# (MISSING)                   nullifyOnlineEffect            -- assume we dont need this at this time
+# (MISSING)                   nullifiedOnlineEffectID        -- assume we dont need this at this time
+
+
+EVEHQ (ShipBonuses.csv)     EVEMU (dgmShipBonusModifiers) ' Ship Only !
+      (ShipBonuses.ods)
+
+(MISSING)                   effectID
+ShipID                      (not needed)
+AffectingType               EffectType (see codes above, not sure how to use this)
+AffectingID                 attributeSkillID
+AffectedAttribute           targetAttributeID
+AffectedType                EffectType (see codes above, not sure how to use this)
+AffectedID                  targetGroupIDs
+StackNerf                   stackingPenaltyApplied - NOT APPLICABLE TO ANY SHIP BONUSES
+PerLevel                    (not there but NEED THIS)
+CalcType                    calculationTypeID
+Value                       (we get this from Ship's attributes; instead storing sourceAttributeID to get this value)
+Status                      ? - probably don't need this
+(MISSING)                   sourceAttributeID
+(MISSING)                   effectAppliedTo
+(MISSING)                   targetEquipmentType
+(MISSING)                   targetChargeSize
+
+
+EVEHQ (Effects.csv)         EVEMU (dgmSkillBonusModifiers) ' Skills Only !
+      (SkillBonuses.ods)
+
+(MISSING)                   effectID
+AffectingAttribute          sourceAttributeID
+AffectingType               EffectType (see codes above, not sure how to use this)
+AffectingID                 groupID of module/ship/charge/etc that has this effectID
+AffectedAttribute           targetAttributeID
+AffectedType                targetEquipmentType
+AffectedID                  targetGroupIDs (if any)
+StackNerf                   stackingPenaltyApplied
+PerLevel                    (boolean [0,1] used to indicate whether effect is from a skill or non-skill, so it uses the skill level in the calculation or not)
+CalcType                    calculationTypeID
+State                       (kind of like effectAppliedBehavior, but incomplete, just scrub this)
+
+
+
+ERRORS:
+
+Ship Bonus Modifiers:
+typeID      name            attributeID             EVEHQ value     notes
+23919       Aeon            459                     200             value is wrong in DB
+11188       Anathema        649                     -97.5           value in DB is not percent but fraction, calc type ID may be wrong for DB value
+11969       Arazu           649                     -95             value in DB is not percent but fraction, calc type ID may be wrong for DB value
+11969       Arazu           962                     -20             value in DB is not percent but fraction, calc type ID may be wrong for DB value
+

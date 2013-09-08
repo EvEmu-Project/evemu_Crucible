@@ -129,6 +129,10 @@ protected:
     double m_accelerationFactor;		//crazy units
     double m_velocityAdjuster;			//unitless
 
+	double m_warpNumerator;
+	double m_warpDenomenator;
+	double m_warpExpFactor;
+	double m_warpVelocityMagnitudeFactorDivisor;
     double m_warpDecelerateFactor;
 
     //User controlled information used by a state to determine what to do.
