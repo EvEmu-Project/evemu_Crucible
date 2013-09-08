@@ -22,3 +22,4 @@ invBlueprintTypes                    missing columns (`chanceOfReverseEngineerin
 invShipTypes                         not in dump
 mapCelestialDescriptions             not in dump
 mapLocationWormholeClasses           not in dump
+staStationFix                        auto conversion error between null and 0
