@@ -244,15 +244,14 @@ any         any             ?                       n/a             target Attri
 
 NEEDED DATABASE CORRECTIONS - WE HAVE NO IDEA HOW THESE VALUES ARE "WRONG" OR "MISSING" BUT WE THINK THEY ARE, SO UPDATE/ADD THEM:
 
-11985       Basilisk        1220                    100             value in DB does not match description of 20 (EVEHQ csv has value of 20)
-583         Condor          588                     missing         no rows for 10% bonus to light missile and rocket velocity per skill level
-22464       Flycatcher      759                     -3              change value in DB to -3
-11987       Guardian        1219                    20              change value in DB to 20
-22544       Hulk            773                     5               attribute is missing in the DB, value should be -7.5
-601         Ibis            463                     n/a             change value in DB to 10
-22548       Mackinaw        773                     5               attribute is missing in the DB, value should be -7.5
-22548       Mackinaw        924                     100             change value in DB to 100
-11989       Onerios         1219                    n/a             change value in DB to 20
-11978       Scimitar        1220                    20              change value in DB to 20
+*11985       Basilisk        1220                    100             value in DB does not match description of 20 (EVEHQ csv has value of 20)
+*22464       Flycatcher      759                     -3              change value in DB to -3
+*11987       Guardian        1219                    20              change value in DB to 20
+*22544       Hulk            773                     5               attribute is missing in the DB, value should be -7.5
+*601         Ibis            463                     5               change value in DB to 10
+*22548       Mackinaw        773                     5               attribute is missing in the DB, value should be -7.5
+*22548       Mackinaw        924                     100             change value in DB to 100
+*11989       Onerios         1219                    n/a             change value in DB to 20
+*11978       Scimitar        1220                    20              change value in DB to 20
 
 
