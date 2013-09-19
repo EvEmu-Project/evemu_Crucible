@@ -50,7 +50,7 @@ def mysql_update_invTypes_basePrice(mysql_db, mysql_cursor, typeID, avg_sell_pri
     
     # NOTE: basePrice field is 1000 times actual price!
     
-    query_string = "UPDATE `invTypes` SET `basePrice` = " + str(avg_sell_price*1000) + " WHERE `typeID` = " + str(typeID)
+    query_string = "UPDATE `invTypes` SET `basePrice` = " + str(avg_sell_price) + " WHERE `typeID` = " + str(typeID)
 
     if (verbose == 1):
         print "QUERY = \"", query_string, "\""
