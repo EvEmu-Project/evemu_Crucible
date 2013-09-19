@@ -126,7 +126,7 @@ public:
      */
     virtual void Delete();  //remove the item from the DB.
     virtual InventoryItemRef Split(int32 qty_to_take, bool notify=true);
-    virtual bool Merge(InventoryItemRef to_merge, uint32 qty=0, bool notify=true);
+    virtual bool Merge(InventoryItemRef to_merge, int32 qty=0, bool notify=true);
 
     void PutOnline() { SetOnline(true); }
     void PutOffline() { SetOnline(false); }
