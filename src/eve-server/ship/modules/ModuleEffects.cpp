@@ -32,13 +32,65 @@
 MEffect::MEffect(uint32 effectID)
 {
     m_EffectID = effectID;
+    m_EffectID = 0;
+    m_EffectName = "";
+    m_EffectCategory = 0;
+    m_PreExpression = 0;
+    m_PostExpression = 0;
+    m_Description = "";
+    m_Guid = "";
+    m_IconID = 0;
+    m_IsOffensive = 0;
+    m_IsAssistance = 0;
+    m_DurationAttributeID = 0;
+    m_TrackingSpeedAttributeID = 0;
+    m_DischargeAttributeID = 0;
+    m_RangeAttributeID = 0;
+    m_FalloffAttributeID = 0;
+    m_DisallowAutoRepeat = 0;
+    m_Published = 0;
+    m_DisplayName = "";
+    m_IsWarpSafe = 0;
+    m_RangeChance = 0;
+    m_ElectronicChance = 0;
+    m_PropulsionChance = 0;
+    m_Distribution = 0;
+    m_SfxName = "";
+    m_NpcUsageChanceAttributeID = 0;
+    m_NpcActivationChanceAttributeID = 0;
+    m_FittingUsageChanceAttributeID = 0;
+
+    m_numOfIDs = 0;
+	m_SourceAttributeIDs = NULL;
+	m_TargetAttributeIDs = NULL;
+	m_CalculationTypeIDs = NULL;
+	m_ReverseCalculationTypeIDs = NULL;
+	m_StackingPenaltyAppliedIDs = NULL;
+	m_EffectAppliedInStateIDs = NULL;
+	m_AffectingIDs = NULL;
+	m_AffectingTypes = NULL;
+	m_AffectedTypes = NULL;
+
 	m_EffectLoaded = false;
-    _Populate(effectID);
+	m_EffectsInfoLoaded = false;
+
+	_Populate(effectID);
 }
 
 MEffect::~MEffect()
 {
-    /* nothing to do */
+    if( m_numOfIDs > 0 )
+	{
+		delete m_SourceAttributeIDs;
+		delete m_TargetAttributeIDs;
+		delete m_CalculationTypeIDs;
+		delete m_ReverseCalculationTypeIDs;
+		delete m_StackingPenaltyAppliedIDs;
+		delete m_EffectAppliedInStateIDs;
+		delete m_AffectingIDs;
+		delete m_AffectingTypes;
+		delete m_AffectedTypes;
+	}
 }
 
 void MEffect::_Populate(uint32 effectID)
@@ -103,84 +155,80 @@ void MEffect::_Populate(uint32 effectID)
     DBResultRow row2;
 
     // Initialize the new tables
-    m_TargetAttributeIDs = new int[res->GetRowCount()];
-    m_SourceAttributeIDs = new int[res->GetRowCount()];
-    m_CalculationTypeIDs = new int[res->GetRowCount()];
-    m_ReverseCalculationTypeIDs = new int[res->GetRowCount()];
-    m_EffectAppliedToTargetIDs = new int[res->GetRowCount()];
-    m_EffectAppliedBehaviorIDs = new int[res->GetRowCount()];
-    m_EffectApplicationTypeIDs = new int[res->GetRowCount()];
-    m_TargetEquipmentTypeIDs = new int[res->GetRowCount()];
-    m_StackingPenaltyAppliedIDs = new int[res->GetRowCount()];
-    
-	int count = 0;
-    std::string targetGroupIDs;
-    typeTargetGroupIDlist * TargetGroupIDs;
-
-    while( res->GetRow(row2) )
-    {
-        m_TargetAttributeIDs[count] = row2.GetInt(0);
-        m_SourceAttributeIDs[count] = row2.GetInt(1);
-        m_CalculationTypeIDs[count] = row2.GetInt(2);
-        m_ReverseCalculationTypeIDs[count] = row2.GetInt(3);
-        m_EffectAppliedToTargetIDs[count] = row2.GetInt(4);
-        m_EffectAppliedBehaviorIDs[count] = row2.GetInt(5);
-        m_EffectApplicationTypeIDs[count] = row2.GetInt(6);
-        m_TargetEquipmentTypeIDs[count] = row2.GetInt(7);
-        targetGroupIDs = row2.GetText(8);
-        m_StackingPenaltyAppliedIDs[count] = row2.GetInt(9);
-
-        TargetGroupIDs = new typeTargetGroupIDlist;
-        if( !(targetGroupIDs.empty()) )
-        {
-            int pos = 0;
-            std::string tempString = "";
-            std::vector<uint32>::iterator it;
-
-			// WARNING!  This may be insufficient to properly detect and handle an EMPTY "" list of targetGroupIDs
-            pos = targetGroupIDs.find_first_of(',');
-            tempString = targetGroupIDs.substr(0,pos);
-
-            while( (pos = targetGroupIDs.find_first_of(',')) )
-            {
-                tempString = targetGroupIDs.substr(0,pos);
-                TargetGroupIDs->insert( it, (atoi(tempString.c_str())) );
-            }
-
-            m_TargetGroupIDlists.insert(std::pair<uint32, typeTargetGroupIDlist *>(count, TargetGroupIDs));
-        }
-
-        count++;
-    }
-
-    if( count == 0 )
+	if( res->GetRowCount() > 0 )
 	{
-        ;//sLog.Error("MEffect","Could not populate effect information for effectID: %u from the 'dgmEffectsInfo' table as the SQL query returned ZERO rows", effectID);
-		m_EffectLoaded = false;
-	}
-	else
-	{
-		m_numOfIDs = count;
+		m_SourceAttributeIDs = new int[res->GetRowCount()];
+		m_TargetAttributeIDs = new int[res->GetRowCount()];
+		m_CalculationTypeIDs = new int[res->GetRowCount()];
+		m_ReverseCalculationTypeIDs = new int[res->GetRowCount()];
+		m_StackingPenaltyAppliedIDs = new int[res->GetRowCount()];
+		m_EffectAppliedInStateIDs = new int[res->GetRowCount()];
+		m_AffectingIDs = new int[res->GetRowCount()];
+		m_AffectingTypes = new int[res->GetRowCount()];
+		m_AffectedTypes = new int[res->GetRowCount()];
 
-		// Finally, get the info for this effectID from the dgmEffectsActions table:
-		ModuleDB::GetDgmEffectsActions(effectID, *res);
+		int count = 0;
+		std::string targetGroupIDs;
+		typeTargetGroupIDlist * TargetGroupIDs;
 
-		DBResultRow row3;
-
-		if( !(res->GetRow(row3)) )
+		while( res->GetRow(row2) )
 		{
-			;//sLog.Error("MEffect","Could not populate effect information for effectID: %u from 'dgmEffectsActions table", effectID);
+			m_SourceAttributeIDs[count] = row2.GetInt(0);
+			m_TargetAttributeIDs[count] = row2.GetInt(1);
+			m_CalculationTypeIDs[count] = row2.GetInt(2);
+			m_Descriptions.insert(std::pair<uint32,std::string>(count,row2.GetText(3)));
+			m_ReverseCalculationTypeIDs[count] = row2.GetInt(4);
+			targetGroupIDs = row2.GetText(5);
+			m_StackingPenaltyAppliedIDs[count] = row2.GetInt(6);
+			m_EffectAppliedInStateIDs[count] = row2.GetInt(7);
+			m_AffectingIDs[count] = row2.GetInt(8);
+			m_AffectingTypes[count] = row2.GetInt(9);
+			m_AffectedTypes[count] = row2.GetInt(10);
+
+			TargetGroupIDs = new typeTargetGroupIDlist;
+			if( !(targetGroupIDs.empty()) )
+			{
+				// targetGroupIDs string is not empty, so extract one number at a time until it is empty
+				int pos = 0;
+				std::string tempString = "";
+
+				pos = targetGroupIDs.find_first_of(';');
+				if( pos < 0 )
+					pos = targetGroupIDs.length()-1;	// we did not find any ';' characters, so targetGroupIDs contains only one number
+				tempString = targetGroupIDs.substr(0,pos);
+
+				while( (pos = targetGroupIDs.find_first_of(';')) > 0 )
+				{
+					tempString = targetGroupIDs.substr(0,pos);
+					TargetGroupIDs->insert(TargetGroupIDs->begin(), (atoi(tempString.c_str())));
+					targetGroupIDs = targetGroupIDs.substr(pos+1,targetGroupIDs.length()-1);
+				}
+
+				// Get final number now that there are no more separators to find:
+				if( !(targetGroupIDs.empty()) )
+					TargetGroupIDs->insert(TargetGroupIDs->begin(), (atoi(targetGroupIDs.c_str())));
+
+				m_TargetGroupIDlists.insert(std::pair<uint32, typeTargetGroupIDlist *>(count, TargetGroupIDs));
+			}
+
+			count++;
+		}
+
+		if( count == 0 )
+		{
+			;//sLog.Error("MEffect","Could not populate effect information for effectID: %u from the 'dgmEffectsInfo' table as the SQL query returned ZERO rows", effectID);
+			m_EffectsInfoLoaded = false;
 		}
 		else
 		{
-			m_EffectAppliedWhenID = row3.GetInt(0);
-			m_NullifyOnlineEffectEnable = row3.GetInt(1);
-			m_NullifiedOnlineEffectID = row3.GetInt(2);
+			m_numOfIDs = count;
+			m_EffectsInfoLoaded = true;
 		}
-
-		m_EffectLoaded = true;
 	}
+	else
+		m_EffectsInfoLoaded = false;
 
+	m_EffectLoaded = true;
     delete res;
     res = NULL;
 }
@@ -370,7 +418,7 @@ void ModuleEffects::_populate(uint32 typeID)
 {
     //first get list of all of the effects associated with the typeID
     DBQueryResult *res = new DBQueryResult();
-    ModuleDB::GetDgmTypeEffectsInformation(typeID, *res);
+    //ModuleDB::GetDgmTypeEffectsInformation(typeID, *res);
 
     //counter
     MEffect * mEffectPtr;

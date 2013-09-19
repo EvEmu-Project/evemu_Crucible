@@ -69,23 +69,21 @@ public:
     uint32 GetNpcActivationChanceAttributeID()                    { return (m_EffectID == 0) ? 0 : m_NpcActivationChanceAttributeID; }
     uint32 GetFittingUsageChanceAttributeID()                    { return (m_EffectID == 0) ? 0 : m_FittingUsageChanceAttributeID; }
 
-    //accessors for the effects targetAttributeID, sourceAttributeID and calculation type:
-    uint32 GetSizeOfAttributeList()                                { return (m_EffectID == 0) ? 0 : m_numOfIDs; }
-    uint32 GetTargetAttributeID(uint32 index)                    { return (m_EffectID == 0) ? 0 : m_TargetAttributeIDs[index]; }
-    uint32 GetSourceAttributeID(uint32 index)                    { return (m_EffectID == 0) ? 0 : m_SourceAttributeIDs[index]; }
-    EVECalculationType GetCalculationType(uint32 index)            { return (m_EffectID == 0) ? (EVECalculationType)0 : (EVECalculationType)m_CalculationTypeIDs[index];}
-    EVECalculationType GetReverseCalculationType(uint32 index)    { return (m_EffectID == 0) ? (EVECalculationType)0 : (EVECalculationType)m_ReverseCalculationTypeIDs[index];}
-
-    uint32 GetModuleStateWhenEffectApplied()                    { return (m_EffectID == 0) ? 0 : m_EffectAppliedWhenID; }
-    uint32 GetTargetTypeToWhichEffectApplied(uint32 index)        { return (m_EffectID == 0) ? 0 : m_EffectAppliedToTargetIDs[index]; }
-    uint32 GetEffectApplicationType(uint32 index)               { return (m_EffectID == 0) ? 0 : m_EffectApplicationTypeIDs[index]; }
-    uint32 GetTargetEquipmentType(uint32 index)                 { return (m_EffectID == 0) ? 0 : m_TargetEquipmentTypeIDs[index]; }
-    typeTargetGroupIDlist * GetTargetGroupIDlist(uint32 index)    { return (m_EffectID == 0) ? 0 : m_TargetGroupIDlists.find(index)->second; }
-    uint32 GetStackingPenaltyApplied(uint32 index)              { return (m_EffectID == 0) ? 0 : m_StackingPenaltyAppliedIDs[index]; }
-    uint32 GetNullifyOnlineEffectEnable()                       { return (m_EffectID == 0) ? 0 : m_NullifyOnlineEffectEnable; }
-    uint32 GetNullifiedOnlineEffectID()                         { return (m_EffectID == 0) ? 0 : m_NullifiedOnlineEffectID; }
+    //accessors for the data loaded, if any, from the dgmEffectsInfo table:
+    uint32 GetSizeOfAttributeList()                                { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_numOfIDs; }
+    uint32 GetSourceAttributeID(uint32 index)                    { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_SourceAttributeIDs[index]; }
+    uint32 GetTargetAttributeID(uint32 index)                    { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_TargetAttributeIDs[index]; }
+    EVECalculationType GetCalculationType(uint32 index)            { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? (EVECalculationType)0 : (EVECalculationType)m_CalculationTypeIDs[index];}
+	EVECalculationType GetReverseCalculationType(uint32 index)    { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? (EVECalculationType)0 : (EVECalculationType)m_ReverseCalculationTypeIDs[index];}
+    typeTargetGroupIDlist * GetTargetGroupIDlist(uint32 index)    { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_TargetGroupIDlists.find(index)->second; }
+    uint32 GetStackingPenaltyApplied(uint32 index)              { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_StackingPenaltyAppliedIDs[index]; }
+    uint32 GetModuleStateWhenEffectApplied()                    { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_EffectAppliedInStateIDs[0]; }
+    uint32 GetAffectingID()										{ return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_AffectingIDs[0]; }
+	uint32 GetTargetTypeToWhichEffectApplied(uint32 index)        { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_AffectedTypes[index]; }
+    uint32 GetEffectApplicationType(uint32 index)               { return ((m_EffectID == 0) || (!m_EffectsInfoLoaded)) ? 0 : m_AffectingTypes[index]; }
 
 	bool IsEffectLoaded() { return m_EffectLoaded; }
+	bool IsEffectsInfoLoaded() { return m_EffectsInfoLoaded; }
 
 private:
     void _Populate(uint32 effectID);
@@ -119,21 +117,20 @@ private:
     int m_FittingUsageChanceAttributeID;
 
     int m_numOfIDs;
-    int * m_TargetAttributeIDs;
     int * m_SourceAttributeIDs;
+    int * m_TargetAttributeIDs;
     int * m_CalculationTypeIDs;
+	std::map<uint32, std::string> m_Descriptions;
     int * m_ReverseCalculationTypeIDs;
-    int * m_EffectAppliedToTargetIDs;
-    int * m_EffectAppliedBehaviorIDs;
-    int * m_EffectApplicationTypeIDs;
-    int * m_TargetEquipmentTypeIDs;
     std::map<uint32, typeTargetGroupIDlist *> m_TargetGroupIDlists;
     int * m_StackingPenaltyAppliedIDs;
-    int m_EffectAppliedWhenID;
-    int m_NullifyOnlineEffectEnable;
-    int m_NullifiedOnlineEffectID;
+	int * m_EffectAppliedInStateIDs;
+	int * m_AffectingIDs;
+	int * m_AffectingTypes;
+	int * m_AffectedTypes;
 
 	bool m_EffectLoaded;
+	bool m_EffectsInfoLoaded;
 };
 //////////////////////////////////////////////////////////////////////////
 
