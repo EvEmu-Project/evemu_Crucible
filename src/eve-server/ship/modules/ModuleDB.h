@@ -36,14 +36,13 @@ public:
 
     static void GetAllDgmEffects(DBQueryResult &res);
     static void GetAllDgmEffectsInfo(DBQueryResult &res);
-    static void GetAllDgmEffectsActions(DBQueryResult &res);
-    static void GetAllDgmTypeAttributeModifiers(DBQueryResult &res);
+    static void GetAllDgmSkillBonusModifiers(DBQueryResult &res);
+    static void GetAllDgmShipBonusModifiers(DBQueryResult &res);
 
     static void GetDgmEffects(uint32 effectID, DBQueryResult &res);
     static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res);
-    static void GetDgmEffectsActions(uint32 effectID, DBQueryResult &res);
-    static void GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res);
-
+    static void GetDgmSkillBonusModifiers(uint32 skillID, DBQueryResult &res);
+    static void GetDgmShipBonusModifiers(uint32 shipID, DBQueryResult &res);
 };
 
 

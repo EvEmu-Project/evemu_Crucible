@@ -51,31 +51,24 @@ void ModuleDB::GetAllDgmEffectsInfo(DBQueryResult &res)
     }
 }
 
-void ModuleDB::GetAllDgmEffectsActions(DBQueryResult &res)
+void GetAllDgmSkillBonusModifiers(DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
-        " effectID "
-        " FROM dgmEffectActions "
+        " skillID "
+        " FROM dgmSkillBonusModifiers "
         " WHERE 1 "))
     {
         _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
     }
 }
 
-void ModuleDB::GetAllDgmTypeAttributeModifiers(DBQueryResult &res)
+void GetAllDgmShipBonusModifiers(DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
-        " typeID, "
-        " skillID, "
-        " targetEquipmentID, "
-        " targetGroupIDs, "
-        " targetAttributeID, "
-        " modifierValue, "
-        " calculationTypeID, "
-        " reverseCalculationTypeID "
-        " FROM dgmTypeAttributeModifiers "
+        " shipID "
+        " FROM dgmShipBonusModifiers "
         " WHERE 1 "))
     {
         _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
@@ -124,16 +117,17 @@ void ModuleDB::GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
-        " targetAttributeID, "
         " sourceAttributeID, "
+        " targetAttributeID, "
         " calculationTypeID, "
+		" description, "
         " reverseCalculationTypeID, "
-        " effectAppliedTo, "
-        " effectAppliedBehavior, "
-        " effectApplicationType, "
-        " targetEquipmentType, "
         " targetGroupIDs, "
-        " stackingPenaltyApplied "
+        " stackingPenaltyApplied, "
+        " effectAppliedInState, "
+        " affectingID, "
+        " affectingType, "
+        " affectedType "
         " FROM dgmEffectsInfo "
         " WHERE effectID = '%u' ",
         effectID))
@@ -142,32 +136,48 @@ void ModuleDB::GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res)
     }
 }
 
-void ModuleDB::GetDgmEffectsActions(uint32 effectID, DBQueryResult &res)
+void GetDgmSkillBonusModifiers(uint32 skillID, DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
-        " effectAppliedInState, "
-        " nullifyOnlineEffect, "
-        " nullifiedOnlineEffectID "
-        " FROM dgmEffectsActions "
-        " WHERE effectID = '%u' ",
-        effectID))
+		" effectID, "
+        " sourceAttributeID, "
+        " targetAttributeID, "
+        " calculationTypeID, "
+		" description, "
+        " reverseCalculationTypeID, "
+        " targetGroupIDs, "
+        " targetChargeSize, "
+        " appliedPerLevel, "
+        " affectingType, "
+        " affectedType "
+        " FROM dgmSkillBonusModifiers "
+        " WHERE skillID = '%u' ",
+        skillID))
     {
         _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
     }
 }
 
-void ModuleDB::GetDgmTypeEffectsInformation(uint32 typeID, DBQueryResult &res)
+void GetDgmShipBonusModifiers(uint32 shipID, DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
-        " effectID, "
-        " isDefault "
-        " FROM dgmTypeEffects "
-        " WHERE typeID = '%u' ",
-        typeID))
+		" effectID, "
+		" attributeSkillID, "
+        " sourceAttributeID, "
+        " targetAttributeID, "
+        " calculationTypeID, "
+		" description, "
+        " reverseCalculationTypeID, "
+        " targetGroupIDs, "
+        " appliedPerLevel, "
+        " affectingType, "
+        " affectedType "
+        " FROM dgmShipBonusModifiers "
+        " WHERE shipID = '%u' ",
+        shipID))
     {
         _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
     }
-
 }
