@@ -246,7 +246,7 @@ for region in range(0,regionID_List_length):
     regionProgress = 100.0 * ((1.0*region)/regionID_List_length)
 
     # Inner Loop - Loop through entire list of typeIDs
-    for index in range(0,30): #range(1,typeID_List_length-1)
+    for index in range(0,range(1,typeID_List_length-1)
         typeID = typeID_List[index]
         typeID_Progress = 100.0 * ((1.0*index)/typeID_List_length)
 
