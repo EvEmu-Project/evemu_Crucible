@@ -110,6 +110,9 @@ static EvilNumber e_log(EvilNumber num)
         return EvilNumber(log(double(num.get_int())));
 }
 
+/* DEPRECATED as having both of these functions causes compiler errors
+   YOU MUST use the EvilNumber::pow() function instead
+
 static EvilNumber e_pow(EvilNumber num, int power_of)
 {
     if (num.get_type() == evil_number_float)
@@ -127,5 +130,6 @@ static EvilNumber e_pow(int num, EvilNumber power_of)
         return EvilNumber(pow(num, double(power_of.get_int())));
 
 }
+*/
 
 #endif // dgmtypeattributeinfo_h__

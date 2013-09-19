@@ -468,7 +468,7 @@ uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
     if( target->IsClient() || target->IsNPC() )
         sigRad = target->Item()->GetAttribute(AttrSignatureRadius);
 
-    EvilNumber time = ( EvilNumber(40000) / ( scanRes ) ) /( e_pow( e_log( sigRad + e_sqrt( sigRad * sigRad + 1) ), 2) );
+    EvilNumber time = ( EvilNumber(40000) / ( scanRes ) ) /( EvilNumber::pow( e_log( sigRad + e_sqrt( sigRad * sigRad + 1) ), 2) );
 
 	return static_cast<uint32>(time.get_float() * 1000); // Timer uses ms instead of seconds
 }

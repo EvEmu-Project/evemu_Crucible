@@ -101,6 +101,9 @@ public:
     EvilNumber operator-(const EvilNumber& val)
     {    return _Subtract(*this, val);   }
 
+	EvilNumber operator-()
+	{    return _Multiply(EvilNumber(-1.0), *this);   }
+
     EvilNumber operator-=(const EvilNumber& val)
     {    return _SelfSubtract(val);     }
 
@@ -129,6 +132,49 @@ public:
         _SelfDecrement();
         return temp;
     }
+
+    /**
+     * @brief Code generation macro to create basic binary math operator overload using supplied operator and type being compared to EvilNumber
+     *
+     * @param[in] a
+     * @param[in] b
+     * @return operator overload function for operator 'a'  to a value 'val' of type 'b'
+     */
+    #define MATH_OPERATOR(a, b) \
+        bool operator a ( b val) \
+        { \
+            if (this->mType == evil_number_int) \
+                return this->mValue.iVal a static_cast<int64>(val); \
+            else \
+                return this->mValue.fVal a static_cast<double>(val); \
+        }
+
+    /**
+     * @brief Code generation macro to create all basic binary math operator overload functions for a specified type
+     *
+     * @param[in] a
+     * @return all basic binary math operator overload functions for the specified type
+     */
+    #define MATH_OPERATORS_FOR( type ) \
+        MATH_OPERATOR( +, type ) \
+        MATH_OPERATOR( -, type ) \
+        MATH_OPERATOR( *, type ) \
+        MATH_OPERATOR( /, type )
+    //    MATH_OPERATOR( %, type )
+
+    /* using a code generating macro to generate basic binary math operator handlers
+     * @note expand these if needed.
+     */
+	MATH_OPERATORS_FOR( const int8)
+    MATH_OPERATORS_FOR( const uint8)
+    MATH_OPERATORS_FOR( const int16)
+    MATH_OPERATORS_FOR( const uint16)
+    MATH_OPERATORS_FOR( const int32)
+    MATH_OPERATORS_FOR( const uint32)
+    MATH_OPERATORS_FOR( const int64)
+    MATH_OPERATORS_FOR( const uint64)
+    MATH_OPERATORS_FOR( const float)
+    MATH_OPERATORS_FOR( const double)
 
     /************************************************************************/
     /* End of EvilNumber manipulation operator handlers                     */

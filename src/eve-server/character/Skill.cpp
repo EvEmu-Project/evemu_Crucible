@@ -94,7 +94,7 @@ uint32 Skill::_Spawn(ItemFactory &factory, ItemData &data)
 EvilNumber Skill::GetSPForLevel( EvilNumber level )
 {
     //return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(32, (level - 1) / 2.0);
-    return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * e_pow(2, (2.5*(level - 1)));
+    return EVIL_SKILL_BASE_POINTS * GetAttribute(AttrSkillTimeConstant) * EvilNumber::pow(2, (2.5*(level - 1)));
 }
 
 bool Skill::SkillPrereqsComplete(Character &ch)
