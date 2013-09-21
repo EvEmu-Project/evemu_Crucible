@@ -1,25 +1,29 @@
 Files in this directory contain following updates for official EVE database dump:
 
-Table name                           Note
----------------------------------------------------------------
-chrCareers                           missing rows
-chrCareerSpecialities                missing rows
-chrRaceSkills                        missing rows
-chrSchoolAgents                      missing rows
-chrSchools                           missing rows
-crpNPCCorporations                   missing columns (`mainActivityID`, `secondaryActivityID`)
-crpNPCCorporationTrades              not in dump
-crpNPCTickerNames                    not in dump
-crtRecommendations                   not in dump
-crtRelationships                     missing columns (`childTypeID`)
-dgmAttributeTypes                    missing columns (`attributeCategory`, `attributeIdx`, `maxAttributeID`, `chargeRechargeTimeID`)
-dgmTypeAttributes                    missing rows
-dgmTypeEffects                       missing rows
-eveConstants                         not in dump
-eveMessages                          not in dump
-eveRoles                             not in dump
-invBlueprintTypes                    missing columns (`chanceOfReverseEngineering`)
-invShipTypes                         not in dump
-mapCelestialDescriptions             not in dump
-mapLocationWormholeClasses           not in dump
-staStationFix                        auto conversion error between null and 0
+Table name                          Note
+--------------------------------------------------------------
+chrCareers                          missing rows
+chrCareerSpecialities               missing rows
+chrRaceSkills                       missing rows
+chrSchoolAgents                     missing rows
+chrSchools                          missing rows
+crpNPCCorporations                  missing columns (`mainActivityID`, `secondaryActivityID`)
+crpNPCCorporationTrades             not in dump
+crpNPCTickerNames                   not in dump
+crtRecommendations                  not in dump
+crtRelationships                    missing columns (`childTypeID`)
+dgmAttributeTypes                   missing columns (`attributeCategory`, `attributeIdx`, `maxAttributeID`, `chargeRechargeTimeID`)
+dgmTypeAttributes                   missing rows
+dgmTypeEffects                      missing rows
+eveConstants                        not in dump
+eveMessages                         not in dump
+eveRoles                            not in dump
+invBlueprintTypes                   missing columns (`chanceOfReverseEngineering`)
+invShipTypes                        not in dump
+mapCelestialDescriptions            not in dump
+mapLocationWormholeClasses          not in dump
+staStationFix                       auto conversion error between null and 0
+dgmEffectsInfo                      table linking effectID to source attribute on module to the attribute modified on target
+dgmSkillBonusModifiers              table linking skillID to source attribute and target attribute being modified
+dgmSkillBonusModifiers              table linking shipID to source attribute and target attribute being modified
+invTypesToWrecks                    table linking ship typeIDs to wreck typeIDs
