@@ -1006,6 +1006,24 @@ PyResult LSCService::Handle_SendMessage( PyCallArgs& call )
         return NULL;
     }
 
+	std::string CIC_test_name = "CIC - " + std::string(call.client->GetName());
+	if( (message.substr(0,3) == "pcs") && (res->second->GetDisplayName() == CIC_test_name) )
+	{
+        sLog.Debug( "LSCService::Handle_SendMessage()", "CALL to Player Command System via LSC Service, baby!" );
+
+		// call to Player Command System to parse command
+
+		//if( command_ack == 1 )
+			message = "[ COMMAND ACKNOWLEDGED ]";
+		//else
+		//	message = "[ COMMAND FAILED ]";
+	}
+
+	if( message == "cic" )
+	{
+		sLog.Debug( "LSCService::Handle_SendMessage()", "Message 'cic' received, creating/joining %s...", CIC_test_name.c_str() );
+	}
+
     if( message.at(0) == '.' )
     {
         sLog.Debug( "LSCService::Handle_SendMessage()", "CALL to SlashService->SlashCmd() via LSC Service, baby!" );
