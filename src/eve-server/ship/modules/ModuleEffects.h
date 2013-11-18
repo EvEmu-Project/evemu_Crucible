@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        Aknor Jaden, Luck
 */
 
 #ifndef MODULE_EFFECTS_H
@@ -88,46 +88,46 @@ public:
 private:
     void _Populate(uint32 effectID);
 
-    int m_EffectID;
+    uint32 m_EffectID;
     std::string m_EffectName;
-    int m_EffectCategory;
-    int m_PreExpression;
-    int m_PostExpression;
+    uint32 m_EffectCategory;
+    uint32 m_PreExpression;
+    uint32 m_PostExpression;
     std::string m_Description;
     std::string m_Guid;
-    int m_IconID;
-    int m_IsOffensive;
-    int m_IsAssistance;
-    int m_DurationAttributeID;
-    int m_TrackingSpeedAttributeID;
-    int m_DischargeAttributeID;
-    int m_RangeAttributeID;
-    int m_FalloffAttributeID;
-    int m_DisallowAutoRepeat;
-    int m_Published;
+    uint32 m_IconID;
+    uint32 m_IsOffensive;
+    uint32 m_IsAssistance;
+    uint32 m_DurationAttributeID;
+    uint32 m_TrackingSpeedAttributeID;
+    uint32 m_DischargeAttributeID;
+    uint32 m_RangeAttributeID;
+    uint32 m_FalloffAttributeID;
+    uint32 m_DisallowAutoRepeat;
+    uint32 m_Published;
     std::string m_DisplayName;
-    int m_IsWarpSafe;
-    int m_RangeChance;
-    int m_ElectronicChance;
-    int m_PropulsionChance;
-    int m_Distribution;
+    uint32 m_IsWarpSafe;
+    uint32 m_RangeChance;
+    uint32 m_ElectronicChance;
+    uint32 m_PropulsionChance;
+    uint32 m_Distribution;
     std::string m_SfxName;
-    int m_NpcUsageChanceAttributeID;
-    int m_NpcActivationChanceAttributeID;
-    int m_FittingUsageChanceAttributeID;
+    uint32 m_NpcUsageChanceAttributeID;
+    uint32 m_NpcActivationChanceAttributeID;
+    uint32 m_FittingUsageChanceAttributeID;
 
-    int m_numOfIDs;
-    int * m_SourceAttributeIDs;
-    int * m_TargetAttributeIDs;
-    int * m_CalculationTypeIDs;
+    uint32 m_numOfIDs;
+    uint32 * m_SourceAttributeIDs;
+    uint32 * m_TargetAttributeIDs;
+    uint32 * m_CalculationTypeIDs;
 	std::map<uint32, std::string> m_Descriptions;
-    int * m_ReverseCalculationTypeIDs;
+    uint32 * m_ReverseCalculationTypeIDs;
     std::map<uint32, typeTargetGroupIDlist *> m_TargetGroupIDlists;
-    int * m_StackingPenaltyAppliedIDs;
-	int * m_EffectAppliedInStateIDs;
-	int * m_AffectingIDs;
-	int * m_AffectingTypes;
-	int * m_AffectedTypes;
+    uint32 * m_StackingPenaltyAppliedIDs;
+	uint32 * m_EffectAppliedInStateIDs;
+	uint32 * m_AffectingIDs;
+	uint32 * m_AffectingTypes;
+	uint32 * m_AffectedTypes;
 
 	bool m_EffectLoaded;
 	bool m_EffectsInfoLoaded;
@@ -141,18 +141,39 @@ class SkillBonusModifier
 public:
     SkillBonusModifier(uint32 skillID);
     ~SkillBonusModifier();
+
+    //accessors for the data loaded, if any, from the dgmSkillBonusModifiers table:
+    uint32 GetSkillID()                                          { return m_SkillID; }
+    uint32 GetSizeOfModifierList()                                { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_numOfIDs; }
+    uint32 GetEffectID(uint32 index)                              { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_EffectIDs[index]; }
+    uint32 GetSourceAttributeID(uint32 index)                    { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_SourceAttributeIDs[index]; }
+    uint32 GetTargetAttributeID(uint32 index)                    { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_TargetAttributeIDs[index]; }
+    EVECalculationType GetCalculationType(uint32 index)            { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? (EVECalculationType)0 : (EVECalculationType)m_CalculationTypeIDs[index];}
+	EVECalculationType GetReverseCalculationType(uint32 index)    { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? (EVECalculationType)0 : (EVECalculationType)m_ReverseCalculationTypeIDs[index];}
+    typeTargetGroupIDlist * GetTargetGroupIDlist(uint32 index)    { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_TargetGroupIDlists.find(index)->second; }
+    uint32 GetTargetChargeSize(uint32 index)					{ return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_TargetChargeSizes[index]; }
+    uint32 GetAppliedPerLevel(uint32 index)                    { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_AppliedPerLevelList[index]; }
+	uint32 GetTargetTypeToWhichEffectApplied(uint32 index)        { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_AffectedTypes[index]; }
+    uint32 GetEffectApplicationType(uint32 index)               { return ((m_SkillID == 0) || (!m_ModifierLoaded)) ? 0 : m_AffectingTypes[index]; }
+
+	bool IsModifierLoaded() { return m_ModifierLoaded; }
+
 private:
-    void _Populate(uint32 effectID);
-  //`skillID` int(11) NOT NULL,
-  //`effectID` int(11) NOT NULL,
-  //`sourceAttributeID` int(11) NOT NULL,
-  //`targetAttributeID` int(11) NOT NULL,
-  //`calculationTypeID` int(11) NOT NULL,
-  //`reverseCalculationTypeID` int(11) NOT NULL,
-  //`effectAppliedTo` int(11) NOT NULL,
-  //`targetEquipmentType` int(11) NOT NULL,
-  //`targetGroupIDs` varchar(200) NOT NULL,
-  //`targetChargeSize` int(11) NOT NULL,
+    void _Populate(uint32 skillID);
+
+	uint32 m_SkillID;
+    uint32 m_numOfIDs;
+	uint32 * m_EffectIDs;
+    uint32 * m_SourceAttributeIDs;
+    uint32 * m_TargetAttributeIDs;
+    uint32 * m_CalculationTypeIDs;
+	std::map<uint32, std::string> m_Descriptions;
+    uint32 * m_ReverseCalculationTypeIDs;
+    std::map<uint32, typeTargetGroupIDlist *> m_TargetGroupIDlists;
+    uint32 * m_TargetChargeSizes;
+	uint32 * m_AppliedPerLevelList;
+	uint32 * m_AffectingTypes;
+	uint32 * m_AffectedTypes;
 
 	bool m_ModifierLoaded;
 };
@@ -163,22 +184,43 @@ private:
 class ShipBonusModifier
 {
 public:
-    ShipBonusModifier(uint32 effectID);
+    ShipBonusModifier(uint32 shipID);
     ~ShipBonusModifier();
-private:
-    void _Populate(uint32 effectID);
-  //`effectID` int(11) NOT NULL,
-  //`attributeSkillID` int(11) NOT NULL,
-  //`sourceAttributeID` int(11) NOT NULL,
-  //`targetAttributeID` int(11) NOT NULL,
-  //`calculationTypeID` int(11) NOT NULL,
-  //`reverseCalculationTypeID` int(11) NOT NULL,
-  //`effectAppliedTo` int(11) NOT NULL,
-  //`targetEquipmentType` int(11) NOT NULL,
-  //`targetGroupIDs` varchar(200) NOT NULL,
-  //`targetChargeSize` int(11) NOT NULL,
 
-	bool m_EffectLoaded;
+    //accessors for the data loaded, if any, from the dgmSkillBonusModifiers table:
+    uint32 GetShipID()                                          { return m_ShipID; }
+    uint32 GetSizeOfModifierList()                                { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_numOfIDs; }
+    uint32 GetEffectID(uint32 index)                              { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_EffectIDs[index]; }
+    uint32 GetAttributeSkillID(uint32 index)                    { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_AttributeSkillIDs[index]; }
+    uint32 GetSourceAttributeID(uint32 index)                    { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_SourceAttributeIDs[index]; }
+    uint32 GetTargetAttributeID(uint32 index)                    { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_TargetAttributeIDs[index]; }
+    EVECalculationType GetCalculationType(uint32 index)            { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? (EVECalculationType)0 : (EVECalculationType)m_CalculationTypeIDs[index];}
+	EVECalculationType GetReverseCalculationType(uint32 index)    { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? (EVECalculationType)0 : (EVECalculationType)m_ReverseCalculationTypeIDs[index];}
+    typeTargetGroupIDlist * GetTargetGroupIDlist(uint32 index)    { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_TargetGroupIDlists.find(index)->second; }
+    uint32 GetAppliedPerLevel(uint32 index)                    { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_AppliedPerLevelList[index]; }
+	uint32 GetTargetTypeToWhichEffectApplied(uint32 index)        { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_AffectedTypes[index]; }
+    uint32 GetEffectApplicationType(uint32 index)               { return ((m_ShipID == 0) || (!m_ModifierLoaded)) ? 0 : m_AffectingTypes[index]; }
+
+	bool IsModifierLoaded() { return m_ModifierLoaded; }
+
+private:
+    void _Populate(uint32 shipID);
+
+	uint32 m_ShipID;
+    uint32 m_numOfIDs;
+	uint32 * m_EffectIDs;
+    uint32 * m_AttributeSkillIDs;
+    uint32 * m_SourceAttributeIDs;
+    uint32 * m_TargetAttributeIDs;
+    uint32 * m_CalculationTypeIDs;
+	std::map<uint32, std::string> m_Descriptions;
+    uint32 * m_ReverseCalculationTypeIDs;
+    std::map<uint32, typeTargetGroupIDlist *> m_TargetGroupIDlists;
+	uint32 * m_AppliedPerLevelList;
+	uint32 * m_AffectingTypes;
+	uint32 * m_AffectedTypes;
+
+	bool m_ModifierLoaded;
 };
 //////////////////////////////////////////////////////////////////////////
 
@@ -210,10 +252,24 @@ protected:
 // -----------------------------------------------------------------------
 
 
-// This class is a singleton object, containing all Effects loaded from dgmSkillBonusModifiers table as memory objects of type MEffect:
+// This class is a singleton object, containing all Skill Bonus Modifiers loaded from dgmSkillBonusModifiers table as memory objects of type SkillBonusModifier:
 class DGM_Skill_Bonus_Modifiers_Table
 : public Singleton< DGM_Skill_Bonus_Modifiers_Table >
 {
+public:
+    DGM_Skill_Bonus_Modifiers_Table();
+    ~DGM_Skill_Bonus_Modifiers_Table();
+
+    // Initializes the Table:
+    int Initialize();
+
+    // Returns pointer to SkillBonusModifier object corresponding to the skillID supplied:
+    SkillBonusModifier * GetSkillModifier(uint32 skillID);
+
+protected:
+    void _Populate();
+
+    std::map<uint32, SkillBonusModifier *> m_SkillBonusModifiersMap;
 };
 
 #define sDGM_Skill_Bonus_Modifiers_Table \
@@ -225,6 +281,20 @@ class DGM_Skill_Bonus_Modifiers_Table
 class DGM_Ship_Bonus_Modifiers_Table
 : public Singleton< DGM_Ship_Bonus_Modifiers_Table >
 {
+public:
+    DGM_Ship_Bonus_Modifiers_Table();
+    ~DGM_Ship_Bonus_Modifiers_Table();
+
+    // Initializes the Table:
+    int Initialize();
+
+    // Returns pointer to ShipBonusModifier object corresponding to the shipID supplied:
+    ShipBonusModifier * GetShipModifier(uint32 shipID);
+
+protected:
+    void _Populate();
+
+    std::map<uint32, ShipBonusModifier *> m_ShipBonusModifiersMap;
 };
 
 #define sDGM_Ship_Bonus_Modifiers_Table \

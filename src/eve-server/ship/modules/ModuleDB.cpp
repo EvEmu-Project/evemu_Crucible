@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        Aknor Jaden, Luck
 */
 
 #include "eve-server.h"
@@ -51,7 +51,7 @@ void ModuleDB::GetAllDgmEffectsInfo(DBQueryResult &res)
     }
 }
 
-void GetAllDgmSkillBonusModifiers(DBQueryResult &res)
+void ModuleDB::GetAllDgmSkillBonusModifiers(DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
@@ -63,7 +63,7 @@ void GetAllDgmSkillBonusModifiers(DBQueryResult &res)
     }
 }
 
-void GetAllDgmShipBonusModifiers(DBQueryResult &res)
+void ModuleDB::GetAllDgmShipBonusModifiers(DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
@@ -136,7 +136,7 @@ void ModuleDB::GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res)
     }
 }
 
-void GetDgmSkillBonusModifiers(uint32 skillID, DBQueryResult &res)
+void ModuleDB::GetDgmSkillBonusModifiers(uint32 skillID, DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
@@ -159,7 +159,7 @@ void GetDgmSkillBonusModifiers(uint32 skillID, DBQueryResult &res)
     }
 }
 
-void GetDgmShipBonusModifiers(uint32 shipID, DBQueryResult &res)
+void ModuleDB::GetDgmShipBonusModifiers(uint32 shipID, DBQueryResult &res)
 {
     if( !sDatabase.RunQuery(res,
         " SELECT "
