@@ -41,8 +41,8 @@ HTML_Log::HTML_Log()
     m_initialized = false;
 }
 
-HTML_Log::HTML_Log(std::string logPath, std::string logFilename)
-	: Basic_Log(logPath,logFilename)
+HTML_Log::HTML_Log(std::string logPath, std::string logSubdirectory, std::string logFilename)
+	: Basic_Log(logPath,logSubdirectory,logFilename)
 {
 }
 

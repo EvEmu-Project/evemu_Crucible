@@ -20,12 +20,14 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        Aknor Jaden, Luck
 */
 
 #include "eve-server.h"
 
+#include "log\Basic_Log.h"
 #include "PyCallable.h"
+#include "EVEServerConfig.h"
 #include "ship/Ship.h"
 #include "ship/ModuleManager.h"
 #include "ship/ShipOperatorInterface.h"
@@ -726,7 +728,18 @@ ModuleManager::ModuleManager(Ship *const ship)
     // Store reference to the Ship object to which the ModuleManager belongs:
     m_Ship = ship;
 
+	// Initialize the log file for this Module Manager instance
+	std::string logsubdirectory = "ModuleManagers";
+	//std::string logfilename = "On_Ship_" + m_Ship->itemName();		// This method using ship's name string may NOT be path friendly as players naming ships may use path-unfriendly characters - need function to convert to path-friendly ship name string
+
+	std::string logfilename = "On_Ship_" + m_Ship->itemName() + "_(" + std::string(itoa(m_Ship->itemID())) + ")";
+
+	m_pLog = new Basic_Log( sConfig.files.logDir, logsubdirectory, logfilename );
+
+	m_pLog->InitializeLogging( sConfig.files.logDir, logsubdirectory, logfilename );
+
     // Load modules, rigs and subsystems from Ship's inventory into ModuleContainer:
+	m_pLog->Log("ModuleManager", "Loading modules...");
     uint32 flagIndex;
     for(flagIndex=flagLowSlot0; flagIndex<=flagLowSlot7; flagIndex++)
     {
@@ -799,6 +812,8 @@ ModuleManager::ModuleManager(Ship *const ship)
 			//	Offline(itemRef->itemID());
 		}
     }
+
+	m_pLog->Log("ModuleManager", "Module loading complete!");
 
     //modifier maps, we own these
     m_LocalSubsystemModifierMaps = new ModifierMaps;
@@ -985,7 +1000,10 @@ void ModuleManager::Online(uint32 itemID)
 {
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
+	{
         mod->Online();
+		m_pLog->Log("ModuleManager::Online()", "Module '%s' going Online", mod->getItem()->itemName().c_str());
+	}
 }
 
 void ModuleManager::OnlineAll()
@@ -997,7 +1015,10 @@ void ModuleManager::Offline(uint32 itemID)
 {
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
+	{
         mod->Offline();
+		m_pLog->Log("ModuleManager::Offline()", "Module '%s' going Offline", mod->getItem()->itemName().c_str());
+	}
 }
 
 void ModuleManager::OfflineAll()
@@ -1026,6 +1047,7 @@ int32 ModuleManager::Activate(uint32 itemID, std::string effectName, uint32 targ
 		else
 		{
 			mod->Activate(targetID);
+			m_pLog->Log("ModuleManager::Activate()", "Module '%s' Activating...", mod->getItem()->itemName().c_str());
 		}
     }
 
@@ -1050,6 +1072,7 @@ void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
 		else
 		{
 			mod->Deactivate();
+			m_pLog->Log("ModuleManager::Deactivate()", "Module '%s' Deactivating...", mod->getItem()->itemName().c_str());
 		}
     }
 }

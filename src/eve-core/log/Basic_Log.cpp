@@ -69,17 +69,25 @@ Basic_Log::Basic_Log()
     m_initialized = false;
 }
 
-Basic_Log::Basic_Log(std::string logPath, std::string logFilename)
+Basic_Log::Basic_Log(std::string logPath, std::string logSubdirectory, std::string logFilename)
+: mLogfile( NULL ),
+  mTime( 0 ),
+  mLogFilename( "" )
 {
     // use default logpath if logPath is empty
     if( logPath.empty() )
         logPath = EVEMU_ROOT "/log/";
 
-    m_initialized = true;
+	if( logFilename.empty() )
+		logFilename = "name_your_log_file.log";
 
-	SetLogfileDefault(logPath + logFilename);
+	if( !(logSubdirectory.empty()) )
+		CreateDirectory( (logPath + logSubdirectory).c_str(), NULL );
 
-    Debug( "Log", "Log system initiated" );
+	mLogPath = logPath + logSubdirectory + "/";
+	mLogFilename = logFilename;
+
+    m_initialized = false;
 }
 
 Basic_Log::~Basic_Log()
@@ -90,17 +98,26 @@ Basic_Log::~Basic_Log()
     SetLogfile( (FILE*)NULL );
 }
 
-void Basic_Log::InitializeLogging( std::string logPath )
+void Basic_Log::InitializeLogging(std::string logPath, std::string logSubdirectory, std::string logFilename)
 {
     // use default logpath if logPath is empty
     if( logPath.empty() )
         logPath = EVEMU_ROOT "/log/";
 
+	if( logFilename.empty() )
+		logFilename = "name_your_log_file.log";
+
+	if( !(logSubdirectory.empty()) )
+		CreateDirectory( (logPath + logSubdirectory).c_str(), NULL );
+
+	mLogPath = logPath + logSubdirectory + "/";
+	mLogFilename = logFilename;
+
     m_initialized = true;
 
-    SetLogfileDefault(logPath + mLogFilename);
+	SetLogfileDefault(mLogPath + mLogFilename);
 
-	Debug( mLogFilename.c_str(), "Log system initiated" );
+    Debug( "Log", "Log system initiated" );
 }
 
 void Basic_Log::Log( const char* source, const char* fmt, ... )
@@ -276,7 +293,7 @@ void Basic_Log::SetLogfileDefault(std::string logPath)
 
     // open default logfile
     char filename[ FILENAME_MAX + 1 ];
-    std::string logFile = logPath + "log_%02u-%02u-%04u-%02u-%02u.log";
+    std::string logFile = logPath + "_log_%02u-%02u-%04u-%02u-%02u.log";
     snprintf( filename, FILENAME_MAX + 1, logFile.c_str(),
               t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min );
     //snprintf( filename, FILENAME_MAX + 1, EVEMU_ROOT "/log/log_%02u-%02u-%04u-%02u-%02u.log",

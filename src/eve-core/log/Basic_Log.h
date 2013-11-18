@@ -43,7 +43,7 @@ class Basic_Log
 public:
     /// Primary constructor, initializes logging.
     Basic_Log();
-    Basic_Log(std::string logPath, std::string logFilename);
+    Basic_Log(std::string logPath, std::string logSubdirectory, std::string logFilename);
     /// Destructor, closes the logfile.
     ~Basic_Log();
 
@@ -52,7 +52,7 @@ public:
      *
      * @param[in] logPath is the absolute or relative path where log files are to be stored
      */
-    void InitializeLogging( std::string logPath );
+    void InitializeLogging(std::string logPath, std::string logSubdirectory, std::string logFilename);
     /**
      * @brief Logs a message to file.
      *
@@ -187,6 +187,7 @@ protected:
 
     /// The active logfile.
 	std::string mLogFilename;
+	std::string mLogPath;
     FILE* mLogfile;
     /// Current timestamp.
     time_t mTime; // crap there should be 1 generic easy to understand time manager.

@@ -45,7 +45,7 @@ class HTML_Log
 public:
     /// Primary constructor, initializes logging.
     HTML_Log();
-    HTML_Log(std::string logPath, std::string logFilename);
+    HTML_Log(std::string logPath, std::string logSubdirectory, std::string logFilename);
     /// Destructor, closes the logfile.
     ~HTML_Log();
  
