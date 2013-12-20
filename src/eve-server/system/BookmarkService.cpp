@@ -184,7 +184,7 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call)
 
     tuple0->items[ 0 ] = new PyInt( bookmarkID );           // Bookmark ID from Database 'bookmarks' table
     tuple0->items[ 1 ] = new PyNone();                      // in some cases, this is the itemID
-    tuple0->items[ 2 ] = new PyInt( typeID );               // typeID from invtypes
+    tuple0->items[ 2 ] = new PyInt( typeID );               // typeID from invTypes
     tuple0->items[ 3 ] = new PyInt( (uint32)(point.x) );    // X coordinate
     tuple0->items[ 4 ] = new PyInt( (uint32)(point.y) );    // Y coordinate
     tuple0->items[ 5 ] = new PyInt( (uint32)(point.z) );    // Z coordinate
@@ -310,7 +310,7 @@ PyResult BookmarkService::Handle_UpdateBookmark(PyCallArgs &call)
 
     tuple0->items[ 0 ] = new PyInt( bookmarkID );           // Bookmark ID from Database 'bookmarks' table
     tuple0->items[ 1 ] = new PyNone();                      // in some cases, this is the itemID
-    tuple0->items[ 2 ] = new PyInt( typeID );               // typeID from invtypes
+    tuple0->items[ 2 ] = new PyInt( typeID );               // typeID from invTypes
     tuple0->items[ 3 ] = new PyInt( (uint32)x );    // Sample X coordinate
     tuple0->items[ 4 ] = new PyInt( (uint32)y );    // Sample Y coordinate
     tuple0->items[ 5 ] = new PyInt( (uint32)z );    // Sample Z coordinate

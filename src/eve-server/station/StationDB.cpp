@@ -173,7 +173,7 @@ mapDenormalize.orbitID,
 staStationTypes_old.hangarGraphicID,
 staStations.stationID,
 0 AS upgradelevel,
-invtypes.graphicID,
+invTypes.graphicID,
 staStations.regionID,
 staStations.security,
 staStations.stationTypeID,
@@ -205,8 +205,8 @@ LEFT JOIN staStationTypes_old ON
   staStations.stationTypeID=staStationTypes_old.stationTypeID
 LEFT JOIN mapDenormalize ON
   staStations.stationID=mapDenormalize.itemID
-LEFT JOIN invtypes ON
-  staStations.stationTypeID=invtypes.typeID
+LEFT JOIN invTypes ON
+  staStations.stationTypeID=invTypes.typeID
 LEFT JOIN staOperations ON
   staStations.operationID=staOperations.operationID
 LEFT JOIN staStationTypes ON
@@ -225,7 +225,7 @@ hangarGraphicID                     staStationTypes_old
 reprocessingStationsTake
 stationID
 upgradeLevel
-graphicID                           invtypes                                typeID=stationTypeID
+graphicID                           invTypes                                typeID=stationTypeID
 regionID
 security
 stationTypeID
