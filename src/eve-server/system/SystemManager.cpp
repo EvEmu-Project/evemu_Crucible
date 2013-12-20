@@ -610,7 +610,11 @@ bool SystemManager::BootSystem() {
     if(!_LoadSystemDynamics())
         return false;
 
-    // temporarily commented out until we find out why they
+	// Allegedly, the following was reason to comment out the m_spawnManager->Load()
+	// and m_spawnManager->DoInitialSpawn() functions, however, for now, we're leaving them active
+	//    -- Aknor Jaden
+
+	// temporarily commented out until we find out why they
     // make client angry ...
 
 	//the statics have been loaded, now load up the spawns...
