@@ -818,7 +818,7 @@ PyResult Command_giveallskills( Client* who, CommandDB* db, PyServiceMgr* servic
     {
 		// Query Database to get list of ALL skills, then LOOP through each one, checking character for skill, setting level to 5:
 		// QUERY DB FOR LIST OF ALL SKILLS:
-		//		SELECT * FROM `invtypes` WHERE `groupID` IN (SELECT groupID FROM invGroups WHERE categoryID = 16)
+		//		SELECT * FROM `invTypes` WHERE `groupID` IN (SELECT groupID FROM invGroups WHERE categoryID = 16)
 		// LOOP through each skill
 		std::vector<uint32> skillList;
 		db->FullSkillList( skillList );
@@ -1335,9 +1335,26 @@ PyResult Command_kill( Client* who, CommandDB* db, PyServiceMgr* services, const
         // WARNING: This cast of SystemEntity * to DynamicSystemEntity * will CRASH if the get() does not return
         // an object that IS a DynamicSystemEntity!!!
         DynamicSystemEntity * shipEntity = (DynamicSystemEntity *)(who->System()->get(entity));
-        shipEntity->Destiny()->SendTerminalExplosion();
-        shipEntity->Bubble()->Remove(shipEntity, true);
-        //itemRef->Delete();
+        if( shipEntity == NULL )
+		{
+			throw PyException( MakeCustomError("/kill cannot process this object") );
+			sLog.Error("GMCommands - Command_kill()", "Cannot process this object, aborting kill: %s [%u]", itemRef->itemName().c_str(), itemRef->itemID());
+		}
+		else
+		{
+			if(shipEntity->IsNPC())
+			{
+				sLog.Warning("GMCommands - Command_kill()", "command unavailable for killing NPC type entities at this time - see code for more information - GMCommands.cpp");
+				//shipEntity->Killed(<fill with an instance of Damage class populated with appropriate information>);
+			}
+			else
+			{
+				shipEntity->Destiny()->SendTerminalExplosion();
+				shipEntity->Bubble()->Remove(shipEntity, true);
+				// Uncomment the following line once you want the kill command to really remove the object from the database 'entity' table forever:
+				//itemRef->Delete();
+			}
+		}
     }
     else
         throw PyException( MakeCustomError("Correct Usage: /kill <entityID>") );
