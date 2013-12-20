@@ -118,8 +118,6 @@ bool SpawnDB::LoadSpawnGroups(uint32 solarSystemID, std::map<uint32, SpawnGroup 
 }
 
 
-
-
 bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, SpawnGroup *> &groups, std::map<uint32, SpawnEntry *> &into) {
     DBQueryResult res;
 
@@ -261,26 +259,3 @@ bool SpawnDB::LoadSpawnEntries(uint32 solarSystemID, const std::map<uint32, Spaw
 
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
