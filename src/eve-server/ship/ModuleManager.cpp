@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "log\Basic_Log.h"
+#include "log/Basic_Log.h"
 #include "PyCallable.h"
 #include "EVEServerConfig.h"
 #include "ship/Ship.h"
