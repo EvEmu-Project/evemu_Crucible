@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "log\Basic_Log.h"
+#include "log/Basic_Log.h"
 #include "PyCallable.h"
 #include "EVEServerConfig.h"
 #include "ship/Ship.h"
@@ -948,7 +948,10 @@ void ModuleManager::UnfitModule(uint32 itemID)
 bool ModuleManager::_fitModule(InventoryItemRef item, EVEItemFlags flag)
 {
     bool verifyFailed = false;
-    GenericModule * mod = ModuleFactory(item, ShipRef(m_Ship));
+	GenericModule * mod = ModuleFactory(item, ShipRef(m_Ship));
+
+	// Set module's pointer to its owner ModuleManager's log object:
+	mod->SetLog(m_pLog);
 
     // Check for max turret modules allowed:
     if( mod->isTurretFitted() && (m_Modules->GetFittedTurretCount() == m_Ship->GetMaxTurrentHardpoints().get_int()) )

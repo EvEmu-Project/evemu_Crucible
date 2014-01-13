@@ -174,7 +174,7 @@ bool InventoryDB::GetTypeEffectsList(uint32 typeID, std::vector<uint32> &into) {
 		into.push_back( row.GetUInt(0) );
 
     if( into.size() == 0 ) {
-        _log(DATABASE__ERROR, "Type %u not found.", typeID);
+        _log(ITEM__DEBUG, "No type effects found for type %u.", typeID);
         return false;
     }
 

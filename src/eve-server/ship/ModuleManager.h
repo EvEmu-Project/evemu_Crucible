@@ -393,6 +393,8 @@ public:
     int32 ApplyImplantEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
     int32 RemoveImplantEffect(uint32 attributeID, uint32 originatorID, ModifierRef modifierRef);
 
+	Basic_Log * GetLogger() { return m_pLog; }
+
 private:
     bool _fitModule(InventoryItemRef item, EVEItemFlags flag);
 

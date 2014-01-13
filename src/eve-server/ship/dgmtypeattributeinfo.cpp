@@ -88,7 +88,7 @@ DgmTypeAttributeSet* dgmtypeattributemgr::GetDmgTypeAttributeSet( uint32 typeID 
     itr = mDgmTypeAttrInfo.find(typeID);
     if (itr == mDgmTypeAttrInfo.end())
     {
-        sLog.Error("DgmTypeAttrMgr", "unable to find typeID: %u", typeID);
+        sLog.Debug("DgmTypeAttrMgr", "INFO: No type attributes found for type %u.", typeID);
         return NULL;
     }
 
