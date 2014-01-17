@@ -165,6 +165,7 @@ public:
     /* using a code generating macro to generate basic binary math operator handlers
      * @note expand these if needed.
      */
+/*
 	MATH_OPERATORS_FOR( const int8)
     MATH_OPERATORS_FOR( const uint8)
     MATH_OPERATORS_FOR( const int16)
@@ -175,7 +176,7 @@ public:
     MATH_OPERATORS_FOR( const uint64)
     MATH_OPERATORS_FOR( const float)
     MATH_OPERATORS_FOR( const double)
-
+*/
     /************************************************************************/
     /* End of EvilNumber manipulation operator handlers                     */
     /************************************************************************/
@@ -473,7 +474,11 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////
 // global operators
+EvilNumber operator+(const EvilNumber& val, const EvilNumber& val2);
+EvilNumber operator-(const EvilNumber& val, const EvilNumber& val2);
 EvilNumber operator*(const EvilNumber& val, const EvilNumber& val2);
+EvilNumber operator/(const EvilNumber& val, const EvilNumber& val2);
+EvilNumber operator%(const EvilNumber& val, const EvilNumber& val2);
 
 extern const EvilNumber EvilTime_Second;
 extern const EvilNumber EvilTime_Minute;

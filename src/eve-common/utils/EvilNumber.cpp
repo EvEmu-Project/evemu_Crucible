@@ -679,15 +679,39 @@ EvilNumber EvilNumber::_SelfDecrement()
 
 // GLOBAL FUNCTIONS:
 
+EvilNumber operator+(const EvilNumber& val, const EvilNumber& val2)
+{
+    EvilNumber result = val;
+    result = result + val2;
+    return result;
+}
+
+EvilNumber operator-(const EvilNumber& val, const EvilNumber& val2)
+{
+    EvilNumber result = val;
+    result = result - val2;
+    return result;
+}
+
 EvilNumber operator*(const EvilNumber& val, const EvilNumber& val2)
 {
     EvilNumber result = val;
     result = result * val2;
     return result;
+}
 
-    //val.Multiply((EvilNumber &)val2);
-    //return *this;
-    //return EvilNumber(0);
+EvilNumber operator/(const EvilNumber& val, const EvilNumber& val2)
+{
+    EvilNumber result = val;
+    result = result / val2;
+    return result;
+}
+
+EvilNumber operator%(const EvilNumber& val, const EvilNumber& val2)
+{
+    EvilNumber result = val;
+    result = result % val2;
+    return result;
 }
 
 EvilNumber EvilTimeNow(){
