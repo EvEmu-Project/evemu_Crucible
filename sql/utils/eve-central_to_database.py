@@ -231,9 +231,10 @@ for row in results:
 
 # Unit test typeID information collection:
 #print typeID_List
-#print len(typeID_List)
+print "typeID_List length = ", len(typeID_List)
 #print typeName_List
-#print len(typeName_List)
+print "typeName_List length = ", len(typeName_List)
+print "\n"
 
 typeID_Progress = 0
 typeID_List_length = len(typeID_List)
@@ -246,7 +247,7 @@ for region in range(0,regionID_List_length):
     regionProgress = 100.0 * ((1.0*region)/regionID_List_length)
 
     # Inner Loop - Loop through entire list of typeIDs
-    for index in range(0,range(1,typeID_List_length-1)):
+    for index in range(1,typeID_List_length-1):
         typeID = typeID_List[index]
         typeID_Progress = 100.0 * ((1.0*index)/typeID_List_length)
 
