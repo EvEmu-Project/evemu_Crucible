@@ -16,6 +16,7 @@ options = [
     "regionalMarketBuyPrice",
     "regionalMarketSellPrice",
     "regionalMarketBuySellPrices",
+    "solarSystemMarketBuySellPrices",
     "universalMarketBuyPrice",
     "universalMarketSellPrice",
     "universalMarketBuySellPrices"
@@ -40,6 +41,7 @@ def print_usage():
     print "        ", options[4], "- "
     print "        ", options[5], "- "
     print "        ", options[6], "- "
+    print "        ", options[7], "- "
     return;
 #==================================================================================================
 
@@ -99,6 +101,9 @@ def eve_central_query_market_data(regionID,option):
     if (option == options[6]):
         print "NOT SUPPORTED YET!"
 
+    if (option == options[7]):
+        print "NOT SUPPORTED YET!"
+
     return ""
 #==================================================================================================
         
@@ -145,6 +150,8 @@ if (option == options[4]):
 if (option == options[5]):
     option_valid = 1
 if (option == options[6]):
+    option_valid = 1
+if (option == options[7]):
     option_valid = 1
 if (option_valid == 0):
     print_usage()
@@ -313,6 +320,9 @@ for region in range(0,regionID_List_length):
                                 
                                 if (option == options[6]):
                                     print "OPTION '", options[6], "' not supported at this time!"
+                                
+                                if (option == options[7]):
+                                    print "OPTION '", options[7], "' not supported at this time!"
                             
                     #print "typeID=", int(d.attrib.get("id")), ": AVG_SELL =", avg_sell_price, " AVG_BUY =", avg_buy_price
         else:
