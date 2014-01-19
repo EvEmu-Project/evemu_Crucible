@@ -986,7 +986,6 @@ bool ModuleManager::_fitModule(InventoryItemRef item, EVEItemFlags flag)
     else
     {
         // Fit Module now that all checks have passed:
-        //m_Modules->AddModule(mod->flag(), mod);
         m_Modules->AddModule(flag, mod);
     }
 

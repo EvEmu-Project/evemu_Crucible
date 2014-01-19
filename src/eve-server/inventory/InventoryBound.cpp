@@ -468,6 +468,7 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
         else
         {
             // Unlike the other validate item requests, fitting an item requires a skill check
+			// (This handles modules being moved from one slot to another slot within the same bank on the same ship)
             // (This also allows for flagAutoFit when someone drags a module or a stack of modules onto the middle of the fitting
             // window and NOT onto a specific slot.  'flagAutoFit' means "put this module into which ever slot makes sense")
             if( (flag == flagAutoFit) )
@@ -487,7 +488,13 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
             }
             else if( (flag >= flagLowSlot0 && flag <= flagHiSlot7) || (flag >= flagRigSlot0 && flag <= flagRigSlot7) )
             {
-                c->GetShip()->AddItem( flag, sourceItem );
+				// Check to see if old_flag is from this ship:
+				if ( (old_flag >= flagLowSlot0 && old_flag <= flagHiSlot7) || (old_flag >= flagRigSlot0 && old_flag <= flagRigSlot7) )
+					// old_flag IS from this ship, so first remove module to current bound inventory before adding it to a different slot:
+					// (warning! this may have problems with item inventories other than station items, but only if bound inventory is not being updated)
+					c->GetShip()->RemoveItem( sourceItem, mInventory.inventoryID(), flag );
+
+				c->GetShip()->AddItem( flag, sourceItem );
             }
             else
             {
