@@ -125,9 +125,9 @@ void BubbleManager::Add(SystemEntity *ent, bool notify, bool isPostWarp) {
     SystemBubble *in_bubble;
     shipVelocity.normalize();
     if( isPostWarp )
-        in_bubble = _FindBubble(newBubbleCenter);
+        in_bubble = FindBubble(newBubbleCenter);
     else
-        in_bubble = _FindBubble(ent->GetPosition());
+        in_bubble = FindBubble(ent->GetPosition());
 
     if(in_bubble != NULL) {
         in_bubble->Add(ent, notify);
@@ -183,7 +183,24 @@ void BubbleManager::Remove(SystemEntity *ent, bool notify) {
 
 //NOTE: this should probably eventually be optimized to use a
 //spacial partitioning scheme to speed up this search.
-SystemBubble * BubbleManager::_FindBubble(const GPoint &pos) const {
+SystemBubble * BubbleManager::FindBubble(SystemEntity *ent) const {
+	GPoint pos = ent->GetPosition();
+    std::vector<SystemBubble *>::const_iterator cur, end;
+    cur = m_bubbles.begin();
+    end = m_bubbles.end();
+    for(; cur != end; ++cur) {
+        SystemBubble *b = *cur;
+        if(b->InBubble(pos)) {
+            return(b);
+        }
+    }
+    //not in any existing bubble.
+    return NULL;
+}
+
+//NOTE: this should probably eventually be optimized to use a
+//spacial partitioning scheme to speed up this search.
+SystemBubble * BubbleManager::FindBubble(const GPoint &pos) const {
     std::vector<SystemBubble *>::const_iterator cur, end;
     cur = m_bubbles.begin();
     end = m_bubbles.end();
