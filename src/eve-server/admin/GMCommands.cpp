@@ -566,6 +566,8 @@ PyResult Command_location( Client* who, CommandDB* db, PyServiceMgr* services, c
         vel.length()
     );
 
+	who->SendInfoModalMsg( reply );
+
     return new PyString( reply );
 }
 
