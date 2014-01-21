@@ -25,6 +25,7 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
 #include "inventory/AttributeEnum.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
@@ -99,7 +100,12 @@ void NPCAIMgr::Process() {
 					// TODO: Determine the weakest target to engage
 					if( (*cur)->IsClient() )
 					{
-						// TODO: Check to see if is't a capsule
+						// TODO: Check to see if target's standings are below 0.0, if so, engage, otherwise, ignore:
+						//Client * const currentClient = (*cur)->CastToClient();
+						//if( currentClient->GetStandingsFrom(this->m_npc->CastToNPC()->GetCorporationID()) >= 0.0 )
+						//	break;
+						
+						// TODO: Check to see if it's a capsule
 						// Target him and begin the process of the attack.
 						if( !((*cur)->Item()->groupID() == EVEDB::invGroups::Capsule) )
 							this->Targeted((*cur));
