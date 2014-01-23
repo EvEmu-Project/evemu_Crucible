@@ -52,6 +52,7 @@ public:
     PyCallable_DECL_CALL(StripFitting)
     PyCallable_DECL_CALL(DestroyFitting)
     PyCallable_DECL_CALL(SetPassword)
+    PyCallable_DECL_CALL(CreateBookmarkVouchers)
 
 protected:
     class Dispatcher;
