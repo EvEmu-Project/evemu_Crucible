@@ -1113,10 +1113,7 @@ void Character::_CalculateTotalSPTrained()
 {
     // Loop through all skills trained and calculate total SP this character has trained so far,
     // NOT including the skill currently being trained:
-    double exponent = 0.0f;
-    double totalSP = 0.0f;
-    EvilNumber skillLevel;
-    EvilNumber skillRank;
+    EvilNumber totalSP = 0.0f;
     std::vector<InventoryItemRef> skills;
     GetSkillsList( skills );
     std::vector<InventoryItemRef>::iterator cur, end;
@@ -1124,10 +1121,7 @@ void Character::_CalculateTotalSPTrained()
     end = skills.end();
     for(; cur != end; cur++)
     {
-        // Calculate exact SP from each skill and add to total SP
-        skillLevel = cur->get()->GetAttribute( AttrSkillLevel );
-        skillRank = cur->get()->GetAttribute( AttrSkillTimeConstant );
-        totalSP += 250.0f * (double)(skillRank.get_int()) * pow(32.0, (double)(((double)(skillLevel.get_int()) - 1.0f) / 2.0f));
+        totalSP = totalSP + cur->get()->GetAttribute( AttrSkillPoints );    // much cleaner and more accurate    -allan
     }
 
     m_totalSPtrained = totalSP;
