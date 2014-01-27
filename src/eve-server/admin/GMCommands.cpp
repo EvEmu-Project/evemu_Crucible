@@ -954,6 +954,7 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
                 character->InjectSkillIntoBrain( oldSkill, level);
                 return new PyString ( "Gifting skills complete" );
             }
+			skill = oldSkill;
         }
         else
         {
@@ -975,6 +976,19 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
 
             character->InjectSkillIntoBrain( skill, level);
             return new PyString ( "Gifting skills complete" );
+        }
+
+		// Either way, this character now has this skill trained to the specified level, so inform client:
+        if( who != NULL )
+        {
+            OnSkillTrained ost;
+            ost.itemID = skill->itemID();
+
+            PyTuple* tmp = ost.Encode();
+            who->QueueDestinyEvent( &tmp );
+            PySafeDecRef( tmp );
+
+            who->UpdateSkillTraining();
         }
     }
 

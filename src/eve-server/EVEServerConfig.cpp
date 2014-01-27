@@ -72,7 +72,7 @@ EVEServerConfig::EVEServerConfig()
     net.imageServer = "localhost";
     net.imageServerPort = 26001;
     net.apiServer = "localhost";
-    net.apiServerPort = 50001;
+    net.apiServerPort = 64;
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
