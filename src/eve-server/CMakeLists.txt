@@ -89,6 +89,7 @@ SET( admin_SOURCE
 SET( apiserver_INCLUDE
      "${TARGET_INCLUDE_DIR}/apiserver/APIAccountDB.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APIAccountManager.h"
+     "${TARGET_INCLUDE_DIR}/apiserver/APIActiveObjectManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APIAdminManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APICacheManager.h"
      "${TARGET_INCLUDE_DIR}/apiserver/APICharacterDB.h"
@@ -105,6 +106,7 @@ SET( apiserver_INCLUDE
 SET( apiserver_SOURCE
      "${TARGET_SOURCE_DIR}/apiserver/APIAccountDB.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIAccountManager.cpp"
+     "${TARGET_SOURCE_DIR}/apiserver/APIActiveObjectManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APIAdminManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APICacheManager.cpp"
      "${TARGET_SOURCE_DIR}/apiserver/APICharacterDB.cpp"

@@ -27,6 +27,7 @@
 
 #include "EVEServerConfig.h"
 #include "apiserver/APIAccountManager.h"
+#include "apiserver/APIActiveObjectManager.h"
 #include "apiserver/APIAdminManager.h"
 #include "apiserver/APICharacterManager.h"
 #include "apiserver/APICorporationManager.h"
@@ -56,6 +57,7 @@ void APIServer::CreateServices(const PyServiceMgr &services)
         m_APIServiceManagers.insert(std::make_pair("corp", new APICorporationManager(services)));
         m_APIServiceManagers.insert(std::make_pair("eve", new APIEveSystemManager(services)));
         m_APIServiceManagers.insert(std::make_pair("map", new APIMapManager(services)));
+		m_APIServiceManagers.insert(std::make_pair("object", new APIActiveObjectManager(services)));
         m_APIServiceManagers.insert(std::make_pair("server", new APIServerManager(services)));
     }
 
