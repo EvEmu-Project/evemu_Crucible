@@ -1,5 +1,5 @@
 /*
-SQLyog Community Edition- MySQL GUI v7.11 
+SQLyog Community Edition- MySQL GUI v7.11
 MySQL - 5.0.67-community-nt : Database - eve_evemu_dynamic
 *********************************************************************
 */
@@ -119,7 +119,7 @@ CREATE TABLE `bookmarkFolders` (
 	`ownerID` int (10),
 	`creatorID` int (10),
 	PRIMARY KEY (`folderID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `cacheLocations` */
 
@@ -203,6 +203,7 @@ CREATE TABLE `character_` (
   `petitionMessage` varchar(85) NOT NULL default '',
   `logonMinutes` int(10) unsigned NOT NULL default '0',
   `skillPoints` double NOT NULL default '0',
+  `skillQueueEndTime` bigint(20) unsigned NOT NULL DEFAULT '0',
   `corporationID` int(10) unsigned NOT NULL default '0',
   `corpRole` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',
   `rolesAtAll` BIGINT(20) UNSIGNED NOT NULL DEFAULT '0',

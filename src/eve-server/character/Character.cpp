@@ -901,6 +901,34 @@ void Character::UpdateSkillQueue()
     // Save character and skill data:
     SaveCharacter();
     SaveSkillQueue();
+
+    // update queue end time:
+    UpdateSkillQueueEndTime(m_skillQueue);
+}
+
+//  this still needs work...have to check for multiple levels of same skill.
+//  right now, check is current level to trained level...so, l2, l3, l4 checks for l1->l2, l1->l3, l1->l4 then combines them.
+//  it wont check for previous level to level in queue....need to make check for that so it will only check l1->l4.
+void Character::UpdateSkillQueueEndTime(const SkillQueue &queue)
+{
+    EvilNumber chrMinRemaining = 0;    // explicit init to 0
+
+    for(size_t i = 0; i < queue.size(); i++)    // loop thru skills currently in queue
+    {
+        const QueuedSkill &qs = queue[ i ];     // get skill id from queue
+        SkillRef skill = Character::GetSkill( qs.typeID );   //make ref for current skill
+        
+        chrMinRemaining += (skill->GetSPForLevel(qs.level) - skill->GetAttribute( AttrSkillPoints )) / GetSPPerMin(skill);
+    }
+    chrMinRemaining = chrMinRemaining * EvilTime_Minute + EvilTimeNow();
+
+    DBerror err;
+    if( !sDatabase.RunQuery( err, "UPDATE character_ SET skillQueueEndTime = %" PRIu64 " WHERE characterID = %u ", chrMinRemaining, itemID() ) )
+    {
+        _log(DATABASE__ERROR, "Failed to set skillQueueEndTime for character %u: %s", itemID(), err.c_str());
+        return;
+    }
+    return;
 }
 
 PyDict *Character::CharGetInfo() {
