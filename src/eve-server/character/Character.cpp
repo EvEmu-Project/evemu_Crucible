@@ -923,7 +923,7 @@ void Character::UpdateSkillQueueEndTime(const SkillQueue &queue)
     chrMinRemaining = chrMinRemaining * EvilTime_Minute + EvilTimeNow();
 
     DBerror err;
-    if( !sDatabase.RunQuery( err, "UPDATE character_ SET skillQueueEndTime = %" PRIu64 " WHERE characterID = %u ", chrMinRemaining, itemID() ) )
+    if( !sDatabase.RunQuery( err, "UPDATE character_ SET skillQueueEndTime = %f WHERE characterID = %u ", chrMinRemaining.get_float(), itemID() ) )
     {
         _log(DATABASE__ERROR, "Failed to set skillQueueEndTime for character %u: %s", itemID(), err.c_str());
         return;
