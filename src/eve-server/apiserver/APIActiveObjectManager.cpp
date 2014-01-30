@@ -43,12 +43,26 @@ std::tr1::shared_ptr<std::string> APIActiveObjectManager::ProcessCall(const APIC
         sLog.Error( "APIActiveObjectManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
-
-    if( pAPICommandCall->find( "servicehandler" )->second == "APIKeyRequest.xml.aspx" )
+/*
+    if( pAPICommandCall->find( "servicehandler" )->second == "CharacterList.xml.aspx" )
         return _APIKeyRequest(pAPICommandCall);
-    else if( pAPICommandCall->find( "servicehandler" )->second == "Characters.xml.aspx" )
+    else if( pAPICommandCall->find( "servicehandler" )->second == "CharacterSummary.xml.aspx" )
         return _Characters(pAPICommandCall);
-    else if( pAPICommandCall->find( "servicehandler" )->second == "AccountStatus.xml.aspx" )
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
+        return _AccountStatus(pAPICommandCall);
+    else if( pAPICommandCall->find( "servicehandler" )->second == "Character.xml.aspx" )
         return _AccountStatus(pAPICommandCall);
     //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
     //    return _TODO(pAPICommandCall);
@@ -58,10 +72,10 @@ std::tr1::shared_ptr<std::string> APIActiveObjectManager::ProcessCall(const APIC
             pAPICommandCall->find("servicehandler")->second.c_str() );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
-
+*/
     return BuildErrorXMLResponse( "9999", "EVEmu API Server: Active Object Manager - Unknown call." );
 }
-
+/*
 std::tr1::shared_ptr<std::string> APIActiveObjectManager::_APIKeyRequest(const APICommandCall * pAPICommandCall)
 {
     bool status = false;
@@ -74,7 +88,7 @@ std::tr1::shared_ptr<std::string> APIActiveObjectManager::_APIKeyRequest(const A
     std::string apiFullKey;
     std::string accountID;
     std::string keyTag;
-	/*
+	\*
     sLog.Debug("APIActiveObjectManager::_APIKeyRequest()", "EVEmu API - Active Object Service Manager - CALL: APIKeyRequest.xml.aspx");
 
     // 1: Decode arguments:
@@ -196,7 +210,7 @@ std::tr1::shared_ptr<std::string> APIActiveObjectManager::_APIKeyRequest(const A
         _BuildSingleXMLTag( "expiresOn", Win32TimeToString(Win32TimeNow() + 180*Win32Time_Day) );
     }
     _CloseXMLHeader( EVEAPI::CacheStyles::Long );
-	*/
+	*\
     return _GetXMLDocumentString();
 }
 
@@ -204,7 +218,7 @@ std::tr1::shared_ptr<std::string> APIActiveObjectManager::_Characters(const APIC
 {
 
     sLog.Error( "APIActiveObjectManager::_Characters()", "TODO: Insert code to validate userID and apiKey" );
-	/*
+	\*
     sLog.Debug("APIActiveObjectManager::_Characters()", "EVEmu API - Account Service Manager - CALL: Characters.xml.aspx");
 
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
@@ -261,14 +275,14 @@ std::tr1::shared_ptr<std::string> APIActiveObjectManager::_Characters(const APIC
         _CloseXMLTag(); // close tag "result"
     }
     _CloseXMLHeader( EVEAPI::CacheStyles::Long );
-	*/
+	*\
     return _GetXMLDocumentString();
 }
 
 std::tr1::shared_ptr<std::string> APIActiveObjectManager::_AccountStatus(const APICommandCall * pAPICommandCall)
 {
     sLog.Error( "APIActiveObjectManager::_AccountStatus()", "TODO: Insert code to validate userID and apiKey" );
-	/*
+	\*
     if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIActiveObjectManager::_AccountStatus()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
@@ -302,10 +316,10 @@ std::tr1::shared_ptr<std::string> APIActiveObjectManager::_AccountStatus(const A
         _CloseXMLTag(); // close tag "result"
     }
     _CloseXMLHeader( EVEAPI::CacheStyles::Short );
-	*/
+	*\
     return _GetXMLDocumentString();
 }
-/*
+\*
 std::string APIActiveObjectManager::_GenerateAPIKey()
 {
     std::string key = "";

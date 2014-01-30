@@ -50,9 +50,28 @@ public:
     std::tr1::shared_ptr<std::string> ProcessCall(const APICommandCall * pAPICommandCall);
 
 protected:
-    std::tr1::shared_ptr<std::string> _APIKeyRequest(const APICommandCall * pAPICommandCall);
-    std::tr1::shared_ptr<std::string> _Characters(const APICommandCall * pAPICommandCall);
-    std::tr1::shared_ptr<std::string> _AccountStatus(const APICommandCall * pAPICommandCall);
+    // Character List, Summary, Complete information calls:
+    std::tr1::shared_ptr<std::string> _CharacterList(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _CharacterSummary(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _Character(const APICommandCall * pAPICommandCall);
+
+    // Solar System List, Solar System Bubble List, Bubble Ship/Entity List, etc space related lists:
+    std::tr1::shared_ptr<std::string> _SystemList(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _SystemSummary(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _SystemBubbleList(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _BubbleEntityList(const APICommandCall * pAPICommandCall);
+
+    // Ship Info, Ship Fitting List, Fitted Module Info, Charge Info, etc
+    std::tr1::shared_ptr<std::string> _ShipInfo(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _ShipFittingList(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _FittedModuleInfo(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _FittedModuleChargeInfo(const APICommandCall * pAPICommandCall);
+
+    // Combat Tactical Data: Targets of Selected Character/Ship, List of Entities targeting Selected Character/Ship,
+    // Ship tactical information, etc
+    std::tr1::shared_ptr<std::string> _ShipTargetList(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _EntitiesTargetingShipList(const APICommandCall * pAPICommandCall);
+    std::tr1::shared_ptr<std::string> _ShipTacticalInfo(const APICommandCall * pAPICommandCall);
 
     // Utility Functions:
     // none

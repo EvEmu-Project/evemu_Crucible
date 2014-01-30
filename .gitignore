@@ -43,6 +43,13 @@ ipch/
 *.psess
 *.vsp
 
+# KDevelop / Kdbg files
+.kdev4/
+*.kdev4
+
+# Miscellaneous linux editor files
+*.kate-swp
+
 # ReSharper is a .NET coding add-in
 _ReSharper*
 
