@@ -51,6 +51,7 @@ InventoryBound::InventoryBound( PyServiceMgr *mgr, Inventory &inventory, EVEItem
     PyCallable_REG_CALL(InventoryBound, StripFitting)
     PyCallable_REG_CALL(InventoryBound, DestroyFitting)
     PyCallable_REG_CALL(InventoryBound, SetPassword)
+    PyCallable_REG_CALL(InventoryBound, CreateBookmarkVouchers)
 }
 
 InventoryBound::~InventoryBound()
@@ -374,6 +375,38 @@ PyResult InventoryBound::Handle_SetPassword(PyCallArgs &call) {
     // TODO
     uint32 item = 0;
     item++;
+
+    return NULL;
+}
+
+//01:10:27 L InventoryBound::Handle_CreateBookmarkVouchers(): size= 3, 0 = List, 1 = Integer, 2 = Boolean
+PyResult InventoryBound::Handle_CreateBookmarkVouchers(PyCallArgs &call)        // size, bmID, flag, ismove
+{
+  sLog.Log( "InventoryBound::Handle_CreateBookmarkVouchers()", "size= %u, 0 = %s, 1 = %s, 2 = %s", call.tuple->size(), call.tuple->GetItem(0)->TypeString(), call.tuple->GetItem(1)->TypeString(), call.tuple->GetItem(2)->TypeString() );
+
+      PyList *list = call.tuple->GetItem( 0 )->AsList();
+      uint32 i;
+      uint32 bookmarkID;
+      uint32 typeID = 51;   // bookmark defs from invTypes
+      uint32 groupID = 24;
+      uint32 iconID = 1700;
+      uint32 dataID = 16687167;
+      uint32 typeNameID = 101192;
+
+      if( list->size() > 0 )
+      {
+          for(i=0; i<(list->size()); i++)
+          {
+              bookmarkID = call.tuple->GetItem( 0 )->AsList()->GetItem(i)->AsInt()->value();
+             sLog.Log( "InventoryBound::Handle_CreateBookmarkVouchers()", "bookmarkID = %u", bookmarkID );
+          // code to copy bm to hangar....
+          //  just need base item with bookmarkID.
+          }
+          //  when bm is copied to another players places tab, copy data from db using bookmarkID
+      }else{
+          sLog.Error( "InventoryBound::Handle_CreateBookmarkVouchers()", "%s: call.tuple->GetItem( 0 )->AsList()->size() == 0.  Expected size >= 1.", call.client->GetName() );
+          return NULL;
+      }
 
     return NULL;
 }

@@ -901,6 +901,34 @@ void Character::UpdateSkillQueue()
     // Save character and skill data:
     SaveCharacter();
     SaveSkillQueue();
+
+    // update queue end time:
+    UpdateSkillQueueEndTime(m_skillQueue);
+}
+
+//  this still needs work...have to check for multiple levels of same skill.
+//  right now, check is current level to trained level...so, l2, l3, l4 checks for l1->l2, l1->l3, l1->l4 then combines them.
+//  it wont check for previous level to level in queue....need to make check for that so it will only check l1->l4.
+void Character::UpdateSkillQueueEndTime(const SkillQueue &queue)
+{
+    EvilNumber chrMinRemaining = 0;    // explicit init to 0
+
+    for(size_t i = 0; i < queue.size(); i++)    // loop thru skills currently in queue
+    {
+        const QueuedSkill &qs = queue[ i ];     // get skill id from queue
+        SkillRef skill = Character::GetSkill( qs.typeID );   //make ref for current skill
+        
+        chrMinRemaining += (skill->GetSPForLevel(qs.level) - skill->GetAttribute( AttrSkillPoints )) / GetSPPerMin(skill);
+    }
+    chrMinRemaining = chrMinRemaining * EvilTime_Minute + EvilTimeNow();
+
+    DBerror err;
+    if( !sDatabase.RunQuery( err, "UPDATE character_ SET skillQueueEndTime = %f WHERE characterID = %u ", chrMinRemaining.get_float(), itemID() ) )
+    {
+        _log(DATABASE__ERROR, "Failed to set skillQueueEndTime for character %u: %s", itemID(), err.c_str());
+        return;
+    }
+    return;
 }
 
 PyDict *Character::CharGetInfo() {
@@ -1113,10 +1141,7 @@ void Character::_CalculateTotalSPTrained()
 {
     // Loop through all skills trained and calculate total SP this character has trained so far,
     // NOT including the skill currently being trained:
-    double exponent = 0.0f;
-    double totalSP = 0.0f;
-    EvilNumber skillLevel;
-    EvilNumber skillRank;
+    EvilNumber totalSP = 0.0f;
     std::vector<InventoryItemRef> skills;
     GetSkillsList( skills );
     std::vector<InventoryItemRef>::iterator cur, end;
@@ -1124,10 +1149,7 @@ void Character::_CalculateTotalSPTrained()
     end = skills.end();
     for(; cur != end; cur++)
     {
-        // Calculate exact SP from each skill and add to total SP
-        skillLevel = cur->get()->GetAttribute( AttrSkillLevel );
-        skillRank = cur->get()->GetAttribute( AttrSkillTimeConstant );
-        totalSP += 250.0f * (double)(skillRank.get_int()) * pow(32.0, (double)(((double)(skillLevel.get_int()) - 1.0f) / 2.0f));
+        totalSP = totalSP + cur->get()->GetAttribute( AttrSkillPoints );    // much cleaner and more accurate    -allan
     }
 
     m_totalSPtrained = totalSP;
