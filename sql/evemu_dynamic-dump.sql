@@ -31,7 +31,7 @@ CREATE TABLE `account` (
   `lastLogin` timestamp NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`accountID`),
   UNIQUE KEY `accountName` (`accountName`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Data for the table `account` */
 
@@ -504,7 +504,7 @@ CREATE TABLE `droneState` (
 DROP TABLE IF EXISTS `entity`;
 
 CREATE TABLE `entity` (
-  `itemID` int(10) unsigned NOT NULL auto_increment,
+  `itemID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `itemName` varchar(85) NOT NULL default '',
   `typeID` int(10) unsigned NOT NULL default '0',
   `ownerID` int(10) unsigned NOT NULL default '0',
@@ -519,7 +519,7 @@ CREATE TABLE `entity` (
   `customInfo` text,
   PRIMARY KEY  (`itemID`),
   KEY `typeID` (`typeID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=14000000 DEFAULT CHARSET=utf8;
 
 /*Data for the table `entity` */
 
@@ -787,7 +787,7 @@ CREATE TABLE `srvStatus` (
 DROP TABLE IF EXISTS `accountApi`;
 
 CREATE TABLE `accountApi` (
-  `userID` int(10) unsigned NOT NULL auto_increment,
+  `userID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `accountID` int(10) unsigned NOT NULL default '0',
   `fullKey` varchar(64) NOT NULL default '',
   `limitedKey` varchar(64) NOT NULL default '',

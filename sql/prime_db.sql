@@ -86,7 +86,7 @@ INSERT INTO entity (itemID, itemName, typeID, ownerID, locationID, singleton, qu
  SELECT characterID, characterName, typeID, 1, stationID, 1, 1
   FROM characterStatic;
 /*
- * Set the auto-increment lower bound
+ * Set the auto-increment lower bound for critical tables
  */
 ALTER TABLE entity AUTO_INCREMENT=140000000;
 
@@ -130,3 +130,8 @@ INSERT INTO eveStaticOwners (ownerID, ownerName, typeID)
  SELECT corporationID, corporationName, 2 AS typeID
  FROM corporationStatic;
 
+/*
+ * Set the auto-increment lower bound for other critical tables
+ */
+ALTER TABLE account AUTO_INCREMENT=1
+ALTER TABLE accountApi AUTO_INCREMENT=1000000;
