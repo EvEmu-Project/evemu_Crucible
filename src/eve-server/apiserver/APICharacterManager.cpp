@@ -59,7 +59,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
     }
     sLog.Debug("APICharacterManager::ProcessCall()", "EVEmu API - Character Service Manager");
 
-    return std::tr1::shared_ptr<std::string>(new std::string(""));
+    return BuildErrorXMLResponse( "9999", "EVEmu API Server: Character Manager - Unknown call." );
 }
 
 std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const APICommandCall * pAPICommandCall)

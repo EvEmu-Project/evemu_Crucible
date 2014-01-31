@@ -114,7 +114,16 @@ bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::vector<std::strin
     // Get list of characters and their corporation info from the accountID:
     if( !sDatabase.RunQuery(res,
         " SELECT "
-        "  character_.*, "
+        "  character_.balance, "
+        "  character_.skillPoints, "
+        "  character_.corporationID, "
+        "  character_.corpRole, "
+        "  character_.rolesAtAll, "
+        "  character_.rolesAtBase, "
+        "  character_.rolesAtHQ, "
+        "  character_.rolesAtOther, "
+        "  character_.startDateTime, "
+        "  character_.gender, "
         "  chrAncestries.ancestryName, "
         "  chrBloodlines.bloodlineName, "
         "  chrRaces.raceName, "
@@ -139,21 +148,21 @@ bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::vector<std::strin
         return false;
     }
 
-    charInfoList.push_back( std::string(row.GetText(5)) );      // 0. Balance
-    charInfoList.push_back( std::string(row.GetText(9)) );      // 1. Skill Points
-    charInfoList.push_back( std::string(row.GetText(10)) );     // 2. corporationID
-    charInfoList.push_back( std::string(row.GetText(11)) );     // 3. corp Role
-    charInfoList.push_back( std::string(row.GetText(12)) );     // 4. roles At All
-    charInfoList.push_back( std::string(row.GetText(13)) );     // 5. roles At Base
-    charInfoList.push_back( std::string(row.GetText(14)) );     // 6. roles At HQ
-    charInfoList.push_back( std::string(row.GetText(15)) );     // 7. roles At Other
-    charInfoList.push_back( std::string(row.GetText(17)) );     // 8. birthday
-    charInfoList.push_back( std::string(row.GetText(32)) );     // 9. ancestry Name
-    charInfoList.push_back( std::string(row.GetText(33)) );     // 10. bloodline Name
-    charInfoList.push_back( std::string(row.GetText(34)) );     // 11. race Name
-    charInfoList.push_back( std::string(row.GetText(35)) );     // 12. char Name
-    charInfoList.push_back( std::string(row.GetText(36)) );     // 13. corp Name
-    charInfoList.push_back( std::string(row.GetText(23)) );     // 14. gender (0 = female, 1 = male)
+    charInfoList.push_back( std::string(row.GetText(0)) );      // 0. Balance
+    charInfoList.push_back( std::string(row.GetText(1)) );      // 1. Skill Points
+    charInfoList.push_back( std::string(row.GetText(2)) );     // 2. corporationID
+    charInfoList.push_back( std::string(row.GetText(3)) );     // 3. corp Role
+    charInfoList.push_back( std::string(row.GetText(4)) );     // 4. roles At All
+    charInfoList.push_back( std::string(row.GetText(5)) );     // 5. roles At Base
+    charInfoList.push_back( std::string(row.GetText(6)) );     // 6. roles At HQ
+    charInfoList.push_back( std::string(row.GetText(7)) );     // 7. roles At Other
+    charInfoList.push_back( std::string(row.GetText(8)) );     // 8. birthday
+    charInfoList.push_back( std::string(row.GetText(9)) );     // 9. ancestry Name
+    charInfoList.push_back( std::string(row.GetText(10)) );     // 10. bloodline Name
+    charInfoList.push_back( std::string(row.GetText(11)) );     // 11. race Name
+    charInfoList.push_back( std::string(row.GetText(12)) );     // 12. char Name
+    charInfoList.push_back( std::string(row.GetText(13)) );     // 13. corp Name
+    charInfoList.push_back( std::string(row.GetText(14)) );     // 14. gender (0 = female, 1 = male)
 
     return true;
 }
