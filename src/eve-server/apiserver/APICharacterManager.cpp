@@ -115,7 +115,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
             _BuildSingleXMLTag( "race", charInfoList.at(11) );
             _BuildSingleXMLTag( "bloodLine", charInfoList.at(10) );
             _BuildSingleXMLTag( "ancestry", charInfoList.at(9) );
-            _BuildSingleXMLTag( "gender", (charInfoList.at(14).compare("0") ? "Female" : "Male") );
+            _BuildSingleXMLTag( "gender", ( (atoi(charInfoList.at(14).c_str()) > 0) ? "Male" : "Female") );
             _BuildSingleXMLTag( "corporationName", charInfoList.at(13) );
             _BuildSingleXMLTag( "corporationID", charInfoList.at(2) );
             _BuildSingleXMLTag( "allianceName", "none" );
