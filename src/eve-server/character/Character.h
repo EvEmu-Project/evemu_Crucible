@@ -539,6 +539,7 @@ public:
     uint32                  shipID() const { return m_shipID; }
 
     void SaveCharacter();
+	void SaveFullCharacter();
     void SaveSkillQueue() const;
     void SaveCertificates() const;
     void SetActiveShip(uint32 shipID);

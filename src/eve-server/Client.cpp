@@ -82,7 +82,7 @@ Client::~Client() {
         // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
         GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
-        GetChar()->SaveCharacter();                         // Save Character info to DB
+        GetChar()->SaveFullCharacter();                     // Save Character info to DB
         GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 
         // remove ourselves from system
@@ -161,7 +161,7 @@ void Client::Process() {
 
     // Check Character Save Timer Expiry:
     if( GetChar()->CheckSaveTimer() )
-        GetChar()->SaveCharacter();
+        GetChar()->SaveCharacter();			// Should this perhaps be invoking GetChar()->SaveFullCharacter() or is saving basic character info enough here?
 
     // Check Ship Save Timer Expiry:
     if( GetShip()->CheckSaveTimer() )
@@ -519,7 +519,7 @@ void Client::BoardShip(ShipRef new_ship) {
         return;
     }
 
-    if(m_system != NULL)
+    if((m_system != NULL) && (IsInSpace()))
         m_system->RemoveClient(this);
 
     _SetSelf( new_ship );
@@ -534,7 +534,7 @@ void Client::BoardShip(ShipRef new_ship) {
 
     GetShip()->UpdateModules();
 
-    if(m_system != NULL)
+    if((m_system != NULL) && (IsInSpace()))
         m_system->AddClient(this);
 
     if(m_destiny != NULL)

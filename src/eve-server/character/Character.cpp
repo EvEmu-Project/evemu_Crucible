@@ -871,6 +871,7 @@ void Character::UpdateSkillQueue()
             currentTraining->SetAttribute(AttrExpiryTime, 0);
 
             currentTraining->MoveInto( *this, flagSkill, true );
+			currentTraining->SaveItem();
 
             if( c != NULL )
             {
@@ -898,8 +899,7 @@ void Character::UpdateSkillQueue()
     // Re-Calculate total SP trained and store in internal variable:
     _CalculateTotalSPTrained();
 
-    // Save character and skill data:
-    SaveCharacter();
+    // Save skill queue:
     SaveSkillQueue();
 
     // update queue end time:
@@ -1044,7 +1044,7 @@ void Character::SaveCharacter()
     // Calculate total Skill Points trained at this time to save to DB:
     _CalculateTotalSPTrained();
 
-    sLog.Debug( "Character::SaveCharacter()", "Saving all character info and skill attribute info to DB for character %s...", itemName().c_str() );
+    sLog.Debug( "Character::SaveCharacter()", "Saving all basic character info and attribute info to DB for character %s...", itemName().c_str() );
     // character data
     m_factory.db().SaveCharacter(
         itemID(),
@@ -1092,6 +1092,16 @@ void Character::SaveCharacter()
 
     // Save this character's own attributes:
     SaveAttributes();
+}
+
+void Character::SaveFullCharacter()
+{
+    _log( ITEM__TRACE, "Saving character %u.", itemID() );
+
+    sLog.Debug( "Character::SaveFullCharacter()", "Saving FULL set of character info, skills, items, etc to DB for character %s...", itemName().c_str() );
+
+	// First save basic character info and attributes:
+	SaveCharacter();
 
     // Loop through all skills and save each one:
     std::vector<InventoryItemRef> skills;
