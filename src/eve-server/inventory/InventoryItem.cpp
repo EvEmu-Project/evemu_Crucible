@@ -160,6 +160,17 @@ InventoryItemRef InventoryItem::Load(ItemFactory &factory, uint32 itemID)
     return InventoryItem::Load<InventoryItem>( factory, itemID );
 }
 
+InventoryItemRef InventoryItem::LoadEntity(ItemFactory &factory, uint32 itemID, const ItemData &data)
+{
+    const ItemType *type = factory.GetType( data.typeID );
+
+	InventoryItemRef itemRef = InventoryItemRef( new InventoryItem(factory, itemID, *type, data) );
+
+	itemRef->_Load();
+
+	return itemRef;
+}
+
 template<class _Ty>
 RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
     // InventoryItem stuff:
@@ -293,13 +304,25 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         case EVEDB::invCategories::Accessories:
         case EVEDB::invCategories::Charge:
         case EVEDB::invCategories::Trading:
-        case EVEDB::invCategories::Entity:
         case EVEDB::invCategories::Bonus:
         case EVEDB::invCategories::Commodity:
         case EVEDB::invCategories::Implant:
         case EVEDB::invCategories::Reaction:
              break;
+
+		///////////////////////////////////////
+        // Entity:
         ///////////////////////////////////////
+        case EVEDB::invCategories::Entity: {
+			// Spawn generic item for Entities at this time:
+			uint32 itemID = InventoryItem::_SpawnEntity( factory, data );
+			if( itemID == 0 )
+				return InventoryItemRef();
+			InventoryItemRef itemRef = InventoryItem::LoadEntity( factory, itemID, data );
+			return itemRef;
+		}
+
+		///////////////////////////////////////
         // Blueprint:
         ///////////////////////////////////////
         case EVEDB::invCategories::Blueprint: {
@@ -575,6 +598,27 @@ uint32 InventoryItem::_Spawn(ItemFactory &factory,
 
     // insert new entry into DB
     return factory.db().NewItem(data);
+}
+
+// This Spawn function is meant for in-memory only items created from the
+// EVEDB::invCategories::Entity category, items meant to never be saved to database
+// and be thrown away on server shutdown.
+uint32 InventoryItem::_SpawnEntity(ItemFactory &factory,
+    // InventoryItem stuff:
+    ItemData &data
+) {
+    // obtain type of new item
+    // this also checks that the type is valid
+    const ItemType *t = factory.GetType(data.typeID);
+    if(t == NULL)
+        return 0;
+
+    // fix the name (if empty)
+    if(data.name.empty())
+        data.name = t->name();
+
+    // Get a new Entity ID from ItemFactory's ID Authority:
+	return factory.GetNextEntityID();
 }
 
 void InventoryItem::Delete() {

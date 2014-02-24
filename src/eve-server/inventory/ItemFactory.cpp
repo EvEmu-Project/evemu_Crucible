@@ -33,6 +33,9 @@
 #include "system/Container.h"
 #include "system/SolarSystem.h"
 
+// Initialize ID Authority variables:
+uint32 ItemFactory::m_nextEntityID = EVEMU_MINIMUM_ENTITY_ID;
+
 ItemFactory::ItemFactory(EntityList& el) : entity_list(el) {}
 
 ItemFactory::~ItemFactory() {
@@ -353,4 +356,24 @@ Client * ItemFactory::GetUsingClient()
 void ItemFactory::UnsetUsingClient()
 {
     m_pClient = NULL;
+}
+
+uint32 ItemFactory::GetNextEntityID()
+{
+	uint32 nextID = 0;
+
+	// This algorithm should be improved to search for reusable IDs that are no longer used,
+	// but for now, just implement a simple wrap-around method once IDs have reached the maximum value:
+	if( m_nextEntityID < EVEMU_MAXIMUM_ENTITY_ID )
+	{
+		nextID = m_nextEntityID;
+		m_nextEntityID++;
+	}
+	else
+	{
+		m_nextEntityID = EVEMU_MINIMUM_ENTITY_ID;
+		nextID = m_nextEntityID;
+	}
+
+	return nextID;
 }

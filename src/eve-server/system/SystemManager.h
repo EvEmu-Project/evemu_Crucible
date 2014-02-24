@@ -77,6 +77,9 @@ public:
     void AddEntity(SystemEntity *who);
     void RemoveEntity(SystemEntity *who);
 
+	// Managing NPC Spawns and related tasks:
+	void DoSpawnForBubble(SystemBubble &thisBubble);
+
     SystemEntity *get(uint32 entityID) const;
 
     void MakeSetState(const SystemBubble *bubble, DoDestiny_SetState &into) const;

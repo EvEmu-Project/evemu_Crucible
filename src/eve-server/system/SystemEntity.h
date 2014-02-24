@@ -84,7 +84,7 @@ public:
 
     virtual bool IsStaticEntity() const { return true; }    //will this entity's position never change?
     virtual bool IsVisibleSystemWide() const { return false; }
-    virtual uint32 GetLocationID(SystemEntity *se);
+    virtual uint32 GetLocationID();
 
     SystemBubble *Bubble() const { return(m_bubble); }    //may be NULL
 
