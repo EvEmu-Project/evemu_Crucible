@@ -20,13 +20,14 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Zhur, Aknor Jaden
 */
 
 #ifndef __DESTINYMANAGER_H_INCL__
 #define __DESTINYMANAGER_H_INCL__
 
 #include "PyCallable.h"
+#include "destiny/DestinyStructs.h"
 #include "inventory/ItemRef.h"
 
 class SystemEntity;
@@ -45,6 +46,21 @@ extern const double TIC_DURATION_IN_SECONDS;
 //NOTE: we currently have no inertial mass
 class DestinyManager {
 public:
+
+	typedef enum {
+		destinyStopped = 1010,
+		destinyMoving,
+		destiny
+	} DestinyMotion;
+
+	typedef enum {
+		destinyOrbiting = 2020,
+		destinyFollowing,
+		destinyWarping,
+		destinyJumping
+	} DestinyAction;
+
+
     static uint32 GetStamp() { return(m_stamp); }
     static bool IsTicActive() { return(m_stampTimer.Check(false)); }
     static void TicCompleted() { if(m_stampTimer.Check(true)) m_stamp++; }
@@ -85,23 +101,38 @@ public:
     void GotoDirection(const GPoint &direction, bool update=true);
     PyResult AttemptDockOperation();
 
+	void Cloak();
+	void UnCloak();
+
     //bigger movement:
     void WarpTo(const GPoint &where, double distance, bool update=true);
+
+	//Ship State Query functions:
+	bool IsMoving() { return (((State == Destiny::DSTBALL_GOTO) || (State == Destiny::DSTBALL_FOLLOW) || (State == Destiny::DSTBALL_ORBIT)) ? true : false); }
+	bool IsStopped() { return ((State == Destiny::DSTBALL_STOP) ? true : false); }
+	bool IsAligned() { return ((State == Destiny::DSTBALL_GOTO) ? true : false); }
+	bool IsOrbiting() { return ((State == Destiny::DSTBALL_ORBIT) ? true : false); }
+	bool IsFollowing() { return ((State == Destiny::DSTBALL_GOTO) ? true : false); }
+	bool IsJumping() { return ((State == Destiny::DSTBALL_STOP) ? true : false); }
+	bool IsWarping() { return ((State == Destiny::DSTBALL_WARP) ? true : false); }
+	bool IsCloaked() { return m_cloaked; }
 
     //Destiny Update stuff:
     void SendSetState(const SystemBubble *b) const;
     void SendBallInfoOnUndock(bool update=true) const;
     void SendJumpIn() const;
     void SendJumpOut(uint32 stargateID) const;
-    void SendGateActivity() const;
+	void SendJumpInEffect(std::string JumpEffect) const;
+	void SendJumpOutEffect(std::string JumpEffect, uint32 locationID) const;
+	void SendGateActivity() const;
     void SendTerminalExplosion() const;
     void SendBoardShip(const ShipRef boardShipRef) const;
     void SendEjectShip(const ShipRef capsuleRef, const ShipRef oldShipRef) const;
     void SendJettisonCargo(const InventoryItemRef itemRef) const;
     void SendAnchorDrop(const InventoryItemRef itemRef) const;
     void SendAnchorLift(const InventoryItemRef itemRef) const;
-    void SendCloakShip(const ShipRef shipRef, const bool IsWarpSafe) const;
-    void SendUncloakShip(const ShipRef shipRef) const;
+    void SendCloakShip(const bool IsWarpSafe) const;
+    void SendUncloakShip() const;
     void SendSpecialEffect(const ShipRef shipRef, std::string effectString, uint32 moduleID, uint32 moduleTypeID,
         uint32 targetID, uint32 chargeID, bool isOffensive, bool isActive, double duration) const;
 
@@ -144,6 +175,7 @@ protected:
     GPoint m_targetPoint;
     double m_targetDistance;
     uint32 m_stateStamp;				//some states need to know when they were entered.
+	bool m_cloaked;
     std::pair<uint32, SystemEntity *> m_targetEntity;   //we do not own the SystemEntity *
     //SystemEntity *m_targetEntity;		//we do not own this.
 
