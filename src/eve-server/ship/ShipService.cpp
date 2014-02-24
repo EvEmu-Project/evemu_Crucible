@@ -1137,10 +1137,13 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call)
 
     ShipRef newShipRef = call.client->services().item_factory.GetShip(newShip);
 
-    call.client->System()->bubbles.Remove(call.client, true );
-    call.client->BoardShip(newShipRef);
+	if(call.client->IsInSpace())
+		call.client->System()->bubbles.Remove(call.client, true );
 
-    call.client->System()->bubbles.Add(call.client, true);
+	call.client->BoardShip(newShipRef);
+
+	if(call.client->IsInSpace())
+	    call.client->System()->bubbles.Add(call.client, true);
 
     PyTuple* rsp = new PyTuple(3);
     rsp->SetItem(0, new PyDict);
