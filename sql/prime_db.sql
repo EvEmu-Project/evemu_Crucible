@@ -53,7 +53,7 @@ TRUNCATE TABLE srvStatus;
  */
 INSERT INTO character_
  SELECT
-  characterID, accountID, title, description, bounty, balance, 0 AS aurBalance, securityRating, petitionMessage, logonMinutes, 0 AS skillPoints,
+  characterID, accountID, title, description, bounty, balance, 0 AS aurBalance, securityRating, petitionMessage, logonMinutes, 0 AS skillPoints, 0 AS skillQueueEndTime,
   corporationID, 0 AS corpRole, 0 AS rolesAtAll, 0 AS rolesAtBase, 0 AS rolesAtHQ, 0 AS rolesAtOther,
   corporationDateTime, startDateTime, createDateTime,
   ancestryID, careerID, schoolID, careerSpecialityID, gender,
