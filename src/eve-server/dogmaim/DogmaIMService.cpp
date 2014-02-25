@@ -380,7 +380,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs &call) {
     Rsp_Dogma_AddTarget rsp;
     rsp.success = true;
     rsp.targets.push_back(target->GetID());
-
+	
     return(rsp.Encode());
 }
 

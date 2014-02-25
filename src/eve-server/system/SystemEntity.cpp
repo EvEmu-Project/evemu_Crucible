@@ -42,11 +42,12 @@ void SystemEntity::Process() {
     targets.Process();
 }
 
-uint32 SystemEntity::GetLocationID(SystemEntity *se)
+uint32 SystemEntity::GetLocationID()
 {
-    uint32 itemID = se->GetID();
-
-    return (SystemDB::GetObjectLocationID( itemID ) );
+//    uint32 itemID = se->GetID();
+//
+//    return (SystemDB::GetObjectLocationID( itemID ) );
+	return (Item()->locationID());
 }
 
 double SystemEntity::DistanceTo2(const SystemEntity *other) const {

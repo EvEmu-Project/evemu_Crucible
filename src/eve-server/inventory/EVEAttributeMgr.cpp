@@ -540,7 +540,7 @@ bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
 
         if (client == NULL)
         {
-            sLog.Error("AttributeMap::SendAttributeChanges()", "unable to find client:%u", mItem.ownerID());
+            //sLog.Error("AttributeMap::SendAttributeChanges()", "unable to find client:%u", mItem.ownerID());
             //return false;
             return true;
         }
@@ -548,7 +548,7 @@ bool AttributeMap::SendAttributeChanges( PyTuple* attrChange )
         {
             if( client->Destiny() == NULL )
             {
-                sLog.Warning( "AttributeMap::SendAttributeChanges()", "client->Destiny() returned NULL" );
+                //sLog.Warning( "AttributeMap::SendAttributeChanges()", "client->Destiny() returned NULL" );
                 //return false;
             }
             else

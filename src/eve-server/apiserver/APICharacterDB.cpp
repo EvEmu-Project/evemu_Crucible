@@ -76,7 +76,7 @@ bool APICharacterDB::GetCharacterSkillsTrained(uint32 characterID, std::vector<s
             gotSkillPoints = false;
             gotSkillLevel = false;
             skillTypeIDList.push_back( std::string(row.GetText(1)) );
-            skillPublishedList.push_back( std::string(row.GetText(6)) );
+			skillPublishedList.push_back( std::string(itoa(row.GetBool(6) ? 1 : 0)) );
         }
 
         prevTypeID = row.GetUInt(1);
@@ -157,12 +157,12 @@ bool APICharacterDB::GetCharacterInfo(uint32 characterID, std::vector<std::strin
     charInfoList.push_back( std::string(row.GetText(6)) );     // 6. roles At HQ
     charInfoList.push_back( std::string(row.GetText(7)) );     // 7. roles At Other
     charInfoList.push_back( std::string(row.GetText(8)) );     // 8. birthday
-    charInfoList.push_back( std::string(row.GetText(9)) );     // 9. ancestry Name
-    charInfoList.push_back( std::string(row.GetText(10)) );     // 10. bloodline Name
-    charInfoList.push_back( std::string(row.GetText(11)) );     // 11. race Name
-    charInfoList.push_back( std::string(row.GetText(12)) );     // 12. char Name
-    charInfoList.push_back( std::string(row.GetText(13)) );     // 13. corp Name
-    charInfoList.push_back( std::string(row.GetText(14)) );     // 14. gender (0 = female, 1 = male)
+    charInfoList.push_back( std::string(row.GetText(10)) );     // 9. ancestry Name
+    charInfoList.push_back( std::string(row.GetText(11)) );     // 10. bloodline Name
+    charInfoList.push_back( std::string(row.GetText(12)) );     // 11. race Name
+    charInfoList.push_back( std::string(row.GetText(13)) );     // 12. char Name
+    charInfoList.push_back( std::string(row.GetText(14)) );     // 13. corp Name
+    charInfoList.push_back( std::string(row.GetText(9)) );     // 14. gender (0 = female, 1 = male)
 
     return true;
 }

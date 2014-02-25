@@ -392,7 +392,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     //DBQueryResult res;
     //sDatabase.RunQuery(res, "UPDATE character_ SET shipID = %u WHERE characterID = %u", ship_item->itemID(), char_item->itemID());
     char_item->SetActiveShip( ship_item->itemID() );
-    char_item->SaveCharacter();
+    char_item->SaveFullCharacter();
 	ship_item->SaveItem();
 
     if( !ship_item ) {

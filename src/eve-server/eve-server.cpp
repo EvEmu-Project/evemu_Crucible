@@ -354,6 +354,7 @@ int main( int argc, char* argv[] )
 	/////////////////////////////////////////////////////////////////////////////////////
 	services.serviceDB().SetServerOnlineStatus(true);
 	sLog.Success("server init", "SERVER IS NOW [ONLINE]");
+	sLog.Log("INFO", "(press Ctrl+C to start controlled server shutdown)");
 
     /*
      * THE MAIN LOOP

@@ -77,7 +77,7 @@ protected:
     void TargetedByLost(SystemEntity *from_who);
 
 
-    class TargetedByEntry {
+	class TargetedByEntry {
     public:
         TargetedByEntry(SystemEntity *_who)
             : state(Idle), who(_who) {}

@@ -787,7 +787,13 @@ void Client::Killed(Damage &fatal_blow) {
 
 
         //this updates m_self and manages destiny updates as needed.
+		if(IsInSpace())
+			System()->bubbles.Remove(this, true );
+
         BoardShip((ShipRef)capsule);
+
+		if(IsInSpace())
+			System()->bubbles.Add(this, true);
 
         m_shipId = capsule->itemID();
         if (IsInSpace())
@@ -812,6 +818,9 @@ void Client::Killed(Damage &fatal_blow) {
         //TODO: figure out anybody else which may be referencing this ship...
         dead_ship->Delete();    //remove from the DB.
 
+		// TODO: Place wreck matching the ship we lost
+
+		// TODO: Place random selection of modules/charges/cargo/drones into container of wreck
     }
 }
 

@@ -100,16 +100,23 @@ void NPCAIMgr::Process() {
 					// TODO: Determine the weakest target to engage
 					if( (*cur)->IsClient() )
 					{
-						// TODO: Check to see if target's standings are below 0.0, if so, engage, otherwise, ignore:
-						//Client * const currentClient = (*cur)->CastToClient();
-						//if( currentClient->GetStandingsFrom(this->m_npc->CastToNPC()->GetCorporationID()) >= 0.0 )
-						//	break;
+						// Check to see if this player ship is not cloaked, so we can really target them:
+						if( ((*cur)->CastToClient()->Destiny()) != NULL )
+						{
+							if( !((*cur)->CastToClient()->Destiny()->IsCloaked()) )
+							{
+								// TODO: Check to see if target's standings are below 0.0, if so, engage, otherwise, ignore:
+								//Client * const currentClient = (*cur)->CastToClient();
+								//if( currentClient->GetStandingsFrom(this->m_npc->CastToNPC()->GetCorporationID()) >= 0.0 )
+								//	break;
 						
-						// TODO: Check to see if it's a capsule
-						// Target him and begin the process of the attack.
-						if( !((*cur)->Item()->groupID() == EVEDB::invGroups::Capsule) )
-							this->Targeted((*cur));
-						break;
+								// Check to see if it's a capsule
+								// Target him and begin the process of the attack.
+								if( !((*cur)->Item()->groupID() == EVEDB::invGroups::Capsule) )
+									this->Targeted((*cur));
+								break;
+							}
+						}
 					}
 				}
 			}
@@ -194,6 +201,11 @@ void NPCAIMgr::Process() {
     } break;
     //no default on purpose
     }
+}
+
+void NPCAIMgr::ClearAllTargets()
+{
+	m_npc->targets.ClearAllTargets();
 }
 
 void NPCAIMgr::_EnterChasing(SystemEntity *target) {
@@ -293,6 +305,24 @@ void NPCAIMgr::CheckAttacks(SystemEntity *target) {
         _log(NPC__AI_TRACE, "[%u] Attack timer expired. Attacking %u.", m_npc->GetID(), target->GetID());
 
         InventoryItemRef self = m_npc->Item();
+
+		// Check to see if the target is still visible, ie not cloaked:
+		if( target->IsClient() )
+		{
+			if( target->CastToClient()->Destiny() != NULL )
+			{
+				if( target->CastToClient()->Destiny()->IsCloaked() )
+				{
+					m_npc->targets.ClearTarget(target);
+					return;
+				}
+			}
+			else
+			{
+				m_npc->targets.ClearTarget(target);
+				return;
+			}
+		}
 
 		// Check to see if the target still in the bubble (Client warped out)
 		if( !m_npc->Bubble()->InBubble(target->GetPosition()) )

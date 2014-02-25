@@ -29,6 +29,10 @@
 #include "npc/NPC.h"
 #include "npc/SpawnManager.h"
 #include "system/SystemManager.h"
+#include "system/SystemBubble.h"
+#include "system/BubbleManager.h"
+#include "system/SystemEntity.h"
+#include "system/SystemEntities.h"
 
 SpawnGroup::Entry::Entry(
     uint32 _spawnGroupID,
@@ -67,6 +71,7 @@ SpawnEntry::SpawnEntry(
   m_timer(timerValue),
   m_boundsType(boundsType)
 {
+	m_spawningNow = false;
 }
 
 SpawnManager::SpawnManager(SystemManager &mgr, PyServiceMgr &svc)
@@ -92,14 +97,68 @@ SpawnManager::~SpawnManager() {
 }
 
 void SpawnEntry::Process(SystemManager &mgr, PyServiceMgr &svc) {
-    if(m_timer.Check()) {
-        if(!m_spawnedIDs.empty()) {
-            _log(SPAWN__ERROR, "ERROR: spawn entry %u's timer went off when we have active spawn IDs!", m_id);
-            m_spawnedIDs.clear();
-        }
+    if((m_timer.Check(false)) && (m_spawningNow == false)) {
+		// Timer Expired - Process the Spawn!
 
-        //time to spawn...
-        _DoSpawn(mgr, svc);
+        //if(!m_spawnedIDs.empty()) {
+        //    _log(SPAWN__ERROR, "ERROR: spawn entry %u's timer went off when we have active spawn IDs!", m_id);
+        //    m_spawnedIDs.clear();
+        //}
+
+        // Create / Manage Spawns for one or more of the following condtions:
+		//   - last ship of this spawn has been destroyed and spawn timer is expired AND a new player ship has entered the bubble or is already here
+		//   - new bubble created at this spawn AND a new player ship has entered the bubble
+		std::set<SystemEntity *> entitiesInBubble;
+		std::set<SystemEntity *>::iterator curEntity, endEntities;
+		SystemBubble * currentBubble = NULL;
+		currentBubble = mgr.bubbles.FindBubble( bounds.at(0) );
+		uint32 curEntityTypeID = 0;
+		bool npcFound = false;
+		bool playerFound = false;
+
+		// First check to see if we have a bubble at this spawn location:
+		if( currentBubble != NULL )
+		{
+			// We have an existing bubble at this spawn:
+			currentBubble->GetEntities( entitiesInBubble );		// Get a complete list of SystemEntity objects currently residing in this bubble
+			if( !(entitiesInBubble.empty()) )
+			{
+				// We have one or more system entities in this bubble, let's see if at least one is a player ship,
+				// BUT, if one is an NPC of typeID in our list, we abort trying to do the spawn:
+				curEntity = entitiesInBubble.begin();
+				endEntities = entitiesInBubble.end();
+				for(; curEntity != endEntities; curEntity++)
+				{
+					if( !(m_spawnedIDs.empty()) )
+					{
+						//npcFound = true;
+						// Make sure each entity checked is an ItemSystemEntity derivative object, otherwise, ignore it since it can't possibly be an NPC or player ship:
+						if( (*curEntity)->Item() != 0 )
+						{
+							curEntityTypeID = (*curEntity)->Item()->itemID();
+							if( m_spawnedIDs.find( curEntityTypeID ) != m_spawnedIDs.end() )
+							{
+								npcFound = true;
+							}
+						}
+					}
+
+					if( (*curEntity)->IsClient() )
+					{
+						// We have at least one player ship in this bubble
+						playerFound = true;
+					}
+				}
+
+				if( (playerFound == true) && (npcFound == false) )
+				{
+					// EXCELLENT!  We have a player ship and NONE of our NPC ships present in the bubble,
+					// DO THE SPAWN!
+					m_spawnedIDs.clear();
+					_DoSpawn(mgr, svc);
+				}
+			}
+		}
     }
 }
 
@@ -129,7 +188,8 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 
     std::vector<NPC *> spawned;
 
-    //now see what is gunna spawn...
+    // Spin through our spawn group of typeIDs and quantities and create all ships/structures in the spawn:
+	m_spawningNow = true;	// Beginning spawning operation, enable internal marker
     std::vector<SpawnGroup::Entry>::const_iterator cur, end;
     cur = m_group.entries.begin();
     end = m_group.entries.end();
@@ -209,6 +269,23 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 
     //timer is disabled while the spawn is up.
     m_timer.Disable();
+	m_spawningNow = false;		// Spawning operation complete, turn off internal marker
+}
+
+void SpawnEntry::GetSpawnIDsList(std::set<uint32> &spawnIDsList)
+{
+	std::vector<SpawnGroup::Entry>::iterator cur, end;
+    cur = m_group.entries.begin();
+	end = m_group.entries.end();
+
+	spawnIDsList.clear();
+	for(; cur != end; cur++)
+		spawnIDsList.insert((*cur).npcTypeID);
+}
+
+void SpawnEntry::MarkSpawned(uint32 npcID)
+{
+	m_spawnedIDs.insert(npcID);
 }
 
 void SpawnEntry::SpawnDepoped(uint32 npcID) {
@@ -224,7 +301,9 @@ void SpawnEntry::SpawnDepoped(uint32 npcID) {
 
     if(m_spawnedIDs.empty()) {
         int32 timer = static_cast<int32>(MakeRandomInt(m_timerMin, m_timerMax));
-        _log(SPAWN__DEPOP, "Spawn entry %u's entire spawn group has depopped, resetting timer to %d s.", m_id, timer);
+		int32 timerMin = timer / 60;
+		int32 timerSec = timer % 60;
+        _log(SPAWN__DEPOP, "Spawn entry %u's entire spawn group has depopped, resetting timer to [%um %us]", m_id, timerMin, timerSec);
         m_timer.Start(timer*1000);
     }
 }
@@ -281,8 +360,70 @@ bool SpawnManager::Load() {
     return true;
 }
 
+void SpawnManager::DoSpawnForBubble(SystemBubble &thisBubble)
+{
+	SpawnEntry * thisSpawn = NULL;
+
+	thisSpawn = _FindSpawnForBubble(thisBubble);
+
+	if( thisSpawn != NULL )
+	{
+		// We have a spawn entry for this bubble, process it:
+		//thisSpawn->DoSpawnForBubble(m_system, thisBubble);
+		thisSpawn->Process(m_system, m_services);
+	}
+}
+
 bool SpawnManager::DoInitialSpawn() {
-    //right now, just running through Process will spawn what needs to be spawned.
+	// Loop through all spawn groups to verify if their areas are empty spawns and if not, DO NOT allow the inital spawn:
+/*
+	SystemBubble * currentBubble = NULL;
+	uint32 npcTypeID;
+	std::set<SystemEntity *>::iterator curEntity, endEntities;
+	std::set<SystemEntity *> entitiesInBubble;
+	std::set<uint32> spawnedIDsList;
+	std::map<uint32, SpawnEntry *>::iterator cur, end;
+    cur = m_spawns.begin();
+    end = m_spawns.end();
+    for(; cur != end; cur++) {
+		// See if we can find a bubble in our system that would contain this spawn:
+		if( cur->second->bounds.empty() )
+			return false;
+
+		currentBubble = m_system.bubbles.FindBubble( cur->second->bounds.at(0) );
+
+		if( currentBubble != NULL )
+		{
+			// We found a bubble at our spawn!  Let's see if it has ships 
+			entitiesInBubble.clear();
+			currentBubble->GetEntities( entitiesInBubble );
+			
+			if( !(entitiesInBubble.empty()) )
+			{
+				// Bubble at our spawn has ships!  Let's see if one or more are from OUR spawn:
+				cur->second->GetSpawnIDsList(spawnedIDsList);
+				curEntity = entitiesInBubble.begin();
+				endEntities = entitiesInBubble.end();
+				for(; curEntity != endEntities; curEntity++)
+				{
+					if( (*curEntity)->Item() != 0 )
+					{
+						npcTypeID = (*curEntity)->Item()->typeID();
+						if( spawnedIDsList.find( npcTypeID ) != spawnedIDsList.end() )
+						{
+							// We found one of our spawn items in this bubble!
+							// Now we need to mark this SpawnEntry as 'spawned' so that it does not perform the inital spawn,
+							// by inserting the ship itemIDs, not their typeIDs, into the SpawnEntry's spawnedIDs list:
+							cur->second->MarkSpawned( (*curEntity)->Item()->itemID() );
+							(*curEntity)->CastToNPC()->ForcedSetSpawner(cur->second);
+						}
+					}
+				}
+			}
+		}
+    }
+*/
+    // Right now, just running through Process will spawn what needs to be spawned.
     Process();
     return true;
 }
@@ -296,26 +437,22 @@ void SpawnManager::Process() {
     }
 }
 
+SpawnEntry * SpawnManager::_FindSpawnForBubble(SystemBubble &thisBubble)
+{
+	SystemBubble * bubble = NULL;
+	std::map<uint32, SpawnEntry *>::iterator cur, end;
+    cur = m_spawns.begin();
+    end = m_spawns.end();
+    for(; cur != end; cur++) {
+		// Check each Spawn Entry to find a match for this bubble:
+		if( !(cur->second->bounds.empty()) )
+		{
+			if( thisBubble.InBubble( cur->second->bounds.at(0) ) )
+				// Found this SpawnEntry in this Bubble:
+				return (cur->second);
+		}
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	// Could not find a Spawn Entry for this bubble, return NULL:
+	return NULL;
+}

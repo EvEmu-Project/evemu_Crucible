@@ -29,6 +29,8 @@
 #include "npc/SpawnDB.h"
 
 class SystemManager;
+class BubbleManager;
+class SystemBubble;
 class PyServiceMgr;
 
 //TODO: add formation stuff....
@@ -88,12 +90,14 @@ public:
         SpawnBoundsType boundsType);
 
     inline uint32 GetID() const { return(m_id); }
+	void GetSpawnIDsList(std::set<uint32> &spawnIDsList);
 
     //passing these pointers so we dont have to store them in each entry.
     void Process(SystemManager &mgr, PyServiceMgr &svc);
 
     bool CheckBounds() const;
 
+	void MarkSpawned(uint32 npcID);
     void SpawnDepoped(uint32 npcID);
 
     //I really dont want this to be public, but it makes loading a lot
@@ -113,6 +117,7 @@ protected:
     const uint32 m_timerMin;    //in seconds
     const uint32 m_timerMax;    //in seconds
     Timer m_timer;
+	bool m_spawningNow;
 
     //bounds:
     const SpawnBoundsType m_boundsType;
@@ -125,11 +130,14 @@ public:
     ~SpawnManager();
 
     bool Load();
+	void DoSpawnForBubble(SystemBubble &thisBubble);
     bool DoInitialSpawn();
     void Process();
 
 protected:
-    SystemManager &m_system;    //we do not own this
+    SpawnEntry * _FindSpawnForBubble(SystemBubble &thisBubble);
+
+	SystemManager &m_system;    //we do not own this
     PyServiceMgr &m_services;    //we do not own this
 
     SpawnDB m_db;

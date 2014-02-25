@@ -38,6 +38,8 @@ public:
     void Targeted(SystemEntity *by_who);
     void TargetLost(SystemEntity *by_who);
 
+	void ClearAllTargets();
+
 protected:
     void CheckAttacks(SystemEntity *target);
     void _EnterIdle();
