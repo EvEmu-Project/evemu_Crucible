@@ -33,7 +33,23 @@ IF( WIN32 )
   SET( PKG_ARCHIVE "${PKG_NAME}.zip" )
   SET( PKG_IMPLIB "libmysql.lib")
   SET( PKG_LIBRARY "libmysql.dll" )
-ELSE( WIN32 )
+
+ELSEIF( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+  IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+	# MAC OS-X 64-bit
+  	SET( PKG_NAME "mysql-5.5.25a-osx10.6-x86_64" )
+	SET( PKG_MD5 "6e3c37db5f0b0f7b239790d854c75b70")
+  ELSE()
+	# MAC OS-X 32-bit
+	SET( PKG_NAME "mysql-5.5.25a-osx10.6-x86" )
+	SET( PKG_MD5 "c73df15ab9489053890eb02ead2b3d17")
+  ENDIF()
+  # MAC OS-X
+  SET( PKG-ARCHIVE "${PKG_NAME}.tar.gz" )
+  SET( PKG-IMPLIB "libmysqlclient_r.a" )
+  SET( PKG-LIBRARY "libmysqlclient_r.dylib" )
+
+ELSE ( WIN32 )
   IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     # Linux 64-bit
     SET( PKG_NAME "mysql-5.5.25a-linux2.6-x86_64" )
@@ -59,7 +75,8 @@ ENDIF( WIN32 )
 # Cache entries
 SET( MYSQL_URL
 #  "http://downloads.mysql.com/archives/mysql-5.1/${PKG_ARCHIVE}"
-  "http://downloads.mysql.com/archives/mysql-5.5/${PKG_ARCHIVE}"
+#  "http://downloads.mysql.com/archives/mysql-5.5/${PKG_ARCHIVE}"
+   "https://downloads.skysql.com/archives/mysql-5.5/${PKG_ARCHIVE}"
   CACHE STRING "URL of the MySQL source archive" )
 MARK_AS_ADVANCED( MYSQL_URL )
 
