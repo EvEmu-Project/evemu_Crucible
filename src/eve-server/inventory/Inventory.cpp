@@ -485,7 +485,7 @@ double Inventory::GetStoredVolume(EVEItemFlags locationFlag) const
 void InventoryEx::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const
 {
     //double volume = item->quantity() * item->volume();
-    EvilNumber volume = item->GetAttribute(AttrQuantity) * item->GetAttribute(AttrVolume);
+	EvilNumber volume = EvilNumber(item->quantity()) * item->GetAttribute(AttrVolume);
     double capacity = GetRemainingCapacity( flag );
     if( volume > capacity )
     {

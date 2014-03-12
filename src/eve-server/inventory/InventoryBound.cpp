@@ -536,7 +536,23 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
 
 				c->GetShip()->AddItem( flag, sourceItem );
             }
-            else
+			else if( 
+						flag == flagCargoHold
+						|| flag == flagDroneBay
+						|| flag == flagSpecializedFuelBay
+						|| flag == flagSpecializedOreHold
+						|| flag == flagSpecializedGasHold
+						|| flag == flagSpecializedMineralHold
+						|| flag == flagSpecializedSalvageHold
+						|| flag == flagSpecializedShipHold
+						|| flag == flagSpecializedSmallShipHold
+						|| flag == flagSpecializedLargeShipHold
+						|| flag == flagSpecializedIndustrialShipHold
+						|| flag == flagSpecializedAmmoHold )
+			{
+				c->GetShip()->ValidateAddItem( flag, sourceItem );
+			}
+			else
             {
                 mInventory.ValidateAddItem( flag, sourceItem );
             }
