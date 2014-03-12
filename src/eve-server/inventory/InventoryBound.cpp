@@ -156,7 +156,10 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         if( call.byname.find("flag") == call.byname.end() )
         {
             sLog.Debug( "InventoryBound::Handle_Add()", "Cannot find key 'flag' from call.byname dictionary." );
-            flag = flagCargoHold;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
+			if( IsStation(call.client->GetLocationID()) )
+				flag = flagHangar;
+			else
+				flag = flagCargoHold;    // hard-code this since ship cargo to cargo container move flag since key 'flag' in client.byname does not exist
         }
         else
             flag = call.byname.find("flag")->second->AsInt()->value();
@@ -463,6 +466,10 @@ PyRep *InventoryBound::_ExecAdd(Client *c, const std::vector<int32> &items, uint
                 {
                     c->GetShip()->AddItem( flag, newItem );
                 }
+				else if( flag == flagCargoHold || flag == flagDroneBay )
+				{
+					c->GetShip()->ValidateAddItem( flag, newItem );
+				}
                 else
                 {
                     mInventory.ValidateAddItem( flag, newItem );

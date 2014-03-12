@@ -76,7 +76,7 @@ void Afterburner::DestroyRig()
 
 }
 
-void Afterburner::Activate(uint32 targetID)
+void Afterburner::Activate(SystemEntity * targetEntity)
 {
 	m_ActiveModuleProc->ActivateCycle();
 

@@ -19,6 +19,17 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_Dogma_LoadAmmoToBank">
+    <tupleInline>
+      <int name="shipItemID" />
+      <int name="moduleItemID" />
+      <int name="chargeTypeID" />
+      <listInt name="chargeList" />
+      <int name="locationID" />
+      <none />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Rsp_Dogma_AddTarget">
     <tupleInline>
       <bool name="success" />

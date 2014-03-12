@@ -27,9 +27,10 @@
 #include "eve-server.h"
 
 #include "ship/Ship.h"
+#include "ship/modules/ActiveModules.h"
 #include "ship/modules/components/ActiveModuleProcessingComponent.h"
 
-ActiveModuleProcessingComponent::ActiveModuleProcessingComponent(InventoryItemRef item, GenericModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod)
+ActiveModuleProcessingComponent::ActiveModuleProcessingComponent(InventoryItemRef item, ActiveModule * mod, ShipRef ship, ModifyShipAttributesComponent * shipAttrMod)
 : m_Item( item ), m_Mod( mod ), m_Ship( ship ), m_ShipAttrModComp( shipAttrMod ), m_timer(0)
 {
 	m_Stop = false;
@@ -43,7 +44,7 @@ ActiveModuleProcessingComponent::~ActiveModuleProcessingComponent()
 /****************************************************
 	A little note about the timer:
 		Timer.Check() has two functions:
-			1. It checks if the timer has runed out 
+			1. It checks if the timer has expired out 
 			2. It subtracts from the start time
 	Don't be fooled by it's name because if you don't
 	call it in a loop, you won't get the time moving.
@@ -55,7 +56,7 @@ void ActiveModuleProcessingComponent::Process()
 	//check if we have signal to stop the cycle
 	if(!m_Stop)
 	{
-		//check if the timer runed out & subtract time
+		//check if the timer expired & subtract time
 		if(m_timer.Check())
 		{
 			if(ShouldProcessActiveCycle())
@@ -86,7 +87,21 @@ void ActiveModuleProcessingComponent::Process()
 void ActiveModuleProcessingComponent::ActivateCycle()
 {
 	m_Stop = false;
-	m_timer.Start(m_Mod->GetAttribute(AttrDuration).get_int());
+	if( m_Mod->HasAttribute(AttrDuration) )
+	{
+		m_timer.Start(m_Mod->GetAttribute(AttrDuration).get_int());
+		m_Mod->DoCycle();	// Do initial cycle immediately while we start timer
+	}
+	else
+	{
+		if( m_Mod->HasAttribute(AttrSpeed) )
+		{
+			m_timer.Start(m_Mod->GetAttribute(AttrSpeed).get_int());
+			m_Mod->DoCycle();	// Do initial cycle immediately while we start timer
+		}
+		else
+			sLog.Error( "ActiveModuleProcessingComponent::ActivateCycle()", "ERROR! ActiveModule '%s' (id %u) has neither AttrSpeed nor AttrDuration! No way to process time-based cycle!", m_Mod->getItem()->itemName().c_str(), m_Mod->getItem()->itemID() );
+	}
 }
 
 void ActiveModuleProcessingComponent::DeactivateCycle()
@@ -97,7 +112,11 @@ void ActiveModuleProcessingComponent::DeactivateCycle()
 //timing and verification function
 bool ActiveModuleProcessingComponent::ShouldProcessActiveCycle()
 {
-    //check that we have enough capacitor avaiable
+    //first, check if we have been told to deactivate
+	if(m_Stop)
+		return false;
+
+	//check that we have enough capacitor avaiable
 	if(m_Ship->GetAttribute(AttrCharge) > m_Mod->GetAttribute(AttrCapacitorNeed))
 	{
 		//having enough capacitor to activate the module
@@ -107,10 +126,6 @@ bool ActiveModuleProcessingComponent::ShouldProcessActiveCycle()
 	{
 		return false;
 	}
-
-    //finally check if we have been told to deactivate
-	if(m_Stop)
-		return false;
 }
 
 void ActiveModuleProcessingComponent::ProcessActiveCycle()
@@ -126,7 +141,7 @@ void ActiveModuleProcessingComponent::ProcessActiveCycle()
 	EvilNumber capNeed = m_Mod->GetAttribute(AttrCapacitorNeed);
 	capCapacity -= capNeed;
 
-	m_Ship->SetAttribute(AttrCharge, capCapacity.get_float());
+	m_Ship->SetAttribute(AttrCharge, capCapacity);
 
     //then check if we are targeting another ship or not and apply attribute changes
 	//maybe we can have a check for modules that repeat the same attributes so we
@@ -137,6 +152,7 @@ void ActiveModuleProcessingComponent::ProcessActiveCycle()
 	//	m_ShipAttrComp->ModifyTargetShipAttribute();
 	//else
 	//	m_ShipAttrComp->ModifyShipAttribute();
+	m_Mod->DoCycle();
 }
 
 void ActiveModuleProcessingComponent::ProcessDeactivateCycle()
@@ -148,4 +164,9 @@ void ActiveModuleProcessingComponent::ProcessDeactivateCycle()
 	//	m_ShipAttrComp->ModifyTargetShipAttribute();
 	//else
 	//	m_ShipAttrComp->ModifyShipAttribute();
+}
+
+double ActiveModuleProcessingComponent::GetRemainingCycleTimeMS()
+{
+	return (double)(m_timer.GetRemainingTime());
 }

@@ -39,12 +39,17 @@ public:
 	virtual void Process()						{/*do nothing*/}
     void Offline();
     void Online();
-	void Activate(uint32 targetID);
+	void Activate(SystemEntity * targetEntity);
     void Deactivate();
+    void Load(InventoryItemRef charge);
+    void Unload();
 
     //access functions
     ModulePowerLevel GetModulePowerLevel()                    { return isHighPower() ? MODULE_BANK_HIGH_POWER : ( isMediumPower() ? MODULE_BANK_MEDIUM_POWER : MODULE_BANK_LOW_POWER); }
 
+	InventoryItemRef GetLoadedChargeRef()					{ return m_chargeRef; }
+
+	bool isLoaded()											{ return m_chargeLoaded; }
     bool isHighPower()                                        { return m_Effects->isHighSlot(); }
     bool isMediumPower()                                    { return m_Effects->isMediumSlot(); }
     bool isLowPower()                                        { return m_Effects->isLowSlot(); }
@@ -58,12 +63,19 @@ public:
             return false;
     }
 
+	// Calls Reserved for components usage only!
+	virtual void DoCycle()									{ /* Do nothing here */ }
+
 protected:
     ModifyShipAttributesComponent * m_ShipAttrComp;
 	ActiveModuleProcessingComponent * m_ActiveModuleProc;
-    uint32 targetID;  //passed to us by activate
+    uint32 m_targetID;  //passed to us by activate
+	SystemEntity * m_targetEntity;	// we do not own this
 
-    //inheritance crap
+	InventoryItemRef m_chargeRef;		// we do not own this
+	bool m_chargeLoaded;
+
+	//inheritance crap
     ActiveModule() {}
 };
 

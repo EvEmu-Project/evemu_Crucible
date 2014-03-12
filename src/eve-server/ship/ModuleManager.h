@@ -361,7 +361,8 @@ public:
     void DeOverload(uint32 itemID);
     void DamageModule(uint32 itemID, EvilNumber val);
     void RepairModule(uint32 itemID);
-    void ReplaceCharges();
+    void LoadCharge(InventoryItemRef chargeRef, EVEItemFlags flag);
+    void UnloadCharge(EVEItemFlags flag);
     void UnloadAllModules();
     void CharacterLeavingShip();
     void CharacterBoardingShip();
@@ -373,6 +374,8 @@ public:
 
     GenericModule * GetModule(EVEItemFlags flag)    { return m_Modules->GetModule(flag); }
     GenericModule * GetModule(uint32 itemID)        { return m_Modules->GetModule(itemID); }
+
+	InventoryItemRef GetLoadedChargeOnModule(EVEItemFlags flag);
 
 	void GetModuleListOfRefs(std::vector<InventoryItemRef> * pModuleList);
     void SaveModules();
@@ -405,11 +408,8 @@ private:
     void _SendInfoMessage(const char* fmt, ...);
     void _SendErrorMessage(const char* fmt, ...);
 
-    //access to the ship that owns us.  We do not own this
+    //access to the ship its system entity that owns us.  We do not own these
     Ship * m_Ship;
-
-    //access to destiny.  We do not own this
-    DestinyManager * m_Destiny;
 
     //modules storage, we own this
     ModuleContainer * m_Modules;                    // Holds Module class objects in container arrays, one for each slot bank, rig, subsystem

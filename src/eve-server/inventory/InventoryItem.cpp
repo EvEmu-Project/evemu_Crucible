@@ -302,7 +302,6 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         case EVEDB::invCategories::Station:
         case EVEDB::invCategories::Material:
         case EVEDB::invCategories::Accessories:
-        case EVEDB::invCategories::Charge:
         case EVEDB::invCategories::Trading:
         case EVEDB::invCategories::Bonus:
         case EVEDB::invCategories::Commodity:
@@ -414,6 +413,31 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
         ///////////////////////////////////////
         // Module:
         ///////////////////////////////////////
+        case EVEDB::invCategories::Charge:
+		{
+            // Spawn generic item:
+            uint32 itemID = InventoryItem::_Spawn( factory, data );
+            if( itemID == 0 )
+                return InventoryItemRef();
+
+            InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
+
+            // THESE SHOULD BE MOVED INTO A Charge::Spawn() function that does not exist yet
+            // Create default dynamic attributes in the AttributeMap:
+            itemRef.get()->SetAttribute(AttrIsOnline,   1);                                             // Is Online
+            itemRef.get()->SetAttribute(AttrDamage,     0.0);                                             // Structure Damage
+            itemRef.get()->SetAttribute(AttrMass,       itemRef.get()->type().attributes.mass());           // Mass
+            itemRef.get()->SetAttribute(AttrRadius,     itemRef.get()->type().attributes.radius());       // Radius
+            itemRef.get()->SetAttribute(AttrVolume,     itemRef.get()->type().attributes.volume());       // Volume
+            itemRef.get()->SetAttribute(AttrCapacity,   itemRef.get()->type().attributes.capacity());   // Capacity
+            itemRef.get()->SaveAttributes();
+
+            return itemRef;
+		}
+
+		///////////////////////////////////////
+        // Module:
+        ///////////////////////////////////////
         case EVEDB::invCategories::Module:
         {
             // Spawn generic item:
@@ -427,8 +451,6 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
             // Create default dynamic attributes in the AttributeMap:
             itemRef.get()->SetAttribute(AttrIsOnline,   1);                                             // Is Online
             itemRef.get()->SetAttribute(AttrDamage,     0.0);                                             // Structure Damage
-            //itemRef.get()->SetAttribute(AttrShieldCharge, itemRef.get()->GetAttribute(AttrShieldCapacity));       // Shield Charge
-            //itemRef.get()->SetAttribute(AttrArmorDamage, 0.0);                                        // Armor Damage
             itemRef.get()->SetAttribute(AttrMass,       itemRef.get()->type().attributes.mass());           // Mass
             itemRef.get()->SetAttribute(AttrRadius,     itemRef.get()->type().attributes.radius());       // Radius
             itemRef.get()->SetAttribute(AttrVolume,     itemRef.get()->type().attributes.volume());       // Volume
@@ -578,7 +600,16 @@ InventoryItemRef InventoryItem::Spawn(ItemFactory &factory, ItemData &data)
     if( itemID == 0 )
         return InventoryItemRef();
     InventoryItemRef itemRef = InventoryItem::Load( factory, itemID );
-    itemRef.get()->SaveAttributes();
+
+	// Create some basic attributes that are NOT found in dgmTypeAttributes for most items, yet most items DO need:
+    itemRef.get()->SetAttribute(AttrIsOnline,    1);                                              // Is Online
+    itemRef.get()->SetAttribute(AttrDamage,      0.0);                                              // Structure Damage
+    itemRef.get()->SetAttribute(AttrMass,        itemRef.get()->type().attributes.mass());         // Mass
+    itemRef.get()->SetAttribute(AttrRadius,      itemRef.get()->type().attributes.radius());     // Radius
+    itemRef.get()->SetAttribute(AttrVolume,      itemRef.get()->type().attributes.volume());     // Volume
+    itemRef.get()->SetAttribute(AttrCapacity,    itemRef.get()->type().attributes.capacity()); // Capacity
+
+	itemRef.get()->SaveAttributes();
     return itemRef;
 }
 

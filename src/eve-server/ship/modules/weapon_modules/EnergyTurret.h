@@ -37,14 +37,17 @@ public:
 	void Process();
 
     // Module Action Methods:
-    void Load();
+    void Load(InventoryItemRef charge);
     void Unload();
     void Repair();
     void Overload();
     void DeOverload();
     void DestroyRig();
-	void Activate(uint32 targetID);
+	void Activate(SystemEntity * targetEntity);
 	void Deactivate();
+
+	// Calls Reserved for components usage only!
+	void DoCycle();
 };
 
 #endif
