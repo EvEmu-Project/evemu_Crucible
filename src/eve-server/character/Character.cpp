@@ -805,7 +805,10 @@ void Character::UpdateSkillQueue()
                 c->UpdateSkillTraining();
             }
 
-            // nothing currently in training
+			// Save changes to this skill before removing it from training:
+			currentTraining->SaveItem();
+
+			// nothing currently in training
             currentTraining = SkillRef();
         }
     }
@@ -858,6 +861,9 @@ void Character::UpdateSkillQueue()
 
                 c->UpdateSkillTraining();
             }
+
+			// Save changes to this skill now that it is put into training:
+			currentTraining->SaveItem();
         }
 
         if( currentTraining->GetAttribute(AttrExpiryTime) <= EvilTimeNow() ) {
@@ -871,6 +877,8 @@ void Character::UpdateSkillQueue()
             currentTraining->SetAttribute(AttrExpiryTime, 0);
 
             currentTraining->MoveInto( *this, flagSkill, true );
+			
+			// Save changes to this skill now that it has finished training:
 			currentTraining->SaveItem();
 
             if( c != NULL )
@@ -1103,8 +1111,10 @@ void Character::SaveFullCharacter()
 	// First save basic character info and attributes:
 	SaveCharacter();
 
+	// BAD BAD BAD: This is taking minutes and minutes for high SP chars when all we need to do is save the current skill in training:
     // Loop through all skills and save each one:
-    std::vector<InventoryItemRef> skills;
+/*
+	std::vector<InventoryItemRef> skills;
     GetSkillsList( skills );
     std::vector<InventoryItemRef>::iterator cur, end;
     cur = skills.begin();
@@ -1112,6 +1122,10 @@ void Character::SaveFullCharacter()
     for(; cur != end; cur++)
 		cur->get()->SaveItem();
         //cur->get()->SaveAttributes();
+*/
+	SkillRef currentTraining = GetSkillInTraining();
+	if( currentTraining != NULL )
+		currentTraining->SaveItem();
 
     // Loop through all items owned by this Character and save each one:
 	// TODO
