@@ -113,11 +113,41 @@ PyResult SkillMgrBound::Handle_GetSkillHistory( PyCallArgs& call )
 
     util_Rowset rowset;
 
-    rowset.header.push_back( "logDateTime" );
-    rowset.header.push_back( "eventID" );
+    rowset.header.push_back( "logDate" );
+    rowset.header.push_back( "eventTypeID" );
     rowset.header.push_back( "skillTypeID" );
     rowset.header.push_back( "relativePoints" );
     rowset.header.push_back( "absolutePoints" );
+
+	// eventTypeIDs:
+    // 34 - SkillClonePenalty
+    // 36 - SkillTrainingStarted
+    // 37 - SkillTrainingComplete
+    // 38 - SkillTrainingCanceled
+    // 39 - GMGiveSkill
+    // 53 - SkillTrainingComplete
+    // 307 - SkillPointsApplied
+
+	// NOTE:  Screenshots from DaVinci show that this call sends back only 20 most recent entries in this history
+
+	// TODO: get most recent 20 entries for skill history from DB table via character object
+	CharacterRef ch = call.client->GetChar();
+	//ch->GetSkillHistory();
+
+	rowset.lines = new PyList;
+
+    uint32 i = 0;
+    PyList* fieldData = new PyList;
+    //for( i = 0; i < ?; i++ )
+    //{
+        fieldData->AddItemLong( 130386773819853860 );
+        fieldData->AddItemInt( 37 );
+        fieldData->AddItemInt( 28667 );
+        fieldData->AddItemInt( 6532 );
+        fieldData->AddItemInt( 12000 );
+        rowset.lines->AddItem( fieldData );
+        fieldData = new PyList;
+    //}
 
     return rowset.Encode();
 }
