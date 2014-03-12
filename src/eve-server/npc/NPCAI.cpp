@@ -87,6 +87,7 @@ void NPCAIMgr::Process() {
 			//TODO: wander around?
 			//TODO: look around for shit to shoot at?
 			//         The parameter proximityRange tells us how far we "see"
+			bool targetSelected = false;
 			if( m_beginFindTarget.Check() )
 			{
 				std::set<SystemEntity *> possibleTargets;
@@ -113,11 +114,16 @@ void NPCAIMgr::Process() {
 								// Check to see if it's a capsule
 								// Target him and begin the process of the attack.
 								if( !((*cur)->Item()->groupID() == EVEDB::invGroups::Capsule) )
+								{
 									this->Targeted((*cur));
-								break;
+									targetSelected = true;
+								}
 							}
 						}
 					}
+
+					if( targetSelected )
+						break;
 				}
 			}
 			break;
