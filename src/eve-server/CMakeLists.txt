@@ -455,7 +455,8 @@ SET( system_INCLUDE
      "${TARGET_INCLUDE_DIR}/system/SystemDB.h"
      "${TARGET_INCLUDE_DIR}/system/SystemEntities.h"
      "${TARGET_INCLUDE_DIR}/system/SystemEntity.h"
-     "${TARGET_INCLUDE_DIR}/system/SystemManager.h" )
+     "${TARGET_INCLUDE_DIR}/system/SystemManager.h"
+     "${TARGET_INCLUDE_DIR}/system/WrecksAndLoot.h" )
 SET( system_SOURCE
      "${TARGET_SOURCE_DIR}/system/BookmarkDB.cpp"
      "${TARGET_SOURCE_DIR}/system/BookmarkService.cpp"
@@ -472,7 +473,8 @@ SET( system_SOURCE
      "${TARGET_SOURCE_DIR}/system/SystemDB.cpp"
      "${TARGET_SOURCE_DIR}/system/SystemEntities.cpp"
      "${TARGET_SOURCE_DIR}/system/SystemEntity.cpp"
-     "${TARGET_SOURCE_DIR}/system/SystemManager.cpp" )
+     "${TARGET_SOURCE_DIR}/system/SystemManager.cpp"
+     "${TARGET_SOURCE_DIR}/system/WrecksAndLoot.cpp" )
 
 ########################
 # Setup the executable #
