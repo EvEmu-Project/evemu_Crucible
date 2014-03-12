@@ -27,6 +27,7 @@
 
 #include "PyServiceCD.h"
 #include "cache/ObjCacheService.h"
+#include "EVEServerConfig.h"
 
 const char *const ObjCacheService::LoginCachableObjects[] = {
     "config.BulkData.paperdollResources",
@@ -139,6 +140,16 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
   m_dispatch(new Dispatcher(this)),
   m_cacheDir(cacheDir)
 {
+	/*
+	*	Create server_cache directory to store the cached objects 
+	*/
+	std::string _basePath = sConfig.files.cacheDir;
+
+	if (_basePath[_basePath.size() - 1] != '/')
+        _basePath += "/";
+
+	CreateDirectory(_basePath.c_str(), NULL);
+
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(ObjCacheService, GetCachableObject)
