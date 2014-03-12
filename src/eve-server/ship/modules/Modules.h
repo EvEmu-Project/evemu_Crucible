@@ -59,7 +59,7 @@ public:
     virtual void Process()											{ /* Do nothing here */ }
     virtual void Offline()											{ /* Do nothing here */ }
     virtual void Online()											{ /* Do nothing here */ }
-	virtual void Activate(uint32 targetID)							{ /* Do nothing here */ }
+	virtual void Activate(SystemEntity * targetEntity)				{ /* Do nothing here */ }
     virtual void Deactivate()										{ /* Do nothing here */ }
     virtual void Load(InventoryItemRef charge)						{ /* Do nothing here */ }
     virtual void Unload()											{ /* Do nothing here */ }
@@ -73,6 +73,7 @@ public:
 
     virtual void SetAttribute(uint32 attrID, EvilNumber val)    { m_Item->SetAttribute(attrID, val); }
     virtual EvilNumber GetAttribute(uint32 attrID)                { return m_Item->GetAttribute(attrID); }
+	virtual bool HasAttribute(uint32 attrID)					{ return m_Item->HasAttribute(attrID); }
 
     //access functions
     InventoryItemRef getItem()                                  { return m_Item; }
