@@ -145,6 +145,21 @@ DestinyManager * ShipOperatorInterface::GetDestiny()
     return ret;
 }
 
+SystemEntity * ShipOperatorInterface::GetSystemEntity()
+{
+    if( m_pClient != NULL )
+        return static_cast<SystemEntity *>(m_pClient);
+//    else if( m_pNPC != NULL )
+//        return static_cast<SystemEntity *>(m_pNPC);
+
+    sLog.Error( "ShipOperatorInterface::GetSystemEntity()", "ERROR: All Operator types should be accounted for" );
+    assert(false);
+
+    // Hack to get rid of warning, code execution should never reach this point
+    SystemEntity * ret = NULL;
+    return ret;
+}
+
 uint32 ShipOperatorInterface::GetLocationID() const
 {
     if( m_pClient != NULL )

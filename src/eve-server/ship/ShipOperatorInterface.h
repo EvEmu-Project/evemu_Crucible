@@ -69,6 +69,7 @@ public:
     ShipRef GetShip() const;
     CharacterRef GetChar() const;
     DestinyManager * GetDestiny();
+	SystemEntity * GetSystemEntity();
     uint32 GetLocationID() const;
     void MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag);
 
