@@ -28,9 +28,11 @@
 #include "Client.h"
 #include "EntityList.h"
 #include "PyServiceMgr.h"
+#include "corporation/CorporationDB.h"
 #include "inventory/AttributeEnum.h"
 #include "mining/Asteroid.h"
 #include "npc/NPC.h"
+#include "npc/NPCAI.h"
 #include "npc/SpawnManager.h"
 #include "pos/Structure.h"
 #include "ship/DestinyManager.h"
@@ -42,6 +44,8 @@
 #include "system/Damage.h"
 #include "system/Deployable.h"
 #include "system/SystemManager.h"
+#include "system/SystemBubble.h"
+#include "system/WrecksAndLoot.h"
 
 Damage::Damage(
     SystemEntity *_source,
@@ -57,6 +61,23 @@ Damage::Damage(
 	em = _em;
 	explosive = _explosive;
 	weapon = _weapon;
+}
+
+Damage::Damage(
+    SystemEntity *_source,
+    bool fatal_blow): source(_source), effect(effectTargetAttack)
+{
+	assert(fatal_blow && "Damage() constructor meant for fatal_blow called without 2nd param being true!");
+
+	// No specific damage dealt here, just killed
+	kinetic = 0.0;
+	thermal = 0.0;
+	em = 0.0;
+	explosive = 0.0;
+
+	// These are set to NULL for this specific case of Damage obj meant for Killed() methods of derived SystemEntity objects
+	weapon = InventoryItemRef();
+	charge = InventoryItemRef();
 }
 
 Damage::Damage(
@@ -388,8 +409,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
     //NOTE: could send out the RD version of this message instead of the R version, which
     //includes "weapon" and "owner" instead of "source".
     Notify_OnDamageMessage_Self ondam;
-    //ondam.messageID = "AttackHit2R";    //TODO: randomize/select this somehow.
-    ondam.messageID = DamageMessageIDs_Self[random_damage];
+    ondam.messageID = DamageMessageIDs_Other[random_damage];	//DamageMessageIDs_Self[random_damage];
     ondam.damage = total_damage;
     ondam.source = d.source->GetID();
     ondam.splash = "";
@@ -406,7 +426,6 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
         PySafeDecRef( up );
 
         Notify_OnDamageMessage_Other ondamo;
-        //ondamo.messageID = "AttackHit3";        //TODO: select this based on the severity of the hit...
         ondamo.messageID = DamageMessageIDs_Other[random_damage];
         ondamo.format_type = fmtMapping_itemTypeName;
         ondamo.weaponType = d.weapon->typeID();
@@ -440,6 +459,7 @@ void Client::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("Client::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void Client::ApplyDamageModifiers(Damage &d, SystemEntity *target)
@@ -654,8 +674,7 @@ bool NPC::ApplyDamage(Damage &d) {
     //NOTE: could send out the RD version of this message instead of the R version, which
     //includes "weapon" and "owner" instead of "source".
     Notify_OnDamageMessage_Self ondam;
-    //ondam.messageID = "AttackHit2R";    //TODO: randomize/select this somehow.
-    ondam.messageID = DamageMessageIDs_Self[random_damage];
+    ondam.messageID = DamageMessageIDs_Other[random_damage];	//DamageMessageIDs_Self[random_damage];
     ondam.damage = total_damage;
     ondam.source = d.source->GetID();
     ondam.splash = "";
@@ -672,7 +691,6 @@ bool NPC::ApplyDamage(Damage &d) {
         PySafeDecRef( up );
 
         Notify_OnDamageMessage_Other ondamo;
-        //ondamo.messageID = "AttackHit3";        //TODO: select this based on the severity of the hit...
         ondamo.messageID = DamageMessageIDs_Other[random_damage];
         ondamo.format_type = fmtMapping_itemTypeName;
         ondamo.weaponType = d.weapon->typeID();
@@ -739,13 +757,113 @@ void DynamicSystemEntity::Killed(Damage &fatal_blow) {
 void Client::Killed(Damage &fatal_blow) {
     DynamicSystemEntity::Killed(fatal_blow);
 
+    SystemEntity *killer = fatal_blow.source;
+    Client* client = m_services.entity_list.FindByShip( killer->Item()->ownerID() );
+    if( !killer->IsClient() )
+    {
+        if( client != NULL )
+        {
+            killer = static_cast<SystemEntity*>(client);
+			client = NULL;
+        }
+    }
+    else
+    {
+        client = killer->CastToClient();
+    }
 
     if(GetShip()->typeID() == itemTypeCapsule)
 	{
-		sLog.Error( "Client::Killed()", "WARNING!  This is likely to crash the server, DO NOT ATTEMPT To POD KILL until this function properly returns client to the station of your last clone update!" );
+		//sLog.Error( "Client::Killed()", "WARNING!  This is likely to crash the server, DO NOT ATTEMPT To POD KILL until this function properly returns client to the station of your last clone update!" );
         //we have been pod killed... off we go.
 
-        //TODO: destroy all implants
+		//TODO: explode the capsule and make a new one in the last medical clone's station:
+		GPoint deadPodPosition = GetPosition();
+		uint32 oldPodItemID = GetShipID();
+		GPoint capsulePosition = GPoint(0,0,0);
+
+		ShipRef deadPodRef = GetShip();    //grab a ship ref to ensure that nobody else nukes it first.
+        std::string corpse_name = GetName();
+        corpse_name += "'s Corpse";
+
+		// Get location of last medical clone:
+        std::string capsule_name = GetName();
+        capsule_name += "'s Capsule";
+		ItemData capsuleItemData(
+			capsule_name.c_str(),
+			itemTypeCapsule,
+			GetCharacterID(),
+			GetCloneLocationID(),
+			(EVEItemFlags)flagHangar,
+			false, true, 1,
+			capsulePosition,
+			""
+		);
+
+        ShipRef capsuleRef = m_services.item_factory.SpawnShip( capsuleItemData );
+		if( !capsuleRef )
+		{
+			sLog.Error("Client::Killed()", "Failed to create capsule for character '%s'", GetName());
+            //what to do?
+			throw PyException( MakeCustomError ( "Unable to generate escape pod" ) );
+            return;
+        }
+
+		Destiny()->SendTerminalExplosion();
+
+	    capsuleRef->Move(GetLocationID(), (EVEItemFlags)flagHangar, true);
+
+	    ShipRef updatedCapsuleRef = services().item_factory.GetShip( capsuleRef->itemID() );
+
+		System()->bubbles.Remove( this, true );
+
+        BoardShip(updatedCapsuleRef);
+
+		//TODO: spawn a corpsed named for this client's character
+		uint32 corpseTypeID = 10041;	// typeID from 'invTypes' table for "Frozen Corpse"
+		InventoryItemRef corpseItemRef;
+		ItemData corpseItemData(
+			corpseTypeID,
+			GetCharacterID(),
+			GetLocationID(),
+			flagAutoFit,
+			corpse_name.c_str(),
+			deadPodPosition
+		);
+
+		corpseItemRef = System()->GetServiceMgr()->item_factory.SpawnItem( corpseItemData );
+		if( !corpseItemRef )
+			throw PyException( MakeCustomError( "Unable to spawn item of type %u.", corpseTypeID ) );
+
+		DBSystemDynamicEntity corpseEntity;
+
+		corpseEntity.allianceID = 0;
+		corpseEntity.categoryID = EVEDB::invCategories::Celestial;
+		corpseEntity.corporationID = 0;
+		corpseEntity.flag = 0;
+		corpseEntity.groupID = EVEDB::invGroups::Biomass;
+		corpseEntity.itemID = corpseItemRef->itemID();
+		corpseEntity.itemName = corpse_name;
+		corpseEntity.locationID = GetLocationID();
+		corpseEntity.ownerID = 1;
+		corpseEntity.typeID = corpseTypeID;
+		corpseEntity.x = deadPodPosition.x;
+		corpseEntity.y = deadPodPosition.y;
+		corpseEntity.z = deadPodPosition.z;
+
+		// Actually do the spawn using SystemManager's BuildEntity:
+		if( !(System()->BuildDynamicEntity( this, corpseEntity )) )
+		{
+			sLog.Error("Client::Killed()", "Spawning Wreck Failed: typeID or typeName not supported: '%u'", corpseTypeID);
+			throw PyException( MakeCustomError ( "Spawning Wreck Failed: typeID or typeName not supported." ) );
+			return;
+		}
+
+		//TODO: destroy all implants
+
+		//TODO: change current clone back to Clone Grade Alpha
+		CorporationDB corpDBobj;
+		corpDBobj.ChangeCloneType(GetCharacterID(), 164);		// typeID = 164 is for Clone Grade Alpha
 
         //TODO: send them back to their clone.
         m_system->RemoveClient(this);
@@ -754,71 +872,123 @@ void Client::Killed(Damage &fatal_blow) {
 	{
         //our ship has been destroyed. Off to our capsule.
         //We are currently not keeping our real capsule around in the DB, so we need to make a new one.
+		GPoint deadShipPosition = GetPosition();
+		uint32 oldShipItemID = GetShipID();
+		GPoint capsulePosition = GetPosition();
 
-        //m_system->bubbles.Remove(this, true);
+		//set capsule position 500m off from old ship:
+		capsulePosition.x += GetShip()->GetAttribute(AttrRadius).get_float() + 100.0;
+		capsulePosition.y += GetShip()->GetAttribute(AttrRadius).get_float() + 100.0;
+		capsulePosition.z += GetShip()->GetAttribute(AttrRadius).get_float() - 100.0;
+
+		ShipRef deadShipRef = GetShip();    //grab a ship ref to ensure that nobody else nukes it first.
+        std::string wreck_name = GetName();
+        wreck_name += "'s ";
+		wreck_name += deadShipRef->itemName();
+		wreck_name += "Wreck";
 
         std::string capsule_name = GetName();
         capsule_name += "'s Capsule";
-        ItemData idata(
-            itemTypeCapsule,
-            GetCharacterID(),
-            GetLocationID(),
-            flagAutoFit,
-            capsule_name.c_str()
-        );
+		ItemData capsuleItemData(
+			capsule_name.c_str(),
+			itemTypeCapsule,
+			GetCharacterID(),
+			GetLocationID(),
+			(EVEItemFlags)flagCapsule,
+			false, true, 1,
+			capsulePosition,
+			""
+		);
 
-        ShipRef capsule = m_services.item_factory.SpawnShip(idata);
-        if( !capsule ) {
-            codelog(CLIENT__ERROR, "Failed to create capsule for character '%s'", GetName());
+        ShipRef capsuleRef = m_services.item_factory.SpawnShip( capsuleItemData );
+		if( !capsuleRef )
+		{
+			sLog.Error("Client::Killed()", "Failed to create capsule for character '%s'", GetName());
             //what to do?
+			throw PyException( MakeCustomError ( "Unable to generate escape pod" ) );
             return;
         }
-
-        ShipRef dead_ship = GetShip();    //grab a ship ref to ensure that nobody else nukes it first.
 
         //ok, nothing can fail now, we need have our capsule, make the transition.
 
         //put the capsule where the ship was
-        capsule->Relocate(dead_ship->position());
+	    capsuleRef->Move(GetLocationID(), (EVEItemFlags)flagCapsule, true);
 
-        //move it out of the way
-        dead_ship->Move(this->GetLocationID(), (EVEItemFlags)flagNone, true );
+	    ShipRef updatedCapsuleRef = services().item_factory.GetShip( capsuleRef->itemID() );
 
-
-
-        //this updates m_self and manages destiny updates as needed.
-		if(IsInSpace())
-			System()->bubbles.Remove(this, true );
-
-        BoardShip((ShipRef)capsule);
-
-		if(IsInSpace())
-			System()->bubbles.Add(this, true);
-
-        m_shipId = capsule->itemID();
-        if (IsInSpace())
-            mSession.SetInt("shipid", capsule->itemID() );
-
-		// THIS SECTION IS STILL A WORK-IN-PROGRESS:
-	/*
-        // Board the capsule
-		Destiny()->SendBoardShip( capsule );
-
-		// Remove from system manager
 		System()->bubbles.Remove( this, true );
 
-		// Get ref to SystemEntity for dead ship, then remove it from System manager
-		ShipEntity * pDeadShipEntity = (ShipEntity *)(System()->get( dead_ship->itemID() ));
-		System()->bubbles.Remove( pDeadShipEntity, true );
-        if( pDeadShipEntity != NULL )
-            pDeadShipEntity->~ShipEntity();
-	*/
+        BoardShip(updatedCapsuleRef);
 
-        //kill off the old ship.
-        //TODO: figure out anybody else which may be referencing this ship...
-        dead_ship->Delete();    //remove from the DB.
+		System()->bubbles.Add( this, true);
+		Destiny()->SetPosition( capsulePosition, true );
 
-		// TODO: Place wreck matching the ship we lost
+		// Set ownership of dead ship to EVE system:
+	    deadShipRef->ChangeOwner( 1 );
+
+        m_shipId = capsuleRef->itemID();
+        mSession.SetInt("shipid", capsuleRef->itemID() );
+
+        // === Kill off the old ship ===
+		// Create new ShipEntity for dead ship and add it to the SystemManager, before we explode it:
+		ShipEntity * deadShipObj = new ShipEntity( deadShipRef, System(), *(System()->GetServiceMgr()), deadShipPosition );
+		System()->AddEntity( deadShipObj );
+
+		// Add ball to bubble manager for this client's character's system for the dead pilot-less ship:
+		System()->bubbles.Add( deadShipObj, true );
+
+		// Do Destiny Updates to exit the dead ship:
+		Destiny()->SendEjectShip( updatedCapsuleRef, deadShipRef );
+
+		deadShipObj->Destiny()->SendTerminalExplosion();
+
+		//TODO: figure out anybody else which may be referencing this ship...
+		uint32 wreckTypeID = sDGM_Types_to_Wrecks_Table.GetWreckID(deadShipObj->Item()->typeID());
+		deadShipObj->Bubble()->Remove(deadShipObj, true);
+        deadShipRef->Delete();    //remove from the DB.
+
+		// TODO: Spawn a wreck matching the ship we lost
+		InventoryItemRef wreckItemRef;
+		ItemData wreckItemData(
+			wreckTypeID,
+			GetCharacterID(),
+			GetLocationID(),
+			flagAutoFit,
+			wreck_name.c_str(),
+			deadShipPosition
+		);
+
+		wreckItemRef = System()->GetServiceMgr()->item_factory.SpawnItem( wreckItemData );
+		if( !wreckItemRef )
+			throw PyException( MakeCustomError( "Unable to spawn item of type %u.", wreckTypeID ) );
+
+		DBSystemDynamicEntity wreckEntity;
+
+		wreckEntity.allianceID = 0;
+		wreckEntity.categoryID = EVEDB::invCategories::Celestial;
+		wreckEntity.corporationID = 0;
+		wreckEntity.flag = 0;
+		wreckEntity.groupID = EVEDB::invGroups::Wreck;
+		wreckEntity.itemID = wreckItemRef->itemID();
+		wreckEntity.itemName = wreck_name;
+		wreckEntity.locationID = GetLocationID();
+		wreckEntity.ownerID = 1;
+		wreckEntity.typeID = wreckTypeID;
+		wreckEntity.x = deadShipPosition.x;
+		wreckEntity.y = deadShipPosition.y;
+		wreckEntity.z = deadShipPosition.z;
+
+		// Actually do the spawn using SystemManager's BuildEntity:
+		if( !(System()->BuildDynamicEntity( this, wreckEntity )) )
+		{
+			sLog.Error("Client::Killed()", "Spawning Wreck Failed: typeID or typeName not supported: '%u'", wreckTypeID);
+			throw PyException( MakeCustomError ( "Spawning Wreck Failed: typeID or typeName not supported." ) );
+			return;
+		}
+
+		//TODO: award status changes. (entitySecurityStatusKillBonus)
+		if( client != NULL )
+			client->GetChar()->addSecurityRating( m_self->GetAttribute(AttrEntitySecurityStatusKillBonus).get_float() );
 
 		// TODO: Place random selection of modules/charges/cargo/drones into container of wreck
     }
@@ -838,12 +1008,58 @@ void NPC::Killed(Damage &fatal_blow)
         if( client != NULL )
         {
             killer = static_cast<SystemEntity*>(client);
+			client = NULL;
         }
     }
     else
     {
         client = killer->CastToClient();
     }
+
+	GPoint deadNPCPosition = this->Destiny()->GetPosition();
+	uint32 wreckTypeID = sDGM_Types_to_Wrecks_Table.GetWreckID(this->Item()->typeID());
+	this->AI()->ClearAllTargets();
+	this->Bubble()->Remove(this, true);
+
+	// TODO: Spawn a wreck matching the ship we lost
+	InventoryItemRef wreckItemRef;
+	ItemData wreckItemData(
+		wreckTypeID,
+		client->GetCharacterID(),
+		GetLocationID(),
+		flagAutoFit,
+		this->Item()->itemName().c_str(),
+		deadNPCPosition
+	);
+
+	wreckItemRef = System()->GetServiceMgr()->item_factory.SpawnItem( wreckItemData );
+	if( !wreckItemRef )
+		throw PyException( MakeCustomError( "Unable to spawn item of type %u.", wreckTypeID ) );
+
+	DBSystemDynamicEntity wreckEntity;
+
+	wreckEntity.allianceID = 0;
+	wreckEntity.categoryID = EVEDB::invCategories::Celestial;
+	wreckEntity.corporationID = 0;
+	wreckEntity.flag = 0;
+	wreckEntity.groupID = EVEDB::invGroups::Wreck;
+	wreckEntity.itemID = wreckItemRef->itemID();
+	wreckEntity.itemName = this->Item()->itemName();
+	wreckEntity.locationID = GetLocationID();
+	wreckEntity.ownerID = 1;
+	wreckEntity.typeID = wreckTypeID;
+	wreckEntity.x = deadNPCPosition.x;
+	wreckEntity.y = deadNPCPosition.y;
+	wreckEntity.z = deadNPCPosition.z;
+
+	// Actually do the spawn using SystemManager's BuildEntity:
+	if( !(System()->BuildDynamicEntity( NULL, wreckEntity )) )
+	{
+		sLog.Error("NPC::Killed()", "Spawning Wreck Failed: typeID or typeName not supported: '%u'", wreckTypeID);
+		throw PyException( MakeCustomError ( "Spawning Wreck Failed: typeID or typeName not supported." ) );
+		return;
+	}
+
     //TODO: drop loot.
     //_DropLoot(fatal_blow.source);
     _DropLoot(killer);
@@ -853,7 +1069,8 @@ void NPC::Killed(Damage &fatal_blow)
     _AwardBounty(killer);
 
     //TODO: award status changes. (entitySecurityStatusKillBonus)
-    client->GetChar()->addSecurityRating( m_self->GetAttribute(AttrEntitySecurityStatusKillBonus).get_float() );
+	if( client != NULL )
+		client->GetChar()->addSecurityRating( m_self->GetAttribute(AttrEntitySecurityStatusKillBonus).get_float() );
 
     //notify our spawner that we are gone.
     if(m_spawner != NULL) {
@@ -873,6 +1090,7 @@ void NPC::_DropLoot(SystemEntity *owner) {
     //maxLootCount
     //minLootValue
     //maxLootValue
+	sLog.Warning("NPC::_DropLoot", "TODO: This function has NO code in it to create a loot drop for an NPC kill!");
 
     // Send an OnSpecialFX (9) for effects.Jettison (with can's ID, not npc)
 }
@@ -927,6 +1145,7 @@ void ShipEntity::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("ShipEntity::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void ShipEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
@@ -954,18 +1173,63 @@ void ShipEntity::Killed(Damage &fatal_blow)
         if( client != NULL )
         {
             killer = static_cast<SystemEntity*>(client);
+			client = NULL;
         }
     }
     else
     {
         client = killer->CastToClient();
     }
+
+	// Spawn a wreck for the Ship that was destroyed:
+	uint32 wreckTypeID = sDGM_Types_to_Wrecks_Table.GetWreckID(this->Item()->typeID());
+	std::string wreck_name = this->Item()->itemName();
+	GPoint wreckPosition = this->Destiny()->GetPosition();
+	InventoryItemRef wreckItemRef;
+	ItemData wreckItemData(
+		wreckTypeID,
+		1,						// Assign this wreck to be owned by the EVE system
+		GetLocationID(),
+		flagAutoFit,
+		wreck_name.c_str(),
+		wreckPosition
+	);
+
+	wreckItemRef = System()->GetServiceMgr()->item_factory.SpawnItem( wreckItemData );
+	if( !wreckItemRef )
+		throw PyException( MakeCustomError( "Unable to spawn item of type %u.", wreckTypeID ) );
+
+	DBSystemDynamicEntity wreckEntity;
+
+	wreckEntity.allianceID = 0;
+	wreckEntity.categoryID = EVEDB::invCategories::Celestial;
+	wreckEntity.corporationID = 0;
+	wreckEntity.flag = 0;
+	wreckEntity.groupID = EVEDB::invGroups::Wreck;
+	wreckEntity.itemID = wreckItemRef->itemID();
+	wreckEntity.itemName = wreck_name;
+	wreckEntity.locationID = GetLocationID();
+	wreckEntity.ownerID = 1;
+	wreckEntity.typeID = wreckTypeID;
+	wreckEntity.x = wreckPosition.x;
+	wreckEntity.y = wreckPosition.y;
+	wreckEntity.z = wreckPosition.z;
+
+	// Actually do the spawn using SystemManager's BuildEntity:
+	if( !(System()->BuildDynamicEntity( NULL, wreckEntity )) )		// WARNING! Passing NULL for a client object (this is ok since BuildDynamicEntity() does not use the first argument
+	{
+		sLog.Error("ShipEntity::Killed()", "Spawning Wreck Failed: typeID or typeName not supported: '%u'", wreckTypeID);
+		throw PyException( MakeCustomError ( "Spawning Wreck Failed: typeID or typeName not supported." ) );
+		return;
+	}
+
     //TODO: drop loot.
     //_DropLoot(fatal_blow.source);
     _DropLoot(killer);
 
     //TODO: award status changes. (entitySecurityStatusKillBonus)
-    client->GetChar()->addSecurityRating( m_self->GetAttribute(AttrEntitySecurityStatusKillBonus).get_float() );
+	if( client != NULL )
+		client->GetChar()->addSecurityRating( m_self->GetAttribute(AttrEntitySecurityStatusKillBonus).get_float() );
 
     m_system->RemoveEntity(this);
 }
@@ -980,6 +1244,7 @@ void ShipEntity::_DropLoot(SystemEntity *owner) {
     //maxLootCount
     //minLootValue
     //maxLootValue
+	sLog.Warning("NPC::_DropLoot", "TODO: This function has NO code in it to create a loot drop for an NPC kill!");
 
     // Send an OnSpecialFX (9) for effects.Jettison (with can's ID, not npc)
 }
@@ -994,6 +1259,7 @@ void DroneEntity::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("Drone::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void DroneEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
@@ -1044,6 +1310,7 @@ void StructureEntity::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("StructureEntity::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void StructureEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
@@ -1094,6 +1361,7 @@ void ContainerEntity::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("ContainerEntity::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void ContainerEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
@@ -1144,6 +1412,7 @@ void DeployableEntity::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("DeployableEntity::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void DeployableEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
@@ -1225,6 +1494,7 @@ void CelestialEntity::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("CelestialEntity::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void CelestialEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)
@@ -1275,6 +1545,7 @@ void StationEntity::_ReduceDamage(Damage &d) {
     // shieldExplosiveDamageResonance
     // shieldKineticDamageResonance
     // shieldThermalDamageResonance
+	sLog.Warning("StationEntity::_ReduceDamage", "TODO: This function has NO code in it to reduce damage dealt by another entity!");
 }
 
 void StationEntity::ApplyDamageModifiers(Damage &d, SystemEntity *target)

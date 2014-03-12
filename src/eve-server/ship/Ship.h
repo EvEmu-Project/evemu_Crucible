@@ -31,6 +31,7 @@
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
+#include "ship/Modules/Modules.h"
 
 class ShipOperatorInterface;
 
@@ -218,10 +219,12 @@ public:
     void SaveShip();
 
     /* begin new module manager interface */
+	InventoryItemRef GetModule(EVEItemFlags flag);
+	InventoryItemRef GetModule(uint32 itemID);
     uint32 FindAvailableModuleSlot( InventoryItemRef item );
     EvilNumber GetMaxTurrentHardpoints() { return GetAttribute(AttrTurretSlotsLeft); }
     EvilNumber GetMaxLauncherHardpoints() { return GetAttribute(AttrLauncherSlotsLeft); }
-    void AddItem( EVEItemFlags flag, InventoryItemRef item);
+    uint32 AddItem( EVEItemFlags flag, InventoryItemRef item);
     void RemoveItem( InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag );
     void UpdateModules();
     void UnloadModule(uint32 itemID);

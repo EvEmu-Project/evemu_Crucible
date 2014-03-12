@@ -1238,7 +1238,7 @@ PyResult DestinyManager::AttemptDockOperation()
     Stop(false);
 
     // When docking, Set X,Y,Z to origin so that when changing ships in stations, they don't appear outside:
-    who->MoveToLocation( stationID, GPoint(0, 0, 0) );
+	who->MoveToLocation( stationID, stationDockPoint );		// if stationDockPoint does not help, try m_position
 
     who->SetPendingDockOperation( false );
 
@@ -1286,6 +1286,9 @@ PyResult DestinyManager::AttemptDockOperation()
     // Save all Character, Ship, Module data to Database on dock:
     if( who->IsClient() )
         who->CastToClient()->SaveAllToDatabase();
+
+	// Finally, remove ship from current bubble and system manager:
+	//who->System()->RemoveClient(who);
 
     // Docking was accepted, so send the OnDockingAccepted packet:
     // Packet::Notification
@@ -1729,10 +1732,11 @@ void DestinyManager::SendUncloakShip() const {
     SendDestinyUpdate(updates, false);
 }
 
-void DestinyManager::SendSpecialEffect(const ShipRef shipRef, std::string effectString, uint32 moduleID, uint32 moduleTypeID,
-    uint32 targetID, uint32 chargeID, bool isOffensive, bool isActive, double duration) const
+void DestinyManager::SendSpecialEffect(const ShipRef shipRef, uint32 moduleID, uint32 moduleTypeID,
+    uint32 targetID, uint32 chargeID, std::string effectString, bool isOffensive, bool isActive, double duration, uint32 repeat) const
 {
     std::vector<PyTuple *> updates;
+	std::vector<int32, std::allocator<int32> > area;
 
     DoDestiny_OnSpecialFX13 effect;
     effect.entityID = shipRef->itemID();
@@ -1740,14 +1744,14 @@ void DestinyManager::SendSpecialEffect(const ShipRef shipRef, std::string effect
     effect.moduleTypeID = moduleTypeID;
     effect.targetID = targetID;
     effect.otherTypeID = chargeID;
-    //effect.area = ;
+    effect.area = area;
     effect.effect_type = effectString;
     effect.isOffensive = (isOffensive) ? 1 : 0;
     effect.start = 1;
     effect.active = (isActive) ? 1 : 0;
     effect.duration_ms = duration;
-    effect.repeat = Win32TimeNow() + ((duration * Win32Time_Second) / 1000);
-    effect.startTime = 0;
+    effect.repeat = (repeat ? 50000 : 0);
+    effect.startTime = Win32TimeNow() + ((duration * Win32Time_Second) / 1000);
     updates.push_back(effect.Encode());
 
     SendDestinyUpdate(updates, false);

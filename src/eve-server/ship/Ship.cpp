@@ -294,13 +294,13 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
     else if( flag == flagCargoHold )
     {
         //get all items in cargohold
-        EvilNumber capacityUsed(0);
+        EvilNumber capacityUsed(0.0);
         std::vector<InventoryItemRef> items;
         m_pOperator->GetShip()->FindByFlag(flag, items);        // Operator assumed to be Client *
         for(uint32 i = 0; i < items.size(); i++){
-            capacityUsed += items[i]->GetAttribute(AttrVolume);
+			capacityUsed += (items[i]->GetAttribute(AttrVolume) * items[i]->quantity());
         }
-        if( capacityUsed + item->GetAttribute(AttrVolume) > m_pOperator->GetShip()->GetAttribute(AttrCapacity) )    // Operator assumed to be Client *
+		if( capacityUsed + (item->GetAttribute(AttrVolume) * item->quantity()) > m_pOperator->GetShip()->GetAttribute(AttrCapacity) )    // Operator assumed to be Client *
             throw PyException( MakeCustomError( "Not enough cargo space!") );
     }
     else if( (flag >= flagLowSlot0)  &&  (flag <= flagHiSlot7) )
@@ -310,16 +310,27 @@ void Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
                 throw PyException( MakeCustomError( "You do not have the required skills to fit this \n%s", item->itemName().c_str() ) );
         if(!ValidateItemSpecifics(item))
             throw PyException( MakeCustomError( "Your ship cannot equip this module" ) );
-        if( m_ModuleManager->IsSlotOccupied(flag) )
-            throw PyException( MakeUserError( "SlotAlreadyOccupied" ) );
-        if(item->categoryID() == EVEDB::invCategories::Charge) {
-            InventoryItemRef module;
-            m_pOperator->GetShip()->FindSingleByFlag(flag, module);     // Operator assumed to be Client *
-            if(module->GetAttribute(AttrChargeSize) != item->GetAttribute(AttrChargeSize) )
-                throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
-            if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
-                throw PyException( MakeCustomError( "Incorrect charge type for this module.") );
+        if(item->categoryID() == EVEDB::invCategories::Charge)
+		{
+			if( m_ModuleManager->GetModule(flag) != NULL )
+			{
+				InventoryItemRef module;
+				module = m_ModuleManager->GetModule(flag)->getItem();
+				if(module->GetAttribute(AttrChargeSize) != item->GetAttribute(AttrChargeSize) )
+					throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
+				if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
+					throw PyException( MakeCustomError( "Incorrect charge type for this module.") );
+				
+				// NOTE: Module Manager will check for actual room to load charges and make stack splits, or reject loading altogether
+			}
+			else
+				throw PyException( MakeCustomError( "Module at flag '%u' does not exist!", flag ) );
         }
+		else
+		{
+			if( m_ModuleManager->IsSlotOccupied(flag) )
+				throw PyException( MakeUserError( "SlotAlreadyOccupied" ) );
+		}
     }
     else if( (flag >= flagRigSlot0)  &&  (flag <= flagRigSlot7) )
     {
@@ -589,6 +600,22 @@ bool Ship::ValidateItemSpecifics(InventoryItemRef equip) {
 }
 
 /* Begin new Module Manager Interface */
+InventoryItemRef Ship::GetModule(EVEItemFlags flag)
+{
+	if( m_ModuleManager->GetModule(flag) != NULL )
+		return (m_ModuleManager->GetModule(flag))->getItem();
+	else
+		return InventoryItemRef();
+}
+
+InventoryItemRef Ship::GetModule(uint32 itemID)
+{
+	if( m_ModuleManager->GetModule(itemID) != NULL )
+		return (m_ModuleManager->GetModule(itemID))->getItem();
+	else
+		return InventoryItemRef();
+}
+
 uint32 Ship::FindAvailableModuleSlot( InventoryItemRef item )
 {
 	uint32 slotFound = flagIllegal;
@@ -627,30 +654,57 @@ uint32 Ship::FindAvailableModuleSlot( InventoryItemRef item )
     return slotFound;
 }
 
-void Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)
+uint32 Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)
 {
-
     ValidateAddItem( flag, item );
 
     //it's a new module, make sure it's state starts at offline so that it is added correctly
     if( item->categoryID() != EVEDB::invCategories::Charge )
         item->PutOffline();
 
-    // TODO: Somehow, if this returns FALSE, the item->Move() above has to be "undone"... can we do the move AFTER attempting to fit?
-    // what if we pass the flag into FitModule().... then if it returns true, the item->Move() can be called
-    if( m_ModuleManager->FitModule(item, flag) )
-        item->Move(m_pOperator->GetLocationID(), flag);  //TODO - check this
+	switch( item->categoryID() )
+	{
+		case EVEDB::invCategories::Charge:
+			{
+				m_ModuleManager->LoadCharge(item, flag);
+				InventoryItemRef loadedChargeOnModule = m_ModuleManager->GetLoadedChargeOnModule(flag);
+				if( loadedChargeOnModule != NULL )
+				{
+					return loadedChargeOnModule->itemID();
+				}
+				else
+					return 0;
+			}
+			break;
+
+		case EVEDB::invCategories::Module:
+			if( m_ModuleManager->FitModule(item, flag) )
+				item->Move(itemID(), flag);
+			break;
+
+		default:
+			sLog.Error( "Ship::AddItem(flag,item)", "ERROR! Function called with item '%s' (id: %u) of category neither Charge nor Module!", item->itemName().c_str(), item->itemID() );
+	}
+
+	return 0;
 }
 
 void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags flag)
 {
     //coming from ship, we need to deactivate it and remove mass if it isn't a charge
-    if( item->categoryID() != EVEDB::invCategories::Charge ) {
+    if( item->categoryID() != EVEDB::invCategories::Charge )
+	{
         m_pOperator->GetShip()->Deactivate( item->itemID(), "online" );
         // m_pOperator->GetShip()->Set_mass( m_pOperator->GetShip()->mass() - item->massAddition() );
         //m_pOperator->GetShip()->SetAttribute(AttrMass,  m_pOperator->GetShip()->GetAttribute(AttrMass) - item->GetAttribute(AttrMassAddition) );
         m_pOperator->GetShip()->UnloadModule( item->itemID() );
     }
+
+	// if item being removed IS a charge, it needs to be removed via Module Manager so modules know charge is removed
+	if( item->categoryID() == EVEDB::invCategories::Charge )
+	{
+		m_ModuleManager->UnloadCharge(item->flag());
+	}
 
     //Move New item to its new location
     m_pOperator->MoveItem(item->itemID(), inventoryID, flag);
@@ -658,7 +712,13 @@ void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags fl
 
 void Ship::UpdateModules()
 {
+	// List of callees to put this function into context as to what it should be doing:
+	// Client::BoardShip()				- put modules online that are recorded with attributeID 2 as being online / skill check all modules and if any fail, keep those OFFLINE
+	// InventoryBound::_ExecAdd()		- things have been added or removed, recheck all modules for... some reason
+	// Client::MoveItem()				- something has been moved into or out of the ship, recheck all modules for... some reason
 
+	sLog.Error( "Ship::UpdateModules()", "We are currently not checking for modules that need to go online, or skill checking character for any modules of a newly boarded ship, or updating module states based on things being moved into or off the ship!" );
+	sLog.Error( "Ship::UpdateModules()", "This should really be a simple call to a function ModuleManager::UpdateModules() and the code put inside there." );
 }
 
 void Ship::UnloadModule(uint32 itemID)
