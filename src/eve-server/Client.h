@@ -113,6 +113,7 @@ public:
     uint32 GetSystemID() const                      { return mSession.GetCurrentInt( "solarsystemid2" ); }
     uint32 GetConstellationID() const               { return mSession.GetCurrentInt( "constellationid" ); }
     uint32 GetRegionID() const                      { return mSession.GetCurrentInt( "regionid" ); }
+	uint32 GetCloneLocationID() const				{ return mSession.GetCurrentInt( "cloneLocationID" ); }
 
     uint32 GetCorpHQ() const                        { return mSession.GetCurrentInt( "hqID" ); }
     uint64 GetCorpRole() const                      { return mSession.GetCurrentLong( "corprole" ); }

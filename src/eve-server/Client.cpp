@@ -81,9 +81,13 @@ Client::~Client() {
 
         // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
-        GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
-        GetChar()->SaveFullCharacter();                     // Save Character info to DB
-        GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
+		if( GetShip() != NULL )
+			GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
+		if( GetChar() != NULL )
+		{
+	        GetChar()->SaveFullCharacter();                     // Save Character info to DB
+			GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
+		}
 
         // remove ourselves from system
         if(m_system != NULL)
@@ -388,7 +392,9 @@ bool Client::UpdateLocation() {
         m_destiny = NULL;
 
         //remove ourselves from any bubble
-        m_system->bubbles.Remove(this, false);
+        //m_system->bubbles.Remove(this, false);
+		m_system->RemoveClient(this);
+		m_system = NULL;
 
         OnCharNowInStation();
     } else if(IsSolarSystem(GetLocationID())) {
@@ -648,8 +654,9 @@ void Client::_UpdateSession2( uint32 characterID )
 
         mSession.SetInt( "stationid", stationID );
         mSession.SetInt( "stationid2", stationID );
-        mSession.SetInt( "locationid", locationID );
+        mSession.SetInt( "locationid", stationID );		// used to be locationID, I don't know if this change will screw up using medical clones and such -- Aknor Jaden
     }
+	mSession.SetInt( "cloneLocationID", locationID );	// This is a CUSTOM key-value-pair that is NOT defined by CCP, so the question is, will this mess up the client?
     mSession.SetInt( "solarsystemid2", solarSystemID );
     mSession.SetInt( "constellationid", constellationID );
     mSession.SetInt( "regionid", regionID );
