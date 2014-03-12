@@ -282,6 +282,15 @@ void SystemBubble::clear() {
     m_dynamicEntities.clear();
 }
 
+SystemEntity * const SystemBubble::GetEntity(uint32 entityID) const
+{
+	std::map<uint32, SystemEntity *>::const_iterator entity_iterator = m_entities.find(entityID);
+	if( entity_iterator != m_entities.end() )
+		return (entity_iterator->second);
+	else
+		return NULL;
+}
+
 void SystemBubble::GetEntities(std::set<SystemEntity *> &into) const {
     std::map<uint32, SystemEntity *>::const_iterator cur, end;
     cur = m_entities.begin();

@@ -29,6 +29,7 @@
 #include "PyCallable.h"
 #include "destiny/DestinyStructs.h"
 #include "inventory/ItemRef.h"
+#include "system/SystemEntity.h"
 
 class SystemEntity;
 class SystemManager;
@@ -80,6 +81,7 @@ public:
     const GVector &GetVelocity() const { return(m_velocity); }
     double GetSpeedFraction() { return(m_activeSpeedFraction); }
 	SystemManager * const GetSystemManager() { return m_system; }
+	SystemBubble * const GetCurrentBubble() { return m_self->Bubble(); }
 
     //called whenever an entity is going away and can no longer be used as a target
     void EntityRemoved(SystemEntity *who);
@@ -133,8 +135,8 @@ public:
     void SendAnchorLift(const InventoryItemRef itemRef) const;
     void SendCloakShip(const bool IsWarpSafe) const;
     void SendUncloakShip() const;
-    void SendSpecialEffect(const ShipRef shipRef, std::string effectString, uint32 moduleID, uint32 moduleTypeID,
-        uint32 targetID, uint32 chargeID, bool isOffensive, bool isActive, double duration) const;
+    void SendSpecialEffect(const ShipRef shipRef, uint32 moduleID, uint32 moduleTypeID,
+    uint32 targetID, uint32 chargeID, std::string effectString, bool isOffensive, bool isActive, double duration, uint32 repeat) const;
 
 protected:
     void ProcessTic();

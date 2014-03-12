@@ -51,6 +51,7 @@ public:
     void RemoveExclusive(SystemEntity *ent, bool notify=true);
     void clear();
     bool IsEmpty() const { return(m_entities.empty()); }
+	SystemEntity * const GetEntity(uint32 entityID) const;
     void GetEntities(std::set<SystemEntity *> &into) const;
     uint32 GetBubbleID() { return m_bubbleID; };
 
