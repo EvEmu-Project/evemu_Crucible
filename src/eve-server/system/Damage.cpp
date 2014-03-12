@@ -813,11 +813,13 @@ void Client::Killed(Damage &fatal_blow) {
 
 	    capsuleRef->Move(GetLocationID(), (EVEItemFlags)flagHangar, true);
 
-	    ShipRef updatedCapsuleRef = services().item_factory.GetShip( capsuleRef->itemID() );
+	    ShipRef updatedCapsuleRef = m_services.item_factory.GetShip( capsuleRef->itemID() );
 
 		System()->bubbles.Remove( this, true );
 
         BoardShip(updatedCapsuleRef);
+
+		targets.ClearAllTargets();
 
 		//TODO: spawn a corpsed named for this client's character
 		uint32 corpseTypeID = 10041;	// typeID from 'invTypes' table for "Frozen Corpse"
@@ -831,7 +833,7 @@ void Client::Killed(Damage &fatal_blow) {
 			deadPodPosition
 		);
 
-		corpseItemRef = System()->GetServiceMgr()->item_factory.SpawnItem( corpseItemData );
+		corpseItemRef = m_services.item_factory.SpawnItem( corpseItemData );
 		if( !corpseItemRef )
 			throw PyException( MakeCustomError( "Unable to spawn item of type %u.", corpseTypeID ) );
 
@@ -867,7 +869,9 @@ void Client::Killed(Damage &fatal_blow) {
 
         //TODO: send them back to their clone.
         m_system->RemoveClient(this);
-    }
+		MoveToLocation( GetCloneLocationID(), capsulePosition );
+		capsuleRef->Move( GetCloneLocationID(), flagHangar, true );
+	}
 	else
 	{
         //our ship has been destroyed. Off to our capsule.
@@ -914,7 +918,7 @@ void Client::Killed(Damage &fatal_blow) {
         //put the capsule where the ship was
 	    capsuleRef->Move(GetLocationID(), (EVEItemFlags)flagCapsule, true);
 
-	    ShipRef updatedCapsuleRef = services().item_factory.GetShip( capsuleRef->itemID() );
+	    ShipRef updatedCapsuleRef = m_services.item_factory.GetShip( capsuleRef->itemID() );
 
 		System()->bubbles.Remove( this, true );
 
@@ -958,7 +962,7 @@ void Client::Killed(Damage &fatal_blow) {
 			deadShipPosition
 		);
 
-		wreckItemRef = System()->GetServiceMgr()->item_factory.SpawnItem( wreckItemData );
+		wreckItemRef = m_services.item_factory.SpawnItem( wreckItemData );
 		if( !wreckItemRef )
 			throw PyException( MakeCustomError( "Unable to spawn item of type %u.", wreckTypeID ) );
 
