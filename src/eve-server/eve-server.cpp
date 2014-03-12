@@ -125,6 +125,7 @@
 #include "system/DungeonService.h"
 #include "system/KeeperService.h"
 #include "system/ScenarioService.h"
+#include "system/WrecksAndLoot.h"
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );
@@ -346,6 +347,8 @@ int main( int argc, char* argv[] )
 	sDGM_Skill_Bonus_Modifiers_Table.Initialize();
 	//sLog.Log("server init", "---> sDGM_Ship_Bonus_Modifiers_Table: Loading...");
 	//sDGM_Ship_Bonus_Modifiers_Table.Initialize();
+	sLog.Log("server init", "---> sDGM_Types_to_Wrecks_Table: Loading...");
+	sDGM_Types_to_Wrecks_Table.Initialize();
 
     sLog.Log("server init", "Init done.");
 
