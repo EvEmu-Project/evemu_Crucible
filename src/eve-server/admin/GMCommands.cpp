@@ -36,6 +36,7 @@
 #include "manufacturing/Blueprint.h"
 #include "ship/DestinyManager.h"
 #include "ship/Drone.h"
+#include "system/Damage.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
 
@@ -1229,6 +1230,7 @@ PyResult Command_heal( Client* who, CommandDB* db, PyServiceMgr* services, const
         who->GetShip()->SetAttribute(AttrDamage, 0);
         EvilNumber shield_charge = who->GetShip()->GetAttribute(AttrShieldCapacity);
         who->GetShip()->SetAttribute(AttrShieldCharge, shield_charge);
+		who->GetShip()->SetAttribute(AttrCharge, who->GetShip()->GetAttribute(AttrCapacitorCapacity) );
     }
     if( args.argCount() == 2 )
     {
@@ -1503,20 +1505,21 @@ PyResult Command_kill( Client* who, CommandDB* db, PyServiceMgr* services, const
 		{
 			if(shipEntity->IsNPC())
 			{
-				//sLog.Warning("GMCommands - Command_kill()", "command unavailable for killing NPC type entities at this time - see code for more information - GMCommands.cpp");
 				NPC * npcEntity = shipEntity->CastToNPC();
-				npcEntity->AI()->ClearAllTargets();
-				npcEntity->Destiny()->SendTerminalExplosion();
-				npcEntity->Bubble()->Remove(npcEntity, true);
-				npcEntity->System()->RemoveEntity(npcEntity);
-				//npcEntity->Item()->Delete();
+				//npcEntity->AI()->ClearAllTargets();
+				//npcEntity->Destiny()->SendTerminalExplosion();
+				//npcEntity->Bubble()->Remove(npcEntity, true);
+				//npcEntity->System()->RemoveEntity(npcEntity);
+				Damage fatal_blow((static_cast<SystemEntity*>(who)),true);
+				npcEntity->Killed(fatal_blow);
 				delete npcEntity;
-				//shipEntity->Killed(<fill with an instance of Damage class populated with appropriate information>);
 			}
 			else
 			{
-				shipEntity->Destiny()->SendTerminalExplosion();
-				shipEntity->Bubble()->Remove(shipEntity, true);
+				//shipEntity->Destiny()->SendTerminalExplosion();
+				//shipEntity->Bubble()->Remove(shipEntity, true);
+				Damage fatal_blow((static_cast<SystemEntity*>(who)),true);
+				shipEntity->Killed(fatal_blow);
 				itemRef->Delete();
 			}
 		}
@@ -1541,11 +1544,12 @@ PyResult Command_killallnpcs( Client* who, CommandDB* db, PyServiceMgr* services
 			{
 				//shipEntity->Killed(<fill with an instance of Damage class populated with appropriate information>);
 				NPC * npcEntity = (*cur)->CastToNPC();
-				npcEntity->AI()->ClearAllTargets();
-				npcEntity->Destiny()->SendTerminalExplosion();
-				npcEntity->Bubble()->Remove(npcEntity, true);
-				npcEntity->System()->RemoveEntity(npcEntity);
-				//npcEntity->Item()->Delete();
+				//npcEntity->AI()->ClearAllTargets();
+				//npcEntity->Destiny()->SendTerminalExplosion();
+				//npcEntity->Bubble()->Remove(npcEntity, true);
+				//npcEntity->System()->RemoveEntity(npcEntity);
+				Damage fatal_blow((static_cast<SystemEntity*>(who)),true);
+				npcEntity->Killed(fatal_blow);
 				delete npcEntity;
 			}
 		}
