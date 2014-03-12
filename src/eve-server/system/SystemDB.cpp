@@ -121,6 +121,19 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
     return true;
 }
 
+bool SystemDB::GetWrecksToTypes(DBQueryResult &res)
+{
+    if(!sDatabase.RunQuery(res,
+        "SELECT "
+        " *"
+        " FROM invTypesToWrecks "))
+    {
+		sLog.Error("SystemDB::GetWrecksToTypes()", "Error in query: %s", res.error.c_str());
+        return false;
+    }
+
+	return true;
+}
 
 PyObject *SystemDB::ListFactions() {
     DBQueryResult res;
