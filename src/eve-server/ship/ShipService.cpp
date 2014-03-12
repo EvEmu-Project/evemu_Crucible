@@ -1135,6 +1135,7 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call)
 
     newShip = args.arg1;
 
+	ShipRef oldShipRef = call.client->GetShip();
     ShipRef newShipRef = call.client->services().item_factory.GetShip(newShip);
 
 	if(call.client->IsInSpace())
@@ -1144,6 +1145,10 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call)
 
 	if(call.client->IsInSpace())
 	    call.client->System()->bubbles.Add(call.client, true);
+
+	// Now that we're in our new ship, if the old ship was a capsule, it's gone, so let's delete it:
+	if( oldShipRef->groupID() == EVEDB::invGroups::Capsule )
+		oldShipRef->Delete();
 
     PyTuple* rsp = new PyTuple(3);
     rsp->SetItem(0, new PyDict);
