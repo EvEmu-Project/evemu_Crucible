@@ -41,13 +41,14 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
     DBQueryResult res;
     DBResultRow row;
 
+	//first we check to see if there is such ids in the entity tables
     if(!sDatabase.RunQuery(res,
         "SELECT "
         " entity.itemID as ownerID,"
         " entity.itemName as ownerName,"
         " entity.typeID,"
-        " NULL as ownerNameID,"
-        " 0 as gender"
+		" 1 as gender,"
+        " NULL as ownerNameID"
         " FROM entity "
         " WHERE itemID in (%s)", ids.c_str()))
     {
@@ -57,13 +58,15 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
 
     //this is pretty hackish... will NOT work if they mix things...
     //this was only put in to deal with "new" statics, like corporations.
+
+	//second: we check to see if the id points to a static entity (Agents, NPC Corps, etc.)
     if(!res.GetRow(row)) {
         if(!sDatabase.RunQuery(res,
             "SELECT "
             " ownerID,ownerName,typeID,"
-            " NULL as ownerNameID,"
-            " 0 as gender"
-            " FROM eveStaticOwners "
+			" 1 as gender,"
+            " NULL as ownerNameID"
+            " FROM evestaticowners "
             " WHERE ownerID in (%s)", ids.c_str()))
         {
             codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
@@ -73,14 +76,15 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         res.Reset();
     }
 
+	//third: we check to see it the id points to a player's character
     if(!res.GetRow(row)) {
         if(!sDatabase.RunQuery(res,
             "SELECT "
             " characterID as ownerID,"
             " itemName as ownerName,"
             " typeID,"
-            " NULL as ownerNameID,"
-            " 0 as gender"
+			" 1 as gender,"
+            " NULL as ownerNameID"
             " FROM character_ "
             " LEFT JOIN entity ON characterID = itemID"
             " WHERE characterID in (%s)", ids.c_str()))
