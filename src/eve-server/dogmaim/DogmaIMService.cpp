@@ -29,7 +29,7 @@
 #include "PyServiceCD.h"
 #include "cache/ObjCacheService.h"
 #include "dogmaim/DogmaIMService.h"
-#include "ship/Modules/Modules.h"
+#include "ship/modules/Modules.h"
 #include "system/SystemManager.h"
 
 class DogmaIMBound
