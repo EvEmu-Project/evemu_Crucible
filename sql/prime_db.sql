@@ -53,12 +53,42 @@ TRUNCATE TABLE srvStatus;
  */
 INSERT INTO character_
  SELECT
-  characterID, accountID, title, description, bounty, balance, 0 AS aurBalance, securityRating, petitionMessage, logonMinutes, 0 AS skillPoints, 0 AS skillQueueEndTime,
-  corporationID, 0 AS corpRole, 0 AS rolesAtAll, 0 AS rolesAtBase, 0 AS rolesAtHQ, 0 AS rolesAtOther,
-  corporationDateTime, startDateTime, createDateTime,
-  ancestryID, careerID, schoolID, careerSpecialityID, gender,
-  stationID, solarSystemID, constellationID, regionID,
-  0 AS online, 2 AS freeRespecs, 0 AS lastRespecDateTime, 0 AS nextRespecDateTime, 0 AS deletePrepareDateTime, 0 AS shipID
+  characterID, 
+  accountID, 
+  title, 
+  description, 
+  bounty, 
+  balance,
+  0 AS aurBalance, 
+  securityRating, 
+  petitionMessage, 
+  logonMinutes, 
+  0 AS skillPoints, 
+  0 AS skillQueueEndTime,
+  corporationID, 
+  0 AS corpRole, 
+  0 AS rolesAtAll, 
+  0 AS rolesAtBase, 
+  0 AS rolesAtHQ, 
+  0 AS rolesAtOther,
+  corporationDateTime, 
+  startDateTime, 
+  createDateTime,
+  ancestryID, 
+  careerID, 
+  schoolID, 
+  careerSpecialityID, 
+  gender,
+  stationID, 
+  solarSystemID, 
+  constellationID, 
+  regionID,
+  0 AS online, 
+  2 AS freeRespecs, 
+  0 AS lastRespecDateTime, 
+  0 AS nextRespecDateTime, 
+  0 AS deletePrepareDateTime, 
+  0 AS shipID
  FROM characterStatic;
 
 /*
@@ -133,5 +163,5 @@ INSERT INTO eveStaticOwners (ownerID, ownerName, typeID)
 /*
  * Set the auto-increment lower bound for other critical tables
  */
-ALTER TABLE account AUTO_INCREMENT=1
+ALTER TABLE account AUTO_INCREMENT=1;
 ALTER TABLE accountApi AUTO_INCREMENT=1000000;
