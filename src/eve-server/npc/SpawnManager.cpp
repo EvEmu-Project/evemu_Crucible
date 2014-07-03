@@ -28,6 +28,7 @@
 #include "PyServiceMgr.h"
 #include "npc/NPC.h"
 #include "npc/SpawnManager.h"
+#include "ship/DestinyManager.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
 #include "system/BubbleManager.h"
@@ -165,6 +166,8 @@ void SpawnEntry::Process(SystemManager &mgr, PyServiceMgr &svc) {
 void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
     _log(SPAWN__POP, "Spawning spawn entry %u with group %u", m_id, m_group.id);
 
+	bool warpThisSpawnIn = false;
+
     //pick our spawn point...
     GPoint spawn_point;
     switch(m_boundsType) {    //safe to assume `bounds` are correct.
@@ -188,6 +191,15 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
 
     std::vector<NPC *> spawned;
 
+	// Save Spawn point as Warp-In Point where NPCs will warp into from their "remote" spawn point off-grid:
+	GPoint warp_in_point = spawn_point;
+	if( warpThisSpawnIn )
+	{
+		spawn_point.x += 100000000;			// Put spawn point actually out away from intended spawn point by 100,000,000 meters in all three dimensions
+		spawn_point.y += 100000000;
+		spawn_point.z += 100000000;
+	}
+
     // Spin through our spawn group of typeIDs and quantities and create all ships/structures in the spawn:
 	m_spawningNow = true;	// Beginning spawning operation, enable internal marker
     std::vector<SpawnGroup::Entry>::const_iterator cur, end;
@@ -205,9 +217,6 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
                 _log(SPAWN__POP, "        [%d] passed proability check of p=%.4f", r, cur->probability);
             }
 
-            //NOTE: this is currently creating an entry in the DB...
-            //which is terrible... we need to make an "in-memory only"
-            // item concept.
             ItemData idata(
                 cur->npcTypeID,
                 cur->ownerID,    //owner
@@ -246,7 +255,9 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
     for(; curn != endn; curn++) {
         _log(SPAWN__POP, "Moving NPC %u to (%.1f, %.1f, %.1f) due to formation.", (*curn)->GetID(), spawn_point.x, spawn_point.y, spawn_point.z);
         (*curn)->ForcedSetPosition(spawn_point);
+        spawn_point.x += 1000.0f;
         spawn_point.y += 1000.0f;
+        spawn_point.z += 1000.0f;
     }
 
 
@@ -265,6 +276,9 @@ void SpawnEntry::_DoSpawn(SystemManager &mgr, PyServiceMgr &svc) {
         m_spawnedIDs.insert((*curn)->GetID());
 
         mgr.AddNPC(*curn);
+
+		if( warpThisSpawnIn )
+			(*curn)->Destiny()->WarpTo(warp_in_point,0.0,true);
     }
 
     //timer is disabled while the spawn is up.
