@@ -90,8 +90,8 @@ public:
         normal = 0,
         corp = 1,
         solarsystem = 2,
-        region = 3,
-        constellation = 4
+        constellation = 4,
+        region = 3
     } Type;
 
     LSCChannel(

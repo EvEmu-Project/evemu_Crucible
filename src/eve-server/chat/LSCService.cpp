@@ -362,14 +362,14 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
         uint32 channelID = *curs;
 
         // Skip joining Help\Rookie and Help\Help channels when the character is no longer a rookie:
-                if( isRookie || !( channelID == 1 || channelID == 2 ) )
+        if( isRookie || !( channelID == 1 || channelID == 2 ) )
         {
             if( m_channels.find( channelID ) == m_channels.end() )
                 channel = CreateChannel( channelID );
             else
                 channel = m_channels[ channelID ];
 
-            if( !channel->IsJoined( charID ) )
+            if( (!channel->IsJoined( charID )) && (channelID != call.client->GetCharacterID()) )
             {
                 ChannelJoinReply chjr;
 
