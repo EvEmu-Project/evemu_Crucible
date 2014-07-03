@@ -373,7 +373,7 @@ PyRep *ConfigDB::GetCelestialStatistic(uint32 celestialID) {
     if (!sDatabase.RunQuery(res,
         " SELECT "
         " groupID "
-        " FROM evenames "
+        " FROM eveNames "
         " WHERE itemID = %u ", celestialID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
