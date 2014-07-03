@@ -215,10 +215,10 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 
     double available_shield = m_self->GetAttribute(AttrShieldCharge).get_float();
     Damage shield_damage = d.MultiplyDup(
-        m_self->GetAttribute(AttrShieldKineticDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldThermalDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldEmDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldExplosiveDamageResonance).get_float()
+        (1.0 - m_self->GetAttribute(AttrShieldKineticDamageResonance).get_float()),
+        (1.0 - m_self->GetAttribute(AttrShieldThermalDamageResonance).get_float()),
+        (1.0 - m_self->GetAttribute(AttrShieldEmDamageResonance).get_float()),
+        (1.0 - m_self->GetAttribute(AttrShieldExplosiveDamageResonance).get_float())
         );
 
 
@@ -235,7 +235,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
 
     // Make a random value to use in msg's and attack multiplier
     random_damage = static_cast<int32>(MakeRandomInt(0, 5));
-    random_damage_mult = (double)(random_damage / 10.0);    // chance from 0 to 50% more damage
+    random_damage_mult = (double)(static_cast<int32>(MakeRandomInt(5, 20)) / 10.0);    // chance from half to double damage
 
     /*
      * Here we calculates the uniformity thing.
@@ -285,10 +285,10 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
         //Armor:
         double available_armor = m_self->GetAttribute(AttrArmorHP).get_float() - m_self->GetAttribute(AttrArmorDamage).get_float();
         Damage armor_damage = d.MultiplyDup(
-            m_self->GetAttribute(AttrArmorKineticDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorThermalDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorEmDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorExplosiveDamageResonance).get_float()
+            (1.0 - m_self->GetAttribute(AttrArmorKineticDamageResonance).get_float()),
+            (1.0 - m_self->GetAttribute(AttrArmorThermalDamageResonance).get_float()),
+            (1.0 - m_self->GetAttribute(AttrArmorEmDamageResonance).get_float()),
+            (1.0 - m_self->GetAttribute(AttrArmorExplosiveDamageResonance).get_float())
         );
         //other:
         //activeEmResistanceBonus
@@ -340,10 +340,10 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
             //The base hp and damage attributes represent structure.
             double available_hull = m_self->GetAttribute(AttrHp).get_float() - m_self->GetAttribute(AttrDamage).get_float();
             Damage hull_damage = d.MultiplyDup(
-                m_self->GetAttribute(AttrHullKineticDamageResonance).get_float(),
-                m_self->GetAttribute(AttrHullThermalDamageResonance).get_float(),
-                m_self->GetAttribute(AttrHullEmDamageResonance).get_float(),
-                m_self->GetAttribute(AttrHullExplosiveDamageResonance).get_float()
+                (1.0 - m_self->GetAttribute(AttrHullKineticDamageResonance).get_float()),
+                (1.0 - m_self->GetAttribute(AttrHullThermalDamageResonance).get_float()),
+                (1.0 - m_self->GetAttribute(AttrHullEmDamageResonance).get_float()),
+                (1.0 - m_self->GetAttribute(AttrHullExplosiveDamageResonance).get_float())
             );
             //other:
             //passiveEmDamageResonanceMultiplier
@@ -409,7 +409,7 @@ bool ItemSystemEntity::ApplyDamage(Damage &d) {
     //NOTE: could send out the RD version of this message instead of the R version, which
     //includes "weapon" and "owner" instead of "source".
     Notify_OnDamageMessage_Self ondam;
-    ondam.messageID = DamageMessageIDs_Other[random_damage];	//DamageMessageIDs_Self[random_damage];
+    ondam.messageID = DamageMessageIDs_Self[random_damage];	//DamageMessageIDs_Self[random_damage];
     ondam.damage = total_damage;
     ondam.source = d.source->GetID();
     ondam.splash = "";
@@ -488,10 +488,10 @@ bool NPC::ApplyDamage(Damage &d) {
     //Shield:
     double available_shield = m_shieldCharge;
     Damage shield_damage = d.MultiplyDup(
-        m_self->GetAttribute(AttrShieldKineticDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldThermalDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldEmDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldExplosiveDamageResonance).get_float()
+        (1.0 - m_self->GetAttribute(AttrShieldKineticDamageResonance).get_float()),
+        (1.0 - m_self->GetAttribute(AttrShieldThermalDamageResonance).get_float()),
+        (1.0 - m_self->GetAttribute(AttrShieldEmDamageResonance).get_float()),
+        (1.0 - m_self->GetAttribute(AttrShieldExplosiveDamageResonance).get_float())
     );
     //other:
     //emDamageResistanceBonus
@@ -523,7 +523,7 @@ bool NPC::ApplyDamage(Damage &d) {
 
     // Make a random value to use in msg's and attack multiplier
     random_damage = static_cast<int32>(MakeRandomInt(0, 5));
-    random_damage_mult = (double)(random_damage / 10.0);
+    random_damage_mult = (double)(static_cast<int32>(MakeRandomInt(5, 20)) / 10.0);    // chance from half to double damage
 
     // Not sure about this, but with this we get some random hits... :)
     //total_shield_damage += total_shield_damage * random_damage_mult;
@@ -536,6 +536,7 @@ bool NPC::ApplyDamage(Damage &d) {
         double new_charge = m_shieldCharge - total_shield_damage;
 
         m_shieldCharge = new_charge;
+        m_self->SetAttribute(AttrShieldCharge, new_charge);
         total_damage += total_shield_damage;
         _log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to shields. New charge: %.1f", GetName(), GetID(), total_shield_damage, new_charge);
     }
@@ -552,15 +553,16 @@ bool NPC::ApplyDamage(Damage &d) {
 
             //set shield to 0, it is fully depleated.
             m_shieldCharge = 0;
+			m_self->SetAttribute(AttrShieldCharge, 0);
         }
 
         //Armor:
         double available_armor = m_self->GetAttribute(AttrArmorHP).get_float() - m_armorDamage;
         Damage armor_damage = d.MultiplyDup(
-            m_self->GetAttribute(AttrArmorKineticDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorThermalDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorEmDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorExplosiveDamageResonance).get_float()
+            (1.0 - m_self->GetAttribute(AttrArmorKineticDamageResonance).get_float()),
+            (1.0 - m_self->GetAttribute(AttrArmorThermalDamageResonance).get_float()),
+            (1.0 - m_self->GetAttribute(AttrArmorEmDamageResonance).get_float()),
+            (1.0 - m_self->GetAttribute(AttrArmorExplosiveDamageResonance).get_float())
         );
         //other:
         //activeEmResistanceBonus
@@ -586,6 +588,7 @@ bool NPC::ApplyDamage(Damage &d) {
             double new_damage = m_armorDamage + total_armor_damage;
             m_armorDamage = new_damage;
 
+            m_self->SetAttribute(AttrArmorDamage, new_damage);
             total_damage += total_armor_damage;
             _log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to armor. New armor damage: %.1f", GetName(), GetID(), total_armor_damage, new_damage);
         }
@@ -603,6 +606,7 @@ bool NPC::ApplyDamage(Damage &d) {
                 _log(ITEM__TRACE, "%s(%u): Armor depleated with %.1f damage. %.1f damage remains.", GetName(), GetID(), available_armor, d.GetTotal());
 
                 //all armor has been penetrated.
+                m_self->SetAttribute(AttrArmorDamage, m_self->GetAttribute(AttrArmorHP));
                 m_armorDamage = m_self->GetAttribute(AttrArmorHP).get_float();
             }
 
@@ -612,10 +616,10 @@ bool NPC::ApplyDamage(Damage &d) {
             //The base hp and damage attributes represent structure.
             double available_hull = m_self->GetAttribute(AttrHp).get_float() - m_hullDamage;
             Damage hull_damage = d.MultiplyDup(
-                m_self->GetAttribute(AttrHullKineticDamageResonance).get_float(),
-                m_self->GetAttribute(AttrHullThermalDamageResonance).get_float(),
-                m_self->GetAttribute(AttrHullEmDamageResonance).get_float(),
-                m_self->GetAttribute(AttrHullExplosiveDamageResonance).get_float()
+                (1.0 - m_self->GetAttribute(AttrHullKineticDamageResonance).get_float()),
+                (1.0 - m_self->GetAttribute(AttrHullThermalDamageResonance).get_float()),
+                (1.0 - m_self->GetAttribute(AttrHullEmDamageResonance).get_float()),
+                (1.0 - m_self->GetAttribute(AttrHullExplosiveDamageResonance).get_float())
             );
             //other:
             //passiveEmDamageResonanceMultiplier
@@ -639,6 +643,7 @@ bool NPC::ApplyDamage(Damage &d) {
 
                 //we can take all this damage with our hull...
                 double new_damage = m_hullDamage + total_hull_damage;
+                m_self->SetAttribute(AttrDamage, new_damage);
                 m_hullDamage = new_damage;
                 _log(ITEM__TRACE, "%s(%u): Applying entire %.1f damage to structure. New structure damage: %.1f", GetName(), GetID(), total_hull_damage, new_damage);
             }
@@ -648,6 +653,7 @@ bool NPC::ApplyDamage(Damage &d) {
                 _log(ITEM__TRACE, "%s(%u): %.1f damage has depleated our structure. Time to explode.", GetName(), GetID(), total_hull_damage);
                 killed = true;
                 //m_hullDamage = m_self->hp();
+                m_self->SetAttribute(AttrDamage, m_self->GetAttribute(AttrDamage));
                 m_hullDamage = m_self->GetAttribute(AttrHp).get_float();
             }
 
@@ -674,7 +680,7 @@ bool NPC::ApplyDamage(Damage &d) {
     //NOTE: could send out the RD version of this message instead of the R version, which
     //includes "weapon" and "owner" instead of "source".
     Notify_OnDamageMessage_Self ondam;
-    ondam.messageID = DamageMessageIDs_Other[random_damage];	//DamageMessageIDs_Self[random_damage];
+    ondam.messageID = DamageMessageIDs_Self[random_damage];	//DamageMessageIDs_Self[random_damage];
     ondam.damage = total_damage;
     ondam.source = d.source->GetID();
     ondam.splash = "";
@@ -721,12 +727,27 @@ void NPC::_SendDamageStateChanged() const
     DoDestinyDamageState state;
     MakeDamageState(state);
 
-    DoDestiny_OnDamageStateChange ddsc;
-    ddsc.entityID = GetID();
-    ddsc.state = state.Encode();
+	double shieldHealth = m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float();
+	double armorHealth = 1.0 - m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float();
+	double hullHealth = 1.0 - m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float();
+
+	DoDestiny_OnDamageStateChange dmgChange;
+    dmgChange.entityID = GetID();
+
+	PyList *states = new PyList;
+	PyTuple *dmgTuple = new PyTuple(3);
+	dmgTuple->SetItem(0, new PyFloat(shieldHealth));		// this is current shield health (1 is 100%, 0 is 0%)
+	dmgTuple->SetItem(1, new PyFloat(200000));				// no idea what this is, could it be shield recharge related?
+	dmgTuple->SetItem(2, new PyLong(Win32TimeNow()));		// seems to be the timestamp at which damage is applied
+	states->AddItem(dmgTuple);
+	states->AddItem(new PyFloat(armorHealth));				// this is current armor health (1 is 100%, 0 is 0%)
+	states->AddItem(new PyFloat(hullHealth));				// this is current hull health (1 is 100%, 0 is 0%)
+	dmgChange.state = states;
+	
+	//dmgChange.state = state.Encode();
 
     PyTuple *up;
-    up = ddsc.Encode();
+    up = dmgChange.Encode();
     targets.QueueTBDestinyUpdate(&up);
 }
 
@@ -734,12 +755,28 @@ void ItemSystemEntity::_SendDamageStateChanged() const {
     DoDestinyDamageState state;
     MakeDamageState(state);
 
-    DoDestiny_OnDamageStateChange ddsc;
-    ddsc.entityID = GetID();
-    ddsc.state = state.Encode();
+	double shieldRecharge = m_self->GetAttribute(AttrShieldRechargeRate).get_float();
+	double shieldHealth = m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float();
+	double armorHealth = 1.0 - m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float();
+	double hullHealth = 1.0 - m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float();
+
+	DoDestiny_OnDamageStateChange dmgChange;
+    dmgChange.entityID = GetID();
+
+	PyList *states = new PyList;
+	PyTuple *dmgTuple = new PyTuple(3);
+	dmgTuple->SetItem(0, new PyFloat(shieldHealth));		// this is current shield health (1 is 100%, 0 is 0%)
+	dmgTuple->SetItem(1, new PyFloat(shieldRecharge));		// no idea what this is, could it be shield recharge related?
+	dmgTuple->SetItem(2, new PyLong(Win32TimeNow()));		// seems to be the timestamp at which damage is applied
+	states->AddItem(dmgTuple);
+	states->AddItem(new PyFloat(armorHealth));				// this is current armor health (1 is 100%, 0 is 0%)
+	states->AddItem(new PyFloat(hullHealth));				// this is current hull health (1 is 100%, 0 is 0%)
+	dmgChange.state = states;
+	
+	//dmgChange.state = state.Encode();
 
     PyTuple *up;
-    up = ddsc.Encode();
+    up = dmgChange.Encode();
     targets.QueueTBDestinyUpdate(&up);
 }
 
@@ -889,7 +926,7 @@ void Client::Killed(Damage &fatal_blow) {
         std::string wreck_name = GetName();
         wreck_name += "'s ";
 		wreck_name += deadShipRef->itemName();
-		wreck_name += "Wreck";
+		wreck_name += " Wreck";
 
         std::string capsule_name = GetName();
         capsule_name += "'s Capsule";
@@ -948,8 +985,6 @@ void Client::Killed(Damage &fatal_blow) {
 
 		//TODO: figure out anybody else which may be referencing this ship...
 		uint32 wreckTypeID = sDGM_Types_to_Wrecks_Table.GetWreckID(deadShipObj->Item()->typeID());
-		deadShipObj->Bubble()->Remove(deadShipObj, true);
-        deadShipRef->Delete();    //remove from the DB.
 
 		// TODO: Spawn a wreck matching the ship we lost
 		InventoryItemRef wreckItemRef;
@@ -995,6 +1030,20 @@ void Client::Killed(Damage &fatal_blow) {
 			client->GetChar()->addSecurityRating( m_self->GetAttribute(AttrEntitySecurityStatusKillBonus).get_float() );
 
 		// TODO: Place random selection of modules/charges/cargo/drones into container of wreck
+		// For now, though, just transfer 100% of cargo, modules, charges, drones, anything in the Ship's inventory to the wreck all w/ flagAutoFit
+		std::map<uint32, InventoryItemRef> deadShipInventory;
+		std::map<uint32, InventoryItemRef>::iterator cur, end;
+		uint32 wreckLocationID = wreckItemRef->itemID();
+		deadShipInventory.clear();
+		deadShipRef->GetInventoryList(deadShipInventory);
+		cur = deadShipInventory.begin();
+		end = deadShipInventory.end();
+	    for(; cur != end; cur++)
+			cur->second->Move(wreckLocationID,flagAutoFit);
+
+		// We're all done, so let's destroy the dead ship object:
+		deadShipObj->Bubble()->Remove(deadShipObj, true);
+        deadShipRef->Delete();    //remove from the DB.
     }
 }
 
