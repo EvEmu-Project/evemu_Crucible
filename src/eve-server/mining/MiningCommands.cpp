@@ -65,11 +65,54 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
     if( !who->IsInSpace() )
         throw PyException( MakeCustomError( "You must be in space to spawn things." ) );
 
+	bool makeIceBelt = false;
+	bool makeRareIce = false;
+	uint32 customCount = 0;
+    if( args.argCount() >= 2 )
+	{
+        if( !args.isNumber( 1 ) )
+		{
+			if( args.arg( 1 ) == "ice" )
+				makeIceBelt = true;
+		}
+		else
+		{
+			if( atoi(args.arg( 1 ).c_str()) > 15 )
+				customCount = atoi(args.arg( 1 ).c_str());
+			else
+				PyException( MakeCustomError( "Argument 1 should be at least 15!" ) );
+		}
+	}
+
+	if( args.argCount() >= 3 )
+	{
+		if( args.isNumber( 2 ) )
+		{
+			if( atoi(args.arg( 2 ).c_str()) > 15 )
+				customCount = atoi(args.arg(2).c_str());
+			else
+				PyException( MakeCustomError( "Argument 2 should be at least 15!" ) );
+		}
+		else
+			if( args.arg( 2 ) == "ice" )
+				makeIceBelt = true;
+			if( args.arg( 2 ) == "rareice" )
+			{
+				makeIceBelt = true;
+				makeRareIce = true;
+			}
+	}
+
     const double beltradius = 100000.0;
     const double beltdistance = 25000.0;
     double roidradius;
     const double beltangle = M_PI * 2.0 / 3.0;
-    const uint32 pcs = 20 + static_cast<uint32>(MakeRandomInt( -10, 10 ));   // reduced from 160 + MakeRandomInt( -10, 10 ) to facilitate easier debugging
+    uint32 pcs = 0;
+	
+	if( customCount > 15 )
+		pcs = customCount + static_cast<uint32>(MakeRandomInt( -10, 10 ));
+	else
+		pcs = 30 + static_cast<uint32>(MakeRandomInt( -10, 10 ));
 
     const GPoint position( who->GetPosition() );
 
@@ -82,22 +125,55 @@ PyResult Command_spawnbelt( Client* who, CommandDB* db, PyServiceMgr* services, 
 
     SystemManager* sys = who->System();
     std::map<double, uint32> roidDist;
-    if( !db->GetRoidDist( sys->GetSystemSecurity(), roidDist ) )
-    {
-        sLog.Error( "Command", "Couldn't get roid list for system security %s", sys->GetSystemSecurity() );
+	if( makeIceBelt )
+	{
+		std::string securityStatus = sys->GetSystemSecurity();
+		if( !makeRareIce )
+		{
+			roidDist.insert(std::pair<double,uint32>(0.60,16264));		// Blue Ice
+			roidDist.insert(std::pair<double,uint32>(0.45,17975));		// Thick Blue Ice
+			roidDist.insert(std::pair<double,uint32>(0.30,28627));		// Azure Ice
+			roidDist.insert(std::pair<double,uint32>(0.20,16262));		// Clear Icicle
+			roidDist.insert(std::pair<double,uint32>(0.10,16267));		// Dark Glitter
+		}
+		if( makeRareIce )
+		{
+			roidDist.insert(std::pair<double,uint32>(0.90,16263));		// Glacial Mass
+			roidDist.insert(std::pair<double,uint32>(0.80,16265));		// White Glaze
+			roidDist.insert(std::pair<double,uint32>(0.70,16266));		// Glare Crust
+			roidDist.insert(std::pair<double,uint32>(0.60,16268));		// Gelidus
+			roidDist.insert(std::pair<double,uint32>(0.50,16269));		// Krystallos
+			roidDist.insert(std::pair<double,uint32>(0.40,17976));		// Pristine White Glaze
+			roidDist.insert(std::pair<double,uint32>(0.30,17977));		// Smooth Glacial Mass
+			roidDist.insert(std::pair<double,uint32>(0.20,17978));		// Enriched Clear Icicle
+			roidDist.insert(std::pair<double,uint32>(0.10,28628));		// Crystalline Icicle
+		}
+	}
+	else
+	{
+		if( !db->GetRoidDist( sys->GetSystemSecurity(), roidDist ) )
+		{
+			sLog.Error( "Command", "Couldn't get roid list for system security %s", sys->GetSystemSecurity() );
 
-        throw PyException( MakeCustomError( "Couldn't get roid list for system security %s", sys->GetSystemSecurity() ) );
-    }
+			throw PyException( MakeCustomError( "Couldn't get roid list for system security %s", sys->GetSystemSecurity() ) );
+		}
+	}
 
     double distanceToMe;
     double alpha;
     GPoint mposition;
 
+	if( makeIceBelt )
+		pcs *= 2;
+
     for( uint32 i = 0; i < pcs; ++i )
     {
         alpha = beltangle * MakeRandomFloat( -0.5, 0.5 );
 
-        roidradius = MakeRandomFloat( 100.0, 1000.0 );
+		if( makeIceBelt )
+			roidradius = MakeRandomFloat( 1000.0, 10000.0 );
+		else
+			roidradius = MakeRandomFloat( 100.0, 1000.0 );
         mposition.x = beltradius * sin( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
         mposition.z = beltradius * cos( phi + alpha ) + roidradius * MakeRandomFloat( 0, 15 );
         mposition.y = position.y - r.y + roidradius * MakeRandomFloat( 0, 15 );
@@ -123,8 +199,9 @@ uint32 GetAsteroidType( double p, const std::map<double, uint32>& roids )
         if( cur->first > p )
             return cur->second;
     }
+	--cur;
 
-    return 1230; // return Veldspar
+	return cur->second;
 }
 
 void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const GVector& position )
@@ -146,8 +223,9 @@ void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const G
     // (this should yield around 90,000 units of Veldspar in an asteroid with 1000.0m radius)
     double volume = (1.0/10000.0) * (4.0/3.0) * M_PI * pow(radius,3);
 
+	i->SetAttribute(AttrQuantity, EvilNumber(floor(100*(volume/(i->GetAttribute(AttrVolume).get_float())))));
     i->SetAttribute(AttrRadius, EvilNumber(radius));
-    i->SetAttribute(AttrVolume, EvilNumber(volume));
+    //i->SetAttribute(AttrVolume, EvilNumber(volume));
     //i->SetAttribute(AttrIsOnline,EvilNumber(1));                            // Is Online
     //i->SetAttribute(AttrDamage,EvilNumber(0.0));                            // Structure Damage
     //i->SetAttribute(AttrShieldCharge,i->GetAttribute(AttrShieldCapacity));  // Shield Charge
