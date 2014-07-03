@@ -10,6 +10,11 @@ mkdir db_import_logs
 echo Merging OFIC and EVEmu updates:
 del ofic-updates.sql
 del evemu-updates.sql
+
+echo UNZIP ALL .ZIP archives in the /ofic-updates directory,
+echo then press any key to continue...
+pause
+
 cd utils
 call merge-ofic-updates.bat
 call merge-evemu-updates.bat
