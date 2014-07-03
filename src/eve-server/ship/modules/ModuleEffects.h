@@ -227,6 +227,20 @@ private:
 
 // //////////////// Permanent Memory Object Classes //////////////////////
 
+class TypeEffectsList
+{
+public:
+	TypeEffectsList(uint32 effectID);
+	~TypeEffectsList();
+
+	bool HasEffect(uint32 effectID);
+	uint32 GetEffectCount() { return m_typeEffectsList.size(); }
+	void GetEffectsList(std::map<uint32,uint32> * effectsList);
+
+protected:
+	std::map<uint32,uint32> m_typeEffectsList;
+};
+
 // This class is a singleton object, containing all Effects loaded from dgmEffects table as memory objects of type MEffect:
 class DGM_Effects_Table
 : public Singleton< DGM_Effects_Table >
@@ -249,6 +263,31 @@ protected:
 
 #define sDGM_Effects_Table \
     ( DGM_Effects_Table::get() )
+// -----------------------------------------------------------------------
+
+
+// This class is a singleton object, containing all effectIDs loaded from dgmTypeEffects table as a memory object:
+class DGM_Type_Effects_Table
+: public Singleton< DGM_Type_Effects_Table >
+{
+public:
+    DGM_Type_Effects_Table();
+    ~DGM_Type_Effects_Table();
+
+    // Initializes the Table:
+    int Initialize();
+
+    // Returns list of effectIDs for the given typeID:
+	TypeEffectsList * GetTypeEffectsList(uint32 typeID);
+
+protected:
+    void _Populate();
+
+    std::map<uint32, TypeEffectsList *> m_TypeEffectsMap;
+};
+
+#define sDGM_Type_Effects_Table \
+    ( DGM_Type_Effects_Table::get() )
 // -----------------------------------------------------------------------
 
 
@@ -324,8 +363,6 @@ class ModuleEffects
 public:
     ModuleEffects(uint32 typeID);
     ~ModuleEffects();
-
-    //this will need to be reworked to implement a singleton architecture...i'll do it later -luck
 
     //useful accessors - probably a better way to do this, but at least it's fast
     bool isHighSlot();

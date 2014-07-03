@@ -343,6 +343,8 @@ int main( int argc, char* argv[] )
 	// Create In-Memory Database Objects for Critical Systems, such as ModuleManager:
 	sLog.Log("server init", "---> sDGM_Effects_Table: Loading...");
 	sDGM_Effects_Table.Initialize();
+	sLog.Log("server init", "---> sDGM_Type_Effects_Table: Loading...");
+	sDGM_Type_Effects_Table.Initialize();
 	sLog.Log("server init", "---> sDGM_Skill_Bonus_Modifiers_Table: Loading...");
 	sDGM_Skill_Bonus_Modifiers_Table.Initialize();
 	//sLog.Log("server init", "---> sDGM_Ship_Bonus_Modifiers_Table: Loading...");

@@ -34,13 +34,17 @@ class ModuleDB : public ServiceDB
 {
 public:
 
+	static void GetAllTypeIDs(DBQueryResult &res);
+
     static void GetAllDgmEffects(DBQueryResult &res);
     static void GetAllDgmEffectsInfo(DBQueryResult &res);
+    static void GetAllDgmTypeEffects(DBQueryResult &res);
     static void GetAllDgmSkillBonusModifiers(DBQueryResult &res);
     static void GetAllDgmShipBonusModifiers(DBQueryResult &res);
 
     static void GetDgmEffects(uint32 effectID, DBQueryResult &res);
     static void GetDgmEffectsInfo(uint32 effectID, DBQueryResult &res);
+    static void GetDgmTypeEffects(uint32 typeID, DBQueryResult &res);
     static void GetDgmSkillBonusModifiers(uint32 skillID, DBQueryResult &res);
     static void GetDgmShipBonusModifiers(uint32 shipID, DBQueryResult &res);
 };
