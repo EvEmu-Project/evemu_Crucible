@@ -55,7 +55,7 @@ void DGM_Types_to_Wrecks_Table::_Populate()
     SystemDB::GetWrecksToTypes(*res);
 
     //counter
-	uint32 total_effect_count = 0;
+	uint32 total_wreck_count = 0;
 	uint32 error_count = 0;
 
 	//go through and populate each effect
@@ -65,7 +65,11 @@ void DGM_Types_to_Wrecks_Table::_Populate()
         typeID = row.GetInt(0);
         wreckID = row.GetInt(1);
 		m_WrecksToTypesMap.insert(std::pair<uint32, uint32>(typeID,wreckID));
+
+		total_wreck_count++;
     }
+
+	sLog.Log("DGM_Types_to_Wrecks_Table", "..........%u total wreck objects loaded", total_wreck_count);
 
     //cleanup
     delete res;
