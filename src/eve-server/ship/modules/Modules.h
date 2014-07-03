@@ -43,8 +43,8 @@ class GenericModule
 public:
     GenericModule()
     {
-        m_Module_State = MOD_UNFITTED;
-        m_Charge_State = MOD_UNLOADED;
+        m_ModuleState = MOD_UNFITTED;
+        m_ChargeState = MOD_UNLOADED;
     }
     virtual ~GenericModule()
     {
@@ -84,6 +84,11 @@ public:
     virtual bool isHighPower()                                    { return m_Effects->isHighSlot(); }
     virtual bool isMediumPower()                                { return m_Effects->isMediumSlot(); }
     virtual bool isLowPower()                                    { return m_Effects->isLowSlot(); }
+	virtual bool isLoaded()										{ return false; }
+	ModuleStates GetModuleState()								{ return m_ModuleState; }
+	ChargeStates GetChargeState()								{ return m_ChargeState; }
+
+	InventoryItemRef GetLoadedChargeRef()					{ return InventoryItemRef(); }
 
     virtual bool isTurretFitted()
     {
@@ -130,8 +135,8 @@ protected:
     ShipRef m_Ship;
     ModuleEffects * m_Effects;
 
-    ModuleStates m_Module_State;
-    ChargeStates m_Charge_State;
+    ModuleStates m_ModuleState;
+    ChargeStates m_ChargeState;
 
 	Basic_Log * m_pMM_Log;		// We do not own this
 };

@@ -56,7 +56,8 @@ enum ModuleStates
     MOD_ACTIVATED = 4,
     MOD_OVERLOADED = 8,
     MOD_GANG = 16,
-	MOD_FLEET = 32
+	MOD_FLEET = 32,
+	MOD_DEACTIVATING = 64
 };
 
 enum ChargeStates

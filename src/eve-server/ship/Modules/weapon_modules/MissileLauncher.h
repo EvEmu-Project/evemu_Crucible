@@ -20,70 +20,39 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Luck
+    Author:        AknorJaden
 */
 
-
-#include "eve-server.h"
+#ifndef __MISSILELAUNCHER_H__
+#define __MISSILELAUNCHER_H__
 
 #include "ship/modules/ActiveModules.h"
 
-ActiveModule::ActiveModule()
+class MissileLauncher: public ActiveModule
 {
-	m_chargeRef = InventoryItemRef();		// Ensure ref is NULL
-	m_chargeLoaded = false;
-}
+public:
+    MissileLauncher( InventoryItemRef item, ShipRef ship );
+    ~MissileLauncher();
 
-ActiveModule::ActiveModule(InventoryItemRef item, ShipRef ship)
-{
-    m_Item = item;
-    m_Ship = ship;
-    m_Effects = new ModuleEffects(m_Item->typeID());
-    m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
+	void Process();
 
-	m_chargeRef = InventoryItemRef();		// Ensure ref is NULL
-	m_chargeLoaded = false;
-}
+    // Module Action Methods:
+    void Load(InventoryItemRef charge);
+    void Unload();
+    void Repair();
+    void Overload();
+    void DeOverload();
+    void DestroyRig();
+	void Activate(SystemEntity * targetEntity);
+	void Deactivate();
 
-ActiveModule::~ActiveModule()
-{
-    //delete members
-    delete m_Effects;
-    delete m_ShipAttrComp;
+	// Calls Reserved for components usage only!
+	void DoCycle();
+	void StopCycle(bool abort=false);
 
-    //null ptrs
-    m_Effects = NULL;
-    m_ShipAttrComp = NULL;
-}
+protected:
+	void _ProcessCycle() {}
+	void _ShowCycle();
+};
 
-void ActiveModule::Offline()
-{
-    m_Item->PutOffline();
-}
-
-void ActiveModule::Online()
-{
-    m_Item->PutOnline();
-}
-
-void ActiveModule::Activate(SystemEntity * targetEntity)
-{
-	//This will be handled by the Module class itself (eg. Afterburner.cpp)
-}
-
-void ActiveModule::Deactivate()
-{
-	//This will be handled by the Module class itself (eg. Afterburner.cpp)
-}
-
-void ActiveModule::Load(InventoryItemRef charge)
-{
-	m_chargeRef = charge;
-	m_chargeLoaded = true;
-}
-
-void ActiveModule::Unload()
-{
-	m_chargeRef = InventoryItemRef();		// Ensure ref is NULL
-	m_chargeLoaded = false;
-}
+#endif

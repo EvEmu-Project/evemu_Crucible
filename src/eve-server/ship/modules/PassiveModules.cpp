@@ -34,8 +34,8 @@ PassiveModule::PassiveModule(InventoryItemRef item, ShipRef ship)
     m_Effects = new ModuleEffects(m_Item->typeID());
     m_ShipAttrComp = new ModifyShipAttributesComponent(this, ship);
 
-    m_Module_State = MOD_UNFITTED;
-    m_Charge_State = MOD_UNLOADED;
+    m_ModuleState = MOD_UNFITTED;
+    m_ChargeState = MOD_UNLOADED;
 }
 
 PassiveModule::~PassiveModule()
@@ -60,7 +60,7 @@ void PassiveModule::Offline()
 
     //change item state
     m_Item->PutOffline();
-    m_Module_State = MOD_OFFLINE;
+    m_ModuleState = MOD_OFFLINE;
 }
 
 void PassiveModule::Online()
@@ -74,5 +74,5 @@ void PassiveModule::Online()
 
     //change item state
     m_Item->PutOnline();
-    m_Module_State = MOD_ONLINE;
+    m_ModuleState = MOD_ONLINE;
 }

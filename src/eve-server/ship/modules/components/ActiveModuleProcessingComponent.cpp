@@ -67,10 +67,17 @@ void ActiveModuleProcessingComponent::Process()
 			}
 			else
 			{
-				m_Item->SetActive(false, 1253, 0, false);
+				//m_Item->SetActive(false, 1253, 0, false);
 				m_Stop = true;
 			}
 		}
+		//else
+		//{
+		//	//wait for time to run out and send deactivate to client
+		//	m_timer.Disable();
+		//	//m_Item->SetActive(false, 1253, 0, false);
+		//	m_Mod->StopCycle();
+		//}
 	}
 	else
 	{
@@ -78,7 +85,8 @@ void ActiveModuleProcessingComponent::Process()
 		{
 			//wait for time to run out and send deactivate to client
 			m_timer.Disable();
-			m_Item->SetActive(false, 1253, 0, false);
+			//m_Item->SetActive(false, 1253, 0, false);
+			m_Mod->StopCycle();
 		}
 	}
 		
@@ -90,14 +98,14 @@ void ActiveModuleProcessingComponent::ActivateCycle()
 	if( m_Mod->HasAttribute(AttrDuration) )
 	{
 		m_timer.Start(m_Mod->GetAttribute(AttrDuration).get_int());
-		m_Mod->DoCycle();	// Do initial cycle immediately while we start timer
+		//m_Mod->DoCycle();	// Do initial cycle immediately while we start timer
 	}
 	else
 	{
 		if( m_Mod->HasAttribute(AttrSpeed) )
 		{
 			m_timer.Start(m_Mod->GetAttribute(AttrSpeed).get_int());
-			m_Mod->DoCycle();	// Do initial cycle immediately while we start timer
+			//m_Mod->DoCycle();	// Do initial cycle immediately while we start timer
 		}
 		else
 			sLog.Error( "ActiveModuleProcessingComponent::ActivateCycle()", "ERROR! ActiveModule '%s' (id %u) has neither AttrSpeed nor AttrDuration! No way to process time-based cycle!", m_Mod->getItem()->itemName().c_str(), m_Mod->getItem()->itemID() );
@@ -107,6 +115,14 @@ void ActiveModuleProcessingComponent::ActivateCycle()
 void ActiveModuleProcessingComponent::DeactivateCycle()
 {
     m_Stop = true;
+}
+
+void ActiveModuleProcessingComponent::AbortCycle()
+{
+	// Immediately stop active cycle for things such as target destroyed or left bubble, or asteroid emptied and removed from space:
+	m_Stop = true;
+	m_timer.Disable();
+	m_Mod->StopCycle(true);
 }
 
 //timing and verification function

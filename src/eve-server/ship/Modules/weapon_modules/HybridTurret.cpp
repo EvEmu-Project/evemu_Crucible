@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Reve, AknorJaden
+    Author:        AknorJaden
 */
 
 #include "eve-server.h"
@@ -28,9 +28,9 @@
 #include "EntityList.h"
 #include "system/SystemBubble.h"
 #include "system/Damage.h"
-#include "ship/modules/weapon_modules/EnergyTurret.h"
+#include "ship/modules/weapon_modules/HybridTurret.h"
 
-EnergyTurret::EnergyTurret( InventoryItemRef item, ShipRef ship )
+HybridTurret::HybridTurret( InventoryItemRef item, ShipRef ship )
 {
     m_Item = item;
     m_Ship = ship;
@@ -40,49 +40,54 @@ EnergyTurret::EnergyTurret( InventoryItemRef item, ShipRef ship )
 
 	m_chargeRef = InventoryItemRef();		// Ensure ref is NULL
 	m_chargeLoaded = false;
+
+	m_ModuleState = MOD_UNFITTED;
+	m_ChargeState = MOD_UNLOADED;
 }
 
-EnergyTurret::~EnergyTurret()
+HybridTurret::~HybridTurret()
 {
 
 }
 
-void EnergyTurret::Process()
+void HybridTurret::Process()
 {
 	m_ActiveModuleProc->Process();
 }
 
-void EnergyTurret::Load(InventoryItemRef charge)
+void HybridTurret::Load(InventoryItemRef charge)
 {
 	ActiveModule::Load(charge);
+	m_ChargeState = MOD_LOADED;
 }
 
-void EnergyTurret::Unload()
+void HybridTurret::Unload()
 {
 	ActiveModule::Unload();
+	m_ChargeState = MOD_UNLOADED;
 }
 
-void EnergyTurret::Repair()
+void HybridTurret::Repair()
 {
 
 }
 
-void EnergyTurret::Overload()
+void HybridTurret::Overload()
 {
 
 }
 
-void EnergyTurret::DeOverload()
+void HybridTurret::DeOverload()
 {
 
 }
 
-void EnergyTurret::DestroyRig()
+void HybridTurret::DestroyRig()
 {
 
 }
 
-void EnergyTurret::Activate(SystemEntity * targetEntity)
+void HybridTurret::Activate(SystemEntity * targetEntity)
 {
 	if( this->m_chargeRef != NULL )
 	{
@@ -96,22 +101,22 @@ void EnergyTurret::Activate(SystemEntity * targetEntity)
 	}
 	else
 	{
-		sLog.Error( "EnergyTurret::Activate()", "ERROR: Cannot find charge that is supposed to be loaded into this module!" );
+		sLog.Error( "HybridTurret::Activate()", "ERROR: Cannot find charge that is supposed to be loaded into this module!" );
 		throw PyException( MakeCustomError( "ERROR!  Cannot find charge that is supposed to be loaded into this module!" ) );
 	}
 }
 
-void EnergyTurret::Deactivate() 
+void HybridTurret::Deactivate() 
 {
 	m_ModuleState = MOD_DEACTIVATING;
 	m_ActiveModuleProc->DeactivateCycle();
 }
 
-void EnergyTurret::StopCycle()
+void HybridTurret::StopCycle(bool abort)
 {
 	Notify_OnGodmaShipEffect shipEff;
 	shipEff.itemID = m_Item->itemID();
-	shipEff.effectID = effectTargetAttack;
+	shipEff.effectID = effectProjectileFired;
 	shipEff.when = Win32TimeNow();
 	shipEff.start = 0;
 	shipEff.active = 0;
@@ -150,7 +155,7 @@ void EnergyTurret::StopCycle()
 		m_Item->typeID(),
 		m_targetID,
 		m_chargeRef->itemID(),
-		"effects.Laser",
+		"effects.HybridFired",
 		1,
 		0,
 		0,
@@ -161,7 +166,7 @@ void EnergyTurret::StopCycle()
 	m_ActiveModuleProc->DeactivateCycle();
 }
 
-void EnergyTurret::DoCycle()
+void HybridTurret::DoCycle()
 {
 	if( m_ActiveModuleProc->ShouldProcessActiveCycle() )
 	{
@@ -180,6 +185,12 @@ void EnergyTurret::DoCycle()
 				Deactivate();
 				return;
 			}
+		}
+
+		if( m_chargeRef->quantity() == 0 )
+		{
+			Deactivate();
+			return;
 		}
 
 		_ShowCycle();
@@ -216,19 +227,22 @@ void EnergyTurret::DoCycle()
 			thermal_damage,			// thermal damage
 			em_damage,				// em damage
 			explosive_damage,		// explosive damage
-			effectTargetAttack		// from EVEEffectID::
+			effectProjectileFired	// from EVEEffectID::
 		);
 		
 		m_targetEntity->ApplyDamage( damageDealt );
+
+		// Reduce ammo charge by 1 unit:
+		m_chargeRef->SetQuantity(m_chargeRef->quantity() - 1);
 	}
 }
 
-void EnergyTurret::_ShowCycle()
+void HybridTurret::_ShowCycle()
 {
 	// Create Destiny Updates:
 	Notify_OnGodmaShipEffect shipEff;
 	shipEff.itemID = m_Item->itemID();
-	shipEff.effectID = effectTargetAttack;		// From EVEEffectID::
+	shipEff.effectID = effectProjectileFired;		// From EVEEffectID::
 	shipEff.when = Win32TimeNow();
 	shipEff.start = 1;
 	shipEff.active = 1;
@@ -270,11 +284,11 @@ void EnergyTurret::_ShowCycle()
 		m_Item->typeID(),
 		m_targetID,
 		m_chargeRef->typeID(),
-		"effects.Laser",
+		"effects.HybridFired",
 		1,
 		1,
 		1,
 		m_Item->GetAttribute(AttrSpeed).get_float(),
-		1
+		1000
 	);
 }

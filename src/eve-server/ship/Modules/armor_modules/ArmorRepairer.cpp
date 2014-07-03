@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Reve, AknorJaden
+    Author:        AknorJaden
 */
 
 #include "eve-server.h"
@@ -28,9 +28,9 @@
 #include "EntityList.h"
 #include "system/SystemBubble.h"
 #include "system/Damage.h"
-#include "ship/modules/weapon_modules/EnergyTurret.h"
+#include "ship/modules/armor_modules/ArmorRepairer.h"
 
-EnergyTurret::EnergyTurret( InventoryItemRef item, ShipRef ship )
+ArmorRepairer::ArmorRepairer( InventoryItemRef item, ShipRef ship )
 {
     m_Item = item;
     m_Ship = ship;
@@ -42,76 +42,65 @@ EnergyTurret::EnergyTurret( InventoryItemRef item, ShipRef ship )
 	m_chargeLoaded = false;
 }
 
-EnergyTurret::~EnergyTurret()
+ArmorRepairer::~ArmorRepairer()
 {
 
 }
 
-void EnergyTurret::Process()
+void ArmorRepairer::Process()
 {
 	m_ActiveModuleProc->Process();
 }
 
-void EnergyTurret::Load(InventoryItemRef charge)
-{
-	ActiveModule::Load(charge);
-}
-
-void EnergyTurret::Unload()
-{
-	ActiveModule::Unload();
-}
-
-void EnergyTurret::Repair()
+void ArmorRepairer::Load(InventoryItemRef charge)
 {
 
 }
 
-void EnergyTurret::Overload()
+void ArmorRepairer::Unload()
 {
 
 }
 
-void EnergyTurret::DeOverload()
+void ArmorRepairer::Repair()
 {
 
 }
 
-void EnergyTurret::DestroyRig()
+void ArmorRepairer::Overload()
 {
 
 }
 
-void EnergyTurret::Activate(SystemEntity * targetEntity)
+void ArmorRepairer::DeOverload()
 {
-	if( this->m_chargeRef != NULL )
-	{
-		m_targetEntity = targetEntity;
-		m_targetID = targetEntity->Item()->itemID();
 
-		// Activate active processing component timer:
-		m_ActiveModuleProc->ActivateCycle();
-		m_ModuleState = MOD_ACTIVATED;
-		_ShowCycle();
-	}
-	else
-	{
-		sLog.Error( "EnergyTurret::Activate()", "ERROR: Cannot find charge that is supposed to be loaded into this module!" );
-		throw PyException( MakeCustomError( "ERROR!  Cannot find charge that is supposed to be loaded into this module!" ) );
-	}
 }
 
-void EnergyTurret::Deactivate() 
+void ArmorRepairer::DestroyRig()
+{
+
+}
+
+void ArmorRepairer::Activate(SystemEntity * targetEntity)
+{
+	// Activate active processing component timer:
+	m_ActiveModuleProc->ActivateCycle();
+	m_ModuleState = MOD_ACTIVATED;
+	_ShowCycle();
+}
+
+void ArmorRepairer::Deactivate() 
 {
 	m_ModuleState = MOD_DEACTIVATING;
 	m_ActiveModuleProc->DeactivateCycle();
 }
 
-void EnergyTurret::StopCycle()
+void ArmorRepairer::StopCycle()
 {
 	Notify_OnGodmaShipEffect shipEff;
 	shipEff.itemID = m_Item->itemID();
-	shipEff.effectID = effectTargetAttack;
+	shipEff.effectID = effectArmorRepair;
 	shipEff.when = Win32TimeNow();
 	shipEff.start = 0;
 	shipEff.active = 0;
@@ -120,7 +109,7 @@ void EnergyTurret::StopCycle()
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
 	env->AddItem(new PyInt(10));
@@ -148,87 +137,42 @@ void EnergyTurret::StopCycle()
 		m_Ship,
 		m_Item->itemID(),
 		m_Item->typeID(),
-		m_targetID,
-		m_chargeRef->itemID(),
-		"effects.Laser",
-		1,
+		0,
+		0,
+		"effects.ArmorRepair",
+		0,
 		0,
 		0,
 		1.0,
-		0
+		1
 	);
 
 	m_ActiveModuleProc->DeactivateCycle();
 }
 
-void EnergyTurret::DoCycle()
+void ArmorRepairer::DoCycle()
 {
 	if( m_ActiveModuleProc->ShouldProcessActiveCycle() )
 	{
-		// Check to see if our target is still in this bubble or has left or been destroyed:
-		if( m_Ship->GetOperator()->GetSystemEntity()->Bubble() == NULL )
-		{
-			// Target has left our bubble or been destroyed, deactivate this module:
-			Deactivate();
-			return;
-		}
-		else
-		{
-			if( !(m_Ship->GetOperator()->GetSystemEntity()->Bubble()->GetEntity(m_targetID)) )
-			{
-				// Target has left our bubble or been destroyed, deactivate this module:
-				Deactivate();
-				return;
-			}
-		}
-
 		_ShowCycle();
 
-		// Create Damage action:
-		//Damage( SystemEntity *_source,
-        //    InventoryItemRef _weapon,
-        //    double _kinetic,
-        //    double _thermal,
-        //    double _em,
-        //    double _explosive,
-        //    EVEEffectID _effect );
-		double kinetic_damage = 0.0;
-		double thermal_damage = 0.0;
-		double em_damage = 0.0;
-		double explosive_damage = 0.0;
+		// Apply repair amount:
+		EvilNumber newDamageAmount;
+		if( m_Item->GetAttribute(AttrArmorDamageAmount) <= m_Ship->GetAttribute(AttrArmorDamage) )
+			newDamageAmount = m_Ship->GetAttribute(AttrArmorDamage) - m_Item->GetAttribute(AttrArmorDamageAmount);
+		else
+			newDamageAmount = 0.0;
 
-		// This still somehow needs skill, ship, module, and implant bonuses to be applied:
-		// This still somehow needs to have optimal range and falloff attributes applied as a damage modification factor:
-		if( m_chargeRef->HasAttribute(AttrKineticDamage) )
-			kinetic_damage = (m_Item->GetAttribute(AttrDamageMultiplier) * m_chargeRef->GetAttribute(AttrKineticDamage)).get_float();
-		if( m_chargeRef->HasAttribute(AttrThermalDamage) )
-			thermal_damage = (m_Item->GetAttribute(AttrDamageMultiplier) * m_chargeRef->GetAttribute(AttrThermalDamage)).get_float();
-		if( m_chargeRef->HasAttribute(AttrEmDamage) )
-			em_damage = (m_Item->GetAttribute(AttrDamageMultiplier) * m_chargeRef->GetAttribute(AttrEmDamage)).get_float();
-		if( m_chargeRef->HasAttribute(AttrExplosiveDamage) )
-			explosive_damage = (m_Item->GetAttribute(AttrDamageMultiplier) * m_chargeRef->GetAttribute(AttrExplosiveDamage)).get_float();
-
-		Damage damageDealt
-		(
-			m_Ship->GetOperator()->GetSystemEntity(),
-			m_Item,
-			kinetic_damage,			// kinetic damage
-			thermal_damage,			// thermal damage
-			em_damage,				// em damage
-			explosive_damage,		// explosive damage
-			effectTargetAttack		// from EVEEffectID::
-		);
-		
-		m_targetEntity->ApplyDamage( damageDealt );
+        m_Ship->SetAttribute(AttrArmorDamage, newDamageAmount);
 	}
 }
 
-void EnergyTurret::_ShowCycle()
+void ArmorRepairer::_ShowCycle()
 {
 	// Create Destiny Updates:
 	Notify_OnGodmaShipEffect shipEff;
 	shipEff.itemID = m_Item->itemID();
-	shipEff.effectID = effectTargetAttack;		// From EVEEffectID::
+	shipEff.effectID = effectArmorRepair;		// From EVEEffectID::
 	shipEff.when = Win32TimeNow();
 	shipEff.start = 1;
 	shipEff.active = 1;
@@ -237,7 +181,7 @@ void EnergyTurret::_ShowCycle()
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
 	env->AddItem(new PyInt(10));
@@ -268,13 +212,13 @@ void EnergyTurret::_ShowCycle()
 		m_Ship,
 		m_Item->itemID(),
 		m_Item->typeID(),
-		m_targetID,
-		m_chargeRef->typeID(),
-		"effects.Laser",
+		0,
+		0,
+		"effects.ArmorRepair",
+		0,
 		1,
 		1,
-		1,
-		m_Item->GetAttribute(AttrSpeed).get_float(),
-		1
+		m_Item->GetAttribute(AttrDuration).get_float(),
+		1000
 	);
 }

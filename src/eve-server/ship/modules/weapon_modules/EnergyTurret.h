@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Reve
+    Author:        Reve, AknorJaden
 */
 
 #ifndef __ENERGYTURRET_H__
@@ -48,6 +48,11 @@ public:
 
 	// Calls Reserved for components usage only!
 	void DoCycle();
+	void StopCycle();
+
+protected:
+	void _ProcessCycle() {}
+	void _ShowCycle();
 };
 
 #endif

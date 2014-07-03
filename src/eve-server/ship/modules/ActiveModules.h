@@ -65,6 +65,7 @@ public:
 
 	// Calls Reserved for components usage only!
 	virtual void DoCycle()									{ /* Do nothing here */ }
+	virtual void StopCycle(bool abort=false)				{ /* Do nothing here */ }
 
 protected:
     ModifyShipAttributesComponent * m_ShipAttrComp;
@@ -75,8 +76,11 @@ protected:
 	InventoryItemRef m_chargeRef;		// we do not own this
 	bool m_chargeLoaded;
 
-	//inheritance crap
-    ActiveModule() {}
+	//inheritance crap requires this be protected
+    ActiveModule();
+
+	virtual void _ProcessCycle()							{ /* Do nothing here */ }
+	virtual void _ShowCycle()								{ /* Do nothing here */ }
 };
 
 

@@ -45,6 +45,10 @@ public:
     void DestroyRig();
 	void Activate(SystemEntity * targetEntity);
 	void Deactivate();
+
+protected:
+	void _ProcessCycle() {}
+	void _ShowCycle();
 };
 
 #endif

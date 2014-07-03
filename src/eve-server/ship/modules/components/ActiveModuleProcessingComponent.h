@@ -41,6 +41,7 @@ public:
 
 	void ActivateCycle();
     void DeactivateCycle();
+	void AbortCycle();
 
     bool ShouldProcessActiveCycle();
 
