@@ -136,7 +136,7 @@ public:
     void SendCloakShip(const bool IsWarpSafe) const;
     void SendUncloakShip() const;
     void SendSpecialEffect(const ShipRef shipRef, uint32 moduleID, uint32 moduleTypeID,
-    uint32 targetID, uint32 chargeID, std::string effectString, bool isOffensive, bool isActive, double duration, uint32 repeat) const;
+    uint32 targetID, uint32 chargeTypeID, std::string effectString, bool isOffensive, bool start, bool isActive, double duration, uint32 repeat) const;
 
 protected:
     void ProcessTic();
