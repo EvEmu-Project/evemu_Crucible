@@ -164,6 +164,7 @@ public:
     void UnloadAll();
 
     //useful accessors
+	bool isSlotOccupied(EVEItemFlags flag);
     bool isHighPower(uint32 itemID);
     bool isMediumPower(uint32 itemID);
     bool isLowPower(uint32 itemID);

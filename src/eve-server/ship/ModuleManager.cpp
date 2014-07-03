@@ -286,6 +286,51 @@ void ModuleContainer::UnloadAll()
     _process(typeUnloadAll);
 }
 
+bool ModuleContainer::isSlotOccupied(EVEItemFlags flag)
+{
+    switch(_checkBounds(flag))
+    {
+    case NaT:
+        sLog.Error("ModuleContainer::isSlotOccupied()","Flag Out of bounds");
+		return false;
+        break;
+    case slotTypeSubSystem:
+        if( m_SubSystemModules[flag-flagSubSystem0] == NULL )
+			return false;
+		else
+			return true;
+        break;
+    case slotTypeRig:
+        if( m_RigModules[flag-flagRigSlot0] == NULL )
+			return false;
+		else
+			return true;
+        break;
+    case slotTypeLowPower:
+        if( m_LowSlotModules[flag-flagLowSlot0] == NULL )
+			return false;
+		else
+			return true;
+        break;
+    case slotTypeMedPower:
+        if( m_MediumSlotModules[flag-flagMedSlot0] == NULL )
+			return false;
+		else
+			return true;
+        break;
+    case slotTypeHiPower:
+        if( m_HighSlotModules[flag-flagHiSlot0] == NULL )
+			return false;
+		else
+			return true;
+        break;
+    default:
+        sLog.Error("ModuleContainer::isSlotOccupied()","Flag '%u' Out of bounds", flag);
+		return false;
+        break;
+    }
+}
+
 bool ModuleContainer::isHighPower(uint32 itemID)
 {
     GenericModule * mod = GetModule(itemID);
@@ -475,6 +520,9 @@ void ModuleContainer::_removeModule(EVEItemFlags flag, GenericModule * mod)
         break;
     case slotTypeHiPower:
         m_HighSlotModules[flag-flagHiSlot0] = NULL;
+        break;
+    default:
+        sLog.Error("ModuleContainer::_removeModule()","Flag '%u' Out of bounds", flag);
         break;
     }
 
@@ -766,7 +814,7 @@ ModuleManager::ModuleManager(Ship *const ship)
 			{
 				if( _fitModule( moduleRef, (EVEItemFlags)flagIndex ) )
 				{
-					_fitModule( moduleRef, (EVEItemFlags)flagIndex );
+					//_fitModule( moduleRef, (EVEItemFlags)flagIndex );
 					if( moduleRef->GetAttribute(AttrIsOnline).get_int() == 1 )
 						Online(moduleRef->itemID());
 					else
@@ -805,7 +853,7 @@ ModuleManager::ModuleManager(Ship *const ship)
 			{
 				if( _fitModule( moduleRef, (EVEItemFlags)flagIndex ) )
 				{
-					_fitModule( moduleRef, (EVEItemFlags)flagIndex );
+					//_fitModule( moduleRef, (EVEItemFlags)flagIndex );
 					if( moduleRef->GetAttribute(AttrIsOnline).get_int() == 1 )
 						Online(moduleRef->itemID());
 					else
@@ -1041,58 +1089,97 @@ void ModuleManager::UnfitModule(uint32 itemID)
     GenericModule * mod = m_Modules->GetModule(itemID);
     if( mod != NULL )
     {
-        mod->Offline();
-        m_Modules->RemoveModule(itemID);
+		if( mod->isLoaded() )
+		{
+			InventoryItemRef loadedChargeRef = mod->GetLoadedChargeRef();
+			if( IsStation(m_Ship->locationID()) )
+				loadedChargeRef->Move(m_Ship->locationID(), flagHangar);		// used to be (m_pOperator->GetLocationID(), flag)
+			else
+			{
+				m_Ship->ValidateAddItem(flagCargoHold,loadedChargeRef);
+				//if( m_Ship->ValidateAddItem(flagCargoHold,loadedChargeRef) )
+				//{
+					loadedChargeRef->Move(m_Ship->itemID(), flagCargoHold);		// used to be (m_pOperator->GetLocationID(), flag)
+					mod->Unload();
+				//}
+				//else
+				//	throw PyException( MakeCustomError( "Not enough cargo space!") );
+			}
+		}
+
+		mod->Offline();
+		m_Modules->RemoveModule(itemID);
     }
 }
 
 bool ModuleManager::_fitModule(InventoryItemRef item, EVEItemFlags flag)
 {
     bool verifyFailed = false;
-	GenericModule * mod = ModuleFactory(item, ShipRef(m_Ship));
+	GenericModule * mod;
 
-	// Set module's pointer to its owner ModuleManager's log object:
-	mod->SetLog(m_pLog);
+	// First, check to see if this module item is already fitted, and if so, let's instruct ModuleContainer to move the module
+	GenericModule * existingMod = m_Modules->GetModule(item->itemID());
 
-    // Check for max turret modules allowed:
-    if( mod->isTurretFitted() && (m_Modules->GetFittedTurretCount() == m_Ship->GetMaxTurrentHardpoints().get_int()) )
-    {
-        //std::map<std::string, PyRep *> args;
-        //args["typename"] = new PyString(item->itemName().c_str());
-        //args["portion"] = new PyInt(item->type().portionSize());
+	if( existingMod != NULL )
+	{
+		if( m_Modules->isSlotOccupied(flag) )
+		{
+			throw PyException( MakeUserError( "SlotAlreadyOccupied" ) );
+			verifyFailed = true;
+		}
 
-        throw PyException( MakeUserError( "NotEnoughTurretSlots" ) );
-        verifyFailed = true;
-    }
-    // Check for max launcher modules allowed:
-    if( mod->isLauncherFitted() && (m_Modules->GetFittedLauncherCount() == m_Ship->GetMaxLauncherHardpoints().get_int()) )
-    {
-        //std::map<std::string, PyRep *> args;
-        //args["typename"] = new PyString(item->itemName().c_str());
-        //args["portion"] = new PyInt(item->type().portionSize());
+		m_Modules->RemoveModule( existingMod->flag() );		// Remove this module from existing slot
+		existingMod->getItem()->SetFlag( flag );			// Change item's flag to the NEW slot flag
+		m_Modules->AddModule( flag, existingMod );			// Add this module back to the container at the NEW slot location
+	}
+	else
+	{
+		mod = ModuleFactory(item, ShipRef(m_Ship));
 
-        throw PyException( MakeUserError( "NotEnoughLauncherSlots" ) );
-        verifyFailed = true;
-    }
-    // Check for max modules of group allowed:
-    else if( mod->isMaxGroupFitLimited() && (m_Modules->GetFittedModuleCountByGroup(item->groupID()) == mod->getItem()->GetAttribute(AttrMaxGroupFitted).get_int()) )
-    {
-        //std::map<std::string, PyRep *> args;
-        //args["typename"] = new PyString(item->itemName().c_str());
-        //args["portion"] = new PyInt(item->type().portionSize());
+		// Set module's pointer to its owner ModuleManager's log object:
+		mod->SetLog(m_pLog);
 
-        throw PyException( MakeUserError( "CantFitTooManyByGroup" ) );
-        verifyFailed = true;
-    }
-    else
-    {
-        // Fit Module now that all checks have passed:
-        m_Modules->AddModule(flag, mod);
-    }
+		// Check for max turret modules allowed:
+		if( mod->isTurretFitted() && (m_Modules->GetFittedTurretCount() == m_Ship->GetMaxTurrentHardpoints().get_int()) )
+		{
+			//std::map<std::string, PyRep *> args;
+			//args["typename"] = new PyString(item->itemName().c_str());
+			//args["portion"] = new PyInt(item->type().portionSize());
+
+			throw PyException( MakeUserError( "NotEnoughTurretSlots" ) );
+			verifyFailed = true;
+		}
+		// Check for max launcher modules allowed:
+		if( mod->isLauncherFitted() && (m_Modules->GetFittedLauncherCount() == m_Ship->GetMaxLauncherHardpoints().get_int()) )
+		{
+			//std::map<std::string, PyRep *> args;
+			//args["typename"] = new PyString(item->itemName().c_str());
+			//args["portion"] = new PyInt(item->type().portionSize());
+
+			throw PyException( MakeUserError( "NotEnoughLauncherSlots" ) );
+			verifyFailed = true;
+		}
+		// Check for max modules of group allowed:
+		else if( mod->isMaxGroupFitLimited() && (m_Modules->GetFittedModuleCountByGroup(item->groupID()) == mod->getItem()->GetAttribute(AttrMaxGroupFitted).get_int()) )
+		{
+			//std::map<std::string, PyRep *> args;
+			//args["typename"] = new PyString(item->itemName().c_str());
+			//args["portion"] = new PyInt(item->type().portionSize());
+
+			throw PyException( MakeUserError( "CantFitTooManyByGroup" ) );
+			verifyFailed = true;
+		}
+		else
+		{
+			// Fit Module now that all checks have passed:
+			m_Modules->AddModule(flag, mod);
+		}
+	}
 
     if( verifyFailed )
     {
-        delete mod;
+        if( mod != NULL )
+			delete mod;
         return false;
     }
     else
@@ -1258,40 +1345,63 @@ void ModuleManager::LoadCharge(InventoryItemRef chargeRef, EVEItemFlags flag)
 			EvilNumber loadedChargeVolume = loadedChargeRef->GetAttribute(AttrVolume);
 			EvilNumber loadedChargeQty = EvilNumber(loadedChargeRef->quantity());
 			modCapacity -= (loadedChargeVolume * loadedChargeQty);		// Calculate remaining capacity
-			if( modCapacity > chargeToLoadVolume )
+			if( chargeRef->typeID() != loadedChargeRef->typeID() )
 			{
-				// Great!  We can load at least one, let's top off the loaded charges:
-				uint32 quantityWeCanLoad = floor((modCapacity / chargeToLoadVolume).get_float());
-				if( quantityWeCanLoad > 0 )
-				{
-					if( quantityWeCanLoad < chargeToLoadQty.get_int() )
-					{
-						// Split chargeRef to qty 'quantityWeCanLoad'
-						// Merge new smaller qty 'quantityWeCanLoad' with loadedChargeRef
-						// Load this merged charge Ref into module
-						InventoryItemRef loadableChargeQtyRef = chargeRef->Split( quantityWeCanLoad );
-						loadableChargeQtyRef->ChangeOwner( chargeRef->ownerID() );
-						loadedChargeRef->Merge( loadableChargeQtyRef );
-						mod->Load( loadedChargeRef );
-						loadedChargeRef->Move(m_Ship->itemID(), flag);		// used to be (m_pOperator->GetLocationID(), flag)
-					}
-					else
-					{
-						// Merge chargeRef with loadedChargeRef
-						// Load this merged charge Ref into module
-						loadedChargeRef->Merge( chargeRef );
-						mod->Load( loadedChargeRef );
-						loadedChargeRef->Move(m_Ship->itemID(), flag);		// used to be (m_pOperator->GetLocationID(), flag)
-					}
-				}
+				// Different charge type is being swapped into this module, so unload what's loaded
+				if( IsStation(m_Ship->GetOperator()->GetLocationID()) )
+					loadedChargeRef->Move(m_Ship->locationID(), flagHangar);
 				else
-		            throw PyException( MakeCustomError( "Cannot load even one unit of this charge!" ) );
+				{
+					m_Ship->ValidateAddItem(flagCargoHold,loadedChargeRef);
+					loadedChargeRef->Move(m_Ship->itemID(), flagCargoHold);
+				}
+				mod->Unload();
 
+				// Loading of charge will be performed below
 			}
 			else
-		        throw PyException( MakeCustomError( "Charge is full!" ) );
+			{
+				if( modCapacity > chargeToLoadVolume )
+				{
+					// Great!  We can load at least one, let's top off the loaded charges:
+					uint32 quantityWeCanLoad = floor((modCapacity / chargeToLoadVolume).get_float());
+					if( quantityWeCanLoad > 0 )
+					{
+						if( quantityWeCanLoad < chargeToLoadQty.get_int() )
+						{
+							// Split chargeRef to qty 'quantityWeCanLoad'
+							// Merge new smaller qty 'quantityWeCanLoad' with loadedChargeRef
+							// Load this merged charge Ref into module
+							InventoryItemRef loadableChargeQtyRef = chargeRef->Split( quantityWeCanLoad );
+							loadableChargeQtyRef->ChangeOwner( chargeRef->ownerID() );
+							loadedChargeRef->Merge( loadableChargeQtyRef );
+							mod->Load( loadedChargeRef );
+							loadedChargeRef->Move(m_Ship->itemID(), flag);		// used to be (m_pOperator->GetLocationID(), flag)
+						}
+						else
+						{
+							// Merge chargeRef with loadedChargeRef
+							// Load this merged charge Ref into module
+							loadedChargeRef->Merge( chargeRef );
+							mod->Load( loadedChargeRef );
+							loadedChargeRef->Move(m_Ship->itemID(), flag);		// used to be (m_pOperator->GetLocationID(), flag)
+						}
+					}
+					else
+						throw PyException( MakeCustomError( "Cannot load even one unit of this charge!" ) );
+				}
+				else
+				{
+					throw PyException( MakeCustomError( "Charge is full!" ) );
+				}
+			}
 		}
-		else
+
+		// Refresh ammo capacity of module in case it was modified in previous code block ahead of a load action:
+		modCapacity = mod->getItem()->GetAttribute(AttrCapacity);
+
+		// Load charge supplied if this module was either never loaded, or just unloaded from a different type right above:
+		if( !(mod->isLoaded()) )
 		{
 			// Module is not loaded at all, let's check total volume of charge to load against available capacity:
 			if( modCapacity >= (chargeToLoadVolume * chargeToLoadQty) )
@@ -1325,27 +1435,38 @@ void ModuleManager::LoadCharge(InventoryItemRef chargeRef, EVEItemFlags flag)
 
 void ModuleManager::UnloadCharge(EVEItemFlags flag)
 {
-    ActiveModule * mod = (ActiveModule *)(m_Modules->GetModule(flag));			// Should not be dangrous to assume ALL modules where charges are loaded are ACTIVE modules
-    if( mod != NULL )
-    {
-		if( mod->isLoaded() )
+    GenericModule * mod = m_Modules->GetModule(flag);
+
+	if( mod->isLoaded() )
+	{
+		if( mod != NULL )
 		{
-			InventoryItemRef loadedChargeRef = mod->GetLoadedChargeRef();
-			mod->Unload();
+			if( mod->isLoaded() )
+			{
+				InventoryItemRef loadedChargeRef = mod->GetLoadedChargeRef();
+				mod->Unload();
+			}
 		}
 	}
+	else
+		GetLogger()->Warning( "ModuleManager::UnloadCharge()", "WARNING! Called UnloadCharge() on a module that is NOT loaded or not a charged module!" );
 }
 
 InventoryItemRef ModuleManager::GetLoadedChargeOnModule(EVEItemFlags flag)
 {
-    ActiveModule * mod = (ActiveModule *)(m_Modules->GetModule(flag));			// Should not be dangrous to assume ALL modules where charges are loaded are ACTIVE modules
-    if( mod != NULL )
-    {
-		if( mod->isLoaded() )
-			return mod->GetLoadedChargeRef();
-		else
-			return InventoryItemRef();
+    GenericModule * mod = m_Modules->GetModule(flag);
+	if( mod->isLoaded() )
+	{
+		if( mod != NULL )
+		{
+			if( mod->isLoaded() )
+				return mod->GetLoadedChargeRef();
+			else
+				return InventoryItemRef();
+		}
 	}
+	else
+		GetLogger()->Warning( "ModuleManager::UnloadCharge()", "WARNING! Called UnloadCharge() on a module that is NOT loaded or not a charged module!" );
 
 	return InventoryItemRef();
 }
