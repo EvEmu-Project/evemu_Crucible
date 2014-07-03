@@ -87,7 +87,10 @@ PyResult Command_create( Client* who, CommandDB* db, PyServiceMgr* services, con
         throw PyException( MakeCustomError( "Unable to create item of type %s.", args.arg( 1 ).c_str() ) );
 
     //Move to location
-    i->Move( locationID, flag, true );
+	if( who->IsInSpace() )
+		who->GetShip()->AddItem(flag, i);
+	else
+		i->Move( locationID, flag, true );
 
     return new PyString( "Creation successful." );
 }
@@ -678,6 +681,15 @@ PyResult Command_spawn( Client* who, CommandDB* db, PyServiceMgr* services, cons
 		{
 			((DroneEntity *)(who->System()->get( entity.itemID )))->Destiny()->SetSpeedFraction( 1.0, true );
 			((DroneEntity *)(who->System()->get( entity.itemID )))->Destiny()->Orbit( who, 1000.0, true );
+		}
+
+		// TEST FOR FUN:  If this is a missile, torpedo, bomb, etc, then make its destiny manager Approach a target of the entity spawning it...
+		uint32 groupID = item->groupID();
+		if( groupID == 84 || groupID == 88 || groupID == 89 || groupID == 90 || groupID == 384 || groupID == 385 ||
+			groupID == 386 || groupID == 387 || groupID == 395 || groupID == 396 || groupID == 476 || groupID == 648 ||
+			groupID == 653 || groupID == 654 || groupID == 655 || groupID == 656 || groupID == 657 || groupID == 772 || groupID == 1019)
+		{
+			// This is NOT even going to make it here since Missiles/Torpedos/Bombs/etc are not supported yet by SystemManager::BuildDynamicEntity()
 		}
 	}
 
