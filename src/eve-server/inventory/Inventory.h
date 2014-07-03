@@ -56,6 +56,7 @@ public:
     bool Contains(uint32 itemID) const { return mContents.find( itemID ) != mContents.end(); }
     InventoryItemRef GetByID(uint32 id) const;
     InventoryItemRef GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const;
+	void GetInventoryList(std::map<uint32, InventoryItemRef> &inventory);
 
     /*
      *

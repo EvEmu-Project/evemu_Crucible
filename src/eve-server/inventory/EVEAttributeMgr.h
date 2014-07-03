@@ -293,8 +293,6 @@ public:
      */
     bool SetAttribute(uint32 attributeId, EvilNumber &num, bool nofity = true);
 
-    EvilNumber GetAttribute(uint32 attributeId);
-
     EvilNumber GetAttribute(const uint32 attributeId) const;
 
     /*
@@ -304,8 +302,6 @@ public:
      *
      * @note this function should be used very infrequently and only for specific reasons
      */
-    bool HasAttribute(uint32 attributeID);
-
     bool HasAttribute(const uint32 attributeID) const;
 
     /* ATM we don't load or save as we assume that all attribute modifiers are calculated on the fly

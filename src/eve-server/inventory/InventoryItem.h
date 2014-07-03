@@ -207,7 +207,7 @@ public:
      *
      * @note this function should be used very infrequently and only for specific reasons
      */
-    bool HasAttribute(uint32 attributeID);
+    bool HasAttribute(uint32 attributeID) const;
 
     /**
      * SaveAttributes
@@ -319,6 +319,8 @@ protected:
     int32               m_quantity;
     GPoint              m_position;
     std::string         m_customInfo;
+
+	std::map<EVEItemFlags, double> m_cargoHoldsUsedVolumeByFlag;
 };
 
 #endif

@@ -35,6 +35,8 @@
 
 class ShipOperatorInterface;
 
+#define SHIP_PROCESS_TICK_MS	5000
+
 /**
  * Basic container for raw ship type data.
  */
@@ -187,11 +189,12 @@ public:
      */
     void Delete();
 
-    double GetCapacity(EVEItemFlags flag) const;
     /*
      * _ExecAdd validation interface:
      */
-    void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item);
+    double GetCapacity(EVEItemFlags flag) const;
+	double GetRemainingVolumeByFlag(EVEItemFlags flag) const;
+    bool ValidateAddItem(EVEItemFlags flag, InventoryItemRef item);
     /*
      * Checks for conflicts between ship and fitting
      */
@@ -243,6 +246,12 @@ public:
     void OnlineAll();
     ShipOperatorInterface * GetOperator() { return m_pOperator; }
     std::vector<GenericModule *> GetStackedItems(uint32 typeID, ModulePowerLevel level);
+
+	// Tactical Interface:
+	void SetShipShields(double shieldChargeFraction);
+	void SetShipArmor(double armorHealthFraction);
+	void SetShipHull(double hullHealthFraction);
+	void SetShipCapacitorLevel(double capacitorChargeFraction);
 
     // External Methods For use by hostile entities directing effects to this entity:
     int32 ApplyRemoteEffect() { assert(true); }     // DO NOT CALL THIS YET!!!  This function needs to call down to ModuleManager::RemoveRemoteEffect with the proper argument list.
@@ -301,7 +310,13 @@ protected:
 
     void AddItem(InventoryItemRef item);
 
-private:
+	void _UpdateCargoHoldsUsedVolume();
+	void _IncreaseCargoHoldsUsedVolume(EVEItemFlags flag, double volumeToConsume);	// To release cargo space, make 'volumeToConsume' negative
+	void _DecreaseCargoHoldsUsedVolume(EVEItemFlags flag, double volumeToConsume);	// To release cargo space, make 'volumeToConsume' negative
+
+	const uint32 m_processTimerTick;
+    Timer m_processTimer;
+
     // Access to the pilot object, which could be Client, NPC, or other type,
     // so access is through an interface object.
     ShipOperatorInterface * m_pOperator;    // We own this
