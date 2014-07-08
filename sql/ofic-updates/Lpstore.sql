@@ -8,6 +8,7 @@
 -- typeID - the ID of the item(s) needed to purchase, multiple items would require multiple entries
 -- quantity - the quantity of the items needed
 
+DROP TABLE IF EXISTS `lpRequiredItems`;
 
 CREATE TABLE IF NOT EXISTS `lpRequiredItems` (
   `parentID` int(10) NOT NULL,
@@ -33511,6 +33512,8 @@ INSERT INTO `lpRequiredItems` (`parentID`, `typeID`, `quantity`) VALUES
 -- lpCost - price in LP (Raven Navy Issue = 600000)
 -- iskCost - prise in ISK (if any)
 
+DROP TABLE IF EXISTS `lpStore`;
+
 CREATE TABLE IF NOT EXISTS `lpStore` (
   `storeID` int(5) unsigned NOT NULL AUTO_INCREMENT,
   `corporationID` int(10) NOT NULL,
@@ -62606,6 +62609,8 @@ INSERT INTO `lpStore` (`storeID`, `corporationID`, `typeID`, `quantity`, `lpCost
 --
 -- Table structure for table `lpVerified`
 -- This table was used to check the validity when the coders were verifying the data/prices/ids etc . It needent be used. Keeping for checking purposes.
+
+DROP TABLE IF EXISTS `lpVerified`;
 
 CREATE TABLE IF NOT EXISTS `lpVerified` (
   `corporationID` int(10) NOT NULL,
