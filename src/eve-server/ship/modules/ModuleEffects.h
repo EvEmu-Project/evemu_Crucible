@@ -373,20 +373,22 @@ public:
     MEffect * GetDefaultEffect() { return m_defaultEffect; }
     MEffect * GetEffect(uint32 effectID);
 
-    std::map<uint32, MEffect *>::const_iterator GetPersistentEffectsConstIterator() { return m_PersistentEffects.begin(); }
     std::map<uint32, MEffect *>::const_iterator GetOnlineEffectsConstIterator() { return m_OnlineEffects.begin(); }
     std::map<uint32, MEffect *>::const_iterator GetActiveEffectsConstIterator() { return m_ActiveEffects.begin(); }
     std::map<uint32, MEffect *>::const_iterator GetOverloadEffectsConstIterator() { return m_OverloadEffects.begin(); }
+    std::map<uint32, MEffect *>::const_iterator GetGangEffectsConstIterator() { return m_GangEffects.begin(); }
+    std::map<uint32, MEffect *>::const_iterator GetFleetEffectsConstIterator() { return m_FleetEffects.begin(); }
 
 private:
 
     void _populate(uint32 typeID);
 
     //data members
-    std::map<uint32, MEffect *> m_PersistentEffects;
     std::map<uint32, MEffect *> m_OnlineEffects;
     std::map<uint32, MEffect *> m_ActiveEffects;
     std::map<uint32, MEffect *> m_OverloadEffects;
+    std::map<uint32, MEffect *> m_GangEffects;
+    std::map<uint32, MEffect *> m_FleetEffects;
     MEffect * m_defaultEffect;
 
     uint32 m_typeID;

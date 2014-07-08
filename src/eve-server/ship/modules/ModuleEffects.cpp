@@ -899,9 +899,6 @@ bool ModuleEffects::HasEffect(uint32 effectID)
 {
     std::map<uint32, MEffect *>::const_iterator cur, end;
 
-    if( m_PersistentEffects.find(effectID) != m_PersistentEffects.end() )
-		return true;
-
     if( m_OnlineEffects.find(effectID) != m_OnlineEffects.end() )
         return true;
 
@@ -919,9 +916,6 @@ MEffect * ModuleEffects::GetEffect(uint32 effectID)
     // WARNING: This function MUST be defined!
 	MEffect * effectPtr = NULL;
     std::map<uint32, MEffect *>::const_iterator cur, end;
-
-    if( (cur = m_PersistentEffects.find(effectID)) != m_PersistentEffects.end() )
-		return cur->second;
 
     if( (cur = m_OnlineEffects.find(effectID)) != m_OnlineEffects.end() )
 		return cur->second;
@@ -996,21 +990,30 @@ void ModuleEffects::_populate(uint32 typeID)
 					// This switch is assuming that all entries in 'dgmEffectsInfo' for this effectID are applied during the same module state,
 					// which should really be the case anyway, for every effectID, so we just check the list of attributes
 					// that are modified by this effect for which module state during which the effect is active:
-					switch( mEffectPtr->GetModuleStateWhenEffectApplied() )
-					{
-						case EFFECT_ONLINE:
-							m_OnlineEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
-							break;
-						case EFFECT_ACTIVE:
-							m_ActiveEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
-							break;
-						case EFFECT_OVERLOAD:
-							m_OverloadEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
-							break;
-						default:
-							sLog.Error("ModuleEffects::_populate()", "Illegal value '%u' obtained from the 'effectAppliedInState' field of the 'dgmEffectsInfo' table", mEffectPtr->GetModuleStateWhenEffectApplied());
-							break;
-					}
+					uint32 moduleStateWhenEffectApplied = mEffectPtr->GetModuleStateWhenEffectApplied();
+					if( moduleStateWhenEffectApplied == MOD_UNFITTED )
+						sLog.Error("ModuleEffects::_populate()", "Illegal value '%u' obtained from the 'effectAppliedInState' field of the 'dgmEffectsInfo' table", mEffectPtr->GetModuleStateWhenEffectApplied());
+
+					if( moduleStateWhenEffectApplied & MOD_OFFLINE )
+						;	// nothing
+
+					if( moduleStateWhenEffectApplied & MOD_ONLINE )
+						m_OnlineEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+
+					if( moduleStateWhenEffectApplied & MOD_ACTIVATED )
+						m_ActiveEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+
+					if( moduleStateWhenEffectApplied & MOD_OVERLOADED )
+						m_OverloadEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+
+					if( moduleStateWhenEffectApplied & MOD_GANG )
+						m_GangEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+
+					if( moduleStateWhenEffectApplied & MOD_FLEET )
+						m_FleetEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
+
+					if( moduleStateWhenEffectApplied & MOD_DEACTIVATING )
+						;	// nothing
 				}
 			}
         }
