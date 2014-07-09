@@ -133,5 +133,5 @@ INSERT INTO eveStaticOwners (ownerID, ownerName, typeID)
 /*
  * Set the auto-increment lower bound for other critical tables
  */
-ALTER TABLE account AUTO_INCREMENT=1
+ALTER TABLE account AUTO_INCREMENT=1;
 ALTER TABLE accountApi AUTO_INCREMENT=1000000;

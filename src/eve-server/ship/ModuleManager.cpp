@@ -32,7 +32,7 @@
 #include "ship/ModuleManager.h"
 #include "ship/ShipOperatorInterface.h"
 #include "ship/modules/ModuleFactory.h"
-#include "ship/Modules/ActiveModules.h"
+#include "ship/modules/ActiveModules.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 
