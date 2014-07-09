@@ -972,7 +972,7 @@ PyResult Command_giveallskills( Client* who, CommandDB* db, PyServiceMgr* servic
     SkillRef skill;
 
     // Make sure character reference is not NULL before trying to use it:
-    if( character != NULL )
+    if( character.get() != NULL )
     {
 		// Query Database to get list of ALL skills, then LOOP through each one, checking character for skill, setting level to 5:
 		// QUERY DB FOR LIST OF ALL SKILLS:
@@ -1096,7 +1096,7 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
         {
             // Character already has this skill, so let's get the current level and check to see
             // if we need to update its level to what's required:
-            skill = character->GetSkill( skillID );
+            skill = character->GetSkill( typeID.get_int() );
             skillLevel = skill->GetAttribute(AttrSkillLevel).get_int();
             if( skillLevel >= level )
             {
@@ -1114,15 +1114,14 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
             // Character DOES NOT have this skill, so spawn a new one and then add this
             // to the character with required level and skill points:
             ItemData idata(
-                typeID,
+                typeID.get_int(),
                 ownerID,
-                0, //temp location
-                flag = (EVEItemFlags)flagSkill,
-                gty
+                ownerID,
+                flagSkill,
+                1
             );
 
             InventoryItemRef item = services->item_factory.SpawnItem( idata );
-            skill = SkillRef::StaticCast( item );
 
             if( !item )
             {

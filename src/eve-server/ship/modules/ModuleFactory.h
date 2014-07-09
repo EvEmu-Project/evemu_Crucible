@@ -31,13 +31,13 @@
 #include "PassiveModules.h"
 #include "RigModule.h"
 #include "SubSystemModules.h"
-#include "ship/Modules/armor_modules/ArmorRepairer.h"
-#include "ship/Modules/mining_modules/MiningLaser.h"
+#include "ship/modules/armor_modules/ArmorRepairer.h"
+#include "ship/modules/mining_modules/MiningLaser.h"
 #include "ship/modules/propulsion_modules/Afterburner.h"
 #include "ship/modules/weapon_modules/EnergyTurret.h"
-#include "ship/Modules/weapon_modules/HybridTurret.h"
-#include "ship/Modules/weapon_modules/ProjectileTurret.h"
-#include "ship/Modules/weapon_modules/MissileLauncher.h"
+#include "ship/modules/weapon_modules/HybridTurret.h"
+#include "ship/modules/weapon_modules/ProjectileTurret.h"
+#include "ship/modules/weapon_modules/MissileLauncher.h"
 
 //how you should access the modules
 static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)

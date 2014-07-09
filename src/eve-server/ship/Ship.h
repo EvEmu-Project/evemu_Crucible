@@ -31,7 +31,7 @@
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
 #include "ship/ModuleManager.h"
-#include "ship/Modules/Modules.h"
+#include "ship/modules/Modules.h"
 
 class ShipOperatorInterface;
 
