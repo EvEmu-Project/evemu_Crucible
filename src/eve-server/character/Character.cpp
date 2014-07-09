@@ -180,7 +180,6 @@ CharacterData::CharacterData(
 
 void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 {
-	CharacterAppearance capp;
 	PyList* colors = new PyList();
 	PyList* modifiers = new PyList();
 	PyObjectEx* appearance;

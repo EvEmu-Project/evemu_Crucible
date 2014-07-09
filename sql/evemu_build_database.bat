@@ -21,6 +21,11 @@ call merge-evemu-updates.bat
 cd ..
 echo DONE!
 
+echo Droping database...
+mysql -u%1 -p%2 -v -e "drop database %3;"
+echo DONE!
+echo .
+
 echo Creating database '%3'...
 mysql -u%1 -p%2 -v -e "create database %3;"
 echo DONE!
@@ -34,26 +39,6 @@ goto ccp_insert_done
 :ccp_insert_with_logging
 mysql -u%1 -p%2 -v %3 < cru16-mysql5-v1.sql >> .\db_import_logs\cru16-mysql5-v1_db_import.log
 :ccp_insert_done
-echo DONE!
-echo.
-
-echo Inserting EVEmu Dynamic Updates into database...
-if "%4"=="log" goto evemu_dynamic_insert_with_logging
-mysql -u%1 -p%2 %3 < evemu_dynamic-dump.sql
-goto evemu_dynamic_insert_done
-:evemu_dynamic_insert_with_logging
-mysql -u%1 -p%2 -v %3 < evemu_dynamic-dump.sql >> .\db_import_logs\evemu_dynamic-dump_db_import.log
-:evemu_dynamic_insert_done
-echo DONE!
-echo.
-
-echo Inserting EVEmu Static Updates into database...
-if "%4"=="log" goto evemu_static_insert_with_logging
-mysql -u%1 -p%2 %3 < evemu_static-dump.sql
-goto evemu_static_insert_done
-:evemu_static_insert_with_logging
-mysql -u%1 -p%2 -v %3 < evemu_static-dump.sql >> .\db_import_logs\evemu_static-dump_db_import.log
-:evemu_static_insert_done
 echo DONE!
 echo.
 
@@ -81,6 +66,26 @@ rem :evemu_updates_insert_done
 rem cd ..
 rem echo DONE!
 rem echo.
+
+echo Inserting EVEmu Static Updates into database...
+if "%4"=="log" goto evemu_static_insert_with_logging
+mysql -u%1 -p%2 %3 < evemu_static-dump.sql
+goto evemu_static_insert_done
+:evemu_static_insert_with_logging
+mysql -u%1 -p%2 -v %3 < evemu_static-dump.sql >> .\db_import_logs\evemu_static-dump_db_import.log
+:evemu_static_insert_done
+echo DONE!
+echo.
+
+echo Inserting EVEmu Dynamic Updates into database...
+if "%4"=="log" goto evemu_dynamic_insert_with_logging
+mysql -u%1 -p%2 %3 < evemu_dynamic-dump.sql
+goto evemu_dynamic_insert_done
+:evemu_dynamic_insert_with_logging
+mysql -u%1 -p%2 -v %3 < evemu_dynamic-dump.sql >> .\db_import_logs\evemu_dynamic-dump_db_import.log
+:evemu_dynamic_insert_done
+echo DONE!
+echo.
 
 echo Priming Database...
 if "%4"=="log" goto priming_db_with_logging
@@ -119,3 +124,4 @@ echo     evemu_build_database root password evemu log
 echo.
 
 :done
+pause
