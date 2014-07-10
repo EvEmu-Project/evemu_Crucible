@@ -1023,8 +1023,6 @@ PyResult Command_giveallskills( Client* who, CommandDB* db, PyServiceMgr* servic
 		}
 		// END LOOP
     }
-	else
-		throw PyException( MakeCustomError( "ERROR: Unable to validate character object, it was found to be NULL!" ) );
 
     return new PyString ("Skill Gifting Failure");
 }
