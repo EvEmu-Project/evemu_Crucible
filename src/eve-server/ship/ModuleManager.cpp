@@ -1658,7 +1658,7 @@ int32 ModuleManager::RemoveSubsystemEffect(uint32 attributeID, uint32 originator
     {
         modMap = m_LocalSubsystemModifierMaps->find(attributeID)->second;
         modMap->m_MapIsDirty = true;
-        
+
         if( modMap->m_ModifierMap.find(modifierRef->GetModifierValue()) != modMap->m_ModifierMap.end() )
         {
             modMap->m_MapIsDirty = true;
@@ -1756,7 +1756,7 @@ int32 ModuleManager::RemoveShipSkillEffect(uint32 attributeID, uint32 originator
     {
         modMap = m_LocalShipSkillModifierMaps->find(attributeID)->second;
         modMap->m_MapIsDirty = true;
-        
+
         if( modMap->m_ModifierMap.find(modifierRef->GetModifierValue()) != modMap->m_ModifierMap.end() )
         {
             modMap->m_MapIsDirty = true;
