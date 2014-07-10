@@ -1086,7 +1086,7 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
     } else
         throw PyException( MakeCustomError("Correct Usage: /giveskill [Character Name or ID] [skillID] [desired level]") );
     // Make sure Character reference is not NULL before trying to use it:
-    if(character)
+    if(character.get() != NULL)
     {
         SkillRef skill;
         uint8 skillLevel;
