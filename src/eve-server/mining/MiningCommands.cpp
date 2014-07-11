@@ -243,17 +243,3 @@ void SpawnAsteroid( SystemManager* system, uint32 typeID, double radius, const G
     //TODO: actually add this to the asteroid belt too...
     system->AddEntity( new_roid );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
