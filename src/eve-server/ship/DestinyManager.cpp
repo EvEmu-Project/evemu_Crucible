@@ -1249,9 +1249,8 @@ PyResult DestinyManager::AttemptDockOperation()
     //clear all targets
     who->targets.ClearAllTargets();
 
-	//Heal Shields and Fully Recharge Capacitor:
-	who->GetShip()->SetShipShields(1.0);
-	who->GetShip()->SetShipCapacitorLevel(1.0);
+	//inform ship object that it is docking:
+	who->GetShip()->Dock();
 
     //Check if player is in pod, in which case they get a rookie ship for free
     if( who->GetShip()->typeID() == itemTypeCapsule )

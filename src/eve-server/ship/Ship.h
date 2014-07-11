@@ -221,6 +221,12 @@ public:
      */
     void SaveShip();
 
+    /*
+     * Inform Ship that it is docking or undocking
+     */
+    void Dock();
+	void Undock();
+
     /* begin new module manager interface */
 	InventoryItemRef GetModule(EVEItemFlags flag);
 	InventoryItemRef GetModule(uint32 itemID);
