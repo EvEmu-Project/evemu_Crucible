@@ -56,7 +56,7 @@ struct AccountInfo
 class ServiceDB
 {
 public:
-    bool GetAccountInformation( const char* username, AccountInfo & account_info );
+    bool GetAccountInformation( const char* username, const char* password, AccountInfo & account_info );
     bool UpdateAccountHash( const char* username, std::string & hash );
     bool UpdateAccountInformation( const char* username, bool isOnline );
 
