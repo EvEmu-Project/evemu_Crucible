@@ -44,10 +44,25 @@ protected:
 
     PyCallable_DECL_CALL(GetStationExtraInfo)
     PyCallable_DECL_CALL(GetSolarSystemPseudoSecurities)
+    PyCallable_DECL_CALL(GetSolarSystemVisits)
+    PyCallable_DECL_CALL(GetBeaconCount)
     PyCallable_DECL_CALL(GetStuckSystems)
-    PyCallable_DECL_CALL(GetHistory)
+    PyCallable_DECL_CALL(GetRecentSovActivity)
+    PyCallable_DECL_CALL(GetDeadspaceAgentsMap)
+    PyCallable_DECL_CALL(GetDeadspaceComplexMap)
     PyCallable_DECL_CALL(GetIncursionGlobalReport)
+    PyCallable_DECL_CALL(GetSystemsInIncursions)
+    PyCallable_DECL_CALL(GetSystemsInIncursionsGM)
     PyCallable_DECL_CALL(GetStationCount)
+    PyCallable_DECL_CALL(GetAllianceSystems)
+    PyCallable_DECL_CALL(GetMapLandmarks)
+    PyCallable_DECL_CALL(GetMyExtraMapInfo)
+    PyCallable_DECL_CALL(GetMyExtraMapInfoAgents)
+    PyCallable_DECL_CALL(GetHistory)
+    PyCallable_DECL_CALL(GetVictoryPoints)
+    PyCallable_DECL_CALL(GetAllianceJumpBridges)
+    PyCallable_DECL_CALL(GetLinkableJumpArrays)
+
 };
 
 #endif

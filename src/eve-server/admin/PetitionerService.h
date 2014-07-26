@@ -38,6 +38,7 @@ protected:
     Dispatcher *const m_dispatch;
 
     PyCallable_DECL_CALL(GetCategories)
+    PyCallable_DECL_CALL(GetCategoryHierarchicalInfo)
     PyCallable_DECL_CALL(GetUnreadMessages)
 
     //overloaded in order to support bound objects:

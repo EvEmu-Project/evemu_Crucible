@@ -59,6 +59,8 @@ public:
         PyCallable_REG_CALL(ShipBound, Eject)
         PyCallable_REG_CALL(ShipBound, LeaveShip)
         PyCallable_REG_CALL(ShipBound, ActivateShip)
+        PyCallable_REG_CALL(ShipBound, GetShipConfiguration)
+        PyCallable_REG_CALL(ShipBound, SelfDestruct)
     }
 
     virtual ~ShipBound() {delete m_dispatch;}
@@ -77,6 +79,8 @@ public:
     PyCallable_DECL_CALL(Eject)
     PyCallable_DECL_CALL(LeaveShip)
     PyCallable_DECL_CALL(ActivateShip)
+    PyCallable_DECL_CALL(GetShipConfiguration)
+    PyCallable_DECL_CALL(SelfDestruct)
 
 protected:
     ShipDB& m_db;
@@ -1156,4 +1160,14 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call)
     rsp->items[2] = new BuiltinSet();
 
     return rsp;
+}
+
+PyResult ShipBound::Handle_GetShipConfiguration(PyCallArgs &call) {
+    PyRep *result = NULL;
+    return result;
+}
+
+PyResult ShipBound::Handle_SelfDestruct(PyCallArgs &call) {
+    PyRep *result = NULL;
+    return result;
 }

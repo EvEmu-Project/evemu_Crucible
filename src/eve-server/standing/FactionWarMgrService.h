@@ -38,7 +38,12 @@ public:
     PyCallable_DECL_CALL(GetWarFactions)
     PyCallable_DECL_CALL(GetFWSystems)
     PyCallable_DECL_CALL(GetMyCharacterRankOverview)
+    PyCallable_DECL_CALL(GetMyCharacterRankInfo)
     PyCallable_DECL_CALL(GetFactionMilitiaCorporation)
+    PyCallable_DECL_CALL(GetCharacterRankInfo)
+    PyCallable_DECL_CALL(GetFactionalWarStatus)
+    PyCallable_DECL_CALL(IsEnemyFaction)
+    PyCallable_DECL_CALL(JoinFactionAsCharacter)
 
 private:
     class Dispatcher;

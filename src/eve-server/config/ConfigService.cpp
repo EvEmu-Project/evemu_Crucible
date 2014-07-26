@@ -41,14 +41,17 @@ ConfigService::ConfigService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(ConfigService, GetMultiAllianceShortNamesEx)
     PyCallable_REG_CALL(ConfigService, GetMultiCorpTickerNamesEx)
     PyCallable_REG_CALL(ConfigService, GetUnits)
-    PyCallable_REG_CALL(ConfigService, GetMapObjects)
     PyCallable_REG_CALL(ConfigService, GetMap)
+    PyCallable_REG_CALL(ConfigService, GetMapOffices)
+    PyCallable_REG_CALL(ConfigService, GetMapObjects)
     PyCallable_REG_CALL(ConfigService, GetMapConnections)
     PyCallable_REG_CALL(ConfigService, GetMultiGraphicsEx)
     PyCallable_REG_CALL(ConfigService, GetMultiInvTypesEx)
     PyCallable_REG_CALL(ConfigService, GetStationSolarSystemsByOwner)
     PyCallable_REG_CALL(ConfigService, GetCelestialStatistic)
     PyCallable_REG_CALL(ConfigService, GetDynamicCelestials)
+    PyCallable_REG_CALL(ConfigService, GetMapLandmarks)
+    PyCallable_REG_CALL(ConfigService, SetMapLandmarks)
 }
 
 ConfigService::~ConfigService() {
@@ -126,6 +129,18 @@ PyResult ConfigService::Handle_GetMap(PyCallArgs &call) {
     }
 
     return(m_db.GetMap(args.arg));
+}
+
+PyResult ConfigService::Handle_GetMapOffices(PyCallArgs &call) {
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
+    Call_SingleIntegerArg args;
+    if(!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "Failed to decode arguments");
+        return NULL;
+    }
+
+    //return(m_db.GetMapOffices(args.arg));
+	return NULL;
 }
 
 PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
@@ -257,32 +272,27 @@ PyResult ConfigService::Handle_GetMultiInvTypesEx(PyCallArgs &call) {
 
 PyResult ConfigService::Handle_GetMapConnections(PyCallArgs &call) {
 /*
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 1] String: 'GetMapConnections'
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2] Tuple: 6 elements
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2]   [ 0] Integer field: 10000016 (Lonetrek (region))
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2]   [ 1] Boolean field: false
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2]   [ 2] Boolean field: true
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2]   [ 3] Boolean field: false
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2]   [ 4] Integer field: 0
-[PyRep]   Args:   [ 4]   [ 0]   [ 1]     [ 2]   [ 5] Integer field: 1
+this is cached on clientside.  only called if not in client cache
 
-CREATE TABLE GetMapConnections (
-  connectionType INT UNSIGNED NOT NULL,
-  fromRegionID INT UNSIGNED NOT NULL,
-  fromConstellationID INT UNSIGNED NULL,
-  fromSolarSystemID INT UNSIGNED NULL,
-  stargateID INT UNSIGNED NULL,
-  celestialID INT UNSIGNED NULL,
-  toSolarSystemID INT UNSIGNED NULL,
-  toConstellationID INT UNSIGNED NULL,
-  toRegionID INT UNSIGNED NOT NULL,
-  PRIMARY KEY()
-);
+GetMapConnections(id, sol, reg, con, cel, _c)
+      <int name="id" />
+      <bool name="sol" />
+      <bool name="reg" /> args.reg
+      <bool name="con" />
+      <int name="cel" />
+      <int name="_c" />
 */
-    sLog.Debug( "ConfigService", "Called GetMapConnections stub." );
-
-    return NULL;
+/*  will add this complete code with other map data at a later date  -allan 25Jul14
+    Call_GetMapConnections args;
+    if(!args.Decode(&call.tuple)) {
+        _log(SERVICE__ERROR, "Failed to decode args.");
+        return new PyInt(0);
+    }
+    return m_db.GetMapConnections(args.id, args.sol, args.reg, args.con, args.cel, args._c);
+*/
+	return NULL;
 }
+
 PyResult ConfigService::Handle_GetStationSolarSystemsByOwner(PyCallArgs &call) {
     Call_SingleIntegerArg arg;
     if (!arg.Decode(&call.tuple)) {
@@ -315,3 +325,11 @@ PyResult ConfigService::Handle_GetDynamicCelestials(PyCallArgs &call){
     return m_db.GetDynamicCelestials(arg.arg);
 }
 
+PyResult ConfigService::Handle_GetMapLandmarks(PyCallArgs &call) {
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
+    //return m_db.GetMapLandmarks();
+}
+
+PyResult ConfigService::Handle_SetMapLandmarks(PyCallArgs &call) {
+        return NULL;
+}

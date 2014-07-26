@@ -39,10 +39,25 @@ MapService::MapService(PyServiceMgr *mgr)
 
     PyCallable_REG_CALL(MapService, GetStationExtraInfo)
     PyCallable_REG_CALL(MapService, GetSolarSystemPseudoSecurities)
-    PyCallable_REG_CALL(MapService, GetStuckSystems)
+    PyCallable_REG_CALL(MapService, GetSolarSystemVisits)
+    PyCallable_REG_CALL(MapService, GetBeaconCount)
     PyCallable_REG_CALL(MapService, GetHistory)
-    PyCallable_REG_CALL(MapService, GetIncursionGlobalReport)
     PyCallable_REG_CALL(MapService, GetStationCount)
+
+    /**  not handled yet...these are empty calls  */
+    PyCallable_REG_CALL(MapService, GetStuckSystems)
+    PyCallable_REG_CALL(MapService, GetRecentSovActivity)
+    PyCallable_REG_CALL(MapService, GetDeadspaceAgentsMap)
+    PyCallable_REG_CALL(MapService, GetDeadspaceComplexMap)
+    PyCallable_REG_CALL(MapService, GetIncursionGlobalReport)
+    PyCallable_REG_CALL(MapService, GetSystemsInIncursions)
+    PyCallable_REG_CALL(MapService, GetSystemsInIncursionsGM)
+    PyCallable_REG_CALL(MapService, GetVictoryPoints)
+    PyCallable_REG_CALL(MapService, GetMyExtraMapInfo)
+    PyCallable_REG_CALL(MapService, GetMyExtraMapInfoAgents)
+    PyCallable_REG_CALL(MapService, GetAllianceJumpBridges)
+    PyCallable_REG_CALL(MapService, GetLinkableJumpArrays)
+
 }
 
 MapService::~MapService() {
@@ -118,32 +133,118 @@ PyResult MapService::Handle_GetSolarSystemPseudoSecurities(PyCallArgs &call) {
     return result;
 }
 
-/* not handled */
-PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
-    PyRep *result = NULL;
+PyResult MapService::Handle_GetSolarSystemVisits(PyCallArgs &call)
+{
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
 
+    //uint32 charID = call.client->GetCharacterID();
+    //return (m_db.GetSolSystemVisits(charID));
+	return new PyNone;
+}
+
+PyResult MapService::Handle_GetHistory(PyCallArgs &call) {
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
+
+    //return (m_db.GetDynamicData(int1, int2));
+	return new PyNone;
+}
+
+PyResult MapService::Handle_GetBeaconCount(PyCallArgs &call) {
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
+
+    //return (m_db.GetDynamicData(2, 24));
+	return new PyNone;
+}
+
+PyResult MapService::Handle_GetStationCount(PyCallArgs &call)
+{
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
+
+    //return (m_db.GetStationCount());
+	return new PyNone;
+}
+
+/** not handled */
+PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call) {
+    uint8 none = 0;
+
+    PyTuple* res = NULL;
+    PyTuple* tuple0 = new PyTuple( 1 );
+
+    tuple0->items[ 0 ] = new PyInt( none );
+
+    res = tuple0;
+
+    return res;
+}
+
+PyResult MapService::Handle_GetRecentSovActivity(PyCallArgs &call)
+{
+    PyRep *result = NULL;
     result = new PyDict();
 
     return result;
 }
 
-PyResult MapService::Handle_GetHistory(PyCallArgs &call) {
+PyResult MapService::Handle_GetDeadspaceAgentsMap(PyCallArgs &call)
+{
+//   DED Agent Site Report
+    PyRep *result = NULL;
+    result = new PyDict();
 
-    sLog.Debug("Server", "Called GetHistory Stub.");
+    return result;
+}
 
+PyResult MapService::Handle_GetDeadspaceComplexMap(PyCallArgs &call)
+{
+//  DED Deadspace Report
+    PyRep *result = NULL;
+    result = new PyDict();
+
+    return result;
+}
+
+PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call)
+{
     return NULL;
 }
 
-PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call) {
-
-    sLog.Debug("Server", "Called GetIncursionGlobalReport Stub.");
-
+PyResult MapService::Handle_GetSystemsInIncursions(PyCallArgs &call)
+{
     return NULL;
 }
 
-PyResult MapService::Handle_GetStationCount(PyCallArgs &call) {
+PyResult MapService::Handle_GetSystemsInIncursionsGM(PyCallArgs &call)
+{
+    return NULL;
+}
 
-    sLog.Debug("Server", "Called GetStationCount stub.");
+PyResult MapService::Handle_GetAllianceSystems(PyCallArgs &call)
+{
+    return NULL;
+}
 
-    return new PyDict;
+PyResult MapService::Handle_GetVictoryPoints(PyCallArgs &call)
+{
+//   factional warfare shit
+    return NULL;
+}
+
+PyResult MapService::Handle_GetMyExtraMapInfoAgents(PyCallArgs &call)
+{
+    return NULL;
+}
+
+PyResult MapService::Handle_GetMyExtraMapInfo(PyCallArgs &call)
+{
+    return NULL;
+}
+PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
+{
+    return NULL;
+}
+
+PyResult MapService::Handle_GetLinkableJumpArrays(PyCallArgs &call)
+{
+    return NULL;
 }

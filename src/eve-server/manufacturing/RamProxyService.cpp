@@ -44,6 +44,8 @@ RamProxyService::RamProxyService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(RamProxyService, CompleteJob);
     PyCallable_REG_CALL(RamProxyService, GetRelevantCharSkills);
     PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelectPublic);
+    PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelectPrivate);
+    PyCallable_REG_CALL(RamProxyService, GetRelevantCharSkills);
 }
 
 RamProxyService::~RamProxyService() {
@@ -51,10 +53,15 @@ RamProxyService::~RamProxyService() {
 }
 
 PyResult RamProxyService::Handle_AssemblyLinesSelectPublic(PyCallArgs &call) {
+    //  will add this completed code at a later date  -allan 25Jul14
+    //return(m_db.AssemblyLinesSelectPublic(call.client->GetRegionID()));
+    return NULL;
+}
 
-    sLog.Debug("Server", "Called AsemblyLinesSelectPublic Stub.");
-
-    return new PyList;
+PyResult RamProxyService::Handle_AssemblyLinesSelectPrivate(PyCallArgs &call) {
+    //  will add this completed code at a later date  -allan 25Jul14
+    //return(m_db.AssemblyLinesSelectPrivate(call.client->GetCharacterID()));
+    return NULL;
 }
 
 PyResult RamProxyService::Handle_GetRelevantCharSkills(PyCallArgs &call) {

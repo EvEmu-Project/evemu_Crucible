@@ -1426,11 +1426,11 @@ void DestinyManager::SendJumpOut(uint32 stargateID) const {
     //Clear any pending docking operation since the user set a new course:
 	if( m_self->IsClient() )
 		m_self->CastToClient()->SetPendingDockOperation( false );
-    
+
     DoDestiny_CmdStop du;
     du.entityID = m_self->GetID();
     updates.push_back(du.Encode());
-    
+
     //send a warping special effects update...
     DoDestiny_OnSpecialFX10 effect;
     effect.entityID = m_self->GetID();
@@ -1483,11 +1483,11 @@ void DestinyManager::SendJumpOutEffect(std::string JumpEffect, uint32 locationID
     //Clear any pending docking operation since the user set a new course:
 	if( m_self->IsClient() )
 		m_self->CastToClient()->SetPendingDockOperation( false );
-    
+
     DoDestiny_CmdStop du;
     du.entityID = m_self->GetID();
     updates.push_back(du.Encode());
-    
+
     //send a warping special effects update...
     DoDestiny_OnSpecialFX10 effect;
     effect.entityID = m_self->GetID();
@@ -1723,7 +1723,7 @@ void DestinyManager::SendAnchorLift(const InventoryItemRef itemRef) const {
 
 void DestinyManager::SendCloakShip(const bool IsWarpSafe) const {
     std::vector<PyTuple *> updates;
-	
+
       DoDestiny_OnSpecialFX10 effect;
     effect.effect_type = "effects.Cloak";
 	effect.entityID = m_self->GetID();
@@ -1788,4 +1788,22 @@ void DestinyManager::SendSpecialEffect(const ShipRef shipRef, uint32 moduleID, u
 	//PyTuple* up = effect.Encode();
     //SendSingleDestinyUpdate( &up );    //consumed
     //PySafeDecRef( up );
+}
+
+void DestinyManager::SendSpecialEffect10(uint32 entityID, const ShipRef shipRef, uint32 targetID, std::string effectString, bool isOffensive, bool start, bool isActive) const
+{
+    std::vector<PyTuple *> updates;
+std::vector<int32, std::allocator<int32> > area;
+
+    DoDestiny_OnSpecialFX10 effect;
+    effect.entityID = entityID;
+effect.targetID = targetID;
+    effect.effect_type = effectString;
+    effect.area = area;
+effect.isOffensive = 0;
+    effect.start = 1;
+    effect.active = 0;
+    updates.push_back(effect.Encode());
+
+    SendDestinyUpdate(updates, false);
 }

@@ -70,6 +70,7 @@ PetitionerService::PetitionerService(PyServiceMgr *mgr)
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(PetitionerService, GetCategories)
+    PyCallable_REG_CALL(PetitionerService, GetCategoryHierarchicalInfo)
     PyCallable_REG_CALL(PetitionerService, GetUnreadMessages)
 }
 
@@ -101,6 +102,11 @@ PyResult PetitionerService::Handle_GetCategories( PyCallArgs& call )
     return result;
 }
 
+PyResult PetitionerService::Handle_GetCategoryHierarchicalInfo( PyCallArgs& call )
+{
+    sLog.Debug( "PetitionerService", "Called GetCategoryHierarchicalInfo stub." );
+    return new PyList;
+}
 
 PyResult PetitionerService::Handle_GetUnreadMessages( PyCallArgs& call )
 {

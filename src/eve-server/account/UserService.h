@@ -41,6 +41,7 @@ protected:
 
     PyCallable_DECL_CALL(GetRedeemTokens)
     PyCallable_DECL_CALL(GetCreateDate)
+    PyCallable_DECL_CALL(ReportISKSpammer)
 };
 
 #endif /* __USER_SERVICE__H__INCL__ */

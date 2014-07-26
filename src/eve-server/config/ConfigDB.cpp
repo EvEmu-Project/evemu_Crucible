@@ -469,7 +469,7 @@ PyRep *ConfigDB::GetDynamicCelestials(uint32 solarSystemID) {
                               "     `invTypes`.`groupID`, "
                               "     `itemName`, "
                               "     0, " // This field refers to the orbitID of the dynamic celestial and needs to be implemented
-                              "     0, " // This field refers to the boolean value of isConnector.  It may signify some sort of mission jump bridge
+                              "     0, " // This field refers to the boolean value of isConnector. It may signify some sort of mission jump bridge
                               "     `x`, "
                               "     `y`, "
                               "     `z` "
@@ -500,4 +500,3 @@ PyRep *ConfigDB::GetTextsForGroup(const std::string & langID, uint32 textgroup) 
 
     return DBResultToRowset(res);
 }
-
