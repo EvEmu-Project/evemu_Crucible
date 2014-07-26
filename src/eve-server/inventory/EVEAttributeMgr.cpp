@@ -792,7 +792,7 @@ bool AttributeMap::Delete()
 {
     // Remove all attributes from the entity_default_attributes table or entity_attributes table for this item:
     DBerror err;
-    
+
 	if(mDefault)
 	{
 		if(!sDatabase.RunQuery(err,
@@ -839,4 +839,3 @@ AttributeMap::AttrMapItr AttributeMap::end()
 /************************************************************************/
 /* End of new attribute system                                          */
 /************************************************************************/
-

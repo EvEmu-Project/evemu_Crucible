@@ -210,9 +210,9 @@ RefPtr<_Ty> InventoryItem::_LoadItem(ItemFactory &factory, uint32 itemID,
                 return CargoContainerRef( new CargoContainer( factory, itemID, type, data ) );
             else
 				if( (type.groupID() >= EVEDB::invGroups::Asteroid_Angel_Cartel_Frigate
-							&& type.groupID() <= EVEDB::invGroups::Deadspace_Serpentis_Frigate) 
+							&& type.groupID() <= EVEDB::invGroups::Deadspace_Serpentis_Frigate)
 							|| (type.groupID() >= 755 /* Asteroid Rogue Drone BattleCruiser */
-							&& type.groupID() <= 761 /* Asteroid Rogue Drone Swarm */) 
+							&& type.groupID() <= 761 /* Asteroid Rogue Drone Swarm */)
 							|| (type.groupID() >= 789 /* Asteroid Angel Cartel Commander Frigate */
 							&& type.groupID() <= 814 /* Asteroid Serpentis Commander Frigate */)
 							|| (type.groupID() >= 843 /* Asteroid Rogue Drone Commander BattleCruiser */
@@ -774,6 +774,7 @@ bool InventoryItem::Populate( Rsp_CommonGetInfo_Entry& result )
         es.env_shipID = locationID();
         es.env_target = locationID();   //this is what they do.
         es.env_other = new PyNone;
+		es.env_area = new PyNone;
         es.env_effectID = effectOnline;
         es.startTime = Win32TimeNow() - Win32Time_Hour; //act like it happened an hour ago
         es.duration = INT_MAX;
@@ -898,12 +899,12 @@ bool InventoryItem::SetQuantity(uint32 qty_new, bool notify) {
 bool InventoryItem::SetFlag(EVEItemFlags new_flag, bool notify) {
     EVEItemFlags old_flag = m_flag;
     m_flag = new_flag;
-    
+
     SaveItem();
-    
+
     if(notify) {
         std::map<int32, PyRep *> changes;
-	
+
 	//send the notify to the new owner.
 	changes[ixFlag] = new PyInt(new_flag);
 	SendItemChange(m_ownerID, changes); //changes is consumed
@@ -1087,7 +1088,7 @@ void InventoryItem::SetOnline(bool online) {
 	environment->AddItem(new PyNone);
 	environment->AddItem(new PyNone);
 	environment->AddItem(new PyInt(ogf.effectID));
-	
+
 	ogf.environment = environment;
 	ogf.startTime = ogf.when;
 	ogf.duration = 10000;

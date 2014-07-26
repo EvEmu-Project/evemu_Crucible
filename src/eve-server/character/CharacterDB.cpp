@@ -113,7 +113,6 @@ PyRep* CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
     {
         // valid request; this means we may use charID safely here
         sDatabase.RunQuery(error, "DELETE FROM entity WHERE ownerID = %u", charID);
-
         // indicates 'no error' to the client
         return NULL;
     }
@@ -443,7 +442,7 @@ bool CharacterDB::GetCharHomeStation(uint32 characterID, uint32 &stationID) {
 		_log(DATABASE__ERROR, "Could't get the location of the clone for char %u", characterID );
 		return false;
 	}
-    
+
 	DBResultRow row;
     res.GetRow(row);
     stationID = row.GetUInt(0);
@@ -645,7 +644,7 @@ void CharacterDB::SetAvatar(uint32 charID, PyRep* hairDarkness) {
 	if(!sDatabase.RunQuery(err,
 		"INSERT INTO avatars ("
 		"charID, hairDarkness)"
-		"VALUES (%u, %f)", 
+		"VALUES (%u, %f)",
 		charID, hairDarkness->AsFloat()->value()))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -658,7 +657,7 @@ void CharacterDB::SetAvatarColors(uint32 charID, uint32 colorID, uint32 colorNam
 	if(!sDatabase.RunQuery(err,
 		"INSERT INTO avatar_colors ("
 		"charID, colorID, colorNameA, colorNameBC, weight, gloss)"
-		"VALUES (%u, %u, %u, %u, %f, %f)", 
+		"VALUES (%u, %u, %u, %u, %f, %f)",
 		charID, colorID, colorNameA, colorNameBC, weight, gloss))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -671,10 +670,10 @@ void CharacterDB::SetAvatarModifiers(uint32 charID, PyRep* modifierLocationID,  
 	if(!sDatabase.RunQuery(err,
 		"INSERT INTO avatar_modifiers ("
 		"charID, modifierLocationID, paperdollResourceID, paperdollResourceVariation)"
-		"VALUES (%u, %u, %u, %u)", 
-		charID, 
-		modifierLocationID->AsInt()->value(), 
-		paperdollResourceID->AsInt()->value(), 
+		"VALUES (%u, %u, %u, %u)",
+		charID,
+		modifierLocationID->AsInt()->value(),
+		paperdollResourceID->AsInt()->value(),
 		paperdollResourceVariation->IsInt() ? paperdollResourceVariation->AsInt()->value() : NULL ))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
@@ -687,11 +686,11 @@ void CharacterDB::SetAvatarSculpts(uint32 charID, PyRep* sculptLocationID, PyRep
 	if(!sDatabase.RunQuery(err,
 		"INSERT INTO avatar_sculpts ("
 		"charID, sculptLocationID, weightUpDown, weightLeftRight, weightForwardBack)"
-		"VALUES (%u, %u, %f, %f, %f)", 
-		charID, 
-		sculptLocationID->AsInt()->value(), 
-		weightUpDown->IsFloat() ? weightUpDown->AsFloat()->value() : NULL, 
-		weightLeftRight->IsFloat() ? weightLeftRight->AsFloat()->value() : NULL, 
+		"VALUES (%u, %u, %f, %f, %f)",
+		charID,
+		sculptLocationID->AsInt()->value(),
+		weightUpDown->IsFloat() ? weightUpDown->AsFloat()->value() : NULL,
+		weightLeftRight->IsFloat() ? weightLeftRight->AsFloat()->value() : NULL,
 		weightForwardBack->IsFloat() ? weightForwardBack->AsFloat()->value() : NULL))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
