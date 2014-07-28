@@ -802,6 +802,19 @@ bool Ship::ValidateItemSpecifics(InventoryItemRef equip) {
 
 }
 
+void Ship::Dock()
+{
+	// Heal Shields and Fully Recharge Capacitor:
+	SetShipShields(1.0);
+	SetShipCapacitorLevel(1.0);
+
+	DeactivateAllModules();
+}
+
+void Ship::Undock()
+{
+}
+
 /* Begin new Module Manager Interface */
 InventoryItemRef Ship::GetModule(EVEItemFlags flag)
 {
@@ -919,8 +932,9 @@ void Ship::RemoveItem(InventoryItemRef item, uint32 inventoryID, EVEItemFlags fl
 		// Don't know what to do when removing a Subsystem... yet ;)
 	}
 
-	// if item being removed IS a charge, it needs to be removed via Module Manager so modules know charge is removed:
-	if( item->categoryID() == EVEDB::invCategories::Charge )
+	// if item being removed IS a charge, it needs to be removed via Module Manager so modules know charge is removed,
+	// BUT, only if it is loaded into a module in one of the 3 slot banks, so we also check its flag value:
+	if( (item->categoryID() == EVEDB::invCategories::Charge) && ((item->flag() >= flagLowSlot0)  &&  (item->flag() <= flagHiSlot7)) )
 	{
 		m_ModuleManager->UnloadCharge(item->flag());
 	}
@@ -1074,7 +1088,7 @@ void Ship::SetShipShields(double shieldChargeFraction)
 	if( (newShieldCharge + 0.5) > GetAttribute(AttrShieldCapacity) )
 		newShieldCharge = GetAttribute(AttrShieldCapacity);
 
-	SetAttribute(AttrShieldCharge, shieldChargeFraction);
+	SetAttribute(AttrShieldCharge, newShieldCharge);
 }
 
 void Ship::SetShipArmor(double armorHealthFraction)

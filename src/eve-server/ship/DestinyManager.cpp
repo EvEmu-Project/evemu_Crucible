@@ -1249,9 +1249,8 @@ PyResult DestinyManager::AttemptDockOperation()
     //clear all targets
     who->targets.ClearAllTargets();
 
-	//Heal Shields and Fully Recharge Capacitor:
-	who->GetShip()->SetShipShields(1.0);
-	who->GetShip()->SetShipCapacitorLevel(1.0);
+	//inform ship object that it is docking:
+	who->GetShip()->Dock();
 
     //Check if player is in pod, in which case they get a rookie ship for free
     if( who->GetShip()->typeID() == itemTypeCapsule )
@@ -1742,6 +1741,24 @@ void DestinyManager::SendUncloakShip() const {
     effect.effect_type = "effects.Uncloak";
 	effect.entityID = m_self->GetID();
     effect.isOffensive = 0;
+    effect.start = 1;
+    effect.active = 0;
+    updates.push_back(effect.Encode());
+
+    SendDestinyUpdate(updates, false);
+}
+
+void DestinyManager::SendSpecialEffect10(uint32 entityID, const ShipRef shipRef, uint32 targetID, std::string effectString, bool isOffensive, bool start, bool isActive) const
+{
+    std::vector<PyTuple *> updates;
+	std::vector<int32, std::allocator<int32> > area;
+
+    DoDestiny_OnSpecialFX10 effect;
+    effect.entityID = entityID;
+	effect.targetID = targetID;
+    effect.effect_type = effectString;
+    effect.area = area;
+	effect.isOffensive = 0;
     effect.start = 1;
     effect.active = 0;
     updates.push_back(effect.Encode());

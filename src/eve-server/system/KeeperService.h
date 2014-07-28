@@ -42,6 +42,7 @@ protected:
 
     SystemDB m_db;
 
+	PyCallable_DECL_CALL(ActivateAccelerationGate)
     PyCallable_DECL_CALL(GetLevelEditor)
     PyCallable_DECL_CALL(ActivateAccelerationGate)
 
@@ -49,10 +50,4 @@ protected:
     virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
 };
 
-
-
-
-
 #endif
-
-
