@@ -138,7 +138,6 @@ public:
 	void SendSpecialEffect10(uint32 gateID, const ShipRef shipRef, uint32 targetID, std::string effectString, bool isOffensive, bool start, bool isActive) const;
 	void SendSpecialEffect(const ShipRef shipRef, uint32 moduleID, uint32 moduleTypeID,
     uint32 targetID, uint32 chargeTypeID, std::string effectString, bool isOffensive, bool start, bool isActive, double duration, uint32 repeat) const;
-	void SendSpecialEffect10(uint32 entityID, const ShipRef shipRef, uint32 targetID, std::string effectString, bool isOffensive, bool start, bool isActive) const;
 
 protected:
     void ProcessTic();

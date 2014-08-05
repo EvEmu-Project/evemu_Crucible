@@ -1807,20 +1807,3 @@ void DestinyManager::SendSpecialEffect(const ShipRef shipRef, uint32 moduleID, u
     //PySafeDecRef( up );
 }
 
-void DestinyManager::SendSpecialEffect10(uint32 entityID, const ShipRef shipRef, uint32 targetID, std::string effectString, bool isOffensive, bool start, bool isActive) const
-{
-    std::vector<PyTuple *> updates;
-std::vector<int32, std::allocator<int32> > area;
-
-    DoDestiny_OnSpecialFX10 effect;
-    effect.entityID = entityID;
-effect.targetID = targetID;
-    effect.effect_type = effectString;
-    effect.area = area;
-effect.isOffensive = 0;
-    effect.start = 1;
-    effect.active = 0;
-    updates.push_back(effect.Encode());
-
-    SendDestinyUpdate(updates, false);
-}
