@@ -1111,11 +1111,14 @@ PyResult ShipBound::Handle_LeaveShip(PyCallArgs &call){
 
     // Remove ball from bubble manager for this client's character's system for the old ship and then
     // board the capsule:
-    call.client->System()->bubbles.Remove( call.client, true );
+    if(call.client->IsInSpace())
+        call.client->System()->bubbles.Remove( call.client, true );
+        
     call.client->BoardShip( updatedCapsuleRef );
 
     // Add ball to bubble manager for this client's character's system for the new capsule object:
-    call.client->System()->bubbles.Add( call.client, true );
+    if(call.client->IsInSpace())
+        call.client->System()->bubbles.Add( call.client, true );
 
     return NULL;
 }
