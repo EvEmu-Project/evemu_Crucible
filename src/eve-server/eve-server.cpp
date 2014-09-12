@@ -103,6 +103,8 @@
 // pos services
 #include "pos/PlanetMgr.h"
 #include "pos/PosMgrService.h"
+//Search Service
+#include "search/SearchMgrService.h"
 // ship services
 #include "ship/BeyonceService.h"
 #include "ship/FleetProxy.h"
@@ -312,6 +314,7 @@ int main( int argc, char* argv[] )
     services.RegisterService(new RamProxyService(&services));
     services.RegisterService(new RepairService(&services));
     services.RegisterService(new ReprocessingService(&services));
+    services.RegisterService(new SearchMgrService(&services));
     services.RegisterService(new ShipService(&services));
     services.RegisterService(new SkillMgrService(&services));
     services.RegisterService(new SlashService(&services, &command_dispatcher));

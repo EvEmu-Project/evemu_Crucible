@@ -99,6 +99,7 @@
 #include "packets/Manufacturing.h"
 #include "packets/ObjectCaching.h"
 #include "packets/Market.h"
+#include "packets/Search.h"
 #include "packets/Sovereignty.h"
 #include "packets/Standing2.h"
 #include "packets/Trade.h"
