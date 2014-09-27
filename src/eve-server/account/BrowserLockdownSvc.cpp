@@ -40,6 +40,7 @@ BrowserLockdownService::BrowserLockdownService( PyServiceMgr *mgr )
     PyCallable_REG_CALL(BrowserLockdownService, GetFlaggedSitesHash)
     PyCallable_REG_CALL(BrowserLockdownService, GetFlaggedSitesList)
     PyCallable_REG_CALL(BrowserLockdownService, GetDefaultHomePage)
+    PyCallable_REG_CALL(BrowserLockdownService, IsBrowserInLockdown)
 }
 
 BrowserLockdownService::~BrowserLockdownService() {
@@ -146,4 +147,9 @@ PyResult BrowserLockdownService::Handle_GetFlaggedSitesList(PyCallArgs &call) {
 
 PyResult BrowserLockdownService::Handle_GetDefaultHomePage(PyCallArgs &call) {
     return NULL;
+}
+
+PyResult BrowserLockdownService::Handle_IsBrowserInLockdown(PyCallArgs &call) {
+  /*  Empty Call  */
+    return new PyNone;
 }

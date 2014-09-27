@@ -43,6 +43,7 @@ TutorialService::TutorialService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(TutorialService, GetContextHelp)
     PyCallable_REG_CALL(TutorialService, GetCharacterTutorialState)
     PyCallable_REG_CALL(TutorialService, GetTutorialsAndConnections)
+    PyCallable_REG_CALL(TutorialService, GetCareerAgents)
 }
 
 TutorialService::~TutorialService() {
@@ -124,4 +125,10 @@ PyResult TutorialService::Handle_GetTutorialsAndConnections( PyCallArgs& call )
     sLog.Debug( "TutorialService", "Called GetTutorialsAndConnections stub." );
 
     return new PyNone;
+}
+
+PyResult TutorialService::Handle_GetCareerAgents( PyCallArgs& call ) {
+  /*  Empty Call  */
+
+    return new PyInt( 0 );
 }

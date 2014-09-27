@@ -761,7 +761,7 @@ void DGM_Ship_Bonus_Modifiers_Table::_Populate()
 {
     //first get list of all effects from dgmShipBonusModifiers table
     DBQueryResult *res = new DBQueryResult();
-    ModuleDB::GetAllDgmSkillBonusModifiers(*res);
+    ModuleDB::GetAllDgmShipBonusModifiers(*res);
 
     //counter
     ShipBonusModifier * mShipBonusModifierPtr;

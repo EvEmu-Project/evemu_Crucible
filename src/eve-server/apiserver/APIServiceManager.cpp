@@ -144,7 +144,9 @@ bool APIServiceManager::_AuthenticateUserNamePassword(std::string username, std:
     // Query account info
     AccountInfo account_info;
     if( !services().serviceDB().GetAccountInformation(
-            username.c_str(), account_info ) )
+            username.c_str(), 
+			password.c_str(),
+			account_info ) )
         return false;
 
     // Compute pass hash

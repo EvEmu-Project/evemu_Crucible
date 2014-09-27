@@ -40,6 +40,7 @@ BillMgrService::BillMgrService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(BillMgrService, GetBillTypes)
     PyCallable_REG_CALL(BillMgrService, GetCorporationBills)
     PyCallable_REG_CALL(BillMgrService, GetCorporationBillsReceivable)
+    PyCallable_REG_CALL(BillMgrService, GetAutomaticPaySettings)
 }
 
 BillMgrService::~BillMgrService() {
@@ -81,6 +82,10 @@ PyResult BillMgrService::Handle_GetCorporationBillsReceivable(PyCallArgs &call) 
     uint32 corpID = call.client->GetCorporationID();
 
     return m_db.GetCorporationBills(corpID, false);
+}
+
+PyResult BillMgrService::Handle_GetAutomaticPaySettings(PyCallArgs &call) {
+    return NULL;
 }
 
 

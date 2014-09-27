@@ -44,6 +44,7 @@ AccountService::AccountService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(AccountService, GiveCash)
     PyCallable_REG_CALL(AccountService, GiveCashFromCorpAccount)
     PyCallable_REG_CALL(AccountService, GetJournal)
+    PyCallable_REG_CALL(AccountService, GetWalletDivisionsInfo)
 }
 
 AccountService::~AccountService() {
@@ -500,4 +501,12 @@ PyTuple * AccountService::WithdrawCashToChar(Client * const client, Client * con
     ans->items[1]=new PyFloat(ncb);
 
     return ans;
+}
+
+PyResult AccountService::Handle_GetWalletDivisionsInfo(PyCallArgs &call)
+{
+  /*  Empty Call  */
+    PyRep *result = NULL;
+
+    return result;
 }

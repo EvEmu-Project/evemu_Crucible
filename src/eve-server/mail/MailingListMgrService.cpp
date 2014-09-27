@@ -49,6 +49,7 @@ MailingListMgrService::MailingListMgrService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MailingListMgrService, SetMembersOperator)
     PyCallable_REG_CALL(MailingListMgrService, SetMembersClear)
     PyCallable_REG_CALL(MailingListMgrService, SetDefaultAccess)
+    PyCallable_REG_CALL(MailingListMgrService, GetInfo)
     PyCallable_REG_CALL(MailingListMgrService, GetSettings)
     PyCallable_REG_CALL(MailingListMgrService, GetWelcomeMail)
     PyCallable_REG_CALL(MailingListMgrService, SaveWelcomeMail)
@@ -224,6 +225,20 @@ PyResult MailingListMgrService::Handle_SetDefaultAccess(PyCallArgs& call)
         codelog(CLIENT__ERROR, "Failed to decode SetDefaultAccess args");
         return NULL;
     }
+    return NULL;
+}
+
+PyResult MailingListMgrService::Handle_GetInfo(PyCallArgs& call)
+{
+    sLog.Debug("MailingListMgrService", "Called GetInfo stub" );
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple))
+    {
+        codelog(CLIENT__ERROR, "Failed to decode GetSettings args");
+        return NULL;
+    }
+
+    int listID = args.arg;
     return NULL;
 }
 

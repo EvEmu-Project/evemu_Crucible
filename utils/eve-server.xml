@@ -12,7 +12,8 @@ a likely exception to this goal).
     </rates>
 
     <account>
-        <!-- <autoAccountRole>0</autoAccountRole> -->
+		<!--0-disable AutoAccount, 2-player, 8-low GM, 16-high GM, 32-admin, 4294967231-super admin -->
+        <!--<autoAccountRole>2</autoAccountRole> -->
         <!-- <loginMessage>
             &lt;html&gt;
                 &lt;head&gt;

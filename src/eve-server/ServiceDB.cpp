@@ -25,6 +25,7 @@
 
 #include "eve-server.h"
 
+#include "EVEServerConfig.h"
 #include "ServiceDB.h"
 
 /**
@@ -33,7 +34,7 @@
  *       role = sConfig.account.autoAccountRole;
  */
 
-bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & account_info )
+bool ServiceDB::GetAccountInformation( const char* username, const char* password, AccountInfo & account_info )
 {
     std::string _username = username;
     std::string _escaped_username;
@@ -48,8 +49,21 @@ bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & accou
     }
 
     DBResultRow row;
-    if (!res.GetRow( row ))
-        return false;
+    if (!res.GetRow( row )) {
+		// account not found, create new one if autoAccountRole is not zero (0)
+		if(sConfig.account.autoAccountRole > 0) {
+			uint32 accountID = CreateNewAccount( _username.c_str(), password, sConfig.account.autoAccountRole);
+			if( accountID > 0 ) {
+				// add new account successful, get account info again
+				bool ret = GetAccountInformation(username, password, account_info);
+				return ret;
+			}
+			else
+				return false;
+		}
+		else
+			return false;
+	}
 
     /* when any of the text gets are NULL it will fail... I think.. */
     account_info.id         = row.GetUInt(0);
@@ -62,8 +76,8 @@ bool ServiceDB::GetAccountInformation( const char* username, AccountInfo & accou
 
     account_info.name       = _escaped_username;
     account_info.role       = row.GetUInt64(3);
-    account_info.online     = row.GetUInt(4);
-    account_info.banned     = row.GetUInt(5);
+    account_info.online     = row.GetBool(4);
+    account_info.banned     = row.GetBool(5);
     account_info.visits     = row.GetUInt(6);
 
     if (!row.IsNull(7))
@@ -112,8 +126,8 @@ uint32 ServiceDB::CreateNewAccount( const char* login, const char* pass, uint64 
 
     DBerror err;
     if( !sDatabase.RunQueryLID( err, accountID,
-        "INSERT INTO account ( accountName, password, role )"
-        " VALUES ( '%s', PASSWORD( '%s' ), %" PRIu64 " )",
+        "INSERT INTO account ( accountName, hash, role )"
+        " VALUES ( '%s', '%s', %" PRIu64 " )",
         login, pass, role ) )
     {
         sLog.Error( "ServiceDB", "Failed to create a new account '%s': %s.", login, err.c_str() );

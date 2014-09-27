@@ -58,7 +58,7 @@ public:
     struct
     {
         /// Role to assign to auto created account; set to 0 to disable auto account creation.
-        uint32 autoAccountRole;
+        uint64 autoAccountRole;
         /// A message shown to every client on login.
         std::string loginMessage;
     } account;

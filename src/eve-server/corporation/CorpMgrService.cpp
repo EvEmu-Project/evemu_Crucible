@@ -37,12 +37,16 @@ CorpMgrService::CorpMgrService(PyServiceMgr *mgr)
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(CorpMgrService, GetPublicInfo)
+    PyCallable_REG_CALL(CorpMgrService, GetCorporations)
+    PyCallable_REG_CALL(CorpMgrService, GetAssetInventory)
+    PyCallable_REG_CALL(CorpMgrService, GetCorporationStations)
+    PyCallable_REG_CALL(CorpMgrService, GetCorporationIDForCharacter)
+    PyCallable_REG_CALL(CorpMgrService, GetAssetInventoryForLocation)
 }
 
 CorpMgrService::~CorpMgrService() {
     delete m_dispatch;
 }
-
 
 PyResult CorpMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
     Call_SingleIntegerArg corpID;
@@ -54,22 +58,29 @@ PyResult CorpMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
     return m_db.GetCorporation(corpID.arg);
 }
 
+PyResult CorpMgrService::Handle_GetCorporations(PyCallArgs &call) {
 
+    return NULL;
+}
 
+PyResult CorpMgrService::Handle_GetAssetInventory(PyCallArgs &call) {
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
+    return NULL;
+}
 
+PyResult CorpMgrService::Handle_GetCorporationStations(PyCallArgs &call) {
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
 
+    return NULL;
+}
 
+PyResult CorpMgrService::Handle_GetCorporationIDForCharacter(PyCallArgs &call) {
 
+    return NULL;
+}
 
+PyResult CorpMgrService::Handle_GetAssetInventoryForLocation(PyCallArgs &call) {
+    //  will add this complete code with other map data at a later date  -allan 25Jul14
 
-
-
-
-
-
-
-
-
-
-
-
+    return NULL;
+}

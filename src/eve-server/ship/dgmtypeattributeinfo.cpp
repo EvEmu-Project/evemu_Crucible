@@ -49,16 +49,10 @@ dgmtypeattributemgr::dgmtypeattributemgr()
         res.GetRow(row);
         uint32 typeID = row.GetUInt(0);
 
-        // need a better solution for this
-        if (currentID == 0) {
-            currentID = typeID;
-            entry = new DgmTypeAttributeSet;
-        }
-
         if (currentID != typeID) {
-            mDgmTypeAttrInfo.insert(std::make_pair(currentID, entry));
             currentID = typeID;
             entry = new DgmTypeAttributeSet;
+            mDgmTypeAttrInfo.insert(std::make_pair(currentID, entry));
         }
 
         DmgTypeAttribute * attr_entry = new DmgTypeAttribute();

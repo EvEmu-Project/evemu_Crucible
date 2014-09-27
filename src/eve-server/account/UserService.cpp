@@ -38,6 +38,7 @@ UserService::UserService(PyServiceMgr *mgr)
 
     PyCallable_REG_CALL(UserService, GetRedeemTokens)
     PyCallable_REG_CALL(UserService, GetCreateDate)
+    PyCallable_REG_CALL(UserService, ReportISKSpammer)
 }
 
 UserService::~UserService() {
@@ -58,4 +59,10 @@ PyResult UserService::Handle_GetCreateDate( PyCallArgs& call )
     sLog.Debug( "UserService", "Called GetCreateDate stub." );
 
     return new PyLong((long)Win32TimeNow());
+}
+
+PyResult UserService::Handle_ReportISKSpammer( PyCallArgs& call )
+{
+    //  will add this completed code at a later date  -allan 25Jul14
+    return NULL;
 }

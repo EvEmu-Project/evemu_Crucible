@@ -63,8 +63,8 @@ void SystemBubble::BubblecastDestiny(std::vector<PyTuple *> &updates, std::vecto
         cur = events.begin();
         end = events.end();
         for(; cur != end; cur++) {
-            PyTuple *up = *cur;
-            BubblecastDestinyUpdate(&up, desc);    //update is consumed.
+            PyTuple *ev = *cur;
+            BubblecastDestinyEvent(&ev, desc);    //event is consumed.
         }
         events.clear();
     }

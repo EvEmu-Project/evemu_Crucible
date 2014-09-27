@@ -44,6 +44,13 @@ CorporationService::CorporationService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(CorporationService, GetAllCorpMedals)
     PyCallable_REG_CALL(CorporationService, GetRecruitmentAdTypes)
     PyCallable_REG_CALL(CorporationService, GetRecruitmentAdsByCriteria)
+    PyCallable_REG_CALL(CorporationService, GetRecruitmentAdRegistryData)
+    PyCallable_REG_CALL(CorporationService, SetAccountKey)
+    PyCallable_REG_CALL(CorporationService, IsEnemyFaction)
+    PyCallable_REG_CALL(CorporationService, GetVoteCasesByCorporation)
+    PyCallable_REG_CALL(CorporationService, MoveCorpHQHere)
+    PyCallable_REG_CALL(CorporationService, AddCorporateContact)
+    PyCallable_REG_CALL(CorporationService, GetRecentKillsAndLosses)
 }
 
 CorporationService::~CorporationService() {
@@ -120,12 +127,18 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 }
 
 PyResult CorporationService::Handle_GetCorpInfo(PyCallArgs &call) {
-
-    sLog.Debug("Server", "Called GetCorpInfo Stub.");
-
+    //  will add this complete code at a later date  -allan 25Jul14
+  /*
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "Bad arguments");
+        return (NULL);
+    }
+    PyRep * answer = m_db.GetCorpInfo(args.arg);
+    return (answer);
+	*/
     return NULL;
 }
-
 
 PyResult CorporationService::Handle_GetNPCDivisions(PyCallArgs &call) {
     PyRep *result = m_db.ListNPCDivisions();
@@ -246,4 +259,41 @@ PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria( PyCallArgs& cal
     rs.header.push_back( "channelID" );
 
     return rs.Encode();
+}
+
+/** not handled */
+PyResult CorporationService::Handle_GetRecruitmentAdRegistryData(PyCallArgs &call)
+{
+  return NULL;
+}
+
+PyResult CorporationService::Handle_SetAccountKey(PyCallArgs &call)
+{
+    return NULL;
+}
+
+PyResult CorporationService::Handle_IsEnemyFaction(PyCallArgs &call)
+{
+    return NULL;
+}
+
+PyResult CorporationService::Handle_GetVoteCasesByCorporation(PyCallArgs &call)
+{
+    return NULL;
+}
+
+PyResult CorporationService::Handle_MoveCorpHQHere(PyCallArgs &call)
+{
+    return NULL;
+}
+
+
+PyResult CorporationService::Handle_AddCorporateContact(PyCallArgs &call)
+{
+    return NULL;
+}
+
+PyResult CorporationService::Handle_GetRecentKillsAndLosses(PyCallArgs &call)
+{
+    return NULL;
 }
