@@ -1579,8 +1579,12 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     //sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
     //sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
-
-    if (!services().serviceDB().GetAccountInformation( ccp.user_name.c_str(),  account_info)) {
+    
+    if (!services().serviceDB().GetAccountInformation( 
+				ccp.user_name.c_str(), 
+				ccp.user_password_hash.c_str(), 
+				account_info)) 
+	{
         goto error_login_auth_failed;
     }
 

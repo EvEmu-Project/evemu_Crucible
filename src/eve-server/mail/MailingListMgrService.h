@@ -52,6 +52,7 @@ protected:
     PyCallable_DECL_CALL(SetMembersOperator)
     PyCallable_DECL_CALL(SetMembersClear)
     PyCallable_DECL_CALL(SetDefaultAccess)
+    PyCallable_DECL_CALL(GetInfo)
     PyCallable_DECL_CALL(GetSettings)
     PyCallable_DECL_CALL(GetWelcomeMail)
     PyCallable_DECL_CALL(SaveWelcomeMail)

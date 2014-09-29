@@ -32,6 +32,9 @@
 
 EntityList::EntityList() : m_services( NULL ) {}
 EntityList::~EntityList() {
+/**  this is the cause of seg faults on server shutdown with connected clients
+		Line 42: error reading variable: Could not find the frame base...
+		at this point, the client list `m_clients` is already dereferenced.
     {
         client_list::iterator cur, end;
         cur = m_clients.begin();
@@ -51,6 +54,7 @@ EntityList::~EntityList() {
             delete cur->second;
         }
     }
+    */
 }
 
 void EntityList::Add(Client **client) {

@@ -41,6 +41,10 @@ FactionWarMgrService::FactionWarMgrService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(FactionWarMgrService, GetFWSystems)
     PyCallable_REG_CALL(FactionWarMgrService, GetMyCharacterRankOverview)
     PyCallable_REG_CALL(FactionWarMgrService, GetFactionMilitiaCorporation)
+    PyCallable_REG_CALL(FactionWarMgrService, GetCharacterRankInfo)
+    PyCallable_REG_CALL(FactionWarMgrService, GetFactionalWarStatus)
+    PyCallable_REG_CALL(FactionWarMgrService, IsEnemyFaction)
+    PyCallable_REG_CALL(FactionWarMgrService, JoinFactionAsCharacter)
 }
 
 FactionWarMgrService::~FactionWarMgrService()
@@ -98,6 +102,17 @@ PyResult FactionWarMgrService::Handle_GetMyCharacterRankOverview( PyCallArgs& ca
     return rs.Encode();
 }
 
+PyResult FactionWarMgrService::Handle_GetMyCharacterRankInfo( PyCallArgs& call ) {
+  util_Rowset rs;
+
+    rs.header.push_back( "currentRank" );
+    rs.header.push_back( "highestRank" );
+    rs.header.push_back( "factionID" );
+    rs.header.push_back( "lastModified" );
+
+    return rs.Encode();
+}
+
 PyResult FactionWarMgrService::Handle_GetFactionMilitiaCorporation(PyCallArgs &call) {
     Call_SingleIntegerArg arg;
     if(!arg.Decode(&call.tuple)) {
@@ -107,4 +122,18 @@ PyResult FactionWarMgrService::Handle_GetFactionMilitiaCorporation(PyCallArgs &c
     return(new PyInt(m_db.GetFactionMilitiaCorporation(arg.arg)));
 }
 
+PyResult FactionWarMgrService::Handle_GetCharacterRankInfo(PyCallArgs &call) {
+  return NULL;
+}
 
+PyResult FactionWarMgrService::Handle_GetFactionalWarStatus(PyCallArgs &call) {
+  return NULL;
+}
+
+PyResult FactionWarMgrService::Handle_IsEnemyFaction(PyCallArgs &call) {
+  return NULL;
+}
+
+PyResult FactionWarMgrService::Handle_JoinFactionAsCharacter(PyCallArgs &call) {
+  return NULL;
+}

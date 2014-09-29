@@ -1,4 +1,7 @@
-
+-- Errors may still exist in these tables
+-- 26972 = 'Faction Drone Wreck' needs checking
+-- Several 'commander' wrecks are still classified as regular wrecks
+ 
 -- ----------------------------
 -- Table structure for `invTypesToWrecks`
 -- ----------------------------
@@ -13,1977 +16,2027 @@ CREATE TABLE `invTypesToWrecks` (
 -- ----------------------------
 -- Records of invTypesToWrecks
 -- ----------------------------
-INSERT INTO `invTypesToWrecks` VALUES ('582', '26506', 'Bantam');
-INSERT INTO `invTypesToWrecks` VALUES ('583', '26506', 'Condor');
-INSERT INTO `invTypesToWrecks` VALUES ('584', '26506', 'Griffin');
-INSERT INTO `invTypesToWrecks` VALUES ('585', '26549', 'Slasher');
-INSERT INTO `invTypesToWrecks` VALUES ('586', '26549', 'Probe');
-INSERT INTO `invTypesToWrecks` VALUES ('587', '26549', 'Rifter');
-INSERT INTO `invTypesToWrecks` VALUES ('588', '26554', 'Reaper');
-INSERT INTO `invTypesToWrecks` VALUES ('589', '26484', 'Executioner');
-INSERT INTO `invTypesToWrecks` VALUES ('590', '26484', 'Inquisitor');
-INSERT INTO `invTypesToWrecks` VALUES ('591', '26484', 'Tormentor');
-INSERT INTO `invTypesToWrecks` VALUES ('592', '26528', 'Navitas');
-INSERT INTO `invTypesToWrecks` VALUES ('593', '26528', 'Tristan');
-INSERT INTO `invTypesToWrecks` VALUES ('594', '26528', 'Incursus');
-INSERT INTO `invTypesToWrecks` VALUES ('595', '26528', 'Gallente Police Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('596', '26484', 'Impairor');
-INSERT INTO `invTypesToWrecks` VALUES ('597', '26484', 'Punisher');
-INSERT INTO `invTypesToWrecks` VALUES ('598', '26550', 'Breacher');
-INSERT INTO `invTypesToWrecks` VALUES ('599', '26550', 'Burst');
-INSERT INTO `invTypesToWrecks` VALUES ('600', '26550', 'Minmatar Peacekeeper Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('601', '26410', 'Ibis');
-INSERT INTO `invTypesToWrecks` VALUES ('602', '26506', 'Kestrel');
-INSERT INTO `invTypesToWrecks` VALUES ('603', '26506', 'Merlin');
-INSERT INTO `invTypesToWrecks` VALUES ('604', '26506', 'Caldari Enforcer Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('605', '26506', 'Heron');
-INSERT INTO `invTypesToWrecks` VALUES ('606', '26532', 'Velator');
-INSERT INTO `invTypesToWrecks` VALUES ('607', '26528', 'Imicus');
-INSERT INTO `invTypesToWrecks` VALUES ('608', '26528', 'Atron');
-INSERT INTO `invTypesToWrecks` VALUES ('609', '26528', 'Maulus');
-INSERT INTO `invTypesToWrecks` VALUES ('610', '26557', 'Wraith');
-INSERT INTO `invTypesToWrecks` VALUES ('611', '26558', 'Specter');
-INSERT INTO `invTypesToWrecks` VALUES ('612', '26550', 'Chaos');
-INSERT INTO `invTypesToWrecks` VALUES ('613', '26550', 'Devourer');
-INSERT INTO `invTypesToWrecks` VALUES ('614', '26550', 'Fury');
-INSERT INTO `invTypesToWrecks` VALUES ('615', '26550', 'Styx');
-INSERT INTO `invTypesToWrecks` VALUES ('616', '26550', 'Medusa');
-INSERT INTO `invTypesToWrecks` VALUES ('617', '26550', 'Echo');
-INSERT INTO `invTypesToWrecks` VALUES ('618', '26550', 'Lynx');
-INSERT INTO `invTypesToWrecks` VALUES ('619', '26550', 'Swordspine');
-INSERT INTO `invTypesToWrecks` VALUES ('620', '26495', 'Osprey');
-INSERT INTO `invTypesToWrecks` VALUES ('621', '26495', 'Caracal');
-INSERT INTO `invTypesToWrecks` VALUES ('622', '26539', 'Stabber');
-INSERT INTO `invTypesToWrecks` VALUES ('623', '26494', 'Moa');
-INSERT INTO `invTypesToWrecks` VALUES ('624', '26473', 'Maller');
-INSERT INTO `invTypesToWrecks` VALUES ('625', '26473', 'Augoror');
-INSERT INTO `invTypesToWrecks` VALUES ('626', '26517', 'Vexor');
-INSERT INTO `invTypesToWrecks` VALUES ('627', '26517', 'Thorax');
-INSERT INTO `invTypesToWrecks` VALUES ('628', '26473', 'Arbitrator');
-INSERT INTO `invTypesToWrecks` VALUES ('629', '26539', 'Rupture');
-INSERT INTO `invTypesToWrecks` VALUES ('630', '26539', 'Bellicose');
-INSERT INTO `invTypesToWrecks` VALUES ('631', '26539', 'Scythe');
-INSERT INTO `invTypesToWrecks` VALUES ('632', '26495', 'Blackbird');
-INSERT INTO `invTypesToWrecks` VALUES ('633', '26517', 'Celestis');
-INSERT INTO `invTypesToWrecks` VALUES ('634', '26517', 'Exequror');
-INSERT INTO `invTypesToWrecks` VALUES ('635', '26558', 'Opux Luxury Yacht');
-INSERT INTO `invTypesToWrecks` VALUES ('636', '26560', 'Ixion');
-INSERT INTO `invTypesToWrecks` VALUES ('637', '26560', 'Ghoul');
-INSERT INTO `invTypesToWrecks` VALUES ('638', '26492', 'Raven');
-INSERT INTO `invTypesToWrecks` VALUES ('639', '26536', 'Tempest');
-INSERT INTO `invTypesToWrecks` VALUES ('640', '26492', 'Scorpion');
-INSERT INTO `invTypesToWrecks` VALUES ('641', '26514', 'Megathron');
-INSERT INTO `invTypesToWrecks` VALUES ('642', '26470', 'Apocalypse');
-INSERT INTO `invTypesToWrecks` VALUES ('643', '26470', 'Armageddon');
-INSERT INTO `invTypesToWrecks` VALUES ('644', '26536', 'Typhoon');
-INSERT INTO `invTypesToWrecks` VALUES ('645', '26514', 'Dominix');
-INSERT INTO `invTypesToWrecks` VALUES ('647', '26559', 'Eidolon');
-INSERT INTO `invTypesToWrecks` VALUES ('648', '26507', 'Badger');
-INSERT INTO `invTypesToWrecks` VALUES ('649', '26507', 'Badger Mark II');
-INSERT INTO `invTypesToWrecks` VALUES ('659', '26468', 'Capsule Home-201');
-INSERT INTO `invTypesToWrecks` VALUES ('660', '26468', 'Capsule Home-201.7');
-INSERT INTO `invTypesToWrecks` VALUES ('661', '26468', 'Capsule Home-601.5');
-INSERT INTO `invTypesToWrecks` VALUES ('662', '26468', 'Capsule Home-1.401');
-INSERT INTO `invTypesToWrecks` VALUES ('663', '26468', 'Capsule Home-1.501');
-INSERT INTO `invTypesToWrecks` VALUES ('664', '26468', 'Capsule Home-2.201');
-INSERT INTO `invTypesToWrecks` VALUES ('665', '26468', 'Capsule CP-100');
-INSERT INTO `invTypesToWrecks` VALUES ('666', '26468', 'Capsule CP-100B');
-INSERT INTO `invTypesToWrecks` VALUES ('667', '26468', 'Capsule CP-200');
-INSERT INTO `invTypesToWrecks` VALUES ('668', '26468', 'Capsule CP-500');
-INSERT INTO `invTypesToWrecks` VALUES ('669', '26468', 'Capsule CP-900X');
-INSERT INTO `invTypesToWrecks` VALUES ('670', '26468', 'Capsule');
-INSERT INTO `invTypesToWrecks` VALUES ('671', '26534', 'Erebus');
-INSERT INTO `invTypesToWrecks` VALUES ('672', '26511', 'Caldari Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('896', '26488', 'Impairor');
-INSERT INTO `invTypesToWrecks` VALUES ('1233', '26550', 'Enigma');
-INSERT INTO `invTypesToWrecks` VALUES ('1896', '26941', 'Concord Police Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('1898', '26941', 'Concord SWAT Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('1900', '26941', 'Concord Army Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('1902', '26941', 'Concord Special Ops Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('1904', '26940', 'Concord Police Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('1906', '26940', 'Concord Army Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('1908', '26940', 'Concord SWAT Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('1910', '26940', 'Concord Special Ops Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('1912', '26939', 'Concord Police Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('1914', '26939', 'Concord Special Ops Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('1916', '26939', 'Concord SWAT Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('1918', '26939', 'Concord Army Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('2006', '26493', 'Omen');
-INSERT INTO `invTypesToWrecks` VALUES ('2012', '26561', 'Terrorist Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('2072', '26568', 'Anire Scarlet');
-INSERT INTO `invTypesToWrecks` VALUES ('2078', '26528', 'Zephyr');
-INSERT INTO `invTypesToWrecks` VALUES ('2098', '26585', 'Phenod\'s Broke-Ass Destroyer');
-INSERT INTO `invTypesToWrecks` VALUES ('2126', '26585', 'Anakism');
-INSERT INTO `invTypesToWrecks` VALUES ('2128', '26585', 'Locced\'s Destroyer');
-INSERT INTO `invTypesToWrecks` VALUES ('2161', '26484', 'Crucifier');
-INSERT INTO `invTypesToWrecks` VALUES ('2164', '26493', 'Arbitrator House Ardishapur');
-INSERT INTO `invTypesToWrecks` VALUES ('2166', '26493', 'Arbitrator House Tash-Murkon');
-INSERT INTO `invTypesToWrecks` VALUES ('2168', '26493', 'Arbitrator House Kor-Azor');
-INSERT INTO `invTypesToWrecks` VALUES ('2370', '26585', 'Serpentis Initiate');
-INSERT INTO `invTypesToWrecks` VALUES ('2372', '26561', 'Angel Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('2379', '26585', 'Serpentis Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('2381', '26586', 'Serpentis Chief Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('2382', '26543', 'Guristas Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('2383', '26543', 'Guristas Invader');
-INSERT INTO `invTypesToWrecks` VALUES ('2384', '26543', 'Guristas Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('2385', '26543', 'Guristas Despoiler');
-INSERT INTO `invTypesToWrecks` VALUES ('2386', '26543', 'Guristas Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('2387', '26574', 'Guristas Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('2769', '26920', 'Rogue Drone Liaisons Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('2834', '26524', 'Utu');
-INSERT INTO `invTypesToWrecks` VALUES ('2836', '26522', 'Adrestia');
-INSERT INTO `invTypesToWrecks` VALUES ('2846', '26919', 'Domination Excavator');
-INSERT INTO `invTypesToWrecks` VALUES ('2847', '26919', 'True Sansha Foreman');
-INSERT INTO `invTypesToWrecks` VALUES ('3515', '26487', 'Revenant');
-INSERT INTO `invTypesToWrecks` VALUES ('3516', '26480', 'Malice');
-INSERT INTO `invTypesToWrecks` VALUES ('3518', '26478', 'Vangel');
-INSERT INTO `invTypesToWrecks` VALUES ('3532', '26484', 'Echelon');
-INSERT INTO `invTypesToWrecks` VALUES ('3628', '26487', 'Nation');
-INSERT INTO `invTypesToWrecks` VALUES ('3751', '26557', 'SOCT 1');
-INSERT INTO `invTypesToWrecks` VALUES ('3753', '26557', 'SOCT 2');
-INSERT INTO `invTypesToWrecks` VALUES ('3756', '26558', 'SOCT Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('3764', '26512', 'Leviathan');
-INSERT INTO `invTypesToWrecks` VALUES ('3766', '26550', 'Vigil');
-INSERT INTO `invTypesToWrecks` VALUES ('3768', '26484', 'Amarr Police Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('3821', '26920', 'Dread Guristas Commanding Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('3823', '26920', 'True Sansha Archduke');
-INSERT INTO `invTypesToWrecks` VALUES ('3825', '26920', 'Dark Blood Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('3856', '26558', 'Phantom');
-INSERT INTO `invTypesToWrecks` VALUES ('3863', '27202', 'CONCORD Police Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('3882', '26919', 'Exsanguinator ');
-INSERT INTO `invTypesToWrecks` VALUES ('3883', '26972', 'DED Army Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('3884', '26919', 'Guristas Distributor');
-INSERT INTO `invTypesToWrecks` VALUES ('3885', '27202', 'CONCORD Police Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('3886', '26972', 'DED Army Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('3889', '26919', 'Slave Ation09');
-INSERT INTO `invTypesToWrecks` VALUES ('3890', '26919', 'Sarpati Family Enforcer');
-INSERT INTO `invTypesToWrecks` VALUES ('3891', '26919', '5/10 DED Angel Big Boss');
-INSERT INTO `invTypesToWrecks` VALUES ('4005', '26499', 'Scorpion Ishukone Watch');
-INSERT INTO `invTypesToWrecks` VALUES ('4010', '26918', 'Domination Grigori');
-INSERT INTO `invTypesToWrecks` VALUES ('4012', '26918', 'Dread Guristas Irregular');
-INSERT INTO `invTypesToWrecks` VALUES ('4015', '26918', 'Dark Blood Alpha');
-INSERT INTO `invTypesToWrecks` VALUES ('4302', '26469', 'Oracle');
-INSERT INTO `invTypesToWrecks` VALUES ('4306', '26491', 'Naga');
-INSERT INTO `invTypesToWrecks` VALUES ('4308', '26513', 'Talos');
-INSERT INTO `invTypesToWrecks` VALUES ('4310', '26535', 'Tornado');
-INSERT INTO `invTypesToWrecks` VALUES ('9869', '27202', 'Loiterer I');
-INSERT INTO `invTypesToWrecks` VALUES ('9959', '26972', 'Amarr Surveillance Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('9960', '26972', 'Amarr Surveillance Sergeant Majo');
-INSERT INTO `invTypesToWrecks` VALUES ('9962', '26972', 'Amarr Surveillance Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('9965', '26972', 'Caldari Police Vice Commissioner');
-INSERT INTO `invTypesToWrecks` VALUES ('9970', '26972', 'Caldari Police 3rd Lieutenant');
-INSERT INTO `invTypesToWrecks` VALUES ('9971', '26972', 'Caldari Police 1st Lieutenant');
-INSERT INTO `invTypesToWrecks` VALUES ('9977', '26972', 'Minmatar Security Officer 2nd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('9978', '26972', 'Minmatar Security Officer 1st Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('9983', '26972', 'Gallente Police Master Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('9984', '26972', 'Gallente Police Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('9987', '26972', 'Khanid Surveillance Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('9988', '26972', 'Khanid Surveillance Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('9989', '26972', 'Minmatar Security Officer 3rd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('9991', '26972', 'Gallente Police Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('9997', '26972', 'Imperial Navy Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('9998', '26972', 'Imperial Navy Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('9999', '26972', 'Imperial Navy Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10000', '26972', 'Imperial Navy Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10001', '26972', 'Imperial Navy Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('10003', '26972', 'Imperial Navy General');
-INSERT INTO `invTypesToWrecks` VALUES ('10013', '26561', 'Angel Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('10014', '26561', 'Angel Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('10015', '26561', 'Angel Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('10016', '26561', 'Angel Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('10017', '26562', 'Angel Depredator');
-INSERT INTO `invTypesToWrecks` VALUES ('10018', '26562', 'Angel Smasher');
-INSERT INTO `invTypesToWrecks` VALUES ('10019', '26561', 'Angel Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('10025', '26579', 'Sansha\'s Servant');
-INSERT INTO `invTypesToWrecks` VALUES ('10026', '26579', 'Sansha\'s Scavenger');
-INSERT INTO `invTypesToWrecks` VALUES ('10027', '26579', 'Sansha\'s Savage');
-INSERT INTO `invTypesToWrecks` VALUES ('10028', '26579', 'Sansha\'s Plague');
-INSERT INTO `invTypesToWrecks` VALUES ('10029', '26579', 'Sansha\'s Manslayer');
-INSERT INTO `invTypesToWrecks` VALUES ('10030', '26580', 'Sansha\'s Ravager');
-INSERT INTO `invTypesToWrecks` VALUES ('10035', '26972', 'CONCORD SWAT Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('10036', '26972', 'CONCORD SWAT Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10037', '27202', 'DED Special Operation Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('10038', '27202', 'DED Special Operation Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10043', '27202', 'Peddler');
-INSERT INTO `invTypesToWrecks` VALUES ('10044', '27202', 'Column');
-INSERT INTO `invTypesToWrecks` VALUES ('10045', '27202', 'Vanguard');
-INSERT INTO `invTypesToWrecks` VALUES ('10046', '26972', 'Caldari Navy Captain 2nd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10047', '26972', 'Caldari Navy Captain 1st Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10048', '26972', 'Caldari Navy Commodore');
-INSERT INTO `invTypesToWrecks` VALUES ('10050', '26972', 'Caldari Navy Vice Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('10052', '26972', 'Federation Navy Command Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10053', '26972', 'Federation Navy Fleet Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10054', '26972', 'Federation Navy Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10056', '26972', 'Federation Navy Fleet Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10057', '26972', 'Federation Navy Fleet Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('10058', '26972', 'Republic Fleet Private 3rd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10060', '26972', 'Republic Fleet Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10076', '26972', 'Khanid Navy Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10077', '26972', 'Republic Fleet Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('10078', '26972', 'Republic Fleet High Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10079', '26972', 'Khanid Navy Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10080', '26972', 'Khanid Navy Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10082', '26972', 'Khanid Navy Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('10083', '26972', 'Khanid Navy General');
-INSERT INTO `invTypesToWrecks` VALUES ('10084', '26972', 'Ammatar Navy Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10085', '26972', 'Ammatar Navy Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10086', '26972', 'Ammatar Navy Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10089', '26972', 'Ammatar Navy General');
-INSERT INTO `invTypesToWrecks` VALUES ('10090', '26972', 'Sarum Navy Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10091', '26972', 'Sarum Navy Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10092', '26972', 'Sarum Navy Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10095', '26972', 'Sarum Navy General');
-INSERT INTO `invTypesToWrecks` VALUES ('10097', '26972', 'Ammatar Surveillance Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('10099', '26972', 'Ammatar Surveillance Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10100', '26972', 'Ammatar Surveillance Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10102', '26972', 'Sarum Surveillance Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('10104', '26972', 'Sarum Surveillance Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10105', '26972', 'Sarum Surveillance Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10106', '26972', 'Intaki Defence Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10107', '26972', 'Intaki Defence Command Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10108', '26972', 'Intaki Defence Fleet Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10109', '26972', 'Intaki Defence Fleet Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('10111', '26972', 'Thukker Brute');
-INSERT INTO `invTypesToWrecks` VALUES ('10112', '26972', 'Thukker Warrior');
-INSERT INTO `invTypesToWrecks` VALUES ('10113', '26972', 'Thukker Tribal Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('10114', '27202', 'Tradesman');
-INSERT INTO `invTypesToWrecks` VALUES ('10115', '27202', 'Merchant');
-INSERT INTO `invTypesToWrecks` VALUES ('10116', '27202', 'Trafficker');
-INSERT INTO `invTypesToWrecks` VALUES ('10117', '27202', 'Caravan');
-INSERT INTO `invTypesToWrecks` VALUES ('10118', '27202', 'Flotilla');
-INSERT INTO `invTypesToWrecks` VALUES ('10125', '26972', 'Mordu\'s Lieutenant 3rd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10126', '26972', 'Mordu\'s Lieutenant 2nd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10133', '26972', 'Mordu\'s Lieutenant');
-INSERT INTO `invTypesToWrecks` VALUES ('10134', '26972', 'Mordu\'s Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10254', '26521', 'Infested Dominix');
-INSERT INTO `invTypesToWrecks` VALUES ('10265', '26574', 'Guristas Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('10266', '26543', 'Guristas Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('10273', '26579', 'Sansha\'s Minion');
-INSERT INTO `invTypesToWrecks` VALUES ('10274', '26580', 'Sansha\'s Ravisher');
-INSERT INTO `invTypesToWrecks` VALUES ('10275', '26567', 'Blood Follower');
-INSERT INTO `invTypesToWrecks` VALUES ('10276', '26567', 'Blood Herald');
-INSERT INTO `invTypesToWrecks` VALUES ('10277', '26567', 'Blood Upholder');
-INSERT INTO `invTypesToWrecks` VALUES ('10278', '26567', 'Blood Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('10279', '26567', 'Blood Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('10280', '26567', 'Blood Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('10281', '26568', 'Blood Arch Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('10282', '26568', 'Blood Arch Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('10283', '26585', 'Serpentis Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('10284', '26585', 'Serpentis Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('10285', '26585', 'Serpentis Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('10286', '26585', 'Serpentis Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('10287', '26586', 'Serpentis Chief Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('10650', '26972', 'Ammatar Navy Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10651', '26972', 'Caldari Navy Captain 3rd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10652', '26972', 'Federation Navy First Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10653', '26972', 'Intaki Defence First Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('10654', '26972', 'Mordu\'s Lieutenant 1st Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10655', '26972', 'Mordu\'s Legion');
-INSERT INTO `invTypesToWrecks` VALUES ('10656', '26972', 'Sarum Navy Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10657', '26972', 'Thukker Tribalist');
-INSERT INTO `invTypesToWrecks` VALUES ('10658', '26972', 'Thukker Tribal Pries');
-INSERT INTO `invTypesToWrecks` VALUES ('10660', '26972', 'Caldari Police 2nd Lieutenant');
-INSERT INTO `invTypesToWrecks` VALUES ('10663', '26972', 'Republic Fleet Private 1st Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10664', '26972', 'Republic Fleet Private 2nd Rank');
-INSERT INTO `invTypesToWrecks` VALUES ('10669', '26972', 'Ammatar Navy Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('10670', '26972', 'Khanid Navy Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('10674', '26972', 'Khanid Surveillance Sergeant Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10676', '26972', 'Sarum Navy Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('10677', '26972', 'Intaki Defence Fleet Major');
-INSERT INTO `invTypesToWrecks` VALUES ('10823', '27202', 'Retailer');
-INSERT INTO `invTypesToWrecks` VALUES ('10824', '27202', 'Chafferer');
-INSERT INTO `invTypesToWrecks` VALUES ('10825', '27202', 'Trailer');
-INSERT INTO `invTypesToWrecks` VALUES ('10826', '27202', 'Hauler');
-INSERT INTO `invTypesToWrecks` VALUES ('10827', '27202', 'Trader');
-INSERT INTO `invTypesToWrecks` VALUES ('10828', '27202', 'Courier');
-INSERT INTO `invTypesToWrecks` VALUES ('10829', '27202', 'Purveyor');
-INSERT INTO `invTypesToWrecks` VALUES ('10830', '27202', 'Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('10831', '27202', 'Hawker');
-INSERT INTO `invTypesToWrecks` VALUES ('10832', '27202', 'Huckster');
-INSERT INTO `invTypesToWrecks` VALUES ('10833', '27202', 'Patronager');
-INSERT INTO `invTypesToWrecks` VALUES ('10834', '27202', 'Chandler');
-INSERT INTO `invTypesToWrecks` VALUES ('10999', '27202', 'Convoy Escort');
-INSERT INTO `invTypesToWrecks` VALUES ('11000', '27202', 'Convoy Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('11001', '27202', 'Convoy Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('11002', '27202', 'Convoy Sentry');
-INSERT INTO `invTypesToWrecks` VALUES ('11011', '26522', 'Guardian-Vexor');
-INSERT INTO `invTypesToWrecks` VALUES ('11019', '26528', 'Cockroach');
-INSERT INTO `invTypesToWrecks` VALUES ('11021', '26561', 'Angel Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('11022', '26561', 'Angel Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('11023', '26561', 'Angel Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('11024', '26561', 'Angel Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('11025', '26562', 'Angel Predator');
-INSERT INTO `invTypesToWrecks` VALUES ('11026', '26562', 'Angel Crusher');
-INSERT INTO `invTypesToWrecks` VALUES ('11027', '26543', 'Guristas Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('11028', '26543', 'Guristas Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('11029', '26543', 'Guristas Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('11030', '26543', 'Guristas Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('11031', '26574', 'Guristas Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('11032', '26579', 'Sansha\'s Ravene');
-INSERT INTO `invTypesToWrecks` VALUES ('11033', '26579', 'Sansha\'s Enslaver');
-INSERT INTO `invTypesToWrecks` VALUES ('11034', '26579', 'Sansha\'s Slavehunter');
-INSERT INTO `invTypesToWrecks` VALUES ('11035', '26579', 'Sansha\'s Butcher');
-INSERT INTO `invTypesToWrecks` VALUES ('11036', '26574', 'Guristas Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('11037', '26580', 'Sansha\'s Beast');
-INSERT INTO `invTypesToWrecks` VALUES ('11038', '26580', 'Sansha\'s Juggernaut');
-INSERT INTO `invTypesToWrecks` VALUES ('11039', '26567', 'Blood Worshipper');
-INSERT INTO `invTypesToWrecks` VALUES ('11040', '26567', 'Blood Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('11041', '26567', 'Blood Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('11042', '26567', 'Blood Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('11043', '26568', 'Blood Arch Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('11044', '26562', 'Blood Arch Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('11045', '26585', 'Serpentis Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('11046', '26585', 'Serpentis Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('11047', '26585', 'Serpentis Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('11048', '26585', 'Serpentis Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('11049', '26586', 'Serpentis Chief Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('11050', '26586', 'Serpentis Chief Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('11125', '27202', 'CONCORD Police Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('11126', '26972', 'CONCORD SWAT Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('11127', '26972', 'DED Army Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('11128', '27202', 'DED Special Operation Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('11129', '26533', 'Gallente Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('11132', '26555', 'Minmatar Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('11134', '26489', 'Amarr Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('11137', '26972', 'Imperial Navy Fleet Marshall');
-INSERT INTO `invTypesToWrecks` VALUES ('11138', '26972', 'Caldari Navy Fleet Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('11139', '26972', 'Federation Navy Fleet General');
-INSERT INTO `invTypesToWrecks` VALUES ('11140', '26972', 'Republic Fleet High Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('11172', '26524', 'Helios');
-INSERT INTO `invTypesToWrecks` VALUES ('11174', '26524', 'Keres');
-INSERT INTO `invTypesToWrecks` VALUES ('11176', '26502', 'Crow');
-INSERT INTO `invTypesToWrecks` VALUES ('11178', '26502', 'Raptor');
-INSERT INTO `invTypesToWrecks` VALUES ('11180', '26546', 'Rapier Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('11182', '26546', 'Cheetah');
-INSERT INTO `invTypesToWrecks` VALUES ('11184', '26480', 'Crusader');
-INSERT INTO `invTypesToWrecks` VALUES ('11186', '26480', 'Malediction');
-INSERT INTO `invTypesToWrecks` VALUES ('11188', '26480', 'Anathema');
-INSERT INTO `invTypesToWrecks` VALUES ('11190', '26480', 'Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('11192', '26502', 'Buzzard');
-INSERT INTO `invTypesToWrecks` VALUES ('11194', '26502', 'Kitsune');
-INSERT INTO `invTypesToWrecks` VALUES ('11196', '26546', 'Claw');
-INSERT INTO `invTypesToWrecks` VALUES ('11198', '26546', 'Stiletto');
-INSERT INTO `invTypesToWrecks` VALUES ('11200', '26524', 'Taranis');
-INSERT INTO `invTypesToWrecks` VALUES ('11202', '26524', 'Ares');
-INSERT INTO `invTypesToWrecks` VALUES ('11365', '26480', 'Vengeance');
-INSERT INTO `invTypesToWrecks` VALUES ('11371', '26546', 'Wolf');
-INSERT INTO `invTypesToWrecks` VALUES ('11373', '26546', 'Blade');
-INSERT INTO `invTypesToWrecks` VALUES ('11375', '26524', 'Erinye');
-INSERT INTO `invTypesToWrecks` VALUES ('11377', '26524', 'Nemesis');
-INSERT INTO `invTypesToWrecks` VALUES ('11379', '26502', 'Hawk');
-INSERT INTO `invTypesToWrecks` VALUES ('11381', '26502', 'Harpy');
-INSERT INTO `invTypesToWrecks` VALUES ('11383', '26480', 'Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('11385', '26502', 'Sparrow');
-INSERT INTO `invTypesToWrecks` VALUES ('11387', '26546', 'Hyena');
-INSERT INTO `invTypesToWrecks` VALUES ('11389', '26524', 'Kishar');
-INSERT INTO `invTypesToWrecks` VALUES ('11393', '26480', 'Retribution');
-INSERT INTO `invTypesToWrecks` VALUES ('11400', '26546', 'Jaguar');
-INSERT INTO `invTypesToWrecks` VALUES ('11515', '26972', 'Amarr Surveillance General Major');
-INSERT INTO `invTypesToWrecks` VALUES ('11516', '26972', 'Sarum Surveillance General Major');
-INSERT INTO `invTypesToWrecks` VALUES ('11517', '26972', 'Ammatar Surveillance General Major');
-INSERT INTO `invTypesToWrecks` VALUES ('11518', '26972', 'Khanid Surveillance General Major');
-INSERT INTO `invTypesToWrecks` VALUES ('11519', '26972', 'Gallente Police Major');
-INSERT INTO `invTypesToWrecks` VALUES ('11520', '26972', 'Minmatar Security High Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('11521', '26972', 'Caldari Police Commissioner');
-INSERT INTO `invTypesToWrecks` VALUES ('11567', '26490', 'Avatar');
-INSERT INTO `invTypesToWrecks` VALUES ('11591', '26550', 'AGILITY TEST SHIP');
-INSERT INTO `invTypesToWrecks` VALUES ('11601', '26574', 'Guristas Emissary');
-INSERT INTO `invTypesToWrecks` VALUES ('11716', '26568', 'Blood Raider Transport Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('11717', '26580', 'Sanshas Transport Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('11718', '26574', 'Guristas Transport Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('11719', '26562', 'Angel Cartel Transport Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('11720', '26586', 'Serpentis Transport Ship');
-INSERT INTO `invTypesToWrecks` VALUES ('11894', '26562', 'Angel Breaker');
-INSERT INTO `invTypesToWrecks` VALUES ('11895', '26562', 'Angel Defeater');
-INSERT INTO `invTypesToWrecks` VALUES ('11896', '26562', 'Angel Marauder');
-INSERT INTO `invTypesToWrecks` VALUES ('11897', '26562', 'Angel Liquidator');
-INSERT INTO `invTypesToWrecks` VALUES ('11898', '26563', 'Angel Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('11899', '26563', 'Angel General');
-INSERT INTO `invTypesToWrecks` VALUES ('11900', '26563', 'Angel Warlord');
-INSERT INTO `invTypesToWrecks` VALUES ('11901', '26568', 'Blood Revenant');
-INSERT INTO `invTypesToWrecks` VALUES ('11902', '26568', 'Blood Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('11903', '26568', 'Blood Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('11904', '26568', 'Blood Arch Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('11905', '26569', 'Blood Archon');
-INSERT INTO `invTypesToWrecks` VALUES ('11906', '26569', 'Blood Prophet');
-INSERT INTO `invTypesToWrecks` VALUES ('11907', '26569', 'Blood Oracle');
-INSERT INTO `invTypesToWrecks` VALUES ('11908', '26569', 'Blood Apostle');
-INSERT INTO `invTypesToWrecks` VALUES ('11909', '26580', 'Sansha\'s Slaughterer');
-INSERT INTO `invTypesToWrecks` VALUES ('11910', '26580', 'Sansha\'s Execrator');
-INSERT INTO `invTypesToWrecks` VALUES ('11911', '26580', 'Sansha\'s Mutilator');
-INSERT INTO `invTypesToWrecks` VALUES ('11912', '26580', 'Sansha\'s Torturer');
-INSERT INTO `invTypesToWrecks` VALUES ('11913', '26581', 'Sansha\'s Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('11914', '26581', 'Sansha\'s Slave Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('11915', '26581', 'Sansha\'s Mutant Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('11916', '26581', 'Sansha\'s Savage Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('11917', '26586', 'Serpentis Chief Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('11918', '26586', 'Serpentis Chief Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('11919', '26586', 'Serpentis Chief Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('11920', '26586', 'Serpentis Chief Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('11921', '26587', 'Serpentis Baron');
-INSERT INTO `invTypesToWrecks` VALUES ('11922', '26587', 'Serpentis Commodore');
-INSERT INTO `invTypesToWrecks` VALUES ('11923', '26587', 'Serpentis Port Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('11924', '26587', 'Serpentis Rear Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('11927', '26563', 'Angel War General');
-INSERT INTO `invTypesToWrecks` VALUES ('11928', '26574', 'Guristas Annihilator');
-INSERT INTO `invTypesToWrecks` VALUES ('11929', '26574', 'Guristas Nullifier');
-INSERT INTO `invTypesToWrecks` VALUES ('11930', '26574', 'Guristas Mortifier');
-INSERT INTO `invTypesToWrecks` VALUES ('11931', '26574', 'Guristas Inferno');
-INSERT INTO `invTypesToWrecks` VALUES ('11932', '26575', 'Guristas Eradicator');
-INSERT INTO `invTypesToWrecks` VALUES ('11933', '26575', 'Guristas Obliterator');
-INSERT INTO `invTypesToWrecks` VALUES ('11934', '26575', 'Guristas Dismantler');
-INSERT INTO `invTypesToWrecks` VALUES ('11935', '26575', 'Guristas Extinguisher');
-INSERT INTO `invTypesToWrecks` VALUES ('11936', '26477', 'Apocalypse Imperial Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('11938', '26477', 'Armageddon Imperial Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('11940', '26480', 'Gold Magnate');
-INSERT INTO `invTypesToWrecks` VALUES ('11942', '26480', 'Silver Magnate');
-INSERT INTO `invTypesToWrecks` VALUES ('11957', '26500', 'Falcon');
-INSERT INTO `invTypesToWrecks` VALUES ('11959', '30823', 'Rook');
-INSERT INTO `invTypesToWrecks` VALUES ('11961', '30825', 'Huginn');
-INSERT INTO `invTypesToWrecks` VALUES ('11963', '26544', 'Rapier');
-INSERT INTO `invTypesToWrecks` VALUES ('11965', '26478', 'Pilgrim');
-INSERT INTO `invTypesToWrecks` VALUES ('11969', '26522', 'Arazu');
-INSERT INTO `invTypesToWrecks` VALUES ('11971', '30824', 'Lachesis');
-INSERT INTO `invTypesToWrecks` VALUES ('11973', '26500', 'Nocturne');
-INSERT INTO `invTypesToWrecks` VALUES ('11978', '26544', 'Scimitar');
-INSERT INTO `invTypesToWrecks` VALUES ('11980', '26544', 'Drifter');
-INSERT INTO `invTypesToWrecks` VALUES ('11982', '26478', 'Sanctity');
-INSERT INTO `invTypesToWrecks` VALUES ('11985', '26500', 'Basilisk');
-INSERT INTO `invTypesToWrecks` VALUES ('11987', '26478', 'Guardian');
-INSERT INTO `invTypesToWrecks` VALUES ('11989', '26522', 'Oneiros');
-INSERT INTO `invTypesToWrecks` VALUES ('11991', '26522', 'Clotho');
-INSERT INTO `invTypesToWrecks` VALUES ('11993', '26500', 'Cerberus');
-INSERT INTO `invTypesToWrecks` VALUES ('11995', '30822', 'Onyx');
-INSERT INTO `invTypesToWrecks` VALUES ('11997', '26544', 'Glaive');
-INSERT INTO `invTypesToWrecks` VALUES ('11999', '26544', 'Vagabond');
-INSERT INTO `invTypesToWrecks` VALUES ('12003', '26478', 'Zealot');
-INSERT INTO `invTypesToWrecks` VALUES ('12005', '26522', 'Ishtar');
-INSERT INTO `invTypesToWrecks` VALUES ('12007', '26522', 'Atropos');
-INSERT INTO `invTypesToWrecks` VALUES ('12009', '26500', 'Obsidian');
-INSERT INTO `invTypesToWrecks` VALUES ('12011', '26500', 'Eagle');
-INSERT INTO `invTypesToWrecks` VALUES ('12013', '30825', 'Broadsword');
-INSERT INTO `invTypesToWrecks` VALUES ('12015', '26544', 'Muninn');
-INSERT INTO `invTypesToWrecks` VALUES ('12017', '30822', 'Devoter');
-INSERT INTO `invTypesToWrecks` VALUES ('12019', '26478', 'Sacrilege');
-INSERT INTO `invTypesToWrecks` VALUES ('12021', '30824', 'Phobos');
-INSERT INTO `invTypesToWrecks` VALUES ('12023', '26522', 'Deimos');
-INSERT INTO `invTypesToWrecks` VALUES ('12030', '26502', 'Manticore OLD');
-INSERT INTO `invTypesToWrecks` VALUES ('12032', '26502', 'Manticore');
-INSERT INTO `invTypesToWrecks` VALUES ('12034', '26546', 'Hound');
-INSERT INTO `invTypesToWrecks` VALUES ('12036', '26546', 'Dagger');
-INSERT INTO `invTypesToWrecks` VALUES ('12038', '26480', 'Purifier');
-INSERT INTO `invTypesToWrecks` VALUES ('12040', '26480', 'Purifier OLD');
-INSERT INTO `invTypesToWrecks` VALUES ('12042', '26524', 'Ishkur');
-INSERT INTO `invTypesToWrecks` VALUES ('12044', '26524', 'Enyo');
-INSERT INTO `invTypesToWrecks` VALUES ('12245', '27286', 'Angel Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('12246', '27286', 'Blood Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('12247', '27286', 'Guristas Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('12248', '27286', 'Sansha\'s Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('12249', '27286', 'Serpentis Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('12403', '26528', 'Atron much HP');
-INSERT INTO `invTypesToWrecks` VALUES ('12729', '26503', 'Crane');
-INSERT INTO `invTypesToWrecks` VALUES ('12731', '26503', 'Bustard');
-INSERT INTO `invTypesToWrecks` VALUES ('12733', '26481', 'Prorator');
-INSERT INTO `invTypesToWrecks` VALUES ('12735', '26547', 'Prowler');
-INSERT INTO `invTypesToWrecks` VALUES ('12743', '26525', 'Viator');
-INSERT INTO `invTypesToWrecks` VALUES ('12745', '26525', 'Occator');
-INSERT INTO `invTypesToWrecks` VALUES ('12747', '26547', 'Mastodon');
-INSERT INTO `invTypesToWrecks` VALUES ('12753', '26481', 'Impel');
-INSERT INTO `invTypesToWrecks` VALUES ('13032', '26561', 'Arch Angel Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('13033', '26561', 'Arch Angel Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('13035', '26561', 'Arch Angel Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('13036', '26561', 'Arch Angel Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('13037', '26567', 'Elder Blood Upholder');
-INSERT INTO `invTypesToWrecks` VALUES ('13038', '26567', 'Elder Blood Worshipper');
-INSERT INTO `invTypesToWrecks` VALUES ('13039', '26567', 'Elder Blood Follower');
-INSERT INTO `invTypesToWrecks` VALUES ('13040', '26567', 'Elder Blood Herald');
-INSERT INTO `invTypesToWrecks` VALUES ('13041', '26543', 'Dire Guristas Invader');
-INSERT INTO `invTypesToWrecks` VALUES ('13042', '26543', 'Dire Guristas Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('13043', '26543', 'Dire Guristas Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('13044', '26543', 'Dire Guristas Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('13045', '26579', 'Sansha\'s Loyal Ravener');
-INSERT INTO `invTypesToWrecks` VALUES ('13046', '26579', 'Sansha\'s Loyal Scavanger');
-INSERT INTO `invTypesToWrecks` VALUES ('13047', '26579', 'Sansha\'s Loyal Minion');
-INSERT INTO `invTypesToWrecks` VALUES ('13048', '26579', 'Sansha\'s Loyal Servant');
-INSERT INTO `invTypesToWrecks` VALUES ('13049', '26585', 'Guardian Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('13050', '26585', 'Guardian Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('13051', '26585', 'Guardian Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('13052', '26585', 'Guardian Initiate');
-INSERT INTO `invTypesToWrecks` VALUES ('13202', '26521', 'Megathron Federate Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('13515', '26564', 'Domination Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('13516', '26564', 'Domination Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('13517', '26564', 'Domination Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('13518', '26564', 'Domination Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('13519', '26564', 'Domination Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('13520', '26699', 'Domination Depredator');
-INSERT INTO `invTypesToWrecks` VALUES ('13521', '26564', 'Domination Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('13522', '26564', 'Domination Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('13523', '26699', 'Domination Crusher');
-INSERT INTO `invTypesToWrecks` VALUES ('13524', '26699', 'Domination Smasher');
-INSERT INTO `invTypesToWrecks` VALUES ('13525', '26564', 'Domination Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('13526', '26699', 'Domination Predator');
-INSERT INTO `invTypesToWrecks` VALUES ('13527', '26564', 'Domination Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('13528', '26564', 'Domination Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('13529', '26699', 'Domination Breaker');
-INSERT INTO `invTypesToWrecks` VALUES ('13530', '26699', 'Domination Defeater');
-INSERT INTO `invTypesToWrecks` VALUES ('13531', '26699', 'Domination Marauder');
-INSERT INTO `invTypesToWrecks` VALUES ('13532', '26699', 'Domination Phalanx');
-INSERT INTO `invTypesToWrecks` VALUES ('13533', '26699', 'Domination Liquidator');
-INSERT INTO `invTypesToWrecks` VALUES ('13534', '26699', 'Domination Centurion');
-INSERT INTO `invTypesToWrecks` VALUES ('13535', '26565', 'Domination Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('13536', '26566', 'Mizuro Cybon');
-INSERT INTO `invTypesToWrecks` VALUES ('13537', '26565', 'Domination General');
-INSERT INTO `invTypesToWrecks` VALUES ('13538', '26566', 'Hakim Stormare');
-INSERT INTO `invTypesToWrecks` VALUES ('13539', '26565', 'Domination War General');
-INSERT INTO `invTypesToWrecks` VALUES ('13540', '26565', 'Domination Saint');
-INSERT INTO `invTypesToWrecks` VALUES ('13541', '26566', 'Gotan Kreiss');
-INSERT INTO `invTypesToWrecks` VALUES ('13542', '26565', 'Domination Nephilim');
-INSERT INTO `invTypesToWrecks` VALUES ('13543', '26565', 'Domination Warlord');
-INSERT INTO `invTypesToWrecks` VALUES ('13544', '26566', 'Tobias Kruzhor');
-INSERT INTO `invTypesToWrecks` VALUES ('13545', '26570', 'Dark Blood Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('13546', '26570', 'Dark Blood Follower');
-INSERT INTO `invTypesToWrecks` VALUES ('13547', '26571', 'Dark Blood Arch Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('13548', '26571', 'Dark Blood Arch Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('13549', '26571', 'Dark Blood Dark Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('13550', '26571', 'Dark Blood Arch Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('13551', '26571', 'Dark Blood Arch Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('13552', '26571', 'Dark Blood Shadow Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('13553', '26571', 'Dark Blood Arch Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('13554', '26570', 'Dark Blood Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('13555', '26570', 'Dark Blood Upholder');
-INSERT INTO `invTypesToWrecks` VALUES ('13556', '26700', 'Dark Blood Prophet');
-INSERT INTO `invTypesToWrecks` VALUES ('13557', '26572', 'Raysere Giant');
-INSERT INTO `invTypesToWrecks` VALUES ('13558', '26570', 'Dark Blood Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('13559', '26700', 'Dread Guristas Eliminator');
-INSERT INTO `invTypesToWrecks` VALUES ('13560', '26700', 'Dark Blood Archbishop');
-INSERT INTO `invTypesToWrecks` VALUES ('13561', '26572', 'Ahremen Arkah');
-INSERT INTO `invTypesToWrecks` VALUES ('13562', '26700', 'Dark Blood Apostle');
-INSERT INTO `invTypesToWrecks` VALUES ('13563', '26700', 'Dark Blood Harbinger');
-INSERT INTO `invTypesToWrecks` VALUES ('13564', '26572', 'Draclira Merlonne');
-INSERT INTO `invTypesToWrecks` VALUES ('13565', '26571', 'Dark Blood Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('13566', '26570', 'Dark Blood Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('13567', '26570', 'Dark Blood Herald');
-INSERT INTO `invTypesToWrecks` VALUES ('13568', '26570', 'Dark Blood Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('13569', '26571', 'Dark Blood Revenant');
-INSERT INTO `invTypesToWrecks` VALUES ('13570', '26571', 'Dark Blood Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('13571', '26570', 'Dark Blood Worshipper');
-INSERT INTO `invTypesToWrecks` VALUES ('13572', '26700', 'Dark Blood Archon');
-INSERT INTO `invTypesToWrecks` VALUES ('13573', '26572', 'Tairei Namazoth');
-INSERT INTO `invTypesToWrecks` VALUES ('13574', '26570', 'Dark Blood Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('13575', '26577', 'Dread Guristas Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('13576', '26576', 'Dread Guristas Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('13577', '26577', 'Dread Guristas Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('13578', '26701', 'Dread Guristas Dismantler');
-INSERT INTO `invTypesToWrecks` VALUES ('13579', '26701', 'Dread Guristas Eliminator');
-INSERT INTO `invTypesToWrecks` VALUES ('13580', '26578', 'Vepas Minimala');
-INSERT INTO `invTypesToWrecks` VALUES ('13581', '26576', 'Dread Guristas Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('13584', '26578', 'Thon Eney');
-INSERT INTO `invTypesToWrecks` VALUES ('13585', '26576', 'Dread Guristas Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('13586', '26577', 'Dread Guristas Inferno');
-INSERT INTO `invTypesToWrecks` VALUES ('13587', '26577', 'Dread Guristas Abolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('13588', '26701', 'Dread Guristas Eradicator');
-INSERT INTO `invTypesToWrecks` VALUES ('13589', '26578', 'Kaikka Peunato');
-INSERT INTO `invTypesToWrecks` VALUES ('13590', '26576', 'Dread Guristas Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('13591', '26577', 'Dread Guristas Mortifier');
-INSERT INTO `invTypesToWrecks` VALUES ('13592', '26577', 'Dread Guristas Eraser');
-INSERT INTO `invTypesToWrecks` VALUES ('13593', '26576', 'Dread Guristas Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('13594', '26576', 'Dread Guristas Invader');
-INSERT INTO `invTypesToWrecks` VALUES ('13595', '26577', 'Dread Guristas Nullifier');
-INSERT INTO `invTypesToWrecks` VALUES ('13596', '26577', 'Dread Guristas Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('13597', '26576', 'Dread Guristas Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('13598', '26576', 'Dread Guristas Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('13599', '26577', 'Dread Guristas Annihilator');
-INSERT INTO `invTypesToWrecks` VALUES ('13600', '26577', 'Dread Guristas Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('13601', '26701', 'Dread Guristas Extinguisher');
-INSERT INTO `invTypesToWrecks` VALUES ('13602', '26701', 'Dread Guristas Exterminator');
-INSERT INTO `invTypesToWrecks` VALUES ('13603', '26578', 'Estamel Tharchon');
-INSERT INTO `invTypesToWrecks` VALUES ('13604', '26576', 'Dread Guristas Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('13605', '26583', 'True Sansha\'s Beast');
-INSERT INTO `invTypesToWrecks` VALUES ('13606', '26702', 'True Sansha\'s Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('13609', '26584', 'Brokara Ryver');
-INSERT INTO `invTypesToWrecks` VALUES ('13610', '26582', 'True Sansha\'s Butcher');
-INSERT INTO `invTypesToWrecks` VALUES ('13611', '26583', 'True Sansha\'s Slaughterer');
-INSERT INTO `invTypesToWrecks` VALUES ('13612', '26582', 'True Sansha\'s Enslaver');
-INSERT INTO `invTypesToWrecks` VALUES ('13613', '26583', 'True Sansha\'s Juggernaut');
-INSERT INTO `invTypesToWrecks` VALUES ('13614', '26702', 'True Sansha\'s Slave Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('13615', '26584', 'Selynne Mardakar');
-INSERT INTO `invTypesToWrecks` VALUES ('13616', '26582', 'True Sansha\'s Manslayer');
-INSERT INTO `invTypesToWrecks` VALUES ('13617', '26582', 'True Sansha\'s Minion');
-INSERT INTO `invTypesToWrecks` VALUES ('13618', '26583', 'True Sansha\'s Torturer');
-INSERT INTO `invTypesToWrecks` VALUES ('13619', '26583', 'True Sansha\'s Hellhound');
-INSERT INTO `invTypesToWrecks` VALUES ('13620', '26702', 'True Sansha\'s Mutant Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('13621', '26702', 'True Sansha\'s Plague Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('13622', '26584', 'Vizan Ankonin');
-INSERT INTO `invTypesToWrecks` VALUES ('13623', '26582', 'True Sansha\'s Plague');
-INSERT INTO `invTypesToWrecks` VALUES ('13624', '26583', 'True Sansha\'s Ravager');
-INSERT INTO `invTypesToWrecks` VALUES ('13625', '26582', 'True Sansha\'s Ravener');
-INSERT INTO `invTypesToWrecks` VALUES ('13626', '26583', 'True Sansha\'s Ravisher');
-INSERT INTO `invTypesToWrecks` VALUES ('13627', '26582', 'True Sansha\'s Savage');
-INSERT INTO `invTypesToWrecks` VALUES ('13628', '26582', 'True Sansha\'s Scavenger');
-INSERT INTO `invTypesToWrecks` VALUES ('13629', '26582', 'True Sansha\'s Servant');
-INSERT INTO `invTypesToWrecks` VALUES ('13630', '26583', 'True Sansha\'s Mutilator');
-INSERT INTO `invTypesToWrecks` VALUES ('13631', '26583', 'True Sansha\'s Fiend');
-INSERT INTO `invTypesToWrecks` VALUES ('13632', '26582', 'True Sansha\'s Slavehunter');
-INSERT INTO `invTypesToWrecks` VALUES ('13633', '26702', 'True Sansha\'s Beast Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('13634', '26702', 'True Sansha\'s Savage Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('13635', '26584', 'Chelm Soran');
-INSERT INTO `invTypesToWrecks` VALUES ('13636', '26582', 'True Sansha\'s Execrator');
-INSERT INTO `invTypesToWrecks` VALUES ('13637', '26589', 'Shadow Serpentis Chief Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('13638', '26589', 'Shadow Serpentis Chief Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('13639', '26589', 'Shadow Serpentis Chief Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('13640', '26588', 'Shadow Serpentis Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('13641', '26589', 'Shadow Serpentis Chief Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('13642', '26588', 'Shadow Serpentis Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('13643', '26588', 'Shadow Serpentis Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('13644', '26588', 'Shadow Serpentis Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('13645', '26588', 'Shadow Serpentis Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('13646', '26588', 'Shadow Serpentis Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('13647', '26588', 'Shadow Serpentis Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('13648', '26588', 'Shadow Serpentis Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('13649', '26588', 'Shadow Serpentis Initiate');
-INSERT INTO `invTypesToWrecks` VALUES ('13650', '26588', 'Shadow Serpentis Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('13651', '26589', 'Shadow Serpentis Chief Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('13652', '26703', 'Shadow Serpentis Vice Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('13653', '26703', 'Shadow Serpentis Rear Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('13654', '26590', 'Cormack Vaaja');
-INSERT INTO `invTypesToWrecks` VALUES ('13656', '26589', 'Shadow Serpentis Chief Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('13658', '26703', 'Shadow Serpentis Commodore');
-INSERT INTO `invTypesToWrecks` VALUES ('13659', '26590', 'Tuvan Orth');
-INSERT INTO `invTypesToWrecks` VALUES ('13660', '26703', 'Shadow Serpentis Baron');
-INSERT INTO `invTypesToWrecks` VALUES ('13661', '26590', 'Brynn Jerdola');
-INSERT INTO `invTypesToWrecks` VALUES ('13663', '26589', 'Shadow Serpentis Chief Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('13664', '26589', 'Shadow Serpentis Chief Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('13665', '26703', 'Shadow Serpentis Port Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('13666', '26703', 'Shadow Serpentis Flotilla Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('13667', '26590', 'Setele Schellan');
-INSERT INTO `invTypesToWrecks` VALUES ('13668', '26589', 'Shadow Serpentis Chief Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('13669', '26589', 'Shadow Serpentis Chief Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('13678', '26563', 'Angel Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13679', '26563', 'Angel Convoy');
-INSERT INTO `invTypesToWrecks` VALUES ('13680', '26563', 'Angel Trailer');
-INSERT INTO `invTypesToWrecks` VALUES ('13681', '26563', 'Angel Hauler');
-INSERT INTO `invTypesToWrecks` VALUES ('13682', '26563', 'Angel Bulker');
-INSERT INTO `invTypesToWrecks` VALUES ('13683', '26563', 'Angel Transporter');
-INSERT INTO `invTypesToWrecks` VALUES ('13684', '26563', 'Angel Trucker');
-INSERT INTO `invTypesToWrecks` VALUES ('13685', '26563', 'Angel Courier');
-INSERT INTO `invTypesToWrecks` VALUES ('13686', '26563', 'Angel Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('13687', '26563', 'Angel Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13688', '26563', 'Angel Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('13689', '26563', 'Angel Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('13690', '26569', 'Blood Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13691', '26569', 'Blood Convoy');
-INSERT INTO `invTypesToWrecks` VALUES ('13692', '26569', 'Blood Trailer');
-INSERT INTO `invTypesToWrecks` VALUES ('13693', '26569', 'Blood Hauler');
-INSERT INTO `invTypesToWrecks` VALUES ('13694', '26569', 'Blood Bulker');
-INSERT INTO `invTypesToWrecks` VALUES ('13695', '26569', 'Blood Transporter');
-INSERT INTO `invTypesToWrecks` VALUES ('13696', '26569', 'Blood Trucker');
-INSERT INTO `invTypesToWrecks` VALUES ('13697', '26569', 'Blood Courier');
-INSERT INTO `invTypesToWrecks` VALUES ('13698', '26569', 'Blood Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('13699', '26569', 'Blood Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13700', '26569', 'Blood Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('13701', '26569', 'Blood Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('13702', '26587', 'Serpentis Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13703', '26587', 'Serpentis Convoy');
-INSERT INTO `invTypesToWrecks` VALUES ('13704', '26587', 'Serpentis Trailer');
-INSERT INTO `invTypesToWrecks` VALUES ('13705', '26587', 'Serpentis Hauler');
-INSERT INTO `invTypesToWrecks` VALUES ('13706', '26587', 'Serpentis Bulkera');
-INSERT INTO `invTypesToWrecks` VALUES ('13707', '26587', 'Serpentis Transporter');
-INSERT INTO `invTypesToWrecks` VALUES ('13708', '26587', 'Serpentis Trucker');
-INSERT INTO `invTypesToWrecks` VALUES ('13709', '26587', 'Serpentis Courier');
-INSERT INTO `invTypesToWrecks` VALUES ('13710', '26587', 'Serpentis Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('13711', '26587', 'Serpentis Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13712', '26587', 'Serpentis Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('13713', '26587', 'Serpentis Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('13714', '26575', 'Guristas Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13715', '26575', 'Guristas Convoy');
-INSERT INTO `invTypesToWrecks` VALUES ('13716', '26575', 'Guristas Trailer');
-INSERT INTO `invTypesToWrecks` VALUES ('13717', '26575', 'Guristas Hauler');
-INSERT INTO `invTypesToWrecks` VALUES ('13718', '26575', 'Guristas Bulker');
-INSERT INTO `invTypesToWrecks` VALUES ('13719', '26575', 'Guristas Transporter');
-INSERT INTO `invTypesToWrecks` VALUES ('13720', '26575', 'Guristas Trucker');
-INSERT INTO `invTypesToWrecks` VALUES ('13721', '26575', 'Guristas Courier');
-INSERT INTO `invTypesToWrecks` VALUES ('13722', '26575', 'Guristas Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('13723', '26575', 'Guristas Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13724', '26575', 'Guristas Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('13725', '26575', 'Guristas Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('13726', '26581', 'Sansha\'s Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13727', '26581', 'Sansha\'s Convoy');
-INSERT INTO `invTypesToWrecks` VALUES ('13728', '26581', 'Sansha\'s Trailer');
-INSERT INTO `invTypesToWrecks` VALUES ('13729', '26581', 'Sansha\'s Hauler');
-INSERT INTO `invTypesToWrecks` VALUES ('13730', '26581', 'Sansha\'s Bulker');
-INSERT INTO `invTypesToWrecks` VALUES ('13731', '26581', 'Sansha\'s Transporter');
-INSERT INTO `invTypesToWrecks` VALUES ('13732', '26581', 'Sansha\'s Trucker');
-INSERT INTO `invTypesToWrecks` VALUES ('13733', '26581', 'Sansha\'s Courier');
-INSERT INTO `invTypesToWrecks` VALUES ('13734', '26581', 'Sansha\'s Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('13735', '26581', 'Sansha\'s Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('13736', '26581', 'Sansha\'s Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('13737', '26581', 'Sansha\'s Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('14344', '26574', 'Renegade Guristas Pirate');
-INSERT INTO `invTypesToWrecks` VALUES ('14345', '26562', 'Renegade Angel Goon');
-INSERT INTO `invTypesToWrecks` VALUES ('14346', '26568', 'Renegade Blood Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('14347', '26586', 'Renegade Serpentis Assassin');
-INSERT INTO `invTypesToWrecks` VALUES ('14348', '26580', 'Renegade Sanshas Slaver');
-INSERT INTO `invTypesToWrecks` VALUES ('15395', '26972', 'Construction Freight');
-INSERT INTO `invTypesToWrecks` VALUES ('15396', '26920', 'Shadow Serpentis Big Boss');
-INSERT INTO `invTypesToWrecks` VALUES ('15413', '26920', 'General Luther Veron');
-INSERT INTO `invTypesToWrecks` VALUES ('15414', '26920', 'Commander Terachi TashMurkon');
-INSERT INTO `invTypesToWrecks` VALUES ('15415', '26920', 'Fleet Commander Naiyon Tai');
-INSERT INTO `invTypesToWrecks` VALUES ('15441', '26920', 'Tritan - The Underground Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('15493', '27286', 'TEST Speed');
-INSERT INTO `invTypesToWrecks` VALUES ('16102', '26972', 'Ore Supply Freight');
-INSERT INTO `invTypesToWrecks` VALUES ('16104', '26972', 'CONCORD Surveillance Drone');
-INSERT INTO `invTypesToWrecks` VALUES ('16165', '26562', 'Angel Cartel Personnel Transport');
-INSERT INTO `invTypesToWrecks` VALUES ('16166', '26568', 'Blood Raider Personnel Transport');
-INSERT INTO `invTypesToWrecks` VALUES ('16167', '26580', 'Sanshas Personnel Transport');
-INSERT INTO `invTypesToWrecks` VALUES ('16168', '26586', 'Serpentis Personnel Transport');
-INSERT INTO `invTypesToWrecks` VALUES ('16169', '26574', 'Guristas Personnel Transport');
-INSERT INTO `invTypesToWrecks` VALUES ('16227', '26491', 'Ferox');
-INSERT INTO `invTypesToWrecks` VALUES ('16229', '26513', 'Brutix');
-INSERT INTO `invTypesToWrecks` VALUES ('16231', '26535', 'Cyclone');
-INSERT INTO `invTypesToWrecks` VALUES ('16233', '26469', 'Prophecy');
-INSERT INTO `invTypesToWrecks` VALUES ('16236', '26474', 'Coercer');
-INSERT INTO `invTypesToWrecks` VALUES ('16238', '26496', 'Cormorant');
-INSERT INTO `invTypesToWrecks` VALUES ('16240', '26518', 'Catalyst');
-INSERT INTO `invTypesToWrecks` VALUES ('16242', '26540', 'Thrasher');
-INSERT INTO `invTypesToWrecks` VALUES ('16561', '26561', 'Angel Viper');
-INSERT INTO `invTypesToWrecks` VALUES ('16562', '26561', 'Angel Webifier');
-INSERT INTO `invTypesToWrecks` VALUES ('16563', '26567', 'Blood Wraith');
-INSERT INTO `invTypesToWrecks` VALUES ('16564', '26567', 'Blood Disciple');
-INSERT INTO `invTypesToWrecks` VALUES ('16565', '26573', 'Guristas Kyoukan');
-INSERT INTO `invTypesToWrecks` VALUES ('16566', '26573', 'Guristas Webifier');
-INSERT INTO `invTypesToWrecks` VALUES ('16567', '26579', 'Sansha\'s Demon');
-INSERT INTO `invTypesToWrecks` VALUES ('16568', '26579', 'Sansha\'s Berserker');
-INSERT INTO `invTypesToWrecks` VALUES ('16569', '26585', 'Guardian Veteran');
-INSERT INTO `invTypesToWrecks` VALUES ('16874', '26561', 'Gistii Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('16875', '26562', 'Gistum Depredator');
-INSERT INTO `invTypesToWrecks` VALUES ('16876', '26561', 'Gistii Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('16877', '26561', 'Gistii Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('16878', '26561', 'Gistii Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('16879', '26561', 'Gistii Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('16880', '26562', 'Gistum Crusher');
-INSERT INTO `invTypesToWrecks` VALUES ('16881', '26562', 'Gistum Smasher');
-INSERT INTO `invTypesToWrecks` VALUES ('16882', '26561', 'Gistii Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('16883', '26561', 'Gistii Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('16884', '26562', 'Gistum Predator');
-INSERT INTO `invTypesToWrecks` VALUES ('16885', '26561', 'Gistii Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('16886', '26561', 'Gistii Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('16887', '26561', 'Gistii Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('16888', '26561', 'Gistii Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('16889', '26562', 'Gistum Breaker');
-INSERT INTO `invTypesToWrecks` VALUES ('16890', '26561', 'Arch Gistii Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('16891', '26562', 'Gistum Marauder');
-INSERT INTO `invTypesToWrecks` VALUES ('16892', '26563', 'Gist Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('16893', '26563', 'Gist General');
-INSERT INTO `invTypesToWrecks` VALUES ('16894', '26561', 'Arch Gistii Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('16895', '26561', 'Arch Gistii Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('16896', '26562', 'Gistum Liquidator');
-INSERT INTO `invTypesToWrecks` VALUES ('16897', '26561', 'Arch Gistii Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('16898', '26562', 'Gistum Defeater');
-INSERT INTO `invTypesToWrecks` VALUES ('16899', '26563', 'Gist Warlord');
-INSERT INTO `invTypesToWrecks` VALUES ('16900', '26563', 'Gist War General');
-INSERT INTO `invTypesToWrecks` VALUES ('16901', '26561', 'Gistii Domination Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('16902', '26561', 'Gistii Domination Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('16903', '26561', 'Gistii Domination Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('16904', '26561', 'Gistii Domination Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('16905', '26561', 'Gistii Domination Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('16906', '26562', 'Gistum Domination Depredator');
-INSERT INTO `invTypesToWrecks` VALUES ('16907', '26561', 'Gistii Domination Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('16908', '26561', 'Gistii Domination Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('16909', '26562', 'Gistum Domination Crusher');
-INSERT INTO `invTypesToWrecks` VALUES ('16910', '26562', 'Gistum Domination Smasher');
-INSERT INTO `invTypesToWrecks` VALUES ('16911', '26561', 'Gistii Domination Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('16912', '26562', 'Gistum Domination Predator');
-INSERT INTO `invTypesToWrecks` VALUES ('16913', '26561', 'Gistii Domination Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('16914', '26561', 'Gistii Domination Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('16915', '26562', 'Gistum Domination Breaker');
-INSERT INTO `invTypesToWrecks` VALUES ('16916', '26562', 'Gistum Domination Defeater');
-INSERT INTO `invTypesToWrecks` VALUES ('16917', '26562', 'Gistum Domination Maraude');
-INSERT INTO `invTypesToWrecks` VALUES ('16918', '26562', 'Gistum Domination Phalanx');
-INSERT INTO `invTypesToWrecks` VALUES ('16919', '26562', 'Gistum Domination Liquidator');
-INSERT INTO `invTypesToWrecks` VALUES ('16920', '26562', 'Gistum Domination Centurion');
-INSERT INTO `invTypesToWrecks` VALUES ('16921', '26563', 'Gist Domination Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('16922', '26563', 'Gist Domination General');
-INSERT INTO `invTypesToWrecks` VALUES ('16923', '26563', 'Gist Domination War General');
-INSERT INTO `invTypesToWrecks` VALUES ('16924', '26563', 'Gist Domination Saint');
-INSERT INTO `invTypesToWrecks` VALUES ('16925', '26563', 'Gist Domination Nephilim');
-INSERT INTO `invTypesToWrecks` VALUES ('16926', '26563', 'Gist Domination Warlord');
-INSERT INTO `invTypesToWrecks` VALUES ('16927', '26568', 'Corpum Arch Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('16928', '26568', 'Corpum Arch Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('16929', '26568', 'Corpum Arch Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('16930', '26568', 'Corpum Arch Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('16931', '26568', 'Corpum Arch Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('16932', '26567', 'Corpii Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('16933', '26567', 'Corpii Upholder');
-INSERT INTO `invTypesToWrecks` VALUES ('16934', '26569', 'Corpus Prophet');
-INSERT INTO `invTypesToWrecks` VALUES ('16935', '26567', 'Corpii Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('16936', '26567', 'Corpii Follower');
-INSERT INTO `invTypesToWrecks` VALUES ('16937', '26567', 'Corpii Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('16938', '26569', 'Corpus Oracle');
-INSERT INTO `invTypesToWrecks` VALUES ('16939', '26567', 'Elder Corpii Herald');
-INSERT INTO `invTypesToWrecks` VALUES ('16940', '26567', 'Corpii Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('16941', '26569', 'Corpus Apostle');
-INSERT INTO `invTypesToWrecks` VALUES ('16942', '26567', 'Elder Corpii Upholder');
-INSERT INTO `invTypesToWrecks` VALUES ('16943', '26567', 'Elder Corpii Follower');
-INSERT INTO `invTypesToWrecks` VALUES ('16944', '26568', 'Corpum Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('16945', '26567', 'Corpii Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('16946', '26567', 'Corpii Herald');
-INSERT INTO `invTypesToWrecks` VALUES ('16947', '26567', 'Corpii Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('16948', '26568', 'Corpum Revenant');
-INSERT INTO `invTypesToWrecks` VALUES ('16949', '26568', 'Corpum Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('16950', '26567', 'Corpii Worshipper');
-INSERT INTO `invTypesToWrecks` VALUES ('16951', '26567', 'Elder Corpii Worshiper');
-INSERT INTO `invTypesToWrecks` VALUES ('16952', '26569', 'Corpus Archon');
-INSERT INTO `invTypesToWrecks` VALUES ('16953', '26567', 'Corpii Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('16954', '26567', 'Dark Corpii Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('16955', '26567', 'Dark Corpii Follower');
-INSERT INTO `invTypesToWrecks` VALUES ('16956', '26568', 'Dark Corpum Arch Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('16957', '26568', 'Dark Corpum Arch Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('16958', '26568', 'Dark Corpum Dark Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('16959', '26568', 'Dark Corpum Arch Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('16960', '26568', 'Dark Corpum Arch Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('16961', '26568', 'Dark Corpum Shadow Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('16962', '26568', 'Dark Corpum Arch Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('16963', '26567', 'Dark Corpii Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('16964', '26567', 'Dark Corpii Upholder');
-INSERT INTO `invTypesToWrecks` VALUES ('16965', '26569', 'Dark Corpus Prophet');
-INSERT INTO `invTypesToWrecks` VALUES ('16966', '26567', 'Dark Corpii Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('16967', '26569', 'Dark Corpus Oracle');
-INSERT INTO `invTypesToWrecks` VALUES ('16968', '26569', 'Dark Corpus Archbishop');
-INSERT INTO `invTypesToWrecks` VALUES ('16969', '26569', 'Dark Corpus Apostle');
-INSERT INTO `invTypesToWrecks` VALUES ('16970', '26569', 'Dark Corpus Harbinger');
-INSERT INTO `invTypesToWrecks` VALUES ('16971', '26569', 'Dark Corpum Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('16972', '26567', 'Dark Corpii Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('16973', '26567', 'Dark Corpii Herald');
-INSERT INTO `invTypesToWrecks` VALUES ('16974', '26567', 'Dark Corpii Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('16975', '26568', 'Dark Corpum Revenant');
-INSERT INTO `invTypesToWrecks` VALUES ('16976', '26568', 'Dark Corpum Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('16977', '26567', 'Dark Corpii Worshipper');
-INSERT INTO `invTypesToWrecks` VALUES ('16978', '26569', 'Dark Corpus Archon');
-INSERT INTO `invTypesToWrecks` VALUES ('16979', '26567', 'Dark Corpii Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('16980', '26574', 'Pithum Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('16981', '26573', 'Pithi Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('16982', '26574', 'Pithum Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('16983', '26573', 'Dire Pithi Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('16984', '26575', 'Pith Dismantler');
-INSERT INTO `invTypesToWrecks` VALUES ('16985', '26573', 'Dire Pithi Invader');
-INSERT INTO `invTypesToWrecks` VALUES ('16986', '26573', 'Pithi Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('16987', '26573', 'Pithi Despoiler');
-INSERT INTO `invTypesToWrecks` VALUES ('16988', '26575', 'Pith Obliterator');
-INSERT INTO `invTypesToWrecks` VALUES ('16989', '26573', 'Pithi Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('16990', '26573', 'Dire Pithi Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('16991', '26574', 'Pithum Inferno');
-INSERT INTO `invTypesToWrecks` VALUES ('16992', '26575', 'Pith Eradicator');
-INSERT INTO `invTypesToWrecks` VALUES ('16993', '26573', 'Pithi Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('16994', '26573', 'Pithi Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('16995', '26574', 'Pithum Mortifier');
-INSERT INTO `invTypesToWrecks` VALUES ('16996', '26573', 'Pithi Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('16997', '26573', 'Pithi Invader');
-INSERT INTO `invTypesToWrecks` VALUES ('16998', '26574', 'Pithum Nullifier');
-INSERT INTO `invTypesToWrecks` VALUES ('16999', '26573', 'Dire Pithi Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('17000', '26574', 'Pithum Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('17001', '26573', 'Pithi Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('17002', '26573', 'Pithi Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('17003', '26574', 'Pithum Annihilator');
-INSERT INTO `invTypesToWrecks` VALUES ('17004', '26574', 'Pithum Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('17005', '26575', 'Pith Extinguisher');
-INSERT INTO `invTypesToWrecks` VALUES ('17006', '26573', 'Pithi Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('17007', '26574', 'Dread Pithum Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('17008', '26573', 'Dread Pithi Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('17009', '26574', 'Dread Pithum Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('17010', '26575', 'Dread Pith Dismantler');
-INSERT INTO `invTypesToWrecks` VALUES ('17011', '26575', 'Dread Pith Eliminator');
-INSERT INTO `invTypesToWrecks` VALUES ('17012', '26573', 'Dread Pithi Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('17013', '26573', 'Dread Pithi Despoiler');
-INSERT INTO `invTypesToWrecks` VALUES ('17014', '26575', 'Dread Pith Obliterator');
-INSERT INTO `invTypesToWrecks` VALUES ('17015', '26573', 'Dread Pithi Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('17016', '26574', 'Dread Pithum Inferno');
-INSERT INTO `invTypesToWrecks` VALUES ('17017', '26574', 'Dread Pithum Abolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('17018', '26575', 'Dread Pith Eradicator');
-INSERT INTO `invTypesToWrecks` VALUES ('17019', '26573', 'Dread Pithi Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('17020', '26574', 'Dread Pithum Mortifier');
-INSERT INTO `invTypesToWrecks` VALUES ('17021', '26574', 'Dread Pithum Erasera');
-INSERT INTO `invTypesToWrecks` VALUES ('17022', '26573', 'Dread Pithi Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('17023', '26573', 'Dread Pithi Invader');
-INSERT INTO `invTypesToWrecks` VALUES ('17024', '26574', 'Dread Pithum Nullifier');
-INSERT INTO `invTypesToWrecks` VALUES ('17025', '26574', 'Dread Pithum Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('17026', '26573', 'Dread Pithi Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('17027', '26573', 'Dread Pithi Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('17028', '26574', 'Dread Pithum Annihilator');
-INSERT INTO `invTypesToWrecks` VALUES ('17029', '26574', 'Dread Pithum Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('17030', '26575', 'Dread Pith Extinguisher');
-INSERT INTO `invTypesToWrecks` VALUES ('17031', '26575', 'Dread Pith Exterminator');
-INSERT INTO `invTypesToWrecks` VALUES ('17032', '26573', 'Dread Pithi Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('17033', '26586', 'Corelum Chief Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('17034', '26587', 'Core Rear Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('17035', '26585', 'Coreli Guardian Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('17036', '26587', 'Core Port Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('17037', '26587', 'Core Commodore');
-INSERT INTO `invTypesToWrecks` VALUES ('17038', '26587', 'Core Baron');
-INSERT INTO `invTypesToWrecks` VALUES ('17039', '26586', 'Corelum Chief Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('17040', '26585', 'Coreli Guardian Initiate');
-INSERT INTO `invTypesToWrecks` VALUES ('17041', '26585', 'Coreli Guardian Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('17042', '26586', 'Corelum Chief Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('17043', '26585', 'Coreli Guardian Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('17044', '26586', 'Corelum Chief Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('17045', '26586', 'Shadow Corelum Chief Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('17046', '26586', 'Shadow Corelum Chief Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('17047', '26586', 'Shadow Corelum Chief Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('17048', '26586', 'Shadow Corelum Chief Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('17049', '26587', 'Shadow Core Port Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('17050', '26587', 'Shadow Core Vice Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('17051', '26587', 'Shadow Core Commodore');
-INSERT INTO `invTypesToWrecks` VALUES ('17052', '26587', 'Shadow Core Baron');
-INSERT INTO `invTypesToWrecks` VALUES ('17053', '26587', 'Shadow Core Flotilla Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('17054', '26587', 'Shadow Core Rear Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('17055', '26586', 'Shadow Corelum Chief Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('17056', '26586', 'Shadow Corelum Chief Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('17057', '26580', 'Centum Beast');
-INSERT INTO `invTypesToWrecks` VALUES ('17058', '26581', 'Centus Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17060', '26579', 'Centii Butcher');
-INSERT INTO `invTypesToWrecks` VALUES ('17061', '26579', 'Centii Loyal Minion');
-INSERT INTO `invTypesToWrecks` VALUES ('17062', '26580', 'Centum Slaughterer');
-INSERT INTO `invTypesToWrecks` VALUES ('17063', '26579', 'Centii Loyal Ravener');
-INSERT INTO `invTypesToWrecks` VALUES ('17064', '26579', 'Centii Enslaver');
-INSERT INTO `invTypesToWrecks` VALUES ('17065', '26580', 'Centum Juggernaut');
-INSERT INTO `invTypesToWrecks` VALUES ('17066', '26581', 'Centus Slave Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17067', '26579', 'Centii Manslayer');
-INSERT INTO `invTypesToWrecks` VALUES ('17068', '26579', 'Centii Minion');
-INSERT INTO `invTypesToWrecks` VALUES ('17069', '26579', 'Centii Loyal Servant');
-INSERT INTO `invTypesToWrecks` VALUES ('17070', '26580', 'Centum Torturer');
-INSERT INTO `invTypesToWrecks` VALUES ('17071', '26581', 'Centus Mutant Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17072', '26579', 'Centii Plague');
-INSERT INTO `invTypesToWrecks` VALUES ('17073', '26580', 'Centum Ravager');
-INSERT INTO `invTypesToWrecks` VALUES ('17074', '26579', 'Centii Ravener');
-INSERT INTO `invTypesToWrecks` VALUES ('17075', '26580', 'Centum Ravisher');
-INSERT INTO `invTypesToWrecks` VALUES ('17076', '26579', 'Centii Savage');
-INSERT INTO `invTypesToWrecks` VALUES ('17077', '26579', 'Centii Scavenger');
-INSERT INTO `invTypesToWrecks` VALUES ('17078', '26579', 'Centii Servant');
-INSERT INTO `invTypesToWrecks` VALUES ('17079', '26579', 'Centii Loyal Scavenger');
-INSERT INTO `invTypesToWrecks` VALUES ('17080', '26580', 'Centum Mutilator');
-INSERT INTO `invTypesToWrecks` VALUES ('17081', '26579', 'Centii Slavehunter');
-INSERT INTO `invTypesToWrecks` VALUES ('17082', '26581', 'Centus Savage Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17083', '26580', 'Centum Execrator');
-INSERT INTO `invTypesToWrecks` VALUES ('17084', '26580', 'True Centum Beast');
-INSERT INTO `invTypesToWrecks` VALUES ('17085', '26581', 'True Centus Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17086', '26579', 'True Centii Butcher');
-INSERT INTO `invTypesToWrecks` VALUES ('17087', '26580', 'True Centum Slaughterer');
-INSERT INTO `invTypesToWrecks` VALUES ('17088', '26579', 'True Centii Enslaver');
-INSERT INTO `invTypesToWrecks` VALUES ('17089', '26580', 'True Centum Juggernaut');
-INSERT INTO `invTypesToWrecks` VALUES ('17090', '26581', 'True Centus Slave Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17091', '26579', 'True Centii Manslayer');
-INSERT INTO `invTypesToWrecks` VALUES ('17092', '26579', 'True Centii Minion');
-INSERT INTO `invTypesToWrecks` VALUES ('17093', '26580', 'True Centum Torturer');
-INSERT INTO `invTypesToWrecks` VALUES ('17094', '26580', 'True Centum Hellhound');
-INSERT INTO `invTypesToWrecks` VALUES ('17095', '26581', 'True Centus Mutant Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17096', '26581', 'True Centus Plague Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17097', '26579', 'True Centii Plague');
-INSERT INTO `invTypesToWrecks` VALUES ('17098', '26580', 'True Centum Ravager');
-INSERT INTO `invTypesToWrecks` VALUES ('17099', '26579', 'True Centii Ravener');
-INSERT INTO `invTypesToWrecks` VALUES ('17100', '26580', 'True Centum Ravisher');
-INSERT INTO `invTypesToWrecks` VALUES ('17101', '26579', 'True Centii Savage');
-INSERT INTO `invTypesToWrecks` VALUES ('17102', '26579', 'True Centii Scavenger');
-INSERT INTO `invTypesToWrecks` VALUES ('17103', '26579', 'True Centii Servant');
-INSERT INTO `invTypesToWrecks` VALUES ('17104', '26580', 'True Centum Mutilator');
-INSERT INTO `invTypesToWrecks` VALUES ('17105', '26580', 'True Centum Fiend');
-INSERT INTO `invTypesToWrecks` VALUES ('17106', '26579', 'True Centii Slavehunter');
-INSERT INTO `invTypesToWrecks` VALUES ('17107', '26581', 'True Centus Beast Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17108', '26581', 'True Centus Savage Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17109', '26580', 'True Centum Execrator');
-INSERT INTO `invTypesToWrecks` VALUES ('17110', '26586', 'Corelum Chief Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('17111', '26586', 'Corelum Chief Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('17112', '26586', 'Corelum Chief Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('17113', '26585', 'Coreli Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('17114', '26586', 'Corelum Chief Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('17115', '26585', 'Coreli Fugitive');
-INSERT INTO `invTypesToWrecks` VALUES ('17116', '26585', 'Coreli Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('17117', '26585', 'Coreli Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('17118', '26585', 'Coreli Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('17119', '26585', 'Coreli Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('17120', '26585', 'Coreli Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('17121', '26585', 'Coreli Initiate');
-INSERT INTO `invTypesToWrecks` VALUES ('17122', '26585', 'Coreli Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('17123', '26586', 'Shadow Corelum Chief Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('17124', '26586', 'Shadow Corelum Chief Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('17125', '26586', 'Shadow Corelum Chief Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('17126', '26585', 'Shadow Coreli Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('17127', '26586', 'Shadow Corelum Chief Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('17128', '26585', 'Shadow Coreli Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('17129', '26585', 'Shadow Coreli Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('17130', '26585', 'Shadow Coreli Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('17131', '26585', 'Shadow Coreli Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('17132', '26585', 'Shadow Coreli Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('17133', '26585', 'Shadow Coreli Initiate');
-INSERT INTO `invTypesToWrecks` VALUES ('17134', '26585', 'Shadow Coreli Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('17142', '26920', 'The Battlestation Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('17162', '26920', 'The Stronghold General');
-INSERT INTO `invTypesToWrecks` VALUES ('17165', '26919', 'Control Headquarters');
-INSERT INTO `invTypesToWrecks` VALUES ('17166', '26919', 'Security Coordinator');
-INSERT INTO `invTypesToWrecks` VALUES ('17278', '26585', 'Coreli Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('17279', '26585', 'Coreli Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('17280', '26585', 'Shadow Coreli Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('17281', '26585', 'Shadow Coreli Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('17283', '26918', 'Sansha Black Ops Squad Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('17284', '26919', 'Guristas Scout Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('17285', '26918', 'Centus Black Ops Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('17360', '26550', 'Immovable Enigma');
-INSERT INTO `invTypesToWrecks` VALUES ('17412', '26920', 'Phi-Operation Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('17413', '26920', 'Captain Rouge');
-INSERT INTO `invTypesToWrecks` VALUES ('17476', '26530', 'Covetor');
-INSERT INTO `invTypesToWrecks` VALUES ('17478', '26530', 'Retriever');
-INSERT INTO `invTypesToWrecks` VALUES ('17480', '26530', 'Procurer');
-INSERT INTO `invTypesToWrecks` VALUES ('17564', '26918', 'UNUSED_Corpus Frigate_ID115_DL4_DCP1');
-INSERT INTO `invTypesToWrecks` VALUES ('17567', '26918', 'UNUSED_Corpus Frigate_ID115_DL4_DCP2');
-INSERT INTO `invTypesToWrecks` VALUES ('17615', '26919', 'Corpus Crimson Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('17616', '26919', 'Mul-Zatath Gatekeeper');
-INSERT INTO `invTypesToWrecks` VALUES ('17619', '26506', 'Caldari Navy Hookbill');
-INSERT INTO `invTypesToWrecks` VALUES ('17634', '26500', 'Caracal Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('17636', '26499', 'Raven Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('17641', '26563', 'Arch Angel Raelek');
-INSERT INTO `invTypesToWrecks` VALUES ('17703', '26484', 'Imperial Navy Slicer');
-INSERT INTO `invTypesToWrecks` VALUES ('17705', '26506', 'Khanid Navy Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('17707', '26506', 'Mordus Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('17709', '26478', 'Omen Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('17711', '26500', 'Ammatar Navy Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('17713', '26539', 'Stabber Fleet Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('17715', '26500', 'Gila');
-INSERT INTO `invTypesToWrecks` VALUES ('17716', '26478', 'Phantasm');
-INSERT INTO `invTypesToWrecks` VALUES ('17720', '26544', 'Cynabal');
-INSERT INTO `invTypesToWrecks` VALUES ('17722', '26522', 'Vigilant');
-INSERT INTO `invTypesToWrecks` VALUES ('17724', '26500', 'Mordus Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('17726', '26477', 'Apocalypse Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('17728', '26521', 'Megathron Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('17730', '26543', 'Ammatar Navy Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('17732', '26543', 'Tempest Fleet Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('17734', '26499', 'Mordus Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('17736', '26477', 'Nightmare');
-INSERT INTO `invTypesToWrecks` VALUES ('17738', '26543', 'Machariel');
-INSERT INTO `invTypesToWrecks` VALUES ('17740', '26521', 'Vindicator');
-INSERT INTO `invTypesToWrecks` VALUES ('17744', '26920', 'Purple Particle Research Patrol');
-INSERT INTO `invTypesToWrecks` VALUES ('17745', '26920', 'General Hixous Puxley');
-INSERT INTO `invTypesToWrecks` VALUES ('17746', '26920', 'Supply Headman');
-INSERT INTO `invTypesToWrecks` VALUES ('17749', '26920', 'The Antimatter Channeler');
-INSERT INTO `invTypesToWrecks` VALUES ('17800', '26918', 'Retired Mining Veteran');
-INSERT INTO `invTypesToWrecks` VALUES ('17812', '26550', 'Republic Fleet Firetail');
-INSERT INTO `invTypesToWrecks` VALUES ('17823', '26919', 'Serpentis Chief of Security');
-INSERT INTO `invTypesToWrecks` VALUES ('17824', '26919', 'Serpentis Refinery Headmaster');
-INSERT INTO `invTypesToWrecks` VALUES ('17841', '26528', 'Federation Navy Comet');
-INSERT INTO `invTypesToWrecks` VALUES ('17890', '26918', 'Serpentis Drugstore Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('17900', '26920', 'Crimson Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('17903', '26918', 'Outpost Security Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('17918', '26499', 'Rattlesnake');
-INSERT INTO `invTypesToWrecks` VALUES ('17920', '26477', 'Bhaalgorn');
-INSERT INTO `invTypesToWrecks` VALUES ('17922', '26478', 'Ashimmu');
-INSERT INTO `invTypesToWrecks` VALUES ('17924', '26484', 'Succubus');
-INSERT INTO `invTypesToWrecks` VALUES ('17926', '26484', 'Cruor');
-INSERT INTO `invTypesToWrecks` VALUES ('17928', '26550', 'Daredevil');
-INSERT INTO `invTypesToWrecks` VALUES ('17930', '26506', 'Worm');
-INSERT INTO `invTypesToWrecks` VALUES ('17932', '26550', 'Dramiel');
-INSERT INTO `invTypesToWrecks` VALUES ('17973', '26920', 'Angel Cartel Jailor');
-INSERT INTO `invTypesToWrecks` VALUES ('17997', '26918', 'Blockade General Sade');
-INSERT INTO `invTypesToWrecks` VALUES ('18004', '26918', 'Supply Station Manager');
-INSERT INTO `invTypesToWrecks` VALUES ('18024', '26918', 'The Superintendent');
-INSERT INTO `invTypesToWrecks` VALUES ('18565', '26920', 'Serpentis Executive Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('18584', '26919', 'Intoxicated Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('18641', '26919', 'Guristas Harlot Procurer');
-INSERT INTO `invTypesToWrecks` VALUES ('19379', '27286', 'NEGATIVE LOOT TEST DOOD');
-INSERT INTO `invTypesToWrecks` VALUES ('19380', '27286', 'POSTIVE LOOT TEST DOOD');
-INSERT INTO `invTypesToWrecks` VALUES ('19423', '26920', 'Watch Officer');
-INSERT INTO `invTypesToWrecks` VALUES ('19424', '26920', 'Serpentis Shipyard Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('19592', '26920', '\'Screaming\' Dewak Humfry');
-INSERT INTO `invTypesToWrecks` VALUES ('19620', '26920', 'Drone Commandeered Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('19701', '26920', 'Swarm Parasite Worker');
-INSERT INTO `invTypesToWrecks` VALUES ('19704', '26920', 'Supreme Hive Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('19720', '26475', 'Revelation');
-INSERT INTO `invTypesToWrecks` VALUES ('19722', '26541', 'Naglfar');
-INSERT INTO `invTypesToWrecks` VALUES ('19724', '26519', 'Moros');
-INSERT INTO `invTypesToWrecks` VALUES ('19726', '26497', 'Phoenix');
-INSERT INTO `invTypesToWrecks` VALUES ('19731', '26920', 'Sansha Corpse Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('19737', '26581', 'Sansha\'s Tyrant Elite');
-INSERT INTO `invTypesToWrecks` VALUES ('19770', '26550', 'Pimp Vigil');
-INSERT INTO `invTypesToWrecks` VALUES ('20067', '26500', 'Regulator');
-INSERT INTO `invTypesToWrecks` VALUES ('20078', '26920', 'True Creation\'s Park Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('20079', '26920', 'Effotber\'s Transit Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('20080', '26920', 'Overseer Skomener Effotber');
-INSERT INTO `invTypesToWrecks` VALUES ('20122', '26513', 'Pimp Brutix');
-INSERT INTO `invTypesToWrecks` VALUES ('20125', '30822', 'Curse');
-INSERT INTO `invTypesToWrecks` VALUES ('20173', '26920', 'Serpentis Major');
-INSERT INTO `invTypesToWrecks` VALUES ('20174', '26920', 'Serpentis Deadspace Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('20183', '26483', 'Providence');
-INSERT INTO `invTypesToWrecks` VALUES ('20185', '26505', 'Charon');
-INSERT INTO `invTypesToWrecks` VALUES ('20187', '26527', 'Obelisk');
-INSERT INTO `invTypesToWrecks` VALUES ('20189', '26549', 'Fenrir');
-INSERT INTO `invTypesToWrecks` VALUES ('20357', '27286', 'TEST Guristas for COMSOMS LOOT');
-INSERT INTO `invTypesToWrecks` VALUES ('20716', '27202', 'Vendor');
-INSERT INTO `invTypesToWrecks` VALUES ('20717', '27202', 'Bursar');
-INSERT INTO `invTypesToWrecks` VALUES ('20718', '27202', 'Auctioneer');
-INSERT INTO `invTypesToWrecks` VALUES ('20719', '27202', 'Marketeer');
-INSERT INTO `invTypesToWrecks` VALUES ('21097', '26511', 'Goru\'s Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('21628', '26511', 'Guristas Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('21845', '27286', 'Automated Coreli Training Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('21846', '27286', 'Automated Gisti Training Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('21847', '27286', 'Automated Corpii Training Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('21848', '27286', 'Automated Pithi Training Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('21849', '27286', 'Automated Centii Training Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('21974', '26543', 'Outlaw Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('21975', '26543', 'Outlaw Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('21976', '26543', 'Outlaw Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('21977', '26543', 'Outlaw Invade');
-INSERT INTO `invTypesToWrecks` VALUES ('21978', '26543', 'Outlaw Despoiler');
-INSERT INTO `invTypesToWrecks` VALUES ('21979', '26543', 'Outlaw Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('21980', '26543', 'Outlaw Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('21981', '26543', 'Outlaw Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('21982', '26543', 'Outlaw Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('21983', '26543', 'Outlaw Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('21984', '26574', 'Gunslinger Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('21985', '26574', 'Gunslinger Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('21986', '26574', 'Gunslinger Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('21987', '26574', 'Gunslinger Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('21988', '26576', 'Ace Arrogator');
-INSERT INTO `invTypesToWrecks` VALUES ('21989', '26576', 'Ace Imputor');
-INSERT INTO `invTypesToWrecks` VALUES ('21990', '26576', 'Ace Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('21991', '26576', 'Ace Invader');
-INSERT INTO `invTypesToWrecks` VALUES ('21992', '26576', 'Ace Despoiler');
-INSERT INTO `invTypesToWrecks` VALUES ('21993', '26576', 'Ace Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('21994', '26576', 'Ace Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('21995', '26576', 'Ace Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('21996', '26576', 'Ace Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('21997', '26576', 'Ace Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('21998', '26577', 'Deuce Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('21999', '26577', 'Deuce Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('22000', '26577', 'Deuce Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('22001', '26575', 'Bandit Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('22002', '26575', 'Bandit Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('22003', '26575', 'Bandit Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('22004', '26575', 'Bandit Courier');
-INSERT INTO `invTypesToWrecks` VALUES ('22005', '26561', 'Cyber Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('22006', '26561', 'Cyber Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('22007', '26561', 'Cyber Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('22008', '26561', 'Cyber Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('22009', '26561', 'Cyber Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('22010', '26561', 'Cyber Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('22011', '26561', 'Cyber Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('22012', '26561', 'Cyber Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('22013', '26561', 'Cyber Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('22014', '26561', 'Cyber Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('22015', '26564', 'Psycho Hijacker');
-INSERT INTO `invTypesToWrecks` VALUES ('22016', '26564', 'Psycho Rogue');
-INSERT INTO `invTypesToWrecks` VALUES ('22017', '26564', 'Psycho Outlaw');
-INSERT INTO `invTypesToWrecks` VALUES ('22018', '26564', 'Psycho Thug');
-INSERT INTO `invTypesToWrecks` VALUES ('22019', '26564', 'Psycho Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('22020', '26564', 'Psycho Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('22021', '26564', 'Psycho Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('22022', '26564', 'Psycho Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('22023', '26564', 'Psycho Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('22024', '26564', 'Psycho Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('22025', '26563', 'Degenerate Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('22026', '26563', 'Degenerate Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('22027', '26563', 'Degenerate Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('22028', '26563', 'Degenerate Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('22029', '26575', 'Bandit Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('22053', '27286', 'Automated Centii Keyholder');
-INSERT INTO `invTypesToWrecks` VALUES ('22426', '26477', 'Elite Apocalypse Khanid');
-INSERT INTO `invTypesToWrecks` VALUES ('22428', '26477', 'Redeemer');
-INSERT INTO `invTypesToWrecks` VALUES ('22430', '26521', 'Sin');
-INSERT INTO `invTypesToWrecks` VALUES ('22432', '26521', 'Elite Megathron Duvolle');
-INSERT INTO `invTypesToWrecks` VALUES ('22434', '26499', 'Elite Raven');
-INSERT INTO `invTypesToWrecks` VALUES ('22436', '26499', 'Widow');
-INSERT INTO `invTypesToWrecks` VALUES ('22438', '26543', 'Elite Tempest Brutor');
-INSERT INTO `invTypesToWrecks` VALUES ('22440', '26543', 'Panther');
-INSERT INTO `invTypesToWrecks` VALUES ('22442', '26520', 'Eos');
-INSERT INTO `invTypesToWrecks` VALUES ('22444', '26542', 'Sleipnir');
-INSERT INTO `invTypesToWrecks` VALUES ('22446', '26498', 'Vulture');
-INSERT INTO `invTypesToWrecks` VALUES ('22448', '26476', 'Absolution');
-INSERT INTO `invTypesToWrecks` VALUES ('22450', '26523', 'Elite Catalyst Creodron');
-INSERT INTO `invTypesToWrecks` VALUES ('22452', '26479', 'Heretic');
-INSERT INTO `invTypesToWrecks` VALUES ('22454', '26501', 'Elite Cormorant Mordus');
-INSERT INTO `invTypesToWrecks` VALUES ('22456', '26545', 'Sabre');
-INSERT INTO `invTypesToWrecks` VALUES ('22458', '26545', 'Elite Thrasher Thukker');
-INSERT INTO `invTypesToWrecks` VALUES ('22460', '26523', 'Eris');
-INSERT INTO `invTypesToWrecks` VALUES ('22462', '26479', 'Elite Coercer Carthum');
-INSERT INTO `invTypesToWrecks` VALUES ('22464', '26501', 'Flycatcher');
-INSERT INTO `invTypesToWrecks` VALUES ('22466', '26520', 'Astarte');
-INSERT INTO `invTypesToWrecks` VALUES ('22468', '26542', 'Claymore');
-INSERT INTO `invTypesToWrecks` VALUES ('22470', '26498', 'Nighthawk');
-INSERT INTO `invTypesToWrecks` VALUES ('22472', '26469', 'Faction Prophecy Bloodraider');
-INSERT INTO `invTypesToWrecks` VALUES ('22474', '26476', 'Damnation');
-INSERT INTO `invTypesToWrecks` VALUES ('22544', '26526', 'Hulk');
-INSERT INTO `invTypesToWrecks` VALUES ('22546', '26526', 'Skiff');
-INSERT INTO `invTypesToWrecks` VALUES ('22548', '26526', 'Mackinaw');
-INSERT INTO `invTypesToWrecks` VALUES ('22579', '26550', 'Corvette Prototype Minmatar');
-INSERT INTO `invTypesToWrecks` VALUES ('22626', '27286', 'NewFrigateRank1Test');
-INSERT INTO `invTypesToWrecks` VALUES ('22716', '26920', 'General Matar Pol');
-INSERT INTO `invTypesToWrecks` VALUES ('22759', '26920', 'Baron Haztari Arkhi');
-INSERT INTO `invTypesToWrecks` VALUES ('22812', '26561', 'Angel Shatterer');
-INSERT INTO `invTypesToWrecks` VALUES ('22813', '26561', 'Angel Defacer');
-INSERT INTO `invTypesToWrecks` VALUES ('22814', '26561', 'Angel Haunter');
-INSERT INTO `invTypesToWrecks` VALUES ('22815', '26561', 'Angel Defiler');
-INSERT INTO `invTypesToWrecks` VALUES ('22816', '26561', 'Angel Seizer');
-INSERT INTO `invTypesToWrecks` VALUES ('22817', '26561', 'Angel Trasher');
-INSERT INTO `invTypesToWrecks` VALUES ('22818', '26561', 'Arch Angel Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('22819', '26561', 'Arch Angel Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('22820', '26562', 'Angel Phalanx');
-INSERT INTO `invTypesToWrecks` VALUES ('22821', '26562', 'Angel Centurion');
-INSERT INTO `invTypesToWrecks` VALUES ('22822', '26562', 'Angel Legionnaire');
-INSERT INTO `invTypesToWrecks` VALUES ('22823', '26562', 'Angel Primus');
-INSERT INTO `invTypesToWrecks` VALUES ('22824', '26562', 'Angel Tribuni');
-INSERT INTO `invTypesToWrecks` VALUES ('22825', '26562', 'Angel Praefectus');
-INSERT INTO `invTypesToWrecks` VALUES ('22826', '26562', 'Angel Tribunus');
-INSERT INTO `invTypesToWrecks` VALUES ('22827', '26562', 'Angel Legatus');
-INSERT INTO `invTypesToWrecks` VALUES ('22828', '26562', 'Arch Angel Deprefator');
-INSERT INTO `invTypesToWrecks` VALUES ('22829', '26562', 'Arch Angel Predato');
-INSERT INTO `invTypesToWrecks` VALUES ('22830', '26562', 'Arch Angel Marauder');
-INSERT INTO `invTypesToWrecks` VALUES ('22831', '26562', 'Arch Angel Liquidator');
-INSERT INTO `invTypesToWrecks` VALUES ('22832', '26562', 'Arch Angel Phalanx');
-INSERT INTO `invTypesToWrecks` VALUES ('22833', '26562', 'Arch Angel Centurion');
-INSERT INTO `invTypesToWrecks` VALUES ('22834', '26561', 'Arch Angel Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('22835', '26561', 'Arch Angel Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('22836', '26561', 'Arch Angel Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('22837', '26561', 'Arch Angel Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('22838', '26563', 'Angel Saint');
-INSERT INTO `invTypesToWrecks` VALUES ('22839', '26563', 'Angel Nephilim');
-INSERT INTO `invTypesToWrecks` VALUES ('22840', '26563', 'Angel Malakim');
-INSERT INTO `invTypesToWrecks` VALUES ('22841', '26562', 'Arch Angel Defeater');
-INSERT INTO `invTypesToWrecks` VALUES ('22842', '26563', 'Angel Cherubim');
-INSERT INTO `invTypesToWrecks` VALUES ('22843', '26563', 'Angel Seraphim');
-INSERT INTO `invTypesToWrecks` VALUES ('22852', '26553', 'Hel');
-INSERT INTO `invTypesToWrecks` VALUES ('22857', '26564', 'Domination Shatterer');
-INSERT INTO `invTypesToWrecks` VALUES ('22858', '26564', 'Domination Defacer');
-INSERT INTO `invTypesToWrecks` VALUES ('22859', '26564', 'Domination Haunter');
-INSERT INTO `invTypesToWrecks` VALUES ('22860', '26564', 'Domination Defiler');
-INSERT INTO `invTypesToWrecks` VALUES ('22861', '26564', 'Domination Seizer');
-INSERT INTO `invTypesToWrecks` VALUES ('22862', '26564', 'Domination Trasher');
-INSERT INTO `invTypesToWrecks` VALUES ('22865', '26699', 'Domination Legionnaire');
-INSERT INTO `invTypesToWrecks` VALUES ('22866', '26699', 'Domination Primus');
-INSERT INTO `invTypesToWrecks` VALUES ('22867', '26699', 'Domination Tribuni');
-INSERT INTO `invTypesToWrecks` VALUES ('22868', '26699', 'Domination Praefectus');
-INSERT INTO `invTypesToWrecks` VALUES ('22869', '26699', 'Domination Tribunus');
-INSERT INTO `invTypesToWrecks` VALUES ('22870', '26699', 'Domination Legatus');
-INSERT INTO `invTypesToWrecks` VALUES ('22871', '26565', 'Domination Malakim');
-INSERT INTO `invTypesToWrecks` VALUES ('22872', '26565', 'Domination Throne');
-INSERT INTO `invTypesToWrecks` VALUES ('22873', '26565', 'Domination Cherubim');
-INSERT INTO `invTypesToWrecks` VALUES ('22874', '26565', 'Domination Seraphim');
-INSERT INTO `invTypesToWrecks` VALUES ('23244', '26568', 'Blood Bishop');
-INSERT INTO `invTypesToWrecks` VALUES ('23245', '26567', 'Blood Visionary');
-INSERT INTO `invTypesToWrecks` VALUES ('23246', '26567', 'Blood Converter');
-INSERT INTO `invTypesToWrecks` VALUES ('23247', '26567', 'Blood Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('23248', '26567', 'Blood Devoter');
-INSERT INTO `invTypesToWrecks` VALUES ('23249', '26567', 'Blood Friar');
-INSERT INTO `invTypesToWrecks` VALUES ('23250', '26567', 'Blood Cleric');
-INSERT INTO `invTypesToWrecks` VALUES ('23252', '26568', 'Blood Seer');
-INSERT INTO `invTypesToWrecks` VALUES ('23253', '26568', 'Blood Shade');
-INSERT INTO `invTypesToWrecks` VALUES ('23254', '26568', 'Blood Fanatic');
-INSERT INTO `invTypesToWrecks` VALUES ('23255', '26568', 'Blood Phantom');
-INSERT INTO `invTypesToWrecks` VALUES ('23256', '26568', 'Blood Exorcist');
-INSERT INTO `invTypesToWrecks` VALUES ('23257', '26568', 'Blood Shadow Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('23258', '26568', 'Blood Dark Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('23259', '26567', 'Elder Blood Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('23260', '26567', 'Elder Blood Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('23261', '26567', 'Elder Blood Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('23262', '26567', 'Elder Blood Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('23263', '26567', 'Elder Blood Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('23264', '26567', 'Elder Blood Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('23265', '26569', 'Blood Archbishop');
-INSERT INTO `invTypesToWrecks` VALUES ('23266', '26569', 'Blood Harbinger');
-INSERT INTO `invTypesToWrecks` VALUES ('23267', '26569', 'Blood Monsignor');
-INSERT INTO `invTypesToWrecks` VALUES ('23268', '26569', 'Blood Cardinal');
-INSERT INTO `invTypesToWrecks` VALUES ('23269', '26569', 'Blood Patriarch');
-INSERT INTO `invTypesToWrecks` VALUES ('23270', '26569', 'Blood Pope');
-INSERT INTO `invTypesToWrecks` VALUES ('23281', '26568', 'Elder Blood Arch Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('23282', '26568', 'Elder Blood Arch Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('23283', '26568', 'Elder Blood Arch Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('23284', '26568', 'Elder Blood Arch Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('23285', '26568', 'Elder Blood Shadow Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('23286', '26568', 'Elder Blood Dark Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('23287', '26570', 'Dark Blood Visionary');
-INSERT INTO `invTypesToWrecks` VALUES ('23288', '26570', 'Dark Blood Converter');
-INSERT INTO `invTypesToWrecks` VALUES ('23289', '26570', 'Dark Blood Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('23290', '26570', 'Dark Blood Devoter');
-INSERT INTO `invTypesToWrecks` VALUES ('23291', '26570', 'Dark Blood Friar');
-INSERT INTO `invTypesToWrecks` VALUES ('23292', '26570', 'Dark Blood Cleric');
-INSERT INTO `invTypesToWrecks` VALUES ('23293', '26571', 'Dark Blood Bishop');
-INSERT INTO `invTypesToWrecks` VALUES ('23294', '26571', 'Dark Blood Seer');
-INSERT INTO `invTypesToWrecks` VALUES ('23295', '26571', 'Dark Blood Shade');
-INSERT INTO `invTypesToWrecks` VALUES ('23296', '26571', 'Dark Blood Fanatic');
-INSERT INTO `invTypesToWrecks` VALUES ('23297', '26571', 'Dark Blood Phantom');
-INSERT INTO `invTypesToWrecks` VALUES ('23298', '26571', 'Dark Blood Exorcist');
-INSERT INTO `invTypesToWrecks` VALUES ('23299', '26700', 'Dark Blood Monsignor');
-INSERT INTO `invTypesToWrecks` VALUES ('23300', '26700', 'Dark Blood Cardinal');
-INSERT INTO `invTypesToWrecks` VALUES ('23301', '26700', 'Dark Blood Patriarch');
-INSERT INTO `invTypesToWrecks` VALUES ('23302', '26700', 'Dark Blood Pope');
-INSERT INTO `invTypesToWrecks` VALUES ('23305', '26574', 'Dire Guristas Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('23306', '26574', 'Dire Guristas Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('23307', '26574', 'Dire Guristas Mortifier');
-INSERT INTO `invTypesToWrecks` VALUES ('23308', '26574', 'Dire Guristas Inferno');
-INSERT INTO `invTypesToWrecks` VALUES ('23309', '26574', 'Dire Guristas Eraser');
-INSERT INTO `invTypesToWrecks` VALUES ('23310', '26574', 'Dire Guristas Abolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('23312', '26573', 'Guristas Nihilist');
-INSERT INTO `invTypesToWrecks` VALUES ('23313', '26573', 'Guristas Anarchist');
-INSERT INTO `invTypesToWrecks` VALUES ('23314', '26573', 'Guristas Renegade');
-INSERT INTO `invTypesToWrecks` VALUES ('23315', '26573', 'Guristas Guerilla');
-INSERT INTO `invTypesToWrecks` VALUES ('23319', '26574', 'Guristas Eraser');
-INSERT INTO `invTypesToWrecks` VALUES ('23320', '26574', 'Guristas Abolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('23321', '26574', 'Guristas Executor');
-INSERT INTO `invTypesToWrecks` VALUES ('23322', '26574', 'Guristas Enforcer');
-INSERT INTO `invTypesToWrecks` VALUES ('23323', '26574', 'Guristas Assaulter');
-INSERT INTO `invTypesToWrecks` VALUES ('23324', '26574', 'Guristas Assassin');
-INSERT INTO `invTypesToWrecks` VALUES ('23325', '26574', 'Guristas Death Dealer');
-INSERT INTO `invTypesToWrecks` VALUES ('23326', '26574', 'Guristas Revolter');
-INSERT INTO `invTypesToWrecks` VALUES ('23328', '26573', 'Guristas Terrorist');
-INSERT INTO `invTypesToWrecks` VALUES ('23329', '26573', 'Guristas Supremacist');
-INSERT INTO `invTypesToWrecks` VALUES ('23330', '26543', 'Dire Guristas Despoiler');
-INSERT INTO `invTypesToWrecks` VALUES ('23331', '26543', 'Dire Guristas Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('23332', '26543', 'Dire Guristas Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('23333', '26543', 'Dire Guristas Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('23334', '26543', 'Dire Guristas Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('23335', '26543', 'Dire Guristas Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('23337', '26575', 'Guristas Eliminator');
-INSERT INTO `invTypesToWrecks` VALUES ('23338', '26575', 'Guristas Exterminator');
-INSERT INTO `invTypesToWrecks` VALUES ('23339', '26575', 'Guristas Destroyer');
-INSERT INTO `invTypesToWrecks` VALUES ('23340', '26575', 'Guristas Conquistador');
-INSERT INTO `invTypesToWrecks` VALUES ('23341', '26575', 'Guristas Massacrer');
-INSERT INTO `invTypesToWrecks` VALUES ('23342', '26575', 'Guristas Usurper');
-INSERT INTO `invTypesToWrecks` VALUES ('23343', '26576', 'Dread Guristas Nihilist');
-INSERT INTO `invTypesToWrecks` VALUES ('23344', '26576', 'Dread Guristas Anarchist');
-INSERT INTO `invTypesToWrecks` VALUES ('23345', '26576', 'Dread Guristas Renegade');
-INSERT INTO `invTypesToWrecks` VALUES ('23346', '26586', 'Guardian Chief Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('23347', '26576', 'Dread Guristas Terrorist');
-INSERT INTO `invTypesToWrecks` VALUES ('23348', '26576', 'Dread Guristas Supremacist');
-INSERT INTO `invTypesToWrecks` VALUES ('23349', '26577', 'Dread Guristas Executor');
-INSERT INTO `invTypesToWrecks` VALUES ('23350', '26577', 'Dread Guristas Enforcer');
-INSERT INTO `invTypesToWrecks` VALUES ('23351', '26577', 'Dread Guristas Assaulter');
-INSERT INTO `invTypesToWrecks` VALUES ('23352', '26577', 'Dread Guristas Assassin');
-INSERT INTO `invTypesToWrecks` VALUES ('23353', '26577', 'Dread Guristas Death Dealer');
-INSERT INTO `invTypesToWrecks` VALUES ('23354', '26577', 'Dread Guristas Revolter');
-INSERT INTO `invTypesToWrecks` VALUES ('23355', '26701', 'Dread Guristas Destroyer');
-INSERT INTO `invTypesToWrecks` VALUES ('23356', '26701', 'Dread Guristas Conquistador');
-INSERT INTO `invTypesToWrecks` VALUES ('23357', '26701', 'Dread Guristas Massacrer');
-INSERT INTO `invTypesToWrecks` VALUES ('23358', '26701', 'Dread Guristas Usurper');
-INSERT INTO `invTypesToWrecks` VALUES ('23360', '26579', 'Sansha\'s Loyal Savage');
-INSERT INTO `invTypesToWrecks` VALUES ('23361', '26579', 'Sansha\'s Loyal Slavehunter');
-INSERT INTO `invTypesToWrecks` VALUES ('23362', '26579', 'Sansha\'s Loyal Enslaver');
-INSERT INTO `invTypesToWrecks` VALUES ('23363', '26579', 'Sansha\'s Loyal Plague');
-INSERT INTO `invTypesToWrecks` VALUES ('23364', '26579', 'Sansha\'s Loyal Manslayer');
-INSERT INTO `invTypesToWrecks` VALUES ('23365', '26579', 'Sansha\'s Loyal Butcher');
-INSERT INTO `invTypesToWrecks` VALUES ('23366', '26580', 'Sansha\'s Loyal Ravisher');
-INSERT INTO `invTypesToWrecks` VALUES ('23367', '26580', 'Sansha\'s Loyal Ravager');
-INSERT INTO `invTypesToWrecks` VALUES ('23368', '26580', 'Sansha\'s Loyal Mutilator');
-INSERT INTO `invTypesToWrecks` VALUES ('23369', '26580', 'Sansha\'s Loyal Torturer');
-INSERT INTO `invTypesToWrecks` VALUES ('23370', '26580', 'Sansha\'s Loyal Fiend');
-INSERT INTO `invTypesToWrecks` VALUES ('23371', '26580', 'Sansha\'s Loyal Hellhound');
-INSERT INTO `invTypesToWrecks` VALUES ('23372', '26581', 'Sansha\'s Plague Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('23373', '26581', 'Sansha\'s Beast Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('23374', '26581', 'Sansha\'s Overlord');
-INSERT INTO `invTypesToWrecks` VALUES ('23375', '26581', 'Sansha\'s Dark Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('23376', '26581', 'Sansha\'s Dread Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('23377', '26581', 'Sansha\'s Tyrant');
-INSERT INTO `invTypesToWrecks` VALUES ('23378', '26479', 'Sansha\'s Misshape');
-INSERT INTO `invTypesToWrecks` VALUES ('23379', '26479', 'Sansha\'s Cannibal');
-INSERT INTO `invTypesToWrecks` VALUES ('23381', '26580', 'Sansha\'s Fiend');
-INSERT INTO `invTypesToWrecks` VALUES ('23382', '26580', 'Sansha\'s Hellhound');
-INSERT INTO `invTypesToWrecks` VALUES ('23383', '26480', 'Sansha\'s Phantasm');
-INSERT INTO `invTypesToWrecks` VALUES ('23384', '26480', 'Sansha\'s Specter');
-INSERT INTO `invTypesToWrecks` VALUES ('23385', '26480', 'Sansha\'s Wraith');
-INSERT INTO `invTypesToWrecks` VALUES ('23386', '26480', 'Sansha\'s Devil');
-INSERT INTO `invTypesToWrecks` VALUES ('23387', '26480', 'Sansha\'s Daemon');
-INSERT INTO `invTypesToWrecks` VALUES ('23388', '26480', 'Sansha\'s Behemoth');
-INSERT INTO `invTypesToWrecks` VALUES ('23391', '26582', 'True Sansha\'s Misshape');
-INSERT INTO `invTypesToWrecks` VALUES ('23392', '26582', 'True Sansha\'s Cannibal');
-INSERT INTO `invTypesToWrecks` VALUES ('23394', '26583', 'True Sansha\'s Phantasm');
-INSERT INTO `invTypesToWrecks` VALUES ('23395', '26583', 'True Sansha\'s Specter');
-INSERT INTO `invTypesToWrecks` VALUES ('23396', '26583', 'True Sansha\'s Wraith');
-INSERT INTO `invTypesToWrecks` VALUES ('23397', '26583', 'True Sansha\'s Devil');
-INSERT INTO `invTypesToWrecks` VALUES ('23398', '26583', 'True Sansha\'s Daemon');
-INSERT INTO `invTypesToWrecks` VALUES ('23399', '26583', 'True Sansha\'s Behemoth');
-INSERT INTO `invTypesToWrecks` VALUES ('23400', '26702', 'True Sansha\'s Overlord');
-INSERT INTO `invTypesToWrecks` VALUES ('23401', '26702', 'True Sansha\'s Dark Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('23402', '26702', 'True Sansha\'s Dread Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('23403', '26702', 'True Sansha\'s Tyrant');
-INSERT INTO `invTypesToWrecks` VALUES ('23405', '26479', 'Sansha\'s Devourer');
-INSERT INTO `invTypesToWrecks` VALUES ('23406', '26479', 'Sansha\'s Abomination');
-INSERT INTO `invTypesToWrecks` VALUES ('23407', '26479', 'Sansha\'s Monster');
-INSERT INTO `invTypesToWrecks` VALUES ('23408', '26479', 'Sansha\'s Horror');
-INSERT INTO `invTypesToWrecks` VALUES ('23409', '26582', 'True Sansha\'s Devourer');
-INSERT INTO `invTypesToWrecks` VALUES ('23410', '26582', 'True Sansha\'s Monster');
-INSERT INTO `invTypesToWrecks` VALUES ('23411', '26582', 'True Sansha\'s Monster');
-INSERT INTO `invTypesToWrecks` VALUES ('23423', '26485', 'Serpentis Trooper');
-INSERT INTO `invTypesToWrecks` VALUES ('23424', '26485', 'Serpentis Soldier');
-INSERT INTO `invTypesToWrecks` VALUES ('23425', '26485', 'Serpentis Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('23426', '26485', 'Serpentis Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('23427', '26485', 'Serpentis Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('23428', '26485', 'Serpentis Artillery');
-INSERT INTO `invTypesToWrecks` VALUES ('23429', '26585', 'Guardian Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('23430', '26585', 'Guardian Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('23431', '26585', 'Guardian Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('23432', '26585', 'Guardian Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('23434', '26585', 'Guardian Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('23435', '26585', 'Guardian Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('23436', '26586', 'Serpentis Chief Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('23437', '26586', 'Serpentis Chief Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('23438', '26486', 'Serpentis Wing Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('23439', '26486', 'Serpentis Squad Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('23440', '26486', 'Serpentis Platoon Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('23441', '26486', 'Serpentis Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('23442', '26486', 'Serpentis Captain Sentry');
-INSERT INTO `invTypesToWrecks` VALUES ('23443', '26486', 'Serpentis High Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('23444', '26586', 'Guardian Chief Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('23445', '26586', 'Guardian Chief Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('23446', '26586', 'Guardian Chief Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('23447', '26586', 'Guardian Chief Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('23448', '26586', 'Guardian Chief Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('23449', '26586', 'Guardian Chief Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('23450', '26587', 'Serpentis Flotilla Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23451', '26587', 'Serpentis Vice Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23452', '26587', 'Serpentis Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23453', '26587', 'Serpentis High Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23454', '26587', 'Serpentis Grand Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23455', '26587', 'Serpentis Lord Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23457', '26588', 'Shadow Serpentis Trooper');
-INSERT INTO `invTypesToWrecks` VALUES ('23458', '26588', 'Shadow Serpentis Soldier');
-INSERT INTO `invTypesToWrecks` VALUES ('23459', '26588', 'Shadow Serpentis Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('23460', '26588', 'Shadow Serpentis Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('23461', '26588', 'Shadow Serpentis Cannoneer');
-INSERT INTO `invTypesToWrecks` VALUES ('23462', '26588', 'Shadow Serpentis Artillery');
-INSERT INTO `invTypesToWrecks` VALUES ('23463', '26589', 'Shadow Serpentis Wing Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('23464', '26589', 'Shadow Serpentis Squad Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('23465', '26589', 'Shadow Serpentis Platoon Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('23466', '26589', 'Shadow Serpentis Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('23467', '26589', 'Shadow Serpentis Captain Sentry');
-INSERT INTO `invTypesToWrecks` VALUES ('23468', '26589', 'Shadow Serpentis High Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('23469', '26703', 'Shadow Serpentis Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23470', '26703', 'Shadow Serpentis High Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23471', '26703', 'Shadow Serpentis Grand Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23472', '26703', 'Shadow Serpentis Lord Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('23643', '26568', 'Elder Blood Arch Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('23644', '26568', 'Elder Blood Revenant');
-INSERT INTO `invTypesToWrecks` VALUES ('23645', '26568', 'Elder Blood Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('23646', '26568', 'Elder Blood Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('23647', '26574', 'Dire Guristas Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('23648', '26574', 'Dire Guristas Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('23649', '26574', 'Dire Guristas Annihilator');
-INSERT INTO `invTypesToWrecks` VALUES ('23650', '26574', 'Dire Guristas Nullifier');
-INSERT INTO `invTypesToWrecks` VALUES ('23651', '26580', 'Sansha\'s Loyal Beast');
-INSERT INTO `invTypesToWrecks` VALUES ('23652', '26580', 'Sansha\'s Loyal Juggernaut');
-INSERT INTO `invTypesToWrecks` VALUES ('23653', '26580', 'Sansha\'s Loyal Slaughterer');
-INSERT INTO `invTypesToWrecks` VALUES ('23654', '26580', 'Sansha\'s Loyal Execrator');
-INSERT INTO `invTypesToWrecks` VALUES ('23655', '26586', 'Guardian Chief Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('23656', '26586', 'Guardian Chief Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('23657', '26586', 'Guardian Chief Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('23658', '26586', 'Guardian Chief Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('23693', '26483', 'Test Science Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('23757', '26472', 'Archon');
-INSERT INTO `invTypesToWrecks` VALUES ('23772', '26556', 'Ragnarok');
-INSERT INTO `invTypesToWrecks` VALUES ('23838', '26562', 'Arch Angel Smasher');
-INSERT INTO `invTypesToWrecks` VALUES ('23839', '26562', 'Arch Angel Crusher');
-INSERT INTO `invTypesToWrecks` VALUES ('23840', '26562', 'Arch Angel Breaker');
-INSERT INTO `invTypesToWrecks` VALUES ('23841', '26562', 'Arch Angel Defeater');
-INSERT INTO `invTypesToWrecks` VALUES ('23911', '26516', 'Thanatos');
-INSERT INTO `invTypesToWrecks` VALUES ('23913', '26531', 'Nyx');
-INSERT INTO `invTypesToWrecks` VALUES ('23915', '26494', 'Chimera');
-INSERT INTO `invTypesToWrecks` VALUES ('23917', '26509', 'Wyvern');
-INSERT INTO `invTypesToWrecks` VALUES ('23919', '26487', 'Aeon');
-INSERT INTO `invTypesToWrecks` VALUES ('23939', '26579', 'Centior Cannibal');
-INSERT INTO `invTypesToWrecks` VALUES ('23940', '26573', 'Vagrant Nihilist');
-INSERT INTO `invTypesToWrecks` VALUES ('23941', '26573', 'Vagrant Anarchist');
-INSERT INTO `invTypesToWrecks` VALUES ('23942', '26576', 'Desperado Nihilist');
-INSERT INTO `invTypesToWrecks` VALUES ('23943', '26576', 'Desperado Anarchist');
-INSERT INTO `invTypesToWrecks` VALUES ('23969', '26561', 'Gistior Shatterer');
-INSERT INTO `invTypesToWrecks` VALUES ('23970', '26567', 'Corpior Visionary');
-INSERT INTO `invTypesToWrecks` VALUES ('23971', '26573', 'Pithior Nihilist');
-INSERT INTO `invTypesToWrecks` VALUES ('23972', '26579', 'Centior Misshape');
-INSERT INTO `invTypesToWrecks` VALUES ('23973', '26585', 'Corelior Trooper');
-INSERT INTO `invTypesToWrecks` VALUES ('23974', '26561', 'Gistior Defacer');
-INSERT INTO `invTypesToWrecks` VALUES ('23975', '26561', 'Gistior Haunter');
-INSERT INTO `invTypesToWrecks` VALUES ('23976', '26561', 'Gistior Defiler');
-INSERT INTO `invTypesToWrecks` VALUES ('23977', '26561', 'Gistior Seizer');
-INSERT INTO `invTypesToWrecks` VALUES ('23978', '26561', 'Gistior Trasher');
-INSERT INTO `invTypesToWrecks` VALUES ('23979', '26567', 'Corpior Converter');
-INSERT INTO `invTypesToWrecks` VALUES ('23980', '26567', 'Corpior Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('23981', '26567', 'Corpior Devoter');
-INSERT INTO `invTypesToWrecks` VALUES ('23982', '26567', 'Corpior Friar');
-INSERT INTO `invTypesToWrecks` VALUES ('23983', '26567', 'Corpior Cleric');
-INSERT INTO `invTypesToWrecks` VALUES ('23984', '26573', 'Pithior Anarchist');
-INSERT INTO `invTypesToWrecks` VALUES ('23985', '26573', 'Pithior Renegade');
-INSERT INTO `invTypesToWrecks` VALUES ('23986', '26573', 'Pithior Guerilla');
-INSERT INTO `invTypesToWrecks` VALUES ('23987', '26573', 'Pithior Terrorist');
-INSERT INTO `invTypesToWrecks` VALUES ('23988', '26573', 'Pithior Supremacist');
-INSERT INTO `invTypesToWrecks` VALUES ('23990', '26579', 'Centior Devourer');
-INSERT INTO `invTypesToWrecks` VALUES ('23991', '26579', 'Centior Abomination');
-INSERT INTO `invTypesToWrecks` VALUES ('23992', '26579', 'Centior Monster');
-INSERT INTO `invTypesToWrecks` VALUES ('23993', '26579', 'Centior Horror');
-INSERT INTO `invTypesToWrecks` VALUES ('23994', '26585', 'Corelior Soldier');
-INSERT INTO `invTypesToWrecks` VALUES ('23995', '26585', 'Corelior Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('23996', '26585', 'Corelior Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('23997', '26585', 'Corelior Cannoneer');
-INSERT INTO `invTypesToWrecks` VALUES ('23998', '26585', 'Corelior Artillery');
-INSERT INTO `invTypesToWrecks` VALUES ('23999', '26562', 'Gistatis Legionnaire');
-INSERT INTO `invTypesToWrecks` VALUES ('24000', '26568', 'Corpatis Bishop');
-INSERT INTO `invTypesToWrecks` VALUES ('24001', '26574', 'Pithatis Executor');
-INSERT INTO `invTypesToWrecks` VALUES ('24002', '26580', 'Centatis Phantasm');
-INSERT INTO `invTypesToWrecks` VALUES ('24003', '27048', 'Corelatis Wing Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('24004', '26562', 'Gistatis Primus');
-INSERT INTO `invTypesToWrecks` VALUES ('24005', '26562', 'Gistatis Tribuni');
-INSERT INTO `invTypesToWrecks` VALUES ('24006', '26562', 'Gistatis Praefectus');
-INSERT INTO `invTypesToWrecks` VALUES ('24007', '26562', 'Gistatis Tribunus');
-INSERT INTO `invTypesToWrecks` VALUES ('24008', '26562', 'Gistatis Legatus');
-INSERT INTO `invTypesToWrecks` VALUES ('24009', '26568', 'Corpatis Seer');
-INSERT INTO `invTypesToWrecks` VALUES ('24010', '26568', 'Corpatis Shade');
-INSERT INTO `invTypesToWrecks` VALUES ('24011', '26568', 'Corpatis Fanatic');
-INSERT INTO `invTypesToWrecks` VALUES ('24012', '26568', 'Corpatis Phantom');
-INSERT INTO `invTypesToWrecks` VALUES ('24013', '26568', 'Corpatis Exorcist');
-INSERT INTO `invTypesToWrecks` VALUES ('24014', '26574', 'Pithatis Enforcer');
-INSERT INTO `invTypesToWrecks` VALUES ('24015', '26574', 'Pithatis Assaulter');
-INSERT INTO `invTypesToWrecks` VALUES ('24016', '26574', 'Pithatis Assassin');
-INSERT INTO `invTypesToWrecks` VALUES ('24017', '26574', 'Pithatis Death Dealer');
-INSERT INTO `invTypesToWrecks` VALUES ('24018', '26574', 'Pithatis Revolter');
-INSERT INTO `invTypesToWrecks` VALUES ('24019', '26580', 'Centatis Specter');
-INSERT INTO `invTypesToWrecks` VALUES ('24020', '26580', 'Centatis Wraith');
-INSERT INTO `invTypesToWrecks` VALUES ('24021', '26580', 'Centatis Devil');
-INSERT INTO `invTypesToWrecks` VALUES ('24022', '26580', 'Centatis Daemon');
-INSERT INTO `invTypesToWrecks` VALUES ('24023', '26580', 'Centatis Behemoth');
-INSERT INTO `invTypesToWrecks` VALUES ('24024', '27048', 'Corelatis Squad Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('24025', '27048', 'Corelatis Platoon Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('24026', '27048', 'Corelatis Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('24027', '27048', 'Corelatis Captain Sentry');
-INSERT INTO `invTypesToWrecks` VALUES ('24028', '27048', 'Corelatis High Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('24033', '26561', 'Arch Gistii Ruffian');
-INSERT INTO `invTypesToWrecks` VALUES ('24034', '26561', 'Arch Gistii Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('24035', '26561', 'Arch Gistii Ambusher');
-INSERT INTO `invTypesToWrecks` VALUES ('24036', '26561', 'Arch Gistii Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('24037', '26561', 'Arch Gistii Hunter');
-INSERT INTO `invTypesToWrecks` VALUES ('24038', '26561', 'Arch Gistii Impaler');
-INSERT INTO `invTypesToWrecks` VALUES ('24039', '26567', 'Elder Corpii Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('24040', '26567', 'Elder Corpii Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('24041', '26567', 'Elder Corpii Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('24042', '26567', 'Elder Corpii Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('24043', '26567', 'Elder Corpii Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('24044', '26567', 'Elder Corpii Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('24045', '26573', 'Dire Pithi Despoiler');
-INSERT INTO `invTypesToWrecks` VALUES ('24046', '26573', 'Dire Pithi Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('24047', '26573', 'Dire Pithi Plunderer');
-INSERT INTO `invTypesToWrecks` VALUES ('24048', '26573', 'Dire Pithi Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('24049', '26573', 'Dire Pithi Destructor');
-INSERT INTO `invTypesToWrecks` VALUES ('24050', '26573', 'Dire Pithi Demolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('24051', '26579', 'Centii Loyal Savage');
-INSERT INTO `invTypesToWrecks` VALUES ('24052', '26579', 'Centii Loyal Slavehunter');
-INSERT INTO `invTypesToWrecks` VALUES ('24053', '26579', 'Centii Loyal Enslaver');
-INSERT INTO `invTypesToWrecks` VALUES ('24054', '26579', 'Centii Loyal Plague');
-INSERT INTO `invTypesToWrecks` VALUES ('24055', '26579', 'Centii Loyal Manslayer');
-INSERT INTO `invTypesToWrecks` VALUES ('24056', '26579', 'Centii Loyal Butcher');
-INSERT INTO `invTypesToWrecks` VALUES ('24057', '26585', 'Coreli Guardian Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('24058', '26585', 'Coreli Guardian Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('24059', '26585', 'Coreli Guardian Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('24060', '26585', 'Coreli Guardian Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('24061', '26585', 'Coreli Guardian Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('24062', '26585', 'Coreli Guardian Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('24063', '26586', 'Corelum Chief Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('24064', '26586', 'Corelum Chief Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('24065', '26586', 'Corelum Guardian Chief Scout');
-INSERT INTO `invTypesToWrecks` VALUES ('24066', '26586', 'Corelum Guardian Chief Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('24067', '26586', 'Corelum Guardian Chief Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('24068', '26586', 'Corelum Guardian Chief Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('24069', '26586', 'Corelum Guardian Chief Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('24070', '26586', 'Corelum Guardian Chief SafeGuard');
-INSERT INTO `invTypesToWrecks` VALUES ('24071', '26586', 'Corelum Guardian Chief Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('24072', '26586', 'Corelum Guardian Chief Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('24073', '26586', 'Corelum Guardian Chief Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('24074', '26586', 'Corelum Guardian Chief Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('24075', '26580', 'Centum Fiend');
-INSERT INTO `invTypesToWrecks` VALUES ('24076', '26580', 'Centum Hellhound');
-INSERT INTO `invTypesToWrecks` VALUES ('24077', '26580', 'Centum Loyal Ravisher');
-INSERT INTO `invTypesToWrecks` VALUES ('24078', '26580', 'Centum Loyal Ravager');
-INSERT INTO `invTypesToWrecks` VALUES ('24079', '26580', 'Centum Loyal Beast');
-INSERT INTO `invTypesToWrecks` VALUES ('24080', '26580', 'Centum Loyal Juggernaut');
-INSERT INTO `invTypesToWrecks` VALUES ('24081', '26580', 'Centum Loyal Slaughterer');
-INSERT INTO `invTypesToWrecks` VALUES ('24082', '26580', 'Centum Loyal Execrator');
-INSERT INTO `invTypesToWrecks` VALUES ('24083', '26580', 'Centum Loyal Mutilator');
-INSERT INTO `invTypesToWrecks` VALUES ('24084', '26580', 'Centum Loyal Torturer');
-INSERT INTO `invTypesToWrecks` VALUES ('24085', '26580', 'Centum Loyal Fiend');
-INSERT INTO `invTypesToWrecks` VALUES ('24086', '26580', 'Centum Loyal Hellhound');
-INSERT INTO `invTypesToWrecks` VALUES ('24087', '26574', 'Pithum Eraser');
-INSERT INTO `invTypesToWrecks` VALUES ('24088', '26574', 'Pithum Abolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('24089', '26574', 'Dire Pithum Silencer');
-INSERT INTO `invTypesToWrecks` VALUES ('24090', '26574', 'Dire Pithum Ascriber');
-INSERT INTO `invTypesToWrecks` VALUES ('24091', '26574', 'Dire Pithum Killer');
-INSERT INTO `invTypesToWrecks` VALUES ('24092', '26574', 'Dire Pithum Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('24093', '26574', 'Dire Pithum Annihilator');
-INSERT INTO `invTypesToWrecks` VALUES ('24094', '26574', 'Dire Pithum Nullifier');
-INSERT INTO `invTypesToWrecks` VALUES ('24095', '26574', 'Dire Pithum Mortifier');
-INSERT INTO `invTypesToWrecks` VALUES ('24096', '26574', 'Dire Pithum Inferno');
-INSERT INTO `invTypesToWrecks` VALUES ('24097', '26574', 'Dire Pithum Eraser');
-INSERT INTO `invTypesToWrecks` VALUES ('24098', '26574', 'Dire Pithum Abolisher');
-INSERT INTO `invTypesToWrecks` VALUES ('24099', '26568', 'Corpum Shadow Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('24100', '26568', 'Corpum Dark Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('24101', '26568', 'Elder Corpum Arch Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('24102', '26568', 'Elder Corpum Arch Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('24103', '26568', 'Elder Corpum Arch Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('24104', '26568', 'Elder Corpum Revenant');
-INSERT INTO `invTypesToWrecks` VALUES ('24105', '26568', 'Elder Corpum Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('24106', '26568', 'Elder Corpum Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('24107', '26568', 'Elder Corpum Arch Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('24108', '26568', 'Elder Corpum Arch Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('24109', '26568', 'Elder Corpum Shadow Sage');
-INSERT INTO `invTypesToWrecks` VALUES ('24110', '26568', 'Elder Corpum Dark Priest');
-INSERT INTO `invTypesToWrecks` VALUES ('24111', '26562', 'Gistum Phalanx');
-INSERT INTO `invTypesToWrecks` VALUES ('24112', '26562', 'Gistum Centurion');
-INSERT INTO `invTypesToWrecks` VALUES ('24113', '26562', 'Arch Gistum Depredator');
-INSERT INTO `invTypesToWrecks` VALUES ('24114', '26562', 'Arch Gistum Predator');
-INSERT INTO `invTypesToWrecks` VALUES ('24115', '26562', 'Arch Gistum Smasher');
-INSERT INTO `invTypesToWrecks` VALUES ('24116', '26562', 'Arch Gistum Crusher');
-INSERT INTO `invTypesToWrecks` VALUES ('24117', '26562', 'Arch Gistum Breaker');
-INSERT INTO `invTypesToWrecks` VALUES ('24118', '26562', 'Arch Gistum Defeater');
-INSERT INTO `invTypesToWrecks` VALUES ('24119', '26562', 'Arch Gistum Marauder');
-INSERT INTO `invTypesToWrecks` VALUES ('24120', '26562', 'Arch Gistum Liquidator');
-INSERT INTO `invTypesToWrecks` VALUES ('24121', '26562', 'Arch Gistum Phalanx');
-INSERT INTO `invTypesToWrecks` VALUES ('24122', '26562', 'Arch Gistum Centurion');
-INSERT INTO `invTypesToWrecks` VALUES ('24125', '26563', 'Gist Saint');
-INSERT INTO `invTypesToWrecks` VALUES ('24126', '26563', 'Gist Nephilim');
-INSERT INTO `invTypesToWrecks` VALUES ('24127', '26563', 'Gist Malakim');
-INSERT INTO `invTypesToWrecks` VALUES ('24128', '26563', 'Gist Throne');
-INSERT INTO `invTypesToWrecks` VALUES ('24129', '26563', 'Gist Cherubim');
-INSERT INTO `invTypesToWrecks` VALUES ('24130', '26563', 'Gist Seraphim');
-INSERT INTO `invTypesToWrecks` VALUES ('24131', '26563', 'Gist Domination Malakim');
-INSERT INTO `invTypesToWrecks` VALUES ('24132', '26563', 'Gist Domination Throne');
-INSERT INTO `invTypesToWrecks` VALUES ('24133', '26563', 'Gist Domination Cherubim');
-INSERT INTO `invTypesToWrecks` VALUES ('24134', '26563', 'Gist Domination Seraphim');
-INSERT INTO `invTypesToWrecks` VALUES ('24135', '26569', 'Corpus Archbishop');
-INSERT INTO `invTypesToWrecks` VALUES ('24136', '26569', 'Corpus Harbinger');
-INSERT INTO `invTypesToWrecks` VALUES ('24137', '26569', 'Corpus Monsignor');
-INSERT INTO `invTypesToWrecks` VALUES ('24138', '26569', 'Corpus Monsignor');
-INSERT INTO `invTypesToWrecks` VALUES ('24139', '26569', 'Corpus Patriarch');
-INSERT INTO `invTypesToWrecks` VALUES ('24140', '26569', 'Corpus Pope');
-INSERT INTO `invTypesToWrecks` VALUES ('24141', '26569', 'Dark Corpus Monsignor');
-INSERT INTO `invTypesToWrecks` VALUES ('24142', '26569', 'Dark Corpus Cardinal');
-INSERT INTO `invTypesToWrecks` VALUES ('24143', '26569', 'Dark Corpus Patriarch');
-INSERT INTO `invTypesToWrecks` VALUES ('24144', '26569', 'Dark Corpus Pope');
-INSERT INTO `invTypesToWrecks` VALUES ('24145', '26575', 'Pith Eliminator');
-INSERT INTO `invTypesToWrecks` VALUES ('24146', '26575', 'Pith Exterminator');
-INSERT INTO `invTypesToWrecks` VALUES ('24147', '26575', 'Pith Destroyer');
-INSERT INTO `invTypesToWrecks` VALUES ('24148', '26575', 'Pith Conquistador');
-INSERT INTO `invTypesToWrecks` VALUES ('24149', '26575', 'Pith Massacrer');
-INSERT INTO `invTypesToWrecks` VALUES ('24150', '26575', 'Pith Usurper');
-INSERT INTO `invTypesToWrecks` VALUES ('24151', '26575', 'Dread Pith Destroyer');
-INSERT INTO `invTypesToWrecks` VALUES ('24152', '26575', 'Dread Pith Conquistador');
-INSERT INTO `invTypesToWrecks` VALUES ('24153', '26575', 'Dread Pith Massacrer');
-INSERT INTO `invTypesToWrecks` VALUES ('24154', '26575', 'Dread Pith Usurper');
-INSERT INTO `invTypesToWrecks` VALUES ('24155', '26581', 'Centus Plague Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('24156', '26581', 'Centus Beast Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('24157', '26581', 'Centus Overlord');
-INSERT INTO `invTypesToWrecks` VALUES ('24158', '26581', 'Centus Dark Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('24159', '26581', 'Centus Dread Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('24160', '26581', 'Centus Tyrant');
-INSERT INTO `invTypesToWrecks` VALUES ('24161', '26581', 'True Centus Overlord');
-INSERT INTO `invTypesToWrecks` VALUES ('24162', '26581', 'True Centus Dark Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('24163', '26581', 'True Centus Dread Lord');
-INSERT INTO `invTypesToWrecks` VALUES ('24164', '26581', 'True Centus Tyrant');
-INSERT INTO `invTypesToWrecks` VALUES ('24165', '26587', 'Core Flotilla Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24166', '26587', 'Core Vice Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24167', '26587', 'Core Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24168', '26587', 'Core High Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24169', '26587', 'Core Grand Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24170', '26587', 'Core Lord Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24171', '26587', 'Shadow Core Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24172', '26587', 'Shadow Core High Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24173', '26587', 'Shadow Core Grand Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24174', '26587', 'Shadow Core Lord Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('24175', '26562', 'Gistatis Domination Legionnaire');
-INSERT INTO `invTypesToWrecks` VALUES ('24176', '26562', 'Gistatis Domination Primus');
-INSERT INTO `invTypesToWrecks` VALUES ('24177', '26562', 'Gistatis Domination Tribuni');
-INSERT INTO `invTypesToWrecks` VALUES ('24178', '26562', 'Gistatis Domination Praefectus');
-INSERT INTO `invTypesToWrecks` VALUES ('24179', '26562', 'Gistatis Domination Tribunus');
-INSERT INTO `invTypesToWrecks` VALUES ('24180', '26562', 'Gistatis Domination Legatus');
-INSERT INTO `invTypesToWrecks` VALUES ('24181', '26568', 'Dark Corpatis Bishop');
-INSERT INTO `invTypesToWrecks` VALUES ('24182', '26568', 'Dark Corpatis Seer');
-INSERT INTO `invTypesToWrecks` VALUES ('24183', '26568', 'Dark Corpatis Shade');
-INSERT INTO `invTypesToWrecks` VALUES ('24184', '26568', 'Dark Corpatis Fanatic');
-INSERT INTO `invTypesToWrecks` VALUES ('24185', '26568', 'Dark Corpatis Phantom');
-INSERT INTO `invTypesToWrecks` VALUES ('24186', '26568', 'Dark Corpatis Exorcist');
-INSERT INTO `invTypesToWrecks` VALUES ('24187', '26574', 'Dread Pithatis Executor');
-INSERT INTO `invTypesToWrecks` VALUES ('24188', '26574', 'Dread Pithatis Enforcer');
-INSERT INTO `invTypesToWrecks` VALUES ('24189', '26574', 'Dread Pithatis Assaulter');
-INSERT INTO `invTypesToWrecks` VALUES ('24190', '26574', 'Dread Pithatis Assassin');
-INSERT INTO `invTypesToWrecks` VALUES ('24191', '26574', 'Dread Pithatis Death Dealer');
-INSERT INTO `invTypesToWrecks` VALUES ('24192', '26574', 'Dread Pithatis Revolter');
-INSERT INTO `invTypesToWrecks` VALUES ('24193', '26580', 'True Centatis Phantasm');
-INSERT INTO `invTypesToWrecks` VALUES ('24194', '26580', 'True Centatis Specter');
-INSERT INTO `invTypesToWrecks` VALUES ('24195', '26580', 'True Centatis Wraith');
-INSERT INTO `invTypesToWrecks` VALUES ('24196', '26580', 'True Centatis Devil');
-INSERT INTO `invTypesToWrecks` VALUES ('24197', '26580', 'True Centatis Daemon');
-INSERT INTO `invTypesToWrecks` VALUES ('24198', '26580', 'True Centatis Behemoth');
-INSERT INTO `invTypesToWrecks` VALUES ('24199', '27048', 'Shadow Corelatis Wing Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('24200', '27048', 'Shadow Corelatis Squad Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('24201', '27048', 'Shadow Corelatis Platoon Leader');
-INSERT INTO `invTypesToWrecks` VALUES ('24202', '27048', 'Shadow Corelatis Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('24203', '27048', 'Shadow Corelatis Captain Sentry');
-INSERT INTO `invTypesToWrecks` VALUES ('24204', '27048', 'Shadow Corelatis High Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('24205', '26585', 'Shadow Corelior Trooper');
-INSERT INTO `invTypesToWrecks` VALUES ('24206', '26585', 'Shadow Corelior Soldier');
-INSERT INTO `invTypesToWrecks` VALUES ('24207', '26585', 'Shadow Corelior Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('24208', '26585', 'Shadow Corelior Sentinel');
-INSERT INTO `invTypesToWrecks` VALUES ('24209', '26585', 'Shadow Corelior Cannoneer');
-INSERT INTO `invTypesToWrecks` VALUES ('24210', '26585', 'Shadow Corelior Artillery');
-INSERT INTO `invTypesToWrecks` VALUES ('24211', '26579', 'True Centior Misshape');
-INSERT INTO `invTypesToWrecks` VALUES ('24212', '26579', 'True Centior Cannibal');
-INSERT INTO `invTypesToWrecks` VALUES ('24213', '26579', 'True Centior Devourer');
-INSERT INTO `invTypesToWrecks` VALUES ('24214', '26579', 'True Centior Abomination');
-INSERT INTO `invTypesToWrecks` VALUES ('24215', '26579', 'True Centior Monster');
-INSERT INTO `invTypesToWrecks` VALUES ('24216', '26579', 'True Centior Horror');
-INSERT INTO `invTypesToWrecks` VALUES ('24217', '26573', 'Dread Pithior Nihilist');
-INSERT INTO `invTypesToWrecks` VALUES ('24218', '26573', 'Dread Pithior Anarchist');
-INSERT INTO `invTypesToWrecks` VALUES ('24219', '26573', 'Dread Pithior Renegade');
-INSERT INTO `invTypesToWrecks` VALUES ('24220', '26573', 'Dread Pithior Guerilla');
-INSERT INTO `invTypesToWrecks` VALUES ('24221', '26573', 'Dread Pithior Terrorist');
-INSERT INTO `invTypesToWrecks` VALUES ('24222', '26573', 'Dread Pithior Supremacist');
-INSERT INTO `invTypesToWrecks` VALUES ('24223', '26567', 'Dark Corpior Visioner');
-INSERT INTO `invTypesToWrecks` VALUES ('24224', '26567', 'Dark Corpior Converter');
-INSERT INTO `invTypesToWrecks` VALUES ('24225', '26567', 'Dark Corpior Templar');
-INSERT INTO `invTypesToWrecks` VALUES ('24226', '26567', 'Dark Corpior Devoter');
-INSERT INTO `invTypesToWrecks` VALUES ('24227', '26567', 'Dark Corpior Friar');
-INSERT INTO `invTypesToWrecks` VALUES ('24228', '26567', 'Dark Corpior Cleric');
-INSERT INTO `invTypesToWrecks` VALUES ('24229', '26561', 'Gistior Domination Shatterer');
-INSERT INTO `invTypesToWrecks` VALUES ('24230', '26561', 'Gistior Domination Defacer');
-INSERT INTO `invTypesToWrecks` VALUES ('24231', '26561', 'Gistior Domination Haunter');
-INSERT INTO `invTypesToWrecks` VALUES ('24232', '26561', 'Gistior Domination Defiler');
-INSERT INTO `invTypesToWrecks` VALUES ('24233', '26561', 'Gistior Domination Seizer');
-INSERT INTO `invTypesToWrecks` VALUES ('24234', '26561', 'Gistior Domination Trasher');
-INSERT INTO `invTypesToWrecks` VALUES ('24265', '26972', 'Thukker Wingman');
-INSERT INTO `invTypesToWrecks` VALUES ('24361', '26585', 'Crook Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('24362', '26585', 'Crook Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('24363', '26585', 'Crook Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('24364', '26585', 'Crook Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('24365', '26585', 'Crook Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('24366', '26585', 'Crook Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('24367', '26585', 'Crook Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('24368', '26585', 'Crook Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('24369', '26588', 'Marauder Spy');
-INSERT INTO `invTypesToWrecks` VALUES ('24370', '26588', 'Marauder Agent');
-INSERT INTO `invTypesToWrecks` VALUES ('24371', '26588', 'Marauder Watchman');
-INSERT INTO `invTypesToWrecks` VALUES ('24372', '26588', 'Marauder Patroller');
-INSERT INTO `invTypesToWrecks` VALUES ('24373', '26588', 'Marauder Guard');
-INSERT INTO `invTypesToWrecks` VALUES ('24374', '26588', 'Marauder Safeguard');
-INSERT INTO `invTypesToWrecks` VALUES ('24375', '26588', 'Marauder Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('24376', '26588', 'Marauder Protector');
-INSERT INTO `invTypesToWrecks` VALUES ('24377', '26587', 'Mule Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('24378', '26587', 'Mule Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('24379', '26587', 'Mule Ferriera');
-INSERT INTO `invTypesToWrecks` VALUES ('24380', '26587', 'Mule Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('24381', '26569', 'Barrow Harvester');
-INSERT INTO `invTypesToWrecks` VALUES ('24382', '26569', 'Barrow Gatherer');
-INSERT INTO `invTypesToWrecks` VALUES ('24383', '26569', 'Barrow Ferrier');
-INSERT INTO `invTypesToWrecks` VALUES ('24384', '26569', 'Barrow Loader');
-INSERT INTO `invTypesToWrecks` VALUES ('24385', '26567', 'Warrior Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('24386', '26567', 'Warrior Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('24387', '26567', 'Warrior Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('24388', '26567', 'Warrior Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('24389', '26567', 'Warrior Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('24390', '26570', 'Sellsword Collector');
-INSERT INTO `invTypesToWrecks` VALUES ('24391', '26570', 'Sellsword Raider');
-INSERT INTO `invTypesToWrecks` VALUES ('24392', '26570', 'Sellsword Diviner');
-INSERT INTO `invTypesToWrecks` VALUES ('24393', '26570', 'Sellsword Reaver');
-INSERT INTO `invTypesToWrecks` VALUES ('24394', '26570', 'Sellsword Engraver');
-INSERT INTO `invTypesToWrecks` VALUES ('24407', '26567', 'Warrior Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('24408', '26570', 'Sellsword Seeker');
-INSERT INTO `invTypesToWrecks` VALUES ('24442', '27286', 'Test Cap Drain');
-INSERT INTO `invTypesToWrecks` VALUES ('24448', '26476', 'Viziam Prophecy');
-INSERT INTO `invTypesToWrecks` VALUES ('24483', '26538', 'Nidhoggur');
-INSERT INTO `invTypesToWrecks` VALUES ('24582', '26919', 'The Negotiator');
-INSERT INTO `invTypesToWrecks` VALUES ('24584', '26919', 'Wiyrkomi Head Engineer');
-INSERT INTO `invTypesToWrecks` VALUES ('24607', '26579', 'TestScanRadar');
-INSERT INTO `invTypesToWrecks` VALUES ('24626', '27286', 'TEST JAMMER');
-INSERT INTO `invTypesToWrecks` VALUES ('24627', '27286', 'TEST DISRUPTOR');
-INSERT INTO `invTypesToWrecks` VALUES ('24628', '27286', 'TEST STASIS SCRAMBLER');
-INSERT INTO `invTypesToWrecks` VALUES ('24629', '27286', 'TEST DAMPEN');
-INSERT INTO `invTypesToWrecks` VALUES ('24630', '26568', 'TEST DRAINER');
-INSERT INTO `invTypesToWrecks` VALUES ('24688', '26492', 'Rokh');
-INSERT INTO `invTypesToWrecks` VALUES ('24690', '26514', 'Hyperion');
-INSERT INTO `invTypesToWrecks` VALUES ('24692', '26470', 'Abaddon');
-INSERT INTO `invTypesToWrecks` VALUES ('24694', '26536', 'Maelstrom');
-INSERT INTO `invTypesToWrecks` VALUES ('24696', '26469', 'Harbinger');
-INSERT INTO `invTypesToWrecks` VALUES ('24698', '26491', 'Drake');
-INSERT INTO `invTypesToWrecks` VALUES ('24700', '26513', 'Myrmidon');
-INSERT INTO `invTypesToWrecks` VALUES ('24702', '26535', 'Hurricane');
-INSERT INTO `invTypesToWrecks` VALUES ('24754', '26972', 'A Hired Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('25209', '27286', 'Tempest 50ms 1000m');
-INSERT INTO `invTypesToWrecks` VALUES ('25210', '27286', 'Rupture 100ms 625m');
-INSERT INTO `invTypesToWrecks` VALUES ('25211', '27286', 'Cyclone 75ms 750m');
-INSERT INTO `invTypesToWrecks` VALUES ('25213', '27286', 'Thrasher 150ms 425m');
-INSERT INTO `invTypesToWrecks` VALUES ('25214', '27286', 'Rifter 225ms 125m');
-INSERT INTO `invTypesToWrecks` VALUES ('25215', '27286', 'Apocalypse 125ms 2500m');
-INSERT INTO `invTypesToWrecks` VALUES ('25216', '27286', 'Prophecy 150ms 1500m');
-INSERT INTO `invTypesToWrecks` VALUES ('25217', '27286', 'Maller 175ms 1000m');
-INSERT INTO `invTypesToWrecks` VALUES ('25218', '27286', 'Coercer 225ms 750m');
-INSERT INTO `invTypesToWrecks` VALUES ('25219', '27286', 'Punisher 300ms 500m');
-INSERT INTO `invTypesToWrecks` VALUES ('25220', '27286', 'Ferox 125ms 1250m');
-INSERT INTO `invTypesToWrecks` VALUES ('25221', '27286', 'Raven 100ms 2000m');
-INSERT INTO `invTypesToWrecks` VALUES ('25222', '27286', 'Moa 150ms 875m');
-INSERT INTO `invTypesToWrecks` VALUES ('25223', '27286', 'Cormorant 200ms 625m');
-INSERT INTO `invTypesToWrecks` VALUES ('25224', '27286', 'Merlin 275ms 375m');
-INSERT INTO `invTypesToWrecks` VALUES ('25225', '27286', 'Brutix 100ms 1000m');
-INSERT INTO `invTypesToWrecks` VALUES ('25226', '27286', 'Megathron 75ms 1500m');
-INSERT INTO `invTypesToWrecks` VALUES ('25227', '27286', 'Thorax 125ms 750m');
-INSERT INTO `invTypesToWrecks` VALUES ('25228', '27286', 'Catalyst 175ms 500m');
-INSERT INTO `invTypesToWrecks` VALUES ('25229', '27286', 'Tristan 250ms 250m');
-INSERT INTO `invTypesToWrecks` VALUES ('25306', '26919', 'Pithatis Speaker');
-INSERT INTO `invTypesToWrecks` VALUES ('25374', '26920', 'Mutated Drone Parasite');
-INSERT INTO `invTypesToWrecks` VALUES ('25407', '26920', 'Akkeshu Karuan');
-INSERT INTO `invTypesToWrecks` VALUES ('25426', '26502', 'Hawk 2');
-INSERT INTO `invTypesToWrecks` VALUES ('25549', '26920', 'Security Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('25560', '26522', 'Opux Dragoon Yacht');
-INSERT INTO `invTypesToWrecks` VALUES ('25578', '26920', 'Security Maintenance Facility Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('25581', '26920', 'Security Mining Facility Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('25806', '26573', 'TEST ATTACKER');
-INSERT INTO `invTypesToWrecks` VALUES ('25808', '26920', 'TestProphetBlood');
-INSERT INTO `invTypesToWrecks` VALUES ('25816', '26563', 'vlgergh');
-INSERT INTO `invTypesToWrecks` VALUES ('25818', '26920', 'Black Jack');
-INSERT INTO `invTypesToWrecks` VALUES ('25822', '26563', 'Gist_Defender Battleship');
-INSERT INTO `invTypesToWrecks` VALUES ('25823', '26561', 'Gistii_Defender_Frigate');
-INSERT INTO `invTypesToWrecks` VALUES ('25824', '26575', 'Pith Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('25825', '26573', 'Pithi Defender');
-INSERT INTO `invTypesToWrecks` VALUES ('25848', '26920', 'Kalorr Makur');
-INSERT INTO `invTypesToWrecks` VALUES ('25865', '26920', 'Pashan\'s Battle-Commander');
-INSERT INTO `invTypesToWrecks` VALUES ('25870', '26920', 'Serpentis Procurer');
-INSERT INTO `invTypesToWrecks` VALUES ('25873', '26920', 'Piran Ketoisa');
-INSERT INTO `invTypesToWrecks` VALUES ('25877', '26919', 'TestNPC001');
-INSERT INTO `invTypesToWrecks` VALUES ('25881', '26920', 'Serpentis Thief');
-INSERT INTO `invTypesToWrecks` VALUES ('25884', '26920', 'Shadow Serpentis Thief');
-INSERT INTO `invTypesToWrecks` VALUES ('25886', '26920', 'Rogue Drone Saboteur');
-INSERT INTO `invTypesToWrecks` VALUES ('25990', '26919', 'Republic Fleet Keeper');
-INSERT INTO `invTypesToWrecks` VALUES ('25995', '26920', 'Sansha\'s Slave Master');
-INSERT INTO `invTypesToWrecks` VALUES ('26117', '26919', 'Thukker Informant');
-INSERT INTO `invTypesToWrecks` VALUES ('26118', '26920', 'Martokar Alash');
-INSERT INTO `invTypesToWrecks` VALUES ('26119', '26920', 'Abufyr Joek');
-INSERT INTO `invTypesToWrecks` VALUES ('26130', '26919', 'Sansha Infiltrator');
-INSERT INTO `invTypesToWrecks` VALUES ('26142', '26918', 'Rogue Harvesting Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('26264', '26920', 'Lazron Kamon_');
-INSERT INTO `invTypesToWrecks` VALUES ('26661', '26918', 'Gistii Domination Scavenger');
-INSERT INTO `invTypesToWrecks` VALUES ('26678', '26919', 'Gistum Domination Racer');
-INSERT INTO `invTypesToWrecks` VALUES ('26679', '26920', 'Gist Domination Murderer');
-INSERT INTO `invTypesToWrecks` VALUES ('26680', '26918', 'Corpii Monk');
-INSERT INTO `invTypesToWrecks` VALUES ('26682', '26919', 'Dark Corpum Believer');
-INSERT INTO `invTypesToWrecks` VALUES ('26683', '26920', 'Dark Corpus Preacher');
-INSERT INTO `invTypesToWrecks` VALUES ('26684', '26918', 'Dread Pithi Terminator');
-INSERT INTO `invTypesToWrecks` VALUES ('26686', '26919', 'Dread Pithum Vindicator');
-INSERT INTO `invTypesToWrecks` VALUES ('26687', '26918', 'True Centii Revelator');
-INSERT INTO `invTypesToWrecks` VALUES ('26688', '26918', 'Shadow Coreli Antagonist');
-INSERT INTO `invTypesToWrecks` VALUES ('26689', '26920', 'Dread Pith Protagonist');
-INSERT INTO `invTypesToWrecks` VALUES ('26690', '26919', 'True Centum General');
-INSERT INTO `invTypesToWrecks` VALUES ('26691', '26919', 'Shadow Corelum Infantry');
-INSERT INTO `invTypesToWrecks` VALUES ('26692', '26920', 'True Centus Preacher');
-INSERT INTO `invTypesToWrecks` VALUES ('26694', '26920', 'Shadow Grand Admiral');
-INSERT INTO `invTypesToWrecks` VALUES ('26712', '26568', 'Blood Phantom - Ectoplasm');
-INSERT INTO `invTypesToWrecks` VALUES ('26714', '26920', 'Blood Factory Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('26716', '26920', 'Centus Colony General');
-INSERT INTO `invTypesToWrecks` VALUES ('26745', '26920', 'High Ritualist Padio Atour');
-INSERT INTO `invTypesToWrecks` VALUES ('26749', '26920', 'Terrorist Overlord Inzi Kika');
-INSERT INTO `invTypesToWrecks` VALUES ('26750', '26580', 'Sansha Miner');
-INSERT INTO `invTypesToWrecks` VALUES ('26752', '26562', 'Angel Transport');
-INSERT INTO `invTypesToWrecks` VALUES ('26753', '26918', 'chantal testing thingy');
-INSERT INTO `invTypesToWrecks` VALUES ('26754', '26569', 'Corpus Messiah');
-INSERT INTO `invTypesToWrecks` VALUES ('26756', '26919', 'Gurista Special Acquirements Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('26757', '26920', 'Sansha Shipyard Foreman');
-INSERT INTO `invTypesToWrecks` VALUES ('26758', '26919', 'Serpentis Drug Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('26763', '26919', 'Rogue Drone Logistic Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('26764', '26919', 'Rogue Production Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('26765', '26919', 'Hive Overseer');
-INSERT INTO `invTypesToWrecks` VALUES ('26766', '26919', 'Hive Logistic Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('26768', '26919', 'Colony Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('26770', '26920', 'Independence Queen');
-INSERT INTO `invTypesToWrecks` VALUES ('26771', '26920', 'Radiant Hive Mother');
-INSERT INTO `invTypesToWrecks` VALUES ('26772', '26920', 'Hierarchy Hive Queen');
-INSERT INTO `invTypesToWrecks` VALUES ('26793', '26920', 'Colonial Master Diabolus Maytor');
-INSERT INTO `invTypesToWrecks` VALUES ('26796', '26920', 'Privateer Admiral Heysus Sarpati');
-INSERT INTO `invTypesToWrecks` VALUES ('26798', '26920', 'Black Caesar');
-INSERT INTO `invTypesToWrecks` VALUES ('26799', '26920', 'Naberius Marquis');
-INSERT INTO `invTypesToWrecks` VALUES ('26800', '26920', 'Dread Guristas Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('26801', '26920', 'Angel Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('26802', '26920', 'Shadow Serpentis Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('26803', '26920', 'True Sansha\'s Colonel');
-INSERT INTO `invTypesToWrecks` VALUES ('26807', '26920', 'Jorun \'Red Legs\' Greaves');
-INSERT INTO `invTypesToWrecks` VALUES ('26810', '26920', 'Serpentis Tournament Host');
-INSERT INTO `invTypesToWrecks` VALUES ('26812', '26920', 'Sepentis Regional Baron Arain Percourt');
-INSERT INTO `invTypesToWrecks` VALUES ('26816', '26563', 'vlgergh');
-INSERT INTO `invTypesToWrecks` VALUES ('26818', '26920', 'Serpentis Regional Baron - Arain Percourt');
-INSERT INTO `invTypesToWrecks` VALUES ('26832', '26920', 'Captain Blood Raven');
-INSERT INTO `invTypesToWrecks` VALUES ('26833', '26920', 'Serpentis Holder');
-INSERT INTO `invTypesToWrecks` VALUES ('26840', '26499', 'Raven State Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('26842', '26543', 'Tempest Tribal Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('26844', '26920', 'Rubin Sozar');
-INSERT INTO `invTypesToWrecks` VALUES ('26862', '26918', 'Jols Eytur');
-INSERT INTO `invTypesToWrecks` VALUES ('26863', '26918', 'Vlye Cadille');
-INSERT INTO `invTypesToWrecks` VALUES ('26864', '26918', 'Eha Hidaiki');
-INSERT INTO `invTypesToWrecks` VALUES ('26865', '26918', 'Gamat Hakoot');
-INSERT INTO `invTypesToWrecks` VALUES ('26866', '26918', 'Elgur Erinn');
-INSERT INTO `invTypesToWrecks` VALUES ('26871', '26577', 'Dini Mator');
-INSERT INTO `invTypesToWrecks` VALUES ('26872', '26484', 'Corvette Prototype Amarr');
-INSERT INTO `invTypesToWrecks` VALUES ('26874', '26528', 'Corvette Prototype Gallente');
-INSERT INTO `invTypesToWrecks` VALUES ('26876', '26506', 'Corvette Prototype Caldari');
-INSERT INTO `invTypesToWrecks` VALUES ('26881', '26920', 'Dark Templar Uthius');
-INSERT INTO `invTypesToWrecks` VALUES ('26886', '27286', 'TEST Missiles NPC');
-INSERT INTO `invTypesToWrecks` VALUES ('26887', '27286', 'TEST Turrets NPC');
-INSERT INTO `invTypesToWrecks` VALUES ('26971', '26568', 'Gurista Guerilla Special Aquirement Division Captain');
-INSERT INTO `invTypesToWrecks` VALUES ('26973', '26564', 'Domination Wang Chunger');
-INSERT INTO `invTypesToWrecks` VALUES ('27002', '27286', 'TEST Moussa Dread Guristas Assassin');
-INSERT INTO `invTypesToWrecks` VALUES ('27003', '27286', 'TEST RANGE Dire Pithi Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('27005', '27286', 'TEST UPDATE Ammatar Navy Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('27228', '27286', 'TEST CARRIER Serpentis Duke');
-INSERT INTO `invTypesToWrecks` VALUES ('27299', '26489', 'Civilian Amarr Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('27301', '26511', 'Civilian Caldari Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('27303', '26533', 'Civilian Gallente Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('27305', '26555', 'Civilian Minmatar Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('27310', '27286', 'TEST Skin');
-INSERT INTO `invTypesToWrecks` VALUES ('27311', '27286', 'TEST FedSkin');
-INSERT INTO `invTypesToWrecks` VALUES ('27312', '27286', 'TEST COPY Dire Pithi Wrecker');
-INSERT INTO `invTypesToWrecks` VALUES ('27529', '27286', 'TEST Amarr Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('27566', '27286', 'TEST Caldari Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('27571', '27286', 'TEST Gallente Carrier');
-INSERT INTO `invTypesToWrecks` VALUES ('27764', '27286', 'TEST ICON Carrier Amarr');
-INSERT INTO `invTypesToWrecks` VALUES ('27801', '27286', 'Petty Thief');
-INSERT INTO `invTypesToWrecks` VALUES ('28310', '26530', 'Test Gas Barge');
-INSERT INTO `invTypesToWrecks` VALUES ('28352', '28603', 'Rorqual');
-INSERT INTO `invTypesToWrecks` VALUES ('28506', '26920', 'Drone Commandeered Battleship Deluxe');
-INSERT INTO `invTypesToWrecks` VALUES ('28507', '26920', 'Swarm Parasite Worker Deluxe');
-INSERT INTO `invTypesToWrecks` VALUES ('28509', '26920', 'Supreme Hive Defender Deluxe');
-INSERT INTO `invTypesToWrecks` VALUES ('28606', '29639', 'Orca');
-INSERT INTO `invTypesToWrecks` VALUES ('28659', '26477', 'Paladin');
-INSERT INTO `invTypesToWrecks` VALUES ('28661', '26521', 'Kronos');
-INSERT INTO `invTypesToWrecks` VALUES ('28665', '26543', 'Vargur');
-INSERT INTO `invTypesToWrecks` VALUES ('28710', '26499', 'Golem');
-INSERT INTO `invTypesToWrecks` VALUES ('28824', '26522', 'Test MWD Thorax');
-INSERT INTO `invTypesToWrecks` VALUES ('28844', '29034', 'Rhea');
-INSERT INTO `invTypesToWrecks` VALUES ('28846', '29036', 'Nomad');
-INSERT INTO `invTypesToWrecks` VALUES ('28848', '29035', 'Anshar');
-INSERT INTO `invTypesToWrecks` VALUES ('28850', '29033', 'Ark');
-INSERT INTO `invTypesToWrecks` VALUES ('28863', '26920', 'Hashi Keptzh');
-INSERT INTO `invTypesToWrecks` VALUES ('28864', '26920', 'Uehiro Katsen');
-INSERT INTO `invTypesToWrecks` VALUES ('29038', '27286', 'Defender Tester');
-INSERT INTO `invTypesToWrecks` VALUES ('29248', '26484', 'Magnate');
-INSERT INTO `invTypesToWrecks` VALUES ('29328', '26489', 'Amarr Media Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('29330', '26511', 'Caldari Media Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('29332', '26533', 'Gallente Media Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('29334', '26555', 'Minmatar Media Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('29336', '26544', 'Scythe Fleet Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('29337', '26478', 'Augoror Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('29340', '26500', 'Osprey Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('29344', '26522', 'Exequror Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('29984', '30823', 'Tengu');
-INSERT INTO `invTypesToWrecks` VALUES ('29986', '30822', 'Legion');
-INSERT INTO `invTypesToWrecks` VALUES ('29988', '30824', 'Proteus');
-INSERT INTO `invTypesToWrecks` VALUES ('29990', '30825', 'Loki');
-INSERT INTO `invTypesToWrecks` VALUES ('30362', '26567', 'TEX tutorial resistance NPC placeholder');
-INSERT INTO `invTypesToWrecks` VALUES ('30743', '26562', 'Society of Conscious Thought Cruiser');
-INSERT INTO `invTypesToWrecks` VALUES ('30842', '26533', 'Interbus Shuttle');
-INSERT INTO `invTypesToWrecks` VALUES ('32192', '26586', 'Underground Circus Ringmaster');
-INSERT INTO `invTypesToWrecks` VALUES ('32207', '26546', 'Freki');
-INSERT INTO `invTypesToWrecks` VALUES ('32209', '26544', 'Mimir');
-INSERT INTO `invTypesToWrecks` VALUES ('32298', '26563', 'Karkoti Rend');
-INSERT INTO `invTypesToWrecks` VALUES ('32305', '26477', 'Armageddon Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('32307', '26521', 'Dominix Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('32309', '26499', 'Scorpion Navy Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('32311', '26543', 'Typhoon Fleet Issue');
-INSERT INTO `invTypesToWrecks` VALUES ('32380', '26972', 'Roden Police Major');
-INSERT INTO `invTypesToWrecks` VALUES ('32381', '26972', 'Roden Police Sergeant');
-INSERT INTO `invTypesToWrecks` VALUES ('32385', '26575', 'Guristas Battleship Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('32391', '26573', 'Yukiro Demense');
-INSERT INTO `invTypesToWrecks` VALUES ('32400', '26561', 'Angel Frigate Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('32401', '26562', 'Angel Cruiser Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('32402', '26565', 'Angel Battleship Vessel');
-INSERT INTO `invTypesToWrecks` VALUES ('32403', '26563', 'Angel Battleship Vessel');
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('582', '26506', 'Bantam'),
+('583', '26506', 'Condor'),
+('584', '26506', 'Griffin'),
+('585', '26550', 'Slasher'),
+('586', '26550', 'Probe'),
+('587', '26550', 'Rifter'),
+('588', '26554', 'Reaper'),
+('589', '26484', 'Executioner'),
+('590', '26484', 'Inquisitor'),
+('591', '26484', 'Tormentor'),
+('592', '26528', 'Navitas'),
+('593', '26528', 'Tristan'),
+('594', '26528', 'Incursus'),
+('595', '26528', 'Gallente Police Ship'),
+('596', '26484', 'Impairor'),
+('597', '26484', 'Punisher'),
+('598', '26550', 'Breacher'),
+('599', '26550', 'Burst'),
+('600', '26550', 'Minmatar Peacekeeper Ship'),
+('601', '26510', 'Ibis'),
+('602', '26506', 'Kestrel'),
+('603', '26506', 'Merlin'),
+('604', '26506', 'Caldari Enforcer Ship'),
+('605', '26506', 'Heron'),
+('606', '26532', 'Velator'),
+('607', '26528', 'Imicus'),
+('608', '26528', 'Atron'),
+('609', '26528', 'Maulus'),
+('610', '26557', 'Wraith'),
+('611', '26558', 'Specter'),
+('612', '26550', 'Chaos'),
+('613', '26550', 'Devourer'),
+('614', '26550', 'Fury'),
+('615', '26550', 'Styx'),
+('616', '26550', 'Medusa'),
+('617', '26550', 'Echo'),
+('618', '26550', 'Lynx'),
+('619', '26550', 'Swordspine'),
+('620', '26495', 'Osprey'),
+('621', '26495', 'Caracal'),
+('622', '26539', 'Stabber'),
+('623', '26494', 'Moa'),
+('624', '26473', 'Maller'),
+('625', '26473', 'Augoror'),
+('626', '26517', 'Vexor'),
+('627', '26517', 'Thorax'),
+('628', '26473', 'Arbitrator'),
+('629', '26539', 'Rupture'),
+('630', '26539', 'Bellicose'),
+('631', '26539', 'Scythe'),
+('632', '26495', 'Blackbird'),
+('633', '26517', 'Celestis'),
+('634', '26517', 'Exequror'),
+('635', '26558', 'Opux Luxury Yacht'),
+('636', '26560', 'Ixion'),
+('637', '26560', 'Ghoul'),
+('638', '26492', 'Raven'),
+('639', '26536', 'Tempest'),
+('640', '26492', 'Scorpion'),
+('641', '26514', 'Megathron'),
+('642', '26470', 'Apocalypse'),
+('643', '26470', 'Armageddon'),
+('644', '26536', 'Typhoon'),
+('645', '26514', 'Dominix'),
+('647', '26559', 'Eidolon'),
+('648', '26507', 'Badger'),
+('649', '26507', 'Badger Mark II'),
+('659', '26468', 'Capsule Home-201'),
+('660', '26468', 'Capsule Home-201.7'),
+('661', '26468', 'Capsule Home-601.5'),
+('662', '26468', 'Capsule Home-1.401'),
+('663', '26468', 'Capsule Home-1.501'),
+('664', '26468', 'Capsule Home-2.201'),
+('665', '26468', 'Capsule CP-100'),
+('666', '26468', 'Capsule CP-100B'),
+('667', '26468', 'Capsule CP-200'),
+('668', '26468', 'Capsule CP-500'),
+('669', '26468', 'Capsule CP-900X'),
+('670', '26468', 'Capsule'),
+('671', '26534', 'Erebus'),
+('672', '26511', 'Caldari Shuttle'),
+('896', '26488', 'Impairor'),
+('1233', '26550', 'Enigma'),
+('1896', '26941', 'Concord Police Frigate'),
+('1898', '26941', 'Concord SWAT Frigate'),
+('1900', '26941', 'Concord Army Frigate'),
+('1902', '26941', 'Concord Special Ops Frigate'),
+('1904', '26940', 'Concord Police Cruiser'),
+('1906', '26940', 'Concord Army Cruiser'),
+('1908', '26940', 'Concord SWAT Cruiser'),
+('1910', '26940', 'Concord Special Ops Cruiser'),
+('1912', '26939', 'Concord Police Battleship'),
+('1914', '26939', 'Concord Special Ops Battleship'),
+('1916', '26939', 'Concord SWAT Battleship'),
+('1918', '26939', 'Concord Army Battleship'),
+('2006', '26493', 'Omen'),
+('2012', '26561', 'Terrorist Leader'),
+('2072', '26568', 'Anire Scarlet'),
+('2078', '26528', 'Zephyr'),
+('2098', '26585', 'Phenod\'s Broke-Ass Destroyer'),
+('2126', '26585', 'Anakism'),
+('2128', '26585', 'Locced\'s Destroyer'),
+('2161', '26484', 'Crucifier'),
+('2164', '26493', 'Arbitrator House Ardishapur'),
+('2166', '26493', 'Arbitrator House Tash-Murkon'),
+('2168', '26493', 'Arbitrator House Kor-Azor'),
+('2370', '26585', 'Serpentis Initiate'),
+('2372', '26561', 'Angel Rogue'),
+('2379', '26585', 'Serpentis Spy'),
+('2381', '26586', 'Serpentis Chief Spy'),
+('2382', '26573', 'Guristas Arrogator'),
+('2383', '26573', 'Guristas Invader'),
+('2384', '26573', 'Guristas Imputor'),
+('2385', '26573', 'Guristas Despoiler'),
+('2386', '26573', 'Guristas Plunderer'),
+('2387', '26574', 'Guristas Silencer'),
+('2769', '26920', 'Rogue Drone Liaisons Captain'),
+('2834', '26524', 'Utu'),
+('2836', '26522', 'Adrestia'),
+('2846', '26919', 'Domination Excavator'),
+('2847', '26919', 'True Sansha Foreman'),
+('3515', '26487', 'Revenant'),
+('3516', '26480', 'Malice'),
+('3518', '26478', 'Vangel'),
+('3532', '26484', 'Echelon'),
+('3628', '26487', 'Nation'),
+('3751', '26557', 'SOCT 1'),
+('3753', '26557', 'SOCT 2'),
+('3756', '26558', 'SOCT Cruiser'),
+('3764', '26512', 'Leviathan'),
+('3766', '26550', 'Vigil'),
+('3768', '26484', 'Amarr Police Frigate'),
+('3821', '26920', 'Dread Guristas Commanding Officer'),
+('3823', '26920', 'True Sansha Archduke'),
+('3825', '26920', 'Dark Blood Hunter'),
+('3856', '26558', 'Phantom'),
+('3863', '26940', 'CONCORD Police Officer'),
+('3882', '26919', 'Exsanguinator '),
+('3883', '26940', 'DED Army Officer'), 
+('3884', '26919', 'Guristas Distributor'),
+('3885', '26940', 'CONCORD Police Captain'),
+('3886', '26940', 'DED Army Captain'),
+('3889', '26919', 'Slave Ation09'),
+('3890', '26919', 'Sarpati Family Enforcer'),
+('3891', '26919', '5/10 DED Angel Big Boss'),
+('4005', '26499', 'Scorpion Ishukone Watch'),
+('4010', '26918', 'Domination Grigori'),
+('4012', '26918', 'Dread Guristas Irregular'),
+('4015', '26918', 'Dark Blood Alpha'),
+('4302', '26469', 'Oracle'),
+('4306', '26491', 'Naga'),
+('4308', '26513', 'Talos'),
+('4310', '26535', 'Tornado'),
+('9869', '27202', 'Loiterer I'),
+('9959', '26972', 'Amarr Surveillance Officer'),
+('9960', '26972', 'Amarr Surveillance Sergeant Majo'),
+('9962', '26972', 'Amarr Surveillance Sergeant'),
+('9965', '26972', 'Caldari Police Vice Commissioner'),
+('9970', '26972', 'Caldari Police 3rd Lieutenant'),
+('9971', '26972', 'Caldari Police 1st Lieutenant'),
+('9977', '26972', 'Minmatar Security Officer 2nd Rank'),
+('9978', '26972', 'Minmatar Security Officer 1st Rank'),
+('9983', '26972', 'Gallente Police Master Sergeant'),
+('9984', '26972', 'Gallente Police Captain'),
+('9987', '26972', 'Khanid Surveillance Officer'),
+('9988', '26972', 'Khanid Surveillance Sergeant'),
+('9989', '26972', 'Minmatar Security Officer 3rd Rank'),
+('9991', '26972', 'Gallente Police Sergeant'),
+('9997', '26972', 'Imperial Navy Sergeant Major'),
+('9998', '26972', 'Imperial Navy Sergeant'),
+('9999', '26972', 'Imperial Navy Captain'),
+('10000', '26972', 'Imperial Navy Major'),
+('10001', '26972', 'Imperial Navy Colonel'),
+('10003', '26972', 'Imperial Navy General'),
+('10013', '26561', 'Angel Hijacker'),
+('10014', '26561', 'Angel Outlaw'),
+('10015', '26561', 'Angel Nomad'),
+('10016', '26561', 'Angel Raider'),
+('10017', '26562', 'Angel Depredator'),
+('10018', '26562', 'Angel Smasher'),
+('10019', '26561', 'Angel Hunter'),
+('10025', '26579', 'Sansha\'s Servant'),
+('10026', '26579', 'Sansha\'s Scavenger'),
+('10027', '26579', 'Sansha\'s Savage'),
+('10028', '26579', 'Sansha\'s Plague'),
+('10029', '26579', 'Sansha\'s Manslayer'),
+('10030', '26580', 'Sansha\'s Ravager');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('10035', '26939', 'CONCORD SWAT Officer'),
+('10036', '26939', 'CONCORD SWAT Captain'),
+('10037', '26939', 'DED Special Operation Officer'),
+('10038', '26939', 'DED Special Operation Captain'),
+('10043', '27202', 'Peddler'),
+('10044', '27202', 'Column'),
+('10045', '27202', 'Vanguard'),
+('10046', '26972', 'Caldari Navy Captain 2nd Rank'),
+('10047', '26972', 'Caldari Navy Captain 1st Rank'),
+('10048', '26972', 'Caldari Navy Commodore'),
+('10050', '26972', 'Caldari Navy Vice Admiral'),
+('10052', '26972', 'Federation Navy Command Sergeant'),
+('10053', '26972', 'Federation Navy Fleet Captain'),
+('10054', '26972', 'Federation Navy Sergeant Major'),
+('10056', '26972', 'Federation Navy Fleet Major'),
+('10057', '26972', 'Federation Navy Fleet Colonel'),
+('10058', '26972', 'Republic Fleet Private 3rd Rank'),
+('10060', '26972', 'Republic Fleet Captain'),
+('10076', '26972', 'Khanid Navy Sergeant'),
+('10077', '26972', 'Republic Fleet Commander'),
+('10078', '26972', 'Republic Fleet High Captain'),
+('10079', '26972', 'Khanid Navy Sergeant Major'),
+('10080', '26972', 'Khanid Navy Major'),
+('10082', '26972', 'Khanid Navy Colonel'),
+('10083', '26972', 'Khanid Navy General'),
+('10084', '26972', 'Ammatar Navy Sergeant'),
+('10085', '26972', 'Ammatar Navy Sergeant Major'),
+('10086', '26972', 'Ammatar Navy Major'),
+('10089', '26972', 'Ammatar Navy General'),
+('10090', '26972', 'Sarum Navy Sergeant'),
+('10091', '26972', 'Sarum Navy Major'),
+('10092', '26972', 'Sarum Navy Captain'),
+('10095', '26972', 'Sarum Navy General'),
+('10097', '26972', 'Ammatar Surveillance Officer'),
+('10099', '26972', 'Ammatar Surveillance Sergeant Major'),
+('10100', '26972', 'Ammatar Surveillance Sergeant'),
+('10102', '26972', 'Sarum Surveillance Officer'),
+('10104', '26972', 'Sarum Surveillance Sergeant Major'),
+('10105', '26972', 'Sarum Surveillance Sergeant'),
+('10106', '26972', 'Intaki Defence Sergeant Major'),
+('10107', '26972', 'Intaki Defence Command Sergeant Major'),
+('10108', '26972', 'Intaki Defence Fleet Captain'),
+('10109', '26972', 'Intaki Defence Fleet Colonel'),
+('10111', '26972', 'Thukker Brute'),
+('10112', '26972', 'Thukker Warrior'),
+('10113', '26972', 'Thukker Tribal Lord'),
+('10114', '27202', 'Tradesman'),
+('10115', '27202', 'Merchant'),
+('10116', '27202', 'Trafficker'),
+('10117', '27202', 'Caravan'),
+('10118', '27202', 'Flotilla'),
+('10125', '26972', 'Mordu\'s Lieutenant 3rd Rank'),
+('10126', '26972', 'Mordu\'s Lieutenant 2nd Rank'),
+('10133', '26972', 'Mordu\'s Lieutenant'),
+('10134', '26972', 'Mordu\'s Captain'),
+('10254', '26521', 'Infested Dominix'),
+('10265', '26574', 'Guristas Ascriber'),
+('10266', '26573', 'Guristas Wrecker'),
+('10273', '26579', 'Sansha\'s Minion'),
+('10274', '26580', 'Sansha\'s Ravisher'),
+('10275', '26567', 'Blood Follower'),
+('10276', '26567', 'Blood Herald'),
+('10277', '26567', 'Blood Upholder'),
+('10278', '26567', 'Blood Seeker'),
+('10279', '26567', 'Blood Collector'),
+('10280', '26567', 'Blood Reaver'),
+('10281', '26568', 'Blood Arch Reaver'),
+('10282', '26568', 'Blood Arch Engraver'),
+('10283', '26585', 'Serpentis Scout'),
+('10284', '26585', 'Serpentis Watchman'),
+('10285', '26585', 'Serpentis Guard'),
+('10286', '26585', 'Serpentis Defender'),
+('10287', '26586', 'Serpentis Chief Patroller'),
+('10650', '26972', 'Ammatar Navy Captain'),
+('10651', '26972', 'Caldari Navy Captain 3rd Rank'),
+('10652', '26972', 'Federation Navy First Sergeant'),
+('10653', '26972', 'Intaki Defence First Sergeant'),
+('10654', '26972', 'Mordu\'s Lieutenant 1st Rank'),
+('10655', '26972', 'Mordu\'s Legion'),
+('10656', '26972', 'Sarum Navy Sergeant Major'),
+('10657', '26972', 'Thukker Tribalist'),
+('10658', '26972', 'Thukker Tribal Pries'),
+('10660', '26972', 'Caldari Police 2nd Lieutenant'),
+('10663', '26972', 'Republic Fleet Private 1st Rank'),
+('10664', '26972', 'Republic Fleet Private 2nd Rank'),
+('10669', '26972', 'Ammatar Navy Colonel'),
+('10670', '26972', 'Khanid Navy Captain'),
+('10674', '26972', 'Khanid Surveillance Sergeant Major'),
+('10676', '26972', 'Sarum Navy Colonel'),
+('10677', '26972', 'Intaki Defence Fleet Major'),
+('10823', '27202', 'Retailer'),
+('10824', '27202', 'Chafferer'),
+('10825', '27202', 'Trailer'),
+('10826', '27202', 'Hauler'),
+('10827', '27202', 'Trader'),
+('10828', '27202', 'Courier'),
+('10829', '27202', 'Purveyor'),
+('10830', '27202', 'Carrier'),
+('10831', '27202', 'Hawker'),
+('10832', '27202', 'Huckster'),
+('10833', '27202', 'Patronager'),
+('10834', '27202', 'Chandler'),
+('10999', '27202', 'Convoy Escort'),
+('11000', '27202', 'Convoy Protector'),
+('11001', '27202', 'Convoy Guard'),
+('11002', '27202', 'Convoy Sentry'),
+('11011', '26522', 'Guardian-Vexor'),
+('11019', '26528', 'Cockroach'),
+('11021', '26561', 'Angel Thug'),
+('11022', '26561', 'Angel Ruffian'),
+('11023', '26561', 'Angel Ambusher'),
+('11024', '26561', 'Angel Impaler'),
+('11025', '26562', 'Angel Predator'),
+('11026', '26562', 'Angel Crusher'),
+('11027', '26573', 'Guristas Infiltrator'),
+('11028', '26573', 'Guristas Saboteur'),
+('11029', '26573', 'Guristas Destructor'),
+('11030', '26573', 'Guristas Demolisher'),
+('11031', '26574', 'Guristas Murderer'),
+('11032', '26579', 'Sansha\'s Ravene'),
+('11033', '26579', 'Sansha\'s Enslaver'),
+('11034', '26579', 'Sansha\'s Slavehunter'),
+('11035', '26579', 'Sansha\'s Butcher'),
+('11036', '26574', 'Guristas Killer'),
+('11037', '26580', 'Sansha\'s Beast'),
+('11038', '26580', 'Sansha\'s Juggernaut'),
+('11039', '26567', 'Blood Worshipper'),
+('11040', '26567', 'Blood Raider'),
+('11041', '26567', 'Blood Diviner'),
+('11042', '26567', 'Blood Engraver'),
+('11043', '26568', 'Blood Arch Templar'),
+('11044', '26562', 'Blood Arch Reaver'),
+('11045', '26585', 'Serpentis Agent'),
+('11046', '26585', 'Serpentis Patroller'),
+('11047', '26585', 'Serpentis Safeguard'),
+('11048', '26585', 'Serpentis Protector'),
+('11049', '26586', 'Serpentis Chief Scout'),
+('11050', '26586', 'Serpentis Chief Watchman'),
+('11125', '26939', 'CONCORD Police Commander'),
+('11126', '26939', 'CONCORD SWAT Commander'),
+('11127', '26939', 'DED Army Commander'),
+('11128', '26939', 'DED Special Operation Commander'),
+('11129', '26533', 'Gallente Shuttle'),
+('11132', '26555', 'Minmatar Shuttle'),
+('11134', '26489', 'Amarr Shuttle'),
+('11137', '26972', 'Imperial Navy Fleet Marshall'),
+('11138', '26972', 'Caldari Navy Fleet Admiral'),
+('11139', '26972', 'Federation Navy Fleet General'),
+('11140', '26972', 'Republic Fleet High Commander'),
+('11172', '26524', 'Helios'),
+('11174', '26524', 'Keres'),
+('11176', '26502', 'Crow'),
+('11178', '26502', 'Raptor'),
+('11180', '26546', 'Rapier Frigate'),
+('11182', '26546', 'Cheetah'),
+('11184', '26480', 'Crusader'),
+('11186', '26480', 'Malediction'),
+('11188', '26480', 'Anathema'),
+('11190', '26480', 'Sentinel'),
+('11192', '26502', 'Buzzard'),
+('11194', '26502', 'Kitsune'),
+('11196', '26546', 'Claw'),
+('11198', '26546', 'Stiletto'),
+('11200', '26524', 'Taranis'),
+('11202', '26524', 'Ares'),
+('11365', '26480', 'Vengeance'),
+('11371', '26546', 'Wolf'),
+('11373', '26546', 'Blade'),
+('11375', '26524', 'Erinye'),
+('11377', '26524', 'Nemesis'),
+('11379', '26502', 'Hawk'),
+('11381', '26502', 'Harpy'),
+('11383', '26480', 'Gatherer'),
+('11385', '26502', 'Sparrow'),
+('11387', '26546', 'Hyena'),
+('11389', '26524', 'Kishar'),
+('11393', '26480', 'Retribution'),
+('11400', '26546', 'Jaguar'),
+('11515', '26972', 'Amarr Surveillance General Major'),
+('11516', '26972', 'Sarum Surveillance General Major'),
+('11517', '26972', 'Ammatar Surveillance General Major'),
+('11518', '26972', 'Khanid Surveillance General Major'),
+('11519', '26972', 'Gallente Police Major'),
+('11520', '26972', 'Minmatar Security High Captain'),
+('11521', '26972', 'Caldari Police Commissioner'),
+('11567', '26490', 'Avatar'),
+('11591', '26550', 'AGILITY TEST SHIP'),
+('11601', '26574', 'Guristas Emissary'),
+('11716', '26568', 'Blood Raider Transport Ship'),
+('11717', '26580', 'Sanshas Transport Ship'),
+('11718', '26574', 'Guristas Transport Ship'),
+('11719', '26562', 'Angel Cartel Transport Ship'),
+('11720', '26586', 'Serpentis Transport Ship'),
+('11894', '26562', 'Angel Breaker'),
+('11895', '26562', 'Angel Defeater'),
+('11896', '26562', 'Angel Marauder'),
+('11897', '26562', 'Angel Liquidator'),
+('11898', '26563', 'Angel Commander'),
+('11899', '26563', 'Angel General'),
+('11900', '26563', 'Angel Warlord');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('11901', '26568', 'Blood Revenant'),
+('11902', '26568', 'Blood Sage'),
+('11903', '26568', 'Blood Priest'),
+('11904', '26568', 'Blood Arch Sage'),
+('11905', '26569', 'Blood Archon'),
+('11906', '26569', 'Blood Prophet'),
+('11907', '26569', 'Blood Oracle'),
+('11908', '26569', 'Blood Apostle'),
+('11909', '26580', 'Sansha\'s Slaughterer'),
+('11910', '26580', 'Sansha\'s Execrator'),
+('11911', '26580', 'Sansha\'s Mutilator'),
+('11912', '26580', 'Sansha\'s Torturer'),
+('11913', '26581', 'Sansha\'s Lord'),
+('11914', '26581', 'Sansha\'s Slave Lord'),
+('11915', '26581', 'Sansha\'s Mutant Lord'),
+('11916', '26581', 'Sansha\'s Savage Lord'),
+('11917', '26586', 'Serpentis Chief Guard'),
+('11918', '26586', 'Serpentis Chief Safeguard'),
+('11919', '26586', 'Serpentis Chief Defender'),
+('11920', '26586', 'Serpentis Chief Protector'),
+('11921', '26587', 'Serpentis Baron'),
+('11922', '26587', 'Serpentis Commodore'),
+('11923', '26587', 'Serpentis Port Admiral'),
+('11924', '26587', 'Serpentis Rear Admiral'),
+('11927', '26563', 'Angel War General'),
+('11928', '26574', 'Guristas Annihilator'),
+('11929', '26574', 'Guristas Nullifier'),
+('11930', '26574', 'Guristas Mortifier'),
+('11931', '26574', 'Guristas Inferno'),
+('11932', '26575', 'Guristas Eradicator'),
+('11933', '26575', 'Guristas Obliterator'),
+('11934', '26575', 'Guristas Dismantler'),
+('11935', '26575', 'Guristas Extinguisher'),
+('11936', '26477', 'Apocalypse Imperial Issue'),
+('11938', '26477', 'Armageddon Imperial Issue'),
+('11940', '26480', 'Gold Magnate'),
+('11942', '26480', 'Silver Magnate'),
+('11957', '26500', 'Falcon'),
+('11959', '30823', 'Rook'),
+('11961', '30825', 'Huginn'),
+('11963', '26544', 'Rapier'),
+('11965', '26478', 'Pilgrim'),
+('11969', '26522', 'Arazu'),
+('11971', '30824', 'Lachesis'),
+('11973', '26500', 'Nocturne'),
+('11978', '26544', 'Scimitar'),
+('11980', '26544', 'Drifter'),
+('11982', '26478', 'Sanctity'),
+('11985', '26500', 'Basilisk'),
+('11987', '26478', 'Guardian'),
+('11989', '26522', 'Oneiros'),
+('11991', '26522', 'Clotho'),
+('11993', '26500', 'Cerberus'),
+('11995', '30822', 'Onyx'),
+('11997', '26544', 'Glaive'),
+('11999', '26544', 'Vagabond'),
+('12003', '26478', 'Zealot'),
+('12005', '26522', 'Ishtar'),
+('12007', '26522', 'Atropos'),
+('12009', '26500', 'Obsidian'),
+('12011', '26500', 'Eagle'),
+('12013', '30825', 'Broadsword'),
+('12015', '26544', 'Muninn'),
+('12017', '30822', 'Devoter'),
+('12019', '26478', 'Sacrilege'),
+('12021', '30824', 'Phobos'),
+('12023', '26522', 'Deimos'),
+('12030', '26502', 'Manticore OLD'),
+('12032', '26502', 'Manticore'),
+('12034', '26546', 'Hound'),
+('12036', '26546', 'Dagger'),
+('12038', '26480', 'Purifier'),
+('12040', '26480', 'Purifier OLD'),
+('12042', '26524', 'Ishkur'),
+('12044', '26524', 'Enyo'),
+('12245', '27286', 'Angel Fugitive'),
+('12246', '27286', 'Blood Fugitive'),
+('12247', '27286', 'Guristas Fugitive'),
+('12248', '27286', 'Sansha\'s Fugitive'),
+('12249', '27286', 'Serpentis Fugitive'),
+('12403', '26528', 'Atron much HP'),
+('12729', '26503', 'Crane'),
+('12731', '26503', 'Bustard'),
+('12733', '26481', 'Prorator'),
+('12735', '26547', 'Prowler'),
+('12743', '26525', 'Viator'),
+('12745', '26525', 'Occator'),
+('12747', '26547', 'Mastodon'),
+('12753', '26481', 'Impel'),
+('13032', '26561', 'Arch Angel Rogue'),
+('13033', '26561', 'Arch Angel Thug'),
+('13035', '26561', 'Arch Angel Hijacker'),
+('13036', '26561', 'Arch Angel Outlaw'),
+('13037', '26567', 'Elder Blood Upholder'),
+('13038', '26567', 'Elder Blood Worshipper'),
+('13039', '26567', 'Elder Blood Follower'),
+('13040', '26567', 'Elder Blood Herald'),
+('13041', '26573', 'Dire Guristas Invader'),
+('13042', '26573', 'Dire Guristas Infiltrator'),
+('13043', '26573', 'Dire Guristas Imputor'),
+('13044', '26573', 'Dire Guristas Arrogator'),
+('13045', '26579', 'Sansha\'s Loyal Ravener'),
+('13046', '26579', 'Sansha\'s Loyal Scavanger'),
+('13047', '26579', 'Sansha\'s Loyal Minion'),
+('13048', '26579', 'Sansha\'s Loyal Servant'),
+('13049', '26585', 'Guardian Agent'),
+('13050', '26585', 'Guardian Spy'),
+('13051', '26585', 'Guardian Scout'),
+('13052', '26585', 'Guardian Initiate'),
+('13202', '26521', 'Megathron Federate Issue'),
+('13515', '26564', 'Domination Hijacker'),
+('13516', '26564', 'Domination Rogue'),
+('13517', '26564', 'Domination Outlaw'),
+('13518', '26564', 'Domination Thug'),
+('13519', '26564', 'Domination Ambusher'),
+('13520', '26699', 'Domination Depredator'),
+('13521', '26564', 'Domination Hunter'),
+('13522', '26564', 'Domination Impaler'),
+('13523', '26699', 'Domination Crusher'),
+('13524', '26699', 'Domination Smasher'),
+('13525', '26564', 'Domination Nomad'),
+('13526', '26699', 'Domination Predator'),
+('13527', '26564', 'Domination Raider'),
+('13528', '26564', 'Domination Ruffian'),
+('13529', '26699', 'Domination Breaker'),
+('13530', '26699', 'Domination Defeater'),
+('13531', '26699', 'Domination Marauder'),
+('13532', '26699', 'Domination Phalanx'),
+('13533', '26699', 'Domination Liquidator'),
+('13534', '26699', 'Domination Centurion'),
+('13535', '26565', 'Domination Commander'),
+('13536', '26566', 'Mizuro Cybon'),
+('13537', '26565', 'Domination General'),
+('13538', '26566', 'Hakim Stormare'),
+('13539', '26565', 'Domination War General'),
+('13540', '26565', 'Domination Saint'),
+('13541', '26566', 'Gotan Kreiss'),
+('13542', '26565', 'Domination Nephilim'),
+('13543', '26565', 'Domination Warlord'),
+('13544', '26566', 'Tobias Kruzhor'),
+('13545', '26570', 'Dark Blood Reaver'),
+('13546', '26570', 'Dark Blood Follower'),
+('13547', '26571', 'Dark Blood Arch Engraver'),
+('13548', '26571', 'Dark Blood Arch Priest'),
+('13549', '26571', 'Dark Blood Dark Priest'),
+('13550', '26571', 'Dark Blood Arch Reaver'),
+('13551', '26571', 'Dark Blood Arch Sage'),
+('13552', '26571', 'Dark Blood Shadow Sage'),
+('13553', '26571', 'Dark Blood Arch Templar'),
+('13554', '26570', 'Dark Blood Diviner'),
+('13555', '26570', 'Dark Blood Upholder'),
+('13556', '26700', 'Dark Blood Prophet'),
+('13557', '26572', 'Raysere Giant'),
+('13558', '26570', 'Dark Blood Collector'),
+('13559', '26701', 'Dread Guristas Eliminator'),
+('13560', '26700', 'Dark Blood Archbishop'),
+('13561', '26572', 'Ahremen Arkah'),
+('13562', '26700', 'Dark Blood Apostle'),
+('13563', '26700', 'Dark Blood Harbinger'),
+('13564', '26572', 'Draclira Merlonne'),
+('13565', '26571', 'Dark Blood Priest'),
+('13566', '26570', 'Dark Blood Raider'),
+('13567', '26570', 'Dark Blood Herald'),
+('13568', '26570', 'Dark Blood Seeker'),
+('13569', '26571', 'Dark Blood Revenant'),
+('13570', '26571', 'Dark Blood Sage'),
+('13571', '26570', 'Dark Blood Worshipper'),
+('13572', '26700', 'Dark Blood Archon'),
+('13573', '26572', 'Tairei Namazoth'),
+('13574', '26570', 'Dark Blood Engraver'),
+('13575', '26577', 'Dread Guristas Killer'),
+('13576', '26576', 'Dread Guristas Arrogator'),
+('13577', '26577', 'Dread Guristas Ascriber'),
+('13578', '26701', 'Dread Guristas Dismantler'),
+('13579', '26701', 'Dread Guristas Eliminator'),
+('13580', '26578', 'Vepas Minimala'),
+('13581', '26576', 'Dread Guristas Demolisher'),
+('13584', '26578', 'Thon Eney'),
+('13585', '26576', 'Dread Guristas Destructor'),
+('13586', '26577', 'Dread Guristas Inferno'),
+('13587', '26577', 'Dread Guristas Abolisher'),
+('13588', '26701', 'Dread Guristas Eradicator'),
+('13589', '26578', 'Kaikka Peunato'),
+('13590', '26576', 'Dread Guristas Imputor'),
+('13591', '26577', 'Dread Guristas Mortifier'),
+('13592', '26577', 'Dread Guristas Eraser'),
+('13593', '26576', 'Dread Guristas Infiltrator'),
+('13594', '26576', 'Dread Guristas Invader'),
+('13595', '26577', 'Dread Guristas Nullifier'),
+('13596', '26577', 'Dread Guristas Murderer'),
+('13597', '26576', 'Dread Guristas Plunderer'),
+('13598', '26576', 'Dread Guristas Saboteur'),
+('13599', '26577', 'Dread Guristas Annihilator'),
+('13600', '26577', 'Dread Guristas Silencer'),
+('13601', '26701', 'Dread Guristas Extinguisher'),
+('13602', '26701', 'Dread Guristas Exterminator'),
+('13603', '26578', 'Estamel Tharchon'),
+('13604', '26576', 'Dread Guristas Wrecker'),
+('13605', '26583', 'True Sansha\'s Beast'),
+('13606', '26702', 'True Sansha\'s Lord');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('13609', '26584', 'Brokara Ryver'),
+('13610', '26582', 'True Sansha\'s Butcher'),
+('13611', '26583', 'True Sansha\'s Slaughterer'),
+('13612', '26582', 'True Sansha\'s Enslaver'),
+('13613', '26583', 'True Sansha\'s Juggernaut'),
+('13614', '26702', 'True Sansha\'s Slave Lord'),
+('13615', '26584', 'Selynne Mardakar'),
+('13616', '26582', 'True Sansha\'s Manslayer'),
+('13617', '26582', 'True Sansha\'s Minion'),
+('13618', '26583', 'True Sansha\'s Torturer'),
+('13619', '26583', 'True Sansha\'s Hellhound'),
+('13620', '26702', 'True Sansha\'s Mutant Lord'),
+('13621', '26702', 'True Sansha\'s Plague Lord'),
+('13622', '26584', 'Vizan Ankonin'),
+('13623', '26582', 'True Sansha\'s Plague'),
+('13624', '26583', 'True Sansha\'s Ravager'),
+('13625', '26582', 'True Sansha\'s Ravener'),
+('13626', '26583', 'True Sansha\'s Ravisher'),
+('13627', '26582', 'True Sansha\'s Savage'),
+('13628', '26582', 'True Sansha\'s Scavenger'),
+('13629', '26582', 'True Sansha\'s Servant'),
+('13630', '26583', 'True Sansha\'s Mutilator'),
+('13631', '26583', 'True Sansha\'s Fiend'),
+('13632', '26582', 'True Sansha\'s Slavehunter'),
+('13633', '26702', 'True Sansha\'s Beast Lord'),
+('13634', '26702', 'True Sansha\'s Savage Lord'),
+('13635', '26584', 'Chelm Soran'),
+('13636', '26582', 'True Sansha\'s Execrator'),
+('13637', '26589', 'Shadow Serpentis Chief Watchman'),
+('13638', '26589', 'Shadow Serpentis Chief Patroller'),
+('13639', '26589', 'Shadow Serpentis Chief Scout'),
+('13640', '26588', 'Shadow Serpentis Safeguard'),
+('13641', '26589', 'Shadow Serpentis Chief Spy'),
+('13642', '26588', 'Shadow Serpentis Guard'),
+('13643', '26588', 'Shadow Serpentis Spy'),
+('13644', '26588', 'Shadow Serpentis Watchman'),
+('13645', '26588', 'Shadow Serpentis Scout'),
+('13646', '26588', 'Shadow Serpentis Agent'),
+('13647', '26588', 'Shadow Serpentis Defender'),
+('13648', '26588', 'Shadow Serpentis Patroller'),
+('13649', '26588', 'Shadow Serpentis Initiate'),
+('13650', '26588', 'Shadow Serpentis Protector'),
+('13651', '26589', 'Shadow Serpentis Chief Protector'),
+('13652', '26703', 'Shadow Serpentis Vice Admiral'),
+('13653', '26703', 'Shadow Serpentis Rear Admiral'),
+('13654', '26590', 'Cormack Vaaja'),
+('13656', '26589', 'Shadow Serpentis Chief Sentinel'),
+('13658', '26703', 'Shadow Serpentis Commodore'),
+('13659', '26590', 'Tuvan Orth'),
+('13660', '26703', 'Shadow Serpentis Baron'),
+('13661', '26590', 'Brynn Jerdola'),
+('13663', '26589', 'Shadow Serpentis Chief Safeguard'),
+('13664', '26589', 'Shadow Serpentis Chief Guard'),
+('13665', '26703', 'Shadow Serpentis Port Admiral'),
+('13666', '26703', 'Shadow Serpentis Flotilla Admiral'),
+('13667', '26590', 'Setele Schellan'),
+('13668', '26589', 'Shadow Serpentis Chief Defender'),
+('13669', '26589', 'Shadow Serpentis Chief Infantry'),
+('13678', '26563', 'Angel Carrier'),
+('13679', '26563', 'Angel Convoy'),
+('13680', '26563', 'Angel Trailer'),
+('13681', '26563', 'Angel Hauler'),
+('13682', '26563', 'Angel Bulker'),
+('13683', '26563', 'Angel Transporter'),
+('13684', '26563', 'Angel Trucker'),
+('13685', '26563', 'Angel Courier'),
+('13686', '26563', 'Angel Loader'),
+('13687', '26563', 'Angel Ferrier'),
+('13688', '26563', 'Angel Gatherer'),
+('13689', '26563', 'Angel Harvester'),
+('13690', '26569', 'Blood Carrier'),
+('13691', '26569', 'Blood Convoy'),
+('13692', '26569', 'Blood Trailer'),
+('13693', '26569', 'Blood Hauler'),
+('13694', '26569', 'Blood Bulker'),
+('13695', '26569', 'Blood Transporter'),
+('13696', '26569', 'Blood Trucker'),
+('13697', '26569', 'Blood Courier'),
+('13698', '26569', 'Blood Loader'),
+('13699', '26569', 'Blood Ferrier'),
+('13700', '26569', 'Blood Gatherer'),
+('13701', '26569', 'Blood Harvester'),
+('13702', '26587', 'Serpentis Carrier'),
+('13703', '26587', 'Serpentis Convoy'),
+('13704', '26587', 'Serpentis Trailer'),
+('13705', '26587', 'Serpentis Hauler'),
+('13706', '26587', 'Serpentis Bulkera'),
+('13707', '26587', 'Serpentis Transporter'),
+('13708', '26587', 'Serpentis Trucker'),
+('13709', '26587', 'Serpentis Courier'),
+('13710', '26587', 'Serpentis Loader'),
+('13711', '26587', 'Serpentis Ferrier'),
+('13712', '26587', 'Serpentis Gatherer'),
+('13713', '26587', 'Serpentis Harvester'),
+('13714', '26575', 'Guristas Carrier'),
+('13715', '26575', 'Guristas Convoy'),
+('13716', '26575', 'Guristas Trailer'),
+('13717', '26575', 'Guristas Hauler'),
+('13718', '26575', 'Guristas Bulker'),
+('13719', '26575', 'Guristas Transporter'),
+('13720', '26575', 'Guristas Trucker'),
+('13721', '26575', 'Guristas Courier'),
+('13722', '26575', 'Guristas Loader'),
+('13723', '26575', 'Guristas Ferrier'),
+('13724', '26575', 'Guristas Gatherer'),
+('13725', '26575', 'Guristas Harvester'),
+('13726', '26581', 'Sansha\'s Carrier'),
+('13727', '26581', 'Sansha\'s Convoy'),
+('13728', '26581', 'Sansha\'s Trailer'),
+('13729', '26581', 'Sansha\'s Hauler'),
+('13730', '26581', 'Sansha\'s Bulker'),
+('13731', '26581', 'Sansha\'s Transporter'),
+('13732', '26581', 'Sansha\'s Trucker'),
+('13733', '26581', 'Sansha\'s Courier'),
+('13734', '26581', 'Sansha\'s Loader'),
+('13735', '26581', 'Sansha\'s Ferrier'),
+('13736', '26581', 'Sansha\'s Gatherer'),
+('13737', '26581', 'Sansha\'s Harvester'),
+('14344', '26574', 'Renegade Guristas Pirate'),
+('14345', '26562', 'Renegade Angel Goon'),
+('14346', '26568', 'Renegade Blood Raider'),
+('14347', '26586', 'Renegade Serpentis Assassin'),
+('14348', '26580', 'Renegade Sanshas Slaver'),
+('15395', '26972', 'Construction Freight'),
+('15396', '26920', 'Shadow Serpentis Big Boss'),
+('15413', '26920', 'General Luther Veron'),
+('15414', '26920', 'Commander Terachi TashMurkon'),
+('15415', '26920', 'Fleet Commander Naiyon Tai'),
+('15441', '26920', 'Tritan - The Underground Overseer'),
+('15493', '27286', 'TEST Speed'),
+('16102', '26972', 'Ore Supply Freight'),
+('16104', '26972', 'CONCORD Surveillance Drone'),
+('16165', '26562', 'Angel Cartel Personnel Transport'),
+('16166', '26568', 'Blood Raider Personnel Transport'),
+('16167', '26580', 'Sanshas Personnel Transport'),
+('16168', '26586', 'Serpentis Personnel Transport'),
+('16169', '26574', 'Guristas Personnel Transport'),
+('16227', '26491', 'Ferox'),
+('16229', '26513', 'Brutix'),
+('16231', '26535', 'Cyclone'),
+('16233', '26469', 'Prophecy'),
+('16236', '26474', 'Coercer'),
+('16238', '26496', 'Cormorant'),
+('16240', '26518', 'Catalyst'),
+('16242', '26540', 'Thrasher'),
+('16561', '26561', 'Angel Viper'),
+('16562', '26561', 'Angel Webifier'),
+('16563', '26567', 'Blood Wraith'),
+('16564', '26567', 'Blood Disciple'),
+('16565', '26573', 'Guristas Kyoukan'),
+('16566', '26573', 'Guristas Webifier'),
+('16567', '26579', 'Sansha\'s Demon'),
+('16568', '26579', 'Sansha\'s Berserker'),
+('16569', '26585', 'Guardian Veteran'),
+('16874', '26561', 'Gistii Ambusher'),
+('16875', '26562', 'Gistum Depredator'),
+('16876', '26561', 'Gistii Fugitive'),
+('16877', '26561', 'Gistii Hijacker'),
+('16878', '26561', 'Gistii Hunter'),
+('16879', '26561', 'Gistii Impaler'),
+('16880', '26562', 'Gistum Crusher'),
+('16881', '26562', 'Gistum Smasher'),
+('16882', '26561', 'Gistii Nomad'),
+('16883', '26561', 'Gistii Outlaw'),
+('16884', '26562', 'Gistum Predator'),
+('16885', '26561', 'Gistii Raider'),
+('16886', '26561', 'Gistii Rogue'),
+('16887', '26561', 'Gistii Ruffian'),
+('16888', '26561', 'Gistii Thug'),
+('16889', '26562', 'Gistum Breaker'),
+('16890', '26561', 'Arch Gistii Hijacker'),
+('16891', '26562', 'Gistum Marauder'),
+('16892', '26563', 'Gist Commander'),
+('16893', '26563', 'Gist General'),
+('16894', '26561', 'Arch Gistii Thug'),
+('16895', '26561', 'Arch Gistii Outlaw'),
+('16896', '26562', 'Gistum Liquidator'),
+('16897', '26561', 'Arch Gistii Rogue'),
+('16898', '26562', 'Gistum Defeater'),
+('16899', '26563', 'Gist Warlord'),
+('16900', '26563', 'Gist War General'),
+('16901', '26561', 'Gistii Domination Hijacker'),
+('16902', '26561', 'Gistii Domination Rogue'),
+('16903', '26561', 'Gistii Domination Outlaw'),
+('16904', '26561', 'Gistii Domination Thug'),
+('16905', '26561', 'Gistii Domination Ambusher'),
+('16906', '26562', 'Gistum Domination Depredator'),
+('16907', '26561', 'Gistii Domination Hunter'),
+('16908', '26561', 'Gistii Domination Impaler'),
+('16909', '26562', 'Gistum Domination Crusher'),
+('16910', '26562', 'Gistum Domination Smasher'),
+('16911', '26561', 'Gistii Domination Nomad'),
+('16912', '26562', 'Gistum Domination Predator'),
+('16913', '26561', 'Gistii Domination Raider'),
+('16914', '26561', 'Gistii Domination Ruffian'),
+('16915', '26562', 'Gistum Domination Breaker'),
+('16916', '26562', 'Gistum Domination Defeater'),
+('16917', '26562', 'Gistum Domination Maraude'),
+('16918', '26562', 'Gistum Domination Phalanx'),
+('16919', '26562', 'Gistum Domination Liquidator'),
+('16920', '26562', 'Gistum Domination Centurion');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('16921', '26563', 'Gist Domination Commander'),
+('16922', '26563', 'Gist Domination General'),
+('16923', '26563', 'Gist Domination War General'),
+('16924', '26563', 'Gist Domination Saint'),
+('16925', '26563', 'Gist Domination Nephilim'),
+('16926', '26563', 'Gist Domination Warlord'),
+('16927', '26568', 'Corpum Arch Engraver'),
+('16928', '26568', 'Corpum Arch Priest'),
+('16929', '26568', 'Corpum Arch Reaver'),
+('16930', '26568', 'Corpum Arch Sage'),
+('16931', '26568', 'Corpum Arch Templar'),
+('16932', '26567', 'Corpii Diviner'),
+('16933', '26567', 'Corpii Upholder'),
+('16934', '26569', 'Corpus Prophet'),
+('16935', '26567', 'Corpii Collector'),
+('16936', '26567', 'Corpii Follower'),
+('16937', '26567', 'Corpii Fugitive'),
+('16938', '26569', 'Corpus Oracle'),
+('16939', '26567', 'Elder Corpii Herald'),
+('16940', '26567', 'Corpii Reaver'),
+('16941', '26569', 'Corpus Apostle'),
+('16942', '26567', 'Elder Corpii Upholder'),
+('16943', '26567', 'Elder Corpii Follower'),
+('16944', '26568', 'Corpum Priest'),
+('16945', '26567', 'Corpii Raider'),
+('16946', '26567', 'Corpii Herald'),
+('16947', '26567', 'Corpii Seeker'),
+('16948', '26568', 'Corpum Revenant'),
+('16949', '26568', 'Corpum Sage'),
+('16950', '26567', 'Corpii Worshipper'),
+('16951', '26567', 'Elder Corpii Worshiper'),
+('16952', '26569', 'Corpus Archon'),
+('16953', '26567', 'Corpii Engraver'),
+('16954', '26567', 'Dark Corpii Reaver'),
+('16955', '26567', 'Dark Corpii Follower'),
+('16956', '26568', 'Dark Corpum Arch Engraver'),
+('16957', '26568', 'Dark Corpum Arch Priest'),
+('16958', '26568', 'Dark Corpum Dark Priest'),
+('16959', '26568', 'Dark Corpum Arch Reaver'),
+('16960', '26568', 'Dark Corpum Arch Sage'),
+('16961', '26568', 'Dark Corpum Shadow Sage'),
+('16962', '26568', 'Dark Corpum Arch Templar'),
+('16963', '26567', 'Dark Corpii Diviner'),
+('16964', '26567', 'Dark Corpii Upholder'),
+('16965', '26569', 'Dark Corpus Prophet'),
+('16966', '26567', 'Dark Corpii Collector'),
+('16967', '26569', 'Dark Corpus Oracle'),
+('16968', '26569', 'Dark Corpus Archbishop'),
+('16969', '26569', 'Dark Corpus Apostle'),
+('16970', '26569', 'Dark Corpus Harbinger'),
+('16971', '26569', 'Dark Corpum Priest'),
+('16972', '26567', 'Dark Corpii Raider'),
+('16973', '26567', 'Dark Corpii Herald'),
+('16974', '26567', 'Dark Corpii Seeker'),
+('16975', '26568', 'Dark Corpum Revenant'),
+('16976', '26568', 'Dark Corpum Sage'),
+('16977', '26567', 'Dark Corpii Worshipper'),
+('16978', '26569', 'Dark Corpus Archon'),
+('16979', '26567', 'Dark Corpii Engraver'),
+('16980', '26574', 'Pithum Killer'),
+('16981', '26573', 'Pithi Arrogator'),
+('16982', '26574', 'Pithum Ascriber'),
+('16983', '26573', 'Dire Pithi Infiltrator'),
+('16984', '26575', 'Pith Dismantler'),
+('16985', '26573', 'Dire Pithi Invader'),
+('16986', '26573', 'Pithi Demolisher'),
+('16987', '26573', 'Pithi Despoiler'),
+('16988', '26575', 'Pith Obliterator'),
+('16989', '26573', 'Pithi Destructor'),
+('16990', '26573', 'Dire Pithi Imputor'),
+('16991', '26574', 'Pithum Inferno'),
+('16992', '26575', 'Pith Eradicator'),
+('16993', '26573', 'Pithi Fugitive'),
+('16994', '26573', 'Pithi Imputor'),
+('16995', '26574', 'Pithum Mortifier'),
+('16996', '26573', 'Pithi Infiltrator'),
+('16997', '26573', 'Pithi Invader'),
+('16998', '26574', 'Pithum Nullifier'),
+('16999', '26573', 'Dire Pithi Arrogator'),
+('17000', '26574', 'Pithum Murderer'),
+('17001', '26573', 'Pithi Plunderer'),
+('17002', '26573', 'Pithi Saboteur'),
+('17003', '26574', 'Pithum Annihilator'),
+('17004', '26574', 'Pithum Silencer'),
+('17005', '26575', 'Pith Extinguisher'),
+('17006', '26573', 'Pithi Wrecker'),
+('17007', '26574', 'Dread Pithum Killer'),
+('17008', '26573', 'Dread Pithi Arrogator'),
+('17009', '26574', 'Dread Pithum Ascriber'),
+('17010', '26575', 'Dread Pith Dismantler'),
+('17011', '26575', 'Dread Pith Eliminator'),
+('17012', '26573', 'Dread Pithi Demolisher'),
+('17013', '26573', 'Dread Pithi Despoiler'),
+('17014', '26575', 'Dread Pith Obliterator'),
+('17015', '26573', 'Dread Pithi Destructor'),
+('17016', '26574', 'Dread Pithum Inferno'),
+('17017', '26574', 'Dread Pithum Abolisher'),
+('17018', '26575', 'Dread Pith Eradicator'),
+('17019', '26573', 'Dread Pithi Imputor'),
+('17020', '26574', 'Dread Pithum Mortifier'),
+('17021', '26574', 'Dread Pithum Erasera'),
+('17022', '26573', 'Dread Pithi Infiltrator'),
+('17023', '26573', 'Dread Pithi Invader'),
+('17024', '26574', 'Dread Pithum Nullifier'),
+('17025', '26574', 'Dread Pithum Murderer'),
+('17026', '26573', 'Dread Pithi Plunderer'),
+('17027', '26573', 'Dread Pithi Saboteur'),
+('17028', '26574', 'Dread Pithum Annihilator'),
+('17029', '26574', 'Dread Pithum Silencer'),
+('17030', '26575', 'Dread Pith Extinguisher'),
+('17031', '26575', 'Dread Pith Exterminator'),
+('17032', '26573', 'Dread Pithi Wrecker'),
+('17033', '26586', 'Corelum Chief Protector'),
+('17034', '26587', 'Core Rear Admiral'),
+('17035', '26585', 'Coreli Guardian Scout'),
+('17036', '26587', 'Core Port Admiral'),
+('17037', '26587', 'Core Commodore'),
+('17038', '26587', 'Core Baron'),
+('17039', '26586', 'Corelum Chief Guard'),
+('17040', '26585', 'Coreli Guardian Initiate'),
+('17041', '26585', 'Coreli Guardian Spy'),
+('17042', '26586', 'Corelum Chief Safeguard'),
+('17043', '26585', 'Coreli Guardian Agent'),
+('17044', '26586', 'Corelum Chief Defender'),
+('17045', '26586', 'Shadow Corelum Chief Guard'),
+('17046', '26586', 'Shadow Corelum Chief Sentinel'),
+('17047', '26586', 'Shadow Corelum Chief Protector'),
+('17048', '26586', 'Shadow Corelum Chief Infantry'),
+('17049', '26587', 'Shadow Core Port Admiral'),
+('17050', '26587', 'Shadow Core Vice Admiral'),
+('17051', '26587', 'Shadow Core Commodore'),
+('17052', '26587', 'Shadow Core Baron'),
+('17053', '26587', 'Shadow Core Flotilla Admiral'),
+('17054', '26587', 'Shadow Core Rear Admiral'),
+('17055', '26586', 'Shadow Corelum Chief Safeguard'),
+('17056', '26586', 'Shadow Corelum Chief Defender'),
+('17057', '26580', 'Centum Beast'),
+('17058', '26581', 'Centus Lord'),
+('17060', '26579', 'Centii Butcher'),
+('17061', '26579', 'Centii Loyal Minion'),
+('17062', '26580', 'Centum Slaughterer'),
+('17063', '26579', 'Centii Loyal Ravener'),
+('17064', '26579', 'Centii Enslaver'),
+('17065', '26580', 'Centum Juggernaut'),
+('17066', '26581', 'Centus Slave Lord'),
+('17067', '26579', 'Centii Manslayer'),
+('17068', '26579', 'Centii Minion'),
+('17069', '26579', 'Centii Loyal Servant'),
+('17070', '26580', 'Centum Torturer'),
+('17071', '26581', 'Centus Mutant Lord'),
+('17072', '26579', 'Centii Plague'),
+('17073', '26580', 'Centum Ravager'),
+('17074', '26579', 'Centii Ravener'),
+('17075', '26580', 'Centum Ravisher'),
+('17076', '26579', 'Centii Savage'),
+('17077', '26579', 'Centii Scavenger'),
+('17078', '26579', 'Centii Servant'),
+('17079', '26579', 'Centii Loyal Scavenger'),
+('17080', '26580', 'Centum Mutilator'),
+('17081', '26579', 'Centii Slavehunter'),
+('17082', '26581', 'Centus Savage Lord'),
+('17083', '26580', 'Centum Execrator'),
+('17084', '26580', 'True Centum Beast'),
+('17085', '26581', 'True Centus Lord'),
+('17086', '26579', 'True Centii Butcher'),
+('17087', '26580', 'True Centum Slaughterer'),
+('17088', '26579', 'True Centii Enslaver'),
+('17089', '26580', 'True Centum Juggernaut'),
+('17090', '26581', 'True Centus Slave Lord'),
+('17091', '26579', 'True Centii Manslayer'),
+('17092', '26579', 'True Centii Minion'),
+('17093', '26580', 'True Centum Torturer'),
+('17094', '26580', 'True Centum Hellhound'),
+('17095', '26581', 'True Centus Mutant Lord'),
+('17096', '26581', 'True Centus Plague Lord'),
+('17097', '26579', 'True Centii Plague'),
+('17098', '26580', 'True Centum Ravager'),
+('17099', '26579', 'True Centii Ravener'),
+('17100', '26580', 'True Centum Ravisher'),
+('17101', '26579', 'True Centii Savage'),
+('17102', '26579', 'True Centii Scavenger'),
+('17103', '26579', 'True Centii Servant'),
+('17104', '26580', 'True Centum Mutilator'),
+('17105', '26580', 'True Centum Fiend'),
+('17106', '26579', 'True Centii Slavehunter'),
+('17107', '26581', 'True Centus Beast Lord'),
+('17108', '26581', 'True Centus Savage Lord'),
+('17109', '26580', 'True Centum Execrator'),
+('17110', '26586', 'Corelum Chief Watchman'),
+('17111', '26586', 'Corelum Chief Patroller'),
+('17112', '26586', 'Corelum Chief Scout'),
+('17113', '26585', 'Coreli Safeguard'),
+('17114', '26586', 'Corelum Chief Spy'),
+('17115', '26585', 'Coreli Fugitive'),
+('17116', '26585', 'Coreli Watchman'),
+('17117', '26585', 'Coreli Scout'),
+('17118', '26585', 'Coreli Agent'),
+('17119', '26585', 'Coreli Defender'),
+('17120', '26585', 'Coreli Patroller'),
+('17121', '26585', 'Coreli Initiate'),
+('17122', '26585', 'Coreli Protector');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('17123', '26586', 'Shadow Corelum Chief Watchman'),
+('17124', '26586', 'Shadow Corelum Chief Patroller'),
+('17125', '26586', 'Shadow Corelum Chief Scout'),
+('17126', '26585', 'Shadow Coreli Safeguard'),
+('17127', '26586', 'Shadow Corelum Chief Spy'),
+('17128', '26585', 'Shadow Coreli Watchman'),
+('17129', '26585', 'Shadow Coreli Scout'),
+('17130', '26585', 'Shadow Coreli Agent'),
+('17131', '26585', 'Shadow Coreli Defender'),
+('17132', '26585', 'Shadow Coreli Patroller'),
+('17133', '26585', 'Shadow Coreli Initiate'),
+('17134', '26585', 'Shadow Coreli Protector'),
+('17142', '26920', 'The Battlestation Admiral'),
+('17162', '26920', 'The Stronghold General'),
+('17165', '26919', 'Control Headquarters'),
+('17166', '26919', 'Security Coordinator'),
+('17278', '26585', 'Coreli Guard'),
+('17279', '26585', 'Coreli Spy'),
+('17280', '26585', 'Shadow Coreli Guard'),
+('17281', '26585', 'Shadow Coreli Spy'),
+('17283', '26918', 'Sansha Black Ops Squad Leader'),
+('17284', '26919', 'Guristas Scout Officer'),
+('17285', '26918', 'Centus Black Ops Commander'),
+('17360', '26550', 'Immovable Enigma'),
+('17412', '26920', 'Phi-Operation Protector'),
+('17413', '26920', 'Captain Rouge'),
+('17476', '26530', 'Covetor'),
+('17478', '26530', 'Retriever'),
+('17480', '26530', 'Procurer'),
+('17564', '26918', 'UNUSED_Corpus Frigate_ID115_DL4_DCP1'),
+('17567', '26918', 'UNUSED_Corpus Frigate_ID115_DL4_DCP2'),
+('17615', '26919', 'Corpus Crimson Commander'),
+('17616', '26919', 'Mul-Zatath Gatekeeper'),
+('17619', '26506', 'Caldari Navy Hookbill'),
+('17634', '26500', 'Caracal Navy Issue'),
+('17636', '26499', 'Raven Navy Issue'),
+('17641', '26563', 'Arch Angel Raelek'),
+('17703', '26484', 'Imperial Navy Slicer'),
+('17705', '26506', 'Khanid Navy Frigate'),
+('17707', '26506', 'Mordus Frigate'),
+('17709', '26478', 'Omen Navy Issue'),
+('17711', '26500', 'Ammatar Navy Cruiser'),
+('17713', '26539', 'Stabber Fleet Issue'),
+('17715', '26500', 'Gila'),
+('17716', '26478', 'Phantasm'),
+('17720', '26544', 'Cynabal'),
+('17722', '26522', 'Vigilant'),
+('17724', '26500', 'Mordus Cruiser'),
+('17726', '26477', 'Apocalypse Navy Issue'),
+('17728', '26521', 'Megathron Navy Issue'),
+('17730', '26543', 'Ammatar Navy Battleship'),
+('17732', '26543', 'Tempest Fleet Issue'),
+('17734', '26499', 'Mordus Battleship'),
+('17736', '26477', 'Nightmare'),
+('17738', '26543', 'Machariel'),
+('17740', '26521', 'Vindicator'),
+('17744', '26920', 'Purple Particle Research Patrol'),
+('17745', '26920', 'General Hixous Puxley'),
+('17746', '26920', 'Supply Headman'),
+('17749', '26920', 'The Antimatter Channeler'),
+('17800', '26918', 'Retired Mining Veteran'),
+('17812', '26550', 'Republic Fleet Firetail'),
+('17823', '26919', 'Serpentis Chief of Security'),
+('17824', '26919', 'Serpentis Refinery Headmaster'),
+('17841', '26528', 'Federation Navy Comet'),
+('17890', '26918', 'Serpentis Drugstore Overseer'),
+('17900', '26920', 'Crimson Lord'),
+('17903', '26918', 'Outpost Security Officer'),
+('17918', '26499', 'Rattlesnake'),
+('17920', '26477', 'Bhaalgorn'),
+('17922', '26478', 'Ashimmu'),
+('17924', '26484', 'Succubus'),
+('17926', '26484', 'Cruor'),
+('17928', '26550', 'Daredevil'),
+('17930', '26506', 'Worm'),
+('17932', '26550', 'Dramiel'),
+('17973', '26920', 'Angel Cartel Jailor'),
+('17997', '26918', 'Blockade General Sade'),
+('18004', '26918', 'Supply Station Manager'),
+('18024', '26918', 'The Superintendent'),
+('18565', '26920', 'Serpentis Executive Officer'),
+('18584', '26919', 'Intoxicated Commander'),
+('18641', '26919', 'Guristas Harlot Procurer'),
+('19379', '27286', 'NEGATIVE LOOT TEST DOOD'),
+('19380', '27286', 'POSTIVE LOOT TEST DOOD'),
+('19423', '26920', 'Watch Officer'),
+('19424', '26920', 'Serpentis Shipyard Defender'),
+('19592', '26920', '\'Screaming\' Dewak Humfry'),
+('19620', '26920', 'Drone Commandeered Battleship'),
+('19701', '26920', 'Swarm Parasite Worker'),
+('19704', '26920', 'Supreme Hive Defender'),
+('19720', '26475', 'Revelation'),
+('19722', '26541', 'Naglfar'),
+('19724', '26519', 'Moros'),
+('19726', '26497', 'Phoenix'),
+('19731', '26920', 'Sansha Corpse Collector'),
+('19737', '26581', 'Sansha\'s Tyrant Elite'),
+('19770', '26550', 'Pimp Vigil'),
+('20067', '26500', 'Regulator'),
+('20078', '26920', 'True Creation\'s Park Overseer'),
+('20079', '26920', 'Effotber\'s Transit Overseer'),
+('20080', '26920', 'Overseer Skomener Effotber'),
+('20122', '26513', 'Pimp Brutix'),
+('20125', '30822', 'Curse'),
+('20173', '26920', 'Serpentis Major'),
+('20174', '26920', 'Serpentis Deadspace Sergeant'),
+('20183', '26483', 'Providence'),
+('20185', '26505', 'Charon'),
+('20187', '26527', 'Obelisk'),
+('20189', '26549', 'Fenrir'),
+('20357', '27286', 'TEST Guristas for COMSOMS LOOT'),
+('20716', '27202', 'Vendor'),
+('20717', '27202', 'Bursar'),
+('20718', '27202', 'Auctioneer'),
+('20719', '27202', 'Marketeer'),
+('21097', '26511', 'Goru\'s Shuttle'),
+('21628', '26511', 'Guristas Shuttle'),
+('21845', '27286', 'Automated Coreli Training Vessel'),
+('21846', '27286', 'Automated Gisti Training Vessel'),
+('21847', '27286', 'Automated Corpii Training Vessel'),
+('21848', '27286', 'Automated Pithi Training Vessel'),
+('21849', '27286', 'Automated Centii Training Vessel'),
+('21974', '26573', 'Outlaw Arrogator'),
+('21975', '26573', 'Outlaw Imputor'),
+('21976', '26573', 'Outlaw Infiltrator'),
+('21977', '26573', 'Outlaw Invade'),
+('21978', '26573', 'Outlaw Despoiler'),
+('21979', '26573', 'Outlaw Saboteur'),
+('21980', '26573', 'Outlaw Plunderer'),
+('21981', '26573', 'Outlaw Wrecker'),
+('21982', '26573', 'Outlaw Destructor'),
+('21983', '26573', 'Outlaw Demolisher'),
+('21984', '26574', 'Gunslinger Silencer'),
+('21985', '26574', 'Gunslinger Ascriber'),
+('21986', '26574', 'Gunslinger Killer'),
+('21987', '26574', 'Gunslinger Murderer'),
+('21988', '26576', 'Ace Arrogator'),
+('21989', '26576', 'Ace Imputor'),
+('21990', '26576', 'Ace Infiltrator'),
+('21991', '26576', 'Ace Invader'),
+('21992', '26576', 'Ace Despoiler'),
+('21993', '26576', 'Ace Saboteur'),
+('21994', '26576', 'Ace Plunderer'),
+('21995', '26576', 'Ace Wrecker'),
+('21996', '26576', 'Ace Destructor'),
+('21997', '26576', 'Ace Demolisher'),
+('21998', '26577', 'Deuce Silencer'),
+('21999', '26577', 'Deuce Ascriber'),
+('22000', '26577', 'Deuce Killer'),
+('22001', '26575', 'Bandit Gatherer'),
+('22002', '26575', 'Bandit Ferrier'),
+('22003', '26575', 'Bandit Loader'),
+('22004', '26575', 'Bandit Courier'),
+('22005', '26561', 'Cyber Hijacker'),
+('22006', '26561', 'Cyber Rogue'),
+('22007', '26561', 'Cyber Outlaw'),
+('22008', '26561', 'Cyber Thug'),
+('22009', '26561', 'Cyber Ruffian'),
+('22010', '26561', 'Cyber Nomad'),
+('22011', '26561', 'Cyber Ambusher'),
+('22012', '26561', 'Cyber Raider'),
+('22013', '26561', 'Cyber Hunter'),
+('22014', '26561', 'Cyber Impaler'),
+('22015', '26564', 'Psycho Hijacker'),
+('22016', '26564', 'Psycho Rogue'),
+('22017', '26564', 'Psycho Outlaw'),
+('22018', '26564', 'Psycho Thug'),
+('22019', '26564', 'Psycho Ruffian'),
+('22020', '26564', 'Psycho Nomad'),
+('22021', '26564', 'Psycho Ambusher'),
+('22022', '26564', 'Psycho Raider'),
+('22023', '26564', 'Psycho Hunter'),
+('22024', '26564', 'Psycho Impaler'),
+('22025', '26563', 'Degenerate Harvester'),
+('22026', '26563', 'Degenerate Gatherer'),
+('22027', '26563', 'Degenerate Ferrier'),
+('22028', '26563', 'Degenerate Loader'),
+('22029', '26575', 'Bandit Harvester'),
+('22053', '27286', 'Automated Centii Keyholder'),
+('22426', '26477', 'Elite Apocalypse Khanid'),
+('22428', '26477', 'Redeemer'),
+('22430', '26521', 'Sin'),
+('22432', '26521', 'Elite Megathron Duvolle'),
+('22434', '26499', 'Elite Raven'),
+('22436', '26499', 'Widow'),
+('22438', '26543', 'Elite Tempest Brutor'),
+('22440', '26543', 'Panther'),
+('22442', '26520', 'Eos'),
+('22444', '26542', 'Sleipnir'),
+('22446', '26498', 'Vulture'),
+('22448', '26476', 'Absolution');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('22450', '26523', 'Elite Catalyst Creodron'),
+('22452', '26479', 'Heretic'),
+('22454', '26501', 'Elite Cormorant Mordus'),
+('22456', '26545', 'Sabre'),
+('22458', '26545', 'Elite Thrasher Thukker'),
+('22460', '26523', 'Eris'),
+('22462', '26479', 'Elite Coercer Carthum'),
+('22464', '26501', 'Flycatcher'),
+('22466', '26520', 'Astarte'),
+('22468', '26542', 'Claymore'),
+('22470', '26498', 'Nighthawk'),
+('22472', '26469', 'Faction Prophecy Bloodraider'),
+('22474', '26476', 'Damnation'),
+('22544', '26526', 'Hulk'),
+('22546', '26526', 'Skiff'),
+('22548', '26526', 'Mackinaw'),
+('22579', '26550', 'Corvette Prototype Minmatar'),
+('22626', '27286', 'NewFrigateRank1Test'),
+('22716', '26920', 'General Matar Pol'),
+('22759', '26920', 'Baron Haztari Arkhi'),
+('22812', '26561', 'Angel Shatterer'),
+('22813', '26561', 'Angel Defacer'),
+('22814', '26561', 'Angel Haunter'),
+('22815', '26561', 'Angel Defiler'),
+('22816', '26561', 'Angel Seizer'),
+('22817', '26561', 'Angel Trasher'),
+('22818', '26561', 'Arch Angel Ruffian'),
+('22819', '26561', 'Arch Angel Nomad'),
+('22820', '26562', 'Angel Phalanx'),
+('22821', '26562', 'Angel Centurion'),
+('22822', '26562', 'Angel Legionnaire'),
+('22823', '26562', 'Angel Primus'),
+('22824', '26562', 'Angel Tribuni'),
+('22825', '26562', 'Angel Praefectus'),
+('22826', '26562', 'Angel Tribunus'),
+('22827', '26562', 'Angel Legatus'),
+('22828', '26562', 'Arch Angel Deprefator'),
+('22829', '26562', 'Arch Angel Predato'),
+('22830', '26562', 'Arch Angel Marauder'),
+('22831', '26562', 'Arch Angel Liquidator'),
+('22832', '26562', 'Arch Angel Phalanx'),
+('22833', '26562', 'Arch Angel Centurion'),
+('22834', '26561', 'Arch Angel Ambusher'),
+('22835', '26561', 'Arch Angel Raider'),
+('22836', '26561', 'Arch Angel Hunter'),
+('22837', '26561', 'Arch Angel Impaler'),
+('22838', '26563', 'Angel Saint'),
+('22839', '26563', 'Angel Nephilim'),
+('22840', '26563', 'Angel Malakim'),
+('22841', '26562', 'Arch Angel Defeater'),
+('22842', '26563', 'Angel Cherubim'),
+('22843', '26563', 'Angel Seraphim'),
+('22852', '26553', 'Hel'),
+('22857', '26564', 'Domination Shatterer'),
+('22858', '26564', 'Domination Defacer'),
+('22859', '26564', 'Domination Haunter'),
+('22860', '26564', 'Domination Defiler'),
+('22861', '26564', 'Domination Seizer'),
+('22862', '26564', 'Domination Trasher'),
+('22865', '26699', 'Domination Legionnaire'),
+('22866', '26699', 'Domination Primus'),
+('22867', '26699', 'Domination Tribuni'),
+('22868', '26699', 'Domination Praefectus'),
+('22869', '26699', 'Domination Tribunus'),
+('22870', '26699', 'Domination Legatus'),
+('22871', '26565', 'Domination Malakim'),
+('22872', '26565', 'Domination Throne'),
+('22873', '26565', 'Domination Cherubim'),
+('22874', '26565', 'Domination Seraphim'),
+('23244', '26568', 'Blood Bishop'),
+('23245', '26567', 'Blood Visionary'),
+('23246', '26567', 'Blood Converter'),
+('23247', '26567', 'Blood Templar'),
+('23248', '26567', 'Blood Devoter'),
+('23249', '26567', 'Blood Friar'),
+('23250', '26567', 'Blood Cleric'),
+('23252', '26568', 'Blood Seer'),
+('23253', '26568', 'Blood Shade'),
+('23254', '26568', 'Blood Fanatic'),
+('23255', '26568', 'Blood Phantom'),
+('23256', '26568', 'Blood Exorcist'),
+('23257', '26568', 'Blood Shadow Sage'),
+('23258', '26568', 'Blood Dark Priest'),
+('23259', '26567', 'Elder Blood Seeker'),
+('23260', '26567', 'Elder Blood Collector'),
+('23261', '26567', 'Elder Blood Raider'),
+('23262', '26567', 'Elder Blood Diviner'),
+('23263', '26567', 'Elder Blood Reaver'),
+('23264', '26567', 'Elder Blood Engraver'),
+('23265', '26569', 'Blood Archbishop'),
+('23266', '26569', 'Blood Harbinger'),
+('23267', '26569', 'Blood Monsignor'),
+('23268', '26569', 'Blood Cardinal'),
+('23269', '26569', 'Blood Patriarch'),
+('23270', '26569', 'Blood Pope'),
+('23281', '26568', 'Elder Blood Arch Reaver'),
+('23282', '26568', 'Elder Blood Arch Engraver'),
+('23283', '26568', 'Elder Blood Arch Sage'),
+('23284', '26568', 'Elder Blood Arch Priest'),
+('23285', '26568', 'Elder Blood Shadow Sage'),
+('23286', '26568', 'Elder Blood Dark Priest'),
+('23287', '26570', 'Dark Blood Visionary'),
+('23288', '26570', 'Dark Blood Converter'),
+('23289', '26570', 'Dark Blood Templar'),
+('23290', '26570', 'Dark Blood Devoter'),
+('23291', '26570', 'Dark Blood Friar'),
+('23292', '26570', 'Dark Blood Cleric'),
+('23293', '26571', 'Dark Blood Bishop'),
+('23294', '26571', 'Dark Blood Seer'),
+('23295', '26571', 'Dark Blood Shade'),
+('23296', '26571', 'Dark Blood Fanatic'),
+('23297', '26571', 'Dark Blood Phantom'),
+('23298', '26571', 'Dark Blood Exorcist'),
+('23299', '26700', 'Dark Blood Monsignor'),
+('23300', '26700', 'Dark Blood Cardinal'),
+('23301', '26700', 'Dark Blood Patriarch'),
+('23302', '26700', 'Dark Blood Pope'),
+('23305', '26574', 'Dire Guristas Silencer'),
+('23306', '26574', 'Dire Guristas Ascriber'),
+('23307', '26574', 'Dire Guristas Mortifier'),
+('23308', '26574', 'Dire Guristas Inferno'),
+('23309', '26574', 'Dire Guristas Eraser'),
+('23310', '26574', 'Dire Guristas Abolisher'),
+('23312', '26573', 'Guristas Nihilist'),
+('23313', '26573', 'Guristas Anarchist'),
+('23314', '26573', 'Guristas Renegade'),
+('23315', '26573', 'Guristas Guerilla'),
+('23319', '26574', 'Guristas Eraser'),
+('23320', '26574', 'Guristas Abolisher'),
+('23321', '26574', 'Guristas Executor'),
+('23322', '26574', 'Guristas Enforcer'),
+('23323', '26574', 'Guristas Assaulter'),
+('23324', '26574', 'Guristas Assassin'),
+('23325', '26574', 'Guristas Death Dealer'),
+('23326', '26574', 'Guristas Revolter'),
+('23328', '26573', 'Guristas Terrorist'),
+('23329', '26573', 'Guristas Supremacist'),
+('23330', '26573', 'Dire Guristas Despoiler'),
+('23331', '26573', 'Dire Guristas Saboteur'),
+('23332', '26573', 'Dire Guristas Plunderer'),
+('23333', '26573', 'Dire Guristas Wrecker'),
+('23334', '26573', 'Dire Guristas Destructor'),
+('23335', '26573', 'Dire Guristas Demolisher'),
+('23337', '26575', 'Guristas Eliminator'),
+('23338', '26575', 'Guristas Exterminator'),
+('23339', '26575', 'Guristas Destroyer'),
+('23340', '26575', 'Guristas Conquistador'),
+('23341', '26575', 'Guristas Massacrer'),
+('23342', '26575', 'Guristas Usurper'),
+('23343', '26576', 'Dread Guristas Nihilist'),
+('23344', '26576', 'Dread Guristas Anarchist'),
+('23345', '26576', 'Dread Guristas Renegade'),
+('23346', '26586', 'Guardian Chief Defender'),
+('23347', '26576', 'Dread Guristas Terrorist'),
+('23348', '26576', 'Dread Guristas Supremacist'),
+('23349', '26577', 'Dread Guristas Executor'),
+('23350', '26577', 'Dread Guristas Enforcer'),
+('23351', '26577', 'Dread Guristas Assaulter'),
+('23352', '26577', 'Dread Guristas Assassin'),
+('23353', '26577', 'Dread Guristas Death Dealer'),
+('23354', '26577', 'Dread Guristas Revolter'),
+('23355', '26701', 'Dread Guristas Destroyer'),
+('23356', '26701', 'Dread Guristas Conquistador'),
+('23357', '26701', 'Dread Guristas Massacrer'),
+('23358', '26701', 'Dread Guristas Usurper'),
+('23360', '26579', 'Sansha\'s Loyal Savage'),
+('23361', '26579', 'Sansha\'s Loyal Slavehunter'),
+('23362', '26579', 'Sansha\'s Loyal Enslaver'),
+('23363', '26579', 'Sansha\'s Loyal Plague'),
+('23364', '26579', 'Sansha\'s Loyal Manslayer'),
+('23365', '26579', 'Sansha\'s Loyal Butcher'),
+('23366', '26580', 'Sansha\'s Loyal Ravisher'),
+('23367', '26580', 'Sansha\'s Loyal Ravager'),
+('23368', '26580', 'Sansha\'s Loyal Mutilator'),
+('23369', '26580', 'Sansha\'s Loyal Torturer'),
+('23370', '26580', 'Sansha\'s Loyal Fiend'),
+('23371', '26580', 'Sansha\'s Loyal Hellhound'),
+('23372', '26581', 'Sansha\'s Plague Lord'),
+('23373', '26581', 'Sansha\'s Beast Lord'),
+('23374', '26581', 'Sansha\'s Overlord'),
+('23375', '26581', 'Sansha\'s Dark Lord'),
+('23376', '26581', 'Sansha\'s Dread Lord'),
+('23377', '26581', 'Sansha\'s Tyrant'),
+('23378', '26479', 'Sansha\'s Misshape'),
+('23379', '26479', 'Sansha\'s Cannibal'),
+('23381', '26580', 'Sansha\'s Fiend'),
+('23382', '26580', 'Sansha\'s Hellhound'),
+('23383', '26480', 'Sansha\'s Phantasm'),
+('23384', '26480', 'Sansha\'s Specter'),
+('23385', '26480', 'Sansha\'s Wraith'),
+('23386', '26480', 'Sansha\'s Devil'),
+('23387', '26480', 'Sansha\'s Daemon'),
+('23388', '26480', 'Sansha\'s Behemoth'),
+('23391', '26582', 'True Sansha\'s Misshape'),
+('23392', '26582', 'True Sansha\'s Cannibal'),
+('23394', '26583', 'True Sansha\'s Phantasm'),
+('23395', '26583', 'True Sansha\'s Specter'),
+('23396', '26583', 'True Sansha\'s Wraith'),
+('23397', '26583', 'True Sansha\'s Devil'),
+('23398', '26583', 'True Sansha\'s Daemon'),
+('23399', '26583', 'True Sansha\'s Behemoth'),
+('23400', '26702', 'True Sansha\'s Overlord'),
+('23401', '26702', 'True Sansha\'s Dark Lord'),
+('23402', '26702', 'True Sansha\'s Dread Lord'),
+('23403', '26702', 'True Sansha\'s Tyrant');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('23405', '26479', 'Sansha\'s Devourer'),
+('23406', '26479', 'Sansha\'s Abomination'),
+('23407', '26479', 'Sansha\'s Monster'),
+('23408', '26479', 'Sansha\'s Horror'),
+('23409', '26582', 'True Sansha\'s Devourer'),
+('23410', '26582', 'True Sansha\'s Monster'),
+('23411', '26582', 'True Sansha\'s Monster'),
+('23423', '26585', 'Serpentis Trooper'),
+('23424', '26585', 'Serpentis Soldier'),
+('23425', '26585', 'Serpentis Infantry'),
+('23426', '26585', 'Serpentis Sentinel'),
+('23427', '26585', 'Serpentis Sentinel'),
+('23428', '26585', 'Serpentis Artillery'),
+('23429', '26586', 'Guardian Watchman'),
+('23430', '26586', 'Guardian Patroller'),
+('23431', '26586', 'Guardian Guard'),
+('23432', '26586', 'Guardian Safeguard'),
+('23434', '26586', 'Guardian Defender'),
+('23435', '26586', 'Guardian Protector'),
+('23436', '26586', 'Serpentis Chief Infantry'),
+('23437', '26586', 'Serpentis Chief Sentinel'),
+('23438', '26586', 'Serpentis Wing Leader'),
+('23439', '26586', 'Serpentis Squad Leader'),
+('23440', '26586', 'Serpentis Platoon Leader'),
+('23441', '26586', 'Serpentis Captain'),
+('23442', '26586', 'Serpentis Captain Sentry'),
+('23443', '26586', 'Serpentis High Captain'),
+('23444', '26586', 'Guardian Chief Scout'),
+('23445', '26586', 'Guardian Chief Spy'),
+('23446', '26586', 'Guardian Chief Defender'),
+('23447', '26586', 'Guardian Chief Protector'),
+('23448', '26586', 'Guardian Chief Infantry'),
+('23449', '26586', 'Guardian Chief Sentinel'),
+('23450', '26587', 'Serpentis Flotilla Admiral'),
+('23451', '26587', 'Serpentis Vice Admiral'),
+('23452', '26587', 'Serpentis Admiral'),
+('23453', '26587', 'Serpentis High Admiral'),
+('23454', '26587', 'Serpentis Grand Admiral'),
+('23455', '26587', 'Serpentis Lord Admiral'),
+('23457', '26588', 'Shadow Serpentis Trooper'),
+('23458', '26588', 'Shadow Serpentis Soldier'),
+('23459', '26588', 'Shadow Serpentis Infantry'),
+('23460', '26588', 'Shadow Serpentis Sentinel'),
+('23461', '26588', 'Shadow Serpentis Cannoneer'),
+('23462', '26588', 'Shadow Serpentis Artillery'),
+('23463', '26589', 'Shadow Serpentis Wing Leader'),
+('23464', '26589', 'Shadow Serpentis Squad Leader'),
+('23465', '26589', 'Shadow Serpentis Platoon Leader'),
+('23466', '26589', 'Shadow Serpentis Captain'),
+('23467', '26589', 'Shadow Serpentis Captain Sentry'),
+('23468', '26589', 'Shadow Serpentis High Captain'),
+('23469', '26703', 'Shadow Serpentis Admiral'),
+('23470', '26703', 'Shadow Serpentis High Admiral'),
+('23471', '26703', 'Shadow Serpentis Grand Admiral'),
+('23472', '26703', 'Shadow Serpentis Lord Admiral'),
+('23643', '26568', 'Elder Blood Arch Templar'),
+('23644', '26568', 'Elder Blood Revenant'),
+('23645', '26568', 'Elder Blood Sage'),
+('23646', '26568', 'Elder Blood Priest'),
+('23647', '26574', 'Dire Guristas Killer'),
+('23648', '26574', 'Dire Guristas Murderer'),
+('23649', '26574', 'Dire Guristas Annihilator'),
+('23650', '26574', 'Dire Guristas Nullifier'),
+('23651', '26580', 'Sansha\'s Loyal Beast'),
+('23652', '26580', 'Sansha\'s Loyal Juggernaut'),
+('23653', '26580', 'Sansha\'s Loyal Slaughterer'),
+('23654', '26580', 'Sansha\'s Loyal Execrator'),
+('23655', '26586', 'Guardian Chief Watchman'),
+('23656', '26586', 'Guardian Chief Patroller'),
+('23657', '26586', 'Guardian Chief Guard'),
+('23658', '26586', 'Guardian Chief Safeguard'),
+('23693', '26483', 'Test Science Vessel'),
+('23757', '26472', 'Archon'),
+('23772', '26556', 'Ragnarok'),
+('23838', '26562', 'Arch Angel Smasher'),
+('23839', '26562', 'Arch Angel Crusher'),
+('23840', '26562', 'Arch Angel Breaker'),
+('23841', '26562', 'Arch Angel Defeater'),
+('23911', '26516', 'Thanatos'),
+('23913', '26531', 'Nyx'),
+('23915', '26494', 'Chimera'),
+('23917', '26509', 'Wyvern'),
+('23919', '26487', 'Aeon'),
+('23939', '26579', 'Centior Cannibal'),
+('23940', '26573', 'Vagrant Nihilist'),
+('23941', '26573', 'Vagrant Anarchist'),
+('23942', '26576', 'Desperado Nihilist'),
+('23943', '26576', 'Desperado Anarchist'),
+('23969', '26561', 'Gistior Shatterer'),
+('23970', '26567', 'Corpior Visionary'),
+('23971', '26573', 'Pithior Nihilist'),
+('23972', '26579', 'Centior Misshape'),
+('23973', '26585', 'Corelior Trooper'),
+('23974', '26561', 'Gistior Defacer'),
+('23975', '26561', 'Gistior Haunter'),
+('23976', '26561', 'Gistior Defiler'),
+('23977', '26561', 'Gistior Seizer'),
+('23978', '26561', 'Gistior Trasher'),
+('23979', '26567', 'Corpior Converter'),
+('23980', '26567', 'Corpior Templar'),
+('23981', '26567', 'Corpior Devoter'),
+('23982', '26567', 'Corpior Friar'),
+('23983', '26567', 'Corpior Cleric'),
+('23984', '26573', 'Pithior Anarchist'),
+('23985', '26573', 'Pithior Renegade'),
+('23986', '26573', 'Pithior Guerilla'),
+('23987', '26573', 'Pithior Terrorist'),
+('23988', '26573', 'Pithior Supremacist'),
+('23990', '26579', 'Centior Devourer'),
+('23991', '26579', 'Centior Abomination'),
+('23992', '26579', 'Centior Monster'),
+('23993', '26579', 'Centior Horror'),
+('23994', '26585', 'Corelior Soldier'),
+('23995', '26585', 'Corelior Infantry'),
+('23996', '26585', 'Corelior Sentinel'),
+('23997', '26585', 'Corelior Cannoneer'),
+('23998', '26585', 'Corelior Artillery'),
+('23999', '26562', 'Gistatis Legionnaire'),
+('24000', '26568', 'Corpatis Bishop'),
+('24001', '26574', 'Pithatis Executor'),
+('24002', '26580', 'Centatis Phantasm'),
+('24003', '27048', 'Corelatis Wing Leader'),
+('24004', '26562', 'Gistatis Primus'),
+('24005', '26562', 'Gistatis Tribuni'),
+('24006', '26562', 'Gistatis Praefectus'),
+('24007', '26562', 'Gistatis Tribunus'),
+('24008', '26562', 'Gistatis Legatus'),
+('24009', '26568', 'Corpatis Seer'),
+('24010', '26568', 'Corpatis Shade'),
+('24011', '26568', 'Corpatis Fanatic'),
+('24012', '26568', 'Corpatis Phantom'),
+('24013', '26568', 'Corpatis Exorcist'),
+('24014', '26574', 'Pithatis Enforcer'),
+('24015', '26574', 'Pithatis Assaulter'),
+('24016', '26574', 'Pithatis Assassin'),
+('24017', '26574', 'Pithatis Death Dealer'),
+('24018', '26574', 'Pithatis Revolter'),
+('24019', '26580', 'Centatis Specter'),
+('24020', '26580', 'Centatis Wraith'),
+('24021', '26580', 'Centatis Devil'),
+('24022', '26580', 'Centatis Daemon'),
+('24023', '26580', 'Centatis Behemoth'),
+('24024', '27048', 'Corelatis Squad Leader'),
+('24025', '27048', 'Corelatis Platoon Leader'),
+('24026', '27048', 'Corelatis Captain'),
+('24027', '27048', 'Corelatis Captain Sentry'),
+('24028', '27048', 'Corelatis High Captain'),
+('24033', '26561', 'Arch Gistii Ruffian'),
+('24034', '26561', 'Arch Gistii Nomad'),
+('24035', '26561', 'Arch Gistii Ambusher'),
+('24036', '26561', 'Arch Gistii Raider'),
+('24037', '26561', 'Arch Gistii Hunter'),
+('24038', '26561', 'Arch Gistii Impaler'),
+('24039', '26567', 'Elder Corpii Seeker'),
+('24040', '26567', 'Elder Corpii Collector'),
+('24041', '26567', 'Elder Corpii Raider'),
+('24042', '26567', 'Elder Corpii Diviner'),
+('24043', '26567', 'Elder Corpii Reaver'),
+('24044', '26567', 'Elder Corpii Engraver'),
+('24045', '26573', 'Dire Pithi Despoiler'),
+('24046', '26573', 'Dire Pithi Saboteur'),
+('24047', '26573', 'Dire Pithi Plunderer'),
+('24048', '26573', 'Dire Pithi Wrecker'),
+('24049', '26573', 'Dire Pithi Destructor'),
+('24050', '26573', 'Dire Pithi Demolisher'),
+('24051', '26579', 'Centii Loyal Savage'),
+('24052', '26579', 'Centii Loyal Slavehunter'),
+('24053', '26579', 'Centii Loyal Enslaver'),
+('24054', '26579', 'Centii Loyal Plague'),
+('24055', '26579', 'Centii Loyal Manslayer'),
+('24056', '26579', 'Centii Loyal Butcher'),
+('24057', '26585', 'Coreli Guardian Watchman'),
+('24058', '26585', 'Coreli Guardian Patroller'),
+('24059', '26585', 'Coreli Guardian Guard'),
+('24060', '26585', 'Coreli Guardian Safeguard'),
+('24061', '26585', 'Coreli Guardian Defender'),
+('24062', '26585', 'Coreli Guardian Protector'),
+('24063', '26586', 'Corelum Chief Infantry'),
+('24064', '26586', 'Corelum Chief Sentinel'),
+('24065', '26586', 'Corelum Guardian Chief Scout'),
+('24066', '26586', 'Corelum Guardian Chief Spy'),
+('24067', '26586', 'Corelum Guardian Chief Watchman'),
+('24068', '26586', 'Corelum Guardian Chief Patroller'),
+('24069', '26586', 'Corelum Guardian Chief Guard'),
+('24070', '26586', 'Corelum Guardian Chief SafeGuard'),
+('24071', '26586', 'Corelum Guardian Chief Defender'),
+('24072', '26586', 'Corelum Guardian Chief Protector'),
+('24073', '26586', 'Corelum Guardian Chief Infantry'),
+('24074', '26586', 'Corelum Guardian Chief Sentinel'),
+('24075', '26580', 'Centum Fiend'),
+('24076', '26580', 'Centum Hellhound'),
+('24077', '26580', 'Centum Loyal Ravisher'),
+('24078', '26580', 'Centum Loyal Ravager'),
+('24079', '26580', 'Centum Loyal Beast'),
+('24080', '26580', 'Centum Loyal Juggernaut'),
+('24081', '26580', 'Centum Loyal Slaughterer'),
+('24082', '26580', 'Centum Loyal Execrator'),
+('24083', '26580', 'Centum Loyal Mutilator'),
+('24084', '26580', 'Centum Loyal Torturer'),
+('24085', '26580', 'Centum Loyal Fiend'),
+('24086', '26580', 'Centum Loyal Hellhound');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('24087', '26574', 'Pithum Eraser'),
+('24088', '26574', 'Pithum Abolisher'),
+('24089', '26574', 'Dire Pithum Silencer'),
+('24090', '26574', 'Dire Pithum Ascriber'),
+('24091', '26574', 'Dire Pithum Killer'),
+('24092', '26574', 'Dire Pithum Murderer'),
+('24093', '26574', 'Dire Pithum Annihilator'),
+('24094', '26574', 'Dire Pithum Nullifier'),
+('24095', '26574', 'Dire Pithum Mortifier'),
+('24096', '26574', 'Dire Pithum Inferno'),
+('24097', '26574', 'Dire Pithum Eraser'),
+('24098', '26574', 'Dire Pithum Abolisher'),
+('24099', '26568', 'Corpum Shadow Sage'),
+('24100', '26568', 'Corpum Dark Priest'),
+('24101', '26568', 'Elder Corpum Arch Reaver'),
+('24102', '26568', 'Elder Corpum Arch Engraver'),
+('24103', '26568', 'Elder Corpum Arch Templar'),
+('24104', '26568', 'Elder Corpum Revenant'),
+('24105', '26568', 'Elder Corpum Sage'),
+('24106', '26568', 'Elder Corpum Priest'),
+('24107', '26568', 'Elder Corpum Arch Sage'),
+('24108', '26568', 'Elder Corpum Arch Priest'),
+('24109', '26568', 'Elder Corpum Shadow Sage'),
+('24110', '26568', 'Elder Corpum Dark Priest'),
+('24111', '26562', 'Gistum Phalanx'),
+('24112', '26562', 'Gistum Centurion'),
+('24113', '26562', 'Arch Gistum Depredator'),
+('24114', '26562', 'Arch Gistum Predator'),
+('24115', '26562', 'Arch Gistum Smasher'),
+('24116', '26562', 'Arch Gistum Crusher'),
+('24117', '26562', 'Arch Gistum Breaker'),
+('24118', '26562', 'Arch Gistum Defeater'),
+('24119', '26562', 'Arch Gistum Marauder'),
+('24120', '26562', 'Arch Gistum Liquidator'),
+('24121', '26562', 'Arch Gistum Phalanx'),
+('24122', '26562', 'Arch Gistum Centurion'),
+('24125', '26563', 'Gist Saint'),
+('24126', '26563', 'Gist Nephilim'),
+('24127', '26563', 'Gist Malakim'),
+('24128', '26563', 'Gist Throne'),
+('24129', '26563', 'Gist Cherubim'),
+('24130', '26563', 'Gist Seraphim'),
+('24131', '26563', 'Gist Domination Malakim'),
+('24132', '26563', 'Gist Domination Throne'),
+('24133', '26563', 'Gist Domination Cherubim'),
+('24134', '26563', 'Gist Domination Seraphim'),
+('24135', '26569', 'Corpus Archbishop'),
+('24136', '26569', 'Corpus Harbinger'),
+('24137', '26569', 'Corpus Monsignor'),
+('24138', '26569', 'Corpus Monsignor'),
+('24139', '26569', 'Corpus Patriarch'),
+('24140', '26569', 'Corpus Pope'),
+('24141', '26569', 'Dark Corpus Monsignor'),
+('24142', '26569', 'Dark Corpus Cardinal'),
+('24143', '26569', 'Dark Corpus Patriarch'),
+('24144', '26569', 'Dark Corpus Pope'),
+('24145', '26575', 'Pith Eliminator'),
+('24146', '26575', 'Pith Exterminator'),
+('24147', '26575', 'Pith Destroyer'),
+('24148', '26575', 'Pith Conquistador'),
+('24149', '26575', 'Pith Massacrer'),
+('24150', '26575', 'Pith Usurper'),
+('24151', '26701', 'Dread Pith Destroyer'),
+('24152', '26701', 'Dread Pith Conquistador'),
+('24153', '26701', 'Dread Pith Massacrer'),
+('24154', '26701', 'Dread Pith Usurper'),
+('24155', '26581', 'Centus Plague Lord'),
+('24156', '26581', 'Centus Beast Lord'),
+('24157', '26581', 'Centus Overlord'),
+('24158', '26581', 'Centus Dark Lord'),
+('24159', '26581', 'Centus Dread Lord'),
+('24160', '26581', 'Centus Tyrant'),
+('24161', '26581', 'True Centus Overlord'),
+('24162', '26581', 'True Centus Dark Lord'),
+('24163', '26581', 'True Centus Dread Lord'),
+('24164', '26581', 'True Centus Tyrant'),
+('24165', '26587', 'Core Flotilla Admiral'),
+('24166', '26587', 'Core Vice Admiral'),
+('24167', '26587', 'Core Admiral'),
+('24168', '26587', 'Core High Admiral'),
+('24169', '26587', 'Core Grand Admiral'),
+('24170', '26587', 'Core Lord Admiral'),
+('24171', '26587', 'Shadow Core Admiral'),
+('24172', '26587', 'Shadow Core High Admiral'),
+('24173', '26587', 'Shadow Core Grand Admiral'),
+('24174', '26587', 'Shadow Core Lord Admiral'),
+('24175', '26562', 'Gistatis Domination Legionnaire'),
+('24176', '26562', 'Gistatis Domination Primus'),
+('24177', '26562', 'Gistatis Domination Tribuni'),
+('24178', '26562', 'Gistatis Domination Praefectus'),
+('24179', '26562', 'Gistatis Domination Tribunus'),
+('24180', '26562', 'Gistatis Domination Legatus'),
+('24181', '26568', 'Dark Corpatis Bishop'),
+('24182', '26568', 'Dark Corpatis Seer'),
+('24183', '26568', 'Dark Corpatis Shade'),
+('24184', '26568', 'Dark Corpatis Fanatic'),
+('24185', '26568', 'Dark Corpatis Phantom'),
+('24186', '26568', 'Dark Corpatis Exorcist'),
+('24187', '26577', 'Dread Pithatis Executor'),
+('24188', '26577', 'Dread Pithatis Enforcer'),
+('24189', '26577', 'Dread Pithatis Assaulter'),
+('24190', '26577', 'Dread Pithatis Assassin'),
+('24191', '26577', 'Dread Pithatis Death Dealer'),
+('24192', '26577', 'Dread Pithatis Revolter'),
+('24193', '26580', 'True Centatis Phantasm'),
+('24194', '26580', 'True Centatis Specter'),
+('24195', '26580', 'True Centatis Wraith'),
+('24196', '26580', 'True Centatis Devil'),
+('24197', '26580', 'True Centatis Daemon'),
+('24198', '26580', 'True Centatis Behemoth'),
+('24199', '27048', 'Shadow Corelatis Wing Leader'),
+('24200', '27048', 'Shadow Corelatis Squad Leader'),
+('24201', '27048', 'Shadow Corelatis Platoon Leader'),
+('24202', '27048', 'Shadow Corelatis Captain'),
+('24203', '27048', 'Shadow Corelatis Captain Sentry'),
+('24204', '27048', 'Shadow Corelatis High Captain'),
+('24205', '26585', 'Shadow Corelior Trooper'),
+('24206', '26585', 'Shadow Corelior Soldier'),
+('24207', '26585', 'Shadow Corelior Infantry'),
+('24208', '26585', 'Shadow Corelior Sentinel'),
+('24209', '26585', 'Shadow Corelior Cannoneer'),
+('24210', '26585', 'Shadow Corelior Artillery'),
+('24211', '26579', 'True Centior Misshape'),
+('24212', '26579', 'True Centior Cannibal'),
+('24213', '26579', 'True Centior Devourer'),
+('24214', '26579', 'True Centior Abomination'),
+('24215', '26579', 'True Centior Monster'),
+('24216', '26579', 'True Centior Horror'),
+('24217', '26576', 'Dread Pithior Nihilist'),
+('24218', '26576', 'Dread Pithior Anarchist'),
+('24219', '26576', 'Dread Pithior Renegade'),
+('24220', '26576', 'Dread Pithior Guerilla'),
+('24221', '26576', 'Dread Pithior Terrorist'),
+('24222', '26576', 'Dread Pithior Supremacist'),
+('24223', '26567', 'Dark Corpior Visioner'),
+('24224', '26567', 'Dark Corpior Converter'),
+('24225', '26567', 'Dark Corpior Templar'),
+('24226', '26567', 'Dark Corpior Devoter'),
+('24227', '26567', 'Dark Corpior Friar'),
+('24228', '26567', 'Dark Corpior Cleric'),
+('24229', '26561', 'Gistior Domination Shatterer'),
+('24230', '26561', 'Gistior Domination Defacer'),
+('24231', '26561', 'Gistior Domination Haunter'),
+('24232', '26561', 'Gistior Domination Defiler'),
+('24233', '26561', 'Gistior Domination Seizer'),
+('24234', '26561', 'Gistior Domination Trasher'),
+('24265', '27058', 'Thukker Wingman'),
+('24361', '26585', 'Crook Spy'),
+('24362', '26585', 'Crook Agent'),
+('24363', '26585', 'Crook Watchman'),
+('24364', '26585', 'Crook Patroller'),
+('24365', '26585', 'Crook Guard'),
+('24366', '26585', 'Crook Safeguard'),
+('24367', '26585', 'Crook Defender'),
+('24368', '26585', 'Crook Protector'),
+('24369', '26588', 'Marauder Spy'),
+('24370', '26588', 'Marauder Agent'),
+('24371', '26588', 'Marauder Watchman'),
+('24372', '26588', 'Marauder Patroller'),
+('24373', '26588', 'Marauder Guard'),
+('24374', '26588', 'Marauder Safeguard'),
+('24375', '26588', 'Marauder Defender'),
+('24376', '26588', 'Marauder Protector'),
+('24377', '26587', 'Mule Harvester'),
+('24378', '26587', 'Mule Gatherer'),
+('24379', '26587', 'Mule Ferriera'),
+('24380', '26587', 'Mule Loader'),
+('24381', '26569', 'Barrow Harvester'),
+('24382', '26569', 'Barrow Gatherer'),
+('24383', '26569', 'Barrow Ferrier'),
+('24384', '26569', 'Barrow Loader'),
+('24385', '26567', 'Warrior Collector'),
+('24386', '26567', 'Warrior Raider'),
+('24387', '26567', 'Warrior Diviner'),
+('24388', '26567', 'Warrior Reaver'),
+('24389', '26567', 'Warrior Engraver'),
+('24390', '26570', 'Sellsword Collector'),
+('24391', '26570', 'Sellsword Raider'),
+('24392', '26570', 'Sellsword Diviner'),
+('24393', '26570', 'Sellsword Reaver'),
+('24394', '26570', 'Sellsword Engraver'),
+('24407', '26567', 'Warrior Seeker'),
+('24408', '26570', 'Sellsword Seeker'),
+('24442', '27286', 'Test Cap Drain'),
+('24448', '26476', 'Viziam Prophecy'),
+('24483', '26538', 'Nidhoggur'),
+('24582', '26919', 'The Negotiator'),
+('24584', '26919', 'Wiyrkomi Head Engineer'),
+('24607', '26579', 'TestScanRadar');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('24626', '27286', 'TEST JAMMER'),
+('24627', '27286', 'TEST DISRUPTOR'),
+('24628', '27286', 'TEST STASIS SCRAMBLER'),
+('24629', '27286', 'TEST DAMPEN'),
+('24630', '26568', 'TEST DRAINER'),
+('24688', '26492', 'Rokh'),
+('24690', '26514', 'Hyperion'),
+('24692', '26470', 'Abaddon'),
+('24694', '26536', 'Maelstrom'),
+('24696', '26469', 'Harbinger'),
+('24698', '26491', 'Drake'),
+('24700', '26513', 'Myrmidon'),
+('24702', '26535', 'Hurricane'),
+('24754', '26972', 'A Hired Saboteur'),
+('25209', '27286', 'Tempest 50ms 1000m'),
+('25210', '27286', 'Rupture 100ms 625m'),
+('25211', '27286', 'Cyclone 75ms 750m'),
+('25213', '27286', 'Thrasher 150ms 425m'),
+('25214', '27286', 'Rifter 225ms 125m'),
+('25215', '27286', 'Apocalypse 125ms 2500m'),
+('25216', '27286', 'Prophecy 150ms 1500m'),
+('25217', '27286', 'Maller 175ms 1000m'),
+('25218', '27286', 'Coercer 225ms 750m'),
+('25219', '27286', 'Punisher 300ms 500m'),
+('25220', '27286', 'Ferox 125ms 1250m'),
+('25221', '27286', 'Raven 100ms 2000m'),
+('25222', '27286', 'Moa 150ms 875m'),
+('25223', '27286', 'Cormorant 200ms 625m'),
+('25224', '27286', 'Merlin 275ms 375m'),
+('25225', '27286', 'Brutix 100ms 1000m'),
+('25226', '27286', 'Megathron 75ms 1500m'),
+('25227', '27286', 'Thorax 125ms 750m'),
+('25228', '27286', 'Catalyst 175ms 500m'),
+('25229', '27286', 'Tristan 250ms 250m'),
+('25306', '26919', 'Pithatis Speaker'),
+('25374', '26920', 'Mutated Drone Parasite'),
+('25407', '26920', 'Akkeshu Karuan'),
+('25426', '26502', 'Hawk 2'),
+('25549', '26920', 'Security Overseer'),
+('25560', '26522', 'Opux Dragoon Yacht'),
+('25578', '26920', 'Security Maintenance Facility Overseer'),
+('25581', '26920', 'Security Mining Facility Overseer'),
+('25806', '26573', 'TEST ATTACKER'),
+('25808', '26920', 'TestProphetBlood'),
+('25816', '26563', 'vlgergh'),
+('25818', '26920', 'Black Jack'),
+('25822', '26563', 'Gist_Defender Battleship'),
+('25823', '26561', 'Gistii_Defender_Frigate'),
+('25824', '26575', 'Pith Defender'),
+('25825', '26573', 'Pithi Defender'),
+('25848', '26920', 'Kalorr Makur'),
+('25865', '26920', 'Pashan\'s Battle-Commander'),
+('25870', '26920', 'Serpentis Procurer'),
+('25873', '26920', 'Piran Ketoisa'),
+('25877', '26919', 'TestNPC001'),
+('25881', '26920', 'Serpentis Thief'),
+('25884', '26920', 'Shadow Serpentis Thief'),
+('25886', '26920', 'Rogue Drone Saboteur'),
+('25990', '26919', 'Republic Fleet Keeper'),
+('25995', '26920', 'Sansha\'s Slave Master'),
+('26117', '26919', 'Thukker Informant'),
+('26118', '26920', 'Martokar Alash'),
+('26119', '26920', 'Abufyr Joek'),
+('26130', '26919', 'Sansha Infiltrator'),
+('26142', '26918', 'Rogue Harvesting Vessel'),
+('26264', '26920', 'Lazron Kamon_'),
+('26661', '26918', 'Gistii Domination Scavenger'),
+('26678', '26919', 'Gistum Domination Racer'),
+('26679', '26920', 'Gist Domination Murderer'),
+('26680', '26918', 'Corpii Monk'),
+('26682', '26919', 'Dark Corpum Believer'),
+('26683', '26920', 'Dark Corpus Preacher'),
+('26684', '26918', 'Dread Pithi Terminator'),
+('26686', '26919', 'Dread Pithum Vindicator'),
+('26687', '26918', 'True Centii Revelator'),
+('26688', '26918', 'Shadow Coreli Antagonist'),
+('26689', '26920', 'Dread Pith Protagonist'),
+('26690', '26919', 'True Centum General'),
+('26691', '26919', 'Shadow Corelum Infantry'),
+('26692', '26920', 'True Centus Preacher'),
+('26694', '26920', 'Shadow Grand Admiral'),
+('26712', '26568', 'Blood Phantom - Ectoplasm'),
+('26714', '26920', 'Blood Factory Overseer'),
+('26716', '26920', 'Centus Colony General'),
+('26745', '26920', 'High Ritualist Padio Atour'),
+('26749', '26920', 'Terrorist Overlord Inzi Kika'),
+('26750', '26580', 'Sansha Miner'),
+('26752', '26562', 'Angel Transport'),
+('26753', '26918', 'chantal testing thingy'),
+('26754', '26569', 'Corpus Messiah'),
+('26756', '26919', 'Gurista Special Acquirements Captain'),
+('26757', '26920', 'Sansha Shipyard Foreman'),
+('26758', '26919', 'Serpentis Drug Carrier'),
+('26763', '26919', 'Rogue Drone Logistic Overseer'),
+('26764', '26919', 'Rogue Production Captain'),
+('26765', '26919', 'Hive Overseer'),
+('26766', '26919', 'Hive Logistic Captain'),
+('26768', '26919', 'Colony Captain'),
+('26770', '26920', 'Independence Queen'),
+('26771', '26920', 'Radiant Hive Mother'),
+('26772', '26920', 'Hierarchy Hive Queen'),
+('26793', '26920', 'Colonial Master Diabolus Maytor'),
+('26796', '26920', 'Privateer Admiral Heysus Sarpati'),
+('26798', '26920', 'Black Caesar'),
+('26799', '26920', 'Naberius Marquis'),
+('26800', '26920', 'Dread Guristas Colonel'),
+('26801', '26920', 'Angel Colonel'),
+('26802', '26920', 'Shadow Serpentis Colonel'),
+('26803', '26920', 'True Sansha\'s Colonel'),
+('26807', '26920', 'Jorun \'Red Legs\' Greaves'),
+('26810', '26920', 'Serpentis Tournament Host'),
+('26812', '26920', 'Sepentis Regional Baron Arain Percourt'),
+('26816', '26563', 'vlgergh'),
+('26818', '26920', 'Serpentis Regional Baron - Arain Percourt'),
+('26832', '26920', 'Captain Blood Raven'),
+('26833', '26920', 'Serpentis Holder'),
+('26840', '26499', 'Raven State Issue'),
+('26842', '26543', 'Tempest Tribal Issue'),
+('26844', '26920', 'Rubin Sozar'),
+('26862', '26918', 'Jols Eytur'),
+('26863', '26918', 'Vlye Cadille'),
+('26864', '26918', 'Eha Hidaiki'),
+('26865', '26918', 'Gamat Hakoot'),
+('26866', '26918', 'Elgur Erinn'),
+('26871', '26577', 'Dini Mator'),
+('26872', '26484', 'Corvette Prototype Amarr'),
+('26874', '26528', 'Corvette Prototype Gallente'),
+('26876', '26506', 'Corvette Prototype Caldari'),
+('26881', '26920', 'Dark Templar Uthius'),
+('26886', '27286', 'TEST Missiles NPC'),
+('26887', '27286', 'TEST Turrets NPC'),
+('26971', '26568', 'Gurista Guerilla Special Aquirement Division Captain'),
+('26973', '26564', 'Domination Wang Chunger'),
+('27002', '27286', 'TEST Moussa Dread Guristas Assassin'),
+('27003', '27286', 'TEST RANGE Dire Pithi Wrecker'),
+('27005', '27286', 'TEST UPDATE Ammatar Navy Sergeant'),
+('27228', '27286', 'TEST CARRIER Serpentis Duke'),
+('27299', '26489', 'Civilian Amarr Shuttle'),
+('27301', '26511', 'Civilian Caldari Shuttle'),
+('27303', '26533', 'Civilian Gallente Shuttle'),
+('27305', '26555', 'Civilian Minmatar Shuttle'),
+('27310', '27286', 'TEST Skin'),
+('27311', '27286', 'TEST FedSkin'),
+('27312', '27286', 'TEST COPY Dire Pithi Wrecker'),
+('27529', '27286', 'TEST Amarr Carrier'),
+('27566', '27286', 'TEST Caldari Carrier'),
+('27571', '27286', 'TEST Gallente Carrier'),
+('27764', '27286', 'TEST ICON Carrier Amarr'),
+('27801', '27286', 'Petty Thief'),
+('28310', '26530', 'Test Gas Barge'),
+('28352', '28603', 'Rorqual'),
+('28506', '26920', 'Drone Commandeered Battleship Deluxe'),
+('28507', '26920', 'Swarm Parasite Worker Deluxe'),
+('28509', '26920', 'Supreme Hive Defender Deluxe'),
+('28606', '29639', 'Orca'),
+('28659', '26477', 'Paladin'),
+('28661', '26521', 'Kronos'),
+('28665', '26543', 'Vargur'),
+('28710', '26499', 'Golem'),
+('28824', '26522', 'Test MWD Thorax'),
+('28844', '29034', 'Rhea'),
+('28846', '29036', 'Nomad'),
+('28848', '29035', 'Anshar'),
+('28850', '29033', 'Ark'),
+('28863', '26920', 'Hashi Keptzh'),
+('28864', '26920', 'Uehiro Katsen'),
+('29038', '27286', 'Defender Tester'),
+('29248', '26484', 'Magnate'),
+('29328', '26489', 'Amarr Media Shuttle'),
+('29330', '26511', 'Caldari Media Shuttle'),
+('29332', '26533', 'Gallente Media Shuttle'),
+('29334', '26555', 'Minmatar Media Shuttle'),
+('29336', '26544', 'Scythe Fleet Issue'),
+('29337', '26478', 'Augoror Navy Issue'),
+('29340', '26500', 'Osprey Navy Issue'),
+('29344', '26522', 'Exequror Navy Issue'),
+('29984', '30823', 'Tengu'),
+('29986', '30822', 'Legion'),
+('29988', '30824', 'Proteus'),
+('29990', '30825', 'Loki'),
+('30362', '26567', 'TEX tutorial resistance NPC placeholder'),
+('30743', '26562', 'Society of Conscious Thought Cruiser'),
+('30842', '26533', 'Interbus Shuttle'),
+('32192', '26586', 'Underground Circus Ringmaster'),
+('32207', '26546', 'Freki'),
+('32209', '26544', 'Mimir'),
+('32298', '26563', 'Karkoti Rend'),
+('32305', '26477', 'Armageddon Navy Issue'),
+('32307', '26521', 'Dominix Navy Issue'),
+('32309', '26499', 'Scorpion Navy Issue'),
+('32311', '26543', 'Typhoon Fleet Issue'),
+('32380', '26972', 'Roden Police Major'),
+('32381', '26972', 'Roden Police Sergeant'),
+('32385', '26575', 'Guristas Battleship Vessel'),
+('32391', '26573', 'Yukiro Demense'),
+('32400', '26561', 'Angel Frigate Vessel'),
+('32401', '26562', 'Angel Cruiser Vessel'),
+('32402', '26565', 'Angel Battleship Vessel');
+
+INSERT INTO `invTypesToWrecks` (`typeID`, `wreckTypeID`, `typeName`) VALUES
+('30196','30496','Sleepless Sentinel'),
+('30197','30496','Sleepless Keeper'),
+('30198','30496','Sleepless Warden'),
+('30199','30496','Sleepless Guardian'),
+('30208','30458','Awakened Warden'),
+('30206','30458','Awakened Sentinel'),
+('30207','30458','Awakened Keeper'),
+('30215','30457','Emergent Sentinel'),
+('30216','30457','Emergent Keeper'),
+('30217','30457','Emergent Warden'),
+('30192','30495','Sleepless Defender'),
+('30193','30495','Sleepless Upholder'),
+('30194','30495','Sleepless Preserver'),
+('30195','30495','Sleepless Safeguard'),
+('30188','30494','Sleepless Patroller'),
+('30189','30494','Sleepless Watchman'),
+('30190','30494','Sleepless Escort'),
+('30191','30494','Sleepless Outguard'),
+('30203','30493','Awakened Defender'),
+('30204','30493','Awakened Upholder'),
+('30205','30493','Awakened Preserver'),
+('30200','30492','Awakened Patroller'),
+('30201','30492','Awakened Watchman'),
+('30202','30492','Awakened Escort'),
+('30212','30485','Emergent Defender'),
+('30213','30485','Emergent Upholder'),
+('30214','30485','Emergent Preserver'),
+('30209','30484','Emergent Patroller'),
+('30210','30484','Emergent Watchman'),
+('30211','30484','Emergent Escort');

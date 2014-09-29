@@ -51,6 +51,7 @@ MarketProxyService::MarketProxyService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MarketProxyService, CancelCharOrder)
     PyCallable_REG_CALL(MarketProxyService, CharGetNewTransactions)
     PyCallable_REG_CALL(MarketProxyService, StartupCheck)
+    PyCallable_REG_CALL(MarketProxyService, GetCorporationOrders)
 }
 
 MarketProxyService::~MarketProxyService() {
@@ -188,7 +189,7 @@ PyResult MarketProxyService::Handle_GetOrders(PyCallArgs &call) {
 
 #    pragma message("TODO: need to check if cache is refreshed when marker orders change.")
 //    m_manager->cache_service->InvalidateCache(method_id);
-    
+
     //check to see if this method is in the cache already.
     if(!m_manager->cache_service->IsCacheLoaded(method_id))
     {
@@ -601,10 +602,15 @@ PyResult MarketProxyService::Handle_CharGetNewTransactions(PyCallArgs &call)
 
 PyResult MarketProxyService::Handle_StartupCheck(PyCallArgs &call)
 {
-    //Don't have a clue what this is supposed to do.  If you figure it out, feel free to fill it in :)
-
+    m_db.BuildOldPriceHistory();  //added to implement market price history...working   -allan
     return NULL;
 }
+
+PyResult MarketProxyService::Handle_GetCorporationOrders(PyCallArgs &call)
+{
+    return NULL;
+}
+
 
 void MarketProxyService::_SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action, bool isCorp, PyRep* order) {
     Notify_OnOwnOrderChanged ooc;
@@ -831,25 +837,4 @@ void MarketProxyService::_ExecuteSellOrder(uint32 sell_order_id, uint32 stationI
         codelog(MARKET__ERROR, "%s: Failed to record buy side of transaction.", buyer->GetName());
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

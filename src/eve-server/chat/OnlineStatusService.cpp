@@ -37,6 +37,7 @@ m_dispatch(new Dispatcher(this))
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(OnlineStatusService, GetInitialState)
+    PyCallable_REG_CALL(OnlineStatusService, GetOnlineStatus)
 }
 
 OnlineStatusService::~OnlineStatusService() {
@@ -46,6 +47,17 @@ OnlineStatusService::~OnlineStatusService() {
 PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 
     // this is used to query the initial online state of all friends. dummy.
+
+    DBRowDescriptor *header = new DBRowDescriptor();
+    header->AddColumn("contactID", DBTYPE_I4);
+    header->AddColumn("online", DBTYPE_I4);
+    CRowSet *rowset = new CRowSet( &header );
+    return rowset;
+}
+
+PyResult OnlineStatusService::Handle_GetOnlineStatus(PyCallArgs &call) {
+
+    // this is used to query the online state of all contacts
 
     DBRowDescriptor *header = new DBRowDescriptor();
     header->AddColumn("contactID", DBTYPE_I4);

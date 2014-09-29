@@ -39,6 +39,11 @@ FleetProxyService::FleetProxyService(PyServiceMgr *mgr)
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(FleetProxyService, GetAvailableFleets);
+    PyCallable_REG_CALL(FleetProxyService, ApplyToJoinFleet);
+    PyCallable_REG_CALL(FleetProxyService, AddFleetFinderAdvert);
+    PyCallable_REG_CALL(FleetProxyService, RemoveFleetFinderAdvert);
+    PyCallable_REG_CALL(FleetProxyService, GetMyFleetFinderAdvert);
+    PyCallable_REG_CALL(FleetProxyService, UpdateAdvertInfo);
 }
 
 FleetProxyService::~FleetProxyService()
@@ -47,8 +52,26 @@ FleetProxyService::~FleetProxyService()
 }
 
 PyResult FleetProxyService::Handle_GetAvailableFleets(PyCallArgs &call) {
+    return NULL;
+}
 
-    sLog.Debug("Server", "Called GetAvailableFleets Stub.");
+PyResult FleetProxyService::Handle_ApplyToJoinFleet(PyCallArgs &call) {
+    return NULL;
+}
 
+PyResult FleetProxyService::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
+    return NULL;
+}
+
+PyResult FleetProxyService::Handle_RemoveFleetFinderAdvert(PyCallArgs &call) {
+    return NULL;
+}
+
+PyResult FleetProxyService::Handle_GetMyFleetFinderAdvert(PyCallArgs &call) {
+    return NULL;
+}
+
+
+PyResult FleetProxyService::Handle_UpdateAdvertInfo(PyCallArgs &call) {
     return NULL;
 }

@@ -42,6 +42,7 @@ public:
     {
         _SetCallDispatcher(m_dispatch);
 
+        PyCallable_REG_CALL(InsuranceBound, GetContracts)
         PyCallable_REG_CALL(InsuranceBound, GetInsurancePrice)
 
         m_strBoundObjectName = "InsuranceBound";
@@ -53,6 +54,7 @@ public:
         delete this;
     }
 
+    PyCallable_DECL_CALL(GetContracts)
     PyCallable_DECL_CALL(GetInsurancePrice)
 
 protected:
@@ -69,6 +71,8 @@ InsuranceService::InsuranceService(PyServiceMgr *mgr)
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(InsuranceService, GetContractForShip)
+    PyCallable_REG_CALL(InsuranceService, InsureShip)
+    PyCallable_REG_CALL(InsuranceService, GetInsurancePrice)
 }
 
 InsuranceService::~InsuranceService() {
@@ -83,47 +87,32 @@ PyBoundObject* InsuranceService::_CreateBoundObject( Client* c, const PyRep* bin
     return new InsuranceBound( m_manager, &m_db );
 }
 
-PyResult InsuranceService::Handle_GetInsurancePrice( PyCallArgs& call )
+PyResult InsuranceBound::Handle_GetInsurancePrice( PyCallArgs& call )
 {
-    sLog.Debug("InsuranceService", "Called GetInsurancePrice stub" );
+    //  will add this completed code at a later date  -allan 25Jul14
     return new PyFloat(0.0);
 }
 
-PyResult InsuranceBound::Handle_GetInsurancePrice( PyCallArgs& call )
+PyResult InsuranceBound::Handle_GetContracts( PyCallArgs& call )
 {
-    sLog.Debug("InsuranceBound", "Called GetInsurancePrice stub" );
+    //  will add this completed code at a later date  -allan 25Jul14
+    return NULL;
+}
+
+PyResult InsuranceService::Handle_GetInsurancePrice( PyCallArgs& call )
+{
+    //  will add this completed code at a later date  -allan 25Jul14
     return new PyFloat(0.0);
 }
 
 PyResult InsuranceService::Handle_GetContractForShip( PyCallArgs& call )
 {
-    sLog.Debug( "InsuranceService", "Called GetContractForShip stub." );
-
-    return new PyNone;
+    //  will add this completed code at a later date  -allan 25Jul14
+    return NULL;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+PyResult InsuranceService::Handle_InsureShip( PyCallArgs& call )
+{
+    //  will add this completed code at a later date  -allan 25Jul14
+    return NULL;
+}

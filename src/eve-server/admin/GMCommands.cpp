@@ -1023,8 +1023,6 @@ PyResult Command_giveallskills( Client* who, CommandDB* db, PyServiceMgr* servic
 		}
 		// END LOOP
     }
-	else
-		throw PyException( MakeCustomError( "ERROR: Unable to validate character object, it was found to be NULL!" ) );
 
     return new PyString ("Skill Gifting Failure");
 }
@@ -1150,8 +1148,8 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
             who->UpdateSkillTraining();
         }
     }
-
-    throw PyException( MakeCustomError( "ERROR: Unable to validate character object, it was found to be NULL!" ) );
+    /** commented out to prevent function cease on error.  seems to work correctly without this msg  -allan 10Jul14 */
+    //throw PyException( MakeCustomError( "ERROR: Unable to validate character object, it was found to be NULL!" ) );
     return new PyString ("Skill Gifting Failure - Character Ref = NULL");
 }
 

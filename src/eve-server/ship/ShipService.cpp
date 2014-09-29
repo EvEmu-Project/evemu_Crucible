@@ -59,6 +59,8 @@ public:
         PyCallable_REG_CALL(ShipBound, Eject)
         PyCallable_REG_CALL(ShipBound, LeaveShip)
         PyCallable_REG_CALL(ShipBound, ActivateShip)
+        PyCallable_REG_CALL(ShipBound, GetShipConfiguration)
+        PyCallable_REG_CALL(ShipBound, SelfDestruct)
     }
 
     virtual ~ShipBound() {delete m_dispatch;}
@@ -77,6 +79,8 @@ public:
     PyCallable_DECL_CALL(Eject)
     PyCallable_DECL_CALL(LeaveShip)
     PyCallable_DECL_CALL(ActivateShip)
+    PyCallable_DECL_CALL(GetShipConfiguration)
+    PyCallable_DECL_CALL(SelfDestruct)
 
 protected:
     ShipDB& m_db;
@@ -1107,11 +1111,14 @@ PyResult ShipBound::Handle_LeaveShip(PyCallArgs &call){
 
     // Remove ball from bubble manager for this client's character's system for the old ship and then
     // board the capsule:
-    call.client->System()->bubbles.Remove( call.client, true );
+    if(call.client->IsInSpace())
+        call.client->System()->bubbles.Remove( call.client, true );
+        
     call.client->BoardShip( updatedCapsuleRef );
 
     // Add ball to bubble manager for this client's character's system for the new capsule object:
-    call.client->System()->bubbles.Add( call.client, true );
+    if(call.client->IsInSpace())
+        call.client->System()->bubbles.Add( call.client, true );
 
     return NULL;
 }
@@ -1156,4 +1163,14 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call)
     rsp->items[2] = new BuiltinSet();
 
     return rsp;
+}
+
+PyResult ShipBound::Handle_GetShipConfiguration(PyCallArgs &call) {
+    PyRep *result = NULL;
+    return result;
+}
+
+PyResult ShipBound::Handle_SelfDestruct(PyCallArgs &call) {
+    PyRep *result = NULL;
+    return result;
 }
