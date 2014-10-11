@@ -341,7 +341,7 @@ bool MarketDB::BuildOldPriceHistory() {
         "DELETE FROM"
         "    market_transactions"
         " WHERE"
-        "    historyDate < %" PRId64,
+        "    transactionDateTime < %" PRId64,
         cutoff_time))
 
     {
