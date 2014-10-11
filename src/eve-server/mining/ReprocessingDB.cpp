@@ -46,6 +46,7 @@ bool ReprocessingDB::IsRefinable(const uint32 typeID) {
     return(res.GetRow(row));
 }
 
+/*
 bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
     DBQueryResult res;
 
@@ -67,7 +68,29 @@ bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
     DBResultRow row;
     return(res.GetRow(row));
 }
+*/
 
+bool ReprocessingDB::IsRecyclable(const uint32 typeID) {
+	DBQueryResult res;
+
+	if (!sDatabase.RunQuery(res,
+		"SELECT NULL FROM ramTypeRequirements"
+		" LEFT JOIN invBlueprintTypes ON typeID = blueprintTypeID"
+		" WHERE damagePerJob = 1 AND ("
+		"   (activityID = 6 AND typeID = %u)"
+		"   OR"
+		"    (activityID = 1 AND productTypeID = %u)"
+		") AND recycle = 1"
+		" LIMIT 1",
+		typeID, typeID))
+	{
+		_log(DATABASE__ERROR, "Failed to check item type ID: %s.", res.error.c_str());
+		return false;
+	}
+
+	DBResultRow row;
+	return(res.GetRow(row));
+}
 bool ReprocessingDB::LoadStatic(const uint32 stationID, double &efficiency, double &tax) {
     DBQueryResult res;
 
@@ -94,6 +117,7 @@ bool ReprocessingDB::LoadStatic(const uint32 stationID, double &efficiency, doub
     return true;
 }
 
+/*
 bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverable> &into) {
     DBQueryResult res;
     DBResultRow row;
@@ -121,4 +145,29 @@ bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverabl
     }
 
     return true;
+}
+*/
+
+bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverable> &into) {
+	DBQueryResult res;
+	DBResultRow row;
+
+	if (!sDatabase.RunQuery(res,
+		"SELECT materialTypeID, MIN(quantity) FROM invTypeMaterials WHERE typeID = %u"
+		" GROUP BY materialTypeID",
+		typeID))
+	{
+		_log(DATABASE__ERROR, "Unable to get recoverables for type ID %u: '%s'", typeID, res.error.c_str());
+		return false;
+	}
+
+	Recoverable rec;
+
+	while (res.GetRow(row)) {
+		rec.typeID = row.GetInt(0);
+		rec.amountPerBatch = row.GetInt(1);
+		into.push_back(rec);
+	}
+
+	return true;
 }

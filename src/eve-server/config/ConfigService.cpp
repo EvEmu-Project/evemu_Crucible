@@ -328,6 +328,7 @@ PyResult ConfigService::Handle_GetDynamicCelestials(PyCallArgs &call){
 PyResult ConfigService::Handle_GetMapLandmarks(PyCallArgs &call) {
     //  will add this complete code with other map data at a later date  -allan 25Jul14
     //return m_db.GetMapLandmarks();
+	return NULL;
 }
 
 PyResult ConfigService::Handle_SetMapLandmarks(PyCallArgs &call) {
