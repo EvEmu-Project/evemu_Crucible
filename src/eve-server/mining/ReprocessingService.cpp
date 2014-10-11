@@ -221,8 +221,10 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
         return NULL;
     }
 
-    if(call_args.ownerID == 0)
-        call_args.ownerID = call.client->GetCharacterID();
+	// ownerID seems to now indicate stationID, not the character ID that supposedly owns the item to be reprocessed
+	// so, do NOT do this check anymore:
+    //if(call_args.ownerID == 0)
+    //    call_args.ownerID = call.client->GetCharacterID();
 
     if(call_args.flag == 0)
         call_args.flag = flagHangar;
