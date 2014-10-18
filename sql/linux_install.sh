@@ -33,7 +33,13 @@ until [ "${option}" = "x" ]; do
         echo "UNZIP ALL .ZIP archives in /ofic-updates directory,"
         read -p "then press any key to continue..."
         echo "[+] Entering database setup.."
-        echo "[+] Searching for base database files.."
+        
+	echo "Droping database 'evemu'..."
+	mysql -h ${host} --user=${user} --password=${pass} -v -e "drop database ${database};"
+	echo "Creating database 'evemu'..."
+	mysql -h ${host} --user=${user} --password=${pass} -v -e "create database ${database};"
+
+	echo "[+] Searching for base database files.."
 
         filearray=(`find . -name "*mysql5-v1.sql"`)
 

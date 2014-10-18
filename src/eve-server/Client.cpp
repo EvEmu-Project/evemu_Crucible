@@ -601,6 +601,7 @@ void Client::_UpdateSession2( uint32 characterID )
         return;
     }
 
+	uint16 gender = 0;
     uint32 corporationID = 0;
     uint32 stationID = 0;
     uint32 solarSystemID = 0;
@@ -623,6 +624,7 @@ void Client::_UpdateSession2( uint32 characterID )
         return;
     }
 
+	gender = characterDataMap["gender"];
     corporationID = characterDataMap["corporationID"];
     stationID = characterDataMap["stationID"];
     solarSystemID = characterDataMap["solarSystemID"];
@@ -637,6 +639,7 @@ void Client::_UpdateSession2( uint32 characterID )
     locationID = characterDataMap["locationID"];
     shipID = characterDataMap["shipID"];
 
+	mSession.SetInt( "genderID", gender );
     mSession.SetInt( "charid", characterID );
     mSession.SetInt( "corpid", corporationID );
     if( stationID == 0 )

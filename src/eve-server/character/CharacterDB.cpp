@@ -272,6 +272,7 @@ void CharacterDB::GetCharacterData(uint32 characterID, std::map<std::string, uin
         "  character_.rolesAtHQ, "
         "  character_.rolesAtOther, "
         "  character_.shipID, "
+		"  character_.gender, "
         "  entity.locationID "
         " FROM character_ "
         "  LEFT JOIN corporation USING (corporationID) "
@@ -303,7 +304,8 @@ void CharacterDB::GetCharacterData(uint32 characterID, std::map<std::string, uin
     characterDataMap["rolesAtHQ"] = row.GetUInt(9);
     characterDataMap["rolesAtOther"] = row.GetUInt(10);
     characterDataMap["shipID"] = row.GetUInt(11);
-    characterDataMap["locationID"] = row.GetUInt(12);
+	characterDataMap["gender"] = row.GetUInt(12);
+    characterDataMap["locationID"] = row.GetUInt(13);
 }
 
 PyObject *CharacterDB::GetCharPublicInfo3(uint32 characterID) {
