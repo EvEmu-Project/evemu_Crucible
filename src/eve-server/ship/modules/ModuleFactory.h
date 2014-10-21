@@ -32,6 +32,7 @@
 #include "RigModule.h"
 #include "SubSystemModules.h"
 #include "ship/modules/armor_modules/ArmorRepairer.h"
+#include "ship/modules/electronics_modules/TractorBeam.h"
 #include "ship/modules/mining_modules/MiningLaser.h"
 #include "ship/modules/propulsion_modules/Afterburner.h"
 #include "ship/modules/weapon_modules/EnergyTurret.h"
@@ -77,7 +78,7 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
             case EVEDB::invGroups::Drone_Navigation_Computer:               return (new PassiveModule(item, ship)); break;
             case EVEDB::invGroups::Drone_Tracking_Modules:                  return (new PassiveModule(item, ship)); break;
             case EVEDB::invGroups::Drone_Control_Range_Module:              return (new PassiveModule(item, ship)); break;
-            case EVEDB::invGroups::Tractor_Beam:                            return (new ActiveModule(item, ship)); break;    // Active - external
+            case EVEDB::invGroups::Tractor_Beam:                            return (new TractorBeam(item, ship)); break;    // Active - external
 
             // Engineering Modules Subgroup:
             case EVEDB::invGroups::Capacitor_Recharger:                     return (new PassiveModule(item, ship)); break;

@@ -88,11 +88,13 @@ public:
 
     //Configuration:
     void SetShipCapabilities(InventoryItemRef ship);
+	void SetMaxVelocity(double maxVelocity) { m_maxShipVelocity = maxVelocity; }
     void SetPosition(const GPoint &pt, bool update=true, bool isWarping=false, bool isPostWarp=false);
 
     //Global Actions:
     void Stop(bool update=true);
     void Halt(bool update=true);    //like stop with no de-acceleration.
+	void TractorBeamHalt(bool update = true);
 
     //Local Movement:
     void Follow(SystemEntity *who, double distance, bool update=true);
@@ -101,6 +103,7 @@ public:
     void SetSpeedFraction(double fraction, bool update=true);
     void AlignTo(const GPoint &direction, bool update=true);
     void GotoDirection(const GPoint &direction, bool update=true);
+	void TractorBeamFollow(SystemEntity *who, double mass, double maxVelocity, double distance, bool update=true);
     PyResult AttemptDockOperation();
 
 	void Cloak();

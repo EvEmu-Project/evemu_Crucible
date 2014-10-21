@@ -599,15 +599,17 @@ void DestinyManager::_Warp() {
         //double v58 = (((m_warpState->acceleration_time + (m_warpState->total_distance/m_warpState->speed) - seconds_into_warp) )) - (m_warpNumerator/m_warpDenomenator);
         //velocity_magnitude = exp(m_warpExpFactor * v58) * m_warpState->speed / m_warpVelocityMagnitudeFactorDivisor;
 		velocity_magnitude = (-1.0 * exp(-1.0 * seconds_into_warp)) * m_warpState->speed;
+	//	velocity_magnitude = 0;
 
-        if(velocity_magnitude < 0)
-            velocity_magnitude = -velocity_magnitude;
+		if (velocity_magnitude < 0)
+			velocity_magnitude = -velocity_magnitude;
 
         //dist_remaining = velocity_magnitude;// / 1.65;
         //double delta_t = (m_warpState->acceleration_time * 3.0f) - ((seconds_into_warp * 3.0f)+1.0f);
         //double delta_s = (m_warpState->speed * delta_t)/(-3.0f);
         //dist_remaining = m_warpState->total_distance - (velocity_magnitude * exp(-1.0 * seconds_into_warp) + (m_warpState->slow_time * m_warpState->speed));
         dist_remaining = velocity_magnitude * 10;// / 2.5;//m_warpDecelerateFactor;
+	//	dist_remaining = 0;
 
         sLog.Debug( "DestinyManager::_Warp():", "Entity %u: Warp Slowing: velocity %f m/s with %f m left to go.",
             m_self->GetID(),
@@ -945,21 +947,128 @@ void DestinyManager::Follow(SystemEntity *who, double distance, bool update) {
 	if( m_self->IsClient() )
 		m_self->CastToClient()->SetPendingDockOperation( false );
 
-    if(update) {
-        DoDestiny_CmdFollowBall du;
-        du.entityID = m_self->GetID();
-        du.ballID = who->GetID();
-        du.unknown = uint32(distance);
+	if (update) {
+		DoDestiny_CmdFollowBall du;
+		du.entityID = m_self->GetID();
+		du.ballID = who->GetID();
+		du.unknown = uint32(distance);
 
-        PyTuple *tmp = du.Encode();
-        SendSingleDestinyUpdate(&tmp);    //consumed
-    }
+		PyTuple *tmp = du.Encode();
+		SendSingleDestinyUpdate(&tmp);    //consumed
+	}
 
-    sLog.Debug( "DestinyManager::GotoDirection()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f",
+    sLog.Debug( "DestinyManager::Follow()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f",
                 m_self->GetName(), who->GetName(), m_maxVelocity );
 
     // Forcibly set Speed since it doesn't get updated when Following upon Undock from stations:
     SetSpeedFraction( m_activeSpeedFraction, true );
+}
+
+void DestinyManager::TractorBeamFollow(SystemEntity *who, double mass, double maxVelocity, double distance, bool update) {
+	if (State == DSTBALL_FOLLOW && m_targetEntity.second == who && m_targetDistance == distance)
+		return;
+
+	State = DSTBALL_FOLLOW;
+	m_targetEntity.first = who->GetID();
+	m_targetEntity.second = who;
+	m_targetDistance = distance;
+	if (m_userSpeedFraction == 0.0f)
+		m_userSpeedFraction = 1.0f;
+	if (m_activeSpeedFraction != m_userSpeedFraction) {
+		m_activeSpeedFraction = m_userSpeedFraction;
+		_UpdateDerrived();
+	}
+
+	//Clear any pending docking operation since the user set a new course:
+	if (m_self->IsClient())
+		m_self->CastToClient()->SetPendingDockOperation(false);
+
+	std::vector<PyTuple *> updates;
+
+	if (update) {
+		DoDestiny_SetMaxSpeed maxspeed1;
+		maxspeed1.entityID = m_self->GetID();
+		maxspeed1.speedValue = maxVelocity;
+		updates.push_back(maxspeed1.Encode());
+
+		DoDestiny_SetBallFree ballfree;
+		ballfree.entityID = m_self->GetID();
+		ballfree.is_free = 1;
+		updates.push_back(ballfree.Encode());
+
+		DoDestiny_SetBallMass ballmass;
+		ballmass.entityID = m_self->GetID();
+		ballmass.mass = mass;
+		updates.push_back(ballmass.Encode());
+
+		DoDestiny_SetMaxSpeed maxspeed2;
+		maxspeed2.entityID = m_self->GetID();
+		maxspeed2.speedValue = maxVelocity;
+		updates.push_back(maxspeed2.Encode());
+
+		DoDestiny_CmdSetSpeedFraction speedfrac;
+		speedfrac.entityID = m_self->GetID();
+		speedfrac.fraction = 1.0;
+		updates.push_back(speedfrac.Encode());
+
+		DoDestiny_CmdFollowBall followball;
+		followball.entityID = m_self->GetID();
+		followball.ballID = who->GetID();
+		followball.unknown = uint32(distance);
+		updates.push_back(followball.Encode());
+
+		SendDestinyUpdate(updates, false);	//consumed
+	}
+
+	sLog.Debug("DestinyManager::TractorBeamFollow()", "SystemEntity '%s' following SystemEntity '%s' at velocity %f",
+		m_self->GetName(), who->GetName(), m_maxVelocity);
+
+	// Forcibly set Speed since it doesn't get updated when Following upon Undock from stations:
+	SetSpeedFraction(m_activeSpeedFraction, true);
+}
+
+void DestinyManager::TractorBeamHalt(bool update)
+{
+	m_targetEntity.first = 0;
+	m_targetEntity.second = NULL;
+	m_velocity = GVector(0, 0, 0);
+	m_activeSpeedFraction = 0.0f;
+	_UpdateDerrived();
+
+	//Clear any pending docking operation since the user halted ship movement:
+	if (m_self->IsClient())
+		m_self->CastToClient()->SetPendingDockOperation(false);
+
+	State = DSTBALL_STOP;
+
+	//ensure that our bubble is correct.
+	m_system->bubbles.UpdateBubble(m_self);
+
+	std::vector<PyTuple *> updates;
+
+	if (update) {
+		DoDestiny_SetMaxSpeed maxspeed1;
+		maxspeed1.entityID = m_self->GetID();
+		maxspeed1.speedValue = 0;
+		updates.push_back(maxspeed1.Encode());
+
+		DoDestiny_SetBallFree ballfree;
+		ballfree.entityID = m_self->GetID();
+		ballfree.is_free = 0;
+		updates.push_back(ballfree.Encode());
+
+		DoDestiny_SetBallMass ballmass;
+		ballmass.entityID = m_self->GetID();
+		ballmass.mass = 10000000000;
+		updates.push_back(ballmass.Encode());
+
+		DoDestiny_SetMaxSpeed maxspeed2;
+		maxspeed2.entityID = m_self->GetID();
+		maxspeed2.speedValue = 1000000;
+		updates.push_back(maxspeed2.Encode());
+
+		SendDestinyUpdate(updates, false);	//consumed
+	}
 }
 
 void DestinyManager::Orbit(SystemEntity *who, double distance, bool update) {

@@ -536,7 +536,8 @@ typedef enum {
     effectAnchorLift                = 650,
     effectOnlineForStructures        = 901,
     effectAnchorDropForStructures    = 1022,
-    effectAnchorLiftForStructures    = 1023
+    effectAnchorLiftForStructures    = 1023,
+	effectTractorBeam				= 2255		// effects.TractorBeam
 } EVEEffectID;
 
 typedef enum JournalRefType {
