@@ -134,7 +134,7 @@ bool BookmarkService::LookupBookmark(uint32 characterID, uint32 bookmarkID, uint
     uint64 created;
     uint32 locationID;
     uint32 creatorID;
-    uint32 folderID;
+    uint32 folderID = 0;		// WARNING!  This should be a parameter passed in from outside so we can select different folders!
     std::string note;
 
     return m_db.GetBookmarkInformation(bookmarkID,ownerID,itemID,typeID,flag,memo,created,x,y,z,locationID,note,creatorID,folderID);
@@ -176,8 +176,18 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call)
     //       |--> [1] PyInt:       ownerID = charID of char making the bm
     //       |--> [2] PyWString:  label (called memo in db) for the bookmark
     //       \--> [3] PyString:  text for the "note" field in the bookmark
+	//
+	// call.byname size=2
+	//       |
+	//       |--> [0] kvp:  <"folderID",PyInt>
+	//       |--> [1] kvp:  <"machoVersion",1>
     //
     ////////////////////////////////////////
+
+	// Check for presence of non-PyNone folderID in the packet
+	if (call.byname.find("folderID") != call.byname.cend())
+		if ( !(call.byname.find("folderID")->second->IsNone()) )
+			folderID = call.byname.find("folderID")->second->AsInt()->value();
 
     typeCheck = call.tuple->GetItem( 0 )->AsInt()->value();  //current shipID/stationID/POS_ID/etc...check for typeID
     typeID = m_db.FindBookmarkTypeID(typeCheck);    // Get typeID for above itemID:
@@ -260,6 +270,7 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call)
     tuple0->items[ 4 ] = new PyInt( (uint32)(point.y) );    // Y coordinate
     tuple0->items[ 5 ] = new PyInt( (uint32)(point.z) );    // Z coordinate
     tuple0->items[ 6 ] = new PyInt( locationID );           // systemID
+//	tuple0->items[ 7 ] = new PyInt( folderID );             // systemID
 
     res = tuple0;
 
@@ -296,6 +307,7 @@ PyResult BookmarkService::Handle_DeleteBookmarks(PyCallArgs &call)          //no
     }else if(call.tuple->IsTuple())
     {
       sLog.Log( "BookmarkService::Handle_DeleteBookmarks()", "Call is PyTuple");
+	  //bookmarkIDs = call.tuple->
       /**
       uint32 bookmarkID;
       bookmarkID = call.tuple->GetItem( 0 )->AsObjectEx()->value(); <---  this causes a problem.  i am now at a loss....
@@ -429,6 +441,8 @@ PyResult BookmarkService::Handle_CreateFolder(PyCallArgs &call)     // working
         ownerID,
         creatorID
     );
+
+	sLog.Error("Handle_CreateFolder()", "This function does NOT return anything to the client!");
 
     return(new PyNone());
 }
