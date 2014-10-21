@@ -468,8 +468,13 @@ void DestinyManager::_InitWarp() {
         warp_distance);
 
     //the client clears massive during warp, presumably so you
-    //do not run into things while warping.
-#   pragma message( "TODO: set massive to false!" )
+    //do not run into things while warping.  -allan 13July14
+    std::vector<PyTuple *> updates;
+    DoDestiny_SetBallMassive sbmassive;
+    sbmassive.entityID = m_self->GetID();
+    sbmassive.is_massive = 0;
+    updates.push_back(sbmassive.Encode());
+    SendDestinyUpdate(updates, true);    //consumed
 
     //double warp_speed = m_system->GetWarpSpeed();
     double warp_speed = 0.0;
