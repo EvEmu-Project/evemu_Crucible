@@ -92,28 +92,37 @@ void TractorBeam::Activate(SystemEntity * targetEntity)
 	// Check to make sure target is NOT a static entity:
 	// TODO: Check for target = asteroid, ice, or gas cloud then only allow tractoring if ship = Orca
 	// TODO: DO NOT allow tractoring of Client-connected player ships
-	if (((getItem()->typeID() == 16278 || getItem()->typeID() == 22229) && (targetEntity->Item()->groupID() == EVEDB::invGroups::Ice))
-		|| (targetEntity->Item()->categoryID() == EVEDB::invCategories::Asteroid)
-		|| ((targetEntity->Item()->groupID() == EVEDB::invGroups::Harvestable_Cloud) && (getItem()->groupID() == EVEDB::invGroups::Gas_Cloud_Harvester)))
-
-	if( (!(targetEntity->IsStaticEntity()))
-		&&
-		  (
-		    ((getItem()->typeID() == 16278 || getItem()->typeID() == 22229) && (targetEntity->Item()->groupID() == EVEDB::invGroups::Ice))
-			|| (targetEntity->Item()->groupID() == EVEDB::invGroups::Cargo_Container)
-			|| (targetEntity->Item()->groupID() == EVEDB::invGroups::Secure_Cargo_Container)
-			|| (targetEntity->Item()->groupID() == EVEDB::invGroups::Wreck)
-		  )
-		)
+	if (!(targetEntity->IsStaticEntity()))
 	{
-		m_targetEntity = targetEntity;
-		m_targetID = targetEntity->Item()->itemID();
+		if (
+		     (
+				(m_Ship->typeID() == 28606)		// Orca is the only ship allowed to tractor asteroids and ice chunks
+				&&
+				(
+				((getItem()->typeID() == 16278 || getItem()->typeID() == 22229) && (targetEntity->Item()->groupID() == EVEDB::invGroups::Ice))
+				||
+				(targetEntity->Item()->categoryID() == EVEDB::invCategories::Asteroid)
+				||
+				((targetEntity->Item()->groupID() == EVEDB::invGroups::Harvestable_Cloud) && (getItem()->groupID() == EVEDB::invGroups::Gas_Cloud_Harvester))
+				)
+				)
+				||
+				(targetEntity->Item()->groupID() == EVEDB::invGroups::Cargo_Container)
+				||
+				(targetEntity->Item()->groupID() == EVEDB::invGroups::Secure_Cargo_Container)
+				||
+				(targetEntity->Item()->groupID() == EVEDB::invGroups::Wreck)
+			)
+		{
+			m_targetEntity = targetEntity;
+			m_targetID = targetEntity->Item()->itemID();
 
-		// Activate active processing component timer:
-		m_ActiveModuleProc->ActivateCycle();
-		m_ModuleState = MOD_ACTIVATED;
-		//_ShowCycle();
-		m_ActiveModuleProc->ProcessActiveCycle();
+			// Activate active processing component timer:
+			m_ActiveModuleProc->ActivateCycle();
+			m_ModuleState = MOD_ACTIVATED;
+			//_ShowCycle();
+			m_ActiveModuleProc->ProcessActiveCycle();
+		}
 	}
 }
 
