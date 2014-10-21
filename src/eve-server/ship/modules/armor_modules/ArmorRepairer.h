@@ -48,7 +48,7 @@ public:
 
 	// Calls Reserved for components usage only!
 	void DoCycle();
-	void StopCycle();
+	void StopCycle(bool abort = false);
 
 protected:
 	void _ProcessCycle() {}

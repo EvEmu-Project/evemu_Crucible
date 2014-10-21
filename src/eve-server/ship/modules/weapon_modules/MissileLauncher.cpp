@@ -121,10 +121,10 @@ void MissileLauncher::StopCycle(bool abort)
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyInt(m_targetID));
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
-	env->AddItem(new PyInt(10));
+	env->AddItem(new PyInt(shipEff.effectID));
 
 	shipEff.environment = env;
 	shipEff.startTime = shipEff.when;
@@ -151,7 +151,7 @@ void MissileLauncher::StopCycle(bool abort)
 		m_Item->typeID(),
 		m_targetID,
 		m_chargeRef->itemID(),
-		"",
+		"effects.MissileDeployment",
 		1,
 		0,
 		0,
@@ -247,10 +247,10 @@ void MissileLauncher::_ShowCycle()
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyInt(m_targetID));
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
-	env->AddItem(new PyInt(10));
+	env->AddItem(new PyInt(shipEff.effectID));
 
 	shipEff.environment = env;
 	shipEff.startTime = shipEff.when;
@@ -270,7 +270,7 @@ void MissileLauncher::_ShowCycle()
 	std::vector<PyTuple*> updates;
 	//updates.push_back(dmgChange.Encode());
 
-	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, events, true);
+	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, events, false);
 
 	// Create Special Effect:
 	m_Ship->GetOperator()->GetDestiny()->SendSpecialEffect

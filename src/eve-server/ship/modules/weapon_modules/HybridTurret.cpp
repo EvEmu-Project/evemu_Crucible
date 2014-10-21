@@ -97,7 +97,8 @@ void HybridTurret::Activate(SystemEntity * targetEntity)
 		// Activate active processing component timer:
 		m_ActiveModuleProc->ActivateCycle();
 		m_ModuleState = MOD_ACTIVATED;
-		_ShowCycle();
+		//_ShowCycle();
+		m_ActiveModuleProc->ProcessActiveCycle();
 	}
 	else
 	{
@@ -114,6 +115,8 @@ void HybridTurret::Deactivate()
 
 void HybridTurret::StopCycle(bool abort)
 {
+	//m_Item->SetActive(false, effectProjectileFired, 0.0, false);
+
 	Notify_OnGodmaShipEffect shipEff;
 	shipEff.itemID = m_Item->itemID();
 	shipEff.effectID = effectProjectileFired;
@@ -125,10 +128,10 @@ void HybridTurret::StopCycle(bool abort)
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyInt(m_targetID));
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
-	env->AddItem(new PyInt(10));
+	env->AddItem(new PyInt(shipEff.effectID));
 
 	shipEff.environment = env;
 	shipEff.startTime = shipEff.when;
@@ -239,6 +242,8 @@ void HybridTurret::DoCycle()
 
 void HybridTurret::_ShowCycle()
 {
+	//m_Item->SetActive(true, effectProjectileFired, m_Item->GetAttribute(AttrSpeed).get_float(), true);
+
 	// Create Destiny Updates:
 	Notify_OnGodmaShipEffect shipEff;
 	shipEff.itemID = m_Item->itemID();
@@ -251,10 +256,10 @@ void HybridTurret::_ShowCycle()
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyInt(m_targetID));
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
-	env->AddItem(new PyInt(10));
+	env->AddItem(new PyInt(shipEff.effectID));
 
 	shipEff.environment = env;
 	shipEff.startTime = shipEff.when;
@@ -274,7 +279,7 @@ void HybridTurret::_ShowCycle()
 	std::vector<PyTuple*> updates;
 	//updates.push_back(dmgChange.Encode());
 
-	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, events, true);
+	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, events, false);
 
 	// Create Special Effect:
 	m_Ship->GetOperator()->GetDestiny()->SendSpecialEffect

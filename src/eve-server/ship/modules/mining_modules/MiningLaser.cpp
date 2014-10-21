@@ -94,9 +94,10 @@ void MiningLaser::DestroyRig()
 void MiningLaser::Activate(SystemEntity * targetEntity)
 {
 	// Test if module is Ice Harvester I (typeID 16728) or Ice Harvester II (typeID 22229) AND the target is in groupID 465 'Ice',
-	// otherwise, just test if target is in the categoryID 25 'Asteroid'
+	// otherwise, just test if target is in the categoryID 25 'Asteroid' or using Gas Harvester AND the target is in groupID 711 'Harvestable Cloud'
 	if( ((getItem()->typeID() == 16278 || getItem()->typeID() == 22229) && (targetEntity->Item()->groupID() == EVEDB::invGroups::Ice))
-		|| (targetEntity->Item()->categoryID() == EVEDB::invCategories::Asteroid) )
+		|| (targetEntity->Item()->categoryID() == EVEDB::invCategories::Asteroid)
+		|| ((targetEntity->Item()->groupID() == EVEDB::invGroups::Harvestable_Cloud) && (getItem()->groupID() == EVEDB::invGroups::Gas_Cloud_Harvester)))
 	{
 		// We either have a chargeless mining laser OR our charged mining laser has no charge, check groupID for charged laser types:
 		uint32 typeID = getItem()->typeID();
@@ -184,10 +185,10 @@ void MiningLaser::StopCycle(bool abort)
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyInt(m_targetID));
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
-	env->AddItem(new PyInt(10));
+	env->AddItem(new PyInt(shipEff.effectID));
 
 	shipEff.environment = env;
 	shipEff.startTime = shipEff.when;
@@ -211,6 +212,11 @@ void MiningLaser::StopCycle(bool abort)
 	if( m_chargeLoaded )
 		chargeID = m_chargeRef->itemID();
 
+	std::string effectsString;
+	if (getItem()->groupID() == EVEDB::invGroups::Gas_Cloud_Harvester)
+		effectsString = "effects.CloudMining";
+	else
+		effectsString = "effects.Mining";
 	m_Ship->GetOperator()->GetDestiny()->SendSpecialEffect
 	(
 		m_Ship,
@@ -218,7 +224,7 @@ void MiningLaser::StopCycle(bool abort)
 		m_Item->typeID(),
 		m_targetID,
 		chargeID,
-		"effects.Laser",
+		effectsString,
 		0,
 		0,
 		0,
@@ -298,7 +304,11 @@ void MiningLaser::_ProcessCycle()
 				}
 			}
 			else
-				throw PyException( MakeCustomError( "Not enough cargo space!") );
+			{
+				// Not enough cargo space, so module should deactivate and not pull anymore ore from the asteroid
+
+				// nothing to do here yet, it seems
+			}
 		}
 
 		remainingCargoVolume = m_Ship->GetRemainingVolumeByFlag(flagCargoHold);
@@ -334,10 +344,10 @@ void MiningLaser::_ShowCycle()
 	env->AddItem(new PyInt(shipEff.itemID));
 	env->AddItem(new PyInt(m_Ship->ownerID()));
 	env->AddItem(new PyInt(m_Ship->itemID()));
-	env->AddItem(new PyInt(m_targetEntity->GetID()));
+	env->AddItem(new PyInt(m_targetID));
 	env->AddItem(new PyNone);
 	env->AddItem(new PyNone);
-	env->AddItem(new PyInt(10));
+	env->AddItem(new PyInt(shipEff.effectID));
 
 	shipEff.environment = env;
 	shipEff.startTime = shipEff.when;
@@ -357,13 +367,18 @@ void MiningLaser::_ShowCycle()
 	std::vector<PyTuple*> updates;
 	//updates.push_back(dmgChange.Encode());
 
-	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, events, true);
+	m_Ship->GetOperator()->GetDestiny()->SendDestinyUpdate(updates, events, false);
 
 	// Create Special Effect:
 	uint32 chargeID = 0;
 	if( m_chargeLoaded )
 		chargeID = m_chargeRef->itemID();
 
+	std::string effectsString;
+	if (getItem()->groupID() == EVEDB::invGroups::Gas_Cloud_Harvester)
+		effectsString = "effects.CloudMining";
+	else
+		effectsString = "effects.Mining";
 	m_Ship->GetOperator()->GetDestiny()->SendSpecialEffect
 	(
 		m_Ship,
@@ -371,7 +386,7 @@ void MiningLaser::_ShowCycle()
 		m_Item->typeID(),
 		m_targetID,
 		chargeID,
-		"effects.Laser",
+		effectsString,
 		0,
 		1,
 		1,
