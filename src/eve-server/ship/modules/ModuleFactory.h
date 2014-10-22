@@ -39,6 +39,7 @@
 #include "ship/modules/weapon_modules/HybridTurret.h"
 #include "ship/modules/weapon_modules/ProjectileTurret.h"
 #include "ship/modules/weapon_modules/MissileLauncher.h"
+#include "ship/modules/weapon_modules/SuperWeapon.h"
 
 //how you should access the modules
 static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
@@ -167,7 +168,7 @@ static GenericModule* ModuleFactory(InventoryItemRef item, ShipRef ship)
             case EVEDB::invGroups::Missile_Launcher_Assault:                return (new MissileLauncher(item, ship)); break;    // Active - external
             case EVEDB::invGroups::Missile_Launcher_Defender:               return (new MissileLauncher(item, ship)); break;    // Active - external
             case EVEDB::invGroups::Missile_Launcher_Citadel:                return (new MissileLauncher(item, ship)); break;    // Active - external
-            case EVEDB::invGroups::Super_Weapon:                            return (new ActiveModule(item, ship)); break;       // Active - external
+            case EVEDB::invGroups::Super_Weapon:                            return (new SuperWeapon(item, ship)); break;       // Active - external
             case EVEDB::invGroups::Interdiction_Sphere_Launcher:            return (new ActiveModule(item, ship)); break;       // Active - external
             case EVEDB::invGroups::Missile_Launcher_Heavy_Assault:          return (new MissileLauncher(item, ship)); break;    // Active - external
             case EVEDB::invGroups::Missile_Launcher_Bomb:                   return (new MissileLauncher(item, ship)); break;    // Active - external
