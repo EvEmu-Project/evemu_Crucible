@@ -32,7 +32,7 @@ PyRep *FactoryDB::GetMaterialsForTypeWithActivity(const uint32 blueprintTypeID) 
 
     if(!sDatabase.RunQuery(res,
                 "SELECT requiredTypeID, quantity, damagePerJob, activityID"
-                " FROM typeActivityMaterials"
+                " FROM ramTypeRequirements"
                 " WHERE typeID = %u",
                 blueprintTypeID))
     {
@@ -48,7 +48,7 @@ PyRep *FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) const {
 
     if(!sDatabase.RunQuery(res,
                 "SELECT requiredTypeID AS typeID, quantity"
-                " FROM typeActivityMaterials"
+                " FROM ramTypeRequirements"
                 " WHERE typeID = (SELECT blueprintTypeID FROM invBlueprintTypes WHERE productTypeID = %u)"
                 " AND activityID = 1"
                 " AND damagePerJob = 1",
