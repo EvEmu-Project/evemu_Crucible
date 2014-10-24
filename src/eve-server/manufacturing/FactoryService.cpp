@@ -61,13 +61,13 @@ PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
 }
 
 PyResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {
-    Call_TwoIntegerArgs call_args;
+	Call_SingleIntegerArg call_args;
     if(!call_args.Decode(&call.tuple)) {
         _log(SERVICE__MESSAGE, "Failed to decode args.");
         return NULL;
     }
 
-    return(m_db.GetMaterialsForTypeWithActivity(call_args.arg1));
+    return(m_db.GetMaterialsForTypeWithActivity(call_args.arg));
 }
 
 PyResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs &call) {
