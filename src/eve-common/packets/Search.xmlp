@@ -1,0 +1,14 @@
+
+
+<elements>
+
+  <elementDef name="CallSearch">
+    <tupleInline>
+      <wstring name="searchString" />
+      <listInt name="type" />
+    </tupleInline>
+  </elementDef>
+
+</elements>
+
+
