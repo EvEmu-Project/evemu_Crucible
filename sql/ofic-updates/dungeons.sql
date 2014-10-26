@@ -118,7 +118,7 @@ INSERT INTO `dungeons` (`dungeonID`, `dungeonName`, `dungeonTypeID`, `chance`, `
 -- gm commands should override this though. this isn't a server check for any instances of a specific wormhole/whatever, it's the check for any instances of the appropriate dungeon kind. there can be multiple kids of the same 'type' of dungeon. in different locations.
 
 
-
+/*
 -- ----------------------------
 -- Table structure for `dungeonspawns`
 -- ----------------------------
@@ -143,3 +143,4 @@ INSERT INTO `dungeons` (`dungeonID`, `dungeonName`, `dungeonTypeID`, `chance`, `
 -- most spawns would have a 1.00 (100% chance of spawning. Some do not. Some may spawn in a group and are linked. I believe this would be more elegant in the spawns table. But they are flawed at this time.
 -- script is a placeholder in the DB to refer to any particular activity the spawn may do on initial player entry (move to x,y,z attack t etc etc)
 -- This table should be ignored at this time
+*/
