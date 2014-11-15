@@ -42,7 +42,7 @@ ELSEIF( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
   ELSE()
 	# MAC OS-X 32-bit
 	SET( PKG_NAME "mysql-5.5.25a-osx10.6-x86" )
-	SET( PKG_MD5 "c73df15ab9489053890eb02ead2b3d17")
+	SET( PKG_MD5 "e382787cd7307ff68d7cc9a56c60f9d9")
   ENDIF()
   # MAC OS-X
   SET( PKG-ARCHIVE "${PKG_NAME}.tar.gz" )
