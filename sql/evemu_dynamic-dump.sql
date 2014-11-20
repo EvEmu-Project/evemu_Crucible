@@ -696,19 +696,6 @@ CREATE TABLE `market_transactions` (
 
 /*Data for the table `market_transactions` */
 
-/*Table structure for table `npcStandings` */
-
-DROP TABLE IF EXISTS `npcStandings`;
-
-CREATE TABLE `npcStandings` (
-  `fromID` int(10) unsigned NOT NULL default '0',
-  `toID` int(10) unsigned NOT NULL default '0',
-  `standing` double NOT NULL default '0',
-  PRIMARY KEY  (`fromID`,`toID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-/*Data for the table `npcStandings` */
-
 /*Table structure for table `ramAssemblyLineStationCostLogs` */
 
 DROP TABLE IF EXISTS `ramAssemblyLineStationCostLogs`;
