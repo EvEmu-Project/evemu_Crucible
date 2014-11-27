@@ -10,7 +10,7 @@ CREATE TABLE `npcStandings` (
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 /*Data for the table `npcStandings` */
-INSERT INTO npcstandings (fromID, toID, standing) VALUES
+INSERT INTO npcStandings (fromID, toID, standing) VALUES
 ('500003','500018','5'),
 ('500007','500003','9'),
 ('500007','500018','4'),
