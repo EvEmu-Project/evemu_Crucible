@@ -243,6 +243,8 @@ protected:
     void _UpdateSession( const CharacterConstRef& character );
     void _UpdateSession2( uint32 characterID  );
 
+    void _DropLoot(uint32 groupID, uint32 owner, uint32 locationID);
+
     // Packet stuff
     void _SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel = NULL );
     void _SendException( const PyAddress& source, uint64 callID, MACHONETMSG_TYPE in_response_to, MACHONETERR_TYPE exception_type, PyRep** payload );

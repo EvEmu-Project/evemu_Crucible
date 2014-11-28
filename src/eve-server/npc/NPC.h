@@ -113,8 +113,8 @@ entityAttackDelayMax
 
 
 protected:
+    void _DropLoot(uint32 groupID, uint32 owner, uint32 locationID);
     void _AwardBounty(SystemEntity *who);
-    void _DropLoot(SystemEntity *owner);
 
     SystemManager *const m_system;    //we do not own this
     PyServiceMgr &m_services;    //we do not own this

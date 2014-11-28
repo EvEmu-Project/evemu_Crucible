@@ -20,12 +20,14 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Aknor Jaden
+    Author:        Aknor Jaden, Allan
 */
 
 #ifndef WRECKS_AND_LOOT_H
 #define WRECKS_AND_LOOT_H
 
+#include "system/SystemDB.h"
+#include <vector>
 
 // //////////////// Permanent Memory Object Classes //////////////////////
 
@@ -53,7 +55,52 @@ protected:
     ( DGM_Types_to_Wrecks_Table::get() )
 // -----------------------------------------------------------------------
 
+//  CLASS DEFINITION FOR LOOT SYSTEM
+//  struct objects for holding loot data.
 
+struct DBLootGroup {
+    uint32 groupID;
+    uint32 lootGroupID;
+    double dropChance;
+};
+
+struct DBLootGroupType {
+    uint32 lootGroupID;
+    uint32 typeID;
+    double chance;
+    uint32 minQuantity;
+    uint32 maxQuantity;
+};
+
+// This class is a singleton object, containing all loot items/defs loaded from npcLoot* table
+class DGM_Loot_Groups_Table
+: public Singleton< DGM_Loot_Groups_Table >
+{
+public:
+    DGM_Loot_Groups_Table();
+    ~DGM_Loot_Groups_Table();
+
+    typedef std::vector<DBLootGroup> LootGroupDef;
+    typedef std::vector<DBLootGroupType> LootGroupTypeDef;
+    typedef LootGroupDef::iterator LootGroupItr;
+    typedef LootGroupTypeDef::iterator LootGroupTypeItr;
+
+    // Initializes the Table:
+    int Initialize();
+
+    // Returns vector lootGroupIDs
+    //  0 if no match
+    void GetLoot(uint32 groupID, LootGroupTypeDef &lootList);
+
+protected:
+    void _Populate();
+
+    LootGroupDef m_LootGroupMap;
+    LootGroupTypeDef m_LootGroupTypeMap;
+};
+
+#define sDGM_Loot_Groups_Table \
+( DGM_Loot_Groups_Table::get() )
 //////////////////////////////////////////////////////////////////////////
 
 #endif

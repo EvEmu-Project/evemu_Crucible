@@ -25,6 +25,8 @@
 
 #include "eve-core.h"
 
+#include <chrono>
+
 #include "utils/utils_time.h"
 
 const uint64 Win32Time_Second = 10000000L;
@@ -70,4 +72,25 @@ uint64 Win32TimeNow() {
 #else /* !HAVE_WINDOWS_H */
     return(UnixTimeToWin32Time(time(NULL), 0));
 #endif /* !HAVE_WINDOWS_H */
+}
+
+double GetTimeMSeconds() {
+    /*  higher resolution times....the 'GetTimeSeconds' defined above with interger resolution suxs for
+     *  speed/time data manipulation
+     *
+     * win32timenow returns tenths resolution.
+     * 1305821829.40000000
+     *
+     * resolution of double will give 1 ten-millionth precision (5 places, or 1/100000)
+     *   using milliseconds should be high enough for warp distance calculations
+     */
+
+    // WINDOWS USERS......this should get ms precision, but i have no way to test it.
+
+    //  NOTE  std::chrono and system_clock::now() require C++11
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();     // return in nanoseconds
+    double millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    millis /= 1000;
+    return (millis);
 }

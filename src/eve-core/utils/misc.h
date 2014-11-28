@@ -84,4 +84,6 @@ int64 MakeRandomInt( int64 low = 0, int64 high = RAND_MAX );
  */
 double MakeRandomFloat( double low = 0, double high = 1 );
 
+float gen_random_float(float min = 0, float max = 1);
+
 #endif /* !__MISC_H__INCL__ */
