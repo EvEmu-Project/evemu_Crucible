@@ -1628,7 +1628,11 @@ void Client::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
         uint16 quantity = 0;
         std::vector<DBLootGroupType>::iterator cur = lootList.begin();
         while (cur != lootList.end()) {
-            quantity = rand() % (((cur->maxQuantity - cur->minQuantity) + 1) + cur->minQuantity);
+            if (cur->minQuantity == cur->maxQuantity)
+                quantity = cur->minQuantity;
+            else
+                quantity = gen_random_float(cur->minQuantity, cur->maxQuantity);
+            if (quantity < 1) quantity = 1;
             ItemData iLoot(cur->typeID, owner, locationID, flagAutoFit, quantity);
             m_system->itemFactory().SpawnItem(iLoot);
             ++cur;
@@ -1645,7 +1649,11 @@ void NPC::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
         uint16 quantity = 0;
         std::vector<DBLootGroupType>::iterator cur = lootList.begin();
         while (cur != lootList.end()) {
-            quantity = rand() % (((cur->maxQuantity - cur->minQuantity) + 1) + cur->minQuantity);
+            if (cur->minQuantity == cur->maxQuantity)
+                quantity = cur->minQuantity;
+            else
+                quantity = gen_random_float(cur->minQuantity, cur->maxQuantity);
+            if (quantity < 1) quantity = 1;
             ItemData iLoot(cur->typeID, owner, locationID, flagAutoFit, quantity);
             m_system->itemFactory().SpawnItem(iLoot);
             ++cur;
@@ -1662,7 +1670,11 @@ void ShipEntity::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
         uint16 quantity = 0;
         std::vector<DBLootGroupType>::iterator cur = lootList.begin();
         while (cur != lootList.end()) {
-            quantity = rand() % (((cur->maxQuantity - cur->minQuantity) + 1) + cur->minQuantity);
+            if (cur->minQuantity == cur->maxQuantity)
+                quantity = cur->minQuantity;
+            else
+                quantity = gen_random_float(cur->minQuantity, cur->maxQuantity);
+            if (quantity < 1) quantity = 1;
             ItemData iLoot(cur->typeID, owner, locationID, flagAutoFit, quantity);
             m_system->itemFactory().SpawnItem(iLoot);
             ++cur;
