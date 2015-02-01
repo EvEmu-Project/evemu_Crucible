@@ -1621,19 +1621,19 @@ void StationEntity::Killed(Damage &fatal_blow)
 
 void Client::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
     /*   allan 27Nov14    */
-    std::vector<DBLootGroupType> lootList;
+    std::vector<LootList> lootList;
     sDGM_Loot_Groups_Table.GetLoot(groupID, lootList);
 
     if (!lootList.empty()) {
-        uint16 quantity = 0;
-        std::vector<DBLootGroupType>::iterator cur = lootList.begin();
+        uint32 quantity = 0;
+        std::vector<LootList>::iterator cur = lootList.begin();
         while (cur != lootList.end()) {
-            if (cur->minQuantity == cur->maxQuantity)
-                quantity = cur->minQuantity;
+            if (cur->minDrop == cur->maxDrop)
+                quantity = cur->minDrop;
             else
-                quantity = gen_random_float(cur->minQuantity, cur->maxQuantity);
+                quantity = static_cast<uint32>(MakeRandomInt(cur->minDrop, cur->maxDrop));
             if (quantity < 1) quantity = 1;
-            ItemData iLoot(cur->typeID, owner, locationID, flagAutoFit, quantity);
+            ItemData iLoot(cur->itemID, owner, locationID, flagAutoFit, quantity);
             m_system->itemFactory().SpawnItem(iLoot);
             ++cur;
         }
@@ -1642,19 +1642,19 @@ void Client::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
 
 void NPC::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
     /*   allan 27Nov14    */
-    std::vector<DBLootGroupType> lootList;
+    std::vector<LootList> lootList;
     sDGM_Loot_Groups_Table.GetLoot(groupID, lootList);
 
     if (!lootList.empty()) {
-        uint16 quantity = 0;
-        std::vector<DBLootGroupType>::iterator cur = lootList.begin();
+        uint32 quantity = 0;
+        std::vector<LootList>::iterator cur = lootList.begin();
         while (cur != lootList.end()) {
-            if (cur->minQuantity == cur->maxQuantity)
-                quantity = cur->minQuantity;
+            if (cur->minDrop == cur->maxDrop)
+                quantity = cur->minDrop;
             else
-                quantity = gen_random_float(cur->minQuantity, cur->maxQuantity);
+                quantity = static_cast<uint32>(MakeRandomInt(cur->minDrop, cur->maxDrop));
             if (quantity < 1) quantity = 1;
-            ItemData iLoot(cur->typeID, owner, locationID, flagAutoFit, quantity);
+            ItemData iLoot(cur->itemID, owner, locationID, flagAutoFit, quantity);
             m_system->itemFactory().SpawnItem(iLoot);
             ++cur;
         }
@@ -1663,19 +1663,19 @@ void NPC::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
 
 void ShipEntity::_DropLoot(uint32 groupID, uint32 owner, uint32 locationID) {
     /*   allan 27Nov14    */
-    std::vector<DBLootGroupType> lootList;
+    std::vector<LootList> lootList;
     sDGM_Loot_Groups_Table.GetLoot(groupID, lootList);
 
     if (!lootList.empty()) {
-        uint16 quantity = 0;
-        std::vector<DBLootGroupType>::iterator cur = lootList.begin();
+        uint32 quantity = 0;
+        std::vector<LootList>::iterator cur = lootList.begin();
         while (cur != lootList.end()) {
-            if (cur->minQuantity == cur->maxQuantity)
-                quantity = cur->minQuantity;
+            if (cur->minDrop == cur->maxDrop)
+                quantity = cur->minDrop;
             else
-                quantity = gen_random_float(cur->minQuantity, cur->maxQuantity);
+                quantity = static_cast<uint32>(MakeRandomInt(cur->minDrop, cur->maxDrop));
             if (quantity < 1) quantity = 1;
-            ItemData iLoot(cur->typeID, owner, locationID, flagAutoFit, quantity);
+            ItemData iLoot(cur->itemID, owner, locationID, flagAutoFit, quantity);
             m_system->itemFactory().SpawnItem(iLoot);
             ++cur;
         }

@@ -112,20 +112,20 @@ void DGM_Loot_Groups_Table::_Populate()
     DBQueryResult *res = new DBQueryResult();
 
     //first get all loot groups from LootGroup table
-    SystemDB::GetLootGroups(*res);
+    m_db.GetLootGroups(*res);
     DBResultRow row;
     DBLootGroup LootGroup;
     while( res->GetRow(row) ) {
-        LootGroup.groupID = row.GetInt(0);
+        //LootGroup.groupID = row.GetInt(0);
         LootGroup.lootGroupID = row.GetInt(1);
         LootGroup.dropChance = row.GetDouble(2);
-        m_LootGroupMap.push_back(LootGroup);
+        m_LootGroupMap.emplace(row.GetInt(0), LootGroup);
     }
 
     res->Reset();
 
     //second get all types from LootGroupTypes table
-    SystemDB::GetLootGroupTypes(*res);
+    m_db.GetLootGroupTypes(*res);
     DBLootGroupType GroupType;
     while( res->GetRow(row) ) {
         GroupType.lootGroupID = row.GetInt(0);
@@ -133,49 +133,41 @@ void DGM_Loot_Groups_Table::_Populate()
         GroupType.chance = row.GetDouble(2);
         GroupType.minQuantity = row.GetInt(3);
         GroupType.maxQuantity = row.GetInt(4);
-        m_LootGroupTypeMap.push_back(GroupType);
+        m_LootGroupTypeMap.emplace(row.GetInt(0), GroupType);
     }
 
-    sLog.Log("       Loot_Table", "%u loot group and %u loot type definitions loaded", m_LootGroupMap.size(), m_LootGroupTypeMap.size());
+    uint16 buckets = (m_LootGroupMap.bucket_count() + m_LootGroupTypeMap.bucket_count());
+    uint16 size = (m_LootGroupMap.size() + m_LootGroupTypeMap.size());
+
+    sLog.Log("       Loot_Table", "%u loot group buckets and %u definitions loaded", buckets, size);
 }
 
-void DGM_Loot_Groups_Table::GetLoot(uint32 groupID, LootGroupTypeDef &lootList) {
-    double start = GetTimeMSeconds();
+void DGM_Loot_Groups_Table::GetLoot(uint32 groupID, LootListDef &lootList)
+{
     double randChance = 0.0;
+    LootGroupTypeVec loot_group_list;
 
-    DBLootGroupType loot_list1;
-    LootGroupTypeDef loot_list2;
+    // Finds a range containing all elements whose key is k.
+    // pair<iterator, iterator> equal_range(const key_type& k)
+    auto range = m_LootGroupMap.equal_range(groupID);
+    for ( auto it = range.first; it != range.second; it++ ) {
+        randChance = MakeRandomFloat(0, 1);      // FIXME adjust this later   -used to determine initial loot groups
 
-    LootGroupItr curGroupItr = m_LootGroupMap.begin();
-    LootGroupTypeItr curTypeItr = m_LootGroupTypeMap.begin();
-
-    while (curGroupItr != m_LootGroupMap.end()) {
-        if (curGroupItr->groupID == groupID) {
-            randChance = gen_random_float(0.00, 1.00);      // used to determine initial loot groups
-            if (randChance < curGroupItr->dropChance) {
-                while (curTypeItr != m_LootGroupTypeMap.end()) {
-                    if (curTypeItr->lootGroupID == curGroupItr->lootGroupID) {
-                        loot_list1.lootGroupID = curTypeItr->lootGroupID;
-                        loot_list1.typeID = curTypeItr->typeID;
-                        loot_list1.chance = curTypeItr->chance;
-                        loot_list1.minQuantity = curTypeItr->minQuantity;
-                        loot_list1.maxQuantity = curTypeItr->maxQuantity;
-                        loot_list2.push_back(loot_list1);
-                    }
-                    ++curTypeItr;
-                }
-                curTypeItr = m_LootGroupTypeMap.begin();
+        // make lootMap of lootGroupID's
+        if (randChance < it->second.dropChance){
+            auto range2 = m_LootGroupTypeMap.equal_range(it->second.lootGroupID);
+            for (auto it2 = range2.first; it2 != range2.second; it2++) {
+                loot_group_list.push_back(it2->second);
             }
         }
-        ++curGroupItr;
     }
 
-    if (!loot_list2.empty()) {
+    if (!loot_group_list.empty()) {
         uint16 group = 0;
-        float random = gen_random_float(0, 1);
+        float random = MakeRandomFloat(0, 1);
         float lootChance = 0.0f;
-        DBLootGroupType loot_list;
-        LootGroupTypeItr curLootListItr = loot_list2.begin();
+        LootList loot_list;
+        //LootGroupTypeVecItr curLootListItr = loot_group_list.begin();
 
         /*  chance here is additive.  if the first item doesnt meet the chance, the next item in the list is loaded
          * then THAT chance is added to the first, then checked against the randChance roll, and looped again.
@@ -184,30 +176,26 @@ void DGM_Loot_Groups_Table::GetLoot(uint32 groupID, LootGroupTypeDef &lootList) 
          * if the current item belongs to the same group as an item already chosen for that group, it is bypassed,
          * and the loop continues.
          * the random chance is rolled ONCE for each group, and reset (along with lootChance variable) after an item
-         * is chosen from the current group.  after an item is chosen, it is inserted into a vector, then this vector
-         * is then sent to the caller (in Damage.cpp) for addition into the wreck container
+         * is chosen from the current group.  this vector is then sent to the caller (in Damage.cpp) for addition into
+         * the wreck container
          */
 
-        while (curLootListItr != loot_list2.end()) {
-            if (curLootListItr->lootGroupID != group) {
-                lootChance += curLootListItr->chance;
+        for (auto i : loot_group_list ) {
+            if (i.lootGroupID != group) {
+                lootChance += i.chance;
+
                 if (random < lootChance) {
-                    loot_list.lootGroupID = curLootListItr->lootGroupID;
-                    loot_list.typeID = curLootListItr->typeID;
-                    loot_list.chance = curLootListItr->chance;
-                    loot_list.minQuantity = curLootListItr->minQuantity;
-                    loot_list.maxQuantity = curLootListItr->maxQuantity;
+                    loot_list.itemID = i.typeID;
+                    loot_list.minDrop = i.minQuantity;
+                    loot_list.maxDrop = i.maxQuantity;
                     lootList.push_back(loot_list);
+
                     // reset for next loot group
                     lootChance = 0;
-                    group = curLootListItr->lootGroupID;
-                    random = gen_random_float(0, 1);
+                    group = i.lootGroupID;
+                    random = MakeRandomFloat(0, 1);
                 }
             }
-            ++curLootListItr;
         }
     }
-
-    double timer = (GetTimeMSeconds() - start);
-    sLog.Log("        GetLoot()", "Took %f s to iterate thru %u loops, with %u loot items passed and %u returned", timer, m_LootGroupMap.size(), loot_list2.size(), lootList.size());
 }
