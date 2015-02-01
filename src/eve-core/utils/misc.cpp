@@ -25,10 +25,6 @@
 
 #include "eve-core.h"
 
-#include "boost/random/variate_generator.hpp"
-#include "boost/random/uniform_real.hpp"
-#include "boost/random/mersenne_twister.hpp"
-
 #include "utils/misc.h"
 
 static uint16 crc16_table[ 256 ] =
@@ -128,12 +124,4 @@ double MakeRandomFloat( double low, double high )
     }
 
     return low + ( high - low ) * ::rand() / RAND_MAX;
-}
-
-float gen_random_float(float min, float max)
-{
-    boost::mt19937 rng;
-    boost::uniform_real<float> u(min, max);
-    boost::variate_generator<boost::mt19937&, boost::uniform_real<float> > gen(rng, u);
-    return gen();
 }
