@@ -506,6 +506,7 @@ void SystemBubble::_BubblecastRemoveBall(SystemEntity *about_who) {
 
     PyTuple *tmp = removeball.Encode();
     BubblecastDestinyUpdate(&tmp, "RemoveBall");    //consumed
+    PySafeDecRef( tmp );
 }
 
 
@@ -525,4 +526,5 @@ void SystemBubble::_BubblecastRemoveBallExclusive(SystemEntity *about_who) {
 
     PyTuple *tmp = removeball.Encode();
     BubblecastDestinyUpdateExclusive(&tmp, "RemoveBall", about_who);    //consumed
+    PySafeDecRef( tmp );
 }
