@@ -123,26 +123,19 @@ void BubbleManager::Add(SystemEntity *ent, bool notify, bool isPostWarp) {
     NewBubbleCenter( shipVelocity, newBubbleCenter );   // Calculate new bubble's center based on entity's velocity and current position
 
     SystemBubble *in_bubble;
-    shipVelocity.normalize();
+
     if( isPostWarp )
         in_bubble = FindBubble(newBubbleCenter);
     else
         in_bubble = FindBubble(ent->GetPosition());
 
     if(in_bubble != NULL) {
-        in_bubble->Add(ent, notify);
+        in_bubble->Add(ent, notify, isPostWarp);
         sLog.Debug( "BubbleManager::Add()", "SystemEntity '%s' being added to existing Bubble %u", ent->GetName(), in_bubble->GetBubbleID() );
         return;
     }
-//    // this System Entity is not in any existing bubble, so let's make a new bubble
-//    // using the current position of this System Entity, however, we want to create this
-//    // new bubble's center further along the direction of travel from the position of this
-//    // System Entity by the amount specified by BUBBLE_HYSTERESIS_METERS and BUBBLE_DIAMETER_METERS:
-//    GPoint newBubbleCenter(ent->GetPosition());
-//    GVector shipVelocity(ent->GetVelocity());
-//    NewBubbleCenter( shipVelocity, newBubbleCenter );   // Calculate new bubble's center based on entity's velocity and current position
-
-in_bubble = new SystemBubble(newBubbleCenter, BUBBLE_DIAMETER_METERS);
+    
+    in_bubble = new SystemBubble(newBubbleCenter, BUBBLE_DIAMETER_METERS);
     sLog.Debug( "BubbleManager::Add()", "SystemEntity '%s' being added to NEW Bubble %u", ent->GetName(), in_bubble->GetBubbleID() );
     //TODO: think about bubble colission. should we merge them?
     m_bubbles.push_back(in_bubble);

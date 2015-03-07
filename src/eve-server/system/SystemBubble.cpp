@@ -180,7 +180,7 @@ bool SystemBubble::ProcessWander(std::vector<SystemEntity *> &wanderers) {
     return false;
 }
 
-void SystemBubble::Add(SystemEntity *ent, bool notify) {
+void SystemBubble::Add(SystemEntity *ent, bool notify, bool isPostWarp) {
     //notify before addition so we do not include ourself.
     if(notify) {
         _SendAddBalls(ent);
@@ -206,6 +206,28 @@ void SystemBubble::Add(SystemEntity *ent, bool notify) {
     ent->m_bubble = this;
     if(ent->IsStaticEntity() == false) {
         m_dynamicEntities.insert(ent);
+    }
+
+    // if entity is warping into this bubble, let everybody know their warp to point.
+    //  this is a hack until i fix DestinyMessaging.
+    if (isPostWarp) {
+        Client *c = ent->CastToClient();
+        if (c->Destiny() == NULL) return;
+
+        GPoint target = c->Destiny()->GetTargetPoint();
+
+        DoDestiny_CmdWarpTo wt;
+        wt.entityID = ent->GetID();
+        wt.dest_x = target.x;
+        wt.dest_y = target.y;
+        wt.dest_z = target.z;
+        wt.distance = c->Destiny()->GetDistance();
+        wt.warpSpeed = c->Destiny()->GetWarpSpeed();
+
+        //exclusive bubblecast the update to all entities in bubble except warping entity, as they already know where they're going.
+        PyTuple* t = wt.Encode();
+        BubblecastDestinyUpdateExclusive( &t, "Exclusive WarpTo", ent );
+        //PySafeDecRef( t );
     }
 
 	// Trigger SpawnManager for this bubble to generate NPC Spawn, if any,
