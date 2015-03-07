@@ -25,8 +25,8 @@
 #ifndef __BUBBLEMANAGER_H_INCL__
 #define __BUBBLEMANAGER_H_INCL__
 
-#define BUBBLE_RADIUS_METERS 500000.0       // EVE retail uses 250km and allows grid manipulation, for simplicity we dont and have our grid much larger
-#define BUBBLE_HYSTERESIS_METERS 5000.0     // How far out of the existing bubble a ship needs to fly before being placed into a new or different bubble
+static const float BUBBLE_DIAMETER_METERS = 500000.0f;       // EVE retail uses 250km and allows grid manipulation, for simplicity we dont and have our grid much larger
+static const float BUBBLE_HYSTERESIS_METERS = 5000.0f;     // How far out of the existing bubble a ship needs to fly before being placed into a new or different bubble
 
 class SystemEntity;
 class SystemBubble;
@@ -58,7 +58,7 @@ public:
     //call to calculate new bubble's center from entity's velocity:
     void NewBubbleCenter(GVector shipVelocity, GPoint & newBubbleCenter);
     //call when an entity is removed from the system.
-    void Remove(SystemEntity *ent, bool notify);
+    void Remove(SystemEntity *ent, bool notify=true);
     void clear();
 
 protected:

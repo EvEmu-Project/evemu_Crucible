@@ -184,7 +184,7 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 	PyList* modifiers = new PyList();
 	PyObjectEx* appearance;
 	PyList* sculpts = new PyList();
-	
+
 	colors = data->GetItemString("colors")->AsList();
 	modifiers = data->GetItemString("modifiers")->AsList();
 	appearance = data->GetItemString("appearance")->AsObjectEx();
@@ -215,7 +215,7 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 								color_tuple->GetItem(3)->AsInt()->value(),
 								color_tuple->GetItem(4)->AsFloat()->value(),
 								color_tuple->GetItem(5)->AsFloat()->value());
-			
+
 		}
 	}
 
@@ -270,7 +270,7 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 									sculpt_tuple->GetItem(2),
 									sculpt_tuple->GetItem(3),
 									sculpt_tuple->GetItem(4));
-			
+
 		}
 	}
 }
@@ -369,7 +369,7 @@ CharacterRef Character::Spawn(ItemFactory &factory,
     // InventoryItem stuff:
     ItemData &data,
     // Character stuff:
-    CharacterData &charData, CorpMemberInfo &corpData) 
+    CharacterData &charData, CorpMemberInfo &corpData)
 {
     uint32 characterID = Character::_Spawn( factory, data, charData, corpData );
     if( characterID == 0 )
@@ -387,7 +387,7 @@ uint32 Character::_Spawn(ItemFactory &factory,
     // InventoryItem stuff:
     ItemData &data,
     // Character stuff:
-    CharacterData &charData, CorpMemberInfo &corpData) 
+    CharacterData &charData, CorpMemberInfo &corpData)
 {
     // make sure it's a character
     const CharacterType *ct = factory.GetCharacterType(data.typeID);
@@ -552,6 +552,30 @@ SkillRef Character::GetSkill(uint32 skillTypeID) const
         skill = GetByTypeFlag( skillTypeID, flagSkillInTraining );
 
     return SkillRef::StaticCast( skill );
+}
+
+int Character::GetSkillLevel(uint32 skillTypeID, bool zeroForNotInjected /*true*/) const {
+    SkillRef requiredSkill = GetSkill( skillTypeID );
+    // First, check for existence of skill trained or in training:
+    if( !requiredSkill ) return zeroForNotInjected ? 0 : -1;
+    return requiredSkill->GetAttribute(AttrSkillLevel).get_int() ;
+}
+
+float Character::GetAgilitySkills(bool cap) {
+    /*    Evasive Maneuvering  5% improved ship agility for all ships per skill level.
+     *    Spaceship Command   2% improved ship agility for all ships per skill level.
+     *    Advanced Spaceship Command    5% Bonus per skill level to the agility of ships requiring Advanced Spaceship Command
+     *    Capital Ships   5% bonus per skill level to the agility of ships requiring Capital Ships
+     */
+    float modifier = 0.0f;
+    modifier += ( 5 * GetSkillLevel(skillEvasiveManeuvering, true));  //5%
+    modifier += ( 2 * GetSkillLevel(skillSpaceshipCommand, true));  //2%
+    if(cap) {
+        modifier += ( 5 * GetSkillLevel(skillAdvancedSpaceshipCommand, true));  //5%
+        modifier += ( 5 * GetSkillLevel(skillCapitalShips, true));    //5%
+    }
+    modifier /= 100;
+    return modifier;
 }
 
 SkillRef Character::GetSkillInTraining() const
@@ -876,7 +900,7 @@ void Character::UpdateSkillQueue()
             currentTraining->SetAttribute(AttrExpiryTime, 0);
 
             currentTraining->MoveInto( *this, flagSkill, true );
-			
+
 			// Save changes to this skill now that it has finished training:
 			currentTraining->SaveItem();
 
@@ -924,7 +948,7 @@ void Character::UpdateSkillQueueEndTime(const SkillQueue &queue)
     {
         const QueuedSkill &qs = queue[ i ];     // get skill id from queue
         SkillRef skill = Character::GetSkill( qs.typeID );   //make ref for current skill
-        
+
         chrMinRemaining += (skill->GetSPForLevel(qs.level) - skill->GetAttribute( AttrSkillPoints )) / GetSPPerMin(skill);
     }
     chrMinRemaining = chrMinRemaining * EvilTime_Minute + EvilTimeNow();

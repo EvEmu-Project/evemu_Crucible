@@ -230,8 +230,7 @@ PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
         return NULL;
     }
 
-    const GPoint &position = entity->GetPosition();
-    destiny->AlignTo( position );
+    destiny->AlignTo( entity );
 
     return NULL;
 }

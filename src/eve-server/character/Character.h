@@ -278,7 +278,7 @@ public:
    double weightUpDown;
    double weightLeftRight;
    double weightForwardBack;
-   
+
    void Build(uint32 ownerID, PyDict* data);
 
 private:
@@ -377,6 +377,23 @@ public:
      * @return Pointer to Skill object; NULL if skill was not found.
      */
     SkillRef GetSkill(uint32 skillTypeID) const;
+    /**
+     * Gets level of skill that is trained.
+     *
+     * @param[in] skillTypeID ID of skill type to be checked
+     * @param[in] zeroForNotInjected true if method should return 0 for un injected skills,
+     *  false if it should return -1
+     * @return value 0..5 - the level of skill trained, or, if it was not injected,
+     *  0 if zeroForNotInjected.is true, -1 otherwise
+     */
+    int GetSkillLevel(uint32 skillTypeID, bool zeroForNotInjected=true) const;
+    /**
+     * Get ship agility modifier
+     *
+     * @param[in] cap boolean to add capital ship skills also.
+     * @return total modifier for ship agility
+     */
+    float GetAgilitySkills(bool cap=false);
     /**
      * Returns skill currently in training.
      *

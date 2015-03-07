@@ -155,6 +155,7 @@ public:
     void SavePosition();
     void SaveAllToDatabase();
     void UpdateSkillTraining();
+    void SpawnNewRookieShip();
 
     double GetPropulsionStrength() const;
 
@@ -172,6 +173,9 @@ public:
     void GetDockingPoint(GPoint &dockPoint);
     bool GetPendingDockOperation() { return m_needToDock; };
     void SetPendingDockOperation(bool needToDock) { m_needToDock = needToDock; }
+    void SetAutoPilot(bool);
+    // set true for using autopilot.
+    bool m_autoPilot = false;
 
     // THESE FUNCTIONS ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
     void SetJustUndocking(bool justUndocking)
@@ -218,6 +222,7 @@ public:
 
     virtual const char *GetName() const { return GetChar() ? GetChar()->itemName().c_str() : "(null)"; }
     virtual PyDict *MakeSlimItem() const;
+    virtual PyRep *GetAggressors() const;
     virtual void QueueDestinyUpdate(PyTuple** du);
     virtual void QueueDestinyEvent(PyTuple** multiEvent);
 

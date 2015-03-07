@@ -70,7 +70,7 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
 }
 
 Client::~Client() {
-    if( GetChar() ) {
+    if ( GetChar() ) {
         // we have valid character
 
         // LSC logout
@@ -81,24 +81,21 @@ Client::~Client() {
 
         // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
-		if( GetShip() != NULL )
+        GetChar()->SaveFullCharacter();                     // Save Character info to DB
+        GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
+
+		if ( GetShip() )
 			GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
-		if( GetChar() != NULL )
-		{
-	        GetChar()->SaveFullCharacter();                     // Save Character info to DB
-			GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
-		}
 
         // remove ourselves from system
-        if(m_system != NULL)
+        if ( m_system )
             m_system->RemoveClient(this);   //handles removing us from bubbles and sending RemoveBall events.
 
         //johnsus - characterOnline mod
-        // switch character online flag to 0
         m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
     }
 
-    if(GetAccountID() != 0) { // this is not very good ....
+    if ( GetAccountID() ) { // this is not very good ....
         m_services.serviceDB().SetAccountOnlineStatus(GetAccountID(), false);
     }
 
@@ -417,7 +414,7 @@ bool Client::UpdateLocation() {
         {
 
             // This is NOT a login, so we always enter a system stopped.
-            m_destiny->Halt(false);
+            m_destiny->Halt();
             //set position.
             m_destiny->SetPosition(GetShip()->position(), false);
         }
@@ -487,9 +484,9 @@ void Client::MoveToLocation( uint32 location, const GPoint& pt )
 }
 
 void Client::MoveToPosition(const GPoint &pt) {
-    if(m_destiny == NULL)
+    if(m_destiny)
         return;
-    m_destiny->Halt(true);
+    m_destiny->Halt();
     m_destiny->SetPosition(pt, true);
     GetShip()->Relocate(pt);
 }
@@ -672,7 +669,7 @@ void Client::_UpdateSession2( uint32 characterID )
     mSession.SetLong( "rolesAtOther", rolesAtOther );
 
     m_shipId = shipID;
-    if( m_char != NULL )
+    if( m_char )
         m_char->SetActiveShip(m_shipId);
     if (IsInSpace())
         mSession.SetInt( "shipid", shipID );
@@ -1011,6 +1008,28 @@ PyDict *Client::MakeSlimItem() const {
     return(slim);
 }
 
+PyRep *Client::GetAggressors() const {
+    PyDict *dict = NULL;
+    /*  items are set here as
+     *               [PyInt 90971469]     <- entity
+     *               [PyDict 1 kvp]       <- dictionary
+     *                  [PyInt 1000127]   <- agression TO corpID
+     *                  [PyIntegerVar 129550906897224125] <- timestamp (dont know if this is begin time or end time)
+     */
+    /*
+     *    while (entity has agressions)
+     *        dict->SetItem( PyInt(agressionToEntityID, Win32TimeNow()));
+     */
+    return dict;
+}
+
+void Client::SetAutoPilot(bool autoPilot) {
+    if((autoPilot) && (!m_autoPilot)) {
+        mSession.SetInt( "solarsystemid", GetSystemID() );   //this is currrent system.
+        m_autoPilot = true;
+    }
+}
+
 void Client::WarpTo(const GPoint &to, double distance) {
     if(m_moveState != msIdle || m_moveTimer.Enabled()) {
         sLog.Log("Client","%s: WarpTo called when a move is already pending. Ignoring.", GetName());
@@ -1018,7 +1037,6 @@ void Client::WarpTo(const GPoint &to, double distance) {
     }
 
     m_destiny->WarpTo(to, distance);
-    //TODO: OnModuleAttributeChange with attribute 18 for capacitory charge
 }
 
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
@@ -1305,6 +1323,34 @@ void Client::SaveAllToDatabase()
     GetChar()->SaveCharacter();
 }
 
+void Client::SpawnNewRookieShip(){
+    EVEItemFlags flag = (EVEItemFlags)flagHangar;
+
+    //create rookie ship of appropriate type
+    uint32 typeID;
+    if(GetChar()->race() == raceAmarr )  typeID = amarrRookie;
+    else if(GetChar()->race() == raceCaldari )  typeID = caldariRookie;
+    else if(GetChar()->race() == raceGallente )  typeID = gallenteRookie;
+    else if(GetChar()->race() == raceMinmatar )  typeID = minmatarRookie;
+
+    //create data for new rookie ship
+    ItemData idata(
+        typeID,
+        GetCharacterID(),
+                   0, //temp location
+                   flag,
+                   1
+    );
+    //spawn rookie ship
+    InventoryItemRef i = services().item_factory.SpawnItem( idata );
+
+    if(!i)
+        throw PyException( MakeCustomError( "Unable to generate rookie ship" ) );
+
+    //move the new rookie ship into the players hanger in station
+    i->Move( GetStationID(), flag, true );
+}
+
 bool Client::LaunchDrone(InventoryItemRef drone) {
 #if 0
 drop 166328265
@@ -1582,11 +1628,11 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     //sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
     //sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
-    
-    if (!services().serviceDB().GetAccountInformation( 
-				ccp.user_name.c_str(), 
-				ccp.user_password_hash.c_str(), 
-				account_info)) 
+
+    if (!services().serviceDB().GetAccountInformation(
+				ccp.user_name.c_str(),
+				ccp.user_password_hash.c_str(),
+				account_info))
 	{
         goto error_login_auth_failed;
     }
