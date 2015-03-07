@@ -165,7 +165,7 @@ public:
     void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
 
     //destiny stuff...
-    void WarpTo(const GPoint &p, double distance);
+    void WarpTo(const GPoint &p, int32 distance);
     void StargateJump(uint32 fromGate, uint32 toGate);
     void SetDockStationID(uint32 stationID) { m_dockStationID = stationID; };
     uint32 GetDockStationID() { return m_dockStationID; };

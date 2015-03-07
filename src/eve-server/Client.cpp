@@ -1030,7 +1030,7 @@ void Client::SetAutoPilot(bool autoPilot) {
     }
 }
 
-void Client::WarpTo(const GPoint &to, double distance) {
+void Client::WarpTo(const GPoint &to, int32 distance) {
     if(m_moveState != msIdle || m_moveTimer.Enabled()) {
         sLog.Log("Client","%s: WarpTo called when a move is already pending. Ignoring.", GetName());
         return;
