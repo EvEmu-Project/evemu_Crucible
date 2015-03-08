@@ -257,7 +257,9 @@ void DestinyManager::SetSpeedFraction(float fraction, bool startMovement, bool u
     }
 
     m_userSpeedFraction = fraction;
-    _UpdateVelocity(false, undock);
+    bool isMoving = false;
+    if (m_activeSpeedFraction) isMoving = true;
+    _UpdateVelocity(isMoving, undock);
 
     if (State == DSTBALL_WARP) {
         // set state to DSTBALL_GOTO so warp completion will decel properly
@@ -1469,19 +1471,19 @@ PyResult DestinyManager::AttemptDockOperation() {
         return NULL;
     }
 
-    //get the TRUE station Docking Perimiter
+    //get the TRUE station Docking Perimiter   FIXME  this still needs work.
     GPoint stationDockPoint = station->GetPosition();
     GVector directionShipToStation(m_position, stationDockPoint);
     directionShipToStation.normalize();
     float radius = station->GetRadius();
     GPoint stationRadius = (directionShipToStation * radius);
     stationDockPoint -= stationRadius;
-    GVector stationPerimiter(stationDockPoint, m_position);
+    GVector stationPerimiter(m_position, stationDockPoint);
     double rangeToStationPerimiter = stationPerimiter.length();
 
     // Verify range to station is within docking perimeter of 1500 meters:
     sLog.Warning("DestinyManager::AttemptDockOperation()", "rangeToStationPerimiter is %.2f", rangeToStationPerimiter);
-    if (rangeToStationPerimiter > 1500.0) {
+    if (rangeToStationPerimiter > 2000.0) {
         who->SendErrorMsg("Outside Docking Perimiter.  Please Move Closer.");
         // This packet has to be returned to the client when outside the docking perimeter
         //   TODO:  make a packet response for this, named:  OnDockingApproach
@@ -1513,8 +1515,8 @@ PyResult DestinyManager::AttemptDockOperation() {
          *                [PyString "dict"]
          *                [PyNone]
          */
-        AlignTo( station );   // Turn ship and move toward docking point - client will call Dock() automatically when close enough.
-        return NULL;
+        //AlignTo( station );   // Turn ship and move toward docking point - client will call Dock() automatically when close enough.
+        //return NULL;
     }
     // Docking was accepted, so send the OnDockingAccepted packet:
     std::vector<PyTuple *> updates;
