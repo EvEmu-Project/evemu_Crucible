@@ -481,7 +481,7 @@ public:
                         entity.itemName.c_str(),
                         location
                     );
-					
+
                     InventoryItemRef npcRef = system.GetServiceMgr()->item_factory.GetItem( entity.itemID );
                     if( !npcRef )
                         throw PyException( MakeCustomError( "Unable to spawn item #%u:'%s' of type %u.", entity.itemID, entity.itemName.c_str(), entity.typeID ) );
@@ -706,46 +706,26 @@ bool SystemManager::BuildDynamicEntity(Client *who, const DBSystemDynamicEntity 
 
 void SystemManager::AddClient(Client *who) {
     AddEntity( who );
-    m_entities[who->GetID()] = who;
-    m_entityChanged = true;
-    //this is actually handled in SetPosition via UpdateBubble.
-    if(who->IsInSpace()) {
-        bubbles.Add(who, false);
-    }
-    _log(CLIENT__TRACE, "%s: Added to system manager for %u", who->GetName(), m_systemID);
-
-    // Add character's Ship Item Ref to Solar System dynamic inventory:
-    AddItemToInventory( who->GetShip() );
 }
 
 void SystemManager::RemoveClient(Client *who) {
     RemoveEntity(who);
-    _log(CLIENT__TRACE, "%s: Removed from system manager for %u", who->GetName(), m_systemID);
-
-    // Remove character's Ship Item Ref from Solar System dynamic inventory:
-    RemoveItemFromInventory( who->GetShip() );
 }
 
 void SystemManager::AddNPC(NPC *who) {
     //nothing special to do yet...
     AddEntity(who);
-
-    // Add NPC's Item Ref to Solar System Dynamic Inventory:
-    //AddItemToInventory( this->itemFactory().GetItem( who->GetID() ) );
 }
 
 void SystemManager::RemoveNPC(NPC *who) {
     //nothing special to do yet...
     RemoveEntity(who);
-
-    // Remove NPC's Item Ref from Solar System Dynamic Inventory:
-    //RemoveItemFromInventory( this->itemFactory().GetItem( who->GetID() ) );
 }
 
 void SystemManager::AddEntity(SystemEntity *who) {
     m_entities[who->GetID()] = who;
     m_entityChanged = true;
-    bubbles.Add(who, false);
+    bubbles.Add(who);
 
     // Add Entity's Item Ref to Solar System Dynamic Inventory:
     AddItemToInventory( this->itemFactory().GetItem( who->GetID() ) );
@@ -759,7 +739,7 @@ void SystemManager::RemoveEntity(SystemEntity *who) {
     } else
         _log(SERVICE__ERROR, "Entity %u not found is system %u to be deleted.", who->GetID(), GetID());
 
-    bubbles.Remove(who, false);
+    bubbles.Remove(who);
 
     // Remove Entity's Item Ref from Solar System Dynamic Inventory:
     RemoveItemFromInventory( this->itemFactory().GetItem( who->GetID() ) );

@@ -650,7 +650,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
     }
     //Adding in object radius
     distance += call.client->GetRadius() + se->GetRadius();
-    call.client->WarpTo(se->GetPosition(), distance);
+    pDestiny->WarpTo(se->GetPosition(), distance);
 
     return NULL;
 }

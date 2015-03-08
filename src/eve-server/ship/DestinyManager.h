@@ -230,7 +230,6 @@ private:
             bool accel_,
             bool cruise_,
             bool decel_,
-            bool stop_,
             const GVector &warp_vector_)
         : start_time(start_time_),
         total_distance(total_distance_),
@@ -242,7 +241,6 @@ private:
         accel(accel_),
         cruise(cruise_),
         decel(decel_),
-        stop(stop_),
         warp_vector(warp_vector_)
         { }
         uint32 start_time;          //from Destiny::GetStamp()
@@ -255,7 +253,6 @@ private:
         bool accel;
         bool cruise;
         bool decel;
-        bool stop;
         GVector warp_vector;        //target direction based on ship's initial position
     };
     WarpState *m_warpState;		//we own this.

@@ -620,7 +620,7 @@ void DestinyManager::_InitWarp() {
     double warpSpeedInMeters = (m_shipWarpSpeed * ONE_AU_IN_METERS);
     //TODO  ALL of these will need checks for ship speed and distance.  current categories are not enough play.
     if (m_targetDistance < 1000000001) {
-        // FIXME < 1MKm, total time for inty is 15s.
+        // < 1MKm, total time for inty is 15s.
         m_warpAccelTime = 6;
         m_warpDecelTime = 13;
     } else if (m_targetDistance < ONE_AU_IN_METERS) {
@@ -717,7 +717,6 @@ void DestinyManager::_InitWarp() {
                         decelDistance,
                         warpTime,
                         true,
-                        false,
                         false,
                         false,
                         warp_vector );

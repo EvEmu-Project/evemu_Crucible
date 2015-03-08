@@ -373,7 +373,6 @@ public:
      * Returns skill.
      *
      * @param[in] skillTypeID ID of skill type to be returned.
-     * @param[in] newref Whether new reference should be returned.
      * @return Pointer to Skill object; NULL if skill was not found.
      */
     SkillRef GetSkill(uint32 skillTypeID) const;

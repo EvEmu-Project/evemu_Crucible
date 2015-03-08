@@ -379,6 +379,10 @@ bool Client::EnterSystem(bool login) {
         m_system->AddClient(this);
     }
 
+    char ci[1];
+    snprintf(ci, sizeof(ci), "");
+    GetShip()->SetCustomInfo(ci);
+    
     return true;
 }
 
@@ -1048,11 +1052,11 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     //TODO: verify that they are actually close to 'fromGate'
     //TODO: verify that 'fromGate' actually jumps to 'toGate'
 
-    uint32 solarSystemID, constellationID, regionID;
+    uint32 solarSystemID;
     GPoint position;
     if(!m_services.serviceDB().GetStaticItemInfo(
         toGate,
-        &solarSystemID, &constellationID, &regionID, &position
+        &solarSystemID, NULL, NULL, &position
     )) {
         sLog.Error("Client","%s: Failed to query information for stargate %u", GetName(), toGate);
         return;
@@ -1062,10 +1066,16 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 
     m_moveSystemID = solarSystemID;
     m_movePoint = position;
-    m_movePoint.MakeRandomPointOnSphere( 15000 );   // Make Jump-In point a random spot on a 10km radius sphere about the stargate
+    m_movePoint.MakeRandomPointOnSphereLayer( 7500, 10500 );   // Make Jump-In point a random spot on ~10km radius sphere about the stargate
 
+    char ci[35];
+    snprintf(ci, sizeof(ci), "Jumping:%u", toGate);
+    GetShip()->SetCustomInfo(ci);
+
+    m_destiny->Stop();
+    //  show gate animation in both to and from gate.
     m_destiny->SendJumpOut(fromGate);
-    //TODO: send 'effects.GateActivity' on 'toGate' at the same time
+    m_destiny->SendJumpOut(toGate);
 
     //delay the move so they can see the JumpOut animation
     _postMove(msJump, 5000);
