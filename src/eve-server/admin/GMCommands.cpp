@@ -1038,7 +1038,8 @@ PyResult Command_giveskills( Client* who, CommandDB* db, PyServiceMgr* services,
 
 PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args ) {
     uint8 level = 0, oldLevel = 0;
-    uint32 ownerID = 0, skillID = 0, oldPoints = 0;
+    uint32 ownerID = 0, skillID = 0;
+    EvilNumber oldPoints = 0;
     int64 newPoints = 0;
     CharacterRef character;
     Client *pTarget = NULL;
@@ -1084,7 +1085,7 @@ PyResult Command_giveskill( Client* who, CommandDB* db, PyServiceMgr* services, 
         else if( character->HasSkill( skillID ) ) {
             skill = character->GetSkill( skillID );
             oldLevel = skill->GetAttribute(AttrSkillLevel).get_int();
-            oldPoints = skill->GetAttribute(AttrSkillPoints).get_int();
+            oldPoints = skill->GetAttribute(AttrSkillPoints);
             EvilNumber tmp = EVIL_SKILL_BASE_POINTS * skill->GetAttribute(AttrSkillTimeConstant) * EvilNumber::pow(2, (2.5*(level -1)));
             newPoints = tmp.get_int();
             skill->SetAttribute(AttrSkillLevel, level);
