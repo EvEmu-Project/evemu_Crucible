@@ -1483,7 +1483,7 @@ PyResult DestinyManager::AttemptDockOperation() {
     // Verify range to station is within docking perimeter of 1500 meters:
     sLog.Warning("DestinyManager::AttemptDockOperation()", "rangeToStationPerimiter is %.2f", rangeToStationPerimiter);
     if (rangeToStationPerimiter > 2000.0) {
-        who->SendErrorMsg("Outside Docking Perimiter.  Please Move Closer.");
+        //who->SendErrorMsg("Outside Docking Perimiter.  Please Move Closer.");
         // This packet has to be returned to the client when outside the docking perimeter
         //   TODO:  make a packet response for this, named:  OnDockingApproach
         // Packet::ErrorResponse

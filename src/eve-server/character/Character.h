@@ -423,7 +423,7 @@ public:
     /**
      * @return Timestamp at which current skill training finishes.
      */
-    EvilNumber GetEndOfTraining() const;
+    int64 GetEndOfTraining() const;
 
     /* InjectSkillIntoBrain(InventoryItem *skill)
      *
@@ -455,6 +455,17 @@ public:
      * @author allan
      */
     void UpdateSkillQueueEndTime( const SkillQueue &queue);
+    /**
+     * Send Skill Completion Info to client.
+     * @author allan
+     * @param[in] pClient pointer to client object
+     * @param[in] skill  reference to skill completed
+     * @param[in] oldLevel  previous level (can be 0)
+     * @param[in] newLevel  level just completed
+     * @param[in] oldPoints  previous skill point value
+     * @param[in] newPoints  current skill point value
+     */
+    void SendSkillComplete(Client *pClient, Skill *skill, uint8 oldLevel, uint8 newLevel, EvilNumber EN_Points, int64 newPoints, bool stopped=false);
 
     /* GrantCertificate( uint32 certificateID )
      *
