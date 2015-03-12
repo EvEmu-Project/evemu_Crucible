@@ -58,6 +58,7 @@ void TargetManager::DoDestruction() {
 void TargetManager::Process() {
     //process outgoing targeting
     {
+        if (m_targets.size() < 1) return;
         std::map<SystemEntity *, TargetEntry *>::iterator cur, end;
         cur = m_targets.begin();
         end = m_targets.end();

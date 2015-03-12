@@ -58,6 +58,10 @@ class EntityList
 : public Singleton<EntityList>
 {
 public:
+    static uint32 GetStamp() { return(m_stamp); }
+    static bool IsTicActive() { return(m_stampTimer.Check(false)); }
+    static void TicCompleted() { if(m_stampTimer.Check(true)) m_stamp++; }
+
     EntityList();
     virtual ~EntityList();
 
@@ -97,6 +101,10 @@ protected:
     Mutex mMutex;
 
     PyServiceMgr *m_services;    //we do not own this, only used for booting systems.
+
+    //Timer object for tracking client process and online time
+    static uint32 m_stamp;
+    static Timer m_stampTimer;
 };
 
 //Singleton

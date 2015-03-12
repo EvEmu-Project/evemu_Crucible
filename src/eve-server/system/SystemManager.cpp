@@ -629,37 +629,13 @@ bool SystemManager::BootSystem() {
     return true;
 }
 
-//called many times a second
+//called many times a second ....and takes up a lot of proc cycles
 bool SystemManager::Process() {
-    m_entityChanged = false;
-
-    std::map<uint32, SystemEntity *>::const_iterator cur, end;
-    cur = m_entities.begin();
-    end = m_entities.end();
-    while(cur != end) {
-        cur->second->Process();
-
-        if(m_entityChanged) {
-            //somebody changed the entity list, need to start over or bail...
-            m_entityChanged = false;
-
-            cur = m_entities.begin();
-            end = m_entities.end();
-        } else {
-            cur++;
-        }
-    }
-
-    bubbles.Process();
-
     return true;
 }
 
 //called once per second.
 void SystemManager::ProcessDestiny() {
-    //this is here so it isnt called so frequently.
-    m_spawnManager->Process();
-
     m_entityChanged = false;
 
     std::map<uint32, SystemEntity *>::const_iterator cur, end;
@@ -685,6 +661,9 @@ void SystemManager::ProcessDestiny() {
             cur++;
         }
     }
+    //this is here so it isnt called so frequently.
+    m_spawnManager->Process();
+    bubbles.Process();
 }
 
 bool SystemManager::BuildDynamicEntity(Client *who, const DBSystemDynamicEntity &entity)

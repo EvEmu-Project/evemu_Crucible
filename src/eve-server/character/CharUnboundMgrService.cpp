@@ -340,7 +340,6 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         skillLevel = cur->second;
         i->SetAttribute(AttrSkillLevel, skillLevel );
         skillPoints = i->GetSPForLevel( EvilNumber((uint64)cur->second) );
-        skillPoints.to_float();
         i->SetAttribute(AttrSkillPoints, skillPoints );
         i->SaveAttributes();
     }

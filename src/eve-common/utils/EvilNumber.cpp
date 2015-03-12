@@ -298,7 +298,7 @@ inline void EvilNumber::CheckIntegrity()
     }
 }
 
-bool EvilNumber::to_int()
+bool EvilNumber::isInt()
 {
     // First check to see if this value is already integer and if so, do nothing:
     if( mType == evil_number_int )
@@ -322,7 +322,7 @@ bool EvilNumber::to_int()
     return true;
 }
 
-bool EvilNumber::to_float()
+bool EvilNumber::isFloat()
 {
     // First check to see if this value is already float and if so, do nothing:
     if( mType == evil_number_float )

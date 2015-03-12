@@ -210,7 +210,7 @@ void SystemBubble::Add(SystemEntity *ent, bool notify, bool isPostWarp) {
 
     // if entity is warping into this bubble, let everybody know their warp to point.
     //  this is a hack until i fix DestinyMessaging.
-    if (isPostWarp) {
+    if (0/*isPostWarp*/) {
         Client *c = ent->CastToClient();
         if (c->Destiny() == NULL) return;
 
