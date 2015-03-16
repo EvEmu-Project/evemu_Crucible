@@ -88,10 +88,10 @@ class Client
 {
 public:
     Client(PyServiceMgr &services, EVETCPConnection** con);
-    virtual ~Client();
+    ~Client();
 
     bool            ProcessNet();
-    virtual void    Process();
+    void    Process();
 
     PyServiceMgr& services() const { return m_services; }
 
@@ -128,7 +128,7 @@ public:
     // character data
     CharacterRef GetChar() const                    { return m_char; }
     ShipRef GetShip() const                         { return ShipRef::StaticCast( Item() ); }
-    bool InPod() const                                { return GetShip()->typeID() == 670; }
+    bool InPod() const                              { return GetShip()->typeID() == 670; }
 
     bool IsInSpace() const                          { return ( GetStationID() == 0 ); }
     double x() const                                { return GetPosition().x; }    //this is terribly inefficient.
@@ -136,7 +136,7 @@ public:
     double z() const                                { return GetPosition().z; }    //this is terribly inefficient.
 
     uint32 GetAllianceID() const                    { return GetChar() ? GetChar()->allianceID() : 0; }
-    uint32 GetWarFactionID() const                    { return GetChar() ? GetChar()->warFactionID() : 0; }
+    uint32 GetWarFactionID() const                  { return GetChar() ? GetChar()->warFactionID() : 0; }
     double GetBounty() const                        { return GetChar() ? GetChar()->bounty() : 0.0; }
     double GetSecurityRating() const                { return GetChar() ? GetChar()->securityRating() : 0.0; }
     double GetBalance() const                       { return GetChar() ? GetChar()->balance() : 0.0; }
@@ -155,6 +155,7 @@ public:
     void SavePosition();
     void SaveAllToDatabase();
     void UpdateSkillTraining();
+    void SpawnNewRookieShip();
 
     double GetPropulsionStrength() const;
 
@@ -164,7 +165,7 @@ public:
     void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
 
     //destiny stuff...
-    void WarpTo(const GPoint &p, double distance);
+    void WarpTo(const GPoint &p, int32 distance);
     void StargateJump(uint32 fromGate, uint32 toGate);
     void SetDockStationID(uint32 stationID) { m_dockStationID = stationID; };
     uint32 GetDockStationID() { return m_dockStationID; };
@@ -172,6 +173,9 @@ public:
     void GetDockingPoint(GPoint &dockPoint);
     bool GetPendingDockOperation() { return m_needToDock; };
     void SetPendingDockOperation(bool needToDock) { m_needToDock = needToDock; }
+    void SetAutoPilot(bool);
+    // set true for using autopilot.
+    bool m_autoPilot = false;
 
     // THESE FUNCTIONS ARE HACKS AS WE DONT KNOW WHY THE CLIENT CALLS STOP AT UNDOCK
     void SetJustUndocking(bool justUndocking)
@@ -211,26 +215,28 @@ public:
     /********************************************************************/
     /* DynamicSystemEntity interface                                    */
     /********************************************************************/
-    virtual EntityClass GetClass() const { return(ecClient); }
-    virtual bool IsClient() const { return true; }
-    virtual Client *CastToClient() { return(this); }
-    virtual const Client *CastToClient() const { return(this); }
+    EntityClass GetClass() const { return(ecClient); }
+    bool IsClient() const { return true; }
+    Client *CastToClient() { return(this); }
+    const Client *CastToClient() const { return(this); }
 
-    virtual const char *GetName() const { return GetChar() ? GetChar()->itemName().c_str() : "(null)"; }
-    virtual PyDict *MakeSlimItem() const;
-    virtual void QueueDestinyUpdate(PyTuple** du);
-    virtual void QueueDestinyEvent(PyTuple** multiEvent);
+    const char *GetName() const { return GetChar() ? GetChar()->itemName().c_str() : "(null)"; }
+    PyDict *MakeSlimItem() const;
+    void EncodeDestiny( Buffer& into ) const;
+    PyRep *GetAggressors() const;
+    void QueueDestinyUpdate(PyTuple** du);
+    void QueueDestinyEvent(PyTuple** multiEvent);
 
-    virtual void TargetAdded(SystemEntity *who);
-    virtual void TargetLost(SystemEntity *who);
-    virtual void TargetedAdd(SystemEntity *who);
-    virtual void TargetedLost(SystemEntity *who);
-    virtual void TargetsCleared();
+    void TargetAdded(SystemEntity *who);
+    void TargetLost(SystemEntity *who);
+    void TargetedAdd(SystemEntity *who);
+    void TargetedLost(SystemEntity *who);
+    void TargetsCleared();
 
-    virtual void ApplyDamageModifiers(Damage &d, SystemEntity *target);
-    virtual bool ApplyDamage(Damage &d);
-    virtual void Killed(Damage &fatal_blow);
-    virtual SystemManager *System() const { return(m_system); }
+    void ApplyDamageModifiers(Damage &d, SystemEntity *target);
+    bool ApplyDamage(Damage &d);
+    void Killed(Damage &fatal_blow);
+    SystemManager *System() const { return(m_system); }
 
     /********************************************************************/
     /* Server Administration Interface                                  */
@@ -242,6 +248,8 @@ protected:
     void _ReduceDamage(Damage &d);
     void _UpdateSession( const CharacterConstRef& character );
     void _UpdateSession2( uint32 characterID  );
+
+    void _DropLoot(uint32 groupID, uint32 owner, uint32 locationID);
 
     // Packet stuff
     void _SendCallReturn( const PyAddress& source, uint64 callID, PyRep** return_value, const char* channel = NULL );
@@ -289,7 +297,7 @@ protected:
     GPoint m_undockAlignToPoint;
     // --- END HACK VARIABLES FOR UNDOCK ---
 
-    EvilNumber m_timeEndTrain;
+    int64 m_timeEndTrain;
 
     /********************************************************************/
     /* EVEClientSession interface                                       */

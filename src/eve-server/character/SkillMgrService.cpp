@@ -104,7 +104,7 @@ PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
 PyResult SkillMgrBound::Handle_GetEndOfTraining(PyCallArgs &call) {
     CharacterRef ch = call.client->GetChar();
 
-    return new PyLong( ch->GetEndOfTraining().get_int() );
+    return new PyLong( ch->GetEndOfTraining() );
 }
 
 PyResult SkillMgrBound::Handle_GetSkillHistory( PyCallArgs& call )
@@ -243,9 +243,9 @@ PyResult SkillMgrBound::Handle_RespecCharacter(PyCallArgs &call)
         codelog(CLIENT__ERROR, "Failed to decode RespecCharacter arguments");
         return NULL;
     }
-	
+
 	CharacterRef cref = call.client->GetChar();
-	if(cref->GetSkillInTraining() != NULL) 
+	if(cref->GetSkillInTraining() != NULL)
 		throw(PyException(MakeUserError("RespecSkillInTraining")));
 
     // return early if this is an illegal call
