@@ -141,7 +141,7 @@ ShipRef Ship::Spawn(ItemFactory &factory, ItemData &data) {
         sShipRef->SetAttribute(AttrDamage, 0, true );
     // Theoretical Maximum Targeting Range
     if( !(sShipRef->HasAttribute(AttrMaximumRangeCap)) )
-        sShipRef->SetAttribute(AttrMaximumRangeCap, ((double)BUBBLE_RADIUS_METERS), true );
+        sShipRef->SetAttribute(AttrMaximumRangeCap, BUBBLE_DIAMETER_METERS, true );
     // Maximum Armor Damage Resonance
     if( !(sShipRef->HasAttribute(AttrArmorMaxDamageResonance)) )
         sShipRef->SetAttribute(AttrArmorMaxDamageResonance, 1.0f, true);
@@ -512,7 +512,7 @@ bool Ship::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item)
 					throw PyException( MakeCustomError( "The charge is not the correct size for this module." ) );
 				if(module->GetAttribute(AttrChargeGroup1) != item->groupID())
 					throw PyException( MakeCustomError( "Incorrect charge type for this module.") );
-				
+
 				// NOTE: Module Manager will check for actual room to load charges and make stack splits, or reject loading altogether
 			}
 			else
