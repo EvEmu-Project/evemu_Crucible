@@ -40,7 +40,6 @@ TRUNCATE TABLE market_history_old;
 TRUNCATE TABLE market_journal;
 TRUNCATE TABLE market_orders;
 TRUNCATE TABLE market_transactions;
-TRUNCATE TABLE npcStandings;
 TRUNCATE TABLE ramAssemblyLineStationCostLogs;
 TRUNCATE TABLE ramJobs;
 TRUNCATE TABLE rentalInfo;
