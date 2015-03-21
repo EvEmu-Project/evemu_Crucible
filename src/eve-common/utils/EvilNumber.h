@@ -382,8 +382,8 @@ public:
         return mType;
     }
 
-    bool isInt();
-    bool isFloat();
+    bool to_int();
+    bool to_float();
 
     int64 get_int();
     double get_float();

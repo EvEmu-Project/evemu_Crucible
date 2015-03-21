@@ -25,7 +25,9 @@
 #ifndef __DAMAGE_H_INCL__
 #define __DAMAGE_H_INCL__
 
-#include "inventory/InventoryItem.h"
+class InventoryItem;
+//class SystemEntity;
+
 #include "system/SystemEntity.h"
 
 class Damage {

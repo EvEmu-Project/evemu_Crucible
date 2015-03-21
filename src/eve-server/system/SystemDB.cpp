@@ -135,20 +135,6 @@ bool SystemDB::GetWrecksToTypes(DBQueryResult &res)
 	return true;
 }
 
-void SystemDB::GetLootGroups(DBQueryResult &res) {
-    if(!sDatabase.RunQuery(res, "SELECT groupID, lootGroupID, dropChance FROM npcLootGroup")) {
-        sLog.Error("SystemDB::GetLootGroups()", "Error in query: %s", res.error.c_str());
-        return;
-    }
-}
-
-void SystemDB::GetLootGroupTypes(DBQueryResult &res) {
-    if(!sDatabase.RunQuery(res, "SELECT lootGroupID, typeID, chance, minQuantity, maxQuantity FROM npcLootGroupType")) {
-        sLog.Error("SystemDB::GetLootGroupTypes()", "Error in query: %s", res.error.c_str());
-        return;
-    }
-}
-
 PyObject *SystemDB::ListFactions() {
     DBQueryResult res;
 

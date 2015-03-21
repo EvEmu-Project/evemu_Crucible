@@ -30,11 +30,32 @@
 #include "ship/DestinyManager.h"
 #include "system/SystemManager.h"
 
-uint32 EntityList::m_stamp(1);    //used for client Process()
-Timer EntityList::m_stampTimer(static_cast<int32>(TIC_DURATION_IN_SECONDS * 1000), true);
-
 EntityList::EntityList() : m_services( NULL ) {}
-EntityList::~EntityList() {}
+EntityList::~EntityList() {
+/**  this is the cause of seg faults on server shutdown with connected clients
+		Line 42: error reading variable: Could not find the frame base...
+		at this point, the client list `m_clients` is already dereferenced.
+    {
+        client_list::iterator cur, end;
+        cur = m_clients.begin();
+        end = m_clients.end();
+        for(; cur != end; cur++)
+        {
+            delete *cur;
+        }
+    }
+
+    {
+        system_list::iterator cur, end;
+        cur = m_systems.begin();
+        end = m_systems.end();
+        for(; cur != end; cur++)
+        {
+            delete cur->second;
+        }
+    }
+    */
+}
 
 void EntityList::Add(Client **client) {
     if(client == NULL || *client == NULL)
@@ -44,61 +65,68 @@ void EntityList::Add(Client **client) {
     *client = NULL;
 }
 
-void EntityList::Process() {
+void EntityList::Process()
+{
     Client *active_client = NULL;
     client_list::iterator client_cur = m_clients.begin();
+    client_list::iterator client_end = m_clients.end();
     client_list::iterator client_tmp;
 
-    while(client_cur != m_clients.end()) {
+    while(client_cur != client_end)
+    {
         active_client = *client_cur;
-        if (active_client->ProcessNet()) {
-            client_cur++;
-        } else {
+        if(!active_client->ProcessNet())
+        {
             sLog.Log("Entity List", "Destroying client for account %u", active_client->GetAccountID());
             SafeDelete(active_client);
+
             client_tmp = client_cur++;
             m_clients.erase( client_tmp );
         }
-    }
-
-    bool EntityTimer = EntityList::IsTicActive();
-    if (GetClientCount() < 1) EntityTimer = false;
-
-    if (EntityTimer) {
-        Client *active_client = NULL;
-        client_list::iterator client_cur = m_clients.begin();
-        client_list::iterator client_tmp;
-
-        while(client_cur != m_clients.end()) {
-            active_client = *client_cur;
-            active_client->Process();
+        else
+        {
             client_cur++;
         }
-
-        EntityList::TicCompleted();
     }
 
     SystemManager *active_system = NULL;
     bool destiny = DestinyManager::IsTicActive();
 
-    // process any systems, watching for deletion.
-    system_list::iterator cur, tmp;
-    cur = m_systems.begin();
-    while(cur != m_systems.end()) {
-        active_system = cur->second;
-        //if it is destiny time, process it.
-        if(destiny)
-            active_system->ProcessDestiny();
+    /* capt: I wonder what this stuff should do... its spamming the console... */
+    //if( destiny == true )
+    //{
+        //sLog.Log("Entity List | Destiny Trace", "Triggering destiny tick for stamp %u", DestinyManager::GetStamp());
+    //}
 
-        if(!active_system->Process()) {
+    //first process any systems, watching for deletion.
+    system_list::iterator cur, end, tmp;
+    cur = m_systems.begin();
+    end = m_systems.end();
+    while(cur != end)
+    {
+        active_system = cur->second;
+        //if it is destiny time, process it first.
+        if(destiny)
+        {
+            active_system->ProcessDestiny();
+        }
+
+        if(!active_system->Process())
+        {
             sLog.Log("Entity List", "Destroying system");
             tmp = cur++;
             delete cur->second;
             m_systems.erase(tmp);
-        } else
+        }
+        else
+        {
             cur++;
+        }
     }
-    if ( destiny ) DestinyManager::TicCompleted();
+    if( destiny == true )
+    {
+        DestinyManager::TicCompleted();
+    }
 }
 
 Client *EntityList::FindCharacter(uint32 char_id) const {

@@ -133,7 +133,6 @@ public:
     double DistanceTo2(const SystemEntity *other) const;
 
 protected:
-    void _DropLoot(uint32 groupID, uint32 owner, uint32 locationID);
     SystemBubble *m_bubble;    //we do not own this, may be NULL. Only changed by SystemBubble
 };
 

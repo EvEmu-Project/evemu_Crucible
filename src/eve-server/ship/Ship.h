@@ -399,7 +399,7 @@ protected:
      */
     void _ReduceDamage(Damage &d);
     void ApplyDamageModifiers(Damage &d, SystemEntity *target);
-    void _DropLoot(uint32 groupID, uint32 owner, uint32 locationID);
+    void _DropLoot(SystemEntity *owner);
 
     /*
      * Member fields:

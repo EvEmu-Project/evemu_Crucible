@@ -70,7 +70,7 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
 }
 
 Client::~Client() {
-    if ( GetChar() ) {
+    if( GetChar() ) {
         // we have valid character
 
         // LSC logout
@@ -81,21 +81,24 @@ Client::~Client() {
 
         // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
-        GetChar()->SaveFullCharacter();                     // Save Character info to DB
-        GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
-
-		if ( GetShip() )
+		if( GetShip() != NULL )
 			GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
+		if( GetChar() != NULL )
+		{
+	        GetChar()->SaveFullCharacter();                     // Save Character info to DB
+			GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
+		}
 
         // remove ourselves from system
-        if ( m_system )
+        if(m_system != NULL)
             m_system->RemoveClient(this);   //handles removing us from bubbles and sending RemoveBall events.
 
         //johnsus - characterOnline mod
+        // switch character online flag to 0
         m_services.serviceDB().SetCharacterOnlineStatus(GetCharacterID(), false);
     }
 
-    if ( GetAccountID() ) { // this is not very good ....
+    if(GetAccountID() != 0) { // this is not very good ....
         m_services.serviceDB().SetAccountOnlineStatus(GetAccountID(), false);
     }
 
@@ -144,10 +147,8 @@ bool Client::ProcessNet()
     return true;
 }
 
-// called once a second by EntityList::Process()
 void Client::Process() {
-    //double start = GetTimeUSeconds();
-    if (m_moveTimer.Check(false)) {
+    if(m_moveTimer.Check(false)) {
         m_moveTimer.Disable();
         _MoveState s = m_moveState;
         m_moveState = msIdle;
@@ -163,29 +164,26 @@ void Client::Process() {
     }
 
     // Check Character Save Timer Expiry:
-    if ( GetChar() && GetChar()->CheckSaveTimer() )
+    if( GetChar()->CheckSaveTimer() )
         GetChar()->SaveCharacter();			// Should this perhaps be invoking GetChar()->SaveFullCharacter() or is saving basic character info enough here?
 
     // Check Ship Save Timer Expiry:
-    if ( GetShip() && GetShip()->CheckSaveTimer() )
+    if( GetShip()->CheckSaveTimer() )
         GetShip()->SaveShip();
 
     // Check Module Manager Save Timer Expiry:
     //if( mModulesMgr.CheckSaveTimer() )
     //    mModulesMgr.SaveModules();
 
-    if ( m_timeEndTrain != 0 )
-        if ( EvilTimeNow() > m_timeEndTrain )
+    if( m_timeEndTrain != 0 )
+    {
+        if( m_timeEndTrain <= EvilTimeNow() )    //Win32TimeNow()
             GetChar()->UpdateSkillQueue();
+    }
 
-    if ( GetShip() ) GetShip()->Process();
+    GetShip()->Process();
 
     SystemEntity::Process();
-/*
-    double time = GetTimeUSeconds();
-    time -= start;
-    sLog.Warning("Client::Process()","%s: Process() completed in %f seconds.", GetName(), time);
-    */
 }
 
 //this displays a modal error dialog on the client side.
@@ -384,10 +382,6 @@ bool Client::EnterSystem(bool login) {
         m_system->AddClient(this);
     }
 
-    char ci[1];
-    snprintf(ci, sizeof(ci), "");
-    GetShip()->SetCustomInfo(ci);
-
     return true;
 }
 
@@ -397,12 +391,10 @@ bool Client::UpdateLocation() {
         delete m_destiny;
         m_destiny = NULL;
 
-        if (m_system) {
-            //remove ourselves from any bubble
-            //m_system->bubbles.Remove(this, false);
-            m_system->RemoveClient(this);
-            m_system = NULL;
-        }
+        //remove ourselves from any bubble
+        //m_system->bubbles.Remove(this, false);
+		m_system->RemoveClient(this);
+		m_system = NULL;
 
         OnCharNowInStation();
     } else if(IsSolarSystem(GetLocationID())) {
@@ -425,7 +417,7 @@ bool Client::UpdateLocation() {
         {
 
             // This is NOT a login, so we always enter a system stopped.
-            m_destiny->Halt();
+            m_destiny->Halt(false);
             //set position.
             m_destiny->SetPosition(GetShip()->position(), false);
         }
@@ -495,9 +487,9 @@ void Client::MoveToLocation( uint32 location, const GPoint& pt )
 }
 
 void Client::MoveToPosition(const GPoint &pt) {
-    if(m_destiny)
+    if(m_destiny == NULL)
         return;
-    m_destiny->Halt();
+    m_destiny->Halt(true);
     m_destiny->SetPosition(pt, true);
     GetShip()->Relocate(pt);
 }
@@ -680,7 +672,7 @@ void Client::_UpdateSession2( uint32 characterID )
     mSession.SetLong( "rolesAtOther", rolesAtOther );
 
     m_shipId = shipID;
-    if( m_char )
+    if( m_char != NULL )
         m_char->SetActiveShip(m_shipId);
     if (IsInSpace())
         mSession.SetInt( "shipid", shipID );
@@ -986,152 +978,47 @@ void Client::SendNotification(const PyAddress &dest, EVENotificationStream &noti
 }
 
 PyDict *Client::MakeSlimItem() const {
-    //  this is actually the slimItem for the clients current ship.  easier to get data here.
+    PyDict *slim = DynamicSystemEntity::MakeSlimItem();
 
-    _log(COMMON__WARNING, "MakeSlimItem for ShipID %u via Client %u", GetShip()->itemID(), GetCharacterID());
-    PyDict *slim = new PyDict();
-    slim->SetItemString("itemID", new PyInt(GetShip()->itemID()));
-    slim->SetItemString("typeID", new PyInt(GetShip()->typeID()));
-    slim->SetItemString("ownerID", new PyInt(GetCharacterID()));
     slim->SetItemString("charID", new PyInt(GetCharacterID()));
     slim->SetItemString("corpID", new PyInt(GetCorporationID()));
-    slim->SetItemString("allianceID", new PyInt(GetAllianceID()));
-    slim->SetItemString("warFactionID", new PyInt(GetWarFactionID()));
-    slim->SetItemString("bounty", new PyFloat(GetBounty()));
-    slim->SetItemString("securityStatus", new PyFloat(GetSecurityRating()));
+    slim->SetItemString("allianceID", new PyNone);
+    slim->SetItemString("warFactionID", new PyNone);
 
-    //encode the modules list, if we have any visible modules
+    //encode the mModulesMgr list, if we have any visible mModulesMgr
     std::vector<InventoryItemRef> items;
-    GetShip()->FindByFlagRange( flagLowSlot0, flagHiSlot7, items );
+    GetShip()->FindByFlagRange( flagHiSlot0, flagHiSlot7, items );
     if( !items.empty() )
     {
         PyList *l = new PyList();
 
-        std::vector<InventoryItemRef>::iterator cur;
+        std::vector<InventoryItemRef>::iterator cur, end;
         cur = items.begin();
-        for(; cur != items.end(); cur++) {
+        end = items.end();
+        for(; cur != end; cur++) {
 
             PyTuple* t = new_tuple( (*cur)->itemID(), (*cur)->typeID());
             l->AddItem(t);
         }
 
-        slim->SetItemString("modules", l);
-        PySafeDecRef(l);
+        slim->SetItemString("mModulesMgr", l);
     }
+
+    slim->SetItemString("color", new PyFloat(0.0));
+    slim->SetItemString("bounty", new PyFloat(GetBounty()));
+    slim->SetItemString("securityStatus", new PyFloat(GetSecurityRating()));
 
     return(slim);
 }
 
-void Client::EncodeDestiny( Buffer& into ) const
-{
-    const GPoint& position = GetPosition();
-    const std::string itemName( GetName() );
-
-    uint8 mode = Destiny::DSTBALL_STOP;
-    if (Destiny()->IsWarping()) {
-        mode = Destiny::DSTBALL_WARP;
-    } else if (Destiny()->IsFollowing()) {
-        mode = Destiny::DSTBALL_FOLLOW;
-    } else if (Destiny()->IsOrbiting()) {
-        mode = Destiny::DSTBALL_ORBIT;
-    } else if (Destiny()->IsMoving()) {
-        mode = Destiny::DSTBALL_GOTO;
-    }
-
-    Destiny::BallHeader head;
-    head.entityID = GetID();
-    head.mode = mode;
-    head.radius = GetRadius();
-    head.x = position.x;
-    head.y = position.y;
-    head.z = position.z;
-    head.sub_type = Destiny::IsFree | Destiny::IsInteractive;
-    into.Append( head );
-
-    Destiny::MassSector mass;
-    mass.mass = GetMass();
-    mass.cloak = 0;
-    mass.Harmonic = 1.0f;
-    mass.corpID = GetCorporationID();
-    mass.allianceID = GetAllianceID();
-    into.Append( mass );
-
-    Destiny::ShipSector ship;
-    ship.max_speed = GetMaxVelocity();
-    ship.velocity_x = GetVelocity().x;
-    ship.velocity_y = GetVelocity().y;
-    ship.velocity_z = GetVelocity().z;
-    ship.agility = GetAgility();
-    ship.speed_fraction = m_destiny->GetSpeedFraction();
-    into.Append( ship );
-
-    if (mode == Destiny::DSTBALL_WARP) {
-        GPoint target = m_destiny->GetTargetPoint();
-        Destiny::DSTBALL_WARP_Struct warp;
-        warp.effectStamp = -1;   //unknown value  seen many -1, few other random 4-5 digits
-        warp.unknown_x = target.x;
-        warp.unknown_y = target.y;
-        warp.unknown_z = target.z;
-        warp.followID = 0;      //unknown 64bit number.  seen 4666723172467343360 once....others are 0
-        warp.ownerID = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
-        //warp.Unk01 = 0;         //unknown 64bit number
-        into.Append( warp );
-    } else if (mode == Destiny::DSTBALL_FOLLOW) {
-        Destiny::DSTBALL_FOLLOW_Struct follow;
-        follow.followID = m_destiny->GetTargetID();
-        follow.followRange = m_destiny->GetFollowDistance();
-        follow.formationID = 0xFF;
-        into.Append( follow );
-    } else if (mode == Destiny::DSTBALL_ORBIT) {
-        Destiny::DSTBALL_ORBIT_Struct orbit;
-        orbit.followID = m_destiny->GetTargetID();
-        orbit.followRange = m_destiny->GetFollowDistance();
-        orbit.formationID = 0xFF;
-        into.Append( orbit );
-    } else if (mode == Destiny::DSTBALL_GOTO) {
-        GPoint target = m_destiny->GetTargetPoint();
-        Destiny::DSTBALL_GOTO_Struct go;
-        go.x = target.x;
-        go.y = target.y;
-        go.z = target.z;
-        into.Append( go );
-    } else {
-        Destiny::DSTBALL_STOP_Struct main;
-        main.formationID = 0xFF;
-        into.Append( main );
-    }
-    _log(COMMON__WARNING, "Client::EncodeDestiny() - %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.sub_type);
-}
-
-PyRep *Client::GetAggressors() const {
-    PyDict *dict = NULL;
-    /*  items are set here as
-     *               [PyInt 90971469]     <- entity
-     *               [PyDict 1 kvp]       <- dictionary
-     *                  [PyInt 1000127]   <- agression TO corpID
-     *                  [PyIntegerVar 129550906897224125] <- timestamp (dont know if this is begin time or end time)
-     */
-    /*
-     *    while (entity has agressions)
-     *        dict->SetItem( PyInt(agressionToEntityID, Win32TimeNow()));
-     */
-    return dict;
-}
-
-void Client::SetAutoPilot(bool autoPilot) {
-    if((autoPilot) && (!m_autoPilot)) {
-        mSession.SetInt( "solarsystemid", GetSystemID() );   //this is currrent system.
-        m_autoPilot = true;
-    }
-}
-
-void Client::WarpTo(const GPoint &to, int32 distance) {
+void Client::WarpTo(const GPoint &to, double distance) {
     if(m_moveState != msIdle || m_moveTimer.Enabled()) {
         sLog.Log("Client","%s: WarpTo called when a move is already pending. Ignoring.", GetName());
         return;
     }
 
     m_destiny->WarpTo(to, distance);
+    //TODO: OnModuleAttributeChange with attribute 18 for capacitory charge
 }
 
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
@@ -1143,11 +1030,11 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     //TODO: verify that they are actually close to 'fromGate'
     //TODO: verify that 'fromGate' actually jumps to 'toGate'
 
-    uint32 solarSystemID;
+    uint32 solarSystemID, constellationID, regionID;
     GPoint position;
     if(!m_services.serviceDB().GetStaticItemInfo(
         toGate,
-        &solarSystemID, NULL, NULL, &position
+        &solarSystemID, &constellationID, &regionID, &position
     )) {
         sLog.Error("Client","%s: Failed to query information for stargate %u", GetName(), toGate);
         return;
@@ -1157,16 +1044,10 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 
     m_moveSystemID = solarSystemID;
     m_movePoint = position;
-    m_movePoint.MakeRandomPointOnSphereLayer( 7500, 10500 );   // Make Jump-In point a random spot on ~10km radius sphere about the stargate
+    m_movePoint.MakeRandomPointOnSphere( 15000 );   // Make Jump-In point a random spot on a 10km radius sphere about the stargate
 
-    char ci[35];
-    snprintf(ci, sizeof(ci), "Jumping:%u", toGate);
-    GetShip()->SetCustomInfo(ci);
-
-    m_destiny->Stop();
-    //  show gate animation in both to and from gate.
     m_destiny->SendJumpOut(fromGate);
-    m_destiny->SendJumpOut(toGate);
+    //TODO: send 'effects.GateActivity' on 'toGate' at the same time
 
     //delay the move so they can see the JumpOut animation
     _postMove(msJump, 5000);
@@ -1241,6 +1122,9 @@ bool Client::SelectCharacter( uint32 char_id )
 
     _UpdateSession2( char_id );
 
+//    if( !EnterSystem( true ) )
+//        return false;
+
     m_char = m_services.item_factory.GetCharacter( char_id );
     if( !GetChar() )
     {
@@ -1250,33 +1134,31 @@ bool Client::SelectCharacter( uint32 char_id )
     }
 
     ShipRef ship = m_services.item_factory.GetShip( GetShipID() );
-    if( !ship )
+   if( !ship )
+   {
+        // Release the item factory now that the ItemFactory is finished being used:
+        m_services.item_factory.UnsetUsingClient();
+        return false;
+   }
+
+   ship->Load( m_services.item_factory, GetShipID() );
+
+   BoardShip( ship );
+
+    if( !EnterSystem( true ) )
     {
         // Release the item factory now that the ItemFactory is finished being used:
         m_services.item_factory.UnsetUsingClient();
         return false;
     }
 
-    ship->Load( m_services.item_factory, GetShipID() );
-
-    BoardShip( ship );
-
-    if (IsSolarSystem(GetLocationID())) {
-        // only load solarsystem for entities in space.
-        if( !EnterSystem( true ) ) {
-            sLog.Error("Client::SelectCharacter()", "EnterSystem for %u returned false", char_id);
-            // Release the item factory now that the ItemFactory is finished being used:
-            m_services.item_factory.UnsetUsingClient();
-            return false;
-        }
-    }
-
     UpdateLocation();
+
+    // update skill queue
+    GetChar()->UpdateSkillQueue();
 
     //johnsus - characterOnline mod
     m_services.serviceDB().SetCharacterOnlineStatus( GetCharacterID(), true );
-
-    UpdateSkillTraining();
 
     _SendSessionChange();
 
@@ -1421,34 +1303,6 @@ void Client::SaveAllToDatabase()
     GetChar()->SaveSkillQueue();
     GetShip()->SaveShip();
     GetChar()->SaveCharacter();
-}
-
-void Client::SpawnNewRookieShip(){
-    EVEItemFlags flag = (EVEItemFlags)flagHangar;
-
-    //create rookie ship of appropriate type
-    uint32 typeID;
-    if(GetChar()->race() == raceAmarr )  typeID = amarrRookie;
-    else if(GetChar()->race() == raceCaldari )  typeID = caldariRookie;
-    else if(GetChar()->race() == raceGallente )  typeID = gallenteRookie;
-    else if(GetChar()->race() == raceMinmatar )  typeID = minmatarRookie;
-
-    //create data for new rookie ship
-    ItemData idata(
-        typeID,
-        GetCharacterID(),
-                   0, //temp location
-                   flag,
-                   1
-    );
-    //spawn rookie ship
-    InventoryItemRef i = services().item_factory.SpawnItem( idata );
-
-    if(!i)
-        throw PyException( MakeCustomError( "Unable to generate rookie ship" ) );
-
-    //move the new rookie ship into the players hanger in station
-    i->Move( GetStationID(), flag, true );
 }
 
 bool Client::LaunchDrone(InventoryItemRef drone) {
@@ -1728,11 +1582,11 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     //sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
     //sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
-
-    if (!services().serviceDB().GetAccountInformation(
-				ccp.user_name.c_str(),
-				ccp.user_password_hash.c_str(),
-				account_info))
+    
+    if (!services().serviceDB().GetAccountInformation( 
+				ccp.user_name.c_str(), 
+				ccp.user_password_hash.c_str(), 
+				account_info)) 
 	{
         goto error_login_auth_failed;
     }
