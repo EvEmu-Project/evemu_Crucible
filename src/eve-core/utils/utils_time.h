@@ -46,7 +46,4 @@ extern uint64 Win32TimeNow();
 extern void Win32TimeToUnixTime( uint64 win32t, time_t &unix_time, uint32 &nsec );
 extern std::string Win32TimeToString(uint64 win32t);
 
-double GetTimeMSeconds();
-double GetTimeUSeconds();
-
 #endif /* !__UTILS_TIME_H__INCL__ */

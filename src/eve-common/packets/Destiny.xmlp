@@ -380,7 +380,7 @@ DST_WARPEXIT = 11
             <!-- 0 -->
             <int name="entityID" />
             <int name="ballID" />
-            <int name="range" />
+            <int name="unknown" /> <!-- seen 50 -->
         </tupleInline>
       </tupleInline>
   </elementDef>
@@ -597,22 +597,21 @@ DST_WARPEXIT = 11
       </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_OnDockingAccepted">
-        <!-- OnDockingAccepted(self, dockingStartPos, dockingEndPos, stationID): -->
+  <elementDef name="OnDockingAccepted">
       <tupleInline>
-        <!-- 0: ship position -->
+        <!-- 0 -->
       <listInline>
-        <real name="ship_x" />
-        <real name="ship_y" />
-        <real name="ship_z" />
+        <real name="start_x" />
+        <real name="start_y" />
+        <real name="start_z" />
       </listInline>
-        <!-- 1: station dockpoint-->
+        <!-- 1: dup of previous list? -->
       <listInline>
-        <real name="station_x" />
-        <real name="station_y" />
-        <real name="station_z" />
+        <real name="end_x" />
+        <real name="end_y" />
+        <real name="end_z" />
       </listInline>
-        <!-- 2: stationID -->
+      <!-- 2 -->
       <int name="stationID" />
       </tupleInline>
   </elementDef>

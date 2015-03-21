@@ -481,7 +481,7 @@ public:
                         entity.itemName.c_str(),
                         location
                     );
-
+					
                     InventoryItemRef npcRef = system.GetServiceMgr()->item_factory.GetItem( entity.itemID );
                     if( !npcRef )
                         throw PyException( MakeCustomError( "Unable to spawn item #%u:'%s' of type %u.", entity.itemID, entity.itemName.c_str(), entity.typeID ) );
@@ -629,13 +629,37 @@ bool SystemManager::BootSystem() {
     return true;
 }
 
-//called many times a second ....and takes up a lot of proc cycles
+//called many times a second
 bool SystemManager::Process() {
+    m_entityChanged = false;
+
+    std::map<uint32, SystemEntity *>::const_iterator cur, end;
+    cur = m_entities.begin();
+    end = m_entities.end();
+    while(cur != end) {
+        cur->second->Process();
+
+        if(m_entityChanged) {
+            //somebody changed the entity list, need to start over or bail...
+            m_entityChanged = false;
+
+            cur = m_entities.begin();
+            end = m_entities.end();
+        } else {
+            cur++;
+        }
+    }
+
+    bubbles.Process();
+
     return true;
 }
 
 //called once per second.
 void SystemManager::ProcessDestiny() {
+    //this is here so it isnt called so frequently.
+    m_spawnManager->Process();
+
     m_entityChanged = false;
 
     std::map<uint32, SystemEntity *>::const_iterator cur, end;
@@ -661,9 +685,6 @@ void SystemManager::ProcessDestiny() {
             cur++;
         }
     }
-    //this is here so it isnt called so frequently.
-    m_spawnManager->Process();
-    bubbles.Process();
 }
 
 bool SystemManager::BuildDynamicEntity(Client *who, const DBSystemDynamicEntity &entity)
@@ -685,26 +706,46 @@ bool SystemManager::BuildDynamicEntity(Client *who, const DBSystemDynamicEntity 
 
 void SystemManager::AddClient(Client *who) {
     AddEntity( who );
+    m_entities[who->GetID()] = who;
+    m_entityChanged = true;
+    //this is actually handled in SetPosition via UpdateBubble.
+    if(who->IsInSpace()) {
+        bubbles.Add(who, false);
+    }
+    _log(CLIENT__TRACE, "%s: Added to system manager for %u", who->GetName(), m_systemID);
+
+    // Add character's Ship Item Ref to Solar System dynamic inventory:
+    AddItemToInventory( who->GetShip() );
 }
 
 void SystemManager::RemoveClient(Client *who) {
     RemoveEntity(who);
+    _log(CLIENT__TRACE, "%s: Removed from system manager for %u", who->GetName(), m_systemID);
+
+    // Remove character's Ship Item Ref from Solar System dynamic inventory:
+    RemoveItemFromInventory( who->GetShip() );
 }
 
 void SystemManager::AddNPC(NPC *who) {
     //nothing special to do yet...
     AddEntity(who);
+
+    // Add NPC's Item Ref to Solar System Dynamic Inventory:
+    //AddItemToInventory( this->itemFactory().GetItem( who->GetID() ) );
 }
 
 void SystemManager::RemoveNPC(NPC *who) {
     //nothing special to do yet...
     RemoveEntity(who);
+
+    // Remove NPC's Item Ref from Solar System Dynamic Inventory:
+    //RemoveItemFromInventory( this->itemFactory().GetItem( who->GetID() ) );
 }
 
 void SystemManager::AddEntity(SystemEntity *who) {
     m_entities[who->GetID()] = who;
     m_entityChanged = true;
-    bubbles.Add(who);
+    bubbles.Add(who, false);
 
     // Add Entity's Item Ref to Solar System Dynamic Inventory:
     AddItemToInventory( this->itemFactory().GetItem( who->GetID() ) );
@@ -718,7 +759,7 @@ void SystemManager::RemoveEntity(SystemEntity *who) {
     } else
         _log(SERVICE__ERROR, "Entity %u not found is system %u to be deleted.", who->GetID(), GetID());
 
-    bubbles.Remove(who);
+    bubbles.Remove(who, false);
 
     // Remove Entity's Item Ref from Solar System Dynamic Inventory:
     RemoveItemFromInventory( this->itemFactory().GetItem( who->GetID() ) );

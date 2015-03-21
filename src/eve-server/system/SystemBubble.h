@@ -45,7 +45,7 @@ public:
 
     bool ProcessWander(std::vector<SystemEntity *> &wanderers);
 
-    void Add(SystemEntity *ent, bool notify=true, bool isPostWarp=false);
+    void Add(SystemEntity *ent, bool notify=true);
     void Remove(SystemEntity *ent, bool notify=true);
     void AddExclusive(SystemEntity *ent, bool notify=true);
     void RemoveExclusive(SystemEntity *ent, bool notify=true);

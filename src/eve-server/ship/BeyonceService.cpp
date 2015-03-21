@@ -160,12 +160,9 @@ PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
         return NULL;
     }
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
         return NULL;
     }
 
@@ -180,7 +177,7 @@ PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
         return NULL;
     }
 
-    pDestiny->Follow(entity, distance);
+    destiny->Follow(entity, distance);
 
     return NULL;
 }
@@ -192,20 +189,22 @@ PyResult BeyonceBound::Handle_CmdSetSpeedFraction(PyCallArgs &call) {
         return NULL;
     }
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
         return NULL;
     }
 
-    pDestiny->SetSpeedFraction(arg.arg);
+    destiny->SetSpeedFraction(arg.arg);
 
     return NULL;
 }
 
+/* AlignTo
+ * This will look up the entityID to get it's position in space, then call
+ * AlignTo to have it respond with gotopoint.
+ * @author Xanarox
+*/
 PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
     CallAlignTo arg;
     if(!arg.Decode(&call.tuple)) {
@@ -213,12 +212,9 @@ PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
         return NULL;
     }
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
         return NULL;
     }
 
@@ -234,7 +230,8 @@ PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
         return NULL;
     }
 
-    pDestiny->AlignTo( entity );
+    const GPoint &position = entity->GetPosition();
+    destiny->AlignTo( position );
 
     return NULL;
 }
@@ -246,16 +243,13 @@ PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
         return NULL;
     }
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
         return NULL;
     }
 
-    pDestiny->GotoDirection( GPoint( arg.x, arg.y, arg.z ) );
+    destiny->GotoDirection( GPoint( arg.x, arg.y, arg.z ) );
 
     return NULL;
 }
@@ -269,12 +263,10 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
     }
     uint32 bookmarkID = call.tuple->GetItem( 0 )->AsInt()->value();
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
-        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
+    DestinyManager *destiny = call.client->Destiny();
+    if( destiny == NULL )
+    {
+        sLog.Error( "%s: Client has no destiny manager!", call.client->GetName() );
         return NULL;
     }
 
@@ -301,7 +293,7 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
             bookmarkPosition.y = y;     // From bookmark y
             bookmarkPosition.z = z;     // From bookmark z
 
-            pDestiny->GotoDirection( bookmarkPosition );
+            destiny->GotoDirection( bookmarkPosition );
         }
         else
         {
@@ -317,7 +309,7 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
                 return NULL;
             }
 
-            pDestiny->GotoDirection( se->GetPosition() );
+            destiny->GotoDirection( se->GetPosition() );
         }
     }
 
@@ -342,12 +334,9 @@ PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
         return NULL;
     }
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
         return NULL;
     }
 
@@ -362,7 +351,7 @@ PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
         return NULL;
     }
 
-    pDestiny->Orbit(entity, distance);
+    destiny->Orbit(entity, distance);
     return NULL;
 }
 
@@ -373,25 +362,18 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
         return NULL;
     }
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
-        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()){
-        call.client->SendNotifyMsg( "You are already warping");
-        return NULL;
-    }
-
     if( arg.type == "item" )
     {
         // This section handles Warping to any object in the Overview
-        int32 distance = 0;
+        double distance;
         std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
         if(res == call.byname.end()) {
-            ;
+            //Not needed, this is the correct behavior
+            //codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
+            distance = 0.0;
         } else if(!res->second->IsInt() && !res->second->IsFloat()) {
             codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
-            distance = 15000;
+            distance = 0.0;
         } else {
             distance =
                 res->second->IsInt()
@@ -412,24 +394,26 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
             return NULL;
         }
 
-        double distanceFromBodyOrigin = 0.0, distanceFromSystemOrigin = 0.0;
-        GPoint warpToPoint(se->GetPosition());
-        float warpPointAdj = 1.0f;
+        GPoint origin(0.0,0.0,0.0);
+        double distanceFromBodyOrigin = 0.0;
+        double distanceFromSystemOrigin = 0.0;
+        GPoint warpToPoint(se->GetPosition());                                // Make a warp-in point variable
         if( IsStaticMapItem(se->GetID()) )
         {
             switch( ((SimpleSystemEntity *)(se))->data.groupID )
             {
                 case EVEDB::invGroups::Sun:
                 case EVEDB::invGroups::Planet:
+                case EVEDB::invGroups::Moon:
                 {
                     // Calculate final distance out from origin of celestial body along common warp-to vector:
                     distanceFromBodyOrigin = se->GetRadius();            // Add celestial body's radius
-                    distanceFromBodyOrigin += 1000000;                    // Add 20,000km along common vector from celestial body origin to ensure
+                    distanceFromBodyOrigin += 20000000;                    // Add 20,000km along common vector from celestial body origin to ensure
                                                                         // client camera rotation about ship does not take camera inside the celestial body's wireframe
 
                     // Calculate final warp-to point along common vector from celestial body's origin and add randomized position adjustment for multiple ships coming out of warp to not bump
                     GPoint celestialOrigin(se->GetPosition());                            // Make a celestial body origin point variable
-                    GVector vectorFromOrigin(celestialOrigin, NULL_ORIGIN);                    // Make a celestial body TO system origin origin vector variable
+                    GVector vectorFromOrigin(celestialOrigin, origin);                    // Make a celestial body TO system origin origin vector variable
                     if( vectorFromOrigin.length() == 0 )
                     {
                         // This is the special case where we are warping to the Star, so we have to construct
@@ -489,39 +473,25 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
                     warpToPoint.MakeRandomPointOnSphereLayer(1000.0,(1000.0+call.client->GetRadius()));
                     break;
                 }
-            case EVEDB::invGroups::Moon:
-            {
-                warpPointAdj = se->GetRadius() + 250000;
-                break;
-            }
-            default:
-                    warpPointAdj = se->GetRadius();
+                default:
+                    // For all other objects, simply just add radius of ship and object:
+                    distance += call.client->GetRadius() + se->GetRadius();
                     break;
             }
-        } else
-            warpPointAdj = se->GetRadius();
+        }
+        else
+            distance += call.client->GetRadius() + se->GetRadius();
 
-        distance += call.client->GetRadius();
-
-        /* client stops warp at (targetpoint - stopdistance) along common line between the two.
-         *  the server will need to be told what and how to match the client.
-         *  i am doing that here.
-         * set targetpoint = point of object minus radius as distance along common vector
-         */
-        GVector vectorFromOrigin( warpToPoint, call.client->GetPosition() );
-        vectorFromOrigin.normalize();   //we now have a direction
-        GPoint stopPoint = vectorFromOrigin * -warpPointAdj;
-        warpToPoint -= stopPoint;
-
-        pDestiny->WarpTo(warpToPoint, distance);
-    } else if( arg.type == "bookmark" ) {
-        //  bookmark, bmid, minrange, fleet(bool)
-        // This section handles Warping to any Bookmark
-        int32 distance = 0;
-        double x = 0.0, y = 0.0, z = 0.0;
-        uint32 itemID = 0, typeID = 0;
-        GPoint bookmarkPosition  = (NULL_ORIGIN);
-
+        call.client->WarpTo( warpToPoint, distance );
+    }
+    else if( arg.type == "bookmark" )
+    {
+        // This section handles Warping to any Bookmark:
+        double distance = 0.0;
+        double x,y,z;
+        uint32 itemID;
+        uint32 typeID;
+        GPoint bookmarkPosition;
 
         BookmarkService *bkSrvc = (BookmarkService *)(call.client->services().LookupService( "bookmark" ));
 
@@ -624,18 +594,8 @@ PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
         codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
         return NULL;
     }
-
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
-        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
-        return NULL;
-    }
-
     //Change this to change the default autopilot distance (Faster Autopilot FTW)
-    int32 distance = 15000;
+    double distance = 15000.0;
 
     //Don't update destiny until done with warp
     SystemManager *sm = call.client->System();
@@ -650,7 +610,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
     }
     //Adding in object radius
     distance += call.client->GetRadius() + se->GetRadius();
-    pDestiny->WarpTo(se->GetPosition(), distance);
+    call.client->WarpTo(se->GetPosition(), distance);
 
     return NULL;
 }
@@ -660,33 +620,33 @@ PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
 
     //no arguments.
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
         return NULL;
     }
 
-    pDestiny->SendSetState(call.client->Bubble());
+    destiny->SendSetState(call.client->Bubble());
 
     return NULL;
 }
 
 PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return NULL;
     }
 
-    if (pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
-        return NULL;
+    // Only disallow Stopping ship when in warp state AND ship speed is greater than 0.75 times ship's maxVelocity
+    if( (destiny->GetState() == Destiny::DSTBALL_WARP)
+        && (destiny->GetVelocity().length() >= (0.75*call.client->GetShip()->GetAttribute(AttrMaxVelocity).get_float())) ) {
+            call.client->SendNotifyMsg( "You can't do this while warping");
+            return NULL;
     }
 
-    pDestiny->Stop();
+
+    destiny->Stop();
 
     return NULL;
 }
@@ -698,15 +658,11 @@ PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
         return NULL;
     }
 
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
+    DestinyManager *destiny = call.client->Destiny();
+    if(destiny == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
-        return NULL;
     }
-
     SystemManager *sm = call.client->System();
     if(sm == NULL) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager.", call.client->GetName());
@@ -715,7 +671,7 @@ PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
 
     // Attempt to Dock:
     call.client->SetDockStationID( arg.arg1 );   // Set client to know what station it's trying to dock into just in case docking is delayed
-    return pDestiny->AttemptDockOperation();
+    return destiny->AttemptDockOperation();
 }
 
 PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
@@ -723,15 +679,6 @@ PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
     Call_StargateJump arg;
     if(!arg.Decode(&call.tuple)) {
         codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
-    }
-
-    DestinyManager *pDestiny = call.client->Destiny();
-    if(pDestiny == NULL) {
-        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
-    } else if(pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
         return NULL;
     }
 

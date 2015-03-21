@@ -123,28 +123,38 @@ void BubbleManager::Add(SystemEntity *ent, bool notify, bool isPostWarp) {
     NewBubbleCenter( shipVelocity, newBubbleCenter );   // Calculate new bubble's center based on entity's velocity and current position
 
     SystemBubble *in_bubble;
-
+    shipVelocity.normalize();
     if( isPostWarp )
         in_bubble = FindBubble(newBubbleCenter);
     else
         in_bubble = FindBubble(ent->GetPosition());
 
     if(in_bubble != NULL) {
-        in_bubble->Add(ent, notify, isPostWarp);
+        in_bubble->Add(ent, notify);
         sLog.Debug( "BubbleManager::Add()", "SystemEntity '%s' being added to existing Bubble %u", ent->GetName(), in_bubble->GetBubbleID() );
         return;
     }
-    
-    in_bubble = new SystemBubble(newBubbleCenter, BUBBLE_DIAMETER_METERS);
+//    // this System Entity is not in any existing bubble, so let's make a new bubble
+//    // using the current position of this System Entity, however, we want to create this
+//    // new bubble's center further along the direction of travel from the position of this
+//    // System Entity by the amount specified by BUBBLE_HYSTERESIS_METERS and BUBBLE_RADIUS_METERS:
+//    GPoint newBubbleCenter(ent->GetPosition());
+//    GVector shipVelocity(ent->GetVelocity());
+//    NewBubbleCenter( shipVelocity, newBubbleCenter );   // Calculate new bubble's center based on entity's velocity and current position
+
+    in_bubble = new SystemBubble(newBubbleCenter, BUBBLE_RADIUS_METERS);
     sLog.Debug( "BubbleManager::Add()", "SystemEntity '%s' being added to NEW Bubble %u", ent->GetName(), in_bubble->GetBubbleID() );
     //TODO: think about bubble colission. should we merge them?
     m_bubbles.push_back(in_bubble);
     in_bubble->Add(ent, notify);
 }
 
-void BubbleManager::NewBubbleCenter(GVector shipVelocity, GPoint & newBubbleCenter) {
+void BubbleManager::NewBubbleCenter(GVector shipVelocity, GPoint & newBubbleCenter)
+{
     shipVelocity.normalize();
-    newBubbleCenter += (shipVelocity *(BUBBLE_DIAMETER_METERS /2 -BUBBLE_HYSTERESIS_METERS));
+    newBubbleCenter.x += shipVelocity.x * (BUBBLE_RADIUS_METERS - BUBBLE_HYSTERESIS_METERS);
+    newBubbleCenter.y += shipVelocity.y * (BUBBLE_RADIUS_METERS - BUBBLE_HYSTERESIS_METERS);
+    newBubbleCenter.z += shipVelocity.z * (BUBBLE_RADIUS_METERS - BUBBLE_HYSTERESIS_METERS);
 }
 
 void BubbleManager::Remove(SystemEntity *ent, bool notify) {

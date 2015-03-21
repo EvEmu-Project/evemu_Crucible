@@ -20,15 +20,12 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Aknor Jaden, Allan
+    Author:        Aknor Jaden
 */
 
 #ifndef WRECKS_AND_LOOT_H
 #define WRECKS_AND_LOOT_H
 
-#include <unordered_map>
-#include "eve-common.h"
-#include "system/SystemDB.h"
 
 // //////////////// Permanent Memory Object Classes //////////////////////
 
@@ -56,75 +53,7 @@ protected:
     ( DGM_Types_to_Wrecks_Table::get() )
 // -----------------------------------------------------------------------
 
-//  CLASS DEFINITION FOR LOOT SYSTEM
-//  struct objects for holding loot data (POD).
 
-struct DBLootGroup {
-    //uint32 groupID;
-    uint32 lootGroupID;
-    double dropChance;
-};
-
-struct DBLootGroupType {
-    uint32 lootGroupID;
-    uint32 typeID;
-    double chance;
-    uint32 minQuantity;
-    uint32 maxQuantity;
-};
-
-struct DBSalvageGroup {
-    //uint32 wreckTypeID;
-    uint32 salvageItemID;
-    uint8 groupID;
-    double dropChance;
-    uint8 minDrop;
-    uint8 maxDrop;
-};
-
-struct LootList {
-    uint32 itemID;
-    uint8 minDrop;
-    uint8 maxDrop;
-};
-
-// This class is a singleton object, containing all loot items/defs loaded from npcLoot* tables
-//  Allan 27Nov14
-class DGM_Loot_Groups_Table
-: public Singleton< DGM_Loot_Groups_Table >
-{
-public:
-    DGM_Loot_Groups_Table();
-    ~DGM_Loot_Groups_Table();
-
-    typedef std::vector<LootList> LootListDef;
-    typedef std::vector<DBLootGroupType> LootGroupTypeVec;
-    typedef std::vector<DBLootGroupType>::iterator LootGroupTypeVecItr;
-
-    typedef std::unordered_multimap<uint32, DBLootGroup> LootGroupDef;    /* groupID is key */
-    typedef std::unordered_multimap<uint32, DBLootGroupType> LootGroupTypeMap;    /* lootGroupID is key */
-    typedef std::unordered_multimap<uint32, DBLootGroupType>::iterator LootGroupTypeMapItr;    /* lootGroupID is key */
-
-    // Initializes the Table:
-    int Initialize();
-
-    // Returns vector of lootGroupIDs
-    //  0 if no match
-    void GetLoot(uint32 groupID, LootListDef &lootList);
-
-protected:
-    void _Populate();
-
-    LootGroupDef m_LootGroupMap;
-    LootGroupTypeMap m_LootGroupTypeMap;
-
-private:
-    SystemDB m_db;
-};
-
-#define sDGM_Loot_Groups_Table \
-( DGM_Loot_Groups_Table::get() )
-
-///////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 #endif
