@@ -335,7 +335,7 @@ uint32 Inventory::FindByFlag(EVEItemFlags _flag, std::vector<InventoryItemRef> &
             }
         }
     }
-    return items.size();
+    return (uint32)items.size();
 }
 
 bool Inventory::FindSingleByFlag( EVEItemFlags flag, InventoryItemRef &item ) const

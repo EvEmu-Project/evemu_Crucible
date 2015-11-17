@@ -28,7 +28,9 @@
 
 #include "utils/Singleton.h"
 
-class ImageServerListener;
+//class ImageServerListener;
+#include "imageserver/ImageServerListener.h"
+
 
 /**
  * \class ImageServer

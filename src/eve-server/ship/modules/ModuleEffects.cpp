@@ -189,7 +189,7 @@ void MEffect::_Populate(uint32 effectID)
 			if( !(targetGroupIDs.empty()) )
 			{
 				// targetGroupIDs string is not empty, so extract one number at a time until it is empty
-				int pos = 0;
+				size_t pos = 0;
 				std::string tempString = "";
 
 				pos = targetGroupIDs.find_first_of(';');
@@ -314,7 +314,7 @@ void SkillBonusModifier::_Populate(uint32 skillID)
 			if( !(targetGroupIDs.empty()) )
 			{
 				// targetGroupIDs string is not empty, so extract one number at a time until it is empty
-				int pos = 0;
+				size_t pos = 0;
 				std::string tempString = "";
 
 				pos = targetGroupIDs.find_first_of(';');
@@ -436,7 +436,7 @@ void ShipBonusModifier::_Populate(uint32 shipID)
 			if( !(targetGroupIDs.empty()) )
 			{
 				// targetGroupIDs string is not empty, so extract one number at a time until it is empty
-				int pos = 0;
+				size_t pos = 0;
 				std::string tempString = "";
 
 				pos = targetGroupIDs.find_first_of(';');
@@ -994,8 +994,8 @@ void ModuleEffects::_populate(uint32 typeID)
 					if( moduleStateWhenEffectApplied == MOD_UNFITTED )
 						sLog.Error("ModuleEffects::_populate()", "Illegal value '%u' obtained from the 'effectAppliedInState' field of the 'dgmEffectsInfo' table", mEffectPtr->GetModuleStateWhenEffectApplied());
 
-					if( moduleStateWhenEffectApplied & MOD_OFFLINE )
-						;	// nothing
+					//if( moduleStateWhenEffectApplied & MOD_OFFLINE )
+					//	;	// nothing
 
 					if( moduleStateWhenEffectApplied & MOD_ONLINE )
 						m_OnlineEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
@@ -1012,8 +1012,8 @@ void ModuleEffects::_populate(uint32 typeID)
 					if( moduleStateWhenEffectApplied & MOD_FLEET )
 						m_FleetEffects.insert(std::pair<uint32, MEffect *>(effectID,mEffectPtr));
 
-					if( moduleStateWhenEffectApplied & MOD_DEACTIVATING )
-						;	// nothing
+					//if( moduleStateWhenEffectApplied & MOD_DEACTIVATING )
+					//	;	// nothing
 				}
 			}
         }

@@ -88,7 +88,7 @@ void ImageServerConnection::ProcessHeaders()
     }
     request = request.substr(1);
 
-    int del = request.find_first_of('_');
+    size_t del = request.find_first_of('_');
     if (del == std::string::npos)
     {
         NotFound();

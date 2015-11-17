@@ -375,12 +375,12 @@ void SystemBubble::_SendAddBalls( SystemEntity* to_who )
     _log( DESTINY__TRACE, "Add Balls:" );
     addballs.Dump( DESTINY__TRACE, "    " );
     _log( DESTINY__TRACE, "    Ball Binary:" );
-    _hex( DESTINY__TRACE, &( addballs.destiny_binary->content() )[0],
-                          addballs.destiny_binary->content().size() );
+    _hex( DESTINY__TRACE, &(	addballs.destiny_binary->content() )[0],
+								(uint32)addballs.destiny_binary->content().size() );
 
     _log( DESTINY__TRACE, "    Ball Decoded:" );
-    Destiny::DumpUpdate( DESTINY__TRACE, &( addballs.destiny_binary->content() )[0],
-                                         addballs.destiny_binary->content().size() );
+    Destiny::DumpUpdate( DESTINY__TRACE, &(	addballs.destiny_binary->content() )[0],
+											(uint32)addballs.destiny_binary->content().size() );
 
     PyTuple* t = addballs.Encode();
     to_who->QueueDestinyUpdate( &t );    //may consume, but may not.

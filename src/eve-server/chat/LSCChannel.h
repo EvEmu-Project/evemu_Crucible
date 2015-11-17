@@ -133,7 +133,7 @@ public:
     uint32 GetCSPA() { return m_cspa; }
     uint32 GetTemporary() { return m_temporary; }
     uint32 GetMode() { return m_mode; }
-    uint32 GetMemberCount() { return m_chars.size(); }
+    uint32 GetMemberCount() { return (uint32)m_chars.size(); }
 
     void SetOwnerID(uint32 ownerID) { m_ownerID = ownerID; }
     void SetType(Type new_type) { m_type = new_type; }
