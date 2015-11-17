@@ -414,7 +414,7 @@ bool ClassEncodeGenerator::ProcessWStringInline( const TiXmlElement* field )
 
     const char* v = top();
     fprintf( mOutputFile,
-        "    %s = new PyWString( \"%s\", %lu );\n"
+        "    %s = new PyWString( \"%s\", %zu );\n"
         "\n",
         v, value, strlen( value )
     );

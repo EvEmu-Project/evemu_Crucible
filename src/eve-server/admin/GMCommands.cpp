@@ -257,7 +257,7 @@ PyResult Command_tr( Client* who, CommandDB* db, PyServiceMgr* services, const S
 	SystemEntity * destinationEntity = NULL;
 	uint32 solarSystemID = 0;
 	GPoint destinationPoint(0,0,0);
-	uint32 argsCount = args.argCount();
+	size_t argsCount = args.argCount();
     std::string name1 = args.arg( 1 );
 	std::string name2 = "";
 	bool isFirstArgName = false;

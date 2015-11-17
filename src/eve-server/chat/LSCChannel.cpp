@@ -148,7 +148,7 @@ bool LSCChannel::JoinChannel(Client * c) {
     //if ((m_type != LSCChannel::normal) && (m_channelID > 2)) {
         OnLSC_JoinChannel join;
         join.sender = _MakeSenderInfo(c);
-        join.member_count = m_chars.size();
+        join.member_count = (int32)m_chars.size();
         join.channelID = EncodeID();
 
         MulticastTarget mct;
@@ -177,7 +177,7 @@ void LSCChannel::LeaveChannel(uint32 charID, OnLSC_SenderInfo * si) {
 
     OnLSC_LeaveChannel leave;
     leave.sender = si;
-    leave.member_count = m_chars.size();
+    leave.member_count = (int32)m_chars.size();
     leave.channelID = EncodeID();
 
     MulticastTarget mct;
@@ -202,7 +202,7 @@ void LSCChannel::LeaveChannel(Client *c, bool self) {
 
     OnLSC_LeaveChannel leave;
     leave.sender = _MakeSenderInfo(c);
-    leave.member_count = m_chars.size();
+    leave.member_count = (int32)m_chars.size();
     leave.channelID = EncodeID();
 
     MulticastTarget mct;
@@ -394,7 +394,7 @@ PyRep *LSCChannel::EncodeChannel(uint32 charID) {
     line.comparisonKey = m_comparisonKey;
     line.cspa = m_cspa;
     line.displayName = m_displayName;
-    line.estimatedMemberCount = m_chars.size();
+    line.estimatedMemberCount = (int32)m_chars.size();
     line.mailingList = m_mailingList;
     line.memberless = m_memberless;
     line.mode = m_mode;

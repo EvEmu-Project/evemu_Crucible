@@ -84,7 +84,7 @@ uint64 filesize( FILE* fd )
 {
 #ifdef HAVE_SYS_STAT_H
     struct stat st;
-    ::fstat( ::fileno( fd ), &st );
+    ::fstat( ::_fileno( fd ), &st );
     return st.st_size;
 #else /* !HAVE_SYS_STAT_H */
     return ::filelength( ::fileno( fd ) );

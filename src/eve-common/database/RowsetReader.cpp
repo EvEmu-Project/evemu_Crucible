@@ -34,9 +34,9 @@
 /************************************************************************/
 size_t BaseRowsetReader::FindColumn( const char* name )
 {
-    const uint32 cc = columnCount();
+    const size_t cc = columnCount();
 
-    for( uint32 i = 0; i < cc; ++i )
+    for(size_t i = 0; i < cc; ++i )
     {
         if( 0 == strcmp( name, columnName( i ) ) )
             return i;

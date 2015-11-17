@@ -198,7 +198,7 @@ bool MarshalStream::VisitBuffer( const PyBuffer* rep )
 
     const Buffer& buf = rep->content();
 
-    PutSizeEx( buf.size() );
+    PutSizeEx((uint32)buf.size() );
     Put( buf.begin<uint8>(), buf.end<uint8>() );
 
     return true;
@@ -230,7 +230,7 @@ bool MarshalStream::VisitString( const PyString* rep )
         else
         {
             Put<uint8>( Op_PyLongString );
-            PutSizeEx( len );
+            PutSizeEx((uint32)len );
             Put( rep->content().begin(), rep->content().end() );
         }
     }
@@ -252,7 +252,7 @@ bool MarshalStream::VisitWString( const PyWString* rep )
         // UTF-8 is more space-efficient than UCS-2.
 
         Put<uint8>( Op_PyWStringUTF8 );
-        PutSizeEx( len );
+        PutSizeEx((uint32)len );
         Put( rep->content().begin(), rep->content().end() );
     }
 
@@ -265,7 +265,7 @@ bool MarshalStream::VisitToken( const PyToken* rep )
 
     const std::string& str = rep->content();
 
-    PutSizeEx( str.size() );
+    PutSizeEx((uint32)str.size() );
     Put( str.begin(), str.end() );
 
     return true;
@@ -273,7 +273,7 @@ bool MarshalStream::VisitToken( const PyToken* rep )
 
 bool MarshalStream::VisitTuple( const PyTuple* rep )
 {
-    uint32 size = rep->size();
+    uint32 size = (uint32)rep->size();
     if( size == 0 )
     {
         Put<uint8>( Op_PyEmptyTuple );
@@ -297,7 +297,7 @@ bool MarshalStream::VisitTuple( const PyTuple* rep )
 
 bool MarshalStream::VisitList( const PyList* rep )
 {
-    uint32 size = rep->size();
+    uint32 size = (uint32)rep->size();
     if( size == 0 )
     {
         Put<uint8>( Op_PyEmptyList );
@@ -317,7 +317,7 @@ bool MarshalStream::VisitList( const PyList* rep )
 
 bool MarshalStream::VisitDict( const PyDict* rep )
 {
-    uint32 size = rep->size();
+    uint32 size = (uint32)rep->size();
 
     Put<uint8>( Op_PyDict );
     PutSizeEx( size );
@@ -535,7 +535,7 @@ bool MarshalStream::VisitSubStream( const PySubStream* rep )
     //we have the marshaled data, use it.
     const Buffer& data = rep->data()->content();
 
-    PutSizeEx( data.size() );
+    PutSizeEx((uint32)data.size() );
     Put( data.begin<uint8>(), data.end<uint8>() );
 
     return true;
@@ -634,7 +634,7 @@ bool MarshalStream::SaveZeroCompressed( const Buffer& data )
     }
 
     // Write the packed data
-    PutSizeEx( packed.size() );
+    PutSizeEx((uint32)packed.size() );
     if( 0 < packed.size() )
         Put( packed.begin<uint8>(), packed.end<uint8>() );
 

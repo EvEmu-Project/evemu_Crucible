@@ -63,7 +63,7 @@ void EVETCPConnection::QueueRep( const PyRep* rep )
     {
         //DumpBuffer( buf, PACKET_OUTBOUND );
         // write length
-        *bufLen = ( buf->size() - sizeof( uint32 ) );
+        *bufLen = ((uint32)buf->size() - sizeof( uint32 ) );
 
         Send( &buf );
 

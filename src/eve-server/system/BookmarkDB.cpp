@@ -229,30 +229,30 @@ bool BookmarkDB::DeleteBookmarkFromDatabase(uint32 ownerID, uint32 bookmarkID)
 
 bool BookmarkDB::DeleteBookmarksFromDatabase(uint32 ownerID, std::vector<unsigned long> *bookmarkList)
 {
-    DBerror err;
-    bool ret = true;
-    std::stringstream st;
-    std::string listString;
-    uint32 i, size;
+	DBerror err;
+	bool ret = true;
+	std::stringstream st;
+	std::string listString;
+	size_t i, size;
 
-    size = bookmarkList->size();
-    for(i=0; i<size; i++)
-    {
-        st << bookmarkList->at(i);
-        if (i<(size-1))
-            st << ", ";
-    }
+	size = bookmarkList->size();
+	for (i = 0; i < size; i++)
+	{
+		st << bookmarkList->at(i);
+		if (i < (size - 1))
+			st << ", ";
+	}
 
-    if (!sDatabase.RunQuery(err,
-        " DELETE FROM bookmarks "
-        " WHERE ownerID = %u AND bookmarkID IN (%s)", ownerID, st.str().c_str()
-        ))
-    {
-        sLog.Error( "BookmarkDB::DeleteBookmarksFromDatabase()", "Error in query: %s", err.c_str() );
-        ret = false;
-    }
+	if (!sDatabase.RunQuery(err,
+		" DELETE FROM bookmarks "
+		" WHERE ownerID = %u AND bookmarkID IN (%s)", ownerID, st.str().c_str()
+		))
+	{
+		sLog.Error("BookmarkDB::DeleteBookmarksFromDatabase()", "Error in query: %s", err.c_str());
+		ret = false;
+	}
 
-    return ret;
+	return ret;
 }
 
 

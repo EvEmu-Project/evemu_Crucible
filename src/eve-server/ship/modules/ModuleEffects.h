@@ -234,7 +234,7 @@ public:
 	~TypeEffectsList();
 
 	bool HasEffect(uint32 effectID);
-	uint32 GetEffectCount() { return m_typeEffectsList.size(); }
+	uint32 GetEffectCount() { return (uint32)m_typeEffectsList.size(); }
 	void GetEffectsList(std::map<uint32,uint32> * effectsList);
 
 protected:
