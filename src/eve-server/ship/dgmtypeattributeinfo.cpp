@@ -43,8 +43,8 @@ dgmtypeattributemgr::dgmtypeattributemgr()
     DgmTypeAttributeSet * entry = NULL;
     DBResultRow row;
 
-    size_t amount = res.GetRowCount();
-    for (size_t i = 0; i < amount; i++)
+    int amount = res.GetRowCount();
+    for (int i = 0; i < amount; i++)
     {
         res.GetRow(row);
         uint32 typeID = row.GetUInt(0);

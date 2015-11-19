@@ -361,7 +361,7 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     header.timestamp = res->second->timestamp;
     header.version = res->second->version;
     header.magic = CacheFileMagic;
-    header.length = (uint32)res->second->cache->content().size();
+    header.length = res->second->cache->content().size();
 
     if(fwrite(&header, sizeof(header), 1, f) != 1) {
         fclose(f);

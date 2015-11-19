@@ -300,7 +300,7 @@ public:
     {
         sha_update( sha_info,
                     reinterpret_cast< const SHA_BYTE* >( value.c_str() ),
-                    (int)value.size() * sizeof( wchar_t ) );
+                    value.size() * sizeof( wchar_t ) );
     }
 
     /* finish computing the SHA digest */

@@ -330,9 +330,9 @@ int32 PyBuffer::hash() const
     if( mHashCache != -1 )
         return mHashCache;
 
-    register int32 len;
+    register int len;
     register unsigned char *p;
-    register int32 x;
+    register long x;
 
     /* XXX potential bugs here, a readonly buffer does not imply that the
      * underlying memory is immutable.  b_readonly is a necessary but not
@@ -351,15 +351,15 @@ int32 PyBuffer::hash() const
     //if (!get_buf(self, &ptr, &size, ANY_BUFFER))
     //    return -1;
     p = (unsigned char *) &content()[0];
-    len = (int32)content().size();
+    len = content().size();
     x = *p << 7;
     while( --len >= 0 )
         x = (1000003*x) ^ *p++;
-    x ^= (int32)content().size();
+    x ^= content().size();
     if( x == -1 )
         x = -2;
     mHashCache = x;
-    return (int32)x;
+    return x;
 }
 
 size_t PyBuffer::size() const
@@ -393,16 +393,16 @@ int32 PyString::hash() const
     if( mHashCache != -1 )
         return mHashCache;
 
-    register int32 len;
+    register int len;
     register unsigned char *p;
     register int32 x;
 
-    len = (int32)mValue.length();
+    len = mValue.length();
     p = (unsigned char *) mValue.c_str();
     x = *p << 7;
     while (--len >= 0)
         x = (1000003*x) ^ *p++;
-    x ^= (int32)mValue.length();
+    x ^= mValue.length();
     if (x == -1)
         x = -2;
 
@@ -439,16 +439,16 @@ int32 PyWString::hash() const
     if( mHashCache != -1 )
         return mHashCache;
 
-    register int32 len;
+    register int len;
     register unsigned char *p;
     register int32 x;
 
-    len = (int32)mValue.length();
+    len = mValue.length();
     p = (unsigned char *) mValue.c_str();
     x = *p << 7;
     while (--len >= 0)
         x = (1000003*x) ^ *p++;
-    x ^= (int32)mValue.length();
+    x ^= mValue.length();
     if (x == -1)
         x = -2;
 
@@ -538,7 +538,7 @@ PyTuple& PyTuple::operator=( const PyTuple& oth )
 int32 PyTuple::hash() const
 {
     register long x, y;
-    register int32 len = (int32)items.size();
+    register int len = items.size();
     register long index = 0;
     long mult = 1000003L;
     x = 0x345678L;

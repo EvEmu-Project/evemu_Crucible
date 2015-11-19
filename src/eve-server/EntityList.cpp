@@ -334,7 +334,7 @@ void EntityList::Multicast(const character_set &cset, const char *notifyType, co
     std::vector<Client *> result;
     GetClients(cset, result);
 
-	size_t num_remaining = result.size();
+    int num_remaining = result.size();
 
     std::vector<Client *>::iterator cur, end;
     cur = result.begin();

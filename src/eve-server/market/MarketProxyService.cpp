@@ -395,7 +395,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         }
 
         if((item->singleton() && args.quantity != 1)
-           || item->quantity() < args.quantity ) {
+           || item->quantity() < (uint32)args.quantity ) {
             codelog(MARKET__ERROR, "%s: Tried to sell %d of item %d which has qty %d singleton %d", call.client->GetName(), args.quantity, item->itemID(), item->quantity(), item->singleton());
             call.client->SendErrorMsg("You cannot sell more than you have.");
             return NULL;
