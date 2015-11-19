@@ -62,7 +62,7 @@ DBRowDescriptor::DBRowDescriptor( const DBResultRow& row )
 
 uint32 DBRowDescriptor::ColumnCount() const
 {
-    return (uint32)_GetColumnList()->size();
+    return _GetColumnList()->size();
 }
 
 PyString* DBRowDescriptor::GetColumnName( uint32 index ) const

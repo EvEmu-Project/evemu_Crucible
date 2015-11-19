@@ -1578,7 +1578,7 @@ bool InventoryDB::LoadCertificates( uint32 characterID, Certificates &into )
         currentCertificates i;
         i.certificateID = row.GetUInt( 0 );
         i.grantDate = row.GetUInt64( 1 );
-		i.visibilityFlags = row.GetUInt(2) >= 0 ? true : false;
+        i.visibilityFlags = row.GetUInt( 2 );
 
         into.push_back( i );
     }

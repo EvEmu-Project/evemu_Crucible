@@ -295,7 +295,7 @@ PyResult DogmaIMBound::Handle_LoadAmmoToBank( PyCallArgs& call ) {
 PyResult DogmaIMBound::Handle_Activate( PyCallArgs& call )
 {
     Call_Dogma_Activate args;
-    size_t callTupleSize = call.tuple->size();
+    uint32 callTupleSize = call.tuple->size();
     uint32 itemID = 0;
     uint32 effect = 0;
 

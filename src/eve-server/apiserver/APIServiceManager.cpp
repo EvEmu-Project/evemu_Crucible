@@ -263,8 +263,8 @@ void APIServiceManager::_BuildXMLRow(const std::vector<std::string> * columns)
     std::vector<std::string>::const_iterator current, end;
     std::string column_string = _CurrentRowSetColumnString;
     std::string column_name;
-    size_t pos=0;
-    size_t pos2=0;
+    int pos=0;
+    int pos2=0;
     current = columns->begin();
     end = columns->end();
     for(; current != end; ++current)

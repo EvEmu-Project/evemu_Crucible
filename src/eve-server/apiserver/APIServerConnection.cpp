@@ -91,7 +91,7 @@ void APIServerConnection::ProcessHeaders()
     std::string request;
     std::string get_chk_str;
     std::string post_chk_str;
-    size_t pos;
+    int pos;
     int parameterCount;
     std::string param;
     std::string value;
@@ -120,7 +120,7 @@ void APIServerConnection::ProcessHeaders()
         request = request.substr(4);    // Strip off the "GET " prefix
 
         // Find first space at end of header, if there is one, and strip off the rest of the line, ie the " HTTP/1.0\r\n" string
-        size_t del = request.find_first_of(' ');
+        int del = request.find_first_of(' ');
         if (del == std::string::npos)
         {
             NotFound();
@@ -205,7 +205,7 @@ void APIServerConnection::ProcessHeaders()
         request = request.substr(5);    // Strip off the "POST " prefix
 
         // Find first space at end of header, if there is one, and strip off the rest of the line, ie the " HTTP/1.0\r\n" string
-        size_t del = request.find_first_of(' ');
+        int del = request.find_first_of(' ');
         if (del == std::string::npos)
         {
             NotFound();
@@ -328,7 +328,7 @@ void APIServerConnection::ProcessPostData()
     std::istream stream(&_postBuffer);
     std::string query;
     std::string request;
-    size_t pos;
+    int pos;
     std::string param;
     std::string value;
 

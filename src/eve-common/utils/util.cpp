@@ -819,7 +819,7 @@ std::wstring Strings::StringToWString( std::string & str )
     /* convert from multi byte strings to wide character strings */
     std::wstring wstr;
     wstr.resize( str.size() );
-    size_t ret_len = mbstowcs( &wstr[0], str.c_str(), str.size() );
+    int ret_len = mbstowcs( &wstr[0], str.c_str(), str.size() );
 
     if (ret_len != str.size()) {
 

@@ -119,7 +119,7 @@ void kennyspeak_to_normal (std::string str, std::string &normal_text)
     std::string add;
     normal_text = "";
     int i = 0;
-    size_t str_length = str.size();
+    int str_length = str.size();
 
     while (i < str_length) {
         if (i < str_length - 2)

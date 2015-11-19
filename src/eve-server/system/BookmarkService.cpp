@@ -346,7 +346,7 @@ PyResult BookmarkService::Handle_UpdateBookmark(PyCallArgs &call)       // worki
     double z;
     uint32 locationID;
     uint32 creatorID;
-    uint32 folderID = 0;
+    uint32 folderID;
     std::string note;
     std::string newNote;
 

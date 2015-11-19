@@ -106,8 +106,8 @@ bool PasswordModule::GeneratePassHash(
     // Initialize the hash
     ShaModule::SHAobject shaObj;
     ShaModule::sha_init( &shaObj );
-    ShaModule::sha_update( &shaObj, _pass, (int)_passLen );
-    ShaModule::sha_update( &shaObj, _user, (int)_userLen );
+    ShaModule::sha_update( &shaObj, _pass, _passLen );
+    ShaModule::sha_update( &shaObj, _user, _userLen );
 
     // The hashing loop
     for( size_t i = 0; i < 1000; ++i )
@@ -118,7 +118,7 @@ bool PasswordModule::GeneratePassHash(
         // Rehash the whole stuff
         ShaModule::sha_init( &shaObj );
         ShaModule::sha_update( &shaObj, digest, SHA_DIGESTSIZE );
-        ShaModule::sha_update( &shaObj, _user, (int)_userLen );
+        ShaModule::sha_update( &shaObj, _user, _userLen );
     }
 
     // Obtain the resulting hash

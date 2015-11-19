@@ -1176,8 +1176,8 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 
     std::string query = " UPDATE corporation SET ";
 
-    size_t N = dbQ.size();
-    for (size_t i = 0; i < N; i++) {
+    int N = dbQ.size();
+    for (int i = 0; i < N; i++) {
         query = dbQ[i];
         if (i < N - 1) query += ", ";
     }
@@ -1217,8 +1217,8 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
 
     std::string query = " UPDATE corporation SET ";
 
-    size_t N = dbQ.size();
-    for (size_t i = 0; i < N; i++) {
+    int N = dbQ.size();
+    for (int i = 0; i < N; i++) {
         query += dbQ[i];
         if (i < N - 1) query += ", ";
     }
@@ -1264,8 +1264,8 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDic
 
     std::string query = " UPDATE corporation SET ";
 
-    size_t N = dbQ.size();
-    for (size_t i = 0; i < N; i++) {
+    int N = dbQ.size();
+    for (int i = 0; i < N; i++) {
         query += dbQ[i];
         if (i < N - 1) query += ", ";
     }
