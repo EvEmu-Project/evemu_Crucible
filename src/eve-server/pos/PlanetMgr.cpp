@@ -139,9 +139,22 @@ PyResult PlanetMgrBound::Handle_GetExtractorsForPlanet(PyCallArgs &call) {
 }
 
 PyResult PlanetMgrBound::Handle_GetPlanetInfo(PyCallArgs &call) {
-    sLog.Debug("Server", "Called GetPlanetInfo Stub.");
+    sLog.Debug("Server", "Called GetPlanetInfo Incomplete.");
+    /* Incomplete, needs to check if planet is colonised by char, if so, return full colony + planet data.
+     * Right now every planet is un-colonised.
+     */
 
-    return NULL;
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res, "SELECT `solarSystemID`, `typeID` AS `planetTypeID`, `itemID` AS `planetID`, `radius` FROM mapdenormalize WHERE `itemID` = %u", m_planetID)) {
+        codelog(SERVICE__ERROR, "Error in GetPlanetInfo query: %s", res.error.c_str());
+        return NULL;
+    }
+    DBResultRow row;
+    if(res.GetRow(row)) {
+        codelog(SERVICE__ERROR, "Error in GetPlanetInfo query, failed to get row");
+        return NULL;
+    }
+    return DBRowToKeyVal(row);
 }
 
 PyResult PlanetMgrBound::Handle_GetPlanetResourceInfo(PyCallArgs &call) {
