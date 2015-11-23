@@ -37,9 +37,9 @@ class PlanetMgrBound
 public:
     PyCallable_Make_Dispatcher(PlanetMgrBound)
 
-    PlanetMgrBound(PyServiceMgr *mgr)
+    PlanetMgrBound(PyServiceMgr *mgr, uint32 planetID)
     : PyBoundObject(mgr),
-      m_dispatch(new Dispatcher(this))
+      m_dispatch(new Dispatcher(this)), m_planetID(planetID)
     {
         _SetCallDispatcher(m_dispatch);
 
@@ -87,6 +87,7 @@ public:
 
 protected:
     Dispatcher *const m_dispatch;
+    const uint32 m_planetID;
 };
 
 PyCallable_Make_InnerDispatcher(PlanetMgrService)
@@ -110,7 +111,7 @@ PyBoundObject *PlanetMgrService::_CreateBoundObject(Client *c, const PyRep *bind
         codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
         return NULL;
     }
-    return new PlanetMgrBound(m_manager);
+    return new PlanetMgrBound(m_manager, bind_args->AsInt()->value());
 }
 
 PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
