@@ -193,9 +193,46 @@ PyResult PlanetMgrBound::Handle_GetProgramResultInfo(PyCallArgs &call) {
 }
 
 PyResult PlanetMgrBound::Handle_GetResourceData(PyCallArgs &call) {
-    sLog.Debug("PlanetMgrBound", "Called GetResourceData stub.");
+    /* TODO, Figure out how to populate PyBuffer with more than char.
+     *         and figure out the client buffer structure, etc.
+     * TODO, optimise this function maybe?
+     */
+    PyDict *input = call.tuple->AsTuple()->GetItem(0)->AsObject()->arguments()->AsDict();
+    int proximity = input->GetItemString("proximity")->AsInt()->value();
+    int resourceTypeID = input->GetItemString("resourceTypeID")->AsInt()->value();
+    int offset = 0;
 
-    return NULL;
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res, "SELECT `itemID1`, `itemID2`, `itemID3`, `itemID4`, `itemID5`, `data1`, `data2`, `data3`, `data4`, `data5`, `numBands1`, `numBands2`, `numBands3`, `numBands4`, `numBands5` FROM `planetresourceinfo` WHERE `planetID` = %u", m_planetID)) {
+        codelog(SERVICE__ERROR, "Error in GetResourceData Query: %s", res.error.c_str());
+        return NULL;
+    }
+    DBResultRow row;
+    if(!res.GetRow(row)) {
+        codelog(SERVICE__ERROR, "Error in GetResourceData Query failed to get row.");
+        return NULL;
+    }
+
+    if (row.GetInt(0) == resourceTypeID)
+        offset = 0;
+    else if(row.GetInt(1) == resourceTypeID)
+        offset = 1;
+    else if(row.GetInt(2) == resourceTypeID)
+        offset = 2;
+    else if(row.GetInt(3) == resourceTypeID)
+        offset = 3;
+    else if(row.GetInt(4) == resourceTypeID)
+        offset = 4;
+
+    const char bufferData = *row.GetText(5+offset);
+    int numBands = row.GetInt(10+offset);
+
+    PyDict *args = new PyDict();
+    PyObject *rtn = new PyObject("util.KeyVal", args);
+    args->SetItemString("data", new PyBuffer(numBands*numBands*4, bufferData));
+    args->SetItemString("numBands", new PyInt(numBands));
+    args->SetItemString("proximity", new PyInt(proximity));
+    return rtn;
 }
 
 PyResult PlanetMgrBound::Handle_GMAddCommodity(PyCallArgs &call) {
