@@ -829,3 +829,8 @@ std::wstring Strings::StringToWString( std::string & str )
 }
 
 }//namespace Utils
+
+long CurrentBlueTime() {
+    long sec_since_epoch = time(0);
+    return (sec_since_epoch*10000000L)+116444736000000000L;
+}
