@@ -45,8 +45,22 @@ public:
 
         m_strBoundObjectName = "PlanetMgrBound";
 
+        PyCallable_REG_CALL(PlanetMgrBound, GetCommandPinsForPlanet)
+        PyCallable_REG_CALL(PlanetMgrBound, GetExtractorsForPlanet)
         PyCallable_REG_CALL(PlanetMgrBound, GetPlanetInfo)
         PyCallable_REG_CALL(PlanetMgrBound, GetPlanetResourceInfo)
+        PyCallable_REG_CALL(PlanetMgrBound, GetProgramResultInfo)
+        PyCallable_REG_CALL(PlanetMgrBound, GetResourceData)
+        PyCallable_REG_CALL(PlanetMgrBound, GMAddCommodity)
+        PyCallable_REG_CALL(PlanetMgrBound, GMConvertCommandCenter)
+        PyCallable_REG_CALL(PlanetMgrBound, GMForceInstallProgram)
+        PyCallable_REG_CALL(PlanetMgrBound, GMGetLocalDistributionReport)
+        PyCallable_REG_CALL(PlanetMgrBound, GMGetSynchedServerState)
+        PyCallable_REG_CALL(PlanetMgrBound, GMRunDepletionSim)
+        PyCallable_REG_CALL(PlanetMgrBound, UserAbandonPlanet)
+        PyCallable_REG_CALL(PlanetMgrBound, UserLaunchCommodities)
+        PyCallable_REG_CALL(PlanetMgrBound, UserTransferCommodities)
+        PyCallable_REG_CALL(PlanetMgrBound, UserUpdateNetwork)
     }
     virtual ~PlanetMgrBound() { delete m_dispatch; }
     virtual void Release() {
@@ -54,8 +68,22 @@ public:
         delete this;
     }
 
-        PyCallable_DECL_CALL(GetPlanetInfo)
-        PyCallable_DECL_CALL(GetPlanetResourceInfo)
+    PyCallable_DECL_CALL(GetCommandPinsForPlanet)
+    PyCallable_DECL_CALL(GetExtractorsForPlanet)
+    PyCallable_DECL_CALL(GetPlanetInfo)
+    PyCallable_DECL_CALL(GetPlanetResourceInfo)
+    PyCallable_DECL_CALL(GetProgramResultInfo)
+    PyCallable_DECL_CALL(GetResourceData)
+    PyCallable_DECL_CALL(GMAddCommodity)
+    PyCallable_DECL_CALL(GMConvertCommandCenter)
+    PyCallable_DECL_CALL(GMForceInstallProgram)
+    PyCallable_DECL_CALL(GMGetLocalDistributionReport)
+    PyCallable_DECL_CALL(GMGetSynchedServerState)
+    PyCallable_DECL_CALL(GMRunDepletionSim)
+    PyCallable_DECL_CALL(UserAbandonPlanet)
+    PyCallable_DECL_CALL(UserLaunchCommodities)
+    PyCallable_DECL_CALL(UserTransferCommodities)
+    PyCallable_DECL_CALL(UserUpdateNetwork)
 
 protected:
     Dispatcher *const m_dispatch;
@@ -85,6 +113,30 @@ PyBoundObject *PlanetMgrService::_CreateBoundObject(Client *c, const PyRep *bind
     return new PlanetMgrBound(m_manager);
 }
 
+PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
+    sLog.Debug("Server", "Called GetPlanetsForChar Stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrService::Handle_GetMyLaunchesDetails(PyCallArgs &call) {
+    sLog.Debug("Server", "Called GetMyLaunchesDetails Stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GetCommandPinsForPlanet(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GetCommandPinsForPlanet stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GetExtractorsForPlanet(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GetExtractorsForPlanet stub.");
+
+    return NULL;
+}
+
 PyResult PlanetMgrBound::Handle_GetPlanetInfo(PyCallArgs &call) {
     sLog.Debug("Server", "Called GetPlanetInfo Stub.");
 
@@ -97,15 +149,74 @@ PyResult PlanetMgrBound::Handle_GetPlanetResourceInfo(PyCallArgs &call) {
     return NULL;
 }
 
-PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
-    sLog.Debug("Server", "Called GetPlanetsForChar Stub.");
+PyResult PlanetMgrBound::Handle_GetProgramResultInfo(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GetProgramResultInfo stub.");
 
     return NULL;
 }
 
-PyResult PlanetMgrService::Handle_GetMyLaunchesDetails(PyCallArgs &call) {
+PyResult PlanetMgrBound::Handle_GetResourceData(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GetResourceData stub.");
 
-    sLog.Debug("Server", "Called GetMyLaunchesDetails Stub.");
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GMAddCommodity(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GMAddCommodity stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GMConvertCommandCenter(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GMConvertCommandCenter stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GMForceInstallProgram(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GMForceInstallProgram stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GMGetLocalDistributionReport(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GMGetLocalDistributionReport stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GMGetSynchedServerState(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GMGetSynchedServerState stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_GMRunDepletionSim(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called GMRunDepletionSim stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_UserAbandonPlanet(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called UserAbandonPlanet stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_UserLaunchCommodities(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called UserLaunchCommodities stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_UserTransferCommodities(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called UserTransferCommodities stub.");
+
+    return NULL;
+}
+
+PyResult PlanetMgrBound::Handle_UserUpdateNetwork(PyCallArgs &call) {
+    sLog.Debug("PlanetMgrBound", "Called UserUpdateNetwork stub.");
 
     return NULL;
 }
