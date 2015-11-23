@@ -158,9 +158,27 @@ PyResult PlanetMgrBound::Handle_GetPlanetInfo(PyCallArgs &call) {
 }
 
 PyResult PlanetMgrBound::Handle_GetPlanetResourceInfo(PyCallArgs &call) {
-    sLog.Debug("Server", "Called GetPlanetResourceInfo Stub.");
-
-    return NULL;
+    /* Used by the client to draw the planet resource bars.
+     * returns: {typeID:quality, typeID:quality, typeID:quality, typeID:quality, typeID:quality}
+     * quality: (min=1.0, max=154.275)
+     */
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res, "SELECT `itemID1`, `itemID2`, `itemID3`, `itemID4`, `itemID5`, `quality1`, `quality2`, `quality3`, `quality4`, `quality5` FROM `planetresourceinfo` WHERE `planetID` = %u", m_planetID)) {
+        codelog(SERVICE__ERROR, "Error in GetPlanetResourceInfo Query: %s", res.error.c_str());
+        return NULL;
+    }
+    DBResultRow row;
+    if(!res.GetRow(row)) {
+        codelog(SERVICE__ERROR, "Error in GetPlanetResourceInfo Query, Returned 0 rows.");
+        return NULL;
+    }
+    PyDict *rtn = new PyDict();
+    rtn->SetItem(new PyInt(row.GetInt(0)), new PyFloat(row.GetFloat(5)));
+    rtn->SetItem(new PyInt(row.GetInt(1)), new PyFloat(row.GetFloat(6)));
+    rtn->SetItem(new PyInt(row.GetInt(2)), new PyFloat(row.GetFloat(7)));
+    rtn->SetItem(new PyInt(row.GetInt(3)), new PyFloat(row.GetFloat(8)));
+    rtn->SetItem(new PyInt(row.GetInt(4)), new PyFloat(row.GetFloat(9)));
+    return rtn;
 }
 
 PyResult PlanetMgrBound::Handle_GetProgramResultInfo(PyCallArgs &call) {
