@@ -115,9 +115,14 @@ PyBoundObject *PlanetMgrService::_CreateBoundObject(Client *c, const PyRep *bind
 }
 
 PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
-    sLog.Debug("Server", "Called GetPlanetsForChar Stub.");
-
-    return NULL;
+    /* Used by the client to populate the industry:planets tab
+     */
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res, "SELECT `solarSystemID`, `planetID`, `typeID`, `numberOfPins` FROM `planetsforchar` WHERE `characterID` = %u", call.client->GetCharacterID())) {
+        codelog(SERVICE__ERROR, "Error in GetPlanetsForChar Query: %s", res.error.c_str());
+        return NULL;
+    }
+    return DBResultToCRowset(res);
 }
 
 PyResult PlanetMgrService::Handle_GetMyLaunchesDetails(PyCallArgs &call) {
