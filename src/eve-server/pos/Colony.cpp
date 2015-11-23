@@ -33,3 +33,23 @@ Colony::Colony(uint32 cID, uint32 pID) {
     charID = cID;
     planetID = pID;
 }
+
+void Colony::CreateCommandPin(uint32 pinID, uint32 typeID, float latitude, float longitude) {
+    Pin cc;
+    cc.id = pinID;
+    cc.typeID = typeID;
+    cc.latitude = latitude;
+    cc.longitude = longitude;
+    cc.ownerID = charID;
+    cc.state = STATE_IDLE; // ?
+    cc.lastRunTime = 0L;
+    cc.lastLaunchTime = 0L;
+    ccPin.level = 0;
+    ccPin.currentSimTime = CurrentBlueTime();
+    ccPin.pins.push_back(cc);
+}
+
+
+PyResult Colony::GetColony() {
+    return NULL;
+}

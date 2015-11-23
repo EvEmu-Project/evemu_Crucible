@@ -30,6 +30,8 @@
 #include "PyBoundObject.h"
 #include "PyServiceCD.h"
 #include "pos/PlanetMgr.h"
+#include "Colony.h"
+
 
 class PlanetMgrBound
 : public PyBoundObject
@@ -37,12 +39,12 @@ class PlanetMgrBound
 public:
     PyCallable_Make_Dispatcher(PlanetMgrBound)
 
-    PlanetMgrBound(PyServiceMgr *mgr, uint32 planetID)
+    PlanetMgrBound(PyServiceMgr *mgr, uint32 planetID, uint32 charID)
     : PyBoundObject(mgr),
       m_dispatch(new Dispatcher(this)), m_planetID(planetID)
     {
         _SetCallDispatcher(m_dispatch);
-
+        m_colony = new Colony(charID, m_planetID);
         m_strBoundObjectName = "PlanetMgrBound";
 
         PyCallable_REG_CALL(PlanetMgrBound, GetCommandPinsForPlanet)
@@ -88,6 +90,7 @@ public:
 protected:
     Dispatcher *const m_dispatch;
     const uint32 m_planetID;
+    Colony *m_colony;
 };
 
 PyCallable_Make_InnerDispatcher(PlanetMgrService)
@@ -111,7 +114,7 @@ PyBoundObject *PlanetMgrService::_CreateBoundObject(Client *c, const PyRep *bind
         codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
         return NULL;
     }
-    return new PlanetMgrBound(m_manager, bind_args->AsInt()->value());
+    return new PlanetMgrBound(m_manager, bind_args->AsInt()->value(), c->GetCharacterID());
 }
 
 PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
@@ -284,24 +287,28 @@ PyResult PlanetMgrBound::Handle_GMRunDepletionSim(PyCallArgs &call) {
 
 PyResult PlanetMgrBound::Handle_UserAbandonPlanet(PyCallArgs &call) {
     sLog.Debug("PlanetMgrBound", "Called UserAbandonPlanet stub.");
+    call.tuple->Dump(stdout, "[DEBUG] UAP: ");
 
     return NULL;
 }
 
 PyResult PlanetMgrBound::Handle_UserLaunchCommodities(PyCallArgs &call) {
     sLog.Debug("PlanetMgrBound", "Called UserLaunchCommodities stub.");
+    call.tuple->Dump(stdout, "[DEBUG] ULC: ");
 
     return NULL;
 }
 
 PyResult PlanetMgrBound::Handle_UserTransferCommodities(PyCallArgs &call) {
     sLog.Debug("PlanetMgrBound", "Called UserTransferCommodities stub.");
+    call.tuple->Dump(stdout, "[DEBUG] UTC: ");
 
     return NULL;
 }
 
 PyResult PlanetMgrBound::Handle_UserUpdateNetwork(PyCallArgs &call) {
-    sLog.Debug("PlanetMgrBound", "Called UserUpdateNetwork stub.");
+    sLog.Debug("PlanetMgrBound", "Called UserUpdateNetwork incomplete.");
+    call.tuple->Dump(stdout, "[DEBUG] UUN: ");
 
-    return NULL;
+    return m_colony->GetColony();
 }

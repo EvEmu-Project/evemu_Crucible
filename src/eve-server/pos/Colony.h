@@ -33,7 +33,9 @@ class Colony {
 
 public:
     Colony(uint32 charID, uint32 planetID);
+    void CreateCommandPin(uint32 pinID, uint32 typeID, float latitude, float longitude);
 
+    PyResult GetColony();
 private:
     struct Pin {
         uint32 id;
@@ -89,6 +91,10 @@ private:
     };
     CommandCenterPin ccPin;
 
+    const int STATE_EDITMODE = -2;
+    const int STATE_DISABLED = -1;
+    const int STATE_IDLE = 0;
+    const int STATE_ACTIVE = 1;
 protected:
 
 };
