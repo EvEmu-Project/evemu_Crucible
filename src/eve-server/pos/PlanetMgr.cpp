@@ -138,9 +138,16 @@ PyResult PlanetMgrBound::Handle_GetCommandPinsForPlanet(PyCallArgs &call) {
 }
 
 PyResult PlanetMgrBound::Handle_GetExtractorsForPlanet(PyCallArgs &call) {
-    sLog.Debug("PlanetMgrBound", "Called GetExtractorsForPlanet stub.");
-
-    return NULL;
+    sLog.Debug("PlanetMgrBound", "Called GetExtractorsForPlanet incomplete.");
+    /* Incomplete, Needs to retrieve data from tables that do not exist yet.
+     * Currently stops the client from throwing errors.
+     */
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res, "SELECT 2130 AS `typeID`, 0 as `ownerID`")) {
+        codelog(SERVICE__ERROR, "Error in GetExtractorsForPlanet Query: %s", res.error.c_str());
+        return NULL;
+    }
+    return DBResultToRowset(res);
 }
 
 PyResult PlanetMgrBound::Handle_GetPlanetInfo(PyCallArgs &call) {
