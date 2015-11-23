@@ -126,9 +126,13 @@ PyResult PlanetMgrService::Handle_GetPlanetsForChar(PyCallArgs &call) {
 }
 
 PyResult PlanetMgrService::Handle_GetMyLaunchesDetails(PyCallArgs &call) {
-    sLog.Debug("Server", "Called GetMyLaunchesDetails Stub.");
-
-    return NULL;
+    //TODO, double check if this requires x,y,z, or if only Beyonce uses them.
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res, "SELECT `solarSystemID`, `planetID`, `launchTime`, `launchID`, `x`, `y`, `z` FROM `planetlaunches` WHERE `characterID` = %u", call.client->GetCharacterID())) {
+        codelog(SERVICE__ERROR, "Error in GetMyLaunchesDetails Query: %s", res.error.c_str());
+        return NULL;
+    }
+    return DBResultToRowset(res);
 }
 
 PyResult PlanetMgrBound::Handle_GetCommandPinsForPlanet(PyCallArgs &call) {

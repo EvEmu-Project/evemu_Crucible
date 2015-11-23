@@ -578,6 +578,24 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
             }
         }
     }
+    else if( arg.type == "launch" )
+    {
+        DBQueryResult res;
+        if(!sDatabase.RunQuery(res, "SELECT `x`, `y`, `z` FROM `planetlaunches` WHERE `launchID` = %u", arg.ID)) {
+            codelog(SERVICE__ERROR, "Error in BeyonceService::CmdWarpToStuff:launch Query: %s", res.error.c_str());
+            return NULL;
+        }
+        DBResultRow row;
+        if(!res.GetRow(row)) {
+            codelog(SERVICE__ERROR, "Error in BeyonceService::CmdWarpToStuff:launch Query returned no rows");
+            return NULL;
+        }
+        GPoint warpToPoint;
+        warpToPoint.x = row.GetDouble(1);
+        warpToPoint.y = row.GetDouble(2);
+        warpToPoint.z = row.GetDouble(3);
+        call.client->WarpTo(warpToPoint, 0.0);
+    }
     else
     {
         sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Unexpected arg.type value: '%s'.", arg.type.c_str() );
