@@ -166,7 +166,7 @@ PyResult PlanetMgrBound::Handle_GetPlanetInfo(PyCallArgs &call) {
         return NULL;
     }
     DBResultRow row;
-    if(res.GetRow(row)) {
+    if(!res.GetRow(row)) {
         codelog(SERVICE__ERROR, "Error in GetPlanetInfo query, failed to get row");
         return NULL;
     }
