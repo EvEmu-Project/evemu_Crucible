@@ -1,0 +1,13 @@
+<elements>
+    <elementDef name="UUNCommandList">
+        <tupleInline>
+            <list name="commandList" />
+        </tupleInline>
+    </elementDef>
+    <elementDef name="UUNCommand">
+        <tupleInline>
+            <int name="command" />
+            <tuple name="command_data" />
+        </tupleInline>
+    </elementDef>
+</elements>

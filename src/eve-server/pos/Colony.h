@@ -26,7 +26,6 @@
 #ifndef __COLONY_H_INCL__
 #define __COLONY_H_INCL__
 
-#include "eve-server.h"
 #include "PyCallable.h"
 
 class Colony {

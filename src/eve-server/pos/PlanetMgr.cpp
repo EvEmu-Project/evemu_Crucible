@@ -310,5 +310,78 @@ PyResult PlanetMgrBound::Handle_UserUpdateNetwork(PyCallArgs &call) {
     sLog.Debug("PlanetMgrBound", "Called UserUpdateNetwork incomplete.");
     call.tuple->Dump(stdout, "[DEBUG] UUN: ");
 
+    UUNCommandList uuncl;
+    if(!uuncl.Decode(&call.tuple)) {
+        codelog(CLIENT__ERROR, "Failed to decode args for UUNCommandList");
+        return NULL;
+    }
+
+    for(int i = 0; i < uuncl.commandList->size(); i++) {
+        UUNCommand uunc;
+        if(!uunc.Decode(uuncl.commandList->GetItem(i)->AsTuple())) {
+            codelog(CLIENT__ERROR, "Failed to decode args for UUNCommand");
+            return NULL;
+        }
+        sLog.Debug("PlanetMgrBound", "UserUpdateNetwork: loop: %u, command: %u", i, uunc.command);
+        switch(uunc.command) {
+            case 1: //COMMAND_CREATEPIN
+            {
+                break;
+            }
+            case 2: //COMMAND_REMOVEPIN
+            {
+                break;
+            }
+            case 3: //COMMAND_CREATELINK
+            {
+                break;
+            }
+            case 4: //COMMAND_REMOVELINK
+            {
+                break;
+            }
+            case 5: //COMMAND_SETLINKLEVEL
+            {
+                break;
+            }
+            case 6: //COMMAND_CREATEROUTE
+            {
+                break;
+            }
+            case 7: //COMMAND_REMOVEROUTE
+            {
+                break;
+            }
+            case 8: //COMMAND_SETSCHEMATIC
+            {
+                break;
+            }
+            case 9: //COMMAND_UPGRADECOMMANDCENTER
+            {
+                break;
+            }
+            case 10: //COMMAND_ADDEXTRACTORHEAD
+            {
+                break;
+            }
+            case 11: //COMMAND_KILLEXTRACTORHEAD
+            {
+                break;
+            }
+            case 12: //COMMAND_MOVEEXTRACTORHEAD
+            {
+                break;
+            }
+            case 13: //COMMAND_INSTALLPROGRAM
+            {
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+    }
+
     return m_colony->GetColony();
 }
