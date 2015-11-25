@@ -32,37 +32,51 @@ class Colony {
 
 public:
     Colony(uint32 charID, uint32 planetID);
-    void CreateCommandPin(uint32 pinID, uint32 typeID, float latitude, float longitude);
+    bool CreateCommandPin(uint32 pinID, uint32 typeID, float latitude, float longitude);
+    bool CreateSpaceportPin(uint32 pinID, uint32 typeID, float latitude, float longitude);
+    bool CreateProcessPin(uint32 pinID, uint32 typeID, float latitude, float longitude);
+    bool CreateExtractorPin(uint32 pinID, uint32 typeID, float latitude, float longitude);
+
+    bool CreateLink(uint32 src, uint32 dest, uint32 level, bool ccConnected);
+
+    void UpgradeCommandCenter(uint32 pinID, uint32 level);
+    bool UpgradeLink(uint32 src, uint32 dest, uint32 level, bool ccConnected);
+
+    bool RemovePin(uint32 pinID);
+    bool RemoveLink(uint32 src, uint32 dest, bool ccConnected);
 
     PyResult GetColony();
 private:
     struct Pin {
-        uint32 id;
-        uint32 typeID;
-        uint32 ownerID;
-        float latitude;
-        float longitude;
-        long lastRunTime;
-        uint32 state;
-        PyDict *contents;
-        bool isCommandCenter;
+        uint32 id = 0;
+        uint32 typeID = 0;
+        uint32 ownerID = 0;
+        float latitude = 0.0;
+        float longitude = 0.0;
+        long lastRunTime = 0L;
+        uint32 state = 0;
+        PyDict *contents = NULL;
+        bool isCommandCenter = false;
 
+        bool isLaunchable = false;
         // Command/Spaceport
-        long lastLaunchTime;
+        long lastLaunchTime = 0L;
 
+        bool isProcess = false;
         // Process
-        uint32 schematicID;
-        uint32 hasRecievedInputs;
-        uint32 recievedInputsLastCycle;
+        uint32 schematicID = 0;
+        uint32 hasRecievedInputs = 0;
+        uint32 recievedInputsLastCycle = 0;
 
+        bool isExtractor = false;
         //Extractor
-        uint32 heads;
-        uint32 programType;
-        uint32 cycleTime;
-        long expiryTime;
-        uint32 qtyPerCycle;
-        float headRadius;
-        long installTime;
+        uint32 heads = 0;
+        uint32 programType = 0;
+        uint32 cycleTime = 0;
+        long expiryTime = 0L;
+        uint32 qtyPerCycle = 0;
+        float headRadius = 0.0;
+        long installTime = 0;
     };
 
     struct Link {

@@ -25,16 +25,18 @@
 #include "eve-server.h"
 #include "Colony.h"
 
-PyTuple *testContainer = new_tuple(2268, 1);
+PyDict *testContainer;
 uint32 charID;
 uint32 planetID;
 
 Colony::Colony(uint32 cID, uint32 pID) {
     charID = cID;
     planetID = pID;
+    testContainer = new PyDict();
+    testContainer->SetItem(new PyInt(2268), new PyInt(1));
 }
 
-void Colony::CreateCommandPin(uint32 pinID, uint32 typeID, float latitude, float longitude) {
+bool Colony::CreateCommandPin(uint32 pinID, uint32 typeID, float latitude, float longitude) {
     Pin cc;
     cc.id = pinID;
     cc.typeID = typeID;
@@ -44,10 +46,112 @@ void Colony::CreateCommandPin(uint32 pinID, uint32 typeID, float latitude, float
     cc.state = STATE_IDLE; // ?
     cc.lastRunTime = 0L;
     cc.lastLaunchTime = 0L;
+    cc.isLaunchable = true;
     cc.isCommandCenter = true;
     ccPin.level = 0;
     ccPin.currentSimTime = CurrentBlueTime();
     ccPin.pins.push_back(cc);
+    return true;    // if we get this far, assume it worked
+}
+
+bool Colony::CreateSpaceportPin(uint32 pinID, uint32 typeID, float latitude, float longitude) {
+    Pin sp;
+    sp.id = pinID;
+    sp.typeID = typeID;
+    sp.latitude = latitude;
+    sp.longitude = longitude;
+    sp.ownerID = charID;
+    sp.state = STATE_IDLE; // ?
+    sp.lastRunTime = 0L;
+    sp.lastLaunchTime = 0L;
+    sp.isLaunchable = true;
+    ccPin.pins.push_back(sp);
+    return true;    // if we get this far, assume it worked
+}
+
+bool Colony::CreateProcessPin(uint32 pinID, uint32 typeID, float latitude, float longitude) {
+    Pin pp;
+    pp.id = pinID;
+    pp.typeID = typeID;
+    pp.latitude = latitude;
+    pp.longitude = longitude;
+    pp.ownerID = charID;
+    pp.state = STATE_IDLE; // ?
+    pp.lastRunTime = 0L;
+    pp.schematicID = 0;
+    pp.hasRecievedInputs = 0;
+    pp.recievedInputsLastCycle = 0;
+    pp.isProcess = true;
+    ccPin.pins.push_back(pp);
+    return true;    // if we get this far, assume it worked
+}
+
+bool Colony::CreateExtractorPin(uint32 pinID, uint32 typeID, float latitude, float longitude) {
+    Pin ep;
+    ep.id = pinID;
+    ep.typeID = typeID;
+    ep.latitude = latitude;
+    ep.longitude = longitude;
+    ep.ownerID = charID;
+    ep.state = STATE_IDLE; // ?
+    ep.lastRunTime = 0L;
+    ep.isExtractor = true;
+    ccPin.pins.push_back(ep);
+    return true;    // if we get this far, assume it worked
+}
+
+bool Colony::CreateLink(uint32 src, uint32 dest, uint32 level, bool ccConnected) {
+    Link link;
+    link.level = level;
+    link.endpoint1 = src;
+    link.endpoint2 = dest;
+    link.typeID = 2280; // Only link type in the game.
+    link.commandCenterConnected = ccConnected;
+    ccPin.links.push_back(link);
+    return true;
+}
+void Colony::UpgradeCommandCenter(uint32 pinID, uint32 level) {
+    ccPin.level = level;
+}
+
+bool Colony::UpgradeLink(uint32 src, uint32 dest, uint32 level, bool ccConnected) {
+    bool rtn = false;
+    for (int i = 0; i < ccPin.links.size(); i++) {
+        Link tmp = ccPin.links.front();
+        ccPin.links.pop_front();
+        if((tmp.endpoint1 == src || tmp.endpoint1 == dest) && (tmp.endpoint2 == src || tmp.endpoint2 == dest)) {
+            rtn = true;
+            tmp.level = level;
+        }
+        ccPin.links.push_back(tmp);
+    }
+    return rtn;}
+
+bool Colony::RemovePin(uint32 pinID) {
+    bool rtn = false;
+    for(int i = 0;i < ccPin.pins.size();i++) {
+        Pin tmp = ccPin.pins.front();
+        ccPin.pins.pop_front();
+        if(tmp.id != pinID)
+            ccPin.pins.push_back(tmp);
+        else
+            rtn = true;
+    }
+    return rtn;
+}
+
+bool Colony::RemoveLink(uint32 src, uint32 dest, bool ccConnected) {
+    bool rtn = false;
+    for (int i = 0; i < ccPin.links.size(); i++) {
+        Link tmp = ccPin.links.front();
+        ccPin.links.pop_front();
+        if((tmp.endpoint1 == src || tmp.endpoint1 == dest) && (tmp.endpoint2 == src || tmp.endpoint2 == dest)) {
+            rtn = true;
+            continue;
+        }
+        ccPin.links.push_back(tmp);
+    }
+    return rtn;
 }
 
 
@@ -72,19 +176,42 @@ PyResult Colony::GetColony() {
         dict->SetItem("lastRunTime", new PyLong(i.lastRunTime));
         dict->SetItem("state", new PyInt(i.state));
         dict->SetItem("contents", testContainer);
-        dict->SetItem("schematicID", i.schematicID ? new PyInt(i.schematicID) : (PyRep*) new PyNone());
-        dict->SetItem("hasRecievedInputs", i.hasRecievedInputs ? new PyBool(i.hasRecievedInputs) : (PyRep*) new PyNone());
-        dict->SetItem("recievedInputsLastCycle", i.recievedInputsLastCycle ? new PyBool(i.recievedInputsLastCycle) : (PyRep*) new PyNone());
-        dict->SetItem("lastLaunchTime", i.lastLaunchTime ? new PyLong(i.lastLaunchTime) : (PyRep*) new PyNone());
-        dict->SetItem("heads", i.heads ? new PyInt(i.heads) : (PyRep*) new PyNone());
-        dict->SetItem("programType", i.programType ? new PyInt(i.programType) : (PyRep*) new PyNone());
-        dict->SetItem("cycleTime", i.cycleTime ? new PyInt(i.cycleTime) : (PyRep*) new PyNone());
-        dict->SetItem("qtyPerCycle", i.qtyPerCycle ? new PyInt(i.qtyPerCycle) : (PyRep*) new PyNone());
-        dict->SetItem("headRadius", i.headRadius ? new PyFloat(i.headRadius) : (PyRep*) new PyNone());
-        dict->SetItem("installTime", i.installTime ? new PyLong(i.installTime) : (PyRep*) new PyNone());
+
+        if(i.isLaunchable) {
+            dict->SetItem("lastLaunchTime", new PyLong(i.lastLaunchTime));
+        }else if(i.isProcess) {
+            dict->SetItem("schematicID", i.schematicID ? new PyInt(i.schematicID) : (PyRep*)new PyNone());
+            dict->SetItem("hasRecievedInputs", new PyBool(i.hasRecievedInputs));
+            dict->SetItem("recievedInputsLastCycle", new PyBool(i.recievedInputsLastCycle));
+        }else if(i.isExtractor) {
+            dict->SetItem("installTime", new PyLong(i.installTime));
+            dict->SetItem("programType", new PyInt(i.programType));
+            dict->SetItem("qtyPerCycle", new PyInt(i.qtyPerCycle));
+            dict->SetItem("headRadius", new PyFloat(i.headRadius));
+            dict->SetItem("expiryTime", new PyLong(i.expiryTime));
+            dict->SetItem("cycleTime", new PyInt(i.cycleTime));
+            dict->SetItem("heads", i.heads ? new PyInt(i.heads) : (PyRep*)new PyNone());
+        }
 
         PyObject *obj = new PyObject("util.KeyVal", dict);
         pins->SetItem(index++, obj);
+    }
+    index = 0;
+
+    for(auto i:ccPin.links) {
+        PyDict *dict = new PyDict();
+
+        if(i.commandCenterConnected) {
+            dict->SetItem("endpoint1", new PyInt(i.endpoint1));
+        }else {
+            dict->SetItem("endpoint1", new_tuple(1, i.endpoint1));
+        }
+        dict->SetItem("endpoint2", new_tuple(1, i.endpoint2));
+        dict->SetItem("level", new PyInt(i.level));
+        dict->SetItem("typeID", new PyInt(i.typeID));
+
+        PyObject *obj = new PyObject("util.KeyVal", dict);
+        links->SetItem(index++, obj);
     }
 
     PyDict *args = new PyDict();
