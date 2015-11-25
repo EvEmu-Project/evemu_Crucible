@@ -283,7 +283,7 @@ PyRep* EvilNumber::GetPyObject()
         return (PyRep*)new PyFloat(mValue.fVal);
     else {
         assert(false);
-        return false;
+        return (PyRep*)new PyNone();
     }
 }
 
