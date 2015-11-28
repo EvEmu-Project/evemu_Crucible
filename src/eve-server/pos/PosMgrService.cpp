@@ -20,13 +20,61 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Zhur, Cometo
 */
 
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
 #include "pos/PosMgrService.h"
+#include "PyBoundObject.h"
+
+class PosMgrServiceBound
+        : public PyBoundObject
+{
+public:
+    PyCallable_Make_Dispatcher(PosMgrServiceBound)
+
+    PosMgrServiceBound(PyServiceMgr *mgr)
+            : PyBoundObject(mgr),
+              m_dispatch(new Dispatcher(this))
+    {
+        _SetCallDispatcher(m_dispatch);
+        m_strBoundObjectName = "PosMgrServiceBound";
+
+        PyCallable_REG_CALL(PosMgrServiceBound, SetShipPassword)
+        /* //TODO, Verify that these are all bound calls.
+         * AnchorOrbital
+         * AnchorStructure
+         * AssumeStructureControl
+         * ChangeStructureProvisionType
+         * CompleteOrbitalStateChange
+         * GetMoonForTower
+         * GetMoonProcessInfoForTower
+         * GMUpgradeOrbital
+         * LinkResourcesForTower
+         * OnlineOrbital
+         * RelinquishStructureControl
+         * RunMoonProcessCycleforTower
+         * SetShipPassword
+         * SetStarbasePermissions
+         * SetTowerPassword
+         * SetTowerNotifications
+         * SetTowerSentrySettings
+         * UnanchorOrbital
+         */
+
+    }
+    virtual ~PosMgrServiceBound() { delete m_dispatch; }
+    virtual void Release() {
+        delete this;
+    }
+
+    PyCallable_DECL_CALL(SetShipPassword)
+
+protected:
+    Dispatcher *const m_dispatch;
+};
 
 PyCallable_Make_InnerDispatcher(PosMgrService)
 
@@ -37,21 +85,34 @@ PosMgrService::PosMgrService(PyServiceMgr *mgr)
     _SetCallDispatcher(m_dispatch);
 
     PyCallable_REG_CALL(PosMgrService, GetControlTowerFuelRequirements)
+    /* //TODO, Verify that these are all unbound calls.
+     * GetControlTowerFuelRequirements
+     * GetControlTowers
+     * GetJumpArrays
+     * GetSiloCapacityByItemID
+     */
 }
 
 PosMgrService::~PosMgrService() {
     delete m_dispatch;
 }
 
-/*
-PyBoundObject* PosMgrService::_CreateBoundObject( Client* c, const PyRep* bind_args )
-{
-    _log( CLIENT__MESSAGE, "PosMgrService bind request for:" );
-    bind_args->Dump( CLIENT__MESSAGE, "    " );
-
-    return new PosMgrServiceBound( m_manager, &m_db );
-}*/
+PyBoundObject *PosMgrService::_CreateBoundObject(Client *c, const PyRep *bind_args) {
+    if(!bind_args->IsInt()) {
+        codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
+        return NULL;
+    }
+    bind_args->Dump(stdout, "PosMgrService:CBO:    ");
+    return new PosMgrServiceBound(m_manager);
+}
 
 PyResult PosMgrService::Handle_GetControlTowerFuelRequirements(PyCallArgs &args) {
     return m_db.GetControlTowerFuelRequirements();
+}
+
+PyResult PosMgrServiceBound::Handle_SetShipPassword(PyCallArgs &call) {
+    sLog.Debug("PosMgrServiceBound","Called SetShipPassword Stub.");
+    call.tuple->Dump(stdout, "PMSB:SSP:    ");
+
+    return  NULL;
 }

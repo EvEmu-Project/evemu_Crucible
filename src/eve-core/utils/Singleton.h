@@ -65,11 +65,11 @@ public:
 
 protected:
     /** Pointer to the singleton instance. */
-    static std::auto_ptr<X> mInstance;
+    static std::shared_ptr<X> mInstance;
 };
 
 template<typename X>
-std::auto_ptr<X> Singleton<X>::mInstance( NULL );
+std::shared_ptr<X> Singleton<X>::mInstance( NULL );
 
 #endif /* !__UTILS__SINGLETON_H__INCL__ */
 

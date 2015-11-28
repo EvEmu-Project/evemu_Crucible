@@ -419,6 +419,14 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
         }
     }
 
+    // Not a c++ guy, probably a way more efficient way to do this.
+    // Also probably goes out of bounds at some point. Someone needs to look at this
+    // and check if it is 'safe' for long char names.
+    std::string name = call.client->GetChar()->itemName().substr(1); // substr because it returned a space before the item name...
+    name.append("'s ");
+    name.append(ship->itemName());
+    ship->Rename(name.c_str());
+
     return NULL;
 }
 

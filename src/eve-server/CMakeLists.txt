@@ -337,11 +337,13 @@ SET( npc_SOURCE
      "${TARGET_SOURCE_DIR}/npc/SpawnManager.cpp" )
 
 SET( pos_INCLUDE
+     "${TARGET_INCLUDE_DIR}/pos/Colony.h"
      "${TARGET_INCLUDE_DIR}/pos/PlanetMgr.h"
      "${TARGET_INCLUDE_DIR}/pos/PosMgrDB.h"
      "${TARGET_INCLUDE_DIR}/pos/PosMgrService.h"
      "${TARGET_INCLUDE_DIR}/pos/Structure.h" )
 SET( pos_SOURCE
+     "${TARGET_SOURCE_DIR}/pos/Colony.cpp"
      "${TARGET_SOURCE_DIR}/pos/PlanetMgr.cpp"
      "${TARGET_SOURCE_DIR}/pos/PosMgrDB.cpp"
      "${TARGET_SOURCE_DIR}/pos/PosMgrService.cpp"
