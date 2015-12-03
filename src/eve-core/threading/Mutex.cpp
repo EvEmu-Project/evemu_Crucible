@@ -87,13 +87,13 @@ void Mutex::Unlock()
 MRMutex::MRMutex() {
     rl = 0;
     wr = 0;
-    rl = 0;
+    wl = 0;
 }
 
 MRMutex::~MRMutex() {
 #ifdef _EQDEBUG
     if (wl || rl) {
-        cout << "MRMutex::~MRMutex: poor cleanup detected: rl=" << rl << ", wl=" << wl << endl;
+        cout << "MRMutex::~MRMutex(): poor cleanup detected: rl=" << rl << ", wl=" << wl << endl;
     }
 #endif
 }

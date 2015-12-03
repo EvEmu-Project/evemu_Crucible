@@ -196,7 +196,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
     }
 
     //not right:
-    if( ( ballhead->sub_type == 64 ) || ( ballhead->sub_type == 66 ) )
+    if( 0 /*( ballhead->sub_type == 64 ) || ( ballhead->sub_type == 66 )*/ )
     {
         const Destiny::MiniBallList* mbl = (const Destiny::MiniBallList*)data;
         data += sizeof( Destiny::MiniBallList );
