@@ -124,6 +124,12 @@ public:
 
     uint32 GetShipID() const                        { return m_shipId; }
     uint32 GetGangRole() const                      { return mSession.GetCurrentInt( "gangrole" ); }
+    uint8 GetFleetRole() const                      { return mSession.GetCurrentInt( "fleetrole" ); }
+
+    //  public functions to update client session when char's roles are changed
+    void UpdateCorpSession( const CharacterConstRef& character );
+    void UpdateFleetSession( const CharacterConstRef& character );
+    
 
     // character data
     CharacterRef GetChar() const                    { return m_char; }

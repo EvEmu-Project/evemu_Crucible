@@ -184,7 +184,7 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 	PyList* modifiers = new PyList();
 	PyObjectEx* appearance;
 	PyList* sculpts = new PyList();
-	
+
 	colors = data->GetItemString("colors")->AsList();
 	modifiers = data->GetItemString("modifiers")->AsList();
 	appearance = data->GetItemString("appearance")->AsObjectEx();
@@ -215,7 +215,7 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 								color_tuple->GetItem(3)->AsInt()->value(),
 								color_tuple->GetItem(4)->AsFloat()->value(),
 								color_tuple->GetItem(5)->AsFloat()->value());
-			
+
 		}
 	}
 
@@ -270,7 +270,7 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
 									sculpt_tuple->GetItem(2),
 									sculpt_tuple->GetItem(3),
 									sculpt_tuple->GetItem(4));
-			
+
 		}
 	}
 }
@@ -292,6 +292,25 @@ CorpMemberInfo::CorpMemberInfo(
   rolesAtBase(_rolesAtBase),
   rolesAtHQ(_rolesAtHQ),
   rolesAtOther(_rolesAtOther)
+{
+}
+
+/*
+ * FleetMember Info
+ */
+FleetMemberInfo::FleetMemberInfo(
+    uint32 _fleetID,
+    uint32 _wingID,
+    uint32 _squadID,
+    uint8 _fleetRole,
+    uint8 _fleetBooster,
+    uint8 _fleetJob)
+: fleetID(_fleetID),
+wingID(_wingID),
+squadID(_squadID),
+fleetRole(_fleetRole),
+fleetBooster(_fleetBooster),
+fleetJob(_fleetJob)
 {
 }
 
@@ -369,7 +388,7 @@ CharacterRef Character::Spawn(ItemFactory &factory,
     // InventoryItem stuff:
     ItemData &data,
     // Character stuff:
-    CharacterData &charData, CorpMemberInfo &corpData) 
+    CharacterData &charData, CorpMemberInfo &corpData)
 {
     uint32 characterID = Character::_Spawn( factory, data, charData, corpData );
     if( characterID == 0 )
@@ -387,7 +406,7 @@ uint32 Character::_Spawn(ItemFactory &factory,
     // InventoryItem stuff:
     ItemData &data,
     // Character stuff:
-    CharacterData &charData, CorpMemberInfo &corpData) 
+    CharacterData &charData, CorpMemberInfo &corpData)
 {
     // make sure it's a character
     const CharacterType *ct = factory.GetCharacterType(data.typeID);
@@ -504,6 +523,28 @@ void Character::JoinCorporation(uint32 corporationID, const CorpMemberInfo &role
 	m_rolesAtOther = roles.rolesAtOther;
 
 	SaveCharacter();
+}
+
+void Character::SetAccountKey(int32 accountKey)
+{
+    m_corpAccountKey = accountKey;
+    Client* pClient = m_factory.entity_list.FindCharacter( itemID() );
+    pClient->UpdateCorpSession(pClient->GetChar());
+
+    SaveCharacter();
+}
+
+void Character::SetFleetData(FleetMemberInfo &fleet)
+{
+    m_fleetID = fleet.fleetID;
+    m_wingID = fleet.wingID;
+    m_squadID = fleet.squadID;
+    m_fleetRole = fleet.fleetRole;
+    m_fleetBooster = fleet.fleetBooster;
+    m_fleetJob = fleet.fleetJob;
+
+    Client* pClient = m_factory.entity_list.FindCharacter( itemID() );
+    pClient->UpdateFleetSession(pClient->GetChar());
 }
 
 void Character::SetDescription(const char *newDescription) {
@@ -876,7 +917,7 @@ void Character::UpdateSkillQueue()
             currentTraining->SetAttribute(AttrExpiryTime, 0);
 
             currentTraining->MoveInto( *this, flagSkill, true );
-			
+
 			// Save changes to this skill now that it has finished training:
 			currentTraining->SaveItem();
 
@@ -924,7 +965,7 @@ void Character::UpdateSkillQueueEndTime(const SkillQueue &queue)
     {
         const QueuedSkill &qs = queue[ i ];     // get skill id from queue
         SkillRef skill = Character::GetSkill( qs.typeID );   //make ref for current skill
-        
+
         chrMinRemaining += (skill->GetSPForLevel(qs.level) - skill->GetAttribute( AttrSkillPoints )) / GetSPPerMin(skill);
     }
     chrMinRemaining = chrMinRemaining * EvilTime_Minute + EvilTimeNow();

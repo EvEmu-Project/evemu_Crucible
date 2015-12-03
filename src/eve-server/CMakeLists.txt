@@ -214,6 +214,17 @@ SET( dogmaim_SOURCE
      "${TARGET_SOURCE_DIR}/dogmaim/DogmaDB.cpp"
      "${TARGET_SOURCE_DIR}/dogmaim/DogmaService.cpp" )
 
+SET( fleet_INCLUDE
+     "${TARGET_INCLUDE_DIR}/fleet/FleetManager.h"
+     "${TARGET_INCLUDE_DIR}/fleet/FleetObject.h"
+     "${TARGET_INCLUDE_DIR}/fleet/FleetProxy.h"
+     "${TARGET_INCLUDE_DIR}/fleet/FleetService.h")
+SET( fleet_SOURCE
+     "${TARGET_SOURCE_DIR}/fleet/FleetManager.cpp"
+     "${TARGET_SOURCE_DIR}/fleet/FleetObject.cpp"
+     "${TARGET_SOURCE_DIR}/fleet/FleetProxy.cpp"
+     "${TARGET_SOURCE_DIR}/fleet/FleetService.cpp")
+
 SET( imageserver_INCLUDE
      "${TARGET_INCLUDE_DIR}/imageserver/ImageServer.h"
      "${TARGET_INCLUDE_DIR}/imageserver/ImageServerConnection.h"

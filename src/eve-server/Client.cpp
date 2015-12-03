@@ -81,16 +81,16 @@ Client::~Client() {
 
         // Save character info including attributes, save current ship's attributes, current ship's fitted mModulesMgr,
         // and save all skill attributes to the Database:
-		if( GetShip() != NULL )
+		if( GetShip() )
 			GetShip()->SaveShip();                              // Save Ship's and Modules' attributes and info to DB
-		if( GetChar() != NULL )
+		if( GetChar() )
 		{
 	        GetChar()->SaveFullCharacter();                     // Save Character info to DB
 			GetChar()->SaveSkillQueue();                        // Save Skill Queue to DB
 		}
 
         // remove ourselves from system
-        if(m_system != NULL)
+        if(m_system)
             m_system->RemoveClient(this);   //handles removing us from bubbles and sending RemoveBall events.
 
         //johnsus - characterOnline mod
@@ -361,7 +361,7 @@ void Client::ChannelLeft(LSCChannel *chan) {
 
 bool Client::EnterSystem(bool login) {
 
-    if(m_system != NULL && m_system->GetID() != GetSystemID()) {
+    if(m_system && m_system->GetID() != GetSystemID()) {
         //we have different m_system
         m_system->RemoveClient(this);
         m_system = NULL;
@@ -525,7 +525,7 @@ void Client::BoardShip(ShipRef new_ship) {
         return;
     }
 
-    if((m_system != NULL) && (IsInSpace()))
+    if((m_system) && (IsInSpace()))
         m_system->RemoveClient(this);
 
     _SetSelf( new_ship );
@@ -540,12 +540,41 @@ void Client::BoardShip(ShipRef new_ship) {
 
     GetShip()->UpdateModules();
 
-    if((m_system != NULL) && (IsInSpace()))
+    if((m_system) && (IsInSpace()))
         m_system->AddClient(this);
 
-    if(m_destiny != NULL)
+    if(m_destiny)
         m_destiny->SetShipCapabilities( GetShip() );
 
+}
+
+void Client::UpdateCorpSession(const CharacterConstRef& character)
+{
+    if (!character) return;
+
+    mSession.SetInt("corpid", character->corporationID());
+    mSession.SetInt("hqID", character->corporationHQ());
+    mSession.SetInt("corpAccountKey", character->corpAccountKey());
+    mSession.SetLong("corpRole", character->corpRole());
+    mSession.SetLong("rolesAtAll", character->rolesAtAll());
+    mSession.SetLong("rolesAtBase", character->rolesAtBase());
+    mSession.SetLong("rolesAtHQ", character->rolesAtHQ());
+    mSession.SetLong("rolesAtOther", character->rolesAtOther());
+
+    _SendSessionChange();
+}
+
+void Client::UpdateFleetSession(const CharacterConstRef& character)
+{
+    if (!character) return;
+
+    mSession.SetLong("fleetid", character->fleetID());
+    mSession.SetInt("fleetrole", character->fleetRole());
+    mSession.SetInt("fleetbooster", character->fleetBooster());
+    mSession.SetInt("wingid", character->wingID());
+    mSession.SetInt("squadid", character->squadID());
+
+    _SendSessionChange();
 }
 
 void Client::_UpdateSession( const CharacterConstRef& character )
@@ -672,7 +701,7 @@ void Client::_UpdateSession2( uint32 characterID )
     mSession.SetLong( "rolesAtOther", rolesAtOther );
 
     m_shipId = shipID;
-    if( m_char != NULL )
+    if( m_char )
         m_char->SetActiveShip(m_shipId);
     if (IsInSpace())
         mSession.SetInt( "shipid", shipID );
@@ -697,7 +726,7 @@ void Client::_SendCallReturn( const PyAddress& source, uint64 callID, PyRep** re
     p->payload->SetItem( 0, new PySubStream( *return_value ) );
     *return_value = NULL;   //consumed
 
-    if(channel != NULL)
+    if(channel)
     {
         p->named_payload = new PyDict();
         p->named_payload->SetItemString( "channel", new PyString( channel ) );
@@ -1582,11 +1611,11 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
 
     //sLog.Debug("Client","%s: Received Client Challenge.", GetAddress().c_str());
     //sLog.Debug("Client","Login with %s:", ccp.user_name.c_str());
-    
-    if (!services().serviceDB().GetAccountInformation( 
-				ccp.user_name.c_str(), 
-				ccp.user_password_hash.c_str(), 
-				account_info)) 
+
+    if (!services().serviceDB().GetAccountInformation(
+				ccp.user_name.c_str(),
+				ccp.user_password_hash.c_str(),
+				account_info))
 	{
         goto error_login_auth_failed;
     }
@@ -1634,7 +1663,7 @@ bool Client::_VerifyLogin( CryptoChallengePacket& ccp )
      */
     if (account_info.online) {
         Client* client = sEntityList.FindAccount(account_info.id);
-        if (client != NULL)
+        if (client)
             client->DisconnectClient();
     }
 
