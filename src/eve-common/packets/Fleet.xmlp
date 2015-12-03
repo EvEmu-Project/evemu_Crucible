@@ -1,0 +1,198 @@
+
+<elements>
+<!--
+    This is where all fleet packets will go. -->
+
+<!--
+        [PyString "OnFleetLootEvent"]
+        [PyList 0 items]
+        [PyString "clientID"]
+    [PyInt 5894042]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 94 bytes]
+          [PyTuple 2 items]
+            [PyInt 0]
+            [PyTuple 2 items]
+              [PyInt 1]
+              [PyTuple 1 items]
+                [PyDict 8 kvp]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 8489]
+                  [PyInt 1]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 236]
+                  [PyInt 100]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 8259]
+                  [PyInt 1]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 8175]
+                  [PyInt 1]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 15331]
+                  [PyInt 1]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 7447]
+                  [PyInt 1]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 204]
+                  [PyInt 100]
+                  [PyTuple 2 items]
+                    [PyInt 1661059544]
+                    [PyInt 1195]
+                  [PyInt 1]
+
+
+        [PyString "OnFleetActive"]
+        [PyList 0 items]
+        [PyString "clientID"]
+    [PyInt 5894042]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 12 bytes]
+          [PyTuple 2 items]
+            [PyInt 0]
+            [PyTuple 2 items]
+              [PyInt 1]
+              [PyTuple 1 items]
+                [PyInt 254]
+    [PyNone]
+    [PyNone]
+
+        [PyString "OnSquadActive"]
+        [PyList 0 items]
+        [PyString "clientID"]
+    [PyInt 5894042]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 20 bytes]
+          [PyTuple 2 items]
+            [PyInt 0]
+            [PyTuple 2 items]
+              [PyInt 1]
+              [PyTuple 2 items]
+                [PyIntegerVar 3674710790423]
+                [PyInt 253]
+    [PyNone]
+    [PyNone]
+
+        [PyString "OnFleetBroadcast"]
+        [PyList 0 items]
+        [PyString "clientID"]
+    [PyInt 5654387]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 38 bytes]
+          [PyTuple 2 items]
+            [PyInt 0]
+            [PyTuple 2 items]
+              [PyInt 1]
+              [PyTuple 5 items]
+                [PyString "AlignTo"]
+                [PyInt 3]
+                [PyInt 1661059544]
+                [PyInt 30001984]
+                [PyIntegerVar 50003951]
+    [PyNone]
+
+
+
+        [PyString "OnFleetStateChange"]
+        [PyList 0 items]
+        [PyString "charid"]
+    [PyInt 5894042]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 40 bytes]
+          [PyTuple 2 items]
+            [PyInt 0]
+            [PyTuple 2 items]
+              [PyInt 1]
+              [PyTuple 1 items]
+                [PyObjectData Name: util.KeyVal]
+                  [PyDict 1 kvp]
+                    [PyString "targetTags"]
+                    [PyDict 0 kvp]
+    [PyNone]
+    [PyNone]
+
+
+        [PyString "OnFleetJoin"]
+        [PyList 0 items]
+        [PyString "clientID"]
+    [PyInt 5894042]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 160 bytes]
+          [PyTuple 2 items]
+            [PyInt 0]
+            [PyTuple 2 items]
+              [PyInt 1]
+              [PyTuple 1 items]
+                [PyObjectData Name: util.KeyVal]
+                  [PyDict 11 kvp]
+                    [PyString "squadID"]
+                    [PyIntegerVar 3674710790423]
+                    [PyString "roleBooster"]
+                    [PyInt 3]
+                    [PyString "wingID"]
+                    [PyIntegerVar 2610110790423]
+                    [PyString "skills"]
+                    [PyList 3 items]
+                      [PyInt 4]
+                      [PyInt 0]
+                      [PyInt 0]
+                    [PyString "timestamp"]
+                    [PyIntegerVar 129756560170104752]
+                    [PyString "clientID"]
+                    [PyIntegerVar 221031000003102]
+                    [PyString "job"]
+                    [PyInt 2]
+                    [PyString "role"]
+                    [PyInt 3]
+                    [PyString "shipTypeID"]
+                    [PyInt 644]
+                    [PyString "solarSystemID"]
+                    [PyInt 30000302]
+                    [PyString "charID"]
+                    [PyInt 649670823]
+    [PyNone]
+    [PyNone]
+
+-->
+
+
+  <elementDef name="Rsp_OnFleetJoin">
+    <tupleInline>
+      <stringInline value="OnFleetJoin" />
+      <int name="charID" />
+      <int name="solarSystemID" />
+      <int name="shipTypeID" />
+      <int name="role" />
+      <int name="job" />
+      <int name="clientID" />
+      <int name="timestamp" />
+      <int name="wingID" />
+      <int name="squadID" />
+      <int name="roleBooster" />
+      <listInt name="skills" />
+    </tupleInline>
+  </elementDef>
+
+
+
+</elements>

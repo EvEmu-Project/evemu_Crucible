@@ -401,6 +401,8 @@ public:
      * @return Pointer to Skill object; NULL if skill was not found.
      */
     SkillRef GetSkill(uint32 skillTypeID) const;
+
+    uint8 GetSkillLevel(uint32 skillTypeID, bool zeroForNotInjected=true) const;
     /**
      * Returns skill currently in training.
      *

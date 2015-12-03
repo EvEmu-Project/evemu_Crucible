@@ -586,6 +586,13 @@ bool Character::HasCertificate( uint32 certificateID ) const
     return false;
 }
 
+uint8 Character::GetSkillLevel(uint32 skillTypeID, bool zeroForNotInjected /*true*/) const {
+    SkillRef requiredSkill = GetSkill( skillTypeID );
+    // First, check for existence of skill trained or in training:
+    if (!requiredSkill) return (zeroForNotInjected ? 0 : -1);
+    return requiredSkill->GetAttribute(AttrSkillLevel).get_int() ;
+}
+
 SkillRef Character::GetSkill(uint32 skillTypeID) const
 {
     InventoryItemRef skill = GetByTypeFlag( skillTypeID, flagSkill );

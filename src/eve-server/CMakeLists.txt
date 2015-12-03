@@ -373,7 +373,6 @@ SET( ship_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/DestinyManager.h"
      "${TARGET_INCLUDE_DIR}/ship/dgmtypeattributeinfo.h"
      "${TARGET_INCLUDE_DIR}/ship/Drone.h"
-     "${TARGET_INCLUDE_DIR}/ship/FleetProxy.h"
      "${TARGET_INCLUDE_DIR}/ship/InsuranceService.h"
      "${TARGET_INCLUDE_DIR}/ship/ModuleManager.h"
      "${TARGET_INCLUDE_DIR}/ship/RepairService.h"
@@ -387,7 +386,6 @@ SET( ship_SOURCE
      "${TARGET_SOURCE_DIR}/ship/DestinyManager.cpp"
      "${TARGET_SOURCE_DIR}/ship/dgmtypeattributeinfo.cpp"
      "${TARGET_SOURCE_DIR}/ship/Drone.cpp"
-     "${TARGET_SOURCE_DIR}/ship/FleetProxy.cpp"
      "${TARGET_SOURCE_DIR}/ship/InsuranceService.cpp"
      "${TARGET_SOURCE_DIR}/ship/ModuleManager.cpp"
      "${TARGET_SOURCE_DIR}/ship/RepairService.cpp"
@@ -524,6 +522,7 @@ SOURCE_GROUP( "src\\chat"          FILES ${chat_INCLUDE} )
 SOURCE_GROUP( "src\\config"        FILES ${config_INCLUDE} )
 SOURCE_GROUP( "src\\corporation"   FILES ${corporation_INCLUDE} )
 SOURCE_GROUP( "src\\dogmaim"       FILES ${dogmaim_INCLUDE} )
+SOURCE_GROUP( "src\\fleet"         FILES ${fleet_INCLUDE} )
 SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_INCLUDE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_INCLUDE} )
 SOURCE_GROUP( "src\\mail"          FILES ${mail_INCLUDE} )
@@ -552,6 +551,7 @@ SOURCE_GROUP( "src\\chat"          FILES ${chat_SOURCE} )
 SOURCE_GROUP( "src\\config"        FILES ${config_SOURCE} )
 SOURCE_GROUP( "src\\corporation"   FILES ${corporation_SOURCE} )
 SOURCE_GROUP( "src\\dogmaim"       FILES ${dogmaim_SOURCE} )
+SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
 SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
 SOURCE_GROUP( "src\\mail"          FILES ${mail_SOURCE} )
@@ -581,6 +581,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${config_INCLUDE}         ${config_SOURCE}
                 ${corporation_INCLUDE}    ${corporation_SOURCE}
                 ${dogmaim_INCLUDE}        ${dogmaim_SOURCE}
+                ${fleet_INCLUDE}          ${fleet_SOURCE}
                 ${imageserver_INCLUDE}    ${imageserver_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
                 ${mail_INCLUDE}           ${mail_SOURCE}
@@ -591,7 +592,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
                 ${pos_INCLUDE}            ${pos_SOURCE}
-		${search_INCLUDE}         ${search_SOURCE}
+                ${search_INCLUDE}         ${search_SOURCE}
                 ${ship_INCLUDE}           ${ship_SOURCE}
                 ${ship_modules_INCLUDE}   ${ship_modules_SOURCE}
                 ${ship_modules_components_INCLUDE} ${ship_modules_components_SOURCE}

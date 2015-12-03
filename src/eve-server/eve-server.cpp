@@ -76,6 +76,9 @@
 // dogmaim services
 #include "dogmaim/DogmaIMService.h"
 #include "dogmaim/DogmaService.h"
+// fleet services
+#include "fleet/FleetObject.h"
+#include "fleet/FleetProxy.h"
 // imageserver services
 #include "imageserver/ImageServer.h"
 // inventory services
@@ -107,7 +110,6 @@
 #include "search/SearchMgrService.h"
 // ship services
 #include "ship/BeyonceService.h"
-#include "ship/FleetProxy.h"
 #include "ship/InsuranceService.h"
 #include "ship/RepairService.h"
 #include "ship/ShipService.h"
@@ -285,6 +287,8 @@ int main( int argc, char* argv[] )
     services.RegisterService(new DungeonService(&services));
     services.RegisterService(new FactionWarMgrService(&services));
     services.RegisterService(new FactoryService(&services));
+    services.RegisterService(new FleetManager(&services));
+    services.RegisterService(new FleetObject(&services));
     services.RegisterService(new FleetProxyService(&services));
     services.RegisterService(new HoloscreenMgrService(&services));
     services.RegisterService(new InfoGatheringMgr(&services));
