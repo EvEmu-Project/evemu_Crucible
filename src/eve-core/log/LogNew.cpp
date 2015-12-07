@@ -60,6 +60,8 @@ const char* const NewLog::COLOR_TABLE[ COLOR_COUNT ] =
 };
 #endif /* !HAVE_WINDOWS_H */
 
+#define CONSOLE_LOG_PADDING 20
+
 NewLog::NewLog()
 : mLogfile( NULL ),
   mTime( 0 )
@@ -191,10 +193,14 @@ void NewLog::PrintMsg( Color color, char pfx, const char* source, const char* fm
     SetColor( color );
     Print( " %c ", pfx );
 
+    std::string pad = "";
+    if(strlen(source) < CONSOLE_LOG_PADDING)
+        pad = std::string(CONSOLE_LOG_PADDING-strlen(source), ' ');
+
     if( source && *source )
     {
         SetColor( COLOR_WHITE );
-        Print( "%s: ", source );
+        Print( "%s%s: ", pad.c_str(), source );
 
         SetColor( color );
     }
