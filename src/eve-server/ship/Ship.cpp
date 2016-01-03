@@ -884,7 +884,7 @@ uint32 Ship::AddItem(EVEItemFlags flag, InventoryItemRef item)
 			{
 				m_ModuleManager->LoadCharge(item, flag);
 				InventoryItemRef loadedChargeOnModule = m_ModuleManager->GetLoadedChargeOnModule(flag);
-				if( loadedChargeOnModule != NULL )
+				if( loadedChargeOnModule )
 				{
 					return loadedChargeOnModule->itemID();
 				}

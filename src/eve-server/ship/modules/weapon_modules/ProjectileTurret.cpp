@@ -89,7 +89,7 @@ void ProjectileTurret::DestroyRig()
 
 void ProjectileTurret::Activate(SystemEntity * targetEntity)
 {
-	if( this->m_chargeRef != NULL )
+	if( this->m_chargeRef )
 	{
 		m_targetEntity = targetEntity;
 		m_targetID = targetEntity->Item()->itemID();

@@ -1171,7 +1171,7 @@ void Character::SaveFullCharacter()
         //cur->get()->SaveAttributes();
 */
 	SkillRef currentTraining = GetSkillInTraining();
-	if( currentTraining != NULL )
+	if( currentTraining.get() != NULL )
 		currentTraining->SaveItem();
 
     // Loop through all items owned by this Character and save each one:

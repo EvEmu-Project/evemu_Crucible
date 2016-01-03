@@ -171,7 +171,7 @@ uint32 ShipOperatorInterface::GetLocationID() const
     assert(false);
 
     // Hack to get rid of warning, code execution should never reach this point
-    return NULL;
+    return 0;
 }
 
 void ShipOperatorInterface::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)

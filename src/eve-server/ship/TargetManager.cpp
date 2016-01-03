@@ -465,7 +465,7 @@ uint32 TargetManager::TimeToLock(ShipRef ship, SystemEntity *target) const {
     EvilNumber scanRes = ship->GetAttribute(AttrScanResolution);
     EvilNumber sigRad(500);
 
-	if( target->Item() != NULL )
+	if( target->Item().get() != NULL )
 		if( target->Item()->HasAttribute(AttrSignatureRadius) )
 			sigRad = target->Item()->GetAttribute(AttrSignatureRadius);
 

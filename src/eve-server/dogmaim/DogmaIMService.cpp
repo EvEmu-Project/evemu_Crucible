@@ -265,7 +265,7 @@ PyResult DogmaIMBound::Handle_LoadAmmoToBank( PyCallArgs& call ) {
 	// Get Reference to Ship, Module, and Charge
 	ShipRef shipRef = call.client->GetShip();
 	InventoryItemRef moduleRef = shipRef->GetModule(args.moduleItemID);
-	if( moduleRef == NULL )
+	if( moduleRef.get() == NULL )
 	{
 		sLog.Error("DogmaIMBound::Handle_LoadAmmoToBank()", "ERROR: cannot find module into which charge should be loaded!  How did we get here!?!?!" );
 		return NULL;
@@ -555,7 +555,7 @@ PyResult DogmaIMBound::Handle_GetAllInfo( PyCallArgs& call )
 
     //Contains a dict of the ship and its modules
 
-    if(call.client->GetShip() == NULL) {
+    if( call.client->GetShip().get() == NULL ) {
         codelog(SERVICE__ERROR, "Unable to build ship status for ship %u", call.client->GetShipID());
         return NULL;
     }

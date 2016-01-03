@@ -1504,7 +1504,7 @@ PyResult Command_kill( Client* who, CommandDB* db, PyServiceMgr* services, const
         uint32 entity = atoi( args.arg( 1 ).c_str() );
 
         InventoryItemRef itemRef = services->item_factory.GetShip(entity);
-        if( itemRef == NULL )
+        if( itemRef.get() == NULL )
             throw PyException( MakeCustomError("/kill NOT supported on non-ship types at this time") );
 
         // WARNING: This cast of SystemEntity * to DynamicSystemEntity * will CRASH if the get() does not return
