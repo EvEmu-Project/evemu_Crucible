@@ -676,7 +676,7 @@ void CharacterDB::SetAvatarModifiers(uint32 charID, PyRep* modifierLocationID,  
 		charID,
 		modifierLocationID->AsInt()->value(),
 		paperdollResourceID->AsInt()->value(),
-		paperdollResourceVariation->IsInt() ? paperdollResourceVariation->AsInt()->value() : NULL ))
+		paperdollResourceVariation->IsInt() ? paperdollResourceVariation->AsInt()->value() : 0 ))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}
@@ -691,9 +691,9 @@ void CharacterDB::SetAvatarSculpts(uint32 charID, PyRep* sculptLocationID, PyRep
 		"VALUES (%u, %u, %f, %f, %f)",
 		charID,
 		sculptLocationID->AsInt()->value(),
-		weightUpDown->IsFloat() ? weightUpDown->AsFloat()->value() : NULL,
-		weightLeftRight->IsFloat() ? weightLeftRight->AsFloat()->value() : NULL,
-		weightForwardBack->IsFloat() ? weightForwardBack->AsFloat()->value() : NULL))
+		weightUpDown->IsFloat() ? weightUpDown->AsFloat()->value() : 0.0f,
+		weightLeftRight->IsFloat() ? weightLeftRight->AsFloat()->value() : 0.0f,
+		weightForwardBack->IsFloat() ? weightForwardBack->AsFloat()->value() : 0.0f))
 	{
 		codelog(SERVICE__ERROR, "Error in query: %s", err.c_str());
 	}

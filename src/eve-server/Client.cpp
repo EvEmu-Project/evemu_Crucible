@@ -1788,7 +1788,7 @@ bool Client::Handle_CallReq( PyPacket* packet, PyCallStream& req )
             sLog.Error("Client","Unable to find service to handle call to: %s", packet->dest.service.c_str());
             packet->dest.Dump(CLIENT__ERROR, "    ");
 
-#pragma message( "TODO: throw proper exception to client (exceptions.ServiceNotFound)." )
+            //TODO: throw proper exception to client (exceptions.ServiceNotFound).
             throw PyException( new PyNone );
         }
     }

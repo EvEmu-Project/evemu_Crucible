@@ -245,7 +245,7 @@ PyResult SkillMgrBound::Handle_RespecCharacter(PyCallArgs &call)
     }
 	
 	CharacterRef cref = call.client->GetChar();
-	if(cref->GetSkillInTraining() != NULL) 
+	if( cref->GetSkillInTraining() )
 		throw(PyException(MakeUserError("RespecSkillInTraining")));
 
     // return early if this is an illegal call

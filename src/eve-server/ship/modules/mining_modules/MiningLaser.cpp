@@ -106,7 +106,7 @@ void MiningLaser::Activate(SystemEntity * targetEntity)
 			// Charged mining laser:
 			// + Modulated Strip Miner II
 			// + Modulated Deep Core Strip Miner II
-			if( m_chargeRef != NULL )
+			if( m_chargeRef )
 			{
 				m_targetEntity = targetEntity;
 				m_targetID = targetEntity->Item()->itemID();
@@ -248,7 +248,7 @@ void MiningLaser::_ProcessCycle()
 	// Calculate how many units of ore to pull from the asteroid on this cycle:
 	//oreUnitsToPull = asteroidRef->GetAttribute(AttrMiningAmount).get_float() / oreUnitVolume;
 	oreUnitsToPull = moduleRef->GetAttribute(AttrMiningAmount).get_float() / oreUnitVolume;
-	if( m_chargeRef != NULL )
+	if( m_chargeRef )
 	{
 		// Use mining crystal charge to multiply ore amount taken:
 		if( moduleRef->HasAttribute(AttrSpecialisationAsteroidYieldMultiplier) )

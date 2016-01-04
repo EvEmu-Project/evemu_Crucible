@@ -28,7 +28,7 @@
 #include "config/ConfigDB.h"
 
 PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
-#   pragma message( "we need to deal with corporations!" )
+    //TODO: we need to deal with corporations!
 
     //im not sure how this query is supposed to work, as far as what table
     //we use to get the fields from.
@@ -259,7 +259,7 @@ PyObjectEx *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
 
     DBQueryResult res;
 
-#   pragma message( "hacked 'connector' field in GetMapObjects" )
+    //TODO: hacked 'connector' field in GetMapObjects
 
     if(!sDatabase.RunQuery(res,
         "SELECT "
@@ -282,7 +282,7 @@ PyObjectEx *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
 PyObject *ConfigDB::GetMap(uint32 solarSystemID) {
     DBQueryResult res;
 
-#   pragma message( "a lot of missing data in GetMap" )
+    //TODO: a lot of missing data in GetMap
 
     //how in the world do they get a list in the freakin rowset for destinations???
     if(!sDatabase.RunQuery(res,
