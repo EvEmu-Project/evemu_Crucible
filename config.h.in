@@ -153,6 +153,8 @@
 // Define if localtime_s is available.
 #cmakedefine HAVE_LOCALTIME_S 1
 
+#cmakedefine HAVE_UNISTD_H 1
+
 /*************************************************************************/
 /* Configuration                                                         */
 /*************************************************************************/
