@@ -353,6 +353,22 @@ int main( int argc, char* argv[] )
 	sLog.Log("Server Init", "---> sDGM_Types_to_Wrecks_Table: Loading...");
 	sDGM_Types_to_Wrecks_Table.Initialize();
 
+#ifdef HAVE_UNISTD_H
+	if(getuid() == 0){
+		sLog.Warning("Server Init", "Running as root. Attempting to drop root privileges.");
+		// uid:gid 99:99 is nobody:nobody on my system. seems standard across all my linux systems. (arch, centos, debian)
+		if (setgid(99) != 0) {
+			sLog.Error("Server Init", "setgid: Unable to drop group privileges: %s", strerror(errno));
+			RunLoops = false;
+		}
+		if (setuid(99) != 0) {
+			sLog.Error("Server Init", "setuid: Unable to drop user privileges: %S", strerror(errno));
+			RunLoops = false;
+		}
+		sLog.Success("Server Init", "Dropped root privileges successfully: %u", getuid());
+	}
+#endif /* HAVE_UNISTD_H */
+
     sLog.Success("Server Init", "Initialisation finished");
 
 	/////////////////////////////////////////////////////////////////////////////////////
