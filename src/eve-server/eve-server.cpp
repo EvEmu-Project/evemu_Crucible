@@ -3,7 +3,7 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2011 The EVEmu Team
+    Copyright 2006 - 2016 The EVEmu Team
     For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
@@ -147,7 +147,7 @@ int main( int argc, char* argv[] )
     _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
 #endif /* defined( HAVE_CRTDBG_H ) && !defined( NDEBUG ) */
 
-    printf("Copyright (C) 2006-2011 EVEmu Team. http://evemu.org/\n");
+    printf("Copyright (C) 2006-2016 EVEmu Team. http://evemu.org/\n");
     printf("This program is free software; you can redistribute it and/or modify it under\n");
     printf("the terms of the GNU Lesser General Public License as published by the Free \n");
     printf("Software Foundation; either version 2 of the License, or (at your option) any\n");
@@ -169,41 +169,32 @@ int main( int argc, char* argv[] )
     }
 
     sLog.InitializeLogging(sConfig.files.logDir);
-    sLog.Log("server init", "Loading server configuration...");
-
-    sLog.Log("", "" );
-    sLog.Log("SERVER VERSION", "EVEmu " EVEMU_VERSION );
-    sLog.Log("", "" );
-    sLog.Log("SOURCE", "get at " EVEMU_REPOSITORY );
-    sLog.Log("", "" );
-    sLog.Log("SERVER INIT", "\n"
-        "\tSupported Client: %s\n"
-        "\tVersion %.2f\n"
-        "\tBuild %d\n"
-        "\tMachoNet %u",
-        EVEProjectVersion,
-        EVEVersionNumber,
-        EVEBuildVersion,
-        MachoNetVersion
-    );
+    sLog.Log("", "");
+    sLog.Warning("EvEMu", "Server Information:");
+    sLog.Log("Server Revision", EVEMU_VERSION);
+    sLog.Log("Build Date Time", "%s %s", __DATE__, __TIME__);
+    sLog.Log("This Source", "%s", EVEMU_REPOSITORY);
+    sLog.Log("Client", "Codename: %s | Version: %g | Build: %u (macho: %u)", EVEProjectCodename, EVEVersionNumber, EVEBuildVersion, MachoNetVersion );
+    sLog.Log("Database", "%s@%s:%u", sConfig.database.db.c_str(), sConfig.database.host.c_str(), sConfig.database.port);
+    sLog.Log("","");
 
     //it is important to do this before doing much of anything, in case they use it.
     Timer::SetCurrentTime();
 
     // Load server log settings ( will be removed )
     if( load_log_settings( sConfig.files.logSettings.c_str() ) )
-        sLog.Success( "server init", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
+        sLog.Success( "Server Init", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
     else
-        sLog.Warning( "server init", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
+        sLog.Warning( "Server Init", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
 
     // open up the log file if specified ( will be removed )
     if( !sConfig.files.logDir.empty() )
     {
         std::string logFile = sConfig.files.logDir + "eve-server.log";
         if( log_open_logfile( logFile.c_str() ) )
-            sLog.Success( "server init", "Found log directory %s", sConfig.files.logDir.c_str() );
+            sLog.Success( "Server Init", "Found log directory %s", sConfig.files.logDir.c_str() );
         else
-            sLog.Warning( "server init", "Unable to find log directory '%s', only logging to the screen now.", sConfig.files.logDir.c_str() );
+            sLog.Warning( "Server Init", "Unable to find log directory '%s', only logging to the screen now.", sConfig.files.logDir.c_str() );
     }
 
     //connect to the database...
@@ -215,10 +206,13 @@ int main( int argc, char* argv[] )
         sConfig.database.db.c_str(),
         sConfig.database.port ) )
     {
-        sLog.Error( "server init", "Unable to connect to the database: %s", err.c_str() );
-        std::cout << std::endl << "press any key to exit...";  std::cin.get();
+        sLog.Error( "Server Init", "Unable to connect to the database: %s", err.c_str() );
+        std::cout << std::endl << "Exiting";
         return 1;
+    } else if(sDatabase.Connected){
+        sLog.Success("Server Init", "Connected to database successfully");
     }
+
     _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
 
     //Start up the TCP server
@@ -227,22 +221,22 @@ int main( int argc, char* argv[] )
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
     if( tcps.Open( sConfig.net.port, errbuf ) )
     {
-        sLog.Success( "server init", "TCP listener started on port %u.", sConfig.net.port );
+        sLog.Success( "Server Init", "TCP listener started on port %u.", sConfig.net.port );
     }
     else
     {
-        sLog.Error( "server init", "Failed to start TCP listener on port %u: %s.", sConfig.net.port, errbuf );
-        std::cout << std::endl << "press any key to exit...";  std::cin.get();
+        sLog.Error( "Server Init", "Failed to start TCP listener on port %u: %s.", sConfig.net.port, errbuf );
+        std::cout << std::endl << "Exiting";
         return 1;
     }
 
     //make the item factory
     ItemFactory item_factory( sEntityList );
-	sLog.Log("server init", "starting item factory");
+	sLog.Log("Server Init", "starting item factory");
 
     //now, the service manager...
     PyServiceMgr services( 888444, sEntityList, item_factory );
-	sLog.Log("server init", "starting service manager");
+	sLog.Log("Server Init", "starting service manager");
 
     //setup the command dispatcher
     CommandDispatcher command_dispatcher( services );
@@ -252,7 +246,7 @@ int main( int argc, char* argv[] )
      * Service creation and registration.
      *
      */
-    sLog.Log("server init", "Creating services.");
+    sLog.Log("Server Init", "Creating services.");
 
     // Please keep the services list clean so it's easyier to find something
 
@@ -331,41 +325,41 @@ int main( int argc, char* argv[] )
     services.RegisterService(new VoiceMgrService(&services));
     services.RegisterService(new WarRegistryService(&services));
 
-    sLog.Log("server init", "Priming cached objects.");
+    sLog.Log("Server Init", "Priming cached objects.");
     services.cache_service->PrimeCache();
-    sLog.Log("server init", "finished priming");
+    sLog.Log("Server Init", "finished priming");
 
     // start up the image server
     sImageServer.Run();
-	sLog.Log("server init", "started image server");
+	sLog.Log("Server Init", "started image server");
 
     // start up the api server
     sAPIServer.CreateServices( services );
     sAPIServer.Run();
-	sLog.Log("server init", "started API server");
+	sLog.Log("Server Init", "started API server");
 
     // start up the image server
-    sLog.Log("server init", "Loading Dynamic Database Table Objects...");
+    sLog.Log("Server Init", "Loading Dynamic Database Table Objects...");
 
 	// Create In-Memory Database Objects for Critical Systems, such as ModuleManager:
-	sLog.Log("server init", "---> sDGM_Effects_Table: Loading...");
+	sLog.Log("Server Init", "---> sDGM_Effects_Table: Loading...");
 	sDGM_Effects_Table.Initialize();
-	sLog.Log("server init", "---> sDGM_Type_Effects_Table: Loading...");
+	sLog.Log("Server Init", "---> sDGM_Type_Effects_Table: Loading...");
 	sDGM_Type_Effects_Table.Initialize();
-	sLog.Log("server init", "---> sDGM_Skill_Bonus_Modifiers_Table: Loading...");
+	sLog.Log("Server Init", "---> sDGM_Skill_Bonus_Modifiers_Table: Loading...");
 	sDGM_Skill_Bonus_Modifiers_Table.Initialize();
-	//sLog.Log("server init", "---> sDGM_Ship_Bonus_Modifiers_Table: Loading...");
+	//sLog.Log("Server Init", "---> sDGM_Ship_Bonus_Modifiers_Table: Loading...");
 	//sDGM_Ship_Bonus_Modifiers_Table.Initialize();
-	sLog.Log("server init", "---> sDGM_Types_to_Wrecks_Table: Loading...");
+	sLog.Log("Server Init", "---> sDGM_Types_to_Wrecks_Table: Loading...");
 	sDGM_Types_to_Wrecks_Table.Initialize();
 
-    sLog.Log("server init", "Init done.");
+    sLog.Success("Server Init", "Initialisation finished");
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	//     !!!  DO NOT PUT ANY INITIALIZATION CODE OR CALLS BELOW THIS LINE   !!!
 	/////////////////////////////////////////////////////////////////////////////////////
 	services.serviceDB().SetServerOnlineStatus(true);
-	sLog.Success("server init", "SERVER IS NOW [ONLINE]");
+	sLog.Success("STATUS", "SERVER IS NOW [ONLINE]");
 	sLog.Log("INFO", "(press Ctrl+C to start controlled server shutdown)");
 
     /*
@@ -409,24 +403,24 @@ int main( int argc, char* argv[] )
             Sleep( MAIN_LOOP_DELAY - etime );
     }
 
-    sLog.Log("server shutdown", "Main loop stopped" );
+    sLog.Log("Server Shutdown", "Main loop stopped" );
 
     // Shutting down EVE Client TCP listener
     tcps.Close();
-    sLog.Log("server shutdown", "TCP listener stopped." );
+    sLog.Log("Server Shutdown", "TCP listener stopped." );
 
     // Shutting down API Server:
     sAPIServer.Stop();
-    sLog.Log("server shutdown", "Image Server TCP listener stopped." );
+    sLog.Log("Server Shutdown", "Image Server TCP listener stopped." );
 
     // Shutting down Image Server:
     sImageServer.Stop();
-    sLog.Log("server shutdown", "API Server TCP listener stopped." );
+    sLog.Log("Server Shutdown", "API Server TCP listener stopped." );
 
     services.serviceDB().SetServerOnlineStatus(false);
-	sLog.Log("server shutdown", "SERVER IS NOW [OFFLINE]");
+	sLog.Log("Server Shutdown", "SERVER IS NOW [OFFLINE]");
 
-    sLog.Log("server shutdown", "Cleanup db cache" );
+    sLog.Log("Server Shutdown", "Cleanup db cache" );
     delete _sDgmTypeAttrMgr;
 
     log_close_logfile();
@@ -434,7 +428,7 @@ int main( int argc, char* argv[] )
     //std::cout << std::endl << "press the ENTER key to exit...";  std::cin.get();
 
 	// Shut down the Item system ensuring ALL items get saved to the database:
-	sLog.Log("server shutdown", "Shutting down Item Factory." );
+	sLog.Log("Server Shutdown", "Shutting down Item Factory." );
 
 	return 0;
 }

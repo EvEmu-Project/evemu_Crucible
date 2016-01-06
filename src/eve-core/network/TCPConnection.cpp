@@ -3,7 +3,7 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2011 The EVEmu Team
+    Copyright 2006 - 2016 The EVEmu Team
     For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
@@ -497,7 +497,7 @@ void TCPConnection::TCPConnectionLoop()
 #endif /* HAVE_WINDOWS_H */
 
 #ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Starting TCPConnectionLoop with thread ID %d", pthread_self() );
+    sLog.Log( "Threading", "Starting TCPConnectionLoop with thread ID %lu", pthread_self() );
 #endif /* !HAVE_WINDOWS_H */
 
     mMLoopRunning.Lock();
@@ -522,6 +522,6 @@ void TCPConnection::TCPConnectionLoop()
     mMLoopRunning.Unlock();
 
 #ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %d", pthread_self() );
+    sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %lu", pthread_self() );
 #endif /* !HAVE_WINDOWS_H */
 }

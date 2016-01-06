@@ -3,7 +3,7 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2011 The EVEmu Team
+    Copyright 2006 - 2016 The EVEmu Team
     For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
@@ -59,8 +59,9 @@ ImageServer::ImageServer()
         CreateDirectory( subdir.c_str(), NULL );
     }
 
-    sLog.Log("image server", "our URL: %s", _url.c_str());
-    sLog.Log("image server", "our base: %s", _basePath.c_str());
+    sLog.Log("Image Server Init", "our URL: %s", _url.c_str());
+    sLog.Log("Image Server Init", "our base: %s", _basePath.c_str());
+
 }
 
 void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData)
@@ -100,7 +101,7 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     // and delete it from our limbo map
     _limboImages.erase(creatorAccountID);
 
-    sLog.Log("image server", "saved image from %i as %s", creatorAccountID, path.c_str());
+    sLog.Log("Image Server Init", "saved image from %i as %s", creatorAccountID, path.c_str());
 }
 
 std::tr1::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category, uint32 id, uint32 size)

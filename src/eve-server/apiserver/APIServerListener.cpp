@@ -3,7 +3,7 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2011 The EVEmu Team
+    Copyright 2006 - 2016 The EVEmu Team
     For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
@@ -31,7 +31,7 @@
 APIServerListener::APIServerListener(boost::asio::io_service& io)
 {
     _acceptor = new boost::asio::ip::tcp::acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), sConfig.net.apiServerPort));
-    sLog.Log("api server", "listening on port %i", (sConfig.net.apiServerPort));
+    sLog.Log("API Server Init", "listening on port %u", (sConfig.net.apiServerPort));
     StartAccept();
 }
 

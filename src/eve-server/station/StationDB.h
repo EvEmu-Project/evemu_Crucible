@@ -3,7 +3,7 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2011 The EVEmu Team
+    Copyright 2006 - 2016 The EVEmu Team
     For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
@@ -71,15 +71,15 @@ public:
         sLog.Log("Station DB", "Loading Solar systems:");
 
         DBResultRow row;
-        for(unsigned int i = 0; res.GetRow(row); i++)
+        uint32 solarSystems = 0;
+        for(solarSystems = 0; res.GetRow(row); solarSystems++)
         {
             mStorageContainer.insert(std::make_pair(row.GetUInt(0), DBRowToRow(row)));
 
-            if ((i % 200) == 0)
-                printf(".");
+            // If there are no problems this line is replaced by the next sLog.Log when finished.
+            printf("\t\tLoading solar system: %u\r", solarSystems);
         }
-        printf("\n");
-        sLog.Log("Station DB", "Storing solar system data Done");
+        sLog.Log("Station DB", "Storing solar system data Done for: %u solar systems.", solarSystems);
         mLoaded = true;
 
         return true;

@@ -3,7 +3,7 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2011 The EVEmu Team
+    Copyright 2006 - 2016 The EVEmu Team
     For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
@@ -294,8 +294,6 @@ bool DBcore::Open_locked(int32* errnum, char* errbuf) {
         mysql_close(&mysql);    //do we need to call init again?
     if (pHost.empty())
         return false;
-
-    sLog.Log("dbcore", "Connecting to\n\tDB:\t%s\n\tserver:\t%s:%d\n\tuser:\t%s", pDatabase.c_str(), pHost.c_str(), pPort, pUser.c_str());
 
     /*
     Quagmire - added CLIENT_FOUND_ROWS flag to the connect
