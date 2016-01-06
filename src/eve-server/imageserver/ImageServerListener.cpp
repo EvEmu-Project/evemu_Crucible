@@ -31,7 +31,7 @@
 ImageServerListener::ImageServerListener(boost::asio::io_service& io)
 {
     _acceptor = new boost::asio::ip::tcp::acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), sConfig.net.imageServerPort));
-    sLog.Log("image server", "listening on port %i", (sConfig.net.imageServerPort));
+    sLog.Log("Image Server Init", "listening on port %i", (sConfig.net.imageServerPort));
     StartAccept();
 }
 

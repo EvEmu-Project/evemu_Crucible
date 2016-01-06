@@ -69,7 +69,7 @@ void DGM_Types_to_Wrecks_Table::_Populate()
 		total_wreck_count++;
     }
 
-	sLog.Log("DGM_Types_to_Wrecks_Table", "..........%u total wreck objects loaded", total_wreck_count);
+	sLog.Log("DGM_Types_to_Wrecks_Table", "%u total wreck objects loaded", total_wreck_count);
 
     //cleanup
     delete res;

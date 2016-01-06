@@ -497,7 +497,7 @@ void TCPConnection::TCPConnectionLoop()
 #endif /* HAVE_WINDOWS_H */
 
 #ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Starting TCPConnectionLoop with thread ID %d", pthread_self() );
+    sLog.Log( "Threading", "Starting TCPConnectionLoop with thread ID %lu", pthread_self() );
 #endif /* !HAVE_WINDOWS_H */
 
     mMLoopRunning.Lock();
@@ -522,6 +522,6 @@ void TCPConnection::TCPConnectionLoop()
     mMLoopRunning.Unlock();
 
 #ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %d", pthread_self() );
+    sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %lu", pthread_self() );
 #endif /* !HAVE_WINDOWS_H */
 }

@@ -581,7 +581,7 @@ void DGM_Effects_Table::_Populate()
 	if( error_count > 0 )
 		sLog.Error("DGM_Effects_Table::_Populate()","ERROR Populating the DGM_Effects_Table memory object: %u of %u effects failed to load!", error_count, total_effect_count);
 
-	sLog.Log("DGM_Effects_Table", "..........%u total effects objects loaded", total_effect_count);
+	sLog.Log("DGM_Effects_Table", "%u total effects objects loaded", total_effect_count);
 
     //cleanup
     delete res;
@@ -646,7 +646,7 @@ void DGM_Type_Effects_Table::_Populate()
 	if( error_count > 0 )
 		sLog.Error("DGM_Type_Effects_Table::_Populate()","ERROR Populating the DGM_Type_Effects_Table memory object: %u of %u types failed to load!", error_count, total_type_count);
 
-	sLog.Log("DGM_Type_Effects_Table", "..........%u total type effect objects loaded", total_type_count);
+	sLog.Log("DGM_Type_Effects_Table", "%u total type effect objects loaded", total_type_count);
 
     //cleanup
     delete res;
@@ -717,7 +717,7 @@ void DGM_Skill_Bonus_Modifiers_Table::_Populate()
 	if( error_count > 0 )
 		sLog.Error("DGM_Skill_Bonus_Modifiers_Table::_Populate()","ERROR Populating the DGM_Skill_Bonus_Modifiers_Table memory object: %u of %u skill bonus modifiers failed to load!", error_count, total_modifier_count);
 
-	sLog.Log("DGM_Skill_Bonus_Modifiers_Table", "..........%u total modifier objects loaded", total_modifier_count);
+	sLog.Log("DGM_Skill_Bonus_Modifiers_Table", "%u total modifier objects loaded", total_modifier_count);
 
     //cleanup
     delete res;
@@ -788,7 +788,7 @@ void DGM_Ship_Bonus_Modifiers_Table::_Populate()
 	if( error_count > 0 )
 		sLog.Error("DGM_Ship_Bonus_Modifiers_Table::_Populate()","ERROR Populating the DGM_Ship_Bonus_Modifiers_Table memory object: %u of %u ship bonus modifiers failed to load!", error_count, total_modifier_count);
 
-	sLog.Log("DGM_Ship_Bonus_Modifiers_Table", "..........%u total modifier objects loaded", total_modifier_count);
+	sLog.Log("DGM_Ship_Bonus_Modifiers_Table", "%u total modifier objects loaded", total_modifier_count);
 
     //cleanup
     delete res;
