@@ -23,7 +23,8 @@ IF( WIN32 )
   ELSE()
     # Windows 32-bit
     SET( PKG_NAME "mysql-5.5.25a-win32" )
-    SET( PKG_MD5 "859a538879d9f8ed06dcdcec9475aa78" )
+    SET( PKG_MD5 "d41d8cd98f00b204e9800998ecf8427e" )
+    #SET( PKG_MD5 "859a538879d9f8ed06dcdcec9475aa78" )
 #    # Windows 32-bit
 #    SET( PKG_NAME "mysql-5.1.63" )
 #    SET( PKG_MD5 "606c3edc0bba77a033e0b2bf134306d9" )
