@@ -25,6 +25,7 @@ FUNCTION( TARGET_BUILD_PCH TARGET HEADER SOURCE )
                             COMMAND "${CMAKE_CXX_COMPILER}"
                                     ARGS "$(CXX_DEFINES)"
                                          "$(CXX_FLAGS)"
+                                         "$(CXX_INCLUDES)"
                                          -o "${HEADER_GCH}"
                                          -c "${HEADER}"
                             DEPENDS "${CMAKE_CURRENT_OUTPUT_DIR}/flags.make"
