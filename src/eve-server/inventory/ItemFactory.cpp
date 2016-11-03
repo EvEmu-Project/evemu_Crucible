@@ -49,9 +49,9 @@ ItemFactory::~ItemFactory() {
         end = m_items.end();
         for(; cur != end; cur++) {
             // save attributes of item
-			if( IsNonStaticItem(cur->second->itemID()) )
+            if( IsNotStaticItem(cur->second->itemID()) )
 				cur->second->SaveItem();
-			
+
 			items_saved++;
 			if( ((float)items_saved / (float)total_item_count) > (current_percent_items_saved + 0.05) )
 			{
