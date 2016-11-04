@@ -52,41 +52,41 @@ TRUNCATE TABLE srvStatus;
  */
 INSERT INTO character_
  SELECT
-  characterID, 
-  accountID, 
-  title, 
-  description, 
-  bounty, 
+  characterID,
+  accountID,
+  title,
+  description,
+  bounty,
   balance,
-  0 AS aurBalance, 
-  securityRating, 
-  petitionMessage, 
-  logonMinutes, 
-  0 AS skillPoints, 
+  0 AS aurBalance,
+  securityRating,
+  petitionMessage,
+  logonMinutes,
+  0 AS skillPoints,
   0 AS skillQueueEndTime,
-  corporationID, 
-  0 AS corpRole, 
-  0 AS rolesAtAll, 
-  0 AS rolesAtBase, 
-  0 AS rolesAtHQ, 
+  corporationID,
+  0 AS corpRole,
+  0 AS rolesAtAll,
+  0 AS rolesAtBase,
+  0 AS rolesAtHQ,
   0 AS rolesAtOther,
-  corporationDateTime, 
-  startDateTime, 
+  corporationDateTime,
+  startDateTime,
   createDateTime,
-  ancestryID, 
-  careerID, 
-  schoolID, 
-  careerSpecialityID, 
+  ancestryID,
+  careerID,
+  schoolID,
+  careerSpecialityID,
   gender,
-  stationID, 
-  solarSystemID, 
-  constellationID, 
+  stationID,
+  solarSystemID,
+  constellationID,
   regionID,
-  0 AS online, 
-  2 AS freeRespecs, 
-  0 AS lastRespecDateTime, 
-  0 AS nextRespecDateTime, 
-  0 AS deletePrepareDateTime, 
+  0 AS online,
+  2 AS freeRespecs,
+  0 AS lastRespecDateTime,
+  0 AS nextRespecDateTime,
+  0 AS deletePrepareDateTime,
   0 AS shipID
  FROM characterStatic;
 
@@ -164,3 +164,7 @@ INSERT INTO eveStaticOwners (ownerID, ownerName, typeID)
  */
 ALTER TABLE account AUTO_INCREMENT=1;
 ALTER TABLE accountApi AUTO_INCREMENT=1000000;
+
+/* insert null location into mapDenormalize */
+INSERT INTO `mapDenormalize` (`itemID`, `typeID`, `groupID`, `solarSystemID`, `constellationID`, `regionID`, `orbitID`, `x`, `y`, `z`, `radius`, `itemName`, `security`, `celestialIndex`, `orbitIndex`)
+VALUES ('0', NULL, NULL, NULL, NULL, NULL, NULL, '0', '0', '0', NULL, NULL, NULL, NULL, NULL);

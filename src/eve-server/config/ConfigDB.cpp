@@ -135,57 +135,53 @@ PyRep *ConfigDB::GetMultiAllianceShortNamesEx(const std::vector<int32> &entityID
 
 
 PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
+    // separate list of ids into respective groups
+    std::vector<int32> staticItem, dynamicItem;
+    staticItem.clear();
+    dynamicItem.clear();
 
-    //im not sure how this query is supposed to work, as far as what table
-    //we use to get the fields from.
-
-    bool use_map = false;
-    if(!entityIDs.empty()) {
-        //this is a big of a hack at this point... basically
-        //we are assuming that they only query locations for map items
-        // and non-map items disjointly....
-        use_map = IsStaticMapItem(entityIDs[0]);
+    for (auto cur : entityIDs) {
+        if (IsStaticMapItem(cur) or (cur == 0))
+            staticItem.push_back(cur);
+        else
+            dynamicItem.push_back(cur);
     }
-
-    std::string ids;
-    ListToINString(entityIDs, ids, "-1");
 
     DBQueryResult res;
+    std::string ids = "";
 
-    if(use_map) {
-        if(!sDatabase.RunQuery(res,
+    if (staticItem.size()) {
+        ListToINString(staticItem, ids, "0");
+        if (!sDatabase.RunQuery(res,
             "SELECT "
-            " mapDenormalize.itemID AS locationID,"
-            " mapDenormalize.itemName AS locationName,"
-            " mapDenormalize.x AS x,"
-            " mapDenormalize.y AS y,"
-            " mapDenormalize.z AS z,"
+            " itemID AS locationID,"
+            " itemName AS locationName,"
+            " x, y, z,"
             " NULL AS locationNameID"
-            " FROM mapDenormalize "
+            " FROM mapDenormalize"
             " WHERE itemID in (%s)", ids.c_str()))
         {
-            codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-            return NULL;
+            codelog(DATABASE__ERROR, "Error in GetMultiLocationsEx query: %s", res.error.c_str());
         }
-    } else {
-        if(!sDatabase.RunQuery(res,
+        ids = "";
+    }
+
+    if (dynamicItem.size()) {
+        ListToINString(dynamicItem, ids, "0");
+        if (!sDatabase.RunQuery(res,
             "SELECT "
-            " entity.itemID AS locationID,"
-            " entity.itemName AS locationName,"
-            " entity.x AS x,"
-            " entity.y AS y,"
-            " entity.z AS z,"
+            " itemID AS locationID,"
+            " itemName AS locationName,"
+            " x, y, z,"
             " NULL AS locationNameID"
-            " FROM entity "
+            " FROM entity"
             " WHERE itemID in (%s)", ids.c_str()))
         {
-            codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-            return NULL;
+            codelog(DATABASE__ERROR, "Error in GetMultiLocationsEx query: %s", res.error.c_str());
         }
     }
 
-    //return(DBResultToRowset(res));
-    return(DBResultToTupleSet(res));
+    return DBResultToTupleSet(res);
 }
 
 
