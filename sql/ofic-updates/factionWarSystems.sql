@@ -1,4 +1,17 @@
 -- allan 03May16
+--
+-- Table structure for table `factionWarSystems`
+--
+
+CREATE TABLE `factionWarSystems` (
+  `systemID` int(10) NOT NULL,
+  `occupierID` int(10) NOT NULL,
+  `factionID` int(10) NOT NULL,
+  PRIMARY KEY (`systemID`),
+  UNIQUE KEY `systemID` (`systemID`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Faction War Systems';
+
+
 INSERT INTO factionWarSystems (systemID,occupierID,factionID) VALUES
 (30002813,500001,500001),(30005295,500004,500004),(30005296,500004,500004),(30005297,500004,500004),
 (30005298,500004,500004),(30005299,500004,500004),(30005300,500004,500004),(30002756,500001,500001),
