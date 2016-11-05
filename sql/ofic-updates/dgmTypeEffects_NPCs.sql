@@ -4,7 +4,6 @@
 --
 
 INSERT INTO `dgmTypeEffects` (`typeID`, `effectID`, `isDefault`) VALUES
-(1194, 10, 1),
 (1372, 10, 1),
 (2370, 10, 1),
 (2370, 2195, 0),
