@@ -12,8 +12,8 @@ a likely exception to this goal).
     </rates>
 
     <account>
-		<!--0-disable AutoAccount, 2-player, 8-low GM, 16-high GM, 32-admin, 4294967231-super admin -->
-        <!--<autoAccountRole>2</autoAccountRole> -->
+		<!--0-disable AutoAccount, 8589934592-world mod.  this role allows all commands to be used. -->
+        <autoAccountRole>8589934592</autoAccountRole>
         <!-- <loginMessage>
             &lt;html&gt;
                 &lt;head&gt;
