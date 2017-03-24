@@ -78,9 +78,8 @@ SET( MYSQL_URL
 #  "http://downloads.mysql.com/archives/mysql-5.1/${PKG_ARCHIVE}"
 #  "http://downloads.mysql.com/archives/mysql-5.5/${PKG_ARCHIVE}"
 #  "https://downloads.skysql.com/archives/mysql-5.5/${PKG_ARCHIVE}"
- # "ftp://ftp.fu-berlin.de/unix/databases/mysql/Downloads/MySQL-5.5/${PKG_ARCHIVE}"
+# "ftp://ftp.fu-berlin.de/unix/databases/mysql/Downloads/MySQL-5.5/${PKG_ARCHIVE}"
  "https://downloads.mysql.com/archives/get/file/${PKG_ARCHIVE}"
- 
   CACHE STRING "URL of the MySQL source archive" )
 MARK_AS_ADVANCED( MYSQL_URL )
 
