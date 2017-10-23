@@ -42,6 +42,7 @@ DBcore::DBcore(bool compress, bool ssl) : pCompress(compress), pSSL(ssl)
 DBcore::~DBcore()
 {
     mysql_close(&mysql);
+    mysql_library_end();
 }
 
 // Sends the MySQL server a ping
