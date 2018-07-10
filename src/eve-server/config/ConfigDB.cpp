@@ -141,7 +141,11 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
     dynamicItem.clear();
 
     for (auto cur : entityIDs) {
-        if (IsStaticMapItem(cur) or (cur == 0))
+        if (cur == 0) {
+            sLog.Error("GetMultiLocationsEx", "Client sent 0");
+            continue;
+        }
+        if (IsStaticMapItem(cur))
             staticItem.push_back(cur);
         else
             dynamicItem.push_back(cur);
