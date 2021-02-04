@@ -180,7 +180,7 @@ std::string& ImageServer::url()
 
 void ImageServer::Run()
 {
-    _ioThread = std::shared_ptr<boost::asio::detail::thread>(new boost::asio::detail::thread(std::tr1::bind(&ImageServer::RunInternal, this)));
+    _ioThread = std::shared_ptr<boost::asio::detail::thread>(new boost::asio::detail::thread(std::bind(&ImageServer::RunInternal, this)));
 }
 
 void ImageServer::Stop()
@@ -191,7 +191,7 @@ void ImageServer::Stop()
 
 void ImageServer::RunInternal()
 {
-    _io = std::shared_ptr<boost::asio::io_service>(new boost::asio::io_service());
+    _io = std::shared_ptr<boost::asio::io_context>(new boost::asio::io_context());
     _listener = std::shared_ptr<ImageServerListener>(new ImageServerListener(*_io));
     _io->run();
 }

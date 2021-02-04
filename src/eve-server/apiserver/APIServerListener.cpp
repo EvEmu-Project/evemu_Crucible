@@ -28,7 +28,7 @@
 #include "EVEServerConfig.h"
 #include "apiserver/APIServerListener.h"
 
-APIServerListener::APIServerListener(boost::asio::io_service& io)
+APIServerListener::APIServerListener(boost::asio::io_context& io)
 {
     _acceptor = new boost::asio::ip::tcp::acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), sConfig.net.apiServerPort));
     sLog.Log("API Server Init", "listening on port %u", (sConfig.net.apiServerPort));
@@ -42,8 +42,12 @@ APIServerListener::~APIServerListener()
 
 void APIServerListener::StartAccept()
 {
-    std::tr1::shared_ptr<APIServerConnection> connection = APIServerConnection::create(_acceptor->get_io_service());
-    _acceptor->async_accept(connection->socket(), std::tr1::bind(&APIServerListener::HandleAccept, this, connection));
+    boost::asio::executor e = _acceptor->get_executor();
+    boost::asio::execution_context &e_context = e.context();
+    boost::asio::io_context &context_instance = static_cast<boost::asio::io_context&>(e_context);
+
+    std::tr1::shared_ptr<APIServerConnection> connection = APIServerConnection::create(context_instance);
+    _acceptor->async_accept(connection->socket(), std::bind(&APIServerListener::HandleAccept, this, connection));
 }
 
 void APIServerListener::HandleAccept(std::tr1::shared_ptr<APIServerConnection> connection)

@@ -68,7 +68,7 @@ boost::asio::const_buffers_1 APIServerConnection::_responseNotFound = boost::asi
 "</html>"
 , 1187);
 
-APIServerConnection::APIServerConnection(boost::asio::io_service& io)
+APIServerConnection::APIServerConnection(boost::asio::io_context& io)
     : _socket(io)
 {
 }
@@ -81,7 +81,7 @@ boost::asio::ip::tcp::socket& APIServerConnection::socket()
 void APIServerConnection::Process()
 {
     // receive all HTTP headers from the client
-    boost::asio::async_read_until(_socket, _buffer, "\r\n\r\n", std::tr1::bind(&APIServerConnection::ProcessHeaders, shared_from_this()));
+    boost::asio::async_read_until(_socket, _buffer, "\r\n\r\n", std::bind(&APIServerConnection::ProcessHeaders, shared_from_this()));
 }
 
 void APIServerConnection::ProcessHeaders()
@@ -183,7 +183,7 @@ void APIServerConnection::ProcessHeaders()
             sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
 
         // first we have to send the responseOK, then our actual result
-        boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
+        boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::bind(&APIServerConnection::SendXML, shared_from_this()));
         //// DUPLICATE
     }
     else if (post_chk_str.compare("POST") == 0)
@@ -285,7 +285,7 @@ void APIServerConnection::ProcessHeaders()
                 // Call boost::asio::async_read() and feed it the # of bytes from step 1) to get the POST data
                 // The 'CompleteCondition' for THIS boost::asio::async_read, a parameter that specifies when to stop reading,
                 // is transfer_exactly(contentLength), where contentLength is the # of bytes we just recovered from the "Content-Length" header
-                boost::asio::async_read(_socket, _postBuffer, boost::asio::transfer_exactly(postDataBytes), std::tr1::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
+                boost::asio::async_read(_socket, _postBuffer, boost::asio::transfer_exactly(postDataBytes), std::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
             }
 
             _xmlData = sAPIServer.GetXML(&m_apiCommandCall);
@@ -305,7 +305,7 @@ void APIServerConnection::ProcessHeaders()
                 sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
 
             // first we have to send the responseOK, then our actual result
-            boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
+            boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::bind(&APIServerConnection::SendXML, shared_from_this()));
             //// DUPLICATE
         }
         else
@@ -313,7 +313,7 @@ void APIServerConnection::ProcessHeaders()
             // Call boost::asio::async_read() and feed it the # of bytes from step 1) to get the POST data
             // The 'CompleteCondition' for THIS boost::asio::async_read, a parameter that specifies when to stop reading,
             // is transfer_exactly(contentLength), where contentLength is the # of bytes we just recovered from the "Content-Length" header
-            boost::asio::async_read(_socket, _postBuffer, boost::asio::transfer_exactly(postDataBytes), std::tr1::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
+            boost::asio::async_read(_socket, _postBuffer, boost::asio::transfer_exactly(postDataBytes), std::bind(&APIServerConnection::ProcessPostData, shared_from_this()));
         }
     }
     else
@@ -338,7 +338,7 @@ void APIServerConnection::ProcessPostData()
     if( request.compare( "" ) == 0 )
     {
         sLog.Error("APIServerConnection::ProcessPostData()", "POST data block is COMPLETELY EMPTY!!" );
-        boost::asio::async_write(_socket, _responseNoContent, boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+        boost::asio::async_write(_socket, _responseNoContent, boost::asio::transfer_all(), std::bind(&APIServerConnection::Close, shared_from_this()));
         //NotFound();
         return;
     }
@@ -383,22 +383,22 @@ void APIServerConnection::ProcessPostData()
         sLog.Debug("        ", "%d: param = %s,  value = %s", i, cur->first.c_str(), cur->second.c_str() );
 
     // first we have to send the responseOK, then our actual result
-    boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::SendXML, shared_from_this()));
+    boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::bind(&APIServerConnection::SendXML, shared_from_this()));
 }
 
 void APIServerConnection::SendXML()
 {
-    boost::asio::async_write(_socket, boost::asio::buffer(*_xmlData, _xmlData->size()), boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+    boost::asio::async_write(_socket, boost::asio::buffer(*_xmlData, _xmlData->size()), boost::asio::transfer_all(), std::bind(&APIServerConnection::Close, shared_from_this()));
 }
 
 void APIServerConnection::NotFound()
 {
-    boost::asio::async_write(_socket, _responseNotFound, boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+    boost::asio::async_write(_socket, _responseNotFound, boost::asio::transfer_all(), std::bind(&APIServerConnection::Close, shared_from_this()));
 }
 
 void APIServerConnection::Redirect()
 {
-    boost::asio::async_write(_socket, _responseRedirectBegin, boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::RedirectLocation, shared_from_this()));
+    boost::asio::async_write(_socket, _responseRedirectBegin, boost::asio::transfer_all(), std::bind(&APIServerConnection::RedirectLocation, shared_from_this()));
 }
 
 void APIServerConnection::RedirectLocation()
@@ -407,12 +407,12 @@ void APIServerConnection::RedirectLocation()
     std::stringstream url;
     url << APIServer::FallbackURL << _service;// << "/" << _id;
     _redirectUrl = url.str();
-    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl), boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::RedirectFinalize, shared_from_this()));
+    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl), boost::asio::transfer_all(), std::bind(&APIServerConnection::RedirectFinalize, shared_from_this()));
 }
 
 void APIServerConnection::RedirectFinalize()
 {
-    boost::asio::async_write(_socket, _responseRedirectEnd, boost::asio::transfer_all(), std::tr1::bind(&APIServerConnection::Close, shared_from_this()));
+    boost::asio::async_write(_socket, _responseRedirectEnd, boost::asio::transfer_all(), std::bind(&APIServerConnection::Close, shared_from_this()));
 }
 
 void APIServerConnection::Close()
@@ -425,7 +425,7 @@ bool APIServerConnection::starts_with(std::string& haystack, const char *const n
     return haystack.substr(0, strlen(needle)).compare(needle) == 0;
 }
 
-std::tr1::shared_ptr<APIServerConnection> APIServerConnection::create(boost::asio::io_service& io)
+std::tr1::shared_ptr<APIServerConnection> APIServerConnection::create(boost::asio::io_context& io)
 {
     return std::tr1::shared_ptr<APIServerConnection>(new APIServerConnection(io));
 }

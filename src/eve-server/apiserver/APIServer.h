@@ -61,7 +61,7 @@ private:
     void RunInternal();
 
     std::unique_ptr<boost::asio::detail::thread> _ioThread;
-    std::unique_ptr<boost::asio::io_service> _io;
+    std::unique_ptr<boost::asio::io_context> _io;
     std::unique_ptr<APIServerListener> _listener;
     std::string _url;
     std::string _basePath;

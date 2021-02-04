@@ -39,12 +39,12 @@
 class ImageServerConnection : public std::tr1::enable_shared_from_this<ImageServerConnection>
 {
 public:
-    static std::tr1::shared_ptr<ImageServerConnection> create(boost::asio::io_service& io);
+    static std::tr1::shared_ptr<ImageServerConnection> create(boost::asio::io_context& io);
     void Process();
     boost::asio::ip::tcp::socket& socket();
 
 private:
-    ImageServerConnection(boost::asio::io_service& io);
+    ImageServerConnection(boost::asio::io_context& io);
     void ProcessHeaders();
     void SendImage();
     void NotFound();

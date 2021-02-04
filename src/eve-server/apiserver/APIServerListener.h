@@ -41,7 +41,7 @@
 class APIServerListener
 {
 public:
-    APIServerListener(boost::asio::io_service& io);
+    APIServerListener(boost::asio::io_context& io);
     ~APIServerListener();
 
 private:

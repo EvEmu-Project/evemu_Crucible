@@ -70,7 +70,7 @@ private:
 
     std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char> > /*imageData*/> _limboImages;
     std::shared_ptr<boost::asio::detail::thread> _ioThread;
-    std::shared_ptr<boost::asio::io_service> _io;
+    std::shared_ptr<boost::asio::io_context> _io;
     std::shared_ptr<ImageServerListener> _listener;
     std::string _url;
     std::string _basePath;

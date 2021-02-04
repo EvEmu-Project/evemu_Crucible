@@ -88,6 +88,9 @@ ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
   SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
 ENDIF( MSVC )
 
+#Switching to C++11
+SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Wno-deprecated-declarations -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
+
 #
 # Try to detemine the exact source version using SCM.
 #

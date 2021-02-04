@@ -41,7 +41,7 @@
 class ImageServerListener
 {
 public:
-    ImageServerListener(boost::asio::io_service& io);
+    ImageServerListener(boost::asio::io_context& io);
     ~ImageServerListener();
 
 private:

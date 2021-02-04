@@ -104,7 +104,7 @@ std::string& APIServer::url()
 
 void APIServer::Run()
 {
-    _ioThread = std::unique_ptr<boost::asio::detail::thread>(new boost::asio::detail::thread(std::tr1::bind(&APIServer::RunInternal, this)));
+    _ioThread = std::unique_ptr<boost::asio::detail::thread>(new boost::asio::detail::thread(std::bind(&APIServer::RunInternal, this)));
 }
 
 void APIServer::Stop()
@@ -115,7 +115,7 @@ void APIServer::Stop()
 
 void APIServer::RunInternal()
 {
-    _io = std::unique_ptr<boost::asio::io_service>(new boost::asio::io_service());
+    _io = std::unique_ptr<boost::asio::io_context>(new boost::asio::io_context());
     _listener = std::unique_ptr<APIServerListener>(new APIServerListener(*_io));
     _io->run();
 }
