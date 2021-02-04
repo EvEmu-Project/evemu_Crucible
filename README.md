@@ -18,6 +18,8 @@ do with the source code downloaded from this project.
 - Items and Ships display in station
 - Undocking and Docking is working
 
+# Building with Docker
+ EVEmu can now be built with docker to ensure a consistent dependency base. This can be done by executing `docker build .` in the root directory. 
 
 # Legal
     ------------------------------------------------------------------------------------
