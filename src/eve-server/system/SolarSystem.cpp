@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,6 +26,22 @@
 #include "eve-server.h"
 
 #include "system/SolarSystem.h"
+
+/** @note  NOTE::  this class is ONLY for the inventory item and associated references..... need to update this...  */
+
+
+/*
+    Border = Borders another Region or Constellation
+    Fringe = 1 connection to this system (dead end system)
+    Corridor = 2 connections to this system (in one side and out the other)
+    Hub = 3+ connections to this system
+    International = always has Border/Constellation, almost always Regional
+    Regional = always has Border/Constellation
+    Constellation = always the same as Border
+    Security = If it is positive, floor to nearest 1/10th gives the in-game security level. 0 or lower are 0.0 in-game.
+    */
+
+/** @todo  update this to remove redundant SolarSystemData and move to POD SystemData and load with sDataMgr  */
 
 /*
  * SolarSystemData
@@ -68,17 +84,12 @@ SolarSystemData::SolarSystemData(
  * SolarSystem
  */
 SolarSystem::SolarSystem(
-    ItemFactory &_factory,
     uint32 _solarSystemID,
-    // InventoryItem stuff:
     const ItemType &_type,
     const ItemData &_data,
-    // CelestialObject stuff:
     const CelestialObjectData &_cData,
-    // SolarSystem stuff:
-    const ItemType &_sunType,
     const SolarSystemData &_ssData)
-: CelestialObject(_factory, _solarSystemID, _type, _data, _cData),
+: CelestialObject(_solarSystemID, _type, _data, _cData),
   m_minPosition(_ssData.minPosition),
   m_maxPosition(_ssData.maxPosition),
   m_luminosity(_ssData.luminosity),
@@ -92,32 +103,22 @@ SolarSystem::SolarSystem(
   m_security(_ssData.security),
   m_factionID(_ssData.factionID),
   m_radius(_ssData.radius),
-  m_sunType(_sunType),
   m_securityClass(_ssData.securityClass)
 {
-    // consistency check
-    assert(_sunType.id() == _ssData.sunTypeID);
+    pInventory = new Inventory(InventoryItemRef(this));
+
+    _log(ITEM__TRACE, "Created SolarSystem Item %p for %s (%u).", this, name(), m_itemID);
 }
 
 SolarSystem::~SolarSystem() {
+    if (pInventory != nullptr)
+        pInventory->Unload();
+    SafeDelete(pInventory);
 }
 
-SolarSystemRef SolarSystem::Load(ItemFactory &factory, uint32 solarSystemID)
+SolarSystemRef SolarSystem::Load( uint32 solarSystemID)
 {
-    return InventoryItem::Load<SolarSystem>( factory, solarSystemID );
-}
-
-template<class _Ty>
-RefPtr<_Ty> SolarSystem::_LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
-    // InventoryItem stuff:
-    const ItemType &type, const ItemData &data,
-    // CelestialObject stuff:
-    const CelestialObjectData &cData,
-    // SolarSystem stuff:
-    const ItemType &sunType, const SolarSystemData &ssData)
-{
-    // we have it all
-    return SolarSystemRef( new SolarSystem( factory, solarSystemID, type, data, cData, sunType, ssData ) );
+    return InventoryItem::Load<SolarSystem>(solarSystemID);
 }
 
 bool SolarSystem::_Load()
@@ -125,22 +126,16 @@ bool SolarSystem::_Load()
     return CelestialObject::_Load();
 }
 
-void SolarSystem::AddItemToInventory(InventoryItemRef item)
+void SolarSystem::AddItemToInventory(InventoryItemRef iRef)
 {
-    AddItem( item );
+    _log(ITEM__TRACE, "SS::AddItemToInventory() - adding %s(%u) to inventory of %s(%u)",\
+            iRef->name(), iRef->itemID(), name(), m_itemID);
+    AddItem( iRef );
 }
 
-void SolarSystem::AddItem(InventoryItemRef item)
+void SolarSystem::RemoveItemFromInventory( InventoryItemRef iRef )
 {
-    Inventory::AddItem( item );
-}
-
-void SolarSystem::RemoveItemFromInventory(InventoryItemRef item)
-{
-    RemoveItem( item );
-}
-
-void SolarSystem::RemoveItem(InventoryItemRef item)
-{
-    Inventory::RemoveItem( item );
+    _log(ITEM__TRACE, "SS::RemoveItemFromInventory() - removing item %s(%u) from inventory of %s(%u)",\
+            iRef->name(), iRef->itemID(), name(), m_itemID);
+    RemoveItem( iRef );
 }

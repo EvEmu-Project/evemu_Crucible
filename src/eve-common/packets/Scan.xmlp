@@ -1,0 +1,231 @@
+
+<elements>
+<!--  This is all scanning-related packets.  -->
+
+    <elementDef name="Call_RequestScan">
+        <objectInline>
+            <stringInline value="util.KeyVal" />
+            <objectEx name="pos" type="PyObjectEx" optional="true" />
+        </objectInline>
+    </elementDef>
+
+    <elementDef name="Call_ConeScan">
+        <tupleInline>
+            <real name="ScanAngle" />
+            <long name="range" safe="true" />
+            <real name="x" />
+            <real name="y" />
+            <real name="z" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_ProbeDataObj">
+        <objectInline>
+            <stringInline value="util.KeyVal" />
+            <dictInline>
+                <dictInlineEntry key="probeID">
+                    <int name="probeID" safe="true" />
+                </dictInlineEntry>
+                <dictInlineEntry key="typeID">
+                    <int name="typeID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="expiry">
+                    <long name="expiry" />
+                </dictInlineEntry>
+                <dictInlineEntry key="state">
+                    <int name="state" />
+                </dictInlineEntry>
+                <dictInlineEntry key="rangeStep">
+                    <int name="rangeStep" />
+                </dictInlineEntry>
+                <dictInlineEntry key="scanRange">
+                    <real name="scanRange"  safe="true" />
+                </dictInlineEntry>
+                <dictInlineEntry key="pos">
+                    <objectEx name="pos" type="PyObjectEx" optional="true" />
+                </dictInlineEntry>
+                <dictInlineEntry key="destination">
+                    <objectEx name="destination" type="PyObjectEx" optional="true" />
+                </dictInlineEntry>
+            </dictInline>
+        </objectInline>
+    </elementDef>
+
+<!--  direction scan results
+        PyDict* res = new PyDict;
+            res->SetItemString("id",         new PyInt(i->GetID()));
+            res->SetItemString("typeID",     new PyInt(i->Item()->typeID()));
+            res->SetItemString("groupID",    new PyInt(i->Item()->groupID()));
+            res->SetItemString("categoryID", new PyInt(i->Item()->categoryID()));
+    put a Vector3 in for item position?
+
+-->
+
+    <elementDef name="DirectionScanResult">
+        <objectInline>
+            <stringInline value="util.KeyVal" />
+            <dictInline>
+                <dictInlineEntry key="id">
+                    <int name="id" />
+                </dictInlineEntry>
+                <dictInlineEntry key="typeID">
+                    <int name="typeID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="groupID">
+                    <int name="groupID" />
+                </dictInlineEntry>
+                <!--
+                <dictInlineEntry key="categoryID">
+                    <int name="categoryID" />
+                </dictInlineEntry>
+                -->
+            </dictInline>
+        </objectInline>
+    </elementDef>
+
+<!--
+        [PyString "OnSystemScanStarted"]  macho.Notification  -type 7
+    [PyInt 5654387]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 26 bytes]                 << substream packet  - t3 in above code
+          [PyTuple 2 items]
+            [PyInt 0]                           << unknown -always 0
+            [PyTuple 2 items]
+              [PyInt 1]                         << unknown -always 1 - t4 ends here
+              [PyTuple 3 items]                     << OnSystemScanStarted packet starts here
+                [PyIntegerVar 129813155720852448]       << timestamp
+                [PyInt 10000]                           << scan duration in ms
+                [PyDict 0 kvp]                          << dict of active probes.  0= ship scanner
+    [PyNone]
+    [PyNone]
+    -->
+
+    <elementDef name="OnSystemScanStarted">
+        <tupleInline>
+            <long name="timestamp" />
+            <int name="duration" />
+            <dict name="scanProbesDict" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="ScanProbesDict">
+        <objectInline>
+            <stringInline value="util.KeyVal" />
+            <dictInline>
+                <dictInlineEntry key="probeID">
+                    <int name="probeID" safe="true" />
+                </dictInlineEntry>
+                <dictInlineEntry key="typeID">
+                    <int name="typeID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="expiry">
+                    <int name="expiry" />
+                </dictInlineEntry>
+                <dictInlineEntry key="state">
+                    <int name="state" />
+                </dictInlineEntry>
+                <dictInlineEntry key="rangeStep">
+                    <int name="rangeStep" />
+                </dictInlineEntry>
+                <dictInlineEntry key="scanRange">
+                    <real name="scanRange" />
+                </dictInlineEntry>
+                <dictInlineEntry key="scanStrength">
+                    <real name="scanStrength" />
+                </dictInlineEntry>
+                <dictInlineEntry key="maxDeviation">
+                    <real name="maxDeviation" />
+                </dictInlineEntry>
+                <dictInlineEntry key="pos">
+                    <!-- <objectEx name="pos" type="PyObjectEx" optional="true" /> -->
+                    <raw name="pos" />
+                </dictInlineEntry>
+                <dictInlineEntry key="destination">
+                    <!-- <objectEx name="destination" type="PyObjectEx" optional="true" /> -->
+                    <raw name="destination" />
+                </dictInlineEntry>
+            </dictInline>
+        </objectInline>
+    </elementDef>
+
+    <elementDef name="OnSystemScanStopped">
+        <tupleInline>
+            <!-- ScanProbesDict data -->
+            <dict name="scanProbesDict" />
+            <!-- SystemScanResult data goes here -->
+            <list name="systemScanResult" />
+            <!-- scan results that have gone from previous scan -->
+            <list name="absentTargets" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="SystemScanResult">
+        <objectInline>
+            <stringInline value="util.KeyVal" />
+            <dictInline>
+                <dictInlineEntry key="id">
+                    <!-- ABC-xxx id shown in results.  can be any id.  must be in anomaly map for warpto -->
+                    <string name="id" />
+                </dictInlineEntry>
+                <dictInlineEntry key="scanGroupID">
+                    <!-- one of sig, anom, ship, drone, structure -->
+                    <int name="scanGroupID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="groupID">
+                    <!-- reported site group name if scanGroupID is not anom or sig and certainty > 0.25 -->
+                    <int name="groupID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="typeID">
+                    <!-- reported site type name if scanGroupID is not sig or anom and certainty > 0.75 -->
+                    <int name="typeID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="strengthAttributeID">
+                    <!-- reported site group name if scanGroupID is anom or sig and certainty > 0.25-->
+                    <int name="strengthAttributeID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="dungeonName">
+                    <!-- reported site type name if scanGroupID is sig or anom and certainty > 0.75 -->
+                    <string name="dungeonName" />
+                </dictInlineEntry>
+                <dictInlineEntry key="degraded">
+                    <!-- not sure if this is used -->
+                    <bool name="degraded" />
+                </dictInlineEntry>
+                <dictInlineEntry key="deviation">
+                    <!-- how far off reported signal is from actual, in meters -->
+                    <real name="deviation" />
+                </dictInlineEntry>
+                <dictInlineEntry key="certainty">
+                    <!-- signal strength -->
+                    <real name="certainty" />
+                </dictInlineEntry>
+                <dictInlineEntry key="probeID">
+                    <!-- shipID for scans with ship sensors.  list of probeIDs for probe scans -->
+                    <raw name="probeID" />
+                </dictInlineEntry>
+                <dictInlineEntry key="pos">
+                    <!-- <objectEx name="pos" type="PyObjectEx" optional="true" /> optional="true" will change this to PyNone if non-existent -->
+                    <!-- probe position data -->
+                    <raw name="pos" />
+                </dictInlineEntry>
+                <dictInlineEntry key="data">
+                    <!-- <objectEx name="data" type="PyObjectEx" /> -->
+                    <!-- signal position.  sig/anom as tuple are cached.  float uses distance directly.  see EVE_Scanning.h for more info. -->
+                    <raw name="data" />
+                </dictInlineEntry>
+            </dictInline>
+        </objectInline>
+    </elementDef>
+
+    <!-- client/anomaly position data to go in objects "pos" and "data" in SystemScanResult packet -->
+    <elementDef name="ScanResultPos">
+        <tupleInline>
+            <real name="x" />
+            <real name="y" />
+            <real name="z" />
+        </tupleInline>
+    </elementDef>
+
+</elements>

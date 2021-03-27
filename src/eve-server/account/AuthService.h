@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -38,14 +38,12 @@ protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    PyCallable_DECL_CALL(Ping)
-    PyCallable_DECL_CALL(GetPostAuthenticationMessage)
+    PyCallable_DECL_CALL(Ping);
+    PyCallable_DECL_CALL(GetPostAuthenticationMessage);
+    PyCallable_DECL_CALL(AmUnderage);
+    PyCallable_DECL_CALL(AccruedTime);
+    PyCallable_DECL_CALL(SetLanguageID);
+
 };
 
-
-
-
-
 #endif
-
-

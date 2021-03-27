@@ -21,6 +21,9 @@
             <stringInline value="mailingList" />
             <stringInline value="cspa" />
             <stringInline value="temporary" />
+            <stringInline value="languageRestriction" />
+            <stringInline value="groupMessageID" />
+            <stringInline value="channelMessageID" />
             <stringInline value="mode" />
             <stringInline value="subscribed" />
             <stringInline value="estimatedMemberCount" />
@@ -43,15 +46,18 @@
       <string name="displayName" />
       <string name="motd" />
       <string name="comparisonKey" />
-      <bool name="memberless" />
-      <string name="password" />
-      <bool name="mailingList" />
-      <int name="cspa" />
-      <int name="temporary" />
-      <int name="mode" />
-      <bool name="subscribed" />
-      <int name="estimatedMemberCount" />
-      </listInline>
+      <bool name="memberless" default="false" />
+      <string name="password" none_marker="0" />
+      <bool name="mailingList" default="false" />
+      <int name="cspa" default="0" />
+      <bool name="temporary" default="false" />
+      <bool name="languageRestriction" default="false" />
+      <int name="groupMessageID" none_marker="0" />
+      <int name="channelMessageID" none_marker="0" />
+      <int name="mode" default="0" />
+      <bool name="subscribed" default="false" />
+      <int name="estimatedMemberCount" default="0" />
+    </listInline>
   </elementDef>
 
   <elementDef name="ChannelJoinChannelInfo">
@@ -73,7 +79,9 @@
             <stringInline value="languageRestriction" />
             <stringInline value="groupMessageID" />
             <stringInline value="channelMessageID" />
+            <stringInline value="mode" />
             <stringInline value="subscribed" />
+            <stringInline value="estimatedMemberCount" />
           </listInline>
         </dictInlineEntry>
         <dictInlineEntry key="line">
@@ -83,15 +91,17 @@
             <string name="displayName" />
             <string name="motd" />
             <string name="comparisonKey" />
-            <bool name="memberless" />
-            <raw name="password" />
-            <bool name="mailingList" />
-            <int name="cspa" />
-            <bool name="temporary" />
+            <bool name="memberless" default="false" />
+            <string name="password" none_marker="0" />
+            <bool name="mailingList" default="false" />
+            <int name="cspa" default="0" />
+            <bool name="temporary" default="false" />
             <bool name="languageRestriction" default="false" />
-            <int name="groupMessageID" />
-            <int name="channelMessageID" />
-            <int name="subscribed" />
+            <int name="groupMessageID" none_marker="0" />
+            <int name="channelMessageID" none_marker="0" />
+            <int name="mode" default="0" />
+            <bool name="subscribed" default="false" />
+            <int name="estimatedMemberCount" default="0" />
           </listInline>
         </dictInlineEntry>
       </dictInline>
@@ -141,6 +151,7 @@
           <listInline>
             <stringInline value="charID" />
             <stringInline value="corpID" />
+            <stringInline value="mode" />
             <stringInline value="allianceID" />
             <stringInline value="warFactionID" />
             <stringInline value="role" />
@@ -161,6 +172,7 @@
     <listInline>
       <int name="charID" />
       <int name="corpID" />
+      <int name="mode" />
       <int name="allianceID" />
       <int name="warFactionID" />
       <long name="role" />
@@ -172,11 +184,22 @@
     <tupleInline>
       <raw name="ChannelID" />
       <int name="ok" default="1" />
-      <tupleInline>
-        <raw name="ChannelInfo" />
-        <raw name="ChannelMods" />
-        <raw name="ChannelChars" />
-      </tupleInline>
+      <raw name="JoinRsp" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="ChannelJoinOK">
+    <tupleInline>
+      <raw name="ChannelInfo" />
+      <raw name="ChannelMods" />
+      <raw name="ChannelChars" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="ChannelJoinNotOK">
+    <tupleInline>
+      <string name="Error" />
+      <raw name="rspDict" />
     </tupleInline>
   </elementDef>
 
@@ -206,7 +229,6 @@
 
   <elementDef name="RspGetChannels">
     <tupleInline>
-      <!-- 0 -->
       <substreamInline>
           <element name="cachedcall" type="objectCaching_CachedMethodCallResult" />
       </substreamInline>
@@ -215,20 +237,16 @@
 
   <elementDef name="CallJoinChannels">
     <tupleInline>
-      <!-- 0 -->
       <list name="channels" />
-      <!-- 1 -->
       <long name="role" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="RspJoinChannels">
     <tupleInline>
-      <!-- 0 -->
       <substreamInline>
-        <!-- list of complex elements, one for each requested channel
-          with details about the channel -->
-          <list name="channels" />
+        <!-- list of complex elements, one for each requested channel with details about the channel -->
+        <list name="channels" />
       </substreamInline>
     </tupleInline>
   </elementDef>
@@ -263,7 +281,7 @@
       <!-- 2 -->
       <string name="method" />
       <!-- 3 -->
-        <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
         <tuple name="arguments" />
     </tupleInline>
@@ -278,7 +296,7 @@
       <!-- 2 -->
       <stringInline value="SendMessage" />
       <!-- 3: sender info -->
-        <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
       <tupleInline>
         <!-- 0 -->
@@ -296,7 +314,7 @@
       <!-- 2 -->
       <stringInline value="JoinChannel" />
       <!-- 3: sender info -->
-        <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
       <tupleInline>
       </tupleInline>
@@ -328,7 +346,7 @@
       <!-- 2 -->
       <stringInline value="LeaveChannel" />
       <!-- 3: sender info -->
-        <elementPtr type="OnLSC_SenderInfo" name="sender" />
+      <elementPtr type="OnLSC_SenderInfo" name="sender" />
       <!-- 4 -->
       <tupleInline>
       </tupleInline>
@@ -337,20 +355,15 @@
 
   <elementDef name="CallLeaveChannels">
     <tupleInline>
-      <!-- 0 -->
       <list name="channels" />
-      <!-- 1 -->
       <bool name="unsubscribe" />
-      <!-- 2 -->
-      <long name="unknown" />
+      <long name="role" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="CallLeaveChannel">
     <tupleInline>
-      <!-- 0 -->
       <raw name="channel" />
-      <!-- 1 -->
       <int name="unsubscribe" />
     </tupleInline>
   </elementDef>
@@ -358,8 +371,8 @@
   <elementDef name="Call_Page">
     <tupleInline>
       <listInt name="recipients" />
-      <wstring name="subject" soft="true" />
-      <wstring name="body" soft="true"/>
+      <wstring name="subject" safe="true" />
+      <wstring name="body" safe="true"/>
     </tupleInline>
   </elementDef>
 

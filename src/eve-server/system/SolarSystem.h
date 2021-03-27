@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,7 +26,8 @@
 #ifndef __SOLAR_SYSTEM__H__INCL__
 #define __SOLAR_SYSTEM__H__INCL__
 
-#include "inventory/Inventory.h"
+
+#include "EVEServerConfig.h"
 #include "system/Celestial.h"
 
 /**
@@ -58,13 +59,13 @@ public:
     double luminosity;
 
     // use bitfield to save some memory...
-    bool border : 1;
-    bool fringe : 1;
-    bool corridor : 1;
-    bool hub : 1;
-    bool international : 1;
-    bool regional : 1;
-    bool constellation : 1;
+    bool border :1;
+    bool fringe :1;
+    bool corridor :1;
+    bool hub :1;
+    bool international :1;
+    bool regional :1;
+    bool constellation :1;
 
     double security;
     uint32 factionID;
@@ -77,8 +78,7 @@ public:
  * CelestialObject which represents solar system.
  */
 class SolarSystem
-: public CelestialObject,
-  public Inventory
+: public CelestialObject
 {
     friend class InventoryItem; // to let it construct us
     friend class CelestialObject; // to let it construct us
@@ -90,35 +90,34 @@ public:
      * @param[in] solarSystemID ID of solar system to load.
      * @return Pointer to new solar system object; NULL if failed.
      */
-    static SolarSystemRef Load(ItemFactory &factory, uint32 solarSystemID);
+    static SolarSystemRef Load( uint32 solarSystemID);
 
     /*
      * Public Fields:
      */
-    const GPoint &      minPosition() const { return m_minPosition; }
-    const GPoint &      maxPosition() const { return m_maxPosition; }
-    double              luminosity() const { return m_luminosity; }
+    const GPoint &      minPosition() const             { return m_minPosition; }
+    const GPoint &      maxPosition() const             { return m_maxPosition; }
+    double              luminosity() const              { return m_luminosity; }
 
-    bool                border() const { return m_border; }
-    bool                fringe() const { return m_fringe; }
-    bool                corridor() const { return m_corridor; }
-    bool                hub() const { return m_hub; }
-    bool                international() const { return m_international; }
-    bool                regional() const { return m_regional; }
-    bool                constellation() const { return m_constellation; }
+    bool                border() const                  { return m_border; }
+    bool                fringe() const                  { return m_fringe; }
+    bool                corridor() const                { return m_corridor; }
+    bool                hub() const                     { return m_hub; }
+    bool                international() const           { return m_international; }
+    bool                regional() const                { return m_regional; }
+    bool                constellation() const           { return m_constellation; }
 
-    double              security() const { return m_security; }
-    uint32              factionID() const { return m_factionID; }
-    double              radius() const { return m_radius; }
-    const ItemType &    sunType() const { return m_sunType; }
-    const std::string & securityClass() const { return m_securityClass; }
+    double              security() const                { return m_security; }
+    uint32              factionID() const               { return m_factionID; }
+    double              radius() const                  { return m_radius; }
+    const std::string & securityClass() const           { return m_securityClass; }
 
-    void AddItemToInventory(InventoryItemRef item);
-    void RemoveItemFromInventory(InventoryItemRef item);
+    // Solar System Inventory Functions:
+    void AddItemToInventory(InventoryItemRef iRef);
+    void RemoveItemFromInventory(InventoryItemRef iRef);
 
 protected:
     SolarSystem(
-        ItemFactory &_factory,
         uint32 _solarSystemID,
         // InventoryItem stuff:
         const ItemType &_type,
@@ -126,84 +125,60 @@ protected:
         // CelestialObject stuff:
         const CelestialObjectData &_cData,
         // SolarSystem stuff:
-        const ItemType &_sunType,
         const SolarSystemData &_ssData
     );
-    ~SolarSystem();
-
-    // Solar System Inventory Functions:
-    uint32 inventoryID() const { return itemID(); }
-    PyRep *GetItem() const { return new PyNone(); }
-    void AddItem(InventoryItemRef item);
-    void RemoveItem(InventoryItemRef item);
+    virtual ~SolarSystem();
 
     /*
      * Member functions:
      */
-    using CelestialObject::_Load;
+    using InventoryItem::_Load;
+    virtual bool _Load();
 
     // Template loader:
     template<class _Ty>
-    static RefPtr<_Ty> _LoadCelestialObject(ItemFactory &factory, uint32 solarSystemID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data,
-        // CelestialObject stuff:
-        const CelestialObjectData &cData)
-    {
-        // check it's a solar system
-        if( type.groupID() != EVEDB::invGroups::Solar_System )
-        {
-            _log( ITEM__ERROR, "Trying to load %s %u as Solar system.", type.name().c_str(), solarSystemID );
+    static RefPtr<_Ty> _LoadItem( uint32 solarSystemID, const ItemType &type, const ItemData &data) {
+        if (type.groupID() != EVEDB::invGroups::Solar_System) {
+            _log(ITEM__ERROR, "Trying to load %s as SolarSystem.", sDataMgr.GetCategoryName(type.categoryID()));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
             return RefPtr<_Ty>();
         }
 
+        // load celestial data
+        CelestialObjectData cData = CelestialObjectData();
+        if (!sItemFactory.db()->GetCelestialObject(solarSystemID, cData))
+            return RefPtr<_Ty>();
+
         // load solar system data
-        SolarSystemData ssData;
-        if( !factory.db().GetSolarSystem( solarSystemID, ssData ) )
+        /** @todo is this data in static data?  if not, do we continue db hit? */
+        SolarSystemData ssData = SolarSystemData();
+        if( !sItemFactory.db()->GetSolarSystem( solarSystemID, ssData ) )
             return RefPtr<_Ty>();
 
-        // get sun type
-        const ItemType *sunType = factory.GetType( ssData.sunTypeID );
-        if( sunType == NULL )
-            return RefPtr<_Ty>();
-
-        return _Ty::template _LoadSolarSystem<_Ty>( factory, solarSystemID, type, data, cData, *sunType, ssData );
+        return SolarSystemRef( new SolarSystem(solarSystemID, type, data, cData, ssData ) );
     }
-
-    // Actual loading stuff:
-    template<class _Ty>
-    static RefPtr<_Ty> _LoadSolarSystem(ItemFactory &factory, uint32 solarSystemID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data,
-        // CelestialObject stuff:
-        const CelestialObjectData &cData,
-        // SolarSystem stuff:
-        const ItemType &sunType, const SolarSystemData &ssData
-    );
-
-    bool _Load();
 
     /*
      * Data members:
      */
-    GPoint m_minPosition;
-    GPoint m_maxPosition;
-    double m_luminosity;
+    bool m_border :1;
+    bool m_fringe :1;
+    bool m_corridor :1;
+    bool m_hub :1;
+    bool m_international :1;
+    bool m_regional :1;
+    bool m_constellation :1;
 
-    // use bitfield to save some memory...
-    bool m_border : 1;
-    bool m_fringe : 1;
-    bool m_corridor : 1;
-    bool m_hub : 1;
-    bool m_international : 1;
-    bool m_regional : 1;
-    bool m_constellation : 1;
+    uint32 m_factionID;
 
     double m_security;
-    uint32 m_factionID;
     double m_radius;
-    const ItemType &m_sunType;
+    double m_luminosity;
+
     std::string m_securityClass;
+    GPoint m_minPosition;
+    GPoint m_maxPosition;
 };
 
 #endif /* !__SOLAR_SYSTEM__H__INCL__ */

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 #include "eve-server.h"
@@ -28,50 +29,18 @@
 #include "PyServiceCD.h"
 #include "admin/PetitionerService.h"
 
-/*
-class PetitionerBound
-: public PyBoundObject {
-public:
-
-    PyCallable_Make_Dispatcher(PetitionerBound)
-
-    PetitionerBound(PyServiceMgr *mgr, PetitionerDB *db)
-    : PyBoundObject(mgr, "PetitionerBound"),
-      m_db(db),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        PyCallable_REG_CALL(PetitionerBound, )
-        PyCallable_REG_CALL(PetitionerBound, )
-    }
-    virtual ~PetitionerBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL()
-    PyCallable_DECL_CALL()
-
-protected:
-    PetitionerDB *const m_db;
-    Dispatcher *const m_dispatch;   //we own this
-};
-*/
 
 PyCallable_Make_InnerDispatcher(PetitionerService)
 
 PetitionerService::PetitionerService(PyServiceMgr *mgr)
 : PyService(mgr, "petitioner"),
   m_dispatch(new Dispatcher(this))
-//m_db(db)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(PetitionerService, GetCategories)
-    PyCallable_REG_CALL(PetitionerService, GetCategoryHierarchicalInfo)
-    PyCallable_REG_CALL(PetitionerService, GetUnreadMessages)
+    PyCallable_REG_CALL(PetitionerService, GetCategories);
+    PyCallable_REG_CALL(PetitionerService, GetCategoryHierarchicalInfo);
+    PyCallable_REG_CALL(PetitionerService, GetUnreadMessages);
 }
 
 PetitionerService::~PetitionerService() {
@@ -80,22 +49,72 @@ PetitionerService::~PetitionerService() {
 
 
 /*
-PyBoundObject* PetitionerService::_CreateBoundObject( Client* c, const PyRep* bind_args )
-{
-    _log( CLIENT__MESSAGE, "PetitionerService bind request for:" );
-    bind_args->Dump( CLIENT__MESSAGE, "    " );
+ *
+ *
+        catCountry = sm.RemoteSvc('petitioner').GetUserCatalogCountry()
 
-    return new PetitionerBound( m_manager, &m_db );
-}*/
+        can = sm.RemoteSvc('petitioner').MayPetition(categoryID, OocCharacterID)
+
+        self.properties = sm.RemoteSvc('petitioner').GetCategoryProperties(self.category[0])
+        populationInfo = sm.RemoteSvc('petitioner').PropertyPopulationInfo(property.inputInfo, self.OocCharacterID)
+        populationRecords = sm.RemoteSvc('petitioner').GetClientPickerInfo(filterString, elementName)
+                queues = sm.RemoteSvc('petitioner').GetQueues()
+
+                self.categories = sm.RemoteSvc('petitioner').GetCategories()
+                sm.RemoteSvc('petitioner').CreatePetition(subject, petition, categoryID, retval, OocCharacterID, combatLog=combatLog, chatLog=chatLog):
+                sm.RemoteSvc('petitioner').CreatePetition(subject, petition, categoryID, None, self.OocCharacterID, chatLog, combatLog, propertyList)
+
+        sm.RemoteSvc('petitioner').MarkAsRead(messageID)
+
+        newMessages = sm.RemoteSvc('petitioner').GetUnreadMessages()
+        self.NewMessage(newMessages[0].petitionID, newMessages[0].text, newMessages[0].messageID)
+
+        self.mine = sm.RemoteSvc('petitioner').GetMyPetitionsEx()
+
+        sm.RemoteSvc('petitioner').EscalatePetition(petitionid, escalatesTo)
+        sm.RemoteSvc('petitioner').ClaimPetition(p.petitionID)
+        sm.RemoteSvc('petitioner').UnClaimPetition(petitionid)
+        mp = sm.RemoteSvc('petitioner').GetClaimedPetitions()
+        for p in mp:
+            if p.petitionerID not in owners:
+
+
+        parentCategoryDict, childCategoryDict, descriptionDict, self.billingCategories = sm.RemoteSvc('petitioner').GetCategoryHierarchicalInfo()
+
+        sm.RemoteSvc('petitioner').UpdatePetitionRating(p.petitionID, responseTimeRating, helpfulnessRating, attitudeRating, newComment)
+
+        sm.RemoteSvc('petitioner').AddPetitionRating(p.petitionID, responseTimeRating, helpfulnessRating, attitudeRating, newComment, wnd.sr.ratingtime)
+
+
+        mp = sm.RemoteSvc('petitioner').GetPetitionQueue(queueID)
+        for p in mp:
+            if p.petitionerID and p.petitionerID not in owners:
+ *
+
+ pmsgs = sm.RemoteSvc('petitioner').GetPetitionMessages(p.petitionID)
+ for pm in pmsgs:
+     if pm.senderID is not None and pm.senderID not in owners:
+ *
+
+ plogs = sm.RemoteSvc('petitioner').GetLog(p.petitionID)
+ texts = sm.RemoteSvc('petitioner').GetEvents()
+ *
+
+ sm.RemoteSvc('petitioner').PetitioneeChat(petitionid, message, comment)
+ sm.RemoteSvc('petitioner').PetitionerChat(petitionid, message)
+
+
+ sm.RemoteSvc('petitioner').CancelPetition(petitionid)
+ sm.RemoteSvc('petitioner').ClosePetition(petitionid)
+ */
 
 
 PyResult PetitionerService::Handle_GetCategories( PyCallArgs& call )
 {
-    //takes no arguments
+    uint8 size = call.tuple->size();
+    sLog.White( "PetitionerService::Handle_GetCategories()", "size=%u ", size );
 
-    sLog.Debug( "PetitionerService", "Called GetCategories stub." );
-
-    PyList* result = new PyList;
+    PyList* result = new PyList();
     result->AddItemString( "Test Cat" );
     result->AddItemString( "Test Cat2" );
 
@@ -104,16 +123,15 @@ PyResult PetitionerService::Handle_GetCategories( PyCallArgs& call )
 
 PyResult PetitionerService::Handle_GetCategoryHierarchicalInfo( PyCallArgs& call )
 {
-    sLog.Debug( "PetitionerService", "Called GetCategoryHierarchicalInfo stub." );
-    return new PyList;
+    uint8 size = call.tuple->size();
+    sLog.White( "PetitionerService::Handle_GetCategoryHierarchicalInfo()", "size=%u ", size );
+
+    return new PyList();
 }
 
+//00:28:58 L PetitionerService::Handle_GetUnreadMessages(): size=0
 PyResult PetitionerService::Handle_GetUnreadMessages( PyCallArgs& call )
 {
-    //takes no arguments
-
-    sLog.Debug( "PetitionerService", "Called GetUnreadMessages stub." );
-
     //unknown...
-    return new PyList;
+    return new PyList();
 }

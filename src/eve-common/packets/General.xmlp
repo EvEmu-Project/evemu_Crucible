@@ -20,11 +20,11 @@
     <objectInline>
       <stringInline value="util.Rowset" />
         <dictInline>
-          <dictInlineEntry key="header">
-              <listStr name="header" />
-          </dictInlineEntry>
           <dictInlineEntry key="RowClass">
           <tokenInline value="util.Row" />
+          </dictInlineEntry>
+          <dictInlineEntry key="header">
+              <listStr name="header" />
           </dictInlineEntry>
           <dictInlineEntry key="lines">
               <list name="lines" />
@@ -128,28 +128,82 @@
   <!--
   empty calls:
   CallPing
-  CallGetPostAuthenticationMessage
-  CallGetCharactersToSelect
-  CallGetCharCreationInfo
-  CallGetAttributeTypes
-  CallShipGetInfo
-  CallCharGetInfo
-  CallGetMyKillRights
-  CallGetBookmarks
-  CallGetChannels
-  CallGetInitialState
-  CallGetMyMessages
   CallGetFactionInfo
   CallGetStuckSystems
   CallGetOwnerNoteLabels
-  CallGetStationItemBits
-  CallGetStationExtraInfo
-  CallGetCorporateStationInfo
-  CallGetCorporation
-  CallList (inventory)
-  CallGetAgents
-  CallGetGuests
   -->
+
+  <elementDef name="Call_SingleIntegerArg">
+    <tupleInline>
+      <int name="arg"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SingleRealArg">
+    <tupleInline>
+      <real name="arg" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_TwoIntegerArgs">
+    <tupleInline>
+      <int name="arg1"  safe="true" none_marker="0" />
+      <int name="arg2"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_PointArg">
+    <tupleInline>
+      <real name="x" />
+      <real name="y" />
+      <real name="z" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SingleBoolArg">
+    <tupleInline>
+      <bool name="arg" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_TwoBoolArgs">
+    <tupleInline>
+      <bool name="arg1" />
+      <bool name="arg2" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SingleStringArg">
+    <tupleInline>
+      <string name="arg"  safe="true" none_marker="" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SingleWStringArg">
+    <tupleInline>
+      <wstring name="arg" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SingleArg">
+    <tupleInline>
+      <raw name="arg" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SingleIntList">
+    <tupleInline>
+      <listInt name="ints" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_IntBoolArg">
+    <tupleInline>
+      <int name="arg1"  safe="true" none_marker="0" />
+      <bool name="arg2" />
+    </tupleInline>
+  </elementDef>
+
 
   <elementDef name="CallGetMultiOwnersEx">
     <tupleInline>
@@ -158,37 +212,19 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="RspGetMultiOwnersEx">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-            <element type="list_rowset" name="rowset" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="CallMachoResolveObject">
     <tupleInline>
       <!-- 0 -->
         <raw name="bindParams" />
       <!-- 1 -->
-      <int name="justQuery" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspMachoResolveObject">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <int name="nodeID" />
-      </substreamInline>
+      <int name="justQuery"  safe="true" none_marker="0" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="CallMachoBindObject_call">
       <tupleInline>
         <!-- 0 -->
-        <string name="method_name" />
+        <string name="method_name"  safe="true" none_marker="" />
         <!-- 1 -->
         <tuple name="arguments" />
         <!-- 2 -->
@@ -219,32 +255,18 @@
       </substructInline>
   </elementDef>
 
-  <elementDef name="RspMachoBindObject">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <tupleInline>
-          <!-- 0 -->
-              <element name="bind" type="BoundObject" />
-          <!-- 1 -->
-              <raw name="call_return" />
-        </tupleInline>
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="ErrorResponse">
     <tupleInline>
       <!-- 0 -->
-      <int name="CauseMsgType" />
+      <int name="MsgType" />
       <!-- 1 -->
       <int name="ErrorCode" />
       <!-- 2 -->
       <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
+        <!-- 0 -->
+        <substreamInline>
           <raw name="payload" />
-      </substreamInline>
+        </substreamInline>
       </tupleInline>
     </tupleInline>
   </elementDef>
@@ -260,20 +282,6 @@
     </objectInline>
   </elementDef>
 
-  <elementDef name="macho_MachoException">
-    <tupleInline>
-      <!-- MACHONETMSG_TYPE -->
-      <int name="in_response_to" />
-      <!-- MACHONETERR_TYPE -->
-      <int name="exception_type" />
-      <tupleInline>
-        <substreamInline>
-            <raw name="payload" />
-        </substreamInline>
-      </tupleInline>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="NotifyOnAggressionChange">
     <tupleInline>
       <!-- 0 -->
@@ -287,88 +295,18 @@
   <elementDef name="CallGetInventoryFromId">
     <tupleInline>
         <!-- 0 -->
-        <int name="entityID" />
+        <int name="entityID"  safe="true" none_marker="0" />
         <!-- 1 -->
-        <int name="passive" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetInventoryFromId">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-            <element name="bind" type="BoundObject" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetMyKillRights">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <tupleInline>
-          <!-- 0 -->
-          <dict name="unknown0" />
-          <!-- 1 -->
-          <dict name="unknown1" />
-        </tupleInline>
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetInitialState">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-          <element name="rowset" type="util_Rowset" />
-        </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetOwnerNoteLabels">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <element name="notes" type="util_Rowset" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetStationItemBits">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <tupleInline>
-          <!-- hangarGraphicID -->
-          <int name="hangarGraphicID" />
-          <!-- ownerID -->
-          <int name="ownerID" />
-          <!-- itemID -->
-          <int name="itemID" />
-          <!-- serviceMask -->
-          <int name="serviceMask" />
-          <!-- stationTypeID -->
-          <int name="stationTypeID" />
-        </tupleInline>
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetGuests">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-          <listInt name="guests" />
-      </substreamInline>
+        <int name="passive"  safe="true" none_marker="0" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="CallGetMessageDetails">
     <tupleInline>
       <!-- 0 -->
-      <int name="channelID" />
+      <int name="channelID"  safe="true" none_marker="0" />
       <!-- 1 -->
-      <int name="messageID" />
+      <int name="messageID"  safe="true" none_marker="0" />
     </tupleInline>
   </elementDef>
 
@@ -377,24 +315,24 @@
       <!-- 0 -->
       <listInline>
         <!-- 0 -->
-        <int name="messageID" />
+        <int name="messageID"  safe="true" none_marker="0" />
       </listInline>
     </tupleInline>
   </elementDef>
 
   <elementDef name="SessionChangeNotification">
     <tupleInline>
-      <string name="anotherClueless" default="" />
+      <long name="sessionID" default="0" />
       <!-- 0 -->
       <tupleInline>
         <!-- 0 -->
         <int name="clueless" default="0" />
         <!-- 1 -->
-          <dict name="changes" />
+        <dict name="changes" />
       </tupleInline>
       <!-- 1 -->
       <!-- this is actually optional... -->
-        <listInt name="nodesOfInterest" />
+      <listInt name="nodesOfInterest" />
     </tupleInline>
   </elementDef>
 
@@ -423,147 +361,83 @@
 
   <elementDef name="ServerNotification_ReleaseObj">
     <tupleInline>
-        <string name="boundID" />
+        <string name="boundID"  safe="true" none_marker="" />
         <long name="timestamp" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleIntegerArg">
-    <tupleInline>
-      <int name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleRealArg">
-    <tupleInline>
-      <real name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_TwoIntegerArgs">
-    <tupleInline>
-      <int name="arg1" />
-      <int name="arg2" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_PointArg">
-    <tupleInline>
-      <real name="x" />
-      <real name="y" />
-      <real name="z" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleBoolArg">
-    <tupleInline>
-      <bool name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_TwoBoolArgs">
-    <tupleInline>
-      <bool name="arg1" />
-      <bool name="arg2" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleStringArg">
-    <tupleInline>
-      <string name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleWStringArg">
-    <tupleInline>
-      <wstring name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleWStringSoftArg">
-    <tupleInline>
-      <wstring name="arg" soft="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleArg">
-    <tupleInline>
-      <raw name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleIntList">
-    <tupleInline>
-      <listInt name="ints" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_IntBoolArg">
-    <tupleInline>
-      <int name="arg1" />
-      <bool name="arg2" />
-    </tupleInline>
-  </elementDef>
-
-
-  <elementDef name="CallAlignTo">
-    <tupleInline>
-      <int name="entityID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallWarpToStuff">
-    <tupleInline>
-      <!-- really this call uses keywords, and I think the item ID just happens to end up in the args as a fluke. -->
-      <string name="type" />
-      <int name="ID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallWarpToStuffAutopilot">
-    <tupleInline>
-      <!-- really this call uses keywords, and I think the item ID just happens to end up in the args as a fluke. -->
-      <int name="item" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_StargateJump">
-    <tupleInline>
-      <int name="fromStargateID"/>
-      <int name="toStargateID"/>
-      <int name="shipID"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_FollowBall">
-    <tupleInline>
-      <int name="ballID" />
-      <!-- may be integer or real -->
-      <raw name="distance" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Orbit">
-    <tupleInline>
-      <int name="entityID" />
-      <!-- may be integer or real -->
-      <raw name="distance" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="Notify_OnRemoteMessage">
     <tupleInline>
-      <string name="msgType" />
+      <string name="msgType"  safe="true" none_marker="" />
       <dictStr name="args" />
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_UpdateBulk">
+  <elementDef name="Call_InsureShip">
+      <tupleInline>
+          <int name="shipID"  safe="true" none_marker="0" />
+          <real name="amount" />
+          <int name="isCorp"  safe="true" none_marker="0" />
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_SearchQuery">
+      <tupleInline>
+          <string name="str" safe="true" none_marker="" />
+          <listInt name="ids" />
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_BoardShip">
     <tupleInline>
-      <int name="changeID" />
-      <string name="hashValue" />
-      <int name="branch" />
+      <int name="newShipID"  safe="true" none_marker="0" />
+      <int name="oldShipID"  safe="true" none_marker="0" />
     </tupleInline>
   </elementDef>
 
- </elements>
+  <elementDef name="Beyonce_Formation">
+    <tupleInline>
+      <!-- 0: Name of formation -->
+      <string name="name" />
+      <!-- 1: Tuple of positions -->
+      <tupleInline>
+        <element name="pos1" type="Call_PointArg" />
+        <element name="pos2" type="Call_PointArg" />
+        <element name="pos3" type="Call_PointArg" />
+        <element name="pos4" type="Call_PointArg" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <!-- this is loaded in static data mgr, and used in corpdata, and i didnt know where it fit best, so i put it here. -->
+  <elementDef name="GetFactionInfoRsp">
+    <tupleInline>
+        <!-- 0: factionIDbyNPCCorpID: dict: corpID -> factionID    -->
+      <dictRaw name="factionIDbyNPCCorpID" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
+        <!-- 1: factionRegions: dict: factionID -> listInt -->
+      <dictInt name="factionRegions" />
+        <!-- 2: factionConstellations: dict: factionID -> listInt -->
+      <dictInt name="factionConstellations" />
+        <!-- 3: factionSolarSystems: dict: factionID -> listInt -->
+      <dictInt name="factionSolarSystems" />
+        <!-- 4: factionRaces: dict: factionID -> listInt -->
+      <dictInt name="factionRaces" />
+        <!-- 5: factionStationCount: dict: factionID -> count -->
+      <dictRaw name="factionStationCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
+        <!-- 6: factionSolarSystemCount: dict: factionID -> count -->
+      <dictRaw name="factionSolarSystemCount" key="uint32"  pykey="Int" value="uint32" pyvalue="Int" />
+        <!-- 7: npcCorpInfo: dict: corpID -> util.Row -->
+      <!--
+          corporationName,
+          corporationID,mainActivityID,secondaryActivityID,
+          size,extent,solarSystemID,investorID1,investorShares1,investorID2,
+          investorShares2,investorID3,investorShares3,investorID4,investorShares4,
+          friendID,enemyID,publicShares,initialPrice,minSecurity,scattered,
+          fringe,corridor,hub,border,factionID,sizeFactor,stationCount,
+          stationSystemCount,stationID,ceoID,ceoName
+      -->
+      <raw name="npcCorpInfo" />
+   </tupleInline>
+  </elementDef>
+
+</elements>

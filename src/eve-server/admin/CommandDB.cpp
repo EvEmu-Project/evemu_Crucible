@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -23,22 +23,84 @@
     Author:        Zhur
 */
 
+/** @todo  update this...  */
+
 #include "eve-server.h"
 
 #include "admin/CommandDB.h"
 
+uint32_t CommandDB::GetSolarSystem(const char *name) {
+    //sDatabase.ReplaceSlash(name);
+    if (!sDatabase.IsSafeString(name))
+        return 0;
+
+    std::string escaped;
+    sDatabase.DoEscapeString(escaped, name);
+
+    DBQueryResult result;
+    if (!sDatabase.RunQuery(result,
+                            "SELECT solarSystemID "
+                            "FROM mapSolarSystems "
+                            "WHERE solarSystemName LIKE '%%%s%%';",
+                            escaped.c_str()
+                            )) {
+        codelog(DATABASE__ERROR, "Error in query: %s", result.error.c_str());
+        return 0;
+    }
+
+    DBResultRow row;
+    if (!result.GetRow(row)) {
+        codelog(COMMAND__ERROR, "Solar System query returned nothing");
+        return 0;
+    }
+
+    return row.GetUInt(0);
+}
+
+uint32_t CommandDB::GetStation(const char* name)
+{
+    if (!sDatabase.IsSafeString(name))
+        return 0;
+
+    std::string escaped;
+    sDatabase.DoEscapeString(escaped, name);
+
+    DBQueryResult result;
+    if (!sDatabase.RunQuery(result,
+                "SELECT `stationID`"
+                " FROM `staStations`"
+                " WHERE `stationName` LIKE '%%%s%%';",
+                escaped.c_str()
+        )) {
+        codelog(DATABASE__ERROR, "Error in query: %s", result.error.c_str());
+        return 0;
+    }
+
+    DBResultRow row;
+    if (!result.GetRow(row)) {
+        codelog(COMMAND__ERROR, "Station query returned nothing");
+        return 0;
+    }
+
+    return row.GetUInt(0);
+}
+
+
 bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &into) {
+
+    into.clear();
+
+    //sDatabase.ReplaceSlash(query);
+    if (!sDatabase.IsSafeString(query))
+        return 0;
 
     std::string escaped;
     sDatabase.DoEscapeString(escaped, query);
 
-    DBQueryResult result;
-    DBResultRow row;
-
-    into.clear();
 
     //we need to query out the primary message here... not sure how to properly
     //grab the "main message" though... the text/plain clause is pretty hackish.
+    DBQueryResult result;
     if (!sDatabase.RunQuery(result,
         " SELECT typeID,typeName"
         " FROM invTypes"
@@ -51,6 +113,7 @@ bool CommandDB::ItemSearch(const char *query, std::map<uint32, std::string> &int
         return (false);
     }
 
+    DBResultRow row;
     while(result.GetRow(row)) {
         into[row.GetUInt(0)] = row.GetText(1);
     }
@@ -97,30 +160,12 @@ bool CommandDB::ItemSearch(uint32 typeID, uint32 &actualTypeID,
     return true;
 }
 
-bool CommandDB::GetRoidDist(const char * sec, std::map<double, uint32> &roids) {
-    DBQueryResult res;
-    DBResultRow row;
-
-    if (!sDatabase.RunQuery(res,
-        " SELECT roidID, percent FROM roidDistribution WHERE systemSec = '%s' ", sec))
-    {
-        codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-        return false;
-    }
-
-    double tot = 0.0;
-    while (res.GetRow(row)) {
-        tot += row.GetDouble(1);
-        roids[tot] = row.GetUInt(0);
-    }
-
-    return !roids.empty();
-}
-
 int CommandDB::GetAttributeID(const char *attributeName) {
 
+    if (!sDatabase.IsSafeString(attributeName))
+        return 0;
+
     DBQueryResult res;
-    DBResultRow row;
     std::string escape;
     sDatabase.DoEscapeString(escape, attributeName);
 
@@ -131,12 +176,13 @@ int CommandDB::GetAttributeID(const char *attributeName) {
         " WHERE attributeName = '%s' ",
         escape.c_str() ) )
     {
-        _log(DATABASE__ERROR, "Error retrieving attributeID for attributeName = '%s' ", escape.c_str() );
+        codelog(DATABASE__ERROR, "Error retrieving attributeID for attributeName = '%s' ", escape.c_str() );
         return 0;
     }
 
+    DBResultRow row;
     if( !res.GetRow(row) ){
-        _log(DATABASE__ERROR, "Null result finding attributeID for attributeName = '%s' ", escape.c_str() );
+        codelog(DATABASE__ERROR, "Null result finding attributeID for attributeName = '%s' ", escape.c_str() );
         return 0;
     }
 
@@ -146,48 +192,40 @@ int CommandDB::GetAttributeID(const char *attributeName) {
 
 int CommandDB::GetAccountID(std::string name) {
 
-    DBQueryResult res;
+    if (!sDatabase.IsSafeString(name))
+        return 0;
 
-    if(!sDatabase.RunQuery(res,
-        " SELECT "
-        " AccountID "
-        " FROM character_ "
-        " WHERE characterID = ( SELECT itemID FROM entity WHERE itemName = '%s' )", name.c_str()))
-    {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT accountID FROM chrCharacters WHERE name = '%s'", name.c_str())) {
         sLog.Error("CommandDB", "Failed to retrieve accountID for %s", name.c_str());
         return 0;
     }
 
     DBResultRow row;
-
-    if( !res.GetRow(row) )
-    {
+    if (!res.GetRow(row)) {
         sLog.Error("CommandDB", "Query Returned no results");
         return 0;
     }
 
-    return row.GetInt( 0 );
-
+    return row.GetInt(0);
 }
 
 bool CommandDB::FullSkillList(std::vector<uint32> &skillList) {
-
-    DBQueryResult result;
-    DBResultRow row;
-
     skillList.clear();
 
+    DBQueryResult result;
     if (!sDatabase.RunQuery(result,
-        " SELECT * FROM `invTypes` WHERE "
+        " SELECT typeID FROM `invTypes` WHERE "
 		" ((`groupID` IN (SELECT groupID FROM invGroups WHERE categoryID = 16)) AND (published = 1)) "
         ))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", result.error.c_str());
-        return (false);
+        return false;
     }
 
-    while(result.GetRow(row)) {
-		skillList.push_back( (row.GetUInt(0)) );
+    DBResultRow row;
+    while (result.GetRow(row)) {
+		skillList.push_back( (row.GetInt(0)) );
     }
 
 	// Because we searched skills with published = 1 and some GM skills are not published but still usable,

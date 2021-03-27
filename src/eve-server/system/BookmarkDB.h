@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,44 +21,68 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Bloody.Rabbit
+    Updates:    Allan
 */
 
-#ifndef __BOOKMARK_DB__H__INCL__
-#define __BOOKMARK_DB__H__INCL__
+#ifndef __EVEMU_SYSTEM_BOOKMARKDB_H_
+#define __EVEMU_SYSTEM_BOOKMARKDB_H_
 
 #include "ServiceDB.h"
+
+/*
+validCategories =
+    const.categoryCelestial,
+    const.categoryAsteroid,
+    const.categoryStation,
+    const.categoryShip,
+    const.categoryStructure,
+    const.categoryPlanetaryInteraction
+*/
+
+struct BmData {
+    // uint8 flag;
+    uint16 typeID;
+    uint32 bookmarkID;
+    uint32 ownerID;
+    uint32 itemID;
+    uint32 locationID;
+    uint32 folderID;
+    uint32 creatorID;
+    int64 created;
+    GPoint point;
+    std::string memo;
+    std::string note;
+};
 
 class BookmarkDB
 : public ServiceDB
 {
 public:
-    PyObjectEx *GetBookmarks(uint32 ownerID);
-    PyObjectEx *GetFolders(uint32 ownerID);
+    PyRep* GetBookmarksInFolder(uint32 folderID);
+    PyRep* GetBookmarks(uint32 ownerID);
+    PyRep* GetFolders(uint32 ownerID);
 
-    uint32 FindBookmarkTypeID(uint32 itemID);
+    static PyTuple* GetBookmarkDescription(uint32 bookmarkID);
+    static const char* GetBookmarkName(uint32 bookmarkID);
+    bool GetBookmarkInformation(uint32 bookmarkID, uint32& itemID, uint16& typeID, uint32& locationID, double& x, double& y, double& z);
 
-    bool GetBookmarkInformation(uint32 bookmarkID, uint32 &ownerID, uint32 &itemID, uint32 &typeID,
-                                uint32 &flag, std::string &memo, uint64 &created, double &x, double &y,
-                                double &z, uint32 &locationID, std::string &note, uint32 &creatorID,
-                                uint32 folderID);
+    bool UpdateBookmark(uint32 bookmarkID, uint32 ownerID, std::string memo, std::string note, uint32 folderID=0);
+    bool DeleteBookmark(uint32 ownerID, uint32 bookmarkID);
+    bool DeleteBookmarks(std::vector<int32>* bookmarkList);
 
-    bool SaveNewBookmarkToDatabase(uint32 &bookmarkID, uint32 ownerID, uint32 itemID,
-                                   uint32 typeID, uint32 flag, std::string memo, uint64 created,
-                                   double x, double y, double z, uint32 locationID, std::string note,
-                                   uint32 creatorID, uint32 folderID);
+    bool UpdateFolder(int32 folderID, std::string folderName);
+    bool DeleteFolder(int32 folderID);
 
-    bool DeleteBookmarkFromDatabase(uint32 ownerID, uint32 bookmarkID);
+    uint32 SaveNewFolder(std::string folderName, uint32 ownerID);
+    void SaveNewBookmark(BmData &data);
 
-    bool DeleteBookmarksFromDatabase(uint32 ownerID, std::vector<unsigned long> *bookmarkList);
+    void ChangeOwner(uint32 bookmarkID, uint32 ownerID=1);
+    void MoveBookmarkToFolder(int32 folderID, std::vector< int32 >* bookmarkList);
 
-    bool UpdateBookmarkInDatabase(uint32 bookmarkID, uint32 ownerID, std::string memo, std::string note);
+    void GetBookmarkByFolderID(int32 folderID, std::vector< int32 >& bmIDs);
 
-    bool SaveNewFolderToDatabase(uint32 &folderID, std::string folderName, uint32 ownerID, uint32 creatorID);
-
-    bool UpdateFolderInDatabase(uint32 &folderID, std::string folderName, uint32 ownerID, uint32 creatorID);
-
-    bool DeleteFolderFromDatabase(uint32 folderID, uint32 ownerID);
+    void GetVoucherData(BmData &data);
 };
 
-#endif /* !__BOOKMARK_DB__H__INCL__ */
+#endif  // __EVEMU_SYSTEM_BOOKMARKDB_H_
 

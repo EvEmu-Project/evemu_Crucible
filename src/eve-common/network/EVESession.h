@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -74,17 +74,11 @@ public:
     void Reset();
 
     /**
-     * @brief Queues new packet.
-     *
-     * @param[in] p Packed to be queued.
-     */
-    void QueuePacket( const PyPacket* p );
-    /**
      * @brief Queues new packet, retaking ownership.
      *
      * @param[in] p Packed to be queued.
      */
-    void FastQueuePacket( PyPacket** p );
+    void QueuePacket( PyPacket* packet );
 
     /**
      * @brief Pops new packet from queue.
@@ -107,7 +101,7 @@ protected:
      */
     virtual void _GetVersion( VersionExchangeServer& version ) = 0;
     /** @return Current count of connected users. */
-    virtual uint32 _GetUserCount() = 0;
+    //virtual uint32 GetUserCount() = 0;
     /** @return Current position in connection queue. */
     virtual uint32 _GetQueuePosition() = 0;
 

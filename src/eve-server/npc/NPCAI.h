@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,63 +21,142 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 #ifndef __NPCAI_H_INCL__
 #define __NPCAI_H_INCL__
 
+#include "ship/Missile.h"
+#include "ship/modules/TurretFormulas.h"
+
+namespace NPCAI {
+    namespace State {
+        enum {
+            Invalid     = -1,
+            Idle        = 1,  // not doing anything....idle.
+            Chasing     = 2,  // target out of range to attack/follow, but within npc sight range....use mwd/ab if equiped
+            Following   = 3,  // too close to chase, but to far to engage
+            Engaged     = 4,  // actively fighting
+            Fleeing     = 5,  // running away
+            Signaling   = 6,  // calling for help
+            WarpOut     = 7,  // leaving bubble
+            WarpFollow  = 8   // will follow warping ship to their destination (adv)
+        };
+    }
+}
+
 class NPC;
 class SystemEntity;
+class Timer;
+class EvilNumber;
 
 class NPCAIMgr {
+protected:
 public:
     NPCAIMgr(NPC *who);
+    ~NPCAIMgr()                                         { /* do nothing here */ }
 
+    // this is called from NPC::Process() which is called from SystemManager::Process()
     void Process();
 
-    void Targeted(SystemEntity *by_who);
-    void TargetLost(SystemEntity *by_who);
+    void Target(SystemEntity* pSE);
+    void Targeted(SystemEntity* pSE);
+    void TargetLost(SystemEntity* pSE);
 
-	void ClearAllTargets();
+    void DisableRepTimers(bool shield=true, bool armor=true);
+
+    // public methods to enable calls from other classes (namely, TurretFormulas.cpp)
+    bool IsIdle()                                       { return (m_state == NPCAI::State::Idle); }
+    bool IsFighting();
+    uint16 GetOptimalRange()                            { return m_optimalRange; }
+    uint16 GetSigRes()                                  { return m_sigResolution; }
+    uint32 GetFalloff()                                 { return m_falloff; }
+    uint32 GetAttackRange()                             { return m_maxAttackRange; }
+    double GetTrackingSpeed()                           { return m_trackingSpeed; }
+
+    // npcAI methods
+    void DisableWarpOutTimer()                          { m_warpOutTimer.Disable(); }
+    void WarpOutComplete()                              { m_warpOutTimer.Disable(); m_state = NPCAI::State::Idle; }
+
+    void LaunchMissile(uint16 typeID, SystemEntity* pSE);   // us to them
+    void MissileLaunched(Missile* pMissile); // them to us
 
 protected:
-    void CheckAttacks(SystemEntity *target);
-    void _EnterIdle();
-    void _EnterChasing(SystemEntity *target);
-    void _EnterFollowing(SystemEntity *target);
-    void _EnterEngaged(SystemEntity *target);
-    void _SendWeaponEffect(const char *effect, SystemEntity *target);
+    void Attack(SystemEntity* pSE);
+    void SetIdle();
+    void WarpOut();
+    void SetWander();
+    void SetChasing(SystemEntity* pSE);
+    void SetEngaged(SystemEntity* pSE);
+    void SetFleeing(SystemEntity* pSE);
+    void ClearTarget(SystemEntity* pSE);
+    void SetFollowing(SystemEntity* pSE);
+    void SetSignaling(SystemEntity* pSE);
+    void AttackTarget(SystemEntity* pSE);
+    void CheckDistance(SystemEntity* pSE);
 
-    typedef enum {
-        Idle,
-        Chasing,    //using MWD or the like.
-        Following,
-        Engaged
-    } State;
-    State m_state;
+    float GetTargetTime();
 
-    //cached to reduce access times.
-    EvilNumber m_entityFlyRange2;
-    EvilNumber m_entityChaseMaxDistance2;
-    EvilNumber m_entityAttackRange2;
+    int8 m_state;
 
-    NPC *const m_npc;
+    std::string GetStateName(int8 stateID);
+
+private:
+    bool m_webber           :1;
+    bool m_warpScram        :1;
+    bool m_isWandering      :1;
+    bool m_useSigRadius     :1;
+    bool m_useTargSwitching :1;
+    bool m_useSecondTarget  :1;
+
+    float m_switchTargChance;   //fuzzy logic
+    uint16 m_preferedSigRadius;
+
+    //these attributes are cached to reduce access times. (much faster but uses more memory)
+    uint8 m_maxAttackTargets;
+    uint8 m_maxLockedTargets;
+    uint16 m_maxSpeed;
+    uint16 m_attackSpeed;
+    uint16 m_missileTypeID;
+    uint16 m_launcherCycleTime;
+    uint16 m_sigResolution;
+    uint16 m_orbitSpeed;
+    uint16 m_targetRange;   // max targeting range  default: m_maxAttackRange (unused)
+    uint16 m_optimalRange;
+    uint16 m_boostRange;    // distance for Speed Boost activation   default:2500
+    uint16 m_armorRepairDuration;
+    uint16 m_shieldBoosterDuration;
+
+    uint32 m_sigRadius;
+    uint32 m_falloff;// distance past maximum range at which accuracy has fallen by half
+    uint32 m_flyRange;  // npc tries to stay at this distance from active target    default:500
+    uint32 m_sightRange;
+    uint32 m_maxAttackRange;// max firing range   default:15000
+    uint32 m_warpScramRange;
+
+    float m_warpScramChance;
+    float m_armorRepairDelayChance;
+    float m_shieldBoosterDelayChance;
+
+    double m_trackingSpeed;
+    double m_damageMultiplier;
+
+    NPC* m_npc;
+    DestinyManager* m_destiny;
+    InventoryItemRef m_self;
+
+    TurretFormulas m_formula;
 
     Timer m_processTimer;
     Timer m_mainAttackTimer;
-
+    Timer m_missileTimer;
     Timer m_shieldBoosterTimer;
     Timer m_armorRepairTimer;
-
-	Timer m_beginFindTarget;
-
-    //Timer m_warpScramblerTimer;
-    //Timer m_webifierTimer;
-
+    Timer m_beginFindTarget;
+    Timer m_warpOutTimer;
+    Timer m_warpScramblerTimer;
+    Timer m_webifierTimer;
 };
 
 #endif
-
-
-
-

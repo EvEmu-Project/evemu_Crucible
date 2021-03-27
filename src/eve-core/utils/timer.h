@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 #ifndef TIMER_H
@@ -29,43 +30,41 @@
 class Timer
 {
 public:
-    Timer(uint32 timerTime, bool useAcurateTiming = false);
-    Timer(uint32 start, uint32 timer, bool useAcurateTiming);
-    ~Timer() { }
+    Timer(uint32 time=0, bool useAcurateTiming = false);
+    Timer(uint32 startAt, uint32 time, bool useAcurateTiming = false);
 
-    bool Check(bool reset = true);
-    void Enable();
-    void Disable();
-    void Start(uint32 setTimerTime=0, bool changeResetTimer = true);
-	bool TimerFinished();
-    void SetTimer(uint32 setTimerTime=0);
-    uint32 GetRemainingTime() const;
-    inline const uint32& GetTimerTime()        { return m_timerTime; }
-    inline const uint32& GetSetAtTrigger()    { return m_setAtTrigger; }
+    ~Timer()                                            { /* do nothing here */ }
+
+    inline void Enable()                                { m_enabled = true; }
+    inline void Disable()                               { m_enabled = false; }
+    inline const uint32& GetSetAtTrigger()              { return m_setAtTrigger; }
+    inline bool Enabled() const                         { return m_enabled; }
+    inline uint32 GetStartTime() const                  { return m_startTime; }
+    inline uint32 GetDuration() const                   { return m_duration; }
+
     void Trigger();
+    void SetTimer(uint32 setTimerTime = 0);
+    void Start(uint32 setTimerTime = 0, bool changeResetTimer = true);
     void SetAtTrigger(uint32 setAtTrigger, bool enableIfDisabled = false);
 
-    inline bool Enabled() const { return m_enabled; }
-    inline uint32 GetStartTime() const { return(m_startTime); }
-    inline uint32 GetDuration() const { return(m_timerTime); }
+    bool TimerFinished();
+    bool Check(bool reset = true);
 
-    static const uint32 SetCurrentTime();
-    static const uint32 GetCurrentTime();
-    static const uint32 GetTimeSeconds();
+    static const void SetCurrentTime();
+    // return remaining time in ms
+    uint32 GetRemainingTime() const;
+    uint32 GetCurrentTime();
+
 
 private:
-    uint32		m_startTime;
-    uint32		m_timerTime;
-    bool		m_enabled;
-    uint32		m_setAtTrigger;
-
-    // Tells the timer to be more accurate about happening every X ms.
-    // Instead of Check() setting the start_time = now,
-    // it it sets it to start_time += timer_time
+    bool    m_enabled;
+    /* useAcurateTiming resets timer (on check()) to start_time += timer_time to eliminate discrepencies in calling time */
     bool    m_useAcurateTiming;
 
-//    static int32 current_time;
-//    static int32 last_time;
+    uint32	m_duration;
+    uint32	m_startTime;
+    uint32	m_setAtTrigger;
+
 };
 
 #endif

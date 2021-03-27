@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,142 +21,118 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Zhur, mmcs
+    Rewrite:    Allan
 */
 
-#include "eve-common.h"
+#include "../eve-common.h"
 
 #include "python/classes/PyDatabase.h"
 #include "python/PyVisitor.h"
-#include "python/PyRep.h"
+//#include "python/PyRep.h"
 
 /************************************************************************/
 /* PyVisitor                                                            */
 /************************************************************************/
-bool PyVisitor::VisitTuple( const PyTuple* rep )
+bool PyVisitor::VisitTuple(const PyTuple* rep)
 {
-    PyTuple::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    for(; cur != end; cur++)
-    {
-        if( !(*cur)->visit( *this ) )
+    PyTuple::const_iterator itr = rep->begin(), end = rep->end();
+    for (;  itr != end; ++itr) {
+        //  if/when segfault here and (*itr) == 0x0 then tuple count != tuple->SetItem()
+        if (!(*itr)->visit(*this))
             return false;
     }
     return true;
 }
 
-bool PyVisitor::VisitList( const PyList* rep )
+bool PyVisitor::VisitList(const PyList* rep)
 {
-    PyList::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    for(; cur != end; cur++ )
-    {
-        if( !(*cur)->visit( *this ) )
+    PyList::const_iterator itr = rep->begin(), end = rep->end();
+    for (;  itr != end; ++itr)
+        if (!(*itr)->visit(*this))
+            return false;
+
+    return true;
+}
+
+bool PyVisitor::VisitDict(const PyDict* rep)
+{
+    PyDict::const_iterator itr = rep->begin(), end = rep->end();
+    for (;  itr != end; ++itr) {
+        if (!itr->first->visit(*this))
+            return false;
+        if (!itr->second->visit(*this))
             return false;
     }
     return true;
 }
 
-bool PyVisitor::VisitDict( const PyDict* rep )
+bool PyVisitor::VisitObject(const PyObject* rep)
 {
-    PyDict::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    for(; cur != end; cur++)
-    {
-        if( !cur->first->visit( *this ) )
-            return false;
-        if( !cur->second->visit( *this ) )
-            return false;
-    }
-    return true;
-}
-
-bool PyVisitor::VisitObject( const PyObject* rep )
-{
-    if( !rep->type()->visit( *this ) )
+    if (!rep->type()->visit(*this))
         return false;
-    if( !rep->arguments()->visit( *this ) )
+    if (!rep->arguments()->visit(*this))
         return false;
     return true;
 }
 
-bool PyVisitor::VisitObjectEx( const PyObjectEx* rep )
+bool PyVisitor::VisitObjectEx(const PyObjectEx* rep)
 {
-    if( !rep->header()->visit( *this ) )
+    if (!rep->header()->visit(*this))
         return false;
 
-    {
-        PyObjectEx::const_list_iterator cur, end;
-        cur = rep->list().begin();
-        end = rep->list().end();
-        for(; cur != end; cur++)
-        {
-            if( !(*cur)->visit( *this ) )
-                return false;
-        }
+    PyObjectEx::const_list_iterator lItr = rep->list().begin(), lEnd = rep->list().end();
+    for (; lItr != lEnd; ++lItr) {
+        if (!(*lItr)->visit(*this))
+            return false;
     }
-
-    {
-        PyObjectEx::const_dict_iterator cur, end;
-        cur = rep->dict().begin();
-        end = rep->dict().end();
-        for(; cur != end; cur++)
-        {
-            if( !cur->first->visit( *this ) )
-                return false;
-            if( !cur->second->visit( *this ) )
-                return false;
-        }
-    }
-
-    return true;
-}
-
-bool PyVisitor::VisitPackedRow( const PyPackedRow* rep )
-{
-    if( !rep->header()->visit( *this ) )
-        return false;
-
-    PyPackedRow::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    for(; cur != end; cur++)
-    {
-        if( !(*cur)->visit( *this ) )
+    PyObjectEx::const_dict_iterator dItr = rep->dict().begin(), dEnd = rep->dict().end();
+    for (; dItr != dEnd; ++dItr) {
+        if (!dItr->first->visit(*this))
+            return false;
+        if (!dItr->second->visit(*this))
             return false;
     }
 
     return true;
 }
 
-bool PyVisitor::VisitSubStruct( const PySubStruct* rep )
+bool PyVisitor::VisitPackedRow(const PyPackedRow* rep)
 {
-    if( !rep->sub()->visit( *this ) )
+    if (!rep->header()->visit(*this))
+        return false;
+
+    PyPackedRow::const_iterator itr = rep->begin(), end = rep->end();
+    for (;  itr != end; ++itr)
+        if (!(*itr)->visit(*this))
+            return false;
+
+    return true;
+}
+
+bool PyVisitor::VisitSubStruct(const PySubStruct* rep)
+{
+    if (!rep->sub()->visit(*this))
         return false;
     return true;
 }
 
-bool PyVisitor::VisitSubStream( const PySubStream* rep )
+bool PyVisitor::VisitSubStream(const PySubStream* rep)
 {
-    if( rep->decoded() == NULL )
-    {
-        if( rep->data() == NULL )
+    if (rep->decoded() == nullptr)  {
+        if (rep->data() == nullptr)
             return false;
-
         rep->DecodeData();
-        if( rep->decoded() == NULL )
+        if (rep->decoded() == nullptr)
             return false;
     }
-    if( !rep->decoded()->visit( *this ) )
+    if (!rep->decoded()->visit(*this))
         return false;
     return true;
 }
 
-bool PyVisitor::VisitChecksumedStream( const PyChecksumedStream* rep )
+bool PyVisitor::VisitChecksumedStream(const PyChecksumedStream* rep)
 {
-    if( !rep->stream()->visit( *this ) )
+    if (!rep->stream()->visit(*this))
         return false;
     return true;
 }
@@ -164,24 +140,24 @@ bool PyVisitor::VisitChecksumedStream( const PyChecksumedStream* rep )
 /************************************************************************/
 /* PyPfxVisitor                                                         */
 /************************************************************************/
-PyPfxVisitor::PyPfxVisitor( const char* pfx )
+PyPfxVisitor::PyPfxVisitor(const char* pfx)
 {
-    mPfxStack.push( pfx );
+    mPfxStack.push(pfx);
 }
 
-void PyPfxVisitor::_pfxExtend( const char* fmt, ... )
+void PyPfxVisitor::_pfxExtend(const char* fmt, ...)
 {
     va_list ap;
-    va_start( ap, fmt );
+    va_start(ap, fmt);
 
     char* res;
-    vasprintf( &res, fmt, ap );
+    vasprintf(&res, fmt, ap);
 
-    va_end( ap );
+    va_end(ap);
 
-    std::string p( _pfx() );
+    std::string p(_pfx());
     p += res;
-    mPfxStack.push( p );
+    mPfxStack.push(p);
 
-    SafeFree( res );
+    SafeFree(res);
 }

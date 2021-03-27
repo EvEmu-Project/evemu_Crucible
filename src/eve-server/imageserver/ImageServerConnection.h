@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,6 +26,8 @@
 #ifndef __IMAGESERVERCONNECTION__H__INCL__
 #define __IMAGESERVERCONNECTION__H__INCL__
 
+#include "imageserver/ImageServer.h"
+
 /**
  * \class ImageServerConnection
  *
@@ -36,10 +38,10 @@
  * @author caytchen
  * @date April 2011
  */
-class ImageServerConnection : public std::tr1::enable_shared_from_this<ImageServerConnection>
+class ImageServerConnection : public std::enable_shared_from_this<ImageServerConnection>
 {
 public:
-    static std::tr1::shared_ptr<ImageServerConnection> create(boost::asio::io_context& io);
+    static std::shared_ptr<ImageServerConnection> create(boost::asio::io_context& io);
     void Process();
     boost::asio::ip::tcp::socket& socket();
 
@@ -63,7 +65,7 @@ private:
 
     boost::asio::streambuf _buffer;
     boost::asio::ip::tcp::socket _socket;
-    std::tr1::shared_ptr<std::vector<char> > _imageData;
+    std::shared_ptr<std::vector<char> > _imageData;
 
     static boost::asio::const_buffers_1 _responseOK;
     static boost::asio::const_buffers_1 _responseNotFound;

@@ -1,0 +1,757 @@
+/*
+    ------------------------------------------------------------------------------------
+    LICENSE:
+    ------------------------------------------------------------------------------------
+    This file is part of EVEmu: EVE Online Server Emulator
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
+    ------------------------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any later
+    version.
+
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+    http://www.gnu.org/copyleft/lesser.txt.
+    ------------------------------------------------------------------------------------
+    Author:        Zhur
+    Rewrite:    Allan (major rewrite - 23Feb20)
+*/
+
+
+#include "eve-server.h"
+
+#include "EVEServerConfig.h"
+#include "Profile.h"
+#include "Client.h"
+#include "inventory/AttributeEnum.h"
+#include "npc/NPC.h"
+#include "npc/NPCAI.h"
+#include "pos/Structure.h"
+#include "pos/Tower.h"
+#include "ship/Ship.h"
+#include "ship/modules/ActiveModule.h"
+#include "ship/modules/MiningLaser.h"
+#include "system/TargetManager.h"
+#include "system/SystemEntity.h"
+#include "system/SystemBubble.h"
+
+TargetManager::TargetManager(SystemEntity *self)
+: mySE(self)
+{
+    m_canAttack = false;
+
+    m_modules.clear();
+    m_targets.clear();
+    m_targetedBy.clear();
+}
+
+bool TargetManager::Process() {
+     double profileStartTime = GetTimeUSeconds();
+
+     if (m_targets.empty())
+         return false;
+
+    //process outgoing targeting (outgoing will call incoming on target)
+    std::map<SystemEntity*, TargetEntry*>::iterator itr = m_targets.begin();
+    while (itr != m_targets.end()) {
+        if ((itr->first == nullptr) or (itr->second == nullptr)) {
+            itr = m_targets.erase(itr);
+            continue;
+        }
+        switch (itr->second->state) {
+            case TargMgr::State::Idle:
+            case TargMgr::State::Locked:{
+                //do nothing
+            } break;
+            case TargMgr::State::Passive:   // this will be used with stealth modules (which, ofc, are not written yet)
+            case TargMgr::State::Locking: {
+                if (itr->second->timer.Check(false)) {
+                    itr->second->timer.Disable();
+                    itr->second->state = TargMgr::State::Locked;
+                    OnTarget(itr->first, TargMgr::Mode::Add, TargMgr::Msg::Locked);
+                    itr->first->TargetMgr()->OnTarget(mySE, TargMgr::Mode::LockedBy, TargMgr::Msg::Locked);
+                    m_canAttack = true;
+                }
+            } break;
+        }
+        ++itr;
+    }
+
+    if (sConfig.debug.UseProfiling)
+        sProfile.AddTime(targetsProfile, GetTimeUSeconds() - profileStartTime);
+
+    return true;
+}
+
+/*
+ *    def OnTarget(self, mode, tid = None, reason = None):
+ *        if mode == 'add':
+ *            self.OnTargetAdded(tid)
+ *        elif mode == 'clear':
+ *            self.OnTargetClear()
+ *        elif mode == 'lost':
+ *            self.OnTargetLost(tid, reason)
+ *        elif mode == 'otheradd':
+ *            self.OnTargetByOther(tid)
+ *        elif mode == 'otherlost':
+ *            self.OnTargetByOtherLost(tid, reason)
+ *
+ *    OnTarget.mode
+ *        add - targeting successful
+ *        clear - clear all targets
+ *        lost - target lost (reason not used)
+ *            - Docking
+ *            - Cloaked
+ *        otheradd - somebody else has targeted you
+ *        otherlost - somebody else has stopped targeting you (reason not used)
+ *            - WarpingOut
+ *            - StoppedTargeting
+ *            - Destroyed
+ *
+ *    OnTargetClear - immediately removes all target info from ship, including pending targets
+ *        - this is done automagically when client jump, dock, or warp.  we just clean up our side
+ */
+void TargetManager::OnTarget(SystemEntity* tSE, uint8 mode/*TargMgr::Mode::None*/, uint8 msg/*TargMgr::Msg::NoMsg*/) {
+
+    if (mode == TargMgr::Mode::None)
+        return;
+
+    if (tSE == nullptr)
+        tSE = mySE;
+
+    double profileStartTime = GetTimeUSeconds();
+
+    Notify_OnTarget te;
+    te.targetID = tSE->GetID();
+
+    switch (msg) {
+        case TargMgr::Msg::Locked: {
+            te.reason = "Lock Complete";
+        } break;
+        case TargMgr::Msg::Destroyed: {
+            te.reason = "Destroyed";
+        } break;
+        case TargMgr::Msg::WarpingOut: {
+            te.reason = "WarpingOut";
+        } break;
+        case TargMgr::Msg::InternalCall: {
+            te.reason = "Internal Call";
+        } break;
+        case TargMgr::Msg::Docking: {
+            te.reason = "Docking";
+        } break;
+        case TargMgr::Msg::Jumping: {
+            te.reason = "Jumping";
+        } break;
+        case TargMgr::Msg::Cloaked: {
+            te.reason = "Cloaked";
+        } break;
+        case TargMgr::Msg::StoppedTargeting: {
+            te.reason = "StoppedTargeting";
+        } break;
+        case TargMgr::Msg::ClientReq: {
+            te.reason = "Client Request";
+        } break;
+        case TargMgr::Msg::Shutdown: {
+            te.reason = "Server Shutdown";
+        } break;
+        case TargMgr::Msg::Deleted: {
+            te.reason = "Deleted";
+        } break;
+        case TargMgr::Msg::NoMsg: {
+            te.reason = "No Reason Given";
+        } break;
+        default: {
+            te.reason = "Invalid Msg";
+        } break;
+    }
+
+    switch (mode) {
+        case TargMgr::Mode::Add: {
+            te.mode = "add";    // we are adding a target lock.
+            _log(TARGET__TRACE, "%s(%u) - adding target %s(%u) by %s.", \
+                    mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), te.reason.c_str());
+        } break;
+        case TargMgr::Mode::LockedBy: {
+            // this is only to set lockedby state correctly...doesnt send anything to client
+            bool found = false;
+            std::map<SystemEntity *, TargetedByEntry *>::iterator itr = m_targetedBy.find(tSE);
+            if (itr != m_targetedBy.end()) {
+                found = true;
+                itr->second->state = TargMgr::State::Locked;
+            }
+            _log(TARGET__TRACE, "%s(%u) - %s(%u) has completed target lock on me by %s. (found:%s)", \
+                    mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), te.reason.c_str(), found?"yes":"no");
+            return;
+        } break;
+        case TargMgr::Mode::Lost: {
+            te.mode = "lost";   // we have lost target lock
+            mySE->DestinyMgr()->EntityRemoved(tSE);
+            std::map<SystemEntity *, TargetEntry *>::iterator itr = m_targets.find(tSE);
+            if (itr != m_targets.end()) {
+                SafeDelete(itr->second);
+                m_targets.erase(itr);
+            }
+            if (mySE->IsNPCSE())
+                mySE->GetNPCSE()->TargetLost(tSE);
+            _log(TARGET__TRACE, "%s(%u) - i have lost my target lock on %s(%u) by %s.", \
+                    mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), te.reason.c_str());
+
+            tSE->TargetMgr()->OnTarget(mySE, TargMgr::Mode::OtherLost, msg);
+
+            if (m_targets.empty())
+                m_canAttack = false;
+        } break;
+        case TargMgr::Mode::Clear: {
+            // client clears targets internally on dock, jump, warp.
+            te.mode = "clear";
+            ClearTargets(msg);
+            ClearFromTargets((msg != TargMgr::Msg::Shutdown), msg);
+            _log(TARGET__TRACE, "%s(%u) - i have cleared all target data by %s.", \
+                    mySE->GetName(), mySE->GetID(), te.reason.c_str());
+            sEntityList.DeleteTargMgr(mySE);
+            if (msg == TargMgr::Msg::Destroyed)
+                return;
+        } break;
+        // these next 2 are called from targetter's add or remove call
+        case TargMgr::Mode::OtherAdd: {
+            bool dupe = false;
+            te.mode = "otheradd";       // we have been locked by another entity
+            //first make sure they are not already in the list...do we need this check?
+            std::map<SystemEntity *, TargetedByEntry *>::iterator itr = m_targetedBy.find(tSE);
+            if (itr != m_targetedBy.end()) {
+                dupe = true;
+                _log(TARGET__TRACE, "%s(%u) - %s(%u) already in locked list.  Reusing existing entry.", \
+                        mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+                //just re-use the old entry...
+                itr->second->state = TargMgr::State::Locking;
+            } else {
+                //new entry.
+                TargetedByEntry *pTB = new TargetedByEntry();
+                pTB->state = TargMgr::State::Locking;
+                m_targetedBy[tSE] = pTB;
+            }
+            if (mySE->IsNPCSE())
+                mySE->GetNPCSE()->TargetedAdd(tSE);
+            _log(TARGET__TRACE, "%s(%u) - %s(%u) has started target lock on me by %s. (dupe: %s)", \
+                    mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), te.reason.c_str(), dupe?"yes":"no");
+        } break;
+        case TargMgr::Mode::OtherLost: {
+            bool found = false;
+            te.mode = "otherlost";      // another entity has lost lock on me
+            std::map<SystemEntity *, TargetedByEntry *>::iterator itr = m_targetedBy.find(tSE);
+            if (itr != m_targetedBy.end()) {
+                found = true;
+                SafeDelete(itr->second);
+                m_targetedBy.erase(itr);
+            }
+            _log(TARGET__TRACE, "%s(%u) - %s(%u) has lost target lock on me by %s. (found:%s)", \
+                    mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), te.reason.c_str(), found?"yes":"no");
+      } break;
+    }
+
+    if (mySE->HasPilot()) {
+        // send immediately to client
+        Notify_OnMultiEvent multi;
+            multi.events = new PyList();
+            multi.events->AddItem(te.Encode());
+        PyTuple* tmp = multi.Encode();
+        _log(TARGET__TRACE, "notifing %s(%u) of target %s on %s by %s.", \
+                mySE->GetName(), mySE->GetID(), TargetManager::GetModeName(mode), tSE->GetName(), te.reason.c_str());
+        mySE->GetPilot()->SendNotification("OnMultiEvent", "clientID", &tmp);
+
+        // send damage data when adding new target
+        if (mode == TargMgr::Mode::Add)
+            if (mySE->HasPilot()) {
+                OnDamageStateChange odsc;
+                    odsc.entityID = tSE->GetID();
+                    odsc.state = tSE->MakeDamageState();
+                PyTuple* up = odsc.Encode();
+                mySE->GetPilot()->QueueDestinyEvent(&up);
+            }
+
+    }
+
+    Dump();
+
+    if (sConfig.debug.UseProfiling)
+        sProfile.AddTime(onTargProfile, GetTimeUSeconds() - profileStartTime);
+}
+
+void TargetManager::Unload() {
+
+    for (auto cur : m_targets)
+        SafeDelete(cur.second);
+    m_targets.clear();
+    for (auto cur : m_targetedBy)
+        SafeDelete(cur.second);
+    m_targetedBy.clear();
+}
+
+void TargetManager::ClearTargets(uint8 msg/*TargMgr::Msg::NoMsg*/) {
+    m_canAttack = false;
+
+    if (m_targets.empty())
+        return;
+
+    for (auto cur : m_targets) {
+        SafeDelete(cur.second);
+        // failsafe   still chance this code is incomplete
+        if (cur.first->TargetMgr() != nullptr)
+            cur.first->TargetMgr()->OnTarget(mySE, TargMgr::Mode::OtherLost, msg);
+    }
+    m_targets.clear();
+
+    _log(TARGET__INFO, "ClearTarget() - %s(%u) has cleared all targets.  %u left", mySE->GetName(), mySE->GetID(), m_targets.size());
+}
+
+void TargetManager::ClearFromTargets(bool update/*true*/, uint8 msg/*TargMgr::Msg::NoMsg*/) {
+    if (m_targetedBy.empty())
+        return;
+
+    std::vector<SystemEntity *> ToNotify;
+    for (auto cur : m_targetedBy) {
+        //SafeDelete(cur.second);
+        //do not notify until we clear our target list! otherwise bad things happen.
+        if (update)
+            ToNotify.push_back(cur.first);
+        //_log(TARGET__TRACE, "ClearFrom() - %s(%u) has added %s(%u) to delete list.", \
+                mySE->GetName(), mySE->GetID(), cur.first->GetName(), cur.first->GetID());
+    }
+    //m_targetedBy.clear();
+
+    for (auto cur : ToNotify)
+        if (cur->TargetMgr() != nullptr)
+            cur->TargetMgr()->OnTarget(mySE, TargMgr::Mode::Lost, msg);
+}
+
+bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
+{   // NOTE this will be called by npc and players.  check for client before throw
+    if (!mySE->HasPilot()) {
+        codelog(TARGET__ERROR, "StartTargeting() called by pilot-less ship %s(%u) to target %s(%u)", \
+                                mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+        return false;
+    }
+
+    //first make sure they are not already in the list
+    std::map<SystemEntity *, TargetEntry *>::iterator res = m_targets.find(tSE);
+    if (res != m_targets.end()) {
+        _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but we are already targeting them. Ignoring request.", \
+                mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+        return false;
+    }
+
+    // get lower of ship and char target skills, with minimum of 1
+    uint8 maxLockedTargets = 1;
+    uint8 maxCharTargets = mySE->GetPilot()->GetChar()->GetSkillLevel(EvESkill::Targeting);
+    maxCharTargets += mySE->GetPilot()->GetChar()->GetSkillLevel(EvESkill::Multitasking);
+    if (maxCharTargets > 0)
+        if (maxLockedTargets < maxCharTargets)
+            maxLockedTargets = maxCharTargets;
+
+    uint8 maxShipTargets = (uint8)sRef->GetAttribute(AttrMaxLockedTargets).get_uint32();
+    if (maxShipTargets > 0)
+        if (maxLockedTargets > maxShipTargets)
+            maxLockedTargets = maxShipTargets;
+
+    if (m_targets.size() >= maxLockedTargets) {
+        mySE->GetPilot()->SendNotifyMsg("Your ship and skills combination can only handle %u targets at a time.", maxLockedTargets);
+        _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but we already have max targets of %u.  Ignoring request.", \
+                mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), maxLockedTargets);
+        return false;
+    }
+    // Check against max target range
+    double maxTargetRange = sRef->GetAttribute(AttrMaxTargetRange).get_double();
+    GVector rangeToTarget( mySE->GetPosition(), tSE->GetPosition() );
+    // adjust for target radius, in case of ice or other large objects.
+    double targetDistance = rangeToTarget.length();
+    if (tSE->IsAsteroidSE())
+        targetDistance -= tSE->GetRadius();
+    if (targetDistance > maxTargetRange) {
+        mySE->GetPilot()->SendNotifyMsg("Your ship and skills combination can only target to %.0f meters.  %s is %.0f meters away.", \
+                maxTargetRange, tSE->GetName(), targetDistance);
+        _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but they are too far away.  Ignoring request.", \
+        mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+        return false;
+    }
+
+    // Calculate Time to Lock target:
+    float lockTime = TimeToLock( sRef, tSE );
+
+    TargetEntry *te = new TargetEntry();
+        te->state = TargMgr::State::Locking;
+        te->timer.Start(lockTime *1000);      //timer has ms resolution
+        m_targets[tSE] = te;
+
+    _log(TARGET__INFO, "Pilot %s in %s(%u) started targeting %s(%u) (%.2fs lock time)", \
+            mySE->GetPilot()->GetName(), mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), lockTime);
+
+    tSE->TargetMgr()->OnTarget(mySE, TargMgr::Mode::OtherAdd, TargMgr::Msg::ClientReq);
+    return true;
+}
+
+bool TargetManager::StartTargeting(SystemEntity *tSE, float lockTime, uint8 maxLockedTargets, double maxTargetLockRange, bool &chase)
+{       // NOTE  this is for npcs
+    //first make sure they are not already in the list
+    if (m_targets.find(tSE) != m_targets.end()) {
+        _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but we are already targeting them. Ignoring request.", \
+                mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+        return true;
+    }
+
+    // Check against max locked target count
+    if (m_targets.size() >= maxLockedTargets){
+        _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but we already have max targets.  Ignoring request.", \
+                mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+        return false;
+    }
+    // Check against max target range
+    if (mySE->GetPosition().distance(tSE->GetPosition()) > maxTargetLockRange){
+        _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but they are too far away.  Begin Approaching.", \
+                mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+        chase = true;
+        return false;
+    }
+
+    TargetEntry *te = new TargetEntry();
+        te->state = TargMgr::State::Locking;
+        te->timer.Start(lockTime);
+    m_targets[tSE] = te;
+
+    _log(TARGET__INFO, "NPC %s(%u) started targeting %s(%u) (%.2fs lock time)", \
+            mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), (lockTime /1000));
+
+    tSE->TargetMgr()->OnTarget(mySE, TargMgr::Mode::OtherAdd, TargMgr::Msg::InternalCall);
+    return true;
+}
+
+bool TargetManager::IsTargetedBy(SystemEntity* pSE)
+{
+    return (m_targetedBy.find(pSE) != m_targetedBy.end());
+}
+
+SystemEntity* TargetManager::GetFirstTarget(bool need_locked/*false*/) {
+    if (m_targets.empty())
+        return nullptr;
+
+    if (!need_locked)
+        return m_targets.begin()->first;
+
+    for (auto cur : m_targets)
+        if (cur.second->state > TargMgr::State::Locking)
+            return cur.first;
+
+    return nullptr;
+}
+
+PyList* TargetManager::GetTargets() const {
+    PyList* result = new PyList();
+    if (m_targets.empty())
+        return result;
+
+    for (auto cur : m_targets)
+        result->AddItemInt(cur.first->GetID() );
+
+    return result;
+}
+
+PyList* TargetManager::GetTargeters() const {
+    PyList* result = new PyList();
+    if (m_targetedBy.empty())
+        return result;
+
+    for (auto cur : m_targetedBy)
+        result->AddItemInt(cur.first->GetID() );
+
+    return result;
+}
+
+// no longer used.  1Feb18
+// will be used by advanced NPCs....eventually
+SystemEntity* TargetManager::GetTarget(uint32 targetID, bool need_locked/*true*/) const {
+    if (m_targets.empty())
+        return nullptr;
+
+    std::map<SystemEntity*, TargetEntry*>::const_iterator itr = m_targets.begin();
+    for (; itr != m_targets.end(); ++itr) {
+        if (itr->first->GetID() != targetID)
+            continue;
+        //found it...
+        if (need_locked and (itr->second->state < TargMgr::State::Passive)) {
+            _log(TARGET__WARNING, "Found target %u, but it is not locked (%s).", \
+                    targetID, TargetManager::GetStateName(itr->second->state));
+            continue;
+        }
+        _log(TARGET__INFO, "Found target %u: %s (nl? %s)", targetID, itr->first->GetName(), need_locked?"yes":"no");
+        return itr->first;
+    }
+    _log(TARGET__WARNING, "Unable to find target %u (nl? %s)", targetID, need_locked?"yes":"no");
+    return nullptr;    //not found.
+}
+
+float TargetManager::TimeToLock( ShipItemRef sRef, SystemEntity* tSE ) const {
+    if ((tSE->IsAsteroidSE()) or (tSE->IsDeployableSE()) or (tSE->IsWreckSE())
+    or  (tSE->IsContainerSE()) or (tSE->IsInanimateSE()))
+        return 2.0f;
+
+    //  fixed lock time  -allan 24Dec14  -updated 26May15   -revisited after new effects system implementation 25Mar17
+    uint32 scanRes = sRef->GetAttribute(AttrScanResolution).get_uint32();
+    uint32 sigRad = 25; // set base as capsule with 25m signature radius
+
+	if ( tSE->GetSelf().get() != nullptr )
+        if ( tSE->GetSelf()->HasAttribute(AttrSignatureRadius) )
+            sigRad = tSE->GetSelf()->GetAttribute(AttrSignatureRadius).get_uint32();
+
+    //https://wiki.eveonline.com/en/wiki/Targeting_speed
+    //locktime = 40000/(scanres * asinh(sigrad)^2)
+    float time = ( 40000 /(scanRes * std::pow(asinh(sigRad), 2)));   // higher scan res means faster lock time.
+
+    /*  distance-based modifier to targeting speed?         sure, why the hell not?   -allan 27.6.15
+     *  +0.1s for each 10k distance
+     *     distance = pos - targ.pos
+     *     disMod = distance /10k (for 10k increments)
+     *     time += disMod * 0.1
+     */
+    double distance = sRef->position().distance( tSE->GetPosition());
+    // check for snipers... >85k distance do NOT need additional 7.5+s to targettime
+    // should we check LRT skill for pilots to modify this?  yes....not sure how to modify time using this yet...
+    /*
+    uint8 sLevel = 1;
+    if (ship->HasPilot()) {
+        sLevel += ship->GetPilot()->GetChar()->GetSkillLevel(EvESkill::LongRangeTargeting);   // bonus to target range
+        sLevel += ship->GetPilot()->GetChar()->GetSkillLevel(EvESkill::SignatureAnalysis); // skill at operating target systems
+        sLevel += ship->GetPilot()->GetChar()->GetSkillLevel(EvESkill::Electronics);   // basic ship sensor and computer systems
+    }
+    */
+    //if (mySE->IsNPCSE())      // not all snipers are npc
+        if (distance > 85000)
+            distance -= 75000;
+
+    float disMod = distance /10000;
+    if (disMod < 1)
+        disMod = 0;
+    time += (disMod * 0.1);
+
+	return time;
+}
+
+void TargetManager::AddTargetModule(ActiveModule* pMod)
+{
+    _log(TARGET__WARNING, "Adding %s:%s to %s's activeModule list.", \
+            pMod->GetShipRef()->name(), pMod->GetSelf()->name(), mySE->GetName() );
+    // i think this check is redundant...shouldnt be able to activate non-miner on roid.
+    if (mySE->IsAsteroidSE())
+        if (!pMod->IsMiningLaser())
+            return;
+
+    m_modules.emplace(pMod->itemID(), pMod);
+}
+
+void TargetManager::RemoveTargetModule(ActiveModule* pMod)
+{
+    _log(TARGET__WARNING, "Removing the %s on %s from %s's activeModule list.", \
+            pMod->GetSelf()->name(), pMod->GetShipRef()->name(), mySE->GetName() );
+    m_modules.erase(pMod->itemID());
+}
+
+void TargetManager::ClearModules() {
+    for (auto cur : m_modules)
+        cur.second->AbortCycle();
+}
+
+void TargetManager::Destroyed()
+{
+    _log(TARGET__INFO, "%s(%u) has been destroyed. %u modules, %u targets, and %u targeters in maps.", \
+            mySE->GetName(), mySE->GetID(), m_modules.size(), m_targets.size(), m_targetedBy.size());
+
+    std::string effect = "TargetDestroyed";
+    // iterate thru the map of modules targeting this object, and call Deactivate on each.
+    for (auto cur : m_modules) {
+        //  some modules should immediately cease cycle when target destroyed.  miners are NOT in this call
+        switch (cur.second->groupID()) {
+            //case EVEDB::invGroups::Target_Painter:
+            //case EVEDB::invGroups::Tracking_Disruptor:
+            //case EVEDB::invGroups::Remote_Sensor_Damper:
+            //case EVEDB::invGroups::Remote_Sensor_Booster:
+            //case EVEDB::invGroups::Armor_Repair_Projector:
+            //case EVEDB::invGroups::Shield_Transporter:
+            //case EVEDB::invGroups::Energy_Vampire:
+            //case EVEDB::invGroups::Energy_Transfer_Array:
+            //case EVEDB::invGroups::Energy_Destabilizer:
+            //case EVEDB::invGroups::Projected_ECCM:
+            case EVEDB::invGroups::Ship_Scanner:
+            case EVEDB::invGroups::Cargo_Scanner:{
+                // should we tell player about this target being destroyed?
+                cur.second->AbortCycle();
+            } break;
+            default: {
+                cur.second->Deactivate(effect);
+            } break;
+        }
+        // remove module from this list
+        m_modules.erase(cur.first);
+    }
+
+    OnTarget(nullptr, TargMgr::Mode::Clear, TargMgr::Msg::Destroyed);
+}
+
+// specific for asteroids; only called by asteroids
+void TargetManager::Depleted(MiningLaser* pMod)
+{
+    if (!mySE->IsAsteroidSE()) {
+        codelog(MODULE__ERROR, "Depleted() called by Non Astroid %s", mySE->GetName());
+        return;
+    }
+
+    _log(TARGET__WARNING, "Asteroid %s(%u) calling Depleted.", mySE->GetName(), mySE->GetID() );
+
+    // remove master module (easier here)
+    m_modules.erase(pMod->itemID());
+
+    std::multimap<float, MiningLaser*> mMap;
+    // iterate thru the map of modules and add to map as MiningLasers with their mining volume
+    for (auto cur : m_modules)
+        mMap.emplace(cur.second->GetMiningModule()->GetMiningVolume(), cur.second->GetMiningModule());
+
+    // call Depleted() on master module with map of active modules
+    pMod->Depleted(mMap);
+}
+
+void TargetManager::QueueEvent( PyTuple** event ) const
+{
+    for (auto cur : m_targetedBy)
+        if (cur.first->HasPilot()) {
+            PyIncRef(*event);
+            cur.first->GetPilot()->QueueDestinyEvent(event);
+        }
+}
+
+void TargetManager::QueueUpdate( PyTuple** update ) const
+{
+    for (auto cur : m_targetedBy)
+        if (cur.first->HasPilot()) {
+            PyIncRef(*update);
+            cur.first->GetPilot()->QueueDestinyUpdate(update);
+        }
+}
+
+/* debugging methods */
+std::string TargetManager::TargetList(uint16 &length, uint16 &count) {
+    std::ostringstream str;
+    if (m_targets.empty()) {
+        str << "Targets: <br>";
+        str << "   *NONE*<br>";
+        length += 23;
+    } else {
+        str << "Targets: <br>";
+        length += 11;
+        for (auto cur : m_targets) {
+            str << "  " << cur.first->GetName();
+            str << " (" << cur.first->GetID() << ") <br>";
+            length += 35;
+            ++count;
+        }
+    }
+    if (m_targetedBy.empty())  {
+        str << "Targeted by: <br>";
+        str << "   *NONE*<br>";
+        length += 28;
+    } else {
+        str << "Targeted by: <br>";
+        length += 15;
+        for (auto cur : m_targetedBy) {
+            str << "  " << cur.first->GetName();
+            str << " (" << cur.first->GetID() << ") <br>";
+            length += 35;
+            ++count;
+        }
+    }
+    str << "Active Modules: (ship:module)<br>";
+    length += 30;
+    if (m_modules.empty()) {
+        str << "   *NONE*";
+        length += 10;
+    } else {
+        for (auto cur : m_modules) {
+            str << "  " << cur.second->GetShipRef()->itemName();
+            str << ":" << cur.second->GetSelf()->itemName() << "<br>";
+            length += 55;
+            ++count;
+        }
+    }
+
+    return str.str();
+}
+
+void TargetManager::Dump() const {
+    if (!is_log_enabled(TARGET__DUMP))
+        return;
+
+    _log(TARGET__DUMP, "Target Dump for %s(%u):", mySE->GetName(), mySE->GetID());
+    if (m_targets.empty()) {
+        _log(TARGET__DUMP, "    No Targets");
+    } else {
+        for (auto cur : m_targets)
+            cur.second->Dump(cur.first);
+    }
+    if (m_targetedBy.empty()) {
+        _log(TARGET__DUMP, "    No Targeters");
+    } else {
+        for (auto cur : m_targetedBy)
+            cur.second->Dump(cur.first);
+    }
+
+    _log(TARGET__DUMP, "    Active Modules: (ship:module)");
+    if (m_modules.empty()) {
+        _log(TARGET__DUMP, "      *NONE*");
+    } else {
+        for (auto cur : m_modules)
+            _log(TARGET__DUMP, "\t\t %s: %s", cur.second->GetShipRef()->name(), cur.second->GetSelf()->name());
+    }
+}
+
+void TargetManager::TargetEntry::Dump(SystemEntity* pSE) const {
+    if (timer.Enabled()) {
+        _log(TARGET__DUMP, "    Targeting %s(%u): %s - Timer Running with %ums remaining.", \
+                pSE->GetName(), pSE->GetID(), TargetManager::GetStateName(state), timer.GetRemainingTime());
+    } else {
+        _log(TARGET__DUMP, "    Targeting %s(%u): %s", pSE->GetName(), pSE->GetID(), TargetManager::GetStateName(state));
+    }
+}
+
+void TargetManager::TargetedByEntry::Dump( SystemEntity* pSE ) const {
+    _log(TARGET__DUMP, "    Targeted By %s(%u): %s", pSE->GetName(), pSE->GetID(), TargetManager::GetStateName(state));
+}
+
+const char* TargetManager::GetStateName( uint8 state ) {
+    switch(state) {
+        case TargMgr::State::Idle:      return "Idle";
+        case TargMgr::State::Locking:   return "Locking";
+        case TargMgr::State::Passive:   return "Passive";
+        case TargMgr::State::Locked:    return "Locked";
+        default:                        return "Invalid";
+    }
+}
+
+const char* TargetManager::GetModeName ( uint8 mode ) {
+
+    switch(mode) {
+        case TargMgr::Mode::None:       return "None";
+        case TargMgr::Mode::Add:        return "Add";
+        case TargMgr::Mode::Lost:       return "Lost";
+        case TargMgr::Mode::Clear:      return "Clear";
+        case TargMgr::Mode::OtherAdd:   return "OtherAdd";
+        case TargMgr::Mode::OtherLost:  return "OtherLost";
+        case TargMgr::Mode::LockedBy:   return "LockedBy";
+        default:                        return "Invalid";
+    }
+}
+
+

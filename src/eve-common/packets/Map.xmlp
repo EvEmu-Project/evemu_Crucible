@@ -1,0 +1,26 @@
+
+<elements>
+
+  <elementDef name="Call_GetMapConnections">
+    <tupleInline>
+      <int name="id" />
+      <bool name="sol" />
+      <bool name="reg" />
+      <bool name="con" />
+      <int name="cel" />
+      <int name="_c" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_GetMapObjects">
+    <tupleInline>
+      <int name="systemID" />
+      <int name="reg" />
+      <int name="con" />
+      <int name="sys" />
+      <int name="sta" />
+      <int name="unknown" />
+    </tupleInline>
+  </elementDef>
+
+</elements>

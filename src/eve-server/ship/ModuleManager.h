@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -72,7 +72,7 @@ class Basic_Log;
 // ModuleManager class, one for Subsystems, one for Ships and Skills, one for Modules and Rigs, one for Implants, and one for
 // Remotely applied modifiers from external hostile entities.
 //
-// More to follow, and this will be copied to http://wiki.evemu.org
+// More to follow, and this will be copied to https://evemu.dev
 //
 //     -- Aknor Jaden
 //

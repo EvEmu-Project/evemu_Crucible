@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,38 +42,21 @@ protected:
 
     MarketDB m_db;
 
-    PyCallable_DECL_CALL(GetStationAsks)
-    PyCallable_DECL_CALL(GetSystemAsks)
-    PyCallable_DECL_CALL(GetRegionBest)
-    PyCallable_DECL_CALL(GetMarketGroups)
-    PyCallable_DECL_CALL(GetOrders)
-    PyCallable_DECL_CALL(GetOldPriceHistory)
-    PyCallable_DECL_CALL(GetNewPriceHistory)
-    PyCallable_DECL_CALL(PlaceCharOrder)
-    PyCallable_DECL_CALL(GetCharOrders)
-    PyCallable_DECL_CALL(ModifyCharOrder)
-    PyCallable_DECL_CALL(CancelCharOrder)
-    PyCallable_DECL_CALL(CharGetNewTransactions)
-    PyCallable_DECL_CALL(StartupCheck)
-    PyCallable_DECL_CALL(GetCorporationOrders)
-
-    void _ExecuteBuyOrder(uint32 buy_order_id, uint32 stationID, uint32 quantity, Client *seller, InventoryItemRef item, bool isCorp);
-    void _ExecuteSellOrder(uint32 sell_order_id, uint32 stationID, uint32 quantity, Client *buyer, bool isCorp);
-    void _SendOnOwnOrderChanged(Client *who, uint32 orderID, const char *action, bool isCorp, PyRep* order = NULL);
-    void _BroadcastOnOwnOrderChanged(uint32 regionID, uint32 orderID, const char *action, bool isCorp, PyRep* order = NULL);
-    void _SendOnMarketRefresh(Client *who);
-    void _BroadcastOnMarketRefresh(uint32 regionID);
-    void _InvalidateOrdersCache(uint32 regionID);
-
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+    PyCallable_DECL_CALL(GetStationAsks);
+    PyCallable_DECL_CALL(GetSystemAsks);
+    PyCallable_DECL_CALL(GetRegionBest);
+    PyCallable_DECL_CALL(GetMarketGroups);
+    PyCallable_DECL_CALL(GetOrders);
+    PyCallable_DECL_CALL(GetOldPriceHistory);
+    PyCallable_DECL_CALL(GetNewPriceHistory);
+    PyCallable_DECL_CALL(PlaceCharOrder);
+    PyCallable_DECL_CALL(GetCharOrders);
+    PyCallable_DECL_CALL(ModifyCharOrder);
+    PyCallable_DECL_CALL(CancelCharOrder);
+    PyCallable_DECL_CALL(CharGetNewTransactions);
+    PyCallable_DECL_CALL(CorpGetNewTransactions);
+    PyCallable_DECL_CALL(StartupCheck);
+    PyCallable_DECL_CALL(GetCorporationOrders);
 };
 
-
-
-
-
 #endif
-
-

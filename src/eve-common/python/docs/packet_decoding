@@ -1,0 +1,264 @@
+PyPacket.cpp:958  (this is payload packet building)
+    PyTuple *t4 = new PyTuple(2);
+        t4->items[0] = new PyInt(1);
+        t4->items[1] = args;       <<< body goes here... (call return)
+    PyTuple *t3 = new PyTuple(2);
+        t3->items[0] = new PyInt(0);
+        t3->items[1] = t4;
+    PyTuple *t2 = new PyTuple(2);
+        t2->items[0] = new PyInt(0);
+        t2->items[1] = new PySubStream(t3);
+    PyTuple *t1 = new PyTuple(2);
+        t1->items[0] = t2;
+        t1->items[1] = new PyNone();
+
+*** above code builds the following packet.  it goes in main packet[4] as payload.
+tuple -t1
+[0] tuple -t2
+    [0] int 0
+    [1] substream -t3
+        [0] tuple
+            [0] int 0
+            [1] tuple -t4
+                [0] int 1
+                [1] args here...
+[1] none
+
+
+    self.command, self.source, self.destination, self.userID, body, self.oob, self.contextKey = state
+** body is called payload in evemu,
+    oob is named_arguments,
+    contextKey is u/k
+
+PyPacket.cpp:268
+[PyObjectData Name: macho.Notification]     << server -> client
+  [PyTuple 6 items]                         << main packet
+    [PyInt 12]                              << 0 - type
+    [PyObjectData Name: macho.MachoAddress] << 1 - source
+      [PyTuple 4 items]                         << 0 - address container
+        [PyInt 1]                                   << 0 - addressType (node)  -- see description at bottom
+        [PyInt 700709]                              << 1 - nodeID
+        [PyNone]                                    << 2 - service
+        [PyNone]                                    << 3 - callID
+    [PyObjectData Name: macho.MachoAddress] << 2 - destination
+      [PyTuple 4 items]                         << 0 - address container
+        [PyInt 4]                                   << 0 - addressType (bcast)  -- see description at bottom
+        [PyString "DoDestinyUpdate"]                << 1 - bcastID
+        [PyList 0 items]                            << 2 - narrowcast
+        [PyString "clientID"]                       << 3 - id type
+    [PyInt 5654387]                         << 3 - userID
+    [PyTuple 1 items]                       << 4 - payload      - above code starts here
+      [PyTuple 2 items]
+        [PyInt 0]                               << unknown -always 0    "shared" maybe?
+        [PySubStream 18320 bytes]               << substream packet  - t3 in above code
+          [PyTuple 2 items]
+            [PyInt 0]                           << unknown -always 0    "compressed" maybe?
+            [PyTuple 2 items]
+              [PyInt 1]                         << remoteObject? -always 1 - t4 ends here
+              [PyTuple 3 items]                     << DoDestinyUpdateMain starts here
+                [PyList 1 items]                    << DoDestinyUpdateMain ends here
+                  [PyTuple 2 items]                     << DoDestinyAction {DoDestinyUpdate(state[0])} begins here)
+                    [PyInt 13650]                       << DoDestinyAction ends here (next items is raw in DoDestinyAction)
+                    [PyTuple 2 items]                       << PackagedAction starts here
+                      [PyString "PackagedAction"]           << used with add/remove balls and multiple other updates
+                      [PySubStream 7428 bytes]              << PackagedAction ends here.  must code substream into raw data to insert at this point
+                        [PyList 3 items]            << list/tuple inside PackagedAction packet holds updates (sent with addballs)
+                          [PyTuple 2 items]         << addballs2 packet starts here
+                            [PyInt 13650]           << state stamp
+                            [PyTuple 2 items]       << addballs packet starts here
+                              [PyString "AddBalls2"]
+                              [PyTuple 1 items]
+                          [PyTuple 2 items]
+                            [PyInt 13650]
+                            [PyTuple 2 items]
+                              [PyString "OnSpecialFX"]
+                          [PyTuple 2 items]
+                            [PyInt 13650]
+                            [PyTuple 2 items]
+                              [PyString "OnSpecialFX"]
+                [PyBool False]              << bool WaitForBubble
+                [PyList 0 items]            << list of events
+    [PyDict 1 kvp]                          << 5 - sequence (can be PyNone when sequence is not important)
+      [PyString "sn"]                           << "sequence number"  -this is only on 'notify' packets
+        [PyIntegerVar 53]                           << order # for this packet to be processed
+
+
+    [PyInt 5654387]                         << 3 - userID
+    [PyTuple 1 items]                       << 4 - payload      - above code starts here
+      [PyTuple 2 items]
+        [PyInt 0]                               << unknown -always 0
+        [PySubStream 39 bytes]                  << substream packet  - t3 in above code
+          [PyTuple 2 items]
+            [PyInt 0]                           << unknown -always 0
+            [PyTuple 2 items]
+              [PyInt 1]                         << unknown -always 1 - t4 ends here
+              [PyTuple 3 items]                     << DoDestinyUpdateMain starts here
+                [PyList 1 items]                    << DoDestinyUpdateMain ends here -this list grows with multiple updates
+                  [PyTuple 2 items]                     << DoDestinyAction starts here
+                    [PyInt 44601]                       << DoDestinyAction ends here (next items is raw in DoDestinyAction)
+                    [PyTuple 2 items]                       << queued update starts here
+                      [PyString "SetSpeedFraction"]
+                      [PyTuple 2 items]
+                [PyBool False]                      << bool WaitForBubble
+                [PyList 0 items]                    << list of events
+    [PyNone]                                << 5 - optional  -sequence number
+
+
+    [PyInt 5654387]                         << 3 - userID
+    [PyTuple 1 items]                       << 4 - payload      - above code starts here
+      [PyTuple 2 items]
+        [PyInt 0]                               << unknown -always 0
+        [PySubStream 120 bytes]                 << substream packet  - t3 in above code
+          [PyTuple 2 items]
+            [PyInt 0]                           << unknown -always 0
+            [PyTuple 2 items]
+              [PyInt 1]                         << unknown -always 1 - t4 ends here
+              [PyTuple 3 items]                     << DoDestinyUpdateMain starts here
+                [PyList 1 items]                    << DoDestinyUpdateMain ends here
+                  [PyTuple 2 items]                     << DoDestinyAction starts here
+                    [PyInt 44599]                       << DoDestinyAction ends here (next items is raw in DoDestinyAction)
+                    [PyTuple 2 items]                       << queued update starts here
+                      [PyString "SetState"]
+                      [PyTuple 1 items]
+                [PyBool False]                      << bool WaitForBubble
+                [PyList 0 items]                    << list of events
+    [PyNone]                                << 5 - optional  -sequence number
+
+
+ ********  Notification  packets **********
+
+        [PyString "OnSystemScanStarted"]
+    [PyInt 5654387]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 26 bytes]                 << substream packet  - t3 in above code
+          [PyTuple 2 items]
+            [PyInt 0]                           << unknown -always 0
+            [PyTuple 2 items]
+              [PyInt 1]                         << unknown -always 1 - t4 ends here
+              [PyTuple 3 items]                     << OnSystemScanStarted packet starts here
+                [PyIntegerVar 129813155720852448]       << timestamp
+                [PyInt 10000]                           << scan duration in ms
+                [PyDict 0 kvp]                          << dict of active probes.  0 = ship scanner
+    [PyNone]                                << 5 - optional  -sequence number
+
+
+
+        [PyString "OnSystemScanStopped"]
+    [PyInt 5654387]
+    [PyTuple 1 items]
+      [PyTuple 2 items]
+        [PyInt 0]
+        [PySubStream 1266 bytes]                 << substream packet  - t3 in above code
+          [PyTuple 2 items]
+            [PyInt 0]                           << unknown -always 0
+            [PyTuple 2 items]
+              [PyInt 1]                         << unknown -always 1 - t4 ends here
+              [PyTuple 3 items]                     << OnSystemScanStopped starts here
+                [PyDict 0 kvp]                      << dict of active probes  -ScanProbesDict goes here.  0 = ship scanner
+                [PyList 9 items]                    << list of results        -SystemScanResult goes here
+                  [PyObjectData Name: util.KeyVal]
+                    [PyDict 12 kvp]
+                [PyList 0 items]                    << unknown
+    [PyNone]                                << 5 - optional  -sequence number
+
+
+
+
+***************************  Session Change Packet  **************************
+PyPacket.cpp:958  (this is payload packet building)
+            return new_tuple(args);
+
+
+[PyObjectData Name: macho.SessionChangeNotification]    << server -> client
+  [PyTuple 7 items]                                     << main packet
+    [PyInt 16]                                              << 0 - type
+    [PyObjectData Name: macho.MachoAddress]                 << 1 - source
+      [PyTuple 4 items]                                         << 0 - address container
+        [PyInt 1]                                                   << 0 - addressType (node)  -- see description at bottom
+        [PyInt 1000002102]                                          << 1 - nodeID
+        [PyNone]                                                    << 2 - service
+        [PyNone]                                                    << 3 - callID
+    [PyObjectData Name: macho.MachoAddress]                 << 2 - destination
+      [PyTuple 4 items]                                         << 0 - address container
+        [PyInt 2]                                                   << 0 - addressType (client)  -- see description at bottom
+        [PyIntegerVar 94901000002102]                               << 1 - clientID
+        [PyNone]                                                    << 2 - callID
+        [PyNone]                                                    << 3 - service
+    [PyInt 5654387]                                         << 3 - userID
+    [PyTuple 3 items]                                       << 4 - payload (this is found in General.xmlp:SessionChangeNotification)
+      [PyIntegerVar 416778130514021680]                         << 0 - sessionID
+      [PyTuple 2 items]                                         << 1 - tuple 0
+        [PyInt 0]                                                   << 0 - unknown - have only seen '0'
+        [PyDict 5 kvp]                                              << 1 - dict of changed session items
+          [PyString "fleetbooster"]         << session variable name (key)
+          [PyTuple 2 items]                 << tuple containing changes (value)
+            [PyNone]                            << previous value
+            [PyInt 3]                           << new value
+          [PyString "fleetid"]
+          [PyTuple 2 items]
+            [PyNone]
+            [PyIntegerVar 1246810806465]    << last 6 digits are nodeID, first digit,1, is fleet, second 6 are uniqueID
+          [PyString "wingid"]
+          [PyTuple 2 items]
+            [PyNone]
+            [PyIntegerVar 2251710806465]    << last 6 digits are nodeID, first digit,2, is wing, second 6 are uniqueID
+          [PyString "squadid"]
+          [PyTuple 2 items]
+            [PyNone]
+            [PyIntegerVar 3285110806465]    << last 6 digits are nodeID, first digit,3, is squad, second 6 are uniqueID
+          [PyString "fleetrole"]
+          [PyTuple 2 items]
+            [PyNone]
+            [PyInt 3]
+      [PyList 6 items]                                          << 2 - nodes of interest to client (still connected)
+        [PyInt -1]                                                  << 0 - "-1" means "all nodes"
+        [PyInt 806408]
+        [PyInt 806465]                      << fleetObjectHandler node in this session
+        [PyInt 806464]                      << fleetProxy node in this session
+        [PyInt 806356]                      << certificateMgr node in this session
+        [PyInt 806383]                      << lsc node in this session
+    [PyNone]                                                << 5 - optional  -sequence
+    [PyNone]                                                << 6 - unknown -always None.
+
+
+
+packet[5]
+named_arguments
+
+OID+ is an objectID, which the client adds to an 'added_objects' list
+    this is sent with bound objects
+
+sn  is sequence number.  it is only sent with notification packets and tells client what order to process the packets in
+
+
+
+*************  ADDRESS DECODING BASED ON COMMAND  ***************
+
+        Node      = 1,
+            /* [0]   addressType
+             * [1]   nodeID
+             * [2]   service
+             * [3]   callID
+             */
+        Client    = 2,
+            /* [0]   addressType
+             * [1]   clientID
+             * [2]   callID
+             * [3]   service
+             */
+        Broadcast = 4,
+            /* [0]   addressType
+             * [1]   broadcastID
+             * [2]   narrowcast
+             * [3]   idtype
+             */
+        Any       = 8,
+            /* [0]   addressType
+             * [1]   service
+             * [2]   callID
+             */
+
+
+

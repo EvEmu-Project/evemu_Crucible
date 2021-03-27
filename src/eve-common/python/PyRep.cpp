@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Zhur
+    Rewrite:    Allan
 */
 
 #include "eve-common.h"
@@ -34,38 +35,51 @@
 #include "python/PyRep.h"
 #include "utils/EVEUtils.h"
 
+/** Lookup table for PyRep type object type names. */
+const char* const s_mTypeString[] =
+{
+    "Min",
+    "Integer",          //1
+    "Long",             //2
+    "Real",             //3
+    "Boolean",          //4
+    "Buffer",           //5
+    "String",           //6
+    "WString",          //7
+    "Token",            //8
+    "Tuple",            //9
+    "List",             //10
+    "Dict",             //11
+    "None",             //12
+    "SubStruct",        //13
+    "SubStream",        //14
+    "ChecksumedStream", //15
+    "Object",           //16
+    "ObjectEx",         //17
+    "PackedRow",        //18
+    "Invalid Type"      //19
+};
+
+/** @todo  this entire class should be better thought-out for class d'tors and object lifetime
+ *         however, i dont fully understand it enough to implement better memMgmt at this time
+ *              -allan 10Jan19
+ *
+ *      -- possibly rewrite to use shared_ptr/unique_ptr, then we can remove the RefObject inheritance here.
+ */
+
 /************************************************************************/
 /* PyRep base Class                                                     */
 /************************************************************************/
-const char* const PyRep::s_mTypeString[] =
+PyRep::PyRep( PyType t )
+: RefObject(1),
+mType( t )
 {
-    "Integer",          //0
-    "Long",             //1
-    "Real",             //2
-    "Boolean",          //3
-    "Buffer",           //4
-    "String",           //5
-    "WString",          //6
-    "Token",            //7
-    "Tuple",            //8
-    "List",             //9
-    "Dict",             //10
-    "None",             //11
-    "SubStruct",        //12
-    "SubStream",        //13
-    "ChecksumedStream", //14
-    "Object",           //15
-    "ObjectEx",         //16
-    "PackedRow",        //17
-    "UNKNOWN TYPE",     //18
-};
 
-PyRep::PyRep( PyType t ) : RefObject( 1 ), mType( t ) {}
-PyRep::~PyRep() {}
+}
 
 const char* PyRep::TypeString() const
 {
-    if( mType >= 0 && mType < PyTypeMax )
+    if ((mType > PyTypeMin) and (mType < PyTypeError))
         return s_mTypeString[ mType ];
 
     return s_mTypeString[ PyTypeError ];
@@ -74,14 +88,12 @@ const char* PyRep::TypeString() const
 void PyRep::Dump( FILE* into, const char* pfx ) const
 {
     PyFileDumpVisitor dumper( into, pfx );
-
     visit( dumper );
 }
 
 void PyRep::Dump( LogType type, const char* pfx ) const
 {
     PyLogDumpVisitor dumper( type, type, pfx );
-
     visit( dumper );
 }
 
@@ -90,6 +102,53 @@ int32 PyRep::hash() const
     sLog.Error( "Hash", "Unhashable type: '%s'", TypeString() );
     return -1;
 }
+
+std::string PyRep::StringContent(PyRep* pRep)
+{
+    if (pRep == nullptr)
+        return "";
+    else if (pRep->IsString())
+        return pRep->AsString()->content();
+    else if (pRep->IsWString())
+        return pRep->AsWString()->content();
+    else if (pRep->IsNone())
+        return "";
+
+    _log(COMMON__ERROR, "PyRep::StringContent() - Expected PyString or PyWString but got %s.", pRep->TypeString());
+    return "";
+}
+
+int64 PyRep::IntegerValue(PyRep* pRep)
+{
+    if (pRep == nullptr)
+        return 0;
+    else if (pRep->IsInt())
+        return pRep->AsInt()->value();
+    else if (pRep->IsLong())
+        return pRep->AsLong()->value();
+    else if (pRep->IsFloat())
+        return pRep->AsFloat()->value();
+    else if (pRep->IsBool())
+        return pRep->AsBool()->value();
+
+    return 0;
+}
+
+uint32 PyRep::IntegerValueU32(PyRep* pRep) {
+    if (pRep == nullptr)
+        return 0;
+    else if (pRep->IsInt())
+        return pRep->AsInt()->value();
+    else if (pRep->IsLong())
+        return pRep->AsLong()->value();
+    else if (pRep->IsFloat())
+        return pRep->AsFloat()->value();
+    else if (pRep->IsBool())
+        return pRep->AsBool()->value();
+
+    return 0;
+}
+
 
 /************************************************************************/
 /* PyRep Integer Class                                                  */
@@ -110,9 +169,9 @@ bool PyInt::visit( PyVisitor& v ) const
 int32 PyInt::hash() const
 {
     /* XXX If this is changed, you also need to change the way
-    Python's long, float and complex types are hashed. */
+     *    Python's long, float and complex types are hashed. */
     int32 x = mValue;
-    if( x == -1 )
+    if (x == -1 )
         x = -2;
     return x;
 }
@@ -141,17 +200,13 @@ int32 PyLong::hash() const
 
 #define LONG_BIT_PyLong_SHIFT    (8*sizeof(long) - PyLong_SHIFT)
 
-    long x;
-    int i;
-    int sign;
+    long x=0;
+    int i=8, sign=1;
 
     /* This is designed so that Python ints and longs with the
     same value hash to the same value, otherwise comparisons
     of mapping keys will turn out weird */
-    i = 8;
-    sign = 1;
-    x = 0;
-    if( i < 0 ) {
+    if (i < 0 ) {
         sign = -1;
         i = -(i);
     }
@@ -165,11 +220,11 @@ int32 PyLong::hash() const
         /* If the addition above overflowed (thinking of x as
         unsigned), we compensate by incrementing.  This preserves
         the value modulo ULONG_MAX. */
-        if( (unsigned long)x < ((uint8*)&mValue)[i] )//v->ob_digit[i])
+        if ((unsigned long)x < ((uint8*)&mValue)[i] )//v->ob_digit[i])
             x++;
     }
     x = x * sign;
-    if( x == -1 )
+    if (x == -1 )
         x = -2;
     return x;
 
@@ -207,10 +262,9 @@ int32 PyFloat::hash() const
     ( !finite( X ) && !isnan( X ) )
 
     double v = mValue;
-    double intpart, fractpart;
-    int expo;
-    long hipart;
-    long x;        /* the final hash value */
+    double intpart=0.0, fractpart=0.0;
+    int expo=0;
+    long hipart=0, x=0;        /* x is the final hash value */
     /* This is designed so that Python numbers of different types
     * that compare equal hash to the same value; otherwise comparisons
     * of mapping keys will turn out weird.
@@ -219,16 +273,15 @@ int32 PyFloat::hash() const
     fractpart = modf(v, &intpart);
     if (fractpart == 0.0) {
         /* This must return the same hash as an equal int or long. */
-        if (intpart > INT32_MAX || -intpart > INT32_MAX) {
+        if ((intpart > INT32_MAX) or (-intpart > INT32_MAX)) {
             /* Convert to long and use its hash. */
-            PyRep *plong;    /* converted to Python long */
             if (Py_IS_INFINITY(intpart))
                 /* can't convert to long int -- arbitrary */
                 v = v < 0 ? -271828.0 : 314159.0;
             //plong = PyLong_FromDouble(v);
 
-            plong = new PyLong( (int64)v ); // this is a hack
-            if (plong == NULL)
+            PyRep *plong = new PyLong( (int64)v ); // this is a hack
+            if (plong == nullptr)
                 return -1;
             x = plong->hash();
             PyDecRef( plong );
@@ -298,7 +351,7 @@ bool PyNone::visit( PyVisitor& v ) const
 
 int32 PyNone::hash() const
 {
-    /* damn hack... bleh.. but its done like this... in python and PyNone is a static singleton....*/
+    /* damn hack... bleh.. but its done like this... in python a PyNone is a static singleton....*/
     int32* hash = (int32*)this;
     return *((int32*)&hash);
 }
@@ -309,7 +362,7 @@ int32 PyNone::hash() const
 PyBuffer::PyBuffer( size_t len, const uint8& value ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( len, value ) ), mHashCache( -1 ) {}
 PyBuffer::PyBuffer( const Buffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer ) ), mHashCache( -1 ) {}
 
-PyBuffer::PyBuffer( Buffer** buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( *buffer ), mHashCache( -1 ) { *buffer = NULL; }
+PyBuffer::PyBuffer( Buffer** buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( *buffer ), mHashCache( -1 ) { *buffer = nullptr; }
 PyBuffer::PyBuffer( const PyString& str ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( str.content().begin(), str.content().end() ) ), mHashCache( -1 ) {}
 PyBuffer::PyBuffer( const PyBuffer& buffer ) : PyRep( PyRep::PyTypeBuffer ), mValue( new Buffer( buffer.content() ) ), mHashCache( buffer.mHashCache ) {}
 
@@ -327,12 +380,11 @@ bool PyBuffer::visit( PyVisitor& v ) const
 
 int32 PyBuffer::hash() const
 {
-    if( mHashCache != -1 )
+    if (mHashCache != -1 )
         return mHashCache;
 
-    register int len;
-    register unsigned char *p;
-    register long x;
+    int32 len=0, x=0;
+    unsigned char* p(nullptr);
 
     /* XXX potential bugs here, a readonly buffer does not imply that the
      * underlying memory is immutable.  b_readonly is a necessary but not
@@ -351,12 +403,12 @@ int32 PyBuffer::hash() const
     //if (!get_buf(self, &ptr, &size, ANY_BUFFER))
     //    return -1;
     p = (unsigned char *) &content()[0];
-    len = content().size();
+    len = (int32)content().size();
     x = *p << 7;
     while( --len >= 0 )
         x = (1000003*x) ^ *p++;
     x ^= content().size();
-    if( x == -1 )
+    if (x == -1 )
         x = -2;
     mHashCache = x;
     return x;
@@ -390,14 +442,15 @@ bool PyString::visit( PyVisitor& v ) const
 
 int32 PyString::hash() const
 {
-    if( mHashCache != -1 )
+    if (mHashCache != -1 )
         return mHashCache;
 
-    register int len;
+    /*
+    register int32 len;
     register unsigned char *p;
     register int32 x;
 
-    len = mValue.length();
+    len = (int32)mValue.length();
     p = (unsigned char *) mValue.c_str();
     x = *p << 7;
     while (--len >= 0)
@@ -405,9 +458,14 @@ int32 PyString::hash() const
     x ^= mValue.length();
     if (x == -1)
         x = -2;
-
     mHashCache = x;
-    return x;
+    */
+    if (mValue.length() > 0)
+        mHashCache = std::hash<std::string>{} (mValue);
+    else
+        mHashCache = 0;
+
+    return mHashCache;
 }
 
 /************************************************************************/
@@ -436,14 +494,14 @@ size_t PyWString::size() const
 
 int32 PyWString::hash() const
 {
-    if( mHashCache != -1 )
+    if (mHashCache != -1 )
         return mHashCache;
-
-    register int len;
+/*
+    register int32 len;
     register unsigned char *p;
     register int32 x;
 
-    len = mValue.length();
+    len = (int32)mValue.length();
     p = (unsigned char *) mValue.c_str();
     x = *p << 7;
     while (--len >= 0)
@@ -453,7 +511,13 @@ int32 PyWString::hash() const
         x = -2;
 
     mHashCache = x;
-    return x;
+    */
+    if (mValue.length() > 0)
+        mHashCache = std::hash<std::string>{} (mValue);
+    else
+        mHashCache = 0;
+
+    return mHashCache;
 }
 
 /************************************************************************/
@@ -479,16 +543,16 @@ bool PyToken::visit( PyVisitor& v ) const
 /************************************************************************/
 /* PyRep Tuple Class                                                    */
 /************************************************************************/
-PyTuple::PyTuple( size_t item_count ) : PyRep( PyRep::PyTypeTuple ), items( item_count, NULL ) {}
+PyTuple::PyTuple( size_t item_count ) : PyRep( PyRep::PyTypeTuple ), items( item_count, nullptr ) {}
 PyTuple::PyTuple( const PyTuple& oth ) : PyRep( PyRep::PyTypeTuple ), items()
 {
-    // Use assigment operator
+    // Use assignment operator
     *this = oth;
 }
 
 PyTuple::~PyTuple()
 {
-    clear();
+    //clear();
 }
 
 PyRep* PyTuple::Clone() const
@@ -503,10 +567,8 @@ bool PyTuple::visit( PyVisitor& v ) const
 
 void PyTuple::clear()
 {
-    iterator cur, end;
-    cur = items.begin();
-    end = items.end();
-    for(; cur != end; cur++)
+    iterator cur = items.begin(), end = items.end();
+    for (; cur != end; ++cur)
         PySafeDecRef( *cur );
 
     items.clear();
@@ -516,18 +578,12 @@ PyTuple& PyTuple::operator=( const PyTuple& oth )
 {
     clear();
     items.resize( oth.size() );
-
-    iterator cur, end;
-    cur = items.begin();
-    end = items.end();
-
-    const_iterator cur_oth, end_oth;
-    cur_oth = oth.begin();
-    end_oth = oth.end();
-    for(; cur != end && cur_oth != end_oth; cur++, cur_oth++)
+    iterator cur = items.begin(), end = items.end();
+    const_iterator cur_oth = oth.begin(), oth_end = oth.end();
+    for (; cur != end && cur_oth != oth_end; ++cur, ++cur_oth)
     {
-        if( *cur_oth == NULL )
-            *cur = NULL;
+        if (*cur_oth == nullptr )
+            *cur = nullptr;
         else
             *cur = (*cur_oth)->Clone();
     }
@@ -537,9 +593,9 @@ PyTuple& PyTuple::operator=( const PyTuple& oth )
 
 int32 PyTuple::hash() const
 {
-    register long x, y;
-    register int len = items.size();
-    register long index = 0;
+    long x=0, y=0;
+    int32 len = (int32)items.size();
+    long index = 0;
     long mult = 1000003L;
     x = 0x345678L;
     while (--len >= 0) {
@@ -553,22 +609,22 @@ int32 PyTuple::hash() const
     x += 97531L;
     if (x == -1)
         x = -2;
-    return x;
+    return (uint32)x;
 }
 
 /************************************************************************/
 /* PyRep List Class                                                     */
 /************************************************************************/
-PyList::PyList( size_t item_count ) : PyRep( PyRep::PyTypeList ), items( item_count, NULL ) {}
+PyList::PyList( size_t item_count ) : PyRep( PyRep::PyTypeList ), items( item_count, nullptr ) {}
 PyList::PyList( const PyList& oth ) : PyRep( PyRep::PyTypeList ), items()
 {
-    // Use assigment operator
+    // Use assignment operator
     *this = oth;
 }
 
 PyList::~PyList()
 {
-    clear();
+    //clear();
 }
 
 PyRep* PyList::Clone() const
@@ -583,10 +639,8 @@ bool PyList::visit( PyVisitor& v ) const
 
 void PyList::clear()
 {
-    iterator cur, end;
-    cur = items.begin();
-    end = items.end();
-    for(; cur != end; cur++)
+    iterator cur = items.begin(), end = items.end();
+    for (; cur != end; ++cur)
         PySafeDecRef( *cur );
 
     items.clear();
@@ -596,19 +650,12 @@ PyList& PyList::operator=( const PyList& oth )
 {
     clear();
     items.resize( oth.size() );
-
-    iterator cur, end;
-    cur = items.begin();
-    end = items.end();
-
-    const_iterator cur_oth, end_oth;
-    cur_oth = oth.begin();
-    end_oth = oth.end();
-
-    for(; cur != end && cur_oth != end_oth; cur++, cur_oth++)
+    iterator cur = items.begin(), end = items.end();
+    const_iterator cur_oth = oth.begin(), oth_end = oth.end();
+    for (; cur != end && cur_oth != oth_end; ++cur, ++cur_oth)
     {
-        if( *cur_oth == NULL )
-            *cur = NULL;
+        if (*cur_oth == nullptr )
+            *cur = nullptr;
         else
             *cur = (*cur_oth)->Clone();
     }
@@ -622,13 +669,13 @@ PyList& PyList::operator=( const PyList& oth )
 PyDict::PyDict() : PyRep( PyRep::PyTypeDict ), items() {}
 PyDict::PyDict( const PyDict& oth ) : PyRep( PyRep::PyTypeDict ), items()
 {
-    // Use assigment operator
+    // Use assignment operator
     *this = oth;
 }
 
 PyDict::~PyDict()
 {
-    clear();
+    //clear();
 }
 
 PyRep* PyDict::Clone() const
@@ -643,11 +690,8 @@ bool PyDict::visit( PyVisitor& v ) const
 
 void PyDict::clear()
 {
-    iterator cur, end;
-    cur = items.begin();
-    end = items.end();
-    for(; cur != end; cur++)
-    {
+    iterator cur = items.begin();
+    for (; cur != items.end(); ++cur) {
         PyDecRef( cur->first );
         PySafeDecRef( cur->second );
     }
@@ -661,8 +705,8 @@ PyRep* PyDict::GetItem( PyRep* key ) const
     assert( key );
 
     const_iterator res = items.find( key );
-    if( res == items.end() )
-        return NULL;
+    if (res == items.end() )
+        return nullptr;
 
     return res->second;
 }
@@ -682,58 +726,39 @@ PyRep* PyDict::GetItemString( const char* key ) const
 void PyDict::SetItem( PyRep* key, PyRep* value )
 {
     /* make sure we have valid arguments */
-    assert( key );
+    if ( key == nullptr )
+        return;
 
     /* note: add check if the key object is hashable
-     * if not ( it will return -1 then ) return false;
+     * if not ( it will return -1 ) return false;
      */
-
-    /* note: needs to be enabled when object reference is working.
-     */
-    PyIncRef( key );
-    PyIncRef( value );
+    if (key->hash() == -1)
+        return;
 
     /* check if we need to replace a dictionary entry */
     iterator itr = items.find( key );
-    if( itr == items.end() )
-    {
-        // Keep both key & value
+    if (itr == items.end()) {
+        // Keep both key & value  (make_pair makes copy of args passed)
         items.insert( std::make_pair( key, value ) );
-    }
-    else
-    {
-        // We don't need it anymore, we're using itr->first.
+    } else {
+        // We found 'key' in current dict, so use itr->first and decRef 'key'.
         PyDecRef( key );
-
-        // Replace itr->second with value.
+        // Replace itr->second with new value.
         PySafeDecRef( itr->second );
-        itr->second = value;
+        if (value == nullptr)
+            itr->second = PyStatic.NewNone();
+        else
+            itr->second = value;
     }
-}
-
-void PyDict::SetItem( const char* key, const char* value )
-{
-    SetItem(key, (PyRep*)new PyString(value));
-}
-
-
-void PyDict::SetItem( const char* key, PyRep* value )
-{
-    PyString *key_name = new PyString(key);
-    SetItem(key_name, value);
 }
 
 PyDict& PyDict::operator=( const PyDict& oth )
 {
     clear();
-
-    const_iterator cur, end;
-    cur = oth.begin();
-    end = oth.end();
-    for(; cur != end; cur++)
-    {
-        if( cur->second == NULL )
-            SetItem( cur->first->Clone(), NULL );
+    const_iterator cur = oth.begin(), end = oth.end();
+    for (; cur != end; ++cur) {
+        if (cur->second == nullptr )
+            SetItem( cur->first->Clone(), nullptr );
         else
             SetItem( cur->first->Clone(), cur->second->Clone() );
     }
@@ -770,14 +795,16 @@ bool PyObject::visit( PyVisitor& v ) const
 /************************************************************************/
 /* PyObjectEx                                                           */
 /************************************************************************/
-PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ), 
-														  mHeader( header ), mIsType2( is_type_2 ), 
-														  mList( new PyList ), mDict( new PyDict ) {}
+PyObjectEx::PyObjectEx( bool is_type_2, PyRep* header ) : PyRep( PyRep::PyTypeObjectEx ),
+mHeader( header ), mIsType2( is_type_2 ), mList( new PyList() ), mDict( new PyDict() )
+{
+
+}
 
 PyObjectEx::PyObjectEx( const PyObjectEx& oth ) : PyRep( PyRep::PyTypeObjectEx ),
-  mHeader( oth.header()->Clone() ), mIsType2( oth.isType2() ), mList( new PyList ), mDict( new PyDict )
+  mHeader( oth.header()->Clone() ), mIsType2( oth.isType2() ), mList( new PyList() ), mDict( new PyDict() )
 {
-    // Use assigment operator
+    // Use assignment operator
     *this = oth;
 }
 
@@ -810,9 +837,10 @@ PyObjectEx& PyObjectEx::operator=( const PyObjectEx& oth )
 /************************************************************************/
 /* PyObjectEx_Type1                                                     */
 /************************************************************************/
-PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args ) : PyObjectEx( false, _CreateHeader( type, args ) ) {}
-PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, PyDict* keywords ) : PyObjectEx( false, _CreateHeader( type, args, keywords ) ) {}
-PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, PyList* keywords ) : PyObjectEx( false, _CreateHeader( type, args, keywords ) ) {}
+PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, bool enclosed ) : PyObjectEx( false, _CreateHeader( type, args, enclosed ) ) {}
+PyObjectEx_Type1::PyObjectEx_Type1( PyObjectEx_Type1* args1, PyTuple* args2, bool enclosed ) : PyObjectEx( false, _CreateHeader( args1, args2, enclosed ) ) {}
+PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, PyDict* keywords, bool enclosed ) : PyObjectEx( false, _CreateHeader( type, args, keywords, enclosed ) ) {}
+PyObjectEx_Type1::PyObjectEx_Type1( PyToken* type, PyTuple* args, PyList* keywords, bool enclosed ) : PyObjectEx( false, _CreateHeader( type, args, keywords, enclosed ) ) {}
 
 PyToken* PyObjectEx_Type1::GetType() const
 {
@@ -833,7 +861,7 @@ PyDict* PyObjectEx_Type1::GetKeywords() const
     assert( header() );
     PyTuple* t = header()->AsTuple();
 
-    if( t->size() < 3 )
+    if (t->size() < 3 )
         t->items.push_back( new PyDict );
 
     return t->GetItem( 2 )->AsDict();
@@ -843,63 +871,93 @@ PyRep* PyObjectEx_Type1::FindKeyword( const char* keyword ) const
 {
     PyDict* kw = GetKeywords();
 
-    PyDict::const_iterator cur, end;
-    cur = kw->begin();
-    end = kw->end();
-    for(; cur != end; cur++)
-    {
-        if( cur->first->IsString() )
-            if( cur->first->AsString()->content() == keyword )
+    PyDict::const_iterator cur = kw->begin();
+    for (; cur != kw->end(); ++cur) {
+        if (cur->first->IsString() )
+            if (cur->first->AsString()->content() == keyword )
                 return cur->second;
     }
 
-    return NULL;
+    return nullptr;
 }
 
-PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args )
+PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, bool enclosed /*false*/ )
 {
-    if( args == NULL )
+    if (args == nullptr )
         args = new PyTuple( 0 );
 
-    PyTuple* head = new PyTuple( 2 );
-    head->SetItem( 0, type );
-    head->SetItem( 1, args );
+    PyTuple* body = new PyTuple( 2 );
+    if (enclosed) {
+        PyTuple* body1 = new PyTuple( 1 );
+            body1->SetItem( 0, type );
 
-    return head;
+        body->SetItem( 0, body1 );
+        body->SetItem( 1, args );
+    } else {
+        body->SetItem( 0, type );
+        body->SetItem( 1, args );
+    }
+
+    return body;
 }
 
-PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords )
+PyTuple* PyObjectEx_Type1::_CreateHeader( PyObjectEx_Type1* args1, PyTuple* args2, bool enclosed /*false*/ )
 {
-    if( args == NULL )
-        args = new PyTuple( 0 );
+    if (args2 == nullptr )
+        args2 = new PyTuple( 0 );
 
-    PyTuple* head = new PyTuple( keywords == NULL ? 2 : 3 );
-    head->SetItem( 0, type );
-    head->SetItem( 1, args );
-    if( head->size() > 2 )
-        head->SetItem( 2, keywords );
+    PyTuple* body = new PyTuple( 2 );
+    if (enclosed) {
+        PyTuple* body1 = new PyTuple( 1 );
+            body1->SetItem( 0, args1 );
 
-    return head;
+        body->SetItem( 0, body1 );
+        body->SetItem( 1, args2 );
+    } else {
+        body->SetItem( 0, args1 );
+        body->SetItem( 1, args2 );
+    }
+
+    return body;
 }
 
-PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, PyList* keywords )
+PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, PyDict* keywords, bool enclosed /*false*/ )
 {
-    if( args == NULL )
+    if (args == nullptr )
         args = new PyTuple( 0 );
 
-    PyTuple* head = new PyTuple( keywords == NULL ? 2 : 3 );
-    head->SetItem( 0, type );
-    head->SetItem( 1, args );
-    if( head->size() > 2 )
-        head->SetItem( 2, keywords );
+    PyTuple* body = new PyTuple( keywords == nullptr ? 2 : 3 );
+        body->SetItem( 0, type );
+        body->SetItem( 1, args );
+        if (body->size() > 2 )
+            body->SetItem( 2, keywords );
+    if (enclosed)
+        codelog(COMMON__WARNING, "This constructor is used.  please finish code.");
 
-    return head;
+    return body;
+}
+
+PyTuple* PyObjectEx_Type1::_CreateHeader( PyToken* type, PyTuple* args, PyList* keywords, bool enclosed /*false*/ )
+{
+    if (args == nullptr )
+        args = new PyTuple( 0 );
+
+    PyTuple* body = new PyTuple( keywords == nullptr ? 2 : 3 );
+        body->SetItem( 0, type );
+        body->SetItem( 1, args );
+    if (body->size() > 2 )
+        body->SetItem( 2, keywords );
+    if (enclosed)
+        codelog(COMMON__WARNING, "This constructor is used.  please finish code.");
+
+    return body;
 }
 
 /************************************************************************/
 /* PyObjectEx_Type2                                                     */
 /************************************************************************/
-PyObjectEx_Type2::PyObjectEx_Type2( PyTuple* args, PyDict* keywords ) : PyObjectEx( true, _CreateHeader( args, keywords ) ) {}
+PyObjectEx_Type2::PyObjectEx_Type2( PyTuple* args, PyDict* keywords, bool enclosed /*false*/  ) : PyObjectEx( true, _CreateHeader( args, keywords, enclosed ) ) {}
+PyObjectEx_Type2::PyObjectEx_Type2( PyToken* args, PyDict* keywords, bool enclosed /*false*/  ) : PyObjectEx( true, _CreateHeader( args, keywords, enclosed ) ) {}
 
 PyTuple* PyObjectEx_Type2::GetArgs() const
 {
@@ -917,30 +975,49 @@ PyRep* PyObjectEx_Type2::FindKeyword( const char* keyword ) const
 {
     PyDict* kw = GetKeywords();
 
-    PyDict::const_iterator cur, end;
-    cur = kw->begin();
-    end = kw->end();
-    for(; cur != end; cur++)
-    {
-        if( cur->first->IsString() )
-            if( cur->first->AsString()->content() == keyword )
+    PyDict::const_iterator cur = kw->begin();
+    for (; cur != kw->end(); ++cur)
+        if ( cur->first->IsString() )
+            if ( cur->first->AsString()->content() == keyword )
                 return cur->second;
-    }
 
-    return NULL;
+    return nullptr;
 }
 
-PyTuple* PyObjectEx_Type2::_CreateHeader( PyTuple* args, PyDict* keywords )
+PyTuple* PyObjectEx_Type2::_CreateHeader( PyTuple* args, PyDict* keywords, bool enclosed /*false*/  )
 {
     assert( args );
-    if( keywords == NULL )
-        keywords = new PyDict;
+    if (keywords == nullptr )
+        keywords = new PyDict();
 
-    PyTuple *head = new PyTuple( 2 );
-    head->SetItem( 0, args );
-    head->SetItem( 1, keywords );
+    PyTuple* body = new PyTuple( 2 );
+        body->SetItem( 0, args );
+        body->SetItem( 1, keywords );
+        /*
+    if (enclosed) {
+        PyTuple* head = new PyTuple( 1 );
+            head->SetItem( 0, body );
+    } */
 
-    return head;
+    return body; // head;
+}
+
+PyTuple* PyObjectEx_Type2::_CreateHeader( PyToken* args, PyDict* keywords, bool enclosed /*false*/  )
+{
+    assert( args );
+    if (keywords == nullptr )
+        keywords = new PyDict();
+
+    PyTuple* body = new PyTuple( 2 );
+        body->SetItem( 0, args );
+        body->SetItem( 1, keywords );
+
+    if (enclosed) {
+        PyTuple* head = new PyTuple( 1 );
+            head->SetItem( 0, body );
+    }
+
+    return body; // head;
 }
 
 /************************************************************************/
@@ -950,8 +1027,6 @@ PyPackedRow::PyPackedRow( DBRowDescriptor* header ) : PyRep( PyRep::PyTypePacked
 PyPackedRow::PyPackedRow( const PyPackedRow& oth ) : PyRep( PyRep::PyTypePackedRow ),
   mHeader( oth.header() ), mFields( new PyList( oth.header()->ColumnCount() ) )
 {
-    PyIncRef( mHeader );
-
     *this = oth;
 }
 
@@ -973,8 +1048,7 @@ bool PyPackedRow::visit( PyVisitor& v ) const
 
 bool PyPackedRow::SetField( uint32 index, PyRep* value )
 {
-    if( !header()->VerifyValue( index, value ) )
-    {
+    if (!header()->VerifyValue( index, value ) )  {
         PyDecRef( value );
         return false;
     }
@@ -1024,10 +1098,10 @@ bool PySubStruct::visit( PyVisitor& v ) const
 /************************************************************************/
 /* PyRep SubStream Class                                                */
 /************************************************************************/
-PySubStream::PySubStream( PyRep* rep ) : PyRep( PyRep::PyTypeSubStream ), mData( NULL ), mDecoded( rep ) {}
-PySubStream::PySubStream( PyBuffer* buffer ): PyRep(PyRep::PyTypeSubStream), mData(  buffer ), mDecoded( NULL ) {}
+PySubStream::PySubStream( PyRep* rep ) : PyRep( PyRep::PyTypeSubStream ), mData( nullptr ), mDecoded( rep ) {}
+PySubStream::PySubStream( PyBuffer* buffer ): PyRep(PyRep::PyTypeSubStream), mData(  buffer ), mDecoded( nullptr ) {}
 PySubStream::PySubStream( const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStream),
-  mData( oth.data() == NULL ? NULL : new PyBuffer( *oth.data() ) ), mDecoded( oth.decoded() == NULL ? NULL : oth.decoded()->Clone() ) {}
+  mData( oth.data() == nullptr ? nullptr : new PyBuffer( *oth.data() ) ), mDecoded( oth.decoded() == nullptr ? nullptr : oth.decoded()->Clone() ) {}
 
 PySubStream::~PySubStream()
 {
@@ -1047,14 +1121,12 @@ bool PySubStream::visit( PyVisitor& v ) const
 
 void PySubStream::EncodeData() const
 {
-    if( decoded() == NULL || data() != NULL )
+    if ((mDecoded == nullptr) or (mData != nullptr))
         return;
 
-    Buffer* buf = new Buffer;
-    if( !Marshal( decoded(), *buf ) )
-    {
-        sLog.Error( "Marshal", "Failed to marshal rep %p.", decoded() );
-
+    Buffer* buf = new Buffer();
+    if (!Marshal( mDecoded, *buf ) ) {
+        sLog.Error( "Marshal", "Failed to marshal rep %p.", mDecoded );
         SafeDelete( buf );
         return;
     }
@@ -1065,10 +1137,10 @@ void PySubStream::EncodeData() const
 
 void PySubStream::DecodeData() const
 {
-    if( data() == NULL || decoded() != NULL )
+    if ((mData == nullptr) or (mDecoded != nullptr))
         return;
 
-    mDecoded = Unmarshal( data()->content() );
+    mDecoded = Unmarshal( mData->content() );
 }
 
 /************************************************************************/
@@ -1095,83 +1167,89 @@ bool PyChecksumedStream::visit( PyVisitor& v ) const
 /************************************************************************/
 /* tuple large integer helper functions                                 */
 /************************************************************************/
-PyTuple * new_tuple(uint64 arg1)
+PyTuple* new_tuple(int64 arg1)
 {
-    PyTuple * res = new PyTuple(1);
-    res->SetItem(0, new PyLong(arg1));
-
+    PyTuple* res = new PyTuple(1);
+        res->SetItem(0, new PyLong(arg1));
     return res;
 }
 
-PyTuple * new_tuple(uint64 arg1, uint64 arg2)
+PyTuple* new_tuple(int64 arg1, int64 arg2)
 {
-    PyTuple * res = new PyTuple(2);
-    res->SetItem(0, new PyLong(arg1));
-    res->SetItem(1, new PyLong(arg2));
-
+    PyTuple* res = new PyTuple(2);
+        res->SetItem(0, new PyLong(arg1));
+        res->SetItem(1, new PyLong(arg2));
     return res;
 }
 
 /************************************************************************/
 /* tuple string helper functions                                        */
 /************************************************************************/
-PyTuple * new_tuple(const char* arg1)
+PyTuple* new_tuple(const char* arg1)
 {
-    PyTuple * res = new PyTuple(1);
-    res->SetItem(0, new PyString(arg1));
+    PyTuple* res = new PyTuple(1);
+        res->SetItem(0, new PyString(arg1));
     return res;
 }
 
-PyTuple * new_tuple(const char* arg1, const char* arg2)
+PyTuple* new_tuple(const char* arg1, const char* arg2)
 {
-    PyTuple * res = new PyTuple(2);
-    res->SetItem(0, new PyString(arg1));
-    res->SetItem(1, new PyString(arg2));
+    PyTuple* res = new PyTuple(2);
+        res->SetItem(0, new PyString(arg1));
+        res->SetItem(1, new PyString(arg2));
     return res;
 }
 
-PyTuple * new_tuple(const char* arg1, const char* arg2, const char* arg3)
+PyTuple* new_tuple(const char* arg1, const char* arg2, const char* arg3)
 {
-    PyTuple * res = new PyTuple(3);
-    res->SetItem(0, new PyString(arg1));
-    res->SetItem(1, new PyString(arg2));
-    res->SetItem(2, new PyString(arg3));
+    PyTuple* res = new PyTuple(3);
+        res->SetItem(0, new PyString(arg1));
+        res->SetItem(1, new PyString(arg2));
+        res->SetItem(2, new PyString(arg3));
     return res;
 }
 
 /************************************************************************/
-/* tulpe mixed helper functions                                         */
+/* mixed tuple helper functions                                         */
 /************************************************************************/
-PyTuple * new_tuple(const char* arg1, const char* arg2, PyTuple* arg3)
+PyTuple* new_tuple(const char* arg1, const char* arg2, PyTuple* arg3)
 {
-    PyTuple * res = new PyTuple(3);
-    res->SetItem(0, new PyString(arg1));
-    res->SetItem(1, new PyString(arg2));
-    res->SetItem(2, arg3);
+    PyTuple* res = new PyTuple(3);
+        res->SetItem(0, new PyString(arg1));
+        res->SetItem(1, new PyString(arg2));
+        res->SetItem(2, arg3);
     return res;
 }
 
-PyTuple * new_tuple(const char* arg1, PyRep* arg2, PyRep* arg3)
+PyTuple* new_tuple(const char* arg1, PyRep* arg2, PyRep* arg3)
 {
-    PyTuple * res = new PyTuple(3);
-    res->SetItem(0, new PyString(arg1));
-    res->SetItem(1, arg2);
-    res->SetItem(2, arg3);
+    PyTuple* res = new PyTuple(3);
+        res->SetItem(0, new PyString(arg1));
+        res->SetItem(1, arg2);
+        res->SetItem(2, arg3);
     return res;
 }
 
-/* @note we should increase ref here.... but don't make it to complicated to use... for now... */
-PyTuple * new_tuple( PyRep* arg1, PyRep* arg2 )
+PyTuple* new_tuple(PyRep* arg1, PyRep* arg2, PyRep* arg3)
 {
-    PyTuple * res = new PyTuple(2);
-    res->SetItem(0, arg1);
-    res->SetItem(1, arg2);
+    PyTuple* res = new PyTuple(3);
+        res->SetItem(0, arg1);
+        res->SetItem(1, arg2);
+        res->SetItem(2, arg3);
     return res;
 }
 
-PyTuple * new_tuple( PyRep* arg1 )
+PyTuple* new_tuple( PyRep* arg1, PyRep* arg2 )
 {
-    PyTuple * res = new PyTuple(1);
-    res->SetItem(0, arg1);
+    PyTuple* res = new PyTuple(2);
+        res->SetItem(0, arg1);
+        res->SetItem(1, arg2);
+    return res;
+}
+
+PyTuple* new_tuple( PyRep* arg1 )
+{
+    PyTuple* res = new PyTuple(1);
+        res->SetItem(0, arg1);
     return res;
 }

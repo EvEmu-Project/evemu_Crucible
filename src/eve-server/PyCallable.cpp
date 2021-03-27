@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -28,7 +28,7 @@
 #include "PyCallable.h"
 
 PyCallable::PyCallable()
-: m_serviceDispatch(NULL)
+: m_serviceDispatch(nullptr)
 {
 }
 
@@ -39,16 +39,18 @@ PyCallable::~PyCallable()
 PyResult PyCallable::Call(const std::string &method, PyCallArgs &args) {
     //call the dispatcher, capturing the result.
     try {
-        PyResult res = m_serviceDispatch->Dispatch(method, args);
+        PyResult res(m_serviceDispatch->Dispatch(method, args));
 
-        _log(SERVICE__CALL_TRACE, "Call %s returned:", method.c_str());
-        res.ssResult->Dump(SERVICE__CALL_TRACE, "      ");
-
+        if (is_log_enabled(SERVICE__CALL_TRACE)) {
+            _log(SERVICE__CALL_TRACE, "Call %s returned:", method.c_str());
+            res.ssResult->Dump(SERVICE__CALL_TRACE, "      ");
+        }
         return res;
     } catch(PyException &e) {
-        _log(SERVICE__CALL_TRACE, "Call %s threw exception:", method.c_str());
-        e.ssException->Dump(SERVICE__CALL_TRACE, "      ");
-
+        if (is_log_enabled(SERVICE__CALL_ERROR)) {
+            _log(SERVICE__CALL_ERROR, "Call %s threw exception:", method.c_str());
+            e.ssException->Dump(SERVICE__CALL_ERROR, "      ");
+        }
         throw;
     }
 }
@@ -58,78 +60,80 @@ PyCallArgs::PyCallArgs(Client *c, PyTuple* tup, PyDict* dict)
 : client(c),
   tuple(tup)
 {
-    PyIncRef( tup );
-
-    PyDict::const_iterator cur, end;
-    cur = dict->begin();
-    end = dict->end();
-    for(; cur != end; cur++) {
-        if(!cur->first->IsString()) {
+   // PyIncRef( tup );
+    for (PyDict::const_iterator cur = dict->begin(); cur != dict->end(); cur++) {
+        if (!cur->first->IsString()) {
             _log(SERVICE__ERROR, "Non-string key in call named arguments. Skipping.");
             cur->first->Dump(SERVICE__ERROR, "    ");
             continue;
         }
-        byname[ cur->first->AsString()->content() ] = cur->second;
         PyIncRef( cur->second );
+        byname[ cur->first->AsString()->content() ] = cur->second;
     }
 }
 
 PyCallArgs::~PyCallArgs() {
     PySafeDecRef( tuple );
-
-    std::map<std::string, PyRep *>::iterator cur, end;
-    cur = byname.begin();
-    end = byname.end();
-    for(; cur != end; cur++)
-        PySafeDecRef( cur->second );
+    for (auto cur : byname)
+        PySafeDecRef( cur.second );
 }
 
 void PyCallArgs::Dump(LogType type) const {
-    if(!is_log_enabled(type))
+    if (!is_log_enabled(type))
         return;
 
     _log(type, "  Call Arguments:");
-    tuple->Dump(type, "      ");
-    if(!byname.empty()) {
-        _log(type, "  Call Named Arguments:");
-        std::map<std::string, PyRep *>::const_iterator cur, end;
-        cur = byname.begin();
-        end = byname.end();
-        for(; cur != end; cur++) {
-            _log(type, "    Argument '%s':", cur->first.c_str());
-            cur->second->Dump(type, "        ");
+    tuple->Dump(type, "    ");
+    if (!byname.empty()) {
+        _log(type, " Named Arguments:");
+        for (auto cur : byname) {
+            _log(type, "  %s", cur.first.c_str());
+            cur.second->Dump(type, "    ");
         }
     }
 }
 
 /* PyResult */
-PyResult::PyResult( PyRep* result ) : ssResult( NULL == result ? new PyNone : result ) {}
-PyResult::PyResult( const PyResult& oth ) : ssResult( NULL ) { *this = oth; }
-PyResult::~PyResult() { PySafeDecRef( ssResult ); }
+PyResult::PyResult() : ssResult( nullptr ), ssNamedResult( nullptr ) {}
+PyResult::PyResult(PyRep* result)
+: ssResult(result != nullptr ? result : PyStatic.NewNone()),
+ssNamedResult( nullptr )
+{}
+PyResult::PyResult(PyRep* result, PyDict* namedResult)
+: ssResult(result != nullptr ? result : PyStatic.NewNone()),
+ssNamedResult(namedResult)
+{}
+
+PyResult::PyResult( const PyResult& oth ) : ssResult( nullptr ), ssNamedResult( nullptr ) { *this = oth; }
+PyResult::~PyResult() { PySafeDecRef( ssResult ); PySafeDecRef( ssNamedResult ); }
 
 PyResult& PyResult::operator=( const PyResult& oth )
 {
     PySafeDecRef( ssResult );
-    ssResult = oth.ssResult;
+    if (oth.ssResult != nullptr ) {
+        ssResult = oth.ssResult;
+    } else {
+        ssResult = PyStatic.NewNone();
+    }
+    PySafeIncRef( ssResult );
 
-    if( NULL != ssResult )
-        PyIncRef( ssResult );
+    PySafeDecRef( ssNamedResult );
+    ssNamedResult = oth.ssNamedResult;
+    PySafeIncRef( ssNamedResult );
 
     return *this;
 }
 
 /* PyException */
-PyException::PyException( PyRep* except ) : ssException( NULL == except ? new PyNone : except ) {}
-PyException::PyException( const PyException& oth ) : ssException( NULL ) { *this = oth; }
+PyException::PyException( PyRep* except ) : ssException( except != nullptr ? except : PyStatic.NewNone()) {}
+PyException::PyException( const PyException& oth ) : ssException( nullptr ) { *this = oth; }
 PyException::~PyException() { PySafeDecRef( ssException ); }
 
 PyException& PyException::operator=( const PyException& oth )
 {
     PySafeDecRef( ssException );
     ssException = oth.ssException;
-
-    if( NULL != ssException )
-        PyIncRef( ssException );
+    PySafeIncRef( ssException );
 
     return *this;
 }

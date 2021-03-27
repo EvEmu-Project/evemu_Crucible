@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Zhur
+    Updates:    Allan
 */
 
 
@@ -28,6 +29,7 @@
 #define __CONFIGDB_H_INCL__
 
 #include "ServiceDB.h"
+  #include "packets/Map.h"
 
 class PyRep;
 
@@ -37,6 +39,7 @@ class ConfigDB
 public:
     PyRep *GetMultiOwnersEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiLocationsEx(const std::vector<int32> &entityIDs);
+    PyRep *GetMultiStationEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiAllianceShortNamesEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiCorpTickerNamesEx(const std::vector<int32> &entityIDs);
     PyRep *GetMultiGraphicsEx(const std::vector<int32> &entityIDs);
@@ -44,16 +47,21 @@ public:
     PyObject *GetUnits();
     PyObjectEx *GetMapObjects(uint32 entityID, bool wantRegions, bool wantConstellations, bool wantSystems, bool wantStations);
     PyObject *GetMap(uint32 solarSystemID);
+    PyObject *GetMapOffices(uint32);
+    PyObject *GetMapConnections(uint32, bool, bool, bool, uint16, uint16);
     PyObject *ListLanguages();
     PyRep *GetStationSolarSystemsByOwner(uint32 ownerID);
     PyRep *GetCelestialStatistic(uint32 celestialID);
+    PyRep *GetTextsForGroup(const std::string & langID, uint32 textgroup);
+    PyObject *GetMapLandmarks();
+
     /**
     * @brief Retrieves dynamic, celestial objects for a given solar system
     *
     * @param[in] solarSystemID  ID of the solar system whose objects are being retrieved
+    * @author allan
     */
     PyRep *GetDynamicCelestials(uint32 solarSystemID);
-    PyRep *GetTextsForGroup(const std::string & langID, uint32 textgroup);
 
 protected:
 };

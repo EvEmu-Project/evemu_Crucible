@@ -106,4 +106,114 @@
     </objectInline>
   </elementDef>
 
+  <!--
+        [PyObjectEx Type2]
+          [PyTuple 2 items]
+            [PyTuple 1 items]
+              [PyToken dbutil.CRowset]
+            [PyDict 1 kvp]
+              [PyString "header"]
+              [PyObjectEx Normal]
+                [PyTuple 2 items]
+                  [PyToken blue.DBRowDescriptor]
+                  [PyTuple 1 items]
+                    [PyTuple 8 items]
+                      [PyTuple 2 items]
+                        [PyString "notificationID"]
+                        [PyInt 3]
+                      [PyTuple 2 items]
+                        [PyString "typeID"]
+                        [PyInt 3]
+                      [PyTuple 2 items]
+                        [PyString "senderID"]
+                        [PyInt 3]
+                      [PyTuple 2 items]
+                        [PyString "receiverID"]
+                        [PyInt 3]
+                      [PyTuple 2 items]
+                        [PyString "processed"]
+                        [PyInt 11]
+                      [PyTuple 2 items]
+                        [PyString "created"]
+                        [PyInt 64]
+                      [PyTuple 2 items]
+                        [PyString "data"]
+                        [PyInt 130]
+                      [PyTuple 2 items]
+                        [PyString "deleted"]
+                        [PyInt 11]
+          [PyPackedRow 26 bytes]
+            ["notificationID" => <342699578> [I4]]
+            ["typeID" => <16> [I4]]
+            ["senderID" => <649670823> [I4]]
+            ["receiverID" => <1661059544> [I4]]
+            ["processed" => <0> [Bool]]
+            ["created" => <129495591600000000> [FileTime]]
+            ["data" => <applicationText: please?!
+charID: 649670823
+corpID: 98038978
+> [WStr]]
+            ["deleted" => <0> [Bool]]
+            -->
+
+  <elementDef name="Notification_Header">
+    <objectInline>
+      <stringInline value="blue.DBRowDescriptor" />
+      <tupleInline>
+        <tupleInline>
+          <stringInline value="notificationID" /><!-- this is same number in BillReceived msgs (any others?) -->
+          <int name="notificationID" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="typeID" /><!-- this data is found in EVE_Mail.h as Notify::Types -->
+          <int name="typeID" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="senderID" />
+          <int name="senderID" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="receiverID" />
+          <int name="receiverID" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="processed" />
+          <bool name="processed" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="created" />
+          <long name="created" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="data" />
+          <string name="data" />
+        </tupleInline>
+        <tupleInline>
+          <stringInline value="deleted" />
+          <bool name="deleted" />
+        </tupleInline>
+      </tupleInline>
+    </objectInline>
+  </elementDef>
+
+  <!-- Used to send OnNotificationRecieved msgs -->
+  <elementDef name="OnNotify">
+    <tupleInline>
+      <int name="notifyID" />
+      <int name="typeID" />
+      <int name="senderID" />
+      <long name="created" />
+      <raw name="data" />
+    </tupleInline>
+  </elementDef>
+
+  <!-- not sure what this is for -->
+  <elementDef name="NotificationMsg">
+    <tupleInline>
+      <element type="Notification_Header" name="header" />
+      <raw name="items" /><!-- this should be PyPackedRow and may have to build it in code -->
+    </tupleInline>
+  </elementDef>
+
+
 </elements>

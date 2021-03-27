@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -20,7 +20,8 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Aim, Captnoord, Zhur, Bloody.Rabbit
+    Author:     Aim, Captnoord, Zhur, Bloody.Rabbit
+    Updates:	Allan
 */
 
 #ifndef __EVE_CORE_H__INCL__
@@ -46,12 +47,6 @@
 #   define __STDC_FORMAT_MACROS 1
 #endif /* HAVE_INTTYPES_H */
 
-#ifdef HAVE_WINDOWS_H
-#   define _WIN32_WINNT 0x0500 // building for Win2k
-#   define WIN32_LEAN_AND_MEAN
-#   define NOMINMAX
-#endif /* !HAVE_WINDOWS_H */
-
 // Disable auto-linking of any Boost libraries
 #define BOOST_ALL_NO_LIB 1
 
@@ -73,6 +68,7 @@
 
 // Standard Template Library includes
 #include <algorithm>
+#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
@@ -83,24 +79,12 @@
 #include <stack>
 #include <string>
 #include <vector>
-
-/*
- * Technical Report 1 Standard Template Library includes
- * Note: my fellow developers please read 'http://en.wikipedia.org/wiki/Technical_Report_1'. I know its a wiki page
- *       but it gives you the general idea.
- */
-#ifdef HAVE_TR1_PREFIX
-#   include <tr1/functional>
-#   include <tr1/memory>
-#   include <tr1/tuple>
-#   include <tr1/unordered_map>
-#   include <tr1/unordered_set>
-#else /* !HAVE_TR1_PREFIX */
-#   include <functional>
-#   include <tuple>
-#   include <unordered_map>
-#   include <unordered_set>
-#endif /* !HAVE_TR1_PREFIX */
+#include <thread>
+#include <chrono>
+#include <functional>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
 
 #ifdef HAVE_CRTDBG_H
 #   include <crtdbg.h>
@@ -126,24 +110,14 @@
 #   include <vld.h>
 #endif /* HAVE_VLD_H */
 
-#ifdef HAVE_WINDOWS_H
-#   include <windows.h>
-#else /* !HAVE_WINDOWS_H */
-#   include <dirent.h>
-#   include <execinfo.h>
-#   include <pthread.h>
-#   include <unistd.h>
-#endif /* !HAVE_WINDOWS_H */
-
-#ifdef HAVE_WINSOCK2_H
-#   include <winsock2.h>
-#else /* !HAVE_WINSOCK2_H */
-#   include <fcntl.h>
-#   include <netdb.h>
-#   include <arpa/inet.h>
-#   include <netinet/in.h>
-#   include <sys/socket.h>
-#endif /* !HAVE_WINSOCK2_H */
+/* *nix includes */
+#include <dirent.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 #ifndef HAVE_ASINH
 #   include <boost/math/special_functions.hpp>
@@ -168,11 +142,27 @@
 #include <zlib.h>
 
 /*************************************************************************/
-/* Other stuff included by default                                       */
+/* MMGR - Memory Manager                                                 */
+/*  Memory managing & tracking software                                  */
+/*  This code is designed to track and log memory leaks                  */
 /*************************************************************************/
+/* note...this code causes free() errors in xmlpacketgenerator.o */
+//#include "memory/mmgr.h"
+
+/* { backtrace, backtrace_symbols, backtrace_symbols_fd } header file.
+ *  include this for DEBUG CODE ONLY!!
+ */
+#include "execinfo.h"
+
+/************************************************************************/
+/* Project-specific includes for files using ONLY eve-core.h            */
+/************************************************************************/
+// compatability defs (evemu unique defs)
 #include "eve-compat.h"
+// memory
+#include "memory/SafeMem.h"
 // utils
 #include "utils/FastInt.h"
-#include "utils/SafeMem.h"
+
 
 #endif /* !__EVE_CORE_H__INCL__ */

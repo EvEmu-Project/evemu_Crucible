@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -36,19 +36,19 @@ public:
 
     virtual void Release() = 0;
 
-    uint32 nodeID() const { return(m_nodeID); }
-    uint32 bindID() const { return(m_bindID); }
+    uint32 nodeID() const                               { return m_nodeID; }
+    uint32 bindID() const                               { return m_bindID; }
 
     //returns string "N=(nodeID):(bindID)"
     std::string GetBindStr() const;
-    std::string GetBoundObjectClassStr() const { return m_strBoundObjectName; };
+    const char* GetName() const                         { return m_strBoundObjectName.c_str(); };
 
     //just to say who we are:
     virtual PyResult Call(const std::string &method, PyCallArgs &args);
 
 protected:
     friend class PyServiceMgr;    //for access to _SetNodeBindID only.
-    void _SetNodeBindID(uint32 nodeID, uint32 bindID) { m_nodeID = nodeID; m_bindID = bindID; }
+    void _SetNodeBindID(uint32 nodeID, uint32 bindID)   { m_nodeID = nodeID; m_bindID = bindID; }
 
     PyServiceMgr *const m_manager;
     std::string m_strBoundObjectName;

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 
@@ -29,18 +30,29 @@
 
 #include "ServiceDB.h"
 
+class PyRep;
+class PyTuple;
+class PyResult;
+
 class ShipDB
 : public ServiceDB
 {
 public:
-    PyTuple* GetFormations();
-    static PyObject* GetEffectInformation(std::string effectName);
+    // insurance functions  -allan  21Jul14
+    PyRep *GetInsuranceByShipID(uint32 shipID);
+    PyRep *GetInsuranceByOwnerID(uint32 ownerID);
+    bool InsertInsuranceByShipID(uint32 shipID, std::string name, uint32 ownerID, float level, double payOut, bool isCorpItem = false, uint8 numWeeks = 12);
+	static void DeleteInsuranceByShipID(uint32 shipID);
+
+    float GetShipInsurancePayout(uint32 shipID);
+
+    bool IsShipInsured(uint32 shipID);
+
+    // linking save/load methods  -allan 05Jan19
+    static void LoadWeaponGroups(uint32 shipID, DBQueryResult& res);
+    // this will delete existing regardless of save state
+    static void SaveWeaponGroups(uint32 shipID, std::multimap<uint32, uint32>& data);
+    static void ClearWeaponGroups(uint32 shipID);
 };
 
-
-
-
-
 #endif
-
-

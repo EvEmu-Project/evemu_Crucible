@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,9 +21,12 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Zhur
+    Updates:    Allan (timer update to C++0x11)
 */
 
 #include "eve-core.h"
+
+#include <time.h>
 
 #ifndef HAVE_WINDOWS_H
 void Sleep( uint32 x )
@@ -32,21 +35,12 @@ void Sleep( uint32 x )
         ::usleep( 1000 * x );
 }
 
+
 uint32 GetTickCount()
 {
-#ifdef HAVE_SYS_TIME_H
-    timeval tv;
-    ::gettimeofday( &tv, NULL );
-
-    return tv.tv_sec  * 1000
-         + tv.tv_usec / 1000;
-#else /* !HAVE_SYS_TIME_H */
-    timeb tb;
-    ::ftime( &tb );
-
-    return tb.time * 1000
-         + tb.millitm;
-#endif /* !HAVE_SYS_TIME_H */
+    struct timespec ts;
+    ::clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
 }
 
 int CreateDirectory( const char* name, void* )

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,314 +21,330 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Bloody.Rabbit
+    Rewrite:    Allan
 */
 
 #include "eve-server.h"
 
-#include "inventory/AttributeEnum.h"
-#include "ship/DestinyManager.h"
+#include "Client.h"
+#include "EntityList.h"
+#include "packets/CorporationPkts.h"
 #include "station/Station.h"
-
-/*
- * StationTypeData
- */
-StationTypeData::StationTypeData(
-    uint32 _dockingBayGraphicID,
-    uint32 _hangarGraphicID,
-    const GPoint &_dockEntry,
-    const GVector &_dockOrientation,
-    uint32 _operationID,
-    uint32 _officeSlots,
-    double _reprocessingEfficiency,
-    bool _conquerable)
-: dockingBayGraphicID(_dockingBayGraphicID),
-  hangarGraphicID(_hangarGraphicID),
-  dockEntry(_dockEntry),
-  dockOrientation(_dockOrientation),
-  operationID(_operationID),
-  officeSlots(_officeSlots),
-  reprocessingEfficiency(_reprocessingEfficiency),
-  conquerable(_conquerable)
-{
-}
+#include "station/StationOffice.h"
+#include "station/StationDataMgr.h"
+#include "system/Container.h"
+#include "system/DestinyManager.h"
+#include "system/SystemEntity.h"
+#include "system/SystemManager.h"
 
 /*
  * StationType
  */
-StationType::StationType(
-    uint32 _id,
-    // ItemType stuff:
-    const ItemGroup &_group,
-    const TypeData &_data,
-    // StationType stuff:
-    const StationTypeData &_stData)
-: ItemType(_id, _group, _data),
-  m_dockingBayGraphicID(_stData.dockingBayGraphicID),
-  m_hangarGraphicID(_stData.hangarGraphicID),
-  m_dockEntry(_stData.dockEntry),
-  m_dockOrientation(_stData.dockOrientation),
-  m_operationID(_stData.operationID),
-  m_officeSlots(_stData.officeSlots),
-  m_reprocessingEfficiency(_stData.reprocessingEfficiency),
-  m_conquerable(_stData.conquerable)
+StationType::StationType(uint16 _id, const Inv::TypeData& _data)
+: ItemType(_id, _data)
 {
     // consistency check
+    assert(_data.id == _id);
     assert(_data.groupID == EVEDB::invGroups::Station);
 }
 
-StationType *StationType::Load(ItemFactory &factory, uint32 stationTypeID)
+StationType *StationType::Load(uint16 stationTypeID)
 {
-    return ItemType::Load<StationType>( factory, stationTypeID );
-}
-
-template<class _Ty>
-_Ty *StationType::_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
-    // ItemType stuff:
-    const ItemGroup &group, const TypeData &data,
-    // StationType stuff:
-    const StationTypeData &stData)
-{
-    // ready to create
-    return new StationType( stationTypeID, group, data, stData );
+    return ItemType::Load<StationType>(stationTypeID);
 }
 
 /*
- * StationData
+ * Station Item
  */
-StationData::StationData(
-    uint32 _security,
-    double _dockingCostPerVolume,
-    double _maxShipVolumeDockable,
-    uint32 _officeRentalCost,
-    uint32 _operationID,
-    double _reprocessingEfficiency,
-    double _reprocessingStationsTake,
-    EVEItemFlags _reprocessingHangarFlag)
-: security(_security),
-  dockingCostPerVolume(_dockingCostPerVolume),
-  maxShipVolumeDockable(_maxShipVolumeDockable),
-  officeRentalCost(_officeRentalCost),
-  operationID(_operationID),
-  reprocessingEfficiency(_reprocessingEfficiency),
-  reprocessingStationsTake(_reprocessingStationsTake),
-  reprocessingHangarFlag(_reprocessingHangarFlag)
+StationItem::StationItem(uint32 stationID, const StationType& type, const ItemData& data, const CelestialObjectData& cData)
+: CelestialObject(stationID, type, data, cData),
+m_officePyData(nullptr),
+m_stationType(type),
+m_stationID(stationID),
+m_loaded(false)
 {
+    pInventory = new Inventory(InventoryItemRef(this));
+
+    _log(ITEM__TRACE, "Created Station for item %s (%u).", name(), itemID());
 }
 
-/*
- * Station
- */
-Station::Station(
-    ItemFactory &_factory,
-    uint32 _stationID,
-    // InventoryItem stuff:
-    const StationType &_type,
-    const ItemData &_data,
-    // CelestialObject stuff:
-    const CelestialObjectData &_cData,
-    // Station stuff:
-    const StationData &_stData)
-: CelestialObject(_factory, _stationID, _type, _data, _cData),
-  m_stationType(_type),
-  m_security(_stData.security),
-  m_dockingCostPerVolume(_stData.dockingCostPerVolume),
-  m_maxShipVolumeDockable(_stData.maxShipVolumeDockable),
-  m_officeRentalCost(_stData.officeRentalCost),
-  m_operationID(_stData.operationID),
-  m_reprocessingEfficiency(_stData.reprocessingEfficiency),
-  m_reprocessingStationsTake(_stData.reprocessingStationsTake),
-  m_reprocessingHangarFlag(_stData.reprocessingHangarFlag)
+StationItem::~StationItem()
 {
+    if (pInventory != nullptr)
+        pInventory->Unload();
+    SafeDelete(pInventory);
+
+    m_officeMap.clear();
+    m_guestList.clear();
+    PySafeDecRef(m_officePyData);
 }
 
-StationRef Station::Load(ItemFactory &factory, uint32 stationID)
+StationItemRef StationItem::Load( uint32 stationID)
 {
-    return InventoryItem::Load<Station>( factory, stationID );
+    return InventoryItem::Load<StationItem>(stationID);
 }
 
-template<class _Ty>
-RefPtr<_Ty> Station::_LoadStation(ItemFactory &factory, uint32 stationID,
-    // InventoryItem stuff:
-    const StationType &type, const ItemData &data,
-    // CelestialObject stuff:
-    const CelestialObjectData &cData,
-    // Station stuff:
-    const StationData &stData)
-{
-    // ready to create
-    return StationRef( new Station( factory, stationID, type, data, cData, stData ) );
-}
-
-bool Station::_Load()
-{
-    // load contents
-    if( !LoadContents( m_factory ) )
+bool StationItem::_Load() {
+    if (!pInventory->LoadContents())
         return false;
 
-    return CelestialObject::_Load();
+    m_officeMap.clear();
+    m_guestList.clear();
+
+    stDataMgr.GetStationData(m_stationID, m_data);
+    stDataMgr.LoadOffices(m_stationID, m_officeMap);
+    m_officePyData = StationDB::GetOffices(m_stationID);
+
+    if (m_data.officeRentalFee < 10000)
+        m_data.officeRentalFee = 10000;
+
+    m_loaded = CelestialObject::_Load();
+
+    return m_loaded;
 }
 
-uint32 Station::_Spawn(ItemFactory &factory,
-    // InventoryItem stuff:
-    ItemData &data
-) {
-    // make sure it's a Station
-    const ItemType *item = factory.GetType(data.typeID);
-    if( !(item->categoryID() == EVEDB::invCategories::Station) )
-        return 0;
-
-    // store item data
-    uint32 stationID = InventoryItem::_Spawn(factory, data);
-    if( stationID == 0 )
-        return 0;
-
-    // nothing additional
-
-    return stationID;
+uint32 StationItem::CreateItemID( ItemData &data) {
+    return InventoryItem::CreateItemID(data);
 }
 
-using namespace Destiny;
-
-StationEntity::StationEntity(
-    StationRef station,
-    SystemManager *system,
-    PyServiceMgr &services,
-    const GPoint &position)
-: DynamicSystemEntity(new DestinyManager(this, system), station),
-  m_system(system),
-  m_services(services)
+uint32 StationItem::GetOfficeID(uint32 corpID)
 {
-    _stationRef = station;
-    m_destiny->SetPosition(position, false);
+    if (!IsPlayerCorp(corpID))
+        return 0;
+    for (auto cur : m_officeMap)
+        if (cur.second.corporationID = corpID)
+            return cur.first;
+    return 0;
 }
 
-void StationEntity::Process() {
-    SystemEntity::Process();
-}
-
-void StationEntity::ForcedSetPosition(const GPoint &pt) {
-    m_destiny->SetPosition(pt, false);
-}
-
-void StationEntity::EncodeDestiny( Buffer& into ) const
+void StationItem::AddLoadedOffice(uint32 officeID)
 {
+    if (!IsOffice(officeID))
+        return;
+    m_officeLoaded.emplace(officeID, true);
+}
 
-    const GPoint& position = GetPosition();
-    const std::string itemName( GetName() );
-/*
-    /*if(m_orbitingID != 0) {
-        #pragma pack(1)
-        struct AddBall_Orbit {
-            BallHeader head;
-            MassSector mass;
-            ShipSector ship;
-            DSTBALL_ORBIT_Struct main;
-            NameStruct name;
-        };
-        #pragma pack()
+bool StationItem::IsOfficeLoaded(uint32 officeID)
+{
+    if (!IsOffice(officeID))
+        return false;
+    std::map<uint32, bool>::const_iterator itr = m_officeLoaded.find(officeID);
+    if (itr != m_officeLoaded.end())
+        return itr->second;
+    return false;
+}
 
-        into.resize(start
-            + sizeof(AddBall_Orbit)
-            + slen*sizeof(uint16) );
-        uint8 *ptr = &into[start];
-        AddBall_Orbit *item = (AddBall_Orbit *) ptr;
-        ptr += sizeof(AddBall_Orbit);
+void StationItem::RemoveLoadedOffice(uint32 officeID)
+{
+    if (!IsOffice(officeID))
+        return;
+    m_officeLoaded.erase(officeID);
+}
 
-        item->head.entityID = GetID();
-        item->head.mode = Destiny::DSTBALL_ORBIT;
-        item->head.radius = m_self->radius();
-        item->head.x = x();
-        item->head.y = y();
-        item->head.z = z();
-        item->head.sub_type = IsMassive | IsFree;
-
-        item->mass.mass = m_self->mass();
-        item->mass.unknown51 = 0;
-        item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-        item->mass.corpID = GetCorporationID();
-        item->mass.unknown64 = 0xFFFFFFFF;
-
-        item->ship.max_speed = m_self->maxVelocity();
-        item->ship.velocity_x = m_self->maxVelocity();    //hacky hacky
-        item->ship.velocity_y = 0.0;
-        item->ship.velocity_z = 0.0;
-        item->ship.agility = 1.0;    //hacky
-        item->ship.speed_fraction = 0.133f;    //just strolling around. TODO: put in speed fraction!
-
-        item->main.unknown116 = 0xFF;
-        item->main.followID = m_orbitingID;
-        item->main.followRange = 6000.0f;
-
-        item->name.name_len = slen;    // in number of unicode chars
-        //strcpy_fake_unicode(item->name.name, GetName());
-    } else {
-        BallHeader head;
-        head.entityID = GetID();
-        head.mode = Destiny::DSTBALL_STOP;
-        head.radius = GetRadius();
-        head.x = position.x;
-        head.y = position.y;
-        head.z = position.z;
-        head.sub_type = IsMassive | IsFree;
-        into.Append( head );
-
-        MassSector mass;
-        mass.mass = GetMass();
-        mass.cloak = 0;
-        mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-        mass.corpID = GetCorporationID();
-        mass.allianceID = GetAllianceID();
-        into.Append( mass );
-
-        ShipSector ship;
-        ship.max_speed = GetMaxVelocity();
-        ship.velocity_x = 0.0;
-        ship.velocity_y = 0.0;
-        ship.velocity_z = 0.0;
-        ship.unknown_x = 0.0;
-        ship.unknown_y = 0.0;
-        ship.unknown_z = 0.0;
-        ship.agility = GetAgility();
-        ship.speed_fraction = 0.0;
-        into.Append( ship );
-
-        DSTBALL_STOP_Struct main;
-        main.formationID = 0xFF;
-        into.Append( main );
-
+void StationItem::LoadStationOffice(uint32 corpID)
+{
+    if (!IsPlayerCorp(corpID))
+        return;
+    uint32 officeID = GetOfficeID(corpID);
+    if (officeID == 0)
+        return;
+    if (IsOfficeLoaded(officeID))
+        return;
+    _log(CORP__TRACE, "StationItem::LoadStationOffice() is loading corp office %u in stationID %u", officeID, m_stationID);
+    StationOfficeRef oRef = sItemFactory.GetOffice(officeID);
+    if (oRef->GetMyInventory() == nullptr) {   // not sure why this would be null, but i *may* have seen errors from it
+        _log(ITEM__ERROR, "StationItem::LoadStationOffice() - GetMyInventory() for corp office %u in stationID %u is NULL.", officeID, m_stationID);
+        return;
     }
-*/
-    BallHeader head;
-    head.entityID = GetID();
-    head.mode = Destiny::DSTBALL_RIGID;
-    head.radius = GetRadius();
-    head.x = position.x;
-    head.y = position.y;
-    head.z = position.z;
-    head.sub_type = HasMiniBalls | IsGlobal;
-    into.Append( head );
+    oRef->SetLoaded(oRef->GetMyInventory()->LoadContents());
+    m_officeLoaded.emplace(officeID, true);
+}
 
-    DSTBALL_RIGID_Struct main;
-    main.formationID = 0xFF;
+void StationItem::ImpoundOffice(uint32 officeID)
+{
+    std::map<uint32, OfficeData>::iterator itr = m_officeMap.find(officeID);
+    if (itr != m_officeMap.end())
+        itr->second.lockDown = true;
+}
+
+void StationItem::RecoverOffice(uint32 officeID)
+{
+    std::map<uint32, OfficeData>::iterator itr = m_officeMap.find(officeID);
+    if (itr != m_officeMap.end())
+        itr->second.lockDown = false;
+}
+
+
+void StationItem::RentOffice(OfficeData& odata)
+{
+    odata.typeID = typeID();    // change from officeTypeID to stationTypeID
+    odata.folderID = m_stationID + STATION_OFFICE_OFFSET;
+    odata.stationID = m_stationID;
+
+    // create new office item
+    std::string name = odata.ticker;
+    name += "'s Office";
+    ItemData idata(27, m_data.corporationID, m_stationID, flagOffice, name.c_str());
+    StationOfficeRef oRef = sItemFactory.SpawnOffice(idata, odata);
+    if (oRef.get() == nullptr)
+        return;  // make error here?
+
+    // make and send notifications
+    OnOfficeRentalChanged oorc;
+        oorc.ownerID = odata.corporationID;
+        oorc.officeID = odata.officeID;
+        oorc.officeFolderID = odata.folderID;
+    PyTuple* payload = oorc.Encode();
+    for (auto cur : m_guestList) {
+        PyIncRef(payload);
+        cur.second->SendNotification("OnOfficeRentalChanged", "stationid", &payload, false);
+    }
+    PyDecRef( payload );
+
+    oRef->ChangeOwner(odata.corporationID, true);
+
+    // update data
+    stDataMgr.AddOffice(m_stationID, odata);
+    m_officeMap.emplace(odata.officeID, odata);
+    m_officeLoaded.emplace(odata.officeID, true);
+    PySafeDecRef(m_officePyData);
+    m_officePyData = StationDB::GetOffices(m_stationID);
+}
+
+void StationItem::SendBill()
+{
+    // do we need this here?
+}
+
+void StationItem::AddGuest(Client* pClient)
+{
+    m_guestList.emplace(pClient->GetCharacterID(), pClient);
+}
+
+void StationItem::GetGuestList(std::vector< Client* >& cVec)
+{
+    for (auto cur : m_guestList)
+        cVec.push_back(cur.second);
+}
+
+void StationItem::RemoveGuest(Client* pClient)
+{
+    m_guestList.erase(pClient->GetCharacterID());
+}
+
+void StationItem::GetRefineData(uint32& stationCorpID, float& staEfficiency, float& tax)
+{
+    stationCorpID = m_data.corporationID;
+    staEfficiency = m_data.reprocessingEfficiency;
+    tax = m_data.reprocessingStationsTake;
+}
+
+bool StationItem::HasShip(Client* pClient)
+{
+    std::vector< InventoryItemRef > items;
+    pInventory->GetInvForOwner(pClient->GetCharacterID(), items);
+
+    for (auto cur : items)
+        if (cur->categoryID() == EVEDB::invCategories::Ship)
+            if (cur->typeID() != EVEDB::invTypes::Capsule)
+                return true;
+    return false;
+}
+
+ShipItemRef StationItem::GetShipFromInventory(uint32 shipID)
+{
+    return ShipItemRef::StaticCast( pInventory->GetByID( shipID ) );
+}
+
+CargoContainerRef StationItem::GetContainerFromInventory(uint32 contID)
+{
+    return CargoContainerRef::StaticCast( pInventory->GetByID( contID ) );
+}
+
+
+/*
+ * Station Entity
+ */
+StationSE::StationSE(StationItemRef station, PyServiceMgr &services, SystemManager* system)
+: StaticSystemEntity(station, services, system)
+{
+    // Create default dynamic attributes in the AttributeMap:
+    station->SetAttribute(AttrOnline,             EvilOne, false);
+    station->SetAttribute(AttrCapacity,           STATION_HANGAR_MAX_CAPACITY, false);
+    station->SetAttribute(AttrInertia,            EvilOne, false);
+    station->SetAttribute(AttrDamage,             EvilZero, false);
+    station->SetAttribute(AttrShieldCapacity,     20000000.0, false);
+    station->SetAttribute(AttrShieldCharge,       station->GetAttribute(AttrShieldCapacity), false);
+    station->SetAttribute(AttrArmorHP,            station->GetAttribute(AttrArmorHP), false);
+    station->SetAttribute(AttrArmorUniformity,    station->GetAttribute(AttrArmorUniformity), false);
+    station->SetAttribute(AttrArmorDamage,        EvilZero, false);
+    station->SetAttribute(AttrMass,               station->type().mass(), false);
+    station->SetAttribute(AttrRadius,             station->type().radius(), false);
+    station->SetAttribute(AttrVolume,             station->type().volume(), false);
+}
+
+void StationSE::EncodeDestiny( Buffer& into )
+{
+    using namespace Destiny;
+
+    BallHeader head = BallHeader();
+    head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::RIGID;
+        head.radius = GetRadius();
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = /*Ball::Flag::HasMiniBalls |*/ Ball::Flag::IsGlobal | Ball::Flag::IsMassive;
+    into.Append( head );
+    RIGID_Struct main;
+        main.formationID = 0xFF;
     into.Append( main );
 
-    const uint16 miniballsCount = 1;
-    into.Append( miniballsCount );
-
+/** @todo miniballs is broken and needs work...
+ *  dont know what's wrong at this point, but client freaks out and ignores ANY ball data (in SetState) after this.
+ * this causes BallNotInPark error with multiple stations, or ANY data sent AFTER first StationBall
     MiniBall miniball;
-    miniball.x = -7701.181;
-    miniball.y = 8060.06;
-    miniball.z = 27878.900;
-    miniball.radius = 1639.241;
+        miniball.x = -7701.181;
+        miniball.y = 8060.06;
+        miniball.z = 27878.900;
+        miniball.radius = 1639.241;
     into.Append( miniball );
+ */
+    _log(SE__DESTINY, "StationSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
-void StationEntity::MakeDamageState(DoDestinyDamageState &into) const {
-    into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
-    into.tau = 100000;    //no freaking clue.
-    into.timestamp = Win32TimeNow();
-//    armor damage isn't working...
-    into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
-    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
+PyDict *StationSE::MakeSlimItem() {
+    _log(SE__SLIMITEM, "MakeSlimItem for StationSE %s(%u)", m_self->name(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("groupID",          new PyInt(m_self->groupID()));
+        slim->SetItemString("name",             new PyString(m_self->itemName()));
+        slim->SetItemString("corpID",           IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
+        slim->SetItemString("allianceID",       IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
+        slim->SetItemString("warFactionID",     IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
+        slim->SetItemString("typeID",           new PyInt(m_self->typeID()));
+        slim->SetItemString("ownerID",          new PyInt(m_ownerID));
+        slim->SetItemString("categoryID",       new PyInt(m_self->categoryID()));
+        slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
+        slim->SetItemString("incapacitated",    new PyInt(0));
+        slim->SetItemString("online",           PyStatic.NewOne());
+    return slim;
 }
 
+void StationSE::UnloadStation()
+{
+    m_self->GetMyInventory()->Unload();
+}
+
+/*
+static const int num_hack_sentry_locs = 8;
+GPoint hack_sentry_locs[num_hack_sentry_locs] = {
+    GPoint(35000.0f, 35000.0f, 35000.0f),
+    GPoint(35000.0f, 35000.0f, -35000.0f),
+    GPoint(35000.0f, -35000.0f, 35000.0f),
+    GPoint(35000.0f, -35000.0f, -35000.0f),
+    GPoint(-35000.0f, 35000.0f, 35000.0f),
+    GPoint(-35000.0f, 35000.0f, -35000.0f),
+    GPoint(-35000.0f, -35000.0f, 35000.0f),
+    GPoint(-35000.0f, -35000.0f, -35000.0f)
+};
+*/

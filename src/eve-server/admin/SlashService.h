@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,15 +42,8 @@ protected:
     Dispatcher *const m_dispatch;
     CommandDispatcher *const m_commandDispatch;
 
-    PyCallable_DECL_CALL(SlashCmd)
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+    PyCallable_DECL_CALL(SlashCmd);
 };
-
-
-
-
 
 #endif
 

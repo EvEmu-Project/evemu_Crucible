@@ -180,8 +180,8 @@
 
   <elementDef name="CallGetCachableObject">
     <tupleInline>
-      <!-- 0 -->
-      <bool name="shared" />
+      <!-- 0  either bool or int -->
+      <raw name="shared" />
       <!-- 1 -->
         <!-- either a string or a tuple -->
       <raw name="objectID" />

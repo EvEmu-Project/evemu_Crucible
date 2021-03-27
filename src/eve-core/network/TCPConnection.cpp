@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Zhur
+    Rewrite:    Allan
 */
 
 #include "eve-core.h"
@@ -29,21 +30,18 @@
 #include "log/LogNew.h"
 #include "network/TCPConnection.h"
 #include "network/NetUtils.h"
+#include "threading/Threading.h"
 #include "utils/timer.h"
 
 const uint32 TCPCONN_RECVBUF_SIZE = 0x1000;
-const uint32 TCPCONN_LOOP_GRANULARITY = 5;
-
-#ifdef HAVE_WINSOCK2_H
-static InitWinsock winsock;
-#endif /* HAVE_WINSOCK2_H */
+const uint32 TCPCONN_LOOP_GRANULARITY = 5;  /* 5ms */
 
 TCPConnection::TCPConnection()
-: mSock( NULL ),
+: mSock( nullptr ),
   mSockState( STATE_DISCONNECTED ),
   mrIP( 0 ),
   mrPort( 0 ),
-  mRecvBuf( NULL )
+  mRecvBuf( nullptr )
 {
 }
 
@@ -52,7 +50,7 @@ TCPConnection::TCPConnection( Socket* socket, uint32 mrIP, uint16 mrPort )
   mSockState( STATE_CONNECTED ),
   mrIP( mrIP ),
   mrPort( mrPort ),
-  mRecvBuf( NULL )
+  mRecvBuf( nullptr )
 {
     // Start worker thread
     StartLoop();
@@ -60,19 +58,18 @@ TCPConnection::TCPConnection( Socket* socket, uint32 mrIP, uint16 mrPort )
 
 TCPConnection::~TCPConnection()
 {
+    _log(THREAD__WARNING, "Destroying TCPConnection for thread 0x%X", pthread_self());
     // Make sure we are disconnected
     Disconnect();
-
     // Wait for loop to stop
     WaitLoop();
-
     // Clear buffers
     ClearBuffers();
 }
 
 std::string TCPConnection::GetAddress()
 {
-    /* "The Matrix is a system, 'Neo'. That system is our enemy. But when you're inside, you look around, what do you see?" */
+    /* "The Matrix is a system, Neo. That system is our enemy. But when you're inside, you look around, what do you see?" */
     in_addr addr;
     addr.s_addr = GetrIP();
 
@@ -88,24 +85,20 @@ std::string TCPConnection::GetAddress()
 
 bool TCPConnection::Connect( uint32 rIP, uint16 rPort, char* errbuf )
 {
-    if( errbuf )
+    if (errbuf)
         errbuf[0] = 0;
 
     MutexLock lock( mMSock );
 
-    state_t oldState = GetState();
-    if( oldState == STATE_DISCONNECTED )
-    {
+    if (GetState() == STATE_DISCONNECTED) {
         mMSock.Unlock();
-
         // Wait for working thread to stop.
         WaitLoop();
-
         mMSock.Lock();
     }
 
-    oldState = GetState();
-    if( oldState != STATE_DISCONNECTED && oldState != STATE_CONNECTING )
+    state_t oldState = GetState();
+    if (oldState != STATE_DISCONNECTED && oldState != STATE_CONNECTING)
         return false;
 
     mSock = new Socket( AF_INET, SOCK_STREAM, 0 );
@@ -119,11 +112,7 @@ bool TCPConnection::Connect( uint32 rIP, uint16 rPort, char* errbuf )
     if( mSock->connect( (sockaddr*)&server_sin, sizeof( server_sin ) ) == SOCKET_ERROR )
     {
         if( errbuf )
-#ifdef HAVE_WINSOCK2_H
-            snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::Connect(): connect() failed. Error: %i", WSAGetLastError() );
-#else /* !HAVE_WINSOCK2_H */
-            snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::Connect(): connect() failed. Error: %s", strerror( errno ) );
-#endif /* !HAVE_WINSOCK2_H */
+            snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "%s", strerror( errno ) );
 
         SafeDelete( mSock );
         return false;
@@ -131,19 +120,10 @@ bool TCPConnection::Connect( uint32 rIP, uint16 rPort, char* errbuf )
 
     int bufsize = 64 * 1024; // 64kbyte recieve buffer, up from default of 8k
     mSock->setopt( SOL_SOCKET, SO_RCVBUF, (char*) &bufsize, sizeof( bufsize ) );
-
-#ifdef HAVE_WINSOCK2_H
-    unsigned long nonblocking = 1;
-    mSock->ioctl( FIONBIO, &nonblocking );
-#else /* !HAVE_WINSOCK2_H */
     mSock->fcntl( F_SETFL, O_NONBLOCK );
-#endif /* !HAVE_WINSOCK2_H */
-
     mrIP = rIP;
     mrPort = rPort;
-
     mSockState = STATE_CONNECTED;
-
     // Start processing thread if necessary
     if( oldState == STATE_DISCONNECTED )
         StartLoop();
@@ -156,26 +136,19 @@ void TCPConnection::AsyncConnect( uint32 rIP, uint16 rPort )
     // Changing state; acquire mutex
     MutexLock lock( mMSock );
 
-    state_t state = GetState();
-    if( state == STATE_DISCONNECTED )
-    {
+    if (GetState() == STATE_DISCONNECTED) {
         mMSock.Unlock();
-
         // Wait for working thread to stop.
         WaitLoop();
-
         mMSock.Lock();
     }
 
-    state = GetState();
-    if( state != STATE_DISCONNECTED )
+    if (GetState() != STATE_DISCONNECTED)
         return;
 
     mrIP = rIP;
     mrPort = rPort;
-
     mSockState = STATE_CONNECTING;
-
     // Start processing thread
     StartLoop();
 }
@@ -196,16 +169,13 @@ bool TCPConnection::Send( Buffer** data )
 {
     // Invalidate pointer
     Buffer* buf = *data;
-    *data = NULL;
+    *data = nullptr;
 
     // Check we are in STATE_CONNECTED
     MutexLock sockLock( mMSock );
 
-    state_t state = GetState();
-    if( state != STATE_CONNECTED )
-    {
+    if (GetState() != STATE_CONNECTED) {
         SafeDelete( buf );
-
         return false;
     }
 
@@ -213,20 +183,24 @@ bool TCPConnection::Send( Buffer** data )
     MutexLock queueLock( mMSendQueue );
 
     mSendQueue.push_back( buf );
-    buf = NULL;
+    buf = nullptr;
 
     return true;
 }
 
 void TCPConnection::StartLoop()
 {
+    /** @note  update this to use thread pool instead of creating new threads.
+     * check with sThread.XXXX() for avalible thread from current thread pool.
+     * if one is avalible, it will be used, and if not, sThread will create a new one
+     */
+    sThread.CreateThread(TCPConnectionLoop, this);
+    /*   ORIGINAL CODE HERE
     // Spawn new thread
-#ifdef HAVE_WINDOWS_H
-    CreateThread( NULL, 0, TCPConnectionLoop, this, 0, NULL );
-#else /* !HAVE_WINDOWS_H */
     pthread_t thread;
-    pthread_create( &thread, NULL, TCPConnectionLoop, this );
-#endif /* !HAVE_WINDOWS_H */
+    pthread_create( &thread, nullptr, TCPConnectionLoop, this );
+    _log(THREAD__WARNING, "StartLoop() - Created thread ID 0x%X for TCPConnectionLoop", thread);
+    sThread.AddThread(thread);*/
 }
 
 void TCPConnection::WaitLoop()
@@ -238,73 +212,40 @@ void TCPConnection::WaitLoop()
 
 /* This is always called from an IO thread. Either the server socket's thread, or a
  * special thread we create when we make an outbound connection. */
-bool TCPConnection::Process()
-{
+bool TCPConnection::Process() {
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
-
     MutexLock lock( mMSock );
-    switch( GetState() )
-    {
-        case STATE_DISCONNECTED:
-        default:
-        {
-            // Nothing to do
-            return false;
-        }
-
-        case STATE_CONNECTING:
-        {
-            // Connect
-            if( !Connect( GetrIP(), GetrPort(), errbuf ) )
-            {
-                sLog.Error( "TCPConnection", "%s: %s.", GetAddress().c_str(), errbuf );
-
-                DoDisconnect();
+    switch (GetState()) {
+        case STATE_CONNECTING: {
+            if (!Connect( GetrIP(), GetrPort(), errbuf)) {
+                _log(TCP_CLIENT__TRACE, "Process() - Connecting Failed at %s: %s", GetAddress().c_str(), errbuf );
                 return false;
             }
-
-            // All we had to do is connect, and it succeeded
+            _log(TCP_CLIENT__INFO, "Process() - TCP connectection from %s", GetAddress().c_str() );
             return true;
         }
-
-        case STATE_CONNECTED:
-        {
-            // Receive data
-            if( !RecvData( errbuf ) )
-            {
-                sLog.Error( "TCPConnection", "%s: %s.", GetAddress().c_str(), errbuf );
-
-                DoDisconnect();
+        case STATE_CONNECTED: {
+            if (!RecvData(errbuf)) {
+                _log(TCP_CLIENT__TRACE, "Process() - Connected RecvData() Failed at %s: %s", GetAddress().c_str(), errbuf );
                 return false;
             }
-
-            // Send data
-            if( !SendData( errbuf ) )
-            {
-                sLog.Error( "TCPConnection", "%s: %s.", GetAddress().c_str(), errbuf );
-
-                DoDisconnect();
+            if (!SendData(errbuf)) {
+                _log(TCP_CLIENT__TRACE, "Process() - Connected SendData() Failed at", "%s: %s", GetAddress().c_str(), errbuf );
                 return false;
             }
-
-            // Both send and recv succeeded.
             return true;
         }
-
-        case STATE_DISCONNECTING:
-        {
-            // Send anything that may be pending
-            if( !SendData( errbuf ) )
-            {
-                sLog.Error( "TCPConnection", "%s: %s.", GetAddress().c_str(), errbuf );
-
-                DoDisconnect();
+        case STATE_DISCONNECTING: {
+            if (!SendData(errbuf)) {
+                _log(TCP_CLIENT__TRACE, "Process() - Disconnecting SendData() Failed at", "%s: %s", GetAddress().c_str(), errbuf );
                 return false;
             }
-
-            // Send queue is empty, disconnect
             DoDisconnect();
             return true;
+        }
+        case STATE_DISCONNECTED:
+        default: {
+            return false;
         }
     }
 }
@@ -321,125 +262,89 @@ bool TCPConnection::SendData( char* errbuf )
         return false;
 
     mMSendQueue.Lock();
-    while( !mSendQueue.empty() )
-    {
-        Buffer* buf = mSendQueue.front();
+    Buffer* buf(nullptr);
+    int status(0);
+    while (!mSendQueue.empty()) {
+        buf = mSendQueue.front();
         mSendQueue.pop_front();
         mMSendQueue.Unlock();
-
-        int status = mSock->send( &(*buf)[ 0 ], buf->size(), MSG_NOSIGNAL );
-
-        if( status == SOCKET_ERROR )
-        {
-#ifdef HAVE_WINSOCK2_H
-            if( WSAGetLastError() == WSAEWOULDBLOCK )
-#else /* !HAVE_WINSOCK2_H */
-            if( errno == EWOULDBLOCK )
-#endif /* !HAVE_WINSOCK2_H */
-            {
-                // Act like nothing was sent
+        if (mSendQueue.empty())
+            status = mSock->send( &(*buf)[ 0 ], (uint)buf->size(), MSG_NOSIGNAL);
+        else
+            status = mSock->send( &(*buf)[ 0 ], (uint)buf->size(), (MSG_NOSIGNAL | MSG_MORE) );
+        if (status == SOCKET_ERROR) {
+            if (errno == EWOULDBLOCK) {
                 status = 0;
-            }
-            else
-            {
+            } else {
                 if( errbuf )
-#ifdef HAVE_WINSOCK2_H
-                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %u", WSAGetLastError() );
-#else /* !HAVE_WINSOCK2_H */
-                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): send(): Errorcode: %s", strerror( errno ) );
-#endif /* !HAVE_WINSOCK2_H */
-
+                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "%s", strerror( errno ) );
                 SafeDelete( buf );
                 return false;
             }
         }
 
-        if( (size_t)status > buf->size() )
-        {
-            if( errbuf )
-                snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::SendData(): WTF! status > size." );
+        if ((size_t)status > buf->size()) {
+            if (errbuf)
+                snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "WTF?!?   status > size." );
 
             SafeDelete( buf );
             return false;
-        }
-        else if( (size_t)status < buf->size() )
-        {
-            if( status > 0 )
+        } else if ((size_t)status < buf->size()) {
+            if (status > 0)
                 buf->AssignSeq( buf->begin<uint8>() + status, buf->end<uint8>() );
-
             MutexLock queueLock( mMSendQueue );
-
             mSendQueue.push_front( buf );
-            buf = NULL;
-        }
-        else
-        {
+            buf = nullptr;
+        } else {
             SafeDelete( buf );
         }
-
         mMSendQueue.Lock();
     }
     mMSendQueue.Unlock();
-
     return true;
 }
 
 bool TCPConnection::RecvData( char* errbuf )
 {
-    if( errbuf != NULL )
+    if (errbuf)
         errbuf[0] = 0;
 
     MutexLock lock( mMSock );
 
     state_t state = GetState();
-    if( state != STATE_CONNECTED && state != STATE_DISCONNECTING )
+    if ((state != STATE_CONNECTED) && (state != STATE_DISCONNECTING))
         return false;
 
-    while( true )
-    {
-        if( mRecvBuf == NULL )
+    int status = 0;
+    while (true) {
+        if (!mRecvBuf)
             mRecvBuf = new Buffer( TCPCONN_RECVBUF_SIZE );
         else if( mRecvBuf->size() < TCPCONN_RECVBUF_SIZE )
             mRecvBuf->Resize<uint8>( TCPCONN_RECVBUF_SIZE );
 
-        int status = mSock->recv( &(*mRecvBuf)[ 0 ], mRecvBuf->size(), 0 );
-
-        if( status > 0 )
-        {
-            mRecvBuf->Resize<uint8>( status );
-
-            if( !ProcessReceivedData( errbuf ) )
+        status = mSock->recv( &(*mRecvBuf)[ 0 ], (uint)mRecvBuf->size(), MSG_DONTWAIT);
+        if (status == SOCKET_ERROR) {
+            if (errno == EWOULDBLOCK)
+                return true;
+            if (errbuf)
+                snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "%s", strerror(errno));
+            return false;
+        } else if (status == 0) {
+            if (errbuf)
+                snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "No Data Received.");
+            return false;
+        } else if (status) {
+            mRecvBuf->Resize<uint8>(status);
+            if (!ProcessReceivedData(errbuf))
                 return false;
-        }
-        else if( status == 0 )
-        {
-            snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Connection closed" );
-
+        } else {
+            if (errbuf)
+                snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "recv() returned unknown status");
+            _log(TCP_CLIENT__ERROR, "TCPConnection::RecvData(): Error: recv() returned unknown status");
             return false;
         }
-        else if( status == SOCKET_ERROR )
-        {
-#ifdef HAVE_WINSOCK2_H
-            if ( WSAGetLastError() == WSAEWOULDBLOCK )
-#else /* !HAVE_WINSOCK2_H */
-            if ( errno == EWOULDBLOCK )
-#endif /* !HAVE_WINSOCK2_H */
-            {
-                return true;
-            }
-            else
-            {
-                if( errbuf )
-#ifdef HAVE_WINSOCK2_H
-                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %i", WSAGetLastError() );
-#else /* !HAVE_WINSOCK2_H */
-                    snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "TCPConnection::RecvData(): Error: %s", strerror( errno ) );
-#endif /* !HAVE_WINSOCK2_H */
-
-                return false;
-            }
-        }
     }
+    return true;
 }
 
 void TCPConnection::DoDisconnect()
@@ -447,12 +352,12 @@ void TCPConnection::DoDisconnect()
     MutexLock lock( mMSock );
 
     state_t state = GetState();
-    if( state != STATE_CONNECTED && state != STATE_DISCONNECTING )
+    if ((state != STATE_CONNECTED) && (state != STATE_DISCONNECTING))
         return;
 
-    SafeDelete( mSock );
-    mrIP = mrPort = 0;
     ClearBuffers();
+    mrIP = mrPort = 0;
+    SafeDelete( mSock );
 
     mSockState = STATE_DISCONNECTED;
 }
@@ -461,67 +366,37 @@ void TCPConnection::ClearBuffers()
 {
     MutexLock lock( mMSendQueue );
 
-    while( !mSendQueue.empty() )
-    {
-        Buffer* buf = mSendQueue.front();
+    Buffer* buf = nullptr;
+    while (!mSendQueue.empty()) {
+        buf = mSendQueue.front();
         mSendQueue.pop_front();
-
-        SafeDelete( buf );
+        SafeDelete(buf);
     }
-
-    SafeDelete( mRecvBuf );
+    SafeDelete(mRecvBuf);
 }
 
-#ifdef HAVE_WINDOWS_H
-DWORD WINAPI TCPConnection::TCPConnectionLoop( LPVOID arg )
-#else /* !HAVE_WINDOWS_H */
 void* TCPConnection::TCPConnectionLoop( void* arg )
-#endif /* !HAVE_WINDOWS_H */
 {
     TCPConnection* tcpc = reinterpret_cast< TCPConnection* >( arg );
-    assert( tcpc != NULL );
+    assert( tcpc != nullptr );
 
     tcpc->TCPConnectionLoop();
+    sThread.RemoveThread(pthread_self());
 
-#ifdef HAVE_WINDOWS_H
-    return 0;
-#else /* !HAVE_WINDOWS_H */
-    return NULL;
-#endif /* !HAVE_WINDOWS_H */
+    return nullptr;
 }
 
 void TCPConnection::TCPConnectionLoop()
 {
-#ifdef HAVE_WINDOWS_H
-    SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
-#endif /* HAVE_WINDOWS_H */
-
-#ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Starting TCPConnectionLoop with thread ID %lu", pthread_self() );
-#endif /* !HAVE_WINDOWS_H */
-
     mMLoopRunning.Lock();
-
     uint32 start = GetTickCount();
-    uint32 etime;
-    uint32 last_time;
-
-    while( Process() )
-    {
-        /* UPDATE */
-        last_time = GetTickCount();
-        etime = last_time - start;
-
+    while (Process()) {
         // do the stuff for thread sleeping
-        if( TCPCONN_LOOP_GRANULARITY > etime )
-            Sleep( TCPCONN_LOOP_GRANULARITY - etime );
-
+        start = GetTickCount() - start;
+        if (TCPCONN_LOOP_GRANULARITY > start)
+            Sleep(TCPCONN_LOOP_GRANULARITY - start);
         start = GetTickCount();
     }
-
+    DoDisconnect();
     mMLoopRunning.Unlock();
-
-#ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Ending TCPConnectionLoop with thread ID %lu", pthread_self() );
-#endif /* !HAVE_WINDOWS_H */
 }

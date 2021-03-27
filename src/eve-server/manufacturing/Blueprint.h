@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,50 +21,17 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Bloody.Rabbit
+    Updates:    Allan
 */
 
 #ifndef __BLUEPRINT_ITEM__H__INCL__
 #define __BLUEPRINT_ITEM__H__INCL__
 
+#include "EVEServerConfig.h"
+#include "StaticDataMgr.h"
 #include "inventory/ItemType.h"
 #include "inventory/InventoryItem.h"
-
-/*
- * Simple container for raw blueprint type data.
- */
-class BlueprintTypeData {
-public:
-    BlueprintTypeData(
-        uint32 _parentBlueprintTypeID = 0,
-        uint32 _productTypeID = 0,
-        uint32 _productionTime = 0,
-        uint32 _techLevel = 0,
-        uint32 _researchProductivityTime = 0,
-        uint32 _researchMaterialTime = 0,
-        uint32 _researchCopyTime = 0,
-        uint32 _researchTechTime = 0,
-        uint32 _productivityModifier = 0,
-        uint32 _materialModifier = 0,
-        double _wasteFactor = 0.0,
-        double _chanceOfReverseEngineering = 0.0,
-        uint32 _maxProductionLimit = 0
-    );
-
-    // Content:
-    uint32 parentBlueprintTypeID;
-    uint32 productTypeID;
-    uint32 productionTime;
-    uint32 techLevel;
-    uint32 researchProductivityTime;
-    uint32 researchMaterialTime;
-    uint32 researchCopyTime;
-    uint32 researchTechTime;
-    uint32 productivityModifier;
-    uint32 materialModifier;
-    double wasteFactor;
-    double chanceOfReverseEngineering;
-    uint32 maxProductionLimit;
-};
+#include "manufacturing/FactoryDB.h"
 
 /*
  * Class which contains blueprint type data.
@@ -74,47 +41,29 @@ class BlueprintType
 {
     friend class ItemType;    // To let our parent redirect construction to our _Load().
 public:
-    /**
-     * Loads blueprint type from DB.
-     *
-     * @param[in] factory
-     * @param[in] typeID ID of blueprint type to load.
-     * @return Pointer to BlueprintType object; NULL if failed.
-     */
-    static BlueprintType *Load(ItemFactory &factory, uint32 typeID);
+    static BlueprintType*   Load(uint16 typeID);
 
-    /*
-     * Access functions:
-     */
-    const BlueprintType *parentBlueprintType() const { return(m_parentBlueprintType); }
-    uint32 parentBlueprintTypeID() const { return(parentBlueprintType() == NULL ? 0 : parentBlueprintType()->id()); }
-
-    const ItemType &productType() const { return(m_productType); }
-    uint32 productTypeID() const { return(productType().id()); }
-
-    uint32 productionTime() const { return(m_productionTime); }
-    uint32 techLevel() const { return(m_techLevel); }
-    uint32 researchProductivityTime() const { return(m_researchProductivityTime); }
-    uint32 researchMaterialTime() const { return(m_researchMaterialTime); }
-    uint32 researchCopyTime() const { return(m_researchCopyTime); }
-    uint32 researchTechTime() const { return(m_researchTechTime); }
-    uint32 productivityModifier() const { return(m_productivityModifier); }
-    uint32 materialModifier() const { return(m_materialModifier); }
-    double wasteFactor() const { return(m_wasteFactor); }
-    double chanceOfReverseEngineering() const { return(m_chanceOfReverseEngineering); }
-    uint32 maxProductionLimit() const { return(m_maxProductionLimit); }
+    /* Access functions  */
+    const BlueprintType*    parentBlueprintType() const { return m_parentBlueprintType; }
+    const ItemType&         productType()         const { return m_productType; }
+    uint8                   techLevel()           const { return m_data.techLevel; }
+    uint16                  wasteFactor()         const { return m_data.wasteFactor; }
+    uint16                  productTypeID()       const { return productType().id(); }
+    uint32                  productionTime()      const { return m_data.productionTime; }
+    uint32                  researchCopyTime()    const { return m_data.researchCopyTime; }
+    uint32                  researchTechTime()    const { return m_data.researchTechTime; }
+    uint32                  materialModifier()    const { return m_data.materialModifier; }
+    uint32                  maxProductionLimit()  const { return m_data.maxProductionLimit; }
+    uint32                 researchMaterialTime() const { return m_data.researchMaterialTime; }
+    uint32                 productivityModifier() const { return m_data.productivityModifier; }
+    uint32             researchProductivityTime() const { return m_data.researchProductivityTime; }
+    uint16                parentBlueprintTypeID() const { return (m_parentBlueprintType == nullptr ? 0 : parentBlueprintType()->id()); }
+    float                   chanceOfRE()          const { return m_data.chanceOfRE; }
 
 protected:
-    BlueprintType(
-        uint32 _id,
-        // ItemType stuff:
-        const ItemGroup &_group,
-        const TypeData &_data,
-        // BlueprintType stuff:
-        const BlueprintType *_parentBlueprintType,
-        const ItemType &_productType,
-        const BlueprintTypeData &_bpData
-    );
+    BlueprintType(uint16 _id, const Inv::TypeData& _data,
+                  const BlueprintType *_parentBlueprintType, const ItemType& _productType,
+                  const EvERam::bpTypeData& _tData);
 
     /*
      * Member functions
@@ -123,179 +72,96 @@ protected:
 
     // Template loader:
     template<class _Ty>
-    static _Ty *_LoadType(ItemFactory &factory, uint32 typeID,
-        // ItemType stuff:
-        const ItemGroup &group, const TypeData &data)
-    {
+    static _Ty *_LoadType(uint16 typeID, const Inv::TypeData& data)  {
         // check if we are really loading a blueprint
-        if( group.categoryID() != EVEDB::invCategories::Blueprint ) {
-            sLog.Error("Blueprint", "Load of blueprint type %u requested, but it's %s.", typeID, group.category().name().c_str() );
-            return NULL;
+        Inv::GrpData gdata = Inv::GrpData();
+        sDataMgr.GetGroup(data.groupID, gdata);
+        if (gdata.catID != EVEDB::invCategories::Blueprint ) {
+            _log( ITEM__ERROR, "Trying to load %s as BlueprintType.", sDataMgr.GetCategoryName(gdata.catID));
+            return nullptr;
         }
 
-        // pull additional blueprint data
-        BlueprintTypeData bpData;
-        if( !factory.db().GetBlueprintType( typeID, bpData ) )
-            return NULL;
+        // get blueprint type data
+        EvERam::bpTypeData tData = EvERam::bpTypeData();
+        sDataMgr.GetBpTypeData(typeID, tData);
 
         // obtain parent blueprint type (might be NULL)
-        const BlueprintType *parentBlueprintType = NULL;
-        if( bpData.parentBlueprintTypeID != 0 )
-        {
-            // we have parent type, get it
-            parentBlueprintType = factory.GetBlueprintType( bpData.parentBlueprintTypeID );
-            if( parentBlueprintType == NULL )
-                return NULL;
+        const BlueprintType* parentBlueprintType(nullptr);
+        if (tData.parentBlueprintTypeID) {
+            parentBlueprintType = sItemFactory.GetBlueprintType( tData.parentBlueprintTypeID );
+            if (parentBlueprintType == nullptr)
+                return nullptr;
         }
 
         // obtain product type
-        const ItemType *productType = factory.GetType( bpData.productTypeID );
-        if( productType == NULL )
-            return NULL;
+        const ItemType* productType = sItemFactory.GetType( tData.productTypeID );
+        if (productType == nullptr)
+            return nullptr;
 
-        // create blueprint type
-        return _Ty::template _LoadBlueprintType<_Ty>( factory, typeID, group, data, parentBlueprintType, *productType, bpData );
+        return new BlueprintType(typeID, data, parentBlueprintType, *productType, tData);
     }
-
-    // Actual loading stuff:
-    template<class _Ty>
-    static _Ty *_LoadBlueprintType(ItemFactory &factory, uint32 typeID,
-        // ItemType stuff:
-        const ItemGroup &group, const TypeData &data,
-        // BlueprintType stuff:
-        const BlueprintType *parentBlueprintType, const ItemType &productType, const BlueprintTypeData &bpData
-    );
 
     /*
      * Data members
      */
     const BlueprintType *m_parentBlueprintType;
-    const ItemType &m_productType;
+    const ItemType& m_productType;
 
-    uint32 m_productionTime;
-    uint32 m_techLevel;
-    uint32 m_researchProductivityTime;
-    uint32 m_researchMaterialTime;
-    uint32 m_researchCopyTime;
-    uint32 m_researchTechTime;
-    uint32 m_productivityModifier;
-    uint32 m_materialModifier;
-    double m_wasteFactor;
-    double m_chanceOfReverseEngineering;
-    uint32 m_maxProductionLimit;
+    EvERam::bpTypeData m_data;
 };
 
-/*
- * Basic container for raw blueprint data.
- */
-class BlueprintData {
-public:
-    BlueprintData(
-        bool _copy = false,
-        uint32 _materialLevel = 0,
-        uint32 _productivityLevel = 0,
-        int32 _licensedProductionRunsRemaining = 0
-    );
 
-    // Content:
-    bool copy;
-    uint32 materialLevel;
-    uint32 productivityLevel;
-    int32 licensedProductionRunsRemaining;
-};
-
-/*
- * InventoryItem, which represents blueprint
- */
 class Blueprint
 : public InventoryItem
 {
     friend class InventoryItem;    // to let it construct us
 public:
-    /**
-     * Loads blueprint from DB.
-     *
-     * @param[in] factory
-     * @param[in] blueprintID ID of blueprint to load.
-     * @return Pointer to new Blueprint object; NULL if failed.
-     */
-    static BlueprintRef Load(ItemFactory &factory, uint32 blueprintID);
-    /**
-     * Spawns new blueprint.
-     *
-     * @param[in] factory
-     * @param[in] data Item data (for entity table).
-     * @param[in] bpData Blueprint-specific data.
-     * @return Pointer to new Blueprint object; NULL if failed.
-     */
-    static BlueprintRef Spawn(ItemFactory &factory, ItemData &data, BlueprintData &bpData);
-
-    /*
-     * Public fields:
-     */
-    const BlueprintType &   type() const { return(static_cast<const BlueprintType &>(InventoryItem::type())); }
-    const BlueprintType *   parentBlueprintType() const { return(type().parentBlueprintType()); }
-    uint32                  parentBlueprintTypeID() const { return(type().parentBlueprintTypeID()); }
-    const ItemType &            productType() const { return(type().productType()); }
-    uint32                  productTypeID() const { return(type().productTypeID()); }
-    bool                    copy() const { return(m_copy); }
-    uint32                  materialLevel() const { return(m_materialLevel); }
-    uint32                  productivityLevel() const { return(m_productivityLevel); }
-    int32                   licensedProductionRunsRemaining() const { return(m_licensedProductionRunsRemaining); }
-
-    /*
-     * Primary public interface:
-     */
-    void Delete();
-
-    // Copy:
-    void SetCopy(bool copy);
-
-    // Material level:
-    void SetMaterialLevel(uint32 materialLevel);
-    bool AlterMaterialLevel(int32 materialLevelChange);
-
-    // Productivity level:
-    void SetProductivityLevel(uint32 productivityLevel);
-    bool AlterProductivityLevel(int32 producitvityLevelChange);
-
-    // Licensed production runs:
-    void SetLicensedProductionRunsRemaining(int32 licensedProductionRunsRemaining);
-    void AlterLicensedProductionRunsRemaining(int32 licensedProductionRunsRemainingChange);
-
-    /*
-     * Helper routines:
-     */
+    /* virtual functions default to base class and overridden as needed */
+    virtual void            Delete();  //remove the item from the DB.
+    // overload to merge the blueprints properly
+    virtual bool            Merge(InventoryItemRef to_merge, uint32 qty=0, bool notify=true);
     // overload to split the blueprints properly
-    InventoryItemRef Split(int32 qty_to_take, bool notify=true) { return SplitBlueprint( qty_to_take, notify ); }
-    BlueprintRef SplitBlueprint(int32 qty_to_take, bool notify=true);
+    virtual InventoryItemRef Split(int32 qty_to_take, bool notify=true)
+                                                        { return SplitBlueprint( qty_to_take, notify ); }
 
-    // overload to do proper merge
-    bool Merge(InventoryItemRef to_merge, int32 qty=0, bool notify=true);    //consumes ref!
+    BlueprintRef            SplitBlueprint(int32 qty_to_take, bool notify=true);
 
-    // some blueprint-related stuff
-    bool infinite() const                   { return(licensedProductionRunsRemaining() < 0); }
-    double wasteFactor() const              { return(type().wasteFactor() / (1 + materialLevel())); }
+    static BlueprintRef     Load( uint32 blueprintID);
+    static BlueprintRef     Spawn( ItemData& data, EvERam::bpData& bdata);
 
-    double materialMultiplier() const       { return(1.0 + wasteFactor()); }
-    double timeMultiplier() const           { return(1.0 - (timeSaved() / type().productionTime())); }
-    double timeSaved() const                { return((1.0 - (1.0 / (1 + productivityLevel()))) * type().productivityModifier()); }
+    // query methods
+    const BlueprintType&    type()                const { return m_bpType; }
+    const ItemType&         productType()         const { return m_bpType.productType(); }
+    uint32                  productTypeID()       const { return m_bpType.productTypeID(); }
+    bool                    copy()                      { return m_data.copy; }
+    int8                    mLevel()                    { return m_data.mLevel; }
+    int8                    pLevel()                    { return m_data.pLevel; }
+    int16                   runs()                      { return m_data.runs; }
+    float                   GetPE()                     { return m_data.pLevel / (1 + m_data.pLevel); }
+    float                   GetME();
+
+    // set methods
+    void                    SetMLevel(int8 me)          { m_data.mLevel = me; SaveBlueprint(); }
+    void                    SetPLevel(int8 pe)          { m_data.pLevel = pe; SaveBlueprint(); }
+    void                    SetCopy(bool copy)          { m_data.copy = copy; SaveBlueprint(); }
+    void                    SetRuns(int16 runs)         { m_data.runs = runs; SaveBlueprint(); }
+
+    // update methods
+    void                    UpdateMLevel(int8 me)       { m_data.mLevel += me; SaveBlueprint(); }
+    void                    UpdatePLevel(int8 pe)       { m_data.pLevel += pe; SaveBlueprint(); }
+    void                    UpdateRuns(int16 runs)      { m_data.runs += runs; SaveBlueprint(); }
+
+    // is this used?  should it be?
+    bool                    infinite()                  { return (m_data.runs < 0); }
 
     /*
      * Primary public packet builders:
      */
-    PyDict *GetBlueprintAttributes() const;
+    PyDict*                 GetBlueprintAttributes();
+
 
 protected:
-    Blueprint(
-        ItemFactory &_factory,
-        uint32 _blueprintID,
-        // InventoryItem stuff:
-        const BlueprintType &_bpType,
-        const ItemData &_data,
-        // Blueprint stuff:
-        const BlueprintData &_bpData
-    );
+    Blueprint(  uint32 _blueprintID, const BlueprintType& _bpType, const ItemData& _data, EvERam::bpData& _bpData);
 
     /*
      * Member functions
@@ -304,53 +170,60 @@ protected:
 
     // Template loader:
     template<class _Ty>
-    static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 blueprintID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data)
+    static RefPtr<_Ty> _LoadItem( uint32 blueprintID, const ItemType& type, const ItemData& data)
     {
-        // check it's blueprint type
-        if( type.categoryID() != EVEDB::invCategories::Blueprint )
-        {
-            sLog.Error("Blueprint", "Trying to load %s as Blueprint.", type.category().name().c_str() );
+        if (type.categoryID() != EVEDB::invCategories::Blueprint) {
+            _log(ITEM__ERROR, "Trying to load %s as Blueprint.", sDataMgr.GetCategoryName(type.categoryID()));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
             return RefPtr<_Ty>();
         }
-        // cast the type
-        const BlueprintType &bpType = static_cast<const BlueprintType &>( type );
+        const BlueprintType& bpType = static_cast<const BlueprintType& >( type );
 
-        // we are blueprint; pull additional blueprint info
-        BlueprintData bpData;
-        if( !factory.db().GetBlueprint( blueprintID, bpData ) )
+        EvERam::bpData bdata = EvERam::bpData();
+        if (!FactoryDB::GetBlueprint( blueprintID, bdata ) )
             return RefPtr<_Ty>();
 
-        return _Ty::template _LoadBlueprint<_Ty>( factory, blueprintID, bpType, data, bpData );
+        return BlueprintRef( new Blueprint( blueprintID, bpType, data, bdata ) );
     }
 
-    // Actual loading stuff:
-    template<class _Ty>
-    static RefPtr<_Ty> _LoadBlueprint(ItemFactory &factory, uint32 blueprintID,
-        // InventoryItem stuff:
-        const BlueprintType &bpType, const ItemData &data,
-        // Blueprint stuff:
-        const BlueprintData &bpData
-    );
+    void                    SaveBlueprint();
+    static uint32           CreateItemID( ItemData& data, EvERam::bpData& bdata);
 
-    static uint32 _Spawn(ItemFactory &factory,
-        // InventoryItem stuff:
-        ItemData &data,
-        // Blueprint stuff:
-        BlueprintData &bpData
-    );
+private:
+    const BlueprintType &m_bpType;
+    EvERam::bpData m_data;
 
-    void SaveBlueprint() const;
-
-    /*
-     * Member variables
-     */
-    bool      m_copy;
-    uint32    m_materialLevel;
-    uint32    m_productivityLevel;
-    int32     m_licensedProductionRunsRemaining;
 };
 
 #endif /* !__BLUEPRINT_ITEM__H__INCL__ */
 
+/**  misc data
+ *
+ * only packaged BPO sold on market
+ * unpacked bpo or any bpc by contract or trade
+ *
+ * bpc "packs" are every bpc to make the item (usually large items)
+ *
+ *
+ * research bpo (~month of research for each ME/PE at base ccp times)
+ * modules/ammo - ME 50 PE 20
+ * ships/components - ME 10 PE 10
+ * carrier/big ship  ME 2 PE 1
+ *
+ * max run copies for type
+ * 300 modules, weapons
+ * 1500 drones, ammo
+ * 1 all others
+ *
+ * for invention, t1 bpc PE and ME are irrelevant
+ * if type is not ship or rig and runs < 10
+ * runs output = runs input
+ * else
+ * runs = max (10 on t2 bpc)
+ *
+ *
+ *
+ *
+ *
+ */

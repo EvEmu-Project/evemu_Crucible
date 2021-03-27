@@ -1,32 +1,41 @@
 /*
-    ------------------------------------------------------------------------------------
-    LICENSE:
-    ------------------------------------------------------------------------------------
-    This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
-    ------------------------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any later
-    version.
-
-    This program is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License along with
-    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-    http://www.gnu.org/copyleft/lesser.txt.
-    ------------------------------------------------------------------------------------
-    Author:     Zhur, mmcs
-*/
+ *    ------------------------------------------------------------------------------------
+ *    LICENSE:
+ *    ------------------------------------------------------------------------------------
+ *    This file is part of EVEmu: EVE Online Server Emulator
+ *    Copyright 2006 - 2021 The EVEmu Team
+ *    For the latest information visit https://github.com/evemuproject/evemu_server
+ *    ------------------------------------------------------------------------------------
+ *    This program is free software; you can redistribute it and/or modify it under
+ *    the terms of the GNU Lesser General Public License as published by the Free Software
+ *    Foundation; either version 2 of the License, or (at your option) any later
+ *    version.
+ *
+ *    This program is distributed in the hope that it will be useful, but WITHOUT
+ *    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ *    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ *
+ *    You should have received a copy of the GNU Lesser General Public License along with
+ *    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+ *    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
+ *    http://www.gnu.org/copyleft/lesser.txt.
+ *    ------------------------------------------------------------------------------------
+ *    Author:     Zhur, mmcs
+ *    Rewrite:    Allan
+ */
 
 #include "eve-server.h"
+// version
+#include "../eve-common/EVEVersion.h"
 
 #include "EVEServerConfig.h"
 #include "NetService.h"
+// data managers
+#include "StaticDataMgr.h"
+#include "StatisticMgr.h"
+//#include "missions/MissionDataMgr.h"
+//console commands
+#include "ConsoleCommands.h"
 // account services
 #include "account/AccountService.h"
 #include "account/AuthService.h"
@@ -43,15 +52,22 @@
 #include "admin/DevToolsProviderService.h"
 #include "admin/PetitionerService.h"
 #include "admin/SlashService.h"
-// apiserver services
-#include "apiserver/APIServer.h"
+// agent services
+//#include "agents/Agent.h"
+//#include "agents/AgentMgrService.h"
+// alliance services
+#include "alliance/AllianceRegistry.h"
+// calendar services
+#include "system/CalendarMgrService.h"
+#include "system/CalendarProxy.h"
 // cache services
+#include "cache/BulkDB.h"
 #include "cache/BulkMgrService.h"
 #include "cache/ObjCacheService.h"
 // character services
 #include "character/AggressionMgrService.h"
 #include "character/CertificateMgrService.h"
-#include "character/CharFittingMgrService.h"
+#include "character/CharFittingMgr.h"
 #include "character/CharMgrService.h"
 #include "character/CharUnboundMgrService.h"
 #include "character/PaperDollService.h"
@@ -66,23 +82,44 @@
 #include "config/ConfigService.h"
 #include "config/LanguageService.h"
 #include "config/LocalizationServerService.h"
+// contract services
+#include "contract/ContractMgr.h"
+#include "contract/ContractProxy.h"
 // corporation services
-#include "corporation/CorpBookmarkMgrService.h"
+#include "corporation/BillMgr.h"
+#include "corporation/CorpBookmarkMgr.h"
+#include "corporation/CorpFittingMgr.h"
 #include "corporation/CorpMgrService.h"
 #include "corporation/CorporationService.h"
 #include "corporation/CorpRegistryService.h"
-#include "corporation/CorpStationMgrService.h"
+#include "corporation/CorpStationMgr.h"
 #include "corporation/LPService.h"
+#include "corporation/LPStore.h"
 // dogmaim services
 #include "dogmaim/DogmaIMService.h"
 #include "dogmaim/DogmaService.h"
+#include "effects/EffectsDataMgr.h"
+// dungeon services
+#include "dungeon/DungeonExplorationMgrService.h"
+#include "dungeon/DungeonService.h"
+// entity service (player drones)
+#include "npc/EntityService.h"
+// exploration services
+#include "exploration/ScanMgrService.h"
+// faction services
+#include "faction/FactionWarMgrService.h"
+#include "faction/WarRegistryService.h"
 // fleet services
 #include "fleet/FleetObject.h"
 #include "fleet/FleetProxy.h"
+#include "fleet/FleetService.h"
 // imageserver services
 #include "imageserver/ImageServer.h"
+// development index service
+#include "system/IndexManager.h"
 // inventory services
 #include "inventory/InvBrokerService.h"
+#include "inventory/Voucher.h"
 // mail services
 #include "mail/MailMgrService.h"
 #include "mail/MailingListMgrService.h"
@@ -91,386 +128,969 @@
 #include "manufacturing/FactoryService.h"
 #include "manufacturing/RamProxyService.h"
 // map services
+#include "map/MapData.h"
 #include "map/MapService.h"
 // market services
-#include "market/BillMgrService.h"
-#include "market/ContractMgrService.h"
-#include "market/ContractProxy.h"
+#include "market/MarketMgr.h"
 #include "market/MarketProxyService.h"
-// mining services
-#include "mining/ReprocessingService.h"
+#include "market/MarketBotMgr.h"
 // missions services
-#include "missions/AgentMgrService.h"
-#include "missions/DungeonExplorationMgrService.h"
 #include "missions/MissionMgrService.h"
+// planet services
+#include "planet/Planet.h"
+#include "planet/PlanetDataMgr.h"
+#include "planet/PlanetMgrBound.h"
+#include "planet/PlanetORBBound.h"
 // pos services
-#include "pos/PlanetMgr.h"
-#include "pos/PosMgrService.h"
-//Search Service
-#include "search/SearchMgrService.h"
+//#include "pos/PosMgr.h"
+//#include "pos/Structure.h"
+// qaTools
+#include "qaTools/encounterSpawnServer.h"
+#include "qaTools/netStateServer.h"
+#include "qaTools/zActionServer.h"
+// search services
+#include "search/Search.h"
 // ship services
 #include "ship/BeyonceService.h"
-#include "ship/InsuranceService.h"
-#include "ship/RepairService.h"
 #include "ship/ShipService.h"
-#include "ship/modules/ModuleEffects.h"
 // standing services
-#include "standing/FactionWarMgrService.h"
-#include "standing/SovereigntyMgrService.h"
-#include "standing/Standing2Service.h"
-#include "standing/WarRegistryService.h"
+#include "standing/Standing.h"
+#include "standing/StandingMgr.h"
 // station services
 #include "station/HoloscreenMgrService.h"
+#include "station/InsuranceService.h"
 #include "station/JumpCloneService.h"
+#include "station/RepairService.h"
+#include "station/ReprocessingService.h"
+#include "station/StationDataMgr.h"
 #include "station/StationService.h"
-#include "station/StationSvcService.h"
+#include "station/StationSvc.h"
+#include "station/TradeService.h"
 // system services
 #include "system/BookmarkService.h"
-#include "system/DungeonService.h"
+#include "system/BubbleManager.h"
 #include "system/KeeperService.h"
 #include "system/ScenarioService.h"
-#include "system/WrecksAndLoot.h"
+#include "system/SovereigntyMgrService.h"
+#include "system/WormholeSvc.h"
+// cosmic managers
+#include "system/cosmicMgrs/AnomalyMgr.h"
+#include "system/cosmicMgrs/CivilianMgr.h"
+#include "system/cosmicMgrs/DungeonMgr.h"
+#include "system/cosmicMgrs/SpawnMgr.h"
+#include "system/cosmicMgrs/WormholeMgr.h"
+
+
+static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 
-static const char* const CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
-static const uint32 MAIN_LOOP_DELAY = 10; // delay 10 ms.
-
-static volatile bool RunLoops = true;
-dgmtypeattributemgr * _sDgmTypeAttrMgr;
+static volatile bool m_run = true;
 
 int main( int argc, char* argv[] )
 {
-#if defined( HAVE_CRTDBG_H ) && !defined( NDEBUG )
-    // Under Visual Studio setup memory leak detection
-    _CrtSetDbgFlag( _CRTDBG_LEAK_CHECK_DF | _CrtSetDbgFlag( _CRTDBG_REPORT_FLAG ) );
-#endif /* defined( HAVE_CRTDBG_H ) && !defined( NDEBUG ) */
+    double profileStartTime = GetTimeMSeconds();
 
-    printf("Copyright (C) 2006-2016 EVEmu Team. http://evemu.org/\n");
-    printf("This program is free software; you can redistribute it and/or modify it under\n");
-    printf("the terms of the GNU Lesser General Public License as published by the Free \n");
-    printf("Software Foundation; either version 2 of the License, or (at your option) any\n");
-    printf("later version.\n");
-    printf("\n");
-    printf("This program is distributed in the hope that it will be useful, but WITHOUT\n");
-    printf("ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n");
-    printf("FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more\n");
-    printf("details.\n");
-    printf("\n");
-
-    // Load server configuration
-    if( !sConfig.ParseFile( CONFIG_FILE ) )
-    {
-        printf("ERROR: Loading server configuration '%s' failed.", CONFIG_FILE );
-        //sLog.Error( "server init", "Loading server configuration '%s' failed.", CONFIG_FILE );
-        std::cout << std::endl << "press any key to exit...";  std::cin.get();
-        return 1;
-    }
-
-    sLog.InitializeLogging(sConfig.files.logDir);
-    sLog.Log("", "");
-    sLog.Warning("EvEMu", "Server Information:");
-    sLog.Log("Server Revision", EVEMU_VERSION);
-    sLog.Log("Build Date Time", "%s %s", __DATE__, __TIME__);
-    sLog.Log("This Source", "%s", EVEMU_REPOSITORY);
-    sLog.Log("Client", "Codename: %s | Version: %g | Build: %u (macho: %u)", EVEProjectCodename, EVEVersionNumber, EVEBuildVersion, MachoNetVersion );
-    sLog.Log("Database", "%s@%s:%u", sConfig.database.db.c_str(), sConfig.database.host.c_str(), sConfig.database.port);
-    sLog.Log("","");
-
-    //it is important to do this before doing much of anything, in case they use it.
+    /* set current time for timer */
     Timer::SetCurrentTime();
 
-    // Load server log settings ( will be removed )
-    if( load_log_settings( sConfig.files.logSettings.c_str() ) )
-        sLog.Success( "Server Init", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
-    else
-        sLog.Warning( "Server Init", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
+    /* init logging */
+    sLog.Initialize();
 
-    // open up the log file if specified ( will be removed )
-    if( !sConfig.files.logDir.empty() )
-    {
+    sLog.Green("       ServerInit", "Loading Server Configuration Files.");
+    // should i try to load individual config files here?  probably not, but would look cool.  ;)
+    /* Load server configuration */
+    if (!sConfig.ParseFile(SRV_CONFIG_FILE)) {
+        sLog.Error( "       ServerInit", "ERROR: Loading server configuration '%s' failed.", SRV_CONFIG_FILE );
+        std::cout << std::endl << "press any key to exit...";  std::cin.get();
+        return EXIT_FAILURE;
+    }
+
+    std::printf("\n");     // spacer
+    /* display server config data */
+    sLog.Log(" Supported Client", " %s", EVEProjectVersion);
+    sLog.Log("   Client Version", " %.2f", EVEVersionNumber);
+    sLog.Log("     Client Build", " %d", EVEBuildVersion);
+    sLog.Log("         MachoNet", " %u", MachoNetVersion);
+    sLog.Log("  Server Revision", " %s", EVEMU_REVISION );
+    sLog.Log("       Build Date", " %s", EVEMU_BUILD_DATE );
+    sLog.Log("   Config Version", " %.1f", Config_Version );
+    sLog.Log("      Log Version", " %.1f", Log_Version );
+    sLog.Log("   NPC AI Version", " %.2f", NPC_AI_Version );
+    sLog.Log(" Scanning Version", " %.2f", Scan_Version );
+    sLog.Log(" Drone AI Version", " %.2f", Drone_AI_Version );
+    sLog.Log("    NC AI Version", " %.2f", Civilian_AI_Version );
+    sLog.Log("Sentry AI Version", " %.2f", Sentry_AI_Version );
+    sLog.Log("   POS AI Version", " %.2f", POS_AI_Version );
+    sLog.Log("TraderJoe Version", " %.2f", Joe_Version );
+    sLog.Log(" Missions Version", " %.2f", Mission_Version );
+    std::printf("\n");     // spacer
+
+    /* Load server log settings */
+    if (load_log_settings(sConfig.files.logSettings.c_str())) {
+        sLog.Green( "       ServerInit", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
+    } else {
+        sLog.Warning( "       ServerInit", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
+    }
+
+    /* open up the log file if specified */
+    if (!sConfig.files.logDir.empty()) {
+        //sLog.InitializeLogging(sConfig.files.logDir);
         std::string logFile = sConfig.files.logDir + "eve-server.log";
-        if( log_open_logfile( logFile.c_str() ) )
-            sLog.Success( "Server Init", "Found log directory %s", sConfig.files.logDir.c_str() );
-        else
-            sLog.Warning( "Server Init", "Unable to find log directory '%s', only logging to the screen now.", sConfig.files.logDir.c_str() );
+        if( log_open_logfile( logFile.c_str() ) ) {
+            sLog.Green( "       ServerInit", "Found log directory %s", sConfig.files.logDir.c_str() );
+        } else {
+            sLog.Warning( "       ServerInit", "Unable to find log directory '%s', only logging to the screen now.", sConfig.files.logDir.c_str() );
+        }
     }
+    std::printf("\n");     // spacer
 
-    //connect to the database...
-    DBerror err;
-    if( !sDatabase.Open( err,
-        sConfig.database.host.c_str(),
-        sConfig.database.username.c_str(),
-        sConfig.database.password.c_str(),
-        sConfig.database.db.c_str(),
-        sConfig.database.port ) )
-    {
-        sLog.Error( "Server Init", "Unable to connect to the database: %s", err.c_str() );
-        std::cout << std::endl << "Exiting";
-        return 1;
-    } else if(sDatabase.Connected){
-        sLog.Success("Server Init", "Connected to database successfully");
+    sLog.Green("       ServerInit", "Server Configuration Files Loaded.");
+    std::printf("\n");     // spacer
+
+    sLog.Blue("     ServerConfig", "Main Loop Settings");
+    uint8 m_sleepTime = sConfig.server.ServerSleepTime; // default 10ms.  max 256ms
+    if (m_sleepTime == 10) {
+        sLog.Green("  Loop Sleep Time","Default at 10ms.");
+    } else {
+        sLog.Error("  Loop Sleep Time","**Be Careful With This Setting!**");
+        sLog.Warning("  Loop Sleep Time","Changed from default 10ms to %ums.", m_sleepTime);
     }
+    /* removed code for this  25 March 2020
+    uint16 m_idle = sConfig.server.idleSleepTime;       // default 1s.  max 65.535s
+    if (m_idle == 1000)
+        sLog.Green("  Idle Sleep Time","Default at 1000ms.");
+    else {
+        sLog.Error("  Loop Sleep Time","**Be Careful With This Setting!**");
+        sLog.Yellow("  Idle Sleep Time","Changed from default 1000ms to %ums.", m_idle);
+    } */
+    std::printf("\n");     // spacer
 
-    _sDgmTypeAttrMgr = new dgmtypeattributemgr(); // needs to be after db init as its using it
+    /* Custom config file options
+     * current settings displayed on console at start-up
+     *   -allan 7June2015
+     */
+    sLog.Blue("     ServerConfig", "World Switches");
+    if (sConfig.world.saveOnMove) {
+        sLog.Green("     Save on Move","Enabled.");
+    } else {
+        sLog.Warning("     Save on Move","Disabled.");
+    }
+    if (sConfig.world.saveOnUpdate) {
+        sLog.Green("   Save on Update","Enabled.");
+    } else {
+        sLog.Warning("   Save on Update","Disabled.");
+    }
+    if (sConfig.world.StationDockDelay) {
+        sLog.Green("    Docking Delay","Enabled.");
+    } else {
+        sLog.Warning("    Docking Delay","Disabled.");
+    }
+    if (sConfig.world.gridUnload) {
+        sLog.Green("   Grid Unloading","Enabled.  Grids will unload after %u seconds of inactivity.", sConfig.world.gridUnloadTime);
+    } else {
+        sLog.Warning("   Grid Unloading","Disabled.");
+    }
+    std::printf("\n");     // spacer
 
-    //Start up the TCP server
+    sLog.Blue("     ServerConfig", "Rate Modifiers");
+    if (sConfig.rates.secRate != 1.0) {
+        sLog.Yellow("        SecStatus","Modified at %.0f%%.", (sConfig.rates.secRate *100) );
+    } else {
+        sLog.Green("        SecStatus","Normal.");
+    }
+    if (sConfig.rates.npcBountyMultiply != 1.0) {
+        sLog.Yellow("          Bountys","Modified at %.0f%%.", (sConfig.rates.npcBountyMultiply *100) );
+    } else {
+        sLog.Green("          Bountys","Normal.");
+    }
+    if (sConfig.rates.DropItem != 1) {
+        sLog.Yellow("       Item Drops","Modified at %ux.", sConfig.rates.DropItem );
+    } else {
+        sLog.Green("       Item Drops","Normal.");
+    }
+    if (sConfig.rates.DropSalvage != 1) {
+        sLog.Yellow("    Salvage Drops","Modified at %ux.", sConfig.rates.DropSalvage );
+    } else {
+        sLog.Green("    Salvage Drops","Normal.");
+    }
+    if (sConfig.rates.DropMoney != 1.0) {
+        sLog.Yellow("      Isk Rewards","Modified at %.0f%%.", (sConfig.rates.DropMoney *100) );
+    } else {
+        sLog.Green("      Isk Rewards","Normal.");
+    }
+    if (sConfig.rates.damageRate != 1.0) {
+        sLog.Yellow("      All Damages","Modified at %.0f%%.", (sConfig.rates.damageRate *100) );
+    } else {
+        sLog.Green("      All Damages","Normal.");
+    }
+    if (sConfig.rates.turretDamage != 1.0) {
+        sLog.Yellow("       Turret Dmg","Modified at %.0f%%.", (sConfig.rates.turretDamage *100) );
+    } else {
+        sLog.Green("       Turret Dmg","Normal.");
+    }
+    if (sConfig.rates.turretRoF != 1.0) {
+        sLog.Yellow("       Turret ROF","Modified at %.0f%%.", (sConfig.rates.turretRoF *100) );
+    } else {
+        sLog.Green("       Turret ROF","Normal.");
+    }
+    if (sConfig.rates.missileDamage != 1.0) {
+        sLog.Yellow("      Missile Dmg","Modified at %.0f%%.", (sConfig.rates.missileDamage *100) );
+    } else {
+        sLog.Green("      Missile Dmg","Normal.");
+    }
+    if (sConfig.rates.missileRoF != 1.0) {
+        sLog.Yellow("      Missile ROF","Modified at %.0f%%.", (sConfig.rates.missileRoF *100) );
+    } else {
+        sLog.Green("      Missile ROF","Normal.");
+    }
+    if (sConfig.rates.missileTime != 1.0) {
+        sLog.Yellow("     Missile Time","Modified at %.0f%%.", (sConfig.rates.missileTime *100) );
+    } else {
+        sLog.Green("     Missile Time","Normal.");
+    }
+    std::printf("\n");     // spacer
+    sLog.Blue("     ServerConfig", "R.A.M. Rate Modifiers");
+    if (sConfig.ram.ResPE != 1.0) {
+        sLog.Yellow(" PE Research Time","Modified at %.0f%%.", (sConfig.ram.ResPE *100) );
+    } else {
+        sLog.Green(" PE Research Time","Normal.");
+    }
+    if (sConfig.ram.ResME != 1.0) {
+        sLog.Yellow(" ME Research Time","Modified at %.0f%%.", (sConfig.ram.ResME *100) );
+    } else {
+        sLog.Green(" ME Research Time","Normal.");
+    }
+    if (sConfig.ram.MatMod != 1.0) {
+        sLog.Yellow("Material Modifier","Modified at %.0f%%.", (sConfig.ram.MatMod *100) );
+    } else {
+        sLog.Green("Material Modifier","Normal.");
+    }
+    if (sConfig.ram.CopyTime != 1.0) {
+        sLog.Yellow("        Copy Time","Modified at %.0f%%.", (sConfig.ram.CopyTime *100) );
+    } else {
+        sLog.Green("        Copy Time","Normal.");
+    }
+    if (sConfig.ram.ProdTime != 1.0) {
+        sLog.Yellow("  Production Time","Modified at %.0f%%.", (sConfig.ram.ProdTime *100) );
+    } else {
+        sLog.Green("  Production Time","Normal.");
+    }
+    if (sConfig.ram.InventTime != 1.0) {
+        sLog.Yellow("   Invention Time","Modified at %.0f%%.", (sConfig.ram.InventTime *100) );
+    } else {
+        sLog.Green("   Invention Time","Normal.");
+    }
+    if (sConfig.ram.ReTime != 1.0) {
+        sLog.Yellow("          RE Time","Modified at %.0f%%.", (sConfig.ram.ReTime *100) );
+    } else {
+        sLog.Green("          RE Time","Normal.");
+    }
+    if (sConfig.ram.WasteMod != 1.0) {
+        sLog.Yellow("   Waste Modifier","Modified at %.0f%%.", (sConfig.ram.WasteMod *100) );
+    } else {
+        sLog.Green("   Waste Modifier","Normal.");
+    }
+    std::printf("\n");     // spacer
+
+    sLog.Blue("     ServerConfig","Critical Hit Chances");
+    if (sConfig.rates.PlayerCritChance != 0.02f) {
+        sLog.Yellow("           Player","Modified at %.1f%%.", (sConfig.rates.PlayerCritChance *100) );
+    } else {
+        sLog.Green("           Player","Normal at 2%%.");
+    }
+    if (sConfig.rates.NpcCritChance != 0.015f) {
+        sLog.Yellow("              NPC","Modified at %.1f%%.", (sConfig.rates.NpcCritChance *100) );
+    } else {
+        sLog.Green("              NPC","Normal at 1.5%%.");
+    }
+    if (sConfig.rates.SentryCritChance != 0.02f) {
+        sLog.Yellow("           Sentry","Modified at %.1f%%.", (sConfig.rates.SentryCritChance *100) );
+    } else {
+        sLog.Green("           Sentry","Normal at 2%%.");
+    }
+    if (sConfig.rates.DroneCritChance != 0.03f) {
+        sLog.Yellow("            Drone","Modified at %.1f%%.", (sConfig.rates.DroneCritChance *100) );
+    } else {
+        sLog.Green("            Drone","Normal at 3%%.");
+    }
+    if (sConfig.rates.ConcordCritChance != 0.05f) {
+        sLog.Yellow("          Concord","Modified at %.1f%%.", (sConfig.rates.ConcordCritChance *100) );
+    } else {
+        sLog.Green("          Concord","Normal at 5%%.");
+    }
+    std::printf("\n");     // spacer
+
+    sLog.Blue("     ServerConfig", "Feature Switches");
+    if (sConfig.ram.AutoEvent) {
+        sLog.Green("    RAM AutoEvent","Enabled.");
+    } else {
+        sLog.Warning("    RAM AutoEvent","Disabled.");
+    }
+    if (sConfig.server.ModuleAutoOff) {
+        sLog.Green("  Module Auto-Off","Enabled.");
+    } else {
+        sLog.Warning("  Module Auto-Off","Disabled.");
+    }
+    if (sConfig.server.AsteroidsOnDScan) {
+        sLog.Green("  DScan Asteroids","Enabled.");
+    } else {
+        sLog.Warning("  DScan Asteroids","Disabled.");
+    }
+    if (sConfig.server.CargoMassAdditive) {
+        sLog.Green("       Cargo Mass","Enabled.");
+    } else {
+        sLog.Warning("       Cargo Mass","Disabled.");
+    }
+    if (sConfig.cosmic.BumpEnabled) {
+        sLog.Green("Bumping Mechanics","Enabled.");
+    } else {
+        sLog.Warning("Bumping Mechanics","Disabled.");
+    }
+    if (sConfig.server.LoadOldMissions) {
+        sLog.Green("Keep Old Missions","Enabled.");
+    } else {
+        sLog.Warning("Keep Old Missions","Disabled.");
+    }
+    if (sConfig.testing.EnableDrones) {
+        sLog.Green("    Player Drones","Enabled.");
+    } else {
+        sLog.Warning("    Player Drones","Disabled.");
+    }
+    if (sConfig.testing.ShipHeat) {
+        sLog.Green("        Ship Heat","Enabled.");
+    } else {
+        sLog.Warning("        Ship Heat","Disabled.");
+    }
+    if (sConfig.cosmic.PIEnabled) {
+        sLog.Green("        PI System","Enabled.");
+    } else {
+        sLog.Warning("        PI System","Disabled.");
+    }
+    if (sConfig.cosmic.AnomalyEnabled) {
+        sLog.Green("   Anomaly System","Enabled.");
+    } else {
+        sLog.Warning("   Anomaly System","Disabled.");
+    }
+    if (sConfig.cosmic.DungeonEnabled) {
+        sLog.Green("   Dungeon System","Enabled.");
+    } else {
+        sLog.Warning("   Dungeon System","Disabled.");
+    }
+    if (sConfig.cosmic.BeltEnabled) {
+        sLog.Green("   Asteroid Belts","Enabled.");
+    } else {
+        sLog.Warning("   Asteroid Belts","Disabled.");
+    }
+    if (sConfig.npc.StaticSpawns) {
+        sLog.Green("    Static Spawns","Enabled.  Checks every %u minutes", sConfig.npc.StaticTimer /60);
+    } else {
+        sLog.Warning("    Static Spawns","Disabled.");
+    }
+    if (sConfig.npc.RoamingSpawns) {
+        sLog.Green("   Roaming Spawns","Enabled.  Checks every %u minutes", sConfig.npc.RoamingTimer /60);
+    } else {
+        sLog.Warning("   Roaming Spawns","Disabled.");
+    }
+    if (sConfig.npc.RoamingSpawns or sConfig.npc.StaticSpawns)
+        sLog.Green("   Spawns Enabled","Respawn timer checks every %u minutes", sConfig.npc.RespawnTimer /60);
+    if (sConfig.server.BountyPayoutDelayed) {
+        sLog.Green(" Delayed Bounties","Delayed Bounties are Enabled.  Loop runs every %u minutes", sConfig.server.BountyPayoutTimer);
+        if (sConfig.server.FleetShareDelayed) {
+            sLog.Green(" Delayed Bounties","Delay for Fleet Bounty Sharing is Enabled.");
+        } else {
+            sLog.Warning(" Delayed Bounties","Delay for Fleet Bounty Sharing is Disabled.  Fleet Sharing of Bounties is immediate.");
+        }
+    } else {
+        sLog.Warning(" Delayed Bounties","Delayed Bounties are Disabled.  Bounty payouts are immediate.");
+        if (sConfig.server.FleetShareDelayed) {
+            sLog.Warning(" Delayed Bounties","Delayed Bounties are Disabled.  Fleet Sharing of Bounties is immediate.");
+        }  else {
+            sLog.Warning(" Delayed Bounties","Delay for Fleet Bounty Sharing is Disabled.  Fleet Sharing of Bounties is immediate.");
+        }
+    }
+    std::printf("\n");     // spacer
+
+    sLog.Blue("     ServerConfig", "Misc Switches");
+    if (sConfig.server.ModuleDamageChance) {
+        sLog.Green("    Module Damage","Enabled.  Set to %i%% chance.", (int8)(sConfig.server.ModuleDamageChance *100));
+    } else {
+        sLog.Warning("    Module Damage","Disabled.");
+    }
+    if (sConfig.rates.WorldDecay) {
+        sLog.Green("      Decay Timer","Enabled.  Checks every %u minutes", sConfig.rates.WorldDecay);
+    }  else {
+        sLog.Warning("      Decay Timer","Disabled.");
+    }
+    if (sConfig.server.TraderJoe) {
+        sLog.Green("   Market Bot Mgr", "TraderJoe is Enabled.");
+        /* create the MarketBot singleton */
+        sLog.Green("       ServerInit", "Starting Market Bot Manager");
+        sMktBotMgr.Initialize();
+    } else {
+        sLog.Warning("   Market Bot Mgr", "TraderJoe is Disabled.");
+    }
+    std::printf("\n");     // spacer
+
+    sLog.Blue("     ServerConfig", "Debug Switches");
+    if (sConfig.debug.IsTestServer) {
+        sLog.Error("     ServerConfig", "Test Server Enabled");
+    }  else {
+        sLog.Error("     ServerConfig", "Live Server Enabled");
+    }
+    if (sConfig.debug.StackTrace) {
+        sLog.Warning("       StackTrace", "Enabled");
+    }  else {
+        sLog.Warning("       StackTrace", "Disabled");
+    }
+    if (sConfig.debug.UseProfiling) {
+        sLog.Green(" Server Profiling","Enabled.");
+        sProfiler.Initialize();
+    } else {
+        sLog.Warning(" Server Profiling","Disabled.");
+    }
+    if (sConfig.debug.BeanCount) {
+        sLog.Green("     BeanCounting","Enabled.");
+    } else {
+        sLog.Warning("     BeanCounting","Disabled.");
+    }
+    if (sConfig.debug.SpawnTest) {
+        sLog.Warning("       Spawn Test","Enabled.");
+    }  else {
+        sLog.Warning("       Spawn Test","Disabled.");
+    }
+    if (sConfig.debug.BubbleTrack) {
+        sLog.Warning("  Bubble Tracking","Enabled.");
+    }  else {
+        sLog.Warning("  Bubble Tracking","Disabled.");
+    }
+    if (sConfig.debug.UseShipTracking) {
+        sLog.Warning("    Ship Tracking","Enabled.");
+    }  else {
+        sLog.Warning("    Ship Tracking","Disabled.");
+    }
+    if (sConfig.debug.PositionHack) {
+        sLog.Warning("    Position Hack","Enabled.");
+    }  else {
+        sLog.Warning("    Position Hack","Disabled.");
+    }
+    std::printf("\n");     // spacer
+
+    /* Start up the TCP server */
     EVETCPServer tcps;
-
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
-    if( tcps.Open( sConfig.net.port, errbuf ) )
-    {
-        sLog.Success( "Server Init", "TCP listener started on port %u.", sConfig.net.port );
+    sLog.Green( "       ServerInit", "Starting TCP Server");
+    if (tcps.Open(sConfig.net.port, errbuf)) {
+        sLog.Blue( "    BaseTCPServer", "TCP Server started on port %u.", sConfig.net.port );
+    } else {
+        sLog.Error( "    BaseTCPServer", "Error starting TCP Server: %s.", errbuf );
+        std::cout << std::endl << "press any key to exit...";  std::cin.get();
+        return EXIT_FAILURE;
     }
-    else
-    {
-        sLog.Error( "Server Init", "Failed to start TCP listener on port %u: %s.", sConfig.net.port, errbuf );
-        std::cout << std::endl << "Exiting";
-        return 1;
+    std::printf("\n");     // spacer
+    Sleep(250);
+
+    /* connect to the database */
+    sLog.Green("       ServerInit", "Connecting to DataBase");
+    sDatabase.Initialize(sConfig.database.host,
+                         sConfig.database.username,
+                         sConfig.database.password,
+                         sConfig.database.db,
+                         sConfig.database.compress,
+                         sConfig.database.ssl,
+                         sConfig.database.port,
+                         sConfig.database.useSocket,
+                         sConfig.database.autoReconnect,
+                         sConfig.debug.UseProfiling
+                        );
+    if (sDatabase.GetStatus() != DBcore::Connected) {
+        // error msg printed in DBcore::Initalize routine
+        std::cout << std::endl << "press any key to exit...";  std::cin.get();
+        return EXIT_FAILURE;
     }
-
-    //make the item factory
-    ItemFactory item_factory( sEntityList );
-	sLog.Log("Server Init", "starting item factory");
-
-    //now, the service manager...
-    PyServiceMgr services( 888444, sEntityList, item_factory );
-	sLog.Log("Server Init", "starting service manager");
-
-    //setup the command dispatcher
-    CommandDispatcher command_dispatcher( services );
-    RegisterAllCommands( command_dispatcher );
-
-    /*
-     * Service creation and registration.
-     *
-     */
-    sLog.Log("Server Init", "Creating services.");
-
-    // Please keep the services list clean so it's easyier to find something
-
-    services.RegisterService(new AccountService(&services));
-    services.RegisterService(new AgentMgrService(&services));
-    services.RegisterService(new AggressionMgrService(&services));
-    services.RegisterService(new AlertService(&services));
-    services.RegisterService(new AuthService(&services));
-    services.RegisterService(new BillMgrService(&services));
-    services.RegisterService(new BeyonceService(&services));
-    services.RegisterService(new BookmarkService(&services));
-    services.RegisterService(new BrowserLockdownService(&services));
-    services.RegisterService(new BulkMgrService(&services));
-    services.RegisterService(new CertificateMgrService(&services));
-    services.RegisterService(new CharFittingMgrService(&services));
-    services.RegisterService(new CharUnboundMgrService(&services));
-    services.RegisterService(new CharMgrService(&services));
-    services.RegisterService(new ClientStatLogger(&services));
-    services.RegisterService(new ClientStatsMgr(&services));
-    services.RegisterService(new ConfigService(&services));
-    services.RegisterService(new CorpBookmarkMgrService(&services));
-    services.RegisterService(new CorpMgrService(&services));
-    services.RegisterService(new CorporationService(&services));
-    services.RegisterService(new CorpRegistryService(&services));
-    services.RegisterService(new CorpStationMgrService(&services));
-    services.RegisterService(new ContractMgrService(&services));
-    services.RegisterService(new ContractProxyService(&services));
-    services.RegisterService(new DevToolsProviderService(&services));
-    services.RegisterService(new DogmaIMService(&services));
-    services.RegisterService(new DogmaService(&services));
-    services.RegisterService(new DungeonExplorationMgrService(&services));
-    services.RegisterService(new DungeonService(&services));
-    services.RegisterService(new FactionWarMgrService(&services));
-    services.RegisterService(new FactoryService(&services));
-    services.RegisterService(new FleetManager(&services));
-    services.RegisterService(new FleetObject(&services));
-    services.RegisterService(new FleetProxyService(&services));
-    services.RegisterService(new HoloscreenMgrService(&services));
-    services.RegisterService(new InfoGatheringMgr(&services));
-    services.RegisterService(new InsuranceService(&services));
-    services.RegisterService(new InvBrokerService(&services));
-    services.RegisterService(new JumpCloneService(&services));
-    services.RegisterService(new KeeperService(&services));
-    services.RegisterService(new LanguageService(&services));
-    services.RegisterService(new LocalizationServerService(&services));
-    services.RegisterService(new LookupService(&services));
-    services.RegisterService(new LPService(&services));
-    services.RegisterService(services.lsc_service = new LSCService(&services, &command_dispatcher));
-    services.RegisterService(new MailMgrService(&services));
-    services.RegisterService(new MailingListMgrService(&services));
-    services.RegisterService(new MapService(&services));
-    services.RegisterService(new MarketProxyService(&services));
-    services.RegisterService(new MissionMgrService(&services));
-    services.RegisterService(new NetService(&services));
-    services.RegisterService(new NotificationMgrService(&services));
-    services.RegisterService(services.cache_service = new ObjCacheService(&services, sConfig.files.cacheDir.c_str()));
-    services.RegisterService(new OnlineStatusService(&services));
-    services.RegisterService(new PaperDollService(&services));
-    services.RegisterService(new PetitionerService(&services));
-    services.RegisterService(new PhotoUploadService(&services));
-    services.RegisterService(new PlanetMgrService(&services));
-    services.RegisterService(new PosMgrService(&services));
-    services.RegisterService(new RamProxyService(&services));
-    services.RegisterService(new RepairService(&services));
-    services.RegisterService(new ReprocessingService(&services));
-    services.RegisterService(new SearchMgrService(&services));
-    services.RegisterService(new ShipService(&services));
-    services.RegisterService(new SkillMgrService(&services));
-    services.RegisterService(new SlashService(&services, &command_dispatcher));
-    services.RegisterService(new SovereigntyMgrService(&services));
-    services.RegisterService(new Standing2Service(&services));
-    services.RegisterService(new StationService(&services));
-    services.RegisterService(new StationSvcService(&services));
-    services.RegisterService(new TutorialService(&services));
-    services.RegisterService(new UserService(&services));
-    services.RegisterService(new VoiceMgrService(&services));
-    services.RegisterService(new WarRegistryService(&services));
-
-    sLog.Log("Server Init", "Priming cached objects.");
-    services.cache_service->PrimeCache();
-    sLog.Log("Server Init", "finished priming");
+    std::printf("\n");     // spacer
 
     // start up the image server
+    sLog.Green("       ServerInit", "Starting Image Server");
     sImageServer.Run();
-	sLog.Log("Server Init", "started image server");
+    //  this gives the imageserver's server time to load so the dynamic database msgs are in order
+    Sleep(250);
 
-    // start up the api server
-    sAPIServer.CreateServices( services );
-    sAPIServer.Run();
-	sLog.Log("Server Init", "started API server");
+    sThread.Initialize();
+    sLog.Green( "        Threading", "Starting Main Loop thread with ID 0x%X", pthread_self() );
+    //sThread.AddThread(pthread_self());
+    std::printf("\n");     // spacer
 
-    // start up the image server
-    sLog.Log("Server Init", "Loading Dynamic Database Table Objects...");
+    // basic shit done.  begin loading server specifics...
+    sLog.Green("       ServerInit", "Loading server");
+    std::printf("\n");     // spacer
 
-	// Create In-Memory Database Objects for Critical Systems, such as ModuleManager:
-	sLog.Log("Server Init", "---> sDGM_Effects_Table: Loading...");
-	sDGM_Effects_Table.Initialize();
-	sLog.Log("Server Init", "---> sDGM_Type_Effects_Table: Loading...");
-	sDGM_Type_Effects_Table.Initialize();
-	sLog.Log("Server Init", "---> sDGM_Skill_Bonus_Modifiers_Table: Loading...");
-	sDGM_Skill_Bonus_Modifiers_Table.Initialize();
-	//sLog.Log("Server Init", "---> sDGM_Ship_Bonus_Modifiers_Table: Loading...");
-	//sDGM_Ship_Bonus_Modifiers_Table.Initialize();
-	sLog.Log("Server Init", "---> sDGM_Types_to_Wrecks_Table: Loading...");
-	sDGM_Types_to_Wrecks_Table.Initialize();
+    /* create a single item factory */
+    sLog.Green("       ServerInit", "Starting Item Factory");
+    sItemFactory.Initialize();
+    /* initialize EntityList singleton, clientID seed and start tic timer */
+    sLog.Green("       ServerInit", "Starting Entity List");
+    sEntityList.Initialize();
+    /* create a service manager */
+    sLog.Green("       ServerInit", "Starting Service Manager");
+    PyServiceMgr pyServMgr( 888444, sEntityList );
+    sLog.Blue("  Service Manager", "Service Manager Initialized.");
+    /* create a command dispatcher */
+    sLog.Green("       ServerInit", "Starting Command Dispatch Manager");
+    CommandDispatcher command_dispatcher( pyServMgr );
+    RegisterAllCommands( command_dispatcher );
+    sLog.Blue(" Command Dispatch", "Command Dispatcher Initialized.");
+    /* create the BubbleManager singleton */
+    sLog.Green("       ServerInit", "Starting Bubble Manager");
+    sBubbleMgr.Initialize();
+    /* create the StandingMgr singleton */
+    sLog.Green("       ServerInit", "Starting Standings Manager");
+    sStandingMgr.Initialize();
+    /* create the FleetService singleton */
+    //sLog.Green("       ServerInit", "Starting Fleet Services");
+    //sFltSvc.Initialize(&pyServMgr);
+    /* create the MarketMgr singleton */
+    sLog.Green("       ServerInit", "Starting Market Manager");
+    sMktMgr.Initialize(&pyServMgr);
+    sLog.Green("       ServerInit", "Starting Statistics Manager");
+    sStatMgr.Initialize();
+    /* create console command interperter singleton */
+    sLog.Green("       ServerInit", "Starting Console Manager");
+    sConsole.Initialize(&command_dispatcher);
+    std::printf("\n");     // spacer
 
-#ifdef HAVE_UNISTD_H
-	if(getuid() == 0){
-		sLog.Warning("Server Init", "Running as root. Attempting to drop root privileges.");
-		// uid:gid 99:99 is nobody:nobody on my system. seems standard across all my linux systems. (arch, centos, debian)
-		if (setgid(99) != 0) {
-			sLog.Error("Server Init", "setgid: Unable to drop group privileges: %s", strerror(errno));
-			RunLoops = false;
-		}
-		if (setuid(99) != 0) {
-			sLog.Error("Server Init", "setuid: Unable to drop user privileges: %S", strerror(errno));
-			RunLoops = false;
-		}
-		sLog.Success("Server Init", "Dropped root privileges successfully: %u", getuid());
-	}
-#endif /* HAVE_UNISTD_H */
+    sLog.Blue("     ServerConfig", "Cosmic Manager Settings");
+    if (sConfig.cosmic.CiviliansEnabled) {
+        sLog.Green(" Civilian Manager", "Civilian Manager Enabled.");
+        /* create the CivilianMgr singleton */
+        sLog.Green("       ServerInit", "Starting Civilian Manager");
+        sCivMgr.Initialize(&pyServMgr);
+    } else {
+        sLog.Warning(" Civilian Manager", "Civilian Manager Disabled.");
+    }
+    if (sConfig.cosmic.WormHoleEnabled) {
+        sLog.Green(" Wormhole Manager", "Wormhole Manager Enabled.");
+        /* create the WormholeMgr singleton */
+        sLog.Green("       ServerInit", "Starting Wormhole Manager");
+        sWHMgr.Initialize(&pyServMgr);
+    } else {
+        sLog.Warning(" Wormhole Manager", "Wormhole Manager Disabled.");
+    }
+    std::printf("\n");     // spacer
 
-    sLog.Success("Server Init", "Initialisation finished");
+    /* Service creation and registration. */
+    sLog.Green("       ServerInit", "Registering Service Managers."); // 90 currently known pyServMgr
+    double startTime = GetTimeMSeconds();
+    /* Please keep the pyServMgr list clean so it's easier to find things */
+    /* 'services' here are systems that respond to client calls */
+    // move this into a service Init() function?   will need more work to do...
+    pyServMgr.RegisterService("account", new AccountService(&pyServMgr));
+    //pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
+    pyServMgr.RegisterService("aggressionMgr", new AggressionMgrService(&pyServMgr));
+    pyServMgr.RegisterService("alert", new AlertService(&pyServMgr));
+    pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
+    pyServMgr.RegisterService("authentication", new AuthService(&pyServMgr));
+    pyServMgr.RegisterService("billMgr", new BillMgr(&pyServMgr));
+    pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
+    pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
+    pyServMgr.RegisterService("browserLockdownSvc", new BrowserLockdownService(&pyServMgr));
+    pyServMgr.RegisterService("bulkMgr", new BulkMgrService(&pyServMgr));
+    pyServMgr.RegisterService("calendarProxy", new CalendarProxy(&pyServMgr));
+    pyServMgr.RegisterService("calendarMgr", new CalendarMgrService(&pyServMgr));
+    pyServMgr.RegisterService("certificateMgr", new CertificateMgrService(&pyServMgr));
+    pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
+    pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
+    pyServMgr.RegisterService("charMgr", new CharMgrService(&pyServMgr));
+    pyServMgr.RegisterService("clientStatLogger", new ClientStatLogger(&pyServMgr));
+    pyServMgr.RegisterService("clientStatsMgr", new ClientStatsMgr(&pyServMgr));
+    pyServMgr.RegisterService("config", new ConfigService(&pyServMgr));
+    pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
+    pyServMgr.RegisterService("corpFittingMgr", new CorpFittingMgr(&pyServMgr));
+    pyServMgr.RegisterService("corpmgr", new CorpMgrService(&pyServMgr));
+    pyServMgr.RegisterService("corporationSvc", new CorporationService(&pyServMgr));
+    pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
+    pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
+    pyServMgr.RegisterService("contractMgr", new ContractMgr(&pyServMgr));
+    pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
+    pyServMgr.RegisterService("devToolsProvider", new DevToolsProviderService(&pyServMgr));
+    pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
+    pyServMgr.RegisterService("dogma", new DogmaService(&pyServMgr));
+    pyServMgr.RegisterService("dungeonExplorationMgr", new DungeonExplorationMgrService(&pyServMgr));
+    pyServMgr.RegisterService("dungeon", new DungeonService(&pyServMgr));
+    pyServMgr.RegisterService("entity", new EntityService(&pyServMgr));
+    pyServMgr.RegisterService("facWarMgr", new FactionWarMgrService(&pyServMgr));
+    pyServMgr.RegisterService("factory", new FactoryService(&pyServMgr));
+    //pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
+    //pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
+    //pyServMgr.RegisterService("fleetProxy", new FleetProxy(&pyServMgr));
+    pyServMgr.RegisterService("holoscreenMgr", new HoloscreenMgrService(&pyServMgr));
+    pyServMgr.RegisterService("devIndexManager", new IndexManager(&pyServMgr));
+    pyServMgr.RegisterService("infoGatheringMgr", new InfoGatheringMgr(&pyServMgr));
+    pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
+    pyServMgr.RegisterService("invbroker", new InvBrokerService(&pyServMgr));
+    pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
+    pyServMgr.RegisterService("keeper", new KeeperService(&pyServMgr));
+    pyServMgr.RegisterService("languageSvc", new LanguageService(&pyServMgr));
+    pyServMgr.RegisterService("localizationServer", new LocalizationServerService(&pyServMgr));
+    pyServMgr.RegisterService("lookupSvc", new LookupService(&pyServMgr));
+    pyServMgr.RegisterService("LPSvc", new LPService(&pyServMgr));
+    pyServMgr.RegisterService("storeServer", new LPStore(&pyServMgr));
+    pyServMgr.lsc_service = new LSCService(&pyServMgr, &command_dispatcher);
+    pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
+    pyServMgr.RegisterService("machoNet", new NetService(&pyServMgr));
+    pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
+    pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
+    pyServMgr.RegisterService("map", new MapService(&pyServMgr));
+    pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
+    //pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
+    pyServMgr.RegisterService("movementServer", new MovementService(&pyServMgr));
+    pyServMgr.RegisterService("notificationMgr", new NotificationMgrService(&pyServMgr));
+    pyServMgr.cache_service = new ObjCacheService(&pyServMgr, sConfig.files.cacheDir.c_str());
+    pyServMgr.RegisterService("objectCaching", pyServMgr.cache_service);
+    pyServMgr.RegisterService("onlineStatus", new OnlineStatusService(&pyServMgr));
+    pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
+    pyServMgr.RegisterService("petitioner", new PetitionerService(&pyServMgr));
+    pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
+    //pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
+    //pyServMgr.RegisterService("planetOrbitalRegistryBroker", new PlanetORB(&pyServMgr));
+    //pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
+    pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
+    pyServMgr.RegisterService("repairSvc", new RepairService(&pyServMgr));
+    pyServMgr.RegisterService("reprocessingSvc", new ReprocessingService(&pyServMgr));
+    pyServMgr.RegisterService("search", new Search(&pyServMgr));
+    pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
+    pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
+    pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
+    pyServMgr.RegisterService("slash", new SlashService(&pyServMgr, &command_dispatcher));
+    pyServMgr.RegisterService("sovMgr", new SovereigntyMgrService(&pyServMgr));
+    pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
+    pyServMgr.RegisterService("station", new StationService(&pyServMgr));
+    pyServMgr.RegisterService("stationSvc", new StationSvc(&pyServMgr));
+    pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
+    pyServMgr.RegisterService("tutorialSvc", new TutorialService(&pyServMgr));
+    pyServMgr.RegisterService("userSvc", new UserService(&pyServMgr));
+    pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
+    pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
+    pyServMgr.RegisterService("warRegistry", new WarRegistryService(&pyServMgr));
+    pyServMgr.RegisterService("wormholeMgr", new WormHoleSvc(&pyServMgr));
+    pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
+    pyServMgr.RegisterService("netStateServer", new netStateServer(&pyServMgr));
+    pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
+    pyServMgr.Initalize(startTime);
+    std::printf("\n");     // spacer
 
-	/////////////////////////////////////////////////////////////////////////////////////
-	//     !!!  DO NOT PUT ANY INITIALIZATION CODE OR CALLS BELOW THIS LINE   !!!
-	/////////////////////////////////////////////////////////////////////////////////////
-	services.serviceDB().SetServerOnlineStatus(true);
-	sLog.Success("STATUS", "SERVER IS NOW [ONLINE]");
-	sLog.Log("INFO", "(press Ctrl+C to start controlled server shutdown)");
+    // Create In-Memory Database Objects for Critical and High-Use Systems:
+    sLog.Yellow("       ServerInit", "Loading Static Database Table Objects...");
+    std::printf("\n");     // spacer
+    /** @note  this is NOT used correctly yet...  */
+    //sLog.Green("       ServerInit", "Priming cached objects.");
+    //pyServMgr.cache_service->PrimeCache();
+    sLog.Green("       ServerInit", "Initializing BulkData");
+    if (sConfig.server.BulkDataOD) {
+        sLog.Yellow("      BulkDataMgr", "PreLoading Disabled. BulkData will load on first call.");
+    } else {
+        sBulkDB.Initialize();
+    }
+    std::printf("\n");     // spacer
 
-    /*
-     * THE MAIN LOOP
-     *
-     * Everything except IO should happen in this loop, in this thread context.
-     *
-     */
+    sLog.Green("       ServerInit", "Loading Data Sets");
+    sDataMgr.Initialize();
+    std::printf("\n");     // spacer
+    //sMissionDataMgr.Initialize();
+    std::printf("\n");     // spacer
+    sFxDataMgr.Initialize();
+    std::printf("\n");     // spacer
+    sMapData.Initialize();
+    std::printf("\n");     // spacer
+    sDunDataMgr.Initialize();
+    std::printf("\n");     // spacer
+    //sPlanetDataMgr.Initialize();
+    std::printf("\n");     // spacer
+    //sPIDataMgr.Initialize();
+    std::printf("\n");     // spacer
+    stDataMgr.Initialize();
+    std::printf("\n");     // spacer
+
+    // clear dynamic system data (player counts, etc) on server start
+    MapDB::SystemStartup();
+    sLog.Green("       ServerInit", "Dynamic System Data Reset.");
+
+    //sLog.Warning("server init", "Adding NPC Market Orders.");
+    //NPCMarket::CreateNPCMarketFromFile("/etc/npcMarket.xml");
 
     /* program events system */
     SetupSignals();
 
-    uint32 start;
-    uint32 etime;
-    uint32 last_time = GetTickCount();
+    /*
+    #ifndef _WIN32 // Windows
 
-    EVETCPConnection* tcpc;
-    while( RunLoops == true )
-    {
+    ///- Handle affinity for multiple processors and process priority
+    uint32 affinity = sConfigMgr->GetIntDefault("UseProcessors", 0);
+    bool highPriority = sConfigMgr->GetBoolDefault("ProcessPriority", false);
+
+    if (affinity > 0) {
+        cpu_set_t mask;
+        CPU_ZERO(&mask);
+
+        for (unsigned int i = 0; i < sizeof(affinity) * 8; ++i)
+            if (affinity & (1 << i))
+                CPU_SET(i, &mask);
+
+        if (sched_setaffinity(0, sizeof(mask), &mask))
+            sLog->outError("Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
+        else {
+            CPU_ZERO(&mask);
+            sched_getaffinity(0, sizeof(mask), &mask);
+            sLog->outString("Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
+        }
+    }
+
+    if (highPriority) {
+        if (setpriority(PRIO_PROCESS, 0, PROCESS_HIGH_PRIORITY))
+            sLog->outError("Can't set worldserver process priority class, error: %s", strerror(errno));
+        else
+            sLog->outString("worldserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
+    }
+
+    #endif
+    */
+
+    uint32 start = 0;
+    EVETCPConnection* tcpc(nullptr);
+
+    // clear profile data from server startup
+    sProfiler.ClearAll();
+    sLog.Green(" Server Profiling","Profile Data Reset.");
+    std::printf("\n");     // spacer
+
+    sLog.Blue("       ServerInit", "Server Initialized in %.3f Seconds.", (GetTimeMSeconds() - profileStartTime) / 1000);
+    sLog.Error("       ServerInit", "Main Loop Starting.");
+
+    ServiceDB::SetServerOnlineStatus(true);
+    sLog.Green("       ServerInit", "EVEmu Server is Online.");
+
+    std::string str = "Started on ";
+    str += currentDateTime();
+    sLog.Cyan("           Server", "%s", str.c_str());
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    //     !!!  DO NOT PUT ANY INITIALIZATION CODE OR CALLS BELOW THIS LINE   !!!
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    /*
+     * THE MAIN LOOP
+     * Everything except IO should happen in this loop, in this thread context.
+     */
+    while (m_run) {
         Timer::SetCurrentTime();
         start = GetTickCount();
 
-        //check for timeouts in other threads
-        //timeout_manager.CheckTimeouts();
-        while( ( tcpc = tcps.PopConnection() ) )
-        {
-            Client* c = new Client( services, &tcpc );
+        /* Freeze Detector Code */
+        //++m_worldLoopCounter;
 
-            sEntityList.Add( &c );
-        }
+        if ((tcpc = tcps.PopConnection()))
+            sEntityList.Add(new Client(pyServMgr, &tcpc));
 
         sEntityList.Process();
-        services.Process();
 
-        /* UPDATE */
-        last_time = GetTickCount();
-        etime = last_time - start;
+        /*  process console commands, if any, and check for 'exit' command */
+        m_run = sConsole.Process();
 
-        // do the stuff for thread sleeping
-        if( MAIN_LOOP_DELAY > etime )
-            Sleep( MAIN_LOOP_DELAY - etime );
+        /* do the stuff for thread sleeping */
+        start = GetTickCount() - start;
+        if (m_sleepTime > start)
+            std::this_thread::sleep_for(std::chrono::milliseconds(start));
     }
 
-    sLog.Log("Server Shutdown", "Main loop stopped" );
+    /*
+     * end of main loop
+     *  at this point, server has been killed, and these are cleanup methods below here
+     */
 
-    // Shutting down EVE Client TCP listener
+    /** @todo  update this to have a ShutDown() method, with these items.
+     * also look into calling it when a signal is caught, for cleanup.
+     * @note  these are order-dependent...
+     */
+    sLog.Warning("   ServerShutdown", "Main loop has stopped." );
+    sLog.Error("   ServerShutdown", "EVEmu Server is Offline." );
+    if (!sConsole.IsDbError())
+        ServiceDB::SetServerOnlineStatus(false);
+    /* stop TCP listener */
     tcps.Close();
-    sLog.Log("Server Shutdown", "TCP listener stopped." );
-
-    // Shutting down API Server:
-    sAPIServer.Stop();
-    sLog.Log("Server Shutdown", "Image Server TCP listener stopped." );
-
-    // Shutting down Image Server:
+    sLog.Warning("   ServerShutdown", "TCP listener stopped." );
+    /* stop Image Server */
     sImageServer.Stop();
-    sLog.Log("Server Shutdown", "API Server TCP listener stopped." );
-
-    services.serviceDB().SetServerOnlineStatus(false);
-	sLog.Log("Server Shutdown", "SERVER IS NOW [OFFLINE]");
-
-    sLog.Log("Server Shutdown", "Cleanup db cache" );
-    delete _sDgmTypeAttrMgr;
-
+    sLog.Warning("   ServerShutdown", "Image Server stopped." );
+    /* Close the MarketMgr */
+    sMktMgr.Close();
+    /* Close the bulk data manager */
+    sBulkDB.Close();
+    /* Close the station data manager */
+    stDataMgr.Close();
+    /* Close the map data manager */
+    sMapData.Close();
+    /* Close the static data manager */
+    sDataMgr.Close();
+    /* Close the statistics manager */
+    sStatMgr.Close();
+    /* Close the standings manager */
+    sStandingMgr.Close();
+    sLog.Warning("   ServerShutdown", "Saving Items." );
+    if (!sConsole.IsDbError())
+        sItemFactory.SaveItems();
+    /* Close the entity list */
+    sEntityList.Close();
+    /* Close the service manager */
+    pyServMgr.Close();
+    /* Shut down the Item system */
+    sLog.Warning("   ServerShutdown", "Shutting down Item Factory." );
+    sItemFactory.Close();
+    /* Close the bubble manager */
+    sBubbleMgr.clear();
+    /* Close the command dispatcher */
+    command_dispatcher.Close();
+    /* Stop Console Command Interperter */
+    //sConsole.Stop();
+    /* close the db handler */
+    sLog.Warning("   ServerShutdown", "Closing DataBase Connection." );
+    sDatabase.Close();
+    /** @todo  the thread system is only implemented for tcp connections at this time. */
+    sLog.Warning("   ServerShutdown", "Shutting down Thread Manager." );
+    /* join open threads */
+    sThread.EndThreads();
+    sLog.Warning("   ServerShutdown", "EVEmu is Offline.");
+    /* close logfile */
     log_close_logfile();
-
-    //std::cout << std::endl << "press the ENTER key to exit...";  std::cin.get();
-
-	// Shut down the Item system ensuring ALL items get saved to the database:
-	sLog.Log("Server Shutdown", "Shutting down Item Factory." );
-
-	return 0;
+    exit(EXIT_SUCCESS);
 }
 
 static void SetupSignals()
 {
+    /* setup sigaction to prevent zombies and catch other non-fatal signals */
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sa.sa_flags = SA_NOCLDWAIT;
+    if (sigemptyset(&sa.sa_mask) == -1 ) {  /* MT safe */
+        perror("SigEmptySet Failure");
+        exit(EXIT_FAILURE);     /* NOT MT safe */
+    }
+    if (sigaction(SIGCHLD, &sa, nullptr) == -1) {  /* MT safe */
+        perror("SigAction Failure");
+        exit(EXIT_FAILURE);     /* NOT MT safe */
+    }
+    if (sigaction(SIGPIPE, &sa, nullptr) == -1) {  /* MT safe */
+        // ignore broken pipe signal.  db code will auto-recover.
+        perror("SigPipe Failure");
+        return;
+    }
+
+    //::signal( SIGPIPE, SIG_IGN );
+    //::signal( SIGCHLD, SIG_IGN );
     ::signal( SIGINT, CatchSignal );
     ::signal( SIGTERM, CatchSignal );
     ::signal( SIGABRT, CatchSignal );
+    //::signal( SIGSEGV, CatchSignal );
 
-#ifdef SIGABRT_COMPAT
+    #ifdef SIGABRT_COMPAT
     ::signal( SIGABRT_COMPAT, CatchSignal );
-#endif /* SIGABRT_COMPAT */
+    #endif /* SIGABRT_COMPAT */
 
-#ifdef SIGBREAK
+    #ifdef SIGBREAK
     ::signal( SIGBREAK, CatchSignal );
-#endif /* SIGBREAK */
+    #endif /* SIGBREAK */
 
-#ifdef SIGHUP
+    #ifdef SIGHUP
     ::signal( SIGHUP, CatchSignal );
-#endif /* SIGHUP */
+    #endif /* SIGHUP */
 }
 
 static void CatchSignal( int sig_num )
 {
-    sLog.Log( "Signal system", "Caught signal: %d", sig_num );
-
-    RunLoops = false;
+    sLog.Error( "    Signal System", "Caught signal: %d", sig_num );
+    if (sConfig.debug.StackTrace)
+        EvE::traceStack();
+    //SafeSave();
+    m_run = false;
+    //CleanUp();
 }
+
+static void CleanUp() {
+    sLog.Warning("   ServerShutdown", "Main loop has stopped." );
+    sLog.Error("   ServerShutdown", "EVEmu Server is Offline." );
+    if (!sConsole.IsDbError())
+        ServiceDB::SetServerOnlineStatus(false);
+    /* stop TCP listener */
+    //tcps.Close();
+    sLog.Warning("   ServerShutdown", "TCP listener stopped." );
+    /* stop Image Server */
+    sImageServer.Stop();
+    sLog.Warning("   ServerShutdown", "Image Server stopped." );
+    /* Close the MarketMgr */
+    sLog.Warning("   ServerShutdown", "Shutting down Market Manager." );
+    sMktMgr.Close();
+    /* Close the bulk data manager */
+    sLog.Warning("   ServerShutdown", "Closing the BulkData Manager." );
+    sBulkDB.Close();
+    /* Close the station data manager */
+    sLog.Warning("   ServerShutdown", "Closing the StationData Manager." );
+    stDataMgr.Close();
+    /* Close the static data manager */
+    sLog.Warning("   ServerShutdown", "Closing the StaticData Manager." );
+    sDataMgr.Close();
+    sStatMgr.Close();
+    sStandingMgr.Close();
+    sLog.Warning("   ServerShutdown", "Saving Items." );
+    if (!sConsole.IsDbError())
+        sItemFactory.SaveItems();
+    /* Close the entity list */
+    sLog.Warning("   ServerShutdown", "Closing the Entity List." );
+    sEntityList.Close();
+    /* Close the service manager */
+    sLog.Warning("   ServerShutdown", "Closing the Services Manager." );
+    //pyServMgr.Close();
+    /* Shut down the Item system */
+    sLog.Warning("   ServerShutdown", "Shutting down Item Factory." );
+    sItemFactory.Close();
+    sLog.Warning("   ServerShutdown", "Closing the Bubble Manager." );
+    sBubbleMgr.clear();
+    /* Close the command dispatcher */
+    //command_dispatcher.Close();
+    /* Stop Console Command Interperter */
+    //sConsole.Stop();
+    /* close the db handler */
+    sLog.Warning("   ServerShutdown", "Closing DataBase Connection." );
+    sDatabase.Close();
+    /** @todo  the thread system is only implemented for tcp connections at this time. */
+    sLog.Warning("   ServerShutdown", "Shutting down Thread Manager." );
+    /* join open threads */
+    sThread.EndThreads();
+    sLog.Warning("   ServerShutdown", "EVEmu is Offline.");
+    /* close logfile */
+    log_close_logfile();
+}
+
+/*      Freeze Detector Code taken from TrinityCore.  figure out how to implement here (based on seeing occational freezes on main)  -allan 29Dec15
+ * void FreezeDetectorHandler(const boost::system::error_code& error)
+ * {
+ *    if (!error)
+ *    {
+ *        uint32 curtime = getMSTime();
+ *
+ *        uint32 worldLoopCounter = World::m_worldLoopCounter;
+ *        if (_worldLoopCounter != worldLoopCounter)
+ *        {
+ *            _lastChangeMsTime = curtime;
+ *            _worldLoopCounter = worldLoopCounter;
+ *        }
+ *        // possible freeze
+ *        else if (getMSTimeDiff(_lastChangeMsTime, curtime) > _maxCoreStuckTimeInMs)
+ *        {
+ *            TC_LOG_ERROR("server.worldserver", "World Thread hangs, kicking out server!");
+ *            ASSERT(false);
+ *        }
+ *
+ *        _freezeCheckTimer.expires_from_now(boost::posix_time::seconds(1));
+ *        _freezeCheckTimer.async_wait(FreezeDetectorHandler);
+ *    }
+ * }  */

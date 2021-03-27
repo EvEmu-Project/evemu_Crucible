@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -20,25 +20,41 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        BB2k,Allan
-*/
+    Author:        Allan
+    */
 
 
-#ifndef __SEARCHDB_H_INCL__
-#define __SEARCHDB_H_INCL__
+#ifndef EVEMU_SYSTEM_SEARCHDB_H_
+#define EVEMU_SYSTEM_SEARCHDB_H_
 
-#include "ServiceDB.h"
+#include "PyService.h"
 
-class SearchMgrService;
-
-class SearchDB
-: public ServiceDB
-{
-public:
-    PyRep *QuickQuery(std::string match, std::vector<int> *searchID); 
-    PyRep *Query(std::string match, std::vector<int> *searchID);
+//  -allan 5Aug14
+enum SearchTypes {
+    searchResultAgent           = 1,
+    searchResultCharacter       = 2,
+    searchResultCorporation     = 3,
+    searchResultAlliance        = 4,
+    searchResultFaction         = 5,
+    searchResultConstellation   = 6,
+    searchResultSolarSystem     = 7,
+    searchResultRegion          = 8,
+    searchResultStation         = 9,
+    searchResultInventoryType   = 10,
+    //searchResultAllOwners = [1, 2, 3, 4, 5],
+    //searchResultAllLocations = [6, 7, 8, 9],
+    searchMaxResults            = 500,
+    searchMinWildcardLength     = 3
 };
 
-#endif
+class SearchDB
+: public ServiceDB {
+public:
+
+    PyRep* Query(std::string string, std::vector<int> *searchID, uint32 charID);
+    PyRep* QuickQuery(std::string string, std::vector<int> *searchID, uint32 charID, bool hideNPC = false, bool onlyAltName = false);
+
+};
 
 
+#endif      // EVEMU_SYSTEM_SEARCHDB_H_

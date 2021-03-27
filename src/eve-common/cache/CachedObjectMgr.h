@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -46,7 +46,7 @@ class PyCachedObjectDecoder;
 #pragma pack(1)
 struct CacheFileHeader
 {
-    uint64 timestamp;
+    int64 timestamp;
     uint32 version;
     uint32 length;
     uint32 magic;
@@ -65,11 +65,11 @@ public:
     bool HaveCached(const std::string &objectID) const;
     bool HaveCached(const PyRep *objectID) const;
 
-    bool IsCacheUpToDate(const PyRep *objectID, uint32 version, uint64 timestamp);
+    bool IsCacheUpToDate(const PyRep *objectID, uint32 version, int64 timestamp);
 
     void InvalidateCache(const PyRep *objectID);
 
-    //bool IsObjectFresh(const std::string &objectID, uint32 version, uint64 timestamp);
+    //bool IsObjectFresh(const std::string &objectID, uint32 version, int64 timestamp);
     void UpdateCacheFromSS(const std::string &objectID, PySubStream **in_cached_data);
     void UpdateCache(const std::string &objectID, PyRep **in_cached_data);
     void UpdateCache(const PyRep *objectID, PyRep **in_cached_data);
@@ -110,7 +110,7 @@ protected:
         PyObject *EncodeHint() const;
 
         PyRep *objectID;    //we own this
-        uint64 timestamp;
+        int64 timestamp;
         uint32 version;
         PyBuffer *cache; //we own this.
     };
@@ -134,7 +134,7 @@ public:
     PyCachedObject *Clone() const;
 
     //object version tuple:
-    /*0*/   uint64 timestamp;
+    /*0*/   int64 timestamp;
     /*0*/   uint32 version;     //might be swapped with nodeID
 
     /*1*/ //unknown None
@@ -159,8 +159,8 @@ public:
     PyObject *EncodeHint();
 
     //object version tuple:
-    /*0*/   uint64 timestamp;
-    /*0*/   uint32 version;     //might be swapped with nodeID
+    /*0*/int64 timestamp;
+    /*0*/int32 version;     //might be swapped with nodeID
 
     /*1*/ //unknown None
     /*2*/uint32 nodeID;

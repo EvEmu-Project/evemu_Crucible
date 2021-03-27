@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -22,6 +22,9 @@
     ------------------------------------------------------------------------------------
     Author:        Zhur
 */
+
+// no clue where these come from, how they were found, or how i can implement the unfinished ones....
+
 
 #ifndef EVE_MARSHAL_OPCODES_H
 #define EVE_MARSHAL_OPCODES_H
@@ -76,6 +79,12 @@ enum PyRepOpcode
     Op_PyWStringUTF8        = 0x2E,
     Op_PyVarInteger            = 0x2F, // variable length integer field??? // PyLong from Byte array
     PyRepOpcodeMask            = 0x3F
+
+    //  seen these on main server.
+    // E Unmarshal: Invalid stream received (header byte ...)
+    //                          = 0x5
+    //                          = 0xE
+    //                          = 0xCC
 };    //6 bits
 
 struct ZeroCompressOpcode

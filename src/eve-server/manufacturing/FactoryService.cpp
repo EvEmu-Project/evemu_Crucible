@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,7 +21,19 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Rewrite:    Allan
 */
+
+/*
+ * # Manufacturing Logging:
+ * MANUF__ERROR
+ * MANUF__WARNING
+ * MANUF__MESSAGE
+ * MANUF__INFO
+ * MANUF__DEBUG
+ * MANUF__TRACE
+ * MANUF__DUMP
+ */
 
 #include "eve-server.h"
 
@@ -40,43 +52,61 @@ FactoryService::FactoryService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(FactoryService, GetBlueprintAttributes);
     PyCallable_REG_CALL(FactoryService, GetMaterialsForTypeWithActivity);
     PyCallable_REG_CALL(FactoryService, GetMaterialCompositionOfItemType);
+    PyCallable_REG_CALL(FactoryService, GetBlueprintInformationAtLocation);
+    PyCallable_REG_CALL(FactoryService, GetBlueprintInformationAtLocationWithFlag);
 }
 
 FactoryService::~FactoryService() {
     delete m_dispatch;
 }
 
-PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
+PyResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs &call) {
     Call_SingleIntegerArg arg;
-    if(!arg.Decode(&call.tuple)) {
+    if (!arg.Decode(&call.tuple)) {
         _log(SERVICE__ERROR, "Failed to decode args.");
-        return NULL;
+        return nullptr;
     }
 
-    BlueprintRef b = m_manager->item_factory.GetBlueprint( arg.arg );
-    if( !b )
-        return NULL;
+    return FactoryDB::GetMaterialCompositionOfItemType(arg.arg);
+}
 
-    return b->GetBlueprintAttributes();
+PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        _log(SERVICE__ERROR, "Failed to decode args.");
+        return nullptr;
+    }
+
+    BlueprintRef bRef = sItemFactory.GetBlueprint( arg.arg );
+    if (bRef.get() == nullptr)
+        return nullptr;
+
+    return bRef->GetBlueprintAttributes();
 }
 
 PyResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {
-	Call_SingleIntegerArg call_args;
-    if(!call_args.Decode(&call.tuple)) {
-        _log(SERVICE__MESSAGE, "Failed to decode args.");
-        return NULL;
+    // this is the material and manuf tab of bp.  -working  allan 1Jan17
+	Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        _log(SERVICE__ERROR, "Failed to decode args.");
+        return nullptr;
     }
 
-    return(m_db.GetMaterialsForTypeWithActivity(call_args.arg));
+    return sDataMgr.GetBPMatlData(arg.arg);
 }
 
-PyResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs &call) {
-    Call_SingleIntegerArg call_args;
-    if(!call_args.Decode(&call.tuple)) {
-        _log(SERVICE__MESSAGE, "Failed to decode args.");
-        return NULL;
-    }
 
-    return(m_db.GetMaterialCompositionOfItemType(call_args.arg));
+// these next two are for corp locked items calls
+PyResult FactoryService::Handle_GetBlueprintInformationAtLocation(PyCallArgs &call) {
+    //    blueprints = sm.RemoteSvc('factory').GetBlueprintInformationAtLocation(hangarID, 1)
+    _log(MANUF__MESSAGE, "FactoryService::GetBlueprintInformationAtLocation() size= %u", call.tuple->size());
+    call.Dump(MANUF__DUMP);
+    return nullptr;
 }
 
+PyResult FactoryService::Handle_GetBlueprintInformationAtLocationWithFlag(PyCallArgs &call) {
+    //blueprints = sm.RemoteSvc('factory').GetBlueprintInformationAtLocationWithFlag(locationID, self.flagInput, 1)
+    _log(MANUF__MESSAGE, "FactoryService::Handle_GetBlueprintInformationAtLocationWithFlag() size= %u", call.tuple->size());
+    call.Dump(MANUF__DUMP);
+    return nullptr;
+}

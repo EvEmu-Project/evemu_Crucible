@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,154 +21,99 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:        Allan
 */
+
 
 #include "eve-server.h"
 
+#include "Client.h"
+#include "EntityList.h"
+#include "EVEServerConfig.h"
+#include "StaticDataMgr.h"
 #include "inventory/AttributeEnum.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
-#include "npc/SpawnManager.h"
-#include "ship/DestinyManager.h"
+#include "system/Container.h"
+#include "system/Damage.h"
+#include "system/DestinyManager.h"
+#include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "system/cosmicMgrs/AnomalyMgr.h"
 
-using namespace Destiny;
 
-NPC::NPC(
-    SystemManager *system,
-    PyServiceMgr &services,
-    InventoryItemRef self,
-    uint32 corporationID,
-    uint32 allianceID,
-    const GPoint &position,
-    SpawnEntry *spawner)
-: DynamicSystemEntity(new DestinyManager(this, system), self),
-  m_system(system),
-  m_services(services),
-  m_spawner(spawner),
-//  m_itemID(self->itemID()),
-//  m_typeID(self->typeID()),
-//  m_ownerID(self->ownerID()),
-  m_corporationID(corporationID),
-  m_allianceID(allianceID),
-  m_orbitingID(0)
+NPC::NPC(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data, SpawnMgr* spawnMgr)
+: DynamicSystemEntity(self, services, system),
+m_spawnMgr(spawnMgr),
+m_AI(new NPCAIMgr(this))
 {
-    //NOTE: this is bad if we inherit NPC!
-    m_AI = new NPCAIMgr(this);
+    m_allyID = data.allianceID;
+    m_warID = data.factionID;
+    m_corpID = data.corporationID;
+    m_ownerID = data.ownerID;
 
-	// SET ALL ATTRIBUTES MISSING FROM DATABASE BEFORE USING THEM FOR ANYTHING:
     // Create default dynamic attributes in the AttributeMap:
-    self->SetAttribute(AttrIsOnline,            1, true);											// Is Online
-    self->SetAttribute(AttrShieldCharge,        self->GetAttribute(AttrShieldCapacity), true);		// Shield Charge
-    self->SetAttribute(AttrArmorDamage,         0.0, true);											// Armor Damage
-    self->SetAttribute(AttrMass,                self->type().attributes.mass(), true);				// Mass
-    self->SetAttribute(AttrRadius,              self->type().attributes.radius(), true);			// Radius
-    self->SetAttribute(AttrVolume,              self->type().attributes.volume(), true);			// Volume
-    self->SetAttribute(AttrCapacity,            self->type().attributes.capacity(), true);			// Capacity
-    self->SetAttribute(AttrInertia,             1, true);											// Inertia
-    self->SetAttribute(AttrCharge,              self->GetAttribute(AttrCapacitorCapacity), true);	// Set Capacitor Charge to the Capacitor Capacity
-	self->SetAttribute(AttrShieldCharge,        self->GetAttribute(AttrShieldCapacity), true);		// Shield Charge
+    m_self->SetAttribute(AttrInertia,             EvilOne, false);
+    m_self->SetAttribute(AttrDamage,              EvilZero, false);
+    m_self->SetAttribute(AttrArmorDamage,         EvilZero, false);
+    m_self->SetAttribute(AttrWarpCapacitorNeed,   0.00001, false);
+    m_self->SetAttribute(AttrMass,                m_self->type().mass(), false);
+    m_self->SetAttribute(AttrRadius,              m_self->type().radius(), false);
+    m_self->SetAttribute(AttrVolume,              m_self->type().volume(), false);
+    m_self->SetAttribute(AttrCapacity,            m_self->type().capacity(), false);
+    m_self->SetAttribute(AttrShieldCharge,        m_self->GetAttribute(AttrShieldCapacity), false);
+    m_self->SetAttribute(AttrCapacitorCharge,     m_self->GetAttribute(AttrCapacitorCapacity), false);
 
-	// Agility - WARNING!  NO NPC Ships have Agility, so we're setting it to 1 for ALL NPC ships
-	if( !(self->HasAttribute(AttrAgility)) )
-        self->SetAttribute(AttrAgility, 1, true);
+    /* Gets the value from the NPC and put on our own vars */
+    m_emDamage = m_self->GetAttribute(AttrEmDamage).get_float(),
+    m_kinDamage = m_self->GetAttribute(AttrKineticDamage).get_float(),
+    m_therDamage = m_self->GetAttribute(AttrThermalDamage).get_float(),
+    m_expDamage = m_self->GetAttribute(AttrExplosiveDamage).get_float(),
+    m_hullDamage = m_self->GetAttribute(AttrDamage).get_float();
+    m_armorDamage = m_self->GetAttribute(AttrArmorDamage).get_float();
+    m_shieldCharge = m_self->GetAttribute(AttrShieldCharge).get_float();
+    m_shieldCapacity = m_self->GetAttribute(AttrShieldCapacity).get_float();
 
-	// Shield Resonance
-	// AttrShieldEmDamageResonance
-	if( !(self->HasAttribute(AttrShieldEmDamageResonance)) )
-		self->SetAttribute(AttrShieldEmDamageResonance, 1.0, true);
-	// AttrShieldExplosiveDamageResonance
-	if( !(self->HasAttribute(AttrShieldExplosiveDamageResonance)) )
-		self->SetAttribute(AttrShieldExplosiveDamageResonance, 1.0, true);
-	// AttrShieldKineticDamageResonance
-	if( !(self->HasAttribute(AttrShieldKineticDamageResonance)) )
-		self->SetAttribute(AttrShieldKineticDamageResonance, 1.0, true);
-	// AttrShieldThermalDamageResonance
-	if( !(self->HasAttribute(AttrShieldThermalDamageResonance)) )
-		self->SetAttribute(AttrShieldThermalDamageResonance, 1.0, true);
-
-	// Armor Resonance
-	// AttrArmorEmDamageResonance
-	if( !(self->HasAttribute(AttrArmorEmDamageResonance)) )
-		self->SetAttribute(AttrArmorEmDamageResonance, 1.0, true);
-	// AttrArmorExplosiveDamageResonance
-	if( !(self->HasAttribute(AttrArmorExplosiveDamageResonance)) )
-		self->SetAttribute(AttrArmorExplosiveDamageResonance, 1.0, true);
-	// AttrArmorKineticDamageResonance
-	if( !(self->HasAttribute(AttrArmorKineticDamageResonance)) )
-		self->SetAttribute(AttrArmorKineticDamageResonance, 1.0, true);
-	// AttrArmorThermalDamageResonance
-	if( !(self->HasAttribute(AttrArmorThermalDamageResonance)) )
-		self->SetAttribute(AttrArmorThermalDamageResonance, 1.0, true);
-
-	// Hull Damage
-	if( !(self->HasAttribute(AttrDamage)) )
-        self->SetAttribute(AttrDamage, 0, true );
-	// AttrHullEmDamageResonance
-	if( !(self->HasAttribute(AttrHullEmDamageResonance)) )
-		self->SetAttribute(AttrHullEmDamageResonance, 1.0, true);
-	// AttrHullExplosiveDamageResonance
-	if( !(self->HasAttribute(AttrHullExplosiveDamageResonance)) )
-		self->SetAttribute(AttrHullExplosiveDamageResonance, 1.0, true);
-	// AttrHullKineticDamageResonance
-	if( !(self->HasAttribute(AttrHullKineticDamageResonance)) )
-		self->SetAttribute(AttrHullKineticDamageResonance, 1.0, true);
-	// AttrHullThermalDamageResonance
-	if( !(self->HasAttribute(AttrHullThermalDamageResonance)) )
-		self->SetAttribute(AttrHullThermalDamageResonance, 1.0, true);
-
-	// AttrOrbitRange
-	if( !(self->HasAttribute(AttrOrbitRange)) )
-		self->SetAttribute(AttrOrbitRange, 5000, true);
-
-
-	// Set internal and Destiny values FROM these Attributes, now that they are all setup:
-    m_destiny->SetPosition(position, false);
-	m_destiny->SetShipCapabilities(self);
-	m_destiny->SetSpeedFraction(1.0);
-	m_destiny->Halt();
-
-	/* Gets the value from the NPC and put on our own vars */
-    //m_shieldCharge = self->shieldCharge();
-    m_shieldCharge = self->GetAttribute(AttrShieldCapacity).get_float();
-    m_armorDamage = 0.0;
-    m_hullDamage = 0.0;
+    _log(NPC__TRACE, "Created NPC object for %s (%u) - Data: O:%u, C:%u, A:%u, W:%u", \
+            m_self.get()->name(), m_self.get()->itemID(), \
+            m_ownerID, m_corpID, m_allyID, m_warID);
 }
 
 NPC::~NPC() {
-    //it is so dangerous to do this stuff in a destructor, with the
-    //possibility of any of these things making virtual calls...
-    //
-    // this makes inheriting NPC a bad idea (see constructor)
-
-    //m_system->RemoveNPC(this);
-    if(m_spawner != NULL)
-        m_spawner->SpawnDepoped(m_self->itemID());
-    targets.DoDestruction();
-    delete m_AI;
+    SafeDelete(m_AI);
 }
 
+bool NPC::Load()
+{
+    m_destiny->UpdateShipVariables();
+
+    SetResists();
+
+    return DynamicSystemEntity::Load();
+}
+
+
 void NPC::Process() {
+    if (m_killed)
+        return;
+
+    double profileStartTime = GetTimeUSeconds();
+
+    /*  Enable base call to Process Targeting and Movement  */
     SystemEntity::Process();
+
     m_AI->Process();
+
+    if (sConfig.debug.UseProfiling)
+        sProfiler.AddTime(Profile::npc, GetTimeUSeconds() - profileStartTime);
 }
 
 void NPC::Orbit(SystemEntity *who) {
-    if(who == NULL) {
+    if (who == nullptr) {
         m_orbitingID = 0;
     } else {
         m_orbitingID = who->GetID();
     }
-}
-
-void NPC::ForcedSetPosition(const GPoint &pt) {
-    m_destiny->SetPosition(pt, false);
-}
-
-bool NPC::Load(ServiceDB &from) {
-    //The old purpose for this was eliminated. But we might find
-    //something else to stick in here eventually, so it stays for now.
-    return true;
 }
 
 void NPC::TargetLost(SystemEntity *who) {
@@ -179,132 +124,273 @@ void NPC::TargetedAdd(SystemEntity *who) {
     m_AI->Targeted(who);
 }
 
-void NPC::EncodeDestiny( Buffer& into ) const
+void NPC::EncodeDestiny( Buffer& into )
 {
-    const GPoint& position = GetPosition();
-    const std::string itemName( GetName() );
+    using namespace Destiny;
 
-    /*if(m_orbitingID != 0) {
-        #pragma pack(1)
-        struct AddBall_Orbit {
-            BallHeader head;
-            MassSector mass;
-            ShipSector ship;
-            DSTBALL_ORBIT_Struct main;
-            NameStruct name;
-        };
-        #pragma pack()
+    uint8 mode = m_destiny->GetState(); //Ball::Mode::STOP;
 
-        into.resize(start
-            + sizeof(AddBall_Orbit)
-            + slen*sizeof(uint16) );
-        uint8 *ptr = &into[start];
-        AddBall_Orbit *item = (AddBall_Orbit *) ptr;
-        ptr += sizeof(AddBall_Orbit);
-
-        item->head.entityID = GetID();
-        item->head.mode = Destiny::DSTBALL_ORBIT;
-        item->head.radius = m_self->radius();
-        item->head.x = x();
-        item->head.y = y();
-        item->head.z = z();
-        item->head.sub_type = IsMassive | IsFree;
-
-        item->mass.mass = m_self->mass();
-        item->mass.unknown51 = 0;
-        item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-        item->mass.corpID = GetCorporationID();
-        item->mass.unknown64 = 0xFFFFFFFF;
-
-        item->ship.max_speed = m_self->maxVelocity();
-        item->ship.velocity_x = m_self->maxVelocity();    //hacky hacky
-        item->ship.velocity_y = 0.0;
-        item->ship.velocity_z = 0.0;
-        item->ship.agility = 1.0;    //hacky
-        item->ship.speed_fraction = 0.133f;    //just strolling around. TODO: put in speed fraction!
-
-        item->main.unknown116 = 0xFF;
-        item->main.followID = m_orbitingID;
-        item->main.followRange = 6000.0f;
-
-        item->name.name_len = slen;    // in number of unicode chars
-        //strcpy_fake_unicode(item->name.name, GetName());
-    } else */{
-        BallHeader head;
+    BallHeader head = BallHeader();
         head.entityID = GetID();
-        head.mode = Destiny::DSTBALL_STOP;
+        head.mode = mode;
         head.radius = GetRadius();
-        head.x = position.x;
-        head.y = position.y;
-        head.z = position.z;
-        head.sub_type = IsMassive | IsFree;
-        into.Append( head );
-
-        MassSector mass;
-        mass.mass = GetMass();
-        mass.cloak = 0;
-        mass.Harmonic = -1.0f;
-        mass.corpID = GetCorporationID();
-        mass.allianceID = GetAllianceID();
-        into.Append( mass );
-
-        ShipSector ship;
-        ship.max_speed = static_cast<float>(GetMaxVelocity());
-        ship.velocity_x = GetVelocity().x;
-        ship.velocity_y = GetVelocity().y;
-        ship.velocity_z = GetVelocity().z;
-        ship.agility = static_cast<float>(GetAgility());
-        ship.speed_fraction = (float)(Destiny()->GetSpeedFraction());
-        into.Append( ship );
-
-        DSTBALL_STOP_Struct main;
-        main.formationID = 0xFF;
-        into.Append( main );
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = Ball::Flag::IsMassive | Ball::Flag::IsFree;
+    into.Append( head );
+    MassSector mass = MassSector();
+        mass.mass = m_destiny->GetMass();
+        mass.cloak = (m_destiny->IsCloaked() ? 1 : 0);
+        mass.harmonic = m_harmonic;
+        mass.corporationID = m_corpID;
+        mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
+    into.Append( mass );
+    DataSector data = DataSector();
+        data.maxSpeed = m_destiny->GetMaxVelocity();
+        data.velX = m_destiny->GetVelocity().x;
+        data.velY = m_destiny->GetVelocity().y;
+        data.velZ = m_destiny->GetVelocity().z;
+        data.inertia = m_destiny->GetInertia();
+        data.speedfraction = m_destiny->GetSpeedFraction();
+    into.Append( data );
+    switch (mode) {
+        case Ball::Mode::WARP: {
+            GPoint target = m_destiny->GetTargetPoint();
+            WARP_Struct warp;
+                warp.formationID = 0xFF;
+                warp.targX = target.x;
+                warp.targY = target.y;
+                warp.targZ = target.z;
+                warp.speed = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
+                // warp timing.  see Ship::EncodeDestiny() for notes/updates
+                warp.effectStamp = -1; //m_destiny->GetStateStamp();   //timestamp when warp started
+                warp.followRange = 0;   //this isnt right
+                warp.followID = 0;  //this isnt right
+            into.Append( warp );
+        }  break;
+        case Ball::Mode::FOLLOW: {
+            FOLLOW_Struct follow;
+                follow.followID = m_destiny->GetTargetID();
+                follow.followRange = m_destiny->GetFollowDistance();
+                follow.formationID = 0xFF;
+            into.Append( follow );
+        }  break;
+        case Ball::Mode::ORBIT: {
+            ORBIT_Struct orbit;
+                orbit.targetID = m_destiny->GetTargetID();
+                orbit.followRange = m_destiny->GetFollowDistance();
+                orbit.formationID = 0xFF;
+            into.Append( orbit );
+        }  break;
+        case Ball::Mode::GOTO: {
+            GPoint target = m_destiny->GetTargetPoint();
+            GOTO_Struct go;
+                go.formationID = 0xFF;
+                go.x = target.x;
+                go.y = target.y;
+                go.z = target.z;
+            into.Append( go );
+        }  break;
+        default: {
+            STOP_Struct main;
+                main.formationID = 0xFF;
+            into.Append( main );
+        } break;
     }
-}
 
+    std::string modeStr = "Goto";
+    switch (mode) {
+        case 1: modeStr = "Follow"; break;
+        case 2: modeStr = "Stop"; break;
+        case 3: modeStr = "Warp"; break;
+        case 4: modeStr = "Orbit"; break;
+        case 5: modeStr = "Missile"; break;
+        case 6: modeStr = "Mushroom"; break;
+        case 7: modeStr = "Boid"; break;
+        case 8: modeStr = "Troll"; break;
+        case 9: modeStr = "Miniball"; break;
+        case 10: modeStr = "Field"; break;
+        case 11: modeStr = "Rigid"; break;
+        case 12: modeStr = "Formation"; break;
+    }
 
-void NPC::MakeDamageState(DoDestinyDamageState &into) const {
-    //into.shield = m_shieldCharge / m_self->shieldCapacity();
-    into.shield = m_shieldCharge / m_self->GetAttribute(AttrShieldCapacity).get_float();
-    into.tau = 100000;    //no freakin clue.
-    into.timestamp = Win32TimeNow();
-    //into.armor = 1.0 - (m_armorDamage / m_self->armorHP());
-    //into.structure = 1.0 - (m_hullDamage / m_self->hp());
-
-    // the get_float is still a hack... majorly
-    into.armor = 1.0 - (m_armorDamage / m_self->GetAttribute(AttrArmorHP).get_float());
-    into.structure = 1.0 - (m_hullDamage / m_self->GetAttribute(AttrHp).get_float());
+    _log(SE__DESTINY, "NPC::EncodeDestiny(): %s - id:%u, mode:%s, flags:0x%X, Vel:%.1f, %.1f, %.1f", \
+            GetName(), head.entityID, modeStr.c_str(), head.flags, data.velX, data.velY, data.velZ);
 }
 
 void NPC::UseShieldRecharge()
 {
-    // We recharge our shield until it's reaches the shield capacity.
-    if( this->Item()->GetAttribute(AttrShieldCapacity) > m_shieldCharge )
-    {
-        // Not found the information on how much it's consume from capacitor
-        //m_shieldCharge += this->Item()->entityShieldBoostAmount();
-        m_shieldCharge += this->Item()->GetAttribute(AttrEntityShieldBoostAmount).get_float();
+    // We recharge our shield until it's full.
+    if (m_self->GetAttribute(AttrShieldCapacity) > m_shieldCharge) {
+        m_shieldCharge += m_self->GetAttribute(AttrEntityShieldBoostAmount).get_float();
+        if (m_shieldCharge > m_self->GetAttribute(AttrShieldCapacity).get_float())
+            m_shieldCharge = m_self->GetAttribute(AttrShieldCapacity).get_float();
+        m_self->SetAttribute(AttrShieldCharge, m_shieldCharge);
+    } else {
+        m_AI->DisableRepTimers(true, false);
     }
+
     // TODO: Need to send SpecialFX / amount update
+    UpdateDamage();
 }
 
 void NPC::UseArmorRepairer()
 {
-    // We recharge our shield until it's reaches the shield capacity.
-    if( m_armorDamage > 0 )
-    {
-        // Not found the information on how much it's consume from capacitor
-        //m_armorDamage -= this->Item()->entityArmorRepairAmount();
-        m_armorDamage -= this->Item()->GetAttribute(AttrEntityArmorRepairAmount).get_float();
-        if( m_armorDamage < 0.0 )
+    if (m_armorDamage > 0) {
+        m_armorDamage -= m_self->GetAttribute(AttrEntityArmorRepairAmount).get_float();
+        if (m_armorDamage < 0.0)
             m_armorDamage = 0.0;
+        m_self->SetAttribute(AttrArmorDamage, m_armorDamage);
+    } else {
+        m_AI->DisableRepTimers(false, true);
     }
+
     // TODO: Need to send SpecialFX / amount update
+    UpdateDamage();
+}
+
+void NPC::UseHullRepairer()
+{
+    if (m_hullDamage > 0) {
+        //m_hullDamage -= m_self->GetAttribute(AttrEntityhullRepairAmount).get_float();  << NSA - create later
+        if (m_hullDamage < 0.0)
+            m_hullDamage = 0.0;
+        m_self->SetAttribute(AttrDamage, m_hullDamage);
+    } else {
+        m_AI->DisableRepTimers(false, false);
+    }
+
+    // TODO: Need to send SpecialFX / amount update
+    // gfxBoosterID
+    UpdateDamage();
+}
+
+void NPC::MissileLaunched(Missile* pMissile)
+{
+    m_AI->MissileLaunched(pMissile);
 }
 
 void NPC::SaveNPC()
 {
-	// Save all data for this NPC ship to the database:
-	Item()->SaveItem();
+    m_self->SaveItem();
+}
+
+void NPC::RemoveNPC()
+{
+    //this is called from SystemManager::RemoveNPC() which calls other SE* methods as needed
+    m_self->Delete();
+}
+
+void NPC::SetResists() {
+    /* fix for missing resist attribs -allan 18April16  */
+    // Shield Resonance
+    if (!m_self->HasAttribute(AttrShieldEmDamageResonance)) m_self->SetAttribute(AttrShieldEmDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrShieldExplosiveDamageResonance)) m_self->SetAttribute(AttrShieldExplosiveDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrShieldKineticDamageResonance)) m_self->SetAttribute(AttrShieldKineticDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrShieldThermalDamageResonance)) m_self->SetAttribute(AttrShieldThermalDamageResonance, EvilOne, false);
+    // Armor Resonance
+    if (!m_self->HasAttribute(AttrArmorEmDamageResonance)) m_self->SetAttribute(AttrArmorEmDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrArmorExplosiveDamageResonance)) m_self->SetAttribute(AttrArmorExplosiveDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrArmorKineticDamageResonance)) m_self->SetAttribute(AttrArmorKineticDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrArmorThermalDamageResonance)) m_self->SetAttribute(AttrArmorThermalDamageResonance, EvilOne, false);
+    // Hull Resonance
+    if (!m_self->HasAttribute(AttrEmDamageResonance)) m_self->SetAttribute(AttrEmDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrExplosiveDamageResonance)) m_self->SetAttribute(AttrExplosiveDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrKineticDamageResonance)) m_self->SetAttribute(AttrKineticDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrThermalDamageResonance)) m_self->SetAttribute(AttrThermalDamageResonance, EvilOne, false);
+}
+
+void NPC::Killed(Damage &fatal_blow) {
+    if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
+        return; // make error here?
+
+    //notify our spawn manager that we are gone.
+    if ((m_spawnMgr != nullptr) and (m_self.get() != nullptr))
+        m_spawnMgr->SpawnKilled(m_bubble, m_self->itemID());
+
+    uint32 killerID = 0;
+    Client* pClient(nullptr);
+    SystemEntity *killer(fatal_blow.srcSE);
+
+    if (killer->HasPilot()) {
+        pClient = killer->GetPilot();
+        killerID = pClient->GetCharacterID();
+    } else if (killer->IsDroneSE()) {
+        pClient = sEntityList.FindClientByCharID( killer->GetSelf()->ownerID() );
+        if (pClient == nullptr) {
+            sLog.Error("NPC::Killed()", "killer == IsDrone and pPlayer == nullptr");
+        } else {
+            killerID = pClient->GetCharacterID();
+        }
+    } else {
+        killerID = killer->GetID();
+    }
+
+    uint32 locationID = GetLocationID();
+    //  log faction kill in dynamic data   -allan
+    MapDB::AddKill(locationID);
+    MapDB::AddFactionKill(locationID);
+
+    if (pClient != nullptr) {
+        //award kill bounty.
+        AwardBounty( pClient );
+        if (m_system->GetSystemSecurityRating() > 0)
+            AwardSecurityStatus(m_self, pClient->GetChar().get());  // this awards secStatusChange for npcs in empire space
+    }
+
+    GPoint wreckPosition = m_destiny->GetPosition();
+    if (wreckPosition.isNaN()) {
+        sLog.Error("NPC::Killed()", "Wreck Position is NaN");
+        return;
+    }
+    uint32 wreckTypeID = sDataMgr.GetWreckID(m_self->typeID());
+    if (!IsWreckTypeID(wreckTypeID)) {
+        sLog.Error("NPC::Killed()", "Could not get wreckType for %s of type %u", m_self->name(), m_self->typeID());
+        // default to generic frigate wreck till i get better checks and/or complete wreck data
+        wreckTypeID = 26557;
+    }
+
+    std::string wreck_name = m_self->itemName();
+    wreck_name += " Wreck";
+    ItemData wreckItemData(wreckTypeID, killerID, locationID, flagNone, wreck_name.c_str(), wreckPosition, itoa(m_allyID));
+    WreckContainerRef wreckItemRef = sItemFactory.SpawnWreckContainer( wreckItemData );
+    if (wreckItemRef.get() == nullptr) {
+        sLog.Error("NPC::Killed()", "Creating Wreck Item Failed for %s of type %u", wreck_name.c_str(), wreckTypeID);
+        return;
+    }
+
+    if (is_log_enabled(PHYSICS__TRACE))
+        _log(PHYSICS__TRACE, "NPC::Killed() - NPC %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.", \
+                GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
+
+    DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
+        wreckEntity.allianceID = (killer->GetAllianceID() == 0 ? m_allyID : killer->GetAllianceID());
+        wreckEntity.categoryID = EVEDB::invCategories::Celestial;
+        wreckEntity.corporationID = killer->GetCorporationID();
+        wreckEntity.factionID = (killer->GetWarFactionID() == 0 ? m_warID : killer->GetWarFactionID());
+        wreckEntity.groupID = EVEDB::invGroups::Wreck;
+        wreckEntity.itemID = wreckItemRef->itemID();
+        wreckEntity.itemName = wreck_name;
+        wreckEntity.ownerID = killerID;
+        wreckEntity.typeID = wreckTypeID;
+        wreckEntity.position = wreckPosition;
+
+    if (!m_system->BuildDynamicEntity(wreckEntity, m_self->itemID())) {
+        sLog.Error("NPC::Killed()", "Spawning Wreck Failed for typeID %u", wreckTypeID);
+        wreckItemRef->Delete();
+        return;
+    }
+    m_destiny->SendJettisonPacket();
+
+    if ((MakeRandomFloat() < sConfig.npc.LootDropChance) or (m_allyID == factionRogueDrones))
+        DropLoot(wreckItemRef, m_self->groupID(), killerID);
+}
+
+
+void NPC::CmdDropLoot()
+{
+    m_destiny->SendJettisonPacket();
+    /** @todo finish this */
+    //DropLoot(wreckItemRef, m_self->groupID());
 }

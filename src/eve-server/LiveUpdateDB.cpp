@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -29,7 +29,19 @@
 
 PyList* LiveUpdateDB::GenerateUpdates()
 {
-    const char* query = "SELECT updateID, updateName, description, machoVersionMin, machoVersionMax, buildNumberMin, buildNumberMax, methodName, objectID, codeType, code FROM liveupdates";
+    const char* query = "SELECT"
+            " updateID,"
+            " updateName,"
+            " description,"
+            " machoVersionMin,"
+            " machoVersionMax,"
+            " buildNumberMin,"  //5
+            " buildNumberMax,"
+            " methodName,"
+            " objectID,"
+            " codeType,"
+            " code"             //10
+            " FROM liveupdates";
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res, query))
@@ -58,7 +70,6 @@ PyList* LiveUpdateDB::GenerateUpdates()
         PyPackedRow* packedRow = new PyPackedRow(header);
         for (int i = 0; i < 7; i++)
             packedRow->SetField(i, DBColumnToPyRep(row, i));
-        PyIncRef(header);
 
         LiveUpdateInner inner;
         // binary data so we can't expect strlen to get it right
@@ -70,6 +81,7 @@ PyList* LiveUpdateDB::GenerateUpdates()
 
         list->SetItem(listIndex++, packedRow);
     }
+    list->Dump(NET__PRES_DEBUG, "    ");
 
     return list;
 }

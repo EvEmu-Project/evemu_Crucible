@@ -72,16 +72,15 @@
 
   <elementDef name="RspPing">
     <tupleInline>
-      <!-- 0 -->
       <substreamInline>
         <long name="timestamp" />
       </substreamInline>
     </tupleInline>
   </elementDef>
 
+  <!-- not used.  kept here for info
   <elementDef name="RspGetPostAuthenticationMessage">
     <tupleInline>
-      <!-- 0 -->
       <substreamInline>
         <objectInline>
           <stringInline value="util.KeyVal" />
@@ -119,6 +118,7 @@
       </substreamInline>
     </tupleInline>
   </elementDef>
+  -->
 
 </elements>
 

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,11 +21,13 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Bloody.Rabbit
+    Updates:    Allan
 */
 
 #ifndef __CLIENT_SESSION_H__INCL__
 #define __CLIENT_SESSION_H__INCL__
 
+#include "eve-server.h"
 /**
  * @brief Value keeper for single EVE session.
  *
@@ -41,32 +43,36 @@ public:
     bool isDirty() const { return mDirty; }
 
     // PyInt
+    void SetInt( const char* name, int32 value );
     int32 GetLastInt( const char* name ) const;
     int32 GetCurrentInt( const char* name ) const;
-    void SetInt( const char* name, int32 value );
-
     // PyLong
+    void SetLong( const char* name, int64 value );
     int64 GetLastLong( const char* name ) const;
     int64 GetCurrentLong( const char* name ) const;
-    void SetLong( const char* name, int64 value );
-
     // PyString
+    void SetString( const char* name, const char* value );
     std::string GetLastString( const char* name ) const;
     std::string GetCurrentString( const char* name ) const;
-    void SetString( const char* name, const char* value );
 
     void Clear( const char* name );
     void EncodeChanges( PyDict* into );
 
-protected:
-    PyTuple* _GetValueTuple( const char* name ) const;
+    int64 GetSessionID()  { return m_sessionID; }
 
+protected:
     PyRep* _GetLast( const char* name ) const;
     PyRep* _GetCurrent( const char* name ) const;
+    PyTuple* _GetValueTuple( const char* name ) const;
+
     void _Set( const char* name, PyRep* value );
 
     PyDict* const mSession;
+
+private:
     bool mDirty;
+
+    int64 m_sessionID;
 };
 
 #endif /* !__CLIENT_SESSION_H__INCL__ */

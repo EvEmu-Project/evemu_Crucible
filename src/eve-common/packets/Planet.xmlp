@@ -1,0 +1,191 @@
+ <!--  Python Code by Comet0
+    Updates and Additions by Allan
+    -->
+<elements>
+
+    <elementDef name="UUNCommandList">
+        <tupleInline>
+            <list name="commandList" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="UUNCommand">
+        <tupleInline>
+            <int name="command" />
+            <tuple name="command_data" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="UUNCCommandCenter">
+        <tupleInline>
+            <int name="pinID" />
+            <int name="typeID" />
+            <real name="latitude" />
+            <real name="longitude" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="UUNCStandardPin">
+        <tupleInline>
+            <tupleInline>
+                <int name="pinID1" /> <!-- this is controlling pinID (command center) -->
+                <int name="pinID2" />
+            </tupleInline>
+            <int name="typeID" />
+            <real name="latitude" />
+            <real name="longitude" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="UUNCLinkCommand">
+        <tupleInline>
+            <int name="src" />
+            <tupleInline>
+                <int name="dest1" />
+                <int name="dest2" />
+            </tupleInline>
+            <int name="level" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="UUNCLinkStandard">
+        <tupleInline>
+            <tupleInline>
+                <int name="src1" />
+                <int name="src2" />
+            </tupleInline>
+            <tupleInline>
+                <int name="dest1" />
+                <int name="dest2" />
+            </tupleInline>
+            <int name="level" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="UUNCLinkExist">
+        <tupleInline>
+            <int name="src" />
+            <int name="dest" />
+            <int name="level" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_AddMoveExtractorHead">
+        <tupleInline>
+            <int name="ecuID" />
+            <int name="headID" />
+            <real name="latitude" />
+            <real name="longitude" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_InstallProgram">
+        <tupleInline>
+            <int name="ecuID" />
+            <int name="typeID" none_marker="0"/>   <!-- extracted resource typeID - 0 if deleting/stopping program -->
+            <real name="headRadius" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_CreateRoute">
+        <tupleInline>
+            <tupleInline>
+                <int name="pinType" />
+                <int name="routeID" />
+            </tupleInline>
+            <list name="path" />
+            <int name="typeID" />
+            <int name="qty" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_PrioritizeRoute">
+        <tupleInline>
+            <int name="routeID" />
+            <int name="priority" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_ProgramResults">
+        <tupleInline>
+            <int name="ecuID" />
+            <int name="typeID" />
+            <list name="heads" />
+            <real name="headRadius" />
+        </tupleInline>
+    </elementDef>
+
+    <elementDef name="Call_LaunchCommodities">
+        <tupleInline>
+            <int name="pinID" />
+            <raw name="dict" />
+        </tupleInline>
+    </elementDef>
+
+  <elementDef name="Call_ResourceDataDict">
+      <dictInline>
+        <dictInlineEntry key="proximity">
+          <int name="proximity" />
+        </dictInlineEntry>
+        <dictInlineEntry key="updateTime">
+          <long name="updateTime" safe="true" />
+        </dictInlineEntry>
+        <dictInlineEntry key="advancedPlanetology">
+          <int name="advancedPlanetology" />
+        </dictInlineEntry>
+        <dictInlineEntry key="remoteSensing">
+          <int name="remoteSensing" />
+        </dictInlineEntry>
+        <dictInlineEntry key="newBand">
+          <int name="newBand" />
+        </dictInlineEntry>
+        <dictInlineEntry key="planetology">
+          <int name="planetology" />
+        </dictInlineEntry>
+        <dictInlineEntry key="oldBand">
+          <int name="oldBand" />
+        </dictInlineEntry>
+        <dictInlineEntry key="resourceTypeID">
+          <int name="resourceTypeID" />
+        </dictInlineEntry>
+      </dictInline>
+  </elementDef>
+
+    <elementDef name="Call_UpdateSettings">
+        <tupleInline>
+            <int name="orbitalID" />
+            <int name="reinforceValue" safe="true" />
+            <raw name="taxRateValues" />
+            <int name="standingValue" safe="true" />
+            <bool name="allowAlliance" safe="true" />
+            <bool name="allowStandings" safe="true" />
+        </tupleInline>
+    </elementDef>
+
+  <elementDef name="Call_TaxRateValuesDict">
+      <dictInline>
+        <dictInlineEntry key="corporation">
+          <real name="corporation" safe="true" default="0.05" />
+        </dictInlineEntry>
+        <dictInlineEntry key="alliance">
+          <real name="alliance" safe="true" default="0.07" />
+        </dictInlineEntry>
+        <dictInlineEntry key="standingHorrible">
+          <real name="standingHorrible" safe="true" default="0.2" />
+        </dictInlineEntry>
+        <dictInlineEntry key="standingBad">
+          <real name="standingBad" safe="true" default="0.1" />
+        </dictInlineEntry>
+        <dictInlineEntry key="standingNeutral">
+          <real name="standingNeutral" safe="true" default="0.08" />
+        </dictInlineEntry>
+        <dictInlineEntry key="standingGood">
+          <real name="standingGood" safe="true" default="0.05" />
+        </dictInlineEntry>
+        <dictInlineEntry key="standingHigh">
+          <real name="standingHigh" safe="true" default="0.02" />
+        </dictInlineEntry>
+      </dictInline>
+  </elementDef>
+
+</elements>

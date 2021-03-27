@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -23,9 +23,6 @@
     Author:        caytchen
 */
 
-#include "eve-server.h"
-
-#include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerConnection.h"
 
 boost::asio::const_buffers_1 ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
@@ -102,8 +99,16 @@ void ImageServerConnection::ProcessHeaders()
     _size = atoi(sizeStr.c_str());
 
     _imageData = sImageServer.GetImage(_category, _id, _size);
-    if (!_imageData)
-    {
+    if (!_imageData) {
+        if (IsPlayerItem(_id)) {
+            sLog.Error("     Image Server","Image for itemID %u not found.", _id);
+            NotFound();
+            return;
+        } else if (IsCharacter(_id)) {
+            sLog.Error("     Image Server","Image for charID %u not found.", _id);
+            NotFound();
+            return;
+        }
         Redirect();
         return;
     }
@@ -129,6 +134,7 @@ void ImageServerConnection::Redirect()
 
 void ImageServerConnection::RedirectLocation()
 {
+    sLog.Error("     Image Server"," RedirectLocation() called.");
     std::string extension = _category == "Character" ? "jpg" : "png";
     std::stringstream url;
     url << ImageServer::FallbackURL << _category << "/" << _id << "_" << _size << "." << extension;
@@ -151,7 +157,7 @@ bool ImageServerConnection::starts_with(std::string& haystack, const char *const
     return haystack.substr(0, strlen(needle)).compare(needle) == 0;
 }
 
-std::tr1::shared_ptr<ImageServerConnection> ImageServerConnection::create(boost::asio::io_context& io)
+std::shared_ptr<ImageServerConnection> ImageServerConnection::create(boost::asio::io_context& io)
 {
-    return std::tr1::shared_ptr<ImageServerConnection>(new ImageServerConnection(io));
+    return std::shared_ptr<ImageServerConnection>(new ImageServerConnection(io));
 }

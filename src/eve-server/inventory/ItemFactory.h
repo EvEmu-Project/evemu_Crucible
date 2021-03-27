@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,258 +21,149 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 #ifndef EVE_ITEM_FACTORY_H
 #define EVE_ITEM_FACTORY_H
 
-#include "inventory/InventoryDB.h"
+//#include "eve-compat.h"
+
+#include "utils/Singleton.h"
 #include "inventory/ItemRef.h"
+//#include "../../eve-common/EVE_RAM.h"
 
-class ItemCategory;
-
-class ItemGroup;
 
 class ItemType;
+
+class ItemData;
+class CharacterData;
+class CorpData;
+class OfficeData;
+class AsteroidData;
+
 class BlueprintType;
 class CharacterType;
-class ShipType;
 class StationType;
-
+class Missile;
+class Client;
+class EntityList;
 class Inventory;
+class PyServiceMgr;
+class InventoryDB;
 
 class ItemFactory
+: public Singleton<ItemFactory>
 {
-    friend class InventoryItem;    //only for access to _DeleteItem
 public:
-    ItemFactory(EntityList& el);
+    ItemFactory();
     ~ItemFactory();
 
-    EntityList& entity_list;    //we do not own this.
-    InventoryDB& db() { return(m_db); }
+    void Close();
+    int Initialize();
+    uint32 Count()                                      { return m_items.size(); }
 
-    /*
-     * Category stuff
-     */
-    const ItemCategory *GetCategory(EVEItemCategories category);
+    void SaveItems();
+    void RemoveItem(uint32 itemID);
+    void SetUsingClient(Client *pClient)                { m_pClient = pClient; }
+    void UnsetUsingClient()                             { m_pClient = nullptr; }
+    void AddItem(InventoryItemRef iRef);
 
-    /*
-     * Group stuff
-     */
-    const ItemGroup *GetGroup(uint32 groupID);
+    InventoryDB* db()                                   { return m_db; }
 
-    /*
-     * Type stuff
-     */
-    const ItemType *GetType(uint32 typeID);
+    Client* GetUsingClient()                            { return m_pClient; }
+    // load=true will load the item and its container (recursively) into server, up to solarSystem
+    Inventory* GetInventoryFromId(uint32 itemID, bool load=true);
+    // load=true will load the item and its container (recursively) into server, up to solarSystem
+    Inventory* GetItemContainerInventory(uint32 itemID, bool load=true);
 
-    const BlueprintType *GetBlueprintType(uint32 blueprintTypeID);
+    // these load, cache and return requested type.
+    const ItemType*         GetType(uint16 typeID);
+    const StationType*      GetStationType(uint16 stationTypeID);
+    const CharacterType*    GetCharacterType(uint16 characterTypeID);
+    const BlueprintType*    GetBlueprintType(uint16 blueprintTypeID);
+    const CharacterType*    GetCharacterTypeByBloodline(uint16 bloodlineID);
 
-    /**
-     * Loads character type, caches it and returns it.
-     *
-     * @param[in] characterTypeID Character type to be returned.
-     * @return Pointer to character type data container; NULL if fails.
-     */
-    const CharacterType *GetCharacterType(uint32 characterTypeID);
-    /**
-     * Loads character type, caches it and returns it.
-     *
-     * @param[in] characterTypeID Character type to be returned.
-     * @return Pointer to character type data container; NULL if fails.
-     */
-    const CharacterType *GetCharacterTypeByBloodline(uint32 bloodlineID);
 
-    /**
-     * Loads ship type, caches it and returns it.
-     *
-     * @param[in] shipTypeID ID of ship type.
-     * @return Pointer to ship type data container; NULL if fails.
-     */
-    const ShipType *GetShipType(uint32 shipTypeID);
+    // return a RefPtr of requested itemID, loading (and cache) as needed
+    SkillRef                GetSkill(uint32 skillID);
+    ShipItemRef             GetShip(uint32 shipID);
+    StationItemRef          GetStationItem(uint32 stationID);
+    BlueprintRef            GetBlueprint(uint32 blueprintID);
+    CharacterRef            GetCharacter(uint32 characterID);
+    ModuleItemRef           GetModuleItem(uint32 moduleID);
+    SolarSystemRef          GetSolarSystem(uint32 solarSystemID);
+    AsteroidItemRef         GetAsteroid(uint32 asteroidID);
+    StructureItemRef        GetStructure(uint32 structureID);
+    StationOfficeRef        GetOffice(uint32 officeID);
+    InventoryItemRef        GetItem(uint32 itemID);
+    InventoryItemRef        GetItemContainer(uint32 itemID, bool load=true);
+    InventoryItemRef        GetInventoryItemFromID(uint32 itemID, bool load=true);
+    CargoContainerRef       GetCargoContainer(uint32 containerID);
+    WreckContainerRef       GetWreckContainer(uint32 containerID);
+    CelestialObjectRef      GetCelestialObject(uint32 celestialID);
+    ProbeItemRef            GetProbeItem(uint32 probeID);
 
-    /**
-     * Loads station type, caches it and returns it.
-     *
-     * @param[in] stationTypeID ID of station type to load.
-     * @return Pointer to StationType object; NULL if fails.
-     */
-    const StationType *GetStationType(uint32 stationTypeID);
-
-    /*
-     * Item stuff
-     */
-    InventoryItemRef GetItem(uint32 itemID);
-
-    BlueprintRef GetBlueprint(uint32 blueprintID);
 
     /**
-     * Loads character.
-     *
-     * @param[in] character ID of character to load.
-     * @return Pointer to Character object; NULL if load failed.
-     */
-    CharacterRef GetCharacter(uint32 characterID);
-
-    /**
-     * Loads ship.
-     *
-     * @param[in] shipID ID of ship to load.
-     * @return Pointer to Ship object; NULL if failed.
-     */
-    ShipRef GetShip(uint32 shipID);
-
-    /**
-     * Loads celestial object.
-     *
-     * @param[in] celestialID ID of celestial object to load.
-     * @return Pointer to CelestialObject; NULL if fails.
-     */
-    CelestialObjectRef GetCelestialObject(uint32 celestialID);
-
-    /**
-     * Loads solar system.
-     *
-     * @param[in] solarSystemID ID of solar system to load.
-     * @return Pointer to solar system object; NULL if failed.
-     */
-    SolarSystemRef GetSolarSystem(uint32 solarSystemID);
-
-    /**
-     * Loads station.
-     *
-     * @param[in] stationID ID of station to load.
-     * @return Pointer to Station object; NULL if fails.
-     */
-    StationRef GetStation(uint32 stationID);
-
-    /**
-     * Loads skill.
-     *
-     * @param[in] skillID ID of skill to load.
-     * @return Pointer to Skill object; NULL if fails.
-     */
-    SkillRef GetSkill(uint32 skillID);
-
-    /**
-     * Loads owner.
-     *
-     * @param[in] ownerID ID of owner to load.
-     * @return Ref to Owner object.
-     */
-    OwnerRef GetOwner(uint32 ownerID);
-
-    /**
-     * Loads structure object.
-     *
-     * @param[in] structureID ID of structure object to load.
-     * @return Pointer to Structure; NULL if fails.
-     */
-    StructureRef GetStructure(uint32 structureID);
-
-    /**
-     * Loads cargo container object.
-     *
-     * @param[in] containerID ID of cargo container object to load.
-     * @return Pointer to CargoContainer; NULL if fails.
-     */
-    CargoContainerRef GetCargoContainer(uint32 containerID);
-
-    //spawn a new item with the specified information, creating it in the DB as well.
-    InventoryItemRef SpawnItem(ItemData &data);
-    BlueprintRef SpawnBlueprint(ItemData &data, BlueprintData &bpData);
-    /**
-     * Spawns new character, caches it and returns it.
+     * creates new InventoryItem, saves to db, caches it and returns a RefPtr.
      *
      * @param[in] data Item data (for entity table).
      * @param[in] charData Character data.
-     * @param[in] appData Character's appearance.
      * @param[in] corpData Character's corporation-membership data.
-     * @return Pointer to new Character object; NULL if spawn failed.
+     * @return RefPtr to _Ty; NULL if load failed.
      */
-    CharacterRef SpawnCharacter(ItemData &data, CharacterData &charData, CorpMemberInfo &corpData);
-    /**
-     * Spawns new ship.
-     *
-     * @param[in] data Item data for ship.
-     * @return Pointer to Ship object; NULL if failed.
-     */
-    ShipRef SpawnShip(ItemData &data);
-    /**
-     * Spawns new skill.
-     *
-     * @param[in] data Item data for skill.
-     * @return Pointer to new Skill object; NULL if fails.
-     */
-    SkillRef SpawnSkill(ItemData &data);
-    /**
-     * Spawns new owner.
-     *
-     * @param[in] data Item data for owner.
-     * @return Ref to new Owner object.
-     */
-    OwnerRef SpawnOwner(ItemData &data);
-    /**
-     * Spawns new structure.
-     *
-     * @param[in] data Item data for structure.
-     * @return Ref to new Structure object.
-     */
-    StructureRef SpawnStructure(ItemData &data);
-    /**
-     * Spawns new cargo container.
-     *
-     * @param[in] data Item data for cargo container.
-     * @return Ref to new CargoContainer object.
-     */
-    CargoContainerRef SpawnCargoContainer(ItemData &data);
+    SkillRef                SpawnSkill(ItemData &data);
+    ShipItemRef             SpawnShip(ItemData &data);
+    CharacterRef            SpawnCharacter(CharacterData& charData, CorpData& corpData);
+    ModuleItemRef           SpawnModule(ItemData &data);
+    InventoryItemRef        SpawnItem(ItemData &data);
+    InventoryItemRef        SpawnTempItem(ItemData &data);
+    StationOfficeRef        SpawnOffice(ItemData &idata, OfficeData& odata);
+    AsteroidItemRef         SpawnAsteroid(ItemData& idata, AsteroidData& adata);
+    StructureItemRef        SpawnStructure(ItemData &data);
+    CargoContainerRef       SpawnCargoContainer(ItemData &data);
+    WreckContainerRef       SpawnWreckContainer(ItemData &data);
+    ProbeItemRef            SpawnProbe(ItemData &data);
 
-    /*
-     * Inventory stuff
-     */
-    Inventory *GetInventory(uint32 inventoryID, bool load=true);
+    /** @todo  add PI item spawners here */
 
-    void SetUsingClient(Client *pClient);
+    /** @todo  add Sleeper item spawners here */
 
-    Client * GetUsingClient();
+    /* ID Authority Functions  */
+    uint32                  GetNextNPCID();
+    uint32                  GetNextTempID();
+    uint32                  GetNextDroneID();
+    uint32                  GetNextMissileID();
 
-    void UnsetUsingClient();
-
-    /*
-	 * ID Authority Functions:
-     */
-	uint32 GetNextEntityID();
 
 protected:
-    InventoryDB m_db;
+    InventoryDB* m_db;
+    Client* m_pClient;     // client currently using the ItemFactory, we do not own this
 
-    Client * m_pClient;     // pointer to client currently using the ItemFactory, we do not own this
+    std::map<uint16, ItemType*> m_types;
+    std::map<uint32, InventoryItemRef> m_items;
+    std::map<uint32, InventoryItemRef> m_staticItems;
+    std::map<uint32, InventoryItemRef> m_dynamicItems;
 
-    /*
-     * Member functions and variables:
-     */
-    // Categories:
-    std::map<EVEItemCategories, ItemCategory *> m_categories;
-
-    // Groups:
-    std::map<uint32, ItemGroup *> m_groups;
-
-    // Types:
     template<class _Ty>
-    const _Ty *_GetType(uint32 typeID);
+    const _Ty *_GetType(uint16 typeID);
 
-    std::map<uint32, ItemType *> m_types;
-
-    // Items:
     template<class _Ty>
     RefPtr<_Ty> _GetItem(uint32 itemID);
 
-    void _DeleteItem(uint32 itemID);
+private:
+    // ID Authority:
+    // these hold the next valid ID for in-memory only objects
+    uint32 m_nextNPCID;
+    uint32 m_nextTempID;
+    uint32 m_nextDroneID;
+    uint32 m_nextMissileID;
 
-    std::map<uint32, InventoryItemRef> m_items;
-
-	// ID Authority:
-	static uint32 m_nextEntityID;		// holds the next valid ID for in-memory only objects of EVEDB::invCategories::Entity
 };
+
+//Singleton
+#define sItemFactory \
+ ( ItemFactory::get() )
 
 
 #endif

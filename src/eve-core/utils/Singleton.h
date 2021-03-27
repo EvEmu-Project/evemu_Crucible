@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -25,6 +25,7 @@
 
 #ifndef __UTILS__SINGLETON_H__INCL__
 #define __UTILS__SINGLETON_H__INCL__
+#include <memory>
 
 /**
  * @brief Template used for singleton classes.
@@ -51,13 +52,13 @@ public:
      */
     Singleton()
     {
-        assert( NULL == mInstance.get() );
+        assert(mInstance.get() == nullptr);
     }
 
     /** @return Reference to the singleton instance. */
     static X& get()
     {
-        if( NULL == mInstance.get() )
+        if (mInstance.get() == nullptr)
             mInstance.reset( new X );
 
         return *mInstance;
@@ -69,7 +70,7 @@ protected:
 };
 
 template<typename X>
-std::shared_ptr<X> Singleton<X>::mInstance( NULL );
+std::shared_ptr<X> Singleton<X>::mInstance( nullptr );
 
 #endif /* !__UTILS__SINGLETON_H__INCL__ */
 

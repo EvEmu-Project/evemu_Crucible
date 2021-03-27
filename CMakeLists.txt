@@ -2,6 +2,7 @@
 # CMake build system file for EVEmu.
 #
 # Author: Bloody.Rabbit
+# Updates:  Allan
 #
 
 ###############
@@ -14,7 +15,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
-SET( PROJECT_VERSION             "0" )
+SET( PROJECT_VERSION             "this is not used anymore, CMake pulls version from Git Tree Info (cmake/GitTreeInfo.cmake)" )
 SET( PROJECT_REPOSITORY          "https://github.com/evemuproject/evemu_server" )
 
 # Append our module path
@@ -26,7 +27,7 @@ ENABLE_TESTING()
 ###########
 # Options #
 ###########
-SET( AUTO_DOWNLOAD_DEPENDENCIES ON
+SET( AUTO_DOWNLOAD_DEPENDENCIES OFF
      CACHE BOOL "When CHECKED, CMake will automatically download Boost and MySQL, otherwise, CMake will look for them in locations specified by 'Boost_DIR', 'Boost_INCLUDE_DIR', 'MYSQL_INCLUDE_DIRS', and 'MYSQL_LIBRARIES'" )
 SET( EVEMU_ROOT ".."
      CACHE PATH "The root directory of EVEmu workspace." )
@@ -55,44 +56,22 @@ MARK_AS_ADVANCED(
 INCLUDE( "DetectScm" )
 
 #
-# Setup some default libraries.
-#
-# We need a bunch of additional network libraries when building
-# for Windows.
-#
-IF( WIN32 )
-  # Create a list of the additional libraries
-  SET( CMAKE_NET_LIBS_INIT "ws2_32" "mswsock" )
-ENDIF( WIN32 )
-
-#
 # Setup some recommended compiler flags.
 #
 # Intentionally specify the CMAKE_CXX_FLAGS as last to allow user
 # override the setup.
 #
-IF( MSVC )
-  # Turn off some stupid whiny warnings
-  ADD_DEFINITIONS(
-    "-D_CRT_SECURE_NO_WARNINGS"
-    "-D_CRT_SECURE_NO_DEPRECATE"
-    "-D_CRT_SECURE_COPP_OVERLOAD_STANDARD_NAMES"
-    "-D_SCL_SECURE_NO_WARNINGS"
-    )
-  # Disable warnings:
-  #   C4244: '=' : conversion from 'double' to 'int', possible loss of data
-  #   C4355: 'this' used in base member initializer list
-  SET( CMAKE_CXX_FLAGS "/wd4244 /wd4355 ${CMAKE_CXX_FLAGS}" )
-ELSEIF( CMAKE_COMPILER_IS_GNUCXX )
-  # Switch to the C++0x standard (required)
-  SET( CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}" )
-ENDIF( MSVC )
+# Switch to the C++11 standard (required)
+SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Werror=return-type ${CMAKE_CXX_FLAGS}" )
+# -Wall -Wextra -Weffc++ -Wconversion -Wdouble-promotion
+# -pg -ggdb -pedantic
+# -fsanitize=thread  -fsanitize=address
 
 #Switching to C++11
 SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Wno-deprecated-declarations -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
 
 #
-# Try to detemine the exact source version using SCM.
+# Try to determine the exact source version using SCM.
 #
 # Also check that the generated version string starts
 # with PROJECT_VERSION, issue a warning otherwise.
@@ -101,9 +80,6 @@ DETECT_SCM( "${PROJECT_SOURCE_DIR}" SCM_VERSION SCM_REPOSITORY )
 IF( SCM_VERSION AND SCM_REPOSITORY )
   # Check that SCM_VERSION starts with PROJECT_VERSION
   STRING( FIND "${SCM_VERSION}" "${PROJECT_VERSION}" VERSION_INDEX )
-  IF( NOT VERSION_INDEX EQUAL 0 )
-    MESSAGE( AUTHOR_WARNING "Version mismatch, please update PROJECT_VERSION in CMakeLists.txt" )
-  ENDIF( NOT VERSION_INDEX EQUAL 0 )
 
   # Set project version and repository
   SET( PROJECT_VERSION    "${SCM_VERSION}" )
@@ -122,12 +98,7 @@ CHECK_INCLUDE_FILE_CXX( "crtdbg.h"   HAVE_CRTDBG_H )
 CHECK_INCLUDE_FILE_CXX( "inttypes.h" HAVE_INTTYPES_H )
 CHECK_INCLUDE_FILE_CXX( "sys/stat.h" HAVE_SYS_STAT_H )
 CHECK_INCLUDE_FILE_CXX( "sys/time.h" HAVE_SYS_TIME_H )
-CHECK_INCLUDE_FILE_CXX( "tr1/tuple"  HAVE_TR1_PREFIX )
 CHECK_INCLUDE_FILE_CXX( "vld.h"      HAVE_VLD_H )
-CHECK_INCLUDE_FILE_CXX( "windows.h"  HAVE_WINDOWS_H )
-CHECK_INCLUDE_FILE_CXX( "winsock2.h" HAVE_WINSOCK2_H )
-CHECK_INCLUDE_FILE_CXX( "unistd.h"   HAVE_UNISTD_H )
-
 
 # Keywords
 CHECK_CXX_SOURCE_COMPILES(
@@ -141,8 +112,8 @@ CHECK_CXX_SYMBOL_EXISTS( isfinite "cmath"  HAVE_ISFINITE )
 CHECK_CXX_SYMBOL_EXISTS( isnan    "cmath"  HAVE_ISNAN )
 CHECK_CXX_SYMBOL_EXISTS( _finite  "cfloat" HAVE__FINITE )
 CHECK_CXX_SYMBOL_EXISTS( _isnan   "cfloat" HAVE__ISNAN )
-CHECK_CXX_SYMBOL_EXISTS( __finite "cmath"  HAVE___FINITE )
-CHECK_CXX_SYMBOL_EXISTS( __isnan  "cmath"  HAVE___ISNAN )
+#CHECK_CXX_SYMBOL_EXISTS( __finite "cmath"  HAVE___FINITE )
+#CHECK_CXX_SYMBOL_EXISTS( __isnan  "cmath"  HAVE___ISNAN )
 
 CHECK_CXX_SOURCE_COMPILES(
   "#include <cmath>\nint main() { return std::finite( 0 ); }\n"
@@ -182,10 +153,8 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 ############
 INCLUDE( "BuildPackage" )
 
-FIND_PACKAGE( "Doxygen" )
 
 BUILD_PACKAGE( "Boost" )
-BUILD_PACKAGE( "Lua51" )
 BUILD_PACKAGE( "MySQL" )
 BUILD_PACKAGE( "TinyXML" )
 BUILD_PACKAGE( "UTF8CPP" )
@@ -232,21 +201,3 @@ ADD_SUBDIRECTORY( "src/eve-core" )
 ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
-ADD_SUBDIRECTORY( "src/eve-collector" )
-ADD_SUBDIRECTORY( "src/eve-tool" )
-ADD_SUBDIRECTORY( "src/eve-test" )
-
-IF( DOXYGEN_FOUND )
-  ADD_SUBDIRECTORY( "doc" )
-ELSE()
-  MESSAGE( WARNING "If you require generated documentation, please install Doxygen" )
-ENDIF( DOXYGEN_FOUND )
-
-###############
-# CPack setup #
-###############
-SET( CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION_SUMMARY}" )
-SET( CPACK_PACKAGE_VENDOR              "${PROJECT_VENDOR}" )
-SET( CPACK_PACKAGE_VERSION             "${PROJECT_VERSION}" )
-
-INCLUDE( "CPack" )

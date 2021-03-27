@@ -1,0 +1,67 @@
+
+<elements>
+
+<!--              [PyTuple 3 items]
+                    [PyString "OnRemoteMessage"]
+                    [PyString "SalvagingFailure"]
+                    [PyDict 1 kvp]
+                      [PyString "type"]
+                      [PyTuple 2 items]
+                        [PyInt 4]         << cacheSolarSystemObjects???  cant find another reference for this.  always 4 so far.
+                        [PyInt 26513]
+                        -->
+  <elementDef name="Rsp_RemoteMsg_SalvageFail">
+    <tupleInline>
+      <stringInline value="OnRemoteMessage" />
+      <stringInline value="SalvagingFailure" />
+      <dictInline>
+        <dictInlineEntry key="type">
+          <int name="unk_1" />
+          <int name="wreckTypeID" />
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Rsp_SalvagingSuccess">
+    <tupleInline>
+      <stringInline value="SalvagingSuccess" />
+      <dictInline>
+        <dictInlineEntry key="type">
+          <int name="unk_1" />
+          <int name="wreckTypeID" />
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
+  <!--
+                  [PyTuple 12 items]
+                    [PyString "OnGodmaShipEffect"]
+                    [PyIntegerVar 1002332227171]
+                    [PyInt 2757]
+                    [PyIntegerVar 129520653066471074]
+                    [PyInt 0]
+                    [PyInt 0]
+                    [PyList 7 items]
+                      [PyIntegerVar 1002332227171]
+                      [PyIntegerVar 1661059544]
+                      [PyIntegerVar 1002331681456]
+                      [PyIntegerVar 9000000000000009140]
+                      [PyNone]
+                      [PyList 0 items]
+                      [PyInt 2757]
+                    [PyIntegerVar 129520652966195052]
+                    [PyFloat 10000]
+                    [PyInt 0]
+                    [PyNone]
+                    [PyTuple 2 items]       << effect.error is a PyRep* here.
+                      [PyString "SalvagingSuccess"]
+                      [PyDict 1 kvp]
+                        [PyString "type"]
+                        [PyTuple 2 items]
+                          [PyInt 4]         << cacheSolarSystemObjects???
+                          [PyInt 26513]
+                          -->
+</elements>
+

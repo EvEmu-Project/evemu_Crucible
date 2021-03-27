@@ -18,10 +18,11 @@
 
 	See also the files README.txt and LICENSE.txt in the root directory of this module.
 */
-#define GANGSTA_DOUBLE
 
 #ifndef GAPREREQS_H
 #define GAPREREQS_H
+
+#define GANGSTA_DOUBLE
 
 #if defined ( WIN32 )
 #   define WIN32_LEAN_AND_MEAN
@@ -35,7 +36,7 @@
 
 #include <assert.h>
 
-#define _USE_MATH_DEFINES 
+#define _USE_MATH_DEFINES
 #include <float.h>
 #include <math.h>
 #include <limits>
@@ -61,7 +62,7 @@ namespace Ga
     #else
     #   define GaExpInl inline
     #endif
-    
+
 	typedef unsigned int			GaUint;
 	typedef unsigned char			GaByte;
 	#ifdef GANGSTA_DOUBLE
@@ -75,31 +76,16 @@ namespace Ga
 	typedef std::string				GaString;
 	typedef std::stringstream		GaStringStream;
 	typedef std::vector<GaString>	GaStringList;
-	
+
 	class GaVec3;
 	class GaQuat;
 	class GaMat3x3;
 	class GaMat4x4;
 	class GaDegree;
 	class GaRadian;
-	
+
 	class Parameter;
 	template<class _Ty> class GaPtr;
-
-	class Manager;
-	class DynamicObject;
-	class DynamicModule;
-	class DebugVisual;
-	class CallbackInterface;
-	class PhysicsDriver;
-	class SubWorld;
-	class World;
-	class Body;
-	class Shape;
-	class Joint;
-	class Ray;
-	class Material;
-	class Collision;
 }
 
 #endif

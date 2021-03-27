@@ -29,15 +29,17 @@ namespace Ga
 	{
 	public:
 		static const GaExport GaFloat GaPi;
-		static const GaExport GaFloat GaDegreeToRadian;
-		static const GaExport GaFloat GaRadianToDegree;
+        static const GaExport GaFloat GaDegreesInRadian;
+		static const GaExport GaFloat GaRadianInDegree;
 		static const GaExport GaFloat GaEpsilon;
 		static const GaExport GaFloat GaMinFloat;
 		static const GaExport GaFloat GaMaxFloat;
 
 #ifdef GANGSTA_DOUBLE
-		static inline GaFloat squareRoot(GaFloat f){return sqrt(f);}
-		static inline GaFloat arcCosine(const GaFloat &r){return acos(r);}
+        static inline GaFloat squareRoot(GaFloat f){return sqrt(f);}
+        static inline GaFloat arcCosine(const GaFloat &r){return acos(r);}
+        static inline GaFloat arcTangent(const GaFloat &r){return atan(r);}
+        static inline GaFloat arcTangent(const GaFloat &x, const GaFloat &y){return atan2(x,y);}
 		static inline GaFloat cosine(const GaFloat &r){return cos(r);}
 		static inline GaFloat sine(const GaFloat &r){return sin(r);}
 		static inline GaFloat absolute(GaFloat f){return fabs(f);}

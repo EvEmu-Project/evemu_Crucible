@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,6 +26,7 @@
 #include "eve-core.h"
 
 #include "utils/misc.h"
+#include "utils/utils_string.h"
 
 static uint16 crc16_table[ 256 ] =
 {
@@ -60,7 +61,7 @@ static uint16 crc16_table[ 256 ] =
     0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
     0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
     0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
-    0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
+    0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
 uint16 crc_hqx( const uint8* data, size_t len, uint16 crc )
@@ -71,7 +72,7 @@ uint16 crc_hqx( const uint8* data, size_t len, uint16 crc )
     return crc;
 }
 
-uint64 filesize( const char* filename )
+int64 filesize( const char* filename )
 {
     FILE* fd = fopen( filename, "r" );
     if( fd == NULL )
@@ -80,7 +81,7 @@ uint64 filesize( const char* filename )
     return filesize( fd );
 }
 
-uint64 filesize( FILE* fd )
+int64 filesize( FILE* fd )
 {
 #ifdef HAVE_SYS_STAT_H
     struct stat st;
@@ -91,7 +92,7 @@ uint64 filesize( FILE* fd )
 #endif /* !HAVE_SYS_STAT_H */
 }
 
-uint64 npowof2( uint64 num )
+int64 npowof2( int64 num )
 {
     --num;
     num |= ( num >>  1 );
@@ -124,4 +125,158 @@ double MakeRandomFloat( double low, double high )
     }
 
     return low + ( high - low ) * ::rand() / RAND_MAX;
+}
+
+/// create PID file
+uint32 CreatePIDFile(const std::string& filename)
+{
+    FILE* pid_file = fopen (filename.c_str(), "w" );
+    if (pid_file == NULL)
+        return 0;
+
+    #ifdef _WIN32
+    DWORD pid = GetCurrentProcessId();
+    #else
+    pid_t pid = getpid();
+    #endif
+
+    fprintf(pid_file, "%u", pid );
+    fclose(pid_file);
+
+    return (uint32)pid;
+}
+
+// EvE namespace
+double EvE::min1(double x, double y)
+{
+    double min = ((x < y) ? x : y);
+    return  ((min > 1) ? 1 : min);
+}
+
+double EvE::min(double x, double y, double z)
+{
+    double min = ((x < y) ? x : y);
+    return  ((min > z) ? z : min);
+}
+
+double EvE::max(double x, double y, double z)
+{
+    double max = ((x > y) ? x : y);
+    return  ((max < z) ? z : max);
+}
+
+
+void EvE::traceStack(void)
+{
+    uint8 j(0), nptrs(0);
+    #define SIZE 100
+    void *buffer[100];
+    char **strings;
+
+    nptrs = backtrace(buffer, SIZE);
+    printf("backtrace() returned %i addresses\n", nptrs);
+
+    /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+     *       would produce similar output to the following: */
+
+    strings = backtrace_symbols(buffer, nptrs);
+    if (!strings) {
+        printf("backtrace symbols error");
+        return;
+    }
+
+    for (j = 0; j < nptrs; ++j)
+        printf("%s\n", strings[j]);
+
+    free(strings);
+}
+
+bool EvE::icontains(std::string data, std::string toSearch, size_t pos/*0*/)
+{
+    // Convert complete given String to lower case
+    std::transform(data.begin(), data.end(), data.begin(), ::tolower);
+    // Convert complete given Sub String to lower case
+    std::transform(toSearch.begin(), toSearch.end(), toSearch.begin(), ::tolower);
+    // Find sub string in given string
+    return (data.find(toSearch, pos) != std::string::npos);
+}
+
+const char* EvE::FormatTime(int64 time/*-1*/) {
+    if (time < 0)
+        return "Invalid Time";
+    if (time < 1)
+        return "None";
+    double seconds = time;
+    double minutes = seconds / 60.0;
+    float hours = minutes / 60.0;
+    float days = hours / 24.0;
+    float weeks = days / 7.0;
+    float months = days / 30.0;
+
+    int s(fmod(seconds, 60.0));
+    int m(fmod(minutes, 60.0));
+    int h(fmod(hours, 24.0));
+    int d(fmod(days, 7.0));
+    int w(fmod(weeks, 4.0));
+    int M(fmod(months, 12.0));
+
+    std::ostringstream uptime;
+    if (M)
+        uptime << M << "M" << w << "w" << d << "d" << h << "h" << m << "m" << s << "s";
+    else if (w)
+        uptime << w << "w" << d << "d" << h << "h" << m << "m" << s << "s";
+    else if (d)
+        uptime << d << "d" << h << "h" << m << "m" << s << "s";
+    else if (h)
+        uptime << h << "h" << m << "m" << s << "s";
+    else if (m)
+        uptime << m << "m" << s << "s";
+    else
+        uptime << s << "s";
+
+    return uptime.str().c_str();
+}
+
+const char* EvE::FormatTime(double time/*-1*/) {
+    if (time < 0)
+        return "Invalid Time";
+    if (time < 1)
+        return "None";
+    double seconds = time;
+    double minutes = seconds / 60.0;
+    float hours = minutes / 60.0;
+    float days = hours / 24.0;
+    float weeks = days / 7.0;
+    float months = days / 30.0;
+
+    int s(fmod(seconds, 60.0));
+    int m(fmod(minutes, 60.0));
+    int h(fmod(hours, 24.0));
+    int d(fmod(days, 7.0));
+    int w(fmod(weeks, 4.0));
+    int M(fmod(months, 12.0));
+
+    std::ostringstream uptime;
+    if (M)
+        uptime << M << "M" << w << "w" << d << "d" << h << "h" << m << "m" << s << "s";
+    else if (w)
+        uptime << w << "w" << d << "d" << h << "h" << m << "m" << s << "s";
+    else if (d)
+        uptime << d << "d" << h << "h" << m << "m" << s << "s";
+    else if (h)
+        uptime << h << "h" << m << "m" << s << "s";
+    else if (m)
+        uptime << m << "m" << s << "s";
+    else
+        uptime << s << "s";
+
+    return uptime.str().c_str();
+}
+
+double EvE::trunicate2(double dig)
+{
+    int64 first = dig * 100;
+    double ret = (float)first / 100;
+    return ret;
+    //return (double)((int)dig*100)/100;
 }

@@ -58,7 +58,9 @@ SetBallFree
 SetBallHarmonic
 FollowBall
 
-DSTLOCALBALLS = 0x0C0000000h
+DSTLOCALBALLS = this is a client-side local container (array?) for entities in current 'local' bubble.
+missile itemID's  dec = 9,000,000,000,000,000,000    hex = 0x7CE66C50E2840000h        from packet sniff
+
 DSTNORMALCLOAK = 1
 DSTRESTORECLOAK = 2
 DSTGMCLOAK = 3
@@ -93,13 +95,6 @@ DST_WARPEXIT = 11
 
   <include file="packets/General.h" />
 
-  <elementDef name="Notify_DoDestinyUpdates">
-    <tupleInline>
-        <!-- 0: list of DoDestinyUpdateMain -->
-        <list name="updates" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="DoDestinyUpdateMain">
     <tupleInline>
       <!-- 0: list of DoDestinyAction -->
@@ -121,525 +116,27 @@ DST_WARPEXIT = 11
     </tupleInline>
   </elementDef>
 
+  <elementDef name="PackagedAction">
+    <tupleInline>
+      <!-- 0 -->
+      <stringInline value="PackagedAction" />
+      <!-- 1 -->
+      <raw name="substream" />
+        <!-- at this point, it's tuple for RemoveBall or list for AddBall
+                will have to write this part in code, based on updates  -->
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="DoDestinyAction">
     <tupleInline>
       <!-- stamp -->
-      <int name="update_id" />
+      <int name="stamp" />
       <!-- event -->
-        <raw name="update" />
+      <raw name="update" />
     </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_SlimItem">
-    <objectInline>
-        <stringInline value="foo.SlimItem" />
-        <dictInline>
-          <dictInlineEntry key="itemID">
-            <int name="itemID" />
-          </dictInlineEntry>
-            <dictInlineEntry key="typeID">
-              <int name="typeID" />
-            </dictInlineEntry>
-            <dictInlineEntry key="allianceID">
-              <int name="allianceID" default="0" />
-            </dictInlineEntry>
-            <dictInlineEntry key="color">
-                <int name="color" />
-            </dictInlineEntry>
-            <dictInlineEntry key="corpID">
-              <int name="corpID" />
-            </dictInlineEntry>
-            <dictInlineEntry key="modules">
-              <listInt name="modules" />
-          <!--
-          <listInline>
-                <tupleInline>
-                    <int name="integer10" />
-                  <int name="integer11" />
-                </tupleInline>
-                <tupleInline>
-                    <int name="integer12" />
-                    <int name="integer13" />
-                </tupleInline>
-              </listInline>
-          -->
-            </dictInlineEntry>
-            <dictInlineEntry key="warFactionID">
-              <real name="warFactionID" />
-            </dictInlineEntry>
-            <dictInlineEntry key="securityStatus">
-              <real name="securityStatus" />
-            </dictInlineEntry>
-            <dictInlineEntry key="bounty">
-              <real name="bounty" />
-            </dictInlineEntry>
-            <dictInlineEntry key="ownerID">
-              <int name="ownerID" />
-            </dictInlineEntry>
-            <dictInlineEntry key="groupID">
-              <int name="groupID" />
-            </dictInlineEntry>
-            <dictInlineEntry key="charID">
-              <int name="charID" />
-            </dictInlineEntry>
-        </dictInline>
-    </objectInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_AddBalls">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="AddBalls" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0 -->
-            <tupleInline>
-              <!-- 0 -->
-              <buffer name="destiny_binary" />
-              <!-- 1: slims (list of DoDestiny_SlimItem) -->
-              <list name="slims" />
-              <!-- 2 -->
-              <dictInt name="damages" />
-            </tupleInline>
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_OnSpecialFX13">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="OnSpecialFX" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0: shipID -->
-            <int name="entityID" />
-            <!-- 1: moduleID -->
-            <int name="moduleID" default="0" none_marker="0" />
-            <!-- 2: moduleTypeID -->
-            <int name="moduleTypeID" default="0" none_marker="0" />
-            <!-- 3: targetID -->
-            <int name="targetID" default="0" none_marker="0" />
-            <!-- 4: otherTypeID -->
-            <int name="otherTypeID" default="0" none_marker="0" />
-            <!-- 5: area, completely unknown contents, probably not really an listInt -->
-            <listInt name="area" />
-            <!-- 6: guid: see scripts/parklife/fxSequencer.py -->
-            <string name="effect_type" />
-            <!-- 7: isOffensive: saw 0 -->
-            <int name="isOffensive" />
-            <!-- 8: start: saw 1 -->
-            <int name="start" />
-            <!-- 9: active: saw 0 -->
-            <int name="active" />
-            <!-- 10: duration in milliseconds (optional) -->
-            <real name="duration_ms" default="0" none_marker="0" />
-            <!-- 11: repeat (optional) (can be None, True, False, or an integer seen as many values: 1000, 50000, others) -->
-            <raw name="repeat" />
-            <!-- 12: startTime (optional) -->
-            <long name="startTime" default="0" none_marker="0" />
-            <!-- 13: always seems to be a PyNone at the end of this packet, we have NO clue why -->
-            <none />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_OnSpecialFX10">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="OnSpecialFX" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0: shipID -->
-            <int name="entityID" />
-            <!-- 1: moduleID -->
-            <int name="moduleID" default="0" none_marker="0" />
-            <!-- 2: moduleTypeID -->
-            <int name="moduleTypeID" default="0" none_marker="0" />
-            <!-- 3: targetID -->
-            <int name="targetID" default="0" none_marker="0" />
-            <!-- 4: otherTypeID -->
-            <int name="otherTypeID" default="0" none_marker="0" />
-            <!-- 5: completely unknown contents, probably not really an listInt -->
-            <listInt name="area" />
-            <!-- 6: see scripts/parklife/fxSequencer.py -->
-            <string name="effect_type"/>
-            <!-- 7: isOffensive: soft boolean -->
-            <int name="isOffensive" />
-            <!-- 8: start: soft boolean -->
-            <int name="start" />
-            <!-- 9: active: soft boolean -->
-            <int name="active" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_DamageDetails">
-    <listInline>
-      <tupleInline>
-          <real name="shield" />
-          <real name="tau" />
-          <long name="timestamp" />
-        </tupleInline>
-        <real name="armor" />
-        <real name="structure" />
-    </listInline>
-  </elementDef>
-
-  <elementDef name="DoDestinyDamageState">
-    <tupleInline>
-      <tupleInline>
-        <!-- this is a ratio from 0-1 -->
-        <real name="shield" />
-        <!-- no idea what this is for, I have seen 100000 and 600000 -->
-        <real name="tau" />
-        <long name="timestamp" />
-      </tupleInline>
-      <!-- this is a ratio from 0-1 -->
-      <real name="armor" />
-      <!-- this is a ratio from 0-1 -->
-      <real name="structure" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_OnDamageStateChange">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="OnDamageStateChange" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0: shipID -->
-            <int name="entityID" />
-        <!-- entry of type DoDestinyDamageState -->
-            <raw name="state" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdSetSpeedFraction">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetSpeedFraction" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0 -->
-            <int name="entityID" />
-            <!-- 1 -->
-            <real name="fraction" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetNotificationRange">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetNotificationRange" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0 -->
-            <int name="entityID" />
-            <!-- 1 -->
-            <real name="range" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallPosition">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallPosition" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <real name="x" />
-            <real name="y" />
-            <real name="z" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallVelocity">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallVelocity" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <real name="x" />
-            <real name="y" />
-            <real name="z" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdFollowBall">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="FollowBall" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0 -->
-            <int name="entityID" />
-            <int name="ballID" />
-            <int name="unknown" /> <!-- seen 50 -->
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdStop">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="Stop" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0 -->
-            <int name="entityID" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdGotoDirection">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="GotoDirection" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <real name="x" />
-            <real name="y" />
-            <real name="z" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdAlignTo">
-    <tupleInline>
-      <!-- 0 -->
-      <stringInline value="AlignTo" />
-      <!-- 1 -->
-      <tupleInline>
-        <int name="entityID" />
-      </tupleInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_GotoPoint">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="GotoPoint" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <real name="x" />
-            <real name="y" />
-            <real name="z" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallMass">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallMass" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <real name="mass" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallRadius">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallRadius" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <real name="radius" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallMassive">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallMassive" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-        <!-- integer boolean -->
-            <int name="is_massive" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallFree">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallFree" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-        <!-- integer boolean I think -->
-            <int name="is_free" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallGlobal">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallGlobal" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-        <!-- integer boolean I think -->
-            <int name="is_global" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdSetMaxSpeed">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetMaxSpeed" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <real name="speed" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdWarpTo">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="WarpTo" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0 -->
-            <int name="entityID" />
-            <!-- 1 -->
-            <real name="dest_x" />
-            <!-- 2 -->
-            <real name="dest_y" />
-            <!-- 3 -->
-            <real name="dest_z" />
-            <!-- 4 -->
-            <int name="distance" />
-            <!-- 5: warp speed in AU/s times 10 -->
-            <int name="warpSpeed" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallTroll">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallTroll" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <int name="maybeAnotherEntityID" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBoid">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBoid" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <int name="maybeAnotherEntityID" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CmdOrbit">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="Orbit" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <int name="orbitEntityID" />
-            <int name="distance" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_AddMushroom">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="AddMushroom" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="parentID" />
-        <!-- might be range -->
-            <real name="unknown2" />
-            <real name="unknown3" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_CloakBall">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="CloakBall" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <bool name="cloaked" />
-            <!-- optional: maybe <real name="cloakMode" /> -->
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="OnDockingAccepted">
-      <tupleInline>
-        <!-- 0 -->
-      <listInline>
-        <real name="start_x" />
-        <real name="start_y" />
-        <real name="start_z" />
-      </listInline>
-        <!-- 1: dup of previous list? -->
-      <listInline>
-        <real name="end_x" />
-        <real name="end_y" />
-        <real name="end_z" />
-      </listInline>
-      <!-- 2 -->
-      <int name="stationID" />
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_RemoveBall">
-    <tupleInline>
-      <!-- 0: method -->
-      <stringInline value="RemoveBall" />
-      <!-- 1: arguments -->
-      <tupleInline>
-          <int name="entityID" />
-        <!-- there is an unknown optional int arg which may follow -->
-      </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_RemoveBalls">
-    <tupleInline>
-      <!-- 0: method -->
-      <stringInline value="RemoveBalls" />
-      <!-- 1: arguments -->
-      <tupleInline>
-        <listInt name="balls" />
-      </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetState">
+  <elementDef name="SetState">
     <tupleInline>
       <!-- 0 -->
       <stringInline value="SetState" />
@@ -660,7 +157,7 @@ DST_WARPEXIT = 11
               <int name="ego" />
             </dictInlineEntry>
             <dictInlineEntry key="damageState">
-              <!-- maps from an entity ID (I think) to a SetState_DamageState struct -->
+              <!-- dict of k,v as k= entity ID and v= SetState_DamageState struct -->
               <dictInt name="damageState" />
             </dictInlineEntry>
             <dictInlineEntry key="aggressors">
@@ -668,7 +165,7 @@ DST_WARPEXIT = 11
               <dictInt name="aggressors" />
             </dictInlineEntry>
             <dictInlineEntry key="droneState">
-              <!-- rowset: droneID, ownerID, controllerID, activityState, typeID, controllerOwnerID -->
+              <!-- rowset: droneID, ownerID, controllerID, activityState, typeID, controllerOwnerID, targetID  -->
               <!--<element type="util_Rowset" name="droneState" />-->
               <raw name="droneState" />
             </dictInlineEntry>
@@ -691,7 +188,640 @@ DST_WARPEXIT = 11
     </tupleInline>
   </elementDef>
 
-  <elementDef name="DoDestiny_OnDroneStateChange">
+  <elementDef name="SlimItem">
+    <objectInline>
+        <stringInline value="foo.SlimItem" />
+        <dictInline>
+          <dictInlineEntry key="itemID">
+            <int name="itemID" />
+          </dictInlineEntry>
+            <dictInlineEntry key="typeID">
+              <int name="typeID" />
+            </dictInlineEntry>
+            <dictInlineEntry key="allianceID">
+              <int name="allianceID" default="0" />
+            </dictInlineEntry>
+            <dictInlineEntry key="corpID">
+              <int name="corpID" />
+            </dictInlineEntry>
+            <dictInlineEntry key="modules">
+              <listInt name="modules" />
+            </dictInlineEntry>
+            <dictInlineEntry key="warFactionID">
+              <real name="warFactionID" />
+            </dictInlineEntry>
+            <dictInlineEntry key="securityStatus">
+              <real name="securityStatus" />
+            </dictInlineEntry>
+            <dictInlineEntry key="bounty">
+              <real name="bounty" />
+            </dictInlineEntry>
+            <dictInlineEntry key="ownerID">
+              <int name="ownerID" />
+            </dictInlineEntry>
+            <dictInlineEntry key="groupID">
+              <int name="groupID" />
+            </dictInlineEntry>
+            <dictInlineEntry key="categoryID">
+              <int name="categoryID" />
+            </dictInlineEntry>
+            <dictInlineEntry key="charID">
+              <int name="charID" />
+            </dictInlineEntry>
+        </dictInline>
+    </objectInline>
+  </elementDef>
+<!--
+    def AddBalls(self, chunk):
+        state, slims, damageDict = chunk
+        -->
+  <elementDef name="AddBalls">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="AddBalls" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0 -->
+            <tupleInline>
+              <!-- 0 -->
+              <buffer name="state" />
+              <!-- 1: slims (list of SlimItem) -->
+              <list name="slims" />
+              <!-- 2 -->
+              <dictInt name="damageDict" />
+            </tupleInline>
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+<!--
+    def AddBalls2(self, chunk):
+        state, extraBallData = chunk
+        for data in extraBallData:
+            if type(data) is tuple:
+                slimItemDict, damageState = data
+            else:
+                slimItemDict = data
+                damageState = None
+        -->
+
+  <elementDef name="AddBalls2">
+    <tupleInline>
+      <!-- 0-->
+      <int name="stateStamp" />
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="AddBalls2" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0 -->
+            <tupleInline>
+              <!-- 0 state buffer for AddBalls-->
+              <buffer name="state" />
+              <!-- 1: balls (list of ball dicts to add) -->
+              <list name="extraBallData" />
+            </tupleInline>
+        </tupleInline>
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="DoDestinyDamageState">
+    <tupleInline>
+      <tupleInline>
+        <!-- this is a ratio from 0-1 -->
+        <real name="shield" />
+        <!-- shield recharge rate in ms -->
+        <real name="recharge" />
+        <long name="timestamp" />
+      </tupleInline>
+      <!-- this is a ratio from 0-1 -->
+      <real name="armor" />
+      <!-- this is a ratio from 0-1 -->
+      <real name="structure" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="DoDestinyDamageState3">
+    <tupleInline>
+        <real name="shield" default="0" />
+        <real name="armor" default="0" />
+        <real name="structure" default="1" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="DamageDetails">
+    <listInline>
+      <tupleInline>
+          <real name="shield" />
+          <real name="recharge" />
+          <long name="timestamp" />
+        </tupleInline>
+        <real name="armor" />
+        <real name="structure" />
+    </listInline>
+  </elementDef>
+
+  <elementDef name="RemoveBallFromBP">
+    <tupleInline>
+      <!-- 0: call -->
+      <stringInline value="RemoveBall" />
+      <!-- 1: arguments -->
+      <tupleInline>
+        <int name="entityID" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="RemoveBallsFromBP">
+    <tupleInline>
+      <!-- 0: call -->
+      <stringInline value="RemoveBalls" />
+      <!-- 1: arguments -->
+      <tupleInline>
+        <listInt name="balls" />
+      </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnSpecialFX10">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="OnSpecialFX" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0: shipID -->
+            <int name="entityID" />
+            <!-- 1: moduleID -->
+            <int name="moduleID" default="0" none_marker="0" />
+            <!-- 2: moduleTypeID -->
+            <int name="moduleTypeID" default="0" none_marker="0" />
+            <!-- 3: targetID -->
+            <int name="targetID" default="0" none_marker="0" />
+            <!-- 4: chargeTypeID -->
+            <int name="chargeTypeID" default="0" none_marker="0" />
+            <!-- 5: area, completely unknown contents, empty PyList in packets -->
+            <list name="area" />
+            <!-- 6: see scripts/parklife/fxSequencer.py -->
+            <string name="guid"/>
+            <!-- 7: isOffensive: soft boolean -->
+            <int name="isOffensive" />
+            <!-- 8: start: soft boolean -->
+            <int name="start" />
+            <!-- 9: active: soft boolean -->
+            <int name="active" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnSpecialFX13">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="OnSpecialFX" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0: shipID -->
+            <int name="entityID" />
+            <!-- 1: moduleID (shipID for NPC) -->
+            <int name="moduleID" default="0" none_marker="0" />
+            <!-- 2: moduleTypeID -->
+            <int name="moduleTypeID" default="0" none_marker="0" />
+            <!-- 3: targetID or None -->
+            <raw name="targetID" />
+            <!-- 4: chargeTypeID or None -->
+            <raw name="chargeTypeID" />
+            <!-- 5: area, completely unknown contents, empty PyList in packets -->
+            <list name="area" />
+            <!-- 6: guid: see scripts/parklife/fxSequencer.py -->
+            <string name="guid" />
+            <!-- 7: isOffensive -->
+            <bool name="isOffensive" default="false" />
+            <!-- 8: start -->
+            <int name="start" />
+            <!-- 9: active -->
+            <int name="active" />
+            <!-- 10: duration in milliseconds (optional) -->
+            <int name="duration" default="-1" none_marker="0" />
+            <!-- 11: repeat (optional) (really defaults to None, but -1 seems to work too) -->
+            <int name="repeat" default="0" none_marker="0" />
+            <!-- 12: startTime (optional) -->
+            <long name="startTime" default="0" none_marker="0" />
+            <!-- 13: graphicInfo or None  - not sure what this is yet.  -->
+            <raw name="graphicInfo" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnDamageStateChange">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="OnDamageStateChange" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0: shipID -->
+            <int name="entityID" />
+        <!-- entry of type DoDestinyDamageState -->
+            <raw name="state" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdSetSpeedFraction">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetSpeedFraction" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0 -->
+            <int name="entityID" />
+            <!-- 1 -->
+            <real name="fraction" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdFollowBall">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="FollowBall" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0 -->
+            <int name="entityID" />
+            <int name="targetID" />
+            <int name="range" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdStop">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="Stop" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0 -->
+            <int name="entityID" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdWarpTo">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="WarpTo" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0 -->
+            <int name="entityID" />
+            <!-- 1 -->
+            <real name="dest_x" />
+            <!-- 2 -->
+            <real name="dest_y" />
+            <!-- 3 -->
+            <real name="dest_z" />
+            <!-- 4: distance from target to stop -->
+            <int name="distance" />
+            <!-- 5: warp speed in AU/s times 10 -->
+            <int name="warpSpeed" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdGotoDirection">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="GotoDirection" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <real name="x" />
+            <real name="y" />
+            <real name="z" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdAlignTo">
+    <tupleInline>
+      <!-- 0 -->
+      <stringInline value="AlignTo" />
+      <!-- 1 -->
+      <tupleInline>
+        <int name="entityID" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdGotoPoint">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="GotoPoint" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <real name="x" />
+            <real name="y" />
+            <real name="z" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CmdOrbit">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="Orbit" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <int name="orbitEntityID" />
+            <int name="distance" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="CallAlignTo">
+    <tupleInline>
+      <int name="entityID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="CallWarpToStuff">
+    <tupleInline>
+      <string name="type"  safe="true" none_marker="" />
+      <int name="ID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="CallWarpToStuffAutopilot">
+    <tupleInline>
+      <int name="destID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_StargateJump">
+    <tupleInline>
+      <int name="fromStargateID"  safe="true" none_marker="0" />
+      <int name="toStargateID"  safe="true" none_marker="0" />
+      <int name="shipID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_FollowBall">
+    <tupleInline>
+      <int name="ballID"  safe="true" none_marker="0" />
+      <!-- may be integer or real -->
+      <raw name="distance" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_Orbit">
+    <tupleInline>
+      <int name="entityID"  safe="true" none_marker="0" />
+      <!-- may be integer or real -->
+      <raw name="range" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetNotificationRange">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetNotificationRange" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0 -->
+            <int name="entityID" />
+            <!-- 1 -->
+            <real name="range" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallSpeed">
+    <tupleInline>
+      <stringInline value="SetMaxSpeed" />
+      <tupleInline>
+        <int name="entityID" />
+        <real name="speed" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallPosition">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallPosition" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <real name="x" />
+            <real name="y" />
+            <real name="z" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallAgility">
+      <tupleInline>
+        <stringInline value="SetBallAgility" />
+        <tupleInline>
+            <int name="entityID" />
+            <real name="agility" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallVelocity">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallVelocity" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <real name="x" />
+            <real name="y" />
+            <real name="z" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallMass">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallMass" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <real name="mass" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallRadius">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallRadius" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <real name="radius" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallMassive">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallMassive" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+        <!-- integer boolean -->
+            <int name="is_massive" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallFree">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallFree" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+        <!-- integer boolean I think -->
+            <int name="is_free" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallGlobal">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallGlobal" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+        <!-- integer boolean I think -->
+            <int name="is_global" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallTroll">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallTroll" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <int name="maybeAnotherEntityID" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallBoid">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBoid" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <int name="maybeAnotherEntityID" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallInteractive">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallInteractive" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0: entityID -->
+            <int name="entityID" />
+            <!-- 1: interactive: on/off -->
+            <int name="interactive" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallHarmonic">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="SetBallHarmonic" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="itemID" />
+            <int name="allianceID" />
+            <int name="corpID" />
+            <int name="mass" /><!-- always -1 -->
+            <int name="harmonic" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetBallCloak">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="CloakBall" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="entityID" />
+            <bool name="cloaked" />
+            <!-- optional: maybe <real name="cloakMode" /> -->
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="AddMushroom">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="AddMushroom" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="parentID" />
+        <!-- might be range -->
+            <real name="unknown2" />
+            <real name="unknown3" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnDockingAccepted">
+        <!-- OnDockingAccepted(self, dockingStartPos, dockingEndPos, stationID): -->
+      <tupleInline>
+        <!-- 0: ship position -->
+      <listInline>
+        <real name="ship_x" />
+        <real name="ship_y" />
+        <real name="ship_z" />
+      </listInline>
+        <!-- 1: station dockpoint-->
+      <listInline>
+        <real name="station_x" />
+        <real name="station_y" />
+        <real name="station_z" />
+      </listInline>
+        <!-- 2: stationID -->
+      <int name="stationID" />
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="TerminalExplosion">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="TerminalExplosion" />
+        <!-- 1 -->
+        <tupleInline>
+            <int name="shipID" />
+            <int name="bubbleID" />
+            <bool name="ballIsGlobal" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnDroneStateChange">
       <tupleInline>
         <!-- 0 -->
         <stringInline value="OnDroneStateChange" />
@@ -707,63 +837,12 @@ DST_WARPEXIT = 11
             <int name="activityState" />
             <!-- 4: droneTypeID -->
             <int name="droneTypeID" />
-            <!-- 2: controllerOwnerID (ship's owner ID) -->
+            <!-- 5: controllerOwnerID (ship's owner ID) -->
             <int name="controllerOwnerID" />
+            <!-- 6: targetID -->
+            <int name="targetID" />
         </tupleInline>
       </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetBallInteractive">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallInteractive" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0: entityID -->
-            <int name="entityID" />
-            <!-- 1: interactive: on/off -->
-            <int name="interactive" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_TerminalExplosion">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="TerminalExplosion" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <!-- seen 1206 -->
-            <int name="unknownInt" />
-            <!-- always seems to be false -->
-            <bool name="unknownBool" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="Beyonce_Formation">
-    <tupleInline>
-      <!-- 0: Name of formation -->
-      <string name="name" />
-      <!-- 1: Tuple of positions -->
-      <tupleInline>
-        <element name="pos1" type="Call_PointArg" />
-        <element name="pos2" type="Call_PointArg" />
-        <element name="pos3" type="Call_PointArg" />
-        <element name="pos4" type="Call_PointArg" />
-      </tupleInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="DoDestiny_SetMaxSpeed">
-    <tupleInline>
-      <stringInline value="SetMaxSpeed" />
-      <tupleInline>
-        <int name="entityID" />
-        <real name="speedValue" />
-      </tupleInline>
-    </tupleInline>
   </elementDef>
 
 </elements>

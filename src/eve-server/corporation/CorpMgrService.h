@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,19 +42,15 @@ protected:
 
     CorporationDB m_db;
 
-    PyCallable_DECL_CALL(GetPublicInfo)
-    PyCallable_DECL_CALL(GetCorporations)
-    PyCallable_DECL_CALL(GetAssetInventory)
-    PyCallable_DECL_CALL(GetCorporationStations)
-    PyCallable_DECL_CALL(GetCorporationIDForCharacter)
-    PyCallable_DECL_CALL(GetAssetInventoryForLocation)
+    PyCallable_DECL_CALL(GetPublicInfo);
+    PyCallable_DECL_CALL(GetCorporations);
+    PyCallable_DECL_CALL(GetAssetInventory);
+    PyCallable_DECL_CALL(GetCorporationStations);
+    PyCallable_DECL_CALL(GetCorporationIDForCharacter);
+    PyCallable_DECL_CALL(GetAssetInventoryForLocation);
+    PyCallable_DECL_CALL(SearchAssets);
+    PyCallable_DECL_CALL(AuditMember);
 
 };
 
-
-
-
-
 #endif
-
-

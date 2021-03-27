@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,15 +27,33 @@
 #define __EVE_VERSION_H
 
 // Client version info
-// (supported client is Crucible v1.6.5 build 360229)
-// (this is ALL CPP information needed by the client)
+// supported client is Crucible v1.6.5 build 360229
+// this is ALL CPP information needed by the client
 static const double EVEVersionNumber = 7.31;
 static const uint16 MachoNetVersion = 320;
 static const int32 EVEBuildVersion = 360229;
-static const char *const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
-static const char *const EVEProjectRegion = "ccp";
-static const char *const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";
+static const char* const EVEProjectRegion = "ccp";
+static const char* const EVEProjectVersion = "EVE-EVE-TRANQUILITY@ccp";
+static const char* const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 
 static const int32 EVEBirthday = 170472;
+
+/*  Allan's Static Definitions */
+static const char* const EVEMU_REVISION = "0.8.0";
+static const char* const EVEMU_BUILD_DATE = "26 March 2021";
+/* match versions here with stated files for full support */
+static const float Config_Version = 10.0; /* eve-server.xml and EveServerConfig.cpp */
+static const float Log_Version = 10.2;    /* logtypes.h and log.ini */
+/* AI versions for shitz-n-giggles */
+static const float Joe_Version = 0.15;   /* MarketBot.xml and MarketBotConf.cpp */
+/* these  dont have separate config files ...yet */
+static const float NPC_AI_Version = 0.57;
+static const float Drone_AI_Version = 0.15;
+static const float Mission_Version = 0.31;
+/* these arent used yet, but are placeholders for future expansion */
+static const float Civilian_AI_Version = 0.10;
+static const float Sentry_AI_Version = 0.10;
+static const float POS_AI_Version = 0.01;
+static const float Scan_Version = 0.43;
 
 #endif

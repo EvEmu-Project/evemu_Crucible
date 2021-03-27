@@ -1,0 +1,50 @@
+
+<!-- EVEmu MarketBot Config
+     Version: 0.3 -->
+
+<!--
+    unless otherwise noted, ALL fractional values use fuzzy logic.
+    boolean can use either 0/1 OR true/false.
+-->
+
+
+<marketBot>
+
+    <main>
+        <!-- bot enabled/disabled in server config.  system bot always available when bot enabled -->
+        <EnableRegional>false</EnableRegional><!-- bool -->
+        <EnableConst>false</EnableConst><!-- bool -->
+        <DataRefreshTime>15</DataRefreshTime><!-- in minutes (15 min default) -->
+        <OrderLifetime>5</OrderLifetime><!-- in days (5 day default) -->
+        <OrdersPerRefresh>10</OrdersPerRefresh><!-- default: 10 -->
+        <MaxISKPerOrder>1500000000</MaxISKPerOrder><!-- default: 1b5 -->
+    </main>
+
+    <buy>
+        <RegionJumps>10</RegionJumps><!-- default: 10 -->
+        <ConstJumps>8</ConstJumps><!-- default: 8 -->
+        <SystemJumps>5</SystemJumps><!-- default: 5 -->
+        <OrdersPerRegion>35</OrdersPerRegion><!-- default: 35 -->
+        <OrdersPerConst>20</OrdersPerConst><!-- default: 20 -->
+        <OrdersPerSystem>10</OrdersPerSystem><!-- default: 10 -->
+        <DupeOrdersPerRegion>10</DupeOrdersPerRegion><!-- default: 10 -->
+        <DupeOrdersPerConst>5</DupeOrdersPerConst><!-- default: 5 -->
+        <DupeOrdersPerSystem>2</DupeOrdersPerSystem><!-- default: 2 -->
+        <MinBuyAmount>1</MinBuyAmount><!-- default: 1 -->
+    </buy>
+
+    <sell>
+        <SellNamedItem>false</SellNamedItem><!-- bool -->
+        <OrdersPerRegion>20</OrdersPerRegion><!-- default: 20 -->
+        <OrdersPerConst>10</OrdersPerConst><!-- default: 10 -->
+        <OrdersPerSystem>2</OrdersPerSystem><!-- default: 2 -->
+        <DupeOrdersPerRegion>5</DupeOrdersPerRegion><!-- default: 5 -->
+        <DupeOrdersPerConst>3</DupeOrdersPerConst><!-- default: 3 -->
+        <DupeOrdersPerSystem>1</DupeOrdersPerSystem><!-- default: 1 -->
+        <SellItemMetaLevelMin>0</SellItemMetaLevelMin><!-- default: 0 -->
+        <SellItemMetaLevelMax>4</SellItemMetaLevelMax><!-- default: 4 -->
+        <MinSellAmount>1</MinSellAmount><!-- default: 1 -->
+    </sell>
+
+
+</marketBot>

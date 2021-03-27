@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,7 +42,7 @@ protected:
     CharacterDB m_db;
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
 };
 
 class SkillMgrBound
@@ -54,52 +54,25 @@ public:
 
     virtual void Release();
 
-    /**
-     * InjectSkillIntoBrain
-     *
-     * Injects a list of skills into a characters brain.
-     */
-    PyCallable_DECL_CALL(InjectSkillIntoBrain)
+    PyCallable_DECL_CALL(InjectSkillIntoBrain);
 
-    /**
-     * CharStartTrainingSkillByTypeID
-     *
-     * Starts training a characters skill based on typeID
-     */
-    PyCallable_DECL_CALL(CharStartTrainingSkillByTypeID)
-    PyCallable_DECL_CALL(CharStopTrainingSkill)
-    PyCallable_DECL_CALL(GetEndOfTraining)
-    PyCallable_DECL_CALL(GetSkillHistory)
-    PyCallable_DECL_CALL(CharAddImplant)
-    PyCallable_DECL_CALL(RemoveImplantFromCharacter)
+    PyCallable_DECL_CALL(CharStartTrainingSkill);
+    PyCallable_DECL_CALL(CharStartTrainingSkillByTypeID);
+    PyCallable_DECL_CALL(CharStopTrainingSkill);
+    PyCallable_DECL_CALL(GetEndOfTraining);
+    PyCallable_DECL_CALL(GetSkillHistory);
+    PyCallable_DECL_CALL(CharAddImplant);
+    PyCallable_DECL_CALL(RemoveImplantFromCharacter);
 
-    /**
-     * GetSkillQueueAndFreePoints
-     *
-     * Gets the list of skill currently in
-     * the skill queue for a character and the free points.
-     */
-    PyCallable_DECL_CALL(GetSkillQueueAndFreePoints)
+    PyCallable_DECL_CALL(GetSkillQueueAndFreePoints);
 
-    /**
-     * SaveSkillQueue
-     *
-     * Saves a list of character skills received
-     * from the client.
-     */
-    PyCallable_DECL_CALL(SaveSkillQueue)
+    PyCallable_DECL_CALL(SaveSkillQueue);
 
-    /**
-     * AddToEndOfSkillQueue
-     *
-     * Adds a skill to end of a characters skill
-     * queue.
-     */
-    PyCallable_DECL_CALL(AddToEndOfSkillQueue)
+    PyCallable_DECL_CALL(AddToEndOfSkillQueue);
 
-    PyCallable_DECL_CALL(RespecCharacter)
-    PyCallable_DECL_CALL(GetRespecInfo)
-    PyCallable_DECL_CALL(GetCharacterAttributeModifiers)
+    PyCallable_DECL_CALL(RespecCharacter);
+    PyCallable_DECL_CALL(GetRespecInfo);
+    PyCallable_DECL_CALL(GetCharacterAttributeModifiers);
 
 protected:
     class Dispatcher;
@@ -109,3 +82,4 @@ protected:
 };
 
 #endif
+

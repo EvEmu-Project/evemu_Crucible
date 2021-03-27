@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,49 +21,22 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Zhur
+    Updates:	Allan  (updated dependency loading order)
 */
 
 #ifndef __EVE_SERVER_H__INCL__
 #define __EVE_SERVER_H__INCL__
 
 /************************************************************************/
-/* eve-core includes                                                    */
-/************************************************************************/
-#include "eve-core.h"
-
-// database
-#include "database/dbcore.h"
-// log
-#include "log/LogNew.h"
-#include "log/logsys.h"
-#include "log/Basic_Log.h"
-#include "log/HTML_Log.h"
-// network
-#include "network/StreamPacketizer.h"
-#include "network/TCPConnection.h"
-#include "network/TCPServer.h"
-// threading
-#include "threading/Mutex.h"
-// utils
-#include "utils/crc32.h"
-#include "utils/Deflate.h"
-#include "utils/EvilNumber.h"
-#include "utils/gpoint.h"
-#include "utils/misc.h"
-#include "utils/RefPtr.h"
-#include "utils/Seperator.h"
-#include "utils/timer.h"
-#include "utils/utils_time.h"
-#include "utils/utils_string.h"
-#include "utils/XMLParserEx.h"
-#include "utils/Util.h"
-
-/************************************************************************/
-/* eve-common includes                                                  */
+/* eve-common includes (also includes eve-core.h)                       */
 /************************************************************************/
 #include "eve-common.h"
 
-#include "EVEVersion.h"
+/************************************************************************/
+/* eve-server includes                                                  */
+/************************************************************************/
+// profile
+#include "Profiler.h"
 // auth
 #include "auth/PasswordModule.h"
 // cache
@@ -72,7 +45,7 @@
 #include "database/EVEDBUtils.h"
 // destiny
 #include "destiny/DestinyBinDump.h"
-#include "destiny/DestinyStructs.h"
+//#include "destiny/DestinyStructs.h"
 // network
 #include "network/EVETCPConnection.h"
 #include "network/EVETCPServer.h"
@@ -83,29 +56,34 @@
 #include "marshal/EVEMarshalOpcodes.h"
 #include "marshal/EVEMarshalStringTable.h"
 #include "marshal/EVEUnmarshal.h"
+
 // packets
+// TODO  work on moving these OUT of this file
 #include "packets/AccountPkts.h"
-#include "packets/CorporationPkts.h"
+//  #include "packets/Bookmarks.h"
+//  #include "packets/CorporationPkts.h"
 #include "packets/Crypto.h"
 #include "packets/Character.h"
 #include "packets/Destiny.h"
 #include "packets/DogmaIM.h"
+//  #include "packets/Fleet.h"
 #include "packets/General.h"
 #include "packets/Inventory.h"
-#include "packets/Wallet.h"
-#include "packets/Missions.h"
-#include "packets/Language.h"
-#include "packets/LSCPkts.h"
-#include "packets/Manufacturing.h"
-#include "packets/Market.h"
-#include "packets/ObjectCaching.h"
-#include "packets/PlanetSvc.h"
-#include "packets/Search.h"
-#include "packets/Sovereignty.h"
-#include "packets/Standing2.h"
-#include "packets/Trade.h"
-#include "packets/Tutorial.h"
+//  #include "packets/Language.h"
+//  #include "packets/LSCPkts.h"
+//  #include "packets/Manufacturing.h"
+//  #include "packets/Market.h"
 #include "packets/Mail.h"
+//  #include "packets/Map.h"
+//  #include "packets/Missions.h"
+#include "packets/ObjectCaching.h"
+//  #include "packets/Sovereignty.h"
+//  #include "packets/Standing.h"
+//  #include "packets/Scan.h"
+//  #include "packets/Trade.h"
+#include "packets/Tutorial.h"
+#include "packets/Wallet.h"
+
 // python
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
@@ -116,17 +94,19 @@
 #include "python/classes/PyDatabase.h"
 #include "python/classes/PyExceptions.h"
 #include "python/classes/PyUtils.h"
+// Common Enums
+#include "inventory/AttributeEnum.h"
+// pointer references for all classes
+#include "inventory/ItemRef.h"
 // tables
 #include "tables/invCategories.h"
 #include "tables/invGroups.h"
+#include "tables/invTypes.h"
+// threading
+#include "threading/Mutex.h"
 // utils
 #include "utils/EVEUtils.h"
-#include "utils/EvilNumber.h"
+#include "utils/XMLParserEx.h"
 
-/************************************************************************/
-/* eve-server includes                                                  */
-/************************************************************************/
-// Lua
-#include <lua.h>
 
 #endif /* !__EVE_SERVER_H__INCL__ */

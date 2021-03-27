@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -49,4 +49,18 @@ PyResult VoiceMgrService::Handle_VoiceEnabled(PyCallArgs &call) {
     return(new PyInt(0));
 }
 
+/*
+        [PySubStream 27 bytes]
+          [PyTuple 4 items]
+            [PyInt 1]
+            [PyString "GetPassword"]
+            [PyTuple 0 items]
+            [PyDict 1 kvp]
+              [PyString "machoVersion"]
+              [PyInt 1]
+
+      [PySubStream 30 bytes]
+        [PyString "5B738A603AE44313A696451"]
+
+*/
 

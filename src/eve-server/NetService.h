@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -32,20 +32,80 @@
 class NetService : public PyService {
 public:
     NetService(PyServiceMgr *mgr);
-    virtual ~NetService();
+    ~NetService();
 
 protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    PyCallable_DECL_CALL(GetInitVals)
-    PyCallable_DECL_CALL(GetTime)
-    PyCallable_DECL_CALL(GetClusterSessionStatistics)
+    PyCallable_DECL_CALL(GetInitVals);
+    PyCallable_DECL_CALL(GetTime);
+    PyCallable_DECL_CALL(GetClusterSessionStatistics);
+
 };
-
-
-
 
 #endif
 
+/*
+ _ _replacese*rvice__ = 'machoNet'
+ __gpcsmethodnames__ = ['Broadcast',
+ 'ClusterBroadcast',
+ 'ConnectToAllNeighboringServices',
+ 'ConnectToAllServices',
+ 'ConnectToAllSiblingServices',
+ 'ConnectToRemoteService',
+ 'NarrowcastByAllianceIDs',
+ 'NarrowcastByCharIDs',
+ 'NarrowcastByClientIDs',
+ 'NarrowcastByClientIDsWithoutTheStars',
+ 'NarrowcastByCorporationIDs',
+ 'NarrowcastByFleetIDs',
+ 'NarrowcastByNodeIDs',
+ 'NarrowcastByShipIDs',
+ 'NarrowcastBySolarSystemID2s',
+ 'NarrowcastBySolarSystemIDs',
+ 'NarrowcastByStationIDs',
+ 'NarrowcastByStationID2s',
+ 'NarrowcastByUserIDs',
+ 'NarrowcastToClientAndObservers',
+ 'NarrowcastToObservers',
+ 'SinglecastByServiceMask',
+ 'NodeBroadcast',
+ 'Objectcast',
+ 'ObjectcastWithoutTheStars',
+ 'OnObjectPublicAttributesUpdated',
+ 'ProxyBroadcast',
+ 'Queuedcast',
+ 'QueuedcastWithoutTheStars',
+ 'ReliableSinglecastByCharID',
+ 'ReliableSinglecastByUserID',
+ 'RemoteServiceCall',
+ 'RemoteServiceCallWithoutTheStars',
+ 'RemoteServiceNotify',
+ 'RemoteServiceNotifyWithoutTheStars',
+ 'ResetAutoResolveCache',
+ 'Scattercast',
+ 'ScattercastWithoutTheStars',
+ 'ServerBroadcast',
+ 'SinglecastByAllianceID',
+ 'SinglecastByCharID',
+ 'SinglecastByClientID',
+ 'SinglecastByCorporationID',
+ 'SinglecastByFleetID',
+ 'SinglecastByNodeID',
+ 'SinglecastByShipID',
+ 'SinglecastBySolarSystemID',
+ 'SinglecastBySolarSystemID2',
+ 'SinglecastByStationID',
+ 'SinglecastByStationID2',
+ 'SinglecastByUserID',
+ 'SinglecastByWorldSpaceID']
+ __server_scattercast_session_variables__ = ('userid',
+ 'charid',
+ 'shipid',
+ 'objectID',
+ 'fleetid',
+ 'wingid',
+ 'squadid')
 
+     */

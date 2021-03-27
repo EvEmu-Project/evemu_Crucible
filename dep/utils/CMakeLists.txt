@@ -12,8 +12,6 @@ ADD_LIBRARY(
   # Source:
   "Base64.h"
   "Base64.cpp"
-  "TriFile.h"
-  "TriFile.cpp"
   )
 
 SET( UTILS_INCLUDE_DIRS

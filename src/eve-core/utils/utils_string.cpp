@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -161,7 +161,7 @@ const char* itoa( int64 num )
     static char buf[ _ITOA_BUFLEN ];
     memset( buf, 0, _ITOA_BUFLEN );
 
-    snprintf( buf, _ITOA_BUFLEN, "%" PRId64, num );
+    snprintf( buf, _ITOA_BUFLEN, "%li", num );
 
     return buf;
 }
@@ -191,10 +191,10 @@ void ListToINString( const std::vector<int32>& ints, std::string& into, const ch
     for(; cur != end; ++cur)
     {
         if( ( cur + 1 ) != end )
-            format_index += snprintf( &into[ format_index ], 12, "%d,", *cur );
+            format_index += snprintf( &into[ format_index ], 12, "%i,", *cur );
         else
             // last value to be printed
-            format_index += snprintf( &into[ format_index ], 11, "%d", *cur );
+            format_index += snprintf( &into[ format_index ], 11, "%i", *cur );
     }
 }
 

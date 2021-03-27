@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -46,7 +46,7 @@ public:
 
 private:
     void StartAccept();
-    void HandleAccept(std::tr1::shared_ptr<ImageServerConnection> connection);
+    void HandleAccept(std::shared_ptr<ImageServerConnection> connection);
 
     boost::asio::ip::tcp::acceptor* _acceptor;
 };

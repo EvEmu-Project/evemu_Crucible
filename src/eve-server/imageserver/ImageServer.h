@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,7 +26,11 @@
 #ifndef __IMAGESERVER__H__INCL__
 #define __IMAGESERVER__H__INCL__
 
+#include <memory>
+
+#include "eve-common.h"
 #include "utils/Singleton.h"
+#include "EVEServerConfig.h"
 
 class ImageServerListener;
 
@@ -50,11 +54,11 @@ public:
 
     std::string& url();
 
-    void ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData);
+    void ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char> > imageData);
     void ReportNewCharacter(uint32 creatorAccountID, uint32 characterID);
 
     std::string GetFilePath(std::string& category, uint32 id, uint32 size);
-    std::tr1::shared_ptr<std::vector<char> > GetImage(std::string& category, uint32 id, uint32 size);
+    std::shared_ptr<std::vector<char> > GetImage(std::string& category, uint32 id, uint32 size);
 
     static const char *const Categories[];
     static const uint32 CategoryCount;
@@ -68,7 +72,7 @@ private:
     bool ValidateCategory(std::string& category);
     bool ValidateSize(std::string& category, uint32 size);
 
-    std::tr1::unordered_map<uint32 /*accountID*/, std::tr1::shared_ptr<std::vector<char> > /*imageData*/> _limboImages;
+    std::unordered_map<uint32 /*accountID*/, std::shared_ptr<std::vector<char> > /*imageData*/> _limboImages;
     std::shared_ptr<boost::asio::detail::thread> _ioThread;
     std::shared_ptr<boost::asio::io_context> _io;
     std::shared_ptr<ImageServerListener> _listener;

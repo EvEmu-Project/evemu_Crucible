@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -37,8 +37,8 @@ StationService::StationService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(StationService, GetGuests)
-    PyCallable_REG_CALL(StationService, GetSolarSystem)
+    PyCallable_REG_CALL(StationService, GetGuests);
+    PyCallable_REG_CALL(StationService, GetSolarSystem);
 }
 
 StationService::~StationService() {
@@ -47,37 +47,28 @@ StationService::~StationService() {
 
 PyResult StationService::Handle_GetSolarSystem(PyCallArgs &call) {
     Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple))
-    {
-        codelog(CLIENT__ERROR, "%s: Failed to decode GetSolarSystem arguments.", call.client->GetName());
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return NULL;
     }
 
-    int system = arg.arg;
-
     // this needs to return some cache status?
-    return new PyObject("util.CachedObject", new PyInt(system));
+    return new PyObject("util.CachedObject", new PyInt(arg.arg));
 }
 
 PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
-    PyList *res = new PyList();
-
-    std::vector<Client *> clients;
-    m_manager->entity_list.FindByStationID(call.client->GetStationID(), clients);
-    std::vector<Client *>::iterator cur, end;
-    cur = clients.begin();
-    end = clients.end();
-    for(; cur != end; cur++) {
-        PyTuple *t = new PyTuple(4);
-        t->items[0] = new PyInt((*cur)->GetCharacterID());
-        t->items[1] = new PyInt((*cur)->GetCorporationID());
-        t->items[2] = new PyInt((*cur)->GetAllianceID());
-        t->items[3] = new PyInt(0);    //unknown, might be factionID
+    std::vector<Client*> clients;
+    clients.clear();
+    sEntityList.GetStationGuestList(call.client->GetStationID(), clients);
+    PyList* res = new PyList();
+    for (auto cur : clients) {
+        PyTuple* t = new PyTuple(4);
+			t->items[0] = new PyInt(cur->GetCharacterID());
+			t->items[1] = new PyInt(cur->GetCorporationID());
+			t->items[2] = new PyInt(cur->GetAllianceID());
+			t->items[3] = new PyInt(cur->GetWarFactionID());
         res->AddItem(t);
     }
 
-    return res;
-
-    //sLog.Debug("StationService", "Called GetGuests stub.");
-    //return NULL;
+	return res;
 }

@@ -53,9 +53,6 @@ ipch/
 # ReSharper is a .NET coding add-in
 _ReSharper*
 
-# CLion settings folder
-.idea/
-
 # DocProject is a documentation generator add-in
 DocProject/buildhelp/
 DocProject/Help/*.HxT
@@ -95,7 +92,21 @@ zlib/
 
 # evemu output
 build/
+build_iwyu/
+buildRel/
+
+# doxygen output
+doc/
+!doc/ChangeLog.md
 
 # DS_Store stuff
 .DS_Store
 ._.DS_Store
+
+saves_backups/
+sql/old_sql/
+sql/tables_old/
+
+# misc shit
+sql/tables.tar.gz
+sql/testScripts/

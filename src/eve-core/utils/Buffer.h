@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,6 +27,7 @@
 #define __UTILS__BUFFER_H__INCL__
 
 #include "utils/misc.h"
+#include "memory/SafeMem.h"
 
 /**
  * @brief Generic class for buffers.
@@ -362,7 +363,7 @@ public:
       mSize( 0 ),
       mCapacity( 0 )
     {
-        // Use assigment operator
+        // Use assignment operator
         *this = oth;
     }
     /// Destructor; deletes buffer.
@@ -455,7 +456,7 @@ public:
     {
         // we wish to append to the end
         const const_iterator< typename std::iterator_traits< Iter >::value_type >
-            index = end< typename std::iterator_traits< Iter >::value_type >();
+        index = end< typename std::iterator_traits< Iter >::value_type >();
 
         // make enough room; we're going to fill the gap immediately
         _ResizeAt< typename std::iterator_traits< Iter >::value_type >( index, last - first );
@@ -716,8 +717,7 @@ protected:
     /**
      * @brief Resizes buffer.
      *
-     * Similar to Resize, but does not care
-     * about the gaps that may be created.
+     * Similar to Resize, but does not care about the gaps that may be created.
      *
      * @param[in] requiredCount The number of elements to hold.
      */
@@ -731,8 +731,7 @@ protected:
     /**
      * @brief Resizes buffer.
      *
-     * Similar to ResizeAt, but does not care
-     * about the gaps that may be created.
+     * Similar to ResizeAt, but does not care about the gaps that may be created.
      *
      * @param[in] index         The point at which the buffer should be resized.
      * @param[in] requiredCount The number of elements to hold.
@@ -757,8 +756,7 @@ protected:
     /**
      * @brief Reallocates buffer.
      *
-     * Reallocates buffer so it can efficiently store
-     * given amount of data.
+     * Reallocates buffer so it can efficiently store given amount of data.
      *
      * @param[in] requiredSize The least required new size of buffer, in bytes.
      */

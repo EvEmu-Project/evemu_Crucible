@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,126 +21,84 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:        Allan
 */
 
 
 #ifndef __NPC_H_INCL__
 #define __NPC_H_INCL__
 
+#include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/SystemEntity.h"
 
 class PyServiceMgr;
-class SpawnEntry;
-class InventoryItem;
 class DestinyManager;
-class SystemManager;
-class ServiceDB;
+class InventoryItem;
+class Missile;
 class NPCAIMgr;
+class SystemManager;
 
-//Caution: do not inherit this, see constructor.
-// TODO: This class should be inheriting from ShipEntity so as to contain a ShipRef for use with DestinyManager
 class NPC
-: public DynamicSystemEntity {
+: public DynamicSystemEntity
+{
 public:
-    NPC(
-        SystemManager *system,
-        PyServiceMgr &services,
-        InventoryItemRef self,
-        uint32 corporationID,
-        uint32 allianceID,
-        const GPoint &position,
-        SpawnEntry *spawner = NULL);
+    NPC(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data, SpawnMgr* spawnMgr = nullptr);
     virtual ~NPC();
 
-    bool Load(ServiceDB &from);
+    /* class type pointer querys. */
+    virtual NPC* GetNPCSE()                             { return this; }
+    /* class type tests. */
+    virtual bool IsNPCSE()                              { return true; }
 
-    void Orbit(SystemEntity *who);
-
-    inline double x() const { return(GetPosition().x); }
-    inline double y() const { return(GetPosition().y); }
-    inline double z() const { return(GetPosition().z); }
-
-    //SystemEntity interface:
-    virtual EntityClass GetClass() const { return(ecNPC); }
-    virtual bool IsNPC() const { return true; }
-    virtual NPC *CastToNPC() { return(this); }
-    virtual const NPC *CastToNPC() const { return(this); }
+    /* SystemEntity interface */
     virtual void Process();
-    virtual void EncodeDestiny( Buffer& into ) const;
-    virtual void TargetAdded(SystemEntity *who) {}
-    virtual void TargetLost(SystemEntity *who);
-    virtual void TargetedAdd(SystemEntity *who);
-    virtual void TargetedLost(SystemEntity *who) {}
-    virtual void TargetsCleared() {}
-    virtual void QueueDestinyUpdate(PyTuple **du) {/* not required to consume */}
-    virtual void QueueDestinyEvent(PyTuple **multiEvent) {/* not required to consume */}
-    virtual uint32 GetCorporationID() const { return(m_corporationID); }
-    virtual uint32 GetAllianceID() const { /* hack for now */ return(m_allianceID); }
+    virtual void TargetLost(SystemEntity* who);
+    virtual void TargetedAdd(SystemEntity* who);
+    virtual void EncodeDestiny(Buffer& into);
+
+    /* virtual functions default to base class and overridden as needed */
     virtual void Killed(Damage &fatal_blow);
-    virtual SystemManager *System() const { return(m_system); }
-	virtual NPCAIMgr * AI() const { return(m_AI); }
+    virtual bool Load();  // sets orbit range and initalizes the AIMgr
 
-	void ForcedSetSpawner(SpawnEntry * spawner) { m_spawner = spawner; }
-    void ForcedSetPosition(const GPoint &pt);
+    /* virtual functions to be overridden in derived classes */
+    virtual void MissileLaunched(Missile* pMissile);  // tells AI a missle has been launched at us.  allows defender missile code
 
-
-    virtual bool ApplyDamage(Damage &d);
-    virtual void MakeDamageState(DoDestinyDamageState &into) const;
-
-    void UseShieldRecharge();
+    /* specific functions handled here. */
+    void SaveNPC();
+    void RemoveNPC();
+    void SetResists();
+    void UseHullRepairer();
     void UseArmorRepairer();
+    void UseShieldRecharge();
+    void Orbit(SystemEntity* who);
+    void ForceSetSpawner(SpawnMgr* spawnMgr)            { m_spawnMgr = spawnMgr; }
 
-	void SaveNPC();
-    /*
+    float GetThermal()                                  { return m_therDamage; }
+    float GetEM()                                       { return m_emDamage; }
+    float GetKinetic()                                  { return m_kinDamage; }
+    float GetExplosive()                                { return m_expDamage; }
 
-ATTR(248, entityLootValueMin, 0, int, false)
-ATTR(249, entityLootValueMax, 0, int, false)
-ATTR(250, entityLootCountMin, 0, int, false)
-ATTR(251, entityLootCountMax, 0, int, false)
-ATTR(252, entitySecurityStatusKillBonus, 0, int, false)
-ATTR(253, entitySecurityStatusAggressionBonus, 0, int, false)
-ATTR(254, minLootCount, 1, int, false)
-ATTR(256, maxLootCount, 0, int, false)
-ATTR(257, entityFollowRange, 0, int, false)
-ATTR(258, minLootValue, 0, int, false)
-ATTR(259, maxLootValue, 0, int, false)
-ATTR(260, attackRange, 0, int, false)
-ATTR(261, killStatusModifier, 0, int, false)
-ATTR(262, attackStatusModifier, 0, int, false)
-entityAttackDelayMin
-entityAttackDelayMax
-    */
+    NPCAIMgr* GetAIMgr()                                { return m_AI; }
+    SpawnMgr* GetSpawnMgr()                             { return m_spawnMgr; }
 
+    /* for command dropLoot - commands all npcs in bubble to jettison loot */
+    void CmdDropLoot();
 
 protected:
-    void _AwardBounty(SystemEntity *who);
-    void _DropLoot(SystemEntity *owner);
+    NPCAIMgr* m_AI;
+    SpawnMgr* m_spawnMgr;
 
-    SystemManager *const m_system;    //we do not own this
-    PyServiceMgr &m_services;    //we do not own this
-    SpawnEntry * m_spawner;    //we do not own this, may be NULL
-    uint32 m_corporationID;
-    uint32 m_allianceID;
-
+private:
     uint32 m_orbitingID;
 
-    NPCAIMgr *m_AI;    //never NULL
-
-
-    /* Used to calculate the damages on NPCs
-     * I don't know why, npc->Set_shieldCharge does not work
-     * calling npc->shieldCharge() return the complete shield
-     * So we get the values on creation and use then instead.
-    */
-    double m_shieldCharge;
-    double m_armorDamage;
-    double m_hullDamage;
-
-    void _SendDamageStateChanged() const;
-
+    float m_emDamage;
+    float m_expDamage;
+    float m_kinDamage;
+    float m_therDamage;
+    float m_hullDamage;
+    float m_armorDamage;
+    float m_shieldCharge;
+    float m_shieldCapacity;
 };
 
 #endif
-
-
-

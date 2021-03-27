@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -44,8 +44,8 @@ public:
 
         m_strBoundObjectName = "AggressionMgrBound";
 
-        PyCallable_REG_CALL(AggressionMgrBound, GetCriminalTimeStamps)
-        PyCallable_REG_CALL(AggressionMgrBound, CheckLootRightExceptions)
+        PyCallable_REG_CALL(AggressionMgrBound, GetCriminalTimeStamps);
+        PyCallable_REG_CALL(AggressionMgrBound, CheckLootRightExceptions);
     }
 
     virtual ~AggressionMgrBound()
@@ -60,8 +60,8 @@ public:
     }
 
 protected:
-    PyCallable_DECL_CALL(GetCriminalTimeStamps)
-    PyCallable_DECL_CALL(CheckLootRightExceptions)
+    PyCallable_DECL_CALL(GetCriminalTimeStamps);
+    PyCallable_DECL_CALL(CheckLootRightExceptions);
 
     Dispatcher *const m_dispatch;
 };
@@ -70,10 +70,9 @@ PyResult AggressionMgrBound::Handle_GetCriminalTimeStamps(PyCallArgs &call)
 {
     // arguments: charID
     Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple))
-    {
-        _log(CLIENT__ERROR, "Invalid GetCriminalTimeStamps call");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
     return new PyDict();
@@ -83,10 +82,9 @@ PyResult AggressionMgrBound::Handle_CheckLootRightExceptions(PyCallArgs &call)
 {
     // arguments: containerID
     Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple))
-    {
-        _log(CLIENT__ERROR, "Invalid CheckLootRightExceptions call");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
     // return true to allow looting
@@ -104,10 +102,16 @@ AggressionMgrService::~AggressionMgrService()
     delete m_dispatch;
 }
 
-PyBoundObject *AggressionMgrService::_CreateBoundObject(Client *c, const PyRep *bind_args)
+PyBoundObject *AggressionMgrService::CreateBoundObject(Client *pClient, const PyRep *bind_args)
 {
     _log(CLIENT__MESSAGE, "AggressionMgrService bind request for:");
     bind_args->Dump(CLIENT__MESSAGE, "    ");
+    /*
+     * 18:26:21 [ClientMessage] AggressionMgrService bind request for:
+     * 18:26:21 [ClientMessage]     Integer field: 30002547     <<-- systemID
+     */
 
-    return(new AggressionMgrBound(m_manager));
+    /** create this in bound obj code?  */
+    // this obj is system-wide, per system.  bound object can be used for multiple clients
+    return (new AggressionMgrBound(m_manager));
 }

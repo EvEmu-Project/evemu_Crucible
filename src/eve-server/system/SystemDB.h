@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 #ifndef __SYSTEMDB_H_INCL__
@@ -28,54 +29,34 @@
 
 #include "ServiceDB.h"
 
-class DBSystemEntity {
-public:
-    uint32 itemID;
-    uint32 typeID;
-    uint32 groupID;
-    uint32 orbitID;
-    GPoint position;
-    double radius;
-    double security;
-    std::string itemName;
-};
-
-class DBSystemDynamicEntity {
-public:
-    uint32 itemID;
-    std::string itemName;
-    uint32 typeID;
-    uint32 groupID;
-    uint32 ownerID;
-    uint32 locationID;
-    uint32 flag;
-    uint32 categoryID;
-    uint32 corporationID;
-    uint32 allianceID;
-    double x;
-    double y;
-    double z;
-};
-
 class SystemDB
 : public ServiceDB
 {
 public:
-    bool LoadSystemEntities(uint32 systemID, std::vector<DBSystemEntity> &into);
-    bool LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity> &into);
-	static bool GetWrecksToTypes(DBQueryResult &res);
+    PyObject* ListFactions();
+    static PyObject* ListJumps(uint32);
+    static PyPackedRow* GetSolarSystem(uint32 ssid);
+
+    static void GetGates(uint32 systemID, std::vector< DBGPointEntity >& gateIDs);
+
+    void GetBelts(uint32 systemID, std::vector< DBGPointEntity >& beltIDs, uint8& total);
+    void GetMoons(uint32 systemID, std::vector< DBGPointEntity >& moonIDs, uint8& total);
+    void GetPlanets(uint32 systemID, std::vector<DBGPointEntity>& planetIDs, uint8& total);
+
+    static bool GetWrecksToTypes(DBQueryResult& res);
+
+    static void GetLootGroups(DBQueryResult& res);
+    static void GetLootGroupTypes(DBQueryResult& res);
+
     static uint32 GetObjectLocationID( uint32 itemID );
 
-    PyObject *ListFactions();
-    PyObject *ListJumps(uint32 stargateID);
+    double GetItemTypeRadius( uint32 typeID );
+    double GetCelestialRadius(uint32 itemID);
 
-protected:
+    static bool LoadSystemStaticEntities(uint32 systemID, std::vector<DBSystemEntity>& into);
+    static bool LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity>& into);
+    static bool LoadPlayerDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity>& into);
 };
 
 
-
-
-
 #endif
-
-

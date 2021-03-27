@@ -38,7 +38,6 @@
     int32 ascent_roundd(double v);
     bool CheckIPs(const char* szIPList);
     int get_tokens(const char* szInput, char** pOutput, int iMaxCount, char cSeperator);
-    long CurrentBlueTime();
 
 #ifdef HAVE_WINDOWS_H
     typedef struct tagTHREADNAME_INFO

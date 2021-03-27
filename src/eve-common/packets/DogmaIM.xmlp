@@ -2,171 +2,10 @@
 
 <elements>
 
-  <elementDef name="Call_Dogma_Activate">
+  <elementDef name="DogmaLM_BindArgs">
     <tupleInline>
-      <int name="itemID" />
-      <wstring name="effectName" soft="true" />
-      <!-- optional: -->
-      <int name="target" none_marker="0" default="0" />
-      <int name="repeat" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Dogma_Deactivate">
-    <tupleInline>
-      <int name="itemID" />
-      <wstring name="effectName" soft="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Dogma_LoadAmmoToBank">
-    <tupleInline>
-      <int name="shipItemID" />
-      <int name="moduleItemID" />
-      <int name="chargeTypeID" />
-      <listInt name="chargeList" />
       <int name="locationID" />
-      <none />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Rsp_Dogma_AddTarget">
-    <tupleInline>
-      <bool name="success" />
-      <listInt name="targets" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Notify_OnGodmaShipEffect">
-    <tupleInline>
-      <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnGodmaShipEffect" />
-      <int name="itemID" />
-      <int name="effectID" />
-      <long name="when" />
-      <int name="start" />
-      <int name="active" />
-      <!-- Environment. see ENV_IDX_* -->
-      <list name="environment" /><!--moduleID, ownerID, shipID, targetID, otherID, area, effectID-->
-      <long name="startTime" />
-      <real name="duration" /> <!-- it's -1 when offline and 1000? when online -->
-      <raw name="repeat" />
-      <raw name="randomSeed" />
-      <raw name="error" />
-      <!-- <raw name="stall" /> -->
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Notify_OnModuleAttributeChange">
-    <tupleInline>
-      <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnModuleAttributeChange" />
-      <int name="ownerID" />
-      <int name="itemKey" />
-      <int name="attributeID" />
-      <long name="time" />
-      <raw name="newValue" />
-      <raw name="oldValue" />
-      <!-- <raw name="scatterAttr" /> -->
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Notify_OnEffectHit">
-    <tupleInline>
-      <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnEffectHit" />
-      <!-- what did the shooting -->
-      <int name="itemID" />
-      <!-- what type of effect? projectileFired for example -->
-      <int name="effectID" />
-      <!-- what got hit -->
-      <int name="targetID" />
-      <!-- the damage which was done -->
-      <real name="damage" />
-    </tupleInline>
-  </elementDef>
-
-  <!-- this notify represents damage done to us by something else -->
-  <elementDef name="Notify_OnDamageMessage_Self">
-    <tupleInline>
-      <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnDamageMessage" />
-      <!-- messageID: from eveMessages  -->
-      <string name="messageID" />
-      <dictInline>
-        <!-- can also have target here... -->
-        <dictInlineEntry key="damage">
-              <real name="damage" />
-        </dictInlineEntry>
-        <dictInlineEntry key="source">
-              <int name="source" />
-        </dictInlineEntry>
-        <dictInlineEntry key="splash">
-              <string name="splash" />
-        </dictInlineEntry>
-      </dictInline>
-    </tupleInline>
-  </elementDef>
-
-  <!-- this notify represents damage done to us by something else -->
-  <elementDef name="Notify_OnDamageMessage_Other">
-    <tupleInline>
-      <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnDamageMessage" />
-      <!-- messageID: from eveMessages  -->
-      <string name="messageID" />
-      <dictInline>
-        <!-- can also have target here... -->
-        <dictInlineEntry key="damage">
-              <real name="damage" />
-        </dictInlineEntry>
-        <dictInlineEntry key="target">
-              <int name="target" />
-        </dictInlineEntry>
-        <dictInlineEntry key="weapon">
-              <tupleInline name="_weapon">
-            <!-- this should be set to fmtMapping_itemTypeName -->
-            <int name="format_type" />
-            <int name="weaponType" />
-          </tupleInline>
-        </dictInlineEntry>
-        <dictInlineEntry key="splash">
-              <string name="splash" />
-        </dictInlineEntry>
-      </dictInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Notify_OnDamageMessage">
-    <tupleInline>
-      <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnDamageMessage" />
-      <!-- this is a list of Notify_OnDamageMessage_* -->
-      <string name="messageID"/>
-      <dictInline>
-        <dictInlineEntry key ="weapon">
-          <int name="weapon" />
-        </dictInlineEntry>
-        <dictInlineEntry key="splash">
-          <string name="splash" />
-        </dictInlineEntry>
-        <dictInlineEntry key="target">
-          <int name="target" />
-        </dictInlineEntry>
-        <dictInlineEntry key="damage">
-          <real name="damage" />
-        </dictInlineEntry>
-      </dictInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Notify_OnEffectMessage">
-    <tupleInline>
-      <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnEffectMessage" />
-      <!-- messageID: from eveMessages  -->
-      <string name="messageID" />
-      <dict name="arguments" />
+      <int name="groupID" />
     </tupleInline>
   </elementDef>
 
@@ -176,26 +15,156 @@
       <stringInline value="OnTarget" />
       <!--
           One of:
-          try - starting to target?
-          add - targeting successful
-          clear - clear all targets
+          add - target added
           lost - target lost
-          otheradd - somebody else has targeted you
-          otherlost - somebody else has stopped targeting you
+          clear - clear all targets
+          otheradd - somebody locked you
+          otherlost - somebody unlocked you
       -->
       <string name="mode" />
       <int name="targetID" />
-      <!-- only seen on `target lost` events, but doesn't seem to do anything -->
+      <!-- sent on lost and otherlost, but not processed -->
       <string name="reason" />
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Notify_OnTargets">
+  <elementDef name="Rsp_Dogma_AddTarget">
+    <tupleInline>
+      <bool name="flag" />
+      <listInt name="targetList" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_Dogma_Activate">
+    <tupleInline>
+      <int name="itemID" />
+      <wstring name="effectName" safe="true" />
+      <!-- optional: -->
+      <int name="target" none_marker="0" default="0" />
+      <int name="repeat" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_Dogma_Deactivate">
+    <tupleInline>
+      <int name="itemID" />
+      <wstring name="effectName" safe="true" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_Dogma_LinkWeapons">
+    <tupleInline>
+      <int name="shipID" />
+      <int name="masterID" />
+      <int name="slaveID" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_Dogma_LoadAmmoToBank">
+    <tupleInline>
+      <int name="shipID" />
+      <int name="masterID" />
+      <int name="chargeTypeID" />
+      <listInt name="itemIDs" />
+      <int name="chargeLocationID" />
+      <int name="qty" none_marker="0" safe="true" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_Dogma_LoadAmmoToModules">
+    <tupleInline>
+      <int name="shipID" />
+      <listInt name="moduleIDs" />
+      <int name="chargeTypeID" />
+      <int name="itemID" />
+      <int name="ammoLocationID" />
+    </tupleInline>
+  </elementDef>
+
+  <!--
+                  [PyTuple 12 items]
+                    [PyString "OnGodmaShipEffect"]
+                    [PyIntegerVar 1005903401223]
+                    [PyInt 101]
+                    [PyIntegerVar 129756561339354992]
+                    [PyInt 1]
+                    [PyInt 1]
+                    [PyList 7 items]
+                      [PyIntegerVar 1005903401223]
+                      [PyIntegerVar 1661059544]
+                      [PyIntegerVar 1005901990608]
+                      [PyIntegerVar 9000000000001190095]
+                      [PyTuple 3 items]
+                        [PyIntegerVar 1005901990608]
+                        [PyInt 32]
+                        [PyInt 209]
+                      [PyList 0 items]
+                      [PyInt 101]
+                    [PyIntegerVar 129756561339354992]
+                    [PyFloat 13110]
+                    [PyInt 1000]
+                    [PyNone]
+                    [PyNone]
+  -->
+  <elementDef name="Notify_OnGodmaShipEffect">
     <tupleInline>
       <!-- setup to go into an OnMultiEvent (notify_type) -->
-      <stringInline value="OnTargets" />
-      <!-- this is a list of Notify_OnTarget messages -->
-      <list name="messages" />
+      <stringInline value="OnGodmaShipEffect" />
+      <int name="itemID" />
+      <int name="effectID" />
+      <long name="timeNow" />
+      <int name="start" />
+      <int name="active" />
+      <raw name="environment" /><!-- GodmaEnvironment goes here-->
+      <long name="startTime" />
+      <real name="duration" />
+      <int name="repeat" /><!-- # times to repeat  make it ammo qty?  live sends 1000 -->
+      <int name="randomSeed" none_marker="0"/><!--  cannot find where this is sent from server.  seed is 42. -->
+      <raw name="error" /><!-- reason module is stopped, i.e. target gone    - GodmaError goes here -->
+      <!-- these next two are actually named args -->
+      <!-- <long name="actualStopTime" /> -->
+      <!-- <raw name="stall" /> -->
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="GodmaEnvironment">
+    <listInline>
+      <int name="selfID" none_marker="0" default="0" />
+      <int name="charID" none_marker="0" default="0" />
+      <int name="shipID" none_marker="0" default="0" />
+      <raw name="target" /> <!-- targetID or PyNone-->
+      <raw name="subLoc" /> <!-- GodmaSubLoc goes here with charge data or PyNone-->
+      <raw name="area" /><!-- ALWAYS a PyList, even empty -->
+      <int name="effectID" none_marker="0" default="0" />
+    </listInline>
+  </elementDef>
+
+  <elementDef name="GodmaSubLoc">
+    <tupleInline>
+      <int name="shipID" />
+      <int name="slotID" />
+      <int name="typeID" />
+    </tupleInline>
+  </elementDef>
+  <!--
+                    [PyTuple 2 items]
+                      [PyString "TargetNoLongerPresentGeneric"]
+                      [PyDict 1 kvp]
+                        [PyString "moduleID"]
+                        [PyInt 209]
+-->
+
+  <elementDef name="GodmaError"><!-- more to this than template has here.  fix later  -->
+    <tupleInline>
+      <string name="ErrorMsg" />
+        <dictInline>
+          <dictInlineEntry key="name">
+            <string name="name" />
+          </dictInlineEntry>
+          <dictInlineEntry key="nameID">
+            <int name="nameID" />
+          </dictInlineEntry>
+        </dictInline>
     </tupleInline>
   </elementDef>
 
@@ -221,6 +190,28 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Notify_OnModuleAttributeChange">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnModuleAttributeChange" />
+      <int name="ownerID" />
+      <raw name="itemKey" />
+      <int name="attributeID" />
+      <long name="time" />
+      <raw name="newValue" />
+      <raw name="oldValue" />
+      <!-- <raw name="scatterAttr" /> -->
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Notify_OnEffectMessage">
+    <tupleInline>
+      <!-- setup to go into an OnMultiEvent (notify_type) -->
+      <stringInline value="OnEffectMessage" />
+      <!-- messageID: from eveMessages  -->
+      <string name="messageID" />
+      <dict name="arguments" />
+    </tupleInline>
+  </elementDef>
+
 </elements>
-
-

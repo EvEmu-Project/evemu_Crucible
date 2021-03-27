@@ -3,7 +3,7 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
+    Copyright 2006 - 2008 The EVEmu Team
     For the latest information visit http://evemu.mmoforge.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
@@ -21,210 +21,261 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Aknor Jaden
+    Updates:    Allan
 */
 
 #ifndef __CONTAINER__H__INCL__
 #define __CONTAINER__H__INCL__
 
-#include "inventory/Inventory.h"
+
+#include "EVEServerConfig.h"
+#include "StaticDataMgr.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
-
-// TODO: We may need to create CargoContainerTypeData and CargoContainerType classes just as Ship.h/Ship.cpp
-// has in order to load up type data specific to cargo containers.  For now, the generic ItemType class is used.
 
 /**
  * InventoryItem which represents cargo container.
  */
 class CargoContainer
-: public InventoryItem,
-  public InventoryEx
+: public InventoryItem
 {
     friend class InventoryItem;    // to let it construct us
 public:
+    CargoContainer(uint32 _containerID, const ItemType &_containerType, const ItemData &_data);
+    virtual ~CargoContainer();
+
     /**
      * Loads CargoContainer from DB.
      *
-     * @param[in] factory
      * @param[in] containerID ID of container to load.
      * @return Pointer to CargoContainer object; NULL if failed.
      */
-    static CargoContainerRef Load(ItemFactory &factory, uint32 containerID);
+    static CargoContainerRef Load( uint32 containerID);
     /**
      * Spawns new CargoContainer.
      *
-     * @param[in] factory
      * @param[in] data Item data for CargoContainer.
      * @return Pointer to new CargoContainer object; NULL if failed.
      */
-    static CargoContainerRef Spawn(ItemFactory &factory, ItemData &data);
+    static CargoContainerRef Spawn( ItemData &data);
+    static CargoContainerRef SpawnTemp( ItemData &data);
 
     /*
      * Primary public interface:
      */
-    void Delete();
+    virtual void Delete();
 
     double GetCapacity(EVEItemFlags flag) const;
     /*
      * _ExecAdd validation interface:
      */
-    static void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item, Client *c);
+    void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const;
+
+    virtual void RemoveItem(InventoryItemRef iRef);
+
+    // also used for jetcans to NOT delete when empty.
+    bool IsAnchored()                                   { return m_isAnchored; }
+    void SetAnchor(bool set=false)                      { m_isAnchored = set; }
 
     /*
      * Public fields:
      */
-    const ItemType &    type() const { return static_cast<const ItemType &>(InventoryItem::type()); }
+    const ItemType &type() const                        { return InventoryItem::type(); }
 
     /*
      * Primary public packet builders:
      */
     PyObject *CargoContainerGetInfo();
 
+    virtual void MakeDamageState(DoDestinyDamageState &into) const;
+
+    bool IsEmpty()                                      { return GetMyInventory()->IsEmpty(); }
+    void SetMySE(SystemEntity* pSE)                     { mySE = pSE;}
 
 protected:
-    CargoContainer(
-        ItemFactory &_factory,
-        uint32 _containerID,
-        // InventoryItem stuff:
-        const ItemType &_containerType,
-        const ItemData &_data
-    );
+    bool m_isAnchored;
 
     /*
-     * Member functions
+     * Member functions:
      */
     using InventoryItem::_Load;
+    virtual bool _Load();
 
     // Template loader:
     template<class _Ty>
-    static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 containerID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data)
-    {
-        // check if it's a cargo container
-        if( (type.groupID() != EVEDB::invGroups::Cargo_Container)
+    static RefPtr<_Ty> _LoadItem( uint32 containerID, const ItemType &type, const ItemData &data) {
+        if ( (type.groupID() != EVEDB::invGroups::Cargo_Container)
             && (type.groupID() != EVEDB::invGroups::Audit_Log_Secure_Container)
             && (type.groupID() != EVEDB::invGroups::Freight_Container)
             && (type.groupID() != EVEDB::invGroups::Secure_Cargo_Container)
-            && (type.groupID() != EVEDB::invGroups::Spawn_Container)
-            && (type.groupID() != EVEDB::invGroups::Wreck) )
+            && (type.groupID() != EVEDB::invGroups::Spawn_Container) )
         {
-            _log( ITEM__ERROR, "Trying to load category=%s, group=%s as CargoContainer.", type.category().name().c_str(), type.group().name().c_str() );
+            _log(ITEM__ERROR, "Trying to load %s as Container.", sDataMgr.GetCategoryName(type.categoryID()));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
             return RefPtr<_Ty>();
         }
-        //// cast the type
-        //const ItemType &itemType = static_cast<const ItemType &>( type );
-
-        // no additional stuff
-
-        return _Ty::template _LoadCargoContainer<_Ty>( factory, containerID, type, data );
+        return CargoContainerRef( new CargoContainer(containerID, type, data ) );
     }
 
-    // Actual loading stuff:
-    template<class _Ty>
-    static RefPtr<_Ty> _LoadCargoContainer(ItemFactory &factory, uint32 containerID,
-        // InventoryItem stuff:
-        const ItemType &itemType, const ItemData &data
-    );
+    static uint32 CreateItemID( ItemData &data);
 
-    bool _Load();
+    virtual PyRep* GetItem() const                      { return GetItemRow(); }
 
-    static uint32 _Spawn(ItemFactory &factory,
-        // InventoryItem stuff:
-        ItemData &data
-    );
-
-    uint32 inventoryID() const { return itemID(); }
-    PyRep *GetItem() const { return GetItemRow(); }
-
-    void AddItem(InventoryItemRef item);
-    void RemoveItem(InventoryItemRef item);
+private:
+    SystemEntity* mySE;
 };
 
 
 /**
- * DynamicSystemEntity which represents structure object in space
+ * ContainerEntity which represents container object in space
  */
 class PyServiceMgr;
-class InventoryItem;
+class Item;
 class DestinyManager;
 class SystemManager;
 class ServiceDB;
 
-class ContainerEntity
-: public DynamicSystemEntity
+class ContainerSE
+: public ItemSystemEntity
 {
 public:
-    ContainerEntity(
-        CargoContainerRef container,
-        SystemManager *system,
-        PyServiceMgr &services,
-        const GPoint &position);
+    ContainerSE(CargoContainerRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data);
+    virtual ~ContainerSE();
 
-    /*
-     * Primary public interface:
-     */
-    CargoContainerRef GetContainerObject() { return _containerRef; }
-    DestinyManager * GetDestiny() { return m_destiny; }
-    SystemManager * GetSystem() { return m_system; }
+    /* Base */
+    virtual bool                isGlobal()              { return m_global; }
+    /* class type pointer querys. */
+    virtual ContainerSE* GetContSE()                    { return this; }
+    /* class type tests. */
+    virtual bool IsContainerSE()                        { return true; }
 
-    /*
-     * Public fields:
-     */
-
-    inline double x() const { return(GetPosition().x); }
-    inline double y() const { return(GetPosition().y); }
-    inline double z() const { return(GetPosition().z); }
-
-    //SystemEntity interface:
-    virtual EntityClass GetClass() const { return(ecContainerEntity); }
-    virtual bool IsContainerEntity() const { return true; }
-    virtual ContainerEntity *CastToContainerEntity() { return(this); }
-    virtual const ContainerEntity *CastToContainerEntity() const { return(this); }
+    /* SystemEntity interface */
     virtual void Process();
-    virtual void EncodeDestiny( Buffer& into ) const;
-    virtual void TargetAdded(SystemEntity *who) {}
-    virtual void TargetLost(SystemEntity *who) {}
-    virtual void TargetedAdd(SystemEntity *who) {}
-    virtual void TargetedLost(SystemEntity *who) {}
-    virtual void TargetsCleared() {}
-    virtual void QueueDestinyUpdate(PyTuple **du) {/* not required to consume */}
-    virtual void QueueDestinyEvent(PyTuple **multiEvent) {/* not required to consume */}
-    virtual uint32 GetCorporationID() const { return(1); }
-    virtual uint32 GetAllianceID() const { return(0); }
-    virtual void Killed(Damage &fatal_blow);
-    virtual SystemManager *System() const { return(m_system); }
+    virtual void EncodeDestiny(Buffer& into);
+    virtual PyDict* MakeSlimItem();
+    virtual void MakeDamageState(DoDestinyDamageState &into);
 
-    void ForcedSetPosition(const GPoint &pt);
+    /* specific functions handled in this class. */
+    void Activate(int32 effectID);
+    void Deactivate(int32 effectID);
+    void AnchorContainer();
+    bool IsEmpty()                                      { return m_contRef->IsEmpty(); }
+    bool IsAnchored()                                   { return m_contRef->IsAnchored(); }
 
-    virtual bool ApplyDamage(Damage &d);
-    virtual void MakeDamageState(DoDestinyDamageState &into) const;
-
-    void SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq=true);
-    void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
+    void SetGlobal(bool set=false)                      { m_global = set; }
 
 protected:
-    /*
-     * Member functions
-     */
-    void _ReduceDamage(Damage &d);
-    void ApplyDamageModifiers(Damage &d, SystemEntity *target);
+    CargoContainerRef m_contRef;
 
-    /*
-     * Member fields:
-     */
-    SystemManager *const m_system;    //we do not own this
-    PyServiceMgr &m_services;    //we do not own this
-    CargoContainerRef _containerRef;   // We don't own this
+    Timer m_deleteTimer;
 
-    /* Used to calculate the damages on NPCs
-     * I don't know why, npc->Set_shieldCharge does not work
-     * calling npc->shieldCharge() return the complete shield
-     * So we get the values on creation and use then instead.
-    */
+    bool m_global;      // for making bubble centers global
+
     double m_shieldCharge;
     double m_armorDamage;
     double m_hullDamage;
+};
+
+/**
+ * InventoryItem which represents wreck container.
+ * Author:  Allan
+ */
+class WreckContainer
+: public InventoryItem
+{
+    friend class InventoryItem;    // to let it construct us
+public:
+    // put factionID in item's CustomInfo field to allow salvage
+    WreckContainer(uint32 _containerID, const ItemType &_containerType, const ItemData &_data);
+    virtual ~WreckContainer();
+
+    static WreckContainerRef Load( uint32 containerID);
+    static WreckContainerRef Spawn( ItemData &data);
+
+    virtual void Delete();
+    virtual void RemoveItem(InventoryItemRef iRef);
+
+    double GetCapacity(EVEItemFlags flag) const;
+    void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const;
+
+    const ItemType &type() const                        { return InventoryItem::type(); }
+
+    PyObject *WreckContainerGetInfo();
+
+    bool IsEmpty()                                      { return pInventory->IsEmpty(); }
+    void MakeSlimItemChange();
+    void SetMySE(SystemEntity* pSE)                     { mySE = pSE;}
+    void Salvaged()                                     { m_salvaged = true; }
+
+protected:
+    using InventoryItem::_Load;
+    virtual bool _Load();
+
+    // Template loader:
+    template<class _Ty>
+    static RefPtr<_Ty> _LoadItem( uint32 containerID, const ItemType &type, const ItemData &data) {
+        if (type.groupID() != EVEDB::invGroups::Wreck) {
+            _log(ITEM__ERROR, "Trying to load %s as Wreck.", sDataMgr.GetCategoryName(type.categoryID()));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
+            return RefPtr<_Ty>();
+        }
+        return WreckContainerRef( new WreckContainer(containerID, type, data ) );
+    }
+
+    static uint32 CreateItemID( ItemData &data );
+
+private:
+    SystemEntity* mySE;
+    bool m_delete;
+    bool m_salvaged;
+};
+
+/**
+ * DynamicSystemEntity which represents wreck object in space
+ * Author:  Allan
+ */
+
+class WreckSE
+: public DynamicSystemEntity
+{
+public:
+    // put factionID in item's CustomInfo field to allow salvage
+    WreckSE(WreckContainerRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    virtual ~WreckSE();
+
+    /* class type pointer querys. */
+    virtual WreckSE*            GetWreckSE()            { return this; }
+    /* class type tests. */
+    virtual bool                IsWreckSE()             { return true; }
+
+    /* SystemEntity interface */
+    virtual void                Process();
+    virtual void                EncodeDestiny(Buffer& into);
+    virtual PyDict*             MakeSlimItem();
+
+    /* virtual functions default to base class and overridden as needed */
+    virtual void                Abandon();
+
+    /* specific functions handled in this class. */
+    void Salvaged()                                     { m_contRef->Salvaged(); }
+    void SetLaunchedByID(uint32 launcherID)             { m_launchedByID = launcherID; }
+    bool IsEmpty()                                      { return m_contRef->IsEmpty(); }
+
+    /** @todo (allan) finish this */
+    double GetOwnerBounty()                             { return 0; }
+
+protected:
+    WreckContainerRef m_contRef;
+
+    Timer m_deleteTimer;
+
+    uint32 m_launchedByID;
+
+private:
+    bool m_abandoned;
+
 };
 
 #endif /* !__CONTAINER__H__INCL__ */

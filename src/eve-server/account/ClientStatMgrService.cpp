@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -44,11 +44,54 @@ ClientStatsMgr::~ClientStatsMgr()
     delete m_dispatch;
 }
 
-/** client submitting stats.... unknown content
-  */
 PyResult ClientStatsMgr::Handle_SubmitStats( PyCallArgs& call )
 {
     sLog.Debug( "ClientStatsMgr", "Called SubmitStats stub." );
 
-    return new PyNone;
+    return new PyNone();
 }
+/**
+    def SendContentsToServer(self, contents = None):
+        try:
+            if not sm.services['machoNet'].IsConnected():
+                return
+        except:
+            sys.exc_clear()
+            return
+
+        if contents is None:
+            contents = self.prevContents
+        if contents[0] != self.version:
+            contents = {}
+        else:
+            contents = contents[1]
+        build = boot.GetValue('build', None)
+        contentType = CONTENT_TYPE_PREMIUM
+        operatingSystem = PLATFORM_WINDOWS
+        if blue.win32.IsTransgaming():
+            operatingSystem = PLATFORM_MACOS
+        blendedContents = self.entries
+        blendedStateMask = self.stateMask
+        self.entries = dict()
+        self.stateMask = 0
+        if contents.has_key(STATE_DISCONNECT):
+            blendedContents[STATE_DISCONNECT] = contents[STATE_DISCONNECT]
+            blendedStateMask += STATE_DISCONNECT
+        if contents.has_key(STATE_GAMESHUTDOWN):
+            blendedContents[STATE_GAMESHUTDOWN] = contents[STATE_GAMESHUTDOWN]
+            blendedStateMask += STATE_GAMESHUTDOWN
+        header = (self.version,
+         blendedStateMask,
+         build,
+         operatingSystem,
+         contentType)
+        data = (header, blendedContents)
+        try:
+            uthread.Lock(self, 'sendContents')
+            sm.RemoteSvc('clientStatsMgr').SubmitStats(data)
+            if hasattr(self, 'prevContents'):
+                delattr(self, 'prevContents')
+            return True
+        finally:
+            uthread.UnLock(self, 'sendContents')
+*/

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -43,9 +43,8 @@ void ClassDestructGenerator::RegisterProcessors()
 bool ClassDestructGenerator::ProcessElementDef( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "<element> at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: <element> at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -74,9 +73,8 @@ bool ClassDestructGenerator::ProcessElement( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -91,9 +89,8 @@ bool ClassDestructGenerator::ProcessElementPtr( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessRaw( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -133,14 +130,13 @@ bool ClassDestructGenerator::ProcessNone( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessBuffer( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    PySafeDecRef( %s );\n",
+        "    //PySafeDecRef( %s );\n",
         name
     );
 
@@ -170,14 +166,13 @@ bool ClassDestructGenerator::ProcessWStringInline( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    PySafeDecRef( %s );\n",
+        "    //PySafeDecRef( %s );\n",
         name
     );
 
@@ -192,14 +187,13 @@ bool ClassDestructGenerator::ProcessTokenInline( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    PySafeDecRef( %s );\n"
+        "    //PySafeDecRef( %s );\n"
         "\n",
         name
     );
@@ -215,14 +209,13 @@ bool ClassDestructGenerator::ProcessObjectInline( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    PySafeDecRef( %s );\n",
+        "    //PySafeDecRef( %s );\n",
         name
     );
 
@@ -232,14 +225,13 @@ bool ClassDestructGenerator::ProcessObjectEx( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessTuple( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    PySafeDecRef( %s );\n",
+        "    //PySafeDecRef( %s );\n",
         name
     );
 
@@ -254,14 +246,13 @@ bool ClassDestructGenerator::ProcessTupleInline( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessList( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    PySafeDecRef( %s );\n",
+        "    //PySafeDecRef( %s );\n",
         name
     );
 
@@ -290,14 +281,13 @@ bool ClassDestructGenerator::ProcessListStr( const TiXmlElement* field ) {
 bool ClassDestructGenerator::ProcessDict( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    PySafeDecRef( %s );\n",
+        "    //PySafeDecRef( %s );\n",
         name
     );
 
@@ -313,9 +303,8 @@ bool ClassDestructGenerator::ProcessDictInlineEntry( const TiXmlElement* field )
 {
     //we dont really even care about this...
     const char* key = field->Attribute( "key" );
-    if( key == NULL )
-    {
-        _log( COMMON__ERROR, "<dictInlineEntry> at line %d is missing the key attribute, skipping.", field->Row() );
+    if (key == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: <dictInlineEntry> at line " << field->Row() << " is missing the key attribute, skipping.";
         return false;
     }
 
@@ -330,25 +319,19 @@ bool ClassDestructGenerator::ProcessDictRaw( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessDictInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr)  {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    std::map<int32, PyRep*>::iterator %s_cur, %s_end;\n"
-        "    //free any existing elements first\n"
-        "    %s_cur = %s.begin();\n"
-        "    %s_end = %s.end();\n"
-        "    for(; %s_cur != %s_end; %s_cur++)\n"
-        "        PyDecRef( %s_cur->second );\n"
-        "\n",
-        name, name,
-        name, name,
-        name, name,
-        name, name, name,
-        name
+             "    std::map<int32, PyRep*>::const_iterator %s_cur = %s.begin();\n"
+            "    for (; %s_cur != %s.end(); %s_cur++)\n"
+            "        PyDecRef( %s_cur->second );\n"
+            "\n",
+             name, name,
+             name, name, name,
+             name
     );
 
     return true;
@@ -357,25 +340,19 @@ bool ClassDestructGenerator::ProcessDictInt( const TiXmlElement* field )
 bool ClassDestructGenerator::ProcessDictStr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
-    if( name == NULL )
-    {
-        _log( COMMON__ERROR, "field at line %d is missing the name attribute, skipping.", field->Row() );
+    if (name == nullptr) {
+        std::cout << std::endl <<  "ClassDestructGenerator:: field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     fprintf( mOutputFile,
-        "    std::map<std::string, PyRep*>::iterator %s_cur, %s_end;\n"
-        "    //free any existing elements first\n"
-        "    %s_cur = %s.begin();\n"
-        "    %s_end = %s.end();\n"
-        "    for(; %s_cur != %s_end; %s_cur++)\n"
-        "        PyDecRef( %s_cur->second );\n"
-        "\n",
-        name, name,
-        name, name,
-        name, name,
-        name, name, name,
-        name
+            "    std::map<std::string, PyRep*>::const_iterator %s_cur = %s.begin();\n"
+            "    for (; %s_cur != %s.end(); %s_cur++)\n"
+            "        PyDecRef( %s_cur->second );\n"
+            "\n",
+             name, name,
+             name, name, name,
+             name
     );
 
     return true;
@@ -390,21 +367,4 @@ bool ClassDestructGenerator::ProcessSubStructInline( const TiXmlElement* field )
 {
     return ParseElementChildren( field, 1 );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

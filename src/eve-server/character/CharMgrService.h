@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 
@@ -41,28 +42,39 @@ protected:
 
     CharacterDB m_db;    //using this for now until we decide if we need to split them. Might be bad since we actually have two instances of it, but so far it has no member data.
 
-    PyCallable_DECL_CALL(GetPublicInfo)
-    PyCallable_DECL_CALL(GetPublicInfo3)
-    PyCallable_DECL_CALL(GetTopBounties)
-    PyCallable_DECL_CALL(AddToBounty)
-    PyCallable_DECL_CALL(GetOwnerNoteLabels)
-    PyCallable_DECL_CALL(AddOwnerNote)
-    PyCallable_DECL_CALL(GetContactList)
-    PyCallable_DECL_CALL(GetCloneTypeID)
-    PyCallable_DECL_CALL(GetHomeStation)
-    PyCallable_DECL_CALL(GetFactions)
-    PyCallable_DECL_CALL(SetActivityStatus)
-    PyCallable_DECL_CALL(GetSettingsInfo)
-    PyCallable_DECL_CALL(LogSettings)
-    PyCallable_DECL_CALL(GetCharacterDescription)
-    PyCallable_DECL_CALL(SetCharacterDescription)
-    PyCallable_DECL_CALL(GetNote)
-    PyCallable_DECL_CALL(SetNote)
-    PyCallable_DECL_CALL(AddContact)
-    PyCallable_DECL_CALL(EditContact)
-    PyCallable_DECL_CALL(GetRecentShipKillsAndLosses)
-    PyCallable_DECL_CALL(GetLabels)
-    PyCallable_DECL_CALL(CreateLabel)
+    PyCallable_DECL_CALL(GetPublicInfo);
+    PyCallable_DECL_CALL(GetPublicInfo3);
+    PyCallable_DECL_CALL(GetPrivateInfo);
+    PyCallable_DECL_CALL(AddToBounty);
+    PyCallable_DECL_CALL(GetTopBounties);
+    PyCallable_DECL_CALL(AddOwnerNote);
+    PyCallable_DECL_CALL(GetOwnerNote);
+    PyCallable_DECL_CALL(GetOwnerNoteLabels);
+    PyCallable_DECL_CALL(GetContactList);
+    PyCallable_DECL_CALL(GetCloneTypeID);
+    PyCallable_DECL_CALL(GetHomeStation);
+    PyCallable_DECL_CALL(GetFactions);
+    PyCallable_DECL_CALL(SetActivityStatus);
+    PyCallable_DECL_CALL(GetSettingsInfo);
+    PyCallable_DECL_CALL(LogSettings);
+    PyCallable_DECL_CALL(GetCharacterDescription);
+    PyCallable_DECL_CALL(SetCharacterDescription);
+    PyCallable_DECL_CALL(GetPaperdollState);
+    PyCallable_DECL_CALL(GetNote);
+    PyCallable_DECL_CALL(SetNote);
+    PyCallable_DECL_CALL(AddContact);
+    PyCallable_DECL_CALL(EditContact);
+    PyCallable_DECL_CALL(GetRecentShipKillsAndLosses);
+    PyCallable_DECL_CALL(GetLabels);
+    PyCallable_DECL_CALL(CreateLabel);
+    PyCallable_DECL_CALL(DeleteContacts);
+    PyCallable_DECL_CALL(BlockOwners);
+    PyCallable_DECL_CALL(UnblockOwners);
+    PyCallable_DECL_CALL(EditContactsRelationshipID);
+    PyCallable_DECL_CALL(GetImageServerLink);
+
+	//overloaded in order to support bound objects:
+    virtual PyBoundObject* CreateBoundObject(Client *pClient, const PyRep *bind_args);
 };
 
 #endif

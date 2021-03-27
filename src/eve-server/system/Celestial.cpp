@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,23 +21,19 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Bloody.Rabbit
+    Update/Rewrite: Allan
 */
 
 #include "eve-server.h"
 
-#include "inventory/AttributeEnum.h"
-#include "ship/DestinyManager.h"
-#include "station/Station.h"
-#include "system/SolarSystem.h"
+#include "StaticDataMgr.h"
+#include "system/Celestial.h"
+#include "system/SystemManager.h"
 
 /*
  * CelestialObjectData
  */
-CelestialObjectData::CelestialObjectData(
-    double _radius,
-    double _security,
-    uint8 _celestialIndex,
-    uint8 _orbitIndex)
+CelestialObjectData::CelestialObjectData(double _radius, double _security, uint8 _celestialIndex, uint8 _orbitIndex)
 : radius(_radius),
   security(_security),
   celestialIndex(_celestialIndex),
@@ -48,95 +44,47 @@ CelestialObjectData::CelestialObjectData(
 /*
  * CelestialObject
  */
-CelestialObject::CelestialObject(
-    ItemFactory &_factory,
-    uint32 _celestialID,
-    const ItemType &_type,
-    const ItemData &_data)
-: InventoryItem(_factory, _celestialID, _type, _data),
+CelestialObject::CelestialObject(uint32 _celestialID, const ItemType &_type, const ItemData &_data)
+: InventoryItem(_celestialID, _type, _data),
   m_radius( 0.0 ),
   m_security( 0.0 ),
   m_celestialIndex( 0 ),
   m_orbitIndex( 0 )
-{
+  {
+      _log(ITEM__TRACE, "Created Default CelestialObject %p for item %s (%u).", this, name(), itemID());
 }
 
-CelestialObject::CelestialObject(
-    ItemFactory &_factory,
-    uint32 _celestialID,
-    // InventoryItem stuff:
-    const ItemType &_type,
-    const ItemData &_data,
-    // CelestialObject stuff:
-    const CelestialObjectData &_cData)
-: InventoryItem(_factory, _celestialID, _type, _data),
-  m_radius(_cData.radius),
+CelestialObject::CelestialObject(uint32 _celestialID, const ItemType &_type, const ItemData &_data, const CelestialObjectData &_cData)
+: InventoryItem(_celestialID, _type, _data),
+  m_radius(_cData.radius),  // no longer needed here
   m_security(_cData.security),
   m_celestialIndex(_cData.celestialIndex),
   m_orbitIndex(_cData.orbitIndex)
 {
+      _log(ITEM__TRACE, "Created CelestialObject %p for %s (%u) with radius of %.1f.", this, name(), itemID(), m_radius);
 }
 
-CelestialObjectRef CelestialObject::Load(ItemFactory &factory, uint32 celestialID)
+CelestialObjectRef CelestialObject::Load( uint32 celestialID)
 {
-    return InventoryItem::Load<CelestialObject>( factory, celestialID );
+    return InventoryItem::Load<CelestialObject>(celestialID );
 }
 
-template<class _Ty>
-RefPtr<_Ty> CelestialObject::_LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
-    // InventoryItem stuff:
-    const ItemType &type, const ItemData &data,
-    // CelestialObject stuff:
-    const CelestialObjectData &cData)
-{
-    // Our category is celestial; what to do next:
-    switch( type.groupID() ) {
-        ///////////////////////////////////////
-        // Solar system:
-        ///////////////////////////////////////
-        case EVEDB::invGroups::Solar_System: {
-            return SolarSystem::_LoadCelestialObject<SolarSystem>( factory, celestialID, type, data, cData );
-        }
+CelestialObjectRef CelestialObject::Spawn( ItemData &data) {
+    uint32 celestialID = CelestialObject::CreateItemID(data);
+    if (celestialID == 0 )
+        return CelestialObjectRef(nullptr);
 
-        ///////////////////////////////////////
-        // Station:
-        ///////////////////////////////////////
-        case EVEDB::invGroups::Station: {
-            return Station::_LoadCelestialObject<Station>( factory, celestialID, type, data, cData );
-        }
-    }
+    CelestialObjectRef celestialRef = CelestialObject::Load(celestialID);
 
-    // Create a generic one:
-    return CelestialObjectRef( new CelestialObject( factory, celestialID, type, data, cData ) );
+    if ((celestialRef->type().groupID() == EVEDB::invGroups::Beacon)
+    or  (celestialRef->type().groupID() == EVEDB::invGroups::Effect_Beacon))
+        celestialRef->SetAttribute(AttrIsGlobal, EvilOne);
+
+    return celestialRef;
 }
 
-CelestialObjectRef CelestialObject::Spawn(ItemFactory &factory,
-    // InventoryItem stuff:
-    ItemData &data
-) {
-    uint32 celestialID = CelestialObject::_Spawn( factory, data );
-    if( celestialID == 0 )
-        return CelestialObjectRef();
-    return CelestialObject::Load( factory, celestialID );
-}
-
-uint32 CelestialObject::_Spawn(ItemFactory &factory,
-    // InventoryItem stuff:
-    ItemData &data
-) {
-    // make sure it's a ship
-    const ItemType *item = factory.GetType(data.typeID);
-    if( !(item->categoryID() == EVEDB::invCategories::Celestial) )
-        return 0;
-
-    // store item data
-    uint32 celestialID = InventoryItem::_Spawn(factory, data);
-    if( celestialID == 0 )
-        return 0;
-
-    // nothing additional
-
-    return celestialID;
+uint32 CelestialObject::CreateItemID( ItemData &data) {
+    return InventoryItem::CreateItemID(data);
 }
 
 void CelestialObject::Delete() {
@@ -144,127 +92,127 @@ void CelestialObject::Delete() {
 }
 
 
-using namespace Destiny;
-
-CelestialEntity::CelestialEntity(
-    CelestialObjectRef celestial,
-    //InventoryItemRef celestial,
-    SystemManager *system,
-    PyServiceMgr &services,
-    const GPoint &position)
-: CelestialDynamicSystemEntity(new DestinyManager(this, system), celestial),
-  m_system(system),
-  m_services(services)
+CelestialSE::CelestialSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+: ItemSystemEntity(self, services, system)
 {
-    _celestialRef = celestial;
-    m_destiny->SetPosition(position, false);
+    _log(SE__DEBUG, "Created CSE for item %s (%u) with radius of %.1f.", self->name(), self->itemID(), m_radius);
 }
 
-void CelestialEntity::Process() {
-    SystemEntity::Process();
-}
-
-void CelestialEntity::ForcedSetPosition(const GPoint &pt) {
-    m_destiny->SetPosition(pt, false);
-}
-
-/*
-void CelestialEntity::EncodeDestiny( Buffer& into ) const
+void CelestialSE::MakeDamageState(DoDestinyDamageState &into)
 {
-    const GPoint& position = GetPosition();
-    const std::string itemName( GetName() );
+    double shield = 1.0, armor = 1.0, structure = 1.0, recharge = 1000000;
+    if (m_self->HasAttribute(AttrShieldRechargeRate))
+        recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_float();
+    if (m_self->HasAttribute(AttrShieldCharge) and m_self->HasAttribute(AttrShieldCapacity))
+        shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
+    if (m_self->HasAttribute(AttrArmorDamage) and m_self->HasAttribute(AttrArmorHP))
+        armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
+    if (m_self->HasAttribute(AttrDamage) and m_self->HasAttribute(AttrHP))
+        structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHP).get_float());
 
-    /*if(m_orbitingID != 0) {
-        #pragma pack(1)
-        struct AddBall_Orbit {
-            BallHeader head;
-            MassSector mass;
-            ShipSector ship;
-            DSTBALL_ORBIT_Struct main;
-            NameStruct name;
-        };
-        #pragma pack()
+    into.armor = armor;
+    into.shield = shield;
+    into.recharge = recharge;
+    into.structure = structure;
+    into.timestamp = GetFileTimeNow();
+}
 
-        into.resize(start
-            + sizeof(AddBall_Orbit)
-            + slen*sizeof(uint16) );
-        uint8 *ptr = &into[start];
-        AddBall_Orbit *item = (AddBall_Orbit *) ptr;
-        ptr += sizeof(AddBall_Orbit);
 
-        item->head.entityID = GetID();
-        item->head.mode = Destiny::DSTBALL_ORBIT;
-        item->head.radius = m_self->radius();
-        item->head.x = x();
-        item->head.y = y();
-        item->head.z = z();
-        item->head.sub_type = IsMassive | IsFree;
+AnomalySE::AnomalySE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
+: CelestialSE(self, services, system)
+{
 
-        item->mass.mass = m_self->mass();
-        item->mass.unknown51 = 0;
-        item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-        item->mass.corpID = GetCorporationID();
-        item->mass.unknown64 = 0xFFFFFFFF;
+}
 
-        item->ship.max_speed = m_self->maxVelocity();
-        item->ship.velocity_x = m_self->maxVelocity();    //hacky hacky
-        item->ship.velocity_y = 0.0;
-        item->ship.velocity_z = 0.0;
-        item->ship.agility = 1.0;    //hacky
-        item->ship.speed_fraction = 0.133f;    //just strolling around. TODO: put in speed fraction!
-
-        item->main.unknown116 = 0xFF;
-        item->main.followID = m_orbitingID;
-        item->main.followRange = 6000.0f;
-
-        item->name.name_len = slen;    // in number of unicode chars
-        //strcpy_fake_unicode(item->name.name, GetName());
-    } else *//*{
-        BallHeader head;
-        head.entityID = GetID();
-        head.mode = Destiny::DSTBALL_STOP;
-        head.radius = GetRadius();
-        head.x = position.x;
-        head.y = position.y;
-        head.z = position.z;
-        head.sub_type = IsMassive | IsFree;
-        into.Append( head );
-
-        MassSector mass;
-        mass.mass = GetMass();
+void AnomalySE::EncodeDestiny(Buffer& into)
+{
+    using namespace Destiny;
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::STOP;
+        head.radius = m_radius;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = 0;
+    into.Append( head );
+    MassSector mass = MassSector();
+        mass.mass = 10000000000;    // as seen in packets
         mass.cloak = 0;
-        mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-        mass.corpID = GetCorporationID();
-        mass.allianceID = GetAllianceID();
-        into.Append( mass );
-
-        ShipSector ship;
-        ship.max_speed = GetMaxVelocity();
-        ship.velocity_x = 0.0;
-        ship.velocity_y = 0.0;
-        ship.velocity_z = 0.0;
-        ship.unknown_x = 0.0;
-        ship.unknown_y = 0.0;
-        ship.unknown_z = 0.0;
-        ship.agility = GetAgility();
-        ship.speed_fraction = 0.0;
-        into.Append( ship );
-
-        DSTBALL_STOP_Struct main;
+        mass.harmonic = m_harmonic;
+        mass.corporationID = -1;
+        mass.allianceID = -1;
+    into.Append( mass );
+    STOP_Struct main;
         main.formationID = 0xFF;
-        into.Append( main );
+    into.Append( main );
 
-    }
+    _log(SE__DESTINY, "AnomalySE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
-*/
 
-void CelestialEntity::MakeDamageState(DoDestinyDamageState &into) const
+PyDict* AnomalySE::MakeSlimItem()
 {
-    into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
-    into.tau = 100000;    //no freaking clue.
-    into.timestamp = Win32TimeNow();
-//    armor damage isn't working...
-    into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
-    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
+    _log(SE__SLIMITEM, "MakeSlimItem for AnomalySE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID",           new PyInt(m_self->typeID()));
+        slim->SetItemString("dungeonDataID",    new PyInt(0)); //?  seen 2990651
+        slim->SetItemString("ownerID",          new PyInt(m_ownerID));
+    return slim;
 }
 
+WormholeSE::WormholeSE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
+: CelestialSE(self, services, system)
+{
+    m_count = 0;
+    m_wormholeAge = WormHole::Age::Adolescent;
+    m_wormholeSize = (WormHole::Size::Full /10);
+    // just guessing here....
+    m_expiryDate = Win32TimeNow() + EvE::Time::Day;
+    m_nebulaType = 11785;  // data found in eveGraphics table.  yes.  11781 - 11786 (class 1-6)  -3715 doesnt work
+    // no clue what this is...may not be used.  seen 33, 263, 27 in logs
+    m_dunSpawnID = 0;
+
+}
+
+void WormholeSE::EncodeDestiny(Buffer& into)
+{
+    using namespace Destiny;
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::STOP;
+        head.radius = m_radius;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = 0;
+    into.Append( head );
+    MassSector mass = MassSector();
+        mass.mass = 10000000000;    // as seen in packets
+        mass.cloak = 0;
+        mass.harmonic = m_harmonic;
+        mass.corporationID = -1;
+        mass.allianceID = -1;
+    into.Append( mass );
+    STOP_Struct main;
+        main.formationID = 0xFF;
+    into.Append( main );
+    _log(SE__DESTINY, "WormholeSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+}
+
+PyDict* WormholeSE::MakeSlimItem()
+{
+    _log(SE__SLIMITEM, "MakeSlimItem for WormholeSE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID",                   new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID",                   new PyInt(m_self->typeID()));
+        slim->SetItemString("ownerID",                  new PyInt(m_ownerID));
+        slim->SetItemString("otherSolarSystemClass",    new PyInt(sDataMgr.GetWHSystemClass(m_system->GetID())));
+        slim->SetItemString("wormholeSize",             new PyFloat(m_wormholeSize));
+        slim->SetItemString("wormholeAge",              new PyInt(m_wormholeAge));
+        slim->SetItemString("count",                    new PyInt(m_count));   //ships jumped thru?
+        slim->SetItemString("dunSpawnID",               new PyInt(m_dunSpawnID));
+        slim->SetItemString("nebulaType",               new PyInt(m_nebulaType));
+        slim->SetItemString("expiryDate",               new PyLong(m_expiryDate));
+    return slim;
+}

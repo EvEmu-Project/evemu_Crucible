@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -23,9 +23,8 @@
     Author:        caytchen
 */
 
-#include "eve-server.h"
+/** @todo  boost is the only system in this code that does NOT leak */
 
-#include "EVEServerConfig.h"
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
 
@@ -43,44 +42,49 @@ const uint32 ImageServer::CategoryCount = 5;
 ImageServer::ImageServer()
 {
     std::stringstream urlBuilder;
-    urlBuilder << "http://" << sConfig.net.imageServer << ":" << (sConfig.net.imageServerPort) << "/";
+    urlBuilder << "http://" << sConfig.net.imageServer << ":" << sConfig.net.imageServerPort << "/";
     _url = urlBuilder.str();
 
     _basePath = sConfig.files.imageDir;
     if (_basePath[_basePath.size() - 1] != '/')
         _basePath += "/";
 
-    CreateDirectory( _basePath.c_str(), NULL );
+    sLog.Cyan("      ImageServer", "Image Server URL: %s", _url.c_str());
+    sLog.Cyan("      ImageServer", "Image Server path: %s", _basePath.c_str());
 
-    for (int i = 0; i < CategoryCount; i++) {
-        std::string subdir = _basePath;
-        subdir.append(Categories[i]);
-
-        CreateDirectory( subdir.c_str(), NULL );
-    }
-
-    sLog.Log("Image Server Init", "our URL: %s", _url.c_str());
-    sLog.Log("Image Server Init", "our base: %s", _basePath.c_str());
-
+    if (CreateDirectory( _basePath.c_str(), NULL ) == 0) {
+        for (int i = 0; i < CategoryCount; i++) {
+            std::string subdir = _basePath;
+            subdir.append(Categories[i]);
+            CreateDirectory( subdir.c_str(), NULL );
+        }
+    } /* else directory probably exists */
+    sLog.Blue("      ImageServer", "Image Server Initalized.");
 }
 
-void ImageServer::ReportNewImage(uint32 accountID, std::tr1::shared_ptr<std::vector<char> > imageData)
+void ImageServer::ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char> > imageData)
 {
+    sLog.Warning("      ImageServer"," ReportNewImage() called.");
     Lock lock(_limboLock);
 
-    if (_limboImages.find(accountID) != _limboImages.end())
-        _limboImages.insert(std::pair<uint32,std::tr1::shared_ptr<std::vector<char> > >(accountID, imageData));
-    else
+    if (_limboImages.find(accountID) != _limboImages.end()) {
+        _limboImages.insert(std::pair<uint32,std::shared_ptr<std::vector<char> > >(accountID, imageData));
+    } else {
         _limboImages[accountID] = imageData;
+    }
 }
 
 void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID)
 {
+    sLog.Warning("      ImageServer"," ReportNewCharacter() called.");
     Lock lock(_limboLock);
 
     // check if we received an image from this account previously
-    if (_limboImages.find(creatorAccountID) == _limboImages.end())
+    if (_limboImages.find(creatorAccountID) == _limboImages.end()) {
+        sLog.Error("      ImageServer"," Image not received for characterID %u.", characterID);
+        /** @todo  need to get client here, and send msg about emailing char pic and name to charPics@eve.alasiya.net for manual insertion */
         return;
+    }
 
     // we have, so save it
     //std::ofstream stream;
@@ -89,7 +93,7 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     FILE * fp = fopen(path.c_str(), "wb");
 
     //stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
-    std::tr1::shared_ptr<std::vector<char> > data = _limboImages[creatorAccountID];
+    std::shared_ptr<std::vector<char> > data = _limboImages[creatorAccountID];
 
     fwrite(&((*data)[0]), 1, data->size(), fp);
     fclose(fp);
@@ -98,22 +102,28 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     //stream.flush();
     //stream.close();
 
+    /** @todo  we will need to make size 64 and size 40 images, and possibably 128/256 of char portaits */
+    // github.com/nothings/stb/blob/master/stb_image_resize.h
+    // github.com/nothings/stb/blob/master/stb_image.h
+
     // and delete it from our limbo map
     _limboImages.erase(creatorAccountID);
 
-    sLog.Log("Image Server Init", "saved image from %i as %s", creatorAccountID, path.c_str());
+    sLog.Green("      ImageServer", "Received image from %u and saved as %s", creatorAccountID, path.c_str());
 }
 
-std::tr1::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
+std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
 {
+    sLog.Cyan("      ImageServer"," GetImage() called. Cat: %s, id: %u, size:%u", category.c_str(), id, size);
+
     if (!ValidateCategory(category) || !ValidateSize(category, size))
-        return std::tr1::shared_ptr<std::vector<char> >();
+        return std::shared_ptr<std::vector<char> >();
 
     //std::ifstream stream;
     std::string path(GetFilePath(category, id, size));
     FILE * fp = fopen(path.c_str(), "rb");
     if (fp == NULL)
-        return std::tr1::shared_ptr<std::vector<char> >();
+        return std::shared_ptr<std::vector<char> >();
     fseek(fp, 0, SEEK_END);
     size_t length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -121,14 +131,14 @@ std::tr1::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& cate
     //stream.open(path, std::ios::binary | std::ios::in);
     // not found or other error
     //if (stream.fail())
-    //    return std::tr1::shared_ptr<std::vector<char> >();
+    //    return std::shared_ptr<std::vector<char> >();
 
     // get length
     //stream.seekg(0, std::ios::end);
     //int length = stream.tellg();
     //stream.seekg(0, std::ios::beg);
 
-    std::tr1::shared_ptr<std::vector<char> > ret = std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>());
+    std::shared_ptr<std::vector<char> > ret = std::shared_ptr<std::vector<char> >(new std::vector<char>());
     ret->resize(length);
 
     // HACK
@@ -162,7 +172,7 @@ bool ImageServer::ValidateSize(std::string& category, uint32 size)
         return size == 256 || size == 128 || size == 64 || size == 32;
 
     // Render and Character
-    return size == 512 || size == 256 || size == 128 || size == 64 || size == 32;
+    return size == 512 || size == 256 || size == 128 || size == 64 || size == 40 || size == 32;
 }
 
 bool ImageServer::ValidateCategory(std::string& category)

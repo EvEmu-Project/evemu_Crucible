@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,6 +27,7 @@
 #define EVE_UNMARSHAL_H
 
 #include "python/PyRep.h"
+
 
 /**
  * @brief Turns marshal stream into Python object.
@@ -54,9 +55,11 @@ class UnmarshalStream
 {
 public:
     UnmarshalStream()
-    : mStoredObjects( NULL )
+    : mStoredObjects( nullptr )
     {
     }
+
+    ~UnmarshalStream();
 
     /**
      * @brief Loads Python object from given bytecode.
@@ -139,12 +142,12 @@ protected:
 
 private:
     /** Loads none from stream. */
-    PyRep* LoadNone() { return new PyNone; }
+    PyRep* LoadNone() { return PyStatic.NewNone(); }
 
     /** Loads true boolean from stream. */
-    PyRep* LoadBoolTrue() { return new PyBool( true ); }
+    PyRep* LoadBoolTrue() { return PyStatic.NewTrue(); }
     /** Loads false boolean from stream. */
-    PyRep* LoadBoolFalse() { return new PyBool( false ); }
+    PyRep* LoadBoolFalse() { return PyStatic.NewFalse(); }
 
     /** Loads long long integer from stream. */
     PyRep* LoadIntegerLongLong() { return new PyLong( Read<int64>() ); }

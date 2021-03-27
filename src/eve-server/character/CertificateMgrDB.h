@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -38,6 +38,12 @@ public:
     PyRep *GetCertificateCategories();
     PyRep *GetAllShipCertificateRecommendations();
     PyRep *GetCertificateClasses();
+
+    bool LoadCertificates( uint32 characterID, CertMap &into );
+    bool SaveCertificates( uint32 characterID, const CertMap& from );
+    void AddCertificate(uint32 charID, CharCerts cert);
+    void UpdateCertificate(uint32 charID, uint32 certificateID, bool pub=false);
+
 };
 
 #endif /* __CERTIFICATE_MGR_DB__H__INCL__ */

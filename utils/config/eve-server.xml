@@ -1,0 +1,289 @@
+
+<!-- EVEmu Server Config
+Version: 9.9 -->
+
+<!--
+unless otherwise noted, ALL fractional values use fuzzy logic.
+boolean can use either 0/1 OR true/false.
+-->
+
+
+<eve-server>
+
+    <account><!--         0  disable AutoAccount
+        6917529027641081856  ???  in packet logs = ROLE_LOGIN | ROLE_PLAYER
+        6917529029788565504 (0x6000000080000000)  ROLE_STD     = ROLE_LOGIN | ROLE_PLAYER | ROLE_IGB
+        7061644217868615680 (0x6200000080400000)  ROLE_VIP     = ROLE_STD | ROLE_VIPLOGIN | ROLE_HEALSELF
+        7079658624976683008 (0x6240000280c40000)  ROLE_SLASH   = ROLE_LEGIONEER | ROLE_GML | ROLE_SPAWN | ROLE_VIP | ROLE_HEALOTHERS
+        7124694621250392064 (0x62e0000280c40000)  ROLE_CREATOR = ROLE_SLASH | ROLE_GMH | ROLE_CONTENT
+        7131450020691447808 (0x62f8000280c40000)  ROLE_DEV     = ROLE_CREATOR | ROLE_QA | ROLE_PROGRAMMER
+        7203507614729375744 (0x63f8000280c40000)  ROLE_BOSS    = ROLE_ADMIN | ROLE_DEV
+        -->
+        <autoAccountRole>7131450020691447808</autoAccountRole>
+        <!--
+        <loginMessage>
+            &lt;html&gt;
+                &lt;head&gt;
+                    &lt;b&gt;EVEmu Development Server&lt;/b&gt;&lt;br&gt;
+                &lt;/head&gt;
+                &lt;body&gt;
+                    Revision 0.70.05&lt;br&gt;
+                    SHA 0b229d215c879fa3e3d898eda84e10c992063aa4&lt;br&gt;
+                    19 October 2020&lt;br&gt;
+                &lt;/body&gt;
+            &lt;/html&gt;
+        </loginMessage>
+        -->
+
+    </account>
+
+    <server>
+        <UseBeanCount>true</UseBeanCount>  <!-- bool  -client python error reporting -->
+        <UseStackTrace>false</UseStackTrace><!-- bool -log client python error reports to evemu_client_stack_trace.txt-->
+        <NoobShipCheck>true</NoobShipCheck><!-- bool  -check for ship in hangar when docking in a pod -->
+        <ServerSleepTime>10</ServerSleepTime><!-- ms -->
+        <StackTrace>true</StackTrace><!-- bool  -(en/dis)ables sending StackTrace on client errors -->
+        <maxPlayers>2500</maxPlayers>
+        <idleSleepTime>1000</idleSleepTime><!-- in ms (1 sec default) -->
+        <processTic>1.0</processTic><!-- used to slow down server process tics.  <1.0 is faster, >1.0 slower -->
+        <MaxThreadReport>20</MaxThreadReport>
+        <UseMarketBot>false</UseMarketBot><!-- this is coded in eve gate.  not needed here -->
+        <DisableIGB>false</DisableIGB>
+        <BulkDataOD>true</BulkDataOD>  <!-- bool  -OD = OnDemand.  false loads data on server startup.  true loads data on first call -->
+        <ModuleAutoOff>true</ModuleAutoOff><!-- bool  - automatically deactivate rr-type module when target is full -->
+        <ModuleDamageChance>0.1</ModuleDamageChance>  <!-- chance to apply damage to random modules when shields are depleted -->
+        <UnloadOnLinkAll>true</UnloadOnLinkAll>  <!-- bool - unload weapons and link when LinkAll button pressed -->
+        <AllowNonPublished>true</AllowNonPublished>
+        <BountyPayoutDelayed>false</BountyPayoutDelayed><!-- bool - (en/dis)able system bounty payouts on timer (vs immediate) -->
+        <FleetShareDelayed>true</FleetShareDelayed><!-- bool - switch to put fleet bounty shares in system bounty timer (vs immediate), if enabled -->
+        <BountyPayoutTimer>5</BountyPayoutTimer><!-- time for system bounty timer to run (in minutes - 20m default - 256 max) -->
+        <!-- LoadOldMissions not completely working yet.....AgentMgrService::Handle_GetMyJournalDetails() will need work to implement this. -->
+        <LoadOldMissions>false</LoadOldMissions><!-- bool - allow display of expired/completed missions in journal -->
+        <AsteroidsOnDScan>true</AsteroidsOnDScan><!-- bool - show asteroids on directional scanner -->
+        <CargoMassAdditive>true</CargoMassAdditive><!-- bool - add mass of cargo to ship's mass (will effect mobility) -->
+    </server>
+
+    <world>
+        <StationDockDelay>3</StationDockDelay><!-- in seconds (3 sec default) -->
+        <!-- no longer used -->
+        <gridUnload>true</gridUnload><!-- bool -->
+        <gridUnloadTime>300</gridUnloadTime><!-- in seconds (5 min default)-->
+        <!-- not implemented yet -->
+        <chatLogs>false</chatLogs><!-- bool -->
+        <globalChat>true</globalChat><!-- bool -->
+        <loginInfo>true</loginInfo><!-- bool -->
+        <loginMsg>true</loginMsg><!-- bool -->
+        <mailDelay>5</mailDelay>
+        <apWarptoDistance>1000</apWarptoDistance><!-- in meters - sets autopilot warp stop distance from object (15km default)-->
+        <saveOnMove>true</saveOnMove><!-- bool - save items when Move()'d -->
+        <saveOnUpdate>true</saveOnUpdate><!-- bool - save items when values or attributes updated -->
+        <shipBoardDistance>500</shipBoardDistance><!-- int  - max distance to board ship in space (3c default) -->
+    </world>
+
+    <rates>
+        <secRate>1.0</secRate><!-- only used if != 1.0 -->
+        <damageRate>1.0</damageRate><!-- ALL damage multiplier.  Includes player drones.  DO NOT USE 0.0 -->
+        <missileDamage>1.0</missileDamage><!-- ALL missiles multiplier.  DO NOT USE 0.0 -->
+        <missileTime>1.0</missileTime><!--  ALL missiles multiplier.  DO NOT USE 0.0 -->
+        <missileRoF>1.0</missileRoF><!-- ALL missiles multiplier.  DO NOT USE 0.0 -->
+        <turretDamage>1.0</turretDamage><!-- PC turrets multiplier.  DO NOT USE 0.0 -->
+        <turretRoF>1.0</turretRoF><!-- PC turrets multiplier.  DO NOT USE 0.0 -->
+        <npcBountyMultiply>1.0</npcBountyMultiply><!-- only used if != 1.0 -->
+        <corpCost>20000000</corpCost>
+        <medalCreateCost>8000000</medalCreateCost>
+        <medalAwardCost>5000000</medalAwardCost>
+        <WorldDecay>20</WorldDecay><!-- in minutes (2 hour default - 250 max)-->
+        <NPCDecay>30</NPCDecay><!-- in minutes (30 min default) -->
+        <WebUpdate>15</WebUpdate><!-- save current server status in db.  in minutes  15m default -->
+        <!-- salvage max items -->
+        <DropSalvage>2</DropSalvage><!--  only used if != 1 -->
+        <!-- these rates are not implemented yet -->
+        <DropItem>1</DropItem><!--  only used if != 1 -->
+        <DropMoney>1.0</DropMoney><!--  only used if != 1.0 -->
+        <!-- for repair system -->
+        <RepairCost>1.0</RepairCost><!--  only used if != 1.0 -->
+        <ShipRepairModifier>0.000275</ShipRepairModifier><!-- (basePrice)*7.5e-10 on live.  needs to be less here. -->
+        <ModuleRepairModifier>0.0022</ModuleRepairModifier><!-- (basePrice)*1.25e-6 -->
+        <!-- corp tax variables. -->
+        <!-- min amount of tax accepted by corp.  an amount less than this will not be processed, resulting in no tax for the concerned payment. -->
+        <TaxAmount>10000</TaxAmount><!-- default is 10000 isk.  less than this isnt worth the processing for corps -->
+        <!-- min amount to be taxed.  received amounts less than this will not be taxed. -->
+        <TaxedAmount>200000</TaxedAmount><!-- live uses 100000.  default is 175000 -->
+        <!-- critical hit chances -->
+        <PlayerCritChance>0.02</PlayerCritChance><!-- default: 2% -->
+        <NpcCritChance>0.015</NpcCritChance><!-- default: 1.5% -->
+        <SentryCritChance>0.02</SentryCritChance><!-- default: 2% -->
+        <DroneCritChance>0.03</DroneCritChance><!-- default: 3% -->
+        <ConcordCritChance>0.05</ConcordCritChance><!-- default: 5% -->
+    </rates>
+
+    <market>
+        <FindBuyOrder>15</FindBuyOrder><!-- integer  - number of orders to return (lower = less bandwidth)  default: 10  limit: 256 -->
+        <FindSellOrder>15</FindSellOrder><!-- integer  - number of orders to return (lower = less bandwidth)  default: 10  limit: 256 -->
+        <OldPriceLimit>15</OldPriceLimit><!-- integer  - number of orders to return (lower = less bandwidth)  default: 10  limit: 256 -->
+        <NewPriceLimit>15</NewPriceLimit><!-- integer  - number of orders to return (lower = less bandwidth)  default: 10  limit: 256 -->
+        <HistoryUpdateTime>8</HistoryUpdateTime><!-- integer  - time in hours to update market price histories  default:6 -->
+        <UseOrderRange>true</UseOrderRange><!-- bool  - default: true  -->
+        <DeleteOldTransactions>false</DeleteOldTransactions><!-- bool  - delete transactions from db older than 3 days  default: false  -->
+    </market>
+
+    <bpTimes> <!-- these are multiplied to db values to get a modified result - < 1.0 = faster -->
+        <ResPE>0.5</ResPE>
+        <ResME>0.4</ResME>
+        <ResRE>0.5</ResRE>
+        <MatMod>1.0</MatMod>
+        <ProdMod>1.0</ProdMod>
+        <ResCopy>0.3</ResCopy>
+        <ProdTime>0.3</ProdTime>
+        <WasteMod>1.1</WasteMod>
+    </bpTimes>
+
+    <character>
+        <startBalance>600000000.0</startBalance>
+        <startAurBalance>600.0</startAurBalance>
+        <startStation>60014137</startStation>
+        <startSecRating>1.0</startSecRating>
+        <startCorporation>0</startCorporation>
+        <terminationDelay>1800</terminationDelay> <!-- seconds  30m default -->
+        <statMultiplier>3</statMultiplier><!-- stats are multiplied by this (after remap) -->
+        <allow3edChar>false</allow3edChar><!-- (dis)allow creating a third character -->
+    </character>
+
+    <npc>
+        <IdleWander>true</IdleWander><!-- bool  npc will wander when idle   must be set to 'true' for WarpOut (below) to work -->
+        <WarpOut>600</WarpOut><!-- time npc wanders around bubble before leaving, in sec (5 min default) -->
+        <WarpFollowChance>0.15</WarpFollowChance><!-- chance for npc to follow warping player (15% default) -->
+        <!-- npc podkilling not implemented yet -->
+        <TargetPod>false</TargetPod><!-- bool   npc target/attack pod -->
+        <TargetPodSec>0</TargetPodSec><!-- npc target/attack pod in truSec lower than this  -->
+        <!-- Threat not implemented yet -->
+        <ThreatRadius>1.0</ThreatRadius> <!-- used in conjunction with npc ai target switching -->
+        <!-- Spawns are implemented -->
+        <RoamingSpawns>true</RoamingSpawns><!-- bool -->
+        <StaticSpawns>false</StaticSpawns><!-- bool -->
+        <DefenderMissileChance>0</DefenderMissileChance><!-- chance to use defender.  overrides npc default from db. 0 default -->
+        <RoamingTimer>300</RoamingTimer><!-- max time between spawn checks, in seconds  5m default -->
+        <StaticTimer>600</StaticTimer><!-- max time between spawn checks, in seconds  10m default -->
+        <RespawnTimer>300</RespawnTimer><!-- static time between respawn checks, in seconds.  this affects chain-ratting  5m default -->
+        <RatFaction>0</RatFaction><!-- force spawn to this faction if !=0 -->
+        <LootDropChance>0.85</LootDropChance><!-- % chance for NPC to drop loot.  75% default -->
+        <UseDamageMultiplier>true</UseDamageMultiplier><!-- bool  - use the damage multiplier in npc data -->
+    </npc>
+
+    <standings><!-- these are in percent -->
+        <!--  base mission modifiers  -->
+        <MissionBonus>1.0</MissionBonus><!-- 1.0 default -->
+        <MissionFailure>-0.5</MissionFailure><!-- -0.5 default -->
+        <MissionDeclined>-0.2</MissionDeclined><!-- -0.2 default -->
+        <MissionCompleted>1.0</MissionCompleted><!-- 1.0 default -->
+        <MissionOfferExpired>-0.1</MissionOfferExpired><!-- -0.1 default -->
+        <ImportantMissionBonus>3.0</ImportantMissionBonus><!-- 3.0 default -->
+        <MissionFailedRollback>-0.5</MissionFailedRollback><!-- -0.5 default -->
+        <FleetMissionMultiplier>0.5</FleetMissionMultiplier><!-- 0.5 default  -->
+        <!-- agent to char modifiers -->
+        <BaseMissionMultiplier>1.0</BaseMissionMultiplier><!-- 1.0 default  -->
+        <Agent2CharMissionMultiplier>1.0</Agent2CharMissionMultiplier><!-- 1.0 default  -->
+        <ACorp2CharMissionMultiplier>0.25</ACorp2CharMissionMultiplier><!-- 0.25 default  -->
+        <AFaction2CharMissionMultiplier>0.125</AFaction2CharMissionMultiplier><!-- 0.125 default  -->
+        <!-- agent to player corp modifiers -->
+        <Agent2PCorpMissionMultiplier>0.1</Agent2PCorpMissionMultiplier><!-- 0.1 default  -->
+        <ACorp2PCorpMissionMultiplier>0.025</ACorp2PCorpMissionMultiplier><!-- 0.025 default  -->
+        <AFaction2PCorpMissionMultiplier>0.0125</AFaction2PCorpMissionMultiplier><!-- 0.0125 default  -->
+    </standings>
+
+    <chat>
+        <EnableFleetChat>true</EnableFleetChat><!-- bool -->
+        <EnableWingChat>false</EnableWingChat><!-- bool -->
+        <EnableSquadChat>false</EnableSquadChat><!-- bool -->
+        <EnableVoiceChat>false</EnableVoiceChat><!-- bool -->
+        <EnforceRookieInHelp>false</EnforceRookieInHelp><!-- bool -->
+    </chat>
+
+    <cosmic>
+        <PIEnabled>true</PIEnabled><!-- bool -->
+        <AnomalyEnabled>true</AnomalyEnabled><!-- bool -->
+        <DungeonEnabled>true</DungeonEnabled><!-- bool -->
+        <BeltEnabled>true</BeltEnabled><!-- bool -->
+        <BeltRespawn>6</BeltRespawn><!-- hours  (6h default) -->
+        <roidRadiusMultiplier>1.0</roidRadiusMultiplier><!-- float  used to change default coded roid size (and the belt radius) -->
+        <WormHoleEnabled>true</WormHoleEnabled><!-- bool -->
+        <CiviliansEnabled>true</CiviliansEnabled><!-- bool -->
+        <BumpEnabled>false</BumpEnabled><!-- bool -->
+    </cosmic>
+
+    <exploring><!--  control amount of specific sites per system (adjusted by truSec) -->
+        <Gravametric>5</Gravametric><!-- integer  -1 to disable.  max 128.  default 5 -->
+        <Magnetometric>3</Magnetometric><!-- integer  -1 to disable.  max 128.  default 3 -->
+        <Ladar>6</Ladar><!-- integer  -1 to disable.  max 128.  default 6 -->
+        <Radar>6</Radar><!-- integer  -1 to disable.  max 128.  default 6 -->
+        <Unrated>8</Unrated><!-- integer  -1 to disable.  max 128.  default 8 -->
+        <Complex>4</Complex><!-- integer  -1 to disable.  max 128.  default 4 -->
+    </exploring>
+
+    <testing><!-- switches for various incomplete/testing code sections -->
+        <ShipHeat>true</ShipHeat><!-- bool -->
+        <EnableDrones>true</EnableDrones><!-- bool -->
+    </testing>
+
+    <debug><!-- switches for various server methods -->
+        <BubbleTrack>false</BubbleTrack><!-- bool - create jetcans at center and edges of bubble (7 per bubble) -->
+        <SpawnTest>true</SpawnTest><!-- bool - enables 5s respawn timer -->
+        <IsTestServer>true</IsTestServer>  <!--  bool   -some functions disabled for live server -->
+        <UseProfiling>true</UseProfiling><!-- bool  - use internal memobj code profiling system -->
+        <ProfileTraceTime>5000</ProfileTraceTime><!-- msec  profile time above this will print StackTrace  default: 500 -->
+        <UseShipTracking>false</UseShipTracking><!-- bool -->
+        <PositionHack>false</PositionHack><!-- bool -->
+        <DeleteTrackingCans>false</DeleteTrackingCans><!-- bool - no longer used -->
+        <AnomalyFaction>0</AnomalyFaction><!-- force anomaly to this faction if !=0   -this is for testing dung spawn system -->
+    </debug>
+
+    <crime><!-- not implemented yet -->
+        <CrimFlagTime>900</CrimFlagTime> <!-- seconds  (15m default) -->
+        <AggFlagTime>900</AggFlagTime> <!-- seconds (15m default) -->
+        <WeaponFlagTime>60</WeaponFlagTime> <!-- seconds (60s default) -->
+        <CWSessionTime>60</CWSessionTime> <!-- seconds (60s default) -->
+        <KillRightTime>900</KillRightTime> <!-- seconds (15m default) -->
+    </crime>
+
+    <threads><!-- not implemented yet -->
+        <NetworkThreads>2</NetworkThreads>
+        <DatabaseThreads>2</DatabaseThreads>
+        <WorldThreads>2</WorldThreads>
+        <ImageServerThreads>1</ImageServerThreads>
+        <ConsoleThreads>1</ConsoleThreads>
+    </threads>
+
+    <database>
+        <host>db</host><!--  must be 'localhost' for socket connection -->
+        <username>evemu</username>
+        <password>evemu</password>
+        <db>evemu</db>
+        <port>3306</port><!-- 3306 default -->
+        <ssl>false</ssl><!-- bool   enable ssl for db connection (NOTE: NOT coded. DO NOT USE) -not needed when using socket under linux-->
+        <compress>false</compress><!-- bool   compressed protocol for client server communication - not sure if needed. -->
+        <useSocket>false</useSocket><!-- bool  use socket connection instead of port (MUST be local)  (SIGPIPE hits on debug code) -->
+        <autoReconnect>true</autoReconnect><!-- bool  enable auto Reconnect on lost connection -->
+        <dbTimeout>2</dbTimeout><!-- seconds  timeout value for db response, in seconds  default: 2s  **NOT USED** -->
+        <pingTime>10</pingTime><!-- minutes  ping db every x minutes  default: 10m  **NOT USED**  hard-coded to 10m -->
+    </database>
+
+    <files>
+        <logDir>../logs/</logDir>
+        <logSettings>../etc/log.ini</logSettings>
+        <cacheDir>../server_cache/</cacheDir>
+        <imageDir>../image_cache/</imageDir>
+    </files>
+
+    <net>
+        <!--  for internal network only-->
+        <port>26000</port>
+        <imageServer>127.0.0.1</imageServer>
+        <imageServerPort>26001</imageServerPort>
+
+        <!-- to allow external access to internal dev server (network server config'd to port-forward this one)
+        <port>26000</port>
+        <imageServer>eve.example.org</imageServer>
+        <imageServerPort>26001</imageServerPort>-->
+    </net>
+
+</eve-server>

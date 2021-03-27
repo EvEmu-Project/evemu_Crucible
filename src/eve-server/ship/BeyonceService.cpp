@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,18 +21,27 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Rewrite:    Allan
 */
 
 #include "eve-server.h"
 
 #include "PyBoundObject.h"
 #include "PyServiceCD.h"
+#include "StaticDataMgr.h"
 #include "cache/ObjCacheService.h"
+//#include "planet/PlanetDB.h"
+//#include "planet/Moon.h"
+//#include "pos/Structure.h"
 #include "ship/BeyonceService.h"
-#include "ship/DestinyManager.h"
+#include "station/StationDataMgr.h"
 #include "system/BookmarkService.h"
-#include "system/SystemEntities.h"
+#include "system/Container.h"
+#include "system/DestinyManager.h"
+#include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "system/cosmicMgrs/AnomalyMgr.h"
+#include "system/cosmicMgrs/ManagerDB.h"
 
 class BeyonceBound
 : public PyBoundObject
@@ -40,7 +49,7 @@ class BeyonceBound
 public:
     PyCallable_Make_Dispatcher(BeyonceBound)
 
-    BeyonceBound(PyServiceMgr *mgr, Client *c)
+    BeyonceBound(PyServiceMgr* mgr, Client* pClient)
     : PyBoundObject(mgr),
       m_dispatch(new Dispatcher(this))
     {
@@ -48,43 +57,69 @@ public:
 
         m_strBoundObjectName = "BeyonceBound";
 
-        PyCallable_REG_CALL(BeyonceBound, CmdFollowBall)
-        PyCallable_REG_CALL(BeyonceBound, CmdOrbit)
-        PyCallable_REG_CALL(BeyonceBound, CmdAlignTo)
-        PyCallable_REG_CALL(BeyonceBound, CmdGotoDirection)
-        PyCallable_REG_CALL(BeyonceBound, CmdGotoBookmark)
-        PyCallable_REG_CALL(BeyonceBound, CmdSetSpeedFraction)
-        PyCallable_REG_CALL(BeyonceBound, CmdStop)
-        PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuff)
-        PyCallable_REG_CALL(BeyonceBound, CmdDock)
-        PyCallable_REG_CALL(BeyonceBound, CmdStargateJump)
-        PyCallable_REG_CALL(BeyonceBound, UpdateStateRequest)
-        PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuffAutopilot)
+        PyCallable_REG_CALL(BeyonceBound, CmdFollowBall);   //*
+        PyCallable_REG_CALL(BeyonceBound, CmdOrbit);   //*
+        PyCallable_REG_CALL(BeyonceBound, CmdAlignTo);
+        PyCallable_REG_CALL(BeyonceBound, CmdGotoDirection);   //*
+        PyCallable_REG_CALL(BeyonceBound, CmdGotoBookmark);
+        PyCallable_REG_CALL(BeyonceBound, CmdSetSpeedFraction);
+        PyCallable_REG_CALL(BeyonceBound, CmdStop);
+        PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuff);
+        PyCallable_REG_CALL(BeyonceBound, CmdDock);
+        PyCallable_REG_CALL(BeyonceBound, CmdStargateJump);
+        PyCallable_REG_CALL(BeyonceBound, UpdateStateRequest);
+        PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuffAutopilot); //*
+        PyCallable_REG_CALL(BeyonceBound, CmdAbandonLoot);
 
-        if(c->Destiny() != NULL)
-            c->Destiny()->SendSetState(c->Bubble());
+        PyCallable_REG_CALL(BeyonceBound, CmdFleetRegroup);
+        PyCallable_REG_CALL(BeyonceBound, CmdFleetTagTarget);
+        PyCallable_REG_CALL(BeyonceBound, CmdBeaconJumpFleet);
+        PyCallable_REG_CALL(BeyonceBound, CmdBeaconJumpAlliance);
+        PyCallable_REG_CALL(BeyonceBound, CmdJumpThroughFleet);
+        PyCallable_REG_CALL(BeyonceBound, CmdJumpThroughAlliance);
+        PyCallable_REG_CALL(BeyonceBound, CmdJumpThroughCorporationStructure);
+
+
+        pClient->SetBeyonce(true);
+        if (pClient->IsLogin() and !pClient->IsSetStateSent())
+            pClient->SetBallPark();
     }
-    virtual ~BeyonceBound() {delete m_dispatch;}
+
+    virtual ~BeyonceBound()
+    {
+        delete m_dispatch;
+    }
+
     virtual void Release() {
         //I hate this statement
         delete this;
     }
 
-    PyCallable_DECL_CALL(CmdFollowBall)
-    PyCallable_DECL_CALL(CmdOrbit)
-    PyCallable_DECL_CALL(CmdAlignTo)
-    PyCallable_DECL_CALL(CmdGotoDirection)
-    PyCallable_DECL_CALL(CmdGotoBookmark)
-    PyCallable_DECL_CALL(CmdSetSpeedFraction)
-    PyCallable_DECL_CALL(CmdStop)
-    PyCallable_DECL_CALL(CmdWarpToStuff)
-    PyCallable_DECL_CALL(CmdDock)
-    PyCallable_DECL_CALL(CmdStargateJump)
-    PyCallable_DECL_CALL(UpdateStateRequest)
-    PyCallable_DECL_CALL(CmdWarpToStuffAutopilot)
+    PyCallable_DECL_CALL(CmdFollowBall);
+    PyCallable_DECL_CALL(CmdOrbit);
+    PyCallable_DECL_CALL(CmdAlignTo);
+    PyCallable_DECL_CALL(CmdGotoDirection);
+    PyCallable_DECL_CALL(CmdGotoBookmark);
+    PyCallable_DECL_CALL(CmdSetSpeedFraction);
+    PyCallable_DECL_CALL(CmdStop);
+    PyCallable_DECL_CALL(CmdWarpToStuff);
+    PyCallable_DECL_CALL(CmdDock);
+    PyCallable_DECL_CALL(CmdStargateJump);
+    PyCallable_DECL_CALL(UpdateStateRequest);
+    PyCallable_DECL_CALL(CmdWarpToStuffAutopilot);
+    PyCallable_DECL_CALL(CmdAbandonLoot);
+
+    PyCallable_DECL_CALL(CmdFleetRegroup);
+    PyCallable_DECL_CALL(CmdFleetTagTarget);
+    PyCallable_DECL_CALL(CmdJumpThroughFleet);
+    PyCallable_DECL_CALL(CmdBeaconJumpFleet);
+    PyCallable_DECL_CALL(CmdBeaconJumpAlliance);
+    PyCallable_DECL_CALL(CmdJumpThroughAlliance);
+    PyCallable_DECL_CALL(CmdJumpThroughCorporationStructure);
 
 protected:
     Dispatcher *const m_dispatch;
+
 };
 
 PyCallable_Make_InnerDispatcher(BeyonceService)
@@ -95,7 +130,6 @@ BeyonceService::BeyonceService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    //PyCallable_REG_CALL(BeyonceService, )
     PyCallable_REG_CALL(BeyonceService, GetFormations)
 }
 
@@ -103,604 +137,842 @@ BeyonceService::~BeyonceService() {
     delete m_dispatch;
 }
 
-
-PyBoundObject* BeyonceService::_CreateBoundObject( Client* c, const PyRep* bind_args )
+PyBoundObject* BeyonceService::CreateBoundObject(Client* pClient, const PyRep* bind_args)
 {
-    _log( CLIENT__MESSAGE, "BeyonceService bind request for:" );
-    bind_args->Dump( CLIENT__MESSAGE, "    " );
-
-    return new BeyonceBound( m_manager, c );
+    return new BeyonceBound(m_manager, pClient);
 }
-
 
 PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
-    ObjectCachedMethodID method_id(GetName(), "GetFormations");
+    // this is only called when player enters new system and calls to bind new beyonce
+    if (!call.client->IsSetStateSent())
+        call.client->CheckBallparkTimer();
 
-    //check to see if this method is in the cache already.
-    if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
-        //this method is not in cache yet, load up the contents and cache it.
-        PyRep *res = m_db.GetFormations();
-        if(res == NULL) {
-            codelog(SERVICE__ERROR, "Failed to load cache, generating empty contents.");
-            res = new PyNone();
-        }
-
-        m_manager->cache_service->GiveCache(method_id, &res);
-    }
-
-    //now we know its in the cache one way or the other, so build a
-    //cached object cached method call result.
-    //return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
-    return new PyTuple(0);
+    PyTuple* res = new PyTuple( 2 );
+        Beyonce_Formation f;
+            //Diamond formation
+            f.name = "Diamond";
+            f.pos1.x = 100;
+            f.pos2.y = 100;
+            f.pos3.x = -100;
+            f.pos4.y = -100;
+        res->SetItem( 0, f.Encode() );
+            //Arrow formation
+            f.name = "Arrow";
+            f.pos1.x = 100;
+            f.pos1.z = -50;
+            f.pos2.x = 50;
+            f.pos2.y = 0;
+            f.pos3.x = -100;
+            f.pos3.z = -50;
+            f.pos4.x = -50;
+            f.pos4.y = 0;
+        res->SetItem( 1, f.Encode() );
+    return res;
 }
-
-/*
-PyResult BeyonceService::Handle_(PyCallArgs &call) {
-    PyRep *result = NULL;
-
-    return result;
-}
-*/
 
 PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
-    Call_FollowBall args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: Failed to decode arguments.", call.client->GetName());
-        return NULL;
-    }
+    _log(AUTOPILOT__MESSAGE, "%s called Follow. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
 
-    double distance;
-    if( args.distance->IsInt() )
-        distance = args.distance->AsInt()->value();
-    else if( args.distance->IsFloat() )
-        distance = args.distance->AsFloat()->value();
-    else
-    {
-        codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), args.distance->TypeString());
-        return NULL;
-    }
-
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
-
-    SystemManager *system = call.client->System();
-    if(system == NULL) {
+    SystemManager* pSystem = call.client->SystemMgr();
+    if (pSystem == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
     }
-    SystemEntity *entity = system->get(args.ballID);
-    if(entity == NULL) {
-        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), args.ballID);
-        return NULL;
+    Call_FollowBall args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
     }
 
-    destiny->Follow(entity, distance);
+    SystemEntity* pSE = pSystem->GetSE(args.ballID);
+    if (pSE == nullptr) {
+        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Follow/Approach.", call.client->GetName(), args.ballID);
+        return PyStatic.NewNone();
+    }
 
-    return NULL;
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
+
+    pDestiny->Follow(pSE, PyRep::IntegerValue(args.distance));
+
+    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdSetSpeedFraction(PyCallArgs &call) {
-    Call_SingleRealArg arg;
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
-    }
-
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
 
-    destiny->SetSpeedFraction(arg.arg);
+    Call_SingleRealArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+    /** @todo  rework this...this is to set speed ONLY...NOT to begin moving.  */
+    // client should not legally send anything < 0.1 (except on rare occasion a 0.0 instead of Stop.)
+    if ((arg.arg != 0) && (arg.arg < 0.1))
+        return PyStatic.NewNone();
 
-    return NULL;
+    //sLog.Warning( "BeyonceBound", "Handle_CmdSetSpeedFraction %.2f", arg.arg );
+    if (!call.client->IsUndock()){
+        if (pDestiny->IsMoving()) {
+            pDestiny->SetSpeedFraction(arg.arg);
+        } else {
+            pDestiny->SetSpeedFraction(arg.arg, true);
+        }
+    }
+
+    return PyStatic.NewNone();
 }
 
-/* AlignTo
- * This will look up the entityID to get it's position in space, then call
- * AlignTo to have it respond with gotopoint.
- * @author Xanarox
-*/
 PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
-    CallAlignTo arg;
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
-    }
-
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    _log(AUTOPILOT__MESSAGE, "%s called Align. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
-
-    SystemManager *system = call.client->System();
-    if(system == NULL) {
+    SystemManager* pSystem = call.client->SystemMgr();
+    if (pSystem == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
     }
 
-    SystemEntity *entity = system->get(arg.entityID);
-    if(entity == NULL) {
+    CallAlignTo arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+
+    SystemEntity* pEntity = pSystem->GetSE(arg.entityID);
+    if (pEntity == nullptr) {
         _log(CLIENT__ERROR, "%s: Unable to find entity %u to AlignTo.", call.client->GetName(), arg.entityID);
-        return NULL;
+        return PyStatic.NewNone();
     }
 
-    const GPoint &position = entity->GetPosition();
-    destiny->AlignTo( position );
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
 
-    return NULL;
+    pDestiny->AlignTo( pEntity );
+
+    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
-    Call_PointArg arg;
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
-    }
+    _log(AUTOPILOT__MESSAGE, "%s called GotoDirection. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    //call.client->SetAutoPilot(false);
 
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
 
-    destiny->GotoDirection( GPoint( arg.x, arg.y, arg.z ) );
+    Call_PointArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
 
-    return NULL;
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
+
+    const GPoint dir = GPoint(arg.x, arg.y, arg.z);
+    pDestiny->GotoDirection(dir);
+
+    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
+    _log(AUTOPILOT__MESSAGE, "%s called GotoBookmark. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    //call.client->SetAutoPilot(false);
 
-    if( !(call.tuple->GetItem( 0 )->IsInt()) )
-    {
-        sLog.Error( "BeyonceService::Handle_GotoBookmark()", "%s: Invalid type %s for bookmarkID received.", call.client->GetName(), call.tuple->GetItem( 0 )->TypeString() );
-        return NULL;
-    }
-    uint32 bookmarkID = call.tuple->GetItem( 0 )->AsInt()->value();
-
-    DestinyManager *destiny = call.client->Destiny();
-    if( destiny == NULL )
-    {
-        sLog.Error( "%s: Client has no destiny manager!", call.client->GetName() );
-        return NULL;
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
 
-    double x,y,z;
-    uint32 itemID;
-    uint32 typeID;
-    GPoint bookmarkPosition;
-
-    BookmarkService *bkSrvc = (BookmarkService *)(call.client->services().LookupService( "bookmark" ));
-
-    if( bkSrvc == NULL )
-    {
-        sLog.Error( "BeyonceService::Handle_GotoBookmark()", "Attempt to access BookmarkService via (BookmarkService *)(call.client->services().LookupService(\"bookmark\")) returned NULL pointer." );
-        return NULL;
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
     }
-    else
-    {
-        bkSrvc->LookupBookmark( call.client->GetCharacterID(),bookmarkID,itemID,typeID,x,y,z );
 
-        if( typeID == 5 )
-        {
-            // Bookmark type is coordinate, so use these directly from the bookmark system call:
-            bookmarkPosition.x = x;     // From bookmark x
-            bookmarkPosition.y = y;     // From bookmark y
-            bookmarkPosition.z = z;     // From bookmark z
+    double x(0.0), y(0.0), z(0.0);
+    uint16 typeID(0);
+    uint32 itemID(0), locationID(0);
 
-            destiny->GotoDirection( bookmarkPosition );
-        }
-        else
-        {
+    BookmarkService* pBMSvc = (BookmarkService*)(call.client->services().LookupService( "bookmark" ));
+
+    if (pBMSvc == nullptr) {
+        sLog.Error( "BeyonceService::Handle_GotoBookmark()", "Attempt to access BookmarkService via (BookmarkService*)(call.client->services().LookupService(\"bookmark\")) returned NULL." );
+        return PyStatic.NewNone();
+    } else {
+        pBMSvc->LookupBookmark(arg.arg, itemID, typeID, locationID, x, y, z);
+
+        if (typeID == 5) {
+            if (call.client->GetSystemID() != locationID) {
+                //  this bm is for different system.  make and send error here.
+                return PyStatic.NewNone();
+            }
+
+            GPoint point(x, y, z);
+            pDestiny->GotoPoint(point);
+        } else {
             // Bookmark type is of a static system entity, so search for it and obtain its coordinates:
-            SystemManager *sm = call.client->System();
-            if(sm == NULL) {
-                sLog.Error( "BeyonceService::Handle_GotoBookmark()", "%s: no system manager found", call.client->GetName() );
-                return NULL;
-            }
-            SystemEntity *se = sm->get( itemID );
-            if(se ==  NULL) {
+            SystemEntity* pSE = call.client->SystemMgr()->GetSE(itemID);
+            if (pSE == nullptr) {
                 sLog.Error( "BeyonceService::Handle_GotoBookmark()", "%s: unable to find location %d", call.client->GetName(), itemID );
-                return NULL;
+                return PyStatic.NewNone();
             }
 
-            destiny->GotoDirection( se->GetPosition() );
+            pDestiny->GotoPoint( pSE->GetPosition() );
         }
     }
 
-    return NULL;
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
+
+    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
-    Call_Orbit arg;
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
-    }
+    _log(AUTOPILOT__MESSAGE, "%s called Orbit. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    call.client->SetAutoPilot(false);
 
-    double distance;
-    if( arg.distance->IsInt() )
-        distance = arg.distance->AsInt()->value();
-    else if( arg.distance->IsFloat() )
-        distance = arg.distance->AsFloat()->value();
-    else
-    {
-        codelog(CLIENT__ERROR, "%s: Invalid type %s for distance argument received.", call.client->GetName(), arg.distance->TypeString());
-        return NULL;
-    }
-
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
 
-    SystemManager *system = call.client->System();
-    if(system == NULL) {
+    SystemManager* pSystem = call.client->SystemMgr();
+    if (pSystem == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
-        return NULL;
-    }
-    SystemEntity *entity = system->get(arg.entityID);
-    if(entity == NULL) {
-        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), arg.entityID);
-        return NULL;
+        return PyStatic.NewNone();
     }
 
-    destiny->Orbit(entity, distance);
-    return NULL;
+    call.Dump(SERVICE__CALL_DUMP);
+    Call_Orbit args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+
+    double range =
+        args.range->IsInt()
+        ? args.range->AsInt()->value()
+        : args.range->AsFloat()->value();
+
+    SystemEntity* pEntity = pSystem->GetSE(args.entityID);
+    if (pEntity == nullptr) {
+        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), args.entityID);
+        return PyStatic.NewNone();
+    }
+
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
+
+    pDestiny->Orbit(pEntity, range);
+
+    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
-    CallWarpToStuff arg;
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
+    _log(AUTOPILOT__MESSAGE, "%s called WarpToStuff. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    //call.client->SetAutoPilot(false);
+
+  _log(SERVICE__CALL_DUMP, "BeyonceBound::Handle_CmdWarpToStuff() - size %u", call.tuple->size() );
+   call.Dump(SERVICE__CALL_DUMP);
+
+   /** @todo (allan) finish warp scramble system */
+   // >0 means ship cannot warp (warp stabs are neg values, warp scrams are pos values)
+   if (call.client->GetShip()->GetAttribute(AttrWarpScrambleStatus) > 0)
+        throw PyException(MakeUserError("WarpScrambled"));
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+    if (pDestiny->IsWarping()){
+        call.client->SendNotifyMsg( "You are already warping");
+        return PyStatic.NewNone();
     }
 
-    if( arg.type == "item" )
-    {
-        // This section handles Warping to any object in the Overview
-        double distance;
-        std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
-        if(res == call.byname.end()) {
-            //Not needed, this is the correct behavior
-            //codelog(CLIENT__ERROR, "%s: range not found, using 15 km.", call.client->GetName());
-            distance = 0.0;
-        } else if(!res->second->IsInt() && !res->second->IsFloat()) {
-            codelog(CLIENT__ERROR, "%s: range of invalid type %s, expected Integer or Real; using 15 km.", call.client->GetName(), res->second->TypeString());
-            distance = 0.0;
+    SystemManager* pSystem = call.client->SystemMgr();
+    if (pSystem == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
+    bool fleet(false);
+    if (call.byname.find("fleet") != call.byname.end())
+        if (!(call.byname.find("fleet")->second->IsNone()))
+            fleet = call.byname.find("fleet")->second->AsBool()->value();
+
+    // get the warp-to distance specified by the client
+    int32 distance(5000);
+    if (call.byname.find("minRange") != call.byname.end())
+        distance = PyRep::IntegerValueU32(call.byname.find("minRange")->second);
+
+    GPoint warpToPoint(NULL_ORIGIN);
+    SystemEntity* pSE(nullptr);
+    double radius(0);
+    uint32 toID(0);
+    std::string stringArg = "";
+
+    if ((call.tuple->GetItem(1)->IsString())
+    or  (call.tuple->GetItem(1)->IsWString())) {
+        stringArg = PyRep::StringContent(call.tuple->GetItem(1));
+    } else {
+        toID = PyRep::IntegerValueU32(call.tuple->GetItem(1));
+    }
+
+    std::string type = PyRep::StringContent(call.tuple->GetItem(0));
+    if (type == "item" ) {
+        pSE = pSystem->GetSE(toID);
+        if (pSE == nullptr) {
+            codelog(CLIENT__ERROR, "%s: unable to find item location %u in %s(%u)", call.client->GetName(), toID, pSystem->GetName(), pSystem->GetID());
+            return PyStatic.NewNone();
+        }
+    } else if (type == "bookmark" ) {
+        double x(0.0), y(0.0), z(0.0);
+        uint16 typeID(0);
+        uint32 locationID(0);
+        uint32 bookmarkID(PyRep::IntegerValueU32(call.tuple->GetItem(1)));
+
+        BookmarkService* bkSrvc = (BookmarkService *)(call.client->services().LookupService( "bookmark" ));
+        if (bkSrvc == nullptr) {
+            sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Attempt to access BookmarkService returned NULL." );
+            return PyStatic.NewNone();
+        }
+        bkSrvc->LookupBookmark(bookmarkID, toID, typeID, locationID, x, y, z);
+
+        if ( typeID == 5 ) {
+            if (call.client->GetSystemID() != locationID) {
+                //  this bm is for different system.  make error here.
+                return PyStatic.NewNone();
+            }
+            warpToPoint.x = x;
+            warpToPoint.y = y;
+            warpToPoint.z = z;
         } else {
-            distance =
-                res->second->IsInt()
-                ? res->second->AsInt()->value()
-                : res->second->AsFloat()->value();
-        }
-
-        //we need to delay the destiny updates until after we return
-
-        SystemManager *sm = call.client->System();
-        if(sm == NULL) {
-            codelog(CLIENT__ERROR, "%s: no system manager found", call.client->GetName());
-            return NULL;
-        }
-        SystemEntity *se = sm->get(arg.ID);
-        if(se ==  NULL) {
-            codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.ID);
-            return NULL;
-        }
-
-        GPoint origin(0.0,0.0,0.0);
-        double distanceFromBodyOrigin = 0.0;
-        double distanceFromSystemOrigin = 0.0;
-        GPoint warpToPoint(se->GetPosition());                                // Make a warp-in point variable
-        if( IsStaticMapItem(se->GetID()) )
-        {
-            switch( ((SimpleSystemEntity *)(se))->data.groupID )
-            {
-                case EVEDB::invGroups::Sun:
-                case EVEDB::invGroups::Planet:
-                case EVEDB::invGroups::Moon:
-                {
-                    // Calculate final distance out from origin of celestial body along common warp-to vector:
-                    distanceFromBodyOrigin = se->GetRadius();            // Add celestial body's radius
-                    distanceFromBodyOrigin += 20000000;                    // Add 20,000km along common vector from celestial body origin to ensure
-                                                                        // client camera rotation about ship does not take camera inside the celestial body's wireframe
-
-                    // Calculate final warp-to point along common vector from celestial body's origin and add randomized position adjustment for multiple ships coming out of warp to not bump
-                    GPoint celestialOrigin(se->GetPosition());                            // Make a celestial body origin point variable
-                    GVector vectorFromOrigin(celestialOrigin, origin);                    // Make a celestial body TO system origin origin vector variable
-                    if( vectorFromOrigin.length() == 0 )
-                    {
-                        // This is the special case where we are warping to the Star, so we have to construct
-                        // a vector from the star's center (0,0,0) to the warp-in point using the distanceFromBodyOrigin
-                        // calculated earlier:
-                        vectorFromOrigin = GVector( celestialOrigin, call.client->GetPosition() );
-                        vectorFromOrigin.normalize();
-                        vectorFromOrigin *= distanceFromBodyOrigin;
-                    }
-                    GVector vectorToWarpPoint(vectorFromOrigin);                        // Make a vector to the Warp-In point
-                    distanceFromSystemOrigin = vectorFromOrigin.length();                // Calculate distance from system origin to celestial body origin
-
-                    // Calculate warp-in point to provide different juxtapositioning of celestial body to the solar system origin, i.e, the sun
-                    // This also provides a common warp-in point for the sun itself, which is the first case in this if-else if-else clause:
-                    if( distanceFromSystemOrigin < (5.0 * ONE_AU_IN_METERS) )
-                    {
-                        // For all celestial bodies with orbit radius of under 5AU, including the sun,
-                        GVector rotationVector( 1.0, 1.0, 0.25 );
-                        vectorToWarpPoint.rotationTo( rotationVector );
-                        vectorToWarpPoint.normalize();
-                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
-                    }
-                    else if( distanceFromSystemOrigin < (15.0 * ONE_AU_IN_METERS) )
-                    {
-                        // For all celestial bodies with orbit radius of under 15AU but more than 5AU,
-                        GVector rotationVector( -1.0, -1.0, 0.25 );
-                        vectorToWarpPoint.rotationTo( rotationVector );
-                        vectorToWarpPoint.normalize();
-                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
-                    }
-                    else if( distanceFromSystemOrigin < (25.0 * ONE_AU_IN_METERS) )
-                    {
-                        // For all celestial bodies with orbit radius of under 25AU but more than 15AU,
-                        GVector rotationVector( 1.0, -1.0, -0.25 );
-                        vectorToWarpPoint.rotationTo( rotationVector );
-                        vectorToWarpPoint.normalize();
-                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
-                    }
-                    else if( distanceFromSystemOrigin < (35.0 * ONE_AU_IN_METERS) )
-                    {
-                        // For all celestial bodies with orbit radius of under 35AU but more than 25AU,
-                        GVector rotationVector( -1.0, -1.0, -0.25 );
-                        vectorToWarpPoint.rotationTo( rotationVector );
-                        vectorToWarpPoint.normalize();
-                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
-                    }
-                    else
-                    {
-                        // For all celestial bodies with orbit radius of more than 35AU,
-                        GVector rotationVector( -1.0, 1.0, -0.25 );
-                        vectorToWarpPoint.rotationTo( rotationVector );
-                        vectorToWarpPoint.normalize();
-                        warpToPoint += vectorToWarpPoint * distanceFromBodyOrigin;
-                    }
-
-                    // Randomize warp-in point:
-                    warpToPoint.MakeRandomPointOnSphereLayer(1000.0,(1000.0+call.client->GetRadius()));
-                    break;
-                }
-                default:
-                    // For all other objects, simply just add radius of ship and object:
-                    distance += call.client->GetRadius() + se->GetRadius();
-                    break;
+            // Bookmark type is of a static system entity, so search for it and obtain its coordinates:
+            pSE = pSystem->GetSE( toID );
+            if (pSE == nullptr) {
+                codelog(CLIENT__ERROR, "%s: unable to find bookmark location %u in %s(%u)", call.client->GetName(), toID, pSystem->GetName(), pSystem->GetID());
+                return PyStatic.NewNone();
             }
         }
-        else
-            distance += call.client->GetRadius() + se->GetRadius();
-
-        call.client->WarpTo( warpToPoint, distance );
+    } else if (type == "scan") {
+        uint32 anomID = pSystem->GetAnomMgr()->GetAnomalyID(stringArg);
+        pSE = pSystem->GetSE(anomID);
+    } else if (type == "launch") {
+        //warpToPoint = PlanetDB::GetLaunchPos(toID);
+        pSE = pSystem->GetSE(toID);
+        // launchpickup - launch, launchid
     }
-    else if( arg.type == "bookmark" )
-    {
-        // This section handles Warping to any Bookmark:
-        double distance = 0.0;
-        double x,y,z;
-        uint32 itemID;
-        uint32 typeID;
-        GPoint bookmarkPosition;
+    // the systems below are not implemented yet.  hold on coding till systems are working and we know what needs to be done here
+    // more info can be found in client::menuSvc.py
+    else if (type == "epinstance") {
+        // epinstance, instanceid
+        //stringArg
+        call.client->SendErrorMsg("WarpToInstance is not implemented at this time.");
+        return PyStatic.NewNone();
+    } else if (type == "tutorial") {
+        // tutorial, none
+        call.client->SendErrorMsg("WarpToTutorial is not implemented at this time.");
+        return PyStatic.NewNone();
+    } else if (type == "char") {
+    //  fleet warping
+    // [warptomember] char, charid, minrange
+    // [warpfleettomember] char, charid, minrange, fleet=1
+        call.client->SendErrorMsg("WarpToChar is not implemented at this time.");
+        return PyStatic.NewNone();
+    } else {
+        sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Unexpected type value: '%s'.", type.c_str() );
+        return PyStatic.NewNone();
+    }
 
-        BookmarkService *bkSrvc = (BookmarkService *)(call.client->services().LookupService( "bookmark" ));
-
-        if( bkSrvc == NULL )
-        {
-            sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Attempt to access BookmarkService via (BookmarkService *)(call.client->services().LookupService(\"bookmark\")) returned NULL pointer." );
-            return NULL;
-        }
-        else
-        {
-            bkSrvc->LookupBookmark( call.client->GetCharacterID(),arg.ID,itemID,typeID,x,y,z );
-
-            // Calculate the warp-to distance specified by the client and add this to the final warp-to distance
-            std::map<std::string, PyRep *>::const_iterator res = call.byname.find("minRange");
-            distance +=
-                res->second->IsInt()
-                ? res->second->AsInt()->value()
-                : res->second->AsFloat()->value();
-
-            if( typeID == 5 )
-            {
-                // Bookmark type is coordinate, so use these directly from the bookmark system call:
-                bookmarkPosition.x = x;     // From bookmark x
-                bookmarkPosition.y = y;     // From bookmark y
-                bookmarkPosition.z = z;     // From bookmark z
-
-                call.client->WarpTo( bookmarkPosition, distance );
+        /* formulas for warpin points for all objects
+         * x,y,z = object coords.  r = object radius
+         *
+         * for objects <90kr
+         * dest = x,y,z + (vector - r)
+         *
+         * for objects >90kr
+         * (x + (r + 5000000) * cos(r), y + 1.3r -7500, z - (r + 5000000) * sin(r))
+         *
+         * for planets, its a bit different
+         * (x + d*sin(t), y + 0.5*r*sin(j), z - d*cos(t))
+         * where:
+         * j = rand(seed=planetID).rand(0,1) - 1.0/3.0
+         * d = r*(s+1) +1000000
+         * t = sin^-1(x/abs(x) * z / sqrt(x^2 + z^2) +j)
+         * s = 20*((1/40)*(10*log10(r/10^6)-39)^20) +0.5
+         * s = max(0.5, min(s, 10.5))
+         */
+        /** @todo  that may not be right....
+         * this is straight from client
+         *
+         * def GetPlanetWarpInPoint(planetID, locVec, r):
+         *    dx = float(locVec[0])
+         *    dz = float(locVec[2])
+         *    f = float(dz) / float(math.sqrt(dx ** 2 + dz ** 2))
+         *    if dz > 0 and dx > 0 or dz < 0 and dx > 0:
+         *        f *= -1.0
+         *    theta = math.asin(f)
+         *    myRandom = random.Random(planetID)
+         *    rr = (myRandom.random() - 1.0) / 3.0
+         *    theta += rr
+         *    offset = 1000000
+         *    FACTOR = 20.0
+         *    dd = math.pow((FACTOR - 5.0 * math.log10(r / 1000000) - 0.5) / FACTOR, FACTOR) * FACTOR
+         *    dd = min(10.0, max(0.0, dd))
+         *    dd += 0.5
+         *    offset += r * dd
+         *    d = r + offset
+         *    x = 1000000
+         *    z = 0
+         *    x = math.sin(theta) * d
+         *    z = math.cos(theta) * d
+         *    y = r * math.sin(rr) * 0.5
+         *    return util.KeyVal(x=x, y=y, z=z)
+         */
+    if (pSE != nullptr) {
+        radius = pSE->GetRadius();
+        // this will need adjustment for warping to bookmarks
+        warpToPoint = pSE->GetPosition();
+        if (pSE->IsPlanetSE()) {
+            srandom(toID);  //this is the only place random() is used....other random functions use rand() as it's non-repeatable.
+            int rand = random();
+            double j = (((rand / RAND_MAX) - 1.0f) / 3.0f);
+            double s = 20 * std::pow(0.025f * (10 * std::log10(radius / 1000000) - 39), 20) + 0.5f;
+            s = EvE::max(0.5f, EvE::min(s, 10.5f));
+            double t = std::asin((warpToPoint.x / std::fabs(warpToPoint.x)) * (warpToPoint.z / std::sqrt(std::pow(warpToPoint.x, 2) + std::pow(warpToPoint.z, 2)))) + j;
+            uint32 d = radius * (s + 1) + 1000000;
+            warpToPoint.x += (d * std::sin(t));
+            warpToPoint.y += (0.5f * radius * std::sin(j));
+            warpToPoint.z -= (d * std::cos(t));
+        } else if (pSE->IsStationSE()) {
+            // this makes ship warp to station dock elevation (y), instead of warping to stations "center point" position (where icon is)
+            warpToPoint.y = stDataMgr.GetDockPosY(pSE->GetID());
+        } else if (pSE->IsCOSE()) {
+            distance += (radius / 2);
+        } else if (pSE->IsGateSE()) {
+            distance += (radius / 3);  // fudge the distance a bit for gates... its' a lil close by default
+        } /*else if (pSE->IsMoonSE()) {
+            if (pSE->GetMoonSE()->HasTower()) {
+                // if moon has a tower, make warpin point 20km inside edge of tower's bubble.
+                warpToPoint = pSE->GetMoonSE()->GetMyTower()->GetPosition();
+                GVector vectorFromOrigin(call.client->GetShipSE()->GetPosition(), warpToPoint);
+                vectorFromOrigin.normalize();   //we now have a direction
+                GPoint stopPoint = (vectorFromOrigin * (BUBBLE_RADIUS_METERS - 20000));  // 20km inside bubble.
+                warpToPoint -= stopPoint;
+                distance = 0;
+            } else {
+                // hack for warping to moons
+                // this puts ship at Az: 0.785332, Ele: 0.615505, angle: 1.5708
+                warpToPoint -= (radius * 1.25f);
             }
-            else
-            {
-                DBQueryResult result;
-                   DBResultRow row;
-                uint32 groupID = 0;
-
-                // Query database 'invTypes' table for the supplied typeID and retrieve the groupID for this type:
-                if (!sDatabase.RunQuery(result,
-                    " SELECT "
-                    "    groupID "
-                    " FROM invTypes "
-                    " WHERE typeID = %u ", typeID))
-                {
-                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Error in query: %s", result.error.c_str() );
-                    return NULL;
-                }
-
-                // Query went through, but check to see if there were zero rows, ie typeID was invalid,
-                // and if not, then get the groupID from the row:
-                if ( !(result.GetRow(row)) )
-                {
-                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Invalid typeID: %u, no rows returned in db query.", typeID );
-                    return NULL;
-                }
-                groupID = row.GetUInt( 0 );
-
-                // Calculate distance from target warpable object that the ship will warp to, using minimum safe distance
-                // based upon groupID of the target object:
-                switch( groupID )
-                {
-                    case 6: // target object is a SUN
-                    case 7: // target object is a PLANET
-                    case 8: // target object is a MOON
-                        //distance += 200000;
-                        break;
-                    default:
-                        break;
-                }
-
-                // Bookmark type is of a static system entity, so search for it and obtain its coordinates:
-                SystemManager *sm = call.client->System();
-                if(sm == NULL) {
-                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "%s: no system manager found", call.client->GetName() );
-                    return NULL;
-                }
-                SystemEntity *se = sm->get( itemID );
-                if(se ==  NULL) {
-                    sLog.Error( "BeyonceService::Handle_WarpToStuff()", "%s: unable to find location %d", call.client->GetName(), itemID );
-                    return NULL;
-                }
-
-                // Add radiuses for ship and destination object:
-                distance += call.client->GetRadius() + se->GetRadius();
-
-                call.client->WarpTo( se->GetPosition(), distance );
-            }
+        }*/ else if (pSE->IsWormholeSE()) {
+                distance += 20000;  // add 20k for wh
+        } else if (radius > 90000) {
+            // this doesnt work for moons
+            warpToPoint.x += ((radius + 500000) * std::cos(radius));
+            warpToPoint.y += ((radius * 1.3f) - 7500);
+            warpToPoint.z -= ((radius + 500000) * std::sin(radius));
+        }
+        if (radius < 90000) {
+            // this will include stations (max station radius 60km)
+            GVector vectorFromOrigin(call.client->GetShipSE()->GetPosition(), warpToPoint);
+            vectorFromOrigin.normalize();   //we now have a direction
+            GPoint stopPoint = (vectorFromOrigin * radius);
+            warpToPoint -= stopPoint;
         }
     }
-    else if( arg.type == "launch" )
-    {
-        DBQueryResult res;
-        if(!sDatabase.RunQuery(res, "SELECT `x`, `y`, `z` FROM `planetlaunches` WHERE `launchID` = %u", arg.ID)) {
-            codelog(SERVICE__ERROR, "Error in BeyonceService::CmdWarpToStuff:launch Query: %s", res.error.c_str());
-            return NULL;
-        }
-        DBResultRow row;
-        if(!res.GetRow(row)) {
-            codelog(SERVICE__ERROR, "Error in BeyonceService::CmdWarpToStuff:launch Query returned no rows");
-            return NULL;
-        }
-        GPoint warpToPoint;
-        warpToPoint.x = row.GetDouble(1);
-        warpToPoint.y = row.GetDouble(2);
-        warpToPoint.z = row.GetDouble(3);
-        call.client->WarpTo(warpToPoint, 0.0);
-    }
-    else
-    {
-        sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Unexpected arg.type value: '%s'.", arg.type.c_str() );
-        return NULL;
+    if (warpToPoint.isZero()) {
+        // point is zero ....make error and return
+        codelog(CLIENT__ERROR, "%s: warpToPoint.isZero() = true.  Cannot find location %u for '%s'", call.client->GetName(), toID, type.c_str());
+        call.client->SendErrorMsg("WarpTo: Item location not found.");
+        return PyStatic.NewNone();
     }
 
-    return NULL;
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
+
+    distance += (call.client->GetShipSE()->GetRadius() * 2); // add ship diameter to distance
+    pDestiny->WarpTo(warpToPoint, distance);
+
+    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
-    CallWarpToStuffAutopilot arg;
-
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
-    }
-    //Change this to change the default autopilot distance (Faster Autopilot FTW)
-    double distance = 15000.0;
-
-    //Don't update destiny until done with warp
-    SystemManager *sm = call.client->System();
-    if(sm == NULL) {
-        codelog(CLIENT__ERROR, "%s: no system manager found", call.client->GetName());
-        return NULL;
-    }
-    SystemEntity *se = sm->get(arg.item);
-    if(se ==  NULL) {
-        codelog(CLIENT__ERROR, "%s: unable to find location %d", call.client->GetName(), arg.item);
-        return NULL;
-    }
-    //Adding in object radius
-    distance += call.client->GetRadius() + se->GetRadius();
-    call.client->WarpTo(se->GetPosition(), distance);
-
-    return NULL;
-}
-
-PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
-    codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest! that means we messed up pretty bad.", call.client->GetName());
-
-    //no arguments.
-
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    _log(AUTOPILOT__MESSAGE, "%s called WarpToStuffAutopilot. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }
+    SystemManager* pSystem = call.client->SystemMgr();
+    if (pSystem == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
+        return PyStatic.NewNone();
     }
 
-    destiny->SendSetState(call.client->Bubble());
+  //  sends targeted celestial itemID as arg.destID
+    CallWarpToStuffAutopilot arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+	}
 
-    return NULL;
+    SystemEntity* pSE = pSystem->GetSE(arg.destID);
+    if (pSE == nullptr) {
+	  codelog(CLIENT__ERROR, "%s: unable to find destination Entity for ID %u", call.client->GetName(), arg.destID);
+        return PyStatic.NewNone();
+    }
+
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
+    // AP shit here.....
+    call.client->SetAutoPilot(true);
+    call.client->UpdateSessionInt("solarsystemid", pSystem->GetID());
+    //call.client->UpdateSession();
+    //call.client->SendSessionChange();
+
+    uint16 distance = sConfig.world.apWarptoDistance;    //10km default
+    //Adding in ship and target object radius'
+    //distance += call.client->GetShipSE()->GetRadius() + pSE->GetRadius();
+    pDestiny->WarpTo(pSE->GetPosition(), distance, true, pSE);
+
+    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    _log(AUTOPILOT__MESSAGE, "%s called Stop. AP: %s, Invul: %s", call.client->GetName(), \
+            (call.client->IsAutoPilot() ? "true" : "false"), call.client->IsInvul()?"true":"false");
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    }
+    if (!pDestiny->IsMoving())
+        return PyStatic.NewNone();
+    if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
 
-    // Only disallow Stopping ship when in warp state AND ship speed is greater than 0.75 times ship's maxVelocity
-    if( (destiny->GetState() == Destiny::DSTBALL_WARP)
-        && (destiny->GetVelocity().length() >= (0.75*call.client->GetShip()->GetAttribute(AttrMaxVelocity).get_float())) ) {
-            call.client->SendNotifyMsg( "You can't do this while warping");
-            return NULL;
-    }
+    call.client->SetUndock(false);
+    call.client->SetAutoPilot(false);
 
+    pDestiny->Stop();
 
-    destiny->Stop();
-
-    return NULL;
+    return PyStatic.NewNone();
 }
 
+// CmdTurboDock (in client code)
 PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
-    Call_TwoIntegerArgs arg;
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
+    _log(AUTOPILOT__MESSAGE, "%s called Dock. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
     }
-
-    DestinyManager *destiny = call.client->Destiny();
-    if(destiny == NULL) {
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
-    SystemManager *sm = call.client->System();
-    if(sm == NULL) {
+    SystemManager* pSystem = call.client->SystemMgr();
+    if (pSystem == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager.", call.client->GetName());
-        return NULL;
+        return PyStatic.NewNone();
+    }
+    Call_TwoIntegerArgs args;  //sends stationID, shipID
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
     }
 
-    // Attempt to Dock:
-    call.client->SetDockStationID( arg.arg1 );   // Set client to know what station it's trying to dock into just in case docking is delayed
-    return destiny->AttemptDockOperation();
+    //  this sets m_dockStationID for radius checks and other things
+    call.client->SetDockStationID( args.arg1 );
+
+    /* return error msg from this call, if applicable, else nodeid and timestamp */
+    return pDestiny->AttemptDockOperation();
 }
 
 PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
-    //Call_TwoIntegerArgs arg;
-    Call_StargateJump arg;
-    if(!arg.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "%s: failed to decode args", call.client->GetName());
-        return NULL;
+
+    /*  jump system messages....
+(67187, `{[location]system.name} Traffic Control: your jump-in clearance has expired.`)
+(67191, `{[location]system.name} Traffic Control: you have been cleared for jump-in within {[timeinterval]expiration.writtenForm, from=second, to=second}.`)
+(67210, `{[location]system.name} Traffic Control: you are at position {[numeric]pos} in queue for jump-in.`)
+(258673, `{system} is currently loading. Bizzarre, seeing that you're there already... Please try again in a minute or two.`)
+(258674, `The stargates in {system} are currently experiencing minor technical difficulties. Please try again in a moment.`)
+(258675, `Jump Prohibited`)
+(258676, `Officials have closed the stargates in {system} due to heavy congestion. Travelers are advised to enjoy the local scenery.`)
+(258677, `{system} Traffic Control is currently experiencing heavy load and is unable to process your request. Please try again in a moment.`)
+(258678, `{system} Traffic Control is currently offline and unable to process your jump request. Please try again in a moment.`)
+(258679, `{system} Traffic Control is currently experiencing heavy load and is unable to process your request. You are #{[numeric]position} in queue for jump-in.`)
+(258680, `Jump Prohibited`)
+(258681, `Officials have closed the stargates in {system} due to heavy congestion. Travelers are advised to seek alternate routes.`)
+(258683, `Your character is located within {system}, which is currently loading. Please try again in a moment.`)
+(258685, `Your character is located within {system}, which is currently experiencing heavy load. Please try again in a moment.`)
+(258687, `Your character is located within {system}, which has reached maximum capacity. You are #{[numeric]position} in queue for entrance. Please try again in a moment.`)
+(258689, `Your character is located within {system}, which is currently stuck. Please select a different character or try later.`)
+(258691, `The character is located within {system}, which is currently loading. Please try again in a moment.`)
+(258693, `The character is located within {system}, which is currently experiencing heavy load. Please try again in a moment.`)
+(258695, `The character is located within {system}, which is currently stuck. Please try again later.`)
+(258699, `The item <b>{example}</b> was not found in the station <b>{[location]station.name}</b>. Please make sure all items are in the correct hangar before finalizing this contract.`)
+(258701, `{system} Traffic Control is currently experiencing heavy load and was unable to process your request. Please try again in a moment.`)
+(258704, `You cannot leave {system} yet because of instability in the space-time continuum. Please try again in a moment.`)
+*/
+
+    _log(AUTOPILOT__MESSAGE, "%s called Jump. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
+    }
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
     }
 
-    call.client->StargateJump(arg.fromStargateID, arg.toStargateID);
+    Call_StargateJump args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
 
-    return NULL;
+    /** @todo  check distance from ship to gate */
+    call.client->StargateJump(args.fromStargateID, args.toStargateID);
+
+    /* return error msg from this call, if applicable, else nodeid and timestamp */
+    // returns nodeID and timestamp
+    PyTuple* tuple = new PyTuple(2);
+    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
+    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
+    return tuple;
+}
+
+PyResult BeyonceBound::Handle_CmdAbandonLoot(PyCallArgs &call) {
+	/*  remotePark.CmdAbandonLoot(wrecks)  <- this is pylist from 'abandonAllWrecks'
+	 *  remotePark.CmdAbandonLoot([wreckID]) <- single itemID in list
+	 */
+  sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size= %u", call.tuple->size() );
+    call.Dump(SERVICE__CALL_DUMP);
+
+	Call_SingleIntList arg;
+	if (!arg.Decode(&call.tuple)) {
+		codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+		return PyStatic.NewNone();
+	}
+
+	/** @todo  change ownerID to _system for all loot also!!  */
+	SystemEntity* pSE(nullptr);
+	SystemManager* pSysMgr = call.client->SystemMgr();
+	for (auto cur : arg.ints) {
+        pSE = pSysMgr->GetSE(cur);
+        if (pSE == nullptr)
+            continue;
+        pSE->Abandon();
+        PyTuple* slimData = new PyTuple(2);
+            slimData->SetItem(0, new PyLong(pSE->GetID()));
+            slimData->SetItem(1, new PyObject( "foo.SlimItem", pSE->MakeSlimItem()));
+        PyTuple* itemData = new PyTuple(2);
+            itemData->SetItem(0, new PyString("OnSlimItemChange"));
+            itemData->SetItem(1, slimData);
+        pSE->SysBubble()->BubblecastDestinyUpdate(&itemData, "OnSlimItemChange" );
+    }
+
+    return PyStatic.NewNone();
+}
+
+PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
+    codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest. Previous call generated a bad return.  Check Logs.", call.client->GetName());
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+    if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }
+
+    call.client->SetStateSent(false);
+    pDestiny->SendSetState();
+
+    return PyStatic.NewNone();
+}
+
+/**     ***********************************************************************
+ * @note   these do absolutely nothing at this time....
+ */
+
+
+/** @todo these will need work....
+ *    def BridgeToMember(self, charID):
+ *        beaconStuff = sm.GetService('fleet').GetActiveBeaconForChar(charID)
+ *        if beaconStuff is None:
+ *            return
+ *        self.BridgeToBeacon(charID, beaconStuff)
+ *
+ *    def BridgeToBeaconAlliance(self, solarSystemID, beaconID):
+ *        bp = sm.StartService('michelle').GetRemotePark()
+ *        if bp is None:
+ *            return
+ *        bp.CmdBridgeToStructure(beaconID, solarSystemID)
+ *
+ *    def BridgeToBeacon(self, charID, beacon):
+ *        solarsystemID, beaconID = beacon
+ *        bp = sm.StartService('michelle').GetRemotePark()
+ *        if bp is None:
+ *            return
+ *        bp.CmdBridgeToMember(charID, beaconID, solarsystemID)
+ *
+ *    def JumpThroughFleet(self, otherCharID, otherShipID):
+ *        bp = sm.StartService('michelle').GetRemotePark()
+ *        if bp is None:
+ *            return
+ *        bridge = sm.GetService('fleet').GetActiveBridgeForShip(otherShipID)
+ *        if bridge is None:
+ *            return
+ *        solarsystemID, beaconID = bridge
+ *        self.LogNotice('Jump Through Fleet', otherCharID, otherShipID, beaconID, solarsystemID)
+ *        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughFleet, otherCharID, otherShipID, beaconID, solarsystemID)
+ *
+ *    def JumpThroughAlliance(self, otherShipID):
+ *        bp = sm.StartService('michelle').GetRemotePark()
+ *        if bp is None:
+ *            return
+ *        bridge = sm.StartService('pwn').GetActiveBridgeForShip(otherShipID)
+ *        if bridge is None:
+ *            return
+ *        solarsystemID, beaconID = bridge
+ *        self.LogNotice('Jump Through Alliance', otherShipID, beaconID, solarsystemID)
+ *        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughAlliance, otherShipID, beaconID, solarsystemID)
+ *
+ *    def JumpToMember(self, charid):
+ *        beaconStuff = sm.GetService('fleet').GetActiveBeaconForChar(charid)
+ *        if beaconStuff is None:
+ *            return
+ *        self.JumpToBeaconFleet(charid, beaconStuff)
+ *
+ *    def JumpToBeaconFleet(self, charid, beacon):
+ *        solarsystemID, beaconID = beacon
+ *        bp = sm.StartService('michelle').GetRemotePark()
+ *        if bp is None:
+ *            return
+ *        self.LogNotice('Jump To Beacon Fleet', charid, beaconID, solarsystemID)
+ *        for wnd in uicore.registry.GetWindows()[:]:
+ *            if getattr(wnd, '__guid__', None) == 'form.CorpHangarArray':
+ *                wnd.CloseByUser()
+ *
+ *        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpFleet, charid, beaconID, solarsystemID)
+ *
+ *    def JumpToBeaconAlliance(self, solarSystemID, beaconID):
+ *        bp = sm.StartService('michelle').GetRemotePark()
+ *        if bp is None:
+ *            return
+ *        self.LogNotice('Jump To Beacon Alliance', beaconID, solarSystemID)
+ *        sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
+ *
+ *    def ActivateGridSmartBomb(self, charid, effect):
+ *        beaconStuff = sm.GetService('fleet').GetActiveBeaconForChar(charid)
+ *        if beaconStuff is None:
+ *            return
+ *        solarsystemID, beaconID = beaconStuff
+ *        bp = sm.StartService('michelle').GetRemotePark()
+ *        if bp is None:
+ *            return
+ *        effect.Activate(beaconID, False)
+ */
+PyResult BeyonceBound::Handle_CmdJumpThroughFleet(PyCallArgs &call) {
+    // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughFleet, otherCharID, otherShipID, beaconID, solarsystemID)
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughFleet");
+    call.Dump(SHIP__WARNING);
+    return PyStatic.NewNone();
+}
+
+PyResult BeyonceBound::Handle_CmdJumpThroughAlliance(PyCallArgs &call) {
+    //sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughAlliance, otherShipID, beaconID, solarsystemID)
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughAlliance");
+    call.Dump(SHIP__WARNING);
+    return PyStatic.NewNone();
+}
+
+PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &call) {
+    //sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughCorporationStructure, itemID, remoteStructureID, remoteSystemID)
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughCorporationStructure");
+    call.Dump(SHIP__WARNING);
+    return PyStatic.NewNone();
+}
+
+PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
+    // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpFleet, charid, beaconID, solarsystemID)
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdBeaconJumpFleet");
+    call.Dump(SHIP__WARNING);
+    return PyStatic.NewNone();
+}
+
+PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
+    // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdBeaconJumpAlliance");
+    call.Dump(SHIP__WARNING);
+    return PyStatic.NewNone();
+}
+
+PyResult BeyonceBound::Handle_CmdFleetRegroup(PyCallArgs &call) {
+    // not sure what this is supposed to do yet
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdFleetRegroup");
+    call.Dump(SHIP__WARNING);
+    return nullptr;
+}
+
+PyResult BeyonceBound::Handle_CmdFleetTagTarget(PyCallArgs &call) {
+    // bp.CmdFleetTagTarget(itemID, tag)
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdFleetTagTarget");
+    call.Dump(SHIP__WARNING);
+    return PyStatic.NewNone();
 }

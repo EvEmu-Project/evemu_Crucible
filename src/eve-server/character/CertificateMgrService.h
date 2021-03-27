@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,17 +42,16 @@ protected:
 
     CertificateMgrDB m_db;
 
-    PyCallable_DECL_CALL(GetMyCertificates)
-    PyCallable_DECL_CALL(GetCertificateCategories)
-    PyCallable_DECL_CALL(GetAllShipCertificateRecommendations)
-    PyCallable_DECL_CALL(GetCertificateClasses)
-    PyCallable_DECL_CALL(GrantCertificate)
-    PyCallable_DECL_CALL(BatchCertificateGrant)
-    PyCallable_DECL_CALL(BatchCertificateUpdate)
-    PyCallable_DECL_CALL(GetCertificatesByCharacter)
+    PyCallable_DECL_CALL(GetMyCertificates);
+    PyCallable_DECL_CALL(GetCertificateCategories);
+    PyCallable_DECL_CALL(GetAllShipCertificateRecommendations);
+    PyCallable_DECL_CALL(GetCertificateClasses);
+    PyCallable_DECL_CALL(GrantCertificate);
+    PyCallable_DECL_CALL(UpdateCertificateFlags);
+    PyCallable_DECL_CALL(BatchCertificateGrant);
+    PyCallable_DECL_CALL(BatchCertificateUpdate);
+    PyCallable_DECL_CALL(GetCertificatesByCharacter);
 
-    bool _GrantCertificate(uint32 characterID, uint32 certificateID);
-    bool _UpdateCertificate(uint32 characterID, uint32 certificateID, bool pub);
 };
 
 #endif /* __CERTIFICATE_MGR_SERVICE__H__INCL__ */

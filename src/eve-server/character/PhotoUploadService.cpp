@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -37,7 +37,7 @@ PhotoUploadService::PhotoUploadService(PyServiceMgr* mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(PhotoUploadService, Upload)
+    PyCallable_REG_CALL(PhotoUploadService, Upload);
 }
 
 PhotoUploadService::~PhotoUploadService()
@@ -50,14 +50,15 @@ PyResult PhotoUploadService::Handle_Upload(PyCallArgs &call)
     Call_SingleStringArg arg;
     if (!arg.Decode(&call.tuple))
     {
-        codelog(CLIENT__ERROR, "Failed to decode args for Upload call");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return  new PyBool(false);
     }
 
-    sLog.Log("photo upload", "Received image from account %i, size: %i", call.client->GetAccountID(), arg.arg.size());
+    std::shared_ptr<std::vector<char> > data(new std::vector<char>(arg.arg.begin(), arg.arg.end()));
+    sImageServer.ReportNewImage(call.client->GetUserID(), data);
 
-    std::tr1::shared_ptr<std::vector<char> > data(new std::vector<char>(arg.arg.begin(), arg.arg.end()));
-    sImageServer.ReportNewImage(call.client->GetAccountID(), data);
+    call.client->SetPicRec(true);
+    sLog.Magenta("   PhotoUploadSvc", "Received image from account %u, size: %u", call.client->GetUserID(), (uint32)arg.arg.size());
 
     return new PyBool(true);
 }

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -35,52 +35,54 @@
 
 bool Marshal( const PyRep* rep, Buffer& into )
 {
-    MarshalStream v;
-    return v.Save( rep, into );
+    MarshalStream* pMS(new MarshalStream());
+    bool ret(pMS->Save(rep, into));
+    SafeDelete(pMS);
+    return ret;
 }
 
 bool MarshalDeflate( const PyRep* rep, Buffer& into, const uint32 deflationLimit )
 {
-    Buffer data;
-    if( !Marshal( rep, data ) )
-        return false;
-
-    if( data.size() >= deflationLimit )
-        return DeflateData( data, into );
-    else
-    {
-        into.AppendSeq( data.begin<uint8>(), data.end<uint8>() );
-        return true;
+    Buffer* data(new Buffer());
+    bool ret(false);
+    if (Marshal(rep, *data)) {
+        if ( data->size() >= deflationLimit ) {
+            ret = DeflateData( *data, into );
+        } else {
+            into.AppendSeq( data->begin<uint8>(), data->end<uint8>() );
+            ret = true;
+        }
     }
+
+    SafeDelete(data);
+    return ret;
 }
 
 /************************************************************************/
 /* MarshalStream                                                        */
 /************************************************************************/
 MarshalStream::MarshalStream()
-: mBuffer( NULL )
+: mBuffer( nullptr )
 {
 }
 
 bool MarshalStream::Save( const PyRep* rep, Buffer& into )
 {
     mBuffer = &into;
-    bool res = SaveStream( rep );
-    mBuffer = NULL;
+    bool res(SaveStream(rep));
+    mBuffer = nullptr;
 
     return res;
 }
 
 bool MarshalStream::SaveStream( const PyRep* rep )
 {
-    if( rep == NULL )
-        return false;
-
     Put<uint8>( MarshalHeaderByte );
     /*
      * Mapcount
      * the amount of referenced objects within a marshal stream.
      * Note: Atm not supported.
+     * (allan)  have not found any information on this, so no idea how/when to implement it (or even if we need to)
      */
     Put<uint32>( 0 ); // Mapcount
 
@@ -89,32 +91,21 @@ bool MarshalStream::SaveStream( const PyRep* rep )
 
 bool MarshalStream::VisitInteger( const PyInt* rep )
 {
-    const int32 val = rep->value();
+    const int32 val(rep->value());
 
-    if( val == -1 )
-    {
+    if ( val == -1 ) {
         Put<uint8>( Op_PyMinusOne );
-    }
-    else if( val == 0 )
-    {
+    } else if ( val == 0 ) {
         Put<uint8>( Op_PyZeroInteger );
-    }
-    else if( val == 1 )
-    {
+    } else if ( val == 1 ) {
         Put<uint8>( Op_PyOneInteger );
-    }
-    else if( val + 0x8000u > 0xFFFF )
-    {
+    } else if ( val + 0x8000u > 0xFFFF ) {
         Put<uint8>( Op_PyLong );
         Put<int32>( val );
-    }
-    else if( val + 0x80u > 0xFF )
-    {
+    } else if ( val + 0x80u > 0xFF ) {
         Put<uint8>( Op_PySignedShort );
         Put<int16>( val );
-    }
-    else
-    {
+    } else {
         Put<uint8>( Op_PyByte );
         Put<int8>( val );
     }
@@ -124,36 +115,23 @@ bool MarshalStream::VisitInteger( const PyInt* rep )
 
 bool MarshalStream::VisitLong( const PyLong* rep )
 {
-    const int64 val = rep->value();
+    const int64 val(rep->value());
 
-    if( val == -1 )
-    {
+    if ( val == -1 ) {
         Put<uint8>( Op_PyMinusOne );
-    }
-    else if( val == 0 )
-    {
+    } else if ( val == 0 ) {
         Put<uint8>( Op_PyZeroInteger );
-    }
-    else if( val == 1 )
-    {
+    } else if ( val == 1 ) {
         Put<uint8>( Op_PyOneInteger );
-    }
-    else if( val + 0x800000u > 0xFFFFFFFF )
-    {
+    } else if ( val + 0x800000u > 0xFFFFFFFF ) {
         SaveVarInteger( rep );
-    }
-    else if( val + 0x8000u > 0xFFFF )
-    {
+    } else if ( val + 0x8000u > 0xFFFF ) {
         Put<uint8>( Op_PyLong );
         Put<int32>(static_cast<int32>(val));
-    }
-    else if( val + 0x80u > 0xFF )
-    {
+    } else if ( val + 0x80u > 0xFF ) {
         Put<uint8>( Op_PySignedShort );
         Put<int16>(static_cast<int16>(val));
-    }
-    else
-    {
+    } else {
         Put<uint8>( Op_PyByte );
         Put<int8>(static_cast<int8>(val));
     }
@@ -163,7 +141,7 @@ bool MarshalStream::VisitLong( const PyLong* rep )
 
 bool MarshalStream::VisitBoolean( const PyBool* rep )
 {
-    if( rep->value() == true )
+    if (rep->value())
         Put<uint8>( Op_PyTrue );
     else
         Put<uint8>( Op_PyFalse );
@@ -173,12 +151,9 @@ bool MarshalStream::VisitBoolean( const PyBool* rep )
 
 bool MarshalStream::VisitReal( const PyFloat* rep )
 {
-    if( rep->value() == 0.0 )
-    {
+    if ( rep->value() == 0.0 ) {
         Put<uint8>( Op_PyZeroReal );
-    }
-    else
-    {
+    } else {
         Put<uint8>( Op_PyReal );
         Put<double>( rep->value() );
     }
@@ -198,7 +173,7 @@ bool MarshalStream::VisitBuffer( const PyBuffer* rep )
 
     const Buffer& buf = rep->content();
 
-    PutSizeEx( buf.size() );
+    PutSizeEx( (uint32)buf.size() );
     Put( buf.begin<uint8>(), buf.end<uint8>() );
 
     return true;
@@ -206,31 +181,23 @@ bool MarshalStream::VisitBuffer( const PyBuffer* rep )
 
 bool MarshalStream::VisitString( const PyString* rep )
 {
-    size_t len = rep->content().size();
+    size_t len(rep->content().size());
 
-    if( len == 0 )
-    {
+    if ( len == 0 ) {
         Put<uint8>( Op_PyEmptyString );
-    }
-    else if( len == 1 )
-    {
+    } else if ( len == 1 ) {
         Put<uint8>( Op_PyCharString );
         Put<uint8>( rep->content()[0] );
-    }
-    else
-    {
+    } else {
         //string is long enough for a string table entry, check it.
         const uint8 index = sMarshalStringTable.LookupIndex( rep->content() );
-        if( STRING_TABLE_ERROR != index )
-        {
+        if ( index > STRING_TABLE_ERROR ) {
             Put<uint8>( Op_PyStringTableItem );
             Put<uint8>( index );
-        }
+        } else {
         // NOTE: they seem to have stopped using Op_PyShortString
-        else
-        {
             Put<uint8>( Op_PyLongString );
-            PutSizeEx( len );
+            PutSizeEx( (uint32)len );
             Put( rep->content().begin(), rep->content().end() );
         }
     }
@@ -240,19 +207,16 @@ bool MarshalStream::VisitString( const PyString* rep )
 
 bool MarshalStream::VisitWString( const PyWString* rep )
 {
-    size_t len = rep->content().size();
+    size_t len(rep->content().size());
 
-    if( 0 == len )
-    {
+    if ( len == 0 ) {
         Put<uint8>( Op_PyEmptyWString );
-    }
-    else
-    {
+    } else {
         // We don't have to consider any conversions because
         // UTF-8 is more space-efficient than UCS-2.
 
         Put<uint8>( Op_PyWStringUTF8 );
-        PutSizeEx( len );
+        PutSizeEx( (uint32)len );
         Put( rep->content().begin(), rep->content().end() );
     }
 
@@ -265,7 +229,7 @@ bool MarshalStream::VisitToken( const PyToken* rep )
 
     const std::string& str = rep->content();
 
-    PutSizeEx( str.size() );
+    PutSizeEx( (uint32)str.size() );
     Put( str.begin(), str.end() );
 
     return true;
@@ -273,21 +237,14 @@ bool MarshalStream::VisitToken( const PyToken* rep )
 
 bool MarshalStream::VisitTuple( const PyTuple* rep )
 {
-    uint32 size = rep->size();
-    if( size == 0 )
-    {
+    uint32 size(rep->size());
+    if ( size == 0 ) {
         Put<uint8>( Op_PyEmptyTuple );
-    }
-    else if( size == 1 )
-    {
+    } else if ( size == 1 ) {
         Put<uint8>( Op_PyOneTuple );
-    }
-    else if( size == 2 )
-    {
+    } else if ( size == 2 ) {
         Put<uint8>( Op_PyTwoTuple );
-    }
-    else
-    {
+    } else {
         Put<uint8>( Op_PyTuple );
         PutSizeEx( size );
     }
@@ -297,17 +254,12 @@ bool MarshalStream::VisitTuple( const PyTuple* rep )
 
 bool MarshalStream::VisitList( const PyList* rep )
 {
-    uint32 size = rep->size();
-    if( size == 0 )
-    {
+    uint32 size(rep->size());
+    if ( size == 0 ) {
         Put<uint8>( Op_PyEmptyList );
-    }
-    else if( size == 1 )
-    {
+    } else if ( size == 1 ) {
         Put<uint8>( Op_PyOneList );
-    }
-    else
-    {
+    } else {
         Put<uint8>( Op_PyList );
         PutSizeEx( size );
     }
@@ -317,20 +269,16 @@ bool MarshalStream::VisitList( const PyList* rep )
 
 bool MarshalStream::VisitDict( const PyDict* rep )
 {
-    uint32 size = rep->size();
-
+    uint32 size(rep->size());
     Put<uint8>( Op_PyDict );
     PutSizeEx( size );
 
     //we have to reverse the order of key/value to be value/key, so do not call base class.
-    PyDict::const_iterator cur, end;
-    cur = rep->begin();
-    end = rep->end();
-    for(; cur != end; ++cur)
-    {
-        if( !cur->second->visit( *this ) )
+    PyDict::const_iterator cur = rep->begin(), end = rep->end();
+    for (; cur != end; ++cur) {
+        if ( !cur->second->visit( *this ) )
             return false;
-        if( !cur->first->visit( *this ) )
+        if ( !cur->first->visit( *this ) )
             return false;
     }
 
@@ -345,38 +293,30 @@ bool MarshalStream::VisitObject( const PyObject* rep )
 
 bool MarshalStream::VisitObjectEx( const PyObjectEx* rep )
 {
-    if( rep->isType2() == true )
+    if (rep->isType2())
         Put<uint8>( Op_PyObjectEx2 );
     else
         Put<uint8>( Op_PyObjectEx1 );
 
-    if( !rep->header()->visit( *this ) )
+    if ( !rep->header()->visit( *this ) )
         return false;
 
-    {
-        PyObjectEx::const_list_iterator cur, end;
-        cur = rep->list().begin();
-        end = rep->list().end();
-        for(; cur != end; ++cur)
-        {
-           if( !(*cur)->visit( *this ) )
-               return false;
-        }
+    PyObjectEx::const_list_iterator lcur = rep->list().begin(), lend = rep->list().end();
+    for (; lcur != lend; ++lcur ) {
+        if ( !(*lcur )->visit( *this ) )
+            return false;
     }
+
     Put<uint8>( Op_PackedTerminator );
 
-    {
-        PyObjectEx::const_dict_iterator cur, end;
-        cur = rep->dict().begin();
-        end = rep->dict().end();
-        for(; cur != end; ++cur)
-        {
-            if( !cur->first->visit( *this ) )
-                return false;
-            if( !cur->second->visit( *this ) )
-                return false;
-        }
+    PyObjectEx::const_dict_iterator dcur = rep->dict().begin(), dend = rep->dict().end();
+    for (; dcur != dend; ++dcur ) {
+        if ( !dcur->first->visit( *this ) )
+            return false;
+        if ( !dcur->second->visit( *this ) )
+            return false;
     }
+
     Put<uint8>( Op_PackedTerminator );
 
     return true;
@@ -386,118 +326,108 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
 {
     Put<uint8>( Op_PyPackedRow );
 
-    DBRowDescriptor* header = rep->header();
+    DBRowDescriptor* header(rep->header());
     header->visit( *this );
 
     // Create size map, sorted from the greatest to the smallest value:
     std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-    uint32 cc = header->ColumnCount();
-    size_t sum = 0;
+    uint32 cc(header->ColumnCount());
+    size_t sum(0);
+    uint8 size(0);
 
-    for( uint32 i = 0; i < cc; i++ )
-    {
-        uint8 size = DBTYPE_GetSizeBits( header->GetColumnType( i ) );
+    for ( uint32 i(0); i < cc; ++i ) {
+        size = DBTYPE_GetSizeBits( header->GetColumnType( i ) );
 
         sizeMap.insert( std::make_pair( size, i ) );
         sum += size;
     }
 
     Buffer unpacked;
-    sum = ( ( sum + 7 ) >> 3 );
+    sum = ((sum + 7) >> 3);
     unpacked.Reserve<uint8>( sum );
 
     std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
     cur = sizeMap.begin();
     end = sizeMap.lower_bound( 1 );
-    for(; cur != end; cur++)
-    {
-        const uint32 index = cur->second;
-        const PyRep* r = rep->GetField( index );
-
-        /* note the assert are disabled because of performance flows */
-        switch( header->GetColumnType( index ) )
-        {
+    PyRep* r(nullptr);
+    for (; cur != end; ++cur) {
+        r = rep->GetField(cur->second);
+        // packing a zero instead of None here is wrong.
+        //  have liveupdate patch to test for this discrepancy in client (FixDefaultEffect)
+        switch( header->GetColumnType( cur->second ) ) {
+            case DBTYPE_CY:
             case DBTYPE_I8:
             case DBTYPE_UI8:
-            case DBTYPE_CY:
-            case DBTYPE_FILETIME:
-            {
+            case DBTYPE_FILETIME: {
                 unpacked.Append<int64>( r->IsNone() ? 0 : r->AsLong()->value() );
             } break;
-
-            case DBTYPE_I4:
-            case DBTYPE_UI4:
-            {
+            case DBTYPE_I4: {
                 unpacked.Append<int32>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
-
-            case DBTYPE_I2:
-            case DBTYPE_UI2:
-            {
+            case DBTYPE_UI4: {
+                unpacked.Append<uint32>( r->IsNone() ? 0 : r->AsInt()->value() );
+            } break;
+            case DBTYPE_I2: {
                 unpacked.Append<int16>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
-
-            case DBTYPE_I1:
-            case DBTYPE_UI1:
-            {
+            case DBTYPE_UI2: {
+                unpacked.Append<uint16>( r->IsNone() ? 0 : r->AsInt()->value() );
+            } break;
+            case DBTYPE_I1: {
                 unpacked.Append<int8>( r->IsNone() ? 0 : r->AsInt()->value() );
             } break;
-
-            case DBTYPE_R8:
-            {
+            case DBTYPE_UI1: {
+                unpacked.Append<uint8>( r->IsNone() ? 0 : r->AsInt()->value() );
+            } break;
+            case DBTYPE_R8: {
                 unpacked.Append<double>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
             } break;
-
-            case DBTYPE_R4:
-            {
-                unpacked.Append<float>(static_cast<float>(r->IsNone() ? 0.0 : r->AsFloat()->value()));
+            case DBTYPE_R4: {
+                unpacked.Append<float>(static_cast<float>(r->IsNone() ? 0.0f : r->AsFloat()->value()));
             } break;
-
-            case DBTYPE_BOOL:
+            case DBTYPE_BOOL: {
+                unpacked.Append<bool>( r->IsNone() ? 0 : r->AsBool()->value() );
+            } break;
+            case DBTYPE_EMPTY:
+            case DBTYPE_ERROR:
             case DBTYPE_BYTES:
             case DBTYPE_STR:
-            case DBTYPE_WSTR:
-            {
+            case DBTYPE_WSTR: {
                 /* incorrect implemented so we make sure we crash here */
+                //FIXME  change to proper error-handling to avoid crash.  (currently nothing hits here)
                 assert( false );
+                EvE::traceStack();
             } break;
         }
     }
 
-    uint8 bitOffset = 0;
+    uint8 bitOffset(0);
     Buffer::iterator<uint8> bitByte;
-
     cur = sizeMap.lower_bound( 1 );
     end = sizeMap.lower_bound( 0 );
-    for(; cur != end; ++cur)
-    {
-        const uint32 index = cur->second;
-        const PyBool* r = rep->GetField( index )->AsBool();
-
-        if( 7 < bitOffset )
+    PyBool* b(nullptr);
+    for (; cur != end; ++cur) {
+        b = rep->GetField( cur->second )->AsBool();
+        if ( 7 < bitOffset )
             bitOffset = 0;
-        if( 0 == bitOffset )
-        {
+        if ( 0 == bitOffset ) {
             bitByte = unpacked.end<uint8>();
             unpacked.ResizeAt( bitByte, 1 );
         }
 
-        *bitByte |= ( r->value() << bitOffset++ );
+        *bitByte |= ( b->value() << bitOffset++ );
     }
 
     //pack the bytes with the zero compression algorithm.
-    if( !SaveZeroCompressed( unpacked ) )
+    if (!SaveZeroCompressed(unpacked))
         return false;
 
     // Append fields that are not packed:
     cur = sizeMap.lower_bound( 0 );
     end = sizeMap.end();
-    for(; cur != end; cur++)
-    {
-        const uint32 index = cur->second;
-        const PyRep* r = rep->GetField( index );
-
-        if( !r->visit( *this ) )
+    for (; cur != end; ++cur) {
+        r = rep->GetField( cur->second );
+        if (!r->visit(*this))
             return false;
     }
 
@@ -513,11 +443,8 @@ bool MarshalStream::VisitSubStruct( const PySubStruct* rep )
 bool MarshalStream::VisitSubStream( const PySubStream* rep )
 {
     Put<uint8>(Op_PySubStream);
-
-    if(rep->data() == NULL)
-    {
-        if(rep->decoded() == NULL)
-        {
+    if (rep->data() == nullptr) {
+        if (rep->decoded() == nullptr) {
             Put<uint8>(0);
             return false;
         }
@@ -525,8 +452,7 @@ bool MarshalStream::VisitSubStream( const PySubStream* rep )
         //unmarshaled stream
         //we have to marshal the substream.
         rep->EncodeData();
-        if( rep->data() == NULL )
-        {
+        if (rep->data() == nullptr) {
             Put<uint8>(0);
             return false;
         }
@@ -535,7 +461,7 @@ bool MarshalStream::VisitSubStream( const PySubStream* rep )
     //we have the marshaled data, use it.
     const Buffer& data = rep->data()->content();
 
-    PutSizeEx( data.size() );
+    PutSizeEx( (uint32)data.size() );
     Put( data.begin<uint8>(), data.end<uint8>() );
 
     return true;
@@ -545,7 +471,7 @@ bool MarshalStream::VisitSubStream( const PySubStream* rep )
 // we should never visit a checksummed stream... NEVER...
 bool MarshalStream::VisitChecksumedStream( const PyChecksumedStream* rep )
 {
-    assert(false && "MarshalStream on the server size should never send checksummed objects");
+    assert(false && "MarshalStream on the server side should never send checksummed objects");
 
     Put<uint8>(Op_PyChecksumedStream);
 
@@ -555,23 +481,20 @@ bool MarshalStream::VisitChecksumedStream( const PyChecksumedStream* rep )
 
 void MarshalStream::SaveVarInteger( const PyLong* v )
 {
-    const uint64 value = v->value();
-    uint8 integerSize = 0;
+    const int64 value(v->value());
+    uint8 integerSize(0);
 
-#define DoIntegerSizeCheck(x) if( ( (uint8*)&value )[x] != 0 ) integerSize = x + 1;
+#define DoIntegerSizeCheck(x) if ( ( (uint8*)&value )[x] != 0 ) integerSize = x + 1;
     DoIntegerSizeCheck(4);
     DoIntegerSizeCheck(5);
     DoIntegerSizeCheck(6);
 #undef  DoIntegerSizeCheck
 
-    if( integerSize > 0 && integerSize < 7 )
-    {
+    if ( integerSize > 0 && integerSize < 7 ) {
         Put<uint8>(Op_PyVarInteger);
         Put<uint8>(integerSize);
         Put( &( (uint8*)&value )[0], &( (uint8*)&value )[integerSize] );
-    }
-    else
-    {
+    } else {
         Put<uint8>(Op_PyLongLong);                    // 1
         Put<int64>(value);                           // 8
     }
@@ -580,18 +503,14 @@ void MarshalStream::SaveVarInteger( const PyLong* v )
 bool MarshalStream::SaveZeroCompressed( const Buffer& data )
 {
     Buffer packed;
-
-    Buffer::const_iterator<uint8> cur, end;
-    cur = data.begin<uint8>();
-    end = data.end<uint8>();
-    while( cur < end )
-    {
+    Buffer::const_iterator<uint8> cur = data.begin<uint8>(), end = data.end<uint8>();
+    while ( cur < end ) {
         // Insert opcode
         Buffer::iterator<ZeroCompressOpcode> opcode = packed.end<ZeroCompressOpcode>();
         packed.ResizeAt( opcode, 1 );
 
 #   define OPCODE_ENCODE( opIsZero, opLen )     \
-        if( 0 == *cur )                         \
+        if ( 0 == *cur )                         \
         {                                       \
             opIsZero = true;                    \
             opLen    = 7;                       \
@@ -620,8 +539,7 @@ bool MarshalStream::SaveZeroCompressed( const Buffer& data )
         OPCODE_ENCODE( opcode->firstIsZero, opcode->firstLen );
 
         // Check whether we have data for second part
-        if( end <= cur )
-        {
+        if ( end <= cur ) {
             opcode->secondIsZero = true;
             opcode->secondLen    = 0;
             break;
@@ -634,8 +552,8 @@ bool MarshalStream::SaveZeroCompressed( const Buffer& data )
     }
 
     // Write the packed data
-    PutSizeEx( packed.size() );
-    if( 0 < packed.size() )
+    PutSizeEx( (uint32)packed.size() );
+    if ( 0 < packed.size() )
         Put( packed.begin<uint8>(), packed.end<uint8>() );
 
     return true;

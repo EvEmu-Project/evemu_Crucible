@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -54,7 +54,7 @@ protected:
 
         virtual bool GetBool( size_t index ) const = 0;
         virtual uint32 GetInt( size_t index ) const = 0;
-        virtual uint64 GetLong( size_t index ) const = 0;
+        virtual int64 GetLong( size_t index ) const = 0;
         virtual double GetFloat( size_t index ) const = 0;
         virtual const char* GetString( size_t index ) const = 0;
         virtual const char* GetWString( size_t index ) const = 0;
@@ -95,7 +95,7 @@ protected:
 
         bool GetBool( size_t index ) const;
         uint32 GetInt( size_t index ) const;
-        uint64 GetLong( size_t index ) const;
+        int64 GetLong( size_t index ) const;
         double GetFloat( size_t index ) const;
         const char* GetString( size_t index ) const;
         const char* GetWString( size_t index ) const;

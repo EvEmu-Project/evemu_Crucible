@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,47 +21,61 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Bloody.Rabbit
+    Updates:	Allan
 */
 
 #ifndef __EVE_COMMON_H__INCL__
 #define __EVE_COMMON_H__INCL__
 
 /************************************************************************/
-/* eve-core includes                                                    */
+/* core includes                                                    */
 /************************************************************************/
 #include "eve-core.h"
 
+// UTF8-CPP
+#include <utf8.h>
+
+/************************************************************************/
+/* eve-common includes                                                  */
+/************************************************************************/
 // database
+#include "database/dbcore.h"
 #include "database/dbtype.h"
 // log
-#include "log/logsys.h"
 #include "log/LogNew.h"
+#include "log/logsys.h"
+// math
+#include "math/gpoint.h"
+#include "math/Trig.h"
+// memory
+#include "memory/RefPtr.h"
 // network
 #include "network/Socket.h"
 #include "network/StreamPacketizer.h"
 #include "network/TCPConnection.h"
 #include "network/TCPServer.h"
+// threading
+#include "threading/Threading.h"
+// eve math equations
+#include "utils/EvEMath.h"
 // utils
 #include "utils/Buffer.h"
 #include "utils/crc32.h"
 #include "utils/Deflate.h"
+#include "utils/EvilNumber.h"
 #include "utils/misc.h"
-#include "utils/RefPtr.h"
-#include "utils/Singleton.h"
+#include "utils/Seperator.h"
 #include "utils/timer.h"
 #include "utils/utils_hex.h"
 #include "utils/utils_string.h"
 #include "utils/utils_time.h"
 #include "utils/Util.h"
-
-/************************************************************************/
-/* eve-common includes                                                  */
-/************************************************************************/
-// Base64 encoding utilities
-#include <Base64.h>
-// Utility for reading trifiles.
-#include <TriFile.h>
-// UTF8-CPP
-#include <utf8.h>
+// defines
+#include "EVE_Consts.h"
+#include "EVE_Defines.h"
+#include "EVE_Flags.h"
+#include "EVE_Roles.h"
+#include "EVE_Skills.h"
+#include "EVE_Typedefs.h"
 
 #endif /* !__EVE_COMMON_H__INCL__ */

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Zhur, Allan
 */
 
 
@@ -35,16 +35,10 @@ class BookmarkService
 : public PyService
 {
 public:
-    static const uint32 MAX_BOOKMARK_ID;
-    static const uint32 MAX_BM_FOLDER_ID;
-
-    uint32 GetNextAvailableBookmarkID();
-    uint32 GetNextAvailableFolderID();
-
     BookmarkService(PyServiceMgr *mgr);
     virtual ~BookmarkService();
 
-    bool LookupBookmark(uint32 characterID, uint32 bookmarkID, uint32 &itemID, uint32 &typeID, double &x, double &y, double &z);
+    bool LookupBookmark(uint32 bookmarkID, uint32& itemID, uint16& typeID, uint32& locationID, double& x, double& y, double& z);
 
 protected:
     class Dispatcher;
@@ -53,14 +47,19 @@ protected:
 
     BookmarkDB m_db;
 
-    PyCallable_DECL_CALL(GetBookmarks)
-    PyCallable_DECL_CALL(BookmarkLocation)
-    PyCallable_DECL_CALL(DeleteBookmarks)
-    PyCallable_DECL_CALL(UpdateBookmark)
-    PyCallable_DECL_CALL(CreateFolder)
-    PyCallable_DECL_CALL(UpdateFolder)
-    PyCallable_DECL_CALL(DeleteFolder)
-    PyCallable_DECL_CALL(MoveBookmarksToFolder)
+    PyCallable_DECL_CALL(GetBookmarks);
+    PyCallable_DECL_CALL(BookmarkLocation);
+    PyCallable_DECL_CALL(DeleteBookmarks);
+    PyCallable_DECL_CALL(CreateFolder);
+    PyCallable_DECL_CALL(UpdateFolder);
+    PyCallable_DECL_CALL(DeleteFolder);
+    PyCallable_DECL_CALL(MoveBookmarksToFolder);
+    PyCallable_DECL_CALL(CopyBookmarks);
+    PyCallable_DECL_CALL(AddBookmarkFromVoucher);
+    PyCallable_DECL_CALL(BookmarkScanResult);
 };
 
 #endif
+
+/*{'FullPath': u'UI/Messages', 'messageID': 263643, 'label': u'CannotModifyBookmarkNotCreatorBody'}(u'You cannot modify the location as you did not create it and are not a communication officer.', None, None)
+ */

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -29,42 +29,6 @@
 #include "PyServiceCD.h"
 #include "chat/LookupService.h"
 
-/*
-class LookupSvcBound
-: public LookupSvcObject {
-public:
-
-    class Dispatcher
-    : public PyCallableDispatcher<LookupSvcBound> {
-    public:
-        Dispatcher(LookupSvcBound *c)
-        : PyCallableDispatcher<LookupSvcBound>(c) {}
-    };
-
-    LookupSvcBound(PyServiceMgr *mgr, LookupSvcDB *db)
-    : PyBoundObject(mgr, "LookupSvcBound"),
-      m_db(db),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        PyCallable_REG_CALL(LookupSvcBound, )
-        PyCallable_REG_CALL(LookupSvcBound, )
-    }
-    virtual ~LookupSvcBound() {}
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL()
-    PyCallable_DECL_CALL()
-
-protected:
-    LookupSvcDB *const m_db;
-    Dispatcher *const m_dispatch;
-};
-*/
 
 PyCallable_Make_InnerDispatcher(LookupService)
 
@@ -74,140 +38,126 @@ LookupService::LookupService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(LookupService, LookupCharacters)
-    PyCallable_REG_CALL(LookupService, LookupOwners)
-    PyCallable_REG_CALL(LookupService, LookupPlayerCharacters)
-    PyCallable_REG_CALL(LookupService, LookupCorporations)
-    PyCallable_REG_CALL(LookupService, LookupFactions)
-    PyCallable_REG_CALL(LookupService, LookupCorporationTickers)
-    PyCallable_REG_CALL(LookupService, LookupStations)
-    PyCallable_REG_CALL(LookupService, LookupKnownLocationsByGroup)
-
-    PyCallable_REG_CALL(LookupService, LookupEvePlayerCharacters)
-    //PyCallable_REG_CALL(LookupService, )
+    PyCallable_REG_CALL(LookupService, LookupCharacters);
+    PyCallable_REG_CALL(LookupService, LookupOwners);
+    PyCallable_REG_CALL(LookupService, LookupPlayerCharacters);
+    PyCallable_REG_CALL(LookupService, LookupCorporations);
+    PyCallable_REG_CALL(LookupService, LookupFactions);
+    PyCallable_REG_CALL(LookupService, LookupCorporationTickers);
+    PyCallable_REG_CALL(LookupService, LookupStations);
+    PyCallable_REG_CALL(LookupService, LookupKnownLocationsByGroup);
+    PyCallable_REG_CALL(LookupService, LookupEvePlayerCharacters);
+    PyCallable_REG_CALL(LookupService, LookupPCOwners);
+    PyCallable_REG_CALL(LookupService, LookupNoneNPCAccountOwners);
 }
 
 LookupService::~LookupService() {
     delete m_dispatch;
 }
 
-
-/*
-PyBoundObject* LookupService::_CreateBoundObject( Client* c, const PyRep* bind_args )
-{
-    _log( CLIENT__MESSAGE, "LookupService bind request for:" );
-    bind_args->Dump( CLIENT__MESSAGE, "    " );
-
-    return new LookupSvcBound( m_manager, &m_db );
-}*/
-
 PyResult LookupService::Handle_LookupEvePlayerCharacters(PyCallArgs& call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupEvePlayerCharacters");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupPlayerChars(args.searchString.c_str(), args.searchOption ? true : false);
+    return ServiceDB::LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
 }
 
 PyResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupCharacters");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
+    return ServiceDB::LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
 }
 
+// this may actually be a call to search for player corps by name.
+PyResult LookupService::Handle_LookupPCOwners(PyCallArgs &call) {
+    Call_LookupStringInt args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    return ServiceDB::LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
+}
 //LookupOwners
 PyResult LookupService::Handle_LookupOwners(PyCallArgs &call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupOwners");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupOwners(args.searchString.c_str(),  args.searchOption ? true : false );
+    return ServiceDB::LookupOwners(args.searchString.c_str(),  args.searchOption ? true : false );
+}
+
+PyResult LookupService::Handle_LookupNoneNPCAccountOwners(PyCallArgs &call) {
+    Call_LookupStringInt args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    return ServiceDB::LookupOwners(args.searchString.c_str(),  args.searchOption ? true : false );
 }
 
 PyResult LookupService::Handle_LookupPlayerCharacters(PyCallArgs &call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupPlayerCharacters");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupPlayerChars(args.searchString.c_str(),  false);
+    return ServiceDB::LookupChars(args.searchString.c_str(), false);
 }
 PyResult LookupService::Handle_LookupCorporations(PyCallArgs &call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupCorporations(args.searchString);
+    return ServiceDB::LookupCorporations(args.searchString);
 }
 PyResult LookupService::Handle_LookupFactions(PyCallArgs &call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupFactions(args.searchString);
+    return ServiceDB::LookupFactions(args.searchString);
 }
 PyResult LookupService::Handle_LookupCorporationTickers(PyCallArgs &call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupCorporationTickers(args.searchString);
+    return ServiceDB::LookupCorporationTickers(args.searchString);
 }
 PyResult LookupService::Handle_LookupStations(PyCallArgs &call) {
     Call_LookupStringInt args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupStations(args.searchString);
+    return ServiceDB::LookupStations(args.searchString);
 }
-// Asteroids, constellations and regions should be injected into the entity table...
+
 PyResult LookupService::Handle_LookupKnownLocationsByGroup(PyCallArgs &call) {
     Call_LookupIntString args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Wrong incoming param in LookupCorporations");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.LookupKnownLocationsByGroup(args.searchString, args.searchOption);
+    return ServiceDB::LookupKnownLocationsByGroup(args.searchString, args.searchOption);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

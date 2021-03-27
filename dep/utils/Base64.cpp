@@ -8,7 +8,7 @@ Copyright (C) 2004,2005  Anders Hedstrom
 This library is made available under the terms of the GNU GPL.
 
 If you would like to use this library in a closed-source application,
-a separate license agreement is available. For information about 
+a separate license agreement is available. For information about
 the closed-source license agreement for the C++ sockets library,
 please visit http://www.alhem.net/Sockets/license.html and/or
 email license@alhem.net.
@@ -41,13 +41,13 @@ const char *Base64::bstr =
 	"z0123456789+/";
 
 const char Base64::rstr[] = {
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  62,   0,   0,   0,  63, 
-	 52,  53,  54,  55,  56,  57,  58,  59,  60,  61,   0,   0,   0,   0,   0,   0, 
-	  0,   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14, 
-	 15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,   0,   0,   0,   0,   0, 
-	  0,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40, 
+	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+	  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  62,   0,   0,   0,  63,
+	 52,  53,  54,  55,  56,  57,  58,  59,  60,  61,   0,   0,   0,   0,   0,   0,
+	  0,   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,
+	 15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,   0,   0,   0,   0,   0,
+	  0,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,
 	 41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,   0,   0,   0,   0,   0};
 
 
@@ -100,7 +100,7 @@ void Base64::encode(const char* input,size_t l,std::string& output, bool add_crl
 {
 	size_t i = 0;
 	size_t o = 0;
-	
+
 	output = "";
 	while (i < l)
 	{
@@ -136,7 +136,7 @@ void Base64::encode(unsigned char* input,size_t l,std::string& output,bool add_c
 {
 	size_t i = 0;
 	size_t o = 0;
-	
+
 	output = "";
 	while (i < l)
 	{
@@ -172,12 +172,12 @@ void Base64::decode(const std::string& input,std::string& output)
 {
 	size_t i = 0;
 	size_t l = input.size();
-	
+
 	output = "";
 	while (i < l)
 	{
 		while (i < l && (input[i] == 13 || input[i] == 10))
-			i++;
+			++i;
 		if (i < l)
 		{
 			char b1 = (char)((rstr[(int)input[i]] << 2 & 0xfc) +
@@ -206,11 +206,11 @@ void Base64::decode(const std::string& input, unsigned char *output, size_t& sz)
 	size_t i = 0;
 	size_t l = input.size();
 	size_t j = 0;
-	
+
 	while (i < l)
 	{
-		while (i < l && (input[i] == 13 || input[i] == 10))
-			i++;
+        while (i < l && (input[i] == 13 || input[i] == 10))
+            ++i;
 		if (i < l)
 		{
 			unsigned char b1 = (unsigned char)((rstr[(int)input[i]] << 2 & 0xfc) +
@@ -219,7 +219,7 @@ void Base64::decode(const std::string& input, unsigned char *output, size_t& sz)
 			{
 				output[j] = b1;
 			}
-			j++;
+			++j;
 			if (input[i + 2] != '=')
 			{
 				unsigned char b2 = (unsigned char)((rstr[(int)input[i + 1]] << 4 & 0xf0) +
@@ -228,7 +228,7 @@ void Base64::decode(const std::string& input, unsigned char *output, size_t& sz)
 				{
 					output[j] = b2;
 				}
-				j++;
+				++j;
 			}
 			if (input[i + 3] != '=')
 			{
@@ -238,7 +238,7 @@ void Base64::decode(const std::string& input, unsigned char *output, size_t& sz)
 				{
 					output[j] = b3;
 				}
-				j++;
+				++j;
 			}
 			i += 4;
 		}
@@ -253,9 +253,9 @@ size_t Base64::decode_length(const std::string& str64)
 		return 0;
 	size_t l = 3 * (str64.size() / 4 - 1) + 1;
 	if (str64[str64.size() - 2] != '=')
-		l++;
+		++l;
 	if (str64[str64.size() - 1] != '=')
-		l++;
+		++l;
 	return l;
 }
 

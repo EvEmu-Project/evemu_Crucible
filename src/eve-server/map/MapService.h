@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 
@@ -42,26 +43,29 @@ protected:
 
     MapDB m_db;
 
-    PyCallable_DECL_CALL(GetStationExtraInfo)
-    PyCallable_DECL_CALL(GetSolarSystemPseudoSecurities)
-    PyCallable_DECL_CALL(GetSolarSystemVisits)
-    PyCallable_DECL_CALL(GetBeaconCount)
-    PyCallable_DECL_CALL(GetStuckSystems)
-    PyCallable_DECL_CALL(GetRecentSovActivity)
-    PyCallable_DECL_CALL(GetDeadspaceAgentsMap)
-    PyCallable_DECL_CALL(GetDeadspaceComplexMap)
-    PyCallable_DECL_CALL(GetIncursionGlobalReport)
-    PyCallable_DECL_CALL(GetSystemsInIncursions)
-    PyCallable_DECL_CALL(GetSystemsInIncursionsGM)
-    PyCallable_DECL_CALL(GetStationCount)
-    PyCallable_DECL_CALL(GetAllianceSystems)
-    PyCallable_DECL_CALL(GetMapLandmarks)
-    PyCallable_DECL_CALL(GetMyExtraMapInfo)
-    PyCallable_DECL_CALL(GetMyExtraMapInfoAgents)
-    PyCallable_DECL_CALL(GetHistory)
-    PyCallable_DECL_CALL(GetVictoryPoints)
-    PyCallable_DECL_CALL(GetAllianceJumpBridges)
-    PyCallable_DECL_CALL(GetLinkableJumpArrays)
+    PyCallable_DECL_CALL(GetStationExtraInfo);
+    PyCallable_DECL_CALL(GetSolarSystemPseudoSecurities);
+    PyCallable_DECL_CALL(GetSolarSystemVisits);
+    PyCallable_DECL_CALL(GetBeaconCount);
+    PyCallable_DECL_CALL(GetStuckSystems);
+    PyCallable_DECL_CALL(GetRecentSovActivity);
+    PyCallable_DECL_CALL(GetDeadspaceAgentsMap);
+    PyCallable_DECL_CALL(GetDeadspaceComplexMap);
+    PyCallable_DECL_CALL(GetIncursionGlobalReport);
+    PyCallable_DECL_CALL(GetSystemsInIncursions);
+    PyCallable_DECL_CALL(GetSystemsInIncursionsGM);
+    PyCallable_DECL_CALL(GetStationCount);
+    PyCallable_DECL_CALL(GetMapLandmarks);
+    PyCallable_DECL_CALL(GetMyExtraMapInfo);
+    PyCallable_DECL_CALL(GetMyExtraMapInfoAgents);  //ColorStarsByMyAgents
+    PyCallable_DECL_CALL(GetHistory);
+    PyCallable_DECL_CALL(GetVictoryPoints);
+    PyCallable_DECL_CALL(GetAllianceJumpBridges);
+    PyCallable_DECL_CALL(GetAllianceBeacons);
+    PyCallable_DECL_CALL(GetLinkableJumpArrays);
+    PyCallable_DECL_CALL(GetCurrentSovData);
+    // custom call for displaying all items in system
+    PyCallable_DECL_CALL(GetCurrentEntities);
 
 };
 

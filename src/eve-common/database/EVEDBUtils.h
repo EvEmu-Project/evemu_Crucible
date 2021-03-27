@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -36,35 +36,35 @@ class PyList;
 class PyDict;
 class PyObjectEx;
 class PyPackedRow;
+class DBRowDescriptor;
 
-/*typedef enum {
-    StringContentsInteger,
-    StringContentsReal,
-    StringContentsString,
-    StringContentsUnknown
-} StringContentsType;
-StringContentsType ClassifyStringContents(const char *str);*/
 
-PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index);
-
-PyObject *DBResultToRowset(DBQueryResult &result);
-PyObject *DBResultToIndexRowset(DBQueryResult &result, const char *key);
-PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index);
-PyTuple *DBResultToTupleSet(DBQueryResult &result);
-PyTuple *DBResultToRowList(DBQueryResult &result, const char *type = "util.Row");
-PyDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type = "util.Row");
-PyDict *DBResultToIntIntDict(DBQueryResult &result);
 void DBResultToIntIntDict(DBQueryResult &result, std::map<int32, int32> &into);
 void DBResultToUIntUIntDict(DBQueryResult &result, std::map<uint32, uint32> &into);
 void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &into);
 
-PyList *DBResultToPackedRowList(DBQueryResult &result);
-PyTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
-PyObjectEx *DBResultToCRowset(DBQueryResult &result);
+PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index);
 
+// this returns a std PyObject "util.Rowset" with data in 'lines'
+PyObject *DBResultToRowset(DBQueryResult &result);
+PyObject *DBResultToIndexRowset(DBQueryResult &result, const char *key);
+PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index);
+
+PyTuple *DBResultToTupleSet(DBQueryResult &result);
+// 2 lists, 1-colNames, 2-PyObject "util.Row" with data in 'lines'
+PyTuple *DBResultToRowList(DBQueryResult &result, const char *type = "util.Row");
+PyTuple *DBResultToPackedRowListTuple(DBQueryResult &result);
+
+PyDict *DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char *type = "util.Row");
+PyDict *DBResultToIntIntDict(DBQueryResult &result);
 PyDict *DBResultToPackedRowDict(DBQueryResult &result, const char *key);
 PyDict *DBResultToPackedRowDict(DBQueryResult &result, uint32 key_index);
 
+PyList *DBResultToPackedRowList(DBQueryResult &result);
+
+// this fills PyObjectEx2(util.KeyVal)'s 'list" with PacketRow objects
+PyObjectEx *DBResultToCRowset(DBQueryResult &result);
+// this fills PyObjectEx2(util.KeyVal)'s 'list" with Indexed PacketRow objects
 PyObjectEx *DBResultToCIndexedRowset(DBQueryResult &result, const char *key);
 PyObjectEx *DBResultToCIndexedRowset(DBQueryResult &result, uint32 key_index);
 
@@ -73,6 +73,7 @@ PyObject *DBRowToKeyVal(DBResultRow &row);
 PyObject *DBRowToRow(DBResultRow &row, const char *type = "util.Row");
 PyPackedRow *DBRowToPackedRow(DBResultRow &row);
 
+PyPackedRow* CreatePackedRow( const DBResultRow& row, DBRowDescriptor* header );
 
 #endif
 

@@ -1,0 +1,161 @@
+====================
+XMLP Tags and their uses:
+latest: 7Aug19 - Allan
+====================
+
+<elementDef>
+the outermost wrapper tag around an entire XMLP structure, close with </elementDef>
+
+<element name="notes" type="util_Rowset" />
+you supply the actual object (not just a pointer) to the util_Rowset
+
+<elementPtr type="xmlp-type" name="sender" />
+you supply a pointer to the "xmlp-type" class object instance
+
+<raw name="name" />
+encodes/decodes object to PyRep*
+
+<objectEx name="name" type2="*true/false*">
+
+<objectInline>
+specifies a PyObject object, closed by </objectInline>
+
+<substreamInline>
+specifies a PySubStream object - this is used by lower level marshalling/unmarshalling, closed by </substreamInline>
+
+<none />
+specifies a PyNone object
+
+<dictInline>
+wrap a dictionary in this and its closing tag </dictInline>
+
+<dictInlineEntry key="dict_key_string" key_type="*int/long*" soft="*true/false*">
+this defines an expected dictionary key value as a string "dict_key_string", use inside <dictInline>
+(optional)key_type means this entry is an integer or long instead of a string, and encoded accordingly
+(optional)soft = (return false on invalid decode?)
+
+<dict name="dict_name" />
+defines a whole dictionary object of type PyDict
+
+<dictInt name="dict_name" />
+defines a whole dictionary with integers used for ALL key values
+
+<dictStr name="dict_name" />
+defines a whole dictionary with strings used for ALL key values
+
+<dictRaw name="items" key="uint32" value="uint32" pykey="Int" pyvalue="Int" />
+<dictRaw name="dict_raw_name" key="Ctype" value="Cval" pykey="Ptype" pyvalue="Pval" />
+defines a whole dictionary with "Ctype" of a C/C++ type (such as uint32) as keys and value type specified by "Cval"
+with the Python type specified by "Ptype" and the Python type specified by "Pval"
+
+<stringInline value="string_value" />
+specifies a constant PyString value that contains the string "string_value"
+
+<tupleInline>
+wrap a tuple in this and its closing tag </tupleInline>
+
+<tuple name="tuple_name" />
+specifies a tuple object of type PyTuple
+
+<listInline>
+wrap a list in this and its closing tag </listInline>
+
+<list name="list_name" />
+specifies a list of objects with the name "list_name"
+
+<listInt name="list_name" />
+specifies a list of PyInt objects with the name "list_name"
+
+<listStr name="list_name" />
+specifies a list of PyString objects with the name "list_name"; no explicit
+
+<string name="string_name" safe="*true/false*"/>
+simple object type PyString with the name "string_name"
+(optional)safe adds check for WString in decoder (unknown on encode)
+
+<wstring name="wstring_name" safe="*true/false*"/>
+simple object type PyWString with the name "wstring_name"
+(optional)safe adds check for String in decoder (unknown on encode)
+
+<real name="real_name" safe="*true/false*/>
+simple object type PyFloat with the name "real_name"
+(optional) safe adds all other numeric types to decoder and prints warning if any of them hit
+
+<int name="int_name" safe="*true/false*/>
+simple object type PyInt with the name "int_name"
+(optional) safe adds all other numeric types to decoder and prints warning if any of them hit
+
+<long name="long_name" safe="*true/false*/>
+simple object type PyLong with the name "long_name"
+(optional) safe adds all other numeric types to decoder and prints warning if any of them hit
+
+<bool name="bool_name" safe="*true/false*/>
+simple object type PyBool with the name "bool_name"
+(optional) safe adds all other numeric types to decoder and prints warning if any of them hit
+
+<*type* *identifier* none_marker="*value*" />
+for decoding, none_marker means if this tag IsNone(), initialize an *identifier* of *type* to *value*
+for encoding, none_marker means if *identifier* == *value*, set *identifier* to new PyNone()  (for sending to client)
+
+<*type* *identifier* optional="*true/false*" />
+for token, pyobject dict and ??  optional means if this tag IsNone(), set *identifier* to nullptr
+
+<raw *identifier* unusual="*true/false*" />
+(optional) unusual adds all Py* types to decoder (for raw only) and prints warning if any of them hit
+    as a catch-all, if none of them hit, raw decodes as PyRep.
+
+
+"safe" will decode given numeric type into *type* listed
+  - update.  decoder now uses PyRep::IntegerValue() which will test for all integer types, including 'none'
+  - this renders 'safe' and 'none_marker' useless on decoding int and long types
+  - 'safe' enables PyRep::IntegerValue() decoding on float and real types
+
+there is "default" in all numeric tags which initializes variable to this value if set.
+if "default" is not set, variable is initialized to "0".
+
+
+***** UPDATE *****
+"none_marker" and "safe" for integer types has been depreciated.  "real" still uses these tags
+"none_marker" on int will force decoder to use given value if field is None  (useful for using -1 instead of 0 if field is None)
+code as been updated to use PyRep::IntegerValue(), which checks for PyRep type and decodes accordingly, with PyNone decoding as "0"
+
+
+defined types
+        smEncTypes[ "element" ] = "PyRep";
+        smEncTypes[ "elementDef" ] = "PyRep";
+        smEncTypes[ "elementPtr" ] = "PyRep";
+
+        smEncTypes[ "raw" ] = "PyRep";
+        smEncTypes[ "int" ] = "PyInt";
+        smEncTypes[ "long" ] = "PyLong";
+        smEncTypes[ "real" ] = "PyFloat";
+        smEncTypes[ "bool" ] = "PyBool";
+        smEncTypes[ "none" ] = "PyNone";
+        smEncTypes[ "buffer" ] = "PyBuffer";
+
+        smEncTypes[ "string" ] = "PyString";
+        smEncTypes[ "stringInline" ] = "PyString";
+        smEncTypes[ "wstring" ] = "PyWString";
+        smEncTypes[ "wstringInline" ] = "PyWString";
+        smEncTypes[ "token" ] = "PyToken";
+        smEncTypes[ "tokenInline" ] = "PyToken";
+
+        smEncTypes[ "object" ] = "PyObject";
+        smEncTypes[ "objectInline" ] = "PyObject";
+        smEncTypes[ "objectEx" ] = "PyObjectEx";
+
+        smEncTypes[ "tuple" ] = "PyTuple";
+        smEncTypes[ "tupleInline" ] = "PyTuple";
+        smEncTypes[ "list" ] = "PyList";
+        smEncTypes[ "listInline" ] = "PyList";
+        smEncTypes[ "listInt" ] = "PyList";
+        smEncTypes[ "listLong" ] = "PyList";
+        smEncTypes[ "listStr" ] = "PyList";
+        smEncTypes[ "dict" ] = "PyDict";
+        smEncTypes[ "dictInline" ] = "PyDict";
+        smEncTypes[ "dictRaw" ] = "PyDict";
+        smEncTypes[ "dictInt" ] = "PyDict";
+        smEncTypes[ "dictStr" ] = "PyDict";
+
+        smEncTypes[ "substreamInline" ] = "PySubStream";
+        smEncTypes[ "substructInline" ] = "PySubStruct";

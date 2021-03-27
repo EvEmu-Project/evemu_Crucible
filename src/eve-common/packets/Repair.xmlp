@@ -1,0 +1,74 @@
+<elements>
+
+  <elementDef name="Call_RepairItems">
+    <tupleInline>
+      <list name="itemIDs" />
+      <real name="iskAmount" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="RepairListRsp">
+    <objectInline>
+      <stringInline value="util.Row" />
+      <dictInline>
+        <dictInlineEntry key="header">
+          <listInline>
+            <stringInline value="playerStanding" />
+            <stringInline value="serviceCharge" />
+            <stringInline value="discount" />
+            <stringInline value="quote" />
+          </listInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="line">
+          <listInline>
+            <real name="playerStanding" />
+            <string name="serviceCharge" />
+            <string name="discount" />
+            <objectInline>
+              <stringInline value="util.Rowset" />
+              <dictInline>
+                <dictInlineEntry key="header">
+                  <listInline>
+                    <stringInline value="itemID" />
+                    <stringInline value="typeID" />
+                    <stringInline value="groupID" />
+                    <stringInline value="damage" />
+                    <stringInline value="maxHealth" />
+                    <stringInline value="repairable" />
+                    <stringInline value="costToRepairOneUnitOfDamage" />
+                  </listInline>
+                </dictInlineEntry>
+                <dictInlineEntry key="RowClass">
+                  <tokenInline value="util.Row" />
+                </dictInlineEntry>
+                <dictInlineEntry key="lines">
+                  <list name="lines" />
+                </dictInlineEntry>
+              </dictInline>
+            </objectInline>
+          </listInline>
+        </dictInlineEntry>
+      </dictInline>
+    </objectInline>
+  </elementDef>
+
+  <elementDef name="RepairItemData">
+    <listInline>
+      <int name="itemID" />
+      <int name="typeID" />
+      <int name="groupID" />
+      <int name="damage" />
+      <int name="maxHealth" />
+      <int name="repairable" />
+      <real name="costToRepairOneUnitOfDamage" />
+    </listInline>
+  </elementDef>
+
+  <elementDef name="Call_UnasembleItems">
+    <tupleInline>
+      <dict name="dict" />
+      <list name="list" />
+    </tupleInline>
+  </elementDef>
+
+</elements>

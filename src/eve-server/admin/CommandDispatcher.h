@@ -3,6 +3,7 @@
 
 #include "admin/CommandDB.h"
 
+
 class Client;
 class Seperator;
 class PyResult;
@@ -15,21 +16,24 @@ public:
 
     class CommandRecord {
     public:
-        CommandRecord( const char * cmd, const char * desc, uint64 req_role, CommandFunc& callback ) : command(cmd),
-            description(desc), required_role(req_role), function(callback) {}
+        CommandRecord( const char * cmd, const char * desc, int64 req_role, CommandFunc& callback )
+        : command(cmd), description(desc), required_role(req_role), function(callback) {}
 
         std::string command;
         std::string description;
-        uint64 required_role;
+        int64 required_role;
         CommandFunc function;
     };
 
     CommandDispatcher(PyServiceMgr &services);
     virtual ~CommandDispatcher();
 
+    void Close();
+
     PyResult Execute(Client *from, const char *msg);
 
-    void AddCommand(const char *cmd, const char *desc, uint64 required_role, CommandFunc function);
+    void AddCommand(const char *cmd, const char *desc, int64 required_role, CommandFunc function);
+    void ListCommands();
 
 protected:
     PyServiceMgr &m_services;

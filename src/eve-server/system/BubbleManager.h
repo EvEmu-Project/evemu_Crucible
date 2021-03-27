@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -25,10 +25,13 @@
 #ifndef __BUBBLEMANAGER_H_INCL__
 #define __BUBBLEMANAGER_H_INCL__
 
-#define BUBBLE_RADIUS_METERS 500000.0       // EVE retail uses 250km and allows grid manipulation, for simplicity we dont and have our grid much larger
-#define BUBBLE_HYSTERESIS_METERS 5000.0     // How far out of the existing bubble a ship needs to fly before being placed into a new or different bubble
 
-class SystemEntity;
+#include <unordered_map>
+#include "system/SystemEntity.h"
+
+static const float BUBBLE_RADIUS_METERS = 300000.0f;       // EVE retail uses 250km and allows grid manipulation  NOTE:  this is based on testing for best results.  -allan
+static const float BUBBLE_HYSTERESIS_METERS = 5000.0f;     // How far out of the existing bubble a ship needs to fly before being placed into a new or different bubble
+
 class SystemBubble;
 class GPoint;
 
@@ -40,39 +43,82 @@ class GPoint;
 // linear search. obviously a much better spacial partitioning
 // scheme could be written later (octtree or quadtree maybe?)
 // and this would be the place to put it.
-class BubbleManager {
+class BubbleManager
+: public Singleton<BubbleManager>
+{
 public:
     BubbleManager();
     ~BubbleManager();
 
+    int Initialize();
     void Process();
 
+    // call to check for and remove empty bubbles from bubble vector
+    void RemoveEmpty();
     //call whenever an entity may have left its bubble.
-    void UpdateBubble(SystemEntity *ent, bool notify=true, bool isWarping=false, bool isPostWarp=false);
+    void CheckBubble(SystemEntity* ent);
     //call when an entity is added to the system.
-    void Add(SystemEntity *ent, bool notify, bool isPostWarp=false);
-	//call to find the bubble containing the SystemEntity specified, if no bubble does, return NULL
-	SystemBubble * FindBubble(SystemEntity *ent) const;
-	//call to find the bubble containing the GPoint specified, if no bubble does, return NULL
-	SystemBubble * FindBubble(const GPoint &pos) const;
+    void Add(SystemEntity* pSE, bool isPostWarp = false);
+    //call to find the bubble containing the SystemEntity specified, if no bubble does, return NULL
+    SystemBubble* FindBubble(SystemEntity *ent) const;
+    //call to find the bubble containing the GPoint specified, if no bubble does, return NULL
+    SystemBubble* FindBubble(uint32 systemID, const GPoint &pos) const;
+    SystemBubble* FindBubbleByID(uint16 bubbleID);
+    //find the bubble containing the GPoint specified.  will call create to make new bubble if none found.
+    //  this is preferred method to create new bubble.
+    SystemBubble* GetBubble(SystemManager* sysMgr, const GPoint &pos);
     //call to calculate new bubble's center from entity's velocity:
-    void NewBubbleCenter(GVector shipVelocity, GPoint & newBubbleCenter);
+    void NewBubbleCenter(GVector shipVelocity, GPoint& newBubbleCenter);
     //call when an entity is removed from the system.
-    void Remove(SystemEntity *ent, bool notify);
+    void Remove(SystemEntity* ent);
     void clear();
+    void ClearSystemBubbles(uint32 systemID);
+    void RemoveBubble(uint32 systemID, SystemBubble* pSB);
+
+    uint32 Count()                                      { return m_bubbles.size(); }
+    uint32 GetBubbleID()                                { return ++m_bubbleID; }
+
+    // for spawn system     -allan 15April16
+    void AddSpawnID(uint16 bubbleID, uint32 spawnID);
+    void RemoveSpawnID(uint16 bubbleID, uint32 spawnID);
+    uint32 GetBeltID(uint16 bubbleID);
+
+    // for .list command
+    uint32 GetBubbleCount(uint32 systemID);
+
+    // for .bubbletrack command
+    void MarkCenters(); // for all bubbles, across all systems
+    void RemoveMarkers();// for all bubbles, across all systems
+    void MarkCenters(uint32 systemID); // for bubbles in given system
+    void RemoveMarkers(uint32 systemID);// for bubbles in given system
+
+    // for showing bubble centers in scan window (using .showall)
+    void GetBubbleCenterMarkers(std::vector<CosmicSignature>& anom);
+    void GetBubbleCenterMarkers(uint32 systemID, std::vector<CosmicSignature>& anom);
 
 protected:
+    SystemBubble* MakeBubble(SystemManager* sysMgr, GPoint pos);
 
+private:
+    Timer m_emptyTimer;
     Timer m_wanderTimer;
 
-    //dumb storage for now:
-    std::vector<SystemBubble *> m_bubbles;    //we own these. Dynamic only because I am afraid of copy activities.
+    uint32 m_bubbleID;
+
+    /* map of bubbleID, spawnID */
+    std::map<uint16, uint32> m_spawnIDs;
+
+    std::list<SystemBubble*> m_bubbles;                 //for proc only.
+    std::vector<SystemEntity*> m_wanderers;             //entities that are no longer in their bubble, but not removed
+
+    std::map<uint32, SystemBubble*> m_bubbleIDMap;     // bubbleID/bubble*
+
+    std::unordered_multimap<uint32, SystemBubble*> m_sysBubbleMap;  // systemID/bubble*
 };
 
-
-
+//Singleton
+#define sBubbleMgr \
+( BubbleManager::get() )
 
 
 #endif
-
-

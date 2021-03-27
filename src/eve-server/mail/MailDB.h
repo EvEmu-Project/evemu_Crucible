@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -37,12 +37,78 @@ class MailDB : public ServiceDB
 {
 public:
     PyRep* GetLabels(int characterID) const;
+
+    PyString* GetMailBody(int id) const;
+
+    void SetMailUnread(int id);
+    void SetMailRead(int id);
+    void SetMailsUnread(std::vector<int32> ids);
+    void SetMailsRead(std::vector<int32> ids);
+    void MarkAllAsRead(uint32 characterID);
+    void MarkAllAsUnread(uint32 characterID);
+
     bool CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID) const;
     void DeleteLabel(int characterID, int labelID) const;
     void EditLabel(int characterID, Call_EditLabel& args) const;
+    void ApplyLabel(int32 messageID, int labelID);
+    void ApplyLabels(std::vector<int32> messageIDs, int labelID);
 
-    PyString* GetMailBody(int id) const;
-    void SetMailUnread(int id, bool unread);
+    void MarkAllAsReadByLabel(uint32 characterID, int labelID);
+    void MarkAllAsUnreadByLabel(uint32 characterID, int labelID);
+    void RemoveLabels(std::vector<int32> messageIDs, int labelID);
+    
+    void DeleteMail(int32 messageID);
+
+    void EmptyTrash(uint32 characterID);
+    void MoveAllFromTrash(uint32 characterID);
+    void MoveAllToTrash(uint32 characterID);
+    void MoveFromTrash(int32 messageID);
+    void MoveToTrash(int32 messageID);
+    void MoveToTrashByLabel(int32 characterID, int32 labelID); 
+
+    // Mailing list
+
+    PyDict *GetJoinedMailingLists(uint32 characterID);
+    uint32 CreateMailingList(uint32 creator, std::string name, int32 defaultAccess,
+                           int32 defaultMemberAccess, int32 cost); 
+
+    void JoinMailingList(uint32 characterID, std::string name);
+    void LeaveMailingList(uint32 characterID, int32 listID);
+    void DeleteMailingList(uint32 characterID, int32 listID);
+    // @TODO(groove): KickMembers Figure out converting PyList member info into something usable..
+    PyDict *GetMailingListMembers(int32 listID);
+    void MailingListSetEntityAccess(int32 entity, int32 access, int32 listID);
+    void MailingListClearEntityAccess(int32 entity, int32 listID);
+    // @TODO(groove): SetMailingListMembersMuted
+    // @TODO(groove): SetMailingListMembersOperator
+    // @TODO(groove): SetMailingListMembersClear
+    // @TODO(groove): SetMailingListDefaultAccesss
+    void SetMailingListDefaultAccess(int32 listID, int32 defaultAccess,
+                                     int32 defaultMemberAccess, int32 cost);
+    //              : Make generic method for this shit^^^
+    //
+    // @TODO(groove): MailingListGetInfo
+    PyObject *MailingListGetSettings(int32 listID);
+    // @TODO(groove): MailingListGetWelcomeMail
+    // @TODO(groove): MailingListSaveWelcomeMail
+    // @TODO(groove): MailingListSendWelcomeMail
+    // @TODO(groove): MailingListClearWelcomeMail
+                               
+    
+    
+
+    // Helpers
+
+    void ApplyStatusMasks(std::vector<int32> messageIDs, int mask);
+    void RemoveStatusMasks(std::vector<int32> messageIDs, int mask);
+    void ApplyStatusMask(int32 messageID, int mask);
+    void RemoveStatusMask(int32 messageID, int mask);
+
+    void ApplyLabelMask(int32 messageID, int mask);
+    void ApplyLabelMasks(std::vector<int32> messageIDs, int mask);
+    void RemoveLabelMask(int32 messageID, int mask);
+    void RemoveLabelMasks(std::vector<int32> messageIDs, int mask);
+
     int SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom);
     PyRep* GetNewMail(int charId);
     PyRep* GetMailStatus(int charId);

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:        Allan
 */
 
 #include "eve-server.h"
@@ -28,36 +29,40 @@
 #include "Client.h"
 #include "PyCallable.h"
 #include "admin/CommandDispatcher.h"
+#include "system/DestinyManager.h"
 
 CommandDispatcher::CommandDispatcher( PyServiceMgr& services )
 : m_services( services )
 {
+    m_commands.clear();
 }
 
 CommandDispatcher::~CommandDispatcher() {
-    std::map<std::string, CommandRecord *>::iterator cur, end;
-    cur = m_commands.begin();
-    end = m_commands.end();
-    for(; cur != end; cur++) {
-        delete cur->second;
-    }
+    for (auto cur : m_commands)
+        SafeDelete(cur.second);
+    m_commands.clear();
 }
 
-PyResult CommandDispatcher::Execute( Client *from, const char* msg )
+PyResult CommandDispatcher::Execute( Client* from, const char* msg )
 {
-    //might want to check for # or / at the beginning of this crap.
-    Seperator sep( &msg[1] );
+     /** @todo  fix this shit...
+    if (from->IsInSpace()) {
+        if (!from->DestinyMgr())
+            from->SendErrorMsg( "Internal Server Error.  Ref: ServerError 31110 " );
+        if (from->DestinyMgr()->IsWarping() && ((from->GetAccountRole() & Acct::Role::GML) != Acct::Role::GML)) {
+            sLog.Error( "CommandDispatcher", " Command Requested by %s while warping. --Access denied.", from->GetName() );
+            from->SendErrorMsg( "ServerError 31113 - Cannot Request Commands While Warping." );
+        }
+    } */
 
-    if( 0 == sep.argCount() )
-    {
+    Seperator sep( &msg[1] );
+    if (!sep.argCount()) {
         //empty command, return list of commands
         std::string reason = "Commands: ";
 
-        std::map<std::string, CommandRecord *>::const_iterator cur, end;
-        cur = m_commands.begin();
-        end = m_commands.end();
+        std::map<std::string, CommandRecord *>::const_iterator cur = m_commands.begin();
         reason += "[";
-        for(; cur != end; cur++)
+        for(; cur != m_commands.end(); cur++)
             reason += "'" + cur->second->command + "',";
         reason += "]";
 
@@ -67,32 +72,43 @@ PyResult CommandDispatcher::Execute( Client *from, const char* msg )
         throw PyException( err );
     }
 
-    std::map<std::string, CommandRecord*>::const_iterator res = m_commands.find( sep.arg( 0 ) );
-    if( m_commands.end() == res )
-    {
-        sLog.Error( "CommandDispatcher", "Unable to find command '%s' for %s", sep.arg( 0 ).c_str(), from->GetName() );
-
-        throw PyException( MakeCustomError( "Unknown command '%s'", sep.arg( 0 ).c_str() ) );
+    std::map<std::string, CommandRecord*>::const_iterator itr = m_commands.find( sep.arg( 0 ) );
+    if (m_commands.end() == itr ) {
+        _log(COMMAND__ERROR, "Unable to find command '%s' for %s", sep.arg( 0 ).c_str(), from->GetName() );
+        throw PyException(MakeCustomError("Unknown command '%s'", sep.arg( 0 ).c_str() ) );
     }
 
-    CommandRecord* rec = res->second;
+    CommandRecord* rec = itr->second;
 
-    if( ( from->GetAccountRole() & rec->required_role ) != rec->required_role )
-    {
-        sLog.Error( "CommandDispatcher", "Access denied to %s for command '%s', had role 0x%x, need role 0x%x",
-                    from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role );
-
-        throw PyException( MakeCustomError( "Access denied to command '%s'", sep.arg( 0 ).c_str() ) );
+    _log(COMMAND__INFO, "Request access to command '%s' with role %p for '%s' with role %p.",  rec->command.c_str(), rec->required_role, from->GetName(), from->GetAccountRole() );
+    if ((from->GetAccountRole() & rec->required_role) != rec->required_role) {
+        _log(COMMAND__ERROR, "Access denied to %s for command '%s'. --have role %p, need role %p", from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role );
+        throw PyException(MakeCustomError("Access denied to command '%s'", sep.arg( 0 ).c_str() ) );
     }
 
     return ( *rec->function )( from, &m_db, &m_services, sep );
 }
 
-void CommandDispatcher::AddCommand( const char* cmd, const char* desc, uint64 required_role, CommandFunc function )
+void CommandDispatcher::AddCommand( const char* cmd, const char* desc, int64 required_role, CommandFunc function )
 {
-    std::map<std::string, CommandRecord*>::iterator res = m_commands.find( cmd );
-    if( m_commands.end() != res )
-        SafeDelete( res->second );
+    std::map<std::string, CommandRecord*>::iterator itr = m_commands.find( cmd );
+    if (itr != m_commands.end())
+        SafeDelete( itr->second );
 
     m_commands[cmd] = new CommandRecord( cmd, desc, required_role, function );
+}
+
+void CommandDispatcher::ListCommands() {
+    sLog.Green("  EVEmu", "Currently Loaded %u Commands:", m_commands.size());
+    std::map<std::string, CommandDispatcher::CommandRecord*>::iterator itr = m_commands.begin();
+    for (; itr != m_commands.end(); ++itr) {
+        sLog.Magenta("    Call and Role", "%s - %p (%li)",
+                     itr->first.c_str(), itr->second->required_role, itr->second->required_role);
+    }
+}
+
+void CommandDispatcher::Close() {
+    for (auto cur : m_commands)
+        SafeDelete(cur.second);
+    m_commands.clear();
 }

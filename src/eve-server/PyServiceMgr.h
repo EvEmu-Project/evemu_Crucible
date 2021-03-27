@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,7 +27,7 @@
 #ifndef __PYSERVICEMGR_H_INCL__
 #define __PYSERVICEMGR_H_INCL__
 
-#include "inventory/ItemFactory.h"
+#include "eve-server.h"
 
 class PyService;
 class PyCallable;
@@ -47,52 +47,49 @@ class LSCService;
 class PyServiceMgr
 {
 public:
-    PyServiceMgr( uint32 nodeID, EntityList& elist, ItemFactory& ifactory );
+    struct BoundObj
+    {
+        Client* client;         //we do not own this.
+        PyBoundObject* object;  //we own this. PyServiceMgr deletes it
+    };
+
+    PyServiceMgr( uint32 nodeID, EntityList& elist);
     ~PyServiceMgr();
 
+    void Initalize(double startTime);
+
+    void Close();
     void Process();
 
-    void RegisterService( PyService* d );
-    PyService* LookupService( const std::string& name );
+    void RegisterService(const std::string& name, PyService* svc);
+    PyService* LookupService(const std::string& name);
 
-    uint32 GetNodeID() const { return(m_nodeID); }
+    uint32 GetNodeID() const                            { return m_nodeID; }
 
     //object binding, not fully understood yet.
-    PySubStruct *BindObject(Client *who, PyBoundObject *obj, PyDict **dict = NULL);
+    PySubStruct *BindObject(Client* pClient, PyBoundObject* pObj, PyDict* dict=nullptr, PyDict *oid=nullptr);
     PyBoundObject *FindBoundObject(uint32 bindID);
     void ClearBoundObject(uint32 bindID);
-    void ClearBoundObjects(Client *who);
-
-    //this is a hack and needs to die:
-    ServiceDB &serviceDB() { return(m_svcDB); }
-
-    ItemFactory &item_factory;    //here for anybody to use. we do not own this.
-    EntityList &entity_list;    //here for anybody to use. we do not own this.
 
     //Area to access services by name. This isn't ideal, but it avoids casting.
     //these may be NULL during service init, but should never be after that.
     //we do not own these pointers (we do in their PyService * form though)
-    LSCService *lsc_service;
-    ObjCacheService *cache_service;
+    LSCService* lsc_service;
+    ObjCacheService* cache_service;
+
+    // for shitz-n-giggles...command to list all bound objects in map
+    void BoundObjectVec(std::vector<BoundObj>& vec);
 
 protected:
-    std::set<PyService *> m_services;    //we own these pointers.
+    std::map<std::string, PyService*>   m_svcList;      //we own these pointers.
 
-    uint32 m_nextBindID;
-    uint32 _GetBindID() { return(m_nextBindID++); }
 
-    struct BoundObject
-    {
-        Client *client;    //we do not own this.
-        PyBoundObject *destination;    //we own this. PyServiceMgr deletes it
-    };
-
-    typedef std::map<uint32, BoundObject>   ObjectsBoundMap;
-    typedef ObjectsBoundMap::iterator       ObjectsBoundMapItr;
-    ObjectsBoundMap m_boundObjects;
+    typedef std::map<uint32, BoundObj>  ObjectsBoundMap;
+    typedef ObjectsBoundMap::iterator   ObjectsBoundMapItr;
+    ObjectsBoundMap                     m_boundObjects;         // bindID/BoundObject{client/object(PyBoundObject)}
 
     uint32 m_nodeID;
-    ServiceDB m_svcDB;    //this is crap, get rid of this
+    uint32 m_nextBindID;
 };
 
 #endif

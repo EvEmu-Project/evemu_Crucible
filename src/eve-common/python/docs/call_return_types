@@ -1,0 +1,58 @@
+
+var1 = {client call}
+    when data is accessed using dot, set the return to
+        return new PyObject("util.KeyVal", result);
+    where result is PyDict()
+    however, if var1 is iterated, then set result to PyList() and load the list with dicts
+            list->AddItem(new PyObject("util.KeyVal", dict));
+
+    if db call, use DBRowToKeyVal, DBResultToIndexRowset, or DBResultToCRowset for data accessed using dot.
+    these return a PyObject
+    the diff returns are based on how the data is accessed
+
+
+    PyObject using util.Rowset uses header/lines   <<<  notice the plural
+    PyObject using util.Row uses header/line       <<<  notice the singular
+
+    if this doesnt work, use packedRow (see II::GetItemRow or SelectByUniqueColumnValues())
+
+
+var1, var2 (...) = {client call}
+    this wants a return as a tuple()
+    this case is tuple(2)  item[0] = var1, item[1] = var2
+
+for typeID, quantity in self.moon[1]
+    this is a list of tuples inside a tuple
+
+for recruiter in node.recruiters:
+    this wants a tuple of ids
+
+medalDetails.info[0].description
+    dict of dicts
+    dict.data[key].data
+
+
+python initialization for types
+list = []
+dict = {}
+
+
+x**y in python is exponent (x^y)
+
+
+python slice notation
+a[start:stop:step]
+a[start:end] # items from start through end-1
+a[start:]    # items from start through the rest of the array
+a[:end]      # items from the beginning through end-1
+a[:]         # a copy of the whole array
+
+a[-1:]    # last item in the array
+a[-2:]    # last two items in the array
+a[:-2]    # everything except the last two items
+
+a[::-1] every item, in reverse
+a[::-2] every 2nd item, in reverse
+
+
+

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,27 +42,23 @@ protected:
 
     CorporationDB m_db;
 
-    PyCallable_DECL_CALL(GetFactionInfo)
-    PyCallable_DECL_CALL(GetCorpInfo)
-    PyCallable_DECL_CALL(GetNPCDivisions)
-    PyCallable_DECL_CALL(GetEmploymentRecord)
-    PyCallable_DECL_CALL(GetMedalsReceived)
-    PyCallable_DECL_CALL(GetAllCorpMedals)
-    PyCallable_DECL_CALL(GetRecruitmentAdTypes)
-    PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria)
-    PyCallable_DECL_CALL(GetRecruitmentAdRegistryData)
-    PyCallable_DECL_CALL(SetAccountKey)
-    PyCallable_DECL_CALL(IsEnemyFaction)
-    PyCallable_DECL_CALL(GetVoteCasesByCorporation)
-    PyCallable_DECL_CALL(MoveCorpHQHere)
-    PyCallable_DECL_CALL(AddCorporateContact)
-    PyCallable_DECL_CALL(GetRecentKillsAndLosses)
+    PyCallable_DECL_CALL(GetFactionInfo);
+    PyCallable_DECL_CALL(GetCorpInfo);
+    PyCallable_DECL_CALL(GetNPCDivisions);
+    PyCallable_DECL_CALL(GetEmploymentRecord);
+    PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria);
+    PyCallable_DECL_CALL(GetRecruitmentAdRegistryData);
+    PyCallable_DECL_CALL(GetRecruitmentAdsForCorporation);
+
+    PyCallable_DECL_CALL(CreateMedal);
+    PyCallable_DECL_CALL(GiveMedalToCharacters);
+    PyCallable_DECL_CALL(GetMedalsReceived);
+    PyCallable_DECL_CALL(GetMedalDetails);
+    PyCallable_DECL_CALL(GetAllCorpMedals);
+    PyCallable_DECL_CALL(SetMedalStatus);
+    PyCallable_DECL_CALL(GetMedalStatuses);
+    PyCallable_DECL_CALL(GetRecipientsOfMedal);
+
 };
 
-
-
-
-
 #endif
-
-

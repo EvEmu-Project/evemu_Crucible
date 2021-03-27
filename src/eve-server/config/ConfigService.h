@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -20,7 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Zhur, Allan
 */
 
 
@@ -42,29 +42,24 @@ protected:
 
     ConfigDB m_db;
 
-    PyCallable_DECL_CALL(GetMultiOwnersEx)
-    PyCallable_DECL_CALL(GetMultiLocationsEx)
-    PyCallable_DECL_CALL(GetMultiAllianceShortNamesEx)
-    PyCallable_DECL_CALL(GetMultiCorpTickerNamesEx)
-    PyCallable_DECL_CALL(GetUnits)
-    PyCallable_DECL_CALL(GetMapObjects)
-    PyCallable_DECL_CALL(GetMapOffices)
-    PyCallable_DECL_CALL(GetMap)
-    PyCallable_DECL_CALL(GetMapConnections)
-    PyCallable_DECL_CALL(GetMultiGraphicsEx)
-    PyCallable_DECL_CALL(GetMultiInvTypesEx)
-    PyCallable_DECL_CALL(GetStationSolarSystemsByOwner)
-    PyCallable_DECL_CALL(GetCelestialStatistic)
-    PyCallable_DECL_CALL(GetDynamicCelestials)
-    PyCallable_DECL_CALL(GetMapLandmarks)
-    PyCallable_DECL_CALL(SetMapLandmarks)
+    PyCallable_DECL_CALL(GetMultiOwnersEx);
+    PyCallable_DECL_CALL(GetMultiLocationsEx);
+    PyCallable_DECL_CALL(GetMultiStationEx);
+    PyCallable_DECL_CALL(GetMultiAllianceShortNamesEx);
+    PyCallable_DECL_CALL(GetMultiCorpTickerNamesEx);
+    PyCallable_DECL_CALL(GetUnits);
+    PyCallable_DECL_CALL(GetMapObjects);
+    PyCallable_DECL_CALL(GetMapOffices);
+    PyCallable_DECL_CALL(GetMap);
+    PyCallable_DECL_CALL(GetMapConnections);
+    PyCallable_DECL_CALL(GetMultiGraphicsEx);
+    PyCallable_DECL_CALL(GetMultiInvTypesEx);
+    PyCallable_DECL_CALL(GetStationSolarSystemsByOwner);
+    PyCallable_DECL_CALL(GetCelestialStatistic);
+    PyCallable_DECL_CALL(GetDynamicCelestials);
+    PyCallable_DECL_CALL(GetMapLandmarks);
+    PyCallable_DECL_CALL(SetMapLandmarks);
 
 };
 
-
-
-
-
 #endif
-
-

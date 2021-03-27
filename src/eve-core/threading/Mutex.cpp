@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -93,7 +93,7 @@ MRMutex::MRMutex() {
 MRMutex::~MRMutex() {
 #ifdef _EQDEBUG
     if (wl || rl) {
-        cout << "MRMutex::~MRMutex(): poor cleanup detected: rl=" << rl << ", wl=" << wl << endl;
+        cout << "MRMutex::~MRMutex: poor cleanup detected: rl=" << rl << ", wl=" << wl << endl;
     }
 #endif
 }
@@ -107,7 +107,7 @@ void MRMutex::ReadLock() {
 bool MRMutex::TryReadLock() {
     MCounters.Lock();
     if (!wr && !wl) {
-        rl++;
+        ++rl;
         MCounters.Unlock();
         return true;
     }
@@ -119,7 +119,7 @@ bool MRMutex::TryReadLock() {
 
 void MRMutex::UnReadLock() {
     MCounters.Lock();
-    rl--;
+    --rl;
 #ifdef _EQDEBUG
     if (rl < 0) {
         ThrowError("rl < 0 in MRMutex::UnReadLock()");
@@ -131,18 +131,18 @@ void MRMutex::UnReadLock() {
 void MRMutex::WriteLock() {
     MCounters.Lock();
     if (!rl && !wl) {
-        wl++;
+        ++wl;
         MCounters.Unlock();
         return;
     }
     else {
-        wr++;
+        ++wr;
         MCounters.Unlock();
         while (1) {
             Sleep(1);
             MCounters.Lock();
             if (!rl && !wl) {
-                wr--;
+                --wr;
                 MCounters.Unlock();
                 return;
             }
@@ -154,7 +154,7 @@ void MRMutex::WriteLock() {
 bool MRMutex::TryWriteLock() {
     MCounters.Lock();
     if (!rl && !wl) {
-        wl++;
+        ++wl;
         MCounters.Unlock();
         return true;
     }
@@ -166,7 +166,7 @@ bool MRMutex::TryWriteLock() {
 
 void MRMutex::UnWriteLock() {
     MCounters.Lock();
-    wl--;
+    --wl;
 #ifdef _EQDEBUG
     if (wl < 0) {
         ThrowError("wl < 0 in MRMutex::UnWriteLock()");

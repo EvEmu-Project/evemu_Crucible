@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -51,8 +51,7 @@ public:
     //overload Callable for binding:
     virtual PyResult Call(const std::string &method, PyCallArgs &args);
 
-    const char *GetName() const { return(m_name.c_str()); }
-    EntityList &entityList() const { return(m_manager->entity_list); }
+    const char* GetName() const                         { return m_name; }
 
 protected:
     typedef enum {    //enum to make sure the caller uses legit values.
@@ -83,7 +82,7 @@ protected:
     PyObject *_BuildCachedReturn(PySubStream **result, const char *sessionInfo, CacheCheckTime check);
 
     //you MUST overload this factory method if you offer any bound services:
-    virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+    virtual PyBoundObject* CreateBoundObject(Client *pClient, const PyRep *bind_args);
 
     //some service-level remote calls, need to be reworked:
     virtual PyResult Handle_MachoResolveObject(PyCallArgs &call);
@@ -92,89 +91,8 @@ protected:
     PyServiceMgr *const m_manager;
 
 private:
-    std::string m_name;
+    const char* m_name;
 };
-
-#if 0
-class FixedEngine {
-public:
-
-};
-
-class VelocityManager {
-public:
-
-    void Go(Ga::GaFloat step) {
-        const Ga::GaVec3 LinearVelocity = m_body->getLinearVelocity();
-
-        Ga::GaFloat velocityMag = LinearVelocity.length();
-
-        if(velocityMag == m_maxLinearVelocity)    //do nothing...
-            return;
-
-        Ga::GaVec3 heading = m_body->getOrientation() * (1, 0, 0);
-
-        Ga::GaFloat maxAccel = m_maxThrust / m_mass;    // m/s^2
-        Ga::GaFloat deltaVelocity = maxAccel * step;    // m/s
-
-        if(velocityMag > m_maxLinearVelocity) {
-            //slow down a little...
-            Ga::GaFloat newVelocity = velocityMag - deltaVelocity;
-            if(newVelocity >= m_maxLinearVelocity) {
-                //applying our full force for the entire timeslice will not reach our goal
-                heading *= -m_maxThrust;
-                m_body->applyForce(heading);
-                return;
-            }
-
-            //else, we need to throttle our thrust...
-            Ga::GaFloat overage = m_maxLinearVelocity - newVelocity;
-            Ga::GaFloat factor = 1 - (overage / deltaVelocity);
-
-            heading *= -m_maxThrust * factor;
-            m_body->applyForce(heading);
-        } else {
-            //speed up.
-            Ga::GaFloat newVelocity = velocityMag + deltaVelocity;
-            if(newVelocity >= m_maxLinearVelocity) {
-                //applying our full force for the entire timeslice will not reach our goal
-                heading *= m_maxThrust;
-                m_body->applyForce(heading);
-                return;
-            }
-
-            //else, we need to throttle our thrust...
-            Ga::GaFloat overage = m_maxLinearVelocity - newVelocity;
-            Ga::GaFloat factor = 1 - (overage / deltaVelocity);
-
-            heading *= m_maxThrust * factor;
-            m_body->applyForce(heading);
-        }
-    }
-
-protected:
-    Ga::GaFloat m_mass;                    // kg
-    Ga::GaFloat m_maxThrust;            // N
-    Ga::GaFloat m_maxLinearVelocity;    // m/s
-    Ga::GaPtr<Ga::Body> m_body;
-};
-
-class BodyFollower {
-public:
-
-    void Go(Ga::GaFloat step) {
-    }
-
-protected:
-    VelocityManager *const m_velocity;
-    DirectionManager *const m_direction;
-    Ga::GaPtr<Ga::Body> m_bodyToFollow;
-};
-
 
 #endif
-
-#endif
-
-
 

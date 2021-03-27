@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,11 +21,16 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Bloody.Rabbit
+    Updates:    Allan
 */
 
-#ifndef __SKILL__H__INCL__
-#define __SKILL__H__INCL__
+#ifndef EVE_SERVER_SKILLS_SKILL_H
+#define EVE_SERVER_SKILLS_SKILL_H
 
+
+#include "EVEServerConfig.h"
+#include "StaticDataMgr.h"
+#include "../../eve-core/utils/misc.h"
 #include "inventory/InventoryItem.h"
 
 class Character;
@@ -45,6 +50,8 @@ class Skill
 {
     friend class InventoryItem;
 public:
+    ~Skill() { /* do nothing here */ }
+
     /**
      * Loads skill.
      *
@@ -52,7 +59,7 @@ public:
      * @param[in] skillID ID of skill to load.
      * @return Pointer to new Skill object; NULL if fails.
      */
-    static SkillRef Load(ItemFactory &factory, uint32 skillID);
+    static SkillRef Load( uint32 skillID);
     /**
      * Spawns new skill.
      *
@@ -60,35 +67,26 @@ public:
      * @param[in] data Item data of new skill.
      * @return Pointer to new Skill object; NULL if fails.
      */
-    static SkillRef Spawn(ItemFactory &factory, ItemData &data);
+    static SkillRef Spawn( ItemData &data);
 
-    /**
-     * Calculates required amount of skillpoints for level.
-     *
-     * @param[in] level Level to calculate SP for.
-     * @return Amount of SP required.
-     */
-    EvilNumber GetSPForLevel(EvilNumber level);
-    /**
-     * Checks whether requirements of skill has been fulfilled.
-     *
-     * @param[in] ch Character which is checked.
-     * @return True if requirements are OK, false if not.
-     */
+    bool IsTraining();
+
+    uint8 GetLevelForSP(uint32 currentSP);
+    uint32 GetSPForLevel(uint8 level);
+    uint32 GetCurrentSP(Character* ch, int64 startTime=0);      // requires startTime for skill in training
+    // returns remaining sp to next level of this skill
+    uint32 GetRemainingSP(Character* ch, int64 curTime=0);      // requires Skill* = m_skillQueue.front()
+    // returns remaining time in seconds to train this skill to next level
+    uint32 GetTrainingTime(Character* ch, int64 startTime=0);
     bool SkillPrereqsComplete(Character &ch);
+    static bool FitModuleSkillCheck(InventoryItemRef item, CharacterRef ch);
 
-    /**
-     *Performs check on fitting items
-     */
-    static bool FitModuleSkillCheck(InventoryItemRef item, CharacterRef character);
+    void VerifySP();
+    void VerifyAttribs();
+
 
 protected:
-    Skill(
-        ItemFactory &_factory,
-        uint32 _skillID,
-        // InventoryItem stuff:
-        const ItemType &_type,
-        const ItemData &_data );
+    Skill(uint32 _skillID, const ItemType &_type, const ItemData &_data );
 
     /*
      * Member functions
@@ -97,43 +95,16 @@ protected:
 
     // Template loader:
     template<class _Ty>
-    static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 skillID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data)
-    {
-        // check it's a skill
-        if( type.categoryID() != EVEDB::invCategories::Skill )
-        {
-            sLog.Error("Skill", "Trying to load %s as Skill.", type.category().name().c_str() );
+    static RefPtr<_Ty> _LoadItem( uint32 skillID, const ItemType &type, const ItemData &data) {
+        if (type.categoryID() != EVEDB::invCategories::Skill) {
+            _log(ITEM__ERROR, "Trying to load %s as Skill.", sDataMgr.GetCategoryName(type.categoryID()));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
             return RefPtr<_Ty>();
         }
 
-        // no additional stuff
-
-        return _Ty::template _LoadSkill<_Ty>( factory, skillID, type, data );
+        return SkillRef( new Skill(skillID, type, data ) );
     }
-
-    // Actual loading stuff:
-    template<class _Ty>
-    static RefPtr<_Ty> _LoadSkill(ItemFactory &factory, uint32 skillID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data
-    );
-
-    static uint32 _Spawn(ItemFactory &factory,
-        // InventoryItem stuff:
-        ItemData &data
-    );
 };
 
-class Certificate
-: public InventoryItem
-{
-    friend class InventoryItem;
-    public:
-    protected:
-    private:
-};
-
-#endif /* !__SKILL__H__INCL__ */
-
+#endif  // EVE_SERVER_SKILLS_SKILL_H

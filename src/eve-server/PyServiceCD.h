@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -31,7 +31,7 @@
 
 /*
  * This whole concept exists to allow the generic PyService to make a
- * call to the specific `Scv` object with ->*
+ * call to the specific `Svc` object with ->*
  */
 template <class Svc>
 class PyCallableDispatcher
@@ -54,11 +54,14 @@ public:
     //CallDispatcher interface:
     virtual PyResult Dispatch(const std::string &method_name, PyCallArgs &call) {
         //this could be done a lot more efficiently with a custom data structure IF NEEDED
-        mapitr res;
-        res = m_serviceCalls.find(method_name);
-        if(res == m_serviceCalls.end()) {
+        mapitr res = m_serviceCalls.find(method_name);
+        if (res == m_serviceCalls.end()) {
             sLog.Error("Server","Unknown call to '%s' by '%s'", method_name.c_str(), call.client->GetName());
-            return NULL;
+            //  list registered calls for named service
+            //if (is_log_enabled(SERVICE__WARNING))
+            //    for (auto cur : m_serviceCalls)
+            //        _log(SERVICE__WARNING, "    %s", cur.first.c_str());
+            return nullptr;
         }
 
         CallProc p = res->second;

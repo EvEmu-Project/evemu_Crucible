@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -64,7 +64,7 @@ PyDict* GPSTransportClosed::_CreateKeywords( const char* reason )
     PyDict* keywords = new PyDict;
     //keywords->SetItemString( "origin", new PyString( "proxy" ) );
     keywords->SetItemString( "reasonArgs", new PyDict );
-    keywords->SetItemString( "clock", new PyLong( Win32TimeNow() ) );
+    keywords->SetItemString( "clock", new PyLong( GetFileTimeNow() ) );
     //keywords->SetItemString( "loggedOnUserCount", );
     keywords->SetItemString( "region", new PyString( EVEProjectRegion ) );
     keywords->SetItemString( "reason", new PyString( reason ) );

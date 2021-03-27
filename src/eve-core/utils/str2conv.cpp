@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -77,7 +77,7 @@ STR2( int64, SCNd64 )
 STR2( uint8,  SCNu8 )
 STR2( uint16, SCNu16 )
 STR2( uint32, SCNu32 )
-STR2( uint64, SCNu64 )
+//STR2( uint64, SCNu64 )
 
 STR2( float, "f" )
 STR2( double, "lf" )

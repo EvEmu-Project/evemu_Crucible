@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,13 +26,16 @@
 #ifndef __CELESTIAL__H__INCL__
 #define __CELESTIAL__H__INCL__
 
+#include "EVEServerConfig.h"
+#include "StaticDataMgr.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
 
 /**
  * Data container for celestial object.
  */
-class CelestialObjectData {
+class CelestialObjectData
+{
 public:
     CelestialObjectData(
         double _radius = 0.0,
@@ -41,7 +44,7 @@ public:
         uint8 _orbitIndex = 0
     );
 
-    // Data members:
+/* these have to be public for inventorydb to load into them */
     double radius;
     double security;
     uint8 celestialIndex;
@@ -56,103 +59,45 @@ class CelestialObject
 {
     friend class InventoryItem; // to let it construct us
 public:
-    CelestialObject(
-        ItemFactory &_factory,
-        uint32 _celestialID,
-        const ItemType &_type,
-        const ItemData &_data);
+    CelestialObject(uint32 _celestialID, const ItemType &_type, const ItemData &_data);
+    CelestialObject(uint32 _celestialID, const ItemType &_type, const ItemData &_data, const CelestialObjectData &_cData);
+    virtual ~CelestialObject()                          { /* do nothing here */ }
 
-    CelestialObject(
-        ItemFactory &_factory,
-        uint32 _celestialID,
-        // InventoryItem stuff:
-        const ItemType &_type,
-        const ItemData &_data,
-        // CelestialObject stuff:
-        const CelestialObjectData &_cData
-    );
+    static CelestialObjectRef Load( uint32 celestialID);
+    static CelestialObjectRef Spawn( ItemData &data);
 
-    /**
-     * Loads celestial object.
-     *
-     * @param[in] factory
-     * @param[in] celestialID ID of celestial object to load.
-     * @return Pointer to new CelestialObject; NULL if fails.
-     */
-    static CelestialObjectRef Load(ItemFactory &factory, uint32 celestialID);
-    /**
-     * Spawns new celestial object.
-     *
-     * @param[in] factory
-     * @param[in] data Item data for celestial object.
-     * @return Pointer to new celestial object; NULL if failed.
-     */
-    static CelestialObjectRef Spawn(ItemFactory &factory, ItemData &data);
-
-    /*
-     * Primary public interface:
-     */
     void Delete();
 
-    /*
-     * Access methods:
-     */
     double      radius() const { return m_radius; }
     double      security() const { return m_security; }
     uint8       celestialIndex() const { return m_celestialIndex; }
     uint8       orbitIndex() const { return m_orbitIndex; }
 
 protected:
-    /*
-     * Member functions:
-     */
     using InventoryItem::_Load;
+    //virtual bool _Load();
 
     // Template loader:
     template<class _Ty>
-    static RefPtr<_Ty> _LoadItem(ItemFactory &factory, uint32 celestialID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data)
+    static RefPtr<_Ty> _LoadItem( uint32 celestialID, const ItemType &type, const ItemData &data)
     {
-        // make sure it's celestial object, entity object or station
-        if( type.categoryID() != EVEDB::invCategories::Celestial
-            && type.categoryID() != EVEDB::invCategories::Entity
-            && type.groupID() != EVEDB::invGroups::Station )
-        {
-            _log( ITEM__ERROR, "Trying to load %s as Celestial.", type.category().name().c_str() );
+        if (type.categoryID() != EVEDB::invCategories::Celestial)  {
+            _log(ITEM__ERROR, "Trying to load %s as Celestial.", sDataMgr.GetCategoryName(type.categoryID()));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
             return RefPtr<_Ty>();
         }
 
-        // load celestial data
-        CelestialObjectData cData;
-        if( !factory.db().GetCelestialObject( celestialID, cData ) )
+        CelestialObjectData cData = CelestialObjectData();
+        if (!sItemFactory.db()->GetCelestialObject(celestialID, cData))
             return RefPtr<_Ty>();
 
-        return _Ty::template _LoadCelestialObject<_Ty>( factory, celestialID, type, data, cData );
+        return CelestialObjectRef( new CelestialObject(celestialID, type, data, cData ) );
     }
 
-    // Actual loading stuff:
-    template<class _Ty>
-    static RefPtr<_Ty> _LoadCelestialObject(ItemFactory &factory, uint32 celestialID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data,
-        // CelestialObject stuff:
-        const CelestialObjectData &cData
-    );
+    static uint32 CreateItemID( ItemData &data);
 
-    static uint32 _Spawn(ItemFactory &factory,
-        // InventoryItem stuff:
-        ItemData &data
-    );
-
-    uint32 inventoryID() const { return itemID(); }
-    PyRep *GetItem() const { return GetItemRow(); }
-
-    //void AddItem(InventoryItemRef item);
-
-    /*
-     * Data members:
-     */
+    /* these have to be public for inventorydb to load into them. */
     double m_radius;
     double m_security;
     uint8 m_celestialIndex;
@@ -161,92 +106,101 @@ protected:
 
 
 /**
- * DynamicSystemEntity which represents celestial object in space
+ * ItemSystemEntity which represents celestial object in space
  */
 class PyServiceMgr;
-class InventoryItem;
-class DestinyManager;
-class SystemManager;
-class ServiceDB;
 
-class CelestialEntity
-: public CelestialDynamicSystemEntity
-{
+class CelestialSE : public ItemSystemEntity {
 public:
-    CelestialEntity(
-        CelestialObjectRef celestial,
-        //InventoryItemRef celestial,
-        SystemManager *system,
-        PyServiceMgr &services,
-        const GPoint &position);
+    CelestialSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system);
+    virtual ~CelestialSE()                              { /* Do nothing here */ }
 
-    /*
-     * Primary public interface:
-     */
-    CelestialObjectRef GetCelestialObject() { return _celestialRef; }
-//    InventoryItemRef GetCelestialObject() { return _celestialRef; }
-    DestinyManager * GetDestiny() { return m_destiny; }
-    SystemManager * GetSystem() { return m_system; }
+    /* class type pointer querys. */
+    virtual const CelestialSE*  GetCelestialSE()        { return this; }
+    /* class type tests. */
+    virtual bool                IsCelestialSE()         { return true; }
 
-    /*
-     * Public fields:
-     */
+    /* SystemEntity interface */
+    virtual void                MakeDamageState(DoDestinyDamageState &into);
 
-    inline double x() const { return(GetPosition().x); }
-    inline double y() const { return(GetPosition().y); }
-    inline double z() const { return(GetPosition().z); }
-
-    //SystemEntity interface:
-    virtual EntityClass GetClass() const { return(ecCelestial); }
-    virtual bool IsCelestialEntity() const { return true; }
-    virtual CelestialEntity *CastToCelestialEntity() { return(this); }
-    virtual const CelestialEntity *CastToCelestialEntity() const { return(this); }
-    virtual void Process();
-    //virtual void EncodeDestiny( Buffer& into ) const;
-    virtual void TargetAdded(SystemEntity *who) {}
-    virtual void TargetLost(SystemEntity *who) {}
-    virtual void TargetedAdd(SystemEntity *who) {}
-    virtual void TargetedLost(SystemEntity *who) {}
-    virtual void TargetsCleared() {}
-    virtual void QueueDestinyUpdate(PyTuple **du) {/* not required to consume */}
-    virtual void QueueDestinyEvent(PyTuple **multiEvent) {/* not required to consume */}
-    virtual uint32 GetCorporationID() const { return(1); }
-    virtual uint32 GetAllianceID() const { return(0); }
-    virtual void Killed(Damage &fatal_blow);
-    virtual SystemManager *System() const { return(m_system); }
-
-    void ForcedSetPosition(const GPoint &pt);
-
-    virtual bool ApplyDamage(Damage &d);
-    virtual void MakeDamageState(DoDestinyDamageState &into) const;
-
-    void SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq=true);
-    void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
-
-protected:
-    /*
-     * Member functions
-     */
-    void _ReduceDamage(Damage &d);
-    void ApplyDamageModifiers(Damage &d, SystemEntity *target);
-
-    /*
-     * Member fields:
-     */
-    SystemManager *const m_system;    //we do not own this
-    PyServiceMgr &m_services;    //we do not own this
-    CelestialObjectRef _celestialRef;   // We don't own this
-//    InventoryItemRef _celestialRef;     // We don't own this
-
-    /* Used to calculate the damages on NPCs
-     * I don't know why, npc->Set_shieldCharge does not work
-     * calling npc->shieldCharge() return the complete shield
-     * So we get the values on creation and use then instead.
-    */
-    double m_shieldCharge;
-    double m_armorDamage;
-    double m_hullDamage;
 };
+
+class AnomalySE : public CelestialSE {
+public:
+    AnomalySE(CelestialObjectRef self, PyServiceMgr &services, SystemManager* system);
+    virtual ~AnomalySE()                                { /* Do nothing here */ }
+
+    /* class type pointer querys. */
+    virtual AnomalySE*          GetAnomalySE()          { return this; }
+    /* class type tests. */
+    /* Base */
+    virtual bool                IsAnomalySE()           { return true; }
+
+    /* SystemEntity interface */
+    virtual void                EncodeDestiny( Buffer& into );
+
+    virtual PyDict*             MakeSlimItem();
+};
+
+class WormholeSE : public CelestialSE {
+public:
+    WormholeSE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system);
+    virtual ~WormholeSE()                               { /* Do nothing here */ }
+
+    /* class type pointer querys. */
+    virtual WormholeSE*          GetWormholeSE()        { return this; }
+    /* class type tests. */
+    /* Base */
+    virtual bool                IsWormholeSE()          { return true; }
+
+    /* SystemEntity interface */
+    virtual void                EncodeDestiny( Buffer& into );
+
+    virtual PyDict*             MakeSlimItem();
+
+private:
+    int8    m_wormholeAge;
+    float   m_wormholeSize;
+    int64   m_expiryDate;
+    uint16  m_count;
+    uint16  m_dunSpawnID;
+    uint16  m_nebulaType;
+};
+
+namespace WormHole {
+    namespace Class {
+        enum {
+            Unknown1    = 0,
+            Unknown2    = 1,
+            Unknown3    = 2,
+            Unknown4    = 3,
+            Dangerous1  = 4,
+            Dangerous2  = 5,
+            Deadly      = 6,
+            HiSec       = 7,
+            LoSec       = 8,
+            NullSec     = 9
+        };
+    }
+
+    namespace Age {
+        enum {
+            New = 0,
+            Adolescent = 1,
+            Decaying = 2,
+            Closing = 3
+        };
+    }
+
+    namespace Size {
+        // these are fuzzy logic
+        enum {
+            Full = 10,
+            Reduced = 5,
+            Disrupted = 1
+        };
+    }
+}
 
 #endif /* !__CELESTIAL__H__INCL__ */
 

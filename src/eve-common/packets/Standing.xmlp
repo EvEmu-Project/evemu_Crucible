@@ -1,0 +1,22 @@
+
+<elements>
+
+  <elementDef name="Call_GetStandingTransactions">
+    <tupleInline>
+      <int name="fromID" />
+      <int name="toID" />
+      <int name="direction" />
+      <int name="eventID" default="0" none_marker="0" />
+      <int name="eventType" default="0" none_marker="0" />
+      <long name="eventDateTime" default="0" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_GetStandingComposition">
+    <tupleInline>
+      <int name="fromID" />
+      <int name="toID" />
+    </tupleInline>
+  </elementDef>
+
+</elements>

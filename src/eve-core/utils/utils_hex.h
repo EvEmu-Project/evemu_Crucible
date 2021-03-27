@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -40,9 +40,9 @@ extern const uint32 HEX_DUMP_PREVIEW_LIMIT;
  */
 void build_hex_line( const uint8* buffer, size_t length, size_t offset, char* ret, unsigned int padding = 4 );
 
-void pfxHexDump( const char* pfx, FILE* into, const uint8* data, uint32 length );
-void pfxHexDump( const char* pfx, LogType type, const uint8* data, uint32 length );
-void pfxHexDumpPreview( const char* pfx, FILE* into, const uint8* data, uint32 length );
-void pfxHexDumpPreview( const char* pfx, LogType type, const uint8* data, uint32 length );
+void pfxHexDump( const char* pfx, FILE* into, const uint8* data, size_t length );
+void pfxHexDump( const char* pfx, LogType type, const uint8* data, size_t length );
+void pfxHexDumpPreview( const char* pfx, FILE* into, const uint8* data, size_t length );
+void pfxHexDumpPreview( const char* pfx, LogType type, const uint8* data, size_t length );
 
 #endif // UTILS_HEX_H

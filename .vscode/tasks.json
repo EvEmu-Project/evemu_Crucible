@@ -1,0 +1,10 @@
+{
+    "tasks": [
+        {
+            "label": "build debug cmake",
+            "type": "shell",
+            "command": "mkdir -p build/dist/etc && mkdir -p build/dist/log && mkdir -p build/dist/server_cache && mkdir -p build/dist/image_cache && cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=./dist .. && make -j16"
+        }
+    ],
+    "version": "2.0.0"
+}

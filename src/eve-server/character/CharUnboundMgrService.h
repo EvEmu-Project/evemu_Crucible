@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,9 +42,9 @@
 class CharUnboundMgrService : public PyService {
 public:
     CharUnboundMgrService(PyServiceMgr* mgr);
-    virtual ~CharUnboundMgrService();
+    ~CharUnboundMgrService();
 
-	void GetCharacterData(uint32 characterID, std::map<std::string, uint32> &characterDataMap);
+    void GetCharacterData(uint32 characterID, std::map<std::string, int64> &characterDataMap);
 
 private:
     class Dispatcher;
@@ -52,7 +52,7 @@ private:
 
     CharacterDB m_db;
 
-    PyCallable_DECL_CALL(SelectCharacterID)
+    PyCallable_DECL_CALL(SelectCharacterID);
 
     /**
      * \brief Get details on a character id
@@ -62,7 +62,7 @@ private:
      * @param[in] call character id
      * @return PyResult character details
      */
-    PyCallable_DECL_CALL(GetCharacterToSelect)
+    PyCallable_DECL_CALL(GetCharacterToSelect);
 
     /**
      * \brief Get a list of characters on this account
@@ -72,7 +72,7 @@ private:
      * @param[in] call empty
      * @return PyResult list of characters
      */
-    PyCallable_DECL_CALL(GetCharactersToSelect)
+    PyCallable_DECL_CALL(GetCharactersToSelect);
 
     /**
      * \brief Get a lightweight list of characters on this account
@@ -82,7 +82,7 @@ private:
      * @param[in] call empty
      * @return PyResult list of characters with characterID and characterName
      */
-    PyCallable_DECL_CALL(GetCharacterInfo)
+    PyCallable_DECL_CALL(GetCharacterInfo);
 
     /**
      * \brief Client check if this account is currently receiving a character from an character transfer
@@ -92,11 +92,11 @@ private:
      * @param[in] call empty
      * @return PyResult true if there is a character transfer queued for this account, false if not
      */
-    PyCallable_DECL_CALL(IsUserReceivingCharacter)
+    PyCallable_DECL_CALL(IsUserReceivingCharacter);
 
-    PyCallable_DECL_CALL(DeleteCharacter)
-    PyCallable_DECL_CALL(PrepareCharacterForDelete)
-    PyCallable_DECL_CALL(CancelCharacterDeletePrepare)
+    PyCallable_DECL_CALL(DeleteCharacter);
+    PyCallable_DECL_CALL(PrepareCharacterForDelete);
+    PyCallable_DECL_CALL(CancelCharacterDeletePrepare);
 
     /**
      * \brief Client check to see if a name may be used for a new character
@@ -106,11 +106,11 @@ private:
      * @param[in] call name to check
      * @return PyResult true if the name may be used
      */
-    PyCallable_DECL_CALL(ValidateNameEx)
+    PyCallable_DECL_CALL(ValidateNameEx);
 
-    PyCallable_DECL_CALL(GetCharCreationInfo)
-    PyCallable_DECL_CALL(GetCharNewExtraCreationInfo)
-    PyCallable_DECL_CALL(CreateCharacterWithDoll)
+    PyCallable_DECL_CALL(GetCharCreationInfo);
+    PyCallable_DECL_CALL(GetCharNewExtraCreationInfo);
+    PyCallable_DECL_CALL(CreateCharacterWithDoll);
 };
 
 #endif // __CHARUNBOUNDMGRSERVICE__H__INCL__

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -51,6 +51,7 @@ public:
          * @retval false Parsing failed.
          */
         virtual bool Parse( const TiXmlElement* field ) = 0;
+        //virtual ~ElementParser();
     };
 
     /**
@@ -60,7 +61,7 @@ public:
     /**
      * @brief A destructor.
      */
-    ~XMLParser();
+    virtual ~XMLParser();
 
     /**
      * @brief Parses file using registered parsers.
@@ -109,7 +110,7 @@ public:
      */
     void ClearParsers();
 
-    TiXmlDocument *m_pXML_Document;
+    std::unique_ptr<TiXmlDocument> m_pXML_Document;
 
 private:
     /** Parser storage. */

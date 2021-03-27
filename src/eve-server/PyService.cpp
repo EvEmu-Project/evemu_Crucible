@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -41,14 +41,14 @@ PyService::~PyService()
 
 //overload this to hack in our special bind routines at the service level
 PyResult PyService::Call(const std::string &method, PyCallArgs &args) {
-    if(method == "MachoBindObject") {
-        _log(SERVICE__CALLS, "Service %s: handling MachoBindObject request directly", GetName());
-        return Handle_MachoBindObject(args);
-    } else if(method == "MachoResolveObject"){
-        _log(SERVICE__CALLS, "Service %s: handling MachoResolveObject request directly", GetName());
+    if (method == "MachoResolveObject"){
+        _log(SERVICE__CALLS, "%s::MachoResolveObject()", GetName());
         return Handle_MachoResolveObject(args);
+    } else if (method == "MachoBindObject") {
+        _log(SERVICE__CALLS, "%s::MachoBindObject()", GetName());
+        return Handle_MachoBindObject(args);
     } else {
-        _log(SERVICE__CALLS, "Service %s: calling %s", GetName(), method.c_str());
+        _log(SERVICE__CALLS, "%s::%s()", GetName(), method.c_str());
         args.Dump(SERVICE__CALL_TRACE);
         return PyCallable::Call(method, args);
     }
@@ -61,72 +61,57 @@ PyResult PyService::Call(const std::string &method, PyCallArgs &args) {
 */
 
 PyResult PyService::Handle_MachoResolveObject(PyCallArgs &call) {
-/*    CallMachoResolveObject args;
-    if(!args.Decode(!call.packet)) {
-        _log(CLIENT__ERROR, "Failed to decode params for MachoResolveObject.");
-        return NULL;
-    }
-*/
     //returns nodeID
-    _log(CLIENT__MESSAGE, "%s Service: MachoResolveObject requested, returning %u", GetName(), m_manager->GetNodeID());
-    return(new PyInt(m_manager->GetNodeID()));
+    _log(SERVICE__MESSAGE, "%s Service: MachoResolveObject requested, returning %u", GetName(), m_manager->GetNodeID());
+    return new PyInt(m_manager->GetNodeID());
 }
 
 
 PyResult PyService::Handle_MachoBindObject( PyCallArgs& call )
 {
     CallMachoBindObject args;
-    if( !args.Decode( &call.tuple ) )
-    {
-        codelog( SERVICE__ERROR, "%s Service: %s: Failed to decode arguments", GetName(), call.client->GetName() );
-        return NULL;
+    if (!args.Decode(&call.tuple)) {
+        codelog( SERVICE__ERROR, "%s Service: Failed to decode arguments", GetName() );
+        return nullptr;
     }
 
-    _log( SERVICE__MESSAGE, "%s Service: %s: Processing MachoBindObject", GetName(), call.client->GetName() );
+    _log( SERVICE__MESSAGE, "%s Service: Processing MachoBindObject", GetName() );
 
-    //first we need to get our implementation to actually create the object
-    //which they are trying to bind to.
-    PyBoundObject* our_obj = _CreateBoundObject( call.client, args.bindParams );
-    if( NULL == our_obj )
-    {
-        _log( SERVICE__ERROR, "%s Service: %s: Unable to create bound object for:", GetName(), call.client->GetName() );
+    //first we need to get our implementation to actually create the object they are trying to bind to.
+    PyBoundObject* obj = CreateBoundObject(call.client, args.bindParams);
+    if (obj == nullptr) {
+        _log( SERVICE__ERROR, "%s Service: Unable to create bound object:", GetName());
         args.bindParams->Dump(SERVICE__ERROR, "    ");
 
-        return NULL;
+        return nullptr;
     }
 
-    PyTuple* robjs = new PyTuple( 2 );
     //now we register
-    robjs->SetItem( 0, m_manager->BindObject( call.client, our_obj ) );
+    PyTuple* rsp = new PyTuple(2);
+    PyDict* oid = new PyDict();
+    rsp->SetItem(0, m_manager->BindObject(call.client, obj, nullptr, oid));
 
-    if( args.call->IsNone() )
+    if (args.call->IsNone()) {
         //no call was specified...
-        robjs->SetItem( 1, new PyNone );
-    else
-    {
+        rsp->SetItem(1, PyStatic.NewNone());
+    } else {
         CallMachoBindObject_call boundcall;
-        if( !boundcall.Decode( &args.call ) )
-        {
-            codelog( SERVICE__ERROR, "%s Service: %s: Failed to decode boundcall arguments", GetName(), call.client->GetName() );
-            return NULL;
+        if (!boundcall.Decode(&args.call)) {
+            codelog(SERVICE__ERROR, "%s Service: Failed to decode boundcall arguments", GetName());
+            return nullptr;
         }
 
-        _log( SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str() );
+        _log(SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", GetName(), boundcall.method_name.c_str());
 
-        PyCallArgs sub_args( call.client, boundcall.arguments, boundcall.dict_arguments );
+        PyCallArgs sub_args(call.client, boundcall.arguments, boundcall.dict_arguments);
 
         //do the call:
-        PyResult result = our_obj->Call( boundcall.method_name, sub_args );
+        PyResult result = obj->Call(boundcall.method_name, sub_args);
 
-        PyIncRef( result.ssResult );
-        robjs->SetItem( 1, result.ssResult );
-
-        //ok, now we have finished our sub-call... hooray.
+        rsp->SetItem(1, result.ssResult);
     }
 
-    //ok, we have created and bound the object requested, as well as made any sub-call we needed to do.
-    //we are done.
-    return robjs;
+    return PyResult(rsp, oid);
 }
 
 const char *const PyService::s_checkTimeStrings[_checkCount] = {
@@ -159,16 +144,15 @@ PyObject *PyService::_BuildCachedReturn( PySubStream** in_result, const char* se
     objectCaching_CachedMethodCallResult cached;
 
     PySubStream* result = *in_result;
-    *in_result = NULL;        //consume it.
+    *in_result = nullptr;        //consume it.
 
     //we need to checksum the marshaled data...
     result->EncodeData();
-    if( result->data() == NULL )
-    {
+    if (!result->data()) {
         _log( SERVICE__ERROR, "%s: Failed to build cached return", GetName() );
 
         PyDecRef( result );
-        return NULL;
+        return nullptr;
     }
 
     cached.call_return = result;    //this entire result is going to get cloned in the Encode(), and then destroyed when we return... what a waste...
@@ -182,7 +166,9 @@ PyObject *PyService::_BuildCachedReturn( PySubStream** in_result, const char* se
     return cached.Encode();
 }
 
-PyBoundObject * PyService::_CreateBoundObject( Client *c, const PyRep *bind_args )
+PyBoundObject * PyService::CreateBoundObject( Client *c, const PyRep *bind_args )
 {
-    return NULL;
+    _log( SERVICE__ERROR, "Called default CreateBoundObject()");
+    EvE::traceStack();
+    return nullptr;
 }

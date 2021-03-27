@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,15 +42,19 @@ protected:
 
     TutorialDB m_db;
 
-    PyCallable_DECL_CALL(GetTutorialInfo)
-    PyCallable_DECL_CALL(GetTutorials)
-    PyCallable_DECL_CALL(GetCriterias)
+    PyCallable_DECL_CALL(GetTutorialInfo);
+    PyCallable_DECL_CALL(GetTutorials);
+    PyCallable_DECL_CALL(GetTutorialAgents);
+    PyCallable_DECL_CALL(GetCriterias);
     //LogAborted(tutnum=5, int=1, int=11)
-    PyCallable_DECL_CALL(GetCategories)
-    PyCallable_DECL_CALL(GetContextHelp)
-    PyCallable_DECL_CALL(GetCharacterTutorialState)
-    PyCallable_DECL_CALL(GetTutorialsAndConnections)
-    PyCallable_DECL_CALL(GetCareerAgents)
+    PyCallable_DECL_CALL(GetCategories);
+    PyCallable_DECL_CALL(GetContextHelp);
+    PyCallable_DECL_CALL(GetCharacterTutorialState);
+    PyCallable_DECL_CALL(GetTutorialsAndConnections);
+    PyCallable_DECL_CALL(GetCareerAgents);
+
 };
 
 #endif
+
+//{'FullPath': u'UI/Messages', 'messageID': 257694, 'label': u'TutorialGoodiesNotEnoughSpaceInCargoBody'}(u'Some of the items in this tutorial were relocated to the station you were last in ({stationName}) because there was not enough space in your cargo hold.', None, {u'{stationName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'stationName'}})

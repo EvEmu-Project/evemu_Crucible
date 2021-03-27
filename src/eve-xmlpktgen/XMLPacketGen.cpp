@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -54,6 +54,9 @@ const char* const XMLPacketGen::smGenFileComment =
 "  You should have received a copy of the GNU General Public License\n"
 "  along with this program; if not, write to the Free Software\n"
 "  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
+"  \n\n"
+"  Updated by Allan, 2016 - 2020"
+"  \n"
 "*/";
 
 XMLPacketGen::XMLPacketGen( const char* header, const char* source )

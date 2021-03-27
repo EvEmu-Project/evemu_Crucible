@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,7 +27,6 @@
 #define PY_TRACE_LOG_H
 
 #include "PyRep.h"
-#include "log/LogNew.h"
 
 /* ascents cross platform color thingy's */
 #ifdef HAVE_WINDOWS_H
@@ -250,9 +249,8 @@ protected:
         PyString & msg = *packet->AsString();
         if (mLogToConsole == true)
         {
-            //fwrite(msg.content().c_str(), msg.content().size(), 1, stdout);
-            //fputc('\n', stdout);
-			sLog.Error( ">>>>> CLIENT EXCEPTION INTERCEPTED <<<<<\n", msg.content().c_str() );
+            fwrite(msg.content().c_str(), msg.content().size(), 1, stdout);
+            fputc('\n', stdout);
         }
 
         if (mLogToFile == true)

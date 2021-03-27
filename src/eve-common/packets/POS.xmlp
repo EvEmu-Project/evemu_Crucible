@@ -1,0 +1,76 @@
+
+
+<elements>
+
+  <elementDef name="SetTowerNotification">
+    <tupleInline>
+      <int name="structureID" />
+      <bool name="showInCalendar" />
+      <bool name="sendFuelNotifications" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetTowerSentrySettings">
+    <tupleInline>
+      <int name="structureID" />
+      <real name="standing" none_marker="0" safe="true" />
+      <real name="status" none_marker="0" safe="true" />
+      <bool name="statusDrop" none_marker="0" safe="true" />
+      <bool name="corpWar" none_marker="0" safe="true" />
+      <bool name="useAllianceStandings" none_marker="0" safe="true" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetTowerPassword2">
+    <tupleInline>
+      <int name="towerID" />
+      <raw name="password" safe="true" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetTowerPassword4">
+    <tupleInline>
+      <int name="towerID" />
+      <raw name="password" safe="true" />
+      <bool name="allowCorp" none_marker="0" safe="true" />
+      <bool name="allowAlliance" none_marker="0" safe="true" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="AnchorStructure">
+    <tupleInline>
+      <int name="structureID" />
+      <tupleInline>
+        <long name="posX" none_marker="0" safe="true" />
+        <long name="posY" none_marker="0" safe="true" />
+        <long name="posZ" none_marker="0" safe="true" />
+      </tupleInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="SetStarbasePermissions">
+    <tupleInline>
+      <int name="towerID" />
+      <object name="deployFlags" type="PyObject" optional="true" />
+      <object name="usageFlagsList" type="PyObject" optional="true" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="InstallJumpBridgeLink">
+    <tupleInline>
+      <int name="itemID" />
+      <int name="toSystemID" />
+      <int name="toItemID" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="ChangeStructureProvisionType">
+    <tupleInline>
+      <int name="towerID" />
+      <int name="itemID" />
+      <int name="typeID" />
+    </tupleInline>
+  </elementDef>
+
+
+</elements>

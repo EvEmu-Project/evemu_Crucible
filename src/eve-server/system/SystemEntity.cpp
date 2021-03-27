@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,342 +21,726 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Rewrite:    Allan
 */
 
 #include "eve-server.h"
 
+#include "ConsoleCommands.h"
+#include "Client.h"
+#include "Container.h"
+#include "EVEServerConfig.h"
+#include "PyServiceMgr.h"
+#include "StatisticMgr.h"
+#include "account/AccountService.h"
+#include "character/Character.h"
+#include "fleet/FleetService.h"
 #include "inventory/AttributeEnum.h"
-#include "ship/DestinyManager.h"
-#include "system/SystemDB.h"
+//#include "planet/CustomsOffice.h"
+#include "planet/Planet.h"
+//#include "pos/Structure.h"
+#include "standing/StandingMgr.h"
+#include "system/DestinyManager.h"
+#include "station/Station.h"
+#include "system/SystemBubble.h"
 #include "system/SystemEntity.h"
+#include "system/SystemManager.h"
 
-using namespace Destiny;
 
-SystemEntity::SystemEntity()
-: targets(this),
-  m_bubble(NULL)
+
+SystemEntity::SystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+:m_self(self),
+m_services(services),
+m_system(system),
+m_bubble(nullptr),
+m_destiny(nullptr),
+m_targMgr(nullptr),
+m_killed(false)
 {
+    assert(m_system != nullptr);
+    assert(m_self.get() != nullptr);
+
+    m_warID = 0;
+    m_allyID = 0;
+    m_corpID = 0;
+    m_fleetID = 0;
+    m_ownerID = 1;
+
+    m_radius = m_self->GetAttribute(AttrRadius).get_double();
+
+    //m_harmonic = EVEPOS::Harmonic::Inactive;
+
+    _log(SE__DEBUG, "Created SE for item %s (%u) with radius of %.1f.", self->name(), self->itemID(), m_radius);
 }
 
 void SystemEntity::Process() {
-    targets.Process();
-}
-
-uint32 SystemEntity::GetLocationID()
-{
-//    uint32 itemID = se->GetID();
-//
-//    return (SystemDB::GetObjectLocationID( itemID ) );
-	return (Item()->locationID());
-}
-
-double SystemEntity::DistanceTo2(const SystemEntity *other) const {
-    GVector delta(GetPosition(), other->GetPosition());
-    return(delta.lengthSquared());
-}
-
-PyTuple *SystemEntity::MakeDamageState() const {
-    DoDestinyDamageState ddds;
-    MakeDamageState(ddds);
-    return(ddds.Encode());
-}
-
-ItemSystemEntity::ItemSystemEntity(InventoryItemRef self)
-: SystemEntity(),
-  m_self()
-{
-    if( self )
-        _SetSelf( self );
-    //setup some default attributes which normally do not initialize.
-}
-
-ItemSystemEntity::~ItemSystemEntity()
-{
-}
-
-void ItemSystemEntity::_SetSelf(InventoryItemRef self) {
-    if( !self ) {
-        codelog(ITEM__ERROR, "Tried to set self to NULL!");
+    if (m_killed) {
+        _log(SE__DEBUG, "SE::Process() - %s(%u) is dead but still in system.", m_self->name(), m_self->itemID());
         return;
     }
 
-    m_self = self;
-
-    // DEPRECATED NOW WITH THE USE OF NEW ATTRIBUTE SYSTEM AND SAVING OF THOSE ATTRIBUTES TO THE DB -- Aknor Jaden
-    //I am not sure where the right place to do this is, but until
-    //we properly persist ship attributes into the DB, we are just
-    //going to do it here. Could be exploited. oh well.
-    // TODO: use the ship aggregate value.
-    /*int sc = m_self->shieldCapacity();
-    if( sc > 0 )    //avoid polluting the attribute list with worthless entries.
-        m_self->Set_shieldCharge( sc );*/
-    //EvilNumber sc = m_self->GetAttribute(AttrShieldCapacity);
-    //if (sc > 0)
-    //    m_self->SetAttribute(AttrShieldCharge, sc);
-}
-
-const char *ItemSystemEntity::GetName() const {
-    if(!m_self)
-        return("NoName");
-    return(m_self->itemName().c_str());
-}
-
-float ItemSystemEntity::GetRadius() const {
-    if(!m_self)
-        return(1.0f);
-    //return(m_self->radius());
-    return static_cast<float>(m_self->GetAttribute(AttrRadius).get_float());
-}
-
-const GPoint &ItemSystemEntity::GetPosition() const {
-    static const GPoint err(0.0, 0.0, 0.0);
-    if(!m_self)
-        return(err);
-    return(m_self->position());
-}
-
-const GVector &ItemSystemEntity::GetVelocity() const {
-    static const GVector err(0.0, 0.0, 0.0);
-    return(err);
-}
-
-PyDict *ItemSystemEntity::MakeSlimItem() const {
-    PyDict *slim = new PyDict();
-    slim->SetItemString("itemID", new PyInt(Item()->itemID()));
-    slim->SetItemString("typeID", new PyInt(Item()->typeID()));
-    slim->SetItemString("ownerID", new PyInt(Item()->ownerID()));
-    return(slim);
-}
-
-uint32 ItemSystemEntity::GetID() const {
-    if(!Item())
-        return(0);
-    return(Item()->itemID());
-}
-
-DynamicSystemEntity::DynamicSystemEntity(DestinyManager *dm, InventoryItemRef self)
-: ItemSystemEntity(self),
-  m_destiny(dm)
-{
-}
-
-DynamicSystemEntity::~DynamicSystemEntity() {
-    if(m_destiny != NULL) {
-        //Do not do anything with the destiny manager, as it's m_self
-        //is now partially destroyed, which will majority upset things.
-        delete m_destiny;
-    }
-}
-
-void DynamicSystemEntity::ProcessDestiny() {
-    if(m_destiny != NULL)
+    if (m_destiny != nullptr)
         m_destiny->Process();
 }
 
-const GPoint &DynamicSystemEntity::GetPosition() const {
-    if(m_destiny == NULL)
-        return(ItemSystemEntity::GetPosition());
-    return(m_destiny->GetPosition());
+PyTuple* SystemEntity::MakeDamageState() {
+    if (IsWreckSE()) {
+        DoDestinyDamageState3 ddds;
+            ddds.shield = 0;
+            ddds.armor = 0;
+            ddds.structure = 1.0;
+        return ddds.Encode();
+    }
+    DoDestinyDamageState ddds;
+    MakeDamageState(ddds);
+    return ddds.Encode();
 }
 
-const GVector &DynamicSystemEntity::GetVelocity() const {
-       static const GVector err(0.0, 0.0, 0.0);
-    if(m_destiny == NULL)
-        return(err);
-    return(m_destiny->GetVelocity());
+void SystemEntity::MakeDamageState(DoDestinyDamageState &into) {
+    into.shield = 1;
+    into.recharge = 110000;
+    into.armor = 1;
+    into.structure = 1;
+    into.timestamp = GetFileTimeNow();
 }
 
-double DynamicSystemEntity::GetMass() const {
-    if(!Item())
-        return(0.0f);
-    return Item()->GetAttribute(AttrMass).get_float();
+PyDict* SystemEntity::MakeSlimItem() {
+    _log(SE__SLIMITEM, "MakeSlimItem for SE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("typeID",       new PyInt(m_self->typeID()));
+        slim->SetItemString("ownerID",      new PyInt(m_ownerID));
+        slim->SetItemString("itemID",       new PyLong(m_self->itemID()));
+    return slim;
 }
 
-double DynamicSystemEntity::GetMaxVelocity() const {
-    if(!Item())
-        return(0.0f);
-    return Item()->GetAttribute(AttrMaxVelocity).get_float();
-}
-
-double DynamicSystemEntity::GetAgility() const {
-    if(!Item())
-        return(0.0f);
-    return Item()->GetAttribute(AttrAgility).get_float();
-}
-
-//TODO: ask the destiny manager to do this for us!
-void DynamicSystemEntity::EncodeDestiny( Buffer& into ) const
+void SystemEntity::EncodeDestiny( Buffer& into )
 {
-    const GPoint& position = GetPosition();
-    const std::string itemName( GetName() );
+    using namespace Destiny;
 
-/*    if(m_warpActive) {
-        #pragma pack(1)
-        struct AddBall_Warp {
-            BallHeader head;
-            MassSector mass;
-            ShipSector ship;
-            DSTBALL_WARP_Struct main;
-            NameStruct name;
-        };
-        #pragma pack()
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::RIGID;
+        head.radius = m_radius;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = Ball::Flag::IsGlobal;
+    into.Append( head );
+    RIGID_Struct main;
+        main.formationID = 0xFF;
+    into.Append( main );
+    _log(SE__DESTINY, "SE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+}
 
-        into.resize(start
-            + sizeof(AddBall_Warp)
-            + slen*sizeof(uint16) );
-        uint8 *ptr = &into[start];
-        AddBall_Warp *item = (AddBall_Warp *) ptr;
-        ptr += sizeof(AddBall_Warp);
+void SystemEntity::Killed(Damage& fatal_blow)
+{
+    if (m_targMgr != nullptr) {
+        // loop thru list of all modules targeting this entity and let them know it has been killed.
+        m_targMgr->Destroyed();
+        // remove TargMgr here to avoid redundant calls upon object deletion
+        SafeDelete(m_targMgr);
+    }
+    Delete();
+}
 
-        item->head.entityID = GetID();
-        item->head.mode = Destiny::DSTBALL_WARP;
-        item->head.radius = Ship()->radius();
-        item->head.x = position.x;
-        item->head.y = position.y;
-        item->head.z = position.z;
-        item->head.sub_type = IsFree | IsMassive | IsInteractive;
-        item->mass.mass = Ship()->mass();
-        item->mass.unknown51 = 0;
-        item->mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-        item->mass.corpID = GetCorporationID();
-        item->mass.unknown64 = 0xFFFFFFFF;
+void SystemEntity::Delete()
+{
+    if (m_targMgr != nullptr)
+        m_targMgr->ClearFromTargets(); //OnTarget(nullptr, TargMgr::Mode::Clear, TargMgr::Msg::Deleted);
+    if (m_system != nullptr)
+        m_system->RemoveEntity(this);
+    if (!IsContainerSE())
+        m_self->Delete();
+}
 
-        GVector vec(GetPosition(), m_movePoint);
-        vec.normalize();
-        vec *= 45.0;    //no idea what to use...
+double SystemEntity::DistanceTo2(const SystemEntity* other) {
+    if (other->m_bubble == nullptr)
+        return 1000000.0;
+    return GetPosition().distance(other->GetPosition());
+}
 
-        item->ship.max_speed = Ship()->maxVelocity();
-        item->ship.velocity_x = vec.x;
-        item->ship.velocity_y = vec.y;
-        item->ship.velocity_z = vec.z;
-        item->ship.agility = Ship()->agility();
-        item->ship.speed_fraction = 1.0;    //TODO: put in speed fraction!
+void SystemEntity::SendDamageStateChanged() {  //working 24Apr15
+     DamageDetails dmgState;
+        dmgState.shield = m_self->GetAttribute(AttrShieldCharge).get_double() / m_self->GetAttribute(AttrShieldCapacity).get_double();
+        dmgState.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double();
+        dmgState.timestamp = GetFileTimeNow();
+        dmgState.armor = (1.0 - (m_self->GetAttribute(AttrArmorDamage).get_double() / m_self->GetAttribute(AttrArmorHP).get_double()));
+        dmgState.structure = (1.0 - (m_self->GetAttribute(AttrDamage).get_double() / m_self->GetAttribute(AttrHP).get_double()));
+     OnDamageStateChange dmgChange;
+        dmgChange.entityID = m_self->itemID();
+        dmgChange.state = dmgState.Encode();
+    PyTuple *up = dmgChange.Encode();
+    if (m_targMgr != nullptr)
+        m_targMgr->QueueUpdate(&up);
+    PySafeDecRef(up);
+    _log(DAMAGE__MESSAGE, "%s(%u): DamageUpdate - S:%f A:%f H:%f.", \
+            GetName(), m_self->itemID(), dmgState.shield, dmgState.armor, dmgState.structure);
+}
 
-        item->main.unknown116 = 0xFF;
-        item->main.unknown_x = m_movePoint.x;
-        item->main.unknown_y = m_movePoint.y;
-        item->main.unknown_z = m_movePoint.z;
-        item->main.effectStamp = 0xFFFFFFFF;
-        item->main.followRange = 1000.0;
-        item->main.followID = 0;
-        item->main.ownerID = 0x1e;    //no idea.
+void SystemEntity::DropLoot(WreckContainerRef wreckRef, uint32 groupID, uint32 owner) {
+    /*   allan 27Nov14    */
+    std::vector<LootList> lootList;
+    sDataMgr.GetLoot(groupID, lootList);
+    if (lootList.empty())
+        return;
 
-        item->name.name_len = slen;    // in number of unicode chars
-        py_mbstowcs(item->name.name, GetName());
-    } else*/ {
-        BallHeader head;
-        head.entityID = GetID();
-        head.mode = Destiny::DSTBALL_STOP;
-        head.radius = GetRadius();
-        head.x = position.x;
-        head.y = position.y;
-        head.z = position.z;
-        head.sub_type = IsFree | IsMassive | IsInteractive;
-        into.Append( head );
+    uint32 quantity(0);
+    std::vector<LootList>::iterator cur = lootList.begin();
+    while (cur != lootList.end()) {
+        if (cur->minDrop == cur->maxDrop) {
+            quantity = cur->minDrop;
+        } else {
+            quantity = (uint32)(MakeRandomInt(cur->minDrop, cur->maxDrop));
+        }
+        if (quantity < 1)
+            quantity = 1;
 
-        MassSector mass;
-        mass.mass = GetMass();
+        ItemData iLoot(cur->itemID, owner, wreckRef->itemID(), flagNone, quantity);
+        wreckRef->AddItem(sItemFactory.SpawnItem(iLoot));
+        ++cur;
+    }
+}
+
+/** @todo (allan)  this doesnt need to be here */
+void SystemEntity::AwardSecurityStatus(InventoryItemRef iRef, Character* pChar) {
+
+    //New Status = ((10 - Old Status) * Sec Incr) + Old Status
+    double oldSec = pChar->GetSecurityRating();
+    EvilNumber maxGain = 0;
+    if (iRef->HasAttribute(AttrEntitySecurityMaxGain, maxGain))
+        if (oldSec > maxGain.get_double())
+            return;
+    float killBonus = iRef->GetAttribute(AttrEntitySecurityStatusKillBonus).get_float();
+    double secAward = (((10 - oldSec) * killBonus) + oldSec) / 100;
+    secAward *=  (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::FastTalk, true))));      // 5% increase
+    if (killBonus and secAward) {
+        secAward *= sConfig.rates.secRate;
+        sLog.Magenta("SE::AwardSecurityStatus()"," %s(%u): killBonus: %f.  oldSec: %f.  secAward: %f.",
+                     GetName(), iRef->itemID(), killBonus, oldSec, secAward);
+        pChar->secStatusChange( secAward );
+        std::string msg = "Status Change for killing";
+        if (iRef->HasPilot()) {
+            msg += iRef->GetPilot()->GetName();
+            msg += " in ";
+            msg += m_system->GetNameStr();
+            sStandingMgr.UpdateStandings(iRef->itemID(), pChar->itemID(), Standings::CombatShipKill, secAward, msg);
+        } else {
+            msg += " pirates in ";
+            msg += m_system->GetNameStr();
+            sStandingMgr.UpdateStandings(corpCONCORD, pChar->itemID(), Standings::LawEnforcement, secAward, msg);
+            // decrease standings with faction of this npc kill
+            sStandingMgr.UpdateStandings(iRef->ownerID(), pChar->itemID(), Standings::CombatShipKill, -secAward, msg);
+        }
+    }
+
+    /** @todo msg need work for details to appear correctly.  currently working, but could be better. (incomplete, but working)
+     * see data in eve/common/script/util/eveFormat.py:300 for details
+     *
+     *
+     * SE::AwardSecurityStatus():  Shadow Serpentis Port Admiral(750000006): killBonus: 0.072000.  oldSec: 0.044933.  secAward: 0.007617.
+     * SE::AwardSecurityStatus():               Estamel Tharchon(750000001): killBonus: 0.244141.  oldSec: 0.000000.  secAward: 0.024414.
+     *
+     */
+}
+
+void SystemEntity::Abandon()
+{
+    m_warID = 0;
+    m_allyID = 0;
+    m_corpID = 0;
+    m_fleetID = 0;
+    m_ownerID = 1;
+    m_self->ChangeOwner(1); // update this to use system owner?    not sure.  logs show this as "1" for all non-player items
+    /** @todo  should this have a slimupdate or bubblecast or something?  */
+}
+
+
+/* Static / Non-Mobile / Non-Destructable / Celestial Objects - Suns, Planets, Moons, Belts, Gates, Stations */
+StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+: SystemEntity(self, services, system)
+{
+}
+
+bool StaticSystemEntity::LoadExtras() {
+    return true;
+}
+
+PyDict* StaticSystemEntity::MakeSlimItem() {
+    _log(SE__SLIMITEM, "MakeSlimItem for SSE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID",       new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID",       new PyInt(m_self->typeID()));
+        slim->SetItemString("name",         new PyString(m_self->itemName()));
+        slim->SetItemString("nameID",       PyStatic.NewNone());
+        slim->SetItemString("ownerID",      PyStatic.NewOne());
+    return slim;
+}
+
+void StaticSystemEntity::EncodeDestiny( Buffer& into ) {
+    using namespace Destiny;
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::RIGID;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.radius = m_radius;
+        head.flags = Ball::Flag::IsGlobal;
+    into.Append( head );
+    RIGID_Struct main;
+        main.formationID = 0xFF;
+    into.Append( main );
+    _log(SE__DESTINY, "SSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X, radius:%.1f", GetName(), head.entityID, head.mode, head.flags, head.radius);
+}
+
+BeltSE::BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+: StaticSystemEntity(self, services, system)
+{
+}
+
+bool BeltSE::LoadExtras() {
+    if (!StaticSystemEntity::LoadExtras())
+        return false;
+
+    if (m_bubble == nullptr)
+        sBubbleMgr.Add(this);
+
+    m_bubble->SetBelt(m_self);
+    _log(DESTINY__BUBBLE_DEBUG, "BeltSE::LoadExtras() - IsBelt set to true for bubble %u.", m_bubble->GetID() );
+    return true;
+}
+
+StargateSE::StargateSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+: StaticSystemEntity(self, services, system)
+{
+}
+
+bool StargateSE::LoadExtras() {
+    if (!StaticSystemEntity::LoadExtras())
+        return false;
+
+    if (m_bubble == nullptr)
+        sBubbleMgr.Add(this);
+
+    m_bubble->SetGate(true);
+    _log(DESTINY__BUBBLE_DEBUG, "StargateSE::LoadExtras() - IsGate set to true for bubble %u.", m_bubble->GetID() );
+    m_jumps = SystemDB::ListJumps(m_self->itemID());
+    if (m_jumps != nullptr)
+        return true;
+
+    return false;
+}
+
+PyDict* StargateSE::MakeSlimItem() {
+    _log(SE__SLIMITEM, "MakeSlimItem for StargateSE %s(%u)", GetName(), m_self->itemID());
+    /** @todo  finish gate rotation data
+    PyTuple* rotation = new PyTuple(3);
+        rotation->SetItem(0, new PyFloat(0));
+        rotation->SetItem(1, new PyFloat(0));
+        rotation->SetItem(2, new PyFloat(0));*/
+    PyDict *slim = new PyDict();
+        //slim->SetItemString("dunRotation", rotation);
+        slim->SetItemString("typeID",       new PyInt(m_self->typeID()));
+        /** @todo (allan) make function to lookup controlling faction id for this */
+        //  NOTE:  maybe not...logs show this is "1" for all items.
+        slim->SetItemString("ownerID",      PyStatic.NewOne());
+        slim->SetItemString("itemID",       new PyLong(m_self->itemID()));
+        slim->SetItemString("name",         new PyString(m_self->itemName()));
+        slim->SetItemString("nameID",       PyStatic.NewNone());
+    if (m_jumps != nullptr)
+        slim->SetItemString("jumps", m_jumps->Clone());
+    return slim;
+}
+
+
+/* Non-Static / Non-Mobile / Non-Destructable / Celestial Objects - Containers, DeadSpace, ForceFields, ScanProbes */
+ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+: SystemEntity(self, services, system)
+{
+    m_keyType = 0;
+}
+
+PyDict* ItemSystemEntity::MakeSlimItem() {
+    _log(SE__SLIMITEM, "MakeSlimItem for ISE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID",       new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID",       new PyInt(m_self->typeID()));
+        slim->SetItemString("ownerID",      new PyInt(m_ownerID));
+        if (m_self->groupID() == EVEDB::invGroups::Warp_Gate) {
+            // this is incomplete........
+            slim->SetItemString("dunSkillLevel", PyStatic.NewNone());   //?
+            slim->SetItemString("dunSkillTypeID", PyStatic.NewNone());   //?
+            slim->SetItemString("dunObjectID", new PyInt(160449));  //?   902139
+            slim->SetItemString("dunToGateID", new PyInt(160484));  //?   902140
+            slim->SetItemString("dunCloaked", new PyBool(0));   //?
+            slim->SetItemString("dunScenarioID", new PyInt(23));    //?  3347
+            slim->SetItemString("dunSpawnID", new PyInt(1572));  //?
+            slim->SetItemString("dunAmount", new PyFloat(0.0));  //?
+            PyList* classList = new PyList();
+                classList->AddItem( new PyInt(324));
+                classList->AddItem( new PyInt(420));
+                classList->AddItem( new PyInt(541));
+                classList->AddItem( new PyInt(834));
+                classList->AddItem( new PyInt(25));
+                classList->AddItem( new PyInt(830));
+            slim->SetItemString("dunShipClasses", classList);   //?
+            PyList* dirList = new PyList();
+                dirList->AddItem(new PyInt(5));     //234
+                dirList->AddItem(new PyInt(-1));
+                dirList->AddItem(PyStatic.NewZero());
+            slim->SetItemString("dunDirection", dirList);
+            slim->SetItemString("dunKeyLock", PyStatic.NewNone());   //?
+            slim->SetItemString("dunWipeNPC", new PyBool(0));   //?
+            slim->SetItemString("dunKeyQuantity", PyStatic.NewOne());   //?
+            slim->SetItemString("dunKeyTypeID", new PyInt(m_keyType));   //Training Complex Passkey   group Acceleration_Gate_Keys
+            slim->SetItemString("dunOpenUntil", new PyInt(Win32TimeNow()+EvE::Time::Hour));   //?
+            slim->SetItemString("dunRoomName", new PyString("Lobby"));   //?
+            slim->SetItemString("dunMusicUrl", new PyString("res:/Sound/Music/Ambient031combat.ogg"));
+        }
+    /** @todo  finish rotation data
+    Large_Collidable_Structure
+    Large_Collidable_Ship
+    Large_Collidable_Object
+    PyTuple* rotation = new PyTuple(3);
+        rotation->SetItem(0, new PyFloat(0));
+        rotation->SetItem(1, new PyFloat(0));
+        rotation->SetItem(2, new PyFloat(0));
+    slim->SetItemString("dunRotation", rotation);
+    */
+    return slim;
+}
+
+void ItemSystemEntity::EncodeDestiny( Buffer& into )
+{
+    using namespace Destiny;
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::RIGID;
+        head.radius = m_radius;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = 0;
+    into.Append( head );
+    RIGID_Struct main;
+        main.formationID = 0xFF;
+    into.Append( main );
+
+    _log(SE__DESTINY, "ISE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+}
+
+void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
+    if (m_self->groupID() == EVEDB::invGroups::Force_Field) {
+        SystemEntity::MakeDamageState(into);
+    } else {
+        into.shield = (m_self->GetAttribute(AttrShieldCharge).get_double() / m_self->GetAttribute(AttrShieldCapacity).get_double());
+        into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double();
+        into.timestamp = GetFileTimeNow();
+        into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_double() / m_self->GetAttribute(AttrArmorHP).get_double());
+        into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_double() / m_self->GetAttribute(AttrHP).get_double());
+    }
+}
+
+FieldSE::FieldSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data)
+: ItemSystemEntity(self, services, system)
+{
+    m_warID = data.factionID;
+    m_allyID = data.allianceID;
+    m_corpID = data.corporationID;
+    m_ownerID = data.ownerID;
+}
+
+void FieldSE::EncodeDestiny( Buffer& into )
+{
+    using namespace Destiny;
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        //head.mode = (m_harmonic > EVEPOS::Harmonic::Offline ? Ball::Mode::FIELD : Ball::Mode::STOP);
+        head.radius = m_radius;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = 0 /*(m_harmonic > EVEPOS::Harmonic::Offline ? Ball::Flag::IsMassive : 0)*/; // leave this as 0 to disable client-side bump checks for now
+    into.Append( head );
+    MassSector mass = MassSector();
+        mass.mass = 10000000000;    // as seen in packets
         mass.cloak = 0;
-        mass.Harmonic = -1.0f;
-        mass.corpID = GetCorporationID();
-        mass.allianceID = GetAllianceID();
-        into.Append( mass );
-
-        ShipSector ship;
-        if( Destiny() == NULL )     // We dont have a destiny object or dont have one YET
-        {
-            ship.max_speed = static_cast<float>(GetMaxVelocity());
-            ship.velocity_x = 0.0;
-            ship.velocity_y = 0.0;
-            ship.velocity_z = 0.0;
-            ship.agility = static_cast<float>(GetAgility());
-            ship.speed_fraction = 0.0;
-        }
-        else
-        {
-            ship.max_speed = static_cast<float>(GetMaxVelocity());
-            ship.velocity_x = Destiny()->GetVelocity().x;
-            ship.velocity_y = Destiny()->GetVelocity().y;
-            ship.velocity_z = Destiny()->GetVelocity().z;
-            ship.agility = static_cast<float>(GetAgility());
-            ship.speed_fraction = static_cast<float>(Destiny()->GetSpeedFraction());
-        }
-        into.Append( ship );
-
-        DSTBALL_STOP_Struct main;
+        mass.harmonic = m_harmonic;
+        mass.corporationID = m_corpID;
+        mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
+    into.Append( mass );
+    if (head.mode == Ball::Mode::FIELD) {
+        FIELD_Struct main;
+        main.formationID = 0xFF;
+        into.Append( main );
+    } else if (head.mode == Ball::Mode::STOP) {
+        STOP_Struct main;
         main.formationID = 0xFF;
         into.Append( main );
     }
+
+    _log(SE__DESTINY, "FSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
-
-
-void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) const {
-    into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
-    into.tau = 100000;    //no freaking clue.
-    into.timestamp = Win32TimeNow();
-//    armor damage isn't working...
-    into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
-    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHp).get_float());
-}
-
-
-CelestialDynamicSystemEntity::CelestialDynamicSystemEntity(DestinyManager *dm, InventoryItemRef self)
-: DynamicSystemEntity(dm, self)
+PyDict *FieldSE::MakeSlimItem()
 {
+    return SystemEntity::MakeSlimItem();
 }
 
-CelestialDynamicSystemEntity::~CelestialDynamicSystemEntity() {
-    if(m_destiny != NULL) {
-        //Do not do anything with the destiny manager, as it's m_self
-        //is now partially destroyed, which will majority upset things.
-        delete m_destiny;
-    }
-}
 
-//TODO: ask the destiny manager to do this for us!
-void CelestialDynamicSystemEntity::EncodeDestiny( Buffer& into ) const
+/* Non-Static / Non-Mobile / Destructible / Celestial Objects - POS Structures, Outposts, Deployables, empty Ships, Asteroids */
+ObjectSystemEntity::ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+: SystemEntity(self, services, system)
 {
-    const GPoint& position = GetPosition();
-    const std::string itemName( GetName() );
+    m_targMgr = new TargetManager(this);
 
-    // From SimpleSystemEntity::EncodeDestiny() in SystemEntities.cpp:
-/*
-    BallHeader head;
-    head.entityID = data.itemID;
-    head.mode = Destiny::DSTBALL_RIGID;
-    head.radius = data.radius;
-    head.x = data.position.x;
-    head.y = data.position.y;
-    head.z = data.position.z;
-    head.sub_type = IsMassive | IsGlobal;
+    assert(m_targMgr != nullptr);
+}
+
+ObjectSystemEntity::~ObjectSystemEntity()
+{
+    if (m_targMgr != nullptr)
+        if (!sConsole.IsShutdown()) {
+            m_targMgr->ClearModules();
+            m_targMgr->ClearAllTargets(false);
+            //m_targMgr->OnTarget(nullptr, TargMgr::Mode::Clear, TargMgr::Msg::Destroyed);
+        }
+
+    SafeDelete(m_targMgr);
+}
+
+void ObjectSystemEntity::EncodeDestiny( Buffer& into )
+{
+    using namespace Destiny;
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::RIGID;
+        head.radius = m_radius;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = Ball::Flag::IsMassive;
     into.Append( head );
-
-    DSTBALL_RIGID_Struct main;
-    main.formationID = 0xFF;
+    RIGID_Struct main;
+        main.formationID = 0xFF;
     into.Append( main );
 
-*/
+    _log(SE__DESTINY, "OSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+}
 
-    BallHeader head;
-    head.entityID = GetID();
-    head.mode = Destiny::DSTBALL_RIGID;
-    head.radius = GetRadius();
-    head.x = position.x;
-    head.y = position.y;
-    head.z = position.z;
-    head.sub_type = IsMassive | IsGlobal;
+PyDict* ObjectSystemEntity::MakeSlimItem() {
+    _log(SE__SLIMITEM, "MakeSlimItem for OSE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID",           new PyInt(GetTypeID()));
+        slim->SetItemString("ownerID",          new PyInt(m_ownerID));
+        slim->SetItemString("categoryID",       new PyInt(m_self->categoryID()));
+        slim->SetItemString("groupID",          new PyInt(m_self->groupID()));
+        slim->SetItemString("name",             new PyString(m_self->itemName()));
+        slim->SetItemString("corpID",           IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
+        slim->SetItemString("allianceID",       IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
+        slim->SetItemString("warFactionID",     IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
+    return slim;
+}
+
+void ObjectSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
+    into.shield = (m_self->GetAttribute(AttrShieldCharge).get_double() / m_self->GetAttribute(AttrShieldCapacity).get_double());
+    into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double();
+    into.timestamp = GetFileTimeNow();
+    into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_double() / m_self->GetAttribute(AttrArmorHP).get_double());
+    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_double() / m_self->GetAttribute(AttrHP).get_double());
+}
+
+void ObjectSystemEntity::UpdateDamage()
+{
+    SystemEntity::UpdateDamage();
+     DamageDetails dmgState;
+        dmgState.shield = m_self->GetAttribute(AttrShieldCharge).get_double() / m_self->GetAttribute(AttrShieldCapacity).get_double();
+        dmgState.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double();
+        dmgState.timestamp = GetFileTimeNow();
+        dmgState.armor = 1.0 - m_self->GetAttribute(AttrArmorDamage).get_double() / m_self->GetAttribute(AttrArmorHP).get_double();
+        dmgState.structure = 1.0 - m_self->GetAttribute(AttrDamage).get_double() / m_self->GetAttribute(AttrHP).get_double();
+     OnDamageStateChange dmgChange;
+        dmgChange.entityID = m_self->itemID();
+        dmgChange.state = dmgState.Encode();
+    PyTuple *up = dmgChange.Encode();
+    //source->QueueDestinyUpdate(&up);
+}
+
+void ObjectSystemEntity::Killed(Damage &fatal_blow)
+{
+    // do we need to make wreck items here?
+    // do these structures have loot?  probably so eventually
+
+    /** @todo  test and complete this to null current customs office for this planet ... */
+    /*if (IsCOSE()) {
+        if (GetCOSE()->GetPlanetID() > 0) {
+            SystemEntity* pSE = m_system->GetSE(GetCOSE()->GetPlanetID());
+            pSE->GetPlanetSE()->SetCustomsOffice(nullptr);
+        }
+    }*/
+}
+
+DeployableSE::DeployableSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data)
+: ObjectSystemEntity(self, services, system)
+{
+    m_warID = data.factionID;
+    m_allyID = data.allianceID;
+    m_corpID = data.corporationID;
+    m_ownerID = data.ownerID;
+}
+
+
+/* Non-Static / Mobile / Destructible / Celestial Objects - PC's, NPC's, Drones, Ships, Missiles, Wrecks  */
+DynamicSystemEntity::DynamicSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+: SystemEntity(self, services, system),
+m_invul(false),
+m_frozen(false)
+{
+    m_targMgr = new TargetManager(this);
+    m_destiny = new DestinyManager(this);
+
+    assert(m_targMgr != nullptr);
+    assert(m_destiny != nullptr);
+}
+
+DynamicSystemEntity::~DynamicSystemEntity()
+{
+    if (m_targMgr != nullptr)
+        if (!sConsole.IsShutdown()) {
+            m_targMgr->ClearModules();
+            m_targMgr->ClearAllTargets(false);
+            //m_targMgr->OnTarget(nullptr, TargMgr::Mode::Clear, TargMgr::Msg::Destroyed);
+        }
+
+    SafeDelete(m_targMgr);
+    SafeDelete(m_destiny);
+}
+
+PyDict *DynamicSystemEntity::MakeSlimItem() {
+    if (IsNPCSE())
+        return SystemEntity::MakeSlimItem();
+
+    _log(SE__SLIMITEM, "MakeSlimItem for DSE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID",           new PyInt(m_self->typeID()));
+        slim->SetItemString("ownerID",          new PyInt(m_ownerID));
+        //slim->SetItemString("categoryID",       new PyInt(m_self->categoryID()));
+        //slim->SetItemString("groupID",          new PyInt(m_self->groupID()));
+        slim->SetItemString("name",             new PyString(m_self->itemName()));
+        slim->SetItemString("corpID",           IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
+        slim->SetItemString("allianceID",       IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
+        slim->SetItemString("warFactionID",     IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
+    return (slim);
+}
+
+void DynamicSystemEntity::EncodeDestiny( Buffer& into )
+{
+    using namespace Destiny;
+    BallHeader head = BallHeader();
+        head.entityID = m_self->itemID();
+        head.mode = Ball::Mode::STOP;
+        head.radius = m_radius;
+        head.posX = x();
+        head.posY = y();
+        head.posZ = z();
+        head.flags = Ball::Flag::IsFree;
     into.Append( head );
-/*
-    MassSector mass;
-    mass.mass = GetMass();
-    mass.cloak = 0;
-    mass.unknown52 = 0xFFFFFFFFFFFFFFFFLL;
-    mass.corpID = GetCorporationID();
-    mass.allianceID = GetAllianceID();
+    MassSector mass = MassSector();
+        mass.mass = m_destiny->GetMass();
+        mass.cloak = (m_destiny->IsCloaked() ? 1 : 0);
+        mass.harmonic = m_harmonic;
+        mass.corporationID = m_corpID;
+        mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
     into.Append( mass );
-*/
-    DSTBALL_RIGID_Struct main;
-    main.formationID = 0xFF;
+    DataSector data = DataSector();
+        data.inertia = m_destiny->GetInertia();
+        data.maxSpeed = m_destiny->GetMaxVelocity();
+        data.velX = m_destiny->GetVelocity().x;
+        data.velY = m_destiny->GetVelocity().y;
+        data.velZ = m_destiny->GetVelocity().z;
+        data.speedfraction = m_destiny->GetSpeedFraction();
+    into.Append( data );
+    STOP_Struct main;
+        main.formationID = 0xFF;
     into.Append( main );
+
+    _log(SE__DESTINY, "DSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+}
+
+void DynamicSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
+    into.shield = (m_self->GetAttribute(AttrShieldCharge).get_double() / m_self->GetAttribute(AttrShieldCapacity).get_double());
+    into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double();
+    into.timestamp = GetFileTimeNow();
+    into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_double() / m_self->GetAttribute(AttrArmorHP).get_double());
+    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_double() / m_self->GetAttribute(AttrHP).get_double());
+}
+
+void DynamicSystemEntity::UpdateDamage()
+{
+    /** @todo (Allan) needs more work */
+    SystemEntity::UpdateDamage();
+     DamageDetails dmgState;
+        dmgState.shield = m_self->GetAttribute(AttrShieldCharge).get_double() / m_self->GetAttribute(AttrShieldCapacity).get_double();
+        dmgState.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double();
+        dmgState.timestamp = GetFileTimeNow();
+        dmgState.armor = 1.0 - m_self->GetAttribute(AttrArmorDamage).get_double() / m_self->GetAttribute(AttrArmorHP).get_double();
+        dmgState.structure = 1.0 - m_self->GetAttribute(AttrDamage).get_double() / m_self->GetAttribute(AttrHP).get_double();
+     OnDamageStateChange dmgChange;
+        dmgChange.entityID = m_self->itemID();
+        dmgChange.state = dmgState.Encode();
+    PyTuple *up = dmgChange.Encode();
+    //source->QueueDestinyUpdate(&up);
+}
+
+void DynamicSystemEntity::AwardBounty(Client* pClient)
+{
+    // this will use a map{charID/BountyData} in system manager for using a bounty timer.
+    double bounty = m_self->GetAttribute(AttrEntityKillBounty).get_double();
+    bounty *= sConfig.rates.npcBountyMultiply;
+    if (bounty < 1)
+        return;
+
+    // add data to StatisticMgr
+    sStatMgr.Add(Stat::npcBounties, bounty);
+
+    std::string reason = "Bounty for killing a pirate in ";
+    reason += pClient->GetSystemName();
+
+    BountyData data = BountyData();
+    data.fromID = m_self->itemID();
+    data.toID = pClient->GetCharacterID();
+    data.refTypeID = Journal::EntryType::BountyPrize;
+    data.fromKey = Account::KeyType::Cash;
+    data.toKey = Account::KeyType::Cash;
+    data.reason = reason;
+
+    // handle distribution to fleets
+    if (pClient->InFleet()) {
+        // get fleet members onGrid and distrubute bounty
+        /*std::vector< uint32 > members;
+        sFltSvc.GetFleetMembersOnGrid(pClient, members);
+        // split bounty between members
+        bounty /= members.size();
+        // send bounty to members
+        if (sConfig.server.BountyPayoutDelayed and sConfig.server.FleetShareDelayed) {
+            for (auto cur :members)
+                m_system->AddBounty(cur, data);
+        } else {
+            reason += " (FleetShare) ";
+            reason += " by ";
+            reason += pClient->GetName();
+            data.reason = reason;
+            for (auto cur :members)
+                AccountService::TranserFunds(corpCONCORD, cur, bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
+        }*/
+    } else {
+        data.amount = bounty;
+        if (sConfig.server.BountyPayoutDelayed) {
+            m_system->AddBounty(pClient->GetCharacterID(), data);
+        } else {
+            AccountService::TranserFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
+        }
+    }
 }

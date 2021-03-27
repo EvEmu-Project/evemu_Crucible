@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -24,45 +24,12 @@
 */
 
 
-//note, using /slashes from LSC requires ROLE_SLASH
-
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
 #include "admin/CommandDispatcher.h"
 #include "admin/SlashService.h"
 
-/*
-class SlashBound
-: public PyBoundObject {
-public:
-
-    PyCallable_Make_Dispatcher(SlashBound)
-
-    SlashBound(PyServiceMgr *mgr, SlashDB *db)
-    : PyBoundObject(mgr, "SlashBound"),
-      m_db(db),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        PyCallable_REG_CALL(SlashBound, )
-        PyCallable_REG_CALL(SlashBound, )
-    }
-    virtual ~SlashBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL()
-    PyCallable_DECL_CALL()
-
-protected:
-    SlashDB *const m_db;
-    Dispatcher *const m_dispatch;   //we own this
-};
-*/
 
 PyCallable_Make_InnerDispatcher(SlashService)
 
@@ -73,29 +40,22 @@ SlashService::SlashService(PyServiceMgr *mgr, CommandDispatcher *cd)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(SlashService, SlashCmd)
+    PyCallable_REG_CALL(SlashService, SlashCmd);
 }
 
 SlashService::~SlashService() {
     delete m_dispatch;
 }
 
-
-/*
-PyBoundObject *SlashService::_CreateBoundObject(Client *c, PyTuple *bind_args) {
-    _log(CLIENT__MESSAGE, "SlashService bind request for:");
-    bind_args->Dump(CLIENT__MESSAGE, "    ");
-
-    return(new SlashBound(m_manager, &m_db));
-}*/
-
-
 PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
 {
-    Call_SingleWStringSoftArg arg;
-    if( !arg.Decode( &call.tuple ) )
-    {
-        codelog( SERVICE__ERROR, "Failed to decode arguments" );
+    if (is_log_enabled(COMMAND__DUMP)) {
+        sLog.White("SlashService::Handle_SlashCmd()", "size=%u", call.tuple->size());
+        call.Dump(COMMAND__DUMP);
+    }
+    Call_SingleStringArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return NULL;
     }
 
@@ -104,13 +64,14 @@ PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
 
 PyResult SlashService::SlashCommand(Client * client, std::string command)
 {
-    if( !( client->GetAccountRole() & ROLE_SLASH ) )
-    {
-        _log( SERVICE__ERROR, "%s: Client '%s' used a slash command but does not have ROLE_SLASH. Modified client?", GetName(), client->GetName() );
-        throw PyException( MakeCustomError( "You need to have ROLE_SLASH to execute commands." ) );
+    if ((client->GetAccountRole() & Acct::Role::SLASH) != Acct::Role::SLASH) {
+        _log( COMMAND__ERROR, "%s: Client '%s' used a slash command but does not have Acct::Role::SLASH.", GetName(), client->GetName() );
+        throw PyException(MakeCustomError("You need to have Acct::Role::SLASH to execute commands." ) );
     }
-
-    sLog.Debug( "SlashService::Handle_SlashCmd()", "Slash command called: '%s'", command.c_str() );
 
     return m_commandDispatch->Execute( client, command.c_str() );
 }
+
+/*(258713, `Role GMH needed`)
+ * (258714, `Role GML needed`)
+ */

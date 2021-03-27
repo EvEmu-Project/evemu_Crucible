@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -20,25 +20,34 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Allan
 */
 
-#ifndef __ITEMDB_H_INCL__
-#define __ITEMDB_H_INCL__
+#ifndef EVE_INVENTORY_ITEM_DB
+#define EVE_INVENTORY_ITEM_DB
 
 #include "ServiceDB.h"
+#include "inventory/ItemType.h"
 
 class ItemDB
-: public ServiceDB
 {
 public:
-protected:
+    // get item data based on itemID
+    static bool GetItem(uint32 itemID, ItemData &into);
+    static bool DeleteItem(uint32 itemID);
+
+    static void UpdateLocation(uint32 itemID, uint32 locationID, EVEItemFlags flag);
+
+    static uint32 NewItem(const ItemData &data);
+
+    static bool SaveItem(uint32 itemID, const ItemData &data);
+    static void SaveItems(std::vector< Inv::SaveData > &data);
+    static void SaveAttributes(bool isChar, std::vector< Inv::AttrData > &data);
+
+    // only used in ConsoleCommands to test/process fx data
+    static void GetItems(uint16 catID, std::map<uint16, std::string> &typeIDs);
+
 };
 
 
-
-
-
-#endif
-
-
+#endif  // EVE_INVENTORY_ITEM_DB

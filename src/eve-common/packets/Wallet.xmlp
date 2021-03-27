@@ -12,16 +12,43 @@
 
   <elementDef name="Call_GiveCash">
     <tupleInline>
-      <int  name="destination" />
-      <real name="amount" />
-      <string name="reason" />
+      <int name="toID" />
+      <real name="amount" safe="true" />
+      <string name="reason" none_marker="0" safe="true" />
     </tupleInline>
   </elementDef>
 
-  <elementDef name="CallGetCashBalance">
+  <elementDef name="Call_GiveCorpCash">
     <tupleInline>
-      <!-- 0 -->
-      <bool name="isCorpWallet" />
+      <int name="toID" />
+      <real name="amount" safe="true"/>
+      <int name="fromAcctKey" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_GetJournal">
+  <!--  GetJournal(     keyID, fromDate,        None,                 1)
+        GetJournal(accountKey, fromDate,   entryType, self.isCorpWallet, rev=1)
+        GetJournal(accountKey, fromDate, entryTypeID,       corpAccount, transactionID, rev)  -->
+    <tupleInline>
+      <int name="accountKey" />
+      <long name="fromDate" />
+      <int name="entryTypeID" none_marker="0" safe="true" />
+      <bool name="corpAccount" none_marker="0" safe="true" /> <!-- corpAccount could be either bool or interger  -->
+      <int name="transactionID" none_marker="0" safe="true" />
+      <int name="rev" none_marker="0" safe="true" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_GetJournals">
+  <!--  GetJournalForAccounts(accountKeys, fromDate, entryTypeID, corpAccount, transactionID, rev)  -->
+    <tupleInline>
+      <list name="accountKeys" />
+      <long name="fromDate" />
+      <int name="entryTypeID" none_marker="0" />
+      <int name="corpAccount" safe="true" /> <!-- corpAccount could be either bool or interger  -->
+      <int name="transactionID" none_marker="0" />
+      <int name="rev" none_marker="0" />
     </tupleInline>
   </elementDef>
 
@@ -31,6 +58,41 @@
       <substreamInline>
         <real name="credits" />
       </substreamInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnBillReceived">
+    <tupleInline>
+      <int name="notificationID" /><!-- notificationID in "Unprocessed Notifications" from mail.notifications -->
+      <int name="interest" /><!-- percent in integer -->
+      <int name="fromID" />
+      <long name="transactionDate" />
+      <dictInline>
+        <dictInlineEntry key="debtorID"><!-- charID or corpID of responsible party -->
+            <int name="debtorID" />
+        </dictInlineEntry>
+        <dictInlineEntry key="creditorID"><!-- payable to corpID or ? -->
+            <int name="creditorID" />
+        </dictInlineEntry>
+        <dictInlineEntry key="billTypeID">
+            <int name="billTypeID" />
+        </dictInlineEntry>
+        <dictInlineEntry key="amount">
+            <real name="amount" />
+        </dictInlineEntry>
+        <dictInlineEntry key="externalID2"><!-- this is locationID based on billType -->
+            <int name="externalID2" />
+        </dictInlineEntry>
+        <dictInlineEntry key="externalID"><!-- this is typeID based on billType -->
+            <int name="externalID" />
+        </dictInlineEntry>
+        <dictInlineEntry key="currentDate">
+            <int name="currentDate" />
+        </dictInlineEntry>
+        <dictInlineEntry key="dueDate">
+            <int name="dueDate" />
+        </dictInlineEntry>
+      </dictInline>
     </tupleInline>
   </elementDef>
 

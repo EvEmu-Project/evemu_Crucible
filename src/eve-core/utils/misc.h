@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -25,6 +25,7 @@
 
 #ifndef __MISC_H__INCL__
 #define __MISC_H__INCL__
+#include <eve-compat.h>
 
 /**
  * This is functionally equivalent to python's binascii.crc_hqx.
@@ -44,7 +45,7 @@ uint16 crc_hqx( const uint8* data, size_t len, uint16 crc = 0 );
  *
  * @return Size of file.
  */
-uint64 filesize( const char* filename );
+int64 filesize( const char* filename );
 /**
  * @brief Obtains filesize.
  *
@@ -52,7 +53,7 @@ uint64 filesize( const char* filename );
  *
  * @return Size of file.
  */
-uint64 filesize( FILE* fd );
+int64 filesize( FILE* fd );
 
 /**
  * @brief Calculates next (greater or equal)
@@ -63,7 +64,7 @@ uint64 filesize( FILE* fd );
  * @return Power-of-two number which is greater than or
  *         equal to the base number.
  */
-uint64 npowof2( uint64 num );
+int64 npowof2( int64 num );
 
 /**
  * @brief Generates random integer from interval [low; high].
@@ -83,5 +84,39 @@ int64 MakeRandomInt( int64 low = 0, int64 high = RAND_MAX );
  * @return The generated real.
  */
 double MakeRandomFloat( double low = 0, double high = 1 );
+
+inline bool IsEven(int64 number)                        { return ((number %2) == 0); }
+inline bool IsNaN(double x)                             { return x!= x; }
+
+uint32 CreatePIDFile(const std::string& filename);
+
+namespace EvE {
+    // returns the minimum of x,y as double
+    inline double min(double x, double y)               { return ((x < y) ? x : y); }
+    // returns the minimum of x,y as 32b integer
+    inline int32 min(int32 x, int32 y)                  { return ((x < y) ? x : y); }
+    // returns the minimum of x,y and 1
+    double min1(double x, double y);
+    // returns the minimum of x,y and z
+    double min(double x, double y, double z);
+    // returns the max of x,y with y=0 by default
+    inline int64 max(int64 x, int64 y=0)                { return ((x > y) ? x : y); }
+    // returns the maximum of x,y with y=0 by default
+    inline double max(double x, double y=0)             { return ((x > y) ? x : y); }
+    // returns the maximum of x,y and z
+    double max(double x, double y, double z);
+    // prints the top10 items in stack to stdout
+    void traceStack(void);
+    // Find Case Insensitive Sub String in a given substring
+    bool icontains(std::string data, std::string toSearch, size_t pos = 0);
+    // format given time (in seconds) to month/week/day/hour/minute/second
+    // <0 will return "Invalid Time".  0 will return "None"
+    const char* FormatTime(int64 time=-1);
+    // format given time (in seconds) to month/week/day/hour/minute/second
+    // <0 will return "Invalid Time".  0 will return "None"
+    const char* FormatTime(double time=-1);
+
+    double trunicate2(double dig=0);
+}
 
 #endif /* !__MISC_H__INCL__ */

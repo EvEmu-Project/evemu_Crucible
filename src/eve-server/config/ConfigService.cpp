@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 #include "eve-server.h"
@@ -36,301 +37,241 @@ ConfigService::ConfigService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(ConfigService, GetMultiOwnersEx)
-    PyCallable_REG_CALL(ConfigService, GetMultiLocationsEx)
-    PyCallable_REG_CALL(ConfigService, GetMultiAllianceShortNamesEx)
-    PyCallable_REG_CALL(ConfigService, GetMultiCorpTickerNamesEx)
-    PyCallable_REG_CALL(ConfigService, GetUnits)
-    PyCallable_REG_CALL(ConfigService, GetMap)
-    PyCallable_REG_CALL(ConfigService, GetMapOffices)
-    PyCallable_REG_CALL(ConfigService, GetMapObjects)
-    PyCallable_REG_CALL(ConfigService, GetMapConnections)
-    PyCallable_REG_CALL(ConfigService, GetMultiGraphicsEx)
-    PyCallable_REG_CALL(ConfigService, GetMultiInvTypesEx)
-    PyCallable_REG_CALL(ConfigService, GetStationSolarSystemsByOwner)
-    PyCallable_REG_CALL(ConfigService, GetCelestialStatistic)
-    PyCallable_REG_CALL(ConfigService, GetDynamicCelestials)
-    PyCallable_REG_CALL(ConfigService, GetMapLandmarks)
-    PyCallable_REG_CALL(ConfigService, SetMapLandmarks)
+    PyCallable_REG_CALL(ConfigService, GetMultiOwnersEx);
+    PyCallable_REG_CALL(ConfigService, GetMultiLocationsEx);
+    PyCallable_REG_CALL(ConfigService, GetMultiStationEx);
+    PyCallable_REG_CALL(ConfigService, GetMultiAllianceShortNamesEx);
+    PyCallable_REG_CALL(ConfigService, GetMultiCorpTickerNamesEx);
+    PyCallable_REG_CALL(ConfigService, GetUnits);
+    PyCallable_REG_CALL(ConfigService, GetMap);
+    PyCallable_REG_CALL(ConfigService, GetMapOffices);
+    PyCallable_REG_CALL(ConfigService, GetMapObjects);
+    PyCallable_REG_CALL(ConfigService, GetMapConnections);
+    PyCallable_REG_CALL(ConfigService, GetMultiGraphicsEx);
+    PyCallable_REG_CALL(ConfigService, GetMultiInvTypesEx);
+    PyCallable_REG_CALL(ConfigService, GetStationSolarSystemsByOwner);
+    PyCallable_REG_CALL(ConfigService, GetCelestialStatistic);
+    PyCallable_REG_CALL(ConfigService, GetDynamicCelestials);
+    PyCallable_REG_CALL(ConfigService, GetMapLandmarks);
+    PyCallable_REG_CALL(ConfigService, SetMapLandmarks);
 }
 
 ConfigService::~ConfigService() {
     delete m_dispatch;
 }
 
+/** @todo put these next two in static data to avoid db hits  */
+PyResult ConfigService::Handle_GetUnits(PyCallArgs &call) {
+    return m_db.GetUnits();
+}
+
+PyResult ConfigService::Handle_GetMapLandmarks(PyCallArgs &call) {
+    return m_db.GetMapLandmarks();
+}
+
 PyResult ConfigService::Handle_GetMultiOwnersEx(PyCallArgs &call) {
-    //parse the PyRep to get the list of IDs to query.
+  /*
+23:14:21 L ConfigService: Handle_GetMultiOwnersEx
+23:14:21 [SvcCall]   Call Arguments:
+23:14:21 [SvcCall]       Tuple: 1 elements
+23:14:21 [SvcCall]         [ 0] List: 1 elements
+23:14:21 [SvcCall]         [ 0]   [ 0] Integer field: 140000053
+  */
+    _log(CACHE__DUMP, "ConfigService::Handle_GetMultiOwnersEx" );
+    call.Dump(CACHE__DUMP);
+
     Call_SingleIntList arg;
-    if(!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode arguments.");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return(m_db.GetMultiOwnersEx(arg.ints));
+    return m_db.GetMultiOwnersEx(arg.ints);
 }
 
 PyResult ConfigService::Handle_GetMultiAllianceShortNamesEx(PyCallArgs &call) {
-    //parse the PyRep to get the list of IDs to query.
     Call_SingleIntList arg;
-    if(!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode arguments.");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return(m_db.GetMultiAllianceShortNamesEx(arg.ints));
+    return m_db.GetMultiAllianceShortNamesEx(arg.ints);
 }
 
 
-PyResult ConfigService::Handle_GetMultiLocationsEx(PyCallArgs &call) {
-    //parse the PyRep to get the list of IDs to query.
+PyResult ConfigService::Handle_GetMultiLocationsEx(PyCallArgs &call) {      // now working correctly  -allan  25April
+    _log(CACHE__DUMP,  "ConfigService::Handle_GetMultiLocationsEx" );
+    call.Dump(CACHE__DUMP);
     Call_SingleIntList arg;
-    if(!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode arguments.");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return(m_db.GetMultiLocationsEx(arg.ints));
+    return m_db.GetMultiLocationsEx(arg.ints);
+}
+
+PyResult ConfigService::Handle_GetMultiStationEx(PyCallArgs &call) {
+    _log(CACHE__DUMP,  "ConfigService::Handle_GetMultiStationEx" );
+    call.Dump(CACHE__DUMP);
+    Call_SingleIntList arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    return m_db.GetMultiStationEx(arg.ints);
 }
 
 PyResult ConfigService::Handle_GetMultiCorpTickerNamesEx(PyCallArgs &call) {
-    //parse the PyRep to get the list of IDs to query.
     Call_SingleIntList arg;
-    if(!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode arguments.");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return(m_db.GetMultiCorpTickerNamesEx(arg.ints));
+    return m_db.GetMultiCorpTickerNamesEx(arg.ints);
 }
 
 PyResult ConfigService::Handle_GetMultiGraphicsEx(PyCallArgs &call) {
-    //parse the PyRep to get the list of IDs to query.
     Call_SingleIntList arg;
-    if(!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode arguments.");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return(m_db.GetMultiGraphicsEx(arg.ints));
+    return m_db.GetMultiGraphicsEx(arg.ints);
 }
-
-
-
-PyResult ConfigService::Handle_GetUnits(PyCallArgs &call) {
-    return(m_db.GetUnits());
-}
-
 
 PyResult ConfigService::Handle_GetMap(PyCallArgs &call) {
     Call_SingleIntegerArg args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode arguments");
-        return NULL;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return(m_db.GetMap(args.arg));
+    return m_db.GetMap(args.arg);
 }
 
 PyResult ConfigService::Handle_GetMapOffices(PyCallArgs &call) {
-    //  will add this complete code with other map data at a later date  -allan 25Jul14
-    Call_SingleIntegerArg args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode arguments");
-        return NULL;
-    }
+  /*
+22:38:58 [SvcCall] Service config: calling GetMapOffices
+22:38:58 [SvcCall]   Call Arguments:
+22:38:58 [SvcCall]       Tuple: 1 elements
+22:38:58 [SvcCall]         [ 0] Integer field: 30002507     -solarSystemID
+22:38:58 [SvcCall]   Call Named Arguments:
+22:38:58 [SvcCall]     Argument 'machoVersion':
+22:38:58 [SvcCall]         Integer field: 1
+  */
+  Call_SingleIntegerArg args;
+  if (!args.Decode(&call.tuple)) {
+      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+      return nullptr;
+  }
 
-    //return(m_db.GetMapOffices(args.arg));
-	return NULL;
+    return m_db.GetMapOffices(args.arg);
 }
 
 PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
-/*
-  args (entityID,
-    wantRegions (given universe),
-    wantConstellations (given region),
-    wantSystems (given constellation),
-    wantStations (given solarsystem),
-    unknown (seen 0) )
-*/
-
-    /* parsing args the long way until I write a dynamic InlineTuple mechanism */
-
-/*  Call_SingleIntegerArg args;
-    if(!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode arguments");
-        return NULL;
-    }*/
-
-    PyTuple* t = call.tuple;
-    call.tuple = NULL;
-
-    if( t->size() > 6 || t->size() == 0 )
-    {
-        _log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: tuple0 is the wrong size: expected 1-6, but got %lu", t->size() );
-
-        PyDecRef( t );
-        return NULL;
+    Call_GetMapObjects args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    uint32 arg = 0;
-    bool wantRegions = false;
-    bool wantConstellations = false;
-    bool wantSystems = false;
-    bool wantStations = false;
-
-    if( t->size() > 5 )
-    {
-        //do nothing with this field, we do not understand it.
-    }
-
-    if( t->size() > 4 )
-    {
-        PyRep* v = t->GetItem( 4 );
-        if( !v->IsInt() )
-        {
-            _log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 4 is not an int: %s", v->TypeString() );
-
-            PyDecRef( t );
-            return NULL;
-        }
-
-        wantStations = ( 0 != v->AsInt()->value() );
-    }
-
-    if( t->size() > 3 )
-    {
-        PyRep* v = t->GetItem( 3 );
-        if( !v->IsInt() )
-        {
-            _log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 3 is not an int: %s", v->TypeString() );
-
-            PyDecRef( t );
-            return NULL;
-        }
-
-        wantSystems = ( 0 != v->AsInt()->value() );
-    }
-
-    if( t->size() > 2 )
-    {
-        PyRep* v = t->GetItem( 2 );
-        if( !v->IsInt() )
-        {
-            _log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 2 is not an int: %s", v->TypeString() );
-
-            PyDecRef( t );
-            return NULL;
-        }
-
-        wantConstellations = ( 0 != v->AsInt()->value() );
-    }
-
-    if( t->size() > 1 )
-    {
-        PyRep* v = t->GetItem( 1 );
-        if( !v->IsInt() )
-        {
-            _log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 1 is not an int: %s", v->TypeString() );
-
-            PyDecRef( t );
-            return NULL;
-        }
-
-        wantRegions = ( 0 != v->AsInt()->value() );
-    }
-
-    if( t->size() > 0 )
-    {
-        PyRep* v = t->GetItem( 0 );
-        if( !v->IsInt() )
-        {
-            _log( NET__PACKET_ERROR, "Decode Handle_GetMapObjects failed: arg 0 is not an int: %s", v->TypeString() );
-
-            PyDecRef( t );
-            return NULL;
-        }
-
-        arg = v->AsInt()->value();
-    }
-
-    PyDecRef( t );
-
-    return m_db.GetMapObjects( arg, wantRegions, wantConstellations, wantSystems, wantStations );
+    return m_db.GetMapObjects( args.systemID, args.reg, args.con, args.sys, args.sta);
 }
 
 PyResult ConfigService::Handle_GetMultiInvTypesEx(PyCallArgs &call) {
+    _log(CACHE__DUMP,  "ConfigService::Handle_GetMultiInvTypesEx" );
+    call.Dump(CACHE__DUMP);
+
     //parse the PyRep to get the list of IDs to query.
     Call_SingleIntList arg;
-    if(!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode arguments.");
-        return NULL;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return(m_db.GetMultiInvTypesEx(arg.ints));
+    return m_db.GetMultiInvTypesEx(arg.ints);
 }
 
 
+//02:10:35 L ConfigService::Handle_GetMapConnections(): size= 6
+//15:12:56 W ConfigDB::GetMapConnections: DB query - System:20000307, B1:0, B2:0, B3:1, Cel:0, _c:1  <-- this means cached
 PyResult ConfigService::Handle_GetMapConnections(PyCallArgs &call) {
-/*
-this is cached on clientside.  only called if not in client cache
-
-GetMapConnections(id, sol, reg, con, cel, _c)
-      <int name="id" />
-      <bool name="sol" />
-      <bool name="reg" /> args.reg
-      <bool name="con" />
-      <int name="cel" />
-      <int name="_c" />
+/**
+        this is cached on clientside.  only called if not in client cache
 */
-/*  will add this complete code with other map data at a later date  -allan 25Jul14
     Call_GetMapConnections args;
-    if(!args.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode args.");
-        return new PyInt(0);
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
-    return m_db.GetMapConnections(args.id, args.sol, args.reg, args.con, args.cel, args._c);
-*/
-	return NULL;
+
+    /** @todo check into id sending.... 9 is EvE Universe and 9000001 is EvE WormHole Universe */
+    if(args.id == 9 || args.sol) {
+        //sLog.Warning( "ConfigService::Handle_GetMapConnections()::args.id = 9 | args.sol");
+        return m_db.GetMapConnections(call.client->GetSystemID(), args.sol, args.reg, args.con, args.cel, args._c);
+    } else {
+        return m_db.GetMapConnections(args.id, args.sol, args.reg, args.con, args.cel, args._c);
+    }
 }
 
 PyResult ConfigService::Handle_GetStationSolarSystemsByOwner(PyCallArgs &call) {
+  // solorSys = sm.RemoteSvc('config').GetStationSolarSystemsByOwner(itemID)
+  // solarSys.solarSystemID
     Call_SingleIntegerArg arg;
     if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Bad arguments");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    // No idea what to return... yet...
-    // Similar to GetCorpInfo(corpID) / corpSvc
+    // this seems to ONLY return solarSystemIDs
     return m_db.GetStationSolarSystemsByOwner(arg.arg);
 }
 
 PyResult ConfigService::Handle_GetCelestialStatistic(PyCallArgs &call) {
     Call_SingleIntegerArg arg;
     if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Bad arguments");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
     return m_db.GetCelestialStatistic(arg.arg);
 }
 
-PyResult ConfigService::Handle_GetDynamicCelestials(PyCallArgs &call){
+PyResult ConfigService::Handle_GetDynamicCelestials(PyCallArgs &call) {
     Call_SingleIntegerArg arg;
     if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Bad arguments");
-        return NULL;
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
     }
 
-    return m_db.GetDynamicCelestials(arg.arg);
-}
-
-PyResult ConfigService::Handle_GetMapLandmarks(PyCallArgs &call) {
-    //  will add this complete code with other map data at a later date  -allan 25Jul14
-    //return m_db.GetMapLandmarks();
-	return NULL;
+    if(IsSolarSystem(arg.arg)) {
+        //sLog.Green("GetDynamicCelesitals", " IsSolarSystem %u", arg.arg);
+        return m_db.GetDynamicCelestials(arg.arg);
+    } else {
+        sLog.Error("GetDynamicCelesitals", "!IsSolarSystem %u", arg.arg);
+        return new PyInt( 0 );
+    }
 }
 
 PyResult ConfigService::Handle_SetMapLandmarks(PyCallArgs &call) {
-        return NULL;
+  /**
+            x, y, z = landmark.translation
+            data = (landmark.landmarkID,
+             x / STARMAP_SCALE,
+             y / STARMAP_SCALE,
+             z / STARMAP_SCALE,
+             landmark.GetRadius())
+
+        sm.RemoteSvc('config').SetMapLandmarks(landmarkData)
+             */
+    _log(CACHE__DUMP,  "MapService::Handle_SetMapLandmarks()");
+    call.Dump(CACHE__DUMP);
+
+    return nullptr;
 }
+

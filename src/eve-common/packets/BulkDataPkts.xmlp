@@ -1,0 +1,42 @@
+
+<elements>
+
+  <elementDef name="Call_UpdateBulk">
+    <tupleInline>
+      <int name="changeID" />
+      <raw name="hashValue" />  <!-- could be string or none -->
+      <int name="branch" />
+    </tupleInline>
+  </elementDef>
+
+  <!-- GetChunk(changeID, chunkNumber) -->
+  <elementDef name="Call_GetChunk">
+    <tupleInline>
+      <int name="changeID" />
+      <int name="chunkNumber" />
+    </tupleInline>
+  </elementDef>
+
+  <!-- GetFullFilesChunk(chunkSetID, chunkNumber) -->
+  <elementDef name="Call_GetFullFilesChunk">
+    <tupleInline>
+      <int name="chunkSetID" />
+      <int name="chunkNumber" />
+    </tupleInline>
+  </elementDef>
+
+  <!-- GetUnsubmittedChunk(chunkNumber) -->
+  <elementDef name="Call_GetUnsubmittedChunk">
+    <tupleInline>
+      <int name="chunkNumber" />
+    </tupleInline>
+  </elementDef>
+
+  <!-- GetFullFiles(toGet) -->
+  <elementDef name="Call_GetFullFiles">
+    <tupleInline>
+      <raw name="toGet" /> <!-- could be list or none -->
+    </tupleInline>
+  </elementDef>
+
+</elements>

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,62 +21,55 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 #ifndef __MARKETDB_H_INCL__
 #define __MARKETDB_H_INCL__
 
+
+#include "packets/Market.h"
+#include "../../eve-common/EVE_Market.h"
+
 #include "ServiceDB.h"
 
 class PyRep;
-
-static const uint32 HISTORY_AGGREGATION_DAYS = 5;    //how many days in the past is the cutoff between "new" and "old" price history.
-
-typedef enum
-{
-    TransactionTypeSell = 0,
-    TransactionTypeBuy = 1
-} MktTransType;
 
 class MarketDB
 : public ServiceDB
 {
 public:
-    PyRep *CharGetNewTransactions(uint32 characterID);
-    PyRep *GetStationAsks(uint32 stationID);
-    PyRep *GetSystemAsks(uint32 solarSystemID);
-    PyRep *GetRegionBest(uint32 regionID);
+    PyRep* GetMarketGroups();
+    PyRep* GetOrders(uint32 regionID, uint16 typeID);
+    PyRep* GetOrderRow(uint32 orderID);
+    PyRep* GetRegionBest(uint32 regionID);
+    PyRep* GetSystemAsks(uint32 solarSystemID);
+    PyRep* GetStationAsks(uint32 stationID);
+    PyRep* GetOrdersForOwner(uint32 ownerID);
 
-    PyRep *GetOrders(uint32 regionID, uint32 typeID);
-    PyRep *GetCharOrders(uint32 characterID);
-    PyRep *GetOrderRow(uint32 orderID);
+    PyRep* GetTransactions(uint32 ownerID, Market::TxData &data);
 
-    PyRep *GetOldPriceHistory(uint32 regionID, uint32 typeID);
-    PyRep *GetNewPriceHistory(uint32 regionID, uint32 typeID);
-    PyRep *GetTransactions(uint32 characterID, uint32 typeID, uint32 quantity, double minPrice, double maxPrice, uint64 fromDate, int buySell);
-
-    PyRep *GetMarketGroups();
-    PyObject *GetRefTypes();
-    PyObject *GetCorporationBills(uint32 corpID, bool payable);
-
-    uint32 FindBuyOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);
-    uint32 FindSellOrder(uint32 stationID, uint32 typeID, double price, uint32 quantity, uint32 orderRange);
-
-    bool GetOrderInfo(uint32 orderID, uint32 *orderOwnerID, uint32 *typeID, uint32 *stationID, uint32 *quantity, double *price, bool *isBuy, bool *isCorp);
-    bool AlterOrderQuantity(uint32 orderID, uint32 new_qty);
-    bool AlterOrderPrice(uint32 orderID, double new_price);
     bool DeleteOrder(uint32 orderID);
+    bool GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo);
+    bool AlterOrderPrice(uint32 orderID, double new_price);
+    bool RecordTransaction(Market::TxData &data);
+    bool AlterOrderQuantity(uint32 orderID, uint32 new_qty);
 
-    bool AddCharacterBalance(uint32 char_id, double delta);
+    uint32 FindBuyOrder(Call_PlaceCharOrder &call);
+    uint32 FindSellOrder(Call_PlaceCharOrder &call);
+    uint32 StoreOrder(Market::SaveData& data);
 
-    uint32 StoreBuyOrder(uint32 clientID, uint32 accountID, uint32 stationID, uint32 typeID, double price, uint32 quantity, uint8 orderRange, uint32 minVolume, uint8 duration, bool isCorp);
-    uint32 StoreSellOrder(uint32 clientID, uint32 accountID, uint32 stationID, uint32 typeID, double price, uint32 quantity, uint8 orderRange, uint32 minVolume, uint8 duration, bool isCorp);
-    bool RecordTransaction(uint32 typeID, uint32 quantity, double price, MktTransType ttype, uint32 charID, uint32 regionID, uint32 stationID);
 
-    bool BuildOldPriceHistory();
+    /* for base price estimator */
+    static void GetMineralPrices(std::vector<Market::matlData>& data);
+    static void UpdateMineralPrices(std::vector<Market::matlData>& data);
 
-protected:
-    uint32 _StoreOrder(uint32 clientID, uint32 accountID, uint32 stationID, uint32 typeID, double price, uint32 quantity, uint8 orderRange, uint32 minVolume, uint8 duration, bool isCorp, bool isBuy);
+    /* for marketMgr update service */
+    static int64 GetUpdateTime();
+    static void SetUpdateTime(int64 setTime);
+
+    static void UpdateHistory();
+
 };
 
 

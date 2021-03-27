@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,8 +26,8 @@
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
-#include "cache/ObjCacheService.h"
 #include "dogmaim/DogmaService.h"
+#include "StaticDataMgr.h"
 
 PyCallable_Make_InnerDispatcher(DogmaService)
 
@@ -46,16 +46,5 @@ DogmaService::~DogmaService() {
 
 PyResult DogmaService::Handle_GetOperandsForChar(PyCallArgs &call)
 {
-    ObjectCachedMethodID method_id(GetName(), "GetOperandsForChar");
-
-    if( !m_manager->cache_service->IsCacheLoaded( method_id ) )
-    {
-        PyRep* res = m_db.GetOperand();
-        if( res == NULL )
-            return NULL;
-
-        m_manager->cache_service->GiveCache( method_id, &res );
-    }
-
-    return m_manager->cache_service->MakeObjectCachedMethodCallResult( method_id );
+    return sDataMgr.GetOperands();
 }

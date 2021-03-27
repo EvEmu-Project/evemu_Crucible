@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,12 +26,16 @@
 #ifndef __DESTINYBINDUMP_H_INCL__
 #define __DESTINYBINDUMP_H_INCL__
 
+#include "destiny/DestinyStructs.h"
+
 namespace Destiny {
 
     extern void DumpUpdate(LogType into, const uint8 *data, uint32 len);
     extern uint32 DumpBall(LogType into, const uint8 *data, uint32 len);
 
-    extern const char *const DSTBALL_modeNames[];
+    extern const char *const modeNames[];
+
+    extern std::string GetFlagNames(uint8 flags);
 }
 
 #endif

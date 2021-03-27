@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,51 +26,45 @@
 #ifndef __ITEM_REF__H__INCL__
 #define __ITEM_REF__H__INCL__
 
-class InventoryItem;
+#include "eve-common.h"
 
+class AsteroidItem;
+class InventoryItem;
 class Blueprint;
-class Ship;
+class ShipItem;
 class CelestialObject;
 class Skill;
+class ModuleItem;
+class ProbeItem;
 class Certificate;
-class Owner;
-class Structure;
+class StructureItem;
 class CargoContainer;
-class SystemEntity;
-
+class WreckContainer;
 class Character;
 class SolarSystem;
-class Station;
+class StationItem;
+class StationOffice;
 
 /*
  * Typedefs for all item classes we have:
  */
+typedef RefPtr<AsteroidItem>             AsteroidItemRef;
 typedef RefPtr<InventoryItem>            InventoryItemRef;
-typedef RefPtr<const InventoryItem>      InventoryItemConstRef;
-
 typedef RefPtr<Blueprint>                BlueprintRef;
-typedef RefPtr<const Blueprint>          BlueprintConstRef;
-typedef RefPtr<Ship>                     ShipRef;
-typedef RefPtr<const Ship>               ShipConstRef;
+typedef RefPtr<ShipItem>                 ShipItemRef;
 typedef RefPtr<CelestialObject>          CelestialObjectRef;
-typedef RefPtr<const CelestialObject>    CelestialObjectConstRef;
+typedef RefPtr<ProbeItem>                ProbeItemRef;
 typedef RefPtr<Skill>                    SkillRef;
-typedef RefPtr<const Skill>              SkillConstRef;
-typedef RefPtr<Certificate>                 CertificateRef;
-typedef RefPtr<const Certificate>        CertificateConstRef;
-typedef RefPtr<Owner>                    OwnerRef;
-typedef RefPtr<const Owner>              OwnerConstRef;
-typedef RefPtr<Structure>                StructureRef;
-typedef RefPtr<const Structure>          StructureConstRef;
+typedef RefPtr<ModuleItem>               ModuleItemRef;
+typedef RefPtr<Certificate>              CertificateRef;
+typedef RefPtr<StructureItem>            StructureItemRef;
 typedef RefPtr<CargoContainer>           CargoContainerRef;
-typedef RefPtr<const CargoContainer>     CargoContainerConstRef;
-
+typedef RefPtr<WreckContainer>           WreckContainerRef;
 typedef RefPtr<Character>                CharacterRef;
 typedef RefPtr<const Character>          CharacterConstRef;
 typedef RefPtr<SolarSystem>              SolarSystemRef;
-typedef RefPtr<const SolarSystem>        SolarSystemConstRef;
-typedef RefPtr<Station>                  StationRef;
-typedef RefPtr<const Station>            StationConstRef;
+typedef RefPtr<StationItem>              StationItemRef;
+typedef RefPtr<StationOffice>            StationOfficeRef;
 
 #endif /* !__ITEM_REF__H__INCL__ */
 

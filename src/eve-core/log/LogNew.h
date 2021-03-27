@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,8 +26,8 @@
 #ifndef __LOG__LOG_NEW_H__INCL__
 #define __LOG__LOG_NEW_H__INCL__
 
-#include "threading/Mutex.h"
 #include "utils/Singleton.h"
+#include "threading/Mutex.h"
 
 /**
  * @brief a small and simple logging system.
@@ -47,6 +47,8 @@ public:
     NewLog(std::string logPath);
     /// Destructor, closes the logfile.
     ~NewLog();
+
+    void Initialize();
 
     /**
      * @brief Initializes and sets the Log file path.
@@ -76,12 +78,47 @@ public:
      */
     void Warning( const char* source, const char* fmt, ... );
     /**
-     * @brief Logs a success message to file.
+     * @brief Logs a message to console in white.
      *
      * @param[in] source is the source from where the message is printed.
      * @param[in] fmt is the message itself.
      */
-    void Success( const char* source, const char* fmt, ... );
+    void White( const char* source, const char* fmt, ... );
+    /**
+     * @brief Logs a message to console in green.
+     *
+     * @param[in] source is the source from where the message is printed.
+     * @param[in] fmt is the message itself.
+     */
+    void Green( const char* source, const char* fmt, ... );
+    /**
+     * @brief Logs a message to console in blue.
+     *
+     * @param[in] source is the source from where the message is printed.
+     * @param[in] fmt is the message itself.
+     */
+	void Blue( const char* source, const char* fmt, ... );
+	/**
+	 * @brief Logs a message to console in magenta.
+	 *
+	 * @param[in] source is the source from where the message is printed.
+	 * @param[in] fmt is the message itself.
+	 */
+	void Magenta( const char* source, const char* fmt, ... );
+	/**
+	 * @brief Logs a message to console in yellow.
+	 *
+	 * @param[in] source is the source from where the message is printed.
+	 * @param[in] fmt is the message itself.
+	 */
+    void Yellow( const char* source, const char* fmt, ... );
+    /**
+     * @brief Logs a message to console in cyan.
+     *
+     * @param[in] source is the source from where the message is printed.
+     * @param[in] fmt is the message itself.
+     */
+    void Cyan( const char* source, const char* fmt, ... );
     /**
      * @brief Logs a debug message to file and console.
      *

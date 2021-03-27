@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -26,38 +26,9 @@
 #ifndef __STATION__H__INCL__
 #define __STATION__H__INCL__
 
-#include "inventory/Inventory.h"
+#include "StaticDataMgr.h"
 #include "inventory/ItemType.h"
 #include "system/Celestial.h"
-
-/**
- * Station type data container.
- */
-class StationTypeData {
-public:
-    StationTypeData(
-        uint32 _dockingBayGraphicID = 0,
-        uint32 _hangarGraphicID = 0,
-        const GPoint &_dockEntry = GPoint(0, 0, 0),
-        const GVector &_dockOrientation = GVector(0, 0, 0),
-        uint32 _operationID = 0,
-        uint32 _officeSlots = 0,
-        double _reprocessingEfficiency = 0.0,
-        bool _conquerable = false
-    );
-
-    // Data members:
-    uint32 dockingBayGraphicID;
-    uint32 hangarGraphicID;
-
-    GPoint dockEntry;
-    GVector dockOrientation;
-
-    uint32 operationID;
-    uint32 officeSlots;
-    double reprocessingEfficiency;
-    bool conquerable;
-};
 
 /**
  * Type of station.
@@ -67,38 +38,11 @@ class StationType
 {
     friend class ItemType; // to let it construct us
 public:
-    /**
-     * Loads station type.
-     *
-     * @param[in] factory
-     * @param[in] stationTypeID ID of station type to load.
-     * @return Pointer to new StationType object; NULL if failed.
-     */
-    static StationType *Load(ItemFactory &factory, uint32 stationTypeID);
 
-    /*
-     * Access methods:
-     */
-    uint32      dockingBayGraphicID() const { return m_dockingBayGraphicID; }
-    uint32      hangarGraphicID() const { return m_hangarGraphicID; }
-
-    GPoint      dockEntry() const { return m_dockEntry; }
-    GVector     dockOrientation() const { return m_dockOrientation; }
-
-    uint32      operationID() const { return m_operationID; }
-    uint32      officeSlots() const { return m_officeSlots; }
-    double      reprocessingEfficiency() const { return m_reprocessingEfficiency; }
-    bool        conquerable() const { return m_conquerable; }
+    static StationType *Load(uint16 stationTypeID);
 
 protected:
-    StationType(
-        uint32 _id,
-        // ItemType stuff:
-        const ItemGroup &_group,
-        const TypeData &_data,
-        // StationType stuff:
-        const StationTypeData &_stData
-    );
+    StationType(uint16 _id, const Inv::TypeData &_data);
 
     /*
      * Member functions:
@@ -107,85 +51,28 @@ protected:
 
     // Template loader:
     template<class _Ty>
-    static _Ty *_LoadType(ItemFactory &factory, uint32 stationTypeID,
-        // ItemType stuff:
-        const ItemGroup &group, const TypeData &data)
+    static _Ty *_LoadType(uint16 stationTypeID, const Inv::TypeData &data)
     {
-        // verify it's a station type
-        if( group.id() != EVEDB::invGroups::Station ) {
-            _log( ITEM__ERROR, "Trying to load %s as Station.", group.name().c_str() );
-            return NULL;
+        if (data.groupID != EVEDB::invGroups::Station) {
+            _log(ITEM__ERROR, "Trying to load %s as StationType.", sDataMgr.GetGroupName(data.groupID));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
+            return nullptr;
         }
 
-        // get station type data
-        StationTypeData stData;
-        if( !factory.db().GetStationType(stationTypeID, stData) )
-            return NULL;
-
-        return _Ty::template _LoadStationType<_Ty>( factory, stationTypeID, group, data, stData );
+        return new StationType(stationTypeID, data);
     }
-
-    // Actual loading stuff:
-    template<class _Ty>
-    static _Ty *_LoadStationType(ItemFactory &factory, uint32 stationTypeID,
-        // ItemType stuff:
-        const ItemGroup &group, const TypeData &data,
-        // StationType stuff:
-        const StationTypeData &stData
-    );
-
-    /*
-     * Data members:
-     */
-    uint32 m_dockingBayGraphicID;
-    uint32 m_hangarGraphicID;
-
-    GPoint m_dockEntry;
-    GVector m_dockOrientation;
-
-    uint32 m_operationID;
-    uint32 m_officeSlots;
-    double m_reprocessingEfficiency;
-    bool m_conquerable;
-};
-
-/**
- * Data container for station.
- */
-class StationData {
-public:
-    StationData(
-        uint32 _security = 0,
-        double _dockingCostPerVolume = 0.0,
-        double _maxShipVolumeDockable = 0.0,
-        uint32 _officeRentalCost = 0,
-        uint32 _operationID = 0,
-        double _reprocessingEfficiency = 0.0,
-        double _reprocessingStationsTake = 0.0,
-        EVEItemFlags _reprocessingHangarFlag = (EVEItemFlags)0
-    );
-
-    // Data members:
-    uint32 security;
-    double dockingCostPerVolume;
-    double maxShipVolumeDockable;
-    uint32 officeRentalCost;
-    uint32 operationID;
-
-    double reprocessingEfficiency;
-    double reprocessingStationsTake;
-    EVEItemFlags reprocessingHangarFlag;
 };
 
 /**
  * CelestialObject which represents station.
  */
-class Station
-: public CelestialObject,
-  public Inventory
+class StationItem
+: public CelestialObject
 {
     friend class InventoryItem; // to let it construct us
     friend class CelestialObject; // to let it construct us
+
 public:
     /**
      * Loads station.
@@ -194,184 +81,118 @@ public:
      * @param[in] stationID ID of station to load.
      * @return Pointer to new Station object; NULL if fails.
      */
-    static StationRef Load(ItemFactory &factory, uint32 stationID);
+    static StationItemRef Load( uint32 stationID);
 
-    /*
-     * Access methods:
-     */
-    uint32          security() const { return m_security; }
-    double          dockingCostPerVolume() const { return m_dockingCostPerVolume; }
-    double          maxShipVolumeDockable() const { return m_maxShipVolumeDockable; }
-    uint32          officeRentalCost() const { return m_officeRentalCost; }
-    uint32          operationID() const { return m_operationID; }
+    StationType* GetStationType() { return &m_stationType; }
+    ShipItemRef GetShipFromInventory(uint32 shipID);
+    CargoContainerRef GetContainerFromInventory(uint32 contID);
 
-    double          reprocessingEfficiency() const { return m_reprocessingEfficiency; }
-    double          reprocessingStationsTake() const { return m_reprocessingStationsTake; }
-    EVEItemFlags    reprocessingHangarFlag() const { return m_reprocessingHangarFlag; }
+    // station methods here for offices, reprocessing, and docking.
+    PyRep* GetOffices()                                 { PyIncRef(m_officePyData); return m_officePyData; }  // cached officeData for client call
+    int8 GetAvalibleOfficeCount()                       { return maxRentableOffices - m_officeMap.size(); }
+    int32 GetOfficeRentalFee()                          { return m_data.officeRentalFee; }
+    uint32 GetOwnerID()                                 { return m_data.corporationID; }
+    uint32 GetID()                                      { return m_data.stationID; }
+    void RentOffice(OfficeData& odata);
+    uint32 GetOfficeID(uint32 corpID);
 
-    StationType *   GetStationType() { return &m_stationType; }
+    void LoadStationOffice(uint32 corpID);
+    void AddLoadedOffice(uint32 officeID);
+    void RemoveLoadedOffice(uint32 officeID);
+
+    bool IsLoaded()                                     { return m_loaded; }
+    bool IsOfficeLoaded(uint32 officeID);
+
+    void GetGuestList(std::vector<Client*>& cVec);
+    void AddGuest(Client* pClient);
+    void RemoveGuest(Client* pClient);
+
+    void GetRefineData(uint32& stationCorpID, float& staEfficiency, float& tax);
+
+    // does client have a ship in this station?
+    bool HasShip(Client* pClient);
+
+    // will need methods/table for updated station data
 
 protected:
-    Station(
-        ItemFactory &_factory,
-        uint32 _stationID,
-        // InventoryItem stuff:
-        const StationType &_type,
-        const ItemData &_data,
-        // CelestialObject stuff:
-        const CelestialObjectData &_cData,
-        // Station stuff:
-        const StationData &_stData
-    );
-
+    StationItem(uint32 stationID, const StationType &type, const ItemData &data, const CelestialObjectData &cData);
+    virtual ~StationItem();
     /*
      * Member functions:
      */
-    using CelestialObject::_Load;
+    using InventoryItem::_Load;
+    virtual bool _Load();
 
     // Template loader:
     template<class _Ty>
-    static RefPtr<_Ty> _LoadCelestialObject(ItemFactory &factory, uint32 stationID,
-        // InventoryItem stuff:
-        const ItemType &type, const ItemData &data,
-        // CelestialObject stuff:
-        const CelestialObjectData &cData)
+    static RefPtr<_Ty> _LoadItem( uint32 stationID, const ItemType &type, const ItemData &data)
     {
-        // check it's a station
-        if( type.groupID() != EVEDB::invGroups::Station )
-        {
-            _log( ITEM__ERROR, "Trying to load %s as Station.", type.group().name().c_str() );
+        if (type.groupID() != EVEDB::invGroups::Station) {
+            _log(ITEM__ERROR, "Trying to load %s as Station.", sDataMgr.GetGroupName(type.groupID()));
+            if (sConfig.debug.StackTrace)
+                EvE::traceStack();
             return RefPtr<_Ty>();
         }
         // cast the type
         const StationType &stType = static_cast<const StationType &>( type );
 
-        // load station data
-        StationData stData;
-        if( !factory.db().GetStation( stationID, stData ) )
+        // load celestial data
+        CelestialObjectData cData = CelestialObjectData();
+        if (!sItemFactory.db()->GetCelestialObject(stationID, cData))
             return RefPtr<_Ty>();
 
-        return _Ty::template _LoadStation<_Ty>( factory, stationID, stType, data, cData, stData );
+        return StationItemRef(new StationItem(stationID, stType, data, cData));
     }
 
-    // Actual loading stuff:
-    template<class _Ty>
-    static RefPtr<_Ty> _LoadStation(ItemFactory &factory, uint32 stationID,
-        // InventoryItem stuff:
-        const StationType &type, const ItemData &data,
-        // CelestialObject stuff:
-        const CelestialObjectData &cData,
-        // Station stuff:
-        const StationData &stData
-    );
+    static uint32 CreateItemID( ItemData &data);
 
-    bool _Load();
-    static uint32 _Spawn(ItemFactory &factory, ItemData &data);
+    // internal office methods
+    void SendBill();
+    void ImpoundOffice(uint32 officeID);
+    void RecoverOffice(uint32 officeID);
 
-    uint32 inventoryID() const { return itemID(); }
-    PyRep *GetItem() const { return GetItemRow(); }
+private:
+    PyRep*                                              m_officePyData;
+    StationType                                         m_stationType;
+    StationData                                         m_data;
 
-    /*
-     * Data members:
-     */
-    StationType m_stationType;
-    uint32 m_security;
-    double m_dockingCostPerVolume;
-    double m_maxShipVolumeDockable;
-    uint32 m_officeRentalCost;
-    uint32 m_operationID;
+    bool                                                m_loaded;  // are offices loaded?
+    uint32                                              m_stationID;
 
-    double m_reprocessingEfficiency;
-    double m_reprocessingStationsTake;
-    EVEItemFlags m_reprocessingHangarFlag;
+    std::map<uint32, Client*>                           m_guestList; // charID/Client*
+
+    std::map<uint32, OfficeData>                        m_officeMap;   // officeID/data
+    std::map<uint32, bool>                              m_officeLoaded;
+
 };
 
 
 /**
- * DynamicSystemEntity which represents Station object in space
+ * StaticSystemEntity which represents Station object in space
  */
 class PyServiceMgr;
-class InventoryItem;
-class DestinyManager;
 class SystemManager;
-class ServiceDB;
 
-class StationEntity
-: public DynamicSystemEntity
+class StationSE
+: public StaticSystemEntity
 {
 public:
-    StationEntity(
-        StationRef station,
-        SystemManager *system,
-        PyServiceMgr &services,
-        const GPoint &position);
+    StationSE(StationItemRef station, PyServiceMgr &services, SystemManager* system);
+    virtual ~StationSE()                                { /* Do nothing here */ }
 
-    /*
-     * Primary public interface:
-     */
-    StationRef GetStationObject() { return _stationRef; }
-    DestinyManager * GetDestiny() { return m_destiny; }
-    SystemManager * GetSystem() { return m_system; }
+    /* class type pointer querys. */
+    virtual StationSE* GetStationSE()                   { return this; }
+    /* Static */
+    virtual bool IsStationSE()                          { return true; }
 
-    /*
-     * Public fields:
-     */
+    /* virtual functions to be overridden in derived classes */
+    //virtual void Process();
+    virtual PyDict* MakeSlimItem();
+    virtual void EncodeDestiny( Buffer& into );
 
-    inline double x() const { return(GetPosition().x); }
-    inline double y() const { return(GetPosition().y); }
-    inline double z() const { return(GetPosition().z); }
+    /* specific functions handled here. */
+    void UnloadStation();
 
-    //SystemEntity interface:
-    virtual EntityClass GetClass() const { return(ecStation); }
-    virtual bool IsCelestialEntity() const { return true; }
-    virtual bool IsStaticEntity() const { return true; }
-    virtual bool IsVisibleSystemWide() const { return true; }
-    virtual StationEntity *CastToStationEntity() { return(this); }
-    virtual const StationEntity *CastToStationEntity() const { return(this); }
-    virtual void Process();
-    virtual void EncodeDestiny( Buffer& into ) const;
-    virtual void TargetAdded(SystemEntity *who) {}
-    virtual void TargetLost(SystemEntity *who) {}
-    virtual void TargetedAdd(SystemEntity *who) {}
-    virtual void TargetedLost(SystemEntity *who) {}
-    virtual void TargetsCleared() {}
-    virtual void QueueDestinyUpdate(PyTuple **du) {/* not required to consume */}
-    virtual void QueueDestinyEvent(PyTuple **multiEvent) {/* not required to consume */}
-    virtual uint32 GetCorporationID() const { return(1); }
-    virtual uint32 GetAllianceID() const { return(0); }
-    virtual void Killed(Damage &fatal_blow);
-    virtual SystemManager *System() const { return(m_system); }
-
-    void ForcedSetPosition(const GPoint &pt);
-
-    virtual bool ApplyDamage(Damage &d);
-    virtual void MakeDamageState(DoDestinyDamageState &into) const;
-
-    void SendNotification(const PyAddress &dest, EVENotificationStream &noti, bool seq=true);
-    void SendNotification(const char *notifyType, const char *idType, PyTuple **payload, bool seq=true);
-
-protected:
-    /*
-     * Member functions
-     */
-    void _ReduceDamage(Damage &d);
-    void ApplyDamageModifiers(Damage &d, SystemEntity *target);
-
-    /*
-     * Member fields:
-     */
-    SystemManager *const m_system;    //we do not own this
-    PyServiceMgr &m_services;    //we do not own this
-    StationRef _stationRef;   // We don't own this
-
-    /* Used to calculate the damages on NPCs
-     * I don't know why, npc->Set_shieldCharge does not work
-     * calling npc->shieldCharge() return the complete shield
-     * So we get the values on creation and use then instead.
-    */
-    double m_shieldCharge;
-    double m_armorDamage;
-    double m_hullDamage;
 };
 
 #endif /* !__STATION__H__INCL__ */

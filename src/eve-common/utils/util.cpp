@@ -18,8 +18,6 @@
  */
 
 #include "eve-common.h" // I don't want to include this here..
-#include "eve-core.h"
-//#include "Threading/Threading.h"
 
 using namespace std;
 
@@ -195,22 +193,16 @@ const char * szMonthNames[12] = {
 
 void MakeIntString(char * buf, int num)
 {
-    if(num<10)
-    {
+    if(num<10) {
         buf[0] = '0';
-        //itoa(num, &buf[1], 10);
         sprintf(&buf[1], "%u", num);
-    }
-    else
-    {
-        //itoa(num,buf,10);
+    } else {
         sprintf(buf,"%u",num);
     }
 }
 
 void MakeIntStringNoZero(char * buf, int num)
 {
-    //itoa(num,buf,10);
     sprintf(buf,"%u",num);
 }
 
@@ -758,42 +750,10 @@ void Strings::toLowerCase(std::wstring& TString)
     std::transform(TString.begin(), TString.end(), TString.begin(), static_cast<int(*)(int)>(::tolower));
 }
 
-#ifndef HAVE_WINDOWS_H
-/**
- * C++ version char* style "itoa":
- */
-char* itoa( int value, char* result, int base )
-{
-    // check that the base if valid
-    if( base < 2 || base > 16 )
-    {
-        *result = '\0';
-        return result;
-    }
-
-    char* out = result;
-    int quotient = value;
-
-    do {
-        *out = "0123456789abcdef"[ std::abs( quotient % base ) ];
-        ++out;
-        quotient /= base;
-    } while ( quotient );
-
-    // Only apply negative sign for base 10
-    if( value < 0 && base == 10 )
-        *out++ = '-';
-
-    std::reverse( result, out );
-    *out = '\0';
-
-    return result;
-}
-#endif /* !HAVE_WINDOWS_H */
-
 /************************************************************************/
 /* End of OpenFrag borrowed code                                        */
 /************************************************************************/
+
 std::string Strings::CaseFold( std::string & str )
 {
     std::string s2 = str;
@@ -819,7 +779,7 @@ std::wstring Strings::StringToWString( std::string & str )
     /* convert from multi byte strings to wide character strings */
     std::wstring wstr;
     wstr.resize( str.size() );
-    int ret_len = mbstowcs( &wstr[0], str.c_str(), str.size() );
+    size_t ret_len = mbstowcs( &wstr[0], str.c_str(), str.size() );
 
     if (ret_len != str.size()) {
 
@@ -829,8 +789,3 @@ std::wstring Strings::StringToWString( std::string & str )
 }
 
 }//namespace Utils
-
-long CurrentBlueTime() {
-    long sec_since_epoch = time(0);
-    return (sec_since_epoch*10000000L)+116444736000000000L;
-}

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,27 +27,46 @@
 #define __DBTYPE_H__INCL__
 
 /*
-0x10 = "DBTYPE_I1"
-0x11 = "DBTYPE_UI1"
-0x0B = "DBTYPE_BOOL"
-0x02 = "DBTYPE_I2"
-0x12 = "DBTYPE_UI2"
-0x03 = "DBTYPE_I4"
-0x13 = "DBTYPE_UI4"
-0x04 = "DBTYPE_R4"
-0x14 = "DBTYPE_I8"
-0x05 = "DBTYPE_R8"
-0x15 = "DBTYPE_UI8"
-0x06 = "DBTYPE_CY"
-0x40 = "DBTYPE_FILETIME"
-0x80 = "DBTYPE_BYTES"
-0x81 = "DBTYPE_STR"
-0x82 = "DBTYPE_WSTR"
+ 0x02(02) = "DBTYPE_I2"
+ 0x03(03) = "DBTYPE_I4"
+ 0x04(04) = "DBTYPE_R4"
+ 0x05(05) = "DBTYPE_R8"
+ 0x06(06) = "DBTYPE_CY"
+ 0x0B(11) = "DBTYPE_BOOL"
+ 0x10(16) = "DBTYPE_I1"
+ 0x11(17) = "DBTYPE_UI1"
+ 0x12(18) = "DBTYPE_UI2"
+ 0x13(19) = "DBTYPE_UI4"
+ 0x14(20) = "DBTYPE_I8"
+ 0x15(21) = "DBTYPE_UI8"
+ 0x40(64) = "DBTYPE_FILETIME"
+ 0x80(128) = "DBTYPE_BYTES"
+ 0x81(129) = "DBTYPE_STR"
+ 0x82(130) = "DBTYPE_WSTR"
+ ....from client......
+ DBTYPE_BOOL = 11
+ DBTYPE_I1 = 16
+ DBTYPE_UI1 = 17
+ DBTYPE_I2 = 2
+ DBTYPE_UI2 = 18
+ DBTYPE_I4 = 3
+ DBTYPE_UI4 = 19
+ DBTYPE_R4 = 4
+ DBTYPE_I8 = 20
+ DBTYPE_UI8 = 21
+ DBTYPE_R5 = 5
+ DBTYPE_CY = 6
+ DBTYPE_FILETIME = 64
+ DBTYPE_DBTIMESTAMP = 135
+ DBTYPE_STR = 129
+ DBTYPE_WSTR = 130
+ DBTYPE_BYTES = 508
+ DBTYPE_EMPTY = 0
 */
 
 enum DBTYPE
 {
-    //DBTYPE_EMPTY        = 0x00, // not supported
+    DBTYPE_EMPTY          = 0x00,
     //DBTYPE_NULL         = 0x01, // not supported
     DBTYPE_I2             = 0x02,
     DBTYPE_I4             = 0x03,
@@ -68,28 +87,21 @@ enum DBTYPE
     DBTYPE_UI2            = 0x12,
     DBTYPE_UI4            = 0x13,
     DBTYPE_I8             = 0x14,
-    DBTYPE_UI8              = 0x15,
+    DBTYPE_UI8            = 0x15,
     DBTYPE_FILETIME       = 0x40, // 64-bit timestamp
     //DBTYPE_GUID         = 0x48, // not supported
-    DBTYPE_BYTES          = 0x80,
+    DBTYPE_BYTES          = 0x80, // client defined as 0x1fc, but error when used: Exception:  <type 'exceptions.TypeError'>, DBRowDescriptor doesn't support data type 508
     DBTYPE_STR            = 0x81,
-    DBTYPE_WSTR           = 0x82
+    DBTYPE_WSTR           = 0x82,
     //DBTYPE_NUMERIC      = 0x83, // not supported
     //DBTYPE_UDT          = 0x84, // not supported
     //DBTYPE_DBDATE       = 0x85, // not supported
     //DBTYPE_DBTIME       = 0x86, // not supported
-    //DBTYPE_DBTIMESTAMP  = 0x87, // not supported
+    //DBTYPE_DBTIMESTAMP  = 0x87, // not supported  -client has this one defined
     //DBTYPE_HCHAPTER     = 0x88, // not supported
     //DBTYPE_PROPVARIANT  = 0x8A, // not supported
     //DBTYPE_VARNUMERIC   = 0x8B  // not supported
 };
-
-/** DBTYPE type flags
- *  DBTYPE_ARRAY        = 0x2000
- *  DBTYPE_BYREF        = 0x4000
- *  DBTYPE_VECTOR       = 0x1000
- *  DBTYPE_RESERVED     = 0x8000
- */
 
 /**
  * Returns length of field of given type.

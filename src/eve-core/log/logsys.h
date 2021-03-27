@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -45,26 +45,7 @@
  *
  */
 
-#ifdef WIN32
-    //only VC2003+ has variadic macro support
-    // 1200 = vc6
-    // 1300 = vc2003
-    // 1310 = vc8
-    //NOTE: per-mob toggling of log messages cannot work without variadic macros!
-    #if (_MSC_VER <= 1310)
-        #define NO_VARIADIC_MACROS
-    #endif
-
-    #ifdef NO_VARIADIC_MACROS
-        /*
-        uncomment this to disable debug logging all together on windows
-        this is here because logging has a decent amount of overhead
-        on windows since we must make the call and build the variable
-        argument list before checking to see if the type is enabled.
-        */
-        #define DISABLE_LOGSYS
-    #endif
-#endif
+#include <execinfo.h>
 
 
 #define LOG_CATEGORY(category) LOG_ ##category ,
@@ -141,28 +122,20 @@ inline void codelog( LogType type, const char* fmt, ... )
 #else
 //we have variadic macros, hooray!
 #   define _log( type, fmt, ... ) \
-        if( !is_log_enabled( type ) ) \
-            ; \
-        else \
+        if ( is_log_enabled( type ) ) \
             log_message( type, fmt, ##__VA_ARGS__ )
 
 #   define codelog( type, fmt, ... ) \
-        if( !is_log_enabled( type ) ) \
-            ; \
-        else \
+        if ( is_log_enabled( type ) ) \
             log_message( type, "%s(%s:%d): " fmt, __FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__ )
 #endif
 
 #define _hex( type, data, len) \
-    if( !is_log_enabled( type ) ) \
-        ; \
-    else \
+    if ( is_log_enabled( type ) ) \
         log_hex( type, (const char*)data, len )
 
 #define phex( type, data, len) \
-    if( !is_log_enabled( type ) ) \
-        ; \
-    else \
+    if ( is_log_enabled( type ) ) \
         log_phex( type, (const char*)data, len )
 
 

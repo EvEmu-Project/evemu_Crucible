@@ -27,17 +27,33 @@ SET( database_SOURCE
      "${TARGET_SOURCE_DIR}/database/dbcore.cpp"
      "${TARGET_SOURCE_DIR}/database/dbtype.cpp" )
 
+SET( error_INCLUDE
+     "${TARGET_INCLUDE_DIR}/error/ErrorHandler.h" )
+SET( error_SOURCE
+     "${TARGET_SOURCE_DIR}/error/ErrorHandler.cpp" )
+
 SET( log_INCLUDE
-     "${TARGET_INCLUDE_DIR}/log/Basic_Log.h"
-     "${TARGET_INCLUDE_DIR}/log/HTML_Log.h"
      "${TARGET_INCLUDE_DIR}/log/LogNew.h"
      "${TARGET_INCLUDE_DIR}/log/logsys.h"
      "${TARGET_INCLUDE_DIR}/log/logtypes.h" )
 SET( log_SOURCE
-     "${TARGET_SOURCE_DIR}/log/Basic_Log.cpp"
-     "${TARGET_SOURCE_DIR}/log/HTML_Log.cpp"
      "${TARGET_SOURCE_DIR}/log/LogNew.cpp"
      "${TARGET_SOURCE_DIR}/log/logsys.cpp" )
+
+SET( math_INCLUDE
+     "${TARGET_INCLUDE_DIR}/math/gpoint.h"
+     "${TARGET_INCLUDE_DIR}/math/Trig.h")
+     #"${TARGET_INCLUDE_DIR}/math/Vector3D.h")
+SET( math_SOURCE
+     #"${TARGET_SOURCE_DIR}/math/Vector3D.cpp"
+     )
+
+SET( memory_INCLUDE
+     #"${TARGET_INCLUDE_DIR}/memory/mmgr.h"
+     "${TARGET_INCLUDE_DIR}/memory/RefPtr.h"
+     "${TARGET_INCLUDE_DIR}/memory/SafeMem.h" )
+#SET( memory_SOURCE
+ #    "${TARGET_SOURCE_DIR}/memory/mmgr.cpp" )
 
 SET( network_INCLUDE
      "${TARGET_INCLUDE_DIR}/network/NetUtils.h"
@@ -53,21 +69,21 @@ SET( network_SOURCE
      "${TARGET_SOURCE_DIR}/network/TCPServer.cpp" )
 
 SET( threading_INCLUDE
-     "${TARGET_INCLUDE_DIR}/threading/Mutex.h" )
+     "${TARGET_INCLUDE_DIR}/threading/Mutex.h"
+     "${TARGET_INCLUDE_DIR}/threading/Threading.h" )
 SET( threading_SOURCE
-     "${TARGET_SOURCE_DIR}/threading/Mutex.cpp" )
+     "${TARGET_SOURCE_DIR}/threading/Mutex.cpp"
+     "${TARGET_SOURCE_DIR}/threading/Threading.cpp" )
 
 SET( utils_INCLUDE
      "${TARGET_INCLUDE_DIR}/utils/Buffer.h"
      "${TARGET_INCLUDE_DIR}/utils/crc32.h"
+#     "${TARGET_INCLUDE_DIR}/utils/date.h"
      "${TARGET_INCLUDE_DIR}/utils/Deflate.h"
      "${TARGET_INCLUDE_DIR}/utils/DirWalker.h"
      "${TARGET_INCLUDE_DIR}/utils/FastInt.h"
-     "${TARGET_INCLUDE_DIR}/utils/gpoint.h"
      "${TARGET_INCLUDE_DIR}/utils/Lock.h"
      "${TARGET_INCLUDE_DIR}/utils/misc.h"
-     "${TARGET_INCLUDE_DIR}/utils/RefPtr.h"
-     "${TARGET_INCLUDE_DIR}/utils/SafeMem.h"
      "${TARGET_INCLUDE_DIR}/utils/Seperator.h"
      "${TARGET_INCLUDE_DIR}/utils/Singleton.h"
      "${TARGET_INCLUDE_DIR}/utils/str2conv.h"
@@ -95,14 +111,20 @@ SET( utils_SOURCE
 #####################
 SOURCE_GROUP( "src"            FILES ${INCLUDE} )
 SOURCE_GROUP( "src\\database"  FILES ${database_INCLUDE} )
+#SOURCE_GROUP( "src\\error"     FILES ${error_INCLUDE} )
 SOURCE_GROUP( "src\\log"       FILES ${log_INCLUDE} )
+SOURCE_GROUP( "src\\math"      FILES ${math_INCLUDE} )
+SOURCE_GROUP( "src\\memory"    FILES ${memory_INCLUDE} )
 SOURCE_GROUP( "src\\network"   FILES ${network_INCLUDE} )
 SOURCE_GROUP( "src\\threading" FILES ${threading_INCLUDE} )
 SOURCE_GROUP( "src\\utils"     FILES ${utils_INCLUDE} )
 
 SOURCE_GROUP( "src"            FILES ${SOURCE} )
 SOURCE_GROUP( "src\\database"  FILES ${database_SOURCE} )
+#SOURCE_GROUP( "src\\error"     FILES ${error_SOURCE} )
 SOURCE_GROUP( "src\\log"       FILES ${log_SOURCE} )
+SOURCE_GROUP( "src\\math"      FILES ${math_SOURCE} )
+#SOURCE_GROUP( "src\\memory"    FILES ${memory_SOURCE} )
 SOURCE_GROUP( "src\\network"   FILES ${network_SOURCE} )
 SOURCE_GROUP( "src\\threading" FILES ${threading_SOURCE} )
 SOURCE_GROUP( "src\\utils"     FILES ${utils_SOURCE} )
@@ -110,7 +132,10 @@ SOURCE_GROUP( "src\\utils"     FILES ${utils_SOURCE} )
 ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE}           ${SOURCE}
              ${database_INCLUDE}  ${database_SOURCE}
+             #${error_INCLUDE}     ${error_SOURCE}
              ${log_INCLUDE}       ${log_SOURCE}
+             ${math_INCLUDE}      ${math_SOURCE}
+             ${memory_INCLUDE}    #${memory_SOURCE}
              ${network_INCLUDE}   ${network_SOURCE}
              ${threading_INCLUDE} ${threading_SOURCE}
              ${utils_INCLUDE}     ${utils_SOURCE} )

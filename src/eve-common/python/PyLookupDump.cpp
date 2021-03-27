@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -132,7 +132,7 @@ bool PyLookupResolver::LoadStringFile(const char *file) {
     return true;
 }
 
-const char *PyLookupResolver::LookupInt(uint64 value) const {
+const char *PyLookupResolver::LookupInt(int64 value) const {
     //hackish check for win32 time looking things...
     if(value > 127900000000000000LL && value < 130000000000000000LL) {
         //this is not thread safe or reentrant..

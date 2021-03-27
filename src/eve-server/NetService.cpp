@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,6 +21,7 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Zhur
+    Updates:    Allan
 */
 
 #include "eve-server.h"
@@ -37,139 +38,57 @@ NetService::NetService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(NetService, GetInitVals)
-    PyCallable_REG_CALL(NetService, GetTime)
+    PyCallable_REG_CALL(NetService, GetTime);
+    PyCallable_REG_CALL(NetService, GetInitVals);
+    PyCallable_REG_CALL(NetService, GetClusterSessionStatistics);
 }
 
 NetService::~NetService() {
     delete m_dispatch;
 }
 
+PyResult NetService::Handle_GetTime(PyCallArgs &call) {
+    return new PyLong(GetFileTimeNow());
+}
+
+PyResult NetService::Handle_GetClusterSessionStatistics(PyCallArgs &call)
+{
+    // got this shit working once i understood what the client wanted....only took 4 years
+    DBQueryResult res;
+    sDatabase.RunQuery(res, "SELECT solarSystemID, pilotsInSpace, pilotsDocked FROM mapDynamicData"); // WHERE active = 1");
+    /** @todo  instead of hitting db, call solarsystem to get docked/inspace and NOT afk
+     *   client already has IsAFK()
+     */
+
+    uint16 system = 0;
+    PyDict* sol = new PyDict();
+    PyDict* sta = new PyDict();
+
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        system = row.GetUInt(0) - 30000000;
+        sol->SetItem(new PyInt(system), new PyInt(row.GetUInt(1) + row.GetUInt(2)));    // inspace + docked = total
+        sta->SetItem(new PyInt(system), new PyInt(row.GetUInt(2)));                     // total - docked
+    }
+
+    PyTuple *result = new PyTuple(3);
+    result->SetItem(0, sol);
+    result->SetItem(1, sta);
+    result->SetItem(2, new PyFloat(1)); //statDivisor
+
+    return result;
+}
+
+/** @note:  wtf is this used for???  */
 PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
     PyString* str = new PyString( "machoNet.serviceInfo" );
-
-    if(!m_manager->cache_service->IsCacheLoaded(str))
-    {
-        PyDict *dict = new PyDict;
-        /* ServiceCallGPCS.py:197
-        where = self.machoNet.serviceInfo[service]
-        if where:
-            for (k, v,) in self.machoNet.serviceInfo.iteritems():
-                if ((k != service) and (v and (v.startswith(where) or where.startswith(v)))):
-                    nodeID = self.services.get(k, None)
-                    break
-        */
-		dict->SetItemString("account", new PyString("station"));
-		dict->SetItemString("bookmark", new PyString("station"));
-		dict->SetItemString("contractMgr", new PyString("station"));
-		dict->SetItemString("gangSvc", new PyString("station"));
-        dict->SetItemString("trademgr", new PyString("station"));
-        dict->SetItemString("tutorialSvc", new PyString("station"));
-        dict->SetItemString("slash", new PyString("station"));
-        dict->SetItemString("wormholeMgr", new PyString("station"));
-
-        dict->SetItemString("LSC", new PyString("location"));
-        dict->SetItemString("station", new PyString("location"));
-        dict->SetItemString("config", new PyString("locationPreferred"));
-
-        dict->SetItemString("scanMgr", new PyString("solarsystem"));
-        dict->SetItemString("keeper", new PyString("solarsystem"));
-
-		dict->SetItemString("agentMgr", new PyNone());
-		dict->SetItemString("aggressionMgr", new PyNone());
-		dict->SetItemString("alert", new PyNone());
-		dict->SetItemString("allianceRegistry", new PyNone());
-		dict->SetItemString("authentication", new PyNone());
-		dict->SetItemString("billMgr", new PyNone());
-		dict->SetItemString("billingMgr", new PyNone());
-		dict->SetItemString("beyonce", new PyNone());
-		dict->SetItemString("BSD", new PyNone());
-		dict->SetItemString("cache", new PyNone());
-		dict->SetItemString("corporationSvc", new PyNone());
-		dict->SetItemString("corpStationMgr", new PyNone());
-		dict->SetItemString("corpmgr", new PyNone());
-		dict->SetItemString("corpRegistry", new PyNone());
-		dict->SetItemString("counter", new PyNone());
-		dict->SetItemString("certificateMgr", new PyNone());
-		dict->SetItemString("charFittingMgr", new PyNone());
-		dict->SetItemString("charmgr", new PyNone());
-		dict->SetItemString("charUnboundMgr", new PyNone());
-		dict->SetItemString("clientStatLogger", new PyNone());
-		dict->SetItemString("clientStatsMgr", new PyNone());
-		dict->SetItemString("clones", new PyNone());
-		dict->SetItemString("damageTracker", new PyNone());
-		dict->SetItemString("dataconfig", new PyNone());
-		dict->SetItemString("DB", new PyNone());
-		dict->SetItemString("DB2", new PyNone());
-		dict->SetItemString("debug", new PyNone());
-		dict->SetItemString("director", new PyNone());
-        dict->SetItemString("dogma", new PyNone());
-		dict->SetItemString("dogmaIM", new PyNone());
-		dict->SetItemString("droneMgr", new PyNone());
-		dict->SetItemString("dungeon", new PyNone());
-		dict->SetItemString("dungeonExplorationMgr", new PyNone());
-		dict->SetItemString("effectCompiler", new PyNone());
-		dict->SetItemString("emailreader", new PyNone());
-		dict->SetItemString("entity", new PyNone());
-		dict->SetItemString("factory", new PyNone());
-        dict->SetItemString("facWarMgr", new PyNone());
-		dict->SetItemString("fleetProxy", new PyNone());
-		dict->SetItemString("gagger", new PyNone());
-		dict->SetItemString("gangSvcObjectHandler", new PyNone());
-		dict->SetItemString("http", new PyNone());
-		dict->SetItemString("i2", new PyNone());
-		dict->SetItemString("infoGatheringMgr", new PyNone());
-		dict->SetItemString("insuranceSvc", new PyNone());
-		dict->SetItemString("invbroker", new PyNone());
-		dict->SetItemString("jumpbeaconsvc", new PyNone());
-		dict->SetItemString("jumpCloneSvc", new PyNone());
-		dict->SetItemString("languageSvc", new PyNone());
-		dict->SetItemString("lien", new PyNone());
-		dict->SetItemString("lookupSvc", new PyNone());
-		dict->SetItemString("lootSvc", new PyNone());
-		dict->SetItemString("LPSvc", new PyNone());
-		dict->SetItemString("machoNet", new PyNone());
-		dict->SetItemString("map", new PyNone());
-		dict->SetItemString("market", new PyNone());
-		dict->SetItemString("npcSvc", new PyNone());
-		dict->SetItemString("objectCaching", new PyNone());
-		dict->SetItemString("onlineStatus", new PyNone());
-		dict->SetItemString("posMgr", new PyNone());
-		dict->SetItemString("ram", new PyNone());
-		dict->SetItemString("repairSvc", new PyNone());
-		dict->SetItemString("reprocessingSvc", new PyNone());
-		dict->SetItemString("pathfinder", new PyNone());
-		dict->SetItemString("petitioner", new PyNone());
-		dict->SetItemString("planetMgr", new PyNone());
-		dict->SetItemString("search", new PyNone());
-		dict->SetItemString("sessionMgr", new PyNone());
-		dict->SetItemString("ship", new PyNone());
-		dict->SetItemString("skillMgr", new PyNone());
-		dict->SetItemString("sovMgr", new PyNone());
-		dict->SetItemString("standing2", new PyNone());
-        dict->SetItemString("stationSvc", new PyNone());
-        dict->SetItemString("userSvc", new PyNone());
-		dict->SetItemString("voiceMgr", new PyNone());
-        dict->SetItemString("voucher", new PyNone());
-        dict->SetItemString("warRegistry", new PyNone());
-        dict->SetItemString("watchdog", new PyNone());
-        dict->SetItemString("zsystem", new PyNone());
-        
-        //register it
-        m_manager->cache_service->GiveCache(str, (PyRep **)&dict);
-    }
 
     PyRep* serverinfo = m_manager->cache_service->GetCacheHint(str);
     PyDecRef( str );
 
     PyDict* initvals = new PyDict();
-
     PyTuple* result = new PyTuple( 2 );
-    result->SetItem( 0, serverinfo );
-    result->SetItem( 1, initvals );
+        result->SetItem( 0, serverinfo );
+        result->SetItem( 1, initvals );
     return result;
-}
-
-PyResult NetService::Handle_GetTime(PyCallArgs &call) {
-    return(new PyLong(Win32TimeNow()));
 }

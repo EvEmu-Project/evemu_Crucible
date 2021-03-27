@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,14 +27,6 @@
 #define __EVE_COMPAT_H__INCL__
 
 /*************************************************************************/
-/* crtdbg.h                                                              */
-/*************************************************************************/
-#ifdef HAVE_CRTDBG_H
-    // This is necessary to track leaks introduced by operator new()
-#   define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )
-#endif /* HAVE_CRTDBG_H */
-
-/*************************************************************************/
 /* inttypes.h                                                            */
 /*************************************************************************/
 /*
@@ -48,7 +40,7 @@ typedef uint16_t uint16;
 typedef  int32_t  int32;
 typedef uint32_t uint32;
 typedef  int64_t  int64;
-typedef uint64_t uint64;
+//typedef uint64_t uint64;
 #else /* !HAVE_INTTYPES_H */
 typedef   signed __int8   int8;
 typedef unsigned __int8  uint8;
@@ -57,13 +49,14 @@ typedef unsigned __int16 uint16;
 typedef   signed __int32  int32;
 typedef unsigned __int32 uint32;
 typedef   signed __int64  int64;
-typedef unsigned __int64 uint64;
+//typedef unsigned __int64 uint64;
 #endif /* !HAVE_INTTYPES_H */
 
 /*
  * PRI[diouxX](8|16|32|64)
  * SCN[diouxX](8|16|32|64)
  */
+// do we really need these?
 #ifndef HAVE_INTTYPES_H
 #   define PRId8 "hhd"
 #   define PRIi8 "hhi"
@@ -148,10 +141,6 @@ typedef int SOCKET;
 /*************************************************************************/
 /* cfloat, cmath                                                         */
 /*************************************************************************/
-#ifndef M_PI
-#   define M_PI 3.14159265358979323846
-#endif /* !M_PI */
-
 #ifndef HAVE_ASINH
 #   define asinh boost::math::asinh
 #endif /* !HAVE_ASINH */
@@ -171,13 +160,13 @@ typedef int SOCKET;
 #endif /* !HAVE_FINITE */
 
 #ifndef HAVE_ISNAN
-#   if defined( HAVE_STD_ISNAN )
-#       define isnan std::isnan
-#   elif defined( HAVE__ISNAN )
+//#   if defined( HAVE_STD_ISNAN )
+//#       define isnan std::isnan
+#   if defined( HAVE__ISNAN )
 #       define isnan _isnan
-#   elif defined( HAVE___ISNAN )
-#       define isnan __isnan
-#   endif /* HAVE___ISNAN */
+//#   elif defined( HAVE___ISNAN )
+//#       define isnan __isnan
+#   endif
 #endif /* !HAVE_ISNAN */
 
 /*************************************************************************/

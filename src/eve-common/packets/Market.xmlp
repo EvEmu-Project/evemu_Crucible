@@ -1,103 +1,33 @@
 
 
 <elements>
-
-  <!-- this really doesn't belong here -->
-  <elementDef name="MarketGroup_Entry">
-    <listInline>
-      <int name="marketGroupID" />
-      <int name="parentGroupID" none_marker="-1" />
-      <string name="marketGroupName" />
-      <string name="description" />
-      <int name="graphicID" none_marker="-1" />
-      <int name="hasTypes" />
-      <listInt name="types" />
-      <int name="dataID" default="0" />
-    </listInline>
-  </elementDef>
-
-  <elementDef name="GetPriceHistory_Header">
-    <objectInline>
-      <stringInline value="blue.DBRowDescriptor" />
-      <tupleInline>
-        <tupleInline>
-          <stringInline value="historyDate" />
-          <int name="_historyDateV" default="64" />
-        </tupleInline>
-        <tupleInline>
-          <stringInline value="lowPrice" />
-          <int name="_lowPriceV" default="6" />
-        </tupleInline>
-        <tupleInline>
-          <stringInline value="highPrice" />
-          <int name="_highPriceV" default="6" />
-        </tupleInline>
-        <tupleInline>
-          <stringInline value="avgPrice" />
-          <int name="_avgPriceV" default="6" />
-        </tupleInline>
-        <tupleInline>
-          <stringInline value="volume" />
-          <int name="_volumeV" default="20" />
-        </tupleInline>
-        <tupleInline>
-          <stringInline value="orders" />
-          <int name="_ordersV" default="3" />
-        </tupleInline>
-      </tupleInline>
-    </objectInline>
-  </elementDef>
-
-  <elementDef name="GetPriceHistory_Entry">
-    <objectInline>
-      <stringInline value="blue.DBRow" />
-      <tupleInline>
-        <element type="GetPriceHistory_Header" name="header" />
-        <tupleInline>
-          <long name="historyDate" />
-          <real name="lowPrice" />
-          <real name="highPrice" />
-          <real name="avgPrice" />
-          <long name="volume" />
-          <int name="orders" />
-        </tupleInline>
-      </tupleInline>
-    </objectInline>
-  </elementDef>
-
-  <elementDef name="Rsp_GetPriceHistory">
-    <tupleInline>
-      <element type="GetPriceHistory_Header" name="header" />
-      <list name="rows" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="Call_PlaceCharOrder">
     <tupleInline>
       <int name="stationID" />
       <int name="typeID" />
       <real name="price" />
       <int name="quantity" />
-      <bool name="bid" soft="true" />
+      <int name="bid" safe="true" /><!-- integer boolean -->
       <int name="orderRange" />
-      <int name="itemID" none_marker="0" />
+      <int name="itemID" />
       <int name="minVolume" />
       <int name="duration" /> <!-- in days -->
-      <bool name="useCorp" soft="true" />
-      <bool name="located" none_marker="false" />
+      <int name="useCorp" none_marker="0" /><!-- integer boolean -->
+      <raw name="located" /><!-- tuple for corp items in corp office.  none otherwise.   process as PyRep*-->
     </tupleInline>
   </elementDef>
 
   <elementDef name="Call_ModifyCharOrder">
     <tupleInline>
       <int name="orderID" />
-      <real name="new_price" />
-      <bool name="bid" soft="true" />
+      <real name="newPrice" />
+      <bool name="bid" safe="true" />
       <int name="stationID" />
       <int name="solarSystemID" />
-      <real name="old_price" />
-      <int name="quantity" />
-      <long name="duration" />
+      <real name="price" />
+      <int name="range" />
+      <int name="volRemaining" />
+      <long name="issueDate" />
     </tupleInline>
   </elementDef>
 
@@ -111,24 +41,35 @@
   <elementDef name="Notify_OnOwnOrderChanged">
     <tupleInline>
       <raw name="order" />
-      <!-- Reason: Add or Expiry (probably a "Change" or something too) -->
-      <string name="reason" />
-        <bool name="isCorp" />
+      <string name="reason" /><!-- Add, Expiry, Modify -->
+      <bool name="isCorp" />
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_CharGetNewTransactions">
-    <tupleInline>
-      <int name="buySell" none_marker="-1" />
-      <int name="typeID" none_marker="0" />
-      <int name="clientID" none_marker="0" />
-      <int name="quantity"/>
-      <long name="fromDate" none_marker="0" />
-      <real name="maxPrice" none_marker="0" />
-      <raw name="minPrice"/>
+  <elementDef name="Call_GetNewCharTransactions">
+     <tupleInline>
+       <int name="sellBuy" none_marker="-1" />
+       <int name="typeID" none_marker="0" />
+       <int name="clientID" none_marker="0" />
+       <int name="quantity"/>
+       <long name="fromDate" none_marker="0" />
+       <int name="maxPrice" none_marker="0" /><!-- always none - not used here -->
+       <int name="minPrice" none_marker="0"/>
     </tupleInline>
   </elementDef>
+
+  <elementDef name="Call_GetNewCorpTransactions">
+    <tupleInline>
+       <int name="sellBuy" none_marker="-1" />
+       <int name="typeID" none_marker="0" />
+       <int name="clientID" none_marker="0" />
+       <int name="quantity"/>
+       <long name="fromDate" none_marker="0" />
+       <int name="maxPrice" none_marker="0" /><!-- always none - not used here -->
+       <int name="minPrice" none_marker="0"/>
+       <int name="accountKey" none_marker="1000" />
+       <int name="memberID" none_marker="0" />
+     </tupleInline>
+   </elementDef>
 
 </elements>
-
-

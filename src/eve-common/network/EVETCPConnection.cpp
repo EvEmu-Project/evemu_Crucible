@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -33,7 +33,7 @@
 /* EVETCPConnection                                                      */
 /*************************************************************************/
 const uint32 EVETCPConnection::TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
-const uint32 EVETCPConnection::PACKET_SIZE_LIMIT = 10 * 1024 * 1024; // 10 megabytes
+const uint32 EVETCPConnection::PACKET_SIZE_LIMIT = 1024 * 1024; // 1 megabyte
 
 EVETCPConnection::EVETCPConnection()
 : TCPConnection(),
@@ -47,48 +47,53 @@ EVETCPConnection::EVETCPConnection( Socket* sock, uint32 rIP, uint16 rPort )
 {
 }
 
-void EVETCPConnection::QueueRep( const PyRep* rep )
+void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
 {
-    Buffer* buf = new Buffer;
+    Buffer* pBuffer = new Buffer();
 
     // make room for length
-    const Buffer::iterator<uint32> bufLen = buf->end<uint32>();
-    buf->ResizeAt( bufLen, 1 );
+    const Buffer::iterator<uint32> bufLen = pBuffer->end<uint32>();
+    pBuffer->ResizeAt( bufLen, 1 );
 
-    if( !MarshalDeflate( rep, *buf ) )
-        sLog.Error( "Network", "Failed to marshal new packet." );
-    else if( PACKET_SIZE_LIMIT < buf->size() )
-        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", buf->size(), PACKET_SIZE_LIMIT );
-    else
-    {
-        //DumpBuffer( buf, PACKET_OUTBOUND );
-        // write length
-        *bufLen = ( buf->size() - sizeof( uint32 ) );
-
-        Send( &buf );
-
+    if (PACKET_SIZE_LIMIT < pBuffer->size()) {
+        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", pBuffer->size(), PACKET_SIZE_LIMIT );
+        SafeDelete( pBuffer );
+        return;
     }
 
-    SafeDelete( buf );
+    bool success(false);
+    if (compress)
+        success = MarshalDeflate(rep, *pBuffer);
+    else
+        success = MarshalDeflate(rep, *pBuffer, PACKET_SIZE_LIMIT);
+
+    if (success) {
+       // if (is_log_enabled(DEBUG__DEBUG))
+       //     DumpBuffer( pBuffer, PACKET_OUTBOUND );
+        // write length
+        *bufLen = ( pBuffer->size() - sizeof( uint32 ) );
+        Send( &pBuffer );
+    } else {
+        sLog.Error( "Network", "Failed to marshal new packet." );
+    }
+
+    PySafeDecRef(rep);
+    SafeDelete( pBuffer );
 }
 
 PyRep* EVETCPConnection::PopRep()
 {
-    Buffer* packet = NULL;
-    PyRep* res = NULL;
+    PyRep* res(nullptr);
 
-    {
-        MutexLock lock( mMInQueue );
-        packet = mInQueue.PopPacket();
-    }
+    MutexLock lock( mMInQueue );
+    Buffer* packet = mInQueue.PopPacket();
 
-    if( NULL != packet )
-    {
-        if( PACKET_SIZE_LIMIT < packet->size() )
+    if (packet != nullptr) {
+        if ( PACKET_SIZE_LIMIT < packet->size() ) {
             sLog.Error( "Network", "Packet length %lu exceeds hardcoded packet length limit %u.", packet->size(), PACKET_SIZE_LIMIT );
-        else
-        {
-            //DumpBuffer( packet, PACKET_INBOUND );
+        } else {
+           // if (is_log_enabled(DEBUG__DEBUG))
+           //     DumpBuffer( packet, PACKET_INBOUND );
             res = InflateUnmarshal( *packet );
         }
     }
@@ -99,18 +104,15 @@ PyRep* EVETCPConnection::PopRep()
 
 bool EVETCPConnection::ProcessReceivedData( char* errbuf )
 {
-    if( errbuf )
+    if (errbuf != nullptr)
         errbuf[0] = 0;
 
-    {
-        MutexLock lock( mMInQueue );
+    MutexLock lock( mMInQueue );
 
-        // put bytes into packetizer
-        mInQueue.InputData( *mRecvBuf );
-        // process packetizer
-        mInQueue.Process();
-    }
-
+    // put bytes into packetizer
+    mInQueue.InputData( *mRecvBuf );
+    // process packetizer
+    mInQueue.Process();
     mTimeoutTimer.Start();
 
     return true;
@@ -121,10 +123,9 @@ bool EVETCPConnection::RecvData( char* errbuf )
     if( !TCPConnection::RecvData( errbuf ) )
         return false;
 
-    if( mTimeoutTimer.Check() )
-    {
-        if( errbuf )
-            snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "EVETCPConnection::RecvData(): Connection timeout" );
+    if( mTimeoutTimer.Check() ) {
+        if (errbuf != nullptr)
+            snprintf( errbuf, TCPCONN_ERRBUF_SIZE, "Connection timeout" );
         return false;
     }
 
@@ -134,14 +135,9 @@ bool EVETCPConnection::RecvData( char* errbuf )
 void EVETCPConnection::ClearBuffers()
 {
     TCPConnection::ClearBuffers();
-
     mTimeoutTimer.Start();
-
-    {
-        MutexLock lock( mMInQueue );
-
-        mInQueue.ClearBuffers();
-    }
+    MutexLock lock( mMInQueue );
+    mInQueue.ClearBuffers();
 }
 
 void EVETCPConnection::DumpBuffer( Buffer* buf, packet_direction packet_direction)
@@ -170,24 +166,15 @@ void EVETCPConnection::DumpBuffer( Buffer* buf, packet_direction packet_directio
     std::string path = EVEMU_ROOT "/packet_log/";
     path += timestamp;
     if(packet_direction == PACKET_INBOUND)
-    {
         path += "_client_";
-    } else
-    {
+    else
         path += "_server_";
-    }
-
     path += ".txt";
-
     logpacket = fopen(path.c_str(), "w");
 
-    Buffer::iterator<uint8> cur, end;
-    cur = buf->begin<uint8>();
-    end = buf->end<uint8>();
-    for(; cur != end; ++cur)
-    {
+    Buffer::iterator<uint8> cur = buf->begin<uint8>();
+    for (; cur != buf->end<uint8>(); ++cur) {
         uint8 test = *cur;
-
         fputc(test, logpacket);
     }
     fclose(logpacket);

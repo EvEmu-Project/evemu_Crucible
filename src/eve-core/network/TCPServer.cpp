@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,18 +21,21 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Zhur
+    Rewrite:    Allan
 */
 
 #include "eve-core.h"
 
 #include "network/TCPServer.h"
 #include "log/LogNew.h"
+#include "log/logsys.h"
+#include "threading/Threading.h"
 
 const uint32 TCPSRV_ERRBUF_SIZE = 1024;
-const uint32 TCPSRV_LOOP_GRANULARITY = 5;
+const uint32 TCPSRV_LOOP_GRANULARITY = 5;  /* 5ms */
 
 BaseTCPServer::BaseTCPServer()
-: mSock( NULL ),
+: mSock( nullptr ),
   mPort( 0 )
 {
 }
@@ -41,125 +44,101 @@ BaseTCPServer::~BaseTCPServer()
 {
     // Close socket
     Close();
-
     // Wait until worker thread terminates
     WaitLoop();
+    /*  delete thread here and remove from list */
+    sThread.RemoveThread(pthread_self());
 }
 
 bool BaseTCPServer::IsOpen() const
 {
-    bool ret;
-
     mMSock.Lock();
-    ret = ( mSock != NULL );
+    bool ret = (mSock != nullptr);
     mMSock.Unlock();
-
     return ret;
 }
 
 bool BaseTCPServer::Open( uint16 port, char* errbuf )
 {
-    if( errbuf != NULL )
+    if (errbuf != nullptr)
         errbuf[0] = 0;
 
     // mutex lock
     MutexLock lock( mMSock );
 
-    if( IsOpen() )
-    {
-        if( errbuf != NULL )
+    if (IsOpen()) {
+        _log(TCP_SERVER__ERROR, "Open() - Listening socket already open" );
+        if (errbuf != nullptr)
             snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "Listening socket already open" );
         return false;
-    }
-    else
-    {
+    } else {
         mMSock.Unlock();
-
-        // Wait for thread to terminate
         WaitLoop();
-
         mMSock.Lock();
     }
 
     // Setting up TCP port for new TCP connections
     mSock = new Socket( AF_INET, SOCK_STREAM, 0 );
 
-    // Quag: don't think following is good stuff for TCP, good for UDP
-    // Mis: SO_REUSEADDR shouldn't be a problem for tcp - allows you to restart
-    //      without waiting for conn's in TIME_WAIT to die
     unsigned int reuse_addr = 1;
     mSock->setopt( SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof( reuse_addr ) );
 
     // Setup internet address information.
     // This is used with the bind() call
-    sockaddr_in address;
+    sockaddr_in address = sockaddr_in();
     memset( &address, 0, sizeof( address ) );
-
     address.sin_family = AF_INET;
     address.sin_port = htons( port );
     address.sin_addr.s_addr = htonl( INADDR_ANY );
 
-    if( mSock->bind( (sockaddr*)&address, sizeof( address ) ) < 0 )
-    {
-        if( errbuf != NULL )
-            snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "bind(): < 0" );
-
+    if (mSock->bind((sockaddr*)&address, sizeof(address)) < 0) {
+        _log(TCP_SERVER__ERROR, "Open()::bind() < 0" );
+        if (errbuf)
+            snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "%s", strerror( errno ) );
         SafeDelete( mSock );
         return false;
     }
 
     unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
     mSock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
-
-#ifdef HAVE_WINSOCK2_H
-    unsigned long nonblocking = 1;
-    mSock->ioctl( FIONBIO, &nonblocking );
-#else /* !HAVE_WINSOCK2_H */
     mSock->fcntl( F_SETFL, O_NONBLOCK );
-#endif /* !HAVE_WINSOCK2_H */
-
-    if( mSock->listen() == SOCKET_ERROR )
-    {
-        if( errbuf != NULL )
-#ifdef HAVE_WINSOCK2_H
-            snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "listen() failed, Error: %u", WSAGetLastError() );
-#else /* !HAVE_WINSOCK2_H */
-            snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "listen() failed, Error: %s", strerror( errno ) );
-#endif /* !HAVE_WINSOCK2_H */
-
+    if (mSock->listen() == SOCKET_ERROR) {
+        _log(TCP_SERVER__ERROR, "Open()::listen() failed, Error: %s", strerror( errno ) );
+        if (errbuf)
+            snprintf( errbuf, TCPSRV_ERRBUF_SIZE, "%s", strerror( errno ) );
         SafeDelete( mSock );
         return false;
     }
 
     mPort = port;
-
-    // Start processing thread
     StartLoop();
-
     return true;
 }
 
 void BaseTCPServer::Close()
 {
-    MutexLock lock( mMSock );
-
-    SafeDelete( mSock );
+    MutexLock lock(mMSock);
+    SafeDelete(mSock);
     mPort = 0;
 }
 
 void BaseTCPServer::StartLoop()
 {
-#ifdef HAVE_WINDOWS_H
-    CreateThread( NULL, 0, TCPServerLoop, this, 0, NULL );
-#else /* !HAVE_WINDOWS_H */
+    /* since there is only one instance of BaseTCPServer, we can create thread here instead
+     * of sending to Thread class for creation and management
+     * update this to use Thread class management (sThread) if management here becomes a problem.
+     */
+    sThread.CreateThread(TCPServerLoop, this);
+    /*
     pthread_t thread;
-    pthread_create( &thread, NULL, TCPServerLoop, this );
-#endif /* !HAVE_WINDOWS_H */
+    pthread_create( &thread, nullptr, TCPServerLoop, this );
+    _log(THREAD__WARNING, "StartLoop() - Created thread ID 0x%X for TCPServerLoop", thread);
+    sThread.AddThread(thread);*/
 }
 
 void BaseTCPServer::WaitLoop()
 {
-    //wait for loop to stop.
+    //wait for running loop to stop.
     mMLoopRunning.Lock();
     mMLoopRunning.Unlock();
 }
@@ -167,93 +146,50 @@ void BaseTCPServer::WaitLoop()
 bool BaseTCPServer::Process()
 {
     MutexLock lock( mMSock );
-
-    if( !IsOpen() )
-        return false;
-
-    ListenNewConnections();
-    return true;
+    if (IsOpen()) {
+        ListenNewConnections();
+        return true;
+    }
+    return false;
 }
 
 void BaseTCPServer::ListenNewConnections()
 {
-    Socket*         sock;
-    sockaddr_in     from;
-    unsigned int    fromlen;
-
+    Socket* sock(nullptr);
+    sockaddr_in from = sockaddr_in();
     from.sin_family = AF_INET;
-    fromlen = sizeof( from );
-
+    unsigned int fromlen = sizeof( from );
     MutexLock lock( mMSock );
 
-    // Check for pending connects
-    while( ( sock = mSock->accept( (sockaddr*)&from, &fromlen ) ) != NULL )
-    {
-#ifdef HAVE_WINSOCK2_H
-        unsigned long nonblocking = 1;
-        sock->ioctl( FIONBIO, &nonblocking );
-#else /* !HAVE_WINSOCK2_H */
+    while ((sock = mSock->accept((sockaddr*)&from, &fromlen))) {
         sock->fcntl( F_SETFL, O_NONBLOCK );
-#endif /* !HAVE_WINSOCK2_H */
-
         unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
         sock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
-
         // New TCP connection, this must consume the socket.
         CreateNewConnection( sock, from.sin_addr.s_addr, ntohs( from.sin_port ) );
     }
 }
 
-#ifdef HAVE_WINDOWS_H
-DWORD WINAPI BaseTCPServer::TCPServerLoop( LPVOID arg )
-#else /* !HAVE_WINDOWS_H */
 void* BaseTCPServer::TCPServerLoop( void* arg )
-#endif /* !HAVE_WINDOWS_H */
 {
     BaseTCPServer* tcps = reinterpret_cast< BaseTCPServer* >( arg );
-    assert( tcps != NULL );
+    assert( tcps != nullptr );
 
     tcps->TCPServerLoop();
 
-#ifdef HAVE_WINDOWS_H
-    return 0;
-#else /* !HAVE_WINDOWS_H */
-    return NULL;
-#endif /* !HAVE_WINDOWS_H */
+    return nullptr;
 }
 
 void BaseTCPServer::TCPServerLoop()
 {
-#ifdef HAVE_WINDOWS_H
-    SetThreadPriority( GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL );
-#endif /* HAVE_WINDOWS_H */
-
-#ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Starting TCPServerLoop with thread ID %d", pthread_self() );
-#endif /* !HAVE_WINDOWS_H */
-
     mMLoopRunning.Lock();
-
     uint32 start = GetTickCount();
-    uint32 etime;
-    uint32 last_time;
-
-    while( Process() )
-    {
-        /* UPDATE */
-        last_time = GetTickCount();
-        etime = last_time - start;
-
+    while (Process()) {
         // do the stuff for thread sleeping
-        if( TCPSRV_LOOP_GRANULARITY > etime )
-            Sleep( TCPSRV_LOOP_GRANULARITY - etime );
-
+        start = GetTickCount() - start;
+        if (TCPSRV_LOOP_GRANULARITY > start)
+            Sleep(TCPSRV_LOOP_GRANULARITY - start);
         start = GetTickCount();
     }
-
     mMLoopRunning.Unlock();
-
-#ifndef HAVE_WINDOWS_H
-    sLog.Log( "Threading", "Ending TCPServerLoop with thread ID %d", pthread_self() );
-#endif /* !HAVE_WINDOWS_H */
 }

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -23,9 +23,10 @@
     Author:        Zhur
 */
 
-#include "eve-core.h"
+#include "../eve-core.h"
 
-#include "log/LogNew.h"
+#include "../log/LogNew.h"
+#include "../memory/SafeMem.h"
 #include "utils/XMLParser.h"
 
 /************************************************************************/
@@ -42,16 +43,14 @@ XMLParser::~XMLParser()
 
 bool XMLParser::ParseFile( const char* file )
 {
-    m_pXML_Document = new TiXmlDocument( file );
-    if( !m_pXML_Document->LoadFile() )
-    {
+    m_pXML_Document = make_unique<TiXmlDocument>(file);
+    if (!m_pXML_Document->LoadFile()) {
         sLog.Error( "XMLParser", "Unable to load '%s': %s.", file, m_pXML_Document->ErrorDesc() );
         return false;
     }
 
     TiXmlElement* root = m_pXML_Document->RootElement();
-    if( NULL == root )
-    {
+    if (root == nullptr) {
         sLog.Error( "XMLParser", "Unable to find root in '%s'.", file );
         return false;
     }
@@ -62,8 +61,7 @@ bool XMLParser::ParseFile( const char* file )
 bool XMLParser::ParseElement( const TiXmlElement* element ) const
 {
     std::map<std::string, ElementParser*>::const_iterator res = mParsers.find( element->Value() );
-    if( mParsers.end() == res )
-    {
+    if (res == mParsers.end()) {
         sLog.Error( "XMLParser", "Unknown element '%s' at line %d.", element->Value(), element->Row() );
         return true;    // Ignore any unanticipated XML tags and structures and continue parsing the rest of the XML
     }
@@ -73,17 +71,13 @@ bool XMLParser::ParseElement( const TiXmlElement* element ) const
 
 bool XMLParser::ParseElementChildren( const TiXmlElement* element, size_t max ) const
 {
-    const TiXmlNode* child = NULL;
+    const TiXmlNode* child = nullptr;
 
     size_t count = 0;
-    while( ( child = element->IterateChildren( child ) ) )
-    {
-        if( TiXmlNode::TINYXML_ELEMENT == child->Type() )
-        {
+    while ((child = element->IterateChildren(child))) {
+        if (child->Type() == TiXmlNode::TINYXML_ELEMENT) {
             const TiXmlElement* childElement = child->ToElement();
-
-            if( 0 < max && max <= count )
-            {
+            if ((max > 0) && (max <= count)) {
                 sLog.Error( "XMLParser", "Maximal children count %lu exceeded"
                                          " in element '%s' at line %d"
                                          " by element '%s' at line %d.",
@@ -94,7 +88,7 @@ bool XMLParser::ParseElementChildren( const TiXmlElement* element, size_t max ) 
                 return false;
             }
 
-            if( !ParseElement( childElement ) )
+            if (!ParseElement(childElement))
                 return false;
 
             ++count;
@@ -112,21 +106,15 @@ void XMLParser::AddParser( const char* name, ElementParser* parser )
 void XMLParser::RemoveParser( const char* name )
 {
     std::map<std::string, ElementParser*>::iterator res = mParsers.find( name );
-    if( mParsers.end() != res )
-    {
-        SafeDelete( res->second );
-        mParsers.erase( res );
+    if( mParsers.end() != res ) {
+        SafeDelete(res->second);
+        mParsers.erase(res);
     }
 }
 
-void XMLParser::ClearParsers()
-{
-    std::map<std::string, ElementParser*>::iterator cur, end;
-    cur = mParsers.begin();
-    end = mParsers.end();
-    for(; cur != end; ++cur )
-        SafeDelete( cur->second );
+void XMLParser::ClearParsers() {
+    for (auto cur : mParsers)
+        SafeDelete(cur.second);
 
     mParsers.clear();
 }
-

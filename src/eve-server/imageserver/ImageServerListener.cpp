@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -45,11 +45,11 @@ void ImageServerListener::StartAccept()
     boost::asio::execution_context &e_context = e.context();
     boost::asio::io_context &context_instance = static_cast<boost::asio::io_context&>(e_context);
 
-    std::tr1::shared_ptr<ImageServerConnection> connection = ImageServerConnection::create(context_instance);
+    std::shared_ptr<ImageServerConnection> connection = ImageServerConnection::create(context_instance);
     _acceptor->async_accept(connection->socket(), std::bind(&ImageServerListener::HandleAccept, this, connection));
 }
 
-void ImageServerListener::HandleAccept(std::tr1::shared_ptr<ImageServerConnection> connection)
+void ImageServerListener::HandleAccept(std::shared_ptr<ImageServerConnection> connection)
 {
     connection->Process();
     StartAccept();

@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -68,8 +68,8 @@ LanguageService::LanguageService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(LanguageService, GetLanguages)
-    PyCallable_REG_CALL(LanguageService, GetTextsForGroup)
+    PyCallable_REG_CALL(LanguageService, GetLanguages);
+    PyCallable_REG_CALL(LanguageService, GetTextsForGroup);
 }
 
 LanguageService::~LanguageService() {
@@ -78,7 +78,7 @@ LanguageService::~LanguageService() {
 
 
 /*
-PyBoundObject *LanguageService::_CreateBoundObject(Client *c, PyTuple *bind_args) {
+PyBoundObject *LanguageService::CreateBoundObject(Client *pClient, PyTuple *bind_args) {
     _log(CLIENT__MESSAGE, "LanguageService bind request for:");
     bind_args->Dump(CLIENT__MESSAGE, "    ");
 
@@ -97,35 +97,10 @@ PyResult LanguageService::Handle_GetTextsForGroup(PyCallArgs &call) {
     Call_GetTextsForGroup args;
 
     if (!args.Decode(&call.tuple)) {
-        codelog(CLIENT__ERROR, "Invalid arguments");
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return NULL;
     }
 
     return m_db.GetTextsForGroup(args.languageID, args.textgroup);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

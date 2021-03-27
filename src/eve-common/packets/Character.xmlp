@@ -1,155 +1,52 @@
 
-
 <elements>
 
   <include file="packets/General.h" />
 
-  <elementDef name="RspGetCharactersToSelect">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <element name="chars" type="util_Rowset" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallGetCharacterToSelect">
-    <tupleInline>
-      <!-- 0 -->
-      <int name="charID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetCharacterToSelect">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <element name="character" type="util_Rowset" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetCharCreationInfo">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-          <dictStr name="caches" />
-        </substreamInline>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="CallSelectCharacterID">
     <tupleInline>
-      <!-- 0 -->
       <int name="charID" />
-        <!-- 1 -->
-        <bool name="loadTutorialDungeon" soft="true" />
-        <!-- 2 -->
-        <raw name="secondChoiceID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallCreateCharacter">
-    <tupleInline>
-      <!-- 0 -->
-      <wstring name="name" />
-      <!-- 1 -->
-      <int name="bloodlineID" />
-      <!-- 2 -->
-      <int name="genderID" />
-      <!-- 3 -->
-      <int name="ancestryID" />
-        <!-- 4: schoolID -->
-        <none />
-        <!-- 5: departmentID -->
-        <none />
-        <!-- 6: fieldID -->
-        <none />
-        <!-- 7: specialityID -->
-        <none />
-      <!-- 8 -->
-      <int name="IntelligenceAdd" />
-      <!-- 9 -->
-      <int name="CharismaAdd" />
-      <!-- 10 -->
-      <int name="PerceptionAdd" />
-      <!-- 11 -->
-      <int name="MemoryAdd" />
-      <!-- 12 -->
-      <int name="WillpowerAdd" />
-      <!-- 13 -->
-      <dictStr name="appearance" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallCreateCharacter2">
-    <tupleInline>
-      <!-- 0 -->
-      <wstring name="name" />
-      <!-- 1 -->
-      <int name="bloodlineID" />
-      <!-- 2 -->
-      <int name="genderID" />
-      <!-- 3 -->
-      <int name="ancestryID" />
-      <!-- 4: appearance -->
-      <dictStr name="appearance" />
+      <bool name="loadTutorialDungeon" safe="true" />
+      <raw name="secondChoiceID" />
     </tupleInline>
   </elementDef>
 
     <elementDef name="CallCreateCharacterWithDoll">
     <tupleInline>
-      <wstring name="name" />
+      <raw name="charactername" />
       <int name="bloodlineID" />
       <int name="genderID" />
       <int name="ancestryID" />
       <objectInline>
         <stringInline value="util.KeyVal"/>
-        <dict name="avatarInfo" />
+        <dict name="charInfo" />
       </objectInline>
       <objectInline>
         <stringInline value="util.KeyVal"/>
-        <dict name="poseInfo" />
+        <dict name="portraitInfo" />
       </objectInline>
       <int name="schoolID" />
     </tupleInline>
   </elementDef>
 
-  <elementDef name="RspCreateCharacter">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <int name="charID" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="NotifyOnCharNowInStation">
+  <elementDef name="OnCharNowInStation">
     <tupleInline>
         <tupleInline>
-            <!-- 0 -->
             <int name="charID" />
-            <!-- 1 -->
             <int name="corpID" />
-            <!-- 2 -->
             <int name="allianceID" default="0" none_marker="0" />
-            <!-- 3 -->
-            <int name="unknown" default="0" none_marker="0" />
+            <int name="warFactionID" default="0" none_marker="0" />
         </tupleInline>
     </tupleInline>
   </elementDef>
 
-  <elementDef name="NotifyOnCharNoLongerInStation">
+  <elementDef name="OnCharNoLongerInStation">
     <tupleInline>
       <tupleInline>
-        <!-- 0 -->
         <int name="charID" />
-        <!-- 1 -->
         <int name="corpID" />
-        <!-- 2 -->
         <int name="allianceID" default="0" none_marker="0" />
-        <!-- 3 -->
-        <int name="unknown" default="0" none_marker="0" />
+        <int name="factionID" default="0" none_marker="0" />
       </tupleInline>
     </tupleInline>
   </elementDef>
@@ -163,16 +60,16 @@
 
   <elementDef name="Call_AddOwnerNote">
     <tupleInline>
-      <wstring name="label" soft="true" />
-      <wstring name="content" soft="true" />
+      <wstring name="label" safe="true" />
+      <wstring name="content" safe="true" />
     </tupleInline>
   </elementDef>
 
   <elementDef name="Call_EditOwnerNote">
     <tupleInline>
       <int name="noteID" />
-      <wstring name="label" soft="true" />
-      <wstring name="content" soft="true"/>
+      <wstring name="label" safe="true" />
+      <wstring name="content" safe="true"/>
     </tupleInline>
   </elementDef>
 
@@ -182,10 +79,58 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="OnSkillStartTraining">
+    <tupleInline>
+      <stringInline value="OnSkillStartTraining" />
+      <int name="itemID" />
+      <long name="endOfTraining" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnSkillTrainingStopped">
+    <tupleInline>
+      <stringInline value="OnSkillTrainingStopped" />
+      <int name="itemID" />
+      <bool name="silent" /><!-- slient means 'disable neocom blink event' -->
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnSkillTrained">
+    <tupleInline>
+      <stringInline value="OnSkillTrained" />
+      <int name="itemID" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnMultipleSkillsTrained">
+    <tupleInline>
+      <stringInline value="OnMultipleSkillsTrained" />
+      <list name="skillList" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnSkillSwitched">
+    <tupleInline>
+      <stringInline value="OnSkillSwitched" />
+      <int name="oldSkillID" />
+      <int name="newSkillID" />
+      <long name="ETA" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnAdminSkillChange">
+    <tupleInline>
+      <stringInline value="OnAdminSkillChange" />
+      <int name="skillItemID" />
+      <int name="skillTypeID" />
+      <long name="newSP" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="SkillQueue_Element">
     <tupleInline>
       <int name="typeID" />
-      <int name="level" />
+      <int name="level" safe="true" />
     </tupleInline>
   </elementDef>
 
@@ -193,6 +138,13 @@
     <tupleInline>
       <!-- 0: List of SkillQueue_Element -->
       <list name="queue" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_InjectSkillIntoBrain">
+    <tupleInline>
+      <listInt name="skills" />
+      <int name="stationID" />
     </tupleInline>
   </elementDef>
 
@@ -206,13 +158,15 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_InjectSkillIntoBrain">
+  <elementDef name="Call_AddContact">
     <tupleInline>
-      <listInt name="skills" />
-      <int name="stationID" />
+      <int name="charID" />
+      <int name="standing" />
+      <int name="inWatchlist" />
+      <int name="notify" />
+      <wstring name="note" safe="true" />
     </tupleInline>
   </elementDef>
-
 </elements>
 
 

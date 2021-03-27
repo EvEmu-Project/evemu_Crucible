@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -41,24 +41,18 @@ protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
 
-    LSCDB m_db;
-
-    PyCallable_DECL_CALL(LookupCharacters)
-    PyCallable_DECL_CALL(LookupOwners)
-    PyCallable_DECL_CALL(LookupPlayerCharacters)
-    PyCallable_DECL_CALL(LookupCorporations)
-    PyCallable_DECL_CALL(LookupFactions)
-    PyCallable_DECL_CALL(LookupCorporationTickers)
-    PyCallable_DECL_CALL(LookupStations)
-    PyCallable_DECL_CALL(LookupKnownLocationsByGroup)
-
-    PyCallable_DECL_CALL(LookupEvePlayerCharacters)
+    PyCallable_DECL_CALL(LookupCharacters);
+    PyCallable_DECL_CALL(LookupPCOwners);
+    PyCallable_DECL_CALL(LookupOwners);
+    PyCallable_DECL_CALL(LookupPlayerCharacters);
+    PyCallable_DECL_CALL(LookupCorporations);
+    PyCallable_DECL_CALL(LookupFactions);
+    PyCallable_DECL_CALL(LookupCorporationTickers);
+    PyCallable_DECL_CALL(LookupStations);
+    PyCallable_DECL_CALL(LookupKnownLocationsByGroup);
+    PyCallable_DECL_CALL(LookupNoneNPCAccountOwners);
+    PyCallable_DECL_CALL(LookupEvePlayerCharacters);
 };
 
 
-
-
-
 #endif
-
-

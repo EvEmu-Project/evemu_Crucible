@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,12 +21,11 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:     Bloody.Rabbit
+    Updates:    Allan
 */
 
 #include "eve-common.h"
-
 #include "python/classes/PyDatabase.h"
-
 #include "utils/EVEUtils.h"
 
 /************************************************************************/
@@ -47,7 +46,7 @@ DBRowDescriptor::DBRowDescriptor( const DBQueryResult& res )
 {
     uint32 cc = res.ColumnCount();
 
-    for( uint32 i = 0; i < cc; i++ )
+    for( uint32 i(0); i < cc; ++i )
         AddColumn( res.ColumnName( i ), res.ColumnType( i ) );
 }
 
@@ -56,8 +55,12 @@ DBRowDescriptor::DBRowDescriptor( const DBResultRow& row )
 {
     uint32 cc = row.ColumnCount();
 
-    for( uint32 i = 0; i < cc; i++ )
+    for( uint32 i(0); i < cc; ++i )
         AddColumn( row.ColumnName( i ), row.ColumnType( i ) );
+}
+
+DBRowDescriptor::~DBRowDescriptor() {
+
 }
 
 uint32 DBRowDescriptor::ColumnCount() const
@@ -80,10 +83,8 @@ uint32 DBRowDescriptor::FindColumn( const char* name ) const
     uint32 cc = ColumnCount();
     PyString* stringName = new PyString( name );
 
-    for( uint32 i = 0; i < cc; i++ )
-    {
-        if( stringName->hash() == GetColumnName( i )->hash() )
-        {
+    for( uint32 i(0); i < cc; ++i ) {
+        if( stringName->hash() == GetColumnName( i )->hash() ) {
             PyDecRef( stringName );
             return i;
         }
@@ -101,7 +102,6 @@ bool DBRowDescriptor::VerifyValue( uint32 index, PyRep* value )
 void DBRowDescriptor::AddColumn( const char* name, DBTYPE type )
 {
     PyTuple* col = new PyTuple( 2 );
-
     col->SetItem( 0, new PyString( name ) );
     col->SetItem( 1, new PyInt( type ) );
 
@@ -121,7 +121,6 @@ PyTuple* DBRowDescriptor::_GetColumn( size_t index ) const
 PyTuple* DBRowDescriptor::_CreateArgs()
 {
     PyTuple* columnList = new PyTuple( 0 );
-
     PyTuple* args = new PyTuple( 1 );
     args->SetItem( 0, columnList );
 
@@ -134,14 +133,16 @@ PyTuple* DBRowDescriptor::_CreateArgs()
 CRowSet::CRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-    *rowDesc = NULL;
+
+}
+
+CRowSet::~CRowSet() {
+
 }
 
 PyPackedRow* CRowSet::NewRow()
 {
     DBRowDescriptor* rowDesc = _GetRowDesc();
-    PyIncRef( rowDesc );
-
     PyPackedRow* row = new PyPackedRow( rowDesc );
 
     list().AddItem( row );
@@ -177,12 +178,12 @@ PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 {
     assert( rowDesc );
 
-    PyDict* keywords = new PyDict;
+    PyDict* keywords = new PyDict();
     keywords->SetItemString( "header", rowDesc );
 
     //uint32 cc = rowDesc->ColumnCount();
     //PyList* columns = new PyList( cc );
-    //for( uint32 i = 0; i < cc; i++ )
+    //for( uint32 i(0); i < cc; ++i )
     //    columns->SetItem( i,  new PyString( *rowDesc->GetColumnName( i ) ) );
     //keywords->SetItemString( "columns", columns ); //The Type_2 i had no longer used this
 
@@ -195,14 +196,16 @@ PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 CIndexedRowSet::CIndexedRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-    *rowDesc = NULL;
+
+}
+
+CIndexedRowSet::~CIndexedRowSet() {
+
 }
 
 PyPackedRow* CIndexedRowSet::NewRow( PyRep* key )
 {
     DBRowDescriptor* rowDesc = _GetRowDesc();
-    PyIncRef( rowDesc );
-
     PyPackedRow* row = new PyPackedRow( rowDesc );
 
     dict().SetItem( key , row );
@@ -229,10 +232,9 @@ PyDict* CIndexedRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 {
     assert( rowDesc );
 
-    PyDict* keywords = new PyDict;
+    PyDict* keywords = new PyDict();
     keywords->SetItemString( "header", rowDesc );
     keywords->SetItemString( "columnName", rowDesc->GetColumnName(0) );
-
 
     return keywords;
 }
@@ -244,16 +246,16 @@ PyDict* CIndexedRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 CFilterRowSet::CFilterRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-    *rowDesc = NULL;
+
 }
 
-	
+CFilterRowSet::~CFilterRowSet() {
+
+}
 
 CRowSet* CFilterRowSet::NewRowset( PyRep* key )
 {
     DBRowDescriptor* rowDesc = _GetRowDesc();
-    PyIncRef( rowDesc );
-
     CRowSet* row = new CRowSet( &rowDesc );
 
     dict().SetItem( key , row );
@@ -280,10 +282,9 @@ PyDict* CFilterRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 {
     assert( rowDesc );
 
-    PyDict* keywords = new PyDict;
+    PyDict* keywords = new PyDict();
     keywords->SetItemString( "header", rowDesc );
     keywords->SetItemString( "columnName", rowDesc->GetColumnName(0) );
-
 
     return keywords;
 }

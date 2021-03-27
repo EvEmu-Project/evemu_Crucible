@@ -23,8 +23,8 @@
 using namespace Ga;
 
 const GaFloat Math::GaPi = 3.1415926535897932384626433832795;
-const GaFloat Math::GaDegreeToRadian = 180.0 / GaPi;
-const GaFloat Math::GaRadianToDegree = GaPi / 180.0;
+const GaFloat Math::GaDegreesInRadian = 180.0 / GaPi;
+const GaFloat Math::GaRadianInDegree = GaPi / 180.0;
 const GaFloat Math::GaEpsilon = FLT_EPSILON;
 const GaFloat Math::GaMinFloat = FLT_MIN;
 const GaFloat Math::GaMaxFloat = FLT_MAX;

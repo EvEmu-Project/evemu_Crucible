@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -33,36 +33,48 @@ class InventoryBound
 : public PyBoundObject
 {
 public:
-    InventoryBound(PyServiceMgr *mgr, Inventory &inventory, EVEItemFlags flag);
-    ~InventoryBound();
+    InventoryBound(PyServiceMgr *mgr, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID,  bool passive);
+    virtual ~InventoryBound();
 
     virtual void Release() {
         //I hate this statement
         delete this;
     }
 
-    PyCallable_DECL_CALL(List)
-    PyCallable_DECL_CALL(Add)
-    PyCallable_DECL_CALL(MultiAdd)
-    PyCallable_DECL_CALL(GetItem)
-    PyCallable_DECL_CALL(ListStations)
-    PyCallable_DECL_CALL(ReplaceCharges)
-    PyCallable_DECL_CALL(MultiMerge)
-    PyCallable_DECL_CALL(StackAll)
-    PyCallable_DECL_CALL(StripFitting)
-    PyCallable_DECL_CALL(DestroyFitting)
-    PyCallable_DECL_CALL(SetPassword)
-    PyCallable_DECL_CALL(CreateBookmarkVouchers)
-    PyCallable_DECL_CALL(Voucher)
+    PyCallable_DECL_CALL(List);
+    PyCallable_DECL_CALL(Add);
+    PyCallable_DECL_CALL(MultiAdd);
+    PyCallable_DECL_CALL(GetItem);
+    PyCallable_DECL_CALL(RemoveChargeToCargo);
+    PyCallable_DECL_CALL(RemoveChargeToHangar);
+    PyCallable_DECL_CALL(MultiMerge);
+    PyCallable_DECL_CALL(StackAll);
+    PyCallable_DECL_CALL(StripFitting);
+    PyCallable_DECL_CALL(DestroyFitting);
+    PyCallable_DECL_CALL(SetPassword);
+    PyCallable_DECL_CALL(CreateBookmarkVouchers);
+    PyCallable_DECL_CALL(RunRefiningProcess);
+    PyCallable_DECL_CALL(ImportExportWithPlanet);
+    PyCallable_DECL_CALL(TakeOutTrash);
+    PyCallable_DECL_CALL(ListDroneBay);
+
 
 protected:
+    bool m_passive;     // still not sure what this is for
+    EVEItemFlags m_flag;
+
+    uint32 m_itemID;
+    uint32 m_ownerID;
+
     class Dispatcher;
     Dispatcher *const m_dispatch;
+    Inventory* pInventory;
 
-    Inventory &mInventory;
-    EVEItemFlags mFlag;
+    InventoryItemRef m_self;
 
-    PyRep *_ExecAdd(Client *c, const std::vector<int32> &items, uint32 quantity, EVEItemFlags flag);
+    std::vector< int32 > CatSortItems(std::vector< InventoryItemRef >& itemVec);
+
+    PyRep* MoveItems(Client* pClient, std::vector< int32 >& items, EVEItemFlags toFlag, int32 quantity, bool manyFlags, float capacity);
 };
 
 #endif//_INVENTORY_BOUND_H

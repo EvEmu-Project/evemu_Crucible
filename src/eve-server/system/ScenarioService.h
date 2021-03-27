@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -42,31 +42,25 @@ protected:
 
     SystemDB m_db;
 
-    PyCallable_DECL_CALL(ResetD)
-    //PlayDungeon(dungeonVID, selectedRoom)
-    //EditRoom(dungeonVID, selectedRoom)
-    //GotoRoom(selectedRoom)
-    //GetDunObjects() (returns list of slim items)
-    //GetSelObjects() (returns list of slim items)
-    //IsSelectedByObjID(dunObjectID)
-    //DuplicateSelection(amount, X, Y, Z)
-    //SetSelectionByID(ids)
-    //SetSelectedRadius(minRadius, maxRadius)
-    //SetRotate(y, p, r)
-    //RotateSelected(yaw, pitch, roll)
-    //JitterSelection(X, Y, Z)
-    //ArrangeSelection(X, Y, Z)
-    //DeleteSelected()
-    //RefreshSelection()
+    PyCallable_DECL_CALL(ResetD);
+    PyCallable_DECL_CALL(PlayDungeon);
+    PyCallable_DECL_CALL(EditRoom);
+    PyCallable_DECL_CALL(GotoRoom);
+    PyCallable_DECL_CALL(GetDunObjects);
+    PyCallable_DECL_CALL(GetSelObjects);
+    PyCallable_DECL_CALL(IsSelectedByObjID);
+    PyCallable_DECL_CALL(DuplicateSelection);
+    PyCallable_DECL_CALL(SetSelectionByID);
+    PyCallable_DECL_CALL(SetSelectedRadius);
+    PyCallable_DECL_CALL(SetRotate);
+    PyCallable_DECL_CALL(RotateSelected);
+    PyCallable_DECL_CALL(JitterSelection);
+    PyCallable_DECL_CALL(ArrangeSelection);
+    PyCallable_DECL_CALL(DeleteSelected);
+    PyCallable_DECL_CALL(RefreshSelection);
 
     //overloaded in order to support bound objects:
-    //virtual PyBoundObject *_CreateBoundObject(Client *c, const PyRep *bind_args);
+    //virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
 };
 
-
-
-
-
 #endif
-
-

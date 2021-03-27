@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -22,6 +22,7 @@
     ------------------------------------------------------------------------------------
     Author:        Reve
     Providing clothes to the poor
+    Updates:    Allan
 */
 
 #include "eve-server.h"
@@ -32,14 +33,13 @@ PyRep* PaperDollDB::GetPaperDollAvatar(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-		" (SELECT hairDarkness FROM avatars WHERE `charID`=%u ) ", charID))
+		"SELECT hairDarkness FROM avatars WHERE charID=%u", charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
-        return (NULL);
+        return nullptr;
     }
 
 	DBResultRow row;
-
 	res.GetRow(row);
 
 	return DBRowToRow(row, "util.Row");
@@ -49,10 +49,10 @@ PyRep* PaperDollDB::GetPaperDollAvatarColors(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-		" (SELECT colorID, colorNameA, colorNameBC, weight, gloss  FROM avatar_colors WHERE `charID`=%u ) ", charID))
+		"SELECT colorID, colorNameA, colorNameBC, weight, gloss  FROM avatar_colors WHERE charID=%u", charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
-        return (NULL);
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -62,10 +62,10 @@ PyRep* PaperDollDB::GetPaperDollAvatarModifiers(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-		" (SELECT modifierLocationID, paperdollResourceID, paperdollResourceVariation FROM avatar_modifiers WHERE `charID`=%u ) ", charID))
+		"SELECT modifierLocationID, paperdollResourceID, paperdollResourceVariation FROM avatar_modifiers WHERE charID=%u", charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
-        return (NULL);
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -75,10 +75,21 @@ PyRep* PaperDollDB::GetPaperDollAvatarSculpts(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-		" (SELECT sculptLocationID, weightUpDown, weightLeftRight, weightForwardBack FROM avatar_sculpts WHERE `charID`=%u ) ", charID))
+		"SELECT sculptLocationID, weightUpDown, weightLeftRight, weightForwardBack FROM avatar_sculpts WHERE charID=%u", charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
-        return (NULL);
+        return nullptr;
+    }
+
+    return DBResultToCRowset(res);
+}
+
+PyRep* PaperDollDB::GetPaperDollPortraitData(uint32 charID) const
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT * FROM chrPortraitData WHERE charID = %u", charID)) {
+        _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
+        return nullptr;
     }
 
     return DBResultToCRowset(res);

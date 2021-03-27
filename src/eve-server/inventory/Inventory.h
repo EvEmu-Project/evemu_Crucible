@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2016 The EVEmu Team
-    For the latest information visit http://evemu.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://github.com/evemuproject/evemu_server
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -21,95 +21,95 @@
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
     Author:        Bloody.Rabbit
+    Updates:    Allan
 */
 
 #ifndef __INVENTORY__H__INCL__
 #define __INVENTORY__H__INCL__
 
-#include "inventory/InventoryItem.h"
+
+#include "inventory/InventoryDB.h"
+
 
 class CRowSet;
 
+/* this class is content management for items that can contain other items */
 class Inventory
 {
     friend class InventoryItem;
 public:
-    /**
-     * Casts given InventoryItemRef to Inventory.
-     *
-     * @return Pointer to Inventory; NULL if given item isn't a valid inventory.
-     */
-    static Inventory *Cast(InventoryItemRef item);
+    Inventory(InventoryItemRef iRef);
+    virtual ~Inventory() noexcept                       { /* do nothing here*/ }
 
-    Inventory();
-    virtual ~Inventory();
+    void Reset();
+    void Unload();  // used by stations and solar systems for item saving and unloading
+    void AddItem(InventoryItemRef iRef);
+    void RemoveItem(InventoryItemRef iRef);
+    void DeleteContents();
+    // returns map of mContents
+    void GetInventoryMap(std::map<uint32, InventoryItemRef> &invMap);
+    // this method also sorts in order - cargo, modules, charge, subsystems.
+    void GetInventoryVec(std::vector<InventoryItemRef> &itemVec);
+    void StackAll(EVEItemFlags flag, uint32 ownerID = 0);
 
-    virtual uint32 inventoryID() const = 0;
+    bool IsEmpty()                                      { return mContents.empty(); }
+    bool LoadContents();
+    // this checks for available space for iRef by flag
+    bool ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const;// this will throw if it fails.
+    // this checks for available space for iRef by flag
+    bool HasAvailableSpace(EVEItemFlags flag, InventoryItemRef iRef) const;   //  this will not throw
+    bool ContentsLoaded() const                         { return mContentsLoaded; }
+    bool ContainsItem(uint32 itemID) const              { return mContents.find( itemID ) != mContents.end(); }
+    bool ContainsTypeQty(uint16 typeID, uint32 qty=0) const;
+    bool ContainsTypeByFlag(uint16 typeID, EVEItemFlags flag=flagNone) const;
 
-    /*
-     * Contents management:
-     */
-    bool ContentsLoaded() const { return mContentsLoaded; }
-    bool LoadContents(ItemFactory &factory);
-    void DeleteContents(ItemFactory &factory);
+    float GetCapacity(EVEItemFlags flag) const;
+    float GetStoredVolume(EVEItemFlags flag, bool combined=true) const;
+    float GetCorpHangerCapyUsed() const;
+    float GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
 
-    bool Contains(uint32 itemID) const { return mContents.find( itemID ) != mContents.end(); }
     InventoryItemRef GetByID(uint32 id) const;
     InventoryItemRef GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const;
-	void GetInventoryList(std::map<uint32, InventoryItemRef> &inventory);
 
-    /*
-     *
-     */
+    /* Inventory-by-Flag methods */
+    /** @todo update to use m_usedVolumeByFlag container? */
+    bool IsEmptyByFlag(EVEItemFlags flag) const;
+    bool GetSingleItemByFlag(EVEItemFlags flag, InventoryItemRef &iRef) const;
+    bool GetTypesByFlag(EVEItemFlags flag, std::map<uint16, InventoryItemRef> &items);
+    // for characters, ALL skills are flagSkill. we are not keeping flagSkillInTraining separate here
+    uint32 GetItemsByFlag(EVEItemFlags flag, std::vector<InventoryItemRef> &items) const;
+    uint32 GetItemsByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItemRef> &items) const;
+    uint32 GetItemsByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItemRef> &items) const;
+    // for characters, ALL skills are flagSkill. we are not keeping flagSkillInTraining separate here
     InventoryItemRef FindFirstByFlag(EVEItemFlags flag) const;
-    uint32 FindByFlag(EVEItemFlags flag, std::vector<InventoryItemRef> &items) const;
-    uint32 FindByFlagRange(EVEItemFlags low_flag, EVEItemFlags high_flag, std::vector<InventoryItemRef> &items) const;
-    uint32 FindByFlagSet(std::set<EVEItemFlags> flags, std::vector<InventoryItemRef> &items) const;
+    InventoryItemRef GetItemByTypeFlag(uint16 typeID, EVEItemFlags flag=flagNone);
 
-    /* should do exactly the same as FindFirstByFlag, but only searches a single item.
-     * it asserts when it finds multiple items. It should be used to search single items... like rigs...
-     * @returns true if the object is found and false if its not.
-     */
-    bool FindSingleByFlag(EVEItemFlags flag, InventoryItemRef &item) const;
+    /* Primary packet builders */
+    CRowSet* List(EVEItemFlags flag, uint32 ownerID = 0) const;
 
-    /* checks if a a item is present at a certain location flag.
-     *
-     * @returns true if its empty and false if its not.
-     */
-    bool IsEmptyByFlag(EVEItemFlags flag);
+    /* for station shit */
+    void GetInvForOwner(uint32 ownerID, std::vector<InventoryItemRef> &items);
 
-
-    double GetStoredVolume(EVEItemFlags flag) const;
-
-    virtual void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const {}
-    void StackAll(EVEItemFlags flag, uint32 forOwner = 0);
-
-    /*
-     * Primary packet builders:
-     */
-    virtual PyRep* GetItem() const = 0;
-
-    CRowSet* List( EVEItemFlags flag, uint32 forOwner = 0 ) const;
-    void List( CRowSet* into, EVEItemFlags flag, uint32 forOwner = 0 ) const;
+    /* for debug command */
+    void GetCargoList(std::multimap<uint8, InventoryItemRef> &cargoMap);     // returns map of cargoFlag:iRef from mContents
 
 protected:
-    virtual void AddItem(InventoryItemRef item);
-    virtual void RemoveItem(InventoryItemRef item);
+    bool GetItems(OwnerData od, std::vector< uint32 >& into);
+    void List(CRowSet* into, EVEItemFlags flag, uint32 ownerID=0) const;
 
-    virtual bool GetItems(ItemFactory &factory, std::vector<uint32> &into) const { return factory.db().GetItemContents( inventoryID(), into ); }
+    InventoryDB m_db;
+    InventoryItemRef m_self;
 
+private:
     bool mContentsLoaded;
-    std::map<uint32, InventoryItemRef> mContents;    //maps item ID to its instance. we own a ref to all of these.
-};
 
-class InventoryEx
-: public Inventory
-{
-public:
-    virtual double GetCapacity(EVEItemFlags flag) const = 0;
-    double GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
+    uint32 m_myID;
 
-    void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const;
+    std::map<EVEItemFlags, double> m_itemsByFlag;
+
+    std::vector<InventoryItemRef> SortVector(std::vector<InventoryItemRef> &itemVec);
+    std::map<uint32, InventoryItemRef> mContents;        // itemID/ItemRef
+    std::multimap<uint8, InventoryItemRef> m_contentsByFlag;  // flagID/ItemRef
 };
 
 #endif /* !__INVENTORY__H__INCL__ */
