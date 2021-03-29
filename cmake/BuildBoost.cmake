@@ -5,7 +5,7 @@
 
 # We need "boost::asio::transfer_exactly" which is present
 # in Boost 1.47.0 and later.
-FIND_PACKAGE( "Boost" 1.47.0 COMPONENTS "system" )
+FIND_PACKAGE( "Boost" 1.67.0 COMPONENTS "system" )
 SET( PKG_FOUND "${Boost_FOUND}" )
 
 IF( PKG_FOUND )
@@ -14,14 +14,14 @@ ENDIF( PKG_FOUND )
 
 # Cache entries
 SET( Boost_URL
-  "http://downloads.sourceforge.net/project/boost/boost/1.49.0/boost_1_49_0.tar.bz2"
+  "http://downloads.sourceforge.net/project/boost/boost/1.67.0/boost_1_67_0.tar.bz2"
   CACHE STRING "URL of the Boost source archive" )
 MARK_AS_ADVANCED( Boost_URL )
 
 # Setup the needed variables
 SET( PKG_URL "${Boost_URL}" )
-SET( PKG_MD5 "0d202cb811f934282dea64856a175698" )
-SET( PKG_ARCHIVE_PREFIX "/boost_1_49_0" )
+SET( PKG_MD5 "ced776cb19428ab8488774e1415535ab" )
+SET( PKG_ARCHIVE_PREFIX "/boost_1_67_0" )
 
 SET( PKG_CMAKELISTS "
 # Disable autolinking of any Boost libraries
@@ -41,7 +41,6 @@ ADD_LIBRARY(
   \"boost/system/system_error.hpp\"
   \"boost/system/windows_error.hpp\"
   \"libs/system/src/error_code.cpp\"
-  \"libs/system/src/local_free_on_destruction.hpp\"
   )
 
 SET( Boost_INCLUDE_DIRS
