@@ -12,12 +12,15 @@ services:
       - "26001:26001"
     depends_on:
       - db
+    links:
+      - "db"
   db:
     image: "quay.io/bitnami/mariadb:10.4"
     volumes:
       - db:/bitnami/mariadb
-    ports:
-      - "3306:3306"
+    # If you want to connect to the Database pick your host port to map it to, (host-port:container-port) below. 
+    #ports:
+    #  - "3306:3306"  
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - MARIADB_USER=evemu
@@ -28,3 +31,4 @@ volumes:
   config:
   server_cache:
   image_cache:
+

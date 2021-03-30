@@ -1,1 +1,8 @@
-**/.git
+*
+!src
+!utils
+!sql
+!CMakeLists.txt
+!cmake
+!dep
+!config.h.in

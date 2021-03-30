@@ -23,5 +23,3 @@ fi
 echo "Starting eve-server..."
 cd /app/bin/
 ./eve-server
-
-while :; do echo 'EVEmu Halted'; sleep 1; done
