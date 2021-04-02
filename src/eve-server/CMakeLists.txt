@@ -618,7 +618,7 @@ SET( test_SOURCE
 SOURCE_GROUP( "src"                FILES ${INCLUDE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_INCLUDE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_INCLUDE} )
-#SOURCE_GROUP( "src\\agent"         FILES ${agent_INCLUDE} )
+SOURCE_GROUP( "src\\agents"        FILES ${agent_INCLUDE} )
 SOURCE_GROUP( "src\\alliance"      FILES ${alliance_INCLUDE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_INCLUDE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_INCLUDE} )
@@ -655,7 +655,7 @@ SOURCE_GROUP( "src\\system\\test"  FILES ${test_INCLUDE} )
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_SOURCE} )
-#SOURCE_GROUP( "src\\agent"         FILES ${agent_SOURCE} )
+SOURCE_GROUP( "src\\agents"        FILES ${agent_SOURCE} )
 SOURCE_GROUP( "src\\alliance"      FILES ${alliance_SOURCE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_SOURCE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
@@ -675,7 +675,7 @@ SOURCE_GROUP( "src\\mail"          FILES ${mail_SOURCE} )
 SOURCE_GROUP( "src\\manufacturing" FILES ${manufacturing_SOURCE} )
 SOURCE_GROUP( "src\\map"           FILES ${map_SOURCE} )
 SOURCE_GROUP( "src\\market"        FILES ${market_SOURCE} )
-#SOURCE_GROUP( "src\\missions"      FILES ${missions_SOURCE} )
+SOURCE_GROUP( "src\\missions"      FILES ${missions_SOURCE} )
 SOURCE_GROUP( "src\\npc"           FILES ${npc_SOURCE} )
 #SOURCE_GROUP( "src\\planet"        FILES ${planet_SOURCE} )
 #SOURCE_GROUP( "src\\pos"           FILES ${pos_SOURCE} )
@@ -693,7 +693,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${INCLUDE}                ${SOURCE}
                 ${account_INCLUDE}        ${account_SOURCE}
                 ${admin_INCLUDE}          ${admin_SOURCE}
-                #${agent_INCLUDE}          ${agent_SOURCE}
+                ${agent_INCLUDE}          ${agent_SOURCE}
                 ${alliance_INCLUDE}       ${alliance_SOURCE}
                 ${cache_INCLUDE}          ${cache_SOURCE}
                 ${character_INCLUDE}      ${character_SOURCE}
@@ -713,7 +713,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${manufacturing_INCLUDE}  ${manufacturing_SOURCE}
                 ${map_INCLUDE}            ${map_SOURCE}
                 ${market_INCLUDE}         ${market_SOURCE}
-                #${missions_INCLUDE}       ${missions_SOURCE}
+                ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
                 #${planet_INCLUDE}         ${planet_SOURCE}
                 #${pos_INCLUDE}            ${pos_SOURCE}
@@ -741,7 +741,7 @@ INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
 INSTALL( FILES "${TARGET_UTILS_DIR}/config/devtools.raw"
          DESTINATION "etc" )
-#Install configuration files as well     
+#Install configuration files as well
 INSTALL( FILES "${TARGET_UTILS_DIR}/config/eve-server.xml"
          DESTINATION "etc" )
 INSTALL( FILES "${TARGET_UTILS_DIR}/config/log.ini"

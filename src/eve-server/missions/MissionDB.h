@@ -1,54 +1,42 @@
-/*
-    ------------------------------------------------------------------------------------
-    LICENSE:
-    ------------------------------------------------------------------------------------
-    This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://evemu.dev
-    ------------------------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any later
-    version.
 
-    This program is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ /**
+  * @name MissionDB.cpp
+  *   memory object caching system for managing and saving ingame data specific to missions
+  *
+  * @Author:        Allan
+  * @date:      24 June 2018
+  *
+  */
 
-    You should have received a copy of the GNU Lesser General Public License along with
-    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-    http://www.gnu.org/copyleft/lesser.txt.
-    ------------------------------------------------------------------------------------
-    Author:        Zhur
-*/
 
-#ifndef __MISSIONDB_H_INCL__
-#define __MISSIONDB_H_INCL__
+#ifndef _EVE_SERVER_MISSION_DATABASE_H__
+#define _EVE_SERVER_MISSION_DATABASE_H__
 
-#include "ServiceDB.h"
-
-class PyObject;
-class PyRep;
-
-class AgentActions;
+#include "../ServiceDB.h"
+#include "../eve-server.h"
+#include "../../eve-common/EVE_Missions.h"
 
 class MissionDB
-: public ServiceDB
 {
 public:
-    PyObjectEx *GetAgents();
-    bool LoadAgentActions(uint32 agentID, std::map<uint32, AgentActions *> &into);
 
-    //AgentLevel *LoadAgentLevel(uint8 level);
+    static void CreateOfferID(MissionOffer& data);
+    static void LoadOpenOffers(DBQueryResult& res);
+    static void LoadMiningData(DBQueryResult& res);
+    static void LoadMissionData(DBQueryResult& res);
+    static void LoadCourierData(DBQueryResult& res);
+    static void LoadClosedOffers(DBQueryResult& res);
+    static void LoadMissionBookMark(DBQueryResult& res, std::vector<int32>& bmIDs);
+
+    static void UpdateMissionOffer(MissionOffer& data);
+
+    static void DeleteOffer(MissionOffer& data);
+    static void RemoveMissionItem(uint32 charID, uint16 typeID, uint32 qty);   // this is for removing mission items from offline clients.
 
 protected:
+
 };
 
 
 
-
-
-#endif
-
-
+#endif  // _EVE_SERVER_MISSION_DATABASE_H__

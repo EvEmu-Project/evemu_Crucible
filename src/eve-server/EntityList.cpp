@@ -33,12 +33,12 @@
 #include "EntityList.h"
 #include "EVEServerConfig.h"
 #include "ServiceDB.h"
-//#include "agents/Agent.h"
+#include "agents/Agent.h"
 #include "exploration/Probes.h"
 #include "map/MapDB.h"
 #include "market/MarketMgr.h"
 //#include "market/MarketBotMgr.h"
-//#include "missions/MissionDataMgr.h"
+#include "missions/MissionDataMgr.h"
 #include "station/Station.h"
 #include "system/DestinyManager.h"
 #include "system/SystemManager.h"
@@ -307,7 +307,6 @@ void EntityList::RemoveStation(uint32 stationID) {
     m_stations.erase(stationID);
 }
 
-/*
 Agent* EntityList::GetAgent(uint32 agentID) {
     std::map<uint32, Agent*>::iterator res = m_agents.find(agentID);
     if (res != m_agents.end())
@@ -320,7 +319,7 @@ Agent* EntityList::GetAgent(uint32 agentID) {
     }
     m_agents[agentID] = pAgent;
     return pAgent;
-}*/
+}
 
 void EntityList::GetClients(std::vector<Client*> &result) const {
     for (auto cur : m_players)
