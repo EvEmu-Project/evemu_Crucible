@@ -1,0 +1,186 @@
+
+
+   /* groupID format type 1   ABB       *** misc deco/items
+    *  A = group type - 1:deco, 2:system effect beacon, 3:mining, 4:lco, 5:ships, 6:base, 7:station gun, 8:station wrecks, 9:misc
+    *  B =  1:space objects, 2:, 3:roid types, 4:ice types, 5:, 6:asteroid colony, 7:, 8:, 9:misc
+    *  B = ship/gun faction:  1:Amarr, 2:Caldari, 3:Gallente, 4:Minmatar, 5:Sentinel, 6:Guardian
+    *  B = lco faction:  00:none, 01:Serpentis, 02:Angel, 03:Blood, 04:Guristas, 05:Sansha, 06:Drones, 07:Amarr, 08:Caldari, 09:Gallente,
+    *  B =               10:Minmatar, 11:Sleeper, 12:Talocan, 13:Ammatar
+    */
+
+
+1xx  deco items
+110  wormholes
+13x  mining types
+130  named roids
+131  misc roids
+132  worthless mining types
+140  infested items
+160  Asteroid Colony
+191  Monument
+
+2xx  effect beacons
+211 Electronic
+212 omni
+22x Incursion
+23x Black Hole
+24x Magnetar
+25x Pulsar
+26x Red Giant
+27x Wolf Rayet
+28x Cataclysmic Variable
+
+3xx  mining objects
+30x  ore
+34x  ice
+36x  clouds
+
+4xx lco
+401 Serpentis
+402 Angel
+403 Blood
+404 Guristas
+405 Sansha
+406 drone
+407 Amarr
+408 Caldari
+409 Gallente
+410 Minmatar
+42x lco ships
+43x lco structures
+430 misc
+431 lco Habitation
+432 lco drug labs
+433 lco Starbase
+
+5xx ships
+51x Amarr
+52x Caldari
+53x Gallente
+54x Minmatar
+
+6xx base
+601 Serpentis
+602 Angel
+603 Blood
+604 Guristas
+605 Sansha
+606 drone
+607 Amarr
+608 Caldari
+609 Gallente
+610 Minmatar
+611 Sleeper
+612 Talocan
+613 Ammatar
+
+620 Starbase
+630 Habitation
+640 Stationary
+650 Indestructible
+660 Forcefield
+670 Shipyard
+680 Construction
+690 Storage
+691 misc
+
+7xx station guns
+
+8xx station and structure ruins
+80x  Sansha
+81x  Amarr
+82x  Caldari
+83x  Gallente
+84x  Minmatar
+85x  misc ruined parts
+86x  misc debris
+
+9xx misc
+91x comets
+92x clouds
+93x environment
+96x event lco/lcs
+
+
+
+ -  /* groupID format type 2    ABCD        *** specific types/items
+     *   A = roomtype - 1:combat, 2:rescue, 3:capture, 4:salvage, 5:relic, 6:hacking, 7:mining, 8:, 9:recon
+     *   B = faction - 0: none, 1:Serpentis, 2:Angel, 3:Blood, 4:Guristas, 5:Sansha, 6:Drone
+     *   C = amount/size - 0:code defined 1:small(1-5), 2:medium(2-10), 3:large(5-25), 4:enormous(10-50), 5:colossal(20-100), 6-9:ice
+     *   D = type variation - 1: 2, 4: 1-8, 5: , 6: 1-4
+     */
+
+1xxx combat sites.
+(1000,"combat",0),
+(1010,"minor vanguard",0),
+(1020,"scouting party",0),
+(1030,"guarded outpost",0),
+(1040,"ship repair post",0),
+(1050,"force reserve post",0),
+(1060,"forward ops base",0),
+(1070,"minor fleet staging point",0),
+(1080,"forward command post",0),
+(1090,"major fleet staging point",0),
+
+(1610,'Drone Cluster',0),
+(1611,'Drone Collection',0),
+(1612,'Drone Assembly',0),
+(1613,'Drone Gathering',0),
+(1614,'Drone Surveillance',0),
+(1615,'Drone Menagerie',0),
+(1616,'Drone Herd',0),
+(1617,'Drone Squad',0),
+(1618,'Drone Patrol',0),
+(1619,'Drone Horde',0),
+
+(1621, Haunted Yard',0),
+(1622, Desolate Site',0),
+(1623, Chemical Yard',0),
+(1624, Trial Yard',0),
+(1625, Dirty Site',0),
+(1626, Drone Ruins',0),
+(1627, Drone Independence',0),
+(1628, Drone Radiance',0),
+(1629, Drone Hierarchy',0),
+
+
+4xxx salvage sites
+4100
+4200
+4300
+4400
+4500
+4600
+
+
+5xxx relic sites
+5100
+5200
+5300
+5400
+5500
+5600
+
+
+6xxx hacking sites
+6101 Info Shard
+6102 Com Tower
+6103 Mainframe
+6104 Databank
+6201 Info Shard
+6202 Com Tower
+6203 Mainframe
+6204 Databank
+6301 Info Shard
+6302 Com Tower
+6303 Mainframe
+6304 Databank
+6401 Info Shard
+6402 Com Tower
+6403 Mainframe
+6404 Databank
+6501 Info Shard
+6502 Com Tower
+6503 Mainframe
+6504 Databank
+

@@ -96,8 +96,8 @@ build_iwyu/
 buildRel/
 
 # doxygen output
-doc/
-!doc/ChangeLog.md
+doxygen/
+!doxygen/ChangeLog.md
 
 # DS_Store stuff
 .DS_Store
@@ -108,5 +108,4 @@ sql/old_sql/
 sql/tables_old/
 
 # misc shit
-sql/tables.tar.gz
-sql/testScripts/
+sql.tar.gz

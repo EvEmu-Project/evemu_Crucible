@@ -1,0 +1,25 @@
+01.28.12-14-57
+12972253828.2355584     <<  OnModuleAttributeChange timestamp
+12972253828.6199706     << undock 'ok' reply
+12972253828.6199706
+12972253828.9695923     << macho.rsp  for invbroker node
+12972253829.1101885     << macho.rsp  for invbroker bind node
+12972253830.7598372     << macho.rsp  for beyonce node
+12972253831.6885296     << destiny addballs for undocked ship   (stamp 30643)
+12972253831.6885296     << destiny setstate sent to undocked ship (stamp 30644)
+
+12975649
+
+
+
+
+03.08.12-00-01
+.......login
+12975655551.1367152   << invbroker
+12975655551.4422470   << getallinfo
+
+12975655599.0757855  < beyonce
+62147   << addballs
+
+62148   << setstate
+12975655599.3570528  << damagestate

@@ -1,0 +1,112 @@
+Alasiya EvEmu Process Call PseudoCode
+updated 12Aug20 (incomplete)
+
+
+Main Server Loop {
+    [if exit]
+        shutdown;
+
+    [if new connection]
+        [create and assign new client object]
+        [add new client to map and perform initial proc]
+
+    EntityList::Process();
+
+    [if proc time < loop time]
+        thread::sleep();
+}
+
+EntityList::Process() {
+    client->ProcessNet();                       -- do network connection things (connect, ping, d/c)
+
+    [onSubTic]                                  -- this is currently 250ms
+        TargetManager->Process();
+        ProbeSE->Process();
+
+    [onTic]                                     -- this is 1hz tic
+        Client->ProcessClient();
+        [forEach system]
+            SystemManager->ProcessTic();        -- if this returns false (empty system), system is unloaded and removed
+
+        sCivMgr.Process();
+        sBubbleMgr.Process();
+
+    [onMinTic]                                  -- this is 60s tic
+        sMissionDataMgr.Process();
+
+    [on5MinTic]
+        sWHMgr.Process();
+        [forEach system]
+            cur.second->UpdateData();           -- update active system timers and dynamic data every 5m
+
+    [on15MinTic]
+        sMktBotMgr.Process();                   -- update orders in current system based on settings, travel to next system
+        sConsole.UpdateStatus();
+
+    [onHourTic]
+        MapDB::ManipulateTimeData();
+        sMktMgr.Process();                      -- compile recent market data and update history in db
+}
+
+
+TargetManager->Process()
+    [if isTargeted or hasTarget]
+        [check distances, attack, add/remove target, etc as needed]
+
+ProbeSE->Process()
+    [check for movement and action timers and update client as needed]
+
+
+sWHMgr.Process()
+    -- loop current wormholes for status, kill off expired wh, spawn new wh as needed
+
+sBubbleMgr.Process()
+    [if bubble empty]
+        delete();                               -- this removes bubble from system, and releases its resources (bubble unloading)
+    [forEach bubble]                            -- this loop contains data for all loaded bubbles
+        SystemBubble->Process();                -- bubbles are proc in order created, independent of system
+
+
+SystemBubble->Process()
+    [if players in bubble]
+        [spawn npcs]
+
+Client->ProcessClient();                        -- check timers, do actions as required
+
+
+SystemManager->ProcessTic() {
+    [if system empty]
+        return false;
+
+    m_anomMgr->Process();
+    m_beltMgr->Process();
+    m_spawnMgr->Process();
+
+    [forEach entity]
+        SE->Process();
+}
+
+m_anomMgr->Process()
+    [check timer and current counts and spawn anomaly as needed]
+
+m_beltMgr->Process()
+    [check for and set active belts]
+
+m_spawnMgr->Process()
+    [check for popped npcs and respawn accordingly]
+
+
+SE->Process()
+    SystemEntity::Process();
+    -- do whatever else is needed for this entity (in it's specific class code)
+
+
+SystemEntity::Process()                         -- generic base class call for each SE to process movement
+    DestinyManager->Process();
+
+
+DestinyManager->Process()
+    -- this processes ALL movement in space (except scan probes, which are governed by separate code)
+    -- make calls, checks, and updates as needed to move object
+
+

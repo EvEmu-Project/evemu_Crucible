@@ -1,0 +1,576 @@
+UNIX_TIMESTAMP(CURRENT_TIMESTAMP)
+MyISAM Engine - for read-only data.  not write efficient
+InnoDB Engine - for r/w data.  row-level locking.  write efficient
+Aria Engine - MariaDB update for MyISAM
+
+query next ai value
+    SELECT AUTO_INCREMENT
+    FROM information_schema.TABLES
+    WHERE TABLE_SCHEMA = "db name"
+    AND TABLE_NAME = "table name"
+
+
+remove modules from ships and put into cargo...
+	UPDATE entity SET flag=5 WHERE flag>10 && flag <35 || flag >91 && flag <100
+
+fix 'float' skill level on created skills
+UPDATE entity_attributes SET valueInt=0,valueFloat=NULL WHERE attributeID=280 AND valueFloat=0;
+fix 'float' skill level on fucked skills
+UPDATE entity_attributes SET valueInt=valueFloat,`valueFloat`=NULL WHERE attributeID=280 AND valueFloat >=0;
+
+fix stations security value (missing in dump)
+UPDATE `staStations` SET `security`= (SELECT `security` FROM `mapSolarSystems` WHERE mapSolarSystems.solarSystemID = staStations.solarSystemID);
+
+types to wrecks table comparison
+    SELECT
+      invTypes.typeID as invTypes_typeID,
+      invTypes.typeName as invTypes_typeName,
+      invTypes.description as invTypes_description,
+      invTypesToWrecks.typeID as invTypesToWrecks_typeID,
+      invTypesToWrecks.wreckTypeID as invTypesToWrecks_wreckTypeID,
+      invTypesToWrecks.typeName as invTypesToWrecks_typeName
+    FROM invTypes
+     LEFT JOIN invTypesToWrecks ON invTypesToWrecks.typeID
+    WHERE invTypes.typeID = invTypesToWrecks.wreckTypeID
+
+list asteroid name and distribution percent by system sec class
+    SELECT d.systemSec, t.typeName, d.percent
+    FROM roidDistribution AS d
+     LEFT JOIN invTypes AS t ON t.typeID = d.roidID
+
+add names to roidDistribution
+    UPDATE roidDistribution AS d
+    INNER JOIN invTypes AS t ON t.typeID = d.roidID
+    SET d.roidName = t.typeName
+
+list effect names and ids for given itemType...
+    SELECT
+      da.effectID,
+      de.effectName
+    FROM dgmTypeEffects AS da
+     LEFT JOIN dgmEffects AS de USING (effectID)
+    WHERE da.typeID=30849
+
+list items where effect is default and duration or discharge is 0...(1523)
+    SELECT `typeID`, typeName, `effectID`
+    FROM `dgmTypeEffects`
+     LEFT JOIN invTypes AS it USING (typeID)
+     LEFT JOIN dgmEffects AS de USING (effectID)
+    WHERE `isDefault`=1
+    AND (durationAttributeID=0 or dischargeAttributeID=0)
+
+list modules where effect is default and duration or discharge is 0...(653)
+    SELECT `typeID`, typeName, `effectID`
+    FROM `dgmTypeEffects`
+     LEFT JOIN invTypes AS it USING (typeID)
+     LEFT JOIN invGroups AS ig USING (groupID)
+     LEFT JOIN dgmEffects AS de USING (effectID)
+    WHERE `isDefault`=1
+    AND (durationAttributeID is null and dischargeAttributeID is null)
+    AND ig.categoryID = 7
+
+list effect names and ids for all rigs...
+    SELECT
+      da.effectID,
+      de.effectName
+    FROM dgmTypeEffects AS da
+     LEFT JOIN dgmEffects AS de USING (effectID)
+    WHERE da.typeID IN (SELECT typeID FROM invTypes WHERE groupID BETWEEN 773 AND 782 )
+
+delete online attrib from entity_attributes for all rigs...
+    DELETE FROM `entity_attributes` WHERE attributeID=2 AND itemID IN
+        (SELECT `itemID` FROM `entity` WHERE typeID IN
+            (SELECT `typeID` FROM `invTypes` WHERE groupID BETWEEN 773 AND 782 )
+        )
+
+list type ids, groupIDs, names and desc for given effectID...
+    SELECT
+      typeID,
+      groupID,
+      typeName,
+      description
+    FROM invTypes
+    WHERE typeID IN (SELECT typeID FROM dgmTypeEffects WHERE effectID=3659)
+
+list attribute names and values for given itemID...
+    SELECT
+      ea.attributeID,
+      a.attributeName,
+      ea.valueInt,
+      ea.valueFloat
+    FROM entity_attributes AS ea
+     LEFT JOIN dgmAttributeTypes AS a USING (attributeID)
+    WHERE itemID=140000542
+
+list attribute names and values for a given itemType...
+    SELECT
+      da.attributeID,
+      dat.attributeName,
+      da.valueInt,
+      da.valueFloat
+    FROM dgmTypeAttributes AS da
+     LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+    WHERE da.typeID=587
+
+list attribute name and values for a given itemGroup...
+    SELECT
+      da.attributeID,
+      dat.attributeName,
+      da.valueInt,
+      da.valueFloat
+    FROM dgmTypeAttributes AS da
+     LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+     LEFT JOIN invTypes AS it USING (typeID)
+    WHERE it.groupID IN (384, 396)
+
+list typeID, names for given attributeID...
+    SELECT
+      it.typeID,
+      it.typeName,
+      da.attributeID,
+      dat.attributeName
+    FROM dgmTypeAttributes AS da
+     LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+     LEFT JOIN invTypes AS it USING (typeID)
+    WHERE da.attributeID = 1643
+    ORDER BY it.typeID;
+
+list typeID, names, and values for given attributeID range...
+    SELECT
+      it.typeID,
+      it.typeName,
+      da.attributeID,
+      dat.attributeName,
+      da.valueInt,
+      da.valueFloat
+    FROM dgmTypeAttributes AS da
+     LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+     LEFT JOIN invTypes AS it USING (typeID)
+    WHERE da.attributeID BETWEEN 1298 AND 1305
+    ORDER BY it.typeID;
+
+list typeID, names, and values for given itemGroup...
+    SELECT
+      it.typeID,
+      it.typeName,
+      da.attributeID,
+      dat.attributeName,
+      da.valueInt,
+      da.valueFloat
+    FROM dgmTypeAttributes AS da
+     LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+     LEFT JOIN invTypes AS it USING (typeID)
+    WHERE it.groupID IN (46,475) AND da.attributeID IN (567,576,578)
+    ORDER BY it.typeID;
+
+list ids, names, values for given itemCategory
+    SELECT
+      it.typeID,
+      it.typeName,
+      da.attributeID,
+      dat.attributeName,
+      da.valueInt,
+      da.valueFloat
+    FROM invTypes AS it
+     LEFT JOIN dgmTypeAttributes AS da USING (typeID)
+     LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+     LEFT JOIN invGroups AS ig USING (groupID)
+    WHERE ig.categoryID = 20
+    ORDER BY it.typeID;
+
+list typeID, name, groupID for metaType 14 (t3 modules)
+    SELECT m.typeID,
+      t.typeName,
+      t.groupID
+    FROM `invMetaTypes` AS m
+     LEFT JOIN  `invTypes` AS t USING(typeID)
+    WHERE `metaGroupID`=14
+
+
+list typeID, names, and damage values for destroyer-class NPC roid rats...
+    SELECT
+      da.typeID,
+      it.typeName,
+      da.attributeID,
+      dat.attributeName,
+      da.valueFloat
+    FROM invTypes AS it
+     LEFT JOIN dgmTypeAttributes AS da ON da.typeID = it.typeID
+     LEFT JOIN dgmAttributeTypes AS dat ON dat.attributeID = da.attributeID
+    WHERE it.groupID IN (SELECT groupID from invGroups WHERE groupName LIKE '%asteroid%destroyer%')
+    AND da.attributeID IN (64,114,116,117,118)
+    ORDER BY it.typeID;
+
+list typeID, names, and values for given itemCategory...
+    SELECT
+      it.typeID,
+      it.typeName,
+      ig.groupID,
+      ig.groupName,
+      da.attributeID,
+      dat.attributeName,
+      da.valueInt,
+      da.valueFloat
+    FROM dgmTypeAttributes AS da
+     LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+     LEFT JOIN invTypes AS it USING (typeID)
+     LEFT JOIN invGroups AS ig USING (groupID)
+    WHERE ig.categoryID IN (41,42,43,46)
+    ORDER BY it.typeID;
+
+list typeID, typeName for given categoryID...
+    SELECT
+      typeID,
+      typeName
+    FROM invTypes
+    WHERE groupID IN ( SELECT groupID FROM invGroups WHERE categoryID = 23 );
+
+list typeID, typeName, typePublished, groupID, groupName, groupPublished for given categoryID...
+    SELECT
+      t.typeID,
+      t.typeName,
+      t.published,
+      g.groupID,
+      g.groupName,
+      g.published
+    FROM invTypes AS t
+    LEFT JOIN invGroups AS g USING (groupID)
+    WHERE g.categoryID = 9;
+and not published
+    AND (t.published =0 OR g.published = 0);
+
+list typeID, typeName for given effectID...
+    SELECT
+      typeID,
+      typeName
+    FROM invTypes
+    WHERE typeID IN (SELECT typeID FROM dgmTypeEffects WHERE effectID = 710);
+
+list effectID, effectName for given groupID
+    SELECT
+      t.typeName,
+      da.effectID,
+      de.effectName
+    FROM dgmTypeEffects AS da
+     LEFT JOIN dgmEffects AS de USING (effectID)
+     LEFT JOIN invTypes AS t ON (da.typeID = t.typeID)
+    WHERE t.groupID=650;
+
+list default warp attributes for ship types (360)
+    SELECT
+      a.attributeID,
+      t.attributeName,
+      a.typeID,
+      i.typeName,
+      a.valueFloat
+    FROM dgmTypeAttributes AS a
+     LEFT JOIN dgmAttributeTypes AS t USING (attributeID)
+     LEFT JOIN invTypes AS i USING (typeID)
+    WHERE a.attributeID IN (600, 1281)
+    ORDER BY a.typeID
+
+    SELECT
+      a.attributeID,
+      t.attributeName,
+      a.typeID,
+      i.typeName,
+      a.valueFloat
+    FROM dgmTypeAttributes AS a
+     LEFT JOIN dgmAttributeTypes AS t USING (attributeID)
+     LEFT JOIN invTypes AS i USING (typeID)
+    WHERE a.attributeID IN (600, 1281) AND i.groupID IN (479,492,972)
+    ORDER BY a.typeID
+
+list default cap attributes for ship types (7406)
+    SELECT
+      a.attributeID,
+      t.attributeName,
+      a.typeID,
+      i.typeName,
+      a.valueFloat
+    FROM dgmTypeAttributes AS a
+     LEFT JOIN dgmAttributeTypes AS t USING (attributeID)
+     LEFT JOIN invTypes AS i USING (typeID)
+    WHERE a.attributeID IN (55, 482)
+    ORDER BY a.typeID
+
+list all ships (and their position) owned by given ownerID...
+    SELECT
+      itemID,
+      itemName,
+      x,y,z
+    FROM entity
+     LEFT JOIN invTypes USING (typeID)
+     LEFT JOIN invGroups AS g USING (groupID)
+    WHERE ownerID = 90000000 AND g.categoryID = 6
+    ORDER BY itemID;
+
+list warp attributes for all ships owned by given ownerID...
+    SELECT
+      e.itemID,
+      e.itemName,
+      t.typeID,
+      t.typeName,
+      ea.attributeID,
+      a.attributeName,
+      ea.valueInt,
+      ea.valueFloat
+    FROM entity_attributes AS ea
+     LEFT JOIN dgmAttributeTypes AS a ON a.attributeID = ea.attributeID
+     LEFT JOIN entity AS e USING (itemID)
+     LEFT JOIN invTypes AS t USING (typeID)
+    WHERE ea.attributeID IN (600, 1281) AND ea.itemID IN
+        ( SELECT
+            en.itemID
+            FROM entity as en
+             LEFT JOIN invTypes USING (typeID)
+             LEFT JOIN invGroups AS g USING (groupID)
+            WHERE en.ownerID = 140015519 AND g.categoryID = 6
+        )
+    ORDER BY ea.itemID;
+
+list all items and their (saved, non-default) attrib data by location
+    SELECT
+      e.itemID,
+      t.typeID,
+      e.itemName,
+      ea.attributeID,
+      a.attributeName,
+      ea.valueInt,
+      ea.valueFloat
+    FROM entity_attributes AS ea
+     LEFT JOIN dgmAttributeTypes AS a ON a.attributeID = ea.attributeID
+     LEFT JOIN entity AS e USING (itemID)
+     LEFT JOIN invTypes AS t USING (typeID)
+    WHERE ea.itemID IN
+        ( SELECT
+            en.itemID
+            FROM entity as en
+            WHERE en.locationID = 140000196
+        )
+    ORDER BY ea.itemID;
+
+list all items with specified attribute (groupFitLimited)
+    SELECT t.typeName, d.typeID, t.groupID, d.valueInt
+    FROM  dgmTypeAttributes AS d
+      LEFT JOIN invTypes AS t USING (typeID)
+    WHERE attributeID = 1544
+
+list all items contained in wrecks
+    SELECT *
+    FROM `entity`
+    WHERE `locationID` IN (SELECT `itemID` FROM `entity` WHERE `itemName` LIKE '%wreck%' )
+
+list type, group, category names for given itemID
+    SELECT e.itemID, e.itemName, e.typeID, t.typeName,
+      t.groupID, g.groupName, g.categoryID, c.categoryName
+    FROM entity AS e
+      LEFT JOIN invTypes AS t USING (typeID)
+      LEFT JOIN invGroups AS g USING (groupID)
+      LEFT JOIN invCategories AS c USING (categoryID)
+    WHERE e.itemID = 140000300
+
+list modules by type and group IDs, with Names
+    SELECT t.typeID, t.typeName, t.groupID
+    FROM invTypes AS t
+      LEFT JOIN invGroups AS g USING (groupID)
+    WHERE  g.categoryID = 7
+
+list all created blueprints in entity table
+    SELECT *
+    FROM `entity`
+    WHERE typeID IN
+        (SELECT `typeID` FROM `invTypes` WHERE groupID IN
+            (SELECT `groupID` FROM `invGroups` WHERE categoryID = 9));
+
+list required types with names for given blueprint type
+    SELECT r.typeID, r.activityID, r.requiredTypeID, t.typeName AS requiredTypeName, r.quantity, r.damagePerJob, r.recycle
+    FROM ramTypeRequirements AS r
+      LEFT JOIN invTypes AS t ON t.typeID = r.requiredTypeID
+    WHERE r.typeID = 784
+
+list all bp types with item and activity names
+   SELECT r.typeID, t.typeName, r.activityID, a.activityName, r.requiredTypeID, rt.typeName AS requiredTypeName, r.quantity, r.damagePerJob, r.extra
+    FROM ramTypeRequirements AS r
+      LEFT JOIN invTypes AS rt ON rt.typeID = r.requiredTypeID
+      LEFT JOIN invTypes AS t ON t.typeID = r.typeID
+      LEFT JOIN ramActivities AS a ON a.activityID = r.activityID
+    WHERE r.typeID = 880
+
+
+list skills for given characterID
+SELECT ea.itemID, e.typeID, e.itemName, ea.attributeID,
+     dat.attributeName, ea.valueInt, ea.valueFloat
+    FROM entity AS e
+      LEFT JOIN entity_attributes AS ea USING (itemID)
+      LEFT JOIN dgmAttributeTypes AS dat USING (attributeID)
+    WHERE e.ownerID = 90000000
+    AND (e.flag = 7 OR e.flag = 61)
+    AND ea.attributeID IN (275,276,280)
+
+list all skills
+    SELECT t.typeID, t.typeName, g.groupName, t.description
+    FROM invTypes AS t
+      LEFT JOIN invGroups AS g USING (groupID)
+      LEFT JOIN invCategories AS c USING (categoryID)
+    WHERE c.categoryID = 16
+    ORDER BY g.groupName ASC;
+
+list attributes for typeID from effectID
+   SELECT
+     dei.effectID,
+     dei.affectingID,
+     it.typeName,
+     dei.sourceAttributeID,
+     dat.attributeName,
+     dta.valueInt,
+     dta.valueFloat,
+     dei.calculationTypeID,
+     dei.reverseCalculationTypeID
+   FROM dgmEffectsInfo AS dei
+    LEFT JOIN invTypes AS it ON it.groupID = dei.affectingID
+    LEFT JOIN dgmTypeAttributes AS dta ON dta.attributeID = dei.sourceAttributeID AND dta.typeID = it.typeID
+    LEFT JOIN dgmAttributeTypes AS dat ON dat.attributeID = dta.attributeID
+   WHERE effectID = 3035;
+
+get shipID currently assigned to char by characterID
+    SELECT *
+    FROM entity
+    WHERE itemID IN (
+        (SELECT shipID,capsuleID
+         FROM chrCharacters
+         WHERE characterID=140007775)
+         );
+
+Get the preserved skillpoints for all clones:
+    SELECT
+        t1.typeName AS name,
+        t2.valueInt AS skillpoints
+    FROM  invTypes AS t1
+    INNER JOIN dgmTypeAttributes AS t2 ON t1.typeID = t2.typeID
+    WHERE t2.attributeID = 419;
+
+Get the PG and CPU usage of all modules
+    SELECT
+    t1.typeName AS module,
+    IF (t2.valueFloat IS NULL, t2.valueInt, t2.valueFloat) AS pg,
+    IF (t3.valueFloat IS NULL, t3.valueInt, t3.valueFloat) AS cpu
+FROM invTypes AS t1
+INNER JOIN dgmTypeAttributes AS t2
+    ON t1.typeID = t2.typeID AND t2.attributeID = 30
+INNER JOIN dgmTypeAttributes AS t3
+    ON t1.typeID = t3.typeID AND t3.attributeID = 50
+
+Get the resources of a planet type (by Lutz Major)
+    SELECT
+      planet.typeID AS planetTypeID,
+      planet.typeName AS planetType,
+      resource.typeID AS resourceID,
+      resource.typeName AS resourceName
+    FROM
+      invTypes planet,
+      invTypes resource,
+      dgmTypeAttributes dgm1,
+      dgmTypeAttributes dgm2
+    WHERE
+      dgm1.typeID = dgm2.typeID
+    AND dgm1.attributeID = 1632
+    AND dgm1.valueFloat = planet.typeID
+    AND dgm2.attributeID = 709
+    AND dgm2.valueFloat = resource.typeID
+    ORDER BY `planetTypeID` ASC
+    LIMIT 0, 50 ;
+
+Remove items from entity list above 'itemID'
+    DELETE FROM `entity` WHERE `itemID`>140002135;
+    DELETE FROM `entity_attributes` WHERE `itemID`>140002135;
+
+get station count by solarSystemID
+    SELECT solar.solarSystemID AS `System`,count(sta.stationID) AS `Stations`
+    FROM staStations sta
+    LEFT JOIN mapSolarSystems solar ON sta.solarSystemID = solar.solarSystemID
+    GROUP BY solar.solarSystemName
+    ORDER BY Stations DESC;
+
+
+UPDATE `Alasiya-EvE`.allan.dgmTypeAttributes AS t1
+SET t1.valueFloat = t2.valueFloat
+FROM cruc.allan.dgmTypeAttributes as t2
+WHERE
+   t1.typeID = t2.typeID
+AND t1.attributeID = 70
+
+
+SELECT de.effectID, de.effectName, de.effectCategory, it.typeID, it.typeName, ig.groupID, ig.groupName
+FROM invGroups AS ig
+LEFT JOIN invTypes AS it ON it.groupID = ig.groupID
+LEFT JOIN dgmTypeEffects AS dte ON dte.typeID = it.typeID
+LEFT JOIN dgmEffects AS de ON de.effectID = dte.effectID
+WHERE ig.categoryID = 16 LIMIT 0, 500 ;
+
+
+Decryptors and their attributes:
+SELECT invTypes.typeID, invTypes.typeName, invTypes.groupID,
+GROUP_CONCAT(IF(attr.attributeID = 1112,coalesce(attr.valueInt,attr.valueFloat),NULL)) as `Success Modifier`,
+GROUP_CONCAT(IF(attr.attributeID = 1113,coalesce(attr.valueInt,attr.valueFloat),NULL)) as `ME Modifier`,
+GROUP_CONCAT(IF(attr.attributeID = 1114,coalesce(attr.valueInt,attr.valueFloat),NULL)) as `PE Modifier`,
+GROUP_CONCAT(IF(attr.attributeID = 1124,coalesce(attr.valueInt,attr.valueFloat),NULL)) as `Runs Modifier(+)`
+FROM invTypes
+LEFT JOIN dgmTypeAttributes attr ON attr.typeID=invTypes.typeID
+WHERE (attr.attributeID =1112 OR attr.attributeID =1113 OR attr.attributeID =1114 OR attr.attributeID =1124)
+-- attributeID: 1112=probabilityMod 1113=MEmod 1114=PEmod 1124=Runsmod
+AND (invTypes.groupID >=728 AND invTypes.groupID <=731)
+-- Decryptor groups: 728=Amarr, 729=Minmatar, 730=Gallente, 731=Caldari
+GROUP BY invTypes.typeID
+
+Decryptor effects by blueprint (not working)
+SELECT it2.typeName,
+it2.typeID,
+coalesce(dta2.valueInt,dta2.valueFloat) multiplier,
+coalesce(dta3.valueInt,dta3.valueFloat) me,
+coalesce(dta4.valueInt,dta4.valueFloat) te,
+coalesce(dta5.valueInt,dta5.valueFloat) runs
+FROM invTypes
+JOIN industryActivityMaterials iam ON (iam.materialTypeID=invTypes.typeID and iam.activityID=8 and groupID=716)
+JOIN industryActivityProducts iap ON (iam.typeID=iap.typeID)
+JOIN dgmTypeAttributes dta on (dta.typeID=invTypes.typeID and dta.attributeID=1115)
+JOIN invTypes it2 on (it2.groupID=dta.valueInt)
+join dgmTypeAttributes dta2 on (dta2.typeID=it2.typeID and dta2.attributeID=1112)
+join dgmTypeAttributes dta3 on (dta3.typeID=it2.typeID and dta3.attributeID=1113)
+join dgmTypeAttributes dta4 on (dta4.typeID=it2.typeID and dta4.attributeID=1114)
+join dgmTypeAttributes dta5 on (dta5.typeID=it2.typeID and dta5.attributeID=1124)
+WHERE iap.productTypeID=1320;
+
+
+Not sure here....something about items for a t2 bp
+SELECT it2.typeID,
+       it2.typeName,
+       coalesce(dta2.valueInt, dta2.valueFloat) modifier
+FROM   invBlueprintTypes ibt
+       JOIN ramTypeRequirements rtr
+         ON ( ibt.blueprintTypeID = rtr.typeID )
+       JOIN invTypes it1
+         ON ( rtr.requiredTypeID = it1.typeID
+              AND activityID = 8 )
+       JOIN dgmTypeAttributes dta
+         ON ( it1.typeID = dta.typeID
+              AND dta.attributeID = 1115 )
+       JOIN invTypes it2
+         ON ( it2.groupID = Coalesce(dta.valueInt, dta.valueFloat) )
+       JOIN dgmTypeAttributes dta2
+         ON ( dta2.typeID = it2.typeID
+              AND dta2.attributeID = 1112 )
+WHERE  ibt.productTypeID = 2454;
+
+
+
+SELECT
+    ec.`attributeID`,
+    ec.`attributeName`,
+    ea.attributeName
+from
+    EVE_Crucible.dgmAttributeTypes AS ec
+    LEFT JOIN EvE_AlasiyaDev.dgmAttributeTypes AS ea USING (attributeID)
+where
+    ec.attributeName != ea.attributeName
+

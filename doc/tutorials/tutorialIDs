@@ -1,0 +1,1254 @@
+
+(58485, `On-Board Scanning`)
+(58486, `An Introduction to Cosmic Signatures`)
+(58487, `Gravimetric Site Scanning`)
+(58488, `Magnetometric Site Scanning`)
+(58489, `Radar Site Scanning`)
+(58490, `Ladar Site Scanning`)
+(58491, `On-Board Scanning`)
+(58492, `On-Board Scanning`)
+(58493, `On-Board Scanning`)
+(58494, `An Introduction to Cosmic Signatures`)
+(58495, `An Introduction to Cosmic Signatures`)
+(58496, `An Introduction to Cosmic Signatures`)
+(58497, `Gravimetric Site Scanning`)
+(58498, `Gravimetric Site Scanning`)
+(58499, `Gravimetric Site Scanning`)
+(58500, `Magnetometric Site Scanning`)
+(58501, `Magnetometric Site Scanning`)
+(58502, `Magnetometric Site Scanning`)
+(58503, `Radar Site Scanning`)
+(58504, `Radar Site Scanning`)
+(58505, `Radar Site Scanning`)
+(58506, `Ladar Site Scanning`)
+(58507, `Ladar Site Scanning`)
+(58508, `Ladar Site Scanning`)
+
+(53722, `You now have claimed a certificate, and you can see it in your list of certificates in the character sheet.`)
+(53723, `Items gathered through hacking are quite valuable and can sell for high prices. You can also keep them yourself and venture into invention.`)
+(53724, `Your shield booster is sustained by the energy in your <b><font color=yellow>capacitor</font></b>. Once the capacitor is depleted the shield booster will turn off automatically. <br><br>
+
+The art of shield tanking is as much about managing your capacitor as it is about managing your shield. `)
+(53725, `Remember that items are always delivered to your hangar in the <b><font color=yellow>station they are sold at</font></b>. That means if you buy an item nine jumps away, you will need to perform nine jumps to pick it up.`)
+(53726, `You have performed well. Here are a few skills that will help you with your trade and market endeavors.`)
+(53727, `You have done well. Here are a few more skillbooks that should help you with your training.`)
+(53728, `There are many operations a corporation is involved in. Select those who are <b><font color=yellow>most in-line</font></b> with your own. This will give a prospective candidate some basic idea of what you are about.`)
+(53729, `The summary page gives you an overview of your selections, the amount of ISK the advert costs, and how long and what office it is based out of. Click <b><font color=yellow>yes</font></b> to confirm and your advert will be listed immediately.`)
+(53730, `Corporations can place advertisements that make them visible to you and others. To see these, first select a <b><font color=yellow>region</font></b>. The default option is the region you're located in, but you can select any region you wish. As corporations often wish to hire players with a given amount of knowledge, you can also decide if you wish to see only adverts that you have enough skillpoints for.`)
+(53731, `Once a corporation catches your eye, you can get more information about it by double clicking on its advert. In the advert detail window the corporation will explain their role in EVE and what they ask from prospective new members.`)
+(53732, `Select the <b><font color=yellow>attributes</font></b> tab. There you can see a list of your current attributes. You should familiarize yourself with them, and what they affect.`)
+(53733, `<b><font color=yellow>Intelligence</font></b> is the attribute that is primarily used for training in the <b><font color=yellow>Electronics</font></b>, <b><font color=yellow>Engineering</font></b>, <b><font color=yellow>Navigation</font></b>, <b><font color=yellow>Mechanic</font></b> and <b><font color=yellow>Science</font></b> categories. Intelligence is the secondary attribute for a lot of <b><font color=yellow>Social</font></b> and <b><font color=yellow>Industry</font></b> skills as well. `)
+(53734, `<b><font color=yellow>Memory</font></b> is primary for those that use their time to learn <b><font color=yellow>Industry</font></b>, <b><font color=yellow>Corporation Management</font></b> and <b><font color=yellow>Drone</font></b> skills. Memory is also the secondary attribute to a great number of <b><font color=yellow>Engineering</font></b>, <b><font color=yellow>Mechanic</font></b>, <b><font color=yellow>Electronics</font></b> and <b><font color=yellow>Trade</font></b> skills.`)
+(53735, `<b><font color=yellow>Charisma</font></b> is the primary attribute in speeding up the learning of many <b><font color=yellow>Leadership</font></b>, <b><font color=yellow>Social</font></b> and <b><font color=yellow>Trade</font></b> skills</b>. Also, skills that have to do with <b><font color=yellow>Corporation Management</font></b> receive a secondary boost from Charisma.`)
+(53736, `If you are uncertain on what goals to set, <b><font color=yellow>certificates</font></b> are there to guide you. A certificate is a collection of skills, that together will make you more competent in the particular field.`)
+(53737, `On the left side, you can see two tabs, <b><font color=yellow>certificates and settings</font></b>. All certificates are listed under the Certificates tab, while the settings tab will offer you various options to filter the certificates.`)
+(53738, `The options available to you, are listed there, and will change what certificates are listed in the certificates tab. For now, select the option <b><font color=yellow>Only show certificates I can claim now</font></b>, if it is not already selected, and return to the certificates tab.`)
+(53739, `You should see, on the right side, a graphical representation of your certificate, which should be in the middle of the screen. On top of it, you can see the skill and certificate requirements of the certificate you selected. Note that a certificate can require another certificate to be claimed in order to claim another.`)
+(53740, `Below the selected certificate, you will see all sub-certificates. By pressing any of these certificates, you can navigate through the tree of certificates.`)
+(53741, `Your ship's modules can be <b><font color=yellow>overloaded</font></b> for extra advantage in the field. This feature does have its drawbacks, as an overloaded module will start sustaining damage, eventually going offline and requiring repairs.`)
+(53742, `To overload you need to have learned the skill <b><font color=yellow>Thermodynamics.</font></b> Each of its levels reduces the damage dealt to your modules by 5%.`)
+(53743, `Any module capable of overload has a <b><font color=yellow>semicircle</font></b> over its icon. By clicking on that part, you will start overloading your module.`)
+(53744, `The moment you start overloading, you will see the <b><font color=yellow>heat meter</font></b> on your HUD start to rise. Eventually the overload marker around your modules will start to turn red, indicating their damage level.`)
+(53745, `Specify how long you wish your advert to be active, which can range from <b><font color=yellow>1 to 30 days</font></b>. Select an office; an important choice, as offices dictate the regions in which you can place your ads. You will then be presented with a text box where you can input more information about your corporation, what you seek from new members and how they should contact you. Under skillpoints, you can set the <b><font color=yellow>lower limit</font></b> of points required to join the corp.`)
+(53746, `To claim a certificate <b><font color=yellow>right click</font></b> on a certificate and press <b><font color=yellow>claim certificate</font></b>, this will add it to your list of certificates on the character sheet.`)
+(53747, `Once you find a corporation to your liking, you need to join it. Many corporations interview prospective newcomers, so you should get in touch with some of its members for the details. Often they list chat channels or recruiters you should aim questions at and who can offer you more personal help in joining the corporation.`)
+(53748, `Anyone with the <b><font color=yellow>Contract Manager</font></b> role in a corp can issue contracts as well as receive contracts on behalf of the corporation. Contracts and contract history are visible to all within the corporation as well.`)
+(53749, `<b><font color=yellow>Right-click in open space</font></b> on the map and choose <b><font color=yellow>select current</font></b> -> <b><font color=yellow>solar system</font></b> from the menu (clicking on a star will not result in this option). The map will center on the system you are in. It is easy to lose orientation in space, and this should help.`)
+(53750, `Then it is time to create the corporation. Open the <b><font color=yellow>corporation</font></b> window through the Neocom`)
+(53751, `The speed of your skill training is determined by your attributes. Your current ones can be seen in the <b><font color=yellow>character sheet</font></b>. Open it up now.`)
+(53752, `A single universal database contains a great deal of information about the pilots and the places of the universe. You can access that database through the NeoCom. Left click the <b><font color=yellow>people and places</font></b> button.`)
+(53753, `Open up the <b><font color=yellow>Character Sheet</font></b>, and access the Certificate tab on the left side. Certificates you already have applied for, are listed on the right side. If you have none, then proceed directly to the certificate planning window, by pressing the <b><font color=yellow>Open Certification Planner</font></b> button on top of the list.`)
+(53754, `To start your search, head to the <b><font color=yellow>recruitment</font></b> section by pressing its tab.`)
+(53755, `In all lists and in the tree view, you can see if you have completed the training for a certificate, although in this tutorial all conditions have been met, once you browse through the certificates, you will run into skills and certificates that you have not met the required level of. These are represented with <b><font color=yellow>a red cross, yellow circle and a green checkmark</font></b>. Hover your mouse over these markings to get more information about them.`)
+(53761, `All weapons have different ranges at which they are most effective. This tutorial teaches you how to find a weapon's <font color=yellow><b>optimal range</b></font> and use it to your advantage.`)
+(53762, `The <b><font color=yellow>repairshop</font></b> in the <b><font color=yellow>station services</font></b> allows you to repair your armor and hull for a fee. Open the <b><font color=yellow>repairshop</font></b> now.
+`)
+(53763, `You just received a new weapon as a mission reward. Using the <font color=yellow><b>fitting service</b></font> equip the weapon and place the ammunition or frequency crystal into your ship's cargohold. <font color=yellow><b>Undock</b></font> now.
+`)
+(53764, `To load your weapon, <font color=yellow><b>right-click</b></font> it to bring up the <font color=yellow><b>contextual menu</b></font> and select the ammunition type you wish to load.`)
+(53768, `There are four different types of damage you need to be aware of: <b><font color=yellow>Electromagnetic (EM)</font></b>, <b><font color=yellow>Thermal</font></b>, <b><font color=yellow>Kinetic</font></b> and <b><font color=yellow>Explosive</font></b>. `)
+(53769, `Warp to the mission encounter site and activate your armor repairer once you start receiving damage to your armor. Notice how the armor is repaired at the end of each armor repair cycle.`)
+(53770, `Like the shield booster the armor repairer is sustained by the energy in your <b><font color=yellow>capacitor</font></b>. Once the capacitor is depleted the armor repairer will turn off automatically. `)
+(53771, `To test this you will need a target. If you are in a mission, warp to the encounter site. <br><br>
+
+When you have a target, click <font color=yellow><b>next</b></font>.`)
+(53772, `Once you have opened the <b><font color=yellow>repairshop</font></b>, you will see a list of your belongings in your current station that can be repaired. If you wish to repair an item select it from the list and press the <b><font color=yellow>repair item</font></b> button.`)
+(53773, `Each ship's shield, armor and hull have different resistances towards different damage types. The higher the resistance, the less damage is applied to the ship. <br><br>
+
+To take the least amount of damage, increase the damage resistances towards the damage type(s) your enemy deals. `)
+(53774, `Make sure you have your <b><font color=yellow>Small Armor Repairer I</font></b> fitted before continuing. But before you can fit it you need to train the <b><font color=yellow>Repair Systems</font></b> skill, which was given to you in the Crash Course.`)
+(53775, `Asteroids are found in <font color=yellow><b>asteroid belts</b></font>. They are located within most solar-systems and are marked in the overview with a <font color=yellow><b>triangle</b></font>. Alternatively you can use the contextual menu by <font color=yellow><b>right-clicking</b></font> anywhere in space and selecting the asteroid belt sub-menu. <br><br><font color=yellow><b>Asteroid belts</b></font> do not have an infinite supply of asteroids, and asteroids do not have an infinite supply of ore. This means it is possible for miners to deplete all the resources in a belt. You may have to visit multiple asteroid belts or search neighboring solar systems until you find a suitable one.
+
+
+
+
+`)
+(53776, `The highest level security systems, with security 1.0, will only provide <b><font color=yellow>Veldspar</font></b>.  But by venturing into slightly lower security systems, you can quickly find <b><font color=yellow>Scordite</font></b>, <b><font color=yellow>Plagioclase</font></b> and <b><font color=yellow>Pyroxeres</font></b>.<br><br>Although the most common asteroids can be found anywhere in New Eden there are some asteroids that are extremely rare and only can be found in 0.0 space. <b><font color=yellow>Arkonor</font></b>, the rarest of them all, will yield high concentrations of <b><font color=yellow>Megacyte</font></b>, the most valuable mineral in existence.`)
+(53777, `By partnering up with a fellow capsuleer, you can make more profit by assuming roles in a joint mining venture. One acts as the miner while the other transports the mined ore from the container back to the station.<br><br>Be aware that some unscrupulous pilots might want to try to steal your precious ore, so trust is a factor. For this, it is best to be in a player corporation. Working with other members in a player corporation allows for better management tools and more trust between the pilots.`)
+(53778, `A destroyed ship has more of value than just its cargo. The wreck itself contains a mix of metals, circuits and other mechanical parts, which can be sold on the market. With new technology recently released to pilots, you can now retrieve some of this debris.`)
+(53779, `Wrecks vary in sizes, and while they all contain materials that can be salvaged, a good rule of thumb is that the larger the ship the more salvageable components. These components can be used in the production of rigs, which are permanent ship modifications. You can either use them yourself, or sell them on the market to enthusiastic buyers.`)
+(53780, `Once you have located a wreck, you should <b><font color=yellow>lock</font></b> it and activate the salvager. Your salvager will then start its attempts to gather the remnants of the ship into your cargohold.`)
+(53781, `You have done remarkably well. Here are two skills that should help you with your salvaging career.`)
+(53782, `Hacking allows you to gather components for advanced production. These components let you do <b><font color=yellow>invention</font></b>, which is an integral part of <b><font color=yellow>Tech 2</font></b> production.
+
+`)
+(53783, `Open the <b><font color=yellow>market</font></b> from the <b><font color=yellow>NeoCom</font></b>. The <b><font color=yellow>market</font></b> is used to find items you need, while at the same time being able to sort by prices, distance to the seller and so on.
+`)
+(53784, `A <b><font color=yellow>green marker</font></b> by an item in the market window means you meet all skill requirements and can use the item, while a <b><font color=yellow>red marker</font></b> means you lack certain skills. Some items have no requirements and thus no markers.
+
+If you are missing skills, hover your cursor over the red marker to see which skill you require.`)
+(53785, `When you have destroyed the hostile ships in the area, you should now be able to activate the second acceleration gate in the same way you did the first. <br><br>
+
+When there are more than one acceleration gate, mission objectives will usually be in the last pocket, so always stay vigilant and check if there is another gate.
+
+`)
+(53786, `Even the most basic implants require you to have the <b><font color=yellow>Cybernetics</font></b> skill trained. Some require additional skills but the basic ones only require <b><font color=yellow>Cybernetics</font></b>. <br><br>
+
+You have been given the skillbook for <b><font color=yellow>Cybernetics</font></b> now and it is recommended that you train it right away, so you can use your newly acquired implant.`)
+(53787, `Ore, items and even ships can be refined into minerals using the <b><font color=yellow>reprocessing plant</font></b>. Ore will refine into its designated mineral. Items and ships will always yield the minerals that went into the manufacturing, but there will always be a loss in quantity due to unrecoverable waste. Minerals can be sold for a profit, or used to manufacture new products.
+`)
+(53788, `Access the <b><font color=yellow>bill of materials</font></b> tab in the <b><font color=yellow>blueprint</font></b> <b><font color=yellow>show info</font></b> window, through the <b><font color=yellow>blueprint contextual menu</font></b>. A list of materials required for each batch of products, as well as skill requirements can be found there.<br><br>Before proceeding, relocate along with a <b><font color=yellow>blueprint</font></b> and <b><font color=yellow>materials</font></b> to a station with <b><font color=yellow>science and industry station services</font></b>.
+`)
+(53789, `Start by pressing the <b><font color=yellow>pick installation</font></b> button and select an assembly line in the lower part of the installation window. Any assembly line that is available will do. Press the <b><font color=yellow>use assembly line</font></b> button when you are done.<br><br>In the main manufacturing window, make sure you have the correct blueprint selected and the correct number of runs you want produced. Accept by pressing the <b><font color=yellow>ok</font></b> button when you are done.`)
+(53790, `Open the <b><font color=yellow>science and industry</font></b> window from the <b><font color=yellow>neocom</font></b> and press the <b><font color=yellow>get jobs</font></b> button, here you can monitor your production jobs from anywhere.
+
+Click the relevant job to get information about it. At the bottom of the window you see assorted information, including <b><font color=yellow>TTC</font></b> or Time to Completion, which tells you how much time remains until the job is finished.`)
+(53792, `Asteroids come in different densities, sizes and types, each yielding a different composition and amount of minerals. The most common of asteroids is <b><font color=yellow>Veldspar</font></b>. It only yields <b><font color=yellow>Tritanium</font></b>, which is the most common mineral.<br><br>To find out what minerals you can reprocess from a type of ore, <b><font color=yellow>right-click</font></b> on the asteroid in question and select <b><font color=yellow>show info</font></b>.`)
+(53793, `Almost all items and ships in <b><font color=yellow>New Eden</font></b> are manufactured by player industrialists. To manufacture an item or ship you require: materials, a blueprint, a factory slot, and skill qualifications. <b><font color=yellow>Blueprints</font></b> can be purchased off the market. <b><font color=yellow>Materials</font></b> can be collected through mining, reprocessing items, or, alternatively, bought off the market. <b><font color=yellow>Factory slots</font></b> can be found in the <b><font color=yellow>science and industry station services</font></b> of select stations.`)
+(53794, `Once you have relocated to a station equipped with <b><font color=yellow>science and industry services</font></b>, place the <b><font color=yellow>blueprint</font></b> and the <b><font color=yellow>materials</font></b> in your <b><font color=yellow>items hangar</font></b>. <b><font color=yellow>Right-click</font></b> the <b><font color=yellow>blueprint</font></b> and select <b><font color=yellow>manufacturing</font></b>.`)
+(53795, `<b><font color=yellow>Contracts</font></b> are a way to formalize agreements between pilots or their organizations. The most common usage of contracts is simply to sell things, but they can be applied to any formal deals between people.`)
+(53796, `Contracts already in progress can be viewed through the <b><font color=yellow>journal</font></b>. Please keep an eye on that list, as it might frequently require your attention.`)
+(53797, `In order to start your salvaging operation, you will need a salvaging module. Your industrial career advisory agent will provide you with a <b><font color=yellow>Civilian Salvager</font></b> module, which you can use for your first salvaging mission. This module however is not advanced enough to be used outside of this tutorial.
+`)
+(53798, `Certain containers can be unlocked using a <b><font color=yellow>Codebreaker</font></b>. The most simple one is the <b><font color=yellow>Civilian Codebreaker</font></b> which your industrial career advisory agent will provide you with. This simple piece of technology is not advanced enough to be used outside of this tutorial. For that you need a <b><font color=yellow>Codebreaker I</font></b>.
+
+
+`)
+(53799, `<b><font color=yellow>Willpower</font></b> is the primary attribute when it comes to the speed at which you learn many <b><font color=yellow>Trade</font></b>, <b><font color=yellow>Leadership</font></b> and <b><font color=yellow>Advanced Spaceship Command</font></b>. But it is also a very important secondary attribute, as the <b><font color=yellow>Gunnery</font></b> and <b><font color=yellow>Missile Launcher Operation</font></b> skills and the bulk of the <b><font color=yellow>Spaceship Command</font></b> skills rely partly on a character’s Willpower.`)
+(53800, `This is about <b><font color=yellow>shipping cargo from A to B</font></b>. To set up a contract, specify a destination, collateral and some rewards. Upon taking the deal, the contractor must deposit the collateral and deliver the goods. He then gets his collateral back along with the rewards. Take care that the collateral always exceeds the estimated value of your cargo, or it will go missing!`)
+(53801, `To use this module, open the fitting service and drag it to your ship. <br><br>
+
+For details on the speed boost it provides and capacitor consumption, you can always right click the item and select <b><font color=yellow>show info</font></b>  from the <b><font color=yellow>contextual menu</font></b>.
+`)
+(53802, `Fitting out their ship for an engagement is one of the most important tasks a capsuleer can undertake. You will have to carefully evaluate the requirements of the task at hand and select the appropriate equipment for the occasion.`)
+(53803, `Now that you are in the right ship, it is time to strip the ship of valuables. Open the <b><font color=yellow>fitting services</font></b> in the station services panel and press the <b><font color=yellow>strip</font></b> button, to remove all modules from your ship.`)
+(53804, `<b><font color=yellow>Perception</font></b> is the primary attribute when it comes to reducing training times for <b><font color=yellow>Gunnery</font></b>, <b><font color=yellow>Missile Launcher Operation</font></b> and the <b><font color=yellow>Spaceship Command</font></b> skills and the secondary attribute for the <b><font color=yellow>Advanced Spaceship Command</font></b>, most of the <b><font color=yellow>Drones</font></b> and <b><font color=yellow>Navigation</font></b> skills.`)
+(53805, `<b><font color=yellow>Stasis webifiers</font></b> are modules which slow down your target. Their speed is decreased while the module is active, but be aware that they are not prohibited from warping away. <br><br>
+
+
+Look in your hangar, you will have been given a <b><font color=yellow>stasis webifier</font></b> module by your agent.
+`)
+(53806, `The module needs to be manually activated. Once you have targeted a friendly ship, activate the module the same way you would activate a weapon.<br><br>
+
+While active, the <b><font color=yellow>remote armor repair module</font></b> will repair your target at the cost of capacitor. Always keep in mind that the module has range restrictions, so watch the distance to your target or you might fall out of range and the module will deactivate.
+`)
+(53807, `The module needs to be activated manually. Once you have targeted a friendly ship, activate the module the same way you would activate a weapon.<br><br>
+
+While active, the <b><font color=yellow>shield transporter</font></b> will repair your target at the cost of capacitor. Be aware that the module has range restrictions, so watch the distance to your target or you might fall out of range and the module will deactivate.`)
+(53808, `There are many hidden locations throughout space that can be located using specialized tools and skills. To get you started, you will need the <b><font color=yellow>Astrometrics</font></b> skill trained to level 1, a <b><font color=yellow>Core Probe Launcher I</font></b> fitted to your ship and some <b><font color=yellow>Core Scanner Probes</font></b> loaded in it.`)
+(53809, `<b><font color=yellow>Destroy active probes</font></b> self-destructs probes you want to get rid of.<br><br>
+
+Finally, the last option completely to the right allows you to open <b><font color=yellow>the map</font></b>.<br><br>
+
+<b><font color=yellow>Open the map now.</font></b>
+
+`)
+(53810, `Gas Cloud Harvesting is the process of scanning down interstellar gas cloud pockets and harvesting valuable materials from them. Gas cloud formations appear as <font color=yellow><b>Ladar</b></font> signatures on your scanner.`)
+(53811, `You are now being provided with a <font color=yellow><b>Civilian Salvager</b></font>. This module works in the same way as other Civilian modules. It requires no skills and can only be used in training areas. You should also fit this Civilian Salvager to your ship before you undock. You will need it to pass this part of the training program. `)
+(53812, `You are now being provided with a <font color=yellow><b>Civilian Codebreaker</b></font>. This is a special, limited version of a normal Codebreaker. It requires no skills to be trained in order to use, but it will only work in training areas. You will need to fit it to your ship before you depart. Inside the Radar site, you will find locked containers. You must use the Civilian Codebreaker to open these containers. `)
+(53813, `<b><font color=yellow>Right-click</font></b> the weapon slot in the HUD and select <b><font color=yellow>show info</font></b> from the <b><font color=yellow>contextual menu</font></b>.<br><br>
+
+Select the <b><font color=yellow>attributes</font></b> tab. <br><br>
+
+In the list of the weapon's attributes, find the <b><font color=yellow>optimal range</font></b> and make a note of it. <br><br>`)
+(53814, `<b><font color=yellow>Right-click</font></b> your target to bring up the <b><font color=yellow>contextual menu</font></b>. Under <b><font color=yellow>orbit</font></b>, select the range closest to your weapon's <b><font color=yellow>optimal range</font></b>.<br><br>Once this is done, target and destroy your opponent. Notice how your damage is higher when you are in your weapon's <b><font color=yellow>optimal range</font></b>.`)
+(53815, `Ore is mined from asteroids, which can then be sold or <b><font color=yellow>reprocessed</font></b> into minerals. The minerals, along with a blueprint, are used to manufacture items and ships; alternatively they can be sold on the market directly.<br><br>Keep in mind the amount of minerals yielded from <b><font color=yellow>reprocessing</font></b> the ore is based on skills. Sometimes you might be better off selling the ore unrefined.
+`)
+(53816, `To use your <font color=yellow><b>afterburner</b></font>, simply click it. As long as the module is active, the speed boost will be applied. The <font color=yellow><b>afterburner</b></font> will be active till you either switch it off, or your ship runs out of <font color=yellow><b>capacitor</b></font>.`)
+(53817, `<font color=yellow><b>Afterburners</b></font> are modules that increase your velocity temporarily at the cost of capacitor energy. They can be great for approaching an enemy quickly, controlling engagement range or getting out of tight spots.
+
+Look in your hangar, if you have not been given an <b><font color=yellow>afterburner</font></b> module by your agent, buy one now. `)
+(53818, `Start by locating the ship you want to insure in your <font color=yellow><b>ship hangar</b></font>, accessible through the <font color=yellow><b>neocom</b></font>. <font color=yellow><b>Assemble</b></font> and <font color=yellow><b>activate</b></font> the ship using the <font color=yellow><b>contextual menu</b></font>.`)
+(53819, `Access the <b><font color=yellow>insurance window</font></b> through the station services panel to your right. `)
+(53820, `Almost all activities in EVE come with the <font color=yellow><b>risk of death</b></font>. By default, all ships only have a <font color=yellow><b>40% insurance coverage</b></font> of their production cost. When going on a dangerous activity where you fear you might lose your ship, you should upgrade your insurance contract to a higher coverage value.`)
+(53821, `The <b><font color=yellow>blue sphere</font></b> on the system map represents <b><font color=yellow>the probe scanning range</font></b>.
+
+A probe scanning range may be extended or reduced by moving the mouse over the blue sphere edge, then clicking and holding the left mouse button.<br><br>
+
+<b><font color=yellow>Try extending your probe scan range now.</font></b> You may notice that when released, the sphere will adjust itself to the closest predefined size slot.`)
+(53822, `The combat ahead is designed to test your ability to properly identify threats and prioritize targets. You will encounter multiple hostiles, and will need to choose which to engage first. <font color=#FF0000> <b>Your target will be using Warp Scramblers and Stasis Webifiers, so be prepared! </b></font><br><br>
+One strategy is to focus on weaker ships first. Although fragile, some ships can deal out significant damage, so removing them from the field as quickly as possible will lower the combined damage coming to you. <br><br>
+In this mission however, you only have to kill a specific person, so perhaps you will want to ignore the wingmen and “tank” them as you focus on assassinating your target.
+`)
+(53823, `Each scan probe estimates the distance of all objects that can be scanned within range by sending electromagnetic waves and tracking the time it takes for a reflected signal to be received. The closer the scanned object, and the smaller the probe radius, the more accurate the guess.<br><br>
+
+Using your deployed probe, <b><font color=yellow>press the analyze button on the scanner now.</font></b>`)
+(53824, `Once completed, the scan will update the <b><font color=yellow>scan results</font></b> section of the scanner with sites that are found within range. If no entries are found, move the probe to another location within the solar system by using the silver handles as explained before. <b><font color=yellow>Remember that sites and anomalies are most commonly found near planets and moons.</font></b><br><br>
+
+Results will be sorted by columns, <b><font color=yellow>group</font></b> being the category of the site. Right-click on a particular signature group, like <b><font color=yellow>gravimetric</font></b>, and select <b><font color=yellow>ignore other results</font></b> to filter the list.`)
+(53825, `Analysed sites appear as red spheres, circle or dots on the solar system map. The shape of the results depends on the <b><font color=yellow>signal strength</font></b> obtained from the scan, listed under the appropriate column under the <b><font color=yellow>scan results</font></b> window.<br><br>
+
+The narrower the results the better the pinpointing is. To increase the certainty of a result, multiple probes have to be used from different angles.`)
+(53826, `When four probes are in range of the same object, the results are combined, showing you all the places that are at the correct ranges from the probes involved. Once you get a single point with 100% strength, you can warp to the location by right-clicking its entry within the scan results.<br><br>
+
+<b><font color=yellow>Note: for the result to be accurate, the four probes have to form the summits of a pyramid or square pattern, whose center, which is the looked-after object, stays covered by all probe scanning ranges.</font></b>`)
+(53827, `<b><font color=yellow>Remember that depending on your skills, equipment and ship bonuses, results may be more or less accurate or even impossible to find.</font></b><br><br>
+
+However, for the sake of this tutorial scenario the sites should remain easy to locate if the previous steps are respected.`)
+(53828, `In agent missions you will often have to use an <b><font color=yellow>Acceleration Gate</font></b> to enter the target area. These devices are made to fling you into otherwise inaccessible pockets of space within the solar system.<br><br>
+
+<b><font color=yellow>Undock when ready to proceed.</font></b>`)
+(53829, `Once outside the station, warp to your mission location by right-clicking in a void point of space and selecting it from the warp-to list. When you get there you should see an <b><font color=yellow>Acceleration Gate</font></b>.`)
+(53830, `Remember that there may be more missions that require you to use special ships or modules. Doing an evaluation of what you need before undocking is always a good idea.<br><br>
+
+<b><font color=yellow>Once that is done, undock and complete the mission.</font></b>`)
+(53831, `The <b><font color=yellow>scanner</font></b> allows you to manage the probe you just launched. You may notice a row of five buttons located in the upper-part of the system scanner tab.<br><br>The first button, <b><font color=yellow>analyze</font></b>, orders deployed probes to scan for hidden signatures or anomalies.`)
+(53832, `When you have equipped the module, <font color=yellow><b>undock and complete the mission</font></b>.`)
+(53833, `Refining efficiency can be increased by training the appropriate skills. You can also decrease the tax extracted by the station owner by improving your standing with that corporation by doing agent missions.`)
+(53834, `Through trial and error you can find the optimal type of ammo to use against each type of enemy. While you can usually take them down with any ammo type, using the right one saves you time and ammunition.`)
+(53835, `While heat will slowly dissipate from the rack, the damage dealt to your modules will not, and they will need repair. Be careful, lest you destroy them entirely with too much overloading.`)
+(53836, `The second option, <b><font color=yellow>recover active probes</font></b>, recalls <b><font color=yellow>all</font></b> launched probes back to your ship cargohold so you may not lose them when jumping to another system.<br><br>
+
+Probes that have been lost due to a client restart may be reconnected using the <b><font color=yellow>reconnect to lost probes</font></b> button.<br><br>
+
+`)
+(53837, `Every ship in EVE comes pre-fitted with an <b><font color=yellow>on-board scanner</font></b> that does not consume any resources and do not take up any fitting slots. Thus for the purpose of this tutorial it does not matter which ship you use, so long as you are not in a capsule.<br><br>
+
+<b><font color=yellow>When you are ready to begin scanning, undock in a ship of your choosing.</font></b>`)
+(53838, `Ladar sites offer a number of unique resources. Most Ladar signatures will only be gas cloud pockets, but occasionally you may also stumble upon a pirate base that is producing boosters. To be cost-efficient, these drug labs are always based inside gas clouds, and are usually heavily defended. Inside drug production hideouts such as these you may find other containers that require <font color=yellow><b>Hacking</b></font> with a <font color=yellow><b>Codebreaker</b></font> module to access.  <br><br>
+For now though, you should focus on scanning down the site.
+`)
+(53839, `Archaeology is the process of scanning down ancient ruins and recovering valuable artifacts from inside them. Ancient ruins and abandoned areas appear as <font color=yellow><b>Magnetometric</b></font> signatures on your scanner.  <br><br>
+
+Archaeology sites offer a number of unique resources, acquired through two different methods: <font color=yellow><b>analyzing</b></font> and <font color=yellow><b>salvaging</b></font>.`)
+(53840, `You are also being given a <font color=yellow><b>Civilian Analyzer</b></font>. This is a special, limited version of a normal analyzer. It requires no skills to be trained in order to use, but it will only work in training areas. You will need to fit it to your ship before you depart. Inside the Magnetometric site, you will find wreckage containers. You must use the Civilian Analyzer to access these containers. `)
+(53841, `Once you have fitted both modules into your ship, you must scan down a <font color=yellow><b>Magnetometric</b></font> signature. When you are inside the Magnetometric site, you will find two containers. To access their contents, you must target these containers and then activate the Civilian modules to unlock them. The modules will cycle, attempting to identify and recover any valuable items from the container each time. Eventually, your attempt will be successful and the container will be unlocked. <br><br>
+
+Good luck, and remember, you are looking for <font color=yellow><b>Magnetometric</b></font> signatures. Once you have scanned down the correct site, you will receive further instruction from your agent on the use of the Analyzer and Salvager modules.
+`)
+(53842, `A more advanced way of mining, known as <b><font color=yellow>jet-can mining</font></b>, can help you turn profit more quickly.<br><br>
+
+You start by <b><font color=yellow>jettisoning</font></b> ore into a container in space from your <b><font color=yellow>cargohold</font></b> using the <b><font color=yellow>contextual menu</font></b>. As you accumulate more ore, simply <b><font color=yellow>drag and drop</font></b> it from your <b><font color=yellow>cargohold</font></b> into the <b><font color=yellow>jet-can</font></b>. Once the jettisoned container is full, you can collect the ore with an <b><font color=yellow>industrial ship</font></b> with a larger cargohold.<br><br>
+
+Be aware that a container will only last about 2 hours in the vacuum of space. If a container caves in, its content is immediately destroyed.<br><br>
+
+<b><font color=yellow>Warning: Moving items into jet-cans allows any other player to take them at any time.</font></b>`)
+(53843, `Ore must be delivered in batches to the <b><font color=yellow>reprocessing plant</font></b>. The batch size varies from ore to ore, for instance, <b><font color=yellow>Veldspar</font></b> requires 333 units to refine. The units required for reprocessing are shown in the ore's information window, accessible through the <b><font color=yellow>contextual menu</font></b>. <br><br>Acquire 333 units of <b><font color=yellow>Veldspar</font></b> before continuing.
+
+
+
+
+`)
+(53844, `<b><font color=yellow>Armor tanking</font></b> is another way of maintaining your ship’s endurance while sustaining damage.`)
+(53845, `The weapon you have been using so far requires no ammunition. However, most guns require either ammunition or frequency crystals to fire.<br><br>`)
+(53846, `Heat is distributed between three racks: <b><font color=yellow>high</font></b>, <b><font color=yellow>medium</font></b> and <b><font color=yellow>low</font></b>. Overload burnout is dealt to the rack as a whole, so even if you are only overloading one module, the damage will be dealt to <b><font color=yellow>every</font></b> module in that rack.`)
+(53847, `To continue your salvaging career outside of this tutorial, it is recommended that you acquire a <b><font color=yellow>Salvager I</font></b> module. This is an advanced piece of technology that is capable of salvaging ship wrecks. <b><font color=yellow><br><br>
+
+Be aware that you will need to train the prerequisites before being able to use this upgraded version of the Civilian module.</font></b>`)
+(53848, `To use an implant, locate it in your <b><font color=yellow>items hangar</font></b> or <b><font color=yellow>cargohold</font></b> and right-click it to bring up the <b><font color=yellow>contextual menu</font></b>. Then select <b><font color=yellow>plug in</font></b> from the list of options.
+`)
+(53849, `Highlight your ship and select <b><font color=yellow>insure</font></b>. You will be prompted with the insurance terms. Read them and click <b><font color=yellow>yes</font></b> to continue.<br><br>
+
+There are six different types of insurance, ranging from <font color=yellow><b>basic</b></font> to <font color=yellow><b>platinum</b></font>. <font color=yellow><b>Platinum</b></font> carries the highest payout and is preferred by most capsuleers. All insurance types only cover your ship for 12 weeks and you will have to renew it past that date. The exception remains with the basic 40% insurance that doesn't expire.<br><br>
+
+<font color=yellow><b>Go ahead and insure your ship now</b></font> at a level that financially suits you.<br><br>
+
+Congratulations! Your ship is now insured. Should you lose your ship in the future, you will receive a payout based on this insurance.`)
+(53850, `The galaxy is a vast place. Press the <b><font color=yellow>map</font></b> button in the NeoCom to see a map of it.`)
+(53851, `<b><font color=yellow>Acceleration gates</font></b> can be laid out in series, creating a path between multiple deep-space pockets. <br><br>
+
+Warp to the first <b><font color=yellow>acceleration gate</font></b> before continuing this tutorial.`)
+(53852, `When you activate the gate you will reach a deep-space pocket that contains another <b><font color=yellow>acceleration gate</font></b>. Often, <b><font color=yellow>acceleration gates</font></b> will be locked until you have cleared out the enemy ships in the area.<br><br>
+
+Activate the gate now and clear out the first area. `)
+(53853, `In the <b><font color=yellow>overview settings</font></b> window you can personalize your overview.`)
+(53854, `The <b><font color=yellow>appearance</font></b> tab allows you to set the look on the items in the overview. You can set the image and color and whether it blinks as well as showing any possible <b><font color=yellow>electronic warfare</font></b> actions.`)
+(53855, `In the <b><font color=yellow>columns</font></b> tab you can specify which columns you would like to be visible.`)
+(53856, `In the <b><font color=yellow>ships</font></b> tab, you can specify what information is displayed about your fellow pilots in space.`)
+(53857, `In the <b><font color=yellow>overview tabs</font></b> tab, you can set up to 5 tabs in the overview, each with the settings of your choice.`)
+(53862, `Load your drone bay by <font color=yellow><b>right-clicking</b></font> your ship in the ship hangar and selecting <font color=yellow><b>open drone bay</b></font>. Then drag and drop the <font color=yellow><b>drones</b></font> from your hangar into your drone bay.
+`)
+(53863, `Once in space, right click on the <b><font color=yellow>drones in bay</font></b>  bar to your right. Select <b><font color=yellow>launch drones</font></b> from the <b><font color=yellow>contextual menu</font></b>.<BR><BR>
+
+Once the <font color=yellow><b>drones</b></font> are deployed, and you have locked a target of your choice, right-click on the <b><font color=yellow>drones in local space</font></b> bar, and select <b><font color=yellow>engage target</font></b>.<BR><BR>
+
+The <font color=yellow><b>drones in space</b></font> bar is where you issue all your commands to active <font color=yellow><b>drones</b></font>, such as attacking the target or returning to the drone bay.<br><br>
+
+<b><font color=yellow>Also notice you can expand and collapse the bar to see individual drone status</b></font>.
+`)
+(53864, `<font color=yellow><b>Lasers</b></font> are energy weapons favored by the Amarrian race. There are two types of laser weapons, <font color=yellow><b>beam lasers</b></font> and <font color=yellow><b>pulse lasers</b></font>. <font color=yellow><b>Beam lasers</b></font> are used in long range encounters, while <font color=yellow><b>pulse lasers</b></font> are more suited for close to medium range encounters.`)
+(53865, `Laser weapons use <font color=yellow><b>frequency crystals</b></font> to alter range and damage. Unlike other ammunition types, tech 1 frequency crystals can be used indefinitely, which in turn saves money and cargo space. However, lasers consume capacitor upon activation, which is considered their main drawback.<br><br>
+
+To load your turrets while in station, open the fitting window and drag and drop the <font color=yellow><b>frequency crystals</b></font> on to your laser turrets. Alternatively, in space, if you have the crystal in your cargohold, right-clicking your laser turrets and selecting a crystal will load it.
+`)
+(53866, `<font color=yellow><b>Missile launchers</b></font> come in different variations, able to destroy anything from frigates to capital class ships. Typically, each launcher type will let you choose between short ranged, high damage, <font color=yellow><b>unguided missiles</b></font> and long range, lower damage, <font color=yellow><b>guided missiles</b></font>. Missile launchers do not consume any capacitor, but their damage is delayed due to the missile's travel time.`)
+(53867, `Missile damage depends highly on the target's velocity and size. Missile users often use this to their advantage and use support modules to maximize their damage. <font color=yellow><b>Target Painters</b></font> can be used to increase the targets signature radius and <font color=yellow><b>Stasis Webifiers</b></font> slow targets down.<br><br>
+
+Take a look at the <font color=yellow><b>show info</b></font> window for both <font color=yellow><b>missile launchers</b></font> and <font color=yellow><b>missiles</b></font> for additional information about flight time, missile velocity and damage.
+`)
+(53868, `<font color=yellow><b>Projectile turrets</b></font> are the primary weapons of the Minmatar race. They fire ballistic rounds and don't consume any capacitor. Projectile turrets are available in short and long range varieties. Autocannons output high damage at short range, with impressive tracking, while artillery cannons are more suited for long range bombardment with high volley damage.`)
+(53869, `To use this module, open the <b><font color=yellow>fitting service</font></b> and drag it to your ship.<br><br>
+
+For details on how much armor the module repairs and how long the effective range is, you can always <b><font color=yellow>right-click</font></b> the item and select <b><font color=yellow>show info</font></b> from the <b><font color=yellow>contextual menu</font></b>.
+`)
+(53870, `When you have equipped the module, <font color=yellow><b>undock and complete the mission</font></b>.`)
+(53871, `To use this module, open the <b><font color=yellow>fitting service</font></b> and drag it to your ship.<br><br>
+
+For details on how much shield the module replenishes and how long the effective range is, you can always <b><font color=yellow>right-click</font></b> the item and select <b><font color=yellow>show info</font></b> from the <b><font color=yellow>contextual menu</font></b>.
+`)
+(53872, `When you have equipped the module, <font color=yellow><b>undock and complete the mission</font></b>.`)
+(53873, `The module needs to be manually activated. Once you have targeted an enemy, activate the module the same way you would activate a weapon. <br><br>
+
+While active, the <b><font color=yellow>stasis webifier</font></b> will slow your enemy considerably. Be aware though, it is only effective <b><font color=yellow>within 10 km</font></b>.
+`)
+(53874, `When you have equipped the module, <b><font color=yellow>undock and complete the mission</font></b>.`)
+(53875, `<b><font color=yellow>Warp core stabilizers</font></b> can be used to raise a ship's warp core strength, rendering a single warp disruptor useless. The more powerful warp disruption modules, such as the <b><font color=yellow>warp scrambler</font></b>, have higher warp disrupting capabilities at the cost of range, being only effective <b><font color=yellow>up to 7.5 km</font></b>.`)
+(53876, `The module needs to be manually activated. Once you have targeted an enemy, activate the module the same way you would activate a weapon.<br><br>
+
+While active, the <b><font color=yellow>warp disruptor</font></b> will prevent your enemy from warping away. Be aware though, it is only effective <b><font color=yellow>within 20 km</font></b>.`)
+(53877, `Verbal contracts between people easily go wrong. They often boil down to who said what and when. <b><font color=yellow>A formal contract</font></b> minimizes that risk and aims to eliminate misunderstanding, state requirements, rewards and obligations clearly, and so forth.`)
+(53878, `<b><font color=yellow>Private contracts</font></b> are made directly between <b><font color=yellow>two entities</font></b>, e.g. pilot to pilot, corporation to corporation or any mix thereof. The number of failed or successfully resolved private contracts are never visible outside those two parties, but no one else can take them on either.`)
+(53879, `There are two multi-party entities that can be involved in contracts. These are <b><font color=yellow>corporations</font></b> and <b><font color=yellow>alliances</font></b>, and they work very differently from one another.`)
+(53880, `You can set up an item for a <b><font color=yellow>one day</font></b>, <b><font color=yellow>three days</font></b> or <b><font color=yellow>a week</font></b> long auction, with a starting bid and buyout price. To guard against last minute incremental raises, 15 minute <b><font color=yellow>shotgun</font></b> is in effect, which means when a bid arrives within 15 minutes of an auction's end, 15 minutes get added. If you are outbid on anything, an alert will appear in your journal.`)
+(53881, `<b><font color=yellow>Item Exchange</font></b> allows you to offer ISK, items or any combination thereof for whatever you desire. This type of contract can save you and your customer a considerable amount of time browsing the market for a buyer first and then someone selling what you want.`)
+(53882, `In order to create a corporation, you will require some basic skills and ISK. You have to have trained <b><font color=yellow>Corporation Management</font></b> skill and <b><font color=yellow>Ethnic Relations</font></b> which allows you to accept players of all races. When you are ready press the <b><font color=yellow>Create new corporation</font></b> button. The corporation will be formed and you will be its CEO.`)
+(53883, `There are thousands of items in supply at any given time. The key to finding what you need at the best price is to know how to use the <font color=yellow><b>range filters</b></font> and learn how to <font color=yellow><b>manually browse</b></font> or search the market.
+
+`)
+(53884, `First make sure that the <b><font color=yellow>range filter</font></b> is set to <b><font color=yellow>station</font></b> or you could end up buying a module located in a station light years away.`)
+(53885, `Unfortunately you can not use all available items straight away. To see what you can currently use, expand any category if you have not already done so, and click the <b><font color=yellow>groups</font></b> tab on the right.`)
+(53886, `It is imperative to know when to sell and when not to, and when it comes to that, information is king! First, either select an item in the left pane or press the <b><font color=yellow>view details</font></b> button in the right pane.`)
+(53887, `Above the list of sellers, click on the <b><font color=yellow>price history</font></b> tab. It gives you relevant market information about the item you are trying to acquire, such as average price, volume and so on.`)
+(53888, `<font color=red><b>Never buy anything you can not afford to lose!</b></font><br><br>It is <font color=yellow><b>inevitable</b></font> that you will lose ships sooner or later. When that happens, it is important not to be completely broke as a consequence and able to recover quickly from the loss.`)
+(53889, `To start the process, open up the <b><font color=yellow>corporation</font></b> window from the NeoCom and access the <b><font color=yellow>recruitment</font></b> tab. Select the <b><font color=yellow>our adverts</font></b> tab and press the add button.<br><br><b><font color=yellow>Note: your corporation needs to have an office before placing an advert</font></b>.`)
+(53890, `Under the <font color=yellow><b>location</b></font> window, select the area of space in which you have your base of operations.`)
+(53891, `Attributes do not influence the chance of success when using skills, only <b><font color=yellow>how fast</font></b> the skills that rely on them are trained. Therefore, high attributes are only beneficial if you are training skills that rely on those attributes. <font color=yellow><b>Planning ahead is paramount</b></font>.`)
+(53892, `One commonly used tactic amongst capsuleers is pre-alignment. This involves selecting a celestial object <i>(a planet, or a stargate, for example)</i> and then <b><font color=yellow>align to</font></b> in the <b><font color=yellow>selected item</font></b> panel above your overview. <br><br>
+Warping your ship involves three steps: <b><font color=yellow>activating warp</font></b>, <b><font color=yellow>aligning</font></b> to your destination, and finally, <b><font color=yellow>picking up sufficient base velocity</font></b> to engage your warp drives. If you are already aligned towards your destination and moving at full speed, then warping out of dangerous situations becomes an instant thing – the moment you tell your ship to warp to the celestial you’re aligned to, you will enter warp. <br><br>
+Obviously, if you are scrambled, then you will <b><font color=yellow>not</font></b> be able to warp. For this reason, many capsuleers focus their initial fire on scramblers, dispatching them before they settle into a celestial alignment and deal with the rest of their enemies.
+`)
+(53893, `Mining missions require different equipment than combat missions. <b><font color=yellow>Remember to read the mission texts and make relevant changes before undocking.</font></b><br><br>
+
+On your current mission you have been given a specific ship, which you have to fly to complete the mission.`)
+(53894, `Here is a <b><font color=yellow>Civilian Shield Booster I.</font></b> Make sure you have it fitted to your ship before continuing. `)
+(53895, `Please note it is also possible to use particular modules to repair your ship in space at no fee. Such modules are named <b><font color=yellow>armor</font></b> and <b><font color=yellow>hull repairers</font></b>, and remain available on the market.<br><br>
+
+<b><font color=yellow>Note: fully repairing a vessel using such modules may require an extensive amount of time depending on damage sustained.</font></b>`)
+(53896, `Press <b><font color=yellow>next</font></b> when you have submitted the manufacturing job.`)
+(53897, `Well done! Manufacturing jobs tend to take a long time but thankfully take care of themselves as <b><font color=yellow>they will even continue while you are offline</font></b>.
+<br><br>
+If you want to try out other careers you can access your career advancement screen again through the <b><font color=yellow>Help window</font></b> <i>(F12)</i>.
+<br><br>
+You could also do a mission or two for <b><font color=yellow>Sister Alitura</font></b>. Check your current mission details to get more information on her. `)
+(53898, `Missiles, unlike other ammunition, <b><font color=yellow>come in every damage type</font></b>, allowing clever users to exploit weaknesses in their opponents defenses.<br><br>
+
+To load the missile launchers while in station, open the fitting window then <b><font color=yellow>drag and drop</font></b> the missiles on to your launchers. Alternatively, in space, if you have the missiles in your cargo hold, <b><font color=yellow>right-clicking</font></b> your missile launcher and selecting the missile will load it.`)
+(53899, `To get the best result from your weapon, make sure you know the weapon's <b><font color=yellow>optimal range</font></b>. This can be found in the <b><font color=yellow>attributes tab</font></b> of their show info window, accessible through the <b><font color=yellow>turret contextual menu</font></b>. You should choose your orbiting distance based on this information.<BR><BR>
+
+You do not have to worry about manually re-loading, when your gun runs out of ammo, they will automatically reload with the ammo in your cargohold. When using laser turrets and frequency crystals, this should not be an issue. But it is good to know, should you venture into other weapon types.
+`)
+(53901, `You should now have a window quoting you the total production materials, production time, costs, and other assembled information about your production job. If everything is as it should be then you can click <b><font color=yellow>accept quote</font></b> to start the job.`)
+(53902, `Knowing that the destruction of your ship is inevitable, it would be beneficial to minimize your financial loss.<br><br>
+
+Start by boarding the ship given to you by the agent. This is done by opening the <b><font color=yellow>hangar</font></b>, found in the <b><font color=yellow>neocom</font></b>. Once the <b><font color=yellow>hangar</font></b> is open, <b><font color=yellow>right-click</font></b> the ship and select <b><font color=yellow>assemble ship</font></b>, then <b><font color=yellow>make active</font></b> from the contextual menu.`)
+(53903, `Having a greater maximum speed than your opponent means you can dictate how the engagement takes place. You may want to consider using an afterburner for this mission. <br><br>
+<b><font color=yellow>Avoiding Web and Scramble Range:</font></b> Having a greater speed will allow you to avoid the webs and scrams of your opponent, and keep you safe. Remember however that longer-ranged weapons that operate outside of 10 km ranges <i>(the range of webifiers)</i> deal less damage. <br><br>
+<b><font color=yellow>Luring your opponents out:</font></b> Often referred to as “kiting”. This strategy uses your superior velocity to lure out faster, and often weaker, enemies from their group. Once they are separated, they are dispatched with long-range ammunition. The aim of the tactic is to remain outside the enemy’s range, or so far away that incoming damage is lowered significantly, and yet close enough to still be able to destroy hostile ships.
+`)
+(53904, `Losing a ship is an <b><font color=yellow>inevitable</font></b> part of EVE, so you should be ready for it. On its demise you will survive the explosion aboard an <b><font color=yellow>emergency capsule</font></b> <i>(also named "pod")</i> protecting your fragile self from the harshness of space.<br><br>
+
+While NPCs do not attack a capsule, other players <b><font color=yellow>will</font></b>, and having it destroyed means death of your current body. When that happens you will always wake up in a new clone located inside a medical station. This process is commonly refered as being "pod-killed".`)
+(53905, `<b><font color=yellow>Keeping your clone up-to-date remains an utmost necessity.</font></b> Each clone has a certain quality which includes a maximum number of skill points. If your clone does not entirely cover your character skill point pool, you will lose
+<b><font color=yellow>5%</font></b> of the difference between the clone you had during the pod-kill and the skill points trained.<br><br>
+
+<b><font color=yellow>Open the station medical service now.</font></b>`)
+(53906, `After each podding, you will have to upgrade your clone to your current skill point value or higher. Press the <b><font color=yellow>upgrade clone</font></b> button and select from the list the most suitable clone for you.<br><br>
+
+You can also change the <b><font color=yellow>location</font></b> of your medical clone by selecting <b><font color=yellow>change station</font></b>.<br><br>
+
+<b><font color=yellow>Note: always make sure the selected station is not going to fall into enemy hands if located in unsecured space</font></b>, otherwise you may be locked out of useful station services when waking up in your new clone.`)
+(53907, `Once your clone has been upgraded, you can head safely into battle without fear of losing skill points; <b><font color=yellow>just remember to repeat these steps should you be pod-killed again.</font></b>`)
+(53908, `Drones are unmanned ships that can carry out simple tasks based on their role. The different types of drones are <b><font color=yellow>combat</font></b> drones, <b><font color=yellow>electronic warfare</font></b> drones, <b><font color=yellow>combat utility</font></b> drones, <b><font color=yellow>logistic</font></b> drones and <b><font color=yellow>mining</font></b> drones.<br><br>Drones are launched from <b><font color=yellow>drone bays</font></b>, which differ in size from ship to ship.<br><br>
+`)
+(53909, `As a rough guide to creating a corporation it is recommended that you first decide <b><font color=yellow>what kind of corporation</font></b> you want to establish. Then, find a group of like-minded people that shares your vision, to get the project off the ground.<br><br>Remember that in EVE Online, trust is the most important resource. <b><font color=yellow>Make sure you trust people you empower with responsibilities, or you may face corporation thefts.</font></b>`)
+(53910, `This map shows you the places you can travel to in the galaxy. Move your viewpoint <b><font color=yellow>by left and/or right clicking</font></b> and <b><font color=yellow>holding</font></b> anywhere on the map (except on a star) and <b><font color=yellow>dragging</font></b>.
+
+`)
+(53911, `To zoom in and out, <b><font color=yellow>hold down the right</font></b> and <b><font color=yellow>left</font></b> button and <b><font color=yellow>drag</font></b> your mouse back and forth. Zoom as far as you can in both directions. It will help you get a feeling for the enormity of space and get used with the map controls.`)
+(53912, `Your corporation will require new members, whether to grow in size or to replace those who have left. This is where the <b><font color=yellow>corporate registry</font></b> comes in place. It allows you to make your corporation <b><font color=yellow>externally visible</font></b> to others looking for a new venture.`)
+(53913, `<b><font color=yellow>To Remotely accept a mission:</font></b> start a conversation with your agent and when offered the mission, click the <b><font color=yellow>accept</font></b> button. If the agent asks you to return to them to be briefed, then that mission cannot be accepted remotely.<br><br>
+<b><font color=yellow>To Remotely complete a mission:</font></b> start a conversation with your agent and click the <b><font color=yellow>complete</font></b> button.<br><br>
+<i>Keep in mind that some missions will require you to return to your agent (if, for example, your mission objective is to return an item to the agent).</I>`)
+(53914, `Pilots and corporations <b><font color=yellow>can build their reputations</font></b> through the contract history of resolved contracts. This system is not automatic; pilots grade one another according to the outcome. A failed contract might still be said to be successful if the issuer is happy with the results!`)
+(53915, `<b><font color=yellow>Public contracts</font></b> have one issuer but no set taker. Unresolved public contracts are visible in the contracts system, anywhere in the region they are issued. <b><font color=yellow>Anyone</font></b> can claim them and their resolution is visible to all. But there are Private Contracts as well, and they differ in a number of ways.`)
+(53916, `Alliances can not issue contracts, but they can be issued a contract indirectly. That is - <b><font color=yellow>any member within the issued alliance</font></b> can take the contract and fulfill it for the alliance and all members of the alliance can view its status.`)
+(53917, `A <b><font color=yellow>loan contract</font></b> is an agreement between two parties to borrow either money or items, ranging from ammunition to fully fitted spaceships. A loan contract must specify the duration of the contract, collateral and/or a price. A loan contract is very similar to a courier contract.`)
+(53918, `Upon the expiry of Courier and Loan contracts, <b><font color=yellow>nothing happens automatically</font></b>. Both issuer and contractor need to mark the contract as failed or fulfilled, and can thus influence each other's reputation. In other words, expired contracts can be extended on a person-to-person basis.`)
+(53919, `All projectile ammunition types differ in <b><font color=yellow>damage</font></b>, <b><font color=yellow>damage types</font></b> and <b><font color=yellow>optimal range</font></b>. Always check the ammunition's attributes in the show info window when deciding what to use. To load your turrets while in station, open the fitting window and <b><font color=yellow>drag and drop</font></b> the ammunition on to the turrets. Alternatively, in space, if you have the ammunition in your cargohold, <b><font color=yellow>right-clicking</font></b> the turret and selecting the ammunition will load it.`)
+(53920, `Approach the gate. When you are within 2500 M, right click on the gate to bring up the <b><font color=yellow>contextual menu</font></b> and select <b><font color=yellow>Activate Gate</font></b>.<br><br>
+
+Doing so will catapult your ship to the next deadspace pocket.`)
+(53921, `To use this module, open the fitting service and drag it to your ship. <br><br>
+
+For details on the module's optimal range and disruption strength, you can always <b><font color=yellow>right-click</font></b> the item and select <b><font color=yellow>show info</font></b> from the <b><font color=yellow>contextual menu</font></b>.
+`)
+(53922, `Now that you are in space, you can access the <font color=yellow><b>on-board scanner</b></font>.<br><br>
+
+<font color=yellow><b>Open it now, by clicking the icon on your HUD</b></font>.`)
+(53923, `An implant is a device that is surgically placed inside your head to enhance your abilities. They can help you with a host of actions but in this tutorial we will be focusing on implants that increase your attributes, thereby making you train skills faster.`)
+(53924, `Once in space, open the scanner window using the button to the left of the HUD, just below the cargohold button. Then, launch a probe from your <b><font color=yellow>Core Probe Launcher I</font></b> by clicking on it once. Make sure your module is loaded with Core Scanner Probes before doing so.`)
+(53925, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>racial weapon: drones</font></b> option inside.`)
+(53926, `Different roles are available to <font color=yellow><b>separate responsibilities</b></font> and <font color=yellow><b>delegate power</b></font> within your corporation. Some may grant access to the corporation wallet, the corporation hangar divisions or even allow them to fulfil special operations in space like deploying structures.<br><br>
+
+Roles are available under the <font color=yellow><b>members</b></font> menu, then the <font color=yellow><b>role management</b></font> tab of the corporation window.<br><br>
+
+<font color=yellow><b>Be sure to grant access only to players you feel are worthy of the trust and responsibility.</b></font>
+
+
+`)
+(53927, `Once you have fitted the codebreaker to your ship, you must scan down a <font color=yellow><b>Radar</b></font> signature. When you are inside the Radar site, look for a container. When in range, you must target this container and then activate the Civilian Codebreaker on it. Each time the codebreaker module cycles, it will be attempting to bypass the electronics systems locking the container. Eventually, your hacking attempt will be successful and the container will be unlocked. <br><br>
+
+Once you have unlocked the container, recover the <font color=yellow><b>Proof of Discovery</b></font> document from inside and return to your agent.`)
+(53928, `To get the best result from your weapon, make sure you know the weapon's <b><font color=yellow>optimal range</font></b>. This can be found in the <b><font color=yellow>attributes tab</font></b> of their show info window, accessible through the <b><font color=yellow>turret contextual menu</font></b>. You should choose your orbiting distance based on this information.<BR><BR>
+
+You do not have to worry about manually re-loading, when your gun runs out of ammo, they will automatically reload with the ammo from your cargohold.`)
+(53930, `There are some missions in Epic Arcs that you can complete remotely by talking to your agent and turning the mission in. Similarly, there are also some missions that you can accept from your agent remotely. Most commonly, if you can turn in a mission without having to return to your agent, then you can also accept the next one in the arc remotely as well.<br><br>
+To begin a conversation with an agent remotely, simply open the <b><font color=yellow>people and places menu</font></b>, navigate to the <b><font color=yellow>agents</font></b> tab, find your agent, <b><font color=yellow>right-click</font></b> and then select <b><font color=yellow>start conversation</font></b>. You can find the people and places menu on the left hand side, near the top.
+`)
+(53931, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Tactics_%28Useful_threads%29">general combat tactics</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>combat tactics</font></b> option inside.`)
+(53932, `The most effective method of approaching a gunship is to close range at a slightly indirect angle. The higher your speed, the harder it is for hostile guns to track you. Damage from guns depends a great deal on tracking: If hostile guns can’t track you well, they won’t do much damage. Keep in mind that all of this affects your own guns as well, and moving at high speed will make it equally difficult for you to track your enemies. <br><br>
+For more detailed information on how tracking works, consult the <b><a href="evebrowser:http://wiki.eveonline.com/wiki/Tracking_Guide">Evelopedia</a></b>.
+`)
+(53933, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Laser_Turret">laser turrets</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>racial weapon: laser turrets</font></b> option inside.
+
+`)
+(53934, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a>, <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Missiles">missiles</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>racial weapon: missiles</font></b> option inside.
+
+`)
+(53935, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a>, <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Projectile_turret">projectile turrets</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>racial weapon: projectile turrets</font></b> option inside.`)
+(53936, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Spider_tank">spider tanking</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Logistics_Piloting_%28Guide%29">logistics piloting</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>shield transporters</font></b> option inside.`)
+(53937, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Electronic_Warfare_%28Combat%29">electronic warfare</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>stasis webifiers</font></b> option inside.`)
+(53938, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Electronic_Warfare_%28Combat%29">electronic warfare</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>warp disruptors and warp scramblers</font></b> option inside.`)
+(53939, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Contracts">contracts</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>business</font></b> folder, then choose the <b><font color=yellow>contracts</font></b> option inside.`)
+(53940, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Recruiting">recruitment</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>business</font></b> folder, then choose the <b><font color=yellow>placing recruitment adverts</font></b> option inside.`)
+(53941, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Apocrypha_probing">probing</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Exploration_guide">exploration</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>exploration</font></b> folder, then choose the <b><font color=yellow>exploration</font></b> option inside.`)
+(53942, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Cosmic_Anomalies">cosmic anomalies</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>exploration</font></b> folder, then choose the <b><font color=yellow>finding cosmic anomalies</font></b> option inside.`)
+(53943, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Exploration_guide">exploration</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>exploration</font></b> folder, then choose the <b><font color=yellow>Ladar sites</font></b> option inside.`)
+(53944, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Exploration_guide">exploration</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>exploration</font></b> folder, then choose the <b><font color=yellow>Magnetometric sites</font></b> option inside.`)
+(53945, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Mining_(Guide)">mining</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>industry</font></b> folder, then choose the <b><font color=yellow>mining</font></b> option inside.`)
+(53946, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Reprocessing">reprocessing</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>industry</font></b> folder, then choose the <b><font color=yellow>reprocessing and refining</font></b> option inside.`)
+(53947, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>military</font></b> folder, then choose the <b><font color=yellow>afterburners</font></b> option inside.`)
+(53948, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a>, <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Tanking">tanking</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>military</font></b> folder, then choose the <b><font color=yellow>armor tanking</font></b> option inside.`)
+(53949, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Damage_types">damage types</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>military</font></b> folder, then choose the <b><font color=yellow>damage types</font></b> option inside.`)
+(53950, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>military</font></b> folder, then choose the <b><font color=yellow>guns and ammo</font></b> option inside.`)
+(53951, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Heat">heat</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>military</font></b> folder, then choose the <b><font color=yellow>heat</font></b> option inside.`)
+(53952, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>military</font></b> folder, then choose the <b><font color=yellow>orbiting effectively</font></b> option inside.`)
+(53953, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Ship_fitting_guide">ship fitting</a>, <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Tanking">tanking</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>military</font></b> folder, then choose the <b><font color=yellow>shield tanking</font></b> option inside.`)
+(53954, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Attributes_in_EVE">attributes</a>.`)
+(53955, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Certificates">certificates</a>.`)
+(53956, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Implant">implants</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>your first days</font></b> folder, then choose the <b><font color=yellow>implants</font></b> option inside.`)
+(53957, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Star_Map">the star map</a>.`)
+(53958, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Skills_guide">skills</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this window. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>your first days</font></b> folder, then choose the <b><font color=yellow>medical clones</font></b> option inside.`)
+(53959, `Please refer to the following EVElopedia articles for more information about
+<a href="evebrowser:http://wiki.eveonline.com/wiki/Overview_scanner">the overview scanner</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>your first days</font></b> folder, then choose the <b><font color=yellow>overview settings</font></b> option inside.`)
+(53960, `When working with other pilots the <b><font color=yellow>remote armor repair module</font></b> can be very useful. This module allows you to repair a fleet member's armor remotely while in space.<br><br>
+
+Look in your hangar, if you have not been given a <b><font color=yellow>remote armor repair module</font></b> by your agent, buy one now.
+
+
+
+`)
+(53961, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Spider_tank">spider tanking</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Logistics_piloting">logistics piloting</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>remote repair modules</font></b> option inside.`)
+(53962, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Market_guide">the market system</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>business</font></b> folder, then choose the <b><font color=yellow>market</font></b> option inside.`)
+(53964, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Research_and_Manufacturing">research and manufacturing</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand <b><font color=yellow>industry</font></b> folder, then choose the <b><font color=yellow>manufacturing</font></b> option inside.`)
+(53965, `The manufacturing window allows you to set various parameters for your manufacturing job:<br><br>
+
+<UL>
+<LI><b><font color=yellow>Installation:</font></b> This is the location of the assembly line you just selected.
+<LI><b><font color=yellow>Blueprint:</font></b> This is the blueprint you are about to use for manufacturing.
+<LI><b><font color=yellow>Input/Output:</font></b> The input and output hangars for the job.
+<LI><b><font color=yellow>Runs:</font></b> This sets how many batches you want to produce. When you are producing modules or ships this will always be one item per batch. Smaller items such as ammo can be 100 items per batch.`)
+(53966, `Another module that is useful for moving around swiftly is the <font color=yellow><b>microwarpdrive</b></font>. This module provides a bigger boost to your ship´s speed than the <font color=yellow><b>afterburner</b></font>, but at a much higher capacitor cost.`)
+(53967, `To increase your ship´s resistances towards specific damage types you can fit <b><font color=yellow>hardeners</font></b>, available for both your shield and armor.<br><br>`)
+(53968, `Access the <b><font color=yellow>reprocessing plant</font></b> located in the <b><font color=yellow>station services</font></b>. In the reprocessing window, select the <b><font color=yellow>Veldspar</font></b> from the list on the left and press the <b><font color=yellow>get quote</font></b> button. This displays the amount of minerals you will receive, how much is taxed by the corporation that owns the station and how much goes to waste.<br><br>
+
+If you are satisfied with the quote, press the <b><font color=yellow>Reprocess</font></b> button. The minerals will be deposited in your <b><font color=yellow>items hangar</font></b>, as well as any left-over ore.<br><br>
+
+Note: The reprocessing window does not show ore, ships or items located in your ships’ <b><font color=yellow>cargohold</font></b>.
+`)
+(53969, `In order to gather the objects inside the container, you need to <b><font color=yellow>lock</font></b> the container and activate the codebreaker module on it. It may take a few attempts to break the container´s security system, but when it happens, you will be notified and the codebreaker deactivates. When this happens, you can open the container and take the items inside.`)
+(53970, `The <b><font color=yellow>filters</font></b> tab allows you to set which types show up on your overview and what their state is. <br><br>
+
+Open it now and do the following to add a new type to your overview:
+<OL>
+<LI> Open the <b><font color=yellow>types</font></b> sub-tab
+<LI> Expand <b><font color=yellow>entity</font></b>
+<LI> Put a checkmark into the box for <b><font color=yellow>large collidable structure</font></b>`)
+(53971, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Insurance">insurance</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this window. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, select <b><font color=yellow>your first days</font></b> folder, then the <b><font color=yellow>insuring your ship</font></b> option inside.`)
+(53972, `When a job has the state <font color=green>Ready</font> you can finish it by clicking the <font color=yellow><b>deliver</b></font> button in the bottom-right corner of the window.<br><br>The <font color=yellow><b>blueprint</b></font> and the manufactured item(s) will then be deposited in your <font color=yellow><b>items hangar</b></font> in the station where the job was installed.<br><br>
+
+Congratulations on a successful manufacturing job!
+
+
+`)
+(53973, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Corporation_management_guide#Benefits_of_Corporate_Membership">the benefits of joining a corporation</a>, <a href="evebrowser:http://wiki.eveonline.com/wiki/Corporation_management_%28Guide%29">corporation management</a> and <a href="evebrowser:http://wiki.eveonline.com/wiki/Role_and_Access_Right_Management">role and access right management</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>business</font></b> folder, then choose the <b><font color=yellow>creating and managing a corporation</font></b> option inside.`)
+(53974, `To use this module, open the fitting service and drag it to your ship. <br><br>
+
+For details on the module's optimal range and speed reduction, you can always <b><font color=yellow>right click</font></b> the item and select <b><font color=yellow>show info</font></b> from the <b><font color=yellow>contextual menu</font></b>.`)
+(53975, `When you remove an implant, it is immediately destroyed, making reselling implants impossible. Be sure that your clone is up-to-date and that you want to use your implant at this exact time before plugging it in.`)
+(53976, `Ships have three layers of defense: <b><font color=yellow>shield</font></b>, <b><font color=yellow>armor</font></b> and <b><font color=yellow>structure</font></b>. Sustaining these defenses is very important as it allows you to stay in the field for extended periods of time.`)
+(53977, `Hacking is the process of bypassing or disabling electronics systems, recovering valuable data and other materials. Areas such as data storage facilities and research laboratories emit high amounts of electronic interference – these appear as <font color=yellow><b>Radar</b></font> signatures on your scanner. <br><br>
+
+Radar sites offer a number of unique resources acquired through the use of a <font color=yellow><b>Codebreaker</b></font> module – the device used to bypass or disable an electronics system.`)
+(53978, `To perform a search you need to select your preferences under <b><font color=yellow>search type</font></b> and  <b><font color=yellow>search string</font></b>. Set <b><font color=yellow>search type</font></b> to  <b><font color=yellow>solar system</font></b> and type "chan" into the field. Your search will yield four systems - Chaneya, Channace, Chanoun and Chantrousse.`)
+(53979, `If the map view is displaying the galaxy, press <b><font color=yellow>solar system map</font></b> on the world map control panel to switch to the solar system selection instead.<br><br>
+
+The solar system view will display any active probe you have in space, which can be moved around using the <b><font color=yellow>silver control handle</font></b>. The six arrows allow you to move it around along a single axis, while grabbing any face of the cube lets you drag its position around in the appropriate plane.<br><br>
+
+<b><font color=yellow>Try moving the probe in space now.</font></b>`)
+(53980, `Mining lasers have a maximum range; by using the <b><font color=yellow>show info</font></b> option on your mining laser you can see its <b><font color=yellow>optimal range</font></b>.<br><br>
+
+Locate and target a suitable asteroid, get within the maximum range and activate your mining laser using the <b><font color=yellow>HUD</font></b>. At the end of the mining laser cycle ore will be placed in your <b><font color=yellow>cargohold</font></b>. Different mining lasers and skills will affect time and amount of ore collected per cycle.<br><br>
+
+<b><font color=yellow>Warning: Mining lasers will automatically deactivate if your cargohold is full at the end of their cycle</font></b>. In such cases, any harvested ore exceeding your ship capacity will be irrevocably lost in space.
+
+`)
+(53981, `In the <b><font color=yellow>misc</font></b> tab you can set that any object with a broadcast on them are moved to the top automatically.`)
+(53982, `To join a corporation, you need to send in an application. The easiest way to do this is show the information of the corporation in question, and then click the "Apply to Join" button at the bottom of the information panel. Another method for applying is to travel to an office of the corporation, which should be visible on the advert. Once you are at the station find the office in the office listing in the lower right corner, then press <b><font color=yellow>apply to join</font></b>.`)
+(53983, `The <b><font color=yellow>filtering options</font></b> tab allows you to filter adverts by <b><font color=yellow>race</font></b>, <b><font color=yellow>operation</font></b>, <b><font color=yellow>location</font></b> and <b><font color=yellow>timezone</font></b>. Select what is appropriate and you will see the results instantly in the <b><font color=yellow>Other Adverts</font></b> tab.`)
+(53984, `There are other filtering options, including one that allows you to choose corporations based on their member count or alliance participation. Further choices are available on the <b><font color=yellow>filtering options</font></b> tab.`)
+(53985, `The best way to advance in EVE is through cooperation. By joining a corporation formed by other capsuleers you can more easily and quickly rise in the ranks and achieve greatness. The best way to start is to look through the <b><font color=yellow>Corporation Registry</font></b> and find a suitable candidate. Open the <b><font color=yellow>Corporation window</font></b> from the Neocom.`)
+(53986, `Under the certificates tab you will see a list of certificates that you can claim already based on your skills. You can navigate through the categories as you wish. But for this tutorial, select the <b><font color=yellow>Starter Professions</font></b> category and select a certificate of your choice under the <b><font color=yellow>Basic</font></b> category.`)
+(53987, `Agent missions will automatically create bookmarks to the mission location. There are other types of bookmarks that you can create yourself, as well. `)
+(53988, `To create a bookmark, first you must open the <font color=yellow><b>People and Places</b></font> menu. <br><br>
+
+The menu is highlighted now. Open it. `)
+(53989, `Once the people and places menu is open, navigate to the tab named <font color=yellow>Places</b></font>. <br><br>
+
+To create your own bookmark, click the <font color=yellow><b>Add Bookmark</b></font> button located at the bottom of the Places menu. This will bookmark your current location. If you are docked at a station, it will bookmark that station. If you are located in space, it will bookmark those coordinates in space so that you can warp back to the same area later.<br><br>
+
+Try creating your own bookmark now by pressing the button.
+`)
+(53990, `You may have noticed when you created your bookmark that you can attach notes to it and name it whatever you like. Bookmarks are given default names based on your current location. You can edit that name, and attach notes for your own reference. `)
+(53991, `You are also able to create physical copies of bookmarks, which you can then share with other players. <br><br>
+
+If you want to move the bookmark, drag it from your people and places to either your item hangar, or your cargo hold. This will move the bookmark from your people and places menu to your hangar. <br><br>
+
+If you want to copy the bookmark, hold down the <font color=yellow><b>Shift</b></font> key while you drag the bookmark from the people and places menu to your hangar or cargo bay. This will create a new copy of the bookmark. <br><br>
+
+You are able to copy multiple bookmarks in this way, but you can only copy five at one time.
+`)
+(53992, `You can transfer physical bookmarks back into your people and places menu by reversing the process. <br><br>
+
+To move the bookmark, drag it from your hangar or cargo bay into the people and places menu. <br><br>
+
+Note that you can only move a bookmark back into people and places. You cannot copy it in this way.
+`)
+(53993, `To delete a bookmark, right click the bookmark in the people and places menu and select <font color=yellow><b>Remove Location. </b></font> <br><br>
+
+To organize your bookmarks into folders, click the <font color=yellow><b>Create Folder</b></font> button, name your folder, and drag the desired bookmarks into the new folder.
+`)
+(53994, `You can create and store as many bookmarks as you like. <br><br>
+
+Bookmarks never expire. They can only be deleted if you remove them. <br><br>
+
+Bookmarks are extremely useful for creating <font color=yellow><b>safe spots</b></font> – hidden areas in space which can be difficult for other players to locate. More information about this tactic is covered in the EVElopedia article linked on the next page.
+`)
+(53995, `Please refer to the following EVElopedia articles for more information about <a href="evebrowser: http://wiki.eveonline.com/en/wiki/Bookmarks">bookmarks</a>. `)
+(53996, `Use the <b><font color=yellow>flatten / unflatten</font></b> button in the world map control panel to toggle between a 2D and a 3D map of the known cluster. Choose the one you like the most.`)
+(53997, `Use the overview to locate hostile vessels inside this area. Each hostile ship is represented by a <font color=red><b>red crosshair</b></font>. `)
+(53998, `The <b><font color=yellow>left mouse button</font></b> is used for selecting things, pressing buttons, dragging and dropping, and other command functions.<br><br>
+
+Try selecting the acceleration gate in front of you now with a <b><font color=yellow>left-click</font></b>.
+`)
+(53999, `To manually pilot your ship, <font color=yellow><b>double-click</b></font> anywhere in space in the direction you wish to move.<br><br>
+
+<img src="res:/Tutorial2/img/freemovementdoubleclick.png">
+`)
+(54000, `You are now being given a weapon module and a defensive module. They will be placed inside your <b><font color=yellow>item hangar</b></font>. Open your hangar now by selecting the highlighted button.`)
+(54001, `You can exit the station instantly at any time by clicking the <b><font color=yellow>Undock</font></b> button. It is highlighted now. <br><br>
+
+Once your ship is fitted and you are ready, undock to begin your next mission.
+`)
+(54002, `When you are ready, proceed to the next area by activating the acceleration gate. `)
+(54003, `In the <font color=yellow><b>Mission Window</b></font>, you will see a hyperlinked name of the star system where you have to travel. <font color=yellow><b>Right-click</b></font> it, and select <font color=yellow><b>Set Destination</b></font>.<br><br>
+
+<img src="res:/Tutorial2/img/en/setdestinationrclick.png" localize = True>`)
+(54004, `The colonized worlds of EVE are connected by a network of <font color=yellow><b>stargates</b></font>. These giant structures are situated on top of wormholes, which allow starships to travel between systems in only a few seconds. <br><br>
+
+Usually there will be multiple stargates in a single system, meaning the route to your destination may not always be clear. <br><br>
+
+Because you have already used the <font color=yellow><b>Set Destination</b></font> command, the stargates leading to your destination will be highlighted in <font color=yellow><b>yellow</b></font> on the overview for you.
+`)
+(54005, `To access your skillbook, open your <font color=yellow><b>items hangar</b></font>, which is highlighted now. `)
+(54006, `To access your skillbook, open your <font color=yellow><b>items hangar</b></font>, which is highlighted now. `)
+(54007, `You are now being given a weapon module and a defensive module. They will be placed inside your <b><font color=yellow>item hangar</b></font>. Open your hangar now by selecting the highlighted button.`)
+(54008, `You are now being given a weapon module and a defensive module. They will be placed inside your <b><font color=yellow>item hangar</b></font>. Open your hangar now by selecting the highlighted button.`)
+(54009, `You are now being given a weapon module and a defensive module. They will be placed inside your <b><font color=yellow>item hangar</b></font>. Open your hangar now by selecting the highlighted button.`)
+(54010, `Lasers use <b><font color=yellow>frequency crystals</font></b> as ammunition. One of these crystals has been placed inside your ship's cargo. You should load it into your weapon now. <br><br>
+
+To do so, <b><font color=yellow>right-click</font></b> the weapon module and select <b><font color=yellow>Multifrequency S</font></b>. This will load a small multifrequency crystal into the turret. <br><br>
+
+<img src="res:/Tutorial2/img/en/selectammo.png" localize = True>`)
+(54011, `Loading different types of ammunition will affect the <b><font color=yellow>optimal range</font></b> of your weapons. There is one simple rule to remember: <b><font color=yellow>the closer the range, the more damage you deal</font></b>. The ammunition you were given is the closest range available, and therefore does the most damage. <br><br>
+
+You can see exactly how different ammunition affects your weapons at any time by loading the ammunition, <b><font color=yellow>right-clicking</font></b> the loaded module, and selecting <b><font color=yellow>Show Info</font></b>. This will open up a detailed overview of your weapon’s statistics, including optimal range and falloff.
+`)
+(54012, `Hybrid weapons need ammunition to fire. A small stack of charges has been placed inside your ship's cargo. You should load it into your weapon now. <br><br>
+
+To do so, <b><font color=yellow>right-click</font></b> the weapon module and select <b><font color=yellow>Antimatter S</font></b>. This will load a stack of small antimatter charges into the turret.<br><br>
+
+<img src="res:/Tutorial2/img/en/selectammo.png" localize = True>
+
+`)
+(54013, `Loading different types of ammunition will affect the <b><font color=yellow>optimal range</font></b> of your weapons. There is one simple rule to remember: <b><font color=yellow>the closer the range, the more damage you deal</font></b>. The ammunition you were given is the closest range available, and therefore does the most damage. <br><br>
+
+You can see exactly how different ammunition affects your weapons at any time by loading the ammunition, <b><font color=yellow>right-clicking</font></b> the loaded module, and selecting <b><font color=yellow>Show Info</font></b>. This will open up a detailed overview of your weapon’s statistics, you will find the optimal range and falloff at the bottom of the Attributes tab.
+`)
+(54014, `When you are ready, proceed to the next area by activating the acceleration gate.`)
+(54015, `Loading different types of ammunition will affect the <b><font color=yellow>optimal range</font></b> of your weapons. There is one simple rule to remember: <b><font color=yellow>the closer the range, the more damage you deal</font></b>. The ammunition you were given is the closest range available, and therefore does the most damage. <br><br>
+
+You can see exactly how different ammunition affects your weapons at any time by loading the ammunition, <b><font color=yellow>right-clicking</font></b> the loaded module, and selecting <b><font color=yellow>Show Info</font></b>. This will open up a detailed overview of your weapon’s statistics, including optimal range and falloff.
+`)
+(54016, `When you are ready, proceed to the next area by activating the acceleration gate.`)
+(54017, `When you are ready to head to the academy, undock your ship. `)
+(54018, `You should take a moment and learn how to look more closely at your surroundings. <br><br>
+
+You should notice that there are a number of ships on display at the academy. You can view them all more closely by using the <b><font color=yellow>Look At</font></b> function, which will center the camera around the ship you’ve selected. <br><br>
+
+To look at a ship or other object in space, select it with <b><font color=yellow>left-click</font></b>, then in the selected items panel, click the <b><font color=yellow>Look At</font></b> button, represented by the icon of an eye. <br><br>
+
+Note that you can only look at ships and objects that are <b><font color=yellow>within 100km</font></b> range of your ship, and that you cannot look at a ship that is activating its warp drive.
+`)
+(54019, `You can also retrieve basic information about anything you see. To do so, select the object as you did before, and in the selected items panel, click the <b><font color=yellow>Show Info</font></b> button. <br><br>
+
+Try it now on one of the ships you see assembled at the academy. You should notice that the information window gives you a detailed description of the ship and its role – invaluable information for a capsuleer just starting out. <br><br>
+
+Once you are finished looking at the ships, you should return to me to complete your basic training.<br><br>
+
+<img src="res:/Tutorial2/img/en/selectedlookat.png" localize = True>`)
+(54020, `Now the destination is set, warp to the highlighted stargate and jump back through to your starting solar system. <br><br>
+
+Once you have arrived, dock at the station and speak with me again to complete the mission.
+`)
+(54021, `Now that you’ve covered the basics of capsule piloting you are ready for more advanced training courses. Each course covers a particular area of specialization such as asteroid mining or advanced combat tactics. <br><br>
+
+These courses are taught by agents located not far from here. I will send you over to them as soon as you’re ready.
+`)
+(54022, `You should see a new window detailing the various courses on offer at this station. Each is designed to let you experiment hands-on with various activities and careers in New Eden, without investing much time training the relevant skills. <br><br>
+
+You can take these courses in any order, so start with whatever interests you most. Keep in mind that Declining a mission from an agent is permanent. This is also true if you allow an opened mission to expire. You can check the expiration date from your Journal.
+`)
+(54023, `Once you have a skill in training, click next to continue. `)
+(54024, `Once you have a skill in training, click next to continue. `)
+(54025, `The skill queue allows you to schedule the next 24 hours of training. If the training time on a skill exceeds 24 hours, it will be added to the end of the queue.<br><br>
+
+Drag the Repair Systems skillbook from your item hangar into your skill queue. This will automatically inject the skillbook into your brain.<br><br>
+
+Now drag the skill from your character sheet another three times to fill your schedule. You can find the <font color=yellow><b>Repair Systems</b></font> skill under the <font color=yellow><b>Mechanics</b></font> category.<br><br>
+
+<img src="res:/Tutorial2/img/en/skillqueuex3.png" localize = True><br><br>
+
+Finish by clicking <font color=yellow><b>Apply</b></font> to confirm the schedule and begin training.<br><br>
+
+Note that <font color=yellow><b>skills train in real time, so you should always have one in training.</b></font>.`)
+(54026, `In EVE <font color=yellow><b>you advance your character by training skills</b></font>. You can acquire these from missions or tutorials such as this one. They can also be bought from the Market. <br><br>
+
+You are being given the <font color=yellow><b>Repair Systems</b></font> skillbook now. Next you will learn how to train the skill. `)
+(54027, `In EVE <font color=yellow><b>you advance your character by training skills</b></font>. You can acquire these from missions or tutorials such as this one. They can also be bought from the Market.<br><br>
+
+You are being given the <font color=yellow><b>Shield Operation</b></font> skillbook now. Next you will learn how to train the skill. `)
+(54028, `When you speak with an available agent, they will offer you a mission through the <font color=yellow><b>Agent Conversation window</b></font>. <br><br>
+
+Click the <font color=yellow><b>Accept</b></font> button on the <font color=yellow><b>Agent Conversation window</b></font> to begin the certification course.<br><br>
+
+<img src="res:/Tutorial2/img/en/acceptmission.png" localize = True>
+`)
+(54029, `Warp to the mission encounter site and <b><font color=yellow>activate</font></b> your shield booster once you start taking damage. Notice how fast the shield regenerates when the shield booster is active. `)
+(54030, `Hello again, capsuleer.<br><br>
+
+<font color=yellow><b>This is a tutorial window</b></font>. You will see these at various points as you progress through your training. Make sure to read the instructions in each one – they are designed to help you. <br><br>
+
+To navigate the pages in a tutorial, click the <font color=yellow><b>Back</b></font> and <font color=yellow><b>Next</b></font> buttons.
+`)
+(54031, `<b><u>To open a tutorial again:</b></u><br><br>
+• Click the help menu button which is now highlighted, or press F12.<br>
+• Within the help menu, there is a tab labeled <font color=yellow><b>Tutorials</b></font>. <br>
+• Open that tab and navigate to the category <font color=yellow><b>A new life: Your first days</b></font>.<br>
+• All of the tutorials you will see in your beginning days are located here.
+`)
+(54032, `Once you complete this tutorial, a new one will open that teaches you how to walk around your captain’s quarters (where you are now).<br><br>
+
+Click the <font color=yellow><b>Next</b></font> button to continue.
+`)
+(54033, `<font color=yellow><b>Approach</b></font> allows you to approach any selected object in space. Once you have arrived inside the final area of the site, you should try to approach an object in space. <br><br>
+
+You will see a smaller structure nearby. Inside it is the item I asked you to retrieve. Select the structure with a <b><font color=yellow>left-click</font></b>. This will place it in your selected items panel.<br><br>
+
+After that, click the <b><font color=yellow>Approach</font></b> button to begin moving towards the structure. You will continue to approach until you harmlessly bounce off it.<br><br>
+
+<img src="res:/Tutorial2/img/en/Approachselecteditem.png" localize = True>`)
+(54034, `There is a limit of one outstanding contract per person, but the proper skills can increase that number, <b><font color=yellow>Contracting</font></b> being one and <b><font color=yellow>Corporation Contracting</font></b> another.`)
+(54035, `Look at your <font color=yellow><b>overview</b></font> to identify the stargates in this system. <br><br>
+
+Notice that one of the stargates in this system will be highlighted <font color=yellow><b>yellow</b></font>.<br><br>
+
+<font color=yellow><b>Right-click</b></font> that stargate and select <font color=yellow><b>Warp to within 0m</b></font>.
+
+<br><br> <img src="res:/Tutorial2/img/en/overviewwarptostargate.png" localize=True>`)
+(54036, `Inviting members to your corporation is easy. Instruct them to look up your corporation's information page. At the bottom of the information window, they can press the <b><font color=yellow>Apply to Join</font></b> button and fill out a simple application. Once done, you can accept them through the <b><font color=yellow>members</font></b> tab in the corporation window.`)
+(54037, `When working with other pilots the <b><font color=yellow>shield transporter</font></b> module can be very useful. This module allows you to repair a gang member's shield remotely while in space.<br><br>
+
+Look in your hangar, if you have not been given a <b><font color=yellow>shield transporter</font></b> module by your agent, buy one now.
+`)
+(54038, `All ships can warp freely within solar systems. In combat, your enemies can use this to escape you, a situation you want to avoid. To help keep your target in place, you can fit <b><font color=yellow>warp scramblers</font></b> or <b><font color=yellow>warp disruptors</font></b> to your ship.<br><br>
+
+Look in your hangar, if you have not been given a <b><font color=yellow>warp disruptor</font></b> module by your agent, buy one from the market now.
+`)
+(54039, `Different weapons have different types of charges: <br> <br>
+
+<UL>
+<LI><b><font color=yellow>Lasers</font></b> use frequency crystals.
+<LI><b><font color=yellow>Projectile turrets</font></b> use projectile ammo.
+<LI><b><font color=yellow>Hybrid turrets</font></b> use hybrid charges.
+<LI><b><font color=yellow>Missile launchers</font></b> use missiles.
+</UL> <br> <br>`)
+(54040, `<b><font color=yellow>Ammunition</font></b> (including frequency crystals and missiles) decides the type of damage your weapons deal: <br><br>
+
+<UL>
+<LI>Lasers can do <b><font color=yellow>EM</font></b> damage, <b><font color=yellow>Thermal</font></b> damage or a combination of both.
+<LI>Projectile weapons can do <b><font color=yellow>EM</font></b> damage, <b><font color=yellow>Explosive</font></b> damage, <b><font color=yellow>Kinetic</font></b> damage, <b><font color=yellow>Thermal</font></b> damage or a combination of these.
+<LI>Hybrid weapons can do <b><font color=yellow>Kinetic</font></b> damage, <b><font color=yellow>Thermal</font></b> damage or a combination of both.
+<LI>Missile launchers can do <b><font color=yellow>Thermal</font></b> damage, <b><font color=yellow>EM</font></b> damage, <b><font color=yellow>Kinetic</font></b> damage and <b><font color=yellow>Explosive</font></b> damage.
+</UL><br><br>`)
+(54041, `Please refer to the following EVElopedia article for more information about <a href="evebrowser:http://wiki.eveonline.com/wiki/Fitting_Strategy">general fitting strategies</a>.<br><br>
+
+Clicking <b><font color=yellow>done</font></b> now will close this tutorial. To open it again, press <b><font color=yellow>F12</font></b>, select the <b><font color=yellow>tutorials</font></b> tab, expand the <b><font color=yellow>advanced warfare</font></b> folder, then choose the <b><font color=yellow>minimizing your losses</font></b> option inside.`)
+(54042, `The mining profession is one of the most lucrative careers a pilot can choose. Miners provide minerals for all manufactured items and ships. Every ship, apart from the rookie ships, is built from minerals the miners in New Eden have harvested.<br><br><font color=yellow><b>Mining is the backbone of the EVE universe.</b></font>
+`)
+(54043, `<font color=yellow><b>Most races rely on multiple types of weapons</b></font>. That means that most ships will allow you to carry either a <font color=yellow><b>mix</b></font> of guns and missile launchers, guns and drones or another combination.<BR><BR>
+
+It is always a good idea to see what bonuses your ship provides. You can see these bonuses by right-clicking on your ship and selecting show info, and looking at the <font color=yellow><b>description</b></font> tab. You will get better performance by fitting your ship with weapons that will benefit from these bonuses.`)
+(54044, `<font color=yellow><b>Most races rely on multiple types of weapons</b></font>. That means that most ships will allow you to carry either a <font color=yellow><b>mix</b></font> of guns and missile launchers, guns and drones or another combination.<BR><BR>
+
+It is always a good idea to see what bonuses your ship provides. You can see these bonuses by right-clicking on your ship and selecting show info, and looking at the <font color=yellow><b>description</b></font> tab. You will get better performance by fitting your ship with weapons that will benefit from these bonuses.`)
+(54045, `<font color=yellow><b>Most races rely on multiple types of weapons</b></font>. That means that most ships will allow you to carry either a <font color=yellow><b>mix</b></font> of guns and missile launchers, guns and drones or another combination.<BR><BR>
+
+It is always a good idea to see what bonuses your ship provides. You can see these bonuses by right-clicking on your ship and selecting show info, and looking at the <font color=yellow><b>description</b></font> tab. You will get better performance by fitting your ship with weapons that will benefit from these bonuses.`)
+(54046, `<font color=yellow><b>Most races rely on multiple types of weapons</b></font>. That means that most ships will allow you to carry either a <font color=yellow><b>mix</b></font> of guns and missile launchers, guns and drones or another combination.<BR><BR>
+
+It is always a good idea to see what bonuses your ship provides. You can see these bonuses by right-clicking on your ship and selecting show info, and looking at the <font color=yellow><b>description</b></font> tab. You will get better performance by fitting your ship with weapons that will benefit from these bonuses.
+`)
+(54047, `As you can see, space is big... well, huge actually. The <b><font color=yellow>World Map Control Panel</font></b> is a versatile and powerful tool that helps you to plot a course and travel safely... or unsafely, if that is what you prefer.`)
+(54048, `You can control your ship's autopilot from the map, by selecting a star and <b><font color=yellow>right clicking</font></b> and selecting <b><font color=yellow>set destination</font></b> or by selecting <b><font color=yellow>add waypoint</font></b>. Activating your autopilot now would automatically fly your ship to this location.`)
+(54049, `You fit items to your ship by using the <b><font color=yellow>fitting service</font></b> window. Open it now by pressing the highlighted button on the <b><font color=yellow>station services</font></b> panel.<br><br>
+
+Every station offers various services, such as fitting, repairing and insuring your ship. All stations offer a fitting service, meaning you can dock at any station to re-fit your ship.
+`)
+(54050, `You fit items to your ship by using the <b><font color=yellow>fitting service</font></b> window. Open it now by pressing the highlighted button on the <b><font color=yellow>station services</font></b> panel.<br><br>
+
+Every station offers various services, such as fitting, repairing and insuring your ship. All stations offer a fitting service, meaning you can dock at any station to re-fit your ship.
+`)
+(54051, `You fit items to your ship by using the <b><font color=yellow>fitting service</font></b> window. Open it now by pressing the highlighted button on the <b><font color=yellow>station services</font></b> panel.<br><br>
+
+Every station offers various services, such as fitting, repairing and insuring your ship. All stations offer a fitting service, meaning you can dock at any station to re-fit your ship.
+`)
+(54052, `You fit items to your ship by using the <b><font color=yellow>fitting service</font></b> window. Open it now by pressing the highlighted button on the <b><font color=yellow>station services</font></b> panel.<br><br>
+
+Every station offers various services, such as fitting, repairing and insuring your ship. All stations offer a fitting service, meaning you can dock at any station to re-fit your ship.
+`)
+(54053, `Every ship has three slot types where modules are fitted: high, medium and low power. Different types of modules fit into different slots on your ship.<br><br>
+
+Weapons go into your ship's <b><font color=yellow>high power slots</font></b>. Armor repairers fit into your ship’s <b><font color=yellow>low power slots</font></b>. <br><br>
+
+To install the weapon module, drag it from your <b><font color=yellow>items hangar</font></b> to the center of the <b><font color=yellow>fitting service</font></b> window, where your ship is displayed.<br><br>
+
+Repeat the process to fit the small armor repairer. <br><br>
+
+<img src="res:/Tutorial2/img/shipfittingweapon.png">
+`)
+(54054, `Every ship has three slot types where modules are fitted: high, medium and low power. Different types of modules fit into different slots on your ship.<br><br>
+
+Weapons go into your ship's <b><font color=yellow>high power slots</font></b>. Armor repairers fit into your ship’s <b><font color=yellow>low power slots</font></b>. <br><br>
+
+To install the weapon module, drag it from your <b><font color=yellow>items hangar</font></b> to the center of the <b><font color=yellow>fitting service</font></b> window, where your ship is displayed.<br><br>
+
+Repeat the process to fit the small armor repairer. <br><br>
+
+<img src="res:/Tutorial2/img/shipfittingweapon.png">
+`)
+(54055, `Once you have destroyed the structure you will take some damage. You normally won’t take damage from nearby explosions, but for training purposes, this time around you've taken a little bit. <br><br>
+
+Use the defensive module you fitted to repair the damage before moving on. <br><br>
+
+When ready, proceed to the next area by using the acceleration gate. `)
+(54056, `Now that you have a lock, activate your weapon on the enemy. The weapon module is highlighted now. <br><br>
+
+Your turret's optimal range is not very long, however, so you may have to <b><font color=yellow>approach</font></b> the enemy yourself, or wait for them to close the distance. <br><br>
+
+Once they get within optimal range, your weapons will begin to hit.
+`)
+(54057, `The agents who can teach you about career specialization are located a few jumps from this location. You will need to travel through multiple star systems to reach them. <br><br>
+
+In the <font color=yellow><b>Mission Window</b></font>, you will see the hyperlinked name of the star system where you have to travel. <font color=yellow><b>Right-click</b></font> it, and select <font color=yellow><b>Set Destination</b></font>, just as you did in the last mission. <br><br>
+
+Click next when you are ready to depart the system. Remember that any items you’ve acquired so far will remain in this system unless you take them with you.<br><br>
+
+<img src="res:/Tutorial2/img/en/setdestinationrclick.png" localize = True>
+`)
+(54058, `To change your overview settings press the <b><font color=yellow>small</font></b> white <b><font color=yellow>icon</font></b> and select <b><font color=yellow>open overview settings</font></b>.
+
+`)
+(54059, `Your ship is waiting for you to board it now. To board, <font color=yellow><b>right-click</b></font> the ship in space and select <font color=yellow><b>Board Ship</b></font> from the <font color=yellow><b>contextual menu</b></font>. <br><br>
+
+<img src="res:/Tutorial2/img/en/boardshipoverview.png" localize = True> <br><br>
+
+Note that <font color=yellow><b>your capsule goes inside the other ship</b></font>. Whenever your ship is destroyed, the capsule will be ejected. Enemy NPCs (non-player characters) will never attack your capsule, but other players can. <br><br>
+
+Your vessel is also known as a <font color=yellow><b>Rookie Ship</b></font>. <font color=yellow><b>You have access to an unlimited supply of Rookie Ships</b></font>, and will be issued one if you dock at a station without any other ship available.
+
+
+`)
+(54060, `To reach your destination, you will need to repeatedly warp to stargates and jump through them. Because you have set a destination, the correct stargate will be highlighted in each system you pass through. <br><br>
+
+Note that once you have set a destination, you can also activate your <font color=yellow><b>Autopilot</b></font>. This will automatically warp your ship to the destination stargates and jump you through them. However, autopilot will always warp you to the stargates at <font color=yellow><b>15km</b></font> and then initiate an approach to them. This can add significantly to your travel time, but does allow you to travel without actively piloting your ship through each system. <br><br>
+
+When you arrive at your destination system the autopilot will warp you to and dock in your destination station.
+`)
+(54061, `In your Heads-Up Display (HUD) you can monitor the status of your ship. <br><br>
+
+<img src="res:/Tutorial2/img/tutshiphud.png"> <br><br>
+
+By hovering your mouse over each section, you can get information about the status of your ship's integrity, power supply, velocity and more. <font color=yellow><b>Try this now.</b></font> <br><br>
+
+1. <font color=yellow><b>Capacitor:</b></font> Your ship's power source, used to power modules and the ship's warp drive. Your capacitor recharges slowly by itself.<br>
+2. <font color=yellow><b>Shields:</b></font> The first part of the ship to take damage.<br>
+3. <font color=yellow><b>Armor:</b></font> If your shield is lowered, you will then take armor damage.<br>
+4. <font color=yellow><b>Structure:</b></font> Also known as your hull, this is the weakest protective layer on your ship.<br>
+5. <font color=yellow><b>Speedometer:</b></font> Your ship's current speed. Click on the bar to set a speed manually.<br>
+6. <font color=yellow><b>Stop:</b></font> Click the white triangle to stop your ship.
+`)
+(54062, `<img align="right" src="res:/Tutorial2/img/leftclickhold.png">To move the camera around, hold down the <font color=yellow><b>left mouse button</b></font> and drag it around your character.<br><br>
+
+<img align="right" src="res:/Tutorial2/img/mousewheel.png">You can zoom by using the <font color=yellow><b>scroll wheel</b></font>.
+
+
+
+`)
+(54063, `The <font color=yellow><b>right mouse button</b></font> is used to bring up the <font color=yellow><b>contextual menu</b></font>. The <font color=yellow><b>contextual menu</b></font> gives you a basic set of options, depending on what you right-click.<br><br>
+
+The <font color=yellow><b>contextual menu</b></font> is an important and useful tool. Most common actions are handled through right-clicking.<br><br>
+
+Try using the right-click menu now on the acceleration gate next to you. Acceleration gates are used to travel between areas of a site, such as the one you are in now. <br><br>
+
+Right-click the gate and select <font color=yellow><b>Activate Gate</b></font>. You should see it activate and automatically warp you to the next area. <br><br>
+
+<img src="res:/Tutorial2/img/en/rclickactivategatespace.png" localize = True>
+`)
+(54064, `If you have an object in space selected it will show up in the <b><font color=yellow>selected items</font></b> panel above the overview. To do so, click on any item in space. Here you can also issue orders such as <b><font color=yellow>approach</font></b>, <b><font color=yellow>target</font></b>, or <b><font color=yellow>show information</font></b>.<br><br>
+
+Try using the selected items window this time to activate the acceleration gate. <br><br>
+
+Select the gate in space using your <b><font color=yellow>left mouse button</font></b>. Then click the <b><font color=yellow>Activate Gate</font></b> button in the selected items panel. This should put you in warp to the last area of the tutorial site.<br><br>
+
+<img src="res:/Tutorial2/img/en/activategateselecteditem.png" localize = True>`)
+(54065, `You can zoom by using the <font color=yellow><b>scroll wheel</b></font>.  <br><br> <img src="res:/Tutorial2/img/mousewheel.png"> <br><br>
+
+Alternatively, you can hold down both mouse buttons and move the mouse up and down. <br><br><img src="res:/Tutorial2/img/randlmousehold.png">  `)
+(54066, `You are currently located inside your captain's quarters, a private area inside every station that is only available to you. <br><br>
+
+To move, use the W, A, S & D keys. <br><br>
+
+<img src="res:/Tutorial2/img/keyboard.png"><br><br>
+
+You can also <font color=yellow><b>double-click</b></font> the <font color=yellow><b>left mouse button</b></font> to walk to a location.
+`)
+(54067, `To move the camera around, hold down the <font color=yellow><b>left mouse button</b></font> and drag it around your character.<br><br>
+
+<img src="res:/Tutorial2/img/leftclickhold.png"><br><br>
+
+You can zoom by using the <font color=yellow><b>scroll wheel</b></font>.<br><br>
+
+<img src="res:/Tutorial2/img/mousewheel.png">
+
+
+
+`)
+(54068, `You can manipulate the camera around your ship in any way by holding down the <b><font color=yellow>left mouse button</font></b> in empty space and moving it around. Try this now. <br><br>
+
+Notice the view will stay centered on your ship. <br><br>
+
+<img src="res:/Tutorial2/img/leftclickhold.png">`)
+(54069, `Once your <font color=yellow><b>cargohold</b></font> is full, make your way back to a station, empty your <font color=yellow><b>cargohold</b></font> and resume mining. `)
+(54070, `There are <b><font color=yellow>three</font></b> basic types of contracts: <b><font color=yellow>Auction</font></b>, <b><font color=yellow>Item Exchange</font></b> and <b><font color=yellow>Courier</font></b>. When making a contract, you are required to select one of those types and decide whether it should be a public or private contract, if that is one of the options.`)
+(54071, `Whenever an agent gives you a mission somewhere in space, they will automatically create a bookmark for you. You can warp your ship to these bookmarks.<br><br>
+
+To warp to the location of your first mission, <font color=yellow><b>right-click</b></font> anywhere in space to bring up the <font color=yellow><b>contextual menu</b></font>. Select <font color=yellow><b>Agent Missions: Covering the Basics</b></font> and then <font color=yellow><b>Encounter (Deadspace)</b></font>. Finally, select <font color=yellow><b>Warp to Location</b></font>.`)
+(54072, `To warp to the location of your second mission, <font color=yellow><b>right-click</b></font> anywhere in space to bring up the <font color=yellow><b>contextual menu</b></font>. Select <font color=yellow><b>Agent Missions: Combat Basics</b></font> and then <font color=yellow><b>Encounter (Deadspace)</b></font>. Finally, select <font color=yellow><b>Warp to Location</b></font>.`)
+(54073, `Every ship has three slot types where modules are fitted: high, medium and low power. Different types of modules fit into different slots on your ship.<br><br>
+
+Weapons go into your ship's <b><font color=yellow>high power slots</font></b>. Shield boosters fit into your ship’s <b><font color=yellow>medium power slots</font></b>. <br><br>
+
+To install the weapon module, drag it from your <b><font color=yellow>items hangar</font></b> to the center of the <b><font color=yellow>fitting service</font></b> window, where your ship is displayed.<br><br>
+
+Repeat the process to fit the small shield booster. <br><br>
+
+<img src="res:/Tutorial2/img/shipfittingweapon.png">
+
+`)
+(54074, `Every ship has three slot types where modules are fitted: high, medium and low power. Different types of modules fit into different slots on your ship.<br><br>
+
+Weapons go into your ship's <b><font color=yellow>high power slots</font></b>. Shield boosters fit into your ship’s <b><font color=yellow>medium power slots</font></b>. <br><br>
+
+To install the weapon module, drag it from your <b><font color=yellow>items hangar</font></b> to the center of the <b><font color=yellow>fitting service</font></b> window, where your ship is displayed.<br><br>
+
+Repeat the process to fit the small shield booster. <br><br>
+
+<img src="res:/Tutorial2/img/shipfittingweapon.png">`)
+(54075, `Now that you have a skill schedule set, the first thing you should do is graduate by completing the <font color=yellow><b>Pilot Certification Course</b></font>.<br><br>
+
+The course teaches the basics of <font color=yellow><b>Starship Navigation</b></font>, <font color=yellow><b>Combat</b></font> and <font color=yellow><b>Interstellar Travel</b></font>.<br><br>
+
+To begin your certification course, start a conversation with me through the <font color=yellow><b>Agents</b></font> tab of the station menu. This tab is highlighted now.<br><br>
+
+To speak with any agent, <font color=yellow><b>right-click</b></font> them and select <font color=yellow><b>Start Conversation</b></font>. <br><br>
+
+<img src="res:/Tutorial2/img/en/agentconvo.png" localize = True>
+`)
+(54076, `Now that you are on the balcony of your captain's quarters, you can exit the station by pressing the <b><font color=yellow>Undock</font></b> button on the guard railing. You should see it to your left of the balcony. It can also be reached from the bottom corner of your Neocom.<br><br>
+
+<img src="res:/Tutorial2/img/undock.png">`)
+(54077, `Information about any missions you’ve accepted can be found in the <b><font color=yellow>Mission Journal</font></b>, which is highlighted now. To access information, select <br><br>
+
+Open the journal, and then <b><font color=yellow>right-click</font></b> the mission that you see listed and select <b><font color=yellow>Read Details</font></b>. This will display a similar window to the agent dialogue you saw when you were first offered the mission.
+`)
+(54078, `You’ve arrived at your destination. Good work.<br><br>
+
+You should see the agents in the station panel now. <br><br>
+
+Click next to continue.
+`)
+(54079, `Once you are within <font color=yellow><b>2,500m</b></font> of the stargate, <font color=yellow><b>right-click</b></font> it (either in space or on your overview) and select <font color=yellow><b>Jump</b></font> to travel to the destination solar system.<br><br>
+
+<img src="res:/Tutorial2/img/en/rclickstargatespace.png" localize = True> <br><br>
+
+Click <font color=yellow><b>Next</b></font> when you have arrived in the neighboring system. `)
+(54080, `Projectile weapons need ammunition to fire. A small stack of charges has been placed inside your ship's cargo. You should load it into your weapon now. <br><br>
+
+To do so, <b><font color=yellow>right-click</font></b> the weapon module and select <b><font color=yellow>EMP S</font></b>. This will load a stack of small electromagnetic pulse charges into the turret. <br><br>
+
+<img src="res:/Tutorial2/img/en/selectammo.png" localize = True>
+`)
+(54081, `On-board scanners are capable of scanning outwards from your vessel in a <font color=yellow><b>64 AU radius</b></font>. Your task here is to find a hidden area known as <font color=yellow><b>cosmic anomaly</b></font>, which can be located if they reside within your on-board scanner’s range.<br><br>
+
+<font color=yellow><b>When using an on-board scanner, your location is important.</b></font><b></b> <br><br>
+
+The on-board scanner searches outwards from your ship’s location when you begin to scan, but it only has a range of 64 AU. You will find that many systems are far larger than that, and will sometimes need to be scanned from multiple locations in order to map them entirely.`)
+(54082, `To begin a scan, click the <b><font color=yellow>analyze</font></b> button and your ship will begin the scan automatically. After 10 seconds, the analysis will be complete and any anomalies within range of your ship will be displayed in the <b><font color=yellow>scan results</font></b> menu.<br><br>
+
+To warp your ship to a cosmic anomaly, right click it in the scanner results menu and select <b><font color=yellow>warp to</font></b>. <b><font color=yellow><br><br>
+
+Remember, if you cannot find any cosmic anomaly after your first scan, try moving around and performing another one in a different place, like a planet.</font></b>`)
+(54083, `To train a skill, you need to add it to your <font color=yellow><b>skill queue</b></font>. <br><br>
+
+Open your skill queue now by first opening the <font color=yellow><b>Character Sheet</b></font>. It is highlighted now. `)
+(54084, `To train a skill, you need to add it to your <font color=yellow><b>skill queue</b></font>. <br><br>
+
+Open your skill queue now by first opening the <font color=yellow><b>Character Sheet</b></font>. It is highlighted now.
+`)
+(54085, `The skill queue allows you to schedule the next 24 hours of training. If the training time on a skill exceeds 24 hours, it will be added to the end of the queue. <br><br>
+
+Drag the Shield Operation skillbook from your item hangar into your skill queue. This will automatically inject the skillbook into your brain. <br><br>
+
+Now drag the skill from your character sheet another three times to fill your schedule. You can find the <font color=yellow><b>Shield Operation</b></font> skill under the <font color=yellow><b>Engineering</b></font> category. <br><br>
+
+<img src="res:/Tutorial2/img/en/skillqueuex3.png" localize = True><br><br>
+
+Finish by clicking <font color=yellow><b>Apply</b></font> to confirm the schedule and begin training. <br><br>
+
+Note that <font color=yellow><b>skills train in real time, so you should always have one in training.</b></font>
+
+
+`)
+(54086, `Before you can fire your weapon, you first need to lock on to the enemy ships. <br><br>
+
+The easiest method to is to hold down the <b><font color=yellow>control key</font></b> and then <b><font color=yellow>left-click</font></b> on the targets in your overview. <br><br>
+
+<img src="res:/Tutorial2/img/en/controlleftclick.png" localize = True><br><br>
+
+Once locked, the enemy ships will be displayed as icons at the top of your screen.
+
+`)
+(54087, `Now you have completed your current mission, you should request another one from me via the <font color=yellow><b>Agent Conversation</b></font> window. <br><br>
+
+With the window open, select the <font color=yellow><b>Request Mission</b></font> button to ask for your next mission.`)
+(54088, `You are currently located inside your captain's quarters, a private area inside every station that is only available to you. <br><br>
+
+To move, use the W, A, S & D keys. <br><br>
+
+<img src="res:/Tutorial2/img/keyboard.png"><br><br>
+
+You can also <font color=yellow><b>double-click</b></font> the <font color=yellow><b>left mouse button</b></font> to walk to a location.
+`)
+(54089, `Your first objective is to <b><font color=yellow>destroy the fuel depot</font></b> inside this area. <br><br>
+
+Select the fuel depot by <b><font color=yellow>left-clicking</font></b> on it in space. This will show it in the <b><font color=yellow>selected items panel</font></b>. From there, click on the <b><font color=yellow>target</font></b> button. You must lock your sensors on to the depot before you can fire your weapons. <br><br>
+
+Once you are locked on, <b><font color=yellow>left-click</font></b> on the weapon icon in your ship’s HUD. This will activate your weapons on the depot.
+`)
+(54090, `Your work here is done. You should head back to the station to complete the mission and accept your rewards. Select the station in the overview and then select the <font color=yellow><b>dock</b></font> option from the selected items panel.`)
+(54091, `To turn in your mission, open the <font color=yellow><b>Agents</b></font> tab on the station menu, then <font color=yellow><b>right-click Aura</b></font> and select <font color=yellow><b>Start Conversation</b></font> to open the mission window.<br><br>
+Once the mission window is open, select <font color=yellow><b>Complete Mission</b></font>.
+`)
+(54092, `From the Mission briefing window, you can see the name of the solar system that you came from. You must take the <b><font color=yellow>Pilot Certification Documents</font></b> back to the station in that system and hand them over to me. <b><font color=yellow>Right-click</font></b> the system name and select <b><font color=yellow>Set Destination</font></b>. <br><br>
+
+<img src="res:/Tutorial2/img/en/setdestinationrclick.png" localize = True>`)
+(54093, `The task you've accepted is a <font color=yellow><b>Courier Mission</b></font>. You must take the item I gave to your destination. When you arrive, you can speak with me remotely and complete the mission without returning back here. <br><br>
+
+Move the <font color=yellow><b>Clearance Documents</b></font> now from the item hangar to your ship's cargo bay. <br><br>
+
+You can access the cargo bay via the <font color=yellow><b>Ship Interface</b></font> panels in your captain's quarters.
+`)
+(54094, `You can also look around freely without centering the camera on your ship.<br><br>
+
+To do this, hold down the <b><font color=yellow>right mouse button</font></b> and move your mouse around.<br><br>
+
+<img src="res:/Tutorial2/img/rmousehold.png"><br><br>
+
+Note that you can also zoom while in free look mode by holding down the <b><font color=yellow>left mouse button</font></b> and moving the mouse backwards and forwards.
+`)
+(54095, `If you are taking too much damage, activate your defensive module by clicking on its icon in the <font color=yellow><b>Ship HUD</b></font>. `)
+(54096, `Once inside the <font color=yellow><b>Character Sheet</b></font>, you can find your skills in the <font color=yellow><b>Skills</b></font> tab. It should already be viewable now. `)
+(54097, `Once inside the <font color=yellow><b>Character Sheet</b></font>, you can find your skills in the <font color=yellow><b>Skills</b></font> tab. It should already be viewable now. `)
+(54098, `Welcome to your new life, pilot. My name is Aura. I am here to assist whenever you need me. `)
+(54099, `To turn in your mission, open the <font color=yellow><b>Agents</b></font> tab on the station menu, then <font color=yellow><b>right-click Aura</b></font> and select <font color=yellow><b>Start Conversation</b></font> to open the mission window.<br><br>
+
+Once the mission window is open, select <font color=yellow><b>Complete Mission</b></font>. <br><br>
+
+<img src="res:/Tutorial2/img/en/agentconvo.png" localize = True>
+`)
+(54100, `To warp to the Academy, <font color=yellow><b>right-click</b></font> anywhere in space to bring up the <font color=yellow><b>contextual menu</b></font>. Select <font color=yellow><b>Agent Missions: The Academy</b></font> and then <font color=yellow><b>Encounter</b></font>. Finally, select <font color=yellow><b>Warp to Location</b></font>.`)
+(54101, `When you undock for the first time you will be inside your capsule. Your capsule is located down the hallway of your captain's quarters, to the left of the ship hangar balcony. Proceed there now.  Note that you may close any remaining open windows before you undock.`)
+(54102, `Congratulations, you've arrived at the academy and are nearly done with your basic training. Before you start inspecting the fleet on display here, you should go and <b><font color=yellow>retrieve your Pilot Certification Documents</font></b>. They are located within the small <b><font color=yellow>Academy Office</font></b> nearby. <br><br>
+
+Remember, <b><font color=yellow>to loot you must get within 2,500m</font></b> of the structure, select it, open the container, and then drag the item to your ship's cargo hold. <br><br>
+
+Click next once you have retrieved your certificate.
+`)
+(54103, `In EVE, you can loot items from structures and the wrecks of destroyed ships. In both situations, looting works the same way. <br><br>
+
+To loot, <font color=yellow><b>left-click</b></font> the structure or wreck so that it shows in your <font color=yellow><b>selected items</b></font> view.<br><br>
+
+You will notice that there is now an icon of a container in the window. Click it to view the contents inside the structure or wreck. <br><br>
+
+<img src="res:/Tutorial2/img/en/lootcargoselecteditem.png" localize = True> <br><br>
+
+Note that <font color=yellow><b>you have to be within 2,500m</b></font> of a wreck or structure to loot from it.
+
+
+`)
+(54104, `Every ship has a cargo hold. You use the cargo hold to carry items around with you. To open your cargo, click the cargo button. It is highlighted now. <br><br>
+
+To loot an item and place it into your cargo hold, simply drag and drop the item from the structure or wreck window into your cargo hold window. You may also press "Loot All" to move everything to your ship's cargo at once.`)
+(54105, `Your work here is done. You should head back to the station to complete the mission and accept your rewards. Select the station in the overview and then select the <font color=yellow><b>dock</b></font> option from the selected items panel. Alternatively you can right click anywhere in space and use the contextual menu to dock at the station.`)
+(54106, `You can also use your speed to “tank” vessels using turret-based weaponry, simply by flying in a way that makes you more difficult to track. This is called “speed tanking” and works on the concept of <b><font color=yellow>transversal velocity</font></b>. <br><br>
+If your ship was sitting still, it would have zero transversal velocity, and it would be very easy for guns to hit you. As a general rule, the faster your ship moves, the greater its transversal velocity, but only if you move your ship laterally across the face of the hostile vessel shooting you. <br><br>
+If you were to fly directly towards a hostile gunship you would have a very low transversal velocity, regardless of your speed, and guns would be able to hit you easily.
+`)
+(66859, `Please continue the tutorial before activating the gate.`)
+(66860, `You must proceed further in the tutorial before activating this gate.`)
+(66861, `Please close the people and places window before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66862, `Please close the assets window before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66863, `Please close the cargo window before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66864, `Please close the character sheet window before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66865, `Please close the contracts window before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66866, `Please close the drone bay before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66867, `Please close the fitting station service before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66868, `Please close the items hangar before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66869, `Please close the science & industry station service before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66870, `Please close the map before continuing. This can be done by pressing <b><font color=yellow>F10</font></b>.`)
+(66871, `Please close the map browser before continuing. This can be done by pressing <b><font color=yellow>F11</font></b>.`)
+(66872, `Please close the market before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66873, `Please close the reprocessing station service before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66874, `Please close the wallet before continuing. This can be done by pressing <b><font color=yellow>[x]</font></b> in its upper-right corner.`)
+(66875, `Please open the people and places window before continuing.`)
+(66876, `Please open the assets window before continuing.`)
+(66877, `Please open the browser before continuing.`)
+(66878, `Please open the calculator before continuing.`)
+(66879, `Please open the channels and mailing list window before continuing. This can be done by pressing <b><font color=yellow>small wheel icon</font></b> in the upper-right corner of the chat window.`)
+(66880, `Please open the character sheet before continuing.`)
+(66881, `Please open the contracts window before continuing.`)
+(66882, `Please open the corporation window before continuing.`)
+(66883, `Please open the drone bay before continuing. This can be done in a station by right-clicking your ship and choosing <b><font color=yellow>open drone bay</font></b>.`)
+(66884, `Please open the help window before continuing. This can be done by pressing <b><font color=yellow>F12</font></b>.`)
+(66885, `Please open the EVE mail window before continuing.`)
+(66886, `Please open the insurance window before continuing.`)
+(66887, `Please open the items hangar before continuing.`)
+(66888, `Please open the journal before continuing.`)
+(66889, `Please open the jukebox before continuing.`)
+(66890, `Please open the log window before continuing.`)
+(66891, `Please open the science & industry service before continuing.`)
+(66892, `Please open the map before continuing. This can be done by pressing <b><font color=yellow>F10</font></b>.`)
+(66893, `Please open the map browser before continuing. This can be done by pressing <b><font color=yellow>F11</font></b>.`)
+(66894, `Please open the market window before continuing.`)
+(66895, `Please open the medical window before continuing.`)
+(66896, `Please open the notepad before continuing.`)
+(66897, `Please open the ship hangar before continuing.`)
+(66898, `Please activate the tactical overlay before continuing.`)
+(66899, `Please open the wallet before continuing.`)
+(66900, `Please open the factory station service before continuing.`)
+(66901, `Please open the fitting station service before continuing.`)
+(66902, `Please open the insurance station service before continuing.`)
+(66903, `Please open the medical station service before continuing.`)
+(66904, `Please open the missions station service before continuing.`)
+(66905, `Please open the repair station service before continuing.`)
+(66906, `Please open the reprocessing station service before continuing.`)
+(66907, `Please open the research station service before continuing.`)
+(66908, `Please undock your ship from the station before continuing.`)
+(66909, `Please dock your ship to a station before continuing.`)
+(66910, `Please either dock the ship into a station or fly it in space before continuing.`)
+(66911, `Please proceed further in the tutorial before activating this gate.`)
+(66912, `Please proceed further in the tutorial before activating this gate.`)
+(66913, `Please proceed further in the tutorial before activating this gate.`)
+(66914, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66915, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66916, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66917, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66918, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66919, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66920, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66921, `Please proceed further in the tutorial before warping out. Shall you wish to warp out, you will have to close the tutorial first. On such case you may restart the tutorial manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66922, `Please proceed further in the tutorial before warping out. Shall you decide to close it, you will have to restart it manually by pressing <b><font color=yellow>F12</font></b> then selecting the <b><font color=yellow>tutorials</font></b> tab.`)
+(66923, `Please activate the first module before continuing. This can be done by pressing <b><font color=yellow>F1</font></b>.`)
+(66924, `Please activate the second module before continuing. This can be done by pressing <b><font color=yellow>F2</font></b>.`)
+(66925, `Please launch at least one drone in space before continuing.`)
+(66926, `Please move into the training area before continuing. This can be done by pressing <b><font color=yellow>next</font></b> or <b><font color=yellow>warp to</font></b> once inside a rookie system.`)
+(66927, `Please launch a probe in space before continuing. This can be done by fitting a <b><font color=yellow>Core Probe Launcher</font></b> to your ship, loading it with <b><font color=yellow>Core Scanner Probes</font></b> and then <b><font color=yellow>left-clicking</font></b> its icon.`)
+(66928, `Please move your ship inside the third pocket of the deadspace complex before continuing.`)
+(66929, `Please move your ship to the deadspace training complex before continuing.`)
+(66930, `Please warp to the deadspace complex before continuing.`)
+(66931, `Please warp to the deadspace complex before continuing.`)
+(66932, `Please move in the vicinity of Veldspar asteroids before continuing.`)
+(66933, `Please move your ship inside the first pocket of the deadspace complex before continuing. This can be done by activating <b><font color=yellow>the first acceleration gate</font></b>.`)
+(66934, `Please move your ship inside the second pocket of the deadspace complex before continuing.`)
+(66935, `Please activate the acceleration gate before continuing.`)
+(66936, `Please activate the acceleration gate before continuing.`)
+(66937, `Please activate the acceleration gate before continuing.`)
+(66938, `Please activate the acceleration gate before continuing.`)
+(66939, `Please activate the acceleration gate before continuing.`)
+(66940, `Please move a blueprint in the current station items hangar before continuing.`)
+(66941, `Please move a shield booster in the current station items hangar before continuing.`)
+(66942, `Please move some Veldspar in the items hangar before continuing.`)
+(66943, `Please get some Tritanium in the items hangar before continuing.`)
+(66944, `Please recall any launched drones into your ship dronebay before continuing.`)
+(66945, `Please eliminate the targets before continuing.`)
+(66946, `Please eliminate the targets before continuing.`)
+(66947, `Please eliminate the targets before continuing.`)
+(66948, `Please eliminate the targets before continuing.`)
+(66949, `Please eliminate the targets before continuing.`)
+(66950, `Please eliminate the targets before continuing.`)
+(66951, `Please eliminate the targets before continuing.`)
+(66952, `Please eliminate the targets before continuing.`)
+(66953, `Please remove all Veldspar from the ship cargohold before continuing.`)
+(66954, `Please move the Damage Control from the ship's cargohold into the items hangar before continuing.`)
+(66955, `Please remove all Tritanium from the ship cargohold before continuing.`)
+(66956, `Please sell or reprocess Veldspar from the items hangar before continuing.`)
+(66957, `Please sell or remove all Veldspar from the items hangar before continuing.`)
+(66958, `Please sell or remove the Damage Control from the items hangar before continuing.`)
+(66959, `Please sell or remove all Tritanium from the items hangar before continuing.`)
+(66960, `Please fly a ship that is not a capsule before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> a vessel in the ship hangar and selecting <b><font color=yellow>make active</font></b> from the selection menu.`)
+(66961, `Please activate a vessel that is not a rookie ship before continuing.`)
+(66962, `Please have a skill training before continuing. This can be done by opening the <b><font color=yellow>character sheet</font></b>, <b><font color=yellow>right-clicking</font></b> a skill entry and selecting <b><font color=yellow>train now</font></b>.`)
+(66963, `Please dock the ship in your home station before continuing.`)
+(66964, `Please get the Training Complex Passkey in your ship's cargohold before continuing.`)
+(66965, `Please get the Overseer's Personal Belongings from the Prize Container inside your ship's cargohold before continuing.`)
+(66966, `Please get a Core Scanner Probe I in the ship's cargohold before continuing.`)
+(66967, `Please get some Veldspar in the ship's cargohold before continuing.`)
+(66968, `Please load a drone into your ship's dronebay before continuing.`)
+(66969, `Please fit the ship with a Core Probe Launcher I before continuing.`)
+(66970, `Please fit a Civilian Shield Booster into the ship before continuing. This can be done by <b><font color=yellow>buying</font></b> one from the market and using the <b><font color=yellow>fitting station service</font></b> to equip it.`)
+(66971, `Please lock an object by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66972, `Please lock on to a Concord drone by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66973, `Please lock a customs offical by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66974, `Please lock to an enemy cruiser by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66975, `Please lock to an enemy frigate by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66976, `Please lock the Prize Container by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66977, `Please unlock or eliminate the target before continuing.`)
+(66978, `Please lock to an enemy frigate by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66979, `Please lock on to a police vessel by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66980, `Please lock to a sentry gun by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66981, `Please lock to a station by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66982, `Please lock to a large, stationary object in space by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b>.`)
+(66983, `Please lock to a Veldspar asteroid by using the ship targeting systems before continuing. This can be done by <b><font color=yellow>right-clicking</font></b> it and selecting <b><font color=yellow>lock target</font></b> while <b><font color=yellow>in range</font></b>.`)
+(66984, `Please open the selected items window before continuing.`)
+(66985, `Please open the overview before continuing.`)
+(66986, `Please open the ship's cargohold before continuing. This can be done by right-clicking the ship and choosing <b><font color=yellow>open cargohold</font></b>.`)
+(66987, `Please open the scanner before continuing. This can be done by pressing <b><font color=yellow>ALT+D</font></b>.`)
+(66988, `Please close the scanner before continuing. This can be done by pressing <b><font color=yellow>ALT+D</font></b>.`)
+(66989, `Please open up a agent dialogue window before proceeding. `)
+(66990, `Please train the skill Shield Operations before continuing. `)
+(66991, `Please train the skill Repair Systems before continuing. `)
+(66992, `Please approach the balcony at the end of the walkway before proceeding with this tutorial.`)
+(66993, `Please approach the balcony at the end of the walkway before proceeding with this tutorial.`)

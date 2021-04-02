@@ -1,0 +1,152 @@
+allans
+
+ COMMAND( siglist, Acct::Role::CONTENT,
+          " - lists all active signatures, with location, name, and type." )
+ COMMAND( heal, Acct::Role::HEALSELF,
+          "(entityID) - heal the character with the entityID" )
+ COMMAND( healtarget, Acct::Role::HEALSELF,
+          "(entityID) - heal the currently active target" )
+ COMMAND( status, Acct::Role::PLAYER,
+          " - note giving you detailed ship status information")
+ COMMAND( secstatus, Acct::Role::PLAYER,
+          " - note giving you this character's current security status")
+ COMMAND( list, Acct::Role::PLAYER,
+          " - gives a list of all dynamic entities and players and their destinyState in this bubble")
+ COMMAND( commandlist, Acct::Role::PLAYER,
+          " - gives a list of all game commands, required role, and a description")
+ COMMAND( destinyvars, Acct::Role::GMH,
+          " - shows some current destiny variables")
+ COMMAND( shipvars, Acct::Role::GMH,
+          " - shows other current destiny variables")
+ COMMAND( shutdown, Acct::Role::GMH,
+          " - save all items, kick all connections, and halt server. immediate command." )
+ COMMAND( beltlist, Acct::Role::PROGRAMMER,
+          " - list all roids in current belt's inventory." )
+ COMMAND( inventory, Acct::Role::PROGRAMMER,
+          " - list all items in current location's inventory (either station or solsystem)." )
+ COMMAND( shipinventory, Acct::Role::PROGRAMMER,
+          " - list all items in current ship's inventory." )
+ COMMAND( showsession, Acct::Role::PROGRAMMER,
+          " - list current session values." )
+ COMMAND( skilllist, Acct::Role::PROGRAMMER,
+          " - list all skills loaded for character." )
+ COMMAND( shipdna, Acct::Role::PROGRAMMER,
+          " - show current ship DNA." )
+ COMMAND( targlist, Acct::Role::PROGRAMMER,
+          " - show current ship target list." )
+ COMMAND( bubblelist, Acct::Role::PROGRAMMER,
+          " - show current objects in bubble, their destiny state, and movement speed." )
+ COMMAND( track, Acct::Role::PROGRAMMER,
+          " - toggles current object movement tracking state." )
+ COMMAND( attrlist, Acct::Role::PROGRAMMER,
+          " - show current attributes for itemID given in args." )
+ COMMAND( warpto, Acct::Role::GMH,
+          " - warp to an object using its itemID." )
+ COMMAND( fleetboost, Acct::Role::PLAYER,
+          " - note giving you detailed fleet boost information")
+ COMMAND( fleetinvite, Acct::Role::PLAYER,
+          " - sets fleet invite scope to <arg> or none")
+ COMMAND( getposition, Acct::Role::PLAYER,
+          " - gets positional data between ship and moon (for pos placement testing)")
+ COMMAND( bubbletrack, Acct::Role::PROGRAMMER,
+          " - enable/disable bubble outline tracking." )
+ COMMAND( players, Acct::Role::PLAYER,
+          " - shows list of online players")
+ COMMAND( showall, Acct::Role::GMH,
+          " - shows all dynamic items in system on ship scanner.")
+ COMMAND( autostop, Acct::Role::PLAYER,
+          " - sets repair, boost, and ?? modules to stop when target full")
+
+gms
+
+COMMAND( spawnn, Acct::Role::ADMIN,
+         "(typeID) - Spawn an NPC with the specified type." )
+COMMAND( spawn, Acct::Role::SPAWN,
+         "(typeID) - Spawn an NPC with the specified type." )
+COMMAND( unspawn, Acct::Role::SPAWN,
+         "(itemID) - remove and delete itemID" )
+COMMAND( search, Acct::Role::VIP,
+         "(text) - Search for items matching the specified query" )
+COMMAND( giveisk, Acct::Role::GMH,
+         "(entityID) (amount) - Give the specified amount of cash to the specified character. 0=self." )
+COMMAND( pop, Acct::Role::ADMIN,
+         "(type) (key) (value) - Send an OnRemoteMessage" )
+COMMAND( setbpattr, Acct::Role::CONTENT,
+         "(itemID) (copy) (materialLevel) (productivityLevel) (licensedProductionRunsRemaining) - Change blueprint's attributes." )
+COMMAND( getattr, Acct::Role::VIP,
+         "(itemID) (attributeID) - Retrieves attribute value." )
+COMMAND( setattr, Acct::Role::CONTENT,
+         "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
+COMMAND( fit, Acct::Role::VIP,
+        "(itemID) - Fits selected item to active ship." )
+COMMAND( giveallskills, Acct::Role::ADMIN,
+        "['me'|<characterID>] - gives ALL skills to designated character or self" )
+COMMAND( giveskill, Acct::Role::VIP,
+         "(skillID) (level) - gives skillID to specified level." )
+COMMAND( online, Acct::Role::VIP,
+        "(entityID) - online all modules on the ship of the entityID. entityID=me=>online my modules" )
+COMMAND( unload, Acct::Role::VIP,
+        "(entityID) (itemID) - unload module itemID from entityID (itemID=all=>unload all) (entityID=me=>my modules)" )
+COMMAND( repairmodules, Acct::Role::HEALSELF,
+        "(entityID) (itemID) - repair the modules of the character with the entityID" )
+COMMAND( giveskills, Acct::Role::ADMIN,
+        "(itemID) - gives skills to character." )
+COMMAND( dogma, Acct::Role::ADMIN,
+        "(attribute) - change item attribute value" )
+COMMAND( kick, Acct::Role::ADMIN,
+        "(charName) - kicks [charName] from the server")
+COMMAND( ban, Acct::Role::ADMIN,
+        "(charName) - bans player's account from the server")
+COMMAND( unban, Acct::Role::ADMIN,
+        "(charName) - removes ban on player's account")
+
+/*
+COMMAND( entity, Acct::Role::ADMIN,
+        "(entityID) - unknown" )
+COMMAND( chatban, Acct::Role::ADMIN,
+        "(characterID) - bans character from channel" )
+COMMAND( whois, Acct::Role::ADMIN,
+        "(characterName) - returns information on character")
+*/
+
+
+system
+
+COMMAND( create, Acct::Role::VIP,
+         "(itemID) [count] - Create count or 1 of the specified item." )
+COMMAND( createitem, Acct::Role::ADMIN,
+         "(itemID) [count] - Create count or 1 of the specified item.(from Insider)" )
+COMMAND( goto, Acct::Role::VIP,
+         "(x) (y) (z) - Jump to the specified position in space. Stopped." )
+COMMAND( translocate, Acct::Role::VIP,
+         "(entityID) - Translocate to the specified entity" )
+COMMAND( tr, Acct::Role::VIP,
+         "(who) (entityID) - Translocate the specified person to the specified entity" )
+COMMAND( halt, Acct::Role::VIP,
+         "- Immediately stops ship, setting Destiny::State = dstball_halt.")
+COMMAND( location, Acct::Role::PLAYER,
+         "- Gives you back your current location in space." )
+COMMAND( syncloc, Acct::Role::PLAYER,
+         "- Synchronizes your location in client with location on server." )
+COMMAND( syncpos, Acct::Role::PLAYER,
+         "- Synchronizes locations of all dynamic entities in current bubble with location on server for all players in callers bubble." )
+COMMAND( update, Acct::Role::PLAYER,
+         "- Sets Current Position according to Server's DestinyManager, then Sends Bubble AddBalls and Destiny SetState. (resets spaceview with current server data)" )
+COMMAND( sendstate, Acct::Role::CONTENT,
+         "- Sends DoDestinyUpdate SetState." )
+COMMAND( addball, Acct::Role::PLAYER,
+         "- Sends BubbleManager AddBalls.")
+COMMAND( addball2, Acct::Role::PLAYER,
+         "- Sends BubbleManager AddBalls2.")
+COMMAND( kill, Acct::Role::VIP,
+         "(entityID) - insta-pops a destroyable ship, drone, structure, if applicable")
+COMMAND( killallnpcs, Acct::Role::ADMIN,
+         " - insta-pops all NPC ships in the current bubble")
+COMMAND( cloak, Acct::Role::VIP,
+         " - instantly and unconditionally toggles cloak state of your vessel")
+COMMAND( sov, Acct::Role::CONTENT,
+         " - unknown at this time")
+COMMAND( pos, Acct::Role::PROGRAMMER,
+         " - unknown at this time")
+COMMAND( hop, Acct::Role::CONTENT,
+         " - unknown at this time")

@@ -1,0 +1,83 @@
+
+ http://www.modernescpp.com/index.php/c-core-guidelines-constructors-assignments-and-desctructors
+
+
+C++ provides six default operations, sometimes also called special functions, for managing the lifecycle of an object.
+The default operations are related. This means if you implement or =delete one of them, you have to think about the five others.
+These operations are:
+    a default constructor: X()
+    a copy constructor: X(const X&)
+    a copy assignment: operator=(const X&)
+    a move constructor: X(X&&)
+    a move assignment: operator=(X&&)
+    a destructor: ~X()
+
+C++ provides value semantic and not reference semantic for its types.
+    Value semantic: Value (or “copy”) semantics mean assignment copies the value, not just the pointer.
+    Reference semantic: With reference semantics, assignment is a pointer-copy (i.e., a reference).
+
+
+
+The 9 default operations rules in C++:
+    C.80: Use =default if you have to be explicit about using the default semantics
+    C.81: Use =delete when you want to disable default behavior (without wanting an alternative)
+    C.82: Don’t call virtual functions in constructors and destructors
+    C.83: For value-like types, consider providing a noexcept swap function
+    C.84: A swap may not fail
+    C.85: Make swap noexcept
+    C.86: Make == symmetric with respect of operand types and noexcept
+    C.87: Beware of == on base classes
+    C.89: Make a hash noexcept
+
+
+
+Does my class need a destructor?
+Most of the times the answer is no and you are fine with the rule of zero.
+Sometimes the answer is yes and we are back to the rule of five.
+The guidelines provide eight rules for destructors:
+    C.30: Define a destructor if a class needs an explicit action at object destruction
+    C.31: All resources acquired by a class must be released by the class’s destructor
+    C.32: If a class has a raw pointer (T*) or reference (T&), consider whether it might be owning
+    C.33: If a class has an owning pointer member, define a destructor
+    C.34: If a class has an owning reference member, define a destructor
+    C.35: A base class destructor should be either public and virtual, or protected and nonvirtual
+    C.36: A destructor may not fail
+    C.37: Make destructors noexcept
+
+
+
+The 15 C++11 features you must really use in your C++ projects.
+https://cppdepend.com/blog/?p=319
+1- auto
+2- nullptr
+3- shared_ptr
+4- Strongly-typed enums
+5- static assert
+6- Variadic template
+7- Range-based for loops
+8- Initializer lists
+9- noexcept
+10- move
+11- lambda
+12- Explicitly defaulted and deleted special member functions
+13- override identifier
+14- std::thread
+15- Unordered containers
+
+
+    static variable (class)
+    lifetime = program runtime (1)
+    visibility = determined by access modifiers (private/protected/public)
+
+    static variable (global scope)
+    lifetime = program runtime (1)
+    visibility = the compilation unit it is instantiated in (2)
+
+    heap variable
+    lifetime = defined by you (new to delete)
+    visibility = defined by you (whatever you assign the pointer to)
+
+    stack variable
+    visibility = from declaration until scope is exited
+    lifetime = from declaration until declaring scope is exited
+

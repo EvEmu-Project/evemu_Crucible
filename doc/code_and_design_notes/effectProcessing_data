@@ -1,0 +1,121 @@
+(`effectID`, `effectName`, `effectCategory`, `preExpression`, `postExpression`, `description`, `graphicID`, `guid`, `iconID`, `isOffensive`, `isAssistance`, `durationAttributeID`, `trackingSpeedAttributeID`, `dischargeAttributeID`, `rangeAttributeID`, `falloffAttributeID`, `disallowAutoRepeat`, `published`, `displayName`, `isWarpSafe`, `rangeChance`, `electronicChance`, `propulsionChance`, `distribution`, `sfxName`, `npcUsageChanceAttributeID`, `npcActivationChanceAttributeID`, `fittingUsageChanceAttributeID`, `dataID`)
+(4, 'shieldBoosting', 1, 183, 131, '', 0, 'effects.ShieldBoosting', 0, 0, 1, 73, 0, 6, 0, 0, NULL, 1, 'shieldBoosting', 1, 1, 1, 0, 0, 'None', 0, 0, 0, 899422),
+
+expressionID    operandID   arg1    arg2    expressionValue     description     expressionName  expressionTypeID    expressionGroupID   expressionAttributeID
+4       24  NULL    NULL    Ship    Index of affecting ship in environment  CurrentShip     NULL    NULL    NULL
+182     22  NULL    NULL    NULL        shieldBonus     NULL    NULL    68
+183     42  2722    182     NULL        CurrentShip->shieldCharge+=self.shieldBonus     NULL    NULL    NULL
+2699    22  NULL    NULL    NULL    NULL    shieldCharge    NULL    NULL    264
+2722    12  4   2699    NULL    NULL    CurrentShip->shieldCharge   NULL    NULL    NULL
+
+(operandID, operandKey, description, format, arg1categoryID, arg2categoryID, resultCategoryID, pythonFormat)
+(12, 'ATT', 'attribute', '%(arg1)s->%(arg2)s', 6, 2, 3, '(%(arg1)s, %(arg2)s)')
+(22, 'DEFATTRIBUTE', 'define attribute', '%(value)s', 0, 0, 2, '%(value)s')
+(24, 'DEFENVIDX', 'define environment index', 'Current%(value)s', 0, 0, 6, 'env[const.dgmEnv%(value)s]')
+(42, 'INC', 'increases an item-attribute by the value of another attribute', '%(arg1)s+=self.%(arg2)s', 3, 2, 4, '<handled in code>')
+
+
+expressionID    operandID   arg1    arg2    expressionValue     description     expressionName  expressionTypeID    expressionGroupID   expressionAttributeID
+131     27  NULL    NULL    1       Int(1)  NULL    NULL    NULL
+(operandID, operandKey, description, format, arg1categoryID, arg2categoryID, resultCategoryID, pythonFormat)
+(27, 'DEFINT', 'defines an int constant', 'Int(%(value)s)', 0, 0, 4, '%(value)s')
+
+
+effectCategory data
+    # Applied when item is just present in fit - implants, skills, offlined modules
+passive = 0
+    # Applied only when module is activated
+active = 1
+    # Applied onto selected target
+target = 2
+    # No effects with this category, so actual impact is unknown (should be AOE-type things)
+area = 3
+    # Applied when module at least onlined
+online = 4
+    # Applied only when module is overloaded
+overload = 5
+    # Dungeon effects.  4 effects exist in this category, 3698,3794,3795,3796
+dungeon = 6
+    # System-wide effects, like WH and incursion.   118 effects in this category
+system = 7
+
+
+**************************
+'default' is used to send activation data to server (effectID)
+'default' is also used to calculate capacitor stability in fit window using durationAttributeID and dischargeAttributeID
+    method is found in  /eve/client/script/dogma/clientDogmaLocation.py CapacitorSimulator()
+
+it seems arg1categoryID, arg2categoryID, and resultCategoryID in dgmOperands arent used (or understood) and can be safely ignored.
+*categoryIDs...
+0 = none
+1 =
+2 =
+3 = attribute ...value?
+4 =
+5 = targ?
+6 = env (location)
+7 =
+8 = group
+9 = type
+
+/*
+            if operand.operandID in (const.operandALRSM,
+             const.operandRLRSM,
+             const.operandALGM,
+             const.operandRLGM,
+             const.operandAORSM,
+             const.operandRORSM):
+                return 'dogmaLM.%s(%s, %s, %s, %s, itemID, %s)' % (funcName,
+                 arg1[0],
+                 arg1[1][0][0],
+                 arg1[1][0][1],
+                 arg1[1][1],
+                 arg2)
+            if operand.operandID in (const.operandAGRSM, const.operandRGRSM):
+                return 'dogmaLM.%s(shipID, %s, %s, %s, itemID, %s)' % (funcName,
+                 arg1[0],
+                 arg1[1][0],
+                 arg1[1][1],
+                 arg2)
+            if operand.operandID in (const.operandAGIM, const.operandRGIM):
+                return 'dogmaLM.%s(shipID, %s, %s, itemID, %s)' % (funcName,
+                 arg1[0],
+                 arg1[1],
+                 arg2)
+            if operand.operandID in (const.operandALM, const.operandRLM):
+                return 'dogmaLM.%s(%s, %s, %s, itemID, %s)' % (funcName,
+                 arg1[0],
+                 arg1[1][0],
+                 arg1[1][1],
+                 arg2)
+    */
+
+attribCategory
+categoryID  categoryName    categoryDescription
+1   Fitting     Fitting capabilities of a ship
+2   Shield  Shield attributes of ships
+3   Armor   Armor attributes of ships
+4   Structure   Structure attributes of ships
+5   Capacitor   Capacitor attributes for ships
+6   Targeting   Targeting Attributes for ships
+7   Miscellaneous   Misc. attributes
+8   Required Skills     Skill requirements
+9   NULL    Attributes already checked and not going into a ca...
+10  Drones  All you need to know about drones
+12  AI  Attribs for the AI configuration
+17  Speed   Attributes used for velocity, speed and such
+19  Loot    Attributes that affect loot drops
+20  Remote Assistance   Remote shield transfers, armor, structure and such...
+21  EW - Target Painting    NPC Target Painting Attributes
+22  EW - Energy Neutralizing    NPC Energy Neutralizing Attributes
+23  EW - Remote Electronic Counter Measures     NPC Remote Electronic Counter Measures Attributes
+24  EW - Sensor Dampening   NPC Sensor Dampening Attributes
+25  EW - Target Jamming     NPC Target Jamming Attributes
+26  EW - Tracking Disruption    NPC Tracking Disruption Attributes
+27  EW - Warp Scrambling    NPC Warp Scrambling Attributes
+28  EW - Webbing    NPC Stasis Webbing  Attributes
+29  Turrets     NPC Turrets Attributes
+30  Missile     NPC Missile Attributes
+31  Graphics    NPC Graphic Attributes
+32  Entity Rewards  NPC Entity Rewards Attributes
+33  Entity Extra Attributes     NPC Extra Attributes
