@@ -1,0 +1,871 @@
+
+*******************************************************
+****  Allan's EvEmu TODO LIST
+****     28 February 2021
+
+    note:  this whole file needs to be reorganized (wip)
+
+*******************************************************
+**********  errors and other found shit...high priority
+
+work on buglist, integrate this list in there where i can
+    - modules/fitting
+    - destiny (all space movement)
+    - lsc
+    - drones
+    - standings
+    - corp
+    - mail/notifications
+    - missions
+    - ram
+    - calendar
+    - contracts
+    - lp
+    - cosmic systems
+    -
+
+request for smartbombs
+
+11:45:54 [DestinyWarning] Warp Cap need for Rifter(140007395) is 0.0007
+
+verify skill attr 'in training' is being properly removed
+
+noob ships do not Init() correctly....  most attrs are 0
+    -- check this.  may be fixed already
+
+salvager success crashes other salvagers and tractor
+
+npcs not getting destiny warpstate set (sometimes - this is cause of rats not warping into belts)
+
+after unloading module using ungroup, tried loading charge to newly-ungrouped module, and got this:
+01:58:17 [ModTrace] ShipItem::LoadCharge - Trying to load Flameburst Light Missile from HiSlot6 to HiSlot7.
+
+prop mod destiny call - update ship speed to AccelTime math isnt right...see cruc/MoveTrace and cruc/SpeedBoost
+    - this is better after SpeedBoost() update, but still needs work (activate/deactivate working)
+
+module add/remove isnt fully thought out at this point.
+    - will need complete walk thru to verify proper operation
+    - module states need a good lookover
+moving mwd from one slot to another throws groupfit limited error
+when moving module slots, module is offlined after refit
+check charge flag - getting segfault on flagAutoFit for chargeRef in fx
+check reload times for non-weapon modules
+check/fix loading linked weapons
+    - look over and correct loading with partial stacks (see UserError at MM::LoadCharge)
+    - reloading grouped weapons should divide evenly between modules.
+        it currently fills modules in slot order.
+
+warp scram should deactivate mwd and deny activation (it IS a micro WARP drive...)
+
+invul timer set on undock after login
+
+check repack/reproc ships for insurance and delete if applicable
+    - does client need update when insurance deleted?  no...ins is queried when needed
+also check containers for contents and remove/deny before repack
+
+check insurance payouts.   rounds full ship value up
+    - this will need base prices fixed
+
+base price estimator code 95% complete.
+few prices wrong and not in crucible mkt data dump
+static category names are a bit off (semantics)
+
+check trade - ships retain insurance
+
+check for item ownership before rename
+    verify OnCfgDataChanged
+    Structure items have throw.  not sure if this is valid
+
+dungeon deco items need better placement
+
+ship warp speed on attributes tab is wrong
+
+
+error:
+"turret not fitted on shipID (npc)"
+...still not sure on this.  throws a shitton of errors in client error log
+"Cleaning session *clientID 2888444* because it's ID doesn't match  0"
+
+23:51:06 [FxError] guid empty for F85 Peripheral Damage System I using effectID 2302
+
+this is used for pricing update based on minerals.  this query returns ~300 items
+SELECT * FROM `invTypeMaterials` WHERE `quantity` = 0
+
+materials for implants are wrong.  this leads to incorrect price estimates
+missing prices for salvage
+
+*******************************************************
+********  improvements
+
+client login screen...these all need code to show data    CharacterDB::GetCharSelectInfo
+    upcomingEventCount:
+    unreadMailCount:
+    unprocessedNotifications:
+also need to optimize query....can join instead of using (current) multiple queries and variables
+
+
+skill training...
+    2x training bonus for new chars (<30d)
+
+EVEDB::invGroups::Spawn_Container needs it own class
+    - mostly for dungeons/deadspace
+    - 477 types
+
+remove InventoryDB (m_db) and associated code from itemfactory
+remove character queries from InventoryDB
+remove station/static queries from InventoryDB
+remove *lsc_service and *cache_service from PyServiceMgr
+    - lsc_service may be singleton.  channels should remain dynamic...will have to look into this more
+    - cache_service....will have to look into this more before deciding.
+
+AuditLogSecureContainer types not coded (data coded in EvE_Inventory.h)
+
+skill error on queue update   - see cruc/skills/skill_error_new
+
+look into changing (EvilNumber)DmgTypeAttribute to (struct)Inv::AttrData
+    - may be able to delete the EvilNumber class, as it was created only to deal with attribute data, which we are getting away from with the struct.
+
+journal msgs need to be implemented (wip)
+
+standings
+    - this is singleton (sStandingMgr)
+    - basic standings hit db on every call.  probably way too much for static data
+    - reproc/ram to remove individual standing code in favor of common code (evemath::standing?)
+    - faction/corp standings should be static for npc groups
+    - need to write standings code for corps and finish for others (char, agents)
+
+TransportClosed error msgs located in common/python/pypacket.h
+
+go thru all updated effect data and look for 'improved' ship data to update ours
+    - specialized holds from rhea (not available in cruc)
+    - updated barges from current live patch (hot tanks)
+current fx data in db incomplete at best.  missing multiple items/defs
+isDefault used to send to activate for effectID
+go thru all gfx "effect.xxx" and cross with EVEEffectID to verify
+    - gfx display is wonky.  dunno why some show and some dont
+    - stripminer on hulk working 20feb21
+    - salvager on trasher working 20feb21
+put EVEEffectID enum into namespace
+turn fx sending on and follow calls to verify proper OnSpecialFX data
+    - found and added client fx classification data to destinyMgr.h
+    - remove xmlp data for specialFX and build packet in code?
+    - remove specialFX10.  easier if specialFX is built in code, else send None...still not sure on what we can NOT send
+
+check data sent for bound objects to see what we can use.
+    verify members for bound objects.  we may need to add few more to avoid redirects (cant find data on effectiveness of static member vs multi-redirect call)
+    client sends some data we dont necessarily need, due to server differences between us and live
+
+pypacket building isnt completely right....some things dont need to be that deep.
+some returns are put instead of substruct, and others dont have the 2 tuples that follow substruct.
+no clue on criteria or exactly what goes where yet.
+
+go thru all header #include to determine if it is actually needed in header as opposed to #include in .cpp
+
+jettison now checks for can capy.
+    - once full, loop stops and warning issued
+    - updated loops for deployable items
+    - need code for corp usage
+
+AttributeMap::Change() has data for updated cap charge sending....not sure how/when to implement it
+
+customInfo is actually used in client
+    - there are many logConst and event** msgs not implemented/researched (LP, FacWar, StandingTransactions, more)
+
+20:41:06 [Bound] InsuranceBound::InsureShip()
+20:41:06 [AcctTrace] TranserFunds() - from: 90000000, to: 1000132, entry: 19, refID: 0, amount: 0.33, fKey: 1000, tKey: 1000
+20:41:06 [AcctTrace] TranserFunds() - toID: 1000132 is neither player nor player corp.
+20:41:06 [SvcMsg] New messageID: 1
+20:41:06 [SvcMsg] Delivered message from 1000132 to recipient 90000000
+    - ins mail working.  need contractID, expiry date, and few other things...
+    -- this does NOT work....mailDB table is mailMessage.  this was saved in eveMail
+
+system mail not working.  this would be nice to have, as many systems could(will) use it    -priority level: low
+entire mail/notification system needs looking over, maybe rewrite to allow OnNotificationReceived sent from mail, as it should be.    -priority level: low-med
+mailDB needs much love.
+
+
+closely examine target mgr and see what we can improve.
+    - test changing TargetEntry class (and enums) to struct
+    - verify entries are placed timely and appropriately
+    - multiple throw msgs not implemented (client msgs in dogmaim)
+    - update targ/npcai to inform npc of yellowbox instead of locked
+rewrite completed, but reverted due to multiple errors and inconsistencies (m_targMgr->OnTarget())
+
+add cache calls/data for systems that use it after debugging and testing completed
+    - bookmarks
+    - agent data?
+
+bookmarks in cargo have name correctly (bm 'memo' is it's player-given name), but mouseover shows  ` - {memo}` ....  what is blank space before '-'??
+write new methods for List() and Move() for bookmarks where owner != player
+currently, all bookmarks are donated to calling player when moved into cargo/hangar
+
+finish DestinyManager::SendCloakFx()
+
+PyRep --
+    do we need float and double to be separated?
+    currently both are sent as double, and some cases are using static_cast<float>
+    not sure if client expects a difference.  would be a bit less data on wire in some cases
+
+check client's locationID vs stationID.
+    - multiple calls in client will test for these as separate values (tested separately)
+    - verify our use of these is correct....
+    - most tests use locationID first, then stationID2
+
+systemmgr - use kills object instead of db hit
+    - hit this object to avoid db hits for every kill
+    - this will hold current counts
+    - save to db every 15m, called by EntityList::Process() for active systems
+    - add kill tracking to systeMgr
+    - use systemMgr to update/track kills/hour data and update db as needed (use 15m call above)
+    - load kill times when system boots.  use 15m timer call (from EntityList) to update data
+    ** tried this...didnt work correctly.  disabled code
+
+dbcore - query retry enables runaway server when query causes server disconnection (error)
+    - should this be limited?
+    - note: it only happens for malformed queries (while testing) from what i've seen.
+    - may need null checks for mRow, mResult, mLengths (segfault on result returning NULL)
+    -   this happens very, very seldom (2-3 times that i can recall)
+    -   how much overhead will this add?
+    server startup and one client with null checks:   (subsequent runs)
+            DB   1505 times.    Hi: 16085.5000us        Lo: 167.5000us          Avg: 366.1477us
+            DB   1505 times.    Hi: 14954.2500us        Lo: 165.5000us          Avg: 305.4390us
+            DB   1508 times.    Hi: 11528.2500us        Lo: 163.2500us          Avg: 310.5827us
+
+    server startup and one client without null checks:  (initial run)
+            DB   1505 times.    Hi: 62847.0000us        Lo: 161.2500us          Avg: 364.7585us
+    - very odd....how are adding null checks faster??   db cache maybe?
+
+
+char creation - figure certs and set skills accordingly
+    - currently, most new chars dont qualify for any certs.
+    - they should at least have a starter profession cert
+
+
+InvBrokerBound::Handle_GetInventory
+    - incomplete
+InvBrokerBound::Handle_GetInventoryFromId
+    - this sets inventory flag when bound object created....needs more thought to finish code
+    - there is NO checks for corp usage yet.
+    - suspect many error msgs in client for this, but none are found/coded yet
+    - wtf does 'passive' mean??  only called for char and ship during 'Prime'.  "dont load item" maybe?
+
+InventoryBound  incomplete
+  Handle_List()  -- this will need lots of work for t3 ships and corp usage
+  ListDroneBay()
+  SetPassword()
+  RunRefiningProcess()
+  TakeOutTrash()
+
+
+DogmaIMBound::Handle_Activate
+    - need to complete POS/Container cases and verify we're not missing anything
+DogmaIMBound::Handle_Deactivate
+    - same as above
+DogmaIMBound::Handle_OverloadRack
+DogmaIMBound::Handle_StopOverloadRack
+    - both incomplete
+
+GetMyInventory()->ContainsTypeByFlag
+    - should this check for items in holds other than default cargoHold?
+    - finish contents-by-flag map for this method
+
+pi working.  currently rewriting process code  -priority level: lo
+    - check/rewrite planet xml code as needed (minor improvement)
+    - check if xml is needed or if structs are ok for all uses (improve code bloat)
+    - code checks for route levels and mat'l volume xfer'd (limit volume xfer)
+
+module/rack OL incomplete.  includes OL Heat (basic heat code done/working)  -priority level: low-med
+activemodule c'tor - check/verify needsCharge code as some modules listed use scripts
+
+dungeon mgr - factionID of "region sov" needs to be written to determine region sov holder (set to rogue drones at this time)   -priority level: low-med
+    - figure out how to determine LCO in dungeon and spawn rats/waves near objects instead of middle of bubble
+
+fleetData.h needs to be moved to common/EVE_Fleet.h and PODs put in fleet namespace
+FleetBound could use updates (client->getchar->name, etc)
+
+fleet boosts - apply directly to ship/modules when calculated
+    - set leadership skill modifiers on char item, then have fleet boosts pull directly from char
+    - apply either when undocking or as fleet is created and use OnModuleAttributeChange packet
+    - this will give proper data to client when GetAllInfo() is sent
+    - many fleet error msgs in client unused - noted in fleetdata.h
+    - determine how to save fleetID for wrecks (SE has fleetID member...may save id to item.customdata)
+    - MiningLaser::GetMiningVolume() uses calc's in method for boost.  this is in contrast with data in client (from GetAllInfo)
+
+petition system missing most calls
+    - this system hasnt been started
+    - couple calls as skeleton code
+    - notes for ~20 system calls (may be complete)
+
+dungeons - complete current wip code   -priority level: med-hi
+
+belt spawns - rework for better ship group selection   -priority level: med
+
+belt manager 'active' status on timer?
+
+contracts - start this system. current status unknown. this system is barely skeleton code at this time.  -priority level: low-med
+contractProxy::GetMyExpiredContractList()
+/client/script/ui/shared/neocom/journal.py(1429) DoShowContracts
+        status = 0
+        numRequiresAttention = 0
+        expiredCorpContracts = None
+        self = form.Journal object at 0x2da50f90, name=journal, destroyed=False>
+        expiredContracts = None
+        l = <Anonymous KeyVal: {'mySelf': None, 'expires': 0, 'myCorp': None, 'timeout': 132076899241107993L}>
+        forCorp = False
+        numCorpRequiresAttention = 0
+AttributeError: 'NoneType' object has no attribute 'contracts'
+
+missions/agents - agents working. courier missions working. currently ~50 missions, all levels.
+next up is security missions.  will need dungeon work for these.   -priority level: hi
+
+anomaly system - working. may need revisit after other systems mature.   -priority level: med
+    - sig data needs work and common add/create method for scanning
+    - verify AddSignal() calls for all items (needs work)
+    - ships have shipScanResistance (511) but they are all zero.  also look into using sig radius as sigStrength
+    - there is no "remove anomaly" or "cleanup anomaly" methods.....how we remove gutted sites?
+
+added notes on scanner groupNames in anomalyMgr.cpp and more data in EVE_Scanner.h
+    - field descriptions found in packets/Scan.xmlp
+check anomaly spawn distance for in small systems.  current 4au seems far when system is <8au
+
+ship/cargo scanning
+    - not sure about this system yet
+    - OnCargoScanComplete
+    - OnShipScanCompleted
+    - there are packets on both of these.  must make bpc updates play nice with scanner code.  may have to update client
+
+reconnect to lost probes not implemented yet.
+
+wh system - started.   k162 for deco only at this time (POC)   -priority level: low
+
+player drones - skeleton started. needs functionality    -priority level: med-hi
+drones mass and maxspeed need attention
+does controller and controllerownerid change when assigning drone to other pilots?
+ShipSE::LaunchDrone() needs bit of work.  drones are online and set to orbit after launch, before BW test
+    -Drone::Launch() also needs updating after above is completed.
+drone ai needs:
+  - assigned ship killed, need code to reset
+  - all states except idle
+mining methods will need updates to test for drones vs pilots
+move mining item depleted call to targmgr
+
+RAM code - implement invention, re    -priority level: low
+    - (reproc) update GetRecoverables to use sDataMgr...currently hitting db on every call...
+    - some bp dont have invention data
+    - invention and re will need lots of work
+    - data interface dont show on install job tab (dunno why)
+    - bpc may be a bit off (not sure why yet)
+
+blueprints - look over data and verify
+    - LPRR = -11??
+    - research copy time.  huge discrepancy here....  3h20m base, <1m with skills???
+    - was working on stacking bpc, but with singleton code, i dont think it's possible.
+
+contact list - no notification when contacts login.  no initial contact status when logging in.  -priority level: lo
+
+pos - started. drop, anchor, unanchor, online, offline working but no in-class checks. all tower mgnt tabs work and save. rest is wip.   -priority level: low
+    - pos items in hangars still return true from IsPOSSE(), and throw weird errors because of this....needs more thought to properly implement (system is still young)
+    - towers (and maybe others) must use orbitalState in slimItem.  this is EVEPOS::EntityState sent to client.  also uses OnSlimItemUpdated.  search client for this
+    - structures need 'state' and 'status' variables looked over and possibly reset/fixed.  status is EVEPOS::StructureStatus and sent in slimItem.  state is EVEPOS::EntityState
+    - reinforceValue data is in pos/Structure.h
+    - mgrDB needs looking over for data types
+    - add checks for necessary items before online can be processed
+    - timers (anchor/online) arent updated to client properly (non-persistent)
+
+lsc system better, but incomplete and needs revisiting    -priority level: med-hi
+    - may need xmlp code instead of muddled python decoding
+    - whole system needs update or possible rewrite
+
+link/unlink need a bit more logic work (as per notes in code)
+
+can you repack t3 ships??
+when t3 ship killed, pilot will lose sp in a required skill for each of the 5 subsystems.
+    not sure how this is determined, or how many sp lost.
+
+JumpCloneService needs work to allow capital ships `show info` tab to work in space.
+    - this class is barely above skeleton code, and hardly researched.
+    - jump clones arent even close to implementation, so its nbd at this point
+
+item contraband.....this needs implementing
+    - will be used in system security
+    - could this be a dataset in static data mgr for market items to avoid loading?
+
+market code
+    - determine and code methods for using arum as credit type
+    - still needs more review for update/rewrite/improvements
+    - fix price shit....db uses double, code uses double, both should be long
+    - client has prices to 2 places (xxx.xx).  this is x100 to store/modify as integer.  ALL price data should be updated to use this
+    - update pricing queries to move decimal accordingly.  currently NOT moved, so prices are 100x higher (and no decimals)
+    - run thru mgr code to remove direct db calls (put in marketDB file)
+    - find 'safe' way to run history updates (in case of no transactions)
+    - need to run thru file to check for proper coding
+
+market for corp use
+    - add checks for hangar location when placing sell orders
+    - will need more data and checks for using corp account key (wallet division) properly.  currently cash (div 1)
+    - escrow and broker fee have "authorized by" msgs to implement....see common/eve-wallet.h
+
+market history
+    - change date on ccp history dump and put into mktHistory table
+    - may be cheating, but we'd have 'real' data for market history
+
+
+EVEItemFlags - update our code for the 89 flags defined in client
+
+player corps - finish wip code for RAM, market  -priority level: med-hi
+raceMask isnt implemented yet...will need more thought/coding
+still some corp shit not started/completed yet...need to finish it. may need to split file again.  -priority level: med-hi
+partial code for corpStations, member roles,
+no code for labels
+set initial standings when corp is created.
+when renting office, station offices dont refresh
+do all corps share officeFolderID?  (stationID + Offset)
+GetMemberTrackingInfo() incomplete
+CorpStationMgrIMBound incomplete
+CorpRegistryService incomplete
+corp jumpers? - decide/implement
+GetMemberIDsByQuery needs more work.  see notes in code.
+corp items not updating in db when moved (could be all items as we're not saving every item change)
+dividends incomplete
+decorations list doesnt include recipients.  also time is shown as elapsed
+contacts incomplete
+SparseBound will need work for RAM and lock votes (and more)
+check items in corp hangar for proper locationID/flagID
+
+
+alliances?  not yet.  need other shit finished first.
+started coding alliance db
+all alliance calls are skeleton code, except GetEmploymentRecord
+
+m_self is NOT being populated for non-piloted ships.   -priority level: low
+
+these can be found in 'db_shit/output.txt'
+locationName = localization.GetByMessageID(self.locationNameID)
+    - locationNameID is a messageID!!!
+return localization.GetByMessageID(self.ownerNameID, languageID)
+    - ownerNameID is a messageID!!!
+0 AS landmarkNameID
+    - landmarkNameID is a messageID!!!
+
+InvBrokerService needs love
+mapservice  needs love
+CharMgrService  needs love
+notificationMgr  needs love
+reproc  needs love
+certificateMgr needs looking at
+paperDollServer incomplete
+factionWarMgr incomplete
+ShipService incomplete
+LookupService needs update
+serviceDB needs update
+    - maybe remove "Lookup*" shit to its own db file
+StationOffice::ValidateAddItem incomplete (but unused)
+    - need tic to determine rent time on office.  implement lockdown when rent unpaid (grace period?  -nope)
+
+KeeperService will need work (accel gates)
+
+PlanetORBBound needs work now that customs offices are working
+PI Launch status need *some way* to tick for launch reentry
+
+store/board ship in cap ship hangar not coded
+
+ship selfdestruct not coded
+
+authentication and session still need work, but i dont fully understand them
+look into OnSessionMutated to see if we can implement it properly
+
+incursions.  this hasnt even been looked at yet.
+map::GetIncursionGlobalReport()
+journal data....
+class ReportSortBy():
+    Constellation, LP, Jumps, Influence, StagingSolarSystem, Security = range(6)
+
+REPORT_SORT_PARAMETERS = (('constellationName', False),
+ ('loyaltyPoints', True),
+ ('jumps', False),
+ ('influence', True),
+ ('stagingSolarSystemName', False),
+ ('security', True))
+REWARD_SCOUT = 8
+REWARD_VANGUARD = 1
+REWARD_ASSAULT = 2
+REWARD_HQ = 3
+REWARD_BOSS = 10
+ENCOUNTERS = {'scout': (util.KeyVal(severity='scout', index=1, rewardID=REWARD_SCOUT, name='UI/Incursion/Encounters/Scout/One', text='UI/Incursion/Encounters/Scout/OneText'),
+           util.KeyVal(severity='scout', index=2, rewardID=REWARD_SCOUT, name='UI/Incursion/Encounters/Scout/Two', text='UI/Incursion/Encounters/Scout/TwoText'),
+           util.KeyVal(severity='scout', index=3, rewardID=REWARD_SCOUT, name='UI/Incursion/Encounters/Scout/Three', text='UI/Incursion/Encounters/Scout/ThreeText'),
+           util.KeyVal(severity='scout', index=4, rewardID=REWARD_SCOUT, name='UI/Incursion/Encounters/Scout/Four', text='UI/Incursion/Encounters/Scout/FourText')),
+ 'vanguard': (util.KeyVal(severity='vanguard', index=1, rewardID=REWARD_VANGUARD, name='UI/Incursion/Encounters/Vanguard/One', text='UI/Incursion/Encounters/Vanguard/OneText'), util.KeyVal(severity='vanguard', index=2, rewardID=REWARD_VANGUARD, name='UI/Incursion/Encounters/Vanguard/Two', text='UI/Incursion/Encounters/Vanguard/TwoText'), util.KeyVal(severity='vanguard', index=3, rewardID=REWARD_VANGUARD, name='UI/Incursion/Encounters/Vanguard/Three', text='UI/Incursion/Encounters/Vanguard/ThreeText')),
+ 'assault': (util.KeyVal(severity='assault', index=1, rewardID=REWARD_ASSAULT, name='UI/Incursion/Encounters/Assault/One', text='UI/Incursion/Encounters/Assault/OneText'), util.KeyVal(severity='assault', index=2, rewardID=REWARD_ASSAULT, name='UI/Incursion/Encounters/Assault/Two', text='UI/Incursion/Encounters/Assault/TwoText'), util.KeyVal(severity='assault', index=3, rewardID=REWARD_ASSAULT, name='UI/Incursion/Encounters/Assault/Three', text='UI/Incursion/Encounters/Assault/ThreeText')),
+ 'hq': (util.KeyVal(severity='hq', index=1, rewardID=REWARD_HQ, name='UI/Incursion/Encounters/HQ/One', text='UI/Incursion/Encounters/HQ/OneText'),
+        util.KeyVal(severity='hq', index=2, rewardID=REWARD_HQ, name='UI/Incursion/Encounters/HQ/Two', text='UI/Incursion/Encounters/HQ/TwoText'),
+        util.KeyVal(severity='hq', index=3, rewardID=REWARD_HQ, name='UI/Incursion/Encounters/HQ/Three', text='UI/Incursion/Encounters/HQ/ThreeText'),
+        util.KeyVal(severity='hq', index=4, rewardID=REWARD_BOSS, name='UI/Incursion/Encounters/HQ/Four', text='UI/Incursion/Encounters/HQ/FourText'),
+        util.KeyVal(severity='hq', index=5, rewardID=REWARD_BOSS, name='UI/Incursion/Encounters/HQ/Five', text='UI/Incursion/Encounters/HQ/FiveText'))}
+ENGLISH_MISSIONS_SETTING = 'AgentMissionsInEnglish'
+
+
+expeditions.  not sure how to do this one.
+dungeonExplorationMgr::GetMyEscalatingPathDetails()
+
+many unimplemented salvage error msgs noted in prospector.h
+
+OSE::Killed() unfinished.  (structures, empty ships  - need those systems finished first)
+
+still many ClientErrorMgs not used/implemented
+
+look over CallDispatcher to see if we can improve/update anything
+
+noob mining ships to have ore hold?  yes, but small...  100m3 or so
+    - reduce cargo hold by 1/2 or better
+frigates
+ibis?, navitas, bantam, probe, tormentor
+cruisers
+arbitrator, osprey, scythe, vexor
+
+some items dont have complete description in db (data is trunicated)
+
+go thru classes and rename per class type...
+    -  *Item  for items
+    -  *SE  for system entities
+
+implement remaining UIDs as noted in EVE_Defines.h
+
+F11 map - universe not showing region connecting (jump) lines (should be green for region jumps)
+
+owner notes and owner labels incomplete
+
+trader joe (market bot)
+    - use civilian code to move around
+    - fleet of ships (haulers, escorts) moving thru systems (universe wide?  multiple traders?)
+    - market updates only at station fleet docked in
+    - accurate travel times
+    - can be attacked, but VERY tough.  will call reinforcements (arrival time tbd)
+    - items in haulers for sale at docked station (random)  remove item from hauler when order placed.
+    - add data/info to getmultiownersex call
+
+low on the list.....
+contraband.
+however, there are skills related to it, once implemented  (but not published)
+skillSmuggling = 3448, // Trade Proficiency at laying low and avoiding unwanted attention. From a base of 90%, each level of skill reduces by 10% the likelihood of being scanned while transporting contraband.
+skillStarshipFreight = 13069, // Trade The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%.
+skillMineralFreight = 13070, // Trade The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%.
+skillMunitionsFreight = 13071, // Trade The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%.
+skillDroneFreight = 13072, // Trade The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%.
+skillRawMaterialFreight = 13073, // Trade The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%.
+skillConsumableFreight = 13074, // Trade The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%.
+skillHazardousMaterialFreight = 13075, // Trade The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%.
+
+
+skillTaxEvasion = 28261, // Trade Knowledge of the SCC tax regime and the ability to utilize that to one's own advantage.
+2% reduction in SCC tax per level.
+
+
+bounties have a bonus...
+skillDEDConnections = 3362, // Social Skill at dealing with Concord Department and negotiating bounties
+Bonus fee of 1,500 isk per pirate head per level of the skill
+
+**********************************
+*** actually, ALL of the social and trade skills have bonuses.
+    - these need to be looked over and implemented.
+skillGeneralFreight = 12834, // Trade Skill at the stowage and transportation of bulk goods
+5% Bonus per level to Ship Cargo Capacity
+
+
+check into call returns.  they may be missing data (like callID)
+    - i think these are mostly complete.  may be too deep in packet.
+
+*******************************************************
+*****************  commands
+
+***  ideas
+and add colors where applicable/appropriate
+    - currently, skill in training is aqua, others are white.
+    - fleet bonuses is only other command that is colored (offhand)
+
+create ".modify" command to allow ingame setting of attributes
+    - groove has this functionality in his launcher
+    - this is done already, but incomplete.  search for ".dogma" command
+
+***  errors
+
+
+***  other
+finish dot commands
+    - model commands on .tr where applicable/appropriate
+    - add options for commands
+    - .tr still needs lots of work.  basic code is done and working
+
+command .attrlist needs names as well as attrID
+
+
+*******************************************************
+*****************  MEMORY MANAGEMENT and code compliance
+
+DATA RACE!!
+    found data race on console log while running under valgrind.(imageSvr and BoundObject calls at same time)
+    go thru log and verify MT safe status
+
+RefObjects -
+    - current RefObject/RefPtr objects are leaking memory.  getting better, but still horrible.
+    - look into removing the Ref* objects and replacing with std::unique_ptr or std::shared_ptr  (see core/utils/singleton.h)
+    -  this may be more work than it's worth, but current Ref* objects arent being tracked properly
+    -  the other option is to find/fix the current tracking for Ref* objects, which is only partly implemented (at best) and only partially understood
+
+Py* objects that have string as key need 'delete' called on string when destroyed per valgrind...cannot find ref to this error now
+Py* objects that have long int as key need 'delete' called on key when destroyed (mem leak)
+
+PyDatabase may need d'tors coded
+
+see what can be done about bind_args->Clone() as it may be leaking memory
+90% of valgrind "Definitely Lost" errors are from "new PyInt()" calls.
+    - most of these are Encode() calls
+
+
+review all classes to add rule of 5 or =delete as required
+    - PyRep objects done
+    - InventoryItem started (logging to see if other c'tors are used...so far not)
+    -
+
+*******************************************************
+*****************  Fx shit
+
+***  ideas
+
+
+***  errors
+
+
+***  other
+
+update all specialFX to use common call in DestinyManager code.
+this includes fx13 and fx10 calls
+    - see notes above for specialFX code improvements
+
+
+*******************************************************
+*****************  uk calls
+  ** none at this time **  (almost all calls coded, albeit some only skeleton)
+
+  do i want to put unfinished/unimplemented calls here?
+  there are a lot, and will take a while to complete that list.
+
+
+*******************************************************
+*****************  xmlp shit
+
+(bloat fix)
+look into using "CALL_", "RSP_" and "encode=true/false"/"decode=true/false" for including/omitting the bloated encode/decode sections
+  - this will be involved and rather time-consuming
+
+  <elementDef name="GodmaError"><!-- more to this than template has here.  fix later  -->
+
+remove "Notify*" from notify names....implement better naming convention (see above)
+
+*******************************************************
+*****************  db shit
+
+all PackedRows are marshalled into a buffer, where None is inserted as zero.
+    - this negates client conditional checks like using "if x is None:" because x=0 will return false in that check, which makes shit weird
+    - UPDATE  client patched to correct this, using "if x == 0:" after above "None" check
+
+check/add dynamic tables to Dump.sh to avoid copying local server data to repo
+
+*******************************************************
+*****************  ideas for later
+
+***  look into using sql prepared statements for oft-used queries  (undecided atm)
+
+****  make safe save method to verify and save data on segfault
+
+check into making module tics faster (like targetMgr) for sub-tic timer calls/checks
+
+aggressionMgr - this obj is system-wide, per system.  bound object could(should) be used for all clients in system
+
+drone chat window for drone specific msgs (using individual drone as sender)
+player command to show drones targeted by
+
+warpstate class works very well, and no mem leaks (as opposed to changing to struct)
+
+npc ai - update for better ai. add advanced ai for advanced ship classes   -priority level: low
+    - npc will attack drones based on class (find this info again)
+    - npc lost target <- this method needs better thought to pick next target
+    - should npc have 'pool' of available/preferred targets
+update npc ai. wander working. warp in/out working. tracking somewhat wonky.   -priority level: low
+
+ADD THIS....
+get npc *something* to check damage done by npc.
+once damage starts dropping, check distance and move accordingly
+
+charge chars for jetcans?
+
+rats should test for faction signals in system and set origin along that direction (to appear they came from their 'base' in system)
+    - this should be fairly easy to set up
+    - if no faction presence in system, continue with random point
+
+civilian class - non-combatant ships moving from one point to another. skeleton code and notes in class file.   -priority level: low
+
+expanded cargo modules update for specialized holds.   -priority level: low
+    - there are some client checks for updated hold capy
+     if attributeID in (const.attributeCapacity,
+         const.attributeDroneCapacity,
+         const.attributeShipMaintenanceBayCapacity,
+         const.attributeCorporateHangarCapacity):
+            sm.ScatterEvent('OnCapacityChange', itemKey)
+
+need to figure out how to load/queue assets for chars (on login or w/e)
+    - this is needed for complete asset menu entries
+
+integrate UTF8 into code (or make my own class)
+   - same with zlib and gangsta
+   - is zlib even used??
+
+inventory item - populate - effect timestamp
+    - this needs to be tracked/updated for proper effects handing and tracking.
+    - could be a problem with movement being funky
+
+update ValidateAddItem() to return >0 on error and use enums to determine/display error (see char::injectskillintobrain)
+    - there are many methods with this name.  i dont remember which one i was referring to here.
+
+make log/config option for (en/dis)able client massive check.
+
+validate ship pilot skills to assemble/repack ship?
+    - is this a 'service' by station personnel?  yeah, probably so.
+    - charge for assemble/repack service?
+
+speaking of charges, how about a freight charge when moving large amounts of stuff?
+     would this be docking charge?  no, that's akin to a full service gas station.  fill 'er up, check oil, wash windows, etc.
+     based on standings with station owner?
+
+boosters damage/kill character (see description of 'Crash')
+others cause multiple other effects.  is this something we can implement/exploit?
+
+
+*******************************************************
+*****************   errata and miscellaneous bullshit
+
+dont remember why i put this log in, but it got hit while testing earlier....
+19:54:01 [Service] config::GetMultiLocationsEx()
+19:54:01 W GetMultiLocationsEx: Asteroid Item requested.
+19:54:03 [Service] config::GetMultiLocationsEx()
+19:54:03 W GetMultiLocationsEx: Asteroid Item requested.
+19:54:05 [Service] config::GetMultiLocationsEx()
+19:54:05 W GetMultiLocationsEx: Asteroid Item requested.
+
+17908 - nerf bat    <<-- this is `QA Cruise Missile`  100km/s, 1k multi-spectral damage
+
+GM/WM slash commands arent parsed in server (rclick '/create this type'....etc)
+
+i have a sneaky suspicion 'throw' isnt used properly throughout the entire codebase
+
+update console commands to use complete words instead of first letter
+    - this will enable greater command control and passing of arguments
+
+object cache system still not understood or fully utilized. (part of bulkdata shit)
+entire system needs lookover.
+
+rework bulkdata code.
+the current code is hacked to send bulk data in segments.  live uses *some other form* of data, which *MAY* be our cache files.
+will need to look into this and determine how they use those files and the checksums to determine what to send.
+as this is still beyond me, it may take a while.
+till then, we'll have to used the hacked system.
+after all, it works
+
+item flags are stored in db as 'entity.flag', but client wants 'flagID'.
+look into changing our code to conform.  most objects are built in-code and use flagID already, but some items need "flag AS flagID" in sql query.
+
+figure out how to colorize _log() msgs to console   -priority level: low
+
+CmdStargateJump has multiple client-side msgs that would be fun to implement (system shut down due to traffik, closed from congestion, etc)
+
+holoscreenMgr is mostly empty (skeleton code)
+ideas for holoscreen in CQ:
+    - corp recruit ads
+    - incursion data
+    - relevant system data for player's current system
+    - others?
+    - more?
+
+OnItemsChanged is for multiple changes in a single return.  -priority level: low
+    - look into how we can implement this return, if needed, instead of using multiple returns (consolidate packet sending)
+
+_Prime uses slimItem.ownerID to set keys, which are then fetch()'d from RecordSet.EveOwners (or server if empty)
+    - as ownerID defaults to '0', client throws error when receives 'None' as response  (need more the 0 values to unpack)
+    - all ownerIDs should be actual EveOwners, (default to current system owner when SOV is implemented), NOT '0' or '_System' (which is 1)
+    -  could this be part of "EveOwners" bulkdata, which is why client is throwing error?  look into and fix as needed.
+
+stations - look into individual hangers loaded into mem objects (charid/items)
+    - not sure if this would be worth it, but would make 'by owner' searches much faster
+
+destiny shit - misc things found in destiny.dll
+    - markers for ball's yaw, pitch, roll (dunRotation)
+    - cruise velocity as a fraction of max velocity (uk)
+    - id of bubble ball belongs to, current and former (uk)
+    - dunRotation is used for accel gates, customs offices, moon miners, and possibly others i havent found yet
+
+need timer/var for after cloak for targeting (cannot target x sec after uncloak - currently no delay)
+
+so, cannot get info on cap ships with clone service because of incomplete jumpCloneSvc.
+jump clones - when i start this, need to check into diff between active clone and jumpclone.
+may have to rearrange things to properly implement jump clones.
+
+GetChar()->HasShares())  // not written, no underlying code yet
+
+static items not being removed from itemfactory map upon system unload (station removal fixed)
+
+began putting specific throw msgs in appropriate common/EVE_*.h files if available,
+else src/*/*.h files
+
+Ref: ServerError numbers are a bit whacky.  others are just wrong.
+i have placeholders in some as 'xxxxx' which need fixing
+update sending Ref: ServerError xxxxx msgs on errors without existing msgs.
+    - this includes all decode errors
+
+create data needed for killboard, and integrate killboard into site  -priority level: low
+    - page started.  data non-existent  will use src/eve-core/killboard/
+
+Profile::GetRunTimes()  - adjust this to Automatically set us/ms/s as needed  ....not working right.  later.
+
+player agent/error msgs - pool of msgs adjusted for character secstatus or standings with corp/sov holder, a la sphereScript's speech files
+
+when cynos are implemented, remember to update mapDynamicData for counts on both fields and generators
+
+stations have a reprocessingHangarFlag.
+implement this for RAM shit (they are all 4, but whatever)  -priority level: low
+- could this be changed by player?
+
+better checks and reverts when creating corps fail
+- updated to not check for failure when adding data to evestaticowners, walletdivisions and corpshares
+
+implants....update existing data for more bonus.  as we are running ~60 on char attributes (vs ~20 on live), existing 1-6pt implants are negligable.
+    update for ~20+ or so points to make a difference with our attributes
+    implant map in character.h  -currently unused/unimplemented
+
+turns use quaternion lerp curve (and mass/agility somehow)
+
+system mem obj for jumpsHour isnt working and will take more thought/code
+    - the idea for it is to keep track of jumps and times, then as time passes, remove those jumps from db data to show trend
+
+gain rep with broker agents to modify fees?
+
+set up universe monitor for watching jumps
+    - what file / where would this be coded?
+    - how would it run?
+when jumps > xx send "system closed" and "system congested" msgs to pilots trying to jump in.
+...other things?
+
+there is a lot more to machonet than we currently have coded/working....
+    - narrowcast is for notification types of "broadcast" using "bcast_idtype"
+
+
+make EACS and E-UNI corps as tribute (static)?
+    - others?  goons?
+
+*******************************************************
+********************************
+website updates:
+
+add version #s to site
+
+integrate forums with server account data.
+use game login for forum, and create way to change relevant character (like wow page)

@@ -1,0 +1,67 @@
+bit (1)    min: 0  max: 1 (1)
+ubyte (8)  min: 0  max: 255 (1)
+ushort (16) min: 0  max: 65535 (2)
+uint (32)   min: 0  max: 4294967295 (4)
+ulong (64)  min: 0  max: 18446744073709551615 (8)
+byte (8)   min: -128       max: 127 (1)
+short (16)  min: -32768     max: 32767 (2)
+int  (32)   min: -2147483648        max: 2147483647 (4)
+long (64)   min: -9223372036854775808       max: 9223372036854775807 (8)
+float (4)       double (8)      real (10)       ifloat (4)      idouble (8)
+ireal (10)      cfloat (8)      cdouble (16)    creal (20)      cfloat (8)
+cdouble (16)    creal (20)      char (1)        wchar (2)       dchar (4)
+
+
+
+specifier	Output	Example
+d or i	Signed decimal integer	392
+u	Unsigned decimal integer	7235
+o	Unsigned octal	610
+x	Unsigned hexadecimal integer	7fa
+X	Unsigned hexadecimal integer (uppercase)	7FA
+f	Decimal floating point, lowercase	392.65
+F	Decimal floating point, uppercase	392.65
+e	Scientific notation (mantissa/exponent), lowercase	3.9265e+2
+E	Scientific notation (mantissa/exponent), uppercase	3.9265E+2
+g	Use the shortest representation: %e or %f	392.65
+G	Use the shortest representation: %E or %F	392.65
+a	Hexadecimal floating point, lowercase	-0xc.90fep-2
+A	Hexadecimal floating point, uppercase	-0XC.90FEP-2
+c	Character	a
+s	String of characters	sample
+p	Pointer address	b8000000
+n	Nothing printed.
+The corresponding argument must be a pointer to a signed int.
+The number of characters written so far is stored in the pointed location.
+%	A % followed by another % character will write a single % to the stream.	%
+
+%.4f  4 point precision after decimal
+%07.5f total width of 7 places, with LH empties as 0, and precision of 5 points.
+%+.4f leading +
+% .4f leading space
+
+
+number places
+ yotta  Y   Septillion   1e24   1,000,000,000,000,000,000,000,000
+ zetta  Z   Sextillion   1e21   1,000,000,000,000,000,000,000
+ exa    E   Quintillion  1e18   1,000,000,000,000,000,000
+ peta   P   Quadrillion  1e15   1,000,000,000,000,000
+ tera   T   Trillion     1e12   1,000,000,000,000
+ giga   G   Billion      1e9    1,000,000,000
+ mega   M   Million      1e6    1,000,000
+ kilo   K   Thousand     1e3    1,000
+
+ milli  m                1e-3   0.001
+ micro  µ                1e-6   0.000 001
+ nano   n                1e-9   0.000 000 001
+ pico   p                1e-12  0.000 000 000 001
+ femto  f                1e-15  0.000 000 000 000 001
+ atto   a                1e-18  0.000 000 000 000 000 001
+ zepto  z                1e-21  0.000 000 000 000 000 000 001
+ yocto  y                1e-24  0.000 000 000 000 000 000 000 001
+
+
+
+
+
+

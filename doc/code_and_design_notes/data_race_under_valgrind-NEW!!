@@ -1,0 +1,10 @@
+
+22:29:31 [SvcMsg] Service Mgr Clearing bound object InventoryBound at N=888444:108
+22:29:3122:29:31 [Bound] InventoryBound::GetItem()
+ C       ImageServer: 22:29:31 [Service] sovMgr::GetSystemSovereigntyInfo()
+22:29:31 [Bound] InventoryBound::GetItem()
+22:29:31 [Bound] InventoryBound::List()
+ GetImage() called. Cat: Character, id: 90000000, size:32
+22:29:32 C       ImageServer:  GetImage() called. Cat: Character, id: 90000000, size:256
+22:29:35 [Service] browserLockdownSvc::GetFlaggedSitesHash()
+22:29:36 [Service] infoGatheringMgr::GetStateAndConfig()

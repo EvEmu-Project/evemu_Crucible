@@ -1,0 +1,115 @@
+
+*******************************
+*********   ITEM CLASSES BASED ON UniqueIdetifier (UID)
+  <0    private chat channels
+   1    static chat channels
+  1k    temp Planet Structures (PinIDs - sent from client)
+100k    bookmark folders  ** not implemented yet
+350k    market groups
+500k    Factions
+  1m    NPC Corp
+ 2m1    trial-friendly chat channels
+  3m    Agents/NPCs
+  4m    Trader NPCs (TraderJoe = 4m)
+  9m    Universes
+ 10m    K-Space Region  (known space)
+ 11m    W-Space Region  (Wormhole space)
+ 12m    A-Space Region  (Abyssal space - not in crucible)
+ 20m    K-Space Constellation
+ 20m    W-Space Constellation
+ 20m    A-Space Constellation
+ 30m    K-Space Solar System
+ 31m    W-Space  Solar System
+ 32m    A-Space  Solar System
+ 40m    Celestial  (star:multiple_types,groupID=6, planet:multiple_types,groupID=7, moon:typeID=14,groupID=8; belt:typeID=15,groupID=9)
+ 50m    Stargate  (groupid 10)
+ 60m    Stations  (groupid 15, catid 3)
+ 61m    Outposts   ** need to put Outpost creation here @ 61m, and save in mapDenormalize table.
+ 64m    Trading     ** containers for trade.  this is the inventory item all traded items are contained in, but separate, ofc.
+ 66m    OfficeFolder
+ 68m    FactoryFolder
+ 70m    UniverseAsteroid  ** this is NON-targetable, NON-selectable roids.  deco only
+ 80m    Control Bunker (to 80m1)  ** not sure what this is yet
+ 81m    Promenades (WIS shit)
+ 82m    Planatary Districts
+ 90m    PlayerCharacters   (-1 = max NPC Item)
+ 98m    PlayerCorps
+ 99m    Alliance
+100m    Station Office      ** corp officeID.  used for locationID of items in corp hangar, based on flag.
+110m    temp SEs
+130m    Planet Structures (PinIDs)
+135m    Customs Offices (67253 planets)  ** 1004746013567 on live
+140m    saved DSEs, player items
+140m    saved dynamic system entities, player items
+450m    asteroid SEs
+500m    player drones
+600m    bookmarks - player created  ** 1130462570 on live
+635m	bookmarks - mission created  ** not implemented yet
+650m    blueprints ** not implemented yet   ** 1007111250519 on live
+*** begin temp, non-saved UIDs
+750m    npcs and jetcans used as tracking markers
+950m    fleetIDs
+960m    wingIDs
+970m    squadIDs
+  1b    temp DSEs (missiles only at this time)  ** 9000000000001190696 on live
+ 1b2    dungeon SEs
+ 2b1    max int32
+ 9e0    fake items
+
+
+9223372036854775807     max int64
+18446744073709551615    max uint64  (unsigned types removed from Alasiya-EvEmu  -allan 10Dec17)
+
+maxInt = 2147483647
+maxBigint = 9223372036854775807L
+
+
+20:07:36 G   Alasiya's EvEMu: Common Account Roles:
+20:07:36 W          ROLE_DEV:  7131450020691447808(0x62f8000280c41000)
+20:07:36 W          ROLE_STD:  6917529029788565504(0x6000000080000000)
+20:07:36 W          ROLE_VIP:  7061644217868615680(0x6200000080400000)
+20:07:36 W         ROLE_VIP+:  7061644217877004288(0x6200000080c00000)
+20:07:36 W         ROLE_VIEW:  139611588448485376(0x1f0000000000000)
+20:07:36 W         ROLE_BOSS:  7203507614729375744(0x63f8000280c41000)
+20:07:36 W        ROLE_SLASH:  7079658624976683008(0x6240000280c40000)
+20:07:36 W      ROLE_CREATOR:  7124694621250392064(0x62e0000280c41000)
+20:07:36 W
+20:07:36 G   Alasiya's EvEMu: Common Corp Roles:
+20:07:36 W          Role_All:  1134904941433847168(0xfbffe07fffffd80)
+20:07:36 W         Role_Cont:  558551906910208(0x1fc0000000000)
+20:07:36 W        Role_Admin:  1152919339943329665(0xffffe07ffffff81)
+20:07:36 W       Role_Hangar:  134209536(0x7ffe000)
+20:07:36 W      Role_Account:  4503616673022208(0x100003f8000100)
+20:07:36 W     Role_Starbase:  441354962505564160(0x620020000000000)
+
+
+EvE ids (from client data)
+ 0   10k  System items (including junkyards and other special purpose items
+.5m   1m   Factions
+1m    2m   NPC corporations
+3m    4m   NPC characters (agents and NPC corporation CEO's)
+9m   10m  Universes
+10m  11m  NEW-EDEN Regions
+11m  12m  Wormhole Regions
+12m  13m  Abyssal regions
+20m  21m  NEW-EDEN Constellations
+21m  22m  Wormhole Constellations
+22m  23m  Abyssal constellations
+30m  31m  NEW-EDEN Solar systems
+31m  32m  Wormhole Solar systems
+32m  33m  Abyssal systems
+40m  50m  Celestials (suns, planets, moons, asteroid belts)
+50m  60m  Stargates
+60m  61m  Stations created by CCP
+61m  64m  Stations created from outposts
+68m  69m  Station folders for stations created by CCP
+69m  70m  Station folders for stations created from outposts
+70m  80m  Asteroids
+80m  80m1 Control Bunkers
+81m  82m  WiS Promenades
+82m  85m  Planetary Districts
+90m  98m  EVE characters created after 2010-11-03
+98m  99m  Corporations created after 2010-11-03
+99m  100m EVE alliances created after 2010-11-03
+100m  2b1 EVE characters, corporations and/or alliances created before 2010-11-03
+2b1       DUST characters, EVE characters created after 2016-05-30
