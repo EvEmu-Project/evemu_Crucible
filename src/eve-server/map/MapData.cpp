@@ -9,7 +9,7 @@
  */
 
 #include "../StaticDataMgr.h"
-//#include "agents/Agent.h"
+#include "agents/Agent.h"
 #include "map/MapData.h"
 #include "map/MapDB.h"
 #include "station/StationDataMgr.h"
@@ -146,7 +146,7 @@ void MapData::Populate()
                 auto itr = m_systemJumps.equal_range(systemID);
                 for (auto it = itr.first; it != itr.second; ++it)
                     sysList.push_back(it->second);
-                // @todo not sure why this is empty, but have segfaults from empty vector. 
+                // @todo not sure why this is empty, but have segfaults from empty vector.
                 if (sysList.empty()) {
                     StationData data = StationData();
                     stDataMgr.GetStationData(pAgent->GetStationID(), data);

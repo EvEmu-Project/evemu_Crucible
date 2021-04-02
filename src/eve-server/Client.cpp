@@ -39,7 +39,7 @@
 #include "corporation/CorporationDB.h"
 #include "fleet/FleetService.h"
 #include "imageserver/ImageServer.h"
-//#include "missions/MissionDataMgr.h"
+#include "missions/MissionDataMgr.h"
 #include "npc/NPC.h"
 //#include "npc/Drone.h"
 //#include "npc/DroneAI.h"

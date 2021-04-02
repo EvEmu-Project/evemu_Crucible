@@ -35,7 +35,7 @@
 #include "inventory/ItemDB.h"
 #include "market/MarketDB.h"
 #include "market/MarketMgr.h"
-//#include "missions/MissionDataMgr.h"
+#include "missions/MissionDataMgr.h"
 #include "threading/Threading.h"
 // #include "testing/test.h"
 

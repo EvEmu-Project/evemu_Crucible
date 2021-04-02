@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://evemu.dev
+    Copyright 2006 - 2011 The EVEmu Team
+    For the latest information visit http://evemu.org
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -68,56 +68,26 @@ MissionMgrService::MissionMgrService(PyServiceMgr *mgr)
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(MissionMgrService, GetMyCourierMissions)
+    PyCallable_REG_CALL(MissionMgrService, GetMyCourierMissions);
 }
 
 MissionMgrService::~MissionMgrService() {
     delete m_dispatch;
 }
 
-
 /*
-PyBoundObject *MissionMgrService::_CreateBoundObject(Client *c, PyTuple *bind_args) {
+PyBoundObject *MissionMgrService::CreateBoundObject(Client *pClient, PyTuple *bind_args) {
     _log(CLIENT__MESSAGE, "MissionMgrService bind request for:");
     bind_args->Dump(CLIENT__MESSAGE, "    ");
 
     return(new MissionMgrBound(m_manager, &m_db));
 }*/
 
-
 PyResult MissionMgrService::Handle_GetMyCourierMissions( PyCallArgs& call )
 {
     //SELECT * FROM courierMissions
-    sLog.Debug( "MissionMgrService", "Called GetMyCourierMissions stub." );
+    sLog.White("MissionMgrService", "Handle_GetMyCourierMissions() size=%u", call.tuple->size() );
+    call.Dump(SERVICE__CALL_DUMP);
 
     return NULL;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

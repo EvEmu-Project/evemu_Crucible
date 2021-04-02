@@ -33,7 +33,7 @@
 // data managers
 #include "StaticDataMgr.h"
 #include "StatisticMgr.h"
-//#include "missions/MissionDataMgr.h"
+#include "missions/MissionDataMgr.h"
 //console commands
 #include "ConsoleCommands.h"
 // account services
@@ -53,8 +53,8 @@
 #include "admin/PetitionerService.h"
 #include "admin/SlashService.h"
 // agent services
-//#include "agents/Agent.h"
-//#include "agents/AgentMgrService.h"
+#include "agents/Agent.h"
+#include "agents/AgentMgrService.h"
 // alliance services
 #include "alliance/AllianceRegistry.h"
 // calendar services
@@ -686,7 +686,7 @@ int main( int argc, char* argv[] )
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
     pyServMgr.RegisterService("account", new AccountService(&pyServMgr));
-    //pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
+    pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
     pyServMgr.RegisterService("aggressionMgr", new AggressionMgrService(&pyServMgr));
     pyServMgr.RegisterService("alert", new AlertService(&pyServMgr));
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
@@ -743,7 +743,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
     pyServMgr.RegisterService("map", new MapService(&pyServMgr));
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
-    //pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
+    pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
     pyServMgr.RegisterService("movementServer", new MovementService(&pyServMgr));
     pyServMgr.RegisterService("notificationMgr", new NotificationMgrService(&pyServMgr));
     pyServMgr.cache_service = new ObjCacheService(&pyServMgr, sConfig.files.cacheDir.c_str());
@@ -797,7 +797,7 @@ int main( int argc, char* argv[] )
     sLog.Green("       ServerInit", "Loading Data Sets");
     sDataMgr.Initialize();
     std::printf("\n");     // spacer
-    //sMissionDataMgr.Initialize();
+    sMissionDataMgr.Initialize();
     std::printf("\n");     // spacer
     sFxDataMgr.Initialize();
     std::printf("\n");     // spacer
@@ -821,40 +821,6 @@ int main( int argc, char* argv[] )
 
     /* program events system */
     SetupSignals();
-
-    /*
-    #ifndef _WIN32 // Windows
-
-    ///- Handle affinity for multiple processors and process priority
-    uint32 affinity = sConfigMgr->GetIntDefault("UseProcessors", 0);
-    bool highPriority = sConfigMgr->GetBoolDefault("ProcessPriority", false);
-
-    if (affinity > 0) {
-        cpu_set_t mask;
-        CPU_ZERO(&mask);
-
-        for (unsigned int i = 0; i < sizeof(affinity) * 8; ++i)
-            if (affinity & (1 << i))
-                CPU_SET(i, &mask);
-
-        if (sched_setaffinity(0, sizeof(mask), &mask))
-            sLog->outError("Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
-        else {
-            CPU_ZERO(&mask);
-            sched_getaffinity(0, sizeof(mask), &mask);
-            sLog->outString("Using processors (bitmask, hex): %lx", *(__cpu_mask*)(&mask));
-        }
-    }
-
-    if (highPriority) {
-        if (setpriority(PRIO_PROCESS, 0, PROCESS_HIGH_PRIORITY))
-            sLog->outError("Can't set worldserver process priority class, error: %s", strerror(errno));
-        else
-            sLog->outString("worldserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
-    }
-
-    #endif
-    */
 
     uint32 start = 0;
     EVETCPConnection* tcpc(nullptr);
