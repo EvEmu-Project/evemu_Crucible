@@ -717,7 +717,7 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
     data.reason = reason;
 
     // handle distribution to fleets
-    if (pClient->InFleet()) {
+    /*if (pClient->InFleet()) {
         // get fleet members onGrid and distrubute bounty
         std::vector< uint32 > members;
         sFltSvc.GetFleetMembersOnGrid(pClient, members);
@@ -742,5 +742,11 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
         } else {
             AccountService::TranserFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
         }
+    }*/
+    data.amount = bounty;
+    if (sConfig.server.BountyPayoutDelayed) {
+        m_system->AddBounty(pClient->GetCharacterID(), data);
+    } else {
+        AccountService::TranserFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
     }
 }
