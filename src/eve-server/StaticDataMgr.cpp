@@ -39,6 +39,7 @@ m_npcDivisions(nullptr)
     m_moonGoo.clear();
     m_ramMatl.clear();
     m_regions.clear();
+    m_compounds.clear();
     m_minerals.clear();
     m_bpMatlData.clear();
     m_systemData.clear();
@@ -93,6 +94,7 @@ void StaticDataMgr::Clear()
     m_moonGoo.clear();
     m_ramMatl.clear();
     m_regions.clear();
+    m_compounds.clear();
     m_minerals.clear();
     m_systemData.clear();
     m_staticData.clear();
@@ -218,26 +220,25 @@ void StaticDataMgr::Populate()
     startTime = GetTimeMSeconds();
     ManagerDB::GetTypeData(*res);
     while (res->GetRow(row)) {
-        Inv::TypeData data = Inv::TypeData();
-        data.id = row.GetUInt(0);
-        data.groupID = row.GetUInt(1);
-        data.name = row.GetText(2);
-        data.description = row.GetText(3);
-        data.radius = row.GetFloat(4);
-        data.mass = row.GetFloat(5);
-        data.volume = row.GetFloat(6);
-        data.capacity = row.GetFloat(7);
-        data.portionSize = row.GetUInt(8);
-        data.race = row.GetUInt(9);
-        data.basePrice = row.GetDouble(10);
-        data.published = (sConfig.server.AllowNonPublished ? true : row.GetBool(11));
-        data.marketGroupID = (row.IsNull(11) ? 0 : row.GetUInt(12));
-        data.chanceOfDuplicating = row.GetFloat(13);
-
-        // these will take a bit of work, but will eliminate multiple db hits on inventory/menu loading ingame
-        data.isRecyclable = FactoryDB::IsRecyclable(data.id);   // +30s to startup
-        data.isRefinable = FactoryDB::IsRefinable(data.id);     // +8s to startup
-
+        Inv::TypeData data              = Inv::TypeData();
+            data.id                     = row.GetUInt(0);
+            data.groupID                = row.GetUInt(1);
+            data.name                   = row.GetText(2);
+            data.description            = row.GetText(3);
+            data.radius                 = row.GetFloat(4);
+            data.mass                   = row.GetFloat(5);
+            data.volume                 = row.GetFloat(6);
+            data.capacity               = row.GetFloat(7);
+            data.portionSize            = row.GetUInt(8);
+            data.race                   = row.GetUInt(9);
+            data.basePrice              = row.GetDouble(10);
+            data.published              = (sConfig.server.AllowNonPublished ? true : row.GetBool(11));
+            data.marketGroupID          = (row.IsNull(11) ? 0 : row.GetUInt(12));
+            data.chanceOfDuplicating    = row.GetFloat(13);
+            data.metaLvl                = (row.IsNull(14) ? 0 : row.GetUInt(14));
+            // these will take a bit of work, but will eliminate multiple db hits on inventory/menu loading ingame
+            data.isRecyclable           = FactoryDB::IsRecyclable(data.id);   // +30s to startup
+            data.isRefinable            = FactoryDB::IsRefinable(data.id);     // +8s to startup
         m_typeData.emplace(row.GetUInt(0), data);
     }
     sLog.Cyan("    StaticDataMgr", "%u Inventory Types loaded in %.3fms.", m_typeData.size(), (GetTimeMSeconds() - startTime));
@@ -304,10 +305,10 @@ void StaticDataMgr::Populate()
         m_stationSystem.emplace(row.GetInt(0), row.GetInt(1));
     }
 
-    std::map<uint32, std::vector<uint32>>::iterator itr = m_stationList.begin(), end = m_stationList.end();
+    std::map<uint32, std::vector<uint32>>::iterator itr = m_stationList.begin();
     for (auto cur : m_stationSystem) {
         itr = m_stationList.find(cur.second);
-        if (itr != end) {
+        if (itr != m_stationList.end()) {
             itr->second.push_back(cur.first);
         } else {
             std::vector<uint32> sVec;
@@ -342,10 +343,40 @@ void StaticDataMgr::Populate()
     sLog.Cyan("    StaticDataMgr", "%u Skills loaded in %.3fms.", m_skills.size(), (GetTimeMSeconds() - startTime));
 
     startTime = GetTimeMSeconds();
-    FactoryDB::GetMinerals(*res);
+    FactoryDB::GetComponents(*res);     //766
+    while (res->GetRow(row)) {
+        //SELECT typeID, typeName FROM invTypes [where type=composite or component]
+        m_components.insert(std::pair<uint16, std::string>(row.GetInt(0), row.GetText(1)));
+    }
+    FactoryDB::GetMinerals(*res);       //8
     while (res->GetRow(row)) {
         //SELECT typeID, typeName FROM invTypes [where type=mineral]
         m_minerals.insert(std::pair<uint16, std::string>(row.GetInt(0), row.GetText(1)));
+    }
+    FactoryDB::GetCompounds(*res);      //181
+    while (res->GetRow(row)) {
+        //SELECT typeID, typeName FROM invTypes [where type=compound]
+        m_compounds.insert(std::pair<uint16, std::string>(row.GetInt(0), row.GetText(1)));
+    }
+    FactoryDB::GetSalvage(*res);        //53
+    while (res->GetRow(row)) {
+        //SELECT typeID, typeName FROM invTypes [where type=salvage]
+        m_salvage.insert(std::pair<uint16, std::string>(row.GetInt(0), row.GetText(1)));
+    }
+    FactoryDB::GetResources(*res);      //15
+    while (res->GetRow(row)) {
+        //SELECT typeID, typeName FROM invTypes [where type=pi resource]
+        m_resources.insert(std::pair<uint16, std::string>(row.GetInt(0), row.GetText(1)));
+    }
+    FactoryDB::GetCommodities(*res);    //66
+    while (res->GetRow(row)) {
+        //SELECT typeID, typeName FROM invTypes [where type=pi commodity]
+        m_commodities.insert(std::pair<uint16, std::string>(row.GetInt(0), row.GetText(1)));
+    }
+    FactoryDB::GetMiscCommodities(*res);    //456
+    while (res->GetRow(row)) {
+        //SELECT typeID, typeName FROM invTypes [where type=misc commodity]
+        m_miscCommodities.insert(std::pair<uint16, std::string>(row.GetInt(0), row.GetText(1)));
     }
     FactoryDB::GetRAMMaterials(*res);
     while (res->GetRow(row)) {
@@ -387,12 +418,13 @@ void StaticDataMgr::Populate()
             bpTypeData.wasteFactor              = row.GetInt(11);
             bpTypeData.maxProductionLimit       = row.GetInt(12);
             bpTypeData.chanceOfRE               = row.GetFloat(13);
-            bpTypeData.catID                    = row.GetInt(14);
+            bpTypeData.catID                    = (row.IsNull(14) ? 0 : row.GetInt(14));
         m_bpTypeData.emplace(row.GetInt(0), bpTypeData);
+        m_bpProductData.emplace(row.GetInt(2), bpTypeData);
     }
     for (auto cur : m_bpTypeData)
         m_bpMatlData[cur.first] = SetBPMatlType(cur.second.catID, cur.first, cur.second.productTypeID);
-    sLog.Cyan("    StaticDataMgr", "%u BP Type defs loaded in %.3fms.", (m_bpTypeData.size() + m_bpMatlData.size()), (GetTimeMSeconds() - startTime));
+    sLog.Cyan("    StaticDataMgr", "%u BP Type defs loaded in %.3fms.", m_bpTypeData.size(), (GetTimeMSeconds() - startTime));
 
     startTime = GetTimeMSeconds();
     ManagerDB::GetMoonResouces(*res);
@@ -601,6 +633,11 @@ const char* StaticDataMgr::GetTypeName(uint16 typeID)
     return "None";
 }
 
+void StaticDataMgr::GetTypes(std::map< uint16, Inv::TypeData >& into)
+{
+    into = m_typeData;
+}
+
 
 PyInt* StaticDataMgr::GetAgentSystemID(int32 agentID)
 {
@@ -652,13 +689,73 @@ bool StaticDataMgr::GetSkillName(uint16 skillID, std::string& name)
     return false;
 }
 
-void StaticDataMgr::GetMineralData(std::vector< Market::matlData >& into)
+void StaticDataMgr::GetComponentData(std::map< uint16, Market::matlData >& into)
+{
+    for (auto cur : m_components) {
+        Market::matlData data = Market::matlData();
+        data.typeID = cur.first;
+        data.name = cur.second;
+        into[cur.first] = data;
+    }
+}
+
+void StaticDataMgr::GetMineralData(std::map< uint16, Market::matlData >& into)
 {
     for (auto cur : m_minerals) {
         Market::matlData data = Market::matlData();
         data.typeID = cur.first;
         data.name = cur.second;
-        into.push_back(data);
+        into[cur.first] = data;
+    }
+}
+
+void StaticDataMgr::GetCompoundData(std::map< uint16, Market::matlData >& into)
+{
+    for (auto cur : m_compounds) {
+        Market::matlData data = Market::matlData();
+        data.typeID = cur.first;
+        data.name = cur.second;
+        into[cur.first] = data;
+    }
+}
+
+void StaticDataMgr::GetSalvageData(std::map< uint16, Market::matlData >& into)
+{
+    for (auto cur : m_salvage) {
+        Market::matlData data = Market::matlData();
+        data.typeID = cur.first;
+        data.name = cur.second;
+        into[cur.first] = data;
+    }
+}
+
+void StaticDataMgr::GetPIResourceData(std::map< uint16, Market::matlData >& into)
+{
+    for (auto cur : m_resources) {
+        Market::matlData data = Market::matlData();
+        data.typeID = cur.first;
+        data.name = cur.second;
+        into[cur.first] = data;
+    }
+}
+
+void StaticDataMgr::GetPICommodityData(std::map< uint16, Market::matlData >& into)
+{
+    for (auto cur : m_commodities) {
+        Market::matlData data = Market::matlData();
+        data.typeID = cur.first;
+        data.name = cur.second;
+        into[cur.first] = data;
+    }
+}
+
+void StaticDataMgr::GetMiscCommodityData(std::map< uint16, Market::matlData >& into)
+{
+    for (auto cur : m_miscCommodities) {
+        Market::matlData data = Market::matlData();
+        data.typeID = cur.first;
+        data.name = cur.second;
+        into[cur.first] = data;
     }
 }
 
@@ -809,6 +906,16 @@ void StaticDataMgr::GetBpTypeData(uint16 typeID, EvERam::bpTypeData& tData)
     } else {
         _log(DATA__MESSAGE, "Failed to query info for bpType %u: Type not found.", typeID);
     }
+}
+
+bool StaticDataMgr::GetBpDataForItem(uint16 typeID, EvERam::bpTypeData& tData)
+{
+    std::map<uint16, EvERam::bpTypeData>::iterator itr = m_bpProductData.find(typeID);
+    if (itr != m_bpProductData.end()) {
+        tData = itr->second;
+        return true;
+    }
+    return false;
 }
 
 bool StaticDataMgr::IsRecyclable(uint16 typeID)
@@ -1538,7 +1645,7 @@ const char* StaticDataMgr::GetRigSizeName(uint8 size)
 
 const char* StaticDataMgr::GetProcStateName(int8 state)
 {
-    /*using namespace EVEPOS;
+    using namespace EVEPOS;
     switch(state) {
         case ProcState::Invalid:            return "Invalid";
         case ProcState::Unanchoring:        return "Unanchoring";
@@ -1551,7 +1658,7 @@ const char* StaticDataMgr::GetProcStateName(int8 state)
         case ProcState::SheildReinforcing:  return "SheildReinforcing";
         case ProcState::ArmorReinforcing:   return "ArmorReinforcing";
         default:                            return "Bad State";
-    }*/
+    }
     return "Undefined";
 }
 

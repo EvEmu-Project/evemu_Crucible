@@ -35,7 +35,13 @@ public:
     // for static data mgr
     static bool IsRefinable(const uint16 typeID);
     static bool IsRecyclable(const uint16 typeID);
+    static void GetSalvage(DBQueryResult& res);
     static void GetMinerals(DBQueryResult& res);
+    static void GetCompounds(DBQueryResult& res);
+    static void GetResources(DBQueryResult& res);
+    static void GetComponents(DBQueryResult& res);
+    static void GetCommodities(DBQueryResult& res);
+    static void GetMiscCommodities(DBQueryResult& res);
     static void GetRAMMaterials(DBQueryResult& res);
     static void GetBlueprintType(DBQueryResult& res);
     static void GetRAMRequirements(DBQueryResult& res);

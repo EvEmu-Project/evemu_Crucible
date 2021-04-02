@@ -45,25 +45,28 @@ void ManagerDB::GetTypeData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
         "SELECT"
-        "  typeID,"
-        "  groupID,"
-        "  typeName,"
-        "  description,"
-        "  radius,"
-        "  mass,"
-        "  volume,"
-        "  capacity,"
-        "  portionSize,"
-        "  raceID,"
-        "  basePrice,"
-        "  published,"
-        "  marketGroupID,"
-        "  chanceOfDuplicating "
-        " FROM invTypes "))
+        "  t.typeID,"
+        "  t.groupID,"
+        "  t.typeName,"
+        "  t.description,"
+        "  t.radius,"
+        "  t.mass,"
+        "  t.volume,"
+        "  t.capacity,"
+        "  t.portionSize,"
+        "  t.raceID,"
+        "  t.basePrice,"
+        "  t.published,"
+        "  t.marketGroupID,"
+        "  t.chanceOfDuplicating,"
+        "  m.metaGroupID"
+        " FROM invTypes AS t"
+        " LEFT JOIN invMetaTypes AS m USING (typeID)"))
         codelog(DATABASE__ERROR, "Error in GetTypeData query: %s.", res.error.c_str());
 
     _log(DATABASE__RESULTS, "GetTypeData returned %u items", res.GetRowCount());
 }
+
 void ManagerDB::GetSkillList(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID IN (SELECT groupID FROM invGroups WHERE categoryID = 16)"))

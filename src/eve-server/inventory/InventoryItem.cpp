@@ -35,7 +35,7 @@
 #include "effects/EffectsProcessor.h"
 #include "exploration/Probes.h"
 #include "manufacturing/Blueprint.h"
-//#include "pos/Structure.h"
+#include "pos/Structure.h"
 #include "ship/Ship.h"
 #include "ship/modules/ModuleItem.h"
 #include "station/Station.h"
@@ -260,9 +260,9 @@ RefPtr<_Ty> InventoryItem::_LoadItem(uint32 itemID, const ItemType &type, const 
         case EVEDB::invCategories::Structure:
         case EVEDB::invCategories::Orbitals:
         case EVEDB::invCategories::SovereigntyStructure:
-        //case EVEDB::invCategories::StructureUpgrade: {
-        //    return StructureItem::_LoadItem<StructureItem>(itemID, type, data);
-        //} break;
+        case EVEDB::invCategories::StructureUpgrade: {
+            return StructureItem::_LoadItem<StructureItem>(itemID, type, data);
+        } break;
         case EVEDB::invCategories::Charge: {      // probes are charges.
             switch (type.groupID()) {
                 case EVEDB::invGroups::Scanner_Probe:
@@ -424,9 +424,9 @@ InventoryItemRef InventoryItem::Spawn(ItemData &data)
         } break;
         case EVEDB::invCategories::Orbitals:
         case EVEDB::invCategories::Structure:
-        //case EVEDB::invCategories::SovereigntyStructure: {
-        //    return StructureItem::Spawn(data);
-        //} break;
+        case EVEDB::invCategories::SovereigntyStructure: {
+            return StructureItem::Spawn(data);
+        } break;
         case EVEDB::invCategories::Blueprint: {
             // this needs to distinguish between copy and orig
             EvERam::bpData bdata = EvERam::bpData();

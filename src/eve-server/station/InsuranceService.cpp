@@ -108,7 +108,7 @@ PyResult InsuranceService::Handle_GetInsurancePrice( PyCallArgs& call ) {
     /* called in space */
     const ItemType *type = sItemFactory.GetType(PyRep::IntegerValue(call.tuple->GetItem(0)));
     if (type != nullptr)
-        return new PyFloat(type->basePrice() / 100);
+        return new PyFloat(type->basePrice());
 
     return PyStatic.NewZero();
 }
@@ -117,7 +117,7 @@ PyResult InsuranceBound::Handle_GetInsurancePrice( PyCallArgs& call ) {
     /* called when docked */
     const ItemType *type = sItemFactory.GetType(PyRep::IntegerValue(call.tuple->GetItem(0)));
     if (type != nullptr)
-        return new PyFloat(type->basePrice() / 100);
+        return new PyFloat(type->basePrice());
 
     return PyStatic.NewZero();
 }
@@ -165,11 +165,11 @@ PyResult InsuranceBound::Handle_InsureShip( PyCallArgs& call ) {
      *   None       0.1       0.00
      */
     // calculate the fraction value
-    double paymentFraction = (args.amount / (shipRef->type().basePrice() / 100));
+    double paymentFraction = (args.amount / (shipRef->type().basePrice()));
     if (paymentFraction < 0.05f) {
             // catchall for fuckedup prices.
         call.client->SendErrorMsg("Your payment of %.2f is below the minimum payment of %.2f required for coverage.", \
-                    args.amount, (shipRef->type().basePrice() / 100) * 0.05f);
+                    args.amount, (shipRef->type().basePrice() * 0.05f));
         return PyStatic.NewNone();
     }
 
@@ -205,7 +205,7 @@ PyResult InsuranceBound::Handle_InsureShip( PyCallArgs& call ) {
     }
 
     uint8 numWeeks(12);
-    double payout(shipRef->type().basePrice() / 100);
+    double payout(shipRef->type().basePrice());
     payout *= fraction;
     if (m_db->InsertInsuranceByShipID(args.shipID, shipRef->name(), call.client->GetCharacterID(), fraction, payout, args.isCorp, numWeeks)) {
         //  it successfully added, now, have the player pay for the insurance

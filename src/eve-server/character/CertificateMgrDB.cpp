@@ -44,7 +44,7 @@ PyRep *CertificateMgrDB::GetCertificateCategories() {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT categoryID, categoryName, description, dataID, categoryNameID FROM crtCategories")) {
         codelog(DATABASE__ERROR, "Failed to query certificate categories: %s.", res.error.c_str());
-        return new PyNone();
+        return PyStatic.NewNone();
     }
 
     return(DBResultToIndexRowset(res, "categoryID"));
@@ -54,7 +54,7 @@ PyRep *CertificateMgrDB::GetAllShipCertificateRecommendations() {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT shipTypeID, certificateID, recommendationLevel, recommendationID FROM crtRecommendations")) {
         codelog(DATABASE__ERROR, "Failed to query certificate categories: %s.", res.error.c_str());
-        return new PyNone();
+        return PyStatic.NewNone();
     }
 
     return DBResultToRowset(res);
@@ -64,7 +64,7 @@ PyRep *CertificateMgrDB::GetCertificateClasses() {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT classID, className, classNameID, description, dataID FROM crtClasses")) {
         codelog(DATABASE__ERROR, "Failed to query certificate classes: %s.", res.error.c_str());
-        return new PyNone();
+        return PyStatic.NewNone();
     }
 
     return DBResultToIntRowDict(res, 0);

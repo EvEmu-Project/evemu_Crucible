@@ -29,9 +29,9 @@
 
 #include "EVEServerConfig.h"
 #include "npc/Drone.h"
-//#include "planet/CustomsOffice.h"
+#include "planet/CustomsOffice.h"
 #include "planet/Moon.h"
-//#include "pos/Structure.h"
+#include "pos/Structure.h"
 #include "ship/ShipService.h"
 #include "system/Container.h"
 #include "system/DestinyManager.h"
@@ -488,10 +488,10 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                 }
             } break;
             case EVEDB::invCategories::Structure: {
-                /*if (pClient->SystemMgr()->GetClosestMoonSE(location)->GetMoonSE()->HasTower()) {
+                if (pClient->SystemMgr()->GetClosestMoonSE(location)->GetMoonSE()->HasTower()) {
                     pClient->SendErrorMsg("This Moon already has a Control Tower in orbit.  Aborting Drop.");
                     return nullptr;
-                }*/
+                }
 
                 //{'FullPath': u'UI/Messages', 'messageID': 259679, 'label': u'DropNeedsPlayerCorpBody'}(u'In order to launch {[item]item.name} you need to be a member of a independent corporation.', None, {u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
                 //{'FullPath': u'UI/Messages', 'messageID': 256411, 'label': u'CantInHighSecSpaceBody'}(u'You cannot do that as CONCORD currently restricts the launching, anchoring and control of that type of structure within CONCORD-protected space to authorized agents of the empires.', None, None)
@@ -528,7 +528,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
 
                 dropped = true;
                 shipDrop = true;
-                //pSE->GetPOSSE()->Drop(pClient->GetShipSE()->SysBubble());
+                pSE->GetPOSSE()->Drop(pClient->GetShipSE()->SysBubble());
                 pSystem->AddEntity(pSE);
                 list->AddItem(new PyInt(entity.itemID));
                 // may need separate test for infrastructure hubs
@@ -611,8 +611,8 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
         // so take ownership of it
         iRef->ChangeOwner(pClient->GetCharacterID(), true);
         // perform data cleanup for structures
-        /*if (pSE->IsPOSSE())
-            pSE->GetPOSSE()->Scoop();*/
+        if (pSE->IsPOSSE())
+            pSE->GetPOSSE()->Scoop();
         // perform data cleanup for drones
         if (pSE->IsDroneSE())
             pClient->GetShipSE()->ScoopDrone(pSE);
@@ -698,7 +698,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 
     InventoryItemRef cRef(nullptr), iRef(nullptr);
     CargoContainerRef jcRef(nullptr), ccRef(nullptr);
-    //StructureItemRef sRef(nullptr);
+    StructureItemRef sRef(nullptr);
 
     /** @todo  deal with launching items for corp... they will use flagProperty */
 
@@ -725,7 +725,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
         switch (iRef->categoryID()) {
             case EVEDB::invCategories::Structure:
             case EVEDB::invCategories::SovereigntyStructure:
-            /*case EVEDB::invCategories::StructureUpgrade: {
+            case EVEDB::invCategories::StructureUpgrade: {
                 sRef = sItemFactory.GetStructure(*itr);
                 if (sRef.get() == nullptr)
                     throw PyException(MakeCustomError("Unable to spawn Structure item of type %u.", sRef->typeID()));
@@ -738,8 +738,8 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                 pSysMgr->AddEntity(sSE);
                 pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
                 itr = args.ints.erase(itr);
-            } break;*/
-            /*case EVEDB::invCategories::Orbitals: {
+            } break;
+            case EVEDB::invCategories::Orbitals: {
                 sRef = sItemFactory.GetStructure(*itr);
                 if (sRef.get() == nullptr)
                     throw PyException(MakeCustomError("Unable to spawn Structure item of type %u.", sRef->typeID()));
@@ -752,7 +752,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                 pSysMgr->AddEntity(sSE);
                 pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
                 itr = args.ints.erase(itr);
-            } break;*/
+            } break;
             case EVEDB::invCategories::Deployable: {
                 cRef = sItemFactory.GetItem(*itr);
                 if (cRef.get() == nullptr)

@@ -67,7 +67,7 @@ PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 
     // what we are sending back is just a static mErrorID and the command not to do anything with it.
     if (sConfig.debug.BeanCount or sConfig.debug.IsTestServer) {
-        result->items[0] = new PyNone();
+        result->items[0] = PyStatic.NewNone();
     } else {
         result->items[0] = new PyInt(34135);    //ErrorID
     }
@@ -89,7 +89,7 @@ PyResult AlertService::Handle_BeanDelivery( PyCallArgs& call )
     /* Unhandled for now as we have no interest in receiving batched python stack traces
      * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
      */
-    return new PyNone();
+    return PyStatic.NewNone();
 }
 
 PyResult AlertService::Handle_GroupBeanDelivery( PyCallArgs& call )
@@ -97,7 +97,7 @@ PyResult AlertService::Handle_GroupBeanDelivery( PyCallArgs& call )
     _log(CLIENT__WARNING, "AlertService::Handle_GroupBeanDelivery(): size=%u", call.tuple->size() );
     //call.Dump(CLIENT__CALL_DUMP);
 
-    return new PyNone();
+    return PyStatic.NewNone();
 }
 
 /**
@@ -118,5 +118,5 @@ PyResult AlertService::Handle_SendClientStackTraceAlert(PyCallArgs &call) {
   if (sConfig.debug.StackTrace or is_log_enabled(CLIENT__STACK_TRACE))
     traceLogger->logTrace(*call.tuple);
 
-    return new PyNone();
+    return PyStatic.NewNone();
 }

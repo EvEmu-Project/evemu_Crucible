@@ -31,10 +31,46 @@ bool FactoryDB::IsProducableBy(const uint32 assemblyLineID, const ItemType *pTyp
     return FactoryDB::GetMultipliers(assemblyLineID, pType, into);
 }
 
+void FactoryDB::GetSalvage(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID IN (754, 966)"))
+        codelog(DATABASE__ERROR, "Error in GetSalvage query: %s", res.error.c_str());
+}
+
+void FactoryDB::GetCompounds(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID IN (282, 333, 423, 427, 530, 711, 712)"))
+        codelog(DATABASE__ERROR, "Error in GetCompounds query: %s", res.error.c_str());
+}
+
 void FactoryDB::GetMinerals(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID = 18 AND published = 1"))   // minerals
         codelog(DATABASE__ERROR, "Error in GetMinerals query: %s", res.error.c_str());
+}
+
+void FactoryDB::GetComponents(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID IN (280, 283, 313, 334, 428, 429, 526, 536, 873, 886, 913, 964)"))   // components
+        codelog(DATABASE__ERROR, "Error in GetComponents query: %s", res.error.c_str());
+}
+
+void FactoryDB::GetCommodities(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID IN (1042, 1034, 1040, 1041)"))   // PI Commodities
+        codelog(DATABASE__ERROR, "Error in GetCommodities query: %s", res.error.c_str());
+}
+
+void FactoryDB::GetMiscCommodities(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID = 314"))
+        codelog(DATABASE__ERROR, "Error in GetMinerals query: %s", res.error.c_str());
+}
+
+void FactoryDB::GetResources(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID IN (1031, 1032, 1033, 1035)"))   // PI Resources
+        codelog(DATABASE__ERROR, "Error in GetResources query: %s", res.error.c_str());
 }
 
 void FactoryDB::GetRAMMaterials(DBQueryResult& res)
@@ -151,8 +187,8 @@ void FactoryDB::GetBlueprintType(DBQueryResult& res) {
         "  g.categoryID"
         " FROM invBlueprintTypes AS bt"
         "  LEFT JOIN invTypes AS t ON t.typeID = bt.blueprintTypeID"
-        "  LEFT JOIN invGroups AS g USING (groupID)"
-        " WHERE t.published = 1" ))
+        "  LEFT JOIN invGroups AS g USING (groupID)"))
+        //" WHERE t.published = 1" ))
     {
         codelog(DATABASE__ERROR, "Error in GetBlueprintType query: %s.", res.error.c_str());
     }
@@ -370,7 +406,7 @@ bool FactoryDB::GetAssemblyLineProperties(const uint32 assemblyLineID, Character
         " al.costInstall,"
         " alt.minCostPerHour,"
         " al.costPerHour,"
-        " al.ownerID,"
+        " al.ownerID,"                          //5
         " al.discountPerGoodStandingPoint,"
         " al.surchargePerBadStandingPoint"
         " FROM ramAssemblyLines AS al"
@@ -391,7 +427,7 @@ bool FactoryDB::GetAssemblyLineProperties(const uint32 assemblyLineID, Character
     into.materialMultiplier     = row.GetFloat(0);
     into.timeMultiplier         = row.GetFloat(1);
     into.installCost            = row.GetFloat(2);
-    if (row.GetFloat(3) > row.GetFloat(4)) {
+    if (row.GetFloat(3) > row.GetFloat(4)) {            //min of base cost/hr vs minimum cost/hr
         into.usageCost          = row.GetFloat(3);
     } else {
         into.usageCost          = row.GetFloat(4);
@@ -402,7 +438,7 @@ bool FactoryDB::GetAssemblyLineProperties(const uint32 assemblyLineID, Character
         return true;
 
     float standing(1), costModifier(1);
-    uint32 factionID = sDataMgr.GetCorpFaction(row.GetInt(5));
+    uint32 factionID(sDataMgr.GetCorpFaction(row.GetInt(5)));
     if (isCorpJob) {
         // this is only for PC corps.  take higher of (npc faction to pc corp)/2 or npc corp to pc corp
         float cStanding(StandingDB::GetStanding(row.GetInt(5), pChar->corporationID()));

@@ -2258,7 +2258,7 @@ PyResult DestinyManager::AttemptDockOperation() {
     if (station == nullptr) {
         codelog(CLIENT__ERROR, "%s: Station %u not found.", pClient->GetName(), stationID);
         pClient->SendErrorMsg("Station Not Found, Docking Aborted.");
-        return new PyNone();
+        return PyStatic.NewNone();
     }
 
     //get the station Docking Perimiter

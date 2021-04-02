@@ -30,10 +30,10 @@
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
 #include "inventory/InventoryBound.h"
-//#include "planet/CustomsOffice.h"
-//#include "planet/Planet.h"
-//#include "planet/Colony.h"
-//#include "pos/Structure.h"
+#include "planet/CustomsOffice.h"
+#include "planet/Planet.h"
+#include "planet/Colony.h"
+#include "pos/Structure.h"
 #include "ship/modules/GenericModule.h"
 #include "system/BookmarkDB.h"
 #include "system/Container.h"
@@ -153,7 +153,7 @@ PyResult InventoryBound::Handle_ImportExportWithPlanet(PyCallArgs &call) {
     //{'FullPath': u'UI/Messages', 'messageID': 256626, 'label': u'CannotExportNotEnoughSpaceBody'}(u'You cannot export commodities to the customs office, as it does not have sufficient storage space to handle the incoming goods.', None, None)
 
     //  this is (should be) customs office
-    /*if (m_self->groupID() != EVEDB::invGroups::Orbital_Infrastructure) {
+    if (m_self->groupID() != EVEDB::invGroups::Orbital_Infrastructure) {
         _log(ITEM__ERROR, "%s: Called CustomsOffice xFer using non-co item %s(%u).", call.client->GetName(), m_self->name(), m_self->itemID());
         return nullptr;
     }
@@ -177,7 +177,7 @@ PyResult InventoryBound::Handle_ImportExportWithPlanet(PyCallArgs &call) {
     StructureItemRef sRef = StructureItemRef::StaticCast(m_self);
     Colony* pColony = sRef->GetMySE()->GetCOSE()->GetPlanetSE()->GetColony(call.client);
     pColony->PlanetXfer(args.spaceportPinID, importItems, exportItems, args.taxRate);
-    */
+
     return nullptr;
 }
 
@@ -638,14 +638,11 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
                 }
                 continue;
             }
-        } else {
-        /*else if (customs) {
+        } else if (customs) {
             pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
             StructureItemRef sRef = StructureItemRef::StaticCast(m_self);
             sRef->AddItem(iRef);// this will throw if it fails
-        } 
-        else {
-        */
+        } else {
             pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
             iRef->Donate(m_ownerID, m_itemID, toFlag);
         }

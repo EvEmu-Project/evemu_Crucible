@@ -76,6 +76,7 @@ namespace Inv {
         bool            isRefinable :1;
         bool            isRecyclable :1;
         uint8           race;
+        uint8           metaLvl;
         uint16          id;
         uint16          groupID;
         uint16          portionSize;

@@ -640,8 +640,8 @@ SOURCE_GROUP( "src\\map"           FILES ${map_INCLUDE} )
 SOURCE_GROUP( "src\\market"        FILES ${market_INCLUDE} )
 SOURCE_GROUP( "src\\missions"      FILES ${missions_INCLUDE} )
 SOURCE_GROUP( "src\\npc"           FILES ${npc_INCLUDE} )
-#SOURCE_GROUP( "src\\planet"        FILES ${planet_INCLUDE} )
-#SOURCE_GROUP( "src\\pos"           FILES ${pos_INCLUDE} )
+SOURCE_GROUP( "src\\planet"        FILES ${planet_INCLUDE} )
+SOURCE_GROUP( "src\\pos"           FILES ${pos_INCLUDE} )
 SOURCE_GROUP( "src\\qaTools"       FILES ${qaTools_INCLUDE} )
 SOURCE_GROUP( "src\\search"        FILES ${search_INCLUDE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_INCLUDE} )
@@ -677,8 +677,8 @@ SOURCE_GROUP( "src\\map"           FILES ${map_SOURCE} )
 SOURCE_GROUP( "src\\market"        FILES ${market_SOURCE} )
 SOURCE_GROUP( "src\\missions"      FILES ${missions_SOURCE} )
 SOURCE_GROUP( "src\\npc"           FILES ${npc_SOURCE} )
-#SOURCE_GROUP( "src\\planet"        FILES ${planet_SOURCE} )
-#SOURCE_GROUP( "src\\pos"           FILES ${pos_SOURCE} )
+SOURCE_GROUP( "src\\planet"        FILES ${planet_SOURCE} )
+SOURCE_GROUP( "src\\pos"           FILES ${pos_SOURCE} )
 SOURCE_GROUP( "src\\qaTools"       FILES ${qaTools_SOURCE} )
 SOURCE_GROUP( "src\\search"        FILES ${search_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
@@ -715,8 +715,8 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${market_INCLUDE}         ${market_SOURCE}
                 ${missions_INCLUDE}       ${missions_SOURCE}
                 ${npc_INCLUDE}            ${npc_SOURCE}
-                #${planet_INCLUDE}         ${planet_SOURCE}
-                #${pos_INCLUDE}            ${pos_SOURCE}
+                ${planet_INCLUDE}         ${planet_SOURCE}
+                ${pos_INCLUDE}            ${pos_SOURCE}
                 ${qaTools_INCLUDE}        ${qaTools_SOURCE}
                 ${search_INCLUDE}         ${search_SOURCE}
                 ${ship_INCLUDE}           ${ship_SOURCE}

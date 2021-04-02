@@ -113,8 +113,8 @@ uint32 CargoContainer::CreateItemID( ItemData &data)
 
 void CargoContainer::Delete()
 {
-    //if (typeID() == EVEDB::invTypes::PlanetaryLaunchContainer)
-    //    PlanetDB::DeleteLaunch(m_itemID);
+    if (typeID() == EVEDB::invTypes::PlanetaryLaunchContainer)
+        PlanetDB::DeleteLaunch(m_itemID);
 
     // if SE exists, remove from system before deleting item
     if (mySE != nullptr)
@@ -177,7 +177,7 @@ void CargoContainer::RemoveItem(InventoryItemRef iRef)
     if (pInventory->IsEmpty()) {
         if (typeID() == EVEDB::invTypes::PlanetaryLaunchContainer) {
             sLog.Warning( "CargoContainer::RemoveItem()", "Launch Container %u is empty and being deleted.", m_itemID );
-            //PlanetDB::UpdateLaunchStatus(m_itemID, PI::Cargo::Claimed);
+            PlanetDB::UpdateLaunchStatus(m_itemID, PI::Cargo::Claimed);
         } else if (typeID() == EVEDB::invTypes::CargoContainer) {
             sLog.Warning( "CargoContainer::RemoveItem()", "Cargo Container %u is empty and being deleted.", m_itemID );
         } else {
@@ -360,12 +360,12 @@ PyDict *ContainerSE::MakeSlimItem() {
         slim->SetItemString("typeID",           new PyInt(m_self->typeID()));
         slim->SetItemString("ownerID",          new PyInt(m_ownerID));
         slim->SetItemString("name",             new PyString(m_self->itemName()));
-        slim->SetItemString("nameID",           new PyNone());
+        slim->SetItemString("nameID",           PyStatic.NewNone());
         slim->SetItemString("corpID",           IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
         slim->SetItemString("allianceID",       IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
         slim->SetItemString("warFactionID",     IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
-        //if (m_contRef->IsAnchored())        // not sure if this is right...testing
-        //    slim->SetItemString("structureState",       new PyInt(EVEPOS::StructureStatus::Anchored));
+        if (m_contRef->IsAnchored())        // not sure if this is right...testing
+            slim->SetItemString("structureState",       new PyInt(EVEPOS::StructureStatus::Anchored));
 
     if (is_log_enabled(DESTINY__DEBUG)) {
         _log( DESTINY__DEBUG, "ContainerSE::MakeSlimItem() - %s(%u)", GetName(), GetID());

@@ -407,7 +407,7 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
         /** @todo  need to make proper error here. */
         // this causes blanks on char sel screen if there is no ship, or shipID is wrong.
         if (!res.GetRow(row))
-            return new PyNone();
+            return PyStatic.NewNone();
 
         sDatabase.DoEscapeString(shipName, row.GetText(0));
         shipTypeID = row.GetUInt(1);
