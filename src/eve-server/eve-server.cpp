@@ -142,8 +142,8 @@
 #include "planet/PlanetMgrBound.h"
 #include "planet/PlanetORBBound.h"
 // pos services
-//#include "pos/PosMgr.h"
-//#include "pos/Structure.h"
+#include "pos/PosMgr.h"
+#include "pos/Structure.h"
 // qaTools
 #include "qaTools/encounterSpawnServer.h"
 #include "qaTools/netStateServer.h"
@@ -217,14 +217,14 @@ int main( int argc, char* argv[] )
     sLog.Log("       Build Date", " %s", EVEMU_BUILD_DATE );
     sLog.Log("   Config Version", " %.1f", Config_Version );
     sLog.Log("      Log Version", " %.1f", Log_Version );
-    sLog.Log("   NPC AI Version", " %.2f", NPC_AI_Version );
-    sLog.Log(" Scanning Version", " %.2f", Scan_Version );
-    sLog.Log(" Drone AI Version", " %.2f", Drone_AI_Version );
-    sLog.Log("    NC AI Version", " %.2f", Civilian_AI_Version );
-    sLog.Log("Sentry AI Version", " %.2f", Sentry_AI_Version );
-    sLog.Log("   POS AI Version", " %.2f", POS_AI_Version );
     sLog.Log("TraderJoe Version", " %.2f", Joe_Version );
     sLog.Log(" Missions Version", " %.2f", Mission_Version );
+    sLog.Log("     Scan Version", " %.2f", Scan_Version );
+    sLog.Log("   NPC AI Version", " %.2f", NPC_AI_Version );
+    sLog.Log(" Drone AI Version", " %.2f", Drone_AI_Version );
+    sLog.Log("   Civ AI Version", " %.2f", Civilian_AI_Version );
+    sLog.Log("Sentry AI Version", " %.2f", Sentry_AI_Version );
+    sLog.Log("   POS AI Version", " %.2f", POS_AI_Version );
     std::printf("\n");     // spacer
 
     /* Load server log settings */
@@ -752,9 +752,9 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("petitioner", new PetitionerService(&pyServMgr));
     pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
-    //pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
-    //pyServMgr.RegisterService("planetOrbitalRegistryBroker", new PlanetORB(&pyServMgr));
-    //pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
+    pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
+    pyServMgr.RegisterService("planetOrbitalRegistryBroker", new PlanetORB(&pyServMgr));
+    pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
     pyServMgr.RegisterService("repairSvc", new RepairService(&pyServMgr));
     pyServMgr.RegisterService("reprocessingSvc", new ReprocessingService(&pyServMgr));
@@ -805,9 +805,9 @@ int main( int argc, char* argv[] )
     std::printf("\n");     // spacer
     sDunDataMgr.Initialize();
     std::printf("\n");     // spacer
-    //sPlanetDataMgr.Initialize();
+    sPlanetDataMgr.Initialize();
     std::printf("\n");     // spacer
-    //sPIDataMgr.Initialize();
+    sPIDataMgr.Initialize();
     std::printf("\n");     // spacer
     stDataMgr.Initialize();
     std::printf("\n");     // spacer
@@ -856,12 +856,16 @@ int main( int argc, char* argv[] )
     #endif
     */
 
-    uint32 start = 0;
+    uint32 start(0);
     EVETCPConnection* tcpc(nullptr);
 
-    // clear profile data from server startup
-    sProfiler.ClearAll();
-    sLog.Green(" Server Profiling","Profile Data Reset.");
+    if (sConfig.debug.UseProfiling) {
+        // display startup data
+        sProfiler.PrintStartUpData();
+        // clear profile data from server startup
+        sProfiler.ClearAll();
+        sLog.Green(" Server Profiling","Profile Data Reset.");
+    }
     std::printf("\n");     // spacer
 
     sLog.Blue("       ServerInit", "Server Initialized in %.3f Seconds.", (GetTimeMSeconds() - profileStartTime) / 1000);
@@ -870,9 +874,7 @@ int main( int argc, char* argv[] )
     ServiceDB::SetServerOnlineStatus(true);
     sLog.Green("       ServerInit", "EVEmu Server is Online.");
 
-    std::string str = "Started on ";
-    str += currentDateTime();
-    sLog.Cyan("           Server", "%s", str.c_str());
+    sLog.Cyan("           Server", "Started on %s", currentDateTime().c_str());
 
     /////////////////////////////////////////////////////////////////////////////////////
     //     !!!  DO NOT PUT ANY INITIALIZATION CODE OR CALLS BELOW THIS LINE   !!!
@@ -950,7 +952,7 @@ int main( int argc, char* argv[] )
     sBubbleMgr.clear();
     /* Close the command dispatcher */
     command_dispatcher.Close();
-    /* Stop Console Command Interperter */
+    /* Stop Console Command Interpreter */
     //sConsole.Stop();
     /* close the db handler */
     sLog.Warning("   ServerShutdown", "Closing DataBase Connection." );
@@ -1056,7 +1058,7 @@ static void CleanUp() {
     sBubbleMgr.clear();
     /* Close the command dispatcher */
     //command_dispatcher.Close();
-    /* Stop Console Command Interperter */
+    /* Stop Console Command Interpreter */
     //sConsole.Stop();
     /* close the db handler */
     sLog.Warning("   ServerShutdown", "Closing DataBase Connection." );
@@ -1070,7 +1072,7 @@ static void CleanUp() {
     log_close_logfile();
 }
 
-/*      Freeze Detector Code taken from TrinityCore.  figure out how to implement here (based on seeing occational freezes on main)  -allan 29Dec15
+/*      Freeze Detector Code taken from TrinityCore.  figure out how to implement here (based on seeing occasional freezes on main)  -allan 29Dec15
  * void FreezeDetectorHandler(const boost::system::error_code& error)
  * {
  *    if (!error)

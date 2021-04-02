@@ -30,9 +30,9 @@
 #include "PyServiceCD.h"
 #include "StaticDataMgr.h"
 #include "cache/ObjCacheService.h"
-//#include "planet/PlanetDB.h"
-//#include "planet/Moon.h"
-//#include "pos/Structure.h"
+#include "planet/PlanetDB.h"
+#include "planet/Moon.h"
+#include "pos/Structure.h"
 #include "ship/BeyonceService.h"
 #include "station/StationDataMgr.h"
 #include "system/BookmarkService.h"
@@ -588,7 +588,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
             distance += (radius / 2);
         } else if (pSE->IsGateSE()) {
             distance += (radius / 3);  // fudge the distance a bit for gates... its' a lil close by default
-        } /*else if (pSE->IsMoonSE()) {
+        } else if (pSE->IsMoonSE()) {
             if (pSE->GetMoonSE()->HasTower()) {
                 // if moon has a tower, make warpin point 20km inside edge of tower's bubble.
                 warpToPoint = pSE->GetMoonSE()->GetMyTower()->GetPosition();
@@ -602,7 +602,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
                 // this puts ship at Az: 0.785332, Ele: 0.615505, angle: 1.5708
                 warpToPoint -= (radius * 1.25f);
             }
-        }*/ else if (pSE->IsWormholeSE()) {
+        } else if (pSE->IsWormholeSE()) {
                 distance += 20000;  // add 20k for wh
         } else if (radius > 90000) {
             // this doesnt work for moons

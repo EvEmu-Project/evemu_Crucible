@@ -36,9 +36,9 @@
 #include "character/Character.h"
 #include "fleet/FleetService.h"
 #include "inventory/AttributeEnum.h"
-//#include "planet/CustomsOffice.h"
+#include "planet/CustomsOffice.h"
 #include "planet/Planet.h"
-//#include "pos/Structure.h"
+#include "pos/Structure.h"
 #include "standing/StandingMgr.h"
 #include "system/DestinyManager.h"
 #include "station/Station.h"
@@ -68,7 +68,7 @@ m_killed(false)
 
     m_radius = m_self->GetAttribute(AttrRadius).get_double();
 
-    //m_harmonic = EVEPOS::Harmonic::Inactive;
+    m_harmonic = EVEPOS::Harmonic::Inactive;
 
     _log(SE__DEBUG, "Created SE for item %s (%u) with radius of %.1f.", self->name(), self->itemID(), m_radius);
 }
@@ -455,7 +455,7 @@ void FieldSE::EncodeDestiny( Buffer& into )
     using namespace Destiny;
     BallHeader head = BallHeader();
         head.entityID = m_self->itemID();
-        //head.mode = (m_harmonic > EVEPOS::Harmonic::Offline ? Ball::Mode::FIELD : Ball::Mode::STOP);
+        head.mode = (m_harmonic > EVEPOS::Harmonic::Offline ? Ball::Mode::FIELD : Ball::Mode::STOP);
         head.radius = m_radius;
         head.posX = x();
         head.posY = y();
@@ -573,12 +573,12 @@ void ObjectSystemEntity::Killed(Damage &fatal_blow)
     // do these structures have loot?  probably so eventually
 
     /** @todo  test and complete this to null current customs office for this planet ... */
-    /*if (IsCOSE()) {
+    if (IsCOSE()) {
         if (GetCOSE()->GetPlanetID() > 0) {
             SystemEntity* pSE = m_system->GetSE(GetCOSE()->GetPlanetID());
             pSE->GetPlanetSE()->SetCustomsOffice(nullptr);
         }
-    }*/
+    }
 }
 
 DeployableSE::DeployableSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data)
@@ -719,7 +719,7 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
     // handle distribution to fleets
     if (pClient->InFleet()) {
         // get fleet members onGrid and distrubute bounty
-        /*std::vector< uint32 > members;
+        std::vector< uint32 > members;
         sFltSvc.GetFleetMembersOnGrid(pClient, members);
         // split bounty between members
         bounty /= members.size();
@@ -734,7 +734,7 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
             data.reason = reason;
             for (auto cur :members)
                 AccountService::TranserFunds(corpCONCORD, cur, bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
-        }*/
+        }
     } else {
         data.amount = bounty;
         if (sConfig.server.BountyPayoutDelayed) {

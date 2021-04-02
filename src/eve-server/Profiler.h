@@ -30,28 +30,28 @@ namespace Profile {
         client      = 3,    //*
         npc         = 4,    //*
         bubbles     = 5,    //*
-        items       = 6,    //
+        items       = 6,    //*
         modules     = 7,    //*
         functions   = 8,    //
-        db          = 9,    //
+        db          = 9,    //*
         ship        = 10,   //*
-        targets     = 11,   //
+        targets     = 11,   //*
         server      = 12,   //
-        missile     = 13,   //
+        missile     = 13,   //*
         system      = 14,   //*
         entityS     = 15,   //*
         loot        = 16,   //*
-        salvage     = 17,   //
+        salvage     = 17,   //*
         spawn       = 18,   //*
         collision   = 19,   //*
         drone       = 20,   //*
         itemload    = 21,   //*
-        concord     = 22,   //*
+        concord     = 22,   //
         colony      = 23,   //*
-        damage      = 24,
-        parseFX     = 25,
-        applyFX     = 26,
-        onTarg      = 27
+        damage      = 24,   //*
+        parseFX     = 25,   //*
+        applyFX     = 26,   //*
+        onTarg      = 27    //
     };
 }
 
@@ -66,6 +66,7 @@ public:
 
     void AddTime(uint8 key, double value);
     void PrintProfile();
+    void PrintStartUpData();
     void ClearAll();
 
     void GetSize(size_t cSize, std::string& ret);

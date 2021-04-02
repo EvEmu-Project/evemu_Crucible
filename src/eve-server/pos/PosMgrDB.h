@@ -1,45 +1,68 @@
-/*
-    ------------------------------------------------------------------------------------
-    LICENSE:
-    ------------------------------------------------------------------------------------
-    This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://evemu.dev
-    ------------------------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any later
-    version.
 
-    This program is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License along with
-    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-    http://www.gnu.org/copyleft/lesser.txt.
-    ------------------------------------------------------------------------------------
-    Author:        Zhur
-*/
+/**
+ * @name PosMgrDB.h
+ *   DataBase methods for all POS items
+ *
+ * @Author:         Allan
+ * @date:   8 December 17
+ */
 
 
-#ifndef __POSMGRDB_H_INCL__
-#define __POSMGRDB_H_INCL__
+#ifndef EVEMU_POS_POSMGR_H_
+#define EVEMU_POS_POSMGR_H_
 
 #include "ServiceDB.h"
+#include "../../eve-common/EVE_POS.h"
 
+class ReactorData;
+class StructureSE;
 class PosMgrDB
 : public ServiceDB
 {
 public:
-    PyRep *GetControlTowerFuelRequirements();
+    PyRep *GetSiloCapacityForType(uint16 typeID);
+    PyRep* GetCorpControlTowers(uint32 corpID);
+
+    static void GetLinkableJumpArrays(uint32 corpID, DBQueryResult& res);
+
+    void GetControlTowerFuelRequirements(DBQueryResult& res);
+    void GetCorpJumpArrays(uint32 corpID, DBQueryResult& res);
+
+
+    // pos data methods
+    void DeleteData(uint32 itemID);
+
+    bool GetBaseData(EVEPOS::StructureData& data);
+    void SaveBaseData(EVEPOS::StructureData& data);
+    void UpdateBaseData(EVEPOS::StructureData& data);
+
+    bool GetTowerData(EVEPOS::TowerData& tData, EVEPOS::StructureData& sData);
+    void SaveTowerData(EVEPOS::TowerData& tData, EVEPOS::StructureData& sData);
+
+    bool GetBridgeData(EVEPOS::JumpBridgeData& data);
+    void SaveBridgeData(EVEPOS::JumpBridgeData& data);
+    void UpdateBridgeData(EVEPOS::JumpBridgeData& data);
+
+    bool GetReactorData(ReactorData* pData, EVEPOS::StructureData& sData);
+    void SaveReactorData(ReactorData* pData, EVEPOS::StructureData& sData);
+    void UpdateReactorData(ReactorData* pData, EVEPOS::StructureData& sData);
+
+    bool GetCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData& oData);
+    void SaveCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData& oData);
+    void UpdateCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData& oData);
+
+    void UpdateAccess(int32 itemID, EVEPOS::TowerData& data);
+    void UpdateNotify(int32 itemID, EVEPOS::TowerData& data);
+    void UpdateSentry(int32 itemID, EVEPOS::TowerData& data);
+    void UpdatePassword(int32 itemID, EVEPOS::TowerData& data);
+    void UpdateTimeStamp(int32 itemID, EVEPOS::StructureData& data);
+    void UpdatePermission(int32 itemID, EVEPOS::TowerData& data);
+    void UpdateUsageFlags(int32 itemID, EVEPOS::StructureData& data);
+    void UpdateDeployFlags(int32 itemID, EVEPOS::TowerData& data);
+    void UpdateHarmonicAndPassword(int32 itemID, EVEPOS::TowerData& data);
+
 };
 
+#endif  // EVEMU_POS_POSMGR_H_
 
-
-
-
-#endif
-
-
+/*environment/spaceObject/station.py*/

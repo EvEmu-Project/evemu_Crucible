@@ -163,8 +163,8 @@ m_scanShips(false)
     // i think we may have to do probe modifiers here....they are not being done thru fx system
     Character* pChar = m_client->GetChar().get();
     // skills
-    m_scanStrength *= (1 + (0.1f * pChar->GetSkillLevel(EvESkill::AstrometricRangefinding)));   // +10% strength per level
-    // skill bonuses
+    m_scanStrength *= (1 + (0.1 * pChar->GetSkillLevel(EvESkill::AstrometricRangefinding)));   // +10% strength per level
+    // skill bonuses unique to EVEmu
     //m_scanStrength *= (1 + (0.01 * pChar->GetSkillLevel(EvESkill::Astrometrics)));             // +1% strength per level
     //m_scanStrength *= (1 + (0.01 * pChar->GetSkillLevel(EvESkill::SignatureAnalysis)));        // +1% strength per level
     //m_scanDeviation *= (1 - (0.01 * pChar->GetSkillLevel(EvESkill::Astrometrics)));            // -1% deviation per level

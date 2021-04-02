@@ -29,7 +29,7 @@
 #include "PyServiceCD.h"
 #include "cache/ObjCacheService.h"
 #include "dogmaim/DogmaIMService.h"
-//#include "pos/Tower.h"
+#include "pos/Tower.h"
 #include "ship/modules/GenericModule.h"
 #include "system/Container.h"
 #include "system/SystemManager.h"
@@ -430,7 +430,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs& call) {
         arg["target"] = new PyInt(args.arg);
         throw PyException(MakeUserError("DeniedTargetingAttemptFailed", arg));
     }
-    /*if (mySE->SysBubble()->HasTower()) {
+    if (mySE->SysBubble()->HasTower()) {
         TowerSE* ptSE = mySE->SysBubble()->GetTowerSE();
         if (ptSE->HasForceField())
             if (mySE->GetPosition().distance(ptSE->GetPosition()) < ptSE->GetSOI()) {
@@ -438,7 +438,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs& call) {
                 arg["target"] = new PyInt( args.arg);
                 throw PyException( MakeUserError("DeniedTargetingInsideField", arg ));
             }
-    }*/
+    }
 
     // caller destiny tests
     DestinyManager* pMyDestiny = mySE->DestinyMgr();
@@ -524,7 +524,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs& call) {
         arg["target"] = new PyInt(args.arg);
         throw PyException(MakeUserError("DeniedTargetingAttemptFailed", arg));
     }
-    /*if (tSE->IsPOSSE())
+    if (tSE->IsPOSSE())
         if (tSE->GetPOSSE()->IsReinforced()) {
             std::map<std::string, PyRep *> arg;
             arg["target"] = new PyInt(args.arg);
@@ -540,7 +540,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs& call) {
                 arg["item"] = new PyInt(ptSE->GetID());
                 throw PyException( MakeUserError("DeniedTargetForceField", arg ));
             }
-    }*/
+    }
 
     if (sConfig.debug.IsTestServer)
         if (is_log_enabled(TARGET__MESSAGE)) {
@@ -666,8 +666,10 @@ PyResult DogmaIMBound::Handle_GetAllInfo(PyCallArgs& call)
         rspShipState->items[1] = pClient->GetShip()->GetChargeState();      // loaded charges (subLocation)
         rspShipState->items[2] = pClient->GetShip()->GetLinkedWeapons();    // linked weapons
     rsp->SetItemString("shipState", rspShipState);
+
     if (is_log_enabled(SHIP__STATE))
         rsp->Dump(SHIP__STATE, "     ");
+    
     sItemFactory.UnsetUsingClient();
     return new PyObject("util.KeyVal", rsp );
 }
@@ -943,12 +945,12 @@ PyResult DogmaIMBound::Handle_Activate(PyCallArgs& call)
         }
         // determine if this pSE is pos or cont.
         //call (de)activate on pSE, pass effectID, send effect to clients (bubblecast) then set timers.
-        /*if (pSE->IsPOSSE()) {
+        if (pSE->IsPOSSE()) {
             /*  these two may be called in posMgr...
             if ((args.arg2 == anchorDropForStructures)
             or (args.arg2 == anchorDropOrbital)) {
                 pSE->GetPOSSE()->SetAnchor(args.arg2);
-            } else  if (args.arg2 == anchorLiftForStructures) {
+            } else */ if (args.arg2 == anchorLiftForStructures) {
                 pSE->GetPOSSE()->PullAnchor();
             } else if (args.arg2 == onlineForStructures) {
                 pSE->GetPOSSE()->Activate(args.arg2);
@@ -958,7 +960,7 @@ PyResult DogmaIMBound::Handle_Activate(PyCallArgs& call)
             pSE->GetContSE()->Activate(args.arg2);
         } else {
             ; // make error here
-        }*/
+        }
     } else if (call.tuple->size() == 4) {
         // activate ship module
         Call_Dogma_Activate args;
@@ -1012,11 +1014,11 @@ PyResult DogmaIMBound::Handle_Deactivate(PyCallArgs& call)
          */
         // determine if this pSE is pos or cont.
         //call activate on pSE, pass effectID, send effect to clients (bubblecast) then set timers.
-        /*if (pSE->IsPOSSE()) {
+        if (pSE->IsPOSSE()) {
             pSE->GetPOSSE()->Deactivate(args.arg2);
         } else if (pSE->IsContainerSE()) {
             pSE->GetContSE()->Deactivate(args.arg2);
-        } */else {
+        } else {
             ; // make error here
         }
     } else if (call.tuple->items.at(1)->IsWString()) {
@@ -1070,8 +1072,7 @@ PyResult DogmaIMBound::Handle_StopOverload(PyCallArgs& call)
 
     //  cancel overload then deactivate module
     pClient->GetShip()->CancelOverloading(args.arg1);
-    //pClient->GetShip()->Deactivate(args.arg1, sFxDataMgr.GetEffectName(args.arg2));
-    pClient->GetShip()->Deactivate(args.arg1, "");
+    pClient->GetShip()->Deactivate(args.arg1, sFxDataMgr.GetEffectName(args.arg2));
     // returns none
     return PyStatic.NewNone();
 }

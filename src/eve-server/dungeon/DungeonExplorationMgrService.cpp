@@ -105,7 +105,7 @@ PyResult DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails(PyCallA
     sLog.White("DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails()",  "size= %u", call.tuple->size() );
     call.Dump(SERVICE__CALL_DUMP);
 
-    return new PyNone();
+    return PyStatic.NewNone();
 }
 
 

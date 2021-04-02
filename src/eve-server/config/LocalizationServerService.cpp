@@ -54,7 +54,7 @@ PyResult LocalizationServerService::Handle_GetAllTextChanges(PyCallArgs &call)
                     localization.LogInfo('Localization Client: updating internal memory with new text and labels.')
                     messagePerLanguage, metaDataPerLanguage, labelsDict = cacheData
             */
-    return new PyNone();
+    return PyStatic.NewNone();
 }
 
 PyResult LocalizationServerService::Handle_UpdateLocalizationQASettings(PyCallArgs &call)
@@ -64,5 +64,5 @@ PyResult LocalizationServerService::Handle_UpdateLocalizationQASettings(PyCallAr
      * sm.RemoteSvc('localizationServer').UpdateLocalizationQASettings(showHardcodedStrings=prefs.GetValue('showHardcodedStrings', 0), showMessageID=prefs.GetValue('showMessageID', 0), enableBoundaryMarkers=prefs.GetValue('enableBoundaryMarkers', 0), characterReplacementMethod=prefs.GetValue('characterReplacementMethod', 0), enableTextExpansion=prefs.GetValue('enableTextExpansion', 0))
      */
 
-    return new PyNone();
+    return PyStatic.NewNone();
 }

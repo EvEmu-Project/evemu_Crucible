@@ -189,7 +189,7 @@ PyResult PlanetORBBound::Handle_GMChangeSpaceObjectOwner( PyCallArgs& call )
     _log(PLANET__DEBUG, "PlanetORBBound::Handle_GMChangeSpaceObjectOwner - size %u", call.tuple->size() );
     call.Dump(PLANET__DUMP);
 
-    return new PyNone();
+    return PyStatic.NewNone();
 }
 
 

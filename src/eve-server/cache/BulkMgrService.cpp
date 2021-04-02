@@ -339,7 +339,7 @@ PyResult BulkMgrService::Handle_GetFullFilesChunk(PyCallArgs &call)
             bulksEndingInChunk->AddItem(new PyInt(bulkFileID));
             response->SetItem(1, bulksEndingInChunk);
         } else {
-            response->SetItem(1, new PyNone());
+            response->SetItem(1, PyStatic.NewNone());
         }
     } else if (args.chunkSetID == 1) {
 
