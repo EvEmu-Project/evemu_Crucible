@@ -47,14 +47,14 @@ InfoGatheringMgr::~InfoGatheringMgr() {
 
 PyResult InfoGatheringMgr::Handle_GetStateAndConfig(PyCallArgs &call) {
 
-    PyDict *rsp = new PyDict;
+    PyDict *rsp = new PyDict();
 
     rsp->SetItemString("clientWorkerInterval", new PyInt(600000)); //Default From packetlogs is 600000
     rsp->SetItemString("isEnabled", new PyInt(0)); //0 = Disabled, 1 = Enabled. Set to 0 becuase jsut gettting rid of exception.
 
-    rsp->SetItemString("infoTypeAggregates", new PyNone());
-    rsp->SetItemString("infoTypesOncePerRun", new PyNone());
-    rsp->SetItemString("infoTypeParameters", new PyNone());
+    rsp->SetItemString("infoTypeAggregates", PyStatic.NewNone());
+    rsp->SetItemString("infoTypesOncePerRun", PyStatic.NewNone());
+    rsp->SetItemString("infoTypeParameters", PyStatic.NewNone());
 
     PyList *infoTypes = new PyList();
     infoTypes->AddItemInt(999); //Adding a value that was not in live so when its checks list it will always return false for now.
@@ -65,7 +65,7 @@ PyResult InfoGatheringMgr::Handle_GetStateAndConfig(PyCallArgs &call) {
 }
 
 PyResult InfoGatheringMgr::Handle_LogInfoEventsFromClient(PyCallArgs &call) {
-    return new PyNone();
+    return PyStatic.NewNone();
 }
 
 /*

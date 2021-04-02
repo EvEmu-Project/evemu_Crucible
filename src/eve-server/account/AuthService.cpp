@@ -56,7 +56,7 @@ PyResult AuthService::Handle_Ping(PyCallArgs &call) {
 PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call)
 {
     if (sConfig.account.loginMessage.empty())
-        return new PyNone();
+        return PyStatic.NewNone();
 
     PyDict* args = new PyDict;
         args->SetItemString( "message", new PyString( sConfig.account.loginMessage ) );

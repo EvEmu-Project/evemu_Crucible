@@ -46,7 +46,7 @@ MapService::MapService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MapService, GetMyExtraMapInfo);     //ColorStarsByCorpMates
     PyCallable_REG_CALL(MapService, GetStationExtraInfo);
     PyCallable_REG_CALL(MapService, GetSolarSystemVisits);
-    //PyCallable_REG_CALL(MapService, GetLinkableJumpArrays);
+    PyCallable_REG_CALL(MapService, GetLinkableJumpArrays);
     PyCallable_REG_CALL(MapService, GetMyExtraMapInfoAgents);  //ColorStarsByMyAgents
     PyCallable_REG_CALL(MapService, GetSolarSystemPseudoSecurities);
 
@@ -122,7 +122,7 @@ PyResult MapService::Handle_GetHistory(PyCallArgs &call) {
 
     return MapDB::GetDynamicData(int1, int2);
 }
-/*
+
 PyResult MapService::Handle_GetLinkableJumpArrays(PyCallArgs &call)
 {   // working
     DBQueryResult res;
@@ -138,7 +138,7 @@ PyResult MapService::Handle_GetLinkableJumpArrays(PyCallArgs &call)
     }
 
     return list;
-}*/
+}
 
 
 

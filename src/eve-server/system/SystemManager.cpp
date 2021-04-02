@@ -35,13 +35,13 @@
 #include "packets/Destiny.h"
 #include "planet/Planet.h"
 #include "planet/Moon.h"
-//#include "planet/CustomsOffice.h"
-//#include "pos/Array.h"
-//#include "pos/Battery.h"
-//#include "pos/Module.h"
-//#include "pos/Structure.h"
-//#include "pos/Tower.h"
-//#include "pos/Weapon.h"
+#include "planet/CustomsOffice.h"
+#include "pos/Array.h"
+#include "pos/Battery.h"
+#include "pos/Module.h"
+#include "pos/Structure.h"
+#include "pos/Tower.h"
+#include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
 #include "station/Station.h"
@@ -144,10 +144,10 @@ bool SystemManager::BootSystem() {
     }
 
     // system is loaded.  check for items that need initialization
-    /*for (auto cur : m_ticEntities)
+    for (auto cur : m_ticEntities)
         if (cur.second->IsPOSSE())
             cur.second->GetPOSSE()->Init();
-    */
+
     // check planets for colony/customs office
     /* does not work as intended
     for (auto cur : m_planetMap)
@@ -386,16 +386,16 @@ bool SystemManager::LoadSystemStatics() {
             case EVEDB::invGroups::Planet: {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialObject(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
-                //PlanetSE *pPSE = new PlanetSE(itemRef, *(GetServiceMgr()), this);
-                //m_planetMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pPSE));
-                //pSE = pPSE;
+                PlanetSE *pPSE = new PlanetSE(itemRef, *(GetServiceMgr()), this);
+                m_planetMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pPSE));
+                pSE = pPSE;
             } break;
             case EVEDB::invGroups::Moon: {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialObject(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
-                //MoonSE *pMSE = new MoonSE(itemRef, *(GetServiceMgr()), this);
-                //m_moonMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pMSE));
-                //pSE = pMSE;
+                MoonSE *pMSE = new MoonSE(itemRef, *(GetServiceMgr()), this);
+                m_moonMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pMSE));
+                pSE = pMSE;
             } break;
             case EVEDB::invGroups::Sun: {    // suns dont have anything special, so they are generic SSEs
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialObject(cur.itemID);
@@ -549,11 +549,11 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
         } break;
         //  these should go into m_staticEntities
         case EVEDB::invCategories::StructureUpgrade: // SOV upgrade structures   these may need their own class one day.
-        /*case EVEDB::invCategories::Structure: {         // POS items
+        case EVEDB::invCategories::Structure: {         // POS items
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
             if (structure.get() == nullptr)
                 return nullptr;
-            //@todo make error msg here 
+            /** @todo make error msg here */
             StructureSE* pSSE(nullptr);
             switch(entity.groupID) {
                 case EVEDB::invGroups::Control_Tower: {
@@ -613,19 +613,19 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
             if (structure.get() == nullptr)
                 return nullptr;
-            // @todo make error msg here
+            /** @todo make error msg here */
             // ihub will need it's own se class
             //if (entity.groupID == EVEDB::invGroups::Infrastructure_Hubs)
             StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
             _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making StructureSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return sSE;
-        } break;*/
+        } break;
         case EVEDB::invCategories::Orbitals: {           // planet orbitals   these should go into m_staticEntities
-            //StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
-            //if (structure.get() == nullptr)
-            //    return nullptr;
+            StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
+            if (structure.get() == nullptr)
+                return nullptr;
                 /** @todo make error msg here */
-            /*CustomsSE* pCoSE(nullptr);
+            CustomsSE* pCoSE(nullptr);
             switch(entity.groupID) {
                 case EVEDB::invGroups::Test_Orbitals:
                 case EVEDB::invGroups::Orbital_Construction_Platform:
@@ -642,7 +642,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making CustomsSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                 } break;
             }
-            return pCoSE;*/
+            return pCoSE;
         } break;
         case EVEDB::invCategories::Celestial: {
             // TODO: (just use CelestialEntity class for these until their own classes are written)
@@ -1270,8 +1270,8 @@ void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) c
         cur.second->EncodeDestiny( *stateBuffer );
 
         // get tower effect state (if applicable)
-        //if (cur.second->IsTowerSE())
-        //    cur.second->GetTowerSE()->GetEffectState(*(into.effectStates));
+        if (cur.second->IsTowerSE())
+            cur.second->GetTowerSE()->GetEffectState(*(into.effectStates));
 
         /**  @todo (allan)  this needs more work.  should be done same as damageState.  28.2.16
         //ss.aggressors is for players undocking/jumping with aggression (uses GetCriminalTimeStamps)  ** see notes in Client::GetAggressors()

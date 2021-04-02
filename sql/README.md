@@ -14,15 +14,10 @@ To dump existing database, edit dump.sh and run.
 sql/
     contains this README and the new db scripts
 
-sql/optional/
-    contains stargate db examples, market seeding sql code (some editing required), and some data on tutorials I have not looked into yet.
+sql/seed_and_clean/
+    contains market seeding sql scripts and scripts to clean the db
 
 sql/tables/
     contains all db tables for the server emulator for EVEmu
 
-sql/testScripts/
-    misc data for testing/debugging some systems i was working on
-    
-sql/testScripts/dungeons/
-    dungeon system testing data
 

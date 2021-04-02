@@ -194,8 +194,6 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 
 //NOTE: needs a lot of work to implement orderRange
 uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
-    float price = call.price + 0.01;
-
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT orderID"
@@ -204,13 +202,13 @@ uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
         "  AND typeID=%u"
         "  AND stationID=%u"
         "  AND volRemaining >= %u"
-        "  AND price >= %.2f"
+        "  AND price > %.2f"
         " ORDER BY price DESC"
         " LIMIT 1;",
         call.typeID,
         call.stationID,
         call.quantity,
-        price/*, sConfig.market.FindBuyOrder*/))
+        call.price - 0.01/*, sConfig.market.FindBuyOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -223,9 +221,8 @@ uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
     return 0;    //no order found.
 }
 
-uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call) {
-    float price = call.price + 0.01;
-
+uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call)
+{
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT orderID"
@@ -240,7 +237,7 @@ uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call) {
         call.typeID,
         call.stationID,
         call.quantity,
-        price/*, sConfig.market.FindSellOrder*/))
+        call.price + 0.01/*, sConfig.market.FindSellOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -420,29 +417,29 @@ PyRep *MarketDB::GetMarketGroups() {
     DBResultRow row;
     std::map< int, PyRep* > tt;
     while( res.GetRow(row) ) {
-        int parentGroupID = ( row.IsNull( 0 ) ? -1 : row.GetUInt( 0 ) );
+        int parentGroupID(row.IsNull(0) ? -1 : row.GetUInt(0));
         PyRep* pid(nullptr);
         CRowSet*rowset(nullptr);
-        if (tt.count(parentGroupID) == 0) {
+        if (tt.count(parentGroupID)) {
+            pid = tt[parentGroupID];
+            rowset = filterRowset->GetRowset(pid);
+        } else {
             pid = parentGroupID != -1 ? (PyRep*)new PyInt(parentGroupID) : PyStatic.NewNone();
             tt[parentGroupID] = pid;
             rowset = filterRowset->NewRowset(pid);
-        } else {
-            pid = tt[parentGroupID];
-            rowset = filterRowset->GetRowset(pid);
         }
 
         PyPackedRow* pyrow = rowset->NewRow();
         pyrow->SetField((uint32)0, pid); //parentGroupID
-        pyrow->SetField(1, new PyInt(row.GetUInt( 1 ) ) ); //marketGroupID
-        pyrow->SetField(2, new PyString(row.GetText( 2 ) ) ); //marketGroupName
-        pyrow->SetField(3, new PyString(row.GetText( 3 ) ) ); //description
-        pyrow->SetField(4, row.IsNull( 4 ) ? PyStatic.NewNone() : new PyInt(row.GetUInt( 4 ))  ); //graphicID
-        pyrow->SetField(5, new PyBool(row.GetBool( 5 ) ) ); //hasTypes
-        pyrow->SetField(6, row.IsNull( 6 ) ? PyStatic.NewNone() : new PyInt(row.GetUInt( 6 ))  ); // iconID
-        pyrow->SetField(7, new PyInt( row.GetUInt(7) )  ); //dataID
-        pyrow->SetField(8, new PyInt( row.GetUInt(8) )  ); //marketGroupNameID
-        pyrow->SetField(9, new PyInt( row.GetUInt(9) )  ); //descriptionID
+        pyrow->SetField(1, new PyInt(row.GetUInt(1))); //marketGroupID
+        pyrow->SetField(2, new PyString(row.GetText(2))); //marketGroupName
+        pyrow->SetField(3, new PyString(row.GetText(3))); //description
+        pyrow->SetField(4, row.IsNull(4) ? PyStatic.NewNone() : new PyInt(row.GetUInt(4))); //graphicID
+        pyrow->SetField(5, new PyBool(row.GetBool(5))); //hasTypes
+        pyrow->SetField(6, row.IsNull(6) ? PyStatic.NewNone() : new PyInt(row.GetUInt(6))); // iconID
+        pyrow->SetField(7, new PyInt(row.GetUInt(7))); //dataID
+        pyrow->SetField(8, new PyInt(row.GetUInt(8))); //marketGroupNameID
+        pyrow->SetField(9, new PyInt(row.GetUInt(9))); //descriptionID
     }
 
     _log(MARKET__DB_TRACE, "GetMarketGroups returned %u keys.", filterRowset->GetKeyCount());
@@ -460,9 +457,10 @@ int64 MarketDB::GetUpdateTime()
         return 0;
     }
     DBResultRow row;
-    if (!res.GetRow(row))
-        return 0;
-    return row.GetInt64(0);
+    if (res.GetRow(row))
+        return row.GetInt64(0);
+
+    return 0;
 }
 
 void MarketDB::SetUpdateTime(int64 setTime)
@@ -483,7 +481,7 @@ void MarketDB::UpdateHistory()
                    " SELECT"
                    "    regionID,"
                    "    typeID,"
-                   "    ((UNIX_TIMESTAMP(date) +11644473600) *10000000),"
+                   "    ((UNIX_TIMESTAMP(date) + 11644473600) * 10000000),"
                    "    price,"
                    "    price,"
                    "    price,"
@@ -492,34 +490,107 @@ void MarketDB::UpdateHistory()
                    " FROM mktData");
 }
 
-void MarketDB::GetMineralPrices(std::vector< Market::matlData >& data)
+
+/*  data retrieval for updating base pricing */
+
+void MarketDB::GetShipIDs(std::map< uint16, Inv::TypeData >& data)
 {
     DBQueryResult res;
     DBResultRow row;
-    for (auto cur : data) {
-        sDatabase.RunQuery(res, "SELECT basePrice FROM invTypes WHERE typeID = %u", cur.typeID);
+    // 178 ships using this query
+    sDatabase.RunQuery(res,
+                "SELECT t.typeID "
+                " FROM invTypes AS t "
+                " LEFT JOIN invGroups AS g USING (groupID)"
+                " WHERE g.categoryID = %u",
+                //" AND g.useBasePrice = 1"
+                //" AND t.published = 1",
+                EVEDB::invCategories::Ship);
+
+    //sDatabase.RunQuery(res, "SELECT typeID FROM invTypes WHERE groupID = %u AND published = 1", EVEDB::invGroups::Frigate);
+    while (res.GetRow(row))
+        data[row.GetInt(0)] = Inv::TypeData();
+}
+
+void MarketDB::GetManufacturedItems(std::map< uint16, Inv::TypeData >& data)
+{
+    DBQueryResult res;
+    DBResultRow row;
+    //6602 items in this query
+    if (!sDatabase.RunQuery(res, "SELECT DISTINCT typeID FROM invTypeMaterials"))
+        codelog(DATABASE__ERROR, "Error in GetRAMMaterials query: %s", res.error.c_str());
+
+    while (res.GetRow(row))
+        data[row.GetInt(0)] = Inv::TypeData();
+}
+
+void MarketDB::GetMaterialPrices(std::map< uint16, Market::matlData >& data)
+{
+    DBQueryResult res;
+    DBResultRow row;
+    std::map< uint16, Market::matlData >::iterator itr;
+    for (itr = data.begin(); itr != data.end(); ++itr) {
+        sDatabase.RunQuery(res, "SELECT basePrice FROM invTypes WHERE typeID = %u", itr->first);
         if (res.GetRow(row))
-            cur.price = row.GetFloat(0);
+            itr->second.price = (row.GetFloat(0) * 1.05);
+    }
+}
+
+void MarketDB::GetMineralPrices(std::map< uint16, Market::matlData >& data)
+{
+    DBQueryResult res;
+    DBResultRow row;
+    std::map< uint16, Market::matlData >::iterator itr;
+    for (itr = data.begin(); itr != data.end(); ++itr) {
+        sDatabase.RunQuery(res, "SELECT basePrice FROM invTypes WHERE typeID = %u", itr->first);
+        if (res.GetRow(row))
+            itr->second.price = (row.GetFloat(0) * 1.15);
     }
 
     /*  mineral prices in first column from rens 31/5/2010 @ 17:30  logged by me from IGB
      * second price column is from Grismar 16/2/07
-     * typeID   Name            2010        2007
-     * 34      Tritanium        2.70        2.37
-     * 35      Pyerite          5.80        4.00
-     * 36      Mexallon        26.90       21.93
-     * 37      Isogen          49.16       64.06
-     * 38      Nocxium         99.02       93.76
-     * 39      Zydrine       1315.03     2347.36
-     * 40      Megacyte      2650.00     3989.06
-     * 11399   Morphite      5407.68    14291.00
+     * third price column is from ccp market dump, filtered and averaged for Crucible era from all regions
+     * typeID   Name            2010        2007       2012
+     * 34      Tritanium        2.70        2.37        2.72315
+     * 35      Pyerite          5.80        4.00        4.90957
+     * 36      Mexallon        26.90       21.93       29.7163
+     * 37      Isogen          49.16       64.06       59.1943
+     * 38      Nocxium         99.02       93.76       94.227
+     * 39      Zydrine       1315.03     2347.36     1290.39
+     * 40      Megacyte      2650.00     3989.06     2707.67
+     * 11399   Morphite      5407.68    14291.00     4943.2
      *
      */
 }
 
-void MarketDB::UpdateMineralPrices(std::vector< Market::matlData >& data)
+void MarketDB::UpdateInvPrice(std::map< uint16, Inv::TypeData >& data)
+{
+    DBerror err;
+    for (auto cur : data) {
+        if (cur.second.basePrice < 0.01) {
+            sLog.Error("     SetBasePrice", "Calculated price for %s(%u) is 0", \
+                    cur.second.name.c_str(), cur.first);
+        } else {
+            sDatabase.RunQuery(err, "UPDATE invTypes SET basePrice=%f WHERE typeID= %u", cur.second.basePrice, cur.first);
+        }
+    }
+}
+
+void MarketDB::UpdateMktPrice(std::map< uint16, Market::matlData >& data)
 {
     DBerror err;
     for (auto cur : data)
-        sDatabase.RunQuery(err, "UPDATE invTypes SET basePrice=%f WHERE typeID= %u", cur.price, cur.typeID);
+        sDatabase.RunQuery(err, "UPDATE invTypes SET basePrice=%f WHERE typeID= %u", cur.second.price, cur.first);
+}
+
+void MarketDB::GetCruPriceAvg(std::map< uint16, Inv::TypeData >& data)
+{
+    DBQueryResult res;
+    DBResultRow row;
+    std::map< uint16, Inv::TypeData>::iterator itr;
+    for (itr = data.begin(); itr != data.end(); ++itr) {
+        sDatabase.RunQuery(res, "SELECT AVG(avgPrice) FROM CruciblePriceHistory WHERE typeID = %u", itr->first);
+        if (res.GetRow(row))
+            itr->second.basePrice = (row.IsNull(0) ? 0 : row.GetFloat(0));
+    }
 }

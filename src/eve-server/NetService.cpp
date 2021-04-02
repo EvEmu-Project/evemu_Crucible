@@ -60,7 +60,7 @@ PyResult NetService::Handle_GetClusterSessionStatistics(PyCallArgs &call)
      *   client already has IsAFK()
      */
 
-    uint16 system = 0;
+    uint16 system(0);
     PyDict* sol = new PyDict();
     PyDict* sta = new PyDict();
 
@@ -83,7 +83,7 @@ PyResult NetService::Handle_GetClusterSessionStatistics(PyCallArgs &call)
 PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
     PyString* str = new PyString( "machoNet.serviceInfo" );
 
-    PyRep* serverinfo = m_manager->cache_service->GetCacheHint(str);
+    PyRep* serverinfo(m_manager->cache_service->GetCacheHint(str));
     PyDecRef( str );
 
     PyDict* initvals = new PyDict();

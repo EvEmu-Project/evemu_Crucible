@@ -50,11 +50,18 @@ public:
     void                GetCategory(uint8 catID, Inv::CatData &into);
     void                GetGroup(uint16 grpID, Inv::GrpData &into);
     void                GetType(uint16 typeID, Inv::TypeData &into);
+    void                GetTypes(std::map<uint16, Inv::TypeData> &into);
     const char*         GetTypeName(uint16 typeID);     // not sure if this will be needed
     const char*         GetGroupName(uint16 grpID);
     const char*         GetCategoryName(uint8 catID);
 
-    void                GetMineralData(std::vector<Market::matlData>& data);
+    void                GetMineralData(std::map< uint16, Market::matlData >& into);
+    void                GetSalvageData(std::map< uint16, Market::matlData >& into);
+    void                GetCompoundData(std::map< uint16, Market::matlData >& into);
+    void                GetComponentData(std::map< uint16, Market::matlData >& into);
+    void                GetPIResourceData(std::map< uint16, Market::matlData >& into);
+    void                GetPICommodityData(std::map< uint16, Market::matlData >& into);
+    void                GetMiscCommodityData(std::map< uint16, Market::matlData >& into);
     void                GetMoonResouces(std::map<uint16, uint8>& data);
 
     bool                IsSkillTypeID(uint16 typeID);
@@ -69,10 +76,10 @@ public:
 
     bool                IsRefinable(uint16 typeID);
     bool                IsRecyclable(uint16 typeID);
-    void                GetRamReturns(uint16 typeID, int8 activityID, std::vector< EvERam::RequiredItem >& ramReqs); // bp typeID/matls
-    void                GetRamMaterials(uint16 typeID, std::vector<EvERam::RamMaterials>& ramMatls);    // bp productID/matls
-    void                GetRamRequirements(uint16 typeID, std::vector< EvERam::RamRequirements >& ramReqs); // bp typeID/matls
-    // this is for ALL needed materials for RAM activity as listed.  these are NOT modified.
+    void                GetRamReturns(uint16 typeID, int8 activityID, std::vector< EvERam::RequiredItem >& ramReqs); // bp typeID/data
+    void                GetRamMaterials(uint16 typeID, std::vector<EvERam::RamMaterials>& ramMatls);    // bp productTypeID/data{typeID/qty}
+    void                GetRamRequirements(uint16 typeID, std::vector< EvERam::RamRequirements >& ramReqs); // bp typeID/data
+    // this is for ALL needed materials for RAM activity from BP.  these are NOT modified.
     void                GetRamRequiredItems(const uint32 typeID, const int8 activity, std::vector<EvERam::RequiredItem> &into);
 
     bool                GetStaticInfo(uint32 itemID, StaticData& data);
@@ -106,6 +113,7 @@ public:
     PyDict*             SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID);
     PyDict*             GetBPMatlData(uint16 typeID);   //this is called on EVERY "show info" of a blueprint
     void                GetBpTypeData(uint16 typeID, EvERam::bpTypeData& tData);
+    bool                GetBpDataForItem(uint16 typeID, EvERam::bpTypeData& tData);
 
     uint32              GetFactionCorp(uint32 factionID);
     uint32              GetCorpFaction(uint32 corpID);
@@ -167,7 +175,6 @@ private:
     std::map<uint16, EvERam::bpTypeData>                m_bpTypeData;       // typeID/data
     std::map<uint16, uint8>                             m_moonGoo;          // typeID/rarity
     std::map<uint16, std::string>                       m_skills;           // typeID/name
-    std::map<uint16, std::string>                       m_minerals;         // typeID/name
     std::map<uint32, StaticData>                        m_staticData;       // itemID/data
 
     std::multimap<uint16, EvERam::RamMaterials>         m_ramMatl;          // itemTypeID/data
@@ -197,6 +204,15 @@ private:
     std::multimap<uint32, LootGroup>                    m_LootGroupMap;     // typeID/data
     std::multimap<uint32, LootGroupType>                m_LootGroupTypeMap; // typeID/data
 
+    /* for pricing methods */
+    std::map<uint16, std::string>                       m_salvage;          // typeID/name
+    std::map<uint16, std::string>                       m_minerals;         // typeID/name
+    std::map<uint16, std::string>                       m_compounds;        // typeID/name
+    std::map<uint16, std::string>                       m_resources;        // typeID/name
+    std::map<uint16, std::string>                       m_components;       // typeID/name
+    std::map<uint16, std::string>                       m_commodities;      // typeID/name
+    std::map<uint16, std::string>                       m_miscCommodities;  // typeID/name
+    std::map<uint16, EvERam::bpTypeData>                m_bpProductData;    // productTypeID/data
 };
 
 //Singleton
@@ -205,3 +221,22 @@ private:
 
 
 #endif  // _EVE_SERVER_STATIC_DATAMANAGER_H__
+
+/*   module (meta) types
+ * metaGroupID  metaGroupName   description     iconID
+ * 1       Tech I
+ * 2       Tech II
+ * 3       Storyline
+ * 4       Faction
+ * 5       Officer
+ * 6       Deadspace
+ * 7       Frigate
+ * 8       Elite Frigate
+ * 9       Commander Frigate
+ * 10      Destroyer
+ * 11      Cruiser
+ * 12      Elite Cruiser
+ * 13      Commander Cruiser
+ * 14      Tech III
+ *
+ */

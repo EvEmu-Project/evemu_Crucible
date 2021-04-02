@@ -35,7 +35,7 @@
 #include "inventory/Inventory.h"
 #include "inventory/ItemDB.h"
 #include "inventory/ItemFactory.h"
-//#include "pos/Structure.h"
+#include "pos/Structure.h"
 #include "ship/Ship.h"
 #include "station/Station.h"
 #include "station/StationDB.h"

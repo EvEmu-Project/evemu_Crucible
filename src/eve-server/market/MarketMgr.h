@@ -43,6 +43,7 @@ public:
     bool ExecuteBuyOrder(Client *seller, uint32 orderID, InventoryItemRef iRef, Call_PlaceCharOrder &args, uint16 accountKey = Account::KeyType::Cash);
     // market order placed by seller to sell items (usually at higher prices)
     void ExecuteSellOrder(Client *buyer, uint32 orderID, Call_PlaceCharOrder &args);
+    //forces a refresh of market data.
     void SendOnOwnOrderChanged(Client* pClient, uint32 orderID, uint8 action, bool isCorp = false, PyRep* order = nullptr);
 
     void InvalidateOrdersCache(uint32 regionID, uint32 typeID);
@@ -58,8 +59,10 @@ public:
 
     // base price update method
     void SetBasePrice();         // this uses current mineral values to estimate base price of item
+    void UpdateMineralPrice();
+    void GetCruPrices();
 
-    
+
 protected:
     void Populate();
 

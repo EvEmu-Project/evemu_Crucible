@@ -49,6 +49,7 @@ m_sessionID(0)
 
 ClientSession::~ClientSession()
 {
+    // do we clear session vars here, or let ~PyDict() do it?
     PyDecRef(mSession);
     sEntityList.RemoveSID(m_sessionID);
 }
@@ -121,7 +122,7 @@ void ClientSession::EncodeChanges(PyDict* into)
 
 PyTuple* ClientSession::_GetValueTuple(const char* name) const
 {
-    PyRep* value = mSession->GetItemString(name);
+    PyRep* value(mSession->GetItemString(name));
     if (value == nullptr)
         return nullptr;
     return value->AsTuple();
@@ -129,7 +130,7 @@ PyTuple* ClientSession::_GetValueTuple(const char* name) const
 
 PyRep* ClientSession::_GetLast(const char* name) const
 {
-    PyTuple* tuple = _GetValueTuple(name);
+    PyTuple* tuple(_GetValueTuple(name)); // copy c'tor
     if (tuple == nullptr) {
         _log(CLIENT__SESSION_NOTFOUND, "ClientSession::_GetLast - value not found with name '%s'", name);
         return nullptr;
@@ -139,7 +140,7 @@ PyRep* ClientSession::_GetLast(const char* name) const
 
 PyRep* ClientSession::_GetCurrent(const char* name) const
 {
-    PyTuple* tuple = _GetValueTuple(name);
+    PyTuple* tuple(_GetValueTuple(name)); // copy c'tor
     if (tuple == nullptr) {
         if (is_log_enabled(CLIENT__SESSION_NOTFOUND)) {
             _log(CLIENT__SESSION_NOTFOUND, "ClientSession::_GetCurrent - value not found with name '%s'", name);
@@ -152,13 +153,13 @@ PyRep* ClientSession::_GetCurrent(const char* name) const
 
 void ClientSession::_Set(const char* name, PyRep* value)
 {
-    PyTuple* tuple = _GetValueTuple(name);
+    PyTuple* tuple(_GetValueTuple(name)); // copy c'tor
     if (tuple == nullptr) {
         tuple = new_tuple(PyStatic.NewNone(), PyStatic.NewNone(), PyStatic.NewFalse());
         mSession->SetItemString(name, tuple);
     }
 
-    PyRep* current = tuple->GetItem(1); // assign op
+    PyRep* current(tuple->GetItem(1)); // copy c'tor
     if (value->hash() != current->hash()) {
         tuple->SetItem(0, current); /* didn't the session need to store the old value too? */
         tuple->SetItem(1, value);

@@ -313,7 +313,7 @@ void StationDataMgr::LoadStationPyData()
             dict->SetItemString("standingOwnerID", new PyInt(cur.second.corporationID));
             dict->SetItemString("hangarGraphicID", new PyInt(cur.second.hangarGraphicID));
             dict->SetItemString("officeRentalCost", new PyInt(cur.second.officeRentalFee));
-            dict->SetItemString("dockingBayGraphicID", new PyNone());   // cannot find any data on this; all packets show PyNone
+            dict->SetItemString("dockingBayGraphicID", PyStatic.NewNone());   // cannot find any data on this; all packets show PyNone
             dict->SetItemString("dockingCostPerVolume", new PyFloat(cur.second.dockingCostPerVolume));
             dict->SetItemString("maxShipVolumeDockable", new PyFloat(cur.second.maxShipVolumeDockable));
             dict->SetItemString("reprocessingEfficiency", new PyFloat(cur.second.reprocessingEfficiency));

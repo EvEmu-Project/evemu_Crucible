@@ -34,7 +34,7 @@
 #include "inventory/ItemFactory.h"
 #include "inventory/ItemType.h"
 #include "manufacturing/Blueprint.h"
-//#include "pos/Structure.h"
+#include "pos/Structure.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
 #include "ship/modules/ModuleItem.h"
@@ -358,10 +358,10 @@ StationOfficeRef ItemFactory::GetOffice(uint32 officeID)
     return _GetItem<StationOffice>(officeID);
 }
 
-/*StructureItemRef ItemFactory::GetStructure(uint32 structureID)
+StructureItemRef ItemFactory::GetStructure(uint32 structureID)
 {
     return _GetItem<StructureItem>(structureID);
-}*/
+}
 
 CargoContainerRef ItemFactory::GetCargoContainer(uint32 containerID)
 {
@@ -419,14 +419,14 @@ SkillRef ItemFactory::SpawnSkill(ItemData &data)
     return iRef;
 }
 
-/*StructureItemRef ItemFactory::SpawnStructure(ItemData &data)
+StructureItemRef ItemFactory::SpawnStructure(ItemData &data)
 {
     StructureItemRef iRef = StructureItem::Spawn(data);
     if (iRef.get() != nullptr)
         AddItem(iRef);
 
     return iRef;
-}*/
+}
 
 AsteroidItemRef ItemFactory::SpawnAsteroid(ItemData &idata, AsteroidData& adata)
 {
