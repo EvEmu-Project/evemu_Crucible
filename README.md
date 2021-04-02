@@ -7,7 +7,6 @@ EVEmu is a work-in-progress server emulator for the space MMO EVE Online. This i
 [ChangeLog](doc/ChangeLog.md)
 
 ## TODO (Systems requiring implementation and rework)
-- Missions / Agents
 - Fleet
 - POS
 - Planetary Interaction
