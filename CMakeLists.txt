@@ -16,7 +16,7 @@ PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
 SET( PROJECT_VERSION             "this is not used anymore, CMake pulls version from Git Tree Info (cmake/GitTreeInfo.cmake)" )
-SET( PROJECT_REPOSITORY          "https://github.com/evemuproject/evemu_server" )
+SET( PROJECT_REPOSITORY          "https://github.com/EvEmu-Project/evemu_Crucible" )
 
 # Append our module path
 LIST( APPEND CMAKE_MODULE_PATH
