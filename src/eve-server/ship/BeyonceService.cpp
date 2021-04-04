@@ -438,7 +438,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
             fleet = call.byname.find("fleet")->second->AsBool()->value();
 
     // get the warp-to distance specified by the client
-    int32 distance(5000);
+    int32 distance(0); //Was set to 5000; setting to 0 makes warp in to station and gate more realistic.
     if (call.byname.find("minRange") != call.byname.end())
         distance = PyRep::IntegerValueU32(call.byname.find("minRange")->second);
 
