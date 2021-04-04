@@ -1,30 +1,16 @@
-/*
-    ------------------------------------------------------------------------------------
-    LICENSE:
-    ------------------------------------------------------------------------------------
-    This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://evemu.dev
-    ------------------------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any later
-    version.
 
-    This program is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ /**
+  * @name FleetManager.h
+  *     Fleet Manager code for EVEmu
+  *
+  * @Author:        Allan
+  * @date:          05 August 2014 (original skeleton outline)
+  * @update:        21 November 2017 (begin actual implementation)
+  *
+  */
 
-    You should have received a copy of the GNU Lesser General Public License along with
-    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-    http://www.gnu.org/copyleft/lesser.txt.
-    ------------------------------------------------------------------------------------
-    Author:        Allan
-*/
-
-#ifndef EVEMU_SHIP_FLEETMGR_H_
-#define EVEMU_SHIP_FLEETMGR_H_
+#ifndef EVEMU_SRC_FLEET_MGR_H_
+#define EVEMU_SRC_FLEET_MGR_H_
 
 #include "PyService.h"
 #include "fleet/FleetService.h"
@@ -50,4 +36,4 @@ protected:
 
 };
 
-#endif  // EVEMU_SHIP_FLEETMGR_H_
+#endif  // EVEMU_SRC_FLEET_MGR_H_

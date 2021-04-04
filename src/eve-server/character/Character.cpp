@@ -338,8 +338,8 @@ void Character::LogOut()
     SaveFullCharacter();
     m_db.SetLogOffTime(m_itemID);
     if (!sConsole.IsShutdown())
-        //if (IsFleet(m_fleetData.fleetID))
-        //    sFltSvc.LeaveFleet(m_pClient);
+        if (IsFleet(m_fleetData.fleetID))
+            sFltSvc.LeaveFleet(m_pClient);
 
     pInventory->Unload();
 

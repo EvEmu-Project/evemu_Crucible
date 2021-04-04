@@ -584,7 +584,6 @@ void Client::ProcessClient() {
         }
 
     // only set for location change
-    /*
     if (m_fleetTimer.Enabled())
         if (m_fleetTimer.Check(false)) {
             m_fleetTimer.Disable();
@@ -616,7 +615,7 @@ void Client::ProcessClient() {
                     }
             }
             pShipSE->ApplyBoost(bData);
-        }*/
+        }
 
     if (sConfig.debug.UseProfiling)
         sProfiler.AddTime(Profile::client, GetTimeUSeconds() - profileStartTime);
@@ -761,7 +760,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 
         if (IsFleet(m_fleet)) {
             m_fleetTimer.Disable();
-            /*if (IsFleetBooster()) {
+            if (IsFleetBooster()) {
                 std::list<int32> wing, squad;
                 wing.clear();
                 squad.clear();
@@ -771,7 +770,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
                     wing.emplace(wing.end(), m_wing);
                 }
                 sFltSvc.UpdateBoost(m_fleet, IsFleetBoss(), wing, squad);
-            }*/
+            }
         }
 
         if (!IsHangarLoaded(m_locationID))
@@ -795,7 +794,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 
         if (IsFleet(m_fleet)) {
             m_fleetTimer.Start(Player::Timer::Fleet);
-            /*if (IsFleetBooster()) {
+            if (IsFleetBooster()) {
                 std::list<int32> wing, squad;
                 wing.clear();
                 squad.clear();
@@ -805,7 +804,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
                     wing.emplace(wing.end(), m_wing);
                 }
                 sFltSvc.UpdateBoost(m_fleet, IsFleetBoss(), wing, squad);
-            }*/
+            }
         }
 
         if (m_char->flag() != flagPilot)

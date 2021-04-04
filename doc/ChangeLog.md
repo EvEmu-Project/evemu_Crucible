@@ -1,3 +1,13 @@
+*** 0.8.3 ***
+- Fleet Implemented
+
+*** 0.8.2 ***
+- PI Implemented
+- POS Implemented
+
+*** 0.8.1 ***
+- Agents/Missions Implemented
+
 *** 0.8.0 (26/03/2021) ***
 This release brings in massive new core system updates to EVEmu. These changes will dramatically increase the rate of change to this repository and make future contributions easier.
 

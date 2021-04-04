@@ -1,103 +1,139 @@
-/*
-    ------------------------------------------------------------------------------------
-    LICENSE:
-    ------------------------------------------------------------------------------------
-    This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://evemu.dev
-    ------------------------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any later
-    version.
 
-    This program is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License along with
-    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-    http://www.gnu.org/copyleft/lesser.txt.
-    ------------------------------------------------------------------------------------
-    Author:        Reve, Allan
-*/
-
-//work in progress
+ /**
+  * @name FleetProxy.cpp
+  *     Fleet Proxy code for EVEmu
+  *     This file deals with very generic fleet functions
+  *
+  * @Author:        Allan
+  * @date:          05 August 2014 (original skeleton outline)
+  * @update:        21 November 2017 (begin actual implementation)
+  * @finished:      02 December 2017
+  *
+  */
 
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
 #include "fleet/FleetProxy.h"
 
-PyCallable_Make_InnerDispatcher(FleetProxyService)
+PyCallable_Make_InnerDispatcher(FleetProxy)
 
-FleetProxyService::FleetProxyService(PyServiceMgr *mgr)
+FleetProxy::FleetProxy(PyServiceMgr *mgr)
 : PyService(mgr, "fleetProxy"),
   m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
 
-    PyCallable_REG_CALL(FleetProxyService, GetAvailableFleets);
-    PyCallable_REG_CALL(FleetProxyService, ApplyToJoinFleet);
-    PyCallable_REG_CALL(FleetProxyService, AddFleetFinderAdvert);
-    PyCallable_REG_CALL(FleetProxyService, RemoveFleetFinderAdvert);
-    PyCallable_REG_CALL(FleetProxyService, GetMyFleetFinderAdvert);
-    PyCallable_REG_CALL(FleetProxyService, UpdateAdvertInfo);
+    PyCallable_REG_CALL(FleetProxy, GetAvailableFleets);
+    PyCallable_REG_CALL(FleetProxy, AddFleetFinderAdvert);
+    PyCallable_REG_CALL(FleetProxy, RemoveFleetFinderAdvert);
+    PyCallable_REG_CALL(FleetProxy, GetMyFleetFinderAdvert);
+    PyCallable_REG_CALL(FleetProxy, UpdateAdvertInfo);
+    PyCallable_REG_CALL(FleetProxy, ApplyToJoinFleet);
 }
 
-FleetProxyService::~FleetProxyService()
+FleetProxy::~FleetProxy()
 {
     delete m_dispatch;
 }
 
-PyResult FleetProxyService::Handle_GetAvailableFleets(PyCallArgs &call) {
-//empty call
-
-    return m_Mgr.GetAvailableFleets();
+/*
+FLEET__ERROR
+FLEET__WARNING
+FLEET__MESSAGE
+FLEET__DEBUG
+FLEET__INFO
+FLEET__TRACE
+FLEET__DUMP
+FLEET__BIND_DUMP
+*/
+PyResult FleetProxy::Handle_GetAvailableFleets(PyCallArgs &call) {
+    return sFltSvc.GetAvailableFleets();
 }
 
-PyResult FleetProxyService::Handle_ApplyToJoinFleet(PyCallArgs &call) {
-  /**
-        ret = sm.ProxySvc('fleetProxy').ApplyToJoinFleet(fleetID)
-        */
+PyResult FleetProxy::Handle_ApplyToJoinFleet(PyCallArgs &call) {
+  // ret = sm.ProxySvc('fleetProxy').ApplyToJoinFleet(fleetID)
+   // sLog.White("FleetProxy", "Handle_ApplyToJoinFleet() size=%u", call.tuple->size() );
+   // call.Dump(FLEET__DUMP);
 
-    sLog.Log("FleetProxyService", "Handle_ApplyToJoinFleet() size=%u", call.tuple->size() );
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode args.", call.client->GetChar()->name());
+        return new PyBool(false);
+    }
 
-    return NULL;
+    // returns boolean
+    return new PyBool(sFltSvc.AddJoinRequest(arg.arg, call.client));
 }
 
-PyResult FleetProxyService::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
- /**
-        sm.ProxySvc('fleetProxy').AddFleetFinderAdvert(info)
-        */
+    // this is also used to update advert info
+PyResult FleetProxy::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
+ //  sm.ProxySvc('fleetProxy').AddFleetFinderAdvert(info)
+    //sLog.White("FleetProxy", "Handle_AddFleetFinderAdvert() size=%u", call.tuple->size() );
+    //call.Dump(FLEET__DUMP);
 
-    sLog.Log("FleetProxyService", "Handle_AddFleetFinderAdvert() size=%u", call.tuple->size() );
+    /** @todo  this needs to be updated....check standings and verifly scope */
 
-    return NULL;
+    FleetAdvertCall args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode args.", call.client->GetChar()->name());
+        return nullptr;
+    }
+
+    int32 fleetID = call.client->GetChar()->fleetID();
+
+    FleetData fData = FleetData();
+    sFltSvc.GetFleetData(fleetID, fData);
+
+    FleetAdvert adata = FleetAdvert();
+        adata.fleetID = fleetID;
+        adata.hideInfo = args.hideInfo;
+        adata.inviteScope = args.inviteScope;
+        adata.leader = call.client;
+        adata.fleetName = PyRep::StringContent(args.fleetName);
+        adata.advertTime = GetFileTimeNow();
+        adata.dateCreated = fData.dateCreated;
+        adata.description = PyRep::StringContent(args.description);
+        adata.solarSystemID = call.client->GetSystemID();
+        adata.joinNeedsApproval = args.joinNeedsApproval;
+        adata.local_minSecurity = args.local_minSecurity;
+        adata.local_minStanding = args.local_minStanding;
+        adata.public_minSecurity = args.public_minSecurity;
+        adata.public_minStanding = args.public_minStanding;
+    PyList* localList = args.local_allowedEntities->header()->AsTuple()->GetItem(1)->AsTuple()->GetItem(0)->AsList();
+        adata.local_allowedEntities.clear();
+    for (PyList::const_iterator itr = localList->begin(); itr != localList->end(); ++itr)
+        adata.local_allowedEntities.push_back(PyRep::IntegerValueU32(*itr));
+    PyList* publicList = args.public_allowedEntities->header()->AsTuple()->GetItem(1)->AsTuple()->GetItem(0)->AsList();
+        adata.public_allowedEntities.clear();
+    for (PyList::const_iterator itr = publicList->begin(); itr != publicList->end(); ++itr)
+        adata.public_allowedEntities.push_back(PyRep::IntegerValueU32(*itr));
+    sFltSvc.CreateFleetAdvert(fleetID, adata);
+
+    return nullptr;
 }
 
-PyResult FleetProxyService::Handle_RemoveFleetFinderAdvert(PyCallArgs &call) {
+PyResult FleetProxy::Handle_RemoveFleetFinderAdvert(PyCallArgs &call) {
+   // sLog.White("FleetProxy", "Handle_RemoveFleetFinderAdvert() size=%u", call.tuple->size() );
+    //call.Dump(FLEET__DUMP);
 
-    sLog.Log("FleetProxyService", "Handle_RemoveFleetFinderAdvert() size=%u", call.tuple->size() );
+    sFltSvc.RemoveFleetAdvert(call.client->GetChar()->fleetID());
 
-    return NULL;
+    return nullptr;
 }
 
-PyResult FleetProxyService::Handle_GetMyFleetFinderAdvert(PyCallArgs &call) {
+PyResult FleetProxy::Handle_GetMyFleetFinderAdvert(PyCallArgs &call) {
+   // sLog.White("FleetProxy", "Handle_GetMyFleetFinderAdvert() size=%u", call.tuple->size() );
+   // call.Dump(FLEET__DUMP);
 
-    sLog.Log("FleetProxyService", "Handle_GetMyFleetFinderAdvert() size=%u", call.tuple->size() );
-
-    return NULL;
+    return sFltSvc.GetFleetAdvert(call.client->GetChar()->fleetID());
 }
 
+PyResult FleetProxy::Handle_UpdateAdvertInfo(PyCallArgs &call) {
+  //   sm.ProxySvc('fleetProxy').UpdateAdvertInfo(numMembers)
+    // this call just updates member count in fleet advert.  not needed here, as that is dynamic data.
+    //sLog.White("FleetProxy", "Handle_UpdateAdvertInfo() size=%u", call.tuple->size() );
+    //call.Dump(FLEET__DUMP);
 
-PyResult FleetProxyService::Handle_UpdateAdvertInfo(PyCallArgs &call) {
-  /**
-                sm.ProxySvc('fleetProxy').UpdateAdvertInfo(numMembers)
-                */
-
-    sLog.Log("FleetProxyService", "Handle_UpdateAdvertInfo() size=%u", call.tuple->size() );
-
-    return NULL;
+    return nullptr;
 }

@@ -140,8 +140,8 @@ public:
     int8 GetFleetRole()                                 { return pSession->GetCurrentInt("fleetrole"); }
 
     bool InFleet()                                      { return IsFleet(m_fleet); }
-    //bool IsFleetBoss()                                  { return (IsFleet(m_fleet) ? ((GetFleetRole() == Fleet::Role::FleetLeader) ? true : false) : false); }
-    //bool IsFleetBooster()                               { return (IsFleet(m_fleet) ? ((GetFleetRole() == Fleet::Booster::No) ? false : true) : false); }
+    bool IsFleetBoss()                                  { return (IsFleet(m_fleet) ? ((GetFleetRole() == Fleet::Role::FleetLeader) ? true : false) : false); }
+    bool IsFleetBooster()                               { return (IsFleet(m_fleet) ? ((GetFleetRole() == Fleet::Booster::No) ? false : true) : false); }
 
     uint32 GetFleetID() const                           { return m_fleet; }
     int32 GetWingID() const                             { return m_wing; }
