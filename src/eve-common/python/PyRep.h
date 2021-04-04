@@ -93,9 +93,8 @@ public:
         PyTypeError             = 19
     };
 
-    /** PyType check functions
-      */
-    //using this method is discouraged, it generally means your doing something wrong... Is<type>() should cover almost all needs
+    /* PyType functions */
+
     PyType GetType() const          { return mType; }
 
     bool IsInt() const              { return mType == PyTypeInt; }
@@ -210,6 +209,15 @@ public:
 
 protected:
     PyRep( PyType t );
+    // copy c'tor
+    PyRep( const PyRep& oth );
+    // move c'tor
+    PyRep(PyRep&& oth) = delete;
+    // copy assignment
+    PyRep& operator= (const PyRep& oth) = default;
+    // move assignment
+    PyRep& operator= (PyRep&& oth) = default;
+
     virtual ~PyRep()    { /* do we need to do anything here? */ }
 
     const PyType mType;
@@ -232,7 +240,6 @@ public:
     PyInt& operator= (const PyInt& oth) = delete;
     // move assignment
     PyInt& operator= (PyInt&& oth) = delete;
-
 
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
@@ -450,10 +457,11 @@ public:
      */
     const std::string& content() const { return mValue; }
 
+    // updated to use std::hash for strings.  better checks without collision (so far)
     int32 hash() const;
 
 protected:
-    virtual ~PyString()    { /* do we need to do anything here? */ }
+    virtual ~PyString();
     const std::string mValue;
     mutable int32 mHashCache;
 };
@@ -497,6 +505,7 @@ public:
      */
     size_t size() const;
 
+    // updated to use std::hash for strings.  better checks without collision (so far)
     int32 hash() const;
 
 protected:
@@ -567,6 +576,8 @@ public:
     PyTuple( const PyTuple& oth );
     // move c'tor
     PyTuple(PyTuple&& oth) = delete;
+    // copy assignment
+    PyTuple& operator= (const PyTuple& oth);
     // move assignment
     PyTuple& operator= (PyTuple&& oth) = delete;
 
@@ -610,9 +621,6 @@ public:
 
     void SetItemInt( size_t index, int32 val ) { SetItem( index, new PyInt( val ) ); }
     void SetItemString( size_t index, const char* str ) { SetItem( index, new PyString( str ) ); }
-
-    // copy assignment
-    PyTuple& operator= (const PyTuple& oth);
 
     int32 hash() const;
 
@@ -732,7 +740,6 @@ protected:
             assert( _Arg1 );
             assert( _Arg2 );
 
-            // updated to use std::hash for strings.  better checks without collision (so far)
             return ( _Arg1->hash() == _Arg2->hash() );
         }
     };
@@ -826,7 +833,7 @@ public:
     // move c'tor
     PyObject(PyObject&& oth) = delete;
     // copy assignment
-    PyObject& operator= (const PyObject& oth) = delete;
+    PyObject& operator= (const PyObject& oth);
     // move assignment
     PyObject& operator= (PyObject&& oth) = delete;
 
@@ -876,14 +883,14 @@ public:
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
-    PyRep* header() const { return mHeader; }
-    bool isType2() const { return mIsType2; }
+    PyRep* header() const                               { return mHeader; }
+    bool isType2() const                                { return mIsType2; }
 
-    list_type& list() { return *mList; }
-    const list_type& list() const { return *mList; }
+    list_type& list()                                   { return *mList; }
+    const list_type& list() const                       { return *mList; }
 
-    dict_type& dict() { return *mDict; }
-    const dict_type& dict() const { return *mDict; }
+    dict_type& dict()                                   { return *mDict; }
+    const dict_type& dict() const                       { return *mDict; }
 
 
 protected:

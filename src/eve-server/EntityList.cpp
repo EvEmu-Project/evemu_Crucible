@@ -253,7 +253,7 @@ void EntityList::Process() {
         // these minute tics do not need to be precise
         if (m_minuteTimer.Check()) {
             ++m_minutes;
-            //sMissionDataMgr.Process();  // 1m
+            sMissionDataMgr.Process();  // 1m
 
             if (m_minutes % 5 == 0) { // ~5m
                 sWHMgr.Process();

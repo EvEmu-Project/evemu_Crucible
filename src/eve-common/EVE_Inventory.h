@@ -56,7 +56,6 @@ namespace Inv {
 
     /* POD structure for Inventory groups */
     struct GrpData {
-
         bool            useBasePrice :1;
         bool            allowManufacture :1;
         bool            allowRecycler :1;
