@@ -92,7 +92,7 @@ void MapData::Populate()
 
 
 
-/*void MapData::GetMissionDestination(Agent* pAgent, uint8 misionType, MissionOffer& offer)
+void MapData::GetMissionDestination(Agent* pAgent, uint8 misionType, MissionOffer& offer)
 {
     using namespace Mission::Type;
     using namespace Agents::Range;
@@ -146,7 +146,7 @@ void MapData::Populate()
                 auto itr = m_systemJumps.equal_range(systemID);
                 for (auto it = itr.first; it != itr.second; ++it)
                     sysList.push_back(it->second);
-                // @todo not sure why this is empty, but have segfaults from empty vector.
+                /** @todo not sure why this is empty, but have segfaults from empty vector. */
                 if (sysList.empty()) {
                     StationData data = StationData();
                     stDataMgr.GetStationData(pAgent->GetStationID(), data);
@@ -192,7 +192,7 @@ void MapData::Populate()
         //may have to create data objects based on constellation to do ranges in neighboring constellation
         // could use data from mapSolarSystemJumps - fromRegionID, fromConstellationID, fromSolarSystemID, toSolarSystemID, toConstellationID, toRegionID
 
-        // @todo  make function to find route from origin to constellation/region jump point.
+        /** @todo  make function to find route from origin to constellation/region jump point.  */
         case SameOrNeighboringSystem:  //3
         case NeighboringSystem: {  //5
             uint32 systemID = pAgent->GetSystemID();
@@ -240,4 +240,4 @@ void MapData::Populate()
         offer.dungeonLocationID     = offer.destinationID;
         offer.dungeonSolarSystemID  = offer.destinationID;
     }
-}*/
+}

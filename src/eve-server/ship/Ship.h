@@ -4,7 +4,7 @@
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
     Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://github.com/evemuproject/evemu_server
+    For the latest information visit https://evemu.dev
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -30,7 +30,7 @@
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
 #include "effects/EffectsData.h"
-//#include "fleet/FleetData.h"
+#include "fleet/FleetData.h"
 #include "inventory/ItemType.h"
 #include "inventory/InventoryItem.h"
 #include "ship/ShipDB.h"
@@ -341,8 +341,8 @@ public:
     bool IsBoosted()                                    { return m_boosted; }
     void SetBoost(bool set=false)                       { m_boosted = set; }
     void RemoveBoost();
-    //void ApplyBoost(BoostData& bData);
-    //uint8 GetMiningBoostAmount()                        { return m_boost.mining; }
+    void ApplyBoost(BoostData& bData);
+    uint8 GetMiningBoostAmount()                        { return m_boost.mining; }
 
     // misc
     void PayInsurance();
@@ -387,7 +387,7 @@ private:
     bool m_allowFleetSMBUsage;
 
     /*  boost data */
-    //BoostData m_boost = BoostData();
+    BoostData m_boost = BoostData();
     bool m_boosted;
     uint16 m_oldArmor;
     uint16 m_oldShield;

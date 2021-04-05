@@ -4,7 +4,7 @@
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
     Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://github.com/evemuproject/evemu_server
+    For the latest information visit https://evemu.dev
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -338,8 +338,8 @@ void Character::LogOut()
     SaveFullCharacter();
     m_db.SetLogOffTime(m_itemID);
     if (!sConsole.IsShutdown())
-        //if (IsFleet(m_fleetData.fleetID))
-        //    sFltSvc.LeaveFleet(m_pClient);
+        if (IsFleet(m_fleetData.fleetID))
+            sFltSvc.LeaveFleet(m_pClient);
 
     pInventory->Unload();
 

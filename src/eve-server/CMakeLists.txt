@@ -618,7 +618,7 @@ SET( test_SOURCE
 SOURCE_GROUP( "src"                FILES ${INCLUDE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_INCLUDE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_INCLUDE} )
-SOURCE_GROUP( "src\\agents"        FILES ${agent_INCLUDE} )
+SOURCE_GROUP( "src\\agent"         FILES ${agent_INCLUDE} )
 SOURCE_GROUP( "src\\alliance"      FILES ${alliance_INCLUDE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_INCLUDE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_INCLUDE} )
@@ -631,7 +631,7 @@ SOURCE_GROUP( "src\\dungeon"       FILES ${dungeon_INCLUDE} )
 SOURCE_GROUP( "src\\effects"       FILES ${effects_INCLUDE} )
 SOURCE_GROUP( "src\\exploration"   FILES ${explore_INCLUDE} )
 SOURCE_GROUP( "src\\faction"       FILES ${faction_INCLUDE} )
-#SOURCE_GROUP( "src\\fleet"         FILES ${fleet_INCLUDE} )
+SOURCE_GROUP( "src\\fleet"         FILES ${fleet_INCLUDE} )
 SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_INCLUDE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_INCLUDE} )
 SOURCE_GROUP( "src\\mail"          FILES ${mail_INCLUDE} )
@@ -655,7 +655,7 @@ SOURCE_GROUP( "src\\system\\test"  FILES ${test_INCLUDE} )
 SOURCE_GROUP( "src"                FILES ${SOURCE} )
 SOURCE_GROUP( "src\\account"       FILES ${account_SOURCE} )
 SOURCE_GROUP( "src\\admin"         FILES ${admin_SOURCE} )
-SOURCE_GROUP( "src\\agents"        FILES ${agent_SOURCE} )
+SOURCE_GROUP( "src\\agent"         FILES ${agent_SOURCE} )
 SOURCE_GROUP( "src\\alliance"      FILES ${alliance_SOURCE} )
 SOURCE_GROUP( "src\\cache"         FILES ${cache_SOURCE} )
 SOURCE_GROUP( "src\\character"     FILES ${character_SOURCE} )
@@ -668,7 +668,7 @@ SOURCE_GROUP( "src\\dungeon"       FILES ${dungeon_SOURCE} )
 SOURCE_GROUP( "src\\effects"       FILES ${effects_SOURCE} )
 SOURCE_GROUP( "src\\exploration"   FILES ${explore_SOURCE} )
 SOURCE_GROUP( "src\\faction"       FILES ${faction_SOURCE} )
-#SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
+SOURCE_GROUP( "src\\fleet"         FILES ${fleet_SOURCE} )
 SOURCE_GROUP( "src\\imageserver"   FILES ${imageserver_SOURCE} )
 SOURCE_GROUP( "src\\inventory"     FILES ${inventory_SOURCE} )
 SOURCE_GROUP( "src\\mail"          FILES ${mail_SOURCE} )
@@ -706,7 +706,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${effects_INCLUDE}        ${effects_SOURCE}
                 ${explore_INCLUDE}        ${explore_SOURCE}
                 ${faction_INCLUDE}        ${faction_SOURCE}
-                #${fleet_INCLUDE}          ${fleet_SOURCE}
+                ${fleet_INCLUDE}          ${fleet_SOURCE}
                 ${imageserver_INCLUDE}    ${imageserver_SOURCE}
                 ${inventory_INCLUDE}      ${inventory_SOURCE}
                 ${mail_INCLUDE}           ${mail_SOURCE}

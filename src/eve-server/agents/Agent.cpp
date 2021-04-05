@@ -102,7 +102,7 @@ void Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     //offer.destinationTypeID = 0;
     //offer.dungeonLocationID      = 0;
     //offer.dungeonSolarSystemID   = 0;
-    //sMapData.GetMissionDestination(this, misionType, offer);
+    sMapData.GetMissionDestination(this, misionType, offer);
     if (offer.destinationID == 0) {
         // make error here and reset
         sEntityList.FindClientByCharID(charID)->SendErrorMsg("Internal Server Error. Ref: ServerError 07208.");
@@ -627,8 +627,6 @@ void Agent::UpdateStandings(Client* pClient, uint8 eventID, bool important/*fals
         msg += m_agentData.name;
     }
 
-    /*  commented due to missing fleet code
-     *
     if (pClient->InFleet() and (newStanding > 0)) {
         float fleetStanding = newStanding * sConfig.standings.FleetMissionMultiplier;
         newStanding -= (fleetStanding /2);  // live does half,  but mission acceptor will get more here.
@@ -650,7 +648,7 @@ void Agent::UpdateStandings(Client* pClient, uint8 eventID, bool important/*fals
             cur->SendNotification("OnStandingsModified", "charid", payload, false);
             // fleet will share corp standings on some missions.  fix later.
         }
-    } */
+    }
 
     sStandingMgr.UpdateStandings(m_agentID, charID, eventID, newStanding, msg);
     sStandingMgr.UpdateStandings(m_agentData.corporationID, charID, eventID, newStanding * sConfig.standings.ACorp2CharMissionMultiplier, msg);

@@ -4,7 +4,7 @@
  *    ------------------------------------------------------------------------------------
  *    This file is part of EVEmu: EVE Online Server Emulator
  *    Copyright 2006 - 2021 The EVEmu Team
- *    For the latest information visit https://github.com/evemuproject/evemu_server
+ *    For the latest information visit https://evemu.dev
  *    ------------------------------------------------------------------------------------
  *    This program is free software; you can redistribute it and/or modify it under
  *    the terms of the GNU Lesser General Public License as published by the Free Software
@@ -648,8 +648,8 @@ int main( int argc, char* argv[] )
     sLog.Green("       ServerInit", "Starting Standings Manager");
     sStandingMgr.Initialize();
     /* create the FleetService singleton */
-    //sLog.Green("       ServerInit", "Starting Fleet Services");
-    //sFltSvc.Initialize(&pyServMgr);
+    sLog.Green("       ServerInit", "Starting Fleet Services");
+    sFltSvc.Initialize(&pyServMgr);
     /* create the MarketMgr singleton */
     sLog.Green("       ServerInit", "Starting Market Manager");
     sMktMgr.Initialize(&pyServMgr);
@@ -721,9 +721,9 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("entity", new EntityService(&pyServMgr));
     pyServMgr.RegisterService("facWarMgr", new FactionWarMgrService(&pyServMgr));
     pyServMgr.RegisterService("factory", new FactoryService(&pyServMgr));
-    //pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
-    //pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
-    //pyServMgr.RegisterService("fleetProxy", new FleetProxy(&pyServMgr));
+    pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
+    pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
+    pyServMgr.RegisterService("fleetProxy", new FleetProxy(&pyServMgr));
     pyServMgr.RegisterService("holoscreenMgr", new HoloscreenMgrService(&pyServMgr));
     pyServMgr.RegisterService("devIndexManager", new IndexManager(&pyServMgr));
     pyServMgr.RegisterService("infoGatheringMgr", new InfoGatheringMgr(&pyServMgr));

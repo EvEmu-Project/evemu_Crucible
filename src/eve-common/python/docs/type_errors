@@ -156,6 +156,10 @@ AttributeError: IndexRowset instance has no attribute 'iteritems'
                 DBRowset class has no member .iteritems
                 use Indexed Dict instead ( DBResultToIndexRowset)
 
+
+AttributeError: KeyVal instance has no attribute '__len__'
+                no clue yet
+                
 AttributeError: KeyVal instance has no attribute '__getitem__'
 AttributeError: KeyVal instance has no attribute 'GetDescription'
                 malformed dict.  use 'new PyObject("util.KeyVal", dict)'

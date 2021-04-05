@@ -4,7 +4,7 @@
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
     Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://github.com/evemuproject/evemu_server
+    For the latest information visit https://evemu.dev
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -998,7 +998,7 @@ void LSCService::CreateSystemChannel(int32 channelID)
         motd = m_db->GetAllianceName(channelID);
         grpMsgID = 5;
         messageID = 0;
-    } /*else if (IsFleet(channelID)) {
+    } else if (IsFleet(channelID)) {
         type = LSC::Type::fleet;
         name = sFltSvc.GetFleetName(channelID);
         motd = sFltSvc.GetFleetDescription(channelID);
@@ -1022,7 +1022,7 @@ void LSCService::CreateSystemChannel(int32 channelID)
         messageID = 0;
         //ownerID = sFltSvc.GetSquadLeaderID(channelID);
         ownerID = sFltSvc.GetFleetLeaderID(channelID);
-    } */else {
+    } else {
         // not sure what to do here....should never hit
     }
     std::string comStr = motd;
@@ -1129,7 +1129,7 @@ void LSCService::CreateStaticChannels() {
     CreateChannel(63, 1, "Wormholes", str.str().c_str(), nullptr, "wormholes", LSC::Type::normal, cspa, 263328, -1/*263340*/, true);
 //Misc
     str.str("");
-    str << "<br><color=0xffffffff>Welcome to the <url=http://eve.example.org>Free Wrecks</url> channel.<br>";
+    str << "<br><color=0xffffffff>Welcome to the <url=https://evemu.dev>Free Wrecks</url> channel.<br>";
     str << "Here you can offer your abandoned mission wrecks to any willing freelance salvager in New Eden.</color><br><br>";
     str << "<b><u><color=0xff00ffff>Salvagers</color></u><br><color=0xff00ff00>Alphas</color></b>";
     str << "<color=0xffffffff> - Basic salvage fits by race: </color><br>";

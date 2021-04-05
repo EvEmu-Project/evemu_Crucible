@@ -4,7 +4,7 @@
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
     Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://github.com/evemuproject/evemu_server
+    For the latest information visit https://evemu.dev
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -350,8 +350,11 @@ void ConsoleCommand::Status(std::string& state, int64& threads, float& vm_usage,
 
 void ConsoleCommand::Test()
 {
-    sLog.Green("  EVEmu", "Running Server Test Code:");
+    sLog.Green("   EVEmu", "Running Server Test Code:");
     //sLog.Warning(" Server Test Code", "No Test Code at this time.");
+
+    //sMktMgr.GetCruPrices();
+    //sLog.Blue("       MktPricing", "Base material Prices Updated");
 
     sMktMgr.SetBasePrice();
 

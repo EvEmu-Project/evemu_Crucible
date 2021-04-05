@@ -396,9 +396,9 @@ float MiningLaser::GetMiningVolume()
     // this should apply to modules/ship when boost activated, but this is easier at this time.
     //  downside is client will have the original, lower cycle amount as this isnt set in module (but should be)
     ShipSE* pShip(m_shipRef->GetPilot()->GetShipSE());
-    /*if (pShip != nullptr)
+    if (pShip != nullptr)
         if (pShip->IsBoosted())
-            cycleVol *= (1 + (0.03f * pShip->GetMiningBoostAmount())); // 3% increase/level*/
+            cycleVol *= (1 + (0.03f * pShip->GetMiningBoostAmount())); // 3% increase/level
 
     return cycleVol;
 }

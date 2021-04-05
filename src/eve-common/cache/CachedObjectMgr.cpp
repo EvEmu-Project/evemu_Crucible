@@ -4,7 +4,7 @@
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
     Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://github.com/evemuproject/evemu_server
+    For the latest information visit https://evemu.dev
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -67,7 +67,7 @@
         data->SetItem(1, new PyNone()); //unknown
         data->SetItem(2, new PyInt(704421)); //unknown - nodeID?
         data->SetItem(3, PyStatic.NewOne()); //unknown
-        data->SetItem(4, new PySubStream(new PyString("http:://eve.example.org/")));
+        data->SetItem(4, new PySubStream(new PyString("https://evemu.dev/")));
         data->SetItem(5, new PyInt(0)); //unknown
         data->SetItem(6, second);
     return new PyObject( "objectCaching.CachedMethodCallResult", data );

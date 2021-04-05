@@ -2414,7 +2414,7 @@ m_allowFleetSMBUsage(false)
     m_corpID = data.corporationID;
     m_ownerID = data.ownerID;
 
-    //m_boost = BoostData();
+    m_boost = BoostData();
 
     m_towerPass = "";
     m_processTimer.Start(m_processTimerTick);
@@ -2743,8 +2743,8 @@ void ShipSE::ClearBoostData()
     m_oldInertia     = 0.0f;
     m_oldTargetRange = 0;
 
-    //m_boost = BoostData();
-    //m_boosted = false;
+    m_boost = BoostData();
+    m_boosted = false;
 }
 
 void ShipSE::RemoveBoost()
@@ -2761,7 +2761,7 @@ void ShipSE::RemoveBoost()
 
     ClearBoostData();
 }
-/*
+
 void ShipSE::ApplyBoost(BoostData& bData)
 {
     // note:  mining boost applied in mining module code
@@ -2794,7 +2794,7 @@ void ShipSE::ApplyBoost(BoostData& bData)
     m_destiny->UpdateShipVariables();
 
     m_boosted = true;
-}*/
+}
 //{'FullPath': u'UI/Messages', 'messageID': 257802, 'label': u'DronesDroppedBecauseOfBandwidthModificationBody'}(u'The drone control bandwidth of your ship has been modified causing you to lose the ability to control some drones.', None, None)
 
 bool ShipSE::LaunchDrone(InventoryItemRef dRef) {

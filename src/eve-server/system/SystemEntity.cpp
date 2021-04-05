@@ -4,7 +4,7 @@
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
     Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://github.com/evemuproject/evemu_server
+    For the latest information visit https://evemu.dev
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -717,7 +717,7 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
     data.reason = reason;
 
     // handle distribution to fleets
-    /*if (pClient->InFleet()) {
+    if (pClient->InFleet()) {
         // get fleet members onGrid and distrubute bounty
         std::vector< uint32 > members;
         sFltSvc.GetFleetMembersOnGrid(pClient, members);
@@ -742,11 +742,5 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
         } else {
             AccountService::TranserFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
         }
-    }*/
-    data.amount = bounty;
-    if (sConfig.server.BountyPayoutDelayed) {
-        m_system->AddBounty(pClient->GetCharacterID(), data);
-    } else {
-        AccountService::TranserFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
     }
 }

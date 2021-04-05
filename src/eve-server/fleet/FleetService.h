@@ -1,88 +1,149 @@
-/*
-    ------------------------------------------------------------------------------------
-    LICENSE:
-    ------------------------------------------------------------------------------------
-    This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2021 The EVEmu Team
-    For the latest information visit https://evemu.dev
-    ------------------------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any later
-    version.
 
-    This program is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ /**
+  * @name FleetService.h
+  *     Fleet Service code for EVEmu
+  *
+  * @Author:        Allan
+  * @date:          05 August 2014 (original skeleton outline)
+  * @update:        21 November 2017 (begin actual implementation)
+  *
+  */
 
-    You should have received a copy of the GNU Lesser General Public License along with
-    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-    http://www.gnu.org/copyleft/lesser.txt.
-    ------------------------------------------------------------------------------------
-    Author:        Allan
-*/
+#ifndef EVEMU_SRC_FLEET_SVC_H_
+#define EVEMU_SRC_FLEET_SVC_H_
 
-#ifndef EVEMU_SHIP_FLEETSVC_H_
-#define EVEMU_SHIP_FLEETSVC_H_
-
-#include <unordered_map>
 #include "eve-common.h"
+#include "utils/Singleton.h"
 
 #include "Client.h"
+#include "EntityList.h"
 #include "packets/Fleet.h"
+#include "fleet/FleetData.h"
 
 class FleetService
+: public Singleton<FleetService>
 {
 public:
-    PyObject* CreateFleet(Client *pClient);
-    PyObject* CreateWing(Client *pClient);
-    PyObject* CreateSquad(Client *pClient);
+    FleetService();
+    ~FleetService()                              { /* do nothing here */ }
+
+    void Initialize(PyServiceMgr* svc);
+
+    uint32 CreateFleet(Client* pClient);
+    PyRep* CreateWing(uint32 fleetID);
+    void CreateSquad(uint32 fleetID, uint32 wingID);
+    void DeleteFleet(uint32 fleetID);
+    void DeleteWing(uint32 wingID);
+    void DeleteSquad(uint32 squadID);
+
     PyRep* GetAvailableFleets();
-    PyObject* Init(Client *pClient);
+    PyRep* GetWings(uint32 fleetID);
+
+    PyRep* GetFleetAdvert(uint32 fleetID);
+    void CreateFleetAdvert(uint32 fleetID, FleetAdvert data);
+    void RemoveFleetAdvert(uint32 fleetID);
+
+    void GetWingIDs(uint32 fleetID, std::vector< uint32 >& wingIDs);
+    void GetSquadIDs(uint32 wingID, std::vector< uint32 >& squadIDs);
+
+    void GetFleetData(uint32 fleetID, FleetData& data);
+    void GetWingData(uint32 wingID, WingData& data);
+    void GetSquadData(uint32 squadID, SquadData& data);
+    void GetMemeberVec(uint32 fleetID, std::vector<Client*>& data);
+
+    bool IsWingActive(int32 wingID);
+
+    void SetMOTD(uint32 fleetID, std::string motd);
+    PyRep* GetMOTD(uint32 fleetID);
+
+    void RenameWing(uint32 wingID, std::string name);
+    void RenameSquad(uint32 squadID, std::string name);
+
+    void UpdateBoost(uint32 fleetID, bool fleet, std::list< int32 >& wing, std::list< int32 >& squad);
+    void UpdateOptions(uint32 fleetID, bool isFreeMove, bool isRegistered, bool isVoiceEnabled);
+
+    bool AddMember(Client* pClient, uint32 fleetID, int32 wingID, int32 squadID, int8 job, int8 role, int8 booster);
+    bool UpdateMember(uint32 charID, uint32 fleetID, int32 newWingID, int32 newSquadID, int8 newJob, int8 newRole, int8 newBooster);
+
+    Client* GetFleetLeader(uint32 fleetID);
+    uint32 GetFleetLeaderID(uint32 fleetID);
+    Client* GetWingLeader(uint32 wingID);
+    uint32 GetWingLeaderID(uint32 wingID);
+    Client* GetSquadLeader(uint32 squadID);
+    uint32 GetSquadLeaderID(uint32 squadID);
+
+    std::string GetFleetName(uint32 fleetID);
+    std::string GetWingName(uint32 wingID);
+    std::string GetSquadName(uint32 squadID);
+
+    std::string GetFleetDescription(uint32 fleetID);
+
+    void GetRandUnitIDs(uint32 fleetID, int32& wingID, int32& squadID);
+
+    void LeaveFleet(Client* pClient);
+
+    void FleetBroadcast(Client* pFrom, uint32 itemID, int8 scope, int8 group, std::string msg);
+
+    void SendActiveStatus(uint32 fleetID, int32 wingID, int32 squadID);
+    // this sends "*fleetid" update to all fleet memebers and is sequenced
+    void SendFleetUpdate(uint32 fleetID, const char *notifyType, PyTuple *payload);
+
+    std::string GetBoosterData(uint32 fleetID, uint16& length);
+
+    bool GetInviteData(uint32 charID, InviteData& data);
+    bool SaveInviteData(uint32 charID, InviteData& data);
+    void RemoveInviteData(uint32 charID);
+
+    bool AddJoinRequest(uint32 fleetID, Client* pClient);
+    void GetJoinRequests(uint32 fleetID, std::vector<Client*>& data);
+    void RemoveJoinRequest(uint32 fleetID, Client* pClient);
+
+    uint8 GetFleetMemberCount(uint32 fleetID)          { return m_fleetMembers.count(fleetID); }
+
+    std::string GetJobName(int8 job);
+    std::string GetRoleName(int8 role);
+    std::string GetBoosterName(int8 booster);
+
+    std::string GetBCastScopeName(int8 scope);
+    std::string GetBCastGroupName(int8 group);
+
+    void GetFleetMembersOnGrid(Client* pClient, std::vector<uint32>& data);
+    void GetFleetMembersInSystem(Client* pClient, std::vector<uint32>& data);
+    void GetFleetClientsInSystem(Client* pClient, std::vector<Client*>& data);
 
 protected:
-    static uint32 m_fleetID;
+    void RemoveMember(Client* pClient);
+
+    void IncFleetSquads(uint32 fleetID, uint32 wingID);
+    void DecFleetSquads(uint32 fleetID, uint32 wingID);
+
+    void SetWingBoostData(uint32 wingID, BoostData& bData);
+    void SetSquadBoostData(uint32 squadID, BoostData bData, bool& sboost);
+
+    uint32 m_fleetID;
+    uint32 m_wingID;
+    uint32 m_squadID;
 
 private:
-    //list containing all active fleets by ID
-    std::list<uint32> m_fleets;
+    PyServiceMgr* m_services;
+    bool m_initalized;
 
-    //vector containing fleetID, Character* for all members of particular fleet.
-    // CharacterRef will contain FleetMemberInfo with fleet data for that member.
-    std::unordered_multimap<uint32, Character*> m_fleetMembers;
+    std::map<uint32, InviteData>        m_inviteData;       // charID/data
 
+    std::map<uint32, FleetAdvert>       m_fleetAdvertMap;   // fleetID/data
+
+    std::map<uint32, FleetData>         m_fleetDataMap;     // fleetID/data
+    std::map<uint32, WingData>          m_wingDataMap;      // wingID/data
+    std::map<uint32, SquadData>         m_squadDataMap;     // squadID/data
+
+    std::multimap<uint32, Client*>      m_joinReq;          // fleetID/Client*
+    std::multimap<uint32, Client*>      m_fleetMembers;     // fleetID/Client*
+    std::multimap<uint32, uint32>       m_fleetWings;       // fleetID/wingIDs
+    std::multimap<uint32, uint32>       m_wingSquads;       // wingID/squadIDs
 };
 
-#endif  // EVEMU_SHIP_FLEETSVC_H_
+//Singleton
+#define sFltSvc \
+    ( FleetService::get() )
 
-//Pilots who are disconnected and reconnect within 2 minutes, will automatically rejoin their fleet.
-
-/*Note that the maximum size of a fleet is 256 pilots:
- * 1 Fleet Commander,
- * 5 Wing Commanders,
- * 25 10-man squadrons (5 Squads of 9 Pilots + Squad Commander per Wing Commander).
- *
- * To put it another way the maximum size of:
- *   a squadron is 10 members including the commander,
- *   a wing is five squadrons,
- *   a fleet is 5 wings.
- */
-
-/*
-fleetGroupingRange = 300
-fleetJobCreator = 2
-fleetJobNone = 0
-fleetJobScout = 1
-fleetLeaderRole = 1
-fleetRoleLeader = 1
-fleetRoleMember = 4
-fleetRoleSquadCmdr = 3
-fleetRoleWingCmdr = 2
-fleetBoosterNone = 0
-fleetBoosterFleet = 1
-fleetBoosterWing = 2
-fleetBoosterSquad = 3
-rejectFleetInviteTimeout = 1
-rejectFleetInviteAlreadyInFleet = 2
-*/
+#endif  // EVEMU_SRC_FLEET_SVC_H_
