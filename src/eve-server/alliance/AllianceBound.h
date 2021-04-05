@@ -25,7 +25,7 @@ class AllianceBound
 public:
     PyCallable_Make_Dispatcher(AllianceBound)
 
-    AllianceBound(PyServiceMgr *mgr);
+    AllianceBound(PyServiceMgr *mgr, AllianceDB& db);
     virtual ~AllianceBound() { delete m_dispatch; }
     virtual void Release() {
         //I hate this statement
@@ -64,6 +64,7 @@ public:
 protected:
     Dispatcher *const m_dispatch;
 
+    AllianceDB& m_db;
 };
 
 #endif  // EVE_ALLIANCE_ALLYREGISTRY_BOUND_H_

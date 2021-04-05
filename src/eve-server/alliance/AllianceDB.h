@@ -31,6 +31,8 @@ public:
     PyRep *GetMyApplications(uint32 allyID);
     PyRep *GetApplications(uint32 allyID);
 
+    PyObject *GetAlliance(uint32 allyID);
+
     PyRep* GetContacts(uint32 allyID);
     void AddContact(uint32 allyID);
     void UpdateContact(uint32 allyID);

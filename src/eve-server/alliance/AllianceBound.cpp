@@ -13,6 +13,7 @@
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "alliance/AllianceBound.h"
+#include "alliance/AllianceDB.h"
 #include "cache/ObjCacheService.h"
 #include "chat/LSCService.h"
 #include "packets/CorporationPkts.h"
@@ -31,8 +32,9 @@
  */
 
 
-AllianceBound::AllianceBound(PyServiceMgr *mgr)
+AllianceBound::AllianceBound(PyServiceMgr *mgr, AllianceDB& db)
 : PyBoundObject(mgr),
+ m_db(db),
 m_dispatch(new Dispatcher(this))
 {
     _SetCallDispatcher(m_dispatch);
@@ -71,6 +73,8 @@ m_dispatch(new Dispatcher(this))
 PyResult AllianceBound::Handle_GetAlliance(PyCallArgs &call) {
     _log(ALLY__CALL, "AllianceBound::Handle_GetAlliance() size=%u", call.tuple->size() );
     call.Dump(ALLY__CALL_DUMP);
+
+
 
     return nullptr;
 }

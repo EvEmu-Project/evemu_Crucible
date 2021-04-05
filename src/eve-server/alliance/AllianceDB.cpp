@@ -2,7 +2,7 @@
  * @name AllianceDB.cpp
  *      database methods for alliance data
  *
- * @author Allan
+ * @author Allan - Updates: James
  * @date 24 May 2019
  *
  */
@@ -11,13 +11,13 @@
 #include "alliance/AllianceDB.h"
 
 
-void AllianceDB::AddBulletin(uint32 corpID, uint32 ownerID, uint32 cCharID, std::string& title, std::string& body)
+void AllianceDB::AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, std::string& title, std::string& body)
 {
     DBerror err;
     sDatabase.RunQuery(err,
-            "INSERT INTO alnBulletins (corporationID, ownerID, createCharacterID, createDateTime, editCharacterID, editDateTime, title, body)"
+            "INSERT INTO alnBulletins (allianceID, ownerID, createCharacterID, createDateTime, editCharacterID, editDateTime, title, body)"
             " VALUES (%u, %u, %u, %f, %u, %f, '%s', '%s')",
-            corpID, ownerID, cCharID, GetFileTimeNow(), cCharID, GetFileTimeNow(), title.c_str(), body.c_str());
+            allyID, ownerID, cCharID, GetFileTimeNow(), cCharID, GetFileTimeNow(), title.c_str(), body.c_str());
 }
 
 void AllianceDB::EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body)
@@ -29,18 +29,41 @@ void AllianceDB::EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime
             eCharID, eDataTime, title.c_str(), body.c_str(), bulletinID);
 }
 
-PyRep* AllianceDB::GetBulletins(uint32 corpID)
+PyRep* AllianceDB::GetBulletins(uint32 allyID)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT corporationID, bulletinID, ownerID, createCharacterID, createDateTime, editCharacterID, editDateTime, title, body"
+        "SELECT allianceID, bulletinID, ownerID, createCharacterID, createDateTime, editCharacterID, editDateTime, title, body"
         " FROM alnBulletins"
-        " WHERE corporationID = %u ", corpID))
+        " WHERE allianceID = %u ", allyID))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
     return DBResultToCRowset(res);
+}
+
+PyObject *AllianceDB::GetAlliance(uint32 allyID) {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        " SELECT "
+        " a.allianceID, a.allianceName, a.typeID, a.shortName, a.executorCorpID, a.creatorCorpID, "
+        " a.creatorCharID, a.startDate, a.memberCount, a.url, a.deleted"
+        " FROM alnAlliance AS a"
+        " WHERE allianceID = %u", allyID))
+    {
+        codelog(ALLY__DB_ERROR, "Error in retrieving alliance's data (%u)", allyID);
+        return nullptr;
+    }
+
+    DBResultRow row;
+    if (!res.GetRow(row)) {
+        codelog(ALLY__DB_WARNING, "Unable to find alliance's data (%u)", allyID);
+        return nullptr;
+    }
+
+    return DBRowToRow(row);
+    //return DBResultToRowset(res);
 }
 
 PyRep *AllianceDB::GetMyApplications(uint32 charID) {
@@ -52,7 +75,7 @@ PyRep *AllianceDB::GetMyApplications(uint32 charID) {
         " FROM alnApplications"
         " WHERE characterID = %u ", charID))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
 
@@ -73,7 +96,7 @@ PyRep *AllianceDB::GetApplications(uint32 allyID) {
         " WHERE corporationID = %u AND status NOT IN (%u, %u)",
                             allyID, Corp::AppStatus::AcceptedByCorporation, Corp::AppStatus::RejectedByCorporation))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
     PyObjectEx* obj = DBResultToCIndexedRowset(res, "characterID");
@@ -93,14 +116,14 @@ bool AllianceDB::GetCurrentApplicationInfo(uint32 allyID, uint32 corpID, Corp::A
         " WHERE characterID = %u AND corporationID = %u",
                             allyID, corpID))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", res.error.c_str());
         aInfo.valid = false;
         return false;
     }
 
     DBResultRow row;
     if (!res.GetRow(row)) {
-        codelog(CORP__DB_WARNING, "There's no previous application.");
+        codelog(ALLY__DB_WARNING, "There's no previous application.");
         aInfo.valid = false;
         return false;
     }
@@ -121,7 +144,7 @@ bool AllianceDB::GetCurrentApplicationInfo(uint32 allyID, uint32 corpID, Corp::A
 
 bool AllianceDB::InsertApplication(Corp::ApplicationInfo& aInfo) {
     if (!aInfo.valid) {
-        _log(CORP__DB_WARNING, "InsertApplication(): aInfo contains invalid data");
+        _log(ALLY__DB_WARNING, "InsertApplication(): aInfo contains invalid data");
         return false;
     }
 
@@ -134,7 +157,7 @@ bool AllianceDB::InsertApplication(Corp::ApplicationInfo& aInfo) {
         " VALUES (%u, %u, '%s', %li)",
         aInfo.corpID, aInfo.charID, escaped.c_str(), aInfo.appTime))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", err.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", err.c_str());
         return false;
     }
 
@@ -143,7 +166,7 @@ bool AllianceDB::InsertApplication(Corp::ApplicationInfo& aInfo) {
 
 bool AllianceDB::UpdateApplication(const Corp::ApplicationInfo& aInfo) {
     if (!aInfo.valid) {
-        _log(CORP__DB_WARNING, "UpdateApplication(): info contains invalid data");
+        _log(ALLY__DB_WARNING, "UpdateApplication(): info contains invalid data");
         return false;
     }
 
@@ -155,7 +178,7 @@ bool AllianceDB::UpdateApplication(const Corp::ApplicationInfo& aInfo) {
         " SET status = %u, lastCorpUpdaterID = %u, applicationText = '%s'"
         " WHERE applicationID = %u", aInfo.status, aInfo.lastCID, escaped.c_str(), aInfo.appID))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", err.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", err.c_str());
         return false;
     }
     return true;
@@ -167,7 +190,7 @@ bool AllianceDB::DeleteApplication(const Corp::ApplicationInfo& aInfo) {
         " DELETE FROM alnApplications"
         " WHERE applicationID = %u", aInfo.appID))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", err.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", err.c_str());
         return false;
     }
     return true;
@@ -180,7 +203,7 @@ PyRep* AllianceDB::GetContacts(uint32 allyID)
         "SELECT contactID, inWatchlist, relationshipID, labelMask"
         " FROM alnContacts WHERE ownerID = %u", allyID))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
 
@@ -243,7 +266,7 @@ void AllianceDB::AddEmployment(uint32 allyID, uint32 corpID)
     }
 
     if (!sDatabase.RunQuery(err, "UPDATE alnAlliance SET memberCount = memberCount+1 WHERE allianceID = %u", allyID))
-        codelog(CORP__DB_ERROR, "Error in new corp member increase query: %s", err.c_str());
+        codelog(ALLY__DB_ERROR, "Error in new corp member increase query: %s", err.c_str());
 }
 
 PyRep* AllianceDB::GetEmploymentRecord(uint32 corpID)
@@ -256,7 +279,7 @@ PyRep* AllianceDB::GetEmploymentRecord(uint32 corpID)
         "   WHERE corporationID = %u "
         "   ORDER BY startDate DESC", corpID))
     {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+        codelog(ALLY__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
 
