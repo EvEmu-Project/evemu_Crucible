@@ -15,7 +15,7 @@ insert into tStations
   select stationID,solarSystemID,regionID, corporationID, security from staStations where (@i:=@i+1)<=@lim AND regionID=@regionid  order by rand();
 
 -- actual seeding
-INSERT INTO mktOrders (typeID, charID, regionID, stationID, price, volEntered, volRemaining, issued,
+INSERT INTO mktOrders (typeID, ownerID, regionID, stationID, price, volEntered, volRemaining, issued,
 minVolume, duration, solarSystemID, jumps)
   SELECT typeID, corporationID, regionID, stationID, basePrice / security, 550, 550, 132478179209572976, 1, 250, solarSystemID, 1
   FROM tStations, invTypes inner join invGroups USING (groupID)
