@@ -35,12 +35,12 @@ class JumpCloneBound
 public:
     PyCallable_Make_Dispatcher(JumpCloneBound)
 
-    JumpCloneBound(PyServiceMgr *mgr, StationDB *db, uint32 locationID, uint8 locGroupID )
+    JumpCloneBound(PyServiceMgr *mgr, StationDB *db, uint32 locationID )
     : PyBoundObject(mgr),
       m_db(db),
       m_dispatch(new Dispatcher(this)),
-      m_locationID(locationID),     // station or ship
-      m_locGroupID(locGroupID)      // solarsystem(for ship) = 5, station = 15
+      m_locationID(locationID),                 // station or ship
+      m_locGroupID(EVEDB::invGroups::Station)   // solarsystem(for ship) or station
     {
         _SetCallDispatcher(m_dispatch);
 
@@ -64,6 +64,9 @@ public:
          'OnStationJumpCloneCacheInvalidated',
          'OnShipJumpCloneInstallationCanceled']
          */
+
+        if (IsStation(m_locationID))
+            m_locGroupID = EVEDB::invGroups::Solar_System;
     }
     virtual ~JumpCloneBound() { delete m_dispatch; }
     virtual void Release() {
@@ -110,7 +113,7 @@ PyBoundObject* JumpCloneService::CreateBoundObject( Client* pClient, const PyRep
     _log( CLIENT__MESSAGE, "JumpCloneService bind request for:" );
     bind_args->Dump( CLIENT__MESSAGE, "    " );
 
-    return new JumpCloneBound( m_manager, &m_db, pClient->GetLocationID(), 5 );
+    return new JumpCloneBound( m_manager, &m_db, pClient->GetLocationID() );
 }
 
 PyResult JumpCloneBound::Handle_InstallCloneInStation( PyCallArgs &call ) {
