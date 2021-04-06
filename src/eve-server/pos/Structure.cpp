@@ -306,13 +306,13 @@ void StructureSE::Init()
 
     m_loaded = true;
 
+    // ihubs dont need following data
     if (m_ihub)
         return;
 
     if (m_data.moonID == 0) {
         // make error here.  this should never hit.
         _log(POS__MESSAGE, "StructureSE::Init %s(%u) has no moonID.", m_self->name(), m_data.itemID);
-        //iRef->Delete(); // really delete this?
         m_loaded = false;
         return;
     }
@@ -330,6 +330,11 @@ void StructureSE::Init()
 
     if (m_miner) {
         // need to verify m_moonSE isnt null at this point.
+        if (m_moonSE == nullptr) {
+            //iRef->Delete(); // really delete this?
+            _log(POS__ERROR, "StructureSE::Init MoonSE for %s(%u) is invalid.", m_self->name(), m_data.itemID);
+            return;
+        }
         GVector dir(m_self->position(), m_moonSE->GetPosition());
         dir.normalize();
         m_rotation = dir;

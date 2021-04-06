@@ -207,13 +207,13 @@ private:
 
     Timer m_procTimer;              // module state timer
 
-    bool m_tcu :1;
-    bool m_sbu :1;
-    bool m_ihub :1;
-    bool m_tower :1;
-    bool m_miner :1;
-    bool m_bridge :1;
-    bool m_jammer :1;
+    bool m_tcu :1;      // Territorial Claim Unit
+    bool m_sbu :1;      // System Blockade Unit
+    bool m_ihub :1;     // Infrastructure Hub
+    bool m_tower :1;    // Control Tower
+    bool m_miner :1;    // Moon Miner
+    bool m_bridge :1;   // Jump Bridge
+    bool m_jammer :1;   // Cyno Jammer
     bool m_loaded :1;
     bool m_module :1;
     bool m_reactor :1;
