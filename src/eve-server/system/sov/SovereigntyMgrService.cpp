@@ -28,7 +28,7 @@
 
 #include "PyServiceCD.h"
 #include "standing/StandingDB.h"
-#include "system/SovereigntyMgrService.h"
+#include "system/sov/SovereigntyMgrService.h"
 
 PyCallable_Make_InnerDispatcher(SovereigntyMgrService)
 

@@ -171,7 +171,7 @@
 #include "system/BubbleManager.h"
 #include "system/KeeperService.h"
 #include "system/ScenarioService.h"
-#include "system/SovereigntyMgrService.h"
+#include "system/sov/SovereigntyMgrService.h"
 #include "system/WormholeSvc.h"
 // cosmic managers
 #include "system/cosmicMgrs/AnomalyMgr.h"
