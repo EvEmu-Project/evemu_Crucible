@@ -62,13 +62,10 @@ INCLUDE( "DetectScm" )
 # override the setup.
 #
 # Switch to the C++11 standard (required)
-SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Werror=return-type ${CMAKE_CXX_FLAGS}" )
+SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
 # -Wall -Wextra -Weffc++ -Wconversion -Wdouble-promotion
 # -pg -ggdb -pedantic
 # -fsanitize=thread  -fsanitize=address
-
-#Switching to C++11
-SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Wno-deprecated-declarations -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
 
 #
 # Try to determine the exact source version using SCM.

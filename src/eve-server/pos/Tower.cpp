@@ -133,6 +133,11 @@ m_pShieldSE(nullptr)
      */
 }
 
+TowerSE::~TowerSE()
+{
+    SafeDelete(m_destiny);
+}
+
 void TowerSE::Init()
 {
     StructureSE::Init();
@@ -142,6 +147,9 @@ void TowerSE::Init()
         // invalid data....init to 0 as this will only hit for currently-launching items (or errors)
         InitData();
     }
+
+    // this OSE needs destiny.
+    m_destiny = new DestinyManager(this);
 
     // if password is already set and tower online, then we can online (create) the forcefield
     m_harmonic = m_tdata.harmonic;
@@ -196,7 +204,7 @@ void TowerSE::Process()
     // starbase charter checks for empire space
 
     // tower-specific tests here
-    
+
     /*  Enable base call to Process Anchoring, Targeting and Movement  */
     StructureSE::Process();
 }
