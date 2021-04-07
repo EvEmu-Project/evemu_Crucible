@@ -89,7 +89,8 @@ boolean can use either 0/1 OR true/false.
         <turretDamage>1.0</turretDamage><!-- PC turrets multiplier.  DO NOT USE 0.0 -->
         <turretRoF>1.0</turretRoF><!-- PC turrets multiplier.  DO NOT USE 0.0 -->
         <npcBountyMultiply>1.0</npcBountyMultiply><!-- only used if != 1.0 -->
-        <corpCost>20000000</corpCost>
+        <corpCost>20000000</corpCost> <!-- Cost for creating a corporation -->
+        <allyCost>100000000</allyCost> <!-- Cost for creating an alliance -->
         <medalCreateCost>8000000</medalCreateCost>
         <medalAwardCost>5000000</medalAwardCost>
         <WorldDecay>20</WorldDecay><!-- in minutes (2 hour default - 250 max)-->

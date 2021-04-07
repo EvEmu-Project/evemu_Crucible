@@ -82,7 +82,7 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         if (!sDatabase.RunQuery(res,
             "SELECT "
             "  allianceID AS ownerID,"
-            "  allianceShortName AS ownerName,"
+            "  allianceName AS ownerName,"
             "  16159 AS typeID,"                 // alliance typeID.
             "  false AS gender,"
             "  NULL AS ownerNameID"

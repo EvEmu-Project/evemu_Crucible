@@ -44,6 +44,7 @@ StationSvc::StationSvc(PyServiceMgr *mgr)
     PyCallable_REG_CALL(StationSvc, GetSolarSystem);
     PyCallable_REG_CALL(StationSvc, GetStation);
     PyCallable_REG_CALL(StationSvc, GetAllianceSystems);
+    PyCallable_REG_CALL(StationSvc, GetSystemsForAlliance);
 }
 
 StationSvc::~StationSvc() {
@@ -84,6 +85,13 @@ PyResult StationSvc::Handle_GetStation(PyCallArgs &call) {
 
 PyResult StationSvc::Handle_GetAllianceSystems(PyCallArgs &call) {
   sLog.White( "StationSvc::Handle_GetAllianceSystems()", "size= %u", call.tuple->size() );
+    call.Dump(SERVICE__CALL_DUMP);
+    return nullptr;
+}
+
+//This call is made by client when player opens 'Settled Systems' dropdown in alliance details ui
+PyResult StationSvc::Handle_GetSystemsForAlliance(PyCallArgs &call) {
+  sLog.White( "StationSvc::Handle_GetSystemsForAlliance()", "size= %u", call.tuple->size() );
     call.Dump(SERVICE__CALL_DUMP);
     return nullptr;
 }

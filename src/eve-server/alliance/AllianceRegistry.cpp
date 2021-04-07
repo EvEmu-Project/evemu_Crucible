@@ -19,6 +19,7 @@
  *   http://www.gnu.org/copyleft/lesser.txt.
  *   ------------------------------------------------------------------------------------
  *   Author:        Allan
+ *   Updates:       James
  */
 
 //work in progress
@@ -50,7 +51,6 @@ m_dispatch(new Dispatcher(this))
 
     PyCallable_REG_CALL(AllianceRegistry, GetAlliance);     //  bound object call
     PyCallable_REG_CALL(AllianceRegistry, GetRankedAlliances);
-    PyCallable_REG_CALL(AllianceRegistry, GetAllianceApplications);
     PyCallable_REG_CALL(AllianceRegistry, GetEmploymentRecord);
     PyCallable_REG_CALL(AllianceRegistry, GetAllianceMembers);
 
@@ -69,7 +69,7 @@ PyBoundObject* AllianceRegistry::CreateBoundObject( Client* pClient, const PyRep
         return nullptr;
     }
 
-    return new AllianceBound(m_manager);
+    return new AllianceBound(m_manager, m_db, PyRep::IntegerValue(bind_args->AsTuple()->GetItem(0)));
 }
 
 // this is the bind call.  do it like fleet
@@ -83,8 +83,16 @@ PyResult AllianceRegistry::Handle_GetAlliance(PyCallArgs &call) {
      * 01:22:07 [SvcError]       [ 0]    Integer: 0
      * 01:22:07 [SvcError]       [ 1]    Integer: 1
      */
+
     _log(ALLY__CALL, "AllianceRegistry::Handle_GetAlliance() size=%u", call.tuple->size() );
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+    return m_db.GetAlliance(args.arg);
 
     return nullptr;
 }
@@ -93,6 +101,13 @@ PyResult AllianceRegistry::Handle_GetAllianceMembers(PyCallArgs &call) {
     // members = sm.RemoteSvc('allianceRegistry').GetAllianceMembers(itemID)  <-- returns dict of corpIDs
     _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceMembers() size=%u", call.tuple->size() );
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+    return m_db.GetAllianceMembers(args.arg);
 
     return nullptr;
 }
@@ -109,18 +124,12 @@ PyResult AllianceRegistry::Handle_GetRankedAlliances(PyCallArgs &call) {
     _log(ALLY__CALL, "AllianceRegistry::Handle_GetRankedAlliances() size=%u", call.tuple->size() );
     call.Dump(ALLY__CALL_DUMP);
 
-    return nullptr;
-}
-
-// i dont think this is called here....cant find call to AllianceRegistry for this...only CorpRegistry
-PyResult AllianceRegistry::Handle_GetAllianceApplications(PyCallArgs &call) {
-    //application = sm.GetService('alliance').GetApplications()[corporationID]
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceApplications() size=%u", call.tuple->size() );
-    call.Dump(ALLY__CALL_DUMP);
+    return m_db.GetRankedAlliances();
 
     return nullptr;
 }
 
+//Not sure why this doesn't work
 PyResult AllianceRegistry::Handle_GetEmploymentRecord(PyCallArgs &call) {
     //  allianceHistory = sm.RemoteSvc('allianceRegistry').GetEmploymentRecord(itemID)
     _log(ALLY__CALL, "AllianceRegistry::Handle_GetEmploymentRecord() size=%u", call.tuple->size() );

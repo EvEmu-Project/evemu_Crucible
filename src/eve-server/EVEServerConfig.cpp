@@ -87,6 +87,7 @@ EVEServerConfig::EVEServerConfig()
     rates.turretDamage = 1.0;
     rates.turretRoF = 1.0;
     rates.corpCost = 1599800;
+    rates.allyCost = 1000000000;
     rates.medalAwardCost = 5000000;
     rates.medalCreateCost = 5000000;
     rates.WorldDecay = 120 /*m*/;
@@ -406,6 +407,7 @@ bool EVEServerConfig::ProcessRates( const TiXmlElement* ele )
     AddValueParser( "turretDamage",         rates.turretDamage );
     AddValueParser( "turretRoF",            rates.turretRoF );
     AddValueParser( "corpCost",             rates.corpCost );
+    AddValueParser( "allyCost",             rates.allyCost );
     AddValueParser( "medalAwardCost",       rates.medalAwardCost );
     AddValueParser( "medalCreateCost",      rates.medalCreateCost );
     AddValueParser( "WorldDecay",           rates.WorldDecay );
@@ -436,6 +438,7 @@ bool EVEServerConfig::ProcessRates( const TiXmlElement* ele )
     RemoveParser( "turretDamage" );
     RemoveParser( "turretRoF" );
     RemoveParser( "corpCost" );
+    RemoveParser( "allyCost" );
     RemoveParser( "medalAwardCost" );
     RemoveParser( "medalCreateCost" );
     RemoveParser( "WorldDecay" );

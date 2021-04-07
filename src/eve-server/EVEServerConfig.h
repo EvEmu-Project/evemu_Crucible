@@ -118,6 +118,8 @@ public:
         double secRate;
         /// Startup Cost to create a corporation.
         uint32 corpCost;
+        /// Startup Cost to create an alliance.
+        uint32 allyCost;
         uint32 medalAwardCost;
         uint32 medalCreateCost;
         // Crit chance

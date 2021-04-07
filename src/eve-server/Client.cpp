@@ -1832,7 +1832,12 @@ void Client::InitSession(int32 characterID)
     pSession->SetInt("hqID",             (int32)(characterDataMap["corporationHQ"]));
     pSession->SetInt("baseID",           characterDataMap["baseID"]);
     pSession->SetInt("corpAccountKey",   characterDataMap["corpAccountKey"]);
-    pSession->SetInt("allianceid",       characterDataMap["allianceID"]);
+
+    //Only set allianceID if it is not 0
+    if (characterDataMap["allianceID"] != 0){
+        pSession->SetInt("allianceid", characterDataMap["allianceID"]);
+    }
+
     pSession->SetInt("warfactionid",     characterDataMap["warFactionID"]);
 
     pSession->SetLong("corprole",        characterDataMap["corpRole"]);
@@ -1913,7 +1918,12 @@ void Client::UpdateCorpSession(CorpData& data)
     pSession->SetInt("corpid", data.corporationID);
     pSession->SetInt("baseID", data.baseID);
     pSession->SetInt("hqID", data.corpHQ);
-    pSession->SetInt("allianceid", data.allianceID);
+
+    //Only set allianceID if it is not 0
+    if (data.allianceID != 0){
+        pSession->SetInt("allianceid", data.allianceID);
+    }
+    
     pSession->SetInt("warfactionid", data.warFactionID);
     pSession->SetInt("corpAccountKey", data.corpAccountKey);
     pSession->SetLong("corprole", data.corpRole);
