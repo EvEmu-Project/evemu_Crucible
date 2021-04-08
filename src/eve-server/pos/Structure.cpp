@@ -24,8 +24,10 @@
 #include "StaticDataMgr.h"
 #include "manufacturing/Blueprint.h"
 #include "planet/Moon.h"
+#include "planet/Planet.h"
 #include <planet/CustomsOffice.h>
 #include "pos/Tower.h"
+#include "pos/sovStructures/TCU.h"
 #include "pos/Structure.h"
 #include "system/Container.h"
 #include "system/Damage.h"
@@ -228,7 +230,12 @@ void StructureSE::InitData()
         m_db.SaveBridgeData(data);
     }
 
-    if (!m_ihub) {
+    if (m_tcu) { //TCUs are placed near a planet
+        m_planetSE = m_system->GetClosestPlanetSE(GetPosition())->GetPlanetSE();
+        m_data.planetID = m_planetSE->GetID();
+    }
+
+    if (!m_ihub) { 
         m_moonSE = m_system->GetClosestMoonSE(GetPosition())->GetMoonSE();
         m_data.moonID = m_moonSE->GetID();
     }
@@ -394,6 +401,8 @@ void StructureSE::Process() {
                 m_destiny->SendSpecialEffect(m_data.itemID,m_data.itemID,m_self->typeID(),0,0,"effects.AnchorDrop",0,0,0,-1,0);
                 if (m_tower)
                     m_moonSE->SetTower(this);
+                if (m_tcu)
+                    m_planetSE->SetTCU(this);
 
                 m_db.UpdateBaseData(m_data);
             } break;
@@ -534,6 +543,22 @@ void StructureSE::SetAnchor(Client* pClient, GPoint& pos)
         m_destiny->SetPosition(pos);
     }
 
+    if (IsTCUSE()) {
+        uint32 dist = m_self->GetAttribute(AttrPlanetAnchorDistance).get_uint32();
+        uint32 radius = m_planetSE->GetRadius();
+        float rad = EvE::Trig::Deg2Rad(90);
+
+        pos = m_planetSE->GetPosition();
+        pos.x += radius + dist * std::sin(rad);
+        pos.z += radius + dist * std::cos(rad);
+        m_destiny->SetPosition(pos);
+        sBubbleMgr.Add(this);
+
+        if (is_log_enabled(POS__TRACE))
+            _log(POS__TRACE, "StructureSE::Anchor() - TCUSE %s(%u) new position %.2f, %.2f, %.2f at %s", \
+                        GetName(), m_data.itemID, pos.x, pos.y, pos.z, m_moonSE->GetName());
+    }
+
     m_self->SaveItem();
 
     m_procState = EVEPOS::ProcState::Anchoring;
@@ -639,6 +664,9 @@ void StructureSE::Activate(int32 effectID)
         }
     } else {
         ; // check for things that DONT use a tower.  not sure if we need anymore checks here.  yes....all sov structures will need checks for activation
+        if (m_tcu) {
+            // Check some things for TCU onlining
+        }
     }
     m_data.state = EVEPOS::StructureStatus::Onlining;
     m_procState = EVEPOS::ProcState::Onlining;
@@ -794,7 +822,7 @@ void StructureSE::EncodeDestiny( Buffer& into )
         head.posZ = z();
     if (m_tcu) {
         head.mode = Ball::Mode::STOP;
-        head.flags = Ball::Flag::IsGlobal;
+        head.flags = (m_data.state < EVEPOS::StructureStatus::Anchored ? Ball::Flag::IsFree : 0, Ball::Flag::IsGlobal)/*Ball::Flag::HasMiniBalls*/;
     } else if (m_tower) {
         head.mode = Ball::Mode::STOP;
         head.flags = (m_data.state < EVEPOS::StructureStatus::Anchored ? Ball::Flag::IsFree : 0)/*Ball::Flag::HasMiniBalls*/;

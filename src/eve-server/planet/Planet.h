@@ -69,6 +69,10 @@ public:
 
     bool                        HasColony()             { return !m_colonies.empty(); }
 
+    StructureSE* GetMyTCU()                             { return m_tcuSE; }
+    bool HasTCU()                                     { return (m_tcuSE != nullptr); }
+    void SetTCU(StructureSE* pSE)                     { m_tcuSE = pSE; }
+
 protected:
     CustomsSE*                  pCO;  // our Customs Office SE  - we dont own this
     PlanetResourceData          m_data;
@@ -82,6 +86,8 @@ private:
      *  Colony* is owned by its planetSE
      */
     std::map<uint32, Colony*>   m_colonies;
+
+    StructureSE* m_tcuSE;
 };
 
 #endif  // EVEMU_PLANET_PLANET_H_

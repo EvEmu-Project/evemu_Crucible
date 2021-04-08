@@ -40,6 +40,7 @@ class SystemEntity;
 class SystemManager;
 class Timer;
 class TowerSE;
+class TCUSE;
 class DroneSE;
 class PyObject;
 
@@ -139,6 +140,11 @@ public:
     TowerSE* GetTowerSE()                               { return m_towerSE; }
     void SetTowerSE(TowerSE* pTower)                    { m_towerSE = pTower; }
 
+    /* for setting TCU in bubble */
+    bool HasTCU()                                     { return (m_tcuSE != nullptr); }
+    TCUSE* GetTCUSE()                               { return m_tcuSE; }
+    void SetTCUSE(TCUSE* pTCU)                        { m_tcuSE = pTCU; }
+
     /* for system setstate */
     PyObject* GetDroneState() const;
 
@@ -161,6 +167,7 @@ protected:
 
 private:
     TowerSE* m_towerSE;
+    TCUSE* m_tcuSE;
     SystemManager* m_system;
     ContainerSE* m_centerSE;
 

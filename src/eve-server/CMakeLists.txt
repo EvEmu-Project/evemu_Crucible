@@ -431,7 +431,8 @@ SET( pos_INCLUDE
      "${TARGET_INCLUDE_DIR}/pos/PosMgrDB.h"
      "${TARGET_INCLUDE_DIR}/pos/Structure.h"
      "${TARGET_INCLUDE_DIR}/pos/Tower.h"
-     "${TARGET_INCLUDE_DIR}/pos/Weapon.h" )
+     "${TARGET_INCLUDE_DIR}/pos/Weapon.h" 
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.h" )
 SET( pos_SOURCE
      "${TARGET_SOURCE_DIR}/pos/Array.cpp"
      "${TARGET_SOURCE_DIR}/pos/Battery.cpp"
@@ -441,7 +442,8 @@ SET( pos_SOURCE
      "${TARGET_SOURCE_DIR}/pos/PosMgrDB.cpp"
      "${TARGET_SOURCE_DIR}/pos/Structure.cpp"
      "${TARGET_SOURCE_DIR}/pos/Tower.cpp"
-     "${TARGET_SOURCE_DIR}/pos/Weapon.cpp" )
+     "${TARGET_SOURCE_DIR}/pos/Weapon.cpp"
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.cpp" )
 
 SET( qaTools_INCLUDE
      "${TARGET_INCLUDE_DIR}/qaTools/encounterSpawnServer.h"
@@ -653,7 +655,7 @@ SOURCE_GROUP( "src\\ship\\modules" FILES ${ship_modules_INCLUDE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_INCLUDE} )
 SOURCE_GROUP( "src\\station"       FILES ${station_INCLUDE} )
 SOURCE_GROUP( "src\\system"        FILES ${system_INCLUDE} )
-SOURCE_GROUP( "src\\system"        FILES ${system_sov_INCLUDE} )
+SOURCE_GROUP( "src\\system\\sov"   FILES ${system_sov_INCLUDE} )
 SOURCE_GROUP( "src\\system\\cosmicMgrs"  FILES ${system_managers_INCLUDE} )
 SOURCE_GROUP( "src\\system\\test"  FILES ${test_INCLUDE} )
 
@@ -691,7 +693,7 @@ SOURCE_GROUP( "src\\ship\\modules" FILES ${ship_modules_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
 SOURCE_GROUP( "src\\station"       FILES ${station_SOURCE} )
 SOURCE_GROUP( "src\\system"        FILES ${system_SOURCE} )
-SOURCE_GROUP( "src\\system"        FILES ${system_sov_SOURCE} )
+SOURCE_GROUP( "src\\system\\sov"   FILES ${system_sov_SOURCE} )
 SOURCE_GROUP( "src\\system\\cosmicMgrs"  FILES ${system_managers_SOURCE} )
 SOURCE_GROUP( "src\\system\\test"  FILES ${test_SOURCE} )
 

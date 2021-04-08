@@ -22,6 +22,7 @@
     ------------------------------------------------------------------------------------
     Author:        Reve,
     Rewrite:    Allan
+    Updates:    James
 */
 
 #include "eve-server.h"

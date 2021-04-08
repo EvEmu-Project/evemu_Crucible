@@ -1423,6 +1423,17 @@ uint32 SystemManager::GetClosestPlanetID(const GPoint& myPos)
     return itr->second->GetID();
 }
 
+SystemEntity* SystemManager::GetClosestPlanetSE(const GPoint& myPos)
+{
+    std::map<double, SystemEntity*> sorted;
+    for (auto cur : m_planetMap)
+        sorted.insert(std::pair<double, SystemEntity*>(myPos.distance(cur.second->GetPosition()), cur.second));
+
+    std::map<double, SystemEntity*>::iterator itr = sorted.begin();
+
+    return itr->second;
+}
+
 SystemEntity* SystemManager::GetClosestMoonSE(const GPoint& myPos)
 {
     std::map<double, SystemEntity*> sorted;

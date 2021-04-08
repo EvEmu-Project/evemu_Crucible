@@ -33,7 +33,8 @@ namespace EVEPOS {
         int8 status;        /* used to hold POS StructureStatus (online, reinforced, operating, etc) */
         int32 itemID;
         int32 towerID;
-        int32 moonID;
+        int32 moonID;       /* used to hold PlanetID for structures which are anchored near moons */
+        int32 planetID;     /* used to hold PlanetID for structures which are anchored near planets */
         int64 timestamp;
     };
     struct TowerData {
@@ -54,6 +55,17 @@ namespace EVEPOS {
         float status;         /* this is different from structure.status:  it is used for defense standings and needs to be renamed */
         float standing;
         std::string password;
+    };
+
+    struct TCUData {
+        int32 itemID;
+        int32 corpID;
+        int32 allyID;
+        int8 anchor;
+        int8 unanchor;
+        int8 online;
+        int8 offline;
+        float status;
     };
 
     struct JumpBridgeData {

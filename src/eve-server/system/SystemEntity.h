@@ -67,6 +67,7 @@ class ShipSE;
 class DungeonSE;
 
 class TowerSE;
+class TCUSE;
 class ArraySE;
 class BatterySE;
 class ModuleSE;
@@ -113,7 +114,7 @@ public:
     virtual StructureSE*        GetJammerSE()           { return nullptr; }
     virtual StructureSE*        GetJumpBridgeSE()       { return nullptr; }
     virtual StructureSE*        GetOutpostSE()          { return nullptr; }
-    virtual StructureSE*        GetTCUSE()              { return nullptr; }
+    //virtual StructureSE*        GetTCUSE()              { return nullptr; }
     virtual StructureSE*        GetSBUSE()              { return nullptr; }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
@@ -124,6 +125,7 @@ public:
     virtual ModuleSE*           GetModuleSE()           { return nullptr; }
     virtual ReactorSE*          GetReactorSE()          { return nullptr; }
     virtual CustomsSE*          GetCOSE()               { return nullptr; }
+    virtual TCUSE*              GetTCUSE()              { return nullptr; }
     /* Dynamic */
     virtual DynamicSystemEntity* GetDynamicSE()         { return nullptr; }
     virtual NPC*                GetNPCSE()              { return nullptr; }

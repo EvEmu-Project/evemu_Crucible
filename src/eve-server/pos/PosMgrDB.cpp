@@ -433,3 +433,12 @@ void PosMgrDB::UpdateDeployFlags(int32 itemID, EVEPOS::TowerData& data)
         " SET anchor=%f, unanchor=%i, online=%i, offline=%i WHERE itemID = %u",
         data.anchor, data.unanchor, data.online, data.offline, itemID);
 }
+
+void PosMgrDB::UpdateTCUDeployFlags(int32 itemID, EVEPOS::TCUData& data)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE posTCUData"
+        " SET anchor=%f, unanchor=%i, online=%i, offline=%i WHERE itemID = %u",
+        data.anchor, data.unanchor, data.online, data.offline, itemID);
+}

@@ -139,6 +139,7 @@ public:
     void AddBounty(uint32 charID, BountyData& data);
 
     SystemEntity* GetClosestMoonSE(const GPoint& myPos);
+    SystemEntity* GetClosestPlanetSE(const GPoint& myPos);
 
     // this returns entities in range for display on dscan.
     void DScan(int64 range, const GPoint& pos, std::vector< SystemEntity* >& vector);

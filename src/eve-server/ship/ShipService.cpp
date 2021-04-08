@@ -537,7 +537,46 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                 pClient->SendNotifyMsg("Launching Deployables isnt available yet.");
             } break;
             case EVEDB::invCategories::SovereigntyStructure: {
-                pClient->SendNotifyMsg("Launching SovStructures isnt available yet.");
+                //Code for spawning sovreignty structures
+
+                // TODO: make sure no more than one TCU is deployed in the system
+
+                pClient->SendNotifyMsg("This is experimental, beware.");
+
+                DBSystemDynamicEntity entity = DBSystemDynamicEntity();
+                entity.ownerID = ownerID;
+                entity.factionID = pClient->GetWarFactionID();
+                entity.allianceID = pClient->GetAllianceID();
+                entity.corporationID = pClient->GetCorporationID();
+                entity.itemID = iRef->itemID();
+                entity.itemName = iRef->itemName();
+                entity.typeID = iRef->typeID();
+                entity.groupID = iRef->groupID();
+                entity.categoryID = iRef->categoryID();
+
+                // Move item from cargo bay to space: (and send OnItemChange packet)
+                iRef->Move(pClient->GetLocationID(), flagNone, true);
+                iRef->SetPosition(location + iRef->radius() + radius);
+                iRef->ChangeOwner(entity.ownerID);
+
+                entity.position = iRef->position();
+
+                SystemEntity* pSE = DynamicEntityFactory::BuildEntity(*pSystem, entity);
+                if (pSE == nullptr) {
+                    //couldnt create entity.  move item back to orig location and continue
+                    iRef->Donate(pClient->GetCharacterID(), pShip->itemID(), flagCargoHold);
+                    continue;
+                }
+
+                // item was successfully created.  set singleton
+                iRef->ChangeSingleton(true);
+
+                dropped = true;
+                shipDrop = true;
+                pSE->GetPOSSE()->Drop(pClient->GetShipSE()->SysBubble());
+                pSystem->AddEntity(pSE);
+                list->AddItem(new PyInt(entity.itemID));
+
             } break;
             default: {
                 _log(INV__ERROR, "ShipBound::Handle_Drop() - Item %s (cat %u) is neither drone, structure or deployable.", iRef->name(), iRef->categoryID());

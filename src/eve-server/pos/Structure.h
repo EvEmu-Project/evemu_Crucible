@@ -100,16 +100,17 @@ public:
 
     /* class type pointer querys. */
     virtual StructureSE*        GetPOSSE()              { return this; }
-    virtual StructureSE*        GetTCUSE()              { return (m_tcu ? this : nullptr); }
+    //virtual StructureSE*        GetTCUSE()              { return (m_tcu ? this : nullptr); }
     virtual StructureSE*        GetSBUSE()              { return (m_sbu ? this : nullptr); }
     virtual StructureSE*        GetJammerSE()           { return (m_jammer ? this : nullptr); }
-    virtual StructureSE*        GetOutpostSE()          { return (m_bridge ? this : nullptr); }
-    virtual StructureSE*        GetJumpBridgeSE()       { return (m_outpost ? this : nullptr); }
+    virtual StructureSE*        GetOutpostSE()          { return (m_outpost ? this : nullptr); }
+    virtual StructureSE*        GetJumpBridgeSE()       { return (m_bridge ? this : nullptr); }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
     virtual BatterySE*          GetBatterySE()          { return nullptr; }
     virtual WeaponSE*           GetWeaponSE()           { return nullptr; }
     virtual ReactorSE*          GetReactorSE()          { return nullptr; }
+    virtual TCUSE*              GetTCUSE()              { return nullptr; }
 
     /* class type tests. */
     virtual bool                IsPOSSE()               { return true; }
@@ -161,6 +162,7 @@ public:
     uint8                       GetState() const        { return m_data.state; }
     float                       GetStatus()             { return m_data.status; }
     MoonSE*                     GetMoonSE()             { return m_moonSE; }
+    PlanetSE*                   GetPlanetSE()           { return m_planetSE; } //Planets are required for sovereignty structures
 
     inline void                SetPOSState(uint8 state) { m_data.state = state; }
     inline void                 SetTimer(uint32 time)   { m_procTimer.SetTimer(time); }
@@ -189,7 +191,9 @@ protected:
     PosMgrDB                    m_db;
 
     MoonSE*                     m_moonSE;               /* moonSE this structure is orbiting. */
+    PlanetSE*                   m_planetSE;             /* planetSE this structure is orbiting. (for sovereignty structures) */
     TowerSE*                    m_towerSE;              /* controlling towerSE for this structure */
+    TCUSE*                      m_tcuSE;                /* controlling TCUs */
 
     EVEPOS::StructureData       m_data;
 
