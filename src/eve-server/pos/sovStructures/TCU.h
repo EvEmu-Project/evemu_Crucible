@@ -33,7 +33,7 @@ public:
     virtual void                Init();
     virtual void                InitData();
 
-    /* basic tower methods */
+    /* basic TCU methods */
     virtual void                SetOnline();
     virtual void                SetOffline();
 

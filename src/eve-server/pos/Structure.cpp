@@ -315,7 +315,7 @@ void StructureSE::Init()
 
     // ihubs dont need following data
     if (m_ihub)
-        return;
+        return; 
 
     if (m_data.moonID == 0) {
         // make error here.  this should never hit.
@@ -821,7 +821,8 @@ void StructureSE::EncodeDestiny( Buffer& into )
         head.posY = y();
         head.posZ = z();
     if (m_tcu) {
-        head.mode = Ball::Mode::STOP;
+        _log(POS__DESTINY, "TCU Launch Triggered");
+        head.mode = Ball::Mode::RIGID;
         head.flags = (m_data.state < EVEPOS::StructureStatus::Anchored ? Ball::Flag::IsFree : 0, Ball::Flag::IsGlobal)/*Ball::Flag::HasMiniBalls*/;
     } else if (m_tower) {
         head.mode = Ball::Mode::STOP;

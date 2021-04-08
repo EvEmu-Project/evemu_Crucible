@@ -179,6 +179,47 @@ void PosMgrDB::SaveTowerData(EVEPOS::TowerData& tData, EVEPOS::StructureData& sD
         tData.anchor, tData.unanchor, tData.online, tData.offline);
 }
 
+bool PosMgrDB::GetTCUData(EVEPOS::TCUData& tData, EVEPOS::StructureData& sData)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+            "SELECT"
+            " itemID, status, corpID, allyID, "
+            " anchor, unanchor, online, offline"
+            " FROM posTCUData"
+            " WHERE itemID = %i", sData.itemID))
+    {
+        codelog(DATABASE__ERROR, "Error in GetTowerData query: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    if (!res.GetRow(row)) {
+        tData = EVEPOS::TCUData();
+        return false;
+    }
+
+    tData.status = row.GetFloat(1);
+    tData.corpID = row.GetInt(2);
+    tData.allyID = row.GetInt(3);
+    tData.anchor = row.GetInt(4);
+    tData.unanchor = row.GetInt(5);
+    tData.online = row.GetInt(6);
+    tData.offline = row.GetInt(7);
+    return true;
+}
+
+void PosMgrDB::SaveTCUData(EVEPOS::TCUData& tData, EVEPOS::StructureData& sData)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "INSERT INTO posTCUData"
+        " (itemID, status, corpID, allyID, "
+        " anchor, unanchor, online, offline)"
+        " VALUES ( %i, %f, %i, %i, %i, %i, %i, %i )",
+        sData.itemID, tData.status, tData.corpID, tData.allyID,
+        tData.anchor, tData.unanchor, tData.online, tData.offline);
+}
 
 bool PosMgrDB::GetBridgeData(EVEPOS::JumpBridgeData& data)
 {

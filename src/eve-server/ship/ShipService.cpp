@@ -541,7 +541,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
 
                 // TODO: make sure no more than one TCU is deployed in the system
 
-                pClient->SendNotifyMsg("This is experimental, beware.");
+                pClient->SendNotifyMsg("This is experimental...");
 
                 DBSystemDynamicEntity entity = DBSystemDynamicEntity();
                 entity.ownerID = ownerID;

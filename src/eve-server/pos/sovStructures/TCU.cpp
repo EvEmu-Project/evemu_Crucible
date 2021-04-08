@@ -122,6 +122,11 @@ void TCUSE::Online()
     StructureSE::Online();
 }
 
+void TCUSE::Operating()
+{
+    StructureSE::SetOperating();
+}
+
 void TCUSE::Reinforced()
 {
     // something to do with SBUs should go here maybe?
