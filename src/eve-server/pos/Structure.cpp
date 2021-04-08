@@ -5,6 +5,7 @@
  *
  * @Author:         Allan
  * @date:   unknown
+ * Updates:         James
  */
 
 /*
@@ -531,19 +532,8 @@ void StructureSE::SetAnchor(Client* pClient, GPoint& pos)
         if (is_log_enabled(POS__TRACE))
             _log(POS__TRACE, "StructureSE::Anchor() - TowerSE %s(%u) new position %.2f, %.2f, %.2f at %s", \
                         GetName(), m_data.itemID, pos.x, pos.y, pos.z, m_moonSE->GetName());
-    } else {
-        if (!m_moonSE->HasTower()) {
-            pClient->SendErrorMsg("There is no tower anchored at this moon.  You cannot anchor any structure without a tower");
-            return;
-        }
-        /*  few attribs to look into...
-         * maxStructureDistance
-         * posStructureControlDistanceMax   (maybe multiply this by tower size, or some fraction thereof?)
-         */
-        m_destiny->SetPosition(pos);
-    }
-
-    if (IsTCUSE()) {
+    } else if (IsTCUSE()) {
+        //Anchor a TCU to the planet
         uint32 dist = m_self->GetAttribute(AttrPlanetAnchorDistance).get_uint32();
         uint32 radius = m_planetSE->GetRadius();
         float rad = EvE::Trig::Deg2Rad(90);
@@ -557,6 +547,16 @@ void StructureSE::SetAnchor(Client* pClient, GPoint& pos)
         if (is_log_enabled(POS__TRACE))
             _log(POS__TRACE, "StructureSE::Anchor() - TCUSE %s(%u) new position %.2f, %.2f, %.2f at %s", \
                         GetName(), m_data.itemID, pos.x, pos.y, pos.z, m_moonSE->GetName());
+    } else {
+        if (!m_moonSE->HasTower()) {
+            pClient->SendErrorMsg("There is no tower anchored at this moon.  You cannot anchor any structure without a tower");
+            return;
+        }
+        /*  few attribs to look into...
+         * maxStructureDistance
+         * posStructureControlDistanceMax   (maybe multiply this by tower size, or some fraction thereof?)
+         */
+        m_destiny->SetPosition(pos);
     }
 
     m_self->SaveItem();

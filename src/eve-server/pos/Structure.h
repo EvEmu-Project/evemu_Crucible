@@ -114,7 +114,7 @@ public:
 
     /* class type tests. */
     virtual bool                IsPOSSE()               { return true; }
-    virtual bool                IsTCUSE()               { return m_tcu; }
+    virtual bool                IsTCUSE()               { return false; }
     virtual bool                IsSBUSE()               { return m_sbu; }
     virtual bool                IsJammerSE()            { return m_jammer; }
     virtual bool                IsMoonMiner()           { return m_miner; }

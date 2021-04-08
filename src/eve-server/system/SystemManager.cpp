@@ -20,6 +20,7 @@
     ------------------------------------------------------------------------------------
     Author:        Zhur
     Rewrite:    Allan
+    Updates:    James
 */
 
 #include "eve-server.h"
@@ -41,6 +42,7 @@
 #include "pos/Module.h"
 #include "pos/Structure.h"
 #include "pos/Tower.h"
+#include "pos/sovStructures/TCU.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -609,16 +611,41 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             }
             return pSSE;
         } break;
-        case EVEDB::invCategories::SovereigntyStructure: {// SOV structures   these may need their own class one day.
+        case EVEDB::invCategories::SovereigntyStructure: {// SOV structures
+            //Create item ref
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
             if (structure.get() == nullptr)
                 return nullptr;
-            /** @todo make error msg here */
-            // ihub will need it's own se class
-            //if (entity.groupID == EVEDB::invGroups::Infrastructure_Hubs)
-            StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
-            _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making StructureSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
-            return sSE;
+
+            StructureSE* sSSE(nullptr);
+            //Test for different types of sov structures
+            switch(entity.groupID) {
+                case EVEDB::invGroups::Territorial_Claim_Units: {
+                    TCUSE* sSE = new TCUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making TCUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    sSSE = sSE;
+                } break;
+
+                case EVEDB::invGroups::Sovereignty_Blockade_Units: {
+                    _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Creation of SBUSE for SBU - NOT IMPLEMENTED");
+                    //TODO: NEEDS IMPLEMENTATION
+                    return nullptr;
+                } break;
+
+                case EVEDB::invGroups::Infrastructure_Hubs: {
+                    _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Creation of IHubSE for IHub - NOT IMPLEMENTED");
+                    //TODO: NEEDS IMPLEMENTATION
+                    return nullptr;
+                } break;
+
+                default: { //Should never be called, therefore print an error log
+                    StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Default sovereignty StructureSE created for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    sSSE = sSE;
+                } break;
+            }
+            return sSSE;
+
         } break;
         case EVEDB::invCategories::Orbitals: {           // planet orbitals   these should go into m_staticEntities
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
