@@ -88,6 +88,9 @@ class Client;
 class Missile;
 class MoonSE;
 class TowerSE;
+class TCUSE;
+class SBUSE;
+class IHubSE;
 class ArraySE;
 class BatterySE;
 class WeaponSE;
@@ -100,8 +103,6 @@ public:
 
     /* class type pointer querys. */
     virtual StructureSE*        GetPOSSE()              { return this; }
-    //virtual StructureSE*        GetTCUSE()              { return (m_tcu ? this : nullptr); }
-    virtual StructureSE*        GetSBUSE()              { return (m_sbu ? this : nullptr); }
     virtual StructureSE*        GetJammerSE()           { return (m_jammer ? this : nullptr); }
     virtual StructureSE*        GetOutpostSE()          { return (m_outpost ? this : nullptr); }
     virtual StructureSE*        GetJumpBridgeSE()       { return (m_bridge ? this : nullptr); }
@@ -111,11 +112,14 @@ public:
     virtual WeaponSE*           GetWeaponSE()           { return nullptr; }
     virtual ReactorSE*          GetReactorSE()          { return nullptr; }
     virtual TCUSE*              GetTCUSE()              { return nullptr; }
+    virtual SBUSE*              GetSBUSE()              { return nullptr; }
+    virtual IHubSE*             GetIHubSE()             { return nullptr; }
 
     /* class type tests. */
     virtual bool                IsPOSSE()               { return true; }
     virtual bool                IsTCUSE()               { return false; }
-    virtual bool                IsSBUSE()               { return m_sbu; }
+    virtual bool                IsSBUSE()               { return false; }
+    virtual bool                IsIHubSE()              { return false; }
     virtual bool                IsJammerSE()            { return m_jammer; }
     virtual bool                IsMoonMiner()           { return m_miner; }
     virtual bool                IsOutpostSE()           { return m_outpost; }
@@ -163,6 +167,7 @@ public:
     float                       GetStatus()             { return m_data.status; }
     MoonSE*                     GetMoonSE()             { return m_moonSE; }
     PlanetSE*                   GetPlanetSE()           { return m_planetSE; } //Planets are required for sovereignty structures
+    StargateSE*                 GetGateSE()             { return m_gateSE; }
 
     inline void                SetPOSState(uint8 state) { m_data.state = state; }
     inline void                 SetTimer(uint32 time)   { m_procTimer.SetTimer(time); }
@@ -194,6 +199,9 @@ protected:
     PlanetSE*                   m_planetSE;             /* planetSE this structure is orbiting. (for sovereignty structures) */
     TowerSE*                    m_towerSE;              /* controlling towerSE for this structure */
     TCUSE*                      m_tcuSE;                /* controlling TCUs */
+    SBUSE*                      m_sbuSE;
+    IHubSE*                     m_ihubSE;
+    StargateSE*                     m_gateSE;
 
     EVEPOS::StructureData       m_data;
 

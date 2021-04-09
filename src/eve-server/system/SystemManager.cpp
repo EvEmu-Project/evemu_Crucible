@@ -43,6 +43,8 @@
 #include "pos/Structure.h"
 #include "pos/Tower.h"
 #include "pos/sovStructures/TCU.h"
+#include "pos/sovStructures/SBU.h"
+#include "pos/sovStructures/IHub.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -87,6 +89,7 @@ m_secValue(1.1f)
     m_moonMap.clear();
     m_entities.clear();
     m_planetMap.clear();
+    m_gateMap.clear();
     m_ratBubbles.clear();
     m_beltVector.clear();
     m_roidBubbles.clear();
@@ -382,6 +385,7 @@ bool SystemManager::LoadSystemStatics() {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialObject(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
                 StargateSE *pSSE = new StargateSE(itemRef, *(GetServiceMgr()), this);
+                m_gateMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pMSE));
                 ++m_gateCount;
                 pSE = pSSE;
             } break;
@@ -627,14 +631,14 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 } break;
 
                 case EVEDB::invGroups::Sovereignty_Blockade_Units: {
-                    _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Creation of SBUSE for SBU - NOT IMPLEMENTED");
-                    //TODO: NEEDS IMPLEMENTATION
+                    SBUSE* sSE = new SBUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making SBUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return nullptr;
                 } break;
 
                 case EVEDB::invGroups::Infrastructure_Hubs: {
-                    _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Creation of IHubSE for IHub - NOT IMPLEMENTED");
-                    //TODO: NEEDS IMPLEMENTATION
+                    IHubSE* sSE = new IHubSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making IHubSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return nullptr;
                 } break;
 
@@ -1454,6 +1458,17 @@ SystemEntity* SystemManager::GetClosestPlanetSE(const GPoint& myPos)
 {
     std::map<double, SystemEntity*> sorted;
     for (auto cur : m_planetMap)
+        sorted.insert(std::pair<double, SystemEntity*>(myPos.distance(cur.second->GetPosition()), cur.second));
+
+    std::map<double, SystemEntity*>::iterator itr = sorted.begin();
+
+    return itr->second;
+}
+
+SystemEntity* SystemManager::GetClosestGateSE(const GPoint& myPos)
+{
+    std::map<double, SystemEntity*> sorted;
+    for (auto cur : m_gateMap)
         sorted.insert(std::pair<double, SystemEntity*>(myPos.distance(cur.second->GetPosition()), cur.second));
 
     std::map<double, SystemEntity*>::iterator itr = sorted.begin();

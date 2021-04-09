@@ -44,7 +44,7 @@ Planet::Planet()
 
 PlanetSE::PlanetSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
 : StaticSystemEntity(self, services, system),
-pCO(nullptr), m_tcuSE(nullptr)
+pCO(nullptr)
 {
     m_data = PlanetResourceData();
 }

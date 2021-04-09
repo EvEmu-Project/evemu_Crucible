@@ -1,7 +1,7 @@
 
 /**
- * @name TCU.cpp
- *   Class for Territorial Claim Units.
+ * @name IHub.cpp
+ *   Class for Infrastructure Hubs.
  *
  * @Author:         James
  * @date:   8 April 2021
@@ -23,30 +23,30 @@
 #include "EntityList.h"
 #include "EVEServerConfig.h"
 #include "planet/Planet.h"
-#include "pos/sovStructures/TCU.h"
+#include "pos/sovStructures/IHub.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 
-TCUSE::TCUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
+IHubSE::IHubSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
 : StructureSE(structure, services, system, fData),
 m_pShieldSE(nullptr)
 {
     m_structs.clear();
 }
 
-TCUSE::~TCUSE()
+IHubSE::~IHubSE()
 {
     SafeDelete(m_destiny);
 }
 
-void TCUSE::Init()
+void IHubSE::Init()
 {
     StructureSE::Init();
 
-    if (!m_db.GetTCUData(m_tdata, m_data)) {
-        _log(SE__TRACE, "TCUSE %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_self->itemID());
+    if (!m_db.GetIHubData(m_tdata, m_data)) {
+        _log(SE__TRACE, "IHubSE %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_self->itemID());
         // invalid data....init to 0 as this will only hit for currently-launching items (or errors)
         InitData();
     }
@@ -54,32 +54,28 @@ void TCUSE::Init()
     // this OSE needs destiny.
     m_destiny = new DestinyManager(this);
 
-    // if TCU anchored, tell planet this is the TCU
-    if (m_data.state > EVEPOS::StructureStatus::Unanchored)
-        m_planetSE->SetTCU(this);
-
-    // set TCU in bubble
+    // set IHub in bubble
     if (m_bubble == nullptr)
         assert(0);
-    m_bubble->SetTCUSE(this);
+    m_bubble->SetIHubSE(this);
 
 }
 
-void TCUSE::InitData() {
+void IHubSE::InitData() {
     // init base data first
     StructureSE::InitData();
 
-    m_db.SaveTCUData(m_tdata, m_data);
+    m_db.SaveIHubData(m_tdata, m_data);
 }
 
-void TCUSE::Scoop() {
+void IHubSE::Scoop() {
     StructureSE::Scoop();
-    m_planetSE->SetTCU(nullptr);
+    m_planetSE->SetIHub(nullptr);
     m_self->ChangeSingleton(false);
     m_self->SaveItem();
 }
 
-void TCUSE::Process()
+void IHubSE::Process()
 {
     StructureSE::Process();
 }
@@ -94,7 +90,7 @@ void TCUSE::Process()
  * 1214    posStructureControlDistanceMax  NULL    15000
  */
 
-void TCUSE::SetOnline()
+void IHubSE::SetOnline()
 {
     //StructureSE::SetOnline();
 
@@ -109,31 +105,30 @@ void TCUSE::SetOnline()
 
 }
 
-void TCUSE::SetOffline()
+void IHubSE::SetOffline()
 {
     StructureSE::SetOffline();
 }
 
-
-void TCUSE::Online()
+void IHubSE::Online()
 {
     StructureSE::Online();
 }
 
-void TCUSE::Operating()
+void IHubSE::Operating()
 {
     StructureSE::SetOperating();
 }
 
-void TCUSE::Reinforced()
+void IHubSE::Reinforced()
 {
-    
+    // something to do with IHubs should go here maybe?
 }
 
-PyDict* TCUSE::MakeSlimItem()
+PyDict* IHubSE::MakeSlimItem()
 {
-    _log(SE__SLIMITEM, "MakeSlimItem for TCUSE %u", m_self->itemID());
-    _log(POS__SLIMITEM, "MakeSlimItem for TCUSE %u", m_self->itemID());
+    _log(SE__SLIMITEM, "MakeSlimItem for IHubSE %u", m_self->itemID());
+    _log(POS__SLIMITEM, "MakeSlimItem for IHubSE %u", m_self->itemID());
 
     PyDict *slim = new PyDict();
     slim->SetItemString("name",                     new PyString(m_self->itemName()));
@@ -149,7 +144,7 @@ PyDict* TCUSE::MakeSlimItem()
     slim->SetItemString("posDelayTime",             new PyInt(m_delayTime));
 
     if (is_log_enabled(POS__SLIMITEM)) {
-        _log( POS__SLIMITEM, "TCUSE::MakeSlimItem() - %s(%u)", GetName(), GetID());
+        _log( POS__SLIMITEM, "IHubSE::MakeSlimItem() - %s(%u)", GetName(), GetID());
         slim->Dump(POS__SLIMITEM, "     ");
     }
     return slim;

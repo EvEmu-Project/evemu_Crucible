@@ -1,29 +1,29 @@
 /**
- * @name TCU.h
- *   Class for Territorial Claim Units.
+ * @name IHub.h
+ *   Class for Infrastructure Hubs.
  *
  * @Author:         James
  * @date:   8 April 2021
  */
 
 
-#ifndef EVEMU_POS_TCU_H_
-#define EVEMU_POS_TCU_H_
+#ifndef EVEMU_POS_IHub_H_
+#define EVEMU_POS_IHub_H_
 
 #include "pos/Structure.h"
 
-class TCUSE
+class IHubSE
 : public StructureSE
 {
 public:
-    TCUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData);
-    virtual ~TCUSE();
+    IHubSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData);
+    virtual ~IHubSE();
 
     /* class type pointer querys. */
-    virtual TCUSE*              GetTCUSE()            { return this; }
+    virtual IHubSE*              GetIHubSE()            { return this; }
 
     /* class type tests. */
-    virtual bool                IsTCUSE()             { return true; }
+    virtual bool                IsIHubSE()             { return true; }
 
     /* SystemEntity interface */
     virtual void                Process();
@@ -33,7 +33,7 @@ public:
     virtual void                Init();
     virtual void                InitData();
 
-    /* basic TCU methods */
+    /* basic IHub methods */
     virtual void                SetOnline();
     virtual void                SetOffline();
 
@@ -43,7 +43,7 @@ public:
 
     virtual void                Scoop();
 
-    void                        ReinforceTCU();
+    void                        ReinforceIHub();
 
     void UpdatePassword();
     void SetUseFlags(uint32 itemID, int8 view=0, int8 take=0, int8 use=0);
@@ -51,6 +51,7 @@ public:
     uint16 GetSOI()                                     { return m_soi; }
 
 protected:
+
     SystemEntity* m_pShieldSE;
 
 private:
@@ -60,4 +61,4 @@ private:
 
 };
 
-#endif  // EVEMU_POS_TCU_H_
+#endif  // EVEMU_POS_IHub_H_

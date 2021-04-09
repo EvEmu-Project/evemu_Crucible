@@ -663,12 +663,11 @@ PyResult PosMgrBound::Handle_AnchorStructure(PyCallArgs &call) {
     GPoint pos(args.posX, args.posY, args.posZ);
     pTSE->SetAnchor(call.client, pos);
 
-    // auto warp to new POS position?  config option?
+    // auto warp to new POS/TCU position?  config option?
     if (pTSE->IsTowerSE()) {
         uint32 dist = pTSE->GetSelf()->radius() + call.client->GetShip()->radius();
         call.client->GetShipSE()->DestinyMgr()->WarpTo(pos, dist);
     }
-
     // returns nodeID and timestamp
     PyTuple* tuple = new PyTuple(2);
     tuple->SetItem(0, new PyString(GetBindStr()));    // node info here

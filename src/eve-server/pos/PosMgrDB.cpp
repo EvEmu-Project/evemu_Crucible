@@ -89,7 +89,7 @@ bool PosMgrDB::GetBaseData(EVEPOS::StructureData& data)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-            "SELECT towerID, moonID, state, status, timestamp, canUse, canView, canTake FROM posStructureData"
+            "SELECT towerID, anchorpointID, state, status, timestamp, canUse, canView, canTake FROM posStructureData"
             " WHERE itemID = %u", data.itemID))
     {
         codelog(DATABASE__ERROR, "Error in GetBaseData query: %s", res.error.c_str());
@@ -100,7 +100,7 @@ bool PosMgrDB::GetBaseData(EVEPOS::StructureData& data)
     if (!res.GetRow(row))
         return false;
     data.towerID = row.GetInt(0);
-    data.moonID = row.GetInt(1);
+    data.anchorpointID = row.GetInt(1);
     data.state = row.GetInt(2);
     data.status = row.GetInt(3);
     data.timestamp = row.GetInt64(4);
@@ -115,9 +115,9 @@ void PosMgrDB::SaveBaseData(EVEPOS::StructureData& data)
     DBerror err;
     sDatabase.RunQuery(err,
         "INSERT INTO posStructureData "
-        "(itemID, towerID, moonID, state, status, timestamp, canUse, canView, canTake)"
+        "(itemID, towerID, anchorpointID, state, status, timestamp, canUse, canView, canTake)"
         " VALUES ( %i, %i, %i, %i, %i, %li, %i, %i, %i)",
-        data.itemID, data.towerID, data.moonID, data.state, data.status, data.timestamp, data.use, data.view, data.take);
+        data.itemID, data.towerID, data.anchorpointID, data.state, data.status, data.timestamp, data.use, data.view, data.take);
 }
 
 void PosMgrDB::UpdateBaseData(EVEPOS::StructureData& data)
@@ -176,48 +176,6 @@ void PosMgrDB::SaveTowerData(EVEPOS::TowerData& tData, EVEPOS::StructureData& sD
         " VALUES ( %i, %i, %f, %i, %f, %u, %u, %u, %u, %u, %u, %u, %i, %i, %i,%i)",
         sData.itemID, tData.harmonic, tData.standing, tData.standingOwnerID, tData.status, tData.statusDrop, tData.corpWar, tData.allyStandings,
         tData.showInCalendar, tData.sendFuelNotifications, tData.allowCorp, tData.allowAlliance,
-        tData.anchor, tData.unanchor, tData.online, tData.offline);
-}
-
-bool PosMgrDB::GetTCUData(EVEPOS::TCUData& tData, EVEPOS::StructureData& sData)
-{
-    DBQueryResult res;
-    if (!sDatabase.RunQuery(res,
-            "SELECT"
-            " itemID, status, corpID, allyID, "
-            " anchor, unanchor, online, offline"
-            " FROM posTCUData"
-            " WHERE itemID = %i", sData.itemID))
-    {
-        codelog(DATABASE__ERROR, "Error in GetTowerData query: %s", res.error.c_str());
-        return false;
-    }
-
-    DBResultRow row;
-    if (!res.GetRow(row)) {
-        tData = EVEPOS::TCUData();
-        return false;
-    }
-
-    tData.status = row.GetFloat(1);
-    tData.corpID = row.GetInt(2);
-    tData.allyID = row.GetInt(3);
-    tData.anchor = row.GetInt(4);
-    tData.unanchor = row.GetInt(5);
-    tData.online = row.GetInt(6);
-    tData.offline = row.GetInt(7);
-    return true;
-}
-
-void PosMgrDB::SaveTCUData(EVEPOS::TCUData& tData, EVEPOS::StructureData& sData)
-{
-    DBerror err;
-    sDatabase.RunQuery(err,
-        "INSERT INTO posTCUData"
-        " (itemID, status, corpID, allyID, "
-        " anchor, unanchor, online, offline)"
-        " VALUES ( %i, %f, %i, %i, %i, %i, %i, %i )",
-        sData.itemID, tData.status, tData.corpID, tData.allyID,
         tData.anchor, tData.unanchor, tData.online, tData.offline);
 }
 
@@ -471,15 +429,6 @@ void PosMgrDB::UpdateDeployFlags(int32 itemID, EVEPOS::TowerData& data)
     DBerror err;
     sDatabase.RunQuery(err,
         "UPDATE posTowerData"
-        " SET anchor=%f, unanchor=%i, online=%i, offline=%i WHERE itemID = %u",
-        data.anchor, data.unanchor, data.online, data.offline, itemID);
-}
-
-void PosMgrDB::UpdateTCUDeployFlags(int32 itemID, EVEPOS::TCUData& data)
-{
-    DBerror err;
-    sDatabase.RunQuery(err,
-        "UPDATE posTCUData"
         " SET anchor=%f, unanchor=%i, online=%i, offline=%i WHERE itemID = %u",
         data.anchor, data.unanchor, data.online, data.offline, itemID);
 }

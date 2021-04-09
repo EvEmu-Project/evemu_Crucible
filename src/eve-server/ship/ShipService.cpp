@@ -539,9 +539,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
             case EVEDB::invCategories::SovereigntyStructure: {
                 //Code for spawning sovreignty structures
 
-                // TODO: make sure no more than one TCU is deployed in the system
-
-                pClient->SendNotifyMsg("This is experimental...");
+                // TODO: make sure no more than one TCU or IHub is deployed in the system
 
                 DBSystemDynamicEntity entity = DBSystemDynamicEntity();
                 entity.ownerID = ownerID;

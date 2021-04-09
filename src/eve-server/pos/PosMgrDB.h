@@ -39,9 +39,6 @@ public:
     bool GetTowerData(EVEPOS::TowerData& tData, EVEPOS::StructureData& sData);
     void SaveTowerData(EVEPOS::TowerData& tData, EVEPOS::StructureData& sData);
 
-    bool GetTCUData(EVEPOS::TCUData& tData, EVEPOS::StructureData& sData);
-    void SaveTCUData(EVEPOS::TCUData& tData, EVEPOS::StructureData& sData);
-
     bool GetBridgeData(EVEPOS::JumpBridgeData& data);
     void SaveBridgeData(EVEPOS::JumpBridgeData& data);
     void UpdateBridgeData(EVEPOS::JumpBridgeData& data);
@@ -62,7 +59,6 @@ public:
     void UpdatePermission(int32 itemID, EVEPOS::TowerData& data);
     void UpdateUsageFlags(int32 itemID, EVEPOS::StructureData& data);
     void UpdateDeployFlags(int32 itemID, EVEPOS::TowerData& data);
-    void UpdateTCUDeployFlags(int32 itemID, EVEPOS::TCUData& data);
     void UpdateHarmonicAndPassword(int32 itemID, EVEPOS::TowerData& data);
 
 };

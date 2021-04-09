@@ -432,7 +432,8 @@ SET( pos_INCLUDE
      "${TARGET_INCLUDE_DIR}/pos/Structure.h"
      "${TARGET_INCLUDE_DIR}/pos/Tower.h"
      "${TARGET_INCLUDE_DIR}/pos/Weapon.h" 
-     "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.h" )
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.h" 
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/SBU.h" )
 SET( pos_SOURCE
      "${TARGET_SOURCE_DIR}/pos/Array.cpp"
      "${TARGET_SOURCE_DIR}/pos/Battery.cpp"
@@ -443,7 +444,8 @@ SET( pos_SOURCE
      "${TARGET_SOURCE_DIR}/pos/Structure.cpp"
      "${TARGET_SOURCE_DIR}/pos/Tower.cpp"
      "${TARGET_SOURCE_DIR}/pos/Weapon.cpp"
-     "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.cpp" )
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.cpp"
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/SBU.cpp" )
 
 SET( qaTools_INCLUDE
      "${TARGET_INCLUDE_DIR}/qaTools/encounterSpawnServer.h"
