@@ -33,7 +33,7 @@ namespace EVEPOS {
         int8 status;        /* used to hold POS StructureStatus (online, reinforced, operating, etc) */
         int32 itemID;
         int32 towerID;
-        int32 anchorPointID;       /* used to hold PlanetID for structures which are anchored near moons/planets/stargates */
+        int32 anchorpointID;       /* used to hold PlanetID for structures which are anchored near moons/planets/stargates */
         int64 timestamp;
     };
     struct TowerData {

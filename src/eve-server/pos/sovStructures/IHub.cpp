@@ -45,7 +45,7 @@ void IHubSE::Init()
 {
     StructureSE::Init();
 
-    if (!m_db.GetIHubData(m_tdata, m_data)) {
+    if (!m_db.GetBaseData(m_data)) {
         _log(SE__TRACE, "IHubSE %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_self->itemID());
         // invalid data....init to 0 as this will only hit for currently-launching items (or errors)
         InitData();
@@ -65,12 +65,11 @@ void IHubSE::InitData() {
     // init base data first
     StructureSE::InitData();
 
-    m_db.SaveIHubData(m_tdata, m_data);
+    m_db.SaveBaseData(m_data);
 }
 
 void IHubSE::Scoop() {
     StructureSE::Scoop();
-    m_planetSE->SetIHub(nullptr);
     m_self->ChangeSingleton(false);
     m_self->SaveItem();
 }

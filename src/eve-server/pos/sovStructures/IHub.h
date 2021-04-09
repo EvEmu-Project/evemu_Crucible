@@ -20,7 +20,7 @@ public:
     virtual ~IHubSE();
 
     /* class type pointer querys. */
-    virtual IHubSE*              GetIHubSE()            { return this; }
+    virtual IHubSE*             GetIHubSE()            { return this; }
 
     /* class type tests. */
     virtual bool                IsIHubSE()             { return true; }

@@ -474,11 +474,14 @@ void SystemBubble::PrintEntityList() {
         if (cur.second->IsTCUSE()) {
             sLog.Warning( "SystemBubble::PrintEntityList()", "entity %s(%u) is TCU.", cur.second->GetName(), cur.second->GetID() ); found = true;
         }
-        if (cur.second->IsCOSE()) {
-            sLog.Warning( "SystemBubble::PrintEntityList()", "entity %s(%u) is Customs Office.", cur.second->GetName(), cur.second->GetID() ); found = true;
-        }
         if (cur.second->IsSBUSE()) {
             sLog.Warning( "SystemBubble::PrintEntityList()", "entity %s(%u) is SBU.", cur.second->GetName(), cur.second->GetID() ); found = true;
+        }
+        if (cur.second->IsIHubSE()) {
+            sLog.Warning( "SystemBubble::PrintEntityList()", "entity %s(%u) is IHub.", cur.second->GetName(), cur.second->GetID() ); found = true;
+        }
+        if (cur.second->IsCOSE()) {
+            sLog.Warning( "SystemBubble::PrintEntityList()", "entity %s(%u) is Customs Office.", cur.second->GetName(), cur.second->GetID() ); found = true;
         }
         if (cur.second->IsTowerSE()) {
             sLog.Warning( "SystemBubble::PrintEntityList()", "entity %s(%u) is Tower.", cur.second->GetName(), cur.second->GetID() ); found = true;
