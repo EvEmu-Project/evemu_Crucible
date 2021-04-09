@@ -18,7 +18,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:     Zhur
     Rewrite:    Allan
     Updates:    James
 */
@@ -385,7 +385,7 @@ bool SystemManager::LoadSystemStatics() {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialObject(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
                 StargateSE *pSSE = new StargateSE(itemRef, *(GetServiceMgr()), this);
-                m_gateMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pMSE));
+                m_gateMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pSSE));
                 ++m_gateCount;
                 pSE = pSSE;
             } break;

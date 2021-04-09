@@ -481,10 +481,8 @@ void StructureSE::Process()
             m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.AnchorDrop", 0, 0, 0, -1, 0);
             if (m_tower)
                 m_moonSE->SetTower(this);
-            if (m_tcu)
-                m_planetSE->SetTCU(this);
-            if (m_ihub)
-                m_planetSE->SetIHub(this);
+            //if (m_sbu)
+            //    m_gateSE->SetSBU(this);
 
             m_db.UpdateBaseData(m_data);
         }

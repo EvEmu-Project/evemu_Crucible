@@ -127,7 +127,7 @@ public:
     virtual CustomsSE*          GetCOSE()               { return nullptr; }
     virtual TCUSE*              GetTCUSE()              { return nullptr; }
     virtual SBUSE*              GetSBUSE()              { return nullptr; }
-    virtual IHubSE*             GetIHubSE()              { return nullptr; }
+    virtual IHubSE*             GetIHubSE()             { return nullptr; }
     /* Dynamic */
     virtual DynamicSystemEntity* GetDynamicSE()         { return nullptr; }
     virtual NPC*                GetNPCSE()              { return nullptr; }
@@ -163,6 +163,7 @@ public:
     virtual bool                IsCOSE()                { return false; }
     virtual bool                IsTCUSE()               { return false; }
     virtual bool                IsSBUSE()               { return false; }
+    virtual bool                IsIHubSE()              { return false; }
     virtual bool                IsTowerSE()             { return false; }
     virtual bool                IsArraySE()             { return false; }
     virtual bool                IsJammerSE()            { return false; }

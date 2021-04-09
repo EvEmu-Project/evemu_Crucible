@@ -45,7 +45,7 @@ void TCUSE::Init()
 {
     StructureSE::Init();
 
-    if (!m_db.GetTCUData(m_tdata, m_data)) {
+    if (!m_db.GetBaseData(m_data)) {
         _log(SE__TRACE, "TCUSE %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_self->itemID());
         // invalid data....init to 0 as this will only hit for currently-launching items (or errors)
         InitData();
@@ -53,10 +53,6 @@ void TCUSE::Init()
 
     // this OSE needs destiny.
     m_destiny = new DestinyManager(this);
-
-    // if TCU anchored, tell planet this is the TCU
-    if (m_data.state > EVEPOS::StructureStatus::Unanchored)
-        m_planetSE->SetTCU(this);
 
     // set TCU in bubble
     if (m_bubble == nullptr)
@@ -69,12 +65,11 @@ void TCUSE::InitData() {
     // init base data first
     StructureSE::InitData();
 
-    m_db.SaveTCUData(m_tdata, m_data);
+    m_db.SaveBaseData(m_data);
 }
 
 void TCUSE::Scoop() {
     StructureSE::Scoop();
-    m_planetSE->SetTCU(nullptr);
     m_self->ChangeSingleton(false);
     m_self->SaveItem();
 }
