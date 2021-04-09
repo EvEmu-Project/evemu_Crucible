@@ -10,6 +10,19 @@ To install the SQL tables, edit install.sh for pertinent information and run.
 
 To dump existing database, edit dump.sh and run.
 
+## Adding new schema changes
+
+All schema changes MUST be made using migrations. This will avoid breaking the DB.
+
+To make these changes, use sql-migrate. To install sql-migrate, you must have golang installed and run the following command:
+```
+go get -v github.com/rubenv/sql-migrate/...
+```
+
+Once installed, use `sql-migrate new <name of migration>` to create a new migration file.
+
+When editing the migration file, ensure that the sql queries for up and down are both created so the schema change is reversable. Please see existing examples of how this is done in the `migrations` directory.
+
 ## new directory structure
 sql/
     contains this README and the new db scripts
@@ -17,7 +30,8 @@ sql/
 sql/seed_and_clean/
     contains market seeding sql scripts and scripts to clean the db
 
-sql/tables/
-    contains all db tables for the server emulator for EVEmu
+sql/base/
+    contains all the base db tables for the server emulator for EVEmu stored in GZipped format. These should NEVER be updated/modified.
 
-
+sql/migrations/
+    contains versioned migrations scripts in plaintext (for easier versioning). We will apply them in order.

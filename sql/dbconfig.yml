@@ -1,0 +1,5 @@
+development:
+    dialect: mysql
+    datasource: evemu:evemu@tcp(127.0.0.1:3306)/evemu?parseTime=true
+    dir: migrations
+    table: migrations
