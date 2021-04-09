@@ -61,14 +61,14 @@ if ! command -v sql-migrate &>/dev/null; then
 fi
 
 # Write the dbconfig.yml file based upon above variables
-cat >dbconfig.yml <<EOF
+cat >/src/dbconfig.yml <<EOF
 development:
     dialect: mysql
     datasource: $MARIADB_USER:$MARIADB_PASS@tcp($MARIADB_HOST:3306)/$MARIADB_DATABASE?parseTime=true
-    dir: migrations
+    dir: /src/sql/migrations
     table: migrations
 EOF
 
 # Migrate the DB to the latest version
 echo "Migrating database to latest version..."
-sql-migrate up
+sql-migrate -config=/src/dbconfig.yml up
