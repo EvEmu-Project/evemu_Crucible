@@ -5,7 +5,7 @@ port="3306"     #Database Port
 user="evemu"     #Database Username
 pass="evemu"     #Database Password
 
-database="evemutest"   #Database name
+database="evemu"   #Database name
 
 # Print usage
 if [[ $# -eq 0 ]] ; then
