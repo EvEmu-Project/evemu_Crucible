@@ -14,12 +14,10 @@ To dump existing database, edit dump.sh and run.
 
 All schema changes MUST be made using migrations. This will avoid breaking the DB.
 
-To make these changes, use sql-migrate. To install sql-migrate, you must have golang installed and run the following command:
+To create a new migration file:
 ```
-go get -v github.com/rubenv/sql-migrate/...
+./create-migration.sh <name of migration>
 ```
-
-Once installed, use `sql-migrate new <name of migration>` to create a new migration file.
 
 When editing the migration file, ensure that the sql queries for up and down are both created so the schema change is reversable. Please see existing examples of how this is done in the `migrations` directory.
 
