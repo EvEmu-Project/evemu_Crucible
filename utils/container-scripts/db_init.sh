@@ -64,11 +64,11 @@ fi
 cat >/src/dbconfig.yml <<EOF
 development:
     dialect: mysql
-    datasource: $MARIADB_USER:$MARIADB_PASS@tcp($MARIADB_HOST:3306)/$MARIADB_DATABASE?parseTime=true
+    datasource: $MARIADB_USER:$MARIADB_PASSWORD@tcp($MARIADB_HOST:3306)/$MARIADB_DATABASE?parseTime=true
     dir: /src/sql/migrations
     table: migrations
 EOF
 
 # Migrate the DB to the latest version
 echo "Migrating database to latest version..."
-sql-migrate -config=/src/dbconfig.yml up
+sql-migrate up -config=/src/dbconfig.yml
