@@ -633,13 +633,13 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Sovereignty_Blockade_Units: {
                     SBUSE* sSE = new SBUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making SBUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
-                    return nullptr;
+                    sSSE = sSE;
                 } break;
 
                 case EVEDB::invGroups::Infrastructure_Hubs: {
                     IHubSE* sSE = new IHubSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making IHubSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
-                    return nullptr;
+                    sSSE = sSE;
                 } break;
 
                 default: { //Should never be called, therefore print an error log

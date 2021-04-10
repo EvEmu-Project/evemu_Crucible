@@ -65,7 +65,6 @@ void IHubSE::InitData() {
     // init base data first
     StructureSE::InitData();
 
-    m_db.SaveBaseData(m_data);
 }
 
 void IHubSE::Scoop() {

@@ -30,8 +30,7 @@
 #include "system/SystemManager.h"
 
 TCUSE::TCUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
-: StructureSE(structure, services, system, fData),
-m_pShieldSE(nullptr)
+: StructureSE(structure, services, system, fData)
 {
     m_structs.clear();
 }
@@ -43,6 +42,7 @@ TCUSE::~TCUSE()
 
 void TCUSE::Init()
 {
+    _log(SE__TRACE, "TCUSE %s(%u) is being initialised", m_self->name(), m_self->itemID());
     StructureSE::Init();
 
     if (!m_db.GetBaseData(m_data)) {
@@ -65,7 +65,6 @@ void TCUSE::InitData() {
     // init base data first
     StructureSE::InitData();
 
-    m_db.SaveBaseData(m_data);
 }
 
 void TCUSE::Scoop() {

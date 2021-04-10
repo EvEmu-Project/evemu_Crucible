@@ -51,7 +51,7 @@ public:
     uint16 GetSOI()                                     { return m_soi; }
 
 protected:
-    SystemEntity* m_pShieldSE;
+    //SystemEntity* m_pShieldSE;
 
 private:
     uint16 m_soi;   // Sphere Of Influence, 45km max

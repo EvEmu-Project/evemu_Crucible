@@ -65,7 +65,6 @@ void SBUSE::InitData() {
     // init base data first
     StructureSE::InitData();
 
-    m_db.SaveBaseData(m_data);
 }
 
 void SBUSE::Scoop() {

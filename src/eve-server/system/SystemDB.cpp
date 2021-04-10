@@ -208,7 +208,7 @@ bool SystemDB::LoadPlayerDynamicEntities(uint32 systemID, std::vector<DBSystemDy
         Charge /*8*/,   // this is for probes and spheres launched from ship (abandonded)
         Deployable/*22*/,           // include deployed items owned by players or corps
         Drone/*18*/, Entity/*11*/,  // Entity also contains NPCs, sentrys, LCOs, and other destructible objects
-        /*Structure*/23, StructureUpgrade/*39*/, SovereigntyStructure/*40*/)) {
+        /*Structure*/23, StructureUpgrade/*39*//*, SovereigntyStructure*//*40*/)) { //Sov strcutures are already loaded from static entities, no reason to load them twice
             codelog(DATABASE__ERROR, "Error in LoadPlayerDynamicEntities query: %s", res.error.c_str());
             return false;
     }
