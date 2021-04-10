@@ -628,9 +628,11 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             _log(POS__TRACE, "StructureSE::Anchor() - TowerSE %s(%u) new position %.2f, %.2f, %.2f at %s",
                  GetName(), m_data.itemID, pos.x, pos.y, pos.z, m_moonSE->GetName());
     }
-    else if (IsTCUSE())
+    else if (IsTCUSE() || IsIHubSE())
     {
         //TCUs are anchored anywhere
+        m_destiny->SetPosition(pos);
+        sBubbleMgr.Add(this);
     }
     else if (IsSBUSE())
     {
@@ -646,12 +648,8 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
         sBubbleMgr.Add(this);
 
         if (is_log_enabled(POS__TRACE))
-            _log(POS__TRACE, "StructureSE::Anchor() - TowerSE %s(%u) new position %.2f, %.2f, %.2f at %s",
+            _log(POS__TRACE, "StructureSE::Anchor() - SBUSE %s(%u) new position %.2f, %.2f, %.2f at %s",
                  GetName(), m_data.itemID, pos.x, pos.y, pos.z, m_gateSE->GetName());
-    }
-    else if (IsIHubSE())
-    {
-        //IHubs are anchored anywhere
     }
     else
     {
