@@ -377,7 +377,7 @@ PyResult Command_shipvars(Client* pClient, CommandDB* db, PyServiceMgr* services
                 pClient->GetShipSE()->GetName(), pClient->GetShipID(), dm->GetMass(), dm->GetAlignTime(),
              dm->GetAccelTime(), dm->GetMaxVelocity(), (float)(dm->GetWarpSpeed() /10), dm->GetWarpTime(),
              dm->GetWarpDropSpeed(), dm->GetRadius(), dm->GetCapNeed(), dm->GetAgility(), dm->GetInertia(),
-             heading.x, heading.y, heading.z 
+             heading.x, heading.y, heading.z
             );
 
     pClient->SendInfoModalMsg(reply);
@@ -652,9 +652,9 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* servi
              pClient->GetCharacterID(), pClient->GetName(), pClient->GetShipID(), pClient->GetCloneStationID(), pClient->GetClientID(), pClient->GetUserID(),
              pClient->GetSession()->GetSessionID(), pClient->GetLocationID(), pClient->GetStationID(), pClient->GetStationID2(), pClient->GetSystemID(), pClient->GetConstellationID(),
              pClient->GetRegionID(), pClient->GetCorporationID(), pClient->GetCorpHQ(), pClient->GetCorpAccountKey(), pClient->GetCorpRole(), pClient->GetRolesAtAll(),
-             pClient->GetRolesAtBase(), pClient->GetRolesAtHQ(), pClient->GetRolesAtOther(), pClient->GetChar()->fleetID(), pClient->GetChar()->wingID());
-             //pClient->GetChar()->squadID(), sFltSvc.GetJobName(pClient->GetChar()->fleetJob()).c_str(), sFltSvc.GetRoleName(pClient->GetChar()->fleetRole()).c_str(),
-             //sFltSvc.GetBoosterName(pClient->GetChar()->fleetBooster()).c_str(),pClient->GetChar()->fleetJoinTime());
+             pClient->GetRolesAtBase(), pClient->GetRolesAtHQ(), pClient->GetRolesAtOther(), pClient->GetChar()->fleetID(), pClient->GetChar()->wingID(),
+             pClient->GetChar()->squadID(), sFltSvc.GetJobName(pClient->GetChar()->fleetJob()).c_str(), sFltSvc.GetRoleName(pClient->GetChar()->fleetRole()).c_str(),
+             sFltSvc.GetBoosterName(pClient->GetChar()->fleetBooster()).c_str(),pClient->GetChar()->fleetJoinTime());
 
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);
