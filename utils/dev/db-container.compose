@@ -1,0 +1,19 @@
+# 
+# A simple non-persistent db container.
+# This is useful for testing things like db migrations without having to fire up a database server every time.
+#
+version: "2.1"
+services:
+  mariadb:
+    image: "quay.io/bitnami/mariadb:10.4"
+    container_name: mariadb
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=evemu
+      - MARIADB_PASSWORD=evemu
+      - MARIADB_DATABASE=evemu
+    ports:
+      - 3306:3306
+    restart: unless-stopped
