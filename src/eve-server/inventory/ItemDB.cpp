@@ -285,7 +285,8 @@ void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
         }
         Inserts << "(" << cur.itemID << ", " << cur.typeID << ", " << cur.ownerID << ", " << cur.locationID << ", ";
         Inserts << cur.flag << ", " << cur.contraband << ", " << (cur.singleton ? 1 : 0) << ", ";
-        Inserts << cur.quantity << ", " << cur.position.x << ", " << cur.position.y << ", " << cur.position.z << ", '" << cur.customInfo << "')";
+        Inserts << cur.quantity << ", " << std::to_string(cur.position.x) << ", " << std::to_string(cur.position.y) << ", " << std::to_string(cur.position.z);
+        Inserts << ", '" << cur.customInfo << "')";
     }
 
     if (!first) {
