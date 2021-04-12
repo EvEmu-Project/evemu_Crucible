@@ -2,11 +2,6 @@
  -- use this to spawn items in market for single station
  -- pick station data from seed_data.sql
 
-set @stationid=60014137;     --Ibaria III - Thukker Mix Warehouse(60014137)
-set @solarSystemID=30000053; --Ibaria
-set @regionid=10000001;      --Derelik
-
-
 create temporary table if not exists tStations (stationId int, solarSystemID int, regionID int);
 truncate table tStations;
 insert into tStations values (60014137, 30000053, 10000001);
