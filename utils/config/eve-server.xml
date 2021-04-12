@@ -143,9 +143,9 @@ boolean can use either 0/1 OR true/false.
     <character>
         <startBalance>600000000.0</startBalance>
         <startAurBalance>600.0</startAurBalance>
-        <startStation>60014137</startStation>
+        <startStation>0</startStation><!-- stationID of character starting station.  '0' to use default based on race -->
         <startSecRating>1.0</startSecRating>
-        <startCorporation>0</startCorporation>
+        <startCorporation>0</startCorporation><!-- corporationID for new characters '0' to use default based on school -->
         <terminationDelay>1800</terminationDelay> <!-- seconds  30m default -->
         <statMultiplier>3</statMultiplier><!-- stats are multiplied by this (after remap) -->
         <allow3edChar>false</allow3edChar><!-- (dis)allow creating a third character -->
