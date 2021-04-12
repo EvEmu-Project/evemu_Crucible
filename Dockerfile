@@ -44,6 +44,8 @@ RUN chown -R EVEmu:EVEmu /app && chown -R EVEmu:EVEmu /src
 # Switch to 'appuser'
 USER EVEmu
 
+RUN cd /src/sql && ./get_evedbtool.sh
+
 # Expose the port the server is on.
 EXPOSE 26000
 EXPOSE 26001
