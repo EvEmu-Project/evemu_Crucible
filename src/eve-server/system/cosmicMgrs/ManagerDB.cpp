@@ -579,7 +579,8 @@ void ManagerDB::SaveSystemRoids(uint32 systemID, std::vector< AsteroidData >& ro
         }
         // itemID and attributeID keys.
         Inserts << "(" << cur.itemID << ", '" << cur.itemName << "', " << cur.typeID << ", " << systemID << ", " << cur.beltID << ", ";
-        Inserts << cur.quantity << ", " << cur.radius << ", " << cur.position.x << ", " << cur.position.y << ", " << cur.position.z << ")";
+        Inserts << cur.quantity << ", " << cur.radius << ", " << std::to_string(cur.position.x) << ", " << std::to_string(cur.position.y);
+        Inserts << ", " << std::to_string(cur.position.z) << ")";
     }
     // did we get at least 1 insert?
     if (!first) {
