@@ -595,10 +595,14 @@ SET( system_SOURCE
      "${TARGET_SOURCE_DIR}/system/WormholeSvc.cpp")
 
 SET( system_sov_INCLUDE
-     "${TARGET_INCLUDE_DIR}/system/sov/SovereigntyMgrService.h")
+     "${TARGET_INCLUDE_DIR}/system/sov/SovereigntyMgrService.h"
+     "${TARGET_INCLUDE_DIR}/system/sov/SovereigntyDB.h" 
+     "${TARGET_INCLUDE_DIR}/system/sov/SovereigntyDataMgr.h")
 
 SET( system_sov_SOURCE
-     "${TARGET_INCLUDE_DIR}/system/sov/SovereigntyMgrService.cpp")
+     "${TARGET_SOURCE_DIR}/system/sov/SovereigntyMgrService.cpp"
+     "${TARGET_SOURCE_DIR}/system/sov/SovereigntyDB.cpp" 
+     "${TARGET_SOURCE_DIR}/system/sov/SovereigntyDataMgr.cpp")
 
 SET( system_managers_INCLUDE
      "${TARGET_INCLUDE_DIR}/system/cosmicMgrs/AnomalyMgr.h"

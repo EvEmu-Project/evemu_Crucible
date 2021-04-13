@@ -31,6 +31,9 @@
 #include "station/StationDataMgr.h"
 #include "station/StationSvc.h"
 
+#include "system/sov/SovereigntyDB.h"
+#include "Client.h"
+
 
 PyCallable_Make_InnerDispatcher(StationSvc)
 
@@ -83,10 +86,12 @@ PyResult StationSvc::Handle_GetStation(PyCallArgs &call) {
     return stDataMgr.GetStationPyData(arg.arg);
 }
 
+//This is called when opening up the sov dashboard
 PyResult StationSvc::Handle_GetAllianceSystems(PyCallArgs &call) {
   sLog.White( "StationSvc::Handle_GetAllianceSystems()", "size= %u", call.tuple->size() );
     call.Dump(SERVICE__CALL_DUMP);
-    return nullptr;
+
+    return SovereigntyDB::GetAllianceSystems();
 }
 
 //This call is made by client when player opens 'Settled Systems' dropdown in alliance details ui

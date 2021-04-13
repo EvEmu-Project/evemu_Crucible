@@ -28,7 +28,7 @@
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
-#include "standing/StandingDB.h"
+#include "system/sov/SovereigntyDB.h"
 #include "system/sov/SovereigntyMgrService.h"
 
 PyCallable_Make_InnerDispatcher(SovereigntyMgrService)
@@ -54,5 +54,5 @@ PyResult SovereigntyMgrService::Handle_GetSystemSovereigntyInfo(PyCallArgs &call
         return nullptr;
     }
 
-    return StandingDB::GetSystemSovInfo(args.arg);
+    return SovereigntyDB::GetSystemSovInfo(args.arg);
 }

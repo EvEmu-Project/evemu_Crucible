@@ -311,6 +311,21 @@ struct StaticData {
     GPoint position;
 };
 
+/* POD structure for sovereignty */
+struct SovereigntyData {
+    uint32 solarSystemID;
+    uint32 constellationID;
+    uint32 corporationID;
+    uint32 allianceID;
+    uint32 claimStructureID;
+    int64 claimTime;
+    uint32 hubID;
+    bool contested;
+    uint32 stationCount;
+    uint32 militaryPoints;
+    uint32 industrialPoints;
+}
+
 /* POD structure for stations. */
 struct StationData {
     bool conquerable :1;
