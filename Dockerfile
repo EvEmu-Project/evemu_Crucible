@@ -35,14 +35,6 @@ COPY --from=app-build /src/utils/ /src/utils
 ADD /sql/ /src/sql
 # copy our compiled code to this image
 COPY --from=app-build /app/ /app
-# Create a user group 'EVEmu'
-RUN groupadd EVEmu
-# Create a user 'EVEmu' in group 'EVEmu'
-RUN adduser -b /app -g EVEmu EVEmu
-# Chown all the needed files to the EVEmu user.
-RUN chown -R EVEmu:EVEmu /app && chown -R EVEmu:EVEmu /src
-# Switch to 'appuser'
-USER EVEmu
 
 RUN cd /src/sql && ./get_evedbtool.sh
 
