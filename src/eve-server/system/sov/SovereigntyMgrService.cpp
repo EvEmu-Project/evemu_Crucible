@@ -28,6 +28,7 @@
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
+#include "system/sov/SovereigntyDataMgr.h"
 #include "system/sov/SovereigntyDB.h"
 #include "system/sov/SovereigntyMgrService.h"
 
@@ -54,5 +55,5 @@ PyResult SovereigntyMgrService::Handle_GetSystemSovereigntyInfo(PyCallArgs &call
         return nullptr;
     }
 
-    return SovereigntyDB::GetSystemSovInfo(args.arg);
+    return svDataMgr.GetSystemSovereignty(args.arg);
 }

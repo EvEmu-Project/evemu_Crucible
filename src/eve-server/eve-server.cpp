@@ -172,6 +172,7 @@
 #include "system/KeeperService.h"
 #include "system/ScenarioService.h"
 #include "system/sov/SovereigntyMgrService.h"
+#include "system/sov/SovereigntyDataMgr.h"
 #include "system/WormholeSvc.h"
 // cosmic managers
 #include "system/cosmicMgrs/AnomalyMgr.h"
@@ -810,6 +811,8 @@ int main( int argc, char* argv[] )
     sPIDataMgr.Initialize();
     std::printf("\n");     // spacer
     stDataMgr.Initialize();
+    std::printf("\n");     // spacer
+    svDataMgr.Initialize();
     std::printf("\n");     // spacer
 
     // clear dynamic system data (player counts, etc) on server start

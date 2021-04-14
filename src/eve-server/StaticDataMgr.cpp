@@ -254,6 +254,7 @@ void StaticDataMgr::Populate()
         sysData.regionID          = row.GetInt(3);
         sysData.securityClass     = (row.IsNull(4) ? "0" : row.GetText(4));
         sysData.securityRating    = row.GetFloat(5);    // this gives system trueSec
+        sysData.factionID         = (row.IsNull(6) ? 0 : row.GetUInt(6));
         m_systemData.emplace(row.GetInt(0), sysData);
     }
     sLog.Cyan("    StaticDataMgr", "%u Static System data sets loaded in %.3fms.", m_systemData.size(), (GetTimeMSeconds() - startTime));

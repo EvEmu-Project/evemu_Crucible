@@ -20,9 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
-    Rewrite:       Allan
-    Updates:       James
+    Author:       James
 */
 
 #ifndef __SOVEREIGNTYDB_H_INCL__
@@ -37,8 +35,7 @@ class SovereigntyDB
 : public ServiceDB
 {
 public:
-
-    static PyRep* GetSystemSovData();
+    static void GetSovereigntyData(DBQueryResult& res);
 };
 
 #endif

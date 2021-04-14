@@ -208,13 +208,15 @@ PyResult MapService::Handle_GetCurrentSovData(PyCallArgs &call)
     sLog.Warning( "MapService::Handle_GetCurrentSovData()", "size= %u", call.tuple->size() );
     call.Dump(SERVICE__CALL_DUMP);
 
-    Call_SingleIntegerArg args;
+    // WORK IN PROGRESS ._.
+
+    /*Call_SingleIntegerArg args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
 
-    return SovereigntyDB::GetCurrentSovData(args.arg);
+    return SovereigntyDB::GetCurrentSovData(args.arg);*/
 
     return PyStatic.NewNone();
 }
