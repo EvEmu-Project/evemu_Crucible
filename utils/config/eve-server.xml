@@ -53,7 +53,7 @@ boolean can use either 0/1 OR true/false.
         <ModuleAutoOff>true</ModuleAutoOff><!-- bool  - automatically deactivate rr-type module when target is full -->
         <ModuleDamageChance>0.1</ModuleDamageChance>  <!-- chance to apply damage to random modules when shields are depleted -->
         <UnloadOnLinkAll>true</UnloadOnLinkAll>  <!-- bool - unload weapons and link when LinkAll button pressed -->
-        <AllowNonPublished>false</AllowNonPublished>
+        <AllowNonPublished>true</AllowNonPublished>
         <BountyPayoutDelayed>false</BountyPayoutDelayed><!-- bool - (en/dis)able system bounty payouts on timer (vs immediate) -->
         <FleetShareDelayed>true</FleetShareDelayed><!-- bool - switch to put fleet bounty shares in system bounty timer (vs immediate), if enabled -->
         <BountyPayoutTimer>5</BountyPayoutTimer><!-- time for system bounty timer to run (in minutes - 20m default - 256 max) -->
