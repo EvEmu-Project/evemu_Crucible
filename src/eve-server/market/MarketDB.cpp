@@ -208,7 +208,7 @@ uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
         call.typeID,
         call.stationID,
         call.quantity,
-        call.price - 0.01/*, sConfig.market.FindBuyOrder*/))
+        call.price - 0.1/*, sConfig.market.FindBuyOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -237,7 +237,7 @@ uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call)
         call.typeID,
         call.stationID,
         call.quantity,
-        call.price + 0.01/*, sConfig.market.FindSellOrder*/))
+        call.price + 0.1/*, sConfig.market.FindSellOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
