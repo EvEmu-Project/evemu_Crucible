@@ -26,7 +26,7 @@ waitContainer evemu_db
 
 # Write evedb.yaml based upon above variables
 cd /src/sql
-cat >/src/evedb.yaml <<EOF
+cat >/src/sql/evedb.yaml <<EOF
 base-dir: /src/sql/base
 db-database: evemu
 db-host: db
