@@ -86,8 +86,5 @@ log-level: Info
 migrations-dir: /src/sql/migrations
 EOF
 
-# Download latest version of evedbtool
-/src/sql/get_evedbtool.sh
-
 echo "Running EVEDBTool..."
 /src/sql/evedbtool install

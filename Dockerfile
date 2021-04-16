@@ -46,6 +46,8 @@ USER EVEmu
 # install sql-migrate
 RUN go get -v github.com/rubenv/sql-migrate/...
 
+RUN cd /src/sql && ./get_evedbtool.sh
+
 # Expose the port the server is on.
 EXPOSE 26000
 EXPOSE 26001
