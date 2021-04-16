@@ -878,7 +878,7 @@ PyResult Command_sov(Client* pClient, CommandDB* db, PyServiceMgr* services, con
 
 //13:54:11 W GMCommands: Command_pos(): This command passes args.argCount() = 3.
 PyResult Command_pos(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
-    sLog.Warning("GMCommands: Command_pos()", "This command passes args.argCount() = %u.", args.argCount());
+//    sLog.Warning("SystemCommands: Command_pos()", "This command passes args.argCount() = %u.", args.argCount());
 
     /*
      * ' /pos online ' + str(itemID)
