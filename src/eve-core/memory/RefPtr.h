@@ -86,7 +86,7 @@ protected:
         if (mDeleted) {
             _log(REFPTR__ERROR, "IncRef() - mDeleted = true.  Count is %u", mRefCount);
             EvE::traceStack();
-            //return;
+            return;
         }
         assert( mDeleted == false );
         ++mRefCount;
