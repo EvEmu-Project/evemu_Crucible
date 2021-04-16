@@ -5,6 +5,13 @@
 
     note:  this whole file needs to be reorganized (wip)
 
+
+*******************************************************
+**********  misc items to update from my code
+
+sysCalendarEvents
+
+
 *******************************************************
 **********  errors and other found shit...high priority
 
@@ -24,7 +31,16 @@ work on buglist, integrate this list in there where i can
     - cosmic systems
     -
 
+
 request for smartbombs
+
+fix isGlobal and AttrIsGlobal for items that need it (remove SE->isGlobal() hacks)
+
+as bubble code becomes more stable, consider updating/removing/recoding wander timer.
+    - every 60s for every bubble object is a bit much.
+    - check InBubble and IsOverlap code.
+
+update DBSystemDynamicEntity - change planetID to anchorPointID following james' idea for POS
 
 11:45:54 [DestinyWarning] Warp Cap need for Rifter(140007395) is 0.0007
 
@@ -277,6 +293,7 @@ pi working.  currently rewriting process code  -priority level: lo
 module/rack OL incomplete.  includes OL Heat (basic heat code done/working)  -priority level: low-med
 activemodule c'tor - check/verify needsCharge code as some modules listed use scripts
 
+dungeons - complete current wip code   -priority level: med-hi
 dungeon mgr - factionID of "region sov" needs to be written to determine region sov holder (set to rogue drones at this time)   -priority level: low-med
     - figure out how to determine LCO in dungeon and spawn rats/waves near objects instead of middle of bubble
 
@@ -295,8 +312,6 @@ petition system missing most calls
     - this system hasnt been started
     - couple calls as skeleton code
     - notes for ~20 system calls (may be complete)
-
-dungeons - complete current wip code   -priority level: med-hi
 
 belt spawns - rework for better ship group selection   -priority level: med
 
@@ -371,6 +386,7 @@ pos - started. drop, anchor, unanchor, online, offline working but no in-class c
     - mgrDB needs looking over for data types
     - add checks for necessary items before online can be processed
     - timers (anchor/online) arent updated to client properly (non-persistent)
+    - add bm when tower, ihub, sbu, tcu anchored
 
 lsc system better, but incomplete and needs revisiting    -priority level: med-hi
     - may need xmlp code instead of muddled python decoding
@@ -382,7 +398,7 @@ can you repack t3 ships??
 when t3 ship killed, pilot will lose sp in a required skill for each of the 5 subsystems.
     not sure how this is determined, or how many sp lost.
 
-JumpCloneService needs work to allow capital ships `show info` tab to work in space.
+JumpCloneService needs work to allow capital ships `show info` tab to work in space.  hacked to avoid client error
     - this class is barely above skeleton code, and hardly researched.
     - jump clones arent even close to implementation, so its nbd at this point
 
@@ -743,6 +759,10 @@ others cause multiple other effects.  is this something we can implement/exploit
 
 *******************************************************
 *****************   errata and miscellaneous bullshit
+
+remove /test from compilation (not needed for normal use)
+
+move skills to separate db table
 
 dont remember why i put this log in, but it got hit while testing earlier....
 19:54:01 [Service] config::GetMultiLocationsEx()

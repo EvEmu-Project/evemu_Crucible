@@ -1,0 +1,208 @@
+
+
+*******  PYTHON ERROR TYPES  ********
+
+KeyError: 872
+	  marketGroupID = 872
+
+        charID = ['charID']
+TypeError: unhashable type: 'list'
+            must be tuple or dict.  cannot hash list
+
+        charID = <Row charID:90000000>
+TypeError: unhashable instance
+            cannot hash this value?
+            loop thru items to return and insert into tuple.
+            return tuple of items instead of list or dict
+
+        charID = 140000000
+TypeError: an integer is required
+            unknown at this time
+            *see above*
+
+Exception:  'tuple' object is not callable  (missing comma?)
+
+
+ValueError: Unknown packet type
+            destiny structures incorrect (state or balls) - wrong variable type or wrong assembly or sectors incorrect for mode
+
+TypeError: 'NoneType' object is not iterable
+            object is None() but expected to iterate over the return.
+            should be sent as tuple or list (iterable object)
+
+TypeError: 'NoneType' object is not subscriptable
+            object is None().
+            should be sent as dict, tuple or list (object with item accessors)
+
+TypeError: 'int' object is not subscriptable
+            this was sent as an integer.
+            should be sent as dict, tuple or list (object with item accessors)
+
+TypeError: object of type 'int' has no len()
+            this obect is an integer.
+            should be string instead (a type with .len() function)
+
+TypeError: iteration over non-sequence
+            you need to iterate over a list, not an object
+            return being sent as object, dict, or ??, but should be sent as tuple or list or packedRow
+
+TypeError: can't multiply sequence by non-int of type 'float'
+            object assigned value by a server-return of *type*, but should be tuple (non-sequenced)
+            this means you cant get 1.5 "objects" of python type 'float'
+
+TypeError: list indices must be integers, not str
+            not sure on this one...thrown by /common/script/sys/rowset.py(1119) SelectByUniqueColumnValues when rclick on item in corp hangar
+
+TypeError: list indices must be integers, not instancemethod
+           thrown by '/client/script/ui/shared/manufacturing.py(1013) GetSubContent' by S&I blueprints tab using DBResultToCRowset
+            tried DBResultToRowset - got 'AttributeError: i' where "name = 'i'"
+            trying DBRowToKeyVal.  this throws    AttributeError: 'list' object has no attribute 'header'
+            fix unknown.  putting off for now.  call handler found at CharMgrService.cpp:147
+            **update**  return was missing columns.  check loop conditionals for all referenced colum names and use DBResultToCRowset
+
+TypeError: cannot convert dictionary update sequence element #0 to a sequence
+            return sent as dict, but should be a list of (tuple[0]=key, tuple[1]=value)
+
+AttributeError: 'dict' object has no attribute 'Index'
+            this should be sent as a DBResultToCRowset or DBResultToCIndexedRowset
+
+AttributeError: 'dict' object has no attribute 'id'
+            dict without the key 'id'
+
+AttributeError: 'dict' object has no attribute 'header'
+            dict without the key 'header'
+            use DBResultToCRowset or DBResultToCIndexedRowset  for db results
+            create and add 'header' for manual packet building using PyObject and util.Row  (see PosMgrBound::Handle_GetTowerNotificationSettings() for details)
+
+AttributeError: 'int' object has no attribute 'statusID'
+AttributeError: 'int' object has no attribute 'extras'
+            an int has no attributes (its just a number)
+            this method is trying to access members of the return using keys
+            use Dict (k,v) instead
+
+AttributeError: 'list' object has no attribute 'header'
+            List class has no member .header
+            use Dict instead (and may need PyObject)
+
+AttributeError: 'list' object has no attribute 'Keys'
+            There are no k,v pairs in a list.
+            Use Dict instead
+
+AttributeError: 'list' object has no attribute 'iteritems'
+AttributeError: 'list' object has no attribute 'get'
+AttributeError: 'list' object has no attribute 'itervalues'
+            List class has no member .itervalues, .iteritems or a get method
+            use Dict instead (and may need PyObject)
+
+AttributeError: 'tuple' object has no attribute 'itervalues'
+AttributeError: 'tuple' object has no attribute 'get'
+AttributeError: 'tuple' object has no attribute 'ownerID'
+AttributeError: 'tuple' object has no attribute 'index'
+AttributeError: 'tuple' object has no attribute 'keys'
+            You can't find elements by k,v in a tuple. Tuples have no index method.
+            Use Dict instead
+
+AttributeError: 'blue.DBRow' object has no attribute 'characterID'
+            unknown at this time
+
+AttributeError: Rowset instance has no attribute 'columns'
+                DBRowset class has no member 'columns'
+                use column Dict instead ( DBResultToCRowset)
+
+AttributeError: Rowset instance has no attribute 'line'
+                util.Rowset uses 'lines'
+                this dict should be in a pyobject and util.Row
+
+AttributeError: Rowset instance has no attribute 'has_key'
+                return needs to be  'new PyObject("util.KeyVal", dict)'
+
+AttributeError: Rowset instance has no attribute 'keys'
+AttributeError: Rowset instance has no attribute 'itervalues'
+                DBRowset class has no member 'itervalues' or 'keys'
+                use Dict instead ( DBResultToRowset)
+
+AttributeError: Rowset instance has no attribute 'corporationID'
+                specific key missing from query (not 'SELECT'ed or missing from db)
+                if key is present and this is db return, try DBRowToKeyVal
+
+AttributeError: 'NoneType' object has no attribute 'version'
+AttributeError: 'NoneType' object has no attribute 'iteritems'
+                sending 'NULL' as return, (or object not found)  -these returns should be dict or object
+
+AttributeError: 'CRowset' object has no attribute 'itervalues'
+AttributeError: 'CRowset' object has no attribute 'values'
+AttributeError: 'CRowset' object has no attribute 'iteritems'
+                DBRowset class has no member '.iteritems' or 'values'
+                use Indexed Dict instead ( DBResultToIndexRowset or DBResultToCIndexedRowset)
+
+AttributeError: 'CRowset' object has no attribute 'status'
+                'status' column not selected in db query
+
+AttributeError: IndexRowset instance has no attribute 'Index'
+                this should be sent as a DBResultToCRowset
+
+AttributeError: Rowset instance has no attribute 'iteritems'
+AttributeError: IndexRowset instance has no attribute 'iteritems'
+                DBRowset class has no member .iteritems
+                use Indexed Dict instead ( DBResultToIndexRowset)
+
+AttributeError: KeyVal instance has no attribute '__getitem__'
+AttributeError: KeyVal instance has no attribute 'GetDescription'
+                malformed dict.  use 'new PyObject("util.KeyVal", dict)'
+
+AttributeError: KeyVal instance has no attribute 'Index'
+                change 'new PyObject("util.KeyVal", dict)' to DBResultToCRowset
+
+AttributeError: type object 'set' has no attribute 'itemID'
+                no clue yet.
+
+ValueError: 'part' is not in list
+            no clue yet.
+
+IndexError: list assignment index out of range
+            no clue yet.
+            
+
+**********  PYTHON MISC  ************
+
+iterkeys = iterator of dict keys
+itervalues = iterator of dict values
+iteritems = iterator of dict (k,v) pairs (both of the above)
+
+TypeError: unhashable type: 'list'
+
+TypeError: unhashable instance
+
+The __hash__ function must return an integer:
+
+>>> class Hash(object):
+... def __hash__(self):
+... return (1, 2)
+...
+>>> hash(Hash())
+Traceback (most recent call last):
+File "<stdin>", line 1, in <module>
+TypeError: an integer is required
+>>> class Hash(object):
+... def __hash__(self):
+... return hash((1, 2))
+...
+>>> hash(Hash())
+3713081631934410656
+
+
+ValueError: ('TimeInterval only accepts blue time (long) or python time (float) as values, but we recieved a ', 'int', '.')
+
+
+
+*********  TUPLES
+A tuple is an immutable list. A tuple can not be changed in any way once it is created.
+Tuple freezes a list, and list thaws a tuple.
+A tuple is defined in the same way as a list, but it's enclosed in parentheses instead of square brackets.
+
+
+*************  PYTHON CLIENT ERRORS  ***************
+BallNotInPark:  Received SlimItem with no associated BallData for that itemID (or not correct BallData [from EncodeDestiny()])
+NoBallparkForUpdate:  DoDestinyUpdate sent with no system ballpark (destiny bp)
+
+

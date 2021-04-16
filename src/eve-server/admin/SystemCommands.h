@@ -35,6 +35,6 @@ COMMAND( cloak, Acct::Role::VIP,
 COMMAND( sov, Acct::Role::CONTENT,
          " - unknown at this time")
 COMMAND( pos, Acct::Role::PROGRAMMER,
-         " - unknown at this time")
+         " - commands item to Immediately anchor")
 COMMAND( hop, Acct::Role::CONTENT,
          " - unknown at this time")
