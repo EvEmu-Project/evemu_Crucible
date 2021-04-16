@@ -17,7 +17,7 @@
 
 //Shiny multi-index containers
 #include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/member.hpp>
 
 class SovereigntyDataMgr
@@ -42,28 +42,27 @@ protected:
     void LoadSovPyData();
 
 private:
-    //Define our multi-index container
-    using SovDataContainer = boost::multi_index_container<
-        SovereigntyData*,
+    //Multi-index container for sov data
+    typedef boost::multi_index_container<
+        SovereigntyData,
         boost::multi_index::indexed_by<
-            boost::multi_index::ordered_non_unique<
+            boost::multi_index::hashed_non_unique<
                 boost::multi_index::tag<SovDataBySolarSystem>,
                 boost::multi_index::member<SovereigntyData, uint32, &SovereigntyData::solarSystemID>
                 >,
-            boost::multi_index::ordered_non_unique<
+            boost::multi_index::hashed_non_unique<
                 boost::multi_index::tag<SovDataByConstellation>,
                 boost::multi_index::member<SovereigntyData, uint32, &SovereigntyData::constellationID>
                 >,
-            boost::multi_index::ordered_non_unique<
+            boost::multi_index::hashed_unique<
                 boost::multi_index::tag<SovDataByClaim>,
                 boost::multi_index::member<SovereigntyData, uint32, &SovereigntyData::claimID>
                 >,
-            boost::multi_index::ordered_non_unique<
+            boost::multi_index::hashed_non_unique<
                 boost::multi_index::tag<SovDataByAlliance>,
                 boost::multi_index::member<SovereigntyData, uint32, &SovereigntyData::allianceID>
-                >>>;
+                >>> SovDataContainer;
 
-    //Initialize our container
     SovDataContainer m_sovData;
 };
 

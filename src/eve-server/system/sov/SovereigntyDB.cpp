@@ -25,13 +25,16 @@
 
 #include "system/sov/SovereigntyDB.h"
 
+    //TODO: For now, we return 0 as stationCount since such system is not implemented
+    //TODO: Handle militaryPoints and industrialPoints, but for now they are 5 by default since we don't have a mechanism for determining them
+
 void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
                             "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, corporationID, "
                             " allianceID, claimStructureID, claimTime, "
                             " hubID, contested, 0 as stationCount, "
-                            " 5 as militaryPoints, 5 as industrialPoints "
+                            " 5 as militaryPoints, 5 as industrialPoints, claimID"
                             " FROM mapSystemSovInfo "
                             " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"))
     {

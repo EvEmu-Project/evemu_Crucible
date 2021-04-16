@@ -322,7 +322,7 @@ struct SovereigntyData {
     uint32 claimStructureID;
     int64 claimTime;
     uint32 hubID;
-    bool contested;
+    uint8 contested;
     uint32 stationCount;
     uint32 militaryPoints;
     uint32 industrialPoints;

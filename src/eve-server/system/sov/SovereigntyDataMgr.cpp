@@ -13,6 +13,7 @@
 #include "packets/Sovereignty.h"
 #include "StaticDataMgr.h"
 #include "Client.h"
+#include <boost/range/iterator_range.hpp>
 
 SovereigntyDataMgr::SovereigntyDataMgr()
 {
@@ -68,13 +69,27 @@ void SovereigntyDataMgr::Populate()
         sData.corporationID = row.GetUInt(2);
         sData.allianceID = row.GetUInt(3);
         sData.claimStructureID = row.GetUInt(4);
-        sData.claimTime = row.GetUInt(5);
+        sData.claimTime = row.GetInt64(5);
         sData.hubID = row.GetUInt(6);
-        sData.contested = row.GetBool(7);
+        sData.contested = row.GetUInt(7);
         sData.stationCount = row.GetUInt(8);
         sData.militaryPoints = row.GetUInt(9);
         sData.industrialPoints = row.GetUInt(10);
-        bySolar.insert(&sData); //Insert into the container
+        sData.claimID = row.GetUInt(11);
+        bySolar.insert(sData);
+    }
+
+    //Just for testing, lets see what we are putting into our container
+    for (auto &it : m_sovData.get<SovDataBySolarSystem>())
+    {
+        _log(SOV__DEBUG, "== data (initial population) ==");
+        _log(SOV__DEBUG, "claimID: %u", it.claimID);
+        _log(SOV__DEBUG, "solarSystemID: %u", it.solarSystemID);
+        _log(SOV__DEBUG, "constellationID: %u", it.constellationID);
+        _log(SOV__DEBUG, "corporationID: %u", it.corporationID);
+        _log(SOV__DEBUG, "allianceID: %u", it.allianceID);
+        _log(SOV__DEBUG, "claimStructureID: %u", it.claimStructureID);
+        _log(SOV__DEBUG, "==========");
     }
 
     sLog.Cyan("   SovereigntyDataMgr", "%u Sovereignty data sets loaded in %.3fms.",
@@ -110,138 +125,117 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
         args->SetItemString("hubID", new PyInt(0));
         args->SetItemString("allianceID", new PyInt(sysData.factionID));
         args->SetItemString("solarSystemID", new PyInt(systemID));
-        codelog(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty()", "Faction system %u found, assigning factionID as allianceID.", systemID);
+        _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty()", "Faction system %u found, assigning factionID as allianceID.", systemID);
     }
     else
     {
-        //Start claim time at 0
-        uint32 cTime = 0;
-        uint32 claimID = 0;
-
-        //Get what we want from the container
-        //We may have multiple sov change records for a solar system, so it is important we load them all
-
-        auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
-        for (auto it = bySolar.begin(); it != bySolar.end();)
+        auto it = m_sovData.get<SovDataBySolarSystem>().find(systemID);
+        if (it != m_sovData.get<SovDataBySolarSystem>().end())
         {
-            SovereigntyData *found = *it;
-            //Now we have an individual record, we need to find out which one has the highest claimTime
-            if (found->claimTime > cTime)
-            {
-                cTime = found->claimTime;
-                claimID = found->claimID;
-            }
-            it = bySolar.upper_bound(found->solarSystemID);
-        }
-
-        //Now we have the latest effective claimID
-        if (claimID != 0)
-        {
-            auto &byClaim = m_sovData.get<SovDataByClaim>();
-            auto itFound = byClaim.find(claimID);
-            if (itFound != byClaim.end())
-            {
-                SovereigntyData *sData = *itFound;
-                args->SetItemString("contested", new PyInt(sData->contested));
-                args->SetItemString("corporationID", new PyInt(sData->corporationID));
-                args->SetItemString("claimTime", new PyLong(sData->claimTime));
-                args->SetItemString("claimStructureID", new PyInt(sData->claimStructureID));
-                args->SetItemString("hubID", new PyInt(sData->hubID));
-                args->SetItemString("allianceID", new PyInt(sData->allianceID));
-                args->SetItemString("solarSystemID", new PyInt(sData->solarSystemID));
-            }
+            SovereigntyData sData = *it;
+            _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty()", "Found sov data for solarSystemID %u.", systemID);
+            _log(SOV__DEBUG, "== data (GetSystemSovereignty()) ==");
+            _log(SOV__DEBUG, "claimID: %u", sData.claimID);
+            _log(SOV__DEBUG, "solarSystemID: %u", sData.solarSystemID);
+            _log(SOV__DEBUG, "constellationID: %u", sData.constellationID);
+            _log(SOV__DEBUG, "corporationID: %u", sData.corporationID);
+            _log(SOV__DEBUG, "allianceID: %u", sData.allianceID);
+            _log(SOV__DEBUG, "claimStructureID: %u", sData.claimStructureID);
+            _log(SOV__DEBUG, "==========");
+            args->SetItemString("contested", new PyInt(sData.contested));
+            args->SetItemString("corporationID", new PyInt(sData.corporationID));
+            args->SetItemString("claimTime", new PyLong(sData.claimTime));
+            args->SetItemString("claimStructureID", new PyInt(sData.claimStructureID));
+            args->SetItemString("hubID", new PyInt(sData.hubID));
+            args->SetItemString("allianceID", new PyInt(sData.allianceID));
+            args->SetItemString("solarSystemID", new PyInt(sData.solarSystemID));
         }
         else
         {
-            codelog(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty()", "No results found for %u in sov container.", systemID);
+            _log(SOV__ERROR, "SovereigntyDataMgr::GetSystemSovereignty()", "Unable to find data for solarSystemID %u.", systemID);
         }
     }
     return new PyObject("util.KeyVal", args);
 }
 
-/*
 PyRep *SovereigntyDataMgr::GetAllianceSystems() //Get all systems associated with all alliances?
 {
-        //Get what we want from the container
-        auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
-        auto found = m_sovData.find(systemID);
-
-        //We may have multiple sov change records for a solar system, so it is important we load them all
-        for (auto it = bySolar.begin(); it != bySolar.end();)
-        {
-            //Now we have an individual record, we need to find out which one has the highest claimTime
-            if (it->claimTime > cTime)
-            {
-                cTime = it->claimTime;
-                claimID = it->claimID;
-            }
-            it = bySolar.upper_bound(it->solarSystemID);
-        }
-
-    DBQueryResult res;
-    DBResultRow row;
-
     PyList *list = new PyList();
-
-    if (!sDatabase.RunQuery(res,
-                            "SELECT"
-                            "   allianceID,"
-                            "   solarSystemID "
-                            " FROM mapSystemSovInfo"))
+    for (auto &it : m_sovData.get<SovDataBySolarSystem>())
     {
-        codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
-    }
+        _log(SOV__DEBUG, "== data (GetAllianceSystems()) ==");
+        _log(SOV__DEBUG, "claimID: %u", it.claimID);
+        _log(SOV__DEBUG, "solarSystemID: %u", it.solarSystemID);
+        _log(SOV__DEBUG, "allianceID: %u", it.allianceID);
+        _log(SOV__DEBUG, "==========");
 
-    //Clunky way to do it
-    while (res.GetRow(row)) {
-        PyDict* dict = new PyDict();
-        dict->SetItemString("allianceID", new PyInt(row.GetInt(0)));
-        dict->SetItemString("solarSystemID", new PyInt(row.GetInt(1)));
+        PyDict *dict = new PyDict();
+        dict->SetItemString("allianceID", new PyInt(it.allianceID));
+        dict->SetItemString("solarSystemID", new PyInt(it.solarSystemID));
         list->AddItem(new PyObject("util.KeyVal", dict));
     }
     return list;
-    return DBResultToPackedRowList(res);
 }
-/*
-PyRep *SovereigntyDB::GetCurrentSovData(uint32 locationID)
-{
-    //We get an arbitrary locationID, and need to get a list of solar system IDs along with allianceID
-    //TODO: For now, we return 0 as stationCount since such system is not implemented
-    //TODO: Handle militaryPoints and industrialPoints, but for now they are 5 by default since we don't have a mechanism for determining them
 
-    DBQueryResult res;
-    DBResultRow row;
+PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
+{
+    PyList *list = new PyList();
+
+    DBRowDescriptor* header = new DBRowDescriptor();
+    header->AddColumn( "quantity",          DBTYPE_I4 );
+    header->AddColumn( "requiredTypeID",    DBTYPE_I4 );
+    header->AddColumn( "damagePerJob",      DBTYPE_R4 );
 
     if (IsConstellation(locationID))
-    { //Convert constellation into list of solar system IDs
-        if (!sDatabase.RunQuery(res,
-                                "SELECT mapSystemSovInfo.solarSystemID as locationID, mapSystemSovInfo.allianceID, 0 as stationCount, "
-                                " 5 as militaryPoints, 5 as industrialPoints, mapSystemSovInfo.allianceID as claimedFor "
-                                " FROM mapSystemSovInfo "
-                                " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID "
-                                " WHERE mapSolarSystems.constellationID=%u",
-                                locationID))
+    {
+        for (SovereigntyData const &sData : boost::make_iterator_range(m_sovData.get<SovDataByConstellation>().equal_range(locationID)))
         {
-            codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
-            return NULL;
+            PyDict *dict = new PyDict();
+            _log(SOV__INFO, "SovereigntyDataMgr::GetCurrentSovData()", "Found current sov data for solarSystemID %u.", sData.solarSystemID);
+            _log(SOV__DEBUG, "== data (GetCurrentSovData()) ==");
+            _log(SOV__DEBUG, "locationID: %u", sData.solarSystemID);
+            _log(SOV__DEBUG, "allianceID: %u", sData.allianceID);
+            _log(SOV__DEBUG, "stationCount: %u", sData.stationCount);
+            _log(SOV__DEBUG, "militaryPoints: %u", sData.militaryPoints);
+            _log(SOV__DEBUG, "industrialPoints: %u", sData.industrialPoints);
+            _log(SOV__DEBUG, "claimedFor: %u", sData.allianceID);
+            _log(SOV__DEBUG, "==========");
+
+            dict->SetItemString("locationID", new PyInt(sData.solarSystemID));
+            dict->SetItemString("allianceID", new PyInt(sData.allianceID));
+            dict->SetItemString("stationCount", new PyInt(sData.stationCount));
+            dict->SetItemString("militaryPoints", new PyInt(sData.militaryPoints));
+            dict->SetItemString("industrialPoints", new PyInt(sData.industrialPoints));
+            dict->SetItemString("claimedFor", new PyInt(sData.allianceID));
+            list->AddItem(new PyObject("util.KeyVal", dict));
         }
     }
     else if (IsSolarSystem(locationID))
     {
-        if (!sDatabase.RunQuery(res,
-                                "SELECT solarSystemID as locationID, allianceID, 0 as stationCount, "
-                                " 0 as militaryPoints, 0 as industrialPoints, mapSystemSovInfo.allianceID as claimedFor "
-                                " FROM mapSystemSovInfo "
-                                " WHERE solarSystemID=%u",
-                                locationID))
+        auto it = m_sovData.get<SovDataBySolarSystem>().find(locationID);
+        if (it != m_sovData.get<SovDataBySolarSystem>().end())
         {
-            codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
-            return NULL;
+            PyDict *dict = new PyDict();
+            SovereigntyData sData = *it;
+            _log(SOV__INFO, "SovereigntyDataMgr::GetCurrentSovData()", "Found current sov data for solarSystemID %u.", sData.solarSystemID);
+            _log(SOV__DEBUG, "== data (GetCurrentSovData()) ==");
+            _log(SOV__DEBUG, "locationID: %u", sData.solarSystemID);
+            _log(SOV__DEBUG, "allianceID: %u", sData.allianceID);
+            _log(SOV__DEBUG, "stationCount: %u", sData.stationCount);
+            _log(SOV__DEBUG, "militaryPoints", sData.militaryPoints);
+            _log(SOV__DEBUG, "industrialPoints", sData.industrialPoints);
+            _log(SOV__DEBUG, "claimedFor", sData.allianceID);
+            _log(SOV__DEBUG, "==========");
+
+            dict->SetItemString("locationID", new PyInt(sData.solarSystemID));
+            dict->SetItemString("allianceID", new PyInt(sData.allianceID));
+            dict->SetItemString("stationCount", new PyInt(sData.stationCount));
+            dict->SetItemString("militaryPoints", new PyInt(sData.militaryPoints));
+            dict->SetItemString("industrialPoints", new PyInt(sData.industrialPoints));
+            dict->SetItemString("claimedFor", new PyInt(sData.allianceID));
+            list->AddItem(new PyObject("util.KeyVal", dict));
         }
     }
 
-    return DBResultToCRowset(res);
+    return list;
 }
-
-*/

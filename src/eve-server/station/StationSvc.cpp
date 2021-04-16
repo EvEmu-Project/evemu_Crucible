@@ -31,7 +31,7 @@
 #include "station/StationDataMgr.h"
 #include "station/StationSvc.h"
 
-#include "system/sov/SovereigntyDB.h"
+#include "system/sov/SovereigntyDataMgr.h"
 #include "Client.h"
 
 
@@ -91,8 +91,7 @@ PyResult StationSvc::Handle_GetAllianceSystems(PyCallArgs &call) {
   sLog.White( "StationSvc::Handle_GetAllianceSystems()", "size= %u", call.tuple->size() );
     call.Dump(SERVICE__CALL_DUMP);
 
-    return nullptr;
-    //return SovereigntyDB::GetAllianceSystems(); //WORK IN PROGRESS ._.
+    return svDataMgr.GetAllianceSystems();
 }
 
 //This call is made by client when player opens 'Settled Systems' dropdown in alliance details ui
