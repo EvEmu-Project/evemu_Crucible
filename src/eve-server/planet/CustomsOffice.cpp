@@ -79,7 +79,7 @@ void CustomsSE::InitData()
     // init all data.
     m_cData.state = EVEPOS::EntityState::Anchored;  // allow corp settings menu
     m_cData.timestamp = 0;
-    m_cData.status = EVEPOS::StructureStatus::Online;
+    m_cData.status = EVEPOS::StructureState::Online;
     m_cData.allowAlliance = false;
     m_cData.allowStandings  = false;
     m_cData.ownerID = m_self->ownerID();
@@ -293,7 +293,7 @@ void CustomsSE::SendSlimUpdate()
 
 void CustomsSE::SetAnchor(Client* pClient, GPoint& pos)
 {
-    if (m_cData.status > EVEPOS::StructureStatus::Unanchored) {
+    if (m_cData.status > EVEPOS::StructureState::Unanchored) {
         pClient->SendErrorMsg("The %s is already anchored", m_self->name());
         return;  // make error here?
     }
@@ -308,7 +308,7 @@ void CustomsSE::SetAnchor(Client* pClient, GPoint& pos)
     m_self->SaveItem();
 
     m_cData.state = EVEPOS::EntityState::Anchoring;
-    m_cData.status = EVEPOS::StructureStatus::Anchored;
+    m_cData.status = EVEPOS::StructureState::Anchored;
     //m_delayTime = m_self->GetAttribute(AttrAnchoringDelay).get_int();
     //m_procTimer.SetTimer(m_delayTime);
     m_cData.timestamp = GetFileTimeNow();
@@ -332,11 +332,11 @@ void CustomsSE::SetAnchor(Client* pClient, GPoint& pos)
 
 void CustomsSE::PullAnchor()
 {
-    if (m_cData.status > EVEPOS::StructureStatus::Anchored)
+    if (m_cData.status > EVEPOS::StructureState::Anchored)
         return;  // make error here?
 
     m_cData.state = EVEPOS::EntityState::Unanchoring;
-    m_cData.status = EVEPOS::StructureStatus::Unanchored;
+    m_cData.status = EVEPOS::StructureState::Unanchored;
     //m_delayTime = m_self->GetAttribute(AttrUnanchoringDelay).get_int();
     //m_procTimer.SetTimer(m_delayTime);
     m_cData.timestamp = GetFileTimeNow();

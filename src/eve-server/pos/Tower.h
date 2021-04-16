@@ -21,7 +21,7 @@ class TowerSE
 {
 public:
     TowerSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData);
-    virtual ~TowerSE();
+    virtual ~TowerSE()                                  { /* do nothing here */ }
 
     /* class type pointer querys. */
     virtual TowerSE*            GetTowerSE()            { return this; }

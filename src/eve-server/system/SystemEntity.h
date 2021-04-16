@@ -353,8 +353,14 @@ public:
     /* virtual functions to be overridden in derived classes */
     virtual bool                LoadExtras();
 
+    /* specific functions handled in this class. */
+    StructureSE* GetMySBU()                             { return m_sbuSE; }
+    bool HasSBU()                                       { return (m_sbuSE != nullptr); }
+    void SetSBU(StructureSE* pSE)                       { m_sbuSE = pSE; }
+
 protected:
     PyRep*                      m_jumps;
+    StructureSE*                m_sbuSE;
 
 };
 
@@ -408,7 +414,7 @@ public:
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects
  * - POS Structures, Outposts, Deployables, empty Ships, Asteroids
- *- has TargetMgr  no DestinyMgr*/
+ *- has TargetMgr  has DestinyMgr*/
 class ObjectSystemEntity : public SystemEntity {
 public:
     ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
@@ -432,6 +438,13 @@ public:
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Killed(Damage &fatal_blow);
+    virtual bool                IsInvul()               { return m_invul; }
+
+    /* specific functions handled here. */
+    void                    SetInvul(bool invul=false)  { m_invul = invul; }
+
+private:
+    bool m_invul;
 };
 
 /* Mobile Warp Disruptors */

@@ -95,7 +95,7 @@ class ArraySE;
 class BatterySE;
 class WeaponSE;
 class StructureSE
-: public ObjectSystemEntity
+: public DynamicSystemEntity
 {
 public:
     StructureSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
@@ -155,6 +155,7 @@ public:
     virtual void                Reinforced()            { /* do nothing here yet */ }
 
     /* specific functions handled in this class. */
+    // this is for dropping POS where Init() and Add() each need info from the other.
     void                        Drop(SystemBubble* pBubble);
     void                        Anchor();
     void                        Offline();
@@ -186,7 +187,7 @@ public:
     void                        UpdateUsageFlags()      { m_db.UpdateUsageFlags(m_data.itemID, m_data); }
 
     // for targetMgr
-    bool                        IsReinforced()          { return false; }   /** @todo  finish this...not sure how yet. */
+    bool                        IsReinforced()          { return (m_data.state == EVEPOS::StructureState::Reinforced); }
 
     void                        SendSlimUpdate();
 
@@ -201,7 +202,7 @@ protected:
     TCUSE*                      m_tcuSE;                /* controlling TCUs */
     SBUSE*                      m_sbuSE;
     IHubSE*                     m_ihubSE;
-    StargateSE*                     m_gateSE;
+    StargateSE*                 m_gateSE;
 
     EVEPOS::StructureData       m_data;
 
@@ -211,7 +212,7 @@ protected:
     uint32                      m_delayTime;
 
     // for orbital infrastructure (customs office and moon miner)
-    GVector                     m_rotation;      /* direction to planet (for correct orientation) */
+    GVector                     m_rotation;             /* direction to planet (for correct orientation) */
     uint32                      m_planetID;
 
 private:
@@ -219,23 +220,21 @@ private:
 
     Timer m_procTimer;              // module state timer
 
-    bool m_tcu :1;      // Territorial Claim Unit
-    bool m_sbu :1;      // System Blockade Unit
-    bool m_ihub :1;     // Infrastructure Hub
-    bool m_tower :1;    // Control Tower
-    bool m_miner :1;    // Moon Miner
-    bool m_bridge :1;   // Jump Bridge
-    bool m_jammer :1;   // Cyno Jammer
+    bool m_tcu :1;              // Territorial Claim Unit
+    bool m_sbu :1;              // System Blockade Unit
+    bool m_ihub :1;             // Infrastructure Hub
+    bool m_tower :1;            // Control Tower
+    bool m_miner :1;            // Moon Miner
+    bool m_bridge :1;           // Jump Bridge
+    bool m_jammer :1;           // Cyno Jammer
     bool m_loaded :1;
-    bool m_module :1;
+    bool m_module :1;           // any structure requiring a control tower
     bool m_reactor :1;
     bool m_outpost :1;
 
 };
 
 #endif  // EVEMU_POS_STRUCTURE_H_
-
-
 
     /*
     self.variance = sm.GetService('clientDogmaStaticSvc').GetTypeAttribute(self.typeID, const.attributeReinforcementVariance)

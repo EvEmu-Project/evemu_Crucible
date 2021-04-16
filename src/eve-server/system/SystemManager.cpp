@@ -620,7 +620,6 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
             if (structure.get() == nullptr)
                 return nullptr;
-
             StructureSE* sSSE(nullptr);
             //Test for different types of sov structures
             switch(entity.groupID) {
@@ -629,19 +628,16 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making TCUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     sSSE = sSE;
                 } break;
-
                 case EVEDB::invGroups::Sovereignty_Blockade_Units: {
                     SBUSE* sSE = new SBUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making SBUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     sSSE = sSE;
                 } break;
-
                 case EVEDB::invGroups::Infrastructure_Hubs: {
                     IHubSE* sSE = new IHubSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making IHubSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     sSSE = sSE;
                 } break;
-
                 default: { //Should never be called, therefore print an error log
                     StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Default sovereignty StructureSE created for %s (%u)", entity.itemName.c_str(), entity.itemID);
@@ -649,7 +645,6 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 } break;
             }
             return sSSE;
-
         } break;
         case EVEDB::invCategories::Orbitals: {           // planet orbitals   these should go into m_staticEntities
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
@@ -1012,7 +1007,7 @@ void SystemManager::RemoveNPC(NPC* pNPC) {
 void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
     if (pSE == nullptr)
         return;
-    uint32 itemID = pSE->GetID();
+    uint32 itemID(pSE->GetID());
     if (m_entities.find(itemID) != m_entities.end()) {
         _log(ITEM__WARNING, "%s(%u): Called AddEntity(), but they're already in %s(%u).  Check bubble.", pSE->GetName(), itemID, m_data.name.c_str(), m_data.systemID);
         return;
@@ -1020,9 +1015,8 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
         _log(ITEM__TRACE, "%s(%u): Added to system manager for %s(%u)", pSE->GetName(), itemID, m_data.name.c_str(), m_data.systemID);
         m_entities[itemID] = pSE;
 
-        if ((pSE->GetCategoryID() == EVEDB::invCategories::SovereigntyStructure)
-         or (pSE->IsCOSE())
-         or (pSE->isGlobal())) {
+        if ((pSE->IsCOSE())
+        or  (pSE->isGlobal())) {
             m_staticEntities[itemID] = pSE;
             if (m_loaded)   // only update when system is already loaded
                 SendStaticBall(pSE);
@@ -1348,6 +1342,12 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
     if (m_clients.empty())
         return;
 
+    if (is_log_enabled(DESTINY__MESSAGE)) {
+        GPoint bCenter(pSE->SysBubble()->GetCenter());
+        _log(DESTINY__MESSAGE, "SystemManager::SendStaticBall() - Adding static entity %s(%u) to bubble %u.  Dist to center: %.2f", \
+                pSE->GetName(), pSE->GetID(), pSE->SysBubble()->GetID(), bCenter.distance(pSE->GetPosition()));
+    }
+
     Buffer* destinyBuffer = new Buffer();
     //create AddBalls header
     Destiny::AddBall_header head = Destiny::AddBall_header();
@@ -1375,7 +1375,6 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
 
     pSE->EncodeDestiny(*destinyBuffer);
     addballs2.state = new PyBuffer(&destinyBuffer); //consumed
-    SafeDelete( destinyBuffer );
 
     if (is_log_enabled(DESTINY__BALL_DUMP))
         addballs2.Dump( DESTINY__BALL_DUMP, "    " );
@@ -1383,6 +1382,9 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
     PyTuple* t = addballs2.Encode();
     for (auto cur : m_clients)
         cur.second->QueueDestinyUpdate(&t, true);
+
+    //cleanup
+    SafeDelete( destinyBuffer );
 }
 
 void SystemManager::AddItemToInventory(InventoryItemRef iRef)

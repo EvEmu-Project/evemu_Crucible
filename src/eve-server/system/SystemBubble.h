@@ -176,10 +176,10 @@ protected:
     void MarkBubble(const GPoint& position, std::string& name, std::string& desc, bool center=false);
 
 private:
-    TowerSE* m_towerSE;
     TCUSE* m_tcuSE;
     SBUSE* m_sbuSE;
     IHubSE* m_ihubSE;
+    TowerSE* m_towerSE;
     SystemManager* m_system;
     ContainerSE* m_centerSE;
 
