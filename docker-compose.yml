@@ -14,6 +14,13 @@ services:
       - db
     links:
       - "db"
+    environment:
+      - RUN_WITH_GDB=FALSE #Set to TRUE to run evemu with gdb automatically
+    stdin_open: true # Enables stdin for the container. Attach to it with 'docker attach'
+    tty: true
+    cap_add: #This is required for gdb to work
+      - SYS_PTRACE
+
   db:
     image: "quay.io/bitnami/mariadb:10.4"
     volumes:
