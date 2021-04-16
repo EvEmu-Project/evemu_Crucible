@@ -88,11 +88,14 @@ class Client;
 class Missile;
 class MoonSE;
 class TowerSE;
+class TCUSE;
+class SBUSE;
+class IHubSE;
 class ArraySE;
 class BatterySE;
 class WeaponSE;
 class StructureSE
-: public ObjectSystemEntity
+: public DynamicSystemEntity
 {
 public:
     StructureSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
@@ -100,21 +103,23 @@ public:
 
     /* class type pointer querys. */
     virtual StructureSE*        GetPOSSE()              { return this; }
-    virtual StructureSE*        GetTCUSE()              { return (m_tcu ? this : nullptr); }
-    virtual StructureSE*        GetSBUSE()              { return (m_sbu ? this : nullptr); }
     virtual StructureSE*        GetJammerSE()           { return (m_jammer ? this : nullptr); }
-    virtual StructureSE*        GetOutpostSE()          { return (m_bridge ? this : nullptr); }
-    virtual StructureSE*        GetJumpBridgeSE()       { return (m_outpost ? this : nullptr); }
+    virtual StructureSE*        GetOutpostSE()          { return (m_outpost ? this : nullptr); }
+    virtual StructureSE*        GetJumpBridgeSE()       { return (m_bridge ? this : nullptr); }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
     virtual BatterySE*          GetBatterySE()          { return nullptr; }
     virtual WeaponSE*           GetWeaponSE()           { return nullptr; }
     virtual ReactorSE*          GetReactorSE()          { return nullptr; }
+    virtual TCUSE*              GetTCUSE()              { return nullptr; }
+    virtual SBUSE*              GetSBUSE()              { return nullptr; }
+    virtual IHubSE*             GetIHubSE()             { return nullptr; }
 
     /* class type tests. */
     virtual bool                IsPOSSE()               { return true; }
-    virtual bool                IsTCUSE()               { return m_tcu; }
-    virtual bool                IsSBUSE()               { return m_sbu; }
+    virtual bool                IsTCUSE()               { return false; }
+    virtual bool                IsSBUSE()               { return false; }
+    virtual bool                IsIHubSE()              { return false; }
     virtual bool                IsJammerSE()            { return m_jammer; }
     virtual bool                IsMoonMiner()           { return m_miner; }
     virtual bool                IsOutpostSE()           { return m_outpost; }
@@ -150,6 +155,7 @@ public:
     virtual void                Reinforced()            { /* do nothing here yet */ }
 
     /* specific functions handled in this class. */
+    // this is for dropping POS where Init() and Add() each need info from the other.
     void                        Drop(SystemBubble* pBubble);
     void                        Anchor();
     void                        Offline();
@@ -161,6 +167,8 @@ public:
     uint8                       GetState() const        { return m_data.state; }
     float                       GetStatus()             { return m_data.status; }
     MoonSE*                     GetMoonSE()             { return m_moonSE; }
+    PlanetSE*                   GetPlanetSE()           { return m_planetSE; } //Planets are required for sovereignty structures
+    StargateSE*                 GetGateSE()             { return m_gateSE; }
 
     inline void                SetPOSState(uint8 state) { m_data.state = state; }
     inline void                 SetTimer(uint32 time)   { m_procTimer.SetTimer(time); }
@@ -179,7 +187,7 @@ public:
     void                        UpdateUsageFlags()      { m_db.UpdateUsageFlags(m_data.itemID, m_data); }
 
     // for targetMgr
-    bool                        IsReinforced()          { return false; }   /** @todo  finish this...not sure how yet. */
+    bool                        IsReinforced()          { return (m_data.state == EVEPOS::StructureState::Reinforced); }
 
     void                        SendSlimUpdate();
 
@@ -189,7 +197,12 @@ protected:
     PosMgrDB                    m_db;
 
     MoonSE*                     m_moonSE;               /* moonSE this structure is orbiting. */
+    PlanetSE*                   m_planetSE;             /* planetSE this structure is orbiting. (for sovereignty structures) */
     TowerSE*                    m_towerSE;              /* controlling towerSE for this structure */
+    TCUSE*                      m_tcuSE;                /* controlling TCUs */
+    SBUSE*                      m_sbuSE;
+    IHubSE*                     m_ihubSE;
+    StargateSE*                 m_gateSE;
 
     EVEPOS::StructureData       m_data;
 
@@ -199,7 +212,7 @@ protected:
     uint32                      m_delayTime;
 
     // for orbital infrastructure (customs office and moon miner)
-    GVector                     m_rotation;      /* direction to planet (for correct orientation) */
+    GVector                     m_rotation;             /* direction to planet (for correct orientation) */
     uint32                      m_planetID;
 
 private:
@@ -207,23 +220,21 @@ private:
 
     Timer m_procTimer;              // module state timer
 
-    bool m_tcu :1;      // Territorial Claim Unit
-    bool m_sbu :1;      // System Blockade Unit
-    bool m_ihub :1;     // Infrastructure Hub
-    bool m_tower :1;    // Control Tower
-    bool m_miner :1;    // Moon Miner
-    bool m_bridge :1;   // Jump Bridge
-    bool m_jammer :1;   // Cyno Jammer
+    bool m_tcu :1;              // Territorial Claim Unit
+    bool m_sbu :1;              // System Blockade Unit
+    bool m_ihub :1;             // Infrastructure Hub
+    bool m_tower :1;            // Control Tower
+    bool m_miner :1;            // Moon Miner
+    bool m_bridge :1;           // Jump Bridge
+    bool m_jammer :1;           // Cyno Jammer
     bool m_loaded :1;
-    bool m_module :1;
+    bool m_module :1;           // any structure requiring a control tower
     bool m_reactor :1;
     bool m_outpost :1;
 
 };
 
 #endif  // EVEMU_POS_STRUCTURE_H_
-
-
 
     /*
     self.variance = sm.GetService('clientDogmaStaticSvc').GetTypeAttribute(self.typeID, const.attributeReinforcementVariance)

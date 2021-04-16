@@ -488,11 +488,20 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                 }
             } break;
             case EVEDB::invCategories::Structure: {
-                if (pClient->SystemMgr()->GetClosestMoonSE(location)->GetMoonSE()->HasTower()) {
-                    pClient->SendErrorMsg("This Moon already has a Control Tower in orbit.  Aborting Drop.");
-                    return nullptr;
+                // test for existing tower
+                if (iRef->groupID() == EVEDB::invGroups::Control_Tower) {
+                    if (pClient->SystemMgr()->GetClosestMoonSE(location)->GetMoonSE()->HasTower()) {
+                        pClient->SendErrorMsg("This Moon already has a Control Tower in orbit.  Aborting Drop.");
+                        return nullptr;
+                    }
+                } else {
+                    if (!pClient->SystemMgr()->GetClosestMoonSE(location)->GetMoonSE()->HasTower()) {
+                        pClient->SendErrorMsg("You need an anchored Control Tower before launching modules.  Aborting Drop.");
+                        return nullptr;
+                    }
                 }
 
+                /** @todo implement these checks  (may be more i havent found yet) */
                 //{'FullPath': u'UI/Messages', 'messageID': 259679, 'label': u'DropNeedsPlayerCorpBody'}(u'In order to launch {[item]item.name} you need to be a member of a independent corporation.', None, {u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
                 //{'FullPath': u'UI/Messages', 'messageID': 256411, 'label': u'CantInHighSecSpaceBody'}(u'You cannot do that as CONCORD currently restricts the launching, anchoring and control of that type of structure within CONCORD-protected space to authorized agents of the empires.', None, None)
 
@@ -516,6 +525,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
 
                 if (entity.groupID == EVEDB::invGroups::Orbital_Infrastructure)
                     entity.planetID = pSystem->GetClosestPlanetID(location);
+
                 SystemEntity* pSE = DynamicEntityFactory::BuildEntity(*pSystem, entity);
                 if (pSE == nullptr) {
                     //couldnt create entity.  move item back to orig location and continue
@@ -531,13 +541,72 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                 pSE->GetPOSSE()->Drop(pClient->GetShipSE()->SysBubble());
                 pSystem->AddEntity(pSE);
                 list->AddItem(new PyInt(entity.itemID));
-                // may need separate test for infrastructure hubs
             } break;
             case EVEDB::invCategories::Deployable: {
                 pClient->SendNotifyMsg("Launching Deployables isnt available yet.");
             } break;
             case EVEDB::invCategories::SovereigntyStructure: {
-                pClient->SendNotifyMsg("Launching SovStructures isnt available yet.");
+                //Code for spawning sovereignty structures
+
+                switch (iRef->groupID()) {
+                    case EVEDB::invGroups::Sovereignty_Blockade_Units: {
+                        // check for sbu placement
+                        /*  placement doesnt matter....anchoring has checks for proper placement
+                        SystemEntity* pSE = pSystem->GetClosestGateSE(pClient->GetShipSE()->GetPosition());
+                        if (pSE == nullptr)
+                            ;
+                        if (pSE->GetPosition().distance(iRef->position()) > )
+                        */
+                    } break;
+                    //verify only one TCU or IHub is deployed in the system.
+                    // todo:  check Structure.h  - these can be dropped and anchored, but not onlined if >1 in system
+                    case EVEDB::invGroups::Territorial_Claim_Units: {
+                        if (pClient->GetShipSE()->SysBubble()->HasTCU()) {
+                            pClient->SendErrorMsg("There is already a Territorial Claim Unit in this system.  Aborting Drop.");
+                            return nullptr;
+                        }
+                    } break;
+                    case EVEDB::invGroups::Infrastructure_Hubs: {
+                        if (pClient->GetShipSE()->SysBubble()->HasIHub()) {
+                            pClient->SendErrorMsg("There is already an Infrastructure Hub this system.  Aborting Drop.");
+                            return nullptr;
+                        }
+                    } break;
+                }
+
+                DBSystemDynamicEntity entity = DBSystemDynamicEntity();
+                entity.ownerID = ownerID;
+                entity.factionID = pClient->GetWarFactionID();
+                entity.allianceID = pClient->GetAllianceID();
+                entity.corporationID = pClient->GetCorporationID();
+                entity.itemID = iRef->itemID();
+                entity.itemName = iRef->itemName();
+                entity.typeID = iRef->typeID();
+                entity.groupID = iRef->groupID();
+                entity.categoryID = iRef->categoryID();
+
+                // Move item from cargo bay to space: (and send OnItemChange packet)
+                iRef->Move(pClient->GetLocationID(), flagNone, true);
+                iRef->SetPosition(location + iRef->radius() + radius);
+                iRef->ChangeOwner(entity.ownerID);
+
+                entity.position = iRef->position();
+
+                SystemEntity* pSE = DynamicEntityFactory::BuildEntity(*pSystem, entity);
+                if (pSE == nullptr) {
+                    //couldnt create entity.  move item back to orig location and continue
+                    iRef->Donate(pClient->GetCharacterID(), pShip->itemID(), flagCargoHold);
+                    continue;
+                }
+
+                // item was successfully created.  set singleton
+                iRef->ChangeSingleton(true);
+
+                dropped = true;
+                shipDrop = true;
+                pSE->GetPOSSE()->Drop(pClient->GetShipSE()->SysBubble());
+                pSystem->AddEntity(pSE);
+                list->AddItem(new PyInt(entity.itemID));
             } break;
             default: {
                 _log(INV__ERROR, "ShipBound::Handle_Drop() - Item %s (cat %u) is neither drone, structure or deployable.", iRef->name(), iRef->categoryID());

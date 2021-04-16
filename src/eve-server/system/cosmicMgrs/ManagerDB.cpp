@@ -296,7 +296,7 @@ void ManagerDB::GetOreBySSC(DBQueryResult& res)
 void ManagerDB::GetSystemData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
-        "SELECT mss.solarSystemID, mss.solarSystemName, mss.constellationID, mss.regionID, mss.securityClass, md.security"
+        "SELECT mss.solarSystemID, mss.solarSystemName, mss.constellationID, mss.regionID, mss.securityClass, md.security, mss.factionID"
         " FROM mapSolarSystems AS mss"
         " LEFT JOIN mapDenormalize AS md ON (md.itemID = mss.solarSystemID)"
     ))

@@ -20,34 +20,24 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        James
 */
 
+#include "system/sov/SovereigntyDB.h"
 
-#ifndef __STATIONSVC_SERVICE_H_INCL__
-#define __STATIONSVC_SERVICE_H_INCL__
+    //TODO: For now, we return 0 as stationCount since such system is not implemented
+    //TODO: Handle militaryPoints and industrialPoints, but for now they are 5 by default since we don't have a mechanism for determining them
 
-#include "station/StationDB.h"
-#include "PyService.h"
-
-
-class StationSvc: public PyService
+void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
 {
-public:
-    StationSvc(PyServiceMgr *mgr);
-    virtual ~StationSvc();
-
-protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    StationDB m_db;
-
-    PyCallable_DECL_CALL(GetStationItemBits);
-    PyCallable_DECL_CALL(GetSolarSystem);
-    PyCallable_DECL_CALL(GetStation);
-    PyCallable_DECL_CALL(GetAllianceSystems);
-    PyCallable_DECL_CALL(GetSystemsForAlliance);
-
-};
-#endif
+    if (!sDatabase.RunQuery(res,
+                            "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, corporationID, "
+                            " allianceID, claimStructureID, claimTime, "
+                            " hubID, contested, 0 as stationCount, "
+                            " 5 as militaryPoints, 5 as industrialPoints, claimID"
+                            " FROM mapSystemSovInfo "
+                            " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"))
+    {
+        codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}

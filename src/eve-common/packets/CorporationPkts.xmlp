@@ -887,12 +887,27 @@
   </elementDef>
 
   <elementDef name="Call_CreateAlliance">
-    <listInline>
-      <string name="allianceName" safe="true"/>
+    <tupleInline>
+      <wstring name="allianceName" safe="true"/>
       <string name="shortName" safe="true"/>
-      <string name="description" none_marker="0" safe="true"/>
-      <string name="url" none_marker="0" safe="true"/>
-    </listInline>
+      <wstring name="description" none_marker="0" safe="true"/>
+      <wstring name="url" none_marker="0" safe="true"/>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_ApplyToJoinAlliance">
+    <tupleInline>
+      <int name="allianceID" />
+      <wstring name="applicationText"/>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_UpdateAllianceApplication">
+    <tupleInline>
+      <int name="corporationID" />
+      <wstring name="applicationText"/>
+      <int name="applicationStatus" />
+    </tupleInline>
   </elementDef>
 
   <elementDef name="Call_CorporateContactData">
