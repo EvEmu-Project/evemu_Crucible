@@ -191,43 +191,46 @@ void StructureItem::Rename(std::string name)
 }
 
 StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, SystemManager *system, const FactionData &data)
-    : ObjectSystemEntity(structure, services, system),
-      m_moonSE(nullptr),
-      m_towerSE(nullptr),
-      m_procTimer(10000) // arbitrary default
-{
-    m_tcu = false;
-    m_sbu = false;
-    m_ihub = false;
-    m_miner = false;
-    m_tower = false;
-    m_bridge = false;
-    m_jammer = false;
-    m_loaded = false;
-    m_module = false;
-    m_outpost = false;
-    m_reactor = false;
-
-    m_duration = 0;
-
-    m_procTimer.Disable();
-    m_procState = EVEPOS::ProcState::Invalid;
-
+    : DynamicSystemEntity(structure, services, system),
+    m_moonSE(nullptr),
+    m_planetSE(nullptr),
+    m_towerSE(nullptr),
+    m_tcuSE(nullptr),
+    m_sbuSE(nullptr),
+    m_ihubSE(nullptr),
+    m_gateSE(nullptr),
+    m_procTimer(10000), // arbitrary default
+    m_tcu(false),
+    m_sbu(false),
+    m_ihub(false),
+    m_miner(false),
+    m_tower(false),
+    m_bridge(false),
+    m_jammer(false),
+    m_loaded(false),
+    m_module(false),
+    m_outpost(false),
+    m_reactor(false),
+    m_duration(0),
+    m_planetID(0),
+    m_delayTime(0),
     /** @todo  this is direction from customs office to planet and set when co is created */
-    m_rotation = NULL_ORIGIN;
-    m_planetID = 0;
-    m_delayTime = 0;
+    m_rotation(NULL_ORIGIN),
+    m_procState(EVEPOS::ProcState::Invalid),
+    m_data(EVEPOS::StructureData())// zero-init data
+{
+    m_procTimer.Disable();
 
     m_warID = data.factionID;
     m_allyID = data.allianceID;
     m_corpID = data.corporationID;
     m_ownerID = data.ownerID;
 
-    // zero-init data
-    m_data = EVEPOS::StructureData();
-
     // update StructureItem with SE;
     structure->SetMySE(this);
+
+    // set valid stateName
+    m_data.state = EVEPOS::EntityState::Unanchored;
 
     _log(SE__DEBUG, "Created StructureSE for item %s (%u).", structure->name(), structure->itemID());
 }
@@ -236,13 +239,14 @@ void StructureSE::InitData()
 {
     // this item is a module.  get towerID from bubble and save
     if (m_module)
-    {
         if (m_bubble->HasTower())
             m_data.towerID = m_bubble->GetTowerSE()->GetID();
-    }
-    else if (m_bridge)
+
+    if (m_bridge)
     {
-        /** @todo figure out how/where to store this data.  */
+        m_moonSE = m_system->GetClosestMoonSE(GetPosition())->GetMoonSE();
+        m_data.anchorpointID = m_moonSE->GetID();
+
         EVEPOS::JumpBridgeData data = EVEPOS::JumpBridgeData();
         data.itemID = m_data.itemID;
         data.towerID = m_data.towerID;
@@ -253,14 +257,11 @@ void StructureSE::InitData()
         data.allowAlliance = false;
         m_db.SaveBridgeData(data);
     }
-    else if (m_tcu || m_ihub)
-    { 
-        //TCUs / IHubs are placed anywhere
-    }
-    else if (m_sbu)
+
+    if (m_sbu)
     { //SBUs are placed near stargates
         m_gateSE = m_system->GetClosestGateSE(GetPosition())->GetGateSE();
-        m_data.anchorpointID = m_planetSE->GetID();
+        m_data.anchorpointID = m_gateSE->GetID();
     }
     else
     { //Everything else is places near a moon
@@ -285,73 +286,53 @@ void StructureSE::Init()
         m_system->RemoveEntity(this); //this may segfault here....
         return;
     }
-    m_data.state = EVEPOS::StructureStatus::Unanchored;
+    m_data.state = EVEPOS::StructureState::Unanchored;
     m_self->SetFlag(flagStructureInactive);
 
-    switch (m_self->groupID())
-    {
-    case EVEDB::invGroups::Orbital_Infrastructure:
-    {
-        // should not hit here, but dont want to use 'default'
-        sLog.Error("StructureSE::Init", "groupID is Orbital_Infrastructure.");
-        EvE::traceStack();
-    }
-    break;
-    case EVEDB::invGroups::Sovereignty_Blockade_Units:
-    {
-        m_sbu = true;
-    }
-    break;
-    case EVEDB::invGroups::Control_Tower:
-    {
-        m_tower = true;
-        m_data.towerID = m_data.itemID;
-    }
-    break;
-    case EVEDB::invGroups::Territorial_Claim_Units:
-    {
-        m_tcu = true;
-    }
-    break;
-    case EVEDB::invGroups::Jump_Portal_Array:
-    {
-        m_bridge = true;
-        m_module = true;
-    }
-    break;
-    case EVEDB::invGroups::Cynosural_System_Jammer:
-    {
-        /** @todo (Allan) do we need anything else here?  check for and set system-wide cyno jammer?
+    switch (m_self->groupID()) {
+        case EVEDB::invGroups::Orbital_Infrastructure: {
+            // should not hit here, but dont want to use 'default'
+            sLog.Error("StructureSE::Init", "groupID is Orbital_Infrastructure.");
+            EvE::traceStack();
+        } break;
+        case EVEDB::invGroups::Sovereignty_Blockade_Units: {
+            m_sbu = true;
+        } break;
+        case EVEDB::invGroups::Control_Tower: {
+            m_tower = true;
+            m_data.towerID = m_data.itemID;
+        } break;
+        case EVEDB::invGroups::Territorial_Claim_Units: {
+            m_tcu = true;
+        } break;
+        case EVEDB::invGroups::Jump_Portal_Array: {
+            m_bridge = true;
+            m_module = true;
+        } break;
+        case EVEDB::invGroups::Cynosural_System_Jammer: {
+            /** @todo (Allan) do we need anything else here?  check for and set system-wide cyno jammer?
              *    as we're nowhere even close to needing/using cyno, this can wait
              * note: set generator active in mapDynamicData on activation of this module
              */
-        m_jammer = true;
-        m_module = true;
-    }
-    break;
-    case EVEDB::invGroups::Silo:
-    case EVEDB::invGroups::Mobile_Reactor:
-    {
-        m_module = true;
-        m_reactor = true;
-    }
-    break;
-    case EVEDB::invGroups::Moon_Mining:
-    {
-        m_miner = true;
-        m_module = true;
-        m_reactor = true;
-    }
-    break;
-    case EVEDB::invGroups::Infrastructure_Hubs:
-    {
-        m_ihub = true;
-    }
-    break;
-    default:
-    {
-        m_module = true;
-    }
+            m_jammer = true;
+            m_module = true;
+        } break;
+        case EVEDB::invGroups::Silo:
+        case EVEDB::invGroups::Mobile_Reactor: {
+            m_module = true;
+            m_reactor = true;
+        } break;
+        case EVEDB::invGroups::Moon_Mining: {
+            m_miner = true;
+            m_module = true;
+            m_reactor = true;
+        } break;
+        case EVEDB::invGroups::Infrastructure_Hubs: {
+            m_ihub = true;
+        } break;
+        default: {
+            m_module = true;
+        }
     }
 
     if (!m_db.GetBaseData(m_data))
@@ -363,30 +344,30 @@ void StructureSE::Init()
 
     m_loaded = true;
 
-    if (!m_tcu || !m_ihub)
-    {
-        if (m_data.anchorpointID == 0)
-        {
-            // make error here.  this should never hit.
-            _log(POS__MESSAGE, "StructureSE::Init %s(%u) has no moonID.", m_self->name(), m_data.itemID);
-            m_loaded = false;
-            return;
-        }
+    if (m_tcu or m_ihub) {
+        if (m_data.state > EVEPOS::StructureState::Anchored)
+            m_self->SetFlag(flagStructureActive);
+        return;
+    }
+
+    if (!IsStaticMapItem(m_data.anchorpointID)) {
+        // make error here.  this should never hit.
+        _log(POS__MESSAGE, "StructureSE::Init %s(%u) - anchorpointID is invalid.  Load Failure.", m_self->name(), m_data.itemID);
+        m_loaded = false;
+        return;
     }
 
     //Get entity for anchor point (type is determined by what is being anchored)
     SystemEntity *pSE = m_system->GetSE(m_data.anchorpointID);
     if (pSE == nullptr)
     {
-        _log(POS__WARNING, "StructureSE::Init %s(%u) has no anchorpointID. again.", m_self->name(), m_data.itemID);
+        _log(POS__WARNING, "StructureSE::Init %s(%u) - Cannot find SE for anchorpointID %u. Load Failure.", \
+                m_self->name(), m_data.itemID, m_data.anchorpointID);
         m_loaded = false;
         return;
     }
-    if (m_tcu || m_ihub) //anchored wherever, so it doesn't matter
-    {
-        //Nothing needed here
-    }
-    else if (m_sbu) //anchored near stargates, so we need a stargate
+
+    if (m_sbu) //anchored near stargates, so we need a stargate
     {
         if (m_gateSE == nullptr)
         {
@@ -425,13 +406,12 @@ void StructureSE::Init()
         SystemEntity *pSE = m_system->GetSE(m_data.towerID);
         if (pSE == nullptr)
         {
-            //iRef->Delete(); // really delete this?
             _log(POS__ERROR, "StructureSE::Init %s(%u) is invalid.  why are we here?", m_self->name(), m_data.itemID);
             return;
         }
         m_towerSE = pSE->GetTowerSE();
         m_towerSE->AddModule(this);
-        m_duration = 3600000;
+        m_duration = 3600000;   // modules default to 1h
     }
 
     /** @todo check for timestamp here and see if any processes are running.
@@ -442,7 +422,7 @@ void StructureSE::Init()
         // do something constructive here.
     }
 
-    if (m_data.state > EVEPOS::StructureStatus::Anchored)
+    if (m_data.state > EVEPOS::StructureState::Anchored)
         m_self->SetFlag(flagStructureActive);
 }
 
@@ -450,6 +430,9 @@ void StructureSE::Scoop()
 {
     m_db.DeleteData(m_data.itemID);
     m_data = EVEPOS::StructureData();
+
+    // repackage item?
+    m_self->ChangeSingleton(false);
 }
 
 void StructureSE::Process()
@@ -481,15 +464,15 @@ void StructureSE::Process()
             m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.AnchorDrop", 0, 0, 0, -1, 0);
             if (m_tower)
                 m_moonSE->SetTower(this);
-            //if (m_sbu)
-            //    m_gateSE->SetSBU(this);
+            if (m_sbu)
+                m_gateSE->SetSBU(this);
 
             m_db.UpdateBaseData(m_data);
         }
         break;
         case ProcState::Offlining:
         {
-            m_data.state = StructureStatus::Anchored;
+            m_data.state = StructureState::Anchored;
             SetOffline();
             SendSlimUpdate();
             m_db.UpdateBaseData(m_data);
@@ -497,7 +480,7 @@ void StructureSE::Process()
         break;
         case ProcState::Onlining:
         {
-            m_data.state = StructureStatus::Online;
+            m_data.state = StructureState::Online;
             SetOnline();
             SendSlimUpdate();
             m_db.UpdateBaseData(m_data);
@@ -521,8 +504,8 @@ void StructureSE::Process()
         case ProcState::ArmorReinforcing:
         {
             m_self->SetFlag(flagStructureInactive);
-            m_data.state = StructureStatus::Invulnerable;
-            //m_data.state = StructureStatus::Reinforced;
+            m_data.state = StructureState::Invulnerable;
+            //m_data.state = StructureState::Reinforced;
             m_db.UpdateBaseData(m_data);
             // set timer for time to come out of reinforced
             /*Reinforcement is an established system in EVE where a structure becomes invulnerable for a period of time.
@@ -548,7 +531,7 @@ void StructureSE::Process()
         }
 
         // this will need more work
-        m_data.timestamp = 0;
+        m_data.timestamp = GetTimeMSeconds();
 
         if (m_procState < ProcState::Online)
             m_procState = ProcState::Invalid;
@@ -557,7 +540,7 @@ void StructureSE::Process()
 
 void StructureSE::Drop(SystemBubble *pBubble)
 {
-    // this is for dropping items where Init() and Add() each need info from the other.
+    // this is for dropping POS where Init() and Add() each need info from the other.
     m_bubble = pBubble;
     Init();
     // now null bubble to be added correctly
@@ -596,7 +579,7 @@ void StructureSE::Drop(SystemBubble *pBubble)
  */
 void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
 {
-    if (m_data.state > EVEPOS::StructureStatus::Unanchored)
+    if (m_data.state > EVEPOS::StructureState::Unanchored)
     {
         pClient->SendErrorMsg("The %s is already anchored", m_self->name());
         return; // make error here?
@@ -608,7 +591,15 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
 
     /** @todo  check for other modules changing state...only allow one at a time */
 
-    if (IsTowerSE())
+    /* @todo set min/max anchor distances....this will need more work...
+    uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
+    uint32 anchorMax(m_self->GetAttribute(AttrAnchorDistanceMax).get_uint32());
+    */
+
+    // this is incomplete.  there may be client error msgs (havent looked or found)
+    // these errors should throw instead of return.
+    
+    if (m_tower)
     {
         // hack for warping to moons
         // this puts ship at Az: 0.785332, Ele: 0.615505, angle: 1.5708
@@ -628,33 +619,42 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             _log(POS__TRACE, "StructureSE::Anchor() - TowerSE %s(%u) new position %.2f, %.2f, %.2f at %s",
                  GetName(), m_data.itemID, pos.x, pos.y, pos.z, m_moonSE->GetName());
     }
-    else if (IsTCUSE() || IsIHubSE())
+    else if (m_sbu)
     {
-        //TCUs are anchored anywhere
-        m_destiny->SetPosition(pos);
-        sBubbleMgr.Add(this);
-    }
-    else if (IsSBUSE())
-    {
-        //Anchor an SBU to the closest stargate
-        uint32 dist = 15000; //15km off of the gate
-        uint32 radius = m_gateSE->GetRadius();
-        float rad = EvE::Trig::Deg2Rad(90);
+        //verify anchor distance from stargate
+        uint32 distance(m_gateSE->GetPosition().distance(m_self->position()));
+        uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
+        uint32 anchorMax(m_self->GetAttribute(AttrAnchorDistanceMax).get_uint32());
 
-        pos = m_gateSE->GetPosition();
-        pos.x += radius + dist * std::sin(rad);
-        pos.z += radius + dist * std::cos(rad);
+        if (distance > anchorMax) {
+            pClient->SendErrorMsg("You cannot anchor the %s farther than %u meters from a stargate.", \
+                    m_self->name(), anchorMax);
+            return;
+        }
+
+        if (distance < anchorMin) {
+            pClient->SendErrorMsg("You cannot anchor the %s closer than %u meters from a stargate.", \
+                    m_self->name(), anchorMin);
+            return;
+        }
+
+        // position is within range.  allow anchoring
         m_destiny->SetPosition(pos);
-        sBubbleMgr.Add(this);
 
         if (is_log_enabled(POS__TRACE))
-            _log(POS__TRACE, "StructureSE::Anchor() - SBUSE %s(%u) new position %.2f, %.2f, %.2f at %s",
-                 GetName(), m_data.itemID, pos.x, pos.y, pos.z, m_gateSE->GetName());
+            _log(POS__TRACE, "StructureSE::Anchor() - SBUSE %s(%u) is anchoring %u m from %s",
+                 GetName(), m_data.itemID, distance, m_gateSE->GetName());
+    }
+    else if (m_tcu or m_ihub)
+    {
+        // these are anchored anywhere in system.
+        m_destiny->SetPosition(pos);
     }
     else
     {
         if (!m_moonSE->HasTower())
         {
+            // this should never hit...
             pClient->SendErrorMsg("There is no tower anchored at this moon.  You cannot anchor any structure without a tower");
             return;
         }
@@ -668,7 +668,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     m_self->SaveItem();
 
     m_procState = EVEPOS::ProcState::Anchoring;
-    m_data.state = EVEPOS::StructureStatus::Anchored;
+    m_data.state = EVEPOS::StructureState::Anchored;
     m_delayTime = m_self->GetAttribute(AttrAnchoringDelay).get_uint32();
     m_procTimer.SetTimer(m_delayTime);
     m_data.timestamp = GetFileTimeNow();
@@ -690,7 +690,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
 
 void StructureSE::PullAnchor()
 {
-    if (m_data.state > EVEPOS::StructureStatus::Anchored)
+    if (m_data.state > EVEPOS::StructureState::Anchored)
         return; // make error here?
 
     /** @todo  check for other modules changing state...only allow one at a time */
@@ -699,14 +699,15 @@ void StructureSE::PullAnchor()
     //m_towerSE->GetSOI();
 
     m_procState = EVEPOS::ProcState::Unanchoring;
-    m_data.state = EVEPOS::StructureStatus::Unanchored;
+    m_data.state = EVEPOS::StructureState::Unanchored;
     m_delayTime = m_self->GetAttribute(AttrUnanchoringDelay).get_uint32();
     m_procTimer.SetTimer(m_delayTime);
     m_data.timestamp = GetFileTimeNow();
 
     SendSlimUpdate();
 
-    m_bubble->SetTowerSE(nullptr);
+    if (m_tower)
+        m_bubble->SetTowerSE(nullptr);
 
     /*
     if (m_tower)
@@ -730,7 +731,7 @@ void StructureSE::PullAnchor()
 
 void StructureSE::Activate(int32 effectID)
 {
-    if (m_data.state > EVEPOS::StructureStatus::Anchored)
+    if (m_data.state > EVEPOS::StructureState::Anchored)
         return; // make error here?
 
     /** @todo  check for other modules changing state...only allow one at a time */
@@ -774,23 +775,23 @@ void StructureSE::Activate(int32 effectID)
             throw PyException(MakeUserError("NotEnoughPower", args));
         }
     }
-    else
-    {
-        ; // check for things that DONT use a tower.  not sure if we need anymore checks here.  yes....all sov structures will need checks for activation
-        if (m_tcu)
+    // check for things that DONT use a tower.  not sure if we need anymore checks here.
+    //yes....all sov structures will need checks for activation
+    //  ?? can you activate a sov structure?
+    else if (m_tcu)
         {
             // Check some things for TCU onlining
         }
-        if (m_sbu)
+    else if (m_sbu)
         {
             // Check some things for SBU onlining
         }
-        if (m_ihub)
+    else if (m_ihub)
         {
             // Check some things for IHUB onlining
         }
-    }
-    m_data.state = EVEPOS::StructureStatus::Onlining;
+
+    m_data.state = EVEPOS::StructureState::Onlining;
     m_procState = EVEPOS::ProcState::Onlining;
     m_delayTime = m_self->GetAttribute(AttrOnliningDelay).get_uint32();
     m_procTimer.SetTimer(m_delayTime);
@@ -799,6 +800,7 @@ void StructureSE::Activate(int32 effectID)
     SendSlimUpdate();
     m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnline", 0, 1, 1, -1, 0);
 
+    // should this be done here?
     if (m_module)
         m_towerSE->OnlineModule(this);
 
@@ -821,7 +823,7 @@ void StructureSE::SetOnline()
     // this state is persistent until out of resources or changed
     m_self->SetFlag(flagStructureActive);
     m_procState = EVEPOS::ProcState::Online;
-    m_data.state = EVEPOS::StructureStatus::Online;
+    m_data.state = EVEPOS::StructureState::Online;
 
     SetTimer(m_duration);
     m_db.UpdateBaseData(m_data);
@@ -851,7 +853,7 @@ void StructureSE::SetOperating()
 {
     // this state is persistant until out of resources or changed
     m_procState = EVEPOS::ProcState::Operating;
-    m_data.state = EVEPOS::StructureStatus::Operating;
+    m_data.state = EVEPOS::StructureState::Operating;
     m_data.timestamp = GetFileTimeNow();
 
     SetTimer(m_duration);
@@ -943,27 +945,27 @@ void StructureSE::EncodeDestiny(Buffer &into)
     head.posX = x();
     head.posY = y();
     head.posZ = z();
-    if (m_tcu)
+    if (m_tcu or m_ihub or m_sbu)
     {
-        _log(POS__DESTINY, "TCU Launch Triggered");
+        // may need to update this after things are working
         head.mode = Ball::Mode::RIGID;
-        head.flags = (m_data.state < EVEPOS::StructureStatus::Anchored ? Ball::Flag::IsFree : 0, Ball::Flag::IsGlobal) /*Ball::Flag::HasMiniBalls*/;
+        head.flags = Ball::Flag::IsGlobal;
     }
     else if (m_tower)
     {
         head.mode = Ball::Mode::STOP;
-        head.flags = (m_data.state < EVEPOS::StructureStatus::Anchored ? Ball::Flag::IsFree : 0) /*Ball::Flag::HasMiniBalls*/;
+        head.flags = (m_data.state < EVEPOS::StructureState::Anchored ? Ball::Flag::IsFree : 0) /*Ball::Flag::HasMiniBalls*/;
     }
     else
     {
         head.mode = Ball::Mode::RIGID;
         //TODO check for miniballs and add here if found.
-        head.flags = (m_data.state < EVEPOS::StructureStatus::Anchored ? Ball::Flag::IsFree : 0 /*Ball::Flag::IsMassive*/) /*Ball::Flag::HasMiniBalls*/;
+        head.flags = (m_data.state < EVEPOS::StructureState::Anchored ? Ball::Flag::IsFree : 0 /*Ball::Flag::IsMassive*/) /*Ball::Flag::HasMiniBalls*/;
     }
     into.Append(head);
 
     /** @todo these may need more work....  */
-    if (m_tcu or m_tower or m_sbu or m_ihub)
+    if (head.mode != Ball::Mode::RIGID)
     {
         MassSector mass = MassSector();
         mass.cloak = 0;
@@ -974,17 +976,6 @@ void StructureSE::EncodeDestiny(Buffer &into)
         into.Append(mass);
     }
 
-    if (m_data.state < EVEPOS::StructureStatus::Anchored)
-    {
-        DataSector data = DataSector();
-        data.inertia = 1;
-        data.velX = 0;
-        data.velY = 0;
-        data.velZ = 0;
-        data.maxSpeed = 1;
-        data.speedfraction = 1;
-        into.Append(data);
-    }
 
     /* TODO  query and configure miniballs for entity
      * NOTE  MiniBalls are BROKEN!!!  DO NOT USE!
@@ -1035,18 +1026,19 @@ PyDict *StructureSE::MakeSlimItem()
     /** @todo (Allan) *Timestamp will need to be set to time current state is started. */
     PyDict *slim = new PyDict();
     slim->SetItemString("name", new PyString(m_self->itemName()));
-    slim->SetItemString("nameID", PyStatic.NewNone());
     slim->SetItemString("itemID", new PyLong(m_data.itemID));
     slim->SetItemString("typeID", new PyInt(m_self->typeID()));
+    slim->SetItemString("posState", new PyInt(m_data.state));
+
     slim->SetItemString("ownerID", new PyInt(m_ownerID));
     slim->SetItemString("corpID", IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
     slim->SetItemString("allianceID", IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
     slim->SetItemString("warFactionID", IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
+
     if (m_module or m_tower)
     { // for control towers and structures
         slim->SetItemString("posTimestamp", new PyLong(m_data.timestamp));
-        slim->SetItemString("posState", new PyInt(m_data.state));
-        slim->SetItemString("incapacitated", new PyInt((m_data.state == EVEPOS::StructureStatus::Incapacitated) ? 1 : 0));
+        slim->SetItemString("incapacitated", new PyInt(m_data.state == EVEPOS::StructureState::Incapacitated));
         slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
     }
     if (m_outpost)
@@ -1058,6 +1050,7 @@ PyDict *StructureSE::MakeSlimItem()
     else if (m_tcu)
     {
         slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
+        slim->SetItemString("posTimestamp", PyStatic.NewNone());
     }
     else if (m_miner)
     {
@@ -1068,10 +1061,9 @@ PyDict *StructureSE::MakeSlimItem()
         slim->SetItemString("dunRotation", tuple); // direction to moon
         slim->SetItemString("controlTowerID", new PyLong(m_data.towerID));
     }
-    else if (m_module)
-    {
+
+    if (m_module)
         slim->SetItemString("controlTowerID", new PyLong(m_data.towerID));
-    }
 
     if (is_log_enabled(POS__SLIMITEM))
     {
@@ -1100,7 +1092,7 @@ eventSBUOnline = 256
 void StructureSE::GetEffectState(PyList &into)
 {
     // this is for sending structure state info in destiny state data
-    if ((m_data.state != EVEPOS::StructureStatus::Online) and (m_data.state != EVEPOS::StructureStatus::Operating))
+    if ((m_data.state != EVEPOS::StructureState::Online) and (m_data.state != EVEPOS::StructureState::Operating))
         return;
 
     OnSpecialFX13 effect;

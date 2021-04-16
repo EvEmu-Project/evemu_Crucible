@@ -17,46 +17,26 @@ class TCUSE
 {
 public:
     TCUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData);
-    virtual ~TCUSE();
+    virtual ~TCUSE()                                  { /* do nothing here */ }
 
     /* class type pointer querys. */
     virtual TCUSE*              GetTCUSE()            { return this; }
 
     /* class type tests. */
+    /* Base */
+    //virtual bool                isGlobal()              { return true; }
     virtual bool                IsTCUSE()             { return true; }
 
     /* SystemEntity interface */
     virtual void                Process();
-    virtual PyDict*             MakeSlimItem();
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Init();
-    virtual void                InitData();
 
-    /* basic TCU methods */
-    virtual void                SetOnline();
-    virtual void                SetOffline();
-
-    virtual void                Online();
-    virtual void                Operating();
-    virtual void                Reinforced();
-
-    virtual void                Scoop();
-
-    void                        ReinforceTCU();
-
-    void UpdatePassword();
-    void SetUseFlags(uint32 itemID, int8 view=0, int8 take=0, int8 use=0);
-
-    uint16 GetSOI()                                     { return m_soi; }
 
 protected:
-    //SystemEntity* m_pShieldSE;
 
 private:
-    uint16 m_soi;   // Sphere Of Influence, 45km max
-
-    std::map<uint32, StructureSE*> m_structs;  // structID/pSSE
 
 };
 

@@ -46,6 +46,9 @@ SystemBubble::SystemBubble(SystemManager* pSystem, const GPoint& center, double 
 : m_system(pSystem),
 m_center(center),
 m_radius(radius),
+m_tcuSE(nullptr),
+m_sbuSE(nullptr),
+m_ihubSE(nullptr),
 m_towerSE(nullptr),
 m_centerSE(nullptr),
 m_spawnTimer(0)
