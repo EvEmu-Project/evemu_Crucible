@@ -72,3 +72,22 @@ EOF
 # Migrate the DB to the latest version
 echo "Migrating database to latest version..."
 sql-migrate up -config=/src/dbconfig.yml
+
+# Write evedb.yaml based upon above variables
+cd /src/sql
+cat >/src/evedb.yaml <<EOF
+base-dir: /src/sql/base
+db-database: evemu
+db-host: db
+db-pass: evemu
+db-port: 3306
+db-user: evemu
+log-level: Info
+migrations-dir: /src/sql/migrations
+EOF
+
+# Download latest version of evedbtool
+/src/sql/get_evedbtool.sh
+
+echo "Running EVEDBTool..."
+/src/sql/evedbtool install
