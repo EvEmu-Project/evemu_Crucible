@@ -15,10 +15,10 @@
 
 // You MUST set these up, or the script will die.
 $database = array(
-'host'=>'',					// Your DNS hostname or IP address
-'user'=>'',					// MySQL User account with access to SELECT on your Eve database
-'password'=>'',			// MySQL Password
-'db'=>''						// Name of your EVE Emulator database
+'host'=>'db',					// Your DNS hostname or IP address
+'user'=>'evemu',					// MySQL User account with access to SELECT on your Eve database
+'password'=>'evemu',			// MySQL Password
+'db'=>'evemu'						// Name of your EVE Emulator database
 );
 foreach($database as $db_check) {
 	if( $db_check=="" ) die("CHANGE YOUR DB CONFIGS!");
@@ -26,9 +26,11 @@ foreach($database as $db_check) {
 
 // Init the database connection
 $db = mysql_connect($database['host'], $database['user'], $database['password']); mysql_select_db($database['db']);
-
+if (!$db) {
+    die('Could not connect: ' . mysql_error());
+}
 // get current status - Need to have Johnsus' serverStartTime patch applied
-$query="select config_value as StartTime from srvStatus where config_name = 'serverStartTime';";
+$query="select startTime as StartTime from srvStatus where updateTime=(select max(updateTime));";
 if($result=mysql_query($query,$db)) {
 	$row=mysql_fetch_array($result);
 	if( $row['StartTime'] ) {
@@ -52,17 +54,17 @@ if($result=mysql_query($query,$db)) {
 		$offline=true;
 	}
 } else {
-	die("Horrible SQL error here!");
+	die("Horrible SQL error here! -- " . mysql_error());
 }
 
 // get count of active players - Need to have Johnsus' Online Player patch applied
 if( !$offline ) {
-	$query="select count(Online) as online from character_ where Online = 1;";
+	$query="select count(Online) as online from account where Online = 1;";
 	if( $result=mysql_query($query,$db) ) {
 		$row=mysql_fetch_array($result);
 		$num_players = $row['online'];
 	} else {
-		die("Horrible SQL error here!");
+		die("Horrible SQL error here! -- " . mysql_error());
 	}
 }
 // Start the server status table, showing server uptime and player count
@@ -83,10 +85,10 @@ if( $num_players || !$offline ) {
 			<td align="right" width="15%"><strong>Security</strong>&nbsp;</td>
 		</tr>');
 	$query="select characterID,characterName,raceName,securityRating,corporationName
-					from character_ c
+					from chrCharacters c
 					join invTypes i on c.typeID = i.typeID
 					join chrRaces r on i.raceID = r.raceID
-					join corporation co on c.corporationID = co.corporationID
+					join crpCorporation co on c.corporationID = co.corporationID
 					where Online=1;";
 	if($result=mysql_query($query,$db)) {
 		while($row=mysql_fetch_array($result)) {
@@ -100,7 +102,7 @@ if( $num_players || !$offline ) {
 			print('</tr>');
 		}
 	} else {
-		die("Horrible SQL error here!");
+		die("Horrible SQL error here! -- " . mysql_error());
 	}
 }
 print("</table>");
