@@ -40,7 +40,7 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     ports:
-      - 26081:80
+      - 127.0.0.1:26081:80
     environment:
       - PMA_USER=evemu
       - PMA_PASSWORD=evemu
