@@ -3,7 +3,7 @@
 
 # This is a multi Stage Build, we start by makeing the base image we will use.
 FROM quay.io/fedora/fedora:33-x86_64 as base
-RUN dnf groupinstall -y "Development Tools" && dnf install -y cmake git zlib-devel mariadb-devel boost-devel tinyxml-devel utf8cpp-devel mariadb shadow-utils gdb
+RUN dnf groupinstall -y "Development Tools" && dnf install -y cmake git zlib-devel mariadb-devel boost-devel tinyxml-devel utf8cpp-devel mariadb shadow-utils gdb gdb-gdbserver pip python3-devel
 
 # Now we use the base image to build the project
 FROM base as app-build
@@ -29,10 +29,18 @@ RUN make install
 # Now we switch to makeing the image that will run the code that we have build
 FROM base as app
 LABEL description="EVEmu Server"
+
+# copy over the source so we can do debug things.
+ADD /cmake/ /src/cmake
+ADD /dep/ /src/dep
+COPY --from=app-build /src/build /src/build
+
 # copy our utils to this image
 COPY --from=app-build /src/utils/ /src/utils
+
 # add in the files to load the database
 ADD /sql/ /src/sql
+
 # copy our compiled code to this image
 COPY --from=app-build /app/ /app
 
@@ -41,6 +49,7 @@ RUN cd /src/sql && ./get_evedbtool.sh
 # Expose the port the server is on.
 EXPOSE 26000
 EXPOSE 26001
+EXPOSE 4444
 
 # Start the app via the script.
 CMD /src/utils/container-scripts/start.sh

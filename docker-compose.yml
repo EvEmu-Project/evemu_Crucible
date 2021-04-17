@@ -7,22 +7,27 @@ services:
     restart: on-failure
     volumes:
       # we can use a bind to the config, that way it is not part of the image
+      - ./src/:/src/src/
       - ./utils/config:/app/etc
+      - ./utils/container-scripts:/app/utils/container-scripts
       - server_cache:/app/server_cache
       - image_cache:/app/image_cache
     ports:
       - "26000:26000"
       - "26001:26001"
+      - "26083:4444"
     depends_on:
       - db
     links:
       - "db"
     environment:
-      - RUN_WITH_GDB=FALSE #Set to TRUE to run evemu with gdb automatically
+      - RUN_WITH_GDB=TRUE #Set to TRUE to run evemu with gdb automatically
     stdin_open: true # Enables stdin for the container. Attach to it with 'docker attach'
     tty: true
     cap_add: #This is required for gdb to work
       - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
 
   db:
     image: "quay.io/bitnami/mariadb:10.4"
@@ -53,20 +58,35 @@ services:
   webserver:
     image: nginx:latest
     ports:
-        - "26080:80"
+      - "26080:80"
     volumes:
-        - ./utils/webtools:/usr/share/nginx/html
-        - ./utils/webtools/site.conf:/etc/nginx/conf.d/nginx.conf
+      - ./utils/webtools/statuspage:/usr/share/nginx/html
+      - ./utils/webtools/statuspage/site.conf:/etc/nginx/conf.d/nginx.conf
     links:
-        - php
-        - db
+      - php
+      - db
   
   php:
-    build: utils/webtools
+    build: utils/webtools/statuspage
     volumes:
-      - ./utils/webtools:/usr/share/nginx/html
+      - ./utils/webtools/statuspage:/usr/share/nginx/html
     links:
-        - db
+      - db
+
+  gdbgui:
+    build: utils/webtools/gdbgui
+    restart: on-failure
+    tty: true
+    ports:
+      - "26082:8080"
+    links:
+      - server
+    depends_on:
+      - server
+    volumes:
+      # we can use a bind to the src, that way it is not part of the image
+      - ./src/:/src/src/
+    
   
 volumes:
   db:

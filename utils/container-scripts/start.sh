@@ -24,7 +24,7 @@ echo "Starting eve-server..."
 cd /app/bin/
 if [ "$RUN_WITH_GDB" == "TRUE" ]; then
     echo "=== Running EVEmu with gdb ==="
-    gdb -ex run ./eve-server
+    gdbserver localhost:4444 eve-server
 else
     echo "=== Running EVEmu normally ==="
     ./eve-server
