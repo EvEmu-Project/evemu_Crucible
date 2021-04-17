@@ -42,7 +42,8 @@ services:
     ports:
       - 26081:80
     environment:
-      - PMA_ARBITRARY=1
+      - PMA_USER=evemu
+      - PMA_PASSWORD=evemu
       - PMA_HOST=db
     depends_on:
       - db
