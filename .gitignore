@@ -109,3 +109,6 @@ sql/tables_old/
 
 # misc shit
 sql.tar.gz
+
+# VSCode Config Files
+.vscode/
