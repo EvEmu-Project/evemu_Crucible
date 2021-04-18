@@ -6,6 +6,11 @@ EVEmu is a work-in-progress server emulator for the space MMO EVE Online. This i
 ## ChangeLog
 [ChangeLog](doc/ChangeLog.md)
 
+## EVEmu Software Development Kit ##
+The EVEmu project maintains a set of pre-configured tools and environments which help setting up a new devlopment station. [Check them out](https://github.com/EvEmu-Project/EvEmu_SDK)
+
+Additional details on the SDK is [available on the wiki](https://wiki.evemu.dev/wiki/EVEmu-SDK).
+
 ## `docker-compose` Quickstart
  EVEmu can be run with Docker Compose:
 ```

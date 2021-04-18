@@ -1379,12 +1379,12 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
     if (is_log_enabled(DESTINY__BALL_DUMP))
         addballs2.Dump( DESTINY__BALL_DUMP, "    " );
     //send the update
-    PyTuple* t = addballs2.Encode();
-    for (auto cur : m_clients)
-        cur.second->QueueDestinyUpdate(&t, true);
-
-    //cleanup
-    SafeDelete( destinyBuffer );
+    PyTuple* rsp = addballs2.Encode();
+    // does this need to be incremented?  the others do...
+    for (auto cur : m_clients) {
+        PyIncRef(rsp);
+        cur.second->QueueDestinyUpdate(&rsp, true);
+    }
 }
 
 void SystemManager::AddItemToInventory(InventoryItemRef iRef)
