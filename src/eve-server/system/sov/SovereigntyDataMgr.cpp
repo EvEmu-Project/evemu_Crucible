@@ -177,14 +177,18 @@ PyRep *SovereigntyDataMgr::GetAllianceSystems() //Get all systems associated wit
     return list;
 }
 
-PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
+PyRep* SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
 {
     PyList *list = new PyList();
 
-    DBRowDescriptor* header = new DBRowDescriptor();
-    header->AddColumn( "quantity",          DBTYPE_I4 );
-    header->AddColumn( "requiredTypeID",    DBTYPE_I4 );
-    header->AddColumn( "damagePerJob",      DBTYPE_R4 );
+    DBRowDescriptor *header = new DBRowDescriptor();
+    header->AddColumn("locationID", DBTYPE_I4);
+    header->AddColumn("allianceID", DBTYPE_I4);
+    header->AddColumn("stationCount", DBTYPE_I4);
+    header->AddColumn("militaryPoints", DBTYPE_I4);
+    header->AddColumn("industrialPoints", DBTYPE_I4);
+    header->AddColumn("claimedFor", DBTYPE_I4);
+    CRowSet *rowset = new CRowSet(&header);
 
     if (IsConstellation(locationID))
     {
@@ -201,13 +205,13 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
             _log(SOV__DEBUG, "claimedFor: %u", sData.allianceID);
             _log(SOV__DEBUG, "==========");
 
-            dict->SetItemString("locationID", new PyInt(sData.solarSystemID));
-            dict->SetItemString("allianceID", new PyInt(sData.allianceID));
-            dict->SetItemString("stationCount", new PyInt(sData.stationCount));
-            dict->SetItemString("militaryPoints", new PyInt(sData.militaryPoints));
-            dict->SetItemString("industrialPoints", new PyInt(sData.industrialPoints));
-            dict->SetItemString("claimedFor", new PyInt(sData.allianceID));
-            list->AddItem(new PyObject("util.KeyVal", dict));
+            PyPackedRow *row = rowset->NewRow();
+            row->SetField("locationID", new PyInt(sData.solarSystemID));
+            row->SetField("allianceID", new PyInt(sData.allianceID));
+            row->SetField("stationCount", new PyInt(sData.stationCount));
+            row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
+            row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
+            row->SetField("claimedFor", new PyInt(sData.allianceID));
         }
     }
     else if (IsSolarSystem(locationID))
@@ -227,15 +231,15 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
             _log(SOV__DEBUG, "claimedFor", sData.allianceID);
             _log(SOV__DEBUG, "==========");
 
-            dict->SetItemString("locationID", new PyInt(sData.solarSystemID));
-            dict->SetItemString("allianceID", new PyInt(sData.allianceID));
-            dict->SetItemString("stationCount", new PyInt(sData.stationCount));
-            dict->SetItemString("militaryPoints", new PyInt(sData.militaryPoints));
-            dict->SetItemString("industrialPoints", new PyInt(sData.industrialPoints));
-            dict->SetItemString("claimedFor", new PyInt(sData.allianceID));
-            list->AddItem(new PyObject("util.KeyVal", dict));
+            PyPackedRow *row = rowset->NewRow();
+            row->SetField("locationID", new PyInt(sData.solarSystemID));
+            row->SetField("allianceID", new PyInt(sData.allianceID));
+            row->SetField("stationCount", new PyInt(sData.stationCount));
+            row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
+            row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
+            row->SetField("claimedFor", new PyInt(sData.allianceID));
         }
     }
 
-    return list;
+    return rowset;
 }
