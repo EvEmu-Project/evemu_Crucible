@@ -28,6 +28,7 @@
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 TCUSE::TCUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
 : StructureSE(structure, services, system, fData)
@@ -48,6 +49,35 @@ void TCUSE::Init()
     m_self->SetAttribute(AttrIsGlobal, EvilOne, false);
 }
 
+void TCUSE::Online()
+{
+    _log(SOV__DEBUG, "Onlining TCU... Creating a new claim.");
+
+    StructureSE::Online();
+
+    SovereigntyData sovData;
+
+    sovData.solarSystemID = m_system->GetID();
+    sovData.regionID = m_system->GetRegionID();
+    sovData.constellationID = m_system->GetConstellationID();
+    sovData.corporationID = m_corpID;
+    sovData.allianceID = m_allyID;
+    sovData.claimStructureID = m_data.itemID;
+    sovData.claimTime = GetFileTimeNow();
+    sovData.hubID = 0;
+    sovData.contested = 0;
+    sovData.stationCount = 0;
+    sovData.militaryPoints = 0;
+    sovData.industrialPoints = 0;
+
+    svDataMgr.AddSovClaim(sovData);
+}
+
+void TCUSE::Offline()
+{
+    _log(SOV__DEBUG, "Offlining TCU... Not currently implemented.");
+    StructureSE::Offline();
+}
 
 void TCUSE::Process()
 {

@@ -36,6 +36,7 @@ class SovereigntyDB
 {
 public:
     static void GetSovereigntyData(DBQueryResult& res);
+    static void AddSovereigntyData(SovereigntyData data, uint32& claimID);
 };
 
 #endif

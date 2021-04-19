@@ -31,7 +31,7 @@
 void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
-                            "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, corporationID, "
+                            "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, mapSolarSystems.regionID, corporationID, "
                             " allianceID, claimStructureID, claimTime, "
                             " hubID, contested, 0 as stationCount, "
                             " 5 as militaryPoints, 5 as industrialPoints, claimID"
@@ -39,5 +39,19 @@ void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
                             " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"))
     {
         codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
+void SovereigntyDB::AddSovereigntyData(SovereigntyData data, uint32& claimID)
+{
+    DBerror err;
+    if (!sDatabase.RunQueryLID(err, claimID,
+                            "INSERT into mapSystemSovInfo (solarSystemID, corporationID, "
+                            " allianceID, claimStructureID, claimTime, hubID, contested) "
+                            " VALUES (%u, %u, %u, %u, %u, %u, %u)", data.solarSystemID, 
+                            data.corporationID, data.allianceID, data.claimStructureID, 
+                            data.claimTime, data.hubID, data.contested))
+    {
+        codelog(SOV__ERROR, "Error in adding new claim: %s", err.c_str());
     }
 }
