@@ -37,6 +37,7 @@ public:
     PyRep *GetAllianceSystems();
     PyRep *GetCurrentSovData(uint32 locationID);
     void AddSovClaim(SovereigntyData data);
+    void RemoveSovClaim(uint32 systemID);
 
 protected:
     void Populate();

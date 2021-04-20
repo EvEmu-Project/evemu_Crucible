@@ -29,8 +29,8 @@ public:
 
     /* SystemEntity interface */
     virtual void                Process();
-    virtual void                Online();
-    virtual void                Offline();
+    virtual void                SetOnline();
+    virtual void                SetOffline();
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Init();

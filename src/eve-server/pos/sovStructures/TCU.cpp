@@ -49,11 +49,11 @@ void TCUSE::Init()
     m_self->SetAttribute(AttrIsGlobal, EvilOne, false);
 }
 
-void TCUSE::Online()
+void TCUSE::SetOnline()
 {
     _log(SOV__DEBUG, "Onlining TCU... Creating a new claim.");
 
-    StructureSE::Online();
+    StructureSE::SetOnline();
 
     SovereigntyData sovData;
 
@@ -73,10 +73,11 @@ void TCUSE::Online()
     svDataMgr.AddSovClaim(sovData);
 }
 
-void TCUSE::Offline()
+void TCUSE::SetOffline()
 {
-    _log(SOV__DEBUG, "Offlining TCU... Not currently implemented.");
-    StructureSE::Offline();
+    _log(SOV__DEBUG, "Offlining TCU... Removing claim.");
+    svDataMgr.RemoveSovClaim(m_system->GetID());
+    StructureSE::SetOffline();
 }
 
 void TCUSE::Process()

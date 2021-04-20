@@ -48,10 +48,20 @@ void SovereigntyDB::AddSovereigntyData(SovereigntyData data, uint32& claimID)
     if (!sDatabase.RunQueryLID(err, claimID,
                             "INSERT into mapSystemSovInfo (solarSystemID, corporationID, "
                             " allianceID, claimStructureID, claimTime, hubID, contested) "
-                            " VALUES (%u, %u, %u, %u, %u, %u, %u)", data.solarSystemID, 
+                            " VALUES (%u, %u, %u, %u, %f, %u, %u)", data.solarSystemID, 
                             data.corporationID, data.allianceID, data.claimStructureID, 
-                            data.claimTime, data.hubID, data.contested))
+                            GetFileTimeNow(), data.hubID, data.contested))
     {
         codelog(SOV__ERROR, "Error in adding new claim: %s", err.c_str());
+    }
+}
+
+void SovereigntyDB::RemoveSovereigntyData(uint32 systemID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "DELETE from mapSystemSovInfo WHERE solarSystemID=%u", systemID))
+    {
+        codelog(SOV__ERROR, "Error in removing claim: %s", err.c_str());
     }
 }

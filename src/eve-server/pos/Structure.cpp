@@ -775,12 +775,17 @@ void StructureSE::Activate(int32 effectID)
             throw PyException(MakeUserError("NotEnoughPower", args));
         }
     }
+
     // check for things that DONT use a tower.  not sure if we need anymore checks here.
     //yes....all sov structures will need checks for activation
     //  ?? can you activate a sov structure?
     else if (m_tcu)
         {
             // Check some things for TCU onlining
+
+            /* 
+            Is there already a TCU in the system?
+            */
         }
     else if (m_sbu)
         {
@@ -813,6 +818,8 @@ void StructureSE::Deactivate(int32 effectID)
     m_delayTime = 500 /*m_self->GetAttribute(AttrOnliningDelay).get_uint32()*/;
     m_procTimer.SetTimer(m_delayTime);
     m_data.timestamp = GetFileTimeNow();
+
+    m_db.UpdateBaseData(m_data);
 
     SendSlimUpdate();
     //m_destiny->SendSpecialEffect(m_data.itemID,m_data.itemID,m_self->typeID(),0,0,"effects.StructureOnline",0,0,0,-1,0);

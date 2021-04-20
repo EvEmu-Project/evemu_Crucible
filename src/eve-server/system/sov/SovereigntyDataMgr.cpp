@@ -230,9 +230,22 @@ void SovereigntyDataMgr::AddSovClaim(SovereigntyData data) {
     //Add a new sovereignty claim to DB
     uint32 claimID;
     SovereigntyDB::AddSovereigntyData(data, claimID);
-    _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", data.claimID);
+    _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", claimID);
+    data.claimID = claimID;
 
     //Add claim to the container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
     bySolar.insert(data);
+}
+
+void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID) {
+    _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);
+
+    //Add a new sovereignty claim to DB
+    SovereigntyDB::RemoveSovereigntyData(systemID);
+    _log(SOV__DEBUG, "RemoveSovClaim() - Claim for %u removed from DB...", systemID);
+
+    //Add claim to the container
+    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
+    bySolar.erase(systemID);
 }
