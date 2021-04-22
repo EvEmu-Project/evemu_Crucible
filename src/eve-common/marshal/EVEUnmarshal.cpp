@@ -511,13 +511,6 @@ PyRep* UnmarshalStream::LoadPackedRow()
     if( NULL == header_element )
         return nullptr;
 
-    Buffer unpacked;
-    if( !LoadZeroCompressed( unpacked ) )
-    {
-        PyDecRef( header_element );
-        return nullptr;
-    }
-
     // create the base packed row to be filled with data
     PyPackedRow* row = new PyPackedRow( (DBRowDescriptor*)header_element );
 
@@ -557,12 +550,12 @@ PyRep* UnmarshalStream::LoadPackedRow()
 
     size_t expectedByteSize = (byteDataBitLength >> 3) + ((booleansBitLength + nullsBitLength) >> 3) + 1;
 
-    // make sure that the buffer is long enough
-    if (unpacked.size () < expectedByteSize)
-    {
-        sLog.Error ("Unmarshal", "The PyPackedRow buffer is not long enough, expected %d bytes, got %d bytes", expectedByteSize, unpacked.size ());
+    // reserve enough space for the buffer
+    Buffer unpacked (expectedByteSize, 0);
 
-        PyDecRef (row);
+    if( !LoadRLE(unpacked) )
+    {
+        PyDecRef( header_element );
         return nullptr;
     }
 
@@ -764,41 +757,52 @@ PyObjectEx* UnmarshalStream::LoadObjectEx( bool is_type_2 )
     return obj;
 }
 
-bool UnmarshalStream::LoadZeroCompressed( Buffer& into )
+bool UnmarshalStream::LoadRLE(Buffer& out)
 {
-    const uint32 packedLen = ReadSizeEx();
+    const uint32 in_size = ReadSizeEx();
 
     Buffer::const_iterator<uint8> cur, end;
-    cur = Read<uint8>( packedLen );
-    end = cur + packedLen;
-    while( cur < end )
+    cur = Read<uint8>(in_size );
+    end = cur + in_size;
+    Buffer::const_iterator<uint8> in_ix = cur;
+    int out_ix = 0;
+    int count;
+    int run = 0;
+    int nibble = 0;
+
+    while(in_ix < end)
     {
-        // Load opcode
-        const Buffer::const_iterator<ZeroCompressOpcode> opcode = cur.As<ZeroCompressOpcode>();
-        ++cur;
-
-#   define OPCODE_DECODE( opIsZero, opLen )     \
-        if (opIsZero) {                        \
-            uint8 len = opLen + 1;              \
-            while (0 < len--)                   \
-                into.Append<uint8>( 0 );        \
-        } else {                                \
-            const Buffer::const_iterator<uint8> \
-                dataEnd = 8 - opLen < end - cur \
-                          ? cur + ( 8 - opLen ) \
-                          : end;                \
-                                                \
-            into.AppendSeq( cur, dataEnd );     \
-            cur = dataEnd;                      \
+        nibble = !nibble;
+        if(nibble)
+        {
+            run = (unsigned char)*in_ix++;
+            count = (run & 0x0f) - 8;
         }
+        else
+            count = (run >> 4) - 8;
 
-        // Decode first part
-        OPCODE_DECODE( opcode->firstIsZero, opcode->firstLen )
-        // Decode second part
-        OPCODE_DECODE( opcode->secondIsZero, opcode->secondLen )
+        if(count >= 0)
+        {
+            if (out_ix + count + 1 > out.size())
+                return false;
 
-#   undef OPCODE_DECODE
+            while(count-- >= 0)
+                out[out_ix++] = 0;
+        }
+        else
+        {
+            if (out_ix - count > out.size())
+                return false;
+
+            while(count++ && in_ix < end)
+                out[out_ix++] = *in_ix++;
+        }
     }
+
+    // no need to set the rest of the buffer to zero as the output is already
+    // set to 0
+    // while(out_ix < out.size())
+    //    out[out_ix++] = 0;
 
     return true;
 }
