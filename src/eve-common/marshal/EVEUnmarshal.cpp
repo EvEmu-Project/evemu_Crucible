@@ -505,12 +505,8 @@ PyRep* UnmarshalStream::LoadChecksumedStream()
 
 PyRep* UnmarshalStream::LoadPackedRow()
 {
-    /*
-     * As far as I can tell, this opcode is really a packed
-     * form of blue.DBRow, which takes a row descriptor and a
-     * data stream (the work_buffer here)
-     *
-     */
+    // PyPackedRows are just a packed form of blue.DBRow
+    // these take a DBRowDescriptor and the column data in different formats
     PyRep* header_element = LoadRep();
     if( NULL == header_element )
         return nullptr;
@@ -522,29 +518,56 @@ PyRep* UnmarshalStream::LoadPackedRow()
         return nullptr;
     }
 
-    // This is only an assumption, though PyPackedRow does not
-    // support anything else ....
+    // create the base packed row to be filled with data
     PyPackedRow* row = new PyPackedRow( (DBRowDescriptor*)header_element );
 
-    // Create size map, sorted from the greatest to the smallest value
+    // create the sizemap and sort it by bitsize, the value of the map indicates the index of the column
+    // this can be used to identify things easily
     std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-    uint32 cc = row->header()->ColumnCount();
-    size_t sum(0);
+    std::map<uint8,uint8> booleanColumns;
 
-    for ( uint32 i(0); i < cc; i++ )
+    uint32 columnCount = row->header()->ColumnCount();
+    size_t byteDataBitLength = 0;
+    size_t booleansBitLength = 0;
+    size_t nullsBitLength = 0;
+
+    for (uint32 i(0); i < columnCount; i++ )
     {
-        uint8 size = DBTYPE_GetSizeBits( row->header()->GetColumnType( i ) );
+        DBTYPE columnType = row->header()->GetColumnType (i);
+        uint8_t size = DBTYPE_GetSizeBits (columnType);
 
-        sizeMap.insert( std::make_pair( size, i ) );
-        sum += size;
+        // count booleans
+        if (columnType == DBTYPE_BOOL)
+        {
+            booleanColumns.insert (std::make_pair (i, booleansBitLength));
+            booleansBitLength++;
+        }
+
+        // count all columns as possible nulls
+        nullsBitLength ++;
+
+        // increase the bytedata length only if a column is longer than 7 bits
+        // this is used as an indicator of what is written in the first, second or third part
+        if (size >= 8)
+            byteDataBitLength += size;
+
+        // add the column to the list
+        sizeMap.insert (std::make_pair (size, i));
     }
 
-    // make sure there is enough data in buffer
-    sum = ( ( sum + 7 ) >> 3 );
-    unpacked.Resize<uint8>( sum );
+    size_t expectedByteSize = (byteDataBitLength >> 3) + ((booleansBitLength + nullsBitLength) >> 3) + 1;
+
+    // make sure that the buffer is long enough
+    if (unpacked.size () < expectedByteSize)
+    {
+        sLog.Error ("Unmarshal", "The PyPackedRow buffer is not long enough, expected %d bytes, got %d bytes", expectedByteSize, unpacked.size ());
+
+        PyDecRef (row);
+        return nullptr;
+    }
 
     Buffer::const_iterator<uint8> unpackedItr = unpacked.begin<uint8>();
-    uint8 bitOffset(0);
+    Buffer::const_iterator<uint8> bitIterator = unpacked.begin<uint8>();
 
     std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
     cur = sizeMap.begin();
@@ -552,8 +575,26 @@ PyRep* UnmarshalStream::LoadPackedRow()
     for (; cur != end; ++cur)
     {
         const uint32 index = cur->second;
+        const DBTYPE columnType = row->header ()->GetColumnType (index);
 
-        switch( row->header()->GetColumnType( index ) )
+        unsigned long nullBit = byteDataBitLength + booleansBitLength + cur->second;
+        unsigned long nullByte = nullBit >> 3;
+        // setup the iterator to the proper byte
+        // first check for nulls
+        bitIterator = unpacked.begin<uint8>() + nullByte;
+
+        if ((*bitIterator & (1 << (nullBit & 0x7))) == (1 << (nullBit & 0x7)))
+        {
+            // PyNone value found! override it and increase the original iterator the required steps
+            unpackedItr += DBTYPE_GetSizeBits (columnType) >> 3;
+            row->SetField (index, new PyNone ());
+
+            // continue should only be performed if the columns are not normal marshal objects
+            if (columnType != DBTYPE_BYTES && columnType != DBTYPE_STR && columnType != DBTYPE_WSTR)
+                continue;
+        }
+
+        switch (columnType)
         {
             case DBTYPE_I8:
             case DBTYPE_CY:
@@ -621,15 +662,17 @@ PyRep* UnmarshalStream::LoadPackedRow()
 
             case DBTYPE_BOOL:
             {
-                if( 7 < bitOffset )
-                {
-                    bitOffset = 0;
-                    ++unpackedItr;
-                }
+                // get the bit this boolean should be read from
+                unsigned long boolBit = byteDataBitLength + booleanColumns.find (index)->second;
+                unsigned long boolByte = boolBit >> 3;
+                // setup the iterator to the proper byte
+                bitIterator = unpacked.begin<uint8>() + boolByte;
 
-                row->SetField( index, new PyBool( ( *unpackedItr >> bitOffset++ ) & 0x01 ) );
+                row->SetField (index, new PyBool ((*bitIterator & (1 << (boolBit & 0x7))) == (1 << (boolBit & 0x7))));
             } break;
 
+            // these objects are read directly from the end of the PyPackedRow
+            // so they can be kept
             case DBTYPE_BYTES:
             case DBTYPE_STR:
             case DBTYPE_WSTR:
@@ -737,7 +780,7 @@ bool UnmarshalStream::LoadZeroCompressed( Buffer& into )
 #   define OPCODE_DECODE( opIsZero, opLen )     \
         if (opIsZero) {                        \
             uint8 len = opLen + 1;              \
-            while (0 < --len)                   \
+            while (0 < len--)                   \
                 into.Append<uint8>( 0 );        \
         } else {                                \
             const Buffer::const_iterator<uint8> \

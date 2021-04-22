@@ -141,7 +141,7 @@ private:
     // utility to handle Op_PyVarInteger (a bit hacky......)
     void SaveVarInteger( const PyLong* v );
     // zero-compresses given buffer and adds it to the stream
-    bool SaveZeroCompressed( const Buffer& data );
+    bool SaveRLE(const Buffer& in );
 
     Buffer* mBuffer;
 };
