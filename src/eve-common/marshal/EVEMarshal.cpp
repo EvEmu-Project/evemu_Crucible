@@ -355,12 +355,12 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* pyPackedRow )
         // also count all columns as possible nulls
         nullsBitLength ++;
 
-        // increase the bytedata length only if a column is longer than 8 bits
+        // increase the bytedata length only if a column is longer than 7 bits
         // this is used as an indicator of what is written in the first second, or third part
         if (size >= 8)
-            byteDataBitLength += size >> 3;
+            byteDataBitLength += size;
 
-        // make sure the
+        // add the column to the list
         sizeMap.insert (std::make_pair (size, i));
     }
 
@@ -387,7 +387,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* pyPackedRow )
             unsigned long nullBit = cur->second + booleansBitLength;
             unsigned long nullByte = nullBit >> 3;
             // setup the iterator to the proper byte
-            bitIterator = rowData.begin<uint8>() + nullByte;
+            bitIterator = bitData.begin<uint8>() + nullByte;
             // update the proper bit
             *bitIterator |= (1 << (nullBit & 0x7));
         }
@@ -449,7 +449,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* pyPackedRow )
         unsigned long boolBit = cur->second;
         unsigned long boolByte = boolBit >> 3;
         // setup the iterator to the proper byte
-        bitIterator = rowData.begin<uint8>() + boolByte;
+        bitIterator = bitData.begin<uint8>() + boolByte;
         // update the proper bit
         *bitIterator |= (1 << (boolBit & 0x7));
     }
