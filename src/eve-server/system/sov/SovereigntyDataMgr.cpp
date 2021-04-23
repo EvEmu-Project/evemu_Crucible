@@ -113,7 +113,7 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
         args->SetItemString("hubID", new PyInt(0));
         args->SetItemString("allianceID", new PyInt(sysData.factionID));
         args->SetItemString("solarSystemID", new PyInt(systemID));
-        _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty()", "Faction system %u found, assigning factionID as allianceID.", systemID);
+        _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty(): Faction system %u found, assigning factionID as allianceID.", systemID);
     }
     else
     {
@@ -121,7 +121,7 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
         if (it != m_sovData.get<SovDataBySolarSystem>().end())
         {
             SovereigntyData sData = *it;
-            _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty()", "Found sov data for solarSystemID %u.", systemID);
+            _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty(): Found sov data for solarSystemID %u.", systemID);
             _log(SOV__DEBUG, "== data (GetSystemSovereignty()) ==");
             _log(SOV__DEBUG, "claimID: %u", sData.claimID);
             _log(SOV__DEBUG, "solarSystemID: %u", sData.solarSystemID);
@@ -140,7 +140,14 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
         }
         else
         {
-            _log(SOV__ERROR, "SovereigntyDataMgr::GetSystemSovereignty()", "Unable to find data for solarSystemID %u.", systemID);
+            _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty(): No data for solarSystemID %u. Sending blank SovereigntyData object.", systemID);
+            args->SetItemString("contested", PyStatic.NewNone());
+            args->SetItemString("corporationID", PyStatic.NewNone());
+            args->SetItemString("claimTime", PyStatic.NewNone());
+            args->SetItemString("claimStructureID", PyStatic.NewNone());
+            args->SetItemString("hubID", PyStatic.NewNone());
+            args->SetItemString("allianceID", PyStatic.NewNone());
+            args->SetItemString("solarSystemID", new PyInt(systemID));
         }
     }
     return new PyObject("util.KeyVal", args);
@@ -224,28 +231,63 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
     return rowset;
 }
 
-void SovereigntyDataMgr::AddSovClaim(SovereigntyData data) {
+void SovereigntyDataMgr::AddSovClaim(SovereigntyData data)
+{
     _log(SOV__INFO, "AddSovClaim() - Adding claim for %u to DataMgr...", data.solarSystemID);
 
     //Add a new sovereignty claim to DB
     uint32 claimID;
     SovereigntyDB::AddSovereigntyData(data, claimID);
     _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", claimID);
-    data.claimID = claimID;
+
+    //Define our view from container
+    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
+
+    //Delete existing records in container which match the systemID
+    auto it = m_sovData.get<SovDataBySolarSystem>().find(data.solarSystemID);
+    if (it != m_sovData.get<SovDataBySolarSystem>().end())
+    {
+        bySolar.erase(data.solarSystemID);
+    }
+
+    //Get the data from the DB, this will avoid inconsistencies
+
+    DBQueryResult *res = new DBQueryResult();
+    DBResultRow row;
+
+    SovereigntyDB::GetSovereigntyDataForSystem(*res, data.solarSystemID);
+    while (res->GetRow(row))
+    {
+        SovereigntyData sData = SovereigntyData();
+        sData.solarSystemID = row.GetUInt(0);
+        sData.constellationID = row.GetUInt(1);
+        sData.regionID = row.GetUInt(2);
+        sData.corporationID = row.GetUInt(3);
+        sData.allianceID = row.GetUInt(4);
+        sData.claimStructureID = row.GetUInt(5);
+        sData.claimTime = row.GetInt64(6);
+        sData.hubID = row.GetUInt(7);
+        sData.contested = row.GetUInt(8);
+        sData.stationCount = row.GetUInt(9);
+        sData.militaryPoints = row.GetUInt(10);
+        sData.industrialPoints = row.GetUInt(11);
+        sData.claimID = row.GetUInt(12);
+        bySolar.insert(sData);
+    }
 
     //Add claim to the container
-    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
     bySolar.insert(data);
 }
 
-void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID) {
+void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
+{
     _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);
 
-    //Add a new sovereignty claim to DB
+    //Delete sovereignty claim from DB
     SovereigntyDB::RemoveSovereigntyData(systemID);
     _log(SOV__DEBUG, "RemoveSovClaim() - Claim for %u removed from DB...", systemID);
 
-    //Add claim to the container
+    //Remove claim from container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
     bySolar.erase(systemID);
 }

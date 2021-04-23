@@ -18,20 +18,20 @@
  * POS__TRACE
  */
 
-
 #include "Client.h"
 #include "EntityList.h"
 #include "EVEServerConfig.h"
 #include "planet/Planet.h"
 #include "pos/sovStructures/TCU.h"
+#include "packets/Sovereignty.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 #include "system/sov/SovereigntyDataMgr.h"
 
-TCUSE::TCUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
-: StructureSE(structure, services, system, fData)
+TCUSE::TCUSE(StructureItemRef structure, PyServiceMgr &services, SystemManager *system, const FactionData &fData)
+    : StructureSE(structure, services, system, fData)
 {
 }
 
@@ -71,6 +71,25 @@ void TCUSE::SetOnline()
     sovData.industrialPoints = 0;
 
     svDataMgr.AddSovClaim(sovData);
+
+    //Send OnSovereigntyChanged Notification
+    _log(SOV__DEBUG, "Sending OnSovereigntyChanged for %u:%u", sovData.solarSystemID, sovData.allianceID);
+
+    OnSovereigntyChanged osc;
+    osc.solarSystemID = sovData.solarSystemID;
+    osc.allianceID = sovData.allianceID;
+
+    PyTuple *ev = osc.Encode();
+    std::vector<Client *> list;
+    sEntityList.GetClients(list);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnSovereigntyChanged", "clientID", &ev);
+            _log(SOV__DEBUG, "OnSovereigntyChanged sent to client %u", cur->GetClientID());
+        }
+    }
 }
 
 void TCUSE::SetOffline()

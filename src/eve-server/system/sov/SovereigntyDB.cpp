@@ -42,6 +42,21 @@ void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
     }
 }
 
+void SovereigntyDB::GetSovereigntyDataForSystem(DBQueryResult& res, uint32 systemID)
+{
+    if (!sDatabase.RunQuery(res,
+                            "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, mapSolarSystems.regionID, corporationID, "
+                            " allianceID, claimStructureID, claimTime, "
+                            " hubID, contested, 0 as stationCount, "
+                            " 5 as militaryPoints, 5 as industrialPoints, claimID"
+                            " FROM mapSystemSovInfo "
+                            " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"
+                            " WHERE mapSystemSovInfo.solarSystemID=%u ", systemID))
+    {
+        codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
 void SovereigntyDB::AddSovereigntyData(SovereigntyData data, uint32& claimID)
 {
     DBerror err;
