@@ -25,12 +25,13 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Debug ..
 RUN make -j$(nproc)
 RUN make install
 
-
 # Now we switch to makeing the image that will run the code that we have build
 FROM base as app
 LABEL description="EVEmu Server"
 # copy our utils to this image
 COPY --from=app-build /src/utils/ /src/utils
+# install the configuration files
+RUN cp /src/utils/config/log.ini /app/etc/; cp /src/utils/config/eve-server.xml /app/etc/
 # add in the files to load the database
 ADD /sql/ /src/sql
 # copy our compiled code to this image
