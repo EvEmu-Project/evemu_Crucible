@@ -166,7 +166,7 @@ bool ImageServer::ValidateSize(std::string& category, uint32 size)
         return size == 64 || size == 32;
 
     if (category == "Alliance")
-        return size == 128 || size == 64 || size == 32;
+        return size == 256 || size == 128 || size == 64 || size == 32;
 
     if (category == "Corporation")
         return size == 256 || size == 128 || size == 64 || size == 32;
