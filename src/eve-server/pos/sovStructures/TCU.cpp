@@ -106,10 +106,10 @@ void TCUSE::SetOffline()
     svDataMgr.RemoveSovClaim(m_system->GetID());
 
     //Send ProcessSovStatusChanged Notification
-    _log(SOV__DEBUG, "Sending ProcessSovStatusChanged (removing sov claim) %u", sovData.solarSystemID);
+    _log(SOV__DEBUG, "Sending ProcessSovStatusChanged (removing sov claim) %u", m_system->GetID());
 
     PyTuple* data = new PyTuple(2);
-        data->SetItem(0, new PyInt(sovData.solarSystemID));
+        data->SetItem(0, new PyInt(m_system->GetID()));
         data->SetItem(1, PyStatic.NewNone());
 
     std::vector<Client *> list;
