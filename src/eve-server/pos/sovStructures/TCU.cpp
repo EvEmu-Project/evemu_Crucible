@@ -72,22 +72,30 @@ void TCUSE::SetOnline()
 
     svDataMgr.AddSovClaim(sovData);
 
-    //Send OnSovereigntyChanged Notification
-    _log(SOV__DEBUG, "Sending OnSovereigntyChanged for %u:%u", sovData.solarSystemID, sovData.allianceID);
+    //Send ProcessSovStatusChanged Notification
+    PyDict *args = new PyDict;
+    _log(SOV__DEBUG, "Sending ProcessSovStatusChanged for %u:%u", sovData.solarSystemID, sovData.allianceID);
 
-    OnSovereigntyChanged osc;
-    osc.solarSystemID = sovData.solarSystemID;
-    osc.allianceID = sovData.allianceID;
+    args->SetItemString("contested", new PyInt(sovData.contested));
+    args->SetItemString("corporationID", new PyInt(sovData.corporationID));
+    args->SetItemString("claimTime", new PyLong(sovData.claimTime));
+    args->SetItemString("claimStructureID", new PyInt(sovData.claimStructureID));
+    args->SetItemString("hubID", new PyInt(sovData.hubID));
+    args->SetItemString("allianceID", new PyInt(sovData.allianceID));
+    args->SetItemString("solarSystemID", new PyInt(sovData.solarSystemID));
 
-    PyTuple *ev = osc.Encode();
+    PyTuple* data = new PyTuple(2);
+        data->SetItem(0, new PyInt(sovData.solarSystemID));
+        data->SetItem(1, new PyObject("util.KeyVal", args));
+
     std::vector<Client *> list;
     sEntityList.GetClients(list);
     for (auto cur : list)
     {
         if (cur->GetChar().get() != nullptr)
         {
-            cur->SendNotification("OnSovereigntyChanged", "clientID", &ev);
-            _log(SOV__DEBUG, "OnSovereigntyChanged sent to client %u", cur->GetClientID());
+            cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
+            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to client %u", cur->GetClientID());
         }
     }
 }
@@ -96,6 +104,25 @@ void TCUSE::SetOffline()
 {
     _log(SOV__DEBUG, "Offlining TCU... Removing claim.");
     svDataMgr.RemoveSovClaim(m_system->GetID());
+
+    //Send ProcessSovStatusChanged Notification
+    _log(SOV__DEBUG, "Sending ProcessSovStatusChanged (removing sov claim) %u", sovData.solarSystemID);
+
+    PyTuple* data = new PyTuple(2);
+        data->SetItem(0, new PyInt(sovData.solarSystemID));
+        data->SetItem(1, PyStatic.NewNone());
+
+    std::vector<Client *> list;
+    sEntityList.GetClients(list);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
+            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
     StructureSE::SetOffline();
 }
 
