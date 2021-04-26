@@ -895,6 +895,13 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_UpdateAlliance">
+    <tupleInline>
+      <wstring name="description" none_marker="0" safe="true"/>
+      <string name="url" none_marker="0" safe="true"/>
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_ApplyToJoinAlliance">
     <tupleInline>
       <int name="allianceID" />

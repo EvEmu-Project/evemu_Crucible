@@ -419,5 +419,13 @@ PyResult AllianceBound::Handle_UpdateAlliance(PyCallArgs &call)
     //    return self.GetMoniker().UpdateAlliance(description, url)
     _log(ALLY__CALL, "AllianceBound::Handle_UpdateAlliance() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_UpdateAlliance args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    m_db.UpdateAlliance(m_allyID, args.description, args.url);
     return nullptr;
 }

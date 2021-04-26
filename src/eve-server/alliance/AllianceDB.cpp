@@ -315,16 +315,16 @@ PyRep* AllianceDB::GetEmploymentRecord(uint32 corpID)
 
 bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID) {
     uint32 executorID = 0;
-    DBerror err;
-    if (!sDatabase.RunQuery(err,
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
         "SELECT executorCorpID FROM alnAlliance "
         " WHERE allianceID = %u", allyID))
     {
-        codelog(DATABASE__ERROR, "Error in checking current alliance executorCorpID: %s", err.c_str());
+        codelog(DATABASE__ERROR, "Error in checking current alliance executorCorpID: %s", res.error.c_str());
     }
 
     DBResultRow row;
-    while (res->GetRow(row)) {
+    while (res.GetRow(row)) {
         executorID = row.GetUInt(0);
     }
 
@@ -375,6 +375,22 @@ bool AllianceDB::IsShortNameTaken(std::string shortName) {
     DBQueryResult res;
     sDatabase.RunQuery(res, " SELECT allianceID FROM alnAlliance WHERE shortName = '%s'", shortName.c_str());
     return (res.GetRowCount() != 0);
+}
+
+void AllianceDB::UpdateAlliance(uint32 allyID, std::string description, std::string url) {
+    std::string aDesc, aURL;
+    sDatabase.DoEscapeString(aDesc, description);
+    sDatabase.DoEscapeString(aURL, url);
+
+    DBerror err;
+
+    if (!sDatabase.RunQuery(err,
+        " UPDATE alnAlliance "
+        "  SET description=%s, url=%s "
+        " WHERE allyID=%u ", aDesc, aURL, allyID))
+        {
+            codelog(ALLY__DB_ERROR, "Error in UpdateAlliance query: %s", err.c_str());
+        }
 }
 
 bool AllianceDB::CreateAlliance(Call_CreateAlliance& allyInfo, Client* pClient, uint32& allyID, uint32& corpID) {

@@ -61,6 +61,7 @@ public:
     bool UpdateCorpAlliance(uint32 allyID, uint32 corpID);
     void DeleteMember(uint32 allyID, uint32 corpID);
     void DeclareExecutorSupport(uint32 corpID, uint32 chosenExecutor);
+    void UpdateAlliance(uint32 allyID, std::string description, std::string url);
 
     PyRep* GetMembers(uint32 allyID);
     PyRep* GetAllianceMembers(uint32 allyID);
