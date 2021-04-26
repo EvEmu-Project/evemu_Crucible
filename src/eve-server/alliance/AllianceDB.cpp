@@ -31,6 +31,15 @@ void AllianceDB::EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime
             eCharID, eDataTime, title.c_str(), body.c_str(), bulletinID);
 }
 
+void AllianceDB::DeleteBulletin(uint32 bulletinID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+            "DELETE from alnBulletins "
+            " WHERE bulletinID = %u",
+            bulletinID);
+}
+
 PyRep* AllianceDB::GetBulletins(uint32 allyID)
 {
     DBQueryResult res;

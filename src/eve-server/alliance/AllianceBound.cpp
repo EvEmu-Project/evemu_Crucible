@@ -150,9 +150,9 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
     {
         //creating an alliance will affect eveStaticOwners, so we gotta invalidate the cache...
         //  call to db.AddCorporation() will update eveStaticOwners with new corp
-        PyString* cache_name = new PyString( "config.StaticOwners" );
-        m_manager->cache_service->InvalidateCache( cache_name );
-        PySafeDecRef( cache_name );
+        PyString *cache_name = new PyString("config.StaticOwners");
+        m_manager->cache_service->InvalidateCache(cache_name);
+        PySafeDecRef(cache_name);
 
         // join corporation to alliance
         if (!m_db.UpdateCorpAlliance(m_allyID, app.corpID))
@@ -236,7 +236,7 @@ PyResult AllianceBound::Handle_AddBulletin(PyCallArgs &call)
         return nullptr;
     }
 
-    //m_db.AddBulletin(m_allyID, call.client->GetCorporationID(), call.client->GetCharacterID(), PyRep::StringContent(args.title), PyRep::StringContent(args.body));
+    m_db.AddBulletin(m_allyID, call.client->GetCorporationID(), call.client->GetCharacterID(), args.title, args.body);
 
     return nullptr;
 }
@@ -246,6 +246,15 @@ PyResult AllianceBound::Handle_DeleteBulletin(PyCallArgs &call)
     //   sm.GetService('alliance').GetMoniker().DeleteBulletin(id)
     _log(ALLY__CALL, "AllianceBound::Handle_DeleteBulletin() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple))
+    {
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    m_db.DeleteBulletin(args.arg);
     return nullptr;
 }
 

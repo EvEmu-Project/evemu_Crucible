@@ -879,7 +879,12 @@ PyResult CorpRegistryBound::Handle_AddBulletin(PyCallArgs &call) {
     }
 
     if (edit) {
-        m_db.EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, args.title, args.body);
+        if (bulletinID >= 100000) {
+            AllianceDB::EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, args.title, args.body);
+        } else {
+            m_db.EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, args.title, args.body);
+        }
+        
     } else {
         m_db.AddBulletin(m_corpID, m_corpID, call.client->GetCharacterID(), args.title, args.body);
     }
@@ -892,8 +897,12 @@ PyResult CorpRegistryBound::Handle_DeleteBulletin(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_DeleteBulletin() size=%u", call.tuple->size() );
     call.Dump(CORP__CALL_DUMP);
 
-    m_db.DeleteBulletin(PyRep::IntegerValue(call.tuple->GetItem(0)));
-
+    uint32 bulletinID = PyRep::IntegerValue(call.tuple->GetItem(0));
+    if (bulletinID >= 100000) {
+        AllianceDB::DeleteBulletin(bulletinID);
+    } else {
+        m_db.DeleteBulletin(bulletinID);
+    }
     return nullptr;
 }
 
