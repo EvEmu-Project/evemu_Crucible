@@ -2324,6 +2324,8 @@ PyResult CorpRegistryBound::Handle_AddCorporateContact(PyCallArgs &call) {
         return nullptr;
     }
 
+    m_db.AddContact(m_corpID, args);
+
     return nullptr;
 }
 
@@ -2337,6 +2339,8 @@ PyResult CorpRegistryBound::Handle_EditCorporateContact(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
+
+    m_db.UpdateContact(args.relationshipID, args.contactID, m_corpID);
 
     return nullptr;
 }
@@ -2352,6 +2356,10 @@ PyResult CorpRegistryBound::Handle_EditContactsRelationshipID(PyCallArgs &call) 
         return nullptr;
     }
 
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+        m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), m_corpID);
+    }
+
     return nullptr;
 }
 
@@ -2364,6 +2372,10 @@ PyResult CorpRegistryBound::Handle_RemoveCorporateContacts(PyCallArgs &call) {
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
+    }
+
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+        m_db.RemoveContact(PyRep::IntegerValueU32(*itr), m_corpID);
     }
 
     return nullptr;

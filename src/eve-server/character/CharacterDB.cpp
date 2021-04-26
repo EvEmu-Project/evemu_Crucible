@@ -679,14 +679,41 @@ PyRep* CharacterDB::GetContacts(uint32 charID, bool blocked)
     return DBResultToIndexRowset(res, "contactID");
 }
 
-void CharacterDB::AddContact(uint32 charID)
+void CharacterDB::AddContact(uint32 ownerID, uint32 charID, int32 standing, bool inWatchlist)
 {
-
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "INSERT INTO chrContacts (ownerID, contactID, relationshipID, "
+        " inWatchlist, labelMask, blocked) VALUES "
+        " (%u, %u, %i, %i, 0, 0) ",
+        ownerID, charID, standing, inWatchlist);
 }
 
-void CharacterDB::UpdateContact(uint32 charID)
+void CharacterDB::UpdateContact(int32 standing, uint32 charID, uint32 ownerID)
 {
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE chrContacts SET relationshipID=%i "
+        " WHERE contactID=%u AND ownerID=%u ",
+         standing, charID, ownerID);
+}
 
+void CharacterDB::SetBlockContact(uint32 charID, uint32 ownerID, bool blocked)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE chrContacts SET blocked=%u "
+        " WHERE contactID=%u AND ownerID=%u ",
+        blocked, charID, ownerID);
+}
+
+void CharacterDB::RemoveContact(uint32 charID, uint32 ownerID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "DELETE from chrContacts "
+        " WHERE contactID=%u AND ownerID=%u ",
+         charID, ownerID);
 }
 
 //just return all itemIDs which has ownerID set to characterID

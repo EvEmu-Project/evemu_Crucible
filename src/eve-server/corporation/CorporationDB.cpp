@@ -1059,6 +1059,8 @@ void CorporationDB::CreateTitleData(uint32 corpID)
 
 PyRep* CorporationDB::GetContacts(uint32 corpID)
 {
+    _log(SOV__DEBUG, "CorporationDB::GetContacts() called...");
+
     DBQueryResult res;
     if (!sDatabase.RunQuery( res,
         "SELECT contactID, inWatchlist, relationshipID, labelMask"
@@ -1068,21 +1070,39 @@ PyRep* CorporationDB::GetContacts(uint32 corpID)
         return nullptr;
     }
 
-    PyObject* obj = DBResultToIndexRowset(res, "contactID");
+    PyObjectEx* obj = DBResultToCIndexedRowset(res, "contactID");
     if (is_log_enabled(CORP__RSP_DUMP))
         obj->Dump(CORP__RSP_DUMP, "");
 
     return obj;
 }
 
-void CorporationDB::AddContact(uint32 corpID)
+void CorporationDB::AddContact(uint32 ownerID, Call_CorporateContactData corpData)
 {
-
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "INSERT INTO crpContacts (ownerID, contactID, relationshipID, "
+        " inWatchlist, labelMask) VALUES "
+        " (%u, %u, %i, 0, 0) ",
+        ownerID, corpData.contactID, corpData.relationshipID);
 }
 
-void CorporationDB::UpdateContact(uint32 corpID)
+void CorporationDB::UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID)
 {
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE crpContacts SET relationshipID=%i "
+        " WHERE contactID=%u AND ownerID=%u ",
+         relationshipID, contactID, ownerID);
+}
 
+void CorporationDB::RemoveContact(uint32 contactID, uint32 ownerID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "DELETE from crpContacts "
+        " WHERE contactID=%u AND ownerID=%u ",
+         contactID, ownerID);
 }
 
 // should this be cached?     ...yes

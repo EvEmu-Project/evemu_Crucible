@@ -215,21 +215,39 @@ PyRep* AllianceDB::GetContacts(uint32 allyID)
         return nullptr;
     }
 
-    PyObject* obj = DBResultToIndexRowset(res, "contactID");
+    PyObjectEx* obj = DBResultToCIndexedRowset(res, "contactID");
     if (is_log_enabled(CORP__RSP_DUMP))
         obj->Dump(CORP__RSP_DUMP, "");
 
     return obj;
 }
 
-void AllianceDB::AddContact(uint32 allyID)
+void AllianceDB::AddContact(uint32 ownerID, Call_CorporateContactData contactData)
 {
-
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "INSERT INTO alnContacts (ownerID, contactID, relationshipID, "
+        " inWatchlist, labelMask) VALUES "
+        " (%u, %u, %i, 0, 0) ",
+        ownerID, contactData.contactID, contactData.relationshipID);
 }
 
-void AllianceDB::UpdateContact(uint32 allyID)
+void AllianceDB::UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID)
 {
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE alnContacts SET relationshipID=%i "
+        " WHERE contactID=%u AND ownerID=%u ",
+         relationshipID, contactID, ownerID);
+}
 
+void AllianceDB::RemoveContact(uint32 contactID, uint32 ownerID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "DELETE from alnContacts "
+        " WHERE contactID=%u AND ownerID=%u ",
+         contactID, ownerID);
 }
 
 PyRep* AllianceDB::GetLabels(uint32 allyID)

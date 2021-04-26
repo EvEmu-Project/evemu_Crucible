@@ -280,6 +280,15 @@ PyResult AllianceBound::Handle_AddAllianceContact(PyCallArgs &call)
     //   self.GetMoniker().AddAllianceContact(contactID, relationshipID)
     _log(ALLY__CALL, "AllianceBound::Handle_AddAllianceContact() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_CorporateContactData args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    m_db.AddContact(m_allyID, args);
+
     return nullptr;
 }
 
@@ -288,6 +297,15 @@ PyResult AllianceBound::Handle_EditAllianceContact(PyCallArgs &call)
     //   self.GetMoniker().EditAllianceContact(contactID, relationshipID)
     _log(ALLY__CALL, "AllianceBound::Handle_EditAllianceContact() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_CorporateContactData args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    m_db.UpdateContact(args.relationshipID, args.contactID, m_allyID);
+
     return nullptr;
 }
 
@@ -296,6 +314,18 @@ PyResult AllianceBound::Handle_RemoveAllianceContacts(PyCallArgs &call)
     //   self.GetMoniker().RemoveAllianceContacts(contactIDs)
     _log(ALLY__CALL, "AllianceBound::Handle_RemoveAllianceContacts() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_RemoveCorporateContacts args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+        m_db.RemoveContact(PyRep::IntegerValueU32(*itr), m_allyID);
+    }
+
+
     return nullptr;
 }
 
@@ -304,6 +334,17 @@ PyResult AllianceBound::Handle_EditContactsRelationshipID(PyCallArgs &call)
     //    self.GetMoniker().EditContactsRelationshipID(contactIDs, relationshipID)
     _log(ALLY__CALL, "AllianceBound::Handle_EditContactsRelationshipID() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_EditCorporateContacts args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+        m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), m_allyID);
+    }
+
     return nullptr;
 }
 
