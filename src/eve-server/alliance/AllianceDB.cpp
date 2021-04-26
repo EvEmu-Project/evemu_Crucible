@@ -314,13 +314,27 @@ PyRep* AllianceDB::GetEmploymentRecord(uint32 corpID)
 }
 
 bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID) {
+    uint32 executorID = 0;
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+        "SELECT executorCorpID FROM alnAlliance "
+        " WHERE allianceID = %u", allyID))
+    {
+        codelog(DATABASE__ERROR, "Error in checking current alliance executorCorpID: %s", err.c_str());
+    }
+
+    DBResultRow row;
+    while (res->GetRow(row)) {
+        executorID = row.GetUInt(0);
+    }
+
     DBerror err;
     if (!sDatabase.RunQuery(err,
         "UPDATE crpCorporation SET "
         "  allianceID = %u, "
         "  allianceMemberStartDate = %f, "
         "  chosenExecutorID = %u "
-        " WHERE corporationID = %u", allyID, GetFileTimeNow(), corpID, corpID))
+        " WHERE corporationID = %u", allyID, GetFileTimeNow(), executorID, corpID))
     {
         codelog(DATABASE__ERROR, "Error in corp alliance update query: %s", err.c_str());
     }
