@@ -59,6 +59,8 @@ public:
 
     bool IsShortNameTaken(std::string shortName);
     bool UpdateCorpAlliance(uint32 allyID, uint32 corpID);
+    void DeleteMember(uint32 allyID, uint32 corpID);
+    void DeclareExecutorSupport(uint32 corpID, uint32 chosenExecutor);
 
     PyRep* GetMembers(uint32 allyID);
     PyRep* GetAllianceMembers(uint32 allyID);

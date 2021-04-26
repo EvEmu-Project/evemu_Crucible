@@ -100,6 +100,15 @@ PyResult AllianceBound::Handle_DeclareExecutorSupport(PyCallArgs &call)
     _log(ALLY__CALL, "AllianceBound::Handle_DeclareExecutorSupport() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple))
+    {
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    m_db.DeclareExecutorSupport(call.client->GetCorporationID(), args.arg);
+
     return nullptr;
 }
 
@@ -108,6 +117,15 @@ PyResult AllianceBound::Handle_DeleteMember(PyCallArgs &call)
     //  self.GetMoniker().DeleteMember(corpID)
     _log(ALLY__CALL, "AllianceBound::Handle_DeleteMember() size=%u", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
+
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple))
+    {
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    m_db.DeleteMember(m_allyID, args.arg);
 
     return nullptr;
 }

@@ -344,6 +344,33 @@ bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID) {
     return true;
 }
 
+void AllianceDB::DeleteMember(uint32 allyID, uint32 corpID) {
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+        "UPDATE crpCorporation SET "
+        "  allianceID = 0, "
+        "  allianceMemberStartDate = 0, "
+        "  chosenExecutorID = 0 "
+        " WHERE corporationID = %u", corpID))
+    {
+        codelog(DATABASE__ERROR, "Error in deleting corp from alliance: %s", err.c_str());
+    }
+
+    if (!sDatabase.RunQuery(err, "UPDATE alnAlliance SET memberCount = memberCount-1 WHERE allianceID = %u", allyID))
+        codelog(ALLY__DB_ERROR, "Error in alliance member decrease query: %s", err.c_str());
+}
+
+void AllianceDB::DeclareExecutorSupport(uint32 corpID, uint32 chosenExecutor) {
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+        "UPDATE crpCorporation SET "
+        "  chosenExecutorID = %u "
+        " WHERE corporationID = %u", chosenExecutor, corpID))
+    {
+        codelog(DATABASE__ERROR, "Error in setting chosenExecutor: %s", err.c_str());
+    }
+}
+
 bool AllianceDB::IsShortNameTaken(std::string shortName) {
     DBQueryResult res;
     sDatabase.RunQuery(res, " SELECT allianceID FROM alnAlliance WHERE shortName = '%s'", shortName.c_str());
