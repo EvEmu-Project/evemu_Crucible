@@ -158,33 +158,36 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
     args.Dump(ALLY__TRACE);
 
     //We don't delay joining an alliance so we will simply change AppAccepted to AppEffective
-    if (args.applicationStatus == EveAlliance::AppStatus::AppAccepted) {
+    if (args.applicationStatus == EveAlliance::AppStatus::AppAccepted)
+    {
         args.applicationStatus = EveAlliance::AppStatus::AppEffective;
     }
 
     //Old application info
     Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
-        oldInfo.valid = true;
-        oldInfo.appText = args.applicationText;
-        oldInfo.corpID = args.corporationID;
-        
-    if (!m_db.GetCurrentApplicationInfo(m_allyID, args.corporationID, oldInfo)) {
+    oldInfo.valid = true;
+    oldInfo.appText = args.applicationText;
+    oldInfo.corpID = args.corporationID;
+
+    if (!m_db.GetCurrentApplicationInfo(m_allyID, args.corporationID, oldInfo))
+    {
         _log(SERVICE__ERROR, "%s: Failed to query application for corp %u alliance %u", call.client->GetName(), args.corporationID, m_allyID);
         return nullptr;
     }
 
     //New application info
     Alliance::ApplicationInfo newInfo = oldInfo;
-        newInfo.valid = true;
-        newInfo.state = args.applicationStatus;
-    if (!m_db.UpdateApplication(newInfo)) {
+    newInfo.valid = true;
+    newInfo.state = args.applicationStatus;
+    if (!m_db.UpdateApplication(newInfo))
+    {
         _log(SERVICE__ERROR, "%s: Failed to update application for corp %u alliance %u", call.client->GetName(), args.corporationID, m_allyID);
         return nullptr;
     }
 
     OnAllianceApplicationChanged oaac;
-        oaac.allianceID = m_allyID;
-        oaac.corpID = call.client->GetCorporationID();
+    oaac.allianceID = m_allyID;
+    oaac.corpID = call.client->GetCorporationID();
     FillOAApplicationChange(oaac, oldInfo, newInfo);
 
     //If we are accepting an application
@@ -192,11 +195,11 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
     {
         // OnAllianceMemberChanged event
         OnAllianceMemberChange oamc;
-            oamc.corpID = args.corporationID;
-            oamc.newAllianceID = oldInfo.allyID;
-            oamc.oldAllianceID = newInfo.allyID;
-            oamc.newDate = (int64)GetFileTimeNow();
-            oamc.oldDate = oldInfo.appTime;
+        oamc.corpID = args.corporationID;
+        oamc.newAllianceID = oldInfo.allyID;
+        oamc.oldAllianceID = newInfo.allyID;
+        oamc.newDate = (int64)GetFileTimeNow();
+        oamc.oldDate = oldInfo.appTime;
 
         // everyone will be notified about the change (for now, this will be made more specific once it works)
         std::vector<Client *> list;
@@ -238,13 +241,35 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         recipients.push_back(CorporationDB::GetCorporationCEO(args.corporationID));
         m_manager->lsc_service->SendMail(CorporationDB::GetCorporationCEO(m_db.GetExecutorID(m_allyID)), recipients, subject, message);
 
-    } 
-    
-    else if (args.applicationStatus == EveAlliance::AppStatus::AppRejected) {
+        //Send OnAllianceChanged packet
+
+        OnAllianceChanged ac;
+        ac.allianceID = m_allyID;
+        if (!m_db.CreateAllianceChangePacket(ac, 0, m_allyID))
+        {
+            codelog(SERVICE__ERROR, "Failed to create OnAllianceChanged notification stream.");
+            call.client->SendErrorMsg("Unable to notify about alliance change.");
+            return nullptr;
+        }
+
+        //Send notification to everyone (for now)
+        for (auto cur : list)
+        {
+            if (cur->GetChar().get() != nullptr)
+            {
+                cur->SendNotification("OnAllianceChanged", "clientID", ac.Encode(), false);
+                _log(SOV__DEBUG, "OnAllianceChanged sent to client %u", cur->GetClientID());
+            }
+        }
+    }
+
+    else if (args.applicationStatus == EveAlliance::AppStatus::AppRejected)
+    {
         _log(ALLY__TRACE, "Application of %u:%u has been rejected, sending notification...", m_allyID, args.corporationID);
-    } 
-    
-    else {
+    }
+
+    else
+    {
         _log(SERVICE__ERROR, "%s: Sent unhandled status %u ", call.client->GetName(), args.applicationStatus);
     }
 
@@ -262,15 +287,18 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
     return nullptr;
 }
 
-void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged& OAAC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New)
+void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged &OAAC, const Alliance::ApplicationInfo &Old, const Alliance::ApplicationInfo &New)
 {
-    if (Old.valid) {
+    if (Old.valid)
+    {
         OAAC.applicationIDOld = new PyInt(Old.appID);
         OAAC.applicationTextOld = new PyString(Old.appText);
         OAAC.corporationIDOld = new PyInt(Old.corpID);
         OAAC.allianceIDOld = new PyInt(Old.allyID);
         OAAC.stateOld = new PyInt(Old.state);
-    } else {
+    }
+    else
+    {
         OAAC.applicationIDOld = PyStatic.NewNone();
         OAAC.applicationTextOld = PyStatic.NewNone();
         OAAC.corporationIDOld = PyStatic.NewNone();
@@ -278,13 +306,16 @@ void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged& OAAC, 
         OAAC.stateOld = PyStatic.NewNone();
     }
 
-    if (New.valid) {
+    if (New.valid)
+    {
         OAAC.applicationIDNew = new PyInt(New.appID);
         OAAC.applicationTextNew = new PyString(New.appText);
         OAAC.corporationIDNew = new PyInt(New.corpID);
         OAAC.allianceIDNew = new PyInt(New.allyID);
         OAAC.stateNew = new PyInt(New.state);
-    } else {
+    }
+    else
+    {
         OAAC.applicationIDNew = PyStatic.NewNone();
         OAAC.applicationTextNew = PyStatic.NewNone();
         OAAC.corporationIDNew = PyStatic.NewNone();
@@ -397,7 +428,8 @@ PyResult AllianceBound::Handle_AddAllianceContact(PyCallArgs &call)
     call.Dump(ALLY__CALL_DUMP);
 
     Call_CorporateContactData args;
-    if (!args.Decode(&call.tuple)) {
+    if (!args.Decode(&call.tuple))
+    {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
@@ -414,7 +446,8 @@ PyResult AllianceBound::Handle_EditAllianceContact(PyCallArgs &call)
     call.Dump(ALLY__CALL_DUMP);
 
     Call_CorporateContactData args;
-    if (!args.Decode(&call.tuple)) {
+    if (!args.Decode(&call.tuple))
+    {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
@@ -431,15 +464,16 @@ PyResult AllianceBound::Handle_RemoveAllianceContacts(PyCallArgs &call)
     call.Dump(ALLY__CALL_DUMP);
 
     Call_RemoveCorporateContacts args;
-    if (!args.Decode(&call.tuple)) {
+    if (!args.Decode(&call.tuple))
+    {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
 
-    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr)
+    {
         m_db.RemoveContact(PyRep::IntegerValueU32(*itr), m_allyID);
     }
-
 
     return nullptr;
 }
@@ -451,12 +485,14 @@ PyResult AllianceBound::Handle_EditContactsRelationshipID(PyCallArgs &call)
     call.Dump(ALLY__CALL_DUMP);
 
     Call_EditCorporateContacts args;
-    if (!args.Decode(&call.tuple)) {
+    if (!args.Decode(&call.tuple))
+    {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
 
-    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr)
+    {
         m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), m_allyID);
     }
 
@@ -518,11 +554,27 @@ PyResult AllianceBound::Handle_UpdateAlliance(PyCallArgs &call)
     call.Dump(ALLY__CALL_DUMP);
 
     Call_UpdateAlliance args;
-    if (!args.Decode(&call.tuple)) {
+    if (!args.Decode(&call.tuple))
+    {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
 
     m_db.UpdateAlliance(m_allyID, args.description, args.url);
+
+    //Send OnAllianceChanged packet
+    OnAllianceChanged ac;
+    ac.allianceID = m_allyID;
+    if (!m_db.CreateAllianceChangePacket(ac, 0, m_allyID))
+    {
+        codelog(SERVICE__ERROR, "Failed to create OnAllianceChanged notification stream.");
+        call.client->SendErrorMsg("Unable to notify about alliance change.");
+        return nullptr;
+    }
+
+    //Send notification to the client about the alliance change which just occurred
+    call.client->SendNotification("OnAllianceChanged", "clientID", ac.Encode(), false);
+    _log(SOV__DEBUG, "OnAllianceChanged sent to client %u", call.client->GetClientID());
+
     return nullptr;
 }

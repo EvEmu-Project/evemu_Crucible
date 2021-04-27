@@ -307,6 +307,92 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="OnAllianceChanged">
+    <tupleInline>
+      <int name="allianceID" />
+      <dictInline>
+        <dictInlineEntry key="allianceID">
+          <tupleInline>
+            <raw name="allianceIDOld" />
+            <raw name="allianceIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="allianceName">
+          <tupleInline>
+            <raw name="allianceNameOld" />
+            <raw name="allianceNameNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="description">
+          <tupleInline>
+            <raw name="descriptionOld" none_marker="0" />
+            <raw name="descriptionNew" none_marker="0" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="typeID">
+          <tupleInline>
+            <raw name="typeIDOld" />
+            <raw name="typeIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="shortName">
+          <tupleInline>
+            <raw name="shortNameOld" />
+            <raw name="shortNameNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="executorCorpID">
+          <tupleInline>
+            <raw name="executorCorpIDOld" />
+            <raw name="executorCorpIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="creatorCorpID">
+          <tupleInline>
+            <raw name="creatorCorpIDOld" />
+            <raw name="creatorCorpIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="creatorCharID">
+          <tupleInline>
+            <raw name="creatorCharIDOld" />
+            <raw name="creatorCharIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="startDate">
+          <tupleInline>
+            <raw name="startDateOld" />
+            <raw name="startDateNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="memberCount">
+          <tupleInline>
+            <raw name="memberCountOld" />
+            <raw name="memberCountNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="url">
+          <tupleInline>
+            <raw name="urlOld" none_marker="0" />
+            <raw name="urlNew" none_marker="0" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="deleted">
+          <tupleInline>
+            <raw name="deletedOld" />
+            <raw name="deletedNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="dictatorial">
+          <tupleInline>
+            <raw name="dictatorialOld" />
+            <raw name="dictatorialNew" />
+          </tupleInline>
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="CorpOfficeSparseRowset">
     <objectInline>
       <stringInline value="util.SparseRowset" />

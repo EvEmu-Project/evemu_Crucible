@@ -68,6 +68,7 @@ public:
     PyRep* GetRankedAlliances();
 
     static uint32 GetExecutorID(uint32 allyID);
+    bool CreateAllianceChangePacket(OnAllianceChanged &ac, uint32 oldAllyID, uint32 newAllyID);
 };
 
 #endif  // EVE_ALLIANCE_ALLIANCEDB_H
