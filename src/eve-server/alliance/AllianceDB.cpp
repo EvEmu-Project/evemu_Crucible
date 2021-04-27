@@ -313,7 +313,7 @@ PyRep* AllianceDB::GetEmploymentRecord(uint32 corpID)
     return DBResultToRowset(res);
 }
 
-bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID) {
+uint32 AllianceDB::GetExecutorID(uint32 allyID) {
     uint32 executorID = 0;
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
@@ -327,6 +327,13 @@ bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID) {
     while (res.GetRow(row)) {
         executorID = row.GetUInt(0);
     }
+
+    return executorID;
+}
+
+bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID) {
+
+    uint32 executorID = GetExecutorID(allyID);
 
     DBerror err;
     if (!sDatabase.RunQuery(err,

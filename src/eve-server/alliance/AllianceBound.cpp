@@ -19,6 +19,7 @@
 #include "cache/ObjCacheService.h"
 #include "chat/LSCService.h"
 #include "packets/CorporationPkts.h"
+#include "corporation/CorporationDB.h"
 #include "station/StationDB.h"
 #include "station/StationDataMgr.h"
 
@@ -154,18 +155,61 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
-    args.Dump(CORP__TRACE);
+    args.Dump(ALLY__TRACE);
 
-    //Instantiate an applicationinfo struct to store our call arguments in
-    Alliance::ApplicationInfo app;
-    app.appText = args.applicationText;
-    app.corpID = args.corporationID;
-    app.state = EveAlliance::AppStatus::AppEffective;
-    app.valid = true;
+    //We don't delay joining an alliance so we will simply change AppAccepted to AppEffective
+    if (args.applicationStatus == EveAlliance::AppStatus::AppAccepted) {
+        args.applicationStatus = EveAlliance::AppStatus::AppEffective;
+    }
+
+    //Old application info
+    Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
+        oldInfo.valid = true;
+        oldInfo.appText = args.applicationText;
+        oldInfo.corpID = args.corporationID;
+        
+    if (!m_db.GetCurrentApplicationInfo(m_allyID, args.corporationID, oldInfo)) {
+        _log(SERVICE__ERROR, "%s: Failed to query application for corp %u alliance %u", call.client->GetName(), args.corporationID, m_allyID);
+        return nullptr;
+    }
+
+    //New application info
+    Alliance::ApplicationInfo newInfo = oldInfo;
+        newInfo.valid = true;
+        newInfo.state = args.applicationStatus;
+    if (!m_db.UpdateApplication(newInfo)) {
+        _log(SERVICE__ERROR, "%s: Failed to update application for corp %u alliance %u", call.client->GetName(), args.corporationID, m_allyID);
+        return nullptr;
+    }
+
+    OnAllianceApplicationChanged oaac;
+        oaac.allianceID = m_allyID;
+        oaac.corpID = call.client->GetCorporationID();
+    FillOAApplicationChange(oaac, oldInfo, newInfo);
 
     //If we are accepting an application
-    if (app.state == EveAlliance::AppStatus::AppEffective)
+    if (args.applicationStatus == EveAlliance::AppStatus::AppEffective)
     {
+        // OnAllianceMemberChanged event
+        OnAllianceMemberChange oamc;
+            oamc.corpID = args.corporationID;
+            oamc.newAllianceID = oldInfo.allyID;
+            oamc.oldAllianceID = newInfo.allyID;
+            oamc.newDate = (int64)GetFileTimeNow();
+            oamc.oldDate = oldInfo.appTime;
+
+        // everyone will be notified about the change (for now, this will be made more specific once it works)
+        std::vector<Client *> list;
+        sEntityList.GetClients(list);
+        for (auto cur : list)
+        {
+            if (cur->GetChar().get() != nullptr)
+            {
+                cur->SendNotification("OnAllianceMemberChanged", "corpid", oamc.Encode(), false);
+                _log(SOV__DEBUG, "OnAllianceMemberChanged sent to client %u", cur->GetClientID());
+            }
+        }
+
         //creating an alliance will affect eveStaticOwners, so we gotta invalidate the cache...
         //  call to db.AddCorporation() will update eveStaticOwners with new corp
         PyString *cache_name = new PyString("config.StaticOwners");
@@ -173,27 +217,80 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         PySafeDecRef(cache_name);
 
         // join corporation to alliance
-        if (!m_db.UpdateCorpAlliance(m_allyID, app.corpID))
+        if (!m_db.UpdateCorpAlliance(m_allyID, args.corporationID))
         {
             codelog(SERVICE__ERROR, "Alliance join failed.");
             return nullptr;
         }
 
         // Add alliance membership record to corporation
-        if (!m_db.AddEmployment(m_allyID, app.corpID))
+        if (!m_db.AddEmployment(m_allyID, args.corporationID))
         {
             codelog(SERVICE__ERROR, "Add corp employment failed.");
             return nullptr;
         }
+
+        // Send an evemail to the corporation in question that the application has been accepted
+        std::string subject = "Application to alliance accepted";
+        std::string message = "Your alliance application has been accepted.";
+        subject += call.client->GetName();
+        std::vector<int32> recipients;
+        recipients.push_back(CorporationDB::GetCorporationCEO(args.corporationID));
+        m_manager->lsc_service->SendMail(CorporationDB::GetCorporationCEO(m_db.GetExecutorID(m_allyID)), recipients, subject, message);
+
+    } 
+    
+    else if (args.applicationStatus == EveAlliance::AppStatus::AppRejected) {
+        _log(ALLY__TRACE, "Application of %u:%u has been rejected, sending notification...", m_allyID, args.corporationID);
+    } 
+    
+    else {
+        _log(SERVICE__ERROR, "%s: Sent unhandled status %u ", call.client->GetName(), args.applicationStatus);
     }
 
-    if (!m_db.UpdateApplication(app))
+    std::vector<Client *> list;
+    sEntityList.GetClients(list);
+    for (auto cur : list)
     {
-        codelog(SERVICE__ERROR, "Updating alliance application failed.");
-        return nullptr;
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(SOV__DEBUG, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
     }
 
     return nullptr;
+}
+
+void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged& OAAC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New)
+{
+    if (Old.valid) {
+        OAAC.applicationIDOld = new PyInt(Old.appID);
+        OAAC.applicationTextOld = new PyString(Old.appText);
+        OAAC.corporationIDOld = new PyInt(Old.corpID);
+        OAAC.allianceIDOld = new PyInt(Old.allyID);
+        OAAC.stateOld = new PyInt(Old.state);
+    } else {
+        OAAC.applicationIDOld = PyStatic.NewNone();
+        OAAC.applicationTextOld = PyStatic.NewNone();
+        OAAC.corporationIDOld = PyStatic.NewNone();
+        OAAC.allianceIDOld = PyStatic.NewNone();
+        OAAC.stateOld = PyStatic.NewNone();
+    }
+
+    if (New.valid) {
+        OAAC.applicationIDNew = new PyInt(New.appID);
+        OAAC.applicationTextNew = new PyString(New.appText);
+        OAAC.corporationIDNew = new PyInt(New.corpID);
+        OAAC.allianceIDNew = new PyInt(New.allyID);
+        OAAC.stateNew = new PyInt(New.state);
+    } else {
+        OAAC.applicationIDNew = PyStatic.NewNone();
+        OAAC.applicationTextNew = PyStatic.NewNone();
+        OAAC.corporationIDNew = PyStatic.NewNone();
+        OAAC.allianceIDNew = PyStatic.NewNone();
+        OAAC.stateNew = PyStatic.NewNone();
+    }
 }
 
 PyResult AllianceBound::Handle_AddToVoiceChat(PyCallArgs &call)

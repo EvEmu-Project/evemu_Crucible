@@ -66,6 +66,8 @@ public:
     PyRep* GetMembers(uint32 allyID);
     PyRep* GetAllianceMembers(uint32 allyID);
     PyRep* GetRankedAlliances();
+
+    static uint32 GetExecutorID(uint32 allyID);
 };
 
 #endif  // EVE_ALLIANCE_ALLIANCEDB_H

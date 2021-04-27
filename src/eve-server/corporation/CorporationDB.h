@@ -121,7 +121,7 @@ public:
     int32 GetCorpIDforChar(int32 charID);
     uint32 GetStationOwner(uint32 stationID);
     uint32 GetStationCorporationCEO(uint32 stationID);
-    uint32 GetCorporationCEO(uint32 corpID);
+    static uint32 GetCorporationCEO(uint32 corpID);
     uint16 GetCorpMemberCount(uint32 corpID);
     uint16 GetCorpMemberLimit(uint32 corpID);
 

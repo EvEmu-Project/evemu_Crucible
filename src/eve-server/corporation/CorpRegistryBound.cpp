@@ -18,6 +18,7 @@
 #include "station/StationDB.h"
 #include "station/StationDataMgr.h"
 #include "alliance/AllianceDB.h"
+#include "alliance/AllianceBound.h"
 
 /*
  * CORP__ERROR
@@ -2552,7 +2553,35 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
         return nullptr;
     }
 
-    //TODO: Need to implement notification for alliance application change.
+    Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
+        oldInfo.valid = false;
+    OnAllianceApplicationChanged oaac;
+    AllianceBound::FillOAApplicationChange(oaac, oldInfo, app);
+
+    oaac.corpID = m_corpID;
+    oaac.allianceID = app.allyID;
+
+    std::vector<Client *> list;
+    sEntityList.GetClients(list);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(SOV__DEBUG, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
+    //Get sending corp's CEO ID:
+    uint32 charID = m_db.GetCorporationCEO(m_corpID);
+
+    /// Send an evemail to those who can decide
+    /// Well, for the moment, send it to the ceo
+    std::string subject = "New application from ";
+    subject += call.client->GetName();
+    std::vector<int32> recipients;
+    recipients.push_back(m_db.GetCorporationCEO(AllianceDB::GetExecutorID(app.allyID)));
+    m_manager->lsc_service->SendMail(charID, recipients, subject, args.applicationText);
 
     return nullptr;
 }
