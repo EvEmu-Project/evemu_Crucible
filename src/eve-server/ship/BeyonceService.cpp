@@ -414,7 +414,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
    /** @todo (allan) finish warp scramble system */
    // >0 means ship cannot warp (warp stabs are neg values, warp scrams are pos values)
    if (call.client->GetShip()->GetAttribute(AttrWarpScrambleStatus) > 0)
-        throw PyException(MakeUserError("WarpScrambled"));
+        throw UserError ("WarpScrambled");
 
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {

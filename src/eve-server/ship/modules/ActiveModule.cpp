@@ -339,7 +339,7 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
         m_targetSE = m_shipRef->GetPilot()->SystemMgr()->GetSE(targetID);
         if (m_targetSE == nullptr) {
             Clear();
-            throw PyException(MakeUserError("DeniedActivateTargetNotPresent"));
+            throw UserError ("DeniedActivateTargetNotPresent");
         }
     }
 
@@ -361,12 +361,12 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
         if (sFxDataMgr.isAssistance(effectID)) {
             if (m_targetSE->GetSelf()->HasAttribute(AttrDisallowAssistance)) {
                 Clear();
-                throw PyException(MakeUserError("DeniedActivateTargetAssistDisallowed"));
+                throw UserError ("DeniedActivateTargetAssistDisallowed");
             }
             /** @todo criminal shit isnt written yet....fix this once it is.
             if (m_targetSE->HasPilot())
                 if (m_targetSE->GetPilot()->IsCriminal())
-                    throw PyException(MakeUserError("ModuleActivationDeniedCriminalAssistance"));
+                    throw UserError ("ModuleActivationDeniedCriminalAssistance");
              */
         }
         if (m_targetSE->IsCOSE()) {
@@ -1025,10 +1025,12 @@ bool ActiveModule::CanActivate()
                     if (owner or fleet or corp or ally or war) {
                         m_targetSE->DestinyMgr()->TractorBeamStart(m_shipRef->GetPilot()->GetShipSE(), GetAttribute(AttrMaxTractorVelocity));
                     } else {
-                        std::map<std::string, PyRep *> arg;
-                        arg["module"] = new PyInt(m_targetSE->GetID());
-                        Clear();
-                        throw PyException(MakeUserError("InvalidTargetCanOwner", arg));
+                        int id = m_targetSE->GetID ();
+
+                        Clear ();
+
+                        throw UserError ("InvalidTargetCanOwner")
+                                .AddFormatValue ("module", new PyInt (id));
                     }
             } break;
             case Shield_Transporter: {
@@ -1279,8 +1281,8 @@ void ActiveModule::ShowEffect(bool active/*false*/, bool abort/*false*/)
 void ActiveModule::LaunchMissile()
 {
     // must not throw here...
-    //throw PyException( MakeUserError("TargetingMissileToSelf"));
-    //throw PyException( MakeUserError("NoCharges"));
+    //throw UserError ("TargetingMissileToSelf");
+    //throw UserError ("NoCharges");
 
     //{'FullPath': u'UI/Messages', 'messageID': 259200, 'label': u'NoChargesBody'}(u'{launcher} has run out of charges', None, {u'{launcher}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'launcher'}})
 

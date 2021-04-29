@@ -430,23 +430,20 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                 }
 
                 if (pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32() < 1) {
-                    std::map<std::string, PyRep *> arg;
-                    arg["typeID"] = new PyInt(iRef->typeID());
-                    throw PyException(MakeUserError("NoDroneManagementAbilities", arg));
+                    throw UserError ("NoDroneManagementAbilities")
+                            .AddFormatValue ("typeID", new PyInt (iRef->typeID ()));
                     //{'FullPath': u'UI/Messages', 'messageID': 259203, 'label': u'NoDroneManagementAbilitiesBody'}(u'You cannot launch {[item]typeID.nameWithArticle} because you do not have the ability to control any drones.', None, {u'{[item]typeID.nameWithArticle}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'nameWithArticle', 'args': 0, 'kwargs': {}, 'variableName': 'typeID'}})
                 }
                 if (pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32() <= pClient->GetShipSE()->DroneCount()) {
-                    std::map<std::string, PyRep *> arg;
-                    arg["item"] = new PyInt(iRef->typeID());
-                    arg["limit"] = new PyInt(pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32());
-                    throw PyException(MakeUserError("NoDroneManagementAbilitiesLeft", arg));
+                    throw UserError ("NoDroneManagementAbilitiesLeft")
+                            .AddFormatValue ("item", new PyInt (iRef->typeID ()))
+                            .AddFormatValue ("limit", new PyInt (pClient->GetChar ()->GetAttribute (AttrMaxActiveDrones).get_uint32()));
                     //{'FullPath': u'UI/Messages', 'messageID': 259140, 'label': u'NoDroneManagementAbilitiesLeftBody'}(u'You cannot launch {[item]item.name} because you are already controlling {[numeric]limit} drones, as much as you have skill to.', None, {u'{[numeric]limit}': {'conditionalValues': [], 'variableType': 9, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'limit'}, u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
                 }
 
                 if (iRef->flag() != flagDroneBay) {
-                    std::map<std::string, PyRep *> arg;
-                    arg["item"] = new PyInt(iRef->typeID());
-                    throw PyException(MakeUserError("DropItemNotInDroneBay", arg));
+                    throw UserError ("DropItemNotInDroneBay")
+                            .AddFormatValue ("item", new PyInt (iRef->typeID ()));
                     // {'FullPath': u'UI/Messages', 'messageID': 259680, 'label': u'DropItemNotInDroneBayBody'}(u'{[item]item.name} cannot be dropped because it is not in your drone bay.', None, {u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
                 }
 
@@ -465,26 +462,22 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                             dropped = true;
                             shipDrop = true;
                             list->AddItem(new PyInt(newItem->itemID()));
-                        } else {
-                            std::map<std::string, PyRep *> arg;
-                            arg["droneName"] = new PyString( newItem->name());
-                            arg["droneBandwidthUsed"] = new PyInt( newItem->GetAttribute(AttrDroneBandwidthUsed).get_uint32());
-                            arg["bandwidthLeft"] = new PyInt(pShip->GetAttribute(AttrDroneBandwidth).get_uint32() - pShip->GetAttribute(AttrDroneBandwidthLoad).get_uint32());
-                            throw PyException(MakeUserError("MaxBandwidthExceeded2", arg));
-                        }
+                        } else
+                            throw UserError ("MaxBandwithExceeded2")
+                                    .AddTypeName ("droneNAme", newItem->typeID ())
+                                    .AddAmount ("droneBandwithUsed", newItem->GetAttribute (AttrDroneBandwidthUsed).get_uint32())
+                                    .AddAmount ("bandwidthLeft", pShip->GetAttribute (AttrDroneBandwidth).get_uint32 () - pShip->GetAttribute (AttrDroneBandwidthLoad).get_uint32());
                     }
                 } else {
                     if (pClient->GetShipSE()->LaunchDrone(iRef)) {
                         dropped = true;
                         shipDrop = true;
                         list->AddItem(new PyInt(iRef->itemID()));
-                    } else {
-                        std::map<std::string, PyRep *> arg;
-                        arg["droneName"] = new PyString( iRef->name());
-                        arg["droneBandwidthUsed"] = new PyInt( iRef->GetAttribute(AttrDroneBandwidthUsed).get_uint32());
-                        arg["bandwidthLeft"] = new PyInt(pShip->GetAttribute(AttrDroneBandwidth).get_uint32() - pShip->GetAttribute(AttrDroneBandwidthLoad).get_uint32());
-                        throw PyException(MakeUserError("MaxBandwidthExceeded2", arg));
-                    }
+                    } else
+                            throw UserError ("MaxBandwithExceeded2")
+                                    .AddTypeName ("droneNAme", iRef->typeID ())
+                                    .AddAmount ("droneBandwithUsed", iRef->GetAttribute (AttrDroneBandwidthUsed).get_uint32())
+                                    .AddAmount ("bandwidthLeft", pShip->GetAttribute (AttrDroneBandwidth).get_uint32 () - pShip->GetAttribute (AttrDroneBandwidthLoad).get_uint32());
                 }
             } break;
             case EVEDB::invCategories::Structure: {
@@ -1235,7 +1228,7 @@ PyResult ShipBound::Handle_SelfDestruct(PyCallArgs &call) {
                   [PyString "when"]
                   [PyInt 83]
                   //if (mySE->HasPilot() and mySE->GetPilot()->CanThrow())
-        throw PyException(MakeUserError("SelfDestructAborted2"));
+        throw UserError ("SelfDestructAborted2");
 */
 
     /*{'messageKey': 'SelfDestructAborted2', 'dataID': 17879480, 'suppressable': False, 'bodyID': 258024, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2405}

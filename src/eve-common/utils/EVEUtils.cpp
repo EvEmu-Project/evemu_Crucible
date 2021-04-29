@@ -28,18 +28,18 @@
 #include "python/classes/PyExceptions.h"
 #include "utils/EVEUtils.h"
 
-UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
+UserError MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
 {
-    UserError *err = new UserError( exceptionType );
+    UserError err (exceptionType);
 
     std::map<std::string, PyRep *>::const_iterator cur = args.begin();
     for(; cur != args.end(); cur++)
-        err->AddKeyword( cur->first.c_str(), cur->second );
+        err.AddFormatValue (cur->first.c_str(), cur->second);
 
     return err;
 }
 
-UserError* MakeCustomError( const char* fmt, ... )
+UserError MakeCustomError( const char* fmt, ... )
 {
     va_list va;
     va_start( va, fmt );
@@ -50,8 +50,8 @@ UserError* MakeCustomError( const char* fmt, ... )
 
     va_end( va );
 
-    UserError* err = new UserError( "CustomError" );
-    err->AddKeyword( "error", new PyString( str ) );
+    UserError err ("CustomError");
+    err.AddFormatValue ( "error", new PyString( str ) );
 
     SafeFree( str );
 

@@ -190,7 +190,7 @@ PyResult InsuranceBound::Handle_InsureShip( PyCallArgs& call ) {
 
     if (fraction < 0.05f) {
         call.client->SendErrorMsg("There was a problem with your insurance premium calculation.  Ref: ServerError 75520.");
-        throw PyException(MakeUserError("InsureShipFailed"));
+        throw UserError ("InsureShipFailed");
     } else if (fraction == 0.1f) {
         call.client->SendErrorMsg("Your insurance is at minimum coverage due to incorrect base prices.  Ref: ServerError 75521.");
     }
@@ -200,7 +200,7 @@ PyResult InsuranceBound::Handle_InsureShip( PyCallArgs& call ) {
             if (call.byname.find("voidOld")->second->AsBool()->value())
                 ShipDB::DeleteInsuranceByShipID(args.shipID);
         } else {  // this will send voidOld=true after asking player to cancel old insurance
-            throw PyException(MakeUserError("InsureShipFailedSingleContract"));
+            throw UserError ("InsureShipFailedSingleContract");
         }
     }
 
@@ -215,7 +215,7 @@ PyResult InsuranceBound::Handle_InsureShip( PyCallArgs& call ) {
         AccountService::TranserFunds(call.client->GetCharacterID(), corpSCC, args.amount, reason, \
                 Journal::EntryType::Insurance, -shipRef->itemID());     // for paying ins, shipID should be negative
     } else {
-        throw PyException(MakeUserError("InsureShipFailed"));
+        throw UserError ("InsureShipFailed");
     }
 
     // TODO:  send mail detailing insurance coverage and length of coverage

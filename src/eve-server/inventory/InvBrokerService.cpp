@@ -160,7 +160,7 @@ PyResult InvBrokerBound::Handle_GetContainerContents(PyCallArgs &call)
     } else {
         _log(INV__WARNING, "Handle_GetContainerContents() -  %s(%u) is not owned by calling character %s(%u) ", \
                     item->name(), item->itemID(), call.client->GetName(), call.client->GetCharacterID());
-         throw PyException(MakeUserError("CantDoThatWithSomeoneElsesStuff"));
+         throw UserError ("CantDoThatWithSomeoneElsesStuff");
     }
 
     return item->GetMyInventory()->List( flagNone );

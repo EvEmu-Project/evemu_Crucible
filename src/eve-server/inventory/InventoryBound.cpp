@@ -541,9 +541,9 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         }
 
         // check for items that need specific handling
-        if (IsRigSlot(fromFlag)) { //  cant remove rigs like this.  send error.
-            throw PyException(MakeUserError("CannotRemoveUpgradeManually"));
-        } else if (IsModuleSlot(fromFlag)) {
+        if (IsRigSlot(fromFlag)) //  cant remove rigs like this.  send error.
+            throw UserError ("CannotRemoveUpgradeManually");
+        else if (IsModuleSlot(fromFlag)) {
             // can we remove modules from an inactive ship?  not yet...
             if (pShip == nullptr)
                 throw PyException( MakeCustomError("Ship not found. The %s wasnt moved.  Ref: ServerError 63290", iRef->name()));
@@ -801,7 +801,7 @@ PyResult InventoryBound::Handle_CreateBookmarkVouchers(PyCallArgs &call) {
     call.Dump(BOOKMARK__CALL_DUMP);
 
     if (m_self->ownerID() != call.client->GetCharID())
-        throw PyException(MakeUserError("CanOnlyCreateVoucherInPersonalHangar"));
+        throw UserError ("CanOnlyCreateVoucherInPersonalHangar");
 
     Call_CreateVouchers args;
     if (!args.Decode(&call.tuple)) {

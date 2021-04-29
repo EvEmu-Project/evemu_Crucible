@@ -220,7 +220,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
             installedItem = sItemFactory.GetItem( PyRep::IntegerValueU32(dict->GetItemString("itemID")) );
             if (installedItem.get() == nullptr) {
                 // make error here.....
-                throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
+                throw UserError ("RamActivityRequiresABlueprint");
             }
         }
         _log(MANUF__ERROR, "installedItem dict incomplete");
@@ -228,7 +228,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         return nullptr;
     }
     if (installedItem->categoryID() != EVEDB::invCategories::Blueprint)
-        throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
+        throw UserError ("RamActivityRequiresABlueprint");
 
     // installedItem is bp.  change ref to bpRef
     BlueprintRef bpRef = BlueprintRef::StaticCast(installedItem);
@@ -298,7 +298,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
     // sent as assy line.nextFreeTime + 1m  (a previous call asks for assy line nextFreeTime, displayed in window)
     if (call.byname.find("maxJobStartTime") != call.byname.end())
         if (rsp.maxJobStartTime > PyRep::IntegerValue(call.byname["maxJobStartTime"]))
-            throw(PyException(MakeUserError("RamProductionTimeExceedsLimits")));
+            throw UserError ("RamProductionTimeExceedsLimits");
 
     //RamCannotGuaranteeStartTime  // timeslot taken by another char while installing this one
 
@@ -328,7 +328,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         BlueprintRef iRef = bpRef->SplitBlueprint(1);
         if (iRef.get() == nullptr) {
             _log(MANUF__WARNING, "Failed to split %s for %s.", bpRef->name(), sRamMthd.GetActivityName(args.activityID));
-            throw(PyException(MakeUserError("RamActivityRequiresABlueprint")));
+            throw UserError ("RamActivityRequiresABlueprint");
         }
         bpRef = iRef;
     }
@@ -603,7 +603,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 
     EvERam::JobProperties data = EvERam::JobProperties();
     if (!FactoryDB::GetJobProperties(args.jobID, data))
-        throw(PyException(MakeUserError("RamCompletionNoSuchJob")));
+        throw UserError ("RamCompletionNoSuchJob");
 
     sRamMthd.VerifyCompleteJob(args, data, call.client);
 
@@ -810,7 +810,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
             case EvERam::Activity::Duplicating:
             default: {
                 _log(MANUF__WARNING, "Activity %u is currently unsupported.", data.activity);
-                throw(PyException(MakeUserError("RamActivityInvalid")));
+                throw UserError ("RamActivityInvalid");
             } break;
         }
     }

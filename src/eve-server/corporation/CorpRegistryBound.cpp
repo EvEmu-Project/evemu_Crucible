@@ -582,7 +582,7 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
 
     // verify ticker is available
     if (m_db.IsTickerTaken(args.corpTicker))
-        throw PyException(MakeUserError("CorpTickerNameInvalidTaken"));
+        throw UserError ("CorpTickerNameInvalidTaken");
 
     double corp_cost = sConfig.rates.corpCost;
     if (pClient->GetBalance(Account::CreditType::ISK) < corp_cost) {
