@@ -356,6 +356,7 @@ struct OfficeData {
     int64 rentalFee;
     int64 expiryTime;
     std::string ticker;
+    std::string name;
 };
 
 /* POD structure for loading dynamic items */
