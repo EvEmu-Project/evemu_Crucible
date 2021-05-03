@@ -326,6 +326,9 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
     } else {
         // none of above conditionals hit....
         _log(MARKET__WARNING, "ExecuteBuyOrder - ownerID %u not corp, not char, not system, not joe.", oInfo.ownerID);
+        // send the player some kind of notification about the market order, some standard market error should suffice
+        seller->SendNotifyMsg ("Your order cannot be processed at this time, please try again later.");
+        return false;
     }
 
     // quantity status of seller's item vs buyer's order
@@ -337,21 +340,29 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
             iRef->Donate(oInfo.ownerID, args.stationID, flagHangar, true);
         } else if (isCorp) {
             iRef->Donate(oInfo.ownerID, args.stationID, flagCorpMarket, true);
+        } else if (isTrader) {
+            // trader joe is a placeholder ID to trash every item sold to him
+            iRef->Delete ();
         }
     } else if (iRef->quantity() > args.quantity) {
         // qty for sale > buy order amt
         qtyStatus = Market::QtyStatus::Over;
         //need to split item up...
-        InventoryItemRef siRef = iRef->Split(args.quantity);
-        if (siRef.get() == nullptr) {
-            _log(MARKET__ERROR, "ExecuteBuyOrder - Failed to split %u %s.", siRef->itemID(), siRef->name());
-            return true;
-        }
-        //use the owner change packet to alert the buyer of the new item
-        if (isPlayer) {
-            siRef->Donate(oInfo.ownerID, args.stationID, flagHangar, true);
-        } else if (isCorp) {
-            siRef->Donate(oInfo.ownerID, args.stationID, flagCorpMarket, true);
+        if (isTrader) {
+            // trader joe is a blackhole, just subtract the amount of items we're selling to him and call it a day
+            iRef->AlterQuantity(-args.quantity, true);
+        } else {
+            InventoryItemRef siRef = iRef->Split(args.quantity);
+            if (siRef.get() == nullptr) {
+                _log(MARKET__ERROR, "ExecuteBuyOrder - Failed to split %u %s.", siRef->itemID(), siRef->name());
+                return true;
+            }
+            //use the owner change packet to alert the buyer of the new item
+            if (isPlayer) {
+                siRef->Donate(oInfo.ownerID, args.stationID, flagHangar, true);
+            } else if (isCorp) {
+                siRef->Donate(oInfo.ownerID, args.stationID, flagCorpMarket, true);
+            }
         }
     } else {
         // qty for sale < buy order amt
@@ -361,6 +372,8 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
             iRef->Donate(oInfo.ownerID, args.stationID, flagHangar, true);
         } else if (isCorp) {
             iRef->Donate(oInfo.ownerID, args.stationID, flagCorpMarket, true);
+        } else if (isTrader) {
+            iRef->Delete ();
         }
     }
 
@@ -371,12 +384,10 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
         } break;
         case Market::QtyStatus::Under:  // order requires more items than seller is offering.  delete args.quantity and update order
         case Market::QtyStatus::Complete: { // order qty matches item qty.  delete args.quantity and delete order
-            qtySold = args.quantity;
             args.quantity = 0;
         } break;
         case Market::QtyStatus::Over: {
             // more for sale than order requires.  update args.quantity and delete order
-            qtySold = oInfo.quantity;
             args.quantity -= qtySold;
         } break;
     }
