@@ -158,16 +158,16 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
     ShipSE* pShipSE =  pClient->GetShipSE();
     if (pShipSE == nullptr)
-        throw PyException(MakeCustomError("Invalid Ship.  Ref: ServerError xxxxx"));
+        throw CustomError ("Invalid Ship.  Ref: ServerError xxxxx");
     /** @todo  check for active cyno (when we implement it...) and other things that affect eject */
     if (pShipSE->isGlobal()) { /* close enough.  cyno (isGlobal() = true), so this will work */
         /* find proper error msg for this...im sure there is one  */
-        throw PyException(MakeCustomError("You cannot eject current ship with an active Cyno Field."));
+        throw CustomError ("You cannot eject current ship with an active Cyno Field.");
     }
 
     //  do we need this? yes....this needs more work in destiny to implement correctly
     if (pShipSE->DestinyMgr()->GetSpeed() > 20)
-        throw PyException(MakeCustomError("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139."));
+        throw CustomError ("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139.");
 
     SystemManager* pSystem = pClient->SystemMgr();
     if (pSystem == nullptr) {
@@ -180,29 +180,29 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
     if (pShipSE == nullptr) {
         _log(SHIP__ERROR, "Handle_Board() - Failed to get new ship %u for %s.", args.newShipID, pClient->GetName());
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 25107."));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 25107.");
     }
 
     if (pShipSE->GetTypeID() == itemTypeCapsule) {
         codelog(ITEM__ERROR, "Empty Pod %u in space.  SystemID %u.", args.newShipID, pSystem->GetID());
-        throw PyException(MakeCustomError("You already have a pod.  These cannot be boarded manally."));
+        throw CustomError ("You already have a pod.  These cannot be boarded manally.");
     }
 
     //CantBoardTargeted
 
     //  do we need this? yes....this needs more work in destiny to implement correctly
     if (pShipSE->DestinyMgr()->GetSpeed() > 20)
-        throw PyException(MakeCustomError("You cannot board the ship while it's moving faster than 20m/s. Ref: ServerError 05139."));
+        throw CustomError ("You cannot board the ship while it's moving faster than 20m/s. Ref: ServerError 05139.");
 
     // should we eject player here and deny boarding new ship, or just leave char in current ship and return?
     if (!pShipSE->GetShipItemRef()->ValidateBoardShip(pClient->GetChar()))
-        throw PyException(MakeCustomError("You do not have the skills to fly a %s.", pShipSE->GetName()));
+        throw CustomError ("You do not have the skills to fly a %s.", pShipSE->GetName());
 
     float distance = pClient->GetShipSE()->GetPosition().distance(pShipSE->GetPosition());
     // fudge for radii ?
     if (distance > sConfig.world.shipBoardDistance)
-        throw PyException(MakeCustomError("You are too far from %s to board it.<br>You must be within %u meters to board this ship.",\
-                pShipSE->GetName(), sConfig.world.shipBoardDistance));
+        throw CustomError ("You are too far from %s to board it.<br>You must be within %u meters to board this ship.",\
+                pShipSE->GetName(), sConfig.world.shipBoardDistance);
 
     pClient->Board(pShipSE);
 
@@ -234,16 +234,16 @@ PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
 
     SystemEntity* pShipSE = pClient->GetShipSE();
     if (pShipSE == nullptr)
-        throw PyException(MakeCustomError("Invalid Ship.  Ref: ServerError xxxxx"));
+        throw CustomError ("Invalid Ship.  Ref: ServerError xxxxx");
     /** @todo  check for active cyno (when we implement it...) and other things that affect eject */
     if (pShipSE->isGlobal()) { /* close enough.  cyno (isGlobal() = true), so this will work */
         /* find proper error msg for this...im sure there is one  */
-        throw PyException(MakeCustomError("You cannot eject with an active Cyno Field."));
+        throw CustomError ("You cannot eject with an active Cyno Field.");
     }
 
     //  do we need this? yes....this needs more work in destiny to implement correctly
     if (pShipSE->DestinyMgr()->GetSpeed() > 20)
-        throw PyException(MakeCustomError("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139."));
+        throw CustomError ("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139.");
 
     pClient->Eject();
 
@@ -306,7 +306,7 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call) {
     ShipItemRef newShipRef = sItemFactory.GetShip(args.newShipID);
     if (newShipRef.get() == nullptr) {
         sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get new ship %u.", pClient->GetName(), args.newShipID);
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173+1"));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173+1");
     }
     //ShipMustBeInPersonalHangar
 
@@ -337,14 +337,14 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     Call_IntBoolArg args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173"));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
     }
 
     Client* pClient = call.client;
     ShipItemRef pShip = pClient->GetShip();
     if (pShip.get() == nullptr) {
         sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get ship item.", pClient->GetName());
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173"));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
         call.client->SendNotifyMsg("Internal Server Error - Ref: ServerError xxxxx   -undock failed.");
         return nullptr;
     }
@@ -426,7 +426,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
         switch (iRef->categoryID()) {
             case EVEDB::invCategories::Drone: {
                 if (!sConfig.testing.EnableDrones) {
-                    throw PyException(MakeCustomError("Drones are disabled."));
+                    throw CustomError ("Drones are disabled.");
                 }
 
                 if (pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32() < 1) {
@@ -653,13 +653,13 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
     // check to see if this object is anchored and if so, refuse to scoop it
     if (pSE->IsContainerSE())
         if (pSE->GetContSE()->IsAnchored())
-            throw PyException(MakeCustomError("%s is anchored.  Cannot scoop.", pSE->GetName()));
+            throw CustomError ("%s is anchored.  Cannot scoop.", pSE->GetName());
 
     // check drones for other pilots control
     if (pSE->IsDroneSE())
         if (pSE->GetDroneSE()->IsEnabled())
             if (pSE->GetDroneSE()->GetOwner() != pClient)
-                throw PyException(MakeCustomError("%s is under another pilot's control.  Cannot scoop.", pSE->GetName()));
+                throw CustomError ("%s is under another pilot's control.  Cannot scoop.", pSE->GetName());
 
     InventoryItemRef iRef = pSE->GetSelf();
     if (iRef.get() == nullptr) {
@@ -721,7 +721,7 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
         // check ownership/control
         if (pDroneSE->GetDroneSE()->IsEnabled())
             if (pDroneSE->GetDroneSE()->GetOwner() != pClient)
-                throw PyException(MakeCustomError("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName()));
+                throw CustomError ("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
 
         // Check drone bay capacity:
         if (pClient->GetShip()->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {  // this will throw if it fails
@@ -790,7 +790,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             case EVEDB::invCategories::StructureUpgrade: {
                 sRef = sItemFactory.GetStructure(*itr);
                 if (sRef.get() == nullptr)
-                    throw PyException(MakeCustomError("Unable to spawn Structure item of type %u.", sRef->typeID()));
+                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 StructureSE* sSE = new StructureSE(sRef, *m_manager, pSysMgr, data);
@@ -804,7 +804,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             case EVEDB::invCategories::Orbitals: {
                 sRef = sItemFactory.GetStructure(*itr);
                 if (sRef.get() == nullptr)
-                    throw PyException(MakeCustomError("Unable to spawn Structure item of type %u.", sRef->typeID()));
+                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 CustomsSE* sSE = new CustomsSE(sRef, *m_manager, pSysMgr, data);
@@ -818,7 +818,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             case EVEDB::invCategories::Deployable: {
                 cRef = sItemFactory.GetItem(*itr);
                 if (cRef.get() == nullptr)
-                    throw PyException(MakeCustomError("Unable to spawn Deployable item of type %u.", cRef->typeID()));
+                    throw CustomError ("Unable to spawn Deployable item of type %u.", cRef->typeID());
 
                 cRef->Move(pClient->GetLocationID(), flagNone, true);
                 //flagUnanchored: for some DUMB reason, this flag, 1023 yields a PyNone when notifications
@@ -844,7 +844,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                         /** @todo (allan)  *****  there are stipulations on placement of these items.  *****  */
                         ccRef = sItemFactory.GetCargoContainer(*itr);
                         if (ccRef.get() == nullptr)
-                            throw PyException(MakeCustomError("Unable to spawn item of type %u.", ccRef->typeID()));
+                            throw CustomError ("Unable to spawn item of type %u.", ccRef->typeID());
 
                         ccRef->Move(pClient->GetLocationID(), flagNone, true);
                         ContainerSE* cSE = new ContainerSE(ccRef, *m_manager, pSysMgr, data);
@@ -905,7 +905,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 
             jcRef = sItemFactory.SpawnCargoContainer(p_idata);
             if (jcRef.get() == nullptr)
-                throw PyException(MakeCustomError("Unable to spawn jetcan."));
+                throw CustomError ("Unable to spawn jetcan.");
             // create new container
             ContainerSE* cSE = new ContainerSE(jcRef, *m_manager, pSysMgr, data);
 
@@ -923,18 +923,18 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                 pClient->MoveItem(cur, ccRef->itemID(), flagNone);
             } else {
                 _log(ITEM__WARNING, "%s: CargoContainer %u is full.", pClient->GetName(), ccRef->itemID());
-                throw PyException(MakeCustomError("Your Cargo Container is full.  Some items were not transferred."));
+                throw CustomError ("Your Cargo Container is full.  Some items were not transferred.");
             }
         } else if (jcRef.get() != nullptr) {
             if (jcRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, jcRef->itemID(), flagNone);
             } else {
                 _log(ITEM__WARNING, "%s: Jetcan %u is full.", pClient->GetName(), jcRef->itemID());
-                throw PyException(MakeCustomError("Your jetcan is full.  Some items were not transferred."));
+                throw CustomError ("Your jetcan is full.  Some items were not transferred.");
             }
         } else {
             _log(ITEM__ERROR, "Jettison call for %s - no CC or Jcan.", pClient->GetName());
-            throw PyException(MakeCustomError("Item container not found.", cRef->typeID()));
+            throw CustomError ("Item container not found.", cRef->typeID());
         }
         continue;
     }

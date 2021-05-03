@@ -35,10 +35,10 @@ PyResult Command_savedungeon(Client* pClient, CommandDB* db, PyServiceMgr* servi
      */
 
     if (pClient == nullptr) // should never hit,
-        throw PyException(MakeCustomError("SaveDungeon: Invalid Caller - Client sent NULL."));
+        throw CustomError ("SaveDungeon: Invalid Caller - Client sent NULL.");
 
     if (args.argCount() < 2)
-        throw PyException(MakeCustomError("SaveDungeon: Missing Arguments (use '.savedungeon help' for usage)"));
+        throw CustomError ("SaveDungeon: Missing Arguments (use '.savedungeon help' for usage)");
 
 
     if (args.argCount() == 2) { //
@@ -60,7 +60,7 @@ PyResult Command_savedungeon(Client* pClient, CommandDB* db, PyServiceMgr* servi
 
     }
 
-    throw PyException(MakeCustomError("SaveDungeon: - This command is currently incomplete."));
+    throw CustomError ("SaveDungeon: - This command is currently incomplete.");
 }
 
 PyResult Command_printdungeon(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -69,7 +69,7 @@ PyResult Command_printdungeon(Client* pClient, CommandDB* db, PyServiceMgr* serv
      *
      */
 
-    throw PyException(MakeCustomError("PrintDungeon: - This command is currently incomplete."));
+    throw CustomError ("PrintDungeon: - This command is currently incomplete.");
 }
 
 // this is outdated
@@ -78,14 +78,14 @@ PyResult Command_spawndungeon(Client* pClient, CommandDB* db, PyServiceMgr* serv
      */
 
     if (args.argCount() != 2)
-        throw PyException(MakeCustomError("Correct Usage: .spawndungeon <dungeonTemplateID>"));
+        throw CustomError ("Correct Usage: .spawndungeon <dungeonTemplateID>");
 
     if (!args.isNumber(1))
-        throw PyException(MakeCustomError("Argument must be a template ID."));
+        throw CustomError ("Argument must be a template ID.");
 
     // pClient->SystemMgr()->GetDungMgr()->Create(args.arg(1));   // this is missing sig data.
 
-    throw PyException(MakeCustomError("SpawnDungeon: - This command is currently incomplete."));
+    throw CustomError ("SpawnDungeon: - This command is currently incomplete.");
     return nullptr;
 }
 
@@ -96,6 +96,6 @@ PyResult Command_removedungeon(Client* pClient, CommandDB* db, PyServiceMgr* ser
      * upon execution, this command will spawn a random dungeon from db in callers solarSystem,
      *   then create a bookmark in their PnP/BM window
      */
-    throw PyException(MakeCustomError("RemoveDungeon: - This command is currently incomplete."));
+    throw CustomError ("RemoveDungeon: - This command is currently incomplete.");
     return nullptr;
 }

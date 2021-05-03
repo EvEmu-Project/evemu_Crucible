@@ -443,5 +443,24 @@ protected:
     PyTuple* m_args;
     PyDict* m_keywords;
 };
+/**
+ * @brief Advanced version of UserError that allows to send a full custom message
+ *
+ * Shorthand version of UserError with fully customizable message
+ *
+ * @author almamu <almamu@almamu.com>
+ */
+class CustomError : public UserError
+{
+public:
+    /**
+     * Initializes a CustomError with the given message
+     * @param[in] message The message to send to the client
+     * @param[in] ... Format arguments to the message
+     */
+    CustomError(const char* message, ...);
+private:
+    static const char* EXCEPTION_NAME;
+};
 
 #endif /* !__PY_EXCEPTIONS_H__INCL__ */

@@ -291,4 +291,22 @@ PyDict* UserError::_CreateKeywords( const char* msg )
     return this->m_keywords;
 }
 
+CustomError::CustomError(const char *fmt, ...)
+: UserError (EXCEPTION_NAME)
+{
+    va_list va;
+    va_start (va, fmt);
+
+    char* str = nullptr;
+    vasprintf (&str, fmt, va);
+    assert (str);
+
+    va_end (va);
+
+    this->AddFormatValue ("error", new PyString (str));
+
+    SafeFree (str);
+}
+
+const char* CustomError::EXCEPTION_NAME = "CustomError";
 const char* UserError::EXCEPTION_NAME = "ccp_exceptions.UserError";

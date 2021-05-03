@@ -64,13 +64,13 @@ PyResult Command_heal(Client* pClient, CommandDB* db, PyServiceMgr* services, co
         pClient->GetShip()->Heal();
     } else if (args.argCount() == 2) {
         if (!args.isNumber(1))
-            throw PyException(MakeCustomError("Argument 1 should be a character ID"));
+            throw CustomError ("Argument 1 should be a character ID");
 
         uint32 entity = atoi(args.arg(1).c_str());
 
         Client *target = sEntityList.FindClientByCharID(entity);
         if (target == NULL)
-            throw PyException(MakeCustomError("Cannot find Character by the entityID %d", entity));
+            throw CustomError ("Cannot find Character by the entityID %d", entity);
 
         target->GetShip()->Heal();
     }
@@ -84,13 +84,13 @@ PyResult Command_healtarget(Client* pClient, CommandDB* db, PyServiceMgr* servic
         pClient->GetShip()->Heal();
     } else if (args.argCount() == 2) {
         if (!args.isNumber(1))
-            throw PyException(MakeCustomError("Argument 1 should be a character ID"));
+            throw CustomError ("Argument 1 should be a character ID");
 
         uint32 entity = atoi(args.arg(1).c_str());
 
         Client *target = sEntityList.FindClientByCharID(entity);
         if (target == NULL)
-            throw PyException(MakeCustomError("Cannot find Character by the entityID %d", entity));
+            throw CustomError ("Cannot find Character by the entityID %d", entity);
 
         target->GetShip()->Heal();
     }
@@ -101,7 +101,7 @@ PyResult Command_healtarget(Client* pClient, CommandDB* db, PyServiceMgr* servic
 PyResult Command_status(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     //if (!pClient->IsInSpace())
-    //    throw PyException(MakeCustomError("You're not in space."));
+    //    throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
         pClient->EnterSystem(pClient->GetSystemID());
     if (!pClient->GetShipSE()->DestinyMgr())
@@ -136,13 +136,13 @@ PyResult Command_list(Client* pClient, CommandDB* db, PyServiceMgr* services, co
      */
 
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You must be in space to list system inventory."));
+        throw CustomError ("You must be in space to list system inventory.");
 
     if (!pClient->GetShipSE()->SysBubble())
         if (pClient->IsInSpace())
             pClient->EnterSystem(pClient->GetSystemID());
         else
-            throw PyException(MakeCustomError("You must be in space to list system inventory."));
+            throw CustomError ("You must be in space to list system inventory.");
 
     SystemManager* pSys = pClient->GetShipSE()->SystemMgr();
     uint16 beltCount = pSys->BeltCount();
@@ -218,7 +218,7 @@ PyResult Command_bubblelist(Client* pClient, CommandDB* db, PyServiceMgr* servic
      */
 
     if (pClient->IsDocked())
-        throw PyException(MakeCustomError("You must be in space to list bubble inventory."));
+        throw CustomError ("You must be in space to list bubble inventory.");
 
     SystemBubble *b = pClient->GetShipSE()->SysBubble();
     uint32 bubble = b->GetID();
@@ -314,7 +314,7 @@ PyResult Command_secstatus(Client* pClient, CommandDB* db, PyServiceMgr* service
 PyResult Command_destinyvars(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space.  This call needs DestinyMgr."));
+        throw CustomError ("You're not in space.  This call needs DestinyMgr.");
     if (!pClient->GetShipSE()->SysBubble())
         pClient->EnterSystem(pClient->GetSystemID());
     if (!pClient->GetShipSE()->DestinyMgr())
@@ -349,7 +349,7 @@ PyResult Command_destinyvars(Client* pClient, CommandDB* db, PyServiceMgr* servi
 PyResult Command_shipvars(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
         pClient->EnterSystem(pClient->GetSystemID());
     if (!pClient->GetShipSE()->DestinyMgr())
@@ -388,7 +388,7 @@ PyResult Command_shipvars(Client* pClient, CommandDB* db, PyServiceMgr* services
 PyResult Command_halt(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
         pClient->EnterSystem(pClient->GetSystemID());
     if (!pClient->GetShipSE()->DestinyMgr())
@@ -454,10 +454,10 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* service
         inventoryID = pClient->GetStationID();
         StationItemRef station = sEntityList.GetStationByID(inventoryID);
         if (station.get() == nullptr)
-            throw PyException(MakeCustomError("Cannot find Station Reference for stationID %u", inventoryID));
+            throw CustomError ("Cannot find Station Reference for stationID %u", inventoryID);
         inv = station->GetMyInventory();
         if (inv == nullptr)
-            throw PyException(MakeCustomError("Cannot find inventory for locationID %u", inventoryID));
+            throw CustomError ("Cannot find inventory for locationID %u", inventoryID);
         inv->GetInventoryMap(invMap);
         item = station.get();
     } else {
@@ -465,10 +465,10 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* service
         inventoryID = pClient->GetSystemID();
         SolarSystemRef system = sItemFactory.GetSolarSystem(inventoryID);
         if (system.get() == nullptr)
-            throw PyException(MakeCustomError("Cannot find System Reference for systemID %u", inventoryID));
+            throw CustomError ("Cannot find System Reference for systemID %u", inventoryID);
         inv = system->GetMyInventory();
         if (inv == nullptr)
-            throw PyException(MakeCustomError("Cannot find inventory for locationID %u", inventoryID));
+            throw CustomError ("Cannot find inventory for locationID %u", inventoryID);
         inv->GetInventoryMap(invMap);
         item = system.get();
     }
@@ -568,7 +568,7 @@ PyResult Command_attrlist(Client* pClient, CommandDB* db, PyServiceMgr* services
      */
 
     if (!args.isNumber(1))
-        throw PyException(MakeCustomError("Argument 1 must be a valid itemID."));
+        throw CustomError ("Argument 1 must be a valid itemID.");
     uint32 itemID(atol(args.arg(1).c_str()));
 
     InventoryItemRef iRef(sItemFactory.GetItem(itemID));
@@ -772,10 +772,10 @@ PyResult Command_bubbletrack(Client* pClient, CommandDB* db, PyServiceMgr* servi
                 sBubbleMgr.RemoveMarkers();
             }
         } else {
-            throw PyException(MakeCustomError("BubbleTrack: Unrecognized Argument."));
+            throw CustomError ("BubbleTrack: Unrecognized Argument.");
         }
     } else {
-        throw PyException(MakeCustomError("BubbleTrack: Too Many Arguments."));
+        throw CustomError ("BubbleTrack: Too Many Arguments.");
     }
 
     char reply[45];
@@ -788,7 +788,7 @@ PyResult Command_bubbletrack(Client* pClient, CommandDB* db, PyServiceMgr* servi
 PyResult Command_warpto(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
         pClient->EnterSystem(pClient->GetSystemID());
     if (!pClient->GetShipSE()->DestinyMgr())
@@ -808,7 +808,7 @@ PyResult Command_warpto(Client* pClient, CommandDB* db, PyServiceMgr* services, 
 PyResult Command_entityspawn(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
         pClient->EnterSystem(pClient->GetSystemID());
     if (!pClient->GetShipSE()->DestinyMgr())
@@ -855,9 +855,9 @@ PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* servic
 /*PyResult Command_fleetinvite(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->InFleet())
-        throw PyException(MakeCustomError("You're not in a fleet."));
+        throw CustomError ("You're not in a fleet.");
     if (!pClient->IsFleetBoss())
-        throw PyException(MakeCustomError("You're not fleet boss."));
+        throw CustomError ("You're not fleet boss.");
 
     if (args.isNumber(1))
         throw PyException(MakeCustomError("Argument 1 should be one of 'None', 'Corp', 'Alliance', 'Faction', or 'All'"));
@@ -872,11 +872,11 @@ PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* servic
 PyResult Command_getposition(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
-        throw PyException(MakeCustomError("You're not in a bubble."));
+        throw CustomError ("You're not in a bubble.");
     if (!pClient->GetShipSE()->DestinyMgr())
-        throw PyException(MakeCustomError("You have no destiny manager."));
+        throw CustomError ("You have no destiny manager.");
 
     GPoint sPos(pClient->GetShipSE()->GetPosition());
     GPoint mPos(pClient->SystemMgr()->GetClosestMoonSE(sPos)->GetPosition());
@@ -1105,22 +1105,22 @@ PyResult Command_cargo(Client* pClient, CommandDB* db, PyServiceMgr* services, c
 PyResult Command_bubblewarp(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
-        throw PyException(MakeCustomError("You're not in a bubble."));
+        throw CustomError ("You're not in a bubble.");
     if (!pClient->GetShipSE()->DestinyMgr())
-        throw PyException(MakeCustomError("You have no destiny manager."));
+        throw CustomError ("You have no destiny manager.");
 
     if (!args.isNumber(1))
-        throw PyException(MakeCustomError("Argument 1 must be a valid bubbleID."));
+        throw CustomError ("Argument 1 must be a valid bubbleID.");
     uint16 bubbleID = atoi(args.arg(1).c_str());
     SystemBubble* pBubble = sBubbleMgr.FindBubbleByID(bubbleID);
     if (pBubble == nullptr)
-        throw PyException(MakeCustomError("Bubble %u not found.", bubbleID));
+        throw CustomError ("Bubble %u not found.", bubbleID);
 
     if (pBubble->GetSystemID() != pClient->GetSystemID())
-        throw PyException(MakeCustomError("Cannot warp to bubble %u because it is in %s and you are in %s", \
-                    bubbleID, pBubble->GetSystem()->GetName(), pClient->GetSystemName().c_str()));
+        throw CustomError ("Cannot warp to bubble %u because it is in %s and you are in %s", \
+                    bubbleID, pBubble->GetSystem()->GetName(), pClient->GetSystemName().c_str());
 
     pClient->GetShipSE()->DestinyMgr()->WarpTo(pBubble->GetCenter());
 
@@ -1135,7 +1135,7 @@ PyResult Command_bubblewarp(Client* pClient, CommandDB* db, PyServiceMgr* servic
 PyResult Command_runtest(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
 
     int size(30);
     char reply[size];
@@ -1172,20 +1172,20 @@ PyResult Command_bindList(Client* pClient, CommandDB* db, PyServiceMgr* services
 PyResult Command_dropLoot(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (!pClient->GetShipSE()->SysBubble())
-        throw PyException(MakeCustomError("You're not in a bubble."));
+        throw CustomError ("You're not in a bubble.");
     if (!pClient->GetShipSE()->DestinyMgr())
-        throw PyException(MakeCustomError("You have no destiny manager."));
+        throw CustomError ("You have no destiny manager.");
 
     uint16 bubbleID = atoi(args.arg(1).c_str());
     SystemBubble* pBubble = sBubbleMgr.FindBubbleByID(bubbleID);
     if (pBubble == nullptr)
-        throw PyException(MakeCustomError("Bubble %u not found.", bubbleID));
+        throw CustomError ("Bubble %u not found.", bubbleID);
 
     if (pBubble->GetSystemID() != pClient->GetSystemID())
-        throw PyException(MakeCustomError("bubble %u is in %s and you are in %s", \
-                bubbleID, pBubble->GetSystem()->GetName(), pClient->GetSystemName().c_str()));
+        throw CustomError ("bubble %u is in %s and you are in %s", \
+                bubbleID, pBubble->GetSystem()->GetName(), pClient->GetSystemName().c_str());
 
     pBubble->CmdDropLoot();
 

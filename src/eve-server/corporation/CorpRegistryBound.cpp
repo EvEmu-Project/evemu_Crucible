@@ -567,18 +567,18 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
     // verify they're not using bad words in their corp name
     for (const auto cur : badWords)
         if (EvE::icontains(args.corpName, cur))
-            throw PyException( MakeCustomError("Corp Name contains banned words"));
+            throw CustomError ("Corp Name contains banned words");
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.corpName, cur))
-            throw PyException( MakeCustomError("Corp Name contains invalid characters"));
+            throw CustomError ("Corp Name contains invalid characters");
 
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.corpTicker, cur))
-            throw PyException( MakeCustomError("Corp Ticker contains invalid characters"));
+            throw CustomError ("Corp Ticker contains invalid characters");
 
     // verify ticker is available
     if (m_db.IsTickerTaken(args.corpTicker))
@@ -2465,28 +2465,28 @@ PyResult CorpRegistryBound::Handle_CreateAlliance(PyCallArgs &call) {
     // verify they're not using bad words in their alliance name
     for (const auto cur : badWords)
         if (EvE::icontains(args.allianceName, cur))
-            throw PyException( MakeCustomError("Alliance Name contains banned words"));
+            throw CustomError ("Alliance Name contains banned words");
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.allianceName, cur))
-            throw PyException( MakeCustomError("Alliance Name contains invalid characters"));
+            throw CustomError ("Alliance Name contains invalid characters");
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.shortName, cur))
-            throw PyException( MakeCustomError("Alliance short name contains invalid characters"));
+            throw CustomError ("Alliance short name contains invalid characters");
 
     // verify short name is available
     if (a_db.IsShortNameTaken(args.shortName))
-        throw PyException(MakeCustomError("Alliance short name is taken."));
+        throw CustomError ("Alliance short name is taken.");
 
     double ally_cost = sConfig.rates.allyCost;
     if (pClient->GetBalance(Account::CreditType::ISK) < ally_cost) {
         _log(SERVICE__ERROR, "%s: Cannot afford alliance startup costs!", pClient->GetName());
 
         // send error to client here
-        throw PyException(MakeCustomError("You must have %s ISK to create an alliance.", ally_cost));
+        throw CustomError ("You must have %s ISK to create an alliance.", ally_cost);
         return nullptr;
     }
 

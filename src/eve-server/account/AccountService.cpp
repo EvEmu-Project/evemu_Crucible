@@ -220,7 +220,7 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call)
         // this hits db directly, so test for possible sql injection code
         for (const auto cur : badChars)
             if (EvE::icontains(args.reason, cur))
-                throw PyException( MakeCustomError("Description contains invalid characters"));
+                throw CustomError ("Description contains invalid characters");
         reason += args.reason;
     }
 
@@ -249,7 +249,7 @@ PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call)
         // this hits db directly, so test for possible sql injection code
         for (const auto cur : badChars)
             if (EvE::icontains(PyRep::StringContent(call.byname.find("reason")->second), cur))
-                throw PyException( MakeCustomError("Reason contains invalid characters"));
+                throw CustomError ("Reason contains invalid characters");
 
         reason += PyRep::StringContent(call.byname.find("reason")->second);
     } else {

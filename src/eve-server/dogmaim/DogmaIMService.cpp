@@ -465,7 +465,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs& call) {
                 .AddFormatValue ("targetName", new PyString (tSE->GetName ()));
     /** @todo SE->IsInvul() incomplete */
     if (tSE->IsInvul())
-        throw PyException(MakeCustomError("Cannot Engage %s as they are invulnerable.", tSE->GetName()));
+        throw CustomError ("Cannot Engage %s as they are invulnerable.", tSE->GetName());
         //throw UserError ("DeniedTargetInvulnerable");
     /** @todo SE->IsFrozen() incomplete */
     if (tSE->IsFrozen())
@@ -475,7 +475,7 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs& call) {
     if (tSE->HasPilot()) {
         /** @todo SE->IsInvul() incomplete */
         if ( tSE->GetPilot()->IsInvul())
-            throw PyException(MakeCustomError("Cannot Engage %s as they are invulnerable.", tSE->GetName()));
+            throw CustomError ("Cannot Engage %s as they are invulnerable.", tSE->GetName());
         //throw UserError ("DeniedTargetInvulnerable");
         if ( tSE->GetPilot()->IsSessionChange())
             throw UserError ("DeniedTargetEvadesSensors")

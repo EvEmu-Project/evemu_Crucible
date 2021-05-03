@@ -284,7 +284,7 @@ void RamMethods::ItemLocationCheck(Client*const pClient, const Call_InstallJob& 
         *  RamInstalledItemInStructureNotInContainer
         *  RamInstalledItemInStructureUnknownLocation
         */
-        throw(PyException(MakeCustomError("R.A.M. at POS/Outpost not supported yet")));
+        throw CustomError ("R.A.M. at POS/Outpost not supported yet");
     }
 }
 

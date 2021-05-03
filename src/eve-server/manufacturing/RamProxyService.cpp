@@ -224,7 +224,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
             }
         }
         _log(MANUF__ERROR, "installedItem dict incomplete");
-        throw(PyException(MakeUserError("Remote Job Installation Not Functional at this time.")));
+        throw CustomError ("Remote Job Installation Not Functional at this time.");
         return nullptr;
     }
     if (installedItem->categoryID() != EVEDB::invCategories::Blueprint)

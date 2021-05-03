@@ -432,7 +432,7 @@ void ModuleManager::CheckGroupFitLimited(EVEItemFlags flag, InventoryItemRef iRe
             args["module"]              = new PyInt(iRef->itemID());
             throw PyException( MakeUserError("CantFitTooManyByGroup", args));   // bad msgID in client.
             */
-            throw PyException(MakeCustomError("Group Fit Limited.<br>You cannot fit the %s to your %s.", iRef->name(), pShipItem->name()));
+            throw CustomError ("Group Fit Limited.<br>You cannot fit the %s to your %s.", iRef->name(), pShipItem->name());
             /*CantFitTooManyByGroupBody'}(
              * u"You're unable to fit {[item]module.name} to {[item]ship.name}.
              * You can only fit {[numeric]noOfModules} of type {groupName} but already have {[numeric]noOfModulesFitted}.", None,
