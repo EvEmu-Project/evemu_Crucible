@@ -39,6 +39,7 @@ protected:
     Dispatcher* const m_dispatch;
 
     PyCallable_DECL_CALL(GetLoader);
+    PyCallable_DECL_CALL(ExceptionFluentExample);
 };
 
 #endif

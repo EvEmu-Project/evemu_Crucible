@@ -2272,7 +2272,7 @@ PyResult DestinyManager::AttemptDockOperation() {
     if (rangeToStationPerimiter > 2500.0) {
         AlignTo( station );   // Turn ship and move toward docking point - client will usually call Dock() automatically...sometimes
         if (mySE->HasPilot() and mySE->GetPilot()->CanThrow())
-            throw PyException(MakeUserError("DockingApproach"));
+            throw UserError ("DockingApproach");
     }
 
     pClient->SetStateTimer(Player::State::Dock, sConfig.world.StationDockDelay *1000); // default @ 4sec();

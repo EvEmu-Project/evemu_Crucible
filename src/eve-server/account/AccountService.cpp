@@ -394,7 +394,11 @@ void AccountService::HandleCorpTransaction(uint32 corpID, int8 entryTypeID, uint
             args["amount"] = new PyFloat(-amount);
             args["balance"] = new PyFloat(balance);
             args["division"] = new PyString(CorporationDB::GetDivisionName(corpID, accountKey));
-            throw PyException(MakeUserError("NotEnoughMoneyCorp", args));
+            throw UserError ("NotEnoughMoneyCorp")
+                    .AddOwnerName ("owner", corpID)
+                    .AddISK ("amount", -amount)
+                    .AddISK ("balance", balance)
+                    .AddFormatValue ("division", new PyString (CorporationDB::GetDivisionName (corpID, accountKey)));
         }
     }
     // get new corp balance

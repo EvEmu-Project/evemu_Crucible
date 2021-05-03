@@ -316,7 +316,9 @@ PyResult CharMgrService::Handle_AddToBounty( PyCallArgs& call )
         std::map<std::string, PyRep *> res;
         res["amount"] = new PyFloat(args.arg2);
         res["balance"] = new PyFloat(call.client->GetBalance());
-        throw(PyException(MakeUserError("NotEnoughMoney", res)));
+        throw UserError ("NotEnoughMoney")
+                .AddISK ("amount", args.arg2)
+                .AddISK ("balance", call.client->GetBalance ());
     }
 
     return PyStatic.NewNone();

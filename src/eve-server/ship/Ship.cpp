@@ -601,7 +601,7 @@ InventoryItemRef ShipItem::GetModuleRef(uint32 modID)
 void ShipItem::LoadCharge(InventoryItemRef cRef, EVEItemFlags flag)
 {
     if (cRef.get() == nullptr)
-        throw PyException(MakeUserError("CantFindChargeToAdd"));
+        throw UserError ("CantFindChargeToAdd");
 
     if (!IsFittingSlot(flag))
         throw PyException(MakeCustomError("Destination is not weapon."));
@@ -609,12 +609,12 @@ void ShipItem::LoadCharge(InventoryItemRef cRef, EVEItemFlags flag)
     if (IsFittingSlot(cRef->flag())) {
         _log(MODULE__TRACE, "ShipItem::LoadCharge - Trying to load %s from %s to %s.", \
                     cRef->name(), sDataMgr.GetFlagName(cRef->flag()), sDataMgr.GetFlagName(flag));
-        throw PyException(MakeUserError("CantMoveChargesBetweenModules"));
+        throw UserError ("CantMoveChargesBetweenModules");
     }
 
     GenericModule* pMod(m_ModuleManager->GetModule(flag));
     if (pMod == nullptr)
-        throw PyException(MakeUserError("ModuleNoLongerPresentForCharges"));
+        throw UserError ("ModuleNoLongerPresentForCharges");
 
     if (pMod->IsActive()) {
         throw PyException(MakeCustomError("You cannot load active modules."));
@@ -627,9 +627,8 @@ void ShipItem::LoadCharge(InventoryItemRef cRef, EVEItemFlags flag)
          */
     }
     if (pMod->GetModuleState() == Module::State::Loading) {
-        std::map<std::string, PyRep *> args;
-        args["chargeType"] = new PyInt(cRef->typeID());
-        throw PyException(MakeUserError("LoadingChargeSlotAlready", args));
+        throw UserError ("LoadingChargeSlotAlready")
+                .AddFormatValue ("chargeType", new PyInt (cRef->typeID ()));
         //throw PyException( MakeUserError("LoadingChargeAlready", args));
         /*LoadingChargeAlreadyBody'}(u'Some or all of {[item]chargeType.name} is already being loaded into a module.
          * If you wish to load what remains, you will have to wait until this is finished.',
@@ -641,7 +640,7 @@ void ShipItem::LoadCharge(InventoryItemRef cRef, EVEItemFlags flag)
         /*  this doesnt work right....comment for now.
         std::map<std::string, PyRep *> args;
         args["charge"] = new PyInt(iRef->itemID());
-        throw PyException( MakeUserError("ChargeLoadingFailedWithRefund"));
+        throw UserError ("ChargeLoadingFailedWithRefund");
         */
         /* ChargeLoadingFailedWithRefundBody'}(u'Your {[item]charge.name} failed to load and was returned to your cargo.',
          * None, {u'{[item]charge.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'charge'}})
@@ -691,7 +690,7 @@ void ShipItem::LoadLinkedWeapons(GenericModule* pMod, std::vector<int32>& charge
     int8 pos = 0;
     InventoryItemRef cRef(sItemFactory.GetItem(chargeIDs[pos]));
     if (cRef.get() == nullptr)
-        throw PyException(MakeUserError("CantFindChargeToAdd"));
+        throw UserError ("CantFindChargeToAdd");
 
     int8 size(chargeIDs.size());
     //load charge in master
@@ -724,7 +723,7 @@ void ShipItem::RemoveCharge(EVEItemFlags fromFlag)
             throw PyException( MakeCustomError("Module was not found at %s.", sDataMgr.GetFlagName(fromFlag)));
 
         if (pMod->IsActive())
-            throw PyException( MakeUserError("CannotAccessChargeWhileInUse"));
+            throw UserError ("CannotAccessChargeWhileInUse");
 
         if (!pMod->IsLoaded())
             throw PyException( MakeCustomError("Your %s is not loaded.", pMod->GetSelf()->name()));
@@ -737,7 +736,7 @@ void ShipItem::RemoveCharge(EVEItemFlags fromFlag)
 void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
 {
     if (m_ModuleManager->IsSlotOccupied(flag))
-        throw PyException( MakeUserError("SlotAlreadyOccupied"));
+        throw UserError ("SlotAlreadyOccupied");
 
     m_ModuleManager->CheckSlotFitLimited(flag);
     m_ModuleManager->CheckGroupFitLimited(flag, iRef);
@@ -746,9 +745,8 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
         // check available turret/launcher hardpoints
         if (iRef->type().HasEffect(EVEEffectID::turretFitted)) {
             if (GetAttribute(AttrTurretSlotsLeft) < 1) {
-                std::map<std::string, PyRep *> args;
-                args["moduleName"] = new PyString(iRef->itemName());
-                throw PyException( MakeUserError("NotEnoughTurretSlots", args));
+                throw UserError ("NotEnoughTurretSlots")
+                        .AddTypeName ("moduleName", iRef->typeID ());
                 /*u'NotEnoughTurretSlotsBody'}(u"You cannot fit the {moduleName} because your ship doesn't have any turret slots left for fitting, possibly because you have already filled your ship with turrets or that the ship simply can not be fitted with turrets.\r\n<br>
                  * <br>Turret slots represent how many weapons of a certain type can be fitted on a ship. The current design is over a hundred years old, and is modular enough to allow for a great leeway in the fitting of various weaponry.", None,
                  * {u'{moduleName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'moduleName'}})
@@ -756,9 +754,8 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
             }
         } else if (iRef->type().HasEffect(EVEEffectID::launcherFitted)) {
             if (GetAttribute(AttrLauncherSlotsLeft) < 1) {
-                std::map<std::string, PyRep *> args;
-                args["moduleName"] = new PyString(iRef->itemName());
-                throw PyException( MakeUserError("NotEnoughLauncherSlots", args));
+                throw UserError ("NotEnoughLauncherSlots")
+                        .AddTypeName ("moduleName", iRef->typeID ());
                 /*NotEnoughLauncherSlotsBody'}(u"You cannot fit the {moduleName} because your ship doesn't have any launcher slots left for fitting, possibly because you have already filled your ship with launchers or that the ship simply can not be fitted with launchers.<br>
                  * <br>Launcher slots represent how many weapons of a certain type can be fitted on a ship. The current design is over a hundred years old, and is modular enough to allow for a great leeway in the fitting of various weaponry.", None,
                  * {u'{moduleName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'moduleName'}})
@@ -767,11 +764,10 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
         }
     } else if (IsRigSlot(flag)) {
         if (GetAttribute(AttrRigSize) != iRef->GetAttribute(AttrRigSize)) {
-            std::map<std::string, PyRep *> args;
-            args["rigSize"] = new PyString(sDataMgr.GetRigSizeName(iRef->GetAttribute(AttrRigSize).get_uint32()));
-            args["item"] = new PyString(iRef->itemName());
-            args["shipRigSize"] = new PyString(sDataMgr.GetRigSizeName(GetAttribute(AttrRigSize).get_uint32()));
-            throw PyException( MakeUserError("CannotFitRigWrongSize", args));
+            throw UserError ("CannotFitRigWrongSize")
+                    .AddFormatValue ("rigSize", new PyString (sDataMgr.GetRigSizeName (iRef->GetAttribute (AttrRigSize).get_uint32())))
+                    .AddTypeName ("item", iRef->typeID ())
+                    .AddFormatValue ("shipRigSize", new PyString (sDataMgr.GetRigSizeName (GetAttribute (AttrRigSize).get_uint32())));
             /* CannotFitRigWrongSizeBody'}(u'{item} does not fit in this slot.
              * The slot takes size {shipRigSize} rigs, but the item is size {rigSize}.', None,
              * {u'{rigSize}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'rigSize'},
@@ -781,18 +777,16 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
              */
         }
         if (GetAttribute(AttrUpgradeSlotsLeft) < 1) {
-            std::map<std::string, PyRep *> args;
-            args["moduleType"] = new PyString(iRef->type().name());
-            throw PyException( MakeUserError("NotEnoughUpgradeSlots", args));
+            throw UserError ("NotEnoughUpgradeSlots")
+                    .AddFormatValue ("moduleType", new PyInt (iRef->typeID ()));
             /*NotEnoughUpgradeSlotsBody'}(u"You cannot fit the {[item]moduleType.name} because your ship doesn't have any upgrade slots left for fitting, possibly because you have already filled your ship with upgrades or that the ship simply can not be fitted with upgrades.", None,
              * {u'{[item]moduleType.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'moduleType'}})
              */
         }
 
         if ((GetAttribute(AttrUpgradeLoad) + iRef->GetAttribute(AttrUpgradeCost)) > GetAttribute(AttrUpgradeCapacity)) {
-            std::map<std::string, PyRep *> args;
-            args["moduleName"] = new PyString(iRef->itemName());
-            throw PyException( MakeUserError("NotEnoughUpgradeCapacity", args));
+            throw UserError ("NotEnoughUpgradeCapacity")
+                    .AddTypeName ("moduleName", iRef->typeID ());
             /*NotEnoughUpgradeCapacityBody'}(u'You cannot fit the {moduleName} because your ship cannot handle it. Your ship can only fit so many upgrades as each interferes with its calibration, and past a certain point your ship is rendered unusable.', None,
              * {u'{moduleName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'moduleName'}})
              */
@@ -1387,15 +1381,15 @@ void ShipItem::LinkWeapon(GenericModule* pMaster, GenericModule* pSlave)
     if (pMaster == pSlave)
         return; // make error here?
     if ((pMaster->IsLoaded()) or (pSlave->IsLoaded()))
-        throw PyException( MakeUserError("CantLinkAmmoInWeapon"));
+        throw UserError ("CantLinkAmmoInWeapon");
     if ((pMaster->IsActive()) or (pSlave->IsActive()))
-        throw PyException( MakeUserError("CantLinkModuleActive"));
+        throw UserError ("CantLinkModuleActive");
     if ((pMaster->IsDamaged()) or (pSlave->IsDamaged()))
-        throw PyException( MakeUserError("CantLinkModuleDamaged"));
+        throw UserError ("CantLinkModuleDamaged");
     if ((pMaster->IsLoading()) or (pSlave->IsLoading()))
-        throw PyException( MakeUserError("CantLinkModuleLoading"));
+        throw UserError ("CantLinkModuleLoading");
     if ((!pMaster->isOnline()) or (!pSlave->isOnline()))
-        throw PyException( MakeUserError("CantLinkModuleNotOnline"));
+        throw UserError ("CantLinkModuleNotOnline");
 
     std::map<GenericModule*, std::list<GenericModule*>>::iterator itr = m_linkedWeapons.find(pMaster);
     if (itr == m_linkedWeapons.end()) {
@@ -1581,9 +1575,9 @@ void ShipItem::UnlinkWeapon(uint32 masterID, uint32 slaveID)
 
     // if master is loading or active, then whole group is
     if (pMod1->IsActive())
-        throw PyException( MakeUserError("CantUngroupModuleActive"));
+        throw UserError ("CantUngroupModuleActive");
     if (pMod1->IsLoading())
-        throw PyException( MakeUserError("CantUngroupModuleLoading"));
+        throw UserError ("CantUngroupModuleLoading");
 
     pMod2->SetLinked(false);
 
@@ -1614,9 +1608,9 @@ void ShipItem::UnlinkGroup(uint32 memberID, bool update/*false*/)
 
     // if master is loading or active, then whole group is
     if (pMod1->IsActive())
-        throw PyException( MakeUserError("CantUngroupModuleActive"));
+        throw UserError ("CantUngroupModuleActive");
     if (pMod1->IsLoading())
-        throw PyException( MakeUserError("CantUngroupModuleLoading"));
+        throw UserError ("CantUngroupModuleLoading");
 
     std::map<GenericModule*, std::list<GenericModule*>>::iterator itr = m_linkedWeapons.find(pMod1);
     if (itr != m_linkedWeapons.end()) {
@@ -1661,9 +1655,9 @@ void ShipItem::UnlinkAllWeapons()
     m_ModuleManager->GetWeapons(weaponList);
     for (auto cur : weaponList) {
         if (cur->IsActive())
-            throw PyException( MakeUserError("CantUngroupModuleActive"));
+            throw UserError ("CantUngroupModuleActive");
         if (cur->IsLoading())
-            throw PyException( MakeUserError("CantUngroupModuleLoading"));
+            throw UserError ("CantUngroupModuleLoading");
 
         cur->SetLinked(false);
         cur->SetLinkMaster(false);

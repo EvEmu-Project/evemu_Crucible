@@ -66,10 +66,7 @@ PyResult CommandDispatcher::Execute( Client* from, const char* msg )
             reason += "'" + cur->second->command + "',";
         reason += "]";
 
-        UserError *err = new UserError( "" );
-        err->AddKeyword( "reason", new PyString( reason ) );
-
-        throw PyException( err );
+        throw UserError ("").AddFormatValue ("reason", new PyString (reason));
     }
 
     std::map<std::string, CommandRecord*>::const_iterator itr = m_commands.find( sep.arg( 0 ) );

@@ -380,7 +380,9 @@ bool Character::AlterBalance(float amount, uint8 type) {
         std::map<std::string, PyRep *> args;
         args["amount"] = new PyFloat(-amount);
         args["balance"] = new PyFloat(balance(type));
-        throw(PyException(MakeUserError("NotEnoughMoney", args)));
+        throw UserError ("NotEnoughMoney")
+                .AddISK ("amount", -amount)
+                .AddISK ("balance", balance (type));
     }
 
     //adjust balance and send notification of change

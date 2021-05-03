@@ -185,7 +185,7 @@ void StructureItem::Rename(std::string name)
     }
     else
     {
-        throw PyException(MakeUserError("SetNameObjectMustBeAnchoredInSpace"));
+        throw UserError ("SetNameObjectMustBeAnchoredInSpace");
     }
     // {'FullPath': u'UI/Messages', 'messageID': 258480, 'label': u'SetNameObjectMustBeAnchoredInSpaceBody'}(u'You can only rename this type of object if it is anchored in space (and you have a right to do so).', None, None)
 }
@@ -755,24 +755,22 @@ void StructureSE::Activate(int32 effectID)
             // throwing an error negates further processing
             float total = m_towerSE->GetSelf()->GetAttribute(AttrCpuOutput).get_float();
             float remaining = total - m_towerSE->GetCPULoad();
-            std::map<std::string, PyRep *> args;
-            args["total"] = new PyFloat(total);
-            args["require"] = new PyFloat(m_self->GetAttribute(AttrCpu).get_float());
-            args["remaining"] = new PyFloat(remaining);
-            args["moduleType"] = new PyInt(m_self->typeID());
-            throw PyException(MakeUserError("NotEnoughCpu", args));
+            throw UserError ("NotEnoughCpu")
+                    .AddAmount ("total", total)
+                    .AddAmount ("require", m_self->GetAttribute (AttrCpu).get_float ())
+                    .AddAmount ("remaining", remaining)
+                    .AddFormatValue ("moduleType", new PyInt (m_self->typeID ()));
         }
         if (!m_towerSE->HasPG(m_self->GetAttribute(AttrPower).get_float()))
         {
             // throwing an error negates further processing
             float total = m_towerSE->GetSelf()->GetAttribute(AttrPowerOutput).get_float();
             float remaining = total - m_towerSE->GetPGLoad();
-            std::map<std::string, PyRep *> args;
-            args["total"] = new PyFloat(total);
-            args["require"] = new PyFloat(m_self->GetAttribute(AttrPower).get_float());
-            args["remaining"] = new PyFloat(remaining);
-            args["moduleType"] = new PyInt(m_self->typeID());
-            throw PyException(MakeUserError("NotEnoughPower", args));
+            throw UserError ("NotEnoughPower")
+                    .AddAmount ("total", total)
+                    .AddAmount ("require", m_self->GetAttribute (AttrPower).get_float ())
+                    .AddAmount ("remaining", remaining)
+                    .AddFormatValue ("moduleType", new PyInt (m_self->typeID ()));
         }
     }
 
