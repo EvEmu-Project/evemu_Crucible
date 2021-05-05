@@ -211,8 +211,8 @@ bool AllianceDB::DeleteApplication(const Alliance::ApplicationInfo &aInfo)
     DBerror err;
     if (!sDatabase.RunQuery(err,
                             " DELETE FROM alnApplications"
-                            " WHERE applicationID = %u",
-                            aInfo.appID))
+                            " WHERE corporationID = %u and allianceID = %u ",
+                            aInfo.corpID, aInfo.allyID))
     {
         codelog(ALLY__DB_ERROR, "Error in query: %s", err.c_str());
         return false;
@@ -368,9 +368,6 @@ bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID)
     {
         codelog(DATABASE__ERROR, "Error in corp alliance update query: %s", err.c_str());
     }
-
-    if (!sDatabase.RunQuery(err, "UPDATE alnAlliance SET memberCount = memberCount+1 WHERE allianceID = %u", allyID))
-        codelog(ALLY__DB_ERROR, "Error in new alliance member increase query: %s", err.c_str());
     return true;
 }
 

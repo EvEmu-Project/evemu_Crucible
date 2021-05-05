@@ -2486,7 +2486,7 @@ PyResult CorpRegistryBound::Handle_CreateAlliance(PyCallArgs &call) {
         _log(SERVICE__ERROR, "%s: Cannot afford alliance startup costs!", pClient->GetName());
 
         // send error to client here
-        throw CustomError ("You must have %s ISK to create an alliance.", ally_cost);
+        throw CustomError ("You must have %f ISK to create an alliance.", ally_cost);
         return nullptr;
     }
 
@@ -2547,6 +2547,7 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     app.corpID = m_corpID;
     app.state = EveAlliance::AppStatus::AppNew;
     app.valid = true;
+    app.deleted = false;
 
     if (!a_db.InsertApplication(app)) {
         codelog(SERVICE__ERROR, "New alliance application failed.");
@@ -2561,16 +2562,10 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     oaac.corpID = m_corpID;
     oaac.allianceID = app.allyID;
 
-    std::vector<Client *> list;
-    sEntityList.GetClients(list);
-    for (auto cur : list)
-    {
-        if (cur->GetChar().get() != nullptr)
-        {
-            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
-            _log(SOV__DEBUG, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
-        }
-    }
+    //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
+    uint32 executorID = AllianceDB::GetExecutorID(app.allyID);
+    sEntityList.CorpNotify(oaac.corpID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
+    sEntityList.CorpNotify(executorID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
 
     //Get sending corp's CEO ID:
     uint32 charID = m_db.GetCorporationCEO(m_corpID);
@@ -2612,14 +2607,34 @@ PyResult CorpRegistryBound::Handle_DeleteAllianceApplication(PyCallArgs &call) {
     }
     args.Dump(CORP__TRACE);
 
-    Alliance::ApplicationInfo app;
-    app.appID = args.arg;
-    app.valid = true;
+    //Old application info
+    Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
 
-    if (!a_db.DeleteApplication(app)) {
-        codelog(SERVICE__ERROR, "New alliance application failed.");
+    if (!a_db.GetCurrentApplicationInfo(args.arg, call.client->GetCorporationID(), oldInfo))
+    {
+        _log(SERVICE__ERROR, "%s: Failed to query application for corp %u alliance %u", call.client->GetName(), call.client->GetCorporationID(), args.arg);
         return nullptr;
     }
+
+    //New application info (set deleted flag to true here)
+    Alliance::ApplicationInfo newInfo = oldInfo;
+    newInfo.valid = true;
+    newInfo.deleted = true;
+
+    OnAllianceApplicationChanged oaac;
+    oaac.allianceID = newInfo.allyID;
+    oaac.corpID = newInfo.corpID;
+    AllianceBound::FillOAApplicationChange(oaac, oldInfo, newInfo);
+
+    if (!a_db.DeleteApplication(newInfo)) {
+        codelog(SERVICE__ERROR, "Deletion failed.");
+        return nullptr;
+    }
+
+    //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
+    uint32 executorID = AllianceDB::GetExecutorID(oaac.allianceID);
+    sEntityList.CorpNotify(oaac.corpID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
+    sEntityList.CorpNotify(executorID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
 
     return nullptr;
 }

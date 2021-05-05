@@ -710,6 +710,18 @@
             <raw name="stateNew" />
           </tupleInline>
         </dictInlineEntry>
+        <dictInlineEntry key="applicationDateTime">
+          <tupleInline>
+            <raw name="applicationDateTimeOld" />
+            <raw name="applicationDateTimeNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="deleted">
+          <tupleInline>
+            <raw name="deletedOld" />
+            <raw name="deletedNew" />
+          </tupleInline>
+        </dictInlineEntry>
       </dictInline>
     </tupleInline>
   </elementDef>
