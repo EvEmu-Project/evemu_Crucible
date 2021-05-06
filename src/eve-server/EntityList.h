@@ -115,6 +115,7 @@ public:
 
     // gets Client* for all ingame players
     void GetClients(std::vector<Client* > &result) const;
+    void GetCorpClients(std::vector<Client*> &result, uint32 corpID) const;
 
     void AddStation(uint32 stationID, StationItemRef itemRef);
     void RemoveStation(uint32 stationID);

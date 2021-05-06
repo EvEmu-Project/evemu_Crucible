@@ -543,7 +543,7 @@ bool AllianceDB::CreateAllianceChangePacket(OnAllianceChanged &ac, uint32 oldAll
                                 " a.creatorCharID, a.startDate, a.memberCount, a.url, a.deleted, 0 as dictatorial " //Dictatorial is not used in Crucible but must be set
                                 " FROM alnAlliance AS a"
                                 " WHERE allianceID = %u",
-                                oldAllyID))
+                                newAllyID))
         {
             codelog(ALLY__DB_ERROR, "Error in retrieving new alliance's data (%u)", newAllyID);
             return false;

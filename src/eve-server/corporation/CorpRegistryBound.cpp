@@ -2542,12 +2542,11 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     args.Dump(CORP__TRACE);
 
     Alliance::ApplicationInfo app;
-    app.appText = args.applicationText;
-    app.allyID = args.allianceID;
-    app.corpID = m_corpID;
-    app.state = EveAlliance::AppStatus::AppNew;
-    app.valid = true;
-    app.deleted = false;
+        app.appText = args.applicationText;
+        app.allyID = args.allianceID;
+        app.corpID = m_corpID;
+        app.state = EveAlliance::AppStatus::AppNew;
+        app.valid = true;
 
     if (!a_db.InsertApplication(app)) {
         codelog(SERVICE__ERROR, "New alliance application failed.");
@@ -2556,16 +2555,37 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
 
     Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
         oldInfo.valid = false;
-    OnAllianceApplicationChanged oaac;
-    AllianceBound::FillOAApplicationChange(oaac, oldInfo, app);
 
-    oaac.corpID = m_corpID;
-    oaac.allianceID = app.allyID;
+    OnAllianceApplicationChanged oaac;
+        oaac.corpID = m_corpID;
+        oaac.allianceID = app.allyID;
+
+    AllianceBound::FillOAApplicationChange(oaac, oldInfo, app);
 
     //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
     uint32 executorID = AllianceDB::GetExecutorID(app.allyID);
-    sEntityList.CorpNotify(oaac.corpID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
-    sEntityList.CorpNotify(executorID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
+
+    std::vector<Client *> list;
+    sEntityList.GetCorpClients(list, oaac.corpID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
+    list.clear();
+    sEntityList.GetCorpClients(list, executorID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
 
     //Get sending corp's CEO ID:
     uint32 charID = m_db.GetCorporationCEO(m_corpID);
@@ -2633,8 +2653,28 @@ PyResult CorpRegistryBound::Handle_DeleteAllianceApplication(PyCallArgs &call) {
 
     //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
     uint32 executorID = AllianceDB::GetExecutorID(oaac.allianceID);
-    sEntityList.CorpNotify(oaac.corpID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
-    sEntityList.CorpNotify(executorID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
+
+    std::vector<Client *> list;
+    sEntityList.GetCorpClients(list, oaac.corpID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
+    list.clear();
+    sEntityList.GetCorpClients(list, executorID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
 
     return nullptr;
 }

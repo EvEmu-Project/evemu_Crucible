@@ -188,21 +188,42 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
     oaac.corpID = newInfo.corpID;
     FillOAApplicationChange(oaac, oldInfo, newInfo);
 
+    //Client list for notifications
+    std::vector<Client *> list;
+
     //If we are accepting an application
     if (args.applicationStatus == EveAlliance::AppStatus::AppEffective)
     {
         // OnAllianceMemberChanged event
         OnAllianceMemberChange oamc;
-        oamc.corpID = args.corporationID;
-        oamc.newAllianceID = oldInfo.allyID;
-        oamc.oldAllianceID = newInfo.allyID;
-        oamc.newDate = (int64)GetFileTimeNow();
-        oamc.oldDate = oldInfo.appTime;
+        oamc.allyID = newInfo.allyID;
+        oamc.corpID = newInfo.corpID;
+        FillOAMemberChange(oamc, oldInfo, newInfo);
 
         //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
-        uint32 executorID = AllianceDB::GetExecutorID(oamc.newAllianceID);
-        sEntityList.CorpNotify(oamc.corpID, Notify::Types::CorpNews, "OnAllianceMemberChanged", "clientID", oamc.Encode());
-        sEntityList.CorpNotify(executorID, Notify::Types::CorpNews, "OnAllianceMemberChanged", "clientID", oamc.Encode());
+        uint32 executorID = AllianceDB::GetExecutorID(newInfo.allyID);
+
+        list.clear();
+        sEntityList.GetCorpClients(list, oamc.corpID);
+        for (auto cur : list)
+        {
+            if (cur->GetChar().get() != nullptr)
+            {
+                cur->SendNotification("OnAllianceMemberChanged", "clientID", oamc.Encode(), false);
+                _log(ALLY__TRACE, "OnAllianceMemberChanged sent to client %u", cur->GetClientID());
+            }
+        }
+
+        list.clear();
+        sEntityList.GetCorpClients(list, executorID);
+        for (auto cur : list)
+        {
+            if (cur->GetChar().get() != nullptr)
+            {
+                cur->SendNotification("OnAllianceMemberChanged", "clientID", oamc.Encode(), false);
+                _log(ALLY__TRACE, "OnAllianceMemberChanged sent to client %u", cur->GetClientID());
+            }
+        }
 
         //  call to db.AddCorporation() will update eveStaticOwners with new corp
         PyString *cache_name = new PyString("config.StaticOwners");
@@ -232,7 +253,6 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         m_manager->lsc_service->SendMail(CorporationDB::GetCorporationCEO(m_db.GetExecutorID(m_allyID)), recipients, subject, message);
 
         //Send OnAllianceChanged packet
-
         OnAllianceChanged ac;
         ac.allianceID = m_allyID;
         if (!m_db.CreateAllianceChangePacket(ac, 0, m_allyID))
@@ -243,7 +263,16 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         }
 
         //Send to everyone who needs to see it in the applying corp
-        sEntityList.CorpNotify(args.corporationID, Notify::Types::CorpNews, "OnAllianceChanged", "clientID", ac.Encode());
+        list.clear();
+        sEntityList.GetCorpClients(list, args.corporationID);
+        for (auto cur : list)
+        {
+            if (cur->GetChar().get() != nullptr)
+            {
+                cur->SendNotification("OnAllianceChanged", "clientID", ac.Encode(), false);
+                _log(ALLY__TRACE, "OnAllianceChanged sent to client %u", cur->GetClientID());
+            }
+        }
     }
 
     else if (args.applicationStatus == EveAlliance::AppStatus::AppRejected)
@@ -258,8 +287,28 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
 
     //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
     uint32 executorID = AllianceDB::GetExecutorID(oaac.allianceID);
-    sEntityList.CorpNotify(oaac.corpID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
-    sEntityList.CorpNotify(executorID, Notify::Types::CorpAppNew, "OnAllianceApplicationChanged", "clientID", oaac.Encode());
+
+    list.clear();
+    sEntityList.GetCorpClients(list, oaac.corpID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
+    list.clear();
+    sEntityList.GetCorpClients(list, executorID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
 
     return nullptr;
 }
@@ -274,19 +323,11 @@ void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged &OAAC, 
         OAAC.allianceIDOld = new PyInt(Old.allyID);
         OAAC.stateOld = new PyInt(Old.state);
         OAAC.applicationDateTimeOld = new PyLong(Old.appTime);
-        OAAC.deletedOld = new PyBool(Old.deleted);
+        if (Old.deleted == true)
+        {
+            OAAC.deletedOld = new PyBool(true);
+        }
     }
-    else
-    {
-        OAAC.applicationIDOld = PyStatic.NewNone();
-        OAAC.applicationTextOld = PyStatic.NewNone();
-        OAAC.corporationIDOld = PyStatic.NewNone();
-        OAAC.allianceIDOld = PyStatic.NewNone();
-        OAAC.stateOld = PyStatic.NewNone();
-        OAAC.applicationDateTimeOld = PyStatic.NewNone();
-        OAAC.deletedOld = PyStatic.NewNone();
-    }
-
     if (New.valid)
     {
         OAAC.applicationIDNew = new PyInt(New.appID);
@@ -295,19 +336,29 @@ void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged &OAAC, 
         OAAC.allianceIDNew = new PyInt(New.allyID);
         OAAC.stateNew = new PyInt(New.state);
         OAAC.applicationDateTimeNew = new PyLong(New.appTime);
-        OAAC.deletedNew = new PyBool(New.deleted);
-    }
-    else
-    {
-        OAAC.applicationIDNew = PyStatic.NewNone();
-        OAAC.applicationTextNew = PyStatic.NewNone();
-        OAAC.corporationIDNew = PyStatic.NewNone();
-        OAAC.allianceIDNew = PyStatic.NewNone();
-        OAAC.stateNew = PyStatic.NewNone();
-        OAAC.applicationDateTimeNew = PyStatic.NewNone();
-        OAAC.deletedNew = PyStatic.NewNone();
+        if (New.deleted == true)
+        {
+            OAAC.deletedNew = new PyBool(true);
+        }
     }
 }
+
+void AllianceBound::FillOAMemberChange(OnAllianceMemberChange &oamc, const Alliance::ApplicationInfo &Old, const Alliance::ApplicationInfo &New)
+{
+    if (Old.valid)
+    {
+        oamc.corporationIDOld = new PyInt(Old.corpID);
+        oamc.corporationNameOld = new PyString(CorporationDB::GetCorpName(Old.corpID));
+        oamc.chosenExecutorIDOld = new PyInt(AllianceDB::GetExecutorID(Old.allyID));
+    }
+    if (New.valid)
+    {
+        oamc.corporationIDNew = new PyInt(New.corpID);
+        oamc.corporationNameNew = new PyString(CorporationDB::GetCorpName(New.corpID));
+        oamc.chosenExecutorIDNew = new PyInt(AllianceDB::GetExecutorID(New.allyID));
+    }
+}
+
 
 PyResult AllianceBound::Handle_AddToVoiceChat(PyCallArgs &call)
 {

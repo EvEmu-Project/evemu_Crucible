@@ -845,18 +845,25 @@
 
   <elementDef name="OnAllianceMemberChange">
     <tupleInline>
+      <int name="allyID" />
       <int name="corpID" />
       <dictInline>
-        <dictInlineEntry key="allianceID">
+        <dictInlineEntry key="corporationID">
           <tupleInline>
-            <int name="oldAllianceID" />
-            <int name="newAllianceID" />
+            <raw name="corporationIDOld" />
+            <raw name="corporationIDNew" />
           </tupleInline>
         </dictInlineEntry>
-        <dictInlineEntry key="startDateTime">
+        <dictInlineEntry key="corporationName">
           <tupleInline>
-            <long name="oldDate" />
-            <long name="newDate" />
+            <raw name="corporationNameOld" />
+            <raw name="corporationNameNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="chosenExecutorID">
+          <tupleInline>
+            <raw name="chosenExecutorIDOld" />
+            <raw name="chosenExecutorIDNew" />
           </tupleInline>
         </dictInlineEntry>
       </dictInline>

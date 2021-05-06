@@ -63,6 +63,7 @@ public:
     PyCallable_DECL_CALL(UpdateAlliance);
 
     static void FillOAApplicationChange(OnAllianceApplicationChanged& OAAC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New);
+    static void FillOAMemberChange(OnAllianceMemberChange &OAMC, const Alliance::ApplicationInfo &Old, const Alliance::ApplicationInfo &New);
 
 protected:
     Dispatcher *const m_dispatch;
