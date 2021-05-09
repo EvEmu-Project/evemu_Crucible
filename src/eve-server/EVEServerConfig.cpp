@@ -118,7 +118,7 @@ EVEServerConfig::EVEServerConfig()
     market.HistoryUpdateTime = 6/*h*/;
     market.UseOrderRange = true;//N
     market.DeleteOldTransactions = false;
-    market.salesTax = 5.0f;
+    market.salesTax = 1.0f;
 
     // ram
     ram.AutoEvent = false;
