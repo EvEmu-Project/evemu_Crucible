@@ -142,6 +142,7 @@ public:
         uint8 OldPriceLimit;
         uint8 NewPriceLimit;
         uint8 HistoryUpdateTime;
+        float salesTax;
     } market;
 
     // From <ram>

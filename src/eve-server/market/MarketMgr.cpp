@@ -395,37 +395,32 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
     float money = args.price * qtySold;
     std::string reason = "DESC:  Buying items in ";
     reason += stDataMgr.GetStationName(args.stationID).c_str();
-    if (isPlayer) {
-        // get data needed and compute tax
-        uint8 lvl(0);
-        Client* pBuyer = sEntityList.FindClientByCharID(oInfo.ownerID);
-        if (pBuyer == nullptr) {
-            lvl = CharacterDB::GetSkillLevel(oInfo.ownerID, EvESkill::Accounting);
-        } else {
-            lvl = pBuyer->GetChar()->GetSkillLevel(EvESkill::Accounting);
-        }
-        float tax = EvEMath::Market::SalesTax(lvl);
-        tax *= money;
-        _log(MARKET__DEBUG, "ExecuteBuyOrder - Buyer is Player: Price: %.2f, Tax: %.2f", money, tax);
-        AccountService::TranserFunds(oInfo.ownerID, corpSCC, tax, reason.c_str(), \
-                        Journal::EntryType::TransactionTax, orderID);
-    } else if (isCorp) {
-        // is corp taxes modified by using character skills?  im thinking yes...
-        // get data needed and compute tax
-        uint8 lvl(0);
-        Client* pBuyer = sEntityList.FindClientByCharID(oInfo.memberID);
-        if (pBuyer == nullptr) {
-            lvl = CharacterDB::GetSkillLevel(oInfo.memberID, EvESkill::Accounting);
-        } else {
-            lvl = pBuyer->GetChar()->GetSkillLevel(EvESkill::Accounting);
-        }
-        float tax = EvEMath::Market::SalesTax(lvl);
-        tax *= money;
-        _log(MARKET__DEBUG, "ExecuteBuyOrder - Buyer is Corp: Price: %.2f, Tax: %.2f", money, tax);
-        AccountService::TranserFunds(oInfo.ownerID, corpSCC, tax, reason.c_str(), \
-                        Journal::EntryType::TransactionTax, orderID, oInfo.accountKey);
+    uint32 sellerWalletOwnerID = 0;
+    uint8 level = seller->GetChar ()->GetSkillLevel (EvESkill::Accounting);
+    float tax = EvEMath::Market::SalesTax (sConfig.market.salesTax, level) * money;
+
+    if (args.useCorp) {
+        // make sure the user has permissions to take money from the corporation account
+        if (
+                (accountKey == 1000 && (seller->GetCorpRole () & Corp::Role::AccountCanTake1) == 0) ||
+                (accountKey == 1001 && (seller->GetCorpRole () & Corp::Role::AccountCanTake2) == 0) ||
+                (accountKey == 1002 && (seller->GetCorpRole () & Corp::Role::AccountCanTake3) == 0) ||
+                (accountKey == 1003 && (seller->GetCorpRole () & Corp::Role::AccountCanTake4) == 0) ||
+                (accountKey == 1004 && (seller->GetCorpRole () & Corp::Role::AccountCanTake5) == 0) ||
+                (accountKey == 1005 && (seller->GetCorpRole () & Corp::Role::AccountCanTake6) == 0) ||
+                (accountKey == 1006 && (seller->GetCorpRole () & Corp::Role::AccountCanTake7) == 0)
+        )
+            throw UserError("CrpAccessDenied").AddFormatValue ("reason", new PyString ("You do not have access to that wallet"));
+
+        sellerWalletOwnerID = seller->GetCorporationID ();
+        _log(MARKET__DEBUG, "ExecuteBuyOrder - Seller is Corp: Price: %.2f, Tax: %.2f", money, tax);
+    } else {
+        sellerWalletOwnerID = seller->GetCharacterID ();
+        _log(MARKET__DEBUG, "ExecuteBuyOrder - Seller is Player: Price: %.2f, Tax: %.2f", money, tax);
     }
-    // npc buyers dont pay tax
+
+    AccountService::TranserFunds (sellerWalletOwnerID, corpSCC, tax, reason.c_str (),
+                                   Journal::EntryType::TransactionTax, orderID, accountKey);
 
     // send wallet blink event and record the transaction in their journal.
     reason.clear();
@@ -522,16 +517,31 @@ void MarketMgr::ExecuteSellOrder(Client* buyer, uint32 orderID, Call_PlaceCharOr
     reason += stDataMgr.GetStationName(args.stationID).c_str();
     // this will throw if funds not available.
     AccountService::TranserFunds(buyer->GetCharacterID(), oInfo.ownerID, money, reason.c_str(), \
-                    Journal::EntryType::MarketTransaction, orderID, Account::KeyType::Cash);
+                    Journal::EntryType::MarketTransaction, orderID, oInfo.accountKey);
 
-    // get data needed and compute tax
-    /** @todo standings incomplete.  need to finish */
-    float tax = EvEMath::Market::SalesTax(buyer->GetChar()->GetSkillLevel(EvESkill::Accounting), buyer->GetChar()->GetSkillLevel(EvESkill::TaxEvasion));
-    tax *= money;
-    _log(MARKET__DEBUG, "ExecuteSellOrder - Buyer is Player: Price: %.2f, Tax: %.2f", money, tax);
-    AccountService::TranserFunds(buyer->GetCharacterID(), corpSCC, money, reason.c_str(), \
-            Journal::EntryType::TransactionTax, orderID, Account::KeyType::Cash);
+    uint32 sellerCharacterID = 0;
 
+    if (oInfo.isCorp) {
+        sellerCharacterID = oInfo.memberID;
+    } else {
+        sellerCharacterID = oInfo.ownerID;
+    }
+
+    uint8 accountingLevel(0);
+    uint8 taxEvasionLevel(0);
+    Client* pSeller = sEntityList.FindClientByCharID (sellerCharacterID);
+
+    if (pSeller == nullptr) {
+        accountingLevel = CharacterDB::GetSkillLevel (sellerCharacterID, EvESkill::Accounting);
+        taxEvasionLevel = CharacterDB::GetSkillLevel (sellerCharacterID, EvESkill::TaxEvasion);
+    } else {
+        accountingLevel = pSeller->GetChar ()->GetSkillLevel (EvESkill::Accounting);
+        taxEvasionLevel = pSeller->GetChar ()->GetSkillLevel (EvESkill::TaxEvasion);
+    }
+
+    float tax = EvEMath::Market::SalesTax (sConfig.market.salesTax, accountingLevel, taxEvasionLevel) * money;
+    AccountService::TranserFunds (oInfo.ownerID, corpSCC, tax, reason.c_str (),
+                                  Journal::EntryType::TransactionTax, orderID, oInfo.accountKey);
     // after money is xferd, create and add item.
     ItemData idata(args.typeID, ownerStation, locTemp, flagNone, args.quantity);
     InventoryItemRef iRef = sItemFactory.SpawnItem(idata);

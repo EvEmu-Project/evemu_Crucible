@@ -65,7 +65,7 @@ namespace EvEMath {
     namespace Market {
         float BrokerFee(uint8 brSkillLvl, float fStanding, float cStanding);
         float RelistFee(float oldPrice, float newPrice, float brokerPercent=0.01, float discount=0);
-        float SalesTax(uint8 accountingLvl=0, uint8 taxEvasionLvl=0);
+        float SalesTax(float baseSalesTax, uint8 accountingLvl=0, uint8 taxEvasionLvl=0);
     }
 
     namespace PI {
