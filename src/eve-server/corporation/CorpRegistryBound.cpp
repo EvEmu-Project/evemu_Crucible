@@ -2490,6 +2490,21 @@ PyResult CorpRegistryBound::Handle_CreateAlliance(PyCallArgs &call) {
         return nullptr;
     }
 
+    //take the money, send wallet blink event record the transaction in their journal.
+    std::string reason = "DESC: Creating new alliance: ";
+    reason += args.allianceName;
+    reason += " (";
+    reason += args.shortName;
+    reason += ")";
+    AccountService::TranserFunds(
+                                pClient->GetCharacterID(),
+                                m_db.GetStationOwner(pClient->GetStationID()),  // station owner files paperwork, this is fee for that
+                                ally_cost,
+                                reason.c_str(),
+                                Journal::EntryType::AllianceRegistrationFee,
+                                pClient->GetStationID(),
+                                Account::KeyType::Cash);
+
     //creating an alliance will affect eveStaticOwners, so we gotta invalidate the cache...
     //  call to db.AddCorporation() will update eveStaticOwners with new corp
     PyString* cache_name = new PyString( "config.StaticOwners" );
