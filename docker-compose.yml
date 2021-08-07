@@ -15,6 +15,9 @@ services:
     links:
       - "db"
     environment:
+      - SEED_MARKET=FALSE # Set to TRUE to seed the market when the server starts for the first time
+      - SEED_SATURATION=80 # Set saturation level of seed
+      - SEED_REGIONS=Derelik,The Citadel,The Forge # Define regions to be seeded
       - RUN_WITH_GDB=FALSE #Set to TRUE to run evemu with gdb automatically
     stdin_open: true # Enables stdin for the container. Attach to it with 'docker attach'
     tty: true
