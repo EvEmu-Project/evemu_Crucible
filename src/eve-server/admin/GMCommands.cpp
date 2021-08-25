@@ -597,7 +597,7 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
         for (; cur != skillList.end(); ++cur) {
             skillID = *cur;
             if (character->HasSkillTrainedToLevel(skillID, level)) {
-                return PyStatic.NewNone();
+                continue;
             } else if (character->HasSkill(skillID)) {
                 skill = character->GetSkill(skillID);
                 //oldLevel = skill->GetAttribute(AttrSkillLevel).get_uint32();
