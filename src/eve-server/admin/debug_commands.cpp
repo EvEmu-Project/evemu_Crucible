@@ -824,7 +824,7 @@ PyResult Command_entityspawn(Client* pClient, CommandDB* db, PyServiceMgr* servi
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);
 }
-/*
+
 PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     uint32 fleetID = pClient->GetChar()->fleetID();
@@ -850,9 +850,9 @@ PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* servic
 
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);
-}*/
+}
 
-/*PyResult Command_fleetinvite(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_fleetinvite(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->InFleet())
         throw CustomError ("You're not in a fleet.");
@@ -867,7 +867,7 @@ PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* servic
 
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);
-}*/
+}
 
 PyResult Command_getposition(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
