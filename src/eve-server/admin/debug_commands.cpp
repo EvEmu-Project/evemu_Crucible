@@ -860,7 +860,7 @@ PyResult Command_fleetinvite(Client* pClient, CommandDB* db, PyServiceMgr* servi
         throw CustomError ("You're not fleet boss.");
 
     if (args.isNumber(1))
-        throw PyException(MakeCustomError("Argument 1 should be one of 'None', 'Corp', 'Alliance', 'Faction', or 'All'"));
+        throw PyException(CustomError("Argument 1 should be one of 'None', 'Corp', 'Alliance', 'Faction', or 'All'"));
 
     char reply[55];
     snprintf(reply, 55, "Command Unfinished.");
