@@ -96,6 +96,17 @@ void SovereigntyDataMgr::GetInfo()
      */
 }
 
+uint32 SovereigntyDataMgr::GetSystemAllianceID(uint32 systemID)
+{
+    auto it = m_sovData.get<SovDataBySolarSystem>().find(systemID);
+    if (it != m_sovData.get<SovDataBySolarSystem>().end())
+    {
+        SovereigntyData sData = *it;
+        return sData.allianceID;
+    }
+    return 0;
+}
+
 PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
 {
     SystemData sysData;
@@ -202,11 +213,11 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
     //Get all unique alliances in the region who hold sovereignty
     else if IsRegion (locationID)
     {
-        vector<uint32> av;
+        std::vector<uint32> av;
         for (SovereigntyData const &sData : boost::make_iterator_range(
                  m_sovData.get<SovDataByRegion>().equal_range(locationID)))
         {
-            if !(std::find(av.begin(), av.end(),sData.allianceID)!=av.end()) 
+            if (!(std::find(av.begin(), av.end(),sData.allianceID)!=av.end()))
             {
                 PyPackedRow *row = rowset->NewRow();
                 row->SetField("locationID", new PyInt(locationID));

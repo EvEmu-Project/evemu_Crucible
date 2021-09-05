@@ -37,6 +37,7 @@
 #include "system/DestinyManager.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "system/sov/SovereigntyDataMgr.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 
 
@@ -541,27 +542,84 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
             case EVEDB::invCategories::SovereigntyStructure: {
                 //Code for spawning sovereignty structures
 
+                //Check if system is in empire space
+                SystemData sysData;
+                sDataMgr.GetSystemData(pClient->GetSystemID(), sysData);
+                if (sysData.factionID) {
+                    pClient->SendErrorMsg("Launching sovereignty structures is forbidden in empire space.");
+                    return nullptr;
+                }
+
+                //Check if client is part of an alliance
+                if (pClient->GetAllianceID() == 0) {
+                    pClient->SendErrorMsg("You must be part of an alliance to launch a sovereignty structure.");
+                    return nullptr;
+                }
+
                 switch (iRef->groupID()) {
                     case EVEDB::invGroups::Sovereignty_Blockade_Units: {
-                        // check for sbu placement
-                        /*  placement doesnt matter....anchoring has checks for proper placement
+                        // Check if this system is currently claimed
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) == 0 ) {
+                            pClient->SendErrorMsg("You cannot launch a Sovereignty Blockade Unit in an unclaimed system.");
+                            return nullptr;
+                        }
+
+                        // Check if this system is claimed by your alliance
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) == pClient->GetAllianceID()) {
+                            pClient->SendErrorMsg("You cannot launch a Sovereignty Blockade Unit in a system claimed by your alliance");
+                            return nullptr;
+                        }
+
+                        // Check if there is already an SBU on this stargate
                         SystemEntity* pSE = pSystem->GetClosestGateSE(pClient->GetShipSE()->GetPosition());
-                        if (pSE == nullptr)
-                            ;
-                        if (pSE->GetPosition().distance(iRef->position()) > )
-                        */
+                        if (pSE->GetGateSE()->HasSBU()) {
+                            pClient->SendErrorMsg("There is already a Sovereignty Blockade Unit on this stargate.  Aborting Drop.");
+                            return nullptr;
+                        }
+
+                        // Check if there is already an unanchored SBU in the current bubble
+                        for (auto cur: pSystem->GetStaticEntities()) {
+                            if (cur.second->IsSBUSE())
+                            {
+                                if (cur.second->SysBubble()->GetID() == pClient->GetShipSE()->SysBubble()->GetID())
+                                {
+                                    pClient->SendErrorMsg("There is already a Sovereignty Blockade Unit on this stargate.  Aborting Drop.");
+                                    return nullptr;
+                                }
+                            }
+                        }
                     } break;
                     //verify only one TCU or IHub is deployed in the system.
                     // todo:  check Structure.h  - these can be dropped and anchored, but not onlined if >1 in system
                     case EVEDB::invGroups::Territorial_Claim_Units: {
-                        if (pClient->GetShipSE()->SysBubble()->HasTCU()) {
-                            pClient->SendErrorMsg("There is already a Territorial Claim Unit in this system.  Aborting Drop.");
+                        // Only one can be launched in a system
+                        for (auto cur: pSystem->GetStaticEntities()) {
+                            if (cur.second->IsTCUSE())
+                            {
+                                pClient->SendErrorMsg("There is already a Territorial Claim Unit in this system.  Aborting Drop.");
+                                return nullptr;
+                            }
+                        }
+
+                        //This should never hit as there should always be a TCU in a claimed system
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) != 0 ) {
+                            pClient->SendErrorMsg("This system has already been claimed. ");
                             return nullptr;
                         }
                     } break;
                     case EVEDB::invGroups::Infrastructure_Hubs: {
-                        if (pClient->GetShipSE()->SysBubble()->HasIHub()) {
-                            pClient->SendErrorMsg("There is already an Infrastructure Hub this system.  Aborting Drop.");
+                        // Only one can be launched in a system
+                        for (auto cur: pSystem->GetStaticEntities()) {
+                            if (cur.second->IsIHubSE())
+                            {
+                                pClient->SendErrorMsg("There is already an Infrastructure Hub this system.  Aborting Drop.");
+                                return nullptr;
+                            }
+                        }
+
+                        // Check if this system is not claimed by your alliance
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) != pClient->GetAllianceID()) {
+                            pClient->SendErrorMsg("You cannot launch an Infrastructure Hub in a system claimed by another alliance");
                             return nullptr;
                         }
                     } break;

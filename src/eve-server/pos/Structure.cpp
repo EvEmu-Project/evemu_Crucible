@@ -367,12 +367,22 @@ void StructureSE::Init()
         return;
     }
 
+    if (m_tcu)
+    {
+        m_tcuSE = pSE->GetTCUSE();
+    }
+
     if (m_sbu) //anchored near stargates, so we need a stargate
     {
+        m_sbuSE = pSE->GetSBUSE();
         if (m_gateSE == nullptr)
         {
             m_gateSE = pSE->GetGateSE();
         }
+    }
+    if (m_ihub)
+    {
+        m_ihubSE = pSE->GetIHubSE();
     }
     else //everything else is anchored near a moon
     {
@@ -623,7 +633,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     {
         //verify anchor distance from stargate
         uint32 distance(m_gateSE->GetPosition().distance(m_self->position()));
-        uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
+        //uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
         uint32 anchorMax(m_self->GetAttribute(AttrAnchorDistanceMax).get_uint32());
 
         if (distance > anchorMax) {
@@ -632,9 +642,9 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             return;
         }
 
-        if (distance < anchorMin) {
+        if (distance < 1000) {
             pClient->SendErrorMsg("You cannot anchor the %s closer than %u meters from a stargate.", \
-                    m_self->name(), anchorMin);
+                    m_self->name(), 1000);
             return;
         }
 

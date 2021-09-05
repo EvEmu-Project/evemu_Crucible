@@ -150,6 +150,8 @@ public:
     // this returns entities in system for display on ship scanner when enabled.
     void GetAllEntities(std::vector<CosmicSignature>& vector);
 
+    std::map<uint32, SystemEntity*> GetStaticEntities() { return m_staticEntities; }
+
     void GetClientList(std::vector<Client*>& cVec);
 
     std::map< uint32, SystemEntity* > GetEntities()     { return m_entities; }
