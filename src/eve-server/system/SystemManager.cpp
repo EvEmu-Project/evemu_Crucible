@@ -148,6 +148,15 @@ bool SystemManager::BootSystem() {
         return false;
     }
 
+    // check for static entities which need to be initialized (such as sovereignty structures)
+    for (auto cur: m_staticEntities)
+        if (cur.second ->IsTCUSE())
+            cur.second->GetTCUSE()->Init();
+        else if (cur.second ->IsSBUSE())
+            cur.second->GetSBUSE()->Init();
+        else if (cur.second ->IsIHubSE())
+            cur.second->GetIHubSE()->Init();
+
     // system is loaded.  check for items that need initialization
     for (auto cur : m_ticEntities)
         if (cur.second->IsPOSSE())

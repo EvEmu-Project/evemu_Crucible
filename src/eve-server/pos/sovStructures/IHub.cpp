@@ -37,9 +37,10 @@ IHubSE::IHubSE(StructureItemRef structure, PyServiceMgr& services, SystemManager
 
 void IHubSE::Init()
 {
+    _log(SE__TRACE, "IHubSE %s(%u) is being initialised", m_self->name(), m_self->itemID());
     StructureSE::Init();
 
-    // set IHub in bubble
+    // check for valid bubble
     if (m_bubble == nullptr)
         assert(0);
     m_bubble->SetIHubSE(this);

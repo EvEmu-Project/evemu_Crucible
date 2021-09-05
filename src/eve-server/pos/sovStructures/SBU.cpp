@@ -36,12 +36,16 @@ SBUSE::SBUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* 
 
 void SBUSE::Init()
 {
+    _log(SE__TRACE, "SBUSE %s(%u) is being initialised", m_self->name(), m_self->itemID());
     StructureSE::Init();
 
-    // set SBU in bubble
+    // check for valid bubble
     if (m_bubble == nullptr)
         assert(0);
     m_bubble->SetSBUSE(this);
+
+    // set global attribute
+    m_self->SetAttribute(AttrIsGlobal, EvilOne, false);
 }
 
 
