@@ -28,14 +28,20 @@ public:
 
     /* SystemEntity interface */
     virtual void                Process();
+    virtual void                SetOnline();
+    virtual void                SetOffline();
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Init();
 
-
 protected:
 
 private:
+
+    /* Class-specific functions */
+    float GetGates();
+    float GetSBUs();
+    void MarkContested(uint32 systemID, bool contested);
 
 };
 

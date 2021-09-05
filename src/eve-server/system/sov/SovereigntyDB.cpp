@@ -80,3 +80,13 @@ void SovereigntyDB::RemoveSovereigntyData(uint32 systemID)
         codelog(SOV__ERROR, "Error in removing claim: %s", err.c_str());
     }
 }
+
+void SovereigntyDB::SetContested(uint32 systemID, bool contested) 
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "UPDATE mapSystemSovInfo SET contested=%u WHERE solarSystemID=%u", int(contested), systemID))
+    {
+        codelog(SOV__ERROR, "Error in changing contested state: %s", err.c_str());
+    }
+}

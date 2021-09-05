@@ -39,6 +39,7 @@ public:
     uint32 GetSystemAllianceID(uint32 systemID);
     void AddSovClaim(SovereigntyData data);
     void RemoveSovClaim(uint32 systemID);
+    void MarkContested(uint32 systemID, bool contested);
 
 protected:
     void Populate();

@@ -558,6 +558,20 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
 
                 switch (iRef->groupID()) {
                     case EVEDB::invGroups::Sovereignty_Blockade_Units: {
+                        // Make sure SBU is deployed in the same bubble as a gate
+                        std::vector<uint16> gateBubbles;
+                        for (auto cur: pSystem->GetStaticEntities()) {
+                            if (cur.second->IsGateSE())
+                            {
+                                gateBubbles.push_back(cur.second->SysBubble()->GetID());
+                            }
+                        }
+                        if (!(std::find(gateBubbles.begin(), gateBubbles.end(),pClient->GetShipSE()->SysBubble()->GetID())!=gateBubbles.end()))
+                        {
+                            pClient->SendErrorMsg("Sovereignty blockade units must be deployed near a stargate.");
+                            return nullptr;
+                        }
+
                         // Check if this system is currently claimed
                         if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) == 0 ) {
                             pClient->SendErrorMsg("You cannot launch a Sovereignty Blockade Unit in an unclaimed system.");

@@ -297,6 +297,43 @@ void SovereigntyDataMgr::AddSovClaim(SovereigntyData data)
     bySolar.insert(data);
 }
 
+void SovereigntyDataMgr::MarkContested(uint32 systemID, bool contested)
+{
+    _log(SOV__INFO, "MarkContested() - Marking system %u as state %u", systemID, int(contested));
+
+    //Update state in DB
+    SovereigntyDB::SetContested(systemID, contested);
+
+    //Define our view from container
+    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
+
+    //Get the data from the DB, this will avoid inconsistencies
+
+    DBQueryResult *res = new DBQueryResult();
+    DBResultRow row;
+
+    SovereigntyDB::GetSovereigntyDataForSystem(*res, systemID);
+    while (res->GetRow(row))
+    {
+        SovereigntyData sData = SovereigntyData();
+        sData.solarSystemID = row.GetUInt(0);
+        sData.constellationID = row.GetUInt(1);
+        sData.regionID = row.GetUInt(2);
+        sData.corporationID = row.GetUInt(3);
+        sData.allianceID = row.GetUInt(4);
+        sData.claimStructureID = row.GetUInt(5);
+        sData.claimTime = row.GetInt64(6);
+        sData.hubID = row.GetUInt(7);
+        sData.contested = row.GetUInt(8);
+        sData.stationCount = row.GetUInt(9);
+        sData.militaryPoints = row.GetUInt(10);
+        sData.industrialPoints = row.GetUInt(11);
+        sData.claimID = row.GetUInt(12);
+        bySolar.insert(sData);
+    }
+
+}
+
 void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
 {
     _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);

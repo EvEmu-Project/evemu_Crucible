@@ -39,6 +39,7 @@ public:
     static void GetSovereigntyDataForSystem(DBQueryResult& res, uint32 systemID);
     static void AddSovereigntyData(SovereigntyData data, uint32& claimID);
     static void RemoveSovereigntyData(uint32 systemID);
+    static void SetContested(uint32 systemID, bool contested);
 };
 
 #endif

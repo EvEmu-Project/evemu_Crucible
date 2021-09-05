@@ -18,19 +18,19 @@
  * POS__TRACE
  */
 
-
 #include "Client.h"
 #include "EntityList.h"
 #include "EVEServerConfig.h"
 #include "planet/Planet.h"
 #include "pos/sovStructures/SBU.h"
+#include "pos/sovStructures/TCU.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 
-SBUSE::SBUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
-: StructureSE(structure, services, system, fData)
+SBUSE::SBUSE(StructureItemRef structure, PyServiceMgr &services, SystemManager *system, const FactionData &fData)
+    : StructureSE(structure, services, system, fData)
 {
 }
 
@@ -48,8 +48,117 @@ void SBUSE::Init()
     m_self->SetAttribute(AttrIsGlobal, EvilOne, false);
 }
 
+void SBUSE::SetOnline()
+{
+    _log(SOV__DEBUG, "Onlining SBU...");
+
+    // Ensure the SBU is online before we check the ratio
+    StructureSE::SetOnline();
+
+    // If more than 50 percent of gates have an SBU, the TCU should be vulnerable
+    if ((GetSBUs() / GetGates()) > 0.5)
+    {
+        _log(SOV__DEBUG, "- STATE CHANGE - This system has %u SBUs installed in the total of %u stargates. The TCU is now vulnerable to attack.", (int)GetSBUs(), (int)GetGates());
+        // Make the TCU vulnerable
+        for (auto cur : m_system->GetStaticEntities())
+        {
+            if (cur.second->IsTCUSE())
+            {
+                cur.second->GetTCUSE()->SetPOSState(EVEPOS::StructureState::Vulnerable);
+            }
+        }
+        // Mark the system as contested
+        MarkContested(m_system->GetID(), true);
+    }
+    else
+    {
+        _log(SOV__DEBUG, "This system has %u SBUs installed in the total of %u stargates. The TCU is invulnerable.", (int)GetSBUs(), (int)GetGates());
+    }
+}
+
+void SBUSE::SetOffline()
+{
+    // Ensure that the SBU is offline before we check ratio
+    StructureSE::SetOffline();
+
+    if ((GetSBUs() / GetGates()) <= 0.5)
+    {
+        _log(SOV__DEBUG, "- STATE CHANGE - This system has %u SBUs installed in the total of %u stargates. The TCU is no longer vulnerable to attack.", (int)GetSBUs(), (int)GetGates());
+        // Make the TCU invulnerable
+        for (auto cur : m_system->GetStaticEntities())
+        {
+            if (cur.second->IsTCUSE())
+            {
+                cur.second->GetTCUSE()->SetPOSState(EVEPOS::StructureState::Invulnerable);
+            }
+        }
+        // Unmark the system as contested
+        MarkContested(m_system->GetID(), false);
+    }
+    else
+    {
+        _log(SOV__DEBUG, "This system has %u SBUs installed in the total of %u stargates. The TCU is vulnerable.", (int)GetSBUs(), (int)GetGates());
+    }
+}
 
 void SBUSE::Process()
 {
     StructureSE::Process();
+}
+
+void SBUSE::MarkContested(uint32 systemID, bool contested)
+{
+    //Send ProcessSovStatusChanged Notification
+    PyDict *args = new PyDict;
+    _log(SOV__DEBUG, "SBUSE::MarkContested(): Sending ProcessSovStatusChanged for %u", systemID);
+
+    args->SetItemString("contested", new PyInt(int(contested)));
+    args->SetItemString("solarSystemID", new PyInt(systemID));
+
+    PyTuple *data = new PyTuple(2);
+    data->SetItem(0, new PyInt(systemID));
+    data->SetItem(1, new PyObject("util.KeyVal", args));
+
+    std::vector<Client *> list;
+    sEntityList.GetClients(list);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
+            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to client %u", cur->GetClientID());
+        }
+    }
+}
+
+// Calculate number of gates in the system
+float SBUSE::GetGates()
+{
+    int numberOfGates = 0;
+    for (auto cur : m_system->GetStaticEntities())
+    {
+        if (cur.second->IsGateSE())
+        {
+            numberOfGates++;
+        }
+    }
+    return (float)numberOfGates;
+}
+
+// Calculate number of SBUs in the system
+float SBUSE::GetSBUs()
+{
+    int numberOfSBUs = 0;
+    for (auto cur : m_system->GetStaticEntities())
+    {
+        if (cur.second->IsSBUSE())
+        {
+            //Only increment the number of SBUs if they are online
+            if (cur.second->GetSBUSE()->GetState() == EVEPOS::StructureState::Online)
+            {
+                numberOfSBUs++;
+            }
+        }
+    }
+    return (float)numberOfSBUs;
 }

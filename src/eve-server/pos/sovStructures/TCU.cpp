@@ -98,6 +98,9 @@ void TCUSE::SetOnline()
             _log(SOV__DEBUG, "ProcessSovStatusChanged sent to client %u", cur->GetClientID());
         }
     }
+
+    // Mark TCU as invulnerable
+    StructureSE::SetPOSState(EVEPOS::StructureState::Invulnerable);
 }
 
 void TCUSE::SetOffline()
