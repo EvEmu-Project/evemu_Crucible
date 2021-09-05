@@ -199,18 +199,25 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
             row->SetField("claimedFor", new PyInt(sData.allianceID));
         }
     }
+    //Get all unique alliances in the region who hold sovereignty
     else if IsRegion (locationID)
     {
+        vector<uint32> av;
         for (SovereigntyData const &sData : boost::make_iterator_range(
                  m_sovData.get<SovDataByRegion>().equal_range(locationID)))
         {
-            PyPackedRow *row = rowset->NewRow();
-            row->SetField("locationID", new PyInt(sData.solarSystemID));
-            row->SetField("allianceID", new PyInt(sData.allianceID));
-            row->SetField("stationCount", new PyInt(sData.stationCount));
-            row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
-            row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
-            row->SetField("claimedFor", new PyInt(sData.allianceID));
+            if !(std::find(av.begin(), av.end(),sData.allianceID)!=av.end()) 
+            {
+                PyPackedRow *row = rowset->NewRow();
+                row->SetField("locationID", new PyInt(locationID));
+                row->SetField("allianceID", new PyInt(sData.allianceID));
+                row->SetField("stationCount", new PyInt(sData.stationCount));
+                row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
+                row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
+                row->SetField("claimedFor", new PyInt(sData.allianceID));
+                av.push_back(sData.allianceID);
+            }
+
         }
     }
     else if IsSolarSystem (locationID)
