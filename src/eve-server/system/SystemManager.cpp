@@ -246,6 +246,15 @@ bool SystemManager::ProcessTic() {
         ++itr;
     }
 
+    // tic for sov structures (as they aren't in ticEntities)
+    for (auto cur : m_staticEntities)
+        if (cur.second->IsTCUSE())
+            cur.second->GetTCUSE()->Process();
+        else if (cur.second ->IsSBUSE())
+            cur.second->GetSBUSE()->Process();
+        else if (cur.second ->IsIHubSE())
+            cur.second->GetIHubSE()->Process();
+
     // check bounty timer
     if (m_bountyTimer.Check(sConfig.server.BountyPayoutDelayed))
         PayBounties();
