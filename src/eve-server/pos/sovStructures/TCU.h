@@ -25,7 +25,6 @@ public:
     /* class type tests. */
     /* Base */
     virtual bool                isGlobal()              { return true; }
-    virtual bool                IsPOSSE()               { return false; }
     virtual bool                IsTCUSE()               { return true; }
 
     /* SystemEntity interface */
