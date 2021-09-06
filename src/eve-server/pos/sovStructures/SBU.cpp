@@ -90,7 +90,7 @@ void SBUSE::SetOffline()
         {
             if (cur.second->IsTCUSE())
             {
-                cur.second->GetTCUSE()->SetInvulnerable();
+                cur.second->GetTCUSE()->SetOnline();
             }
         }
         // Unmark the system as contested
