@@ -842,6 +842,7 @@ void StructureSE::SetOnline()
 
     SetTimer(m_duration);
     m_db.UpdateBaseData(m_data);
+    m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnline", 0, 1, 1, -1, 0);
 }
 
 void StructureSE::SetOffline()
@@ -849,6 +850,23 @@ void StructureSE::SetOffline()
     m_self->SetFlag(flagStructureInactive);
     if (m_module)
         m_towerSE->OfflineModule(this);
+}
+
+void StructureSE::SetInvulnerable()
+{
+    m_procState = EVEPOS::ProcState::Online;
+    m_data.state = EVEPOS::StructureState::Invulnerable;
+    SendSlimUpdate();
+    m_db.UpdateBaseData(m_data);
+}
+
+void StructureSE::SetVulnerable()
+{
+    m_procState = EVEPOS::ProcState::Online;
+    m_data.state = EVEPOS::StructureState::Vulnerable;
+    SetTimer(m_duration);
+    SendSlimUpdate();
+    m_db.UpdateBaseData(m_data);
 }
 
 void StructureSE::Online()

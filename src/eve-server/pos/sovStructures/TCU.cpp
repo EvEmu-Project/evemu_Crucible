@@ -100,7 +100,7 @@ void TCUSE::SetOnline()
     }
 
     // Mark TCU as invulnerable
-    StructureSE::SetPOSState(EVEPOS::StructureState::Invulnerable);
+    StructureSE::SetInvulnerable();
 }
 
 void TCUSE::SetOffline()

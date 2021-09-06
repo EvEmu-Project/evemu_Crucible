@@ -40,6 +40,7 @@ public:
     void AddSovClaim(SovereigntyData data);
     void RemoveSovClaim(uint32 systemID);
     void MarkContested(uint32 systemID, bool contested);
+    SovereigntyData GetSovereigntyData(uint32 systemID);
 
 protected:
     void Populate();

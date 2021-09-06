@@ -107,6 +107,21 @@ uint32 SovereigntyDataMgr::GetSystemAllianceID(uint32 systemID)
     return 0;
 }
 
+SovereigntyData SovereigntyDataMgr::GetSovereigntyData(uint32 systemID)
+{
+    auto it = m_sovData.get<SovDataBySolarSystem>().find(systemID);
+    if (it != m_sovData.get<SovDataBySolarSystem>().end())
+    {
+        SovereigntyData sData = *it;
+        return sData;
+    } else
+    {
+        //Return empty object in case we don't find anything
+        SovereigntyData sData;
+        return sData;
+    }
+}
+
 PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
 {
     SystemData sysData;
@@ -213,22 +228,21 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
     //Get all unique alliances in the region who hold sovereignty
     else if IsRegion (locationID)
     {
-        std::vector<uint32> av;
+        std::vector<uint32> cv;
         for (SovereigntyData const &sData : boost::make_iterator_range(
                  m_sovData.get<SovDataByRegion>().equal_range(locationID)))
         {
-            if (!(std::find(av.begin(), av.end(),sData.allianceID)!=av.end()))
+            if (!(std::find(cv.begin(), cv.end(), sData.constellationID) != cv.end()))
             {
                 PyPackedRow *row = rowset->NewRow();
-                row->SetField("locationID", new PyInt(locationID));
+                row->SetField("locationID", new PyInt(sData.constellationID));
                 row->SetField("allianceID", new PyInt(sData.allianceID));
                 row->SetField("stationCount", new PyInt(sData.stationCount));
                 row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
                 row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
                 row->SetField("claimedFor", new PyInt(sData.allianceID));
-                av.push_back(sData.allianceID);
+                cv.push_back(sData.constellationID);
             }
-
         }
     }
     else if IsSolarSystem (locationID)
@@ -331,7 +345,6 @@ void SovereigntyDataMgr::MarkContested(uint32 systemID, bool contested)
         sData.claimID = row.GetUInt(12);
         bySolar.insert(sData);
     }
-
 }
 
 void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)

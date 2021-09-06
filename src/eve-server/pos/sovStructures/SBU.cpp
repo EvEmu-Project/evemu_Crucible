@@ -28,6 +28,7 @@
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 SBUSE::SBUSE(StructureItemRef structure, PyServiceMgr &services, SystemManager *system, const FactionData &fData)
     : StructureSE(structure, services, system, fData)
@@ -64,7 +65,7 @@ void SBUSE::SetOnline()
         {
             if (cur.second->IsTCUSE())
             {
-                cur.second->GetTCUSE()->SetPOSState(EVEPOS::StructureState::Vulnerable);
+                cur.second->GetTCUSE()->SetVulnerable();
             }
         }
         // Mark the system as contested
@@ -89,7 +90,7 @@ void SBUSE::SetOffline()
         {
             if (cur.second->IsTCUSE())
             {
-                cur.second->GetTCUSE()->SetPOSState(EVEPOS::StructureState::Invulnerable);
+                cur.second->GetTCUSE()->SetInvulnerable();
             }
         }
         // Unmark the system as contested
@@ -112,6 +113,17 @@ void SBUSE::MarkContested(uint32 systemID, bool contested)
     PyDict *args = new PyDict;
     _log(SOV__DEBUG, "SBUSE::MarkContested(): Sending ProcessSovStatusChanged for %u", systemID);
 
+    //Update datamgr records with new contested state
+    svDataMgr.MarkContested(systemID, contested);
+
+    //Get the new sov data so we can send it to the client in a notification
+    SovereigntyData sovData = svDataMgr.GetSovereigntyData(systemID);
+
+    args->SetItemString("corporationID", new PyInt(sovData.corporationID));
+    args->SetItemString("claimTime", new PyLong(sovData.claimTime));
+    args->SetItemString("claimStructureID", new PyInt(sovData.claimStructureID));
+    args->SetItemString("hubID", new PyInt(sovData.hubID));
+    args->SetItemString("allianceID", new PyInt(sovData.allianceID));
     args->SetItemString("contested", new PyInt(int(contested)));
     args->SetItemString("solarSystemID", new PyInt(systemID));
 
