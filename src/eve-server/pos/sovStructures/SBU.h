@@ -22,6 +22,7 @@ public:
     /* class type pointer querys. */
     virtual SBUSE*              GetSBUSE()            { return this; }
     virtual bool                isGlobal()              { return true; }
+    virtual bool                IsOperSE()              { return true; }
 
     /* class type tests. */
     virtual bool                IsSBUSE()             { return true; }

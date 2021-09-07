@@ -176,6 +176,7 @@ public:
     virtual bool                IsDeployableSE()        { return false; }
     virtual bool                IsJumpBridgeSE()        { return false; }
     virtual bool                IsReactorSE()           { return false; }
+    virtual bool                IsOperSE()              { return false; }
     /* Dynamic */
     virtual bool                IsDynamicEntity()       { return false; }
     virtual bool                IsLogin()               { return false; }

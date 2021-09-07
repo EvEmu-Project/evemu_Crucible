@@ -560,7 +560,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                     case EVEDB::invGroups::Sovereignty_Blockade_Units: {
                         // Make sure SBU is deployed in the same bubble as a gate
                         std::vector<uint16> gateBubbles;
-                        for (auto cur: pSystem->GetStaticEntities()) {
+                        for (auto cur: pSystem->GetOperationalStatics()) {
                             if (cur.second->IsGateSE())
                             {
                                 gateBubbles.push_back(cur.second->SysBubble()->GetID());
@@ -592,7 +592,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                         }
 
                         // Check if there is already an unanchored SBU in the current bubble
-                        for (auto cur: pSystem->GetStaticEntities()) {
+                        for (auto cur: pSystem->GetOperationalStatics()) {
                             if (cur.second->IsSBUSE())
                             {
                                 if (cur.second->SysBubble()->GetID() == pClient->GetShipSE()->SysBubble()->GetID())
@@ -607,7 +607,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                     // todo:  check Structure.h  - these can be dropped and anchored, but not onlined if >1 in system
                     case EVEDB::invGroups::Territorial_Claim_Units: {
                         // Only one can be launched in a system
-                        for (auto cur: pSystem->GetStaticEntities()) {
+                        for (auto cur: pSystem->GetOperationalStatics()) {
                             if (cur.second->IsTCUSE())
                             {
                                 pClient->SendErrorMsg("There is already a Territorial Claim Unit in this system.  Aborting Drop.");
@@ -623,7 +623,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                     } break;
                     case EVEDB::invGroups::Infrastructure_Hubs: {
                         // Only one can be launched in a system
-                        for (auto cur: pSystem->GetStaticEntities()) {
+                        for (auto cur: pSystem->GetOperationalStatics()) {
                             if (cur.second->IsIHubSE())
                             {
                                 pClient->SendErrorMsg("There is already an Infrastructure Hub this system.  Aborting Drop.");

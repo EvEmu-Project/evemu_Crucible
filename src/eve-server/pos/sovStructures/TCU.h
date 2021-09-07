@@ -26,6 +26,7 @@ public:
     /* Base */
     virtual bool                isGlobal()              { return true; }
     virtual bool                IsTCUSE()               { return true; }
+    virtual bool                IsOperSE()              { return true; }
 
     /* SystemEntity interface */
     virtual void                Process();

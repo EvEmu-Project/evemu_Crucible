@@ -167,12 +167,13 @@ public:
     void                        Deactivate(int32 effectID);
     void                        GetEffectState(PyList& into);
     uint8                       GetState() const        { return m_data.state; }
+    int8                        GetProcState()          { return m_procState; }
     float                       GetStatus()             { return m_data.status; }
     MoonSE*                     GetMoonSE()             { return m_moonSE; }
     PlanetSE*                   GetPlanetSE()           { return m_planetSE; } //Planets are required for sovereignty structures
     StargateSE*                 GetGateSE()             { return m_gateSE; }
 
-    inline void                SetPOSState(uint8 state) { m_data.state = state; }
+    inline void                 SetPOSState(uint8 state) { m_data.state = state; }
     inline void                 SetTimer(uint32 time)   { m_procTimer.SetTimer(time); }
 
     void                        SetUsageFlags(int8 view=0, int8 take=0, int8 use=0);

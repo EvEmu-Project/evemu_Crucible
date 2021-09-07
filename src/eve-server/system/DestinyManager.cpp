@@ -3125,7 +3125,7 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
             PyIncRef(*cur);
             mySE->GetPilot()->QueueDestinyEvent(&(*cur));
         }
-    } else if ((mySE->IsTCUSE()) || (mySE->IsIHubSE())) { //These are global entities, so we have to send update to all bubbles in a system
+    } else if (mySE->IsOperSE()) { //These are global entities, so we have to send update to all bubbles in a system
         if (is_log_enabled(DESTINY__UPDATES))
             _log(DESTINY__UPDATES, "[%u] BubbleCasting global structure destiny update (u:%u, e:%u) for stamp %u to all bubbles from %s(%u)", \
                     sEntityList.GetStamp(), updates.size(), events.size(), sEntityList.GetStamp(), \

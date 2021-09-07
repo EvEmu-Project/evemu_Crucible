@@ -95,6 +95,7 @@ m_secValue(1.1f)
     m_roidBubbles.clear();
     m_ticEntities.clear();
     m_staticEntities.clear();
+    m_opStaticEntities.clear();
 
     // zero-init our data containers
     m_data = SystemData();
@@ -148,8 +149,8 @@ bool SystemManager::BootSystem() {
         return false;
     }
 
-    // check for static entities which need to be initialized (such as sovereignty structures)
-    for (auto cur: m_staticEntities)
+    // check for operational static entities which need to be initialized (such as sovereignty structures)
+    for (auto cur: m_opStaticEntities)
         if (cur.second ->IsTCUSE())
             cur.second->GetTCUSE()->Init();
         else if (cur.second ->IsSBUSE())
@@ -247,7 +248,7 @@ bool SystemManager::ProcessTic() {
     }
 
     // tic for sov structures (as they aren't in ticEntities)
-    for (auto cur : m_staticEntities)
+    for (auto cur : m_opStaticEntities)
         if (cur.second->IsTCUSE())
             cur.second->GetTCUSE()->Process();
         else if (cur.second ->IsSBUSE())
@@ -332,6 +333,10 @@ void SystemManager::UnloadSystem() {
             sEntityList.RemoveProbe(itr->first);
         }
 
+        if (pSE->IsOperSE()) { //Remove operational statics from list
+            m_opStaticEntities.erase(m_opStaticEntities.find(itr->first));
+        }
+
         sItemFactory.RemoveItem(itr->first);
         itr = m_entities.erase(itr);
         sBubbleMgr.Remove(pSE);
@@ -351,6 +356,8 @@ void SystemManager::UnloadSystem() {
     m_ticEntities.clear();
     // at this point, system static entity list should be clear...but just in case, hit it again
     m_staticEntities.clear();
+    // clear operational static entity list too
+    m_opStaticEntities.clear();
 
     // this still needs some work... seems ok to me.  26Dec18
     sBubbleMgr.ClearSystemBubbles(m_data.systemID);
@@ -1036,6 +1043,8 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
         if ((pSE->IsCOSE())
         or  (pSE->isGlobal())) {
             m_staticEntities[itemID] = pSE;
+            if (pSE->IsOperSE()) //Entities which need to be acted upon while nobody is in the system    
+                m_opStaticEntities[itemID] = pSE;       
             if (m_loaded)   // only update when system is already loaded
                 SendStaticBall(pSE);
         } else if (pSE->IsProbeSE()) {
@@ -1361,9 +1370,11 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
         return;
 
     if (is_log_enabled(DESTINY__MESSAGE)) {
-        GPoint bCenter(pSE->SysBubble()->GetCenter());
-        _log(DESTINY__MESSAGE, "SystemManager::SendStaticBall() - Adding static entity %s(%u) to bubble %u.  Dist to center: %.2f", \
-                pSE->GetName(), pSE->GetID(), pSE->SysBubble()->GetID(), bCenter.distance(pSE->GetPosition()));
+        if (pSE->SysBubble() != nullptr) { //Don't attempt to log if bubble is null (ie, on static structure initial launch)
+            GPoint bCenter(pSE->SysBubble()->GetCenter());
+            _log(DESTINY__MESSAGE, "SystemManager::SendStaticBall() - Adding static entity %s(%u) to bubble %u.  Dist to center: %.2f", \
+            pSE->GetName(), pSE->GetID(), pSE->SysBubble()->GetID(), bCenter.distance(pSE->GetPosition()));
+        }
     }
 
     Buffer* destinyBuffer = new Buffer();
@@ -1656,12 +1667,29 @@ void SystemManager::UpdateData()
     //MapDB::UpdateJumps(m_data.systemID, jumps);
 
     // if system and jumpmap are both empty, set activity time for unload timer
-    if (m_activityTime == 0)
-        if (m_clients.empty())
-            if (m_jumpMap.empty())
-                m_activityTime = sEntityList.GetStamp() -50;
-
+    if (SafeToUnload())
+        if (m_activityTime == 0)
+            if (m_clients.empty())
+                if (m_jumpMap.empty())
+                    m_activityTime = sEntityList.GetStamp() -50;
     ManipulateTimeData();
+}
+
+// checks for if it is safe to mark the system for unloading
+bool SystemManager::SafeToUnload()
+{
+    for (auto cur: GetOperationalStatics()) {
+        //If there are any ongoing operations by operational static structures, we don't want to unload the system until this is complete
+        if (cur.second->IsPOSSE()) {
+            if ((cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Unanchoring) or 
+            (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Anchoring) or
+            (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Offlining) or
+            (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Onlining)) {
+                return false;
+            }
+        }
+    }
+    return true; //by default, its always safe to unload
 }
 
 // not sure how to do this one yet...

@@ -61,7 +61,7 @@ void SBUSE::SetOnline()
     {
         _log(SOV__DEBUG, "- STATE CHANGE - This system has %u SBUs installed in the total of %u stargates. The TCU is now vulnerable to attack.", (int)GetSBUs(), (int)GetGates());
         // Make the TCU vulnerable
-        for (auto cur : m_system->GetStaticEntities())
+        for (auto cur : m_system->GetOperationalStatics())
         {
             if (cur.second->IsTCUSE())
             {
@@ -86,7 +86,7 @@ void SBUSE::SetOffline()
     {
         _log(SOV__DEBUG, "- STATE CHANGE - This system has %u SBUs installed in the total of %u stargates. The TCU is no longer vulnerable to attack.", (int)GetSBUs(), (int)GetGates());
         // Make the TCU invulnerable
-        for (auto cur : m_system->GetStaticEntities())
+        for (auto cur : m_system->GetOperationalStatics())
         {
             if (cur.second->IsTCUSE())
             {
@@ -147,7 +147,7 @@ void SBUSE::MarkContested(uint32 systemID, bool contested)
 float SBUSE::GetGates()
 {
     int numberOfGates = 0;
-    for (auto cur : m_system->GetStaticEntities())
+    for (auto cur : m_system->GetOperationalStatics())
     {
         if (cur.second->IsGateSE())
         {
@@ -161,7 +161,7 @@ float SBUSE::GetGates()
 float SBUSE::GetSBUs()
 {
     int numberOfSBUs = 0;
-    for (auto cur : m_system->GetStaticEntities())
+    for (auto cur : m_system->GetOperationalStatics())
     {
         if (cur.second->IsSBUSE())
         {
