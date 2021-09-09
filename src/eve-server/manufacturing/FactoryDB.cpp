@@ -526,12 +526,12 @@ uint32 FactoryDB::InstallJob(const uint32 ownerID, const uint32 installerID, Cal
     if (!sDatabase.RunQueryLID(err, jobID,
         "INSERT INTO ramJobs"
         " (ownerID, installerID, assemblyLineID, installedItemID, installTime, beginProductionTime, endProductionTime,"
-        " runs, outputFlag, licensedProductionRuns)"
+        " runs, outputFlag, licensedProductionRuns, completedStatusID, installedInSolarSystemID)"
         " VALUES"
         " (%u, %u, %i, %i, %.0f, %li, %li,"
-        " %i, %i, %i)",
+        " %i, %i, %i, 0, %i)",
         ownerID, installerID, args.AssemblyLineID, args.bpItemID, GetFileTimeNow(), beginTime, endTime,
-        args.runs, args.outputFlag, args.copyRuns))
+        args.runs, args.outputFlag, args.copyRuns, args.lineLocationID))
     {
         _log(DATABASE__ERROR, "Failed to insert new job to database: %s.", err.c_str());
         return 0;
@@ -604,7 +604,7 @@ bool FactoryDB::GetJobProperties(const uint32 jobID, EvERam::JobProperties &data
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT job.installedItemID, job.ownerID, job.outputFlag, job.runs, job.licensedProductionRuns,"
-        " job.endProductionTime, job.completedStatusID, line.activityID, job.eventID"
+        " job.endProductionTime, job.completedStatusID, line.activityID"
         " FROM ramJobs AS job"
         " LEFT JOIN ramAssemblyLines AS line USING (assemblyLineID)"
         " WHERE job.jobID = %u",
@@ -628,7 +628,7 @@ bool FactoryDB::GetJobProperties(const uint32 jobID, EvERam::JobProperties &data
     data.endTime        = row.GetInt64(5);
     data.status         = row.GetInt(6);
     data.activity       = row.GetUInt(7);
-    data.eventID        = row.GetUInt(8);
+    data.eventID        = 0;  // TODO: no idea how to fill this
 
     return true;
 }
