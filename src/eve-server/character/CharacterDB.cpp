@@ -1879,7 +1879,7 @@ uint8 CharacterDB::GetSkillLevel(uint32 charID, uint16 skillTypeID)
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT valueInt FROM entity_attributes WHERE attributeID= %u AND itemID= "
-        "SELECT itemID FROM entity WHERE locationID = %u AND typeID = %u",
+        "(SELECT itemID FROM entity WHERE locationID = %u AND typeID = %u)",
         AttrSkillLevel, charID, skillTypeID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
