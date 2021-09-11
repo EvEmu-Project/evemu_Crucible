@@ -518,7 +518,7 @@ bool FactoryDB::GetAssemblyLineRestrictions(const int32 assemblyLineID, EvERam::
 }
 
 uint32 FactoryDB::InstallJob(const uint32 ownerID, const uint32 installerID, Call_InstallJob& args,
-                             const int64 beginTime, const int64 endTime)
+                             const int64 beginTime, const int64 endTime, const uint32 systemID)
 {
     DBerror err;
     uint32 jobID(0);
@@ -526,12 +526,12 @@ uint32 FactoryDB::InstallJob(const uint32 ownerID, const uint32 installerID, Cal
     if (!sDatabase.RunQueryLID(err, jobID,
         "INSERT INTO ramJobs"
         " (ownerID, installerID, assemblyLineID, installedItemID, installTime, beginProductionTime, endProductionTime,"
-        " runs, outputFlag, licensedProductionRuns)"
+        " runs, outputFlag, licensedProductionRuns, completedStatusID, installedInSolarSystemID)"
         " VALUES"
         " (%u, %u, %i, %i, %.0f, %li, %li,"
-        " %i, %i, %i)",
+        " %i, %i, %i, 0, %i)",
         ownerID, installerID, args.AssemblyLineID, args.bpItemID, GetFileTimeNow(), beginTime, endTime,
-        args.runs, args.outputFlag, args.copyRuns))
+        args.runs, args.outputFlag, args.copyRuns, systemID))
     {
         _log(DATABASE__ERROR, "Failed to insert new job to database: %s.", err.c_str());
         return 0;

@@ -405,7 +405,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
 
     // register/save job to chosen assy line.
     uint32 jobID = FactoryDB::InstallJob((args.isCorpJob ? call.client->GetCorporationID() : call.client->GetCharacterID()),
-                                         call.client->GetCharacterID(), args, beginTime, beginTime + rsp.productionTime * EvE::Time::Second);
+                                         call.client->GetCharacterID(), args, beginTime, beginTime + rsp.productionTime * EvE::Time::Second, call.client->GetSystemID());
 
     if (jobID < 1) {
         _log(MANUF__ERROR, "Could not InstallJob for %s using %s", call.client->GetName(), bpRef->name());
