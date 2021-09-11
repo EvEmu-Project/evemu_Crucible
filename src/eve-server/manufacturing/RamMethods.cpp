@@ -347,7 +347,7 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const P
         if (cur.isSkill) { // check skill (quantity is required level)
             if (pClient->GetChar()->GetSkillLevel(cur.typeID) < cur.quantity) {
                 throw UserError ("RamNeedSkillForJob")
-                        .AddFormatValue ("item", new PyInt (cur.typeID))
+                        .AddFormatValue ("skillID", new PyInt (cur.typeID))
                         .AddFormatValue ("skillLevel", new PyInt (cur.quantity));
             }
         } else {
