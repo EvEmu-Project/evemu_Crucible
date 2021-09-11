@@ -1753,7 +1753,7 @@ std::string CorporationDB::GetDivisionName(uint32 corpID, uint16 acctKey)
     }
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT %s FROM crpWalletDivisons WHERE corporationID = %u", corpID)) {
+    if (!sDatabase.RunQuery(res, "SELECT %s FROM crpWalletDivisons WHERE corporationID = %u", acctKeyName, corpID)) {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return "Unknown";
     }

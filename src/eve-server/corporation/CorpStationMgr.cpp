@@ -249,6 +249,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
     }
 */
     OfficeData odata = OfficeData();
+        odata.name = CorporationDB::GetCorpName(pClient->GetCorporationID());
         odata.ticker = pClient->GetChar()->corpTicker();
         odata.corporationID = pClient->GetCorporationID();
         odata.expiryTime = Win32TimeNow() + EvE::Time::Month;
