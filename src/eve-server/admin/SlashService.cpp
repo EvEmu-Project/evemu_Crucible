@@ -56,7 +56,7 @@ PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
     Call_SingleStringArg arg;
     if (!arg.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return NULL;
+        return nullptr;
     }
 
     return SlashCommand( call.client, arg.arg );

@@ -37,7 +37,7 @@ PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
         " WHERE tutorialID=%u", tutorialID))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -53,7 +53,7 @@ PyRep *TutorialDB::GetPages(uint32 tutorialID) {
         " ORDER BY pageNumber", tutorialID))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -68,7 +68,7 @@ PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
         " WHERE tutorialID=%u", tutorialID))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -83,7 +83,7 @@ PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
         " WHERE tutorialID=%u", tutorialID))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -98,7 +98,7 @@ PyRep *TutorialDB::GetAllTutorials() {
         " FROM tutorials"))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -112,7 +112,7 @@ PyRep *TutorialDB::GetAllCriterias() {
         " FROM tutorial_criteria"))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -127,7 +127,7 @@ PyRep *TutorialDB::GetCategories() {
         " FROM tutorial_categories"))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -140,14 +140,14 @@ PyRep *TutorialDB::GetTutorialsAndConnections(uint8 raceID) {
     DBQueryResult res;
     if(!sDatabase.RunQuery(res, "SELECT `tutorialID`, `tutorialName`, `categoryID`, `dataID`, `tutorialNameID` FROM `tutorialsvc_tutorials`")) {
         sLog.Error("TutorialService","GetTutorialsAndConnections query1 error: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
     PyObjectEx *tutorials = DBResultToCRowset(res);
 
     res.Reset();
     if(!sDatabase.RunQuery(res, "SELECT `tutorialID`, `raceID`, `nextTutorialID`, `dataID` FROM `tutorialsvc_connections`")) {
         sLog.Error("TutorialService","GetTutorialsAndConnections query2 error: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
     DBRowDescriptor
     PyObjectEx *connections = DBResultToCRowset(res);

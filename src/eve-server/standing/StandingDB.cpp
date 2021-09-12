@@ -103,7 +103,7 @@ PyRep *StandingDB::PrimeCharStandings(uint32 charID)
                             " WHERE itemID < 0"))
     {
         _log(DATABASE__ERROR, "Error in PrimeCharStandings query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -134,7 +134,7 @@ PyRep *StandingDB::GetStandingTransactions(Call_GetStandingTransactions &args)
                             args.toID, args.fromID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
     return DBResultToRowset(res);
 }

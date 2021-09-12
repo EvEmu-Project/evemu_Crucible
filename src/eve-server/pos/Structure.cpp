@@ -136,11 +136,9 @@ void StructureItem::Delete()
 
 PyObject *StructureItem::StructureGetInfo()
 {
-    /** @todo  why calling itemID() here??  cant we just access member instead?  */
-    if (!pInventory->LoadContents())
-    {
+    if (!pInventory->LoadContents()) {
         codelog(ITEM__ERROR, "%s (%u): Failed to load contents for Structure", name(), m_itemID);
-        return NULL;
+        return nullptr;
     }
 
     Rsp_CommonGetInfo result;
@@ -148,7 +146,7 @@ PyObject *StructureItem::StructureGetInfo()
 
     //first populate the Structure.
     if (!Populate(entry))
-        return NULL;
+        return nullptr;
 
     result.items[m_itemID] = entry.Encode();
 
@@ -1007,6 +1005,17 @@ void StructureSE::EncodeDestiny(Buffer &into)
         mass.harmonic = m_harmonic;
         mass.mass = m_self->type().mass();
         into.Append(mass);
+    }
+
+    if (m_data.state < EVEPOS::StructureState::Anchored) {
+        DataSector data = DataSector();
+        data.inertia = 1;
+        data.velX = 0;
+        data.velY = 0;
+        data.velZ = 0;
+        data.maxSpeed = 1;
+        data.speedfraction = 0;
+        into.Append( data );
     }
 
 

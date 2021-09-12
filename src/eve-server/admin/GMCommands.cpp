@@ -636,7 +636,7 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
 PyResult Command_giveskills(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
     //pass to command_giveskill
     Command_giveskill(who, db, services, args);
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
@@ -865,7 +865,7 @@ PyResult Command_dogma(Client* who, CommandDB* db, PyServiceMgr* services, const
     i->SetAttribute(db->GetAttributeID(attributeName), attributeValue);
     /** @todo  for modules and ships, this will need to call some kind of 'reload' to reset the attrib mem object before new attrib takes affect.  */
 
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_kick(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -897,7 +897,7 @@ PyResult Command_kick(Client* who, CommandDB* db, PyServiceMgr* services, const 
         target->DisconnectClient();
     }
 
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_ban(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -933,7 +933,7 @@ PyResult Command_ban(Client* who, CommandDB* db, PyServiceMgr* services, const S
     //disconnect client
     target->DisconnectClient();
 
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_unban(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -961,5 +961,5 @@ PyResult Command_unban(Client* who, CommandDB* db, PyServiceMgr* services, const
     else
         throw CustomError ("Correct Usage: /unban [Character Name / Character ID]");
 
-    return NULL;
+    return nullptr;
 }
