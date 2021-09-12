@@ -8,6 +8,5 @@ ALTER TABLE mktOrders
 -- +migrate Down
 TRUNCATE mktOrders;
 DROP TABLE IF EXISTS seed_migrations;
-TRUNCATE seed_migrations;
 ALTER TABLE mktOrders
   MODIFY `price` float NOT NULL DEFAULT '0';
