@@ -33,7 +33,7 @@ public:
 
     /* class type tests. */
     virtual bool                IsCOSE()                { return true; }
-    virtual bool                isGlobal()              { return true; }
+    //virtual bool                isGlobal()              { return true; }
 
     /* SystemEntity interface */
     virtual void                Process();
