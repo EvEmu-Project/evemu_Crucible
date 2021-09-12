@@ -139,7 +139,7 @@ PyObject *StructureItem::StructureGetInfo()
     /** @todo  why calling itemID() here??  cant we just access member instead?  */
     if (!pInventory->LoadContents())
     {
-        codelog(ITEM__ERROR, "%s (%u): Failed to load contents for Structure", name(), itemID());
+        codelog(ITEM__ERROR, "%s (%u): Failed to load contents for Structure", name(), m_itemID);
         return NULL;
     }
 
@@ -150,7 +150,7 @@ PyObject *StructureItem::StructureGetInfo()
     if (!Populate(entry))
         return NULL;
 
-    result.items[itemID()] = entry.Encode();
+    result.items[m_itemID] = entry.Encode();
 
     return result.Encode();
 }
