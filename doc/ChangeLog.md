@@ -3,16 +3,16 @@
 
 *** 0.8.2 ***
 - PI Implemented
-- POS Implemented
+- Basic POS Implemented
 
 *** 0.8.1 ***
-- Agents/Missions Implemented
+- Agents and Courier Missions Implemented
 
 *** 0.8.0 (26/03/2021) ***
 This release brings in massive new core system updates to EVEmu. These changes will dramatically increase the rate of change to this repository and make future contributions easier.
 
 - Returned to numbered versioning
-- Large new update to all core systems from Alasiya EVE (all credits to Allan for his fantastic work here)
+- Large new update to all core systems from Alasiya EvE (all credits to Allan for his fantastic work here)
 - Database has been updated to reflect core changes to the server code
 - Repository has been organized for quality of life
 - CI configuration has been added for automated building of EVEmu binaries to be distributed
