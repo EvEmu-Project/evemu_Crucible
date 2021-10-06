@@ -472,7 +472,7 @@ bool CorporationDB::AddCorporation(Call_AddCorporation & corpInfo, Client* pClie
         "   corporationName, description, tickerName, url, taxRate, corporationType, hasPlayerPersonnelManager, "
         "   creatorID, ceoID, stationID, raceID, shares, memberLimit, allowedMemberRaceIDs,"
         "   graphicID, color1, color2, color3, shape1, shape2, shape3, "
-        "   isRecruiting, alliancMemberStartDate ) "
+        "   isRecruiting, allianceMemberStartDate ) "
         " VALUES "
         "   ('%s', '%s', '%s', '%s', %f, 2, 1, "
         "    %u, %u, %u, %u, 1000, %u, %u,"

@@ -1,10 +1,20 @@
 # [EVEmu](https://evemu.dev) - An EVE Online Emulator
 
+<a href="https://scan.coverity.com/projects/evemu_crucible">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/23809/badge.svg"/>
+</a>
+
 ## Introduction
 EVEmu is a work-in-progress server emulator for the space MMO EVE Online. This is an educational project. Please see the disclaimer below for details.
 
 ## ChangeLog
 [ChangeLog](doc/ChangeLog.md)
+
+## EVEmu Software Development Kit ##
+The EVEmu project maintains a set of pre-configured tools and environments which help setting up a new devlopment station. [Check them out](https://github.com/EvEmu-Project/EvEmu_SDK)
+
+Additional details on the SDK is [available on the wiki](https://wiki.evemu.dev/wiki/EVEmu-SDK).
 
 ## `docker-compose` Quickstart
  EVEmu can be run with Docker Compose:
