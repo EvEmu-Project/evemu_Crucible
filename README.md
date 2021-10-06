@@ -1,5 +1,10 @@
 # [EVEmu](https://evemu.dev) - An EVE Online Emulator
 
+<a href="https://scan.coverity.com/projects/evemu_crucible">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/23809/badge.svg"/>
+</a>
+
 ## Introduction
 EVEmu is a work-in-progress server emulator for the space MMO EVE Online. This is an educational project. Please see the disclaimer below for details.
 
