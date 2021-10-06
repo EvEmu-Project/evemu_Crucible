@@ -1,8 +1,8 @@
 # [EVEmu](https://evemu.dev) - An EVE Online Emulator
 
-<a href="https://scan.coverity.com/projects/evemu_crucible">
+<a href="https://scan.coverity.com/projects/zhyrohaad-evemu_crucible">
   <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/23809/badge.svg"/>
+       src="https://scan.coverity.com/projects/23812/badge.svg"/>
 </a>
 
 ## Introduction
