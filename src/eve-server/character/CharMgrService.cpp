@@ -33,6 +33,7 @@
 #include "EntityList.h"
 #include "account/AccountService.h"
 #include "character/CharMgrService.h"
+#include "packets/CorporationPkts.h"
 
 class CharMgrBound
 : public PyBoundObject
@@ -315,7 +316,9 @@ PyResult CharMgrService::Handle_AddToBounty( PyCallArgs& call )
         std::map<std::string, PyRep *> res;
         res["amount"] = new PyFloat(args.arg2);
         res["balance"] = new PyFloat(call.client->GetBalance());
-        throw(PyException(MakeUserError("NotEnoughMoney", res)));
+        throw UserError ("NotEnoughMoney")
+                .AddISK ("amount", args.arg2)
+                .AddISK ("balance", call.client->GetBalance ());
     }
 
     return PyStatic.NewNone();
@@ -767,38 +770,18 @@ PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
 //18:07:35 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(63177)
 PyResult CharMgrService::Handle_AddContact( PyCallArgs& call )
 {
-  /**
-00:26:29 [SvcCall] Service charMgr: calling AddContact      *** adding agent
-00:26:29 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(3017440)
-00:26:29 [SvcCall]   Call Arguments:
-00:26:29 [SvcCall]       Tuple: 1 elements
-00:26:29 [SvcCall]         [ 0] Integer field: 3017440
-00:26:29 [SvcCall]   Call Named Arguments:
-00:26:29 [SvcCall]     Argument 'machoVersion':
-00:26:29 [SvcCall]         Integer field: 1
-
-PyTuple* payload = new PyTuple(1);
-payload->SetItem(0, new PyInt(agentID));
-pClient->SendNotification("OnAgentAdded", "charid", payload, false);    // i *think* this is unsequenced
-//OnAgentAdded(self, entityID)
-
-15:48:32 [SvcCall] Service charMgr: calling AddContact      *** adding player
-15:48:32 L CharMgrService::Handle_AddContact(): size=5, 0=Integer(140000212)
-15:48:32 [SvcCall]   Call Arguments:
-15:48:32 [SvcCall]       Tuple: 5 elements
-15:48:32 [SvcCall]         [ 0] Integer field: 140000212
-15:48:32 [SvcCall]         [ 1] Integer field: 10
-15:48:32 [SvcCall]         [ 2] Integer field: 1
-15:48:32 [SvcCall]         [ 3] Integer field: 1
-15:48:32 [SvcCall]         [ 4] String: ''
-15:48:32 [SvcCall]   Call Named Arguments:
-15:48:32 [SvcCall]     Argument 'machoVersion':
-15:48:32 [SvcCall]         Integer field: 1
-*/
   sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%u ", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
-  // make db call to save contact.  will have to find the call to get contact list....
+    Call_AddContact args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    //TODO: Notify char that they have been added as a contact if notify is True
+
+    m_db.AddContact(call.client->GetCharacterID(), args.charID, args.standing, args.inWatchlist);
   return nullptr;
 }
 
@@ -807,6 +790,13 @@ PyResult CharMgrService::Handle_EditContact( PyCallArgs& call )
   sLog.Warning( "CharMgrService::Handle_EditContact()", "size=%u ", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
+  Call_AddContact args;
+  if (!args.Decode(&call.tuple)) {
+      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+      return nullptr;
+  }
+
+  m_db.UpdateContact(args.standing, args.charID, call.client->GetCharacterID());
   return nullptr;
 }
 
@@ -825,6 +815,16 @@ PyResult CharMgrService::Handle_DeleteContacts( PyCallArgs& call )
   sLog.Warning( "CharMgrService::Handle_DeleteContacts()", "size=%u ", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
+  Call_RemoveCorporateContacts args;
+  if (!args.Decode(&call.tuple)) {
+      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+      return nullptr;
+  }
+
+  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+      m_db.RemoveContact(PyRep::IntegerValueU32(*itr), call.client->GetCharacterID());
+  }
+
   return nullptr;
 }
 
@@ -834,6 +834,16 @@ PyResult CharMgrService::Handle_BlockOwners( PyCallArgs& call )
   sLog.Warning( "CharMgrService::Handle_BlockOwners()", "size=%u ", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
+  Call_RemoveCorporateContacts args;
+  if (!args.Decode(&call.tuple)) {
+      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+      return nullptr;
+  }
+
+  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+      m_db.SetBlockContact(PyRep::IntegerValueU32(*itr), call.client->GetCharacterID(), true);
+  }
+  
   return nullptr;
 }
 
@@ -842,6 +852,16 @@ PyResult CharMgrService::Handle_UnblockOwners( PyCallArgs& call )
   //            sm.RemoteSvc('charMgr').UnblockOwners(blocked)
   sLog.Warning( "CharMgrService::Handle_UnblockOwners()", "size=%u ", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
+
+  Call_RemoveCorporateContacts args;
+  if (!args.Decode(&call.tuple)) {
+      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+      return nullptr;
+  }
+
+  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+      m_db.SetBlockContact(PyRep::IntegerValueU32(*itr), call.client->GetCharacterID(), false);
+  }
 
   return nullptr;
 }
@@ -853,6 +873,16 @@ PyResult CharMgrService::Handle_EditContactsRelationshipID( PyCallArgs& call )
  */
   sLog.Warning( "CharMgrService::Handle_EditContactsRelationshipID()", "size=%u ", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
+
+  Call_EditCorporateContacts args;
+  if (!args.Decode(&call.tuple)) {
+      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+      return nullptr;
+  }
+
+  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+      m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), call.tuple->size());
+  }
 
   return nullptr;
 }

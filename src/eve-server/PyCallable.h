@@ -66,18 +66,6 @@ public:
     PyDict* ssNamedResult;
 };
 
-class PyException
-{
-public:
-    PyException( PyRep* except );
-    PyException( const PyException& oth );
-    ~PyException();
-
-    PyException& operator=( const PyException& oth );
-
-    PyRep* ssException;
-};
-
 class PyCallable
 {
 public:

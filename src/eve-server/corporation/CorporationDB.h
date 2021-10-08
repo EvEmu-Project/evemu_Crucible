@@ -100,8 +100,9 @@ public:
     PyRep *GetCorpInfo(uint32 corpID);
 
     PyRep* GetContacts(uint32 corpID);
-    void AddContact(uint32 corpID);
-    void UpdateContact(uint32 corpID);
+    void AddContact(uint32 ownerID, Call_CorporateContactData corpData);
+    void UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID);
+    void RemoveContact(uint32 contactID, uint32 ownerID);
 
     PyRep* GetLabels(uint32 corpID);
     void SetLabel(uint32 corpID, uint32 color, std::string name);
@@ -120,7 +121,7 @@ public:
     int32 GetCorpIDforChar(int32 charID);
     uint32 GetStationOwner(uint32 stationID);
     uint32 GetStationCorporationCEO(uint32 stationID);
-    uint32 GetCorporationCEO(uint32 corpID);
+    static uint32 GetCorporationCEO(uint32 corpID);
     uint16 GetCorpMemberCount(uint32 corpID);
     uint16 GetCorpMemberLimit(uint32 corpID);
 

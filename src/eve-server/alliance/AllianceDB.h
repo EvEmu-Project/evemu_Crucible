@@ -34,7 +34,8 @@ public:
 
     PyRep* GetBulletins(uint32 allyID);
     void AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, std::string& title, std::string& body);
-    void EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body);
+    static void EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body);
+    static void DeleteBulletin(uint32 bulletinID);
 
     PyRep *GetMyApplications(uint32 allyID);
     PyRep *GetApplications(uint32 allyID);
@@ -42,8 +43,9 @@ public:
     PyRep *GetAlliance(uint32 allyID);
 
     PyRep* GetContacts(uint32 allyID);
-    void AddContact(uint32 allyID);
-    void UpdateContact(uint32 allyID);
+    void AddContact(uint32 ownerID, Call_CorporateContactData contactData);
+    void UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID);
+    void RemoveContact(uint32 contactID, uint32 ownerID);
 
     PyRep* GetLabels(uint32 allyID);
     void SetLabel(uint32 allyID, uint32 color, std::string name);
@@ -57,10 +59,16 @@ public:
 
     bool IsShortNameTaken(std::string shortName);
     bool UpdateCorpAlliance(uint32 allyID, uint32 corpID);
+    void DeleteMember(uint32 allyID, uint32 corpID);
+    void DeclareExecutorSupport(uint32 corpID, uint32 chosenExecutor);
+    void UpdateAlliance(uint32 allyID, std::string description, std::string url);
 
     PyRep* GetMembers(uint32 allyID);
     PyRep* GetAllianceMembers(uint32 allyID);
     PyRep* GetRankedAlliances();
+
+    static uint32 GetExecutorID(uint32 allyID);
+    bool CreateAllianceChangePacket(OnAllianceChanged &ac, uint32 oldAllyID, uint32 newAllyID);
 };
 
 #endif  // EVE_ALLIANCE_ALLIANCEDB_H

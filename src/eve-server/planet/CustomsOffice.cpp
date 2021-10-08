@@ -231,7 +231,7 @@ void CustomsSE::VerifyAddItem(InventoryItemRef iRef)
     // test for planetary resources here
     if ((iRef->categoryID() != EVEDB::invCategories::PlanetaryResources)
     and (iRef->categoryID() != EVEDB::invCategories::PlanetaryCommodities))
-        throw PyException( MakeCustomError("You cannot put %s in a %s", iRef->name(), m_self->name()));
+        throw CustomError ("You cannot put %s in a %s", iRef->name(), m_self->name());
 }
 
 void CustomsSE::GetEffectState(PyList& into)

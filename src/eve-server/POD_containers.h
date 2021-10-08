@@ -317,20 +317,22 @@ struct SovereigntyData {
     uint32 claimID;
     uint32 solarSystemID;
     uint32 constellationID;
+    uint32 regionID;
     uint32 corporationID;
     uint32 allianceID;
     uint32 claimStructureID;
     int64 claimTime;
     uint32 hubID;
     uint8 contested;
-    uint32 stationCount;
-    uint32 militaryPoints;
-    uint32 industrialPoints;
+    uint8 stationCount;
+    uint8 militaryPoints;
+    uint8 industrialPoints;
 };
 
 /* Tags for sov multi-index container */
 struct SovDataBySolarSystem {};
 struct SovDataByConstellation {};
+struct SovDataByRegion {};
 struct SovDataByAlliance {};
 struct SovDataByClaim {};
 
@@ -379,6 +381,7 @@ struct OfficeData {
     int64 rentalFee;
     int64 expiryTime;
     std::string ticker;
+    std::string name;
 };
 
 /* POD structure for loading dynamic items */

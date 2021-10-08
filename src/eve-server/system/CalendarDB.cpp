@@ -33,7 +33,7 @@
 void CalendarDB::DeleteEvent(uint32 eventID)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "UPDATE sysCalendarEvents SET isDeleted = 1 WHERE eventID = %s", eventID);
+    sDatabase.RunQuery(err, "UPDATE sysCalendarEvents SET isDeleted = 1 WHERE eventID = %u", eventID);
 }
 
 // for personal char events
@@ -43,7 +43,7 @@ PyRep* CalendarDB::SaveNewEvent(uint32 ownerID, Call_CreateEventWithInvites& arg
     data = GetTimeParts(args.startDateTime);
 
     DBerror err;
-    if (!args.invitees->IsNone()) {
+    if (!args.invitees->empty()) {
         bool comma(false);
         std::ostringstream str;
         PyList* list(args.invitees->AsList());
@@ -60,7 +60,7 @@ PyRep* CalendarDB::SaveNewEvent(uint32 ownerID, Call_CreateEventWithInvites& arg
 
         sDatabase.RunQuery(err,
                 "INSERT INTO `sysCalendarInvitees`(`eventID`, `inviteeList`)"
-                " VALUES '%s'", str.str().c_str());
+                " VALUES %s", str.str().c_str());
     }
 
     uint32 eventID(0);

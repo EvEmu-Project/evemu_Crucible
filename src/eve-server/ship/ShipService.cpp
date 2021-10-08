@@ -37,6 +37,7 @@
 #include "system/DestinyManager.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "system/sov/SovereigntyDataMgr.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 
 
@@ -158,16 +159,16 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
     ShipSE* pShipSE =  pClient->GetShipSE();
     if (pShipSE == nullptr)
-        throw PyException(MakeCustomError("Invalid Ship.  Ref: ServerError xxxxx"));
+        throw CustomError ("Invalid Ship.  Ref: ServerError xxxxx");
     /** @todo  check for active cyno (when we implement it...) and other things that affect eject */
     if (pShipSE->isGlobal()) { /* close enough.  cyno (isGlobal() = true), so this will work */
         /* find proper error msg for this...im sure there is one  */
-        throw PyException(MakeCustomError("You cannot eject current ship with an active Cyno Field."));
+        throw CustomError ("You cannot eject current ship with an active Cyno Field.");
     }
 
     //  do we need this? yes....this needs more work in destiny to implement correctly
     if (pShipSE->DestinyMgr()->GetSpeed() > 20)
-        throw PyException(MakeCustomError("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139."));
+        throw CustomError ("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139.");
 
     SystemManager* pSystem = pClient->SystemMgr();
     if (pSystem == nullptr) {
@@ -180,29 +181,29 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
     if (pShipSE == nullptr) {
         _log(SHIP__ERROR, "Handle_Board() - Failed to get new ship %u for %s.", args.newShipID, pClient->GetName());
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 25107."));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 25107.");
     }
 
     if (pShipSE->GetTypeID() == itemTypeCapsule) {
         codelog(ITEM__ERROR, "Empty Pod %u in space.  SystemID %u.", args.newShipID, pSystem->GetID());
-        throw PyException(MakeCustomError("You already have a pod.  These cannot be boarded manally."));
+        throw CustomError ("You already have a pod.  These cannot be boarded manally.");
     }
 
     //CantBoardTargeted
 
     //  do we need this? yes....this needs more work in destiny to implement correctly
     if (pShipSE->DestinyMgr()->GetSpeed() > 20)
-        throw PyException(MakeCustomError("You cannot board the ship while it's moving faster than 20m/s. Ref: ServerError 05139."));
+        throw CustomError ("You cannot board the ship while it's moving faster than 20m/s. Ref: ServerError 05139.");
 
     // should we eject player here and deny boarding new ship, or just leave char in current ship and return?
     if (!pShipSE->GetShipItemRef()->ValidateBoardShip(pClient->GetChar()))
-        throw PyException(MakeCustomError("You do not have the skills to fly a %s.", pShipSE->GetName()));
+        throw CustomError ("You do not have the skills to fly a %s.", pShipSE->GetName());
 
     float distance = pClient->GetShipSE()->GetPosition().distance(pShipSE->GetPosition());
     // fudge for radii ?
     if (distance > sConfig.world.shipBoardDistance)
-        throw PyException(MakeCustomError("You are too far from %s to board it.<br>You must be within %u meters to board this ship.",\
-                pShipSE->GetName(), sConfig.world.shipBoardDistance));
+        throw CustomError ("You are too far from %s to board it.<br>You must be within %u meters to board this ship.",\
+                pShipSE->GetName(), sConfig.world.shipBoardDistance);
 
     pClient->Board(pShipSE);
 
@@ -234,16 +235,16 @@ PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
 
     SystemEntity* pShipSE = pClient->GetShipSE();
     if (pShipSE == nullptr)
-        throw PyException(MakeCustomError("Invalid Ship.  Ref: ServerError xxxxx"));
+        throw CustomError ("Invalid Ship.  Ref: ServerError xxxxx");
     /** @todo  check for active cyno (when we implement it...) and other things that affect eject */
     if (pShipSE->isGlobal()) { /* close enough.  cyno (isGlobal() = true), so this will work */
         /* find proper error msg for this...im sure there is one  */
-        throw PyException(MakeCustomError("You cannot eject with an active Cyno Field."));
+        throw CustomError ("You cannot eject with an active Cyno Field.");
     }
 
     //  do we need this? yes....this needs more work in destiny to implement correctly
     if (pShipSE->DestinyMgr()->GetSpeed() > 20)
-        throw PyException(MakeCustomError("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139."));
+        throw CustomError ("You cannot eject current ship while moving faster than 20m/s. Ref: ServerError 05139.");
 
     pClient->Eject();
 
@@ -306,7 +307,7 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call) {
     ShipItemRef newShipRef = sItemFactory.GetShip(args.newShipID);
     if (newShipRef.get() == nullptr) {
         sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get new ship %u.", pClient->GetName(), args.newShipID);
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173+1"));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173+1");
     }
     //ShipMustBeInPersonalHangar
 
@@ -337,14 +338,14 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     Call_IntBoolArg args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173"));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
     }
 
     Client* pClient = call.client;
     ShipItemRef pShip = pClient->GetShip();
     if (pShip.get() == nullptr) {
         sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get ship item.", pClient->GetName());
-        throw PyException(MakeCustomError("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173"));
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
         call.client->SendNotifyMsg("Internal Server Error - Ref: ServerError xxxxx   -undock failed.");
         return nullptr;
     }
@@ -426,27 +427,24 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
         switch (iRef->categoryID()) {
             case EVEDB::invCategories::Drone: {
                 if (!sConfig.testing.EnableDrones) {
-                    throw PyException(MakeCustomError("Drones are disabled."));
+                    throw CustomError ("Drones are disabled.");
                 }
 
                 if (pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32() < 1) {
-                    std::map<std::string, PyRep *> arg;
-                    arg["typeID"] = new PyInt(iRef->typeID());
-                    throw PyException(MakeUserError("NoDroneManagementAbilities", arg));
+                    throw UserError ("NoDroneManagementAbilities")
+                            .AddFormatValue ("typeID", new PyInt (iRef->typeID ()));
                     //{'FullPath': u'UI/Messages', 'messageID': 259203, 'label': u'NoDroneManagementAbilitiesBody'}(u'You cannot launch {[item]typeID.nameWithArticle} because you do not have the ability to control any drones.', None, {u'{[item]typeID.nameWithArticle}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'nameWithArticle', 'args': 0, 'kwargs': {}, 'variableName': 'typeID'}})
                 }
                 if (pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32() <= pClient->GetShipSE()->DroneCount()) {
-                    std::map<std::string, PyRep *> arg;
-                    arg["item"] = new PyInt(iRef->typeID());
-                    arg["limit"] = new PyInt(pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32());
-                    throw PyException(MakeUserError("NoDroneManagementAbilitiesLeft", arg));
+                    throw UserError ("NoDroneManagementAbilitiesLeft")
+                            .AddFormatValue ("item", new PyInt (iRef->typeID ()))
+                            .AddFormatValue ("limit", new PyInt (pClient->GetChar ()->GetAttribute (AttrMaxActiveDrones).get_uint32()));
                     //{'FullPath': u'UI/Messages', 'messageID': 259140, 'label': u'NoDroneManagementAbilitiesLeftBody'}(u'You cannot launch {[item]item.name} because you are already controlling {[numeric]limit} drones, as much as you have skill to.', None, {u'{[numeric]limit}': {'conditionalValues': [], 'variableType': 9, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'limit'}, u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
                 }
 
                 if (iRef->flag() != flagDroneBay) {
-                    std::map<std::string, PyRep *> arg;
-                    arg["item"] = new PyInt(iRef->typeID());
-                    throw PyException(MakeUserError("DropItemNotInDroneBay", arg));
+                    throw UserError ("DropItemNotInDroneBay")
+                            .AddFormatValue ("item", new PyInt (iRef->typeID ()));
                     // {'FullPath': u'UI/Messages', 'messageID': 259680, 'label': u'DropItemNotInDroneBayBody'}(u'{[item]item.name} cannot be dropped because it is not in your drone bay.', None, {u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
                 }
 
@@ -465,26 +463,22 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                             dropped = true;
                             shipDrop = true;
                             list->AddItem(new PyInt(newItem->itemID()));
-                        } else {
-                            std::map<std::string, PyRep *> arg;
-                            arg["droneName"] = new PyString( newItem->name());
-                            arg["droneBandwidthUsed"] = new PyInt( newItem->GetAttribute(AttrDroneBandwidthUsed).get_uint32());
-                            arg["bandwidthLeft"] = new PyInt(pShip->GetAttribute(AttrDroneBandwidth).get_uint32() - pShip->GetAttribute(AttrDroneBandwidthLoad).get_uint32());
-                            throw PyException(MakeUserError("MaxBandwidthExceeded2", arg));
-                        }
+                        } else
+                            throw UserError ("MaxBandwithExceeded2")
+                                    .AddTypeName ("droneNAme", newItem->typeID ())
+                                    .AddAmount ("droneBandwithUsed", newItem->GetAttribute (AttrDroneBandwidthUsed).get_uint32())
+                                    .AddAmount ("bandwidthLeft", pShip->GetAttribute (AttrDroneBandwidth).get_uint32 () - pShip->GetAttribute (AttrDroneBandwidthLoad).get_uint32());
                     }
                 } else {
                     if (pClient->GetShipSE()->LaunchDrone(iRef)) {
                         dropped = true;
                         shipDrop = true;
                         list->AddItem(new PyInt(iRef->itemID()));
-                    } else {
-                        std::map<std::string, PyRep *> arg;
-                        arg["droneName"] = new PyString( iRef->name());
-                        arg["droneBandwidthUsed"] = new PyInt( iRef->GetAttribute(AttrDroneBandwidthUsed).get_uint32());
-                        arg["bandwidthLeft"] = new PyInt(pShip->GetAttribute(AttrDroneBandwidth).get_uint32() - pShip->GetAttribute(AttrDroneBandwidthLoad).get_uint32());
-                        throw PyException(MakeUserError("MaxBandwidthExceeded2", arg));
-                    }
+                    } else
+                            throw UserError ("MaxBandwithExceeded2")
+                                    .AddTypeName ("droneNAme", iRef->typeID ())
+                                    .AddAmount ("droneBandwithUsed", iRef->GetAttribute (AttrDroneBandwidthUsed).get_uint32())
+                                    .AddAmount ("bandwidthLeft", pShip->GetAttribute (AttrDroneBandwidth).get_uint32 () - pShip->GetAttribute (AttrDroneBandwidthLoad).get_uint32());
                 }
             } break;
             case EVEDB::invCategories::Structure: {
@@ -548,27 +542,98 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
             case EVEDB::invCategories::SovereigntyStructure: {
                 //Code for spawning sovereignty structures
 
+                //Check if system is in empire space
+                SystemData sysData;
+                sDataMgr.GetSystemData(pClient->GetSystemID(), sysData);
+                if (sysData.factionID) {
+                    pClient->SendErrorMsg("Launching sovereignty structures is forbidden in empire space.");
+                    return nullptr;
+                }
+
+                //Check if client is part of an alliance
+                if (pClient->GetAllianceID() == 0) {
+                    pClient->SendErrorMsg("You must be part of an alliance to launch a sovereignty structure.");
+                    return nullptr;
+                }
+
                 switch (iRef->groupID()) {
                     case EVEDB::invGroups::Sovereignty_Blockade_Units: {
-                        // check for sbu placement
-                        /*  placement doesnt matter....anchoring has checks for proper placement
+                        // Make sure SBU is deployed in the same bubble as a gate
+                        std::vector<uint16> gateBubbles;
+                        for (auto cur: pSystem->GetOperationalStatics()) {
+                            if (cur.second->IsGateSE())
+                            {
+                                gateBubbles.push_back(cur.second->SysBubble()->GetID());
+                            }
+                        }
+                        if (!(std::find(gateBubbles.begin(), gateBubbles.end(),pClient->GetShipSE()->SysBubble()->GetID())!=gateBubbles.end()))
+                        {
+                            pClient->SendErrorMsg("Sovereignty blockade units must be deployed near a stargate.");
+                            return nullptr;
+                        }
+
+                        // Check if this system is currently claimed
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) == 0 ) {
+                            pClient->SendErrorMsg("You cannot launch a Sovereignty Blockade Unit in an unclaimed system.");
+                            return nullptr;
+                        }
+
+                        // Check if this system is claimed by your alliance
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) == pClient->GetAllianceID()) {
+                            pClient->SendErrorMsg("You cannot launch a Sovereignty Blockade Unit in a system claimed by your alliance");
+                            return nullptr;
+                        }
+
+                        // Check if there is already an SBU on this stargate
                         SystemEntity* pSE = pSystem->GetClosestGateSE(pClient->GetShipSE()->GetPosition());
-                        if (pSE == nullptr)
-                            ;
-                        if (pSE->GetPosition().distance(iRef->position()) > )
-                        */
+                        if (pSE->GetGateSE()->HasSBU()) {
+                            pClient->SendErrorMsg("There is already a Sovereignty Blockade Unit on this stargate.  Aborting Drop.");
+                            return nullptr;
+                        }
+
+                        // Check if there is already an unanchored SBU in the current bubble
+                        for (auto cur: pSystem->GetOperationalStatics()) {
+                            if (cur.second->IsSBUSE())
+                            {
+                                if (cur.second->SysBubble()->GetID() == pClient->GetShipSE()->SysBubble()->GetID())
+                                {
+                                    pClient->SendErrorMsg("There is already a Sovereignty Blockade Unit on this stargate.  Aborting Drop.");
+                                    return nullptr;
+                                }
+                            }
+                        }
                     } break;
                     //verify only one TCU or IHub is deployed in the system.
                     // todo:  check Structure.h  - these can be dropped and anchored, but not onlined if >1 in system
                     case EVEDB::invGroups::Territorial_Claim_Units: {
-                        if (pClient->GetShipSE()->SysBubble()->HasTCU()) {
-                            pClient->SendErrorMsg("There is already a Territorial Claim Unit in this system.  Aborting Drop.");
+                        // Only one can be launched in a system
+                        for (auto cur: pSystem->GetOperationalStatics()) {
+                            if (cur.second->IsTCUSE())
+                            {
+                                pClient->SendErrorMsg("There is already a Territorial Claim Unit in this system.  Aborting Drop.");
+                                return nullptr;
+                            }
+                        }
+
+                        //This should never hit as there should always be a TCU in a claimed system
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) != 0 ) {
+                            pClient->SendErrorMsg("This system has already been claimed. ");
                             return nullptr;
                         }
                     } break;
                     case EVEDB::invGroups::Infrastructure_Hubs: {
-                        if (pClient->GetShipSE()->SysBubble()->HasIHub()) {
-                            pClient->SendErrorMsg("There is already an Infrastructure Hub this system.  Aborting Drop.");
+                        // Only one can be launched in a system
+                        for (auto cur: pSystem->GetOperationalStatics()) {
+                            if (cur.second->IsIHubSE())
+                            {
+                                pClient->SendErrorMsg("There is already an Infrastructure Hub this system.  Aborting Drop.");
+                                return nullptr;
+                            }
+                        }
+
+                        // Check if this system is not claimed by your alliance
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) != pClient->GetAllianceID()) {
+                            pClient->SendErrorMsg("You cannot launch an Infrastructure Hub in a system claimed by another alliance");
                             return nullptr;
                         }
                     } break;
@@ -660,13 +725,13 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
     // check to see if this object is anchored and if so, refuse to scoop it
     if (pSE->IsContainerSE())
         if (pSE->GetContSE()->IsAnchored())
-            throw PyException(MakeCustomError("%s is anchored.  Cannot scoop.", pSE->GetName()));
+            throw CustomError ("%s is anchored.  Cannot scoop.", pSE->GetName());
 
     // check drones for other pilots control
     if (pSE->IsDroneSE())
         if (pSE->GetDroneSE()->IsEnabled())
             if (pSE->GetDroneSE()->GetOwner() != pClient)
-                throw PyException(MakeCustomError("%s is under another pilot's control.  Cannot scoop.", pSE->GetName()));
+                throw CustomError ("%s is under another pilot's control.  Cannot scoop.", pSE->GetName());
 
     InventoryItemRef iRef = pSE->GetSelf();
     if (iRef.get() == nullptr) {
@@ -728,7 +793,7 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
         // check ownership/control
         if (pDroneSE->GetDroneSE()->IsEnabled())
             if (pDroneSE->GetDroneSE()->GetOwner() != pClient)
-                throw PyException(MakeCustomError("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName()));
+                throw CustomError ("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
 
         // Check drone bay capacity:
         if (pClient->GetShip()->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {  // this will throw if it fails
@@ -797,7 +862,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             case EVEDB::invCategories::StructureUpgrade: {
                 sRef = sItemFactory.GetStructure(*itr);
                 if (sRef.get() == nullptr)
-                    throw PyException(MakeCustomError("Unable to spawn Structure item of type %u.", sRef->typeID()));
+                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 StructureSE* sSE = new StructureSE(sRef, *m_manager, pSysMgr, data);
@@ -811,7 +876,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             case EVEDB::invCategories::Orbitals: {
                 sRef = sItemFactory.GetStructure(*itr);
                 if (sRef.get() == nullptr)
-                    throw PyException(MakeCustomError("Unable to spawn Structure item of type %u.", sRef->typeID()));
+                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 CustomsSE* sSE = new CustomsSE(sRef, *m_manager, pSysMgr, data);
@@ -825,7 +890,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             case EVEDB::invCategories::Deployable: {
                 cRef = sItemFactory.GetItem(*itr);
                 if (cRef.get() == nullptr)
-                    throw PyException(MakeCustomError("Unable to spawn Deployable item of type %u.", cRef->typeID()));
+                    throw CustomError ("Unable to spawn Deployable item of type %u.", cRef->typeID());
 
                 cRef->Move(pClient->GetLocationID(), flagNone, true);
                 //flagUnanchored: for some DUMB reason, this flag, 1023 yields a PyNone when notifications
@@ -851,7 +916,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                         /** @todo (allan)  *****  there are stipulations on placement of these items.  *****  */
                         ccRef = sItemFactory.GetCargoContainer(*itr);
                         if (ccRef.get() == nullptr)
-                            throw PyException(MakeCustomError("Unable to spawn item of type %u.", ccRef->typeID()));
+                            throw CustomError ("Unable to spawn item of type %u.", ccRef->typeID());
 
                         ccRef->Move(pClient->GetLocationID(), flagNone, true);
                         ContainerSE* cSE = new ContainerSE(ccRef, *m_manager, pSysMgr, data);
@@ -912,7 +977,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 
             jcRef = sItemFactory.SpawnCargoContainer(p_idata);
             if (jcRef.get() == nullptr)
-                throw PyException(MakeCustomError("Unable to spawn jetcan."));
+                throw CustomError ("Unable to spawn jetcan.");
             // create new container
             ContainerSE* cSE = new ContainerSE(jcRef, *m_manager, pSysMgr, data);
 
@@ -930,18 +995,18 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                 pClient->MoveItem(cur, ccRef->itemID(), flagNone);
             } else {
                 _log(ITEM__WARNING, "%s: CargoContainer %u is full.", pClient->GetName(), ccRef->itemID());
-                throw PyException(MakeCustomError("Your Cargo Container is full.  Some items were not transferred."));
+                throw CustomError ("Your Cargo Container is full.  Some items were not transferred.");
             }
         } else if (jcRef.get() != nullptr) {
             if (jcRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, jcRef->itemID(), flagNone);
             } else {
                 _log(ITEM__WARNING, "%s: Jetcan %u is full.", pClient->GetName(), jcRef->itemID());
-                throw PyException(MakeCustomError("Your jetcan is full.  Some items were not transferred."));
+                throw CustomError ("Your jetcan is full.  Some items were not transferred.");
             }
         } else {
             _log(ITEM__ERROR, "Jettison call for %s - no CC or Jcan.", pClient->GetName());
-            throw PyException(MakeCustomError("Item container not found.", cRef->typeID()));
+            throw CustomError ("Item container not found.", cRef->typeID());
         }
         continue;
     }
@@ -1235,7 +1300,7 @@ PyResult ShipBound::Handle_SelfDestruct(PyCallArgs &call) {
                   [PyString "when"]
                   [PyInt 83]
                   //if (mySE->HasPilot() and mySE->GetPilot()->CanThrow())
-        throw PyException(MakeUserError("SelfDestructAborted2"));
+        throw UserError ("SelfDestructAborted2");
 */
 
     /*{'messageKey': 'SelfDestructAborted2', 'dataID': 17879480, 'suppressable': False, 'bodyID': 258024, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2405}

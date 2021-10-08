@@ -49,7 +49,7 @@ public:
     // InstallJob stuff
     static bool GetAssemblyLineProperties(const uint32 assemblyLineID, Character *pChar, Rsp_InstallJob &into, bool isCorpJob=false);
     static bool GetAssemblyLineRestrictions(const int32 assemblyLineID, EvERam::LineRestrictions& data);
-    static uint32 InstallJob(const uint32 ownerID, const uint32 installerID, Call_InstallJob &args, const int64 beginTime, const int64 endTime);
+    static uint32 InstallJob(const uint32 ownerID, const uint32 installerID, Call_InstallJob &args, const int64 beginTime, const int64 endTime, const uint32 systemID);
 
     // CompleteJob stuff
     static bool GetJobProperties(const uint32 jobID, EvERam::JobProperties& data);

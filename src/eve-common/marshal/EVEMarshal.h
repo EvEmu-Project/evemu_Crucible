@@ -128,7 +128,7 @@ protected:
     bool VisitObjectEx( const PyObjectEx* rep );
 
     //! Adds a packed row to the stream
-    bool VisitPackedRow( const PyPackedRow* rep );
+    bool VisitPackedRow( const PyPackedRow* pyPackedRow );
 
     //! Adds a sub structure to the stream
     bool VisitSubStruct( const PySubStruct* rep );
@@ -141,7 +141,7 @@ private:
     // utility to handle Op_PyVarInteger (a bit hacky......)
     void SaveVarInteger( const PyLong* v );
     // zero-compresses given buffer and adds it to the stream
-    bool SaveZeroCompressed( const Buffer& data );
+    bool SaveRLE(const Buffer& in );
 
     Buffer* mBuffer;
 };

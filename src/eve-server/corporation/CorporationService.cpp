@@ -192,11 +192,11 @@ PyResult CorporationService::Handle_CreateMedal(PyCallArgs &call)
     }
 
     if (args.title.size() > 30)
-        throw PyException(MakeUserError("MedalNameTooLong"));
+        throw UserError ("MedalNameTooLong");
     if (args.description.size() < 3)
-        throw PyException(MakeUserError("MedalDescriptionTooShort"));
+        throw UserError ("MedalDescriptionTooShort");
     if (args.description.size() > 150)
-        throw PyException(MakeUserError("MedalDescriptionTooLong"));
+        throw UserError ("MedalDescriptionTooLong");
 
     // not sure of the requirements for these errors....
      // MedalNameInvalid, MedalNameInvalid2, MedalDescriptionInvalid2

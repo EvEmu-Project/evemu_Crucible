@@ -1,5 +1,4 @@
 <elements>
-
     <elementDef name="Rsp_GetSystemSovereigntyInfo">
     <tupleInline>
       <int name="contested" />
@@ -11,5 +10,4 @@
       <int name="solarSystemID" />
     </tupleInline>
     </elementDef>
-
 </elements>

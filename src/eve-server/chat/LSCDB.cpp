@@ -23,6 +23,8 @@
     Author:        Zhur, Aknor Jaden
 */
 
+/** @todo this entire file needs review */
+
 #include "eve-server.h"
 #include "Client.h"
 #include "chat/LSCDB.h"
@@ -450,7 +452,7 @@ PyObject *LSCDB::GetMailHeaders(uint32 recID) {
         " WHERE channelID=%u", recID))
     {
         _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -476,12 +478,12 @@ PyRep *LSCDB::GetMailDetails(uint32 messageID, uint32 readerID) {
     ))
     {
         _log(DATABASE__ERROR, "Error in query: %s", result.error.c_str());
-        return (NULL);
+        return nullptr;
     }
 
     if (!result.GetRow(row)) {
         codelog(SERVICE__MESSAGE, "No message with messageID %u", messageID);
-        return (NULL);
+        return nullptr;
     }
 
     Rsp_GetEVEMailDetails details;
@@ -496,7 +498,7 @@ PyRep *LSCDB::GetMailDetails(uint32 messageID, uint32 readerID) {
     details.mimeType = row.GetText(5);
     details.binary = row.GetInt(6);
 
-    return(details.Encode());
+    return details.Encode();
 }
 
 

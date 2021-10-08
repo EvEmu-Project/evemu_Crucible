@@ -18,6 +18,7 @@
 #include "station/StationDB.h"
 #include "station/StationDataMgr.h"
 #include "alliance/AllianceDB.h"
+#include "alliance/AllianceBound.h"
 
 /*
  * CORP__ERROR
@@ -566,22 +567,22 @@ PyResult CorpRegistryBound::Handle_AddCorporation(PyCallArgs &call) {
     // verify they're not using bad words in their corp name
     for (const auto cur : badWords)
         if (EvE::icontains(args.corpName, cur))
-            throw PyException( MakeCustomError("Corp Name contains banned words"));
+            throw CustomError ("Corp Name contains banned words");
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.corpName, cur))
-            throw PyException( MakeCustomError("Corp Name contains invalid characters"));
+            throw CustomError ("Corp Name contains invalid characters");
 
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.corpTicker, cur))
-            throw PyException( MakeCustomError("Corp Ticker contains invalid characters"));
+            throw CustomError ("Corp Ticker contains invalid characters");
 
     // verify ticker is available
     if (m_db.IsTickerTaken(args.corpTicker))
-        throw PyException(MakeUserError("CorpTickerNameInvalidTaken"));
+        throw UserError ("CorpTickerNameInvalidTaken");
 
     double corp_cost = sConfig.rates.corpCost;
     if (pClient->GetBalance(Account::CreditType::ISK) < corp_cost) {
@@ -879,7 +880,12 @@ PyResult CorpRegistryBound::Handle_AddBulletin(PyCallArgs &call) {
     }
 
     if (edit) {
-        m_db.EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, args.title, args.body);
+        if (bulletinID >= 100000) {
+            AllianceDB::EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, args.title, args.body);
+        } else {
+            m_db.EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, args.title, args.body);
+        }
+        
     } else {
         m_db.AddBulletin(m_corpID, m_corpID, call.client->GetCharacterID(), args.title, args.body);
     }
@@ -892,8 +898,12 @@ PyResult CorpRegistryBound::Handle_DeleteBulletin(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_DeleteBulletin() size=%u", call.tuple->size() );
     call.Dump(CORP__CALL_DUMP);
 
-    m_db.DeleteBulletin(PyRep::IntegerValue(call.tuple->GetItem(0)));
-
+    uint32 bulletinID = PyRep::IntegerValue(call.tuple->GetItem(0));
+    if (bulletinID >= 100000) {
+        AllianceDB::DeleteBulletin(bulletinID);
+    } else {
+        m_db.DeleteBulletin(bulletinID);
+    }
     return nullptr;
 }
 
@@ -2315,6 +2325,8 @@ PyResult CorpRegistryBound::Handle_AddCorporateContact(PyCallArgs &call) {
         return nullptr;
     }
 
+    m_db.AddContact(m_corpID, args);
+
     return nullptr;
 }
 
@@ -2328,6 +2340,8 @@ PyResult CorpRegistryBound::Handle_EditCorporateContact(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
+
+    m_db.UpdateContact(args.relationshipID, args.contactID, m_corpID);
 
     return nullptr;
 }
@@ -2343,6 +2357,10 @@ PyResult CorpRegistryBound::Handle_EditContactsRelationshipID(PyCallArgs &call) 
         return nullptr;
     }
 
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+        m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), m_corpID);
+    }
+
     return nullptr;
 }
 
@@ -2355,6 +2373,10 @@ PyResult CorpRegistryBound::Handle_RemoveCorporateContacts(PyCallArgs &call) {
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
+    }
+
+    for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+        m_db.RemoveContact(PyRep::IntegerValueU32(*itr), m_corpID);
     }
 
     return nullptr;
@@ -2443,30 +2465,45 @@ PyResult CorpRegistryBound::Handle_CreateAlliance(PyCallArgs &call) {
     // verify they're not using bad words in their alliance name
     for (const auto cur : badWords)
         if (EvE::icontains(args.allianceName, cur))
-            throw PyException( MakeCustomError("Alliance Name contains banned words"));
+            throw CustomError ("Alliance Name contains banned words");
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.allianceName, cur))
-            throw PyException( MakeCustomError("Alliance Name contains invalid characters"));
+            throw CustomError ("Alliance Name contains invalid characters");
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
         if (EvE::icontains(args.shortName, cur))
-            throw PyException( MakeCustomError("Alliance short name contains invalid characters"));
+            throw CustomError ("Alliance short name contains invalid characters");
 
     // verify short name is available
     if (a_db.IsShortNameTaken(args.shortName))
-        throw PyException(MakeCustomError("Alliance short name is taken."));
+        throw CustomError ("Alliance short name is taken.");
 
     double ally_cost = sConfig.rates.allyCost;
     if (pClient->GetBalance(Account::CreditType::ISK) < ally_cost) {
         _log(SERVICE__ERROR, "%s: Cannot afford alliance startup costs!", pClient->GetName());
 
         // send error to client here
-        throw PyException(MakeCustomError("You must have %s ISK to create an alliance.", ally_cost));
+        throw CustomError ("You must have %f ISK to create an alliance.", ally_cost);
         return nullptr;
     }
+
+    //take the money, send wallet blink event record the transaction in their journal.
+    std::string reason = "DESC: Creating new alliance: ";
+    reason += args.allianceName;
+    reason += " (";
+    reason += args.shortName;
+    reason += ")";
+    AccountService::TranserFunds(
+                                pClient->GetCharacterID(),
+                                m_db.GetStationOwner(pClient->GetStationID()),  // station owner files paperwork, this is fee for that
+                                ally_cost,
+                                reason.c_str(),
+                                Journal::EntryType::AllianceRegistrationFee,
+                                pClient->GetStationID(),
+                                Account::KeyType::Cash);
 
     //creating an alliance will affect eveStaticOwners, so we gotta invalidate the cache...
     //  call to db.AddCorporation() will update eveStaticOwners with new corp
@@ -2520,18 +2557,61 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     args.Dump(CORP__TRACE);
 
     Alliance::ApplicationInfo app;
-    app.appText = args.applicationText;
-    app.allyID = args.allianceID;
-    app.corpID = m_corpID;
-    app.state = EveAlliance::AppStatus::AppNew;
-    app.valid = true;
+        app.appText = args.applicationText;
+        app.allyID = args.allianceID;
+        app.corpID = m_corpID;
+        app.state = EveAlliance::AppStatus::AppNew;
+        app.valid = true;
 
     if (!a_db.InsertApplication(app)) {
         codelog(SERVICE__ERROR, "New alliance application failed.");
         return nullptr;
     }
 
-    //TODO: Need to implement notification for alliance application change.
+    Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
+        oldInfo.valid = false;
+
+    OnAllianceApplicationChanged oaac;
+        oaac.corpID = m_corpID;
+        oaac.allianceID = app.allyID;
+
+    AllianceBound::FillOAApplicationChange(oaac, oldInfo, app);
+
+    //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
+    uint32 executorID = AllianceDB::GetExecutorID(app.allyID);
+
+    std::vector<Client *> list;
+    sEntityList.GetCorpClients(list, oaac.corpID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
+    list.clear();
+    sEntityList.GetCorpClients(list, executorID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
+    //Get sending corp's CEO ID:
+    uint32 charID = m_db.GetCorporationCEO(m_corpID);
+
+    /// Send an evemail to those who can decide
+    /// Well, for the moment, send it to the ceo
+    std::string subject = "New application from ";
+    subject += call.client->GetName();
+    std::vector<int32> recipients;
+    recipients.push_back(m_db.GetCorporationCEO(AllianceDB::GetExecutorID(app.allyID)));
+    m_manager->lsc_service->SendMail(charID, recipients, subject, args.applicationText);
 
     return nullptr;
 }
@@ -2562,13 +2642,53 @@ PyResult CorpRegistryBound::Handle_DeleteAllianceApplication(PyCallArgs &call) {
     }
     args.Dump(CORP__TRACE);
 
-    Alliance::ApplicationInfo app;
-    app.appID = args.arg;
-    app.valid = true;
+    //Old application info
+    Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
 
-    if (!a_db.DeleteApplication(app)) {
-        codelog(SERVICE__ERROR, "New alliance application failed.");
+    if (!a_db.GetCurrentApplicationInfo(args.arg, call.client->GetCorporationID(), oldInfo))
+    {
+        _log(SERVICE__ERROR, "%s: Failed to query application for corp %u alliance %u", call.client->GetName(), call.client->GetCorporationID(), args.arg);
         return nullptr;
+    }
+
+    //New application info (set deleted flag to true here)
+    Alliance::ApplicationInfo newInfo = oldInfo;
+    newInfo.valid = true;
+    newInfo.deleted = true;
+
+    OnAllianceApplicationChanged oaac;
+    oaac.allianceID = newInfo.allyID;
+    oaac.corpID = newInfo.corpID;
+    AllianceBound::FillOAApplicationChange(oaac, oldInfo, newInfo);
+
+    if (!a_db.DeleteApplication(newInfo)) {
+        codelog(SERVICE__ERROR, "Deletion failed.");
+        return nullptr;
+    }
+
+    //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
+    uint32 executorID = AllianceDB::GetExecutorID(oaac.allianceID);
+
+    std::vector<Client *> list;
+    sEntityList.GetCorpClients(list, oaac.corpID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
+    }
+
+    list.clear();
+    sEntityList.GetCorpClients(list, executorID);
+    for (auto cur : list)
+    {
+        if (cur->GetChar().get() != nullptr)
+        {
+            cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+        }
     }
 
     return nullptr;

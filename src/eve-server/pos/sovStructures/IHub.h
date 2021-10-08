@@ -21,6 +21,8 @@ public:
 
     /* class type pointer querys. */
     virtual IHubSE*             GetIHubSE()            { return this; }
+    virtual bool                isGlobal()              { return true; }
+    virtual bool                IsOperSE()              { return true; }
 
     /* class type tests. */
     virtual bool                IsIHubSE()             { return true; }

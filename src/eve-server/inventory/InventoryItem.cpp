@@ -862,7 +862,7 @@ bool InventoryItem::Merge(InventoryItemRef to_merge, int32 qty/*0*/, bool notify
         return false;
 
     if (m_data.singleton or to_merge->isSingleton())
-        throw PyException(MakeCustomError("You cannot stack assembled items."));
+        throw CustomError ("You cannot stack assembled items.");
 
     if (m_type.id() != to_merge->typeID()) {
         _log(ITEM__WARNING, "II::Merge() - %s (%u): Asked to merge with %s (%u).", m_data.name.c_str(), m_itemID, to_merge->name(), to_merge->itemID());

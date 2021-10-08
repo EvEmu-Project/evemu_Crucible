@@ -31,7 +31,7 @@
 void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
-                            "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, corporationID, "
+                            "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, mapSolarSystems.regionID, corporationID, "
                             " allianceID, claimStructureID, claimTime, "
                             " hubID, contested, 0 as stationCount, "
                             " 5 as militaryPoints, 5 as industrialPoints, claimID"
@@ -39,5 +39,54 @@ void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
                             " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"))
     {
         codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
+void SovereigntyDB::GetSovereigntyDataForSystem(DBQueryResult& res, uint32 systemID)
+{
+    if (!sDatabase.RunQuery(res,
+                            "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, mapSolarSystems.regionID, corporationID, "
+                            " allianceID, claimStructureID, claimTime, "
+                            " hubID, contested, 0 as stationCount, "
+                            " 5 as militaryPoints, 5 as industrialPoints, claimID"
+                            " FROM mapSystemSovInfo "
+                            " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"
+                            " WHERE mapSystemSovInfo.solarSystemID=%u ", systemID))
+    {
+        codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
+    }
+}
+
+void SovereigntyDB::AddSovereigntyData(SovereigntyData data, uint32& claimID)
+{
+    DBerror err;
+    if (!sDatabase.RunQueryLID(err, claimID,
+                            "INSERT into mapSystemSovInfo (solarSystemID, corporationID, "
+                            " allianceID, claimStructureID, claimTime, hubID, contested) "
+                            " VALUES (%u, %u, %u, %u, %f, %u, %u)", data.solarSystemID, 
+                            data.corporationID, data.allianceID, data.claimStructureID, 
+                            GetFileTimeNow(), data.hubID, data.contested))
+    {
+        codelog(SOV__ERROR, "Error in adding new claim: %s", err.c_str());
+    }
+}
+
+void SovereigntyDB::RemoveSovereigntyData(uint32 systemID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "DELETE from mapSystemSovInfo WHERE solarSystemID=%u", systemID))
+    {
+        codelog(SOV__ERROR, "Error in removing claim: %s", err.c_str());
+    }
+}
+
+void SovereigntyDB::SetContested(uint32 systemID, bool contested) 
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "UPDATE mapSystemSovInfo SET contested=%u WHERE solarSystemID=%u", int(contested), systemID))
+    {
+        codelog(SOV__ERROR, "Error in changing contested state: %s", err.c_str());
     }
 }

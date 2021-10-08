@@ -136,11 +136,9 @@ void StructureItem::Delete()
 
 PyObject *StructureItem::StructureGetInfo()
 {
-    /** @todo  why calling itemID() here??  cant we just access member instead?  */
-    if (!pInventory->LoadContents())
-    {
-        codelog(ITEM__ERROR, "%s (%u): Failed to load contents for Structure", name(), itemID());
-        return NULL;
+    if (!pInventory->LoadContents()) {
+        codelog(ITEM__ERROR, "%s (%u): Failed to load contents for Structure", name(), m_itemID);
+        return nullptr;
     }
 
     Rsp_CommonGetInfo result;
@@ -148,9 +146,9 @@ PyObject *StructureItem::StructureGetInfo()
 
     //first populate the Structure.
     if (!Populate(entry))
-        return NULL;
+        return nullptr;
 
-    result.items[itemID()] = entry.Encode();
+    result.items[m_itemID] = entry.Encode();
 
     return result.Encode();
 }
@@ -185,7 +183,7 @@ void StructureItem::Rename(std::string name)
     }
     else
     {
-        throw PyException(MakeUserError("SetNameObjectMustBeAnchoredInSpace"));
+        throw UserError ("SetNameObjectMustBeAnchoredInSpace");
     }
     // {'FullPath': u'UI/Messages', 'messageID': 258480, 'label': u'SetNameObjectMustBeAnchoredInSpaceBody'}(u'You can only rename this type of object if it is anchored in space (and you have a right to do so).', None, None)
 }
@@ -373,12 +371,22 @@ void StructureSE::Init()
         return;
     }
 
+    if (m_tcu)
+    {
+        m_tcuSE = pSE->GetTCUSE();
+    }
+
     if (m_sbu) //anchored near stargates, so we need a stargate
     {
+        m_sbuSE = pSE->GetSBUSE();
         if (m_gateSE == nullptr)
         {
             m_gateSE = pSE->GetGateSE();
         }
+    }
+    if (m_ihub)
+    {
+        m_ihubSE = pSE->GetIHubSE();
     }
     else //everything else is anchored near a moon
     {
@@ -629,7 +637,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     {
         //verify anchor distance from stargate
         uint32 distance(m_gateSE->GetPosition().distance(m_self->position()));
-        uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
+        //uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
         uint32 anchorMax(m_self->GetAttribute(AttrAnchorDistanceMax).get_uint32());
 
         if (distance > anchorMax) {
@@ -638,9 +646,9 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             return;
         }
 
-        if (distance < anchorMin) {
+        if (distance < 1000) {
             pClient->SendErrorMsg("You cannot anchor the %s closer than %u meters from a stargate.", \
-                    m_self->name(), anchorMin);
+                    m_self->name(), 1000);
             return;
         }
 
@@ -761,32 +769,35 @@ void StructureSE::Activate(int32 effectID)
             // throwing an error negates further processing
             float total = m_towerSE->GetSelf()->GetAttribute(AttrCpuOutput).get_float();
             float remaining = total - m_towerSE->GetCPULoad();
-            std::map<std::string, PyRep *> args;
-            args["total"] = new PyFloat(total);
-            args["require"] = new PyFloat(m_self->GetAttribute(AttrCpu).get_float());
-            args["remaining"] = new PyFloat(remaining);
-            args["moduleType"] = new PyInt(m_self->typeID());
-            throw PyException(MakeUserError("NotEnoughCpu", args));
+            throw UserError ("NotEnoughCpu")
+                    .AddAmount ("total", total)
+                    .AddAmount ("require", m_self->GetAttribute (AttrCpu).get_float ())
+                    .AddAmount ("remaining", remaining)
+                    .AddFormatValue ("moduleType", new PyInt (m_self->typeID ()));
         }
         if (!m_towerSE->HasPG(m_self->GetAttribute(AttrPower).get_float()))
         {
             // throwing an error negates further processing
             float total = m_towerSE->GetSelf()->GetAttribute(AttrPowerOutput).get_float();
             float remaining = total - m_towerSE->GetPGLoad();
-            std::map<std::string, PyRep *> args;
-            args["total"] = new PyFloat(total);
-            args["require"] = new PyFloat(m_self->GetAttribute(AttrPower).get_float());
-            args["remaining"] = new PyFloat(remaining);
-            args["moduleType"] = new PyInt(m_self->typeID());
-            throw PyException(MakeUserError("NotEnoughPower", args));
+            throw UserError ("NotEnoughPower")
+                    .AddAmount ("total", total)
+                    .AddAmount ("require", m_self->GetAttribute (AttrPower).get_float ())
+                    .AddAmount ("remaining", remaining)
+                    .AddFormatValue ("moduleType", new PyInt (m_self->typeID ()));
         }
     }
+
     // check for things that DONT use a tower.  not sure if we need anymore checks here.
     //yes....all sov structures will need checks for activation
     //  ?? can you activate a sov structure?
     else if (m_tcu)
         {
             // Check some things for TCU onlining
+
+            /* 
+            Is there already a TCU in the system?
+            */
         }
     else if (m_sbu)
         {
@@ -820,6 +831,8 @@ void StructureSE::Deactivate(int32 effectID)
     m_procTimer.SetTimer(m_delayTime);
     m_data.timestamp = GetFileTimeNow();
 
+    m_db.UpdateBaseData(m_data);
+
     SendSlimUpdate();
     //m_destiny->SendSpecialEffect(m_data.itemID,m_data.itemID,m_self->typeID(),0,0,"effects.StructureOnline",0,0,0,-1,0);
 }
@@ -833,6 +846,7 @@ void StructureSE::SetOnline()
 
     SetTimer(m_duration);
     m_db.UpdateBaseData(m_data);
+    m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnline", 0, 1, 1, -1, 0);
 }
 
 void StructureSE::SetOffline()
@@ -840,6 +854,23 @@ void StructureSE::SetOffline()
     m_self->SetFlag(flagStructureInactive);
     if (m_module)
         m_towerSE->OfflineModule(this);
+}
+
+void StructureSE::SetInvulnerable()
+{
+    m_procState = EVEPOS::ProcState::Online;
+    m_data.state = EVEPOS::StructureState::Invulnerable;
+    SendSlimUpdate();
+    m_db.UpdateBaseData(m_data);
+}
+
+void StructureSE::SetVulnerable()
+{
+    m_procState = EVEPOS::ProcState::Online;
+    m_data.state = EVEPOS::StructureState::Vulnerable;
+    SetTimer(m_duration);
+    SendSlimUpdate();
+    m_db.UpdateBaseData(m_data);
 }
 
 void StructureSE::Online()
@@ -980,6 +1011,17 @@ void StructureSE::EncodeDestiny(Buffer &into)
         mass.harmonic = m_harmonic;
         mass.mass = m_self->type().mass();
         into.Append(mass);
+    }
+
+    if (m_data.state < EVEPOS::StructureState::Anchored) {
+        DataSector data = DataSector();
+        data.inertia = 1;
+        data.velX = 0;
+        data.velY = 0;
+        data.velZ = 0;
+        data.maxSpeed = 1;
+        data.speedfraction = 0;
+        into.Append( data );
     }
 
 

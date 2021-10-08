@@ -49,18 +49,18 @@
 
 PyResult Command_search(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
     if (args.argCount() < 2) {
-        throw PyException(MakeCustomError("Correct Usage: /search [text]"));
+        throw CustomError ("Correct Usage: /search [text]");
     }
 
     const std::string& query = args.arg(1);
 
     //an empty query is a bad idea.
     if (query.length() == 0)
-        throw PyException(MakeCustomError("Usage: /search [text]"));
+        throw CustomError ("Usage: /search [text]");
 
     std::map<uint32, std::string> matches;
     if (!db->ItemSearch(query.c_str(), matches))
-        throw PyException(MakeCustomError("Failed to query DB."));
+        throw CustomError ("Failed to query DB.");
 
     std::string result(std::to_string(matches.size()));
     result += " matches found.<br>";
@@ -91,7 +91,7 @@ PyResult Command_giveisk(Client* who, CommandDB* db, PyServiceMgr* services, con
 {
 
     if (args.argCount() < 3) {
-        throw PyException(MakeCustomError("Correct Usage: /giveisk [entityID ('me'=self)] [amount]"));
+        throw CustomError ("Correct Usage: /giveisk [entityID ('me'=self)] [amount]");
     }
 
     // Check for target (arg #1) for either a number or the string "me":
@@ -100,7 +100,7 @@ PyResult Command_giveisk(Client* who, CommandDB* db, PyServiceMgr* services, con
     {
         target = args.arg(1);
         if (target != "me")
-            throw PyException(MakeCustomError("Argument 1 should be an entity ID ('me'=self)"));
+            throw CustomError ("Argument 1 should be an entity ID ('me'=self)");
     }
 
     // If target (arg #1) is not the string "me" then decode number from argument string, otherwise get this character's ID:
@@ -111,7 +111,7 @@ PyResult Command_giveisk(Client* who, CommandDB* db, PyServiceMgr* services, con
         entity = who->GetCharacterID();
 
     if (!args.isNumber(2))
-        throw PyException(MakeCustomError("Argument 2 should be an amount of ISK"));
+        throw CustomError ("Argument 2 should be an amount of ISK");
     double amount = strtod(args.arg(2).c_str(), NULL);
 
     Client* tgt;
@@ -119,10 +119,10 @@ PyResult Command_giveisk(Client* who, CommandDB* db, PyServiceMgr* services, con
     {
         tgt = sEntityList.FindClientByCharID(entity);
         if (!tgt)
-            throw PyException(MakeCustomError("Unable to find character %u", entity));
+            throw CustomError ("Unable to find character %u", entity);
     }
     else
-        throw PyException(MakeCustomError("Invalid entityID for characters %u", entity));
+        throw CustomError ("Invalid entityID for characters %u", entity);
 
     // GiveCash
     tgt->AddBalance(amount, Account::CreditType::ISK);
@@ -132,7 +132,7 @@ PyResult Command_giveisk(Client* who, CommandDB* db, PyServiceMgr* services, con
 PyResult Command_pop(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (4 != args.argCount())
-        throw PyException(MakeCustomError("Correct Usage: /pop [message type] [key] [text]"));
+        throw CustomError ("Correct Usage: /pop [message type] [key] [text]");
 
     //CustomNotify: notify
     //ServerMessage: msg
@@ -172,20 +172,20 @@ PyResult Command_spawnn(Client* who, CommandDB* db, PyServiceMgr* services, cons
 
     if ((args.argCount() < 4) || (args.argCount() > 4))
     {
-        throw PyException(MakeCustomError("LOL, we don't know the correct usage of /spawnn, sorry you're S.O.L., BUT it should have 4 arguments."));
+        throw CustomError ("LOL, we don't know the correct usage of /spawnn, sorry you're S.O.L., BUT it should have 4 arguments.");
     }
 
     // Since we don't know what args 1 and 2 are, we don't care about them right now...
 
     if (!args.isNumber(3))
-        throw PyException(MakeCustomError("Argument 3 should be an item type ID"));
+        throw CustomError ("Argument 3 should be an item type ID");
 
     typeID = atoi(args.arg(3).c_str());
     if (typeID < 34)
-        throw PyException(MakeCustomError("Invalid Type ID."));
+        throw CustomError ("Invalid Type ID.");
 
     if (!who->IsInSpace())
-        throw PyException(MakeCustomError("You must be in space to spawn things."));
+        throw CustomError ("You must be in space to spawn things.");
 
     // Search for item type using typeID:
     if (!db->ItemSearch(typeID, actualTypeID, actualTypeName, actualGroupID, actualCategoryID, actualRadius)) {
@@ -210,7 +210,7 @@ PyResult Command_spawnn(Client* who, CommandDB* db, PyServiceMgr* services, cons
 
     item = sItemFactory.SpawnItem(idata);
     if (item.get() == nullptr)
-        throw PyException(MakeCustomError("Unable to spawn item of type %u.", typeID));
+        throw CustomError ("Unable to spawn item of type %u.", typeID);
 
     DBSystemDynamicEntity entity = DBSystemDynamicEntity();
         entity.categoryID = actualCategoryID;
@@ -251,14 +251,14 @@ PyResult Command_spawn(Client* pClient, CommandDB* db, PyServiceMgr* services, c
     std::string usage = "Correct Usage: <br><br> /spawn [typeID(int)/typeName(string)] <br><br>With optional spawn count: <br> /spawn [typeID(int)/typeName(string)] [count] <br><br>With optional count and (X,Y,Z) coordinate: <br> /spawn [typeID(int/typeName(string)] [count] [x(float)] [y(float)] [z(float)]";
 
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You must be in space to spawn things."));
+        throw CustomError ("You must be in space to spawn things.");
 
     if (args.argCount() < 2) {
-        throw PyException(MakeCustomError(usage.c_str()));
+        throw CustomError (usage.c_str());
     }
 
     if (!args.isNumber(1))
-        throw PyException(MakeCustomError("Argument 1 should be an item type ID"));
+        throw CustomError ("Argument 1 should be an item type ID");
 
     int typeID = atoi(args.arg(1).c_str());
 
@@ -271,11 +271,11 @@ PyResult Command_spawn(Client* pClient, CommandDB* db, PyServiceMgr* services, c
     if (args.argCount() > 2)
     {
         if (!(args.isNumber(2)))
-            throw PyException(MakeCustomError("Argument 3 should be the number of spawns of this type you want to create"));
+            throw CustomError ("Argument 3 should be the number of spawns of this type you want to create");
 
         spawnCount = atoi(args.arg(2).c_str());
         if (spawnCount > maximumSpawnCountAllowed)
-            throw PyException(MakeCustomError("Argument 3, spawn count, is allowed to be no more than 100"));
+            throw CustomError ("Argument 3, spawn count, is allowed to be no more than 100");
     }
 
     // Check to see if the X Y Z optional coordinates were supplied with the command:
@@ -283,23 +283,23 @@ PyResult Command_spawn(Client* pClient, CommandDB* db, PyServiceMgr* services, c
     if (args.argCount() > 3)
     {
         if (!(args.isNumber(3)))
-            throw PyException(MakeCustomError("Argument 4 should be the X distance from your ship in meters you want the item spawned"));
+            throw CustomError ("Argument 4 should be the X distance from your ship in meters you want the item spawned");
 
         if (args.argCount() > 4)
         {
             if (!(args.isNumber(4)))
-                throw PyException(MakeCustomError("Argument 5 should be the Y distance from your ship in meters you want the item spawned"));
+                throw CustomError ("Argument 5 should be the Y distance from your ship in meters you want the item spawned");
         }
         else
-            throw PyException(MakeCustomError("TOO FEW PARAMETERS: %s", usage.c_str()));
+            throw CustomError ("TOO FEW PARAMETERS: %s", usage.c_str());
 
         if (args.argCount() > 5)
         {
             if (!(args.isNumber(5)))
-                throw PyException(MakeCustomError("Argument 6 should be the Z distance from your ship in meters you want the item spawned"));
+                throw CustomError ("Argument 6 should be the Z distance from your ship in meters you want the item spawned");
         }
         else
-            throw PyException(MakeCustomError("TOO FEW PARAMETERS: %s", usage.c_str()));
+            throw CustomError ("TOO FEW PARAMETERS: %s", usage.c_str());
 
         offsetLocation.x = atoll(args.arg(3).c_str());
         offsetLocation.y = atoll(args.arg(4).c_str());
@@ -341,7 +341,7 @@ PyResult Command_spawn(Client* pClient, CommandDB* db, PyServiceMgr* services, c
 
         item = sItemFactory.SpawnItem(idata);
         if (item.get() == nullptr)
-            throw PyException(MakeCustomError("Unable to spawn item of type %u.", typeID));
+            throw CustomError ("Unable to spawn item of type %u.", typeID);
 
         DBSystemDynamicEntity entity = DBSystemDynamicEntity();
         entity.categoryID = actualCategoryID;
@@ -392,22 +392,22 @@ PyResult Command_spawn(Client* pClient, CommandDB* db, PyServiceMgr* services, c
 PyResult Command_setbpattr(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (args.argCount() < 6)
-        throw PyException(MakeCustomError("Correct Usage: /setbpattr [blueprintID] [0 (not copy) or 1 (copy)] [material level] [productivity level] [remaining runs]"));
+        throw CustomError ("Correct Usage: /setbpattr [blueprintID] [0 (not copy) or 1 (copy)] [material level] [productivity level] [remaining runs]");
     if (!args.isNumber(1))
-        throw PyException(MakeCustomError("Argument 1 must be blueprint ID. (got %s)", args.arg(1).c_str()));
+        throw CustomError ("Argument 1 must be blueprint ID. (got %s)", args.arg(1).c_str());
     if ("0" != args.arg(2) && "1" != args.arg(2))
-        throw PyException(MakeCustomError("Argument 2 must be 0 (original) or 1 (copy). (got %s)", args.arg(2).c_str()));
+        throw CustomError ("Argument 2 must be 0 (original) or 1 (copy). (got %s)", args.arg(2).c_str());
     if (!args.isNumber(3))
-        throw PyException(MakeCustomError("Argument 3 must be material level. (got %s)", args.arg(3).c_str()));
+        throw CustomError ("Argument 3 must be material level. (got %s)", args.arg(3).c_str());
     if (!args.isNumber(4))
-        throw PyException(MakeCustomError("Argument 4 must be productivity level. (got %s)", args.arg(4).c_str()));
+        throw CustomError ("Argument 4 must be productivity level. (got %s)", args.arg(4).c_str());
     if (!args.isNumber(5))
-        throw PyException(MakeCustomError("Argument 5 must be remaining licensed production runs. (got %s)", args.arg(5).c_str()));
+        throw CustomError ("Argument 5 must be remaining licensed production runs. (got %s)", args.arg(5).c_str());
 
     int blueprintID = atoi(args.arg(1).c_str());
     BlueprintRef bp = sItemFactory.GetBlueprint(blueprintID);
     if (!bp)
-        throw PyException(MakeCustomError("Failed to load blueprint %u.", blueprintID));
+        throw CustomError ("Failed to load blueprint %u.", blueprintID);
 
     // these need to check current settings to see if anything changed
     bp->SetCopy((atoi(args.arg(2).c_str()) ? true : false));
@@ -422,7 +422,7 @@ PyResult Command_getattr(Client* who, CommandDB* db, PyServiceMgr* services, con
 {
     /** @todo update to new attrib system
     if (args.argCount() < 3) {
-        throw PyException(MakeCustomError("Correct Usage: /getattr [itemID] [attributeID]"));
+        throw CustomError ("Correct Usage: /getattr [itemID] [attributeID]");
     }
     if (!args.isNumber(1))
         throw PyException(MakeCustomError("1st argument must be itemID (got %s).", args.arg(1).c_str()));
@@ -443,10 +443,10 @@ PyResult Command_getattr(Client* who, CommandDB* db, PyServiceMgr* services, con
 
 PyResult Command_setattr(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
-    throw PyException(MakeCustomError("disabled"));
+    throw CustomError ("disabled");
     if (0) {
     if (args.argCount() < 4) {
-        throw PyException(MakeCustomError("Correct Usage: /setattr [itemID] [attributeID] [value]"));
+        throw CustomError ("Correct Usage: /setattr [itemID] [attributeID] [value]");
     }
 
     // Check for target (arg #1) for either a number or the string "myship":
@@ -456,7 +456,7 @@ PyResult Command_setattr(Client* who, CommandDB* db, PyServiceMgr* services, con
     {
         target = args.arg(1);
         if (target != "myship")
-            throw PyException(MakeCustomError("1st argument should be an entity ID ('myship'=current ship) (got %s).", args.arg(1).c_str()));
+            throw CustomError ("1st argument should be an entity ID ('myship'=current ship) (got %s).", args.arg(1).c_str());
 
         itemID = who->GetShipID();
     }
@@ -467,19 +467,19 @@ PyResult Command_setattr(Client* who, CommandDB* db, PyServiceMgr* services, con
     }
 
     if (!args.isNumber(2))
-        throw PyException(MakeCustomError("2nd argument must be attributeID (got %s).", args.arg(2).c_str()));
+        throw CustomError ("2nd argument must be attributeID (got %s).", args.arg(2).c_str());
     //const ItemAttributeMgr::Attr attribute = (ItemAttributeMgr::Attr)atoi(args.arg(2).c_str());
 
     if (!args.isNumber(3))
-        throw PyException(MakeCustomError("3rd argument must be value (got %s).", args.arg(3).c_str()));
+        throw CustomError ("3rd argument must be value (got %s).", args.arg(3).c_str());
     //const double value = atof(args.arg(3).c_str());
 
     if (itemID < minPlayerItem)
-        throw PyException(MakeCustomError("1st argument must be a valid 'entity' table itemID that MUST be larger >= 140000000. (got %s)", args.arg(1).c_str()));
+        throw CustomError ("1st argument must be a valid 'entity' table itemID that MUST be larger >= 140000000. (got %s)", args.arg(1).c_str());
 
     InventoryItemRef item = sItemFactory.GetItem(itemID);
     if (item.get() == nullptr)
-        throw PyException(MakeCustomError("Failed to load item %u.", itemID));
+        throw CustomError ("Failed to load item %u.", itemID);
 
     //item->attributes.SetReal(attribute, value);
     sLog.Warning("GMCommands: Command_setattr()", "This command will modify attribute and send change to client, but change does not take effect in client for some reason.");
@@ -492,7 +492,7 @@ PyResult Command_setattr(Client* who, CommandDB* db, PyServiceMgr* services, con
 PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
 
-    throw PyException(MakeCustomError("This command is currently disabled."));
+    throw CustomError ("This command is currently disabled.");
 /*
     uint32 typeID = 0;
     uint32 itemID = 0;
@@ -502,7 +502,7 @@ PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const S
     std::string affectName = "online";
 
     if (args.argCount() < 3) {
-        throw PyException(MakeCustomError("Correct Usage: /fit [me|itemID] [typeID] [flag=??]"));
+        throw CustomError ("Correct Usage: /fit [me|itemID] [typeID] [flag=??]");
     }
 
     // DNA tells us what slot to use but we're going to ignore it
@@ -560,7 +560,7 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
             ownerID = atoi(args.arg(1).c_str());
             pTarget = sEntityList.FindClientByCharID(ownerID);
             if (!pTarget)
-                throw PyException(MakeCustomError("ERROR: Cannot find character #%d", ownerID));
+                throw CustomError ("ERROR: Cannot find character #%d", ownerID);
             else
                 character = pTarget->GetChar();
         } else if (args.arg(1) == "me") {
@@ -568,7 +568,7 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
             character = who->GetChar();
             pTarget = who;
         } else if (!args.isNumber(1)) {
-            throw PyException(MakeCustomError("The use of string based Character names for this command is not yet supported!  Use 'me' instead or the entityID of the character to which you wish to give skills."));
+            throw CustomError ("The use of string based Character names for this command is not yet supported!  Use 'me' instead or the entityID of the character to which you wish to give skills.");
             /*
              *            const char *name = args.arg(1).c_str();
              *            Client *target = sEntityList.FindCharacter(name);
@@ -578,9 +578,9 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
              *            character = target->GetChar();
              */
         } else
-            throw PyException(MakeCustomError("Argument 1 must be Character ID or Character Name "));
+            throw CustomError ("Argument 1 must be Character ID or Character Name ");
     } else
-        throw PyException(MakeCustomError("Correct Usage: /giveallskills [Character Name or ID]"));
+        throw CustomError ("Correct Usage: /giveallskills [Character Name or ID]");
 
     // Make sure character reference is not NULL before trying to use it:
     if (character.get()) {
@@ -612,7 +612,7 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
                 InventoryItemRef item = sItemFactory.SpawnItem(idata);
 
                 if (item.get() == nullptr) {
-                    throw PyException(MakeCustomError("Unable to create item of type %s.", item->typeID()));
+                    throw CustomError ("Unable to create item of type %s.", item->typeID());
                 } else {
                     skill = SkillRef::StaticCast(item);
                     skill->SetAttribute(AttrSkillLevel, level);
@@ -636,7 +636,7 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
 PyResult Command_giveskills(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
     //pass to command_giveskill
     Command_giveskill(who, db, services, args);
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
@@ -655,7 +655,7 @@ PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, c
             character = who->GetChar();
             pTarget = who;
         } else if (!args.isNumber(1)) {
-            throw PyException(MakeCustomError("The use of string based Character names for this command is not yet supported!  Use 'me' instead or the entityID of the character to which you wish to give skills."));
+            throw CustomError ("The use of string based Character names for this command is not yet supported!  Use 'me' instead or the entityID of the character to which you wish to give skills.");
             /*
             const char *name = args.arg(1).c_str();
             pTarget = sEntityList.FindClientByName(name);
@@ -665,24 +665,24 @@ PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, c
             character = pTarget->GetChar();
             */
         } else
-            throw PyException(MakeCustomError("Argument 1 must be Character ID or Character Name "));
+            throw CustomError ("Argument 1 must be Character ID or Character Name ");
 
         if (!args.isNumber(2))
-            throw PyException(MakeCustomError("Argument 2 must be type ID."));
+            throw CustomError ("Argument 2 must be type ID.");
         skillID = atoi(args.arg(2).c_str());
 
         if (!args.isNumber(3))
-            throw PyException(MakeCustomError("Argument 3 must be level"));
+            throw CustomError ("Argument 3 must be level");
         level = atoi(args.arg(3).c_str());
 
         if (level > EvESkill::MAXSKILLLEVEL)
             level = EvESkill::MAXSKILLLEVEL;
     } else
-        throw PyException(MakeCustomError("Correct Usage: .giveskill [me/CharacterID] [skillID] [level]"));
+        throw CustomError ("Correct Usage: .giveskill [me/CharacterID] [skillID] [level]");
 
     // Make sure references are not NULL before trying to use them
     if ((pTarget == nullptr) or (character.get() == nullptr))
-        throw PyException(MakeCustomError("ERROR: Unable to validate character object."));
+        throw CustomError ("ERROR: Unable to validate character object.");
 
     SkillRef skill;
     if (character->HasSkillTrainedToLevel(skillID, level)) {
@@ -692,7 +692,7 @@ PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, c
         // has skill injected, so update level
         skill = character->GetSkill(skillID);
         if (skill.get() == nullptr){
-            throw PyException(MakeCustomError("Unable to get item for skillID %u.", skillID));
+            throw CustomError ("Unable to get item for skillID %u.", skillID);
             return new PyString ("Skill Gifting Failure - Unable to get item for skillID %u.", skillID);
         }
         newPoints = skill->GetSPForLevel(level);
@@ -708,7 +708,7 @@ PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, c
         ItemData idata(skillID, ownerID, pTarget->GetLocationID(), flagSkill, 1, str.str().c_str());
         skill = sItemFactory.SpawnSkill(idata);
         if (skill.get() == nullptr)
-            throw PyException(MakeCustomError("Unable to create item for skillID %u.", skillID));
+            throw CustomError ("Unable to create item for skillID %u.", skillID);
 
         newPoints = skill->GetSPForLevel(level);
         skill->SetAttribute(AttrSkillLevel, level);
@@ -738,7 +738,7 @@ PyResult Command_online(Client *who, CommandDB *db, PyServiceMgr *services, cons
     {
         if (strcmp("me", args.arg(1).c_str())!=0)
             if (!args.isNumber(1))
-                throw PyException(MakeCustomError("Argument 1 should be an entity ID or me (me=self)"));
+                throw CustomError ("Argument 1 should be an entity ID or me (me=self)");
             uint32 entity = atoi(args.arg(1).c_str());
 
         Client* tgt;
@@ -748,18 +748,18 @@ PyResult Command_online(Client *who, CommandDB *db, PyServiceMgr *services, cons
         {
             tgt = sEntityList.FindClientByCharID(entity);
             if (!tgt)
-                throw PyException(MakeCustomError("Unable to find character %u", entity));
+                throw CustomError ("Unable to find character %u", entity);
         }
 
         if (!tgt->InPod())
             tgt->GetShip()->OnlineAll();
         else
-            throw PyException(MakeCustomError("Command failed: You can't activate modules while in a pod"));
+            throw CustomError ("Command failed: You can't activate modules while in a pod");
 
         return(new PyString("All modules have been put Online"));
     }
     else
-        throw PyException(MakeCustomError("Command failed: You got the arguments all wrong."));
+        throw CustomError ("Command failed: You got the arguments all wrong.");
 }
 
 PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -772,7 +772,7 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
         if (strcmp("me", args.arg(1).c_str())!=0)
             if (!args.isNumber(1))
             {
-                throw PyException(MakeCustomError("Argument 1 should be an entity ID or me (me=self)"));
+                throw CustomError ("Argument 1 should be an entity ID or me (me=self)");
             }
             entityID = atoi(args.arg(1).c_str());
 
@@ -780,7 +780,7 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
         {
             if (strcmp("all", args.arg(2).c_str())!=0)
                 if (!args.isNumber(2))
-                    throw PyException(MakeCustomError("Argument 2 should be an item ID or all"));
+                    throw CustomError ("Argument 2 should be an item ID or all");
                 itemID = atoi(args.arg(2).c_str());
         }
 
@@ -793,12 +793,12 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
             tgt = sEntityList.FindClientByCharID( entityID );
 
             if (!tgt)
-                throw PyException(MakeCustomError("Unable to find character %u", entityID ));
+                throw CustomError ("Unable to find character %u", entityID );
         }
 
         /// This doesn't seem like a valid requirement
         //if (tgt->IsInSpace())
-        //    throw PyException(MakeCustomError("Character needs to be docked."));
+        //    throw CustomError ("Character needs to be docked.");
 
         if (args.argCount() == 3 && strcmp("all", args.arg(2).c_str())!=0)
             tgt->GetShip()->GetModuleManager()->UnfitModule( itemID );
@@ -809,7 +809,7 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
         return(new PyString("All Modules have been unloaded"));
     }
     else
-        throw PyException(MakeCustomError("Command failed: You got the arguments all wrong."));
+        throw CustomError ("Command failed: You got the arguments all wrong.");
 }
 
 PyResult Command_repairmodules(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -819,12 +819,12 @@ PyResult Command_repairmodules(Client* who, CommandDB* db, PyServiceMgr* service
         who->GetShip()->RepairModules();
     if (args.argCount()==2) {
         if (!args.isNumber(1))
-            throw PyException(MakeCustomError("Argument 1 should be a character ID"));
+            throw CustomError ("Argument 1 should be a character ID");
         uint32 charID = atoi(args.arg(1).c_str());
 
         Client *target = sEntityList.FindClientByCharID(charID);
         if (target == NULL)
-            throw PyException(MakeCustomError("Cannot find CharacterID %u", charID));
+            throw CustomError ("Cannot find CharacterID %u", charID);
         target->GetShip()->RepairModules();
     }
 
@@ -836,19 +836,19 @@ PyResult Command_dogma(Client* who, CommandDB* db, PyServiceMgr* services, const
     //"dogma" "140019878" "agility" "=" "0.2"
 
     if (!(args.argCount() == 5)) {
-        throw PyException(MakeCustomError("Correct Usage: /dogma [itemID|me] [attributeName] = [value]"));
+        throw CustomError ("Correct Usage: /dogma [itemID|me] [attributeName] = [value]");
     }
 
     // First argument could be both
     if (args.isNumber(2)) {
-        throw PyException(MakeCustomError("/dogma Second argument must be a string"));
+        throw CustomError ("/dogma Second argument must be a string");
     }
 
     if (args.arg(3) != "=") {
-        throw PyException(MakeCustomError("/dogma You didn't use an '=' in between your attribute name and value."));
+        throw CustomError ("/dogma You didn't use an '=' in between your attribute name and value.");
     }
     if (!args.isNumber(4)) {
-        throw PyException(MakeCustomError("/dogma The last argument must be a number"));
+        throw CustomError ("/dogma The last argument must be a number");
     }
 
     const char *attributeName = args.arg(2).c_str();
@@ -865,7 +865,7 @@ PyResult Command_dogma(Client* who, CommandDB* db, PyServiceMgr* services, const
     i->SetAttribute(db->GetAttributeID(attributeName), attributeValue);
     /** @todo  for modules and ships, this will need to call some kind of 'reload' to reset the attrib mem object before new attrib takes affect.  */
 
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_kick(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -883,21 +883,21 @@ PyResult Command_kick(Client* who, CommandDB* db, PyServiceMgr* services, const 
     //support for characters with first and last names
     else if (args.argCount() == 3) {
         if (args.isHexNumber(1))
-            throw PyException(MakeCustomError("Unknown arguments"));
+            throw CustomError ("Unknown arguments");
 
         std::string name = args.arg(1) + " " + args.arg(2);
         target = sEntityList.FindClientByName(name.c_str()) ;
     } else {
-        throw PyException(MakeCustomError("Correct Usage: /kick [Character Name]"));
+        throw CustomError ("Correct Usage: /kick [Character Name]");
     }
 
     if (target == NULL) {
-        throw PyException(MakeCustomError("Cannot find Character"));
+        throw CustomError ("Cannot find Character");
     } else {
         target->DisconnectClient();
     }
 
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_ban(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -913,19 +913,19 @@ PyResult Command_ban(Client* who, CommandDB* db, PyServiceMgr* services, const S
             target = sEntityList.FindClientByName(name);
         }
         else
-            throw PyException(MakeCustomError("Correct Usage: /ban [Character Name]"));
+            throw CustomError ("Correct Usage: /ban [Character Name]");
     }
     //support for characters with first and last names
     else if (args.argCount() == 3)
     {
         if (args.isHexNumber(1))
-            throw PyException(MakeCustomError("Unknown arguments"));
+            throw CustomError ("Unknown arguments");
 
         std::string name = args.arg(1) + " " + args.arg(2);
         target = sEntityList.FindClientByName(name.c_str()) ;
     }
     else
-        throw PyException(MakeCustomError("Correct Usage: /ban [Character Name]"));
+        throw CustomError ("Correct Usage: /ban [Character Name]");
 
     //ban client
     target->BanClient();
@@ -933,7 +933,7 @@ PyResult Command_ban(Client* who, CommandDB* db, PyServiceMgr* services, const S
     //disconnect client
     target->DisconnectClient();
 
-    return NULL;
+    return nullptr;
 }
 
 PyResult Command_unban(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
@@ -947,19 +947,19 @@ PyResult Command_unban(Client* who, CommandDB* db, PyServiceMgr* services, const
             ServiceDB::SetAccountBanStatus(db->GetAccountID(name),false);
         }
         else
-            throw PyException(MakeCustomError("Correct Usage: /ban [Character Name]"));
+            throw CustomError ("Correct Usage: /ban [Character Name]");
     }
     //support for characters with first and last names
     else if (args.argCount() == 3)
     {
         if (args.isHexNumber(1))
-            throw PyException(MakeCustomError("Unknown arguments"));
+            throw CustomError ("Unknown arguments");
 
         std::string name = args.arg(1) + " " + args.arg(2);
         ServiceDB::SetAccountBanStatus(db->GetAccountID(name),false);
     }
     else
-        throw PyException(MakeCustomError("Correct Usage: /unban [Character Name / Character ID]"));
+        throw CustomError ("Correct Usage: /unban [Character Name / Character ID]");
 
-    return NULL;
+    return nullptr;
 }

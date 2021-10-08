@@ -36,6 +36,11 @@ public:
     PyRep *GetSystemSovereignty(uint32 systemID);
     PyRep *GetAllianceSystems();
     PyRep *GetCurrentSovData(uint32 locationID);
+    uint32 GetSystemAllianceID(uint32 systemID);
+    void AddSovClaim(SovereigntyData data);
+    void RemoveSovClaim(uint32 systemID);
+    void MarkContested(uint32 systemID, bool contested);
+    SovereigntyData GetSovereigntyData(uint32 systemID);
 
 protected:
     void Populate();
@@ -53,6 +58,10 @@ private:
             boost::multi_index::hashed_non_unique<
                 boost::multi_index::tag<SovDataByConstellation>,
                 boost::multi_index::member<SovereigntyData, uint32, &SovereigntyData::constellationID>
+                >,
+            boost::multi_index::hashed_non_unique<
+                boost::multi_index::tag<SovDataByRegion>,
+                boost::multi_index::member<SovereigntyData, uint32, &SovereigntyData::regionID>
                 >,
             boost::multi_index::hashed_unique<
                 boost::multi_index::tag<SovDataByClaim>,

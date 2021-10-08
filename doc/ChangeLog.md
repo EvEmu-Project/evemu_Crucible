@@ -1,12 +1,23 @@
+*** 0.8.4 ***
+- [FEAT] Alliances Implemented
+- [FEAT] Sovereignty Implemented
+- Fixed bug in PI database causing segmentation fault
+- Fixed sales tax default to 1%
+- CustomError system reimplemented
+- Updated ImageServer to allow for Alliance logos to be uploaded correctly
+- Replaced liveupdates with updated versions
+- Implemented new Database management tool (EVEDBTool) for migration versioning
+- Implemented automatic market database seeding
+
 *** 0.8.3 ***
 - Fleet Implemented
 
 *** 0.8.2 ***
-- PI Implemented
-- Basic POS Implemented
+- [FEAT] PI Implemented
+- [FEAT] Basic POS Implemented
 
 *** 0.8.1 ***
-- Agents and Courier Missions Implemented
+- [FEAT] Agents and Courier Missions Implemented
 
 *** 0.8.0 (26/03/2021) ***
 This release brings in massive new core system updates to EVEmu. These changes will dramatically increase the rate of change to this repository and make future contributions easier.

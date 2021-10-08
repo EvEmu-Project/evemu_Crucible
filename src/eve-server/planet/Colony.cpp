@@ -867,14 +867,14 @@ PyDict* Colony::TransferCommodities(uint32 srcID, uint32 destID, std::map< uint1
     if (src == ccPin->pins.end()) {
         _log(COLONY__ERROR, "Colony::TransferCommodities() - srcPin %u not found in ccPin.pins map", srcID);
         if (m_client->CanThrow())
-            throw PyException(MakeCustomError("Source not found."));
+            throw CustomError ("Source not found.");
         return nullptr; // make error and exit.
     }
     std::map<uint32, PI_Pin>::iterator dest = ccPin->pins.find(destID);
     if (dest == ccPin->pins.end()) {
         _log(COLONY__ERROR, "Colony::TransferCommodities() - destPin %u not found in ccPin.pins map", destID);
         if (m_client->CanThrow())
-            throw PyException(MakeCustomError("Destination not found."));
+            throw CustomError ("Destination not found.");
         return nullptr; // make error and exit.
     }
     /*{'FullPath': u'UI/Messages', 'messageID': 256630, 'label': u'ExpeditedTransferNotEnoughSpaceBody'}(u'There is not enough space at the transfer destination for the selected commodities.', None, None)
@@ -951,7 +951,7 @@ PyRep* Colony::LaunchCommodities(uint32 pinID, std::map< uint16, uint32 >& items
     if (contRef.get() == nullptr) {
         contRef->Delete();
         if (m_client->CanThrow())
-            throw PyException(MakeCustomError("Unable to spawn item of type %u.", EVEDB::invTypes::PlanetaryLaunchContainer));
+            throw CustomError ("Unable to spawn item of type %u.", EVEDB::invTypes::PlanetaryLaunchContainer);
     }
 
     FactionData data = FactionData();
@@ -1054,14 +1054,14 @@ void Colony::PlanetXfer(uint32 spaceportID, std::map< uint32, uint16 > importIte
     if (pin == ccPin->pins.end()) {
         _log(COLONY__ERROR, "Colony::PlanetXfer() - pinID %u not found in ccPin.pins map", spaceportID);
         if (m_client->CanThrow())
-            throw PyException(MakeCustomError("Your SpacePort on %s was not found.  Ref: ServerError xxxxx.", m_pSE->GetName()));
+            throw CustomError ("Your SpacePort on %s was not found.  Ref: ServerError xxxxx.", m_pSE->GetName());
 
         return;
     }
 
     if (pin->second.lastLaunchTime > GetFileTimeNow() + 30 * EvE::Time::Second) { // launch cycle time is 60s
         if (m_client->CanThrow())
-            throw PyException(MakeCustomError("Your Launch crew on %s is still recovering from the last launch.", m_pSE->GetName()));
+            throw CustomError ("Your Launch crew on %s is still recovering from the last launch.", m_pSE->GetName());
 
         return;
     }

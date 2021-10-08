@@ -19,10 +19,10 @@ uint32 StationDB::CreateOffice(ItemData& idata, OfficeData& odata)
     uint32 uid = 0;
     DBerror err;
     if (!sDatabase.RunQueryLID(err, uid,
-        "INSERT INTO staOffices (corporationID, stationID, officeFolderID, flag, solarSystemID, typeID, stationTypeID, lockDown, rentalFee, expiryDateTime)"
+        "INSERT INTO staOffices (name, corporationID, stationID, officeFolderID, flag, solarSystemID, typeID, stationTypeID, lockDown, rentalFee, expiryDateTime)"
         " VALUES"
-        " (%u,%u,%u,%u,%u, 27, %u,%u,%u,%li)",
-        odata.corporationID, odata.stationID, odata.folderID, idata.flag, stDataMgr.GetStationSystemID(odata.stationID), odata.typeID, odata.lockDown, odata.rentalFee, odata.expiryTime)
+        " ('%s',%u,%u,%u,%u,%u, 27, %u,%u,%u,%li)",
+        odata.name.c_str(), odata.corporationID, odata.stationID, odata.folderID, idata.flag, stDataMgr.GetStationSystemID(odata.stationID), odata.typeID, odata.lockDown, odata.rentalFee, odata.expiryTime)
     )
         codelog(DATABASE__ERROR, "Error in CreateOffice query: %s", err.c_str());
 

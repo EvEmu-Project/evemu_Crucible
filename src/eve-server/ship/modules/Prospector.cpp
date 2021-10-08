@@ -87,7 +87,7 @@ bool Prospector::CanActivate()
         if (m_targetSE->IsContainerSE())
             return ActiveModule::CanActivate();
 
-    throw PyException(MakeUserError("DeniedActivateTargetModuleDisallowed"));
+    throw UserError ("DeniedActivateTargetModuleDisallowed");
 }
 
 uint32 Prospector::DoCycle()

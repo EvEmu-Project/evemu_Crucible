@@ -56,7 +56,7 @@ PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
     Call_SingleStringArg arg;
     if (!arg.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return NULL;
+        return nullptr;
     }
 
     return SlashCommand( call.client, arg.arg );
@@ -66,7 +66,7 @@ PyResult SlashService::SlashCommand(Client * client, std::string command)
 {
     if ((client->GetAccountRole() & Acct::Role::SLASH) != Acct::Role::SLASH) {
         _log( COMMAND__ERROR, "%s: Client '%s' used a slash command but does not have Acct::Role::SLASH.", GetName(), client->GetName() );
-        throw PyException(MakeCustomError("You need to have Acct::Role::SLASH to execute commands." ) );
+        throw CustomError ("You need to have Acct::Role::SLASH to execute commands.");
     }
 
     return m_commandDispatch->Execute( client, command.c_str() );

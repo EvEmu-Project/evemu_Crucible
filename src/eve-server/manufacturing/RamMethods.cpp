@@ -39,43 +39,42 @@ static const uint32 RAM_PRODUCTION_TIME_LIMIT = 60*60*24*30;   //30 days
 void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& args, BlueprintRef bpRef)
 {
     if (bpRef.get() == nullptr)
-        throw(PyException(MakeUserError("RamInventionNoOutput")));
+        throw UserError ("RamInventionNoOutput");
 
     // check validity of activity
     if ((args.activityID < EvERam::Activity::Manufacturing)
     or  (args.activityID > EvERam::Activity::Invention))
-        throw(PyException(MakeUserError("RamAssemblyLineHasNoActivity")));
+        throw UserError ("RamAssemblyLineHasNoActivity");
 
     const ItemType* pType(nullptr);
     switch(args.activityID) {
         case EvERam::Activity::Manufacturing: {
             if (!bpRef->infinite()
             and ((bpRef->runs() - args.runs) < 0))
-                    throw(PyException(MakeUserError("RamTooManyProductionRuns")));
+                throw UserError ("RamTooManyProductionRuns");
 
             pType = &bpRef->productType();
         } break;
         case EvERam::Activity::ResearchMaterial:
         case EvERam::Activity::ResearchTime: {
             if (bpRef->copy())
-                throw(PyException(MakeUserError("RamCannotResearchABlueprintCopy")));
+                throw UserError ("RamCannotResearchABlueprintCopy");
             pType = &bpRef->type();
         } break;
         case EvERam::Activity::Copying: {
             if (bpRef->copy())
-                throw(PyException(MakeUserError("RamCannotCopyABlueprintCopy")));
+                throw UserError ("RamCannotCopyABlueprintCopy");
             pType = &bpRef->type();
         } break;
         case EvERam::Activity::Invention: {
             if (!bpRef->copy() or bpRef->infinite())
-                throw(PyException(MakeUserError("RamCannotInventABlueprintOriginal")));
+                throw UserError ("RamCannotInventABlueprintOriginal");
 
             uint32 pTypeID = FactoryDB::GetTech2Blueprint(bpRef->typeID());
             if (pTypeID == 0)
-                throw(PyException(MakeUserError("RamInventionNoOutput")));
-
+                throw UserError ("RamInventionNoOutput");
             if (bpRef->runs() < 1)
-                throw(PyException(MakeUserError("RamTooManyProductionRuns")));
+                throw UserError ("RamTooManyProductionsRuns");
 
             pType = &bpRef->productType();
         } break;
@@ -85,15 +84,15 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
         default: {
             // not supported
             sLog.Error("RAM::InstallJob()", "Unsupported Activity %u sent by %s(%u).", args.activityID, pClient->GetName(), pClient->GetCharacterID());
-            throw(PyException(MakeUserError("RamActivityInvalid")));
+            throw UserError ("RamActivityInvalid");
         }
     }
 
     if (pType == nullptr)
-        throw(PyException(MakeUserError("RamNoKnownOutputType")));
+        throw UserError ("RamNoKnownOutputType");
 
     if (!FactoryDB::IsProducableBy(args.AssemblyLineID, pType))
-        throw(PyException(MakeUserError("RamBadEndProductForActivity")));
+        throw UserError ("RamBadEndProductForActivity");
 }
 
 void RamMethods::JobsCheck(Character* pChar, const Call_InstallJob& args)
@@ -104,24 +103,20 @@ void RamMethods::JobsCheck(Character* pChar, const Call_InstallJob& args)
                             + pChar->GetSkillLevel(EvESkill::MassProduction)
                             + pChar->GetSkillLevel(EvESkill::AdvancedMassProduction);
 
-        if (charMaxJobs <= jobCount) {
-            std::map<std::string, PyRep *> exceptArgs;
-            exceptArgs["current"] = new PyInt(jobCount);
-            exceptArgs["max"] = new PyInt(charMaxJobs);
-            throw(PyException(MakeUserError("MaxFactorySlotUsageReached", exceptArgs)));
-        }
+        if (charMaxJobs <= jobCount)
+            throw UserError ("MaxFactorySlotUsageReached")
+                    .AddAmount ("current", jobCount)
+                    .AddAmount ("max", charMaxJobs);
     } else {
         uint charMaxJobs = pChar->GetAttribute(AttrMaxLaborotorySlots).get_int()
                             + pChar->GetSkillLevel(EvESkill::LaboratoryOperation)
                             + pChar->GetSkillLevel(EvESkill::AdvancedLaboratoryOperation);
 
         uint32 jobCount = FactoryDB::CountResearchJobs(pChar->itemID());
-        if (charMaxJobs <= jobCount) {
-            std::map<std::string, PyRep *> exceptArgs;
-            exceptArgs["current"] = new PyInt(jobCount);
-            exceptArgs["max"] = new PyInt(charMaxJobs);
-            throw(PyException(MakeUserError("MaxResearchFacilitySlotUsageReached", exceptArgs)));
-        }
+        if (charMaxJobs <= jobCount)
+            throw UserError ("MaxResearchFacilitySlotUsageReached")
+                    .AddAmount ("current", jobCount)
+                    .AddAmount ("max", charMaxJobs);
     }
 }
 
@@ -130,9 +125,9 @@ void RamMethods::InstallationCheck(Client*const pClient, int32 lineLocationID)
     if (IsStation(lineLocationID)) {
         uint32 regionID = sDataMgr.GetStationRegion(lineLocationID);
         if (!IsRegion(regionID))
-            throw(PyException(MakeUserError("RamIsNotAnInstallation")));
+            throw UserError ("RamIsNotAnInstallation");
         if (pClient->GetRegionID() != regionID)
-            throw(PyException(MakeUserError("RamRangeLimitationRegion")));
+            throw UserError ("RamRangeLimitationRegion");
     } else {
         // get structure data and run tests
         // RamStructureNotInSpace
@@ -160,12 +155,12 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
     // get properties
     EvERam::LineRestrictions data = EvERam::LineRestrictions();
     if (!FactoryDB::GetAssemblyLineRestrictions(args.AssemblyLineID, data))
-        throw(PyException(MakeUserError("RamInstallationHasNoDefaultContent")));
+        throw UserError ("RamInstallationHasNoDefaultContent");
 
     // check validity of activity
     if ((data.activityID < EvERam::Activity::Manufacturing)
     or  (data.activityID > EvERam::Activity::Invention))
-        throw(PyException(MakeUserError("RamAssemblyLineHasNoActivity")));
+        throw UserError ("RamAssemblyLineHasNoActivity");
 
     // verify corp roles
     if (args.isCorpJob) {
@@ -173,25 +168,25 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
         // check slot rental permissions first
         if (args.activityID == EvERam::Activity::Manufacturing) {
             if (roles & Corp::Role::CanRentFactorySlot != Corp::Role::CanRentFactorySlot)
-                throw(PyException(MakeUserError("RamCannotInstallWithoutRentFactorySlot")));
+                throw UserError ("RamCannotInstallWithoutRentFactorySlot");
         } else {
             if (roles & Corp::Role::CanRentResearchSlot != Corp::Role::CanRentResearchSlot)
-                throw(PyException(MakeUserError("RamCannotInstallWithoutRentResearchSlot")));
+                throw UserError ("RamCannotInstallWithoutRentResearchSlot");
         }
         if (roles & Corp::Role::FactoryManager != Corp::Role::FactoryManager)
-            throw(PyException(MakeUserError("RamCannotInstallForCorpByRoleFactoryManager")));
+            throw UserError ("RamCannotInstallForCorpByRoleFactoryManager");
         if (roles & Corp::Role::Director != Corp::Role::Director)
-            throw(PyException(MakeUserError("RamCannotInstallForCorpByRole")));
+            throw UserError ("RamCannotInstallForCorpByRole");
     }
 
     // check usage restriction
     if (data.rMask & EvERam::RestrictionMask::ByAlliance == EvERam::RestrictionMask::ByAlliance) {
         if (data.ownerID != pClient->GetAllianceID())
-            throw(PyException(MakeUserError("RamAccessDeniedWrongAlliance")));
+            throw UserError ("RamAccessDeniedWrongAlliance");
     }
     if (data.rMask & EvERam::RestrictionMask::ByCorp == EvERam::RestrictionMask::ByCorp) {
         if (data.ownerID != pClient->GetCorporationID())
-            throw(PyException(MakeUserError("RamAccessDeniedWrongCorp")));
+            throw UserError ("RamAccessDeniedWrongCorp");
     }
 
     // check standing
@@ -199,10 +194,10 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
         // get standings
         if (args.isCorpJob) {
             if (data.minStanding > StandingDB::GetStanding(data.ownerID, pClient->GetCorporationID()))
-                throw(PyException(MakeUserError("RamAccessDeniedCorpStandingTooLow")));
+                throw UserError ("RamAccessDeniedCorpStandingTooLow");
         } else {
             if (data.minStanding > pClient->GetChar()->GetStandingModified(data.ownerID))
-                throw(PyException(MakeUserError("RamAccessDeniedStandingTooLow")));
+                throw UserError ("RamAccessDeniedStandingTooLow");
         }
     }
 
@@ -211,14 +206,14 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
         if (args.isCorpJob) {
             /** @todo  corp secStatus????  didnt know that was a thing.  */
             if (data.minCorpSec > pClient->GetChar()->corpSecRating())
-                throw(PyException(MakeUserError("RamAccessDeniedCorpSecStatusTooLow")));
+                throw UserError ("RamAccessDeniedCorpSecStatusTooLow");
             if (data.maxCorpSec < pClient->GetChar()->corpSecRating())
-                throw(PyException(MakeUserError("RamAccessDeniedCorpSecStatusTooHigh")));
+                throw UserError ("RamAccessDeniedCorpSecStatusTooHigh");
         } else {
             if (data.minCharSec > pClient->GetSecurityRating())
-                throw(PyException(MakeUserError("RamAccessDeniedSecStatusTooLow")));
+                throw UserError ("RamAccessDeniedSecStatusTooLow");
             if (data.maxCharSec < pClient->GetSecurityRating())
-                throw(PyException(MakeUserError("RamAccessDeniedSecStatusTooHigh")));
+                throw UserError ("RamAccessDeniedSecStatusTooHigh");
         }
     }
 }
@@ -228,11 +223,11 @@ void RamMethods::ItemOwnerCheck(Client*const pClient, const Call_InstallJob& arg
     // ownership
     if (args.isCorpJob) {
         if (bpRef->ownerID() != pClient->GetCorporationID())
-            throw(PyException(MakeUserError("RamCannotInstallItemForAnotherCorp")));
+            throw UserError ("RamCannotInstallItemForAnotherCorp");
     } else {
         // this one is checked in client
         if (bpRef->ownerID() != pClient->GetCharacterID())
-            throw(PyException(MakeUserError("RamCannotInstallItemForAnother")));
+            throw UserError ("RamCannotInstallItemForAnother");
     }
 }
 
@@ -242,48 +237,45 @@ void RamMethods::ItemLocationCheck(Client*const pClient, const Call_InstallJob& 
     if (IsStation(args.lineContainerID)) {
         if (installedItem->locationID() != args.lineContainerID) {
             if (args.lineContainerID == pClient->GetLocationID()) {
-                std::map<std::string, PyRep *> exceptArgs;
-                exceptArgs["location"] = new PyString(stDataMgr.GetStationName(args.lineContainerID));
-                if (args.isCorpJob) {
-                    throw(PyException(MakeUserError("RamCorpInstalledItemWrongLocation", exceptArgs)));
-                } else {
-                    throw(PyException(MakeUserError("RamInstalledItemWrongLocation", exceptArgs)));
-                }
+                throw UserError (
+                            (args.isCorpJob)
+                            ? "RamCorpInstalledItemWrongLocation"
+                            : "RamInstalledItemWrongLocation")
+                        .AddLocationName ("location", args.lineContainerID);
             } else {
-                throw(PyException(MakeUserError("RamRemoteInstalledItemNotInStation")));
+                throw UserError ("RamRemoteInstalledItemNotInStation");
             }
         } else {
             if (args.isCorpJob) {
                 if (!IsHangarFlag(installedItem->flag())) {
                     if (args.lineContainerID == pClient->GetLocationID()) {
-                        std::map<std::string, PyRep *> exceptArgs;
-                        exceptArgs["location"] = new PyString(stDataMgr.GetStationName(args.lineContainerID));
-                        throw(PyException(MakeUserError("RamCorpInstalledItemWrongLocation", exceptArgs)));
-                    } else {
-                        throw(PyException(MakeUserError("RamRemoteInstalledItemNotInOffice")));
+                        throw UserError(
+                                (args.isCorpJob)
+                                ? "RamCorpInstalledItemWrongLocation"
+                                : "RamInstalledItemWrongLocation")
+                                .AddLocationName("location", args.lineContainerID);
                     }
                 }
             } else {
                 if (installedItem->flag() != flagHangar) {
                     if (args.lineLocationID == pClient->GetLocationID()) {
-                        std::map<std::string, PyRep *> exceptArgs;
-                        exceptArgs["location"] = new PyString(stDataMgr.GetStationName(args.lineContainerID));
-                        throw(PyException(MakeUserError("RamInstalledItemWrongLocation", exceptArgs)));
+                        throw UserError ("RamInstalledItemWrongLocation")
+                                .AddLocationName ("location", args.lineContainerID);
                     } else {
-                        throw(PyException(MakeUserError("RamRemoteInstalledItemInStationNotHangar")));
+                        throw UserError ("RamRemoteInstalledItemInStationNotHangar");
                     }
                 }
             }
         }
     } else if (args.lineContainerID == pClient->GetShipID()) {
         if (pClient->GetChar()->flag() != flagPilot)
-            throw(PyException(MakeUserError("RamAccessDeniedNotPilot")));
+            throw UserError ("RamAccessDeniedNotPilot");
 
         if (args.isCorpJob and (installedItem->flag() == flagCargoHold))
-            throw(PyException(MakeUserError("RamCorpInstalledItemNotInCargo")));
+            throw UserError ("RamCorpInstalledItemNotInCargo");
 
         if (installedItem->locationID() != args.lineContainerID)
-            throw(PyException(MakeUserError("RamInstalledItemMustBeInShip")));
+            throw UserError ("RamInstalledItemMustBeInShip");
     } else {
         /* this will be POS assembly modules and Outpost checks
         *  RamStationIsNotConstructed
@@ -292,7 +284,7 @@ void RamMethods::ItemLocationCheck(Client*const pClient, const Call_InstallJob& 
         *  RamInstalledItemInStructureNotInContainer
         *  RamInstalledItemInStructureUnknownLocation
         */
-        throw(PyException(MakeCustomError("R.A.M. at POS/Outpost not supported yet")));
+        throw CustomError ("R.A.M. at POS/Outpost not supported yet");
     }
 }
 
@@ -302,31 +294,31 @@ void RamMethods::HangarRolesCheck(Client* const pClient, int16 flagID)
     switch (flagID) {
         case flagHangar: {
             if (roles & Corp::Role::HangarCanTake1 != Corp::Role::HangarCanTake1)
-                throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
+                throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar2: {
             if (roles & Corp::Role::HangarCanTake2 != Corp::Role::HangarCanTake2)
-                throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
+                throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar3: {
             if (roles & Corp::Role::HangarCanTake3 != Corp::Role::HangarCanTake3)
-                throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
+                throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar4: {
             if (roles & Corp::Role::HangarCanTake4 != Corp::Role::HangarCanTake4)
-                throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
+                throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar5: {
             if (roles & Corp::Role::HangarCanTake5 != Corp::Role::HangarCanTake5)
-                throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
+                throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar6: {
             if (roles & Corp::Role::HangarCanTake6 != Corp::Role::HangarCanTake6)
-                throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
+                throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar7: {
             if (roles & Corp::Role::HangarCanTake7 != Corp::Role::HangarCanTake7)
-                throw(PyException(MakeUserError("RamAccessDeniedToBOMHangar")));
+                throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
     }
 }
@@ -351,14 +343,12 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const P
     std::map<uint16, InventoryItemRef> items;   // typeID, itemRef
     GetBOMItemsMap( bomLocation, items );
 
-    std::map<std::string, PyRep *> args;
     for (auto cur : reqItems) {
         if (cur.isSkill) { // check skill (quantity is required level)
             if (pClient->GetChar()->GetSkillLevel(cur.typeID) < cur.quantity) {
-                std::map<std::string, PyRep *> args;
-                args["item"] = new PyInt(cur.typeID);
-                args["skillLevel"] = new PyInt(cur.quantity);
-                throw(PyException(MakeUserError("RamNeedSkillForJob", args)));
+                throw UserError ("RamNeedSkillForJob")
+                        .AddFormatValue ("skillID", new PyInt (cur.typeID))
+                        .AddFormatValue ("skillLevel", new PyInt (cur.quantity));
             }
         } else {
             uint32 qtyNeeded = ceil(cur.quantity * rsp.materialMultiplier * runs);
@@ -374,22 +364,18 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const P
                 }
 
             if (qtyNeeded)
-                args["item"] = new PyInt( cur.typeID );
+                throw UserError ("RamNeedMoreForJob")
+                        .AddFormatValue ("item", new PyInt (cur.typeID));
         }
     }
-
-    if (!args.empty())
-        throw(PyException(MakeUserError("RamNeedMoreForJob", args)));
 }
 
 void RamMethods::ProductionTimeCheck(uint32 productionTime)
 {
-    if (productionTime > RAM_PRODUCTION_TIME_LIMIT) {
-        std::map<std::string, PyRep *> args;
-        args["productionTime"] = new PyInt(productionTime);
-        args["limit"] = new PyInt(RAM_PRODUCTION_TIME_LIMIT);
-        throw(PyException(MakeUserError("RamProductionTimeExceedsLimits", args)));
-    }
+    if (productionTime > RAM_PRODUCTION_TIME_LIMIT)
+        throw UserError ("RamProductionTimeExceedsLimits")
+                .AddFormatValue ("productionTime", new PyInt (productionTime))
+                .AddFormatValue ("limit", new PyInt (RAM_PRODUCTION_TIME_LIMIT));
 }
 
 void RamMethods::VerifyCompleteJob(const Call_CompleteJob &args, EvERam::JobProperties &data, Client* const pClient)
@@ -397,21 +383,21 @@ void RamMethods::VerifyCompleteJob(const Call_CompleteJob &args, EvERam::JobProp
     // this isnt entirely right....if job is installed in ship, receiver must be pilot in active ship to complete job.
     if (args.containerID == pClient->GetShipID())
         if (pClient->GetChar()->flag() != flagPilot)
-            throw(PyException(MakeUserError("RamCompletionMustBeInShip")));
+            throw UserError ("RamCompletionMustBeInShip");
 
     if (IsCorp(data.ownerID)) {
         if (data.ownerID == pClient->GetCorporationID()) {
             if ((pClient->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager)
-                throw(PyException(MakeUserError("RamCompletionAccessDeniedByCorpRole")));
+                throw UserError ("RamCompletionAccessDeniedByCorpRole");
         } else  // alliances not implemented
-            throw(PyException(MakeUserError("RamCompletionAccessDenied")));
+            throw UserError ("RamCompletionAccessDenied");
     }
 
     if (data.status != EvERam::Status::InProgress)
-        throw(PyException(MakeUserError("RamCompletionJobCompleted")));
+        throw UserError ("RamCompletionJobCompleted");
 
     if (!args.cancel and (data.endTime > GetFileTimeNow()))
-        throw(PyException(MakeUserError("RamCompletionInProduction")));
+        throw UserError ("RamCompletionJobCompleted");
 }
 
 bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Character* pChar, Rsp_InstallJob &into)

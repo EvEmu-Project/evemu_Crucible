@@ -329,7 +329,7 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
                 m_modRef->name(), m_needsCharge?"True":"False", m_chargeLoaded?"True":"False", \
                 m_chargeRef.get() == nullptr ? "(none)": m_chargeRef->name());
         Clear();
-        throw PyException(MakeCustomError("Your %s doesn't seem to be loaded.", m_modRef->name()));
+        throw CustomError ("Your %s doesn't seem to be loaded.", m_modRef->name());
     }
     if (IsValidTarget(targetID)) {
         // this is just a guess.  may have to use groupID test to verify if this doesnt work right.
@@ -339,7 +339,7 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
         m_targetSE = m_shipRef->GetPilot()->SystemMgr()->GetSE(targetID);
         if (m_targetSE == nullptr) {
             Clear();
-            throw PyException(MakeUserError("DeniedActivateTargetNotPresent"));
+            throw UserError ("DeniedActivateTargetNotPresent");
         }
     }
 
@@ -355,23 +355,23 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
             if (m_targetSE->IsItemEntity() or m_targetSE->IsStaticEntity() or m_targetSE->IsWreckSE())
                 // or (m_targetSE->IsLogin()))       // this is incomplete, so always returns false
             {
-                throw PyException(MakeCustomError("You cannot attack the %s.", m_targetSE->GetName()));
+                throw CustomError ("You cannot attack the %s.", m_targetSE->GetName());
             }
 
         if (sFxDataMgr.isAssistance(effectID)) {
             if (m_targetSE->GetSelf()->HasAttribute(AttrDisallowAssistance)) {
                 Clear();
-                throw PyException(MakeUserError("DeniedActivateTargetAssistDisallowed"));
+                throw UserError ("DeniedActivateTargetAssistDisallowed");
             }
             /** @todo criminal shit isnt written yet....fix this once it is.
             if (m_targetSE->HasPilot())
                 if (m_targetSE->GetPilot()->IsCriminal())
-                    throw PyException(MakeUserError("ModuleActivationDeniedCriminalAssistance"));
+                    throw UserError ("ModuleActivationDeniedCriminalAssistance");
              */
         }
         if (m_targetSE->IsCOSE()) {
             Clear();
-            throw PyException(MakeCustomError("Attacking Customs Offices isn't implemented at this time."));
+            throw CustomError ("Attacking Customs Offices isn't implemented at this time.");
         }
         if (m_targetSE->TargetMgr() != nullptr)
             m_targetSE->TargetMgr()->AddTargetModule(this);
@@ -1025,10 +1025,12 @@ bool ActiveModule::CanActivate()
                     if (owner or fleet or corp or ally or war) {
                         m_targetSE->DestinyMgr()->TractorBeamStart(m_shipRef->GetPilot()->GetShipSE(), GetAttribute(AttrMaxTractorVelocity));
                     } else {
-                        std::map<std::string, PyRep *> arg;
-                        arg["module"] = new PyInt(m_targetSE->GetID());
-                        Clear();
-                        throw PyException(MakeUserError("InvalidTargetCanOwner", arg));
+                        int id = m_targetSE->GetID ();
+
+                        Clear ();
+
+                        throw UserError ("InvalidTargetCanOwner")
+                                .AddFormatValue ("module", new PyInt (id));
                     }
             } break;
             case Shield_Transporter: {
@@ -1279,8 +1281,8 @@ void ActiveModule::ShowEffect(bool active/*false*/, bool abort/*false*/)
 void ActiveModule::LaunchMissile()
 {
     // must not throw here...
-    //throw PyException( MakeUserError("TargetingMissileToSelf"));
-    //throw PyException( MakeUserError("NoCharges"));
+    //throw UserError ("TargetingMissileToSelf");
+    //throw UserError ("NoCharges");
 
     //{'FullPath': u'UI/Messages', 'messageID': 259200, 'label': u'NoChargesBody'}(u'{launcher} has run out of charges', None, {u'{launcher}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'launcher'}})
 
@@ -1349,8 +1351,8 @@ void ActiveModule::LaunchProbe()
     ItemData idata(m_chargeRef->typeID(), pClient->GetCharacterID(), pClient->GetLocationID(), flagNone, 1);
     ProbeItemRef probeRef = sItemFactory.SpawnProbe(idata);
     if (probeRef.get() == nullptr)
-        throw PyException(MakeCustomError("Unable to spawn item #%u:'%s' of type %u.", \
-                m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID() ) );
+        throw CustomError ("Unable to spawn item #%u:'%s' of type %u.", \
+                m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID() );
 
     probeRef->SetPosition(pos);
     SystemManager* pSystem = pClient->SystemMgr();

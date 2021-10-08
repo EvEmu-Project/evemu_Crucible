@@ -138,7 +138,7 @@ public:
 
     /* class type tests, grouped by base class.  public for anyone to access. */
     /* Base */
-    virtual bool                isGlobal()              { return true; } //m_self->isGlobal(); }    // not all items have this attribute set
+    virtual bool                isGlobal()              { return m_self->isGlobal(); }    // not all items have this attribute set
     virtual bool                IsSystemEntity()        { return true; }
     virtual bool                IsInanimateSE()         { return false; }
     /* Static */
@@ -176,6 +176,7 @@ public:
     virtual bool                IsDeployableSE()        { return false; }
     virtual bool                IsJumpBridgeSE()        { return false; }
     virtual bool                IsReactorSE()           { return false; }
+    virtual bool                IsOperSE()              { return false; }
     /* Dynamic */
     virtual bool                IsDynamicEntity()       { return false; }
     virtual bool                IsLogin()               { return false; }
@@ -377,7 +378,7 @@ public:
     virtual ItemSystemEntity*   GetItemSE()             { return this; }
     /* class type tests. */
     /* Base */
-    virtual bool                isGlobal()              { return false; }
+    //virtual bool                isGlobal()              { return false; }
     virtual bool                IsInanimateSE()         { return true; }
     /* Item */
     virtual bool                IsItemEntity()          { return true; }
@@ -389,7 +390,7 @@ public:
     virtual PyDict*             MakeSlimItem();
 
 private:
-    uint16 m_keyType;
+    uint16 m_keyType;           //Training Complex Passkey   (group - Acceleration_Gate_Keys)
 };
 
 /* POS ForceField */
@@ -424,7 +425,7 @@ public:
     virtual ObjectSystemEntity* GetObjectSE()           { return this; }
     /* class type tests. */
     /* Base */
-    virtual bool                isGlobal()              { return false; }
+    //virtual bool                isGlobal()              { return false; }
     virtual bool                IsInanimateSE()         { return true; }
     /* Object */
     virtual bool                IsObjectEntity()        { return true; }
@@ -475,7 +476,7 @@ public:
     virtual DynamicSystemEntity* GetDynamicSE()         { return this; }
     /* class type tests. */
     /* Base */
-    virtual bool                isGlobal()              { return false; }
+    //virtual bool                isGlobal()              { return false; }
     /* Dynamic */
     virtual bool                IsDynamicEntity()       { return true; }
 

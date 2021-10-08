@@ -123,18 +123,3 @@ PyResult& PyResult::operator=( const PyResult& oth )
 
     return *this;
 }
-
-/* PyException */
-PyException::PyException( PyRep* except ) : ssException( except != nullptr ? except : PyStatic.NewNone()) {}
-PyException::PyException( const PyException& oth ) : ssException( nullptr ) { *this = oth; }
-PyException::~PyException() { PySafeDecRef( ssException ); }
-
-PyException& PyException::operator=( const PyException& oth )
-{
-    PySafeDecRef( ssException );
-    ssException = oth.ssException;
-    PySafeIncRef( ssException );
-
-    return *this;
-}
-

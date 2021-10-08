@@ -236,7 +236,7 @@ PyRep *FactoryDB::GetJobs2(const int32 ownerID, const bool completed)
         ownerID, (completed ? "!=" : "=") ))
     {
         _log(DATABASE__ERROR, "Failed to query jobs for owner %u: %s", ownerID, res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToRowset(res);
@@ -262,7 +262,7 @@ PyRep *FactoryDB::AssemblyLinesSelectPublic(const uint32 regionID) {
         regionID))
     {
         _log(DATABASE__ERROR, "Failed to query public assembly lines for region %u: %s.", regionID, res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -286,7 +286,7 @@ PyRep *FactoryDB::AssemblyLinesSelectPersonal(const uint32 charID) {
         charID, (EvERam::RestrictionMask::ByCorp | EvERam::RestrictionMask::ByAlliance), (EvERam::RestrictionMask::ByCorp | EvERam::RestrictionMask::ByAlliance)))
     {
         _log(DATABASE__ERROR, "Failed to query personal assembly lines for char %u: %s.", charID, res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -309,7 +309,7 @@ PyRep *FactoryDB::AssemblyLinesSelectPrivate(const uint32 charID) {
         charID))
     {
         _log(DATABASE__ERROR, "Failed to query private assembly lines for char %u: %s.", charID, res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -334,7 +334,7 @@ PyRep *FactoryDB::AssemblyLinesSelectCorporation(const uint32 corpID) {
         corpID, EvERam::RestrictionMask::ByCorp, EvERam::RestrictionMask::ByCorp))
     {
         _log(DATABASE__ERROR, "Failed to query corporation assembly lines for corp %u: %s.", corpID, res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -360,7 +360,7 @@ PyRep *FactoryDB::AssemblyLinesSelectAlliance(const int32 allianceID) {
         allianceID, EvERam::RestrictionMask::ByAlliance, EvERam::RestrictionMask::ByAlliance))
     {
         _log(DATABASE__ERROR, "Failed to query alliance assembly lines for alliance %u: %s.", allianceID, res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -390,7 +390,7 @@ PyRep *FactoryDB::AssemblyLinesGet(const uint32 containerID) {
         " WHERE containerID = %u",
         containerID)) {
         _log(DATABASE__ERROR, "Failed to query assembly lines for container %u: %s.", containerID, res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return DBResultToCRowset(res);
@@ -518,7 +518,7 @@ bool FactoryDB::GetAssemblyLineRestrictions(const int32 assemblyLineID, EvERam::
 }
 
 uint32 FactoryDB::InstallJob(const uint32 ownerID, const uint32 installerID, Call_InstallJob& args,
-                             const int64 beginTime, const int64 endTime)
+                             const int64 beginTime, const int64 endTime, const uint32 systemID)
 {
     DBerror err;
     uint32 jobID(0);
@@ -526,12 +526,12 @@ uint32 FactoryDB::InstallJob(const uint32 ownerID, const uint32 installerID, Cal
     if (!sDatabase.RunQueryLID(err, jobID,
         "INSERT INTO ramJobs"
         " (ownerID, installerID, assemblyLineID, installedItemID, installTime, beginProductionTime, endProductionTime,"
-        " runs, outputFlag, licensedProductionRuns)"
+        " runs, outputFlag, licensedProductionRuns, completedStatusID, installedInSolarSystemID)"
         " VALUES"
         " (%u, %u, %i, %i, %.0f, %li, %li,"
-        " %i, %i, %i)",
+        " %i, %i, %i, 0, %i)",
         ownerID, installerID, args.AssemblyLineID, args.bpItemID, GetFileTimeNow(), beginTime, endTime,
-        args.runs, args.outputFlag, args.copyRuns))
+        args.runs, args.outputFlag, args.copyRuns, systemID))
     {
         _log(DATABASE__ERROR, "Failed to insert new job to database: %s.", err.c_str());
         return 0;

@@ -25,7 +25,6 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Debug ..
 RUN make -j$(nproc)
 RUN make install
 
-
 # Now we switch to makeing the image that will run the code that we have build
 FROM base as app
 LABEL description="EVEmu Server"

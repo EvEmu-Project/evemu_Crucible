@@ -135,8 +135,10 @@ public:
     std::string GetCharName(uint32 charID);
 
     PyRep* GetContacts(uint32 charID, bool blocked);
-    void AddContact(uint32 charID);
-    void UpdateContact(uint32 charID);
+    void AddContact(uint32 ownerID, uint32 charID, int32 standing, bool inWatchlist);
+    void UpdateContact(int32 standing, uint32 charID, uint32 ownerID);
+    void RemoveContact(uint32 charID, uint32 ownerID);
+    void SetBlockContact(uint32 charID, uint32 ownerID, bool blocked);
 
     bool GetCharItems(uint32 charID, std::vector<uint32> &into);
     bool GetCareerBySchool(uint32 schoolID, uint8 &raceID, uint32 &careerID);

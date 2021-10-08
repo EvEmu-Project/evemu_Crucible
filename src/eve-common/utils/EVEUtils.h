@@ -29,14 +29,6 @@
 #include "EvilNumber.h"
 #include "python/PyRep.h"
 
-class UserError;
-
-//makes ccp_exceptions.UserError exception
-//this function is deprecated; use directly UserError class instead.
-extern UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args = std::map<std::string, PyRep *>());
-//makes UserError with type "CustomError"
-extern UserError *MakeCustomError(const char *fmt, ...);
-
 /**
  * @brief Checks whether string is printable.
  *

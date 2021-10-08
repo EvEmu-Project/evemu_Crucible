@@ -34,7 +34,7 @@ PyResult Command_goto(Client* pClient, CommandDB* db, PyServiceMgr* services, co
         || !args.isNumber(2)
         || !args.isNumber(3))
     {
-        throw PyException(MakeCustomError("Correct Usage: /goto [x coord] [y coor] [z coord]"));
+        throw CustomError ("Correct Usage: /goto [x coord] [y coor] [z coord]");
     }
 
     GPoint p(atoll(args.arg(1).c_str()),
@@ -78,10 +78,10 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
     // i dont expect this to be used very often, so a bit of bloat is acceptable
 
     if (pClient == nullptr) // should never hit,
-        throw PyException(MakeCustomError("Translocate: Invalid Caller - Client sent NULL."));
+        throw CustomError ("Translocate: Invalid Caller - Client sent NULL.");
 
     if (args.argCount() < 2)
-        throw PyException(MakeCustomError("Translocate: Missing Arguments (use '.tr help' for usage)"));
+        throw CustomError ("Translocate: Missing Arguments (use '.tr help' for usage)");
 
     Client* pOtherClient(nullptr);
     const char* Help = "help";  // many uses.  avoid creating temp objects for every test
@@ -113,19 +113,19 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             // this hits db directly, so test for possible sql injection code
             for (const auto cur : badCharsSearch)
                 if (EvE::icontains(args.arg(1), cur))
-                    throw PyException( MakeCustomError("Location contains invalid characters"));
+                    throw CustomError ("Location contains invalid characters");
             locationID = db->GetSolarSystem(args.arg(1).c_str());
             if (!IsSolarSystem(locationID)) {
                 locationID = db->GetStation(args.arg(1).c_str());
                 if (!IsStation(locationID))
-                    throw PyException(MakeCustomError("Translocate: Name Argument is neither SolarSystem nor StationName"));
+                    throw CustomError ("Translocate: Name Argument is neither SolarSystem nor StationName");
             }
         }
     } else if (args.argCount() == 3) {  // 2 args - me, player, ship, item, fleet, {invalid} : help, home, last, ship, location, moon, planet, {invalid}
         // test for 'help' command
         if ((strcmp(args.arg(1).c_str(), Help) == 0)
         or (strcmp(args.arg(2).c_str(), Help) == 0))
-            throw PyException(MakeCustomError("Translocate: Invalid Arguments - 'help' not avalible for this command."));
+            throw CustomError ("Translocate: Invalid Arguments - 'help' not avalible for this command.");
 
             // decode first arg  -- me, shipID, charID, playerName, itemID {invalid}
         if (args.isNumber(1)) {     // charID, shipID, {invalid}
@@ -136,12 +136,12 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
                 // get object's ownerID...this is rather powerful.
                 InventoryItemRef iRef = sItemFactory.GetItem(objectID);
                 if (iRef.get() == nullptr)
-                    throw PyException(MakeCustomError("Translocate: Invalid Arguments - target object was not found."));
+                    throw CustomError ("Translocate: Invalid Arguments - target object was not found.");
                 pOtherClient = sEntityList.FindClientByCharID(iRef->ownerID());
             } else if (IsNPC(objectID)) {
-                throw PyException(MakeCustomError("Translocate: Invalid Object - You really wanna relocate an NPC?"));
+                throw CustomError ("Translocate: Invalid Object - You really wanna relocate an NPC?");
             } else
-                throw PyException(MakeCustomError("Translocate: Invalid Object - %i is neither a character nor a ship", objectID));
+                throw CustomError ("Translocate: Invalid Object - %i is neither a character nor a ship", objectID);
         } else if (strcmp(args.arg(1).c_str(), "me") == 0) {
             // tr <me> to ?
             //  pClient doesnt change.  do nothing here
@@ -157,13 +157,13 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             fleet = true;
             // not sure how im gonna do this one yet....
             if (!pClient->InFleet())
-                throw PyException(MakeCustomError("Translocate: Fleet Move - You are not in a fleet."));
-            throw PyException(MakeCustomError("Translocate: Fleet Move - This command is currently incomplete."));
+                throw CustomError ("Translocate: Fleet Move - You are not in a fleet.");
+            throw CustomError ("Translocate: Fleet Move - This command is currently incomplete.");
         } else {
             // check for player name
             pOtherClient = sEntityList.FindClientByName(args.arg(1).c_str());
             if (pOtherClient == nullptr)
-                throw PyException(MakeCustomError("Translocate: Bad Name - %s is not online or is not a valid player name", args.arg(1).c_str()));
+                throw CustomError ("Translocate: Bad Name - %s is not online or is not a valid player name", args.arg(1).c_str());
         }
         // decode second arg    -- me, fleet, home, last, location, moon, planet, {invalid}
         if (args.isNumber(2)) {
@@ -176,17 +176,17 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             locationID = myLocationID;  // this wont do anything if used as ".tr me me"
         } else if (strcmp(args.arg(2).c_str(), "home") == 0) {
             if (fleet)
-                throw PyException(MakeCustomError("Translocate: Fleet Move - You cannot tr a fleet 'home'...yet."));
+                throw CustomError ("Translocate: Fleet Move - You cannot tr a fleet 'home'...yet.");
             locationID = pClient->GetCloneStationID();
         } else if (strcmp(args.arg(2).c_str(), "ship") == 0) {
             // tr <me|ship|player|fleet> to <ship|ship owner>
             if (item)
-                throw PyException(MakeCustomError("Translocate: Ship Move - You cannot tr one ship to another ship...yet."));
+                throw CustomError ("Translocate: Ship Move - You cannot tr one ship to another ship...yet.");
             item = true;
         } else if (strcmp(args.arg(2).c_str(), "last") == 0) {
             // last station <me|player> was docked in
             if (fleet)
-                throw PyException(MakeCustomError("Translocate: Fleet Move - You cannot tr a fleet to last docked station...yet."));
+                throw CustomError ("Translocate: Fleet Move - You cannot tr a fleet to last docked station...yet.");
             // if called with <player name>, <charID>, or <shipID>, then uses that char's (or owner's) last docked station
             if (pOtherClient != nullptr)
                 locationID = pOtherClient->GetDockStationID();
@@ -196,28 +196,28 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             // random moon in <me|player> current system
             SystemGPoint sGP;
             pt = sGP.GetRandPointOnMoon(pOtherClient == nullptr ? pClient->GetSystemID() : pOtherClient->GetSystemID());
-            //throw PyException(MakeCustomError("Translocate: This option is Incomplete"));
+            //throw CustomError ("Translocate: This option is Incomplete");
         } else if (strcmp(args.arg(2).c_str(), "planet") == 0) {
             // random planet in <me|player> current system
             SystemGPoint sGP;
             pt = sGP.GetRandPointOnPlanet(pOtherClient == nullptr ? pClient->GetSystemID() : pOtherClient->GetSystemID());
-            //throw PyException(MakeCustomError("Translocate: This option is Incomplete"));
+            //throw CustomError ("Translocate: This option is Incomplete");
         } else {
             if (me) {
                 // tr me to <locationName>?
                 // this hits db directly, so test for possible sql injection code
                 for (const auto cur : badCharsSearch)
                     if (EvE::icontains(args.arg(1), cur))
-                        throw PyException( MakeCustomError("Location contains invalid characters"));
+                        throw CustomError ("Location contains invalid characters");
                     locationID = db->GetSolarSystem(args.arg(1).c_str());
                 if (!IsSolarSystem(locationID)) {
                     locationID = db->GetStation(args.arg(1).c_str());
                     if (!IsStation(locationID))
-                        throw PyException(MakeCustomError("Translocate: Name Argument is neither SolarSystem nor StationName"));
+                        throw CustomError ("Translocate: Name Argument is neither SolarSystem nor StationName");
                 }
             } else {
                 // what are we missing?
-                throw PyException(MakeCustomError("Translocate: Missing Arguments"));
+                throw CustomError ("Translocate: Missing Arguments");
             }
         }
     } else if (args.argCount() == 4) { // 3 args - me, player, ship,  coords, {invalid} : me, home, last, location, {invalid} : last, moon, planet, {invalid}
@@ -225,13 +225,13 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         if ((strcmp(args.arg(1).c_str(), Help) == 0)
         or (strcmp(args.arg(2).c_str(), Help) == 0)
         or (strcmp(args.arg(3).c_str(), Help) == 0))
-            throw PyException(MakeCustomError("Translocate: Invalid Arguments - 'help' not avalible for this command."));
+            throw CustomError ("Translocate: Invalid Arguments - 'help' not avalible for this command.");
 
         // check for coords
         if ((args.isNumber(1))
         and (args.isNumber(2))
         and (args.isNumber(3)))
-            throw PyException(MakeCustomError("Translocate: Coords in current system - Use '.goto {x,y,z}' instead of this."));
+            throw CustomError ("Translocate: Coords in current system - Use '.goto {x,y,z}' instead of this.");
 
         // decode first arg  -- me, shipID, charID, playerName, {invalid}
         if (args.isNumber(1)) {
@@ -242,7 +242,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
                 // get object's ownerID
                 pOtherClient = sEntityList.FindClientByCharID(objectID);
             } else
-                throw PyException(MakeCustomError("Translocate: Invalid Object - %i is neither a character nor a ship", objectID));
+                throw CustomError ("Translocate: Invalid Object - %i is neither a character nor a ship", objectID);
         } else if (strcmp(args.arg(1).c_str(), "me") == 0) {
             // tr <me> to ?
             //  pClient doesnt change.  do nothing here
@@ -252,7 +252,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             fleet = true;
         } else {
             // this is either player name or invalid arg
-            throw PyException(MakeCustomError("Translocate: Invalid Arguments - searching by player name is incomplete at this time."));
+            throw CustomError ("Translocate: Invalid Arguments - searching by player name is incomplete at this time.");
         }
 
         // decode second arg    -- me, fleet, home, last, location, moon, planet, {invalid}
@@ -260,7 +260,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             locationID = atoi(args.arg(2).c_str());
         } else if (strcmp(args.arg(2).c_str(), "fleet") == 0) {
             if (fleet)
-                throw PyException(MakeCustomError("Translocate: Fleet Move - You cannot tr a fleet to 'fleet'."));
+                throw CustomError ("Translocate: Fleet Move - You cannot tr a fleet to 'fleet'.");
             // tr <my|player> fleet to last, moon, planet, {invalid}
             fleet = true;
         } else if (strcmp(args.arg(2).c_str(), "me") == 0) {
@@ -270,16 +270,16 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         } else if (strcmp(args.arg(2).c_str(), "ship") == 0) {
             // tr <me|ship|player|fleet> to <ship|ship owner>
             if (item)
-                throw PyException(MakeCustomError("Translocate: Ship Move - You cannot tr one ship to another ship...yet."));
+                throw CustomError ("Translocate: Ship Move - You cannot tr one ship to another ship...yet.");
             item = true;
         } else if (strcmp(args.arg(2).c_str(), "home") == 0) {
             // tr <player|fleet> to <my|players> home
             if (fleet)
-                throw PyException(MakeCustomError("Translocate: Fleet Move - You cannot tr a fleet 'home'...yet."));
+                throw CustomError ("Translocate: Fleet Move - You cannot tr a fleet 'home'...yet.");
             locationID = pClient->GetCloneStationID();
         } else if (strcmp(args.arg(2).c_str(), "last") == 0) {
             if (fleet)
-                throw PyException(MakeCustomError("Translocate: Fleet Move - You cannot tr a fleet to last docked station...yet."));
+                throw CustomError ("Translocate: Fleet Move - You cannot tr a fleet to last docked station...yet.");
             //  tr <player> me last -- tr <player> to my last docked station
             // last station client was docked in
             // if called with <player name> then uses that char's last station
@@ -291,15 +291,15 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             // random moon in client current system
             SystemGPoint sGP;
             pt = sGP.GetRandPointOnMoon(pOtherClient == nullptr ? pClient->GetSystemID() : pOtherClient->GetSystemID());
-            //throw PyException(MakeCustomError("Translocate: This option is Incomplete"));
+            //throw CustomError ("Translocate: This option is Incomplete");
         } else if (strcmp(args.arg(2).c_str(), "planet") == 0) {
             // random planet in client current system
             SystemGPoint sGP;
             pt = sGP.GetRandPointOnPlanet(pOtherClient == nullptr ? pClient->GetSystemID() : pOtherClient->GetSystemID());
-            //throw PyException(MakeCustomError("Translocate: This option is Incomplete"));
+            //throw CustomError ("Translocate: This option is Incomplete");
         } else {
             // what are we missing?
-            throw PyException(MakeCustomError("Translocate: Invalid Arguments"));
+            throw CustomError ("Translocate: Invalid Arguments");
         }
 
         // decode third arg     - last, moon, planet, {invalid}
@@ -308,7 +308,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             locationID = atoi(args.arg(2).c_str());
         } else if (strcmp(args.arg(3).c_str(), "last") == 0) {
             if (fleet)
-                throw PyException(MakeCustomError("Translocate: Fleet Move - You cannot tr a fleet to last docked station...yet."));
+                throw CustomError ("Translocate: Fleet Move - You cannot tr a fleet to last docked station...yet.");
             //  tr <player> me last -- tr <player> to my last docked station
             // last station client was docked in
             // if called with <player name> then uses that char's last station
@@ -320,15 +320,15 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             // random moon in client current system
             SystemGPoint sGP;
             pt = sGP.GetRandPointOnMoon(pOtherClient == nullptr ? pClient->GetSystemID() : pOtherClient->GetSystemID());
-            //throw PyException(MakeCustomError("Translocate: This option is Incomplete"));
+            //throw CustomError ("Translocate: This option is Incomplete");
         } else if (strcmp(args.arg(3).c_str(), "planet") == 0) {
             // random planet in client current system
             SystemGPoint sGP;
             pt = sGP.GetRandPointOnPlanet(pOtherClient == nullptr ? pClient->GetSystemID() : pOtherClient->GetSystemID());
-            //throw PyException(MakeCustomError("Translocate: This option is Incomplete"));
+            //throw CustomError ("Translocate: This option is Incomplete");
         } else {
             // what are we missing?
-            throw PyException(MakeCustomError("Translocate: Invalid Arguments"));
+            throw CustomError ("Translocate: Invalid Arguments");
         }
 
     } else if (args.argCount() == 5) { // 4 args - me, player, ship,  coords, {invalid} : me, home, last, location, {invalid} : moon, planet, {invalid}
@@ -337,7 +337,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         or (strcmp(args.arg(2).c_str(), Help) == 0)
         or (strcmp(args.arg(3).c_str(), Help) == 0)
         or (strcmp(args.arg(4).c_str(), Help) == 0))
-            throw PyException(MakeCustomError("Translocate: Invalid Arguments - 'help' not avalible for this command."));
+            throw CustomError ("Translocate: Invalid Arguments - 'help' not avalible for this command.");
 
         // check for coords
         if ((args.isNumber(1))
@@ -347,7 +347,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             // pClient is caller, args are systemID and coords (assumed)
             locationID = atoi(args.arg(1).c_str());
             if (!IsSolarSystem(locationID))
-                throw PyException(MakeCustomError("Translocate: Invalid Arguments - locationID %u is not a SolarSystemID.", locationID));
+                throw CustomError ("Translocate: Invalid Arguments - locationID %u is not a SolarSystemID.", locationID);
             pt = GPoint(atoi(args.arg(2).c_str()), atoi(args.arg(3).c_str()), atoi(args.arg(4).c_str()));
 
             pClient->JumpOutEffect(locationID);
@@ -357,7 +357,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             return nullptr;
         }
 
-        throw PyException(MakeCustomError("Translocate: 4 args - This command is currently incomplete."));
+        throw CustomError ("Translocate: 4 args - This command is currently incomplete.");
     } else if (args.argCount() == 6) { // 5 args - me, player, ship, {invalid} : me, home, last, location,  coords, {invalid} : moon, planet, {invalid}
         // test for 'help' command
         if ((strcmp(args.arg(1).c_str(), Help) == 0)
@@ -365,22 +365,22 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         or (strcmp(args.arg(3).c_str(), Help) == 0)
         or (strcmp(args.arg(4).c_str(), Help) == 0)
         or (strcmp(args.arg(5).c_str(), Help) == 0))
-            throw PyException(MakeCustomError("Translocate: Invalid Arguments - 'help' not avalible for this command."));
+            throw CustomError ("Translocate: Invalid Arguments - 'help' not avalible for this command.");
 
-        throw PyException(MakeCustomError("Translocate: 5 args - This command is currently incomplete."));
+        throw CustomError ("Translocate: 5 args - This command is currently incomplete.");
     } else {
-        throw PyException(MakeCustomError("Translocate: Too Many Arguments"));
+        throw CustomError ("Translocate: Too Many Arguments");
     }
 
     if (fleet) {
         // this will take a lil bit of doing....
-        throw PyException(MakeCustomError("Translocate: Fleet Move - This command is currently incomplete."));
+        throw CustomError ("Translocate: Fleet Move - This command is currently incomplete.");
     }
 
 //  need to test locationID here to verify its valid.
 
     if (!IsValidLocation(locationID))
-        throw PyException(MakeCustomError("Translocate: Invalid Location %i", locationID));
+        throw CustomError ("Translocate: Invalid Location %i", locationID);
 
     if (IsPlayerItem(locationID)) {
         // locationID is sent as player item.  this can be any celestial object, ship, pos, jetcan, wreck, etc.
@@ -427,10 +427,10 @@ static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr 
         // this hits db directly, so test for possible sql injection code
         for (const auto cur : badCharsSearch)
             if (EvE::icontains(args.arg(1), cur))
-                throw PyException( MakeCustomError("Name contains invalid characters"));
+                throw CustomError ("Name contains invalid characters");
         std::map<uint32_t, std::string> matches;
         if (!db->ItemSearch(args.arg(1).c_str(), matches))
-            throw PyException(MakeCustomError("Item not found"));
+            throw CustomError ("Item not found");
 
         if (matches.size() > 1) {
             auto c = matches.begin();
@@ -443,7 +443,7 @@ static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr 
                     typeID = c->first;
             }
             if (typeID == -1)
-                throw PyException(MakeCustomError("Item name is ambiguous.  Please use a full item name"));
+                throw CustomError ("Item name is ambiguous.  Please use a full item name");
 
         } else if (matches.size() == 1) {
             auto cur = matches.begin();
@@ -454,10 +454,10 @@ static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr 
         }
     }
     if (typeID == -1)
-        throw PyException(MakeCustomError("Unable to find valid type to create"));
+        throw CustomError ("Unable to find valid type to create");
 
     if (typeID < 34)
-        throw PyException(MakeCustomError("Invalid Type ID."));
+        throw CustomError ("Invalid Type ID.");
 
     int qty = 1;
     if (2 < args.argCount()) {
@@ -489,7 +489,7 @@ static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr 
 
     InventoryItemRef iRef = sItemFactory.SpawnItem(idata);
     if (iRef.get() == nullptr)
-        throw PyException(MakeCustomError("Unable to create item of type %s.", args.arg(1).c_str()));
+        throw CustomError ("Unable to create item of type %s.", args.arg(1).c_str());
 
     //Move to location
     if (pClient->IsInSpace())
@@ -504,14 +504,14 @@ static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr 
 
 PyResult Command_create(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
     if (args.argCount() < 2) {
-        throw PyException(MakeCustomError("Correct Usage: /create [typeID|\"Type Name\"] [qty] [where]"));
+        throw CustomError ("Correct Usage: /create [typeID|\"Type Name\"] [qty] [where]");
     }
     return generic_createitem(pClient, db, services, args);
 }
 
 PyResult Command_createitem(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
     if (args.argCount() < 2) {
-        throw PyException(MakeCustomError("Correct Usage: /createitem [typeID|\"Type Name\"] [qty] [where]"));
+        throw CustomError ("Correct Usage: /createitem [typeID|\"Type Name\"] [qty] [where]");
     }
     return generic_createitem(pClient, db, services, args);
 }
@@ -521,17 +521,17 @@ PyResult Command_kill(Client* pClient, CommandDB* db, PyServiceMgr* services, co
 {
     if (args.argCount() == 2) {
         if (!args.isNumber(1)) {
-            throw PyException(MakeCustomError("Argument 1 should be a character ID"));
+            throw CustomError ("Argument 1 should be a character ID");
         }
         int entity = atoi(args.arg(1).c_str());
 
         InventoryItemRef itemRef = sItemFactory.GetShip(entity);
         if (itemRef.get() == NULL)
-            throw PyException(MakeCustomError("/kill NOT supported on non-ship types at this time"));
+            throw CustomError ("/kill NOT supported on non-ship types at this time");
 
         SystemEntity* shipEntity = pClient->SystemMgr()->GetSE(entity);
         if (shipEntity == nullptr) {
-            throw PyException(MakeCustomError("/kill cannot process this object"));
+            throw CustomError ("/kill cannot process this object");
             sLog.Error("GMCommands - Command_kill()", "Cannot process this object, aborting kill: %s [%u]", itemRef->name(), itemRef->itemID());
         } else {
             pClient->SystemMgr()->RemoveEntity(shipEntity);
@@ -547,7 +547,7 @@ PyResult Command_kill(Client* pClient, CommandDB* db, PyServiceMgr* services, co
             }
         }
     } else
-        throw PyException(MakeCustomError("Correct Usage: /kill <entityID>"));
+        throw CustomError ("Correct Usage: /kill <entityID>");
 
     return nullptr;
 }
@@ -555,13 +555,13 @@ PyResult Command_kill(Client* pClient, CommandDB* db, PyServiceMgr* services, co
 PyResult Command_killallnpcs(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (args.argCount() != 1)
-        throw PyException(MakeCustomError("Correct Usage: /killallnpcs"));
+        throw CustomError ("Correct Usage: /killallnpcs");
     if (pClient->GetShipSE() == nullptr)
-        throw PyException(MakeCustomError("ShipSE invalid."));
+        throw CustomError ("ShipSE invalid.");
     if (pClient->GetShipSE()->SysBubble() == nullptr)
-        throw PyException(MakeCustomError("SysBubble invalid."));
+        throw CustomError ("SysBubble invalid.");
 
     std::map< uint32, SystemEntity* > entityVec;
     pClient->GetShipSE()->SysBubble()->GetEntities(entityVec);
@@ -581,17 +581,17 @@ PyResult Command_unspawn(Client* pClient, CommandDB* db, PyServiceMgr* services,
 {
 #define DEFAULT_RANGE 500000
     if (!pClient->IsInSpace()) {
-        throw PyException(MakeCustomError("You must be in space to unspawn things."));
+        throw CustomError ("You must be in space to unspawn things.");
     }
 
     if (pClient->GetShipSE() == nullptr) {
-            throw PyException(MakeCustomError("/unspawn failed. You don't appear to have a ship?"));
+            throw CustomError ("/unspawn failed. You don't appear to have a ship?");
     }
     int target_index = cmd_find_nth_noneq(args, 1);
     uint32 target = 0;
     if (target_index > 0) {
         if (!args.isNumber(target_index)) {
-            throw PyException(MakeCustomError("/unspawn called with non number"));
+            throw CustomError ("/unspawn called with non number");
         }
         target = atoi(args.arg(target_index).c_str());
     }
@@ -606,7 +606,7 @@ PyResult Command_unspawn(Client* pClient, CommandDB* db, PyServiceMgr* services,
 
     if (range_str.size() > 0) {
         if (!IsNumber(range_str)) {
-            throw PyException(MakeCustomError("/unspawn with range=x must be a number"));
+            throw CustomError ("/unspawn with range=x must be a number");
         }
         range = atoi(range_str.c_str());
     }
@@ -614,14 +614,14 @@ PyResult Command_unspawn(Client* pClient, CommandDB* db, PyServiceMgr* services,
     if ((range != DEFAULT_RANGE or
             only_str.size() > 0) and
             target != 0) {
-            throw PyException(MakeCustomError("/unspawn cannot be called with an explcit target and either range= or only="));
+            throw CustomError ("/unspawn cannot be called with an explcit target and either range= or only=");
     }
 
     if (target != 0) {
         InventoryItemRef item_ref = sItemFactory.GetItem(target);
         SystemEntity *sys_entity = pClient->SystemMgr()->GetSE(target);
         if (sys_entity == nullptr) {
-            throw PyException(MakeCustomError("/unspawn failed.  Item %u not found.", target));
+            throw CustomError ("/unspawn failed.  Item %u not found.", target);
         }
 
         pClient->SystemMgr()->RemoveEntity(sys_entity);
@@ -631,7 +631,7 @@ PyResult Command_unspawn(Client* pClient, CommandDB* db, PyServiceMgr* services,
     }
 
     if (only_str.size() == 0) {
-        throw PyException(MakeCustomError("/unspawn usage:<br>  /unspawn [itemID]<br>/unspawn only=category|group<br>If using only the default range is 10k.  You can set this by adding range=x in meters"));
+        throw CustomError ("/unspawn usage:<br>  /unspawn [itemID]<br>/unspawn only=category|group<br>If using only the default range is 10k.  You can set this by adding range=x in meters");
     }
 
     bool is_category_match = false;
@@ -645,12 +645,12 @@ PyResult Command_unspawn(Client* pClient, CommandDB* db, PyServiceMgr* services,
         match_id = EVEDB::invGroups::Wreck;
         is_group_match = true;
     } else {
-        throw PyException(MakeCustomError("only='%s' not a supported group or category", only_str.c_str()));
+        throw CustomError ("only='%s' not a supported group or category", only_str.c_str());
     }
 
     SystemBubble *pBubble = pClient->GetShipSE()->SysBubble();
     if (pBubble == nullptr) {
-        throw PyException(MakeCustomError("/unspawn failed.  You don't appear to be in a bubble.  Try /update"));
+        throw CustomError ("/unspawn failed.  You don't appear to be in a bubble.  Try /update");
     }
 
     GPoint player_pos = pClient->GetShipSE()->GetPosition();
@@ -683,7 +683,7 @@ PyResult Command_unspawn(Client* pClient, CommandDB* db, PyServiceMgr* services,
 PyResult Command_location(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (pClient->GetShipSE()->DestinyMgr() == nullptr)
         pClient->SetDestiny(NULL_ORIGIN);
     if (pClient->GetShipSE()->SysBubble() == nullptr)
@@ -720,7 +720,7 @@ PyResult Command_location(Client* pClient, CommandDB* db, PyServiceMgr* services
 PyResult Command_syncloc(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (pClient->GetShipSE()->DestinyMgr() == nullptr)
         pClient->SetDestiny(NULL_ORIGIN);
     if (pClient->GetShipSE()->SysBubble() == nullptr)
@@ -740,7 +740,7 @@ PyResult Command_syncloc(Client* pClient, CommandDB* db, PyServiceMgr* services,
 PyResult Command_syncpos(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (pClient->GetShipSE()->DestinyMgr() == nullptr)
         pClient->SetDestiny(NULL_ORIGIN);
     if (pClient->GetShipSE()->SysBubble() == nullptr)
@@ -759,7 +759,7 @@ PyResult Command_syncpos(Client* pClient, CommandDB* db, PyServiceMgr* services,
 
 PyResult Command_update(Client *pClient, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (pClient->GetShipSE()->DestinyMgr() == nullptr)
         pClient->SetDestiny(NULL_ORIGIN);
     if (pClient->GetShipSE()->SysBubble() == nullptr)
@@ -787,7 +787,7 @@ PyResult Command_update(Client *pClient, CommandDB *db, PyServiceMgr *services, 
 
 PyResult Command_sendstate(Client *pClient, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (pClient->GetShipSE()->DestinyMgr() == nullptr)
         pClient->SetDestiny(NULL_ORIGIN);
     if (pClient->GetShipSE()->SysBubble() == nullptr)
@@ -806,7 +806,7 @@ PyResult Command_sendstate(Client *pClient, CommandDB *db, PyServiceMgr *service
 
 PyResult Command_addball(Client *pClient, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (pClient->GetShipSE()->DestinyMgr() == nullptr)
         pClient->SetDestiny(NULL_ORIGIN);
     if (pClient->GetShipSE()->SysBubble() == nullptr)
@@ -824,7 +824,7 @@ PyResult Command_addball(Client *pClient, CommandDB *db, PyServiceMgr *services,
 
 PyResult Command_addball2(Client *pClient, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
     if (!pClient->IsInSpace())
-        throw PyException(MakeCustomError("You're not in space."));
+        throw CustomError ("You're not in space.");
     if (pClient->GetShipSE()->DestinyMgr() == nullptr)
         pClient->SetDestiny(NULL_ORIGIN);
     if (pClient->GetShipSE()->SysBubble() == nullptr)
@@ -849,9 +849,9 @@ PyResult Command_cloak(Client* pClient, CommandDB* db, PyServiceMgr* services, c
             else
                 pClient->GetShipSE()->DestinyMgr()->Cloak();
         } else
-            throw PyException(MakeCustomError("ERROR!  You MUST be in space to cloak!"));
+            throw CustomError ("ERROR!  You MUST be in space to cloak!");
     } else
-        throw PyException(MakeCustomError("Correct Usage: /cloak"));
+        throw CustomError ("Correct Usage: /cloak");
 
     return nullptr;
 }

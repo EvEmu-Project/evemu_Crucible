@@ -79,6 +79,7 @@ public:
 
     uint32 GetID() const                                { return m_data.systemID; }
     uint32 GetRegionID()                                { return m_data.regionID; }
+    uint32 GetConstellationID()                         { return m_data.regionID; }
     const std::string& GetNameStr() const               { return m_data.name; }
     const char* GetName() const                         { return m_data.name.c_str(); }
     const char* GetSystemSecurityClass()                { return m_data.securityClass.c_str(); }
@@ -149,6 +150,9 @@ public:
     // this returns entities in system for display on ship scanner when enabled.
     void GetAllEntities(std::vector<CosmicSignature>& vector);
 
+    std::map<uint32, SystemEntity*> GetOperationalStatics() { return m_opStaticEntities; }
+    std::map<uint32, SystemEntity*> GetGates() { return m_gateMap; }
+
     void GetClientList(std::vector<Client*>& cVec);
 
     std::map< uint32, SystemEntity* > GetEntities()     { return m_entities; }
@@ -210,6 +214,7 @@ private:
     // for grid Unloading system  -allan  27June2015
     bool m_loaded;
     bool SystemActivity();
+    bool SafeToUnload();
     uint16 m_players;           // current total count
     uint32 m_activityTime;
 
@@ -220,6 +225,7 @@ private:
     std::map<uint32, SystemEntity*> m_entities;         // this list is all entities in this system.  we own these.
     std::map<uint32, SystemEntity*> m_ticEntities;      // this list is for entities that need process tics (objects, npc, client ships)
     std::map<uint32, SystemEntity*> m_staticEntities;   // this list is for static entities to send in setstate
+    std::map<uint32, SystemEntity*> m_opStaticEntities; // this list is for static entities which are operational and need to be initialized and operated upon even when system is empty
 
     // for bounty processing (20m timer)
     Timer m_bountyTimer;

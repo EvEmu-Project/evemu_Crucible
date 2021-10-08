@@ -494,6 +494,23 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         data.duration           = args.duration;
         data.memberID           = args.useCorp?call.client->GetCharacterID():0;
 
+        // check seller's permissions on the wallet if it's for corp
+        if (data.isCorp) {
+            int64 corpRole = call.client->GetCorpRole ();
+
+            // make sure the user has permissions to take money from the corporation account
+            if (
+                    (accountKey == 1000 && (corpRole & Corp::Role::AccountCanTake1) == 0) ||
+                    (accountKey == 1001 && (corpRole & Corp::Role::AccountCanTake2) == 0) ||
+                    (accountKey == 1002 && (corpRole & Corp::Role::AccountCanTake3) == 0) ||
+                    (accountKey == 1003 && (corpRole & Corp::Role::AccountCanTake4) == 0) ||
+                    (accountKey == 1004 && (corpRole & Corp::Role::AccountCanTake5) == 0) ||
+                    (accountKey == 1005 && (corpRole & Corp::Role::AccountCanTake6) == 0) ||
+                    (accountKey == 1006 && (corpRole & Corp::Role::AccountCanTake7) == 0)
+                    )
+                throw UserError("CrpAccessDenied").AddFormatValue ("reason", new PyString ("You do not have access to that wallet"));
+        }
+
         // these need a bit more data
         data.contraband = iRef->contraband();   // does this need to check region/system?
         data.jumps = 1;     // not sure if this is used....

@@ -541,26 +541,26 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         }
 
         // check for items that need specific handling
-        if (IsRigSlot(fromFlag)) { //  cant remove rigs like this.  send error.
-            throw PyException(MakeUserError("CannotRemoveUpgradeManually"));
-        } else if (IsModuleSlot(fromFlag)) {
+        if (IsRigSlot(fromFlag)) //  cant remove rigs like this.  send error.
+            throw UserError ("CannotRemoveUpgradeManually");
+        else if (IsModuleSlot(fromFlag)) {
             // can we remove modules from an inactive ship?  not yet...
             if (pShip == nullptr)
-                throw PyException( MakeCustomError("Ship not found. The %s wasnt moved.  Ref: ServerError 63290", iRef->name()));
+                throw CustomError ("Ship not found. The %s wasnt moved.  Ref: ServerError 63290", iRef->name());
 
             //if (IsSolarSystem(pShip->locationID()))
-            //    throw PyException(MakeCustomError("You cannot remove modules in space."));
+            //    throw CustomError ("You cannot remove modules in space.");
 
             // verify module isnt active here (before we get too far in processing)
             GenericModule* pMod = pShip->GetModule(fromFlag);
             if (pMod == nullptr)
-                throw PyException(MakeCustomError("That module was not found.  Chances are this is a server error, and either docking or reloging will correct it."));
+                throw CustomError ("That module was not found.  Chances are this is a server error, and either docking or reloging will correct it.");
             if (pMod->IsActive())
-                throw PyException(MakeCustomError("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name()));
+                throw CustomError ("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name());
 
             if (IsModuleSlot(toFlag)) {
                 if (IsSolarSystem(pShip->locationID()))
-                    throw PyException(MakeCustomError("You cannot exchange module slots in space."));
+                    throw CustomError ("You cannot exchange module slots in space.");
                 //ModulesNotLoadableInSpace  <-- this needs {device} but i dont know what module it is
 
                 // we are wanting to change slots on a fitted module.
@@ -801,7 +801,7 @@ PyResult InventoryBound::Handle_CreateBookmarkVouchers(PyCallArgs &call) {
     call.Dump(BOOKMARK__CALL_DUMP);
 
     if (m_self->ownerID() != call.client->GetCharID())
-        throw PyException(MakeUserError("CanOnlyCreateVoucherInPersonalHangar"));
+        throw UserError ("CanOnlyCreateVoucherInPersonalHangar");
 
     Call_CreateVouchers args;
     if (!args.Decode(&call.tuple)) {

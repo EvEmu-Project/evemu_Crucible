@@ -58,7 +58,7 @@ PyResult PaperDollService::Handle_GetPaperDollData(PyCallArgs &call) {
 
 PyResult PaperDollService::Handle_ConvertAndSavePaperDoll(PyCallArgs &call) {
     call.Dump(PLAYER__CALL_DUMP);
-    return NULL;
+    return nullptr;
 }
 
 PyResult PaperDollService::Handle_UpdateExistingCharacterFull(PyCallArgs &call) {
@@ -66,7 +66,7 @@ PyResult PaperDollService::Handle_UpdateExistingCharacterFull(PyCallArgs &call) 
     /*
         sm.RemoteSvc('paperDollServer').UpdateExistingCharacterFull(charID, dollInfo, portraitInfo, dollExists)
         */
-    return NULL;
+    return nullptr;
 }
 
 PyResult PaperDollService::Handle_UpdateExistingCharacterLimited(PyCallArgs &call) {
@@ -80,7 +80,7 @@ PyResult PaperDollService::Handle_UpdateExistingCharacterLimited(PyCallArgs &cal
 00:46:38 M    PhotoUploadSvc: Received image from account 3, size: 57621
 00:46:39 [SvcCall] Service paperDollServer::UpdateExistingCharacterLimited()
 */
-    return NULL;
+    return nullptr;
 }
 
 PyResult PaperDollService::Handle_GetPaperDollPortraitDataFor(PyCallArgs &call) {
