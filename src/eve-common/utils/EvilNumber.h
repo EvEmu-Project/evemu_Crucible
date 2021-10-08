@@ -203,12 +203,14 @@ public:
     #define LOGIC_OPERATOR(a, b) \
         bool operator a ( b val) \
         { \
-            if (this->mType == evil_number_int) \
+            if (this->mType == evil_number_int) { \
                 return this->iVal a static_cast<int64>(val); \
-            else if (this->mType == evil_number_float) \
+            } else if (this->mType == evil_number_float) { \
                 return this->fVal a static_cast<double>(val); \
-            else \
+            } else { \
                 assert(false); \
+                return false; \
+            } \
         }
 
     /**

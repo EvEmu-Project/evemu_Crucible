@@ -96,33 +96,33 @@ m_delete(false)
     assert(0);
 }
 
-// copy assignment
+// copy assignment =delete
+/*
 InventoryItem& InventoryItem::operator= ( const InventoryItem& oth )
 {
     sLog.Error("InventoryItem()", "InventoryItem copy assign called.");
     EvE::traceStack();
     assert(0);
-    /*
+
     oth.GetAttributeMap()->CopyAttributes(pAttributeMap->mAttributes);
 
     m_itemID = oth.itemID();
     m_type = oth.type();
-    */
-}
+} */
 
-// move assignment
+// move assignment =delete
+/*
 InventoryItem& InventoryItem::operator= ( InventoryItem&& oth ) noexcept
 {
     sLog.Error("InventoryItem()", "InventoryItem move assign called.");
     EvE::traceStack();
     assert(0);
-    /*
+
     oth.GetAttributeMap()->CopyAttributes(pAttributeMap->mAttributes);
 
     m_itemID = oth.itemID();
     m_type = oth.type();
-    */
-}
+} */
 
 
 InventoryItem::~InventoryItem() noexcept
