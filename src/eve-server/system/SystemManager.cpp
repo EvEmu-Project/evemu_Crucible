@@ -1296,6 +1296,10 @@ void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) c
     for (auto cur : m_staticEntities)
         visibleEntities.emplace(cur.first, cur.second);
 
+    // get all operational static entities and add to visibleEntities map
+    for (auto cur : m_opStaticEntities)
+        visibleEntities.emplace(cur.first, cur.second);
+
     // get our ship.  bubble->GetEntities() does not include cloaked items
     std::map<uint32, SystemEntity*>::const_iterator itr = m_ticEntities.find(into.ego);
     if (itr != m_ticEntities.end())

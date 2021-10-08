@@ -146,15 +146,7 @@ void SBUSE::MarkContested(uint32 systemID, bool contested)
 // Calculate number of gates in the system
 float SBUSE::GetGates()
 {
-    int numberOfGates = 0;
-    for (auto cur : m_system->GetOperationalStatics())
-    {
-        if (cur.second->IsGateSE())
-        {
-            numberOfGates++;
-        }
-    }
-    return (float)numberOfGates;
+    return (float)m_system->GetGates().size();
 }
 
 // Calculate number of SBUs in the system

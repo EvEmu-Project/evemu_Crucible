@@ -151,6 +151,7 @@ public:
     void GetAllEntities(std::vector<CosmicSignature>& vector);
 
     std::map<uint32, SystemEntity*> GetOperationalStatics() { return m_opStaticEntities; }
+    std::map<uint32, SystemEntity*> GetGates() { return m_gateMap; }
 
     void GetClientList(std::vector<Client*>& cVec);
 
