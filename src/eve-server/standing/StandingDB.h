@@ -41,7 +41,6 @@ public:
     static PyObjectEx* GetFactionStandings();
     PyRep* GetCorpStandings(Client* pClient);
     PyRep* GetCharStandings(Client* pClient);
-    static PyRep* GetSystemSovInfo(uint32 systemID);
     PyRep* PrimeCharStandings(uint32 charID);
     PyRep* GetCharNPCStandings(uint32 charID);
     PyRep* GetStandingTransactions(Call_GetStandingTransactions &args);

@@ -67,6 +67,9 @@ class ShipSE;
 class DungeonSE;
 
 class TowerSE;
+class TCUSE;
+class SBUSE;
+class IHubSE;
 class ArraySE;
 class BatterySE;
 class ModuleSE;
@@ -113,8 +116,6 @@ public:
     virtual StructureSE*        GetJammerSE()           { return nullptr; }
     virtual StructureSE*        GetJumpBridgeSE()       { return nullptr; }
     virtual StructureSE*        GetOutpostSE()          { return nullptr; }
-    virtual StructureSE*        GetTCUSE()              { return nullptr; }
-    virtual StructureSE*        GetSBUSE()              { return nullptr; }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
     virtual WeaponSE*           GetWeaponSE()           { return nullptr; }
@@ -124,6 +125,9 @@ public:
     virtual ModuleSE*           GetModuleSE()           { return nullptr; }
     virtual ReactorSE*          GetReactorSE()          { return nullptr; }
     virtual CustomsSE*          GetCOSE()               { return nullptr; }
+    virtual TCUSE*              GetTCUSE()              { return nullptr; }
+    virtual SBUSE*              GetSBUSE()              { return nullptr; }
+    virtual IHubSE*             GetIHubSE()             { return nullptr; }
     /* Dynamic */
     virtual DynamicSystemEntity* GetDynamicSE()         { return nullptr; }
     virtual NPC*                GetNPCSE()              { return nullptr; }
@@ -159,6 +163,7 @@ public:
     virtual bool                IsCOSE()                { return false; }
     virtual bool                IsTCUSE()               { return false; }
     virtual bool                IsSBUSE()               { return false; }
+    virtual bool                IsIHubSE()              { return false; }
     virtual bool                IsTowerSE()             { return false; }
     virtual bool                IsArraySE()             { return false; }
     virtual bool                IsJammerSE()            { return false; }
@@ -348,8 +353,14 @@ public:
     /* virtual functions to be overridden in derived classes */
     virtual bool                LoadExtras();
 
+    /* specific functions handled in this class. */
+    StructureSE* GetMySBU()                             { return m_sbuSE; }
+    bool HasSBU()                                       { return (m_sbuSE != nullptr); }
+    void SetSBU(StructureSE* pSE)                       { m_sbuSE = pSE; }
+
 protected:
     PyRep*                      m_jumps;
+    StructureSE*                m_sbuSE;
 
 };
 
@@ -403,7 +414,7 @@ public:
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects
  * - POS Structures, Outposts, Deployables, empty Ships, Asteroids
- *- has TargetMgr  no DestinyMgr*/
+ *- has TargetMgr  has DestinyMgr*/
 class ObjectSystemEntity : public SystemEntity {
 public:
     ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
@@ -427,6 +438,13 @@ public:
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Killed(Damage &fatal_blow);
+    virtual bool                IsInvul()               { return m_invul; }
+
+    /* specific functions handled here. */
+    void                    SetInvul(bool invul=false)  { m_invul = invul; }
+
+private:
+    bool m_invul;
 };
 
 /* Mobile Warp Disruptors */

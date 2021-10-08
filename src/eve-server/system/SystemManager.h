@@ -139,6 +139,8 @@ public:
     void AddBounty(uint32 charID, BountyData& data);
 
     SystemEntity* GetClosestMoonSE(const GPoint& myPos);
+    SystemEntity* GetClosestPlanetSE(const GPoint& myPos);
+    SystemEntity* GetClosestGateSE(const GPoint& myPos);
 
     // this returns entities in range for display on dscan.
     void DScan(int64 range, const GPoint& pos, std::vector< SystemEntity* >& vector);
@@ -203,6 +205,7 @@ private:
     // for POS system       -allan 23July17
     std::map<uint32, SystemEntity*> m_moonMap;        // our container, but we DONT own the SE*
     std::map<uint32, SystemEntity*> m_planetMap;      // our container, but we DONT own the SE*
+    std::map<uint32, SystemEntity*> m_gateMap;      // our container, but we DONT own the SE*
 
     // for grid Unloading system  -allan  27June2015
     bool m_loaded;

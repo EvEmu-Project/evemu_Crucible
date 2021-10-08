@@ -17,6 +17,7 @@
 #include "corporation/SparseBound.h"
 #include "station/StationDB.h"
 #include "station/StationDataMgr.h"
+#include "alliance/AllianceDB.h"
 
 /*
  * CORP__ERROR
@@ -2429,12 +2430,108 @@ PyResult CorpRegistryBound::Handle_CreateAlliance(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_CreateAlliance() size=%u", call.tuple->size() );
     call.Dump(CORP__CALL_DUMP);
 
+    AllianceDB a_db;
+    Client* pClient(call.client);
+
+    Call_CreateAlliance args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+    args.Dump(CORP__TRACE);
+
+    // verify they're not using bad words in their alliance name
+    for (const auto cur : badWords)
+        if (EvE::icontains(args.allianceName, cur))
+            throw PyException( MakeCustomError("Alliance Name contains banned words"));
+
+    // this hits db directly, so test for possible sql injection code
+    for (const auto cur : badCharsSearch)
+        if (EvE::icontains(args.allianceName, cur))
+            throw PyException( MakeCustomError("Alliance Name contains invalid characters"));
+
+    // this hits db directly, so test for possible sql injection code
+    for (const auto cur : badCharsSearch)
+        if (EvE::icontains(args.shortName, cur))
+            throw PyException( MakeCustomError("Alliance short name contains invalid characters"));
+
+    // verify short name is available
+    if (a_db.IsShortNameTaken(args.shortName))
+        throw PyException(MakeCustomError("Alliance short name is taken."));
+
+    double ally_cost = sConfig.rates.allyCost;
+    if (pClient->GetBalance(Account::CreditType::ISK) < ally_cost) {
+        _log(SERVICE__ERROR, "%s: Cannot afford alliance startup costs!", pClient->GetName());
+
+        // send error to client here
+        throw PyException(MakeCustomError("You must have %s ISK to create an alliance.", ally_cost));
+        return nullptr;
+    }
+
+    //creating an alliance will affect eveStaticOwners, so we gotta invalidate the cache...
+    //  call to db.AddCorporation() will update eveStaticOwners with new corp
+    PyString* cache_name = new PyString( "config.StaticOwners" );
+    m_manager->cache_service->InvalidateCache( cache_name );
+    PySafeDecRef( cache_name );
+
+    // Register new alliance (also gather current corpID and new allyID at same time)
+    uint32 allyID(0);
+    uint32 corpID(0);
+    if (!a_db.CreateAlliance(args, pClient, allyID, corpID)) {
+        codelog(SERVICE__ERROR, "New alliance creation failed.");
+        return nullptr;
+    }
+
+    // create alliance channel
+    m_manager->lsc_service->CreateSystemChannel(allyID);
+
+    // join corporation to alliance
+    if (!a_db.UpdateCorpAlliance(allyID, corpID)) {
+        codelog(SERVICE__ERROR, "Alliance join failed.");
+        return nullptr;
+    }
+
+    // Add alliance membership record to corporation
+    if (!a_db.AddEmployment(allyID, corpID)) {
+        codelog(SERVICE__ERROR, "Add corp employment failed.");
+        return nullptr;
+    }
+
+    // Update alliance ID on client session
+    pClient->UpdateSessionInt("allianceid", allyID);
+
+    //Return alliance we just created
+    return a_db.GetAlliance(allyID);
     return nullptr;
+
 }
 
 PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_ApplyToJoinAlliance()");
     call.Dump(CORP__CALL_DUMP);
+
+    AllianceDB a_db;
+
+    Call_ApplyToJoinAlliance args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+    args.Dump(CORP__TRACE);
+
+    Alliance::ApplicationInfo app;
+    app.appText = args.applicationText;
+    app.allyID = args.allianceID;
+    app.corpID = m_corpID;
+    app.state = EveAlliance::AppStatus::AppNew;
+    app.valid = true;
+
+    if (!a_db.InsertApplication(app)) {
+        codelog(SERVICE__ERROR, "New alliance application failed.");
+        return nullptr;
+    }
+
+    //TODO: Need to implement notification for alliance application change.
 
     return nullptr;
 }
@@ -2444,12 +2541,35 @@ PyResult CorpRegistryBound::Handle_GetAllianceApplications(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_GetAllianceApplications()");
     call.Dump(CORP__CALL_DUMP);
 
+    AllianceDB a_db;
+    return a_db.GetMyApplications(m_corpID);
+
     return nullptr;
 }
 
 PyResult CorpRegistryBound::Handle_DeleteAllianceApplication(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_DeleteAllianceApplication()");
     call.Dump(CORP__CALL_DUMP);
+
+    //This is not implemented by client, no context menu option
+
+    AllianceDB a_db;
+
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+    args.Dump(CORP__TRACE);
+
+    Alliance::ApplicationInfo app;
+    app.appID = args.arg;
+    app.valid = true;
+
+    if (!a_db.DeleteApplication(app)) {
+        codelog(SERVICE__ERROR, "New alliance application failed.");
+        return nullptr;
+    }
 
     return nullptr;
 }

@@ -20,34 +20,22 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:       James
 */
 
+#ifndef __SOVEREIGNTYDB_H_INCL__
+#define __SOVEREIGNTYDB_H_INCL__
 
-#ifndef __STATIONSVC_SERVICE_H_INCL__
-#define __STATIONSVC_SERVICE_H_INCL__
+#include "ServiceDB.h"
 
-#include "station/StationDB.h"
-#include "PyService.h"
+class PyRep;
+class Client;
 
-
-class StationSvc: public PyService
+class SovereigntyDB
+: public ServiceDB
 {
 public:
-    StationSvc(PyServiceMgr *mgr);
-    virtual ~StationSvc();
-
-protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    StationDB m_db;
-
-    PyCallable_DECL_CALL(GetStationItemBits);
-    PyCallable_DECL_CALL(GetSolarSystem);
-    PyCallable_DECL_CALL(GetStation);
-    PyCallable_DECL_CALL(GetAllianceSystems);
-    PyCallable_DECL_CALL(GetSystemsForAlliance);
-
+    static void GetSovereigntyData(DBQueryResult& res);
 };
+
 #endif

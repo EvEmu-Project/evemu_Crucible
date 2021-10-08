@@ -31,6 +31,7 @@
 #include "map/MapData.h"
 #include "map/MapService.h"
 #include "system/SystemManager.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 PyCallable_Make_InnerDispatcher(MapService)
 
@@ -207,7 +208,13 @@ PyResult MapService::Handle_GetCurrentSovData(PyCallArgs &call)
     sLog.Warning( "MapService::Handle_GetCurrentSovData()", "size= %u", call.tuple->size() );
     call.Dump(SERVICE__CALL_DUMP);
 
-    return PyStatic.NewNone();
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    return svDataMgr.GetCurrentSovData(args.arg);
 }
 PyResult MapService::Handle_GetRecentSovActivity(PyCallArgs &call)
 {

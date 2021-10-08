@@ -311,7 +311,8 @@ bool BeltSE::LoadExtras() {
 }
 
 StargateSE::StargateSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
-: StaticSystemEntity(self, services, system)
+: StaticSystemEntity(self, services, system),
+m_sbuSE(nullptr)
 {
 }
 
@@ -490,11 +491,14 @@ PyDict *FieldSE::MakeSlimItem()
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects - POS Structures, Outposts, Deployables, empty Ships, Asteroids */
 ObjectSystemEntity::ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
-: SystemEntity(self, services, system)
+: SystemEntity(self, services, system),
+m_invul(false)
 {
     m_targMgr = new TargetManager(this);
+    m_destiny = new DestinyManager(this);
 
     assert(m_targMgr != nullptr);
+    assert(m_destiny != nullptr);
 }
 
 ObjectSystemEntity::~ObjectSystemEntity()
@@ -507,6 +511,7 @@ ObjectSystemEntity::~ObjectSystemEntity()
         }
 
     SafeDelete(m_targMgr);
+    SafeDelete(m_destiny);
 }
 
 void ObjectSystemEntity::EncodeDestiny( Buffer& into )

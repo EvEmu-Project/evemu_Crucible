@@ -89,7 +89,7 @@ bool PosMgrDB::GetBaseData(EVEPOS::StructureData& data)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-            "SELECT towerID, moonID, state, status, timestamp, canUse, canView, canTake FROM posStructureData"
+            "SELECT towerID, anchorpointID, state, status, timestamp, canUse, canView, canTake FROM posStructureData"
             " WHERE itemID = %u", data.itemID))
     {
         codelog(DATABASE__ERROR, "Error in GetBaseData query: %s", res.error.c_str());
@@ -100,7 +100,7 @@ bool PosMgrDB::GetBaseData(EVEPOS::StructureData& data)
     if (!res.GetRow(row))
         return false;
     data.towerID = row.GetInt(0);
-    data.moonID = row.GetInt(1);
+    data.anchorpointID = row.GetInt(1);
     data.state = row.GetInt(2);
     data.status = row.GetInt(3);
     data.timestamp = row.GetInt64(4);
@@ -115,9 +115,9 @@ void PosMgrDB::SaveBaseData(EVEPOS::StructureData& data)
     DBerror err;
     sDatabase.RunQuery(err,
         "INSERT INTO posStructureData "
-        "(itemID, towerID, moonID, state, status, timestamp, canUse, canView, canTake)"
+        "(itemID, towerID, anchorpointID, state, status, timestamp, canUse, canView, canTake)"
         " VALUES ( %i, %i, %i, %i, %i, %li, %i, %i, %i)",
-        data.itemID, data.towerID, data.moonID, data.state, data.status, data.timestamp, data.use, data.view, data.take);
+        data.itemID, data.towerID, data.anchorpointID, data.state, data.status, data.timestamp, data.use, data.view, data.take);
 }
 
 void PosMgrDB::UpdateBaseData(EVEPOS::StructureData& data)
@@ -178,7 +178,6 @@ void PosMgrDB::SaveTowerData(EVEPOS::TowerData& tData, EVEPOS::StructureData& sD
         tData.showInCalendar, tData.sendFuelNotifications, tData.allowCorp, tData.allowAlliance,
         tData.anchor, tData.unanchor, tData.online, tData.offline);
 }
-
 
 bool PosMgrDB::GetBridgeData(EVEPOS::JumpBridgeData& data)
 {

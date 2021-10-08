@@ -40,6 +40,9 @@ class SystemEntity;
 class SystemManager;
 class Timer;
 class TowerSE;
+class TCUSE;
+class SBUSE;
+class IHubSE;
 class DroneSE;
 class PyObject;
 
@@ -139,6 +142,19 @@ public:
     TowerSE* GetTowerSE()                               { return m_towerSE; }
     void SetTowerSE(TowerSE* pTower)                    { m_towerSE = pTower; }
 
+    /* for setting TCU in bubble */
+    bool HasTCU()                                     { return (m_tcuSE != nullptr); }
+    TCUSE* GetTCUSE()                               { return m_tcuSE; }
+    void SetTCUSE(TCUSE* pTCU)                        { m_tcuSE = pTCU; }
+
+    bool HasSBU()                                     { return (m_sbuSE != nullptr); }
+    SBUSE* GetSBUSE()                               { return m_sbuSE; }
+    void SetSBUSE(SBUSE* pSBU)                        { m_sbuSE = pSBU; }
+
+    bool HasIHub()                                     { return (m_ihubSE != nullptr); }
+    IHubSE* GetIHubSE()                               { return m_ihubSE; }
+    void SetIHubSE(IHubSE* pIHub)                        { m_ihubSE = pIHub; }
+
     /* for system setstate */
     PyObject* GetDroneState() const;
 
@@ -160,6 +176,9 @@ protected:
     void MarkBubble(const GPoint& position, std::string& name, std::string& desc, bool center=false);
 
 private:
+    TCUSE* m_tcuSE;
+    SBUSE* m_sbuSE;
+    IHubSE* m_ihubSE;
     TowerSE* m_towerSE;
     SystemManager* m_system;
     ContainerSE* m_centerSE;
