@@ -1,7 +1,7 @@
 
 *******************************************************
 ****  Allan's EvEmu TODO LIST
-****     28 February 2021
+****     8 October 2021
 
     note:  this whole file needs to be reorganized (wip)
 
@@ -9,7 +9,6 @@
 *******************************************************
 **********  misc items to update from my code
 
-sysCalendarEvents
 
 
 *******************************************************
@@ -34,13 +33,10 @@ work on buglist, integrate this list in there where i can
 
 request for smartbombs
 
-fix isGlobal and AttrIsGlobal for items that need it (remove SE->isGlobal() hacks)
 
 as bubble code becomes more stable, consider updating/removing/recoding wander timer.
     - every 60s for every bubble object is a bit much.
     - check InBubble and IsOverlap code.
-
-update DBSystemDynamicEntity - change planetID to anchorPointID following james' idea for POS
 
 11:45:54 [DestinyWarning] Warp Cap need for Rifter(140007395) is 0.0007
 
@@ -99,15 +95,18 @@ ship warp speed on attributes tab is wrong
 
 error:
 "turret not fitted on shipID (npc)"
+
+
 ...still not sure on this.  throws a shitton of errors in client error log
 "Cleaning session *clientID 2888444* because it's ID doesn't match  0"
 
-23:51:06 [FxError] guid empty for F85 Peripheral Damage System I using effectID 2302
 
 this is used for pricing update based on minerals.  this query returns ~300 items
 SELECT * FROM `invTypeMaterials` WHERE `quantity` = 0
 
+
 materials for implants are wrong.  this leads to incorrect price estimates
+
 missing prices for salvage
 
 *******************************************************
@@ -138,7 +137,7 @@ AuditLogSecureContainer types not coded (data coded in EvE_Inventory.h)
 
 skill error on queue update   - see cruc/skills/skill_error_new
 
-look into changing (EvilNumber)DmgTypeAttribute to (struct)Inv::AttrData
+look into changing (EvilNumber)DmgTypeAttribute to (struct)Inv::AttrData  (started.  still being used by sDataMgr)
     - may be able to delete the EvilNumber class, as it was created only to deal with attribute data, which we are getting away from with the struct.
 
 journal msgs need to be implemented (wip)
@@ -156,6 +155,7 @@ go thru all updated effect data and look for 'improved' ship data to update ours
     - specialized holds from rhea (not available in cruc)
     - updated barges from current live patch (hot tanks)
 current fx data in db incomplete at best.  missing multiple items/defs
+23:51:06 [FxError] guid empty for F85 Peripheral Damage System I using effectID 2302
 isDefault used to send to activate for effectID
 go thru all gfx "effect.xxx" and cross with EVEEffectID to verify
     - gfx display is wonky.  dunno why some show and some dont
@@ -449,10 +449,6 @@ SparseBound will need work for RAM and lock votes (and more)
 check items in corp hangar for proper locationID/flagID
 
 
-alliances?  not yet.  need other shit finished first.
-started coding alliance db
-all alliance calls are skeleton code, except GetEmploymentRecord
-
 m_self is NOT being populated for non-piloted ships.   -priority level: low
 
 these can be found in 'db_shit/output.txt'
@@ -539,7 +535,7 @@ ibis?, navitas, bantam, probe, tormentor
 cruisers
 arbitrator, osprey, scythe, vexor
 
-some items dont have complete description in db (data is trunicated)
+some items dont have complete description in db (data is truncated)
 
 go thru classes and rename per class type...
     -  *Item  for items

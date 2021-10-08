@@ -104,11 +104,11 @@ namespace Inv {
         std::string     customInfo;
     };
 
-    /* POD structure for saving attribute data */
+    /* POD structure for attribute data */
     struct AttrData {
-        bool            type;          // 0=int, 1=float
+        bool            type;           // 0=int, 1=float
         uint16          attrID;
-        uint32          itemID;
+        uint32          itemID;         // itemID or typeID
         int64           valueInt;
         double          valueFloat;
     };
