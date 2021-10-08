@@ -191,8 +191,8 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
 
     /** @todo  this is direction from customs office to planet and set when co is created */
     m_rotation = NULL_ORIGIN;
-    m_planetID = 0;
     m_delayTime = 0;
+    m_anchorPointID = 0;
 
     m_warID = data.factionID;
     m_allyID = data.allianceID;

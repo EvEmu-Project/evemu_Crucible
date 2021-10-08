@@ -747,8 +747,12 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_ship->Move(m_locationID, flagNone, true);
     }
 
-    /** @todo  verify 'pt' is within system boundaries */
-    m_ship->SetPosition(pt);
+    // verify 'pt' is within system boundaries
+    if (pt.length() < m_SystemData.radius) {
+        m_ship->SetPosition(pt);
+    } else {
+        ;  // oob
+    }
 
     char ci[45];
     if (IsStation(m_locationID)) {
@@ -824,9 +828,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     if (!m_login)
         m_ship->SaveShip(); // this saves everything on ship
 
-    uint32 stationID(0);
-    if (IsStation(m_locationID))
-        stationID = m_locationID;
+    uint32 stationID(IsStation(m_locationID) ? m_locationID : 0);
     m_char->SetLocation(stationID, m_SystemData);
 
     UpdateSession();

@@ -405,12 +405,13 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         }
     }
 
+    /** @todo this needs to reset client bp/systemData for new system, if applicable */
     if (pOtherClient != nullptr) {
-        pOtherClient->JumpOutEffect(locationID);
+        pOtherClient->JumpOutEffect(pOtherClient->GetLocationID());
         pOtherClient->MoveToLocation(locationID, pt);
         pOtherClient->JumpInEffect();
     } else {
-        pClient->JumpOutEffect(locationID);
+        pClient->JumpOutEffect(myLocationID);
         pClient->MoveToLocation(locationID, pt);
         pClient->JumpInEffect();
     }
