@@ -3,6 +3,7 @@ services:
   server:
     build: . #Build image from source repository
     #image: "quay.io/evemu/server:latest" #Use prebuilt image
+    container_name: evemu_server
     volumes:
       - config:/app/etc
       - server_cache:/app/server_cache
@@ -26,6 +27,7 @@ services:
 
   db:
     image: "quay.io/bitnami/mariadb:10.4"
+    container_name: evemu_db
     volumes:
       - db:/bitnami/mariadb
     # If you want to connect to the Database pick your host port to map it to, (host-port:container-port) below. 

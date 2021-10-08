@@ -263,7 +263,9 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
         " regionID,"
         " ownerID,"
         " bid,"
-        " isCorp"
+        " isCorp,"
+        " memberID,"
+        " accountKey"
         " FROM mktOrders"
         " WHERE orderID=%u",
         orderID))
@@ -286,6 +288,8 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
     oInfo.ownerID    = row.GetUInt(5);
     oInfo.isBuy      = row.GetBool(6);
     oInfo.isCorp     = row.GetBool(7);
+    oInfo.memberID   = row.GetUInt(8);
+    oInfo.accountKey = row.GetUInt(9);
 
     return true;
 }

@@ -52,7 +52,7 @@ PyResult IndexManager::Handle_GetAllDevelopmentIndices( PyCallArgs& call ) {
              const.attributeDevIndexIndustrial: indexInfo.industrialPoints,
              const.attributeDevIndexSovereignty: indexInfo.claimedFor * CLAIM_DAYS_TO_SECONDS}
   */
-    return NULL;
+    return nullptr;
 }
 
 PyResult IndexManager::Handle_GetDevelopmentIndicesForSystem( PyCallArgs& call ) {
@@ -60,7 +60,7 @@ PyResult IndexManager::Handle_GetDevelopmentIndicesForSystem( PyCallArgs& call )
         self.devIndices = sm.RemoteSvc('devIndexManager').GetDevelopmentIndicesForSystem(session.solarsystemid2)
         devIndex = self.devIndices.get(indexID, None)
         */
-return NULL;
+return nullptr;
 }
 
 /*

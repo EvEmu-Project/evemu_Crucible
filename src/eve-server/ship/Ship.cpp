@@ -601,23 +601,23 @@ InventoryItemRef ShipItem::GetModuleRef(uint32 modID)
 void ShipItem::LoadCharge(InventoryItemRef cRef, EVEItemFlags flag)
 {
     if (cRef.get() == nullptr)
-        throw PyException(MakeUserError("CantFindChargeToAdd"));
+        throw UserError ("CantFindChargeToAdd");
 
     if (!IsFittingSlot(flag))
-        throw PyException(MakeCustomError("Destination is not weapon."));
+        throw CustomError ("Destination is not weapon.");
 
     if (IsFittingSlot(cRef->flag())) {
         _log(MODULE__TRACE, "ShipItem::LoadCharge - Trying to load %s from %s to %s.", \
                     cRef->name(), sDataMgr.GetFlagName(cRef->flag()), sDataMgr.GetFlagName(flag));
-        throw PyException(MakeUserError("CantMoveChargesBetweenModules"));
+        throw UserError ("CantMoveChargesBetweenModules");
     }
 
     GenericModule* pMod(m_ModuleManager->GetModule(flag));
     if (pMod == nullptr)
-        throw PyException(MakeUserError("ModuleNoLongerPresentForCharges"));
+        throw UserError ("ModuleNoLongerPresentForCharges");
 
     if (pMod->IsActive()) {
-        throw PyException(MakeCustomError("You cannot load active modules."));
+        throw CustomError ("You cannot load active modules.");
         /*
         std::map<std::string, PyRep *> args;
         args["chargeType"] = new PyInt(iRef->typeID());
@@ -627,9 +627,8 @@ void ShipItem::LoadCharge(InventoryItemRef cRef, EVEItemFlags flag)
          */
     }
     if (pMod->GetModuleState() == Module::State::Loading) {
-        std::map<std::string, PyRep *> args;
-        args["chargeType"] = new PyInt(cRef->typeID());
-        throw PyException(MakeUserError("LoadingChargeSlotAlready", args));
+        throw UserError ("LoadingChargeSlotAlready")
+                .AddFormatValue ("chargeType", new PyInt (cRef->typeID ()));
         //throw PyException( MakeUserError("LoadingChargeAlready", args));
         /*LoadingChargeAlreadyBody'}(u'Some or all of {[item]chargeType.name} is already being loaded into a module.
          * If you wish to load what remains, you will have to wait until this is finished.',
@@ -641,7 +640,7 @@ void ShipItem::LoadCharge(InventoryItemRef cRef, EVEItemFlags flag)
         /*  this doesnt work right....comment for now.
         std::map<std::string, PyRep *> args;
         args["charge"] = new PyInt(iRef->itemID());
-        throw PyException( MakeUserError("ChargeLoadingFailedWithRefund"));
+        throw UserError ("ChargeLoadingFailedWithRefund");
         */
         /* ChargeLoadingFailedWithRefundBody'}(u'Your {[item]charge.name} failed to load and was returned to your cargo.',
          * None, {u'{[item]charge.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'charge'}})
@@ -691,7 +690,7 @@ void ShipItem::LoadLinkedWeapons(GenericModule* pMod, std::vector<int32>& charge
     int8 pos = 0;
     InventoryItemRef cRef(sItemFactory.GetItem(chargeIDs[pos]));
     if (cRef.get() == nullptr)
-        throw PyException(MakeUserError("CantFindChargeToAdd"));
+        throw UserError ("CantFindChargeToAdd");
 
     int8 size(chargeIDs.size());
     //load charge in master
@@ -721,13 +720,13 @@ void ShipItem::RemoveCharge(EVEItemFlags fromFlag)
     if (IsFittingSlot(fromFlag)) {
         GenericModule* pMod(m_ModuleManager->GetModule(fromFlag));
         if (pMod == nullptr)
-            throw PyException( MakeCustomError("Module was not found at %s.", sDataMgr.GetFlagName(fromFlag)));
+            throw CustomError ("Module was not found at %s.", sDataMgr.GetFlagName(fromFlag));
 
         if (pMod->IsActive())
-            throw PyException( MakeUserError("CannotAccessChargeWhileInUse"));
+            throw UserError ("CannotAccessChargeWhileInUse");
 
         if (!pMod->IsLoaded())
-            throw PyException( MakeCustomError("Your %s is not loaded.", pMod->GetSelf()->name()));
+            throw CustomError ("Your %s is not loaded.", pMod->GetSelf()->name());
 
         m_ModuleManager->UnloadCharge(pMod);
     }
@@ -737,7 +736,7 @@ void ShipItem::RemoveCharge(EVEItemFlags fromFlag)
 void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
 {
     if (m_ModuleManager->IsSlotOccupied(flag))
-        throw PyException( MakeUserError("SlotAlreadyOccupied"));
+        throw UserError ("SlotAlreadyOccupied");
 
     m_ModuleManager->CheckSlotFitLimited(flag);
     m_ModuleManager->CheckGroupFitLimited(flag, iRef);
@@ -746,9 +745,8 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
         // check available turret/launcher hardpoints
         if (iRef->type().HasEffect(EVEEffectID::turretFitted)) {
             if (GetAttribute(AttrTurretSlotsLeft) < 1) {
-                std::map<std::string, PyRep *> args;
-                args["moduleName"] = new PyString(iRef->itemName());
-                throw PyException( MakeUserError("NotEnoughTurretSlots", args));
+                throw UserError ("NotEnoughTurretSlots")
+                        .AddTypeName ("moduleName", iRef->typeID ());
                 /*u'NotEnoughTurretSlotsBody'}(u"You cannot fit the {moduleName} because your ship doesn't have any turret slots left for fitting, possibly because you have already filled your ship with turrets or that the ship simply can not be fitted with turrets.\r\n<br>
                  * <br>Turret slots represent how many weapons of a certain type can be fitted on a ship. The current design is over a hundred years old, and is modular enough to allow for a great leeway in the fitting of various weaponry.", None,
                  * {u'{moduleName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'moduleName'}})
@@ -756,9 +754,8 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
             }
         } else if (iRef->type().HasEffect(EVEEffectID::launcherFitted)) {
             if (GetAttribute(AttrLauncherSlotsLeft) < 1) {
-                std::map<std::string, PyRep *> args;
-                args["moduleName"] = new PyString(iRef->itemName());
-                throw PyException( MakeUserError("NotEnoughLauncherSlots", args));
+                throw UserError ("NotEnoughLauncherSlots")
+                        .AddTypeName ("moduleName", iRef->typeID ());
                 /*NotEnoughLauncherSlotsBody'}(u"You cannot fit the {moduleName} because your ship doesn't have any launcher slots left for fitting, possibly because you have already filled your ship with launchers or that the ship simply can not be fitted with launchers.<br>
                  * <br>Launcher slots represent how many weapons of a certain type can be fitted on a ship. The current design is over a hundred years old, and is modular enough to allow for a great leeway in the fitting of various weaponry.", None,
                  * {u'{moduleName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'moduleName'}})
@@ -767,11 +764,10 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
         }
     } else if (IsRigSlot(flag)) {
         if (GetAttribute(AttrRigSize) != iRef->GetAttribute(AttrRigSize)) {
-            std::map<std::string, PyRep *> args;
-            args["rigSize"] = new PyString(sDataMgr.GetRigSizeName(iRef->GetAttribute(AttrRigSize).get_uint32()));
-            args["item"] = new PyString(iRef->itemName());
-            args["shipRigSize"] = new PyString(sDataMgr.GetRigSizeName(GetAttribute(AttrRigSize).get_uint32()));
-            throw PyException( MakeUserError("CannotFitRigWrongSize", args));
+            throw UserError ("CannotFitRigWrongSize")
+                    .AddFormatValue ("rigSize", new PyString (sDataMgr.GetRigSizeName (iRef->GetAttribute (AttrRigSize).get_uint32())))
+                    .AddTypeName ("item", iRef->typeID ())
+                    .AddFormatValue ("shipRigSize", new PyString (sDataMgr.GetRigSizeName (GetAttribute (AttrRigSize).get_uint32())));
             /* CannotFitRigWrongSizeBody'}(u'{item} does not fit in this slot.
              * The slot takes size {shipRigSize} rigs, but the item is size {rigSize}.', None,
              * {u'{rigSize}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'rigSize'},
@@ -781,18 +777,16 @@ void ShipItem::TryModuleLimitChecks(EVEItemFlags flag, InventoryItemRef iRef)
              */
         }
         if (GetAttribute(AttrUpgradeSlotsLeft) < 1) {
-            std::map<std::string, PyRep *> args;
-            args["moduleType"] = new PyString(iRef->type().name());
-            throw PyException( MakeUserError("NotEnoughUpgradeSlots", args));
+            throw UserError ("NotEnoughUpgradeSlots")
+                    .AddFormatValue ("moduleType", new PyInt (iRef->typeID ()));
             /*NotEnoughUpgradeSlotsBody'}(u"You cannot fit the {[item]moduleType.name} because your ship doesn't have any upgrade slots left for fitting, possibly because you have already filled your ship with upgrades or that the ship simply can not be fitted with upgrades.", None,
              * {u'{[item]moduleType.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'moduleType'}})
              */
         }
 
         if ((GetAttribute(AttrUpgradeLoad) + iRef->GetAttribute(AttrUpgradeCost)) > GetAttribute(AttrUpgradeCapacity)) {
-            std::map<std::string, PyRep *> args;
-            args["moduleName"] = new PyString(iRef->itemName());
-            throw PyException( MakeUserError("NotEnoughUpgradeCapacity", args));
+            throw UserError ("NotEnoughUpgradeCapacity")
+                    .AddTypeName ("moduleName", iRef->typeID ());
             /*NotEnoughUpgradeCapacityBody'}(u'You cannot fit the {moduleName} because your ship cannot handle it. Your ship can only fit so many upgrades as each interferes with its calibration, and past a certain point your ship is rendered unusable.', None,
              * {u'{moduleName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'moduleName'}})
              */
@@ -824,23 +818,23 @@ EVEItemFlags ShipItem::FindAvailableModuleSlot(InventoryItemRef iRef) {
 void ShipItem::MoveModuleSlot(EVEItemFlags slot1, EVEItemFlags slot2) {
     // this will never hit.  client checks before call.
     if (!m_ModuleManager->VerifySlotExchange(slot1, slot2))
-        throw PyException(MakeCustomError("Those locations are not compatible."));
+        throw CustomError ("Those locations are not compatible.");
 
     // test for active module(s) before moving
     GenericModule* pMod(GetModule(slot1));
     if (pMod->IsActive())
-        throw PyException(MakeCustomError("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name()));
+        throw CustomError ("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name());
 
     pMod = GetModule(slot2);
     if (pMod != nullptr)
         if (pMod->IsActive())
-            throw PyException(MakeCustomError("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name()));
+            throw CustomError ("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name());
 
     // slot1 is occupied, as this is where module is from.
     InventoryItemRef modItemRef1(GetModuleRef(slot1));
     if (modItemRef1.get() == nullptr) {
         _log(MODULE__TRACE, "ShipItem::MoveModuleSlot - modItemRef1 is null.");
-        throw PyException(MakeCustomError("The module to move was not found."));
+        throw CustomError ("The module to move was not found.");
     }
     InventoryItemRef chargeItemRef1(m_ModuleManager->GetLoadedChargeOnModule(slot1));
     RemoveItem(modItemRef1);
@@ -1387,15 +1381,15 @@ void ShipItem::LinkWeapon(GenericModule* pMaster, GenericModule* pSlave)
     if (pMaster == pSlave)
         return; // make error here?
     if ((pMaster->IsLoaded()) or (pSlave->IsLoaded()))
-        throw PyException( MakeUserError("CantLinkAmmoInWeapon"));
+        throw UserError ("CantLinkAmmoInWeapon");
     if ((pMaster->IsActive()) or (pSlave->IsActive()))
-        throw PyException( MakeUserError("CantLinkModuleActive"));
+        throw UserError ("CantLinkModuleActive");
     if ((pMaster->IsDamaged()) or (pSlave->IsDamaged()))
-        throw PyException( MakeUserError("CantLinkModuleDamaged"));
+        throw UserError ("CantLinkModuleDamaged");
     if ((pMaster->IsLoading()) or (pSlave->IsLoading()))
-        throw PyException( MakeUserError("CantLinkModuleLoading"));
+        throw UserError ("CantLinkModuleLoading");
     if ((!pMaster->isOnline()) or (!pSlave->isOnline()))
-        throw PyException( MakeUserError("CantLinkModuleNotOnline"));
+        throw UserError ("CantLinkModuleNotOnline");
 
     std::map<GenericModule*, std::list<GenericModule*>>::iterator itr = m_linkedWeapons.find(pMaster);
     if (itr == m_linkedWeapons.end()) {
@@ -1581,9 +1575,9 @@ void ShipItem::UnlinkWeapon(uint32 masterID, uint32 slaveID)
 
     // if master is loading or active, then whole group is
     if (pMod1->IsActive())
-        throw PyException( MakeUserError("CantUngroupModuleActive"));
+        throw UserError ("CantUngroupModuleActive");
     if (pMod1->IsLoading())
-        throw PyException( MakeUserError("CantUngroupModuleLoading"));
+        throw UserError ("CantUngroupModuleLoading");
 
     pMod2->SetLinked(false);
 
@@ -1614,9 +1608,9 @@ void ShipItem::UnlinkGroup(uint32 memberID, bool update/*false*/)
 
     // if master is loading or active, then whole group is
     if (pMod1->IsActive())
-        throw PyException( MakeUserError("CantUngroupModuleActive"));
+        throw UserError ("CantUngroupModuleActive");
     if (pMod1->IsLoading())
-        throw PyException( MakeUserError("CantUngroupModuleLoading"));
+        throw UserError ("CantUngroupModuleLoading");
 
     std::map<GenericModule*, std::list<GenericModule*>>::iterator itr = m_linkedWeapons.find(pMod1);
     if (itr != m_linkedWeapons.end()) {
@@ -1661,9 +1655,9 @@ void ShipItem::UnlinkAllWeapons()
     m_ModuleManager->GetWeapons(weaponList);
     for (auto cur : weaponList) {
         if (cur->IsActive())
-            throw PyException( MakeUserError("CantUngroupModuleActive"));
+            throw UserError ("CantUngroupModuleActive");
         if (cur->IsLoading())
-            throw PyException( MakeUserError("CantUngroupModuleLoading"));
+            throw UserError ("CantUngroupModuleLoading");
 
         cur->SetLinked(false);
         cur->SetLinkMaster(false);
@@ -1993,19 +1987,19 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
             return;
         case flagDroneBay: {
             if (iRef->categoryID() != EVEDB::invCategories::Drone) {
-                throw PyException(MakeCustomError("%s cannot be stowed in the Drone Bay", sDataMgr.GetGroupName(iRef->groupID())));
+                throw CustomError ("%s cannot be stowed in the Drone Bay", sDataMgr.GetGroupName(iRef->groupID()));
             }
             if (groupID() == EVEDB::invGroups::Supercarrier) {
                 // these can only carry fighters and fighter/bombers in drone bay.  enforce that here.
                 if ((iRef->groupID() != EVEDB::invGroups::Fighter_Bomber)
                 and (iRef->groupID() != EVEDB::invGroups::Fighter_Drone)) {
-                    throw PyException(MakeCustomError("The %s can only carry fighter drones in it's Drone Bay.  The %s is not allowed.", name(), iRef->name()));
+                    throw CustomError ("The %s can only carry fighter drones in it's Drone Bay.  The %s is not allowed.", name(), iRef->name());
                 }
             }
         } break;
         case flagShipHangar: {    //AttrShipMaintenanceBayCapacity
             if (!HasAttribute(AttrHasShipMaintenanceBay)) {
-                throw PyException(MakeCustomError("Your %s has no ship maintenance bay.", name()));
+                throw CustomError ("Your %s has no ship maintenance bay.", name());
             }
             if (typeID() == EVEDB::invTypes::Rorqual)
                 if ((iRef->groupID() != EVEDB::invGroups::MiningBarge)
@@ -2015,59 +2009,59 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
                 and (iRef->groupID() != EVEDB::invGroups::Freighter)
                 and (iRef->groupID() != EVEDB::invGroups::Prototype_Exploration_Ship)
                 and (iRef->groupID() != EVEDB::invGroups::CapitalIndustrialShip)) {
-                    throw PyException(MakeCustomError("Only indy ships may be placed into the Rorqual's ship hold."));
+                    throw CustomError ("Only indy ships may be placed into the Rorqual's ship hold.");
                 }
             if (iRef->categoryID() != EVEDB::invCategories::Ship) {
-                throw PyException(MakeCustomError("Only ships may be placed into the maintenance bay."));
+                throw CustomError ("Only ships may be placed into the maintenance bay.");
             }
         } break;
         case flagFuelBay: {    //  AttrFuelBayCapacity
             if ((iRef->groupID() != EVEDB::invGroups::FuelBlock)
             and (iRef->groupID() != EVEDB::invGroups::Ice_Product)) {
-                throw PyException(MakeCustomError("Only fuel types may be stored in the fuel bay."));
+                throw CustomError ("Only fuel types may be stored in the fuel bay.");
             }
         } break;
         case flagOreHold: {
             if (iRef->categoryID() != EVEDB::invCategories::Asteroid) {
-                throw PyException(MakeCustomError("Only mined ore may be stored in the ore hold."));
+                throw CustomError ("Only mined ore may be stored in the ore hold.");
             }
         } break;
         case flagGasHold: {
             if (iRef->groupID() != EVEDB::invGroups::Gas_Isotopes) {
-                throw PyException(MakeCustomError("Only gas products may be stored in the gas hold."));
+                throw CustomError ("Only gas products may be stored in the gas hold.");
             }
         } break;
         case flagMineralHold: {
             if (iRef->groupID() != EVEDB::invGroups::Mineral) {
-                throw PyException(MakeCustomError("Only refined minerals may be placed into the mineral hold."));
+                throw CustomError ("Only refined minerals may be placed into the mineral hold.");
             }
         } break;
         case flagSalvageHold: {
             if (iRef->groupID() != EVEDB::invGroups::Salvage_Materials) {
-                throw PyException(MakeCustomError("Only salvaged materials may be placed into the salvage bay."));
+                throw CustomError ("Only salvaged materials may be placed into the salvage bay.");
             }
         } break;
         // not sure if all of these flag* are used.  if not, *may* update dgmData to add them....later.
         case flagShipHold: {
             if (iRef->categoryID() != EVEDB::invCategories::Ship) {
-                throw PyException(MakeCustomError("Only ships may be placed into the ship hold."));
+                throw CustomError ("Only ships may be placed into the ship hold.");
             }
         } break;
 
         /** @todo need to figure out how to separate ships into s/m/l/i for these.... */
         case flagSmallShipHold: {
             if (iRef->categoryID() != EVEDB::invCategories::Ship) {
-                throw PyException(MakeCustomError("Only small ships may be placed into the ship's small ship hold."));
+                throw CustomError ("Only small ships may be placed into the ship's small ship hold.");
             }
         } break;
         case flagMediumShipHold: {
             if (iRef->categoryID() != EVEDB::invCategories::Ship) {
-                throw PyException(MakeCustomError("Only medium ships may be placed into the ship's medium ship hold."));
+                throw CustomError ("Only medium ships may be placed into the ship's medium ship hold.");
             }
         } break;
         case flagLargeShipHold: {
             if (iRef->categoryID() != EVEDB::invCategories::Ship) {
-                throw PyException(MakeCustomError("Only large ships may be placed into the ship's large ship hold."));
+                throw CustomError ("Only large ships may be placed into the ship's large ship hold.");
             }
         } break;
         case flagIndustrialShipHold: {
@@ -2078,7 +2072,7 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
             and (iRef->groupID() != EVEDB::invGroups::Freighter)
             and (iRef->groupID() != EVEDB::invGroups::Prototype_Exploration_Ship)
             and (iRef->groupID() != EVEDB::invGroups::CapitalIndustrialShip)) {
-                throw PyException(MakeCustomError("Only indy ships may be placed into the ship's industrial ship hold."));
+                throw CustomError ("Only indy ships may be placed into the ship's industrial ship hold.");
             }
         } break;
         case flagAmmoHold: {
@@ -2093,7 +2087,7 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
             and (iRef->groupID() != EVEDB::invGroups::Advanced_Blaster_Ammo)
             and (iRef->groupID() != EVEDB::invGroups::Advanced_Railgun_Ammo)
             and (iRef->groupID() != EVEDB::invGroups::Hybrid_Ammo)) {
-                throw PyException(MakeCustomError("Only ammunition and crystals may be placed into the ammo bay."));
+                throw CustomError ("Only ammunition and crystals may be placed into the ammo bay.");
                 }
         } break;
         case flagHangar:
@@ -2104,7 +2098,7 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
         case flagCorpHangar6:
         case flagCorpHangar7: {    //AttrCorporateHangarCapacity
             if (GetAttribute(AttrHasCorporateHangars) == 0) {
-                throw PyException(MakeCustomError("Your %s has no corporate hangars.", name()));
+                throw CustomError ("Your %s has no corporate hangars.", name());
             }
         } break;
         default: {
@@ -2113,16 +2107,16 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
             if ((iRef->categoryID() != EVEDB::invCategories::Module)
             and (iRef->categoryID() != EVEDB::invCategories::Charge)
             and (iRef->categoryID() != EVEDB::invCategories::Subsystem)) {
-                throw PyException(MakeCustomError("%s cannot be fitted onto a ship. Only hardware modules may be fitted.", iRef->name()));
+                throw CustomError ("%s cannot be fitted onto a ship. Only hardware modules may be fitted.", iRef->name());
             }
 
             if (IsModuleSlot(flag)) {
                 if (!Skill::FitModuleSkillCheck(iRef, pClient->GetChar())) {
-                    throw PyException(MakeCustomError("You do not have the required skills to fit this %s.  Ref: ServerError 25163.", iRef->name()));
+                    throw CustomError ("You do not have the required skills to fit this %s.  Ref: ServerError 25163.", iRef->name());
                 }
                 if (!ValidateItemSpecifics(iRef)) {
-                    throw PyException(MakeCustomError("Your ship cannot equip the %s.<br>The group '%s' is not allowed on your %s.", \
-                            iRef->name(), sDataMgr.GetGroupName(iRef->groupID()), type().name().c_str()));
+                    throw CustomError ("Your ship cannot equip the %s.<br>The group '%s' is not allowed on your %s.", \
+                            iRef->name(), sDataMgr.GetGroupName(iRef->groupID()), type().name().c_str());
                 }
                 if (iRef->categoryID() == EVEDB::invCategories::Charge) {
                     GenericModule* pMod(m_ModuleManager->GetModule(flag));
@@ -2133,24 +2127,24 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
                                 sLog.Error("ShipItem::VerifyHoldType", "Charge size %u for %s does not match Module size %u for %s.",\
                                         iRef->GetAttribute(AttrChargeSize).get_uint32(), iRef->name(),\
                                         pMod->GetAttribute(AttrChargeSize).get_uint32(), pMod->GetSelf()->name());
-                                throw PyException(MakeCustomError("Incorrect charge size for this module."));
+                                throw CustomError ("Incorrect charge size for this module.");
                             }
                             if ((pMod->GetAttribute(AttrChargeGroup1) != iRef->groupID())
                             and (pMod->GetAttribute(AttrChargeGroup2) != iRef->groupID())
                             and (pMod->GetAttribute(AttrChargeGroup3) != iRef->groupID())
                             and (pMod->GetAttribute(AttrChargeGroup4) != iRef->groupID())
                             and (pMod->GetAttribute(AttrChargeGroup5) != iRef->groupID())) {
-                                throw PyException(MakeCustomError("Incorrect charge type for this module."));
+                                throw CustomError ("Incorrect charge type for this module.");
                             }
                         // NOTE: Module Manager will check for actual room to load charges and make stack splits, or reject loading altogether
                     } else {
-                        throw PyException(MakeCustomError("There is no module in %s.  Ref: ServerError 25162.", sDataMgr.GetFlagName(flag)));
+                        throw CustomError ("There is no module in %s.  Ref: ServerError 25162.", sDataMgr.GetFlagName(flag));
                     }
                 }
             } else {
                 sLog.Error("ShipItem::VerifyHoldType", "testing %s to add %u %s of cat %s has reached the end.",
                         sDataMgr.GetFlagName(flag), iRef->quantity(), iRef->name(), sDataMgr.GetCategoryName(iRef->categoryID()));
-                throw PyException(MakeCustomError("Internal Server Error.  Ref: ServerError 25162."));
+                throw CustomError ("Internal Server Error.  Ref: ServerError 25162.");
             }
         }
     }

@@ -57,7 +57,7 @@ PyResult HoloscreenMgrService::Handle_GetRecentEpicArcCompletions(PyCallArgs& ca
      *        completionDate
      */
 
-    return NULL;
+    return nullptr;
 }
 
 PyResult HoloscreenMgrService::Handle_GetTwoHourCache(PyCallArgs& call)

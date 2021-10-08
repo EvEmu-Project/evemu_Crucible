@@ -668,7 +668,6 @@ PyResult PosMgrBound::Handle_AnchorStructure(PyCallArgs &call) {
         uint32 dist = pTSE->GetSelf()->radius() + call.client->GetShip()->radius();
         call.client->GetShipSE()->DestinyMgr()->WarpTo(pos, dist);
     }
-
     // returns nodeID and timestamp
     PyTuple* tuple = new PyTuple(2);
     tuple->SetItem(0, new PyString(GetBindStr()));    // node info here

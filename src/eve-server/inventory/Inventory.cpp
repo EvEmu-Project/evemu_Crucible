@@ -707,68 +707,77 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
             std::map<std::string, PyRep *> args;
             args["volume"] = new PyFloat(volume);
             sItemFactory.UnsetUsingClient();
-            if (IsCargoHoldFlag(flag)) {
-                args["available"] = new PyFloat(capacity);
-                throw PyException(MakeUserError("NotEnoughCargoSpace", args));
-            } else if (flag == flagShipHangar) {
-                args["type"] = new PyInt(iRef->itemID());
-                args["required"] = new PyFloat(volume);
-                args["free"] = new PyFloat(capacity);
-                throw PyException(MakeUserError("NotEnoughCargoSpaceFor1Unit", args));
-            } else if (IsSpecialHoldFlag(flag)) {
-                args["item"] = new PyInt(iRef->itemID());
-                args["maximum"] = new PyInt(GetCapacity(flag));
-                args["used"] = new PyInt(GetStoredVolume(flag));
-                throw PyException(MakeUserError("NotEnoughSpecialBaySpaceOverload", args));
-            } else if (IsModuleSlot(flag)) {
-                args["capacity"] = new PyFloat(GetCapacity(flag));
-                throw PyException(MakeUserError("NotEnoughChargeSpace", args));
-            } else if (IsHangarFlag(flag)) {
-                args["item"] = new PyString(iRef->itemName());
-                args["maximum"] = new PyInt(GetCapacity(flag));
-                args["used"] = new PyInt(GetStoredVolume(flag));
-                throw PyException(MakeUserError("NotEnoughSpaceOverload", args));
-            } else if (flag == flagDroneBay) {
-                args["item"] = new PyString(iRef->itemName());
-                args["maximum"] = new PyInt(GetCapacity(flag));
-                args["used"] = new PyInt(GetStoredVolume(flag));
-                throw PyException(MakeUserError("NotEnoughDroneBaySpaceOverload", args));
-            } else {
-                args["item"] = new PyInt(iRef->itemID());
-                args["maximum"] = new PyInt(GetCapacity(flag));
-                args["used"] = new PyInt(GetStoredVolume(flag));
-                throw PyException(MakeUserError("NoSpaceForThatOverload", args));
-            }
+            if (IsCargoHoldFlag(flag))
+                throw UserError ("NotEnoughCargoSpace")
+                        .AddAmount ("volume", volume)
+                        .AddAmount ("available", capacity);
+            else if (flag == flagShipHangar)
+                throw UserError ("NotEnoughCargoSpaceFor1Unit")
+                        .AddAmount ("volume", volume)
+                        .AddFormatValue ("type", new PyInt (iRef->itemID ()))
+                        .AddAmount ("required", volume)
+                        .AddAmount ("free", capacity);
+            else if (IsSpecialHoldFlag(flag))
+                throw UserError ("NotEnoughSpecialBaySpaceOverload")
+                        .AddAmount ("volume", volume)
+                        .AddFormatValue ("item", new PyInt (iRef->itemID ()))
+                        .AddAmount ("maximum", GetCapacity (flag))
+                        .AddAmount ("user", GetStoredVolume (flag));
+            else if (IsModuleSlot(flag))
+                throw UserError ("NotEnoughChargeSpace")
+                        .AddAmount ("volume", volume)
+                        .AddAmount ("capacity", GetCapacity (flag));
+            else if (IsHangarFlag(flag))
+                throw UserError ("NotEnoughSpaceOverload")
+                        .AddAmount ("volume", volume)
+                        .AddLocationName ("item", iRef->itemID ())
+                        .AddAmount ("maximum", GetCapacity (flag))
+                        .AddAmount ("user", GetStoredVolume (flag));
+            else if (flag == flagDroneBay)
+                throw UserError ("NotEnoughDroneBaySpaceOverload")
+                        .AddAmount ("volume", volume)
+                        .AddLocationName ("item", iRef->itemID ())
+                        .AddAmount ("maximum", GetCapacity (flag))
+                        .AddAmount ("used", GetStoredVolume (flag));
+            else
+                throw UserError ("NoSpaceForThatOverload")
+                        .AddAmount ("volume", volume)
+                        .AddFormatValue ("item", new PyInt (iRef->itemID ()))
+                        .AddAmount ("maximum", GetCapacity (flag))
+                        .AddAmount ("used", GetStoredVolume (flag));
         }
         return false;
     }
 
     // check capy for all units
     if (totalVolume > capacity) {
-        std::map<std::string, PyRep *> args;
-        args["volume"] = new PyFloat(totalVolume);
-        if (IsSpecialHoldFlag(flag)) {
-            args["available"] = new PyInt(capacity);
-            throw PyException(MakeUserError("NotEnoughSpecialBaySpace", args));
-        } else if (flag == flagDroneBay) {
-            args["available"] = new PyFloat(capacity);
-            throw PyException(MakeUserError("NotEnoughDroneBaySpace", args));
-        } else if (IsHangarFlag(flag)) {
-            args["item"] = new PyString(iRef->itemName());
-            args["maximum"] = new PyInt(GetCapacity(flag));
-            args["used"] = new PyInt(GetStoredVolume(flag));
-            throw PyException(MakeUserError("NotEnoughCargoSpaceOverload", args));
-        } else if (IsCargoHoldFlag(flag)) {
-            args["available"] = new PyFloat(capacity);
-            throw PyException(MakeUserError("NotEnoughCargoSpace", args));
-        } else {
-            args["itemTypeName"] = new PyInt(iRef->itemID());
-            args["itemVolume"] = new PyFloat(totalVolume);
-            args["volumeAvailable"] = new PyFloat(capacity);
-            throw PyException(MakeUserError("NoSpaceForThat", args));
-        }
+        if (IsSpecialHoldFlag(flag))
+            throw UserError ("NotEnoughSpecialBaySpace")
+                    .AddAmount ("volume", totalVolume)
+                    .AddAmount ("available", capacity);
+        else if (flag == flagDroneBay)
+            throw UserError ("NotEnoughDroneBaySpace")
+                    .AddAmount ("volume", totalVolume)
+                    .AddAmount ("available", capacity);
+        else if (IsHangarFlag(flag))
+            throw UserError ("NotEnoughCargoSpaceOverload")
+                    .AddAmount ("volume", totalVolume)
+                    .AddLocationName ("item", iRef->itemID ())
+                    .AddAmount ("maximum", GetCapacity (flag))
+                    .AddAmount ("used", GetStoredVolume (flag));
+        else if (IsCargoHoldFlag(flag))
+            throw UserError ("NotEnoughCargoSpace")
+                    .AddAmount ("volume", totalVolume)
+                    .AddAmount ("available", capacity);
+        else
+            throw UserError ("NoSpaceForThat")
+                    .AddAmount ("volume", totalVolume)
+                    .AddFormatValue ("itemTypeName", new PyInt (iRef->itemID ()))
+                    .AddAmount ("itemVolume", totalVolume)
+                    .AddAmount ("volumeAvailable", capacity);
         return false;
     }
+
     return true;
 }
 

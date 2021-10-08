@@ -47,6 +47,7 @@ protected:
     PyCallable_DECL_CALL(GetSolarSystem);
     PyCallable_DECL_CALL(GetStation);
     PyCallable_DECL_CALL(GetAllianceSystems);
+    PyCallable_DECL_CALL(GetSystemsForAlliance);
 
 };
 #endif

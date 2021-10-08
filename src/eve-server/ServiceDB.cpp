@@ -52,7 +52,7 @@ bool ServiceDB::ValidateAccountName(CryptoChallengePacket& ccp, std::string& fai
         return false;
     }
     //if (name.length() < 4)
-    //    throw PyException( MakeUserError("CharNameInvalidMinLength"));
+    //    throw UserError ("CharNameInvalidMinLength");
     if (ccp.user_name.length() > 20) {    //client caps at 24
         failMsg = "Account Name is too long.";
         return false;

@@ -126,6 +126,7 @@ boolean can use either 0/1 OR true/false.
         <HistoryUpdateTime>8</HistoryUpdateTime><!-- integer  - time in hours to update market price histories  default:6 -->
         <UseOrderRange>true</UseOrderRange><!-- bool  - default: true  -->
         <DeleteOldTransactions>false</DeleteOldTransactions><!-- bool  - delete transactions from db older than 3 days  default: false  -->
+        <SalesTax>1.0</SalesTax><!-- float - the sales tax percentage -->
     </market>
 
     <!-- don't modify any of the following bpTimes settings - they are not fully debugged -->

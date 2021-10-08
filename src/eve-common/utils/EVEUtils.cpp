@@ -28,36 +28,6 @@
 #include "python/classes/PyExceptions.h"
 #include "utils/EVEUtils.h"
 
-UserError *MakeUserError(const char *exceptionType, const std::map<std::string, PyRep *> &args)
-{
-    UserError *err = new UserError( exceptionType );
-
-    std::map<std::string, PyRep *>::const_iterator cur = args.begin();
-    for(; cur != args.end(); cur++)
-        err->AddKeyword( cur->first.c_str(), cur->second );
-
-    return err;
-}
-
-UserError* MakeCustomError( const char* fmt, ... )
-{
-    va_list va;
-    va_start( va, fmt );
-
-    char* str = NULL;
-    vasprintf( &str, fmt, va );
-    assert( str );
-
-    va_end( va );
-
-    UserError* err = new UserError( "CustomError" );
-    err->AddKeyword( "error", new PyString( str ) );
-
-    SafeFree( str );
-
-    return err;
-}
-
 bool IsPrintable( const PyString* str )
 {
     return IsPrintable( str->content() );

@@ -81,6 +81,9 @@ PyResult CalendarMgrService::Handle_DeleteEvent( PyCallArgs& call )
 
     CalendarDB::DeleteEvent(args.arg1); // eventID
 
+    // Calendar must be reloaded or the event won't actually show as deleted.
+    call.client->SendNotification("OnReloadCalendar", "charid", new PyTuple(0), false);
+
     return nullptr;
 }
 

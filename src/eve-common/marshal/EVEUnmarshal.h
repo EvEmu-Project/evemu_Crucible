@@ -241,7 +241,7 @@ private:
     /** Helper; loads extended object from stream. */
     PyObjectEx* LoadObjectEx( bool is_type_2 );
     /** Helper; loads zero-compressed buffer from stream. */
-    bool LoadZeroCompressed( Buffer& into );
+    bool LoadRLE(Buffer& out );
 
     /** Buffer iterator we are processing. */
     Buffer::const_iterator<uint8> mInItr;

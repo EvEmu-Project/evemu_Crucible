@@ -47,7 +47,7 @@ PyList* LiveUpdateDB::GenerateUpdates()
     if (!sDatabase.RunQuery(res, query))
     {
         codelog(DATABASE__ERROR, "Couldn't get live updates from database: %s", res.error.c_str());
-        return NULL;
+        return nullptr;
     }
 
     // setup the descriptor

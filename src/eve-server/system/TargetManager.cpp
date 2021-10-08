@@ -40,6 +40,8 @@
 #include "npc/NPCAI.h"
 #include "pos/Structure.h"
 #include "pos/Tower.h"
+#include "pos/sovStructures/TCU.h"
+#include "pos/sovStructures/IHub.h"
 #include "ship/Ship.h"
 #include "ship/modules/ActiveModule.h"
 #include "ship/modules/MiningLaser.h"
@@ -139,6 +141,30 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
                 mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), maxLockedTargets);
         return false;
     }
+
+    // Check if target is an invulnerable structure
+    if (tSE->IsTCUSE()) {
+        if (tSE->GetTCUSE()->GetState() == EVEPOS::StructureState::Online) {
+            mySE->GetPilot()->SendNotifyMsg("You cannot target an invulnerable structure.");
+            return false;
+        }
+    } else if (tSE->IsTowerSE()) {
+        if ((tSE->GetTowerSE()->GetState() == EVEPOS::StructureState::Reinforced) || (tSE->GetTowerSE()->GetState() == EVEPOS::StructureState::ArmorReinforced) || (tSE->GetTowerSE()->GetState() == EVEPOS::StructureState::SheildReinforced)) {
+            mySE->GetPilot()->SendNotifyMsg("You cannot target an invulnerable structure.");
+            return false;
+        }
+    } else if (tSE->IsIHubSE()) {
+        if (tSE->GetIHubSE()->GetState() == EVEPOS::StructureState::Online) {
+            mySE->GetPilot()->SendNotifyMsg("You cannot target an invulnerable structure.");
+            return false;
+        }
+    } else if (tSE->IsOutpostSE()) {
+        if (tSE->GetOutpostSE()->GetState() == EVEPOS::StructureState::Online) { //TODO: This structure state likely will be different for outposts, will change later.
+            mySE->GetPilot()->SendNotifyMsg("You cannot target an invulnerable structure.");
+            return false;
+        }
+    }
+
     // Check against max target range
     double maxTargetRange = sRef->GetAttribute(AttrMaxTargetRange).get_double();
     GVector rangeToTarget( mySE->GetPosition(), tSE->GetPosition() );

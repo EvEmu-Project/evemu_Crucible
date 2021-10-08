@@ -64,7 +64,7 @@ public:
 
     bool                        HasCOSE()               { return pCO != nullptr; }
     void                        CreateCustomsOffice();
-    void                SetCustomsOffice(CustomsSE* pSE){ pCO = pSE; }
+    void                        SetCustomsOffice(CustomsSE* pSE){ pCO = pSE; }
     CustomsSE*                  GetCustomsOffice()      { return pCO; }
 
     bool                        HasColony()             { return !m_colonies.empty(); }
@@ -82,6 +82,8 @@ private:
      *  Colony* is owned by its planetSE
      */
     std::map<uint32, Colony*>   m_colonies;
+
+
 };
 
 #endif  // EVEMU_PLANET_PLANET_H_

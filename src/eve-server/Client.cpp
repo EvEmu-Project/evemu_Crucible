@@ -1039,14 +1039,14 @@ void Client::CheckShipRef(ShipItemRef newShipRef)
 {
     if (newShipRef.get() == nullptr) {
         _log(PLAYER__ERROR, "CheckShipRef() - %s: newShipRef == NULL.", m_char->name());
-        throw PyException(MakeCustomError("Could not find ship's ItemRef.  Cannot Board.   Ref: ServerError 12321."));
+        throw CustomError ("Could not find ship's ItemRef.  Cannot Board.   Ref: ServerError 12321.");
     } else if (!newShipRef->isSingleton()) {
         _log(PLAYER__MESSAGE, "%s tried to board ship %u, which is not assembled.", m_char->name(), newShipRef->itemID());
-        throw PyException(MakeCustomError("You cannot board a ship which is not assembled!"));
+        throw CustomError ("You cannot board a ship which is not assembled!");
     } else if ((m_ship == newShipRef) and !m_login) {
         // if char is loging in, this will hit.  unknown about any other time.
         _log(PLAYER__MESSAGE, "%s tried to board active ship %u.", m_char->name(), newShipRef->itemID());
-        throw PyException(MakeCustomError("You are already aboard this ship."));
+        throw CustomError ("You are already aboard this ship.");
     }
 }
 
@@ -1127,7 +1127,7 @@ void Client::Eject()
     if (m_pod.get() == nullptr) {
         _log(SHIP__ERROR, "Handle_Eject() - Failed to get podItem for %s.", GetName());
         if (m_canThrow) {
-            throw PyException(MakeCustomError("Something bad happened as you prepared to eject.  Ref: ServerError 25107."));
+            throw CustomError ("Something bad happened as you prepared to eject.  Ref: ServerError 25107.");
         } else {
             return;
         }
@@ -1136,7 +1136,7 @@ void Client::Eject()
     if (pShipSE->SysBubble() == nullptr) {
         _log(SHIP__ERROR, "Handle_Eject() - Bubble is null for %s.", GetName());
         if (m_canThrow) {
-            throw PyException(MakeCustomError("Something bad happened as you prepared to eject.  Ref: ServerError 25107+1."));
+            throw CustomError ("Something bad happened as you prepared to eject.  Ref: ServerError 25107+1.");
         } else {
             return;
         }
@@ -1181,7 +1181,7 @@ void Client::Eject()
         _log(PLAYER__ERROR, "%s Eject() - pShipSE = NULL for shipID %u.", m_char->name(), m_pod->itemID());
         // we should probably send char to their clone station if this happens....
         MoveToLocation(GetCloneStationID(), NULL_ORIGIN);
-        throw PyException(MakeCustomError("There was a problem creating your pod in space.<br>You have been transfered to your home station.<br>Ref: ServerError 15107."));
+        throw CustomError ("There was a problem creating your pod in space.<br>You have been transfered to your home station.<br>Ref: ServerError 15107.");
     }
 
     newShipSE->SetLauncherID(pShipSE->GetID());
@@ -1216,7 +1216,7 @@ void Client::ResetAfterPopped(GPoint& position)
         // we should probably send char to their clone station if this happens....
         MoveToLocation(GetCloneStationID(), NULL_ORIGIN);
         SpawnNewRookieShip(m_locationID);
-        throw PyException(MakeCustomError("There was a problem creating your pod in space.<br>You have been transfered to your home station.<br>Ref: ServerError 15107."));
+        throw CustomError ("There was a problem creating your pod in space.<br>You have been transfered to your home station.<br>Ref: ServerError 15107.");
     }
 
     newShipSE->SetLauncherID(pShipSE->GetID());
@@ -1832,7 +1832,12 @@ void Client::InitSession(int32 characterID)
     pSession->SetInt("hqID",             (int32)(characterDataMap["corporationHQ"]));
     pSession->SetInt("baseID",           characterDataMap["baseID"]);
     pSession->SetInt("corpAccountKey",   characterDataMap["corpAccountKey"]);
-    pSession->SetInt("allianceid",       characterDataMap["allianceID"]);
+
+    //Only set allianceID if it is not 0
+    if (characterDataMap["allianceID"] != 0){
+        pSession->SetInt("allianceid", characterDataMap["allianceID"]);
+    }
+
     pSession->SetInt("warfactionid",     characterDataMap["warFactionID"]);
 
     pSession->SetLong("corprole",        characterDataMap["corpRole"]);
@@ -1913,7 +1918,12 @@ void Client::UpdateCorpSession(CorpData& data)
     pSession->SetInt("corpid", data.corporationID);
     pSession->SetInt("baseID", data.baseID);
     pSession->SetInt("hqID", data.corpHQ);
-    pSession->SetInt("allianceid", data.allianceID);
+
+    //Only set allianceID if it is not 0
+    if (data.allianceID != 0){
+        pSession->SetInt("allianceid", data.allianceID);
+    }
+    
     pSession->SetInt("warfactionid", data.warFactionID);
     pSession->SetInt("corpAccountKey", data.corpAccountKey);
     pSession->SetLong("corprole", data.corpRole);
@@ -2538,7 +2548,7 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
         if (dest == nullptr) {
             sLog.Error("Client::CallReq","Unable to find service to handle call to: %s", packet->dest.service.c_str());
             packet->dest.Dump(CLIENT__CALL_DUMP, "    ");
-            throw PyException(MakeUserError("ServiceNotFound"));  // this msg is invalid ("Message not found")
+            throw UserError ("ServiceNotFound"); // this message is invalid (message not found)
         }
     }
 

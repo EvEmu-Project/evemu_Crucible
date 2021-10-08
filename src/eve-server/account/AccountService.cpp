@@ -220,7 +220,7 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call)
         // this hits db directly, so test for possible sql injection code
         for (const auto cur : badChars)
             if (EvE::icontains(args.reason, cur))
-                throw PyException( MakeCustomError("Description contains invalid characters"));
+                throw CustomError ("Description contains invalid characters");
         reason += args.reason;
     }
 
@@ -249,7 +249,7 @@ PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call)
         // this hits db directly, so test for possible sql injection code
         for (const auto cur : badChars)
             if (EvE::icontains(PyRep::StringContent(call.byname.find("reason")->second), cur))
-                throw PyException( MakeCustomError("Reason contains invalid characters"));
+                throw CustomError ("Reason contains invalid characters");
 
         reason += PyRep::StringContent(call.byname.find("reason")->second);
     } else {
@@ -394,7 +394,11 @@ void AccountService::HandleCorpTransaction(uint32 corpID, int8 entryTypeID, uint
             args["amount"] = new PyFloat(-amount);
             args["balance"] = new PyFloat(balance);
             args["division"] = new PyString(CorporationDB::GetDivisionName(corpID, accountKey));
-            throw PyException(MakeUserError("NotEnoughMoneyCorp", args));
+            throw UserError ("NotEnoughMoneyCorp")
+                    .AddOwnerName ("owner", corpID)
+                    .AddISK ("amount", -amount)
+                    .AddISK ("balance", balance)
+                    .AddFormatValue ("division", new PyString (CorporationDB::GetDivisionName (corpID, accountKey)));
         }
     }
     // get new corp balance

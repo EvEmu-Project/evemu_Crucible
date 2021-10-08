@@ -322,112 +322,152 @@ bool MarshalStream::VisitObjectEx( const PyObjectEx* rep )
     return true;
 }
 
-bool MarshalStream::VisitPackedRow( const PyPackedRow* rep )
+bool MarshalStream::VisitPackedRow( const PyPackedRow* pyPackedRow )
 {
     Put<uint8>( Op_PyPackedRow );
 
-    DBRowDescriptor* header(rep->header());
+    DBRowDescriptor* header(pyPackedRow->header());
     header->visit( *this );
 
-    // Create size map, sorted from the greatest to the smallest value:
+    // create the sizemap and sort it by bitsize, the value of the map indicates the index of the column
+    // this can be used to identify things easily
     std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-    uint32 cc(header->ColumnCount());
-    size_t sum(0);
-    uint8 size(0);
+    std::map<uint8,uint8> booleanColumns;
 
-    for ( uint32 i(0); i < cc; ++i ) {
-        size = DBTYPE_GetSizeBits( header->GetColumnType( i ) );
+    uint32 columnCount = header->ColumnCount();
+    size_t byteDataBitLength = 0;
+    size_t booleansBitLength = 0;
+    size_t nullsBitLength = 0;
 
-        sizeMap.insert( std::make_pair( size, i ) );
-        sum += size;
+    // go through all the columns to gather the required information
+    for (uint32_t i = 0; i < columnCount; i ++)
+    {
+        DBTYPE columnType = header->GetColumnType (i);
+        uint8_t size = DBTYPE_GetSizeBits (columnType);
+
+        // count booleans
+        if (columnType == DBTYPE_BOOL)
+        {
+            // register the boolean in the list and increase the length
+            booleanColumns.insert (std::make_pair (i, booleansBitLength));
+            booleansBitLength ++;
+        }
+
+        // also count all columns as possible nulls
+        nullsBitLength ++;
+
+        // increase the bytedata length only if a column is longer than 7 bits
+        // this is used as an indicator of what is written in the first second, or third part
+        if (size >= 8)
+            byteDataBitLength += size;
+
+        // add the column to the list
+        sizeMap.insert (std::make_pair (size, i));
     }
 
-    Buffer unpacked;
-    sum = ((sum + 7) >> 3);
-    unpacked.Reserve<uint8>( sum );
+    // reserve the space for the buffers
+    Buffer rowData;
+    rowData.Reserve<uint8> ((byteDataBitLength >> 3) + ((booleansBitLength + nullsBitLength) >> 3) + 1);
+    // to ease working with the bit data, reserve a fixed-size buffer
+    // and fill it with 0s
+    Buffer bitData(((booleansBitLength + nullsBitLength) >> 3) + 1, 0);
 
     std::multimap< uint8, uint32, std::greater< uint8 > >::iterator cur, end;
     cur = sizeMap.begin();
+    // limit the search to booleans, the rest of the values are encoded differently
     end = sizeMap.lower_bound( 1 );
-    PyRep* r(nullptr);
-    for (; cur != end; ++cur) {
-        r = rep->GetField(cur->second);
-        // packing a zero instead of None here is wrong.
-        //  have liveupdate patch to test for this discrepancy in client (FixDefaultEffect)
-        switch( header->GetColumnType( cur->second ) ) {
+    PyRep* value(nullptr);
+    for (; cur != end; ++cur)
+    {
+        value = pyPackedRow->GetField(cur->second);
+
+        // handle the column being none
+        if (value->IsNone() == true)
+        {
+            // get the bit this column should be written at
+            unsigned long nullBit = cur->second + booleansBitLength;
+            unsigned long nullByte = nullBit >> 3;
+            // setup the iterator to the proper byte
+            Buffer::iterator<uint8> bitIterator = bitData.begin<uint8>() + nullByte;
+            // update the proper bit
+            *bitIterator |= (1 << (nullBit & 0x7));
+        }
+
+        // ensure that the proper value is written
+        // the values will be ignored if a none flag is set, but they must be present
+        switch (header->GetColumnType (cur->second))
+        {
             case DBTYPE_CY:
             case DBTYPE_I8:
             case DBTYPE_UI8:
-            case DBTYPE_FILETIME: {
-                unpacked.Append<int64>( r->IsNone() ? 0 : r->AsLong()->value() );
-            } break;
-            case DBTYPE_I4: {
-                unpacked.Append<int32>( r->IsNone() ? 0 : r->AsInt()->value() );
-            } break;
-            case DBTYPE_UI4: {
-                unpacked.Append<uint32>( r->IsNone() ? 0 : r->AsInt()->value() );
-            } break;
-            case DBTYPE_I2: {
-                unpacked.Append<int16>( r->IsNone() ? 0 : r->AsInt()->value() );
-            } break;
-            case DBTYPE_UI2: {
-                unpacked.Append<uint16>( r->IsNone() ? 0 : r->AsInt()->value() );
-            } break;
-            case DBTYPE_I1: {
-                unpacked.Append<int8>( r->IsNone() ? 0 : r->AsInt()->value() );
-            } break;
-            case DBTYPE_UI1: {
-                unpacked.Append<uint8>( r->IsNone() ? 0 : r->AsInt()->value() );
-            } break;
-            case DBTYPE_R8: {
-                unpacked.Append<double>( r->IsNone() ? 0.0 : r->AsFloat()->value() );
-            } break;
-            case DBTYPE_R4: {
-                unpacked.Append<float>(static_cast<float>(r->IsNone() ? 0.0f : r->AsFloat()->value()));
-            } break;
-            case DBTYPE_BOOL: {
-                unpacked.Append<bool>( r->IsNone() ? 0 : r->AsBool()->value() );
-            } break;
-            case DBTYPE_EMPTY:
-            case DBTYPE_ERROR:
-            case DBTYPE_BYTES:
-            case DBTYPE_STR:
-            case DBTYPE_WSTR: {
-                /* incorrect implemented so we make sure we crash here */
-                //FIXME  change to proper error-handling to avoid crash.  (currently nothing hits here)
+            case DBTYPE_FILETIME:
+                rowData.Append<int64>(value->IsNone() ? 0 : value->AsLong()->value() );
+                break;
+            case DBTYPE_I4:
+                rowData.Append<int32>(value->IsNone() ? 0 : value->AsInt()->value() );
+                break;
+            case DBTYPE_UI4:
+                rowData.Append<uint32>(value->IsNone() ? 0 : value->AsInt()->value() );
+                break;
+            case DBTYPE_I2:
+                rowData.Append<int16>(value->IsNone() ? 0 : value->AsInt()->value() );
+                break;
+            case DBTYPE_UI2:
+                rowData.Append<uint16>(value->IsNone() ? 0 : value->AsInt()->value() );
+                break;
+            case DBTYPE_I1:
+                rowData.Append<int8>(value->IsNone() ? 0 : value->AsInt()->value() );
+                break;
+            case DBTYPE_UI1:
+                rowData.Append<uint8>(value->IsNone() ? 0 : value->AsInt()->value() );
+                break;
+            case DBTYPE_R8:
+                rowData.Append<double>(value->IsNone() ? 0.0 : value->AsFloat()->value() );
+                break;
+            case DBTYPE_R4:
+                rowData.Append<float>(static_cast<float>(value->IsNone() ? 0.0f : value->AsFloat()->value()));
+                break;
+            // FIXME nothing should hit here ever but better implement some error-handling just in case
+            default:
                 assert( false );
                 EvE::traceStack();
-            } break;
+                break;
         }
     }
 
-    uint8 bitOffset(0);
-    Buffer::iterator<uint8> bitByte;
     cur = sizeMap.lower_bound( 1 );
     end = sizeMap.lower_bound( 0 );
     PyBool* b(nullptr);
-    for (; cur != end; ++cur) {
-        b = rep->GetField( cur->second )->AsBool();
-        if ( 7 < bitOffset )
-            bitOffset = 0;
-        if ( 0 == bitOffset ) {
-            bitByte = unpacked.end<uint8>();
-            unpacked.ResizeAt( bitByte, 1 );
-        }
+    for (; cur != end; ++cur)
+    {
+        b = pyPackedRow->GetField(cur->second)->AsBool();
 
-        *bitByte |= ( b->value() << bitOffset++ );
+        // false values do not need anything to be done
+        if (b->value() == false)
+            continue;
+
+        // get the bit this boolean should be written at
+        unsigned long boolBit = booleanColumns.find (cur->second)->second;
+        unsigned long boolByte = boolBit >> 3;
+        // setup the iterator to the proper byte
+        Buffer::iterator<uint8> bitIterator = bitData.begin<uint8>() + boolByte;
+        // update the proper bit
+        *bitIterator |= (1 << (boolBit & 0x7));
     }
 
-    //pack the bytes with the zero compression algorithm.
-    if (!SaveZeroCompressed(unpacked))
+    // concatenate the bit data to the rowData
+    rowData.AppendSeq(bitData.begin<uint8>(), bitData.end<uint8>());
+
+    // run the data through the zero compression algorithm
+    if (!SaveRLE(rowData))
         return false;
 
-    // Append fields that are not packed:
+    // finally append items that are not packed like strings or byte buffers
     cur = sizeMap.lower_bound( 0 );
     end = sizeMap.end();
     for (; cur != end; ++cur) {
-        r = rep->GetField( cur->second );
-        if (!r->visit(*this))
+        value = pyPackedRow->GetField(cur->second );
+        if (!value->visit(*this))
             return false;
     }
 
@@ -500,61 +540,79 @@ void MarshalStream::SaveVarInteger( const PyLong* v )
     }
 }
 
-bool MarshalStream::SaveZeroCompressed( const Buffer& data )
+bool MarshalStream::SaveRLE(const Buffer& in )
 {
-    Buffer packed;
-    Buffer::const_iterator<uint8> cur = data.begin<uint8>(), end = data.end<uint8>();
-    while ( cur < end ) {
-        // Insert opcode
-        Buffer::iterator<ZeroCompressOpcode> opcode = packed.end<ZeroCompressOpcode>();
-        packed.ResizeAt( opcode, 1 );
+    // TODO: REWRITE THIS, AS IT IS RIGHT NOW IS INEFFICIENT, I'VE CONVERTED THE BUFFER CLASS TO A BASTARDIZED VERSION OF A NORMAL BYTE ARRAY
+    // ALMAMU - 2021/04/22 - After many years the buggy "SaveZeroCompressed" function has been laid to rest
+    //                       may this todo be a way to remind us how unstable and fragile the EVEmu core is
+    //                       this code has been validated against the disassembly of Apocrypha's blue.dll
+    //                       for those interested, the function lives in .text:10082D10 of that DLL
+    //                       "hopefully" this brings our marshaller closer to fully featured
 
-#   define OPCODE_ENCODE( opIsZero, opLen )     \
-        if ( 0 == *cur )                         \
-        {                                       \
-            opIsZero = true;                    \
-            opLen    = 7;                       \
-                                                \
-            do                                  \
-            {                                   \
-                ++cur;                          \
-                ++opLen;                        \
-            } while( 7 > opLen && cur < end     \
-                     && 0 == *cur );            \
-        }                                       \
-        else /* 0 != *cur */                    \
-        {                                       \
-            opIsZero = false;                   \
-            opLen    = 0;                       \
-                                                \
-            do                                  \
-            {                                   \
-                packed.Append<uint8>( *cur++ ); \
-                --opLen;                        \
-            } while( 0 < opLen && cur < end     \
-                     && 0 != *cur );            \
+    // reserve double the buffer size just in case, we do not want to run out of space or else the iterators will start to complain
+    Buffer out(in.size() * 2, 0);
+
+    // this code has been used and ported through different projects
+    // both ntt's reverence and Captnoord's re-implementation of evemu core have the exact same code
+    // after validation against the disassembly (and unless I've missed anything) it seems to be 100% accurate
+    // so no real modification to it was done
+    int nibble = 0;
+    int nibble_ix = 0;
+    int in_ix = 0;
+    int out_ix = 0;
+    int start, end, count;
+    int zerochains = 0;
+    int in_size = in.size();
+
+    while(in_ix < in_size)
+    {
+        if(!nibble)
+        {
+            nibble_ix = out_ix++;
+            out[nibble_ix] = 0;
         }
 
-        // Encode first part
-        OPCODE_ENCODE( opcode->firstIsZero, opcode->firstLen );
+        start = in_ix;
+        end = in_ix+8;
+        if(end > in_size)
+            end = in_size;
 
-        // Check whether we have data for second part
-        if ( end <= cur ) {
-            opcode->secondIsZero = true;
-            opcode->secondLen    = 0;
-            break;
+        if(in[in_ix])
+        {
+            zerochains = 0;
+            do {
+                out[out_ix++] = in[in_ix++];
+            } while(in_ix<end && in[in_ix]);
+            count = (start - in_ix) + 8;
+        }
+        else
+        {
+            zerochains++;
+            while(in_ix<end && !in[in_ix])
+                in_ix++;
+            count = (in_ix - start) + 7;
         }
 
-        // Encode second part
-        OPCODE_ENCODE( opcode->secondIsZero, opcode->secondLen );
-
-#   undef OPCODE_ENCODE
+        if(nibble)
+            out[nibble_ix] |= (count << 4);
+        else
+            out[nibble_ix] = count;
+        nibble = !nibble;
     }
 
-    // Write the packed data
-    PutSizeEx( (uint32)packed.size() );
-    if ( 0 < packed.size() )
-        Put( packed.begin<uint8>(), packed.end<uint8>() );
+    if(nibble && zerochains)
+        zerochains++;
+
+    while(zerochains>1)
+    {
+        zerochains -= 2;
+        out_ix -= 1;
+    }
+
+    // Write the packed in
+    PutSizeEx( (uint32) out_ix);
+    if ( 0 < out.size() )
+        Put( out.begin<uint8>(), out.begin<uint8>() + out_ix );
 
     return true;
 }

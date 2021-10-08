@@ -126,12 +126,12 @@ PyResult NotificationMgrService::Handle_MarkGroupAsProcessed(PyCallArgs &call)
     }
 
     int groupID = args.arg;
-    return NULL;
+    return nullptr;
 }
 
 PyResult NotificationMgrService::Handle_MarkAllAsProcessed(PyCallArgs &call)
 {
-    return NULL;
+    return nullptr;
 }
 
 PyResult NotificationMgrService::Handle_MarkAsProcessed(PyCallArgs &call)
@@ -143,7 +143,7 @@ PyResult NotificationMgrService::Handle_MarkAsProcessed(PyCallArgs &call)
     }
 
     PyRep* notificationsList = args.arg;
-    return NULL;
+    return nullptr;
 }
 
 PyResult NotificationMgrService::Handle_DeleteGroupNotifications(PyCallArgs &call)
@@ -155,12 +155,12 @@ PyResult NotificationMgrService::Handle_DeleteGroupNotifications(PyCallArgs &cal
     }
 
     int groupID = args.arg;
-    return NULL;
+    return nullptr;
 }
 
 PyResult NotificationMgrService::Handle_DeleteAllNotifications(PyCallArgs &call)
 {
-    return NULL;
+    return nullptr;
 }
 
 PyResult NotificationMgrService::Handle_DeleteNotifications(PyCallArgs &call)
@@ -172,5 +172,5 @@ PyResult NotificationMgrService::Handle_DeleteNotifications(PyCallArgs &call)
     }
     
     PyRep* notificationsIDs = args.arg;
-    return NULL;
+    return nullptr;
 }

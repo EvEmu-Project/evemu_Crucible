@@ -67,6 +67,9 @@ class ShipSE;
 class DungeonSE;
 
 class TowerSE;
+class TCUSE;
+class SBUSE;
+class IHubSE;
 class ArraySE;
 class BatterySE;
 class ModuleSE;
@@ -113,8 +116,6 @@ public:
     virtual StructureSE*        GetJammerSE()           { return nullptr; }
     virtual StructureSE*        GetJumpBridgeSE()       { return nullptr; }
     virtual StructureSE*        GetOutpostSE()          { return nullptr; }
-    virtual StructureSE*        GetTCUSE()              { return nullptr; }
-    virtual StructureSE*        GetSBUSE()              { return nullptr; }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
     virtual WeaponSE*           GetWeaponSE()           { return nullptr; }
@@ -124,6 +125,9 @@ public:
     virtual ModuleSE*           GetModuleSE()           { return nullptr; }
     virtual ReactorSE*          GetReactorSE()          { return nullptr; }
     virtual CustomsSE*          GetCOSE()               { return nullptr; }
+    virtual TCUSE*              GetTCUSE()              { return nullptr; }
+    virtual SBUSE*              GetSBUSE()              { return nullptr; }
+    virtual IHubSE*             GetIHubSE()             { return nullptr; }
     /* Dynamic */
     virtual DynamicSystemEntity* GetDynamicSE()         { return nullptr; }
     virtual NPC*                GetNPCSE()              { return nullptr; }
@@ -134,7 +138,7 @@ public:
 
     /* class type tests, grouped by base class.  public for anyone to access. */
     /* Base */
-    virtual bool                isGlobal()              { return true; } //m_self->isGlobal(); }    // not all items have this attribute set
+    virtual bool                isGlobal()              { return m_self->isGlobal(); }    // not all items have this attribute set
     virtual bool                IsSystemEntity()        { return true; }
     virtual bool                IsInanimateSE()         { return false; }
     /* Static */
@@ -159,6 +163,7 @@ public:
     virtual bool                IsCOSE()                { return false; }
     virtual bool                IsTCUSE()               { return false; }
     virtual bool                IsSBUSE()               { return false; }
+    virtual bool                IsIHubSE()              { return false; }
     virtual bool                IsTowerSE()             { return false; }
     virtual bool                IsArraySE()             { return false; }
     virtual bool                IsJammerSE()            { return false; }
@@ -171,6 +176,7 @@ public:
     virtual bool                IsDeployableSE()        { return false; }
     virtual bool                IsJumpBridgeSE()        { return false; }
     virtual bool                IsReactorSE()           { return false; }
+    virtual bool                IsOperSE()              { return false; }
     /* Dynamic */
     virtual bool                IsDynamicEntity()       { return false; }
     virtual bool                IsLogin()               { return false; }
@@ -348,8 +354,14 @@ public:
     /* virtual functions to be overridden in derived classes */
     virtual bool                LoadExtras();
 
+    /* specific functions handled in this class. */
+    StructureSE* GetMySBU()                             { return m_sbuSE; }
+    bool HasSBU()                                       { return (m_sbuSE != nullptr); }
+    void SetSBU(StructureSE* pSE)                       { m_sbuSE = pSE; }
+
 protected:
     PyRep*                      m_jumps;
+    StructureSE*                m_sbuSE;
 
 };
 
@@ -366,7 +378,7 @@ public:
     virtual ItemSystemEntity*   GetItemSE()             { return this; }
     /* class type tests. */
     /* Base */
-    virtual bool                isGlobal()              { return false; }
+    //virtual bool                isGlobal()              { return false; }
     virtual bool                IsInanimateSE()         { return true; }
     /* Item */
     virtual bool                IsItemEntity()          { return true; }
@@ -378,7 +390,7 @@ public:
     virtual PyDict*             MakeSlimItem();
 
 private:
-    uint16 m_keyType;
+    uint16 m_keyType;           //Training Complex Passkey   (group - Acceleration_Gate_Keys)
 };
 
 /* POS ForceField */
@@ -403,7 +415,7 @@ public:
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects
  * - POS Structures, Outposts, Deployables, empty Ships, Asteroids
- *- has TargetMgr  no DestinyMgr*/
+ *- has TargetMgr  has DestinyMgr*/
 class ObjectSystemEntity : public SystemEntity {
 public:
     ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
@@ -413,7 +425,7 @@ public:
     virtual ObjectSystemEntity* GetObjectSE()           { return this; }
     /* class type tests. */
     /* Base */
-    virtual bool                isGlobal()              { return false; }
+    //virtual bool                isGlobal()              { return false; }
     virtual bool                IsInanimateSE()         { return true; }
     /* Object */
     virtual bool                IsObjectEntity()        { return true; }
@@ -427,6 +439,13 @@ public:
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Killed(Damage &fatal_blow);
+    virtual bool                IsInvul()               { return m_invul; }
+
+    /* specific functions handled here. */
+    void                    SetInvul(bool invul=false)  { m_invul = invul; }
+
+private:
+    bool m_invul;
 };
 
 /* Mobile Warp Disruptors */
@@ -457,7 +476,7 @@ public:
     virtual DynamicSystemEntity* GetDynamicSE()         { return this; }
     /* class type tests. */
     /* Base */
-    virtual bool                isGlobal()              { return false; }
+    //virtual bool                isGlobal()              { return false; }
     /* Dynamic */
     virtual bool                IsDynamicEntity()       { return true; }
 

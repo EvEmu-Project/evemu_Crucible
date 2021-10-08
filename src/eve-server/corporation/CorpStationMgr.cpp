@@ -225,7 +225,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
 
     // see if corp has office in station already.
     if (pStationItem->GetOfficeID(pClient->GetCorporationID()))
-        throw PyException(MakeUserError("RentingYouHaveAnOfficeHere"));
+        throw UserError ("RentingYouHaveAnOfficeHere");
 
     // this may not be needed, as rental fee is queried immediately prior to this call
     if (arg.arg != pStationItem->GetOfficeRentalFee())
@@ -321,7 +321,7 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice(PyCallArgs &cal
 PyResult CorpStationMgrIMBound::Handle_MoveCorpHQHere(PyCallArgs &call)
 {
     if (call.client->GetCorpHQ() == m_stationID)
-        throw PyException(MakeUserError("CorpHQIsAtThisStation"));
+        throw UserError ("CorpHQIsAtThisStation");
 
     uint32 corpID = call.client->GetCorporationID();
     CorporationDB::UpdateCorpHQ(corpID, m_stationID);

@@ -4,6 +4,7 @@
   *     Alliance Bound code
   *
   * @Author:        Allan
+  * Updated:        James
   * @date:          16 January 2018
   */
 
@@ -25,7 +26,7 @@ class AllianceBound
 public:
     PyCallable_Make_Dispatcher(AllianceBound)
 
-    AllianceBound(PyServiceMgr *mgr);
+    AllianceBound(PyServiceMgr *mgr, AllianceDB& db, uint32 allyID);
     virtual ~AllianceBound() { delete m_dispatch; }
     virtual void Release() {
         //I hate this statement
@@ -61,9 +62,15 @@ public:
     PyCallable_DECL_CALL(GetAlliance);
     PyCallable_DECL_CALL(UpdateAlliance);
 
+    static void FillOAApplicationChange(OnAllianceApplicationChanged& OAAC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New);
+    static void FillOAMemberChange(OnAllianceMemberChange &OAMC, const Alliance::ApplicationInfo &Old, const Alliance::ApplicationInfo &New);
+
 protected:
     Dispatcher *const m_dispatch;
 
+    AllianceDB& m_db;
+
+    uint32 m_allyID;
 };
 
 #endif  // EVE_ALLIANCE_ALLYREGISTRY_BOUND_H_

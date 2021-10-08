@@ -330,34 +330,34 @@ void CharacterDB::ValidateCharName(std::string name)
     // *name  is sent from client WITHOUT leading space, if there is one, and will not allow more than one space.
 
     if (name.empty())
-        throw PyException( MakeUserError("CharNameInvalid"));
+        throw UserError ("CharNameInvalid");
     if (name.length() < 3)
-        throw PyException( MakeUserError("CharNameTooShort"));
+        throw UserError ("CharNameTooShort");
     //if (name.length() < 4)
-    //    throw PyException( MakeUserError("CharNameInvalidMinLength"));
+    //    throw UserError ("CharNameInvalidMinLength");
     if (name.length() > 37)    //client caps at 24
-        throw PyException( MakeUserError("CharNameInvalidMaxLength"));
+        throw UserError ("CharNameInvalidMaxLength");
 
     //if (!sDatabase.IsSafeString(name.c_str()))
-    //    throw PyException( MakeUserError("CharNameInvalidSomeChar"));
+    //    throw UserError ("CharNameInvalidSomeChar");
 
     //if (name.at(0) == "+")
-    //    throw PyException( MakeUserError("CharNameInvalidFirstChar"));
+    //    throw UserError ("CharNameInvalidFirstChar");
 
     // check for banned words in char name
     for (const auto cur : badWords)
         if (EvE::icontains(name, cur))
-            throw PyException( MakeUserError("CharNameInvalidBannedWord"));
+            throw UserError ("CharNameInvalidBannedWord");
     for (const auto cur : badChars)
         if (EvE::icontains(name, cur))
-            throw PyException( MakeUserError("CharNameInvalidSomeChar"));
+            throw UserError ("CharNameInvalidSomeChar");
 
     // check for multiple spaces
     int found = name.find(" ");
     if (found != name.npos) {
         found = name.find(" ", found + 1, 1);
         if (found != name.npos)
-            throw PyException( MakeUserError("CharNameInvalidMaxSpaces"));
+            throw UserError ("CharNameInvalidMaxSpaces");
     }
 
     std::string eName;
@@ -365,7 +365,7 @@ void CharacterDB::ValidateCharName(std::string name)
     DBQueryResult res;
     sDatabase.RunQuery(res, "SELECT characterID FROM chrCharacters WHERE characterName LIKE '%s' ", eName.c_str() );
     if (res.GetRowCount() > 0)  // name exists
-        throw PyException( MakeUserError("CharNameInvalidTaken"));
+        throw UserError ("CharNameInvalidTaken");
 
     /* if we got here, the name is good */
 }
@@ -679,14 +679,41 @@ PyRep* CharacterDB::GetContacts(uint32 charID, bool blocked)
     return DBResultToIndexRowset(res, "contactID");
 }
 
-void CharacterDB::AddContact(uint32 charID)
+void CharacterDB::AddContact(uint32 ownerID, uint32 charID, int32 standing, bool inWatchlist)
 {
-
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "INSERT INTO chrContacts (ownerID, contactID, relationshipID, "
+        " inWatchlist, labelMask, blocked) VALUES "
+        " (%u, %u, %i, %i, 0, 0) ",
+        ownerID, charID, standing, inWatchlist);
 }
 
-void CharacterDB::UpdateContact(uint32 charID)
+void CharacterDB::UpdateContact(int32 standing, uint32 charID, uint32 ownerID)
 {
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE chrContacts SET relationshipID=%i "
+        " WHERE contactID=%u AND ownerID=%u ",
+         standing, charID, ownerID);
+}
 
+void CharacterDB::SetBlockContact(uint32 charID, uint32 ownerID, bool blocked)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE chrContacts SET blocked=%u "
+        " WHERE contactID=%u AND ownerID=%u ",
+        blocked, charID, ownerID);
+}
+
+void CharacterDB::RemoveContact(uint32 charID, uint32 ownerID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "DELETE from chrContacts "
+        " WHERE contactID=%u AND ownerID=%u ",
+         charID, ownerID);
 }
 
 //just return all itemIDs which has ownerID set to characterID
@@ -1852,7 +1879,7 @@ uint8 CharacterDB::GetSkillLevel(uint32 charID, uint16 skillTypeID)
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT valueInt FROM entity_attributes WHERE attributeID= %u AND itemID= "
-        "SELECT itemID FROM entity WHERE locationID = %u AND typeID = %u",
+        "(SELECT itemID FROM entity WHERE locationID = %u AND typeID = %u)",
         AttrSkillLevel, charID, skillTypeID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());

@@ -414,7 +414,7 @@ void ModuleManager::CheckSlotFitLimited(EVEItemFlags flag)
         if (m_SubSystemSlots)
             return;
 
-    throw PyException(MakeUserError("NoFreeShipSlots"));
+    throw UserError ("NoFreeShipSlots");
 }
 
 // not used
@@ -432,7 +432,7 @@ void ModuleManager::CheckGroupFitLimited(EVEItemFlags flag, InventoryItemRef iRe
             args["module"]              = new PyInt(iRef->itemID());
             throw PyException( MakeUserError("CantFitTooManyByGroup", args));   // bad msgID in client.
             */
-            throw PyException(MakeCustomError("Group Fit Limited.<br>You cannot fit the %s to your %s.", iRef->name(), pShipItem->name()));
+            throw CustomError ("Group Fit Limited.<br>You cannot fit the %s to your %s.", iRef->name(), pShipItem->name());
             /*CantFitTooManyByGroupBody'}(
              * u"You're unable to fit {[item]module.name} to {[item]ship.name}.
              * You can only fit {[numeric]noOfModules} of type {groupName} but already have {[numeric]noOfModulesFitted}.", None,
@@ -511,7 +511,7 @@ bool ModuleManager::AddModule(ModuleItemRef mRef, EVEItemFlags flag)
                     pShipItem->GetPilot()->SendErrorMsg("You cannot add %s to %s because %s is already there.", \
                             mRef->name(), sDataMgr.GetFlagName(flag), pMod->GetSelf()->name());
                 } else {
-                    throw PyException( MakeUserError("SlotAlreadyOccupied"));
+                    throw UserError ("SlotAlreadyOccupied");
                 }
             }
         }
@@ -563,10 +563,8 @@ void ModuleManager::Online(uint32 itemID)
         _log(MODULE__WARNING, "MM::Online(itemID) -  %s already Online", pMod->GetSelf()->name());
         if (pShipItem->HasPilot())
             if (pShipItem->GetPilot()->CanThrow()) {
-                // this isnt working right....no msg in client
-                std::map<std::string, PyRep *> args;
-                args["modulename"] = new PyString(pMod->GetSelf()->itemName());
-                throw PyException( MakeUserError("EffectAlreadyActive2", args));
+                throw UserError ("EffectAlreadyActive2")
+                        .AddTypeName ("modulename", pMod->GetSelf ()->typeID ());
             }
         return;
     }
@@ -690,7 +688,7 @@ void ModuleManager::Activate(int32 itemID, uint16 effectID, int32 targetID, int3
     if (effectID == 2255) { // tractorBeamCan
         SystemEntity* pSE = pShipItem->GetPilot()->SystemMgr()->GetSE(targetID);
         if (pSE == nullptr)
-            throw PyException(MakeUserError("DeniedActivateTargetNotPresent"));
+            throw UserError ("DeniedActivateTargetNotPresent");
         if (pSE->DestinyMgr()->IsTractored()) {
             // report player tractoring item?
             pShipItem->GetPilot()->SendNotifyMsg("Your %s cannot engage the %s, which is already being tractor beamed by something else.", pMod->GetSelf()->name(), pSE->GetName());
@@ -707,11 +705,11 @@ void ModuleManager::Activate(int32 itemID, uint16 effectID, int32 targetID, int3
         return;
     } else if (pDestiny->IsWarping()) {
         if (pMod->HasAttribute(AttrDisallowActivateOnWarp) or !sFxDataMgr.isWarpSafe(effectID))
-            throw PyException(MakeUserError("DeniedActivateInWarp"));
+            throw UserError ("DeniedActivateInWarp");
     } else if (pDestiny->IsCloaked()) {
-        throw PyException(MakeUserError("DeniedActivateCloaked"));
+        throw UserError ("DeniedActivateCloaked");
     } else if (pShipItem->GetPilot()->IsJump()) {
-        throw PyException(MakeUserError("DeniedActivateInJump"));
+        throw UserError ("DeniedActivateInJump");
     }
 
     if (!pMod->IsLinked() or pMod->IsMaster())

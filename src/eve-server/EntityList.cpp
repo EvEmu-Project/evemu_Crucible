@@ -326,6 +326,28 @@ void EntityList::GetClients(std::vector<Client*> &result) const {
         result.push_back(cur.second);
 }
 
+void EntityList::GetCorpClients(std::vector<Client*> &result, uint32 corpID) const {
+    /*for (auto cur : m_players) {
+        if (cur.second->GetCorporationID() == corpID) {
+            result.push_back(cur.second);
+        }
+    }*/
+
+    std::map<uint32, corpRole>::const_iterator cItr = m_corpMembers.find(corpID);
+    if (cItr == m_corpMembers.end()) {
+        return;
+    }
+
+    corpRole::const_iterator itr = cItr->second.begin(), end = cItr->second.end();
+    while (itr != end) {
+        if (itr->first->GetChar().get() != nullptr)
+        {
+            result.push_back(itr->first);
+        }
+        ++itr;
+    }
+}
+
 // this method is corrected, as stations have their own guestlist now.
 void EntityList::GetStationGuestList(uint32 stationID, std::vector<Client*> &result) const {
     std::map<uint32, StationItemRef>::const_iterator itr = m_stations.find(stationID);

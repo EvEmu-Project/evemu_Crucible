@@ -87,15 +87,6 @@ enum PyRepOpcode
     //                          = 0xCC
 };    //6 bits
 
-struct ZeroCompressOpcode
-{
-    uint8 firstLen : 3;
-    bool firstIsZero : 1;
-
-    uint8 secondLen : 3;
-    bool secondIsZero : 1;
-};
-
 static const uint8 PyRepSaveMask = 0x40;
 static const uint8 PyRepUnknownMask = 0x80;
 static const uint8 MarshalHeaderByte = 0x7E;    //'~'

@@ -307,6 +307,92 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="OnAllianceChanged">
+    <tupleInline>
+      <int name="allianceID" />
+      <dictInline>
+        <dictInlineEntry key="allianceID">
+          <tupleInline>
+            <raw name="allianceIDOld" />
+            <raw name="allianceIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="allianceName">
+          <tupleInline>
+            <raw name="allianceNameOld" />
+            <raw name="allianceNameNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="description">
+          <tupleInline>
+            <raw name="descriptionOld" none_marker="0" />
+            <raw name="descriptionNew" none_marker="0" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="typeID">
+          <tupleInline>
+            <raw name="typeIDOld" />
+            <raw name="typeIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="shortName">
+          <tupleInline>
+            <raw name="shortNameOld" />
+            <raw name="shortNameNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="executorCorpID">
+          <tupleInline>
+            <raw name="executorCorpIDOld" />
+            <raw name="executorCorpIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="creatorCorpID">
+          <tupleInline>
+            <raw name="creatorCorpIDOld" />
+            <raw name="creatorCorpIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="creatorCharID">
+          <tupleInline>
+            <raw name="creatorCharIDOld" />
+            <raw name="creatorCharIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="startDate">
+          <tupleInline>
+            <raw name="startDateOld" />
+            <raw name="startDateNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="memberCount">
+          <tupleInline>
+            <raw name="memberCountOld" />
+            <raw name="memberCountNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="url">
+          <tupleInline>
+            <raw name="urlOld" none_marker="0" />
+            <raw name="urlNew" none_marker="0" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="deleted">
+          <tupleInline>
+            <raw name="deletedOld" />
+            <raw name="deletedNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="dictatorial">
+          <tupleInline>
+            <raw name="dictatorialOld" />
+            <raw name="dictatorialNew" />
+          </tupleInline>
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="CorpOfficeSparseRowset">
     <objectInline>
       <stringInline value="util.SparseRowset" />
@@ -589,6 +675,57 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="OnAllianceApplicationChanged">
+    <tupleInline>
+      <int name="allianceID" />
+      <int name="corpID" />
+      <dictInline>
+        <dictInlineEntry key="applicationID">
+          <tupleInline>
+            <raw name="applicationIDOld" />
+            <raw name="applicationIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="corporationID">
+          <tupleInline>
+            <raw name="corporationIDOld" />
+            <raw name="corporationIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="allianceID">
+          <tupleInline>
+            <raw name="allianceIDOld" />
+            <raw name="allianceIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="applicationText">
+          <tupleInline>
+            <raw name="applicationTextOld" />
+            <raw name="applicationTextNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="state">
+          <tupleInline>
+            <raw name="stateOld" />
+            <raw name="stateNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="applicationDateTime">
+          <tupleInline>
+            <raw name="applicationDateTimeOld" />
+            <raw name="applicationDateTimeNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="deleted">
+          <tupleInline>
+            <raw name="deletedOld" />
+            <raw name="deletedNew" />
+          </tupleInline>
+        </dictInlineEntry>
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="MemberAttributeUpdate">
     <dictInline>
       <dictInlineEntry key="grantableRolesAtOther">
@@ -702,6 +839,33 @@
           </tupleInline>
         </dictInlineEntry>
         -->
+      </dictInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="OnAllianceMemberChange">
+    <tupleInline>
+      <int name="allyID" />
+      <int name="corpID" />
+      <dictInline>
+        <dictInlineEntry key="corporationID">
+          <tupleInline>
+            <raw name="corporationIDOld" />
+            <raw name="corporationIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="corporationName">
+          <tupleInline>
+            <raw name="corporationNameOld" />
+            <raw name="corporationNameNew" />
+          </tupleInline>
+        </dictInlineEntry>
+        <dictInlineEntry key="chosenExecutorID">
+          <tupleInline>
+            <raw name="chosenExecutorIDOld" />
+            <raw name="chosenExecutorIDNew" />
+          </tupleInline>
+        </dictInlineEntry>
       </dictInline>
     </tupleInline>
   </elementDef>
@@ -887,12 +1051,34 @@
   </elementDef>
 
   <elementDef name="Call_CreateAlliance">
-    <listInline>
-      <string name="allianceName" safe="true"/>
+    <tupleInline>
+      <wstring name="allianceName" safe="true"/>
       <string name="shortName" safe="true"/>
-      <string name="description" none_marker="0" safe="true"/>
+      <wstring name="description" none_marker="0" safe="true"/>
+      <wstring name="url" none_marker="0" safe="true"/>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_UpdateAlliance">
+    <tupleInline>
+      <wstring name="description" none_marker="0" safe="true"/>
       <string name="url" none_marker="0" safe="true"/>
-    </listInline>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_ApplyToJoinAlliance">
+    <tupleInline>
+      <int name="allianceID" />
+      <wstring name="applicationText"/>
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_UpdateAllianceApplication">
+    <tupleInline>
+      <int name="corporationID" />
+      <wstring name="applicationText"/>
+      <int name="applicationStatus" />
+    </tupleInline>
   </elementDef>
 
   <elementDef name="Call_CorporateContactData">

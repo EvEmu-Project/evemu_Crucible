@@ -87,6 +87,7 @@ EVEServerConfig::EVEServerConfig()
     rates.turretDamage = 1.0;
     rates.turretRoF = 1.0;
     rates.corpCost = 1599800;
+    rates.allyCost = 1000000000;
     rates.medalAwardCost = 5000000;
     rates.medalCreateCost = 5000000;
     rates.WorldDecay = 120 /*m*/;
@@ -117,6 +118,7 @@ EVEServerConfig::EVEServerConfig()
     market.HistoryUpdateTime = 6/*h*/;
     market.UseOrderRange = true;//N
     market.DeleteOldTransactions = false;
+    market.salesTax = 1.0f;
 
     // ram
     ram.AutoEvent = false;
@@ -406,6 +408,7 @@ bool EVEServerConfig::ProcessRates( const TiXmlElement* ele )
     AddValueParser( "turretDamage",         rates.turretDamage );
     AddValueParser( "turretRoF",            rates.turretRoF );
     AddValueParser( "corpCost",             rates.corpCost );
+    AddValueParser( "allyCost",             rates.allyCost );
     AddValueParser( "medalAwardCost",       rates.medalAwardCost );
     AddValueParser( "medalCreateCost",      rates.medalCreateCost );
     AddValueParser( "WorldDecay",           rates.WorldDecay );
@@ -436,6 +439,7 @@ bool EVEServerConfig::ProcessRates( const TiXmlElement* ele )
     RemoveParser( "turretDamage" );
     RemoveParser( "turretRoF" );
     RemoveParser( "corpCost" );
+    RemoveParser( "allyCost" );
     RemoveParser( "medalAwardCost" );
     RemoveParser( "medalCreateCost" );
     RemoveParser( "WorldDecay" );
@@ -469,7 +473,8 @@ bool EVEServerConfig::ProcessMarket(const TiXmlElement* ele)
     AddValueParser( "NewPriceLimit",                market.NewPriceLimit);
     AddValueParser( "UseOrderRange",                market.UseOrderRange);
     AddValueParser( "DeleteOldTransactions",        market.DeleteOldTransactions);
-    AddValueParser( "HistoryUpdateTime",     market.HistoryUpdateTime);
+    AddValueParser( "HistoryUpdateTime",            market.HistoryUpdateTime);
+    AddValueParser( "SalesTax",                     market.salesTax);
 
     const bool result = ParseElementChildren( ele );
 
@@ -483,6 +488,7 @@ bool EVEServerConfig::ProcessMarket(const TiXmlElement* ele)
     RemoveParser( "UseOrderRange" );
     RemoveParser( "DeleteOldTransactions" );
     RemoveParser( "HistoryUpdateTime" );
+    RemoveParser( "SalesTax" );
 
     return result;
 }

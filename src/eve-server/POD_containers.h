@@ -279,6 +279,7 @@ struct SystemData {
     uint32 systemID;
     uint32 constellationID;
     uint32 regionID;
+    uint32 factionID;
     float securityRating;
     std::string name;
     std::string securityClass;
@@ -310,6 +311,30 @@ struct StaticData {
     float radius;
     GPoint position;
 };
+
+/* POD structure for sovereignty */
+struct SovereigntyData {
+    uint32 claimID;
+    uint32 solarSystemID;
+    uint32 constellationID;
+    uint32 regionID;
+    uint32 corporationID;
+    uint32 allianceID;
+    uint32 claimStructureID;
+    int64 claimTime;
+    uint32 hubID;
+    uint8 contested;
+    uint8 stationCount;
+    uint8 militaryPoints;
+    uint8 industrialPoints;
+};
+
+/* Tags for sov multi-index container */
+struct SovDataBySolarSystem {};
+struct SovDataByConstellation {};
+struct SovDataByRegion {};
+struct SovDataByAlliance {};
+struct SovDataByClaim {};
 
 /* POD structure for stations. */
 struct StationData {
@@ -356,6 +381,7 @@ struct OfficeData {
     int64 rentalFee;
     int64 expiryTime;
     std::string ticker;
+    std::string name;
 };
 
 /* POD structure for loading dynamic items */

@@ -82,7 +82,7 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         if (!sDatabase.RunQuery(res,
             "SELECT "
             "  allianceID AS ownerID,"
-            "  allianceShortName AS ownerName,"
+            "  allianceName AS ownerName,"
             "  16159 AS typeID,"                 // alliance typeID.
             "  false AS gender,"
             "  NULL AS ownerNameID"
@@ -133,7 +133,7 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         if (!sDatabase.RunQuery(res,
             "SELECT "
             "  corporationID AS ownerID,"
-            "  corporationName AS name,"
+            "  corporationName AS ownerName,"
             "  2 AS typeID"                    // corp typeID
             " FROM crpCorporation"
             " WHERE corporationID IN (SELECT corporationID FROM staStations WHERE stationID IN (%s))", ids.c_str()))

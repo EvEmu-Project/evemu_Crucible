@@ -2272,7 +2272,7 @@ PyResult DestinyManager::AttemptDockOperation() {
     if (rangeToStationPerimiter > 2500.0) {
         AlignTo( station );   // Turn ship and move toward docking point - client will usually call Dock() automatically...sometimes
         if (mySE->HasPilot() and mySE->GetPilot()->CanThrow())
-            throw PyException(MakeUserError("DockingApproach"));
+            throw UserError ("DockingApproach");
     }
 
     pClient->SetStateTimer(Player::State::Dock, sConfig.world.StationDockDelay *1000); // default @ 4sec();
@@ -3124,6 +3124,19 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
         for (std::vector<PyTuple*>::iterator cur = events.begin(); cur != events.end(); ++cur) {
             PyIncRef(*cur);
             mySE->GetPilot()->QueueDestinyEvent(&(*cur));
+        }
+    } else if (mySE->IsOperSE()) { //These are global entities, so we have to send update to all bubbles in a system
+        if (is_log_enabled(DESTINY__UPDATES))
+            _log(DESTINY__UPDATES, "[%u] BubbleCasting global structure destiny update (u:%u, e:%u) for stamp %u to all bubbles from %s(%u)", \
+                    sEntityList.GetStamp(), updates.size(), events.size(), sEntityList.GetStamp(), \
+                    (mySE->HasPilot()?mySE->GetPilot()->GetName():mySE->GetName()),\
+                    (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID()) );
+        
+        //Get all clients in the system which the SE is in
+        std::vector<Client*> cv;
+        mySE->SystemMgr()->GetClientList(cv);
+        for(auto const& value: cv) {
+            value->GetShipSE()->SysBubble()->BubblecastDestiny(updates, events, "destiny");
         }
     } else if (mySE->SysBubble() != nullptr) {
         if (is_log_enabled(DESTINY__UPDATES))

@@ -18,8 +18,9 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:     Zhur
     Rewrite:    Allan
+    Updates:    James
 */
 
 #include "eve-server.h"
@@ -41,6 +42,9 @@
 #include "pos/Module.h"
 #include "pos/Structure.h"
 #include "pos/Tower.h"
+#include "pos/sovStructures/TCU.h"
+#include "pos/sovStructures/SBU.h"
+#include "pos/sovStructures/IHub.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -85,11 +89,13 @@ m_secValue(1.1f)
     m_moonMap.clear();
     m_entities.clear();
     m_planetMap.clear();
+    m_gateMap.clear();
     m_ratBubbles.clear();
     m_beltVector.clear();
     m_roidBubbles.clear();
     m_ticEntities.clear();
     m_staticEntities.clear();
+    m_opStaticEntities.clear();
 
     // zero-init our data containers
     m_data = SystemData();
@@ -142,6 +148,15 @@ bool SystemManager::BootSystem() {
         _log(SERVICE__ERROR, "Unable to load System Dynamics during boot of system %u.", m_data.systemID);
         return false;
     }
+
+    // check for operational static entities which need to be initialized (such as sovereignty structures)
+    for (auto cur: m_opStaticEntities)
+        if (cur.second ->IsTCUSE())
+            cur.second->GetTCUSE()->Init();
+        else if (cur.second ->IsSBUSE())
+            cur.second->GetSBUSE()->Init();
+        else if (cur.second ->IsIHubSE())
+            cur.second->GetIHubSE()->Init();
 
     // system is loaded.  check for items that need initialization
     for (auto cur : m_ticEntities)
@@ -232,6 +247,15 @@ bool SystemManager::ProcessTic() {
         ++itr;
     }
 
+    // tic for sov structures (as they aren't in ticEntities)
+    for (auto cur : m_opStaticEntities)
+        if (cur.second->IsTCUSE())
+            cur.second->GetTCUSE()->Process();
+        else if (cur.second ->IsSBUSE())
+            cur.second->GetSBUSE()->Process();
+        else if (cur.second ->IsIHubSE())
+            cur.second->GetIHubSE()->Process();
+
     // check bounty timer
     if (m_bountyTimer.Check(sConfig.server.BountyPayoutDelayed))
         PayBounties();
@@ -309,6 +333,10 @@ void SystemManager::UnloadSystem() {
             sEntityList.RemoveProbe(itr->first);
         }
 
+        if (pSE->IsOperSE()) { //Remove operational statics from list
+            m_opStaticEntities.erase(m_opStaticEntities.find(itr->first));
+        }
+
         sItemFactory.RemoveItem(itr->first);
         itr = m_entities.erase(itr);
         sBubbleMgr.Remove(pSE);
@@ -328,6 +356,8 @@ void SystemManager::UnloadSystem() {
     m_ticEntities.clear();
     // at this point, system static entity list should be clear...but just in case, hit it again
     m_staticEntities.clear();
+    // clear operational static entity list too
+    m_opStaticEntities.clear();
 
     // this still needs some work... seems ok to me.  26Dec18
     sBubbleMgr.ClearSystemBubbles(m_data.systemID);
@@ -380,6 +410,7 @@ bool SystemManager::LoadSystemStatics() {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialObject(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
                 StargateSE *pSSE = new StargateSE(itemRef, *(GetServiceMgr()), this);
+                m_gateMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pSSE));
                 ++m_gateCount;
                 pSE = pSSE;
             } break;
@@ -609,16 +640,36 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             }
             return pSSE;
         } break;
-        case EVEDB::invCategories::SovereigntyStructure: {// SOV structures   these may need their own class one day.
+        case EVEDB::invCategories::SovereigntyStructure: {// SOV structures
+            //Create item ref
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
             if (structure.get() == nullptr)
                 return nullptr;
-            /** @todo make error msg here */
-            // ihub will need it's own se class
-            //if (entity.groupID == EVEDB::invGroups::Infrastructure_Hubs)
-            StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
-            _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making StructureSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
-            return sSE;
+            StructureSE* sSSE(nullptr);
+            //Test for different types of sov structures
+            switch(entity.groupID) {
+                case EVEDB::invGroups::Territorial_Claim_Units: {
+                    TCUSE* sSE = new TCUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making TCUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    sSSE = sSE;
+                } break;
+                case EVEDB::invGroups::Sovereignty_Blockade_Units: {
+                    SBUSE* sSE = new SBUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making SBUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    sSSE = sSE;
+                } break;
+                case EVEDB::invGroups::Infrastructure_Hubs: {
+                    IHubSE* sSE = new IHubSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making IHubSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    sSSE = sSE;
+                } break;
+                default: { //Should never be called, therefore print an error log
+                    StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Default sovereignty StructureSE created for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    sSSE = sSE;
+                } break;
+            }
+            return sSSE;
         } break;
         case EVEDB::invCategories::Orbitals: {           // planet orbitals   these should go into m_staticEntities
             StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
@@ -981,7 +1032,7 @@ void SystemManager::RemoveNPC(NPC* pNPC) {
 void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
     if (pSE == nullptr)
         return;
-    uint32 itemID = pSE->GetID();
+    uint32 itemID(pSE->GetID());
     if (m_entities.find(itemID) != m_entities.end()) {
         _log(ITEM__WARNING, "%s(%u): Called AddEntity(), but they're already in %s(%u).  Check bubble.", pSE->GetName(), itemID, m_data.name.c_str(), m_data.systemID);
         return;
@@ -989,10 +1040,11 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
         _log(ITEM__TRACE, "%s(%u): Added to system manager for %s(%u)", pSE->GetName(), itemID, m_data.name.c_str(), m_data.systemID);
         m_entities[itemID] = pSE;
 
-        if ((pSE->GetCategoryID() == EVEDB::invCategories::SovereigntyStructure)
-         or (pSE->IsCOSE())
-         or (pSE->isGlobal())) {
+        if ((pSE->IsCOSE())
+        or  (pSE->isGlobal())) {
             m_staticEntities[itemID] = pSE;
+            if (pSE->IsOperSE()) //Entities which need to be acted upon while nobody is in the system    
+                m_opStaticEntities[itemID] = pSE;       
             if (m_loaded)   // only update when system is already loaded
                 SendStaticBall(pSE);
         } else if (pSE->IsProbeSE()) {
@@ -1244,6 +1296,10 @@ void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) c
     for (auto cur : m_staticEntities)
         visibleEntities.emplace(cur.first, cur.second);
 
+    // get all operational static entities and add to visibleEntities map
+    for (auto cur : m_opStaticEntities)
+        visibleEntities.emplace(cur.first, cur.second);
+
     // get our ship.  bubble->GetEntities() does not include cloaked items
     std::map<uint32, SystemEntity*>::const_iterator itr = m_ticEntities.find(into.ego);
     if (itr != m_ticEntities.end())
@@ -1317,6 +1373,14 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
     if (m_clients.empty())
         return;
 
+    if (is_log_enabled(DESTINY__MESSAGE)) {
+        if (pSE->SysBubble() != nullptr) { //Don't attempt to log if bubble is null (ie, on static structure initial launch)
+            GPoint bCenter(pSE->SysBubble()->GetCenter());
+            _log(DESTINY__MESSAGE, "SystemManager::SendStaticBall() - Adding static entity %s(%u) to bubble %u.  Dist to center: %.2f", \
+            pSE->GetName(), pSE->GetID(), pSE->SysBubble()->GetID(), bCenter.distance(pSE->GetPosition()));
+        }
+    }
+
     Buffer* destinyBuffer = new Buffer();
     //create AddBalls header
     Destiny::AddBall_header head = Destiny::AddBall_header();
@@ -1344,7 +1408,6 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
 
     pSE->EncodeDestiny(*destinyBuffer);
     addballs2.state = new PyBuffer(&destinyBuffer); //consumed
-    SafeDelete( destinyBuffer );
 
     if (is_log_enabled(DESTINY__BALL_DUMP))
         addballs2.Dump( DESTINY__BALL_DUMP, "    " );
@@ -1424,6 +1487,28 @@ uint32 SystemManager::GetClosestPlanetID(const GPoint& myPos)
     std::map<double, SystemEntity*>::iterator itr = sorted.begin();
 
     return itr->second->GetID();
+}
+
+SystemEntity* SystemManager::GetClosestPlanetSE(const GPoint& myPos)
+{
+    std::map<double, SystemEntity*> sorted;
+    for (auto cur : m_planetMap)
+        sorted.insert(std::pair<double, SystemEntity*>(myPos.distance(cur.second->GetPosition()), cur.second));
+
+    std::map<double, SystemEntity*>::iterator itr = sorted.begin();
+
+    return itr->second;
+}
+
+SystemEntity* SystemManager::GetClosestGateSE(const GPoint& myPos)
+{
+    std::map<double, SystemEntity*> sorted;
+    for (auto cur : m_gateMap)
+        sorted.insert(std::pair<double, SystemEntity*>(myPos.distance(cur.second->GetPosition()), cur.second));
+
+    std::map<double, SystemEntity*>::iterator itr = sorted.begin();
+
+    return itr->second;
 }
 
 SystemEntity* SystemManager::GetClosestMoonSE(const GPoint& myPos)
@@ -1586,12 +1671,29 @@ void SystemManager::UpdateData()
     //MapDB::UpdateJumps(m_data.systemID, jumps);
 
     // if system and jumpmap are both empty, set activity time for unload timer
-    if (m_activityTime == 0)
-        if (m_clients.empty())
-            if (m_jumpMap.empty())
-                m_activityTime = sEntityList.GetStamp() -50;
-
+    if (SafeToUnload())
+        if (m_activityTime == 0)
+            if (m_clients.empty())
+                if (m_jumpMap.empty())
+                    m_activityTime = sEntityList.GetStamp() -50;
     ManipulateTimeData();
+}
+
+// checks for if it is safe to mark the system for unloading
+bool SystemManager::SafeToUnload()
+{
+    for (auto cur: GetOperationalStatics()) {
+        //If there are any ongoing operations by operational static structures, we don't want to unload the system until this is complete
+        if (cur.second->IsPOSSE()) {
+            if ((cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Unanchoring) or 
+            (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Anchoring) or
+            (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Offlining) or
+            (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Onlining)) {
+                return false;
+            }
+        }
+    }
+    return true; //by default, its always safe to unload
 }
 
 // not sure how to do this one yet...

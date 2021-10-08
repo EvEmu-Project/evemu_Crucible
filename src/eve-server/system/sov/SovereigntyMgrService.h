@@ -22,6 +22,7 @@
     ------------------------------------------------------------------------------------
     Author:        Reve
     Rewrite:    Allan
+    Updates:    James
 */
 
 #ifndef __SOVEREIGNTYMGR_SERVICE_H_INCL__
