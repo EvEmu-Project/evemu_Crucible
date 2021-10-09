@@ -422,7 +422,7 @@ void PlanetDB::SaveCommandCenter(uint32 pinID, uint32 charID, uint32 planetID, u
     DBerror err;
     if(!sDatabase.RunQuery(err,
         "INSERT INTO piCCPin (pinID, charID, planetID, typeID, latitude, longitude) "
-        " VALUES (%u, %u, %u, %u, %f, %f, %f)",
+        " VALUES (%u, %u, %u, %u, %f, %f)",
                            pinID, charID, planetID, typeID, latitude, longitude))
     {
         _log(DATABASE__ERROR, "SaveCommandCenter - Unable to save CommandCenter: %s", err.GetError());
