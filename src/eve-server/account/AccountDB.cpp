@@ -91,8 +91,6 @@ double AccountDB::GetCorpBalance(uint32 corpID, uint16 accountKey)
 
 void AccountDB::UpdateCorpBalance(uint32 corpID, uint16 accountKey, double amount)
 {
-    if (amount == 0)
-        return;
     std::string acctKey = "";
     switch (accountKey) {
         case Account::KeyType::Cash:    acctKey = "balance1"; break;
