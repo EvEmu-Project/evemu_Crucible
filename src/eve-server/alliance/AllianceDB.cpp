@@ -419,9 +419,9 @@ void AllianceDB::UpdateAlliance(uint32 allyID, std::string description, std::str
 
     if (!sDatabase.RunQuery(err,
                             " UPDATE alnAlliance "
-                            "  SET description=%s, url=%s "
+                            "  SET description='%s', url='%s' "
                             " WHERE allyID=%u ",
-                            aDesc, aURL, allyID))
+                            aDesc.c_str(), aURL.c_str(), allyID))
     {
         codelog(ALLY__DB_ERROR, "Error in UpdateAlliance query: %s", err.c_str());
     }

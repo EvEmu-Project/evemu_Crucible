@@ -280,6 +280,7 @@ struct SystemData {
     uint32 constellationID;
     uint32 regionID;
     uint32 factionID;
+    int64 radius;
     float securityRating;
     std::string name;
     std::string securityClass;
