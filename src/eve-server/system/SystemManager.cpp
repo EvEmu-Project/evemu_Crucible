@@ -1043,8 +1043,8 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
         if ((pSE->IsCOSE())
         or  (pSE->isGlobal())) {
             m_staticEntities[itemID] = pSE;
-            if (pSE->IsOperSE()) //Entities which need to be acted upon while nobody is in the system    
-                m_opStaticEntities[itemID] = pSE;       
+            if (pSE->IsOperSE()) //Entities which need to be acted upon while nobody is in the system
+                m_opStaticEntities[itemID] = pSE;
             if (m_loaded)   // only update when system is already loaded
                 SendStaticBall(pSE);
         } else if (pSE->IsProbeSE()) {
@@ -1411,6 +1411,7 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
 
     if (is_log_enabled(DESTINY__BALL_DUMP))
         addballs2.Dump( DESTINY__BALL_DUMP, "    " );
+
     //send the update
     PyTuple* rsp = addballs2.Encode();
     // does this need to be incremented?  the others do...
@@ -1418,6 +1419,9 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
         PyIncRef(rsp);
         cur.second->QueueDestinyUpdate(&rsp, true);
     }
+
+    //cleanup
+    SafeDelete( destinyBuffer );
 }
 
 void SystemManager::AddItemToInventory(InventoryItemRef iRef)
@@ -1685,7 +1689,7 @@ bool SystemManager::SafeToUnload()
     for (auto cur: GetOperationalStatics()) {
         //If there are any ongoing operations by operational static structures, we don't want to unload the system until this is complete
         if (cur.second->IsPOSSE()) {
-            if ((cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Unanchoring) or 
+            if ((cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Unanchoring) or
             (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Anchoring) or
             (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Offlining) or
             (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Onlining)) {
