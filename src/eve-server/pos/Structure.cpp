@@ -210,7 +210,7 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_outpost(false),
     m_reactor(false),
     m_duration(0),
-    m_planetID(0),
+    m_anchorPointID(0),
     m_delayTime(0),
     /** @todo  this is direction from customs office to planet and set when co is created */
     m_rotation(NULL_ORIGIN),
@@ -606,7 +606,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
 
     // this is incomplete.  there may be client error msgs (havent looked or found)
     // these errors should throw instead of return.
-    
+
     if (m_tower)
     {
         // hack for warping to moons
@@ -789,7 +789,7 @@ void StructureSE::Activate(int32 effectID)
         {
             // Check some things for TCU onlining
 
-            /* 
+            /*
             Is there already a TCU in the system?
             */
         }

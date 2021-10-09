@@ -182,8 +182,8 @@ public:
     inline int8                 CanTake()               { return m_data.take; }
 
     // for orbital infrastructure
-    void                     SetPlanet(uint32 planetID) { m_planetID = planetID; }
-    uint32                      GetPlanetID()           { return m_planetID; }
+    void                     SetPlanet(uint32 planetID) { m_anchorPointID = planetID; }
+    uint32                      GetPlanetID()           { return m_anchorPointID; }
 
     // structure update methods....may not use like this
     void                        UpdateTimeStamp()       { m_db.UpdateTimeStamp(m_data.itemID, m_data); }
@@ -216,7 +216,7 @@ protected:
 
     // for orbital infrastructure (customs office and moon miner)
     GVector                     m_rotation;             /* direction to planet (for correct orientation) */
-    uint32                      m_planetID;
+    uint32                      m_anchorPointID;
 
 private:
     uint32 m_duration;              // module duration in ms
