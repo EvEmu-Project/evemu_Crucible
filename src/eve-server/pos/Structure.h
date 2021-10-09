@@ -216,7 +216,7 @@ protected:
 
     // for orbital infrastructure (customs office and moon miner)
     GVector                     m_rotation;             /* direction to planet (for correct orientation) */
-    uint32                      m_planetID;
+    uint32                      m_anchorPointID;
 
 private:
     uint32 m_duration;              // module duration in ms

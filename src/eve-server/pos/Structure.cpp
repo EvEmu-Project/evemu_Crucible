@@ -210,7 +210,7 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_outpost(false),
     m_reactor(false),
     m_duration(0),
-    m_planetID(0),
+    m_anchorPointID(0),
     m_delayTime(0),
     /** @todo  this is direction from customs office to planet and set when co is created */
     m_rotation(NULL_ORIGIN),
@@ -218,12 +218,6 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_data(EVEPOS::StructureData())// zero-init data
 {
     m_procTimer.Disable();
-    m_procState = EVEPOS::ProcState::Invalid;
-
-    /** @todo  this is direction from customs office to planet and set when co is created */
-    m_rotation = NULL_ORIGIN;
-    m_delayTime = 0;
-    m_anchorPointID = 0;
 
     m_warID = data.factionID;
     m_allyID = data.allianceID;
@@ -795,7 +789,7 @@ void StructureSE::Activate(int32 effectID)
         {
             // Check some things for TCU onlining
 
-            /* 
+            /*
             Is there already a TCU in the system?
             */
         }
