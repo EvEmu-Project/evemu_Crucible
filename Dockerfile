@@ -2,7 +2,7 @@
 # Always build EVEmu binaries using docker in a reproducible fashion for issue reporting.
 
 # This is a multi Stage Build, we start by makeing the base image we will use.
-FROM quay.io/fedora/fedora:33-x86_64 as base
+FROM quay.io/fedora/fedora:33 as base
 RUN dnf groupinstall -y "Development Tools" && dnf install -y cmake git zlib-devel mariadb-devel boost-devel tinyxml-devel utf8cpp-devel mariadb shadow-utils gdb
 
 # Now we use the base image to build the project

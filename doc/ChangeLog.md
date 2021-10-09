@@ -1,3 +1,6 @@
+*** 0.8.5 ***
+- Added support for aarch64 with docker-compose
+
 *** 0.8.4 ***
 - [FEAT] Alliances Implemented
 - [FEAT] Sovereignty Implemented
