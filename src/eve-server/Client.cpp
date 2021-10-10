@@ -1456,7 +1456,7 @@ void Client::CynoJump(uint32 startLocation, uint32 destLocation, GPoint destPoin
     MapDB::AddJump(destLocation);
     m_char->VisitSystem(destLocation);
 
-    JumpOutEffect(m_ship->itemID());
+    JumpOutEffect(startLocation);
 
     m_movePoint = destPoint;
     m_movePoint.MakeRandomPointOnSphereLayer(200,500);
@@ -1493,7 +1493,7 @@ void Client::ExecuteDriveJump() {
 
     //OnScannerInfoRemoved  - no args.  flushes scan data in client
     SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
-    pShipSE->Jump();
+    pShipSE->Jump(false);
 
     MoveToLocation(m_moveSystemID, m_movePoint);
 

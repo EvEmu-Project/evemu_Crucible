@@ -2552,7 +2552,7 @@ void ShipSE::Dock() {
     m_shipRef->Dock();
 }
 
-void ShipSE::Jump() {
+void ShipSE::Jump(bool showCloak) {
     if (m_targMgr != nullptr) {
         m_targMgr->ClearModules();
         m_targMgr->ClearAllTargets(false);
@@ -2560,7 +2560,7 @@ void ShipSE::Jump() {
     }
 
     m_shipRef->Jump();
-    m_destiny->Jump();
+    m_destiny->Jump(showCloak);
 }
 
 void ShipSE::Warp() {

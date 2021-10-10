@@ -94,7 +94,7 @@ GPoint SystemDB::GetSolarSystemPosition(uint32 systemID) {
         systemID))
     {
         codelog(DATABASE__ERROR, "Error in GetSolarSystemPosition query: %s", res.error.c_str());
-        return false;
+        return NULL_ORIGIN;
     }
 
     _log(DATABASE__RESULTS, "GetSolarSystemPosition returned %u items", res.GetRowCount());

@@ -6,10 +6,7 @@
   * @date:   8 October 2021
   */
 
-#include "StaticDataMgr.h"
-#include "StatisticMgr.h"
 #include "ship/modules/CynoModule.h"
-#include "system/Container.h"
 #include "system/SystemManager.h"
 #include "fleet/FleetService.h"
 

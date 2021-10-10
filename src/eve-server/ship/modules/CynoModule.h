@@ -7,7 +7,7 @@
   */
 
 #ifndef _EVE_SHIP_MODULES_CYNO_MODULE_H_
-#define _EVE_SHIP_MODULES_Cyno_MODULE_H_
+#define _EVE_SHIP_MODULES_CYNO_MODULE_H_
 
 #include "ship/modules/ActiveModule.h"
 #include "system/SystemEntity.h"
