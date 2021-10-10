@@ -441,6 +441,7 @@ private:
     std::set<uint32> m_bindSet;
 
 protected:
+    void SendInitialSessionStatus ();
     void UpdateSession();
     void _SendPingRequest();
     void _SendException( const PyAddress& source, int64 callID, MACHONETMSG_TYPE in_response_to, MACHONETERR_TYPE exception_type, PyRep** payload );

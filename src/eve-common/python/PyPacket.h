@@ -118,6 +118,7 @@ public:
     uint32      userid;
     PyTuple  *payload;
     PyDict   *named_payload;
+    PyRep*      contextKey;
 
 #if 0
     //options:

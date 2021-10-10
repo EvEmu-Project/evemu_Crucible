@@ -28,6 +28,20 @@
 #include "EntityList.h"
 #include "EVEServerConfig.h"
 
+/**
+ * Map of variables that should never be sent through the wire on the session data
+ * These variables will be ignored. In reality we should have a whitelist
+ *
+ * TODO: COME UP WITH A REAL WHITELIST OF THINGS THAT HAVE TO BE SENT TO THE CLIENT
+ *
+ * @author Almamu
+ */
+static std::map<std::string, bool> NONPERSISTVARS = {
+    {"clientID", true},
+    {"sessionID", true},
+    {"sid", true}
+};
+
 
 ClientSession::ClientSession()
 : mSession(new PyDict()),
@@ -110,13 +124,38 @@ void ClientSession::EncodeChanges(PyDict* into)
     if (!mDirty)
         return;
 
-    PyDict::const_iterator cur = mSession->begin(), end = mSession->end();
-    for (; cur != end; ++cur)
-        if (cur->second->AsTuple()->GetItem(2)->AsBool()->value()) {    // if this value hasnt changed, dont send it.
-            _GetValueTuple(PyRep::StringContent(cur->first).c_str())->SetItem(2, PyStatic.NewFalse());
-            into->SetItem(cur->first->AsString(), new_tuple(cur->second->AsTuple()->GetItem(0), cur->second->AsTuple()->GetItem(1)));
-        }
+    for (auto cur : *mSession)
+    {
+        PyTuple* valueTuple = cur.second->AsTuple ();
 
+        if (valueTuple->GetItem (2)->AsBool ()->value () == false)
+            continue;
+
+        // mark the value as not new
+        valueTuple->SetItem (2, PyStatic.NewFalse());
+
+        // add the value to the list if it should be persisted
+        if (NONPERSISTVARS.find (cur.first->AsString ()->content ()) == NONPERSISTVARS.end ())
+            into->SetItem (cur.first, new_tuple (valueTuple->GetItem (0), valueTuple->GetItem(1)));
+    }
+
+    mDirty = false;
+}
+
+void ClientSession::EncodeInitialState (PyDict* into)
+{
+    for (auto cur : *mSession)
+    {
+        PyTuple* valueTuple = cur.second->AsTuple ();
+
+        valueTuple->SetItem(2, PyStatic.NewFalse());
+
+        // add the value to the initial state only if required
+        if (NONPERSISTVARS.find (cur.first->AsString ()->content ()) == NONPERSISTVARS.end ())
+            into->SetItem (cur.first, cur.second->AsTuple ()->GetItem (1));
+    }
+
+    // mark the session as not dirty
     mDirty = false;
 }
 

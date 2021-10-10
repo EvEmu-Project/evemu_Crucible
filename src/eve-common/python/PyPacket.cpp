@@ -64,7 +64,8 @@ PyPacket::PyPacket()
 type(__Fake_Invalid_Type),
 userid(0),
 payload(nullptr),
-named_payload(nullptr)
+named_payload(nullptr),
+contextKey(nullptr)
 {
 
 }
@@ -260,8 +261,13 @@ PyRep *PyPacket::Encode() {
         arg_tuple->items[5] = named_payload;    // dont clone here.  set actual rep in item, and it will be cleaned up by d'tor later
     }
 
-    //TODO: Not sure what this is, On packets so far they always have as PyNone
-    arg_tuple->items[6] = PyStatic.NewNone();
+    // contextKey, gives the client extra information on what exactly is going on
+    // this is PyNone almost 100% of the time and seems to be used in the node<->proxy communication
+    if (contextKey == nullptr) {
+        arg_tuple->items[6] = PyStatic.NewNone();
+    } else {
+        arg_tuple->items[6] = contextKey;
+    }
 
     return new PyObject( type_string.c_str(), arg_tuple );
 }
