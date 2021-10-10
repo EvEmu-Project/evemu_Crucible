@@ -1971,7 +1971,7 @@ void Client::UpdateCorpSession(CorpData& data)
     if (data.allianceID != 0){
         pSession->SetInt("allianceid", data.allianceID);
     }
-    
+
     pSession->SetInt("warfactionid", data.warFactionID);
     pSession->SetInt("corpAccountKey", data.corpAccountKey);
     pSession->SetLong("corprole", data.corpRole);
@@ -2070,7 +2070,7 @@ void Client::SendSessionChange()
         scn.changes->Dump(CLIENT__SESSION, "   Changes: ");
     }
 
-    scn.sessionID = pSession->GetSessionID();
+    scn.sessionID = 0; //pSession->GetSessionID();
     scn.clueless = 0;
     scn.nodesOfInterest.push_back(-1);  /* this means 'all nodes' */
     scn.nodesOfInterest.push_back(m_services.GetNodeID());  /* add current node to list */
@@ -2422,8 +2422,8 @@ bool Client::_VerifyLogin(CryptoChallengePacket& ccp)
     pSession->SetInt("userType", Acct::Type::Mammon);     //aData.type  - incomplete (db fields done)
     pSession->SetInt("userid", aData.id);
     pSession->SetLong("role", aData.role);
-    pSession->SetLong("clientID", 1000000L * aData.clientID + 888444);  // kinda arbitrary
-    pSession->SetLong("sessionID", pSession->GetSessionID());
+    pSession->SetLong("clientID", 0 /*1000000L * aData.clientID + 888444*/);  // kinda arbitrary
+    pSession->SetLong("sessionID", 0 /*pSession->GetSessionID()*/);
 
     sLog.Green("  Client::Login()","Account %u (%s) logging in from %s", aData.id, aData.name.c_str(), EVEClientSession::GetAddress().c_str());
 
@@ -2453,7 +2453,7 @@ bool Client::_VerifyFuncResult(CryptoHandshakeResult& result)
         ack.client_hash = PyStatic.NewNone();
         ack.user_clientid = 0; //GetClientID();  //241241000001103
         ack.live_updates = sLiveUpdateDB.GetUpdates();
-        ack.sessionID = pSession->GetSessionID();   //398773966249980114
+        ack.sessionID = 0; //pSession->GetSessionID();   //398773966249980114
     PyRep* res(ack.Encode());
     if (is_log_enabled(CLIENT__CALL_DUMP))
         res->Dump(CLIENT__CALL_DUMP, "    ");
