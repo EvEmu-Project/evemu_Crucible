@@ -161,7 +161,7 @@ public:
     bool IsTractored()                                  { return m_tractored; }
 
     //Destiny Update stuff:
-    void Jump();
+    void Jump(bool showCloak=true);
     void Cloak();
     void UnCloak();
 

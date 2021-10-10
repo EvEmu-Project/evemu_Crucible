@@ -2662,10 +2662,12 @@ void DestinyManager::UpdateOldShip(ShipSE* pShipSE)
     m_hasSentShipUpdates = false;
 }
 
-void DestinyManager::Jump()
+void DestinyManager::Jump(bool showCloak)
 {
     Halt();
-    m_cloaked = true;
+    if (showCloak) {
+        m_cloaked = true;
+    }
     if (mySE->SysBubble() != nullptr)
         mySE->SysBubble()->RemoveExclusive(mySE);
 }
