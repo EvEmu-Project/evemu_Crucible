@@ -677,6 +677,35 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
     if (m_self->categoryID() == EVEDB::invCategories::Station)
         return true;
 
+    Client* pClient = sItemFactory.GetUsingClient();
+
+    // check that we're close enough if a container in space
+    if (m_self->groupID() == EVEDB::invGroups::Cargo_Container && IsSolarSystem(m_self->locationID())) {
+        GVector direction (m_self->position(), pClient->GetShip()->position());
+        float maxDistance = 2500.0f;
+
+        if (m_self->HasAttribute (AttrMaxOperationalDistance) == true)
+            maxDistance = m_self->GetAttribute (AttrMaxOperationalDistance).get_float ();
+
+        if (direction.length() > maxDistance)
+            throw UserError ("NotCloseEnoughToAdd")
+                    .AddAmount ("maxdist", maxDistance);
+    }
+
+    // check if where the item is coming from was a cargo container
+    InventoryItemRef cRef = sItemFactory.GetItem(iRef->locationID());
+
+    if (cRef->groupID () == EVEDB::invGroups::Cargo_Container && IsSolarSystem (cRef->locationID())) {
+        GVector direction (cRef->position(), pClient->GetShip()->position());
+        float maxDistance = 2500.0f;
+
+        if (cRef->HasAttribute (AttrMaxOperationalDistance) == true)
+            maxDistance = cRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
+
+        if (direction.length () > maxDistance)
+            throw UserError ("NotCloseEnoughToLoot")
+                .AddAmount ("maxdist", maxDistance);
+    }
     // can this be coded to check weapon capy?   im sure it can. just a flag, right?
 
     float capacity = GetRemainingCapacity(flag);
@@ -702,7 +731,6 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 
     // check capy for single unit
     if (capacity < volume) { // smallest volume is 0.0025
-        Client* pClient = sItemFactory.GetUsingClient();
         if (pClient != nullptr) {
             std::map<std::string, PyRep *> args;
             args["volume"] = new PyFloat(volume);

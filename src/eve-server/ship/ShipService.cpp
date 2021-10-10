@@ -994,6 +994,14 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             if (ccRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, ccRef->itemID(), flagNone);
             } else {
+                // extra step, try to move as much items as possible, this needs a new item creation tho
+                float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
+                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+
+                ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
+                jcRef->AddItem(sItemFactory.SpawnItem(newItem));
+
+                iRef->AlterQuantity (-maximumAmountOfItems, true);
                 _log(ITEM__WARNING, "%s: CargoContainer %u is full.", pClient->GetName(), ccRef->itemID());
                 throw CustomError ("Your Cargo Container is full.  Some items were not transferred.");
             }
@@ -1001,6 +1009,15 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             if (jcRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, jcRef->itemID(), flagNone);
             } else {
+                // extra step, try to move as much items as possible, this needs a new item creation tho
+                float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
+                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+
+                ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
+                jcRef->AddItem(sItemFactory.SpawnItem(newItem));
+
+                iRef->AlterQuantity (-maximumAmountOfItems, true);
+
                 _log(ITEM__WARNING, "%s: Jetcan %u is full.", pClient->GetName(), jcRef->itemID());
                 throw CustomError ("Your jetcan is full.  Some items were not transferred.");
             }
