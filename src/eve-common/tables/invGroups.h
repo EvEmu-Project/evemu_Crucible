@@ -505,7 +505,7 @@ namespace EVEDB {
             Advanced_Heavy_Missile = 655,
             Advanced_Cruise_Missile = 656,
             Advanced_Torpedo = 657,
-            Cynosural_Field = 658,
+            Cynosural_Field_Generator = 658,
             Supercarrier = 659,
             Energy_Vampire_Slayer = 660,
             Simple_Biochemical_Reactions = 661,

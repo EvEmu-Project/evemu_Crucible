@@ -52,6 +52,7 @@ public:
 
     double GetItemTypeRadius( uint32 typeID );
     double GetCelestialRadius(uint32 itemID);
+    static GPoint GetSolarSystemPosition(uint32 systemID);
 
     static bool LoadSystemStaticEntities(uint32 systemID, std::vector<DBSystemEntity>& into);
     static bool LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDynamicEntity>& into);

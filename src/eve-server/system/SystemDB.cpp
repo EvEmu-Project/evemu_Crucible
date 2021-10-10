@@ -86,6 +86,27 @@ PyPackedRow* SystemDB::GetSolarSystem(uint32 ssid) {
     return DBRowToPackedRow(row);
 }
 
+GPoint SystemDB::GetSolarSystemPosition(uint32 systemID) {
+    DBQueryResult res;
+    if(!sDatabase.RunQuery(res,
+        "SELECT x,y,z"
+        " FROM mapSolarSystems WHERE solarSystemID=%u",
+        systemID))
+    {
+        codelog(DATABASE__ERROR, "Error in GetSolarSystemPosition query: %s", res.error.c_str());
+        return false;
+    }
+
+    _log(DATABASE__RESULTS, "GetSolarSystemPosition returned %u items", res.GetRowCount());
+
+    DBResultRow row;
+    GPoint point;
+    while(res.GetRow(row)) {
+        point = GPoint(row.GetDouble(0), row.GetDouble(1), row.GetDouble(2));
+    }
+    return point;
+}
+
 bool SystemDB::LoadSystemStaticEntities(uint32 systemID, std::vector<DBSystemEntity>& into) {
     DBQueryResult res;
     if(!sDatabase.RunQuery(res,

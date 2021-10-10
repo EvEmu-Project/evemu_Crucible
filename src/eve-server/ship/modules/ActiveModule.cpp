@@ -509,6 +509,45 @@ uint32 ActiveModule::DoCycle()
         AbortCycle();
         return 0;
     }
+
+    // Check for modules which consume items from inventory per-cycle
+    if (m_modRef->HasAttribute(AttrConsumptionType)) {
+        std::vector<InventoryItemRef> cargoItems;
+        std::vector<InventoryItemRef> requiredItems;
+        uint32 itemType = m_modRef->GetAttribute(AttrConsumptionType).get_uint32();
+        uint32 itemQuantity = m_modRef->GetAttribute(AttrConsumptionQuantity).get_uint32();
+        m_shipRef->GetMyInventory()->GetItemsByFlag(flagCargoHold, cargoItems);
+        uint32 quantity = 0;
+        for (auto cur : cargoItems) {
+            if (cur->type().id() == itemType) {
+                quantity += cur->quantity();
+                requiredItems.push_back(cur);
+                if (quantity >= itemQuantity) {
+                    break;
+                } 
+            }
+        }
+        if (quantity < itemQuantity) {
+            m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your inventory.", itemQuantity, sItemFactory.GetType(itemType)->name().c_str());
+            AbortCycle();
+            return 0;
+        }
+
+        uint32 quantityLeft = itemQuantity;
+        for (auto cur : requiredItems) {
+            if (cur->quantity() >= quantityLeft) {
+                //If we have all the quantity we need in the current stack, decrement the amount we need and break
+                cur->AlterQuantity(-quantityLeft, true);
+                break;
+            } else {
+                //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack
+                quantityLeft -= cur->quantity();
+                // Delete item after we zero it's quantity
+                cur->SetQuantity(0, true, true);
+            }
+        }
+    }
+
     // not sure if this is entirely accurate...wip
     switch (m_modRef->groupID()) {
         case EVEDB::invGroups::Projectile_Weapon:
@@ -588,7 +627,7 @@ uint32 ActiveModule::DoCycle()
         case EVEDB::invGroups::Passive_Targeting_System: {
         } break;
         // these active modules will need specific code
-        case EVEDB::invGroups::Cynosural_Field:
+        case EVEDB::invGroups::Cynosural_Field_Generator:
         case EVEDB::invGroups::Covert_Cynosural_Field_Generator:
         case EVEDB::invGroups::Automated_Targeting_System: {
         } break;
@@ -659,6 +698,9 @@ void ActiveModule::DeactivateCycle(bool abort/*false*/)
     } else {
         ShowEffect(false, abort);
     }
+
+    // Remove modifier added by module
+    
 
     ApplyEffect(FX::State::Active, false);
     if (IsValidTarget(m_targetID)
@@ -1099,6 +1141,29 @@ bool ActiveModule::CanActivate()
         if (distance > range) {
             m_shipRef->GetPilot()->SendNotifyMsg("The %s is %.0f meters from you, outside the effective range of your %s, which is %.0f meters.", \
                     m_targetSE->GetName(), distance, m_modRef->name(), range);
+            return false;
+        }
+    }
+
+    // Check for modules which consume items from inventory, and make sure player has enough
+    if (m_modRef->HasAttribute(AttrConsumptionType)) {
+        std::vector<InventoryItemRef> cargoItems;
+        std::vector<InventoryItemRef> requiredItems;
+        uint32 itemType = m_modRef->GetAttribute(AttrConsumptionType).get_uint32();
+        uint32 itemQuantity = m_modRef->GetAttribute(AttrConsumptionQuantity).get_uint32();
+        m_shipRef->GetMyInventory()->GetItemsByFlag(flagCargoHold, cargoItems);
+        uint32 quantity = 0;
+        for (auto cur : cargoItems) {
+            if (cur->type().id() == itemType) {
+                quantity += cur->quantity();
+                requiredItems.push_back(cur);
+                if (quantity >= itemQuantity) {
+                    break;
+                } 
+            }
+        }
+        if (quantity < itemQuantity) {
+            m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your inventory.", itemQuantity, sItemFactory.GetType(itemType)->name().c_str());
             return false;
         }
     }

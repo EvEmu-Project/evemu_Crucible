@@ -9,6 +9,10 @@
 
 #include "../eve-common.h"
 
+double EvEMath::Units::MetersToLightYears(double meters) {
+    return meters / 9460730472580800;
+}
+
 // skill Equations
 uint32 EvEMath::Skill::PointsAtLevel(uint8 level, uint8 rank)
 {

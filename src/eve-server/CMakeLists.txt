@@ -34,7 +34,8 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/PyServiceMgr.h"
      "${TARGET_INCLUDE_DIR}/ServiceDB.h"
      "${TARGET_INCLUDE_DIR}/StaticDataMgr.h"
-     "${TARGET_INCLUDE_DIR}/StatisticMgr.h")
+     "${TARGET_INCLUDE_DIR}/StatisticMgr.h"
+     "${TARGET_INCLUDE_DIR}/DBCleaner.h")
 SET( SOURCE
      "${TARGET_SOURCE_DIR}/eve-server.cpp"
      "${TARGET_SOURCE_DIR}/Client.cpp"
@@ -52,7 +53,8 @@ SET( SOURCE
      "${TARGET_SOURCE_DIR}/PyServiceMgr.cpp"
      "${TARGET_SOURCE_DIR}/ServiceDB.cpp"
      "${TARGET_SOURCE_DIR}/StaticDataMgr.cpp"
-     "${TARGET_SOURCE_DIR}/StatisticMgr.cpp")
+     "${TARGET_SOURCE_DIR}/StatisticMgr.cpp"
+     "${TARGET_SOURCE_DIR}/DBCleaner.cpp")
 
 SET( account_INCLUDE
      "${TARGET_INCLUDE_DIR}/account/AccountDB.h"
@@ -491,7 +493,8 @@ SET( ship_modules_INCLUDE
      "${TARGET_INCLUDE_DIR}/ship/modules/RigModule.h"
      "${TARGET_INCLUDE_DIR}/ship/modules/SubSystemModule.h"
      "${TARGET_INCLUDE_DIR}/ship/modules/TurretFormulas.h"
-     "${TARGET_INCLUDE_DIR}/ship/modules/TurretModule.h" )
+     "${TARGET_INCLUDE_DIR}/ship/modules/TurretModule.h" 
+     "${TARGET_INCLUDE_DIR}/ship/modules/CynoModule.h" )
 SET( ship_modules_SOURCE
      "${TARGET_SOURCE_DIR}/ship/modules/ActiveModule.cpp"
      "${TARGET_SOURCE_DIR}/ship/modules/GenericModule.cpp"
@@ -503,7 +506,8 @@ SET( ship_modules_SOURCE
      "${TARGET_SOURCE_DIR}/ship/modules/RigModule.cpp"
      "${TARGET_SOURCE_DIR}/ship/modules/SubSystemModule.cpp"
      "${TARGET_SOURCE_DIR}/ship/modules/TurretFormulas.cpp"
-     "${TARGET_SOURCE_DIR}/ship/modules/TurretModule.cpp" )
+     "${TARGET_SOURCE_DIR}/ship/modules/TurretModule.cpp" 
+     "${TARGET_SOURCE_DIR}/ship/modules/CynoModule.cpp" )
 
 SET( standing_INCLUDE
      "${TARGET_INCLUDE_DIR}/standing/Standing.h"

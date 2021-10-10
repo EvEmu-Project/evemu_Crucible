@@ -22,6 +22,9 @@ namespace EvESkill {
 }
 
 namespace EvEMath {
+    namespace Units {
+        double MetersToLightYears(double meters);
+    }
     namespace Skill {
         uint32 PointsAtLevel(uint8 level, uint8 rank);
         uint8 PointsPerMinute(uint8 pAttr, uint8 sAttr);

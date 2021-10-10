@@ -572,6 +572,10 @@ void Client::ProcessClient() {
                     _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: Jump");
                     ExecuteJump();
                 } break;
+                case Player::State::DriveJump: {
+                    _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: DriveJump");
+                    ExecuteDriveJump();
+                } break;
                 case Player::State::Logout: {
                     _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: Logout");
                     // can we use this to allow WarpOut?
@@ -1441,6 +1445,26 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     SetStateTimer(Player::State::Jump, Player::Timer::Jumping);
 }
 
+void Client::CynoJump(uint32 startLocation, uint32 destLocation, GPoint destPoint) {
+    if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
+        sLog.Error("Client","%s: CynoJump called when a move is already pending. Ignoring.", m_char->name());
+        // send client msg about state change in progress
+        return;
+    }
+
+    MapDB::AddJump(startLocation);
+    MapDB::AddJump(destLocation);
+    m_char->VisitSystem(destLocation);
+
+    JumpOutEffect(m_ship->itemID());
+
+    m_movePoint = destPoint;
+    m_movePoint.MakeRandomPointOnSphereLayer(200,500);
+    m_moveSystemID = destLocation;
+
+    SetStateTimer(Player::State::DriveJump, Player::Timer::Jumping);
+}
+
 void Client::ExecuteJump() {
     if (m_movePoint == NULL_ORIGIN) {   // this is part of infant AP hack
         m_clientState = Player::State::Idle;
@@ -1453,6 +1477,27 @@ void Client::ExecuteJump() {
     pShipSE->Jump();
 
     MoveToLocation(m_moveSystemID, m_movePoint);
+
+    SetBallParkTimer(Player::Timer::Jump);
+
+    m_movePoint = NULL_ORIGIN;
+    m_moveSystemID = 0;
+}
+
+void Client::ExecuteDriveJump() {
+    if (m_movePoint == NULL_ORIGIN) {   // this is part of infant AP hack
+        m_clientState = Player::State::Idle;
+        _log(AUTOPILOT__TRACE, "ExecuteJump() - movePoint = null; state set to Idle");
+        return;
+    }
+
+    //OnScannerInfoRemoved  - no args.  flushes scan data in client
+    SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
+    pShipSE->Jump();
+
+    MoveToLocation(m_moveSystemID, m_movePoint);
+
+    JumpInEffect();
 
     SetBallParkTimer(Player::Timer::Jump);
 
@@ -1584,14 +1629,15 @@ void Client::JumpOutEffect(uint32 locationID)
 std::string Client::GetStateName(int8 state)
 {
     switch (state) {
-        case Player::State::Idle:    return "Idle";
-        case Player::State::Jump:    return "Jump";
-        case Player::State::Dock:    return "Dock";
-        case Player::State::Undock:  return "Undock";
-        case Player::State::Killed:  return "Killed";
-        case Player::State::Logout:  return "Logout";
-        case Player::State::Board:   return "Board";
-        case Player::State::Login:   return "Login";
+        case Player::State::Idle:      return "Idle";
+        case Player::State::Jump:      return "Jump";
+        case Player::State::DriveJump: return "DriveJump";
+        case Player::State::Dock:      return "Dock";
+        case Player::State::Undock:    return "Undock";
+        case Player::State::Killed:    return "Killed";
+        case Player::State::Logout:    return "Logout";
+        case Player::State::Board:     return "Board";
+        case Player::State::Login:     return "Login";
     }
     return "Undefined";
 }

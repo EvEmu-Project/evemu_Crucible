@@ -36,7 +36,7 @@
 #include "ship/modules/SubSystemModule.h"
 #include "ship/modules/ModuleItem.h"
 #include "ship/modules/TurretModule.h"
-
+#include "ship/modules/CynoModule.h"
 
 static GenericModule* ModuleFactory(ModuleItemRef mRef, ShipItemRef sRef)
 {
@@ -153,7 +153,7 @@ static GenericModule* ModuleFactory(ModuleItemRef mRef, ShipItemRef sRef)
             case EVEDB::invGroups::Gang_Coordinator:                        return (new ActiveModule(mRef, sRef));    // Active - external
             case EVEDB::invGroups::Siege_Module:                            return (new ActiveModule(mRef, sRef));    // Active - external
             case EVEDB::invGroups::Jump_Portal_Generator:                   return (new ActiveModule(mRef, sRef));    // Active - external
-            case EVEDB::invGroups::Cynosural_Field:                         return (new ActiveModule(mRef, sRef));    // Active - external
+            case EVEDB::invGroups::Cynosural_Field_Generator:               return (new CynoModule(mRef, sRef));
             case EVEDB::invGroups::Clone_Vat_Bay:                           return (new PassiveModule(mRef, sRef));
 
             // Mining Modules:

@@ -1547,6 +1547,15 @@ void FleetService::GetFleetClientsInSystem(Client* pClient, std::vector< Client*
     }
 }
 
+std::vector<Client *> FleetService::GetFleetClients(uint32 fleetID) {
+    std::vector<Client*> members;
+    auto range = m_fleetMembers.equal_range(fleetID);
+    for (auto fItr = range.first; fItr != range.second; ++fItr)
+        members.push_back(fItr->second);
+    
+    return members;
+}
+
 void FleetService::SendActiveStatus(uint32 fleetID, int32 wingID, int32 squadID)
 {
     PyTuple* count = new PyTuple(1);

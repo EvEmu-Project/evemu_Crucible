@@ -180,7 +180,8 @@
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/cosmicMgrs/WormholeMgr.h"
-
+// database cleaner service
+#include "DBCleaner.h"
 
 static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
@@ -611,6 +612,10 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     std::printf("\n");     // spacer
+
+    // Clean DB upon initialisation
+    dbClean.Initialize();
+    std::printf("\n");
 
     // start up the image server
     sLog.Green("       ServerInit", "Starting Image Server");

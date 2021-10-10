@@ -251,6 +251,7 @@ public:
     void SetSessionChange(bool set=false)               { m_sessionChangeActive = set; }
     void SetBallPark();
     void StargateJump(uint32 fromGate, uint32 toGate);
+    void CynoJump(uint32 startLocation, uint32 destLocation, GPoint destPoint);
 
     bool IsAutoPilot()                                  { return m_autoPilot; }
     void SetAutoPilot(bool set=false);
@@ -345,6 +346,7 @@ protected:
     SystemManager* m_system;    //we do not own this
 
     void ExecuteJump();
+    void ExecuteDriveJump();
     void DestroyShipSE();
 
     //void _AwardBounty(SystemEntity *who);

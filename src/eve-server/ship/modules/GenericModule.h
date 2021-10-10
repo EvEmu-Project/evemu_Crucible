@@ -70,6 +70,7 @@ public:
     virtual bool        IsActiveModule() const          { return false; }
     virtual bool        IsMiningLaser() const           { return false; }
     virtual bool        IsProspectModule() const        { return false; }
+    virtual bool        IsCynoModule() const            { return false; }
     virtual bool        IsRigModule() const             { return false; }   // check this in m_rigSlot?
     virtual bool        IsSubSystemModule() const       { return false; }   // check this in m_subSystem?
 

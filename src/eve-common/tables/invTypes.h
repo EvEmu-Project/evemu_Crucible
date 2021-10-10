@@ -259,7 +259,8 @@ namespace EVEDB {
             AsteroidBelt = 15,
             LetterOfRecommendation = 30906,
             Water = 3645,
-            Oxygen = 3683
+            Oxygen = 3683,
+            LiquidOzone = 16273
         } invTypes;
     }
 }

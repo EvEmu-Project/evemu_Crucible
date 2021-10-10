@@ -272,7 +272,6 @@ void FxProc::ParseExpression(InventoryItem* pItem, Expression expression, fxData
 
 void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShip, bool update/*false*/)
 {
-
     using namespace FX;
     //uint8 action = Action::dgmActInvalid;
     for (auto cur : pItem->m_modifiers) {  // k,v of assoc, data<math, src, targLoc, targAttr, srcAttr, grpID, typeID>
@@ -542,8 +541,14 @@ EvilNumber FxProc::CalculateAttributeValue(EvilNumber val1/*targ*/, EvilNumber v
         case FX::Math::ModSub:
             return val1 - val2;
         case FX::Math::PostPercent:
+            if (val2 == -100) {
+                val2 == -99.9999999;
+            }
             return val1 * (1.0f + (val2 / 100.0f));
         case FX::Math::RevPostPercent:
+            if (val2 == -100) {
+                val2 == -99.9999999;
+            }
             return val1 / (1.0f + (val2 / 100.0f));
         case FX::Math::Invalid:
             _log(EFFECTS__WARNING, "FxProc::CalculateNewAttributeValue() - Invalid Association used");
