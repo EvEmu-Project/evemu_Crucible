@@ -34,6 +34,7 @@
 #include "market/MarketProxyService.h"
 #include "station/StationDataMgr.h"
 #include "system/SystemManager.h"
+#include "standing/StandingDB.h"
 
 
 /*
@@ -337,9 +338,14 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         // get data for computing broker fees
         uint8 lvl(call.client->GetChar()->GetSkillLevel(EvESkill::BrokerRelations));
         //call.client->GetChar()->GetStandingModified();
-        /** @todo standings incomplete.  need to finish */
-        float fee(EvEMath::Market::BrokerFee(lvl, 1, 1));
-        fee *= money;
+        uint32 stationOwnerID = stDataMgr.GetOwnerID (call.client->GetStationID ());
+        float ownerStanding = StandingDB::GetStanding (stationOwnerID, call.client->GetCharacterID ());
+        float factionStanding = 0.0f;
+
+        if (IsNPCCorp (stationOwnerID))
+            factionStanding = StandingDB::GetStanding(sDataMgr.GetCorpFaction (stationOwnerID), call.client->GetCharacterID());
+
+        float fee = EvEMath::Market::BrokerFee(lvl, factionStanding, ownerStanding, money);
         _log(MARKET__DEBUG, "PlaceCharOrder(buy) - %s: Escrow: %.2f, Fee: %.2f", args.useCorp?"Corp":"Player", money, fee);
         // take monies and record actions
         if (args.useCorp) {
@@ -515,6 +521,32 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         data.contraband = iRef->contraband();   // does this need to check region/system?
         data.jumps = 1;     // not sure if this is used....
 
+        // calculate total for broker fees
+        float total = args.price * args.quantity;
+        std::string reason = "DESC:  Setting up sell order in ";
+        reason += stDataMgr.GetStationName(args.stationID).c_str();
+        // get data for computing broker fees
+        uint8 lvl = call.client->GetChar()->GetSkillLevel(EvESkill::BrokerRelations);
+        //call.client->GetChar()->GetStandingModified();
+        uint32 stationOwnerID = stDataMgr.GetOwnerID (call.client->GetStationID ());
+        float ownerStanding = StandingDB::GetStanding (stationOwnerID, call.client->GetCharacterID ());
+        float factionStanding = 0.0f;
+
+        if (IsNPCCorp (stationOwnerID))
+            factionStanding = StandingDB::GetStanding(sDataMgr.GetCorpFaction (stationOwnerID), call.client->GetCharacterID());
+
+        float fee = EvEMath::Market::BrokerFee(lvl, factionStanding, ownerStanding, total);
+        _log(MARKET__DEBUG, "PlaceCharOrder(sell) - %s: Total: %.2f, Fee: %.2f", args.useCorp?"Corp":"Player", total, fee);
+
+        // take monies and record actions (taxes are paid when item sells)
+        if (args.useCorp) {
+            AccountService::TranserFunds(call.client->GetCorporationID(), stDataMgr.GetOwnerID(args.stationID), fee, \
+                    reason.c_str(), Journal::EntryType::Brokerfee, 0, accountKey, Account::KeyType::Cash, call.client);
+        } else {
+            AccountService::TranserFunds(call.client->GetCharacterID(), stDataMgr.GetOwnerID(args.stationID), fee, \
+                    reason.c_str(), Journal::EntryType::Brokerfee, 0, accountKey);
+        }
+
         //store the order in the DB.
         uint32 orderID = m_db.StoreOrder(data);
         if (orderID == 0) {
@@ -538,27 +570,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         //notify client about new order.
         sMktMgr.InvalidateOrdersCache(call.client->GetRegionID(), args.typeID);
         sMktMgr.SendOnOwnOrderChanged(call.client, orderID, Market::Action::Add, args.useCorp);
-
-        // calculate total for broker fees
-        float total = args.price * args.quantity;
-        std::string reason = "DESC:  Setting up sell order in ";
-        reason += stDataMgr.GetStationName(args.stationID).c_str();
-        // get data for computing broker fees
-        uint8 lvl = call.client->GetChar()->GetSkillLevel(EvESkill::BrokerRelations);
-        //call.client->GetChar()->GetStandingModified();
-        /** @todo standings incomplete.  need to finish */
-        float fee = EvEMath::Market::BrokerFee(lvl, 1, 1);
-        fee *= total;
-        _log(MARKET__DEBUG, "PlaceCharOrder(sell) - %s: Total: %.2f, Fee: %.2f", args.useCorp?"Corp":"Player", total, fee);
-
-        // take monies and record actions (taxes are paid when item sells)
-        if (args.useCorp) {
-            AccountService::TranserFunds(call.client->GetCorporationID(), stDataMgr.GetOwnerID(args.stationID), fee, \
-                    reason.c_str(), Journal::EntryType::Brokerfee, orderID, accountKey, Account::KeyType::Cash, call.client);
-        } else {
-            AccountService::TranserFunds(call.client->GetCharacterID(), stDataMgr.GetOwnerID(args.stationID), fee, \
-                    reason.c_str(), Journal::EntryType::Brokerfee, orderID, accountKey);
-        }
     }
 
     //returns nothing.

@@ -71,8 +71,8 @@ PyRep *StandingDB::GetMyStandings(uint32 charID)
 PyRep *StandingDB::GetCharStandings(Client *pClient)
 {
     DBQueryResult res;
-    sDatabase.RunQuery(res, "SELECT fromID, toID, standing FROM repStandings WHERE toID = %u OR toID = %u OR fromID = %u",
-                       sDataMgr.GetRaceFaction(pClient->GetChar()->race()), pClient->GetCharacterID(), pClient->GetCharacterID());
+    sDatabase.RunQuery(res, "SELECT fromID, toID, standing FROM repStandings WHERE toID = %u OR fromID = %u",
+                       pClient->GetCharacterID(), pClient->GetCharacterID());
     return DBResultToCRowset(res);
 }
 
