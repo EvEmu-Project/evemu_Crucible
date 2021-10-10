@@ -1997,6 +1997,47 @@ void Client::UpdateFleetSession(CharFleetData& fleet)
     SendSessionChange();
 }
 
+void Client::SendInitialSessionStatus ()
+{
+    SessionInitialState scn;
+    scn.initialstate = new PyDict();
+
+    pSession->EncodeInitialState (scn.initialstate);
+
+    if (is_log_enabled(CLIENT__SESSION)) {
+        _log(CLIENT__SESSION, "Session initialized.  Sending initial session state");
+        scn.initialstate->Dump(CLIENT__SESSION, "   Changes: ");
+    }
+
+    scn.sessionID = pSession->GetSessionID();
+
+    //build the packet:
+    PyPacket* packet = new PyPacket();
+    packet->type_string = "macho.SessionInitialStateNotification";
+    packet->type = SESSIONINITIALSTATENOTIFICATION;
+
+    packet->source.type = PyAddress::Node;
+    packet->source.objectID = m_services.GetNodeID();
+    packet->source.callID = 0;
+
+    packet->dest.type = PyAddress::Client;
+    packet->dest.objectID = 0; //GetClientID();
+    packet->dest.callID = 0;
+
+    packet->userid = GetUserID();
+
+    packet->payload = scn.Encode();
+    packet->named_payload = nullptr;
+
+    if (is_log_enabled(CLIENT__SESSION_DUMP)) {
+        _log(CLIENT__SESSION_DUMP, "Sending Session packet:");
+        PyLogDumpVisitor dumper(CLIENT__SESSION_DUMP, CLIENT__SESSION_DUMP);
+        packet->Dump(CLIENT__SESSION_DUMP, dumper);
+    }
+
+    QueuePacket(packet);
+}
+
 void Client::SendSessionChange()
 {
     if (!pSession->isDirty())
@@ -2418,8 +2459,8 @@ bool Client::_VerifyFuncResult(CryptoHandshakeResult& result)
         res->Dump(CLIENT__CALL_DUMP, "    ");
     mNet->QueueRep(res, false);
 
-    // Send out the session change
-    SendSessionChange();
+    // send out the initial session status
+    SendInitialSessionStatus();
 
     return true;
 }

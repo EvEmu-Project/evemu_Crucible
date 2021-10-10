@@ -56,7 +56,22 @@ public:
     std::string GetCurrentString( const char* name ) const;
 
     void Clear( const char* name );
+
+    /**
+     * Buils a PyDictionary with the list of changes the session has gone through
+     * Every item is a tuple that includes the old and new value so the client can compare against what it has
+     *
+     * @param into
+     */
     void EncodeChanges( PyDict* into );
+
+    /**
+     * Builds a PyDictionary with the current state of the session. Useful for macho.SessionInitialStateNotification
+     * The side-effects include overwriting of the old value on the session data with the new one
+     *
+     * @param into
+     */
+    void EncodeInitialState (PyDict* into);
 
     int64 GetSessionID()  { return m_sessionID; }
 

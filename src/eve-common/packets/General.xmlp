@@ -336,6 +336,14 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="SessionInitialState">
+    <tupleInline>
+      <long name="sessionID" default="0" />
+      <long name="sessionType" default="5" />
+      <dict name="initialstate" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="ServerNotification">
     <tupleInline>
       <!-- 0 -->
