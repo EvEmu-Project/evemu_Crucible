@@ -246,12 +246,20 @@ PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call)
 
     std::string reason= "DESC: ";
     if (call.byname.find("reason") != call.byname.end()) {
-        // this hits db directly, so test for possible sql injection code
-        for (const auto cur : badChars)
-            if (EvE::icontains(PyRep::StringContent(call.byname.find("reason")->second), cur))
-                throw CustomError ("Reason contains invalid characters");
+        // make sure that the reason has anything in it so YAML parsing is correct
+        std::string content = PyRep::StringContent (call.byname.find ("reason")->second);
 
-        reason += PyRep::StringContent(call.byname.find("reason")->second);
+        if (content.size () < 1) {
+            reason += "No Reason Given by ";
+            reason += call.client->GetCharName();
+        } else {
+            // this hits db directly, so test for possible sql injection code
+            for (const auto cur: badChars)
+                if (EvE::icontains(content, cur))
+                    throw CustomError("Reason contains invalid characters");
+
+            reason += PyRep::StringContent(call.byname.find("reason")->second);
+        }
     } else {
         reason += "No Reason Given by ";
         reason += call.client->GetCharName();

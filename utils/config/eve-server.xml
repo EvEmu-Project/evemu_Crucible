@@ -277,8 +277,8 @@ boolean can use either 0/1 OR true/false.
     </files>
 
     <net>
-        <!--  for internal network only-->
         <port>26000</port>
+        <!-- Set to IP address which CLIENT can use to access port 26001 on server. -->
         <imageServer>127.0.0.1</imageServer>
         <imageServerPort>26001</imageServerPort>
     </net>
