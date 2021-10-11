@@ -115,26 +115,7 @@ bool MarshalStream::VisitInteger( const PyInt* rep )
 
 bool MarshalStream::VisitLong( const PyLong* rep )
 {
-    const int64 val(rep->value());
-
-    if ( val == -1 ) {
-        Put<uint8>( Op_PyMinusOne );
-    } else if ( val == 0 ) {
-        Put<uint8>( Op_PyZeroInteger );
-    } else if ( val == 1 ) {
-        Put<uint8>( Op_PyOneInteger );
-    } else if ( val + 0x800000u > 0xFFFFFFFF ) {
-        SaveVarInteger( rep );
-    } else if ( val + 0x8000u > 0xFFFF ) {
-        Put<uint8>( Op_PyLong );
-        Put<int32>(static_cast<int32>(val));
-    } else if ( val + 0x80u > 0xFF ) {
-        Put<uint8>( Op_PySignedShort );
-        Put<int16>(static_cast<int16>(val));
-    } else {
-        Put<uint8>( Op_PyByte );
-        Put<int8>(static_cast<int8>(val));
-    }
+    SaveVarInteger (rep);
 
     return true;
 }
@@ -532,7 +513,7 @@ void MarshalStream::SaveVarInteger( const PyLong* v )
 
     if ( integerSize > 0 && integerSize < 7 ) {
         Put<uint8>(Op_PyVarInteger);
-        Put<uint8>(integerSize);
+        PutSizeEx(integerSize);
         Put( &( (uint8*)&value )[0], &( (uint8*)&value )[integerSize] );
     } else {
         Put<uint8>(Op_PyLongLong);                    // 1
