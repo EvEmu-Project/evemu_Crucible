@@ -667,5 +667,5 @@ PyResult CorpStationMgr::Handle_GetStationServiceStates(PyCallArgs &call)
     _log(CORP__CALL, "CorpStationMgr::Handle_GetStationServiceStates()");
     call.Dump(CORP__CALL_DUMP);
 
-    return nullptr;
+    return new PyDict();
 }
