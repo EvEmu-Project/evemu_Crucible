@@ -26,7 +26,7 @@ namespace EvEMath {
         double MetersToLightYears(double meters);
     }
     namespace Skill {
-        uint32 PointsAtLevel(uint8 level, uint8 rank);
+        uint32 PointsAtLevel(uint8 level, float rank);
         uint8 PointsPerMinute(uint8 pAttr, uint8 sAttr);
         uint8 LevelForPoints(uint32 currentSP, uint8 rank);
         int64 EndTime(uint32 currentSP, uint32 nextSP, uint8 SPMin, int64 timeNow);

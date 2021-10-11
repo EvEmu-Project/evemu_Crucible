@@ -14,7 +14,7 @@ double EvEMath::Units::MetersToLightYears(double meters) {
 }
 
 // skill Equations
-uint32 EvEMath::Skill::PointsAtLevel(uint8 level, uint8 rank)
+uint32 EvEMath::Skill::PointsAtLevel(uint8 level, float rank)
 {
     if (level > EvESkill::MAXSKILLLEVEL)
         level = EvESkill::MAXSKILLLEVEL;
