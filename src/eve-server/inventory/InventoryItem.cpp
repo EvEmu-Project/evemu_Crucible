@@ -782,7 +782,7 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
     if (IsTempItem(m_itemID) or IsNPC(m_itemID))
         return;
 
-    if (IsValidLocation(m_data.locationID) and (!m_delete))
+    if ((m_data.locationID == locRAMItems || IsValidLocation(m_data.locationID)) and (!m_delete))
         ItemDB::UpdateLocation(m_itemID, m_data.locationID, m_data.flag);
 
     //notify about the changes.
