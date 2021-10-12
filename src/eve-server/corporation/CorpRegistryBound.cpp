@@ -177,9 +177,16 @@ PyResult CorpRegistryBound::Handle_GetEveOwners(PyCallArgs &call) {
 }
 
 PyResult CorpRegistryBound::Handle_GetInfoWindowDataForChar( PyCallArgs& call )
-{    //takes characterID
-    //  returns corpID, allianceID, title
-    return CharacterDB::GetInfoWindowDataForChar(call.client->GetCharacterID());
+{
+    // takes characterID
+    // returns corpID, allianceID, title
+    Call_SingleIntegerArg args;
+
+    // if no characterID is specified, just return information for current character
+    if (args.Decode (call.tuple) == false)
+        return CharacterDB::GetInfoWindowDataForChar (call.client->GetCharacterID ());
+
+    return CharacterDB::GetInfoWindowDataForChar (args.arg);
 }
 
 PyResult CorpRegistryBound::Handle_GetCorporation(PyCallArgs &call) {
