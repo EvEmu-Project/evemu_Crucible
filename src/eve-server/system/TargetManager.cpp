@@ -267,8 +267,18 @@ void TargetManager::ClearTarget(SystemEntity *tSE) {
 }
 
 void TargetManager::ClearModules() {
-    for (auto cur : m_modules)
-        cur.second->AbortCycle();
+    auto cur = m_modules.begin ();
+    auto end = m_modules.end ();
+
+    ActiveModule* module (nullptr);
+
+    while (cur != end) {
+        module = cur->second;
+
+        cur = m_modules.erase (cur);
+
+        module->AbortCycle ();
+    }
 }
 
 void TargetManager::ClearAllTargets(bool notify/*true*/) {
