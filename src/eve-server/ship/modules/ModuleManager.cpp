@@ -315,6 +315,9 @@ GenericModule* ModuleManager::GetRandModule()
         if (m_modules[flag] != nullptr)
             modVec.push_back(m_modules[flag]);
 
+    if (modVec.empty () == true)
+        return nullptr;
+
     return modVec[MakeRandomInt(0, modVec.size())];
 }
 

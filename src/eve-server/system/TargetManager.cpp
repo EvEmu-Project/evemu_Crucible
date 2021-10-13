@@ -562,6 +562,8 @@ void TargetManager::Destroyed()
     auto cur = m_modules.begin ();
     auto end = m_modules.end ();
 
+    ActiveModule* module (nullptr);
+
     while (cur != end) {
         // TODO: THIS IS A HACK TO FIX A PROBLEM ON THE TARGET MANAGER
         // TODO: WHEN A MODULE'S CYCLE IS ABORTED BY THIS FUNCTION, IT ENDS UP CALLING
@@ -569,7 +571,7 @@ void TargetManager::Destroyed()
         // TODO: MAP WHILE WE'RE ITERATING IT, AND THAT'S A NO-NO UNLESS YOU CAN GET THE NEW
         // TODO: ITERATOR FROM THE ERASE FUNCTION, THAT'S WHY IT'S HANDLED HERE INSTEAD OF LETTING
         // TODO: THE ActiveModule::Clear TAKE CARE OF IT
-        ActiveModule* module = cur->second;
+        module = cur->second;
 
         // this should advance the iterator without needing to do any cur++ or anything
         cur = m_modules.erase (cur);
