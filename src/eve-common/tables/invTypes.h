@@ -260,7 +260,13 @@ namespace EVEDB {
             LetterOfRecommendation = 30906,
             Water = 3645,
             Oxygen = 3683,
-            LiquidOzone = 16273
+            LiquidOzone = 16273,
+            UpgCynosuralNavigation = 2008,
+            UpgCynosuralSuppression = 2001,
+            UpgSupercapitalConstruction = 2009,
+            UpgAdvancedLogisticsNetwork = 32422,
+            CynosuralGeneratorArray = 27673,
+            CynosuralSystemJammer = 27674
         } invTypes;
     }
 }

@@ -200,8 +200,6 @@ PyRep *SovereigntyDataMgr::GetAllianceSystems() //Get all systems associated wit
 
 PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
 {
-    PyList *list = new PyList();
-
     DBRowDescriptor *header = new DBRowDescriptor();
     header->AddColumn("locationID", DBTYPE_I4);
     header->AddColumn("allianceID", DBTYPE_I4);
@@ -281,34 +279,9 @@ void SovereigntyDataMgr::AddSovClaim(SovereigntyData data)
     {
         bySolar.erase(data.solarSystemID);
     }
+    SovereigntyDB::RemoveSovereigntyData(data.solarSystemID);
 
-    //Get the data from the DB, this will avoid inconsistencies
-
-    DBQueryResult *res = new DBQueryResult();
-    DBResultRow row;
-
-    SovereigntyDB::GetSovereigntyDataForSystem(*res, data.solarSystemID);
-    while (res->GetRow(row))
-    {
-        SovereigntyData sData = SovereigntyData();
-        sData.solarSystemID = row.GetUInt(0);
-        sData.constellationID = row.GetUInt(1);
-        sData.regionID = row.GetUInt(2);
-        sData.corporationID = row.GetUInt(3);
-        sData.allianceID = row.GetUInt(4);
-        sData.claimStructureID = row.GetUInt(5);
-        sData.claimTime = row.GetInt64(6);
-        sData.hubID = row.GetUInt(7);
-        sData.contested = row.GetUInt(8);
-        sData.stationCount = row.GetUInt(9);
-        sData.militaryPoints = row.GetUInt(10);
-        sData.industrialPoints = row.GetUInt(11);
-        sData.claimID = row.GetUInt(12);
-        bySolar.insert(sData);
-    }
-
-    //Add claim to the container
-    bySolar.insert(data);
+    UpdateClaim(data.solarSystemID);
 }
 
 void SovereigntyDataMgr::MarkContested(uint32 systemID, bool contested)
@@ -318,6 +291,37 @@ void SovereigntyDataMgr::MarkContested(uint32 systemID, bool contested)
     //Update state in DB
     SovereigntyDB::SetContested(systemID, contested);
 
+    //Re-sync the claim data
+    UpdateClaim(systemID);
+}
+
+void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
+{
+    _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);
+
+    //Delete sovereignty claim from DB
+    SovereigntyDB::RemoveSovereigntyData(systemID);
+    _log(SOV__DEBUG, "RemoveSovClaim() - Claim for %u removed from DB...", systemID);
+
+    //Remove claim from container
+    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
+    bySolar.erase(systemID);
+}
+
+void SovereigntyDataMgr::UpdateSystemHubID(uint32 systemID, uint32 hubID)
+{
+    _log(SOV__INFO, "UpdateSystemHubID() - Updating hubID for system %u with hub %u", systemID, hubID);
+
+    //Update state in DB
+    SovereigntyDB::SetHubID(systemID, hubID);
+
+    //Re-sync the claim data
+    UpdateClaim(systemID);
+}
+
+// Update managed claim data from database, effectively a re-sync
+void SovereigntyDataMgr::UpdateClaim(uint32 systemID)
+{
     //Define our view from container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
 
@@ -345,17 +349,5 @@ void SovereigntyDataMgr::MarkContested(uint32 systemID, bool contested)
         sData.claimID = row.GetUInt(12);
         bySolar.insert(sData);
     }
-}
-
-void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
-{
-    _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);
-
-    //Delete sovereignty claim from DB
-    SovereigntyDB::RemoveSovereigntyData(systemID);
-    _log(SOV__DEBUG, "RemoveSovClaim() - Claim for %u removed from DB...", systemID);
-
-    //Remove claim from container
-    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
-    bySolar.erase(systemID);
+    SafeDelete(res);
 }

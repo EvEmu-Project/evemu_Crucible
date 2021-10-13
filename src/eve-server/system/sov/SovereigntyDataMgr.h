@@ -41,10 +41,11 @@ public:
     void RemoveSovClaim(uint32 systemID);
     void MarkContested(uint32 systemID, bool contested);
     SovereigntyData GetSovereigntyData(uint32 systemID);
+    void UpdateSystemHubID(uint32 systemID, uint32 hubID);
+    void UpdateClaim(uint32 systemID);
 
 protected:
     void Populate();
-    void LoadSovPyData();
 
 private:
     //Multi-index container for sov data

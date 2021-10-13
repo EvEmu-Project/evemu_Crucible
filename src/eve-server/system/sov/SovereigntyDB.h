@@ -40,6 +40,11 @@ public:
     static void AddSovereigntyData(SovereigntyData data, uint32& claimID);
     static void RemoveSovereigntyData(uint32 systemID);
     static void SetContested(uint32 systemID, bool contested);
+    static void SetHubID(uint32 systemID, uint32 hubID);
+    static void GetUpgradeData(DBQueryResult& res);
+    static void GetUpgradesForSystem(DBQueryResult& res, uint32 systemID);
+    static void AddSystemUpgrade(uint32 systemID, uint32 upgradeID);
+    static void RemoveSystemUpgrade(uint32 systemID, uint32 upgradeID);
 };
 
 #endif

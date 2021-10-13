@@ -41,6 +41,7 @@
 #include "station/StationDB.h"
 #include "system/Container.h"
 #include "system/SolarSystem.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 /*
  * Inventory
@@ -187,6 +188,7 @@ bool Inventory::LoadContents() {
             continue;
         } else {
             AddItem(iRef);
+            Client* pClient(sItemFactory.GetUsingClient());
         }
     }
 
@@ -225,6 +227,16 @@ void Inventory::AddItem(InventoryItemRef iRef) {
         }
     } else {
         m_contentsByFlag.emplace(iRef->flag(), iRef);
+    }
+
+    // Apply iHub upgrades
+    if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub) {
+        _log(SOV__DEBUG, "Applying system upgrade %s to system %s...", iRef->name(), m_self->locationID());
+    
+        // For now, all we need to do is mark the upgrade active, 
+        // but in the future upgrades for military and resource harvesting 
+        // will need to be 'activated' here
+        iRef->SetFlag(EVEItemFlags::flagStructureActive, true);
     }
 }
 
@@ -670,9 +682,56 @@ float Inventory::GetCapacity(EVEItemFlags flag) const {
     return 0.0f;
 }
 
+// Validate an IHub Upgrade and trigger it's activation
+bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
+    // Get days since claim for strategic development index
+    SovereigntyData sovData = svDataMgr.GetSovereigntyData(m_self->locationID());
+    double daysSinceClaim = (GetFileTimeNow() - sovData.claimTime) / Win32Time_Day;
 
-bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
+    // Get client who currently owns the item
+    Client* pClient(sItemFactory.GetUsingClient());
+    //Client* pClient = sEntityList.FindClientByCharID(iRef->ownerID());
+
+    switch (iRef->typeID()) {
+        case EVEDB::invTypes::UpgCynosuralNavigation:
+            if (daysSinceClaim > 2.0f) {
+                break;
+            } else {
+                pClient->SendErrorMsg("%s requires a development index of 2", iRef->name());
+                _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
+            }
+            break;
+        case EVEDB::invTypes::UpgCynosuralSuppression:
+        case EVEDB::invTypes::UpgAdvancedLogisticsNetwork:
+            if (daysSinceClaim > 3.0f) {
+                break;
+            } else {
+                pClient->SendErrorMsg("%s requires a development index of 3", iRef->name());
+                _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
+                return false;
+            }
+            break;
+        default:
+            _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is not supported currently.", iRef->name());
+            return false;
+    }
+    if (m_self->GetMyInventory()->ContainsItem(iRef->itemID())) {
+        _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is already installed.", iRef->name());
+        return false;
+    }
+
+    // If we didn't hit anything above, it must be okay to insert item
+    return true;
+    
+}
+
+bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const 
 {
+    if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub)
+        if (iRef->categoryID() == EVEDB::invCategories::StructureUpgrade)
+            if (ValidateIHubUpgrade(iRef))
+                return true;
+
     // i dont think we need to check shit in stations...yet
     if (m_self->categoryID() == EVEDB::invCategories::Station)
         return true;

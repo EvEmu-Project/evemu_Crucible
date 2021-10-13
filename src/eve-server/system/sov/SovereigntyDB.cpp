@@ -90,3 +90,13 @@ void SovereigntyDB::SetContested(uint32 systemID, bool contested)
         codelog(SOV__ERROR, "Error in changing contested state: %s", err.c_str());
     }
 }
+
+void SovereigntyDB::SetHubID(uint32 systemID, uint32 hubID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "UPDATE mapSystemSovInfo SET hubID=%u WHERE solarSystemID=%u", hubID, systemID))
+    {
+        codelog(SOV__ERROR, "Error in changing IHub ID: %s", err.c_str());
+    }
+}
