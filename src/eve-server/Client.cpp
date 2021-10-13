@@ -747,12 +747,17 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_ship->Move(m_locationID, flagNone, true);
     }
 
+    // once systemData.radius implemented, remove this in favor of below check
+    m_ship->SetPosition(pt);
+    /* comment this block for later use...  
+     * m_SystemData.radius is not populated yet, and this does weird things with ships
     // verify 'pt' is within system boundaries
     if (pt.length() < m_SystemData.radius) {
         m_ship->SetPosition(pt);
     } else {
         ;  // oob
     }
+    */
 
     char ci[45];
     if (IsStation(m_locationID)) {
