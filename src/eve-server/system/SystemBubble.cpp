@@ -637,8 +637,9 @@ void SystemBubble::SendAddBalls2( SystemEntity* to_who ) {
 void SystemBubble::AddBallExclusive( SystemEntity* pSE ) {
     if (!m_system->IsLoaded())
         return;
-    if (pSE->DestinyMgr()->IsCloaked())
-        return;
+    if (pSE->DestinyMgr() != nullptr)
+        if (pSE->DestinyMgr()->IsCloaked())
+            return;
 
     Buffer* destinyBuffer = new Buffer();
 
