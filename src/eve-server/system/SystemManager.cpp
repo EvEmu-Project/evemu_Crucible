@@ -45,6 +45,9 @@
 #include "pos/sovStructures/TCU.h"
 #include "pos/sovStructures/SBU.h"
 #include "pos/sovStructures/IHub.h"
+#include "pos/sovStructures/CynoGenerator.h"
+#include "pos/sovStructures/CynoJammer.h"
+#include "pos/sovStructures/JumpBridge.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -619,7 +622,21 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Stealth_Emitter_Array:
                 case EVEDB::invGroups::Scanner_Array:
                 case EVEDB::invGroups::Logistics_Array:
-                case EVEDB::invGroups::Cynosural_Generator_Array:
+                case EVEDB::invGroups::Cynosural_Generator_Array: {
+                    CynoGeneratorSE* cgSE = new CynoGeneratorSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making CynoGeneratorSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    pSSE = cgSE;
+                } break;
+                case EVEDB::invGroups::Cynosural_System_Jammer: {
+                    CynoJammerSE* cjSE = new CynoJammerSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making CynoJammerSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    pSSE = cjSE;
+                } break;
+                case EVEDB::invGroups::Jump_Portal_Array: {
+                    JumpBridgeSE* jbSE = new JumpBridgeSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making JumpBridgeSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    pSSE = jbSE;
+                } break;
                 case EVEDB::invGroups::Structure_Repair_Array: {
                     ArraySE* aSE = new ArraySE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making ArraySE for %s (%u)", entity.itemName.c_str(), entity.itemID);

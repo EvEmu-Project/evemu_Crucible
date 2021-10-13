@@ -494,6 +494,21 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                         return nullptr;
                     }
                 }
+                
+                // Check for required sovereignty upgrades for certain structures
+                if ((iRef->groupID() == EVEDB::invGroups::Cynosural_Field_Generator) || 
+                (iRef->groupID() == EVEDB::invGroups::Cynosural_System_Jammer) || 
+                (iRef->groupID() == EVEDB::invGroups::Jump_Portal_Array)) {
+                    SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
+                    InventoryItemRef ihubRef = sItemFactory.GetItem(sovData.hubID);
+                    
+                    if (!ihubRef->GetMyInventory()->ContainsTypeByFlag(
+                        iRef->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int(),
+                        EVEItemFlags::flagStructureActive)) {
+                        pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.", iRef->itemName());
+                        return nullptr;
+                    }
+                }
 
                 /** @todo implement these checks  (may be more i havent found yet) */
                 //{'FullPath': u'UI/Messages', 'messageID': 259679, 'label': u'DropNeedsPlayerCorpBody'}(u'In order to launch {[item]item.name} you need to be a member of a independent corporation.', None, {u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})

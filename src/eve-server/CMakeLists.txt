@@ -453,9 +453,9 @@ SET( pos_SOURCE
      "${TARGET_SOURCE_DIR}/pos/sovStructures/TCU.cpp"
      "${TARGET_SOURCE_DIR}/pos/sovStructures/SBU.cpp" 
      "${TARGET_SOURCE_DIR}/pos/sovStructures/IHub.cpp"
-     "${TARGET_SOURCE_DIR}/pos/sovStructures/CynoGenerator.h"
-     "${TARGET_SOURCE_DIR}/pos/sovStructures/CynoJammer.h"
-     "${TARGET_SOURCE_DIR}/pos/sovStructures/JumpBridge.h" )
+     "${TARGET_SOURCE_DIR}/pos/sovStructures/CynoGenerator.cpp"
+     "${TARGET_SOURCE_DIR}/pos/sovStructures/CynoJammer.cpp"
+     "${TARGET_SOURCE_DIR}/pos/sovStructures/JumpBridge.cpp" )
 
 SET( qaTools_INCLUDE
      "${TARGET_INCLUDE_DIR}/qaTools/encounterSpawnServer.h"
