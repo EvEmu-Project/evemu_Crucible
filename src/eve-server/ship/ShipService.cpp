@@ -973,12 +973,8 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
         // item can be jettisoned.  check if container was already created
         if ((ccRef.get() == nullptr) and (jcRef.get() == nullptr)) {
             if (!pClient->IsJetcanAvalible()) {
-                std::string msg = "A Jettison Container is currently being prepped in your cargo hold. \n";
-                msg += "Your estimated wait time is ";
-                msg += std::to_string(pClient->JetcanTime());
-                msg += " seconds.";
-                pClient->SendNotifyMsg(msg.c_str());
-                return tuple;
+                throw UserError ("ShpJettisonPending")
+                    .AddTimeShort ("eta", pClient->JetcanTime() * EvE::Time::Second);
             }
             // Spawn jetcan then continue loop
             location.MakeRandomPointOnSphere(500.0);
@@ -1009,15 +1005,32 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             if (ccRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, ccRef->itemID(), flagNone);
             } else {
+                // extra step, try to move as much items as possible, this needs a new item creation tho
+                float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
+                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+
+                ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
+                jcRef->AddItem(sItemFactory.SpawnItem(newItem));
+
+                iRef->AlterQuantity (-maximumAmountOfItems, true);
                 _log(ITEM__WARNING, "%s: CargoContainer %u is full.", pClient->GetName(), ccRef->itemID());
-                throw CustomError ("Your Cargo Container is full.  Some items were not transferred.");
+                throw UserError ("NotAllItemsWereMoved");
             }
         } else if (jcRef.get() != nullptr) {
             if (jcRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, jcRef->itemID(), flagNone);
             } else {
+                // extra step, try to move as much items as possible, this needs a new item creation tho
+                float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
+                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+
+                ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
+                jcRef->AddItem(sItemFactory.SpawnItem(newItem));
+
+                iRef->AlterQuantity (-maximumAmountOfItems, true);
+
                 _log(ITEM__WARNING, "%s: Jetcan %u is full.", pClient->GetName(), jcRef->itemID());
-                throw CustomError ("Your jetcan is full.  Some items were not transferred.");
+                throw UserError ("NotAllItemsWereMoved");
             }
         } else {
             _log(ITEM__ERROR, "Jettison call for %s - no CC or Jcan.", pClient->GetName());

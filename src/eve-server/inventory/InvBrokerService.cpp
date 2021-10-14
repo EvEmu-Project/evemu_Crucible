@@ -277,6 +277,26 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
             _log(INV__WARNING, "GetInventoryFromID called for Trading locationID %u using itemID %u", m_locationID, args.arg1);
             flag = flagNone;
         } break;
+        case EVEDB::invCategories::Celestial: {
+            switch (iRef->groupID ()) {
+                case EVEDB::invGroups::Cargo_Container: {
+                    flag = flagNone;
+                    // only check distance if the item is in space and not in a station
+                    if (IsSolarSystem (iRef->locationID())) {
+                        GVector direction (iRef->position(), call.client->GetShip()->position());
+                        float maxDistance = 2500.0f;
+
+                        if (iRef->HasAttribute (AttrMaxOperationalDistance) == true)
+                            maxDistance = iRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
+
+                        if (direction.length () > maxDistance)
+                            throw UserError ("NotCloseEnoughToOpen")
+                                .AddAmount ("maxdist", maxDistance);
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     //we just bind up a new inventory object for container requested and give it back to them.
