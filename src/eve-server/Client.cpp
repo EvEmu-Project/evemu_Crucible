@@ -1254,17 +1254,18 @@ void Client::ResetAfterPodded() {
 
     m_autoPilot = false;
 
-    MoveToLocation(GetCloneStationID(), NULL_ORIGIN);
-
-    SpawnNewRookieShip(m_locationID);
     CreateNewPod();
     SetShip(m_pod);
 
+    MoveToLocation(GetCloneStationID(), NULL_ORIGIN);
+    
     m_ship->Move(m_locationID, flagHangar);
     m_ship->SaveShip();
     m_char->ResetClone();
     m_char->SaveCharacter();
 
+    SpawnNewRookieShip(m_locationID);
+    
     //update session with new values
     UpdateSession();
     SendSessionChange();
