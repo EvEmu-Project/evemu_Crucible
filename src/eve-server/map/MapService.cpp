@@ -141,8 +141,6 @@ PyResult MapService::Handle_GetLinkableJumpArrays(PyCallArgs &call)
     return list;
 }
 
-
-
 /** not handled */
 
 PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
@@ -154,7 +152,7 @@ PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
     call.Dump(SERVICE__CALL_DUMP);
 
     DBQueryResult res;
-    //PosMgrDB::GetAllianceJumpBridges(call.client->GetCorporationID(), res);
+    PosMgrDB::GetAllianceJumpArrays(call.client->GetAllianceID(), res);
     PyList* list = new PyList();
     DBResultRow row;
     while (res.GetRow(row)) {
@@ -169,34 +167,12 @@ PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
 }
 
 PyResult MapService::Handle_GetAllianceBeacons(PyCallArgs &call)
-{/**
-    beacons = sm.RemoteSvc('map').GetAllianceBeacons()
-    for solarSystemID, structureID, structureTypeID in beacons:
-        if solarSystemID != session.solarsystemid:
-            solarsystem = cfg.evelocations.Get(solarSystemID)
-            invType = cfg.invtypes.Get(structureTypeID)
-            structureName = uiutil.MenuLabel('UI/Menusvc/BeaconLabel', {'name': invType.name,
-            'system': solarSystemID})
-            allianceMenu.append((solarsystem.name, (solarSystemID, structureID, structureName)))
-            */
-            sLog.Warning( "MapService::Handle_GetAllianceBeacons()", "size= %u", call.tuple->size() );
-        call.Dump(SERVICE__CALL_DUMP);
+{
+    sLog.Warning( "MapService::Handle_GetAllianceBeacons()", "size= %u", call.tuple->size() );
+    call.Dump(SERVICE__CALL_DUMP);
 
-    // copy format from GetLinkableJumpArrays()
-    DBQueryResult res;
-    //PosMgrDB::GetAllianceBeacons(call.client->GetCorporationID(), res);
-    PyList* list = new PyList();
-    DBResultRow row;
-    while (res.GetRow(row)) {
-        // SELECT solarSystemID, structureID, structureTypeID
-        PyTuple* tuple = new PyTuple(3);
-        tuple->SetItem(0, new PyInt(row.GetInt(0)));
-        tuple->SetItem(1, new PyInt(row.GetInt(1)));
-        tuple->SetItem(1, new PyInt(row.GetInt(2)));
-        list->AddItem(tuple);
-    }
-
-    return list;
+    // Get data directly from sovereignty manager, avoiding db hits
+    return svDataMgr.GetAllianceBeacons(call.client->GetAllianceID());
 }
 
 PyResult MapService::Handle_GetCurrentSovData(PyCallArgs &call)

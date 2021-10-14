@@ -84,6 +84,15 @@ void PosMgrDB::GetCorpJumpArrays(uint32 corpID, DBQueryResult& res)
     }
 }
 
+void PosMgrDB::GetAllianceJumpArrays(uint32 allyID, DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res,
+            "SELECT itemID, systemID, toItemID, toTypeID, toSystemID"
+            " FROM posJumpBridgeData WHERE allyID = %u", allyID))
+    {
+        codelog(DATABASE__ERROR, "Error in GetAllianceJumpArrays query: %s", res.error.c_str());
+    }
+}
 
 bool PosMgrDB::GetBaseData(EVEPOS::StructureData& data)
 {

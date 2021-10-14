@@ -697,8 +697,8 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
             if (daysSinceClaim > 2.0f) {
                 break;
             } else {
-                pClient->SendErrorMsg("%s requires a development index of 2", iRef->name());
                 _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
+                throw CustomError("%s requires a development index of 2", iRef->name());
             }
             break;
         case EVEDB::invTypes::UpgCynosuralSuppression:
@@ -706,18 +706,17 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
             if (daysSinceClaim > 3.0f) {
                 break;
             } else {
-                pClient->SendErrorMsg("%s requires a development index of 3", iRef->name());
                 _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
-                return false;
+                throw CustomError("%s requires a development index of 3", iRef->name());
             }
             break;
         default:
             _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is not supported currently.", iRef->name());
-            return false;
+            throw CustomError("%s is not currently supported.", iRef->name());
     }
     if (m_self->GetMyInventory()->ContainsItem(iRef->itemID())) {
         _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is already installed.", iRef->name());
-        return false;
+        throw CustomError("%s is already installed.", iRef->name());
     }
 
     // If we didn't hit anything above, it must be okay to insert item
@@ -729,8 +728,7 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 {
     if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub)
         if (iRef->categoryID() == EVEDB::invCategories::StructureUpgrade)
-            if (ValidateIHubUpgrade(iRef))
-                return true;
+            return ValidateIHubUpgrade(iRef);
 
     // i dont think we need to check shit in stations...yet
     if (m_self->categoryID() == EVEDB::invCategories::Station)

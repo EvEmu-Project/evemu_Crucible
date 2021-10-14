@@ -36,12 +36,15 @@ public:
     PyRep *GetSystemSovereignty(uint32 systemID);
     PyRep *GetAllianceSystems();
     PyRep *GetCurrentSovData(uint32 locationID);
+    PyRep *GetAllianceBeacons(uint32 allianceID);
     uint32 GetSystemAllianceID(uint32 systemID);
     void AddSovClaim(SovereigntyData data);
     void RemoveSovClaim(uint32 systemID);
     void MarkContested(uint32 systemID, bool contested);
     SovereigntyData GetSovereigntyData(uint32 systemID);
     void UpdateSystemHubID(uint32 systemID, uint32 hubID);
+    void UpdateSystemJammerID(uint32 systemID, uint32 jammerID);
+    void UpdateSystemBeaconID(uint32 systemID, uint32 beaconID);
     void UpdateClaim(uint32 systemID);
 
 protected:

@@ -78,6 +78,7 @@ boolean can use either 0/1 OR true/false.
         <saveOnMove>true</saveOnMove><!-- bool - save items when Move()'d -->
         <saveOnUpdate>true</saveOnUpdate><!-- bool - save items when values or attributes updated -->
         <shipBoardDistance>500</shipBoardDistance><!-- int  - max distance to board ship in space (5c default) -->
+        <highSecCyno>false</highSecCyno><!-- bool - allow Cynosural fields to be created in high security space -->
     </world>
 
     <rates>
