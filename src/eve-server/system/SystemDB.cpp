@@ -100,10 +100,10 @@ GPoint SystemDB::GetSolarSystemPosition(uint32 systemID) {
     _log(DATABASE__RESULTS, "GetSolarSystemPosition returned %u items", res.GetRowCount());
 
     DBResultRow row;
-    GPoint point;
-    while(res.GetRow(row)) {
+    GPoint point(NULL_ORIGIN);
+    if (res.GetRow(row))
         point = GPoint(row.GetDouble(0), row.GetDouble(1), row.GetDouble(2));
-    }
+    
     return point;
 }
 

@@ -513,7 +513,7 @@ uint32 Inventory::GetItemsByFlagSet(std::set<EVEItemFlags> flags, std::vector<In
 
 bool Inventory::ContainsTypeQty(uint16 typeID, uint32 qty/*0*/) const
 {
-    uint32 count = 0;
+    uint32 count(0);
     for (auto cur : mContents) {
         if (cur.second->typeID() == typeID ) {
             if (cur.second->quantity() >= qty) {
@@ -523,19 +523,39 @@ bool Inventory::ContainsTypeQty(uint16 typeID, uint32 qty/*0*/) const
             }
         }
     }
-    if (count >= qty)
-        return true;
-    return false;
+
+    return (count >= qty);
 }
+
+bool Inventory::ContainsTypeQtyByFlag(uint16 typeID, EVEItemFlags flag, uint32 qty) const
+{
+    uint32 count(0);
+    std::vector<InventoryItemRef> itemVec;
+    if (GetItemsByFlag(flag, itemVec) < 1)
+        return false;
+
+    for (auto cur : itemVec) {
+        if (cur->quantity() >= qty) {
+            return true;
+        } else {
+            count += cur->quantity();
+        }
+    }
+
+    return (count >= qty);
+}
+
 
 bool Inventory::ContainsTypeByFlag(uint16 typeID, EVEItemFlags flag) const
 {
     std::vector<InventoryItemRef> itemVec;
     if (GetItemsByFlag(flag, itemVec) < 1)
         return false;
+
     for (auto cur : itemVec)
         if (cur->typeID() == typeID)
             return true;
+
     return false;
 }
 

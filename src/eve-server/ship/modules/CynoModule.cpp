@@ -9,39 +9,43 @@
 #include "ship/modules/CynoModule.h"
 #include "system/SystemManager.h"
 #include "fleet/FleetService.h"
+#include "pos/Tower.h"
 
 CynoModule::CynoModule(ModuleItemRef mRef, ShipItemRef sRef)
-: ActiveModule(mRef, sRef)
+: ActiveModule(mRef, sRef),
+cSE(nullptr),
+pClient(nullptr),
+pShipSE(nullptr),
+m_firstRun(true),
+m_shipVelocity(0.0f)
 {
     if (!m_shipRef->HasPilot())
         return;
 
-    pChar = m_shipRef->GetPilot()->GetChar().get();
-    pClient = pChar->GetClient();
+    pClient = m_shipRef->GetPilot();
 
     // increase scan speed by level of survey skill
     float cycleTime = GetAttribute(AttrDuration).get_float();
-    cycleTime *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::Survey, true))));
+    cycleTime *= (1 + (0.03f * (pClient->GetChar()->GetSkillLevel(EvESkill::Survey, true))));
     SetAttribute(AttrDuration, cycleTime);
-}
-
-void CynoModule::Update()
-{
-    if (!m_shipRef->HasPilot())
-        return;
-
-    // increase scan speed by level of survey skill
-    float cycleTime = GetAttribute(AttrDuration).get_float();
-    cycleTime *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::Survey, true))));
-    SetAttribute(AttrDuration, cycleTime);
-
-    ActiveModule::Update();
 }
 
 void CynoModule::Activate(uint16 effectID, uint32 targetID, int16 repeat)
 {
+    pShipSE = pClient->GetShipSE();
+
     m_firstRun = true;
     ActiveModule::Activate(effectID, targetID, repeat);
+
+    // check to see if Activate() was denied.
+    if (m_Stop)
+        return;
+
+    _log(MODULE__DEBUG, "Cynosural field generator activated by %s in %s", pClient->GetName(), m_sysMgr->GetName());
+
+    // hack to disable ship movement here
+    m_shipVelocity = pShipSE->DestinyMgr()->GetMaxVelocity();
+    pShipSE->DestinyMgr()->SetFrozen(true);
 }
 
 void CynoModule::DeactivateCycle(bool abort)
@@ -49,83 +53,111 @@ void CynoModule::DeactivateCycle(bool abort)
     SendOnJumpBeaconChange(false);
     cSE->Delete();
     SafeDelete(cSE);
-    return ActiveModule::DeactivateCycle(abort);
-}
+    ActiveModule::DeactivateCycle(abort);
 
-void CynoModule::AbortCycle()
-{
-    if (cSE != nullptr) {
-        Deactivate();
-    }
-    ActiveModule::AbortCycle();
+    // hack to reinstate ship movement here
+    // may have to reset/reapply all fx for ship movement
+    pShipSE->GetSelf()->SetAttribute(AttrMaxVelocity, m_shipVelocity);
+    pShipSE->DestinyMgr()->SetFrozen(false);
 }
 
 bool CynoModule::CanActivate()
 {
-    //Send a message if its not allowed
-    if (pClient->InFleet()) {
-        return ActiveModule::CanActivate();
-    } else {
-        pClient->SendNotifyMsg("You must be in a fleet to run this module.");
-        return false;
+    if (!pClient->InFleet())
+        throw UserError("CynoMustBeInFleet");
+
+    if (pShipSE->SysBubble()->HasTower()) {
+        TowerSE* ptSE = pShipSE->SysBubble()->GetTowerSE();
+        if (ptSE->HasForceField())
+            if (pShipSE->GetPosition().distance(ptSE->GetPosition()) < ptSE->GetSOI())
+                throw UserError("NoCynoInPOSShields");
     }
 
+    /** @todo check for active cyno jammer */
+
+    //if (m_sysMgr->HasCynoJammer())
+    //    throw UserError("CynosuralGenerationJammed");
+
     //Make sure player is not in high-sec (with config option for this)
+
+    // all specific checks pass.  run generic checks in base class
+    return ActiveModule::CanActivate();
 }
 
 uint32 CynoModule::DoCycle()
 {
-    uint32 retVal = ActiveModule::DoCycle();
-    if (retVal == 0) {
-        return 0;
-    }
-    if (m_firstRun) {
-        m_firstRun = false;
+    // i really dont like this, but cant get it to work anywhere else...
+    uint32 retVal(0);
+    if (retVal = ActiveModule::DoCycle())
+        if (m_firstRun) {
+            m_firstRun = false;
+            CreateCyno();
+        }
 
-        _log(MODULE__DEBUG, "Cynosural field generated activated in %s", pClient->SystemMgr()->GetName());
-
-        // Create Cyno field here
-        ItemData cData(EVEDB::invTypes::CynosuralFieldI, pChar->itemID(), pChar->solarSystemID(), flagNone);
-        InventoryItemRef cRef = sItemFactory.SpawnItem(cData);
-
-        cSE = new SystemEntity(cRef, pClient->services(), m_sysMgr);
-        GPoint location(pClient->GetShipSE()->GetPosition());
-        location.MakeRandomPointOnSphere(1500.0 + cRef->type().radius());
-        cSE->SetPosition(location);
-        cRef->SaveItem();
-        pClient->SystemMgr()->AddEntity(cSE);
-        pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
-
-        SendOnJumpBeaconChange(true);
-    } 
     return retVal;
 }
 
-void CynoModule::SendOnJumpBeaconChange(bool status) {
-        //Send ProcessSovStatusChanged Notification
-        _log(MODULE__DEBUG, "Sending OnJumpBeaconChange (adding cyno to jump list for fleet members)");
+void CynoModule::CreateCyno()
+{
+    // do we already have a cyno field created?
+    if (cSE != nullptr)
+        return;
 
-        uint32 fieldID;
-        if (cSE == nullptr) {
-            fieldID = 0;
-        } else {
+    // Create Cyno field here
+    ItemData cData(EVEDB::invTypes::CynosuralFieldI, pClient->GetCharacterID(), m_sysMgr->GetID(), flagNone);
+    InventoryItemRef cRef = sItemFactory.SpawnItem(cData);
+
+    _log(MODULE__DEBUG, "Creating Cynosural field");
+
+    cSE = new ItemSystemEntity(cRef, pClient->services(), m_sysMgr);
+    GPoint location(pShipSE->GetPosition());
+    location.MakeRandomPointOnSphere(1500.0f + cRef->type().radius());
+    cSE->SetPosition(location);
+    cRef->SaveItem();
+    m_sysMgr->AddEntity(cSE);
+
+    SendOnJumpBeaconChange(true);
+}
+
+void CynoModule::SendOnJumpBeaconChange(bool active/*false*/) {
+        //Send ProcessSovStatusChanged Notification
+        _log(MODULE__DEBUG, "Sending OnJumpBeaconChange (active = %s)", active ? "true" : "false");
+
+        uint32 fieldID(0);
+        if (cSE != nullptr)
             fieldID = cSE->GetID();
-        }
 
         PyTuple* data = new PyTuple(4);
             data->SetItem(0, new PyInt(pClient->GetCharacterID()));
-            data->SetItem(1, new PyInt(pClient->GetSystemID()));
+            data->SetItem(1, new PyInt(m_sysMgr->GetID()));
             data->SetItem(2, new PyInt(fieldID));
-            data->SetItem(3, new PyBool(status));
+            data->SetItem(3, new PyBool(active));
 
         std::vector<Client *> fleetClients;
         fleetClients = sFltSvc.GetFleetClients(pClient->GetFleetID());
         for (auto cur : fleetClients)
-        {
-            if (cur->GetChar().get() != nullptr)
-            {
+            if (cur != nullptr) {
                 cur->SendNotification("OnJumpBeaconChange", "clientID", &data);
-                _log(MODULE__DEBUG, "OnJumpBeaconChange sent to client %u", cur->GetClientID());
+                _log(MODULE__DEBUG, "OnJumpBeaconChange sent to %s (%u)", cur->GetName(), cur->GetCharID());
             }
-        }
 }
+
+/*
+ * {'messageKey': 'CynoMustBeInFleet', 'dataID': 17879144, 'suppressable': False, 'bodyID': 257897, 'messageType': 'info', 'urlAudio': '', 'urlIcon': '', 'titleID': 257896, 'messageID': 2253}
+ * {'messageKey': 'CynosuralGenerationJammed', 'dataID': 17880043, 'suppressable': False, 'bodyID': 258240, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2249}
+ * {'messageKey': 'NoActiveBeacon', 'dataID': 17879973, 'suppressable': False, 'bodyID': 258214, 'messageType': 'info', 'urlAudio': '', 'urlIcon': '', 'titleID': 258213, 'messageID': 2211}
+ * {'messageKey': 'NoCynoInPOSShields', 'dataID': 17878872, 'suppressable': False, 'bodyID': 257791, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2339}
+ *
+ */
+
+/*
+ * {'FullPath': u'UI/Messages', 'messageID': 257896, 'label': u'CynoMustBeInFleetTitle'}(u'Cannot start Cynosural Field', None, None)
+ * {'FullPath': u'UI/Messages', 'messageID': 257897, 'label': u'CynoMustBeInFleetBody'}(u'You must be in a fleet to activate your Cynosural Field.', None, None)
+ *
+ * {'FullPath': u'UI/Messages', 'messageID': 258213, 'label': u'NoActiveBeaconTitle'}(u'No Active Beacon', None, None)
+ * {'FullPath': u'UI/Messages', 'messageID': 258214, 'label': u'NoActiveBeaconBody'}(u'You do not have an active Cynosural Field Beacon.', None, None)
+ *
+ * {'FullPath': u'UI/Messages', 'messageID': 258240, 'label': u'CynosuralGenerationJammedBody'}(u'You are unable to generate a cynosural field while there is a jammer present and active somewhere in this solar system.', None, None)
+ *
+ * {'FullPath': u'UI/Messages', 'messageID': 257791, 'label': u'NoCynoInPOSShieldsBody'}(u'You cannot set up a cynosural field within the force field of a Control Tower', None, None)
+ */

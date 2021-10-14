@@ -212,6 +212,9 @@ public:
     //  this is used by all entities (pc, npc, drone, sentry, pos, etc)
     void MakeMissile(Missile* missile);
 
+    bool IsFrozen()                                     { return m_frozen; }
+    void SetFrozen(bool set=false)                      { m_frozen = set; }
+
 protected:
     void ProcessState();
 
@@ -300,6 +303,7 @@ protected:
     void UpdateVelocity(bool isMoving=false);
 
 private:
+    bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
 
     // Internal Collision Methods   -allan Nov 2015
