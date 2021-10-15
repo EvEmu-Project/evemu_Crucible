@@ -494,22 +494,6 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                         return nullptr;
                     }
                 }
-                
-                // Check for required sovereignty upgrades for certain structures
-                if ((iRef->groupID() == EVEDB::invGroups::Cynosural_Field_Generator) || 
-                (iRef->groupID() == EVEDB::invGroups::Cynosural_System_Jammer) || 
-                (iRef->groupID() == EVEDB::invGroups::Jump_Portal_Array)) {
-                    SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
-                    InventoryItemRef ihubRef = sItemFactory.GetItem(sovData.hubID);
-                    
-                    if (!ihubRef->GetMyInventory()->ContainsTypeByFlag(
-                        iRef->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int(),
-                        EVEItemFlags::flagStructureActive)) {
-                        pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.", iRef->itemName());
-                        return nullptr;
-                    }
-                }
-
                 /** @todo implement these checks  (may be more i havent found yet) */
                 //{'FullPath': u'UI/Messages', 'messageID': 259679, 'label': u'DropNeedsPlayerCorpBody'}(u'In order to launch {[item]item.name} you need to be a member of a independent corporation.', None, {u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
                 //{'FullPath': u'UI/Messages', 'messageID': 256411, 'label': u'CantInHighSecSpaceBody'}(u'You cannot do that as CONCORD currently restricts the launching, anchoring and control of that type of structure within CONCORD-protected space to authorized agents of the empires.', None, None)
@@ -973,12 +957,8 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
         // item can be jettisoned.  check if container was already created
         if ((ccRef.get() == nullptr) and (jcRef.get() == nullptr)) {
             if (!pClient->IsJetcanAvalible()) {
-                std::string msg = "A Jettison Container is currently being prepped in your cargo hold. \n";
-                msg += "Your estimated wait time is ";
-                msg += std::to_string(pClient->JetcanTime());
-                msg += " seconds.";
-                pClient->SendNotifyMsg(msg.c_str());
-                return tuple;
+                throw UserError ("ShpJettisonPending")
+                    .AddTimeShort ("eta", pClient->JetcanTime() * EvE::Time::Second);
             }
             // Spawn jetcan then continue loop
             location.MakeRandomPointOnSphere(500.0);
@@ -1009,15 +989,32 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             if (ccRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, ccRef->itemID(), flagNone);
             } else {
+                // extra step, try to move as much items as possible, this needs a new item creation tho
+                float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
+                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+
+                ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
+                jcRef->AddItem(sItemFactory.SpawnItem(newItem));
+
+                iRef->AlterQuantity (-maximumAmountOfItems, true);
                 _log(ITEM__WARNING, "%s: CargoContainer %u is full.", pClient->GetName(), ccRef->itemID());
-                throw CustomError ("Your Cargo Container is full.  Some items were not transferred.");
+                throw UserError ("NotAllItemsWereMoved");
             }
         } else if (jcRef.get() != nullptr) {
             if (jcRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, jcRef->itemID(), flagNone);
             } else {
+                // extra step, try to move as much items as possible, this needs a new item creation tho
+                float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
+                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+
+                ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
+                jcRef->AddItem(sItemFactory.SpawnItem(newItem));
+
+                iRef->AlterQuantity (-maximumAmountOfItems, true);
+
                 _log(ITEM__WARNING, "%s: Jetcan %u is full.", pClient->GetName(), jcRef->itemID());
-                throw CustomError ("Your jetcan is full.  Some items were not transferred.");
+                throw UserError ("NotAllItemsWereMoved");
             }
         } else {
             _log(ITEM__ERROR, "Jettison call for %s - no CC or Jcan.", pClient->GetName());

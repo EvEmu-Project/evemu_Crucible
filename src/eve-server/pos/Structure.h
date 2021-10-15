@@ -103,9 +103,7 @@ public:
 
     /* class type pointer querys. */
     virtual StructureSE*        GetPOSSE()              { return this; }
-    virtual StructureSE*        GetJammerSE()           { return (m_jammer ? this : nullptr); }
     virtual StructureSE*        GetOutpostSE()          { return (m_outpost ? this : nullptr); }
-    virtual StructureSE*        GetJumpBridgeSE()       { return (m_bridge ? this : nullptr); }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
     virtual BatterySE*          GetBatterySE()          { return nullptr; }
@@ -121,6 +119,7 @@ public:
     virtual bool                IsSBUSE()               { return false; }
     virtual bool                IsIHubSE()              { return false; }
     virtual bool                IsJammerSE()            { return m_jammer; }
+    virtual bool                IsCynoGeneratorSE()     { return m_generator; }
     virtual bool                IsMoonMiner()           { return m_miner; }
     virtual bool                IsOutpostSE()           { return m_outpost; }
     virtual bool                IsJumpBridgeSE()        { return m_bridge; }
@@ -230,6 +229,7 @@ private:
     bool m_miner :1;            // Moon Miner
     bool m_bridge :1;           // Jump Bridge
     bool m_jammer :1;           // Cyno Jammer
+    bool m_generator :1;        // Cyno Generator
     bool m_loaded :1;
     bool m_module :1;           // any structure requiring a control tower
     bool m_reactor :1;

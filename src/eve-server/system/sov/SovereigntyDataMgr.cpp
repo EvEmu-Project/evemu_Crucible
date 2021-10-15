@@ -77,6 +77,8 @@ void SovereigntyDataMgr::Populate()
         sData.militaryPoints = row.GetUInt(10);
         sData.industrialPoints = row.GetUInt(11);
         sData.claimID = row.GetUInt(12);
+        sData.beaconID = row.GetUInt(13);
+        sData.jammerID = row.GetUInt(14);
         bySolar.insert(sData);
     }
 
@@ -194,6 +196,26 @@ PyRep *SovereigntyDataMgr::GetAllianceSystems() //Get all systems associated wit
         dict->SetItemString("allianceID", new PyInt(it.allianceID));
         dict->SetItemString("solarSystemID", new PyInt(it.solarSystemID));
         list->AddItem(new PyObject("util.KeyVal", dict));
+    }
+    return list;
+}
+
+PyRep *SovereigntyDataMgr::GetAllianceBeacons(uint32 allianceID) //Get all beacons associated with current alliance
+{
+    PyList* list = new PyList();
+    for (SovereigntyData const &sData : boost::make_iterator_range(
+                 m_sovData.get<SovDataByAlliance>().equal_range(allianceID)))
+    {
+        _log(SOV__DEBUG, "== data (GetAllianceBeacons()) ==");
+        _log(SOV__DEBUG, "solarSystemID: %u", sData.solarSystemID);
+        _log(SOV__DEBUG, "beaconID: %u", sData.beaconID);
+        _log(SOV__DEBUG, "==========");
+
+        PyTuple* tuple = new PyTuple(3);
+        tuple->SetItem(0, new PyInt(sData.solarSystemID));
+        tuple->SetItem(1, new PyInt(sData.beaconID));
+        tuple->SetItem(2, new PyInt(EVEDB::invTypes::CynosuralGeneratorArray));
+        list->AddItem(tuple);
     }
     return list;
 }
@@ -319,6 +341,28 @@ void SovereigntyDataMgr::UpdateSystemHubID(uint32 systemID, uint32 hubID)
     UpdateClaim(systemID);
 }
 
+void SovereigntyDataMgr::UpdateSystemJammerID(uint32 systemID, uint32 jammerID)
+{
+    _log(SOV__INFO, "UpdateSystemJammerID() - Updating jammerID for system %u with jammer %u", systemID, jammerID);
+
+    //Update state in DB
+    SovereigntyDB::SetJammerID(systemID, jammerID);
+
+    //Re-sync the claim data
+    UpdateClaim(systemID);
+}
+
+void SovereigntyDataMgr::UpdateSystemBeaconID(uint32 systemID, uint32 beaconID)
+{
+    _log(SOV__INFO, "UpdateSystemBeaconID() - Updating beaconID for system %u with beacon %u", systemID, beaconID);
+
+    //Update state in DB
+    SovereigntyDB::SetBeaconID(systemID, beaconID);
+
+    //Re-sync the claim data
+    UpdateClaim(systemID);
+}
+
 // Update managed claim data from database, effectively a re-sync
 void SovereigntyDataMgr::UpdateClaim(uint32 systemID)
 {
@@ -347,6 +391,8 @@ void SovereigntyDataMgr::UpdateClaim(uint32 systemID)
         sData.militaryPoints = row.GetUInt(10);
         sData.industrialPoints = row.GetUInt(11);
         sData.claimID = row.GetUInt(12);
+        sData.beaconID = row.GetUInt(13);
+        sData.jammerID = row.GetUInt(14);
         bySolar.insert(sData);
     }
     SafeDelete(res);

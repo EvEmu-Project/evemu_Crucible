@@ -697,8 +697,8 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
             if (daysSinceClaim > 2.0f) {
                 break;
             } else {
-                pClient->SendErrorMsg("%s requires a development index of 2", iRef->name());
                 _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
+                throw CustomError("%s requires a development index of 2", iRef->name());
             }
             break;
         case EVEDB::invTypes::UpgCynosuralSuppression:
@@ -706,18 +706,17 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
             if (daysSinceClaim > 3.0f) {
                 break;
             } else {
-                pClient->SendErrorMsg("%s requires a development index of 3", iRef->name());
                 _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
-                return false;
+                throw CustomError("%s requires a development index of 3", iRef->name());
             }
             break;
         default:
             _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is not supported currently.", iRef->name());
-            return false;
+            throw CustomError("%s is not currently supported.", iRef->name());
     }
     if (m_self->GetMyInventory()->ContainsItem(iRef->itemID())) {
         _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is already installed.", iRef->name());
-        return false;
+        throw CustomError("%s is already installed.", iRef->name());
     }
 
     // If we didn't hit anything above, it must be okay to insert item
@@ -729,13 +728,41 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 {
     if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub)
         if (iRef->categoryID() == EVEDB::invCategories::StructureUpgrade)
-            if (ValidateIHubUpgrade(iRef))
-                return true;
+            return ValidateIHubUpgrade(iRef);
 
     // i dont think we need to check shit in stations...yet
     if (m_self->categoryID() == EVEDB::invCategories::Station)
         return true;
 
+    Client* pClient = sItemFactory.GetUsingClient();
+
+    // check that we're close enough if a container in space
+    if (m_self->groupID() == EVEDB::invGroups::Cargo_Container && IsSolarSystem(m_self->locationID())) {
+        GVector direction (m_self->position(), pClient->GetShip()->position());
+        float maxDistance = 2500.0f;
+
+        if (m_self->HasAttribute (AttrMaxOperationalDistance) == true)
+            maxDistance = m_self->GetAttribute (AttrMaxOperationalDistance).get_float ();
+
+        if (direction.length() > maxDistance)
+            throw UserError ("NotCloseEnoughToAdd")
+                    .AddAmount ("maxdist", maxDistance);
+    }
+
+    // check if where the item is coming from was a cargo container
+    InventoryItemRef cRef = sItemFactory.GetItem(iRef->locationID());
+
+    if (cRef->groupID () == EVEDB::invGroups::Cargo_Container && IsSolarSystem (cRef->locationID())) {
+        GVector direction (cRef->position(), pClient->GetShip()->position());
+        float maxDistance = 2500.0f;
+
+        if (cRef->HasAttribute (AttrMaxOperationalDistance) == true)
+            maxDistance = cRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
+
+        if (direction.length () > maxDistance)
+            throw UserError ("NotCloseEnoughToLoot")
+                .AddAmount ("maxdist", maxDistance);
+    }
     // can this be coded to check weapon capy?   im sure it can. just a flag, right?
 
     float capacity = GetRemainingCapacity(flag);
@@ -761,7 +788,6 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 
     // check capy for single unit
     if (capacity < volume) { // smallest volume is 0.0025
-        Client* pClient = sItemFactory.GetUsingClient();
         if (pClient != nullptr) {
             std::map<std::string, PyRep *> args;
             args["volume"] = new PyFloat(volume);
