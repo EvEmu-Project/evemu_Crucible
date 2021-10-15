@@ -118,6 +118,10 @@ client login screen...these all need code to show data    CharacterDB::GetCharSe
     unprocessedNotifications:
 also need to optimize query....can join instead of using (current) multiple queries and variables
 
+check into cosmic manager enabling checks/code....kinda dont make sense)
+*** this below is wrong.  look into it.
+20:21:01 [CMgr Msg] AnomalyMgr Initialized for Ibaria(30000053) with 2 Max Signals for security class 0.37.  Test Server is enabled
+
 
 skill training...
     2x training bonus for new chars (<30d)
@@ -308,6 +312,9 @@ fleet boosts - apply directly to ship/modules when calculated
     - determine how to save fleetID for wrecks (SE has fleetID member...may save id to item.customdata)
     - MiningLaser::GetMiningVolume() uses calc's in method for boost.  this is in contrast with data in client (from GetAllInfo)
 
+shooting wrecks to destroy loot.
+    - this really is a thing on live.  implement it.
+    
 petition system missing most calls
     - this system hasnt been started
     - couple calls as skeleton code

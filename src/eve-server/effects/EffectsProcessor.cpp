@@ -541,14 +541,12 @@ EvilNumber FxProc::CalculateAttributeValue(EvilNumber val1/*targ*/, EvilNumber v
         case FX::Math::ModSub:
             return val1 - val2;
         case FX::Math::PostPercent:
-            if (val2 == -100) {
-                val2 == -99.9999999;
-            }
+            if (val2 == -100)
+                return 0;
             return val1 * (1.0f + (val2 / 100.0f));
         case FX::Math::RevPostPercent:
-            if (val2 == -100) {
-                val2 == -99.9999999;
-            }
+            if (val2 == -100)
+                return 0; //val1
             return val1 / (1.0f + (val2 / 100.0f));
         case FX::Math::Invalid:
             _log(EFFECTS__WARNING, "FxProc::CalculateNewAttributeValue() - Invalid Association used");
