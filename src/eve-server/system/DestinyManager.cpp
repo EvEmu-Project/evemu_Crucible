@@ -69,7 +69,8 @@ m_warpAccelTime(1),
 m_warpDecelTime(1),
 m_warpState(nullptr),
 m_targBubble(nullptr),
-m_warpCapacitorNeed(0.00001f)
+m_warpCapacitorNeed(0.00001f),
+m_frozen(false)
 {
     m_bump = false;
     m_stop = false;
@@ -3133,7 +3134,7 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
                     sEntityList.GetStamp(), updates.size(), events.size(), sEntityList.GetStamp(), \
                     (mySE->HasPilot()?mySE->GetPilot()->GetName():mySE->GetName()),\
                     (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID()) );
-        
+
         //Get all clients in the system which the SE is in
         std::vector<Client*> cv;
         mySE->SystemMgr()->GetClientList(cv);
