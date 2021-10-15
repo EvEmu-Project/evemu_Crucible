@@ -26,7 +26,7 @@ namespace EvEMath {
         double MetersToLightYears(double meters);
     }
     namespace Skill {
-        uint32 PointsAtLevel(uint8 level, uint8 rank);
+        uint32 PointsAtLevel(uint8 level, float rank);
         uint8 PointsPerMinute(uint8 pAttr, uint8 sAttr);
         uint8 LevelForPoints(uint32 currentSP, uint8 rank);
         int64 EndTime(uint32 currentSP, uint32 nextSP, uint8 SPMin, int64 timeNow);
@@ -66,7 +66,7 @@ namespace EvEMath {
     }
 
     namespace Market {
-        float BrokerFee(uint8 brSkillLvl, float fStanding, float cStanding);
+        float BrokerFee(uint8 brSkillLvl, float fStanding, float cStanding, float total);
         float RelistFee(float oldPrice, float newPrice, float brokerPercent=0.01, float discount=0);
         float SalesTax(float baseSalesTax, uint8 accountingLvl=0, uint8 taxEvasionLvl=0);
     }

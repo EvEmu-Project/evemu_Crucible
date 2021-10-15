@@ -76,6 +76,7 @@ public:
         bool loginMsg;
         bool saveOnMove;
         bool saveOnUpdate;
+        bool highSecCyno;
         uint8 mailDelay;
         uint8 StationDockDelay;
         uint16 shipBoardDistance;

@@ -34,7 +34,7 @@ void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
                             "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, mapSolarSystems.regionID, corporationID, "
                             " allianceID, claimStructureID, claimTime, "
                             " hubID, contested, 0 as stationCount, "
-                            " 5 as militaryPoints, 5 as industrialPoints, claimID"
+                            " 5 as militaryPoints, 5 as industrialPoints, claimID, beaconID, jammerID"
                             " FROM mapSystemSovInfo "
                             " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"))
     {
@@ -88,5 +88,35 @@ void SovereigntyDB::SetContested(uint32 systemID, bool contested)
                             "UPDATE mapSystemSovInfo SET contested=%u WHERE solarSystemID=%u", int(contested), systemID))
     {
         codelog(SOV__ERROR, "Error in changing contested state: %s", err.c_str());
+    }
+}
+
+void SovereigntyDB::SetHubID(uint32 systemID, uint32 hubID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "UPDATE mapSystemSovInfo SET hubID=%u WHERE solarSystemID=%u", hubID, systemID))
+    {
+        codelog(SOV__ERROR, "Error in changing IHub ID: %s", err.c_str());
+    }
+}
+
+void SovereigntyDB::SetJammerID(uint32 systemID, uint32 jammerID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "UPDATE mapSystemSovInfo SET jammerID=%u WHERE solarSystemID=%u", jammerID, systemID))
+    {
+        codelog(SOV__ERROR, "Error in changing Jammer ID: %s", err.c_str());
+    }
+}
+
+void SovereigntyDB::SetBeaconID(uint32 systemID, uint32 beaconID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "UPDATE mapSystemSovInfo SET beaconID=%u WHERE solarSystemID=%u", beaconID, systemID))
+    {
+        codelog(SOV__ERROR, "Error in changing Beacon ID: %s", err.c_str());
     }
 }

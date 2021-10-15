@@ -74,7 +74,7 @@ uint8 Skill::GetLevelForSP(uint32 currentSP) {
 }
 
 uint32 Skill::GetSPForLevel(uint8 level) {
-    return EvEMath::Skill::PointsAtLevel(level, GetAttribute(AttrSkillTimeConstant).get_uint32());
+    return EvEMath::Skill::PointsAtLevel(level, GetAttribute(AttrSkillTimeConstant).get_float());
 }
 
 uint32 Skill::GetCurrentSP(Character* ch, int64 startTime/*0*/)

@@ -28,6 +28,7 @@
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 IHubSE::IHubSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
 : StructureSE(structure, services, system, fData)
@@ -52,4 +53,18 @@ void IHubSE::Init()
 void IHubSE::Process()
 {
     StructureSE::Process();
+}
+
+void IHubSE::SetOnline()
+{
+    _log(SOV__DEBUG, "Onlining IHub... Updating claim'd hubID.");
+    StructureSE::SetOnline();
+    svDataMgr.UpdateSystemHubID(m_self->locationID(), m_self->itemID());
+}
+
+void IHubSE::SetOffline()
+{
+    _log(SOV__DEBUG, "Offlining TCU... Resetting claim's hubID.");
+    svDataMgr.UpdateSystemHubID(m_self->locationID(), 0);
+    StructureSE::SetOffline();
 }

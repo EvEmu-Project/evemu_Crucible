@@ -24,10 +24,10 @@ public:
     PyRep* GetCorpControlTowers(uint32 corpID);
 
     static void GetLinkableJumpArrays(uint32 corpID, DBQueryResult& res);
+    static void GetCorpJumpArrays(uint32 corpID, DBQueryResult& res);
+    static void GetAllianceJumpArrays(uint32 allyID, DBQueryResult& res);
 
     void GetControlTowerFuelRequirements(DBQueryResult& res);
-    void GetCorpJumpArrays(uint32 corpID, DBQueryResult& res);
-
 
     // pos data methods
     void DeleteData(uint32 itemID);

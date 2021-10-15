@@ -36,6 +36,7 @@
 #include "system/Damage.h"
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 /*
  * Base Structure Item for all POS types
@@ -205,6 +206,7 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_tower(false),
     m_bridge(false),
     m_jammer(false),
+    m_generator(false),
     m_loaded(false),
     m_module(false),
     m_outpost(false),
@@ -313,6 +315,10 @@ void StructureSE::Init()
              * note: set generator active in mapDynamicData on activation of this module
              */
             m_jammer = true;
+            m_module = true;
+        } break;
+        case EVEDB::invGroups::Cynosural_Generator_Array: {
+            m_generator = true;
             m_module = true;
         } break;
         case EVEDB::invGroups::Silo:
@@ -607,6 +613,29 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     // this is incomplete.  there may be client error msgs (havent looked or found)
     // these errors should throw instead of return.
 
+    // Check for required sovereignty upgrades for certain structures
+    if ((m_generator) || (m_jammer) || (m_bridge)) {
+        SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
+        InventoryItemRef ihubRef = sItemFactory.GetItem(sovData.hubID);
+        uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
+        
+        if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
+            pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.", 
+            sItemFactory.GetType(upgType)->name().c_str());
+            return;
+        }
+
+        if ((m_generator) && (sovData.jammerID != 0)) {
+            pClient->SendErrorMsg("This module cannot be anchored as the system is currently being jammed.");
+            return;
+        }
+
+        if ((m_jammer) && (sovData.beaconID != 0)) {
+            pClient->SendErrorMsg("This module cannot be anchored as the system currently has an active beacon.");
+            return;
+        }
+    }
+
     if (m_tower)
     {
         // hack for warping to moons
@@ -841,6 +870,13 @@ void StructureSE::SetOnline()
     SetTimer(m_duration);
     m_db.UpdateBaseData(m_data);
     m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnline", 0, 1, 1, -1, 0);
+
+    if (m_generator) {
+        svDataMgr.UpdateSystemBeaconID(m_self->locationID(),m_self->itemID());
+    }
+    if (m_jammer) {
+        svDataMgr.UpdateSystemJammerID(m_self->locationID(),m_self->itemID());
+    }
 }
 
 void StructureSE::SetOffline()
@@ -848,6 +884,12 @@ void StructureSE::SetOffline()
     m_self->SetFlag(flagStructureInactive);
     if (m_module)
         m_towerSE->OfflineModule(this);
+    if (m_generator) {
+        svDataMgr.UpdateSystemBeaconID(m_self->locationID(),0);
+    }
+    if (m_jammer) {
+        svDataMgr.UpdateSystemJammerID(m_self->locationID(),0);
+    }
 }
 
 void StructureSE::SetInvulnerable()

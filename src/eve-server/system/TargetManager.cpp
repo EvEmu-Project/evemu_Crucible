@@ -267,8 +267,18 @@ void TargetManager::ClearTarget(SystemEntity *tSE) {
 }
 
 void TargetManager::ClearModules() {
-    for (auto cur : m_modules)
-        cur.second->AbortCycle();
+    auto cur = m_modules.begin ();
+    auto end = m_modules.end ();
+
+    ActiveModule* module (nullptr);
+
+    while (cur != end) {
+        module = cur->second;
+
+        cur = m_modules.erase (cur);
+
+        module->AbortCycle ();
+    }
 }
 
 void TargetManager::ClearAllTargets(bool notify/*true*/) {
@@ -555,10 +565,28 @@ void TargetManager::Destroyed()
             mySE->GetName(), mySE->GetID(), m_modules.size(), m_targets.size(), m_targetedBy.size());
 
     std::string effect = "TargetDestroyed";
+
+    ClearAllTargets();
+
     // iterate thru the map of modules targeting this object, and call Deactivate on each.
-    for (auto cur : m_modules) {
+    auto cur = m_modules.begin ();
+    auto end = m_modules.end ();
+
+    ActiveModule* module (nullptr);
+
+    while (cur != end) {
+        // TODO: THIS IS A HACK TO FIX A PROBLEM ON THE TARGET MANAGER
+        // TODO: WHEN A MODULE'S CYCLE IS ABORTED BY THIS FUNCTION, IT ENDS UP CALLING
+        // TODO: ActiveModule::Clear DOWN THE ROAD, WHICH IN TURN REMOVES ITEMS FROM THE m_modules
+        // TODO: MAP WHILE WE'RE ITERATING IT, AND THAT'S A NO-NO UNLESS YOU CAN GET THE NEW
+        // TODO: ITERATOR FROM THE ERASE FUNCTION, THAT'S WHY IT'S HANDLED HERE INSTEAD OF LETTING
+        // TODO: THE ActiveModule::Clear TAKE CARE OF IT
+        module = cur->second;
+
+        // this should advance the iterator without needing to do any cur++ or anything
+        cur = m_modules.erase (cur);
         //  some modules should immediately cease cycle when target destroyed.  miners are NOT in this call
-        switch (cur.second->groupID()) {
+        switch (module->groupID()) {
             case EVEDB::invGroups::Target_Painter:
             case EVEDB::invGroups::Tracking_Disruptor:
             case EVEDB::invGroups::Remote_Sensor_Damper:
@@ -572,18 +600,16 @@ void TargetManager::Destroyed()
             case EVEDB::invGroups::Projected_ECCM:
             case EVEDB::invGroups::Ship_Scanner:
             case EVEDB::invGroups::Cargo_Scanner: {
-                cur.second->AbortCycle();
+                module->AbortCycle();
             } break;
             case EVEDB::invGroups::Salvager:
                 // set success=false and fall thru
-                cur.second->GetProspectModule()->TargetDestroyed();
+                module->GetProspectModule()->TargetDestroyed();
             default: {
-                cur.second->Deactivate(effect);
+                module->Deactivate(effect);
             } break;
         }
     }
-
-    ClearAllTargets();
 
     Dump();
 }

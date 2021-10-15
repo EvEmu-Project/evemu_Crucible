@@ -619,7 +619,6 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Stealth_Emitter_Array:
                 case EVEDB::invGroups::Scanner_Array:
                 case EVEDB::invGroups::Logistics_Array:
-                case EVEDB::invGroups::Cynosural_Generator_Array:
                 case EVEDB::invGroups::Structure_Repair_Array: {
                     ArraySE* aSE = new ArraySE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making ArraySE for %s (%u)", entity.itemName.c_str(), entity.itemID);

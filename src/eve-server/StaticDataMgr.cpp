@@ -939,7 +939,7 @@ void StaticDataMgr::GetRamReturns(uint16 typeID, int8 activityID, std::vector< E
 {
     auto itr = m_ramReq.equal_range(typeID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if ((it->second.activityID = activityID) and (it->second.extra)) {
+        if ((it->second.activityID == activityID) and (it->second.extra) and !(IsSkillTypeID(it->second.requiredTypeID))) {
             EvERam::RequiredItem data = EvERam::RequiredItem();
             data.typeID = it->second.requiredTypeID;
             data.quantity = it->second.quantity;

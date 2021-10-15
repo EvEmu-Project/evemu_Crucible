@@ -56,6 +56,7 @@ public:
     bool LoadContents();
     // this checks for available space for iRef by flag
     bool ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const;// this will throw if it fails.
+    bool ValidateIHubUpgrade(InventoryItemRef iRef) const;
     // this checks for available space for iRef by flag
     bool HasAvailableSpace(EVEItemFlags flag, InventoryItemRef iRef) const;   //  this will not throw
     bool ContentsLoaded() const                         { return mContentsLoaded; }

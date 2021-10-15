@@ -112,3 +112,6 @@ sql.tar.gz
 
 # VSCode Config Files
 .vscode/
+
+# CLion Config Files
+.idea

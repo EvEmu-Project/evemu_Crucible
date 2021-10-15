@@ -14,7 +14,7 @@ double EvEMath::Units::MetersToLightYears(double meters) {
 }
 
 // skill Equations
-uint32 EvEMath::Skill::PointsAtLevel(uint8 level, uint8 rank)
+uint32 EvEMath::Skill::PointsAtLevel(uint8 level, float rank)
 {
     if (level > EvESkill::MAXSKILLLEVEL)
         level = EvESkill::MAXSKILLLEVEL;
@@ -199,11 +199,11 @@ float EvEMath::Agent::GetStandingBonus(float fromStanding, uint32 fromFactionID,
     return bonus;
 }
 
-float EvEMath::Market::BrokerFee(uint8 brSkillLvl, float fStanding, float cStanding)
+float EvEMath::Market::BrokerFee(uint8 brSkillLvl, float fStanding, float cStanding, float orderValue)
 {
     float wStanding = (0.7f * fStanding + 0.3f * cStanding) / 10.0f;
     float fee = 0.01f * (1.0f - (0.05f * brSkillLvl)) * pow(2, -2 * wStanding);
-    return EvE::max(fee, 100.0f);
+    return EvE::max(fee * orderValue, 100.0f);
 }
 
 float EvEMath::Market::RelistFee(float oldPrice, float newPrice, float brokerPercent/*0.01*/, float discount/*0*/)

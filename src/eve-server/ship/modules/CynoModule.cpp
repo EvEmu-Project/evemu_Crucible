@@ -1,4 +1,3 @@
-
  /**
   * @name CynoModule.cpp
   *   Cynosural field generator module class
@@ -10,6 +9,7 @@
 #include "system/SystemManager.h"
 #include "fleet/FleetService.h"
 #include "pos/Tower.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 CynoModule::CynoModule(ModuleItemRef mRef, ShipItemRef sRef)
 : ActiveModule(mRef, sRef),
@@ -78,7 +78,20 @@ bool CynoModule::CanActivate()
     //if (m_sysMgr->HasCynoJammer())
     //    throw UserError("CynosuralGenerationJammed");
 
-    //Make sure player is not in high-sec (with config option for this)
+    //Send message if the system is being jammed
+    SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
+    if (sovData.jammerID != 0) {
+        pClient->SendNotifyMsg("This system is currently being jammed.");
+        return false;
+    }
+
+    //Make sure player is not in high-sec (configurable)
+    if (!sConfig.world.highSecCyno) {
+        if (pClient->SystemMgr()->GetSecValue() >= 0.5f) {
+            pClient->SendNotifyMsg("This module may not be used in high security space.");
+            return false;
+        }
+    }
 
     // all specific checks pass.  run generic checks in base class
     return ActiveModule::CanActivate();

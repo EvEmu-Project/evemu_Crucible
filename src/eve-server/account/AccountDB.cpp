@@ -168,6 +168,10 @@ void AccountDB::AddJournalEntry(uint32 ownerID, int8 entryTypeID, uint32 ownerFr
 {
     if (entryTypeID == Journal::EntryType::SkipLog)
         return;
+    // account key 0 is usually sent by the client, it should be the main cash account
+    if (accountKey == 0)
+        accountKey = Account::KeyType::Cash;
+
     std::string eDesc;
     sDatabase.DoEscapeString(eDesc, description);
 

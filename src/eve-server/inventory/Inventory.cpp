@@ -41,6 +41,7 @@
 #include "station/StationDB.h"
 #include "system/Container.h"
 #include "system/SolarSystem.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 /*
  * Inventory
@@ -187,6 +188,7 @@ bool Inventory::LoadContents() {
             continue;
         } else {
             AddItem(iRef);
+            Client* pClient(sItemFactory.GetUsingClient());
         }
     }
 
@@ -225,6 +227,16 @@ void Inventory::AddItem(InventoryItemRef iRef) {
         }
     } else {
         m_contentsByFlag.emplace(iRef->flag(), iRef);
+    }
+
+    // Apply iHub upgrades
+    if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub) {
+        _log(SOV__DEBUG, "Applying system upgrade %s to system %s...", iRef->name(), m_self->locationID());
+    
+        // For now, all we need to do is mark the upgrade active, 
+        // but in the future upgrades for military and resource harvesting 
+        // will need to be 'activated' here
+        iRef->SetFlag(EVEItemFlags::flagStructureActive, true);
     }
 }
 
@@ -690,13 +702,87 @@ float Inventory::GetCapacity(EVEItemFlags flag) const {
     return 0.0f;
 }
 
+// Validate an IHub Upgrade and trigger it's activation
+bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
+    // Get days since claim for strategic development index
+    SovereigntyData sovData = svDataMgr.GetSovereigntyData(m_self->locationID());
+    double daysSinceClaim = (GetFileTimeNow() - sovData.claimTime) / Win32Time_Day;
 
-bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
+    // Get client who currently owns the item
+    Client* pClient(sItemFactory.GetUsingClient());
+    //Client* pClient = sEntityList.FindClientByCharID(iRef->ownerID());
+
+    switch (iRef->typeID()) {
+        case EVEDB::invTypes::UpgCynosuralNavigation:
+            if (daysSinceClaim > 2.0f) {
+                break;
+            } else {
+                _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
+                throw CustomError("%s requires a development index of 2", iRef->name());
+            }
+            break;
+        case EVEDB::invTypes::UpgCynosuralSuppression:
+        case EVEDB::invTypes::UpgAdvancedLogisticsNetwork:
+            if (daysSinceClaim > 3.0f) {
+                break;
+            } else {
+                _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
+                throw CustomError("%s requires a development index of 3", iRef->name());
+            }
+            break;
+        default:
+            _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is not supported currently.", iRef->name());
+            throw CustomError("%s is not currently supported.", iRef->name());
+    }
+    if (m_self->GetMyInventory()->ContainsItem(iRef->itemID())) {
+        _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is already installed.", iRef->name());
+        throw CustomError("%s is already installed.", iRef->name());
+    }
+
+    // If we didn't hit anything above, it must be okay to insert item
+    return true;
+    
+}
+
+bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const 
 {
+    if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub)
+        if (iRef->categoryID() == EVEDB::invCategories::StructureUpgrade)
+            return ValidateIHubUpgrade(iRef);
+
     // i dont think we need to check shit in stations...yet
     if (m_self->categoryID() == EVEDB::invCategories::Station)
         return true;
 
+    Client* pClient = sItemFactory.GetUsingClient();
+
+    // check that we're close enough if a container in space
+    if (m_self->groupID() == EVEDB::invGroups::Cargo_Container && IsSolarSystem(m_self->locationID())) {
+        GVector direction (m_self->position(), pClient->GetShip()->position());
+        float maxDistance = 2500.0f;
+
+        if (m_self->HasAttribute (AttrMaxOperationalDistance) == true)
+            maxDistance = m_self->GetAttribute (AttrMaxOperationalDistance).get_float ();
+
+        if (direction.length() > maxDistance)
+            throw UserError ("NotCloseEnoughToAdd")
+                    .AddAmount ("maxdist", maxDistance);
+    }
+
+    // check if where the item is coming from was a cargo container
+    InventoryItemRef cRef = sItemFactory.GetItem(iRef->locationID());
+
+    if (cRef->groupID () == EVEDB::invGroups::Cargo_Container && IsSolarSystem (cRef->locationID())) {
+        GVector direction (cRef->position(), pClient->GetShip()->position());
+        float maxDistance = 2500.0f;
+
+        if (cRef->HasAttribute (AttrMaxOperationalDistance) == true)
+            maxDistance = cRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
+
+        if (direction.length () > maxDistance)
+            throw UserError ("NotCloseEnoughToLoot")
+                .AddAmount ("maxdist", maxDistance);
+    }
     // can this be coded to check weapon capy?   im sure it can. just a flag, right?
 
     float capacity = GetRemainingCapacity(flag);
@@ -722,7 +808,6 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 
     // check capy for single unit
     if (capacity < volume) { // smallest volume is 0.0025
-        Client* pClient = sItemFactory.GetUsingClient();
         if (pClient != nullptr) {
             std::map<std::string, PyRep *> args;
             args["volume"] = new PyFloat(volume);
