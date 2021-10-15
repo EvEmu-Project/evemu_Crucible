@@ -1410,6 +1410,9 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
 
     if (is_log_enabled(DESTINY__BALL_DUMP))
         addballs2.Dump( DESTINY__BALL_DUMP, "    " );
+    _log( DESTINY__BALL_DECODE, "    Ball Decoded:" );
+    if (is_log_enabled(DESTINY__BALL_DECODE))
+        Destiny::DumpUpdate( DESTINY__BALL_DECODE, &( addballs2.state->content() )[0], (uint32)addballs2.state->content().size() );
 
     //send the update
     PyTuple* rsp = addballs2.Encode();
@@ -1420,7 +1423,7 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
     }
 
     //cleanup
-    SafeDelete( destinyBuffer );
+    SafeDelete(destinyBuffer);
 }
 
 void SystemManager::AddItemToInventory(InventoryItemRef iRef)

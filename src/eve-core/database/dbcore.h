@@ -69,7 +69,7 @@ public:
     DBerror error;
 
     bool GetRow( DBResultRow& into );
-    size_t GetRowCount() { return (size_t)mResult->row_count; }
+    size_t GetRowCount() { return ((mResult == nullptr) ? 0 : (size_t)mResult->row_count); }
     // this should be called between multiple calls using same DBQueryResult object
     void Reset();
 

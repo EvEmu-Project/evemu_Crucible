@@ -1451,22 +1451,23 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     SetStateTimer(Player::State::Jump, Player::Timer::Jumping);
 }
 
-void Client::CynoJump(uint32 startLocation, uint32 destLocation, GPoint destPoint) {
+void Client::CynoJump(InventoryItemRef beacon) {
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
         sLog.Error("Client","%s: CynoJump called when a move is already pending. Ignoring.", m_char->name());
         // send client msg about state change in progress
         return;
     }
 
-    MapDB::AddJump(startLocation);
-    MapDB::AddJump(destLocation);
-    m_char->VisitSystem(destLocation);
+    MapDB::AddJump(m_locationID);
 
-    JumpOutEffect(startLocation);
+    m_moveSystemID = beacon->locationID();
+    MapDB::AddJump(m_moveSystemID);
+    m_char->VisitSystem(m_moveSystemID);
 
-    m_movePoint = destPoint;
+    JumpOutEffect(m_locationID);
+
+    m_movePoint = beacon->position();
     m_movePoint.MakeRandomPointOnSphereLayer(200,500);
-    m_moveSystemID = destLocation;
 
     SetStateTimer(Player::State::DriveJump, Player::Timer::Jumping);
 }

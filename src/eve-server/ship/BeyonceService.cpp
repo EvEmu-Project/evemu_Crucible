@@ -181,6 +181,9 @@ PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
     if (pSystem == nullptr) {
@@ -215,6 +218,9 @@ PyResult BeyonceBound::Handle_CmdSetSpeedFraction(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     Call_SingleRealArg arg;
@@ -247,6 +253,9 @@ PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
@@ -286,6 +295,9 @@ PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     Call_PointArg arg;
@@ -313,6 +325,9 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
 
@@ -371,6 +386,9 @@ PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     SystemManager* pSystem = call.client->SystemMgr();
@@ -424,6 +442,9 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
     }
     if (pDestiny->IsWarping()){
         call.client->SendNotifyMsg( "You are already warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
 
@@ -644,6 +665,9 @@ PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
     if (pSystem == nullptr) {
@@ -694,6 +718,9 @@ PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
     if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     call.client->SetUndock(false);
@@ -717,6 +744,9 @@ PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
@@ -775,6 +805,9 @@ PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
 
@@ -968,6 +1001,9 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     Call_BeaconJumpFleet args;
@@ -995,7 +1031,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
 
     int8 jumpFuelConservationLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFuelConservation);
     int8 jumpFreightersLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFreighters);
-    
+
     if (ship->groupID() == EVEDB::invGroups::JumpFreighter) {
         fuelQuantity = uint32(ceil(jumpDistance * fuelBaseConsumption * (1 - 0.1 * jumpFuelConservationLevel) * (1 - 0.1 * jumpFreightersLevel)));
     } else {
@@ -1014,25 +1050,22 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
         }
     }
     if (quantity < fuelQuantity) {
-        ship->GetPilot()->SendNotifyMsg("This jump requires you to have %u units of %s in your inventory.", fuelQuantity, sItemFactory.GetType(fuelType)->name().c_str());
+        ship->GetPilot()->SendNotifyMsg("This jump requires you to have %u units of %s in your fuel bay.", fuelQuantity, sItemFactory.GetType(fuelType)->name().c_str());
         return nullptr;
     }
 
-    uint32 quantityLeft = fuelQuantity;
     for (auto cur : requiredItems) {
-        if (cur->quantity() >= quantityLeft) {
+        if (cur->quantity() > fuelQuantity) {
             //If we have all the quantity we need in the current stack, decrement the amount we need and break
-            cur->AlterQuantity(-quantityLeft, true);
+            cur->AlterQuantity(-fuelQuantity, true);
             break;
         } else {
-            //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack
-            quantityLeft -= cur->quantity();
-            // Delete item after we zero it's quantity
+            //If the stack doesn't have the full amount delete item
             cur->SetQuantity(0, true, true);
         }
     }
-    
-    call.client->CynoJump(call.client->GetSystemID(), beacon->locationID(), beacon->position());
+
+    call.client->CynoJump(beacon);
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp

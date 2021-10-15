@@ -25,6 +25,7 @@ class Prospector;
 class TurretModule;
 class SuperWeapon;
 class RigModule;
+class CynoModule;
 class SubSystemModule;
 
 /* generic module base class */
@@ -64,6 +65,7 @@ public:
     virtual SuperWeapon*        GetSuperWeapon()        { return nullptr; }
     virtual RigModule*          GetRigModule()          { return nullptr; }
     virtual SubSystemModule*    GetSubSystemModule()    { return nullptr; }
+    virtual CynoModule*         GetCynoModule()         { return nullptr; }
     /* class type helpers.  public for anyone to access. */
     virtual bool        IsGenericModule() const         { return true; }
     virtual bool        IsPassiveModule() const         { return false; }

@@ -43,7 +43,7 @@ enum EveAttrEnum {
     AttrPowerLoad = 15,
     AttrCapacitorCharge = 18,
     AttrPowerToSpeed = 19,
-    AttrSpeedFactor = 20,
+    AttrSpeedFactor = 20,                               // modify target speed by this % (integer)
     AttrWarpFactor = 21,
     AttrWarpInhibitor = 29,
     AttrPower = 30,                                     //required by this item for fitting

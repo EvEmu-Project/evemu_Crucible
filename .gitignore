@@ -93,7 +93,7 @@ zlib/
 # evemu output
 build/
 build_iwyu/
-buildRel/
+staging/
 
 # doxygen output
 doxygen/
