@@ -166,7 +166,7 @@ PyRep *ConfigDB::GetMultiAllianceShortNamesEx(const std::vector<int32> &entityID
     std::string ids;
     ListToINString(entityIDs, ids);
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT allianceID, shortName FROM alnAlliance" )) {
+    if (!sDatabase.RunQuery(res, "SELECT allianceID, shortName FROM alnAlliance WHERE allianceID IN (%s)", ids.c_str() )) {
         codelog(DATABASE__ERROR, "Error in GetMultiAllianceShortNamesEx query: %s", res.error.c_str());
         return new PyInt(0);
     }
