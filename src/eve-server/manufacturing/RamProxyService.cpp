@@ -408,9 +408,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
             continue;       // not interested
 
         // calculate needed quantity
-        uint32 qtyNeeded = (uint32)ceil(itemItr->quantity * rsp.materialMultiplier * args.runs);
-        if (itemItr->damagePerJob == 1)
-            qtyNeeded = (uint32)ceil(qtyNeeded * rsp.charMaterialMultiplier);   // skill multiplier is applied only on fully consumed materials
+        uint32 qtyNeeded = (uint32)round(((itemItr->quantity * rsp.materialMultiplier) + (itemItr->quantity * rsp.charMaterialMultiplier - itemItr->quantity)) * args.runs);
 
         // consume required materials
         std::vector<InventoryItemRef>::iterator refItr = items.begin();
