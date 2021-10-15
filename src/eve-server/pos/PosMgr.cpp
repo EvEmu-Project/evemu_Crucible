@@ -257,8 +257,8 @@ PyResult PosMgrBound::Handle_InstallJumpBridgeLink(PyCallArgs &call) {
         return nullptr;
     }
 
-    /** @todo  finish this.. */
-
+    m_db.InstallBridgeLink(args.itemID, args.toSystemID, args.toItemID);
+    
     return PyStatic.NewNone();
 }
 
@@ -272,7 +272,13 @@ PyResult PosMgrBound::Handle_UninstallJumpBridgeLink(PyCallArgs &call) {
     _log(POS__TRACE,  "PosMgrBound::Handle_UninstallJumpBridgeLink()");
     call.Dump(POS__DUMP);
 
-    /** @todo  finish this.. */
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+
+    m_db.UninstallBridgeLink(arg.arg);
 
     return PyStatic.NewNone();
 }

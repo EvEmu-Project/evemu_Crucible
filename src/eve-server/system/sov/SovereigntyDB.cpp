@@ -48,7 +48,7 @@ void SovereigntyDB::GetSovereigntyDataForSystem(DBQueryResult& res, uint32 syste
                             "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, mapSolarSystems.regionID, corporationID, "
                             " allianceID, claimStructureID, claimTime, "
                             " hubID, contested, 0 as stationCount, "
-                            " 5 as militaryPoints, 5 as industrialPoints, claimID"
+                            " 5 as militaryPoints, 5 as industrialPoints, claimID, beaconID, jammerID"
                             " FROM mapSystemSovInfo "
                             " INNER JOIN mapSolarSystems ON mapSolarSystems.solarSystemID=mapSystemSovInfo.solarSystemID"
                             " WHERE mapSystemSovInfo.solarSystemID=%u ", systemID))

@@ -42,7 +42,9 @@ public:
     bool GetBridgeData(EVEPOS::JumpBridgeData& data);
     void SaveBridgeData(EVEPOS::JumpBridgeData& data);
     void UpdateBridgeData(EVEPOS::JumpBridgeData& data);
-
+    void InstallBridgeLink(uint32 itemID, uint32 toSystemID, uint32 toItemID);
+    void UninstallBridgeLink(uint32 itemID);
+    
     bool GetReactorData(ReactorData* pData, EVEPOS::StructureData& sData);
     void SaveReactorData(ReactorData* pData, EVEPOS::StructureData& sData);
     void UpdateReactorData(ReactorData* pData, EVEPOS::StructureData& sData);

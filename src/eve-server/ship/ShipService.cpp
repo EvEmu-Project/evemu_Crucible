@@ -631,8 +631,8 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                         }
 
                         // Check if this system is not claimed by your alliance
-                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) != pClient->GetAllianceID()) {
-                            pClient->SendErrorMsg("You cannot launch an Infrastructure Hub in a system claimed by another alliance");
+                        if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) != uint32(pClient->GetAllianceID())) {
+                            pClient->SendErrorMsg("You cannot launch an Infrastructure Hub in a system not claimed by your alliance.");
                             return nullptr;
                         }
                     } break;

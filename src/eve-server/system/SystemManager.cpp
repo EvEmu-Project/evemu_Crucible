@@ -45,6 +45,7 @@
 #include "pos/sovStructures/TCU.h"
 #include "pos/sovStructures/SBU.h"
 #include "pos/sovStructures/IHub.h"
+#include "pos/JumpBridge.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -59,7 +60,6 @@
 #include "system/cosmicMgrs/BeltMgr.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
-
 
 SystemManager::SystemManager(uint32 systemID, PyServiceMgr &svc)
 :m_services(svc),
@@ -630,6 +630,11 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     ReactorSE* rSE = new ReactorSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making ReactorSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = rSE;
+                } break;
+                case EVEDB::invGroups::Jump_Portal_Array: {
+                    JumpBridgeSE* jbSE = new JumpBridgeSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making JumpBridgeSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    pSSE = jbSE;
                 } break;
                 default: {
                     StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);

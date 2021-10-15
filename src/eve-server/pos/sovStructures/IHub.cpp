@@ -64,7 +64,7 @@ void IHubSE::SetOnline()
 
 void IHubSE::SetOffline()
 {
-    _log(SOV__DEBUG, "Offlining TCU... Resetting claim's hubID.");
+    _log(SOV__DEBUG, "Offlining IHub... Resetting claim's hubID.");
     svDataMgr.UpdateSystemHubID(m_self->locationID(), 0);
     StructureSE::SetOffline();
 }

@@ -75,6 +75,7 @@ class BatterySE;
 class ModuleSE;
 class WeaponSE;
 class ReactorSE;
+class JumpBridgeSE;
 
 /*
  * base class for all SystemEntities  - no TargetMgr or DestinyMgr
@@ -114,7 +115,7 @@ public:
     virtual AsteroidSE*         GetAsteroidSE()         { return nullptr; }
     virtual StructureSE*        GetPOSSE()              { return nullptr; }
     virtual StructureSE*        GetJammerSE()           { return nullptr; }
-    virtual StructureSE*        GetJumpBridgeSE()       { return nullptr; }
+    virtual JumpBridgeSE*       GetJumpBridgeSE()       { return nullptr; }
     virtual StructureSE*        GetOutpostSE()          { return nullptr; }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }

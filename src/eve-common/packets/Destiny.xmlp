@@ -575,6 +575,21 @@ DST_WARPEXIT = 11
     </tupleInline>
   </elementDef>
 
+  <elementDef name="Call_BeaconJumpAlliance">
+    <tupleInline>
+      <int name="beaconID"  safe="true" none_marker="0" />
+      <int name="solarSystemID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_BridgeJumpAlliance">
+    <tupleInline>
+      <int name="itemID"  safe="true" none_marker="0" />
+      <int name="remoteStructureID"  safe="true" none_marker="0" />
+      <int name="remoteSystemID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_FollowBall">
     <tupleInline>
       <int name="ballID"  safe="true" none_marker="0" />

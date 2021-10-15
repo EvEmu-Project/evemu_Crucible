@@ -205,7 +205,11 @@ PyRep *SovereigntyDataMgr::GetAllianceBeacons(uint32 allianceID) //Get all beaco
     PyList* list = new PyList();
     for (SovereigntyData const &sData : boost::make_iterator_range(
                  m_sovData.get<SovDataByAlliance>().equal_range(allianceID)))
-    {
+    {   
+        // Don't add systems where no beacon exists
+        if (sData.beaconID == 0) {
+            continue;
+        }
         _log(SOV__DEBUG, "== data (GetAllianceBeacons()) ==");
         _log(SOV__DEBUG, "solarSystemID: %u", sData.solarSystemID);
         _log(SOV__DEBUG, "beaconID: %u", sData.beaconID);
@@ -301,7 +305,6 @@ void SovereigntyDataMgr::AddSovClaim(SovereigntyData data)
     {
         bySolar.erase(data.solarSystemID);
     }
-    SovereigntyDB::RemoveSovereigntyData(data.solarSystemID);
 
     UpdateClaim(data.solarSystemID);
 }
@@ -369,8 +372,10 @@ void SovereigntyDataMgr::UpdateClaim(uint32 systemID)
     //Define our view from container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
 
-    //Get the data from the DB, this will avoid inconsistencies
+    //Remove old from container
+    bySolar.erase(systemID);
 
+    //Get the data from the DB, this will avoid inconsistencies
     DBQueryResult *res = new DBQueryResult();
     DBResultRow row;
 

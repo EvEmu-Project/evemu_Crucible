@@ -980,7 +980,81 @@ PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &cal
     //sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughCorporationStructure, itemID, remoteStructureID, remoteSystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughCorporationStructure");
     call.Dump(SHIP__WARNING);
+
+    _log(AUTOPILOT__MESSAGE, "%s called bridge jump.", call.client->GetName());
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
+    }
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }
+
+    Call_BridgeJumpAlliance args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+
+    InventoryItemRef beacon = sItemFactory.GetInventoryItemFromID(args.remoteStructureID);
+
+    //Check for jump fuel and make sure there is enough fuel available
+    InventoryItemRef bridge = sItemFactory.GetInventoryItemFromID(args.itemID);
+    ShipItemRef ship = call.client->GetShip();
+
+    std::vector<InventoryItemRef> fuelBayItems;
+    std::vector<InventoryItemRef> requiredItems;
+    uint32 fuelType = EVEDB::invTypes::LiquidOzone;
+    uint32 fuelQuantity = 500; // Bridges use static fuel quantity
+
+    bridge->GetMyInventory()->GetItemsByFlag(flagHangar, fuelBayItems);
+    uint32 quantity = 0;
+    for (auto cur : fuelBayItems) {
+        if (cur->type().id() == fuelType) {
+            quantity += cur->quantity();
+            requiredItems.push_back(cur);
+            if (quantity >= fuelQuantity) {
+                break;
+            }
+        }
+    }
+    if (quantity < fuelQuantity) {
+        ship->GetPilot()->SendNotifyMsg("This jump requires %u units of %s in the Jump Bridge fuel hold.", fuelQuantity, sItemFactory.GetType(fuelType)->name().c_str());
+        return nullptr;
+    }
+
+    uint32 quantityLeft = fuelQuantity;
+    for (auto cur : requiredItems) {
+        if (cur->quantity() >= quantityLeft) {
+            //If we have all the quantity we need in the current stack, decrement the amount we need and break
+            cur->AlterQuantity(-quantityLeft, true);
+            break;
+        } else {
+            //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack
+            quantityLeft -= cur->quantity();
+            // Delete item after we zero it's quantity
+            cur->SetQuantity(0, true, true);
+        }
+    }
+    GPoint position = beacon->position();
+    position.MakeRandomPointOnSphere(2500.0);
+    call.client->CynoJump(beacon);
+
+    /* return error msg from this call, if applicable, else nodeid and timestamp */
+    // returns nodeID and timestamp
+    PyTuple* tuple = new PyTuple(2);
+    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
+    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
+    return tuple;
+
     return PyStatic.NewNone();
+
 }
 
 PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
@@ -1081,7 +1155,96 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
     // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdBeaconJumpAlliance");
     call.Dump(SHIP__WARNING);
+
+    _log(AUTOPILOT__MESSAGE, "%s called beacon jump.", call.client->GetName());
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
+    }
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }
+
+    Call_BeaconJumpAlliance args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+
+    InventoryItemRef beacon = sItemFactory.GetInventoryItemFromID(args.beaconID);
+
+    //Check for jump fuel and make sure there is enough fuel available
+    ShipItemRef ship = call.client->GetShip();
+
+    std::vector<InventoryItemRef> fuelBayItems;
+    std::vector<InventoryItemRef> requiredItems;
+    uint32 fuelType = ship->GetAttribute(AttrJumpDriveConsumptionType).get_uint32();
+    uint32 fuelBaseConsumption = uint32(ceil(ship->GetAttribute(AttrJumpDriveConsumptionAmount).get_float()));
+    uint32 fuelQuantity;
+
+    GPoint startPosition = SystemDB::GetSolarSystemPosition(call.client->GetSystemID());
+    GPoint endPosition = SystemDB::GetSolarSystemPosition(beacon->locationID());
+
+    GVector heading ( startPosition, endPosition );
+    double jumpDistance = EvEMath::Units::MetersToLightYears(heading.length());
+
+    int8 jumpFuelConservationLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFuelConservation);
+    int8 jumpFreightersLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFreighters);
+    
+    if (ship->groupID() == EVEDB::invGroups::JumpFreighter) {
+        fuelQuantity = uint32(ceil(jumpDistance * fuelBaseConsumption * (1 - 0.1 * jumpFuelConservationLevel) * (1 - 0.1 * jumpFreightersLevel)));
+    } else {
+        fuelQuantity = uint32(ceil(jumpDistance * fuelBaseConsumption * (1 - 0.1 * jumpFuelConservationLevel)));
+    }
+
+    ship->GetMyInventory()->GetItemsByFlag(flagFuelBay, fuelBayItems);
+    uint32 quantity = 0;
+    for (auto cur : fuelBayItems) {
+        if (cur->type().id() == fuelType) {
+            quantity += cur->quantity();
+            requiredItems.push_back(cur);
+            if (quantity >= fuelQuantity) {
+                break;
+            }
+        }
+    }
+    if (quantity < fuelQuantity) {
+        ship->GetPilot()->SendNotifyMsg("This jump requires you to have %u units of %s in your inventory.", fuelQuantity, sItemFactory.GetType(fuelType)->name().c_str());
+        return nullptr;
+    }
+
+    uint32 quantityLeft = fuelQuantity;
+    for (auto cur : requiredItems) {
+        if (cur->quantity() >= quantityLeft) {
+            //If we have all the quantity we need in the current stack, decrement the amount we need and break
+            cur->AlterQuantity(-quantityLeft, true);
+            break;
+        } else {
+            //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack
+            quantityLeft -= cur->quantity();
+            // Delete item after we zero it's quantity
+            cur->SetQuantity(0, true, true);
+        }
+    }
+    GPoint position = beacon->position();
+    position.MakeRandomPointOnSphere(2500.0);
+    call.client->CynoJump(beacon);
+
+    /* return error msg from this call, if applicable, else nodeid and timestamp */
+    // returns nodeID and timestamp
+    PyTuple* tuple = new PyTuple(2);
+    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
+    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
+    return tuple;
+
     return PyStatic.NewNone();
+
 }
 
 PyResult BeyonceBound::Handle_CmdFleetRegroup(PyCallArgs &call) {
