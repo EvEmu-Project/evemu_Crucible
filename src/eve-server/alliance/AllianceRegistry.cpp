@@ -53,7 +53,6 @@ m_dispatch(new Dispatcher(this))
     PyCallable_REG_CALL(AllianceRegistry, GetRankedAlliances);
     PyCallable_REG_CALL(AllianceRegistry, GetEmploymentRecord);
     PyCallable_REG_CALL(AllianceRegistry, GetAllianceMembers);
-
 }
 
 AllianceRegistry::~AllianceRegistry()
@@ -93,8 +92,6 @@ PyResult AllianceRegistry::Handle_GetAlliance(PyCallArgs &call) {
         return nullptr;
     }
     return m_db.GetAlliance(args.arg);
-
-    return nullptr;
 }
 
 PyResult AllianceRegistry::Handle_GetAllianceMembers(PyCallArgs &call) {
@@ -108,8 +105,6 @@ PyResult AllianceRegistry::Handle_GetAllianceMembers(PyCallArgs &call) {
         return nullptr;
     }
     return m_db.GetAllianceMembers(args.arg);
-
-    return nullptr;
 }
 
 PyResult AllianceRegistry::Handle_GetRankedAlliances(PyCallArgs &call) {
@@ -125,8 +120,6 @@ PyResult AllianceRegistry::Handle_GetRankedAlliances(PyCallArgs &call) {
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetRankedAlliances();
-
-    return nullptr;
 }
 
 //Not sure why this doesn't work
@@ -142,5 +135,4 @@ PyResult AllianceRegistry::Handle_GetEmploymentRecord(PyCallArgs &call) {
     }
 
     return m_db.GetEmploymentRecord(arg.arg);
-
 }
