@@ -31,6 +31,7 @@
 #include "pos/sovStructures/TCU.h"
 #include "pos/sovStructures/SBU.h"
 #include "pos/sovStructures/IHub.h"
+#include "pos/JumpBridge.h"
 #include "pos/Structure.h"
 #include "system/Container.h"
 #include "system/Damage.h"
@@ -198,6 +199,7 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_sbuSE(nullptr),
     m_ihubSE(nullptr),
     m_gateSE(nullptr),
+    m_bridgeSE(nullptr),
     m_procTimer(10000), // arbitrary default
     m_tcu(false),
     m_sbu(false),
@@ -387,6 +389,10 @@ void StructureSE::Init()
     if (m_ihub)
     {
         m_ihubSE = pSE->GetIHubSE();
+    }
+    if (m_bridge)
+    {
+        m_bridgeSE = pSE->GetJumpBridgeSE();
     }
     else //everything else is anchored near a moon
     {

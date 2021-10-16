@@ -91,6 +91,7 @@ class TowerSE;
 class TCUSE;
 class SBUSE;
 class IHubSE;
+class JumpBridgeSE;
 class ArraySE;
 class BatterySE;
 class WeaponSE;
@@ -112,6 +113,7 @@ public:
     virtual TCUSE*              GetTCUSE()              { return nullptr; }
     virtual SBUSE*              GetSBUSE()              { return nullptr; }
     virtual IHubSE*             GetIHubSE()             { return nullptr; }
+    virtual JumpBridgeSE*       GetJumpBridgeSE()       { return nullptr; }
 
     /* class type tests. */
     virtual bool                IsPOSSE()               { return true; }
@@ -122,7 +124,7 @@ public:
     virtual bool                IsCynoGeneratorSE()     { return m_generator; }
     virtual bool                IsMoonMiner()           { return m_miner; }
     virtual bool                IsOutpostSE()           { return m_outpost; }
-    virtual bool                IsJumpBridgeSE()        { return m_bridge; }
+    virtual bool                IsJumpBridgeSE()        { return false; }
     virtual bool                IsTowerSE()             { return false; }
     virtual bool                IsArraySE()             { return false; }
     virtual bool                IsBatterySE()           { return false; }
@@ -204,6 +206,7 @@ protected:
     TCUSE*                      m_tcuSE;                /* controlling TCUs */
     SBUSE*                      m_sbuSE;
     IHubSE*                     m_ihubSE;
+    JumpBridgeSE*               m_bridgeSE;
     StargateSE*                 m_gateSE;
 
     EVEPOS::StructureData       m_data;

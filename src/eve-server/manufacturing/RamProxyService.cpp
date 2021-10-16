@@ -306,9 +306,6 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
     std::vector<EvERam::RequiredItem> reqItems;
     sDataMgr.GetRamRequiredItems(bpRef->typeID(), (int8)args.activityID, reqItems);
 
-    // verify installer has skills and all needed materials are present in proper location
-    sRamMthd.MaterialSkillsCheck(call.client, args.runs, bomLocPath, rsp, reqItems);
-
     // quoteOnly is sent for all jobs before installation to approve price and timeframe
     if (PyRep::IntegerValueU32(call.byname["quoteOnly"])) {
         _log(MANUF__INFO, "quoteOnly = true");
@@ -320,9 +317,73 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         return rsp.Encode();
     }
 
+    // verify installer has skills and all needed materials are present in proper location
+    sRamMthd.MaterialSkillsCheck(call.client, args.runs, bomLocPath, rsp, reqItems);
+
 
     // at this point, it is a real job installation.  check everything else
     sRamMthd.ProductionTimeCheck(rsp.productionTime);
+
+    // get proper location data
+    /** @todo  this will need work for pos */
+    uint32 locationID(0);
+    switch (args.lineLocationGroupID) {
+        case EVEDB::invGroups::Station:  {
+            // this should be same location as client....unless remote
+            locationID = args.lineLocationID;
+        } break;
+        case EVEDB::invGroups::Solar_System: {
+            // this will be pos or ship in space (not sure how ore compression works yet)
+            locationID = args.lineLocationID;
+        } break;
+        default: {
+            locationID = args.lineLocationID;
+            if (IsStation(args.lineContainerID)) {
+                locationID = args.lineContainerID;
+            } else {
+                sLog.Warning("InstallJob", "Location is not Station.  Needs work.");
+            }
+        } break;
+    }
+
+    // approved job cost from quote
+    float cost(PyRep::IntegerValue(call.byname["authorizedCost"]));
+
+    // pay for assembly lines...take the money, send wallet blink event record the transaction in journal.
+    std::string reason = "DESC: Installing ";
+    reason += sRamMthd.GetActivityName(args.activityID);
+    reason += " job in ";
+    if (sDataMgr.IsStation(locationID)) {
+        reason += stDataMgr.GetStationName(locationID);
+    } else {    // test for POS after that system is more complete...
+        reason += "Unknown Location";
+    }
+
+    if (args.isCorpJob) {
+        reason += " by ";
+        reason += call.client->GetName();
+    }
+    AccountService::TranserFunds(call.client->GetCharacterID(),
+                                 stDataMgr.GetOwnerID(locationID),
+                                 cost,
+                                 reason.c_str(),
+                                 Journal::EntryType::FactorySlotRentalFee,
+                                 locationID,    // shows rental location (stationID)
+                                 Account::KeyType::Cash);
+
+    int64 beginTime(GetFileTimeNow());
+    if (beginTime < rsp.maxJobStartTime)
+        beginTime = rsp.maxJobStartTime;
+
+    // register/save job to chosen assy line.
+    uint32 jobID = FactoryDB::InstallJob((args.isCorpJob ? call.client->GetCorporationID() : call.client->GetCharacterID()),
+                                         call.client->GetCharacterID(), args, beginTime, beginTime + rsp.productionTime * EvE::Time::Second, call.client->GetSystemID());
+
+    if (jobID < 1) {
+        _log(MANUF__ERROR, "Could not InstallJob for %s using %s", call.client->GetName(), bpRef->name());
+        // make client error here...
+        return nullptr;
+    }
 
     if (bpRef->quantity() > 1) {
         BlueprintRef iRef = bpRef->SplitBlueprint(1);
@@ -347,9 +408,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
             continue;       // not interested
 
         // calculate needed quantity
-        uint32 qtyNeeded = (uint32)ceil(itemItr->quantity * rsp.materialMultiplier * args.runs);
-        if (itemItr->damagePerJob == 1)
-            qtyNeeded = (uint32)ceil(qtyNeeded * rsp.charMaterialMultiplier);   // skill multiplier is applied only on fully consumed materials
+        uint32 qtyNeeded = (uint32)round(((itemItr->quantity * rsp.materialMultiplier) + (itemItr->quantity * rsp.charMaterialMultiplier - itemItr->quantity)) * args.runs);
 
         // consume required materials
         std::vector<InventoryItemRef>::iterator refItr = items.begin();
@@ -398,67 +457,6 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         */
         } break;
     }
-
-    int64 beginTime = GetFileTimeNow();
-    if (beginTime < rsp.maxJobStartTime)
-        beginTime = rsp.maxJobStartTime;
-
-    // register/save job to chosen assy line.
-    uint32 jobID = FactoryDB::InstallJob((args.isCorpJob ? call.client->GetCorporationID() : call.client->GetCharacterID()),
-                                         call.client->GetCharacterID(), args, beginTime, beginTime + rsp.productionTime * EvE::Time::Second, call.client->GetSystemID());
-
-    if (jobID < 1) {
-        _log(MANUF__ERROR, "Could not InstallJob for %s using %s", call.client->GetName(), bpRef->name());
-        // make client error here...
-        return nullptr;
-    }
-
-    // get proper location data
-    /** @todo  this will need work for pos */
-    uint32 locationID(0);
-    switch (args.lineLocationGroupID) {
-        case EVEDB::invGroups::Station:  {
-            // this should be same location as client....unless remote
-            locationID = args.lineLocationID;
-        } break;
-        case EVEDB::invGroups::Solar_System: {
-            // this will be pos or ship in space (not sure how ore compression works yet)
-            locationID = args.lineLocationID;
-        } break;
-        default: {
-            locationID = args.lineLocationID;
-            if (sDataMgr.IsStation(args.lineContainerID)) {
-                locationID = args.lineContainerID;
-            } else {
-                sLog.Warning("InstallJob", "Location is not Station.  Needs work.");
-            }
-        } break;
-    }
-
-    // approved job cost from quote
-    float cost(PyRep::IntegerValue(call.byname["authorizedCost"]));
-
-    // pay for assembly lines...take the money, send wallet blink event record the transaction in journal.
-    std::string reason = "DESC: Installing ";
-    reason += sRamMthd.GetActivityName(args.activityID);
-    reason += " job in ";
-    if (sDataMgr.IsStation(locationID)) {
-        reason += stDataMgr.GetStationName(locationID);
-    } else {    // test for POS after that system is more complete...
-        reason += "Unknown Location";
-    }
-
-    if (args.isCorpJob) {
-        reason += " by ";
-        reason += call.client->GetName();
-    }
-    AccountService::TranserFunds(call.client->GetCharacterID(),
-                                 stDataMgr.GetOwnerID(locationID),
-                                 cost,
-                                 reason.c_str(),
-                                 Journal::EntryType::FactorySlotRentalFee,
-                                 locationID,    // shows rental location (stationID)
-                                 Account::KeyType::Cash);
 
     if (sConfig.ram.AutoEvent) {
         std::string title;

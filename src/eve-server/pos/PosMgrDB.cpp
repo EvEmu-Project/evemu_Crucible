@@ -243,6 +243,26 @@ void PosMgrDB::UpdateBridgeData(EVEPOS::JumpBridgeData& data)
         data.allyID, data.toItemID, data.toTypeID, data.toSystemID, escPass.c_str(), data.allowCorp, data.allowAlliance, data.itemID);
 }
 
+void PosMgrDB::InstallBridgeLink(uint32 itemID, uint32 toSystemID, uint32 toItemID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE posJumpBridgeData SET "
+        " toItemID=%i, toTypeID=27897, toSystemID=%i "
+        " WHERE itemID=%i",
+        toItemID, toSystemID, itemID);
+}
+
+void PosMgrDB::UninstallBridgeLink(uint32 itemID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE posJumpBridgeData SET "
+        " toItemID=0, toTypeID=0, toSystemID=0 "
+        " WHERE itemID=%i",
+        itemID);
+}
+
 bool PosMgrDB::GetReactorData(ReactorData* pData, EVEPOS::StructureData& sData)
 {
     return true;
