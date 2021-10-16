@@ -170,7 +170,7 @@ uint32 ItemFactory::GetNextMissileID()
 
 Inventory* ItemFactory::GetInventoryFromId(uint32 itemID, bool load /*true*/) {
     // do we need to check trade containers here?
-    if (!IsValidLocation(itemID))
+    if (!IsValidLocationID(itemID))
         return nullptr;
 
     InventoryItemRef iRef(nullptr);

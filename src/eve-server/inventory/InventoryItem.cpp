@@ -586,7 +586,7 @@ void InventoryItem::Delete()
         Move(locJunkyard, flagNone, true);
     } else {
         // remove from current container's inventory
-        if (IsValidLocation(m_data.locationID)) {
+        if (IsValidLocationID(m_data.locationID)) {
             InventoryItemRef iRef = sItemFactory.GetItem(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->GetMyInventory()->RemoveItem(InventoryItemRef(this));
@@ -671,7 +671,7 @@ void InventoryItem::Donate(uint32 new_owner/*ownerSystem*/, uint32 new_location/
         return;
     }
 
-    if (!IsValidLocation(new_location)) {
+    if (!IsValidLocationID(new_location)) {
         _log(ITEM__ERROR, "II::Donate() - %u is invalid location", new_location);
         return;
     }
@@ -687,7 +687,7 @@ void InventoryItem::Donate(uint32 new_owner/*ownerSystem*/, uint32 new_location/
     or ((new_location == m_data.locationID) // or same container
         and (new_flag != m_data.flag))) {   //  but different flag
         // remove from current location
-        if (IsValidLocation(m_data.locationID)) {
+        if (IsValidLocationID(m_data.locationID)) {
             iRef = sItemFactory.GetItem(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->RemoveItem(InventoryItemRef(this));
@@ -751,7 +751,7 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
     or ((new_location == m_data.locationID) // or same container
         and (new_flag != m_data.flag))) {   //  but different flag
         // remove from current location
-        if (IsValidLocation(m_data.locationID)) {
+        if (IsValidLocationID(m_data.locationID)) {
             iRef = sItemFactory.GetItem(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->RemoveItem(InventoryItemRef(this));
@@ -769,7 +769,7 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
     or ((old_location == m_data.locationID) // or same container
         and (old_flag != m_data.flag))) {   //  but different flag
         // add to new location
-        if (IsValidLocation(m_data.locationID)) {
+        if (IsValidLocationID(m_data.locationID)) {
             iRef = sItemFactory.GetItem(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->AddItem(InventoryItemRef(this));
@@ -782,7 +782,7 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
     if (IsTempItem(m_itemID) or IsNPC(m_itemID))
         return;
 
-    if ((m_data.locationID == locRAMItems || IsValidLocation(m_data.locationID)) and (!m_delete))
+    if ((m_data.locationID == locRAMItems || IsValidLocationID(m_data.locationID)) and (!m_delete))
         ItemDB::UpdateLocation(m_itemID, m_data.locationID, m_data.flag);
 
     //notify about the changes.
@@ -834,7 +834,7 @@ void InventoryItem::Relocate(uint32 locID, EVEItemFlags flag) {
     or ((old_location == m_data.locationID) // or same container
         and (old_flag != m_data.flag))) {   //  but different flag
         // add to new location
-        if (IsValidLocation(m_data.locationID)) {
+        if (IsValidLocationID(m_data.locationID)) {
             iRef = sItemFactory.GetItem(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->AddItem(InventoryItemRef(this));
@@ -845,7 +845,7 @@ void InventoryItem::Relocate(uint32 locID, EVEItemFlags flag) {
         }
     }
 
-    if (IsValidLocation(m_data.locationID))
+    if (IsValidLocationID(m_data.locationID))
         ItemDB::UpdateLocation(m_itemID, m_data.locationID, m_data.flag);
 
     //notify about the changes.

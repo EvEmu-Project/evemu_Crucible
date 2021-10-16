@@ -206,7 +206,7 @@
  #define IsCharacterID(itemID) \
  ((itemID >= minCharacter) && (itemID <= maxCharacter))
 
-#define IsValidLocation(itemID) \
+#define IsValidLocationID(itemID) \
   ((IsSolarSystemID(itemID)) \
   or (IsRegionID(itemID)) \
   or (IsStationID(itemID)) \
