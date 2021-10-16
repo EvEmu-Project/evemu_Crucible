@@ -148,7 +148,7 @@ PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
     /**     bridgesByLocation = m.GetAllianceJumpBridges()
      *      for toLocID, fromLocID in bridgesByLocation:
      */
-    sLog.Warning( "MapService::Handle_GetAllianceJumpBridges()", "size= %u", call.tuple->size() );
+    sLog.Warning( "MapService::Handle_GetAllianceJumpBridges()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     DBQueryResult res;
@@ -168,7 +168,7 @@ PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
 
 PyResult MapService::Handle_GetAllianceBeacons(PyCallArgs &call)
 {
-    sLog.Warning( "MapService::Handle_GetAllianceBeacons()", "size= %u", call.tuple->size() );
+    sLog.Warning( "MapService::Handle_GetAllianceBeacons()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     // Get data directly from sovereignty manager, avoiding db hits
@@ -181,7 +181,7 @@ PyResult MapService::Handle_GetCurrentSovData(PyCallArgs &call)
     returns locationID, ?
     return sm.RemoteSvc('map').GetCurrentSovData(locationID)
     */
-    sLog.Warning( "MapService::Handle_GetCurrentSovData()", "size= %u", call.tuple->size() );
+    sLog.Warning( "MapService::Handle_GetCurrentSovData()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     Call_SingleIntegerArg args;
@@ -244,7 +244,7 @@ PyResult MapService::Handle_GetDeadspaceComplexMap(PyCallArgs &call)
         get this data from managerDB.GetAnomalyList(DBQueryResult& res)
         res =  sysSignatures (sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,x,y,z)
 */
-    sLog.Warning( "MapService::Handle_GetDeadspaceComplexMap()", "size= %u", call.tuple->size() );
+    sLog.Warning( "MapService::Handle_GetDeadspaceComplexMap()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     PyRep *result = new PyDict();
 
@@ -355,7 +355,7 @@ PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call) {
               [PyIntegerVar 129493861959830226]
               [PyInt -950263469]
               */
-    sLog.Warning( "MapService::Handle_GetIncursionGlobalReport()", "size= %u", call.tuple->size() );
+    sLog.Warning( "MapService::Handle_GetIncursionGlobalReport()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return PyStatic.NewNone();
@@ -366,7 +366,7 @@ PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call) {
 PyResult MapService::Handle_GetVictoryPoints(PyCallArgs &call)
 {/**           factionID, viewmode, solarsystemid, threshold, current in oldhistory.iteritems():
                  */
-    sLog.Warning( "MapService::Handle_GetVictoryPoints()", "size= %u", call.tuple->size() );
+    sLog.Warning( "MapService::Handle_GetVictoryPoints()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return PyStatic.NewNone();
@@ -376,7 +376,7 @@ PyResult MapService::Handle_GetVictoryPoints(PyCallArgs &call)
 PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call)
 {
     // cant find a call to this in client (possible old call)
-    sLog.Warning( "MapService::Handle_GetStuckSystems()", "size= %u", call.tuple->size() );
+    sLog.Warning( "MapService::Handle_GetStuckSystems()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     uint8 none = 0;

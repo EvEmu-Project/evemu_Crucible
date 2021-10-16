@@ -54,7 +54,7 @@ zActionServer::~zActionServer()
 PyResult zActionServer::Handle_RequestActionStart( PyCallArgs& call )
 {
     //    requestThread = uthread.new(self.GetZactionServer().RequestActionStart, entID, actionID, interrupt, clientProps)
-    _log(QATOOLS__CALL,  "zActionServer::Handle_RequestActionStart size: %u", call.tuple->size());
+    _log(QATOOLS__CALL,  "zActionServer::Handle_RequestActionStart size: %li", call.tuple->size());
     call.Dump(QATOOLS__DUMP);
 
     return nullptr;
@@ -63,7 +63,7 @@ PyResult zActionServer::Handle_RequestActionStart( PyCallArgs& call )
 PyResult zActionServer::Handle_QA_RequestForceActionStart( PyCallArgs& call )
 {
     //    requestThread = uthread.new(self.GetZactionServer().QA_RequestForceActionStart, entID, actionID)
-    _log(QATOOLS__CALL,  "zActionServer::Handle_QA_RequestForceActionStart size: %u", call.tuple->size());
+    _log(QATOOLS__CALL,  "zActionServer::Handle_QA_RequestForceActionStart size: %li", call.tuple->size());
     call.Dump(QATOOLS__DUMP);
 
     return nullptr;

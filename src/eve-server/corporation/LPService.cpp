@@ -54,7 +54,7 @@ PyResult LPService::Handle_TakeOffer( PyCallArgs& call )
 {/**
         sm.RemoteSvc('LPSvc').ExchangeConcordLP(corpID, amount)
         */
-  sLog.White( "LPService::Handle_TakeOffer()", "size= %u", call.tuple->size() );
+  sLog.White( "LPService::Handle_TakeOffer()", "size=%li", call.tuple->size());
 
   call.Dump(SERVICE__CALL_DUMP);
     return new PyList;
@@ -64,7 +64,7 @@ PyResult LPService::Handle_ExchangeConcordLP( PyCallArgs& call )
 {/**
             ret = sm.RemoteSvc('LPSvc').TakeOffer(self.cache.corpID, data.offerID)
             */
-  sLog.White( "LPService::Handle_ExchangeConcordLP()", "size= %u", call.tuple->size() );
+  sLog.White( "LPService::Handle_ExchangeConcordLP()", "size=%li", call.tuple->size());
 
   call.Dump(SERVICE__CALL_DUMP);
     return new PyList;
@@ -107,7 +107,7 @@ PyResult LPService::Handle_GetLPForCharacterCorp( PyCallArgs& call )
 PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
 {
     //no args
-  sLog.White( "LPService::Handle_GetLPsForCharacter()", "size= %u", call.tuple->size() );
+  sLog.White( "LPService::Handle_GetLPsForCharacter()", "size=%li", call.tuple->size());
 
   //call.Dump(SERVICE__CALL_DUMP);
     return new PyList;

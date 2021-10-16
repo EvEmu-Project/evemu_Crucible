@@ -60,7 +60,7 @@ AlertService::~AlertService()
   *      to send us the stack trace immediately.
   */
 PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
-    _log(CLIENT__WARNING, "AlertService::Handle_BeanCount(): size=%u", call.tuple->size() );
+    _log(CLIENT__WARNING, "AlertService::Handle_BeanCount(): size=%li", call.tuple->size());
     //call.Dump(CLIENT__CALL_DUMP);
 
     PyTuple *result = new PyTuple(2);
@@ -84,7 +84,7 @@ PyResult AlertService::Handle_BeanCount(PyCallArgs &call) {
 // note:  this is a rather complicated system....
 PyResult AlertService::Handle_BeanDelivery( PyCallArgs& call )
 {
-    _log(CLIENT__WARNING, "AlertService::Handle_BeanDelivery(): size=%u", call.tuple->size() );
+    _log(CLIENT__WARNING, "AlertService::Handle_BeanDelivery(): size=%li", call.tuple->size());
     //call.Dump(CLIENT__CALL_DUMP);
     /* Unhandled for now as we have no interest in receiving batched python stack traces
      * nor official style debugging... Just gimme the info dude (see Handle_SendClientStackTraceAlert).
@@ -111,7 +111,7 @@ PyResult AlertService::Handle_GroupBeanDelivery( PyCallArgs& call )
  * @return guess it should have PyNone back.
  */
 PyResult AlertService::Handle_SendClientStackTraceAlert(PyCallArgs &call) {
-    _log(CLIENT__WARNING, "AlertService::Handle_SendClientStackTraceAlert(): size=%u", call.tuple->size() );
+    _log(CLIENT__WARNING, "AlertService::Handle_SendClientStackTraceAlert(): size=%li", call.tuple->size());
     //call.Dump(CLIENT__CALL_DUMP);
     //  self.stacktraceLogMode[stackID[0]] = sm.ProxySvc('alert').SendClientStackTraceAlert(stackID, stackTrace, mode, nextErrorKeyHash)
 

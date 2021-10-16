@@ -68,7 +68,7 @@ PyResult BillMgr::Handle_GetCorporationBillsReceivable(PyCallArgs &call) {
 
 PyResult BillMgr::Handle_CharPayBill(PyCallArgs &call) {
     //   sm.RemoteSvc('billMgr').CharPayBill(bill.billID)
-    sLog.Warning("BillMgr", "Handle_CharPayBill() size=%u", call.tuple->size() );
+    sLog.Warning("BillMgr", "Handle_CharPayBill() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
 
     // returns nothing
@@ -77,7 +77,7 @@ PyResult BillMgr::Handle_CharPayBill(PyCallArgs &call) {
 
 PyResult BillMgr::Handle_CharGetBills(PyCallArgs &call) {
     //   return sm.RemoteSvc('billMgr').CharGetBills()
-    sLog.Warning("BillMgr", "Handle_CharGetBills() size=%u", call.tuple->size() );
+    sLog.Warning("BillMgr", "Handle_CharGetBills() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
 
     // returns nothing
@@ -86,7 +86,7 @@ PyResult BillMgr::Handle_CharGetBills(PyCallArgs &call) {
 
 PyResult BillMgr::Handle_CharGetBillsReceivable(PyCallArgs &call) {
     //   bills = sm.RemoteSvc('billMgr').CharGetBillsReceivable()
-    sLog.Warning("BillMgr", "Handle_CharGetBillsReceivable() size=%u", call.tuple->size() );
+    sLog.Warning("BillMgr", "Handle_CharGetBillsReceivable() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
 
     // returns nothing
@@ -95,7 +95,7 @@ PyResult BillMgr::Handle_CharGetBillsReceivable(PyCallArgs &call) {
 
 PyResult BillMgr::Handle_PayCorporationBill(PyCallArgs &call) {
     //  sm.RemoteSvc('billMgr').PayCorporationBill(bill.billID, fromAccountKey=eve.session.corpAccountKey)
-    sLog.Warning("BillMgr", "Handle_PayCorporationBill() size=%u", call.tuple->size() );
+    sLog.Warning("BillMgr", "Handle_PayCorporationBill() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
 
     // returns nothing

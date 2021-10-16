@@ -548,7 +548,7 @@ void Colony::CreateRoute(uint16 routeID, uint32 typeID, uint32 qty, PyList* path
     m_srcRoutes.emplace(route.srcPinID, route);
     m_destRoutes.emplace(route.destPinID, route);
 
-    _log(COLONY__INFO, "Colony::CreateRoute() - Created route id %u for %u of typeID %u, making %u hops.", routeID, qty, typeID, (uint32)path->size() -1);
+    _log(COLONY__INFO, "Colony::CreateRoute() - Created route id %u for %u of typeID %u, making %li hops.", routeID, qty, typeID, path->size() -1);
 
     // route has been created and added to list.  check for materials being moved, and if source has the mat, remove qty and send to dest.
     std::map<uint32, PI_Pin>::iterator srcPin = ccPin->pins.find(route.srcPinID);

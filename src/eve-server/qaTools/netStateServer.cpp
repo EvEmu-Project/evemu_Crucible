@@ -52,7 +52,7 @@ netStateServer::~netStateServer()
  * PyResult encounterSpawnServer::Handle_( PyCallArgs& call )
  * {
  *    //
- *    _log(QATOOLS__CALL,  "encounterSpawnServer::Handle_ size: %u", call.tuple->size());
+ *    _log(QATOOLS__CALL,  "encounterSpawnServer::Handle_ size: %li", call.tuple->size());
  *    call.Dump(QATOOLS__DUMP);
  *
  *    return nullptr;

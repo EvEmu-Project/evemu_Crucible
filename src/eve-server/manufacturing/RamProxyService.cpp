@@ -154,7 +154,7 @@ PyResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
 PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
     //job = sm.ProxySvc('ramProxy').InstallJob(installationLocationData, installedItemLocationData, bomLocationData, flagOutput, quoteData.buildRuns, quoteData.activityID, quoteData.licensedProductionRuns, not quoteData.ownerFlag, 'blah', quoteOnly=1, installedItem=quoteData.blueprint, maxJobStartTime=quoteData.assemblyLine.nextFreeTime + 1 * MIN, inventionItems=quoteData.inventionItems, inventionOutputItemID=quoteData.inventionItems.outputType)
 
-    _log(MANUF__DUMP, "RamProxyService::Handle_InstallJob() - size %u", call.tuple->size() );
+    _log(MANUF__DUMP, "RamProxyService::Handle_InstallJob() - size=%li", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     Call_InstallJob args;
@@ -590,7 +590,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
      * 23:35:54 [ManufDump]       [ 1]    Integer: 2                        jobID
      * 23:35:54 [ManufDump]       [ 2]    Boolean: false                    cancel
      */
-    _log(MANUF__DUMP, "RamProxyService::Handle_CompleteJob() - size %u", call.tuple->size() );
+    _log(MANUF__DUMP, "RamProxyService::Handle_CompleteJob() - size=%li", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     Call_CompleteJob args;
@@ -823,7 +823,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
 }
 
 PyResult RamProxyService::Handle_UpdateAssemblyLineConfigurations(PyCallArgs &call) {
-    _log(MANUF__DUMP, "RamProxyService::Handle_UpdateAssemblyLineConfigurations() - size %u", call.tuple->size() );
+    _log(MANUF__DUMP, "RamProxyService::Handle_UpdateAssemblyLineConfigurations() - size=%li", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     //RamConfigAssemblyLinesAccessDenied

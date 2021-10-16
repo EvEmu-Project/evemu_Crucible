@@ -54,7 +54,7 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
 21:35:16 [SvcCall]   Call Named Arguments:
 21:35:16 [SvcCall]     Argument 'machoVersion':
 21:35:16 [SvcCall]         Integer field: 1
-  sLog.White( "OnlineStatusService::Handle_GetInitialState()", "size= %u", call.tuple->size() );
+  sLog.White( "OnlineStatusService::Handle_GetInitialState()", "size=%li", call.tuple->size());
   call.Dump(SERVICE__CALL_DUMP);
 
 

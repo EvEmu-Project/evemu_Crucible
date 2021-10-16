@@ -88,7 +88,7 @@ PyResult StationSvc::Handle_GetStation(PyCallArgs &call) {
 
 //This is called when opening up the sov dashboard
 PyResult StationSvc::Handle_GetAllianceSystems(PyCallArgs &call) {
-  sLog.White( "StationSvc::Handle_GetAllianceSystems()", "size= %u", call.tuple->size() );
+  sLog.White( "StationSvc::Handle_GetAllianceSystems()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return svDataMgr.GetAllianceSystems();
@@ -96,7 +96,7 @@ PyResult StationSvc::Handle_GetAllianceSystems(PyCallArgs &call) {
 
 //This call is made by client when player opens 'Settled Systems' dropdown in alliance details ui
 PyResult StationSvc::Handle_GetSystemsForAlliance(PyCallArgs &call) {
-  sLog.White( "StationSvc::Handle_GetSystemsForAlliance()", "size= %u", call.tuple->size() );
+  sLog.White( "StationSvc::Handle_GetSystemsForAlliance()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     return nullptr;
 }

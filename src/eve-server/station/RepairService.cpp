@@ -99,7 +99,7 @@ PyResult RepairSvcBound::Handle_DamageModules(PyCallArgs &call) {
      *    self.repairSvc.DamageModules(itemIDAndAmountOfDamageList)
      */
 
-    _log(PHYSICS__INFO, "RepairSvcBound::Handle_DamageModules() size= %u", call.tuple->size() );
+    _log(PHYSICS__INFO, "RepairSvcBound::Handle_DamageModules() size=%li", call.tuple->size());
     call.Dump(PHYSICS__INFO);
 
     Call_SingleIntList args;

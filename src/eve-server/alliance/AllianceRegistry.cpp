@@ -83,7 +83,7 @@ PyResult AllianceRegistry::Handle_GetAlliance(PyCallArgs &call) {
      * 01:22:07 [SvcError]       [ 1]    Integer: 1
      */
 
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAlliance() size=%u", call.tuple->size() );
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAlliance() size=%li", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     Call_SingleIntegerArg args;
@@ -96,7 +96,7 @@ PyResult AllianceRegistry::Handle_GetAlliance(PyCallArgs &call) {
 
 PyResult AllianceRegistry::Handle_GetAllianceMembers(PyCallArgs &call) {
     // members = sm.RemoteSvc('allianceRegistry').GetAllianceMembers(itemID)  <-- returns dict of corpIDs
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceMembers() size=%u", call.tuple->size() );
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceMembers() size=%li", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     Call_SingleIntegerArg args;
@@ -116,7 +116,7 @@ PyResult AllianceRegistry::Handle_GetRankedAlliances(PyCallArgs &call) {
      *               self.rankedAlliances.standings[a.allianceID] = s
      */
 
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetRankedAlliances() size=%u", call.tuple->size() );
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetRankedAlliances() size=%li", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetRankedAlliances();
@@ -125,7 +125,7 @@ PyResult AllianceRegistry::Handle_GetRankedAlliances(PyCallArgs &call) {
 //Not sure why this doesn't work
 PyResult AllianceRegistry::Handle_GetEmploymentRecord(PyCallArgs &call) {
     //  allianceHistory = sm.RemoteSvc('allianceRegistry').GetEmploymentRecord(itemID)
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetEmploymentRecord() size=%u", call.tuple->size() );
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetEmploymentRecord() size=%li", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     Call_SingleIntegerArg arg;

@@ -186,7 +186,7 @@ PyResult PlanetORBBound::Handle_GMChangeSpaceObjectOwner( PyCallArgs& call )
         registry = moniker.GetPlanetOrbitalRegistry(session.solarsystemid)
         registry.GMChangeSpaceObjectOwner(itemID, session.corpid)
     */
-    _log(PLANET__DEBUG, "PlanetORBBound::Handle_GMChangeSpaceObjectOwner - size %u", call.tuple->size() );
+    _log(PLANET__DEBUG, "PlanetORBBound::Handle_GMChangeSpaceObjectOwner - size=%li", call.tuple->size());
     call.Dump(PLANET__DUMP);
 
     return PyStatic.NewNone();

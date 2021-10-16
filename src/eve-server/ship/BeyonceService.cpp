@@ -427,7 +427,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuff. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
-  _log(SERVICE__CALL_DUMP, "BeyonceBound::Handle_CmdWarpToStuff() - size %u", call.tuple->size() );
+  _log(SERVICE__CALL_DUMP, "BeyonceBound::Handle_CmdWarpToStuff() - size=%li", call.tuple->size());
    call.Dump(SERVICE__CALL_DUMP);
 
    /** @todo (allan) finish warp scramble system */
@@ -832,7 +832,7 @@ PyResult BeyonceBound::Handle_CmdAbandonLoot(PyCallArgs &call) {
 	/*  remotePark.CmdAbandonLoot(wrecks)  <- this is pylist from 'abandonAllWrecks'
 	 *  remotePark.CmdAbandonLoot([wreckID]) <- single itemID in list
 	 */
-  sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size= %u", call.tuple->size() );
+  sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
 	Call_SingleIntList arg;
@@ -1196,7 +1196,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
 
     int8 jumpFuelConservationLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFuelConservation);
     int8 jumpFreightersLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFreighters);
-    
+
     if (ship->groupID() == EVEDB::invGroups::JumpFreighter) {
         fuelQuantity = uint32(ceil(jumpDistance * fuelBaseConsumption * (1 - 0.1 * jumpFuelConservationLevel) * (1 - 0.1 * jumpFreightersLevel)));
     } else {

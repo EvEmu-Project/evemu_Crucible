@@ -51,7 +51,7 @@ PyResult LPStore::Handle_AcceptOffer( PyCallArgs& call ) {
   /**
             return sm.RemoteSvc('storeServer').AcceptOffer(offerID, quantity)
             */
-  sLog.White( "LPStore::Handle_GetLPsForCharacter()", "size= %u", call.tuple->size() );
+  sLog.White( "LPStore::Handle_GetLPsForCharacter()", "size=%li", call.tuple->size());
 
   call.Dump(SERVICE__CALL_DUMP);
     return new PyList;
@@ -62,7 +62,7 @@ PyResult LPStore::Handle_GetAvailableOffers( PyCallArgs& call ) {
             availableOffers = sm.RemoteSvc('storeServer').GetAvailableOffers()
             */
     //no args
-  sLog.White( "LPStore::Handle_GetLPsForCharacter()", "size= %u", call.tuple->size() );
+  sLog.White( "LPStore::Handle_GetLPsForCharacter()", "size=%li", call.tuple->size());
 
   call.Dump(SERVICE__CALL_DUMP);
     return new PyList;

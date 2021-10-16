@@ -50,7 +50,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
     PyDict *dict = new PyDict();
     DBQueryResult res;
 
-    for (uint8 i = 0; i < searchID->size(); i++) {
+    for (uint8 i=0; i < searchID->size(); i++) {
         switch(searchID->at(i)) {
             case 1: //searchResultAgent = 1
                 sDatabase.RunQuery(res,
@@ -149,9 +149,10 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
 
 PyRep *SearchDB::QuickQuery(std::string string, std::vector<int> *searchID, uint32 charID, bool hideNPC, bool onlyAltName) {
 
-    uint8 size = searchID->size();
+    uint8 size(searchID->size());
 
-    if (((size == 1) && (searchID->at(0) == 2)) || (hideNPC)) {
+    if (((size == 1) and (searchID->at(0) == 2))
+    or  (hideNPC)) {
         /** @todo i dont remember what this was for, but need to finish it anyway */
     }
 
