@@ -207,10 +207,10 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         sEntityList.GetCorpClients(list, oamc.corpID);
         for (auto cur : list)
         {
-            if (cur->GetChar().get() != nullptr)
+            if (cur != nullptr)
             {
                 cur->SendNotification("OnAllianceMemberChanged", "clientID", oamc.Encode(), false);
-                _log(ALLY__TRACE, "OnAllianceMemberChanged sent to client %u", cur->GetClientID());
+                _log(ALLY__TRACE, "OnAllianceMemberChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
             }
         }
 
@@ -218,10 +218,10 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         sEntityList.GetCorpClients(list, executorID);
         for (auto cur : list)
         {
-            if (cur->GetChar().get() != nullptr)
+            if (cur != nullptr)
             {
                 cur->SendNotification("OnAllianceMemberChanged", "clientID", oamc.Encode(), false);
-                _log(ALLY__TRACE, "OnAllianceMemberChanged sent to client %u", cur->GetClientID());
+                _log(ALLY__TRACE, "OnAllianceMemberChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
             }
         }
 
@@ -267,10 +267,10 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
         sEntityList.GetCorpClients(list, args.corporationID);
         for (auto cur : list)
         {
-            if (cur->GetChar().get() != nullptr)
+            if (cur != nullptr)
             {
                 cur->SendNotification("OnAllianceChanged", "clientID", ac.Encode(), false);
-                _log(ALLY__TRACE, "OnAllianceChanged sent to client %u", cur->GetClientID());
+                _log(ALLY__TRACE, "OnAllianceChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
             }
         }
     }
@@ -292,10 +292,10 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
     sEntityList.GetCorpClients(list, oaac.corpID);
     for (auto cur : list)
     {
-        if (cur->GetChar().get() != nullptr)
+        if (cur != nullptr)
         {
             cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
-            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
         }
     }
 
@@ -303,10 +303,10 @@ PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)
     sEntityList.GetCorpClients(list, executorID);
     for (auto cur : list)
     {
-        if (cur->GetChar().get() != nullptr)
+        if (cur != nullptr)
         {
             cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
-            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
         }
     }
 

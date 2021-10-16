@@ -1469,6 +1469,25 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
         Invention->SetItemString("extras", mtCRowSet);
         rsp->SetItem(new PyInt(8), new PyObject("util.KeyVal", Invention));
     }
+
+    // cleanup
+    PyDecRef(matlListManuf);
+    PyDecRef(skillListManuf);
+    PyDecRef(extraListManuf);
+    PyDecRef(matlListTE);
+    PyDecRef(skillListTE);
+    PyDecRef(matlListME);
+    PyDecRef(skillListME);
+    PyDecRef(matlListCopy);
+    PyDecRef(skillListCopy);
+    PyDecRef(matlListDup);
+    PyDecRef(skillListDup);
+    PyDecRef(extraListDup);
+    PyDecRef(matlListRE);
+    PyDecRef(skillListRE);
+    PyDecRef(matlListInvent);
+    PyDecRef(skillListInvent);
+
     return rsp;
 }
 

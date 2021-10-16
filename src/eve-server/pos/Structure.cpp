@@ -618,9 +618,9 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
         SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
         InventoryItemRef ihubRef = sItemFactory.GetItem(sovData.hubID);
         uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
-        
+
         if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
-            pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.", 
+            pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.",
             sItemFactory.GetType(upgType)->name().c_str());
             return;
         }
@@ -1099,8 +1099,8 @@ void StructureSE::EncodeDestiny(Buffer &into)
         into.Append(main);
     }
 
-    _log(SE__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
-    _log(POS__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(POS__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict *StructureSE::MakeSlimItem()

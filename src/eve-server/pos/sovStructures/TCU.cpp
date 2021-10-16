@@ -37,7 +37,7 @@ TCUSE::TCUSE(StructureItemRef structure, PyServiceMgr &services, SystemManager *
 
 void TCUSE::Init()
 {
-    _log(SE__TRACE, "TCUSE %s(%u) is being initialised", m_self->name(), m_self->itemID());
+    _log(SE__TRACE, "TCUSE %s(%u) is being initialized", m_self->name(), m_self->itemID());
     StructureSE::Init();
 
     // check for valid bubble
@@ -55,21 +55,14 @@ void TCUSE::SetOnline()
 
     StructureSE::SetOnline();
 
-    SovereigntyData sovData;
-
-    sovData.solarSystemID = m_system->GetID();
-    sovData.regionID = m_system->GetRegionID();
-    sovData.constellationID = m_system->GetConstellationID();
-    sovData.corporationID = m_corpID;
-    sovData.allianceID = m_allyID;
-    sovData.claimStructureID = m_data.itemID;
-    sovData.claimTime = GetFileTimeNow();
-    sovData.hubID = 0;
-    sovData.contested = 0;
-    sovData.stationCount = 0;
-    sovData.militaryPoints = 0;
-    sovData.industrialPoints = 0;
-
+    SovereigntyData sovData = SovereigntyData();
+        sovData.solarSystemID = m_system->GetID();
+        sovData.regionID = m_system->GetRegionID();
+        sovData.constellationID = m_system->GetConstellationID();
+        sovData.corporationID = m_corpID;
+        sovData.allianceID = m_allyID;
+        sovData.claimStructureID = m_data.itemID;
+        sovData.claimTime = GetFileTimeNow();
     svDataMgr.AddSovClaim(sovData);
 
     //Send ProcessSovStatusChanged Notification
@@ -88,14 +81,14 @@ void TCUSE::SetOnline()
         data->SetItem(0, new PyInt(sovData.solarSystemID));
         data->SetItem(1, new PyObject("util.KeyVal", args));
 
-    std::vector<Client *> list;
+    std::vector<Client*> list;
     sEntityList.GetClients(list);
     for (auto cur : list)
     {
-        if (cur->GetChar().get() != nullptr)
+        if (cur != nullptr)
         {
             cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
-            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to client %u", cur->GetClientID());
+            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
         }
     }
 }
@@ -112,14 +105,14 @@ void TCUSE::SetOffline()
         data->SetItem(0, new PyInt(m_system->GetID()));
         data->SetItem(1, PyStatic.NewNone());
 
-    std::vector<Client *> list;
+    std::vector<Client*> list;
     sEntityList.GetClients(list);
     for (auto cur : list)
     {
-        if (cur->GetChar().get() != nullptr)
+        if (cur != nullptr)
         {
             cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
-            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to client %u", cur->GetClientID());
+            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
         }
     }
 

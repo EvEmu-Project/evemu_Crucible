@@ -8,12 +8,12 @@
   *
   */
 
+#include <boost/range/iterator_range.hpp>
 #include "system/sov/SovereigntyDataMgr.h"
 #include "database/EVEDBUtils.h"
 #include "packets/Sovereignty.h"
 #include "StaticDataMgr.h"
 #include "Client.h"
-#include <boost/range/iterator_range.hpp>
 
 SovereigntyDataMgr::SovereigntyDataMgr()
 {
@@ -126,19 +126,19 @@ SovereigntyData SovereigntyDataMgr::GetSovereigntyData(uint32 systemID)
 
 PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
 {
-    SystemData sysData;
-    PyDict *args = new PyDict;
+    SystemData sysData = SystemData();
+    PyDict *args = new PyDict();
 
     //Figure out if this system is in empire space
     sDataMgr.GetSystemData(systemID, sysData);
 
     if (sysData.factionID)
     { //If we have a factionID, we can set the system's sov data to it
-        args->SetItemString("contested", new PyInt(0));
-        args->SetItemString("corporationID", new PyInt(0));
+        args->SetItemString("contested", PyStatic.NewZero());
+        args->SetItemString("corporationID", PyStatic.NewZero());
         args->SetItemString("claimTime", new PyLong(0));
-        args->SetItemString("claimStructureID", new PyInt(0));
-        args->SetItemString("hubID", new PyInt(0));
+        args->SetItemString("claimStructureID", PyStatic.NewZero());
+        args->SetItemString("hubID", PyStatic.NewZero());
         args->SetItemString("allianceID", new PyInt(sysData.factionID));
         args->SetItemString("solarSystemID", new PyInt(systemID));
         _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty(): Faction system %u found, assigning factionID as allianceID.", systemID);
@@ -231,7 +231,7 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
     header->AddColumn("claimedFor", DBTYPE_I4);
     CRowSet *rowset = new CRowSet(&header);
 
-    if IsConstellation (locationID)
+    if (IsConstellationID(locationID))
     {
         for (SovereigntyData const &sData : boost::make_iterator_range(
                  m_sovData.get<SovDataByConstellation>().equal_range(locationID)))
@@ -246,7 +246,7 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
         }
     }
     //Get all unique alliances in the region who hold sovereignty
-    else if IsRegion (locationID)
+    else if (IsRegionID(locationID))
     {
         std::vector<uint32> cv;
         for (SovereigntyData const &sData : boost::make_iterator_range(
@@ -265,7 +265,7 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
             }
         }
     }
-    else if IsSolarSystem (locationID)
+    else if (sDataMgr.IsSolarSystem(locationID))
     {
         for (SovereigntyData const &sData : boost::make_iterator_range(
                  m_sovData.get<SovDataByRegion>().equal_range(locationID)))
@@ -288,7 +288,7 @@ void SovereigntyDataMgr::AddSovClaim(SovereigntyData data)
     _log(SOV__INFO, "AddSovClaim() - Adding claim for %u to DataMgr...", data.solarSystemID);
 
     //Add a new sovereignty claim to DB
-    uint32 claimID;
+    uint32 claimID(0);
     SovereigntyDB::AddSovereigntyData(data, claimID);
     _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", claimID);
 

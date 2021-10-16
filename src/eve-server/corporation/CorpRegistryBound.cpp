@@ -1452,11 +1452,11 @@ PyResult CorpRegistryBound::Handle_UpdateMember(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
-    if (!IsCharacter(args.charID))
+    if (!IsCharacterID(args.charID))
         return nullptr;
 
-    int64 oldRole = 0;
-    bool grantable = false;  // boolean - do new roles have grantable privs?  they may.
+    int64 oldRole(0);
+    bool grantable(false);  // boolean - do new roles have grantable privs?  they may.
 
     Client* pClient = sEntityList.FindClientByCharID(args.charID);
     if (pClient == nullptr) {
@@ -2585,14 +2585,14 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     //Send to everyone who needs to see it in the applying corp and in the alliance executor corp
     uint32 executorID = AllianceDB::GetExecutorID(app.allyID);
 
-    std::vector<Client *> list;
+    std::vector<Client*> list;
     sEntityList.GetCorpClients(list, oaac.corpID);
     for (auto cur : list)
     {
-        if (cur->GetChar().get() != nullptr)
+        if (cur != nullptr)
         {
             cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
-            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
         }
     }
 
@@ -2600,15 +2600,12 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     sEntityList.GetCorpClients(list, executorID);
     for (auto cur : list)
     {
-        if (cur->GetChar().get() != nullptr)
+        if (cur != nullptr)
         {
             cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
-            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
         }
     }
-
-    //Get sending corp's CEO ID:
-    uint32 charID = m_db.GetCorporationCEO(m_corpID);
 
     /// Send an evemail to those who can decide
     /// Well, for the moment, send it to the ceo
@@ -2616,7 +2613,7 @@ PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {
     subject += call.client->GetName();
     std::vector<int32> recipients;
     recipients.push_back(m_db.GetCorporationCEO(AllianceDB::GetExecutorID(app.allyID)));
-    m_manager->lsc_service->SendMail(charID, recipients, subject, args.applicationText);
+    m_manager->lsc_service->SendMail(m_db.GetCorporationCEO(m_corpID), recipients, subject, args.applicationText);
 
     return nullptr;
 }

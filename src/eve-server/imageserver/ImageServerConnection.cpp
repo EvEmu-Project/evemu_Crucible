@@ -31,7 +31,11 @@ boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectBegin = boo
 boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectEnd = boost::asio::buffer("\r\n\r\n", 4);
 
 ImageServerConnection::ImageServerConnection(boost::asio::io_context& io)
-    : _socket(io)
+: _socket(io),
+_category(0),
+_id(0),
+_size(0),
+_redirectUrl(ImageServer::FallbackURL)
 {
 }
 
@@ -104,7 +108,7 @@ void ImageServerConnection::ProcessHeaders()
             sLog.Error("     Image Server","Image for itemID %u not found.", _id);
             NotFound();
             return;
-        } else if (IsCharacter(_id)) {
+        } else if (IsCharacterID(_id)) {
             sLog.Error("     Image Server","Image for charID %u not found.", _id);
             NotFound();
             return;
