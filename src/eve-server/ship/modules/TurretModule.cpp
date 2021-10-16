@@ -15,12 +15,11 @@
 #include "system/Damage.h"
 
 TurretModule::TurretModule(ModuleItemRef mRef, ShipItemRef sRef)
-: ActiveModule(mRef, sRef)
+ : ActiveModule(mRef, sRef),
+ m_crystalDmg(0),
+ m_crystalDmgAmount(0),
+ m_crystalDmgChance(0)
 {
-    m_crystalDmg = 0;
-    m_crystalDmgAmount = 0;
-    m_crystalDmgChance = 0;
-
     /* this may lead to some weird shit, but civilian turrets dont use charges.
      *  these turrets have the damage attribs set in turret item, so set chargeRef to turret item for damage calcs
      */

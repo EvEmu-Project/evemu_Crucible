@@ -242,7 +242,8 @@ Character::Character(
   m_inTraining(nullptr),
   m_loaded(false),
   m_fleetData(CharFleetData()),
-  m_freePoints(0)
+  m_freePoints(0),
+  m_loginTime(0)
 {
     // enforce characters to be singletons
     assert(isSingleton());

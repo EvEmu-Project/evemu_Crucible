@@ -167,30 +167,30 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
         int64 roles(pClient->GetCorpRole());
         // check slot rental permissions first
         if (args.activityID == EvERam::Activity::Manufacturing) {
-            if (roles & Corp::Role::CanRentFactorySlot != Corp::Role::CanRentFactorySlot)
+            if ((roles & Corp::Role::CanRentFactorySlot) != Corp::Role::CanRentFactorySlot)
                 throw UserError ("RamCannotInstallWithoutRentFactorySlot");
         } else {
-            if (roles & Corp::Role::CanRentResearchSlot != Corp::Role::CanRentResearchSlot)
+            if ((roles & Corp::Role::CanRentResearchSlot) != Corp::Role::CanRentResearchSlot)
                 throw UserError ("RamCannotInstallWithoutRentResearchSlot");
         }
-        if (roles & Corp::Role::FactoryManager != Corp::Role::FactoryManager)
+        if ((roles & Corp::Role::FactoryManager) != Corp::Role::FactoryManager)
             throw UserError ("RamCannotInstallForCorpByRoleFactoryManager");
-        if (roles & Corp::Role::Director != Corp::Role::Director)
+        if ((roles & Corp::Role::Director) != Corp::Role::Director)
             throw UserError ("RamCannotInstallForCorpByRole");
     }
 
     // check usage restriction
-    if (data.rMask & EvERam::RestrictionMask::ByAlliance == EvERam::RestrictionMask::ByAlliance) {
+    if (data.rMask & EvERam::RestrictionMask::ByAlliance) {
         if (data.ownerID != pClient->GetAllianceID())
             throw UserError ("RamAccessDeniedWrongAlliance");
     }
-    if (data.rMask & EvERam::RestrictionMask::ByCorp == EvERam::RestrictionMask::ByCorp) {
+    if (data.rMask & EvERam::RestrictionMask::ByCorp) {
         if (data.ownerID != pClient->GetCorporationID())
             throw UserError ("RamAccessDeniedWrongCorp");
     }
 
     // check standing
-    if (data.rMask & EvERam::RestrictionMask::ByStanding == EvERam::RestrictionMask::ByStanding) {
+    if (data.rMask & EvERam::RestrictionMask::ByStanding) {
         // get standings
         if (args.isCorpJob) {
             if (data.minStanding > StandingDB::GetStanding(data.ownerID, pClient->GetCorporationID()))
@@ -202,7 +202,7 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
     }
 
     // check security rating
-    if (data.rMask & EvERam::RestrictionMask::BySecurity == EvERam::RestrictionMask::BySecurity) {
+    if (data.rMask & EvERam::RestrictionMask::BySecurity) {
         if (args.isCorpJob) {
             /** @todo  corp secStatus????  didnt know that was a thing.  */
             if (data.minCorpSec > pClient->GetChar()->corpSecRating())
@@ -293,31 +293,31 @@ void RamMethods::HangarRolesCheck(Client* const pClient, int16 flagID)
     int64 roles(pClient->GetCorpRole());
     switch (flagID) {
         case flagHangar: {
-            if (roles & Corp::Role::HangarCanTake1 != Corp::Role::HangarCanTake1)
+            if ((roles & Corp::Role::HangarCanTake1) != Corp::Role::HangarCanTake1)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar2: {
-            if (roles & Corp::Role::HangarCanTake2 != Corp::Role::HangarCanTake2)
+            if ((roles & Corp::Role::HangarCanTake2) != Corp::Role::HangarCanTake2)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar3: {
-            if (roles & Corp::Role::HangarCanTake3 != Corp::Role::HangarCanTake3)
+            if ((roles & Corp::Role::HangarCanTake3) != Corp::Role::HangarCanTake3)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar4: {
-            if (roles & Corp::Role::HangarCanTake4 != Corp::Role::HangarCanTake4)
+            if ((roles & Corp::Role::HangarCanTake4) != Corp::Role::HangarCanTake4)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar5: {
-            if (roles & Corp::Role::HangarCanTake5 != Corp::Role::HangarCanTake5)
+            if ((roles & Corp::Role::HangarCanTake5) != Corp::Role::HangarCanTake5)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar6: {
-            if (roles & Corp::Role::HangarCanTake6 != Corp::Role::HangarCanTake6)
+            if ((roles & Corp::Role::HangarCanTake6) != Corp::Role::HangarCanTake6)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar7: {
-            if (roles & Corp::Role::HangarCanTake7 != Corp::Role::HangarCanTake7)
+            if ((roles & Corp::Role::HangarCanTake7) != Corp::Role::HangarCanTake7)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
     }

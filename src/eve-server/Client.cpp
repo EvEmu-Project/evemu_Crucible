@@ -1516,7 +1516,7 @@ void Client::SetBallParkTimer(uint32 time/*Player::Timer::Default*/)
 {
     if (time == 0) {
         m_ballparkTimer.Disable();
-        _log(CLIENT__TIMER, "%s: Ballpark Timer Disabled");
+        _log(CLIENT__TIMER, "%s: Ballpark Timer Disabled", m_char->name());
         return;
     }
 

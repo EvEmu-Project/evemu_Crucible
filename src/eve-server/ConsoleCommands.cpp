@@ -41,13 +41,19 @@
 
 
 ConsoleCommand::ConsoleCommand()
+ :plscc(nullptr),
+  pBubbles(nullptr),
+  pSystems(nullptr),
+  pCommand(nullptr),
+  buf(nullptr),
+  tv(timeval()),
+  m_haltServer(false),
+  m_dbError(false)
 {
 }
 
 void ConsoleCommand::Initialize(CommandDispatcher* cd)
 {
-    m_dbError = false;
-    m_haltServer = false;
     pCommand = cd;
     tv.tv_sec = 0;
     tv.tv_usec = 0;

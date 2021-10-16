@@ -346,12 +346,10 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     if (pShip.get() == nullptr) {
         sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get ship item.", pClient->GetName());
         throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
-        call.client->SendNotifyMsg("Internal Server Error - Ref: ServerError xxxxx   -undock failed.");
-        return nullptr;
     }
 
     // nowhere near implementing this one yet....
-    bool ignoreContraband = args.arg2;
+    bool ignoreContraband(args.arg2);
 
     //  get vector of online modules as (k,v) pair,
     //    where key is slotID, value is moduleID
