@@ -338,7 +338,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         } break;
         default: {
             locationID = args.lineLocationID;
-            if (IsStation(args.lineContainerID)) {
+            if (sDataMgr.IsStation(args.lineContainerID)) {
                 locationID = args.lineContainerID;
             } else {
                 sLog.Warning("InstallJob", "Location is not Station.  Needs work.");
