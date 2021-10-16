@@ -1410,7 +1410,7 @@ PyRep *Client::GetAggressors() const {
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
         sLog.Error("Client","%s: StargateJump called when a move is already pending. Ignoring.", m_char->name());
-        // send client msg about state change in progress
+        /** @todo  send error to client here */
         return;
     }
 
@@ -1427,7 +1427,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     StaticData toData = StaticData();
     if (!sDataMgr.GetStaticInfo(toGate, toData)) {
         _log(DATA__ERROR, "Failed to retrieve data for stargate %u", toGate);
-        // send client msg about new system info failure
+        /** @todo  send error to client here */
         return;
     }
 
@@ -1454,7 +1454,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
 void Client::CynoJump(InventoryItemRef beacon) {
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
         sLog.Error("Client","%s: CynoJump called when a move is already pending. Ignoring.", m_char->name());
-        // send client msg about state change in progress
+        /** @todo  send error to client here */
         return;
     }
 
@@ -1473,13 +1473,14 @@ void Client::CynoJump(InventoryItemRef beacon) {
 }
 
 void Client::ExecuteJump() {
-    if (m_movePoint == NULL_ORIGIN) {   // this is part of infant AP hack
+    if (m_movePoint == NULL_ORIGIN) {
         m_clientState = Player::State::Idle;
         _log(AUTOPILOT__TRACE, "ExecuteJump() - movePoint = null; state set to Idle");
+        /** @todo  send error to client here */
         return;
     }
 
-    //OnScannerInfoRemoved  - no args.  flushes scan data in client
+    //OnScannerInfoRemoved  - no args.  flushes current scan data in client
     SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
     pShipSE->Jump();
 
@@ -1492,13 +1493,14 @@ void Client::ExecuteJump() {
 }
 
 void Client::ExecuteDriveJump() {
-    if (m_movePoint == NULL_ORIGIN) {   // this is part of infant AP hack
+    if (m_movePoint == NULL_ORIGIN) {
         m_clientState = Player::State::Idle;
         _log(AUTOPILOT__TRACE, "ExecuteJump() - movePoint = null; state set to Idle");
+        /** @todo  send error to client here */
         return;
     }
 
-    //OnScannerInfoRemoved  - no args.  flushes scan data in client
+    //OnScannerInfoRemoved  - no args.  flushes current scan data in client
     SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
     pShipSE->Jump(false);
 
