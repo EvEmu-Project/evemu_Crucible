@@ -32,10 +32,8 @@ boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectEnd = boost
 
 ImageServerConnection::ImageServerConnection(boost::asio::io_context& io)
 : _socket(io),
-_category(0),
 _id(0),
-_size(0),
-_redirectUrl(ImageServer::FallbackURL)
+_size(0)
 {
 }
 
