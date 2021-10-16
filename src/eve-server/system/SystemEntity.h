@@ -281,7 +281,6 @@ protected:
     uint32                      m_corpID;
     uint32                      m_fleetID;
     uint32                      m_ownerID;
-
 };
 
 
@@ -308,7 +307,6 @@ public:
 
     /* virtual functions to be overridden in derived classes */
     virtual bool                LoadExtras();
-
 };
 
 class BeltSE
@@ -334,7 +332,6 @@ public:
 
 protected:
     BeltMgr*                    m_beltMgr;
-
 };
 
 class StargateSE
@@ -363,7 +360,6 @@ public:
 protected:
     PyRep*                      m_jumps;
     StructureSE*                m_sbuSE;
-
 };
 
 
@@ -411,7 +407,6 @@ public:
     virtual void                EncodeDestiny( Buffer& into );
 
     virtual PyDict*             MakeSlimItem();
-
 };
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects
@@ -502,7 +497,6 @@ public:
 private:
     bool m_invul;
     bool m_frozen;
-
 };
 
 

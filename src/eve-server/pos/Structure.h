@@ -77,7 +77,6 @@ protected:
 
 private:
     SystemEntity* mySE;
-
 };
 
 
@@ -237,7 +236,6 @@ private:
     bool m_module :1;           // any structure requiring a control tower
     bool m_reactor :1;
     bool m_outpost :1;
-
 };
 
 #endif  // EVEMU_POS_STRUCTURE_H_

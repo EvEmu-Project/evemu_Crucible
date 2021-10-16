@@ -399,7 +399,6 @@ bool MarketDB::RecordTransaction(Market::TxData &data) {
 }
 
 PyRep *MarketDB::GetMarketGroups() {
-
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT parentGroupID, marketGroupID, marketGroupName,"
         " description, graphicID, hasTypes, iconID, dataID, marketGroupNameID, descriptionID"

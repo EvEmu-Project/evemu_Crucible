@@ -299,7 +299,6 @@ void ContainerSE::Activate(int32 effectID)
 void ContainerSE::Deactivate(int32 effectID)
 {
     // check effectID, check current state, check current timer, set new state, update timer
-
 }
 
 void ContainerSE::AnchorContainer()

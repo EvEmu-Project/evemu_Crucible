@@ -335,7 +335,6 @@ void RamMethods::LocationRolesCheck(Client*const pClient, const CorpPathElement 
         // not hq  is this a base?
         /** @todo finish this.  */
     }
-
 }
 
 void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const PathElement& bomLocation, const Rsp_InstallJob& rsp, const std::vector< EvERam::RequiredItem >& reqItems)

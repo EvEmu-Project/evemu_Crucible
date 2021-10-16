@@ -54,7 +54,6 @@ PyRep* PosMgrDB::GetCorpControlTowers(uint32 corpID)
 }
 
 void PosMgrDB::GetControlTowerFuelRequirements(DBQueryResult& res) {
-
     if (!sDatabase.RunQuery(res,
             "SELECT controlTowerTypeID, resourceTypeID, purpose, quantity, minSecurityLevel, factionID, wormholeClassID"
             " FROM invControlTowerResources"
@@ -278,12 +277,11 @@ void PosMgrDB::SaveReactorData(ReactorData* pData, EVEPOS::StructureData& sData)
     std::map<uint32, EVEPOS::POS_Resource> demands;         // itemID, resourceData(typeID/quantity)
     std::map<uint32, EVEPOS::POS_Resource> supplies;        // itemID, resourceData(typeID/quantity)
 */
-
 }
 
 void PosMgrDB::UpdateReactorData(ReactorData* pData, EVEPOS::StructureData& sData)
 {
-
+    // not used yet.
 }
 
 bool PosMgrDB::GetCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData& oData)
