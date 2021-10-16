@@ -322,7 +322,6 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call) {
 }
 
 PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
-
     //ShipIllegalTypeUndock
 
     /*  we could have some fun with these....
@@ -1023,7 +1022,6 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
 }
 
 PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
-
     /* 13:05:41 [BindDump] NodeID: 888444 BindID: 129 calling AssembleShip in service manager 'ShipBound'
      * 13:05:41 [BindDump]   Call Arguments:
      * 13:05:41 [BindDump]       Tuple: 1 elements

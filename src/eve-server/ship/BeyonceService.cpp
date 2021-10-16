@@ -1047,12 +1047,9 @@ PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &cal
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
     PyTuple* tuple = new PyTuple(2);
-    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
+        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
+        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
     return tuple;
-
-    return PyStatic.NewNone();
-
 }
 
 PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {

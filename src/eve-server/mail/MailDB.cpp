@@ -761,22 +761,27 @@ void MailDB::DeleteMailingList(uint32 characterID, int32 listID)
 {
     // not used yet.
 }
+
 void MailDB::JoinMailingList(uint32 characterID, std::string name)
 {
     // not used yet.
 }
+
 void MailDB::LeaveMailingList(uint32 characterID, int32 listID)
 {
     // not used yet.
 }
+
 void MailDB::MailingListClearEntityAccess(int32 entity, int32 listID)
 {
     // not used yet.
 }
+
 void MailDB::MailingListSetEntityAccess(int32 entity, int32 access, int32 listID)
 {
-
+    // not used yet.
 }
+
 void MailDB::MoveFromTrash(int32 messageID)
 {
     // not used yet.

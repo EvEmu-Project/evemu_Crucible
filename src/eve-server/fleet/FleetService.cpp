@@ -1673,7 +1673,6 @@ std::string FleetService::GetBCastScopeName(int8 scope)
         case 2:     return "Bubble";
         default:    return "Invalid Scope";
     }
-
 }
 
 std::string FleetService::GetBCastGroupName(int8 group)

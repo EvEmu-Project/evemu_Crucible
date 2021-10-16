@@ -898,7 +898,6 @@ void MarketMgr::SetBasePrice()
     }
 }
 
-
 void MarketMgr::UpdateMineralPrice()
 {
     //  get mineral prices and put into data map
@@ -909,7 +908,6 @@ void MarketMgr::UpdateMineralPrice()
 
     //  update mineral price
     MarketDB::UpdateMktPrice(mineralMap);
-
 }
 
 void MarketMgr::GetCruPrices()
