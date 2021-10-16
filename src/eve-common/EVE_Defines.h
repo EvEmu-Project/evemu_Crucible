@@ -209,7 +209,8 @@
 #define IsValidLocation(itemID) \
   ((IsSolarSystemID(itemID)) \
   or (IsRegionID(itemID)) \
-  or (IsStationID(itemID)))
+  or (IsStationID(itemID)) \
+  or (IsPlayerItem(itemID)))
 
 #define IsValidOwner(itemID) \
 ((itemID == 1) || ((itemID >= minNPCCorporation) && (itemID <= maxNPCCorporation)) \
