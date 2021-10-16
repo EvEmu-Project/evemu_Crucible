@@ -323,8 +323,8 @@ CharacterRef Character::Spawn( CharacterData& charData, CorpData& corpData) {
     if (ct == nullptr)
         return CharacterRef(nullptr);
 
-    uint32 characterID = CharacterDB::NewCharacter(charData, corpData);
-    if (!IsCharacter(characterID)) {
+    uint32 characterID(CharacterDB::NewCharacter(charData, corpData));
+    if (!IsCharacterID(characterID)) {
         _log(CHARACTER__ERROR, "Failed to get itemID for new character.");
         return CharacterRef(nullptr);
     }
@@ -338,14 +338,14 @@ void Character::LogOut()
     SaveFullCharacter();
     m_db.SetLogOffTime(m_itemID);
     if (!sConsole.IsShutdown())
-        if (IsFleet(m_fleetData.fleetID))
+        if (IsFleetID(m_fleetData.fleetID))
             sFltSvc.LeaveFleet(m_pClient);
 
     pInventory->Unload();
 
     if (!m_pClient->IsCharCreation()) {
         sItemFactory.RemoveItem(m_itemID);
-        if (IsStation(m_charData.locationID))
+        if (sDataMgr.IsStation(m_charData.locationID))
             ;   // do we need to do anything here?
     }
 }

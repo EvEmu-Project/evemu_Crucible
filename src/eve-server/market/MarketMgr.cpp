@@ -319,7 +319,7 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
         isCorp = true;
     } else if (oInfo.ownerID == 1) {
         oInfo.ownerID = stDataMgr.GetOwnerID(args.stationID);
-    } else if (IsCharacter(oInfo.ownerID)) {
+    } else if (IsCharacterID(oInfo.ownerID)) {
         isPlayer = true;
     } else if (IsTraderJoe(oInfo.ownerID)) {
         isTrader = true;
@@ -507,7 +507,7 @@ void MarketMgr::ExecuteSellOrder(Client* buyer, uint32 orderID, Call_PlaceCharOr
     if (args.quantity == oInfo.quantity)
         orderConsumed = true;
 
-    if (IsStation(oInfo.ownerID))
+    if (sDataMgr.IsStation(oInfo.ownerID))
         oInfo.ownerID = stDataMgr.GetOwnerID(oInfo.ownerID);
 
     /** @todo  get/implement accountKey here.... */
@@ -555,7 +555,7 @@ void MarketMgr::ExecuteSellOrder(Client* buyer, uint32 orderID, Call_PlaceCharOr
     sStatMgr.Add(Stat::iskMarket, money);
 
     Client* seller(nullptr);
-    if (IsCharacter(oInfo.ownerID))
+    if (IsCharacterID(oInfo.ownerID))
         seller = sEntityList.FindClientByCharID(oInfo.ownerID);
 
     if (orderConsumed) {

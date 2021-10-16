@@ -140,7 +140,7 @@ PyResult CharUnboundMgrService::Handle_SelectCharacterID(PyCallArgs &call)
         return nullptr;
     }
 
-    if (!IsCharacter(arg.charID)) {
+    if (!IsCharacterID(arg.charID)) {
         sLog.Error("Client::SelectCharacter()", "CharacterID %u invalid.", arg.charID);
         call.client->SendErrorMsg("Character ID %u invalid.  Ref: ServerError 00522", arg.charID);
         return nullptr;
@@ -237,7 +237,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     // this also sets schoolID and corporationID based on career
     m_db.GetLocationCorporationByCareer(cdata, corpData.corporationID);
 
-    if (IsStation(sConfig.character.startStation)) { // Skip if 0
+    if (sDataMgr.IsStation(sConfig.character.startStation)) { // Skip if 0
         cdata.stationID = sConfig.character.startStation;
         StationData sData = StationData();
         stDataMgr.GetStationData(cdata.stationID, sData);

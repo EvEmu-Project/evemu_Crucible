@@ -318,7 +318,7 @@ void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)
 {
     if (pBubble == nullptr)
         return;
-    if (!IsRegion(regionID))
+    if (!IsRegionID(regionID))
         return;
     pBubble->SetIncursion();
     // unknown parameters at this time
@@ -328,7 +328,7 @@ void SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID)
 {
     if (pBubble == nullptr)
         return;
-    if (!IsRegion(regionID))
+    if (!IsRegionID(regionID))
         return;
     pBubble->SetMission();
     // unknown parameters at this time

@@ -139,9 +139,9 @@ public:
     // fleet data
     int8 GetFleetRole()                                 { return pSession->GetCurrentInt("fleetrole"); }
 
-    bool InFleet()                                      { return IsFleet(m_fleet); }
-    bool IsFleetBoss()                                  { return (IsFleet(m_fleet) ? ((GetFleetRole() == Fleet::Role::FleetLeader) ? true : false) : false); }
-    bool IsFleetBooster()                               { return (IsFleet(m_fleet) ? ((GetFleetRole() == Fleet::Booster::No) ? false : true) : false); }
+    bool InFleet()                                      { return IsFleetID(m_fleet); }
+    bool IsFleetBoss()                                  { return (IsFleetID(m_fleet) ? ((GetFleetRole() == Fleet::Role::FleetLeader) ? true : false) : false); }
+    bool IsFleetBooster()                               { return (IsFleetID(m_fleet) ? ((GetFleetRole() == Fleet::Booster::No) ? false : true) : false); }
 
     uint32 GetFleetID() const                           { return m_fleet; }
     int32 GetWingID() const                             { return m_wing; }
@@ -225,8 +225,8 @@ public:
     uint32 GetDockStationID()                           { return m_dockStationID; };
     GPoint GetDockPoint()                               { return m_dockPoint; }
     bool InPod()                                        { return (m_ship->groupID() == EVEDB::invGroups::Capsule); }
-    bool IsInSpace()                                    { return IsSolarSystem(m_locationID); }
-    bool IsDocked()                                     { return IsStation(m_locationID); }
+    bool IsInSpace()                                    { return sDataMgr.IsSolarSystem(m_locationID); }
+    bool IsDocked()                                     { return sDataMgr.IsStation(m_locationID); }
     bool IsDock()                                       { return (m_clientState == Player::State::Dock); }
     bool IsIdle()                                       { return (m_clientState == Player::State::Idle); }
     bool IsJump()                                       { return (m_clientState == Player::State::Jump); }

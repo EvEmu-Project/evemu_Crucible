@@ -43,11 +43,11 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             corp.push_back(cur);
         } else if (IsAlliance(cur)) {
             ally.push_back(cur);
-        } else if (IsCharacter(cur)) {
+        } else if (IsCharacterID(cur)) {
             player.push_back(cur);
         } else if (cur < 33000) {
             npc.push_back(cur);
-        } else if (IsStation(cur)) {
+        } else if (IsStationID(cur)) {
             station.push_back(cur);
         } else {
             owner.push_back(cur);
@@ -185,7 +185,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
     for (auto cur : entityIDs) {
         if (IsStaticItem(cur)) {
             staticItems.push_back(cur);
-        } else if (IsAsteroid(cur)) {
+        } else if (IsAsteroidID(cur)) {
             asteroidItems.push_back(cur);
         } else {
             dynamicItems.push_back(cur);

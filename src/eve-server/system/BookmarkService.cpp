@@ -163,7 +163,7 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call) {
         data.point = call.client->GetShipSE()->GetPosition();       // Get x,y,z location.  bm type is coordinate as "spot in xxx system"
         data.locationID = call.client->GetLocationID();       // locationID of bm is current sol system
         data.itemID = data.locationID;      //  itemID = locationID for coord bm.  shows jumps, s/c/r in bm window, green in system
-    } else if (IsStation(args.itemID)) {  // not player-owned, check for station.
+    } else if (sDataMgr.IsStation(args.itemID)) {  // not player-owned, check for station.
         SystemEntity* pSE = call.client->SystemMgr()->GetSE(args.itemID);
         if (pSE == nullptr) {
             // send player error also
@@ -173,11 +173,11 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call) {
         data.itemID =  args.itemID;  // this is stationID (for bm description)
         data.locationID = call.client->GetSystemID();       // get sol system of current station
     } else {      // char is passing systemID from map.  char is marking a solar systemID for bm
-        if (IsRegion(args.itemID)) {
+        if (IsRegionID(args.itemID)) {
             data.typeID = EVEDB::invTypes::Region;
-        } else if (IsConstellation(args.itemID)) {
+        } else if (IsConstellationID(args.itemID)) {
             data.typeID = EVEDB::invTypes::Constellation;
-        } else if (IsSolarSystem(args.itemID)) {
+        } else if (sDataMgr.IsSolarSystem(args.itemID)) {
             data.typeID = EVEDB::invTypes::SolarSystem;
         }
         data.locationID = args.itemID;  // this is systemID from map

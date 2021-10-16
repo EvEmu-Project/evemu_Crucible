@@ -286,7 +286,7 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
 
     double newBalanceFrom(0), newBalanceTo(0);
     Client* pClientFrom(nullptr);
-    if (IsCharacter(fromID)) {
+    if (IsCharacterID(fromID)) {
         pClientFrom = sEntityList.FindClientByCharID(fromID);
         if (pClientFrom == nullptr) {
             // sender is offline. xfer funds thru db.
@@ -312,7 +312,7 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
     }
 
     Client* pClientTo(nullptr);
-    if (IsCharacter(toID)) {
+    if (IsCharacterID(toID)) {
         pClientTo = sEntityList.FindClientByCharID(toID);
         if (pClientTo == nullptr) {
             // receipient is offline. xfer funds thru db

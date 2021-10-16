@@ -115,6 +115,8 @@ missing prices for salvage
 
 allianceDB  update this to use static members
 
+Inventory contains a lot of "IsValidLocation" macros...verify if this is needed as-is or should be validItem
+
 client login screen...these all need code to show data    CharacterDB::GetCharSelectInfo
     upcomingEventCount:
     unreadMailCount:

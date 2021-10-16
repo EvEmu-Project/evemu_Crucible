@@ -380,7 +380,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
     _log(SHIP__INFO, "ShipBound::Handle_Drop()");
     call.Dump(SHIP__INFO);
 
-    if (IsStation(call.client->GetLocationID())) {
+    if (sDataMgr.IsStation(call.client->GetLocationID())) {
         _log(SERVICE__ERROR, "%s: Trying to drop items when not in space!", call.client->GetName());
         return nullptr;
     }

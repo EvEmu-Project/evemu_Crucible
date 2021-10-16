@@ -258,7 +258,7 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
         return;
 
     uint32 beltID = sBubbleMgr.GetBeltID(bubbleID);
-    if ((!IsCelestial(beltID)) and (!anomaly))
+    if ((!IsCelestialID(beltID)) and (!anomaly))
         return;
 
     SystemEntity* pSE = m_system->GetSE(beltID);

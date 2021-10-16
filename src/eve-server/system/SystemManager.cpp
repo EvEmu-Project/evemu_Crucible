@@ -533,7 +533,7 @@ bool SystemManager::BuildDynamicEntity(const DBSystemDynamicEntity& entity, uint
     if (launcherID) {
         WreckSE* pWE = pSE->GetWreckSE();
         pWE->SetLaunchedByID(launcherID);
-        if (IsCharacter(entity.ownerID)) {
+        if (IsCharacterID(entity.ownerID)) {
             Client* pClient = sEntityList.FindClientByCharID(entity.ownerID);
             if (pClient->InFleet())
                 pWE->SetFleetID(pClient->GetFleetID());
@@ -1555,7 +1555,7 @@ void SystemManager::DScan(int64 range, const GPoint& pos, std::vector<SystemEnti
         // these dont show on dscan
         if (IsTempItem(cur.first))
             continue;
-        if (IsAsteroid(cur.first))
+        if (IsAsteroidID(cur.first))
             if (!sConfig.server.AsteroidsOnDScan)
                 continue;
         if (IsNPC(cur.first))

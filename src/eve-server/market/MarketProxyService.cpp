@@ -422,9 +422,9 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         and call.client->GetStationID() == args.stationID ))   //and our ship is in the station
         {
             std::string itemLoc;
-            if (IsStation(iRef->locationID())) {
+            if (sDataMgr.IsStation(iRef->locationID())) {
                 itemLoc = stDataMgr.GetStationName(iRef->locationID());
-            } else if (IsSolarSystem(iRef->locationID())) {
+            } else if (sDataMgr.IsSolarSystem(iRef->locationID())) {
                 itemLoc = sDataMgr.GetSystemName(iRef->locationID());
             } else {
                 itemLoc = "an Invalid Location";

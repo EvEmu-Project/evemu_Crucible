@@ -119,14 +119,14 @@ uint32 StationItem::GetOfficeID(uint32 corpID)
 
 void StationItem::AddLoadedOffice(uint32 officeID)
 {
-    if (!IsOffice(officeID))
+    if (!IsOfficeID(officeID))
         return;
     m_officeLoaded.emplace(officeID, true);
 }
 
 bool StationItem::IsOfficeLoaded(uint32 officeID)
 {
-    if (!IsOffice(officeID))
+    if (!IsOfficeID(officeID))
         return false;
     std::map<uint32, bool>::const_iterator itr = m_officeLoaded.find(officeID);
     if (itr != m_officeLoaded.end())
@@ -136,7 +136,7 @@ bool StationItem::IsOfficeLoaded(uint32 officeID)
 
 void StationItem::RemoveLoadedOffice(uint32 officeID)
 {
-    if (!IsOffice(officeID))
+    if (!IsOfficeID(officeID))
         return;
     m_officeLoaded.erase(officeID);
 }
@@ -310,7 +310,7 @@ void StationSE::EncodeDestiny( Buffer& into )
         miniball.radius = 1639.241;
     into.Append( miniball );
  */
-    _log(SE__DESTINY, "StationSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "StationSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict *StationSE::MakeSlimItem() {

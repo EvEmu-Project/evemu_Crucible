@@ -244,7 +244,7 @@ ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemM
     m_corpID = data.corporationID;
     m_ownerID = data.ownerID;
 
-    if (!IsStation(m_self->locationID())) { // should NEVER be true (SE object in station???)
+    if (!sDataMgr.IsStation(m_self->locationID())) { // should NEVER be true (SE object in station???)
         if (m_self->typeID() == EVEDB::invTypes::PlanetaryLaunchContainer) {
             m_deleteTimer.Start(5 *24 *60 *60 *1000);  //5d timer for PI launch.  should probably get this saved value from planet launches
         } else {
@@ -595,7 +595,7 @@ PyDict *WreckSE::MakeSlimItem() {
             PyTuple* loot = new PyTuple(4);
                 loot->SetItem(0,                new PyInt(m_ownerID));
                 loot->SetItem(1,                IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
-                loot->SetItem(2,                IsFleet(m_fleetID) ? new PyInt(m_fleetID) : PyStatic.NewNone());
+                loot->SetItem(2,                IsFleetID(m_fleetID) ? new PyInt(m_fleetID) : PyStatic.NewNone());
                 loot->SetItem(3,                new PyBool(false)); // what is this??
             slim->SetItemString("lootRights",   loot );
         }

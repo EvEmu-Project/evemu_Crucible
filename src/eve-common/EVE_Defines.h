@@ -203,11 +203,13 @@
 #define IsWreckTypeID(typeID) \
  ((typeID > 26467) && (typeID < 30826))
 
-#define IsCharacter(itemID) \
+ #define IsCharacterID(itemID) \
  ((itemID >= minCharacter) && (itemID <= maxCharacter))
 
 #define IsValidLocation(itemID) \
- (itemID >= minValidLocation)
+  ((IsSolarSystemID(itemID)) \
+  or (IsRegionID(itemID)) \
+  or (IsStationID(itemID)))
 
 #define IsValidOwner(itemID) \
 ((itemID == 1) || ((itemID >= minNPCCorporation) && (itemID <= maxNPCCorporation)) \
@@ -220,13 +222,13 @@
 #define IsContainerLocation(itemID) \
  (itemID >= minValidShipLocation)
 
-#define IsFleet(itemID) \
+#define IsFleetID(itemID) \
 ((itemID >= minFleet) && (itemID < maxFleet))
 
-#define IsWing(itemID) \
+#define IsWingID(itemID) \
 ((itemID >= minWing) && (itemID < maxWing))
 
-#define IsSquad(itemID) \
+#define IsSquadID(itemID) \
 ((itemID >= minSquad) && (itemID < maxSquad))
 
 #define IsCorp(itemID) \
@@ -248,13 +250,13 @@
 #define IsFaction(itemID) \
 ((itemID >= minFaction) && (itemID < maxFaction))
 
-#define IsOffice(itemID) \
+#define IsOfficeID(itemID) \
 ((itemID >= minOffice) && (itemID < minTempItemID))
 
 #define IsPlayerItem(itemID) \
 ((itemID > minPlayerItem) && (itemID < maxPlayerItem))
 
-#define IsAsteroid(itemID) \
+#define IsAsteroidID(itemID) \
 ((itemID >= minAsteroidItem) && (itemID < minDroneItem))
 
 #define IsDrone(itemID) \
@@ -268,28 +270,28 @@
 #define IsStaticMapItem(itemID) \
 ((itemID >= minRegion) && (itemID < maxNPCItem))
 
-#define IsRegion(itemID) \
+#define IsRegionID(itemID) \
 ((itemID >= minRegion) && (itemID < minConstellation))
 
-#define IsConstellation(itemID) \
+#define IsConstellationID(itemID) \
 ((itemID >= minConstellation) && (itemID < minSolarSystem))
 
-#define IsSolarSystem(itemID) \
+#define IsSolarSystemID(itemID) \
 ((itemID >= minSolarSystem) && (itemID < maxSolarSystem))
 
-#define IsWSpace(itemID) \
+#define IsWSpaceID(itemID) \
 ((itemID >= minWHSolarSystem) && (itemID < maxWHSolarSystem))
 
-#define IsKSpace(itemID) \
+#define IsKSpaceID(itemID) \
 ((itemID >= minSolarSystem) && (itemID < minWHSolarSystem))
 
-#define IsCelestial(itemID) \
+#define IsCelestialID(itemID) \
 ((itemID >= minUniverseCelestial) && (itemID < minStargate))
 
-#define IsStargate(itemID) \
+#define IsStargateID(itemID) \
 ((itemID >= minStargate) && (itemID < minStation))
 
-#define IsStation(itemID) \
+#define IsStationID(itemID) \
 ((itemID >= minStation) && (itemID < minTradeCont))
 
 #define IsNPCStation(itemID) \

@@ -65,7 +65,7 @@ public:
          'OnShipJumpCloneInstallationCanceled']
          */
 
-        if (IsStation(m_locationID))
+        if (sDataMgr.IsStation(m_locationID))
             m_locGroupID = EVEDB::invGroups::Solar_System;
     }
     virtual ~JumpCloneBound() { delete m_dispatch; }

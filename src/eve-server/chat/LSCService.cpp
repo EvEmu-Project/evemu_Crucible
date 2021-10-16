@@ -961,22 +961,22 @@ void LSCService::CreateSystemChannel(int32 channelID)
     uint32 ownerID = channelID;
 
     /** @todo  i know this isnt used much, but wtf was i thinking hitting db for names, when they are in static data?? */
-    if (IsRegion(channelID)) {
+    if (IsRegionID(channelID)) {
         type = LSC::Type::region;
         name = "Region";
         motd = m_db->GetRegionName(channelID);
         grpMsgID = 1;
-    } else if (IsConstellation(channelID)) {
+    } else if (IsConstellationID(channelID)) {
         type = LSC::Type::constellation;
         name = "Constellation";
         motd = m_db->GetConstellationName(channelID);
         grpMsgID = 2;
-    } else if (IsKSpace(channelID)) {
+    } else if (IsKSpaceID(channelID)) {
         type = LSC::Type::solarsystem2;
         name = "Local";
         motd = m_db->GetSolarSystemName(channelID);
         grpMsgID = 3;
-    } else if (IsWSpace(channelID)) {
+    } else if (IsWSpaceID(channelID)) {
         type = LSC::Type::solarsystem;
         name = "System";
         motd = m_db->GetSolarSystemName(channelID);
@@ -998,13 +998,13 @@ void LSCService::CreateSystemChannel(int32 channelID)
         motd = m_db->GetAllianceName(channelID);
         grpMsgID = 5;
         messageID = 0;
-    } else if (IsFleet(channelID)) {
+    } else if (IsFleetID(channelID)) {
         type = LSC::Type::fleet;
         name = sFltSvc.GetFleetName(channelID);
         motd = sFltSvc.GetFleetDescription(channelID);
         messageID = 0;
         ownerID = sFltSvc.GetFleetLeaderID(channelID);
-    } else if (IsWing(channelID)) {
+    } else if (IsWingID(channelID)) {
         type = LSC::Type::wing;
         name = sFltSvc.GetWingName(channelID);
         motd = name;
@@ -1013,7 +1013,7 @@ void LSCService::CreateSystemChannel(int32 channelID)
         messageID = 0;
         //ownerID = sFltSvc.GetWingLeaderID(channelID);
         ownerID = sFltSvc.GetFleetLeaderID(channelID);
-    } else if (IsSquad(channelID)) {
+    } else if (IsSquadID(channelID)) {
         type = LSC::Type::squad;
         name = sFltSvc.GetSquadName(channelID);
         motd = name;

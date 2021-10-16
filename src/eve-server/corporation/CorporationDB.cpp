@@ -93,7 +93,7 @@ PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
 PyObject *CorporationDB::ListStationOwners(uint32 stationID) {
     /** @todo  this needs work.... */
     DBQueryResult res;
-  if (IsStation(stationID)) {
+  if (sDataMgr.IsStation(stationID)) {
     if (!sDatabase.RunQuery(res,
         "SELECT"
         "  s.corporationID AS ownerID,"
@@ -1244,7 +1244,7 @@ void CorporationDB::AddRecruiters(uint16 adID, int32 corpID, std::vector< int32 
 
     bool first = true;
     for (auto cur : charVec) {
-        if (!IsCharacter(cur))
+        if (!IsCharacterID(cur))
             continue;
         if (first) {
             first = false;
@@ -1508,7 +1508,7 @@ bool CorporationDB::DeleteApplication(const Corp::ApplicationInfo& aInfo) {
 }
 
 uint32 CorporationDB::GetStationCorporationCEO(uint32 stationID) {
-    if (!IsStation(stationID))
+    if (!sDataMgr.IsStation(stationID))
         return 0;
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
@@ -2199,7 +2199,7 @@ void CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, Call_MoveShares& a
     uint16 oldShares = 0;
     uint32 oldCorpID = 0;
     Client* pClient(nullptr);
-    if (IsCharacter(args.toShareholderID)) {
+    if (IsCharacterID(args.toShareholderID)) {
         pClient = sEntityList.FindClientByCharID(args.toShareholderID);
         if (pClient == nullptr) {
             oldCorpID = CharacterDB::GetCorpID(args.toShareholderID);
@@ -2363,7 +2363,7 @@ PyRep* CorporationDB::GetAssetInventoryForLocation(uint32 corpID, uint32 locatio
 {
     // this will need to get full item data...locationID sent from GetAssetInventory()
     DBQueryResult res;
-    if (IsStation(locationID)) {    // transpose stationID to officeID for item location...should never hit
+    if (sDataMgr.IsStation(locationID)) {    // transpose stationID to officeID for item location...should never hit
         if (!sDatabase.RunQuery(res,
             " SELECT e.itemID, e.itemName, e.typeID, e.ownerID, e.locationID, e.flag AS flagID, e.singleton,"
             " e.quantity AS stacksize, t.groupID, g.categoryID FROM entity AS e"
@@ -2375,7 +2375,7 @@ PyRep* CorporationDB::GetAssetInventoryForLocation(uint32 corpID, uint32 locatio
             codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
             return nullptr;
         }
-    } else if (IsOffice(locationID)) {  // transpose officeID to stationID for item location...most oft used (corp hangars in station)
+    } else if (IsOfficeID(locationID)) {  // transpose officeID to stationID for item location...most oft used (corp hangars in station)
         if (!sDatabase.RunQuery(res,
             " SELECT e.itemID, e.itemName, e.typeID, e.ownerID, e.locationID, e.flag AS flagID, e.singleton,"
             " e.quantity AS stacksize, t.groupID, g.categoryID FROM entity AS e"

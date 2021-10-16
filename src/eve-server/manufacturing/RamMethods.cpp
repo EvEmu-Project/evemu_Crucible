@@ -122,9 +122,9 @@ void RamMethods::JobsCheck(Character* pChar, const Call_InstallJob& args)
 
 void RamMethods::InstallationCheck(Client*const pClient, int32 lineLocationID)
 {
-    if (IsStation(lineLocationID)) {
+    if (sDataMgr.IsStation(lineLocationID)) {
         uint32 regionID = sDataMgr.GetStationRegion(lineLocationID);
-        if (!IsRegion(regionID))
+        if (!IsRegionID(regionID))
             throw UserError ("RamIsNotAnInstallation");
         if (pClient->GetRegionID() != regionID)
             throw UserError ("RamRangeLimitationRegion");
@@ -234,7 +234,7 @@ void RamMethods::ItemOwnerCheck(Client*const pClient, const Call_InstallJob& arg
 void RamMethods::ItemLocationCheck(Client*const pClient, const Call_InstallJob& args, InventoryItemRef installedItem)
 {
     // a lot of this is checked in client.  need to verify
-    if (IsStation(args.lineContainerID)) {
+    if (sDataMgr.IsStation(args.lineContainerID)) {
         if (installedItem->locationID() != args.lineContainerID) {
             if (args.lineContainerID == pClient->GetLocationID()) {
                 throw UserError (

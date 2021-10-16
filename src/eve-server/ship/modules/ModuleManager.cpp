@@ -1051,7 +1051,7 @@ void ModuleManager::UnloadCharge(GenericModule* pMod)
 
     chargeRef->SetAttribute(AttrQuantity, EvilZero);    // OMAC
 
-    if (IsStation(pShipItem->locationID())) {
+    if (sDataMgr.IsStation(pShipItem->locationID())) {
         StationItemRef sRef = sEntityList.GetStationByID(pShipItem->locationID());
         if (sRef.get() != nullptr) {
             InventoryItemRef iRef = sRef->GetMyInventory()->GetByTypeFlag(chargeRef->typeID(), flagHangar);
@@ -1161,7 +1161,7 @@ void ModuleManager::UnloadAllModules()
         if (cur.second != nullptr)
             cur.second->UnloadCharge();
     // can this be called when docked?
-    //bool docked = IsStation(pShipItem->locationID());
+    //bool docked = sDataMgr.IsStation(pShipItem->locationID());
     for (auto cur : m_charges)
         UnloadModule(cur.second->flag());
 

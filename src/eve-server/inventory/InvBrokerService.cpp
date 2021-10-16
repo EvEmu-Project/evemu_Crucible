@@ -154,7 +154,7 @@ PyResult InvBrokerBound::Handle_GetContainerContents(PyCallArgs &call)
     if (item->ownerID() == call.client->GetCharacterID()) {
         _log(INV__MESSAGE, "Handle_GetContainerContents() -  %s(%u) is owned by calling character %s(%u) ", \
                     item->name(), item->itemID(), call.client->GetName(), call.client->GetCharacterID());
-    } else if ((item->ownerID() != call.client->GetCharacterID()) and IsSolarSystem(args.arg2)) {
+    } else if ((item->ownerID() != call.client->GetCharacterID()) and sDataMgr.IsSolarSystem(args.arg2)) {
         _log(INV__WARNING, "Handle_GetContainerContents() -  %s(%u) is in space and not owned by calling character %s(%u) ", \
                     item->name(), item->itemID(), call.client->GetName(), call.client->GetCharacterID());
     } else {
@@ -282,8 +282,8 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
                 case EVEDB::invGroups::Cargo_Container: {
                     flag = flagNone;
                     // only check distance if the item is in space and not in a station
-                    if (IsSolarSystem (iRef->locationID())) {
-                        GVector direction (iRef->position(), call.client->GetShip()->position());
+                    if (sDataMgr.IsSolarSystem(iRef->locationID())) {
+                        GVector direction(iRef->position(), call.client->GetShip()->position());
                         float maxDistance = 2500.0f;
 
                         if (iRef->HasAttribute (AttrMaxOperationalDistance) == true)
@@ -434,7 +434,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
                     iRef->itemID(), iRef->ownerID());
             error = true;
         }
-    } else if (IsCharacter(iRef->ownerID())) {
+    } else if (IsCharacterID(iRef->ownerID())) {
         if (iRef->ownerID() != call.client->GetCharacterID()) {
             _log(INV__ERROR, "%u(%u) tried to rename PlayerItem %s(%u) owned by %u.", \
                     call.client->GetName(), call.client->GetCharacterID(), iRef->name(), \

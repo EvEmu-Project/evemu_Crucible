@@ -77,7 +77,7 @@ PyBoundObject *EntityService::CreateBoundObject(Client* pClient, const PyRep* bi
     }
 
     uint32 systemID = bind_args->AsInt()->value();
-    if (!IsSolarSystem(systemID)) {
+    if (!sDataMgr.IsSolarSystem(systemID)) {
         codelog(SERVICE__ERROR, "%s: Expected systemID, but got %u.", pClient->GetName(), systemID);
         return nullptr;
     }

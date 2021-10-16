@@ -427,7 +427,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         } break;
         default: {
             locationID = args.lineLocationID;
-            if (IsStation(args.lineContainerID)) {
+            if (sDataMgr.IsStation(args.lineContainerID)) {
                 locationID = args.lineContainerID;
             } else {
                 sLog.Warning("InstallJob", "Location is not Station.  Needs work.");
@@ -442,7 +442,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
     std::string reason = "DESC: Installing ";
     reason += sRamMthd.GetActivityName(args.activityID);
     reason += " job in ";
-    if (IsStation(locationID)) {
+    if (sDataMgr.IsStation(locationID)) {
         reason += stDataMgr.GetStationName(locationID);
     } else {    // test for POS after that system is more complete...
         reason += "Unknown Location";
@@ -479,7 +479,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
         description += sRamMthd.GetActivityName(args.activityID);
         description += " job in ";
         /** @todo update this for pos names when that system is working */
-        if (IsStation(locationID)) {
+        if (sDataMgr.IsStation(locationID)) {
             description += stDataMgr.GetStationName(locationID);
         } else {  // POS installation
             description += "Unknown Location";

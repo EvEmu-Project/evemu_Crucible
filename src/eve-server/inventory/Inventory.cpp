@@ -121,7 +121,7 @@ bool Inventory::LoadContents() {
     if (pClient != nullptr) {
         if (pClient->IsCharCreation())
             return true;
-        if (IsStation(m_myID)) {
+        if (sDataMgr.IsStation(m_myID)) {
             if (pClient->IsHangarLoaded(m_myID))
                 return true;
             pClient->AddStationHangar(m_myID);
@@ -143,7 +143,7 @@ bool Inventory::LoadContents() {
     if (pClient != nullptr) {
         if (pClient->IsValidSession())
             od.corpID = pClient->GetCorporationID();
-        if (IsStation(m_myID)) {
+        if (sDataMgr.IsStation(m_myID)) {
             if (!StationItemRef::StaticCast(m_self)->IsLoaded())
                 StationDB::LoadOffices(od, items);
             if (IsPlayerCorp(od.corpID)) {
@@ -152,7 +152,7 @@ bool Inventory::LoadContents() {
                 _log(INV__TRACE, "Inventory::LoadContents()::IsPlayerCorp() - Loading inventory %u(%p) with owner %u", m_myID, this , od.ownerID);
                 GetItems(od, items);
             }
-        } else if (IsOffice(m_myID)) {
+        } else if (IsOfficeID(m_myID)) {
             if (IsPlayerCorp(od.corpID)) {
                 /* this will load corp hangars' inventory for this station */
                 od.ownerID = od.corpID;
@@ -174,7 +174,7 @@ bool Inventory::LoadContents() {
     _log(INV__TRACE, "Inventory::LoadContents() - Loading inventory of %s(%u) with owner %u", m_self->name(), m_myID, od.ownerID);
     if (!GetItems(od, items)) {
         _log(INV__ERROR, "Inventory::LoadContents() - Failed to get inventory items for %s(%u)", m_self->name(), m_myID);
-        if ((pClient != nullptr) and IsStation(m_myID))
+        if ((pClient != nullptr) and sDataMgr.IsStation(m_myID))
             pClient->RemoveStationHangar(m_myID);
         return false;
     }
@@ -219,7 +219,7 @@ void Inventory::AddItem(InventoryItemRef iRef) {
     }
 
     // need to find and remove skill in training flag here for proper skill search
-    if (IsCharacter(m_myID)) {
+    if (IsCharacterID(m_myID)) {
         if (iRef->categoryID() == EVEDB::invCategories::Skill) {
             m_contentsByFlag.emplace(flagSkill, iRef);
         } else {
@@ -232,9 +232,9 @@ void Inventory::AddItem(InventoryItemRef iRef) {
     // Apply iHub upgrades
     if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub) {
         _log(SOV__DEBUG, "Applying system upgrade %s to system %s...", iRef->name(), m_self->locationID());
-    
-        // For now, all we need to do is mark the upgrade active, 
-        // but in the future upgrades for military and resource harvesting 
+
+        // For now, all we need to do is mark the upgrade active,
+        // but in the future upgrades for military and resource harvesting
         // will need to be 'activated' here
         iRef->SetFlag(EVEItemFlags::flagStructureActive, true);
     }
@@ -302,13 +302,13 @@ void Inventory::List(CRowSet* into, EVEItemFlags flag, uint32 ownerID) const {
     //there has to be a better way to build this...
     PyPackedRow* row(nullptr);
     // office hangars list ALL items.  client separates by division flag
-    if (IsOffice(m_myID) or IsCharacter(m_myID)) {
+    if (IsOfficeID(m_myID) or IsCharacterID(m_myID)) {
         for (auto cur : mContents) {
             row = into->NewRow();
             cur.second->GetItemRow(row);
         }
     } else if (m_self->categoryID() == EVEDB::invCategories::Ship) {
-        bool space = IsSolarSystem(m_self->locationID());
+        bool space = sDataMgr.IsSolarSystem(m_self->locationID());
         for (auto cur : mContents) {
             // this also fills module/charges in fit window when docked.
             //  charges not sent like this in space (uses subLocation sent via shipInfo())
@@ -424,7 +424,7 @@ InventoryItemRef Inventory::GetByID(uint32 id) const {
 //  maybe create an inventory map by owner in station?
 void Inventory::GetInvForOwner(uint32 ownerID, std::vector< InventoryItemRef >& items)
 {
-    if (!IsOffice(m_myID) and !IsStation(m_myID)) {
+    if (!IsOfficeID(m_myID) and !sDataMgr.IsStation(m_myID)) {
         _log(INV__ERROR, "GetInvForOwner called on non-station item %s(%u)", m_self->name(), m_myID);
         EvE::traceStack();
     }
@@ -681,14 +681,14 @@ float Inventory::GetCapacity(EVEItemFlags flag) const {
         case flagCorpHangar5:
         case flagCorpHangar6:
         case flagCorpHangar7: {
-            if (IsStation(m_myID))
+            if (sDataMgr.IsStation(m_myID))
                 return maxHangarCapy;
             //for ship, this is TOTAL capy for all corp hangars (they share capy)
             if (m_self->HasAttribute(AttrHasCorporateHangars))
                 return m_self->GetAttribute(AttrCorporateHangarCapacity).get_float();
         }
         case flagHangar: {
-            if (IsStation(m_myID))
+            if (sDataMgr.IsStation(m_myID))
                 return maxHangarCapy;
             if (m_self->HasAttribute(AttrHasCorporateHangars))
                 return m_self->GetAttribute(AttrCorporateHangarCapacity).get_float();
@@ -741,10 +741,10 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
 
     // If we didn't hit anything above, it must be okay to insert item
     return true;
-    
+
 }
 
-bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const 
+bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 {
     if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub)
         if (iRef->categoryID() == EVEDB::invCategories::StructureUpgrade)
@@ -754,10 +754,10 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
     if (m_self->categoryID() == EVEDB::invCategories::Station)
         return true;
 
-    Client* pClient = sItemFactory.GetUsingClient();
+    Client* pClient(sItemFactory.GetUsingClient());
 
     // check that we're close enough if a container in space
-    if (m_self->groupID() == EVEDB::invGroups::Cargo_Container && IsSolarSystem(m_self->locationID())) {
+    if (m_self->groupID() == EVEDB::invGroups::Cargo_Container && sDataMgr.IsSolarSystem(m_self->locationID())) {
         GVector direction (m_self->position(), pClient->GetShip()->position());
         float maxDistance = 2500.0f;
 
@@ -771,17 +771,15 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 
     // check if where the item is coming from was a cargo container
     InventoryItemRef cRef = sItemFactory.GetItem(iRef->locationID());
-
-    if (cRef->groupID () == EVEDB::invGroups::Cargo_Container && IsSolarSystem (cRef->locationID())) {
+    if (cRef->groupID() == EVEDB::invGroups::Cargo_Container && sDataMgr.IsSolarSystem(cRef->locationID())) {
         GVector direction (cRef->position(), pClient->GetShip()->position());
-        float maxDistance = 2500.0f;
-
+        float maxDistance(2500.0f);
         if (cRef->HasAttribute (AttrMaxOperationalDistance) == true)
             maxDistance = cRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
 
-        if (direction.length () > maxDistance)
-            throw UserError ("NotCloseEnoughToLoot")
-                .AddAmount ("maxdist", maxDistance);
+        if (direction.length() > maxDistance)
+            throw UserError("NotCloseEnoughToLoot")
+                .AddAmount("maxdist", maxDistance);
     }
     // can this be coded to check weapon capy?   im sure it can. just a flag, right?
 

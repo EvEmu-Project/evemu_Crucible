@@ -249,7 +249,7 @@ PyResult ConfigService::Handle_GetDynamicCelestials(PyCallArgs &call) {
         return nullptr;
     }
 
-    if(IsSolarSystem(arg.arg)) {
+    if(sDataMgr.IsSolarSystem(arg.arg)) {
         //sLog.Green("GetDynamicCelesitals", " IsSolarSystem %u", arg.arg);
         return m_db.GetDynamicCelestials(arg.arg);
     } else {

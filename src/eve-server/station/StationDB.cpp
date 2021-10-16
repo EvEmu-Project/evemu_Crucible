@@ -107,14 +107,14 @@ void StationDB::GetStationOfficeData(DBQueryResult& res)
 PyRep* StationDB::GetStationOfficeIDs(uint32 locationID, uint32 corpID, const char* key)
 {
     DBQueryResult res;
-    if (IsStation(locationID)) {
+    if (sDataMgr.IsStation(locationID)) {
         sDatabase.RunQuery(res, "SELECT itemID AS officeID, stationID, officeFolderID"
         " FROM staOffices WHERE stationID = %u", locationID);
     } else if (IsOfficeFolder(locationID)) {
         sDatabase.RunQuery(res, "SELECT itemID AS officeID, stationID, officeFolderID"
         " FROM staOffices WHERE officeFolderID = %u",
             locationID - STATION_OFFICE_OFFSET);
-    } else if (IsOffice(locationID)) {
+    } else if (IsOfficeID(locationID)) {
         sDatabase.RunQuery(res, "SELECT itemID AS officeID, stationID, officeFolderID"
         " FROM staOffices WHERE itemID = %u", locationID);
     } else {

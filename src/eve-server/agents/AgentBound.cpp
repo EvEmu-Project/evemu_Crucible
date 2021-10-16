@@ -764,7 +764,7 @@ PyTuple* AgentBound::GetMissionObjectives(Client* pClient, MissionOffer& offer)
 {
     // set mission objectiveData based on mission type.
     PyDict* dropoffLocation = new PyDict();
-    if (IsStation(offer.destinationID)) {
+    if (sDataMgr.IsStation(offer.destinationID)) {
         dropoffLocation->SetItemString("typeID", new PyInt(offer.destinationTypeID) );
         dropoffLocation->SetItemString("locationID", new PyInt(offer.destinationID) );
         dropoffLocation->SetItemString("solarsystemID", new PyInt(offer.destinationSystemID) );
