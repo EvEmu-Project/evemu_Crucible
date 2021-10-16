@@ -65,8 +65,8 @@ PyObject *CorporationDB::ListStationOffices(uint32 station_id) {
     return DBResultToRowset(res);
 }
 */
-PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
 
+PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT "
@@ -376,7 +376,6 @@ PyRep* CorporationDB::GetMedalsReceivedDetails(int32 charID)
 
 PyObjectEx* CorporationDB::GetMedalDetails(int32 medalID)
 {
-
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT medalID, ownerID, creatorID, noRecepients AS numberOfRecipients, date, title, description FROM crpMedals"
@@ -424,7 +423,6 @@ void CorporationDB::GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 
         sDatabase.RunQuery(err, query.str().c_str());
         sDatabase.RunQuery(err, "UPDATE crpMedals SET noRecepients=noRecepients + 1 WHERE medalID = %u", medalID );
     }
-
 }
 
 void CorporationDB::SetMedalStatus(uint32 charID, uint16 medalID, uint8 status)
@@ -1317,6 +1315,7 @@ PyRep* CorporationDB::GetAdRegistryData(int64 typeMask/*0*/, bool inAlliance/*fa
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
+
     return DBResultToCRowset(res);
 }
 
@@ -1333,8 +1332,8 @@ PyRep* CorporationDB::GetAdvert(uint16 adID)
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
-    return DBResultToCRowset(res);
 
+    return DBResultToCRowset(res);
 }
 
 void CorporationDB::DeleteAdvert(uint16 adID)
@@ -1808,8 +1807,8 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
     }
 
     return true;
-
 }
+
 #define NI(i) row.IsNull(i) ? 0 : row.GetInt(i)
 bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif) {
     DBQueryResult res;
@@ -2531,7 +2530,7 @@ void CorporationDB::SetLabel(uint32 corpID, uint32 color, std::string name)
 
 void CorporationDB::DeleteLabel(uint32 corpID, uint32 labelID)
 {
-
+    // not used yet
 }
 
 int32 CorporationDB::GetCorpIDforChar(int32 charID)
@@ -2549,4 +2548,3 @@ int32 CorporationDB::GetCorpIDforChar(int32 charID)
     _log(DATABASE__MESSAGE, "No data found for character's %u corporation.", charID);
     return 0;
 }
-

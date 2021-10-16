@@ -56,7 +56,6 @@ m_npcDivisions(nullptr)
     m_oreBySecClass.clear();
     m_LootGroupTypeMap.clear();
     m_WrecksToTypesMap.clear();
-
 }
 
 StaticDataMgr::~StaticDataMgr()
@@ -1632,7 +1631,6 @@ const char* StaticDataMgr::GetRaceName(uint8 raceID)
     }
     // default to none
     return "Race Not Defined";
-
 }
 
 uint32 StaticDataMgr::GetRaceFaction(uint8 raceID)
@@ -2069,7 +2067,6 @@ uint32 StaticDataMgr::GetWreckFaction(uint32 typeID)
         case 26560: { //   Pirate Wreck
             return factionUnknown;
         } break;
-
     }
 
     // safe default
