@@ -1087,7 +1087,6 @@ PySubStream::PySubStream(const PySubStream& oth ) : PyRep(PyRep::PyTypeSubStream
   mData( oth.data() == nullptr ? nullptr : new PyBuffer( *oth.data() ) ),
   mDecoded( oth.decoded() == nullptr ? nullptr : oth.decoded()->Clone() )
 {
-
 }
 
 PySubStream::~PySubStream()

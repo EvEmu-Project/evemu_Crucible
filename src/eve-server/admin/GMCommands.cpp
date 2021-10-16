@@ -89,7 +89,6 @@ PyResult Command_search(Client* who, CommandDB* db, PyServiceMgr* services, cons
 
 PyResult Command_giveisk(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
-
     if (args.argCount() < 3) {
         throw CustomError ("Correct Usage: /giveisk [entityID ('me'=self)] [amount]");
     }
@@ -491,7 +490,6 @@ PyResult Command_setattr(Client* who, CommandDB* db, PyServiceMgr* services, con
 
 PyResult Command_fit(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
-
     throw CustomError ("This command is currently disabled.");
 /*
     uint32 typeID = 0;
@@ -733,33 +731,32 @@ PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, c
 }
 
 PyResult Command_online(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-
-    if (args.argCount() == 2)
-    {
+    if (args.argCount() == 2) {
         if (strcmp("me", args.arg(1).c_str())!=0)
             if (!args.isNumber(1))
                 throw CustomError ("Argument 1 should be an entity ID or me (me=self)");
-            uint32 entity = atoi(args.arg(1).c_str());
 
-        Client* tgt;
-        if (strcmp("me", args.arg(1).c_str())==0)
+        uint32 entity(atoi(args.arg(1).c_str()));
+        Client* tgt(nullptr);
+
+        if (strcmp("me", args.arg(1).c_str())==0) {
             tgt = who;
-        else
-        {
+        } else {
             tgt = sEntityList.FindClientByCharID(entity);
             if (!tgt)
                 throw CustomError ("Unable to find character %u", entity);
         }
 
-        if (!tgt->InPod())
+        if (!tgt->InPod()) {
             tgt->GetShip()->OnlineAll();
-        else
+        } else {
             throw CustomError ("Command failed: You can't activate modules while in a pod");
+        }
 
         return(new PyString("All modules have been put Online"));
-    }
-    else
+    } else {
         throw CustomError ("Command failed: You got the arguments all wrong.");
+    }
 }
 
 PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
@@ -814,7 +811,6 @@ PyResult Command_unload(Client *who, CommandDB *db, PyServiceMgr *services, cons
 
 PyResult Command_repairmodules(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
-
     if (args.argCount()==1)
         who->GetShip()->RepairModules();
     if (args.argCount()==2) {
@@ -906,7 +902,6 @@ PyResult Command_ban(Client* who, CommandDB* db, PyServiceMgr* services, const S
 
     if (args.argCount() == 2)
     {
-
         if (!args.isNumber(1))
         {
             const char *name = args.arg(1).c_str();
@@ -938,28 +933,24 @@ PyResult Command_ban(Client* who, CommandDB* db, PyServiceMgr* services, const S
 
 PyResult Command_unban(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
 {
-    if (args.argCount() == 2)
-    {
-
-        if (!args.isNumber(1))
-        {
+    if (args.argCount() == 2) {
+        if (!args.isNumber(1)) {
             const char *name = args.arg(1).c_str();
             ServiceDB::SetAccountBanStatus(db->GetAccountID(name),false);
-        }
-        else
+        } else {
             throw CustomError ("Correct Usage: /ban [Character Name]");
+        }
     }
     //support for characters with first and last names
-    else if (args.argCount() == 3)
-    {
+    else if (args.argCount() == 3) {
         if (args.isHexNumber(1))
             throw CustomError ("Unknown arguments");
 
         std::string name = args.arg(1) + " " + args.arg(2);
         ServiceDB::SetAccountBanStatus(db->GetAccountID(name),false);
-    }
-    else
+    } else {
         throw CustomError ("Correct Usage: /unban [Character Name / Character ID]");
+    }
 
     return nullptr;
 }

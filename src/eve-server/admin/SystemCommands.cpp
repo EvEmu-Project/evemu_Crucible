@@ -417,7 +417,6 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
 }
 
 static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-
     int typeID = -1;
     if (args.isNumber(1)) {
         typeID = atoi(args.arg(1).c_str());

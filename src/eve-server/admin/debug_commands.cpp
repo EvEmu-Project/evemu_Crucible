@@ -604,7 +604,6 @@ PyResult Command_attrlist(Client* pClient, CommandDB* db, PyServiceMgr* services
 }
 
 PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
-
     std::ostringstream str;
     str.clear();
     str << "Current Session Values.<br><br>"; //32

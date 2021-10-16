@@ -243,7 +243,6 @@ void CachedObjectMgr::_UpdateCache(const PyRep *objectID, PyBuffer **pbuf)
     CachedObjMapItr res = m_cachedObjects.find(str);
 
     if (res != m_cachedObjects.end()) {
-
         sLog.Debug("CachedObjMgr","Destroying old cached object with ID '%s' of length %u with checksum 0x%x", str.c_str(), res->second->cache->content().size(), res->second->version);
         SafeDelete( res->second );
     }

@@ -43,7 +43,6 @@ private:
 
     void SendOnJumpBeaconChange(bool status=false);
     void CreateCyno();
-
 };
 
 #endif  //_EVE_SHIP_MODULES_CYNO_MODULE_H_

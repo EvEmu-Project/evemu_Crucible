@@ -203,7 +203,6 @@ void SystemEntity::DropLoot(WreckContainerRef wreckRef, uint32 groupID, uint32 o
 
 /** @todo (allan)  this doesnt need to be here */
 void SystemEntity::AwardSecurityStatus(InventoryItemRef iRef, Character* pChar) {
-
     //New Status = ((10 - Old Status) * Sec Incr) + Old Status
     double oldSec = pChar->GetSecurityRating();
     EvilNumber maxGain = 0;

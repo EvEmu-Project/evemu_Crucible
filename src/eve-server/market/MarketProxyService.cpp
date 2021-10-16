@@ -272,9 +272,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
             //   these may be written already.  will have to check
 
             accountKey = call.client->GetCorpAccountKey();
-
-        } else {
-
         }
 
         //is this standing order or immediate?
@@ -369,8 +366,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
             //  corp item in corp hangar
             // located = [officeFolderID, officeID] or None
             PyTuple* located = args.located->AsTuple();
-
-
         }
 
         //verify that they actually have the item in the quantity specified...

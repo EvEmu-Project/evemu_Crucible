@@ -720,7 +720,9 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
     _log(INV__DUMP, "IB::List() dump.");
     call.Dump(INV__DUMP);
 
-    uint32 ownerID = m_ownerID;
+    /* ownerID will need to be 'modified' here for corp access because of how we load items */
+    //uint32 ownerID = m_ownerID;
+
     /* this item was originally bound to this flag, but can send specific flag on occasion
      * usually flag is set for subLocation, shipHangar, POS items, and CCHold
         def GetSubSystemInFlag(self, shipID, flagID):
@@ -740,7 +742,7 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
     }
 
     _log(INV__MESSAGE, "IB::List() called by %s with ownerID %u for %s(%u:%s%s) - origFlag: %s", \
-            call.client->GetName(), ownerID, m_self->name(), m_itemID, sDataMgr.GetFlagName(flag), \
+    call.client->GetName(), m_ownerID, m_self->name(), m_itemID, sDataMgr.GetFlagName(flag), \
             (m_passive ? ":passive" : ""), sDataMgr.GetFlagName(oldFlag));
 
     // check for owner type of this inventory for reference checks
@@ -765,10 +767,8 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
         */
     } else if (sDataMgr.IsStation(m_itemID)) {
         // this will get owners items only, including corps
-
     } else if (IsControlBunker(m_itemID)) {
         // not sure what this is yet
-
     }
     /*
      *    if (IsCargoHoldFlag(flag)) {
@@ -791,7 +791,7 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 }
 */
 
-    return pInventory->List(flag, ownerID);
+    return pInventory->List(flag, m_ownerID);
 }
 
 PyResult InventoryBound::Handle_CreateBookmarkVouchers(PyCallArgs &call) {

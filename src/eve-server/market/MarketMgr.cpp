@@ -90,12 +90,12 @@ void MarketMgr::Process()
 
 void MarketMgr::SystemStartup(SystemData& data)
 {
-
+    // not used yet.
 }
 
 void MarketMgr::SystemShutdown(SystemData& data)
 {
-
+    // not used yet.
 }
 
 void MarketMgr::UpdatePriceHistory()
@@ -301,7 +301,6 @@ void MarketMgr::InvalidateOrdersCache(uint32 regionID, uint32 typeID)
  */
 
 bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef iRef, Call_PlaceCharOrder& args, uint16 accountKey/*Account::KeyType::Cash*/) {
-
     Market::OrderInfo oInfo = Market::OrderInfo();
     if (!m_db.GetOrderInfo(orderID, oInfo)) {
         _log(MARKET__ERROR, "ExecuteBuyOrder - Failed to get order info for #%u.", orderID);

@@ -1415,5 +1415,5 @@ void ActiveModule::LaunchProbe()
 
 void ActiveModule::LaunchSnowBall()
 {
-
+    // not used yet
 }

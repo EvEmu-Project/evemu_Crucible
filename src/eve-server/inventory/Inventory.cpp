@@ -623,7 +623,6 @@ float Inventory::GetStoredVolume(EVEItemFlags flag, bool combined/*true*/) const
 }
 
 bool Inventory::HasAvailableSpace(EVEItemFlags flag, InventoryItemRef iRef) const {
-
     float capacity(GetRemainingCapacity(flag));
     float volume(iRef->quantity() * iRef->GetAttribute(AttrVolume).get_float());
 
@@ -741,7 +740,6 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
 
     // If we didn't hit anything above, it must be okay to insert item
     return true;
-
 }
 
 bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const

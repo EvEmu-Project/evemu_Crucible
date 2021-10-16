@@ -159,7 +159,6 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
                                 sculpt_tuple->GetItem(2),
                                 sculpt_tuple->GetItem(3),
                                 sculpt_tuple->GetItem(4));
-
         }
     }
 }
@@ -335,7 +334,6 @@ CharacterRef Character::Spawn( CharacterData& charData, CorpData& corpData) {
 
 void Character::LogOut()
 {
-
     SaveFullCharacter();
     m_db.SetLogOffTime(m_itemID);
     if (!sConsole.IsShutdown())
@@ -469,8 +467,8 @@ void Character::SetFleetData(CharFleetData& fleet)
 }
 
 void Character::FleetShareMissionRewards()
-{   // not used yet.
-
+{
+    // not used yet
 }
 
 void Character::FleetShareMissionStandings(float newStanding)
@@ -1347,12 +1345,12 @@ void Character::SaveCertificates() {
 /** @todo this will need more thought/work   */
 void Character::LoadBookmarks()
 {
-
+    // not used yet
 }
 
 void Character::SaveBookMarks()
 {
-
+    // not used yet
 }
 
 

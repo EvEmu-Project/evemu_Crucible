@@ -281,7 +281,6 @@ PyRep *ConfigDB::GetMultiCorpTickerNamesEx(const std::vector<int32> &entityIDs)
 
 
 PyRep *ConfigDB::GetMultiGraphicsEx(const std::vector<int32> &entityIDs) {
-
     std::string ids;
     ListToINString(entityIDs, ids);
 

@@ -35,7 +35,6 @@ FleetService::FleetService()
 : m_services(nullptr),
 m_initalized(false)
 {
-
 }
 
 void FleetService::Initialize(PyServiceMgr* svc)
@@ -1686,7 +1685,6 @@ std::string FleetService::GetBCastGroupName(int8 group)
         case 3:     return "All";
         default:    return "Invalid Group";
     }
-
 }
 
 std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)

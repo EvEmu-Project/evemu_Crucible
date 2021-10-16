@@ -265,7 +265,6 @@ EVEServerConfig::EVEServerConfig()
     threads.ImageServerThreads = 1;//N
     threads.NetworkThreads = 2;//N
     threads.WorldThreads = 2;//N
-
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )

@@ -539,7 +539,6 @@ void DestinyManager::Stop() {
 }
 
 void DestinyManager::Halt() {
-
     SafeDelete(m_warpState);
 
     //  reset ALL movement variables and states.  calling this will set object to a COMPLETE and IMMEDIATE stop.

@@ -243,7 +243,6 @@ void Colony::Process()
         m_db.UpdatePins(0, ccPin);
         m_toUpdate = false;
     }
-
 }
 
 uint32 Colony::GetOwner()
@@ -290,7 +289,6 @@ void Colony::LoadPlants()
             ccPin->plants[cur.first] = plant;
             m_plantMap.emplace(plant.pLevel, cur.first);
         }
-
     }
 
     // set process timer to 30m

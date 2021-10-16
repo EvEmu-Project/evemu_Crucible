@@ -873,8 +873,6 @@ PyRep* ModuleManager::ModuleRepair(uint32 modID)
         return PyStatic.NewFalse();
     }
 
-
-
     //return PyStatic.NewTrue();  // can repair
     return PyStatic.NewFalse(); // cannot repair (for whatever reason)  do they/we send msgs based on why here?
 }
@@ -886,8 +884,6 @@ void ModuleManager::StopModuleRepair(uint32 modID)
         _log(MODULE__ERROR, "MM::ModuleRepair() - module %s not found.", modID);
         return;
     }
-
-
 }
 
 void ModuleManager::LoadCharge(InventoryItemRef chargeRef, EVEItemFlags flag)
@@ -1335,7 +1331,6 @@ void ModuleManager::GetModuleListOfRefsOrdered( std::vector< InventoryItemRef >&
 }
 
 void ModuleManager::GetModuleListOfRefsOrderedRev( std::vector< InventoryItemRef >& modVec ) {
-
     // this is to list all ship modules by order of hi, mid, low, rig, subsys
     // hi slots
     for (uint8 flag = flagHiSlot0; flag < flagFixedSlot; ++flag)

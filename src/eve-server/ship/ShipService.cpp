@@ -108,7 +108,6 @@ protected:
 
 private:
     ShipItem* pShip;
-
 };
 
 PyCallable_Make_InnerDispatcher(ShipService)
@@ -120,7 +119,6 @@ ShipService::ShipService(PyServiceMgr *mgr)
     _SetCallDispatcher(m_dispatch);
 
     //PyCallable_REG_CALL(ShipService,);
-
 }
 
 ShipService::~ShipService() {

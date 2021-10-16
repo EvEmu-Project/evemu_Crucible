@@ -120,7 +120,6 @@ public:
 
 protected:
     Dispatcher *const m_dispatch;
-
 };
 
 PyCallable_Make_InnerDispatcher(BeyonceService)
@@ -768,7 +767,6 @@ PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
 }
 
 PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
-
     /*  jump system messages....
 (67187, `{[location]system.name} Traffic Control: your jump-in clearance has expired.`)
 (67191, `{[location]system.name} Traffic Control: you have been cleared for jump-in within {[timeinterval]expiration.writtenForm, from=second, to=second}.`)
@@ -1232,6 +1230,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
             cur->SetQuantity(0, true, true);
         }
     }
+
     GPoint position = beacon->position();
     position.MakeRandomPointOnSphere(2500.0);
     call.client->CynoJump(beacon);
@@ -1244,7 +1243,6 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
     return tuple;
 
     return PyStatic.NewNone();
-
 }
 
 PyResult BeyonceBound::Handle_CmdFleetRegroup(PyCallArgs &call) {
