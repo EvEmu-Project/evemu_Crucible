@@ -892,7 +892,7 @@ PyResult CorpRegistryBound::Handle_AddBulletin(PyCallArgs &call) {
         } else {
             m_db.EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, args.title, args.body);
         }
-        
+
     } else {
         m_db.AddBulletin(m_corpID, m_corpID, call.client->GetCharacterID(), args.title, args.body);
     }
@@ -2546,8 +2546,6 @@ PyResult CorpRegistryBound::Handle_CreateAlliance(PyCallArgs &call) {
 
     //Return alliance we just created
     return a_db.GetAlliance(allyID);
-    return nullptr;
-
 }
 
 PyResult CorpRegistryBound::Handle_ApplyToJoinAlliance(PyCallArgs &call) {

@@ -2486,7 +2486,7 @@ Battleships 0.155
     /** @todo check for movement when fleet boosts are applied and this is called */
     InventoryItemRef sRef = mySE->GetSelf();
     m_mass = sRef->GetAttribute(AttrMass).get_float();
-    m_massMKg = m_mass / 1000000; //changes mass from Kg to MillionKg (10^-6)
+    m_massMKg = m_mass / 1000000; //changes mass from Kg to milliKg (10^-6)
 
     // this will catch speeds/needs for all ships (player and npc), and is easier to do here.
     if (sRef->HasAttribute(AttrWarpSpeedMultiplier))

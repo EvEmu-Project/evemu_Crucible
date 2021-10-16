@@ -9,6 +9,7 @@
 *******************************************************
 **********  misc items to update from my code
 
+*u/k at this time*
 
 
 *******************************************************
@@ -111,6 +112,8 @@ missing prices for salvage
 
 *******************************************************
 ********  improvements
+
+allianceDB  update this to use static members
 
 client login screen...these all need code to show data    CharacterDB::GetCharSelectInfo
     upcomingEventCount:
@@ -314,7 +317,7 @@ fleet boosts - apply directly to ship/modules when calculated
 
 shooting wrecks to destroy loot.
     - this really is a thing on live.  implement it.
-    
+
 petition system missing most calls
     - this system hasnt been started
     - couple calls as skeleton code

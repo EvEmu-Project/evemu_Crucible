@@ -230,7 +230,7 @@ protected:
     uint8 m_warpDecelTime;              //in s      - calculated internally for warp stages
 
     float m_mass;                       //in kg
-    float m_massMKg;                    //in Millions of kg
+    float m_massMKg;                    //in mg     - Millionths of kg (mg)
     float m_alignTime;                  //in s      - align and enter warp are same (for our purposes)
     float m_prevSpeed;                  //in m/s    - used by decel when deactivating prop mod
     float m_maxShipSpeed;               //in m/s
