@@ -206,7 +206,7 @@ void Missile::EncodeDestiny( Buffer& into )
         miss.z = z();
     into.Append(miss);
 
-    _log(SE__DESTINY, "Missile::EncodeDestiny(): %s id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "Missile::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict* Missile::MakeSlimItem() {

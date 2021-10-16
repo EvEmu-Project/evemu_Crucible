@@ -1314,7 +1314,7 @@ void ShipItem::StripFitting()
     UnlinkAllWeapons();
 
     EVEItemFlags flag = flagCargoHold;
-    if sDataMgr.IsStation(locationID())
+    if (sDataMgr.IsStation(locationID()))
         flag = flagHangar;
 
     std::vector<InventoryItemRef> moduleList;
@@ -2676,7 +2676,7 @@ void ShipSE::EncodeDestiny( Buffer& into) {
         case 12: modeStr = "Formation"; break;
     }
 
-    _log(SE__DESTINY, "ShipSE::EncodeDestiny(): %s - id:%u, mode:%s, flags:0x%X, Vel:%.1f, %.1f, %.1f", \
+    _log(SE__DESTINY, "ShipSE::EncodeDestiny(): %s - id:%li, mode:%s, flags:0x%X, Vel:%.1f, %.1f, %.1f", \
             GetName(), head.entityID, modeStr.c_str(), head.flags, data.velX, data.velY, data.velZ);
 }
 
