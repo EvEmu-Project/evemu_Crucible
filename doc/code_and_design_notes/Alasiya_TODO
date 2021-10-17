@@ -399,6 +399,8 @@ pos - started. drop, anchor, unanchor, online, offline working but no in-class c
     - add checks for necessary items before online can be processed
     - timers (anchor/online) arent updated to client properly (non-persistent)
     - add bm when tower, ihub, sbu, tcu anchored
+    - finish removing multicast bullshit (sends on FF attr.radius update)
+    - verify all effects for structures.  (some missing)
 
 lsc system better, but incomplete and needs revisiting    -priority level: med-hi
     - may need xmlp code instead of muddled python decoding

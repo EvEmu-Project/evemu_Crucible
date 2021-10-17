@@ -236,7 +236,7 @@ void CustomsSE::VerifyAddItem(InventoryItemRef iRef)
 
 void CustomsSE::GetEffectState(PyList& into)
 {
-
+    // not used yet - cannot use OnSpecialFX14 packet.
 }
 
 void CustomsSE::SendEffectUpdate(int16 effectID, bool active)
