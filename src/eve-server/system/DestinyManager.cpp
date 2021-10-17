@@ -755,8 +755,8 @@ void DestinyManager::MoveObject() {
         if (!m_orbiting or (m_orbiting > Destiny::Ball::Orbit::Far))
             Turn();
     }
-
-    timeStamp = (GetTimeMSeconds() - m_moveTime) /1000;
+    
+    timeStamp = (GetTimeMSeconds() - m_moveTime) / 1000;
 
     float speed(0.0f);
     std::string move = "";
@@ -2815,7 +2815,7 @@ void DestinyManager::SendJettisonPacket() const {
  *                        [PyNone]
  */
 void DestinyManager::SendAnchorDrop() const {
-    OnSpecialFX13 effect;
+    OnSpecialFX14 effect;
         effect.entityID = mySE->GetID();
         effect.moduleID = mySE->GetID();
         effect.moduleTypeID = mySE->GetTypeID();
@@ -2829,7 +2829,7 @@ void DestinyManager::SendAnchorDrop() const {
 }
 
 void DestinyManager::SendAnchorLift() const {
-    OnSpecialFX13 effect;
+    OnSpecialFX14 effect;
         effect.entityID = mySE->GetID();
         effect.moduleID = mySE->GetID();
         effect.moduleTypeID = mySE->GetTypeID();
@@ -2883,7 +2883,7 @@ void DestinyManager::SendAnchorLift() const {
 void DestinyManager::SendCloakFx(bool apply/*false*/, bool module/*false*/) const {
     PyTuple *up(nullptr);
     if (module) {
-        OnSpecialFX13 effect;
+        OnSpecialFX14 effect;
         effect.entityID = mySE->GetID();
         effect.isOffensive = 0;
         if (apply) {
@@ -2932,7 +2932,7 @@ void DestinyManager::SendSpecialEffect(uint32 entityID, uint32 moduleID, uint32 
                                        uint32 chargeTypeID, std::string guid, bool isOffensive, bool start,
                                        bool isActive, int32 duration, uint32 repeat, int32 graphicInfo/*0*/) const
 {
-    OnSpecialFX13 effect;
+    OnSpecialFX14 effect;
         effect.entityID = entityID;
         effect.moduleID = moduleID;
         effect.moduleTypeID = moduleTypeID;     // npc typeID for npc's/drones
