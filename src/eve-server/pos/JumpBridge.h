@@ -30,11 +30,19 @@ public:
 
     /* SystemEntity interface */
     virtual void                Process();
+    virtual PyDict*             MakeSlimItem();
     virtual void                SetOnline();
     virtual void                SetOffline();
 
     /* virtual functions default to base class and overridden as needed */
     virtual void Init();
+    virtual void InitData();
+
+protected:
+    void SendSlimUpdate();
+
+private:
+    EVEPOS::JumpBridgeData      m_bridgeData;
 
 };
 

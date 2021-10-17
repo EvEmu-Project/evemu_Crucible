@@ -244,22 +244,6 @@ void StructureSE::InitData()
         if (m_bubble->HasTower())
             m_data.towerID = m_bubble->GetTowerSE()->GetID();
 
-    if (m_bridge)
-    {
-        m_moonSE = m_system->GetClosestMoonSE(GetPosition())->GetMoonSE();
-        m_data.anchorpointID = m_moonSE->GetID();
-
-        EVEPOS::JumpBridgeData data = EVEPOS::JumpBridgeData();
-        data.itemID = m_data.itemID;
-        data.towerID = m_data.towerID;
-        data.corpID = m_corpID;
-        data.allyID = m_allyID;
-        data.systemID = m_system->GetID();
-        data.allowCorp = false;
-        data.allowAlliance = false;
-        m_db.SaveBridgeData(data);
-    }
-
     if (m_sbu)
     { //SBUs are placed near stargates
         m_gateSE = m_system->GetClosestGateSE(GetPosition())->GetGateSE();
@@ -628,6 +612,12 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
         if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
             pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.",
             sItemFactory.GetType(upgType)->name().c_str());
+            return;
+        }
+
+        if ((m_generator) && m_db.HasBridge(pClient->GetLocationID()))
+        {
+            pClient->SendErrorMsg("This module cannot be anchored as the system already contains a Jump Bridge.");
             return;
         }
 
