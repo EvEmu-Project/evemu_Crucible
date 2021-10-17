@@ -875,7 +875,7 @@ void StructureSE::SetOnline()
 
     SetTimer(m_duration);
     m_db.UpdateBaseData(m_data);
-    m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnline", 0, 1, 1, -1, 0);
+    m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnlined", 0, 1, 1, -1, 0);
 
     if (m_generator) {
         svDataMgr.UpdateSystemBeaconID(m_self->locationID(),m_self->itemID());
@@ -1179,30 +1179,54 @@ eventSBUOffline = 257
 eventSBUOnline = 256
 */
 
+// this should only be for control towers
+// this only hits when tower is in bubble when SetState is called (at login in tower soi)
 void StructureSE::GetEffectState(PyList &into)
 {
-    // this is for sending structure state info in destiny state data
-    if ((m_data.state != EVEPOS::StructureState::Online) and (m_data.state != EVEPOS::StructureState::Operating))
-        return;
+    // update to include all states and correct packet structure -allan 16.10.21
+    // new effect packet code
+    PyTuple* fxState = new PyTuple(14);
+    if (m_module) {
+        fxState->SetItemInt(0, m_data.towerID);      // towerID
+    } else {
+        fxState->SetItemInt(0, m_data.itemID);      // towerID
+    }
 
-    OnSpecialFX13 effect;
-    if (m_module)
-    {
-        effect.entityID = m_data.towerID; /* control tower id */
+    fxState->SetItemInt(1, m_data.itemID);      // moduleID
+    fxState->SetItemInt(2, m_self->typeID());      // moduleTypeID
+    fxState->SetItem(3, PyStatic.NewNone());         // targetID
+    fxState->SetItem(4, PyStatic.NewNone());         // chargeTypeID
+    fxState->SetItem(5, new PyList());         // area
+
+    // set guid here depending on tower state
+    switch (m_data.state) {
+        case EVEPOS::StructureState::Online:
+        case EVEPOS::StructureState::Operating:
+            fxState->SetItemString(6, "effects.StructureOnline");
+            break;
+        case EVEPOS::StructureState::Incapacitated:
+        case EVEPOS::StructureState::Unanchored:
+        case EVEPOS::StructureState::Anchored:
+        case EVEPOS::StructureState::Onlining:
+        case EVEPOS::StructureState::Reinforced:
+        case EVEPOS::StructureState::Vulnerable:
+        case EVEPOS::StructureState::SheildReinforced:
+        case EVEPOS::StructureState::ArmorReinforced:
+        case EVEPOS::StructureState::Invulnerable:
+            fxState->SetItemString(6, "effects.StructureOffline");
+            break;
     }
-    else
-    {
-        effect.entityID = m_data.itemID; /* control tower id */
-    }
-    effect.moduleID = m_data.itemID; /* structure/module id as part of above tower system */
-    effect.moduleTypeID = m_self->typeID();
-    effect.duration = -1;
-    effect.guid = "effects.StructureOnline"; // this is sent in destiny::SetState.  check for actual effect of this pos
-    effect.isOffensive = false;
-    effect.start = 1;
-    effect.active = 1;
-    effect.startTime = m_data.timestamp; /* time this effect started */
-    into.AddItem(effect.Encode());
+
+    fxState->SetItem(7, PyStatic.NewFalse());         // isOffensive
+    fxState->SetItem(8, PyStatic.NewOne());      // start
+    fxState->SetItem(9, PyStatic.NewOne());      // active
+    fxState->SetItem(10, PyStatic.NewNegOne());      // duration
+    fxState->SetItem(11, PyStatic.NewZero());      // repeat
+    fxState->SetItem(12, new PyLong(m_data.timestamp));      // startTime
+    fxState->SetItem(13, PyStatic.NewNone());         // graphicInfo
+
+    // add tuple directly to list.
+    into.AddItem(fxState);
 }
 
 void StructureSE::Killed(Damage &fatal_blow)

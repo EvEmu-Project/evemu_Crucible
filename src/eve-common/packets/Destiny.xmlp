@@ -374,7 +374,7 @@ DST_WARPEXIT = 11
       </tupleInline>
   </elementDef>
 
-  <elementDef name="OnSpecialFX13">
+  <elementDef name="OnSpecialFX14">
       <tupleInline>
         <!-- 0 -->
         <stringInline value="OnSpecialFX" />
