@@ -173,7 +173,7 @@ public:
     void SendJumpOut(uint32 gateID) const;
     void SendGateActivity(uint32 gateID) const;
     void SendJumpInEffect(std::string JumpEffect) const;
-    void SendJumpOutEffect(std::string JumpEffect, uint32 locationID) const;
+    void SendJumpOutEffect(std::string JumpEffect, uint32 shipID) const;
     void SendTerminalExplosion(uint32 shipID, uint32 bubbleID, bool isGlobal=false) const;
     void SendBallInteractive(const ShipItemRef shipRef, bool set = false) const;
     void UpdateNewShip(const ShipItemRef newShipRef);
