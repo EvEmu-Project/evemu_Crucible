@@ -1260,6 +1260,9 @@ void Client::ResetAfterPodded() {
     CreateNewPod();
     SetShip(m_pod);
 
+    // verify clone station hangar isnt loaded yet.
+    RemoveStationHangar(GetCloneStationID());
+
     MoveToLocation(GetCloneStationID(), NULL_ORIGIN);
 
     m_ship->Move(m_locationID, flagHangar);

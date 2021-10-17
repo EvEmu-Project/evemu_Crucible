@@ -195,9 +195,7 @@ bool Inventory::LoadContents() {
     if (sConfig.debug.UseProfiling)
         sProfiler.AddTime(Profile::itemload, GetTimeUSeconds() - profileStartTime);
 
-    mContentsLoaded = true;
-
-    return mContentsLoaded;
+    return (mContentsLoaded = true);
 }
 
 void Inventory::AddItem(InventoryItemRef iRef) {
