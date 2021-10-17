@@ -21,6 +21,7 @@ JumpBridgeSE::JumpBridgeSE(StructureItemRef structure, PyServiceMgr& services, S
 void JumpBridgeSE::Init()
 {
     StructureSE::Init();
+    m_bridgeData.itemID = m_self->itemID();
     if (!m_db.GetBridgeData(m_bridgeData))
     {
         _log(POS__MESSAGE, "Jump Bridge %s(%u) has no saved bridge data.  Initializing default set.", m_self->name(), m_data.itemID);
