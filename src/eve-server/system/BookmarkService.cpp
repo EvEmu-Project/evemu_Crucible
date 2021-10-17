@@ -150,7 +150,7 @@ PyResult BookmarkService::Handle_BookmarkLocation(PyCallArgs &call) {
     BmData data = BmData();
     data.memo = PyRep::StringContent(args.memo);
     data.note = PyRep::StringContent(args.comment);
-    data.ownerID = call.client->GetCharacterID();
+    data.ownerID = args.ownerID;
     data.creatorID = data.ownerID;
     data.created = GetFileTimeNow();
 

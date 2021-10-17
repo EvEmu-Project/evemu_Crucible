@@ -99,6 +99,38 @@ PyRep *BookmarkDB::GetBookmarks(uint32 ownerID) {
         return nullptr;
     }
 
+    // Corp bookmarks are read differently and should be as a dict of bookmarks with the key being bookmarkID
+    if (IsCorp(ownerID)) {
+        PyDict* corpBookmarks = new PyDict();
+        DBResultRow row;
+        while (res.GetRow(row)) {
+            PyDict* dict = new PyDict();
+            dict->SetItemString("bookmarkID", new PyInt(row.GetInt(0)));
+            dict->SetItemString("ownerID", new PyInt(row.GetInt(1)));
+            dict->SetItemString("itemID", new PyInt(row.GetInt(2)));
+            dict->SetItemString("typeID", new PyInt(row.GetInt(3)));
+            dict->SetItemString("memo", new PyString(row.GetText(4)));
+            dict->SetItemString("created", new PyLong(row.GetInt64(5)));
+            dict->SetItemString("x", new PyFloat(row.GetFloat(6)));
+            dict->SetItemString("y", new PyFloat(row.GetFloat(7)));
+            dict->SetItemString("z", new PyFloat(row.GetFloat(8)));
+            dict->SetItemString("locationID", new PyInt(row.GetInt(9)));
+            if (row.IsNull(10)) {
+                dict->SetItemString("note", PyStatic.NewNone());
+            } else {
+                dict->SetItemString("note", new PyInt(row.GetInt(10)));
+            }
+            dict->SetItemString("creatorID", new PyInt(row.GetInt(11)));
+            if (row.IsNull(12) or (row.GetInt(12) == 0)) {
+                dict->SetItemString("folderID", PyStatic.NewNone());
+            } else {
+                dict->SetItemString("folderID", new PyInt(row.GetInt(12)));
+            }
+            corpBookmarks->SetItem(new PyInt(row.GetInt(0)), new PyObject("util.KeyVal", dict));
+        }
+        return corpBookmarks;
+    }
+
     //return DBResultToCRowset(res);
     PyList* list = new PyList();
     DBResultRow row;
