@@ -38,6 +38,7 @@
 #include "system/BookmarkDB.h"
 #include "system/Container.h"
 #include "system/SystemManager.h"
+#include "manufacturing/FactoryDB.h"
 
 PyCallable_Make_InnerDispatcher(InventoryBound)
 
@@ -71,6 +72,7 @@ m_passive(passive)
     PyCallable_REG_CALL(InventoryBound, SetPassword);
     PyCallable_REG_CALL(InventoryBound, RunRefiningProcess);
     PyCallable_REG_CALL(InventoryBound, TakeOutTrash);
+    PyCallable_REG_CALL(InventoryBound, Build);
 
     _log(INV__BIND, "Created InventoryBound object %p for %s(%u) and ownerID %u with flag %s  (passive: %s)", \
             this, m_self->name(), m_itemID, ownerID, sDataMgr.GetFlagName(flag), (m_passive ? "true" : "false"));
@@ -901,5 +903,46 @@ PyResult InventoryBound::Handle_ListDroneBay(PyCallArgs &call) {
 PyResult InventoryBound::Handle_RunRefiningProcess(PyCallArgs &call) {
     _log(POS__MESSAGE, "%s Calling InventoryBound::RunRefiningProcess() for %s(%u)", call.client->GetName(), m_self->name(), m_itemID);
     call.Dump(POS__DUMP);
+    return nullptr;
+}
+
+// This function is called when an outpost construction platform is instructed to build
+PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
+    _log(POS__MESSAGE, "%s Calling InventoryBound::Build() for %s(%u)", call.client->GetName(), m_self->name(), m_itemID);
+    call.Dump(POS__DUMP);
+
+    /* 
+    Actions to be implemented
+    1. Ensure all required items are in the egg
+    2. Initiate the destruction of the platform
+    3. Initiate the building and registration of the new station
+    */
+
+    // Step 1
+    DBQueryResult res;
+    uint32 stationType = m_self->GetAttribute(AttrStationTypeID).get_uint32();
+    FactoryDB::GetOutpostMaterialCompositionOfItemType(stationType, res);
+    std::vector<InventoryItemRef> platformItems;
+    m_self->GetMyInventory()->GetItemsByFlag(flagNone, platformItems);
+
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        uint32 requiredType = row.GetUInt(0);
+        uint32 requiredQuantity = row.GetUInt(1);
+        uint32 quantity = 0;
+        for (auto cur : platformItems) {
+            if (cur->type().id() == requiredType) {
+                quantity += cur->quantity();
+                if (quantity >= requiredQuantity) {
+                    break;
+                }
+            }
+        }
+        if (quantity < requiredQuantity) {
+            call.client->SendNotifyMsg("This operation requires %u units of %s in the construction platform.", requiredQuantity, sItemFactory.GetType(requiredType)->name().c_str());
+            return nullptr;
+        }
+    }
+
     return nullptr;
 }

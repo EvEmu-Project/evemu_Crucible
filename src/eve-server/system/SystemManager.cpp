@@ -46,6 +46,7 @@
 #include "pos/sovStructures/SBU.h"
 #include "pos/sovStructures/IHub.h"
 #include "pos/JumpBridge.h"
+#include "pos/Outpost.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -151,12 +152,8 @@ bool SystemManager::BootSystem() {
 
     // check for operational static entities which need to be initialized (such as sovereignty structures)
     for (auto cur: m_opStaticEntities)
-        if (cur.second ->IsTCUSE())
-            cur.second->GetTCUSE()->Init();
-        else if (cur.second ->IsSBUSE())
-            cur.second->GetSBUSE()->Init();
-        else if (cur.second ->IsIHubSE())
-            cur.second->GetIHubSE()->Init();
+        if (cur.second ->IsOperSE())
+            cur.second->GetPOSSE()->Init();
 
     // system is loaded.  check for items that need initialization
     for (auto cur : m_ticEntities)
@@ -249,13 +246,8 @@ bool SystemManager::ProcessTic() {
 
     // tic for sov structures (as they aren't in ticEntities)
     for (auto cur : m_opStaticEntities)
-        if (cur.second->IsTCUSE())
-            cur.second->GetTCUSE()->Process();
-        else if (cur.second ->IsSBUSE())
-            cur.second->GetSBUSE()->Process();
-        else if (cur.second ->IsIHubSE())
-            cur.second->GetIHubSE()->Process();
-
+        if (cur.second->IsOperSE())
+            cur.second->GetPOSSE()->Process();
     // check bounty timer
     if (m_bountyTimer.Check(sConfig.server.BountyPayoutDelayed))
         PayBounties();
@@ -742,7 +734,6 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Comet:
                 case EVEDB::invGroups::Destructable_Station_Services:
                 /* test these to see if they are POS types */
-                case EVEDB::invGroups::Construction_Platform:
                 case EVEDB::invGroups::Station_Improvement_Platform:
                 case EVEDB::invGroups::Global_Warp_Disruptor:
                 case EVEDB::invGroups::Station_Upgrade_Platform:
@@ -761,6 +752,14 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making CelestialSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return cSE;
                 } break;
+                case EVEDB::invGroups::Construction_Platform: {
+                    StructureItemRef structure = sItemFactory.GetStructure( entity.itemID );
+                    if (structure.get() == nullptr)
+                        return nullptr;
+                    PlatformSE* pSE = new PlatformSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making PlatformSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    return pSE;
+                }
                 case EVEDB::invGroups::Wormhole: {
                     CelestialObjectRef celestial = sItemFactory.GetCelestialObject( entity.itemID );
                     if (celestial.get() == nullptr)

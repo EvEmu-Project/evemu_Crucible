@@ -65,7 +65,8 @@ protected:
         if ((type.categoryID() != EVEDB::invCategories::Structure)
         and (type.categoryID() != EVEDB::invCategories::Orbitals)
         and (type.categoryID() != EVEDB::invCategories::SovereigntyStructure)
-        and (type.categoryID() != EVEDB::invCategories::StructureUpgrade)) {
+        and (type.categoryID() != EVEDB::invCategories::StructureUpgrade)
+        and (type.groupID() != EVEDB::invGroups::Construction_Platform)) {
             _log(ITEM__ERROR, "Trying to load %s as Structure.", sDataMgr.GetCategoryName(type.categoryID()));
             if (sConfig.debug.StackTrace)
                 EvE::traceStack();
@@ -123,6 +124,7 @@ public:
     virtual bool                IsCynoGeneratorSE()     { return m_generator; }
     virtual bool                IsMoonMiner()           { return m_miner; }
     virtual bool                IsOutpostSE()           { return m_outpost; }
+    virtual bool                IsPlatformSE()          { return false; }
     virtual bool                IsJumpBridgeSE()        { return false; }
     virtual bool                IsTowerSE()             { return false; }
     virtual bool                IsArraySE()             { return false; }
@@ -236,6 +238,7 @@ private:
     bool m_module :1;           // any structure requiring a control tower
     bool m_reactor :1;
     bool m_outpost :1;
+    bool m_platform :1;         // Outpost construction platform
 };
 
 #endif  // EVEMU_POS_STRUCTURE_H_

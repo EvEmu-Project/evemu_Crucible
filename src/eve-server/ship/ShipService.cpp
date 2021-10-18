@@ -667,6 +667,61 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                 pSystem->AddEntity(pSE);
                 list->AddItem(new PyInt(entity.itemID));
             } break;
+            case EVEDB::invCategories::Celestial: { //Outpost construction platforms
+                if (iRef->groupID() == EVEDB::invGroups::Construction_Platform) {
+                    // Get current planet to anchor platform on
+                    uint32 planetID = pSystem->GetClosestPlanetID(pClient->GetShipSE()->GetPosition());
+
+                    // Checks to see if we can deploy the platform
+                    // Our alliance must have sovereignty in the system to deploy an outpost
+                    if (svDataMgr.GetSystemAllianceID(pClient->GetSystemID()) != pClient->GetAllianceID() ) {
+                        pClient->SendErrorMsg("You cannot launch Construction Platforms in a system which your alliance does not control. ");
+                        return nullptr;
+                    }
+
+                    // Platforms must be deployed on a planet
+                    for (auto cur: pSystem->GetOperationalStatics())
+                        if (cur.second->IsPlatformSE())
+                            if (cur.second->GetPOSSE()->GetPlanetID() ==  planetID) {
+                                pClient->SendErrorMsg("There is already a platform deployed at this planet.");
+                                return nullptr;
+                            }
+
+                    DBSystemDynamicEntity entity = DBSystemDynamicEntity();
+                    entity.ownerID = ownerID;
+                    entity.factionID = pClient->GetWarFactionID();
+                    entity.allianceID = pClient->GetAllianceID();
+                    entity.corporationID = pClient->GetCorporationID();
+                    entity.itemID = iRef->itemID();
+                    entity.itemName = iRef->itemName();
+                    entity.typeID = iRef->typeID();
+                    entity.groupID = iRef->groupID();
+                    entity.categoryID = iRef->categoryID();
+
+                    // Move item from cargo bay to space: (and send OnItemChange packet)
+                    iRef->Move(pClient->GetLocationID(), flagNone, true);
+                    iRef->SetPosition(location + iRef->radius() + radius);
+                    iRef->ChangeOwner(entity.ownerID);
+
+                    entity.position = iRef->position();
+
+                    SystemEntity* pSE = DynamicEntityFactory::BuildEntity(*pSystem, entity);
+                    if (pSE == nullptr) {
+                        //couldnt create entity.  move item back to orig location and continue
+                        iRef->Donate(pClient->GetCharacterID(), pShip->itemID(), flagCargoHold);
+                        continue;
+                    }
+
+                    // item was successfully created.  set singleton
+                    iRef->ChangeSingleton(true);
+
+                    dropped = true;
+                    shipDrop = true;
+                    pSE->GetPOSSE()->Drop(pClient->GetShipSE()->SysBubble());
+                    pSystem->AddEntity(pSE);
+                    list->AddItem(new PyInt(entity.itemID));
+                }
+            } break;
             default: {
                 _log(INV__ERROR, "ShipBound::Handle_Drop() - Item %s (cat %u) is neither drone, structure or deployable.", iRef->name(), iRef->categoryID());
             }

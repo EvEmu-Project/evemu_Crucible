@@ -67,6 +67,16 @@ PyResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs &cal
         return nullptr;
     }
 
+    // Outpost construction platforms require a different query
+    if ((arg.arg == EVEDB::invTypes::CaldariResearchOutpost) or
+    (arg.arg == EVEDB::invTypes::AmarrFactoryOutpost) or
+    (arg.arg == EVEDB::invTypes::GallenteAdministrativeOutpost) or
+    (arg.arg == EVEDB::invTypes::MinmatarServiceOutpost)) {
+        DBQueryResult res;
+        FactoryDB::GetOutpostMaterialCompositionOfItemType(arg.arg, res);
+        return DBResultToRowset(res);
+    }
+
     return FactoryDB::GetMaterialCompositionOfItemType(arg.arg);
 }
 

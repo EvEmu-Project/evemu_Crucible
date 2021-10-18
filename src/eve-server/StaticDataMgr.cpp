@@ -1470,6 +1470,7 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
     }
 
     // cleanup
+    /*
     PyDecRef(matlListManuf);
     PyDecRef(skillListManuf);
     PyDecRef(extraListManuf);
@@ -1486,6 +1487,7 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
     PyDecRef(skillListRE);
     PyDecRef(matlListInvent);
     PyDecRef(skillListInvent);
+    */
 
     return rsp;
 }

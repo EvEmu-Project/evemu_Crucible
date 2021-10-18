@@ -437,7 +437,8 @@ SET( pos_INCLUDE
      "${TARGET_INCLUDE_DIR}/pos/JumpBridge.h"
      "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.h" 
      "${TARGET_INCLUDE_DIR}/pos/sovStructures/SBU.h" 
-     "${TARGET_INCLUDE_DIR}/pos/sovStructures/IHub.h")
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/IHub.h"
+     "${TARGET_INCLUDE_DIR}/pos/Outpost.h")
 SET( pos_SOURCE
      "${TARGET_SOURCE_DIR}/pos/Array.cpp"
      "${TARGET_SOURCE_DIR}/pos/Battery.cpp"
