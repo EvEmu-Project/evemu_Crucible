@@ -212,7 +212,6 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_platform(false),
     m_loaded(false),
     m_module(false),
-    m_outpost(false),
     m_reactor(false),
     m_duration(0),
     m_anchorPointID(0),
@@ -1128,12 +1127,6 @@ PyDict *StructureSE::MakeSlimItem()
     { // for control towers and structures
         slim->SetItemString("posTimestamp", new PyLong(m_data.timestamp));
         slim->SetItemString("incapacitated", new PyInt(m_data.state == EVEPOS::StructureState::Incapacitated));
-        slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
-    }
-    if (m_outpost)
-    {
-        slim->SetItemString("startTimestamp", new PyLong(m_data.timestamp));
-        slim->SetItemString("structureState", new PyInt(m_data.state));
         slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
     }
     else if (m_tcu)

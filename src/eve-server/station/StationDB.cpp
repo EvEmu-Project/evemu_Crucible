@@ -154,6 +154,23 @@ void StationDB::GetStationData(DBQueryResult& res)
         codelog(DATABASE__ERROR, "Error in GetStationData query: %s", res.error.c_str());
 }
 
+void StationDB::GetStationBaseData(DBQueryResult& res, uint32 typeID)
+{
+    if (!sDatabase.RunQuery(res,
+        "SELECT"
+        "  st.dockOrientationX, st.dockOrientationY, st.dockOrientationZ,"
+        "  st.conquerable, st.hangarGraphicID,"
+        "  o.description, o.descriptionID, t.graphicID,"
+        "  st.dockEntryX, st.dockEntryY, st.dockEntryZ, o.operationID, o.operationName"
+        " FROM staStationTypes AS st"
+        "  LEFT JOIN invTypes AS t ON t.typeID = st.stationTypeID"
+        "  LEFT JOIN staOperations AS o ON o.operationName = t.typeName"
+        " COLLATE utf8_general_ci"
+        " WHERE st.stationTypeID=%u", typeID)
+        )
+        codelog(DATABASE__ERROR, "Error in GetStationData query: %s", res.error.c_str());
+}
+
 void StationDB::GetStationSystem(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res, "SELECT stationID, solarSystemID FROM staStations"))
@@ -188,4 +205,73 @@ void StationDB::LoadOffices(OwnerData& od, std::vector< uint32 >& into)
     DBResultRow row;
     while (res.GetRow(row))
         into.push_back(row.GetInt(0));
+}
+
+void StationDB::CreateOutpost(StationData data)
+{
+    // Add data to mapDenormalize table
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+        "INSERT INTO mapDenormalize (itemID,typeID,groupID,solarSystemID,constellationID,regionID,orbitID,x,y,z,radius,itemName,itemNameID,security)"
+        " VALUES"
+        " (%u,%u,%u,%u,%u,%u,%u,%f,%f,%f,%f,%s,%u,%f)",
+        data.stationID,            //itemID
+        data.typeID,               //typeID
+        EVEDB::invGroups::Station, //groupID
+        data.systemID,             //solarSystemID
+        data.constellationID,      //constellationID
+        data.regionID,             //regionID
+        data.orbitID,              //orbitID
+        data.position.x,           //x
+        data.position.y,           //y
+        data.position.z,           //z
+        data.radius,               //radius
+        data.name,                 //itemName
+        0,                         //itemNameID
+        data.security              //security
+    )) {
+        codelog(DATABASE__ERROR, "Error in CreateStation query: %s", err.c_str());
+    }
+
+    if (!sDatabase.RunQuery(err,
+        "INSERT INTO staStations (stationID,security,dockingCostPerVolume,maxShipVolumeDockable,officeSlots,officeRentalCost,operationID,stationTypeID,corporationID,solarSystemID,constellationID,regionID,stationName,x,y,z,reprocessingEfficiency,reprocessingStationsTake,reprocessingHangarFlag)"
+        " VALUES"
+        " (%u,%f,%f,%u,%u,%u,%u,%u,%u,%u,%u,%u,%s,%f,%f,%f,%f,%f,%u)",
+        data.stationID,                //itemID
+        data.security,                 //security
+        data.dockingCostPerVolume,     //dockingCostPerVolume
+        data.maxShipVolumeDockable,    //maxShipVolumeDockable
+        data.officeSlots,              //officeSlots
+        data.officeRentalFee,          //officeRentalCost
+        data.corporationID,            //corporationID
+        data.systemID,                 //solarSystemID
+        data.constellationID,          //constellationID
+        data.regionID,                 //regionID
+        data.name,                     //stationName
+        data.position.x,               //x
+        data.position.y,               //y
+        data.position.z,               //z
+        data.reprocessingEfficiency,   //reprocessingEfficiency
+        data.reprocessingStationsTake, //reprocessingStationsTake
+        flagHangar
+    )) {
+        codelog(DATABASE__ERROR, "Error in CreateStation query: %s", err.c_str());
+    }
+}
+
+// This function gets the next available outpostID from the staStation table for use during outpost construction
+uint32 StationDB::GetNewOutpostID()
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT stationID FROM staStations WHERE stationID>61000000 ORDER BY stationID DESC LIMIT 1")) {
+        codelog(DATABASE__ERROR, "Error in GetNewOutpostID query: %s", res.error.c_str());
+        return 0;
+    }
+
+    uint32 newID;
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        newID = row.GetUInt(0) + 1;
+    }
+    return newID;
 }

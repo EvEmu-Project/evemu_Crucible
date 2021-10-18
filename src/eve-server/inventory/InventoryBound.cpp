@@ -38,6 +38,10 @@
 #include "system/BookmarkDB.h"
 #include "system/Container.h"
 #include "system/SystemManager.h"
+#include "system/SystemEntity.h"
+#include "station/Station.h"
+#include "station/Outpost.h"
+#include "station/StationDataMgr.h"
 #include "manufacturing/FactoryDB.h"
 
 PyCallable_Make_InnerDispatcher(InventoryBound)
@@ -912,13 +916,14 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     call.Dump(POS__DUMP);
 
     /* 
-    Actions to be implemented
+    Outpost construction process:
     1. Ensure all required items are in the egg
     2. Initiate the destruction of the platform
     3. Initiate the building and registration of the new station
     */
 
     // Step 1
+    _log(POS__MESSAGE, "Checking construction requirements for %s(%u).", call.client->GetName(), m_self->name(), m_itemID);
     DBQueryResult res;
     uint32 stationType = m_self->GetAttribute(AttrStationTypeID).get_uint32();
     FactoryDB::GetOutpostMaterialCompositionOfItemType(stationType, res);
@@ -943,6 +948,120 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
             return nullptr;
         }
     }
+
+    // Step 2
+    _log(POS__MESSAGE, "Removing entity %s(%u) from space safely.", call.client->GetName(), m_self->name(), m_itemID);
+
+    // Retrieve the SE object for the egg itself
+    SystemEntity* egg = call.client->SystemMgr()->GetEntityByID(m_itemID);
+
+    // Save the anchor position and planet radius since we'll need it when setting up the new station
+    GPoint anchorPosition = egg->GetPosition();
+
+    // Clear egg's data and remove it from space
+    m_self->ChangeOwner(1, true);
+    egg->GetPOSSE()->Scoop();
+    m_self->GetMyInventory()->DeleteContents();
+    m_self->SetQuantity(0, true, true);
+    call.client->SystemMgr()->RemoveEntity(egg);
+    SafeDelete(egg);
+
+    // Step 3
+    _log(POS__MESSAGE, "Creating new OutpostSE entity...");
+
+    // Create the item data which we use to create the StationItemRef
+    StationData stData = StationData();
+
+    // Calculate stationID
+    stData.stationID = StationDB::GetNewOutpostID();
+
+    // Get base station data
+    res.Reset();
+    StationDB::GetStationBaseData(res, stationType);
+    std::string stationBaseName;
+    while (res.GetRow(row)) {
+        stData.dockOrientation = GVector(row.GetDouble(0),row.GetDouble(1),row.GetDouble(2));
+        stData.conquerable = row.GetBool(3);
+        stData.hangarGraphicID = row.GetUInt(4);
+        stData.description = row.GetText(5);
+        stData.descriptionID = row.GetInt(6);
+        stData.graphicID = row.GetInt(7);
+        stData.dockEntry = GPoint(row.GetDouble(8),row.GetDouble(9),row.GetDouble(10));
+        stData.operationID = row.GetUInt(11);
+        stData.dockPosition = GPoint (row.GetDouble(8) + row.GetDouble(0),
+                                      row.GetDouble(9) + row.GetDouble(1),
+                                      row.GetDouble(10) + row.GetDouble(2));
+        stationBaseName = row.GetText(12);
+    }
+
+    // Get radius from StationType object
+    StationType* stType = StationType::Load(stationType);
+    stData.radius = stType->radius();
+
+    // Location data
+    stData.systemID = call.client->GetSystemID();
+    stData.constellationID = call.client->GetConstellationID();
+    stData.regionID = call.client->GetRegionID();
+    stData.position = anchorPosition;
+    stData.security = call.client->SystemMgr()->GetSecValue();
+
+    // Other station data
+    stData.typeID = stationType;
+    stData.reprocessingHangarFlag = flagHangar;
+    stData.corporationID = call.client->GetCorporationID();
+
+    // Build station name
+    stData.name = call.client->SystemMgr()->GetClosestPlanetSE(anchorPosition)->GetName() 
+        + std::string(" - ") + stationBaseName;
+    
+    // Set default configurable values
+    stData.officeRentalFee = 10000; 
+    stData.maxShipVolumeDockable = 50000000;
+    stData.dockingCostPerVolume = 0;
+
+    // Set arbitrary values (real values should be in DB somewhere)
+    stData.officeSlots = 8;
+    stData.reprocessingEfficiency = 0.5;
+    stData.reprocessingStationsTake = 0.05;
+
+    // Set space values
+    stData.orbitID = call.client->SystemMgr()->GetClosestPlanetID(anchorPosition);
+
+    // Calculate service mask (temporarily, allow everything)
+    stData.serviceMask = Station::BountyMissions
+                       | Station::AssassinationMissions
+                       | Station::CourierMissions
+                       | Station::Interbus
+                       | Station::ReprocessingPlant                        
+                       | Station::Refinery
+                       | Station::Market
+                       | Station::BlackMarket
+                       | Station::StockExchange
+                       | Station::Cloning
+                       | Station::Surgery
+                       | Station::DNATherapy
+                       | Station::RepairFacilities
+                       | Station::Factory
+                       | Station::Laboratory
+                       | Station::Gambling
+                       | Station::Fitting
+                       | Station::Paintshop
+                       | Station::News
+                       | Station::Storage
+                       | Station::Insurance
+                       | Station::Docking
+                       | Station::OfficeRental
+                       | Station::JumpCloneFacility
+                       | Station::LoyaltyPointStore
+                       | Station::NavyOffices;
+
+    // Add the new outpost to the stationDataMgr and the DB
+    stDataMgr.AddOutpost(stData);
+
+    StationItemRef itemRef = sItemFactory.GetStationItem(stData.stationID);
+    OutpostSE* oSE = new OutpostSE(itemRef, call.client->services(), call.client->SystemMgr());
+    sEntityList.AddStation(stData.stationID, itemRef);
+    call.client->SystemMgr()->AddEntity(oSE);
 
     return nullptr;
 }

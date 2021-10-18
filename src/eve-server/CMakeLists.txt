@@ -437,8 +437,7 @@ SET( pos_INCLUDE
      "${TARGET_INCLUDE_DIR}/pos/JumpBridge.h"
      "${TARGET_INCLUDE_DIR}/pos/sovStructures/TCU.h" 
      "${TARGET_INCLUDE_DIR}/pos/sovStructures/SBU.h" 
-     "${TARGET_INCLUDE_DIR}/pos/sovStructures/IHub.h"
-     "${TARGET_INCLUDE_DIR}/pos/Outpost.h")
+     "${TARGET_INCLUDE_DIR}/pos/sovStructures/IHub.h")
 SET( pos_SOURCE
      "${TARGET_SOURCE_DIR}/pos/Array.cpp"
      "${TARGET_SOURCE_DIR}/pos/Battery.cpp"
@@ -534,7 +533,8 @@ SET( station_INCLUDE
      "${TARGET_INCLUDE_DIR}/station/StationOffice.h"
      "${TARGET_INCLUDE_DIR}/station/StationService.h"
      "${TARGET_INCLUDE_DIR}/station/StationSvc.h"
-     "${TARGET_INCLUDE_DIR}/station/TradeService.h"  )
+     "${TARGET_INCLUDE_DIR}/station/TradeService.h"
+     "${TARGET_INCLUDE_DIR}/station/Outpost.h"  )
 SET( station_SOURCE
      "${TARGET_SOURCE_DIR}/station/HoloscreenMgrService.cpp"
      "${TARGET_SOURCE_DIR}/station/InsuranceService.cpp"
@@ -548,7 +548,8 @@ SET( station_SOURCE
      "${TARGET_SOURCE_DIR}/station/StationOffice.cpp"
      "${TARGET_SOURCE_DIR}/station/StationService.cpp"
      "${TARGET_SOURCE_DIR}/station/StationSvc.cpp"
-     "${TARGET_SOURCE_DIR}/station/TradeService.cpp" )
+     "${TARGET_SOURCE_DIR}/station/TradeService.cpp"
+     "${TARGET_SOURCE_DIR}/station/Outpost.cpp" )
 
 SET( system_INCLUDE
      "${TARGET_INCLUDE_DIR}/system/Asteroid.h"

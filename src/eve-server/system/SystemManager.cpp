@@ -46,7 +46,7 @@
 #include "pos/sovStructures/SBU.h"
 #include "pos/sovStructures/IHub.h"
 #include "pos/JumpBridge.h"
-#include "pos/Outpost.h"
+#include "station/Outpost.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -61,6 +61,7 @@
 #include "system/cosmicMgrs/BeltMgr.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
+#include "station/Outpost.h"
 
 SystemManager::SystemManager(uint32 systemID, PyServiceMgr &svc)
 :m_services(svc),

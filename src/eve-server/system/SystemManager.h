@@ -153,6 +153,8 @@ public:
     std::map<uint32, SystemEntity*> GetOperationalStatics() { return m_opStaticEntities; }
     std::map<uint32, SystemEntity*> GetGates() { return m_gateMap; }
 
+    SystemEntity* GetEntityByID(uint32 itemID) { return m_entities.find(itemID)->second; }
+
     void GetClientList(std::vector<Client*>& cVec);
 
     std::map< uint32, SystemEntity* > GetEntities()     { return m_entities; }
