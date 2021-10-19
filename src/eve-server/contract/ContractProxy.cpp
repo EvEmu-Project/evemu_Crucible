@@ -28,6 +28,7 @@
 
 #include "PyServiceCD.h"
 #include "contract/ContractProxy.h"
+#include "station/Station.h"
 
 PyCallable_Make_InnerDispatcher(ContractProxy)
 
@@ -661,34 +662,16 @@ PyResult ContractProxy::Handle_NumOutstandingContracts(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_GetItemsInStation(PyCallArgs &call) {
-    sLog.White( "ContractProxy::Handle_GetItemsInStation()", "size=%li", call.tuple->size());
-    call.Dump(SERVICE__CALL_DUMP);
+    if (call.tuple->GetItem(0)->IsInt()) {
+        uint32 station = call.tuple->GetItem(0)->AsInt()->value();
 
-    /*  client call
-            [PyString "GetItemsInStation"]
-            [PyTuple 2 items]
-              [PyInt 60014683]
-              [PyInt 0]
+        if (sDataMgr.IsStation(station)) {
+            CRowSet *rowSet = sItemFactory.GetStationItem(station)->GetMyInventory()->List(flagHangar);
 
-        server return
+            return rowSet;
+        }
+    }
 
-      [PySubStream 191 bytes]
-        [PyObjectEx Normal]
-          [PyTuple 2 items]
-            [PyToken __builtin__.set]
-            [PyTuple 1 items]
-              [PyList 1 items]
-                [PyPackedRow 36 bytes]
-                  ["itemID" => <1262502036> [I8]]
-                  ["typeID" => <24702> [I4]]
-                  ["ownerID" => <649670823> [I4]]
-                  ["locationID" => <60014683> [I8]]
-                  ["flagID" => <4> [I2]]
-                  ["quantity" => <-1> [I4]]
-                  ["groupID" => <419> [I2]]
-                  ["categoryID" => <6> [I2]]
-                  ["customInfo" => <None> [Str]]
-                  */
     return nullptr;
 }
 
