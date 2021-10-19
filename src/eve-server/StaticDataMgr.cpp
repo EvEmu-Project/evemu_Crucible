@@ -2081,4 +2081,32 @@ uint32 StaticDataMgr::GetWreckFaction(uint32 typeID)
      */
 }
 
+// Add a new outpost to the staticDataMgr
+void StaticDataMgr::AddOutpost(StationData stData)
+{
+    // Update m_stationCount
+    std::map<uint32, uint8>::iterator itr = m_stationCount.lower_bound(stData.systemID);
+    if(itr != m_stationCount.end() && !(m_stationCount.key_comp()(stData.systemID, itr->first)))
+    {
+        itr->second = itr->second + 1;
+    }
+    else
+    {
+        m_stationCount.emplace(stData.systemID, 1);
+    }
 
+    // Update m_stationRegion
+    if ( m_stationRegion.find(stData.stationID) == m_stationRegion.end() ) {
+        m_stationRegion.emplace(stData.stationID, stData.regionID);
+    }
+
+    // Update m_stationConstellation
+    if ( m_stationConst.find(stData.stationID) == m_stationConst.end() ) {
+        m_stationConst.emplace(stData.stationID, stData.constellationID);
+    }
+
+    // Update m_stationSystem
+    if ( m_stationSystem.find(stData.stationID) == m_stationSystem.end() ) {
+        m_stationSystem.emplace(stData.stationID, stData.systemID);
+    }
+}

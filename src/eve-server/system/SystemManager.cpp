@@ -1084,6 +1084,7 @@ void SystemManager::RemoveEntity(SystemEntity* pSE) {
     m_entityChanged = true;
     m_ticEntities.erase(itemID);
     m_staticEntities.erase(itemID);
+    m_opStaticEntities.erase(itemID);
 
     // remove from anomaly map, if exists
     m_anomMgr->RemoveSignal(itemID);

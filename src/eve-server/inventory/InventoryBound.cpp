@@ -924,13 +924,25 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
 
     // Step 1
     _log(POS__MESSAGE, "Checking construction requirements for %s(%u).", call.client->GetName(), m_self->name(), m_itemID);
+
+    // Retrieve the SE object for the egg itself
+    SystemEntity* egg = call.client->SystemMgr()->GetEntityByID(m_itemID);
+
+    // Check if anchored, and if not return nullptr and error
+    if (egg->GetPOSSE()->GetState() != EVEPOS::StructureState::Anchored) {
+        call.client->SendNotifyMsg("This operation requires the construction platform to be anchored.");
+        return nullptr;
+    }
+
+    // Get required materials to construct the outpost
     DBQueryResult res;
+    DBResultRow row;
     uint32 stationType = m_self->GetAttribute(AttrStationTypeID).get_uint32();
     FactoryDB::GetOutpostMaterialCompositionOfItemType(stationType, res);
     std::vector<InventoryItemRef> platformItems;
+
     m_self->GetMyInventory()->GetItemsByFlag(flagNone, platformItems);
 
-    DBResultRow row;
     while (res.GetRow(row)) {
         uint32 requiredType = row.GetUInt(0);
         uint32 requiredQuantity = row.GetUInt(1);
@@ -950,15 +962,12 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     }
 
     // Step 2
-    _log(POS__MESSAGE, "Removing entity %s(%u) from space safely.", call.client->GetName(), m_self->name(), m_itemID);
-
-    // Retrieve the SE object for the egg itself
-    SystemEntity* egg = call.client->SystemMgr()->GetEntityByID(m_itemID);
+    _log(POS__MESSAGE, "Removing entity %s(%u) from space safely.", m_self->name(), m_itemID);
 
     // Save the anchor position and planet radius since we'll need it when setting up the new station
     GPoint anchorPosition = egg->GetPosition();
 
-    // Clear egg's data and remove it from space
+    // Clear egg's data and remove it from space (this needs work)
     m_self->ChangeOwner(1, true);
     egg->GetPOSSE()->Scoop();
     m_self->GetMyInventory()->DeleteContents();
@@ -976,7 +985,7 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     stData.stationID = StationDB::GetNewOutpostID();
 
     // Get base station data
-    res.Reset();
+    //res.Reset();
     StationDB::GetStationBaseData(res, stationType);
     std::string stationBaseName;
     while (res.GetRow(row)) {
@@ -1057,6 +1066,9 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
 
     // Add the new outpost to the stationDataMgr and the DB
     stDataMgr.AddOutpost(stData);
+
+    // Update staticDataMgr
+    sDataMgr.AddOutpost(stData);
 
     StationItemRef itemRef = sItemFactory.GetStationItem(stData.stationID);
     OutpostSE* oSE = new OutpostSE(itemRef, call.client->services(), call.client->SystemMgr());

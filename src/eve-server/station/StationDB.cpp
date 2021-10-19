@@ -214,7 +214,7 @@ void StationDB::CreateOutpost(StationData data)
     if (!sDatabase.RunQuery(err,
         "INSERT INTO mapDenormalize (itemID,typeID,groupID,solarSystemID,constellationID,regionID,orbitID,x,y,z,radius,itemName,itemNameID,security)"
         " VALUES"
-        " (%u,%u,%u,%u,%u,%u,%u,%f,%f,%f,%f,%s,%u,%f)",
+        " (%u,%u,%u,%u,%u,%u,%u,%f,%f,%f,%f,'%s',%u,%f)",
         data.stationID,            //itemID
         data.typeID,               //typeID
         EVEDB::invGroups::Station, //groupID
@@ -226,7 +226,7 @@ void StationDB::CreateOutpost(StationData data)
         data.position.y,           //y
         data.position.z,           //z
         data.radius,               //radius
-        data.name,                 //itemName
+        data.name.c_str(),         //itemName
         0,                         //itemNameID
         data.security              //security
     )) {
@@ -236,24 +236,26 @@ void StationDB::CreateOutpost(StationData data)
     if (!sDatabase.RunQuery(err,
         "INSERT INTO staStations (stationID,security,dockingCostPerVolume,maxShipVolumeDockable,officeSlots,officeRentalCost,operationID,stationTypeID,corporationID,solarSystemID,constellationID,regionID,stationName,x,y,z,reprocessingEfficiency,reprocessingStationsTake,reprocessingHangarFlag)"
         " VALUES"
-        " (%u,%f,%f,%u,%u,%u,%u,%u,%u,%u,%u,%u,%s,%f,%f,%f,%f,%f,%u)",
+        " (%u,%f,%f,%u,%u,%u,%u,%u,%u,%u,%u,%u,'%s',%f,%f,%f,%f,%f,%u)",
         data.stationID,                //itemID
         data.security,                 //security
         data.dockingCostPerVolume,     //dockingCostPerVolume
         data.maxShipVolumeDockable,    //maxShipVolumeDockable
         data.officeSlots,              //officeSlots
         data.officeRentalFee,          //officeRentalCost
+        data.operationID,              //operationID
+        data.typeID,                   //stationTypeID
         data.corporationID,            //corporationID
         data.systemID,                 //solarSystemID
         data.constellationID,          //constellationID
         data.regionID,                 //regionID
-        data.name,                     //stationName
+        data.name.c_str(),             //stationName
         data.position.x,               //x
         data.position.y,               //y
         data.position.z,               //z
         data.reprocessingEfficiency,   //reprocessingEfficiency
         data.reprocessingStationsTake, //reprocessingStationsTake
-        flagHangar
+        flagHangar                     //reprocessingHangarFlag
     )) {
         codelog(DATABASE__ERROR, "Error in CreateStation query: %s", err.c_str());
     }
@@ -268,10 +270,16 @@ uint32 StationDB::GetNewOutpostID()
         return 0;
     }
 
-    uint32 newID;
+    uint32 newID(0);
     DBResultRow row;
     while (res.GetRow(row)) {
         newID = row.GetUInt(0) + 1;
     }
+
+    // If there is no existing outpost in the db, we will use the base value
+    if (newID == 0) {
+        return 61000000;
+    }
+    
     return newID;
 }
