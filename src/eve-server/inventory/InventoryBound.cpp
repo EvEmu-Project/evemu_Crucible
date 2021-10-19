@@ -967,11 +967,8 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     // Save the anchor position and planet radius since we'll need it when setting up the new station
     GPoint anchorPosition = egg->GetPosition();
 
-    // Clear egg's data and remove it from space (this needs work)
+    // Clear egg's data and remove it from space
     m_self->ChangeOwner(1, true);
-    egg->GetPOSSE()->Scoop();
-    m_self->GetMyInventory()->DeleteContents();
-    m_self->SetQuantity(0, true, true);
     call.client->SystemMgr()->RemoveEntity(egg);
     SafeDelete(egg);
 
@@ -985,7 +982,6 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     stData.stationID = StationDB::GetNewOutpostID();
 
     // Get base station data
-    //res.Reset();
     StationDB::GetStationBaseData(res, stationType);
     std::string stationBaseName;
     while (res.GetRow(row)) {
@@ -997,9 +993,9 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
         stData.graphicID = row.GetInt(7);
         stData.dockEntry = GPoint(row.GetDouble(8),row.GetDouble(9),row.GetDouble(10));
         stData.operationID = row.GetUInt(11);
-        stData.dockPosition = GPoint (row.GetDouble(8) + row.GetDouble(0),
-                                      row.GetDouble(9) + row.GetDouble(1),
-                                      row.GetDouble(10) + row.GetDouble(2));
+        stData.dockPosition = GPoint (row.GetDouble(8) + anchorPosition.x,
+                                      row.GetDouble(9) + anchorPosition.y,
+                                      row.GetDouble(10) + anchorPosition.z);
         stationBaseName = row.GetText(12);
     }
 
