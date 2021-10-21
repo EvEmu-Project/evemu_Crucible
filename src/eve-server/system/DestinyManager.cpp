@@ -49,6 +49,7 @@
 DestinyManager::DestinyManager(SystemEntity *self)
 : mySE(self),
 m_maxSpeed(1.0f),
+m_shipAccelTime(0.0f),
 m_shipMaxAccelTime(0.0f),
 m_ballMode(Destiny::Ball::Mode::STOP),
 m_warpTimer(0),
@@ -63,14 +64,15 @@ m_alignTime(1.0f),
 m_timeToEnterWarp(10.0f),
 m_shipWarpSpeed(1.0f),
 m_maxShipSpeed(100.0f),
-m_shipAgility(1.0f),
-m_shipInertia(1.0f),
+m_shipAgility(1.0),
+m_shipInertia(1.0),
 m_warpAccelTime(1),
 m_warpDecelTime(1),
 m_warpState(nullptr),
 m_targBubble(nullptr),
-m_warpCapacitorNeed(0.00001f),
-m_frozen(false)
+m_warpCapacitorNeed(0.00001),
+m_frozen(false),
+m_speedBoost(false)
 {
     m_bump = false;
     m_stop = false;
@@ -78,22 +80,21 @@ m_frozen(false)
     m_decel = false;
     m_cloaked = false;
     m_turning = false;
-    m_inBubble = true;
     m_orbiting = 0;
     m_tractored = false;
     m_changeDelay = false;
     m_tractorPause = false;
     m_hasSentShipUpdates = false;
 
-    m_capNeeded = 0.0f;
+    m_capNeeded = 0.0;
     m_prevSpeed = 0.0f;
     m_degPerTic = 0.0f;
     m_orbitTime = 0.0f;
     m_orbitRadTic = 0.0f;
+    m_timeFraction = 0.0f;
     m_prevSpeedFraction = 0.0f;
     m_userSpeedFraction = 0.0f;
     m_activeSpeedFraction = 0.0f;
-    m_currentSpeedFraction = 0.0f;
     m_maxOrbitSpeedFraction = 1.0f;
 
     m_targetEntity.first = 0;
@@ -128,7 +129,7 @@ void DestinyManager::Process() {
         return;
     }
 
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
     //check for and process Destiny::Ball::State changes.
     ProcessState();
 
@@ -193,7 +194,7 @@ void DestinyManager::ProcessState() {
                     WarpCruise(sec_into_warp);
                 } else if (m_warpState->decel) {
                     WarpDecel(sec_into_warp);
-                } else {// houston, we have a problem...
+                } else {// uh, Houston...we have a problem...
                     if (mySE->HasPilot()) {
                         _log(DESTINY__ERROR, "Destiny::ProcessState() Error!  Ship %s(%u) for Player %s(%u) Has WarpState but checks are false.",  \
                                     mySE->GetName(), mySE->GetID(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID());
@@ -212,11 +213,11 @@ void DestinyManager::ProcessState() {
             float dot = toVec.dotProduct(m_shipHeading);
             float degrees = EvE::Trig::Rad2Deg(std::acos(dot));
 
-            if ((degrees < WARP_ALIGNMENT) and (m_currentSpeedFraction > 0.749)) {
+            if ((degrees < WARP_ALIGNMENT) and (m_timeFraction > 0.749)) {
                 m_shipHeading = toVec;
                 InitWarp();
                 return;
-            } else if (m_currentSpeedFraction < 0.749) {
+            } else if (m_timeFraction < 0.749) {
                 if (m_userSpeedFraction < 0.7499)
                     SetSpeedFraction(1.0f, true);
             } else if ((sEntityList.GetStamp() - m_stateStamp) > m_timeToEnterWarp + 0.3) {
@@ -259,8 +260,11 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
     if (m_orbiting != 0)
         Orbit(m_targetEntity.second, m_targetDistance);
 
-    if ((fraction == m_userSpeedFraction) and (!startMovement))
+    if ((fraction == m_userSpeedFraction) and (!startMovement)) {
+        // no change.
         return;
+    }
+
     if (is_log_enabled(DESTINY__MOVE_TRACE))
         _log(DESTINY__MOVE_TRACE, "Destiny::SetSpeedFraction() - %s(%u):  fraction: %.2f, start: %i, stop: %i, prevSpeed:%.2f, accel: %s, decel: %s",
              mySE->GetName(), mySE->GetID(), fraction, startMovement, m_stop, m_prevSpeed, m_accel ? "true" : "false", m_decel ? "true": "false");
@@ -268,59 +272,82 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
     // this is to start movement when setting fractional speeds from speedo in client.
     //  also a hack to circumvent above check when called again by goto, warp, align, follow for changing direction.
     if (startMovement) {
+        m_stop = false;
         if (m_ballMode == Destiny::Ball::Mode::STOP)
             m_ballMode = Destiny::Ball::Mode::GOTO;
-        m_stop = false;
     }
 
     // prevent multiple client calls to Stop() from resetting ship speed.
     if (m_stop)
         return;
 
-    /* movement is set according to time vs speed fraction.  -allan 8Oct14  -major update 20Nov15  -added prop mod code 29Mar17
-     * all *SpeedFraction variables use fuzzy logic
-     *  m_userSpeedFraction (USF) is user-set speed control (fractional from speedo or full from goto, warp, align, follow, and stop).
+    /* movement is set according to time, speed fraction, and objects' maximum configured speed.
+     * all *Fraction variables use fuzzy logic
+     *  -allan 8Oct14  -major update 20Nov15  -added prop mod code 29Mar17
+     *  -base movement rewrite/update 18Oct21
+     *
+     *  speed is the actual distance an object travels over a given time
+     *   -> time is measured in seconds
+     *   -> distance measured in meters
+     *  m_maxSpeed is ship maximum speed based on user input and current configuration.
+     *   -> set in UpdateVelocity()
+     *   -> only used for logging
+     *  m_maxShipSpeed (MSS) is the maximum speed an object can travel in a given time
+     *   -> measured in m/s
+     *   -> initially set by UpdateShipVariables() based on ship configuration
+     *   -> reset by SpeedBoost() for prop mods
+     *  m_userSpeedFraction (USF) is user-set fraction of max ship speed (fractional from speedo or full from command).
      *   -> sets m_maxSpeed
-     *  m_prevSpeedFraction (PSF) is previously-user-set speed fraction used for decel checks, as USF = 0 OR deactivated prop mod.
-     *   this allows for proper decel speeds when USF was previously < 1.
-     *   -> caps decel when USF = 0, or sets 'decel to' when m_prevSpeed > 0
-     *  m_activeSpeedFraction (ASF) holds ship's current speed setting.  set in MoveObject()
-     *   this is actually a ratio of CSF to USF, capped by USF and/or OSF
-     *   -> sets accel/decel when changing speeds while moving
-     *  m_currentSpeedFraction (CSF) holds current euler value for time.  set in MoveObject()
-     *   this is reset on initial turn based on turn angle, then follows normal progression.
-     *   this is the only SpeedFraction value that runs the full range of 0 - 1 no matter value of other SpeedFractions.
-     *   -> sets m_velocity
+     *   -> used with ASF and MSS to set speed
+     *   -> range is 0.0 for stop and 1.0 for full
+     *  m_prevSpeedFraction (PSF) is previous speed fraction
+     *   -> reset on every speed change
+     *   -> used to calculate estimated time to change speed
+     *   -> used to set speed when speed changes via user input or prop mod
+     *   -> can be > 1.0 based on other factors (deactivating prop mod at full speed will give PSF > 1.0)
+     *  m_activeSpeedFraction (ASF) this is the percentage of ship max speed for the given tic.
+     *   -> set in MoveObject()
+     *   -> uses USF and MSS to set speed
+     *  m_timeFraction (TF) holds current euler value for time.
+     *   -> this is the current percent of change between previous speed and requested speed.
+     *   -> range is 0.0 to 1.0
+     *   -> set in MoveObject()
+     *   -> sets ASF (directly)
+     *   -> sets velocity (indirectly)
      *  m_maxOrbitSpeedFraction (OSF) is ship's max speed based on orbit data
-     *   -> modifies m_velocity
-     *  m_maxSpeed is ship maximum speed based on user input.  set in UpdateVelocity()
-     *   -> sets m_velocity
-     *  m_targetPoint holds current target coords.  set by goto, warp, align, follow, orbit
+     *   -> may not be used after update
+     *  m_moveTime is timestamp when move change started
+     *   -> data type is (double) FileTime
+     *   -> set in BeginMovement()
+     *   -> reset on every speed change
+     *   -> used to calculate TF
+     *  m_targetPoint holds current target coords.
+     *   -> set by goto, warp, align, follow, orbit
      *   -> sets m_shipHeading
      *  m_shipHeading holds current direction and is set in _Turn()
-     *   -> sets m_velocity
+     *   -> used with speed to set m_velocity
      *  m_velocity is current ship velocity.  set in MoveObject()
-     *   m_velocity = m_shipHeading * (m_currentSpeedFraction * m_maxSpeed)
+     *   -> m_velocity = m_shipHeading * (ASF * MSS)
+     *   -> this is the variable used for position tracking.
+     *  m_shipAccelTime is calculated time to complete requested speed change
+     *   -> measured in seconds
+     *   -> set on all speed changes
+     *  m_shipMaxAccelTime is calculated time for ship to accelerate from stop to full
+     *   -> measured in seconds
+     *   -> initially set by UpdateShipVariables() based on ship configuration
+     *   -> reset by SpeedBoost() for prop mods
      */
-    if ((m_shipMaxAccelTime < 1.0) and (mySE->IsDynamicEntity()))
-        if (!mySE->HasPilot()) {
-            m_shipMaxAccelTime = (-log(0.001) * m_shipAgility);
-        } else if (!mySE->GetPilot()->IsUndock()) {
-            m_shipMaxAccelTime = (-log(0.001) * m_shipAgility);
-        }
 
-    // this needs to distinguish between fraction change and speedboost change
-    if ((m_userSpeedFraction) and ((!fraction) or (m_prevSpeed) or (fraction != m_userSpeedFraction))) {
-        m_prevSpeedFraction = m_userSpeedFraction;
+    m_prevSpeedFraction = 0.0f;
+
+    if (m_activeSpeedFraction > 0.01f) {
+        m_userSpeedFraction = fraction;
+        m_prevSpeedFraction = m_activeSpeedFraction;
+        UpdateVelocity(true);
     } else {
-        m_prevSpeedFraction = 0.0f;
+        m_userSpeedFraction = fraction;
+        UpdateVelocity(false);
     }
-
-    m_userSpeedFraction = fraction;
-    bool isMoving = false;
-    if ((m_currentSpeedFraction > 0.01) or (m_activeSpeedFraction > 0.01))
-        isMoving = true;
-    UpdateVelocity(isMoving);
 
     if (m_ballMode == Destiny::Ball::Mode::WARP) {
         // set state to Ball::Mode::GOTO after setting warp decel variables, so warp completion will decel properly
@@ -350,144 +377,92 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
 }
 
 void DestinyManager::UpdateVelocity(bool isMoving) {
-    uint8 logType = 0;
+    uint8 logType(0);
     if ((m_ballMode == Destiny::Ball::Mode::WARP) and (m_warpState != nullptr)) {
         /*  Warp() finished, and ship dropped out of warp at m_speedToLeaveWarp,
-         *  reset m_shipMaxAccelTime as a fraction of m_speedToLeaveWarp/m_maxShipSpeed
-         *  to set decel correctly, as m_speedToLeaveWarp varies with ship and warp distance.
+         * set variables for decel from this speed.
          */
         logType = 1;
-        m_decel = true;
         m_accel = false;
+        m_decel = true;
         m_targBubble = nullptr;
-        m_shipMaxAccelTime *= (m_speedToLeaveWarp / m_maxShipSpeed);
-        m_velocity = m_shipHeading * m_speedToLeaveWarp;
         m_maxSpeed = m_speedToLeaveWarp;
-    } else if (m_userSpeedFraction) {   //moving
-        if (isMoving) { //change speed
-            if ((m_activeSpeedFraction == m_userSpeedFraction) and (!m_prevSpeed))
+        m_velocity = m_shipHeading * m_maxSpeed;
+        m_shipAccelTime = m_shipAgility * -log(1-(m_maxSpeed/m_maxShipSpeed));
+    } else if (m_userSpeedFraction) {
+        // commanded speed fraction > 0 and ...
+        float delta(1.0f);
+        if (isMoving) {
+            //  ... ship is moving and ...
+            if ((m_activeSpeedFraction == m_userSpeedFraction) and (!m_prevSpeed)) {
+                // ... nothing has changed.
                 return;
-            //  the times are a bit off when usf < 1.0, but acceptable for now.  will revisit later.    -allan 21Nov15
-            float delta = 1.0f;
-            logType = 2;
-            if (m_turning) {    //  if i was smart, i could write this shit where this "turning" check wasnt needed.
-                if (m_decel) {
-                    logType = 4;
-                    m_accel = true;
-                    m_decel = false;
-                    m_prevSpeed = 0.0f;
-                    m_prevSpeedFraction = 0.0f;
-                    m_activeSpeedFraction = m_currentSpeedFraction;
-                    delta = 1 - m_currentSpeedFraction;
-                } else {
-                    logType = 3;
-                    m_decel = true;
-                    m_accel = false;
-                    m_moveTime = GetTimeMSeconds();
-                    m_changeDelay = true;   // skip a single tic before making change
-                    m_prevSpeedFraction = m_currentSpeedFraction;
-                    delta = m_turnFraction / m_currentSpeedFraction;
-                }
-            } else if (m_decel) {
-                m_accel = true;
-                m_decel = false;
-                m_prevSpeedFraction = m_currentSpeedFraction;
-                m_currentSpeedFraction = 1 - m_activeSpeedFraction;    // reset csf
-                //m_activeSpeedFraction = m_currentSpeedFraction;
-            } else if (m_prevSpeed) {
-                delta = m_userSpeedFraction - m_activeSpeedFraction;
-                if (m_prevSpeed > m_maxSpeed * m_currentSpeedFraction) {
-                    // decel from deactivated prop mod
-                    m_decel = true;
-                    m_accel = false;
-                } else {
-                    // accel from activated prop mod
-                    m_accel = true;
-                    m_decel = false;
-                    m_prevSpeedFraction = 0.0f;
-                }
-            } else if (m_userSpeedFraction < m_activeSpeedFraction) {
-                // decrease usf
-                m_decel = true;
+            }
+
+            if (m_activeSpeedFraction > m_userSpeedFraction) {
+                // ... request is lower than current speed - begin decel
+                logType = 4;
                 m_accel = false;
-                m_prevSpeedFraction = 0.0f;
-                //get current ship speed and reset for speed change
-                m_prevSpeed = m_maxSpeed * m_currentSpeedFraction;
+                m_decel = true;
                 delta = m_activeSpeedFraction - m_userSpeedFraction;
-            } else {
-                // increase usf
+            } else if (m_userSpeedFraction > m_activeSpeedFraction) {
+                // ... request is higher than current speed - begin accel
+                logType = 3;
                 m_accel = true;
                 m_decel = false;
                 delta = m_userSpeedFraction - m_activeSpeedFraction;
             }
 
-            m_shipMaxAccelTime *= delta;
-            // will need a test here for (prevMaxSpeed > m_maxSpeed) to set ship velocity correctly (and avoid negatives)
-            if (m_prevSpeed > m_maxSpeed)
-                m_velocity = m_shipHeading * m_prevSpeed * delta;
-
-            if ((!m_turning) and (!m_decel)) {
-                m_maxSpeed = m_maxShipSpeed * m_userSpeedFraction;
-                m_velocity = m_shipHeading * m_maxSpeed * m_activeSpeedFraction;
-            }
-        } else {    //begin movement
-            logType = 5;
+            m_shipAccelTime = m_shipMaxAccelTime * delta;
+            m_prevSpeed = m_maxShipSpeed * m_activeSpeedFraction;
+        } else {
+            // ... ship is not moving. begin movement
+            logType = 2;
             m_accel = true;
             m_decel = false;
-            m_shipMaxAccelTime *= m_userSpeedFraction;      // for accel with user speeds <= 1.0
+            // this isnt spot on, but pretty damn close
             m_maxSpeed = m_maxShipSpeed * m_userSpeedFraction;
-            //  see notes in MoveObject() for information relating to accel equations
-            m_currentSpeedFraction = (1 - exp(-0.01 / m_shipAgility));
-            m_velocity = m_shipHeading * m_maxSpeed * m_currentSpeedFraction;
+            m_shipAccelTime = m_shipMaxAccelTime * m_userSpeedFraction;      // for accel with user speeds <= 1.0
         }
         if (is_log_enabled(DESTINY__MOVE_TRACE))
-            _log(DESTINY__MOVE_TRACE, "Destiny::UpdateVelocity - %s(%u): Speed Change - USF: %.2f, ASF: %.2f, CSF: %.2f, PSF: %.2f, pSpeed: %.2f, mSpeed: %.2f, accel: %s, decel: %s", \
-            mySE->GetName(), mySE->GetID(), m_userSpeedFraction, m_activeSpeedFraction, m_currentSpeedFraction, m_prevSpeedFraction, m_prevSpeed, m_maxSpeed, \
-                 m_accel ? "true" : "false", m_decel ? "true": "false");
-    } else if ((m_currentSpeedFraction) or (m_prevSpeedFraction)) {
-        if (isMoving) { //stop movement
-            logType = 6;
-            // will need a test here for (prevMaxSpeed > m_maxSpeed) to set ship velocity correctly (and avoid negatives)
-            //  see notes in MoveObject() for information relating to decel equations
-            m_decel = true;
-            m_accel = false;
-            m_shipMaxAccelTime *= m_activeSpeedFraction;
-
-            // this is speed from prop mod, which is now deactivated
-            if (m_prevSpeed) {
-                m_maxSpeed = m_prevSpeed * m_activeSpeedFraction;
-            } else {
-                m_maxSpeed = m_maxShipSpeed * m_activeSpeedFraction;
-            }
-            m_velocity = m_shipHeading * m_maxSpeed;
-        } else {    //halt
-            logType = 7;
-            Halt();
-        }
+            _log(DESTINY__MOVE_TRACE, "Destiny::UpdateVelocity - %s(%u): Speed Change - USF: %.2f, ASF: %.2f, TF: %.2f, PSF: %.2f, pSpeed: %.2f, mSpeed: %.2f, accel: %s, decel: %s, delta: %.3f", \
+            mySE->GetName(), mySE->GetID(), m_userSpeedFraction, m_activeSpeedFraction, m_timeFraction, m_prevSpeedFraction, m_prevSpeed, m_maxSpeed, \
+                 m_accel ? "true" : "false", m_decel ? "true": "false", delta);
+    } else if (m_activeSpeedFraction) {
+        //  commanded to stop while ship is moving.  begin decelerating
+        logType = 5;
+        m_accel = false;
+        m_decel = true;
+        m_maxSpeed = 0;
+        m_prevSpeed = m_maxShipSpeed * m_activeSpeedFraction;
+        m_shipAccelTime = m_shipMaxAccelTime * m_activeSpeedFraction;
     } else {
-        //WARNING conditional should never arrive here.
-        logType = 8;
-        //assert(0);  // change this to a correct error-handling implementation
+        // ... ship is not moving.  reset all move vars by calling Halt()
+        logType = 6;
+        Halt();
     }
-    std::string msg = "";
-    switch (logType) {
-        case 1: { msg = "state == warp.  --Begin Decel"; } break;
-        case 2: { msg = "USF != 0 and ship isMoving.  --Different Heading or Speed"; } break;
-        case 3: { msg = "USF != 0 and ship isMoving.  --Decel for Turn"; } break;
-        case 4: { msg = "USF != 0 and ship isMoving.  --Accel after Turn"; } break;
-        case 5: { msg = "USF != 0 and ship stopped.   --Begin Accel"; } break;
-        case 6: { msg = "USF == 0 and ship isMoving.  --Stop"; } break;
-        case 7: { msg = "USF == 0 and ship stopped.   --Halt"; } break;
-        case 8: {
-            _log(DESTINY__ERROR, "Destiny::UpdateVelocity Error!  Ship %s(%u) Has No WarpState or Speed Fraction.",
-                                    mySE->GetName(), mySE->GetID());
-            Halt();
-            return;
-        } break;
+
+    // reset moveTime to now
+    // this is time call came from client, NOT on destiny tic.
+    m_moveTime = GetTimeMSeconds();
+
+    if (m_shipAccelTime < 0)
+        sLog.Error("Destiny::UpdateVelocity()", "Accel Time is negative: %.2f", m_shipAccelTime);
+
+    if (is_log_enabled(DESTINY__MOVE_TRACE)) {
+        std::string msg = "";
+        switch (logType) {
+            case 1: { msg = "ship dropped out of warp.      --Begin Decel"; }       break;
+            case 2: { msg = "USF != 0 and ship is Stopped.  --Begin Accel"; }       break;
+            case 3: { msg = "USF != 0 and ship is Moving.   --Begin Accel"; }       break;
+            case 4: { msg = "USF != 0 and ship is Moving.   --Begin Decel"; }       break;
+            case 5: { msg = "USF == 0 and ship is Moving.   --Decel for Stop"; }    break;
+            case 6: { msg = "USF == 0 and ship is Stopped.  --Halt"; }              break;
+        }
+        _log(DESTINY__MOVE_TRACE, "Destiny::UpdateVelocity - %s(%u):  %s  AccelTime: %.2f, USF: %.2f, ASF: %.2f, TF: %.2f, PSF: %.2f", \
+                mySE->GetName(), mySE->GetID(), msg.c_str(), m_shipAccelTime, m_userSpeedFraction, \
+                m_activeSpeedFraction, m_timeFraction, m_prevSpeedFraction);
     }
-    if (is_log_enabled(DESTINY__MOVE_TRACE))
-        _log(DESTINY__MOVE_TRACE, "Destiny::UpdateVelocity - %s(%u):  %s  AccelTime: %.2f, USF: %.2f, ASF: %.2f, CSF: %.2f, PSF: %.2f", \
-            mySE->GetName(), mySE->GetID(), msg.c_str(), m_shipMaxAccelTime, m_userSpeedFraction, m_activeSpeedFraction, m_currentSpeedFraction, m_prevSpeedFraction);
 }
 
 //Global Actions:
@@ -521,12 +496,7 @@ void DestinyManager::Stop() {
     ClearTurn();
     ClearOrbit();
 
-    // reset move timers for new state
-    //m_changeDelay = true;   // skip a single tic before making change
-    m_moveTime = GetTimeMSeconds();
     m_stateStamp = sEntityList.GetStamp();
-    //reset max accel time in case it was changed previously
-    m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
 
     SetSpeedFraction(0.0f);
     m_stop = true;
@@ -559,16 +529,13 @@ void DestinyManager::Halt() {
     m_prevSpeedFraction = 0.0f;
     m_userSpeedFraction = 0.0f;
     m_activeSpeedFraction = 0.0f;
-    m_currentSpeedFraction = 0.0f;
+    m_timeFraction = 0.0f;
     m_maxOrbitSpeedFraction = 1.0f;
 
     m_targetEntity.first = 0;
     m_targetEntity.second = nullptr;
 
     ClearTurn();
-
-    if ((m_shipMaxAccelTime < 1.0) and (mySE->IsDynamicEntity()))
-        m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
 
     if (is_log_enabled(DESTINY__MOVE_TRACE))
         _log(DESTINY__MOVE_TRACE, "Destiny::Halt() - %s(%u): m_shipHeading: %.3f,%.3f,%.3f", \
@@ -587,7 +554,7 @@ void DestinyManager::Eject()
 //  check for collision.  called by Move()
 void DestinyManager::CheckBump()
 {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     //  collision detection code here
     /*  in this case, we are ONLY interested in objects
@@ -670,9 +637,9 @@ void DestinyManager::Bounce(GVector direction, float speed)
     m_stop = false;
     m_stateStamp = sEntityList.GetStamp();
     m_moveTime = GetTimeMSeconds();
-    m_shipMaxAccelTime = 0.1f;
+    m_shipAccelTime = 0.1f;
     m_userSpeedFraction = 1.0f;
-    m_currentSpeedFraction = 1.0f;
+    m_timeFraction = 1.0f;
     m_maxSpeed = m_maxShipSpeed;
     m_velocity = m_shipHeading * m_maxSpeed;
 
@@ -707,20 +674,17 @@ void DestinyManager::MoveObject() {
 
     if (m_changeDelay) {
         m_changeDelay = false;
-        m_moveTime = GetTimeMSeconds();
+        m_moveTime = GetTimeMSeconds(); // reset m_moveTime to now
         _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - ChangeDelay - %s(%u): stateStamp: %u", \
                     mySE->GetName(), mySE->GetID(), m_stateStamp);
         return;
     }
 
-    //apply our velocity to our position for 1 unit of time (second)
-
     /* acceleration and deceleration are both logarithmic, and the server needs to keep up with client position.
-     * this is another step towards getting ready for collision detection.
-     *
      * formula for time taken to accelerate from v to V, from https://wiki.eveonline.com/en/wiki/Acceleration
      *
      *   t=IM(10^-6) * -ln(1-(v/V))
+     *   m_shipAccelTime = m_shipAgility * -ln(1-(v/V))
      *
      * as this uses the natural log, the higher the speed, the slower the acceleration, to the limits of ln(0)
      * since lim ln(x) = -INFINITY where x->0+. and ln(0) is undefined, we will use
@@ -743,48 +707,50 @@ void DestinyManager::MoveObject() {
      *  e = base of natural logarithms
      */
 
-    /* **UPDATE**  this now uses time AND (m_currentSpeedFraction > 0.9999f) for min/max speeds.  -allan 6Aug14
+    /* **UPDATE**  this now uses time AND (m_timeFraction > 0.9999f) for min/max speeds.  -allan 6Aug14
      * **UPDATE**  this is now tracking ALL speed changes correctly.  -allan 21Nov15
      * **UPDATE**  initial orbit implementation.  -allan 13July16
      * **UPDATE**  removed speed fraction checks for min/max speeds.  -allan 02Jul17
+     * **UPDATE**  reworked entire basic movement checks and formulas -allan 17Oct21
      */
 
-    double timeStamp(0);   // keep all these timers in seconds.
+    float timeStamp(0);
     // check for moving ship changing heading
     if (m_userSpeedFraction) {
         if (!m_orbiting or (m_orbiting > Destiny::Ball::Orbit::Far))
             Turn();
     }
-    
-    timeStamp = (GetTimeMSeconds() - m_moveTime) / 1000;
 
     float speed(0.0f);
     std::string move = "";
-    // check to make sure we dont overrun usf/asf
-    if (m_activeSpeedFraction == m_userSpeedFraction)
-        m_currentSpeedFraction = 1.0f;
 
-    if (timeStamp > m_shipMaxAccelTime) { // and ((m_currentSpeedFraction > 0.9999f) or (m_activeSpeedFraction > m_prevSpeedFraction)))
-        m_accel = m_decel = false;
-        if (m_prevSpeed > m_maxSpeed) {
-            speed = m_prevSpeed - ((m_prevSpeed - m_maxSpeed) * m_currentSpeedFraction);
+    // keep timer in seconds.
+    timeStamp = (GetTimeMSeconds() - m_moveTime) * 0.001f;
+
+    if ((timeStamp > m_shipAccelTime) and (m_timeFraction > 0.9998f)) {
+        m_activeSpeedFraction = m_userSpeedFraction;
+        speed = m_maxShipSpeed * m_activeSpeedFraction;
+
+        if (m_decel) {
             if (is_log_enabled(DESTINY__MOVE_TRACE))
-                _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) has decel'd from %.2fm/s to %.2fm/s of max %.2f in %.3fs.", \
-                    mySE->GetName(), mySE->GetID(), m_prevSpeed, speed, m_maxSpeed, timeStamp);
-            m_prevSpeed = 0.0f;
-            m_prevSpeedFraction = 0.0f;
-            m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
+                _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) has decel'd from %.2fm/s to %.2fm/s in %.3fs.", \
+                    mySE->GetName(), mySE->GetID(), m_prevSpeed, speed, timeStamp);
+        } else if (m_accel) {
+            if (is_log_enabled(DESTINY__MOVE_TRACE))
+                _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) has accel'd from %.2fm/s to %.2fm/s in %.3fs.", \
+                mySE->GetName(), mySE->GetID(), m_prevSpeed, speed, timeStamp);
         }
+
+        m_accel = false;
+        m_decel = false;
+        m_prevSpeed = 0.0f;
+        m_prevSpeedFraction = 0.0f;
+
         if (m_userSpeedFraction) {
-            // ship has reached full speed (whatever the fraction was set to)
-            m_currentSpeedFraction = 1.0f;
-            m_activeSpeedFraction = m_userSpeedFraction;
+            // ship has reached full commanded speed
             move = "at constant speed, going";
-            speed = m_maxSpeed * m_activeSpeedFraction;
         } else {
             //ship has reached full stop
-            // update position one final time (for last bit of drift) and exit movement functions by calling Halt()
-            SetPosition(m_position + m_velocity, sConfig.debug.PositionHack);   // (PositionHack == true) here will force position update to client
             if (is_log_enabled(DESTINY__MOVE_TRACE))
                 _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) is at full stop after %.3f seconds.", \
                     mySE->GetName(), mySE->GetID(), timeStamp);
@@ -792,73 +758,57 @@ void DestinyManager::MoveObject() {
             return;
         }
     } else {
-        //not full speed yet or has changed speed
-        if (m_turning) {
-            move = "turning";
-        } else {
-            move = "accelerating";
-        }
-
-        m_currentSpeedFraction = (1 - exp(-timeStamp / m_shipAgility));
+        // changed speed and asf != usf
+        m_timeFraction = (1 - exp(-timeStamp / m_shipAgility));
 
         if (m_accel) {
-            m_activeSpeedFraction = m_userSpeedFraction * m_currentSpeedFraction;
+            // object still accelerating.
+            move = "accelerating";
+            if (m_turning)
+                move = "accelerating in turn";
+
+            if (m_prevSpeedFraction) {
+                /* accel from previous non-full speed
+                 *   take diff of psf and usf then multiply by tf
+                 *   add result to psf to get asf
+                 *  asf is the fraction of max speed the ship is moving at this tic.
+                 */
+                m_activeSpeedFraction = m_prevSpeedFraction + (m_userSpeedFraction - m_prevSpeedFraction) * m_timeFraction;
+            } else {
+                // this is simple acceleration.  asf = usf * tf
+                m_activeSpeedFraction = m_userSpeedFraction * m_timeFraction;
+            }
         } else if (m_decel) {
-            m_activeSpeedFraction = m_prevSpeedFraction * m_currentSpeedFraction;
-        } else if (m_userSpeedFraction != m_activeSpeedFraction) {
-            m_activeSpeedFraction = m_currentSpeedFraction;
-        } else if (m_tractored or m_tractorPause or (m_activeSpeedFraction == 1)) {
+            // object still decelerating.
+            move = "decelerating";
+            if (m_turning) {
+                // decel for turn
+                move = "decelerating for turn";
+            }
+            if (m_prevSpeedFraction) {
+                // asf = psf - (psf - usf) * tf
+                m_activeSpeedFraction = m_prevSpeedFraction - (m_prevSpeedFraction - m_userSpeedFraction) * m_timeFraction;
+            } else {
+                // this should never hit....should not have decel w/o previous speed
+                sLog.Warning("Destiny::MoveObject()", "decel = true, but psf = 0.");
+            }
+        } else if (m_tractored or m_tractorPause) {
             ;   // do nothing here.  this is to remove error reporting from next line.
         } else {
-            _log(DESTINY__ERROR, "Destiny::MoveObject() - %s(%u) - move checks are not set right. Acc:%s, Dec:%s, Turn:%s, Tic:%u, Tractored:%s, TractorPause:%s", \
+            sLog.Error("Destiny::MoveObject()", "%s(%u) - move checks are not set right. Acc:%s, Dec:%s, Turn:%s, Tic:%u, Tractored:%s, TractorPause:%s", \
                     mySE->GetName(), mySE->GetID(), (m_accel ? "True" : "False"), (m_decel ? "True" : "False"), (m_turning ? "True" : "False"), \
                     m_turnTic, (m_tractored ? "True" : "False"), (m_tractorPause ? "True" : "False"));
         }
 
-        if (m_prevSpeed) {
-            if (m_prevSpeedFraction and (m_prevSpeedFraction == m_userSpeedFraction)) {
-                speed = m_prevSpeed * m_activeSpeedFraction;
-            //else if (m_turning)
-            //    speed = m_maxSpeed * m_activeSpeedFraction;
-            } else if (m_prevSpeed > m_maxSpeed) {
-                speed = m_prevSpeed - (m_prevSpeed - m_maxSpeed) * m_activeSpeedFraction;
-            //else if (m_prevSpeed < m_maxSpeed)
-            //    speed = (m_maxSpeed - m_prevSpeed) * m_activeSpeedFraction;
-            } else {
-                speed = m_maxSpeed * m_activeSpeedFraction;
-            }
-        } else {
-            speed = m_maxSpeed * m_activeSpeedFraction;
-        }
-
-        if ((!m_userSpeedFraction) or m_decel) {
-            if (m_turning) {
-                // decel for turn
-                move = "decelerating for turn";
-            } else {
-                //just decelerating
-                move = "decelerating";
-            }
-
-            //if (m_prevSpeedFraction < 1.0f) {
-            //    //m_currentSpeedFraction -= m_activeSpeedFraction + m_prevSpeedFraction;
-            //    speed = m_maxSpeed * m_currentSpeedFraction;
-            //} else {
-                if (m_prevSpeed) {
-                    speed = m_maxSpeed + speed;
-                } else {
-                    speed = m_maxSpeed - speed;
-                }
-                m_currentSpeedFraction = 1 - m_activeSpeedFraction;
-            //}
-        }
+        speed = (m_maxShipSpeed * m_activeSpeedFraction);
     }
+
     // ships tend to "level out" when stopping.  try to mimic that here (wip)
-    if (m_stop and (m_currentSpeedFraction < 0.85f) and (m_currentSpeedFraction > 0.09f)) {
-        if (m_shipHeading.y < -0.05) {
-            m_shipHeading.y += 0.03;
-        } else if (m_shipHeading.y > 0.05) {
-            m_shipHeading.y -= 0.03;
+    if (m_stop and (m_timeFraction > 0.5f)) {
+        if (m_shipHeading.y < -0.2f) {
+            m_shipHeading.y += 0.025f;
+        } else if (m_shipHeading.y > 0.2f) {
+            m_shipHeading.y -= 0.025f;
         }
     }
 
@@ -869,17 +819,17 @@ void DestinyManager::MoveObject() {
             move += " in orbit";
     }
 
-    if ((m_prevSpeed) or (m_prevSpeedFraction)) {
-        if (is_log_enabled(DESTINY__MOVE_TRACE))
-            _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) is %s at %.4f m/s (csf:%.4f asf:%.4f pSpeed:%.2f(%.3f), sec: %.3f).", \
-                mySE->GetName(), mySE->GetID(), move.c_str(), speed, m_currentSpeedFraction, m_activeSpeedFraction, m_prevSpeed, m_prevSpeedFraction, timeStamp);
-    } else {
-        if (is_log_enabled(DESTINY__MOVE_TRACE))
-            _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) is %s at %.4f m/s (csf:%.4f asf:%.4f  sec: %.3f).", \
-                mySE->GetName(), mySE->GetID(), move.c_str(), speed, m_currentSpeedFraction, m_activeSpeedFraction, timeStamp);
+    if (is_log_enabled(DESTINY__MOVE_TRACE)) {
+        if (m_prevSpeedFraction) {
+            _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) is %s at %.3f m/s (tf:%.4f asf:%.4f ps:%.2f psf:%.4f, sec: %.5f).", \
+                mySE->GetName(), mySE->GetID(), move.c_str(), speed, m_timeFraction, m_activeSpeedFraction, m_prevSpeed, m_prevSpeedFraction, timeStamp);
+        } else {
+            _log(DESTINY__MOVE_TRACE, "Destiny::MoveObject() - %s(%u) is %s at %.3f m/s (tf:%.4f asf:%.4f sec: %.5f).", \
+                mySE->GetName(), mySE->GetID(), move.c_str(), speed, m_timeFraction, m_activeSpeedFraction, timeStamp);
+        }
     }
 
-    //set speed, direction and position for this round of movement
+    //set velocity and position for this tic
     m_velocity = m_shipHeading * speed;
     SetPosition(m_position + m_velocity, sConfig.debug.PositionHack);   // (PositionHack == true) here will force position update to client
 
@@ -888,27 +838,30 @@ void DestinyManager::MoveObject() {
             mySE->GetName(), mySE->GetID(), m_position.x, m_position.y, m_position.z, m_velocity.x, m_velocity.y, m_velocity.z,\
             m_shipHeading.x, m_shipHeading.y, m_shipHeading.z);
 
+    if (sEntityList.GetTracking()) {
+        // only create can when ship is moving significant amount
+        if (m_activeSpeedFraction > 0.002f) {
+            // create jetcan to visualize object movement
+            std::string str = mySE->GetName();
+            str += "  ";
+            str += itoa(timeStamp);
+            ItemData idata(23, ownerSystem, mySE->GetLocationID(), flagNone, str.c_str(), m_position, "Position Test");
+            CargoContainerRef iRef = CargoContainer::SpawnTemp(idata);
+            if (iRef.get() != nullptr) {
+                // create new container
+                FactionData data = FactionData();
+                ContainerSE* cSE = new ContainerSE(iRef, mySE->GetServices(), mySE->SystemMgr(), data);
+                if (cSE == nullptr)
+                    return;
+                iRef->SetMySE(cSE);
+                mySE->SystemMgr()->AddMarker(cSE);
+            }
+        }
+    }
+
     if (sConfig.cosmic.BumpEnabled)
         if (mySE->HasPilot() and mySE->SysBubble()->HasPlayers()) // no players in bubble = nothing to check against (for now)
             CheckBump();
-
-    if (sEntityList.GetTracking()) {
-        // create jetcan to visualize object movement
-        std::string str = mySE->GetName();
-        str += "  ";
-        str += itoa(timeStamp);
-        ItemData idata(23, ownerSystem, mySE->GetLocationID(), flagNone, str.c_str(), m_position, "Position Test");
-        CargoContainerRef iRef = CargoContainer::SpawnTemp(idata);
-        if (iRef.get() != nullptr) {
-            // create new container
-            FactionData data = FactionData();
-            ContainerSE* cSE = new ContainerSE(iRef, mySE->GetServices(), mySE->SystemMgr(), data);
-            if (cSE == nullptr)
-                return;
-            iRef->SetMySE(cSE);
-            mySE->SystemMgr()->AddMarker(cSE);
-        }
-    }
 }
 
 bool DestinyManager::IsTurn() {    //this is working.  dont change
@@ -919,7 +872,7 @@ bool DestinyManager::IsTurn() {    //this is working.  dont change
         return false;
     }
     // if ship is stopped, there is no turn.  immediately begin movement in desired direction
-    if ((m_currentSpeedFraction < 0.1) and (m_activeSpeedFraction < 0.1)) {
+    if ((m_timeFraction < 0.1) and (m_activeSpeedFraction < 0.1)) {
         GVector toVec(m_position, m_targetPoint);
         toVec.normalize();
         m_shipHeading = toVec;
@@ -1013,7 +966,7 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
      */
 
     // this is off for rookie ship (maybe others)
-    float turnTime(m_shipAgility /2);
+    float turnTime(m_shipAgility / 2.2);
     if (!m_turning) {
         m_turning = true;
         //m_radians is set in IsTurn() on every tic
@@ -1029,10 +982,10 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
 
     // logic to determine speed changes for turning
     if (m_turnTic == 1)
-        if (m_turnFraction < m_currentSpeedFraction)
+        if (m_turnFraction < m_timeFraction)
             UpdateVelocity(true);
 
-    // need to check turnFraction vs m_currentSpeedFraction to hold speed when turning.
+    // need to check turnFraction vs m_timeFraction to hold speed when turning.
 
     /*  class          agility
      * Capsule          .06
@@ -1075,20 +1028,19 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
             UpdateVelocity(true);
     }
 
-    if (turnPercent > 1.0) {
+    if (turnPercent > 0.9f) {
         _log(DESTINY__ERROR, "Destiny::Turn() - turnTic:%u, degRemain:%.3f, turnPercent:%.2f", m_turnTic, degrees, turnPercent);
         turnPercent = 0.9;
     }
     deltaHeading *= turnPercent;
     m_shipHeading += deltaHeading;
     if (is_log_enabled(DESTINY__TURN_TRACE))
-        _log(DESTINY__TURN_TRACE, "Destiny::Turn() - csf:%.3f, turnTic:%u, degRemain:%.3f  (deltaHeading:%.5f, %.5f, %.5f * turnPercent:%.2f) = shipHeading:%.3f, %.3f, %.3f", \
-            m_currentSpeedFraction, m_turnTic, degrees, deltaHeading.x, deltaHeading.y, deltaHeading.z, turnPercent, m_shipHeading.x, m_shipHeading.y, m_shipHeading.z);
+        _log(DESTINY__TURN_TRACE, "Destiny::Turn() - tf:%.3f, turnTic:%u, degRemain:%.3f  (deltaHeading:%.5f, %.5f, %.5f * turnPercent:%.2f) = shipHeading:%.3f, %.3f, %.3f", \
+            m_timeFraction, m_turnTic, degrees, deltaHeading.x, deltaHeading.y, deltaHeading.z, turnPercent, m_shipHeading.x, m_shipHeading.y, m_shipHeading.z);
 }
 
 void DestinyManager::ClearTurn() {
-    //SetPosition(m_position, sConfig.debug.PositionHack);   // (PositionHack == true) here will force position update to client
-    SetPosition(m_position, true);
+    SetPosition(m_position, sConfig.debug.PositionHack);   // (PositionHack == true) here will force position update to client
     m_turnTic = 0;
     m_turning = false;
     m_radians = 0.0f;
@@ -1123,7 +1075,7 @@ void DestinyManager::Follow() {
             }
             m_velocity = NULL_ORIGIN_V;
             m_tractorPause = true;
-            m_activeSpeedFraction = m_userSpeedFraction = m_currentSpeedFraction = m_prevSpeedFraction = 0.0f;
+            m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = m_prevSpeedFraction = 0.0f;
             return;
         } else {
             if ((m_targetEntity.second->IsDynamicEntity()) and (m_targetEntity.second->DestinyMgr()->IsMoving())) {
@@ -1151,7 +1103,7 @@ void DestinyManager::Follow() {
             m_stateStamp = sEntityList.GetStamp();
             m_prevSpeedFraction = 0.0f;
             // there is no accel/decel for tractor'd items
-            m_activeSpeedFraction = m_userSpeedFraction = m_currentSpeedFraction = 1;
+            m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = 1;
         } else if (m_userSpeedFraction != 0.0f) {
             SetSpeedFraction(1.0f);
         }
@@ -1224,7 +1176,7 @@ void DestinyManager::Orbit() {
     GPoint mPos(NULL_ORIGIN);
     float mPosAdj(0.0f);
     // check distances for this tic
-    if ((edges /2) > m_followDistance) {
+    if ((edges / 2) > m_followDistance) {
         if (m_orbiting == Destiny::Ball::Orbit::TooFar) {
             MoveObject();
             return;
@@ -1275,7 +1227,7 @@ void DestinyManager::Orbit() {
                 radTarg, m_shipHeading.x, m_shipHeading.y, m_shipHeading.z);
         MoveObject();
         return;
-    } else if ((edges - m_targetDistance /4) > m_followDistance) {
+    } else if ((edges - m_targetDistance / 4) > m_followDistance) {
         m_orbiting = Destiny::Ball::Orbit::Far;
         // fudge distance for a smaller orbit
         // modify this based on calculated distance
@@ -1304,7 +1256,7 @@ void DestinyManager::Orbit() {
     //float hyp = sqrt(pow(target.z, 2) + pow(target.x, 2));
     float inclination = 45; //atan(hyp / target.y);
     // fractional value of orbit period (0 < x < 1)
-    float period = fmod(timeStamp, m_orbitTime) /m_orbitTime;
+    float period = fmod(timeStamp, m_orbitTime) / m_orbitTime;
     // calculate a pendulum value here to adjust elevation (+/-y) where +x is 1, 0x is 0, -x is -1
     float c = cos(EvE::Trig::Deg2Rad(360 * period));
     // get elevation modifier based on orbit period
@@ -1327,7 +1279,7 @@ void DestinyManager::Orbit() {
     // set heading for this tic
     GPoint mPosNext(NULL_ORIGIN);
     theta += m_orbitRadTic;
-    period = fmod(timeStamp+1, m_orbitTime) /m_orbitTime;
+    period = fmod(timeStamp + 1, m_orbitTime) / m_orbitTime;
     c = cos(EvE::Trig::Deg2Rad(360 * period));
     phi = EvE::Trig::Deg2Rad(inclination * c);
     mPosNext.x = radius * cos( theta );
@@ -1584,14 +1536,13 @@ void DestinyManager::WarpAccel(uint16 sec_into_warp) {
      */
     double currentDistance = exp(3 * sec_into_warp);
 
-    if (m_inBubble)
+    if (mySE->SysBubble() != nullptr)
         if (currentDistance > BUBBLE_RADIUS_METERS)
             if (mySE->SysBubble() != m_targBubble) {
                 if (is_log_enabled(DESTINY__WARP_TRACE))
                     _log(DESTINY__WARP_TRACE, "Destiny::WarpAccel(): %s(%u) is being removed from bubble %u.",\
                             mySE->GetName(), mySE->GetID(), mySE->SysBubble()->GetID());
                 mySE->SysBubble()->Remove(mySE);
-                m_inBubble = false;
             }
 
     if (currentDistance > m_warpState->accelDist) {
@@ -1657,7 +1608,7 @@ void DestinyManager::WarpUpdate(double currentShipSpeed) {
     SetPosition(m_targetPoint - (m_warpState->warp_vector * m_targetDistance));
 
     if (m_warpState->decel) {
-        if (!m_inBubble) {
+        if (mySE->SysBubble() == nullptr) {
             if (is_log_enabled(DESTINY__WARP_TRACE))
                 _log(DESTINY__WARP_TRACE, "Destiny::WarpUpdate()  %s(%u): Ship is %f from center of target bubble %u.",\
                         mySE->GetName(), mySE->GetID(), m_targBubble->GetCenter().distance(m_position), m_targBubble->GetID());
@@ -1667,7 +1618,6 @@ void DestinyManager::WarpUpdate(double currentShipSpeed) {
                             mySE->GetName(), mySE->GetID(), m_position.x, m_position.y, m_position.z, m_targBubble->GetID());
                 m_targBubble->Add(mySE);
                 SetPosition(m_position, true);
-                m_inBubble = true;
             }
         }
     }
@@ -1760,13 +1710,8 @@ void DestinyManager::BeginMovement() {
     m_turnTic = 0;
     m_stop = m_accel = m_decel = m_turning = false;
 
-    //reset max accel time in case it was changed previously
-    m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
-
-    if (!mySE->IsNPCSE() or (mySE->IsNPCSE() and mySE->GetNPCSE()->GetAIMgr()->IsIdle())) {
-        m_moveTime = GetTimeMSeconds();
+    if (!mySE->IsNPCSE() or (mySE->IsNPCSE() and mySE->GetNPCSE()->GetAIMgr()->IsIdle()))
         m_stateStamp = sEntityList.GetStamp();
-    }
 
     // do any of these next 3 need to be on every movement check??
     if (m_position.isNaN()) {
@@ -1809,20 +1754,13 @@ void DestinyManager::BeginMovement() {
         UnCloak();
 
     // if ship is not moving, set initial movement variables
-    if (m_userSpeedFraction < 0.05) {
+    if ((m_userSpeedFraction < 0.02f) and (m_timeFraction < 0.02f)) {
         SetSpeedFraction(1.0f, true);
-        //MoveObject();
     } else {
-        // reset m_moveTime for current ship speed vs time to allow correct movement calculations after velocity change
-        double newTime = (-log(1 - m_currentSpeedFraction) * m_shipAgility);
-        m_moveTime = (GetTimeMSeconds() - (newTime * 1000));
-        // TODO: verify m_moveTime is being set properly here.
         SetSpeedFraction(m_userSpeedFraction, true);
-        // dont call MoveObject() here, as changes wont take affect till next tic.
     }
 
     SetPosition(m_position, sConfig.debug.PositionHack);   // (PositionHack == true) here will force position update to client
-    MoveObject();
 }
 
 void DestinyManager::Follow(SystemEntity* pSE, uint32 distance) {
@@ -2092,7 +2030,7 @@ void DestinyManager::Orbit(SystemEntity *pSE, uint32 distance/*0*/) {
      * m_targetDistance - commanded orbit distance
      * m_followDistance - calculated orbit distance based on mass, velocity, gravity, and other ship variables
      * m_stateStamp (via BeginMovement())
-     * speed fractions (usf, csf, asf - via SetSpeedFraction() to begin or alter speed)
+     * speed fractions (usf, tf, asf - via SetSpeedFraction() to begin or alter speed)
      * m_maxOrbitSpeedFraction - calculated max speed to maintain commanded orbit distance.  set in Orbit()
      */
     m_ballMode = Destiny::Ball::Mode::ORBIT;
@@ -2219,16 +2157,15 @@ void DestinyManager::SetUndockSpeed() {
     m_stop = false;
     m_orbiting = 0;
     m_stateStamp = sEntityList.GetStamp();
-    //m_moveTime = GetTimeMSeconds();
     m_changeDelay = true;   // skip a single tic before making change
-    m_shipMaxAccelTime = 0.5f;
+    m_shipAccelTime = 0.5f;
     m_prevSpeedFraction = 0.0f;
     m_userSpeedFraction = 1.1f;
     m_maxSpeed = m_maxShipSpeed;
     m_velocity = m_shipHeading * m_maxSpeed;
     // may need to tweak these for larger ships...
     m_activeSpeedFraction = 1.1f;
-    m_currentSpeedFraction = 1.1f;
+    m_timeFraction = 1.1f;
 
     if (m_ballMode == Destiny::Ball::Mode::MISSILE)
         return;
@@ -2345,9 +2282,9 @@ void DestinyManager::SetMaxVelocity(float maxVelocity)
         */
     if (mySE->IsShipSE())
         if (is_log_enabled(DESTINY__TRACE))
-            _log(DESTINY__TRACE, "Destiny::SetMaxVelocity() - Ship:%s(%u) Pilot:%s(%u) - AttrMaxDirectionalVelocity is %.1f", \
+            _log(DESTINY__TRACE, "Destiny::SetMaxVelocity() - Ship:%s(%u) Pilot:%s(%u) - AttrMaxDirectionalVelocity is %.1f, maxSpeed is %.1f, update is %.1f", \
                     mySE->GetName(), mySE->GetID(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID(), \
-                    mySE->GetSelf()->GetAttribute(AttrMaxDirectionalVelocity).get_float());
+                    mySE->GetSelf()->GetAttribute(AttrMaxDirectionalVelocity).get_float(), maxSpeed, maxVelocity);
 
     if (maxVelocity > maxSpeed) {
         m_maxShipSpeed = maxSpeed;
@@ -2358,66 +2295,69 @@ void DestinyManager::SetMaxVelocity(float maxVelocity)
 
 void DestinyManager::SpeedBoost(bool deactivate/*false*/)
 {
-    float timeStamp = (GetTimeMSeconds() - m_moveTime) /1000;
-    m_currentSpeedFraction = (1 - exp(-timeStamp / m_shipAgility));
-    m_prevSpeed = m_maxSpeed * m_currentSpeedFraction;  //get current ship speed
+    float timeStamp = (GetTimeMSeconds() - m_moveTime) * .001f;
+    m_timeFraction = (1 - exp(-timeStamp / m_shipAgility));
+    m_prevSpeed = m_maxSpeed * m_timeFraction;  //get current ship speed
 
     // prop mod state changed.  reset ship movement variables and update current movement, if applicable
     m_mass = mySE->GetSelf()->GetAttribute(AttrMass).get_float();
     m_massMKg = m_mass / 1000000; //changes mass from Kg to MillionKg (10^-6)
     m_shipAgility = m_massMKg * m_shipInertia;
     m_alignTime = (-log(0.25) * m_shipAgility);
+    // will have to set m_shipAccelTime here
     m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
-    m_degPerTic = (65.0f - m_shipAgility) /10;  // this isnt right....
+    m_degPerTic = (65.0f - m_shipAgility) / 10;  // this isnt right....
     m_maxShipSpeed = mySE->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
     float fracCheck = m_prevSpeed / m_maxShipSpeed;
 
     if (is_log_enabled(DESTINY__MOVE_TRACE)) {
-        _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost() - nMass: %.5f, nAg: %.5f, csf: %.2f, usf: %.2f, asf: %.3f", \
-                m_mass, m_shipAgility, m_currentSpeedFraction, m_userSpeedFraction, m_activeSpeedFraction);
+        _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost() - nMass: %.5f, nAg: %.5f, tf: %.2f, usf: %.2f, asf: %.3f", \
+                m_mass, m_shipAgility, m_timeFraction, m_userSpeedFraction, m_activeSpeedFraction);
         _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost() - pSpeed:%.2f, prevMaxSpeed:%.2f, newMaxShipSpeed:%.2f, fraction: %.3f", \
                 m_prevSpeed, m_maxSpeed, m_maxShipSpeed, fracCheck);
     }
 
     // check current movement and reset variables using modified values
+    m_speedBoost = true;
     // ship is currently....
     if (deactivate) {
+        m_speedBoost = false;
         // ....deactivating prop mod
-        // - use accel formula to determine decel time
+        // - use accel formula to determine decel time  *** not right ***
         // t=IM(10^-6) * -ln(1-(v/V))
         float deltaTime = m_shipMaxAccelTime - (log(m_prevSpeed - (m_maxShipSpeed * m_userSpeedFraction)) * m_shipAgility);
         // -  set speed fractions and decel timers for new max speed
         m_activeSpeedFraction = deltaTime / m_shipMaxAccelTime;
         // reset ship max speed using updated m_maxShipSpeed
         m_maxSpeed = m_maxShipSpeed * m_userSpeedFraction;
-        // reset csf
-        m_currentSpeedFraction = 1 - m_activeSpeedFraction;
+        // reset tf
+        m_timeFraction = 1 - m_activeSpeedFraction;
         // reset move timer
         m_moveTime = GetTimeMSeconds();
         if (is_log_enabled(DESTINY__MOVE_TRACE))
             _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost()::Deactivate - decelTime: %.3f, deltaTime: %.3f, maxspeed: %.2f", \
                     m_shipMaxAccelTime, deltaTime, m_maxSpeed);
-    } else if ((m_userSpeedFraction < m_currentSpeedFraction) and (m_prevSpeedFraction)) {
+    } else if ((m_userSpeedFraction < m_timeFraction) and (m_prevSpeedFraction)) {
         // ....moving and decelerating
         // - this hits when prop mod activated while ship is decel
         m_maxSpeed = m_maxShipSpeed * m_prevSpeedFraction;      // reset ship max speed using updated m_maxShipSpeed
         m_activeSpeedFraction = fracCheck;
-        m_currentSpeedFraction = m_prevSpeed / m_maxSpeed;          //get updated csf
+        m_timeFraction = m_prevSpeed / m_maxSpeed;          //get updated tf
         if (is_log_enabled(DESTINY__MOVE_TRACE))
-            _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost()::(psf!=0&csf>usf) - decelerating. - csf: %.3f. asf: %.3f, accelTime: %.3f, newMaxSpeed:%.2f", \
-                    m_currentSpeedFraction, m_activeSpeedFraction, m_shipMaxAccelTime, m_maxSpeed);
+            _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost()::(psf!=0&tf>usf) - decelerating. - tf: %.3f. asf: %.3f, accelTime: %.3f, newMaxSpeed:%.2f", \
+                    m_timeFraction, m_activeSpeedFraction, m_shipMaxAccelTime, m_maxSpeed);
     } else if (m_activeSpeedFraction) {
         // ....moving and not decelerating (this includes turning)
         m_activeSpeedFraction = fracCheck;
-        m_currentSpeedFraction = fracCheck;
+        m_timeFraction = fracCheck;
         // reset ship max speed using updated m_maxShipSpeed
         m_maxSpeed = m_maxShipSpeed * m_userSpeedFraction;
         // adjust m_moveTime time to fit current speed onto new max speed range.  (previous max < new max)
         float test = -log(1 - fracCheck) * m_shipAgility;
         m_moveTime = (GetTimeMSeconds() - ( test * 1000));
         if (is_log_enabled(DESTINY__MOVE_TRACE))
-            _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost()::(0<asf<=usf) - test: %.2f, asf: %.3f, csf: %.2f, check: %.3f, accelTime: %.3f, newMaxSpeed:%.2f", \
-                   test, m_activeSpeedFraction, m_currentSpeedFraction, fracCheck, m_shipMaxAccelTime, m_maxSpeed);
+            _log(DESTINY__MOVE_TRACE, "Destiny::SpeedBoost()::(0<asf<=usf) - test: %.2f, asf: %.3f, tf: %.2f, check: %.3f, accelTime: %.3f, newMaxSpeed:%.2f", \
+                   test, m_activeSpeedFraction, m_timeFraction, fracCheck, m_shipMaxAccelTime, m_maxSpeed);
     } else {
         // ....sitting still
         // - do nothing
@@ -2505,7 +2445,7 @@ Battleships 0.155
      * Ships will exit warp mode when their warping speed drops below
      * 75% of sub-warp max speed, or 100m/s, whichever is the lower.
      */
-    m_speedToLeaveWarp = m_maxShipSpeed *0.75;
+    m_speedToLeaveWarp = m_maxShipSpeed * 0.75f;
     if ((m_speedToLeaveWarp < 100) and (m_maxShipSpeed > 135))      // 75% of 135 is 101.25
         m_speedToLeaveWarp = 100;
 
@@ -2516,7 +2456,6 @@ Battleships 0.155
     m_shipAgility = m_massMKg * m_shipInertia;
     m_degPerTic = (65.0f - m_shipAgility) /10;
     // set a maximum acceleration time (based on ship variables)
-    //   this is no longer correct.  Vmax/T is the correct formula
     m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
 
     //  both of these formulas have identical products
@@ -2548,8 +2487,6 @@ Battleships 0.155
             sbspeed.speed = m_maxShipSpeed;
         updates.push_back(sbspeed.Encode());
         SendDestinyUpdate(updates); //consumed
-    } else {
-        m_hasSentShipUpdates = false;
     }
 }
 
@@ -2714,9 +2651,9 @@ void DestinyManager::TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed)
     m_velocity = m_shipHeading * m_maxSpeed;
 
     m_followDistance = 500 + pShipSE->GetRadius();
-    m_shipMaxAccelTime = 0.1f;
+    m_shipAccelTime = 0.1f;
 
-    m_activeSpeedFraction = m_userSpeedFraction = m_currentSpeedFraction = 1.0f;
+    m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = 1.0f;
 
     m_targetEntity.first = pShipSE->GetID();
     m_targetEntity.second = pShipSE;
