@@ -3,18 +3,20 @@
 create table if not exists ctrContracts
 (
     contractId int auto_increment primary key,
-    assigneeID int not null,
-    startStationID int not null,
-    startStationDivision int not null,
-    endStationID int not null,
-    forCorp int default 0 not null,
-    price double not null,
-    reward double not null,
-    collateral double not null,
-    expiretime bigint not null,
+    contractType int not null,
+    isPrivate int not null,
+    assigneeID int,
+    expireTime int not null,
     duration bigint not null,
+    startStationID int not null,
+    endStationID int,
+    price int not null,
+    reward int not null,
+    collateral int not null,
     title varchar(100) not null,
-    description varchar(100) not null
+    description varchar(100) not null,
+    startStationDivision int not null,
+    forCorp int default 0 not null
     );
 create table if not exists ctrRequestedItems
 (

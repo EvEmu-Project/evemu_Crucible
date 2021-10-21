@@ -281,51 +281,153 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
+    int contractType, assigneeID, expireTime, duration, startStationID, endStationID, startStationDivision, price,
+    reward, collateral, isPrivate, forCorp;
+    std::string title, description;
+
+    // Some call fields flail depending on conditions set during contracts creation, so we need to check the fields first
+    PyTuple *tupleData = call.tuple;
+    if (tupleData->GetItem(0)->IsInt()) {
+        contractType = tupleData->GetItem(0)->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "contractType value is of invalid type");
+        return nullptr;
+    }
+    if (tupleData->GetItem(1)->IsBool()) {
+        isPrivate = tupleData->GetItem(1)->AsBool()->value()?1:0;
+    } else {
+        codelog(SERVICE__ERROR, "isPrivate value is of invalid type");
+        return nullptr;
+    }
+    assigneeID = tupleData->GetItem(2)->IsNone() ? 0 : tupleData->GetItem(2)->AsInt()->value();
+    if (tupleData->GetItem(3)->IsInt()) {
+        expireTime = tupleData->GetItem(3)->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "expireTime value is of invalid type");
+        return nullptr;
+    }
+    if (tupleData->GetItem(4)->IsInt()) {
+        duration = tupleData->GetItem(4)->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "duration value is of invalid type");
+        return nullptr;
+    }
+    if (tupleData->GetItem(5)->IsInt()) {
+        startStationID = tupleData->GetItem(5)->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "startStationID value is of invalid type");
+        return nullptr;
+    }
+    endStationID = tupleData->GetItem(6)->IsNone() ? 0 : tupleData->GetItem(6)->AsInt()->value();
+    if (tupleData->GetItem(7)->IsInt()) {
+        price = tupleData->GetItem(7)->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "price value is of invalid type");
+        return nullptr;
+    }
+    if (tupleData->GetItem(8)->IsInt()) {
+        reward = tupleData->GetItem(8)->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "reward value is of invalid type");
+        return nullptr;
+    }
+    if (tupleData->GetItem(9)->IsInt()) {
+        collateral = tupleData->GetItem(9)->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "collateral value is of invalid type");
+        return nullptr;
+    }
+    if (tupleData->GetItem(10)->IsWString()) {
+        sDatabase.DoEscapeString(title, tupleData->GetItem(10)->AsWString()->content());
+    } else if (tupleData->GetItem(10)->IsString()) {
+        sDatabase.DoEscapeString(title, tupleData->GetItem(10)->AsString()->content());
+    } else {
+        codelog(SERVICE__ERROR, "title value is of invalid type");
+        return nullptr;
+    }
+    if (tupleData->GetItem(11)->IsWString()) {
+        sDatabase.DoEscapeString(description, tupleData->GetItem(11)->AsWString()->content());
+    } else if (tupleData->GetItem(11)->IsString()) {
+        sDatabase.DoEscapeString(description, tupleData->GetItem(11)->AsString()->content());
+    } else {
+        codelog(SERVICE__ERROR, "description value is of invalid type");
+        return nullptr;
+    }
+    if (call.byname.find("flag")->second->IsInt()) {
+        startStationDivision = call.byname.find("flag")->second->AsInt()->value();
+    } else {
+        codelog(SERVICE__ERROR, "startStationDivision value is of invalid type");
+        return nullptr;
+    }
+    forCorp = call.byname.find("forCorp")->second->AsBool()->value() ? 1 : 0;
+
+    uint32 contractId = 0;
+    DBerror err;
+    if (!sDatabase.RunQueryLID(err, contractId,
+        "INSERT INTO ctrContracts (contractType, isPrivate, assigneeID, expireTime, duration,"
+        "startStationID, endStationID, price, reward, collateral, title, description, startStationDivision, forCorp) "
+        "VALUES "
+        "(%u, %u, %u, %u, %u, "
+        "%u, %u, %u, %u, %u, '%s', '%s', %u, %u)",
+        contractType, isPrivate, assigneeID, expireTime, duration,
+        startStationID, endStationID, price, reward, collateral, title.c_str(), description.c_str(), startStationDivision, forCorp))
+    {
+        codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
+        return nullptr;
+    }
     /*
-        [PySubStream 171 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "CreateContract"]
-            [PyTuple 12 items]
-              [PyInt 1]
-              [PyBool True]
-              [PyInt 98038978]
-              [PyInt 1440]
-              [PyInt 0]
-              [PyIntegerVar 60006433]
-              [PyNone]
-              [PyInt 15000]
-              [PyInt 0]
-              [PyInt 0]
-              [PyString "my contract to Munich Lumberjacks"]
-              [PyString ""]
-            [PyDict 6 kvp]
-              [PyString "requestItemTypeList"]
-              [PyList 0 items]
-              [PyString "confirm"]
-              [PyNone]
-              [PyString "forCorp"]
-              [PyBool False]
-              [PyString "flag"]
-              [PyInt 4]
-              [PyString "itemList"]
-              [PyList 2 items]
-                [PyList 2 items]
-                  [PyIntegerVar 1002272878889]
-                  [PyInt 6]
-                [PyList 2 items]
-                  [PyIntegerVar 1002299726681]
-                  [PyInt 1]
-              [PyString "machoVersion"]
-              [PyInt 1]
+        11:06:19 [Service] contractProxy::CreateContract()
+        11:06:19 [SvcCallTrace]   Call Arguments:
+        11:06:19 [SvcCallTrace]      Tuple: 12 elements
+        11:06:19 [SvcCallTrace]       [ 0]    Integer: 1
+        11:06:19 [SvcCallTrace]       [ 1]    Boolean: false
+        11:06:19 [SvcCallTrace]       [ 2]       None
+        11:06:19 [SvcCallTrace]       [ 3]    Integer: 20160
+        11:06:19 [SvcCallTrace]       [ 4]    Integer: 0
+        11:06:19 [SvcCallTrace]       [ 5]    Integer: 60014719
+        11:06:19 [SvcCallTrace]       [ 6]       None
+        11:06:19 [SvcCallTrace]       [ 7]    Integer: 150000
+        11:06:19 [SvcCallTrace]       [ 8]    Integer: 0
+        11:06:19 [SvcCallTrace]       [ 9]    Integer: 0
+        11:06:19 [SvcCallTrace]       [10]    WString: 'Just sum stuff'
+        11:06:19 [SvcCallTrace]       [11]     String: ''
+        11:06:19 [SvcCallTrace]  Named Arguments:
+        11:06:19 [SvcCallTrace]   confirm
+        11:06:19 [SvcCallTrace]           None
+        11:06:19 [SvcCallTrace]   flag
+        11:06:19 [SvcCallTrace]        Integer: 4
+        11:06:19 [SvcCallTrace]   forCorp
+        11:06:19 [SvcCallTrace]        Boolean: false
+        11:06:19 [SvcCallTrace]   itemList
+        16:17:17 [SvcCallTrace]       List: 3 elements
+        16:17:17 [SvcCallTrace]       [ 0]   List: 2 elements
+        16:17:17 [SvcCallTrace]       [ 0]   [ 0]    Integer: 140000032
+        16:17:17 [SvcCallTrace]       [ 0]   [ 1]    Integer: 25
+        16:17:17 [SvcCallTrace]       [ 1]   List: 2 elements
+        16:17:17 [SvcCallTrace]       [ 1]   [ 0]    Integer: 140000029
+        16:17:17 [SvcCallTrace]       [ 1]   [ 1]    Integer: 50
+        16:17:17 [SvcCallTrace]       [ 2]   List: 2 elements
+        16:17:17 [SvcCallTrace]       [ 2]   [ 0]    Integer: 140000031
+        16:17:17 [SvcCallTrace]       [ 2]   [ 1]    Integer: 25
+        11:06:19 [SvcCallTrace]   machoVersion
+        11:06:19 [SvcCallTrace]        Integer: 1
+        19:04:19 [SvcCallTrace]   requestItemTypeList
+        19:04:19 [SvcCallTrace]       List: 2 elements
+        19:04:19 [SvcCallTrace]       [ 0]   List: 2 elements
+        19:04:19 [SvcCallTrace]       [ 0]   [ 0]    Integer: 482
+        19:04:19 [SvcCallTrace]       [ 0]   [ 1]    Integer: 2
+        19:04:19 [SvcCallTrace]       [ 1]   List: 2 elements
+        19:04:19 [SvcCallTrace]       [ 1]   [ 0]    Integer: 27790
+        19:04:19 [SvcCallTrace]       [ 1]   [ 1]    Integer: 1
      */
 
 
-    sLog.White( "ContractProxy::Handle_CreateContract()", "size=%li", call.tuple->size());
-    call.Dump(SERVICE__CALL_DUMP);
+    // sLog.White( "ContractProxy::Handle_CreateContract()", "size=%li", call.tuple->size());
+    // call.Dump(SERVICE__CALL_DUMP);
 
     // returns new contractID
-    return nullptr;
+    //return nullptr;
+    return new PyInt((int) contractId);
 }
 
 PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
@@ -529,7 +631,6 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
 
     return nullptr;
 }
-
 
 PyResult ContractProxy::Handle_GetMyExpiredContractList(PyCallArgs &call) {
   sLog.White( "ContractProxy::Handle_GetMyExpiredContractList()", "size=%li", call.tuple->size());
