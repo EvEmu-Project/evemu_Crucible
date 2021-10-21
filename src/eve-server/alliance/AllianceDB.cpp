@@ -3,7 +3,7 @@
  *      database methods for alliance data
  *
  * @author Allan
- * updates James
+ * @updates James
  * @date 24 May 2019
  *
  */
@@ -85,7 +85,6 @@ PyRep *AllianceDB::GetAlliance(uint32 allyID)
 
 PyRep *AllianceDB::GetMyApplications(uint32 corpID)
 {
-
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
                             " SELECT applicationID, corporationID, allianceID, applicationText, "
@@ -354,7 +353,6 @@ uint32 AllianceDB::GetExecutorID(uint32 allyID)
 
 bool AllianceDB::UpdateCorpAlliance(uint32 allyID, uint32 corpID)
 {
-
     uint32 executorID = GetExecutorID(allyID);
 
     DBerror err;

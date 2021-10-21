@@ -97,7 +97,7 @@ PyResult AccountService::Handle_GetDefaultContactCost(PyCallArgs &call)
                 self.defaultContactCost = -1
         */
 
-    sLog.Log( "AccountService::Handle_GetDefaultContactCost()", "size=%u", call.tuple->size());
+    sLog.Log( "AccountService::Handle_GetDefaultContactCost()", "size=%li", call.tuple->size());
     call.Dump(ACCOUNT__CALL_DUMP);
 
     //return m_db.GetDefaultContactCost(call.client->GetCorporationID());
@@ -115,7 +115,7 @@ PyResult AccountService::Handle_SetContactCost(PyCallArgs &call)
         self.GetAccountSvc().SetContactCost(None)
         */
 
-    sLog.Log( "AccountService::Handle_SetContactCost()", "size=%u", call.tuple->size());
+    sLog.Log( "AccountService::Handle_SetContactCost()", "size=%li", call.tuple->size());
     call.Dump(ACCOUNT__CALL_DUMP);
     // m_db.SetContactCost(call.client->GetCorporationID());
 
@@ -126,7 +126,7 @@ PyResult AccountService::Handle_SetContactCost(PyCallArgs &call)
 PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
     //corrected, updated, optimized     -allan 26jan15      ReVisited/Rewrote  -allan 7Dec17    Update  -allan 20May19
     if (is_log_enabled(ACCOUNT__CALL_DUMP)) {
-        sLog.Log( "AccountService::Handle_GetCashBalance()", "size=%u", call.tuple->size());
+        sLog.Log( "AccountService::Handle_GetCashBalance()", "size=%li", call.tuple->size());
         call.Dump(ACCOUNT__CALL_DUMP);
     }
     bool isCorp = false;
@@ -156,7 +156,7 @@ PyResult AccountService::Handle_GetCashBalance(PyCallArgs &call) {
 PyResult AccountService::Handle_GetJournal(PyCallArgs &call)
 {    // this asks for data for a single acctKey
     if (is_log_enabled(ACCOUNT__CALL_DUMP)) {
-        sLog.Log( "AccountService::Handle_GetJournal()", "size=%u", call.tuple->size());
+        sLog.Log( "AccountService::Handle_GetJournal()", "size=%li", call.tuple->size());
         call.Dump(ACCOUNT__CALL_DUMP);
     }
     Call_GetJournal args;
@@ -180,7 +180,7 @@ PyResult AccountService::Handle_GetJournalForAccounts(PyCallArgs &call) {
     // this asks for data for multiple acctKeys
     // self.journalData[key] = self.GetAccountSvc().GetJournalForAccounts(accountKeys, fromDate, entryTypeID, corpAccount, transactionID, rev)
     if (is_log_enabled(ACCOUNT__CALL_DUMP)) {
-        sLog.Log( "AccountService::Handle_GetJournalForAccounts()", "size=%u", call.tuple->size());
+        sLog.Log( "AccountService::Handle_GetJournalForAccounts()", "size=%li", call.tuple->size());
         call.Dump(ACCOUNT__CALL_DUMP);
     }
     Call_GetJournals args;
@@ -204,7 +204,7 @@ PyResult AccountService::Handle_GetJournalForAccounts(PyCallArgs &call) {
 PyResult AccountService::Handle_GiveCash(PyCallArgs &call)
 {
     if (is_log_enabled(ACCOUNT__CALL_DUMP)) {
-        sLog.Log( "AccountService::Handle_GiveCash()", "size=%u", call.tuple->size());
+        sLog.Log( "AccountService::Handle_GiveCash()", "size=%li", call.tuple->size());
         call.Dump(ACCOUNT__CALL_DUMP);
     }
     Call_GiveCash args;
@@ -231,7 +231,7 @@ PyResult AccountService::Handle_GiveCash(PyCallArgs &call)
 PyResult AccountService::Handle_GiveCashFromCorpAccount(PyCallArgs &call)
 {
     if (is_log_enabled(ACCOUNT__CALL_DUMP)) {
-        sLog.Log( "AccountService::Handle_GiveCashFromCorpAccount()", "size=%u", call.tuple->size());
+        sLog.Log( "AccountService::Handle_GiveCashFromCorpAccount()", "size=%li", call.tuple->size());
         call.Dump(ACCOUNT__CALL_DUMP);
     }
     Call_GiveCorpCash args;
@@ -286,7 +286,7 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
 
     double newBalanceFrom(0), newBalanceTo(0);
     Client* pClientFrom(nullptr);
-    if (IsCharacter(fromID)) {
+    if (IsCharacterID(fromID)) {
         pClientFrom = sEntityList.FindClientByCharID(fromID);
         if (pClientFrom == nullptr) {
             // sender is offline. xfer funds thru db.
@@ -312,7 +312,7 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
     }
 
     Client* pClientTo(nullptr);
-    if (IsCharacter(toID)) {
+    if (IsCharacterID(toID)) {
         pClientTo = sEntityList.FindClientByCharID(toID);
         if (pClientTo == nullptr) {
             // receipient is offline. xfer funds thru db

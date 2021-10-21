@@ -56,11 +56,14 @@ public:
     bool LoadContents();
     // this checks for available space for iRef by flag
     bool ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const;// this will throw if it fails.
+    bool ValidateIHubUpgrade(InventoryItemRef iRef) const;
     // this checks for available space for iRef by flag
     bool HasAvailableSpace(EVEItemFlags flag, InventoryItemRef iRef) const;   //  this will not throw
     bool ContentsLoaded() const                         { return mContentsLoaded; }
     bool ContainsItem(uint32 itemID) const              { return mContents.find( itemID ) != mContents.end(); }
+    // this checks all contents, not particular holds/hangars/items
     bool ContainsTypeQty(uint16 typeID, uint32 qty=0) const;
+    bool ContainsTypeQtyByFlag(uint16 typeID, EVEItemFlags flag=flagNone, uint32 qty=0) const;
     bool ContainsTypeByFlag(uint16 typeID, EVEItemFlags flag=flagNone) const;
 
     float GetCapacity(EVEItemFlags flag) const;

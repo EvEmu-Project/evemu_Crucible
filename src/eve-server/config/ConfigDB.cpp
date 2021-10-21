@@ -43,11 +43,11 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             corp.push_back(cur);
         } else if (IsAlliance(cur)) {
             ally.push_back(cur);
-        } else if (IsCharacter(cur)) {
+        } else if (IsCharacterID(cur)) {
             player.push_back(cur);
         } else if (cur < 33000) {
             npc.push_back(cur);
-        } else if (IsStation(cur)) {
+        } else if (IsStationID(cur)) {
             station.push_back(cur);
         } else {
             owner.push_back(cur);
@@ -166,7 +166,7 @@ PyRep *ConfigDB::GetMultiAllianceShortNamesEx(const std::vector<int32> &entityID
     std::string ids;
     ListToINString(entityIDs, ids);
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT allianceID, shortName FROM alnAlliance" )) {
+    if (!sDatabase.RunQuery(res, "SELECT allianceID, shortName FROM alnAlliance WHERE allianceID IN (%s)", ids.c_str() )) {
         codelog(DATABASE__ERROR, "Error in GetMultiAllianceShortNamesEx query: %s", res.error.c_str());
         return new PyInt(0);
     }
@@ -185,7 +185,7 @@ PyRep *ConfigDB::GetMultiLocationsEx(const std::vector<int32> &entityIDs) {
     for (auto cur : entityIDs) {
         if (IsStaticItem(cur)) {
             staticItems.push_back(cur);
-        } else if (IsAsteroid(cur)) {
+        } else if (IsAsteroidID(cur)) {
             asteroidItems.push_back(cur);
         } else {
             dynamicItems.push_back(cur);
@@ -281,7 +281,6 @@ PyRep *ConfigDB::GetMultiCorpTickerNamesEx(const std::vector<int32> &entityIDs)
 
 
 PyRep *ConfigDB::GetMultiGraphicsEx(const std::vector<int32> &entityIDs) {
-
     std::string ids;
     ListToINString(entityIDs, ids);
 

@@ -272,9 +272,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
             //   these may be written already.  will have to check
 
             accountKey = call.client->GetCorpAccountKey();
-
-        } else {
-
         }
 
         //is this standing order or immediate?
@@ -369,8 +366,6 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
             //  corp item in corp hangar
             // located = [officeFolderID, officeID] or None
             PyTuple* located = args.located->AsTuple();
-
-
         }
 
         //verify that they actually have the item in the quantity specified...
@@ -422,9 +417,9 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         and call.client->GetStationID() == args.stationID ))   //and our ship is in the station
         {
             std::string itemLoc;
-            if (IsStation(iRef->locationID())) {
+            if (sDataMgr.IsStation(iRef->locationID())) {
                 itemLoc = stDataMgr.GetStationName(iRef->locationID());
-            } else if (IsSolarSystem(iRef->locationID())) {
+            } else if (sDataMgr.IsSolarSystem(iRef->locationID())) {
                 itemLoc = sDataMgr.GetSystemName(iRef->locationID());
             } else {
                 itemLoc = "an Invalid Location";
@@ -621,7 +616,7 @@ PyResult MarketProxyService::Handle_CancelCharOrder(PyCallArgs &call) {
 
     Market::OrderInfo oInfo = Market::OrderInfo();
     if (!m_db.GetOrderInfo(args.orderID, oInfo)) {
-        _log(MARKET__ERROR, "CancelCharOrder - Failed to get info about order #%u.", call.client->GetName(), args.orderID);
+        _log(MARKET__ERROR, "CancelCharOrder - Failed to get info about order #%u.", args.orderID);
         return nullptr;
     }
 

@@ -105,7 +105,7 @@ void AsteroidSE::EncodeDestiny( Buffer& into )
         main.formationID = 0xFF;
     into.Append( main );
 
-    _log(SE__DESTINY, "AsteroidSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "AsteroidSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 void AsteroidSE::MakeDamageState(DoDestinyDamageState &into) {

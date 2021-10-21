@@ -20,6 +20,11 @@
 
 
 Threading::Threading()
+: buf(nullptr),
+ tv(timeval()),
+ nfds(0),
+ sleepTime(0),
+ bufferLen(0)
 {
 }
 

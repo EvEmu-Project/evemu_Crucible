@@ -93,7 +93,7 @@ void ShipItem::LogOut()
 
     // remove ship item from its' container's inventory list also.
     Inventory* pInv(nullptr);
-    if (IsStation(locationID())) {
+    if (sDataMgr.IsStation(locationID())) {
         pInv = sItemFactory.GetStationItem(locationID())->GetMyInventory();
     } else {
         pInv = sItemFactory.GetSolarSystem(locationID())->GetMyInventory();
@@ -126,10 +126,10 @@ void ShipItem::SetPlayer(Client* pClient) {
     Init();
 
     // proc effects when changing ships, or on login.
-    ProcessEffects(true, IsSolarSystem(locationID()));
+    ProcessEffects(true, sDataMgr.IsSolarSystem(locationID()));
 
     // this hits on login and when boarding ship in space.  will not hit on Undock() (location is still station at this point of execution)
-    if (IsSolarSystem(locationID())) {
+    if (sDataMgr.IsSolarSystem(locationID())) {
         SetFlag(flagNone);
         /*  not sure if we're gonna keep this in here....
         if (pClient->IsLogin()) {
@@ -998,7 +998,7 @@ void ShipItem::RepairModules(std::vector<InventoryItemRef>& itemRefVec, float fr
 
 void ShipItem::Online(uint32 modID)
 {
-    if (IsSolarSystem(locationID())) {
+    if (sDataMgr.IsSolarSystem(locationID())) {
         ; // check for avalible cap, and drain accordingly (this can throw)
         /*
         float Charge = GetAttribute(AttrCapacitorCharge).get_float();
@@ -1245,7 +1245,7 @@ float ShipItem::DissipateHeat(uint16 attrID, float heat)
 
 void ShipItem::DamageGroup(GenericModule* pMod)
 {
-
+    // not used yet
 }
 
 /*
@@ -1292,7 +1292,7 @@ void ShipItem::HeatDamageCheck(GenericModule* pMod)
     std::vector<uint32> modVec;
     // if this module is grouped, all modules will take same damage.
     if (pMod->IsLinked()) {
-
+        // not used yet
     } else {
         // module not linked.  continue with default heat damage calc's
         // determine position and get adjacent modules
@@ -1300,7 +1300,6 @@ void ShipItem::HeatDamageCheck(GenericModule* pMod)
 
         // determine modules to damage and add to list
         uint32 moduleID(0);
-
 
         //modVec.push_back(moduleID);
     }
@@ -1314,7 +1313,7 @@ void ShipItem::StripFitting()
     UnlinkAllWeapons();
 
     EVEItemFlags flag = flagCargoHold;
-    if IsStation(locationID())
+    if (sDataMgr.IsStation(locationID()))
         flag = flagHangar;
 
     std::vector<InventoryItemRef> moduleList;
@@ -1889,7 +1888,7 @@ void ShipItem::ResetEffects() {
     for (auto cur : charges)
         cur.second->ResetAttributes();
 
-    ProcessEffects(true, true/*IsSolarSystem(locationID())*/);
+    ProcessEffects(true, true/*sDataMgr.IsSolarSystem(locationID())*/);
     _log(EFFECTS__DEBUG, "ShipItem::ResetEffects() - Effects reset in %.3fms", (GetTimeMSeconds() - start));
 }
 
@@ -2266,7 +2265,6 @@ PyList* ShipItem::ShipGetModuleList() {
 }
 
 bool ShipItem::ValidateBoardShip(CharacterRef character) {
-
     bool result = false;
     EvilNumber skillTypeID(EvilZero);
 
@@ -2676,7 +2674,7 @@ void ShipSE::EncodeDestiny( Buffer& into) {
         case 12: modeStr = "Formation"; break;
     }
 
-    _log(SE__DESTINY, "ShipSE::EncodeDestiny(): %s - id:%u, mode:%s, flags:0x%X, Vel:%.1f, %.1f, %.1f", \
+    _log(SE__DESTINY, "ShipSE::EncodeDestiny(): %s - id:%li, mode:%s, flags:0x%X, Vel:%.1f, %.1f, %.1f", \
             GetName(), head.entityID, modeStr.c_str(), head.flags, data.velX, data.velY, data.velZ);
 }
 

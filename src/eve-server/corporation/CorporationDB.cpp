@@ -65,8 +65,8 @@ PyObject *CorporationDB::ListStationOffices(uint32 station_id) {
     return DBResultToRowset(res);
 }
 */
-PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
 
+PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT "
@@ -93,7 +93,7 @@ PyObject *CorporationDB::ListStationCorps(uint32 station_id) {
 PyObject *CorporationDB::ListStationOwners(uint32 stationID) {
     /** @todo  this needs work.... */
     DBQueryResult res;
-  if (IsStation(stationID)) {
+  if (sDataMgr.IsStation(stationID)) {
     if (!sDatabase.RunQuery(res,
         "SELECT"
         "  s.corporationID AS ownerID,"
@@ -376,7 +376,6 @@ PyRep* CorporationDB::GetMedalsReceivedDetails(int32 charID)
 
 PyObjectEx* CorporationDB::GetMedalDetails(int32 medalID)
 {
-
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT medalID, ownerID, creatorID, noRecepients AS numberOfRecipients, date, title, description FROM crpMedals"
@@ -424,7 +423,6 @@ void CorporationDB::GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 
         sDatabase.RunQuery(err, query.str().c_str());
         sDatabase.RunQuery(err, "UPDATE crpMedals SET noRecepients=noRecepients + 1 WHERE medalID = %u", medalID );
     }
-
 }
 
 void CorporationDB::SetMedalStatus(uint32 charID, uint16 medalID, uint8 status)
@@ -1244,7 +1242,7 @@ void CorporationDB::AddRecruiters(uint16 adID, int32 corpID, std::vector< int32 
 
     bool first = true;
     for (auto cur : charVec) {
-        if (!IsCharacter(cur))
+        if (!IsCharacterID(cur))
             continue;
         if (first) {
             first = false;
@@ -1317,6 +1315,7 @@ PyRep* CorporationDB::GetAdRegistryData(int64 typeMask/*0*/, bool inAlliance/*fa
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
+
     return DBResultToCRowset(res);
 }
 
@@ -1333,8 +1332,8 @@ PyRep* CorporationDB::GetAdvert(uint16 adID)
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
-    return DBResultToCRowset(res);
 
+    return DBResultToCRowset(res);
 }
 
 void CorporationDB::DeleteAdvert(uint16 adID)
@@ -1508,7 +1507,7 @@ bool CorporationDB::DeleteApplication(const Corp::ApplicationInfo& aInfo) {
 }
 
 uint32 CorporationDB::GetStationCorporationCEO(uint32 stationID) {
-    if (!IsStation(stationID))
+    if (!sDataMgr.IsStation(stationID))
         return 0;
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
@@ -1808,8 +1807,8 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const Call_UpdateCorporatio
     }
 
     return true;
-
 }
+
 #define NI(i) row.IsNull(i) ? 0 : row.GetInt(i)
 bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif) {
     DBQueryResult res;
@@ -2199,7 +2198,7 @@ void CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, Call_MoveShares& a
     uint16 oldShares = 0;
     uint32 oldCorpID = 0;
     Client* pClient(nullptr);
-    if (IsCharacter(args.toShareholderID)) {
+    if (IsCharacterID(args.toShareholderID)) {
         pClient = sEntityList.FindClientByCharID(args.toShareholderID);
         if (pClient == nullptr) {
             oldCorpID = CharacterDB::GetCorpID(args.toShareholderID);
@@ -2363,7 +2362,7 @@ PyRep* CorporationDB::GetAssetInventoryForLocation(uint32 corpID, uint32 locatio
 {
     // this will need to get full item data...locationID sent from GetAssetInventory()
     DBQueryResult res;
-    if (IsStation(locationID)) {    // transpose stationID to officeID for item location...should never hit
+    if (sDataMgr.IsStation(locationID)) {    // transpose stationID to officeID for item location...should never hit
         if (!sDatabase.RunQuery(res,
             " SELECT e.itemID, e.itemName, e.typeID, e.ownerID, e.locationID, e.flag AS flagID, e.singleton,"
             " e.quantity AS stacksize, t.groupID, g.categoryID FROM entity AS e"
@@ -2375,7 +2374,7 @@ PyRep* CorporationDB::GetAssetInventoryForLocation(uint32 corpID, uint32 locatio
             codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
             return nullptr;
         }
-    } else if (IsOffice(locationID)) {  // transpose officeID to stationID for item location...most oft used (corp hangars in station)
+    } else if (IsOfficeID(locationID)) {  // transpose officeID to stationID for item location...most oft used (corp hangars in station)
         if (!sDatabase.RunQuery(res,
             " SELECT e.itemID, e.itemName, e.typeID, e.ownerID, e.locationID, e.flag AS flagID, e.singleton,"
             " e.quantity AS stacksize, t.groupID, g.categoryID FROM entity AS e"
@@ -2531,7 +2530,7 @@ void CorporationDB::SetLabel(uint32 corpID, uint32 color, std::string name)
 
 void CorporationDB::DeleteLabel(uint32 corpID, uint32 labelID)
 {
-
+    // not used yet
 }
 
 int32 CorporationDB::GetCorpIDforChar(int32 charID)
@@ -2549,4 +2548,3 @@ int32 CorporationDB::GetCorpIDforChar(int32 charID)
     _log(DATABASE__MESSAGE, "No data found for character's %u corporation.", charID);
     return 0;
 }
-

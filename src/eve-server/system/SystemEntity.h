@@ -75,6 +75,7 @@ class BatterySE;
 class ModuleSE;
 class WeaponSE;
 class ReactorSE;
+class JumpBridgeSE;
 
 /*
  * base class for all SystemEntities  - no TargetMgr or DestinyMgr
@@ -114,7 +115,7 @@ public:
     virtual AsteroidSE*         GetAsteroidSE()         { return nullptr; }
     virtual StructureSE*        GetPOSSE()              { return nullptr; }
     virtual StructureSE*        GetJammerSE()           { return nullptr; }
-    virtual StructureSE*        GetJumpBridgeSE()       { return nullptr; }
+    virtual JumpBridgeSE*       GetJumpBridgeSE()       { return nullptr; }
     virtual StructureSE*        GetOutpostSE()          { return nullptr; }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
@@ -280,7 +281,6 @@ protected:
     uint32                      m_corpID;
     uint32                      m_fleetID;
     uint32                      m_ownerID;
-
 };
 
 
@@ -307,7 +307,6 @@ public:
 
     /* virtual functions to be overridden in derived classes */
     virtual bool                LoadExtras();
-
 };
 
 class BeltSE
@@ -333,7 +332,6 @@ public:
 
 protected:
     BeltMgr*                    m_beltMgr;
-
 };
 
 class StargateSE
@@ -362,7 +360,6 @@ public:
 protected:
     PyRep*                      m_jumps;
     StructureSE*                m_sbuSE;
-
 };
 
 
@@ -410,7 +407,6 @@ public:
     virtual void                EncodeDestiny( Buffer& into );
 
     virtual PyDict*             MakeSlimItem();
-
 };
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects
@@ -501,7 +497,6 @@ public:
 private:
     bool m_invul;
     bool m_frozen;
-
 };
 
 

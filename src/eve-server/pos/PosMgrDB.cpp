@@ -54,7 +54,6 @@ PyRep* PosMgrDB::GetCorpControlTowers(uint32 corpID)
 }
 
 void PosMgrDB::GetControlTowerFuelRequirements(DBQueryResult& res) {
-
     if (!sDatabase.RunQuery(res,
             "SELECT controlTowerTypeID, resourceTypeID, purpose, quantity, minSecurityLevel, factionID, wormholeClassID"
             " FROM invControlTowerResources"
@@ -84,6 +83,15 @@ void PosMgrDB::GetCorpJumpArrays(uint32 corpID, DBQueryResult& res)
     }
 }
 
+void PosMgrDB::GetAllianceJumpArrays(uint32 allyID, DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res,
+            "SELECT itemID, systemID, toItemID, toTypeID, toSystemID"
+            " FROM posJumpBridgeData WHERE allyID = %u", allyID))
+    {
+        codelog(DATABASE__ERROR, "Error in GetAllianceJumpArrays query: %s", res.error.c_str());
+    }
+}
 
 bool PosMgrDB::GetBaseData(EVEPOS::StructureData& data)
 {
@@ -234,6 +242,26 @@ void PosMgrDB::UpdateBridgeData(EVEPOS::JumpBridgeData& data)
         data.allyID, data.toItemID, data.toTypeID, data.toSystemID, escPass.c_str(), data.allowCorp, data.allowAlliance, data.itemID);
 }
 
+void PosMgrDB::InstallBridgeLink(uint32 itemID, uint32 toSystemID, uint32 toItemID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE posJumpBridgeData SET "
+        " toItemID=%i, toTypeID=27897, toSystemID=%i "
+        " WHERE itemID=%i",
+        toItemID, toSystemID, itemID);
+}
+
+void PosMgrDB::UninstallBridgeLink(uint32 itemID)
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE posJumpBridgeData SET "
+        " toItemID=0, toTypeID=0, toSystemID=0 "
+        " WHERE itemID=%i",
+        itemID);
+}
+
 bool PosMgrDB::GetReactorData(ReactorData* pData, EVEPOS::StructureData& sData)
 {
     return true;
@@ -249,12 +277,11 @@ void PosMgrDB::SaveReactorData(ReactorData* pData, EVEPOS::StructureData& sData)
     std::map<uint32, EVEPOS::POS_Resource> demands;         // itemID, resourceData(typeID/quantity)
     std::map<uint32, EVEPOS::POS_Resource> supplies;        // itemID, resourceData(typeID/quantity)
 */
-
 }
 
 void PosMgrDB::UpdateReactorData(ReactorData* pData, EVEPOS::StructureData& sData)
 {
-
+    // not used yet.
 }
 
 bool PosMgrDB::GetCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData& oData)

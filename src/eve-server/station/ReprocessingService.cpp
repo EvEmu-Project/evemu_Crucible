@@ -67,7 +67,7 @@ PyBoundObject *ReprocessingService::CreateBoundObject(Client *pClient, const PyR
     }
 
     uint32 stationID = bind_args->AsInt()->value();
-    if (!IsStation(stationID)) {
+    if (!sDataMgr.IsStation(stationID)) {
         _log(SERVICE__ERROR, "%s: Expected stationID, but got %u.", pClient->GetName(), stationID);
         return nullptr;
     }
@@ -172,7 +172,7 @@ PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
 }
 
 PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
-    if (!IsStation(call.client->GetLocationID())) {
+    if (!sDataMgr.IsStation(call.client->GetLocationID())) {
         _log(MANUF__WARNING, "Character %s tried to reprocess, but isn't is station.", call.client->GetName());
         return nullptr;
     }

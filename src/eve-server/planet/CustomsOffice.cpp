@@ -236,7 +236,7 @@ void CustomsSE::VerifyAddItem(InventoryItemRef iRef)
 
 void CustomsSE::GetEffectState(PyList& into)
 {
-
+    // not used yet - cannot use OnSpecialFX14 packet.
 }
 
 void CustomsSE::SendEffectUpdate(int16 effectID, bool active)
@@ -391,7 +391,7 @@ void CustomsSE::EncodeDestiny( Buffer& into )
 [Offset: (0, 2598, 1)]
 */
 
-    _log(SE__DESTINY, "CustomsSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "CustomsSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict *CustomsSE::MakeSlimItem() {

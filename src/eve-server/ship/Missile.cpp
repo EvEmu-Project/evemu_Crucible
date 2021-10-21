@@ -44,7 +44,10 @@ Missile::Missile( InventoryItemRef self, PyServiceMgr& services, SystemManager* 
   m_hitTimer(0),
   m_lifeTimer(0),
   m_damageMod(1),
-  m_alive(true)
+  m_alive(true),
+  m_orbitingID(0),
+  m_speed(0),
+  m_hullHP(self->GetAttribute(AttrHP).get_int())
 {
     if (pSE->HasPilot()) {
         m_ownerID = pSE->GetPilot()->GetChar()->itemID();
@@ -55,8 +58,6 @@ Missile::Missile( InventoryItemRef self, PyServiceMgr& services, SystemManager* 
     m_warID = pSE->GetWarFactionID();
     m_allyID = pSE->GetAllianceID();
     m_corpID = pSE->GetCorporationID();
-
-    m_hullHP = self->GetAttribute(AttrHP).get_int();
 
     double flightTime = self->GetAttribute(AttrExplosionDelay).get_float();
 
@@ -206,7 +207,7 @@ void Missile::EncodeDestiny( Buffer& into )
         miss.z = z();
     into.Append(miss);
 
-    _log(SE__DESTINY, "Missile::EncodeDestiny(): %s id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "Missile::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict* Missile::MakeSlimItem() {

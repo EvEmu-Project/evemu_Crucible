@@ -96,8 +96,8 @@ void PlanetDB::AddPlanetForChar(uint32 solarSystemID, uint32 planetID, uint32 ch
     {
         _log(DATABASE__ERROR, "AddPlanetForChar - Unable to add planet %u for char %u: %s", planetID, charID, err.GetError());
     }
-
 }
+
 void PlanetDB::UpdatePlanetPins(uint32 ccPinID, uint8 pins)
 {
     DBerror err;
@@ -436,7 +436,6 @@ void PlanetDB::SaveCCLevel(uint32 pinID, uint8 level)
         _log(DATABASE__ERROR, "SaveCCLevel - Unable to save CCLevel: %s", err.GetError());
     if(!sDatabase.RunQuery(err, "UPDATE piPins SET level = %u WHERE pinID = %u", level, pinID))
         _log(DATABASE__ERROR, "SaveCCLevel - Unable to save CCLevel: %s", err.GetError());
-
 }
 
 void PlanetDB::SavePins(PI_CCPin* ccPin)

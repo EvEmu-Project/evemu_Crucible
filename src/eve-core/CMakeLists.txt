@@ -49,11 +49,8 @@ SET( math_SOURCE
      )
 
 SET( memory_INCLUDE
-     #"${TARGET_INCLUDE_DIR}/memory/mmgr.h"
      "${TARGET_INCLUDE_DIR}/memory/RefPtr.h"
      "${TARGET_INCLUDE_DIR}/memory/SafeMem.h" )
-#SET( memory_SOURCE
- #    "${TARGET_SOURCE_DIR}/memory/mmgr.cpp" )
 
 SET( network_INCLUDE
      "${TARGET_INCLUDE_DIR}/network/NetUtils.h"
@@ -78,7 +75,6 @@ SET( threading_SOURCE
 SET( utils_INCLUDE
      "${TARGET_INCLUDE_DIR}/utils/Buffer.h"
      "${TARGET_INCLUDE_DIR}/utils/crc32.h"
-#     "${TARGET_INCLUDE_DIR}/utils/date.h"
      "${TARGET_INCLUDE_DIR}/utils/Deflate.h"
      "${TARGET_INCLUDE_DIR}/utils/DirWalker.h"
      "${TARGET_INCLUDE_DIR}/utils/FastInt.h"
@@ -124,7 +120,6 @@ SOURCE_GROUP( "src\\database"  FILES ${database_SOURCE} )
 #SOURCE_GROUP( "src\\error"     FILES ${error_SOURCE} )
 SOURCE_GROUP( "src\\log"       FILES ${log_SOURCE} )
 SOURCE_GROUP( "src\\math"      FILES ${math_SOURCE} )
-#SOURCE_GROUP( "src\\memory"    FILES ${memory_SOURCE} )
 SOURCE_GROUP( "src\\network"   FILES ${network_SOURCE} )
 SOURCE_GROUP( "src\\threading" FILES ${threading_SOURCE} )
 SOURCE_GROUP( "src\\utils"     FILES ${utils_SOURCE} )
@@ -135,7 +130,7 @@ ADD_LIBRARY( "${TARGET_NAME}"
              #${error_INCLUDE}     ${error_SOURCE}
              ${log_INCLUDE}       ${log_SOURCE}
              ${math_INCLUDE}      ${math_SOURCE}
-             ${memory_INCLUDE}    #${memory_SOURCE}
+             ${memory_INCLUDE}
              ${network_INCLUDE}   ${network_SOURCE}
              ${threading_INCLUDE} ${threading_SOURCE}
              ${utils_INCLUDE}     ${utils_SOURCE} )

@@ -76,6 +76,7 @@ EVEServerConfig::EVEServerConfig()
     world.StationDockDelay = 4 /*s*/;
     world.apWarptoDistance = 15000;
     world.shipBoardDistance = 300;
+    world.highSecCyno = false;
 
     // rates
     rates.npcBountyMultiply = 1.0;
@@ -264,7 +265,6 @@ EVEServerConfig::EVEServerConfig()
     threads.ImageServerThreads = 1;//N
     threads.NetworkThreads = 2;//N
     threads.WorldThreads = 2;//N
-
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
@@ -374,6 +374,7 @@ bool EVEServerConfig::ProcessWorld( const TiXmlElement* ele )
     AddValueParser( "loginMsg",          world.loginMsg );
     AddValueParser( "saveOnMove",        world.saveOnMove );
     AddValueParser( "saveOnUpdate",      world.saveOnUpdate );
+    AddValueParser( "highSecCyno",       world.highSecCyno );
     AddValueParser( "mailDelay",         world.mailDelay );
     AddValueParser( "StationDockDelay",  world.StationDockDelay );
     AddValueParser( "apWarptoDistance",  world.apWarptoDistance );
@@ -389,6 +390,7 @@ bool EVEServerConfig::ProcessWorld( const TiXmlElement* ele )
     RemoveParser( "loginMsg" );
     RemoveParser( "saveOnMove" );
     RemoveParser( "saveOnUpdate" );
+    RemoveParser( "highSecCyno" );
     RemoveParser( "mailDelay" );
     RemoveParser( "StationDockDelay" );
     RemoveParser( "apWarptoDistance" );

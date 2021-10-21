@@ -90,12 +90,12 @@ void MarketMgr::Process()
 
 void MarketMgr::SystemStartup(SystemData& data)
 {
-
+    // not used yet.
 }
 
 void MarketMgr::SystemShutdown(SystemData& data)
 {
-
+    // not used yet.
 }
 
 void MarketMgr::UpdatePriceHistory()
@@ -301,7 +301,6 @@ void MarketMgr::InvalidateOrdersCache(uint32 regionID, uint32 typeID)
  */
 
 bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef iRef, Call_PlaceCharOrder& args, uint16 accountKey/*Account::KeyType::Cash*/) {
-
     Market::OrderInfo oInfo = Market::OrderInfo();
     if (!m_db.GetOrderInfo(orderID, oInfo)) {
         _log(MARKET__ERROR, "ExecuteBuyOrder - Failed to get order info for #%u.", orderID);
@@ -319,7 +318,7 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
         isCorp = true;
     } else if (oInfo.ownerID == 1) {
         oInfo.ownerID = stDataMgr.GetOwnerID(args.stationID);
-    } else if (IsCharacter(oInfo.ownerID)) {
+    } else if (IsCharacterID(oInfo.ownerID)) {
         isPlayer = true;
     } else if (IsTraderJoe(oInfo.ownerID)) {
         isTrader = true;
@@ -507,7 +506,7 @@ void MarketMgr::ExecuteSellOrder(Client* buyer, uint32 orderID, Call_PlaceCharOr
     if (args.quantity == oInfo.quantity)
         orderConsumed = true;
 
-    if (IsStation(oInfo.ownerID))
+    if (sDataMgr.IsStation(oInfo.ownerID))
         oInfo.ownerID = stDataMgr.GetOwnerID(oInfo.ownerID);
 
     /** @todo  get/implement accountKey here.... */
@@ -555,7 +554,7 @@ void MarketMgr::ExecuteSellOrder(Client* buyer, uint32 orderID, Call_PlaceCharOr
     sStatMgr.Add(Stat::iskMarket, money);
 
     Client* seller(nullptr);
-    if (IsCharacter(oInfo.ownerID))
+    if (IsCharacterID(oInfo.ownerID))
         seller = sEntityList.FindClientByCharID(oInfo.ownerID);
 
     if (orderConsumed) {
@@ -899,7 +898,6 @@ void MarketMgr::SetBasePrice()
     }
 }
 
-
 void MarketMgr::UpdateMineralPrice()
 {
     //  get mineral prices and put into data map
@@ -910,7 +908,6 @@ void MarketMgr::UpdateMineralPrice()
 
     //  update mineral price
     MarketDB::UpdateMktPrice(mineralMap);
-
 }
 
 void MarketMgr::GetCruPrices()

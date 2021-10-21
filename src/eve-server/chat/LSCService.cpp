@@ -108,7 +108,7 @@ LSCService::~LSCService() {
 
 void LSCService::Init(CommandDispatcher* cd )
 {
-
+    // not used yet
 }
 
 /*
@@ -172,7 +172,7 @@ PyResult LSCService::Handle_GetChannels(PyCallArgs &call)
 
 PyResult LSCService::Handle_GetRookieHelpChannel(PyCallArgs &call) {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_GetRookieHelpChannel()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_GetRookieHelpChannel()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -182,7 +182,7 @@ PyResult LSCService::Handle_GetRookieHelpChannel(PyCallArgs &call) {
 PyResult LSCService::Handle_CreateChannel(PyCallArgs& call)
 {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_CreateChannel()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_CreateChannel()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -281,7 +281,7 @@ PyResult LSCService::Handle_CreateChannel(PyCallArgs& call)
 
 PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_JoinChannels()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_JoinChannels()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -375,7 +375,7 @@ PyResult LSCService::Handle_JoinChannels(PyCallArgs &call) {
 PyResult LSCService::Handle_SendMessage(PyCallArgs& call)
 {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_SendMessage()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_SendMessage()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -429,7 +429,7 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs& call)
 PyResult LSCService::Handle_AccessControl(PyCallArgs& call)
 {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_AccessControl()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_AccessControl()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
     /*  args passed as channelID, charID, mode
@@ -481,7 +481,7 @@ PyResult LSCService::Handle_AccessControl(PyCallArgs& call)
 PyResult LSCService::Handle_Invite(PyCallArgs &call)
 {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_Invite()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_Invite()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -570,7 +570,7 @@ PyResult LSCService::Handle_Invite(PyCallArgs &call)
 PyResult LSCService::Handle_Configure(PyCallArgs& call)
 {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_Configure()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_Configure()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
     /*
@@ -698,7 +698,7 @@ PyResult LSCService::Handle_Configure(PyCallArgs& call)
 
 PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_LeaveChannel()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_LeaveChannel()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -754,7 +754,7 @@ PyResult LSCService::Handle_LeaveChannel(PyCallArgs &call) {
 
 PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_LeaveChannels()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_LeaveChannels()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -824,7 +824,7 @@ PyResult LSCService::Handle_LeaveChannels(PyCallArgs &call) {
 PyResult LSCService::Handle_DestroyChannel(PyCallArgs& call)
 {
     if (is_log_enabled(LSC__CALL_DUMP)) {
-        sLog.Warning("LSCService::Handle_DestroyChannel()", "size=%u", call.tuple->size());
+        sLog.Warning("LSCService::Handle_DestroyChannel()", "size=%li", call.tuple->size());
         call.Dump(LSC__CALL_DUMP);
     }
 
@@ -961,22 +961,22 @@ void LSCService::CreateSystemChannel(int32 channelID)
     uint32 ownerID = channelID;
 
     /** @todo  i know this isnt used much, but wtf was i thinking hitting db for names, when they are in static data?? */
-    if (IsRegion(channelID)) {
+    if (IsRegionID(channelID)) {
         type = LSC::Type::region;
         name = "Region";
         motd = m_db->GetRegionName(channelID);
         grpMsgID = 1;
-    } else if (IsConstellation(channelID)) {
+    } else if (IsConstellationID(channelID)) {
         type = LSC::Type::constellation;
         name = "Constellation";
         motd = m_db->GetConstellationName(channelID);
         grpMsgID = 2;
-    } else if (IsKSpace(channelID)) {
+    } else if (IsKSpaceID(channelID)) {
         type = LSC::Type::solarsystem2;
         name = "Local";
         motd = m_db->GetSolarSystemName(channelID);
         grpMsgID = 3;
-    } else if (IsWSpace(channelID)) {
+    } else if (IsWSpaceID(channelID)) {
         type = LSC::Type::solarsystem;
         name = "System";
         motd = m_db->GetSolarSystemName(channelID);
@@ -998,13 +998,13 @@ void LSCService::CreateSystemChannel(int32 channelID)
         motd = m_db->GetAllianceName(channelID);
         grpMsgID = 5;
         messageID = 0;
-    } else if (IsFleet(channelID)) {
+    } else if (IsFleetID(channelID)) {
         type = LSC::Type::fleet;
         name = sFltSvc.GetFleetName(channelID);
         motd = sFltSvc.GetFleetDescription(channelID);
         messageID = 0;
         ownerID = sFltSvc.GetFleetLeaderID(channelID);
-    } else if (IsWing(channelID)) {
+    } else if (IsWingID(channelID)) {
         type = LSC::Type::wing;
         name = sFltSvc.GetWingName(channelID);
         motd = name;
@@ -1013,7 +1013,7 @@ void LSCService::CreateSystemChannel(int32 channelID)
         messageID = 0;
         //ownerID = sFltSvc.GetWingLeaderID(channelID);
         ownerID = sFltSvc.GetFleetLeaderID(channelID);
-    } else if (IsSquad(channelID)) {
+    } else if (IsSquadID(channelID)) {
         type = LSC::Type::squad;
         name = sFltSvc.GetSquadName(channelID);
         motd = name;

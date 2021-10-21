@@ -277,7 +277,7 @@ void EntityList::Process() {
 }
 
 SystemManager* EntityList::FindOrBootSystem(uint32 systemID) {
-    if (!IsSolarSystem(systemID)) {
+    if (!sDataMgr.IsSolarSystem(systemID)) {
         _log(SERVER__INIT_ERR, "BootSystem() called with invalid systemID (%u)", systemID);
         return nullptr;
     }
@@ -327,23 +327,14 @@ void EntityList::GetClients(std::vector<Client*> &result) const {
 }
 
 void EntityList::GetCorpClients(std::vector<Client*> &result, uint32 corpID) const {
-    /*for (auto cur : m_players) {
-        if (cur.second->GetCorporationID() == corpID) {
-            result.push_back(cur.second);
-        }
-    }*/
-
     std::map<uint32, corpRole>::const_iterator cItr = m_corpMembers.find(corpID);
-    if (cItr == m_corpMembers.end()) {
+    if (cItr == m_corpMembers.end())
         return;
-    }
 
     corpRole::const_iterator itr = cItr->second.begin(), end = cItr->second.end();
     while (itr != end) {
-        if (itr->first->GetChar().get() != nullptr)
-        {
+        if (itr->first != nullptr)
             result.push_back(itr->first);
-        }
         ++itr;
     }
 }
@@ -655,9 +646,9 @@ void EntityList::Multicast( const char* notifyType, const char* idType, PyTuple*
     cVec.clear();
     switch( target ) {
         case NOTIF_DEST__LOCATION: {
-            if (IsStation(targID)) {
+            if (sDataMgr.IsStation(targID)) {
                 GetStationGuestList(targID, cVec);
-            } else if (IsSolarSystem(targID)) {
+            } else if (sDataMgr.IsSolarSystem(targID)) {
                 SystemManager* pSysMgr = FindOrBootSystem(targID);
                 if (pSysMgr == nullptr)
                     break;
@@ -708,9 +699,9 @@ void EntityList::Multicast(const char* notifyType, const char* idType, PyTuple**
         std::vector<Client*> cVec;
         cVec.clear();
         for (auto cur : mcset.locations) {
-            if (IsStation(cur)) {
+            if (sDataMgr.IsStation(cur)) {
                 GetStationGuestList(cur, cVec);
-            } else if (IsSolarSystem(cur)) {
+            } else if (sDataMgr.IsSolarSystem(cur)) {
                 pSysMgr = FindOrBootSystem(cur);
                 if (pSysMgr == nullptr)
                     continue;

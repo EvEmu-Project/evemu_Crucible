@@ -243,7 +243,6 @@ void Colony::Process()
         m_db.UpdatePins(0, ccPin);
         m_toUpdate = false;
     }
-
 }
 
 uint32 Colony::GetOwner()
@@ -290,7 +289,6 @@ void Colony::LoadPlants()
             ccPin->plants[cur.first] = plant;
             m_plantMap.emplace(plant.pLevel, cur.first);
         }
-
     }
 
     // set process timer to 30m
@@ -548,7 +546,7 @@ void Colony::CreateRoute(uint16 routeID, uint32 typeID, uint32 qty, PyList* path
     m_srcRoutes.emplace(route.srcPinID, route);
     m_destRoutes.emplace(route.destPinID, route);
 
-    _log(COLONY__INFO, "Colony::CreateRoute() - Created route id %u for %u of typeID %u, making %u hops.", routeID, qty, typeID, (uint32)path->size() -1);
+    _log(COLONY__INFO, "Colony::CreateRoute() - Created route id %u for %u of typeID %u, making %li hops.", routeID, qty, typeID, path->size() -1);
 
     // route has been created and added to list.  check for materials being moved, and if source has the mat, remove qty and send to dest.
     std::map<uint32, PI_Pin>::iterator srcPin = ccPin->pins.find(route.srcPinID);

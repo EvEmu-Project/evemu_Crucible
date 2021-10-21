@@ -42,7 +42,6 @@ uint32 ServiceDB::SetClientSeed()
 
 bool ServiceDB::ValidateAccountName(CryptoChallengePacket& ccp, std::string& failMsg)
 {
-
     if (ccp.user_name.empty()) {
         failMsg = "Account Name is empty.";
         return false;
@@ -543,7 +542,7 @@ PyRep* ServiceDB::PrimeOwners(std::vector< int32 >& itemIDs)
     DBResultRow row;
     PyDict* dict = new PyDict();
     for (auto cur : itemIDs) {
-        if (IsCharacter(cur)) {
+        if (IsCharacterID(cur)) {
             sDatabase.RunQuery(res, "SELECT characterID, characterName, typeID FROM chrCharacters WHERE characterID = %u", cur);
         } else if (IsPlayerCorp(cur)) {
             sDatabase.RunQuery(res, "SELECT corporationID, corporationName, typeID FROM crpCorporation WHERE corporationID = %u", cur);
@@ -565,7 +564,6 @@ PyRep* ServiceDB::PrimeOwners(std::vector< int32 >& itemIDs)
 }
 
 void ServiceDB::GetCorpHangarNames(uint32 corpID, std::map<uint8, std::string> &hangarNames) {
-
     std::string table = "crpWalletDivisons";
     if (IsNPCCorp(corpID))
         table = "crpNPCWalletDivisons";

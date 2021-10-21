@@ -9,6 +9,7 @@
 *******************************************************
 **********  misc items to update from my code
 
+*u/k at this time*
 
 
 *******************************************************
@@ -112,11 +113,19 @@ missing prices for salvage
 *******************************************************
 ********  improvements
 
+allianceDB  update this to use static members
+
+Inventory contains a lot of "IsValidLocation" macros...verify if this is needed as-is or should be validItem
+
 client login screen...these all need code to show data    CharacterDB::GetCharSelectInfo
     upcomingEventCount:
     unreadMailCount:
     unprocessedNotifications:
 also need to optimize query....can join instead of using (current) multiple queries and variables
+
+check into cosmic manager enabling checks/code....kinda dont make sense)
+*** this below is wrong.  look into it.
+20:21:01 [CMgr Msg] AnomalyMgr Initialized for Ibaria(30000053) with 2 Max Signals for security class 0.37.  Test Server is enabled
 
 
 skill training...
@@ -308,6 +317,9 @@ fleet boosts - apply directly to ship/modules when calculated
     - determine how to save fleetID for wrecks (SE has fleetID member...may save id to item.customdata)
     - MiningLaser::GetMiningVolume() uses calc's in method for boost.  this is in contrast with data in client (from GetAllInfo)
 
+shooting wrecks to destroy loot.
+    - this really is a thing on live.  implement it.
+
 petition system missing most calls
     - this system hasnt been started
     - couple calls as skeleton code
@@ -387,6 +399,8 @@ pos - started. drop, anchor, unanchor, online, offline working but no in-class c
     - add checks for necessary items before online can be processed
     - timers (anchor/online) arent updated to client properly (non-persistent)
     - add bm when tower, ihub, sbu, tcu anchored
+    - finish removing multicast bullshit (sends on FF attr.radius update)
+    - verify all effects for structures.  (some missing)
 
 lsc system better, but incomplete and needs revisiting    -priority level: med-hi
     - may need xmlp code instead of muddled python decoding

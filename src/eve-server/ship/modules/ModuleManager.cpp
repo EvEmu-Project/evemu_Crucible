@@ -315,6 +315,9 @@ GenericModule* ModuleManager::GetRandModule()
         if (m_modules[flag] != nullptr)
             modVec.push_back(m_modules[flag]);
 
+    if (modVec.empty () == true)
+        return nullptr;
+
     return modVec[MakeRandomInt(0, modVec.size())];
 }
 
@@ -870,8 +873,6 @@ PyRep* ModuleManager::ModuleRepair(uint32 modID)
         return PyStatic.NewFalse();
     }
 
-
-
     //return PyStatic.NewTrue();  // can repair
     return PyStatic.NewFalse(); // cannot repair (for whatever reason)  do they/we send msgs based on why here?
 }
@@ -883,8 +884,6 @@ void ModuleManager::StopModuleRepair(uint32 modID)
         _log(MODULE__ERROR, "MM::ModuleRepair() - module %s not found.", modID);
         return;
     }
-
-
 }
 
 void ModuleManager::LoadCharge(InventoryItemRef chargeRef, EVEItemFlags flag)
@@ -1048,7 +1047,7 @@ void ModuleManager::UnloadCharge(GenericModule* pMod)
 
     chargeRef->SetAttribute(AttrQuantity, EvilZero);    // OMAC
 
-    if (IsStation(pShipItem->locationID())) {
+    if (sDataMgr.IsStation(pShipItem->locationID())) {
         StationItemRef sRef = sEntityList.GetStationByID(pShipItem->locationID());
         if (sRef.get() != nullptr) {
             InventoryItemRef iRef = sRef->GetMyInventory()->GetByTypeFlag(chargeRef->typeID(), flagHangar);
@@ -1158,7 +1157,7 @@ void ModuleManager::UnloadAllModules()
         if (cur.second != nullptr)
             cur.second->UnloadCharge();
     // can this be called when docked?
-    //bool docked = IsStation(pShipItem->locationID());
+    //bool docked = sDataMgr.IsStation(pShipItem->locationID());
     for (auto cur : m_charges)
         UnloadModule(cur.second->flag());
 
@@ -1332,7 +1331,6 @@ void ModuleManager::GetModuleListOfRefsOrdered( std::vector< InventoryItemRef >&
 }
 
 void ModuleManager::GetModuleListOfRefsOrderedRev( std::vector< InventoryItemRef >& modVec ) {
-
     // this is to list all ship modules by order of hi, mid, low, rig, subsys
     // hi slots
     for (uint8 flag = flagHiSlot0; flag < flagFixedSlot; ++flag)

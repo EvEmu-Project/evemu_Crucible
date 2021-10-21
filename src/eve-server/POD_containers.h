@@ -324,6 +324,8 @@ struct SovereigntyData {
     uint32 claimStructureID;
     int64 claimTime;
     uint32 hubID;
+    uint32 beaconID;
+    uint32 jammerID;
     uint8 contested;
     uint8 stationCount;
     uint8 militaryPoints;

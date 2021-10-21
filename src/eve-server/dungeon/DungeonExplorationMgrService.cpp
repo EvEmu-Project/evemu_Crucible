@@ -102,7 +102,7 @@ PyResult DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails(PyCallA
      *                    scrolllist.append(listentry.Get('EscalatingPathLocationEntry', data))
      *
      */
-    sLog.White("DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails()",  "size= %u", call.tuple->size() );
+    sLog.White("DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails()",  "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return PyStatic.NewNone();

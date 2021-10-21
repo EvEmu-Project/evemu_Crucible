@@ -55,7 +55,7 @@ NotificationMgrService::~NotificationMgrService() {
 PyResult NotificationMgrService::Handle_GetByGroupID(PyCallArgs &call)
 {
 
-    sLog.White("NotificationMgrService", "Handle_GetByGroupID() size=%u", call.tuple->size() );
+    sLog.White("NotificationMgrService", "Handle_GetByGroupID() size=%li", call.tuple->size());
     call.Dump(MAIL__DUMP);
     /*
             [PyString "GetByGroupID"]
@@ -170,7 +170,7 @@ PyResult NotificationMgrService::Handle_DeleteNotifications(PyCallArgs &call)
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
-    
+
     PyRep* notificationsIDs = args.arg;
     return nullptr;
 }

@@ -366,7 +366,6 @@ void NPCAIMgr::Process() {
     if (m_armorRepairTimer.Enabled())
         if (m_armorRepairTimer.Check())
             m_npc->UseArmorRepairer();
-
 }
 
 bool NPCAIMgr::IsFighting() {

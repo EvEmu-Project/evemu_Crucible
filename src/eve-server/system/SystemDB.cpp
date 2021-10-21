@@ -100,10 +100,10 @@ GPoint SystemDB::GetSolarSystemPosition(uint32 systemID) {
     _log(DATABASE__RESULTS, "GetSolarSystemPosition returned %u items", res.GetRowCount());
 
     DBResultRow row;
-    GPoint point;
-    while(res.GetRow(row)) {
+    GPoint point(NULL_ORIGIN);
+    if (res.GetRow(row))
         point = GPoint(row.GetDouble(0), row.GetDouble(1), row.GetDouble(2));
-    }
+    
     return point;
 }
 
@@ -185,7 +185,7 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
                     entry.allianceID    = row2.GetUInt(0);
                     entry.factionID     = row2.GetUInt(1);
                 }
-        } else if (IsCharacter(entry.ownerID)) {
+        } else if (IsCharacterID(entry.ownerID)) {
             if (sDatabase.RunQuery(res2,
                 "SELECT c.corporationID, co.allianceID, co.warFactionID FROM chrCharacters AS c"
                 " LEFT JOIN crpCorporation AS co USING (corporationID)"
@@ -254,7 +254,7 @@ bool SystemDB::LoadPlayerDynamicEntities(uint32 systemID, std::vector<DBSystemDy
                     entry.allianceID    = row2.GetUInt(0);
                     entry.factionID     = row2.GetUInt(1);
                 }
-        } else if (IsCharacter(entry.ownerID)) {
+        } else if (IsCharacterID(entry.ownerID)) {
             if (sDatabase.RunQuery(res2,
                 "SELECT c.corporationID, co.allianceID, co.warFactionID FROM chrCharacters AS c"
                 " LEFT JOIN crpCorporation AS co USING (corporationID)"

@@ -77,7 +77,6 @@ protected:
 
 private:
     SystemEntity* mySE;
-
 };
 
 
@@ -91,6 +90,7 @@ class TowerSE;
 class TCUSE;
 class SBUSE;
 class IHubSE;
+class JumpBridgeSE;
 class ArraySE;
 class BatterySE;
 class WeaponSE;
@@ -103,9 +103,7 @@ public:
 
     /* class type pointer querys. */
     virtual StructureSE*        GetPOSSE()              { return this; }
-    virtual StructureSE*        GetJammerSE()           { return (m_jammer ? this : nullptr); }
     virtual StructureSE*        GetOutpostSE()          { return (m_outpost ? this : nullptr); }
-    virtual StructureSE*        GetJumpBridgeSE()       { return (m_bridge ? this : nullptr); }
     virtual TowerSE*            GetTowerSE()            { return nullptr; }
     virtual ArraySE*            GetArraySE()            { return nullptr; }
     virtual BatterySE*          GetBatterySE()          { return nullptr; }
@@ -114,6 +112,7 @@ public:
     virtual TCUSE*              GetTCUSE()              { return nullptr; }
     virtual SBUSE*              GetSBUSE()              { return nullptr; }
     virtual IHubSE*             GetIHubSE()             { return nullptr; }
+    virtual JumpBridgeSE*       GetJumpBridgeSE()       { return nullptr; }
 
     /* class type tests. */
     virtual bool                IsPOSSE()               { return true; }
@@ -121,9 +120,10 @@ public:
     virtual bool                IsSBUSE()               { return false; }
     virtual bool                IsIHubSE()              { return false; }
     virtual bool                IsJammerSE()            { return m_jammer; }
+    virtual bool                IsCynoGeneratorSE()     { return m_generator; }
     virtual bool                IsMoonMiner()           { return m_miner; }
     virtual bool                IsOutpostSE()           { return m_outpost; }
-    virtual bool                IsJumpBridgeSE()        { return m_bridge; }
+    virtual bool                IsJumpBridgeSE()        { return false; }
     virtual bool                IsTowerSE()             { return false; }
     virtual bool                IsArraySE()             { return false; }
     virtual bool                IsBatterySE()           { return false; }
@@ -205,6 +205,7 @@ protected:
     TCUSE*                      m_tcuSE;                /* controlling TCUs */
     SBUSE*                      m_sbuSE;
     IHubSE*                     m_ihubSE;
+    JumpBridgeSE*               m_bridgeSE;
     StargateSE*                 m_gateSE;
 
     EVEPOS::StructureData       m_data;
@@ -230,14 +231,40 @@ private:
     bool m_miner :1;            // Moon Miner
     bool m_bridge :1;           // Jump Bridge
     bool m_jammer :1;           // Cyno Jammer
+    bool m_generator :1;        // Cyno Generator
     bool m_loaded :1;
     bool m_module :1;           // any structure requiring a control tower
     bool m_reactor :1;
     bool m_outpost :1;
-
 };
 
 #endif  // EVEMU_POS_STRUCTURE_H_
+
+/* more in system/destinymgr.h
+ *
+ *    def OnSlimItemUpdated(self, slimItem):
+ *        orbitalState = getattr(slimItem, 'orbitalState', None)
+ *        orbitalTimestamp = getattr(slimItem, 'orbitalTimestamp', blue.os.GetSimTime())
+ *        fxSequencer = sm.GetService('FxSequencer')
+ *        if not hasattr(self, 'orbitalState'):
+ *            if orbitalState in (entities.STATE_ANCHORING, entities.STATE_ANCHORED):
+ *                uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, [], 'effects.AnchorDrop', 0, 1, 0)
+ *            elif orbitalState in (entities.STATE_IDLE, entities.STATE_OPERATING):
+ *                uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, [], 'effects.StructureOnlined', 0, 1, 0)
+ *        else:
+ *            if orbitalState == entities.STATE_ANCHORING and self.orbitalState == entities.STATE_UNANCHORED:
+ *                uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, [], 'effects.AnchorDrop', 0, 1, 0)
+ *            if orbitalState == entities.STATE_ONLINING and self.orbitalState == entities.STATE_ANCHORED:
+ *                uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, [], 'effects.StructureOnline', 0, 1, 0)
+ *            if orbitalState == entities.STATE_IDLE and self.orbitalState == entities.STATE_ONLINING:
+ *                uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, [], 'effects.StructureOnlined', 0, 1, 0)
+ *            if orbitalState == entities.STATE_ANCHORED and self.orbitalState in (entities.STATE_OFFLINING, entities.STATE_IDLE, entities.STATE_OPERATING):
+ *                uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, [], 'effects.StructureOffline', 0, 1, 0)
+ *            if orbitalState == entities.STATE_UNANCHORING and self.orbitalState == entities.STATE_ANCHORED:
+ *                uthread.pool('SpaceObject::BasicOrbital::OnSlimItemUpdated', fxSequencer.OnSpecialFX, slimItem.itemID, slimItem.itemID, None, None, None, [], 'effects.AnchorLift', 0, 1, 0)
+ *        self.orbitalState = orbitalState
+ *        self.orbitalTimestamp = orbitalTimestamp
+ */
 
     /*
     self.variance = sm.GetService('clientDogmaStaticSvc').GetTypeAttribute(self.typeID, const.attributeReinforcementVariance)

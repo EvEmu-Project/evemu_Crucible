@@ -375,12 +375,8 @@ void MailDB::DeleteMail(int32 messageID)
 {
     DBerror err;
 
-    if (!sDatabase.RunQuery(err,
-                            " DELETE FROM mailStatus "
-                            " WHERE messageID = %u;" , messageID)) {
-
+    if (!sDatabase.RunQuery(err, "DELETE FROM mailStatus WHERE messageID = %u;", messageID))
         codelog(DATABASE__ERROR, " Failed to delete mail" );
-    }
 }
 
 void MailDB::EmptyTrash(uint32 characterID)
@@ -426,7 +422,6 @@ void MailDB::MoveToTrash(int32 messageID)
                             " SET statusMask = statusMask | %u" , messageID, mailStatusMaskTrashed)) {
         codelog(DATABASE__ERROR, " Failed to move message to trash" );
     }
-
 }
 
 void MailDB::MoveToTrashByLabel(int32 characterID, int32 labelID)
@@ -513,7 +508,6 @@ void MailDB::RemoveStatusMask(int32 messageID, int mask)
 
 void MailDB::ApplyLabelMask(int32 messageID, int mask)
 {
-
     DBerror err;
     if (!sDatabase.RunQuery(err,
                             " UPDATE mailStatus "
@@ -522,7 +516,6 @@ void MailDB::ApplyLabelMask(int32 messageID, int mask)
     {
         codelog(DATABASE__ERROR, " Failed to apply label mask to message" );
     }
-
 }
 
 void MailDB::RemoveLabelMask(int32 messageID, int mask)
@@ -541,24 +534,21 @@ void MailDB::ApplyLabelMasks(std::vector<int32> messageIDs, int mask)
 {
     DBerror err;
 
-    if (messageIDs.size() == 0) {
+    if (messageIDs.size() == 0)
         return;
-    }
 
     std::ostringstream query;
     query << " UPDATE mailStatus SET labelMask = labelMask | "  << mask << "  " ;
 
     query << " WHERE messageID = "  << messageIDs[0];
 
-    for (int i = 1; i < messageIDs.size(); i++) {
+    for (int i = 1; i < messageIDs.size(); i++)
         query << "  OR messageID = "  << messageIDs[i];
-    }
 
     _log(DATABASE__ERROR, query.str().c_str());
 
 
-    if (!sDatabase.RunQuery(err, query.str().c_str()))
-    {
+    if (!sDatabase.RunQuery(err, query.str().c_str())) {
         codelog(DATABASE__ERROR, " Failed to apply labels" );
         return;
     }
@@ -568,24 +558,21 @@ void MailDB::RemoveLabelMasks(std::vector<int32> messageIDs, int mask)
 {
     DBerror err;
 
-    if (messageIDs.size() == 0) {
+    if (messageIDs.size() == 0)
         return;
-    }
 
     std::ostringstream query;
     query << " UPDATE mailStatus SET labelMask = labelMask & ~"  << mask << "  " ;
 
     query << " WHERE messageID = "  << messageIDs[0];
 
-    for (int i = 1; i < messageIDs.size(); i++) {
+    for (int i = 1; i < messageIDs.size(); i++)
         query << "  OR messageID = "  << messageIDs[i];
-    }
 
     _log(DATABASE__ERROR, query.str().c_str());
 
 
-    if (!sDatabase.RunQuery(err, query.str().c_str()))
-    {
+    if (!sDatabase.RunQuery(err, query.str().c_str())) {
         codelog(DATABASE__ERROR, " Failed to apply labels" );
         return;
     }
@@ -772,25 +759,30 @@ void MailDB::SetMailingListDefaultAccess(int32 listID, int32 defaultAccess, int3
 
 void MailDB::DeleteMailingList(uint32 characterID, int32 listID)
 {
-
+    // not used yet.
 }
+
 void MailDB::JoinMailingList(uint32 characterID, std::string name)
 {
-
+    // not used yet.
 }
+
 void MailDB::LeaveMailingList(uint32 characterID, int32 listID)
 {
-
+    // not used yet.
 }
+
 void MailDB::MailingListClearEntityAccess(int32 entity, int32 listID)
 {
-
+    // not used yet.
 }
+
 void MailDB::MailingListSetEntityAccess(int32 entity, int32 access, int32 listID)
 {
-
+    // not used yet.
 }
+
 void MailDB::MoveFromTrash(int32 messageID)
 {
-
+    // not used yet.
 }

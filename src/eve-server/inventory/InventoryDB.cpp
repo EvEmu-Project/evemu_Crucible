@@ -145,9 +145,9 @@ bool InventoryDB::GetItemContents(OwnerData &od, std::vector<uint32> &into) {
     query << "SELECT itemID FROM entity WHERE locationID = ";
     query << od.locID;
 
-    if (IsSolarSystem(od.locID)) {
+    if (sDataMgr.IsSolarSystem(od.locID)) {
         query << " AND ownerID = " << od.ownerID;
-    } else if (IsStation(od.locID)) {
+    } else if (sDataMgr.IsStation(od.locID)) {
         if (od.ownerID == 1) {
             /* this will get agents in station */
             query << " AND ownerID < " << maxNPCItem;
@@ -160,7 +160,7 @@ bool InventoryDB::GetItemContents(OwnerData &od, std::vector<uint32> &into) {
                 query << " AND ownerID = " << od.ownerID;
             }
         }
-    } else if (IsCharacter(od.locID)) {
+    } else if (IsCharacterID(od.locID)) {
         if (od.ownerID == 1) {
             // not sure what to do here....
         } else if (IsPlayerCorp(od.corpID)) {
@@ -169,7 +169,7 @@ bool InventoryDB::GetItemContents(OwnerData &od, std::vector<uint32> &into) {
         } else {
             query << " AND ownerID = " << od.ownerID;
         }
-    } else if (IsOffice(od.locID)) {
+    } else if (IsOfficeID(od.locID)) {
         // may not need this, as location is officeID, but items MAY be owned by players in corp hangar.
         //query << " AND ownerID = " << od.ownerID;
     }

@@ -122,9 +122,9 @@ void RamMethods::JobsCheck(Character* pChar, const Call_InstallJob& args)
 
 void RamMethods::InstallationCheck(Client*const pClient, int32 lineLocationID)
 {
-    if (IsStation(lineLocationID)) {
+    if (sDataMgr.IsStation(lineLocationID)) {
         uint32 regionID = sDataMgr.GetStationRegion(lineLocationID);
-        if (!IsRegion(regionID))
+        if (!IsRegionID(regionID))
             throw UserError ("RamIsNotAnInstallation");
         if (pClient->GetRegionID() != regionID)
             throw UserError ("RamRangeLimitationRegion");
@@ -167,30 +167,30 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
         int64 roles(pClient->GetCorpRole());
         // check slot rental permissions first
         if (args.activityID == EvERam::Activity::Manufacturing) {
-            if (roles & Corp::Role::CanRentFactorySlot != Corp::Role::CanRentFactorySlot)
+            if ((roles & Corp::Role::CanRentFactorySlot) != Corp::Role::CanRentFactorySlot)
                 throw UserError ("RamCannotInstallWithoutRentFactorySlot");
         } else {
-            if (roles & Corp::Role::CanRentResearchSlot != Corp::Role::CanRentResearchSlot)
+            if ((roles & Corp::Role::CanRentResearchSlot) != Corp::Role::CanRentResearchSlot)
                 throw UserError ("RamCannotInstallWithoutRentResearchSlot");
         }
-        if (roles & Corp::Role::FactoryManager != Corp::Role::FactoryManager)
+        if ((roles & Corp::Role::FactoryManager) != Corp::Role::FactoryManager)
             throw UserError ("RamCannotInstallForCorpByRoleFactoryManager");
-        if (roles & Corp::Role::Director != Corp::Role::Director)
+        if ((roles & Corp::Role::Director) != Corp::Role::Director)
             throw UserError ("RamCannotInstallForCorpByRole");
     }
 
     // check usage restriction
-    if (data.rMask & EvERam::RestrictionMask::ByAlliance == EvERam::RestrictionMask::ByAlliance) {
+    if (data.rMask & EvERam::RestrictionMask::ByAlliance) {
         if (data.ownerID != pClient->GetAllianceID())
             throw UserError ("RamAccessDeniedWrongAlliance");
     }
-    if (data.rMask & EvERam::RestrictionMask::ByCorp == EvERam::RestrictionMask::ByCorp) {
+    if (data.rMask & EvERam::RestrictionMask::ByCorp) {
         if (data.ownerID != pClient->GetCorporationID())
             throw UserError ("RamAccessDeniedWrongCorp");
     }
 
     // check standing
-    if (data.rMask & EvERam::RestrictionMask::ByStanding == EvERam::RestrictionMask::ByStanding) {
+    if (data.rMask & EvERam::RestrictionMask::ByStanding) {
         // get standings
         if (args.isCorpJob) {
             if (data.minStanding > StandingDB::GetStanding(data.ownerID, pClient->GetCorporationID()))
@@ -202,7 +202,7 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
     }
 
     // check security rating
-    if (data.rMask & EvERam::RestrictionMask::BySecurity == EvERam::RestrictionMask::BySecurity) {
+    if (data.rMask & EvERam::RestrictionMask::BySecurity) {
         if (args.isCorpJob) {
             /** @todo  corp secStatus????  didnt know that was a thing.  */
             if (data.minCorpSec > pClient->GetChar()->corpSecRating())
@@ -234,7 +234,7 @@ void RamMethods::ItemOwnerCheck(Client*const pClient, const Call_InstallJob& arg
 void RamMethods::ItemLocationCheck(Client*const pClient, const Call_InstallJob& args, InventoryItemRef installedItem)
 {
     // a lot of this is checked in client.  need to verify
-    if (IsStation(args.lineContainerID)) {
+    if (sDataMgr.IsStation(args.lineContainerID)) {
         if (installedItem->locationID() != args.lineContainerID) {
             if (args.lineContainerID == pClient->GetLocationID()) {
                 throw UserError (
@@ -293,31 +293,31 @@ void RamMethods::HangarRolesCheck(Client* const pClient, int16 flagID)
     int64 roles(pClient->GetCorpRole());
     switch (flagID) {
         case flagHangar: {
-            if (roles & Corp::Role::HangarCanTake1 != Corp::Role::HangarCanTake1)
+            if ((roles & Corp::Role::HangarCanTake1) != Corp::Role::HangarCanTake1)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar2: {
-            if (roles & Corp::Role::HangarCanTake2 != Corp::Role::HangarCanTake2)
+            if ((roles & Corp::Role::HangarCanTake2) != Corp::Role::HangarCanTake2)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar3: {
-            if (roles & Corp::Role::HangarCanTake3 != Corp::Role::HangarCanTake3)
+            if ((roles & Corp::Role::HangarCanTake3) != Corp::Role::HangarCanTake3)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar4: {
-            if (roles & Corp::Role::HangarCanTake4 != Corp::Role::HangarCanTake4)
+            if ((roles & Corp::Role::HangarCanTake4) != Corp::Role::HangarCanTake4)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar5: {
-            if (roles & Corp::Role::HangarCanTake5 != Corp::Role::HangarCanTake5)
+            if ((roles & Corp::Role::HangarCanTake5) != Corp::Role::HangarCanTake5)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar6: {
-            if (roles & Corp::Role::HangarCanTake6 != Corp::Role::HangarCanTake6)
+            if ((roles & Corp::Role::HangarCanTake6) != Corp::Role::HangarCanTake6)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
         case flagCorpHangar7: {
-            if (roles & Corp::Role::HangarCanTake7 != Corp::Role::HangarCanTake7)
+            if ((roles & Corp::Role::HangarCanTake7) != Corp::Role::HangarCanTake7)
                 throw UserError ("RamAccessDeniedToBOMHangar");
         } break;
     }
@@ -335,7 +335,6 @@ void RamMethods::LocationRolesCheck(Client*const pClient, const CorpPathElement 
         // not hq  is this a base?
         /** @todo finish this.  */
     }
-
 }
 
 void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const PathElement& bomLocation, const Rsp_InstallJob& rsp, const std::vector< EvERam::RequiredItem >& reqItems)
@@ -351,9 +350,9 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const P
                         .AddFormatValue ("skillLevel", new PyInt (cur.quantity));
             }
         } else {
-            uint32 qtyNeeded = ceil(cur.quantity * rsp.materialMultiplier * runs);
+            uint32 qtyNeeded = round(cur.quantity * rsp.materialMultiplier) * runs;
             if (cur.damagePerJob == 1)
-                qtyNeeded = ceil(qtyNeeded * rsp.charMaterialMultiplier);
+                qtyNeeded += round(cur.quantity * rsp.charMaterialMultiplier - cur.quantity) * runs;
             std::map<uint16, InventoryItemRef>::iterator itr = items.find(cur.typeID);
             if (itr != items.end())
                 if (itr->second->typeID() == cur.typeID) {
@@ -408,7 +407,7 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
 
     // set char defaults
     into.charTimeMultiplier = 1.0;
-    into.charMaterialMultiplier = 1.0;
+    into.charMaterialMultiplier = EvE::max(1.0f, pChar->GetAttribute (AttrManufactureCostMultiplier).get_float ());
 
     const ItemType* pType(nullptr);
     switch(args.activityID) {
@@ -500,10 +499,12 @@ void RamMethods::EncodeBillOfMaterials(const std::vector<EvERam::RequiredItem> &
             continue;
         }
 
+        int qtyNeeded = (uint32)round(cur.quantity * materialMultiplier + (cur.quantity * charMaterialMultiplier - cur.quantity)) * runs;
+
         // otherwise, make line for material list
         MaterialList_Line line;
         line.requiredTypeID = cur.typeID;
-        line.quantity = (int32)ceil(cur.quantity * materialMultiplier * runs);
+        line.quantity = (int32) round (cur.quantity * materialMultiplier) * runs;
         line.damagePerJob = cur.damagePerJob;
         line.isSkillCheck = false;  // no idea what is this for
         line.requiresHP = false;    // no idea what is this for
@@ -518,7 +519,7 @@ void RamMethods::EncodeBillOfMaterials(const std::vector<EvERam::RequiredItem> &
             // if there are losses, make line for waste material list
             if (charMaterialMultiplier > 1.0) {
                 MaterialList_Line wastage( line );  // simply copy original line ...
-                wastage.quantity = (int32)ceil(wastage.quantity * (charMaterialMultiplier - 1.0)); // ... and calculate proper quantity
+                wastage.quantity = qtyNeeded - line.quantity;
                 into.wasteMaterials.lines->AddItem( wastage.Encode() );
             }
             into.rawMaterials.lines->AddItem( line.Encode() );
@@ -541,9 +542,7 @@ void RamMethods::EncodeMissingMaterials(const std::vector<EvERam::RequiredItem> 
     for (auto cur : reqItems) {
         qtyReq = cur.quantity;
         if (!cur.isSkill) {
-            qtyReq = (uint32)ceil(qtyReq * materialMultiplier * runs);
-            if (cur.damagePerJob == 1)
-                qtyReq = (uint32)ceil(qtyReq * charMaterialMultiplier);
+            qtyReq = (uint32)round(qtyReq * materialMultiplier + (cur.quantity * charMaterialMultiplier - cur.quantity)) * runs;
         }
 
         std::vector<InventoryItemRef>::iterator curi, endi;

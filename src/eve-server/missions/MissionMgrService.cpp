@@ -86,7 +86,7 @@ PyBoundObject *MissionMgrService::CreateBoundObject(Client *pClient, PyTuple *bi
 PyResult MissionMgrService::Handle_GetMyCourierMissions( PyCallArgs& call )
 {
     //SELECT * FROM courierMissions
-    sLog.White("MissionMgrService", "Handle_GetMyCourierMissions() size=%u", call.tuple->size() );
+    sLog.White("MissionMgrService", "Handle_GetMyCourierMissions() size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;

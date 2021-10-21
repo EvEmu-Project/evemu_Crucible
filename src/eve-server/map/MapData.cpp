@@ -223,7 +223,7 @@ void MapData::GetMissionDestination(Agent* pAgent, uint8 misionType, MissionOffe
         } break;
     }
 
-    if (IsStation(offer.destinationID)) {
+    if (sDataMgr.IsStation(offer.destinationID)) {
         StationData data = StationData();
         stDataMgr.GetStationData(offer.destinationID, data);
         offer.destinationOwnerID    = data.corporationID;

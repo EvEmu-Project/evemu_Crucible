@@ -53,7 +53,7 @@ PyResult FleetProxy::Handle_GetAvailableFleets(PyCallArgs &call) {
 
 PyResult FleetProxy::Handle_ApplyToJoinFleet(PyCallArgs &call) {
   // ret = sm.ProxySvc('fleetProxy').ApplyToJoinFleet(fleetID)
-   // sLog.White("FleetProxy", "Handle_ApplyToJoinFleet() size=%u", call.tuple->size() );
+   // sLog.White("FleetProxy", "Handle_ApplyToJoinFleet() size=%li", call.tuple->size());
    // call.Dump(FLEET__DUMP);
 
     Call_SingleIntegerArg arg;
@@ -69,7 +69,7 @@ PyResult FleetProxy::Handle_ApplyToJoinFleet(PyCallArgs &call) {
     // this is also used to update advert info
 PyResult FleetProxy::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
  //  sm.ProxySvc('fleetProxy').AddFleetFinderAdvert(info)
-    //sLog.White("FleetProxy", "Handle_AddFleetFinderAdvert() size=%u", call.tuple->size() );
+    //sLog.White("FleetProxy", "Handle_AddFleetFinderAdvert() size=%li", call.tuple->size());
     //call.Dump(FLEET__DUMP);
 
     /** @todo  this needs to be updated....check standings and verifly scope */
@@ -114,7 +114,7 @@ PyResult FleetProxy::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
 }
 
 PyResult FleetProxy::Handle_RemoveFleetFinderAdvert(PyCallArgs &call) {
-   // sLog.White("FleetProxy", "Handle_RemoveFleetFinderAdvert() size=%u", call.tuple->size() );
+   // sLog.White("FleetProxy", "Handle_RemoveFleetFinderAdvert() size=%li", call.tuple->size());
     //call.Dump(FLEET__DUMP);
 
     sFltSvc.RemoveFleetAdvert(call.client->GetChar()->fleetID());
@@ -123,7 +123,7 @@ PyResult FleetProxy::Handle_RemoveFleetFinderAdvert(PyCallArgs &call) {
 }
 
 PyResult FleetProxy::Handle_GetMyFleetFinderAdvert(PyCallArgs &call) {
-   // sLog.White("FleetProxy", "Handle_GetMyFleetFinderAdvert() size=%u", call.tuple->size() );
+   // sLog.White("FleetProxy", "Handle_GetMyFleetFinderAdvert() size=%li", call.tuple->size());
    // call.Dump(FLEET__DUMP);
 
     return sFltSvc.GetFleetAdvert(call.client->GetChar()->fleetID());
@@ -132,7 +132,7 @@ PyResult FleetProxy::Handle_GetMyFleetFinderAdvert(PyCallArgs &call) {
 PyResult FleetProxy::Handle_UpdateAdvertInfo(PyCallArgs &call) {
   //   sm.ProxySvc('fleetProxy').UpdateAdvertInfo(numMembers)
     // this call just updates member count in fleet advert.  not needed here, as that is dynamic data.
-    //sLog.White("FleetProxy", "Handle_UpdateAdvertInfo() size=%u", call.tuple->size() );
+    //sLog.White("FleetProxy", "Handle_UpdateAdvertInfo() size=%li", call.tuple->size());
     //call.Dump(FLEET__DUMP);
 
     return nullptr;

@@ -377,9 +377,7 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
             m_targetSE->TargetMgr()->AddTargetModule(this);
     }
 
-    m_Stop = false;
     m_repeat = repeat;
-
     m_effectID = effectID;
 
     if (!CanActivate()) {
@@ -387,6 +385,7 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
         return;
     }
 
+    m_Stop = false;
     m_isWarpSafe = sFxDataMgr.isWarpSafe(m_effectID);
 
     ShipSE* pShip = m_shipRef->GetPilot()->GetShipSE();
@@ -510,40 +509,30 @@ uint32 ActiveModule::DoCycle()
         return 0;
     }
 
-    // Check for modules which consume items from inventory per-cycle
+    // Check for (13) modules which consume items per-cycle (they only consume single type)
     if (m_modRef->HasAttribute(AttrConsumptionType)) {
-        std::vector<InventoryItemRef> cargoItems;
-        std::vector<InventoryItemRef> requiredItems;
-        uint32 itemType = m_modRef->GetAttribute(AttrConsumptionType).get_uint32();
-        uint32 itemQuantity = m_modRef->GetAttribute(AttrConsumptionQuantity).get_uint32();
-        m_shipRef->GetMyInventory()->GetItemsByFlag(flagCargoHold, cargoItems);
-        uint32 quantity = 0;
-        for (auto cur : cargoItems) {
-            if (cur->type().id() == itemType) {
-                quantity += cur->quantity();
-                requiredItems.push_back(cur);
-                if (quantity >= itemQuantity) {
-                    break;
-                } 
-            }
-        }
-        if (quantity < itemQuantity) {
-            m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your inventory.", itemQuantity, sItemFactory.GetType(itemType)->name().c_str());
-            AbortCycle();
+        uint16 typeID(m_modRef->GetAttribute(AttrConsumptionType).get_uint32()); // cast uint32 to uint16
+        uint32 qtyNeed(m_modRef->GetAttribute(AttrConsumptionQuantity).get_uint32());
+        // verify character has require amount of consumption type available
+        if (!m_shipRef->GetMyInventory()->ContainsTypeQtyByFlag(typeID, EVEItemFlags::flagCargoHold, qtyNeed)) {
+            m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your cargo hold.", \
+                    qtyNeed, sItemFactory.GetType(typeID)->name().c_str());
+            AbortCycle();  // CHECK THIS  for initial activate
             return 0;
-        }
-
-        uint32 quantityLeft = itemQuantity;
-        for (auto cur : requiredItems) {
-            if (cur->quantity() >= quantityLeft) {
-                //If we have all the quantity we need in the current stack, decrement the amount we need and break
-                cur->AlterQuantity(-quantityLeft, true);
-                break;
+        } else {
+            /** @todo this may need more work later in the case of multiple stacks */
+            InventoryItemRef iRef(m_shipRef->GetMyInventory()->GetByTypeFlag(typeID, EVEItemFlags::flagCargoHold));
+            if (iRef.get() != nullptr) {
+                if (iRef->quantity() > qtyNeed) {
+                    //If we have all the quantity we need in the current stack, decrement the amount we need and break
+                    iRef->AlterQuantity(-qtyNeed, true);
+                } else {
+                    // Delete item
+                    iRef->SetQuantity(0, true, true);
+                }
             } else {
-                //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack
-                quantityLeft -= cur->quantity();
-                // Delete item after we zero it's quantity
-                cur->SetQuantity(0, true, true);
+                AbortCycle();  // CHECK THIS  for initial activate
+                return 0;
             }
         }
     }
@@ -700,8 +689,6 @@ void ActiveModule::DeactivateCycle(bool abort/*false*/)
     }
 
     // Remove modifier added by module
-    
-
     ApplyEffect(FX::State::Active, false);
     if (IsValidTarget(m_targetID)
     and (m_targetSE != nullptr))
@@ -1019,14 +1006,26 @@ bool ActiveModule::CanActivate()
     // there is still more to be done here.  wip
     //  modules that require specific tests are coded in their module class, which will call this if their specific checks pass
 
+    // Check for (13) modules which consume items.
+    if (m_modRef->HasAttribute(AttrConsumptionType)) {
+        uint16 typeID(m_modRef->GetAttribute(AttrConsumptionType).get_uint32()); // cast uint32 to uint16
+        uint32 qtyNeed(m_modRef->GetAttribute(AttrConsumptionQuantity).get_uint32());
+        // verify character has require amount of consumption type available
+        if (!m_shipRef->GetMyInventory()->ContainsTypeQtyByFlag(typeID, EVEItemFlags::flagCargoHold, qtyNeed)) {
+            m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your inventory.", \
+                    qtyNeed, sItemFactory.GetType(typeID)->name().c_str());
+            return false;
+        }
+    }
+
     // check distance for targetable actions
     if (m_targetSE != nullptr) {
         // weapons use ships AttrMaxTargetRange which is checked in TargetMgr
         if (m_turret or m_launcher)
-            return  true;
+            return true;
 
         // test for specific targets and distance here
-        float range = 0.0f;
+        float range(0.0f);
         using namespace EVEDB::invGroups;
         switch (groupID()) {
             case Tractor_Beam: {
@@ -1145,28 +1144,6 @@ bool ActiveModule::CanActivate()
         }
     }
 
-    // Check for modules which consume items from inventory, and make sure player has enough
-    if (m_modRef->HasAttribute(AttrConsumptionType)) {
-        std::vector<InventoryItemRef> cargoItems;
-        std::vector<InventoryItemRef> requiredItems;
-        uint32 itemType = m_modRef->GetAttribute(AttrConsumptionType).get_uint32();
-        uint32 itemQuantity = m_modRef->GetAttribute(AttrConsumptionQuantity).get_uint32();
-        m_shipRef->GetMyInventory()->GetItemsByFlag(flagCargoHold, cargoItems);
-        uint32 quantity = 0;
-        for (auto cur : cargoItems) {
-            if (cur->type().id() == itemType) {
-                quantity += cur->quantity();
-                requiredItems.push_back(cur);
-                if (quantity >= itemQuantity) {
-                    break;
-                } 
-            }
-        }
-        if (quantity < itemQuantity) {
-            m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your inventory.", itemQuantity, sItemFactory.GetType(itemType)->name().c_str());
-            return false;
-        }
-    }
     //AttrDeadspaceUnsafe
     //AttrMaxGroupActive
     return true;
@@ -1438,5 +1415,5 @@ void ActiveModule::LaunchProbe()
 
 void ActiveModule::LaunchSnowBall()
 {
-
+    // not used yet
 }

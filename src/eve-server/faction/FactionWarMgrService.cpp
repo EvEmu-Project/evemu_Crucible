@@ -176,7 +176,7 @@ PyResult FactionWarMgrService::Handle_GetMyCharacterRankOverview( PyCallArgs& ca
 }
 
 PyResult FactionWarMgrService::Handle_GetMyCharacterRankInfo( PyCallArgs& call ) {
-  _log(FACWAR__CALL, "FacWarMgr::Handle_GetMyCharacterRankInfo()", "size= %u", call.tuple->size() );
+  _log(FACWAR__CALL, "FacWarMgr::Handle_GetMyCharacterRankInfo() size=%li", call.tuple->size());
   call.Dump(FACWAR__CALL_DUMP);
   util_Rowset rs;
 
@@ -195,7 +195,7 @@ PyResult FactionWarMgrService::Handle_GetFactionMilitiaCorporation(PyCallArgs &c
      * 05:39:07 [SvcCall]       Tuple: 1 elements
      * 05:39:07 [SvcCall]         [ 0] Integer field: 500002
      */
-  _log(FACWAR__CALL, "FacWarMgr::Handle_GetFactionMilitiaCorporation()", "size= %u", call.tuple->size() );
+  _log(FACWAR__CALL, "FacWarMgr::Handle_GetFactionMilitiaCorporation() size=%li", call.tuple->size());
   call.Dump(FACWAR__CALL_DUMP);
     Call_SingleIntegerArg arg;
     if (!arg.Decode(&call.tuple)) {
@@ -399,7 +399,7 @@ PyResult FactionWarMgrService::Handle_LeaveFactionAsAlliance(PyCallArgs &call) {
 
 PyResult FactionWarMgrService::Handle_LeaveFactionAsCorporation(PyCallArgs &call) {
     //self.facWarMgr.LeaveFactionAsCorporation(factionID)
-    _log(FACWAR__CALL, "FacWarMgr::Handle_()");
+    _log(FACWAR__CALL, "FacWarMgr::Handle_LeaveFactionAsCorporation()");
     call.Dump(FACWAR__CALL_DUMP);
 
     return nullptr;
@@ -407,7 +407,7 @@ PyResult FactionWarMgrService::Handle_LeaveFactionAsCorporation(PyCallArgs &call
 
 PyResult FactionWarMgrService::Handle_WithdrawJoinFactionAsAlliance(PyCallArgs &call) {
     //self.facWarMgr.WithdrawJoinFactionAsAlliance(factionID)
-    _log(FACWAR__CALL, "FacWarMgr::Handle_()");
+    _log(FACWAR__CALL, "FacWarMgr::Handle_WithdrawJoinFactionAsAlliance()");
     call.Dump(FACWAR__CALL_DUMP);
 
     return nullptr;
@@ -415,7 +415,7 @@ PyResult FactionWarMgrService::Handle_WithdrawJoinFactionAsAlliance(PyCallArgs &
 
 PyResult FactionWarMgrService::Handle_WithdrawJoinFactionAsCorporation(PyCallArgs &call) {
     //self.facWarMgr.WithdrawJoinFactionAsCorporation(factionID)
-    _log(FACWAR__CALL, "FacWarMgr::Handle_()");
+    _log(FACWAR__CALL, "FacWarMgr::Handle_WithdrawJoinFactionAsCorporation()");
     call.Dump(FACWAR__CALL_DUMP);
 
     return nullptr;
@@ -423,7 +423,7 @@ PyResult FactionWarMgrService::Handle_WithdrawJoinFactionAsCorporation(PyCallArg
 
 PyResult FactionWarMgrService::Handle_WithdrawLeaveFactionAsAlliance(PyCallArgs &call) {
     //self.facWarMgr.WithdrawLeaveFactionAsAlliance(factionID)
-    _log(FACWAR__CALL, "FacWarMgr::Handle_()");
+    _log(FACWAR__CALL, "FacWarMgr::Handle_WithdrawLeaveFactionAsAlliance()");
     call.Dump(FACWAR__CALL_DUMP);
 
     return nullptr;

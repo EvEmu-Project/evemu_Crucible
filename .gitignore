@@ -93,7 +93,7 @@ zlib/
 # evemu output
 build/
 build_iwyu/
-buildRel/
+staging/
 
 # doxygen output
 doxygen/
@@ -112,3 +112,6 @@ sql.tar.gz
 
 # VSCode Config Files
 .vscode/
+
+# CLion Config Files
+.idea

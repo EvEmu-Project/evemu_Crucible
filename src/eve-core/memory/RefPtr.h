@@ -70,7 +70,7 @@ public:
      */
     virtual ~RefObject()
     {
-        // this isnt completely accurate yet.  disable to avoid crashes i cant trace 
+        // this isnt completely accurate yet.  disable to avoid crashes i cant trace
         //assert( mRefCount == 0);
         mDeleted = true;
     }
@@ -177,6 +177,20 @@ public:
             (*this)->DecRef();
     }
 
+    /**
+     * @brief Move operator.
+     *
+     * @param[in] oth Object to move.
+     */
+    RefPtr& operator=( const RefPtr&& oth )
+    {
+        if (*this)
+            (*this)->DecRef();
+        mPtr = std::move(oth.get());
+        if (*this)
+            (*this)->IncRef();
+        return *this;
+    }
     /**
      * @brief Copy operator.
      *

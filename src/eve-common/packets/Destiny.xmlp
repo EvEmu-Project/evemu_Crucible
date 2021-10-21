@@ -374,7 +374,7 @@ DST_WARPEXIT = 11
       </tupleInline>
   </elementDef>
 
-  <elementDef name="OnSpecialFX13">
+  <elementDef name="OnSpecialFX14">
       <tupleInline>
         <!-- 0 -->
         <stringInline value="OnSpecialFX" />
@@ -572,6 +572,21 @@ DST_WARPEXIT = 11
       <int name="characterID"  safe="true" none_marker="0" />
       <int name="beaconID"  safe="true" none_marker="0" />
       <int name="solarSystemID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_BeaconJumpAlliance">
+    <tupleInline>
+      <int name="beaconID"  safe="true" none_marker="0" />
+      <int name="solarSystemID"  safe="true" none_marker="0" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Call_BridgeJumpAlliance">
+    <tupleInline>
+      <int name="itemID"  safe="true" none_marker="0" />
+      <int name="remoteStructureID"  safe="true" none_marker="0" />
+      <int name="remoteSystemID"  safe="true" none_marker="0" />
     </tupleInline>
   </elementDef>
 

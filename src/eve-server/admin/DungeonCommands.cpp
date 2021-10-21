@@ -43,7 +43,7 @@ PyResult Command_savedungeon(Client* pClient, CommandDB* db, PyServiceMgr* servi
 
     if (args.argCount() == 2) { //
         if (args.isNumber(1)) {
-
+            // not used yet
         }
     }
 
@@ -57,7 +57,7 @@ PyResult Command_savedungeon(Client* pClient, CommandDB* db, PyServiceMgr* servi
         pClient->SendInfoModalMsg(reply);
         return nullptr;
     } else if (args.isNumber(1)) {
-
+        // not used yet
     }
 
     throw CustomError ("SaveDungeon: - This command is currently incomplete.");

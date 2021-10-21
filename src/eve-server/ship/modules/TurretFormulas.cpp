@@ -30,7 +30,7 @@ float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEn
     uint32 falloff = pMod->GetAttribute(AttrFalloff).get_uint32();
     uint32 range = pMod->GetAttribute(AttrMaxRange).get_uint32();
     float distance = shipRef->position().distance(pTarget->DestinyMgr()->GetPosition());
-    _log(DAMAGE__TRACE, "Turret::GetToHit - distance:%.2f, range:%.2f, falloff:%u", distance, range, falloff);
+    _log(DAMAGE__TRACE, "Turret::GetToHit - distance:%.2f, range:%u, falloff:%u", distance, range, falloff);
 
     // calculate transversal from other data
     /* i have had problems finding exact data for transversal velocity
@@ -59,7 +59,7 @@ float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEn
      */
     float a = (angularVel / trackSpeed);
     float b = (sigRes / targSig);
-    float modifier = 0.0f;
+    float modifier(0.0f);
     if ((a < 1) and (b > 1)) {
         /* in cases where weapon can track target, but sigRes > targSig, the weapon would not hit on live but *should* hit with reduced damage
          * modify formula to remove Signature variable from equation, test toHit against tracking,
@@ -98,7 +98,7 @@ float TurretFormulas::GetNPCToHit(NPC* pNPC, SystemEntity* pTarget)
     float distance = pNPC->DestinyMgr()->GetPosition().distance(pTarget->DestinyMgr()->GetPosition());
     float trackSpeed = pNPC->GetAIMgr()->GetTrackingSpeed();
     float targSig = pTarget->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();
-    _log(DAMAGE__TRACE_NPC, "NPC::GetToHit - distance:%.2f, range:%.u, falloff:%u", distance, range, falloff);
+    _log(DAMAGE__TRACE_NPC, "NPC::GetToHit - distance:%.2f, range:%u, falloff:%u", distance, range, falloff);
 
     GVector vector = pTarget->GetVelocity() - pNPC->GetVelocity();
     float transversalV = vector.length();
@@ -108,7 +108,7 @@ float TurretFormulas::GetNPCToHit(NPC* pNPC, SystemEntity* pTarget)
 
     float a = (angularVel / trackSpeed);
     float b = (sigRes / targSig);
-    float modifier = 0.0f;
+    float modifier(0.0f);
     if ((a < 1) and (b > 1)) {
         b = 1;
         modifier = (targSig / sigRes);

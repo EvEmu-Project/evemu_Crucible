@@ -542,7 +542,7 @@ PyResult CharMgrService::Handle_LogSettings( PyCallArgs& call ) {
      *              [PyString "machoVersion"]
      *              [PyInt 1]
      */
-    sLog.Warning( "CharMgrService::Handle_LogSettings()", "size= %u", call.tuple->size() );
+    sLog.Warning( "CharMgrService::Handle_LogSettings()", "size= %li", call.tuple->size());
     call.Dump(CHARACTER__TRACE);
     return nullptr;
 }
@@ -664,7 +664,7 @@ PyResult CharMgrService::Handle_AddOwnerNote( PyCallArgs& call ) {
 
     */
 
-  sLog.Warning( "CharMgrService::Handle_AddOwnerNote()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_AddOwnerNote()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
   return nullptr;
@@ -711,7 +711,7 @@ PyResult CharMgrService::Handle_GetOwnerNote(PyCallArgs &call)
             ["label" => <S:Folders> [WStr]]
             */
 
-    sLog.Warning( "CharMgrService::Handle_GetOwnerNote()", "size= %u", call.tuple->size() );
+    sLog.Warning( "CharMgrService::Handle_GetOwnerNote()", "size= %li", call.tuple->size());
     call.Dump(CHARACTER__DEBUG);
     return nullptr;
     //return m_db.GetOwnerNote(call.client->GetCharacterID());
@@ -756,7 +756,7 @@ PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
             ["label" => <N:Pelorn's PvP Route> [WStr]]
     [PyNone]
 */
-  sLog.Warning( "CharMgrService::Handle_GetOwnerNoteLabels()", "size= %u", call.tuple->size() );
+  sLog.Warning( "CharMgrService::Handle_GetOwnerNoteLabels()", "size= %li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
     return m_db.GetOwnerNoteLabels(call.client->GetCharacterID());
@@ -770,7 +770,7 @@ PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
 //18:07:35 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(63177)
 PyResult CharMgrService::Handle_AddContact( PyCallArgs& call )
 {
-  sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
     Call_AddContact args;
@@ -787,7 +787,7 @@ PyResult CharMgrService::Handle_AddContact( PyCallArgs& call )
 
 PyResult CharMgrService::Handle_EditContact( PyCallArgs& call )
 {
-  sLog.Warning( "CharMgrService::Handle_EditContact()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_EditContact()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
   Call_AddContact args;
@@ -802,7 +802,7 @@ PyResult CharMgrService::Handle_EditContact( PyCallArgs& call )
 
 PyResult CharMgrService::Handle_CreateLabel( PyCallArgs& call )
 {
-  sLog.Warning( "CharMgrService::Handle_CreateLabel()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_CreateLabel()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
   return nullptr;
@@ -812,7 +812,7 @@ PyResult CharMgrService::Handle_DeleteContacts( PyCallArgs& call )
 {
   // sm.RemoteSvc('charMgr').DeleteContacts([contactIDs])
 
-  sLog.Warning( "CharMgrService::Handle_DeleteContacts()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_DeleteContacts()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
   Call_RemoveCorporateContacts args;
@@ -831,7 +831,7 @@ PyResult CharMgrService::Handle_DeleteContacts( PyCallArgs& call )
 PyResult CharMgrService::Handle_BlockOwners( PyCallArgs& call )
 {
   //        sm.RemoteSvc('charMgr').BlockOwners([ownerID])
-  sLog.Warning( "CharMgrService::Handle_BlockOwners()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_BlockOwners()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
   Call_RemoveCorporateContacts args;
@@ -843,14 +843,14 @@ PyResult CharMgrService::Handle_BlockOwners( PyCallArgs& call )
   for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
       m_db.SetBlockContact(PyRep::IntegerValueU32(*itr), call.client->GetCharacterID(), true);
   }
-  
+
   return nullptr;
 }
 
 PyResult CharMgrService::Handle_UnblockOwners( PyCallArgs& call )
 {
   //            sm.RemoteSvc('charMgr').UnblockOwners(blocked)
-  sLog.Warning( "CharMgrService::Handle_UnblockOwners()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_UnblockOwners()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
   Call_RemoveCorporateContacts args;
@@ -871,7 +871,7 @@ PyResult CharMgrService::Handle_EditContactsRelationshipID( PyCallArgs& call )
   /*
             sm.RemoteSvc('charMgr').EditContactsRelationshipID(contactIDs, relationshipID)
  */
-  sLog.Warning( "CharMgrService::Handle_EditContactsRelationshipID()", "size=%u ", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_EditContactsRelationshipID()", "size=%li", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
   Call_EditCorporateContacts args;
@@ -881,7 +881,7 @@ PyResult CharMgrService::Handle_EditContactsRelationshipID( PyCallArgs& call )
   }
 
   for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
-      m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), call.tuple->size());
+      m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), call.client->GetCharacterID());
   }
 
   return nullptr;
@@ -889,7 +889,7 @@ PyResult CharMgrService::Handle_EditContactsRelationshipID( PyCallArgs& call )
 
 PyResult CharMgrService::Handle_GetFactions( PyCallArgs& call )
 {
-    sLog.Warning( "CharMgrService::Handle_GetFactions()", "size= %u", call.tuple->size() );
+    sLog.Warning( "CharMgrService::Handle_GetFactions()", "size= %li", call.tuple->size());
     call.Dump(CHARACTER__TRACE);
     return nullptr;
 }

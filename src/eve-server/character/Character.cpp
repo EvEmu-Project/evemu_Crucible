@@ -159,7 +159,6 @@ void CharacterAppearance::Build(uint32 ownerID, PyDict* data)
                                 sculpt_tuple->GetItem(2),
                                 sculpt_tuple->GetItem(3),
                                 sculpt_tuple->GetItem(4));
-
         }
     }
 }
@@ -242,7 +241,8 @@ Character::Character(
   m_inTraining(nullptr),
   m_loaded(false),
   m_fleetData(CharFleetData()),
-  m_freePoints(0)
+  m_freePoints(0),
+  m_loginTime(0)
 {
     // enforce characters to be singletons
     assert(isSingleton());
@@ -323,8 +323,8 @@ CharacterRef Character::Spawn( CharacterData& charData, CorpData& corpData) {
     if (ct == nullptr)
         return CharacterRef(nullptr);
 
-    uint32 characterID = CharacterDB::NewCharacter(charData, corpData);
-    if (!IsCharacter(characterID)) {
+    uint32 characterID(CharacterDB::NewCharacter(charData, corpData));
+    if (!IsCharacterID(characterID)) {
         _log(CHARACTER__ERROR, "Failed to get itemID for new character.");
         return CharacterRef(nullptr);
     }
@@ -334,18 +334,17 @@ CharacterRef Character::Spawn( CharacterData& charData, CorpData& corpData) {
 
 void Character::LogOut()
 {
-
     SaveFullCharacter();
     m_db.SetLogOffTime(m_itemID);
     if (!sConsole.IsShutdown())
-        if (IsFleet(m_fleetData.fleetID))
+        if (IsFleetID(m_fleetData.fleetID))
             sFltSvc.LeaveFleet(m_pClient);
 
     pInventory->Unload();
 
     if (!m_pClient->IsCharCreation()) {
         sItemFactory.RemoveItem(m_itemID);
-        if (IsStation(m_charData.locationID))
+        if (sDataMgr.IsStation(m_charData.locationID))
             ;   // do we need to do anything here?
     }
 }
@@ -468,8 +467,8 @@ void Character::SetFleetData(CharFleetData& fleet)
 }
 
 void Character::FleetShareMissionRewards()
-{   // not used yet.
-
+{
+    // not used yet
 }
 
 void Character::FleetShareMissionStandings(float newStanding)
@@ -1346,12 +1345,12 @@ void Character::SaveCertificates() {
 /** @todo this will need more thought/work   */
 void Character::LoadBookmarks()
 {
-
+    // not used yet
 }
 
 void Character::SaveBookMarks()
 {
-
+    // not used yet
 }
 
 

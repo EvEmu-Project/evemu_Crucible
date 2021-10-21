@@ -120,7 +120,6 @@ public:
 
 protected:
     Dispatcher *const m_dispatch;
-
 };
 
 PyCallable_Make_InnerDispatcher(BeyonceService)
@@ -181,6 +180,9 @@ PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
     if (pSystem == nullptr) {
@@ -215,6 +217,9 @@ PyResult BeyonceBound::Handle_CmdSetSpeedFraction(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     Call_SingleRealArg arg;
@@ -247,6 +252,9 @@ PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
@@ -286,6 +294,9 @@ PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     Call_PointArg arg;
@@ -313,6 +324,9 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
 
@@ -371,6 +385,9 @@ PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     SystemManager* pSystem = call.client->SystemMgr();
@@ -409,7 +426,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuff. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
-  _log(SERVICE__CALL_DUMP, "BeyonceBound::Handle_CmdWarpToStuff() - size %u", call.tuple->size() );
+  _log(SERVICE__CALL_DUMP, "BeyonceBound::Handle_CmdWarpToStuff() - size=%li", call.tuple->size());
    call.Dump(SERVICE__CALL_DUMP);
 
    /** @todo (allan) finish warp scramble system */
@@ -424,6 +441,9 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
     }
     if (pDestiny->IsWarping()){
         call.client->SendNotifyMsg( "You are already warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
 
@@ -644,6 +664,9 @@ PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
     if (pSystem == nullptr) {
@@ -694,6 +717,9 @@ PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
     if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     call.client->SetUndock(false);
@@ -718,6 +744,9 @@ PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
     if (pSystem == nullptr) {
@@ -738,7 +767,6 @@ PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
 }
 
 PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
-
     /*  jump system messages....
 (67187, `{[location]system.name} Traffic Control: your jump-in clearance has expired.`)
 (67191, `{[location]system.name} Traffic Control: you have been cleared for jump-in within {[timeinterval]expiration.writtenForm, from=second, to=second}.`)
@@ -776,6 +804,9 @@ PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
     }
 
     Call_StargateJump args;
@@ -799,7 +830,7 @@ PyResult BeyonceBound::Handle_CmdAbandonLoot(PyCallArgs &call) {
 	/*  remotePark.CmdAbandonLoot(wrecks)  <- this is pylist from 'abandonAllWrecks'
 	 *  remotePark.CmdAbandonLoot([wreckID]) <- single itemID in list
 	 */
-  sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size= %u", call.tuple->size() );
+  sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size=%li", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
 	Call_SingleIntList arg;
@@ -947,7 +978,78 @@ PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &cal
     //sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughCorporationStructure, itemID, remoteStructureID, remoteSystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughCorporationStructure");
     call.Dump(SHIP__WARNING);
-    return PyStatic.NewNone();
+
+    _log(AUTOPILOT__MESSAGE, "%s called bridge jump.", call.client->GetName());
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
+    }
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }
+
+    Call_BridgeJumpAlliance args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+
+    InventoryItemRef beacon = sItemFactory.GetInventoryItemFromID(args.remoteStructureID);
+
+    //Check for jump fuel and make sure there is enough fuel available
+    InventoryItemRef bridge = sItemFactory.GetInventoryItemFromID(args.itemID);
+    ShipItemRef ship = call.client->GetShip();
+
+    std::vector<InventoryItemRef> fuelBayItems;
+    std::vector<InventoryItemRef> requiredItems;
+    uint32 fuelType = EVEDB::invTypes::LiquidOzone;
+    uint32 fuelQuantity = 500; // Bridges use static fuel quantity
+
+    bridge->GetMyInventory()->GetItemsByFlag(flagHangar, fuelBayItems);
+    uint32 quantity = 0;
+    for (auto cur : fuelBayItems) {
+        if (cur->type().id() == fuelType) {
+            quantity += cur->quantity();
+            requiredItems.push_back(cur);
+            if (quantity >= fuelQuantity) {
+                break;
+            }
+        }
+    }
+    if (quantity < fuelQuantity) {
+        ship->GetPilot()->SendNotifyMsg("This jump requires %u units of %s in the Jump Bridge fuel hold.", fuelQuantity, sItemFactory.GetType(fuelType)->name().c_str());
+        return nullptr;
+    }
+
+    uint32 quantityLeft = fuelQuantity;
+    for (auto cur : requiredItems) {
+        if (cur->quantity() >= quantityLeft) {
+            //If we have all the quantity we need in the current stack, decrement the amount we need and break
+            cur->AlterQuantity(-quantityLeft, true);
+            break;
+        } else {
+            //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack
+            quantityLeft -= cur->quantity();
+            // Delete item after we zero it's quantity
+            cur->SetQuantity(0, true, true);
+        }
+    }
+    GPoint position = beacon->position();
+    position.MakeRandomPointOnSphere(2500.0);
+    call.client->CynoJump(beacon);
+
+    /* return error msg from this call, if applicable, else nodeid and timestamp */
+    // returns nodeID and timestamp
+    PyTuple* tuple = new PyTuple(2);
+        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
+        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
+    return tuple;
 }
 
 PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
@@ -967,6 +1069,9 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
 
@@ -995,7 +1100,98 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
 
     int8 jumpFuelConservationLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFuelConservation);
     int8 jumpFreightersLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFreighters);
-    
+
+    if (ship->groupID() == EVEDB::invGroups::JumpFreighter) {
+        fuelQuantity = uint32(ceil(jumpDistance * fuelBaseConsumption * (1 - 0.1 * jumpFuelConservationLevel) * (1 - 0.1 * jumpFreightersLevel)));
+    } else {
+        fuelQuantity = uint32(ceil(jumpDistance * fuelBaseConsumption * (1 - 0.1 * jumpFuelConservationLevel)));
+    }
+
+    ship->GetMyInventory()->GetItemsByFlag(flagFuelBay, fuelBayItems);
+    uint32 quantity = 0;
+    for (auto cur : fuelBayItems) {
+        if (cur->type().id() == fuelType) {
+            quantity += cur->quantity();
+            requiredItems.push_back(cur);
+            if (quantity >= fuelQuantity) {
+                break;
+            }
+        }
+    }
+    if (quantity < fuelQuantity) {
+        ship->GetPilot()->SendNotifyMsg("This jump requires you to have %u units of %s in your fuel bay.", fuelQuantity, sItemFactory.GetType(fuelType)->name().c_str());
+        return nullptr;
+    }
+
+    for (auto cur : requiredItems) {
+        if (cur->quantity() > fuelQuantity) {
+            //If we have all the quantity we need in the current stack, decrement the amount we need and break
+            cur->AlterQuantity(-fuelQuantity, true);
+            break;
+        } else {
+            //If the stack doesn't have the full amount delete item
+            cur->SetQuantity(0, true, true);
+        }
+    }
+
+    call.client->CynoJump(beacon);
+
+    /* return error msg from this call, if applicable, else nodeid and timestamp */
+    // returns nodeID and timestamp
+    PyTuple* tuple = new PyTuple(2);
+    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
+    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
+    return tuple;
+
+    return PyStatic.NewNone();
+}
+
+PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
+    // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
+    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdBeaconJumpAlliance");
+    call.Dump(SHIP__WARNING);
+
+    _log(AUTOPILOT__MESSAGE, "%s called beacon jump.", call.client->GetName());
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
+    }
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }
+
+    Call_BeaconJumpAlliance args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return PyStatic.NewNone();
+    }
+
+    InventoryItemRef beacon = sItemFactory.GetInventoryItemFromID(args.beaconID);
+
+    //Check for jump fuel and make sure there is enough fuel available
+    ShipItemRef ship = call.client->GetShip();
+
+    std::vector<InventoryItemRef> fuelBayItems;
+    std::vector<InventoryItemRef> requiredItems;
+    uint32 fuelType = ship->GetAttribute(AttrJumpDriveConsumptionType).get_uint32();
+    uint32 fuelBaseConsumption = uint32(ceil(ship->GetAttribute(AttrJumpDriveConsumptionAmount).get_float()));
+    uint32 fuelQuantity;
+
+    GPoint startPosition = SystemDB::GetSolarSystemPosition(call.client->GetSystemID());
+    GPoint endPosition = SystemDB::GetSolarSystemPosition(beacon->locationID());
+
+    GVector heading ( startPosition, endPosition );
+    double jumpDistance = EvEMath::Units::MetersToLightYears(heading.length());
+
+    int8 jumpFuelConservationLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFuelConservation);
+    int8 jumpFreightersLevel = call.client->GetChar()->GetSkillLevel(EvESkill::JumpFreighters);
+
     if (ship->groupID() == EVEDB::invGroups::JumpFreighter) {
         fuelQuantity = uint32(ceil(jumpDistance * fuelBaseConsumption * (1 - 0.1 * jumpFuelConservationLevel) * (1 - 0.1 * jumpFreightersLevel)));
     } else {
@@ -1031,8 +1227,10 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
             cur->SetQuantity(0, true, true);
         }
     }
-    
-    call.client->CynoJump(call.client->GetSystemID(), beacon->locationID(), beacon->position());
+
+    GPoint position = beacon->position();
+    position.MakeRandomPointOnSphere(2500.0);
+    call.client->CynoJump(beacon);
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
@@ -1041,13 +1239,6 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
     tuple->SetItem(1, new PyLong(GetFileTimeNow()));
     return tuple;
 
-    return PyStatic.NewNone();
-}
-
-PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
-    // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
-    _log(SHIP__WARNING, "BeyonceBound::Handle_CmdBeaconJumpAlliance");
-    call.Dump(SHIP__WARNING);
     return PyStatic.NewNone();
 }
 

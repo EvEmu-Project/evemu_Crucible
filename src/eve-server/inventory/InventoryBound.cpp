@@ -280,7 +280,7 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
  */
 PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
     if (is_log_enabled(INV__DUMP)) {
-        _log(INV__DUMP, "IB::Handle_Add() size= %u", call.tuple->size());
+        _log(INV__DUMP, "IB::Handle_Add() size= %li", call.tuple->size());
         call.Dump(INV__DUMP);
     }
 
@@ -350,7 +350,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
 // this call is for moving items to *THIS* inventory
 PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
     if (is_log_enabled(INV__DUMP)) {
-        _log(INV__DUMP, "IB::Handle_MultiAdd() size= %u", call.tuple->size());
+        _log(INV__DUMP, "IB::Handle_MultiAdd() size= %li", call.tuple->size());
         call.Dump(INV__DUMP);
     }
 
@@ -548,7 +548,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             if (pShip == nullptr)
                 throw CustomError ("Ship not found. The %s wasnt moved.  Ref: ServerError 63290", iRef->name());
 
-            //if (IsSolarSystem(pShip->locationID()))
+            //if (sDataMgr.IsSolarSystem(pShip->locationID()))
             //    throw CustomError ("You cannot remove modules in space.");
 
             // verify module isnt active here (before we get too far in processing)
@@ -559,7 +559,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
                 throw CustomError ("Your %s is currently active.  You must wait for the cycle to complete before it can be removed.", pMod->GetSelf()->name());
 
             if (IsModuleSlot(toFlag)) {
-                if (IsSolarSystem(pShip->locationID()))
+                if (sDataMgr.IsSolarSystem(pShip->locationID()))
                     throw CustomError ("You cannot exchange module slots in space.");
                 //ModulesNotLoadableInSpace  <-- this needs {device} but i dont know what module it is
 
@@ -720,7 +720,9 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
     _log(INV__DUMP, "IB::List() dump.");
     call.Dump(INV__DUMP);
 
-    uint32 ownerID = m_ownerID;
+    /* ownerID will need to be 'modified' here for corp access because of how we load items */
+    //uint32 ownerID = m_ownerID;
+
     /* this item was originally bound to this flag, but can send specific flag on occasion
      * usually flag is set for subLocation, shipHangar, POS items, and CCHold
         def GetSubSystemInFlag(self, shipID, flagID):
@@ -740,11 +742,11 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
     }
 
     _log(INV__MESSAGE, "IB::List() called by %s with ownerID %u for %s(%u:%s%s) - origFlag: %s", \
-            call.client->GetName(), ownerID, m_self->name(), m_itemID, sDataMgr.GetFlagName(flag), \
+    call.client->GetName(), m_ownerID, m_self->name(), m_itemID, sDataMgr.GetFlagName(flag), \
             (m_passive ? ":passive" : ""), sDataMgr.GetFlagName(oldFlag));
 
     // check for owner type of this inventory for reference checks
-    if (IsOffice(m_itemID)) {
+    if (IsOfficeID(m_itemID)) {
         // office owned by corp in station
         // check for owner or corp
         if (call.client->GetCorporationID() != m_ownerID)
@@ -757,18 +759,16 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
     } else if (IsPlayerCorp(m_itemID)) {
         // this one probably will not be used.
         //  what items in a corp would be listed?  corpItem dont have inventory
-    } else if (IsCharacter(m_itemID)) { // this is checked in Inventory::List()
+    } else if (IsCharacterID(m_itemID)) { // this is checked in Inventory::List()
         // this is asking for skill list...char is a container for skills
         flag = flagNone;
-    } else if (IsSolarSystem(m_itemID)) {
+    } else if (sDataMgr.IsSolarSystem(m_itemID)) {
         //  not sure how to do this one...will have to check on WHEN system listing would be called
         */
-    } else if (IsStation(m_itemID)) {
+    } else if (sDataMgr.IsStation(m_itemID)) {
         // this will get owners items only, including corps
-
     } else if (IsControlBunker(m_itemID)) {
         // not sure what this is yet
-
     }
     /*
      *    if (IsCargoHoldFlag(flag)) {
@@ -791,7 +791,7 @@ PyResult InventoryBound::Handle_List(PyCallArgs &call) {
 }
 */
 
-    return pInventory->List(flag, ownerID);
+    return pInventory->List(flag, m_ownerID);
 }
 
 PyResult InventoryBound::Handle_CreateBookmarkVouchers(PyCallArgs &call) {
@@ -817,7 +817,7 @@ PyResult InventoryBound::Handle_CreateBookmarkVouchers(PyCallArgs &call) {
         locationID = call.client->GetShipID();
 
     // when trying to copy vouchers to jetcan, location is solar system....grrrr
-    if (IsSolarSystem(locationID)) {
+    if (sDataMgr.IsSolarSystem(locationID)) {
         args.flag = flagCargoHold;
         locationID = call.client->GetShipID();
     }

@@ -115,9 +115,9 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
                 if (EvE::icontains(args.arg(1), cur))
                     throw CustomError ("Location contains invalid characters");
             locationID = db->GetSolarSystem(args.arg(1).c_str());
-            if (!IsSolarSystem(locationID)) {
+            if (!sDataMgr.IsSolarSystem(locationID)) {
                 locationID = db->GetStation(args.arg(1).c_str());
-                if (!IsStation(locationID))
+                if (!sDataMgr.IsStation(locationID))
                     throw CustomError ("Translocate: Name Argument is neither SolarSystem nor StationName");
             }
         }
@@ -130,7 +130,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             // decode first arg  -- me, shipID, charID, playerName, itemID {invalid}
         if (args.isNumber(1)) {     // charID, shipID, {invalid}
             int objectID = atoi(args.arg(1).c_str());
-            if (IsCharacter(objectID)) {
+            if (IsCharacterID(objectID)) {
                 pOtherClient = sEntityList.FindClientByCharID(objectID);
             } else if (IsPlayerItem(objectID)) {
                 // get object's ownerID...this is rather powerful.
@@ -210,9 +210,9 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
                     if (EvE::icontains(args.arg(1), cur))
                         throw CustomError ("Location contains invalid characters");
                     locationID = db->GetSolarSystem(args.arg(1).c_str());
-                if (!IsSolarSystem(locationID)) {
+                if (!sDataMgr.IsSolarSystem(locationID)) {
                     locationID = db->GetStation(args.arg(1).c_str());
-                    if (!IsStation(locationID))
+                    if (!sDataMgr.IsStation(locationID))
                         throw CustomError ("Translocate: Name Argument is neither SolarSystem nor StationName");
                 }
             } else {
@@ -236,7 +236,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         // decode first arg  -- me, shipID, charID, playerName, {invalid}
         if (args.isNumber(1)) {
             int objectID = atoi(args.arg(1).c_str());
-            if (IsCharacter(objectID)) {
+            if (IsCharacterID(objectID)) {
                 pOtherClient = sEntityList.FindClientByCharID(objectID);
             } else if (IsPlayerItem(objectID)) {
                 // get object's ownerID
@@ -346,7 +346,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         and (args.isNumber(4))) {
             // pClient is caller, args are systemID and coords (assumed)
             locationID = atoi(args.arg(1).c_str());
-            if (!IsSolarSystem(locationID))
+            if (!sDataMgr.IsSolarSystem(locationID))
                 throw CustomError ("Translocate: Invalid Arguments - locationID %u is not a SolarSystemID.", locationID);
             pt = GPoint(atoi(args.arg(2).c_str()), atoi(args.arg(3).c_str()), atoi(args.arg(4).c_str()));
 
@@ -377,11 +377,6 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
         throw CustomError ("Translocate: Fleet Move - This command is currently incomplete.");
     }
 
-//  need to test locationID here to verify its valid.
-
-    if (!IsValidLocation(locationID))
-        throw CustomError ("Translocate: Invalid Location %i", locationID);
-
     if (IsPlayerItem(locationID)) {
         // locationID is sent as player item.  this can be any celestial object, ship, pos, jetcan, wreck, etc.
         // this will take a lil bit of doing to get booleans right.
@@ -390,7 +385,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             pt = iRef->position();
             locationID = iRef->locationID();
         } else { // tr to ship/item owner location
-            Client* pClient2 = sEntityList.FindClientByCharID(iRef->ownerID());
+            Client* pClient2(sEntityList.FindClientByCharID(iRef->ownerID()));
             if (pClient2 == nullptr) {
                 pt = iRef->position();
                 locationID = iRef->locationID();
@@ -404,8 +399,11 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             }
         }
     }
+    //  connect to dataMgrs for location verification
+    else if (!sDataMgr.IsStation(locationID) and !sDataMgr.IsSolarSystem(locationID)) {
+        throw CustomError ("Translocate: Invalid Location %i", locationID);
+    }
 
-    /** @todo this needs to reset client bp/systemData for new system, if applicable */
     if (pOtherClient != nullptr) {
         pOtherClient->JumpOutEffect(pOtherClient->GetLocationID());
         pOtherClient->MoveToLocation(locationID, pt);
@@ -419,7 +417,6 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
 }
 
 static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
-
     int typeID = -1;
     if (args.isNumber(1)) {
         typeID = atoi(args.arg(1).c_str());

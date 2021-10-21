@@ -154,7 +154,7 @@ PyResult InvBrokerBound::Handle_GetContainerContents(PyCallArgs &call)
     if (item->ownerID() == call.client->GetCharacterID()) {
         _log(INV__MESSAGE, "Handle_GetContainerContents() -  %s(%u) is owned by calling character %s(%u) ", \
                     item->name(), item->itemID(), call.client->GetName(), call.client->GetCharacterID());
-    } else if ((item->ownerID() != call.client->GetCharacterID()) and IsSolarSystem(args.arg2)) {
+    } else if ((item->ownerID() != call.client->GetCharacterID()) and sDataMgr.IsSolarSystem(args.arg2)) {
         _log(INV__WARNING, "Handle_GetContainerContents() -  %s(%u) is in space and not owned by calling character %s(%u) ", \
                     item->name(), item->itemID(), call.client->GetName(), call.client->GetCharacterID());
     } else {
@@ -173,7 +173,7 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
             if e.args[0] == 'CrpAccessDenied':
                 self.CloseContainer(itemid)
     */
-    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventoryFromId()", "size=%u", call.tuple->size());
+    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventoryFromId() size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
 
     Call_TwoIntegerArgs args;
@@ -277,6 +277,26 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
             _log(INV__WARNING, "GetInventoryFromID called for Trading locationID %u using itemID %u", m_locationID, args.arg1);
             flag = flagNone;
         } break;
+        case EVEDB::invCategories::Celestial: {
+            switch (iRef->groupID ()) {
+                case EVEDB::invGroups::Cargo_Container: {
+                    flag = flagNone;
+                    // only check distance if the item is in space and not in a station
+                    if (sDataMgr.IsSolarSystem(iRef->locationID())) {
+                        GVector direction(iRef->position(), call.client->GetShip()->position());
+                        float maxDistance = 2500.0f;
+
+                        if (iRef->HasAttribute (AttrMaxOperationalDistance) == true)
+                            maxDistance = iRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
+
+                        if (direction.length () > maxDistance)
+                            throw UserError ("NotCloseEnoughToOpen")
+                                .AddAmount ("maxdist", maxDistance);
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     //we just bind up a new inventory object for container requested and give it back to them.
@@ -288,7 +308,7 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
 //this is a view into an inventory item using a specific flag.
 PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
     /** @note  this means "Get the Inventory containing this itemID */
-    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventory() size=%u", call.tuple->size());
+    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventory() size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
     Inventory_GetInventory args;
     if (!args.Decode(&call.tuple)) {
@@ -414,7 +434,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
                     iRef->itemID(), iRef->ownerID());
             error = true;
         }
-    } else if (IsCharacter(iRef->ownerID())) {
+    } else if (IsCharacterID(iRef->ownerID())) {
         if (iRef->ownerID() != call.client->GetCharacterID()) {
             _log(INV__ERROR, "%u(%u) tried to rename PlayerItem %s(%u) owned by %u.", \
                     call.client->GetName(), call.client->GetCharacterID(), iRef->name(), \
@@ -492,7 +512,7 @@ PyResult InvBrokerBound::Handle_AssembleCargoContainer(PyCallArgs &call) {
      * 14:37:46 [InvMsg]         [ 2] Real field: 0.000000
      */
 
-    sLog.Warning( "InvBrokerBound::Handle_AssembleCargoContainer()", "size= %u", call.tuple->size() );
+    sLog.Warning( "InvBrokerBound::Handle_AssembleCargoContainer()", "size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
 
     return nullptr;
@@ -500,7 +520,7 @@ PyResult InvBrokerBound::Handle_AssembleCargoContainer(PyCallArgs &call) {
 
 PyResult InvBrokerBound::Handle_BreakPlasticWrap(PyCallArgs &call) {
     // ConfirmBreakCourierPackage   - this is for courier contracts
-    sLog.Warning( "InvBrokerBound::Handle_BreakPlasticWrap()", "size= %u", call.tuple->size() );
+    sLog.Warning( "InvBrokerBound::Handle_BreakPlasticWrap()", "size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
 
     return nullptr;
@@ -508,7 +528,7 @@ PyResult InvBrokerBound::Handle_BreakPlasticWrap(PyCallArgs &call) {
 
 PyResult InvBrokerBound::Handle_TakeOutTrash(PyCallArgs &call) {
     //self.invCache.GetInventory(const.containerHangar).TakeOutTrash([ invItem.itemID for invItem in invItems ])
-    sLog.Warning( "InvBrokerBound::Handle_TakeOutTrash()", "size= %u", call.tuple->size() );
+    sLog.Warning( "InvBrokerBound::Handle_TakeOutTrash()", "size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
 
     return nullptr;
@@ -526,7 +546,7 @@ PyResult InvBrokerBound::Handle_SplitStack(PyCallArgs &call) {
     18:22:26 [InvDump]       [ 3]    Integer: 98000001          << ownerID (corpID)
     */
 
-    sLog.Warning( "InvBrokerBound::Handle_SplitStack()", "size= %u", call.tuple->size() );
+    sLog.Warning( "InvBrokerBound::Handle_SplitStack()", "size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
 
     return nullptr;
@@ -547,7 +567,7 @@ PyResult InvBrokerBound::Handle_DeliverToCorpHangar(PyCallArgs &call) {
     18:11:51 [InvDump]       [ 5]    Integer: 119               << destination flagID
     */
 
-    sLog.Warning( "InvBrokerBound::Handle_DeliverToCorpHangar()", "size= %u", call.tuple->size() );
+    sLog.Warning( "InvBrokerBound::Handle_DeliverToCorpHangar()", "size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
 
     return nullptr;
@@ -566,7 +586,7 @@ PyResult InvBrokerBound::Handle_DeliverToCorpMember(PyCallArgs &call) {
     18:49:06 [InvDump]       [ 3]       None                    << u/k
     18:49:06 [InvDump]       [ 4]    Integer: 98000001          << ownerID (corpID)
     */
-    sLog.Warning( "InvBrokerBound::Handle_DeliverToCorpMember()", "size= %u", call.tuple->size() );
+    sLog.Warning( "InvBrokerBound::Handle_DeliverToCorpMember()", "size=%li", call.tuple->size());
     call.Dump(INV__DUMP);
 
     return nullptr;

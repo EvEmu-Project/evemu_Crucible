@@ -263,7 +263,6 @@ Client::~Client() {
                 // remove char from station
                 sEntityList.GetStationByID(m_locationID)->RemoveItem(m_char);
             }
-
         }
         // remove fleet data, remove char from ItemFactory cache, save SP and set logout time
         m_char->LogOut();
@@ -375,12 +374,12 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     m_ship->SetPlayer(this);
 
     GPoint pos(NULL_ORIGIN);
-    if (IsSolarSystem(m_locationID))
+    if (sDataMgr.IsSolarSystem(m_locationID))
         pos = m_ship->position();
 
     MoveToLocation(m_locationID, pos);
 
-    if (IsSolarSystem(m_locationID)) {
+    if (sDataMgr.IsSolarSystem(m_locationID)) {
         WarpIn();
     } else {
         if (m_ship->typeID() == itemTypeCapsule) {
@@ -459,7 +458,7 @@ void Client::ProcessClient() {
         m_ship->SaveShip();
     }
     */
-    if (IsStation(m_locationID)) {
+    if (sDataMgr.IsStation(m_locationID)) {
         if (m_stateTimer.Enabled())
             if (m_stateTimer.Check(false)) {
                 m_stateTimer.Disable();
@@ -592,19 +591,19 @@ void Client::ProcessClient() {
         if (m_fleetTimer.Check(false)) {
             m_fleetTimer.Disable();
             BoostData bData = BoostData();
-            if (IsSquad(m_squad)) {
+            if (IsSquadID(m_squad)) {
                 SquadData sData = SquadData();
                 sFltSvc.GetSquadData(m_squad, sData);
                 if ((sData.leader != nullptr) and (sData.booster != nullptr))
                     if ((sData.leader->IsInSpace()) and (sData.booster->IsInSpace()))
                         bData = sData.boost;
-            } else if (IsWing(m_wing)) {
+            } else if (IsWingID(m_wing)) {
                 WingData wData = WingData();
                 sFltSvc.GetWingData(m_wing, wData);
                 if ((wData.leader != nullptr) and (wData.booster != nullptr))
                     if ((wData.leader->IsInSpace()) and (wData.booster->IsInSpace()))
                         bData = wData.boost;
-            } else if (IsFleet(m_fleet)) {
+            } else if (IsFleetID(m_fleet)) {
                 FleetData fData = FleetData();
                 sFltSvc.GetFleetData(m_fleet, fData);
                 if ((fData.leader != nullptr) and (fData.booster != nullptr))
@@ -683,14 +682,14 @@ void Client::EnterSystem(uint32 systemID)
 
 void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     // process ALL location changes here.
-    if (!IsStation(locationID) and !IsSolarSystem(locationID)) {
+    if (!sDataMgr.IsStation(locationID) and !sDataMgr.IsSolarSystem(locationID)) {
         SendErrorMsg("Move requested to unsupported location %u", locationID);
         return;
     }
 
     _log(AUTOPILOT__TRACE, "MoveToLocation() - m_autoPilot = %s", (m_autoPilot ? "true" : "false"));
 
-    if (!m_login and (m_locationID == locationID) and !IsStation(locationID)) {
+    if (!m_login and (m_locationID == locationID) and !sDataMgr.IsStation(locationID)) {
         _log(PLAYER__WARNING, "MoveToLocation() - m_locationID == location");
         // This is a simple movement
         SetDestiny(pt, true);
@@ -698,7 +697,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     }
 
     bool count(m_login);
-    bool wasDocked(IsStation(m_locationID));
+    bool wasDocked(sDataMgr.IsStation(m_locationID));
     m_locationID = locationID;
     // get data for new system.  this checks for stationID sent as locationID, so is safe here.
     sDataMgr.GetSystemData(m_locationID, m_SystemData);
@@ -751,30 +750,35 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_ship->Move(m_locationID, flagNone, true);
     }
 
+    // once systemData.radius implemented, remove this in favor of below check
+    m_ship->SetPosition(pt);
+    /* comment this block for later use...
+     * m_SystemData.radius is not populated yet, and this does weird things with ships
     // verify 'pt' is within system boundaries
     if (pt.length() < m_SystemData.radius) {
         m_ship->SetPosition(pt);
     } else {
         ;  // oob
     }
+    */
 
     char ci[45];
-    if (IsStation(m_locationID)) {
+    if (sDataMgr.IsStation(m_locationID)) {
         _log(PLAYER__WARNING, "MoveToLocation() - Character %s (%u) Docked in %u.", m_char->name(), m_char->itemID(), m_locationID);
         stDataMgr.GetStationData(m_locationID, m_StationData);
         snprintf(ci, sizeof(ci), "Docked: %s(%u)", GetName(), m_char->itemID());
         m_char->Move(m_locationID, flagNone, true);
         m_ship->Move(m_locationID, flagHangar, true);
 
-        if (IsFleet(m_fleet)) {
+        if (IsFleetID(m_fleet)) {
             m_fleetTimer.Disable();
             if (IsFleetBooster()) {
                 std::list<int32> wing, squad;
                 wing.clear();
                 squad.clear();
-                if (IsSquad(m_squad)) {
+                if (IsSquadID(m_squad)) {
                     squad.emplace(squad.end(), m_squad);
-                } else if (IsWing(m_wing)) {
+                } else if (IsWingID(m_wing)) {
                     wing.emplace(wing.end(), m_wing);
                 }
                 sFltSvc.UpdateBoost(m_fleet, IsFleetBoss(), wing, squad);
@@ -800,15 +804,15 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         if (wasDocked and m_undock)
             CharNoLongerInStation();
 
-        if (IsFleet(m_fleet)) {
+        if (IsFleetID(m_fleet)) {
             m_fleetTimer.Start(Player::Timer::Fleet);
             if (IsFleetBooster()) {
                 std::list<int32> wing, squad;
                 wing.clear();
                 squad.clear();
-                if (IsSquad(m_squad)) {
+                if (IsSquadID(m_squad)) {
                     squad.emplace(squad.end(), m_squad);
-                } else if (IsWing(m_wing)) {
+                } else if (IsWingID(m_wing)) {
                     wing.emplace(wing.end(), m_wing);
                 }
                 sFltSvc.UpdateBoost(m_fleet, IsFleetBoss(), wing, squad);
@@ -832,7 +836,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     if (!m_login)
         m_ship->SaveShip(); // this saves everything on ship
 
-    uint32 stationID(IsStation(m_locationID) ? m_locationID : 0);
+    uint32 stationID(sDataMgr.IsStation(m_locationID) ? m_locationID : 0);
     m_char->SetLocation(stationID, m_SystemData);
 
     UpdateSession();
@@ -840,7 +844,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 }
 
 void Client::SetDestiny(const GPoint& pt, bool update/*false*/) {
-    if (!IsSolarSystem(m_locationID)) {
+    if (!sDataMgr.IsSolarSystem(m_locationID)) {
         _log(CLIENT__ERROR, "%s(%u) - Calling SetDestiny() when not in space.", GetName(), m_char->itemID());
         return;
     }
@@ -1253,16 +1257,20 @@ void Client::ResetAfterPodded() {
 
     m_autoPilot = false;
 
-    MoveToLocation(GetCloneStationID(), NULL_ORIGIN);
-
-    SpawnNewRookieShip(m_locationID);
     CreateNewPod();
     SetShip(m_pod);
+
+    // verify clone station hangar isnt loaded yet.
+    RemoveStationHangar(GetCloneStationID());
+
+    MoveToLocation(GetCloneStationID(), NULL_ORIGIN);
 
     m_ship->Move(m_locationID, flagHangar);
     m_ship->SaveShip();
     m_char->ResetClone();
     m_char->SaveCharacter();
+
+    SpawnNewRookieShip(m_locationID);
 
     //update session with new values
     UpdateSession();
@@ -1280,7 +1288,7 @@ void Client::SetShip(ShipItemRef shipRef) {
     m_ship = shipRef;
     m_shipId = shipRef->itemID();
     m_char->SetActiveShip(m_shipId);
-    if (IsSolarSystem(m_locationID)) {
+    if (sDataMgr.IsSolarSystem(m_locationID)) {
         m_char->Move(m_shipId, flagPilot, true);
         pSession->SetInt("shipid", m_shipId); // update shipID in session
     }
@@ -1404,7 +1412,7 @@ PyRep *Client::GetAggressors() const {
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
         sLog.Error("Client","%s: StargateJump called when a move is already pending. Ignoring.", m_char->name());
-        // send client msg about state change in progress
+        /** @todo  send error to client here */
         return;
     }
 
@@ -1421,7 +1429,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     StaticData toData = StaticData();
     if (!sDataMgr.GetStaticInfo(toGate, toData)) {
         _log(DATA__ERROR, "Failed to retrieve data for stargate %u", toGate);
-        // send client msg about new system info failure
+        /** @todo  send error to client here */
         return;
     }
 
@@ -1445,34 +1453,36 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     SetStateTimer(Player::State::Jump, Player::Timer::Jumping);
 }
 
-void Client::CynoJump(uint32 startLocation, uint32 destLocation, GPoint destPoint) {
+void Client::CynoJump(InventoryItemRef beacon) {
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
         sLog.Error("Client","%s: CynoJump called when a move is already pending. Ignoring.", m_char->name());
-        // send client msg about state change in progress
+        /** @todo  send error to client here */
         return;
     }
 
-    MapDB::AddJump(startLocation);
-    MapDB::AddJump(destLocation);
-    m_char->VisitSystem(destLocation);
+    MapDB::AddJump(m_locationID);
 
-    JumpOutEffect(startLocation);
+    m_moveSystemID = beacon->locationID();
+    MapDB::AddJump(m_moveSystemID);
+    m_char->VisitSystem(m_moveSystemID);
 
-    m_movePoint = destPoint;
+    JumpOutEffect(m_locationID);
+
+    m_movePoint = beacon->position();
     m_movePoint.MakeRandomPointOnSphereLayer(200,500);
-    m_moveSystemID = destLocation;
 
     SetStateTimer(Player::State::DriveJump, Player::Timer::Jumping);
 }
 
 void Client::ExecuteJump() {
-    if (m_movePoint == NULL_ORIGIN) {   // this is part of infant AP hack
+    if (m_movePoint == NULL_ORIGIN) {
         m_clientState = Player::State::Idle;
         _log(AUTOPILOT__TRACE, "ExecuteJump() - movePoint = null; state set to Idle");
+        /** @todo  send error to client here */
         return;
     }
 
-    //OnScannerInfoRemoved  - no args.  flushes scan data in client
+    //OnScannerInfoRemoved  - no args.  flushes current scan data in client
     SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
     pShipSE->Jump();
 
@@ -1485,13 +1495,14 @@ void Client::ExecuteJump() {
 }
 
 void Client::ExecuteDriveJump() {
-    if (m_movePoint == NULL_ORIGIN) {   // this is part of infant AP hack
+    if (m_movePoint == NULL_ORIGIN) {
         m_clientState = Player::State::Idle;
         _log(AUTOPILOT__TRACE, "ExecuteJump() - movePoint = null; state set to Idle");
+        /** @todo  send error to client here */
         return;
     }
 
-    //OnScannerInfoRemoved  - no args.  flushes scan data in client
+    //OnScannerInfoRemoved  - no args.  flushes current scan data in client
     SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
     pShipSE->Jump(false);
 
@@ -1509,7 +1520,7 @@ void Client::SetBallParkTimer(uint32 time/*Player::Timer::Default*/)
 {
     if (time == 0) {
         m_ballparkTimer.Disable();
-        _log(CLIENT__TIMER, "%s: Ballpark Timer Disabled");
+        _log(CLIENT__TIMER, "%s: Ballpark Timer Disabled", m_char->name());
         return;
     }
 
@@ -1705,7 +1716,7 @@ void Client::RemoveMissionItem(uint16 typeID, uint32 qty)
 {
     uint16 count = qty;
     InventoryItemRef iRef(nullptr);
-    if (IsStation(m_locationID)) {
+    if (sDataMgr.IsStation(m_locationID)) {
         iRef = sItemFactory.GetStationItem(m_locationID)->GetMyInventory()->GetByTypeFlag(typeID, flagHangar);
         if (iRef.get() != nullptr) {
             if (count < iRef->quantity()) {
@@ -1739,7 +1750,7 @@ bool Client::ContainsTypeQty(uint16 typeID, uint32 qty) const
     uint16 count = 0;
     InventoryItemRef iRef(nullptr);
     // this is for missions....we will have to determine if we have the TOTAL qty desired, in both cargo and hangar
-    if (IsStation(m_locationID)) {
+    if (sDataMgr.IsStation(m_locationID)) {
         iRef = sItemFactory.GetStationItem(m_locationID)->GetMyInventory()->GetByTypeFlag(typeID, flagHangar);
         if (iRef.get() != nullptr)
             count = iRef->quantity();
@@ -1850,7 +1861,7 @@ void Client::CharNowInStation() {
  * ****************************************************************/
 void Client::InitSession(int32 characterID)
 {
-    if (!IsCharacter(characterID)) {
+    if (!IsCharacterID(characterID)) {
         sLog.Error("Client::InitSession()", "characterID is not valid");
         return;
     }
@@ -1898,7 +1909,7 @@ void Client::InitSession(int32 characterID)
      *   also used as current system in following menus:
      *  JumpPortalBridgeMenu, GetHybridBeaconJumpMenu, GetHybridBridgeMenu
      */
-    if (IsStation(stationID)) {
+    if (sDataMgr.IsStation(stationID)) {
         m_locationID = stationID;
         pSession->Clear("solarsystemid");    //must be 0 in station
         pSession->Clear("shipid");    //must be 0 in station
@@ -1917,9 +1928,9 @@ void Client::InitSession(int32 characterID)
     }
 
     sDataMgr.GetSystemData(m_locationID, m_SystemData);
-    if ((IsSolarSystem(m_SystemData.systemID))
-    and (IsConstellation(m_SystemData.constellationID))
-    and (IsRegion(m_SystemData.regionID)))
+    if ((sDataMgr.IsSolarSystem(m_SystemData.systemID))
+    and (IsConstellationID(m_SystemData.constellationID))
+    and (IsRegionID(m_SystemData.regionID)))
     {
         m_validSession = true;
     }
@@ -1931,7 +1942,7 @@ void Client::UpdateSession()
         return;
     uint32 stationID = m_char->stationID();
     uint32 solarsystemID = m_char->solarSystemID();
-    if (IsStation(stationID)) {
+    if (sDataMgr.IsStation(stationID)) {
         pSession->Clear("solarsystemid");    //must be 0 in station
         pSession->Clear("shipid");    //must be 0 in station
         //pSession->Clear("worldspaceid");    //not used here (yet)
@@ -2048,7 +2059,7 @@ void Client::SendSessionChange()
         if (m_char.get() != nullptr) {
             codelog(CLIENT__ERROR, "Session::LocationID == 0 for %s(%u)", m_char->name(), m_char->itemID());
             EvE::traceStack();
-            if (IsStation(m_char->stationID())) {
+            if (sDataMgr.IsStation(m_char->stationID())) {
                 m_locationID = m_char->stationID();
             } else {
                 m_locationID = m_SystemData.systemID;
@@ -2124,7 +2135,7 @@ void Client::QueueDestinyEvent(PyTuple** event) {
 void Client::QueueDestinyUpdate(PyTuple **update, bool DoPackage /*false*/, bool IsSetState /*false*/) {
     if ((update == nullptr) or ((*update) == nullptr))
         return;
-    if (IsStation(m_locationID))
+    if (sDataMgr.IsStation(m_locationID))
         return;
     DoDestinyAction act;
         act.stamp = sEntityList.GetStamp();
@@ -2742,7 +2753,6 @@ void Client::SendErrorMsg(const char* fmt, va_list args)
     SendNotification("OnRemoteMessage", "charid", &tmp);
 
     SafeFree(str);
-
 }
 
 //this displays a modal info dialog on the client side.

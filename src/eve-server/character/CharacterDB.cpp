@@ -506,7 +506,6 @@ PyRep *CharacterDB::GetCharPublicInfo(uint32 characterID) {
 }
 
 void CharacterDB::GetCharacterData(uint32 charID, std::map<std::string, int64> &characterDataMap) {
-
     DBQueryResult res;
     DBResultRow row;
 
@@ -662,7 +661,6 @@ std::string CharacterDB::GetCharName(uint32 characterID)
     }
 
     return row.GetText(0);
-
 }
 
 PyRep* CharacterDB::GetContacts(uint32 charID, bool blocked)
@@ -1673,9 +1671,7 @@ void CharacterDB::VisitSystem(uint32 solarSystemID, uint32 charID) {
 
 PyRep* CharacterDB::List(uint32 ownerID)
 {
-
     // maybe get all items owned by calling character?
-
     DBQueryResult res;
     if(!sDatabase.RunQuery(res,
         "SELECT "
@@ -1704,7 +1700,6 @@ PyRep* CharacterDB::List(uint32 ownerID)
 
 PyRep* CharacterDB::ListStations(uint32 ownerID, std::ostringstream& flagIDs, bool forCorp/*false*/, bool bpOnly/*false*/)
 {
-
     /** @todo check into this to see if we're querying POS modules(uk) also.
      * if so, we'll need to revise location checks and somehow fix it so customs offices (and anything else using flagHangar)
      *  doesnt show up, which leads to elusive "AttributeError: 'NoneType' object has no attribute 'solarSystemID'"  in client
@@ -1865,13 +1860,12 @@ PyRep* CharacterDB::ListStationBlueprintItems(uint32 ownerID, uint32 stationID, 
             codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
             return nullptr;
         }
-
     }
+
     PyRep* rsp = DBResultToCRowset(res);
     if (is_log_enabled(CLIENT__RSP_DUMP))
         rsp->Dump(CLIENT__RSP_DUMP, "    ");
     return rsp;
-
 }
 
 uint8 CharacterDB::GetSkillLevel(uint32 charID, uint16 skillTypeID)

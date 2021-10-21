@@ -56,7 +56,6 @@ m_npcDivisions(nullptr)
     m_oreBySecClass.clear();
     m_LootGroupTypeMap.clear();
     m_WrecksToTypesMap.clear();
-
 }
 
 StaticDataMgr::~StaticDataMgr()
@@ -555,9 +554,10 @@ void StaticDataMgr::Populate()
     while (res->GetRow(row)) {
         //SELECT agentID, locationID FROM agtAgents
         locationID = row.GetInt(1);
-        if (IsStation(locationID)) {
+        if (IsStationID(locationID)) {
             locationID = GetStationSystem(locationID);
-        } else if (!IsSolarSystem(locationID)) {
+        }
+        if (!IsSolarSystemID(locationID)) {
             _log(DATA__MESSAGE, "Failed to query info:  locationID %u is neither station nor system.", locationID);
             continue;
         }
@@ -1062,7 +1062,7 @@ uint8 StaticDataMgr::GetWHSystemClass(uint32 systemID)
     if (itr != m_whRegions.end())
         return itr->second;
 
-    SystemManager* pSysMgr = sEntityList.FindOrBootSystem(systemID);
+    SystemManager* pSysMgr(sEntityList.FindOrBootSystem(systemID));
     if (pSysMgr == nullptr)
         return 0;
 
@@ -1072,9 +1072,9 @@ uint8 StaticDataMgr::GetWHSystemClass(uint32 systemID)
 
     // dont have data for systemID nor regionID...throw error and ?something else?
     _log(DATA__MESSAGE, "Failed to query WH Class for systemID %u: System not found.", systemID);
-    if (IsKSpace(systemID))
+    if (IsKSpaceID(systemID))
         return 0;
-    if (IsWSpace(systemID))
+    if (IsWSpaceID(systemID))
         return 0;
 
     return 0;
@@ -1084,7 +1084,8 @@ bool StaticDataMgr::GetSystemData(uint32 locationID, SystemData& data)
 {
     if (IsStation(locationID)) {
         locationID = GetStationSystem(locationID);
-    } else if (!IsSolarSystem(locationID)) {
+    }
+    if (!IsSolarSystem(locationID)) {
         _log(DATA__MESSAGE, "Failed to query info:  locationID %u is neither station nor system.", locationID);
         return false;
     }
@@ -1103,7 +1104,8 @@ const char* StaticDataMgr::GetSystemName(uint32 locationID)
 {
     if (IsStation(locationID)) {
         locationID = GetStationSystem(locationID);
-    } else if (!IsSolarSystem(locationID)) {
+    }
+    if (!IsSolarSystem(locationID)) {
         _log(DATA__MESSAGE, "Failed to query info:  locationID %u is neither station nor system.", locationID);
         return "Error";
     }
@@ -1213,6 +1215,20 @@ return {10000001: (500019,),
     10000067: (500012,),
     10000068: (500020,)}
     */
+}
+
+bool StaticDataMgr::IsSolarSystem(uint32 systemID/*0*/)
+{
+    // if systemID has entry here, it is valid
+    std::map<uint32, SystemData>::iterator itr = m_systemData.find(systemID);
+    return (itr != m_systemData.end());
+}
+
+bool StaticDataMgr::IsStation(uint32 stationID/*0*/)
+{
+    // if stationID has entry here, it is valid
+    std::map<uint32, uint32>::iterator itr = m_stationRegion.find(stationID);
+    return (itr != m_stationRegion.end());
 }
 
 DBRowDescriptor* StaticDataMgr::CreateHeader() {
@@ -1452,6 +1468,25 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
         Invention->SetItemString("extras", mtCRowSet);
         rsp->SetItem(new PyInt(8), new PyObject("util.KeyVal", Invention));
     }
+
+    // cleanup
+    PyDecRef(matlListManuf);
+    PyDecRef(skillListManuf);
+    PyDecRef(extraListManuf);
+    PyDecRef(matlListTE);
+    PyDecRef(skillListTE);
+    PyDecRef(matlListME);
+    PyDecRef(skillListME);
+    PyDecRef(matlListCopy);
+    PyDecRef(skillListCopy);
+    PyDecRef(matlListDup);
+    PyDecRef(skillListDup);
+    PyDecRef(extraListDup);
+    PyDecRef(matlListRE);
+    PyDecRef(skillListRE);
+    PyDecRef(matlListInvent);
+    PyDecRef(skillListInvent);
+
     return rsp;
 }
 
@@ -1596,7 +1631,6 @@ const char* StaticDataMgr::GetRaceName(uint8 raceID)
     }
     // default to none
     return "Race Not Defined";
-
 }
 
 uint32 StaticDataMgr::GetRaceFaction(uint8 raceID)
@@ -2033,7 +2067,6 @@ uint32 StaticDataMgr::GetWreckFaction(uint32 typeID)
         case 26560: { //   Pirate Wreck
             return factionUnknown;
         } break;
-
     }
 
     // safe default

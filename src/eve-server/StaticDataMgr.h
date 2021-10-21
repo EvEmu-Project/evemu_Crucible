@@ -139,6 +139,10 @@ public:
 
     uint32              GetWreckFaction(uint32 typeID);
 
+    // methods to verify valid locationID
+    bool                IsStation(uint32 stationID=0);
+    bool                IsSolarSystem(uint32 systemID=0);
+
     // common place for *FULL* DBRowDescriptor Header creation.
     //  this way all users are using the exact same data
     DBRowDescriptor*    CreateHeader();

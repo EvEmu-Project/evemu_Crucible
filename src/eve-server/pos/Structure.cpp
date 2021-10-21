@@ -31,11 +31,13 @@
 #include "pos/sovStructures/TCU.h"
 #include "pos/sovStructures/SBU.h"
 #include "pos/sovStructures/IHub.h"
+#include "pos/JumpBridge.h"
 #include "pos/Structure.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 /*
  * Base Structure Item for all POS types
@@ -197,6 +199,7 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_sbuSE(nullptr),
     m_ihubSE(nullptr),
     m_gateSE(nullptr),
+    m_bridgeSE(nullptr),
     m_procTimer(10000), // arbitrary default
     m_tcu(false),
     m_sbu(false),
@@ -205,6 +208,7 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_tower(false),
     m_bridge(false),
     m_jammer(false),
+    m_generator(false),
     m_loaded(false),
     m_module(false),
     m_outpost(false),
@@ -315,6 +319,10 @@ void StructureSE::Init()
             m_jammer = true;
             m_module = true;
         } break;
+        case EVEDB::invGroups::Cynosural_Generator_Array: {
+            m_generator = true;
+            m_module = true;
+        } break;
         case EVEDB::invGroups::Silo:
         case EVEDB::invGroups::Mobile_Reactor: {
             m_module = true;
@@ -381,6 +389,10 @@ void StructureSE::Init()
     if (m_ihub)
     {
         m_ihubSE = pSE->GetIHubSE();
+    }
+    if (m_bridge)
+    {
+        m_bridgeSE = pSE->GetJumpBridgeSE();
     }
     else //everything else is anchored near a moon
     {
@@ -606,6 +618,29 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
 
     // this is incomplete.  there may be client error msgs (havent looked or found)
     // these errors should throw instead of return.
+
+    // Check for required sovereignty upgrades for certain structures
+    if ((m_generator) || (m_jammer) || (m_bridge)) {
+        SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
+        InventoryItemRef ihubRef = sItemFactory.GetItem(sovData.hubID);
+        uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
+
+        if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
+            pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.",
+            sItemFactory.GetType(upgType)->name().c_str());
+            return;
+        }
+
+        if ((m_generator) && (sovData.jammerID != 0)) {
+            pClient->SendErrorMsg("This module cannot be anchored as the system is currently being jammed.");
+            return;
+        }
+
+        if ((m_jammer) && (sovData.beaconID != 0)) {
+            pClient->SendErrorMsg("This module cannot be anchored as the system currently has an active beacon.");
+            return;
+        }
+    }
 
     if (m_tower)
     {
@@ -840,7 +875,14 @@ void StructureSE::SetOnline()
 
     SetTimer(m_duration);
     m_db.UpdateBaseData(m_data);
-    m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnline", 0, 1, 1, -1, 0);
+    m_destiny->SendSpecialEffect(m_data.itemID, m_data.itemID, m_self->typeID(), 0, 0, "effects.StructureOnlined", 0, 1, 1, -1, 0);
+
+    if (m_generator) {
+        svDataMgr.UpdateSystemBeaconID(m_self->locationID(),m_self->itemID());
+    }
+    if (m_jammer) {
+        svDataMgr.UpdateSystemJammerID(m_self->locationID(),m_self->itemID());
+    }
 }
 
 void StructureSE::SetOffline()
@@ -848,6 +890,12 @@ void StructureSE::SetOffline()
     m_self->SetFlag(flagStructureInactive);
     if (m_module)
         m_towerSE->OfflineModule(this);
+    if (m_generator) {
+        svDataMgr.UpdateSystemBeaconID(m_self->locationID(),0);
+    }
+    if (m_jammer) {
+        svDataMgr.UpdateSystemJammerID(m_self->locationID(),0);
+    }
 }
 
 void StructureSE::SetInvulnerable()
@@ -1057,8 +1105,8 @@ void StructureSE::EncodeDestiny(Buffer &into)
         into.Append(main);
     }
 
-    _log(SE__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
-    _log(POS__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%u, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(POS__DESTINY, "StructureSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict *StructureSE::MakeSlimItem()
@@ -1131,30 +1179,54 @@ eventSBUOffline = 257
 eventSBUOnline = 256
 */
 
+// this should only be for control towers
+// this only hits when tower is in bubble when SetState is called (at login in tower soi)
 void StructureSE::GetEffectState(PyList &into)
 {
-    // this is for sending structure state info in destiny state data
-    if ((m_data.state != EVEPOS::StructureState::Online) and (m_data.state != EVEPOS::StructureState::Operating))
-        return;
+    // update to include all states and correct packet structure -allan 16.10.21
+    // new effect packet code
+    PyTuple* fxState = new PyTuple(14);
+    if (m_module) {
+        fxState->SetItemInt(0, m_data.towerID);      // towerID
+    } else {
+        fxState->SetItemInt(0, m_data.itemID);      // towerID
+    }
 
-    OnSpecialFX13 effect;
-    if (m_module)
-    {
-        effect.entityID = m_data.towerID; /* control tower id */
+    fxState->SetItemInt(1, m_data.itemID);      // moduleID
+    fxState->SetItemInt(2, m_self->typeID());      // moduleTypeID
+    fxState->SetItem(3, PyStatic.NewNone());         // targetID
+    fxState->SetItem(4, PyStatic.NewNone());         // chargeTypeID
+    fxState->SetItem(5, new PyList());         // area
+
+    // set guid here depending on tower state
+    switch (m_data.state) {
+        case EVEPOS::StructureState::Online:
+        case EVEPOS::StructureState::Operating:
+            fxState->SetItemString(6, "effects.StructureOnline");
+            break;
+        case EVEPOS::StructureState::Incapacitated:
+        case EVEPOS::StructureState::Unanchored:
+        case EVEPOS::StructureState::Anchored:
+        case EVEPOS::StructureState::Onlining:
+        case EVEPOS::StructureState::Reinforced:
+        case EVEPOS::StructureState::Vulnerable:
+        case EVEPOS::StructureState::SheildReinforced:
+        case EVEPOS::StructureState::ArmorReinforced:
+        case EVEPOS::StructureState::Invulnerable:
+            fxState->SetItemString(6, "effects.StructureOffline");
+            break;
     }
-    else
-    {
-        effect.entityID = m_data.itemID; /* control tower id */
-    }
-    effect.moduleID = m_data.itemID; /* structure/module id as part of above tower system */
-    effect.moduleTypeID = m_self->typeID();
-    effect.duration = -1;
-    effect.guid = "effects.StructureOnline"; // this is sent in destiny::SetState.  check for actual effect of this pos
-    effect.isOffensive = false;
-    effect.start = 1;
-    effect.active = 1;
-    effect.startTime = m_data.timestamp; /* time this effect started */
-    into.AddItem(effect.Encode());
+
+    fxState->SetItem(7, PyStatic.NewFalse());         // isOffensive
+    fxState->SetItem(8, PyStatic.NewOne());      // start
+    fxState->SetItem(9, PyStatic.NewOne());      // active
+    fxState->SetItem(10, PyStatic.NewNegOne());      // duration
+    fxState->SetItem(11, PyStatic.NewZero());      // repeat
+    fxState->SetItem(12, new PyLong(m_data.timestamp));      // startTime
+    fxState->SetItem(13, PyStatic.NewNone());         // graphicInfo
+
+    // add tuple directly to list.
+    into.AddItem(fxState);
 }
 
 void StructureSE::Killed(Damage &fatal_blow)

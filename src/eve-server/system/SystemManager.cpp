@@ -45,6 +45,7 @@
 #include "pos/sovStructures/TCU.h"
 #include "pos/sovStructures/SBU.h"
 #include "pos/sovStructures/IHub.h"
+#include "pos/JumpBridge.h"
 #include "pos/Weapon.h"
 #include "ship/Missile.h"
 #include "ship/Ship.h"
@@ -59,7 +60,6 @@
 #include "system/cosmicMgrs/BeltMgr.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
-
 
 SystemManager::SystemManager(uint32 systemID, PyServiceMgr &svc)
 :m_services(svc),
@@ -533,7 +533,7 @@ bool SystemManager::BuildDynamicEntity(const DBSystemDynamicEntity& entity, uint
     if (launcherID) {
         WreckSE* pWE = pSE->GetWreckSE();
         pWE->SetLaunchedByID(launcherID);
-        if (IsCharacter(entity.ownerID)) {
+        if (IsCharacterID(entity.ownerID)) {
             Client* pClient = sEntityList.FindClientByCharID(entity.ownerID);
             if (pClient->InFleet())
                 pWE->SetFleetID(pClient->GetFleetID());
@@ -619,7 +619,6 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Stealth_Emitter_Array:
                 case EVEDB::invGroups::Scanner_Array:
                 case EVEDB::invGroups::Logistics_Array:
-                case EVEDB::invGroups::Cynosural_Generator_Array:
                 case EVEDB::invGroups::Structure_Repair_Array: {
                     ArraySE* aSE = new ArraySE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making ArraySE for %s (%u)", entity.itemName.c_str(), entity.itemID);
@@ -631,6 +630,11 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     ReactorSE* rSE = new ReactorSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making ReactorSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = rSE;
+                } break;
+                case EVEDB::invGroups::Jump_Portal_Array: {
+                    JumpBridgeSE* jbSE = new JumpBridgeSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making JumpBridgeSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
+                    pSSE = jbSE;
                 } break;
                 default: {
                     StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
@@ -1411,6 +1415,9 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
 
     if (is_log_enabled(DESTINY__BALL_DUMP))
         addballs2.Dump( DESTINY__BALL_DUMP, "    " );
+    _log( DESTINY__BALL_DECODE, "    Ball Decoded:" );
+    if (is_log_enabled(DESTINY__BALL_DECODE))
+        Destiny::DumpUpdate( DESTINY__BALL_DECODE, &( addballs2.state->content() )[0], (uint32)addballs2.state->content().size() );
 
     //send the update
     PyTuple* rsp = addballs2.Encode();
@@ -1421,7 +1428,7 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
     }
 
     //cleanup
-    SafeDelete( destinyBuffer );
+    SafeDelete(destinyBuffer);
 }
 
 void SystemManager::AddItemToInventory(InventoryItemRef iRef)
@@ -1553,7 +1560,7 @@ void SystemManager::DScan(int64 range, const GPoint& pos, std::vector<SystemEnti
         // these dont show on dscan
         if (IsTempItem(cur.first))
             continue;
-        if (IsAsteroid(cur.first))
+        if (IsAsteroidID(cur.first))
             if (!sConfig.server.AsteroidsOnDScan)
                 continue;
         if (IsNPC(cur.first))
@@ -1721,7 +1728,7 @@ void SystemManager::GetDockedCount()
 
 void SystemManager::GetPlayerCount()
 {
-
+    // not used yet
 }
 
 /*

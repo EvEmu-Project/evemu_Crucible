@@ -12,13 +12,13 @@
 // This module exists to clean up the database from stuff which could persist in the DB due to crashes.
 
 void DBCleaner::Initialize() {
-    sLog.Blue("   DBCleaner", "Database Cleaner Initialized.");
+    sLog.Blue("        DBCleaner", "Database Cleaner Initialized.");
 
     // Add new cleaning jobs below
     CleanEntity(EVEDB::invTypes::CynosuralFieldI); //Clean cynosural fields
 
     // Don't add anything below this line
-    sLog.Blue("   DBCleaner", "Cleaning complete.");
+    sLog.Blue("        DBCleaner", "Cleaning complete.");
 }
 
 void DBCleaner::CleanEntity(uint32 type) {
