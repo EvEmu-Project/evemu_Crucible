@@ -285,7 +285,9 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     reward, collateral, isPrivate, forCorp;
     std::string title, description;
 
-    // Some call fields flail depending on conditions set during contracts creation, so we need to check the fields first
+    /*
+     * Some call fields flail depending on conditions set during contracts creation, so we need to check the fields first
+     */
     PyTuple *tupleData = call.tuple;
     if (tupleData->GetItem(0)->IsInt()) {
         contractType = tupleData->GetItem(0)->AsInt()->value();
@@ -361,6 +363,10 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     }
     forCorp = call.byname.find("forCorp")->second->AsBool()->value() ? 1 : 0;
 
+    /*
+     * Then, we go for actual entries creation.
+     * Contract entry
+     */
     uint32 contractId = 0;
     DBerror err;
     if (!sDatabase.RunQueryLID(err, contractId,
@@ -375,6 +381,32 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
     }
+
+    /*
+     * If applicable - requested items
+     */
+    if (call.byname.find("requestItemTypeList")->second->IsList()) {
+        std::string query = "INSERT INTO ctrRequestedItems(contractId, requestedItemTypeId, requestedItemQuantity) VALUES ";
+        PyList *requestedItems = call.byname.find("requestItemTypeList")->second->AsList();
+        for (int index = 0; index < requestedItems->size(); index++) {
+            PyList *requestedItem = requestedItems->GetItem(index)->AsList();
+            // Wasn't sure there were some pretty way to format it, so i went for classic std::string appending
+            query.append("(" + std::to_string(contractId) + ", " +
+                         std::to_string(requestedItem->GetItem(0)->AsInt()->value()) + ", " +
+                         std::to_string(requestedItem->GetItem(1)->AsInt()->value()) + ")");
+            if (index != requestedItems->size() - 1) {
+                query.append(", ");
+            }
+        }
+
+        uint32 last_insert;
+        if (!sDatabase.RunQueryLID(err, last_insert, query.c_str()))
+        {
+            codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
+            return nullptr;
+        }
+    }
+
     /*
         11:06:19 [Service] contractProxy::CreateContract()
         11:06:19 [SvcCallTrace]   Call Arguments:
