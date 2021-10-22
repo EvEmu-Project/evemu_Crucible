@@ -27,7 +27,8 @@ create table if not exists ctrRequestedItems
 create table if not exists ctrTradedItems
 (
     contractId int not null,
-    entityId int not null
+    entityId int not null,
+    quantity int not null
 );
 
 -- +migrate Down

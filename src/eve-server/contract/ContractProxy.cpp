@@ -394,7 +394,35 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
             query.append("(" + std::to_string(contractId) + ", " +
                          std::to_string(requestedItem->GetItem(0)->AsInt()->value()) + ", " +
                          std::to_string(requestedItem->GetItem(1)->AsInt()->value()) + ")");
+            // if it's not the last item - add a trailing comma
             if (index != requestedItems->size() - 1) {
+                query.append(", ");
+            }
+        }
+
+        uint32 last_insert;
+        if (!sDatabase.RunQueryLID(err, last_insert, query.c_str()))
+        {
+            codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
+            return nullptr;
+        }
+    }
+
+    /*
+     * If applicable - items to trade
+     */
+    if (call.byname.find("itemList")->second->IsList()) {
+        // First - we add these items to traded items table. We do it for all contract types (exchange, auction and courier)
+        std::string query = "INSERT INTO ctrTradedItems(contractId, entityId, quantity) VALUES ";
+        PyList *tradedItems = call.byname.find("itemList")->second->AsList();
+        for (int index = 0; index < tradedItems->size(); index++) {
+            PyList *tradedItem = tradedItems->GetItem(index)->AsList();
+            // Wasn't sure there were some pretty way to format it, so i went for classic std::string appending
+            query.append("(" + std::to_string(contractId) + ", " +
+                         std::to_string(tradedItem->GetItem(0)->AsInt()->value()) + ", " +
+                         std::to_string(tradedItem->GetItem(1)->AsInt()->value()) + ")");
+            // if it's not the last item - add a trailing comma
+            if (index != tradedItems->size() - 1) {
                 query.append(", ");
             }
         }
