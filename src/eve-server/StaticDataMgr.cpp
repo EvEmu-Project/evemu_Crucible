@@ -39,8 +39,9 @@ m_npcDivisions(nullptr)
     m_moonGoo.clear();
     m_ramMatl.clear();
     m_regions.clear();
-    m_compounds.clear();
+    m_attrData.clear();
     m_minerals.clear();
+    m_compounds.clear();
     m_bpMatlData.clear();
     m_systemData.clear();
     m_staticData.clear();
@@ -93,17 +94,19 @@ void StaticDataMgr::Clear()
     m_moonGoo.clear();
     m_ramMatl.clear();
     m_regions.clear();
-    m_compounds.clear();
+    m_attrData.clear();
     m_minerals.clear();
+    m_compounds.clear();
+    m_bpMatlData.clear();
     m_systemData.clear();
     m_staticData.clear();
     m_salvageMap.clear();
     m_agentSystem.clear();
     m_corpFaction.clear();
     m_typeAttrMap.clear();
+    m_LootGroupMap.clear();
     m_stationCount.clear();
     m_stationConst.clear();
-    m_LootGroupMap.clear();
     m_stationRegion.clear();
     m_stationSystem.clear();
     m_oreBySecClass.clear();
@@ -125,8 +128,8 @@ void StaticDataMgr::Clear()
 
 void StaticDataMgr::Populate()
 {
-    double beginTime = GetTimeMSeconds();
-    double startTime = GetTimeMSeconds();
+    double beginTime(GetTimeMSeconds());
+    double startTime(GetTimeMSeconds());
 
     m_keyMap = ManagerDB::GetKeyMap();
     if (m_keyMap == nullptr)
@@ -236,11 +239,25 @@ void StaticDataMgr::Populate()
             data.chanceOfDuplicating    = row.GetFloat(13);
             data.metaLvl                = (row.IsNull(14) ? 0 : row.GetUInt(14));
             // these will take a bit of work, but will eliminate multiple db hits on inventory/menu loading ingame
-            data.isRecyclable           = FactoryDB::IsRecyclable(data.id);   // +30s to startup
+            //data.isRecyclable           = FactoryDB::IsRecyclable(data.id);   // +30s to startup
             data.isRefinable            = FactoryDB::IsRefinable(data.id);     // +8s to startup
         m_typeData.emplace(row.GetUInt(0), data);
     }
     sLog.Cyan("    StaticDataMgr", "%u Inventory Types loaded in %.3fms.", m_typeData.size(), (GetTimeMSeconds() - startTime));
+
+    startTime = GetTimeMSeconds();
+    ManagerDB::GetAttributeTypes(*res);
+    while (res->GetRow(row)) {
+        //SELECT attributeID, attributeName, attributeCategory, displayName, categoryID FROM dgmAttribute
+        AttrData attrData               = AttrData();
+        attrData.attributeID            = row.GetInt(0);
+        attrData.attributeName          = (row.IsNull(1) ? "*none*" : row.GetText(1));
+        attrData.attributeCategory      = (row.IsNull(2) ? 0        : row.GetInt(2));
+        attrData.displayName            = (row.IsNull(3) ? "*none*" : row.GetText(3));
+        attrData.categoryID             = (row.IsNull(4) ? 0        : row.GetInt(4));
+        m_attrData.emplace(row.GetInt(0), attrData);
+    }
+    sLog.Cyan("    StaticDataMgr", "%u Attribute data sets loaded in %.3fms.", m_attrData.size(), (GetTimeMSeconds() - startTime));
 
     startTime = GetTimeMSeconds();
     ManagerDB::GetSystemData(*res);
@@ -258,7 +275,6 @@ void StaticDataMgr::Populate()
     }
     sLog.Cyan("    StaticDataMgr", "%u Static System data sets loaded in %.3fms.", m_systemData.size(), (GetTimeMSeconds() - startTime));
 
-    //res->Reset();  <<---  this is redundant.  object is reset in dbcore on each call
     startTime = GetTimeMSeconds();
     ManagerDB::GetWHSystemClass(*res);
     while (res->GetRow(row)) {
@@ -639,6 +655,16 @@ void StaticDataMgr::GetTypes(std::map< uint16, Inv::TypeData >& into)
     into = m_typeData;
 }
 
+const char* StaticDataMgr::GetAttrName(uint16 attrID)
+{
+    std::map<uint16, AttrData>::const_iterator itr = m_attrData.find(attrID);
+    if (itr != m_attrData.end())
+        return itr->second.attributeName.c_str();
+        //return itr->second.displayName.c_str();
+
+    _log(DATA__ERROR, "GetAttrName() - Attribute %u not found in map", attrID);
+    return "None";
+}
 
 PyInt* StaticDataMgr::GetAgentSystemID(int32 agentID)
 {
@@ -845,7 +871,7 @@ uint32 StaticDataMgr::GetWreckID(uint32 typeID)
 }
 
 void StaticDataMgr::GetLoot(uint32 groupID, std::vector<LootList>& lootList) {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     float randChance(0.0f);
     uint8 metaLevel(0);
