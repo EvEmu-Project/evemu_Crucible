@@ -119,6 +119,7 @@ public:
     InventoryItemRef        SpawnItem(ItemData &data);
     InventoryItemRef        SpawnTempItem(ItemData &data);
     StationOfficeRef        SpawnOffice(ItemData &idata, OfficeData& odata);
+    StationItemRef          SpawnOutpost(ItemData &idata);
     AsteroidItemRef         SpawnAsteroid(ItemData& idata, AsteroidData& adata);
     StructureItemRef        SpawnStructure(ItemData &data);
     CargoContainerRef       SpawnCargoContainer(ItemData &data);

@@ -336,6 +336,20 @@ void StationDataMgr::LoadStationPyData()
     }
 }
 
+// Add an outpost to the datamgr and the db
+void StationDataMgr::AddOutpost(StationData data) {
+
+    //Add the new data to the db
+    StationDB::CreateOutpost(data);
+
+    //Load the new data into the data manager
+    m_stationData.emplace(data.stationID, data);
+
+    //Reload all PyData from memory object
+    m_stationPyData.clear();
+    LoadStationPyData();
+}
+
 /** errata
  *  office folderIDs are stationID + 6m  (for the 66m range)
  *

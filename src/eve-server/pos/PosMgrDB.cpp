@@ -73,6 +73,24 @@ void PosMgrDB::GetLinkableJumpArrays(uint32 corpID, DBQueryResult& res)
     }
 }
 
+bool PosMgrDB::HasBridge(uint32 systemID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+            "SELECT systemID FROM posJumpBridgeData"
+            " WHERE systemID = %u", systemID))
+    {
+        codelog(DATABASE__ERROR, "Error in GetBaseData query: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    if (!res.GetRow(row))
+        return false;
+
+    return true;
+}
+
 void PosMgrDB::GetCorpJumpArrays(uint32 corpID, DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
@@ -259,6 +277,16 @@ void PosMgrDB::UninstallBridgeLink(uint32 itemID)
         "UPDATE posJumpBridgeData SET "
         " toItemID=0, toTypeID=0, toSystemID=0 "
         " WHERE itemID=%i",
+        itemID);
+}
+
+void PosMgrDB::UninstallRemoteBridgeLink(uint32 itemID) //Removes a link from the remote bridge
+{
+    DBerror err;
+    sDatabase.RunQuery(err,
+        "UPDATE posJumpBridgeData SET "
+        " toItemID=0, toTypeID=0, toSystemID=0 "
+        " WHERE itemID=(SELECT toItemID FROM posJumpBridgeData WHERE itemID=%i)",
         itemID);
 }
 

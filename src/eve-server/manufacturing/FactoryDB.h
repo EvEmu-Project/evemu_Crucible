@@ -31,6 +31,7 @@ public:
     static PyRep* AssemblyLinesSelectAlliance(const int32 allianceID);
     static PyRep* AssemblyLinesGet(const uint32 containerID);
     static PyRep* GetMaterialCompositionOfItemType(const uint32 typeID);
+    static void GetOutpostMaterialCompositionOfItemType(const uint32 typeID, DBQueryResult& res);
 
     // for static data mgr
     static bool IsRefinable(const uint16 typeID);

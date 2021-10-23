@@ -2917,30 +2917,37 @@ void DestinyManager::SendBallInteractive(const ShipItemRef shipRef, bool set/*fa
     SendSingleDestinyUpdate(&up);   // consumed
 }
 
-void DestinyManager::SendJumpOutEffect(std::string JumpEffect, uint32 locationID) const {
+void DestinyManager::SendJumpOutEffect(std::string JumpEffect, uint32 shipID) const {
     std::vector<PyTuple*> updates;
     CmdStop du;
         du.entityID = mySE->GetID();
     updates.push_back(du.Encode());
-    OnSpecialFX10 effect;
+    OnSpecialFX14 effect;
         effect.entityID = mySE->GetID();
-        effect.targetID = locationID;
+        effect.targetID = new PyInt(shipID);
         effect.guid = "effects.JumpDriveOut";   /* JumpDriveInBO */
         effect.isOffensive = 0;
         effect.start = 1;
-        effect.active = 0;
+        effect.active = 1;
+        effect.duration = 5000;
+        effect.repeat = 0;
+        effect.startTime = GetFileTimeNow();
     updates.push_back(effect.Encode());
     SendDestinyUpdate(updates);
 }
 
 void DestinyManager::SendJumpInEffect(std::string JumpEffect) const {
     std::vector<PyTuple*> updates;
-    OnSpecialFX10 effect;
+    OnSpecialFX14 effect;
         effect.guid = "effects.JumpDriveIn";
         effect.entityID = mySE->GetID();
         effect.isOffensive = 0;
         effect.start = 1;
-        effect.active = 0;
+        effect.active = 1;
+        effect.duration = 2000;
+        effect.repeat = 0;
+        effect.startTime = GetFileTimeNow();
+        effect.targetID = new PyInt(mySE->GetID());
     updates.push_back(effect.Encode());
     CmdSetSpeedFraction ssf;
         ssf.entityID = mySE->GetID();

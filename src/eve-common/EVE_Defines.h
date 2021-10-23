@@ -169,7 +169,6 @@
 
 #define minFakeItem             9000000000000000000     // min missileID on live.  not needed here?
 
-
 //  DSTLOCALBALLS = 0x0C0000000h  (3,221,225,472 decimal)      unknown where this is from
 
 

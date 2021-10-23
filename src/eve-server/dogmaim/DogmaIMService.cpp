@@ -926,6 +926,11 @@ PyResult DogmaIMBound::Handle_Activate(PyCallArgs& call)
                 pSE->GetPOSSE()->SetAnchor(args.arg2);
             } else */ if (args.arg2 == anchorLiftForStructures) {
                 pSE->GetPOSSE()->PullAnchor();
+            } else if (pSE->IsPlatformSE() and args.arg2 == anchorDrop) {
+                GPoint pos = pSE->GetPosition();
+                pSE->GetPOSSE()->SetAnchor(call.client, pos);
+            } else if (pSE->IsPlatformSE() and args.arg2 == anchorLift) {
+                pSE->GetPOSSE()->PullAnchor();
             } else if (args.arg2 == onlineForStructures) {
                 pSE->GetPOSSE()->Activate(args.arg2);
             }

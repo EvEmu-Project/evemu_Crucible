@@ -159,10 +159,9 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
             return false;
         }
     } else if (tSE->IsOutpostSE()) {
-        if (tSE->GetOutpostSE()->GetState() == EVEPOS::StructureState::Online) { //TODO: This structure state likely will be different for outposts, will change later.
+            // For now, don't allow targeting outposts. This will need to be changed later.
             mySE->GetPilot()->SendNotifyMsg("You cannot target an invulnerable structure.");
             return false;
-        }
     }
 
     // Check against max target range

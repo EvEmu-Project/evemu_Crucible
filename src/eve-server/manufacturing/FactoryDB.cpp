@@ -117,6 +117,17 @@ PyRep* FactoryDB::GetMaterialCompositionOfItemType(const uint32 typeID) {
     return DBResultToRowset(res);
 }
 
+void FactoryDB::GetOutpostMaterialCompositionOfItemType(const uint32 typeID, DBQueryResult& res) {
+    if (!sDatabase.RunQuery(res,
+        "SELECT materialTypeID AS typeID, quantity"
+        " FROM invTypeMaterials"
+        " WHERE typeID = %u",
+        typeID))
+    {
+        _log(DATABASE__ERROR, "Could not retrieve outpost material composition for type %u : %s", typeID, res.error.c_str());
+    }
+}
+
 bool FactoryDB::SaveBlueprintData(uint32 blueprintID, EvERam::bpData& data) {
     DBerror err;
     if(!sDatabase.RunQuery(err,

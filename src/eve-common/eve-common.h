@@ -76,5 +76,6 @@
 #include "EVE_Roles.h"
 #include "EVE_Skills.h"
 #include "EVE_Typedefs.h"
+#include "EVE_Station.h"
 
 #endif /* !__EVE_COMMON_H__INCL__ */

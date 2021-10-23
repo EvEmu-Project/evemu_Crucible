@@ -84,6 +84,32 @@ StationItemRef StationItem::Load( uint32 stationID)
     return InventoryItem::Load<StationItem>(stationID);
 }
 
+StationItemRef StationItem::Spawn( ItemData &data) {
+    if (data.typeID == EVEDB::invGroups::Station) {
+        StationType* iType = StationType::Load(data.typeID);
+        uint32 itemID = StationItem::CreateItemID(data);
+        if (itemID == 0)
+            return StationItemRef(nullptr);
+        StationItemRef stationRef = StationItem::Load(itemID);
+        if (stationRef.get() == nullptr)
+            return StationItemRef(nullptr);
+
+        stationRef->SetAttribute(AttrShieldCharge,  stationRef->GetAttribute(AttrShieldCapacity), false);     // Shield Charge
+        stationRef->SetAttribute(AttrArmorDamage,   EvilZero, false);                                         // Armor Damage
+        stationRef->SetAttribute(AttrMass,          iType->mass(), false);           // Mass
+        stationRef->SetAttribute(AttrRadius,        iType->radius(), false);       // Radius
+        stationRef->SetAttribute(AttrVolume,        iType->volume(), false);       // Volume
+        stationRef->SetAttribute(AttrCapacity,      iType->capacity(), false);   // Capacity
+
+        return stationRef;
+    } else if (data.typeID == EVEDB::invGroups::Station_Services) {
+        // this should never hit...throw error
+        codelog(INV__ERROR, "II::Spawn called for unhandled item type %u in locID: %u.", data.typeID, data.locationID);
+        return StationItemRef(nullptr);
+    }
+    return StationItemRef(nullptr);
+}
+
 bool StationItem::_Load() {
     if (!pInventory->LoadContents())
         return false;

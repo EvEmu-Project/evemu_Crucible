@@ -499,11 +499,101 @@ static PyResult generic_createitem(Client *pClient, CommandDB *db, PyServiceMgr 
     return new PyInt(iRef.get()->itemID());
 }
 
+static PyResult generic_loaditem(Client *pClient, CommandDB *db, PyServiceMgr *services, const Seperator &args) {
+    int typeID = -1;
+    if (args.isNumber(2)) {
+        typeID = atoi(args.arg(2).c_str());
+    } else {
+        // this hits db directly, so test for possible sql injection code
+        for (const auto cur : badCharsSearch)
+            if (EvE::icontains(args.arg(2), cur))
+                throw CustomError ("Name contains invalid characters");
+        std::map<uint32_t, std::string> matches;
+        if (!db->ItemSearch(args.arg(2).c_str(), matches))
+            throw CustomError ("Item not found");
+
+        if (matches.size() > 1) {
+            auto c = matches.begin();
+            auto e = matches.end();
+            for (; c != e; c++) {
+                _log(COMMAND__MESSAGE, "Got match: %s\n", c->second.c_str());
+
+                // POSIX standard btw
+                if (strcasecmp(c->second.c_str(), args.arg(2).c_str()) == 0)
+                    typeID = c->first;
+            }
+            if (typeID == -1)
+                throw CustomError ("Item name is ambiguous.  Please use a full item name");
+
+        } else if (matches.size() == 1) {
+            auto cur = matches.begin();
+            _log(COMMAND__MESSAGE,
+                 "ItemSearch returned type: \"%s\" given \"%s\"\n",
+                 cur->second.c_str(), args.arg(2).c_str());
+            typeID = cur->first;
+        }
+    }
+    if (typeID == -1)
+        throw CustomError ("Unable to find valid type to create");
+
+    if (typeID < 34)
+        throw CustomError ("Invalid Type ID.");
+
+    int qty = 1;
+    if (3 < args.argCount()) {
+        if (args.isNumber(3))
+            qty = atoi(args.arg(3).c_str());
+    }
+
+    _log(COMMAND__MESSAGE, "Create %s %u times", args.arg(2).c_str(), qty);
+
+    //create into their cargo hold unless they are docked in a station,
+    //then stick it in their hangar instead.
+    uint32 locationID = 0;
+    EVEItemFlags flag;
+    if (pClient->IsInSpace()) {
+        locationID = pClient->GetShipID();
+        flag = flagCargoHold;
+    } else {
+        locationID = pClient->GetStationID();
+        flag = flagHangar;
+    }
+
+    ItemData idata(
+        typeID,
+        pClient->GetCharacterID(),
+                   locTemp, //temp location
+                   flag,
+                   qty
+    );
+
+    InventoryItemRef iRef = sItemFactory.SpawnItem(idata);
+    if (iRef.get() == nullptr)
+        throw CustomError ("Unable to create item of type %s.", args.arg(2).c_str());
+
+    //Move to location
+    if (pClient->IsInSpace())
+        pClient->GetShip()->AddItemByFlag(flag, iRef);
+    else
+        iRef->Move(locationID, flag, true);
+
+    iRef->SaveItem();
+
+    return new PyInt(iRef.get()->itemID());
+}
+
 PyResult Command_create(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
     if (args.argCount() < 2) {
         throw CustomError ("Correct Usage: /create [typeID|\"Type Name\"] [qty] [where]");
     }
     return generic_createitem(pClient, db, services, args);
+}
+
+PyResult Command_load(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+    if (args.argCount() < 3) {
+        throw CustomError ("Correct Usage: /load me [typeID|\"Type Name\"] [qty] [where]");
+    }
+    return generic_loaditem(pClient, db, services, args);
 }
 
 PyResult Command_createitem(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {

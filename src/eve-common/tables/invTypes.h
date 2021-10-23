@@ -266,7 +266,11 @@ namespace EVEDB {
             UpgSupercapitalConstruction = 2009,
             UpgAdvancedLogisticsNetwork = 32422,
             CynosuralGeneratorArray = 27673,
-            CynosuralSystemJammer = 27674
+            CynosuralSystemJammer = 27674,
+            CaldariResearchOutpost = 21642,
+            AmarrFactoryOutpost = 21644,
+            GallenteAdministrativeOutpost = 21645,
+            MinmatarServiceOutpost = 21646
         } invTypes;
     }
 }

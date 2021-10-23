@@ -517,25 +517,7 @@ InventoryItemRef InventoryItem::Spawn(ItemData &data)
             return itemRef;
         } break;
         case EVEDB::invCategories::Station: {
-            if (iType->groupID() == EVEDB::invGroups::Station) {
-            uint32 itemID = StationItem::CreateItemID(data);
-            if (itemID == 0)
-                return StationItemRef(nullptr);
-            StationItemRef stationRef = StationItem::Load(itemID);
-            if (stationRef.get() == nullptr)
-                return StationItemRef(nullptr);
-            // THESE SHOULD BE MOVED INTO A Station::Spawn() function that does not exist yet
-            stationRef->SetAttribute(AttrShieldCharge,  stationRef->GetAttribute(AttrShieldCapacity), false);     // Shield Charge
-            stationRef->SetAttribute(AttrArmorDamage,   EvilZero, false);                                         // Armor Damage
-            stationRef->SetAttribute(AttrMass,          iType->mass(), false);           // Mass
-            stationRef->SetAttribute(AttrRadius,        iType->radius(), false);       // Radius
-            stationRef->SetAttribute(AttrVolume,        iType->volume(), false);       // Volume
-            stationRef->SetAttribute(AttrCapacity,      iType->capacity(), false);   // Capacity
-            return stationRef;
-            } else if (iType->groupID() == EVEDB::invGroups::Station_Services) {
-                // this should never hit...throw error
-                codelog(INV__ERROR, "II::Spawn called for unhandled item type %u, cat %u in locID: %u.", iType->id(), iType->categoryID(), data.locationID);
-            }
+            return StationItem::Spawn(data);
         } break;
         case EVEDB::invCategories::Celestial: {
             if ((iType->groupID() == EVEDB::invGroups::Secure_Cargo_Container)

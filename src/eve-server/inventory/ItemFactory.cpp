@@ -437,6 +437,15 @@ AsteroidItemRef ItemFactory::SpawnAsteroid(ItemData &idata, AsteroidData& adata)
     return iRef;
 }
 
+StationItemRef ItemFactory::SpawnOutpost(ItemData &idata)
+{
+    StationItemRef iRef = StationItem::Spawn(idata);
+    if (iRef.get() != nullptr)
+        AddItem(iRef);
+
+    return iRef;
+}
+
 StationOfficeRef ItemFactory::SpawnOffice(ItemData &idata, OfficeData& odata)
 {
     StationOfficeRef iRef = StationOffice::Spawn(idata, odata);
