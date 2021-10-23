@@ -61,7 +61,7 @@ TargetManager::TargetManager(SystemEntity *self)
 }
 
 bool TargetManager::Process() {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     if (m_targets.empty())
         return false;

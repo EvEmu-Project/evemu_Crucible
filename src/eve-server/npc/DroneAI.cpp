@@ -46,7 +46,7 @@ DroneAIMgr::DroneAIMgr(DroneSE* who)
 }
 
 void DroneAIMgr::Process() {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     /* Drone::State definitions   -allan 27Nov19
      *   Invalid

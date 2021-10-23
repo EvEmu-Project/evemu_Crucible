@@ -75,6 +75,14 @@ void ManagerDB::GetSkillList(DBQueryResult& res)
     _log(DATABASE__RESULTS, "GetSkillList returned %u items", res.GetRowCount());
 }
 
+void ManagerDB::GetAttributeTypes(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT attributeID, attributeName, attributeCategory, displayName, categoryID FROM dgmAttributeTypes"))
+        codelog(DATABASE__ERROR, "Error in GetAttributeTypes query: %s", res.error.c_str());
+
+    _log(DATABASE__RESULTS, "GetAttributeTypes returned %u items", res.GetRowCount());
+}
+
 void ManagerDB::GetTypeAttributes(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res, "SELECT typeID, attributeID, valueInt, valueFloat FROM dgmTypeAttributes"))
@@ -546,7 +554,7 @@ void ManagerDB::ClearAsteroids()
 {
     DBerror err;
     sDatabase.RunQuery(err, "DELETE FROM sysAsteroids WHERE 1");
-    sDatabase.RunQuery(err, "ALTER TABLE `sysAsteroids` auto_increment = 450000000");
+    sDatabase.RunQuery(err, "ALTER TABLE sysAsteroids auto_increment = 450000000");
 }
 
 void ManagerDB::SaveRoid(AsteroidData& data)

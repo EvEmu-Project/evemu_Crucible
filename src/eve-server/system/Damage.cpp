@@ -106,7 +106,7 @@ Damage::Damage(SystemEntity* pSE, bool fatal_blow/*false*/)
 }
 
 bool SystemEntity::ApplyDamage(Damage &d) {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     if (is_log_enabled(DAMAGE__MESSAGE)) {
         if (d.srcSE->IsNPCSE()) {

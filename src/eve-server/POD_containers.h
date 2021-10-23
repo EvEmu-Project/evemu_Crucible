@@ -313,6 +313,16 @@ struct StaticData {
     GPoint position;
 };
 
+/* POD structure for attribute type data. */
+struct AttrData {
+    uint8 categoryID;
+    uint8 attributeCategory;
+    uint16 attributeID;
+    std::string attributeName;
+    std::string displayName;
+};
+
+
 /* POD structure for sovereignty */
 struct SovereigntyData {
     uint32 claimID;

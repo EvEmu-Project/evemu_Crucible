@@ -219,7 +219,7 @@ void EntityList::Process() {
 
     /* check for 1Hz timer tic */
     if (m_stampTimer.Check()) {
-        double profileStartTime = GetTimeUSeconds();
+        double profileStartTime(GetTimeUSeconds());
 
         ++m_stamp;
 

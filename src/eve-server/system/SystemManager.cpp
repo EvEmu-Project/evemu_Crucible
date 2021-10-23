@@ -217,7 +217,7 @@ bool SystemManager::LoadCosmicMgrs()
 
 //called once per second from EntityList. (1Hz Tic)
 bool SystemManager::ProcessTic() {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     /* the idea here is entities map NEVER has invalid items in it, but our iterator may become invalid
      *      when SE->Process() returns because Process() will add/remove from the map as needed

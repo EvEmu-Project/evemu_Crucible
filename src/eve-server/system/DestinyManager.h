@@ -108,8 +108,8 @@ public:
     /* Informational query functions: */
     const GPoint &GetPosition() const                   { return m_position; }
     const GVector &GetVelocity() const                  { return m_velocity; }
-    float GetSpeedFraction()                            { return m_currentSpeedFraction; }
-    float GetSpeed()                                    { return (m_maxShipSpeed * m_currentSpeedFraction); }
+    float GetSpeedFraction()                            { return m_timeFraction; }
+    float GetSpeed()                                    { return (m_maxShipSpeed * m_timeFraction); }
 
     // this is only used by my bubble debug command
     uint8 GetState()                                    { return m_ballMode; }
@@ -118,9 +118,8 @@ public:
 
     /* Configuration methods */
     void WebbedMe(InventoryItemRef modRef, bool apply=false);
-    void SetBubble(bool set = false)                    { m_inBubble = set; }
     void SpeedBoost(bool deactivate=false);             // reset speed variables and bubblecast ship's AB/MWD modified speed (module activate/deactivate)
-    void SetPosition(const GPoint& pt, bool update = false);
+    void SetPosition(const GPoint& pt, bool update=false);
     void SetMaxVelocity(float maxVelocity);
     void UpdateShipVariables();
 
@@ -146,7 +145,7 @@ public:
     void WarpTo(const GPoint& where, int32 distance = 0, bool autoPilot = false, SystemEntity* pSE = nullptr);
 
     /* Ship State Query functions */
-    bool IsMoving()                                     { return (m_currentSpeedFraction > 0); }
+    bool IsMoving()                                     { return (m_timeFraction > 0); }
 
     /* Movement checks */
     bool IsAligned(GPoint &targetPoint);
@@ -208,6 +207,9 @@ public:
 
     float GetRadTic()                                   { return m_orbitRadTic; }
 
+    void SetCallTime(double set=0)                      { m_callTime = set; }
+    double GetCallTime()                                { return m_callTime; }
+
     // set all movement vars for missile and add to system
     //  this is used by all entities (pc, npc, drone, sentry, pos, etc)
     void MakeMissile(Missile* missile);
@@ -232,7 +234,7 @@ protected:
     float m_mass;                       //in kg
     float m_massMKg;                    //in mg     - Millionths of kg (mg)
     float m_alignTime;                  //in s      - align and enter warp are same (for our purposes)
-    float m_prevSpeed;                  //in m/s    - used by decel when deactivating prop mod
+    float m_prevSpeed;                  //in m/s    - used to calculate speed during decel
     float m_maxShipSpeed;               //in m/s
     float m_shipWarpSpeed;              //in au/s
     float m_timeToEnterWarp;            //in s
@@ -250,6 +252,7 @@ protected:
     //derived from above params:
     float m_maxSpeed;                   //in m/s
     float m_degPerTic;                  //in deg/s  - used to determine rate of direction change
+    float m_shipAccelTime;              //in s      - used to check time for speed change
     float m_shipMaxAccelTime;           //in s      - used to determine accel rate, and total accel time
 
     double m_radians;                   //in rad    - radians left in an ongoing turn
@@ -259,11 +262,10 @@ protected:
 
     //User controlled information used by a state to determine what to do.
     bool m_stop;                        //used to denote Stop() has been called to avoid multiple stops (and associated decel)
-    bool m_accel;                       //used for raising ship speed via speedo
-    bool m_decel;                       //used for lowering ship speed via speedo
+    bool m_accel;                       //used to execute code for increasing ship speed
+    bool m_decel;                       //used to execute code for decreasing ship speed
     bool m_cloaked;
-    bool m_turning;                     //used to denote ship turning for associated checks
-    bool m_inBubble;                    //used to tell if client is in bubble or not.
+    bool m_turning;                     //used to execute code for ship turning
     bool m_tractored;
     bool m_tractorPause;
 
@@ -279,20 +281,21 @@ protected:
 
     float m_orbitTime;                  //in s - time to complete one orbit using current variables
     float m_orbitRadTic;                //in rad/sec  - radians around orbit per tic
-    float m_turnFraction;               //fuzzy logic - speed % - used for turn accel/decel checks
-    float m_prevSpeedFraction;          //fuzzy logic - speed % - previous speed fraction used for decel checks when (m_userSpeedFraction == 0)
-    float m_userSpeedFraction;          //fuzzy logic - speed % - set by user command
-    float m_currentSpeedFraction;       //fuzzy logic - speed % - holds current euler value for time
-    float m_activeSpeedFraction;        //fuzzy logic - speed % - ship's current speed setting as ratio of CSF to USF (or OSF)
-    float m_maxOrbitSpeedFraction;      //fuzzy logic - speed % - ship's max speed based on orbit data
+    float m_timeFraction;               //fuzzy logic - holds current euler value for time
+    float m_turnFraction;               //fuzzy logic - used for turn accel/decel checks
+    float m_prevSpeedFraction;          //fuzzy logic - previous percent of full speed.  used for speed changes
+    float m_userSpeedFraction;          //fuzzy logic - user commanded percent of max speed
+    float m_activeSpeedFraction;        //fuzzy logic - current percent of max speed
+    float m_maxOrbitSpeedFraction;      //fuzzy logic - ship's max speed based on orbit data
 
     uint32 m_followDistance;            //in m
     uint32 m_targetDistance;            //in m
-    double m_moveTime;                  //in ms     - movement timestamp container for calculating csf
+    double m_moveTime;                  //in ms       - time when speed change started.  used to calculate m_timeFraction
+    double m_callTime;                  //in ms       - time client call was processed.  this is to coordinate tic calculations
 
-    GPoint m_targetPoint;
+    GPoint m_targetPoint;               //vector      - point in space used as current destination
     GVector m_shipHeading;              //direction ship is facing
-    GVector m_targetHeading;            //direction to target from current heading  -- should this be the *actual* heading of our current target??
+    GVector m_targetHeading;            //direction to target from current heading
     std::pair<uint32, SystemEntity*> m_targetEntity;   //we do not own the SystemEntity*
 
     // movement methods

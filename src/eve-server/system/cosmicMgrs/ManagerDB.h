@@ -40,6 +40,7 @@ public:
     static void GetMoonResouces(DBQueryResult& res);
     static void GetAgentLocation(DBQueryResult& res);
     static void GetSalvageGroups(DBQueryResult& res);
+    static void GetAttributeTypes(DBQueryResult& res);
     static void GetTypeAttributes(DBQueryResult& res);
     static void LoadNPCCorpFactionData(DBQueryResult& res);
 

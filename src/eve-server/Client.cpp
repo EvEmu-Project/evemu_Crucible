@@ -433,7 +433,7 @@ void Client::ProcessClient() {
     if (m_charCreation)
         return;
 
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     // wtf is this for?
     if (m_pingTimer.Check()) {

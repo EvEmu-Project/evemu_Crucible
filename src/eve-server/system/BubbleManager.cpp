@@ -70,7 +70,7 @@ void BubbleManager::clear() {
 }
 
 void BubbleManager::Process() {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     for (auto cur : m_bubbles) {
         // process each belt and gate bubble for spawns

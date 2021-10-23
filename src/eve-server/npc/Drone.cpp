@@ -116,7 +116,7 @@ void DroneSE::SetOwner(Client* pClient) {
 void DroneSE::Process() {
     if (m_killed)
         return;
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     /*  Enable base call to Process Targeting and Movement  */
     SystemEntity::Process();

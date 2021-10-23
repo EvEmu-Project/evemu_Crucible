@@ -208,7 +208,7 @@ void Colony::Process()
             return;
         }
 
-        double profileStartTime = GetTimeUSeconds();
+        double profileStartTime(GetTimeUSeconds());
         Update();
 
         // profile timer for the colony updates
@@ -1346,7 +1346,7 @@ PyRep* Colony::GetColony()
 
 void Colony::Update(bool updateTimes/*false*/)
 {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     /* loop thru process calls to update each pin to simulate production and logistics
      *  this will have to be fast, as there may/will be large time deltas between updates
