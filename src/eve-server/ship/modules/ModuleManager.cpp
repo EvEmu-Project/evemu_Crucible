@@ -179,7 +179,7 @@ void ModuleManager::LoadOnline() {
 
 void ModuleManager::Process()
 {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
     // proc modules in order of (low -> mid -> high) for proper fx application
     // NOTE: rigs and subsystems dont need proc tic.
