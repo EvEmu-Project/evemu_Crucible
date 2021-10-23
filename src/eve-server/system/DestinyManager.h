@@ -267,7 +267,6 @@ protected:
     bool m_cloaked;
     bool m_turning;                     //used to execute code for ship turning
     bool m_tractored;
-    bool m_speedBoost;                  //used to denote speed fractions > 1 (speedboosted)
     bool m_tractorPause;
 
     uint8 m_ballMode;                   //current state of ball
