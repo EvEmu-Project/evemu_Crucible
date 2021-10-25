@@ -239,8 +239,8 @@ void StaticDataMgr::Populate()
             data.chanceOfDuplicating    = row.GetFloat(13);
             data.metaLvl                = (row.IsNull(14) ? 0 : row.GetUInt(14));
             // these will take a bit of work, but will eliminate multiple db hits on inventory/menu loading ingame
-            //data.isRecyclable           = FactoryDB::IsRecyclable(data.id);   // +30s to startup
-            data.isRefinable            = FactoryDB::IsRefinable(data.id);     // +8s to startup
+            data.isRecyclable           = FactoryDB::IsRecyclable(data.id);   // +5s to startup
+            data.isRefinable            = FactoryDB::IsRefinable(data.id);     // +3s to startup
         m_typeData.emplace(row.GetUInt(0), data);
     }
     sLog.Cyan("    StaticDataMgr", "%u Inventory Types loaded in %.3fms.", m_typeData.size(), (GetTimeMSeconds() - startTime));
