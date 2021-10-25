@@ -229,7 +229,9 @@ public:
     bool IsDocked()                                     { return sDataMgr.IsStation(m_locationID); }
     bool IsDock()                                       { return (m_clientState == Player::State::Dock); }
     bool IsIdle()                                       { return (m_clientState == Player::State::Idle); }
-    bool IsJump()                                       { return (m_clientState == Player::State::Jump); }
+    bool IsGateJump()                                   { return (m_clientState == Player::State::Jump); }
+    bool IsDriveJump()                                  { return (m_clientState == Player::State::DriveJump); }
+    bool IsJump()                                       { return ((m_clientState == Player::State::DriveJump) or (m_clientState == Player::State::Jump)); } //Gate and Drive are both forms of jumping
     bool IsBoard()                                      { return (m_clientState == Player::State::Board); }
     bool IsInvul()                                      { return m_invul; }
     bool IsLogin()                                      { return m_login; }

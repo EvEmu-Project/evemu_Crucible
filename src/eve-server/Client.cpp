@@ -715,12 +715,14 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
             wasDocked = false;  // dont update station again on this call (redundant check later in this method)
         }
         if (pShipSE != nullptr)
-            if (IsJump() and !m_autoPilot)
+            if ((IsJump()) and !m_autoPilot)
                 pShipSE->DestinyMgr()->Halt();
 
         // remove from current system before resetting system vars
         m_system->RemoveEntity(pShipSE);
+
         m_system->RemoveClient(this, (count = true), IsJump());
+        
         m_system = nullptr;
     }
 
@@ -898,11 +900,16 @@ void Client::SetBallPark() {
     if (!m_setStateSent and m_beyonce) {  // MUST have beyonce before sending state data.
         pShipSE->DestinyMgr()->SendSetState();
         m_ballparkTimer.Disable();
-        if (IsJump()) {
+        if (IsGateJump()) {
             SetInvulTimer(Player::Timer::JumpInvul);
             // dont use timer method here...(jumping ship will flash at destination)
             m_cloakTimer.Start(Player::Timer::JumpCloak);
             m_clientState = Player::State::Idle;
+        }
+        if (IsDriveJump()) {
+            SetInvulTimer(Player::Timer::JumpInvul);
+            m_clientState = Player::State::Idle;
+            JumpInEffect();
         }
     }
     if (m_undock)
@@ -1466,10 +1473,10 @@ void Client::CynoJump(InventoryItemRef beacon) {
     MapDB::AddJump(m_moveSystemID);
     m_char->VisitSystem(m_moveSystemID);
 
-    JumpOutEffect(m_locationID);
+    JumpOutEffect(GetShipID());
 
     m_movePoint = beacon->position();
-    m_movePoint.MakeRandomPointOnSphereLayer(200,500);
+    m_movePoint.MakeRandomPointOnSphere(2000);
 
     SetStateTimer(Player::State::DriveJump, Player::Timer::Jumping);
 }
@@ -1507,9 +1514,6 @@ void Client::ExecuteDriveJump() {
     pShipSE->Jump(false);
 
     MoveToLocation(m_moveSystemID, m_movePoint);
-
-    JumpInEffect();
-
     SetBallParkTimer(Player::Timer::Jump);
 
     m_movePoint = NULL_ORIGIN;

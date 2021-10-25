@@ -82,6 +82,7 @@ public:
      * @return Pointer to new Station object; NULL if fails.
      */
     static StationItemRef Load( uint32 stationID);
+    static StationItemRef Spawn( ItemData &data);
 
     StationType* GetStationType() { return &m_stationType; }
     ShipItemRef GetShipFromInventory(uint32 shipID);

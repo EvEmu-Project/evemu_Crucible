@@ -148,6 +148,8 @@ public:
     //  this way all users are using the exact same data
     DBRowDescriptor*    CreateHeader();
 
+    void                AddOutpost(StationData stData);
+
 protected:
     void                Populate();
 

@@ -2,6 +2,8 @@
 
 COMMAND( create, Acct::Role::VIP,
          "(itemID) [count] - Create count or 1 of the specified item." )
+COMMAND( load, Acct::Role::VIP,
+         "me (itemID) [count] - Create count or 1 of the specified item." )
 COMMAND( createitem, Acct::Role::ADMIN,
          "(itemID) [count] - Create count or 1 of the specified item.(from Insider)" )
 COMMAND( goto, Acct::Role::VIP,

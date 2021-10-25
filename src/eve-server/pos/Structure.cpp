@@ -209,9 +209,9 @@ StructureSE::StructureSE(StructureItemRef structure, PyServiceMgr &services, Sys
     m_bridge(false),
     m_jammer(false),
     m_generator(false),
+    m_platform(false),
     m_loaded(false),
     m_module(false),
-    m_outpost(false),
     m_reactor(false),
     m_duration(0),
     m_anchorPointID(0),
@@ -244,26 +244,15 @@ void StructureSE::InitData()
         if (m_bubble->HasTower())
             m_data.towerID = m_bubble->GetTowerSE()->GetID();
 
-    if (m_bridge)
-    {
-        m_moonSE = m_system->GetClosestMoonSE(GetPosition())->GetMoonSE();
-        m_data.anchorpointID = m_moonSE->GetID();
-
-        EVEPOS::JumpBridgeData data = EVEPOS::JumpBridgeData();
-        data.itemID = m_data.itemID;
-        data.towerID = m_data.towerID;
-        data.corpID = m_corpID;
-        data.allyID = m_allyID;
-        data.systemID = m_system->GetID();
-        data.allowCorp = false;
-        data.allowAlliance = false;
-        m_db.SaveBridgeData(data);
-    }
-
     if (m_sbu)
     { //SBUs are placed near stargates
         m_gateSE = m_system->GetClosestGateSE(GetPosition())->GetGateSE();
         m_data.anchorpointID = m_gateSE->GetID();
+    }
+    if (m_platform)
+    { //Construction Platforms are anchored near planets
+        m_planetSE = m_system->GetClosestPlanetSE(GetPosition())->GetPlanetSE();
+        m_data.anchorpointID = m_planetSE->GetID();
     }
     else
     { //Everything else is places near a moon
@@ -336,6 +325,9 @@ void StructureSE::Init()
         case EVEDB::invGroups::Infrastructure_Hubs: {
             m_ihub = true;
         } break;
+        case EVEDB::invGroups::Construction_Platform: {
+            m_platform = true;
+        } break;
         default: {
             m_module = true;
         }
@@ -393,6 +385,13 @@ void StructureSE::Init()
     if (m_bridge)
     {
         m_bridgeSE = pSE->GetJumpBridgeSE();
+    }
+    if (m_platform)
+    {
+        if (m_planetSE == nullptr)
+        {
+            m_planetSE = pSE->GetPlanetSE();
+        }
     }
     else //everything else is anchored near a moon
     {
@@ -631,6 +630,12 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             return;
         }
 
+        if ((m_generator) && m_db.HasBridge(pClient->GetLocationID()))
+        {
+            pClient->SendErrorMsg("This module cannot be anchored as the system already contains a Jump Bridge.");
+            return;
+        }
+
         if ((m_generator) && (sovData.jammerID != 0)) {
             pClient->SendErrorMsg("This module cannot be anchored as the system is currently being jammed.");
             return;
@@ -691,6 +696,19 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     else if (m_tcu or m_ihub)
     {
         // these are anchored anywhere in system.
+        m_destiny->SetPosition(pos);
+    }
+    else if (m_platform)
+    {
+        //verify anchor distance from planet
+        uint32 distance(m_planetSE->GetPosition().distance(m_self->position()));
+        uint32 anchorMax = (m_planetSE->GetRadius() + 150000000);
+
+        if (distance > anchorMax) {
+            pClient->SendErrorMsg("You cannot anchor the %s farther than %u meters from the planet.", \
+                    m_self->name(), anchorMax);
+            return;
+        }
         m_destiny->SetPosition(pos);
     }
     else
@@ -816,26 +834,6 @@ void StructureSE::Activate(int32 effectID)
                     .AddFormatValue ("moduleType", new PyInt (m_self->typeID ()));
         }
     }
-
-    // check for things that DONT use a tower.  not sure if we need anymore checks here.
-    //yes....all sov structures will need checks for activation
-    //  ?? can you activate a sov structure?
-    else if (m_tcu)
-        {
-            // Check some things for TCU onlining
-
-            /*
-            Is there already a TCU in the system?
-            */
-        }
-    else if (m_sbu)
-        {
-            // Check some things for SBU onlining
-        }
-    else if (m_ihub)
-        {
-            // Check some things for IHUB onlining
-        }
 
     m_data.state = EVEPOS::StructureState::Onlining;
     m_procState = EVEPOS::ProcState::Onlining;
@@ -1129,12 +1127,6 @@ PyDict *StructureSE::MakeSlimItem()
     { // for control towers and structures
         slim->SetItemString("posTimestamp", new PyLong(m_data.timestamp));
         slim->SetItemString("incapacitated", new PyInt(m_data.state == EVEPOS::StructureState::Incapacitated));
-        slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
-    }
-    if (m_outpost)
-    {
-        slim->SetItemString("startTimestamp", new PyLong(m_data.timestamp));
-        slim->SetItemString("structureState", new PyInt(m_data.state));
         slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
     }
     else if (m_tcu)

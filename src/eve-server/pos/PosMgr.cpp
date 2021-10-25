@@ -257,7 +257,9 @@ PyResult PosMgrBound::Handle_InstallJumpBridgeLink(PyCallArgs &call) {
         return nullptr;
     }
 
+    // Install jump bridge link both ways
     m_db.InstallBridgeLink(args.itemID, args.toSystemID, args.toItemID);
+    m_db.InstallBridgeLink(args.toItemID, call.client->GetSystemID(), args.itemID);
     
     return PyStatic.NewNone();
 }
@@ -278,6 +280,7 @@ PyResult PosMgrBound::Handle_UninstallJumpBridgeLink(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
+    m_db.UninstallRemoteBridgeLink(arg.arg);
     m_db.UninstallBridgeLink(arg.arg);
 
     return PyStatic.NewNone();
