@@ -718,7 +718,8 @@ bool FactoryDB::GetMultipliers(const uint32 assemblyLineID, const ItemType* pTyp
 
 bool FactoryDB::IsRefinable(const uint16 typeID) {
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT typeID FROM ramTypeRequirements"
+    if (!sDatabase.RunQuery(res,
+        "SELECT typeID FROM ramTypeRequirements"
         " WHERE typeID=%u AND extra = 0 LIMIT 1",
         typeID))
     {
@@ -727,17 +728,14 @@ bool FactoryDB::IsRefinable(const uint16 typeID) {
     }
 
     return (res.ColumnCount() > 0);
-    //DBResultRow row;
-    //return (res.GetRow(row));
 }
 
 bool FactoryDB::IsRecyclable(const uint16 typeID) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT typeID FROM ramTypeRequirements AS rt"
-        /*" LEFT JOIN invBlueprintTypes AS bt ON rt.typeID = bt.blueprintTypeID"*/
-        " WHERE rt.damagePerJob = 1 AND rt.activityID = 6 AND rt.typeID = %u"
-        " AND rt.extra = 1 LIMIT 1",
+        "SELECT typeID FROM ramTypeRequirements"
+        " WHERE damagePerJob = 1 AND activityID = 6 AND typeID = %u"
+        " AND extra = 1 LIMIT 1",
         typeID))
     {
         _log(DATABASE__ERROR, "Failed to check item type ID: %s.", res.error.c_str());
@@ -749,7 +747,6 @@ bool FactoryDB::IsRecyclable(const uint16 typeID) {
 
     if (!sDatabase.RunQuery(res,
         "SELECT typeID FROM ramTypeRequirements"
-        /* " LEFT JOIN invBlueprintTypes ON typeID = blueprintTypeID" */
         " WHERE damagePerJob = 1 AND activityID = 1 AND productTypeID = %u"
         " AND extra = 1 LIMIT 1",
         typeID))
