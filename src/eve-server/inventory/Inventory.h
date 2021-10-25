@@ -72,7 +72,7 @@ public:
     float GetRemainingCapacity(EVEItemFlags flag) const { return GetCapacity( flag ) - GetStoredVolume( flag ); }
 
     InventoryItemRef GetByID(uint32 id) const;
-    InventoryItemRef GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const;
+    InventoryItemRef GetByTypeFlag(uint16 typeID, EVEItemFlags flag) const;
 
     /* Inventory-by-Flag methods */
     /** @todo update to use m_usedVolumeByFlag container? */

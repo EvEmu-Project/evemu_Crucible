@@ -99,7 +99,7 @@ uint32 Skill::GetCurrentSP(Character* ch, int64 startTime/*0*/)
     uint32 timeElapsed((GetFileTimeNow() - startTime) / EvE::Time::Second);
     if (timeElapsed > 60) {
         // skill in training - return updated SP based on elapsed training
-        delta = (timeElapsed /60) * ch->GetSPPerMin(this);
+        delta = (timeElapsed / 60) * ch->GetSPPerMin(this);
         currentSP += delta;
     }
 
@@ -124,7 +124,7 @@ uint32 Skill::GetRemainingSP(Character* ch, int64 curTime/*0*/)
     float timeLeft((ch->GetEndOfTraining() - curTime) / EvE::Time::Second);
     // if remaining time > 1m, subtract spm from total to get remaining
     if (timeLeft > 60)
-        remainingSP -= ((timeLeft /60) * ch->GetSPPerMin(this));
+        remainingSP -= ((timeLeft / 60) * ch->GetSPPerMin(this));
 
     return remainingSP;
 }
@@ -138,7 +138,7 @@ uint32 Skill::GetTrainingTime(Character* ch, int64 startTime/*0*/)
     // get full sp needed for next level
     uint32 remainingSP(GetSPForLevel(level) - GetAttribute(AttrSkillPoints).get_uint32());
     // divide by spm to get time and convert to seconds
-    uint32 timeLeft((remainingSP /ch->GetSPPerMin(this)) * 60);
+    uint32 timeLeft((remainingSP / ch->GetSPPerMin(this)) * 60);
 
     if (startTime == 0)
         return timeLeft;
@@ -179,7 +179,7 @@ void Skill::VerifySP()
         level = EvESkill::MAXSKILLLEVEL;
         SetAttribute(AttrSkillLevel, level, false);
     }
-    uint32 spThisLevel(GetSPForLevel(level -1));
+    uint32 spThisLevel(GetSPForLevel(level - 1));
     uint32 spCurrent(GetAttribute(AttrSkillPoints).get_uint32());
     if (spCurrent < spThisLevel) {
         _log(SKILL__WARNING, "Skill %s points low.  Updating from %u to %u", name(), spCurrent, spThisLevel);
@@ -196,7 +196,7 @@ void Skill::VerifySP()
                 name(), spCurrent, spNextLevel);
         } else {
             _log(SKILL__WARNING, " %s - Skillpoints high. Updating level from %u to %u and SP from %u to %u.", \
-                name(), level -1, level, spCurrent, spNextLevel);
+                name(), level - 1, level, spCurrent, spNextLevel);
         }
         SetAttribute(AttrSkillPoints, spNextLevel, false);
         // hit it again to be sure it's fixed

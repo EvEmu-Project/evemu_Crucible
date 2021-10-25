@@ -585,16 +585,16 @@ PyResult Command_attrlist(Client* pClient, CommandDB* db, PyServiceMgr* services
     str << "%s (%u) has %u attributes.<br><br>"; //70
 
     for (auto cur : attrMap) {
-        str << cur.first << " ";  //15
+        str << sDataMgr.GetAttrName(cur.first) << " ("<< cur.first << ") ";  //35
         if (cur.second.get_type() == evil_number_int)    //15
             str << "i- " << cur.second.get_int();
         else
             str << "f- " << cur.second.get_float();
-        str << "<br>"; // 3 + 15 + 15 (40)
+        str << "<br>"; // 4 + 15 + 35 (54)
     }
 
     int count = attrMap.size();
-    int size = count * 40;
+    int size = count * 60;
     size += 70;
     char reply[size];
     snprintf(reply, size, str.str().c_str(), iRef->name(), itemID, count);

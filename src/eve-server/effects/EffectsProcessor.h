@@ -1,7 +1,7 @@
 /**
  * @name EffectsProcessor.h
  *   This file is for decoding and processing the effect data
- *   Copyright 2017  EVEmu Team
+ *   Copyright 2017  Alasiya-EVEmu Team
  *
  * @Author:    Allan
  * @date:      24 January 2017
@@ -29,6 +29,7 @@ public:
     // pItem is modifier container
     void            ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShip, bool update=false);
     // pItem is modifier container
+    // pMod is not used
     void            ParseExpression(InventoryItem* pItem, Expression expression, fxData& data, GenericModule* pMod=nullptr);
     int8            GetEnvironmentEnum(const std::string& domain);
     int8            GetAssociationEnum(const std::string& association);

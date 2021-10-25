@@ -1793,8 +1793,8 @@ void ShipItem::LoadWeaponGroups()
 // new effects system.  wip
 void ShipItem::ProcessEffects(bool add/*false*/, bool update/*false*/)
 {
+    double startTime(GetTimeMSeconds());
     _log(EFFECTS__TRACE, "ShipItem::ProcessEffects()");
-    double start = GetTimeMSeconds();
     /*
     Effects processing order...
         Skills     //char effect
@@ -1828,7 +1828,7 @@ void ShipItem::ProcessEffects(bool add/*false*/, bool update/*false*/)
         // do we remove fx here?  nah, we've reset everything at this point.
     }
 
-    _log(EFFECTS__DEBUG, "ShipItem::ProcessEffects() - effects processed and applied in %.3fms", (GetTimeMSeconds() - start));
+    _log(EFFECTS__DEBUG, "ShipItem::ProcessEffects() - effects processed and applied in %.3fms", (GetTimeMSeconds() - startTime));
 }
 
 void ShipItem::ProcessShipEffects(bool update/*false*/)
@@ -1840,9 +1840,6 @@ void ShipItem::ProcessShipEffects(bool update/*false*/)
         data.srcRef = static_cast<InventoryItemRef>(this);
         sFxProc.ParseExpression(this, sFxDataMgr.GetExpression(it.second.preExpression), data);
     }
-    // apply processed ship effects
-    sFxProc.ApplyEffects(this, m_pilot->GetChar().get(), this, update);
-    //ClearModifiers();
 
     if (m_isUndocking) {
         // online modules sent from client (these are onlined in fit window while docked)
@@ -1853,6 +1850,10 @@ void ShipItem::ProcessShipEffects(bool update/*false*/)
         // this will set module to last saved online state in the case of BoardShip() and Login()
         m_ModuleManager->LoadOnline();
     }
+
+    // apply processed effects
+    sFxProc.ApplyEffects(this, m_pilot->GetChar().get(), this, update);
+    //ClearModifiers();
 }
 
 void ShipItem::ClearModuleModifiers()
@@ -2450,7 +2451,7 @@ void ShipSE::Process() {
         return;
 
     if (m_processTimer.Check()) {
-        double profileStartTime = GetTimeUSeconds();
+        double profileStartTime(GetTimeUSeconds());
         // shield
         float Charge = m_self->GetAttribute(AttrShieldCharge).get_float();
         float Capacity = m_self->GetAttribute(AttrShieldCapacity).get_float();

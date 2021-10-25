@@ -1,7 +1,7 @@
 /**
  * @name EffectsData.h
  *   This file is data containers used with EffectsProcessor (FxProc)
- *   Copyright 2017  EVEmu Team
+ *   Copyright 2017  Alasiya-EVEmu Team
  *
  * @Author:    Allan
  * @date:      24 January 2017
@@ -21,8 +21,8 @@ struct Effect {
     bool isAssistance;
     bool disallowAutoRepeat;
     bool isWarpSafe;
-    uint16 effectID;
     uint8 effectState;
+    uint16 effectID;
     uint16 preExpression;
     uint16 postExpression;
     uint16 npcUsageChanceAttributeID;
@@ -68,9 +68,9 @@ struct TypeEffects {
 
 struct fxData {
     int8 math;          // math used on data
-    int8 fxSrc;        // effect source location
+    int8 fxSrc;         // effect source location
     int8 targLoc;       // effect target location
-    uint8 action;        // effect *DOES* something (module action aside from modification)
+    uint8 action;       // effect *DOES* something (module action aside from modification)
     uint16 targAttr;
     uint16 srcAttr;
     uint16 grpID;       // used to define items in env grouped by item groupID
@@ -143,7 +143,7 @@ namespace FX {
             PostPercent    = 7,
             PostAssignment = 8,
             SkillCheck     = 9,
-            /* no data or expressions with these next two */
+            /* no data or expressions with the next two */
             AddRate        = 10,
             SubRate        = 11,
             RevPostPercent = 12,
@@ -153,7 +153,7 @@ namespace FX {
 
     namespace Action {  // this are coded and are applied on the fly as needed.
         enum {
-            Invalid               = 0,
+            Invalid                  = 0,
             ATTACK                   = 13,
             CARGOSCAN                = 14,
             CHEATTELEDOCK            = 15,

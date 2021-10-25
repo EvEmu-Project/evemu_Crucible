@@ -33,7 +33,7 @@ enum EveAttrEnum {
     AttrDamage = 3,
     AttrMass = 4,
     AttrStartTime = 5,                                  // filetime of when event started (or will start)
-    AttrCapacitorNeed = 6,                              //dischargeAttributeID in dgmEffects
+    AttrCapacitorNeed = 6,                              // cap need per cycle.  also dischargeAttributeID in dgmEffects
     AttrMinRange = 8,                                   // only used by 22476 which is non-published
     AttrHP = 9,
     AttrPowerOutput = 11,

@@ -349,6 +349,10 @@ bool Client::SelectCharacter(int32 charID/*0*/)
         return false;
     }
 
+    m_char->VerifySP();
+    m_char->SkillQueueLoop(false);
+    m_char->SetLoginTime();
+    
     m_char->SetClient(this);
 
     // register with our system manager AFTER character is constructed and initialized
@@ -414,10 +418,6 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     SetStateTimer(Player::State::Login, Player::Timer::Login);
     SetInvulTimer(Player::Timer::WarpInInvul);
     //SetCloakTimer(Player::Timer::LoginCloak);
-
-    m_char->VerifySP();
-    m_char->SkillQueueLoop(false);
-    m_char->SetLoginTime();
 
     // set ship cap and shields to full
     m_ship->SetShipShield(1.0);

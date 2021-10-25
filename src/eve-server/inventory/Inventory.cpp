@@ -439,7 +439,7 @@ InventoryItemRef Inventory::FindFirstByFlag(EVEItemFlags flag) const {
         return InventoryItemRef(nullptr);
 }
 
-InventoryItemRef Inventory::GetByTypeFlag(uint32 typeID, EVEItemFlags flag) const {
+InventoryItemRef Inventory::GetByTypeFlag(uint16 typeID, EVEItemFlags flag) const {
     auto range = m_contentsByFlag.equal_range(flag);
     for ( auto itr = range.first; itr != range.second; ++itr )
         if (itr->second->typeID() == typeID)

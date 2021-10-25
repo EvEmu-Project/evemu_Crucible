@@ -193,6 +193,9 @@ void ItemType::LoadEffects()
     sFxDataMgr.GetTypeEffect(m_type.id, typeEffMap);
 
     for (auto cur : typeEffMap) {
+        // remove "online" fx from map
+        if (cur.effectID == 16)
+            continue;
         Effect mEffect(sFxDataMgr.GetEffect(cur.effectID));
         m_stateFxMap.emplace(mEffect.effectState, mEffect);
         if (cur.isDefault) {

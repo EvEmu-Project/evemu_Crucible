@@ -1464,6 +1464,12 @@ bool InventoryItem::SkillCheck(InventoryItemRef refItem)
 void InventoryItem::AddModifier(fxData &data)
 {
     m_modifiers.emplace(data.math, data);
+    if (is_log_enabled(EFFECTS__TRACE))
+        _log(EFFECTS__TRACE, "II::AddModifier(): %s(%u) Added to map - <%s>, fxSrc:%s:%s(%u), targ:%s:%s(%u).", \
+            m_data.name.c_str(), m_itemID, sFxProc.GetMathMethodName(data.math), \
+            sFxProc.GetSourceName(data.fxSrc), sDataMgr.GetAttrName(data.srcAttr), data.srcAttr, \
+            sFxProc.GetTargLocName(data.targLoc), sDataMgr.GetAttrName(data.targAttr), data.targAttr);
+    // grpID, typeID, srcRef
 }
 
 void InventoryItem::RemoveModifier(fxData &data)
@@ -1480,6 +1486,12 @@ void InventoryItem::RemoveModifier(fxData &data)
         case FX::Math::PostAssignment: data.math = FX::Math::PreAssignment;   break;
     }
     m_modifiers.emplace(data.math, data);
+    if (is_log_enabled(EFFECTS__TRACE))
+        _log(EFFECTS__TRACE, "II::RemoveModifier(): %s(%u) Removed from map - <%s>, fxSrc:%s:%s(%u), targ:%s:%s(%u).", \
+        m_data.name.c_str(), m_itemID, sFxProc.GetMathMethodName(data.math), \
+        sFxProc.GetSourceName(data.fxSrc), sDataMgr.GetAttrName(data.srcAttr), data.srcAttr, \
+        sFxProc.GetTargLocName(data.targLoc), sDataMgr.GetAttrName(data.targAttr), data.targAttr);
+    // grpID, typeID, srcRef
 }
 
 void InventoryItem::ClearModifiers()

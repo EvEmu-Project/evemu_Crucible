@@ -388,7 +388,8 @@ void DestinyManager::UpdateVelocity(bool isMoving) {
         m_targBubble = nullptr;
         m_maxSpeed = m_speedToLeaveWarp;
         m_velocity = m_shipHeading * m_maxSpeed;
-        m_shipAccelTime = m_shipAgility * -log(1-(m_maxSpeed/m_maxShipSpeed));
+        m_prevSpeedFraction = m_maxSpeed / m_maxShipSpeed;
+        m_shipAccelTime = m_shipAgility * -log(1-(m_prevSpeedFraction));
     } else if (m_userSpeedFraction) {
         // commanded speed fraction > 0 and ...
         float delta(1.0f);

@@ -726,7 +726,7 @@ PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, c
     PyTuple* tmp = oasc.Encode();
     pTarget->QueueDestinyEvent(&tmp);
 
-    _log(SKILL__MESSAGE, "GiveSkill - skill %u set to level %u with %u SP.", skillID, level, newPoints);
+    _log(SKILL__MESSAGE, "GM::GiveSkill - %s(%u) set to level %u with %u SP.", skill->name(), skillID, level, newPoints);
     return PyStatic.NewNone();
 }
 
