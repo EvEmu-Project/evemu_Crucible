@@ -1,0 +1,21 @@
+
+<elements>
+
+    <elementDef name="Call_CreateContract">
+        <tupleInline>
+            <int name="contractType"/>
+            <bool name="isPrivate"/>
+            <int name="assigneeID" safe="true" none_marker="0"/>
+            <int name="expireTime"/>
+            <int name="duration"/>
+            <int name="startStationId"/>
+            <int name="endStationId" safe="true" none_marker="0"/>
+            <int name="price"/>
+            <int name="reward"/>
+            <int name="collateral"/>
+            <wstring name="title" safe="true"/>
+            <wstring name="description" safe="true"/>
+        </tupleInline>
+    </elementDef>
+
+</elements>

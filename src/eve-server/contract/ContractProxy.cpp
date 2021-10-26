@@ -29,6 +29,7 @@
 #include "PyServiceCD.h"
 #include "contract/ContractProxy.h"
 #include "station/Station.h"
+#include "packets/Contracts.h"
 
 PyCallable_Make_InnerDispatcher(ContractProxy)
 
@@ -281,87 +282,29 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
-    int contractType, assigneeID, expireTime, duration, startStationID, endStationID, startStationDivision, price,
-    reward, collateral, isPrivate, forCorp;
-    std::string title, description;
+    Call_CreateContract req;
+    if (!req.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+    int startStationDivision, forCorp;
 
     /*
-     * Some call fields flail depending on conditions set during contracts creation, so we need to check the fields first
+     * Since named args (byname) aren't included in packet, we process them separately.
      */
-    PyTuple *tupleData = call.tuple;
-    if (tupleData->GetItem(0)->IsInt()) {
-        contractType = tupleData->GetItem(0)->AsInt()->value();
-    } else {
-        codelog(SERVICE__ERROR, "contractType value is of invalid type");
-        return nullptr;
-    }
-    if (tupleData->GetItem(1)->IsBool()) {
-        isPrivate = tupleData->GetItem(1)->AsBool()->value()?1:0;
-    } else {
-        codelog(SERVICE__ERROR, "isPrivate value is of invalid type");
-        return nullptr;
-    }
-    assigneeID = tupleData->GetItem(2)->IsNone() ? 0 : tupleData->GetItem(2)->AsInt()->value();
-    if (tupleData->GetItem(3)->IsInt()) {
-        expireTime = tupleData->GetItem(3)->AsInt()->value();
-    } else {
-        codelog(SERVICE__ERROR, "expireTime value is of invalid type");
-        return nullptr;
-    }
-    if (tupleData->GetItem(4)->IsInt()) {
-        duration = tupleData->GetItem(4)->AsInt()->value();
-    } else {
-        codelog(SERVICE__ERROR, "duration value is of invalid type");
-        return nullptr;
-    }
-    if (tupleData->GetItem(5)->IsInt()) {
-        startStationID = tupleData->GetItem(5)->AsInt()->value();
-    } else {
-        codelog(SERVICE__ERROR, "startStationID value is of invalid type");
-        return nullptr;
-    }
-    endStationID = tupleData->GetItem(6)->IsNone() ? 0 : tupleData->GetItem(6)->AsInt()->value();
-    if (tupleData->GetItem(7)->IsInt()) {
-        price = tupleData->GetItem(7)->AsInt()->value();
-    } else {
-        codelog(SERVICE__ERROR, "price value is of invalid type");
-        return nullptr;
-    }
-    if (tupleData->GetItem(8)->IsInt()) {
-        reward = tupleData->GetItem(8)->AsInt()->value();
-    } else {
-        codelog(SERVICE__ERROR, "reward value is of invalid type");
-        return nullptr;
-    }
-    if (tupleData->GetItem(9)->IsInt()) {
-        collateral = tupleData->GetItem(9)->AsInt()->value();
-    } else {
-        codelog(SERVICE__ERROR, "collateral value is of invalid type");
-        return nullptr;
-    }
-    if (tupleData->GetItem(10)->IsWString()) {
-        sDatabase.DoEscapeString(title, tupleData->GetItem(10)->AsWString()->content());
-    } else if (tupleData->GetItem(10)->IsString()) {
-        sDatabase.DoEscapeString(title, tupleData->GetItem(10)->AsString()->content());
-    } else {
-        codelog(SERVICE__ERROR, "title value is of invalid type");
-        return nullptr;
-    }
-    if (tupleData->GetItem(11)->IsWString()) {
-        sDatabase.DoEscapeString(description, tupleData->GetItem(11)->AsWString()->content());
-    } else if (tupleData->GetItem(11)->IsString()) {
-        sDatabase.DoEscapeString(description, tupleData->GetItem(11)->AsString()->content());
-    } else {
-        codelog(SERVICE__ERROR, "description value is of invalid type");
-        return nullptr;
-    }
     if (call.byname.find("flag")->second->IsInt()) {
         startStationDivision = call.byname.find("flag")->second->AsInt()->value();
     } else {
         codelog(SERVICE__ERROR, "startStationDivision value is of invalid type");
         return nullptr;
     }
-    forCorp = call.byname.find("forCorp")->second->AsBool()->value() ? 1 : 0;
+    if (call.byname.find("forCorp")->second->IsBool()) {
+        forCorp = call.byname.find("forCorp")->second->AsBool()->value() ? 1 : 0;
+    } else {
+        codelog(SERVICE__ERROR, "forCorp value is of invalid type");
+        return nullptr;
+    }
+
 
     /*
      * Then, we go for actual entries creation.
@@ -374,9 +317,11 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         "startStationID, endStationID, price, reward, collateral, title, description, startStationDivision, forCorp) "
         "VALUES "
         "(%u, %u, %u, %u, %u, "
-        "%u, %u, %u, %u, %u, '%s', '%s', %u, %u)",
-        contractType, isPrivate, assigneeID, expireTime, duration,
-        startStationID, endStationID, price, reward, collateral, title.c_str(), description.c_str(), startStationDivision, forCorp))
+        "%u, %u, %u, %u, %u, '%s', '%s', "
+        "%u, %u)",
+        req.contractType, req.isPrivate?1:0, req.assigneeID, req.expireTime, req.duration,
+        req.startStationId, req.endStationId, req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(),
+        startStationDivision, forCorp))
     {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
@@ -386,25 +331,27 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
      * If applicable - requested items
      */
     if (call.byname.find("requestItemTypeList")->second->IsList()) {
-        std::string query = "INSERT INTO ctrRequestedItems(contractId, requestedItemTypeId, requestedItemQuantity) VALUES ";
         PyList *requestedItems = call.byname.find("requestItemTypeList")->second->AsList();
-        for (int index = 0; index < requestedItems->size(); index++) {
-            PyList *requestedItem = requestedItems->GetItem(index)->AsList();
-            // Wasn't sure there were some pretty way to format it, so i went for classic std::string appending
-            query.append("(" + std::to_string(contractId) + ", " +
-                         std::to_string(requestedItem->GetItem(0)->AsInt()->value()) + ", " +
-                         std::to_string(requestedItem->GetItem(1)->AsInt()->value()) + ")");
-            // if it's not the last item - add a trailing comma
-            if (index != requestedItems->size() - 1) {
-                query.append(", ");
+        if (!requestedItems->empty()) {
+            std::string query = "INSERT INTO ctrRequestedItems(contractId, requestedItemTypeId, requestedItemQuantity) VALUES ";
+            for (int index = 0; index < requestedItems->size(); index++) {
+                PyList *requestedItem = requestedItems->GetItem(index)->AsList();
+                // Wasn't sure there were some pretty way to format it, so i went for classic std::string appending
+                query.append("(" + std::to_string(contractId) + ", " +
+                             std::to_string(requestedItem->GetItem(0)->AsInt()->value()) + ", " +
+                             std::to_string(requestedItem->GetItem(1)->AsInt()->value()) + ")");
+                // if it's not the last item - add a trailing comma
+                if (index != requestedItems->size() - 1) {
+                    query.append(", ");
+                }
             }
-        }
 
-        uint32 last_insert;
-        if (!sDatabase.RunQueryLID(err, last_insert, query.c_str()))
-        {
-            codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
-            return nullptr;
+            uint32 last_insert;
+            if (!sDatabase.RunQueryLID(err, last_insert, query.c_str()))
+            {
+                codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
+                return nullptr;
+            }
         }
     }
 
@@ -412,26 +359,28 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
      * If applicable - items to trade
      */
     if (call.byname.find("itemList")->second->IsList()) {
-        // First - we add these items to traded items table. We do it for all contract types (exchange, auction and courier)
-        std::string query = "INSERT INTO ctrTradedItems(contractId, entityId, quantity) VALUES ";
         PyList *tradedItems = call.byname.find("itemList")->second->AsList();
-        for (int index = 0; index < tradedItems->size(); index++) {
-            PyList *tradedItem = tradedItems->GetItem(index)->AsList();
-            // Wasn't sure there were some pretty way to format it, so i went for classic std::string appending
-            query.append("(" + std::to_string(contractId) + ", " +
-                         std::to_string(tradedItem->GetItem(0)->AsInt()->value()) + ", " +
-                         std::to_string(tradedItem->GetItem(1)->AsInt()->value()) + ")");
-            // if it's not the last item - add a trailing comma
-            if (index != tradedItems->size() - 1) {
-                query.append(", ");
+        if (!tradedItems->empty()) {
+            // First - we add these items to traded items table. We do it for all contract types (exchange, auction and courier)
+            std::string query = "INSERT INTO ctrTradedItems(contractId, entityId, quantity) VALUES ";
+            for (int index = 0; index < tradedItems->size(); index++) {
+                PyList *tradedItem = tradedItems->GetItem(index)->AsList();
+                // Wasn't sure there were some pretty way to format it, so i went for classic std::string appending
+                query.append("(" + std::to_string(contractId) + ", " +
+                             std::to_string(tradedItem->GetItem(0)->AsInt()->value()) + ", " +
+                             std::to_string(tradedItem->GetItem(1)->AsInt()->value()) + ")");
+                // if it's not the last item - add a trailing comma
+                if (index != tradedItems->size() - 1) {
+                    query.append(", ");
+                }
             }
-        }
 
-        uint32 last_insert;
-        if (!sDatabase.RunQueryLID(err, last_insert, query.c_str()))
-        {
-            codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
-            return nullptr;
+            uint32 last_insert;
+            if (!sDatabase.RunQueryLID(err, last_insert, query.c_str()))
+            {
+                codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
+                return nullptr;
+            }
         }
     }
 
