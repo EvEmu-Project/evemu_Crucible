@@ -1428,7 +1428,7 @@ void Colony::ProcessECUs(bool& updateTimes)
         if (is_log_enabled(COLONY__DEBUG))
             _log(COLONY__DEBUG, "Colony::ProcessECUs() - ECU pin %u - begin processing with %u cycles (%0.2f / %0.2f)", \
                     ecu.first, cycles, delta, (ecu.second.cycleTime / EvE::Time::Hour));
-        auto destRouteItr = m_destRoutes.equal_range(plant->first);
+        auto destRouteItr = m_destRoutes.equal_range(plant->first);  // sum ting wong
         for (auto it = destRouteItr.first; it != destRouteItr.second; ++it) {
             // verify this route begins at this pin.
             //if (it->second.srcPinID != ecu.first)

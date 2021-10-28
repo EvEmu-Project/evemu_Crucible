@@ -100,7 +100,7 @@ int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID,
                                " title, body, sentDate) "
                                " VALUES (%u, '%s', %d, %d, '%s', '%s', %"  PRIu64 " )" ,
                                sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(),
-                               bodyEscaped.c_str(), Win32TimeNow()));
+                               bodyEscaped.c_str(), Win32TimeNow()))
     {
         codelog(DATABASE__ERROR, " Failed to insert mailMessage" );
         // TODO: Why returning false always?

@@ -692,7 +692,7 @@ void FleetService::UpdateBoost(uint32 fleetID, bool fleet, std::list<int32>& win
     for (auto cur : memberUpdateMap)
         cur.first->ApplyBoost(cur.second);
 
-    _log( FLEET__TRACE, "FleetService::UpdateBoost() - Updated %u members of fleetID: %u in %.2fus.  fleet: %s, wing: %s, squad: %s", \
+    _log( FLEET__TRACE, "FleetService::UpdateBoost() - Updated %lu members of fleetID: %u in %.2fus.  fleet: %s, wing: %s, squad: %s", \
             memberUpdateMap.size(), fleetID, GetTimeUSeconds() - start, (fleet ? "true" : "false"), (wing.empty() ? "false" : "true"), (squad.empty() ? "false" : "true"));
 }
 
@@ -1476,6 +1476,8 @@ void FleetService::FleetBroadcast(Client* pFrom, uint32 itemID, int8 scope, int8
         _log(FLEET__BCAST_DUMP, "%s FleetBroadcast '%s' to %s members of fleet %u.", GetBCastScopeName(scope).c_str(), msg.c_str(), grp.str().c_str() , fleetID);
         payload->Dump(FLEET__BCAST_DUMP, "   ");
     }
+
+    PySafeDecRef(payload);
 }
 
 void FleetService::SendFleetUpdate(uint32 fleetID, const char* notifyType, PyTuple* payload)
@@ -1496,6 +1498,7 @@ void FleetService::SendFleetUpdate(uint32 fleetID, const char* notifyType, PyTup
         PySafeIncRef(payload);
         cur->SendNotification(notifyType, "*fleetid", payload, true);    // this sends "*fleetid" update to all fleet members and is sequenced
     }
+    PySafeDecRef(payload);
 }
 
 void FleetService::GetFleetMembersOnGrid(Client* pClient, std::vector< uint32 >& data)

@@ -357,6 +357,8 @@ PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
                 // error
                 _log(AGENT__ERROR, "AgentBound::Handle_DoAction() - unhandled buttonID %u", actionID );
                 call.client->SendErrorMsg("Internal Server Error. Ref: ServerError xxxxx.");
+                PySafeDecRef(dialog);
+                PySafeDecRef(agentSays);
                 return nullptr;
             }
         }
@@ -387,6 +389,8 @@ PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
         _log(AGENT__RSP_DUMP, "AgentBound::Handle_DoAction RSP:" );
         outer->Dump(AGENT__RSP_DUMP, "    ");
     }
+
+    PySafeDecRef(agentSays);
 
     return outer;
 }
@@ -831,6 +835,9 @@ PyTuple* AgentBound::GetMissionObjectives(Client* pClient, MissionOffer& offer)
             objectives->SetItem(0, PyStatic.NewNone());
         } break;
     }
+
+    // cleanup
+    PySafeDecRef(dropoffLocation);
 
     return objectives;
 

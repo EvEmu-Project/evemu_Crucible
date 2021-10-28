@@ -266,7 +266,7 @@ uint16 CorporationDB::CreateMedal(uint32 ownerID, uint32 creatorID, std::string&
     std::string cTitle, cDesc;
     sDatabase.DoEscapeString(cTitle, title);
     sDatabase.DoEscapeString(cDesc, description);
-    uint32 medalID = 0;
+    uint32 medalID(0);
     DBerror err;
     sDatabase.RunQueryLID(err, medalID,
         " INSERT INTO crpMedals (ownerID, creatorID, title, description, date)"
@@ -1344,7 +1344,7 @@ void CorporationDB::DeleteAdvert(uint16 adID)
 
 uint32 CorporationDB::CreateAdvert(Client* pClient, uint32 corpID, int64 typeMask, int8 days, uint16 members, std::string description, uint32 channelID, std::string title)
 {
-    uint32 adID = 0;
+    uint32 adID(0);
     DBerror err;
     sDatabase.RunQueryLID(err, adID, "INSERT INTO crpAdRegistry"
     " (corporationID, allianceID, stationID, regionID, raceMask, typeMask,"
@@ -2048,7 +2048,7 @@ void CorporationDB::AddVoteCase(uint32 corpID, uint32 charID, Call_InsertVoteCas
         data.push_back(args2);
     }
 
-    uint32 voteCaseID = 0;
+    uint32 voteCaseID(0);
     DBerror err;
     sDatabase.RunQueryLID(err, voteCaseID,
         " INSERT INTO crpVoteItems( "
@@ -2059,7 +2059,7 @@ void CorporationDB::AddVoteCase(uint32 corpID, uint32 charID, Call_InsertVoteCas
     std::stringstream str;
     str << "INSERT INTO crpVoteOptions (voteCaseID, optionID, optionText, parameter, parameter1, parameter2) VALUES ";
 
-    bool set = false;
+    bool set(false);
     for (auto cur : data) {
         if (!set) {
             set = true;
@@ -2230,8 +2230,9 @@ void CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, Call_MoveShares& a
     charUpdate.newCorpID = corpID;
     charUpdate.newOwnerID = args.toShareholderID;
     charUpdate.newOwnerNewCorpID = (isCorp ? 0 : oldCorpID);
-    /** @todo pClient may be null here.... */
-    pClient->SendNotification("OnShareChange", "charid", charUpdate.Encode());
+
+    if (pClient != nullptr)
+        pClient->SendNotification("OnShareChange", "charid", charUpdate.Encode());
 
     // add to new owner
     sDatabase.RunQuery(err,

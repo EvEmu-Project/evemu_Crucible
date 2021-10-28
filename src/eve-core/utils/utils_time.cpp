@@ -138,20 +138,20 @@ std::string GetUTimeTillNow(double fromTime)
 {
     double elapsed = GetTimeUSeconds() - fromTime;
     if (elapsed > 999999)
-        return sprintf("0.4fs",elapsed / 1000000);
+        return sprintf("%0.4fs",elapsed / 1000000);
     else if (elapsed > 999)
-        return sprintf("0.4fms",elapsed / 1000);
+        return sprintf("%0.4fms",elapsed / 1000);
     else
-        return sprintf("0.4fus",elapsed);
+        return sprintf("%0.4fus",elapsed);
 }
 
 std::string GetMTimeTillNow(double fromTime)
 {
     double elapsed = GetTimeMSeconds() - fromTime;
     if (elapsed > 999)
-        return sprintf("0.4fs",elapsed / 1000);
+        return sprintf("%0.4fs", elapsed / 1000);
     else
-        return sprintf("0.4fms",elapsed);
+        return sprintf("%0.4fms", elapsed);
 }
 
 EvE::TimeParts GetTimeParts(int64 filetime/*0*/)

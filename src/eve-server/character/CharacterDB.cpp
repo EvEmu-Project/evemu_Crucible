@@ -1417,17 +1417,17 @@ bool CharacterDB::SaveSkillQueue(uint32 characterID, SkillQueue &data) {
 
     std::string query;
 
-    for (uint8 i = 0; i < data.size(); i++) {
-        const QueuedSkill &qs = data[ i ];
-        char buf[ 80 ];
-        snprintf( buf, sizeof(buf), "(%u, %u, %u, %u, %li, %li)", characterID, i, qs.typeID, qs.level, qs.startTime, qs.endTime );
+    for (uint8 i = 0; i < data.size(); ++i) {
+        const QueuedSkill &qs = data[i];
+        char buf[80];
+        snprintf(buf, sizeof(buf), "(%u, %u, %u, %u, %li, %li)", characterID, i, qs.typeID, qs.level, qs.startTime, qs.endTime );
 
         if (i > 0)
             query += ',';
         query += buf;
     }
 
-    if ( !sDatabase.RunQuery( err,
+    if (!sDatabase.RunQuery( err,
         "INSERT INTO chrSkillQueue (characterID, orderIndex, typeID, level, startTime, endTime)"
         " VALUES %s",query.c_str()))
     {
@@ -1449,10 +1449,10 @@ bool CharacterDB::SavePausedSkillQueue(uint32 characterID, SkillQueue &data) {
 
     std::string query;
 
-    for (uint8 i = 0; i < data.size(); i++) {
-        const QueuedSkill &qs = data[ i ];
-        char buf[ 30 ];
-        snprintf( buf, sizeof(buf), "(%u, %u, %u, %u)", characterID, i, qs.typeID, qs.level );
+    for (uint8 i = 0; i < data.size(); ++i) {
+        const QueuedSkill &qs = data[i];
+        char buf[30];
+        snprintf(buf, sizeof(buf), "(%u, %u, %u, %u)", characterID, i, qs.typeID, qs.level);
 
         if (i > 0)
             query += ',';

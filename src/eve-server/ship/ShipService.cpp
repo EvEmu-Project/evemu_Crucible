@@ -766,7 +766,7 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
     }
     SystemEntity* pSE = pSysMgr->GetSE(arg.arg);
     if (pSE == nullptr) {
-        _log(SERVICE__ERROR, "%s: Unable to find object %u to scoop.", pClient->GetName(), arg.arg);
+        _log(SERVICE__ERROR, "%s: Unable to find object %i to scoop.", pClient->GetName(), arg.arg);
         return PyStatic.mtDict();
         //{'FullPath': u'UI/Messages', 'messageID': 258825, 'label': u'ScoopObjectGoneBody'}(u'{target} is no longer there.', None, {u'{target}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'target'}})
     }
@@ -784,7 +784,7 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
 
     InventoryItemRef iRef = pSE->GetSelf();
     if (iRef.get() == nullptr) {
-        codelog(CLIENT__ERROR, "ItemRef for %s not found.", arg.arg);
+        codelog(CLIENT__ERROR, "ItemRef for %i not found.", arg.arg);
         return PyStatic.mtDict();
     }
 
@@ -825,13 +825,13 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
     for(; cur != args.ints.end(); ++cur) {
         pDroneSE = pSysMgr->GetSE(*cur);
         if (pDroneSE == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneSE %u to scoop.", pClient->GetName(), *cur);
+            _log(SERVICE__ERROR, "%s: Unable to find droneSE %i to scoop.", pClient->GetName(), *cur);
             continue;
         }
 
         iRef = pDroneSE->GetSelf();
         if (iRef.get() == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneItem %u to scoop.", pClient->GetName(), *cur);
+            _log(SERVICE__ERROR, "%s: Unable to find droneItem %i to scoop.", pClient->GetName(), *cur);
             continue;
         }
 
@@ -1011,7 +1011,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                     .AddTimeShort ("eta", pClient->JetcanTime() * EvE::Time::Second);
             }
             // Spawn jetcan then continue loop
-            location.MakeRandomPointOnSphere(500.0);
+            location.MakeRandomPointOnSphere(500.0f);
             ItemData p_idata(
                             23,                         // 23 = cargo container
                             pClient->GetCharacterID(),  //owner is Character?  figure out how to test for corp owner
@@ -1164,7 +1164,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
         ship = sItemFactory.GetShip(cur);
 
         if (ship.get() == nullptr) {
-            _log(ITEM__ERROR, "Failed to load ship %u to assemble.", cur);
+            _log(ITEM__ERROR, "Failed to load ship %i to assemble.", cur);
             continue;
         }
 
@@ -1174,7 +1174,7 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
             // original item stack will be left with qty-1 at original location
             ship = ShipItemRef::StaticCast(ship->Split(1, true));
             if (ship.get() == nullptr) {
-                _log(ITEM__ERROR, "Failed to split stack to assemble ship %u.", cur);
+                _log(ITEM__ERROR, "Failed to split stack to assemble ship %i.", cur);
                 continue;
             }
         }

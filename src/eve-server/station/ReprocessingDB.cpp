@@ -29,7 +29,6 @@
 
 bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverable> &into) {
     DBQueryResult res;
-    DBResultRow row;
 
     if (!sDatabase.RunQuery(res,
                 "SELECT requiredTypeID, MIN(quantity) FROM ramTypeRequirements"
@@ -39,13 +38,13 @@ bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverabl
                 "   OR"
                 "    (activityID = 1 AND productTypeID = %u))"
                 " GROUP BY requiredTypeID",
-                typeID, typeID, typeID))
+                typeID, typeID))
     {
         _log(DATABASE__ERROR, "Unable to get recoverables for type ID %u: '%s'", typeID, res.error.c_str());
         return false;
     }
 
-
+    DBResultRow row;
     while (res.GetRow(row)) {
         Recoverable rec = Recoverable();
         rec.typeID = row.GetInt(0);

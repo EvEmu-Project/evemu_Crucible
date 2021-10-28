@@ -273,7 +273,7 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
             [PyInt 1000]
               */
 
-    sLog.White( "ContractProxy::Handle_SearchContracts()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_SearchContracts()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;
@@ -320,7 +320,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
      */
 
 
-    sLog.White( "ContractProxy::Handle_CreateContract()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_CreateContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     // returns new contractID
@@ -329,7 +329,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
 
 PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
     //  sends contractID to delete
-    sLog.White( "ContractProxy::Handle_DeleteContract()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_DeleteContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     /*
@@ -448,7 +448,7 @@ PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
     [PyNone]
     */
 
-    sLog.White( "ContractProxy::Handle_GetContract()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_GetContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;
@@ -523,7 +523,7 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
      */
 
 
-    sLog.White( "ContractProxy::Handle_AcceptContract()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_AcceptContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;
@@ -531,7 +531,7 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
 
 
 PyResult ContractProxy::Handle_GetMyExpiredContractList(PyCallArgs &call) {
-  sLog.White( "ContractProxy::Handle_GetMyExpiredContractList()", "size=%li", call.tuple->size());
+  sLog.White( "ContractProxy::Handle_GetMyExpiredContractList()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 /*
       [PySubStream 530 bytes]
@@ -642,7 +642,7 @@ PyResult ContractProxy::Handle_GetMyExpiredContractList(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_NumOutstandingContracts(PyCallArgs &call) {
-    sLog.White( "ContractProxy::Handle_NumOutstandingContracts()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_NumOutstandingContracts()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     /*
       [PySubStream 87 bytes]
@@ -661,7 +661,7 @@ PyResult ContractProxy::Handle_NumOutstandingContracts(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_GetItemsInStation(PyCallArgs &call) {
-    sLog.White( "ContractProxy::Handle_GetItemsInStation()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_GetItemsInStation()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     /*  client call
@@ -693,7 +693,7 @@ PyResult ContractProxy::Handle_GetItemsInStation(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_CollectMyPageInfo(PyCallArgs &call) {
-    sLog.White( "ContractProxy::Handle_CollectMyPageInfo()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_CollectMyPageInfo()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     /*
      *      [PySubStream 279 bytes]
@@ -726,7 +726,7 @@ PyResult ContractProxy::Handle_CollectMyPageInfo(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_GetContractListForOwner(PyCallArgs &call) {
-    sLog.White( "ContractProxy::Handle_GetContractListForOwner()", "size=%li", call.tuple->size());
+    sLog.White( "ContractProxy::Handle_GetContractListForOwner()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     /*
      *  client call....

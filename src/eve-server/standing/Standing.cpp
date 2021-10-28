@@ -143,5 +143,5 @@ PyResult Standing::Handle_GetStandingCompositions(PyCallArgs &call) {
         return nullptr;
     }
 
-    return m_db.GetStandingCompositions(args.toID, args.fromID);
+    return m_db.GetStandingCompositions(args.fromID, args.toID);
 }

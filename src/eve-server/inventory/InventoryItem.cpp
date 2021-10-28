@@ -361,7 +361,7 @@ RefPtr<_Ty> InventoryItem::_LoadItem(uint32 itemID, const ItemType &type, const 
                     _log(ITEM__WARNING, "item %u (type %u, group %u,  cat %u) is not handled in II::_LoadItem::Entity.", itemID, type.id(), type.groupID(), type.categoryID());
                 }
             }
-        }
+        } break;
         default: {
             _log(ITEM__WARNING, "item %u (type %u, group %u,  cat %u) is not handled in II::_LoadItem.", itemID, type.id(), type.groupID(), type.categoryID());
         } break;
@@ -989,14 +989,14 @@ bool InventoryItem::ChangeSingleton(bool singleton, bool notify/*false*/) {
     if (singleton == m_data.singleton)
         return true;    //nothing to do...
 
-    bool old_singleton = m_data.singleton;
+    bool old_singleton(m_data.singleton);
     m_data.singleton = singleton;
 
     //verify quantity is -1 for singletons
     if (m_data.singleton)
         if (m_data.quantity > 1) {
-            _log(ITEM__WARNING, "%s(%u) is changing singleton to %s and qty is currently %u", \
-                    m_data.name.c_str(), m_itemID, singleton?"On":"Off");
+            _log(ITEM__WARNING, "%s(%u) is changing singleton to %s and qty is currently %i", \
+                    m_data.name.c_str(), m_itemID, singleton?"On":"Off", m_data.quantity);
             m_data.quantity = -1;
         }
 

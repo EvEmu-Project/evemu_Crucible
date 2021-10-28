@@ -111,7 +111,7 @@ m_secValue(1.1f)
 
 SystemManager::~SystemManager() {
     if (m_players or !m_clients.empty()) {
-        _log(COMMON__ERROR, "D'tor called for System %u with %u players and/or %u clients in mmaps", m_data.systemID, m_players, m_clients.size());
+        _log(COMMON__ERROR, "D'tor called for System %u with %u players and/or %lu clients in mmaps", m_data.systemID, m_players, m_clients.size());
         for (auto cur : m_clients)
             sEntityList.Remove(cur.second);
     }
@@ -338,7 +338,7 @@ void SystemManager::UnloadSystem() {
 
     // save items, then remove from system inventory, item factory and decrement item count
     m_solarSystemRef->GetMyInventory()->Unload();
-    _log(PHYSICS__MESSAGE, "SystemManager::UnloadSystem() - map count after unload: %u npcs, %u entities, %u statics.", \
+    _log(PHYSICS__MESSAGE, "SystemManager::UnloadSystem() - map count after unload: %lu npcs, %lu entities, %lu statics.", \
                 m_npcs.size(), m_entities.size(), m_staticEntities.size());
 
     // this is dupe container. contents unloaded in another call
@@ -987,8 +987,9 @@ void SystemManager::SetDockCount(Client* pClient, bool docked/*false*/)
     if (docked) {
         ++m_docked;
     } else {
-        --m_docked;
-        if (m_docked < 0) {
+        if (m_docked > 0) {
+            --m_docked;
+        } else {
             m_docked = 0;
             _log(PLAYER__ERROR, "docked count for %s(%u) is <0.  Setting to 0.", m_data.name.c_str(), m_data.systemID);
         }

@@ -52,13 +52,13 @@ TutorialService::~TutorialService() {
 }
 
 PyResult TutorialService::Handle_GetTutorials(PyCallArgs &call) {
-  sLog.Warning( "TutorialService::Handle_GetTutorials()", "size=%li", call.tuple->size());
+  sLog.Warning( "TutorialService::Handle_GetTutorials()", "size=%lu", call.tuple->size());
   call.Dump(SERVICE__CALL_DUMP);
     return(m_db.GetAllTutorials());
 }
 
 PyResult TutorialService::Handle_GetTutorialInfo(PyCallArgs &call) {
-  sLog.Warning( "TutorialService::Handle_GetTutorialInfo()", "size=%li", call.tuple->size());
+  sLog.Warning( "TutorialService::Handle_GetTutorialInfo()", "size=%lu", call.tuple->size());
   call.Dump(SERVICE__CALL_DUMP);
     Call_GetTutorialInfo args;
     if (!args.Decode(&call.tuple)) {
@@ -241,27 +241,27 @@ PyResult TutorialService::Handle_GetTutorialAgents(PyCallArgs &call) {
             ["corporationID" => <0> [I4]]
             ["gender" => <1> [Bool]]
                 */
-    sLog.White( "TutorialService::Handle_GetTutorialAgents()", "size=%li", call.tuple->size());
+    sLog.White( "TutorialService::Handle_GetTutorialAgents()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return new PyInt( 0 );
 }
 
 PyResult TutorialService::Handle_GetCriterias(PyCallArgs &call) {
-  sLog.White( "TutorialService::Handle_GetCriterias()", "size=%li", call.tuple->size());
+  sLog.White( "TutorialService::Handle_GetCriterias()", "size=%lu", call.tuple->size());
   call.Dump(SERVICE__CALL_DUMP);
     return(m_db.GetAllCriterias());
 }
 
 PyResult TutorialService::Handle_GetCategories(PyCallArgs &call) {
-  sLog.White( "TutorialService::Handle_GetCategories()", "size=%li", call.tuple->size());
+  sLog.White( "TutorialService::Handle_GetCategories()", "size=%lu", call.tuple->size());
   call.Dump(SERVICE__CALL_DUMP);
     return(m_db.GetCategories());
 }
 
 PyResult TutorialService::Handle_GetContextHelp( PyCallArgs& call )
 {
-  sLog.White( "TutorialService::Handle_GetContextHelp()", "size=%li", call.tuple->size());
+  sLog.White( "TutorialService::Handle_GetContextHelp()", "size=%lu", call.tuple->size());
   call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;

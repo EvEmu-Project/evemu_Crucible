@@ -291,7 +291,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
     }
 
     if (call.tuple->items.size() != 2) {
-        _log(INV__ERROR, "IB::Handle_Add()  Unexpected number of elements in tuple: %u (should be 2).", call.tuple->items.size() );
+        _log(INV__ERROR, "IB::Handle_Add()  Unexpected number of elements in tuple: %lu (should be 2).", call.tuple->items.size() );
         return nullptr;
     }
 
@@ -306,7 +306,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         toFlag = PyRep::IntegerValueU32(call.byname.find("flag")->second);
     if (toFlag == flagLocked) {
         // corp role 'equip config' can move locked items (per client)
-        _log(INV__ERROR, "IB::Handle_Add() - item %u from %u sent flagLocked.  continuing but this needs to be fixed.", \
+        _log(INV__ERROR, "IB::Handle_Add() - item %i from %i sent flagLocked.  continuing but this needs to be fixed.", \
                 args.itemID, args.containerID);
         toFlag = flagCargoHold;
     }
@@ -343,7 +343,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
     if (quantity < 1)
         quantity = 1;
 
-    _log(INV__MESSAGE, "IB::Handle_Add() - moving %u %s(%u) from (%u:%s) to me(%s:%u:%s).", \
+    _log(INV__MESSAGE, "IB::Handle_Add() - moving %i %s(%i) from (%i:%s) to me(%s:%u:%s).", \
             quantity, iRef->name(), args.itemID, args.containerID, sDataMgr.GetFlagName(iRef->flag()),\
             m_self->name(), m_itemID, sDataMgr.GetFlagName(toFlag));
 
@@ -361,7 +361,7 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
     }
 
     if (call.tuple->items.size() != 2) {
-        _log(INV__ERROR, "IB::Handle_MultiAdd()  Unexpected number of elements in tuple: %u (should be 2).", call.tuple->items.size() );
+        _log(INV__ERROR, "IB::Handle_MultiAdd()  Unexpected number of elements in tuple: %lu (should be 2).", call.tuple->items.size() );
         return nullptr;
     }
 
@@ -407,7 +407,7 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
         args.itemIDs = CatSortItems(itemVec);
     }
 
-    _log(INV__MESSAGE, "IB::Handle_MultiAdd() - moving %u items from (%u:%s) to me(%s:%u:%s).", \
+    _log(INV__MESSAGE, "IB::Handle_MultiAdd() - moving %lu items from (%i:%s) to me(%s:%u:%s).", \
                 args.itemIDs.size(), args.containerID, sDataMgr.GetFlagName(m_flag), m_self->name(), m_itemID, sDataMgr.GetFlagName(toFlag));
 
     return MoveItems( call.client, args.itemIDs, (EVEItemFlags)toFlag, quantity, moveStack, capacity);
@@ -710,7 +710,7 @@ std::vector< int32 > InventoryBound::CatSortItems(std::vector< InventoryItemRef 
         items.push_back(cur->itemID());
 
     if (sConfig.debug.IsTestServer and sConfig.debug.UseProfiling)
-        sLog.Warning("IB::CatSortItems", "%u items sorted in %.3fus with %u loops.", items.size(), (GetTimeUSeconds() - start), count);
+        sLog.Warning("IB::CatSortItems", "%lu items sorted in %.3fus with %u loops.", items.size(), (GetTimeUSeconds() - start), count);
 
     return items;  //returns sorted list
 }
@@ -915,7 +915,7 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     _log(POS__MESSAGE, "%s Calling InventoryBound::Build() for %s(%u)", call.client->GetName(), m_self->name(), m_itemID);
     call.Dump(POS__DUMP);
 
-    /* 
+    /*
     Outpost construction process:
     1. Ensure all required items are in the egg
     2. Initiate the destruction of the platform
@@ -923,7 +923,7 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     */
 
     // Step 1
-    _log(POS__MESSAGE, "Checking construction requirements for %s(%u).", call.client->GetName(), m_self->name(), m_itemID);
+    _log(POS__MESSAGE, "Checking construction requirements for %s(%u).", m_self->name(), m_itemID);
 
     // Retrieve the SE object for the egg itself
     SystemEntity* egg = call.client->SystemMgr()->GetEntityByID(m_itemID);
@@ -1016,11 +1016,11 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     stData.corporationID = call.client->GetCorporationID();
 
     // Build station name
-    stData.name = call.client->SystemMgr()->GetClosestPlanetSE(anchorPosition)->GetName() 
+    stData.name = call.client->SystemMgr()->GetClosestPlanetSE(anchorPosition)->GetName()
         + std::string(" - ") + stationBaseName;
-    
+
     // Set default configurable values
-    stData.officeRentalFee = 10000; 
+    stData.officeRentalFee = 10000;
     stData.maxShipVolumeDockable = 50000000;
     stData.dockingCostPerVolume = 0;
 
@@ -1037,7 +1037,7 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
                        | Station::AssassinationMissions
                        | Station::CourierMissions
                        | Station::Interbus
-                       | Station::ReprocessingPlant                        
+                       | Station::ReprocessingPlant
                        | Station::Refinery
                        | Station::Market
                        | Station::BlackMarket

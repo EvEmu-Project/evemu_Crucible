@@ -906,7 +906,7 @@ PyResult Command_players(Client* pClient, CommandDB* db, PyServiceMgr* services,
     sEntityList.GetClients(cVec);
     std::ostringstream str;
     str.clear();
-    str << "Active Player List:<br>" << cVec.size() << " Online Players.<br>";
+    str << "Active Player List:<br>" << std::to_string(cVec.size()) << " Online Players.<br>";
 
     for (auto cur : cVec) {
         str << cur->GetName();

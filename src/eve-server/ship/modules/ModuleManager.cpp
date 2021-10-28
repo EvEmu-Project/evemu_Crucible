@@ -155,7 +155,7 @@ bool ModuleManager::Initialize() {
         }
     }
 
-    return m_initalized = true;
+    return (m_initalized = true);
 }
 
 void ModuleManager::LoadOnline() {
@@ -165,7 +165,7 @@ void ModuleManager::LoadOnline() {
     while (ritr != rend) {
         if (ritr->second != nullptr)
             ritr->second->Online();
-            ++ritr;
+        ++ritr;
     }
     // process lo,mid,hi slots in that order.
     std::map<uint8, GenericModule*>::iterator itr = m_fittings.begin(), end = m_fittings.end();
@@ -173,7 +173,7 @@ void ModuleManager::LoadOnline() {
         if (itr->second != nullptr)
             if (itr->second->GetAttribute(AttrOnline).get_bool())
                 itr->second->Online();
-            ++itr;
+        ++itr;
     }
 }
 
@@ -188,7 +188,7 @@ void ModuleManager::Process()
         if (itr->second != nullptr)
             if (itr->second->GetAttribute(AttrOnline).get_bool())
                 itr->second->Process();
-            ++itr;
+        ++itr;
     }
 
     if (sConfig.debug.UseProfiling)
@@ -343,7 +343,7 @@ bool ModuleManager::InstallRig(ModuleItemRef mRef, EVEItemFlags flag) {
         }
         return true;
     } else {
-        codelog(MODULE__TRACE, "ModuleManager","%s tried to fit item %s(%u), which is not a rig", pShipItem->GetPilot()->GetName(), mRef->name(), mRef->itemID());
+        codelog(MODULE__TRACE, "MM::InstallRig() - %s tried to fit %s(%u), which is not a rig", pShipItem->GetPilot()->GetName(), mRef->name(), mRef->itemID());
     }
 
     return false;

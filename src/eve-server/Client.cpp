@@ -352,7 +352,7 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     m_char->VerifySP();
     m_char->SkillQueueLoop(false);
     m_char->SetLoginTime();
-    
+
     m_char->SetClient(this);
 
     // register with our system manager AFTER character is constructed and initialized
@@ -722,7 +722,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_system->RemoveEntity(pShipSE);
 
         m_system->RemoveClient(this, (count = true), IsJump());
-        
+
         m_system = nullptr;
     }
 
@@ -1545,7 +1545,7 @@ void Client::SetCloakTimer(uint32 time/*Player::Timer::Default*/)
         if (pShipSE != nullptr)
             if (pShipSE->DestinyMgr() != nullptr)
                 pShipSE->DestinyMgr()->UnCloak();
-        _log(CLIENT__TIMER, "%s: Cloak Timer Disabled");
+        _log(CLIENT__TIMER, "%s: Cloak Timer Disabled", m_char->name());
         return;
     }
 
@@ -1569,7 +1569,7 @@ void Client::SetUncloakTimer(uint32 time/*Player::Timer::Default*/)
     if (time == 0) {
         m_uncloakTimer.Disable();
         SetUncloak(false);
-        _log(CLIENT__TIMER, "%s: Uncloak Timer Disabled");
+        _log(CLIENT__TIMER, "%s: Uncloak Timer Disabled", m_char->name());
         return;
     }
 
@@ -1589,7 +1589,7 @@ void Client::SetInvulTimer(uint32 time/*Player::Timer::Default*/)
     if (time == 0) {
         SetInvul(false);
         m_invulTimer.Disable();
-        _log(CLIENT__TIMER, "%s: Invul Timer Disabled");
+        _log(CLIENT__TIMER, "%s: Invul Timer Disabled", m_char->name());
         return;
     }
 
@@ -1608,7 +1608,7 @@ void Client::SetStateTimer( int8 state, uint32 time/*Player::Timer::Default*/)
 {
     if (time == 0) {
         m_stateTimer.Disable();
-        _log(CLIENT__TIMER, "%s: State Timer Disabled");
+        _log(CLIENT__TIMER, "%s: State Timer Disabled", m_char->name());
         return;
     }
 

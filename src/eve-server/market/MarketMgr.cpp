@@ -931,7 +931,7 @@ void MarketMgr::GetCruPrices()
     sLog.Warning("     SetBasePrice", "Getting types.");
     std::map<uint16, Inv::TypeData> types;
     sDataMgr.GetTypes(types);           //19669 unique items in type data
-    sLog.Green("     SetBasePrice", "GetTypes returned %u items.  Getting price avg.", types.size());
+    sLog.Green("     SetBasePrice", "GetTypes returned %lu items.  Getting price avg.", types.size());
     // delete the typeID '0'
     types.erase(0);
 

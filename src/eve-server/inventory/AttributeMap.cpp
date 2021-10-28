@@ -72,14 +72,14 @@ bool AttributeMap::Load(bool reset/*false*/) {
         DBQueryResult res;
         if (IsCharacterID(mItem.itemID())) {
             if (!sDatabase.RunQuery(res, "SELECT attributeID, valueInt, valueFloat FROM chrCharacterAttributes WHERE charID=%u", mItem.itemID()))
-                _log(DATABASE__ERROR, "AttributeMap", "Error in db load query: %s", res.error.c_str());
+                _log(DATABASE__ERROR, "AttributeMap Error in db load query: %s", res.error.c_str());
         } else {
             if (!sDatabase.RunQuery(res, "SELECT attributeID, valueInt, valueFloat FROM entity_attributes WHERE itemID=%u", mItem.itemID()))
-                _log(DATABASE__ERROR, "AttributeMap", "Error in db load query: %s", res.error.c_str());
+                _log(DATABASE__ERROR, "AttributeMap Error in db load query: %s", res.error.c_str());
         }
 
         DBResultRow row;
-        EvilNumber value;
+        EvilNumber value(EvilZero);
         while (res.GetRow(row)) {
             if (row.IsNull(1)) {
                 if (row.IsNull(2)) {
@@ -95,7 +95,7 @@ bool AttributeMap::Load(bool reset/*false*/) {
     }
     /* item now has it's own attribute map, and is deleted when item object is destroyed or reset */
     if (is_log_enabled(ATTRIBUTE__INFO))
-        _log(ATTRIBUTE__INFO, "AttributeMap::Load()  Loaded %u attribs for %s.", mAttributes.size(), mItem.name());
+        _log(ATTRIBUTE__INFO, "AttributeMap::Load()  Loaded %lu attribs for %s.", mAttributes.size(), mItem.name());
     return true;
 }
 

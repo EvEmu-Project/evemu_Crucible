@@ -54,7 +54,7 @@ void FxDataMgr::Populate()
         mTfx.isDefault = row.GetBool(2);
         m_typeFxMap.insert(std::pair<uint16, TypeEffects>(row.GetInt(0), mTfx));
     }
-    sLog.Cyan("        FxDataMgr", "%u Type Effects loaded in %.3fms.", m_typeFxMap.size(), (GetTimeMSeconds() - start));
+    sLog.Cyan("        FxDataMgr", "%lu Type Effects loaded in %.3fms.", m_typeFxMap.size(), (GetTimeMSeconds() - start));
 
     //res->Reset();
     start = GetTimeMSeconds();
@@ -74,7 +74,7 @@ void FxDataMgr::Populate()
         mOpr.format = "None";
         mOpr.operandKey = "NULL";
     m_opMap[0] = mOpr;
-    sLog.Cyan("        FxDataMgr", "%u Operands loaded in %.3fms.", m_opMap.size(), (GetTimeMSeconds() - start));
+    sLog.Cyan("        FxDataMgr", "%lu Operands loaded in %.3fms.", m_opMap.size(), (GetTimeMSeconds() - start));
 
     //res->Reset();
     start = GetTimeMSeconds();
@@ -99,7 +99,7 @@ void FxDataMgr::Populate()
         mExp.description = "NULL";
         mExp.expressionName = "NULL";
     m_expMap[0] = mExp;
-    sLog.Cyan("        FxDataMgr", "%u Expressions loaded in %.3fms.", m_expMap.size(), (GetTimeMSeconds() - start));
+    sLog.Cyan("        FxDataMgr", "%lu Expressions loaded in %.3fms.", m_expMap.size(), (GetTimeMSeconds() - start));
 
     //res->Reset();
     start = GetTimeMSeconds();
@@ -137,7 +137,7 @@ void FxDataMgr::Populate()
     Effect mEffect = Effect();
         mEffect.effectName = "NULL";
     m_effectMap[0] = mEffect;
-    sLog.Cyan("        FxDataMgr", "%u Effect Types loaded in %.3fms.", m_effectMap.size(), (GetTimeMSeconds() - start));
+    sLog.Cyan("        FxDataMgr", "%lu Effect Types loaded in %.3fms.", m_effectMap.size(), (GetTimeMSeconds() - start));
 
     //cleanup
     SafeDelete(res);

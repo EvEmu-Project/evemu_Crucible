@@ -50,7 +50,7 @@ SlashService::~SlashService() {
 PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
 {
     if (is_log_enabled(COMMAND__DUMP)) {
-        sLog.White("SlashService::Handle_SlashCmd()", "size=%li", call.tuple->size());
+        sLog.White("SlashService::Handle_SlashCmd()", "size=%lu", call.tuple->size());
         call.Dump(COMMAND__DUMP);
     }
     Call_SingleStringArg arg;

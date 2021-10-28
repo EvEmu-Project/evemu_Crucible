@@ -92,8 +92,6 @@ PyResult AllianceBound::Handle_GetMembers(PyCallArgs &call)
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetMembers(m_allyID);
-
-    return nullptr;
 }
 
 PyResult AllianceBound::Handle_DeclareExecutorSupport(PyCallArgs &call)
@@ -140,8 +138,6 @@ PyResult AllianceBound::Handle_GetApplications(PyCallArgs &call)
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetApplications(m_allyID);
-
-    return nullptr;
 }
 
 PyResult AllianceBound::Handle_UpdateApplication(PyCallArgs &call)

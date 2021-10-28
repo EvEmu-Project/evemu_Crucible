@@ -90,7 +90,7 @@ void Scan::ProcessScan(bool useProbe/*false*/)
         }
         SystemScanStarted(duration);
     }
-    _log(SCAN__TRACE, "ProcessScan() - probes - active:%u, total:%u, duration: %u, idle: %s", \
+    _log(SCAN__TRACE, "ProcessScan() - probes - active:%lu, total:%lu, duration: %u, idle: %s", \
                 m_activeProbeMap.size(), m_probeMap.size(), duration, idle?"true":"false");
     m_client->SetScanTimer(duration, true);
 }

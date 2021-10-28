@@ -171,23 +171,23 @@ void GenericModule::Offline()
             m_modRef->SetOnline(false, isRig());
             _log(MODULE__WARNING, "GenericModule::Offline() called for unfitted module %u(%s).",itemID(), m_modRef->name());
             return;
-        }
+        } break;
         case Module::State::Offline: {
             m_modRef->SetOnline(false, isRig());
             _log(MODULE__WARNING, "GenericModule::Offline() called for offline module %u(%s).",itemID(), m_modRef->name());
             return;
-        }
+        } break;
         // these two should only be called for activeModules...
         case Module::State::Deactivating: {
             _log(MODULE__MESSAGE, "GenericModule::Offline() called for deactivating module %u(%s).",itemID(), m_modRef->name());
             if (IsActiveModule())
                 GetActiveModule()->AbortCycle();
-        }
+        } break;
         case Module::State::Activated: {
             _log(MODULE__MESSAGE, "GenericModule::Offline() called for active module %u(%s).",itemID(), m_modRef->name());
             if (IsActiveModule())
                 GetActiveModule()->AbortCycle();
-        }
+        } break;
     }
 
     m_ModuleState = Module::State::Deactivating;

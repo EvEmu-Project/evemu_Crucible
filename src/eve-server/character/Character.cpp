@@ -640,10 +640,10 @@ int64 Character::GetEndOfTraining() {
 void Character::RemoveFromQueue(SkillRef sRef)
 {
     SkillQueue::iterator itr = m_skillQueue.begin();
-    for (; itr != m_skillQueue.end(); ++itr) {
+    while (itr != m_skillQueue.end()) {
         if (sRef->typeID() == itr->typeID)
             if (sRef->GetAttribute(AttrSkillLevel).get_uint32() >= itr->level)
-                m_skillQueue.erase(itr);
+                itr = m_skillQueue.erase(itr);
     }
     SkillQueueLoop();
 }

@@ -37,11 +37,11 @@ m_Stop(true)
 {
     m_repeat = 1000;    //based on client data
 
-    // civilian turrets dont use charges.  this is checked/hacked in TurretModule() to fix error when firing.
     m_needsCharge = mRef->HasAttribute(AttrChargeGroup1);
     if (m_needsCharge) {
         switch (mRef->groupID()) {
-            // these neither require nor consume charges...may be wrong.  some of these use scripts.  to verify
+            // civilian turrets dont use charges.  this is checked in TurretModule()
+            // these can use scripts as charge.  they can activate without scripts using 'default' values
             case EVEDB::invGroups::Remote_Sensor_Damper:
             case EVEDB::invGroups::Tracking_Link:
             case EVEDB::invGroups::Signal_Amplifier:
@@ -51,8 +51,9 @@ m_Stop(true)
             case EVEDB::invGroups::Projected_ECCM:
             case EVEDB::invGroups::Remote_Sensor_Booster:
             case EVEDB::invGroups::Tracking_Disruptor:
-            // t2 mining laser can be used without charge by using default extraction rate
-            case EVEDB::invGroups::Frequency_Mining_Laser: {
+            case EVEDB::invGroups::Frequency_Mining_Laser:
+                // this may need its' own class as it has different effects depending on usage
+            case EVEDB::invGroups::Warp_Disrupt_Field_Generator: {
                 m_usesCharge = true;
                 m_needsCharge = false;
             } break;
@@ -109,18 +110,20 @@ m_Stop(true)
         }
     }
 
+    if (!m_shipRef->HasPilot())
+        return;
+
     //Clear();
     //GM_Modules = 353,
 
-    if (m_reloadTime or m_usesCharge) {
-        _log(MODULE__TRACE, "Reload time for %s(%u) set to %ums. (uses charge: %s", \
+    if (is_log_enabled(MODULE__TRACE)) {
+        if (m_reloadTime or m_usesCharge) {
+            _log(MODULE__TRACE, "Reload time for %s(%u) set to %ums. (uses charge: %s)", \
                 mRef->name(), mRef->itemID(), m_reloadTime, m_usesCharge?"true":"false");
-    } else {
-        _log(MODULE__TRACE, "%s(%u) does not use reload time.", mRef->name(), mRef->itemID());
+        } else {
+            _log(MODULE__TRACE, "%s(%u) does not use reload time.", mRef->name(), mRef->itemID());
+        }
     }
-
-    if (!m_shipRef->HasPilot())
-        return;
 
     // these groups receive a 3% increase in scan range
     switch (mRef->groupID()) {
@@ -271,7 +274,7 @@ void ActiveModule::Process()
             m_reloadTimer.Disable();
             // apply charge effects here after loading is complete, but only for empty modules (no previous charge fx)
             if (!m_chargeLoaded)
-                sFxProc.ApplyEffects(m_chargeRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), true);
+                sFxProc.ApplyEffects(m_modRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), true);
 
             m_ChargeState = Module::State::Loaded;
             m_chargeLoaded = true;
@@ -458,7 +461,7 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
 void ActiveModule::Deactivate(std::string effect/*""*/)
 {
     if (m_ModuleState != Module::State::Activated) {
-        _log(MODULE__TRACE, "ActiveModule::Deactivate - %s called Deactivate but is currently %s.", m_modRef->name(), GetModuleStateName(m_ModuleState));
+        _log(MODULE__TRACE, "ActiveModule::Deactivate - %s called Deactivate but is not currently Activated (%s).", m_modRef->name(), GetModuleStateName(m_ModuleState));
         return;
     }
 
@@ -835,7 +838,7 @@ void ActiveModule::LoadCharge(InventoryItemRef chargeRef)
         return;
     }
 
-    Client* pClient = m_shipRef->GetPilot();
+    Client* pClient(m_shipRef->GetPilot());
     if (pClient == nullptr) {
         _log(MODULE__WARNING, "ActiveModule::LoadCharge() for %s - Pilot is null.  Cannot load charge.", m_modRef->name());
         // these are just in case...
@@ -845,7 +848,7 @@ void ActiveModule::LoadCharge(InventoryItemRef chargeRef)
         return;
     }
 
-    uint8 loadQty = chargeRef->quantity();
+    uint8 loadQty(chargeRef->quantity());
 
     if (m_ChargeState == Module::State::Loaded) {
         m_ChargeState == Module::State::Reloading;
@@ -890,7 +893,7 @@ void ActiveModule::LoadCharge(InventoryItemRef chargeRef)
     if (!m_reloadTimer.Enabled()) {
         // apply charge effects only for empty modules (no previous charge fx)
         if (!m_chargeLoaded)
-            sFxProc.ApplyEffects(m_chargeRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), true);
+            sFxProc.ApplyEffects(m_modRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), true);
 
         // set immediately on login or when docked
         m_chargeLoaded = true;
@@ -926,13 +929,36 @@ void ActiveModule::UnloadCharge()
             sFxProc.ParseExpression(m_modRef.get(), sFxDataMgr.GetExpression(it.second.postExpression), data, this);
         }
 
-        // apply to containing module to properly remove effects
+        // apply to containing module to properly remove effects  -this doesnt work right for scripts.
         sFxProc.ApplyEffects(m_modRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), m_shipRef->GetPilot()->IsInSpace());
     }
 
     m_chargeRef = InventoryItemRef(nullptr);       // Ensure ref is NULL
     m_ChargeState = Module::State::Unloaded;
     m_chargeLoaded = false;
+
+    // scripts boost one attrib, while reducing or deleting others.  once the attrib is deleted, i cant 'undo' without reload
+    EvilNumber typeID(EvilZero);
+    if (m_modRef->HasAttribute(AttrChargeGroup1, typeID))
+        switch (typeID.get_int()) {
+            // find what attribs were changed and reload them to default once charge is removed
+            case 907:   //    Tracking Script
+            case 909: { //    Tracking Disruption Script
+                m_modRef->ResetAttribute(AttrFalloffBonus, true);
+                m_modRef->ResetAttribute(AttrMaxRangeBonus, true);
+                m_modRef->ResetAttribute(AttrTrackingSpeedBonus, true);
+            } break;
+            case 908: { //    Warp Disruption Script
+                m_modRef->ResetAttribute(AttrSignatureRadiusBonus, true);
+                m_modRef->ResetAttribute(AttrMassBonusPercentage, true);
+                m_modRef->ResetAttribute(AttrSpeedFactorBonus, true);
+                m_modRef->ResetAttribute(AttrSpeedBoostFactorBonus, true);
+            } break;
+            //case 910:   //    Sensor Booster Script
+            case 911: { //    Sensor Dampener Script
+                m_modRef->ResetAttribute(AttrFalloffBonus, true);
+            } break;
+        }
 }
 
 void ActiveModule::ConsumeCharge() {
@@ -995,9 +1021,9 @@ void ActiveModule::ReprocessCharge()
         fxData data = fxData();
         data.action = FX::Action::dgmActInvalid;
         data.srcRef = m_chargeRef;
-        sFxProc.ParseExpression(m_chargeRef.get(), sFxDataMgr.GetExpression(it.second.preExpression), data, this);
+        sFxProc.ParseExpression(m_modRef.get(), sFxDataMgr.GetExpression(it.second.preExpression), data, this);
     } */
-    sFxProc.ApplyEffects(m_chargeRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), m_shipRef->GetPilot()->IsInSpace());
+    sFxProc.ApplyEffects(m_modRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), m_shipRef->GetPilot()->IsInSpace());
     m_chargeRef->ClearModifiers();
 }
 
@@ -1146,6 +1172,7 @@ bool ActiveModule::CanActivate()
 
     //AttrDeadspaceUnsafe
     //AttrMaxGroupActive
+    //ModuleRequiresFuel
     return true;
 }
 

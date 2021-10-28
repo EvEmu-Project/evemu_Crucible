@@ -116,7 +116,7 @@ protected:
     }
 
     /// Reference count of instance.
-    mutable size_t mRefCount;
+    mutable uint16 mRefCount;
     mutable bool mDeleted;
 };
 

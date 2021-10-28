@@ -96,7 +96,7 @@ void CommandDispatcher::AddCommand( const char* cmd, const char* desc, int64 req
 }
 
 void CommandDispatcher::ListCommands() {
-    sLog.Green("  EVEmu", "Currently Loaded %u Commands:", m_commands.size());
+    sLog.Green("  EVEmu", "Currently Loaded %lu Commands:", m_commands.size());
     std::map<std::string, CommandDispatcher::CommandRecord*>::iterator itr = m_commands.begin();
     for (; itr != m_commands.end(); ++itr) {
         sLog.Magenta("    Call and Role", "%s - %p (%li)",

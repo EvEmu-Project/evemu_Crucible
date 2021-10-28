@@ -830,7 +830,7 @@ PyResult BeyonceBound::Handle_CmdAbandonLoot(PyCallArgs &call) {
 	/*  remotePark.CmdAbandonLoot(wrecks)  <- this is pylist from 'abandonAllWrecks'
 	 *  remotePark.CmdAbandonLoot([wreckID]) <- single itemID in list
 	 */
-  sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size=%li", call.tuple->size());
+  sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
 	Call_SingleIntList arg;

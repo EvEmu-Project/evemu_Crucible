@@ -306,7 +306,7 @@ PyResult DogmaIMBound::Handle_LoadAmmoToModules(PyCallArgs& call) {
     if (args.moduleIDs.empty())
         return nullptr;
     if (args.moduleIDs.size() > 1) {
-        sLog.Error("DogmaIMBound::Handle_LoadAmmoToModules()", "args.moduleIDs.size = %u.", args.moduleIDs.size() );
+        sLog.Error("DogmaIMBound::Handle_LoadAmmoToModules()", "args.moduleIDs.size = %lu.", args.moduleIDs.size() );
         call.Dump(MODULE__WARNING);
     }
 
@@ -610,6 +610,7 @@ PyResult DogmaIMBound::Handle_GetAllInfo(PyCallArgs& call)
         if (charResult == nullptr) {
             _log(SERVICE__ERROR, "Unable to build char info for char %u", pClient->GetCharacterID());
             sItemFactory.UnsetUsingClient();
+            PySafeDecRef(rsp);
             return PyStatic.NewNone();
         }
         rsp->SetItemString("charInfo", charResult);
@@ -623,6 +624,7 @@ PyResult DogmaIMBound::Handle_GetAllInfo(PyCallArgs& call)
         if (shipResult == nullptr) {
             _log(SERVICE__ERROR, "Unable to build ship info for ship %u", pClient->GetShipID());
             sItemFactory.UnsetUsingClient();
+            PySafeDecRef(rsp);
             return PyStatic.NewNone();
         }
         rsp->SetItemString("shipInfo", shipResult);
@@ -633,6 +635,7 @@ PyResult DogmaIMBound::Handle_GetAllInfo(PyCallArgs& call)
     // Set "shipState" in the Dictionary  -fixed 26Mar16  -UD to add linked weapons 7Jan19
     if (pClient->GetShip().get() == nullptr) {
         _log(SERVICE__ERROR, "Unable to build shipState for %u", pClient->GetShipID());
+        PySafeDecRef(rsp);
         return PyStatic.NewNone();
     }
     PyTuple* rspShipState = new PyTuple(3);
@@ -643,7 +646,7 @@ PyResult DogmaIMBound::Handle_GetAllInfo(PyCallArgs& call)
 
     if (is_log_enabled(SHIP__STATE))
         rsp->Dump(SHIP__STATE, "     ");
-    
+
     sItemFactory.UnsetUsingClient();
     return new PyObject("util.KeyVal", rsp );
 }
@@ -771,7 +774,7 @@ PyResult DogmaIMBound::Handle_UnlinkAllModules(PyCallArgs& call) {
 
 PyResult DogmaIMBound::Handle_UnlinkModule(PyCallArgs& call) {
     // slaveID = self.remoteDogmaLM.UnlinkModule(shipID, moduleID)
-    sLog.Warning("DogmaIMBound::Handle_UnlinkModule()", "size=%li", call.tuple->size());
+    sLog.Warning("DogmaIMBound::Handle_UnlinkModule()", "size=%lu", call.tuple->size());
     call.Dump(SHIP__MESSAGE);
 
     Call_TwoIntegerArgs args;
@@ -801,7 +804,7 @@ PyResult DogmaIMBound::Handle_UnlinkModule(PyCallArgs& call) {
 
 PyResult DogmaIMBound::Handle_MergeModuleGroups(PyCallArgs& call) {
     //info = self.remoteDogmaLM.MergeModuleGroups(shipID, masterID, slaveID)
-    sLog.Warning("DogmaIMBound::Handle_MergeModuleGroups()", "size=%li", call.tuple->size());
+    sLog.Warning("DogmaIMBound::Handle_MergeModuleGroups()", "size=%lu", call.tuple->size());
     call.Dump(SHIP__MESSAGE);
 
     Call_Dogma_LinkWeapons args;
@@ -836,7 +839,7 @@ PyResult DogmaIMBound::Handle_MergeModuleGroups(PyCallArgs& call) {
 
 PyResult DogmaIMBound::Handle_PeelAndLink(PyCallArgs& call) {
     //info = self.remoteDogmaLM.PeelAndLink(shipID, masterID, slaveID)
-    sLog.Warning("DogmaIMBound::Handle_PeelAndLink()", "size=%li", call.tuple->size());
+    sLog.Warning("DogmaIMBound::Handle_PeelAndLink()", "size=%lu", call.tuple->size());
     call.Dump(SHIP__MESSAGE);
 
     Call_Dogma_LinkWeapons args;
@@ -961,7 +964,7 @@ PyResult DogmaIMBound::Handle_Deactivate(PyCallArgs& call)
 {
     //  return self.statemanager.Deactivate(self.itemID, self.effectName)
     //  dogmaLM.Deactivate(itemID, const.effectOnlineForStructures)
-    sLog.Warning("DogmaIMBound::Handle_Deactivate()", "size=%li", call.tuple->size());
+    sLog.Warning("DogmaIMBound::Handle_Deactivate()", "size=%lu", call.tuple->size());
     call.Dump(SHIP__MESSAGE);
 
     Client* pClient(call.client);

@@ -61,13 +61,13 @@ NPCAIMgr::NPCAIMgr(NPC* who)
   m_armorRepairTimer(0),
   m_beginFindTarget(0),
   m_warpScramblerTimer(0),
-  m_webifierTimer(0)
+  m_webifierTimer(0),
+  m_missileTypeID(0),
+  m_webber(false),
+  m_warpScram(false),
+  m_isWandering(false)
 {
     assert(m_self.get() != nullptr);
-    m_webber = false;
-    m_warpScram = false;
-    m_isWandering = false;
-
     m_damageMultiplier = m_self->GetAttribute(AttrDamageMultiplier).get_float();
 
     /* set npc ship data */
@@ -75,11 +75,8 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     m_attackSpeed = m_self->GetAttribute(AttrSpeed).get_uint32();
     m_sigRadius = m_self->GetAttribute(AttrSignatureRadius).get_uint32();
     m_launcherCycleTime = m_self->GetAttribute(AttrMissileLaunchDuration).get_uint32();
-    if (m_launcherCycleTime > 100) {
+    if (m_launcherCycleTime > 100)
         m_missileTypeID = m_self->GetAttribute(AttrEntityMissileTypeID).get_uint32();
-    } else {
-        m_missileTypeID = 0;
-    }
 
     //  AttrEntityDefenderChance = 497,  <<< for defender missiles
 
@@ -449,8 +446,7 @@ void NPCAIMgr::SetIdle() {
 
     /** @todo need to clear out targets here */
 
-    _log(NPC__AI_TRACE, "%s(%u): Idle: returning to idle.", \
-         m_npc->GetName(), m_npc->GetID());
+    _log(NPC__AI_TRACE, "%s(%u): Idle: returning to idle.", m_npc->GetName(), m_npc->GetID());
     m_state = NPCAI::State::Idle;
     m_destiny->Stop();
     m_destiny->SetMaxVelocity(m_orbitSpeed);
@@ -556,7 +552,7 @@ void NPCAIMgr::CheckDistance(SystemEntity* pSE)
         return;
     double dist = m_npc->GetPosition().distance(pSE->GetPosition());
     if ((dist > m_sightRange) and (!m_npc->TargetMgr()->IsTargetedBy(pSE))) {
-        _log(NPC__AI_TRACE, "%s(%u): CheckDistance: %s(%u) is too far away (%u).  Return to Idle.", \
+        _log(NPC__AI_TRACE, "%s(%u): CheckDistance: %s(%u) is too far away (%.0fm).  Return to Idle.", \
              m_npc->GetName(), m_npc->GetID(), pSE->GetName(), pSE->GetID(), dist);
         if (m_state != NPCAI::State::Idle) {
             // target is no longer in npc's "sight range" and is NOT targeting this npc.  unlock target and return to idle.
@@ -577,7 +573,7 @@ void NPCAIMgr::CheckDistance(SystemEntity* pSE)
         SetChasing(pSE);
     }
 
-    _log(NPC__AI_TRACE, "%s(%u): CheckDistance:  target: %s(%u), state: %s, dist: %.0f, flyRange: %u, boostRange: %u.", \
+    _log(NPC__AI_TRACE, "%s(%u): CheckDistance:  target: %s(%u), state: %s, dist: %.0fm, flyRange: %u, boostRange: %u.", \
             m_npc->GetName(), m_npc->GetID(), pSE->GetName(), pSE->GetID(), GetStateName(m_state).c_str(), dist, m_flyRange, m_boostRange);
 
     Attack(pSE);
@@ -622,7 +618,7 @@ void NPCAIMgr::Targeted(SystemEntity* pSE) {
     switch(m_state) {
         case NPCAI::State::Idle: {
             _log(NPC__AI_TRACE, "%s(%u): Begin Approaching and start Targeting sequence.", \
-                    m_npc->GetName(), m_npc->GetID(), pSE->GetName(), pSE->GetID());
+                    m_npc->GetName(), m_npc->GetID());
             SetChasing(pSE);
 
             bool chase = false;
@@ -690,8 +686,6 @@ void NPCAIMgr::Attack(SystemEntity* pSE)
     if (pSE == nullptr)
         return;
     if (m_mainAttackTimer.Check()) {
-        if (pSE == nullptr)
-            return;
         // Check to see if the target still in the bubble (Client warped out)
         if (!m_npc->SysBubble()->InBubble(pSE->GetPosition())) {
             _log(NPC__AI_TRACE, "%s(%u): Target %s(%u) no longer in bubble.  Clear target and move on",
@@ -867,6 +861,6 @@ std::string NPCAIMgr::GetStateName(int8 stateID)
         case NPCAI::State::Signaling:      return "Signaling";
         case NPCAI::State::WarpOut:        return "Warping Out";
         case NPCAI::State::WarpFollow:     return "Following Warp";
-        default:                       return "Invalid";
+        default:                           return "Invalid";
     }
 }

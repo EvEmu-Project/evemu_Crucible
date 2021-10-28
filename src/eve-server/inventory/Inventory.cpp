@@ -229,7 +229,7 @@ void Inventory::AddItem(InventoryItemRef iRef) {
 
     // Apply iHub upgrades
     if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub) {
-        _log(SOV__DEBUG, "Applying system upgrade %s to system %s...", iRef->name(), m_self->locationID());
+        _log(SOV__DEBUG, "Applying system upgrade %s to system %s...", iRef->name(), m_self->name());
 
         // For now, all we need to do is mark the upgrade active,
         // but in the future upgrades for military and resource harvesting
@@ -405,7 +405,7 @@ std::vector<InventoryItemRef> Inventory::SortVector(std::vector<InventoryItemRef
     }
 
     if (sConfig.debug.IsTestServer)
-        _log(INV__TRACE, "Inventory::SortVector() - %u items sorted in %.3fus with %u loops.", itemVec.size(), (GetTimeUSeconds() - start), count);
+        _log(INV__TRACE, "Inventory::SortVector() - %lu items sorted in %.3fus with %u loops.", itemVec.size(), (GetTimeUSeconds() - start), count);
 
     return itemVec;  //returns sorted list
 }
@@ -642,7 +642,7 @@ float Inventory::GetCapacity(EVEItemFlags flag) const {
     /** @todo  finish these for POS */
     //   IsFlagCapacityLocationWide   item.groupID in (const.groupCorporateHangarArray, const.groupAssemblyArray, const.groupMobileLaboratory):
 
-    switch( flag ) {
+    switch (flag) {
         case flagOffice:
         case flagProperty:
         //case flagDelivery:
@@ -683,7 +683,7 @@ float Inventory::GetCapacity(EVEItemFlags flag) const {
             //for ship, this is TOTAL capy for all corp hangars (they share capy)
             if (m_self->HasAttribute(AttrHasCorporateHangars))
                 return m_self->GetAttribute(AttrCorporateHangarCapacity).get_float();
-        }
+        } break;
         case flagHangar: {
             if (sDataMgr.IsStation(m_myID))
                 return maxHangarCapy;
@@ -691,7 +691,7 @@ float Inventory::GetCapacity(EVEItemFlags flag) const {
                 return m_self->GetAttribute(AttrCorporateHangarCapacity).get_float();
             //for cargo container, this is 27k5m3.
             return m_self->GetAttribute(AttrCapacity).get_float();
-        }
+        } break;
     }
 
     _log(INV__WARNING, "Inventory::GetCapacity() - Unsupported flag %s(%u) called for %s(%u)", \

@@ -83,7 +83,7 @@ int ItemFactory::Initialize()
 
 void ItemFactory::Close()
 {
-    sLog.Warning("      ItemFactory", "%u Items, %u Types still in list", \
+    sLog.Warning("      ItemFactory", "%lu Items, %lu Types still in list", \
                 m_items.size(), m_types.size());
     // types
     for (auto cur : m_types)

@@ -28,7 +28,7 @@ SovereigntyDataMgr::~SovereigntyDataMgr()
 int SovereigntyDataMgr::Initialize()
 {
     Populate();
-    sLog.Blue("   SovereigntyDataMgr", "Sovereignty Data Manager Initialized.");
+    sLog.Blue("       SovDataMgr", "Sovereignty Data Manager Initialized.");
     return 1;
 }
 
@@ -38,7 +38,7 @@ void SovereigntyDataMgr::Close()
     //for (auto cur : m_sovPyData)
     //    PySafeDecRef(cur.second);
 
-    sLog.Warning("   SovereigntyDataMgr", "Sovereignty Data Manager has been closed.");
+    sLog.Warning("       SovDataMgr", "Sovereignty Data Manager has been closed.");
 }
 
 void SovereigntyDataMgr::Clear()
@@ -82,7 +82,7 @@ void SovereigntyDataMgr::Populate()
         bySolar.insert(sData);
     }
 
-    sLog.Cyan("   SovereigntyDataMgr", "%u Sovereignty data sets loaded in %.3fms.",
+    sLog.Cyan("       SovDataMgr", "%lu Sovereignty data sets loaded in %.3fms.",
               bySolar.size(), (GetTimeMSeconds() - start));
 
     //cleanup
@@ -205,7 +205,7 @@ PyRep *SovereigntyDataMgr::GetAllianceBeacons(uint32 allianceID) //Get all beaco
     PyList* list = new PyList();
     for (SovereigntyData const &sData : boost::make_iterator_range(
                  m_sovData.get<SovDataByAlliance>().equal_range(allianceID)))
-    {   
+    {
         // Don't add systems where no beacon exists
         if (sData.beaconID == 0) {
             continue;

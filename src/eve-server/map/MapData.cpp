@@ -83,7 +83,7 @@ void MapData::Populate()
         }
     }
 
-    sLog.Cyan("          MapData", "%u Region jumps, %u Constellation jumps and %u System jumps loaded in %.3fms.", //
+    sLog.Cyan("          MapData", "%lu Region jumps, %lu Constellation jumps and %lu System jumps loaded in %.3fms.", //
               m_regionJumps.size(), m_constJumps.size(), m_systemJumps.size(), (GetTimeMSeconds() - start));
 
     // cleanup
