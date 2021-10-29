@@ -416,6 +416,8 @@ PyResult TradeBound::Handle_MultiAdd(PyCallArgs &call) {
         dict->SetItem(new PyInt(Inv::Update::Location), new PyInt(args.contID));
 
     TradeSession* pTSes = call.client->GetTradeSession();
+    Client* pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);
+    Client* pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
 
     if ((call.client->GetCharacterID() != pTSes->m_tradeSession.myID)
     and (call.client->GetCharacterID() != pTSes->m_tradeSession.herID)) {
@@ -425,8 +427,6 @@ PyResult TradeBound::Handle_MultiAdd(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    Client* pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);
-    Client* pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
     uint32 charID = call.client->GetCharacterID();
     uint32 tradeContID = pTSes->m_tradeSession.containerID;
 
