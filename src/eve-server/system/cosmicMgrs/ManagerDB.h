@@ -61,13 +61,13 @@ public:
     static PyObjectEx* GetOperands();
 
     /* belt manager */
-    void ClearAsteroids();
-    void SaveRoid(AsteroidData& data);
-    void SaveSystemRoids(uint32 systemID, std::vector< AsteroidData >& roids);
+    static void ClearAsteroids();
+    static void SaveRoid(AsteroidData& data);
+    static void SaveSystemRoids(uint32 systemID, std::vector< AsteroidData >& roids);
     static void GetRegionFaction(DBQueryResult& res);
-    void RemoveAsteroid(uint32 asteroidID);
+    static void RemoveAsteroid(uint32 asteroidID);
     static bool GetAsteroidData(uint32 asteroidID, AsteroidData& dbData);
-    bool LoadSystemRoids(uint32 systemID, uint32& beltID, std::vector< AsteroidData >& into);
+    static bool LoadSystemRoids(uint32 systemID, uint32& beltID, std::vector< AsteroidData >& into);
     static void CreateRoidItemID(ItemData& idata, AsteroidData& adata);
 
     /* spawn manager */

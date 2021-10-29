@@ -37,7 +37,7 @@ public:
     BeltMgr(SystemManager* mgr, PyServiceMgr& svc);
     ~BeltMgr()    { /* do nothing here */ }
 
-    void Init(uint32 regionID);
+    void Init();
     void Save();
     void Process();
     void ClearAll();
@@ -56,7 +56,6 @@ public:
     void RemoveAsteroid(uint32 beltID, AsteroidSE* pASE);
 
 protected:
-    ManagerDB m_db;
     Timer m_respawnTimer;
 
     void SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>& roidTypes, int type = 0, bool anomaly = false);

@@ -53,10 +53,19 @@ m_beltMgr(nullptr),
 m_dungMgr(nullptr),
 m_spawnMgr(nullptr),
 m_spawnTimer(0),
-m_procTimer(0)
+m_procTimer(0),
+m_WH(0),
+m_Sigs(0),
+m_Anoms(0),
+m_Grav(0),
+m_Mag(0),
+m_Ladar(0),
+m_Radar(0),
+m_Unrated(0),
+m_Complex(0),
+m_maxSigs(0),
+m_initalized(false)
 {
-    m_initalized = false;
-
     m_sigBySigID.clear();
     m_sigByItemID.clear();
 }
@@ -96,7 +105,7 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     }
 
     if (!sConfig.cosmic.AnomalyEnabled) {
-         _log(COSMIC_MGR__MESSAGE, "Anomaly System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
+        _log(COSMIC_MGR__MESSAGE, "Anomaly System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
         return true;
     }
     if (!sConfig.cosmic.DungeonEnabled){
@@ -123,19 +132,16 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
         m_procTimer.Start(10000);  // 10s
     } else {
              if (security == 2.0)  { m_maxSigs = 25; }
-        else if (security > 1.501) { m_maxSigs = 20; }
-        else if (security > 1.001) { m_maxSigs = 15; }
-        else if (security > 0.751) { m_maxSigs = 12; }
-        else if (security > 0.451) { m_maxSigs = 8; }
-        else if (security > 0.251) { m_maxSigs = 5; }
+        else if (security > 1.499) { m_maxSigs = 20; }
+        else if (security > 0.999) { m_maxSigs = 15; }
+        else if (security > 0.749) { m_maxSigs = 12; }
+        else if (security > 0.449) { m_maxSigs = 8; }
+        else if (security > 0.249) { m_maxSigs = 5; }
         else                       { m_maxSigs = 3; }
 
         m_procTimer.Start(120000);  // 2m
     }
 
-    m_WH = 0;
-    m_Sigs = 0;
-    m_Anoms = 0;
     // these use config option to (en/dis)able individual types
     m_Grav = sConfig.exploring.Gravametric;
     m_Mag = sConfig.exploring.Magnetometric;
@@ -147,7 +153,7 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     /* load current data?, start timers, process current data, and create new items, if needed */
     /** @todo all anomalies are currently temp items.  if/when we start saving them, create new table and itemIDs*/
 
-    _log(COSMIC_MGR__MESSAGE, "AnomalyMgr Initialized for %s(%u) with %u Max Signals for security class %0.2f.  Test Server is %s", \
+    _log(COSMIC_MGR__MESSAGE, "AnomalyMgr Initialized for %s(%u) with %u Max Signals for security class %0.2f.  Test Server %s", \
                 m_system->GetName(), m_system->GetID(), m_maxSigs, security, sConfig.debug.IsTestServer?"enabled":"disabled");
 
     return (m_initalized = true);

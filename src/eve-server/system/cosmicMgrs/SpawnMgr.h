@@ -26,7 +26,7 @@ class SpawnMgr
 {
 public:
     SpawnMgr(SystemManager* mgr, PyServiceMgr& svc);
-    ~SpawnMgr()                                 { /* nothing do to yet */ }
+    ~SpawnMgr()                                         { /* nothing do to yet */ }
 
     bool Init();
 
@@ -45,7 +45,7 @@ public:
     void DoSpawnForMission(SystemBubble* pBubble, uint32 regionID);
     void DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID);
 
-    // primative test for chained spawns
+    // primitive test for chained spawns
     bool IsChaining(uint16 bubbleID);
     // this will be used for all spawn types
     void SpawnKilled(SystemBubble* pBubble, uint32 itemID);    // this DOES NOT remove entity from system or bubble.  user must do this BEFORE calling.

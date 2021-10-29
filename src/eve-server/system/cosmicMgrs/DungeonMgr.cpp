@@ -162,9 +162,9 @@ DungeonMgr::DungeonMgr(SystemManager* mgr, PyServiceMgr& svc)
 : m_system(mgr),
 m_services(svc),
 m_anomMgr(nullptr),
-m_spawnMgr(nullptr)
+m_spawnMgr(nullptr),
+m_initalized(false)
 {
-    m_initalized = false;
     m_anomalyItems.clear();
 }
 
@@ -219,9 +219,7 @@ bool DungeonMgr::Init(AnomalyMgr* anomMgr, SpawnMgr* spawnMgr)
 
     _log(COSMIC_MGR__MESSAGE, "DungeonMgr Initialized for %s(%u)", m_system->GetName(), m_system->GetID());
 
-    m_initalized = true;
-
-    return m_initalized;
+    return (m_initalized = true);
 }
 
 // called from systemMgr
@@ -229,7 +227,7 @@ void DungeonMgr::Process() {
     if (!m_initalized)
         return;
 
-    // this is used to remove empty/completed/timed-out dungons....eventually
+    // this is used to remove empty/completed/timed-out dungeons....eventually
 }
 
 void DungeonMgr::Load()
