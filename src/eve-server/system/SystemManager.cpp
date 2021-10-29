@@ -205,7 +205,7 @@ bool SystemManager::LoadCosmicMgrs()
     }
 
     if (m_beltCount)
-        m_beltMgr->Init(m_data.regionID);  //nothing to check for in this init.
+        m_beltMgr->Init();  //nothing to check for in this init.
 
     if (!m_anomMgr->Init(m_beltMgr, m_dungMgr, m_spawnMgr)) {
         _log(SERVICE__ERROR, "Unable to load Anomaly Manager during boot of system %u.", m_data.systemID);
