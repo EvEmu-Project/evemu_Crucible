@@ -32,7 +32,7 @@
  *
  *   these methods will also be used for random npc spawns and their warping/movement.
  *
- *   class DBGPointEntity has index, itemID, radius, and position, and is found in SystemDB.
+ *   class DBGPointEntity has index, itemID, radius, and position, and is found in POD_continers.h.
  *      see copy of class declaration below
  *
  *  NOTE i seem to remember that ALL COSMIC SPAWNS are within 6au from planets.
@@ -43,17 +43,13 @@
 /// int64 MakeRandomInt( int64 low, int64 high )
 /// double MakeRandomFloat( double low, double high )
 
-/*   copied from system/SystemDB.cpp
- * namespace SystemDB:
- * class DBGPointEntity {
- *  public:
- *	   uint8 idx;
- *    uint32 itemID;
- *    GPoint position;
- *    double radius;
- *    double x;
- *    double y;
- *    double z;
+/*   copied from POD_continers.h
+struct DBGPointEntity {
+    uint8 idx;
+    uint32 itemID;
+    double radius;
+    GPoint position;
+};
  * };
  *
 */

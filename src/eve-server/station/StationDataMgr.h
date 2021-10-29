@@ -49,7 +49,7 @@ public:
     uint32              GetOfficeRentalFee(uint32 stationID);
     uint32              GetOfficeIDForCorp(uint32 stationID, uint32 corpID);
 
-    void                AddOutpost(StationData data);
+    void                AddOutpost(StationData& data);
 
 protected:
     void                Populate();

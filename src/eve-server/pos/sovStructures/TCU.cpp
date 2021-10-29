@@ -112,7 +112,7 @@ void TCUSE::SetOffline()
         if (cur != nullptr)
         {
             cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
-            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to %s (%u)", cur->GetName(), cur->GetCharID());
+            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to %s(%u)", cur->GetName(), cur->GetCharID());
         }
     }
 

@@ -37,7 +37,7 @@ public:
     static int32 GetOfficeCount(uint32 corpID);
 
     static void LoadOffices(OwnerData &od, std::vector<uint32> &into);
-    static void CreateOutpost(StationData data);
+    static void CreateOutpost(StationData& data);
     static uint32 GetNewOutpostID();
 
 };

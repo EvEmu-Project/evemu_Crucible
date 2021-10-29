@@ -2389,13 +2389,13 @@ bool Client::_VerifyLogin(CryptoChallengePacket& ccp)
     }
 
     if (!ccp.user_password.empty()) {
-        sLog.Warning("  Client::Login()", "%s(%li) - Using Plain Password", aData.name.c_str(), aData.clientID);
+        sLog.Warning("  Client::Login()", "%s(%u) - Using Plain Password", aData.name.c_str(), aData.clientID);
         if (strcmp(aData.password.c_str(), ccp.user_password.c_str()) != 0) {
             failMsg = "The plain Password you entered is incorrect for this account.";
             return _LoginFail(failMsg);
         }
     } else {
-        //sLog.Warning("  Client::Login()", "%s(%li) - Using Hashed Password", aData.name.c_str(), aData.clientID);
+        //sLog.Warning("  Client::Login()", "%s(%u) - Using Hashed Password", aData.name.c_str(), aData.clientID);
         if (strcmp(aData.hash.c_str(), ccp.user_password_hash.c_str()) != 0) {
             failMsg = "The Password you entered is incorrect for this account.";
             return _LoginFail(failMsg);

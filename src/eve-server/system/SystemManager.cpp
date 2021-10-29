@@ -1102,41 +1102,46 @@ void SystemManager::AddMarker(SystemEntity* pSE, bool sendBall/*false*/, bool ad
     sBubbleMgr.Add(pSE);
     if (addSignal)
         m_anomMgr->AddSignal(pSE);
-    if (sendBall) {
-        // modified from SendStaticBall()
-        if (m_clients.empty())
-            return;
+    if (!sendBall)
+        return;
 
-        Buffer* destinyBuffer = new Buffer();
-        //create AddBalls header
-        Destiny::AddBall_header head = Destiny::AddBall_header();
-            head.packet_type = 1;   // 0 = full state   1 = balls
-            head.stamp = sEntityList.GetStamp();
-        destinyBuffer->Append( head );
+    // modified from SendStaticBall()
+    if (m_clients.empty())
+        return;
 
-        AddBalls2 addballs2;
-            addballs2.stateStamp = sEntityList.GetStamp();
-            addballs2.extraBallData = new PyList();
+    Buffer* destinyBuffer = new Buffer();
+    //create AddBalls header
+    Destiny::AddBall_header head = Destiny::AddBall_header();
+        head.packet_type = 1;   // 0 = full state   1 = balls
+        head.stamp = sEntityList.GetStamp();
+    destinyBuffer->Append( head );
 
-        PyTuple* balls = new PyTuple(2);
-            balls->SetItem(0, pSE->MakeSlimItem());
-            balls->SetItem(1, pSE->MakeDamageState());
-        addballs2.extraBallData->AddItem(balls);
+    AddBalls2 addballs2;
+        addballs2.stateStamp = sEntityList.GetStamp();
+        addballs2.extraBallData = new PyList();
 
-        pSE->EncodeDestiny(*destinyBuffer);
+    PyTuple* balls = new PyTuple(2);
+        balls->SetItem(0, pSE->MakeSlimItem());
+        balls->SetItem(1, pSE->MakeDamageState());
+    addballs2.extraBallData->AddItem(balls);
 
-        addballs2.state = new PyBuffer(&destinyBuffer); //consumed
-        SafeDelete( destinyBuffer );
+    pSE->EncodeDestiny(*destinyBuffer);
 
-        if (is_log_enabled(DESTINY__BALL_DUMP))
-            addballs2.Dump( DESTINY__BALL_DUMP, "    " );
-        //send the update
-        PyTuple* up = addballs2.Encode();
-        for (auto cur : m_clients) {
-            PyIncRef(up);
-            cur.second->QueueDestinyUpdate(&up, true);
-        }
+    addballs2.state = new PyBuffer(&destinyBuffer); //consumed
+    SafeDelete( destinyBuffer );
+
+    if (is_log_enabled(DESTINY__BALL_DUMP))
+        addballs2.Dump( DESTINY__BALL_DUMP, "    " );
+
+    //send the update
+    PyTuple* up = addballs2.Encode();
+    for (auto cur : m_clients) {
+        PyIncRef(up);
+        cur.second->QueueDestinyUpdate(&up, true);
     }
+
+    //cleanup
+    PySafeDecRef(up);
 }
 
 
@@ -1430,6 +1435,7 @@ void SystemManager::SendStaticBall(SystemEntity* pSE)
     }
 
     //cleanup
+    PySafeDecRef(rsp);
     SafeDelete(destinyBuffer);
 }
 

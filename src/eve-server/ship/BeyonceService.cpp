@@ -1120,7 +1120,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
     }
     if (quantity < fuelQuantity) {
         ship->GetPilot()->SendNotifyMsg("This jump requires you to have %u units of %s in your fuel bay.", fuelQuantity, sItemFactory.GetType(fuelType)->name().c_str());
-        return nullptr;
+        return PyStatic.NewNone();
     }
 
     for (auto cur : requiredItems) {
@@ -1142,8 +1142,6 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
     tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
     tuple->SetItem(1, new PyLong(GetFileTimeNow()));
     return tuple;
-
-    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
@@ -1238,8 +1236,6 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
     tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
     tuple->SetItem(1, new PyLong(GetFileTimeNow()));
     return tuple;
-
-    return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::Handle_CmdFleetRegroup(PyCallArgs &call) {

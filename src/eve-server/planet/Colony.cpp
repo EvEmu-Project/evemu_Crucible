@@ -757,8 +757,11 @@ void Colony::SetSchematic(uint32 pinID, uint8 schematicID/*0*/)
     }
 
     std::map<uint32, PI_Plant>::iterator itr = ccPin->plants.find(pinID);
-    if (itr == ccPin->plants.end())
+    if (itr == ccPin->plants.end()) {
         _log(COLONY__ERROR, "Colony::SetSchematic() - plantID %u not found in ccPin.plants map", pinID);
+        // make client error here
+        return;
+    }
 
     if (schematicID) {
         // install new schematic.  set lastRunTime to 0
@@ -1375,13 +1378,14 @@ void Colony::Update(bool updateTimes/*false*/)
     }
 
     // empty colony runs in 47 - 80 us
-    _log(COLONY__INFO, "Colony::Update() - Update completed in %.3fus with %u links, %u pins, %u plants, and %u routes (s:%u, d:%u) ", \
+    _log(COLONY__INFO, "Colony::Update() - Update completed in %.3fus with %lu links, %lu pins, %lu plants, and %lu routes (s:%lu, d:%lu) ", \
                     GetTimeUSeconds() - profileStartTime, ccPin->links.size(), ccPin->pins.size(), ccPin->plants.size(), ccPin->routes.size(), \
                     m_srcRoutes.size(), m_destRoutes.size());
 }
 
 void Colony::ProcessECUs(bool& updateTimes)
 {
+    /** @todo  this needs complete review/overhaul...many errors here */
     double delta = 0;
     uint16 cycles = 0, quantity = 0, amount = 0, count = 0;
     std::map<uint16, uint32>::iterator itemItr;
@@ -1409,7 +1413,7 @@ void Colony::ProcessECUs(bool& updateTimes)
         /** @todo  as i dont have data on planet resources, and am not tracking depletion, extraction qtys used here are
          * sent from the client during 'survey program' installation, and do not simulate the diminishing returns as shown in
          * the survey program. (testing diminishing returns @ 95%)
-         * because of this, the values used here (and all subsquent processes) will be more than shown in client.
+         * because of this, the values used here (and all subsequent processes) will be more than shown in client.
          */
         /** @note this is a simple process, as it only provides raw mats, simulating extraction from planet and
          *  shipped to storage or directly to plant for processing.

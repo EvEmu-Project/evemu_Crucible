@@ -269,7 +269,7 @@ void GenericModule::Repair(EvilNumber amount)
             newAmount = EvilZero;
         SetAttribute(AttrDamage, newAmount);
     }
-    _log(MODULE__DAMAGE, "GenericModule::Repair() - %s repaired %u damage.  new damage %u", m_modRef->name(), amount, GetAttribute(AttrDamage).get_int());
+    _log(MODULE__DAMAGE, "GenericModule::Repair() - %s repaired %u damage.  new damage %u", m_modRef->name(), amount.get_int(), GetAttribute(AttrDamage).get_int());
 }
 
 const char* GenericModule::GetModuleStateName(int8 state)

@@ -444,9 +444,6 @@ struct DBGPointEntity {
     uint8 idx;
     uint32 itemID;
     double radius;
-    double x;
-    double y;
-    double z;
     GPoint position;
 };
 

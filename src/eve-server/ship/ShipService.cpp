@@ -1041,12 +1041,12 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             } else {
                 // extra step, try to move as much items as possible, this needs a new item creation tho
                 float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
-                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+                int32 maximumAmountOfItems = (int32) floor(remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
 
                 ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
                 jcRef->AddItem(sItemFactory.SpawnItem(newItem));
 
-                iRef->AlterQuantity (-maximumAmountOfItems, true);
+                iRef->AlterQuantity(-maximumAmountOfItems, true);
                 _log(ITEM__WARNING, "%s: CargoContainer %u is full.", pClient->GetName(), ccRef->itemID());
                 throw UserError ("NotAllItemsWereMoved");
             }
@@ -1056,12 +1056,12 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             } else {
                 // extra step, try to move as much items as possible, this needs a new item creation tho
                 float remainingCapacity = jcRef->GetMyInventory ()->GetRemainingCapacity (flagNone);
-                int32 maximumAmountOfItems = (int32) floor (remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
+                int32 maximumAmountOfItems = (int32) floor(remainingCapacity / iRef->GetAttribute (AttrVolume).get_float ());
 
                 ItemData newItem(iRef->typeID(), iRef->ownerID(), jcRef->itemID(), flagNone, maximumAmountOfItems);
                 jcRef->AddItem(sItemFactory.SpawnItem(newItem));
 
-                iRef->AlterQuantity (-maximumAmountOfItems, true);
+                iRef->AlterQuantity(-maximumAmountOfItems, true);
 
                 _log(ITEM__WARNING, "%s: Jetcan %u is full.", pClient->GetName(), jcRef->itemID());
                 throw UserError ("NotAllItemsWereMoved");

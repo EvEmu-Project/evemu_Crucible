@@ -42,6 +42,7 @@
  */
 CargoContainer::CargoContainer(uint32 _containerID, const ItemType &_containerType, const ItemData &_data)
 : InventoryItem(_containerID, _containerType, _data),
+mySE(nullptr),
 m_isAnchored(false)
 {
     pInventory = new Inventory(InventoryItemRef(this));
@@ -229,15 +230,17 @@ void CargoContainer::MakeDamageState(DoDestinyDamageState &into) const
 ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data)
 : ItemSystemEntity(self, services, system),
  m_contRef(self),
- m_deleteTimer(0)
+ m_deleteTimer(0),
+ m_global(false),
+ m_shieldCharge(0),
+ m_armorDamage(0),
+ m_hullDamage(0)
 {
     m_targMgr = new TargetManager(this);
     m_destiny = new DestinyManager(this);
 
     assert(m_targMgr != nullptr);
     assert(m_destiny != nullptr);
-
-    m_global = false;
 
     m_warID = data.factionID;
     m_allyID = data.allianceID;
@@ -379,10 +382,11 @@ PyDict *ContainerSE::MakeSlimItem() {
  */
 WreckContainer::WreckContainer(uint32 _containerID, const ItemType &_containerType, const ItemData &_data)
 : InventoryItem(_containerID, _containerType, _data),
-m_delete(false)
+mySE(nullptr),
+m_delete(false),
+m_salvaged(false)
 {
     pInventory = new Inventory(InventoryItemRef(this));
-    m_salvaged = false;
 
     _log(ITEM__TRACE, "Created WreckContainer object for item %s (%u).", name(), itemID());
 }
@@ -503,12 +507,13 @@ void WreckContainer::MakeSlimItemChange()
     mySE->SysBubble()->BubblecastDestinyUpdate(&updates, "destiny" );
 }
 
-// wrecks are invul.
+// wrecks are invul. but shouldnt be.  see todo notes
 WreckSE::WreckSE(WreckContainerRef self, PyServiceMgr &services, SystemManager* system, const FactionData &data)
 : DynamicSystemEntity(self, services, system),
 m_deleteTimer(sConfig.rates.WorldDecay *60 *1000),
 m_abandoned(false),
-m_contRef(self)
+m_contRef(self),
+m_launchedByID(0)
 {
     assert(m_targMgr != nullptr);
     assert(m_destiny != nullptr);
@@ -518,7 +523,7 @@ m_contRef(self)
     m_corpID = data.corporationID;
     m_ownerID = data.ownerID;
 
-    m_self->SetAttribute(AttrCapacity, m_self->type().capacity());
+    m_self->SetAttribute(AttrCapacity, m_self->type().capacity(), false);
 }
 
 WreckSE::~WreckSE()
@@ -581,11 +586,13 @@ void WreckSE::EncodeDestiny( Buffer& into )
 
 PyDict *WreckSE::MakeSlimItem() {
     _log(SE__SLIMITEM, "MakeSlimItem for WreckSE %s(%u)", m_self->name(), m_self->itemID());
+    /* not used, unsure if needed
     PyTuple* nameID = new PyTuple(2);
         nameID->SetItem(0,  new PyString("UI/Inflight/WreckNameShipName"));
-    PyDict* shipName = new PyDict;
+    PyDict* shipName = new PyDict();
         shipName->SetItem("shipName", new PyInt(0));    // does this need data here?
         nameID->SetItem(1, shipName);
+    */
     PyDict *slim = new PyDict();
         slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
         slim->SetItemString("typeID",           new PyInt(m_self->typeID()));

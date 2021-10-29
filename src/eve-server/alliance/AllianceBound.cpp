@@ -606,7 +606,7 @@ PyResult AllianceBound::Handle_UpdateAlliance(PyCallArgs &call)
 
     //Send notification to the client about the alliance change which just occurred
     call.client->SendNotification("OnAllianceChanged", "clientID", ac.Encode(), false);
-    _log(SOV__DEBUG, "OnAllianceChanged sent to client %u", call.client->GetClientID());
+    _log(SOV__DEBUG, "OnAllianceChanged sent to %s(%u)", call.client->GetName(), call.client->GetCharID());
 
     return nullptr;
 }

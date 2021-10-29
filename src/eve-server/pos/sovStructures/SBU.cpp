@@ -137,10 +137,14 @@ void SBUSE::MarkContested(uint32 systemID, bool contested)
     {
         if (cur->GetChar().get() != nullptr)
         {
+            PyIncRef(data);
             cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
-            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to client %u", cur->GetClientID());
+            _log(SOV__DEBUG, "ProcessSovStatusChanged sent to %s(%u)", cur->GetName(), cur->GetCharID());
         }
     }
+
+    // cleanup
+    PyDecRef(data);
 }
 
 // Calculate number of gates in the system

@@ -557,6 +557,7 @@ void ObjectSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
 
 void ObjectSystemEntity::UpdateDamage()
 {
+    /** @todo (Allan) needs more work */
     SystemEntity::UpdateDamage();
      DamageDetails dmgState;
         dmgState.shield = m_self->GetAttribute(AttrShieldCharge).get_double() / m_self->GetAttribute(AttrShieldCapacity).get_double();
@@ -569,6 +570,7 @@ void ObjectSystemEntity::UpdateDamage()
         dmgChange.state = dmgState.Encode();
     PyTuple *up = dmgChange.Encode();
     //source->QueueDestinyUpdate(&up);
+    PySafeDecRef(up);
 }
 
 void ObjectSystemEntity::Killed(Damage &fatal_blow)
@@ -696,6 +698,7 @@ void DynamicSystemEntity::UpdateDamage()
         dmgChange.state = dmgState.Encode();
     PyTuple *up = dmgChange.Encode();
     //source->QueueDestinyUpdate(&up);
+    PySafeDecRef(up);
 }
 
 void DynamicSystemEntity::AwardBounty(Client* pClient)

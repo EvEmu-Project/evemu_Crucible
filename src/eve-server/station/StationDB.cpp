@@ -207,14 +207,14 @@ void StationDB::LoadOffices(OwnerData& od, std::vector< uint32 >& into)
         into.push_back(row.GetInt(0));
 }
 
-void StationDB::CreateOutpost(StationData data)
+void StationDB::CreateOutpost(StationData &data)
 {
     // Add data to mapDenormalize table
     DBerror err;
     if (!sDatabase.RunQuery(err,
         "INSERT INTO mapDenormalize (itemID,typeID,groupID,solarSystemID,constellationID,regionID,orbitID,x,y,z,radius,itemName,itemNameID,security)"
         " VALUES"
-        " (%u,%u,%u,%u,%u,%u,%u,%f,%f,%f,%f,'%s',%u,%f)",
+        " (%u,%u,%u,%u,%u,%u,%u,%f,%f,%f,%f,'%s',0,%f)",
         data.stationID,            //itemID
         data.typeID,               //typeID
         EVEDB::invGroups::Station, //groupID
@@ -227,7 +227,6 @@ void StationDB::CreateOutpost(StationData data)
         data.position.z,           //z
         data.radius,               //radius
         data.name.c_str(),         //itemName
-        0,                         //itemNameID
         data.security              //security
     )) {
         codelog(DATABASE__ERROR, "Error in CreateStation query: %s", err.c_str());
@@ -280,6 +279,6 @@ uint32 StationDB::GetNewOutpostID()
     if (newID == 0) {
         return 61000000;
     }
-    
+
     return newID;
 }

@@ -851,7 +851,7 @@ void ActiveModule::LoadCharge(InventoryItemRef chargeRef)
     uint8 loadQty(chargeRef->quantity());
 
     if (m_ChargeState == Module::State::Loaded) {
-        m_ChargeState == Module::State::Reloading;
+        m_ChargeState = Module::State::Reloading;
         if (m_chargeRef.get() != nullptr)
             loadQty += m_chargeRef->quantity();
         // dont change chargeRef if we're just reloading. new chargeRef is deleted on merge

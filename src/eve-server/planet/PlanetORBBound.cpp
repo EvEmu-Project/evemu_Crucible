@@ -41,7 +41,8 @@ public:
 
     PlanetORBBound(PyServiceMgr *mgr, uint32 systemID)
     : PyBoundObject(mgr),
-    m_dispatch(new Dispatcher(this))
+    m_dispatch(new Dispatcher(this)),
+    m_systemID(systemID)
     {
         _SetCallDispatcher(m_dispatch);
 
@@ -51,9 +52,8 @@ public:
         PyCallable_REG_CALL(PlanetORBBound, UpdateSettings);
         PyCallable_REG_CALL(PlanetORBBound, GetSettingsInfo);
         PyCallable_REG_CALL(PlanetORBBound, GMChangeSpaceObjectOwner);
-
-        m_systemID = systemID;
     }
+
     virtual ~PlanetORBBound() { delete m_dispatch; }
     virtual void Release() {
         //He hates this statement
@@ -67,7 +67,6 @@ public:
 
 protected:
     Dispatcher* const m_dispatch;
-    PlanetDB* m_db;
 
 private:
     uint32 m_systemID;

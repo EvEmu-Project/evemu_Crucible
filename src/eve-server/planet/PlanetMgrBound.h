@@ -48,8 +48,6 @@ protected:
     PyCallable_DECL_CALL(DeleteLaunch);
     PyCallable_DECL_CALL(GetPlanetsForChar);
     PyCallable_DECL_CALL(GetMyLaunchesDetails);
-
-    PlanetDB* m_db;
 };
 
 #endif  // EVEMU_PLANET_PLANETMGR_BOUND_H_

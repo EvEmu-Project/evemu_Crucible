@@ -37,7 +37,7 @@ public:
     static PyObject* ListJumps(uint32);
     static PyPackedRow* GetSolarSystem(uint32 ssid);
 
-    static void GetGates(uint32 systemID, std::vector< DBGPointEntity >& gateIDs);
+    static void GetGates(uint32 systemID, std::vector< DBGPointEntity >& gateIDs, uint8& total);
 
     void GetBelts(uint32 systemID, std::vector< DBGPointEntity >& beltIDs, uint8& total);
     void GetMoons(uint32 systemID, std::vector< DBGPointEntity >& moonIDs, uint8& total);

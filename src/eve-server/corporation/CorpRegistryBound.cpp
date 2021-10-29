@@ -2677,7 +2677,7 @@ PyResult CorpRegistryBound::Handle_DeleteAllianceApplication(PyCallArgs &call) {
         if (cur->GetChar().get() != nullptr)
         {
             cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
-            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to %s(%u)", cur->GetName(), cur->GetCharID());
         }
     }
 
@@ -2688,7 +2688,7 @@ PyResult CorpRegistryBound::Handle_DeleteAllianceApplication(PyCallArgs &call) {
         if (cur->GetChar().get() != nullptr)
         {
             cur->SendNotification("OnAllianceApplicationChanged", "clientID", oaac.Encode(), false);
-            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to client %u", cur->GetClientID());
+            _log(ALLY__TRACE, "OnAllianceApplicationChanged sent to %s(%u)", cur->GetName(), cur->GetCharID());
         }
     }
 

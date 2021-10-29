@@ -77,7 +77,7 @@ void StaticDataMgr::Close()
     for (auto cur : m_bpMatlData)
         PySafeDecRef(cur.second);
 
-    sLog.Warning("    StaticDataMgr", "Static Data Manager has been closed." );
+    sLog.Warning("    StaticDataMgr", "Static Data Manager has been closed.");
 }
 
 
@@ -881,7 +881,7 @@ void StaticDataMgr::GetLoot(uint32 groupID, std::vector<LootList>& lootList) {
     // Finds a range containing all elements whose key is k.
     // pair<iterator, iterator> equal_range(const key_type& k)
     auto range = m_LootGroupMap.equal_range(groupID);
-    for ( auto it = range.first; it != range.second; ++it ) {
+    for (auto it = range.first; it != range.second; ++it) {
         // make lootMap of lootGroupID's
         if (MakeRandomFloat(0, 1) < it->second.dropChance) {
             randChance = MakeRandomFloat(0, 1);
@@ -1307,9 +1307,9 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
     PyList* skillListInvent = new PyList();
 
     DBRowDescriptor* header = new DBRowDescriptor();
-        header->AddColumn( "quantity",          DBTYPE_I4 );
-        header->AddColumn( "requiredTypeID",    DBTYPE_I4 );
-        header->AddColumn( "damagePerJob",      DBTYPE_R4 );
+        header->AddColumn("quantity",          DBTYPE_I4);
+        header->AddColumn("requiredTypeID",    DBTYPE_I4);
+        header->AddColumn("damagePerJob",      DBTYPE_R4);
 
     // NOTE: this is for BLUEPRINTS ONLY and is always populated (ancient relic error fix)
     if (catID == EVEDB::invCategories::Blueprint) {
@@ -1318,10 +1318,10 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
         ramMatls.clear();
         GetRamMaterials(prodID, ramMatls);
         for (auto cur : ramMatls) {
-            PyPackedRow* row = new PyPackedRow( header );
-                row->SetField( "quantity",        new PyInt(cur.quantity));
-                row->SetField( "requiredTypeID",  new PyInt(cur.materialTypeID));
-                row->SetField( "damagePerJob",    new PyFloat(1.0f));
+            PyPackedRow* row = new PyPackedRow(header);
+                row->SetField("quantity",        new PyInt(cur.quantity));
+                row->SetField("requiredTypeID",  new PyInt(cur.materialTypeID));
+                row->SetField("damagePerJob",    new PyFloat(1.0f));
             matlListManuf->AddItem(row);
         }
     }
@@ -1335,7 +1335,7 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
     GetRamRequirements(typeID, ramReqs);
     //GetRamRequirements(prodID, ramReqs);
     for (auto cur : ramReqs) {
-        PyPackedRow* row = new PyPackedRow( header );
+        PyPackedRow* row = new PyPackedRow(header);
             row->SetField("quantity",        new PyInt(cur.quantity));
             row->SetField("requiredTypeID",  new PyInt(cur.requiredTypeID));
             row->SetField("damagePerJob",    new PyFloat(cur.damagePerJob));
@@ -1422,7 +1422,7 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
         PyDict* Manufacturing = new PyDict();
             Manufacturing->SetItemString("skills", skillListManuf);
             Manufacturing->SetItemString("rawMaterials", matlListManuf);
-            CRowSet *rowset = new CRowSet( &header );
+            CRowSet *rowset = new CRowSet(&header);
             PyList::const_iterator itr = extraListManuf->begin();
             for (; itr != extraListManuf->end(); ++itr) {
                 PyPackedRow* from = (*itr)->AsPackedRow();
@@ -1466,7 +1466,7 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
         PyDict* Duplicating = new PyDict();
             Duplicating->SetItemString("skills", skillListDup);
             Duplicating->SetItemString("rawMaterials", matlListDup);
-            CRowSet *rowset = new CRowSet( &header );
+            CRowSet *rowset = new CRowSet(&header);
             PyList::const_iterator itr = extraListDup->begin();
             for (; itr != extraListDup->end(); ++itr) {
                 PyPackedRow* from = (*itr)->AsPackedRow();
@@ -1513,12 +1513,15 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
     PyDecRef(skillListRE);
     PyDecRef(matlListInvent);
     PyDecRef(skillListInvent);
+    PyDecRef(mtCRowSet);
     */
 
     return rsp;
 }
 
-/** @todo  finish this.  */
+/** @todo  finish this.
+ *      - only used by GetCurrentEntities().  custom call for alasiya eve
+ */
 std::string StaticDataMgr::GetOwnerName(int32 ownerID)
 {
     if (ownerID == 1)
@@ -2122,17 +2125,17 @@ void StaticDataMgr::AddOutpost(StationData &stData)
     }
 
     // Update m_stationRegion
-    if ( m_stationRegion.find(stData.stationID) == m_stationRegion.end() ) {
+    if (m_stationRegion.find(stData.stationID) == m_stationRegion.end()) {
         m_stationRegion.emplace(stData.stationID, stData.regionID);
     }
 
     // Update m_stationConstellation
-    if ( m_stationConst.find(stData.stationID) == m_stationConst.end() ) {
+    if (m_stationConst.find(stData.stationID) == m_stationConst.end()) {
         m_stationConst.emplace(stData.stationID, stData.constellationID);
     }
 
     // Update m_stationSystem
-    if ( m_stationSystem.find(stData.stationID) == m_stationSystem.end() ) {
+    if (m_stationSystem.find(stData.stationID) == m_stationSystem.end()) {
         m_stationSystem.emplace(stData.stationID, stData.systemID);
     }
 }
