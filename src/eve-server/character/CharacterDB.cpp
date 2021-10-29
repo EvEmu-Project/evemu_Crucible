@@ -1586,7 +1586,7 @@ PyRep* CharacterDB::GetKillOrLoss(uint32 charID) {
         return nullptr;
     }
 
-    _log(DATABASE__RESULTS, "GetKillOrLoss for %u returned %u items", charID, res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetKillOrLoss for %u returned %lu items", charID, res.GetRowCount());
 
     return DBResultToCRowset(res);
 }

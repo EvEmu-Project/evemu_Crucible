@@ -13,9 +13,9 @@
 
 CynoModule::CynoModule(ModuleItemRef mRef, ShipItemRef sRef)
 : ActiveModule(mRef, sRef),
-cSE(nullptr),
 pClient(nullptr),
 pShipSE(nullptr),
+cSE(nullptr),
 m_firstRun(true),
 m_shipVelocity(0.0f)
 {

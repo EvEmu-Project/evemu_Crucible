@@ -97,7 +97,7 @@ GPoint SystemDB::GetSolarSystemPosition(uint32 systemID) {
         return NULL_ORIGIN;
     }
 
-    _log(DATABASE__RESULTS, "GetSolarSystemPosition returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetSolarSystemPosition returned %lu items", res.GetRowCount());
 
     DBResultRow row;
     GPoint point(NULL_ORIGIN);
@@ -118,7 +118,7 @@ bool SystemDB::LoadSystemStaticEntities(uint32 systemID, std::vector<DBSystemEnt
         return false;
     }
 
-    _log(DATABASE__RESULTS, "LoadSystemStaticEntities returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "LoadSystemStaticEntities returned %lu items", res.GetRowCount());
 
     DBResultRow row;
     while(res.GetRow(row)) {
@@ -163,7 +163,7 @@ bool SystemDB::LoadSystemDynamicEntities(uint32 systemID, std::vector<DBSystemDy
             return false;
         }
 
-    _log(DATABASE__RESULTS, "LoadSystemDynamicEntities returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "LoadSystemDynamicEntities returned %lu items", res.GetRowCount());
 
     DBResultRow row, row2;
     while(res.GetRow(row)) {
@@ -234,7 +234,7 @@ bool SystemDB::LoadPlayerDynamicEntities(uint32 systemID, std::vector<DBSystemDy
             return false;
     }
 
-    _log(DATABASE__RESULTS, "LoadPlayerDynamicEntities returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "LoadPlayerDynamicEntities returned %lu items", res.GetRowCount());
     DBResultRow row, row2;
     while(res.GetRow(row)) {
         DBSystemDynamicEntity entry = DBSystemDynamicEntity();

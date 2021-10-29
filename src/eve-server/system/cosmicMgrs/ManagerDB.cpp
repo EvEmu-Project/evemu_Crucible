@@ -17,7 +17,7 @@ void ManagerDB::GetCategoryData(DBQueryResult& res) {
     if (!sDatabase.RunQuery(res, "SELECT categoryID, categoryName, description, published FROM invCategories"))
         codelog(DATABASE__ERROR, "Error in GetCategoryData query: %s.", res.error.c_str());
 
-    _log(DATABASE__RESULTS, "GetCategoryData returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetCategoryData returned %lu items", res.GetRowCount());
 }
 
 void ManagerDB::GetGroupData(DBQueryResult& res)
@@ -38,7 +38,7 @@ void ManagerDB::GetGroupData(DBQueryResult& res)
         " FROM invGroups "))
         codelog(DATABASE__ERROR, "Error in GetGroupData query: %s.", res.error.c_str());
 
-    _log(DATABASE__RESULTS, "GetGroupData returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetGroupData returned %lu items", res.GetRowCount());
 }
 
 void ManagerDB::GetTypeData(DBQueryResult& res)
@@ -64,7 +64,7 @@ void ManagerDB::GetTypeData(DBQueryResult& res)
         " LEFT JOIN invMetaTypes AS m USING (typeID)"))
         codelog(DATABASE__ERROR, "Error in GetTypeData query: %s.", res.error.c_str());
 
-    _log(DATABASE__RESULTS, "GetTypeData returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetTypeData returned %lu items", res.GetRowCount());
 }
 
 void ManagerDB::GetSkillList(DBQueryResult& res)
@@ -72,7 +72,7 @@ void ManagerDB::GetSkillList(DBQueryResult& res)
     if (!sDatabase.RunQuery(res, "SELECT typeID, typeName FROM invTypes WHERE groupID IN (SELECT groupID FROM invGroups WHERE categoryID = 16)"))
         codelog(DATABASE__ERROR, "Error in GetSkillList query: %s", res.error.c_str());
 
-    _log(DATABASE__RESULTS, "GetSkillList returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetSkillList returned %lu items", res.GetRowCount());
 }
 
 void ManagerDB::GetAttributeTypes(DBQueryResult& res)
@@ -80,7 +80,7 @@ void ManagerDB::GetAttributeTypes(DBQueryResult& res)
     if (!sDatabase.RunQuery(res, "SELECT attributeID, attributeName, attributeCategory, displayName, categoryID FROM dgmAttributeTypes"))
         codelog(DATABASE__ERROR, "Error in GetAttributeTypes query: %s", res.error.c_str());
 
-    _log(DATABASE__RESULTS, "GetAttributeTypes returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetAttributeTypes returned %lu items", res.GetRowCount());
 }
 
 void ManagerDB::GetTypeAttributes(DBQueryResult& res)
@@ -88,7 +88,7 @@ void ManagerDB::GetTypeAttributes(DBQueryResult& res)
     if (!sDatabase.RunQuery(res, "SELECT typeID, attributeID, valueInt, valueFloat FROM dgmTypeAttributes"))
         codelog(DATABASE__ERROR, "Error in GetTypeAttributes query: %s", res.error.c_str());
 
-    _log(DATABASE__RESULTS, "GetTypeAttributes returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetTypeAttributes returned %lu items", res.GetRowCount());
 }
 
 void ManagerDB::LoadNPCCorpFactionData(DBQueryResult& res)
@@ -96,7 +96,7 @@ void ManagerDB::LoadNPCCorpFactionData(DBQueryResult& res)
     if (!sDatabase.RunQuery(res, "SELECT corporationID, factionID FROM crpNPCCorporations" ))
         codelog(DATABASE__ERROR, "Error in LoadCorpFactionData query: %s", res.error.c_str());
 
-    _log(DATABASE__RESULTS, "LoadCorpFactionData returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "LoadCorpFactionData returned %lu items", res.GetRowCount());
 }
 
 PyObject *ManagerDB::GetEntryTypes() {
@@ -106,7 +106,7 @@ PyObject *ManagerDB::GetEntryTypes() {
         return nullptr;
     }
 
-    _log(DATABASE__RESULTS, "GetEntryTypes returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetEntryTypes returned %lu items", res.GetRowCount());
 
     return DBResultToRowset(res);
 }
@@ -118,7 +118,7 @@ PyObject *ManagerDB::GetKeyMap() {
         return nullptr;
     }
 
-    _log(DATABASE__RESULTS, "GetKeyMap returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetKeyMap returned %lu items", res.GetRowCount());
 
     return DBResultToRowset(res);
 }
@@ -130,7 +130,7 @@ PyObject* ManagerDB::GetBillTypes() {
         return nullptr;
     }
 
-    _log(DATABASE__RESULTS, "GetBillTypes returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetBillTypes returned %lu items", res.GetRowCount());
 
     return DBResultToRowset(res);
 }
@@ -158,7 +158,7 @@ PyObjectEx* ManagerDB::GetAgents() {
         return nullptr;
     }
 
-    _log(DATABASE__RESULTS, "GetAgents returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetAgents returned %lu items", res.GetRowCount());
     return DBResultToCRowset(res);
 }
 
@@ -170,7 +170,7 @@ PyObjectEx *ManagerDB::GetOperands() {
         return nullptr;
     }
 
-    _log(DATABASE__RESULTS, "GetOperands returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetOperands returned %lu items", res.GetRowCount());
 
     return DBResultToCIndexedRowset(res, "operandID");
 }
@@ -525,7 +525,7 @@ bool ManagerDB::LoadSystemRoids(uint32 systemID, uint32& beltID, std::vector< As
         return false;
     }
 
-    _log(DATABASE__RESULTS, "LoadSystemRoids returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "LoadSystemRoids returned %lu items", res.GetRowCount());
     DBResultRow row;
     while(res.GetRow(row)) {
         AsteroidData entry = AsteroidData();
@@ -663,7 +663,7 @@ bool ManagerDB::GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveDa
         return false;
     }
 
-    _log(DATABASE__RESULTS, "GetSavedDungeons returned %u items", res.GetRowCount());
+    _log(DATABASE__RESULTS, "GetSavedDungeons returned %lu items", res.GetRowCount());
     DBResultRow row;
     while(res.GetRow(row)) {
         Dungeon::ActiveData entry = Dungeon::ActiveData();

@@ -39,8 +39,6 @@ private:
 
     float m_shipVelocity;
 
-    EVEItemFlags m_holdFlag;
-
     void SendOnJumpBeaconChange(bool status=false);
     void CreateCyno();
 };

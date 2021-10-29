@@ -847,7 +847,7 @@ void CorporationDB::GetMembersForQuery(std::ostringstream& query, std::vector< u
         return;
     }
 
-    _log(DATABASE__RESULTS, "CorporationDB::GetMembersForQuery '%s' returned %u items", query.str().c_str(), res.GetRowCount());
+    _log(DATABASE__RESULTS, "CorporationDB::GetMembersForQuery '%s' returned %lu items", query.str().c_str(), res.GetRowCount());
 
     DBResultRow row;
     while (res.GetRow(row))
@@ -2437,7 +2437,7 @@ PyRep* CorporationDB::GetKillsAndLosses(uint32 corpID, uint32 number, uint32 off
         return nullptr;
     }
 
-    _log(DATABASE__RESULTS, "CorporationDB::GetKillsAndLosses for corpID: %u returned %u items", corpID, res.GetRowCount());
+    _log(DATABASE__RESULTS, "CorporationDB::GetKillsAndLosses for corpID: %u returned %lu items", corpID, res.GetRowCount());
 
     return DBResultToCRowset(res);
 }
@@ -2455,7 +2455,7 @@ PyRep* CorporationDB::GetMktInfo(uint32 corpID)
         codelog(CORP__DB_ERROR, "Error on query: %s", res.error.c_str());
     }
 
-    _log(DATABASE__RESULTS, "CorporationDB::GetMktBuyInfo for corpID: %u returned %u items", corpID, res.GetRowCount());
+    _log(DATABASE__RESULTS, "CorporationDB::GetMktBuyInfo for corpID: %u returned %lu items", corpID, res.GetRowCount());
 
     return DBResultToCRowset(res);
 }
