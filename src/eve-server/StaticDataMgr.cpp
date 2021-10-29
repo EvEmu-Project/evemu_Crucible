@@ -1263,14 +1263,14 @@ DBRowDescriptor* StaticDataMgr::CreateHeader() {
         keywords->AddItem(new_tuple(new PyString("stacksize"), new PyToken("util.StackSize")));
         keywords->AddItem(new_tuple(new PyString("singleton"), new PyToken("util.Singleton")));
     DBRowDescriptor* header = new DBRowDescriptor(keywords);
-        header->AddColumn("itemID",     DBTYPE_I8);
-        header->AddColumn("typeID",     DBTYPE_I4);
-        header->AddColumn("ownerID",    DBTYPE_I4);
-        header->AddColumn("locationID", DBTYPE_I4);
-        header->AddColumn("flagID",     DBTYPE_I2);
-        header->AddColumn("quantity",   DBTYPE_I4);
-        header->AddColumn("groupID",    DBTYPE_I4);
-        header->AddColumn("categoryID", DBTYPE_I4);
+        header->AddColumn("itemID",     DBTYPE_I8);     // int64
+        header->AddColumn("typeID",     DBTYPE_I4);     // int32
+        header->AddColumn("ownerID",    DBTYPE_I4);     // int32
+        header->AddColumn("locationID", DBTYPE_I4);     // this should be I8 (according to packets)
+        header->AddColumn("flagID",     DBTYPE_I2);     // int16
+        header->AddColumn("quantity",   DBTYPE_I4);     // int32
+        header->AddColumn("groupID",    DBTYPE_I4);     // int32
+        header->AddColumn("categoryID", DBTYPE_I4);     // int32
         header->AddColumn("customInfo", DBTYPE_STR);
     return header;
 }

@@ -68,10 +68,10 @@ enum DBTYPE
 {
     DBTYPE_EMPTY          = 0x00,
     //DBTYPE_NULL         = 0x01, // not supported
-    DBTYPE_I2             = 0x02,
-    DBTYPE_I4             = 0x03,
-    DBTYPE_R4             = 0x04,
-    DBTYPE_R8             = 0x05,
+    DBTYPE_I2             = 0x02, // int16
+    DBTYPE_I4             = 0x03, // int32
+    DBTYPE_R4             = 0x04, // float
+    DBTYPE_R8             = 0x05, // double
     DBTYPE_CY             = 0x06, // money
     //DBTYPE_DATE         = 0x07, // not supported
     //DBTYPE_BSTR         = 0x08, // not supported
@@ -82,12 +82,12 @@ enum DBTYPE
     //DBTYPE_IUNKNOWN     = 0x0D, // not supported
     //DBTYPE_DECIMAL      = 0x0E, // not supported
     //DBTYPE_BLOB         = 0x0F, // not supported
-    DBTYPE_I1             = 0x10,
-    DBTYPE_UI1            = 0x11,
-    DBTYPE_UI2            = 0x12,
-    DBTYPE_UI4            = 0x13,
-    DBTYPE_I8             = 0x14,
-    DBTYPE_UI8            = 0x15,
+    DBTYPE_I1             = 0x10, // int8
+    DBTYPE_UI1            = 0x11, // uint8
+    DBTYPE_UI2            = 0x12, // uint16
+    DBTYPE_UI4            = 0x13, // uint32
+    DBTYPE_I8             = 0x14, // int64
+    DBTYPE_UI8            = 0x15, // uint64  *not used pre-incursion*
     DBTYPE_FILETIME       = 0x40, // 64-bit timestamp
     //DBTYPE_GUID         = 0x48, // not supported
     DBTYPE_BYTES          = 0x80, // client defined as 0x1fc, but error when used: Exception:  <type 'exceptions.TypeError'>, DBRowDescriptor doesn't support data type 508
