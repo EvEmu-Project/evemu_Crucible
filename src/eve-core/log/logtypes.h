@@ -20,7 +20,7 @@
  ------------------------------------------------------------------------------------
  Author:        Zhur
  Additions:  Allan
- Log Version: 10.2
+ Log Version: 10.3
  */
 /*  see above Log Version, log.ini and LogVersion displayed in server console for matching versions */
 
@@ -260,7 +260,6 @@ LOG_TYPE( DATA, INFO, DISABLED, "Data Info" )
 
 LOG_CATEGORY( DATABASE )
 LOG_TYPE( DATABASE, ERROR, ENABLED, "DB Error" )
-LOG_TYPE( DATABASE, ALL_ERRORS, ENABLED, "DB AllErrors" )
 LOG_TYPE( DATABASE, MESSAGE, DISABLED, "DB Msg" )
 LOG_TYPE( DATABASE, INFO, DISABLED, "DB Info" )
 LOG_TYPE( DATABASE, QUERIES, DISABLED, "DB Query" )
