@@ -120,7 +120,6 @@ m_pShieldSE(nullptr)
         m_tsize = 1;  // do something constructive here cause size is wrong
     m_soi = m_self->GetAttribute(AttrPosStructureControlDistanceMax).get_int() * m_tsize;
 
-
     m_tdata = EVEPOS::TowerData();
 
     /** @note these are defined, but i dunno what they are
@@ -498,7 +497,7 @@ void TowerSE::CreateForceField()
     if (ifRef.get() == nullptr)
         return;  // we'll get over it
     ifRef->SetPosition(GetPosition());
-    ifRef->SetAttribute(AttrRadius, m_self->GetAttribute(AttrShieldRadius));
+    ifRef->SetAttribute(AttrRadius, m_self->GetAttribute(AttrShieldRadius), false);
     FactionData data = FactionData();
         data.allianceID = m_allyID;
         data.corporationID = m_corpID;

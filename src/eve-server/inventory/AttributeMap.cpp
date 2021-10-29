@@ -112,7 +112,7 @@ bool AttributeMap::Save() {
      *   damage and online for modules
      *   damage and quantity for charges, where applicable
      *
-     *  ship damage saved separately
+     *  note: ship damage saved separately
      */
     if (IsStaticItem(mItem.itemID()))
         return true;
@@ -228,7 +228,8 @@ void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*tru
         mAttributes.emplace(attrID, num);
         if (notify) {
             Add(attrID, num);
-        } else if (is_log_enabled(ATTRIBUTE__MISSING)) {
+        }
+        if (is_log_enabled(ATTRIBUTE__MISSING)) {
             if (num.isFloat()) {
                 _log(ATTRIBUTE__MISSING, "Attribute %u not in map.  Adding as %.2f for %s(%u)", \
                         attrID, num.get_float(), mItem.name(), mItem.itemID());
@@ -236,7 +237,8 @@ void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*tru
                 _log(ATTRIBUTE__MISSING, "Attribute %u not in map.  Adding as %li for %s(%u)", \
                     attrID, num.get_int(), mItem.name(), mItem.itemID());
             }
-        } else if (is_log_enabled(ATTRIBUTE__ADD)) {
+        }
+        if (is_log_enabled(ATTRIBUTE__ADD)) {
             if (num.isFloat()) {
                 _log(ATTRIBUTE__ADD, "Attribute %u not in map.  Adding as %.2f for %s(%u)", \
                 attrID, num.get_float(), mItem.name(), mItem.itemID());
@@ -254,7 +256,8 @@ void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*tru
 
     if (notify) {
         Change(attrID, itr->second, num);
-    } else if (is_log_enabled(ATTRIBUTE__CHANGE)) {
+    }
+    if (is_log_enabled(ATTRIBUTE__CHANGE)) {
         if (itr->second.isFloat()) {
             if (num.isFloat()) {
                 _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %.2f to %.2f for %s(%u)", \
@@ -429,6 +432,7 @@ bool AttributeMap::SendChanges(PyTuple* attrChange) {
     if (attrChange == nullptr)
         return true;
 
+    /** @todo update this to use my new multicast replacement */
     if (IsPlayerCorp(mItem.ownerID())) {
         // there is no code to get corp AND loc in multicast.  it sends to both
         MulticastTarget mct;
