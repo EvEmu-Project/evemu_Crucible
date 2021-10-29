@@ -334,7 +334,6 @@ void ConcordAI::Process() {
                 case Idle: {
                     /* make timer here for them to leave */
                 } break;
-
                 case Chasing: {
                     //NOTE: getting our target like this is pretty weak...
                     SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(true);
@@ -345,14 +344,12 @@ void ConcordAI::Process() {
                         }
                         return;
                     } else if (!pTarget->SysBubble()) {
-
                         m_npc->TargetMgr()->ClearTarget(pTarget);
                         //m_npc->TargetMgr()->OnTarget(pTarget, TargMgr::Mode::Lost);
                         return;
                     }
                     CheckDistance(pTarget);
                 } break;
-
                 case Following: {
                     //NOTE: getting our target like this is pretty weak...
                     SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(true);
@@ -369,7 +366,6 @@ void ConcordAI::Process() {
                     }
                     CheckDistance(pTarget);
                 } break;
-
                 case Engaged: {
                     //NOTE: getting our pTarget like this is pretty weak...
                     SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(true);
@@ -386,15 +382,12 @@ void ConcordAI::Process() {
                     }
                     CheckDistance(pTarget);
                 } break;
-
                 case Fleeing: {
                     // not sure how im gonna do this one yet.
                 } break;
-
                 case Signaling: {
                     // not sure how im gonna do this one yet.
                 } break;
-
                 //no default on purpose
             }
 }
@@ -518,7 +511,6 @@ void ConcordAI::ClearTargets() {
 }
 
 void ConcordAI::ClearAllTargets() {
-
     //m_npc->TargetMgr()->ClearAllTargets();
     m_npc->TargetMgr()->OnTarget(nullptr, TargMgr::Mode::Clear, TargMgr::Msg::ClientReq);
 }
@@ -573,7 +565,6 @@ void ConcordAI::Targeted(SystemEntity* pAgressor) {
             _log(CONCORD__AI_TRACE, "%s(%u): Targeted by %s(%u) while signaling.",
                  m_npc->GetName(), m_npc->GetID(), pAgressor->GetName(), pAgressor->GetID());
         } break;
-
         //no default on purpose
     }
 }
@@ -593,7 +584,6 @@ void ConcordAI::TargetLost(SystemEntity* pTarget) {
             }
 
         } break;
-
         default:
             break;
     }
@@ -687,6 +677,7 @@ void ConcordAI::DisableRepTimers()
     m_shieldBoosterTimer.Disable();
 }
 
-ConcordSpawnMgr::ConcordSpawnMgr() {
-
+ConcordSpawnMgr::ConcordSpawnMgr()
+{
+    // not used yet
 }

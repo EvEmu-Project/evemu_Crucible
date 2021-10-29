@@ -57,7 +57,6 @@ namespace EvESkill {
   */
  //  -allan 21Mar14
   enum {  //thanks positron96 for this query
-
       //  ***** NOTE:  items marked with '//*' are not published  (incomplete)
 
 // Corporation Management

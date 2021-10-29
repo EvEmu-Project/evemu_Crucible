@@ -182,7 +182,6 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
 }
 
 PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
-
     Call_SetCloneTypeID arg;
     if (!arg.Decode(&call.tuple)){
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());

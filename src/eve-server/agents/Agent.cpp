@@ -137,8 +137,8 @@ void Agent::MakeOffer(uint32 charID, MissionOffer& offer)
             offer.destinationOwnerID  = m_agentData.corporationID;
             offer.destinationSystemID = m_agentData.solarSystemID;
         }
-
     }
+    
     MissionDB::CreateOfferID(offer);
 
     // keep local copy and also add to mission data mgr

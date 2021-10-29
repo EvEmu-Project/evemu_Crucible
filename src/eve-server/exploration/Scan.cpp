@@ -786,7 +786,7 @@ By maneuvering your probes and decreasing their range they will eventually give 
 // these are for moon scanning
 void Scan::ScanStart()
 {
-
+    // not used yet
 }
 
 void Scan::SurveyScan() {

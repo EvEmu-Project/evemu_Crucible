@@ -197,8 +197,8 @@ private:
  */
 class CharacterPortrait {
     // use default c'tor et. al.
+    
 public:
-
     void Build(uint32 charID, PyDict* data);
 
 private:
@@ -212,8 +212,8 @@ class Character
 : public InventoryItem
 {
     friend class InventoryItem;    // to let it construct us
-public:
 
+public:
     virtual void Delete();
 
     /**
@@ -451,8 +451,7 @@ private:
 
     uint32 m_loginTime;
 
-    std::map<uint8, InventoryItemRef>  m_implantMap;    // slotID/itemRef 
-
+    std::map<uint8, InventoryItemRef>  m_implantMap;    // slotID/itemRef
 };
 
 #endif /* !__CHARACTER__H__INCL__ */

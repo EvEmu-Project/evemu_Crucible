@@ -143,11 +143,6 @@ Missile::Missile( InventoryItemRef self, PyServiceMgr& services, SystemManager* 
     //_log(DAMAGE__MESSAGE, "Created Missile object for %s (%u)", self.get()->name(), self.get()->itemID());
 }
 
-Missile::~Missile()
-{
-
-}
-
 void Missile::Process() {
     if (!m_alive) {
         Delete();

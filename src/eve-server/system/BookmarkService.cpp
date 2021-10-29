@@ -64,7 +64,6 @@ BookmarkService::BookmarkService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(BookmarkService, MoveBookmarksToFolder);
     PyCallable_REG_CALL(BookmarkService, AddBookmarkFromVoucher);
     PyCallable_REG_CALL(BookmarkService, CopyBookmarks);
-
 }
 
 BookmarkService::~BookmarkService() {

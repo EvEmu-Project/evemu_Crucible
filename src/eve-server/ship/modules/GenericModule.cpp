@@ -59,11 +59,6 @@ m_launcher(false)
     _log(MODULE__DEBUG, "Created GenericModule %p for item %s (%u).", this, mRef->name(), mRef->itemID());
 }
 
-GenericModule::~GenericModule()
-{
-
-}
-
 // this function must NOT throw
 // throwing an error negates further processing
 void GenericModule::Online()

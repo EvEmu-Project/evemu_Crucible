@@ -33,7 +33,7 @@ class GenericModule
 {
 public:
     GenericModule(ModuleItemRef mRef, ShipItemRef sRef);
-    virtual ~GenericModule();
+    virtual ~GenericModule()                            { /* do nothing here */ }
 
     /* generic functions handled in base class */
     void                Online();    // this function must NOT throw

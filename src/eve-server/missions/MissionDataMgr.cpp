@@ -55,7 +55,7 @@ int MissionDataMgr::Initialize()
 
 void MissionDataMgr::GetInfo()
 {
-
+    // not used yet
 }
 
 // called every minute from EntityList::Process()

@@ -382,7 +382,6 @@ void ConsoleCommand::UpdateStatus() {
 }
 
 void ConsoleCommand::FxProc(uint8 idx/*0*/) {
-
     double start = GetTimeMSeconds();
     sLog.Green("  EVEmu", "FxProcess(%u)", idx);
 

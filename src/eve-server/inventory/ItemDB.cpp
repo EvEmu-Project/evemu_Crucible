@@ -365,9 +365,7 @@ bool ItemDB::DeleteItem(uint32 itemID) {
 }
 
 void ItemDB::GetItems(uint16 catID, std::map< uint16, std::string >& typeIDs) {
-
     DBQueryResult res;
-
     if (!sDatabase.RunQuery(res,
         "SELECT"
         "  typeID,"

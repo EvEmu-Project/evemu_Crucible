@@ -364,7 +364,6 @@ void MiningLaser::Depleted(std::multimap<float, MiningLaser*> &mMap) {
 }
 
 void MiningLaser::AddOreAndDeactivate(uint16 typeID, float amt, bool slave/*true*/) {
-
     ItemData idata(typeID, m_shipRef->ownerID(), locTemp, flagNone, amt);
     InventoryItemRef oRef(sItemFactory.SpawnItem( idata ));
     if (oRef.get() == nullptr) {

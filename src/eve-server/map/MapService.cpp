@@ -65,7 +65,6 @@ MapService::MapService(PyServiceMgr *mgr)
     PyCallable_REG_CALL(MapService, GetCurrentSovData);
     // custom call for displaying all items in system
     PyCallable_REG_CALL(MapService, GetCurrentEntities);
-
 }
 
 MapService::~MapService()

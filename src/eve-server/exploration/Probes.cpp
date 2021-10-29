@@ -31,7 +31,6 @@
 ProbeItem::ProbeItem(uint32 itemID, const ItemType& _type, const ItemData& _data)
 : InventoryItem(itemID, _type, _data)
 {
-
 }
 /*
             Scanner_Probe = 479,

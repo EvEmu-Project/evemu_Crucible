@@ -168,7 +168,6 @@ void TowerSE::Init()
      */
 
     // take resources, move items, process reactions or whatever needs to be done (follow PI proc code)
-
 }
 
 void TowerSE::InitData() {
@@ -274,7 +273,6 @@ void TowerSE::Online()
 
     // reset timers
     StructureSE::Online();
-
 }
 
 void TowerSE::Operating()
@@ -288,20 +286,17 @@ void TowerSE::Operating()
 
     // reset timers
     StructureSE::Operating();
-
 }
 
 void TowerSE::ReinforceTower()
 {
     //  see how many stront is in tower and set timer accordingly
     // Strontium Clathrates   s:100  m:200  l:400
-
 }
 
 void TowerSE::Reinforced()
 {
     // dunno what to do here yet.
-
 }
 
 void TowerSE::UpdatePassword()

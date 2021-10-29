@@ -596,7 +596,6 @@ void RamMethods::GetBOMItemsMap(const PathElement& bomLocation, std::map< uint16
 void RamMethods::GetAdjustedRamRequiredMaterials()
 {
     // will need to update this using above formula for correct material list
-
 }
 
 const char* RamMethods::GetActivityName(int8 activityID)

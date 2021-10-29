@@ -148,7 +148,6 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
 }
 
 PyRep *SearchDB::QuickQuery(std::string string, std::vector<int> *searchID, uint32 charID, bool hideNPC, bool onlyAltName) {
-
     uint8 size(searchID->size());
 
     if (((size == 1) and (searchID->at(0) == 2))

@@ -51,7 +51,6 @@ void StationDataMgr::Clear()
     m_stationData.clear();
     m_stationPyData.clear();
     m_stationOfficeData.clear();
-
 }
 
 void StationDataMgr::Populate()
@@ -338,7 +337,6 @@ void StationDataMgr::LoadStationPyData()
 
 // Add an outpost to the datamgr and the db
 void StationDataMgr::AddOutpost(StationData &data) {
-
     //Add the new data to the db
     StationDB::CreateOutpost(data);
 

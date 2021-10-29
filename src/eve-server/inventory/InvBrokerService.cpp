@@ -42,7 +42,6 @@ class InvBrokerBound
 : public PyBoundObject
 {
 public:
-
     PyCallable_Make_Dispatcher(InvBrokerBound)
 
     InvBrokerBound(PyServiceMgr *mgr, uint32 locationID, uint32 groupID)
@@ -66,8 +65,8 @@ public:
         PyCallable_REG_CALL(InvBrokerBound, SplitStack);
         PyCallable_REG_CALL(InvBrokerBound, DeliverToCorpHangar);
         PyCallable_REG_CALL(InvBrokerBound, DeliverToCorpMember);
-
     }
+
     virtual ~InvBrokerBound()
     {
         delete m_dispatch;

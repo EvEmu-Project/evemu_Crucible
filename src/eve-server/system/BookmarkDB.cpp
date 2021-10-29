@@ -413,7 +413,6 @@ void BookmarkDB::MoveBookmarkToFolder(int32 folderID, std::vector<int32>* bookma
 }
 
 void BookmarkDB::GetVoucherData( BmData& data ) {
-
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT ownerID, itemID, typeID, memo, created, x, y, z, "

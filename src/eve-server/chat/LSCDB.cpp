@@ -541,5 +541,4 @@ bool LSCDB::DeleteMessage(uint32 messageID, uint32 readerID) {
     }
 
     return ret;
-
 }

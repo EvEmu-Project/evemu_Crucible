@@ -121,7 +121,6 @@ void CelestialSE::MakeDamageState(DoDestinyDamageState &into)
 AnomalySE::AnomalySE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
 : CelestialSE(self, services, system)
 {
-
 }
 
 void AnomalySE::EncodeDestiny(Buffer& into)
@@ -162,17 +161,17 @@ PyDict* AnomalySE::MakeSlimItem()
 }
 
 WormholeSE::WormholeSE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
-: CelestialSE(self, services, system)
+: CelestialSE(self, services, system),
+m_count(0),
+m_wormholeAge(WormHole::Age::Adolescent),
+// no clue what this is...may not be used.  seen 33, 263, 27 in logs
+m_dunSpawnID(0)
 {
-    m_count = 0;
-    m_wormholeAge = WormHole::Age::Adolescent;
     m_wormholeSize = (WormHole::Size::Full /10);
     // just guessing here....
     m_expiryDate = Win32TimeNow() + EvE::Time::Day;
-    m_nebulaType = 11785;  // data found in eveGraphics table.  yes.  11781 - 11786 (class 1-6)  -3715 doesnt work
-    // no clue what this is...may not be used.  seen 33, 263, 27 in logs
-    m_dunSpawnID = 0;
-
+    // data found in eveGraphics table.  yes.  11781 - 11786 (class 1-6)  -3715 doesnt work
+    m_nebulaType = 11785;
 }
 
 void WormholeSE::EncodeDestiny(Buffer& into)

@@ -250,11 +250,10 @@ bool LSCChannel::IsJoined(uint32 charID) {
 
 void LSCChannel::UpdateConfig()
 {
-    // ********** TODO **********
-    // Figure out how to send a packet to all clients subscribed to this channel that contains all channel parameters
-    // so that their clients can update everything that has changed in this channel's access control.
-    // **************************
-
+    /** @todo
+     * Figure out how to send a packet to all clients subscribed to this channel that contains all channel parameters
+     * so that their clients can update everything that has changed in this channel's access control.
+     */
 }
 
 

@@ -593,8 +593,7 @@ int MailDB::BitFromLabelID(int id)
 
 PyDict *MailDB::GetJoinedMailingLists(uint32 characterID)
 {
-
-    // @NOTE: May have to util.keyval this??j?
+    // @NOTE: May have to util.keyval this
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,

@@ -35,12 +35,6 @@ public:
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Init();
-
-
-protected:
-
-private:
-
 };
 
 #endif  // EVEMU_POS_TCU_H_

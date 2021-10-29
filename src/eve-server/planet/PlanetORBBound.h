@@ -42,7 +42,6 @@ protected:
     virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
 
 private:
-
     //PyCallable_DECL_CALL()
 };
 
