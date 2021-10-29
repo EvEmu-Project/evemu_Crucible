@@ -1,7 +1,7 @@
 /**
  * @name EffectsProcessor.cpp
  *   This file is for decoding and processing the effect data
- *   Copyright 2017  EVEmu Team
+ *   Copyright 2017  Alasiya-EVEmu Team
  *
  * @Author:    Allan
  * @date:      24 January 2017
@@ -29,9 +29,13 @@
 
 void FxProc::ParseExpression(InventoryItem* pItem, Expression expression, fxData& data, GenericModule* pMod/*nullptr*/)
 {
-    double profileStartTime = GetTimeUSeconds();
+    double profileStartTime(GetTimeUSeconds());
 
-    bool skill = false;
+    if (is_log_enabled(EFFECTS__TRACE) and 0)
+        _log(EFFECTS__TRACE, "FxProc::ParseExpression(): container: %s(%u) parsing %s ", \
+                pItem->name(), pItem->itemID(), expression.expressionName.c_str());
+
+    bool skill(false);
     switch (data.srcRef->categoryID()) {
         case  EVEDB::invCategories::Skill:
         case  EVEDB::invCategories::Implant: {  // cat::implant also covers grp::booster
@@ -45,7 +49,7 @@ void FxProc::ParseExpression(InventoryItem* pItem, Expression expression, fxData
         case Operands::DEFBOOL:   //23  this evaulates to 'true' (Bool(1))
         case Operands::DEFINT: {  //27  this is used as  0,1,2,{raceID}
             //  seems to be called only to online/offline modules (and screws up my Online/Offline code...)
-            /** @todo  if this is used, change the Put* methods to use ModuleItem
+            /*
             int8 value = atoi(expression.expressionValue.c_str());
             if (module) {
                 if (value == 0)
@@ -191,7 +195,7 @@ void FxProc::ParseExpression(InventoryItem* pItem, Expression expression, fxData
         /*
         // next 3 not used here, as they are only used by effect 16 (Online), which is covered in GenericModule class.
         case Operands::OR:     //'%(arg1)s OR %(arg2)s'       -- used with 'if' in arg2 as 'y'.   ((if x then y) OR z)  (used as "else" or elif)
-        case Operands::AND:    //'(%(arg1)s) AND (%(arg2)s)'  -- used with 'if' in arg1 as 'x'.   (if (x AND y) then ....)
+        case Operands::AND:    //'(%(arg1)s) AND (%(arg2)s)'  -- used with 'if' in arg1 as 'x'.   (if (x AND y) then ...)
         case Operands::IF: {    //'If(%(arg1)s), Then (%(arg2)s)'    -- std conditional.  (if x then y)
         } break;
         // trivial attribute operations
@@ -272,10 +276,10 @@ void FxProc::ParseExpression(InventoryItem* pItem, Expression expression, fxData
 
 void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShip, bool update/*false*/)
 {
+    double profileStartTime(GetTimeUSeconds());
     using namespace FX;
     //uint8 action = Action::dgmActInvalid;
     for (auto cur : pItem->m_modifiers) {  // k,v of assoc, data<math, src, targLoc, targAttr, srcAttr, grpID, typeID>
-    double profileStartTime = GetTimeUSeconds();
         /*
         if (cur.second.action) {
             action = cur.second.action;
@@ -300,41 +304,40 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                     continue;  // make error here
                 }
                 switch (cur.second.targLoc) {
-                    //  apply the modifier to ....
+                    //  apply the modifier to ...
                     case Target::Self: {
-                        // ....item itself
+                        // ... item itself
                         itemRefVec.push_back(cur.second.srcRef);
                     } break;
                     case Target::Ship:  {
                         if (cur.second.typeID) {
-                            // .....ship's modules that require skillID defined in "typeID"
+                            // ... ship's modules that require skillID defined in "typeID"
                             pShip->GetModuleManager()->GetModuleListByReqSkill(cur.second.typeID, itemRefVec);
                         } else {
-                            // ..... ship that require skill in 'srcRef'
+                            // ... ship that require skill in 'srcRef'
                             if (pShip->HasReqSkill(cur.second.srcRef->typeID()))
                                 itemRefVec.push_back(static_cast<InventoryItemRef>(pShip));
                         }
                     } break;
                     case Target::Char: {
                         if (cur.second.typeID) {
-                            // ....char skills that require skill in 'srcRef' or defined in 'typeID'
-                            uint16 skillID = cur.second.typeID;
+                            // ... char skills that require skill in 'srcRef' or defined in 'typeID'
                             std::vector<InventoryItemRef> allSkills;
                             pChar->GetSkillsList(allSkills);
                             for (auto curSkill : allSkills)
-                                if (curSkill->HasReqSkill(skillID))
+                                if (curSkill->HasReqSkill(cur.second.typeID))
                                     itemRefVec.push_back(curSkill);
                         } else {
-                            // ....character itself
+                            // ... character itself
                             itemRefVec.push_back(static_cast<InventoryItemRef>(pChar));
                         }
                     } break;
                     case Target::Other: {
-                        // ....ship from 'core' pilot skills (electronics, mechanics, navigation, etc)
+                        // ... ship from 'core' pilot skills (electronics, mechanics, navigation, etc)
                         itemRefVec.push_back(static_cast<InventoryItemRef>(pShip));
                     } break;
                     case Target::Charge: {
-                        // ....charges
+                        // ... charges
                         // will need more testing to verify this.
                         std::map<EVEItemFlags, InventoryItemRef> charges;
                         pShip->GetModuleManager()->GetLoadedCharges(charges);
@@ -343,7 +346,7 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                                 itemRefVec.push_back(mod.second);
                     } break;
                     case Target::Target: {
-                        // ...current target (focused, volatile...removed on 'invalid target')
+                        // ... current target (focused, volatile...removed on 'invalid target')
                         itemRefVec.push_back(pShip->GetTargetRef());
                     } break;
                     case Target::Invalid: {   // null
@@ -358,22 +361,22 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                 }
             } break;
             case Source::Self: {  // source is module or charge
-                //  apply the modifier to ....
+                //  apply the modifier to ...
                 switch (cur.second.targLoc) {
                     case Target::Char: {
-                        // ....character itself
+                        // ... character itself
                         itemRefVec.push_back(static_cast<InventoryItemRef>(pChar));
                     } break;
                     case Target::Ship:  {
-                        // ....the ship the calling item is located in/on
+                        // ... the ship the calling item is located in/on
                         itemRefVec.push_back(static_cast<InventoryItemRef>(pShip));
                     } break;
                     case Target::Self: {
-                        // ....item itself
+                        // ... item itself
                         itemRefVec.push_back(cur.second.srcRef);
                     } break;
                     case Target::Charge: {
-                        // ....charge on src item (from module)
+                        // ... charge on src item (from module)
                         if (cur.second.srcRef->flag() == flagNone) {
                             _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): SourceItem.flag is flagNone but need actual flag to acquire module.");
                             _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Item Data for %s(%u) - src(%s:%u)  targ(%s:%u) .", \
@@ -385,7 +388,7 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                         itemRefVec.push_back(pShip->GetModuleManager()->GetLoadedChargeOnModule(cur.second.srcRef->flag()));
                     } break;
                     case Target::Other: {
-                        // ....module containing the src item (from charge)
+                        // ... module containing the src item (from charge)
                         if (cur.second.srcRef->flag() == flagNone) {
                             _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): SourceItem.flag is flagNone but need actual flag to acquire module.");
                             _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Item Data for %s(%u) - src(%s:%u)  targ(%s:%u) .", \
@@ -397,7 +400,7 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                         itemRefVec.push_back(pShip->GetModuleManager()->GetModule(cur.second.srcRef->flag())->GetSelf());
                     } break;
                     case Target::Target: {
-                        // ...current target (focused, volatile...removed on 'invalid target')
+                        // ... current target (focused, volatile...removed on 'invalid target')
                         itemRefVec.push_back(pShip->GetTargetRef());
                     } break;
                     case Target::Invalid: {
@@ -413,18 +416,18 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
             /** @todo this needs more work */
             case Source::Gang: {      // source is a gang leader skill
                 switch (cur.second.targLoc) {
-                //  apply the modifier to ....
+                //  apply the modifier to ...
                     case Target::Self: {
-                        // ....item itself
+                        // ... item itself
                         itemRefVec.push_back(cur.second.srcRef);
                     } break;
                 /** @note  these are processed and applied in fleet code
                     case Target::Ship:  {
-                        // ....ship of member to apply leader's skill bonuses to
+                        // ... ship of member to apply leader's skill bonuses to
                         itemRefVec.push_back(static_cast<InventoryItemRef>(pShip));
                     } break;
                     case Target::Char:  {
-                        // ....our character
+                        // ... our character
                         itemRefVec.push_back(static_cast<InventoryItemRef>(pChar));
                     } break;
                     */
@@ -473,23 +476,22 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
         } */
 
         // set target attr to modified value
-        EvilNumber targValue(EvilZero);
-        int8 opID(cur.first);
+        EvilNumber targValue(EvilZero), newValue(EvilZero);
         for (auto item : itemRefVec) {
             if (item.get() == nullptr)  // still occasional nulls in the vector (segfaults)
                 continue;
             // get targAttr
             targValue = item->GetAttribute(cur.second.targAttr);
             // check for inf/nan and then reset?  this will fuck up all previous fx processing on this value.
-            /*
+            // but it will allow continuing w/o error in subsequent processing
             if (targValue.isNaN() or targValue.isInf()) {
                 targValue = item->GetDefaultAttribute(cur.second.targAttr);
                 _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): targValue isInf or isNaN.  Data: %s(%u) - src(%s:%u) %.3f <%s> targ(%s:%u) set targ to %.3f.", \
-                cur.second.srcRef->name(), cur.second.srcRef->itemID(), GetSourceName(cur.second.fxSrc), cur.second.srcAttr, srcValue.get_float(), \
-                    GetMathMethodName(opID), GetTargLocName(cur.second.targLoc), cur.second.targAttr, targValue.get_float());
-            } */
+                        cur.second.srcRef->name(), cur.second.srcRef->itemID(), GetSourceName(cur.second.fxSrc), cur.second.srcAttr, srcValue.get_float(), \
+                        GetMathMethodName(cur.first), GetTargLocName(cur.second.targLoc), cur.second.targAttr, targValue.get_float());
+            }
 
-            switch (opID) {
+            switch (cur.first) {
                 case Math::PreMul:
                 case Math::PostMul:
                 case Math::PreDiv:
@@ -500,18 +502,19 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
             }
 
             // send data to calculator
-            EvilNumber newValue = CalculateAttributeValue(targValue, srcValue, opID);
-            // set new calculated value for target attribute
-            _log(EFFECTS__MESSAGE, "FxProc::ApplyEffects(%i): %s(%u) - src(%s:%u)=%.3f <%s> targ(%s:%u) set targ from %.3f to %.3f.", \
-                    cur.first, cur.second.srcRef->name(), cur.second.srcRef->itemID(), \
-                    GetSourceName(cur.second.fxSrc), cur.second.srcAttr, srcValue.get_float(), GetMathMethodName(opID), \
-                    GetTargLocName(cur.second.targLoc), cur.second.targAttr, targValue.get_float(), newValue.get_float());
+            newValue = CalculateAttributeValue(targValue, srcValue, cur.first);
 
+            if (is_log_enabled(EFFECTS__MESSAGE))
+                _log(EFFECTS__MESSAGE, "FxProc::ApplyEffects(%i): %s(%u) - src(%s:%s[%u])=%.3f <%s> targ(%s:%s[%u]) set %s from %.3f to %.3f.", \
+                    cur.first, cur.second.srcRef->name(), cur.second.srcRef->itemID(), \
+                    GetSourceName(cur.second.fxSrc), sDataMgr.GetAttrName(cur.second.srcAttr), cur.second.srcAttr, srcValue.get_float(), GetMathMethodName(cur.first), \
+                    GetTargLocName(cur.second.targLoc), sDataMgr.GetAttrName(cur.second.targAttr), cur.second.targAttr, item->name(), targValue.get_float(), newValue.get_float());
+
+            // set new calculated value for target attribute
             // update is used to send attrib changes to client when changing module states while in space, but NOT for pilot login. (client acts funky)
             item->SetAttribute(cur.second.targAttr, newValue, update);
+            newValue = EvilZero;
         }
-        if (sConfig.debug.UseProfiling)
-            sProfiler.AddTime(Profile::applyFX, GetTimeUSeconds() - profileStartTime);
     }
     /*  not used
     if (action)
@@ -519,6 +522,9 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
      */
 
     pItem->ClearModifiers();
+
+    if (sConfig.debug.UseProfiling)
+        sProfiler.AddTime(Profile::applyFX, GetTimeUSeconds() - profileStartTime);
 }
 
 EvilNumber FxProc::CalculateAttributeValue(EvilNumber val1/*targ*/, EvilNumber val2/*src*/, int8 method)
@@ -673,9 +679,7 @@ const char* FxProc::GetStateName(int8 id)
         case FX::State::Invalid:
         default:                       return "Invalid";
     }
-
 }
-
 
 void FxProc::DecodeEffects( const uint16 fxID ) {
     sLog.Green("DecodeEffects", "fxID %u", fxID);
@@ -786,5 +790,4 @@ void FxProc::DecodeExpression(Expression expression, fxData& data)
             DecodeExpression(sFxDataMgr.GetExpression(expression.arg2), data);
         } break;
     }
-
 }
