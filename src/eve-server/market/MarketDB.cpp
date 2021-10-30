@@ -47,8 +47,8 @@ PyRep *MarketDB::GetStationAsks(uint32 stationID) {
         "    typeID, MIN(price) AS price, volRemaining, stationID "
         " FROM mktOrders "
         " WHERE stationID=%u"
-        " GROUP BY typeID"
-        " LIMIT %u", sConfig.market.StationOrderLimit,  stationID))
+        " GROUP BY typeID",  stationID))
+        //" LIMIT %u",  stationID, sConfig.market.StationOrderLimit))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -68,8 +68,8 @@ PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
         "    typeID, MIN(price) AS price, volRemaining, stationID "
         " FROM mktOrders "
         " WHERE solarSystemID=%u"
-        " GROUP BY typeID"
-        " LIMIT %u",sConfig.market.SystemOrderLimit, solarSystemID))
+        " GROUP BY typeID", solarSystemID))
+        //" LIMIT %u", solarSystemID, sConfig.market.SystemOrderLimit))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -89,8 +89,8 @@ PyRep *MarketDB::GetRegionBest(uint32 regionID) {
         "    typeID, MIN(price) AS price, volRemaining, stationID "
         " FROM mktOrders "
         " WHERE regionID=%u AND bid=%u"
-        " GROUP BY typeID"
-        " LIMIT %u",sConfig.market.RegionOrderLimit, regionID, Market::Type::Sell))
+        " GROUP BY typeID", regionID, Market::Type::Sell))
+        //" LIMIT %u", regionID, Market::Type::Sell, sConfig.market.RegionOrderLimit))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -442,9 +442,10 @@ PyRep *MarketDB::GetMarketGroups() {
         pyrow->SetField(9, new PyInt(row.GetUInt(9))); //descriptionID
     }
 
-    _log(MARKET__DB_TRACE, "GetMarketGroups returned %u keys.", filterRowset->GetKeyCount());
-    if (is_log_enabled(MARKET__DB_TRACE))
+    if (is_log_enabled(MARKET__DB_TRACE)) {
+        _log(MARKET__DB_TRACE, "GetMarketGroups returned %u keys.", filterRowset->GetKeyCount());
         filterRowset->Dump(MARKET__DB_TRACE, "    ");
+    }
 
     return filterRowset;
 }
