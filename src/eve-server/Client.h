@@ -70,13 +70,13 @@ class Client
 public:
     Client(PyServiceMgr &services, EVETCPConnection** con);
     // copy c'tor
-    Client(const Client& oth) = delete;
+    Client(const Client& oth) =delete;
     // move c'tor
-    Client(Client&& oth) = delete;
+    Client(Client&& oth) =delete;
     // copy assignment
-    Client& operator= (const Client& oth) = delete;
+    Client& operator= (const Client& oth) =delete;
     // move assignment
-    Client& operator= (Client&& oth) = delete;
+    Client& operator= (Client&& oth) =delete;
 
     ~Client();
 

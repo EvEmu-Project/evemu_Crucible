@@ -125,104 +125,6 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
     Reset();
 }
 
-/** @todo  need to separate Player from Client before these can be implemented....
-// not sure if these are used....may have to finish
-Client::Client(const Client& oth)
-:m_TS(oth.m_TS),
-m_scan(oth.m_scan),
-pShipSE(oth.pShipSE),
-pSession(oth.pSession),
-m_system(oth.SystemMgr()),
-m_services(oth.services()),
-m_movePoint(NULL_ORIGIN),
-m_clientState(Player::State::Idle),
-m_stateTimer(0),
-m_ballparkTimer(0),
-m_pingTimer(PING_INTERVAL_MS),
-m_scanTimer(0),
-m_cloakTimer(0),
-m_fleetTimer(0),
-m_invulTimer(0),
-m_clientTimer(0),
-m_logoutTimer(0),
-m_jetcanTimer(0),
-m_sessionTimer(0),
-m_uncloakTimer(0),
-m_destinyEventQueue(new PyList()),
-m_destinyUpdateQueue(new PyList()),
-m_nextNotifySequence(0)
-{
-    m_pod = ShipItemRef(nullptr);
-    m_ship = ShipItemRef(nullptr);
-
-    m_afk = false;
-    m_login = true;
-    m_invul = true;
-    m_wing = false;
-    m_fleet = false;
-    m_squad = false;
-    m_loaded = false;
-    m_undock = false;
-    m_showall = false;
-    m_beyonce = false;
-    m_canThrow = false;
-    m_packaged = false;
-    m_portrait = false;
-    m_autoPilot = false;
-    m_bubbleWait = false;     // allow client processing of subsquent destiny msgs
-    m_setStateSent = false;
-    m_sessionChangeActive = false;
-
-    //m_toGate = 0;
-    m_locationID = 0;
-    m_moveSystemID = 0;
-    m_skillTimer = 0;
-    m_dockStationID = 0;
-
-    m_lpMap.clear();
-    m_channels.clear();
-    m_hangarLoaded.clear();
-
-    sLog.Error("Client()", "Client copy c'tor called.");
-    EvE::traceStack();
-    assert(0);
-}
-
-Client::Client(Client&& oth) noexcept
-:m_TS(oth.m_TS),
-m_scan(oth.m_scan),
-pShipSE(oth.pShipSE),
-pSession(oth.pSession),
-m_system(oth.SystemMgr()),
-m_services(oth.services())
-{
-    sLog.Error("Client()", "Client move c'tor called.");
-    EvE::traceStack();
-    assert(0);
-}
-
-Client& Client::operator=(const Client& oth)
-{
-    m_TS = oth.m_TS;
-    m_scan = oth.m_scan;
-    pShipSE = oth.pShipSE;
-    pSession = oth.pSession;
-    m_system = oth.SystemMgr();
-    m_services = oth.services();
-
-    sLog.Error("Client()", "Client assignment op called.");
-    EvE::traceStack();
-    assert(0);
-}
-
-Client& Client::operator=(Client&& oth) noexcept
-{
-    sLog.Error("Client()", "Client move op called.");
-    EvE::traceStack();
-    assert(0);
-}
-*/
-
 Client::~Client() {
     if (!m_loaded)
         return;
@@ -2037,7 +1939,7 @@ void Client::SendInitialSessionStatus ()
     packet->source.callID = 0;
 
     packet->dest.type = PyAddress::Client;
-    packet->dest.objectID = 0; //GetClientID();
+    packet->dest.objectID = GetClientID();
     packet->dest.callID = 0;
 
     packet->userid = GetUserID();
@@ -2104,7 +2006,7 @@ void Client::SendSessionChange()
     packet->source.callID = 0;
 
     packet->dest.type = PyAddress::Client;
-    packet->dest.objectID = 0; //GetClientID();
+    packet->dest.objectID = GetClientID();
     packet->dest.callID = 0;
 
     packet->userid = GetUserID();
@@ -2245,7 +2147,7 @@ void Client::SendNotification(const char *notifyType, const char *idType, PyTupl
         dest.type = PyAddress::Broadcast;
         dest.service = notifyType;
         dest.bcast_idtype = idType;
-        dest.objectID = 0; //GetClientID();
+        dest.objectID = GetClientID();
 
     //now send it to the client
     SendNotification(dest, notify, seq);
@@ -2438,7 +2340,7 @@ bool Client::_VerifyLogin(CryptoChallengePacket& ccp)
     pSession->SetInt("userType", Acct::Type::Mammon);     //aData.type  - incomplete (db fields done)
     pSession->SetInt("userid", aData.id);
     pSession->SetLong("role", aData.role);
-    pSession->SetLong("clientID", 0 /*1000000L * aData.clientID + 888444*/);  // kinda arbitrary
+    pSession->SetLong("clientID", 1000000L * aData.clientID + 888444);  // kinda arbitrary
     pSession->SetLong("sessionID", 0 /*pSession->GetSessionID()*/);
 
     sLog.Green("  Client::Login()","Account %u (%s) logging in from %s", aData.id, aData.name.c_str(), EVEClientSession::GetAddress().c_str());
@@ -2467,7 +2369,7 @@ bool Client::_VerifyFuncResult(CryptoHandshakeResult& result)
         ack.address = GetAddress();
         ack.inDetention = PyStatic.NewNone();   // dont know what this is or what it's for
         ack.client_hash = PyStatic.NewNone();
-        ack.user_clientid = 0; //GetClientID();  //241241000001103
+        ack.user_clientid = GetClientID();  //241241000001103
         ack.live_updates = sLiveUpdateDB.GetUpdates();
         ack.sessionID = 0; //pSession->GetSessionID();   //398773966249980114
     PyRep* res(ack.Encode());
@@ -2491,7 +2393,7 @@ void Client::_SendCallReturn(const PyAddress& source, int64 callID, PyResult &rs
     packet->source = source;     /* address should be 'ship' for warpto response */
 
     packet->dest.type = PyAddress::Client;
-    packet->dest.objectID = 0; //GetClientID();
+    packet->dest.objectID = GetClientID();
     packet->dest.callID = callID;
 
     packet->userid = GetUserID();
@@ -2519,7 +2421,7 @@ void Client::_SendException(const PyAddress& source, int64 callID, MACHONETMSG_T
     packet->source = source;
 
     packet->dest.type = PyAddress::Client;
-    packet->dest.objectID = 0; //GetClientID();
+    packet->dest.objectID = GetClientID();
     packet->dest.callID = callID;
 
     packet->userid = GetUserID();
@@ -2547,7 +2449,7 @@ void Client::_SendPingRequest()
     packet->source.callID = 0;
 
     packet->dest.type = PyAddress::Client;
-    packet->dest.objectID = 0; //GetClientID();
+    packet->dest.objectID = GetClientID();
     packet->dest.callID = 0;
 
     packet->userid = GetUserID();
@@ -2567,7 +2469,7 @@ void Client::_SendPingResponse(const PyAddress& source, int64 callID)
     packet->source = source;
 
     packet->dest.type = PyAddress::Client;
-    packet->dest.objectID = 0; //GetClientID();
+    packet->dest.objectID = GetClientID();
     packet->dest.callID = callID;
 
     packet->userid = GetUserID();
