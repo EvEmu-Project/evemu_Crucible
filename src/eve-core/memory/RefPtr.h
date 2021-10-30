@@ -56,10 +56,10 @@ public:
      *
      * @param[in] initRefCount Initial reference count.
      */
-    RefObject( size_t initRefCount )
-    : mRefCount( initRefCount )
+    RefObject(uint16 initRefCount)
+    : mRefCount(initRefCount),
+    mDeleted(false)
     {
-        mDeleted = false;
     }
 
     /**
@@ -70,12 +70,16 @@ public:
      */
     virtual ~RefObject()
     {
-        // this isnt completely accurate yet.  disable to avoid crashes i cant trace
-        //assert( mRefCount == 0);
+        if (mDeleted) {
+            _log(REFPTR__ERROR, "~RefObject() - mDeleted: true");
+            EvE::traceStack();
+        }
+
         mDeleted = true;
     }
 
-    size_t GetCount()           { return mRefCount; }
+    uint16 GetCount()           { return mRefCount; }
+    bool IsDeleted()            { return mDeleted; }
 
 protected:
     /**
@@ -86,12 +90,10 @@ protected:
         if (mDeleted) {
             _log(REFPTR__ERROR, "IncRef() - mDeleted = true.  Count is %u", mRefCount);
             EvE::traceStack();
-            return;
+            //return;
         }
-        assert( mDeleted == false );
+        assert(mDeleted == false);
         ++mRefCount;
-        //assert( mRefCount > 0 );  // RefPtr objects are created with a ref count of 0, then incremented during RefPtr c'tor
-        //_log(REFPTR__INC, "IncRef() is %u.", mRefCount);
     }
     /**
      * @brief Decrements reference count of object by one.
@@ -103,18 +105,18 @@ protected:
         if (mDeleted) {
             _log(REFPTR__ERROR, "DecRef() - mDeleted = true.  Count is %u", mRefCount);
             EvE::traceStack();
-            return;
+            //return;
         }
 
-        assert( mDeleted == false );
-        assert( mRefCount > 0 );
+        assert(mDeleted == false);
+        assert(mRefCount > 0);
         --mRefCount;
-        //_log(REFPTR__DEC, "DecRef() is %u.", mRefCount);
 
         if (mRefCount < 1)
             delete this;
     }
 
+private:
     /// Reference count of instance.
     mutable uint16 mRefCount;
     mutable bool mDeleted;
@@ -138,8 +140,8 @@ public:
      *
      * @param[in] p Pointer to object to be referenced.
      */
-    explicit RefPtr( X* p = nullptr)
-    : mPtr( p )
+    explicit RefPtr(X* p = nullptr)
+    : mPtr(p)
     {
         if (*this)
             (*this)->IncRef();
@@ -149,8 +151,8 @@ public:
      *
      * @param[in] oth Object to copy the reference from.
      */
-    RefPtr( const RefPtr& oth )
-    : mPtr( oth.get() )
+    RefPtr(const RefPtr& oth)
+    : mPtr(oth.get())
     {
         if (*this)
             (*this)->IncRef();
@@ -161,8 +163,8 @@ public:
      * @param[in] oth Object to copy the reference from.
      */
     template<typename Y>
-    RefPtr( const RefPtr<Y>& oth )
-    : mPtr( oth.get() )
+    RefPtr(const RefPtr<Y>& oth)
+    : mPtr(oth.get())
     {
         if (*this)
             (*this)->IncRef();
@@ -182,7 +184,7 @@ public:
      *
      * @param[in] oth Object to move.
      */
-    RefPtr& operator=( const RefPtr&& oth )
+    RefPtr& operator=(const RefPtr&& oth)
     {
         if (*this)
             (*this)->DecRef();
@@ -196,7 +198,7 @@ public:
      *
      * @param[in] oth Object to copy the reference from.
      */
-    RefPtr& operator=( const RefPtr& oth )
+    RefPtr& operator=(const RefPtr& oth)
     {
         if (*this)
             (*this)->DecRef();
@@ -211,7 +213,7 @@ public:
      * @param[in] oth Object to copy the reference from.
      */
     template<typename Y>
-    RefPtr& operator=( const RefPtr<Y>& oth )
+    RefPtr& operator=(const RefPtr<Y>& oth)
     {
         if (*this)
             (*this)->DecRef();
@@ -229,10 +231,10 @@ public:
     /**
      * @return True if stores a reference, false otherwise.
      */
-    operator bool() const { return ( mPtr != nullptr ); }
+    operator bool() const { return (mPtr != nullptr); }
 
-    X& operator*() const { assert( *this ); return *mPtr; }
-    X* operator->() const { assert( *this ); return mPtr; }
+    X& operator*() const { assert(*this); return *mPtr; }
+    X* operator->() const { assert(*this); return mPtr; }
 
     /**
      * @brief Compares two references.
@@ -240,18 +242,18 @@ public:
      * @return True if both references are of same object, false if not.
      */
     template<typename Y>
-    bool operator==( const RefPtr<Y>& oth ) const
+    bool operator==(const RefPtr<Y>& oth) const
     {
-        return ( mPtr == oth.get() );
+        return (mPtr == oth.get());
     }
 
     /**
      * @brief Acts as static_cast from one RefPtr to another
      */
     template<typename Y>
-    static RefPtr StaticCast( const RefPtr<Y>& oth )
+    static RefPtr StaticCast(const RefPtr<Y>& oth)
     {
-        return RefPtr( static_cast<X*>( oth.get() ) );
+        return RefPtr(static_cast<X*>(oth.get()));
     }
 
 protected:

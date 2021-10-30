@@ -158,6 +158,8 @@ public:
 
     using RefObject::IncRef;
     using RefObject::DecRef;
+    //using RefObject::GetCount();
+    //using RefObject::IsDeleted();
 
     /**
      * @brief Dumps object to file.
@@ -177,7 +179,7 @@ public:
     /**
      * @brief Clones object.
      *
-     * @return Indentical copy of object.
+     * @return Identical copy of object.
      */
     virtual PyRep* Clone() const = 0;
     /**
@@ -208,17 +210,17 @@ public:
     static uint32 IntegerValueU32(PyRep* pRep);
 
 protected:
-    PyRep( PyType t );
+    PyRep(PyType t);
     // copy c'tor
     PyRep( const PyRep& oth );
     // move c'tor
     PyRep(PyRep&& oth) = delete;
     // copy assignment
-    PyRep& operator= (const PyRep& oth) = default;
+    PyRep& operator=(const PyRep& oth) = default;
     // move assignment
-    PyRep& operator= (PyRep&& oth) = default;
+    PyRep& operator=(PyRep&& oth) = default;
 
-    virtual ~PyRep()    { /* do we need to do anything here? */ }
+    virtual ~PyRep()                                    { /* do we need to do anything here? */ }
 
     const PyType mType;
 };

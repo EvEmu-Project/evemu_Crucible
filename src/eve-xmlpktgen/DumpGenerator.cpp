@@ -169,7 +169,7 @@ bool ClassDumpGenerator::ProcessLong( const TiXmlElement* field )
     }
 
     fprintf( mOutputFile,
-             "    _log( l_type, \"%%s%s=%%\" PRId64, pfx, %s );\n"
+             "    _log( l_type, \"%%s%s=%%li\", pfx, %s );\n"
              "\n",
              name, name
     );

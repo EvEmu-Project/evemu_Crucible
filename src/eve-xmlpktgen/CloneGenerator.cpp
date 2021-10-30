@@ -43,7 +43,7 @@ bool ClassCloneGenerator::ProcessElementDef( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::  <element> at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessElementDef <element> at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -69,12 +69,12 @@ bool ClassCloneGenerator::ProcessElement( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessElement  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessElement <element> field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
     const char* type = field->Attribute( "type" );
     if (type == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessElement  field at line " << field->Row() << " is missing the type attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessElement <element> field at line " << field->Row() << " is missing the type attribute, skipping.";
         return false;
     }
 
@@ -91,12 +91,12 @@ bool ClassCloneGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessElementPtr  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessElementPtr <element> field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
     const char* type = field->Attribute( "type" );
     if (type == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessElementPtr  field at line " << field->Row() << " is missing the type attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessElementPtr <element> field at line " << field->Row() << " is missing the type attribute, skipping.";
         return false;
     }
 
@@ -122,7 +122,7 @@ bool ClassCloneGenerator::ProcessRaw( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessRaw  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessRaw  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -148,7 +148,7 @@ bool ClassCloneGenerator::ProcessInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessInt  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessInt  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -165,7 +165,7 @@ bool ClassCloneGenerator::ProcessLong( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessLong  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessLong  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -182,7 +182,7 @@ bool ClassCloneGenerator::ProcessReal( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessReal  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessReal  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -199,7 +199,7 @@ bool ClassCloneGenerator::ProcessBool( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessBool  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessBool  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -221,7 +221,7 @@ bool ClassCloneGenerator::ProcessBuffer( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessBuffer  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessBuffer  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -247,7 +247,7 @@ bool ClassCloneGenerator::ProcessString( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessString  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessString  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -269,7 +269,7 @@ bool ClassCloneGenerator::ProcessWString( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessWString  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessWString  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -291,7 +291,7 @@ bool ClassCloneGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessToken  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessToken  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -322,7 +322,7 @@ bool ClassCloneGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessObject  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessObject  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -353,12 +353,12 @@ bool ClassCloneGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessObjectEx  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessObjectEx  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
     const char* type = field->Attribute( "type" );
     if (type == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessObjectEx  field at line " << field->Row() << " is missing the type attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessObjectEx  field at line " << field->Row() << " is missing the type attribute, skipping.";
         return false;
     }
 
@@ -383,7 +383,7 @@ bool ClassCloneGenerator::ProcessTuple( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessTuple  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessTuple  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -414,7 +414,7 @@ bool ClassCloneGenerator::ProcessList( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessList  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessList  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -445,7 +445,7 @@ bool ClassCloneGenerator::ProcessListInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessListInt  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessListInt  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -462,7 +462,7 @@ bool ClassCloneGenerator::ProcessListLong( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessListLong  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessListLong  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -479,7 +479,7 @@ bool ClassCloneGenerator::ProcessListStr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessListStr  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessListStr  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -496,7 +496,7 @@ bool ClassCloneGenerator::ProcessDict( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessDict  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessDict  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -529,7 +529,7 @@ bool ClassCloneGenerator::ProcessDictInlineEntry( const TiXmlElement* field )
     //we dont really even care about this...
     const char* key = field->Attribute( "key" );
     if (key == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessDictInlineEntry  <dictInlineEntry> at line " << field->Row() << " is missing the key attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessDictInlineEntry  <dictInlineEntry> at line " << field->Row() << " is missing the key attribute, skipping.";
         return false;
     }
 
@@ -540,7 +540,7 @@ bool ClassCloneGenerator::ProcessDictRaw( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessDictRaw  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessDictRaw  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -558,7 +558,7 @@ bool ClassCloneGenerator::ProcessDictInt( const TiXmlElement* field )
     const char* name = field->Attribute( "name" );
 
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessDictInt  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessDictInt  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -588,7 +588,7 @@ bool ClassCloneGenerator::ProcessDictStr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr)  {
-        std::cout << std::endl <<  "ClassCloneGenerator::ProcessDictStr  field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CloneGen::ProcessDictStr  field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 

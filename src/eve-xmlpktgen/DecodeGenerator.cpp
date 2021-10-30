@@ -82,7 +82,7 @@ bool ClassDecodeGenerator::ProcessElement(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessElement field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessElement field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -104,7 +104,7 @@ bool ClassDecodeGenerator::ProcessElementPtr(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessElementPtr field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessElementPtr field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -137,7 +137,7 @@ bool ClassDecodeGenerator::ProcessRaw(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessRaw field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessRaw field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -202,7 +202,7 @@ bool ClassDecodeGenerator::ProcessInt(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessInt field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessInt field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
     /** @note:  commented code is depreciated in favor of PyRep::IntegerValue(), which tests and decodes as integers */
@@ -269,7 +269,7 @@ bool ClassDecodeGenerator::ProcessLong(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessLong field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessLong field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -284,7 +284,7 @@ bool ClassDecodeGenerator::ProcessReal(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessReal field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessReal field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -329,7 +329,7 @@ bool ClassDecodeGenerator::ProcessBool(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessBool field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessBool field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -359,7 +359,7 @@ bool ClassDecodeGenerator::ProcessBuffer(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessBuffer field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessBuffer field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -392,7 +392,7 @@ bool ClassDecodeGenerator::ProcessString(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessString field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessString field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -477,7 +477,7 @@ bool ClassDecodeGenerator::ProcessWString(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessWString field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessWString field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -562,7 +562,7 @@ bool ClassDecodeGenerator::ProcessToken(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessToken field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessToken field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -643,7 +643,7 @@ bool ClassDecodeGenerator::ProcessObject(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessObject field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessObject field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -725,12 +725,12 @@ bool ClassDecodeGenerator::ProcessObjectEx(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessObjectEx field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessObjectEx field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
     const char* type = field->Attribute("type");
     if (type == nullptr)  {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessObjectEx field at line " << field->Row() << " is missing the type attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessObjectEx field at line " << field->Row() << " is missing the type attribute, skipping.";
         return false;
     }
 
@@ -778,7 +778,7 @@ bool ClassDecodeGenerator::ProcessTuple(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessTuple field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessTuple field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -874,7 +874,7 @@ bool ClassDecodeGenerator::ProcessList(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessList field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessList field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -970,7 +970,7 @@ bool ClassDecodeGenerator::ProcessListInt(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessListInt field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessListInt field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -1018,7 +1018,7 @@ bool ClassDecodeGenerator::ProcessListLong(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessListLong field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessListLong field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -1073,7 +1073,7 @@ bool ClassDecodeGenerator::ProcessListStr(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessListStr field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessListStr field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -1122,7 +1122,7 @@ bool ClassDecodeGenerator::ProcessDict(const TiXmlElement* field)
     const char* name = field->Attribute("name");
     if (name == nullptr)
     {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDict field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDict field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -1204,7 +1204,7 @@ bool ClassDecodeGenerator::ProcessDictInline(const TiXmlElement* field)
 
             //we only handle dictInlineEntry elements
             if (strcmp(ele->Value(), "dictInlineEntry") != 0) {
-                std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictInline non-dictInlineEntry in <dictInline> at line " << ele->Row() << ", ignoring.";
+                std::cout << std::endl <<  "DecodeGen::ProcessDictInline non-dictInlineEntry in <dictInline> at line " << ele->Row() << ", ignoring.";
                 continue;
             }
 
@@ -1252,12 +1252,12 @@ bool ClassDecodeGenerator::ProcessDictInline(const TiXmlElement* field)
 
                 //we only handle dictInlineEntry elements
                 if (strcmp(ele->Value(), "dictInlineEntry") != 0) {
-                    std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictInline non-dictInlineEntry in <dictInline> at line " << ele->Row() << ", ignoring.";
+                    std::cout << std::endl <<  "DecodeGen::ProcessDictInline non-dictInlineEntry in <dictInline> at line " << ele->Row() << ", ignoring.";
                     continue;
                 }
                 const char* key = ele->Attribute("key");
                 if (key == nullptr) {
-                    std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictInline <dictInlineEntry> at line " << ele->Row() << " is missing the key attribute, skipping.";
+                    std::cout << std::endl <<  "DecodeGen::ProcessDictInline <dictInlineEntry> at line " << ele->Row() << " is missing the key attribute, skipping.";
                     return false;
                 }
 
@@ -1311,12 +1311,12 @@ bool ClassDecodeGenerator::ProcessDictInline(const TiXmlElement* field)
 
                 //we only handle dictInlineEntry elements
                 if (strcmp(ele->Value(), "dictInlineEntry") != 0)  {
-                    std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictInline non-dictInlineEntry in <dictInline> at line " << ele->Row() << ", ignoring.";
+                    std::cout << std::endl <<  "DecodeGen::ProcessDictInline non-dictInlineEntry in <dictInline> at line " << ele->Row() << ", ignoring.";
                     continue;
                 }
                 const char* key = ele->Attribute("key");
                 if (key == nullptr) {
-                    std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictInline <dictInlineEntry> at line " << ele->Row() << " is missing the key attribute, skipping.";
+                    std::cout << std::endl <<  "DecodeGen::ProcessDictInline <dictInlineEntry> at line " << ele->Row() << " is missing the key attribute, skipping.";
                     return false;
                 }
 
@@ -1341,28 +1341,28 @@ bool ClassDecodeGenerator::ProcessDictRaw(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictRaw field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDictRaw field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
     const char* key = field->Attribute("key");
     if (key == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictRaw field at line " << field->Row() << " is missing the key attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDictRaw field at line " << field->Row() << " is missing the key attribute, skipping.";
         return false;
     }
     const char* value = field->Attribute("value");
     if (value == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictRaw field at line " << field->Row() << " is missing the value attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDictRaw field at line " << field->Row() << " is missing the value attribute, skipping.";
         return false;
     }
     const char* pykey = field->Attribute("pykey");
     if (pykey == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictRaw field at line " << field->Row() << " is missing the pykey attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDictRaw field at line " << field->Row() << " is missing the pykey attribute, skipping.";
         return false;
     }
     const char* pyvalue = field->Attribute("pyvalue");
     if (pyvalue == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictRaw field at line " << field->Row() << " is missing the pyvalue attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDictRaw field at line " << field->Row() << " is missing the pyvalue attribute, skipping.";
         return false;
     }
 
@@ -1418,7 +1418,7 @@ bool ClassDecodeGenerator::ProcessDictInt(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictInt field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDictInt field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -1464,7 +1464,7 @@ bool ClassDecodeGenerator::ProcessDictStr(const TiXmlElement* field)
 {
     const char* name = field->Attribute("name");
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassDecodeGenerator::ProcessDictStr field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "DecodeGen::ProcessDictStr field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 

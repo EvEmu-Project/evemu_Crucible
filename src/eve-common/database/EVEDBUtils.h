@@ -41,6 +41,7 @@ class DBRowDescriptor;
 
 void DBResultToIntIntDict(DBQueryResult &result, std::map<int32, int32> &into);
 void DBResultToUIntUIntDict(DBQueryResult &result, std::map<uint32, uint32> &into);
+// result is assumed to be "ORDER BY result[0]"
 void DBResultToIntIntlistDict(DBQueryResult &result, std::map<int32, PyRep *> &into);
 
 PyRep *DBColumnToPyRep(const DBResultRow &row, uint32 column_index);

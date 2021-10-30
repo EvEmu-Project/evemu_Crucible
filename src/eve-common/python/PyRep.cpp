@@ -71,7 +71,7 @@ const char* const s_mTypeString[] =
 /* PyRep base Class                                                     */
 /************************************************************************/
 PyRep::PyRep(PyType t) : RefObject(1), mType( t ) { }
-PyRep::PyRep(const PyRep& oth) : RefObject(1/*oth.GetCount()*/), mType(oth.mType) {}
+PyRep::PyRep(const PyRep& oth) : RefObject(1), mType(oth.mType) {}
 
 const char* PyRep::TypeString() const
 {
@@ -111,7 +111,7 @@ std::string PyRep::StringContent(PyRep* pRep)
     else if (pRep->IsNone())
         return "";
 
-    _log(COMMON__ERROR, "PyRep::StringContent() - Expected PyString or PyWString but got %s.", pRep->TypeString());
+    sLog.Error("PyRep::StringContent()", "Expected PyString or PyWString but got %s.", pRep->TypeString());
     return "";
 }
 

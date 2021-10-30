@@ -192,15 +192,22 @@ static volatile bool m_run = true;
 
 int main( int argc, char* argv[] )
 {
-    double profileStartTime = GetTimeMSeconds();
+    double profileStartTime(GetTimeMSeconds());
 
     /* set current time for timer */
     Timer::SetCurrentTime();
 
     /* init logging */
     sLog.Initialize();
+    /* Load server log settings */
+    if (load_log_settings(sConfig.files.logSettings.c_str())) {
+        sLog.Green( "       ServerInit", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
+    } else {
+        sLog.Warning( "       ServerInit", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
+    }
 
-    sLog.Green("       ServerInit", "Loading Server Configuration Files.");
+    std::printf("\n");     // spacer
+    sLog.Green("       ServerInit", "Loading Server Configuration from %s.", SRV_CONFIG_FILE);
     // should i try to load individual config files here?  probably not, but would look cool.  ;)
     /* Load server configuration */
     if (!sConfig.ParseFile(SRV_CONFIG_FILE)) {
@@ -228,13 +235,6 @@ int main( int argc, char* argv[] )
     sLog.Log("Sentry AI Version", " %.2f", Sentry_AI_Version );
     sLog.Log("   POS AI Version", " %.2f", POS_AI_Version );
     std::printf("\n");     // spacer
-
-    /* Load server log settings */
-    if (load_log_settings(sConfig.files.logSettings.c_str())) {
-        sLog.Green( "       ServerInit", "Log settings loaded from %s", sConfig.files.logSettings.c_str() );
-    } else {
-        sLog.Warning( "       ServerInit", "Unable to read %s (this file is optional)", sConfig.files.logSettings.c_str() );
-    }
 
     /* open up the log file if specified */
     if (!sConfig.files.logDir.empty()) {

@@ -44,7 +44,7 @@ bool ClassConstructGenerator::ProcessElementDef( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessElementDef <element> at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessElementDef <element> at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -80,7 +80,7 @@ bool ClassConstructGenerator::ProcessElementPtr( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessElementPtr field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessElementPtr field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -96,7 +96,7 @@ bool ClassConstructGenerator::ProcessRaw( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessRaw field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessRaw field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -112,7 +112,7 @@ bool ClassConstructGenerator::ProcessInt( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessInt field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessInt field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -132,7 +132,7 @@ bool ClassConstructGenerator::ProcessLong( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessLong field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessLong field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -152,7 +152,7 @@ bool ClassConstructGenerator::ProcessReal( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessReal field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessReal field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -172,7 +172,7 @@ bool ClassConstructGenerator::ProcessBool( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessBool field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessBool field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -197,7 +197,7 @@ bool ClassConstructGenerator::ProcessBuffer( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessBuffer field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessBuffer field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -213,7 +213,7 @@ bool ClassConstructGenerator::ProcessString( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessString field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessString field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -238,7 +238,7 @@ bool ClassConstructGenerator::ProcessWString( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessWString field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessWString field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -263,7 +263,7 @@ bool ClassConstructGenerator::ProcessToken( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessToken field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessToken field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -284,7 +284,7 @@ bool ClassConstructGenerator::ProcessObject( const TiXmlElement* field )
 {
     const char* name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessObject field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessObject field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -306,7 +306,7 @@ bool ClassConstructGenerator::ProcessObjectEx( const TiXmlElement* field )
 {
     const char *name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessObjectEx field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessObjectEx field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -322,7 +322,7 @@ bool ClassConstructGenerator::ProcessTuple( const TiXmlElement* field )
 {
     const char *name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessTuple field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessTuple field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -343,7 +343,7 @@ bool ClassConstructGenerator::ProcessList( const TiXmlElement* field )
 {
     const char *name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessList field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessList field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -379,7 +379,7 @@ bool ClassConstructGenerator::ProcessDict( const TiXmlElement* field )
 {
     const char *name = field->Attribute( "name" );
     if (name == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessDict field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessDict field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
@@ -401,7 +401,7 @@ bool ClassConstructGenerator::ProcessDictInlineEntry( const TiXmlElement* field 
     //we dont really even care about this...
     const char* key = field->Attribute( "key" );
     if (key == nullptr) {
-        std::cout << std::endl <<  "ClassConstructGenerator::ProcessDictInlineEntry field at line " << field->Row() << " is missing the name attribute, skipping.";
+        std::cout << std::endl <<  "CtorGen::ProcessDictInlineEntry field at line " << field->Row() << " is missing the name attribute, skipping.";
         return false;
     }
 
