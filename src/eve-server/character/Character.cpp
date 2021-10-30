@@ -733,8 +733,10 @@ uint8 Character::InjectSkillIntoBrain(SkillRef skill) {
 
     skill->ChangeSingleton(true);
     skill->Move(m_itemID, flagSkill, true);
-    skill->SetAttribute(AttrSkillPoints, EvilZero.get_uint32());
-    skill->SetAttribute(AttrSkillLevel, EvilZero.get_uint32(), false);
+    skill->SetAttribute(AttrSkillPoints, EvilZero);
+    skill->SetAttribute(AttrSkillLevel, EvilZero);
+
+    skill->VerifyAttribs();
 
     // 'EvESkill::Event::SkillInjected' shows as "Unknown" in PD>Skill>History
     SaveSkillHistory(EvESkill::Event::SkillInjected, GetFileTimeNow(), m_itemID, skill->typeID(), 0, 0);
