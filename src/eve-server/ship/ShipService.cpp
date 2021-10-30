@@ -771,6 +771,14 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
         //{'FullPath': u'UI/Messages', 'messageID': 258825, 'label': u'ScoopObjectGoneBody'}(u'{target} is no longer there.', None, {u'{target}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'target'}})
     }
 
+    //CannotScoopTargetedShip
+    //CantScoopAnchoring
+    //CantScoopOwnerNpc
+    //CantScoopThat
+    //ScoopObjectGone
+    //ShpScoopSecureCC
+    //CanOnlyScoopIfUnanchored
+
     // check to see if this object is anchored and if so, refuse to scoop it
     if (pSE->IsContainerSE())
         if (pSE->GetContSE()->IsAnchored())

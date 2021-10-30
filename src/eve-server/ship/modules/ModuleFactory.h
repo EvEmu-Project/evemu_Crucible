@@ -73,7 +73,7 @@ static GenericModule* ModuleFactory(ModuleItemRef mRef, ShipItemRef sRef)
 
             // Armor Modules:
             case EVEDB::invGroups::Damage_Control:                          return (new ActiveModule(mRef, sRef));    // Active  -  SELF
-            case EVEDB::invGroups::Armor_Repair_Unit:                       return (new ActiveModule(mRef, sRef));	  // Active  -  SELF
+            case EVEDB::invGroups::Armor_Repair_Unit:                       return (new ActiveModule(mRef, sRef));    // Active  -  SELF
             case EVEDB::invGroups::Hull_Repair_Unit:                        return (new ActiveModule(mRef, sRef));    // Active  -  SELF
             case EVEDB::invGroups::Reinforced_Bulkheads:                    return (new PassiveModule(mRef, sRef));
             case EVEDB::invGroups::Armor_Coating:                           return (new PassiveModule(mRef, sRef));
@@ -112,8 +112,8 @@ static GenericModule* ModuleFactory(ModuleItemRef mRef, ShipItemRef sRef)
             case EVEDB::invGroups::Tractor_Beam:                            return (new ActiveModule(mRef, sRef));    // Active - external
 
             // Prospecting Modules
-            case EVEDB::invGroups::Salvager:                                return (new Prospector(mRef, sRef));    // Active - external
-            case EVEDB::invGroups::Data_Miner:                              return (new Prospector(mRef, sRef));    // Active - external
+            case EVEDB::invGroups::Salvager:                                return (new Prospector(mRef, sRef));      // Active - external
+            case EVEDB::invGroups::Data_Miner:                              return (new Prospector(mRef, sRef));      // Active - external
 
             // Engineering Modules:
             case EVEDB::invGroups::Capacitor_Recharger:                     return (new PassiveModule(mRef, sRef));
@@ -164,8 +164,8 @@ static GenericModule* ModuleFactory(ModuleItemRef mRef, ShipItemRef sRef)
             case EVEDB::invGroups::Gas_Cloud_Harvester:                     return (new MiningLaser(mRef, sRef));     // Active - external
 
             // Propulsion Modules:
-            case EVEDB::invGroups::Afterburner:                             return (new ActiveModule(mRef, sRef));     // Active
-            case EVEDB::invGroups::Microwarpdrive:                          return (new ActiveModule(mRef, sRef));     // Active
+            case EVEDB::invGroups::Afterburner:                             return (new ActiveModule(mRef, sRef));    // Active
+            case EVEDB::invGroups::Microwarpdrive:                          return (new ActiveModule(mRef, sRef));    // Active
             case EVEDB::invGroups::Warp_Core_Stabilizer:                    return (new PassiveModule(mRef, sRef));
             case EVEDB::invGroups::Inertial_Stabilizer:                     return (new PassiveModule(mRef, sRef));
             case EVEDB::invGroups::Nanofiber_Internal_Structure:            return (new PassiveModule(mRef, sRef));

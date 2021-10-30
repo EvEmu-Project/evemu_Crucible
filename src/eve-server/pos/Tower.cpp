@@ -301,6 +301,8 @@ void TowerSE::Reinforced()
 
 void TowerSE::UpdatePassword()
 {
+    //CannotSetShieldHarmonicPassword
+    
     if (m_tdata.password.empty()) {
         m_harmonic =EVEPOS::Harmonic::Offline;
         m_tdata.harmonic = m_harmonic;
