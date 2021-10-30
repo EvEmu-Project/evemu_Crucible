@@ -702,10 +702,10 @@ uint8 Character::InjectSkillIntoBrain(SkillRef skill) {
     // returns
     // 1=success, 2=prereqs, 3=already known, 4=split fail, 5=load fail
 
-    SkillRef oldSkill = GetSkill( skill->typeID() );
+    SkillRef oldSkill(GetSkill(skill->typeID()));
     if (oldSkill.get() != nullptr) {
         /** @todo: build and send proper UserError for CharacterAlreadyKnowsSkill. */
-        m_pClient->SendNotifyMsg( "You already know this skill." );
+        m_pClient->SendNotifyMsg("You already know this skill.");
         return 3;
     }
 
@@ -713,20 +713,20 @@ uint8 Character::InjectSkillIntoBrain(SkillRef skill) {
      *  If so, send error, cancel inject and return. (flagID=61).
      */
 
-    if ( !skill->SkillPrereqsComplete( *this ) ) {
+    if (!skill->SkillPrereqsComplete(*this)) {
         /** @todo need to send back a response to the client.  need packet specs. */
         _log(SKILL__DEBUG, "%s(%u): Requested to inject %s (%u/%u) but prereq not complete.", \
-                name(), m_itemID, skill->name(), skill->typeID(), skill->itemID() );
-        m_pClient->SendNotifyMsg( "Injection failed.  Skill prerequisites incomplete." );
+                name(), m_itemID, skill->name(), skill->typeID(), skill->itemID());
+        m_pClient->SendNotifyMsg("Injection failed.  Skill prerequisites incomplete.");
         return 2;
     }
 
     // are we injecting from a stack of skills?
-    if ( skill->quantity() > 1 ) {
+    if (skill->quantity() > 1) {
         // split the stack to obtain single item
-        skill = SkillRef::StaticCast(skill->Split( 1 ));
+        skill = SkillRef::StaticCast(skill->Split(1));
         if (skill.get() == nullptr ) {
-            _log( ITEM__ERROR, "%s (%u): Unable to split stack of %s (%u).", name(), m_itemID, skill->name(), skill->itemID() );
+            _log(ITEM__ERROR, "%s (%u): Unable to split stack of %s (%u).", name(), m_itemID, skill->name(), skill->itemID());
             return 4;
         }
     }
@@ -907,11 +907,11 @@ void Character::AddToSkillQueue(uint16 typeID, uint8 level) {
     if (skill == nullptr) {
         //  skill not found.  cancel and return
         _log(SKILL__QUEUE, "Cannot find Skill %u.", typeID);
-        m_pClient->SendErrorMsg("Cannot find skill to train.");
+        m_pClient->SendErrorMsg("Cannot find skill to train.  Ref: ServerError 60723.");
         return;
     }
 
-    _log( SKILL__INFO, "Starting checks to add %s to training queue.", skill->name());
+    _log(SKILL__INFO, "Starting checks to add %s to training queue.", skill->name());
 
     uint8 nextLvl(skill->GetAttribute(AttrSkillLevel).get_uint32() + 1);
     if (nextLvl > EvESkill::MAXSKILLLEVEL)

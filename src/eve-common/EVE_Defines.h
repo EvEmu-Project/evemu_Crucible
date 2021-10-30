@@ -202,14 +202,15 @@
 #define IsWreckTypeID(typeID) \
  ((typeID > 26467) && (typeID < 30826))
 
- #define IsCharacterID(itemID) \
+#define IsCharacterID(itemID) \
  ((itemID >= minCharacter) && (itemID <= maxCharacter))
 
 #define IsValidLocationID(itemID) \
   ((IsSolarSystemID(itemID)) \
   or (IsRegionID(itemID)) \
   or (IsStationID(itemID)) \
-  or (IsPlayerItem(itemID)))
+  or (IsPlayerItem(itemID)) \
+  or (IsCharacterID(itemID)))
 
 #define IsValidOwner(itemID) \
 ((itemID == 1) || ((itemID >= minNPCCorporation) && (itemID <= maxNPCCorporation)) \

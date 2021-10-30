@@ -740,7 +740,11 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
             } else {
                 _log(ITEM__ERROR, "II::Move() - Cant find location %u containing %s.", m_data.locationID, m_data.name.c_str());
             }
+        } else {
+            _log(ITEM__WARNING, "II::Move()::Remove() - %u is invalid location.", m_data.locationID);
         }
+    } else {
+        _log(ITEM__TRACE, "II::Move()::Remove() - same same same.");
     }
 
     // update data
@@ -758,7 +762,11 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
             } else {
                 _log(ITEM__ERROR, "II::Move() - Cant find location %u to add %s.", m_data.locationID, m_data.name.c_str());
             }
+        } else {
+            _log(ITEM__WARNING, "II::Move()::Add() - %u is invalid location.", m_data.locationID);
         }
+    } else {
+        _log(ITEM__TRACE, "II::Move()::Add() - same same same.");
     }
 
     if (IsTempItem(m_itemID) or IsNPC(m_itemID))
