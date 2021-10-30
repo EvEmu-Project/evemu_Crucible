@@ -314,7 +314,7 @@ struct StaticData {
 };
 
 /* POD structure for attribute type data. */
-struct AttrData {
+struct AttrTypeData {
     uint8 categoryID;
     uint8 attributeCategory;
     uint16 attributeID;

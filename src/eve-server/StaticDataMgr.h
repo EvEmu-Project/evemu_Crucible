@@ -183,7 +183,7 @@ private:
     std::map<uint16, uint8>                             m_moonGoo;          // typeID/rarity
     std::map<uint16, std::string>                       m_skills;           // typeID/name
     std::map<uint32, StaticData>                        m_staticData;       // itemID/data
-    std::map<uint16, AttrData>                          m_attrData;         // attrID/data
+    std::map<uint16, AttrTypeData>                      m_attrTypeData;     // attrID/data
 
     std::multimap<uint16, EvERam::RamMaterials>         m_ramMatl;          // itemTypeID/data
     std::multimap<uint16, EvERam::RamRequirements>      m_ramReq;           // bpTypeID/data

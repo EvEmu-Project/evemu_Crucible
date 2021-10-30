@@ -39,7 +39,7 @@ m_npcDivisions(nullptr)
     m_moonGoo.clear();
     m_ramMatl.clear();
     m_regions.clear();
-    m_attrData.clear();
+    m_attrTypeData.clear();
     m_minerals.clear();
     m_compounds.clear();
     m_bpMatlData.clear();
@@ -94,7 +94,7 @@ void StaticDataMgr::Clear()
     m_moonGoo.clear();
     m_ramMatl.clear();
     m_regions.clear();
-    m_attrData.clear();
+    m_attrTypeData.clear();
     m_minerals.clear();
     m_compounds.clear();
     m_bpMatlData.clear();
@@ -249,15 +249,15 @@ void StaticDataMgr::Populate()
     ManagerDB::GetAttributeTypes(*res);
     while (res->GetRow(row)) {
         //SELECT attributeID, attributeName, attributeCategory, displayName, categoryID FROM dgmAttribute
-        AttrData attrData               = AttrData();
-        attrData.attributeID            = row.GetInt(0);
-        attrData.attributeName          = (row.IsNull(1) ? "*none*" : row.GetText(1));
-        attrData.attributeCategory      = (row.IsNull(2) ? 0        : row.GetInt(2));
-        attrData.displayName            = (row.IsNull(3) ? "*none*" : row.GetText(3));
-        attrData.categoryID             = (row.IsNull(4) ? 0        : row.GetInt(4));
-        m_attrData.emplace(row.GetInt(0), attrData);
+        AttrTypeData typeData               = AttrTypeData();
+        typeData.attributeID            = row.GetInt(0);
+        typeData.attributeName          = (row.IsNull(1) ? "*none*" : row.GetText(1));
+        typeData.attributeCategory      = (row.IsNull(2) ? 0        : row.GetInt(2));
+        typeData.displayName            = (row.IsNull(3) ? "*none*" : row.GetText(3));
+        typeData.categoryID             = (row.IsNull(4) ? 0        : row.GetInt(4));
+        m_attrTypeData.emplace(row.GetInt(0), typeData);
     }
-    sLog.Cyan("    StaticDataMgr", "%lu Attribute data sets loaded in %.3fms.", m_attrData.size(), (GetTimeMSeconds() - startTime));
+    sLog.Cyan("    StaticDataMgr", "%lu Attribute data sets loaded in %.3fms.", m_attrTypeData.size(), (GetTimeMSeconds() - startTime));
 
     startTime = GetTimeMSeconds();
     ManagerDB::GetSystemData(*res);
@@ -657,8 +657,8 @@ void StaticDataMgr::GetTypes(std::map< uint16, Inv::TypeData >& into)
 
 const char* StaticDataMgr::GetAttrName(uint16 attrID)
 {
-    std::map<uint16, AttrData>::const_iterator itr = m_attrData.find(attrID);
-    if (itr != m_attrData.end())
+    std::map<uint16, AttrTypeData>::const_iterator itr = m_attrTypeData.find(attrID);
+    if (itr != m_attrTypeData.end())
         return itr->second.attributeName.c_str();
         //return itr->second.displayName.c_str();
 
