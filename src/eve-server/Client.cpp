@@ -745,25 +745,6 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_system->AddClient(this, count, IsJump());
     }
 
-    if (InPod()) {
-        m_ship->Move(m_locationID, flagCapsule, true);
-    } else {
-        m_pod->Move(m_SystemData.systemID, flagCapsule, false);
-        m_ship->Move(m_locationID, flagNone, true);
-    }
-
-    // once systemData.radius implemented, remove this in favor of below check
-    m_ship->SetPosition(pt);
-    /* comment this block for later use...
-     * m_SystemData.radius is not populated yet, and this does weird things with ships
-    // verify 'pt' is within system boundaries
-    if (pt.length() < m_SystemData.radius) {
-        m_ship->SetPosition(pt);
-    } else {
-        ;  // oob
-    }
-    */
-
     char ci[45];
     if (sDataMgr.IsStation(m_locationID)) {
         _log(PLAYER__WARNING, "MoveToLocation() - Character %s (%u) Docked in %u.", m_char->name(), m_char->itemID(), m_locationID);
@@ -789,6 +770,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 
         if (!IsHangarLoaded(m_locationID))
             LoadStationHangar(m_locationID);
+
         CharNowInStation();
         DestroyShipSE();
         StationItemRef sRef = sEntityList.GetStationByID(m_locationID);
@@ -821,11 +803,31 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
             }
         }
 
+        if (InPod()) {
+            m_ship->Move(m_locationID, flagCapsule, true);
+        } else {
+            m_pod->Move(m_SystemData.systemID, flagCapsule, false);
+            m_ship->Move(m_locationID, flagNone, true);
+        }
+
         if (m_char->flag() != flagPilot)
             m_char->Move(m_shipId, flagPilot, true);
 
         if (pShipSE != nullptr)
             pShipSE->ResetShipSystemMgr(m_system);
+
+        // once systemData.radius implemented, remove this in favor of below check
+        m_ship->SetPosition(pt);
+
+        /* comment this block for later use...
+         * m_SystemData.radius is not populated yet, and this does weird things with ships
+        // verify 'pt' is within system boundaries
+        if (pt.length() < m_SystemData.radius) {
+            m_ship->SetPosition(pt);
+        } else {
+            ;  // oob
+        }
+        */
 
         SetDestiny(pt);
 
@@ -838,8 +840,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     if (!m_login)
         m_ship->SaveShip(); // this saves everything on ship
 
-    uint32 stationID(sDataMgr.IsStation(m_locationID) ? m_locationID : 0);
-    m_char->SetLocation(stationID, m_SystemData);
+    m_char->SetLocation((sDataMgr.IsStation(m_locationID) ? m_locationID : 0), m_SystemData);
 
     UpdateSession();
     SendSessionChange();
@@ -999,7 +1000,7 @@ void Client::UndockFromStation() {
      * -> GotoDirection(etc, etc) -> SetState (dmg, ego, ball, slim)
      *  ***** 9sec from hitting undock to space view on live. *****
      */
-    MoveToLocation(m_SystemData.systemID, m_StationData.dockPosition);
+    MoveToLocation(m_SystemData.systemID, m_dockPoint);
     SetInvulTimer(Player::Timer::UndockInvul);
     SetStateTimer(Player::State::Undock, Player::Timer::Undock);
     SetSessionTimer();

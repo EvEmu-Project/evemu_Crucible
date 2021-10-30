@@ -450,7 +450,7 @@ bool SystemManager::LoadSystemStatics() {
         AddItemToInventory(pSE->GetSelf());
     }
 
-    _log(SERVER__INIT, "SystemManager::LoadSystemStatics() - %u Static System entities loaded for %s (%u)", entities.size(), m_data.name.c_str(), m_data.systemID);
+    _log(SERVER__INIT, "SystemManager::LoadSystemStatics() - %u Static System entities loaded for %s(%u)", entities.size(), m_data.name.c_str(), m_data.systemID);
     entities.clear();
     return true;
 }

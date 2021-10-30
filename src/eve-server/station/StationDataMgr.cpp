@@ -220,7 +220,7 @@ bool StationDataMgr::GetStationData(uint32 stationID, StationData& data)
     } else {
         _log(DATABASE__MESSAGE, "Failed to query data for station %u: Station not found.", stationID);
     }
-    return true;
+    return false;
 }
 
 PyObject* StationDataMgr::GetStationPyData(uint32 stationID)

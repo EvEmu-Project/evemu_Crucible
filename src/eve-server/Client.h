@@ -314,7 +314,7 @@ public:
 
     // character notification messages
     void CharNowInStation();
-    void CharNoLongerInStation();       // clears m_StationData
+    void CharNoLongerInStation();       // clears m_StationData and remove char from station guestList
 
     // portrait stuff....
     bool RecPic()                                       { return m_portrait; }
@@ -393,7 +393,9 @@ protected:
     Timer m_sessionTimer;    // used to prevent multiple session changes from occurring too fast
     Timer m_ballparkTimer;   // this is to properly send SetState data after a delay (cant do it correctly otherwise)
 
+    // this is GPoint on jump and dock heading on undock
     GPoint m_movePoint;
+    // dock location in space (absolute)
     GPoint m_dockPoint;
 
     std::set<LSCChannel*>   m_channels;    //we do not own these.
