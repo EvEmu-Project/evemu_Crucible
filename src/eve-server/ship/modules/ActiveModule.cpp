@@ -1193,13 +1193,12 @@ void ActiveModule::ShowEffect(bool active/*false*/, bool abort/*false*/)
         }
     }
 
-    uint16 effectID(m_effectID);
     // there may be others here like this...this is ONLY for OnSpecialFX data
     if ((m_effectID == EVEEffectID::useMissiles) and (m_chargeRef.get() != nullptr))   //operation defined by charge (use charge's default effectID)
-        effectID = m_chargeRef->type().GetDefaultEffect();
-    std::string guidStr = sFxDataMgr.GetEffectGuid(effectID);
+        m_effectID = m_chargeRef->type().GetDefaultEffect();
+    std::string guidStr = sFxDataMgr.GetEffectGuid(m_effectID);
     if (guidStr.empty())
-        _log(EFFECTS__ERROR, "guid empty for %s using effectID %u", m_modRef->name(), effectID);
+        _log(EFFECTS__ERROR, "guid empty for %s using effectID %u", m_modRef->name(), m_effectID);
 
     uint16 chgTypeID(((m_chargeRef.get() != nullptr) ? m_chargeRef->typeID() : 0));
     uint32 timeLeft(GetRemainingCycleTimeMS());

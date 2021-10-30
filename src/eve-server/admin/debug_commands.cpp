@@ -478,8 +478,17 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* service
     str << "%s<br>";
     str << "InventoryID %u(%p) (Item %p) has %u items.<br><br>"; //70
 
-    for (auto cur : invMap)
-        str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << "): " << cur.second->itemName() << "<br>"; // 20 + 70 for name (90)
+    if (IsSolarSystemID(inventoryID)) {
+        SystemEntity* pSE(nullptr);
+        SystemManager* sMgr = pClient->SystemMgr();
+        for (auto cur : invMap) {
+            pSE = sMgr->GetEntityByID(cur.first);
+            str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << ")[" << pSE->SysBubble()->GetID() << "]: " << cur.second->itemName() << "<br>"; // 20 + 70 for name (90)
+        }
+    } else {
+        for (auto cur : invMap)
+            str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << "): " << cur.second->itemName() << "<br>"; // 20 + 70 for name (90)
+    }
 
     int count = invMap.size();
     int size = count * 90;

@@ -132,7 +132,7 @@ static GenericModule* ModuleFactory(ModuleItemRef mRef, ShipItemRef sRef)
             case EVEDB::invGroups::Stasis_Web:                              return (new ActiveModule(mRef, sRef));    // Active - external
             case EVEDB::invGroups::ECM_Burst:                               return (new ActiveModule(mRef, sRef));    // Active - external
             case EVEDB::invGroups::Passive_Targeting_System:                return (new ActiveModule(mRef, sRef));    // Active - external
-            case EVEDB::invGroups::Automated_Targeting_System:              return (new ActiveModule(mRef, sRef));    // Active - external
+            //case EVEDB::invGroups::Automated_Targeting_System:              return (new ActiveModule(mRef, sRef));    // Active - external
             case EVEDB::invGroups::ECM:                                     return (new ActiveModule(mRef, sRef));    // Active - external
             case EVEDB::invGroups::ECCM:                                    return (new ActiveModule(mRef, sRef));    // Active  -  SELF
             case EVEDB::invGroups::Sensor_Backup_Array:                     return (new PassiveModule(mRef, sRef));
