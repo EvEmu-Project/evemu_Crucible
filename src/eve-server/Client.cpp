@@ -252,10 +252,9 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     }
 
     m_char->VerifySP();
-    m_char->SkillQueueLoop(false);
     m_char->SetLoginTime();
-
     m_char->SetClient(this);
+    m_char->SkillQueueLoop(false);
 
     // register with our system manager AFTER character is constructed and initialized
     m_system->AddClient(this, true);
