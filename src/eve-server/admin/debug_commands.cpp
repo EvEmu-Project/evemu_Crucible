@@ -483,7 +483,11 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* service
         SystemManager* sMgr = pClient->SystemMgr();
         for (auto cur : invMap) {
             pSE = sMgr->GetEntityByID(cur.first);
-            str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << ")[" << pSE->SysBubble()->GetID() << "]: " << cur.second->itemName() << "<br>"; // 20 + 70 for name (90)
+            if (pSE->SysBubble() == nullptr) {
+                str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << ")[n/a]: " << cur.second->itemName() << "<br>"; // 20 + 70 for name (90)
+            } else {
+                str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << ")[" << pSE->SysBubble()->GetID() << "]: " << cur.second->itemName() << "<br>"; // 20 + 70 for name (90)
+            }
         }
     } else {
         for (auto cur : invMap)
