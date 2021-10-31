@@ -48,6 +48,7 @@
 #include "system/DestinyManager.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
+#include "system/SystemGPoint.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "exploration/Scan.h"
 #include "station/Station.h"
@@ -143,7 +144,7 @@ Client::~Client() {
          *      1)  check client IsInSpace(?)
          *      2)  set timer to delay removing bubble/sysmgr/destiny...or check based on destiny->isstopped() or timer on destiny->ismoving()
          *      3)  set current position (DB::chrCharacters.logoutPosition?)  initial code in place for warp-in on login
-         *      4)  generate random point to warp to ** use m_SGP.GetRandPointInSystem(systemID, distance)
+         *      4)  generate random point to warp to ** use SystemGPoint::GetRandPointInSystem(systemID, distance)
          *      5)  _warp to random point, but DONT make/update new bubble with entering ship
          *      6)  remove client from sysmgr/destiny/server
          */
@@ -770,7 +771,7 @@ void Client::SetDestiny(const GPoint& pt, bool update/*false*/) {
 
     if (pt.isZero()) {
         if (pShipSE->GetPosition().isZero()) {
-            pShipSE->DestinyMgr()->SetPosition(m_SGP.GetRandPointOnPlanet(m_system->GetID()), update);
+            pShipSE->DestinyMgr()->SetPosition(SystemGPoint::GetRandPointOnPlanet(m_system->GetID()), update);
         } else {
             pShipSE->DestinyMgr()->SetPosition(pShipSE->GetPosition(), update);
         }

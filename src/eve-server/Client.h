@@ -40,7 +40,6 @@
 #include "ship/Ship.h"
 #include "ship/modules/ModuleManager.h"
 #include "system/SystemEntity.h"
-#include "system/SystemGPoint.h"
 
 #include "../eve-common/EVE_Missions.h"
 #include "../eve-common/EVE_Player.h"
@@ -341,7 +340,6 @@ protected:
     StationData m_StationData;
     CharacterRef m_char;
     PyServiceMgr& m_services;
-    SystemGPoint m_SGP;     // interface to my variable 3-d point generating system  (which isnt finished yet... -allan)
     ShipSE* pShipSE;
     TradeSession* m_TS;
     ClientSession* pSession;

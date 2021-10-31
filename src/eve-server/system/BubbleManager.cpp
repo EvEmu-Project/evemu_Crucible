@@ -156,10 +156,8 @@ void BubbleManager::Add(SystemEntity* pSE, bool isPostWarp /*false*/) {
     if (pSE == nullptr)
         return;
 
-    if (pSE->GetPosition().isZero()) {
-        SystemGPoint sGP;
-        pSE->DestinyMgr()->SetPosition(sGP.GetRandPointOnPlanet(pSE->SystemMgr()->GetID()));
-    }
+    if (pSE->GetPosition().isZero())
+         pSE->DestinyMgr()->SetPosition(SystemGPoint::GetRandPointOnPlanet(pSE->SystemMgr()->GetID()));
 
     GPoint center(pSE->GetPosition());
     if (isPostWarp) {

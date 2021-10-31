@@ -47,9 +47,8 @@ class ShipBound
 public:
     PyCallable_Make_Dispatcher(ShipBound)
 
-    ShipBound(PyServiceMgr *mgr, ShipDB& db, ShipItem* ship)
+    ShipBound(PyServiceMgr *mgr, ShipItem* ship)
     : PyBoundObject(mgr),
-      m_db(db),
       pShip(ship),
       m_dispatch(new Dispatcher(this))
     {
@@ -103,7 +102,6 @@ public:
     PyCallable_DECL_CALL(StoreVessel);
 
 protected:
-    ShipDB& m_db;
     Dispatcher *const m_dispatch;
 
 private:
@@ -135,7 +133,7 @@ PyBoundObject *ShipService::CreateBoundObject(Client *pClient, const PyRep *bind
      */
     _log(CLIENT__MESSAGE, "ShipService bind request");
     bind_args->Dump(CLIENT__MESSAGE, "    ");
-    return new ShipBound(m_manager, m_db, pClient->GetShip().get());
+    return new ShipBound(m_manager, pClient->GetShip().get());
 }
 
 /* only called in space */

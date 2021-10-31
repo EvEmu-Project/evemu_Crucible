@@ -39,9 +39,9 @@ public:
 
     static void GetGates(uint32 systemID, std::vector< DBGPointEntity >& gateIDs, uint8& total);
 
-    void GetBelts(uint32 systemID, std::vector< DBGPointEntity >& beltIDs, uint8& total);
-    void GetMoons(uint32 systemID, std::vector< DBGPointEntity >& moonIDs, uint8& total);
-    void GetPlanets(uint32 systemID, std::vector<DBGPointEntity>& planetIDs, uint8& total);
+    static void GetBelts(uint32 systemID, std::vector< DBGPointEntity >& beltIDs, uint8& total);
+    static void GetMoons(uint32 systemID, std::vector< DBGPointEntity >& moonIDs, uint8& total);
+    static void GetPlanets(uint32 systemID, std::vector<DBGPointEntity>& planetIDs, uint8& total);
 
     static bool GetWrecksToTypes(DBQueryResult& res);
 

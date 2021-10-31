@@ -14,6 +14,8 @@
 #include "eve-server.h"
 
 #include "system/SystemGPoint.h"
+
+#include "system/SystemDB.h"
 #include "system/SystemManager.h"
 
 /**
@@ -58,21 +60,21 @@ void SystemGPoint::GetPlanets(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> planetIDs;
     planetIDs.clear();
-    m_db.GetPlanets(systemID, planetIDs, total);
+    SystemDB::GetPlanets(systemID, planetIDs, total);
 }
 
 void SystemGPoint::GetMoons(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> moonIDs;
     moonIDs.clear();
-    m_db.GetMoons(systemID, moonIDs, total);
+    SystemDB::GetMoons(systemID, moonIDs, total);
 }
 
 const GPoint SystemGPoint::GetRandPointOnPlanet(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> planetIDs;
     planetIDs.clear();
-    m_db.GetPlanets(systemID, planetIDs, total);
+    SystemDB::GetPlanets(systemID, planetIDs, total);
 
     if (planetIDs.empty())
         return NULL_ORIGIN;
@@ -85,7 +87,7 @@ const GPoint SystemGPoint::GetRandPointOnMoon(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> moonIDs;
     moonIDs.clear();
-    m_db.GetMoons(systemID, moonIDs, total);
+    SystemDB::GetMoons(systemID, moonIDs, total);
 
     if (moonIDs.empty())
         return NULL_ORIGIN;
@@ -98,7 +100,7 @@ uint32 SystemGPoint::GetRandPlanet(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> planetIDs;
     planetIDs.clear();
-    m_db.GetPlanets(systemID, planetIDs, total);
+    SystemDB::GetPlanets(systemID, planetIDs, total);
 
     if (planetIDs.empty())
         return 0;
@@ -111,7 +113,7 @@ const GPoint SystemGPoint::Get2RandPlanets(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> planetIDs;
     planetIDs.clear();
-    m_db.GetPlanets(systemID, planetIDs, total);
+    SystemDB::GetPlanets(systemID, planetIDs, total);
     /** @todo finish this */
     return NULL_ORIGIN;
 }
@@ -120,7 +122,7 @@ const GPoint SystemGPoint::Get3RandPlanets(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> planetIDs;
     planetIDs.clear();
-    m_db.GetPlanets(systemID, planetIDs, total);
+    SystemDB::GetPlanets(systemID, planetIDs, total);
     /** @todo finish this */
 
     return NULL_ORIGIN;
@@ -130,7 +132,7 @@ uint32 SystemGPoint::GetRandMoon(uint32 systemID) {
     uint8 total = 0;
     std::vector<DBGPointEntity> moonIDs;
     moonIDs.clear();
-    m_db.GetMoons(systemID, moonIDs, total);
+    SystemDB::GetMoons(systemID, moonIDs, total);
 
     if (moonIDs.empty())
         return 0;
@@ -150,7 +152,7 @@ const GPoint SystemGPoint::GetAnomalyPoint(SystemManager* pSys)
     uint8 total = 0;
     std::vector<DBGPointEntity> planetIDs;
     planetIDs.clear();
-    m_db.GetPlanets(pSys->GetID(), planetIDs, total);
+    SystemDB::GetPlanets(pSys->GetID(), planetIDs, total);
 
     SystemEntity* pSE(pSys->GetSE(planetIDs[MakeRandomInt(0, total)].itemID));
 
