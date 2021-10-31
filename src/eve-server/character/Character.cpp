@@ -1103,7 +1103,7 @@ void Character::SkillQueueLoop(bool update/*true*/)
                     default: {
                         if (!sent) {
                             sent = true;
-                            m_pClient->SendInfoModalMsg("Completed Skill Training.<br>Your ship will update to the new level the next time you undock.");
+                            m_pClient->SendInfoModalMsg("Completed Skill Training.<br>Your ship will update to the new skill level the next time you undock.");
                         }
                     } break;
                 }

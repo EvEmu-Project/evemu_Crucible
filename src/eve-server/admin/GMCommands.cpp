@@ -122,7 +122,7 @@ PyResult Command_giveisk(Client* who, CommandDB* db, PyServiceMgr* services, con
     }
     else
         throw CustomError ("Invalid entityID for characters %u", entity);
-
+/** @todo update this */
     // GiveCash
     tgt->AddBalance(amount, Account::CreditType::ISK);
     return new PyString("Operation successful.");

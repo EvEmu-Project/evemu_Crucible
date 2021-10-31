@@ -738,7 +738,7 @@ PyResult Command_bubbletrack(Client* pClient, CommandDB* db, PyServiceMgr* servi
     }
 
     // begin argument processing
-    int locationID = 0;
+    int locationID(0);
     if (args.argCount() < 2) {
         if (sConfig.debug.BubbleTrack) {
             pClient->GetShipSE()->SysBubble()->MarkCenter();

@@ -911,13 +911,15 @@ void SystemBubble::MarkBubble(const GPoint& position, std::string& name, std::st
     }
     cRef->SetMySE(cSE);
     cSE->AnchorContainer();
+    m_markers.emplace(cRef->itemID(), cSE);
     if (center) {
         // only setting centers as global
         cSE->SetGlobal(true);
         m_centerSE = cSE;
+        m_system->AddMarker(cSE, true, true);
+    } else {
+        m_system->AddEntity(cSE, false);
     }
-    m_markers.emplace( cRef->itemID(), cSE);
-    m_system->AddEntity(cSE, center);
 }
 
 

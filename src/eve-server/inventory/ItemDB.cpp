@@ -317,9 +317,11 @@ void ItemDB::SaveAttributes(bool isChar, std::vector<Inv::AttrData>& data)
         Inserts << "INSERT INTO chrCharacterAttributes";
         Inserts << " (charID, attributeID, valueInt, valueFloat)";
     } else {
+        //sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID = %u", data[0].itemID);
         Inserts << "INSERT INTO entity_attributes";
         Inserts << " (itemID, attributeID, valueInt, valueFloat)";
     }
+    
     bool first(true);
     for (auto cur : data) {
         if (first) {

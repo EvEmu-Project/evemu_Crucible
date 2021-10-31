@@ -880,11 +880,10 @@ void ShipItem::UpdateModules(EVEItemFlags flag)
 //  Updated fractional ship defense settings.  -allan 1Feb15
 void ShipItem::SetShipCapacitorLevel(float fraction)
 {
-    if (fraction > 1.0) fraction = 1.0;
-    if (fraction < 0.0) fraction = 0.0;
+    if (fraction > 1.0f) fraction = 1.0f;
+    if (fraction < 0.0f) fraction = 0.0f;
 
-    EvilNumber newCapacitorCharge(EvilZero);
-    newCapacitorCharge = GetAttribute(AttrCapacitorCapacity) * fraction;
+    EvilNumber newCapacitorCharge(GetAttribute(AttrCapacitorCapacity) * fraction);
     if ((newCapacitorCharge + 0.5f) > GetAttribute(AttrCapacitorCapacity).get_float())
         newCapacitorCharge = GetAttribute(AttrCapacitorCapacity);
     if ((newCapacitorCharge - 0.5f) < 0)
@@ -896,11 +895,10 @@ void ShipItem::SetShipCapacitorLevel(float fraction)
 
 void ShipItem::SetShipShield(float fraction)
 {
-    if (fraction > 1.0) fraction = 1.0;
-    if (fraction < 0.0) fraction = 0.0;
+    if (fraction > 1.0f) fraction = 1.0f;
+    if (fraction < 0.0f) fraction = 0.0f;
 
-    EvilNumber newShieldCharge(EvilZero);
-    newShieldCharge = GetAttribute(AttrShieldCapacity) * fraction;
+    EvilNumber newShieldCharge(GetAttribute(AttrShieldCapacity) * fraction);
     if ((newShieldCharge + 0.2f) > GetAttribute(AttrShieldCapacity).get_float())
         newShieldCharge = GetAttribute(AttrShieldCapacity);
     if ((newShieldCharge - 0.2f) < 0)
@@ -914,11 +912,10 @@ void ShipItem::SetShipArmor(float fraction)
 {
     fraction = 1 - fraction;
 
-    if (fraction > 1.0) fraction = 1.0;
-    if (fraction < 0.0) fraction = 0.0;
+    if (fraction > 1.0f) fraction = 1.0f;
+    if (fraction < 0.0f) fraction = 0.0f;
 
-    EvilNumber newArmorDamage(EvilZero);
-    newArmorDamage = GetAttribute(AttrArmorHP) * fraction;
+    EvilNumber newArmorDamage(GetAttribute(AttrArmorHP) * fraction);
     if ((newArmorDamage + 0.2f) > GetAttribute(AttrArmorHP).get_float())
         newArmorDamage = GetAttribute(AttrArmorHP);
     if ((newArmorDamage - 0.2f) < 0)
@@ -932,11 +929,10 @@ void ShipItem::SetShipHull(float fraction)
 {
     fraction = 1 - fraction;
 
-    if (fraction > 1.0) fraction = 1.0;
-    if (fraction < 0.0) fraction = 0.0;
+    if (fraction > 1.0f) fraction = 1.0f;
+    if (fraction < 0.0f) fraction = 0.0f;
 
-    EvilNumber newHullDamage(EvilZero);
-    newHullDamage = GetAttribute(AttrHP) * fraction;
+    EvilNumber newHullDamage(GetAttribute(AttrHP) * fraction);
     if ((newHullDamage + 0.2f) > GetAttribute(AttrHP).get_float())
         newHullDamage = GetAttribute(AttrHP);
     if ((newHullDamage - 0.2f) < 0)

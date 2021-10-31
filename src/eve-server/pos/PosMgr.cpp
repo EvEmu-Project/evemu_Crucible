@@ -680,6 +680,7 @@ PyResult PosMgrBound::Handle_AnchorStructure(PyCallArgs &call) {
     if (pTSE->IsTowerSE()) {
         uint32 dist = pTSE->GetSelf()->radius() + call.client->GetShip()->radius();
         call.client->GetShipSE()->DestinyMgr()->WarpTo(pos, dist);
+        /** @todo add tower anchor position to bookmark */
     }
     // returns nodeID and timestamp
     PyTuple* tuple = new PyTuple(2);
