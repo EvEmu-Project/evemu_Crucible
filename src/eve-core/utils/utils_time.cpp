@@ -100,7 +100,7 @@ double GetFileTimeNow()  // -allan
  * @param seconds: Seconds to add/subtract
  * @return FileTime value.
  */
-double GetRelativeFileTime(uint32 days, uint32 hours, uint32 minutes, uint32 seconds) {
+double GetRelativeFileTime(int days, int hours, int minutes, int seconds) {
     double time = GetTimeMSeconds();
 
     time /= 1000;   // to second
