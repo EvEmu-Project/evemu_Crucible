@@ -335,19 +335,16 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         "(contractType, issuerID, issuerCorpID, forCorp, isPrivate, assigneeID, "
         "dateIssued, dateExpired, expireTimeInMinutes, duration, numDays, "
         "startStationID, startSolarSystemID, startRegionID, endStationID, endSolarSystemID, endRegionID, "
-        "price, reward, collateral, title, description, status, crateID, volume, "
-        "issuerWalletKey, acceptorWalletKey, startStationDivision) "
+        "price, reward, collateral, title, description, startStationDivision) "
         "VALUES "
         "(%u, %u, %u, %u, %u, %u, "
         "%li, %li, %u, %u, %u, "
         "%u, %u, %u, %u, %u, %u,"
-        "%u, %u, %u, '%s', '%s', %u, %u, %f, "
-        "%u, %u, %u)",
+        "%u, %u, %u, '%s', '%s', %u)",
         req.contractType, call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, req.isPrivate?1:0, req.assigneeID,
         int64(GetFileTimeNow()), int64(GetRelativeFileTime(0, 0, req.expireTime)), req.expireTime, req.duration, req.expireTime / 1440,
         req.startStationId, startSystemId, startRegionId, req.endStationId, endSystemId, endRegionId,
-        req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(), 0, 0, 25.00,
-        0, 0, startStationDivision))
+        req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(), startStationDivision))
     {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
@@ -414,7 +411,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         11:06:19 [Service] contractProxy::CreateContract()
         11:06:19 [SvcCallTrace]   Call Arguments:
         11:06:19 [SvcCallTrace]      Tuple: 12 elements
-        11:06:19 [SvcCallTrace]       [ 0]    Integer: 1
+        11:06:19 [SvcCallTrace]       [ 0]    Integer: 1        Type (1 - exchange, 2 - auction, 3 - courier)
         11:06:19 [SvcCallTrace]       [ 1]    Boolean: false
         11:06:19 [SvcCallTrace]       [ 2]       None
         11:06:19 [SvcCallTrace]       [ 3]    Integer: 20160
