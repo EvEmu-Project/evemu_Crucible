@@ -287,7 +287,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
-    int startStationDivision, forCorp;
+    int startStationDivision, forCorp, startSystemId, startRegionId, endSystemId, endRegionId;
 
     /*
      * Since named args (byname) aren't included in packet, we process them separately.
@@ -304,7 +304,25 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "forCorp value is of invalid type");
         return nullptr;
     }
-
+    if (sDataMgr.IsStation(req.startStationId)) {
+        startSystemId = sDataMgr.GetStationSystem(req.startStationId);
+        startRegionId = sDataMgr.GetStationRegion(req.startStationId);
+    } else {
+        codelog(SERVICE__ERROR, "Specified start Station ID has no Station counterparts in DB");
+        return nullptr;
+    }
+    if (req.endStationId != 0) {
+        if (sDataMgr.IsStation(req.endStationId)) {
+            endSystemId = sDataMgr.GetStationSystem(req.endStationId);
+            endRegionId = sDataMgr.GetStationRegion(req.endStationId);
+        } else {
+            codelog(SERVICE__ERROR, "Specified end Station ID has no Station counterparts in DB");
+            return nullptr;
+        }
+    } else {
+        endSystemId = 0;
+        endRegionId = 0;
+    }
 
     /*
      * Then, we go for actual entries creation.
@@ -313,15 +331,23 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     uint32 contractId = 0;
     DBerror err;
     if (!sDatabase.RunQueryLID(err, contractId,
-        "INSERT INTO ctrContracts (contractType, isPrivate, assigneeID, expireTime, duration,"
-        "startStationID, endStationID, price, reward, collateral, title, description, startStationDivision, forCorp) "
+        "INSERT INTO ctrContracts "
+        "(contractType, issuerID, issuerCorpID, forCorp, isPrivate, assigneeID, "
+        "dateIssued, dateExpired, expireTimeInMinutes, duration, numDays, "
+        "startStationID, startSolarSystemID, startRegionID, endStationID, endSolarSystemID, endRegionID, "
+        "price, reward, collateral, title, description, status, crateID, volume, "
+        "issuerWalletKey, acceptorWalletKey, startStationDivision) "
         "VALUES "
-        "(%u, %u, %u, %u, %u, "
-        "%u, %u, %u, %u, %u, '%s', '%s', "
-        "%u, %u)",
-        req.contractType, req.isPrivate?1:0, req.assigneeID, req.expireTime, req.duration,
-        req.startStationId, req.endStationId, req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(),
-        startStationDivision, forCorp))
+        "(%u, %u, %u, %u, %u, %u, "
+        "%li, %li, %u, %u, %u, "
+        "%u, %u, %u, %u, %u, %u,"
+        "%u, %u, %u, '%s', '%s', %u, %u, %f, "
+        "%u, %u, %u)",
+        req.contractType, call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, req.isPrivate?1:0, req.assigneeID,
+        int64(GetFileTimeNow()), int64(GetRelativeFileTime(0, 0, req.expireTime)), req.expireTime, req.duration, req.expireTime / 1440,
+        req.startStationId, startSystemId, startRegionId, req.endStationId, endSystemId, endRegionId,
+        req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(), 0, 0, 25.00,
+        0, 0, startStationDivision))
     {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
@@ -472,8 +498,8 @@ PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
                 ["itemID" => <1002299726681> [I8]]
                 ["quantity" => <1> [I4]]
                 ["itemTypeID" => <3732> [I4]]
-                ["inCrate" => <1> [Bool]]
-                ["parentID" => <0> [I8]]
+                ["inCrate" => <1> [Bool]]                       0 for requested item, 1 for traded ones
+                ["parentID" => <0> [I8]]                        The ID of container it's located in (i think, lol)
                 ["productivityLevel" => <0> [I4]]
                 ["materialLevel" => <0> [I4]]
                 ["copy" => <0> [Bool]]
@@ -485,8 +511,8 @@ PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
                 ["itemID" => <1002261932864> [I8]]
                 ["quantity" => <6> [I4]]
                 ["itemTypeID" => <3898> [I4]]
-                ["inCrate" => <1> [Bool]]
-                ["parentID" => <0> [I8]]
+                ["inCrate" => <1> [Bool]]                       0 for requested item, 1 for traded ones
+                ["parentID" => <0> [I8]]                        The ID of container it's located in (i think, lol)
                 ["productivityLevel" => <0> [I4]]
                 ["materialLevel" => <0> [I4]]
                 ["copy" => <0> [Bool]]
@@ -502,8 +528,8 @@ PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
               ["issuerID" => <1661059544> [I4]]
               ["issuerCorpID" => <98038978> [I4]]
               ["forCorp" => <0> [Bool]]
-              ["availability" => <1> [I4]]
-              ["assigneeID" => <649670823> [I4]]
+              ["availability" => <1> [I4]]                      0 for public, 1 for private
+              ["assigneeID" => <649670823> [I4]]                has value if it's private
               ["acceptorID" => <0> [I4]]
               ["dateIssued" => <129494701600000000> [FileTime]]
               ["dateExpired" => <129495565600000000> [FileTime]]
