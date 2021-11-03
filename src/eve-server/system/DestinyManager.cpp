@@ -32,6 +32,8 @@
 #include "EntityList.h"
 #include "PyServiceMgr.h"
 #include "StaticDataMgr.h"
+#include "map/MapData.h"
+#include "math/Trig.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 #include "packets/Missile.h"
@@ -71,7 +73,9 @@ m_warpDecelTime(1),
 m_warpState(nullptr),
 m_targBubble(nullptr),
 m_warpCapacitorNeed(0.00001),
-m_frozen(false)
+m_frozen(false),
+m_ticAlign(false),
+mvPacket(nullptr)
 {
     m_bump = false;
     m_stop = false;
@@ -123,13 +127,20 @@ DestinyManager::~DestinyManager() {
 
 // this is called once per tic by SystemEntity::Process()
 void DestinyManager::Process() {
+    double profileStartTime(GetTimeUSeconds());
+
     if (mySE->IsFrozen()) {
         Halt();
         return;
     }
 
-    double profileStartTime(GetTimeUSeconds());
     //check for and process Destiny::Ball::State changes.
+    if (m_ticAlign) {
+        m_ticAlign = false;
+        // send movement packet this tic and begin movement
+        //SendMovementPacket();
+    }
+
     ProcessState();
 
     if (sConfig.debug.UseProfiling)
@@ -805,11 +816,12 @@ void DestinyManager::MoveObject() {
     }
 
     // ships tend to "level out" when stopping.  try to mimic that here (wip)
-    if (m_stop and (m_timeFraction > 0.6f)) {
+    // this will also need *something* with ship agility
+    if (m_stop and (m_timeFraction > 0.5f)) {
         if (m_shipHeading.y < -0.15f) {
-            m_shipHeading.y += 0.02f;
+            m_shipHeading.y += 0.05f;
         } else if (m_shipHeading.y > 0.15f) {
-            m_shipHeading.y -= 0.02f;
+            m_shipHeading.y -= 0.05f;
         }
     }
 
@@ -968,7 +980,7 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
      *  check for decel, then call UpdateVelocity() to set variables as needed.  Move() will handle the rest.
      *
      * this below isnt right, hack is almost close
-     *   m_degPerTic = (65.0f - m_shipAgility) /10;  ([this file]:2317, reset for ab/mwd [this file]:2154)
+     *   m_degPerTic = (60.0f - m_shipAgility) / 10;  ([this file]:2317, reset for ab/mwd [this file]:2154)
      */
 
     // this is off for rookie ship (maybe others)
@@ -1020,7 +1032,7 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
     if (degrees > 100) {
         if (m_decel and (m_turnTic > turnTime)) {
             // turn half of remaining turn (simulate greatest turn angle when (turn > 90*) and (speed < time)
-            turnPercent = 0.4f;
+            turnPercent = 0.3f;
         } else {
             turnPercent = m_degPerTic / (degrees - 100);
         }
@@ -1467,11 +1479,11 @@ void DestinyManager::InitWarp() {
         // this isnt very accurate....times and distances are a bit off....
         cruise = false;
         // accel = 1/3 decel
-        accelDistance = (m_targetDistance /3);
+        accelDistance = (m_targetDistance / 3);
         decelDistance = (m_targetDistance - accelDistance);
         warpSpeedInMeters = accelDistance;
-        m_warpDecelTime = log(decelDistance /3);
-        m_warpAccelTime = log(accelDistance /3) /3;
+        m_warpDecelTime = log(decelDistance / 3);
+        m_warpAccelTime = log(accelDistance / 3) / 3;
     } else {
         // all ships base time is 29s for distances > ship warp speed
         m_warpAccelTime = 7;
@@ -1791,6 +1803,7 @@ void DestinyManager::Follow(SystemEntity* pSE, uint32 distance) {
     m_targetEntity.first = pSE->GetID();
     m_targetEntity.second = pSE;
     m_followDistance = distance;
+    m_ticAlign = true;
     BeginMovement();
 
     CmdFollowBall du;
@@ -1798,6 +1811,7 @@ void DestinyManager::Follow(SystemEntity* pSE, uint32 distance) {
         du.targetID = pSE->GetID();
         du.range = (int32)distance;
     PyTuple *up = du.Encode();
+        //mvPacket = du.Encode();
     SendSingleDestinyUpdate(&up);   // consumed
 }
 
@@ -2253,9 +2267,11 @@ void DestinyManager::SetPosition(const GPoint &pt, bool update /*false*/) {
     if (pt.isZero()) {
         _log(DESTINY__TRACE, "Destiny::SetPosition() - %s(%u) point is zero", mySE->GetName(), mySE->GetID());
         EvE::traceStack();
+        // this *should* be systemID...
+        m_position = sMapData.GetRandPointOnPlanet(mySE->GetLocationID());
+    } else {
+        m_position = pt;
     }
-
-    m_position = pt;
 
     // this sets InventoryItemRef.m_position correctly, which is used for all position references
     mySE->SetPosition(m_position);
@@ -2310,7 +2326,7 @@ void DestinyManager::SpeedBoost(bool deactivate/*false*/)
     m_shipAgility = m_massMKg * m_shipInertia;
     m_alignTime = (-log(0.25) * m_shipAgility);
     m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
-    m_degPerTic = (65.0f - m_shipAgility) / 10;  // this isnt right....
+    m_degPerTic = (60.0f - m_shipAgility) / 10;  // this isnt right....
     m_maxShipSpeed = mySE->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
     // reset ship max speed using updated m_maxShipSpeed
     m_maxSpeed = m_maxShipSpeed * m_userSpeedFraction;
@@ -2432,7 +2448,7 @@ Battleships 0.155
      *  agility is an internal-use variable.
      */
     m_shipAgility = m_massMKg * m_shipInertia;
-    m_degPerTic = (65.0f - m_shipAgility) /10;
+    m_degPerTic = (60.0f - m_shipAgility) / 10;
     // set a maximum acceleration time (based on ship variables)
     m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
 
@@ -3003,21 +3019,30 @@ void DestinyManager::SendSetState() const {
     mySE->GetPilot()->SetStateSent(true);
 }
 
+void DestinyManager::SendMovementPacket()
+{
+    SendSingleDestinyUpdate(&mvPacket);
+    PySafeDecRef(mvPacket);
+}
+
 void DestinyManager::SendSingleDestinyEvent(PyTuple** ev, bool self_only/*false*/) const
 {
     std::vector<PyTuple*> updates;
+    updates.clear();
     std::vector<PyTuple*> events(1, *ev);   // create vector of size "1" and insert "*ev" into it
     SendDestinyUpdate(updates, events, self_only);
 }
 
 void DestinyManager::SendSingleDestinyUpdate(PyTuple **up, bool self_only/*false*/) const {
-    std::vector<PyTuple*> updates(1, *up);
+    std::vector<PyTuple*> updates(1, *up);   // create vector of size "1" and insert "*up" into it
     std::vector<PyTuple*> events;
+    events.clear();
     SendDestinyUpdate(updates, events, self_only);
 }
 
 void DestinyManager::SendDestinyUpdate(std::vector<PyTuple*> &updates, bool self_only/*false*/) const {
     std::vector<PyTuple*> events;
+    events.clear();
     SendDestinyUpdate(updates, events, self_only);
 }
 
@@ -3030,14 +3055,14 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
             // this entity is NOT a player ship...change to BubbleCast (or silently fail)
             if (mySE->SysBubble() != nullptr) {
                 if (is_log_enabled(DESTINY__UPDATES))
-                    _log( DESTINY__UPDATES, "[%u] BubbleCasting destiny update (u:%u, e:%u) for stamp %u to bubbleID %u from %s(%u)", \
+                    _log( DESTINY__UPDATES, "[%u] BubbleCasting destiny update (u:%lu, e:%lu) for stamp %u to bubbleID %u from %s(%u)", \
                             sEntityList.GetStamp(), updates.size(), events.size(), sEntityList.GetStamp(), mySE->SysBubble()->GetID(), mySE->GetName(), mySE->GetID() );
                 mySE->SysBubble()->BubblecastDestiny( updates, events, "destiny" );
             }
             return;
         }
         if (is_log_enabled(PLAYER__MESSAGE))
-            _log(PLAYER__MESSAGE, "[%u] DestinyManager::SendDestinyUpdate() (u:%i, e:%i) called as 'self_only' for %s(%u)", \
+            _log(PLAYER__MESSAGE, "[%u] DestinyManager::SendDestinyUpdate() (u:%lu, e:%lu) called as 'self_only' for %s(%i)", \
                     sEntityList.GetStamp(), updates.size(), events.size(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID());
 
         for (std::vector<PyTuple*>::iterator cur = updates.begin(); cur != updates.end(); ++cur) {
@@ -3057,6 +3082,7 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
                     (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID()) );
 
         //Get all clients in the system which the SE is in
+        /** @todo  this isnt right....will segfault.  needs to be fixed */
         std::vector<Client*> cv;
         mySE->SystemMgr()->GetClientList(cv);
         for(auto const& value: cv) {

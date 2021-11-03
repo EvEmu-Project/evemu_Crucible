@@ -309,6 +309,11 @@ private:
     bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
 
+    // check to align destiny movement to tic
+    bool m_ticAlign;
+    void SendMovementPacket();
+    PyTuple *mvPacket;
+
     // Internal Collision Methods   -allan Nov 2015
     bool m_bump;
     void CheckBump();                              //iterate thru objects in current bubble to check for collisions
