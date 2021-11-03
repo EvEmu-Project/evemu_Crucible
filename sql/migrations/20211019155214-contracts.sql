@@ -35,20 +35,22 @@ create table if not exists ctrContracts
     acceptorWalletKey int default 0 not null,
     startStationDivision int not null
     );
-create table if not exists ctrRequestedItems
+create table if not exists ctrItems
 (
     contractId int not null,
-    requestedItemTypeId int not null,
-    requestedItemQuantity int not null
-);
-create table if not exists ctrTradedItems
-(
-    contractId int not null,
-    entityId int not null,
-    quantity int not null
+    itemID int not null,
+    quantity int not null,
+    itemTypeID int not null,
+    inCrate int not null,
+    parentID int not null,
+    productivityLevel int default 0 not null,
+    materialLevel int default 0 not null,
+    isCopy int default 0 not null,
+    licensedProductionRunsRemaining int default 0 not null,
+    damage int default 0 not null,
+    flagID int default 0 not null
 );
 
 -- +migrate Down
 drop table ctrContracts;
-drop table ctrRequestedItems;
-drop table ctrTradedItems;
+drop table ctrItems;

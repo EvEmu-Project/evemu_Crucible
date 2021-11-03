@@ -289,7 +289,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     }
     int startStationDivision, forCorp, startSystemId, startRegionId, endSystemId, endRegionId;
 
-    /*
+    /**
      * Since named args (byname) aren't included in packet, we process them separately.
      */
     if (call.byname.find("flag")->second->IsInt()) {
@@ -324,7 +324,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         endRegionId = 0;
     }
 
-    /*
+    /**
      * Then, we go for actual entries creation.
      * Contract entry
      */
@@ -350,9 +350,55 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         return nullptr;
     }
 
-    /*
-     * If applicable - requested items
+    /**
+     * Then, we insert the items.
+     * First off, we gather the list of attributes for these items, using select query.
+     * To save resources and reduce amount of DB hits, we compose the query by adding ID's first, then we execute it separately.
      */
+    // A contract cannot exist without either a requested items OR traded items - we can't trade isk for isk, lol
+    bool tradedItemsPresent;
+    bool requestedItemsPresent;
+    if (call.byname.find("itemList")->second->IsList()) {
+        PyList *tradedItems = call.byname.find("itemList")->second->AsList();
+        if (!tradedItems->empty()) {
+            std::string query = "SELECT entity.itemID, entity.ownerID, entity.typeID, entity.quantity, entity.locationID, iB.pLevel,\n"
+                                "       iB.mLevel, iB.copy, iB.runs, ea.valueInt, entity.flag\n"
+                                "FROM entity\n"
+                                "LEFT JOIN invBlueprints iB on entity.itemID = iB.itemID\n"
+                                "LEFT JOIN entity_attributes ea on entity.itemID = ea.itemID and ea.attributeID = 3\n"
+                                "WHERE entity.itemID IN (%s)";
+            std::string queryIds;
+            std::map<int, int> expectedQuantities;              // Key is itemID, value is quantity.
+            for (int index = 0; index < tradedItems->size(); index++) {
+                PyList *tradedItem = tradedItems->GetItem(index)->AsList();
+                int itemID = tradedItem->GetItem(0)->AsInt()->value();
+                int quantity = tradedItem->GetItem(1)->AsInt()->value();
+
+                queryIds.append(std::to_string(itemID));
+                expectedQuantities[itemID] = quantity;
+
+                // if it's not the last item - add a trailing comma
+                if (index != tradedItems->size() - 1) {
+                    queryIds.append(", ");
+                }
+            }
+
+            DBQueryResult res;
+            if (!sDatabase.RunQuery(res,query.c_str(), queryIds.c_str()))
+            {
+                codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+                return nullptr;
+            }
+
+            /**
+             * I HATE the fact that i have to do the same bloody for-loop again, but we didn't have DB values prior to that.
+             * We need to validate traded items exist, have correct owner and quantities. Any item that fails the check is excluded from the list.
+             */
+             // TODO: Continue from here, lol
+        }
+    }
+
+
     if (call.byname.find("requestItemTypeList")->second->IsList()) {
         PyList *requestedItems = call.byname.find("requestItemTypeList")->second->AsList();
         if (!requestedItems->empty()) {
@@ -365,35 +411,6 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
                              std::to_string(requestedItem->GetItem(1)->AsInt()->value()) + ")");
                 // if it's not the last item - add a trailing comma
                 if (index != requestedItems->size() - 1) {
-                    query.append(", ");
-                }
-            }
-
-            uint32 last_insert;
-            if (!sDatabase.RunQueryLID(err, last_insert, query.c_str()))
-            {
-                codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
-                return nullptr;
-            }
-        }
-    }
-
-    /*
-     * If applicable - items to trade
-     */
-    if (call.byname.find("itemList")->second->IsList()) {
-        PyList *tradedItems = call.byname.find("itemList")->second->AsList();
-        if (!tradedItems->empty()) {
-            // First - we add these items to traded items table. We do it for all contract types (exchange, auction and courier)
-            std::string query = "INSERT INTO ctrTradedItems(contractId, entityId, quantity) VALUES ";
-            for (int index = 0; index < tradedItems->size(); index++) {
-                PyList *tradedItem = tradedItems->GetItem(index)->AsList();
-                // Wasn't sure there were some pretty way to format it, so i went for classic std::string appending
-                query.append("(" + std::to_string(contractId) + ", " +
-                             std::to_string(tradedItem->GetItem(0)->AsInt()->value()) + ", " +
-                             std::to_string(tradedItem->GetItem(1)->AsInt()->value()) + ")");
-                // if it's not the last item - add a trailing comma
-                if (index != tradedItems->size() - 1) {
                     query.append(", ");
                 }
             }
