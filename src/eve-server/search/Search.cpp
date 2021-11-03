@@ -46,7 +46,7 @@ Search::~Search() {
 
 PyResult Search::Handle_Query( PyCallArgs& call ) {
     Call_SearchQuery args;
-    if(!args.Decode(&call.tuple)) {
+    if (!args.Decode(&call.tuple)) {
         _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         call.client->SendErrorMsg("Search Failed.  Try using a different search string.");
         return nullptr;
@@ -68,7 +68,7 @@ PyResult Search::Handle_QuickQuery( PyCallArgs& call )  {
 /*         QuickQuery(query, groupIDList, hideNPC=hideNPC, onlyAltName=onlyAltName)
 */
     Call_SearchQuery args;
-    if(!args.Decode(&call.tuple)) {
+    if (!args.Decode(&call.tuple)) {
         _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         call.client->SendErrorMsg("Search Failed.  Try using a different search string.");
         return nullptr;

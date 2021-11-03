@@ -144,7 +144,7 @@ PyResult InvBrokerBound::Handle_GetContainerContents(PyCallArgs &call)
         return nullptr;
     }
 
-    InventoryItemRef item = sItemFactory.GetInventoryItemFromID( args.arg1 );
+    InventoryItemRef item = sItemFactory.GetItemRefFromID( args.arg1 );
     if (item.get() == nullptr) {
         _log(INV__ERROR, "GetContainerContents() - Unable to load inventory for itemID %u in locationID %u", args.arg1, args.arg2);
         return nullptr;
@@ -187,9 +187,9 @@ PyResult InvBrokerBound::Handle_GetInventoryFromId(PyCallArgs &call) {
     // if item requested is office folder, we have to do shit a lil different, as it sends officeFolderID, instead of itemID
     if ((m_groupID == EVEDB::invGroups::Station) and (IsOfficeFolder(args.arg1))) {
         uint32 officeID = stDataMgr.GetOfficeIDForCorp(m_locationID, call.client->GetCorporationID());
-        iRef = sItemFactory.GetInventoryItemFromID( officeID );
+        iRef = sItemFactory.GetItemRefFromID( officeID );
     } else {
-        iRef = sItemFactory.GetInventoryItemFromID( args.arg1 );
+        iRef = sItemFactory.GetItemRefFromID( args.arg1 );
     }
     sItemFactory.UnsetUsingClient();
     if (iRef.get() == nullptr) {
@@ -321,13 +321,13 @@ PyResult InvBrokerBound::Handle_GetInventory(PyCallArgs &call) {
     if (m_groupID == EVEDB::invGroups::Station) {
         _log(INV__WARNING, "GetInventory called for station %u", m_locationID);
         //item = sEntityList.GetStationByID(m_locationID);
-        item = sItemFactory./*GetStation*/GetItem(m_locationID);
+        item = sItemFactory./*GetStation*/GetItemRef(m_locationID);
     } else if (m_groupID == EVEDB::invGroups::Solar_System) {
         _log(INV__WARNING, "GetInventory called for solar system %u", m_locationID);
-        item = sItemFactory./*GetSolarSystem*/GetItem(m_locationID);
+        item = sItemFactory./*GetSolarSystem*/GetItemRef(m_locationID);
     } else {
         _log(INV__WARNING, "GetInventory called for item %u (group: %u)", m_locationID, m_groupID);
-        item = sItemFactory./*GetInventoryItemFromID*/GetItem(m_locationID);
+        item = sItemFactory./*GetItemRefFromID*/GetItemRef(m_locationID);
     }
     sItemFactory.UnsetUsingClient();
 
@@ -412,7 +412,7 @@ PyResult InvBrokerBound::Handle_SetLabel(PyCallArgs &call) {
     }
 
     sItemFactory.SetUsingClient( call.client );
-    InventoryItemRef iRef = sItemFactory.GetItem( args.itemID );
+    InventoryItemRef iRef = sItemFactory.GetItemRef( args.itemID );
     if (iRef.get() == nullptr) {
         codelog(INV__ERROR, "%s: Unable to load item %u", call.client->GetName(), args.itemID);
         sItemFactory.UnsetUsingClient();
@@ -471,7 +471,7 @@ PyResult InvBrokerBound::Handle_TrashItems(PyCallArgs &call) {
 
     std::vector<int32>::const_iterator cur = args.items.begin(), end = args.items.end();
     for(; cur != end; ++cur) {
-        InventoryItemRef item = sItemFactory.GetItem( *cur );
+        InventoryItemRef item = sItemFactory.GetItemRef( *cur );
         if (item.get() == nullptr) {
             _log(INV__ERROR, "%s: Unable to load item %u to delete it. Skipping.", call.client->GetName(), *cur);
         } else if (call.client->GetCharacterID() != item->ownerID()) {

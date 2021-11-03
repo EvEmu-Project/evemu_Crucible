@@ -16,7 +16,7 @@
  *  a new iteration of this class is created for each system as that system is booted.
  */
 
-#include "system/SystemGPoint.h"
+
 #include "system/cosmicMgrs/ManagerDB.h"
 
 
@@ -56,7 +56,6 @@ class AnomalyMgr
 protected:
     ManagerDB m_mdb;
     ServiceDB m_sdb;
-    SystemGPoint m_gp;
 
     uint8 GetDungeonType();
 
@@ -93,7 +92,6 @@ private:
     std::map<uint32, CosmicSignature> m_sigByItemID;            // signatures in system - need probes to scan down
     std::map<uint32, CosmicSignature> m_anomByItemID;           // anomalies in system - no probes needed
     std::map<std::string, CosmicSignature> m_sigBySigID;        // map for all signatures in system
-
 };
 
 #endif  // EVEMU_SYSTEM_ANOMALYMGR_H_

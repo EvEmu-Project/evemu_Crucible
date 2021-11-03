@@ -240,7 +240,7 @@ int main( int argc, char* argv[] )
     if (!sConfig.files.logDir.empty()) {
         //sLog.InitializeLogging(sConfig.files.logDir);
         std::string logFile = sConfig.files.logDir + "eve-server.log";
-        if( log_open_logfile( logFile.c_str() ) ) {
+        if ( log_open_logfile( logFile.c_str() ) ) {
             sLog.Green( "       ServerInit", "Found log directory %s", sConfig.files.logDir.c_str() );
         } else {
             sLog.Warning( "       ServerInit", "Unable to find log directory '%s', only logging to the screen now.", sConfig.files.logDir.c_str() );

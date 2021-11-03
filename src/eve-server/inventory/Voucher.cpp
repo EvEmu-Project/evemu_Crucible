@@ -62,7 +62,7 @@ PyResult VoucherService::Handle_GetObject( PyCallArgs& call ) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return dict;
     }
-    InventoryItemRef iRef = sItemFactory.GetItem(arg.arg);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(arg.arg);
     if (iRef.get() == nullptr) {
         codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark voucher for bmID %u", call.client->GetName(), arg.arg);
         return dict;

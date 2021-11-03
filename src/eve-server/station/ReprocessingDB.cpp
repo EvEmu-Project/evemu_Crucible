@@ -53,7 +53,7 @@ bool ReprocessingDB::GetRecoverables(const uint32 typeID, std::vector<Recoverabl
     }
 
     //eve-dev says tech 2 items contain both basic materials and advanced materials
-    //if(gotFromRamTable) return true;
+    //if (gotFromRamTable) return true;
 
     if (!sDatabase.RunQuery(res,
                 "SELECT materialTypeID, quantity"

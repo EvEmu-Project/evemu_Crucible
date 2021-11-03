@@ -9,7 +9,10 @@
 #ifndef EVE_POS_ENUMS_H
 #define EVE_POS_ENUMS_H
 
-class GVector;
+#include "../eve-core/eve-core.h"
+
+#include "math/gpoint.h"
+
 
 namespace EVEPOS {
     struct CustomsData {

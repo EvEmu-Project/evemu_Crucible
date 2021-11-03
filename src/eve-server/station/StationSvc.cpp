@@ -25,14 +25,13 @@
 
 #include "eve-server.h"
 
+#include "Client.h"
 #include "PyServiceCD.h"
 #include "StaticDataMgr.h"
 #include "cache/ObjCacheService.h"
 #include "station/StationDataMgr.h"
 #include "station/StationSvc.h"
-
 #include "system/sov/SovereigntyDataMgr.h"
-#include "Client.h"
 
 
 PyCallable_Make_InnerDispatcher(StationSvc)
@@ -67,8 +66,8 @@ PyResult StationSvc::Handle_GetSolarSystem(PyCallArgs &call) {
 
     ObjectCachedMethodID method_id(GetName(), "GetSolarSystem");
 
-    if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
-        PyPackedRow *t = SystemDB::GetSolarSystem(arg.arg);
+    if (!m_manager->cache_service->IsCacheLoaded(method_id)) {
+        PyPackedRow *t = SystemDB::GetSolarSystemPackedRow(arg.arg);
 
         m_manager->cache_service->GiveCache(method_id, (PyRep **)&t);
     }

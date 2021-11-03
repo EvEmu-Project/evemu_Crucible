@@ -211,7 +211,7 @@ PyRep* PIDataMgr::GetProgramResultInfo(Colony* pColony, uint32 pinID, uint16 typ
      *        numCycles = int(programLength / cycleTime)
      *        cycleTime = int(cycleTime * HOUR)
      */
-    InventoryItemRef iRef = sItemFactory.GetItem(pinID);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(pinID);
     float cycleTime = iRef->GetAttribute(AttrPinCycleTime).get_int()/*300*/, length = 0;
     uint16 numCycles = 0;
     double one = ((headRadius - 0.01f) /0.04);

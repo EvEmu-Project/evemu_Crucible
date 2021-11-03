@@ -174,7 +174,7 @@ PyResult CertificateMgrService::Handle_GetCertificatesByCharacter( PyCallArgs& c
     }
 
     CertMap crt;
-    sItemFactory.GetCharacter(arg.arg)->GetCertificates(crt);
+    sItemFactory.GetCharacterRef(arg.arg)->GetCertificates(crt);
 
     util_Rowset rs;
         rs.lines = new PyList();

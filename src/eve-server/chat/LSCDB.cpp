@@ -59,7 +59,7 @@ int32 LSCDB::GetNextAvailableChannelID()
 {
     /** @todo fix this shit */
     DBQueryResult res;
-    if( !sDatabase.RunQuery( res,
+    if ( !sDatabase.RunQuery( res,
         "SELECT"
         "    channelID "
         " FROM channels "
@@ -79,7 +79,7 @@ int32 LSCDB::GetNextAvailableChannelID()
     }
 
         // Check to make sure that the next available channelID is not equal to the Maximum channel ID value
-    if( currentChannelID <= LSCService::MAX_CHANNEL_ID )
+    if ( currentChannelID <= LSCService::MAX_CHANNEL_ID )
         return currentChannelID;
 
     return 0;    // No free channel IDs found (this should never happen as there are way too many IDs to exhaust)
@@ -365,7 +365,7 @@ bool LSCDB::GetChannelInfo(int32 channelID, std::string &name, std::string &motd
 int32 LSCDB::GetChannelIDFromComparisonKey(std::string compkey)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res, "SELECT channelID FROM channels WHERE comparisonKey RLIKE '%s'", compkey.c_str())) {
+    if (!sDatabase.RunQuery(res, "SELECT channelID FROM channels WHERE comparisonKey RLIKE '%s'", compkey.c_str())) {
         _log(DATABASE__ERROR, "Error in GetChannelIDFromComparisonKey query: %s", res.error.c_str());
         return 0;
     }
@@ -446,7 +446,7 @@ uint32 LSCDB::StoreMail(uint32 senderID, uint32 recipID, const char * subject, c
 PyObject *LSCDB::GetMailHeaders(uint32 recID) {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT channelID, messageID, senderID, subject, created, `read` "
         " FROM eveMail "
         " WHERE channelID=%u", recID))

@@ -24,9 +24,11 @@
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
 #include "manufacturing/Blueprint.h"
+#include "map/MapDB.h"
+#include "math/Trig.h"
 #include "planet/Moon.h"
 #include "planet/Planet.h"
-#include <planet/CustomsOffice.h>
+#include "planet/CustomsOffice.h"
 #include "pos/Tower.h"
 #include "pos/sovStructures/TCU.h"
 #include "pos/sovStructures/SBU.h"
@@ -621,7 +623,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     // Check for required sovereignty upgrades for certain structures
     if ((m_generator) || (m_jammer) || (m_bridge)) {
         SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
-        InventoryItemRef ihubRef = sItemFactory.GetItem(sovData.hubID);
+        InventoryItemRef ihubRef = sItemFactory.GetItemRef(sovData.hubID);
         uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
 
         if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
@@ -1296,7 +1298,7 @@ void StructureSE::Killed(Damage &fatal_blow)
     /* populate kill data for killMail and save to db  -allan 01May16  --updated 13July17 */
     /** @todo  check for tower/tcu/sbu/jammer and make killmail */
     /** @todo send pos mail/notification to corp members */
-    CharKillData data = CharKillData();
+    KillData data = KillData();
     data.solarSystemID = m_system->GetID();
     data.victimCharacterID = 0; // charID = 0 means strucuture/item
     data.victimCorporationID = m_corpID;

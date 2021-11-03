@@ -30,6 +30,7 @@
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "cache/ObjCacheService.h"
+#include "inventory/Inventory.h"
 #include "market/MarketMgr.h"
 #include "market/MarketProxyService.h"
 #include "station/StationDataMgr.h"
@@ -369,7 +370,7 @@ PyResult MarketProxyService::Handle_PlaceCharOrder(PyCallArgs &call) {
         }
 
         //verify that they actually have the item in the quantity specified...
-        InventoryItemRef iRef = sItemFactory.GetItem( args.itemID );
+        InventoryItemRef iRef = sItemFactory.GetItemRef( args.itemID );
         if (iRef.get() == nullptr) {
             _log(ITEM__ERROR, "PlaceCharOrder - Failed to find item %i for sell order.", args.itemID);
             call.client->SendErrorMsg("Unable to find item to sell.");

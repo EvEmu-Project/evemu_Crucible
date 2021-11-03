@@ -15,6 +15,7 @@
 #include "exploration/Probes.h"
 #include "exploration/Scan.h"
 #include "inventory/AttributeEnum.h"
+#include "inventory/Inventory.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 
@@ -61,7 +62,7 @@ void ProbeItem::Delete() {
     // remove from current container's inventory.
     // this should be SolarSystem, but just in case, run tests anyway
     if (IsValidLocationID(locationID())) {
-        InventoryItemRef iRef = sItemFactory.GetItem(locationID());
+        InventoryItemRef iRef = sItemFactory.GetItemRef(locationID());
         if (iRef.get() != nullptr) {
             iRef->GetMyInventory()->RemoveItem(InventoryItemRef(this));
         } else {

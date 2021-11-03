@@ -132,15 +132,15 @@ protected:
             _log(ITEM__ERROR, "Trying to load %s as Station.", sDataMgr.GetGroupName(type.groupID()));
             if (sConfig.debug.StackTrace)
                 EvE::traceStack();
-            return RefPtr<_Ty>();
+            return RefPtr<_Ty>(nullptr);
         }
         // cast the type
         const StationType &stType = static_cast<const StationType &>( type );
 
         // load celestial data
         CelestialObjectData cData = CelestialObjectData();
-        if (!sItemFactory.db()->GetCelestialObject(stationID, cData))
-            return RefPtr<_Ty>();
+        if (!SystemDB::GetCelestialObjectData(stationID, cData))
+            return RefPtr<_Ty>(nullptr);
 
         return StationItemRef(new StationItem(stationID, stType, data, cData));
     }

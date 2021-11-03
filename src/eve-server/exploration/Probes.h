@@ -51,7 +51,7 @@ protected:
             _log(ITEM__ERROR, "Trying to load %s as Probe.", sDataMgr.GetCategoryName(type.categoryID()));
             if (sConfig.debug.StackTrace)
                 EvE::traceStack();
-            return RefPtr<_Ty>();
+            return RefPtr<_Ty>(nullptr);
         }
 
         return ProbeItemRef( new ProbeItem(itemID, type, data));

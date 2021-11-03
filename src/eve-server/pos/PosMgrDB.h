@@ -14,8 +14,11 @@
 #include "ServiceDB.h"
 #include "../../eve-common/EVE_POS.h"
 
-class ReactorData;
+
+struct ReactorData;
+
 class StructureSE;
+
 class PosMgrDB
 : public ServiceDB
 {
@@ -46,7 +49,7 @@ public:
     bool HasBridge(uint32 systemID);
     void UninstallBridgeLink(uint32 itemID);
     void UninstallRemoteBridgeLink(uint32 itemID);
-    
+
     bool GetReactorData(ReactorData* pData, EVEPOS::StructureData& sData);
     void SaveReactorData(ReactorData* pData, EVEPOS::StructureData& sData);
     void UpdateReactorData(ReactorData* pData, EVEPOS::StructureData& sData);

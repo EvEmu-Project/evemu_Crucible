@@ -10,6 +10,8 @@
 #ifndef EVE_THREADING_H
 #define EVE_THREADING_H
 
+#include <pthread.h>
+
 #include "../eve-core.h"
 #include "utils/Singleton.h"
 

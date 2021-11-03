@@ -88,12 +88,12 @@ void MarketMgr::Process()
     //    UpdatePriceHistory();
 }
 
-void MarketMgr::SystemStartup(SystemData& data)
+void MarketMgr::SystemStartup(SolarSystemData& data)
 {
     // not used yet.
 }
 
-void MarketMgr::SystemShutdown(SystemData& data)
+void MarketMgr::SystemShutdown(SolarSystemData& data)
 {
     // not used yet.
 }
@@ -158,7 +158,7 @@ PyRep *MarketMgr::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
         DBQueryResult res;
 
         /** @todo  this doesnt belong here...  */
-        if(!sDatabase.RunQuery(res,
+        if (!sDatabase.RunQuery(res,
             "SELECT historyDate, lowPrice, highPrice, avgPrice, volume, orders"
             " FROM mktHistory "
             " WHERE regionID=%u AND typeID=%u"
@@ -200,7 +200,7 @@ PyRep *MarketMgr::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
         DBQueryResult res;
 
         /** @todo  this doesnt belong here...  */
-        if(!sDatabase.RunQuery(res,
+        if (!sDatabase.RunQuery(res,
             "SELECT historyDate, lowPrice, highPrice, avgPrice, volume, orders"
             " FROM mktHistory WHERE regionID=%u AND typeID=%u"
             " AND historyDate > %li AND historyDate < %li LIMIT %u",

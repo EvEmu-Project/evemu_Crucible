@@ -1646,7 +1646,7 @@ PyResult CorpRegistryBound::Handle_UpdateApplicationOffer(PyCallArgs &call) {
             sEntityList.CorpNotify(ocmc.oldCorpID, Notify::Types::CorpNews, "OnCorporationMemberChanged", "corpid", ocmc.Encode());
 
         CorpData data = CorpData();
-            sItemFactory.db()->GetCorpData(args.charID, data);
+        CharacterDB::GetCharCorpData(args.charID, data);
             data.corpAccountKey = Account::KeyType::Cash;
             data.corpRole = Corp::Role::Member;
             data.rolesAtAll = Corp::Role::Member;

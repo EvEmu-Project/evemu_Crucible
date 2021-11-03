@@ -28,6 +28,7 @@
 #include "EntityList.h"
 #include "StatisticMgr.h"
 #include "exploration/Scan.h"
+#include "math/Trig.h"
 #include "Probes.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"

@@ -27,52 +27,10 @@
 #define __SOLAR_SYSTEM__H__INCL__
 
 
-#include "EVEServerConfig.h"
+//#include "EVEServerConfig.h"
 #include "system/Celestial.h"
 
-/**
- * Data container for solarsystem data.
- */
-class SolarSystemData {
-public:
-    SolarSystemData(
-        const GPoint &_minPos = GPoint(0, 0, 0),
-        const GPoint &_maxPos = GPoint(0, 0, 0),
-        double _luminosity = 0.0,
-        bool _border = false,
-        bool _fringe = false,
-        bool _corridor = false,
-        bool _hub = false,
-        bool _international = false,
-        bool _regional = false,
-        bool _constellation = false,
-        double _security = 0.0,
-        uint32 _factionID = 0,
-        double _radius = 0.0,
-        uint32 _sunTypeID = 0,
-        const char *_securityClass = ""
-    );
-
-    // Data members:
-    GPoint minPosition;
-    GPoint maxPosition;
-    double luminosity;
-
-    // use bitfield to save some memory...
-    bool border :1;
-    bool fringe :1;
-    bool corridor :1;
-    bool hub :1;
-    bool international :1;
-    bool regional :1;
-    bool constellation :1;
-
-    double security;
-    uint32 factionID;
-    double radius;
-    uint32 sunTypeID;
-    std::string securityClass;
-};
+struct SolarSystemData;
 
 /**
  * CelestialObject which represents solar system.
@@ -95,22 +53,22 @@ public:
     /*
      * Public Fields:
      */
-    const GPoint &      minPosition() const             { return m_minPosition; }
-    const GPoint &      maxPosition() const             { return m_maxPosition; }
-    double              luminosity() const              { return m_luminosity; }
+    const GPoint &      minPosition() const             { return m_data.minPosition; }
+    const GPoint &      maxPosition() const             { return m_data.maxPosition; }
+    double              luminosity() const              { return m_data.luminosity; }
 
-    bool                border() const                  { return m_border; }
-    bool                fringe() const                  { return m_fringe; }
-    bool                corridor() const                { return m_corridor; }
-    bool                hub() const                     { return m_hub; }
-    bool                international() const           { return m_international; }
-    bool                regional() const                { return m_regional; }
-    bool                constellation() const           { return m_constellation; }
+    bool                border() const                  { return m_data.border; }
+    bool                fringe() const                  { return m_data.fringe; }
+    bool                corridor() const                { return m_data.corridor; }
+    bool                hub() const                     { return m_data.hub; }
+    bool                international() const           { return m_data.international; }
+    bool                regional() const                { return m_data.regional; }
+    bool                constellation() const           { return m_data.constellation; }
 
     double              security() const                { return m_security; }
-    uint32              factionID() const               { return m_factionID; }
+    uint32              factionID() const               { return m_data.factionID; }
     double              radius() const                  { return m_radius; }
-    const std::string & securityClass() const           { return m_securityClass; }
+    const std::string & securityClass() const           { return m_data.securityClass; }
 
     // Solar System Inventory Functions:
     void AddItemToInventory(InventoryItemRef iRef);
@@ -142,43 +100,25 @@ protected:
             _log(ITEM__ERROR, "Trying to load %s as SolarSystem.", sDataMgr.GetCategoryName(type.categoryID()));
             if (sConfig.debug.StackTrace)
                 EvE::traceStack();
-            return RefPtr<_Ty>();
+            return RefPtr<_Ty>(nullptr);
         }
 
         // load celestial data
         CelestialObjectData cData = CelestialObjectData();
-        if (!sItemFactory.db()->GetCelestialObject(solarSystemID, cData))
-            return RefPtr<_Ty>();
+        if (!SystemDB::GetCelestialObjectData(solarSystemID, cData))
+            return RefPtr<_Ty>(nullptr);
 
         // load solar system data
         /** @todo is this data in static data?  if not, do we continue db hit? */
         SolarSystemData ssData = SolarSystemData();
-        if( !sItemFactory.db()->GetSolarSystem( solarSystemID, ssData ) )
-            return RefPtr<_Ty>();
+        if (!sDataMgr.GetSolarSystemData(solarSystemID, ssData))
+            return RefPtr<_Ty>(nullptr);
 
-        return SolarSystemRef( new SolarSystem(solarSystemID, type, data, cData, ssData ) );
+        return SolarSystemRef(new SolarSystem(solarSystemID, type, data, cData, ssData));
     }
 
-    /*
-     * Data members:
-     */
-    bool m_border :1;
-    bool m_fringe :1;
-    bool m_corridor :1;
-    bool m_hub :1;
-    bool m_international :1;
-    bool m_regional :1;
-    bool m_constellation :1;
-
-    uint32 m_factionID;
-
-    double m_security;
-    double m_radius;
-    double m_luminosity;
-
-    std::string m_securityClass;
-    GPoint m_minPosition;
-    GPoint m_maxPosition;
+private:
+    SolarSystemData m_data;
 };
 
 #endif /* !__SOLAR_SYSTEM__H__INCL__ */

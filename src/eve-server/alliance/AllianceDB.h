@@ -18,10 +18,12 @@
 #include "alliance/AllianceData.h"
 #include "packets/CorporationPkts.h"
 
+
+struct OfficeData;
+
 class Client;
 class PyRep;
 class PyObject;
-class OfficeData;
 
 class AllianceDB
 {

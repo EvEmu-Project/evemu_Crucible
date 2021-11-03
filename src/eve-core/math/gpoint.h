@@ -26,6 +26,7 @@
 #ifndef G_POINT_H
 #define G_POINT_H
 
+
 #include "GaTypes.h"
 #include "utils/misc.h"
 

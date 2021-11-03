@@ -67,7 +67,7 @@ PyResult CorpBookmarkMgr::Handle_GetBookmarks(PyCallArgs& call)
 {
     /*
     ObjectCachedMethodID method_id(GetName(), "GetBookmarks");
-    if(!m_manager->cache_service->IsCacheLoaded(method_id)) {
+    if (!m_manager->cache_service->IsCacheLoaded(method_id)) {
         PyTuple *tuple = new PyTuple(2);
             tuple->SetItem(0, m_db.GetBookmarks(call.client->GetCorporationID()));
             tuple->SetItem(1, m_db.GetFolders(call.client->GetCorporationID()));

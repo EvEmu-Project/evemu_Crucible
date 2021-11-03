@@ -182,7 +182,7 @@ bool Inventory::LoadContents() {
     for (auto cur : items) {
         if ((cur == od.ownerID) or (cur == od.locID) or (cur == m_myID))
             continue;
-        InventoryItemRef iRef = sItemFactory.GetItem(cur);
+        InventoryItemRef iRef = sItemFactory.GetItemRef(cur);
         if (iRef.get() == nullptr) {
             _log(INV__WARNING, "Inventory::LoadContents() - Failed to load item %u contained in %u. Skipping.", cur, m_myID);
             continue;
@@ -766,7 +766,7 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
     }
 
     // check if where the item is coming from was a cargo container
-    InventoryItemRef cRef = sItemFactory.GetItem(iRef->locationID());
+    InventoryItemRef cRef = sItemFactory.GetItemRef(iRef->locationID());
     if (cRef->groupID() == EVEDB::invGroups::Cargo_Container && sDataMgr.IsSolarSystem(cRef->locationID())) {
         GVector direction (cRef->position(), pClient->GetShip()->position());
         float maxDistance(2500.0f);

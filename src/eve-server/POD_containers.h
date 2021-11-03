@@ -116,7 +116,7 @@ struct BountyData {
 
 
 /* POD structure for character kill data  -allan 01May16 */
-struct CharKillData {
+struct KillData {
     uint16 victimShipTypeID;
     uint16 finalShipTypeID;
     uint16 finalWeaponTypeID;
@@ -283,6 +283,25 @@ struct SystemData {
     int64 radius;
     float securityRating;
     std::string name;
+    std::string securityClass;
+};
+
+/* POD structure for solarsystem. */
+struct SolarSystemData {
+    bool border;
+    bool fringe;
+    bool corridor;
+    bool hub;
+    bool international;
+    bool regional;
+    bool constellation;
+    uint32 factionID;
+    uint32 sunTypeID;
+    double security;
+    double radius;
+    double luminosity;
+    GPoint minPosition;
+    GPoint maxPosition;
     std::string securityClass;
 };
 

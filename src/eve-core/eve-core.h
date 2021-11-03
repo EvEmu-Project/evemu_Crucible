@@ -27,6 +27,10 @@
 #ifndef __EVE_CORE_H__INCL__
 #define __EVE_CORE_H__INCL__
 
+/** @todo  this file has many specific headers not used by everything in evemu.
+ * this should be trimmed down with specific headers in files that need them
+ */
+
 /*************************************************************************/
 /* Header configuration                                                  */
 /*************************************************************************/
@@ -76,11 +80,8 @@
 #include <queue>
 #include <set>
 #include <sstream>
-#include <stack>
 #include <string>
 #include <vector>
-#include <thread>
-#include <chrono>
 #include <functional>
 #include <tuple>
 #include <unordered_map>
@@ -111,13 +112,9 @@
 #endif /* HAVE_VLD_H */
 
 /* *nix includes */
+// these are quite specific...should be in files that use them, NOT here.
 #include <dirent.h>
-#include <pthread.h>
 #include <fcntl.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 #ifndef HAVE_ASINH
 #   include <boost/math/special_functions.hpp>
@@ -128,18 +125,6 @@
 /************************************************************************/
 // Boost.Asio
 #include <boost/asio.hpp>
-// Gangsta
-#include <GaPreReqs.h>
-#include <GaMath.h>
-#include <GaTypes.h>
-// MySQL
-#include <mysql.h>
-#include <mysqld_error.h>
-#include <errmsg.h>
-// TinyXML
-#include <tinyxml.h>
-// zlib
-#include <zlib.h>
 
 /*************************************************************************/
 /* MMGR - Memory Manager                                                 */
@@ -148,11 +133,6 @@
 /*************************************************************************/
 /* note...this code causes free() errors in xmlpacketgenerator.o */
 //#include "memory/mmgr.h"
-
-/* { backtrace, backtrace_symbols, backtrace_symbols_fd } header file.
- *  include this for DEBUG CODE ONLY!!
- */
-#include "execinfo.h"
 
 /************************************************************************/
 /* Project-specific includes for files using ONLY eve-core.h            */
@@ -163,6 +143,5 @@
 #include "memory/SafeMem.h"
 // utils
 #include "utils/FastInt.h"
-
 
 #endif /* !__EVE_CORE_H__INCL__ */

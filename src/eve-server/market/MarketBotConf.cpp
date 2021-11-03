@@ -1,17 +1,18 @@
 
- /**
-  * @name MarketBotConf.h
-  *   system for automating/emulating buy and sell orders on the market.
-  * base config code taken from EVEServerConfig
-  * idea and some code taken from AuctionHouseBot - Copyright (C) 2008-2014 TrinityCore <http://www.trinitycore.org/>
-  * @Author:         Allan
-  * @date:   10 August 2016
-  * @version:  0.15
-  */
+/**
+ * @name MarketBotConf.h
+ *   system for automating/emulating buy and sell orders on the market.
+ * base config code taken from EVEServerConfig
+ * idea and some code taken from AuctionHouseBot - Copyright (C) 2008-2014 TrinityCore <http://www.trinitycore.org/>
+ * @Author:         Allan
+ * @date:   10 August 2016
+ * @version:  0.15
+ */
 
 
 
 #include "market/MarketBotConf.h"
+
 
 MarketBotConf::MarketBotConf()
 {

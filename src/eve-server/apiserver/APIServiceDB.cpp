@@ -36,7 +36,7 @@ bool APIServiceDB::GetAccountIdFromUsername(std::string username, std::string * 
     DBQueryResult res;
 
     // Find accountID in 'account' table using accountName:
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         "SELECT"
         "    accountID "
         " FROM account "
@@ -47,7 +47,7 @@ bool APIServiceDB::GetAccountIdFromUsername(std::string username, std::string * 
     }
 
     DBResultRow row;
-    if( !res.GetRow(row) )
+    if ( !res.GetRow(row) )
     {
         sLog.Error( "APIServiceDB::GetAccountIdFromUsername()", "res.GetRow(row) failed for unknown reason." );
         return false;
@@ -62,7 +62,7 @@ bool APIServiceDB::GetAccountIdFromUserID(std::string userID, uint32 * accountID
     DBQueryResult res;
 
     // Find accountID in 'accountapi' table using userID:
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         "SELECT"
         "    accountID "
         " FROM accountApi "
@@ -73,7 +73,7 @@ bool APIServiceDB::GetAccountIdFromUserID(std::string userID, uint32 * accountID
     }
 
     DBResultRow row;
-    if( !res.GetRow(row) )
+    if ( !res.GetRow(row) )
     {
         sLog.Error( "APIServiceDB::GetAccountIdFromUserID()", "res.GetRow(row) failed for unknown reason." );
         return false;
@@ -89,7 +89,7 @@ bool APIServiceDB::GetApiAccountInfoUsingAccountID(std::string accountID, uint32
     DBQueryResult res;
 
     // Find userID, fullKey, limitedKey, and apiRole from 'accountApi' table using accountID obtained from 'account' table:
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         "SELECT"
         "    userID, fullKey, limitedKey, apiRole "
         " FROM accountApi "
@@ -100,7 +100,7 @@ bool APIServiceDB::GetApiAccountInfoUsingAccountID(std::string accountID, uint32
     }
 
     DBResultRow row;
-    if( !res.GetRow(row) )
+    if ( !res.GetRow(row) )
     {
         sLog.Error( "APIServiceDB::GetApiAccountInfoUsingAccountID()", "res.GetRow(row) failed for unknown reason." );
         return false;
@@ -118,7 +118,7 @@ bool APIServiceDB::GetApiAccountInfoUsingUserID(std::string userID, std::string 
     DBQueryResult res;
 
     // Find fullKey, limitedKey, and apiRole from 'accountApi' table using userID supplied from an API query string:
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         "SELECT"
         "    fullKey, limitedKey, apiRole "
         " FROM accountApi "
@@ -129,7 +129,7 @@ bool APIServiceDB::GetApiAccountInfoUsingUserID(std::string userID, std::string 
     }
 
     DBResultRow row;
-    if( !res.GetRow(row) )
+    if ( !res.GetRow(row) )
     {
         sLog.Error( "APIServiceDB::GetApiAccountInfoUsingUserID()", "res.GetRow(row) failed for unknown reason." );
         return false;
@@ -144,13 +144,13 @@ bool APIServiceDB::GetApiAccountInfoUsingUserID(std::string userID, std::string 
 bool APIServiceDB::UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string apiFullKey, std::string apiLimitedKey)
 {
     // Check key lengths and report error and return if either are incorrect:
-    if( apiLimitedKey.length() != 64 )
+    if ( apiLimitedKey.length() != 64 )
     {
         sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "limitedApiKey length != 64, but rather %u", apiLimitedKey.length() );
         return false;
     }
 
-    if( apiFullKey.length() != 64 )
+    if ( apiFullKey.length() != 64 )
     {
         sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "fullApiKey length != 64, but rather %u", apiFullKey.length() );
         return false;
@@ -159,7 +159,7 @@ bool APIServiceDB::UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string apiF
     // Update fullKey and limitedKey in the 'accountApi' table using userID:
     DBerror err;
 
-    if( !sDatabase.RunQuery(err,
+    if ( !sDatabase.RunQuery(err,
         "UPDATE"
         " accountApi"
         " SET fullKey = '%s', limitedKey = '%s'"
@@ -176,13 +176,13 @@ bool APIServiceDB::UpdateUserIdApiKeyDatabaseRow(uint32 userID, std::string apiF
 bool APIServiceDB::InsertNewUserIdApiKeyInfoToDatabase(uint32 accountID, std::string apiFullKey, std::string apiLimitedKey, uint32 apiRole)
 {
     // Check key lengths and report error and return if either are incorrect:
-    if( apiLimitedKey.length() != 64 )
+    if ( apiLimitedKey.length() != 64 )
     {
         sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "limitedApiKey length != 64, but rather %u", apiLimitedKey.length() );
         return false;
     }
 
-    if( apiFullKey.length() != 64 )
+    if ( apiFullKey.length() != 64 )
     {
         sLog.Error( "APIServiceDB::UpdateUserIdApiKeyDatabaseRow()", "fullApiKey length != 64, but rather %u", apiFullKey.length() );
         return false;
@@ -190,7 +190,7 @@ bool APIServiceDB::InsertNewUserIdApiKeyInfoToDatabase(uint32 accountID, std::st
 
     DBerror err;
 
-    if( !sDatabase.RunQuery(err,
+    if ( !sDatabase.RunQuery(err,
         "INSERT INTO"
         " accountApi ("
         "    accountID, fullKey, limitedKey, apiRole"
@@ -212,7 +212,7 @@ bool APIServiceDB::UpdateUserIdApiRole(uint32 userID, uint32 apiRole)
     // Update fullKey and limitedKey in the 'accountApi' table using userID:
     DBerror err;
 
-    if( !sDatabase.RunQuery(err,
+    if ( !sDatabase.RunQuery(err,
         "UPDATE"
         " accountApi"
         " SET apiRole = %u"

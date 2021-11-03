@@ -38,19 +38,19 @@ std::tr1::shared_ptr<std::string> APIAccountManager::ProcessCall(const APIComman
 {
     sLog.Debug("APIAccountManager::ProcessCall()", "EVEmu API - Account Service Manager");
 
-    if( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAccountManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
 
-    if( pAPICommandCall->find( "servicehandler" )->second == "APIKeyRequest.xml.aspx" )
+    if ( pAPICommandCall->find( "servicehandler" )->second == "APIKeyRequest.xml.aspx" )
         return _APIKeyRequest(pAPICommandCall);
-    else if( pAPICommandCall->find( "servicehandler" )->second == "Characters.xml.aspx" )
+    else if ( pAPICommandCall->find( "servicehandler" )->second == "Characters.xml.aspx" )
         return _Characters(pAPICommandCall);
-    else if( pAPICommandCall->find( "servicehandler" )->second == "AccountStatus.xml.aspx" )
+    else if ( pAPICommandCall->find( "servicehandler" )->second == "AccountStatus.xml.aspx" )
         return _AccountStatus(pAPICommandCall);
-    //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
+    //else if ( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
     //    return _TODO(pAPICommandCall);
     else
     {
@@ -78,7 +78,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     sLog.Debug("APIAccountManager::_APIKeyRequest()", "EVEmu API - Account Service Manager - CALL: APIKeyRequest.xml.aspx");
 
     // 1: Decode arguments:
-    if( pAPICommandCall->find( "username" ) != pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "username" ) != pAPICommandCall->end() )
         username = pAPICommandCall->find( "username" )->second;
     else
     {
@@ -86,7 +86,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( pAPICommandCall->find( "password" ) != pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "password" ) != pAPICommandCall->end() )
         password = pAPICommandCall->find( "password" )->second;
     else
     {
@@ -94,7 +94,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( pAPICommandCall->find( "keytype" ) != pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "keytype" ) != pAPICommandCall->end() )
         keyType = pAPICommandCall->find( "keytype" )->second;
     else
     {
@@ -102,14 +102,14 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( keyType != "full" )
-        if( keyType != "limited" )
+    if ( keyType != "full" )
+        if ( keyType != "limited" )
         {
             sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: 'keytype' parameter has invalid value '%s' - exiting with error", keyType.c_str() );
             return BuildErrorXMLResponse( "203", "Authentication failure." );
         }
 
-    if( pAPICommandCall->find( "action" ) != pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "action" ) != pAPICommandCall->end() )
         action = pAPICommandCall->find( "action" )->second;
     else
     {
@@ -117,8 +117,8 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( action != "new" )
-        if( action != "get" )
+    if ( action != "new" )
+        if ( action != "get" )
         {
             sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: 'action' parameter has invalid value '%s' - exiting with error", action.c_str() );
             return BuildErrorXMLResponse( "203", "Authentication failure." );
@@ -126,14 +126,14 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
 
     // 2: Authenticate the username and password against the account table:
     status = _AuthenticateUserNamePassword( username, password );
-    if( !status )
+    if ( !status )
     {
         sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' password='%s' does not authenticate.", username.c_str(), password.c_str() );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
     // 2a: Get accountID using username, now that it's been validated:
     status = m_db.GetAccountIdFromUsername( username, &accountID );
-    if( !status )
+    if ( !status )
     {
         sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' cannot be found in 'account' table.", username.c_str() );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
@@ -144,7 +144,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
 
     // 4: Generate new random 64-character hexadecimal API Keys:
     // Write new API Key to database if key request 'action' is 'new':
-    if( !status )
+    if ( !status )
     {
         // 4a: If userID does not exist for this accountID, then insert a new row into the 'accountApi' table regardless of 'get' or 'new':
         apiLimitedKey = _GenerateAPIKey();
@@ -152,15 +152,15 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
         status = m_db.InsertNewUserIdApiKeyInfoToDatabase( atol(accountID.c_str()), apiFullKey, apiLimitedKey, EVEAPI::Roles::Player );
     }
 
-    if( action == "new" )
-        if( keyType == "limited" )
+    if ( action == "new" )
+        if ( keyType == "limited" )
             apiLimitedKey = _GenerateAPIKey();
-        else //if( keyType == "full" )
+        else //if ( keyType == "full" )
             apiFullKey = _GenerateAPIKey();
 
-    if( action == "new" )
+    if ( action == "new" )
     {
-        if( status )
+        if ( status )
             // 4b: If userID already exists, generate new API keys and write them back to the database under that userID:
             status = m_db.UpdateUserIdApiKeyDatabaseRow( userID, apiFullKey, apiLimitedKey );
     }
@@ -173,7 +173,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     //status = m_db.GetAccountIdFromUsername( username, &accountID );
 
     status = m_db.GetApiAccountInfoUsingAccountID( accountID, &userID, &apiFullKey, &apiLimitedKey, &apiRole );
-    if( !status )
+    if ( !status )
     {
         sLog.Error( "APIAccountManager::_APIKeyRequest()", "ERROR: username='%s' cannot be found in 'account' table.", username.c_str() );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
@@ -183,7 +183,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_APIKeyRequest(const APICom
     _BuildXMLHeader();
     {
         _BuildSingleXMLTag( "userID", std::string(itoa(userID)) );
-        if( keyType == "full" )
+        if ( keyType == "full" )
         {
             keyTag = "apiFullKey";
             _BuildSingleXMLTag( keyTag, apiFullKey );
@@ -207,7 +207,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
 
     sLog.Debug("APIAccountManager::_Characters()", "EVEmu API - Account Service Manager - CALL: Characters.xml.aspx");
 
-    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAccountManager::_Characters()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
@@ -223,13 +223,13 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_Characters(const APIComman
     std::string userID = pAPICommandCall->find( "userid" )->second;
 
     status = m_db.GetAccountIdFromUserID( userID, &accountID );
-    if( !status )
+    if ( !status )
     {
         sLog.Error( "APIAccountManager::_Characters()", "ERROR: userID='%s' cannot be found in 'accountApi' table.", userID.c_str() );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( !( m_accountDB.GetCharactersList(accountID, charIDList, charNameList, charCorpIDList, charCorpNameList) ) )
+    if ( !( m_accountDB.GetCharactersList(accountID, charIDList, charNameList, charCorpIDList, charCorpNameList) ) )
     {
         sLog.Error( "APIAccountManager::_Characters()", "ERROR: m_accountDB.GetCharactersList() call failed for unknown reason - exiting with error" );
         BuildErrorXMLResponse( "9999", "EVEmu API Server: Account Manager - Characters.xml.aspx STUB" );
@@ -269,7 +269,7 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICom
 {
     sLog.Error( "APIAccountManager::_AccountStatus()", "TODO: Insert code to validate userID and apiKey" );
 
-    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: No 'userID' parameter found in call argument list - exiting with error" );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
@@ -278,13 +278,13 @@ std::tr1::shared_ptr<std::string> APIAccountManager::_AccountStatus(const APICom
     uint32 accountID = 0;
     std::vector<std::string> accountInfoList;
 
-    if( !(m_db.GetAccountIdFromUserID( pAPICommandCall->find( "userid" )->second, &accountID )) )
+    if ( !(m_db.GetAccountIdFromUserID( pAPICommandCall->find( "userid" )->second, &accountID )) )
     {
         sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: Could not find 'accountID' in 'accountApi' table - exiting with error" );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-    if( !(m_accountDB.GetAccountInfo( accountID, accountInfoList )) )
+    if ( !(m_accountDB.GetAccountInfo( accountID, accountInfoList )) )
     {
         sLog.Error( "APIAccountManager::_AccountStatus()", "ERROR: Could not find 'accountID' in 'account' table; there is an invalid 'accountID' referenced by api account 'userID' = %s - exiting with error", pAPICommandCall->find( "userid" )->second.c_str() );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );

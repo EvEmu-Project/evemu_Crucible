@@ -30,12 +30,82 @@
 #include "character/Character.h"
 #include "corporation/CorporationDB.h"
 
+// this shall be removed when i remove MulticastTarget
+#include "EntityList.h"
+
 /*
  * CORP__DB_ERROR
  * CORP__DB_WARNING
  * CORP__DB_INFO
  * CORP__DB_MESSAGE
  */
+
+bool CorporationDB::DoesCorporationExist(uint32 corpID) {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT corporationID FROM crpCorporation WHERE corporationID = %u", corpID))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return false;
+    }
+
+    return (res.GetRowCount() != 0);
+}
+
+bool CorporationDB::GetCorporationBySchool(uint32 schoolID, uint32 &corporationID) {
+    DBQueryResult res;
+
+    if (!sDatabase.RunQuery(res, "SELECT corporationID FROM chrSchools WHERE schoolID = %u", schoolID)) {
+        codelog(DATABASE__ERROR, "Error in query: %S", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    if (!res.GetRow(row)) {
+        codelog(DATABASE__ERROR, "Failed to find matching corporation for school %u", schoolID);
+        return false;
+    }
+    corporationID = row.GetInt(0);
+    return true;
+}
+
+/**
+ * @todo Here should come a call to Corp??::CharacterJoinToCorp or what the heck... for now we only put it there
+ */
+bool CorporationDB::GetLocationCorporationByCareer(CharacterData& cdata, uint32& corporationID) {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT "      // fixed DB Query   -allan 01/02/14  -UD 9Jul19
+        "  cs.corporationID, "
+        "  cs.schoolID, "
+        "  co.stationID, "
+        "  st.solarSystemID, "
+        "  st.constellationID, "
+        "  st.regionID "
+        " FROM careers AS c"
+        "    LEFT JOIN chrSchools AS cs USING (schoolID)"
+        "    LEFT JOIN crpCorporation AS co ON cs.corporationID = co.corporationID"
+        "    LEFT JOIN staStations AS st USING (stationID)"
+        " WHERE c.careerID = %u", cdata.careerID))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    if (!res.GetRow(row)) {
+        codelog(DATABASE__ERROR, "Failed to find career %u", cdata.careerID);
+        return false;
+    }
+
+    corporationID = row.GetUInt(0);
+    cdata.schoolID = row.GetUInt(1);
+    cdata.stationID = row.GetUInt(2);
+    cdata.solarSystemID = row.GetUInt(3);
+    cdata.constellationID = row.GetUInt(4);
+    cdata.regionID = row.GetUInt(5);
+
+    return true;
+}
 
 void CorporationDB::GetCorpStations(uint32 corp_id, std::vector<uint32>& stVec) {
     DBQueryResult res;

@@ -30,6 +30,7 @@
 
 #include "eve-server.h"
 
+#include "utils/XMLParserEx.h"
 
 /**
  * @brief Class which parses and stores eve-server configuration.

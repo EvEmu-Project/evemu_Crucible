@@ -1,23 +1,28 @@
 
- /**
-  * @name StaticDataMgr.cpp
-  *   memory object caching system for retrieving, managing and saving ingame data
-  *
-  * @Author:         Allan
-  * @date:   1Jul15 / 1Aug16
-  *
-  * Original Idea  - 1 July 15
-  * Code completion and implementation  - 1 August 2016
-  *
-  */
+/**
+ * @name StaticDataMgr.cpp
+ *   memory object caching system for retrieving, managing and saving ingame data
+ *
+ * @Author:         Allan
+ * @date:   1Jul15 / 1Aug16
+ *
+ * Original Idea  - 1 July 15
+ * Code completion and implementation  - 1 August 2016
+ *
+ */
 
 
 #include "../eve-common/EVE_Character.h"
+#include "../eve-common/EVE_POS.h"
+
 #include "StaticDataMgr.h"
+#include "EVEServerConfig.h"
 #include "database/EVEDBUtils.h"
 #include "manufacturing/FactoryDB.h"
-#include "station/StationDataMgr.h"
+#include "map/MapDB.h"
+#include "station/StationDB.h"
 #include "system/SystemManager.h"
+#include "system/cosmicMgrs/ManagerDB.h"
 
 /*
  * DATA__ERROR          # specific "data not found but should be there" msgs
@@ -44,6 +49,7 @@ m_npcDivisions(nullptr)
     m_compounds.clear();
     m_bpMatlData.clear();
     m_systemData.clear();
+    m_solSysData.clear();
     m_staticData.clear();
     m_salvageMap.clear();
     m_agentSystem.clear();
@@ -274,6 +280,23 @@ void StaticDataMgr::Populate()
         m_systemData.emplace(row.GetInt(0), sysData);
     }
     sLog.Cyan("    StaticDataMgr", "%lu Static System data sets loaded in %.3fms.", m_systemData.size(), (GetTimeMSeconds() - startTime));
+/*
+    startTime = GetTimeMSeconds();
+    ManagerDB::GetSolarSystemData(*res);
+    while (res->GetRow(row)) {
+        //SELECT solarSystemID, solarSystemName, constellationID, regionID, securityClass, security FROM mapSolarSystems
+        SolarSystemData sysData   = SolarSystemData();
+        sysData.systemID          = row.GetInt(0);
+        sysData.name              = row.GetText(1);
+        sysData.constellationID   = row.GetInt(2);
+        sysData.regionID          = row.GetInt(3);
+        sysData.securityClass     = (row.IsNull(4) ? "0" : row.GetText(4));
+        sysData.securityRating    = row.GetFloat(5);    // this gives system trueSec
+        sysData.factionID         = (row.IsNull(6) ? 0 : row.GetUInt(6));
+        m_solSysData.emplace(row.GetInt(0), sysData);
+    }
+    sLog.Cyan("    StaticDataMgr", "%lu Static SolarSystem data sets loaded in %.3fms.", m_solSysData.size(), (GetTimeMSeconds() - startTime));
+*/
 
     startTime = GetTimeMSeconds();
     ManagerDB::GetWHSystemClass(*res);
@@ -1142,6 +1165,16 @@ const char* StaticDataMgr::GetSystemName(uint32 locationID)
 
     _log(DATA__MESSAGE, "Failed to query info for system %u: System not found.", locationID);
     return "Invalid";
+}
+
+bool StaticDataMgr::GetSolarSystemData(uint32 sysID, SolarSystemData& into)
+{
+    if (!IsSolarSystem(sysID)) {
+        _log(DATA__MESSAGE, "Failed to query info:  locationID %u is not system.", sysID);
+        return false;
+    }
+    m_solSysData;
+    return true;
 }
 
 bool StaticDataMgr::GetStaticInfo(uint32 itemID, StaticData& data)
@@ -2105,8 +2138,8 @@ uint32 StaticDataMgr::GetWreckFaction(uint32 typeID)
 
     /*
      *    28255 :  //   Mission Faction Freighter Wreck
-     *    29347:  //    Mission Faction Vessels Wreck
-     *    29365:  //    Mission Faction Industrials Wreck
+     *    29347:  //    Mission Faction Vessel Wreck
+     *    29365:  //    Mission Faction Industrial Wreck
      */
 }
 
@@ -2115,7 +2148,7 @@ void StaticDataMgr::AddOutpost(StationData &stData)
 {
     // Update m_stationCount
     std::map<uint32, uint8>::iterator itr = m_stationCount.lower_bound(stData.systemID);
-    if(itr != m_stationCount.end() && !(m_stationCount.key_comp()(stData.systemID, itr->first)))
+    if (itr != m_stationCount.end() && !(m_stationCount.key_comp()(stData.systemID, itr->first)))
     {
         itr->second = itr->second + 1;
     }

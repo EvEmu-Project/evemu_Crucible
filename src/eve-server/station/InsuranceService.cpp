@@ -144,7 +144,7 @@ PyResult InsuranceBound::Handle_InsureShip( PyCallArgs& call ) {
         return nullptr;
     }
 
-    InventoryItemRef shipRef = sItemFactory.GetItem(args.shipID);
+    InventoryItemRef shipRef = sItemFactory.GetItemRef(args.shipID);
     if (shipRef.get() == nullptr)       // make error here
         return nullptr;
 

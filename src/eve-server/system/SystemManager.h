@@ -27,7 +27,6 @@
 #ifndef __SYSTEMMANAGER_H_INCL__
 #define __SYSTEMMANAGER_H_INCL__
 
-#include "system/SystemGPoint.h"
 #include "system/BubbleManager.h"
 #include "system/SolarSystem.h"
 #include "system/SystemDB.h"
@@ -183,8 +182,6 @@ private:
 
     PyServiceMgr& m_services;
     SolarSystemRef m_solarSystemRef;
-
-    SystemGPoint mGP;
 
     // static system data
     SystemData m_data;

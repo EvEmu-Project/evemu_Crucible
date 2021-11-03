@@ -22,8 +22,9 @@
 #include "../eve-common/EVE_RAM.h"
 #include "../eve-common/EVE_Market.h"
 
-#include "map/MapDB.h"
-#include "system/cosmicMgrs/ManagerDB.h"
+
+//struct CelestialObjectData;
+struct SolarSystemData;
 
 class StaticDataMgr
 : public Singleton< StaticDataMgr >
@@ -98,6 +99,11 @@ public:
     uint32              GetStationConstellation(uint32 stationID);
     // return systemID for given stationID
     uint32              GetStationSystem(uint32 stationID);
+
+    // not sure if we wanna put this in static data....503k items
+    //bool                GetCelestialObjectData(uint32 celestialID, CelestialObjectData &into);
+    // get system data for given systemID
+    bool                GetSolarSystemData(uint32 sysID, SolarSystemData &into);
 
     uint8               GetStationCount(uint32 systemID);
     bool                GetStationList(uint32 systemID, std::vector< uint32 >& data);
@@ -178,6 +184,7 @@ private:
     std::map<uint32, uint32>                            m_stationRegion;    // stationID/regionID
     std::map<uint32, uint32>                            m_stationConst;     // stationID/systemID
     std::map<uint32, uint32>                            m_stationSystem;    // stationID/systemID
+    std::map<uint32, SolarSystemData>                   m_solSysData;       // systemID/data
     std::map<uint32, uint8>                             m_factionRaces;     // factionID/raceID
     std::map<uint16, EvERam::bpTypeData>                m_bpTypeData;       // typeID/data
     std::map<uint16, uint8>                             m_moonGoo;          // typeID/rarity

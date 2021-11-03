@@ -24,6 +24,8 @@
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
 #include "manufacturing/Blueprint.h"
+#include "map/MapDB.h"
+#include "math/Trig.h"
 #include "packets/Planet.h"
 #include "planet/CustomsOffice.h"
 #include "planet/Planet.h"
@@ -485,7 +487,7 @@ void CustomsSE::Killed(Damage &fatal_blow) {
     /* populate kill data for killMail and save to db  -allan 01May16  --updated 13July17 */
     /** @todo  check for tower/tcu/sbu/jammer and make killmail */
     /** @todo send pos mail/notification to corp members */
-    CharKillData data = CharKillData();
+    KillData data = KillData();
         data.solarSystemID = m_system->GetID();
         data.victimCharacterID = 0; // charID = 0 means strucuture/item
         data.victimCorporationID = m_corpID;

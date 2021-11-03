@@ -143,7 +143,7 @@ bool APIServiceManager::_AuthenticateUserNamePassword(std::string username, std:
 {
     // Query account info
     AccountInfo account_info;
-    if( !services().serviceDB().GetAccountInformation(
+    if ( !services().serviceDB().GetAccountInformation(
             username.c_str(), 
 			password.c_str(),
 			account_info ) )
@@ -151,7 +151,7 @@ bool APIServiceManager::_AuthenticateUserNamePassword(std::string username, std:
 
     // Compute pass hash
     std::string passHash;
-    if( !PasswordModule::GeneratePassHash(
+    if ( !PasswordModule::GeneratePassHash(
             username, password, passHash ) )
         return false;
 
@@ -167,7 +167,7 @@ bool APIServiceManager::_AuthenticateFullAPIQuery(std::string userID, std::strin
 
     bool status = m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
 
-    if( (apiKey.compare( apiFullKey )) && (status) )
+    if ( (apiKey.compare( apiFullKey )) && (status) )
         return true;
     else
         return false;
@@ -181,7 +181,7 @@ bool APIServiceManager::_AuthenticateLimitedAPIQuery(std::string userID, std::st
 
     bool status = m_db.GetApiAccountInfoUsingUserID(userID, &apiFullKey, &apiLimitedKey, &apiRole);
 
-    if( (apiKey.compare( apiLimitedKey )) && (status) )
+    if ( (apiKey.compare( apiLimitedKey )) && (status) )
         return true;
     else
         return false;
@@ -192,7 +192,7 @@ void APIServiceManager::_BuildXMLHeader()
     // Build header at beginning of XML document, so clear existing xml document
     _XmlDoc.Clear();
     // object pointed to by '_pXmlDocOuterTag' is automatically deleted by the TinyXML system with the above call
-    if( _pXmlElementStack != NULL )
+    if ( _pXmlElementStack != NULL )
     {
         delete _pXmlElementStack;
         _pXmlElementStack = NULL;
@@ -307,7 +307,7 @@ void APIServiceManager::_BuildSingleXMLTag(std::string name, std::string value)
     TiXmlElement * tag = new TiXmlElement( name.c_str() );
     tag->LinkEndChild( new TiXmlText( value.c_str() ));
 
-    if( _pXmlElementStack->empty() )
+    if ( _pXmlElementStack->empty() )
         _pXmlDocOuterTag->LinkEndChild( tag );
     else
         _pXmlElementStack->top()->LinkEndChild( tag );
@@ -319,7 +319,7 @@ void APIServiceManager::_BuildErrorXMLTag(std::string code, std::string param)
     error->SetAttribute( "code", code.c_str() );
     error->LinkEndChild( new TiXmlText( param.c_str() ));
 
-    if( _pXmlElementStack->empty() )
+    if ( _pXmlElementStack->empty() )
         _pXmlDocOuterTag->LinkEndChild( error );
     else
         _pXmlElementStack->top()->LinkEndChild( error );
@@ -327,13 +327,13 @@ void APIServiceManager::_BuildErrorXMLTag(std::string code, std::string param)
 
 void APIServiceManager::_CloseXMLTag()
 {
-    if( _pXmlElementStack->empty() )
+    if ( _pXmlElementStack->empty() )
         return;
 
     TiXmlElement * _pTopElement = _pXmlElementStack->top();
     _pXmlElementStack->pop();
 
-    if( _pXmlElementStack->empty() )
+    if ( _pXmlElementStack->empty() )
         _pXmlDocOuterTag->LinkEndChild( _pTopElement );
     else
     {

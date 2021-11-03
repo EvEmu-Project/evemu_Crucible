@@ -15,6 +15,7 @@
 #include "EVEServerConfig.h"
 #include "PyServiceMgr.h"
 #include "StaticDataMgr.h"
+#include "map/MapData.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
@@ -76,7 +77,7 @@ AnomalyMgr::~AnomalyMgr()
     /*
     InventoryItemRef iRef(nullptr);
     for (auto sig : m_sigByItemID) {
-        iRef = sItemFactory.GetItem(sig.first);
+        iRef = sItemFactory.GetItemRef(sig.first);
         if (iRef.get() == nullptr)
             continue;
         iRef->Delete();
@@ -245,37 +246,36 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
         return;
     }
 
-    sig.position = m_gp.GetAnomalyPoint(m_system);
+    sig.position = sMapData.GetAnomalyPoint(m_system);
 
     // some sites will use sys sov for ships.  use this for them....
     // sig.ownerID = sDataMgr.GetRegionFaction(m_system->GetRegionID());
-    using namespace Dungeon::Type;
     switch(sig.dungeonType) {
-        case Gravimetric: { // 2
+        case Dungeon::Type::Gravimetric: { // 2
             sig.sigTypeID = EVEDB::invTypes::CosmicSignature;
             sig.sigGroupID = EVEDB::invGroups::Cosmic_Signature;
             sig.scanGroupID = Scanning::Group::Signature;
             sig.scanAttributeID = AttrScanGravimetricStrength;
         } break;
-        case Magnetometric: { // 3,
+        case Dungeon::Type::Magnetometric: { // 3,
             sig.sigTypeID = EVEDB::invTypes::DeadspaceSignature;// need probes and exploring skills
             sig.sigGroupID = EVEDB::invGroups::Cosmic_Signature;
             sig.scanGroupID = Scanning::Group::Signature;
             sig.scanAttributeID = AttrScanMagnetometricStrength;
         } break;
-        case Radar: {       // 4,
+        case Dungeon::Type::Radar: {       // 4,
             sig.sigTypeID = EVEDB::invTypes::DeadspaceSignature;
             sig.sigGroupID = EVEDB::invGroups::Cosmic_Signature;
             sig.scanGroupID = Scanning::Group::Signature;
             sig.scanAttributeID = AttrScanRadarStrength;
         } break;
-        case Ladar: {       // 5,
+        case Dungeon::Type::Ladar: {       // 5,
             sig.sigTypeID = EVEDB::invTypes::DeadspaceSignature;
             sig.sigGroupID = EVEDB::invGroups::Cosmic_Signature;
             sig.scanGroupID = Scanning::Group::Signature;
             sig.scanAttributeID = AttrScanLadarStrength;
         } break;
-        case Wormhole: {    // 6
+        case Dungeon::Type::Wormhole: {    // 6
             // enable WH to be warped to...they are deco only at this time.
             //  once working, these will be by probe only, and removed from anomaly list
             sig.sigTypeID = EVEDB::invTypes::CosmicSignature;
@@ -291,14 +291,14 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
             }
             return;
         } break;
-        case Anomaly: {      // 7   simple combat sites
+        case Dungeon::Type::Anomaly: {      // 7   simple combat sites
             sig.sigTypeID = EVEDB::invTypes::CosmicAnomaly;
             sig.sigGroupID = EVEDB::invGroups::Cosmic_Anomaly;
             sig.scanGroupID = Scanning::Group::Anomaly;
             sig.scanAttributeID = AttrScanAllStrength;
             sig.sigStrength = 1.0f;
         } break;
-        case Mission: {      // 1
+        case Dungeon::Type::Mission: {      // 1
             sig.sigTypeID = EVEDB::invTypes::CosmicSignature;
             sig.sigGroupID = EVEDB::invGroups::Cosmic_Signature;
             sig.scanGroupID = Scanning::Group::Signature;
@@ -306,9 +306,9 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
             // we're not counting mission shit in sig count
         }
         // these will use default for now.  revisit later when system matures more and i better understand how to implement them.
-        case Escalation:   // 9
-        case Unrated:       // 8
-        case Rated: { // 10
+        case Dungeon::Type::Escalation:   // 9
+        case Dungeon::Type::Unrated:       // 8
+        case Dungeon::Type::Rated: { // 10
             sig.sigTypeID = EVEDB::invTypes::DeadspaceSignature;
             sig.sigGroupID = EVEDB::invGroups::Cosmic_Signature;
             sig.scanGroupID = Scanning::Group::Signature;
@@ -344,39 +344,38 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
 
 uint8 AnomalyMgr::GetDungeonType()
 {
-    using namespace Dungeon::Type;
     uint8 typeID = MakeRandomInt(2,10); // skip typeMission
     switch(typeID) {
-        case Escalation:  // 9
-        case Mission: {   // 1
+        case Dungeon::Type::Escalation:  // 9
+        case Dungeon::Type::Mission: {   // 1
             // cannot create this type here.  try again.
             return GetDungeonType();
         } break;
-        case Gravimetric: {   // 2
+        case Dungeon::Type::Gravimetric: {   // 2
             if (m_Grav < 0)
                 return GetDungeonType();
 
             ++m_Grav;
         } break;
-        case Magnetometric: {   // 3
+        case Dungeon::Type::Magnetometric: {   // 3
             if (m_Mag < 0)
                 return GetDungeonType();
 
             ++m_Mag;
         } break;
-        case Radar: {   // 4
+        case Dungeon::Type::Radar: {   // 4
             if (m_Radar < 0)
                 return GetDungeonType();
 
             ++m_Radar;
         } break;
-        case Ladar: {   // 5
+        case Dungeon::Type::Ladar: {   // 5
             if (m_Ladar < 0)
                 return GetDungeonType();
 
             ++m_Ladar;
         } break;
-        case Wormhole: {   // 6
+        case Dungeon::Type::Wormhole: {   // 6
             // cap at 1 per system, except k162...which ISNT created in this system (it's an exit, from WMS)
             //  this will need updating and be controlled by WMS.  it will have full control of WH amounts/locations
             if (m_WH != 0)
@@ -384,17 +383,17 @@ uint8 AnomalyMgr::GetDungeonType()
 
             ++m_WH;
         } break;
-        case Anomaly: {   // 7. this is noob dungeon, no probe required
+        case Dungeon::Type::Anomaly: {   // 7. this is noob dungeon, no probe required
             if (m_Anoms > (m_maxSigs /2))
                 return GetDungeonType();
         } break;
-        case Unrated: {   // 8
+        case Dungeon::Type::Unrated: {   // 8
             if ((m_Unrated < 0) or (m_Unrated > 2)) // cap at 3
                 return GetDungeonType();
 
             ++m_Unrated;
         } break;
-        case Rated: {  // 10
+        case Dungeon::Type::Rated: {  // 10
             if ((m_Complex < 0) or (m_Complex > 1)) // cap at 2
                 return GetDungeonType();
 

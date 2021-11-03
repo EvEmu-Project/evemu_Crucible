@@ -31,8 +31,10 @@
 
 #include "StaticDataMgr.h"
 #include "effects/EffectsData.h"
-#include "inventory/AttributeMap.h"
-#include "inventory/ItemFactory.h"
+//#include "inventory/AttributeMap.h"
+//#include "inventory/ItemFactory.h"
+
+//struct Effect;
 
 /*
  * LOADING INVOKATION EXPLANATION:

@@ -220,10 +220,10 @@ void Concord::UseShieldRecharge()
 
 void Concord::UseArmorRepairer()
 {
-    if( m_armorDamage > 0 )
+    if ( m_armorDamage > 0 )
     {
         m_armorDamage -= GetSelf()->GetAttribute(AttrEntityArmorRepairAmount).get_float();
-        if( m_armorDamage < 0.0 )
+        if ( m_armorDamage < 0.0 )
             m_armorDamage = 0.0;
     } else
         AI()->DisableRepTimers();

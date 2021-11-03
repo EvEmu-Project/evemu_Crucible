@@ -148,10 +148,10 @@ public:
 
     uint32 GetShipID() const                            { return m_shipId; }
     uint32 GetLocationID() const                        { return m_locationID; }
-    uint32 GetSystemID() const                          { return m_SystemData.systemID; }
-    uint32 GetConstellationID() const                   { return m_SystemData.constellationID; }
-    uint32 GetRegionID() const                          { return m_SystemData.regionID; }
-    std::string GetSystemName() const                   { return m_SystemData.name; }
+    uint32 GetSystemID() const                          { return m_systemData.systemID; }
+    uint32 GetConstellationID() const                   { return m_systemData.constellationID; }
+    uint32 GetRegionID() const                          { return m_systemData.regionID; }
+    std::string GetSystemName() const                   { return m_systemData.name; }
 
     //  public functions to update client session when char's roles are changed
     void UpdateCorpSession(CorpData& data);
@@ -332,14 +332,14 @@ public:
     void SetTrainingEndTime(int64 endTime)              { m_skillTimer = endTime; }
 
 protected:
-    Scan* m_scan;
     ServiceDB m_sDB;
-    SystemData m_SystemData;
+    StationData m_stationData;
+    SystemData m_systemData;
     ShipItemRef m_ship;
     ShipItemRef m_pod;
-    StationData m_StationData;
     CharacterRef m_char;
     PyServiceMgr& m_services;
+    Scan* m_scan;
     ShipSE* pShipSE;
     TradeSession* m_TS;
     ClientSession* pSession;

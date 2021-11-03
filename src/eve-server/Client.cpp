@@ -27,6 +27,7 @@
 #include "eve-server.h"
 #include "../eve-common/EVEVersion.h"
 #include "../eve-common/EVE_Character.h"
+//#include "../../eve-common/EVE_Skills.h"
 
 #include "Client.h"
 #include "ConsoleCommands.h"
@@ -39,6 +40,9 @@
 #include "corporation/CorporationDB.h"
 #include "fleet/FleetService.h"
 #include "imageserver/ImageServer.h"
+#include "inventory/Inventory.h"
+#include "map/MapData.h"
+#include "map/MapDB.h"
 #include "missions/MissionDataMgr.h"
 #include "npc/NPC.h"
 //#include "npc/Drone.h"
@@ -48,7 +52,6 @@
 #include "system/DestinyManager.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
-#include "system/SystemGPoint.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "exploration/Scan.h"
 #include "station/Station.h"
@@ -87,8 +90,8 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
     m_pod = ShipItemRef(nullptr);
     m_ship = ShipItemRef(nullptr);
 
-    m_SystemData = SystemData();
-    m_StationData = StationData();
+    m_systemData = SystemData();
+    m_stationData = StationData();
 
     m_afk = false;
     m_login = true;
@@ -144,7 +147,7 @@ Client::~Client() {
          *      1)  check client IsInSpace(?)
          *      2)  set timer to delay removing bubble/sysmgr/destiny...or check based on destiny->isstopped() or timer on destiny->ismoving()
          *      3)  set current position (DB::chrCharacters.logoutPosition?)  initial code in place for warp-in on login
-         *      4)  generate random point to warp to ** use SystemGPoint::GetRandPointInSystem(systemID, distance)
+         *      4)  generate random point to warp to ** use sMapData.GetRandPointInSystem(systemID, distance)
          *      5)  _warp to random point, but DONT make/update new bubble with entering ship
          *      6)  remove client from sysmgr/destiny/server
          */
@@ -153,7 +156,7 @@ Client::~Client() {
 
         if (!sConsole.IsDbError()) {
             ServiceDB::SetAccountOnlineStatus(GetUserID(), false);
-            ServiceDB::SetCharacterOnlineStatus(m_char->itemID(), false);
+            CharacterDB::SetCharacterOnlineStatus(m_char->itemID(), false);
         }
 
         if (!sConsole.IsShutdown()) {
@@ -235,15 +238,15 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     sEntityList.AddPlayer(this);
     sItemFactory.SetUsingClient(this);
 
-    m_system = sEntityList.FindOrBootSystem(m_SystemData.systemID);
+    m_system = sEntityList.FindOrBootSystem(m_systemData.systemID);
     if (m_system == nullptr) {
-        sLog.Error("Client::SelectCharacter()", "Failed to boot system %u for char %u.", m_SystemData.systemID, charID);
-        SendErrorMsg("SolarSystem %s(%u) - Boot Failure.", m_SystemData.name.c_str(), m_SystemData.systemID);
+        sLog.Error("Client::SelectCharacter()", "Failed to boot system %u for char %u.", m_systemData.systemID, charID);
+        SendErrorMsg("SolarSystem %s(%u) - Boot Failure.", m_systemData.name.c_str(), m_systemData.systemID);
         CloseClientConnection();
         return false;
     }
 
-    m_char = sItemFactory.GetCharacter(charID);
+    m_char = sItemFactory.GetCharacterRef(charID);
     if (m_char.get() == nullptr) {
         sLog.Error("Client::SelectCharacter()", "GetChar for %u = nullptr", charID);
         SendErrorMsg("Unable to locate Character.  Selection Failed.");
@@ -265,11 +268,11 @@ bool Client::SelectCharacter(int32 charID/*0*/)
 
     SetPodItem();
 
-    m_ship = sItemFactory.GetShip(m_shipId);
+    m_ship = sItemFactory.GetShipRef(m_shipId);
     if (m_ship.get() == nullptr) {
         sLog.Error("Client::SelectCharacter()", "shipID %u invalid for %u.  Selecting new ship...", m_shipId, charID);
         PickAlternateShip();    // incase shipID wasnt set correctly in db (seen on 'bad' Damage::Killed())
-        m_ship = sItemFactory.GetShip(m_shipId);
+        m_ship = sItemFactory.GetShipRef(m_shipId);
         if (m_ship.get() == nullptr) {
             sLog.Error("Client::SelectCharacter()", "shipID %u for %u also invalid.  Loading Pod.", m_shipId, charID);
             m_ship = m_pod;
@@ -313,7 +316,7 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     ServiceDB::SetAccountOnlineStatus(GetUserID(), true);
 
     //johnsus - characterOnline mod
-    ServiceDB::SetCharacterOnlineStatus(charID, true);
+    CharacterDB::SetCharacterOnlineStatus(charID, true);
     sItemFactory.UnsetUsingClient();
 
 
@@ -602,15 +605,15 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     bool wasDocked(sDataMgr.IsStation(m_locationID));
     m_locationID = locationID;
     // get data for new system.  this checks for stationID sent as locationID, so is safe here.
-    sDataMgr.GetSystemData(m_locationID, m_SystemData);
+    sDataMgr.GetSystemData(m_locationID, m_systemData);
 
     m_bubbleWait = false;           // allow client processing of subsequent destiny msgs
 
     // location changed...verify current system and set session data for current system.
-    if (IsJump() or ((m_system != nullptr) and (m_system->GetID() != m_SystemData.systemID))) {
+    if (IsJump() or ((m_system != nullptr) and (m_system->GetID() != m_systemData.systemID))) {
         //we have different m_system
         _log(PLAYER__WARNING, "MoveToLocation() - current m_system is %s, systemData is for %s, m_system->GetID(%u) != locationID(%u)", \
-                    m_system->GetName(), m_SystemData.name.c_str(), m_system->GetID(), m_locationID);
+                    m_system->GetName(), m_systemData.name.c_str(), m_system->GetID(), m_locationID);
         // if docked, update guestlist
         if (wasDocked) {
             CharNoLongerInStation();
@@ -632,10 +635,10 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         _log(PLAYER__WARNING, "MoveToLocation() - m_system == NULL, m_locationID = %u", m_locationID);
         // find our new system's manager
         sItemFactory.SetUsingClient(this);
-        m_system = sEntityList.FindOrBootSystem(m_SystemData.systemID);
+        m_system = sEntityList.FindOrBootSystem(m_systemData.systemID);
         sItemFactory.UnsetUsingClient();
         if (m_system == nullptr) {
-            sLog.Error("Client", "Failed to boot system %u for char %s (%u)", m_SystemData.systemID, m_char->name(), m_char->itemID());
+            sLog.Error("Client", "Failed to boot system %u for char %s (%u)", m_systemData.systemID, m_char->name(), m_char->itemID());
             SendErrorMsg("Unable to boot system.  Relog and try again.");
             return;
         }
@@ -650,7 +653,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     char ci[45];
     if (sDataMgr.IsStation(m_locationID)) {
         _log(PLAYER__WARNING, "MoveToLocation() - Character %s (%u) Docked in %u.", m_char->name(), m_char->itemID(), m_locationID);
-        stDataMgr.GetStationData(m_locationID, m_StationData);
+        stDataMgr.GetStationData(m_locationID, m_stationData);
         snprintf(ci, sizeof(ci), "Docked: %s(%u)", GetName(), m_char->itemID());
         m_char->Move(m_locationID, flagNone, true);
         m_ship->Move(m_locationID, flagHangar, true);
@@ -708,7 +711,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         if (InPod()) {
             m_ship->Move(m_locationID, flagCapsule, true);
         } else {
-            m_pod->Move(m_SystemData.systemID, flagCapsule, false);
+            m_pod->Move(m_systemData.systemID, flagCapsule, false);
             m_ship->Move(m_locationID, flagNone, true);
         }
 
@@ -722,9 +725,9 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_ship->SetPosition(pt);
 
         /* comment this block for later use...
-         * m_SystemData.radius is not populated yet, and this does weird things with ships
+         * m_systemData.radius is not populated yet, and this does weird things with ships
         // verify 'pt' is within system boundaries
-        if (pt.length() < m_SystemData.radius) {
+        if (pt.length() < m_systemData.radius) {
             m_ship->SetPosition(pt);
         } else {
             ;  // oob
@@ -742,7 +745,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     if (!m_login)
         m_ship->SaveShip(); // this saves everything on ship
 
-    m_char->SetLocation((sDataMgr.IsStation(m_locationID) ? m_locationID : 0), m_SystemData);
+    m_char->SetLocation((sDataMgr.IsStation(m_locationID) ? m_locationID : 0), m_systemData);
 
     UpdateSession();
     SendSessionChange();
@@ -771,7 +774,7 @@ void Client::SetDestiny(const GPoint& pt, bool update/*false*/) {
 
     if (pt.isZero()) {
         if (pShipSE->GetPosition().isZero()) {
-            pShipSE->DestinyMgr()->SetPosition(SystemGPoint::GetRandPointOnPlanet(m_system->GetID()), update);
+            pShipSE->DestinyMgr()->SetPosition(sMapData.GetRandPointOnPlanet(m_system->GetID()), update);
         } else {
             pShipSE->DestinyMgr()->SetPosition(pShipSE->GetPosition(), update);
         }
@@ -890,8 +893,8 @@ void Client::UndockFromStation() {
     m_invul = true;
     m_undock = true;
     //set position and direction of docking ramp for later use
-    m_dockPoint = m_StationData.dockPosition;
-    m_movePoint = m_StationData.dockOrientation;
+    m_dockPoint = m_stationData.dockPosition;
+    m_movePoint = m_stationData.dockOrientation;
 
     m_ship->Undock();
 
@@ -902,7 +905,7 @@ void Client::UndockFromStation() {
      * -> GotoDirection(etc, etc) -> SetState (dmg, ego, ball, slim)
      *  ***** 9sec from hitting undock to space view on live. *****
      */
-    MoveToLocation(m_SystemData.systemID, m_dockPoint);
+    MoveToLocation(m_systemData.systemID, m_dockPoint);
     SetInvulTimer(Player::Timer::UndockInvul);
     SetStateTimer(Player::State::Undock, Player::Timer::Undock);
     SetSessionTimer();
@@ -948,7 +951,7 @@ void Client::SetPodItem() {
     if (!IsPlayerItem(m_char->capsuleID())) {
         CreateNewPod();
     } else {
-        m_pod = sItemFactory.GetShip(m_char->capsuleID());
+        m_pod = sItemFactory.GetShipRef(m_char->capsuleID());
     }
     if (m_pod.get() == nullptr)
         CreateNewPod();
@@ -1327,7 +1330,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     }
 
     // add jump to mapDynamicData for showing in StarMap (F10)    -allan 06Mar14
-    MapDB::AddJump(m_SystemData.systemID);
+    MapDB::AddJump(m_systemData.systemID);
 
     // call Stop() per packet sniff - shuts off AP.  Halt() does also.  try not calling any movement updates
     //pShipSE->DestinyMgr()->Halt();  // Stop() disables ap.  try Halt() to reset ship movement to null
@@ -1585,7 +1588,7 @@ void Client::LoadStationHangar(uint32 stationID) {
 void Client::MoveItem(uint32 itemID, uint32 location, EVEItemFlags flag)
 {
     sItemFactory.SetUsingClient(this);
-    InventoryItemRef iRef = sItemFactory.GetItem(itemID);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(itemID);
     if (iRef.get() == nullptr) {
         _log(INV__ERROR, "Client::MoveItem() - %s Unable to load item %u", m_char->name(), itemID);
         return;
@@ -1624,7 +1627,7 @@ void Client::RemoveMissionItem(uint16 typeID, uint32 qty)
     uint16 count = qty;
     InventoryItemRef iRef(nullptr);
     if (sDataMgr.IsStation(m_locationID)) {
-        iRef = sItemFactory.GetStationItem(m_locationID)->GetMyInventory()->GetByTypeFlag(typeID, flagHangar);
+        iRef = sItemFactory.GetStationRef(m_locationID)->GetMyInventory()->GetByTypeFlag(typeID, flagHangar);
         if (iRef.get() != nullptr) {
             if (count < iRef->quantity()) {
                 iRef->AlterQuantity(count, true);
@@ -1658,7 +1661,7 @@ bool Client::ContainsTypeQty(uint16 typeID, uint32 qty) const
     InventoryItemRef iRef(nullptr);
     // this is for missions....we will have to determine if we have the TOTAL qty desired, in both cargo and hangar
     if (sDataMgr.IsStation(m_locationID)) {
-        iRef = sItemFactory.GetStationItem(m_locationID)->GetMyInventory()->GetByTypeFlag(typeID, flagHangar);
+        iRef = sItemFactory.GetStationRef(m_locationID)->GetMyInventory()->GetByTypeFlag(typeID, flagHangar);
         if (iRef.get() != nullptr)
             count = iRef->quantity();
     }
@@ -1722,7 +1725,7 @@ void Client::ChannelLeft(LSCChannel *chan) {
 void Client::CharNoLongerInStation() {
     // clear station data
     // remove client from station guest list
-    sEntityList.GetStationByID(m_StationData.stationID)->RemoveGuest(this);
+    sEntityList.GetStationByID(m_stationData.stationID)->RemoveGuest(this);
     m_system->SetDockCount(this, false);
     OnCharNoLongerInStation ocnis;
         ocnis.charID = m_char->itemID();
@@ -1734,7 +1737,7 @@ void Client::CharNoLongerInStation() {
         return;
     std::vector<Client*> clients;
     clients.clear();
-    sEntityList.GetStationGuestList(m_StationData.stationID, clients);
+    sEntityList.GetStationGuestList(m_stationData.stationID, clients);
     for (auto cur : clients) {
         PyIncRef(tmp);
         cur->SendNotification("OnCharNoLongerInStation", "stationid", &tmp); //consumed
@@ -1742,7 +1745,7 @@ void Client::CharNoLongerInStation() {
     PyDecRef(tmp);
 
     // delete current station data
-    m_StationData = StationData();
+    m_stationData = StationData();
 }
 
 void Client::CharNowInStation() {
@@ -1774,7 +1777,7 @@ void Client::InitSession(int32 characterID)
     }
 
     std::map<std::string, int64> characterDataMap;
-    CharacterDB::GetCharacterData(characterID, characterDataMap);
+    CharacterDB::GetCharacterDataMap(characterID, characterDataMap);
     if (characterDataMap.size() < 1) {
         sLog.Error("Client::InitSession()", "characterDataMap.size() returned zero.");
         return;
@@ -1834,10 +1837,10 @@ void Client::InitSession(int32 characterID)
         pSession->SetInt("locationid", solarSystemID);
     }
 
-    sDataMgr.GetSystemData(m_locationID, m_SystemData);
-    if ((sDataMgr.IsSolarSystem(m_SystemData.systemID))
-    and (IsConstellationID(m_SystemData.constellationID))
-    and (IsRegionID(m_SystemData.regionID)))
+    sDataMgr.GetSystemData(m_locationID, m_systemData);
+    if ((sDataMgr.IsSolarSystem(m_systemData.systemID))
+    and (IsConstellationID(m_systemData.constellationID))
+    and (IsRegionID(m_systemData.regionID)))
     {
         m_validSession = true;
     }
@@ -1969,7 +1972,7 @@ void Client::SendSessionChange()
             if (sDataMgr.IsStation(m_char->stationID())) {
                 m_locationID = m_char->stationID();
             } else {
-                m_locationID = m_SystemData.systemID;
+                m_locationID = m_systemData.systemID;
             }
             /* a `session.locationid` change will trigger a ballpark update (add/delete bp) */
             pSession->SetInt("locationid", m_locationID);

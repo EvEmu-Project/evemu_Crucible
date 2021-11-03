@@ -14,8 +14,10 @@
 
 #include "EVEServerConfig.h"
 #include "Client.h"
+#include "EntityList.h"
 #include "StaticDataMgr.h"
 #include "effects/EffectsDataMgr.h"
+#include "inventory/Inventory.h"
 #include "ship/Ship.h"
 #include "ship/modules/ModuleItem.h"
 #include "ship/modules/ModuleManager.h"
@@ -301,7 +303,7 @@ GenericModule* ModuleManager::GetModule(EVEItemFlags flag)
 
 GenericModule* ModuleManager::GetModule(uint32 itemID)
 {
-    InventoryItemRef iRef = sItemFactory.GetItem(itemID);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(itemID);
     if (iRef.get() != nullptr)
         return GetModule(iRef->flag());
 

@@ -340,6 +340,7 @@ PyObjectEx *ConfigDB::GetMapObjects(uint32 entityID, bool wantRegions,
     return DBResultToCRowset(res);
 }
 
+/** @todo update this to use static data mgr */
 PyObject *ConfigDB::GetMap(uint32 solarSystemID) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,

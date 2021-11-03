@@ -1224,7 +1224,7 @@ void LSCService::SendMail(uint32 sender, const std::vector<int32> &recipients, c
 
     for(; cur != end; cur++) {
         uint32 messageID = m_db->StoreMail(sender, *cur, subject.c_str(), content.c_str(), notify.sentTime);
-        if(messageID == 0) {
+        if (messageID == 0) {
             _log(SERVICE__ERROR, "Failed to store message from %u for recipient %u", sender, *cur);
             continue;
         }
@@ -1286,7 +1286,7 @@ PyResult LSCService::Handle_DeleteMessages(PyCallArgs &call) {
         return nullptr;
     }
 
-    if(args.channelID != (int32)call.client->GetCharacterID()) {
+    if (args.channelID != (int32)call.client->GetCharacterID()) {
         _log(SERVICE__ERROR, "%s (%d) tried to delete messages in channel %u. Denied.", call.client->GetName(), call.client->GetCharacterID(), args.channelID);
         return nullptr;
     }

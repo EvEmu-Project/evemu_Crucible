@@ -11,6 +11,7 @@
 #define EVEMU_MARKET_BOTCONFIG_H_
 
 #include "../eve-server.h"
+#include "../../eve-core/utils/XMLParserEx.h"
 
 
 class MarketBotConf

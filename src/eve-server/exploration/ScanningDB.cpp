@@ -29,7 +29,7 @@
 
 void ScanningDB::GetScanResults(DBQueryResult &res) {
     //`dedTestTable` (`typeID`, `scanGroupID`, `groupID`, `strengthAttributeID`, `dungeonName`, `id`, `x`, `y`, `z`)
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT typeID, scanGroupID, groupID, strengthAttributeID, dungeonName, id, x, y, z"
         " FROM dedTestTable")) {
         _log(DATABASE__ERROR, "Error in GetScanResults query: %s", res.error.c_str());

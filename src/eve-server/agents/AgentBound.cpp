@@ -24,6 +24,7 @@
 
 #include "eve-server.h"
 #include "../../eve-common/EVE_Missions.h"
+//#include "../../eve-common/EVE_Skills.h"
 #include "../../eve-common/EVE_Standings.h"
 
 #include "StaticDataMgr.h"

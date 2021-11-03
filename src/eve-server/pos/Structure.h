@@ -70,7 +70,7 @@ protected:
             _log(ITEM__ERROR, "Trying to load %s as Structure.", sDataMgr.GetCategoryName(type.categoryID()));
             if (sConfig.debug.StackTrace)
                 EvE::traceStack();
-            return RefPtr<_Ty>();
+            return RefPtr<_Ty>(nullptr);
         }
 
         return StructureItemRef( new StructureItem(structureID, type, data ) );

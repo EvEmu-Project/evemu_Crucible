@@ -69,7 +69,7 @@ bool NPCMarket::ProcessStation(const TiXmlElement* ele)
     StationID = 0;
     // parse the <station> element
     const bool result = ParseElementChildren(ele);
-    if(result == false)
+    if (result == false)
       return false;
 
     // done if there were no orders.

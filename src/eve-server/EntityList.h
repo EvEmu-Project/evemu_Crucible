@@ -28,12 +28,14 @@
 #define EVE_ENTITY_LIST_H
 
 #include <vector>
-#include <map>
-#include <set>
-#include "eve-compat.h"
+
 #include "eve-common.h"
 #include "utils/Singleton.h"
-#include "threading/Mutex.h"
+
+#include "inventory/ItemRef.h"
+
+// this is not used.  was supposed to be for eventual MT work
+//#include "threading/Mutex.h"
 
 class Agent;
 class Client;
@@ -165,7 +167,7 @@ public:
 protected:
     PyServiceMgr* m_services;    //we do not own this, only used for booting systems.
 
-    Mutex mMutex;
+    //Mutex mMutex;
 
 private:
     Timer m_stampTimer;

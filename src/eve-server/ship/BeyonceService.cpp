@@ -1000,10 +1000,10 @@ PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &cal
         return PyStatic.NewNone();
     }
 
-    InventoryItemRef beacon = sItemFactory.GetInventoryItemFromID(args.remoteStructureID);
+    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(args.remoteStructureID);
 
     //Check for jump fuel and make sure there is enough fuel available
-    InventoryItemRef bridge = sItemFactory.GetInventoryItemFromID(args.itemID);
+    InventoryItemRef bridge = sItemFactory.GetItemRefFromID(args.itemID);
     ShipItemRef ship = call.client->GetShip();
 
     std::vector<InventoryItemRef> fuelBayItems;
@@ -1081,7 +1081,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    InventoryItemRef beacon = sItemFactory.GetInventoryItemFromID(args.beaconID);
+    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(args.beaconID);
 
     //Check for jump fuel and make sure there is enough fuel available
     ShipItemRef ship = call.client->GetShip();
@@ -1170,7 +1170,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    InventoryItemRef beacon = sItemFactory.GetInventoryItemFromID(args.beaconID);
+    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(args.beaconID);
 
     //Check for jump fuel and make sure there is enough fuel available
     ShipItemRef ship = call.client->GetShip();

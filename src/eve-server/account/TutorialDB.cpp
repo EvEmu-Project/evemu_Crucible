@@ -30,7 +30,7 @@
 PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT pageID, criteriaID"
         " FROM tutorial_pages"
         " JOIN tutorial_page_criteria USING (pageID)"
@@ -46,7 +46,7 @@ PyRep *TutorialDB::GetPageCriterias(uint32 tutorialID) {
 PyRep *TutorialDB::GetPages(uint32 tutorialID) {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT pageID, pageNumber, pageName, text, imagePath, audioPath, 0 AS dataID"
         " FROM tutorial_pages"
         " WHERE tutorialID=%u"
@@ -62,7 +62,7 @@ PyRep *TutorialDB::GetPages(uint32 tutorialID) {
 PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT tutorialID, tutorialName, nextTutorialID, 0 AS dataID"
         " FROM tutorials"
         " WHERE tutorialID=%u", tutorialID))
@@ -77,7 +77,7 @@ PyRep *TutorialDB::GetTutorial(uint32 tutorialID) {
 PyRep *TutorialDB::GetTutorialCriterias(uint32 tutorialID) {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT criteriaID"
         " FROM tutorials_criterias"
         " WHERE tutorialID=%u", tutorialID))
@@ -93,7 +93,7 @@ PyRep *TutorialDB::GetAllTutorials() {
     /*  this is wrong...our db is incomplete */
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT tutorialID, tutorialName, nextTutorialID, categoryID, 0 AS dataID"
         " FROM tutorials"))
     {
@@ -107,7 +107,7 @@ PyRep *TutorialDB::GetAllTutorials() {
 PyRep *TutorialDB::GetAllCriterias() {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT criteriaID, criteriaName, messageText, audioPath, 0 AS dataID"
         " FROM tutorial_criteria"))
     {
@@ -121,7 +121,7 @@ PyRep *TutorialDB::GetAllCriterias() {
 PyRep *TutorialDB::GetCategories() {
     DBQueryResult res;
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT"
         " categoryID, categoryName, description, 0 AS dataID"
         " FROM tutorial_categories"))
@@ -138,14 +138,14 @@ PyRep *TutorialDB::GetTutorialsAndConnections(uint8 raceID) {
     sDatabase.RunQuery(res, "SELECT tutorialID, %u AS raceID, nextTutorialID FROM tutorials", raceID);
     /*
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res, "SELECT `tutorialID`, `tutorialName`, `categoryID`, `dataID`, `tutorialNameID` FROM `tutorialsvc_tutorials`")) {
+    if (!sDatabase.RunQuery(res, "SELECT `tutorialID`, `tutorialName`, `categoryID`, `dataID`, `tutorialNameID` FROM `tutorialsvc_tutorials`")) {
         sLog.Error("TutorialService","GetTutorialsAndConnections query1 error: %s", res.error.c_str());
         return nullptr;
     }
     PyObjectEx *tutorials = DBResultToCRowset(res);
 
     res.Reset();
-    if(!sDatabase.RunQuery(res, "SELECT `tutorialID`, `raceID`, `nextTutorialID`, `dataID` FROM `tutorialsvc_connections`")) {
+    if (!sDatabase.RunQuery(res, "SELECT `tutorialID`, `raceID`, `nextTutorialID`, `dataID` FROM `tutorialsvc_connections`")) {
         sLog.Error("TutorialService","GetTutorialsAndConnections query2 error: %s", res.error.c_str());
         return nullptr;
     }

@@ -348,7 +348,7 @@ void Colony::AbandonColony()
         m_db.RemovePin(cur.first);
         sItemFactory.RemoveItem(cur.first);
     }
-    InventoryItemRef iRef = sItemFactory.GetItem(m_colonyID);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(m_colonyID);
     iRef->Delete();
     m_db.DeleteColony(m_colonyID, m_pSE->GetID(), m_client->GetCharacterID());
     SafeDelete(ccPin);
@@ -375,7 +375,7 @@ void Colony::CreatePin(uint32 groupID, uint32 pinID, uint32 typeID, double latit
     PI_Pin pin = PI_Pin();
     InventoryItemRef iRef(nullptr);
     if (groupID == Command_Centers) {
-        iRef = sItemFactory.GetItem(m_colonyID);
+        iRef = sItemFactory.GetItemRef(m_colonyID);
         if (iRef->quantity() > 1) {
             // check for stack of CC items, and split as needed
             ItemData data(typeID, m_client->GetCharacterID(), locTemp, flagNone, iRef->quantity() -1);
@@ -809,7 +809,7 @@ void Colony::InstallProgram(uint32 ecuID, uint16 typeID, float headRadius, Plane
         // uninstall program
         itr->second = PI_Pin();
         // reset extraction quantity in ecu attrib.  this doesnt check for invalid item
-        sItemFactory.GetItem(ecuID)->ResetAttribute(AttrPinExtractionQuantity);
+        sItemFactory.GetItemRef(ecuID)->ResetAttribute(AttrPinExtractionQuantity);
         return;
     }
     if (itr->second.programType != typeID) {
@@ -843,12 +843,12 @@ void Colony::SetProgramResults(uint32 ecuID, uint16 typeID, uint16 numCycles, fl
     itr->second.expiryTime = (cycleTime * numCycles) * EvE::Time::Hour + GetFileTimeNow();
     itr->second.headRadius = headRadius;
     itr->second.qtyPerCycle = qtyPerCycle;
-    itr->second.schematicID = sPIDataMgr.GetHeadType(sItemFactory.GetItem(ecuID)->typeID(), typeID);
+    itr->second.schematicID = sPIDataMgr.GetHeadType(sItemFactory.GetItemRef(ecuID)->typeID(), typeID);
 
     m_db.UpdateECUPin(ecuID, ccPin);
 
     // save extraction quantity in ecu attrib    this doesnt check for invalid item
-    sItemFactory.GetItem(ecuID)->SetAttribute(AttrPinExtractionQuantity, qtyPerCycle, false);
+    sItemFactory.GetItemRef(ecuID)->SetAttribute(AttrPinExtractionQuantity, qtyPerCycle, false);
 
     // set process timer to 30m
     if (!m_colonyTimer.Enabled())
@@ -1074,7 +1074,7 @@ void Colony::PlanetXfer(uint32 spaceportID, std::map< uint32, uint16 > importIte
     // import
     for (auto cur : importItems) {
         // xfer real item to virtual
-        iRef = sItemFactory.GetItem(cur.first);
+        iRef = sItemFactory.GetItemRef(cur.first);
         if (iRef.get() == nullptr) {
             _log(COLONY__ERROR, "Colony::PlanetXfer():import - itemRef for id %u not found in ItemFactory", cur.first);
             continue;   // should never happen

@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include "../../eve-common/EVE_Station.h"
 
 #include "PyServiceCD.h"
 #include "EVEServerConfig.h"
@@ -105,7 +106,7 @@ PyResult InventoryBound::Handle_DestroyFitting(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
     }
 
-    call.client->GetShip()->RemoveRig(sItemFactory.GetItem(args.arg));
+    call.client->GetShip()->RemoveRig(sItemFactory.GetItemRef(args.arg));
 
     return nullptr;
 }
@@ -251,13 +252,13 @@ PyResult InventoryBound::Handle_MultiMerge(PyCallArgs &call) {
             continue;
         }
 
-        InventoryItemRef srcItem = sItemFactory.GetItem( data.sourceID );
+        InventoryItemRef srcItem = sItemFactory.GetItemRef( data.sourceID );
         if (srcItem.get() == nullptr) {
             _log(INV__WARNING, "Failed to load source item %u. Skipping.", data.sourceID);
             continue;
         }
 
-        InventoryItemRef destItem = sItemFactory.GetItem( data.destID );
+        InventoryItemRef destItem = sItemFactory.GetItemRef( data.destID );
         if (destItem.get() == nullptr) {
             _log(INV__WARNING, "Failed to load destination item %u. Skipping.", data.destID);
             continue;
@@ -311,7 +312,7 @@ PyResult InventoryBound::Handle_Add(PyCallArgs &call) {
         toFlag = flagCargoHold;
     }
 
-    InventoryItemRef iRef = sItemFactory.GetItem(args.itemID);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(args.itemID);
 
     bool moveStack = false;
     int32 quantity = 0;
@@ -403,7 +404,7 @@ PyResult InventoryBound::Handle_MultiAdd(PyCallArgs &call) {
     if (m_self->IsShipItem() and !moveStack) {
         std::vector<InventoryItemRef> itemVec;
         for (auto cur : args.itemIDs)
-            itemVec.push_back(sItemFactory.GetItem(cur));
+            itemVec.push_back(sItemFactory.GetItemRef(cur));
         args.itemIDs = CatSortItems(itemVec);
     }
 
@@ -520,7 +521,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         toFlag = origFlag;
         quantity = origQty;
 
-        iRef = sItemFactory.GetItem(*itr);
+        iRef = sItemFactory.GetItemRef(*itr);
         if (iRef.get() == nullptr) {
             _log(INV__ERROR, "IB::MoveItems() - item %i not found.  continuing.", (*itr));
             continue;
@@ -636,7 +637,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             // check adding item to ship...if it fails, return to previous container
             if (m_self->GetShipItem()->AddItemByFlag(toFlag, iRef, pClient) < 1) {
                 //ALL items *should* have a loaded container item.
-                InventoryItemRef contRef = sItemFactory.GetItemContainer(*itr);
+                InventoryItemRef contRef = sItemFactory.GetItemContainerRef(*itr);
                 if (contRef.get() != nullptr) {
                     contRef->AddItem(iRef);
                 } else {
@@ -1066,7 +1067,7 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     // Update staticDataMgr
     sDataMgr.AddOutpost(stData);
 
-    StationItemRef itemRef = sItemFactory.GetStationItem(stData.stationID);
+    StationItemRef itemRef = sItemFactory.GetStationRef(stData.stationID);
     OutpostSE* oSE = new OutpostSE(itemRef, call.client->services(), call.client->SystemMgr());
     sEntityList.AddStation(stData.stationID, itemRef);
     call.client->SystemMgr()->AddEntity(oSE);

@@ -149,8 +149,8 @@ bool ServiceDB::IncrementLoginCount( uint32 accountID )
 
 uint32 ServiceDB::CreateNewAccount( const char* login, const char* pass, const char* passHash, int64 role )
 {
-    uint32 accountID = 0;
-    uint32 clientID = sEntityList.GetClientSeed();
+    uint32 accountID(0);
+    uint32 clientID(sEntityList.GetClientSeed());
 
     DBerror err;
     if ( !sDatabase.RunQueryLID( err, accountID,
@@ -172,21 +172,10 @@ void ServiceDB::UpdatePassword(uint32 accountID, const char* pass)
     sDatabase.RunQuery(err, "UPDATE account SET password = '%s' WHERE accountID=%u", pass, accountID);
 }
 
-
-void ServiceDB::SetCharacterOnlineStatus(uint32 char_id, bool online) {
-    _log(CLIENT__TRACE, "ServiceDB:  Setting character %u %s.", char_id, online ? "Online" : "Offline");
-    DBerror err;
-    sDatabase.RunQuery(err, "UPDATE chrCharacters SET online = %u WHERE characterID = %u", (online?1:0), char_id);
-
-    if ( online )
-        sDatabase.RunQuery(err, "UPDATE srvStatus SET Connections = Connections + 1");
-}
-
 void ServiceDB::SetServerOnlineStatus(bool online) {
     DBerror err;
-    sDatabase.RunQuery(err,
-                       "UPDATE srvStatus SET Online = %u, Connections = 0, startTime = %s WHERE AI = 1",
-                       (online ? 1 : 0), (online ? "UNIX_TIMESTAMP(CURRENT_TIMESTAMP)" : "0"));
+    sDatabase.RunQuery(err, "UPDATE srvStatus SET Online = %u, Connections = 0, startTime = %s WHERE AI = 1",
+        (online ? 1 : 0), (online ? "UNIX_TIMESTAMP(CURRENT_TIMESTAMP)" : "0"));
 
     //this is only called on startup/shutdown.  reset all char online counts/status'
     sDatabase.RunQuery(err, "UPDATE chrCharacters SET online = 0 WHERE 1");
@@ -206,20 +195,6 @@ void ServiceDB::SetAccountBanStatus(uint32 accountID, bool banned) {
     if (!sDatabase.RunQuery(err, "UPDATE account SET banned = %u WHERE accountID = %u", (banned?1:0), accountID)) {
         codelog(DATABASE__ERROR, "Error in query: %s", err.c_str());
     }
-}
-
-void ServiceDB::SaveKillOrLoss(CharKillData &data) {
-    DBerror err;
-    sDatabase.RunQuery(err,
-            " INSERT INTO chrKillTable (solarSystemID, victimCharacterID, victimCorporationID, victimAllianceID, victimFactionID,"
-            "victimShipTypeID, victimDamageTaken, finalCharacterID, finalCorporationID, finalAllianceID, finalFactionID, finalShipTypeID,"
-            "finalWeaponTypeID, finalSecurityStatus, finalDamageDone, killBlob, killTime, moonID)"
-            " VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%f,%u,'%s',%li,%u)",
-            data.solarSystemID, data.victimCharacterID, data.victimCorporationID,
-            data.victimAllianceID, data.victimFactionID, data.victimShipTypeID, data.victimDamageTaken,
-            data.finalCharacterID, data.finalCorporationID, data.finalAllianceID, data.finalFactionID,
-            data.finalShipTypeID, data.finalWeaponTypeID, data.finalSecurityStatus, data.finalDamageDone,
-            data.killBlob.c_str(), data.killTime, data.moonID);
 }
 
 uint32 ServiceDB::GetStationOwner(uint32 stationID)
@@ -360,7 +335,7 @@ PyRep* ServiceDB::LookupChars(const char *match, bool exact) {
     std::string matchEsc;
     sDatabase.DoEscapeString(matchEsc, match);
     if (matchEsc == "__ALL__") {
-        if(!sDatabase.RunQuery(res,
+        if (!sDatabase.RunQuery(res,
             "SELECT "
             "   characterID AS ownerID"
             " FROM chrCharacters"
@@ -370,7 +345,7 @@ PyRep* ServiceDB::LookupChars(const char *match, bool exact) {
             return nullptr;
         }
     } else {
-        if(!sDatabase.RunQuery(res,
+        if (!sDatabase.RunQuery(res,
             "SELECT "
             "   itemID AS ownerID"
             " FROM entity"
@@ -589,4 +564,18 @@ void ServiceDB::GetCorpHangarNames(uint32 corpID, std::map<uint8, std::string> &
     } else {
         _log(CORP__DB_ERROR, "CorpID %u has no division data.", corpID);
     }
+}
+
+void ServiceDB::SaveKillOrLoss(KillData &data) {
+    DBerror err;
+    sDatabase.RunQuery(err,
+            " INSERT INTO chrKillTable (solarSystemID, victimCharacterID, victimCorporationID, victimAllianceID, victimFactionID,"
+            "victimShipTypeID, victimDamageTaken, finalCharacterID, finalCorporationID, finalAllianceID, finalFactionID, finalShipTypeID,"
+            "finalWeaponTypeID, finalSecurityStatus, finalDamageDone, killBlob, killTime, moonID)"
+            " VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%f,%u,'%s',%li,%u)",
+                data.solarSystemID, data.victimCharacterID, data.victimCorporationID,
+                data.victimAllianceID, data.victimFactionID, data.victimShipTypeID, data.victimDamageTaken,
+                data.finalCharacterID, data.finalCorporationID, data.finalAllianceID, data.finalFactionID,
+                data.finalShipTypeID, data.finalWeaponTypeID, data.finalSecurityStatus, data.finalDamageDone,
+                data.killBlob.c_str(), data.killTime, data.moonID);
 }

@@ -23,6 +23,9 @@
     Author:     Zhur
 */
 
+// { backtrace, backtrace_symbols, backtrace_symbols_fd } header file.
+#include "execinfo.h"
+
 #include "eve-core.h"
 
 #include "utils/misc.h"

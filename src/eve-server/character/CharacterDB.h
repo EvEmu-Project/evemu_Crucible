@@ -77,17 +77,19 @@ struct QueuedSkill {
 };
 typedef std::vector<QueuedSkill> SkillQueue;
 
-class PyObject;
-class PyString;
-class PyObjectEx;
-class CharacterData;
-class CharacterAppearance;
-class CharKillData;
-class ItemFactory;
-class InventoryItem;
-class Client;
-class ItemData;
-class CorpData;
+//class PyObject;
+//class PyString;
+//class PyObjectEx;
+//class CharacterAppearance;
+//class ItemFactory;
+//class InventoryItem;
+//class Client;
+
+struct CharacterTypeData;
+struct CharacterData;
+struct KillData;
+struct ItemData;
+struct CorpData;
 
 class CharacterDB : public ServiceDB
 {
@@ -95,23 +97,26 @@ public:
     static uint32 NewCharacter(const CharacterData& data, const CorpData& corpData);
     static bool SaveCharacter(uint32 charID, const CharacterData &data);
     static bool SaveCorpData(uint32 charID, const CorpData &data);
-    void DeleteCharacter(uint32 charID);
+    static void DeleteCharacter(uint32 charID);
     // this changes corp member counts, adds employment history, and updates char's corp and start date
     static void AddEmployment(uint32 charID, uint32 corpID, uint32 oldCorpID=0);
-    static void GetCharacterData(uint32 charID, std::map<std::string, int64> &characterDataMap);
+    static bool GetCharacterData(uint32 characterID, CharacterData &into);
+    static void GetCharacterDataMap(uint32 charID, std::map<std::string, int64> &characterDataMap);
     static bool GetCharHomeStation(uint32 charID, uint32 &stationID);
     //if you want to get the typeID of the clone use GetActiveCloneType
     static bool GetActiveCloneID(uint32 charID, uint32 &itemID);
     static PyRep *GetInfoWindowDataForChar(uint32 charID);
     static uint32 GetStartingStationByCareer(uint32 careerID);
 
+    static void SetCharacterOnlineStatus(uint32 char_id, bool online=false);
+
     static PyRep* List(uint32 ownerID);
     static PyRep* ListStations(uint32 ownerID, std::ostringstream& flagIDs, bool forCorp=false, bool bpOnly=false);
     static PyRep* ListStationItems(uint32 ownerID, uint32 stationID);
     static PyRep* ListStationBlueprintItems(uint32 ownerID, uint32 stationID, bool forCorp=false);
 
-    PyRep *GetCharacterList(uint32 accountID);
-    PyRep *GetCharSelectInfo(uint32 charID);
+    static PyRep *GetCharacterList(uint32 accountID);
+    static PyRep *GetCharSelectInfo(uint32 charID);
     void SetAvatar(uint32 charID, PyRep* hairDarkness);
     void SetAvatarColors(uint32 charID, uint32 colorID, uint32 colorNameA, uint32 colorNameBC, double weight, double gloss);
     void SetAvatarModifiers(uint32 charID, PyRep* modifierLocationID,  PyRep* paperdollResourceID, PyRep* paperdollResourceVariation);
@@ -120,7 +125,7 @@ public:
     PyRep *GetCharPublicInfo(uint32 charID);
     PyRep *GetCharPublicInfo3(uint32 charID);
     PyRep *GetCharPrivateInfo(uint32 charID);
-    
+
     //PyObject *GetAgentPublicInfo(uint32 agentID);
     PyRep *GetOwnerNoteLabels(uint32 charID);
     PyRep *GetOwnerNote(uint32 charID, uint32 noteID);
@@ -141,10 +146,7 @@ public:
     void SetBlockContact(uint32 charID, uint32 ownerID, bool blocked);
 
     bool GetCharItems(uint32 charID, std::vector<uint32> &into);
-    bool GetCareerBySchool(uint32 schoolID, uint8 &raceID, uint32 &careerID);
-    bool GetCorporationBySchool(uint32 schoolID, uint32 &corporationID);
-    bool GetLocationCorporationByCareer(CharacterData &cdata, uint32 &corporationID);
-    bool DoesCorporationExist(uint32 corpID);
+    static bool GetCareerBySchool(uint32 schoolID, uint8 &raceID, uint32 &careerID);
 
     /**
      * Obtains attribute bonuses for given ancestry.
@@ -157,11 +159,11 @@ public:
      * @param[out] willpower Bonus to willpower.
      * @return True if operation succeeded, false if failed.
      */
-    bool        GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower);
+    static bool        GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower);
 
-    bool        GetBaseSkills(std::map< uint32, uint8 >& into);
-    bool        GetSkillsByRace(uint32 raceID, std::map< uint32, uint8 >& into);
-    bool        GetSkillsByCareer(uint32 careerID, std::map< uint32, uint8 >& into);
+    static bool        GetBaseSkills(std::map< uint32, uint8 >& into);
+    static bool        GetSkillsByRace(uint32 raceID, std::map< uint32, uint8 >& into);
+    static bool        GetSkillsByCareer(uint32 careerID, std::map< uint32, uint8 >& into);
 
     /**
      * Retrieves the character note from the database as a PyString pointer.
@@ -184,8 +186,8 @@ public:
     uint32      AddOwnerNote(uint32 charID, const std::string &label, const std::string &content);
     bool        EditOwnerNote(uint32 charID, uint32 noteID, const std::string &label, const std::string &content);
 
-    int64       PrepareCharacterForDelete(uint32 accountID, uint32 charID);
-    void        CancelCharacterDeletePrepare(uint32 accountID, uint32 charID);
+    static int64       PrepareCharacterForDelete(uint32 accountID, uint32 charID);
+    static void        CancelCharacterDeletePrepare(uint32 accountID, uint32 charID);
 
     bool        ReportRespec(uint32 characterId);
     PyRep*      GetRespecInfo(uint32 characterId);
@@ -215,7 +217,7 @@ public:
     void        SetLogInTime(uint32 charID);
     void        SetLogOffTime(uint32 charID);
 
-    void        addOwnerCache(uint32 ownerID, std::string ownerName, uint32 typeID);
+    static void        AddOwnerCache(uint32 ownerID, std::string ownerName, uint32 typeID);
 
     PyRep*      GetBounty(uint32 charID, uint32 ownerID);
     PyRep*      GetTopBounties();
@@ -228,6 +230,7 @@ public:
     static uint32 GetCorpID(uint32 charID);
     static float GetCorpTaxRate(uint32 charID);
     static PyRep* GetMyCorpMates(uint32 corpID);
+    static bool GetCharCorpData(uint32 characterID, CorpData &into);
 
     // get skill level for given skill for offline character (used by market tax)
     static uint8 GetSkillLevel(uint32 charID, uint16 skillTypeID);
@@ -239,9 +242,54 @@ public:
 
     void        VisitSystem(uint32 solarSystemID, uint32 charID);
 
-    //  name validation shit
-    void        ValidateCharName(std::string name);     // called on CreateCharacterWithDoll() and will throw on error
-    PyRep*      ValidateCharNameRep(std::string name);  // called by "Check Name" button in char creation.  returns integer
+    /*  name validation shit */
+    // called on CreateCharacterWithDoll() and will throw on error
+    static void        ValidateCharName(std::string name);
+    // called by "Check Name" button in char creation.  returns integer
+    static PyRep*      ValidateCharNameRep(std::string name);
+
+    /**
+     * Loads character type data.
+     *
+     * @param[in] bloodlineID Bloodline to be loaded.
+     * @param[out] into Where loaded data should be stored.
+     * @return True on success, false on failure.
+     */
+    static bool GetCharacterType(uint8 bloodlineID, CharacterTypeData &into);
+    /**
+     * Obtains bloodline and loads character type data.
+     *
+     * @param[in] characterTypeID ID of character type to be loaded.
+     * @param[out] bloodlineID Resulting bloodline.
+     * @param[out] into Where character type data should be stored.
+     * @return True on success, false on failure.
+     */
+    static bool GetCharacterType(uint16 characterTypeID, uint8 &bloodlineID, CharacterTypeData &into);
+    /**
+     * Obtains ID of character type based on bloodline.
+     *
+     * @param[in] bloodlineID ID of bloodline.
+     * @param[out] characterTypeID Resulting ID of character type.
+     * @return True on success, false on failure.
+     */
+    static bool GetCharacterTypeByBloodline(uint8 bloodlineID, uint16 &characterTypeID);
+    /**
+     * Obtains ID of character type and loads it.
+     *
+     * @param[in] bloodlineID ID of bloodline to be loaded.
+     * @param[out] characterTypeID Resulting character type.
+     * @param[out] into Where loaded character type data should be stored.
+     * @return True on success, false on failure.
+     */
+    static bool GetCharacterTypeByBloodline(uint8 bloodlineID, uint16 &characterTypeID, CharacterTypeData &into);
+    /**
+     * Obtains ID of bloodline based on character type.
+     *
+     * @param[in] characterTypeID ID of character type.
+     * @param[out] bloodlineID Resulting ID of bloodline.
+     * @return True on success, false on failure.
+     */
+    static bool GetBloodlineByCharacterType(uint16 characterTypeID, uint8& bloodlineID);
 };
 
 #endif

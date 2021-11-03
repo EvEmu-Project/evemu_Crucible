@@ -25,6 +25,7 @@
 
 #include "eve-server.h"
 
+#include "inventory/Inventory.h"
 #include "system/SolarSystem.h"
 
 /** @note  NOTE::  this class is ONLY for the inventory item and associated references..... need to update this...  */
@@ -41,44 +42,6 @@
     Security = If it is positive, floor to nearest 1/10th gives the in-game security level. 0 or lower are 0.0 in-game.
     */
 
-/** @todo  update this to remove redundant SolarSystemData and move to POD SystemData and load with sDataMgr  */
-
-/*
- * SolarSystemData
- */
-SolarSystemData::SolarSystemData(
-    const GPoint &_minPos,
-    const GPoint &_maxPos,
-    double _luminosity,
-    bool _border,
-    bool _fringe,
-    bool _corridor,
-    bool _hub,
-    bool _international,
-    bool _regional,
-    bool _constellation,
-    double _security,
-    uint32 _factionID,
-    double _radius,
-    uint32 _sunTypeID,
-    const char *_securityClass)
-: minPosition(_minPos),
-  maxPosition(_maxPos),
-  luminosity(_luminosity),
-  border(_border),
-  fringe(_fringe),
-  corridor(_corridor),
-  hub(_hub),
-  international(_international),
-  regional(_regional),
-  constellation(_constellation),
-  security(_security),
-  factionID(_factionID),
-  radius(_radius),
-  sunTypeID(_sunTypeID),
-  securityClass(_securityClass)
-{
-}
 
 /*
  * SolarSystem
@@ -90,22 +53,12 @@ SolarSystem::SolarSystem(
     const CelestialObjectData &_cData,
     const SolarSystemData &_ssData)
 : CelestialObject(_solarSystemID, _type, _data, _cData),
-  m_minPosition(_ssData.minPosition),
-  m_maxPosition(_ssData.maxPosition),
-  m_luminosity(_ssData.luminosity),
-  m_border(_ssData.border),
-  m_fringe(_ssData.fringe),
-  m_corridor(_ssData.corridor),
-  m_hub(_ssData.hub),
-  m_international(_ssData.international),
-  m_regional(_ssData.regional),
-  m_constellation(_ssData.constellation),
-  m_security(_ssData.security),
-  m_factionID(_ssData.factionID),
-  m_radius(_ssData.radius),
-  m_securityClass(_ssData.securityClass)
+m_data(_ssData)
 {
     pInventory = new Inventory(InventoryItemRef(this));
+
+    m_security = _ssData.security;
+    m_radius = _ssData.radius;
 
     _log(ITEM__TRACE, "Created SolarSystem Item %p for %s (%u).", this, name(), m_itemID);
 }

@@ -25,9 +25,9 @@
 */
 
 #include "eve-server.h"
+//#include "../../eve-common/EVE_Skills.h"
 
 #include "EntityList.h"
-#include "EVEServerConfig.h"
 #include "PyServiceCD.h"
 #include "account/AccountService.h"
 #include "cache/ObjCacheService.h"
@@ -61,40 +61,35 @@ CharUnboundMgrService::~CharUnboundMgrService() {
     delete m_dispatch;
 }
 
-void CharUnboundMgrService::GetCharacterData(uint32 characterID, std::map< std::string, int64 >& characterDataMap)
-{
-    m_db.GetCharacterData(characterID, characterDataMap);
-}
-
 PyResult CharUnboundMgrService::Handle_ValidateNameEx(PyCallArgs &call)
 {
-    return m_db.ValidateCharNameRep(PyRep::StringContent(call.tuple->GetItem(0)));
+    return CharacterDB::ValidateCharNameRep(PyRep::StringContent(call.tuple->GetItem(0)));
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharacterToSelect(PyCallArgs &call)
 {
-    return m_db.GetCharSelectInfo(PyRep::IntegerValue(call.tuple->GetItem(0)));
+    return CharacterDB::GetCharSelectInfo(PyRep::IntegerValue(call.tuple->GetItem(0)));
 }
 
 PyResult CharUnboundMgrService::Handle_GetCharactersToSelect(PyCallArgs &call)
 {
-    return m_db.GetCharacterList(call.client->GetUserID());
+    return CharacterDB::GetCharacterList(call.client->GetUserID());
 }
 
 PyResult CharUnboundMgrService::Handle_DeleteCharacter(PyCallArgs &call)
 {
-    m_db.DeleteCharacter(PyRep::IntegerValue(call.tuple->GetItem(0)));
+    CharacterDB::DeleteCharacter(PyRep::IntegerValue(call.tuple->GetItem(0)));
     return nullptr;
 }
 
 PyResult CharUnboundMgrService::Handle_PrepareCharacterForDelete(PyCallArgs &call)
 {
-    return new PyLong(m_db.PrepareCharacterForDelete(call.client->GetUserID(), PyRep::IntegerValue(call.tuple->GetItem(0))));
+    return new PyLong(CharacterDB::PrepareCharacterForDelete(call.client->GetUserID(), PyRep::IntegerValue(call.tuple->GetItem(0))));
 }
 
 PyResult CharUnboundMgrService::Handle_CancelCharacterDeletePrepare(PyCallArgs &call)
 {
-    m_db.CancelCharacterDeletePrepare(call.client->GetUserID(), PyRep::IntegerValue(call.tuple->GetItem(0)));
+    CharacterDB::CancelCharacterDeletePrepare(call.client->GetUserID(), PyRep::IntegerValue(call.tuple->GetItem(0)));
     return nullptr;
 }
 
@@ -159,7 +154,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     }
 
     // check name and throw on failure before we get too far in this
-    m_db.ValidateCharName(PyRep::StringContent(arg.charactername));
+    CharacterDB::ValidateCharName(PyRep::StringContent(arg.charactername));
 
     Client* pClient = call.client;
     pClient->CreateChar(true);
@@ -189,7 +184,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         cdata.createDateTime = (int64)GetFileTimeNow();
 
     //Set the character's career and race based on the school they picked.
-    if (m_db.GetCareerBySchool(cdata.schoolID, cdata.raceID, cdata.careerID)) {
+    if (CharacterDB::GetCareerBySchool(cdata.schoolID, cdata.raceID, cdata.careerID)) {
         //  The Specialization has been taken out in Crucible.  set to same as Career (default)
         cdata.careerSpecialityID = cdata.careerID;
     } else {
@@ -221,7 +216,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
 
     bool defCorp = true;
     if (sConfig.character.startCorporation) { // Skip if 0
-        if( m_db.DoesCorporationExist( sConfig.character.startCorporation ) ) {
+        if ( CorporationDB::DoesCorporationExist( sConfig.character.startCorporation ) ) {
             corpData.corporationID = sConfig.character.startCorporation;
             defCorp = false;
         } else {
@@ -229,13 +224,13 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         }
     }
     if (defCorp) {
-        if (!m_db.GetCorporationBySchool(cdata.schoolID, corpData.corporationID))
+        if (!CorporationDB::GetCorporationBySchool(cdata.schoolID, corpData.corporationID))
             _log(CLIENT__MESSAGE, "Could not place character in default corporation for school.");
     }
 
     // Setting character's default starting position, and getting the location...
     // this also sets schoolID and corporationID based on career
-    m_db.GetLocationCorporationByCareer(cdata, corpData.corporationID);
+    CorporationDB::GetLocationCorporationByCareer(cdata, corpData.corporationID);
 
     if (sDataMgr.IsStation(sConfig.character.startStation)) { // Skip if 0
         cdata.stationID = sConfig.character.startStation;
@@ -275,7 +270,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
         cpor.Build(charRef->itemID(), arg.portraitInfo);
 
     // query attribute bonuses from ancestry
-    if (!m_db.GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)) {
+    if (!CharacterDB::GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)) {
         _log(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.", char_type->bloodlineID(), cdata.ancestryID);
         sItemFactory.UnsetUsingClient();
         return PyStatic.NewZero();
@@ -292,19 +287,19 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     std::map<uint32, uint8> startingSkills;
     startingSkills.clear();
 	//  Base Skills
-    if (!m_db.GetBaseSkills(startingSkills)) {
+    if (!CharacterDB::GetBaseSkills(startingSkills)) {
         _log(CLIENT__ERROR, "Failed to load char Base skills. Bloodline %u, Ancestry %u.",
              char_type->bloodlineID(), cdata.ancestryID);
         // dont really care if this fails.  not enough to deny creation ...maybe make error?
     }
 	//  Race Skills
-    if (!m_db.GetSkillsByRace(char_type->race(), startingSkills)) {
+    if (!CharacterDB::GetSkillsByRace(char_type->race(), startingSkills)) {
         _log(CLIENT__ERROR, "Failed to load char Race skills. Bloodline %u, Ancestry %u.",
              char_type->bloodlineID(), cdata.ancestryID);
         // dont really care if this fails.  not enough to deny creation ...maybe make error?
     }
 	//  Career Skills
-    if (!m_db.GetSkillsByCareer(cdata.careerID, startingSkills)) {
+    if (!CharacterDB::GetSkillsByCareer(cdata.careerID, startingSkills)) {
         _log(CLIENT__ERROR, "Failed to load char Career skills for %u.", cdata.careerSpecialityID);
         // dont really care if this fails.  not enough to deny creation ...maybe make error?
     }
@@ -371,7 +366,7 @@ PyResult CharUnboundMgrService::Handle_CreateCharacterWithDoll(PyCallArgs &call)
     sImageServer.ReportNewCharacter(pClient->GetUserID(), charRef->itemID());
 
     //  add charID to staticOwners
-    m_db.addOwnerCache(charRef->itemID(), charRef->itemName(), char_type->id());
+    CharacterDB::AddOwnerCache(charRef->itemID(), charRef->itemName(), char_type->id());
 
     std::string reason = "DESC: Inheritance Payment to ";
     reason += charRef->itemName();

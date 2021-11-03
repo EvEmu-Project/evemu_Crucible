@@ -20,7 +20,7 @@
 void AgentDB::LoadAgentData(uint32 agentID, AgentData& data)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT"
         "   agt.agentTypeID,"
         "   agt.divisionID,"

@@ -7,6 +7,7 @@
 #include "account/AccountService.h"
 #include "character/Character.h"
 #include "effects/EffectsProcessor.h"
+#include "inventory/Inventory.h"
 #include "npc/Drone.h"
 #include "ship/Ship.h"
 #include "ship/modules/GenericModule.h"
@@ -94,9 +95,9 @@ void ShipItem::LogOut()
     // remove ship item from its' container's inventory list also.
     Inventory* pInv(nullptr);
     if (sDataMgr.IsStation(locationID())) {
-        pInv = sItemFactory.GetStationItem(locationID())->GetMyInventory();
+        pInv = sItemFactory.GetStationRef(locationID())->GetMyInventory();
     } else {
-        pInv = sItemFactory.GetSolarSystem(locationID())->GetMyInventory();
+        pInv = sItemFactory.GetSolarSystemRef(locationID())->GetMyInventory();
     }
 
     if (pInv != nullptr)
@@ -667,7 +668,7 @@ void ShipItem::LoadChargesToBank(EVEItemFlags flag, std::vector< int32 >& charge
     for (auto cur : modVec) {
         if (pos + 1 > chargeIDs.size())
             return;
-        cRef = sItemFactory.GetItem(chargeIDs[pos]);
+        cRef = sItemFactory.GetItemRef(chargeIDs[pos]);
         if (cRef.get() == nullptr) {
             ++pos;
             continue;
@@ -688,7 +689,7 @@ void ShipItem::LoadLinkedWeapons(GenericModule* pMod, std::vector<int32>& charge
         return;
 
     int8 pos = 0;
-    InventoryItemRef cRef(sItemFactory.GetItem(chargeIDs[pos]));
+    InventoryItemRef cRef(sItemFactory.GetItemRef(chargeIDs[pos]));
     if (cRef.get() == nullptr)
         throw UserError ("CantFindChargeToAdd");
 
@@ -699,7 +700,7 @@ void ShipItem::LoadLinkedWeapons(GenericModule* pMod, std::vector<int32>& charge
     // loop thru slaves and load charge(s)
     std::list<GenericModule*>::iterator itr2 = itr->second.begin();
     while ((itr2 != itr->second.end()) and (pos <= size)) {
-        cRef = sItemFactory.GetItem(chargeIDs[pos]);
+        cRef = sItemFactory.GetItemRef(chargeIDs[pos]);
         if (cRef.get() == nullptr){
             ++pos;
         } else if (IsCargoHoldFlag(cRef->flag()) or IsHangarFlag(cRef->flag())) {
@@ -1035,7 +1036,7 @@ void ShipItem::Offline(uint32 modID)
 void ShipItem::Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat)
 {
     if (IsValidTarget(targetID)) {
-        m_targetRef = sItemFactory.GetItem(targetID);
+        m_targetRef = sItemFactory.GetItemRef(targetID);
     } else {
         m_targetRef = InventoryItemRef(nullptr);
     }

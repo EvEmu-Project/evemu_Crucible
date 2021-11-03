@@ -1,0 +1,391 @@
+Alasiya EvE Source Code Class definitions and descriptions
+
+** NOTE:  this does NOT include James' alliance and sov updates **
+
+** this data is still incomplete, but better  27 June 20 **
+
+** NOTE:  i use the term "system" rather ambiguously here (and often).
+    lowercase "system" is used to mean a server system in which code is run. (i.e. the bookmark system)
+    solSystem means a solar system
+
+
+* names for systems used by ccp
+DogmaIM
+    item instance manager
+    processes item property changes
+    blurry line between DogmaIM and DogmaLM
+
+DogmaLM
+    item location manager
+    processes item location changes
+    blurry line between DogmaIM and DogmaLM
+
+Godma
+    item attribute manager
+    processes item attribute changes
+
+Destiny
+    server-side object movement manager
+
+Michelle
+    client-side object movement manager
+
+Jennifer/Jessica
+    item renderer and misc python code snippets (probably more)
+    - this has never been seen outside CCP (in-house tool)
+
+LSC
+    large scale chat
+    this system manages all chat communications and client notifications
+
+neocom
+    client-side information manager
+
+ballpark
+    client-side solar system object
+    each solar system has it's own ballpark in client
+    this ballpark is destroyed (in client) when docking or jumping
+
+balls
+    space objects in a solar system
+
+bubble
+    a container within a solar system for all non-static and global SE objects and have a set radius of 250km
+    also called a 'grid', these item containers hold data for all objects within its' sphere of influence (soi)
+    all non-global objects on a players screen are contained in the players current bubble
+    all non-static objects must be in a bubble, and can only be in one bubble at a time
+    suns, planets, moons, and stations are static objects and displayed separately (except stations, are never in a bubble)
+    some dynamic objects are considered global and displayed separately (i.e. cyno fields, system blockade units, customs offices)
+
+bracket
+    hud display manager for balls
+
+
+* non-class objects used by client/server systems *
+call
+    a request from the client to the server
+    most expect a result from the server, but some are for information only
+
+return
+    data sent from server to client as a result of a call
+
+bound object
+    this is a special object used to make direct system calls to the server
+    they do not go thru the usual client processing/decoding
+
+notification
+    data sent from server to client as a result of other client calls or data processing
+
+error
+    data sent from server to client to describe an incorrect call or an error in processing
+    this data is usually sent as a notification
+
+throw
+    this is an error sent on a specific 'channel' to client which calls client-side processing for the error
+    a throw will break out of the clients current processing loop
+    a throw can only be done during specific client calls
+    a throw cannot be sent during server processing of notifications
+
+
+** ERRATA
+    a 'wire object' is a set of data sent over the network.
+        - these can be either calls or returns, but are always python
+
+    a 'packet' is the part of a decoded wire object from the client for a specific server system
+        - this does not include packets during login (which have different layouts)
+        - a packet has a type, source, destination, method, and payload
+            - type is call or return
+            - destination is server system, client id, character id, corporation id, or a myriad of other things
+            - method is the actual call the client wants (i.e.  launch drone, activate mining laser, dock to station)
+            - payload is data pertaining to call (i.e. what drone ID, what laser to use and the asteroid ID to target, what station to dock to)
+
+    an 'instance' is an implementation of code at runtime in the server for a given system.
+        the server itself is a single instance.
+        clients connected to the server are multiple instances of same system (each client has it's own instance)
+
+    a 'server object' is an implementation of a class created in the running server.
+        - every instance of a class is a server object
+        - a SystemEntity and it's corresponding InventoryItem are separate server objects representing different states of the same game object
+
+    a 'game object' is an item used in the game.
+
+    i define an 'object' as a game item that can be in space without being contained within another item.  all objects are SystemEntitys
+        - this is not to be confused with 'server object' or 'wire object'
+
+    i define an 'item' as a game item that must be in a container.  this container can be in another item, or be an object.
+        items cannot survive in space without a container.
+        most items have an inventory and can contain other items
+        some items only contain objects and have no real object themselves (i.e. solarsystems)
+        everything in game is an item.
+
+    a SystemEntity is an object that can survive being in space without a container, i.e. Moon, Ship, Station, CargoContainer
+        - there have been SE updates that no longer really make much sense, but have yet to be fixed in class descriptions
+
+    an InventoryItem represents a game object in the server
+        - this can be either an object or item or both
+        - this can be a container for other objects or items (a ship has an inventory, a wreck contains items, etc)
+
+    items and objects are completely separate resources, but all objects are created for and from their respective item
+        as an example, a ship item is derived from InventoryItem and processes all inventory-type calls.
+        a ship object is the dynamic system entity found in space, created from it's relevant ship item.
+        most objects have references to their items (thru base SE class) but not vice-versa
+
+    all class pointers are derived from base class to allow generic dereferencing without knowing the specific derived class
+    all class pointer lifetime is handled in derived classes where applicable
+
+
+
+***   Now, on to the class types  ***
+
+* the static and singleton classes *
+*  these classes have only a single instance running in the server and are part of the base system
+
+eve-server
+    this is the main program code for the server emulator
+    it creates the initial static instances for main process systems and updates main loop timer
+
+EntityList
+    main loop processor for server
+    this class is a container for all loaded solSystems, connected Clients, players ingame, and holds counts for loaded DSEs
+
+BubbleManager
+    main control for all SystemBubbles
+    keeps track of all bubbles (across all solSystems) and used to determine placement for creating new bubbles
+
+PyServiceManager
+    this manager is used to decode client calls and route packets to appropriate system for processing
+    it is also used to create and track bound objects for system processing
+
+ItemFactory
+    class to process item creation and generic call processing
+    all generic item calls are run thru here to send to appropriate item class for processing
+
+ModuleFactory
+    class to process ship module creation
+    after creation, control of the module item is handed over to it's ship's ModuleManager
+
+Effects
+    specific system to process effects
+    this includes skill, module, ship, attribute, and system effects
+
+ConsoleManager
+    interactive console class for running server
+
+StaticDataMgr
+    handles loading and storage of static game data for entire server into easily-accessed memory objects
+
+StatisticMgr
+     server information system for managing and saving trivial game data
+
+Profiler
+    lightweight profiling code specifically for timing sections of running EvEmu application
+    this code is very basic, and very specific.
+
+
+* server system class objects *
+Timer
+    a countdown for a specific function
+    there are multiple timer instances for a vast array of items and objects
+
+RefObject
+    this is a reference-counting class to manage lifetime of a server object
+
+RefPtr
+    smart pointer class, derived from RefObject, used to maintain references to InventoryItems
+
+BulkManager
+    class to verify and update client data
+
+CachedObjectManager
+    poorly understood system to manage cache of calls and returns
+    intended to reduce server load/processing of returns that rarely change or change on a timed, periodic basis
+
+AttributeManager
+    class to maintain item attributes
+    attribute data consists of an attribute ID and a value
+    attribute values can be either float or integer, and can switch between types after creation
+    all items have their own instance of the AttributeManager class
+
+EvilNumber
+    a number class with data types for both float and integer variables
+    created specifically for attributes
+
+SystemEntity
+    (there are multiple derived classes from this base class, and multiple classes derived from the derived classes that arent completely defined here)
+    Base (abbreviated as 'SE')
+        base class code, consisting of all class tests and common data types used for all SEs
+        contains various virtual methods that redirect and/or reference other systems for ease of data acquisition
+
+    Static (abbreviated as 'SSE')
+        static, non-mobile, non-destructible celestial objects - no TargetMgr, no DestinyMgr
+        (Sun, Planet, Moon, Station, Stargate, AsteroidBelt)
+        Station
+            this is the SSE object of a station item
+
+        Stargate
+            this is the SSE object of a stargate item
+
+    Item (abbreviated as 'ISE')
+        non-static, mobile, non-destructible celestial objects - no TargetMgr, has DestinyMgr
+        (Containers, Wrecks, DeadSpace)
+        Container
+            ISE object of a cargo container item
+            unanchored objects have a timer for deletion from solSystem when empty or after 2h
+
+        Wreck
+            ISE object of a destroyed ship object
+
+    Object (abbreviated as 'OSE')
+        non-static, non-mobile, destructible celestial objects - has TargetMgr, no DestinyMgr
+        (POS, Outposts, Asteroids, Deployables)
+        FieldSE
+            OSE object of force field for POS tower
+
+    Dynamic (abbreviated as 'DSE')
+        non-static, mobile, destructible celestial objects - has TargetMgr, has DestinyMgr
+        (Ships, Drones, Missiles)
+        NPC, Concord, Civilian, Sentry
+            DSE object for npc ships
+        Ship
+            DSE object for player ships
+
+SystemManager
+    main control of solar system
+    maintains all objects within it's solSystem
+    each solSystem has its' own Manager instance
+
+SystemBubble
+    bubble objects in a solar system.
+    maintains data on all objects within it's soi
+
+
+DestinyManager
+    movement manager class, processing all movement for a given SE
+    each applicable SE has it's own instance of DestinyMgr
+
+Client
+    this system is currently a combination of both an object for processing the client's program data and an object for processing player calls and returns
+    should be split into a "Client" and a "Player" class, but will require major code re-factoring and much thought to properly implement
+
+
+InventoryItem
+    class to create, load, save, and maintain all game items
+
+Inventory
+    system to manage contents of an InventoryItem
+    each applicable item has it's own Inventory instance
+
+
+CosmicManager
+    multiple classes to manage specific aspects of solSystems
+    Anomaly
+        anomaly creation and destruction
+    Belt
+        asteroid manager
+    Civilian (singleton)
+        non-interactive NPC ships
+    Dungeon
+        dungeon spawning
+    Spawn
+        npc spawning
+    Wormhole (singleton)
+        universe-wide wormhole management
+
+
+DogmaLM (Location Manager)
+    processes all calls for item location manipulation
+
+
+Agent
+    this is a special NPC that is not derived from any Character or NPC class
+    they are only found in stations and used to process mission and locator calls
+
+
+
+POS_ - Player Owned Structure (with subclasses)
+    Manager
+        processes all calls and returns of POS systems
+
+    Structure
+        the base DSE for POS items (following classes derived from this)
+        this includes territory claim units, system blockade units, planet orbitals (customs offices), structure upgrades and all POS items
+
+    Tower
+        also called Control Tower, or CT, this item is the main control structure of player-owned starbase systems
+        this is the code for managing and controlling all CT operations
+
+    Module
+        any item to enhance or extend a CTs functions
+
+    Reactor
+        item used to produce goods at POS system
+
+    Weapon_
+        pos weapon module
+
+        Array
+            pos weapon module
+
+        Battery
+            pos weapon module
+
+
+
+ModuleItem
+    a subclass of InventoryItem specially for ship modules.
+    this class processes all module calls and data (activate/deactivate and effects)
+
+ModuleManager
+    class for containing, tracking and processing all modules fit on a ship
+    has methods for install, remove, damage and destroy ship's modules
+    each ship has it's own instance of this class
+
+Damage
+    specific code for processing damage
+    uses generic SE call for base damage processing
+    uses virtual SE calls for specific damage processing and kill handling
+
+
+TargetManager
+    system for managing targets
+    each applicable SE has it's own TargetMgr instance
+
+BookmarkManager
+    system to manage all aspects of bookmarks
+
+DataClasses
+    data containers that cannot be trivially constructed or destroyed (not POD)
+
+Colony
+    class for management of Planetary Interaction items
+
+MapData
+    a group of methods and functions to get map info.
+      this is mostly used for getting random points in system, system jumps, and misc mission destination info
+
+
+
+* server python classes *
+these are the classes for python data
+some are still not completely understood and are incomplete
+found in /eve-common/python/
+
+PyRep
+    base class for wire objects
+    derived from RefPtr to manage lifetime
+
+
+* server python to c++ implementation classes *
+**  all these generators process the /eve-common/packets/*.xmlp files and convert into c++/python encode/decode implementations  **
+these generators have their own description file, along with a 'users manual' found in EvEmu_Crucible/doc/code_and_design_notes/eve_python_xmlp_tags
+found in eve-xmlpktgen/
+ConstructGenerator
+DestructGenerator
+CloneGenerator
+DecodeGenerator
+EncodeGenerator
+HeaderGenerator
+DumpGenerator
+
+
+

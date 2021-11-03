@@ -28,6 +28,94 @@
 
 #include "map/MapDB.h"
 
+
+void MapDB::GetPlanets(uint32 systemID, std::vector<DBGPointEntity> &planetIDs, uint8 &total) {
+    // groupID = 7
+    DBQueryResult res;
+    sDatabase.RunQuery(res, "SELECT itemID, x, y, z, radius FROM mapDenormalize WHERE solarSystemID = %u AND groupID = 7", systemID);
+
+    DBResultRow row;
+    while(res.GetRow(row)) {
+        DBGPointEntity entry = DBGPointEntity();
+        entry.idx = total;
+        entry.itemID = row.GetUInt(0);
+        entry.position = GPoint (
+            row.GetDouble(1),
+                                 row.GetDouble(2),
+                                 row.GetDouble(3)
+        );
+        entry.radius = row.GetDouble(4);
+        planetIDs.push_back(entry);
+        ++total;
+    }
+}
+
+void MapDB::GetMoons(uint32 systemID, std::vector<DBGPointEntity> &moonIDs, uint8 &total) {
+    // groupID = 8
+    DBQueryResult res;
+    sDatabase.RunQuery(res, "SELECT itemID, x, y, z, radius FROM mapDenormalize WHERE solarSystemID = %u AND groupID = 8", systemID);
+
+    DBResultRow row;
+    while(res.GetRow(row)) {
+        DBGPointEntity entry = DBGPointEntity();
+        entry.idx = total;
+        entry.itemID = row.GetUInt(0);
+        entry.position = GPoint (
+            row.GetDouble(1),
+                                 row.GetDouble(2),
+                                 row.GetDouble(3)
+        );
+        entry.radius = row.GetDouble(4);
+        moonIDs.push_back(entry);
+        ++total;
+    }
+}
+
+void MapDB::GetBelts(uint32 systemID, std::vector< DBGPointEntity > &beltIDs, uint8 &total)
+{
+    // groupID = 9
+    DBQueryResult res;
+    sDatabase.RunQuery(res, "SELECT itemID, x, y, z, radius FROM mapDenormalize WHERE solarSystemID = %u AND groupID = 9", systemID);
+
+    DBResultRow row;
+    while(res.GetRow(row)) {
+        DBGPointEntity entry = DBGPointEntity();
+        entry.idx = total;
+        entry.itemID = row.GetUInt(0);
+        entry.position = GPoint (
+            row.GetDouble(1),
+                                 row.GetDouble(2),
+                                 row.GetDouble(3)
+        );
+        entry.radius = row.GetDouble(4);
+
+        beltIDs.push_back(entry);
+        ++total;
+    }
+}
+
+void MapDB::GetGates(uint32 systemID, std::vector< DBGPointEntity > &gateIDs, uint8 &total)
+{
+    // groupID = 10
+    DBQueryResult res;
+    sDatabase.RunQuery(res, "SELECT itemID, x, y, z, radius FROM mapDenormalize WHERE solarSystemID = %u AND groupID = 10", systemID);
+
+    DBResultRow row;
+    while(res.GetRow(row)) {
+        DBGPointEntity entry = DBGPointEntity();
+        entry.idx = total;
+        entry.itemID = row.GetUInt(0);
+        entry.position = GPoint (
+            row.GetDouble(1),
+                                 row.GetDouble(2),
+                                 row.GetDouble(3)
+        );
+        entry.radius = row.GetDouble(4);
+        gateIDs.push_back(entry);
+        ++total;
+    }
+}
+
 PyObject *MapDB::GetPseudoSecurities() {
     DBQueryResult res;
 

@@ -28,6 +28,7 @@
 
 
 #include "eve-server.h"
+//#include "../../eve-common/EVE_Skills.h"
 
 #include "Client.h"
 #include "ConsoleCommands.h"
@@ -404,7 +405,7 @@ PyResult Command_setbpattr(Client* who, CommandDB* db, PyServiceMgr* services, c
         throw CustomError ("Argument 5 must be remaining licensed production runs. (got %s)", args.arg(5).c_str());
 
     int blueprintID = atoi(args.arg(1).c_str());
-    BlueprintRef bp = sItemFactory.GetBlueprint(blueprintID);
+    BlueprintRef bp = sItemFactory.GetBlueprintRef(blueprintID);
     if (!bp)
         throw CustomError ("Failed to load blueprint %u.", blueprintID);
 
@@ -431,7 +432,7 @@ PyResult Command_getattr(Client* who, CommandDB* db, PyServiceMgr* services, con
         throw PyException(MakeCustomError("2nd argument must be attributeID (got %s).", args.arg(2).c_str()));
     const ItemAttributeMgr::Attr attribute = (ItemAttributeMgr::Attr)atoi(args.arg(2).c_str());
 
-    InventoryItemRef item = sItemFactory.GetItem(itemID);
+    InventoryItemRef item = sItemFactory.GetItemRef(itemID);
     if (item.get() == nullptr)
         throw PyException(MakeCustomError("Failed to load item %u.", itemID));
     */
@@ -476,7 +477,7 @@ PyResult Command_setattr(Client* who, CommandDB* db, PyServiceMgr* services, con
     if (itemID < minPlayerItem)
         throw CustomError ("1st argument must be a valid 'entity' table itemID that MUST be larger >= 140000000. (got %s)", args.arg(1).c_str());
 
-    InventoryItemRef item = sItemFactory.GetItem(itemID);
+    InventoryItemRef item = sItemFactory.GetItemRef(itemID);
     if (item.get() == nullptr)
         throw CustomError ("Failed to load item %u.", itemID);
 
@@ -597,7 +598,7 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
             if (character->HasSkillTrainedToLevel(skillID, level)) {
                 return PyStatic.NewNone();
             } else if (character->HasSkill(skillID)) {
-                skill = character->GetSkill(skillID);
+                skill = character->GetCharSkillRef(skillID);
                 //oldLevel = skill->GetAttribute(AttrSkillLevel).get_uint32();
                 //oldPoints = skill->GetAttribute(AttrSkillPoints).get_uint32();
                 skill->SetAttribute(AttrSkillLevel, level);
@@ -688,7 +689,7 @@ PyResult Command_giveskill(Client* who, CommandDB* db, PyServiceMgr* services, c
         return PyStatic.NewNone();
     } else if (character->HasSkill(skillID)) {
         // has skill injected, so update level
-        skill = character->GetSkill(skillID);
+        skill = character->GetCharSkillRef(skillID);
         if (skill.get() == nullptr){
             throw CustomError ("Unable to get item for skillID %u.", skillID);
             return new PyString ("Skill Gifting Failure - Unable to get item for skillID %u.", skillID);
@@ -852,9 +853,9 @@ PyResult Command_dogma(Client* who, CommandDB* db, PyServiceMgr* services, const
 
     InventoryItemRef i;
     if (args.arg(1) == "me") {
-        i = sItemFactory.GetItem(who->GetShip().get()->itemID());
+        i = sItemFactory.GetItemRef(who->GetShip().get()->itemID());
     } else {
-        i = sItemFactory.GetItem(atoi(args.arg(1).c_str()));
+        i = sItemFactory.GetItemRef(atoi(args.arg(1).c_str()));
     }
 
 

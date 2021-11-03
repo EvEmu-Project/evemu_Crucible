@@ -144,7 +144,7 @@ bool CommandDB::ItemSearch(uint32 typeID, uint32 &actualTypeID,
         return (false);
     }
 
-    if( !result.GetRow(row) )
+    if ( !result.GetRow(row) )
     {
         sLog.Error( "CommandDB::ItemSearch()", "Query returned NO results: %s", result.error.c_str() );
         return (false);
@@ -169,7 +169,7 @@ int CommandDB::GetAttributeID(const char *attributeName) {
     std::string escape;
     sDatabase.DoEscapeString(escape, attributeName);
 
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         " SELECT "
         " attributeID "
         " FROM dgmAttributeTypes "
@@ -181,7 +181,7 @@ int CommandDB::GetAttributeID(const char *attributeName) {
     }
 
     DBResultRow row;
-    if( !res.GetRow(row) ){
+    if ( !res.GetRow(row) ){
         codelog(DATABASE__ERROR, "Null result finding attributeID for attributeName = '%s' ", escape.c_str() );
         return 0;
     }

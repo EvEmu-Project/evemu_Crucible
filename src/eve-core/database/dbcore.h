@@ -26,6 +26,11 @@
 #ifndef __DATABASE__DBCORE_H__INCL__
 #define __DATABASE__DBCORE_H__INCL__
 
+// MySQL headers
+#include <mysql.h>
+#include <mysqld_error.h>
+#include <errmsg.h>
+
 //this whole file could be interface-ized to support a different database
 //if you can get over the SQL incompatibilities and mysql auto increment problems.
 

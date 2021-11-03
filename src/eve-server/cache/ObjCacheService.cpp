@@ -278,13 +278,13 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
         return nullptr;
     }
 
-    if(!_LoadCachableObject(args.objectID))
+    if (!_LoadCachableObject(args.objectID))
         return nullptr;   //print done already
 
     //should we check their version? I am pretty sure they check it and only request what they want.
     //well, we want to do something like this, but this doesn't seem to be it. taken
     // out until we have time to figure out how to properly throw the CacheOK exception.
-    /*if(m_cache.IsCacheUpToDate(args.objectID, args.version, args.timestamp)) {
+    /*if (m_cache.IsCacheUpToDate(args.objectID, args.version, args.timestamp)) {
         //they throw an exception for "its up to date", lets give it a try...
         return new CacheOK();
     }
@@ -314,14 +314,14 @@ PySubStream* ObjCacheService::LoadCachedFile(const char *filename, const char *o
 
 
 bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
-    if(m_cache.HaveCached(objectID))
+    if (m_cache.HaveCached(objectID))
         return true;
 
     const std::string objectID_string = CachedObjectMgr::OIDToString(objectID);
 
-    if(!m_cacheDir.empty())
+    if (!m_cacheDir.empty())
     {
-        if( m_cache.LoadCachedFromFile( m_cacheDir, objectID ) )
+        if ( m_cache.LoadCachedFromFile( m_cacheDir, objectID ) )
         {
             _log( CACHE__INFO, "Loaded cached object '%s' from file.", objectID_string.c_str() );
             return true;
@@ -331,14 +331,14 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
     //first try to generate it from the database...
     //we go to the DB with a string, not a rep
     PyRep *cache = m_db.GetCachableObject(objectID_string);
-    if(cache != nullptr) {
+    if (cache != nullptr) {
         //we have generated the cache file in question, remember it
         m_cache.UpdateCache(objectID, &cache);
     } else {
         //failed to query from the database... fall back to old
         //hackish file loading.
         PySubStream* ss = m_cache.LoadCachedFile( objectID_string.c_str() );
-        if( ss == nullptr )
+        if ( ss == nullptr )
         {
             _log(CACHE__ERROR, "Failed to create or load cache file for '%s'", objectID_string.c_str());
             return false;
@@ -349,9 +349,9 @@ bool ObjCacheService::_LoadCachableObject(const PyRep *objectID) {
     }
 
     //if we have a cache dir, write out the cache entry:
-    if(!m_cacheDir.empty())
+    if (!m_cacheDir.empty())
     {
-        if(!m_cache.SaveCachedToFile(m_cacheDir, objectID)) {
+        if (!m_cache.SaveCachedToFile(m_cacheDir, objectID)) {
             sLog.Error( "ObjCacheService", "Failed to save cache file for '%s' in '%s'", objectID_string.c_str(), m_cacheDir.c_str() );
         } else {
             sLog.White( "ObjCacheService", "Saved cached object '%s' to file in '%s'.", objectID_string.c_str(), m_cacheDir.c_str() );
@@ -395,14 +395,14 @@ void ObjCacheService::InsertCacheHints(hintSet hset, PyDict *into) {
         object_count = CharCreateNewExtraCachableObjectCount;
         break;
     }
-    if(objects == nullptr)
+    if (objects == nullptr)
         return;
     uint32 r;
     std::map<std::string, std::string>::const_iterator res;
     for(r = 0; r < object_count; r++) {
         //find the dict key to use for this object
         res = m_cacheKeys.find(objects[r]);
-        if(res == m_cacheKeys.end()) {
+        if (res == m_cacheKeys.end()) {
             _log(CACHE__ERROR, "Unable to find cache key for object ID '%s', skipping.", objects[r]);
             continue;
         }
@@ -412,7 +412,7 @@ void ObjCacheService::InsertCacheHints(hintSet hset, PyDict *into) {
         PyRep *cache_hint = GetCacheHint( str );
         PyDecRef( str );
 
-        if(cache_hint == nullptr)
+        if (cache_hint == nullptr)
             continue;    //print already done.
 
         into->SetItemString(res->second.c_str(), cache_hint);
@@ -433,7 +433,7 @@ void ObjCacheService::GiveCache(const PyRep *objectID, PyRep **contents) {
 }
 
 PyObject *ObjCacheService::MakeObjectCachedSessionMethodCallResult(const PyRep *objectID, const char *sessionInfoName, const char *clientWhen) {
-    if(!IsCacheLoaded(objectID))
+    if (!IsCacheLoaded(objectID))
         return nullptr;
 
     objectCaching_SessionCachedMethodCallResult_object c;
@@ -444,7 +444,7 @@ PyObject *ObjCacheService::MakeObjectCachedSessionMethodCallResult(const PyRep *
 }
 
 PyObject *ObjCacheService::MakeObjectCachedMethodCallResult(const PyRep *objectID, const char *versionCheck) {
-    if(!IsCacheLoaded(objectID))
+    if (!IsCacheLoaded(objectID))
         return nullptr;
 
     objectCaching_CachedMethodCallResult_object c;

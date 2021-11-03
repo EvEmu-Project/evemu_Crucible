@@ -48,7 +48,7 @@ APIServer::APIServer()
 
 void APIServer::CreateServices(const PyServiceMgr &services)
 {
-    if( !runonce )
+    if ( !runonce )
     {
         m_APIServiceManagers.insert(std::make_pair("base", new APIServiceManager(services)));
         m_APIServiceManagers.insert(std::make_pair("account", new APIAccountManager(services)));
@@ -66,15 +66,15 @@ void APIServer::CreateServices(const PyServiceMgr &services)
 
 std::tr1::shared_ptr<std::vector<char> > APIServer::GetXML(const APICommandCall * pAPICommandCall)
 {
-    //if( m_APIServiceManagers.find(pAPICommandCall->at(0).first) != m_APIServiceManagers.end() )
-    if( pAPICommandCall->find( "service" ) == pAPICommandCall->end() )
+    //if ( m_APIServiceManagers.find(pAPICommandCall->at(0).first) != m_APIServiceManagers.end() )
+    if ( pAPICommandCall->find( "service" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIserver::GetXML()", "Cannot find 'service' specifier in pAPICommandCall packet" );
         return std::tr1::shared_ptr<std::vector<char> >(new std::vector<char>() );
         //return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
 
-    if( m_APIServiceManagers.find(pAPICommandCall->find( "service" )->second) != m_APIServiceManagers.end() )
+    if ( m_APIServiceManagers.find(pAPICommandCall->find( "service" )->second) != m_APIServiceManagers.end() )
     {
         // Get reference to service manager object and call ProcessCall() with the pAPICommandCall packet
         //m_xmlString = m_APIServiceManagers.find("base")->second->ProcessCall(pAPICommandCall);

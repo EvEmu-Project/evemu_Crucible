@@ -112,7 +112,7 @@ PyResult SkillMgrBound::Handle_CharStopTrainingSkill(PyCallArgs &call) {
 PyResult SkillMgrBound::Handle_CharStartTrainingSkill( PyCallArgs& call ) {
     // sm.GetService('godma').GetSkillHandler().CharStartTrainingSkill(skillX.itemID, skillX.locationID)
     Call_TwoIntegerArgs args;
-    if( !args.Decode( call.tuple ) )
+    if ( !args.Decode( call.tuple ) )
     {
         codelog( SERVICE__ERROR, "%s: Failed to decode arguments.", GetName() );
         return nullptr;
@@ -150,7 +150,7 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call)
     SkillRef skill(nullptr);
     CharacterRef cRef(call.client->GetChar());
     for (auto cur : args.skills)  {
-        skill = sItemFactory.GetSkill(cur);
+        skill = sItemFactory.GetSkillRef(cur);
         if (skill.get() == nullptr) {
             _log( ITEM__ERROR, "%s: failed to load skill %u for injection.", call.client->GetName(), cur);
             std::string str = "Invalid Name #";

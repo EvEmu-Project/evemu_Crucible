@@ -14,6 +14,7 @@
 #include "EVEServerConfig.h"
 #include "PyServiceMgr.h"
 #include "StaticDataMgr.h"
+#include "math/Trig.h"
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "system/cosmicMgrs/BeltMgr.h"
@@ -21,8 +22,8 @@
 #include "system/cosmicMgrs/SpawnMgr.h"
 
 DungeonDataMgr::DungeonDataMgr()
+: m_dungeonID(DUNGEON_ID)
 {
-    m_dungeonID = DUNGEON_ID;
 }
 
 int DungeonDataMgr::Initialize()
@@ -236,13 +237,13 @@ void DungeonMgr::Load()
     ManagerDB::GetSavedDungeons(m_system->GetID(), dungeons);
     /** @todo this will need more work as the system matures...
     for(auto dungeon : dungeons) {
-        InventoryItemRef dungeonRef = m_system->itemFactory()->GetItem( dungeon.dungeonID );
-        if( !dungeonRef ) {
+        InventoryItemRef dungeonRef = sItemFactory.GetItemRef( dungeon.dungeonID );
+        if ( !dungeonRef ) {
             _log(COSMIC_MGR__WARNING, "DungeonMgr::Load() -  Unable to spawn dungeon item #%u:'%s' of type %u.", dungeon.dungeonID, dungeon.typeID);
             continue;
         }
         AsteroidSE* asteroidObj = new AsteroidSE( dungeonRef, *(m_system->GetServiceMgr()), m_system );
-        if( !asteroidObj ) {
+        if ( !asteroidObj ) {
             _log(COSMIC_MGR__WARNING, "DungeonMgr::Load() -  Unable to spawn dungeon entity #%u:'%s' of type %u.", dungeon.dungeonID, dungeon.typeID);
             continue;
         }

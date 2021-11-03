@@ -27,6 +27,10 @@
 #ifndef __EVE_SERVER_H__INCL__
 #define __EVE_SERVER_H__INCL__
 
+/** @todo  this file has many specific headers not used by everything in evemu.
+ * this should be trimmed down with specific headers in files that need them
+ */
+
 /************************************************************************/
 /* eve-common includes (also includes eve-core.h)                       */
 /************************************************************************/
@@ -103,10 +107,9 @@
 #include "tables/invGroups.h"
 #include "tables/invTypes.h"
 // threading
-#include "threading/Mutex.h"
+//#include "threading/Mutex.h"
 // utils
 #include "utils/EVEUtils.h"
-#include "utils/XMLParserEx.h"
 
 
 #endif /* !__EVE_SERVER_H__INCL__ */

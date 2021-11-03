@@ -27,13 +27,16 @@
 #define EVE_INVENTORY_ITEM_DB
 
 #include "ServiceDB.h"
-#include "inventory/ItemType.h"
+//#include "inventory/ItemType.h"
+
+
+class ItemData;
 
 class ItemDB
 {
 public:
     // get item data based on itemID
-    static bool GetItem(uint32 itemID, ItemData &into);
+    static bool GetItemData(uint32 itemID, ItemData &into);   // called by RefPtr<_Ty> _Load() at InventoryItem.h:245
     static bool DeleteItem(uint32 itemID);
 
     static void UpdateLocation(uint32 itemID, uint32 locationID, EVEItemFlags flag);
@@ -46,7 +49,6 @@ public:
 
     // only used in ConsoleCommands to test/process fx data
     static void GetItems(uint16 catID, std::map<uint16, std::string> &typeIDs);
-
 };
 
 

@@ -47,21 +47,21 @@
 void PlanetDB::GetSchematicData(DBQueryResult& res)
 {
     // load info into PIDataMgr
-    if(!sDatabase.RunQuery(res, "SELECT schematicID, typeID, quantity, isInput FROM piTypeMap" ))
+    if (!sDatabase.RunQuery(res, "SELECT schematicID, typeID, quantity, isInput FROM piTypeMap" ))
         _log(DATABASE__ERROR, "Error in GetSchematicData Query: %s", res.error.c_str());
 }
 
 void PlanetDB::GetSchematicTimes(DBQueryResult& res)
 {
     // load info into PIDataMgr
-    if(!sDatabase.RunQuery(res, "SELECT schematicID, cycleTime FROM piSchematics"))
+    if (!sDatabase.RunQuery(res, "SELECT schematicID, cycleTime FROM piSchematics"))
         _log(DATABASE__ERROR, "Error in GetSchematicTimes Query: %s", res.error.c_str());
 }
 
 void PlanetDB::GetPlanetData(DBQueryResult& res)
 {
     // load info into PlanetDataMgr
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT planet.typeID AS planetTypeID,"
         " resource.typeID AS resourceID"
         " FROM invTypes planet, invTypes resource, dgmTypeAttributes dgm1, dgmTypeAttributes dgm2 "
@@ -77,7 +77,7 @@ PyRep* PlanetDB::GetPlanetsForChar(uint32 charID) {
         returns  (solarSystemID, planetID, typeID, numberOfPins)
     */
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT solarSystemID, planetID, typeID, numberOfPins"
         " FROM piPlanets WHERE charID = %u", charID)) {
         _log(DATABASE__ERROR, "Error in GetPlanetsForChar query: %s", res.error.c_str());
@@ -90,7 +90,7 @@ PyRep* PlanetDB::GetPlanetsForChar(uint32 charID) {
 void PlanetDB::AddPlanetForChar(uint32 solarSystemID, uint32 planetID, uint32 charID, uint32 ccPinID, uint16 typeID)
 {
     DBerror err;
-    if(!sDatabase.RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "INSERT INTO piPlanets (solarSystemID, planetID, charID, typeID, ccPinID)"
         " VALUES (%u, %u, %u, %u, %u)", solarSystemID, planetID, charID, typeID, ccPinID))
     {
@@ -101,7 +101,7 @@ void PlanetDB::AddPlanetForChar(uint32 solarSystemID, uint32 planetID, uint32 ch
 void PlanetDB::UpdatePlanetPins(uint32 ccPinID, uint8 pins)
 {
     DBerror err;
-    if(!sDatabase.RunQuery(err, "UPDATE piPlanets SET numberOfPins = %u WHERE ccPinID = %u ", pins, ccPinID))
+    if (!sDatabase.RunQuery(err, "UPDATE piPlanets SET numberOfPins = %u WHERE ccPinID = %u ", pins, ccPinID))
     {
         _log(DATABASE__ERROR, "UpdatePlanetPins - Unable to update ccPinID %u : %s", ccPinID, err.GetError());
     }
@@ -110,7 +110,7 @@ void PlanetDB::UpdatePlanetPins(uint32 ccPinID, uint8 pins)
 //  expired = not blue.os.GetWallclockTime() - launch.launchTime < const.piLaunchOrbitDecayTime (5d)
 PyRep* PlanetDB::GetMyLaunchesDetails(uint32 charID) {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res, "SELECT itemID AS launchID, status, itemID, solarSystemID, planetID, launchTime, x, y, z"
+    if (!sDatabase.RunQuery(res, "SELECT itemID AS launchID, status, itemID, solarSystemID, planetID, launchTime, x, y, z"
         " FROM piLaunches WHERE charID = %u", charID)) {
         _log(DATABASE__ERROR, "Error in GetMyLaunchesDetails Query: %s", res.error.c_str());
         return nullptr;
@@ -121,7 +121,7 @@ PyRep* PlanetDB::GetMyLaunchesDetails(uint32 charID) {
 GPoint PlanetDB::GetLaunchPos(uint32 launchID)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res, "SELECT x,y,z FROM piLaunches WHERE launchID = %u", launchID)) {
+    if (!sDatabase.RunQuery(res, "SELECT x,y,z FROM piLaunches WHERE launchID = %u", launchID)) {
         _log(DATABASE__ERROR, "Error in GetLaunchPos query: %s", res.error.c_str());
     }
     DBResultRow row;
@@ -136,7 +136,7 @@ GPoint PlanetDB::GetLaunchPos(uint32 launchID)
 uint32 PlanetDB::GetLaunchPlanet(uint32 launchID)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res, "SELECT planetID FROM piLaunches WHERE launchID = %u", launchID)) {
+    if (!sDatabase.RunQuery(res, "SELECT planetID FROM piLaunches WHERE launchID = %u", launchID)) {
         _log(DATABASE__ERROR, "Error in GetLaunchPlanet query: %s", res.error.c_str());
     }
     DBResultRow row;
@@ -151,7 +151,7 @@ uint32 PlanetDB::GetLaunchPlanet(uint32 launchID)
 void PlanetDB::GetLaunchDetails(Launch::Data& data)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res, "SELECT itemID, status, solarSystemID, planetID, launchTime, x, y, z FROM piLaunches WHERE launchID = %u", data.launchID)) {
+    if (!sDatabase.RunQuery(res, "SELECT itemID, status, solarSystemID, planetID, launchTime, x, y, z FROM piLaunches WHERE launchID = %u", data.launchID)) {
         _log(DATABASE__ERROR, "Error in GetLaunchDetails query: %s", res.error.c_str());
     }
     DBResultRow row;
@@ -172,7 +172,7 @@ void PlanetDB::GetLaunchDetails(Launch::Data& data)
 uint32 PlanetDB::GetLaunchItemID(uint32 launchID)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res, "SELECT itemID FROM piLaunches WHERE launchID = %u", launchID)) {
+    if (!sDatabase.RunQuery(res, "SELECT itemID FROM piLaunches WHERE launchID = %u", launchID)) {
         _log(DATABASE__ERROR, "Error in GetLaunchItemID query: %s", res.error.c_str());
     }
     DBResultRow row;
@@ -408,7 +408,7 @@ void PlanetDB::LoadHeads(uint32 ecuID, std::map< uint16, PI_Heads >& heads)
 void PlanetDB::SaveLaunch(uint32 contID, uint32 charID, uint32 systemID, uint32 planetID, GPoint& pos)
 {
     DBerror err;
-    if(!sDatabase.RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "INSERT INTO piLaunches (itemID, status, charID, solarSystemID, planetID, launchTime, x, y, z) "
         " VALUES (%u, 0, %u, %u, %u, %f, %f, %f, %f)",
                            contID, charID, systemID, planetID, GetFileTimeNow(), pos.x, pos.y, pos.z))
@@ -420,7 +420,7 @@ void PlanetDB::SaveLaunch(uint32 contID, uint32 charID, uint32 systemID, uint32 
 void PlanetDB::SaveCommandCenter(uint32 pinID, uint32 charID, uint32 planetID, uint32 typeID, double latitude, double longitude)
 {
     DBerror err;
-    if(!sDatabase.RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "INSERT INTO piCCPin (pinID, charID, planetID, typeID, latitude, longitude) "
         " VALUES (%u, %u, %u, %u, %f, %f)",
         pinID, charID, planetID, typeID, latitude, longitude))
@@ -432,9 +432,9 @@ void PlanetDB::SaveCommandCenter(uint32 pinID, uint32 charID, uint32 planetID, u
 void PlanetDB::SaveCCLevel(uint32 pinID, uint8 level)
 {
     DBerror err;
-    if(!sDatabase.RunQuery(err, "UPDATE piCCPin SET level = %u WHERE pinID = %u", level, pinID))
+    if (!sDatabase.RunQuery(err, "UPDATE piCCPin SET level = %u WHERE pinID = %u", level, pinID))
         _log(DATABASE__ERROR, "SaveCCLevel - Unable to save CCLevel: %s", err.GetError());
-    if(!sDatabase.RunQuery(err, "UPDATE piPins SET level = %u WHERE pinID = %u", level, pinID))
+    if (!sDatabase.RunQuery(err, "UPDATE piPins SET level = %u WHERE pinID = %u", level, pinID))
         _log(DATABASE__ERROR, "SaveCCLevel - Unable to save CCLevel: %s", err.GetError());
 }
 
@@ -541,7 +541,7 @@ void PlanetDB::UpdateECUPin(uint32 pinID, PI_CCPin* ccPin)
     }
 
     DBerror err;
-    if(!sDatabase.RunQuery(err,
+    if (!sDatabase.RunQuery(err,
         "UPDATE piPins SET"
         "  programType = %u,"
         "  headRadius = %f,"
@@ -616,7 +616,7 @@ void PlanetDB::SaveHeads(uint32 ccPinID, uint32 ownerID, uint32 ecuID, std::map<
 void PlanetDB::SavePinLevel(uint32 pinID, uint8 level)
 {
     DBerror err;
-    if(!sDatabase.RunQuery(err, "UPDATE piPins SET level = %u WHERE pinID = %u", level, pinID))
+    if (!sDatabase.RunQuery(err, "UPDATE piPins SET level = %u WHERE pinID = %u", level, pinID))
     {
         _log(DATABASE__ERROR, "SavePinLevel - Unable to save PinLevel: %s", err.GetError());
     }
@@ -657,7 +657,7 @@ void PlanetDB::SaveLinks(PI_CCPin* ccPin)
 void PlanetDB::SaveLinkLevel(uint32 linkID, uint8 level)
 {
     DBerror err;
-    if(!sDatabase.RunQuery(err, "UPDATE piLinks SET level = %u WHERE linkID = %u", level, linkID))
+    if (!sDatabase.RunQuery(err, "UPDATE piLinks SET level = %u WHERE linkID = %u", level, linkID))
     {
         _log(DATABASE__ERROR, "SaveLinkLevel - Unable to save LinkLevel: %s", err.GetError());
     }

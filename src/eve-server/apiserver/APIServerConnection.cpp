@@ -152,13 +152,13 @@ void APIServerConnection::ProcessHeaders()
             std::transform(param.begin(), param.end(), param.begin(), tolower);
             request = request.substr(pos+1);
             pos = request.find_first_of('&');
-            if( pos < 0 )
+            if ( pos < 0 )
                 value = request;
             else
             {
                 value = request.substr(0,pos);
                 request = request.substr(pos);
-                if( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
+                if ( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
                     request = request.substr(5);
                 else
                     request = request.substr(1);
@@ -251,7 +251,7 @@ void APIServerConnection::ProcessHeaders()
         pos = request.find_first_of('\r');
         request = request.substr( 0,pos );
 
-        if( request.compare( "" ) != 0 )
+        if ( request.compare( "" ) != 0 )
         {
             // Decode the arguments of the POST data block here since asio did NOT stop reading past the first "\r\n\r\n"
             //// DUPLICATE
@@ -265,13 +265,13 @@ void APIServerConnection::ProcessHeaders()
                 std::transform(param.begin(), param.end(), param.begin(), tolower);
                 request = request.substr(pos+1);
                 pos = request.find_first_of('&');
-                if( pos < 0 )
+                if ( pos < 0 )
                     value = request;
                 else
                 {
                     value = request.substr(0,pos);
                     request = request.substr(pos);
-                    if( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
+                    if ( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
                         request = request.substr(5);
                     else
                         request = request.substr(1);
@@ -280,7 +280,7 @@ void APIServerConnection::ProcessHeaders()
             }
 
             // Did we somehow not detect a lack of POST data?  If so, and NO parameters were recovered, queue up the trigger for PostProcessHeaders():
-            if( parameterCount == 0 )
+            if ( parameterCount == 0 )
             {
                 // Call boost::asio::async_read() and feed it the # of bytes from step 1) to get the POST data
                 // The 'CompleteCondition' for THIS boost::asio::async_read, a parameter that specifies when to stop reading,
@@ -335,7 +335,7 @@ void APIServerConnection::ProcessPostData()
     std::getline(stream, request, '\r');
 
     // Check for empty POST data block, and if empty, return without sending anything back:
-    if( request.compare( "" ) == 0 )
+    if ( request.compare( "" ) == 0 )
     {
         sLog.Error("APIServerConnection::ProcessPostData()", "POST data block is COMPLETELY EMPTY!!" );
         boost::asio::async_write(_socket, _responseNoContent, boost::asio::transfer_all(), std::bind(&APIServerConnection::Close, shared_from_this()));
@@ -352,13 +352,13 @@ void APIServerConnection::ProcessPostData()
         std::transform(param.begin(), param.end(), param.begin(), tolower);
         request = request.substr(pos+1);
         pos = request.find_first_of('&');
-        if( pos < 0 )
+        if ( pos < 0 )
             value = request;
         else
         {
             value = request.substr(0,pos);
             request = request.substr(pos);
-            if( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
+            if ( request.substr(0,5) == "&amp;" )  // Strip out "&amp;" encoded for "&"
                 request = request.substr(5);
             else
                 request = request.substr(1);

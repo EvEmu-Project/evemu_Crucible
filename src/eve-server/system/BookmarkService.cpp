@@ -314,7 +314,7 @@ PyResult BookmarkService::Handle_AddBookmarkFromVoucher(PyCallArgs &call) {
      *    args.ownerID
      *    args.folderID
      */
-    InventoryItemRef iRef = sItemFactory.GetItem(args.itemID);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(args.itemID);
     if (iRef.get() == nullptr) {
         codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark data for voucherID %u", call.client->GetName(), args.itemID);
         return nullptr;
@@ -382,7 +382,7 @@ PyResult BookmarkService::Handle_CopyBookmarks(PyCallArgs &call) {
 
     PyList* list = new PyList();
     for (size_t i = 0; i < bmList->size(); ++i) {
-        InventoryItemRef iRef = sItemFactory.GetItem(bmList->GetItem(i)->AsInt()->value());
+        InventoryItemRef iRef = sItemFactory.GetItemRef(bmList->GetItem(i)->AsInt()->value());
         if (iRef.get() == nullptr) {
             codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark data for voucherID %u", call.client->GetName(), bmList->GetItem(i)->AsInt()->value());
             continue;

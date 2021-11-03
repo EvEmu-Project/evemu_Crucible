@@ -92,7 +92,7 @@ PlanetORB::~PlanetORB() {
 PyBoundObject* PlanetORB::CreateBoundObject(Client *pClient, const PyRep *bind_args) {
     _log(PLANET__INFO, "PlanetORB bind request for:");  // sends systemID in request
     bind_args->Dump(PLANET__INFO, "    ");
-    if(!bind_args->IsInt()) {
+    if (!bind_args->IsInt()) {
         codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
         return nullptr;
     }

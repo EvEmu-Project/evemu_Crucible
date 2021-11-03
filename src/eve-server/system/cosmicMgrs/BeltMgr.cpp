@@ -19,6 +19,7 @@
 #include "EVEServerConfig.h"
 #include "PyServiceMgr.h"
 #include "StaticDataMgr.h"
+#include "math/Trig.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/BeltMgr.h"
@@ -149,7 +150,7 @@ bool BeltMgr::Load(uint16 bubbleID) {
         return false;
 
     for (auto entity : entities) {
-        AsteroidItemRef itemRef = sItemFactory.GetAsteroid(entity.itemID);
+        AsteroidItemRef itemRef = sItemFactory.GetAsteroidRef(entity.itemID);
         if (itemRef.get() == nullptr) {
             _log(COSMIC_MGR__WARNING, "BeltMgr::Load() -  Unable to spawn item #%u:'%s' of type %u.", entity.itemID, entity.itemName.c_str(), entity.typeID);
             continue;

@@ -10,15 +10,12 @@
 
 #include "Client.h"
 #include "EntityList.h"
-#include "EVEServerConfig.h"
-#include "StaticDataMgr.h"
+#include "map/MapDB.h"
 #include "npc/Sentry.h"
 #include "npc/SentryAI.h"
 #include "system/Container.h"
 #include "system/Damage.h"
-#include "system/SystemBubble.h"
 #include "system/SystemManager.h"
-#include "system/cosmicMgrs/AnomalyMgr.h"
 
 
 Sentry::Sentry(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data)

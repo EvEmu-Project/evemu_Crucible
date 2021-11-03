@@ -23,6 +23,8 @@
  */
 
 #include "../eve-server.h"
+//#include "../../eve-common/EVE_Skills.h"
+
 #include "../StaticDataMgr.h"
 #include "../station/StationDataMgr.h"
 #include "../map/MapData.h"
@@ -138,7 +140,7 @@ void Agent::MakeOffer(uint32 charID, MissionOffer& offer)
             offer.destinationSystemID = m_agentData.solarSystemID;
         }
     }
-    
+
     MissionDB::CreateOfferID(offer);
 
     // keep local copy and also add to mission data mgr

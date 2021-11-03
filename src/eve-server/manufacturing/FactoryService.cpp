@@ -87,7 +87,7 @@ PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
         return nullptr;
     }
 
-    BlueprintRef bRef = sItemFactory.GetBlueprint( arg.arg );
+    BlueprintRef bRef = sItemFactory.GetBlueprintRef( arg.arg );
     if (bRef.get() == nullptr)
         return nullptr;
 

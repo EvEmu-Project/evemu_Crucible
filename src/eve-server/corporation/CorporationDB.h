@@ -33,10 +33,11 @@
 #include "corporation/CorpData.h"
 
 
+struct OfficeData;
+
 class Client;
 class PyRep;
 class PyObject;
-class OfficeData;
 
 class CorporationDB
 : public ServiceDB
@@ -178,6 +179,10 @@ public:
 
     static void UpdateCorpHQ(uint32 corpID, uint32 stationID);
     static void GetMemberIDs(uint32 corpID, std::vector<uint32>& ids, bool online=true);
+
+    static bool GetCorporationBySchool(uint32 schoolID, uint32 &corporationID);
+    static bool GetLocationCorporationByCareer(CharacterData &cdata, uint32 &corporationID);
+    static bool DoesCorporationExist(uint32 corpID);
 };
 
 #endif

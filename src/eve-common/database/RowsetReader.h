@@ -26,6 +26,8 @@
 #ifndef __ROWSETREADER_H_INCL__
 #define __ROWSETREADER_H_INCL__
 
+#include <stack>
+
 #include "packets/General.h"
 #include "python/PyVisitor.h"
 

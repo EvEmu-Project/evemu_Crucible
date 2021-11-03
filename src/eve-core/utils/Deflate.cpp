@@ -23,6 +23,9 @@
     Author:        Zhur
 */
 
+
+#include <zlib.h>
+
 #include "eve-core.h"
 
 #include "utils/Deflate.h"

@@ -31,17 +31,6 @@
 #include "system/SystemManager.h"
 
 /*
- * CelestialObjectData
- */
-CelestialObjectData::CelestialObjectData(double _radius, double _security, uint8 _celestialIndex, uint8 _orbitIndex)
-: radius(_radius),
-  security(_security),
-  celestialIndex(_celestialIndex),
-  orbitIndex(_orbitIndex)
-{
-}
-
-/*
  * CelestialObject
  */
 CelestialObject::CelestialObject(uint32 _celestialID, const ItemType &_type, const ItemData &_data)

@@ -138,7 +138,7 @@ PyObject* ManagerDB::GetBillTypes() {
 PyObjectEx* ManagerDB::GetAgents() {
     // NOTE:  havent found data for agents in space yet....still looking.
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT"
         "    agt.agentID,"
         "    agt.agentTypeID,"
@@ -345,7 +345,7 @@ void ManagerDB::SaveAnomaly(CosmicSignature& sig)
 
 void ManagerDB::GetAnomalyList(DBQueryResult& res)
 {// sysSignatures (sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,x,y,z)
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,x,y,z"
         " FROM sysSignatures"
         " ORDER BY systemid")) {
@@ -372,7 +372,7 @@ GPoint ManagerDB::GetAnomalyPos(std::string& string)
 // these next two arent used yet.  dont remember what they were for.  persistant shit for restart?
 void ManagerDB::GetSystemAnomalies(uint32 systemID, DBQueryResult& res)
 {// sysSignatures (sigTypeID,scanGroupID,sigGroupID,scanAttributeID,sigName,sigID,x,y,z)
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT sigTypeID, scanGroupID, sigGroupID, scanAttributeID, sigName, sigID, x, y, z"
         " FROM sysSignatures"
         " WHERE systemID = %u", systemID)) {
@@ -486,7 +486,7 @@ void ManagerDB::CreateRoidItemID(ItemData& idata, AsteroidData& adata)
 bool ManagerDB::GetAsteroidData(uint32 asteroidID, AsteroidData& dbData)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT itemName, typeID, systemID, beltID, quantity, radius, x, y, z"
         " FROM sysAsteroids"
         " WHERE itemID = %u", asteroidID)) {
@@ -516,7 +516,7 @@ bool ManagerDB::GetAsteroidData(uint32 asteroidID, AsteroidData& dbData)
 bool ManagerDB::LoadSystemRoids(uint32 systemID, uint32& beltID, std::vector< AsteroidData >& into)
 {
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT itemID, itemName, typeID, systemID, beltID, quantity, radius, x, y, z"
         " FROM sysAsteroids"
         " WHERE systemID = %u"

@@ -29,24 +29,32 @@
 
 #include "ServiceDB.h"
 
+/**
+ * Data container for celestial object.
+ */
+struct CelestialObjectData {
+    uint8 celestialIndex;
+    uint8 orbitIndex;
+    double radius;
+    double security;
+};
+
+
 class SystemDB
 : public ServiceDB
 {
 public:
     PyObject* ListFactions();
-    static PyObject* ListJumps(uint32);
-    static PyPackedRow* GetSolarSystem(uint32 ssid);
-
-    static void GetGates(uint32 systemID, std::vector< DBGPointEntity >& gateIDs, uint8& total);
-
-    static void GetBelts(uint32 systemID, std::vector< DBGPointEntity >& beltIDs, uint8& total);
-    static void GetMoons(uint32 systemID, std::vector< DBGPointEntity >& moonIDs, uint8& total);
-    static void GetPlanets(uint32 systemID, std::vector<DBGPointEntity>& planetIDs, uint8& total);
+    static PyObject* ListJumps(uint32 gateID);
+    static PyPackedRow* GetSolarSystemPackedRow(uint32 systemID);
 
     static bool GetWrecksToTypes(DBQueryResult& res);
 
     static void GetLootGroups(DBQueryResult& res);
     static void GetLootGroupTypes(DBQueryResult& res);
+
+    static bool GetSolarSystemData(uint32 solarSystemID, SolarSystemData &into);
+    static bool GetCelestialObjectData(uint32 celestialID, CelestialObjectData &into);
 
     static uint32 GetObjectLocationID( uint32 itemID );
 

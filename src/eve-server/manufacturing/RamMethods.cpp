@@ -11,6 +11,7 @@
 
 #include "../eve-common/EVE_Character.h"
 #include "Client.h"
+#include "inventory/Inventory.h"
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/RamMethods.h"
 #include "station/StationDataMgr.h"

@@ -34,6 +34,7 @@
 #include "EntityList.h"
 #include "EVEServerConfig.h"
 #include "manufacturing/Blueprint.h"
+#include "map/MapDB.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 #include "npc/Drone.h"
@@ -479,7 +480,7 @@ void ShipSE::Killed(Damage &fatal_blow) {
         }
 
     /* populate kill data for killMail and save to db  -allan 01May16  --updated 13July17 */
-    CharKillData data = CharKillData();
+    KillData data = KillData();
         data.solarSystemID = m_system->GetID();
         data.victimCharacterID = pPilot->GetCharacterID();
         data.victimCorporationID = m_corpID;

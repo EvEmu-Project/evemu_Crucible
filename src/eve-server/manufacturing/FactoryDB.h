@@ -58,7 +58,7 @@ public:
 
     // misc queries
     static bool DeleteBlueprint(uint32 blueprintID);
-    static bool GetBlueprint(uint32 blueprintID, EvERam::bpData& into);
+    static bool GetBlueprintData(uint32 blueprintID, EvERam::bpData& into);
     static bool SaveBlueprintData(uint32 blueprintID, EvERam::bpData& data);
     static bool IsProducableBy(const uint32 assemblyLineID, const ItemType *pType);
     static bool GetMultipliers(const uint32 assemblyLineID, const ItemType *pType, Rsp_InstallJob &into);

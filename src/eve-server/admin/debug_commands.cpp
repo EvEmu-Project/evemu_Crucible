@@ -12,6 +12,7 @@
 #include "admin/CommandDB.h"
 #include "fleet/FleetService.h"
 #include "inventory/AttributeEnum.h"
+#include "inventory/Inventory.h"
 #include "inventory/InventoryDB.h"
 #include "inventory/InventoryItem.h"
 #include "manufacturing/Blueprint.h"
@@ -463,14 +464,14 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* service
     } else {
         //Command_list(pClient,db,services,args);
         inventoryID = pClient->GetSystemID();
-        SolarSystemRef system = sItemFactory.GetSolarSystem(inventoryID);
-        if (system.get() == nullptr)
+        SolarSystemRef sRef = sItemFactory.GetSolarSystemRef(inventoryID);
+        if (sRef.get() == nullptr)
             throw CustomError ("Cannot find System Reference for systemID %u", inventoryID);
-        inv = system->GetMyInventory();
+        inv = sRef->GetMyInventory();
         if (inv == nullptr)
             throw CustomError ("Cannot find inventory for locationID %u", inventoryID);
         inv->GetInventoryMap(invMap);
-        item = system.get();
+        item = sRef.get();
     }
 
     std::ostringstream str;
@@ -512,7 +513,7 @@ PyResult Command_shipinventory(Client* pClient, CommandDB* db, PyServiceMgr* ser
     std::map<uint32, InventoryItemRef> invMap;
     invMap.clear();
     uint32 inventoryID = pClient->GetShipID();
-    ShipItemRef ship = sItemFactory.GetShip(inventoryID);
+    ShipItemRef ship = sItemFactory.GetShipRef(inventoryID);
     Inventory* inv = ship->GetMyInventory();
     inv->GetInventoryMap(invMap);
 
@@ -584,7 +585,7 @@ PyResult Command_attrlist(Client* pClient, CommandDB* db, PyServiceMgr* services
         throw CustomError ("Argument 1 must be a valid itemID.");
     uint32 itemID(atol(args.arg(1).c_str()));
 
-    InventoryItemRef iRef(sItemFactory.GetItem(itemID));
+    InventoryItemRef iRef(sItemFactory.GetItemRef(itemID));
     if (iRef.get() == nullptr) {
         // make error msg here
         return nullptr;

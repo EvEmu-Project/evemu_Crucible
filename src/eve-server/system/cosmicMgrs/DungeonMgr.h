@@ -15,7 +15,6 @@
 
 #include <unordered_map>
 #include "EVE_Dungeon.h"
-#include "system/SystemGPoint.h"
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/ManagerDB.h"
 
@@ -104,7 +103,6 @@ public:
 
 protected:
     ManagerDB m_db;
-    SystemGPoint m_gp;
 
     void CreateDeco(uint32 templateID, CosmicSignature& sig);
 
@@ -126,7 +124,6 @@ private:
     std::vector<Dungeon::GroupData> m_anomalyItems;
 
     std::map<uint32, std::vector<uint32>> m_dungeonList;  // this holds all items associated with the key 'dungeonID' in this system
-
 };
 
 #endif  // _EVEMU_SYSTEM_DUNGEONMGR_H

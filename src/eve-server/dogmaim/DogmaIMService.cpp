@@ -208,7 +208,7 @@ PyResult DogmaIMBound::Handle_ItemGetInfo(PyCallArgs& call) {
         return PyStatic.NewNone();
     }
 
-    InventoryItemRef itemRef = sItemFactory.GetItem(args.arg);
+    InventoryItemRef itemRef = sItemFactory.GetItemRef(args.arg);
     if (itemRef.get() == nullptr ) {
         _log(INV__ERROR, "Unable to load item %u", args.arg);
         return PyStatic.NewNone();
@@ -312,11 +312,11 @@ PyResult DogmaIMBound::Handle_LoadAmmoToModules(PyCallArgs& call) {
 
     // Get Reference to Ship and Charge
     ShipItemRef sRef = call.client->GetShip();
-    GenericModule* pMod = sRef->GetModule(sItemFactory.GetItem(args.moduleIDs[0])->flag());
+    GenericModule* pMod = sRef->GetModule(sItemFactory.GetItemRef(args.moduleIDs[0])->flag());
     if (pMod == nullptr)
         throw UserError ("ModuleNoLongerPresentForCharges");
 
-    InventoryItemRef cRef = sItemFactory.GetItem(args.itemID);
+    InventoryItemRef cRef = sItemFactory.GetItemRef(args.itemID);
     sRef->LoadCharge(cRef, pMod->flag());
 
     // returns nodeID and timestamp
@@ -356,7 +356,7 @@ PyResult DogmaIMBound::Handle_LoadAmmoToBank(PyCallArgs& call) {
         sLog.Error("DogmaIMBound::Handle_LoadAmmoToBank()", "passed shipID %u != current shipID %u.", args.shipID, sRef->itemID() );
 
     // if shipID passed in call isnt active ship (from client->GetShip()), would this work right?
-    GenericModule* pMod = sRef->GetModule(sItemFactory.GetItem(args.masterID)->flag());
+    GenericModule* pMod = sRef->GetModule(sItemFactory.GetItemRef(args.masterID)->flag());
     if (pMod == nullptr)
         throw UserError ("ModuleNoLongerPresentForCharges");
 
@@ -365,7 +365,7 @@ PyResult DogmaIMBound::Handle_LoadAmmoToBank(PyCallArgs& call) {
     if (pMod->IsLinked()) {
         sRef->LoadLinkedWeapons(pMod, args.itemIDs);
     } else {
-        sRef->LoadCharge(sItemFactory.GetItem(args.itemIDs.at(0)), pMod->flag());
+        sRef->LoadCharge(sItemFactory.GetItemRef(args.itemIDs.at(0)), pMod->flag());
     }
 
     // not sure why im not using this, as call is to load bank...

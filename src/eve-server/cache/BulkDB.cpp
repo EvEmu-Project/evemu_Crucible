@@ -201,7 +201,7 @@ PyRep* BulkDB::GetBulkDataChunks(uint8 setID, uint8 chunkID)
 PyRep* BulkDB::GetOperands()
 {   //74
     DBQueryResult res;
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         " SELECT operandID, operandKey, description, format, arg1categoryID, arg2categoryID, resultCategoryID, pythonFormat FROM dgmOperands"))
     {
         codelog(DATABASE__ERROR, "Error in GetOperands: %s", res.error.c_str());
@@ -213,7 +213,7 @@ PyRep* BulkDB::GetOperands()
 PyRep* BulkDB::GetDogmaAttribs()
 {   //1791
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT attributeID, attributeName, attributeCategory, description, maxAttributeID, attributeIdx, "
         "chargeRechargeTimeID, defaultValue, published, unitID, displayName, displayNameID, stackable, highIsGood, iconID, dataID FROM dgmAttributeTypes"))
     {
@@ -226,7 +226,7 @@ PyRep* BulkDB::GetDogmaAttribs()
 PyRep* BulkDB::GetDogmaEffects()
 {   //2854
     DBQueryResult res;
-    if(!sDatabase.RunQuery(res,
+    if (!sDatabase.RunQuery(res,
         "SELECT effectID, effectName, displayNameID, descriptionID, dataID, effectCategory, preExpression, postExpression,"
         " description, guid, isOffensive, isAssistance, durationAttributeID, trackingSpeedAttributeID, dischargeAttributeID,"
         " rangeAttributeID, falloffAttributeID, disallowAutoRepeat, published, displayName, isWarpSafe, rangeChance,"
@@ -314,7 +314,7 @@ PyRep* BulkDB::GetExpressions(uint8 chunkID)    // 2 chunks
         } break;
     };
 
-    if( !sDatabase.RunQuery(res, q.str().c_str()))  // start at row 0 and get next 8k rows
+    if ( !sDatabase.RunQuery(res, q.str().c_str()))  // start at row 0 and get next 8k rows
     {
         codelog(DATABASE__ERROR, "Error in GetExpressions: %s", res.error.c_str());
         return nullptr;
@@ -342,7 +342,7 @@ PyRep* BulkDB::GetDogmaTypeEffects(uint8 chunkID)   // 4 chunks
         } break;
     };
 
-    if(!sDatabase.RunQuery(res, q.str().c_str()))
+    if (!sDatabase.RunQuery(res, q.str().c_str()))
     {
         _log(DATABASE__ERROR, "Error in GetDogmaTypeEffects: %s",res.error.c_str());
         return nullptr;
@@ -466,7 +466,7 @@ PyRep* BulkDB::GetDogmaTypeAttribs(uint8 chunkID)   // 36 chunks
         } break;
     };
 
-    if(!sDatabase.RunQuery(res, q.str().c_str()))
+    if (!sDatabase.RunQuery(res, q.str().c_str()))
     {
         _log(DATABASE__ERROR, "Error in GetDogmaTypeAttribs: %s",res.error.c_str());
         return nullptr;

@@ -222,7 +222,7 @@ std::string FxDataMgr::GetEffectName(uint16 eID)
 
 void FxDataMgr::GetOperands(DBQueryResult& res)
 {
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         " SELECT"
         " operandID,"
         " operandKey,"
@@ -238,7 +238,7 @@ void FxDataMgr::GetOperands(DBQueryResult& res)
 
 void FxDataMgr::GetDgmEffects(DBQueryResult& res)
 {
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         " SELECT"
         "   effectID,"
         "   effectName,"
@@ -269,7 +269,7 @@ void FxDataMgr::GetDgmEffects(DBQueryResult& res)
 
 void FxDataMgr::GetExpressions(DBQueryResult& res)
 {
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         " SELECT"
         " expressionID,"
         " operandID,"
@@ -289,7 +289,7 @@ void FxDataMgr::GetExpressions(DBQueryResult& res)
 
 void FxDataMgr::GetDgmTypeEffects(DBQueryResult &res)
 {
-    if( !sDatabase.RunQuery(res,
+    if ( !sDatabase.RunQuery(res,
         " SELECT"
         "  typeID,"
         "  effectID,"

@@ -569,7 +569,7 @@ void InventoryItem::Delete()
     } else {
         // remove from current container's inventory
         if (IsValidLocationID(m_data.locationID)) {
-            InventoryItemRef iRef = sItemFactory.GetItem(m_data.locationID);
+            InventoryItemRef iRef = sItemFactory.GetItemRef(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->GetMyInventory()->RemoveItem(InventoryItemRef(this));
             } else {
@@ -586,7 +586,7 @@ void InventoryItem::Delete()
 
 void InventoryItem::ToVirtual(uint32 locationID)
 {
-    InventoryItemRef iRef = sItemFactory.GetItemContainer(m_itemID, false);
+    InventoryItemRef iRef = sItemFactory.GetItemContainerRef(m_itemID, false);
     if (iRef.get() != nullptr) {
         // verify this gets inventory containing item before trying to manipulate
         //Inventory* pInv = iRef->GetMyInventory();
@@ -670,7 +670,7 @@ void InventoryItem::Donate(uint32 new_owner/*ownerSystem*/, uint32 new_location/
         and (new_flag != m_data.flag))) {   //  but different flag
         // remove from current location
         if (IsValidLocationID(m_data.locationID)) {
-            iRef = sItemFactory.GetItem(m_data.locationID);
+            iRef = sItemFactory.GetItemRef(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->RemoveItem(InventoryItemRef(this));
             } else {
@@ -688,7 +688,7 @@ void InventoryItem::Donate(uint32 new_owner/*ownerSystem*/, uint32 new_location/
     or ((old_location == m_data.locationID) // or same container
         and (old_flag != m_data.flag))) {   //  but different flag
         // add to new location
-        iRef = sItemFactory.GetItem(m_data.locationID);
+        iRef = sItemFactory.GetItemRef(m_data.locationID);
         if (iRef.get() != nullptr) {
             iRef->AddItem(InventoryItemRef(this));
         } else {
@@ -734,7 +734,7 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
         and (new_flag != m_data.flag))) {   //  but different flag
         // remove from current location
         if (IsValidLocationID(m_data.locationID)) {
-            iRef = sItemFactory.GetItem(m_data.locationID);
+            iRef = sItemFactory.GetItemRef(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->RemoveItem(InventoryItemRef(this));
             } else {
@@ -756,7 +756,7 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
         and (old_flag != m_data.flag))) {   //  but different flag
         // add to new location
         if (IsValidLocationID(m_data.locationID)) {
-            iRef = sItemFactory.GetItem(m_data.locationID);
+            iRef = sItemFactory.GetItemRef(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->AddItem(InventoryItemRef(this));
             } else {
@@ -825,7 +825,7 @@ void InventoryItem::Relocate(uint32 locID, EVEItemFlags flag) {
         and (old_flag != m_data.flag))) {   //  but different flag
         // add to new location
         if (IsValidLocationID(m_data.locationID)) {
-            iRef = sItemFactory.GetItem(m_data.locationID);
+            iRef = sItemFactory.GetItemRef(m_data.locationID);
             if (iRef.get() != nullptr) {
                 iRef->AddItem(InventoryItemRef(this));
             } else {
@@ -1162,7 +1162,7 @@ void InventoryItem::GetItemRow(PyPackedRow* into) const
 {
     int32 qty = (m_data.singleton ? -1 : m_data.quantity);
     if (m_type.categoryID() == EVEDB::invCategories::Blueprint)
-        if (sItemFactory.GetBlueprint(m_itemID)->copy())
+        if (sItemFactory.GetBlueprintRef(m_itemID)->copy())
             qty = -2;
 
     into->SetField("itemID",       new PyLong(m_itemID));
@@ -1175,7 +1175,7 @@ void InventoryItem::GetItemRow(PyPackedRow* into) const
     into->SetField("quantity",     new PyInt(qty));
     /*
     if (m_type.categoryID() == EVEDB::invCategories::Blueprint) {
-        if (sItemFactory.GetBlueprint(m_itemID)->copy()) {
+        if (sItemFactory.GetBlueprintRef(m_itemID)->copy()) {
             into->SetField("stacksize",    new PyInt(1));
             into->SetField("singleton",    new PyInt(2));
         } else {

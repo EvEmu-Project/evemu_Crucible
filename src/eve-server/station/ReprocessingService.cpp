@@ -94,7 +94,7 @@ m_tax(0.0f)
     PyCallable_REG_CALL(ReprocessingServiceBound, GetQuotes);
     PyCallable_REG_CALL(ReprocessingServiceBound, Reprocess);
 
-    m_stationRef = sItemFactory.GetStationItem(stationID);
+    m_stationRef = sItemFactory.GetStationRef(stationID);
     if (m_stationRef.get() != nullptr)
         m_stationRef->GetRefineData(m_stationCorpID, m_staEfficiency, m_tax);
 }
@@ -208,7 +208,7 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
     InventoryItemRef iRef(nullptr);
     double tax = CalcTax(GetStanding(call.client));
     for (auto cur : args.items)  {
-        iRef = sItemFactory.GetItem(cur);
+        iRef = sItemFactory.GetItemRef(cur);
         if (iRef.get() == nullptr)
             continue;
 
@@ -286,7 +286,7 @@ float ReprocessingServiceBound::CalcReprocessingEfficiency(const Client* pClient
 }
 
 PyRep *ReprocessingServiceBound::GetQuote(uint32 itemID, Client* pClient) {
-    InventoryItemRef iRef = sItemFactory.GetItem( itemID );
+    InventoryItemRef iRef = sItemFactory.GetItemRef( itemID );
     if (iRef.get() == nullptr)
         return nullptr;    // No action as GetQuote is also called for reprocessed items (probably for check)
 

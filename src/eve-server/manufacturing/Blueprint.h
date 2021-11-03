@@ -176,13 +176,13 @@ protected:
             _log(ITEM__ERROR, "Trying to load %s as Blueprint.", sDataMgr.GetCategoryName(type.categoryID()));
             if (sConfig.debug.StackTrace)
                 EvE::traceStack();
-            return RefPtr<_Ty>();
+            return RefPtr<_Ty>(nullptr);
         }
         const BlueprintType& bpType = static_cast<const BlueprintType& >( type );
 
         EvERam::bpData bdata = EvERam::bpData();
-        if (!FactoryDB::GetBlueprint( blueprintID, bdata ) )
-            return RefPtr<_Ty>();
+        if (!FactoryDB::GetBlueprintData( blueprintID, bdata ) )
+            return RefPtr<_Ty>(nullptr);
 
         return BlueprintRef( new Blueprint( blueprintID, bpType, data, bdata ) );
     }

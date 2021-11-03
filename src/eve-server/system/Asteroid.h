@@ -59,12 +59,12 @@ protected:
             _log(ITEM__ERROR, "Trying to load %s as Asteroid.", sDataMgr.GetCategoryName(type.categoryID()));
             if (sConfig.debug.StackTrace)
                 EvE::traceStack();
-            return RefPtr<_Ty>();
+            return RefPtr<_Ty>(nullptr);
         }
 
         AsteroidData adata = AsteroidData();
         if ( !ManagerDB::GetAsteroidData( asteroidID, adata ) )
-            return RefPtr<_Ty>();
+            return RefPtr<_Ty>(nullptr);
 
         return AsteroidItemRef( new AsteroidItem(type, data, adata ) );
     }

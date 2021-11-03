@@ -29,17 +29,12 @@
 
 #include "Client.h"
 #include "EntityList.h"
-#include "EVEServerConfig.h"
-#include "StaticDataMgr.h"
-#include "inventory/AttributeEnum.h"
+#include "map/MapDB.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 #include "system/Container.h"
 #include "system/Damage.h"
-#include "system/DestinyManager.h"
-#include "system/SystemBubble.h"
 #include "system/SystemManager.h"
-#include "system/cosmicMgrs/AnomalyMgr.h"
 
 
 NPC::NPC(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data, SpawnMgr* spawnMgr)

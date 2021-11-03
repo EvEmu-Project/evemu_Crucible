@@ -231,7 +231,7 @@ void TradeBound::CancelTrade(Client* pClient, Client* pOther, TradeSession* pTSe
 
     uint32 stationID = pTSes->m_tradeSession.stationID;
     for (auto cur : pTSes->m_tradelist) {
-        InventoryItemRef itemRef = sItemFactory.GetItem(cur.itemID);
+        InventoryItemRef itemRef = sItemFactory.GetItemRef(cur.itemID);
         if (itemRef.get() == nullptr)  {
             _log(PLAYER__ERROR, "TradeBound::CancelTrade() - Failed to get ItemRef.");
             continue;
@@ -322,7 +322,7 @@ PyResult TradeBound::Handle_Add(PyCallArgs &call) {
         return Handle_Abort(call);
     }
 
-    InventoryItemRef itemRef = sItemFactory.GetItem(args.arg1);
+    InventoryItemRef itemRef = sItemFactory.GetItemRef(args.arg1);
     if (itemRef.get() == nullptr)  {
         _log(PLAYER__TRADE_MESSAGE, "TradeBound::Handle_Add() - Failed to get ItemRef.");
         //  should i abort trade, or just return null here?  single add, so not a big deal.
@@ -433,7 +433,7 @@ PyResult TradeBound::Handle_MultiAdd(PyCallArgs &call) {
     DBRowDescriptor* header = sDataMgr.CreateHeader();
     std::vector<int32> list = args.ints;
     for (auto cur : list) {
-        InventoryItemRef itemRef = sItemFactory.GetItem(cur);
+        InventoryItemRef itemRef = sItemFactory.GetItemRef(cur);
         if (itemRef.get() == nullptr)  {
             _log(PLAYER__ERROR, "TradeBound::Handle_Add() - Failed to get ItemRef.");
             continue;
@@ -575,7 +575,7 @@ void TradeBound::ExchangeItems(Client* pClient, Client* pOther, TradeSession* pT
 
     uint32 stationID = pTSes->m_tradeSession.stationID;
     for (auto cur : pTSes->m_tradelist) {
-        InventoryItemRef itemRef = sItemFactory.GetItem(cur.itemID);
+        InventoryItemRef itemRef = sItemFactory.GetItemRef(cur.itemID);
         if (!itemRef)  {
             _log(PLAYER__ERROR, "TradeBound::Handle_Add() - Failed to get ItemRef.");
             continue;
@@ -612,13 +612,13 @@ void TradeService::TransferContainerContents(SystemManager* pSysMgr, InventoryIt
         ShipDB::DeleteInsuranceByShipID(itemRef->itemID());
         ShipItemRef shipRef = pSysMgr->GetShipFromInventory(itemRef->itemID());
         if (shipRef.get() == nullptr)
-            shipRef = sItemFactory.GetShip(itemRef->itemID());
+            shipRef = sItemFactory.GetShipRef(itemRef->itemID());
         if (!shipRef->GetMyInventory()->IsEmpty())
             shipRef->GetMyInventory()->GetInventoryMap(InventoryMap);
     } else {
         CargoContainerRef contRef = pSysMgr->GetContainerFromInventory(itemRef->itemID());
         if (contRef.get() == nullptr)
-            contRef = sItemFactory.GetCargoContainer(itemRef->itemID());
+            contRef = sItemFactory.GetCargoRef(itemRef->itemID());
         if (!contRef->IsEmpty())
             contRef->GetMyInventory()->GetInventoryMap(InventoryMap);
     }

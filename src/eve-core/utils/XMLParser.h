@@ -26,6 +26,9 @@
 #ifndef __XML_PARSER_H__INCL__
 #define __XML_PARSER_H__INCL__
 
+#include <tinyxml.h>
+
+
 /**
  * @brief Utility for parsing XML files.
  *

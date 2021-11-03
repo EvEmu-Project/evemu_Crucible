@@ -36,13 +36,13 @@ std::tr1::shared_ptr<std::string> APIAdminManager::ProcessCall(const APICommandC
 {
     sLog.Debug("APIAdminManager::ProcessCall()", "EVEmu API - Admin Service Manager");
 
-    if( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APIAdminManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
 
-    //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
+    //else if ( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
     //    return _TODO(pAPICommandCall);
     //else
     //{

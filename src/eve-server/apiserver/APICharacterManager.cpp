@@ -37,19 +37,19 @@ std::tr1::shared_ptr<std::string> APICharacterManager::ProcessCall(const APIComm
 {
     sLog.Debug("APIAdminManager::ProcessCall()", "EVEmu API - Character Service Manager");
 
-    if( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "servicehandler" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::ProcessCall()", "Cannot find 'servicehandler' specifier in pAPICommandCall packet" );
         return std::tr1::shared_ptr<std::string>(new std::string(""));
     }
 
-    if( pAPICommandCall->find( "servicehandler" )->second == "CharacterSheet.xml.aspx" )
+    if ( pAPICommandCall->find( "servicehandler" )->second == "CharacterSheet.xml.aspx" )
         return _CharacterSheet(pAPICommandCall);
-    if( pAPICommandCall->find( "servicehandler" )->second == "SkillQueue.xml.aspx" )
+    if ( pAPICommandCall->find( "servicehandler" )->second == "SkillQueue.xml.aspx" )
         return _SkillQueue(pAPICommandCall);
-    if( pAPICommandCall->find( "servicehandler" )->second == "SkillInTraining.xml.aspx" )
+    if ( pAPICommandCall->find( "servicehandler" )->second == "SkillInTraining.xml.aspx" )
         return _SkillInTraining(pAPICommandCall);
-    //else if( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
+    //else if ( pAPICommandCall->find( "servicehandler" )->second == "TODO.xml.aspx" )
     //    return _TODO(pAPICommandCall);
     else
     {
@@ -70,19 +70,19 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_CharacterSheet(const API
 
     sLog.Debug("APICharacterManager::_CharacterSheet()", "EVEmu API - Character Service Manager - CALL: CharacterSheet.xml.aspx");
 
-    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-    if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_CharacterSheet()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "105", "Invalid characterID." );
@@ -235,19 +235,19 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
 
     sLog.Debug("APICharacterManager::_SkillQueue()", "EVEmu API - Character Service Manager - CALL: SkillQueue.xml.aspx");
 
-    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-    if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillQueue()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "105", "Invalid characterID." );
@@ -292,7 +292,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
 
     sLog.Error( "APICharacterManager::_SkillQueue()", "INFO: Calculation of Skill End Time based on Effective SP/min does NOT include implants/boosters at this time" );
 
-    if( status )
+    if ( status )
     {
         timeNow = EvilTimeNow();
         for( i=0; i<queueOrderList.size(); i++ )
@@ -328,7 +328,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillQueue(const APIComm
             rowset.push_back("endTime");
             _BuildXMLRowSet( "skillqueue", "queuePosition", &rowset );
             {
-                if( status )
+                if ( status )
                 {
                     for(i=0; i<queueOrderList.size(); i++)
                     {
@@ -359,19 +359,19 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillInTraining(const AP
 
     sLog.Debug("APICharacterManager::_SkillInTraining()", "EVEmu API - Character Service Manager - CALL: SkillInTraining.xml.aspx");
 
-    if( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "userid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'userID' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "106", "Must provide userID parameter for authentication." );
     }
 
-    if( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "apikey" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'apiKey' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "203", "Authentication failure." );
     }
 
-    if( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
+    if ( pAPICommandCall->find( "characterid" ) == pAPICommandCall->end() )
     {
         sLog.Error( "APICharacterManager::_SkillInTraining()", "ERROR: No 'characterID' parameter found in call argument list - exiting with error and sending back NOTHING" );
         return BuildErrorXMLResponse( "105", "Invalid characterID." );
@@ -414,7 +414,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillInTraining(const AP
     bool status = m_charDB.GetCharacterSkillQueue( characterID, queueOrderList, queueSkillTypeIdList, queueSkillLevelList, queueSkillRankList,
         queueSkillIdList, queueSkillPrimaryAttrList, queueSkillSecondaryAttrList, queueSkillPointsTrainedList );
 
-    if( status )
+    if ( status )
     {
         sLog.Error( "APICharacterManager::_SkillInTraining()", "INFO: Calculation of Skill End Time based on Effective SP/min does NOT include implants/boosters at this time" );
         timeNow = EvilTimeNow();
@@ -438,7 +438,7 @@ std::tr1::shared_ptr<std::string> APICharacterManager::_SkillInTraining(const AP
     {
         _BuildXMLTag( "result" );
         {
-            if( status )
+            if ( status )
             {
                 _BuildSingleXMLTag( "currentTQTime", Win32TimeToString(static_cast<uint64>(timeNow.get_int())) );
                 _BuildSingleXMLTag( "trainingEndTime", Win32TimeToString(skillEndTime) );
