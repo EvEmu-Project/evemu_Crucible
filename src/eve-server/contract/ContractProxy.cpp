@@ -360,11 +360,12 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     if (call.byname.find("itemList")->second->IsList()) {
         PyList *tradedItems = call.byname.find("itemList")->second->AsList();
         if (!tradedItems->empty()) {
-            std::string query = "SELECT entity.itemID, entity.ownerID, entity.typeID, entity.quantity, entity.locationID, iB.pLevel,\n"
-                                "       iB.mLevel, iB.copy, iB.runs, ea.valueInt as damage, entity.flag\n"
-                                "FROM entity\n"
-                                "LEFT JOIN invBlueprints iB on entity.itemID = iB.itemID\n"
-                                "LEFT JOIN entity_attributes ea on entity.itemID = ea.itemID and ea.attributeID = 3\n"
+            //TODO: We need to account for items that can be packed in a container/ship/container inside the ship
+            std::string query = "SELECT entity.itemID, entity.ownerID, entity.typeID, entity.quantity, entity.locationID, iB.pLevel, "
+                                "       iB.mLevel, iB.copy, iB.runs, ea.valueInt as damage, entity.flag "
+                                "FROM entity "
+                                "LEFT JOIN invBlueprints iB on entity.itemID = iB.itemID "
+                                "LEFT JOIN entity_attributes ea on entity.itemID = ea.itemID and ea.attributeID = 3 "
                                 "WHERE entity.itemID IN (%s)";
             std::string queryIds;
             std::map<int, int> expectedQuantities;              // Key is itemID, value is quantity. We use map to save time on list iteration
@@ -395,7 +396,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
              */
              DBResultRow row;
              int expectedOwnerID = call.client->GetCharacterID();
-             int totalVolume;       // TODO: Calculate the volume
+             int totalVolume;       // TODO: Calculate the volume - the items are already created, so itemRef->volume() will give you what you need. or you can do itemRef->GetAttribute(attrVolume) which will return EvilNumber
              // We work directly with DBQueryResult since resulting CRowSet does not fit ctrItems format - thus, it would be needless processing.
              while(res.GetRow(row)) {
                  int itemID = row.GetInt(0);
