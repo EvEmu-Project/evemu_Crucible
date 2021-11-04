@@ -336,16 +336,16 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         "(contractType, issuerID, issuerCorpID, forCorp, isPrivate, assigneeID, "
         "dateIssued, dateExpired, expireTimeInMinutes, duration, numDays, "
         "startStationID, startSolarSystemID, startRegionID, endStationID, endSolarSystemID, endRegionID, "
-        "price, reward, collateral, title, description, startStationDivision) "
+        "price, reward, collateral, title, description, issuerAllianceID, startStationDivision) "
         "VALUES "
         "(%u, %u, %u, %u, %u, %u, "
         "%li, %li, %u, %u, %u, "
         "%u, %u, %u, %u, %u, %u,"
-        "%u, %u, %u, '%s', '%s', %u)",
+        "%u, %u, %u, '%s', '%s', %u, %u)",
         req.contractType, call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, req.isPrivate?1:0, req.assigneeID,
         int64(GetFileTimeNow()), int64(GetRelativeFileTime(0, 0, req.expireTime)), req.expireTime, req.duration, req.expireTime / 1440,
         req.startStationId, startSystemId, startRegionId, req.endStationId, endSystemId, endRegionId,
-        req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(), startStationDivision))
+        req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(), call.client->GetAllianceID(), startStationDivision))
     {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
@@ -395,6 +395,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
              */
              DBResultRow row;
              int expectedOwnerID = call.client->GetCharacterID();
+             int totalVolume;       // TODO: Calculate the volume
              // We work directly with DBQueryResult since resulting CRowSet does not fit ctrItems format - thus, it would be needless processing.
              while(res.GetRow(row)) {
                  int itemID = row.GetInt(0);
@@ -530,7 +531,55 @@ PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
-    PyDict* dict =
+    if (!call.tuple->empty()) {
+        if (call.tuple->GetItem(0)->IsInt()) {
+            std::string contractID = std::to_string(call.tuple->GetItem(0)->AsInt()->value());
+            std::string getContractQuery = "SELECT contractId as contractID, contractType as type, issuerID, issuerCorpID, forCorp, isPrivate as availability,\n"
+                                           "       assigneeID, acceptorID, dateIssued, dateExpired, dateAccepted, numDays, dateCompleted, startStationID, startSolarSystemID,\n"
+                                           "       startRegionID, endStationID, endSolarSystemID, endRegionID, price, reward, collateral, title, description, status,\n"
+                                           "       crateID, volume, issuerAllianceID, issuerWalletKey, acceptorWalletKey "
+                                           "FROM ctrContracts "
+                                           "WHERE contractId = " + contractID;
+            std::string getContractItemsQuery = "SELECT contractId as contractID, itemID, quantity, itemTypeID, inCrate, parentID, productivityLevel, materialLevel, isCopy as copy,\n"
+                                                "       licensedProductionRunsRemaining, damage, flagID "
+                                                "FROM ctrItems "
+                                                "WHERE contractId = " + contractID;
+
+            DBQueryResult contractRes;
+            DBQueryResult itemsRes;
+            DBResultRow contractRow;
+            if (!sDatabase.RunQuery(contractRes, getContractQuery.c_str()))
+            {
+                codelog(DATABASE__ERROR, "Error in query: %s", contractRes.error.c_str());
+                return nullptr;
+            }
+            if (!sDatabase.RunQuery(itemsRes, getContractItemsQuery.c_str()))
+            {
+                codelog(DATABASE__ERROR, "Error in query: %s", itemsRes.error.c_str());
+                return nullptr;
+            }
+            if (contractRes.GetRowCount() > 0) {
+                contractRes.GetRow(contractRow);
+            } else {
+                codelog(SERVICE__ERROR, "No contract with ID '%s' was found. Aborting", contractID.c_str());
+                return nullptr;
+            }
+
+
+            PyDict* response = new PyDict;
+            response->SetItemString("contract", DBRowToPackedRow(contractRow));
+            response->SetItemString("items", DBResultToCRowset(itemsRes));
+            response->SetItemString("bids", new PyList);
+
+            return new PyObject( "util.KeyVal", response );
+        } else {
+            codelog(SERVICE__ERROR, "Invalid parameter in GetContract call");
+            return nullptr;
+        }
+    } else {
+        codelog(SERVICE__ERROR, "Empty GetContract call. Aborting");
+        return nullptr;
+    }
     /*
       [PySubStream 1103 bytes]
         [PyObjectData Name: util.KeyVal]

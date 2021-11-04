@@ -31,6 +31,7 @@ create table if not exists ctrContracts
     status int default 0 not null,
     crateID int default 0 not null,
     volume decimal(16,2) default 0.00 not null,
+    issuerAllianceID int default 0 not null,
     issuerWalletKey int default 0 not null,
     acceptorWalletKey int default 0 not null,
     startStationDivision int not null
