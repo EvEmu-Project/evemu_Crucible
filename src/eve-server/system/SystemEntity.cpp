@@ -49,7 +49,7 @@
 
 
 SystemEntity::SystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
-:m_self(self),
+: m_self(self),
 m_services(services),
 m_system(system),
 m_bubble(nullptr),
@@ -72,6 +72,13 @@ m_killed(false)
 
     _log(SE__DEBUG, "Created SE for item %s (%u) with radius of %.1f.", self->name(), self->itemID(), m_radius);
 }
+
+// copy c'tor
+SystemEntity::SystemEntity(const SystemEntity* oth) : m_self(oth->m_self),m_services(oth->m_services),m_system(oth->m_system),
+m_bubble(oth->m_bubble),m_destiny(oth->m_destiny),m_targMgr(oth->m_targMgr),m_killed(oth->m_killed),m_warID(oth->m_warID),
+m_allyID(oth->m_allyID),m_corpID(oth->m_corpID),m_fleetID(oth->m_fleetID),m_ownerID(oth->m_ownerID),m_radius(oth->m_radius),
+m_harmonic(oth->m_harmonic) { }
+
 
 void SystemEntity::Process() {
     if (m_killed) {
@@ -260,6 +267,13 @@ StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, PyServiceMgr &serv
 {
 }
 
+// copy c'tor
+StaticSystemEntity::StaticSystemEntity(const StaticSystemEntity* oth)
+: SystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
+}
+
 bool StaticSystemEntity::LoadExtras() {
     return true;
 }
@@ -297,6 +311,13 @@ BeltSE::BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* sys
 {
 }
 
+// copy c'tor
+BeltSE::BeltSE(const BeltSE* oth)
+: StaticSystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
+}
+
 bool BeltSE::LoadExtras() {
     if (!StaticSystemEntity::LoadExtras())
         return false;
@@ -313,6 +334,13 @@ StargateSE::StargateSE(InventoryItemRef self, PyServiceMgr &services, SystemMana
 : StaticSystemEntity(self, services, system),
 m_sbuSE(nullptr)
 {
+}
+
+// copy c'tor
+StargateSE::StargateSE(const StargateSE* oth)
+: StaticSystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
 }
 
 bool StargateSE::LoadExtras() {
@@ -358,6 +386,13 @@ ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services
 : SystemEntity(self, services, system)
 {
     m_keyType = 0;
+}
+
+// copy c'tor
+ItemSystemEntity::ItemSystemEntity(const ItemSystemEntity* oth)
+: SystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
 }
 
 PyDict* ItemSystemEntity::MakeSlimItem() {
@@ -450,6 +485,13 @@ FieldSE::FieldSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *s
     m_ownerID = data.ownerID;
 }
 
+// copy c'tor
+FieldSE::FieldSE(const FieldSE* oth)
+: ItemSystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
+}
+
 void FieldSE::EncodeDestiny( Buffer& into )
 {
     using namespace Destiny;
@@ -498,6 +540,13 @@ m_invul(false)
 
     assert(m_targMgr != nullptr);
     assert(m_destiny != nullptr);
+}
+
+// copy c'tor
+ObjectSystemEntity::ObjectSystemEntity(const ObjectSystemEntity* oth)
+: SystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
 }
 
 ObjectSystemEntity::~ObjectSystemEntity()
@@ -596,6 +645,13 @@ DeployableSE::DeployableSE(InventoryItemRef self, PyServiceMgr &services, System
     m_ownerID = data.ownerID;
 }
 
+// copy c'tor
+DeployableSE::DeployableSE(const DeployableSE* oth)
+: ObjectSystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
+}
+
 
 /* Non-Static / Mobile / Destructible / Celestial Objects - PC's, NPC's, Drones, Ships, Missiles, Wrecks  */
 DynamicSystemEntity::DynamicSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
@@ -608,6 +664,13 @@ m_frozen(false)
 
     assert(m_targMgr != nullptr);
     assert(m_destiny != nullptr);
+}
+
+// copy c'tor
+DynamicSystemEntity::DynamicSystemEntity(const DynamicSystemEntity* oth)
+: SystemEntity(oth->m_self, oth->m_services, oth->m_system)
+{
+
 }
 
 DynamicSystemEntity::~DynamicSystemEntity()

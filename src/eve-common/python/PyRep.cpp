@@ -99,6 +99,15 @@ int32 PyRep::hash() const
     return -1;
 }
 
+PyRep* PyRep::Clone() const
+{
+    return new PyRep( *this );
+}
+
+bool PyRep::visit(PyVisitor& v) const
+{
+    return true;
+}
 
 std::string PyRep::StringContent(PyRep* pRep)
 {

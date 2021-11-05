@@ -35,8 +35,10 @@ int StationDataMgr::Initialize()
 void StationDataMgr::Close()
 {
     /** @todo put a save method here which will save anything changed before shutdown */
-    for (auto cur : m_stationPyData)
-        PySafeDecRef(cur.second);
+    //for (auto cur : m_stationPyData)
+    //    PySafeDecRef(cur.second);
+
+    Clear();
 
     sLog.Warning("   StationDataMgr", "Station Data Manager has been closed." );
 }
@@ -285,7 +287,6 @@ uint32 StationDataMgr::GetOfficeRentalFee(uint32 stationID)
         return itr->second.officeRentalFee;
     return 0;
 }
-
 
 void StationDataMgr::LoadStationPyData()
 {

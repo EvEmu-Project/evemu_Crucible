@@ -82,11 +82,29 @@ class OutpostSE;
 /*
  * base class for all SystemEntities  - no TargetMgr or DestinyMgr
  * complete rewrite of entity class system  - allan  9 January 2016
+ * finally added rule of 5.  -allan 4Nov21
  */
 class SystemEntity {
     friend class SystemBubble;    /* only to update m_bubble */
 public:
+    // default c'tor
     SystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    // copy c'tor
+    SystemEntity(const SystemEntity* oth);
+    // move c'tor
+    SystemEntity(SystemEntity&& oth) noexcept
+    : SystemEntity(oth.GetSelf(), oth.GetServices(), oth.m_system) {
+        std::swap(*this, oth);
+    }
+    // copy assignment
+    SystemEntity& operator=(SystemEntity oth) {
+        std::swap(*this, oth);
+        return *this;
+    }
+    // move assignment
+    //SystemEntity& operator=(SystemEntity&& oth) =delete;
+
+    // d'tor
     virtual ~SystemEntity()                             { /* do nothing here */ }
 
     /* Process Calls - Overridden as needed in derived classes */
@@ -293,7 +311,22 @@ protected:
  *- no TargetMgr or DestinyMgr*/
 class StaticSystemEntity : public SystemEntity {
 public:
+    // default c'tor
     StaticSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    // copy c'tor
+    StaticSystemEntity(const StaticSystemEntity* oth);
+    // move c'tor
+    /*
+    StaticSystemEntity(StaticSystemEntity&& oth) noexcept
+    : StaticSystemEntity(oth.GetSelf(), oth.GetServices(), oth.m_system) {
+        std::swap(*this, oth);
+    } */
+    // copy assignment
+    //StaticSystemEntity& operator=(StaticSystemEntity& oth) =delete;
+    // move assignment
+    //StaticSystemEntity& operator=(StaticSystemEntity&& oth) =delete;
+
+    // d'tor
     virtual ~StaticSystemEntity()                       { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -317,7 +350,22 @@ class BeltSE
 : public StaticSystemEntity
 {
 public:
+    // default c'tor
     BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    // copy c'tor
+    BeltSE(const BeltSE* oth);
+    // move c'tor
+    /*
+    BeltSE(BeltSE&& oth) noexcept
+    : BeltSE(oth.GetSelf(), oth.GetServices(), oth.m_system) {
+        std::swap(*this, oth);
+    } */
+    // copy assignment
+    //BeltSE& operator=(BeltSE& oth) =delete;
+    // move assignment
+    //BeltSE& operator=(BeltSE&& oth) =delete;
+
+    // d'tor
     virtual ~BeltSE()                                   { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -342,7 +390,22 @@ class StargateSE
 : public StaticSystemEntity
 {
 public:
+    // default c'tor
     StargateSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    // copy c'tor
+    StargateSE(const StargateSE* oth);
+    // move c'tor
+    /*
+    StargateSE(StargateSE&& oth) noexcept
+    : StargateSE(oth.GetSelf(), oth.GetServices(), oth.m_system) {
+        std::swap(*this, oth);
+    } */
+    // copy assignment
+    //StargateSE& operator=(StargateSE& oth) =delete;
+    // move assignment
+    //StargateSE& operator=(StargateSE&& oth) =delete;
+
+    // d'tor
     virtual ~StargateSE()                               { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -372,7 +435,22 @@ protected:
  *- no TargetMgr or DestinyMgr*/
 class ItemSystemEntity : public SystemEntity {
 public:
+    // default c'tor
     ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    // copy c'tor
+    ItemSystemEntity(const ItemSystemEntity* oth);
+    // move c'tor
+    /*
+    ItemSystemEntity(ItemSystemEntity&& oth) noexcept
+    : ItemSystemEntity(oth.GetSelf(), oth.GetServices(), oth.m_system) {
+        std::swap(*this, oth);
+    } */
+    // copy assignment
+    //ItemSystemEntity& operator=(ItemSystemEntity& oth) =delete;
+    // move assignment
+    //ItemSystemEntity& operator=(ItemSystemEntity&& oth) =delete;
+
+    // d'tor
     virtual ~ItemSystemEntity()                         { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -399,7 +477,18 @@ class FieldSE
 : public ItemSystemEntity
 {
 public:
+    // default c'tor
     FieldSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    // copy c'tor
+    FieldSE(const FieldSE* oth);
+    // move c'tor
+    FieldSE(FieldSE&& oth) =delete;
+    // copy assignment
+    //FieldSE& operator=(FieldSE& oth) =delete;
+    // move assignment
+    //FieldSE& operator=(FieldSE&& oth) =delete;
+
+    // d'tor
     virtual ~FieldSE()                             { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -418,7 +507,18 @@ public:
  *- has TargetMgr  has DestinyMgr*/
 class ObjectSystemEntity : public SystemEntity {
 public:
+    // default c'tor
     ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    // copy c'tor
+    ObjectSystemEntity(const ObjectSystemEntity* oth);
+    // move c'tor
+    ObjectSystemEntity(ObjectSystemEntity&& oth) =delete;
+    // copy assignment
+    //ObjectSystemEntity& operator=(ObjectSystemEntity& oth) =delete;
+    // move assignment
+    //ObjectSystemEntity& operator=(ObjectSystemEntity&& oth) =delete;
+
+    // d'tor
     virtual ~ObjectSystemEntity();
 
     /* class type pointer querys. */
@@ -453,7 +553,18 @@ class DeployableSE
 : public ObjectSystemEntity
 {
 public:
+    // default c'tor
     DeployableSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    // copy c'tor
+    DeployableSE(const DeployableSE* oth);
+    // move c'tor
+    DeployableSE(DeployableSE&& oth) =delete;
+    // copy assignment
+    //DeployableSE& operator=(DeployableSE& oth) =delete;
+    // move assignment
+    //DeployableSE& operator=(DeployableSE&& oth) =delete;
+
+    // d'tor
     virtual ~DeployableSE()                             { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -469,7 +580,18 @@ public:
  * - has TargetMgr and DestinyMgr*/
 class DynamicSystemEntity : public SystemEntity {
 public:
+    // default c'tor
     DynamicSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    // copy c'tor
+    DynamicSystemEntity(const DynamicSystemEntity* oth);
+    // move c'tor
+    DynamicSystemEntity(DynamicSystemEntity&& oth) =delete;
+    // copy assignment
+    //DynamicSystemEntity& operator=(DynamicSystemEntity& oth) =delete;
+    // move assignment
+    //DynamicSystemEntity& operator=(DynamicSystemEntity&& oth) =delete;
+
+    // d'tor
     virtual ~DynamicSystemEntity();
 
     /* class type pointer querys. */

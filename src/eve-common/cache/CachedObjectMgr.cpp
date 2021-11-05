@@ -94,7 +94,7 @@ CachedObjectMgr::~CachedObjectMgr()
     cur = m_cachedObjects.begin();
     end = m_cachedObjects.end();
 
-    for(; cur != end; cur++) {
+    for (; cur != end; cur++) {
         SafeDelete( cur->second );
     }
 }
@@ -118,7 +118,7 @@ PyObject *CachedObjectMgr::CacheRecord::EncodeHint() const
     spec.timestamp = timestamp;
     spec.version = version;
 
-    return(spec.Encode());
+    return spec.Encode();
 }
 
 
