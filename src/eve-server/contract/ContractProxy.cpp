@@ -357,6 +357,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
      * To save resources and reduce amount of DB hits, we compose the query by adding ID's first, then we execute it separately.
      */
     std::string itemsToInsert;
+    float totalVolume = 0.00;
     if (call.byname.find("itemList")->second->IsList()) {
         PyList *tradedItems = call.byname.find("itemList")->second->AsList();
         if (!tradedItems->empty()) {
@@ -396,7 +397,6 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
              */
              DBResultRow row;
              int expectedOwnerID = call.client->GetCharacterID();
-             int totalVolume;       // TODO: Calculate the volume - the items are already created, so itemRef->volume() will give you what you need. or you can do itemRef->GetAttribute(attrVolume) which will return EvilNumber
              // We work directly with DBQueryResult since resulting CRowSet does not fit ctrItems format - thus, it would be needless processing.
              while(res.GetRow(row)) {
                  int itemID = row.GetInt(0);
@@ -423,6 +423,11 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
                         std::to_string(runs) + ", " +
                         std::to_string(damage) + ", " +
                         std::to_string(flag)+ "),");
+
+                     // We only calculate volume for courier-type contracts - the other types don't use this value.
+                     if (req.contractType == 3) {
+                         totalVolume += sItemFactory.GetStationItem(req.startStationId)->GetMyInventory()->GetByID(itemID)->GetAttribute(161).get_float() * quantity;
+                     }
                  }
              }
         }
@@ -454,6 +459,17 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
             codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
             return nullptr;
         }
+
+        // We only insert volume for courier-type contracts - the other types don't use this value.
+        if (req.contractType == 3) {
+            DBerror err;
+            if (!sDatabase.RunQuery(err,
+                                    "UPDATE ctrContracts SET volume = %f WHERE contractId = %u", totalVolume, contractId))
+            {
+                codelog(DATABASE__ERROR, "Failed to update contract volume: %s", err.c_str());
+            }
+        }
+
     } else {
         codelog(SERVICE__ERROR, "No traded or requested items was specified. Aborting");
         return nullptr;
