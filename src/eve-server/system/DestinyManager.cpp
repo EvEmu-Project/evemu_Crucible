@@ -3028,7 +3028,6 @@ void DestinyManager::SendMovementPacket()
 void DestinyManager::SendSingleDestinyEvent(PyTuple** ev, bool self_only/*false*/) const
 {
     std::vector<PyTuple*> updates;
-    updates.clear();
     std::vector<PyTuple*> events(1, *ev);   // create vector of size "1" and insert "*ev" into it
     SendDestinyUpdate(updates, events, self_only);
 }
@@ -3036,13 +3035,11 @@ void DestinyManager::SendSingleDestinyEvent(PyTuple** ev, bool self_only/*false*
 void DestinyManager::SendSingleDestinyUpdate(PyTuple **up, bool self_only/*false*/) const {
     std::vector<PyTuple*> updates(1, *up);   // create vector of size "1" and insert "*up" into it
     std::vector<PyTuple*> events;
-    events.clear();
     SendDestinyUpdate(updates, events, self_only);
 }
 
 void DestinyManager::SendDestinyUpdate(std::vector<PyTuple*> &updates, bool self_only/*false*/) const {
     std::vector<PyTuple*> events;
-    events.clear();
     SendDestinyUpdate(updates, events, self_only);
 }
 
