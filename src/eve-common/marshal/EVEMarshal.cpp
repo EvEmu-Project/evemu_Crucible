@@ -282,19 +282,19 @@ bool MarshalStream::VisitObjectEx( const PyObjectEx* rep )
     if ( !rep->header()->visit( *this ) )
         return false;
 
-    PyObjectEx::const_list_iterator lcur = rep->list().begin(), lend = rep->list().end();
-    for (; lcur != lend; ++lcur ) {
-        if ( !(*lcur )->visit( *this ) )
+    PyList::const_iterator lItr = rep->list().begin(), lEnd = rep->list().end();
+    for (; lItr != lEnd; ++lItr ) {
+        if ( !(*lItr )->visit( *this ) )
             return false;
     }
 
     Put<uint8>( Op_PackedTerminator );
 
-    PyObjectEx::const_dict_iterator dcur = rep->dict().begin(), dend = rep->dict().end();
-    for (; dcur != dend; ++dcur ) {
-        if ( !dcur->first->visit( *this ) )
+    PyDict::const_iterator dItr = rep->dict().begin(), dEnd = rep->dict().end();
+    for (; dItr != dEnd; ++dItr ) {
+        if ( !dItr->first->visit( *this ) )
             return false;
-        if ( !dcur->second->visit( *this ) )
+        if ( !dItr->second->visit( *this ) )
             return false;
     }
 
