@@ -29,6 +29,8 @@
 
 #include "ServiceDB.h"
 
+#include "packets/Bookmarks.h"
+
 /*
 validCategories =
     const.categoryCelestial,
@@ -66,18 +68,18 @@ public:
     static const char* GetBookmarkName(uint32 bookmarkID);
     bool GetBookmarkInformation(uint32 bookmarkID, uint32& itemID, uint16& typeID, uint32& locationID, double& x, double& y, double& z);
 
-    bool UpdateBookmark(uint32 bookmarkID, uint32 ownerID, std::string memo, std::string note, uint32 folderID=0);
+    bool UpdateBookmark(Call_UpdateBookmark& args);
     bool DeleteBookmark(uint32 ownerID, uint32 bookmarkID);
     bool DeleteBookmarks(std::vector<int32>* bookmarkList);
 
     bool UpdateFolder(int32 folderID, std::string folderName);
     bool DeleteFolder(int32 folderID);
 
-    uint32 SaveNewFolder(std::string folderName, uint32 ownerID);
+    uint32 SaveNewFolder(std::string folderName, uint32 ownerID, uint32 creatorID);
     void SaveNewBookmark(BmData &data);
 
     void ChangeOwner(uint32 bookmarkID, uint32 ownerID=1);
-    void MoveBookmarkToFolder(int32 folderID, std::vector< int32 >* bookmarkList);
+    void MoveBookmarkToFolder(int32 folderID, std::vector< int32 >& bookmarkList);
 
     void GetBookmarkByFolderID(int32 folderID, std::vector< int32 >& bmIDs);
 

@@ -90,7 +90,7 @@ PyResult BookmarkService::Handle_CreateFolder(PyCallArgs &call) {
     uint32 ownerID = call.client->GetCharacterID();
     Rsp_CreateFolder result;
         result.ownerID = ownerID;
-        result.folderID = m_db.SaveNewFolder(name, ownerID);
+        result.folderID = m_db.SaveNewFolder(name, ownerID, ownerID);
         result.folderName = name;
         result.creatorID = ownerID;
 
@@ -288,7 +288,7 @@ PyResult BookmarkService::Handle_MoveBookmarksToFolder(PyCallArgs &call) {
     for (size_t i = 0; i < bmList->size(); ++i)
         bmIDs.push_back(bmList->GetItem(i)->AsInt()->value());
 
-    m_db.MoveBookmarkToFolder(args.folderID, &bmIDs);
+    m_db.MoveBookmarkToFolder(args.folderID, bmIDs);
 
     return m_db.GetBookmarksInFolder(args.folderID);
 }
