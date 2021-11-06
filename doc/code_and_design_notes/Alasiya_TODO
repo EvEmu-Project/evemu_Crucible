@@ -231,6 +231,7 @@ add cache calls/data for systems that use it after debugging and testing complet
 bookmarks in cargo have name correctly (bm 'memo' is it's player-given name), but mouseover shows  ` - {memo}` ....  what is blank space before '-'??
 write new methods for List() and Move() for bookmarks where owner != player
 currently, all bookmarks are donated to calling player when moved into cargo/hangar
+bookmarks with typeID = 1 have type listed in window as "#System" - fix this.
 
 finish DestinyManager::SendCloakFx()
 
