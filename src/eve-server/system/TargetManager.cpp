@@ -180,7 +180,7 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
     }
 
     // Calculate Time to Lock target:
-    float lockTime = TimeToLock( sRef, tSE );
+    float lockTime = TimeToLock(sRef, tSE);
 
     TargetEntry *te = new TargetEntry();
         te->state = TargMgr::State::Locking;
@@ -188,14 +188,14 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
     m_targets[tSE] = te;
     tSE->TargetMgr()->TargetedAdd(mySE);
 
-    _log(TARGET__INFO, "Pilot %s in %s(%u) started targeting %s(%u) at %.1fm (%.2fs lock time)", \
-            mySE->GetPilot()->GetName(), mySE->GetName(), mySE->GetID(), tSE->GetName(), \
-            tSE->GetID(), targetDistance, lockTime);
+    if (is_log_enabled(TARGET__INFO))
+        _log(TARGET__INFO, "Pilot %s in %s(%u) started targeting %s(%u) at %.1fm with %.2fs lock time.", \
+                mySE->GetPilot()->GetName(), mySE->GetName(), mySE->GetID(), tSE->GetName(), \
+                tSE->GetID(), targetDistance, lockTime);
 
     sEntityList.AddTargMgr(mySE, this);
 
     Dump();
-
     return true;
 }
 

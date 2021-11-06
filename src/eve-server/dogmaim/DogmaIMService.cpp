@@ -517,13 +517,6 @@ PyResult DogmaIMBound::Handle_AddTarget(PyCallArgs& call) {
                         .AddFormatValue ("item", new PyInt (ptSE->GetID ()));
     }
 
-    if (sConfig.debug.IsTestServer)
-        if (is_log_enabled(TARGET__MESSAGE)) {
-            GVector vectorToTarget( mySE->GetPosition(), tSE->GetPosition());
-            _log(TARGET__MESSAGE, "DogmaIM::AddTarget() - %s(%u) targeting %s(%u) at distance of %.2f meters.", \
-                    mySE->GetName(), mySE->GetID(), tSE->GetName(), args.arg, vectorToTarget.length() );
-        }
-
     if (!mySE->TargetMgr()->StartTargeting( tSE, pClient->GetShip())) {
         _log(TARGET__WARNING, "AddTarget() - TargMgr.StartTargeting() failed.");
         throw UserError ("DeniedTargetingAttemptFailed")
