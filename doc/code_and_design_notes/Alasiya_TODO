@@ -31,8 +31,16 @@ work on buglist, integrate this list in there where i can
     - cosmic systems
     -
 
+.update sets ship to full speed@@  wtf is this bullshit??
 
 request for smartbombs
+
+update headers to fix 'class' vs 'struct' declarations
+
+**** weapon hardpoints not decreasing
+
+00:51:16 [Service] charUnboundMgr::SelectCharacterID()
+00:51:16 E Client::SelectCharacter(): Char 90000000 already online.
 
 
 as bubble code becomes more stable, consider updating/removing/recoding wander timer.
@@ -52,9 +60,9 @@ npcs not getting destiny warpstate set (sometimes - this is cause of rats not wa
 
 after unloading module using ungroup, tried loading charge to newly-ungrouped module, and got this:
 01:58:17 [ModTrace] ShipItem::LoadCharge - Trying to load Flameburst Light Missile from HiSlot6 to HiSlot7.
+charges not removed from cargo when loaded (scripts with qty=1)
 
-prop mod destiny call - update ship speed to AccelTime math isnt right...see cruc/MoveTrace and cruc/SpeedBoost
-    - this is better after SpeedBoost() update, but still needs work (activate/deactivate working)
+*****  modules not shutting down when deactivated ***
 
 module add/remove isnt fully thought out at this point.
     - will need complete walk thru to verify proper operation
@@ -72,6 +80,7 @@ warp scram should deactivate mwd and deny activation (it IS a micro WARP drive..
 
 invul timer set on undock after login
 
+check trade - ships retain insurance
 check repack/reproc ships for insurance and delete if applicable
     - does client need update when insurance deleted?  no...ins is queried when needed
 also check containers for contents and remove/deny before repack
@@ -82,8 +91,6 @@ check insurance payouts.   rounds full ship value up
 base price estimator code 95% complete.
 few prices wrong and not in crucible mkt data dump
 static category names are a bit off (semantics)
-
-check trade - ships retain insurance
 
 check for item ownership before rename
     verify OnCfgDataChanged
@@ -98,10 +105,6 @@ error:
 "turret not fitted on shipID (npc)"
 
 
-...still not sure on this.  throws a shitton of errors in client error log
-"Cleaning session *clientID 2888444* because it's ID doesn't match  0"
-
-
 this is used for pricing update based on minerals.  this query returns ~300 items
 SELECT * FROM `invTypeMaterials` WHERE `quantity` = 0
 
@@ -112,6 +115,9 @@ missing prices for salvage
 
 *******************************************************
 ********  improvements
+
+Mission is namespace and Dungeon::Type
+    - fix ambiguity
 
 allianceDB  update this to use static members
 
@@ -124,9 +130,8 @@ client login screen...these all need code to show data    CharacterDB::GetCharSe
 also need to optimize query....can join instead of using (current) multiple queries and variables
 
 check into cosmic manager enabling checks/code....kinda dont make sense)
-*** this below is wrong.  look into it.
-20:21:01 [CMgr Msg] AnomalyMgr Initialized for Ibaria(30000053) with 2 Max Signals for security class 0.37.  Test Server is enabled
 
+client bubbleWait incomplete.  still causes client errors on login/jump where destiny update is set before bp created
 
 skill training...
     2x training bonus for new chars (<30d)
@@ -135,6 +140,7 @@ EVEDB::invGroups::Spawn_Container needs it own class
     - mostly for dungeons/deadspace
     - 477 types
 
+fix II.quantity type to allow -1 (singleton) (527 matches to review)
 remove InventoryDB (m_db) and associated code from itemfactory
 remove character queries from InventoryDB
 remove station/static queries from InventoryDB
@@ -148,6 +154,8 @@ skill error on queue update   - see cruc/skills/skill_error_new
 
 look into changing (EvilNumber)DmgTypeAttribute to (struct)Inv::AttrData  (started.  still being used by sDataMgr)
     - may be able to delete the EvilNumber class, as it was created only to deal with attribute data, which we are getting away from with the struct.
+    - will have to rework db data to properly set int/float values
+    - another vote for this...all SetAttrib() use EvilNumber to send to AttrMgr, which stores in EvilNumber. >:(
 
 journal msgs need to be implemented (wip)
 
@@ -309,6 +317,8 @@ dungeon mgr - factionID of "region sov" needs to be written to determine region 
 fleetData.h needs to be moved to common/EVE_Fleet.h and PODs put in fleet namespace
 FleetBound could use updates (client->getchar->name, etc)
 
+does fleet data need specific clientID?  verify and may have to reinstate
+
 fleet boosts - apply directly to ship/modules when calculated
     - set leadership skill modifiers on char item, then have fleet boosts pull directly from char
     - apply either when undocking or as fleet is created and use OnModuleAttributeChange packet
@@ -399,8 +409,10 @@ pos - started. drop, anchor, unanchor, online, offline working but no in-class c
     - add checks for necessary items before online can be processed
     - timers (anchor/online) arent updated to client properly (non-persistent)
     - add bm when tower, ihub, sbu, tcu anchored
+        - bubble center off on tower anchor
     - finish removing multicast bullshit (sends on FF attr.radius update)
     - verify all effects for structures.  (some missing)
+    - fuel hangar capy not checking correctly
 
 lsc system better, but incomplete and needs revisiting    -priority level: med-hi
     - may need xmlp code instead of muddled python decoding
@@ -429,6 +441,7 @@ market code
     - run thru mgr code to remove direct db calls (put in marketDB file)
     - find 'safe' way to run history updates (in case of no transactions)
     - need to run thru file to check for proper coding
+    - update client market calls to use market manager and cache instead of hitting db (systemAsks, stationAsks, regionBest)
 
 market for corp use
     - add checks for hangar location when placing sell orders
@@ -487,10 +500,14 @@ serviceDB needs update
     - maybe remove "Lookup*" shit to its own db file
 StationOffice::ValidateAddItem incomplete (but unused)
     - need tic to determine rent time on office.  implement lockdown when rent unpaid (grace period?  -nope)
+ConfigDB::GetMap - update this to use sDataMgr (figure out how to set non-db data into dbrow object)
+ConfigDB::GetCelestialStatistic - same as above
+GetAttributesFromAncestry - update to use struct instead of passing multiple args
 
 KeeperService will need work (accel gates)
 
 PlanetORBBound needs work now that customs offices are working
+PlanetORBBound name is wrong. (Orbital Registry Bound)  remove "bound"
 PI Launch status need *some way* to tick for launch reentry
 
 store/board ship in cap ship hangar not coded
@@ -599,7 +616,7 @@ skillGeneralFreight = 12834, // Trade Skill at the stowage and transportation of
 
 
 check into call returns.  they may be missing data (like callID)
-    - i think these are mostly complete.  may be too deep in packet.
+    - i think these are mostly complete, but may be too "deep" in packet.
 
 *******************************************************
 *****************  commands
@@ -622,8 +639,6 @@ finish dot commands
     - add options for commands
     - .tr still needs lots of work.  basic code is done and working
 
-command .attrlist needs names as well as attrID
-
 
 *******************************************************
 *****************  MEMORY MANAGEMENT and code compliance
@@ -644,14 +659,20 @@ Py* objects that have long int as key need 'delete' called on key when destroyed
 PyDatabase may need d'tors coded
 
 see what can be done about bind_args->Clone() as it may be leaking memory
+
 90% of valgrind "Definitely Lost" errors are from "new PyInt()" calls.
     - most of these are Encode() calls
 
 
 review all classes to add rule of 5 or =delete as required
-    - PyRep objects done
-    - InventoryItem started (logging to see if other c'tors are used...so far not)
-    -
+    - PyRep objects NOT done   -this needs further review
+    - InventoryItem done
+    - Client done
+    - SE classes need review
+    - all item classes need review
+
+maybe copy-and-swap idiom can be used for PyRep objects instead of Clone() or other bs.
+most classes need move semantics?  seems we are using itemRef and Py types a lot on lhs
 
 *******************************************************
 *****************  Fx shit
@@ -660,6 +681,9 @@ review all classes to add rule of 5 or =delete as required
 
 
 ***  errors
+removing script from module will not reset module to base values
+group Automated_Targeting_System bad fx data ... see cruc/errors/Automated_Targeting_System
+ITEM__TRACE
 
 
 ***  other
@@ -687,6 +711,10 @@ look into using "CALL_", "RSP_" and "encode=true/false"/"decode=true/false" for 
   <elementDef name="GodmaError"><!-- more to this than template has here.  fix later  -->
 
 remove "Notify*" from notify names....implement better naming convention (see above)
+
+check/verify d'tors freeing objects correctly (multiple reports showing objects not freed)
+check null deref in operator=
+
 
 *******************************************************
 *****************  db shit

@@ -66,7 +66,6 @@ public:
 
         m_strBoundObjectName = "CorpStationMgrIMBound";
 
-        //PyCallable_REG_CALL(CorpStationMgrIMBound, GetEveOwners);
         PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationInfo);
         PyCallable_REG_CALL(CorpStationMgrIMBound, DoStandingCheckForStationService);
         PyCallable_REG_CALL(CorpStationMgrIMBound, GetPotentialHomeStations);
@@ -92,7 +91,6 @@ public:
         delete this;
     }
 
-    //PyCallable_DECL_CALL(GetEveOwners);
     PyCallable_DECL_CALL(GetCorporateStationInfo);
     PyCallable_DECL_CALL(DoStandingCheckForStationService);
     PyCallable_DECL_CALL(GetPotentialHomeStations);

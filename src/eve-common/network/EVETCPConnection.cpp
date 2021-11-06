@@ -62,10 +62,11 @@ void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
     }
 
     bool success(false);
-    if (compress)
+    if (compress) {
         success = MarshalDeflate(rep, *pBuffer);
-    else
+    } else {
         success = MarshalDeflate(rep, *pBuffer, PACKET_SIZE_LIMIT);
+    }
 
     if (success) {
        // if (is_log_enabled(DEBUG__DEBUG))

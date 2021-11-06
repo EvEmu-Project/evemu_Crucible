@@ -143,5 +143,8 @@
 #include "memory/SafeMem.h"
 // utils
 #include "utils/FastInt.h"
+// logs
+#include "log/LogNew.h"
+#include "log/logsys.h"
 
 #endif /* !__EVE_CORE_H__INCL__ */

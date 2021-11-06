@@ -77,7 +77,10 @@ m_killed(false)
 SystemEntity::SystemEntity(const SystemEntity* oth) : m_self(oth->m_self),m_services(oth->m_services),m_system(oth->m_system),
 m_bubble(oth->m_bubble),m_destiny(oth->m_destiny),m_targMgr(oth->m_targMgr),m_killed(oth->m_killed),m_warID(oth->m_warID),
 m_allyID(oth->m_allyID),m_corpID(oth->m_corpID),m_fleetID(oth->m_fleetID),m_ownerID(oth->m_ownerID),m_radius(oth->m_radius),
-m_harmonic(oth->m_harmonic) { }
+m_harmonic(oth->m_harmonic)
+{
+    // wip 
+}
 
 
 void SystemEntity::Process() {
@@ -271,7 +274,7 @@ StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, PyServiceMgr &serv
 StaticSystemEntity::StaticSystemEntity(const StaticSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 bool StaticSystemEntity::LoadExtras() {
@@ -315,7 +318,7 @@ BeltSE::BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* sys
 BeltSE::BeltSE(const BeltSE* oth)
 : StaticSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 bool BeltSE::LoadExtras() {
@@ -340,7 +343,7 @@ m_sbuSE(nullptr)
 StargateSE::StargateSE(const StargateSE* oth)
 : StaticSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 bool StargateSE::LoadExtras() {
@@ -392,7 +395,7 @@ ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services
 ItemSystemEntity::ItemSystemEntity(const ItemSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 PyDict* ItemSystemEntity::MakeSlimItem() {
@@ -489,7 +492,7 @@ FieldSE::FieldSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *s
 FieldSE::FieldSE(const FieldSE* oth)
 : ItemSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 void FieldSE::EncodeDestiny( Buffer& into )
@@ -546,7 +549,7 @@ m_invul(false)
 ObjectSystemEntity::ObjectSystemEntity(const ObjectSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 ObjectSystemEntity::~ObjectSystemEntity()
@@ -649,7 +652,7 @@ DeployableSE::DeployableSE(InventoryItemRef self, PyServiceMgr &services, System
 DeployableSE::DeployableSE(const DeployableSE* oth)
 : ObjectSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 
@@ -670,7 +673,7 @@ m_frozen(false)
 DynamicSystemEntity::DynamicSystemEntity(const DynamicSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
-
+    // wip
 }
 
 DynamicSystemEntity::~DynamicSystemEntity()

@@ -100,7 +100,7 @@ PyPacket* EVEClientSession::_HandleVersion(PyRep* rep) {
         mPacketHandler = &EVEClientSession::_HandleCommand;
     }
 
-    PySafeDecRef(rep);
+    //PySafeDecRef(rep);
     // recurse
     return PopPacket();
 }
@@ -142,7 +142,7 @@ PyPacket* EVEClientSession::_HandleCommand(PyRep* rep) {
         }
     }
 
-    PySafeDecRef(rep);
+    //PySafeDecRef(rep);
     // recurse
     return PopPacket();
 }
@@ -155,7 +155,7 @@ PyPacket* EVEClientSession::_HandleCrypto(PyRep* rep) {
         mPacketHandler = &EVEClientSession::_HandleAuthentication;
     }
 
-    PySafeDecRef(rep);
+    //PySafeDecRef(rep);
     // recurse
     return PopPacket();
 }
@@ -169,7 +169,7 @@ PyPacket* EVEClientSession::_HandleAuthentication(PyRep* rep) {
         mPacketHandler = &EVEClientSession::_HandleFuncResult;
     }
 
-    PySafeDecRef(rep);
+    //PySafeDecRef(rep);
     return PopPacket();
 }
 
@@ -181,7 +181,7 @@ PyPacket* EVEClientSession::_HandleFuncResult(PyRep* rep) {
         mPacketHandler = &EVEClientSession::_HandlePacket;
     }
 
-    PySafeDecRef(rep);
+    //PySafeDecRef(rep);
     return PopPacket();
 }
 
@@ -195,6 +195,6 @@ PyPacket* EVEClientSession::_HandlePacket(PyRep* rep) {
         return PopPacket();
     }
 
-    PySafeDecRef(rep);
+    //PySafeDecRef(rep);
     return p;
 }

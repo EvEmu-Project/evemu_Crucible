@@ -80,7 +80,7 @@ PyRep* DBColumnToPyRep(const DBResultRow& row, uint32 index)
 
 PyObject *DBResultToRowset(DBQueryResult &result)
 {
-    uint32 cc = result.ColumnCount();
+    uint32 cc(result.ColumnCount());
 
     PyDict *args = new PyDict();
 
@@ -142,7 +142,7 @@ PyTuple *DBResultToTupleSet(DBQueryResult &result) {
 }
 
 PyObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
-    uint32 cc = result.ColumnCount();
+    uint32 cc(result.ColumnCount());
     uint32 key_index(0);
 
     for (key_index = 0; key_index < cc; ++key_index)
@@ -158,7 +158,7 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
 }
 
 PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
-    uint32 cc = result.ColumnCount();
+    uint32 cc(result.ColumnCount());
 
     //start building the IndexRowset
     PyDict *args = new PyDict();
@@ -197,7 +197,7 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
 
 PyObject *DBRowToKeyVal(DBResultRow &row) {
     PyDict *args = new PyDict();
-    uint32 cc = row.ColumnCount();
+    uint32 cc(row.ColumnCount());
     for (uint32 r(0); r < cc; ++r)
         args->SetItemString(row.ColumnName(r), DBColumnToPyRep(row, r));
 
@@ -209,7 +209,7 @@ PyObject *DBRowToRow(DBResultRow &row, const char *type)
     PyDict *args = new PyDict();
 
     //list off the column names:
-    uint32 cc = row.ColumnCount();
+    uint32 cc(row.ColumnCount());
     PyList *header = new PyList(cc);
     for (uint32 r(0); r < cc; ++r)
         header->SetItemString(r, row.ColumnName(r));
@@ -228,7 +228,7 @@ PyObject *DBRowToRow(DBResultRow &row, const char *type)
 }
 
 PyTuple *DBResultToRowList(DBQueryResult &result, const char *type) {
-    uint32 cc = result.ColumnCount();
+    uint32 cc(result.ColumnCount());
     if (cc == 0)
         return(new PyTuple(0));
 
@@ -340,7 +340,7 @@ PyTuple* DBResultToPackedRowListTuple(DBQueryResult &result)
 
 PyDict *DBResultToPackedRowDict(DBQueryResult &result, const char *key)
 {
-    uint32 cc = result.ColumnCount();
+    uint32 cc(result.ColumnCount());
     uint32 key_index(0);
 
     for (key_index = 0; key_index < cc; ++key_index)
@@ -419,7 +419,7 @@ PyObjectEx *DBResultToCRowset(DBQueryResult &result)
 
 PyObjectEx *DBResultToCIndexedRowset(DBQueryResult &result, const char *key)
 {
-    uint32 cc = result.ColumnCount();
+    uint32 cc(result.ColumnCount());
     uint32 key_index(0);
 
     for (key_index = 0; key_index < cc; ++key_index)

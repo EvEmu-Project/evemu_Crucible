@@ -126,7 +126,6 @@ PyTuple* DBRowDescriptor::_CreateArgs()
 CRowSet::CRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-
 }
 
 PyPackedRow* CRowSet::NewRow()
@@ -145,15 +144,6 @@ DBRowDescriptor* CRowSet::_GetRowDesc() const
         return (DBRowDescriptor*)r->AsObjectEx();
     return nullptr;
 }
-
-/*PyList* CRowSet::_GetColumnList() const
-{
-    PyRep* r = FindKeyword( "columns" );
-    assert( r );
-
-    return r->AsList();
-}
-*/
 
 PyTuple* CRowSet::_CreateArgs()
 {
@@ -185,7 +175,6 @@ PyDict* CRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 CIndexedRowSet::CIndexedRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-
 }
 
 PyPackedRow* CIndexedRowSet::NewRow( PyRep* key )
@@ -230,7 +219,6 @@ PyDict* CIndexedRowSet::_CreateKeywords(DBRowDescriptor* rowDesc)
 CFilterRowSet::CFilterRowSet( DBRowDescriptor** rowDesc )
 : PyObjectEx_Type2( _CreateArgs(), _CreateKeywords( *rowDesc ) )
 {
-
 }
 
 CRowSet* CFilterRowSet::NewRowset( PyRep* key )
