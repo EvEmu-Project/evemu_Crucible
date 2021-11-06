@@ -249,13 +249,13 @@ public:
     /* public generic functions handled in base class. */
     void                        DropLoot(WreckContainerRef wreckRef, uint32 groupID, uint32 owner);
     void                        AwardSecurityStatus(InventoryItemRef iRef, Character* pChar);
-    void                        SendDamageStateChanged();  /* this uses targetMgr update to send to all interested parties */
     bool                        ApplyDamage(Damage &d); /* This method is defined in Damage.cpp */
     double                      DistanceTo2(const SystemEntity* other);
     PyTuple*                    MakeDamageState();
 
     /* public specific functions handled in base class. */
     virtual void                Abandon();
+    virtual void                SendDamageStateChanged();  /* this uses targetMgr update to send to all interested parties */
 
     /* generic functions handled here, but set elsewhere */
     const bool                  IsDead()                { return m_killed; }

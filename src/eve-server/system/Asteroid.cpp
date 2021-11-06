@@ -116,6 +116,18 @@ void AsteroidSE::MakeDamageState(DoDestinyDamageState &into) {
     into.structure = 1.0;
 }
 
+void AsteroidSE::SendDamageStateChanged() {  //working 24Apr15
+    DoDestinyDamageState dmgState;
+    MakeDamageState(dmgState);
+    OnDamageStateChange dmgChange;
+    dmgChange.entityID = m_self->itemID();
+    dmgChange.state = dmgState.Encode();
+    PyTuple *up = dmgChange.Encode();
+    if (m_targMgr != nullptr)
+        m_targMgr->QueueUpdate(&up);
+    PySafeDecRef(up);
+}
+
 void AsteroidSE::Grow() {
     /*  not real sure how to implement this
      * maybe use internal data structure to hold sizes (current, possible) and time interval

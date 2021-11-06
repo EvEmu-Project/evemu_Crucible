@@ -286,6 +286,20 @@ DST_WARPEXIT = 11
     </tupleInline>
   </elementDef>
 
+  <elementDef name="OnDamageStateChange">
+      <tupleInline>
+        <!-- 0 -->
+        <stringInline value="OnDamageStateChange" />
+        <!-- 1 -->
+        <tupleInline>
+            <!-- 0: shipID -->
+            <int name="entityID" />
+        <!-- entry of type DoDestinyDamageState -->
+            <raw name="state" />
+        </tupleInline>
+      </tupleInline>
+  </elementDef>
+
   <elementDef name="DoDestinyDamageState">
     <tupleInline>
       <tupleInline>
@@ -408,20 +422,6 @@ DST_WARPEXIT = 11
             <long name="startTime" default="0" none_marker="0" />
             <!-- 13: graphicInfo or None  - not sure what this is yet.  -->
             <raw name="graphicInfo" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="OnDamageStateChange">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="OnDamageStateChange" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0: shipID -->
-            <int name="entityID" />
-        <!-- entry of type DoDestinyDamageState -->
-            <raw name="state" />
         </tupleInline>
       </tupleInline>
   </elementDef>

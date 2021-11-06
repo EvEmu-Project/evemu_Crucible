@@ -94,8 +94,9 @@ public:
     /* SystemEntity interface */
     virtual void Delete();
     virtual void Process();
-    virtual void EncodeDestiny( Buffer& into );
+    virtual void EncodeDestiny(Buffer& into);
     virtual void MakeDamageState(DoDestinyDamageState &into);
+    virtual void SendDamageStateChanged();  /* this uses targetMgr update to send to all interested parties */
 
     /* specific functions handled in this class. */
     void Grow();
