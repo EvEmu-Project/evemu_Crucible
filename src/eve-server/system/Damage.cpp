@@ -28,7 +28,6 @@
 #include "system/Damage.h"
 
 #include "../../eve-common/EVE_Damage.h"
-//#include "packets/Damage.h"
 
 #include "Client.h"
 #include "EntityList.h"
@@ -56,54 +55,45 @@ DAMAGE__DEBUG
 
 // this is for turrets
 Damage::Damage(SystemEntity* pSE, InventoryItemRef wRef, float kin, float ther, float emp, float exp, float mod, uint16 eID)
-: srcSE(pSE), effectID(eID), weaponRef(wRef), chargeRef(InventoryItemRef(nullptr))
+: srcSE(pSE), effectID(eID), weaponRef(wRef), chargeRef(InventoryItemRef(nullptr)),
+em(emp), kinetic(kin), thermal(ther), explosive(exp), modifier(mod)
 {
-    em          = emp;
-    kinetic     = kin;
-    thermal     = ther;
-    explosive   = exp;
-    modifier    = mod;
 }
 
 // this is for npcs
 Damage::Damage(SystemEntity* pSE, InventoryItemRef wRef, float mod, uint16 eID)
-: srcSE(pSE), effectID(eID), weaponRef(wRef), chargeRef(InventoryItemRef(nullptr))
+: srcSE(pSE), effectID(eID), weaponRef(wRef), chargeRef(InventoryItemRef(nullptr)),
+modifier(mod),
+em(wRef->GetAttribute(AttrEmDamage).get_float()),
+kinetic(wRef->GetAttribute(AttrKineticDamage).get_float()),
+thermal(wRef->GetAttribute(AttrThermalDamage).get_float()),
+explosive(wRef->GetAttribute(AttrExplosiveDamage).get_float())
 {
-    modifier    = mod;
-
-    em          = wRef->GetAttribute(AttrEmDamage).get_float();
-    kinetic     = wRef->GetAttribute(AttrKineticDamage).get_float();
-    thermal     = wRef->GetAttribute(AttrThermalDamage).get_float();
-    explosive   = wRef->GetAttribute(AttrExplosiveDamage).get_float();
-
     _log(DAMAGE__WARNING, "Damage:C'tor - Called by source %s(%u) with weapon %s(%u).",
          srcSE->GetName(), srcSE->GetID(), wRef->name(), wRef->itemID() );
 }
 
 // this is for missiles
 Damage::Damage(SystemEntity* pSE, InventoryItemRef wRef, InventoryItemRef cRef, uint16 eID)
-: srcSE(pSE), effectID(eID), weaponRef(wRef), chargeRef(cRef)
+: srcSE(pSE), effectID(eID), weaponRef(wRef), chargeRef(cRef),
+modifier(1),
+em(cRef->GetAttribute(AttrEmDamage).get_float()),
+kinetic(cRef->GetAttribute(AttrKineticDamage).get_float()),
+thermal(cRef->GetAttribute(AttrThermalDamage).get_float()),
+explosive(cRef->GetAttribute(AttrExplosiveDamage).get_float())
 {
-    modifier    = 1;
-
-    em          = cRef->GetAttribute(AttrEmDamage).get_float();
-    kinetic     = cRef->GetAttribute(AttrKineticDamage).get_float();
-    thermal     = cRef->GetAttribute(AttrThermalDamage).get_float();
-    explosive   = cRef->GetAttribute(AttrExplosiveDamage).get_float();
-
     _log(DAMAGE__WARNING, "Damage:C'tor - Called by source %s(%u) with weapon %s(%u) using charge %s(%u).",
          srcSE->GetName(), srcSE->GetID(), wRef->name(), wRef->itemID(), cRef->name(), cRef->itemID() );
 }
 
 // No specific damage dealt here, just killed
 Damage::Damage(SystemEntity* pSE, bool fatal_blow/*false*/)
-: srcSE(pSE), effectID(EVEEffectID::targetAttack)
+: srcSE(pSE), effectID(EVEEffectID::targetAttack),
+em(0.0f),kinetic(0.0f),thermal(0.0f),explosive(0.0f),
+weaponRef(InventoryItemRef(nullptr)),
+chargeRef(InventoryItemRef(nullptr))
 {
     assert(fatal_blow and "Damage() fatal_blow called without 2nd param being true!");
-
-    em = kinetic = thermal = explosive = 0.0f;
-    weaponRef = InventoryItemRef(nullptr);
-    chargeRef = InventoryItemRef(nullptr);
 }
 
 bool SystemEntity::ApplyDamage(Damage &d) {
@@ -128,7 +118,7 @@ bool SystemEntity::ApplyDamage(Damage &d) {
         }
     }
 
-    int8 damageID = 0;
+    int8 damageID(0);
     switch (d.weaponRef->groupID()) {
         case EVEDB::invGroups::Missile_Launcher_Assault:
         case EVEDB::invGroups::Missile_Launcher_Bomb:       // not sure here
@@ -184,7 +174,7 @@ bool SystemEntity::ApplyDamage(Damage &d) {
         m_self->GetAttribute(AttrShieldEmDamageResonance).get_float(),
         m_self->GetAttribute(AttrShieldExplosiveDamageResonance).get_float() );
 
-    bool killed = false;
+    bool killed(false);
     float total_damage(0.0f);
     float shield_damage(DamageToShield.GetTotal());
     float available_shield(m_self->GetAttribute(AttrShieldCharge).get_float());
