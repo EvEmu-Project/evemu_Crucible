@@ -26,6 +26,12 @@
 // { backtrace, backtrace_symbols, backtrace_symbols_fd } header file.
 #include "execinfo.h"
 
+// headers for stack trace with File and Line numbers
+#include <unistd.h>
+#include <zconf.h>
+#include "regex"
+
+
 #include "eve-core.h"
 
 #include "utils/misc.h"
@@ -168,7 +174,6 @@ double EvE::max(double x, double y, double z)
     return  ((max < z) ? z : max);
 }
 
-
 void EvE::traceStack(void)
 {
     uint8 j(0), nptrs(0);
@@ -282,4 +287,63 @@ double EvE::trunicate2(double dig)
     double ret = (float)first / 100;
     return ret;
     //return (double)((int)dig*100)/100;
+}
+
+std::string EvE::getExecPath()
+{
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    return std::string(result, (count > 0) ? count : 0);
+}
+
+std::string EvE::sh(std::string cmd)
+{
+    std::array<char, 128> buffer;
+    std::string result;
+
+    std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!pipe) {
+        sLog.Error("EvE::sh", "popen() failed");
+        return "error";
+    }
+
+    while (!feof(pipe.get())) {
+        if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+            result += buffer.data();
+    }
+
+    return result;
+}
+
+void EvE::traceStackLN(void)
+{
+    uint8 nptrs(0);
+    void *buffer[1024];
+    char **strings;
+
+    nptrs = backtrace(buffer, 1024);
+    printf("backtrace() returned %u addresses\n", nptrs);
+    strings = backtrace_symbols(buffer, nptrs);
+    if (!strings) {
+        printf("backtrace symbols error");
+        return;
+    }
+
+    std::regex re("\\[(.+)\\]");
+    auto exec_path = getExecPath();
+
+    for (uint8 i(0); i < nptrs; ++i) {
+        std::string sym = strings[i];
+        std::smatch ms;
+        if (std::regex_search(sym, ms, re)) {
+            std::string addr = ms[1];
+            std::string cmd = "addr2line -e " + exec_path + " -f -C " + addr;
+            auto r = sh(cmd);
+            std::regex re2("\\n$");
+            auto r2 = std::regex_replace(r, re2, "");
+            printf("%s", r2.c_str());
+        }
+    }
+
+    free(strings);
 }
