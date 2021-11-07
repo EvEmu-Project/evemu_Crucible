@@ -30,6 +30,7 @@
 #include "contract/ContractProxy.h"
 #include "station/Station.h"
 #include "packets/Contracts.h"
+#include "contract/ContractUtils.h"
 
 PyCallable_Make_InnerDispatcher(ContractProxy)
 
@@ -550,45 +551,7 @@ PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
 PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
     if (!call.tuple->empty()) {
         if (call.tuple->GetItem(0)->IsInt()) {
-            std::string contractID = std::to_string(call.tuple->GetItem(0)->AsInt()->value());
-            std::string getContractQuery = "SELECT contractId as contractID, contractType as type, issuerID, issuerCorpID, forCorp, isPrivate as availability,\n"
-                                           "       assigneeID, acceptorID, dateIssued, dateExpired, dateAccepted, numDays, dateCompleted, startStationID, startSolarSystemID,\n"
-                                           "       startRegionID, endStationID, endSolarSystemID, endRegionID, price, reward, collateral, title, description, status,\n"
-                                           "       crateID, volume, issuerAllianceID, issuerWalletKey, acceptorWalletKey "
-                                           "FROM ctrContracts "
-                                           "WHERE contractId = " + contractID;
-            std::string getContractItemsQuery = "SELECT contractId as contractID, itemID, quantity, itemTypeID, inCrate, parentID, productivityLevel, materialLevel, isCopy as copy,\n"
-                                                "       licensedProductionRunsRemaining, damage, flagID "
-                                                "FROM ctrItems "
-                                                "WHERE contractId = " + contractID;
-
-            DBQueryResult contractRes;
-            DBQueryResult itemsRes;
-            DBResultRow contractRow;
-            if (!sDatabase.RunQuery(contractRes, getContractQuery.c_str()))
-            {
-                codelog(DATABASE__ERROR, "Error in query: %s", contractRes.error.c_str());
-                return nullptr;
-            }
-            if (!sDatabase.RunQuery(itemsRes, getContractItemsQuery.c_str()))
-            {
-                codelog(DATABASE__ERROR, "Error in query: %s", itemsRes.error.c_str());
-                return nullptr;
-            }
-            if (contractRes.GetRowCount() > 0) {
-                contractRes.GetRow(contractRow);
-            } else {
-                codelog(SERVICE__ERROR, "No contract with ID '%s' was found. Aborting", contractID.c_str());
-                return nullptr;
-            }
-
-
-            PyDict* response = new PyDict;
-            response->SetItemString("contract", DBRowToPackedRow(contractRow));
-            response->SetItemString("items", DBResultToCRowset(itemsRes));
-            response->SetItemString("bids", new PyList);
-
-            return new PyObject( "util.KeyVal", response );
+            return ContractUtils::GetContractEntry(call.tuple->GetItem(0)->AsInt()->value());
         } else {
             codelog(SERVICE__ERROR, "Invalid parameter in GetContract call");
             return nullptr;

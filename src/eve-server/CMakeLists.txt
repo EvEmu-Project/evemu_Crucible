@@ -195,10 +195,12 @@ SET( config_SOURCE
 
 SET( contract_INCLUDE
      "${TARGET_INCLUDE_DIR}/contract/ContractMgr.h"
-     "${TARGET_INCLUDE_DIR}/contract/ContractProxy.h" )
+     "${TARGET_INCLUDE_DIR}/contract/ContractProxy.h"
+     "${TARGET_INCLUDE_DIR}/contract/ContractUtils.h" )
 SET( contract_SOURCE
      "${TARGET_SOURCE_DIR}/contract/ContractMgr.cpp"
-     "${TARGET_SOURCE_DIR}/contract/ContractProxy.cpp")
+     "${TARGET_SOURCE_DIR}/contract/ContractProxy.cpp"
+     "${TARGET_SOURCE_DIR}/contract/ContractUtils.cpp" )
 
 SET( corporation_INCLUDE
      "${TARGET_INCLUDE_DIR}/corporation/BillMgr.h"

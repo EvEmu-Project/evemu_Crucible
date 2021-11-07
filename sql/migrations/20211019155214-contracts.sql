@@ -51,7 +51,15 @@ create table if not exists ctrItems
     damage int default 0 not null,
     flagID int default 0 not null
 );
+create table if not exists ctrBids
+(
+    contractId int not null,
+    amount     int not null,
+    bidderID   int not null,
+    bidDateTime bigint(20) unsigned not null
+);
 
 -- +migrate Down
 drop table ctrContracts;
 drop table ctrItems;
+drop table ctrBids;
