@@ -97,11 +97,9 @@ uint32 Skill::GetCurrentSP(Character* ch, int64 startTime/*0*/)
     // at this point, the skill is in training.  calculate accumulated sp and return
     uint32 delta(0);
     uint32 timeElapsed((GetFileTimeNow() - startTime) / EvE::Time::Second);
-    if (timeElapsed > 60) {
-        // skill in training - return updated SP based on elapsed training
-        delta = (timeElapsed / 60) * ch->GetSPPerMin(this);
-        currentSP += delta;
-    }
+    // skill in training - return updated SP based on elapsed training
+    delta = (timeElapsed / 60) * ch->GetSPPerMin(this);
+    currentSP += delta;
 
     _log(SKILL__TRACE, "Skill::GetCurrentSP() for %s is %u - delta: %u, elapsed time: %us", \
             name(), currentSP, delta, timeElapsed);
