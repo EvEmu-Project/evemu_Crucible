@@ -55,7 +55,6 @@ public:
     void StartRatGroupTimer();
     void StopRatGroupTimer()                            { m_ratGroupTimer.Disable(); }
 
-    bool IsRatSpawnEnabled()                            { return m_ratEnabled; }
     bool IsInitialized()                                { return m_initalized; }
     bool IsRatTimerStarted()                            { return m_ratTimer.Enabled(); }
 
@@ -91,7 +90,6 @@ private:
     Timer m_incursionTimer;
     Timer m_deadspaceTimer;
 
-    bool m_ratEnabled;         //allow belt rat spawning?
     bool m_initalized;      //allow spawning?
 
     uint16 m_groupTimerSetTime;     //ms - this is for hard-coding the respawn timer time.

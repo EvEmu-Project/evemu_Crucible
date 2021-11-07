@@ -196,21 +196,21 @@ bool SystemManager::BootSystem() {
 
 bool SystemManager::LoadCosmicMgrs()
 {
+    if (m_beltCount)
+        m_beltMgr->Init();  //nothing to check for in this init.
+
     if (!m_spawnMgr->Init()) {
-        _log(SERVICE__ERROR, "Unable to load Spawn Manager during boot of system %u.", m_data.systemID);
+        _log(SERVER__INIT_ERR, "Unable to load Spawn Manager during boot of system %u.", m_data.systemID);
         return false;
     }
 
     if (!m_dungMgr->Init(m_anomMgr, m_spawnMgr)) {
-        _log(SERVICE__ERROR, "Unable to load Dungeon Manager during boot of system %u.", m_data.systemID);
+        _log(SERVER__INIT_ERR, "Unable to load Dungeon Manager during boot of system %u.", m_data.systemID);
         return false;
     }
 
-    if (m_beltCount)
-        m_beltMgr->Init();  //nothing to check for in this init.
-
     if (!m_anomMgr->Init(m_beltMgr, m_dungMgr, m_spawnMgr)) {
-        _log(SERVICE__ERROR, "Unable to load Anomaly Manager during boot of system %u.", m_data.systemID);
+        _log(SERVER__INIT_ERR, "Unable to load Anomaly Manager during boot of system %u.", m_data.systemID);
         return false;
     }
 
@@ -1245,16 +1245,15 @@ void SystemManager::DoSpawnForBubble(SystemBubble* pBubble)
     if (!m_spawnMgr->IsInitialized())
         return;
 
-    uint8 count = m_beltCount;
-    if (count < 1)
+    if (m_beltCount < 1)
         return;
 
     if (is_log_enabled(SPAWN__MESSAGE))
-        _log(SPAWN__MESSAGE, "Spawn called for bubble %u(%u) in %s(%u)[%.4f], region %u.",
-             pBubble->GetID(), sBubbleMgr.GetBeltID(pBubble->GetID()), m_data.name.c_str(), m_data.systemID, m_data.securityRating, m_data.regionID);
-    if (count > 15)
-        count = 15;
-    if ((m_activeRatSpawns < count ) or (pBubble->IsGate())) {
+        _log(SPAWN__MESSAGE, "Spawn called for bubble %u(%u) in %s(%u)[%.4f], region %u.", \
+             pBubble->GetID(), sBubbleMgr.GetBeltID(pBubble->GetID()), m_data.name.c_str(), \
+             m_data.systemID, m_data.securityRating, m_data.regionID);
+
+    if ((m_activeRatSpawns < m_beltCount ) or (pBubble->IsGate())) {
         if (m_spawnMgr->DoSpawnForBubble(pBubble)) {
             m_ratBubbles.emplace(pBubble->GetID(), pBubble);
             if (is_log_enabled(SPAWN__TRACE))

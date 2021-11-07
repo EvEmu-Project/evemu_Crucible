@@ -44,7 +44,7 @@ m_initialized(false)
 void BeltMgr::Init()
 {
     if (!sConfig.cosmic.BeltEnabled) {
-        _log(COSMIC_MGR__MESSAGE, "BeltMgr System Disabled.  Not Initializing Belt Manager for %s(%u)", m_system->GetName(), m_system->GetID());
+        _log(COSMIC_MGR__INIT, "BeltMgr Disabled.  Not Initializing Belt Manager for %s(%u)", m_system->GetName(), m_system->GetID());
         return;
     }
 
@@ -55,7 +55,7 @@ void BeltMgr::Init()
     m_respawnTimer.Start(sConfig.cosmic.BeltRespawn *60 *60 *1000);  // hours->ms
 
     m_initialized = true;
-    _log(COSMIC_MGR__MESSAGE, "BeltMgr Initialized for %s(%u)", m_system->GetName(), m_systemID);
+    _log(COSMIC_MGR__INIT, "BeltMgr Initialized for %s(%u)", m_system->GetName(), m_systemID);
 }
 
 void BeltMgr::RegisterBelt(InventoryItemRef itemRef)

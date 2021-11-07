@@ -106,22 +106,11 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     }
 
     if (!sConfig.cosmic.AnomalyEnabled) {
-        _log(COSMIC_MGR__MESSAGE, "Anomaly System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
+        _log(COSMIC_MGR__INIT, "Anomaly System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
         return true;
     }
     if (!sConfig.cosmic.DungeonEnabled){
-        _log(COSMIC_MGR__MESSAGE, "Dungeon System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
-        return true;
-    }
-
-    // update the next two for new mission/anomaly/deadspace data.  see notes in spawn mgr
-    if (!sConfig.npc.RoamingSpawns and !sConfig.npc.StaticSpawns) {
-        _log(COSMIC_MGR__MESSAGE, "Spawn System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
-        return true;
-    }
-
-    if (!sConfig.cosmic.BeltEnabled) {
-        _log(COSMIC_MGR__MESSAGE, "BeltMgr System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
+        _log(COSMIC_MGR__INIT, "Dungeon System Disabled.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
         return true;
     }
 
@@ -154,7 +143,7 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     /* load current data?, start timers, process current data, and create new items, if needed */
     /** @todo all anomalies are currently temp items.  if/when we start saving them, create new table and itemIDs*/
 
-    _log(COSMIC_MGR__MESSAGE, "AnomalyMgr Initialized for %s(%u) with %u Max Signals for security class %0.2f.  Test Server %s", \
+    _log(COSMIC_MGR__INIT, "AnomalyMgr Initialized for %s(%u) with %u Max Signals for security class %0.2f.  Test Server %s", \
                 m_system->GetName(), m_system->GetID(), m_maxSigs, security, sConfig.debug.IsTestServer?"enabled":"disabled");
 
     return (m_initalized = true);

@@ -48,7 +48,6 @@ SpawnMgr::SpawnMgr(SystemManager* mgr, PyServiceMgr& svc)
   m_deadspaceTimer(0),
   m_groupTimerSetTime(0),
   m_spawnID(1),
-  m_ratEnabled(false),
   m_initalized(false)
 {
     m_spawns.clear();
@@ -61,32 +60,24 @@ SpawnMgr::SpawnMgr(SystemManager* mgr, PyServiceMgr& svc)
 
 bool SpawnMgr::Init()
 {
-    // even if belt spawns arent activated, still allow anomaly spawning
+    // even if belt spawns arent activated, still allow anomaly/dungeon spawning
     m_initalized = true;
 
-    if (!sConfig.npc.RoamingSpawns and !sConfig.npc.StaticSpawns) {
-        _log(COSMIC_MGR__MESSAGE, "Belt Spawns Disabled while Initializing SpawnMgr for %s(%u) - config option off.", m_system->GetName(), m_system->GetID());
-        return true;
-    }
-
     if (m_system->BeltCount() < 1) {
-        _log(COSMIC_MGR__MESSAGE, "Belt Spawns Disabled while Initializing SpawnMgr for %s(%u) - no belts.", m_system->GetName(), m_system->GetID());
+        _log(COSMIC_MGR__INIT, "Belt Spawns Disabled for %s(%u) - no belts.", m_system->GetName(), m_system->GetID());
         return true;
     }
 
-    m_ratEnabled = true;
     m_groupTimerSetTime = 150;  // (in seconds) 2.5m default check time. this will allow a max wait time of 7.5m for respawn
 
-    _log(COSMIC_MGR__MESSAGE, "SpawnMgr Fully Initialized for %s(%u)", m_system->GetName(), m_system->GetID());
-    
+    _log(COSMIC_MGR__INIT, "SpawnMgr Initialized for %s(%u)", m_system->GetName(), m_system->GetID());
+
     return m_initalized;
 }
 
 // this is only for rats.
 void SpawnMgr::Process() {
     if (!m_initalized)
-        return;
-    if (!m_ratEnabled)
         return;
 
     double profileStartTime(GetTimeUSeconds());
@@ -344,11 +335,19 @@ void SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID)
 
 bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
 {
-    if (!m_ratEnabled)
-        return false;
     if (pBubble == nullptr)
         return false;
-    double profileStartTime(GetTimeUSeconds());
+
+    if (pBubble->IsBelt()) {
+        if (!sConfig.cosmic.BeltEnabled)
+            return false;
+        if (!sConfig.npc.RoamingSpawns)
+            return false;
+    }
+
+    if (pBubble->IsGate())
+        if (!sConfig.npc.StaticSpawns)
+            return false;
 
     if (FindSpawnForBubble(pBubble->GetID())) {
         _log(SPAWN__TRACE, "SpawnMgr::FindSpawnForBubble() returned true for bubble %u.", pBubble->GetID());
@@ -368,9 +367,6 @@ bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
     if (pBubble->IsGate())
         m_system->IncGateSpawnCount();
 
-    /* this will throw off the accuracy of the profile, as this and SpawnMgr::Process() use the same data container */
-    if (sConfig.debug.UseProfiling)
-        sProfiler.AddTime(Profile::spawn, GetTimeUSeconds() - profileStartTime);
     return true;
 }
 
