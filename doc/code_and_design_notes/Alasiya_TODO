@@ -7,12 +7,6 @@
 
 
 *******************************************************
-**********  misc items to update from my code
-
-*u/k at this time*
-
-
-*******************************************************
 **********  errors and other found shit...high priority
 
 work on buglist, integrate this list in there where i can
@@ -26,7 +20,6 @@ work on buglist, integrate this list in there where i can
     - missions
     - ram
     - calendar
-    - contracts
     - lp
     - cosmic systems
     -
@@ -34,10 +27,6 @@ work on buglist, integrate this list in there where i can
 .update sets ship to full speed@@  wtf is this bullshit??
 
 request for smartbombs
-
-update headers to fix 'class' vs 'struct' declarations
-
-**** weapon hardpoints not decreasing
 
 00:51:16 [Service] charUnboundMgr::SelectCharacterID()
 00:51:16 E Client::SelectCharacter(): Char 90000000 already online.
@@ -63,6 +52,10 @@ after unloading module using ungroup, tried loading charge to newly-ungrouped mo
 charges not removed from cargo when loaded (scripts with qty=1)
 
 *****  modules not shutting down when deactivated ***
+this includes shoot roids - turrets do not deactivate
+when shooting roids, if there are miners activated, use 'roid depleted' to complete their cycle
+
+when shooting wrecks, all loot should be destroyed
 
 module add/remove isnt fully thought out at this point.
     - will need complete walk thru to verify proper operation
@@ -141,16 +134,12 @@ EVEDB::invGroups::Spawn_Container needs it own class
     - 477 types
 
 fix II.quantity type to allow -1 (singleton) (527 matches to review)
-remove InventoryDB (m_db) and associated code from itemfactory
-remove character queries from InventoryDB
 remove station/static queries from InventoryDB
 remove *lsc_service and *cache_service from PyServiceMgr
     - lsc_service may be singleton.  channels should remain dynamic...will have to look into this more
     - cache_service....will have to look into this more before deciding.
 
 AuditLogSecureContainer types not coded (data coded in EvE_Inventory.h)
-
-skill error on queue update   - see cruc/skills/skill_error_new
 
 look into changing (EvilNumber)DmgTypeAttribute to (struct)Inv::AttrData  (started.  still being used by sDataMgr)
     - may be able to delete the EvilNumber class, as it was created only to deal with attribute data, which we are getting away from with the struct.
@@ -191,8 +180,6 @@ check data sent for bound objects to see what we can use.
 pypacket building isnt completely right....some things dont need to be that deep.
 some returns are put instead of substruct, and others dont have the 2 tuples that follow substruct.
 no clue on criteria or exactly what goes where yet.
-
-go thru all header #include to determine if it is actually needed in header as opposed to #include in .cpp
 
 jettison now checks for can capy.
     - once full, loop stops and warning issued
@@ -318,8 +305,6 @@ dungeon mgr - factionID of "region sov" needs to be written to determine region 
 fleetData.h needs to be moved to common/EVE_Fleet.h and PODs put in fleet namespace
 FleetBound could use updates (client->getchar->name, etc)
 
-does fleet data need specific clientID?  verify and may have to reinstate
-
 fleet boosts - apply directly to ship/modules when calculated
     - set leadership skill modifiers on char item, then have fleet boosts pull directly from char
     - apply either when undocking or as fleet is created and use OnModuleAttributeChange packet
@@ -340,18 +325,6 @@ belt spawns - rework for better ship group selection   -priority level: med
 
 belt manager 'active' status on timer?
 
-contracts - start this system. current status unknown. this system is barely skeleton code at this time.  -priority level: low-med
-contractProxy::GetMyExpiredContractList()
-/client/script/ui/shared/neocom/journal.py(1429) DoShowContracts
-        status = 0
-        numRequiresAttention = 0
-        expiredCorpContracts = None
-        self = form.Journal object at 0x2da50f90, name=journal, destroyed=False>
-        expiredContracts = None
-        l = <Anonymous KeyVal: {'mySelf': None, 'expires': 0, 'myCorp': None, 'timeout': 132076899241107993L}>
-        forCorp = False
-        numCorpRequiresAttention = 0
-AttributeError: 'NoneType' object has no attribute 'contracts'
 
 missions/agents - agents working. courier missions working. currently ~50 missions, all levels.
 next up is security missions.  will need dungeon work for these.   -priority level: hi
@@ -486,6 +459,7 @@ return localization.GetByMessageID(self.ownerNameID, languageID)
     - ownerNameID is a messageID!!!
 0 AS landmarkNameID
     - landmarkNameID is a messageID!!!
+
 
 InvBrokerService needs love
 mapservice  needs love
@@ -657,8 +631,6 @@ RefObjects -
 Py* objects that have string as key need 'delete' called on string when destroyed per valgrind...cannot find ref to this error now
 Py* objects that have long int as key need 'delete' called on key when destroyed (mem leak)
 
-PyDatabase may need d'tors coded
-
 see what can be done about bind_args->Clone() as it may be leaking memory
 
 90% of valgrind "Definitely Lost" errors are from "new PyInt()" calls.
@@ -666,7 +638,7 @@ see what can be done about bind_args->Clone() as it may be leaking memory
 
 
 review all classes to add rule of 5 or =delete as required
-    - PyRep objects NOT done   -this needs further review
+    - PyRep done
     - InventoryItem done
     - Client done
     - SE classes need review
