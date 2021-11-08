@@ -22,7 +22,7 @@
     ------------------------------------------------------------------------------------
     Author:     Zhur, Bloody.Rabbit
     Updates:    Allan
-    Version:    10.2
+    Version:    10.3
 */
 
 
@@ -73,6 +73,8 @@ EVEServerConfig::EVEServerConfig()
     world.loginMsg = false;//N
     world.saveOnMove = false;
     world.saveOnUpdate = false;
+    world.shootRoids = false;
+    world.shootWrecks = false;
     world.mailDelay = 5;//N
     world.StationDockDelay = 4 /*s*/;
     world.apWarptoDistance = 15000;
@@ -377,6 +379,8 @@ bool EVEServerConfig::ProcessWorld( const TiXmlElement* ele )
     AddValueParser( "saveOnUpdate",      world.saveOnUpdate );
     AddValueParser( "highSecCyno",       world.highSecCyno );
     AddValueParser( "mailDelay",         world.mailDelay );
+    AddValueParser( "shootRoids",        world.shootRoids );
+    AddValueParser( "shootWrecks",       world.shootWrecks );
     AddValueParser( "StationDockDelay",  world.StationDockDelay );
     AddValueParser( "apWarptoDistance",  world.apWarptoDistance );
     AddValueParser( "shipBoardDistance", world.shipBoardDistance );
@@ -393,6 +397,8 @@ bool EVEServerConfig::ProcessWorld( const TiXmlElement* ele )
     RemoveParser( "saveOnUpdate" );
     RemoveParser( "highSecCyno" );
     RemoveParser( "mailDelay" );
+    RemoveParser( "shootRoids" );
+    RemoveParser( "shootWrecks" );
     RemoveParser( "StationDockDelay" );
     RemoveParser( "apWarptoDistance" );
     RemoveParser( "shipBoardDistance" );

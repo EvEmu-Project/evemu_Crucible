@@ -22,7 +22,7 @@
     ------------------------------------------------------------------------------------
     Author:     Zhur, Bloody.Rabit
     Updates:    Allan
-    Version:    10.2
+    Version:    10.3
 */
 
 #ifndef __EVE_SERVER_CONFIG__H__INCL__
@@ -78,6 +78,8 @@ public:
         bool saveOnMove;
         bool saveOnUpdate;
         bool highSecCyno;
+        bool shootRoids;
+        bool shootWrecks;
         uint8 mailDelay;
         uint8 StationDockDelay;
         uint16 shipBoardDistance;

@@ -20,7 +20,7 @@
  ------------------------------------------------------------------------------------
  Author:        Zhur
  Additions:  Allan
- Log Version: 10.3
+ Log Version: 10.4
  */
 /*  see above Log Version, log.ini and LogVersion displayed in server console for matching versions */
 
@@ -98,10 +98,7 @@ LOG_TYPE( ATTRIBUTE, MISSING, DISABLED, "Attr Missing" )
 
 LOG_CATEGORY( AUTOPILOT )
 LOG_TYPE( AUTOPILOT, ERROR,   ENABLED, "AP Error" )
-LOG_TYPE( AUTOPILOT, WARNING, DISABLED, "AP Warning" )
 LOG_TYPE( AUTOPILOT, MESSAGE, DISABLED, "AP Msg" )
-LOG_TYPE( AUTOPILOT, DEBUG, DISABLED, "AP Debug" )
-LOG_TYPE( AUTOPILOT, INFO, DISABLED, "AP Info" )
 LOG_TYPE( AUTOPILOT, TRACE, DISABLED, "AP Trace" )
 
 LOG_CATEGORY( BOOKMARK )
@@ -238,6 +235,7 @@ LOG_TYPE( CORP, DB_INFO, DISABLED, "CorpDBInfo" )
 
 LOG_CATEGORY( COSMIC_MGR )
 LOG_TYPE( COSMIC_MGR, ERROR,   ENABLED, "CMgr Error" )
+LOG_TYPE( COSMIC_MGR, INIT,   ENABLED, "CMgr Init" )
 LOG_TYPE( COSMIC_MGR, WARNING, DISABLED, "CMgr Warning" )
 LOG_TYPE( COSMIC_MGR, MESSAGE, DISABLED, "CMgr Msg" )
 LOG_TYPE( COSMIC_MGR, DEBUG, DISABLED, "CMgr Debug" )
@@ -387,6 +385,8 @@ LOG_TYPE( LP, WARNING, DISABLED, "LP Warning" )
 LOG_TYPE( LP, MESSAGE, DISABLED, "LP Msg" )
 LOG_TYPE( LP, INFO, DISABLED, "LP Info" )
 LOG_TYPE( LP, DEBUG, DISABLED, "LP Debug" )
+//LOG_TYPE( LP, CALL_DUMP, DISABLED, "LP CallDump" )
+//LOG_TYPE( LP, RSP_DUMP, DISABLED, "LP RspDump" )
 
 LOG_CATEGORY( MAIL )
 LOG_TYPE( MAIL, ERROR,   ENABLED, "MailError" )

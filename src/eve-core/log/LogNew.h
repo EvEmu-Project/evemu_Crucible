@@ -161,7 +161,7 @@ protected:
     /// A convenience color enum.
     enum Color
     {
-        COLOR_DEFAULT, ///< A default color.
+        COLOR_DEFAULT =0, ///< A default color.
         COLOR_BLACK,   ///< Black color.
         COLOR_RED,     ///< Red color.
         COLOR_GREEN,   ///< Green color.

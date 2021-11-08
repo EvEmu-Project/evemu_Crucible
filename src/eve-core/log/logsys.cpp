@@ -38,11 +38,13 @@ const char *log_category_names[NUMBER_OF_LOG_CATEGORIES] = {
     #include "log/logtypes.h"
 };
 
+// there seems to be a max of 474 items for NUMBER_OF_LOG_TYPES ...not sure how/where
+
 //this array is private to this file, only a const version of it is exposed
 #define LOG_TYPE(category, type, enabled, str) { enabled, LOG_ ##category, #category "__" #type, str },
 static LogTypeStatus real_log_type_info[NUMBER_OF_LOG_TYPES+1] ={
     #include "log/logtypes.h"
-    #include "utils/Lock.h"
+    #include "utils/Lock.h"     // why is this here?
     { false, NUMBER_OF_LOG_CATEGORIES, "BAD TYPE", "Bad Name" } /* dummy trailing record */
 };
 
@@ -183,7 +185,7 @@ bool load_log_settings(const char *filename) {
             continue;
 
         //first make sure we understand the value
-        bool enabled;
+        bool enabled(false);
         if (!strcasecmp(value, "on") || !strcasecmp(value, "yes") || !strcasecmp(value, "enabled") || !strcmp(value, "1"))
             enabled = true;
         else if (!strcasecmp(value, "off") || !strcasecmp(value, "no") || !strcasecmp(value, "disabled") || !strcmp(value, "0"))
@@ -193,16 +195,15 @@ bool load_log_settings(const char *filename) {
             continue;
         }
 
-        int r;
+        int16 r(0);
         //first see if it is a category name
-        for(r = 0; r < NUMBER_OF_LOG_CATEGORIES; r++) {
+        for(r = 0; r < NUMBER_OF_LOG_CATEGORIES; ++r) {
             if (!strcasecmp(log_category_names[r], type_name))
                 break;
         }
         if (r != NUMBER_OF_LOG_CATEGORIES) {
             //matched a category.
-            int k;
-            for(k = 0; k < NUMBER_OF_LOG_TYPES; k++) {
+            for(int16 k(0); k < NUMBER_OF_LOG_TYPES; ++k) {
                 if (log_type_info[k].category != r)
                     continue;   //does not match this category.
                     if (enabled)
@@ -213,7 +214,7 @@ bool load_log_settings(const char *filename) {
             continue;
         }
 
-        for(r = 0; r < NUMBER_OF_LOG_TYPES; r++) {
+        for(r = 0; r < NUMBER_OF_LOG_TYPES; ++r) {
             if (!strcasecmp(log_type_info[r].name, type_name))
                 break;
         }
