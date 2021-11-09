@@ -30,8 +30,6 @@ BeltMgr::BeltMgr(SystemManager* mgr, PyServiceMgr& svc)
 : m_respawnTimer(0),
 m_system(mgr),
 m_services(svc),
-m_regionID(mgr->GetRegionID()),
-m_systemID(mgr->GetID()),
 m_initialized(false)
 {
     assert(m_system != nullptr);
@@ -55,7 +53,7 @@ void BeltMgr::Init()
     m_respawnTimer.Start(sConfig.cosmic.BeltRespawn *60 *60 *1000);  // hours->ms
 
     m_initialized = true;
-    _log(COSMIC_MGR__INIT, "BeltMgr Initialized for %s(%u)", m_system->GetName(), m_systemID);
+    _log(COSMIC_MGR__INIT, "BeltMgr Initialized for %s(%u)", m_system->GetName(), m_system->GetID());
 }
 
 void BeltMgr::RegisterBelt(InventoryItemRef itemRef)
@@ -146,7 +144,7 @@ bool BeltMgr::Load(uint16 bubbleID) {
     uint32 beltID = sBubbleMgr.GetBeltID(bubbleID);
     if (beltID == 0)
         return false;
-    if (!ManagerDB::LoadSystemRoids(m_systemID, beltID, entities))
+    if (!ManagerDB::LoadSystemRoids(m_system->GetID(), beltID, entities))
         return false;
 
     for (auto entity : entities) {
@@ -166,7 +164,7 @@ bool BeltMgr::Load(uint16 bubbleID) {
             _log(COSMIC_MGR__WARNING, "BeltMgr::Load() -  Unable to spawn itemID %u - %s (type %u).", entity.itemID, entity.itemName.c_str(), entity.typeID);
             continue;
         }
-        _log(COSMIC_MGR__TRACE, "BeltMgr::Load() - Loaded asteroid %u, type %u for %s(%u)", entity.itemID, entity.typeID, m_system->GetName(), m_systemID );
+        _log(COSMIC_MGR__TRACE, "BeltMgr::Load() - Loaded asteroid %u, type %u for %s(%u)", entity.itemID, entity.typeID, m_system->GetName(), m_system->GetID() );
         m_system->AddEntity(pASE);
         m_asteroids.emplace(std::pair<uint32, AsteroidSE*>(beltID, pASE));
         pASE->SetMgr(this, beltID);
@@ -190,7 +188,7 @@ bool BeltMgr::Load(uint16 bubbleID) {
 
 void BeltMgr::Save() {
     if (m_asteroids.empty()) {
-        _log(COSMIC_MGR__TRACE, "BeltMgr::Save - m_asteroids is empty for %s(%u).  nothing to save.", m_system->GetName(), m_systemID);
+        _log(COSMIC_MGR__TRACE, "BeltMgr::Save - m_asteroids is empty for %s(%u).  nothing to save.", m_system->GetName(), m_system->GetID());
         return;
     }
 
@@ -208,7 +206,7 @@ void BeltMgr::Save() {
         entry.itemID = cur.second->GetID();
         entry.itemName = cur.second->GetName();
         entry.typeID = cur.second->GetSelf()->typeID();
-        entry.systemID = m_systemID;
+        entry.systemID = m_system->GetID();
         entry.beltID = cur.first;
         entry.radius = cur.second->GetRadius();
         entry.quantity = ((25000 * log(entry.radius)) - 112404.8);   // quantity in m^3
@@ -217,9 +215,9 @@ void BeltMgr::Save() {
         ++save;
     }
 
-    ManagerDB::SaveSystemRoids(m_systemID, roids);
+    ManagerDB::SaveSystemRoids(m_system->GetID(), roids);
     _log(COSMIC_MGR__TRACE, "BeltMgr::Save - Saving %u Asteroids for %s(%u) took %.3fus.  Skipped %u temp anomaly asteroids.", \
-            save, m_system->GetName(), m_systemID, (GetTimeUSeconds() - start), skip);
+            save, m_system->GetName(), m_system->GetID(), (GetTimeUSeconds() - start), skip);
 }
 
 void BeltMgr::GetList(uint32 beltID, std::vector< AsteroidSE* >& list)
@@ -276,7 +274,7 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
     std::unordered_multimap<float, uint16> roidDist;
     if (ice) {
         // caldari=1, minmatar=2, amarr=3, gallente=4, none=5
-        GetIceDist(sDataMgr.GetRegionQuarter(m_regionID), secRating, roidDist);
+        GetIceDist(sDataMgr.GetRegionQuarter(m_system->GetRegionID()), secRating, roidDist);
     } else if (anomaly) {
         roidDist = roidTypes;
     } else {
@@ -360,7 +358,7 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
     }
 
     _log(COSMIC_MGR__TRACE, "BeltMgr::SpawnBelt - Belt spawned with %u roids of %s in %s %u for %s(%u)", \
-            pcs, (ice?"ice":"ore"), (anomaly?"anomalyID":"beltID"), beltID, m_system->GetName(), m_systemID );
+            pcs, (ice?"ice":"ore"), (anomaly?"anomalyID":"beltID"), beltID, m_system->GetName(), m_system->GetID() );
 }
 
 uint32 BeltMgr::GetAsteroidType(double p, const std::unordered_multimap<float, uint16>& roids) {
@@ -401,12 +399,12 @@ void BeltMgr::SpawnAsteroid(uint32 beltID, uint32 typeID, double radius, const G
 
     AsteroidData adata = AsteroidData();
         adata.beltID = beltID;
-        adata.systemID = m_systemID;
+        adata.systemID = m_system->GetID();
         adata.typeID = typeID;
         adata.quantity = quantity;
         adata.radius = radius;
         adata.position = position;
-    ItemData idata(typeID, ownerSystem, m_systemID, flagNone, "", position);
+    ItemData idata(typeID, ownerSystem, m_system->GetID(), flagNone, "", position);
     InventoryItemRef iRef(nullptr);
     if (IsTempItem(beltID)) {
         iRef = AsteroidItem::SpawnTemp(idata, adata);   // create temp item for anomaly belt

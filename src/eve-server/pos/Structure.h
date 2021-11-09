@@ -136,7 +136,7 @@ public:
     virtual PyDict*             MakeSlimItem();
 
     /* virtual functions default to base class and overridden as needed */
-    virtual void                Killed(Damage &fatal_blow);
+    virtual void                Killed(Damage &damage);
     virtual void                Init();
     virtual void                InitData();
     virtual void                Scoop();

@@ -619,12 +619,12 @@ PyResult Command_kill(Client* pClient, CommandDB* db, PyServiceMgr* services, co
             pClient->SystemMgr()->RemoveEntity(shipEntity);
             if (shipEntity->IsNPCSE()) {
                 NPC* npcEntity = shipEntity->GetNPCSE();
-                Damage fatal_blow(pClient->GetShipSE(),true);
-                npcEntity->Killed(fatal_blow);
+                Damage damage(pClient->GetShipSE(),true);
+                npcEntity->Killed(damage);
                 delete npcEntity;
             } else {
-                Damage fatal_blow(pClient->GetShipSE(),true);
-                shipEntity->Killed(fatal_blow);
+                Damage damage(pClient->GetShipSE(),true);
+                shipEntity->Killed(damage);
                 sRef->Delete();
             }
         }
@@ -651,8 +651,8 @@ PyResult Command_killallnpcs(Client* pClient, CommandDB* db, PyServiceMgr* servi
         if (cur.second == nullptr)
             continue;
         if (cur.second->IsNPCSE()) {
-            Damage fatal_blow(pClient->GetShipSE(),true);
-            cur.second->GetNPCSE()->Killed(fatal_blow);
+            Damage damage(pClient->GetShipSE(),true);
+            cur.second->GetNPCSE()->Killed(damage);
         }
     }
 

@@ -1343,8 +1343,8 @@ PyResult ShipBound::Handle_SelfDestruct(PyCallArgs &call) {
                     [PyInt 4]
                     [PyInt 24700]
     ***********  not sure how to kill ship  *************
-    Damage fatal_blow((static_cast<SystemEntity*>(who)),true);
-    entity->Killed(fatal_blow);
+    Damage damage((static_cast<SystemEntity*>(who)),true);
+    entity->Killed(damage);
     *************  cancel destruct  *****************
     [PyTuple 3 items]
       [PyInt 6]

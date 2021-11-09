@@ -71,6 +71,8 @@ bool SpawnMgr::Init()
     m_groupTimerSetTime = 150;  // (in seconds) 2.5m default check time. this will allow a max wait time of 7.5m for respawn
 
     _log(COSMIC_MGR__INIT, "SpawnMgr Initialized for %s(%u)", m_system->GetName(), m_system->GetID());
+    _log(COSMIC_MGR__INIT, "Roaming Belt Spawns are %s", sConfig.npc.RoamingSpawns ? "enabled" : "disabled");
+    _log(COSMIC_MGR__INIT, "Static Gate Spawns are %s", sConfig.npc.StaticSpawns ? "enabled" : "disabled");
 
     return m_initalized;
 }

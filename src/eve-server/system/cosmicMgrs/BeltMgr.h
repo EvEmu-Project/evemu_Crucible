@@ -69,8 +69,6 @@ private:
     PyServiceMgr& m_services;    //we do not own this
 
     bool m_initialized;
-    uint32 m_systemID;
-    uint32 m_regionID;
 
     /* map contains beltID, boolean for IsSpawned() */
     std::map<uint32, bool> m_spawned;

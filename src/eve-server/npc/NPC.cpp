@@ -296,7 +296,7 @@ void NPC::SetResists() {
     if (!m_self->HasAttribute(AttrThermalDamageResonance)) m_self->SetAttribute(AttrThermalDamageResonance, EvilOne, false);
 }
 
-void NPC::Killed(Damage &fatal_blow) {
+void NPC::Killed(Damage &damage) {
     if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
         return; // make error here?
 
@@ -306,7 +306,7 @@ void NPC::Killed(Damage &fatal_blow) {
 
     uint32 killerID = 0;
     Client* pClient(nullptr);
-    SystemEntity *killer(fatal_blow.srcSE);
+    SystemEntity *killer(damage.srcSE);
 
     if (killer->HasPilot()) {
         pClient = killer->GetPilot();

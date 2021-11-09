@@ -1223,7 +1223,7 @@ void StructureSE::GetEffectState(PyList &into)
     into.AddItem(fxState);
 }
 
-void StructureSE::Killed(Damage &fatal_blow)
+void StructureSE::Killed(Damage &damage)
 {
     if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
         return; // make error here?
@@ -1233,7 +1233,7 @@ void StructureSE::Killed(Damage &fatal_blow)
 
     uint32 killerID = 0;
     Client *pClient(nullptr);
-    SystemEntity *killer = fatal_blow.srcSE;
+    SystemEntity *killer = damage.srcSE;
 
     if (killer->HasPilot())
     {
@@ -1311,9 +1311,9 @@ void StructureSE::Killed(Damage &fatal_blow)
     data.finalAllianceID = killer->GetAllianceID();
     data.finalFactionID = killer->GetWarFactionID();
     data.finalShipTypeID = killer->GetTypeID();
-    data.finalWeaponTypeID = fatal_blow.weaponRef->typeID();
+    data.finalWeaponTypeID = damage.weaponRef->typeID();
     data.finalSecurityStatus = 0; /* fix this */
-    data.finalDamageDone = fatal_blow.GetTotal();
+    data.finalDamageDone = damage.GetTotal();
 
     uint32 totalHP = m_self->GetAttribute(AttrHP).get_uint32();
     totalHP += m_self->GetAttribute(AttrArmorHP).get_uint32();

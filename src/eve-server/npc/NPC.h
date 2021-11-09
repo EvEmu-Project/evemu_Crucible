@@ -57,7 +57,7 @@ public:
     virtual void EncodeDestiny(Buffer& into);
 
     /* virtual functions default to base class and overridden as needed */
-    virtual void Killed(Damage &fatal_blow);
+    virtual void Killed(Damage &damage);
     virtual bool Load();  // sets orbit range and initalizes the AIMgr
 
     /* virtual functions to be overridden in derived classes */
