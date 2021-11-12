@@ -36,6 +36,7 @@ public:
     void                GetStationOfficeIDs(uint32 locationID, std::vector<OfficeData> &data);
 
     bool                GetStationData(uint32 stationID, StationData& data);
+    uint32              GetStationServiceMask(uint32 stationID) { auto it = m_stationData.find(stationID); return it->second.serviceMask; }
 
     PyRep*              GetStationItemBits(uint32 stationID);
     PyObject*           GetStationPyData(uint32 stationID);

@@ -480,11 +480,11 @@ PyRep *ConfigDB::GetDynamicCelestials(uint32 solarSystemID) {
         "   itemID,"
         "   itemName,"
         "   solarSystemID AS locationID,"
-        "   IFNULL(orbitID, 0) AS orbitID,"
+        "   IFNULL(orbitID, False) AS orbitID,"
         "   0 AS connector,"     //this is connector field....have only seen 0 in server packets.
-        "   x, y, z,"
-        "   celestialIndex,"    //  this index denotes which planet this item orbits (PLANET #....NOT moon #)
-        "   orbitIndex"         //  this index denotes which asteroid belt this item belongs to
+        "   x, y, z"
+        //"   celestialIndex,"    //  this index denotes which planet this item orbits (PLANET #....NOT moon #)
+        //"   orbitIndex"         //  this index denotes which asteroid belt this item belongs to
         " FROM mapDenormalize"
         " WHERE solarSystemID = %u"
         " AND groupID = %d"

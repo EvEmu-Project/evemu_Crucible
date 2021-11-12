@@ -969,8 +969,8 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     GPoint anchorPosition = egg->GetPosition();
 
     // Clear egg's data and remove it from space
-    m_self->ChangeOwner(1, true);
     call.client->SystemMgr()->RemoveEntity(egg);
+    m_self->ChangeOwner(0, true);
     SafeDelete(egg);
 
     // Step 3
@@ -1025,7 +1025,7 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     stData.maxShipVolumeDockable = 50000000;
     stData.dockingCostPerVolume = 0;
 
-    // Set arbitrary values (real values should be in DB somewhere)
+    // Set default service values
     stData.officeSlots = 8;
     stData.reprocessingEfficiency = 0.5;
     stData.reprocessingStationsTake = 0.05;
@@ -1034,11 +1034,7 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     stData.orbitID = call.client->SystemMgr()->GetClosestPlanetID(anchorPosition);
 
     // Calculate service mask (temporarily, allow everything)
-    stData.serviceMask = Station::BountyMissions
-                       | Station::AssassinationMissions
-                       | Station::CourierMissions
-                       | Station::Interbus
-                       | Station::ReprocessingPlant
+    stData.serviceMask = Station::ReprocessingPlant                        
                        | Station::Refinery
                        | Station::Market
                        | Station::BlackMarket
@@ -1067,10 +1063,21 @@ PyResult InventoryBound::Handle_Build(PyCallArgs &call) {
     // Update staticDataMgr
     sDataMgr.AddOutpost(stData);
 
+    // Create the StationItem and spawn the OutpostSE entity
     StationItemRef itemRef = sItemFactory.GetStationRef(stData.stationID);
     OutpostSE* oSE = new OutpostSE(itemRef, call.client->services(), call.client->SystemMgr());
     sEntityList.AddStation(stData.stationID, itemRef);
     call.client->SystemMgr()->AddEntity(oSE);
+
+    // Create and spawn all of the station service entities
+    _log(POS__MESSAGE, "Creating new station service entities...");
+
+    oSE->SpawnStationService(call.client, stData, EVEDB::invTypes::FittingService);
+    oSE->SpawnStationService(call.client, stData, EVEDB::invTypes::ReprocessingService);
+    oSE->SpawnStationService(call.client, stData, EVEDB::invTypes::FactoryService);
+    oSE->SpawnStationService(call.client, stData, EVEDB::invTypes::CloningService);
+    oSE->SpawnStationService(call.client, stData, EVEDB::invTypes::RepairService);
+    oSE->SpawnStationService(call.client, stData, EVEDB::invTypes::LaboratoryService);
 
     return nullptr;
 }

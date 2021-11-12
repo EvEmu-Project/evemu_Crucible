@@ -282,3 +282,103 @@ uint32 StationDB::GetNewOutpostID()
 
     return newID;
 }
+
+void StationDB::GetStationServiceStates(uint32 stationID, DBQueryResult& res)
+{
+    // Send a rowset of the following values:
+    /*
+    [PyString "solarSystemID"] = [PyInt 30001984]
+    [PyString "stationID"] = [PyInt 61000012]
+    [PyString "serviceID"] = [PyInt 65536]
+    [PyString "stationServiceItemID"] = [PyIntegerVar 318021026]
+    [PyString "isEnabled"]
+    */
+
+    sDatabase.RunQuery(res, "SELECT solarSystemID, stationID, ( "
+    "    CASE  "
+    "        WHEN typeID=28155 THEN 65536 "
+    "        WHEN typeID=28156 THEN 16 "
+    "        WHEN typeID=28157 THEN 8192 "
+    "        WHEN typeID=28158 THEN 512 "
+    "        WHEN typeID=28159 THEN 4096 "
+    "        WHEN typeID=28166 THEN 16384 "
+    "        ELSE 0 "
+    "    END) AS serviceID, "
+    "IFNULL(itemID, 0) AS stationServiceItemID, IF(flag=144 ,1, 0) AS isEnabled  "
+    "FROM entity e "
+    "  INNER JOIN staStations s ON s.x = e.x AND s.y = e.y AND s.z = e.z "
+    "  WHERE s.stationID=%u AND typeID IN (28155,28156,28157,28158,28159,28166) ", stationID);
+    }
+
+void StationDB::GetStationServiceIdentifiers(DBQueryResult& res)
+{
+    sDatabase.RunQuery(res, "SELECT serviceID, serviceName, serviceNameID "
+    "FROM staServices ");
+}
+
+void StationDB::GetStationManagementServiceCostModifiers(uint32 stationID, DBQueryResult& res)
+{
+    sDatabase.RunQuery(res, "SELECT serviceID, discountPerGoodStandingPoint, "
+    "surchargePerBadStandingPoint "
+    "FROM staOutpostServiceConfig WHERE stationID=%u", stationID);
+}
+
+void StationDB::GetStationServiceAccessRule(uint32 stationID, uint32 serviceID, DBQueryResult& res)
+{
+    sDatabase.RunQuery(res, "SELECT serviceID, serviceName, minimumStanding, minimumCharSecurity, "
+    "maximumCharSecurity, minimumCorpSecurity, maximumCorpSecurity "
+    "FROM staOutpostServiceConfig "
+    "INNER JOIN staServices USING (serviceID) "
+    "WHERE stationID=%u AND serviceID=%u", stationID, serviceID);
+}
+
+void StationDB::GetStationDetails(uint32 stationID, DBQueryResult& res)
+{
+    sDatabase.RunQuery(res, "SELECT stationName, stationID, orbitID, description, "
+    "s.security as security, dockingCostPerVolume, officeRentalCost, reprocessingStationsTake, " 
+    "reprocessingHangarFlag, corporationID as ownerID, maxShipVolumeDockable, upgradeLevel "
+    "FROM staStations s "
+    "INNER JOIN mapDenormalize m ON s.stationID = m.itemID "
+    "INNER JOIN staOperations USING (operationID) "
+    "WHERE stationID=%u", stationID);
+}
+
+void StationDB::GetRentableItems(uint32 stationID, DBQueryResult& res)
+{
+    sDatabase.RunQuery(res, "SELECT stationID, typeID, "
+    "corporationID as rentedToID, TRUE as publiclyAvailable "
+    "FROM staOffices "
+    "WHERE stationID=%u", stationID);
+}
+
+void StationDB::GetOwnerIDsOfClonesAtStation(uint32 stationID, uint32 corpID, DBQueryResult& res)
+{
+    if (corpID == -1) {
+        sDatabase.RunQuery(res, "SELECT ownerID, corporationID FROM entity "
+        "INNER JOIN invTypes USING (typeID) "
+        "INNER JOIN chrCharacters ON entity.ownerID = chrCharacters.characterID "
+        "WHERE groupID=23 AND entity.locationID=%u", stationID);
+    } 
+    else {
+        sDatabase.RunQuery(res, "SELECT ownerID, corporationID FROM entity "
+        "INNER JOIN invTypes USING (typeID) "
+        "INNER JOIN chrCharacters ON entity.ownerID = chrCharacters.characterID "
+        "WHERE groupID=23 AND entity.locationID=%u AND corporationID=%u", stationID, corpID);
+    }
+
+}
+
+void StationDB::GetOutpostImprovementStaticData(DBQueryResult& res)
+{
+    sDatabase.RunQuery(res, "SELECT typeID, raceID, requiredAssemblyLineTypeID, requiredImprovementTypeID "
+    "FROM staImprovements");
+}
+
+void StationDB::GetOutpostImprovements(uint32 stationID, DBQueryResult& res)
+{
+    sDatabase.RunQuery(res, "SELECT "
+    "improvementTier2aTypeID, improvementTier3aTypeID, improvementTier1bTypeID, "
+    "improvementTier1aTypeID, improvementTier2bTypeID, improvementTier1cTypeID "
+    "FROM staImprovementsInstalled "
+    "WHERE stationID=%u", stationID);
+}
