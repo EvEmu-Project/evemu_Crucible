@@ -38,8 +38,6 @@ const char *log_category_names[NUMBER_OF_LOG_CATEGORIES] = {
     #include "log/logtypes.h"
 };
 
-// there seems to be a max of 474 items for NUMBER_OF_LOG_TYPES ...not sure how/where
-
 //this array is private to this file, only a const version of it is exposed
 #define LOG_TYPE(category, type, enabled, str) { enabled, LOG_ ##category, #category "__" #type, str },
 static LogTypeStatus real_log_type_info[NUMBER_OF_LOG_TYPES+1] ={

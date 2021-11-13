@@ -43,7 +43,7 @@ static const char* const EVEMU_REVISION = "0.8.4";
 static const char* const EVEMU_BUILD_DATE = __DATE__;
 /* match versions here with stated files for full support */
 static const float Config_Version = 10.3; /* eve-server.xml and EveServerConfig.cpp */
-static const float Log_Version = 10.4;    /* logtypes.h and log.ini */
+static const float Log_Version = 10.5;    /* logtypes.h and log.ini */
 /* AI versions for shitz-n-giggles */
 static const float Joe_Version = 0.15;   /* MarketBot.xml and MarketBotConf.cpp */
 /* these  dont have separate config files ...yet */
