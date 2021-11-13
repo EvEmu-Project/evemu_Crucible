@@ -97,7 +97,8 @@ void StationDataMgr::Populate()
         t.graphicID, s.solarSystemID, s.constellationID, s.regionID, st.dockEntryX, st.dockEntryY, st.dockEntryZ 31
         StationData sData = StationData();
         sData.stationID                 = row.GetUInt(0);
-        if ((itr = m_serviceMask.find(sData.stationID)) != m_serviceMask.end()) {
+        sData.operationID               = row.GetInt(11);
+        if ((itr = m_serviceMask.find(sData.operationID)) != m_serviceMask.end()) {
             sData.serviceMask = itr->second;
         } else {
             sData.serviceMask = 0;
@@ -108,7 +109,6 @@ void StationDataMgr::Populate()
         sData.maxShipVolumeDockable     = row.GetUInt(8);
         sData.officeSlots               = row.GetUInt(9);
         sData.officeRentalFee           = row.GetInt(10);
-        sData.operationID               = row.GetInt(11);
         sData.typeID                    = row.GetInt(12);
         sData.corporationID             = row.GetInt(13);
         sData.name                      = row.GetText(14);

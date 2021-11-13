@@ -49,6 +49,7 @@
 #include "corporation/CorpStationMgr.h"
 #include "station/Station.h"
 #include "station/StationDataMgr.h"
+#include "station/StationDB.h"
 
 class CorpStationMgrIMBound
 : public PyBoundObject
@@ -82,6 +83,13 @@ public:
         PyCallable_REG_CALL(CorpStationMgrIMBound, DoesPlayersCorpHaveJunkAtStation);
         PyCallable_REG_CALL(CorpStationMgrIMBound, GetQuoteForGettingCorpJunkBack);
         PyCallable_REG_CALL(CorpStationMgrIMBound, PayForReturnOfCorpJunk);
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationServiceIdentifiers);
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationDetails);
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationServiceAccessRule);
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationManagementServiceCostModifiers);
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetRentableItems);
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetOwnerIDsOfClonesAtStation);
+        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationImprovements);
 
         pStationItem = sEntityList.GetStationByID(station_id).get();
     }
@@ -107,7 +115,13 @@ public:
     PyCallable_DECL_CALL(DoesPlayersCorpHaveJunkAtStation);
     PyCallable_DECL_CALL(GetQuoteForGettingCorpJunkBack);
     PyCallable_DECL_CALL(PayForReturnOfCorpJunk);
-
+    PyCallable_DECL_CALL(GetStationServiceIdentifiers);
+    PyCallable_DECL_CALL(GetStationDetails);
+    PyCallable_DECL_CALL(GetStationServiceAccessRule);
+    PyCallable_DECL_CALL(GetStationManagementServiceCostModifiers);
+    PyCallable_DECL_CALL(GetRentableItems);
+    PyCallable_DECL_CALL(GetOwnerIDsOfClonesAtStation);
+    PyCallable_DECL_CALL(GetStationImprovements);
 
 protected:
     Dispatcher *const m_dispatch;
@@ -480,189 +494,255 @@ PyResult CorpStationMgrIMBound::Handle_PayForReturnOfCorpJunk(PyCallArgs &call)
 
 PyResult CorpStationMgr::Handle_GetImprovementStaticData(PyCallArgs &call)
 {
-    //  more outpost shit.  we're nowhere near ready for this yet.
-    //  more info in  client/script/ui/station/stationmanagement/base_stationmanagement.py
-    /*
-     *        outpostData = self.GetOutpostData()
-     *        isd = sm.RemoteSvc('corpStationMgr').GetImprovementStaticData()
-     *        outpostRaceID = cfg.invtypes.Get(outpostData.typeID).raceID
-     *        outpostAsmLines = set([ each.assemblyLineTypeID for each in sm.ProxySvc('ramProxy').AssemblyLinesGet(eve.session.stationid) ])
-     */
     _log(CORP__CALL, "CorpStationMgr::Handle_GetImprovementStaticData()");
     call.Dump(CORP__CALL_DUMP);
 
-    return nullptr;
+    DBQueryResult res;
+    StationDB::StationDB::GetOutpostImprovementStaticData(res);
+
+    DBResultRow row;
+
+    DBRowDescriptor *header = new DBRowDescriptor();
+    header->AddColumn("typeID", DBTYPE_I4);
+    header->AddColumn("raceID", DBTYPE_I4);
+    header->AddColumn("requiredAssemblyLineTypeID", DBTYPE_I4);
+    header->AddColumn("requiredImprovementTypeID", DBTYPE_I4);
+
+    CRowSet *rowset = new CRowSet(&header);
+
+    while (res.GetRow(row)) {
+        PyPackedRow *newRow = rowset->NewRow();
+        newRow->SetField("typeID", new PyInt(row.GetInt(0)));
+        newRow->SetField("raceID", new PyInt(row.GetInt(1)));
+        uint32 asmLine = row.GetInt(2);
+        if (asmLine == 0) {
+            newRow->SetField("requiredAssemblyLineTypeID", new PyNone());
+        } else {
+            newRow->SetField("requiredAssemblyLineTypeID", new PyInt(asmLine));
+        }
+        uint32 improvement = row.GetInt(3);
+        if (improvement == 0) {
+            newRow->SetField("requiredImprovementTypeID", new PyNone());
+        } else {
+            newRow->SetField("requiredImprovementTypeID", new PyInt(improvement));
+        }
+    }
+
+    PyDict* dict = new PyDict();
+    dict->SetItemString("improvementTypes", rowset);
+
+    return new PyObject("util.KeyVal", dict);
 }
 
 PyResult CorpStationMgr::Handle_GetStationServiceStates(PyCallArgs &call)
 {
-    /*   i *THINK* this is only sent for outposts.....stationID is 61m (above static stations)
-     * since it has NOT been called yet on evemu, it very well could be outposts only (cause we dont have any)
-     *
-     *  **UPDATE**
-     *   i was right.  these are outposts or conqurable stations.   found this in code...
-     * if util.IsOutpost(eve.session.stationid) or sm.GetService('godma').GetType(eve.stationItem.stationTypeID).isPlayerOwnable == 1:
-     *     self.serviceItemsState = sm.RemoteSvc('corpStationMgr').GetStationServiceStates()
-     *
-     *
-     * ==================== Sent from Client 98 bytes
-     *
-     * [PyObjectData Name: macho.CallReq]
-     *  [PyTuple 6 items]
-     *    [PyInt 6]
-     *    [PyObjectData Name: macho.MachoAddress]
-     *      [PyTuple 4 items]
-     *        [PyInt 2]
-     *        [PyInt 0]
-     *        [PyIntegerVar 45]
-     *        [PyNone]
-     *    [PyObjectData Name: macho.MachoAddress]
-     *      [PyTuple 3 items]
-     *        [PyInt 8]
-     *        [PyString "corpStationMgr"]
-     *        [PyNone]
-     *    [PyInt 5654387]
-     *    [PyTuple 1 items]
-     *      [PyTuple 2 items]
-     *        [PyInt 0]
-     *        [PySubStream 39 bytes]
-     *          [PyTuple 4 items]
-     *            [PyInt 1]
-     *            [PyString "GetStationServiceStates"]
-     *            [PyTuple 0 items]
-     *            [PyDict 1 kvp]
-     *              [PyString "machoVersion"]
-     *              [PyInt 1]
-     *    [PyNone]
-     *
-     *
-     *
-     * ==================== Sent from Server 347 bytes
-     *
-     * [PyObjectData Name: macho.CallRsp]
-     *  [PyTuple 6 items]
-     *    [PyInt 7]
-     *    [PyObjectData Name: macho.MachoAddress]
-     *      [PyTuple 3 items]
-     *        [PyInt 8]
-     *        [PyString "corpStationMgr"]
-     *        [PyNone]
-     *    [PyObjectData Name: macho.MachoAddress]
-     *      [PyTuple 4 items]
-     *        [PyInt 2]
-     *        [PyIntegerVar 15001000001023]
-     *        [PyIntegerVar 45]
-     *        [PyNone]
-     *    [PyInt 5654387]
-     *    [PyTuple 1 items]
-     *      [PySubStream 279 bytes]
-     *        [PyDict 6 kvp]
-     *          [PyInt 512]
-     *          [PyObjectData Name: util.Row]
-     *            [PyDict 2 kvp]
-     *              [PyString "header"]
-     *              [PyList 5 items]
-     *                [PyString "solarSystemID"]
-     *                [PyString "stationID"]
-     *                [PyString "serviceID"]
-     *                [PyString "stationServiceItemID"]
-     *                [PyString "isEnabled"]
-     *              [PyString "line"]
-     *              [PyList 5 items]
-     *                [PyInt 30001984]
-     *                [PyInt 61000012]              << stationID 61m = outpost
-     *                [PyInt 512]
-     *                [PyIntegerVar 318021030]
-     *                [PyInt 1]
-     *          [PyInt 16384]
-     *          [PyObjectData Name: util.Row]
-     *            [PyDict 2 kvp]
-     *              [PyString "header"]
-     *              [PyList 5 items]
-     *                [PyString "solarSystemID"]
-     *                [PyString "stationID"]
-     *                [PyString "serviceID"]
-     *                [PyString "stationServiceItemID"]
-     *                [PyString "isEnabled"]
-     *              [PyString "line"]
-     *              [PyList 5 items]
-     *                [PyInt 30001984]
-     *                [PyInt 61000012]
-     *                [PyInt 16384]
-     *                [PyIntegerVar 318021027]
-     *                [PyInt 1]
-     *          [PyInt 4096]
-     *          [PyObjectData Name: util.Row]
-     *            [PyDict 2 kvp]
-     *              [PyString "header"]
-     *              [PyList 5 items]
-     *                [PyString "solarSystemID"]
-     *                [PyString "stationID"]
-     *                [PyString "serviceID"]
-     *                [PyString "stationServiceItemID"]
-     *                [PyString "isEnabled"]
-     *              [PyString "line"]
-     *              [PyList 5 items]
-     *                [PyInt 30001984]
-     *                [PyInt 61000012]
-     *                [PyInt 4096]
-     *                [PyIntegerVar 318021029]
-     *                [PyInt 1]
-     *          [PyInt 8192]
-     *          [PyObjectData Name: util.Row]
-     *            [PyDict 2 kvp]
-     *              [PyString "header"]
-     *              [PyList 5 items]
-     *                [PyString "solarSystemID"]
-     *                [PyString "stationID"]
-     *                [PyString "serviceID"]
-     *                [PyString "stationServiceItemID"]
-     *                [PyString "isEnabled"]
-     *              [PyString "line"]
-     *              [PyList 5 items]
-     *                [PyInt 30001984]
-     *                [PyInt 61000012]
-     *                [PyInt 8192]
-     *                [PyIntegerVar 318021028]
-     *                [PyInt 1]
-     *          [PyInt 16]
-     *          [PyObjectData Name: util.Row]
-     *            [PyDict 2 kvp]
-     *              [PyString "header"]
-     *              [PyList 5 items]
-     *                [PyString "solarSystemID"]
-     *                [PyString "stationID"]
-     *                [PyString "serviceID"]
-     *                [PyString "stationServiceItemID"]
-     *                [PyString "isEnabled"]
-     *              [PyString "line"]
-     *              [PyList 5 items]
-     *                [PyInt 30001984]
-     *                [PyInt 61000012]
-     *                [PyInt 16]
-     *                [PyIntegerVar 1002331174723]
-     *                [PyInt 1]
-     *          [PyInt 65536]
-     *          [PyObjectData Name: util.Row]
-     *            [PyDict 2 kvp]
-     *              [PyString "header"]
-     *              [PyList 5 items]
-     *                [PyString "solarSystemID"]
-     *                [PyString "stationID"]
-     *                [PyString "serviceID"]
-     *                [PyString "stationServiceItemID"]
-     *                [PyString "isEnabled"]
-     *              [PyString "line"]
-     *              [PyList 5 items]
-     *                [PyInt 30001984]
-     *                [PyInt 61000012]
-     *                [PyInt 65536]
-     *                [PyIntegerVar 318021026]
-     *                [PyInt 1]
-     *    [PyNone]
-     */
     _log(CORP__CALL, "CorpStationMgr::Handle_GetStationServiceStates()");
     call.Dump(CORP__CALL_DUMP);
 
-    return new PyDict();
+    DBQueryResult res;
+    StationDB::GetStationServiceStates(call.client->GetLocationID(), res);
+
+    return DBResultToIntRowDict(res, 2);
+}
+
+PyResult CorpStationMgrIMBound::Handle_GetStationServiceIdentifiers(PyCallArgs &call)
+{
+    _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationServiceIdentifiers()");
+    call.Dump(CORP__CALL_DUMP);
+
+    DBQueryResult res;
+    StationDB::GetStationServiceIdentifiers(res);
+    // serviceNameID
+    return DBResultToCRowset(res);
+}
+
+PyResult CorpStationMgrIMBound::Handle_GetStationDetails(PyCallArgs &call)
+{
+    _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationDetails()");
+    call.Dump(CORP__CALL_DUMP);
+
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    DBQueryResult res;
+    StationDB::GetStationDetails(arg.arg, res);
+
+    PyDict* dict = new PyDict();
+    DBResultRow row;
+
+    while (res.GetRow(row)) {    
+        dict->SetItemString("stationName", new PyString(row.GetText(0), row.ColumnLength(0)));
+        dict->SetItemString("stationID", new PyInt(row.GetInt(1)));
+        dict->SetItemString("orbitID", new PyInt(row.GetInt(2)));
+        dict->SetItemString("description", new PyString(row.GetText(3), row.ColumnLength(3)));
+        dict->SetItemString("security", new PyFloat(row.GetFloat(4)));
+        dict->SetItemString("dockingCostPerVolume", new PyFloat(row.GetFloat(5)));
+        dict->SetItemString("officeRentalCost", new PyInt(row.GetInt(6)));
+        dict->SetItemString("reprocessingStationsTake", new PyFloat(row.GetFloat(7)));
+        dict->SetItemString("reprocessingHangarFlag", new PyInt(row.GetInt(8)));
+        dict->SetItemString("corporationID", new PyInt(row.GetInt(9)));
+        dict->SetItemString("maxShipVolumeDockable", new PyInt(row.GetInt(10)));
+        dict->SetItemString("exitTime", PyStatic.NewNone());
+        dict->SetItemString("standingOwnerID", new PyInt(row.GetInt(9)));
+        dict->SetItemString("upgradeLevel", new PyInt(row.GetInt(11)));
+    }
+    return new PyObject("util.KeyVal", dict);
+}
+
+PyResult CorpStationMgrIMBound::Handle_GetStationServiceAccessRule(PyCallArgs &call)
+{
+    _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationServiceAccessRule()");
+    call.Dump(CORP__CALL_DUMP);
+
+    Call_GetStationServiceAccessRule args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    DBQueryResult res;
+    StationDB::GetStationServiceAccessRule(args.stationID, args.serviceID, res);
+
+    PyDict* dict = new PyDict();
+    DBResultRow row;
+
+    // If no rule exists for this service, we should return the default
+    if (res.GetRowCount() == 0) {
+        dict->SetItemString("serviceID", new PyInt(args.serviceID));
+        dict->SetItemString("minimumStanding", new PyFloat(0));
+        dict->SetItemString("minimumCharSecurity", new PyFloat(0));
+        dict->SetItemString("maximumCharSecurity", new PyFloat(0));
+        dict->SetItemString("minimumCorpSecurity", new PyFloat(0));
+        dict->SetItemString("maximumCorpSecurity", new PyFloat(0));
+    }
+    else {
+        while (res.GetRow(row)) {    
+            dict->SetItemString("serviceID", new PyInt(row.GetInt(0)));
+            dict->SetItemString("minimumStanding", new PyFloat(row.GetFloat(2)));
+            dict->SetItemString("minimumCharSecurity", new PyFloat(row.GetFloat(3)));
+            dict->SetItemString("maximumCharSecurity", new PyFloat(row.GetFloat(4)));
+            dict->SetItemString("minimumCorpSecurity", new PyFloat(row.GetFloat(5)));
+            dict->SetItemString("maximumCorpSecurity", new PyFloat(row.GetFloat(6)));
+        }
+    }
+
+    return new PyObject("util.KeyVal", dict);
+}
+
+PyResult CorpStationMgrIMBound::Handle_GetStationManagementServiceCostModifiers(PyCallArgs &call)
+{
+    _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationManagementServiceCostModifiers()");
+    call.Dump(CORP__CALL_DUMP);
+
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    DBQueryResult res;
+    StationDB::GetStationManagementServiceCostModifiers(arg.arg, res);
+
+    PyDict* dict = new PyDict();
+    DBResultRow row;
+
+    DBRowDescriptor *header = new DBRowDescriptor();
+    header->AddColumn("serviceID", DBTYPE_I4);
+    header->AddColumn("discountPerGoodStandingPoint", DBTYPE_R4);
+    header->AddColumn("surchargePerBadStandingPoint", DBTYPE_R4);
+
+    CRowSet *rowset = new CRowSet(&header);
+
+    // If no configuration exists for this service, we should return the default
+    if (res.GetRowCount() == 0) {
+        StationDB::GetStationServiceIdentifiers(res);
+        while (res.GetRow(row)) {
+            // Only show services which exist in this station
+            uint32 serviceID = row.GetInt(0);
+            uint32 serviceMask = stDataMgr.GetStationServiceMask(arg.arg);
+            if((serviceMask & serviceID) == serviceID) 
+            {
+                PyPackedRow *newRow = rowset->NewRow();
+                newRow->SetField("serviceID", new PyInt(serviceID));
+                newRow->SetField("discountPerGoodStandingPoint", new PyFloat(0));
+                newRow->SetField("surchargePerBadStandingPoint", new PyFloat(0));
+            }
+        }
+    }
+    else {
+        while (res.GetRow(row)) {    
+            PyPackedRow *newRow = rowset->NewRow();
+            newRow->SetField("serviceID", new PyInt(row.GetInt(0)));
+            newRow->SetField("discountPerGoodStandingPoint", new PyFloat(row.GetFloat(1)));
+            newRow->SetField("surchargePerBadStandingPoint", new PyFloat(row.GetFloat(2)));
+        }
+    }
+
+    return rowset;
+}
+
+PyResult CorpStationMgrIMBound::Handle_GetRentableItems(PyCallArgs &call)
+{
+    _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetRentableItems()");
+    call.Dump(CORP__CALL_DUMP);
+
+    DBQueryResult res;
+    StationDB::GetRentableItems(call.client->GetLocationID() ,res);
+
+    return DBResultToCRowset(res);    
+}
+
+PyResult CorpStationMgrIMBound::Handle_GetOwnerIDsOfClonesAtStation(PyCallArgs &call)
+{
+    _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetOwnerIDsOfClonesAtStation()");
+    call.Dump(CORP__CALL_DUMP);
+
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    DBQueryResult res;
+    StationDB::GetOwnerIDsOfClonesAtStation(call.client->GetLocationID(), arg.arg, res);
+
+    return DBResultToCRowset(res);    
+}
+
+PyResult CorpStationMgrIMBound::Handle_GetStationImprovements(PyCallArgs &call)
+{
+    _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationImprovements()");
+    call.Dump(CORP__CALL_DUMP);
+
+    DBQueryResult res;
+    StationDB::GetOutpostImprovements(call.client->GetLocationID(), res);
+
+    PyDict* dict = new PyDict();
+    DBResultRow row;
+
+    PyRep *imp[6];
+
+    // If no data exists for this station, we should return the default
+    if (res.GetRowCount() == 0)
+        for (int i = 0; i < 6; i++)
+            imp[i] = new PyNone();
+    else
+        while (res.GetRow(row))
+            for (int i = 0; i < 6; i++)
+                if (row.GetInt(i) == 0)
+                    imp[i] == new PyNone();
+                else 
+                    imp[i] == new PyInt(row.GetInt(i));
+
+    dict->SetItemString("improvementTier2aTypeID", imp[0]);
+    dict->SetItemString("improvementTier3aTypeID", imp[1]);
+    dict->SetItemString("improvementTier1bTypeID", imp[2]);
+    dict->SetItemString("improvementTier1aTypeID", imp[3]);
+    dict->SetItemString("improvementTier2bTypeID", imp[4]);
+    dict->SetItemString("improvementTier1cTypeID", imp[5]);
+
+    return new PyObject("util.KeyVal", dict);
 }
