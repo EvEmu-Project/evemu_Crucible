@@ -359,6 +359,9 @@ void NPC::Killed(Damage &damage) {
         _log(PHYSICS__TRACE, "NPC::Killed() - NPC %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.", \
                 GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
 
+    if ((MakeRandomFloat() < sConfig.npc.LootDropChance) or (m_allyID == factionRogueDrones))
+        DropLoot(wreckItemRef, m_self->groupID(), killerID);
+
     DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
         wreckEntity.allianceID = (killer->GetAllianceID() == 0 ? m_allyID : killer->GetAllianceID());
         wreckEntity.categoryID = EVEDB::invCategories::Celestial;
@@ -377,15 +380,33 @@ void NPC::Killed(Damage &damage) {
         return;
     }
     m_destiny->SendJettisonPacket();
-
-    if ((MakeRandomFloat() < sConfig.npc.LootDropChance) or (m_allyID == factionRogueDrones))
-        DropLoot(wreckItemRef, m_self->groupID(), killerID);
 }
-
 
 void NPC::CmdDropLoot()
 {
-    m_destiny->SendJettisonPacket();
-    /** @todo finish this */
-    //DropLoot(wreckItemRef, m_self->groupID());
+    std::ostringstream name;
+    name << m_self->itemName() << "(" << m_self->itemID() << ")  Loot Container";
+    // create new container
+    ItemData p_idata(23,   // 23 = cargo container
+                     ownerSystem,
+                     locTemp,
+                     flagNone,
+                     name.str().c_str(),
+                     GetPosition());
+
+    CargoContainerRef jetCanRef = sItemFactory.SpawnCargoContainer(p_idata);
+
+    if (jetCanRef.get() != nullptr) {
+        FactionData data = FactionData();
+        data.allianceID = m_allyID;
+        data.corporationID = m_corpID;
+        data.factionID = m_warID;
+        data.ownerID = m_self->ownerID();
+        ContainerSE* cSE = new ContainerSE(jetCanRef, GetServices(), m_system, data);
+        jetCanRef->SetMySE(cSE);
+        m_system->AddEntity(cSE);
+        m_destiny->SendJettisonPacket();
+        // this needs a wreckItemRef, but i dont feel like making one right now
+        //DropLoot(jetCanRef, m_self->groupID());
+    }
 }

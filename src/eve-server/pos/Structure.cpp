@@ -1367,6 +1367,11 @@ void StructureSE::Killed(Damage &damage)
         _log(PHYSICS__TRACE, "StructureSE::Killed() - Structure %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.",
              GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
 
+    DropLoot(wreckItemRef, m_self->groupID(), killerID);
+
+    for (auto cur : survivedItems)
+        cur->Move(wreckItemRef->itemID(), flagNone); // populate wreck with items that survived
+
     DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
     wreckEntity.allianceID = killer->GetAllianceID();
     wreckEntity.categoryID = EVEDB::invCategories::Celestial;
@@ -1386,11 +1391,6 @@ void StructureSE::Killed(Damage &damage)
         return;
     }
     m_destiny->SendJettisonPacket();
-
-    DropLoot(wreckItemRef, m_self->groupID(), killerID);
-
-    for (auto cur : survivedItems)
-        cur->Move(wreckItemRef->itemID(), flagNone); // populate wreck with items that survived
 }
 
 void StructureSE::Anchor()

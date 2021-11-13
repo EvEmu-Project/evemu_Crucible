@@ -191,6 +191,9 @@ void Sentry::Killed(Damage &damage) {
         _log(PHYSICS__TRACE, "Sentry::Killed() - Sentry %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.", \
         GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
 
+    if (MakeRandomFloat() < sConfig.npc.LootDropChance)
+        DropLoot(wreckItemRef, m_self->groupID(), killerID);
+
     DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
         wreckEntity.allianceID = killer->GetAllianceID();
         wreckEntity.categoryID = EVEDB::invCategories::Celestial;
@@ -209,7 +212,4 @@ void Sentry::Killed(Damage &damage) {
         return;
     }
     m_destiny->SendJettisonPacket();
-
-    if (MakeRandomFloat() < sConfig.npc.LootDropChance)
-        DropLoot(wreckItemRef, m_self->groupID(), killerID);
 }

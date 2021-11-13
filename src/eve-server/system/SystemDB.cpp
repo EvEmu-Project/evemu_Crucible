@@ -320,7 +320,6 @@ bool SystemDB::GetWrecksToTypes(DBQueryResult& res) {
 }
 
 void SystemDB::GetLootGroups(DBQueryResult& res) {
-    //if (!sDatabase.RunQuery(res, "SELECT groupID, lootGroupID, dropChance FROM npcLootGroup")) {
     if (!sDatabase.RunQuery(res, "SELECT npcGroupID, itemGroupID, groupDropChance FROM lootGroup")) {
         codelog(DATABASE__ERROR, "Error in GetLootGroups query: %s", res.error.c_str());
         return;
@@ -328,7 +327,6 @@ void SystemDB::GetLootGroups(DBQueryResult& res) {
 }
 
 void SystemDB::GetLootGroupTypes(DBQueryResult& res) {
-    //if (!sDatabase.RunQuery(res, "SELECT lootGroupID, typeID, chance, minQuantity, maxQuantity FROM npcLootGroupType")) {
     if (!sDatabase.RunQuery(res, "SELECT itemGroupID, itemID, itemMetaLevel, minAmount, maxAmount FROM lootItemGroup")) {
         codelog(DATABASE__ERROR, "Error in GetLootGroupTypes query: %s", res.error.c_str());
         return;

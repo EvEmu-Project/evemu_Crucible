@@ -79,7 +79,8 @@ m_bubble(oth->m_bubble),m_destiny(oth->m_destiny),m_targMgr(oth->m_targMgr),m_ki
 m_allyID(oth->m_allyID),m_corpID(oth->m_corpID),m_fleetID(oth->m_fleetID),m_ownerID(oth->m_ownerID),m_radius(oth->m_radius),
 m_harmonic(oth->m_harmonic)
 {
-    // wip 
+    sLog.Error("SE::SE()", "copy c'tor.");
+    // wip
 }
 
 
@@ -142,7 +143,7 @@ void SystemEntity::EncodeDestiny( Buffer& into )
     _log(SE__DESTINY, "SE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
-void SystemEntity::Killed(Damage& fatal_blow)
+void SystemEntity::Killed(Damage& damage)
 {
     if (m_targMgr != nullptr) {
         // loop thru list of all modules targeting this entity and let them know it has been killed.
@@ -159,6 +160,7 @@ void SystemEntity::Delete()
         m_targMgr->ClearFromTargets(); //OnTarget(nullptr, TargMgr::Mode::Clear, TargMgr::Msg::Deleted);
     if (m_system != nullptr)
         m_system->RemoveEntity(this);
+    // containers have additional calls to process and calls this.  calling here will create infinite loop
     if (!IsContainerSE())
         m_self->Delete();
 }
@@ -184,30 +186,33 @@ void SystemEntity::SendDamageStateChanged() {  //working 24Apr15
         m_targMgr->QueueUpdate(&up);
     PySafeDecRef(up);
     _log(DAMAGE__MESSAGE, "%s(%u): DamageUpdate - S:%f A:%f H:%f.", \
-            GetName(), m_self->itemID(), dmgState.shield, dmgState.armor, dmgState.structure);
+            m_self->name(), m_self->itemID(), dmgState.shield, dmgState.armor, dmgState.structure);
 }
 
 void SystemEntity::DropLoot(WreckContainerRef wreckRef, uint32 groupID, uint32 owner) {
     /*   allan 27Nov14    */
     std::vector<LootList> lootList;
     sDataMgr.GetLoot(groupID, lootList);
-    if (lootList.empty())
+    if (lootList.empty()) {
+        _log(LOOT__INFO, "lootList empty for %s(%u)", m_self->name(), m_self->itemID());
         return;
+    }
 
     uint32 quantity(0);
-    std::vector<LootList>::iterator cur = lootList.begin();
-    while (cur != lootList.end()) {
-        if (cur->minDrop == cur->maxDrop) {
-            quantity = cur->minDrop;
+    std::vector<LootList>::iterator itr = lootList.begin();
+    while (itr != lootList.end()) {
+        if (itr->minDrop == itr->maxDrop) {
+            quantity = itr->minDrop;
         } else {
-            quantity = (uint32)(MakeRandomInt(cur->minDrop, cur->maxDrop));
+            quantity = (uint32)(MakeRandomInt(itr->minDrop, itr->maxDrop));
         }
-        if (quantity < 1)
+        if (quantity == 0)
             quantity = 1;
 
-        ItemData iLoot(cur->itemID, owner, wreckRef->itemID(), flagNone, quantity);
+        ItemData iLoot(itr->itemID, owner, wreckRef->itemID(), flagNone, quantity);
         wreckRef->AddItem(sItemFactory.SpawnItem(iLoot));
-        ++cur;
+        _log(LOOT__INFO, "added %u of %u to list for %s(%u)", quantity, itr->itemID, m_self->name(), m_self->itemID());
+        ++itr;
     }
 }
 
@@ -274,6 +279,7 @@ StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, PyServiceMgr &serv
 StaticSystemEntity::StaticSystemEntity(const StaticSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("SSE::SSE()", "copy c'tor.");
     // wip
 }
 
@@ -318,6 +324,7 @@ BeltSE::BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* sys
 BeltSE::BeltSE(const BeltSE* oth)
 : StaticSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("SSE::BeltSE()", "copy c'tor.");
     // wip
 }
 
@@ -343,6 +350,7 @@ m_sbuSE(nullptr)
 StargateSE::StargateSE(const StargateSE* oth)
 : StaticSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("SSE::gateSE()", "copy c'tor.");
     // wip
 }
 
@@ -386,15 +394,16 @@ PyDict* StargateSE::MakeSlimItem() {
 
 /* Non-Static / Non-Mobile / Non-Destructable / Celestial Objects - Containers, DeadSpace, ForceFields, ScanProbes */
 ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
-: SystemEntity(self, services, system)
+: SystemEntity(self, services, system),
+m_keyType(0)
 {
-    m_keyType = 0;
 }
 
 // copy c'tor
 ItemSystemEntity::ItemSystemEntity(const ItemSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("ISE::ISE()", "copy c'tor.");
     // wip
 }
 
@@ -492,6 +501,7 @@ FieldSE::FieldSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *s
 FieldSE::FieldSE(const FieldSE* oth)
 : ItemSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("ISE::FieldSE()", "copy c'tor.");
     // wip
 }
 
@@ -549,6 +559,7 @@ m_invul(false)
 ObjectSystemEntity::ObjectSystemEntity(const ObjectSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("OSE::OSE()", "copy c'tor.");
     // wip
 }
 
@@ -625,7 +636,7 @@ void ObjectSystemEntity::UpdateDamage()
     PySafeDecRef(up);
 }
 
-void ObjectSystemEntity::Killed(Damage &fatal_blow)
+void ObjectSystemEntity::Killed(Damage& damage)
 {
     // do we need to make wreck items here?
     // do these structures have loot?  probably so eventually
@@ -652,6 +663,7 @@ DeployableSE::DeployableSE(InventoryItemRef self, PyServiceMgr &services, System
 DeployableSE::DeployableSE(const DeployableSE* oth)
 : ObjectSystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("OSE::DeployableSE()", "copy c'tor.");
     // wip
 }
 
@@ -673,6 +685,7 @@ m_frozen(false)
 DynamicSystemEntity::DynamicSystemEntity(const DynamicSystemEntity* oth)
 : SystemEntity(oth->m_self, oth->m_services, oth->m_system)
 {
+    sLog.Error("DSE::DSE()", "copy c'tor.");
     // wip
 }
 

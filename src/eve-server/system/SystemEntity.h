@@ -258,11 +258,11 @@ public:
     virtual void                SendDamageStateChanged();  /* this uses targetMgr update to send to all interested parties */
 
     /* generic functions handled here, but set elsewhere */
-    const bool                  IsDead()                { return m_killed; }
+    bool                        IsDead()                { return m_killed; }
     const GVector&              GetVelocity()           { return (m_destiny != nullptr ? m_destiny->GetVelocity() : NULL_ORIGIN_V); }
 
     /* virtual functions default to base class and overridden as needed */
-    virtual void                Killed(Damage &fatal_blow);
+    virtual void                Killed(Damage &damage);
     virtual void                EncodeDestiny(Buffer& into);
     virtual void                MakeDamageState(DoDestinyDamageState &into);
     virtual PyDict*             MakeSlimItem();
@@ -334,6 +334,7 @@ public:
     /* class type tests. */
     /* Base */
     virtual bool                isGlobal()              { return true; }    // just in case item->isGlobal() fails here...which it may
+    virtual bool                IsSystemEntity()        { return false; }
     virtual bool                IsInanimateSE()         { return true; }
     /* Static */
     virtual bool                IsStaticEntity()        { return true; }
@@ -371,6 +372,7 @@ public:
     /* class type pointer querys. */
     virtual BeltSE*             GetBeltSE()             { return this; }
     /* class type tests. */
+    virtual bool                IsSystemEntity()        { return false; }
     virtual bool                IsBeltSE()              { return true; }
 
     /* virtual functions to be overridden in derived classes */
@@ -411,6 +413,7 @@ public:
     /* class type pointer querys. */
     virtual StargateSE*         GetGateSE()             { return this; }
     /* class type tests. */
+    virtual bool                IsSystemEntity()        { return false; }
     virtual bool                IsGateSE()              { return true; }
 
     /* SystemEntity interface */
@@ -456,11 +459,11 @@ public:
     /* class type pointer querys. */
     virtual ItemSystemEntity*   GetItemSE()             { return this; }
     /* class type tests. */
+    virtual bool                IsSystemEntity()        { return false; }
+    virtual bool                IsItemEntity()          { return true; }
     /* Base */
     //virtual bool                isGlobal()              { return false; }
     virtual bool                IsInanimateSE()         { return true; }
-    /* Item */
-    virtual bool                IsItemEntity()          { return true; }
 
     /* SystemEntity interface */
     virtual void                EncodeDestiny( Buffer& into );
@@ -494,6 +497,7 @@ public:
     /* class type pointer querys. */
     virtual FieldSE*            GetFieldSE()            { return this; }
     /* class type tests. */
+    virtual bool                IsSystemEntity()        { return false; }
     virtual bool                IsFieldSE()             { return true; }
 
     /* SystemEntity interface */
@@ -524,11 +528,11 @@ public:
     /* class type pointer querys. */
     virtual ObjectSystemEntity* GetObjectSE()           { return this; }
     /* class type tests. */
+    virtual bool                IsSystemEntity()        { return false; }
+    virtual bool                IsObjectEntity()        { return true; }
     /* Base */
     //virtual bool                isGlobal()              { return false; }
     virtual bool                IsInanimateSE()         { return true; }
-    /* Object */
-    virtual bool                IsObjectEntity()        { return true; }
 
     /* SystemEntity interface */
     virtual void                UpdateDamage();
@@ -538,7 +542,7 @@ public:
     virtual PyDict*             MakeSlimItem();
 
     /* virtual functions default to base class and overridden as needed */
-    virtual void                Killed(Damage &fatal_blow);
+    virtual void                Killed(Damage &damage);
     virtual bool                IsInvul()               { return m_invul; }
 
     /* specific functions handled here. */
@@ -570,6 +574,7 @@ public:
     /* class type pointer querys. */
     virtual DeployableSE*       GetDeployableSE()       { return this; }
     /* class type tests. */
+    virtual bool                IsSystemEntity()        { return false; }
     virtual bool                IsDeployableSE()        { return true; }
 };
 
@@ -597,10 +602,10 @@ public:
     /* class type pointer querys. */
     virtual DynamicSystemEntity* GetDynamicSE()         { return this; }
     /* class type tests. */
+    virtual bool                IsSystemEntity()        { return false; }
+    virtual bool                IsDynamicEntity()       { return true; }
     /* Base */
     //virtual bool                isGlobal()              { return false; }
-    /* Dynamic */
-    virtual bool                IsDynamicEntity()       { return true; }
 
     /* SystemEntity interface */
     virtual void                UpdateDamage();
