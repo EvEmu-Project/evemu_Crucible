@@ -599,11 +599,11 @@ public:
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
-    const_iterator begin() const { return items.begin(); }
-    const_iterator end() const { return items.end(); }
+    const_iterator begin() const                        { return items.begin(); }
+    const_iterator end() const                          { return items.end(); }
 
-    size_t size() const { return items.size(); }
-    bool empty() const { return items.empty(); }
+    size_t size() const                                 { return items.size(); }
+    bool empty() const                                  { return items.empty(); }
     void clear();
 
     /**
@@ -613,7 +613,7 @@ public:
      *
      * @return Python object.
      */
-    PyRep* GetItem( size_t index ) const { return items.at( index ); }
+    PyRep* GetItem( size_t index ) const                { return items.at( index ); }
 
     /**
      * @brief Stores Python object.
@@ -624,7 +624,6 @@ public:
     void SetItem( size_t index, PyRep* object )
     {
         PyRep** rep = &items.at( index );
-
         PySafeDecRef( *rep );
         if (object == nullptr) {
             *rep = new PyNone();
@@ -634,7 +633,7 @@ public:
         PyIncRef( *rep );
     }
 
-    void SetItemInt( size_t index, int32 val ) { SetItem( index, new PyInt( val ) ); }
+    void SetItemInt( size_t index, int32 val )          { SetItem( index, new PyInt( val ) ); }
     void SetItemString( size_t index, const char* str ) { SetItem( index, new PyString( str ) ); }
 
     int32 hash() const;
@@ -643,7 +642,7 @@ public:
     std::vector<PyRep*> items;
 
 protected:
-    virtual ~PyTuple();
+    virtual ~PyTuple()                                  { /* do nothing here */ }
 };
 
 /**
@@ -672,11 +671,11 @@ public:
     PyRep* Clone() const;
     bool visit( PyVisitor& v ) const;
 
-    const_iterator begin() const { return items.begin(); }
-    const_iterator end() const { return items.end(); }
+    const_iterator begin() const                        { return items.begin(); }
+    const_iterator end() const                          { return items.end(); }
 
-    size_t size() const { return items.size(); }
-    bool empty() const { return items.empty(); }
+    size_t size() const                                 { return items.size(); }
+    bool empty() const                                  { return items.empty(); }
     void clear();
 
     /**
@@ -686,7 +685,7 @@ public:
      *
      * @return Python object.
      */
-    PyRep* GetItem( size_t index ) const { return items.at( index ); }
+    PyRep* GetItem( size_t index ) const                { return items.at( index ); }
 
     /**
      * @brief Stores Python object.
@@ -697,7 +696,6 @@ public:
     void SetItem( size_t index, PyRep* object )
     {
         PyRep** rep = &items.at( index );
-
         PySafeDecRef( *rep );
         if (object == nullptr) {
             *rep = new PyNone();
@@ -714,11 +712,11 @@ public:
      */
     void SetItemString( size_t index, const char* str ) { SetItem( index, new PyString( str ) ); }
 
-    void AddItem( PyRep* i ) { items.push_back( i ); }
-    void AddItemInt( int32 intval ) { AddItem( new PyInt( intval ) ); }
-    void AddItemLong( int64 intval ) { AddItem( new PyLong( intval ) ); }
-    void AddItemReal( double realval ) { AddItem( new PyFloat( realval ) ); }
-    void AddItemString( const char* str ) { AddItem( new PyString( str ) ); }
+    void AddItem( PyRep* i )                            { items.push_back( i ); }
+    void AddItemInt( int32 intval )                     { AddItem( new PyInt( intval ) ); }
+    void AddItemLong( int64 intval )                    { AddItem( new PyLong( intval ) ); }
+    void AddItemReal( double realval )                  { AddItem( new PyFloat( realval ) ); }
+    void AddItemString( const char* str )               { AddItem( new PyString( str ) ); }
 
     // This needs to be public:
     std::vector<PyRep*> items;
