@@ -16,22 +16,15 @@
 /* this class is for all salvage and data mining types */
 
 Prospector::Prospector(ModuleItemRef mRef, ShipItemRef sRef)
-: ActiveModule(mRef, sRef)
+: ActiveModule(mRef, sRef),
+pChar(nullptr),
+m_success(false),
+m_firstRun(true),
+m_accessChance(0),
+m_holdFlag(flagCargoHold),
+m_salvager((m_modRef->groupID() == EVEDB::invGroups::Salvager)),
+m_dataMiner((m_modRef->groupID() == EVEDB::invGroups::Data_Miner))
 {
-    m_success = false;
-    m_firstRun = true;
-    m_salvager = false;
-    m_dataMiner = false;
-
-    if (m_modRef->groupID() == EVEDB::invGroups::Salvager) {
-        m_salvager = true;
-    } else if (m_modRef->groupID() == EVEDB::invGroups::Data_Miner) {
-        m_dataMiner = true;
-    }
-
-    m_accessChance = 0;
-
-    m_holdFlag = flagCargoHold;
     if (m_shipRef->HasAttribute(AttrSalvageHoldCapacity))
         m_holdFlag = flagSalvageHold;
 
@@ -147,10 +140,8 @@ void Prospector::SendFailure()
 
 void Prospector::CheckSuccess()
 {
-    int8 chance = m_accessChance;
-    chance += GetAttribute(AttrAccessDifficultyBonus).get_int();
-
-    uint8 roll = MakeRandomInt(0,100);
+    int8 chance(m_accessChance + GetAttribute(AttrAccessDifficultyBonus).get_int());
+    uint8 roll(MakeRandomInt(0,100));
     if (roll < chance)
         m_success = true;
 
@@ -202,7 +193,6 @@ void Prospector::DropSalvage()
     }
 
     if (!m_targetSE->GetSelf()->GetMyInventory()->IsEmpty()) {
-
         //{'FullPath': u'UI/Messages', 'messageID': 258062, 'label': u'SalvageTooMuchLootBody'}(u'You cannot salvage this wreck because it contains too much loot to fit into a single cargo container. <br>\r\nThe wreck contains <b>{[numeric]volume, useGrouping} m3</b> but can contain no more than <b>{[numeric]maxvolume, useGrouping} m3</b> to be salvageable.', None, {u'{[numeric]maxvolume, useGrouping}': {'conditionalValues': [], 'variableType': 9, 'propertyName': None, 'args': 32, 'kwargs': {}, 'variableName': 'maxvolume'}, u'{[numeric]volume, useGrouping}': {'conditionalValues': [], 'variableType': 9, 'propertyName': None, 'args': 32, 'kwargs': {}, 'variableName': 'volume'}})
 
         // tell wreck it's being salvaged, so do not broadcast slim updates...may no longer need this.  jetcan set to initial location 0

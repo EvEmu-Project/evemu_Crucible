@@ -398,6 +398,7 @@ void DestinyManager::UpdateVelocity(bool isMoving) {
         m_decel = true;
         m_targBubble = nullptr;
         m_maxSpeed = m_speedToLeaveWarp;
+        m_prevSpeed = m_speedToLeaveWarp;
         m_velocity = m_shipHeading * m_maxSpeed;
         m_prevSpeedFraction = m_maxSpeed / m_maxShipSpeed;
         m_shipAccelTime = m_shipAgility * -log(1-(m_prevSpeedFraction));
@@ -3062,14 +3063,14 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
             _log(PLAYER__MESSAGE, "[%u] DestinyManager::SendDestinyUpdate() (u:%lu, e:%lu) called as 'self_only' for %s(%i)", \
                     sEntityList.GetStamp(), updates.size(), events.size(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID());
 
-        for (std::vector<PyTuple*>::iterator cur = updates.begin(); cur != updates.end(); ++cur) {
-            PyIncRef(*cur);
-            mySE->GetPilot()->QueueDestinyUpdate(&(*cur));
+        for (std::vector<PyTuple*>::iterator itr = updates.begin(); itr != updates.end(); ++itr) {
+            PyIncRef(*itr);
+            mySE->GetPilot()->QueueDestinyUpdate(&(*itr));
         }
 
-        for (std::vector<PyTuple*>::iterator cur = events.begin(); cur != events.end(); ++cur) {
-            PyIncRef(*cur);
-            mySE->GetPilot()->QueueDestinyEvent(&(*cur));
+        for (std::vector<PyTuple*>::iterator itr = events.begin(); itr != events.end(); ++itr) {
+            PyIncRef(*itr);
+            mySE->GetPilot()->QueueDestinyEvent(&(*itr));
         }
     } else if (mySE->IsOperSE()) { //These are global entities, so we have to send update to all bubbles in a system
         if (is_log_enabled(DESTINY__UPDATES))

@@ -42,6 +42,8 @@ float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEn
     float transversalV = vector.length();
     float angularVel = transversalV / distance;
     float targSig = pTarget->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();
+    if (targSig < 0.01f)
+        targSig = pTarget->GetSelf()->GetAttribute(AttrRadius).get_uint32() / 10;
     float sigRes = pMod->GetAttribute(AttrOptimalSigRadius).get_float();
     float trackSpeed = pMod->GetAttribute(AttrTrackingSpeed).get_float();
     _log(DAMAGE__TRACE, "Turret::GetToHit - transversalV:%.3f, angularV:%.3f, tracking:%.3f, targetSig:%.1f, sigRes:%.1f", \

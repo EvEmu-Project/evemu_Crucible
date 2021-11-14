@@ -273,10 +273,10 @@ void Inventory::DeleteContents()
     if (!mContentsLoaded)
         return;
     InventoryItemRef iRef(nullptr);
-    std::map<uint32, InventoryItemRef>::iterator cur = mContents.begin();
-    while (cur != mContents.end()) {
-        iRef = cur->second;
-        ++cur;
+    std::map<uint32, InventoryItemRef>::iterator itr = mContents.begin();
+    while (itr != mContents.end()) {
+        iRef = itr->second;
+        ++itr;
         iRef->Delete();
     }
 

@@ -377,6 +377,19 @@ PyDict *ContainerSE::MakeSlimItem() {
     return slim;
 }
 
+void ContainerSE::SendDamageStateChanged() {  //working 24Apr15
+    DoDestinyDamageState dmgState;
+    MakeDamageState(dmgState);
+    OnDamageStateChange dmgChange;
+    dmgChange.entityID = m_self->itemID();
+    dmgChange.state = dmgState.Encode();
+    PyTuple *up = dmgChange.Encode();
+    if (m_targMgr != nullptr)
+        m_targMgr->QueueUpdate(&up);
+    PySafeDecRef(up);
+}
+
+
 /*
  * WreckContainer
  */
@@ -625,4 +638,16 @@ PyDict *WreckSE::MakeSlimItem() {
     }
 
     return slim;
+}
+
+void WreckSE::SendDamageStateChanged() {  //working 24Apr15
+    DoDestinyDamageState dmgState;
+    MakeDamageState(dmgState);
+    OnDamageStateChange dmgChange;
+    dmgChange.entityID = m_self->itemID();
+    dmgChange.state = dmgState.Encode();
+    PyTuple *up = dmgChange.Encode();
+    if (m_targMgr != nullptr)
+        m_targMgr->QueueUpdate(&up);
+    PySafeDecRef(up);
 }

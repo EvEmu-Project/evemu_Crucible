@@ -238,15 +238,15 @@ struct RatSpawnClass { // notes for me while creating/writing/testing
 /* POD structure for loot groups */
 struct LootGroup {
     //uint32 groupID;
-    uint32 lootGroupID;
-    double dropChance;
+    uint16 lootGroupID;
+    float dropChance;
 };
 
 /* POD structure for loot types */
 struct LootGroupType {
     uint8 metaLevel;
-    uint32 lootGroupID;
-    uint32 typeID;
+    uint16 lootGroupID;
+    uint16 typeID;
     uint32 minQuantity;
     uint32 maxQuantity;
 };
@@ -255,7 +255,7 @@ struct LootGroupType {
 struct LootList {
     uint8 minDrop;
     uint8 maxDrop;
-    uint32 itemID;
+    uint16 itemID;
 };
 
 /* POD structure for statistic data */

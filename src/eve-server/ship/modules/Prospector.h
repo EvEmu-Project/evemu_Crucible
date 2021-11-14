@@ -16,14 +16,14 @@ class Prospector: public ActiveModule
 {
 public:
     Prospector(ModuleItemRef mRef, ShipItemRef sRef);
-    virtual ~Prospector()                                 { /* do nothing here */ }
+    virtual ~Prospector()                               { /* do nothing here */ }
 
     virtual Prospector*         GetProspectModule()     { return this; }
     virtual bool        IsProspectModule() const        { return true; }
 
     /* functions to be handled in derived classes as needed */
     virtual void        Update();  // this is used to set char mods on active modules created before pilot entered ship
-    
+
     /* ActiveModule overrides */
     virtual void Activate(uint16 effectID, uint32 targetID=0, int16 repeat=0);
     uint32 DoCycle();

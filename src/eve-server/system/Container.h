@@ -156,6 +156,8 @@ public:
     virtual void EncodeDestiny(Buffer& into);
     virtual PyDict* MakeSlimItem();
     virtual void MakeDamageState(DoDestinyDamageState &into);
+    // this uses targetMgr update to send to all interested parties
+    virtual void SendDamageStateChanged();
 
     /* specific functions handled in this class. */
     void Activate(int32 effectID);
@@ -255,6 +257,8 @@ public:
     virtual void                Process();
     virtual void                EncodeDestiny(Buffer& into);
     virtual PyDict*             MakeSlimItem();
+    // this uses targetMgr update to send to all interested parties
+    virtual void                SendDamageStateChanged();
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Abandon();

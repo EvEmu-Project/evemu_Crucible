@@ -494,74 +494,74 @@ void AttributeMap::SaveShipState()
     Inserts << "REPLACE INTO entity_attributes ";
     Inserts << " (itemID, attributeID, valueInt, valueFloat) VALUES";
     bool save(false);
-    AttrMap::iterator cur = mAttributes.find(AttrShieldCharge);
-    if (cur != mAttributes.end()) {
+    AttrMap::iterator itr = mAttributes.find(AttrShieldCharge);
+    if (itr != mAttributes.end()) {
         save = true;
-        Inserts << "(" << mItem.itemID() << ", " << cur->first << ", ";
-        if ( cur->second.get_type() == evil_number_int ) {
-            Inserts << cur->second.get_int() << ", NULL)";
+        Inserts << "(" << mItem.itemID() << ", " << itr->first << ", ";
+        if ( itr->second.get_type() == evil_number_int ) {
+            Inserts << itr->second.get_int() << ", NULL)";
         } else {
-            Inserts << " NULL, " << cur->second.get_double() << ")";
+            Inserts << " NULL, " << itr->second.get_double() << ")";
         }
     }
-    cur = mAttributes.find(AttrArmorDamage);
-    if (cur != mAttributes.end()) {
+    itr = mAttributes.find(AttrArmorDamage);
+    if (itr != mAttributes.end()) {
         if (save)
             Inserts << ",";
         save = true;
-        Inserts << "(" << mItem.itemID() << ", " << cur->first << ", ";
-        if ( cur->second.get_type() == evil_number_int ) {
-            Inserts << cur->second.get_int() << ", NULL)";
+        Inserts << "(" << mItem.itemID() << ", " << itr->first << ", ";
+        if ( itr->second.get_type() == evil_number_int ) {
+            Inserts << itr->second.get_int() << ", NULL)";
         } else {
-            Inserts << " NULL, " << cur->second.get_double() << ")";
+            Inserts << " NULL, " << itr->second.get_double() << ")";
         }
     }
-    cur = mAttributes.find(AttrDamage);
-    if (cur != mAttributes.end()) {
+    itr = mAttributes.find(AttrDamage);
+    if (itr != mAttributes.end()) {
         if (save)
             Inserts << ",";
         save = true;
-        Inserts << "(" << mItem.itemID() << ", " << cur->first << ", ";
-        if ( cur->second.get_type() == evil_number_int ) {
-            Inserts << cur->second.get_int() << ", NULL)";
+        Inserts << "(" << mItem.itemID() << ", " << itr->first << ", ";
+        if ( itr->second.get_type() == evil_number_int ) {
+            Inserts << itr->second.get_int() << ", NULL)";
         } else {
-            Inserts << " NULL, " << cur->second.get_double() << ")";
+            Inserts << " NULL, " << itr->second.get_double() << ")";
         }
     }
-    cur = mAttributes.find(AttrHeatHi);
-    if (cur != mAttributes.end()) {
+    itr = mAttributes.find(AttrHeatHi);
+    if (itr != mAttributes.end()) {
         if (save)
             Inserts << ",";
         save = true;
-        Inserts << "(" << mItem.itemID() << ", " << cur->first << ", ";
-        if ( cur->second.get_type() == evil_number_int ) {
-            Inserts << cur->second.get_int() << ", NULL)";
+        Inserts << "(" << mItem.itemID() << ", " << itr->first << ", ";
+        if ( itr->second.get_type() == evil_number_int ) {
+            Inserts << itr->second.get_int() << ", NULL)";
         } else {
-            Inserts << " NULL, " << cur->second.get_double() << ")";
+            Inserts << " NULL, " << itr->second.get_double() << ")";
         }
     }
-    cur = mAttributes.find(AttrHeatMed);
-    if (cur != mAttributes.end()) {
+    itr = mAttributes.find(AttrHeatMed);
+    if (itr != mAttributes.end()) {
         if (save)
             Inserts << ",";
         save = true;
-        Inserts << "(" << mItem.itemID() << ", " << cur->first << ", ";
-        if ( cur->second.get_type() == evil_number_int ) {
-            Inserts << cur->second.get_int() << ", NULL)";
+        Inserts << "(" << mItem.itemID() << ", " << itr->first << ", ";
+        if ( itr->second.get_type() == evil_number_int ) {
+            Inserts << itr->second.get_int() << ", NULL)";
         } else {
-            Inserts << " NULL, " << cur->second.get_double() << ")";
+            Inserts << " NULL, " << itr->second.get_double() << ")";
         }
     }
-    cur = mAttributes.find(AttrHeatLow);
-    if (cur != mAttributes.end()) {
+    itr = mAttributes.find(AttrHeatLow);
+    if (itr != mAttributes.end()) {
         if (save)
             Inserts << ",";
         save = true;
-        Inserts << "(" << mItem.itemID() << ", " << cur->first << ", ";
-        if ( cur->second.get_type() == evil_number_int ) {
-            Inserts << cur->second.get_int() << ", NULL)";
+        Inserts << "(" << mItem.itemID() << ", " << itr->first << ", ";
+        if ( itr->second.get_type() == evil_number_int ) {
+            Inserts << itr->second.get_int() << ", NULL)";
         } else {
-            Inserts << " NULL, " << cur->second.get_double() << ")";
+            Inserts << " NULL, " << itr->second.get_double() << ")";
         }
     }
 

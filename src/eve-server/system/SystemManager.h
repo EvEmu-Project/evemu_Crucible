@@ -113,6 +113,7 @@ public:
     // range is 0.1 for 1.0 system to 2.0 for -0.9 system
     float GetSecValue()                                 { return m_secValue; }
 
+    // this create a SE with given data and add to system
     bool BuildDynamicEntity(const DBSystemDynamicEntity& entity, uint32 launcherID=0);
 
     void AddNPC(NPC* pNPC);

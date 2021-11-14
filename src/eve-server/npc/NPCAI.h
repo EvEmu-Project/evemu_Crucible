@@ -60,9 +60,9 @@ public:
     // this is called from NPC::Process() which is called from SystemManager::Process()
     void Process();
 
-    void Target(SystemEntity* pSE);
-    void Targeted(SystemEntity* pSE);
-    void TargetLost(SystemEntity* pSE);
+    void Target(SystemEntity* pTargSE);
+    void Targeted(SystemEntity* pTargSE);
+    void TargetLost(SystemEntity* pTargSE);
 
     void DisableRepTimers(bool shield=true, bool armor=true);
 
@@ -79,22 +79,22 @@ public:
     void DisableWarpOutTimer()                          { m_warpOutTimer.Disable(); }
     void WarpOutComplete()                              { m_warpOutTimer.Disable(); m_state = NPCAI::State::Idle; }
 
-    void LaunchMissile(uint16 typeID, SystemEntity* pSE);   // us to them
+    void LaunchMissile(uint16 typeID, SystemEntity* pTargSE);   // us to them
     void MissileLaunched(Missile* pMissile); // them to us
 
 protected:
-    void Attack(SystemEntity* pSE);
+    void Attack(SystemEntity* pTargSE);
     void SetIdle();
     void WarpOut();
     void SetWander();
-    void SetChasing(SystemEntity* pSE);
-    void SetEngaged(SystemEntity* pSE);
-    void SetFleeing(SystemEntity* pSE);
-    void ClearTarget(SystemEntity* pSE);
-    void SetFollowing(SystemEntity* pSE);
-    void SetSignaling(SystemEntity* pSE);
-    void AttackTarget(SystemEntity* pSE);
-    void CheckDistance(SystemEntity* pSE);
+    void SetChasing(SystemEntity* pTargSE);
+    void SetEngaged(SystemEntity* pTargSE);
+    void SetFleeing(SystemEntity* pTargSE);
+    void ClearTarget(SystemEntity* pTargSE);
+    void SetFollowing(SystemEntity* pTargSE);
+    void SetSignaling(SystemEntity* pTargSE);
+    void AttackTarget(SystemEntity* pTargSE);
+    void CheckDistance(SystemEntity* pTargSE);
 
     float GetTargetTime();
 
@@ -140,7 +140,7 @@ private:
     float m_shieldBoosterDelayChance;
 
     double m_trackingSpeed;
-    double m_damageMultiplier;
+    float m_damageMultiplier;
 
     NPC* m_npc;
     DestinyManager* m_destiny;

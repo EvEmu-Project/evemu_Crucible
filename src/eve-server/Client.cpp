@@ -2745,9 +2745,9 @@ void Client::SelfChatMessage(const char* fmt, ...)
 
     //this is such a pile of crap, but im not sure whats better.
     //maybe a private message...
-    std::set<LSCChannel*>::iterator cur = m_channels.begin();
-    for (; cur != m_channels.end(); ++cur)
-        (*cur)->SendMessage(this, str, true);
+    std::set<LSCChannel*>::iterator itr = m_channels.begin();
+    for (; itr != m_channels.end(); ++itr)
+        (*itr)->SendMessage(this, str, true);
 
     //m_channels[
 

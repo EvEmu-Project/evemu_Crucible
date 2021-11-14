@@ -905,6 +905,7 @@ void StaticDataMgr::GetLoot(uint32 groupID, std::vector<LootList>& lootList) {
     // pair<iterator, iterator> equal_range(const key_type& k)
     auto range = m_LootGroupMap.equal_range(groupID);
     for (auto it = range.first; it != range.second; ++it) {
+        _log(LOOT__INFO, "checking lootGroup %u with chance of %.2f", it->second.lootGroupID, it->second.dropChance);
         // make lootMap of lootGroupID's
         if (MakeRandomFloat(0, 1) < it->second.dropChance) {
             randChance = MakeRandomFloat(0, 1);
@@ -939,6 +940,7 @@ void StaticDataMgr::GetLoot(uint32 groupID, std::vector<LootList>& lootList) {
                 loot_list.minDrop = lootGrpVec[i].minQuantity;
                 loot_list.maxDrop = lootGrpVec[i].maxQuantity;
                 lootList.push_back(loot_list);
+                _log(LOOT__INFO, "adding %u to lootList", lootGrpVec[i].typeID);
                 lootGrpVec.clear();
             }
         }

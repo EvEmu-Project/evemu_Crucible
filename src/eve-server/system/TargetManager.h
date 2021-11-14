@@ -122,6 +122,7 @@ public:
     //void                ClearFromTargets(bool update=true, uint8 msg=TargMgr::Msg::NoMsg);
 
 
+    // called by player ships
     bool                StartTargeting(SystemEntity* tSE, ShipItemRef sRef);
 
     /* NPC AI Methods */
@@ -129,6 +130,7 @@ public:
     SystemEntity*       GetFirstTarget(bool need_locked=false);
     SystemEntity*       GetTarget(uint32 targetID, bool need_locked=true) const;
 
+    // called by npc
     bool                StartTargeting(SystemEntity* who, float lockTime, uint8 maxLockedTargets, double maxTargetLockRange, bool& chase);
 
     bool                CanAttack()                     { return m_canAttack; }
@@ -136,7 +138,10 @@ public:
 
     /* PC Module Methods (for module deactivation on target removed) */
     void                Destroyed();    // this does NOT remove target from targeters map
+    // only called by MiningLaser
     void                Depleted(MiningLaser* pMod);
+    // only called by non-lasers
+    void                Depleted(InventoryItemRef iRef);
     void                AddTargetModule(ActiveModule* pMod);
     void                RemoveTargetModule(ActiveModule* pMod);
 
@@ -154,7 +159,6 @@ public:
 
 
 protected:
-
     float               TimeToLock(ShipItemRef sRef, SystemEntity* tSE) const;
 
     static const char*  GetModeName(uint8 mode);

@@ -777,9 +777,9 @@ Client* EntityList::FindClientByName(const char* name) const {
 void EntityList::RegisterSID(int64 &sessionID) {
     /*  this whole method is just made up...eventually it will return a unique long long */
     /* max for int64 = 9223372036854775807 */
-    std::set<int64>::iterator cur = m_sessions.find(sessionID);
+    std::set<int64>::iterator itr = m_sessions.find(sessionID);
     std::pair<std::_Rb_tree_const_iterator<int64>, bool > test;
-    if (cur == m_sessions.end())
+    if (itr == m_sessions.end())
         test = m_sessions.insert(sessionID);
     if (test.second)
         return;
