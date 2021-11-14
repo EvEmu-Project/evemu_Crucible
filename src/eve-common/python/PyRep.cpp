@@ -78,7 +78,7 @@ PyRep::PyRep(const PyRep& oth) : RefObject(1), mType(oth.mType)
 }
 PyRep::~PyRep()
 {
-    sLog.Error("PyRep()", "D'tor. count: %u", GetCount());
+    //sLog.Error("PyRep()", "D'tor. count: %u", GetCount());
 }
 
 const char* PyRep::TypeString() const
