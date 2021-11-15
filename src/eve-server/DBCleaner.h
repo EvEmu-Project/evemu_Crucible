@@ -21,8 +21,9 @@ class DBCleaner
 
     void Initialize();
   private:
-    void CleanEntity(uint32 type); // Clean old cynosural fields which are lurking in the DB
-
+    void CleanEntity(uint32 type); // Clean entities by typeID from DB everywhere
+    void CleanGroupFromSpace(uint32 groupID); // Clean entities by groupID in space only
+    void CleanOrphanedWormholes();
 };
 
 //Singleton

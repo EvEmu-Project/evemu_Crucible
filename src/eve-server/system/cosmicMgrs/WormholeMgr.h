@@ -6,6 +6,8 @@
   * @Author:        Allan
   * @date:          12 December 2015
   *
+  * Updates:        James
+  * Date:          13 November 2021
   */
 
 
@@ -35,7 +37,7 @@ public:
     void Initialize(PyServiceMgr* svc);
     void Process();
 
-    void Create(CosmicSignature& sig);
+    void Create(CosmicSignature& sig, uint32 exitSystemID=0);
     // this will create a k162 and send data to anomalyMgr for inclusion
     void CreateExit(SystemManager* pFromSys, SystemManager* pToSys);
 
@@ -47,6 +49,10 @@ private:
     Timer m_updateTimer;
 
     bool m_initalized;
+
+    // Generic functions used when managing wormholes
+    const ItemType* GetRandomWormholeType(uint32 systemID);
+    uint32 GetRandomDestination(const ItemType* typeID);
 
     // as system matures, this will definitely need to be updated
     std::vector<uint32>         m_wormholes;   //exitID

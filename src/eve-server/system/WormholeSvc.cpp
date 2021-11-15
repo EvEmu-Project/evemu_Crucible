@@ -50,9 +50,6 @@ WormHoleSvc::~WormHoleSvc() {
  * {'messageKey': 'CantEnterWormholeWhileModuleActive', 'dataID': 17877772, 'suppressable': False, 'bodyID': 257379, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2784}
  * {'messageKey': 'CantOnlineSovInWormhole', 'dataID': 17877461, 'suppressable': False, 'bodyID': 257260, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2935}
  * {'messageKey': 'CantTargetWhileEnteringWormhole', 'dataID': 17877231, 'suppressable': False, 'bodyID': 257172, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2798}
- *
- *
- *
  */
 PyResult WormHoleSvc::Handle_WormholeJump( PyCallArgs& call ) {
   /**

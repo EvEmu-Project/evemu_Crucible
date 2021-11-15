@@ -16,6 +16,9 @@ void DBCleaner::Initialize() {
 
     // Add new cleaning jobs below
     CleanEntity(EVEDB::invTypes::CynosuralFieldI); //Clean cynosural fields
+    CleanGroupFromSpace(EVEDB::invGroups::Scanner_Probe); //Clean scanner probes floating in space
+    CleanGroupFromSpace(EVEDB::invGroups::Survey_Probe); //Clean survey probes floating in space
+    CleanOrphanedWormholes(); //Clean up orphaned wormhole entities
 
     // Don't add anything below this line
     sLog.Blue("        DBCleaner", "Cleaning complete.");
@@ -27,4 +30,32 @@ void DBCleaner::CleanEntity(uint32 type) {
     sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID IN (SELECT itemID FROM entity WHERE typeID = %u);", type);
     // Delete entities themselves
     sDatabase.RunQuery(err, "DELETE FROM entity WHERE typeID = %u", type); 
+}
+
+void DBCleaner::CleanGroupFromSpace(uint32 groupID) {
+    DBerror err;
+    // Delete entity attributes associated with removed entities
+    sDatabase.RunQuery(err, "DELETE entity_attributes FROM entity_attributes WHERE itemID IN "
+    "(SELECT itemID FROM entity "
+    "INNER JOIN invTypes USING (typeID) "
+    "WHERE groupID = %u)", groupID);
+    // Delete entities themselves
+    sDatabase.RunQuery(err, "DELETE entity FROM entity "
+    "INNER JOIN invTypes USING (typeID) "
+    "WHERE locationID >= 30000000 AND locationID <= 32000000 AND groupID = %u", groupID); 
+}
+
+void DBCleaner::CleanOrphanedWormholes() {
+    DBerror err;
+    // Delete wormholes which don't have any reference in the sysSignatures table
+    sDatabase.RunQuery(err, "DELETE entity_attributes FROM entity_attributes WHERE itemID IN "
+    "(SELECT itemID FROM entity "
+    "INNER JOIN invTypes USING (typeID) "
+    "WHERE itemID NOT IN (SELECT sigItemID FROM sysSignatures) "
+    "AND groupID = %u)", EVEDB::invGroups::Wormhole);
+
+    sDatabase.RunQuery(err, "DELETE entity FROM entity "
+    "INNER JOIN invTypes USING (typeID) "
+    "WHERE itemID NOT IN (SELECT sigItemID FROM sysSignatures) "
+    "AND locationID >= 30000000 AND locationID <= 32000000 AND groupID = %u", EVEDB::invGroups::Wormhole); 
 }

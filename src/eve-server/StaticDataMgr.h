@@ -114,6 +114,8 @@ public:
     uint32              GetRegionRatFaction(uint32 regionID);
 
     uint8               GetWHSystemClass(uint32 systemID);
+    std::vector<uint32> GetWHDestinationTypes(uint32 classID) { return m_whClassDestinations[classID]; }
+    std::vector<uint32> GetWHClassSystems(uint8 classID) { return m_whClassSystems[classID]; }
 
     void                GetDgmTypeAttrVec(uint16 typeID, std::vector< DmgTypeAttribute >& typeAttrVec);
 
@@ -174,6 +176,8 @@ private:
 
     std::map<uint16, PyDict*>                           m_bpMatlData;       // typeID/dict*
     std::map<uint32, uint8>                             m_whRegions;        // regionID/classID
+    std::map<uint32, std::vector<uint32>>               m_whClassDestinations; //classID/typeID
+    std::map<uint32, std::vector<uint32>>               m_whClassSystems;   //classID/systemID
     std::map<uint32, uint32>                            m_regions;          // regionID/ownerFactionID
     std::map<uint32, uint32>                            m_ratRegions;       // regionID/ratFactionID
     std::map<uint32, SystemData>                        m_systemData;       // systemID/data

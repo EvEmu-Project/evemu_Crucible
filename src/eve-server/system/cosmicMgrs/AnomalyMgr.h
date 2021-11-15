@@ -36,8 +36,8 @@ class AnomalyMgr
     void Close();
     void Process();
 
-    void SaveAnomaly();
     void CreateAnomaly(int8 typeID=0);
+    void SaveAnomaly(CosmicSignature& sig);
     void LoadAnomalies();
 
     //  assign sigID and add to anom list to allow showing on scanner
@@ -52,6 +52,8 @@ class AnomalyMgr
     GPoint GetAnomalyPos(std::string& sigID);
 
     const char* GetScanGroupName(uint8 groupID=0);
+
+    void RegisterExitWH(CosmicSignature &sig);
 
 protected:
     ManagerDB m_mdb;

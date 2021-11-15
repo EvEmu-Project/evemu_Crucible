@@ -209,7 +209,7 @@ boolean can use either 0/1 OR true/false.
         <BeltEnabled>true</BeltEnabled><!-- bool -->
         <BeltRespawn>6</BeltRespawn><!-- hours  (6h default) -->
         <roidRadiusMultiplier>1.0</roidRadiusMultiplier><!-- float  used to change belt radius and roid size -->
-        <WormHoleEnabled>false</WormHoleEnabled><!-- bool -->
+        <WormHoleEnabled>true</WormHoleEnabled><!-- bool -->
         <CiviliansEnabled>false</CiviliansEnabled><!-- bool -->
         <BumpEnabled>false</BumpEnabled><!-- bool -->
     </cosmic>

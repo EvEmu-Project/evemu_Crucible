@@ -92,12 +92,15 @@ public:
     /* anomaly manager */
     void SaveAnomaly(CosmicSignature& sig);
     void GetAnomalyList(DBQueryResult& res);
+    void GetAnomaliesBySystem(uint32 systemID, DBQueryResult& res);
     void GetSystemAnomalies(uint32 systemID, DBQueryResult& res);
     void GetSystemAnomalies(uint32 systemID, std::vector< CosmicSignature >& sigs);
     static GPoint GetAnomalyPos(std::string& string);
 
     /* wormhole manager */
     static void GetWHSystemClass(DBQueryResult& res);
+    static void GetWHClassDestinations(uint32 systemClass, DBQueryResult& res);
+    static void GetWHClassSystems(uint32 systemClass, DBQueryResult& res);
 
 };
 

@@ -306,6 +306,38 @@ void StaticDataMgr::Populate()
     }
     sLog.Cyan("    StaticDataMgr", "%lu WH System Classes loaded in %.3fms.", m_whRegions.size(), (GetTimeMSeconds() - startTime));
 
+    // Load wormhole destination classes into static memory object
+    startTime = GetTimeMSeconds();
+    int size = 0;
+    for (int i = 1; i < 10; i++) {
+        ManagerDB::GetWHClassDestinations(i, *res);
+        DBResultRow row;
+        m_whClassDestinations[i];
+        while (res->GetRow(row)) {
+            m_whClassDestinations[i].push_back(row.GetUInt(0));
+        }
+        size += m_whClassDestinations[i].size();
+    }
+
+    sLog.Cyan("    StaticDataMgr", "%lu WH Destination Classes loaded in %.3fms.",
+              size, (GetTimeMSeconds() - startTime));
+
+    // Load wormhole system classes into static memory object
+    startTime = GetTimeMSeconds();
+    size = 0;
+    for (int i = 1; i < 10; i++) {
+        ManagerDB::GetWHClassSystems(i, *res);
+        DBResultRow row;
+        m_whClassSystems[i];
+        while (res->GetRow(row)) {
+            m_whClassSystems[i].push_back(row.GetUInt(0));
+        }
+        size += m_whClassSystems[i].size();
+    }
+
+    sLog.Cyan("    StaticDataMgr", "%lu WH Class Systems loaded in %.3fms.",
+              size, (GetTimeMSeconds() - startTime));
+
     startTime = GetTimeMSeconds();
     ManagerDB::GetStaticData(*res);
     while (res->GetRow(row)) {

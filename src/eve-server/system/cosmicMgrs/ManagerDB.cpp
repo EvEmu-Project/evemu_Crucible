@@ -353,6 +353,16 @@ void ManagerDB::GetAnomalyList(DBQueryResult& res)
         }
 }
 
+void ManagerDB::GetAnomaliesBySystem(uint32 systemID, DBQueryResult& res)
+{// sysSignatures (sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,x,y,z)
+    if (!sDatabase.RunQuery(res,
+        "SELECT sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,x,y,z"
+        " FROM sysSignatures"
+        " WHERE systemID = %u", systemID)) {
+        _log(DATABASE__ERROR, "Error in GetAnomalyList query: %s", res.error.c_str());
+        }
+}
+
 GPoint ManagerDB::GetAnomalyPos(std::string& string)
 {
     DBQueryResult res;
@@ -699,7 +709,7 @@ void ManagerDB::ClearDungeons()
 {
     DBerror err;
     sDatabase.RunQuery(err, "DELETE FROM dunActive WHERE 1");
-    sDatabase.RunQuery(err, "DELETE FROM sysSignatures WHERE 1");
+    sDatabase.RunQuery(err, "DELETE FROM sysSignatures WHERE dungeonType != 6 AND 1");
     // anomaly items are all temp, except roids, so we may not need this...
     sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID IN (SELECT itemID FROM entity WHERE customInfo LIKE 'Dungeon%%')");
     sDatabase.RunQuery(err, "DELETE FROM entity WHERE customInfo LIKE 'Dungeon%%'");
@@ -709,7 +719,7 @@ void ManagerDB::ClearDungeons(uint32 systemID)
 {
     DBerror err;
     sDatabase.RunQuery(err, "DELETE FROM dunActive WHERE systemID = %u", systemID);
-    sDatabase.RunQuery(err, "DELETE FROM sysSignatures WHERE  systemID = %u", systemID);
+    sDatabase.RunQuery(err, "DELETE FROM sysSignatures WHERE dungeonType != 6 AND systemID = %u", systemID);
     // anomaly items are all temp, except roids, so we may not need this...
     sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID IN (SELECT itemID FROM entity WHERE locationID = %u AND customInfo LIKE 'Dungeon%%')", systemID);
     sDatabase.RunQuery(err, "DELETE FROM entity WHERE locationID = %u AND customInfo LIKE 'Dungeon%%'", systemID);
@@ -753,5 +763,51 @@ void ManagerDB::UpdateStatisticHistory(StatisticData& data)
         data.oreMined, data.iskMarket, data.probesLaunched, data.sitesScanned ))
     {
         _log(DATABASE__ERROR, "srvStatisticHistory - unable to save data: %s", err.c_str());
+    }
+}
+
+void ManagerDB::GetWHClassDestinations(uint32 systemClass, DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res,
+    "SELECT typeID "
+    "FROM mapWormholeDestinationClasses "
+    "WHERE class = %u", systemClass))
+    {
+        codelog(DATABASE__ERROR, "Error in GetWHDestinationClass query: %s", res.error.c_str());
+    }
+}
+
+void ManagerDB::GetWHClassSystems(uint32 systemClass, DBQueryResult& res)
+{
+    // For WH / nullsec systems, use this query
+    if (systemClass <= 6 or systemClass == 9) {
+        if (!sDatabase.RunQuery(res,
+        "SELECT solarSystemID,wormholeClassID FROM mapSolarSystems mss "
+        "INNER JOIN mapLocationWormholeClasses mlwc ON mss.regionID = mlwc.locationID "
+        "AND wormholeClassID = %u", systemClass))
+        {
+            codelog(DATABASE__ERROR, "Error in GetWHClassSystems(wh/ns) query: %s", res.error.c_str());
+        }
+    }
+    // For lowsec systems, use solarSystemID as mapped from mlwc table
+    else if (systemClass == 8) {
+        if (!sDatabase.RunQuery(res,
+        "SELECT solarSystemID,wormholeClassID FROM mapSolarSystems mss "
+        "INNER JOIN mapLocationWormholeClasses mlwc ON mss.solarSystemID = mlwc.locationID "
+        "AND wormholeClassID = %u", systemClass))
+        {
+            codelog(DATABASE__ERROR, "Error in GetWHClassSystems(ls) query: %s", res.error.c_str());
+        }
+    }
+    // For highsec systems, use all systems in the highsec regions excepting those with low security status
+    else if (systemClass == 7) {
+        if (!sDatabase.RunQuery(res,
+        "SELECT solarSystemID,wormholeClassID FROM mapSolarSystems mss "
+        "INNER JOIN mapLocationWormholeClasses mlwc ON mss.regionID = mlwc.locationID "
+        "WHERE solarSystemID NOT IN (SELECT locationID FROM mapLocationWormholeClasses mlwc2 WHERE mlwc2.wormholeClassID = 8) "
+        "AND wormholeClassID = %u", systemClass))
+        {
+            codelog(DATABASE__ERROR, "Error in GetWHClassSystems(hs) query: %s", res.error.c_str());
+        }
     }
 }

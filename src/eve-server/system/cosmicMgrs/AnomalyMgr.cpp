@@ -114,6 +114,9 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
         return true;
     }
 
+    // Load saved anomalies from db upon system init
+    LoadAnomalies();
+
     // set internal check data
     // range is 0.1 for 1.0 system to 2.0 for -0.9 system
     float security = m_system->GetSecValue();
@@ -157,11 +160,14 @@ void AnomalyMgr::Process() {
             CreateAnomaly();
         if (m_Anoms < (m_maxSigs /2))
             CreateAnomaly(Dungeon::Type::Anomaly);
+        
     }
 
-    //if (m_spawnTimer.Check(false)) {
-    //    /* do something useful here */
-    //}
+    //TODO: Implement checking for expired anomalies
+    /*if (m_spawnTimer.Check(false)) {
+        // Check for expired anomalies and delete them
+
+    }*/
 }
 
 void AnomalyMgr::Close()
@@ -170,19 +176,47 @@ void AnomalyMgr::Close()
 }
 
 void AnomalyMgr::LoadAnomalies() {
-    //. is this needed?  probably not.  make em all dynamic
     // check for existing data and load accordingly.
     // this will only hit on system load
+    DBQueryResult res;
+    m_mdb.GetAnomaliesBySystem(m_system->GetID(), res);
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        //sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,wormholeID,x,y,z
+        CosmicSignature sig = CosmicSignature();
+        sig.sigID = row.GetText(0);
+        sig.sigItemID = row.GetInt(1);
+        sig.dungeonType = row.GetInt(2);
+        sig.sigName = row.GetText(3);
+        sig.systemID = row.GetInt(4);
+        sig.sigTypeID = row.GetInt(5);
+        sig.sigGroupID = row.GetInt(6);
+        sig.scanGroupID = row.GetInt(7);
+        sig.sigStrength = 10.0f;
+        sig.scanAttributeID = row.GetInt(8);
+        sig.position.x = row.GetDouble(9);
+        sig.position.y = row.GetDouble(10);
+        sig.position.z = row.GetDouble(11);
 
-    // get loaded type data and save in memobj for later use
+        // Register loaded signatures
+        m_dungMgr->MakeDungeon(sig);
+        m_sigBySigID.emplace(sig.sigID, sig);
+        m_sigByItemID.emplace(sig.sigItemID, sig);
+        ++m_Sigs;
+
+        _log(COSMIC_MGR__MESSAGE, "AnomalyMgr::LoadAnomalies() - Created Signal %s(%u) for %s in %s(%u), bubbleID %u with %.3f%% sigStrength.", \
+        sDunDataMgr.GetDungeonType(sig.dungeonType), sig.dungeonType, \
+        sig.sigName.c_str(), m_system->GetName(), sig.systemID, sig.bubbleID, sig.sigStrength *100);
+    }
+
 }
 
-void AnomalyMgr::SaveAnomaly()
+void AnomalyMgr::SaveAnomaly(CosmicSignature& sig)
 {
-    // same as above...not needed but used for testing for now.
-    //will have to rewrite scan system to use data from here
-    for (auto sig : m_sigByItemID)
-        m_mdb.SaveAnomaly(sig.second);
+    // Save anomalies based upon their type to the database
+    if (sig.dungeonType == Dungeon::Type::Wormhole) {
+        m_mdb.SaveAnomaly(sig);
+    }
 }
 
 void AnomalyMgr::GetSignatureList(std::vector<CosmicSignature>& sig)
@@ -268,7 +302,7 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
             // enable WH to be warped to...they are deco only at this time.
             //  once working, these will be by probe only, and removed from anomaly list
             sig.sigTypeID = EVEDB::invTypes::CosmicSignature;
-            sig.sigGroupID = EVEDB::invGroups::Cosmic_Signature;
+            sig.sigGroupID = EVEDB::invGroups::Wormhole;
             sig.scanGroupID = Scanning::Group::Signature;
             sig.scanAttributeID = AttrScanAllStrength;  // Unknown
             // hand off to WHMgr for creation and exit after return
@@ -278,6 +312,8 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
                 m_sigBySigID.emplace(sig.sigID, sig);
                 m_sigByItemID.emplace(sig.sigItemID, sig);
             }
+            // Save wormhole to the database for later loading
+            SaveAnomaly(sig);
             return;
         } break;
         case Dungeon::Type::Anomaly: {      // 7   simple combat sites
@@ -324,9 +360,25 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
         ++m_Sigs;
     }
 
-    //m_mdb.SaveAnomaly(sig);
+    // Save anomaly to the database for later loading
+    SaveAnomaly(sig);
 
     _log(COSMIC_MGR__MESSAGE, "AnomalyMgr::Create() - Created Signal %s(%u) for %s in %s(%u), bubbleID %u with %.3f%% sigStrength.", \
+            sDunDataMgr.GetDungeonType(sig.dungeonType), sig.dungeonType, \
+            sig.sigName.c_str(), m_system->GetName(), sig.systemID, sig.bubbleID, sig.sigStrength *100);
+}
+
+// Register an exit wormhole created by WhMgr's 'CreateExit()' function
+void AnomalyMgr::RegisterExitWH(CosmicSignature &sig)
+{
+    m_sigBySigID.emplace(sig.sigID, sig);
+    m_sigByItemID.emplace(sig.sigItemID, sig);
+    ++m_Sigs;
+
+    // Save anomaly to the database for later loading
+    SaveAnomaly(sig);
+
+    _log(COSMIC_MGR__MESSAGE, "AnomalyMgr::RegisterExitWH() - Created Signal %s(%u) for %s in %s(%u), bubbleID %u with %.3f%% sigStrength.", \
             sDunDataMgr.GetDungeonType(sig.dungeonType), sig.dungeonType, \
             sig.sigName.c_str(), m_system->GetName(), sig.systemID, sig.bubbleID, sig.sigStrength *100);
 }

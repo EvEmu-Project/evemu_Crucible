@@ -478,7 +478,12 @@ bool SystemManager::LoadSystemDynamics() {
         if (pSE->GetPosition().isZero())
             pSE->SetPosition(sMapData.GetRandPointOnPlanet(m_data.systemID));
         //pSE->SetPosition(sMapData.GetRandPointOnMoon(m_data.systemID));
-        AddEntity(pSE);
+        if (pSE->GetTypeID() == EVEDB::invGroups::Wormhole) { //Wormholes don't need anomaly signals
+            AddEntity(pSE, false);
+        } else {
+            AddEntity(pSE);
+        }
+
     }
     _log(SERVER__INIT, "SystemManager::LoadSystemDynamics - %u Dynamic System entities loaded for %s(%u)", entities.size(), m_data.name.c_str(),m_data.systemID);
 
