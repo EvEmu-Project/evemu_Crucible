@@ -345,3 +345,13 @@ const GPoint MapData::GetAnomalyPoint(SystemManager* pSys)
     return pos;
 }
 
+const GPoint MapData::GetAnomalyPoint(uint32 systemID)
+{
+    uint8 total = 0;
+    std::vector<DBGPointEntity> planetIDs;
+    planetIDs.clear();
+    MapDB::GetPlanets(systemID, planetIDs, total);
+    GPoint pos(planetIDs[MakeRandomInt(0, total)].position);
+    pos.MakeRandomPointOnSphereLayer(ONE_AU_IN_METERS / 3, ONE_AU_IN_METERS * 4);
+    return pos;
+}

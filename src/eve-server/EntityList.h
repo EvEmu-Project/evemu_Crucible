@@ -119,6 +119,7 @@ public:
     void GetClients(std::vector<Client* > &result) const;
     void GetCorpClients(std::vector<Client*> &result, uint32 corpID) const;
 
+    bool IsSystemLoaded(uint32 sysID) { return (m_systems.find(sysID) != m_systems.end()); }
     void AddStation(uint32 stationID, StationItemRef itemRef);
     void RemoveStation(uint32 stationID);
     StationItemRef GetStationByID(uint32 stationID);

@@ -40,6 +40,7 @@ public:
     void Create(CosmicSignature& sig, uint32 exitSystemID=0);
     // this will create a k162 and send data to anomalyMgr for inclusion
     void CreateExit(SystemManager* pFromSys, SystemManager* pToSys);
+    void CreateExit(SystemManager* pFromSys, uint32 exitSystemID);
 
 private:
     ManagerDB* m_mdb;

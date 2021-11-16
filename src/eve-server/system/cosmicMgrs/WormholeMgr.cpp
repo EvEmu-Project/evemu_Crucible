@@ -130,6 +130,7 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*= 0*/)
         destSystem = GetRandomDestination(whType);
         // create wormhole here
         sig.sigName = whType->name();
+        sig.sigTypeID = whType->id();
 
         GPoint pos(sig.position);
         ItemData wData(whType->id(), sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), pos);
@@ -165,12 +166,17 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*= 0*/)
 
     // Call CreateExit() to create an exit wormhole (only if Create() was not called for an exit already)
     if (exitSystemID == 0) {
-        SystemManager* pToSys = sEntityList.FindOrBootSystem(destSystem);
-        if (pSysMgr == nullptr) {
-            _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::Create() - Boot failure for system %u", destSystem);
-            return;
+        // TODO: Check here if a system is loaded and add an exit to the unloaded system.
+        if (sEntityList.IsSystemLoaded(destSystem)) {
+            SystemManager* pToSys = sEntityList.FindOrBootSystem(destSystem);
+            if (pSysMgr == nullptr) {
+                _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::Create() - Boot failure for system %u", destSystem);
+                return;
+            }
+            CreateExit(pSysMgr, pToSys);
+        } else {
+            CreateExit(pSysMgr, destSystem);
         }
-        CreateExit(pSysMgr, pToSys);
     }
 
     _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::Create() - Created %s in %s(%u) with %.3f%% sigStrength.", \
@@ -178,6 +184,7 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*= 0*/)
 
 }
 
+// Create exit for loaded systems
 void WormholeMgr::CreateExit(SystemManager* pFromSys, SystemManager* pToSys)
 {
     // compile data for exit
@@ -191,7 +198,7 @@ void WormholeMgr::CreateExit(SystemManager* pFromSys, SystemManager* pToSys)
     sig.sigName = "Wormhole K162 ";
     //default to 1/80
     sig.sigStrength = 0.0125;
-    sig.sigTypeID = EVEDB::invTypes::CosmicSignature;
+    sig.sigTypeID = 30831;
     sig.sigGroupID = EVEDB::invGroups::Wormhole;
     sig.scanGroupID = Scanning::Group::Signature;
     sig.scanAttributeID = AttrScanAllStrength;
@@ -209,8 +216,47 @@ void WormholeMgr::CreateExit(SystemManager* pFromSys, SystemManager* pToSys)
     // Register this exit wormhole with the destination's AnomalyMgr
     pToSys->GetAnomMgr()->RegisterExitWH(sig);
 
-    _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::CreateExit() - Creating Exit from %s(%u) to %s(%u)", \
+    _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::CreateExit() - Creating Exit(loaded) from %s(%u) to %s(%u)", \
                 pFromSys->GetName(), pFromSys->GetID(), pToSys->GetName(), pToSys->GetID());
+}
+
+// Create exit for unloaded systems
+void WormholeMgr::CreateExit(SystemManager* pFromSys, uint32 exitSystemID)
+{
+    // compile data for exit
+    CosmicSignature sig = CosmicSignature();
+    
+    sig.sigID = sEntityList.GetAnomalyID();
+    sig.systemID = exitSystemID;
+    sig.dungeonType = Dungeon::Type::Wormhole;
+
+    sig.sigItemID = 0;
+    sig.sigName = "Wormhole K162 ";
+    //default to 1/80
+    sig.sigStrength = 0.0125;
+    sig.sigTypeID = 30831;
+    sig.sigGroupID = EVEDB::invGroups::Wormhole;
+    sig.scanGroupID = Scanning::Group::Signature;
+    sig.scanAttributeID = AttrScanAllStrength;
+    sig.ownerID = factionSleepers;
+    sig.position = sMapData.GetAnomalyPoint(exitSystemID);
+
+    InventoryItemRef iRef;
+
+    GPoint pos(sig.position);
+    ItemData wData(30831, sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), pos);
+    iRef = sItemFactory.SpawnItem(wData);
+    if (iRef.get() == nullptr)
+        return;
+    iRef->SetAttribute(AttrWormholeTargetSystem1, pFromSys->GetID());
+    sig.sigItemID = iRef->itemID();
+    iRef->SaveItem();
+
+    // Save the exit wormhole signature to the database
+    m_mdb->SaveAnomaly(sig);
+
+    _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::CreateExit() - Creating Exit(unloaded) from %s(%u) to system(%u)", \
+                pFromSys->GetName(), pFromSys->GetID(), exitSystemID);
 }
 
 // Pick a random type of wormhole to create based upon the class of the system in question

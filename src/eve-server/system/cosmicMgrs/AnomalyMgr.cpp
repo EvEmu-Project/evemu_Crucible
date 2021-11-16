@@ -89,6 +89,7 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     m_beltMgr = beltMgr;
     m_dungMgr = dungMgr;
     m_spawnMgr = spawnMgr;
+    m_firstSpawn = true;
 
     if (m_beltMgr == nullptr) {
         _log(COSMIC_MGR__ERROR, "System Init Fault. beltMgr == nullptr.  Not Initializing Anomaly Manager for %s(%u)", m_system->GetName(), m_system->GetID());
@@ -121,8 +122,11 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     // range is 0.1 for 1.0 system to 2.0 for -0.9 system
     float security = m_system->GetSecValue();
     if (sConfig.debug.IsTestServer) {
-        m_maxSigs = 2;
-        m_procTimer.Start(10000);  // 10s
+        m_maxSigs = 3;
+
+        // Add wormholes by default to the type list for test server
+        m_typeList.push_back(Dungeon::Type::Wormhole);
+        m_WH++;
     } else {
              if (security == 2.0)  { m_maxSigs = 25; }
         else if (security > 1.499) { m_maxSigs = 20; }
@@ -131,8 +135,12 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
         else if (security > 0.449) { m_maxSigs = 8; }
         else if (security > 0.249) { m_maxSigs = 5; }
         else                       { m_maxSigs = 3; }
+    }
 
-        m_procTimer.Start(120000);  // 2m
+    m_procTimer.Start(1000); // Initial 5s timer to ensure everything gets loaded correctly
+    // populate the type vector with all of the anomaly types we will use in this system
+    for (int i = 0; i < m_maxSigs; i++) {
+        m_typeList.push_back(GetDungeonType());
     }
 
     // these use config option to (en/dis)able individual types
@@ -156,13 +164,29 @@ void AnomalyMgr::Process() {
     if (!m_initalized)
         return;
     if (m_procTimer.Check(/*!sConfig.debug.IsTestServer*/)) {
-        if (m_Sigs < m_maxSigs)
-            CreateAnomaly();
-        if (m_Anoms < (m_maxSigs /2))
-            CreateAnomaly(Dungeon::Type::Anomaly);
-        
+        // Only generate new signals when a player is in the system
+        if (m_system->PlayerCount() > 0) {
+            // ensure that all wormholes are created at the beginning when the system is loaded
+            auto it = find(m_typeList.begin(), m_typeList.end(), Dungeon::Type::Wormhole);
+            if (it != m_typeList.end()) {
+                m_typeList.erase(m_typeList.begin()+(it - m_typeList.begin()));
+                CreateAnomaly(Dungeon::Type::Wormhole);
+            }
+            if (m_Sigs < m_maxSigs)
+                CreateAnomaly();
+            if (m_Anoms < (m_maxSigs /2))
+                CreateAnomaly(Dungeon::Type::Anomaly);
+        }
+        // Once initial spawn is complete, set correct timer based upon whether this is test server or not
+        if (m_firstSpawn) {
+            if (sConfig.debug.IsTestServer) {
+                m_procTimer.SetTimer(10000);  // 10s
+            } else {
+                m_procTimer.SetTimer(120000);  // 2m
+            }
+            m_firstSpawn = false;
+        }
     }
-
     //TODO: Implement checking for expired anomalies
     /*if (m_spawnTimer.Check(false)) {
         // Check for expired anomalies and delete them
@@ -258,7 +282,7 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
     //    return;     // make error here?
 
     if (typeID == 0) {
-        sig.dungeonType = GetDungeonType();
+        sig.dungeonType = m_typeList[m_anomByItemID.size() + m_sigByItemID.size()];
     } else {  // proc calling anomaly or mission/escalation being setup.
         sig.dungeonType = typeID;
     }

@@ -73,6 +73,7 @@ private:
     Timer m_procTimer;
 
     bool m_initalized;
+    bool m_firstSpawn;
 
     // internal data counters   hard-capped at 256/128
     uint8 m_maxSigs;    // max total for this system
@@ -90,6 +91,7 @@ private:
     // system total, including pos, wrecks, ships.  65535 *should* be large enough
     uint16 m_Anoms; // this counts signals added thru sysmgr also
 
+    std::vector<uint8> m_typeList; // List of pregenerated signature types for this system
 
     std::map<uint32, CosmicSignature> m_sigByItemID;            // signatures in system - need probes to scan down
     std::map<uint32, CosmicSignature> m_anomByItemID;           // anomalies in system - no probes needed
