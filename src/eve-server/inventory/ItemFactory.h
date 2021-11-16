@@ -120,6 +120,7 @@ public:
     CargoContainerRef       SpawnCargoContainer(ItemData &data);
     WreckContainerRef       SpawnWreckContainer(ItemData &data);
     ProbeItemRef            SpawnProbe(ItemData &data);
+    CelestialObjectRef      SpawnWormhole(ItemData &idata);
 
     /** @todo  add PI item spawners here */
 

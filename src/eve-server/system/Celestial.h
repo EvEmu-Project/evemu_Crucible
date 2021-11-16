@@ -132,6 +132,7 @@ public:
     /* class type tests. */
     /* Base */
     virtual bool                IsWormholeSE()          { return true; }
+    virtual bool                IsGlobal()              { return false; }
 
     /* SystemEntity interface */
     virtual void                EncodeDestiny( Buffer& into );

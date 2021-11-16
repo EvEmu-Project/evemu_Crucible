@@ -438,6 +438,15 @@ StationItemRef ItemFactory::SpawnOutpost(ItemData &idata)
     return iRef;
 }
 
+CelestialObjectRef ItemFactory::SpawnWormhole(ItemData &idata)
+{
+    CelestialObjectRef iRef = CelestialObject::Spawn(idata);
+    if (iRef.get() != nullptr)
+        AddItem(iRef);
+
+    return iRef;
+}
+
 StationOfficeRef ItemFactory::SpawnOffice(ItemData &idata, OfficeData& odata)
 {
     StationOfficeRef iRef = StationOffice::Spawn(idata, odata);

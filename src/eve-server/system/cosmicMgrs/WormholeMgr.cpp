@@ -110,13 +110,13 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*= 0*/)
 
     //Destination for non-exit wormholes
     uint32 destSystem = 0; 
-    InventoryItemRef iRef;
+    CelestialObjectRef iRef;
 
     // For exit wormholes (k162)
     if (exitSystemID != 0) {
         GPoint pos(sig.position);
         ItemData wData(30831, sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), pos);
-        iRef = sItemFactory.SpawnItem(wData);
+        iRef = sItemFactory.SpawnWormhole(wData);
         if (iRef.get() == nullptr)
             return;
 
@@ -135,7 +135,7 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*= 0*/)
         GPoint pos(sig.position);
         ItemData wData(whType->id(), sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), pos);
 
-        iRef = sItemFactory.SpawnItem(wData);
+        iRef = sItemFactory.SpawnWormhole(wData);
         if (iRef.get() == nullptr)
             return;
 
@@ -150,14 +150,18 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*= 0*/)
         return;
     }
 
-    CelestialSE* wSE = new CelestialSE(iRef, *(pSysMgr->GetServiceMgr()), pSysMgr);
+    // set itemID to return to anomaly mgr after creation succeeds
+    sig.sigItemID = iRef->itemID();
+    iRef->SaveItem();
+
+    // Reload entity from factory
+    iRef = sItemFactory.GetCelestialRef( sig.sigItemID );
+    WormholeSE* wSE = new WormholeSE(iRef, *(pSysMgr->GetServiceMgr()), pSysMgr);
     if (wSE == nullptr) {
         _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::Create() - SE Create failure for %s(%u)", iRef->name(), iRef->itemID());
         return;
     }
-    // set itemID to return to anomaly mgr after creation succeeds
-    sig.sigItemID = iRef->itemID();
-    iRef->SaveItem();
+
     // add wormhole to system (signal added to AnomalyMgr on successful return)
     pSysMgr->AddEntity(wSE, false);
     sig.bubbleID = wSE->SysBubble()->GetID();
@@ -166,7 +170,6 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*= 0*/)
 
     // Call CreateExit() to create an exit wormhole (only if Create() was not called for an exit already)
     if (exitSystemID == 0) {
-        // TODO: Check here if a system is loaded and add an exit to the unloaded system.
         if (sEntityList.IsSystemLoaded(destSystem)) {
             SystemManager* pToSys = sEntityList.FindOrBootSystem(destSystem);
             if (pSysMgr == nullptr) {
@@ -241,11 +244,11 @@ void WormholeMgr::CreateExit(SystemManager* pFromSys, uint32 exitSystemID)
     sig.ownerID = factionSleepers;
     sig.position = sMapData.GetAnomalyPoint(exitSystemID);
 
-    InventoryItemRef iRef;
+    CelestialObjectRef iRef;
 
     GPoint pos(sig.position);
     ItemData wData(30831, sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), pos);
-    iRef = sItemFactory.SpawnItem(wData);
+    iRef = sItemFactory.SpawnWormhole(wData);
     if (iRef.get() == nullptr)
         return;
     iRef->SetAttribute(AttrWormholeTargetSystem1, pFromSys->GetID());
