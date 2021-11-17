@@ -75,6 +75,15 @@ ContractProxy::~ContractProxy()
  */
 
 PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
+    // TODO: Un-hard code it - GetContractEntries function works, so now we can replace it with proper querying.
+    PyDict* response = new PyDict;
+    PyList* contracts = ContractUtils::GetContractEntries("12");
+    response->SetItemString("contracts", contracts);
+    response->SetItemString("numFound", new PyInt(1));
+    response->SetItemString("searchTime", new PyInt(153));
+    response->SetItemString("maxResults", new PyInt(1000));
+
+    return new PyObject("util.KeyVal", response);
     /*
      * ret = sm.ProxySvc('contractProxy').SearchContracts(itemTypes=itemTypes, itemTypeName=itemTypeName, itemCategoryID=itemCategoryID, itemGroupID=itemGroupID, contractType=contractType, securityClasses=securityClasses, locationID=locationID, endLocationID=endLocationID, issuerID=issuerID, minPrice=minPrice, maxPrice=maxPrice, minReward=minReward, maxReward=maxReward, minCollateral=minCollateral, maxCollateral=maxCollateral, minVolume=minVolume, maxVolume=maxVolume, excludeTrade=excludeTrade, excludeMultiple=excludeMultiple, excludeNoBuyout=excludeNoBuyout, availability=availability, description=description, searchHint=searchHint, sortBy=sortBy, sortDir=sortDir, startNum=startNum)
      * contracts = ret.contracts
@@ -322,7 +331,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
             return nullptr;
         }
     } else {
-        endSystemId = 0;
+        endSystemId = startSystemId;
         endRegionId = 0;
     }
 
