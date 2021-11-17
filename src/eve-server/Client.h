@@ -230,7 +230,8 @@ public:
     bool IsIdle()                                       { return (m_clientState == Player::State::Idle); }
     bool IsGateJump()                                   { return (m_clientState == Player::State::Jump); }
     bool IsDriveJump()                                  { return (m_clientState == Player::State::DriveJump); }
-    bool IsJump()                                       { return ((m_clientState == Player::State::DriveJump) or (m_clientState == Player::State::Jump)); } //Gate and Drive are both forms of jumping
+    bool IsWormholeJump()                               { return (m_clientState == Player::State::WormholeJump); }
+    bool IsJump()                                       { return ((m_clientState == Player::State::DriveJump) or (m_clientState == Player::State::Jump) or (m_clientState == Player::State::WormholeJump)); } //Gate and Drive are both forms of jumping
     bool IsBoard()                                      { return (m_clientState == Player::State::Board); }
     bool IsInvul()                                      { return m_invul; }
     bool IsLogin()                                      { return m_login; }
@@ -253,6 +254,7 @@ public:
     void SetBallPark();
     void StargateJump(uint32 fromGate, uint32 toGate);
     void CynoJump(InventoryItemRef beacon);
+    void WormholeJump(InventoryItemRef wormhole);
 
     bool IsAutoPilot()                                  { return m_autoPilot; }
     void SetAutoPilot(bool set=false);
@@ -347,6 +349,7 @@ protected:
 
     void ExecuteJump();
     void ExecuteDriveJump();
+    void ExecuteWormholeJump();
     void DestroyShipSE();
 
     //void _AwardBounty(SystemEntity *who);

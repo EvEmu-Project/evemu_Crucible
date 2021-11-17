@@ -37,10 +37,10 @@ public:
     void Initialize(PyServiceMgr* svc);
     void Process();
 
-    void Create(CosmicSignature& sig, uint32 exitSystemID=0);
+    void Create(CosmicSignature& sig, uint32 exitSystemID=0, uint32 exitSourceItemID=0);
     // this will create a k162 and send data to anomalyMgr for inclusion
-    void CreateExit(SystemManager* pFromSys, SystemManager* pToSys);
-    void CreateExit(SystemManager* pFromSys, uint32 exitSystemID);
+    void CreateExit(SystemManager* pFromSys, SystemManager* pToSys, uint32 sourceItemID);
+    void CreateExit(SystemManager* pFromSys, uint32 exitSystemID, uint32 sourceItemID);
 
 private:
     ManagerDB* m_mdb;

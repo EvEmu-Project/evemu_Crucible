@@ -170,7 +170,9 @@ public:
     void DockingAccepted();
     void SendSetState() const;
     void SendJumpOut(uint32 gateID) const;
+    void SendJumpOutWormhole(uint32 wormholeID) const;
     void SendGateActivity(uint32 gateID) const;
+    void SendWormholeActivity(uint32 wormholeID) const;
     void SendJumpInEffect(std::string JumpEffect) const;
     void SendJumpOutEffect(std::string JumpEffect, uint32 shipID) const;
     void SendTerminalExplosion(uint32 shipID, uint32 bubbleID, bool isGlobal=false) const;

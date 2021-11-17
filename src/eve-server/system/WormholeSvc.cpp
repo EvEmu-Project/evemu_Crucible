@@ -64,7 +64,46 @@ PyResult WormHoleSvc::Handle_WormholeJump( PyCallArgs& call ) {
      *    GetShip()->SetCustomInfo(ci);
      */
 
+    _log(AUTOPILOT__MESSAGE, "%s called wormhole jump.", call.client->GetName());
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
+    }
+
+    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    if (pDestiny == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsWarping()) {
+        call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsFrozen()) {
+        call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
+    } else if (pDestiny->IsCloaked()) {
+        throw UserError ("CantEnterWormholeWhileCloaked");
+    }
+
+    Call_SingleIntegerArg arg;
+    if (!arg.Decode(&call.tuple)) {
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    InventoryItemRef wormhole = sItemFactory.GetItemRefFromID(arg.arg);
+
+    //Check for jump fuel and make sure there is enough fuel available
+    ShipItemRef ship = call.client->GetShip();
+
+    if (ship->GetAttribute(AttrMass) > wormhole->GetAttribute(AttrWormholeMaxJumpMass).get_int()) {
+        call.client->SendNotifyMsg("Your ship is too large to fit through the wormhole.");
+        return PyStatic.NewNone();
+    }
+
+    call.client->WormholeJump(wormhole);
+
     /* return error msg from this call, if applicable, else nodeid and timestamp */
+    // returns nodeID and timestamp
     return new PyLong(Win32TimeNow());
 }
 

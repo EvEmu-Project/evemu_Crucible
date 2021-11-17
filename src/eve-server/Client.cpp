@@ -57,6 +57,7 @@
 #include "station/Station.h"
 #include "station/TradeService.h"
 #include "pos/Tower.h"
+#include "system/cosmicMgrs/WormholeMgr.h"
 
 static const uint32 PING_INTERVAL_MS = 600000; //10m
 
@@ -482,6 +483,10 @@ void Client::ProcessClient() {
                     _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: DriveJump");
                     ExecuteDriveJump();
                 } break;
+                case Player::State::WormholeJump: {
+                    _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: WormholeJump");
+                    ExecuteWormholeJump();
+                } break;
                 case Player::State::Logout: {
                     _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: Logout");
                     // can we use this to allow WarpOut?
@@ -818,6 +823,11 @@ void Client::SetBallPark() {
             SetInvulTimer(Player::Timer::JumpInvul);
             m_clientState = Player::State::Idle;
             JumpInEffect();
+        }
+        if (IsWormholeJump()) {
+            SetInvulTimer(Player::Timer::JumpInvul);
+            m_cloakTimer.Start(Player::Timer::JumpCloak);
+            m_clientState = Player::State::Idle;
         }
     }
     if (m_undock)
@@ -1389,6 +1399,32 @@ void Client::CynoJump(InventoryItemRef beacon) {
     SetStateTimer(Player::State::DriveJump, Player::Timer::Jumping);
 }
 
+void Client::WormholeJump(InventoryItemRef wormhole) {
+    if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
+        sLog.Error("Client","%s: WormholeJump called when a move is already pending. Ignoring.", m_char->name());
+        /** @todo  send error to client here */
+        return;
+    }
+
+    MapDB::AddJump(m_locationID);
+    pShipSE->DestinyMgr()->SendJumpOutWormhole(wormhole->itemID());
+    pShipSE->DestinyMgr()->SendWormholeActivity(wormhole->itemID());
+
+    m_moveSystemID = wormhole->GetAttribute(AttrWormholeTargetSystem1).get_int();
+    MapDB::AddJump(m_moveSystemID);
+    m_char->VisitSystem(m_moveSystemID);
+
+
+    // Get destination wormhole position and start jump timer
+    InventoryItemRef destWh;
+    destWh = sItemFactory.GetItemRefFromID(wormhole->GetAttribute(AttrWormholeTargetSystem2).get_int());
+
+    m_movePoint = destWh->position();
+    m_movePoint.MakeRandomPointOnSphere(2000);
+    SetStateTimer(Player::State::WormholeJump, Player::Timer::Jumping);
+
+}
+
 void Client::ExecuteJump() {
     if (m_movePoint == NULL_ORIGIN) {
         m_clientState = Player::State::Idle;
@@ -1412,7 +1448,26 @@ void Client::ExecuteJump() {
 void Client::ExecuteDriveJump() {
     if (m_movePoint == NULL_ORIGIN) {
         m_clientState = Player::State::Idle;
-        _log(AUTOPILOT__TRACE, "ExecuteJump() - movePoint = null; state set to Idle");
+        _log(AUTOPILOT__TRACE, "ExecuteDriveJump() - movePoint = null; state set to Idle");
+        /** @todo  send error to client here */
+        return;
+    }
+
+    //OnScannerInfoRemoved  - no args.  flushes current scan data in client
+    SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
+    pShipSE->Jump(false);
+
+    MoveToLocation(m_moveSystemID, m_movePoint);
+    SetBallParkTimer(Player::Timer::Jump);
+
+    m_movePoint = NULL_ORIGIN;
+    m_moveSystemID = 0;
+}
+
+void Client::ExecuteWormholeJump() {
+    if (m_movePoint == NULL_ORIGIN) {
+        m_clientState = Player::State::Idle;
+        _log(AUTOPILOT__TRACE, "ExecuteWormholeJump() - movePoint = null; state set to Idle");
         /** @todo  send error to client here */
         return;
     }
@@ -1555,6 +1610,7 @@ std::string Client::GetStateName(int8 state)
         case Player::State::Idle:      return "Idle";
         case Player::State::Jump:      return "Jump";
         case Player::State::DriveJump: return "DriveJump";
+        case Player::State::WormholeJump: return "WormholeJump";
         case Player::State::Dock:      return "Dock";
         case Player::State::Undock:    return "Undock";
         case Player::State::Killed:    return "Killed";

@@ -146,6 +146,10 @@ void SystemBubble::ProcessWander(std::vector<SystemEntity*> &wanderers) {
             itr = m_dynamicEntities.erase(itr);
             continue;
         }
+        if (itr->second->IsWormholeSE()) {
+            ++itr;
+            continue;
+        }
         pDSE = itr->second->GetDynamicSE();
         if (pDSE == nullptr) {
             itr = m_dynamicEntities.erase(itr);

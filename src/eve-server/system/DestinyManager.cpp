@@ -2915,10 +2915,33 @@ void DestinyManager::SendJumpOut(uint32 gateID) const {
     SendSingleDestinyUpdate(&up);   // consumed
 }
 
+void DestinyManager::SendJumpOutWormhole(uint32 wormholeID) const {
+    OnSpecialFX10 effect;
+        effect.entityID = mySE->GetID();
+        effect.targetID = wormholeID;
+        effect.guid = "effects.JumpOutWormhole";
+        effect.isOffensive = 0;
+        effect.start = 1;
+        effect.active = 0;
+    PyTuple *up = effect.Encode();
+    SendSingleDestinyUpdate(&up);   // consumed
+}
+
 void DestinyManager::SendGateActivity(uint32 gateID) const {
     OnSpecialFX10 du;
         du.entityID = gateID;
         du.guid = "effects.GateActivity";
+        du.isOffensive = 0;
+        du.start = 1;
+        du.active = 0;
+    PyTuple* up = du.Encode();
+    SendSingleDestinyUpdate(&up);   // consumed
+}
+
+void DestinyManager::SendWormholeActivity(uint32 wormholeID) const {
+    OnSpecialFX10 du;
+        du.entityID = wormholeID;
+        du.guid = "effects.WormholeActivity";
         du.isOffensive = 0;
         du.start = 1;
         du.active = 0;

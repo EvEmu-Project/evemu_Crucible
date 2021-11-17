@@ -128,11 +128,11 @@ public:
     virtual ~WormholeSE()                               { /* Do nothing here */ }
 
     /* class type pointer querys. */
-    virtual WormholeSE*          GetWormholeSE()        { return this; }
+    virtual WormholeSE*         GetWormholeSE()        { return this; }
     /* class type tests. */
     /* Base */
     virtual bool                IsWormholeSE()          { return true; }
-    virtual bool                IsGlobal()              { return false; }
+    //virtual bool                GetDynamicSE()          { return this; }
 
     /* SystemEntity interface */
     virtual void                EncodeDestiny( Buffer& into );
