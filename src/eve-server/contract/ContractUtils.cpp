@@ -95,7 +95,18 @@ PyResult ContractUtils::GetContractEntry(int contractId)
  *                      NOTE: We use string here, since we already iterate over DB results prior to this function - we don't need another iterator here.
  * @return PyList with Contract KeyVal objects.
  */
-PyList* ContractUtils::GetContractEntries(const std::string& contractIDs) {
+PyList* ContractUtils::GetContractEntries(std::vector<int> contractIDList) {
+    std::string contractIDs;
+    if (!contractIDList.empty()) {
+        for (auto contractID : contractIDList) {
+            contractIDs.append(std::to_string(contractID) + ",");
+        }
+        contractIDs.pop_back(); // we do pop-back to remove trailing comma.
+    } else {
+        codelog(SERVICE__ERROR, "ContractUtils: contractIDList was empty. Aborting");
+        return nullptr;
+    }
+
     DBQueryResult contractRes;
     if (!sDatabase.RunQuery(contractRes, getContractQueryBase.c_str(), contractIDs.c_str()))
     {

@@ -20,10 +20,12 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Captnoord
-    Rewrite:    Allan
+    Author:         Captnoord
+    Rewrite:        Allan
+    Implementation: AlTahir
 */
 
+#include <algorithm>    // Added to prevent std::find from freaking out
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
@@ -70,225 +72,125 @@ ContractProxy::~ContractProxy()
     delete m_dispatch;
 }
 
-/** @todo  finally found good packet data for contract system.
- * now just need to write it....
- */
 
 PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
-    // TODO: Un-hard code it - GetContractEntries function works, so now we can replace it with proper querying.
-    PyDict* response = new PyDict;
-    PyList* contracts = ContractUtils::GetContractEntries("12");
-    response->SetItemString("contracts", contracts);
-    response->SetItemString("numFound", new PyInt(1));
-    response->SetItemString("searchTime", new PyInt(153));
-    response->SetItemString("maxResults", new PyInt(1000));
+    // We will not proceed, if contractType is not specified
+    if (!call.byname.find("contractType")->second->IsNone()) {
+        int contractType = call.byname.find("contractType")->second->AsInt()->value();
 
-    return new PyObject("util.KeyVal", response);
-    /*
-     * ret = sm.ProxySvc('contractProxy').SearchContracts(itemTypes=itemTypes, itemTypeName=itemTypeName, itemCategoryID=itemCategoryID, itemGroupID=itemGroupID, contractType=contractType, securityClasses=securityClasses, locationID=locationID, endLocationID=endLocationID, issuerID=issuerID, minPrice=minPrice, maxPrice=maxPrice, minReward=minReward, maxReward=maxReward, minCollateral=minCollateral, maxCollateral=maxCollateral, minVolume=minVolume, maxVolume=maxVolume, excludeTrade=excludeTrade, excludeMultiple=excludeMultiple, excludeNoBuyout=excludeNoBuyout, availability=availability, description=description, searchHint=searchHint, sortBy=sortBy, sortDir=sortDir, startNum=startNum)
-     * contracts = ret.contracts
-     * numFound = ret.numFound
-     * searchTime = ret.searchTime
-     * maxResults = ret.maxResults
-     *
-     *
-     * AttributeError: 'NoneType' object has no attribute 'contracts'
-     */
+        /**
+         * We're using sort of query constructor here - if request have certain value specified, we add it as another AND block.
+         * For now, we will only filter by contract type, item type, item category, min/max price, min/max reward, location/end location and issuer
+         */
+        std::string query = "SELECT cC.contractId FROM ctrContracts cC "
+                            "JOIN ctrItems cI on cC.contractId = cI.contractId "
+                            "JOIN entity e on cI.itemID = e.itemID "
+                            "JOIN invTypes iT on iT.typeID = e.typeID "
+                            "JOIN invGroups iG on iG.groupID = iT.groupID "
+                            "JOIN invCategories iC on iG.categoryID = iC.categoryID "
+                            "WHERE cC.contractType IN " + std::string(contractType == 10 ? "(1,2)" : "(" + std::to_string(contractType) + ")");
+                                                         // Type 10 is "All" and "Exclude WTB", for some reason. We'll assume it's "All", lol
 
-    /*  client call....
-     *
-        [PySubStream 359 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "SearchContracts"]
-            [PyTuple 0 items]
-            [PyDict 27 kvp]
-              [PyString "itemTypeName"]
-              [PyNone]
-              [PyString "itemCategoryID"]
-              [PyNone]
-              [PyString "description"]
-              [PyNone]
-              [PyString "issuerID"]
-              [PyNone]
-              [PyString "excludeMultiple"]
-              [PyInt 0]
-              [PyString "minCollateral"]
-              [PyNone]
-              [PyString "excludeNoBuyout"]
-              [PyNone]
-              [PyString "securityClasses"]
-              [PyNone]
-              [PyString "maxVolume"]
-              [PyNone]
-              [PyString "endLocationID"]
-              [PyNone]
-              [PyString "maxCollateral"]
-              [PyNone]
-              [PyString "contractType"]
-              [PyInt 10]
-              [PyString "minPrice"]
-              [PyNone]
-              [PyString "availability"]
-              [PyInt 2]
-              [PyString "machoVersion"]
-              [PyInt 1]
-              [PyString "minReward"]
-              [PyNone]
-              [PyString "maxReward"]
-              [PyNone]
-              [PyString "minVolume"]
-              [PyNone]
-              [PyString "sortDir"]
-              [PyInt 0]
-              [PyString "searchHint"]
-              [PyNone]
-              [PyString "startNum"]
-              [PyInt 0]
-              [PyString "maxPrice"]
-              [PyNone]
-              [PyString "itemTypes"]
-              [PyNone]
-              [PyString "itemGroupID"]
-              [PyNone]
-              [PyString "locationID"]
-              [PyNone]
-              [PyString "excludeTrade"]
-              [PyNone]
-              [PyString "sortBy"]
-              [PyInt 0]
+        if (!call.byname.find("itemTypes")->second->IsNone()) {
+            PyList* itemTypes = call.byname.find("itemTypes")->second->AsObjectEx()->header()->AsTuple()->GetItem(1)->AsTuple()->GetItem(0)->AsList();
+            std::string types;
+            for (auto index = 0; index < itemTypes->size(); index++) {
+                types.append(std::to_string(itemTypes->GetItem(index)->AsInt()->value()));
 
-    server return...
-        -- for zero results
-      [PySubStream 76 bytes]
-        [PyObjectData Name: util.KeyVal]
-          [PyDict 4 kvp]
-            [PyString "contracts"]
-            [PyList 0 items]
-            [PyString "numFound"]
-            [PyInt 0]
-            [PyString "searchTime"]
-            [PyIntegerVar 583232]
-            [PyString "maxResults"]
-            [PyInt 1000]
-        -- for a hit
-      [PySubStream 1176 bytes]
-        [PyObjectData Name: util.KeyVal]
-          [PyDict 4 kvp]
-            [PyString "contracts"]
-            [PyList 1 items]
-              [PyObjectData Name: util.KeyVal]
-                [PyDict 12 kvp]
-                  [PyString "securityClassEnd"]
-                  [PyNone]
-                  [PyString "startSolarSystemName"]
-                  [PyString "Outuni"]
-                  [PyString "items"]
-                  [PyList 2 items]
-                    [PyPackedRow 52 bytes]
-                      ["contractID" => <41239473> [I4]]
-                      ["itemID" => <1002299726681> [I8]]
-                      ["quantity" => <1> [I4]]
-                      ["itemTypeID" => <3732> [I4]]
-                      ["inCrate" => <1> [Bool]]
-                      ["parentID" => <0> [I8]]
-                      ["productivityLevel" => <0> [I4]]
-                      ["materialLevel" => <0> [I4]]
-                      ["copy" => <0> [Bool]]
-                      ["licensedProductionRunsRemaining" => <0> [I4]]
-                      ["damage" => <0> [R8]]
-                      ["flagID" => <0> [I2]]
-                    [PyPackedRow 52 bytes]
-                      ["contractID" => <41239473> [I4]]
-                      ["itemID" => <1002272878889> [I8]]
-                      ["quantity" => <6> [I4]]
-                      ["itemTypeID" => <3898> [I4]]
-                      ["inCrate" => <1> [Bool]]
-                      ["parentID" => <0> [I8]]
-                      ["productivityLevel" => <0> [I4]]
-                      ["materialLevel" => <0> [I4]]
-                      ["copy" => <0> [Bool]]
-                      ["licensedProductionRunsRemaining" => <0> [I4]]
-                      ["damage" => <0> [R8]]
-                      ["flagID" => <0> [I2]]
-                  [PyString "bids"]
-                  [PyList 0 items]
-                  [PyString "contract"]
-                  [PyPackedRow 142 bytes]
-                    ["contractID" => <41239473> [I4]]
-                    ["type" => <1> [UI1]]
-                    ["issuerID" => <649670823> [I4]]
-                    ["issuerCorpID" => <98038978> [I4]]
-                    ["forCorp" => <0> [Bool]]
-                    ["availability" => <1> [I4]]
-                    ["assigneeID" => <98038978> [I4]]
-                    ["acceptorID" => <0> [I4]]
-                    ["dateIssued" => <129494703690000000> [FileTime]]
-                    ["dateExpired" => <129495567690000000> [FileTime]]
-                    ["dateAccepted" => <129494703690000000> [FileTime]]
-                    ["numDays" => <0> [I4]]
-                    ["dateCompleted" => <129494703690000000> [FileTime]]
-                    ["startStationID" => <60006433> [I4]]
-                    ["startSolarSystemID" => <30000135> [I4]]
-                    ["startRegionID" => <10000002> [I4]]
-                    ["endStationID" => <60006433> [I4]]
-                    ["endSolarSystemID" => <0> [I4]]
-                    ["endRegionID" => <0> [I4]]
-                    ["price" => <150000000> [CY]]
-                    ["reward" => <0> [CY]]
-                    ["collateral" => <0> [CY]]
-                    ["title" => <my contract to Munich Lumberjacks> [WStr]]
-                    ["description" => <empty string> [WStr]]
-                    ["status" => <0> [UI1]]
-                    ["crateID" => <1002309375656> [I8]]
-                    ["volume" => <6.01> [R8]]
-                    ["issuerAllianceID" => <0> [I4]]
-                    ["issuerWalletKey" => <0> [I4]]
-                    ["acceptorWalletKey" => <0> [I4]]
-                  [PyString "itemGroups"]
-                  [PyObjectEx Normal]
-                    [PyTuple 2 items]
-                      [PyToken __builtin__.set]
-                      [PyTuple 1 items]
-                        [PyList 2 items]
-                          [PyInt 266]
-                          [PyInt 303]
-                  [PyString "securityClassStart"]
-                  [PyInt 2]
-                  [PyString "startConstellationID"]
-                  [PyInt 20000019]
-                  [PyString "endConstellationID"]
-                  [PyNone]
-                  [PyString "itemCategories"]
-                  [PyObjectEx Normal]
-                    [PyTuple 2 items]
-                      [PyToken __builtin__.set]
-                      [PyTuple 1 items]
-                        [PyList 2 items]
-                          [PyInt 16]
-                          [PyInt 20]
-                  [PyString "itemTypes"]
-                  [PyObjectEx Normal]
-                    [PyTuple 2 items]
-                      [PyToken __builtin__.set]
-                      [PyTuple 1 items]
-                        [PyList 2 items]
-                          [PyInt 3898]
-                          [PyInt 3732]
-                  [PyString "numBids"]
-                  [PyInt 0]
-            [PyString "numFound"]
-            [PyInt 1]
-            [PyString "searchTime"]
-            [PyIntegerVar 552645]
-            [PyString "maxResults"]
-            [PyInt 1000]
-              */
+                if (index != itemTypes->size() - 1) {
+                    types.append(",");
+                }
+            }
 
-    sLog.White( "ContractProxy::Handle_SearchContracts()", "size=%li", call.tuple->size());
-    call.Dump(SERVICE__CALL_DUMP);
+            if (!types.empty()) {
+                query.append(" AND e.typeID IN (" + types + ")");
+            }
+        }
 
-    return nullptr;
+        if (!call.byname.find("itemGroupID")->second->IsNone()) {
+            query.append(" AND iG.groupID = " + std::to_string(call.byname.find("itemGroupID")->second->AsInt()->value()));
+        }
+        if (!call.byname.find("itemCategoryID")->second->IsNone()) {
+            query.append(" AND iC.categoryID = " + std::to_string(call.byname.find("itemCategoryID")->second->AsInt()->value()));
+        }
+        if (!call.byname.find("minPrice")->second->IsNone()) {
+            query.append(" AND cC.price >= " + std::to_string(call.byname.find("minPrice")->second->AsInt()->value()));
+        }
+        if (!call.byname.find("maxPrice")->second->IsNone()) {
+            query.append(" AND cC.price <= " + std::to_string(call.byname.find("maxPrice")->second->AsInt()->value()));
+        }
+        if (!call.byname.find("minReward")->second->IsNone()) {
+            query.append(" AND cC.reward >= " + std::to_string(call.byname.find("minReward")->second->AsInt()->value()));
+        }
+        if (!call.byname.find("maxReward")->second->IsNone()) {
+            query.append(" AND cC.reward <= " + std::to_string(call.byname.find("maxReward")->second->AsInt()->value()));
+        }
+        // According to what i had during testing, locationID can only be system, constellation or region. Given that we only store system and region ID, we use OR clause for these
+        if (!call.byname.find("locationID")->second->IsNone()) {
+            int locationId = call.byname.find("locationID")->second->AsInt()->value();
+            if (locationId >= 30000000 && locationId < 40000000) {
+                // Solar system range
+                query.append(" AND cC.startSolarSystemID = " + std::to_string(locationId));
+            } else if (locationId >= 10000000 && locationId < 20000000) {
+                // Region range
+                query.append(" AND cC.startRegionID = " + std::to_string(locationId));
+            }
+        }
+        // Same applies to endLocationID - it uses the same search::QuickQuery() call to get it
+        if (!call.byname.find("endLocationID")->second->IsNone()) {
+            int locationId = call.byname.find("endLocationID")->second->AsInt()->value();
+            if (locationId >= 30000000 && locationId < 40000000) {
+                // Solar system range
+                query.append(" AND cC.endSolarSystemID = " + std::to_string(locationId));
+            } else if (locationId >= 10000000 && locationId < 20000000) {
+                // Region range
+                query.append(" AND cC.endRegionID = " + std::to_string(locationId));
+            }
+        }
+        // Once again, issuer can be either a character or a corporation. We use separate filters depending on value
+        if (!call.byname.find("issuerID")->second->IsNone()) {
+            int issuerId = call.byname.find("issuerID")->second->AsInt()->value();
+            if (issuerId > 98000000) {
+                // Corporation case
+                query.append("AND cC.issuerCorpID = " + std::to_string(issuerId) + " AND cC.forCorp = true");
+            } else {
+                query.append("AND cC.issuerID = " + std::to_string(issuerId) + " AND cC.forCorp = false");
+            }
+        }
+        /**
+         * Once query is constructed, we execute it and collect contractID's. Since we can have duplicate values, we first
+         * collect it to std::vector, and then we pass it to GetContractEntries function
+         */
+
+        DBQueryResult contractRes;
+        if (!sDatabase.RunQuery(contractRes, query.c_str()))
+        {
+            codelog(DATABASE__ERROR, "Error in query: %s", contractRes.error.c_str());
+            return nullptr;
+        }
+        std::vector<int> contractIDs;
+        DBResultRow contractRow;
+        while (contractRes.GetRow(contractRow)) {
+            int contractId = contractRow.GetInt(0);
+
+            // To make sure we don't add duplicates, we check whether we already have said contractID in vector already.
+            if (std::find(contractIDs.begin(), contractIDs.end(), contractId) == contractIDs.end()) {
+                contractIDs.push_back(contractId);
+            }
+        }
+
+        PyDict* response = new PyDict;
+        PyList* contracts = ContractUtils::GetContractEntries(contractIDs);
+        response->SetItemString("contracts", contracts ? contracts : new PyList);
+        response->SetItemString("numFound", contracts ? new PyInt(contracts->size()) : new PyInt(0));
+        response->SetItemString("searchTime", new PyInt(153));
+        response->SetItemString("maxResults", new PyInt(1000));
+
+        return new PyObject("util.KeyVal", response);
+    } else {
+        codelog(SERVICE__ERROR, "%s: ContractType was not specified. Aborting search", GetName());
+        return nullptr;
+    }
 }
 
 PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {

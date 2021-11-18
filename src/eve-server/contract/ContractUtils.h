@@ -30,7 +30,7 @@
 class ContractUtils {
 public:
     static PyResult GetContractEntry(int contractId);
-    static PyList* GetContractEntries(const std::string& contractIds);
+    static PyList* GetContractEntries(std::vector<int> contractIDList);
 private:
     static void FillItemData(DBResultRow* itemRow, PyPackedRow* targetRow);
     static void FillBidData(DBResultRow* bidRow, PyPackedRow* targetRow);
