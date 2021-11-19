@@ -141,6 +141,29 @@ PyTuple *DBResultToTupleSet(DBQueryResult &result) {
     return res;
 }
 
+/**
+ * Service function - for now used particularly as substitution of DBResultToTupleSet in case if we have multiple DB queries
+ * and we need to get the values from them all.
+ * This function extracts the values and pushes them in provided PyList. Just values, not including columns header.
+ * @param result - DBQueryResult object
+ * @param into - PyList to dump values into
+ */
+void populateResListWithValues(DBQueryResult &result, PyList *into) {
+    uint32 cc = result.ColumnCount();
+    if (cc == 0) {
+        return;
+    }
+
+    DBResultRow row;
+    uint32 r(0);
+    while(result.GetRow(row)) {
+        PyList *linedata = new PyList(cc);
+        for(auto index = 0; index < cc; index++)
+            linedata->SetItem(index, DBColumnToPyRep(row, index));
+        into->items.push_back(linedata);
+    }
+}
+
 PyObject *DBResultToIndexRowset(DBQueryResult &result, const char *key) {
     uint32 cc = result.ColumnCount();
     uint32 key_index(0);
