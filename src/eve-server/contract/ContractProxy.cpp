@@ -31,6 +31,8 @@
 #include "PyServiceCD.h"
 #include "contract/ContractProxy.h"
 #include "station/Station.h"
+#include "inventory/InventoryItem.h"
+#include "inventory/Inventory.h"
 #include "packets/Contracts.h"
 #include "contract/ContractUtils.h"
 
@@ -337,7 +339,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
 
                      // We only calculate volume for courier-type contracts - the other types don't use this value.
                      if (req.contractType == 3) {
-                         totalVolume += sItemFactory.GetStationItem(req.startStationId)->GetMyInventory()->GetByID(itemID)->GetAttribute(161).get_float() * quantity;
+                         totalVolume += sItemFactory.GetStationRef(req.startStationId)->GetMyInventory()->GetByID(itemID)->GetAttribute(161).get_float() * quantity;
                      }
                  }
              }
@@ -682,7 +684,7 @@ PyResult ContractProxy::Handle_GetItemsInStation(PyCallArgs &call) {
         uint32 station = call.tuple->GetItem(0)->AsInt()->value();
 
         if (sDataMgr.IsStation(station)) {
-            CRowSet *rowSet = sItemFactory.GetStationItem(station)->GetMyInventory()->List(flagHangar);
+            CRowSet *rowSet = sItemFactory.GetStationRef(station)->GetMyInventory()->List(flagHangar);
 
             return rowSet;
         }
