@@ -57,6 +57,12 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
         //  will have to hardcode data, then run thru db query cause i dont know how to build packet for this return
     }
 
+    /**
+     * This function used to return only the last requested value - DB results were not persisted.
+     * With this in mind, i had to move the logic from DBResultToTupleSet here, so that we could compose result tuple
+     * from bits of different queries.
+     */
+    PyList *results = new PyList();
     DBQueryResult res;
     std::string ids = "";
 
@@ -73,6 +79,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             " WHERE corporationID IN (%s)", ids.c_str()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        } else {
+            populateResListWithValues(res, results);
         }
         ids = "";
     }
@@ -90,6 +98,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             " WHERE allianceID IN (%s)", ids.c_str()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        } else {
+            populateResListWithValues(res, results);
         }
         ids = "";
     }
@@ -107,6 +117,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             " WHERE characterID IN (%s)", ids.c_str()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        } else {
+            populateResListWithValues(res, results);
         }
         ids = "";
     }
@@ -124,6 +136,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             " WHERE typeID IN (%s)", ids.c_str()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        } else {
+            populateResListWithValues(res, results);
         }
         ids = "";
     }
@@ -139,6 +153,8 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             " WHERE corporationID IN (SELECT corporationID FROM staStations WHERE stationID IN (%s))", ids.c_str()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        } else {
+            populateResListWithValues(res, results);
         }
         ids = "";
     }
@@ -156,10 +172,24 @@ PyRep *ConfigDB::GetMultiOwnersEx(const std::vector<int32> &entityIDs) {
             " WHERE ownerID IN (%s)", ids.c_str()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        } else {
+            populateResListWithValues(res, results);
         }
     }
 
-    return DBResultToTupleSet(res);
+    if (!results->empty()) {
+        uint32 cc = res.ColumnCount();
+        PyTuple *response = new PyTuple(2);
+        PyList *cols = new PyList(cc);
+        for(uint32 r(0); r < cc; ++r)
+            cols->SetItemString(r, res.ColumnName(r));
+        response->items[0] = cols;
+        response->items[1] = results;
+
+        return response;
+    } else {
+        return new PyTuple(0);
+    }
 }
 
 PyRep *ConfigDB::GetMultiAllianceShortNamesEx(const std::vector<int32> &entityIDs) {

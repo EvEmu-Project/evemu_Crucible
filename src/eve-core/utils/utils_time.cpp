@@ -91,6 +91,37 @@ double GetFileTimeNow()  // -allan
     return time;
 }
 
+/**
+ * Returns a FileTime stamp, with specified amount of time added/subtracted to/from it.
+ * Positive arguments will add given amount of time. Negative values will subtract it.
+ * @param days   : Days to add/subtract
+ * @param hours  : Hours to add/subtract
+ * @param minutes: Minutes to add/subtract
+ * @param seconds: Seconds to add/subtract
+ * @return FileTime value.
+ */
+double GetRelativeFileTime(int days, int hours, int minutes, int seconds) {
+    double time = GetTimeMSeconds();
+
+    time /= 1000;   // to second
+    if (days != 0) {
+        time += (days * 86400);
+    }
+    if (hours != 0) {
+        time += (hours * 3600);
+    }
+    if (minutes != 0) {
+        time += (minutes * 60);
+    }
+    if (seconds != 0) {
+        time += seconds;
+    }
+
+    time += SECS_BETWEEN_EPOCHS;    // offset
+    time *= EvE::Time::Second; // to 100 uSeconds
+    return time;
+}
+
 //  NOTE  auto and std::chrono require C++11
 int64 GetSteadyTime() {  // -allan
     // simulation of Windows GetTickCount()

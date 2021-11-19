@@ -226,9 +226,8 @@ PyRep *SearchDB::QuickQuery(std::string string, std::vector<int> *searchID, uint
             case 10:    //searchResultInventoryType = 10
                 sDatabase.RunQuery(res,
                     "SELECT typeID"
-                    " FROM entity"
-                    " WHERE itemName LIKE '%s'"
-                    " AND ownerID = %u", string.c_str(), charID );
+                    " FROM invTypes"
+                    " WHERE typeName LIKE '%s'", string.c_str() );
                 break;
         }
         while (res.GetRow(row)) {
