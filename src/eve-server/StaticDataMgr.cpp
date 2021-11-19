@@ -1562,6 +1562,12 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
         rsp->SetItem(new PyInt(8), new PyObject("util.KeyVal", Invention));
     }
 
+    /**
+     * For some reason, Ref decrement causes internal parts of data to change. In this particular instance, CRowSets with data
+     * turns to Tuples, and client freaks out because it can no longer find named attributes.
+     * Commenting it out until we figure out how to resolve it.
+     */
+    /*
     // cleanup
     PyDecRef(matlListManuf);
     PyDecRef(skillListManuf);
@@ -1580,6 +1586,7 @@ PyDict* StaticDataMgr::SetBPMatlType(int8 catID, uint16 typeID, uint16 prodID)
     PyDecRef(matlListInvent);
     PyDecRef(skillListInvent);
     PyDecRef(mtCRowSet);
+    */
 
     return rsp;
 }

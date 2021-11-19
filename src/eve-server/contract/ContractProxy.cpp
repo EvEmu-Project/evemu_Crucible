@@ -31,7 +31,6 @@
 #include "PyServiceCD.h"
 #include "contract/ContractProxy.h"
 #include "station/Station.h"
-#include "inventory/InventoryItem.h"
 #include "inventory/Inventory.h"
 #include "packets/Contracts.h"
 #include "contract/ContractUtils.h"
