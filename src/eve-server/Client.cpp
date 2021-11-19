@@ -657,11 +657,12 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_system->AddClient(this, count, IsJump());
     }
 
-    char ci[45];
     if (sDataMgr.IsStation(m_locationID)) {
         _log(PLAYER__WARNING, "MoveToLocation() - Character %s (%u) Docked in %u.", m_char->name(), m_char->itemID(), m_locationID);
         stDataMgr.GetStationData(m_locationID, m_stationData);
+        char ci[45];
         snprintf(ci, sizeof(ci), "Docked: %s(%u)", GetName(), m_char->itemID());
+        m_ship->SetCustomInfo(ci);
         m_char->Move(m_locationID, flagNone, true);
         m_ship->Move(m_locationID, flagHangar, true);
 
@@ -693,8 +694,10 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         m_bubbleWait = true;     // deny client processing of subsquent destiny msgs
     } else {
         _log(PLAYER__WARNING, "MoveToLocation() - Character %s(%u) InSpace in %u. (setState %s, beyonce %s)", \
-                m_char->name(), m_char->itemID(), m_locationID, m_setStateSent ? "true" : "false", m_beyonce ? "true" : "false");
+        m_char->name(), m_char->itemID(), m_locationID, m_setStateSent ? "true" : "false", m_beyonce ? "true" : "false");
+        char ci[45];
         snprintf(ci, sizeof(ci), "InSpace: %s(%u)", GetName(), m_char->itemID());
+        m_ship->SetCustomInfo(ci);
 
         // if docked, update guestlist
         if (wasDocked and m_undock)
@@ -746,8 +749,6 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         if (IsJump() and !m_autoPilot)
             pShipSE->DestinyMgr()->Stop();
     }
-
-    m_ship->SetCustomInfo(ci);
 
     if (!m_login)
         m_ship->SaveShip(); // this saves everything on ship

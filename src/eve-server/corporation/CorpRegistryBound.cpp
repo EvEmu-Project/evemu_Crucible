@@ -2622,10 +2622,7 @@ PyResult CorpRegistryBound::Handle_GetAllianceApplications(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_GetAllianceApplications()");
     call.Dump(CORP__CALL_DUMP);
 
-    AllianceDB a_db;
-    return a_db.GetMyApplications(m_corpID);
-
-    return nullptr;
+    return AllianceDB::GetMyApplications(m_corpID);
 }
 
 PyResult CorpRegistryBound::Handle_DeleteAllianceApplication(PyCallArgs &call) {

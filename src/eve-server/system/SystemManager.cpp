@@ -294,7 +294,9 @@ void SystemManager::UnloadSystem() {
     //sMktBotMgr.RemoveSystem();
 
     // system is being unloaded.  pay bounties now
-    PayBounties();
+    /** @todo  this will throw on error.  if called from d'tor, this CANNOT throw.  fix it */
+    //PayBounties();
+    
     // unload belts, which saves and removes roids from system
     m_beltMgr->ClearAll();
     // close anomaly mgr, which saves and removes sigs from system

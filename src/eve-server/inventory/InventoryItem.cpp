@@ -940,6 +940,7 @@ bool InventoryItem::SetQuantity(int32 qty, bool notify/*false*/, bool deleteOnZe
     int32 old_qty = m_data.quantity;
     m_data.quantity = qty;
 
+    /* this isnt needed.  quantity has hard limit.
     if (m_data.quantity > maxEveItem) {
         codelog(ITEM__ERROR, "II::SetQuantity() - %s(%u): quantity overflow", m_data.name.c_str(), m_itemID);
         m_data.quantity = maxEveItem -1;
@@ -948,7 +949,7 @@ bool InventoryItem::SetQuantity(int32 qty, bool notify/*false*/, bool deleteOnZe
             if (pClient != nullptr)
                 pClient->SendInfoModalMsg("Your %s has reached quantity limits of this server.<br>If you try to add any more to this stack, you will lose items.  This is your only warning.", m_data.name.c_str());
         }
-    }
+    } */
 
     if (notify or (IsCargoHoldFlag(m_data.flag) and (m_type.categoryID() == EVEDB::invCategories::Charge))) {
         std::map<int32, PyRep *> changes;

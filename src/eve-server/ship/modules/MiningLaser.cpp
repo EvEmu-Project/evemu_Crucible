@@ -47,7 +47,7 @@ MiningLaser::MiningLaser(ModuleItemRef mRef, ShipItemRef sRef)
     }
 
     m_holdFlag = flagCargoHold;
-    _log(MINING__TRACE, "MiningLaser Created for %s with %ums Duration.", mRef->name(), GetAttribute(AttrDuration).get_int());
+    _log(MINING__TRACE, "MiningLaser Created for %s with %ums Duration.", mRef->name(), GetAttribute(AttrDuration).get_uint32());
 }
 
 void MiningLaser::LoadCharge(InventoryItemRef charge)

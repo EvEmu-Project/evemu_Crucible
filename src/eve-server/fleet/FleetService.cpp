@@ -1773,7 +1773,8 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
         bool wboost(false);
         WingData wData = WingData();
         GetWingData(wingID, wData);
-        if ((wData.leader != nullptr) and (wData.leader->IsInSpace()) and (pChar = wData.leader->GetChar().get()) != nullptr) {
+        if ((wData.leader != nullptr) and (wData.leader->IsInSpace())
+        and (pChar = wData.leader->GetChar().get()) != nullptr) {
             if (m_wingSquads.count(wingID) > pChar->GetSkillLevel(EvESkill::WingCommand)) {
                 str << "<color=red>";
             } else {
@@ -1796,25 +1797,26 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
             length += wData.name.size();
             length += 35;
         }
-        if ((wData.booster != nullptr) and (wData.booster->IsInSpace()) and (pChar = wData.booster->GetChar().get()) != nullptr) {
-            if (wData.leader->GetSystemID() == wData.booster->GetSystemID()) {
+        if ((wData.booster != nullptr) and (wData.booster->IsInSpace())
+        and ((pChar = wData.booster->GetChar().get()) != nullptr)) {
+            if ((wData.leader != nullptr) and (wData.leader->GetSystemID() == wData.booster->GetSystemID())) {
                 if (pChar->HasSkillTrainedToLevel(EvESkill::ArmoredWarfare, 1) or pChar->HasSkillTrainedToLevel(EvESkill::InformationWarfare, 1)
-                    or pChar->HasSkillTrainedToLevel(EvESkill::SiegeWarfare, 1) or pChar->HasSkillTrainedToLevel(EvESkill::SkirmishWarfare, 1)
-                    or pChar->HasSkillTrainedToLevel(EvESkill::MiningForeman, 1)) {
+                or pChar->HasSkillTrainedToLevel(EvESkill::SiegeWarfare, 1) or pChar->HasSkillTrainedToLevel(EvESkill::SkirmishWarfare, 1)
+                or pChar->HasSkillTrainedToLevel(EvESkill::MiningForeman, 1)) {
                     if (wboost) {
                         str << "<color=green>";
                     } else {
                         str << "<color=yellow>";
                     }
+                } else {
+                    if (wboost) {
+                        str << "<color=yellow>";
                     } else {
-                        if (wboost) {
-                            str << "<color=yellow>";
-                        } else {
-                            str << "<color=red>";
-                        }
-                        wboost = false;
+                        str << "<color=red>";
                     }
-                    length += 14;
+                    wboost = false;
+                }
+                length += 14;
             } else {
                 str << "<color=red> (Not In System)";
                 wboost = false;
