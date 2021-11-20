@@ -25,6 +25,7 @@
     Implementation: AlTahir
 */
 
+#include <boost/algorithm/string/replace.hpp>
 #include <algorithm>    // Added to prevent std::find from freaking out
 #include "eve-server.h"
 
@@ -81,7 +82,7 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
 
         /**
          * We're using sort of query constructor here - if request have certain value specified, we add it as another AND block.
-         * For now, we will only filter by contract type, item type, item category, min/max price, min/max reward, location/end location and issuer
+         * For now, we will only filter by contract type, item type, item category, min/max price, min/max reward, location/end location, issuer and availability
          */
         std::string query = "SELECT cC.contractId FROM ctrContracts cC "
                             "JOIN ctrItems cI on cC.contractId = cI.contractId "
@@ -124,6 +125,19 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
         }
         if (!call.byname.find("maxReward")->second->IsNone()) {
             query.append(" AND cC.reward <= " + std::to_string(call.byname.find("maxReward")->second->AsInt()->value()));
+        }
+        if (!call.byname.find("availability")->second->IsNone()) {
+            int availability = call.byname.find("availability")->second->AsInt()->value();
+            if (availability == 0) {
+                // Public contracts
+                query.append(" AND cC.isPrivate = 0");
+            } else if (availability == 1) {
+                // Private contracts, assigned to character
+                query.append(" AND cC.isPrivate = 1 AND cC.assigneeId = " + std::to_string(call.client->GetCharacterID()));
+            } else if(availability == 2) {
+                // Private contracts, assigned to corp
+                query.append(" AND cC.isPrivate = 1 AND cC.assigneeId = " + std::to_string(call.client->GetCorporationID()));
+            }
         }
         // According to what i had during testing, locationID can only be system, constellation or region. Given that we only store system and region ID, we use OR clause for these
         if (!call.byname.find("locationID")->second->IsNone()) {
@@ -695,34 +709,65 @@ PyResult ContractProxy::Handle_GetItemsInStation(PyCallArgs &call) {
 PyResult ContractProxy::Handle_CollectMyPageInfo(PyCallArgs &call) {
     sLog.White( "ContractProxy::Handle_CollectMyPageInfo()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
-    /*
-     *      [PySubStream 279 bytes]
-     *        [PyObjectData Name: util.KeyVal]
-     *          [PyDict 11 kvp]
-     *            [PyString "numInProgressCorp"]
-     *            [PyInt 0]
-     *            [PyString "numRequiresAttention"]
-     *            [PyInt 0]
-     *            [PyString "numBiddingOn"]
-     *            [PyInt 0]
-     *            [PyString "numRequiresAttentionCorp"]
-     *            [PyInt 0]
-     *            [PyString "numInProgress"]
-     *            [PyInt 0]
-     *            [PyString "numBiddingOnCorp"]
-     *            [PyInt 0]
-     *            [PyString "numOutstandingContractsNonCorp"]
-     *            [PyInt 0]
-     *            [PyString "outstandingContracts"]
-     *            [PyList 0 items]
-     *            [PyString "numOutstandingContracts"]
-     *            [PyInt 0]
-     *            [PyString "numOutstandingContractsForCorp"]
-     *            [PyInt 0]
-     *            [PyString "numContractsLeftCorp"]
-     *            [PyInt 0]
-     */
-    return nullptr;
+    std::string mainQuery = "SELECT "
+                            "IFNULL(SUM(CASE WHEN (cC.issuerID = {CHAR_ID} AND cC.status = 0) THEN 1 ELSE 0 END), 0) AS numOutstandingContracts, "
+                            "IFNULL(SUM(CASE WHEN (cC.issuerID = {CHAR_ID} AND cC.status = 0 AND cC.forCorp = false) THEN 1 ELSE 0 END), 0) AS numOutstandingContractsNonCorp, "
+                            "IFNULL(SUM(CASE WHEN (cC.issuerID = {CHAR_ID} AND cC.status = 0 AND cC.forCorp = true) THEN 1 ELSE 0 END), 0) AS numOutstandingContractsForCorp, "
+                            "IFNULL(SUM(CASE WHEN (cC.assigneeID = {CHAR_ID} AND cC.forCorp = false AND cC.status = 1) THEN 1 ELSE 0 END), 0) AS numInProgress, "
+                            "IFNULL(SUM(CASE WHEN (cC.issuerCorpID = {CORP_ID} AND cC.forCorp = true AND cC.status = 1) THEN 1 ELSE 0 END), 0) AS numInProgressCorp, "
+                            "IFNULL(SUM(CASE WHEN (cC.assigneeID = {CHAR_ID} AND cC.status = 1) THEN 1 ELSE 0 END), 0) AS numRequiresAttention, "
+                            "IFNULL(SUM(CASE WHEN (cC.issuerCorpID = {CORP_ID} AND cC.forCorp = true AND cC.status = 1) THEN 1 ELSE 0 END), 0) AS numRequiresAttentionCorp "
+                            "FROM ctrContracts cC "
+                            "LEFT JOIN ctrBids cB on cC.contractId = cB.contractId";
+    std::string outstandingContractsQuery = "SELECT issuerID, issuerCorpID, assigneeID, contractType "
+                                            "FROM ctrContracts "
+                                            "WHERE assigneeID IN ({CHAR_ID},{CORP_ID}) and status = 0";
+    // Since we already use boost - why not use some of it's libraries for string juggling? :P
+    boost::replace_all(mainQuery, "{CHAR_ID}", std::to_string(call.client->GetCharacterID()));
+    boost::replace_all(mainQuery, "{CORP_ID}", std::to_string(call.client->GetCorporationID()));
+    boost::replace_all(outstandingContractsQuery, "{CHAR_ID}", std::to_string(call.client->GetCharacterID()));
+    boost::replace_all(outstandingContractsQuery, "{CORP_ID}", std::to_string(call.client->GetCorporationID()));
+
+    // First, we gather outstanding contracts - they will later be packed into response dict
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, outstandingContractsQuery.c_str()))
+    {
+        codelog(DATABASE__ERROR, "Error in mainQuery: %s", res.error.c_str());
+        return nullptr;
+    }
+    DBResultRow row;
+    PyList* oustandingContractsList = new PyList;
+    while (res.GetRow(row)) {
+        PyList* list = new PyList(4);
+        list->SetItem(0, new PyInt(row.GetInt(0)));
+        list->SetItem(1, new PyInt(row.GetInt(1)));
+        list->SetItem(2, new PyInt(row.GetInt(2)));
+        list->SetItem(3, new PyInt(row.GetInt(3)));
+
+        oustandingContractsList->AddItem(list);
+    }
+
+    // Then, we go for main message body data
+    if (!sDatabase.RunQuery(res, mainQuery.c_str()))
+    {
+        codelog(DATABASE__ERROR, "Error in mainQuery: %s", res.error.c_str());
+        return nullptr;
+    }
+    // Because of outstandingContracts list in this response, we can't return DBResultToCRowset directly - so, we'll have to compose the dict manually.
+    res.GetRow(row);
+    PyDict* vals = new PyDict;
+    vals->SetItemString("numOutstandingContracts", new PyInt(row.GetInt(0)));
+    vals->SetItemString("numOutstandingContractsNonCorp", new PyInt(row.GetInt(1)));
+    vals->SetItemString("numOutstandingContractsForCorp", new PyInt(row.GetInt(2)));
+    vals->SetItemString("numInProgress", new PyInt(row.GetInt(3)));
+    vals->SetItemString("numInProgressCorp", new PyInt(row.GetInt(4)));
+    vals->SetItemString("outstandingContracts", oustandingContractsList);
+    vals->SetItemString("numRequiresAttention", new PyInt(row.GetInt(5)));
+    vals->SetItemString("numRequiresAttentionCorp", new PyInt(row.GetInt(6)));
+    vals->SetItemString("numBiddingOn", new PyInt(0));      // Left hard-coded until bidding is implemented
+    vals->SetItemString("numBiddingOnCorp", new PyInt(0));  // Left hard-coded until bidding is implemented
+
+    return new PyObject("util.KeyVal", vals);
 }
 
 PyResult ContractProxy::Handle_GetContractListForOwner(PyCallArgs &call) {
@@ -940,6 +985,19 @@ PyResult ContractProxy::Handle_GetLoginInfo(PyCallArgs &call)
 
     return new PyObject( "util.KeyVal", args );
 }
+
+     /**
+     * NOTE: Contract statuses:
+     * 0 - Outstanding
+     * 1 - In Progress
+     * 2 - Items not yet claimed
+     * 3 - Unclaimed by seller
+     * 4,5 - Finished
+     * 6 - Rejected
+     * 7 - Failed
+     * 8 - Deleted
+     * 9 - Reversal
+     */
 
 /* Description
  * GetLoginInfo sends back a util.KeyVal PyClass. This class contains 3 entries, those entries are
