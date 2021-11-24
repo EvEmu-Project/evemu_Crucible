@@ -23,6 +23,7 @@
     Author: AlTahir
 */
 
+#include <boost/algorithm/string/replace.hpp>
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
@@ -33,8 +34,7 @@ const std::string getContractQueryBase = "SELECT contractId as contractID, contr
                                "assigneeID, acceptorID, dateIssued, dateExpired, dateAccepted, numDays, dateCompleted, startStationID, startSolarSystemID, "
                                "startRegionID, endStationID, endSolarSystemID, endRegionID, price, reward, collateral, title, description, status, "
                                "crateID, volume, issuerAllianceID, issuerWalletKey, acceptorWalletKey "
-                               "FROM ctrContracts "
-                               "WHERE contractId IN (%s)";
+                               "FROM ctrContracts ";
 const std::string getContractItemsQueryBase = "SELECT contractId as contractID, itemID, quantity, itemTypeID, inCrate, parentID, productivityLevel, materialLevel, isCopy as copy, "
                                     "licensedProductionRunsRemaining, damage, flagID "
                                     "FROM ctrItems "
@@ -54,7 +54,7 @@ PyResult ContractUtils::GetContractEntry(int contractId)
     std::string contractID = std::to_string(contractId);
 
     DBQueryResult contractRes;
-    if (!sDatabase.RunQuery(contractRes, getContractQueryBase.c_str(), contractID.c_str()))
+    if (!sDatabase.RunQuery(contractRes, (getContractQueryBase + "WHERE contractId IN (%s)").c_str(), contractID.c_str()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", contractRes.error.c_str());
         return nullptr;
@@ -108,7 +108,7 @@ PyList* ContractUtils::GetContractEntries(std::vector<int> contractIDList) {
     }
 
     DBQueryResult contractRes;
-    if (!sDatabase.RunQuery(contractRes, getContractQueryBase.c_str(), contractIDs.c_str()))
+    if (!sDatabase.RunQuery(contractRes, (getContractQueryBase + "WHERE contractId IN (%s)").c_str(), contractIDs.c_str()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", contractRes.error.c_str());
         return nullptr;
@@ -197,6 +197,123 @@ PyList* ContractUtils::GetContractEntries(std::vector<int> contractIDList) {
         codelog(SERVICE__ERROR, "No contracts in range ('%s') was found. Aborting", contractIDs.c_str());
         return nullptr;
     }
+}
+
+/**
+ * Queries and composes a response object for GetContractListForOwner call. Placed in utils class so that we can re-use query strings
+ * @param call - Call instance
+ * @return - Response obj
+ */
+PyResult ContractUtils::GetContractListForOwner(PyCallArgs& call) {
+    /**
+     * This call's tuple have 1 value, that might be either bool or None, depending on selected filter.
+     * Since our XMLPKTGen don't have any adequate way to process that 3-way value, decoding packets is not an option.
+     * So we're manually validating the value types here.
+     */
+    PyRep* ownerID = call.tuple->GetItem(0);
+    PyRep* contractStatus = call.tuple->GetItem(1);
+    PyRep* contractType = call.tuple->GetItem(2);
+    PyRep* issuedToBy = call.tuple->GetItem(3);
+
+    // OwnerID and contract status values are always present and must have a correct type.
+    if (!ownerID->IsInt() && !contractStatus->IsInt()) {
+        return nullptr;
+    }
+
+    std::string contracts_query = getContractQueryBase;
+    std::string items_query = "SELECT contractId, itemTypeID, quantity, inCrate "
+                              "FROM ctrItems "
+                              "WHERE contractId IN (";
+    std::vector<int> contractIDs;
+
+    // First, we finish contracts query by adding filters
+    if (issuedToBy->IsNone()) {
+        contracts_query.append("WHERE (issuerID = {OWNER_ID} OR assigneeID = {OWNER_ID}) ");
+    } else {
+        bool issued = issuedToBy->AsBool()->value();
+        if (issued) {
+            contracts_query.append("WHERE assigneeID = {OWNER_ID} ");
+        } else {
+            contracts_query.append("WHERE issuerID = {OWNER_ID} ");
+        }
+    }
+    if (contractType->IsNone()) {
+        contracts_query.append("AND contractType IN (1,2,3) ");
+    } else {
+        if (contractType->IsInt()) {
+            contracts_query.append("AND contractType = " + std::to_string(contractType->AsInt()->value()) + " ");
+        } else {
+            // Unacceptable case - we expect Int only
+            return nullptr;
+        }
+    }
+    contracts_query.append("AND status = " + std::to_string(contractStatus->AsInt()->value()));
+    boost::replace_all(contracts_query, "{OWNER_ID}", std::to_string(ownerID->AsInt()->value()));
+
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, contracts_query.c_str()))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return nullptr;
+    }
+
+    PyObjectEx* contracts = DBResultToCRowset(res);
+    for (auto contract : contracts->list()) {
+        // To get items, we store contractID's in separate list
+        contractIDs.push_back(contract->AsPackedRow()->GetField(0)->AsInt()->value());
+    }
+
+    PyDict* items = new PyDict;
+    if (!contractIDs.empty()) {
+        for (auto contractID : contractIDs) {
+            items_query.append(std::to_string(contractID) + ",");
+        }
+        items_query.pop_back(); items_query.append(")");
+
+        if (!sDatabase.RunQuery(res, items_query.c_str()))
+        {
+            codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+            return nullptr;
+        }
+
+        // Given that we have items queried for every contract in the list, we sort them by contractID's first, then we put those in the dict.
+        std::map<int, CRowSet*> itemsByContractID;
+        DBResultRow row;
+        while (res.GetRow(row)) {
+            auto pos = itemsByContractID.find(row.GetInt(0));
+            if(pos == itemsByContractID.end()) {
+                DBRowDescriptor *header = new DBRowDescriptor(res);
+                CRowSet *rowset = new CRowSet(&header);
+
+                PyPackedRow* packedRow = rowset->NewRow();
+                packedRow->SetField("contractId", new PyInt(row.GetInt(0)));
+                packedRow->SetField("itemTypeID", new PyInt(row.GetInt(1)));
+                packedRow->SetField("quantity", new PyInt(row.GetInt(2)));
+                packedRow->SetField("inCrate", new PyBool(row.GetBool(3)));
+
+                itemsByContractID[row.GetInt(0)] = rowset;
+            } else {
+                CRowSet* rowset = pos->second;
+
+                PyPackedRow* packedRow = rowset->NewRow();
+                packedRow->SetField("contractId", new PyInt(row.GetInt(0)));
+                packedRow->SetField("itemTypeID", new PyInt(row.GetInt(1)));
+                packedRow->SetField("quantity", new PyInt(row.GetInt(2)));
+                packedRow->SetField("inCrate", new PyBool(row.GetBool(3)));
+            }
+        }
+        if (!itemsByContractID.empty()) {
+            for (auto entry : itemsByContractID) {
+                items->SetItem(new PyInt(entry.first), entry.second);
+            }
+        }
+    }
+
+    PyDict* ret = new PyDict;
+    ret->SetItemString("contracts", contracts);
+    ret->SetItemString("items", items);
+
+    return new PyObject("util.KeyVal", ret);
 }
 
 /**

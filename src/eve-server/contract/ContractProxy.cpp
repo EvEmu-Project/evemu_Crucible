@@ -164,7 +164,7 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
         // Once again, issuer can be either a character or a corporation. We use separate filters depending on value
         if (!call.byname.find("issuerID")->second->IsNone()) {
             int issuerId = call.byname.find("issuerID")->second->AsInt()->value();
-            if (issuerId > 98000000) {
+            if (IsCorp(issuerId)) {
                 // Corporation case
                 query.append("AND cC.issuerCorpID = " + std::to_string(issuerId) + " AND cC.forCorp = true");
             } else {
@@ -773,6 +773,8 @@ PyResult ContractProxy::Handle_CollectMyPageInfo(PyCallArgs &call) {
 PyResult ContractProxy::Handle_GetContractListForOwner(PyCallArgs &call) {
     sLog.White( "ContractProxy::Handle_GetContractListForOwner()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
+
+    return ContractUtils::GetContractListForOwner(call);
     /*
      *  client call....
       [PyTuple 2 items]
@@ -783,9 +785,9 @@ PyResult ContractProxy::Handle_GetContractListForOwner(PyCallArgs &call) {
             [PyString "GetContractListForOwner"]
             [PyTuple 4 items]
               [PyInt 649670823]
-              [PyInt 0]
-              [PyNone]
-              [PyNone]
+              [PyInt 0] (Contract status, 0 for outstanding, 1 for in progress, 4 for Finished)
+              [PyInt] (Contract type. 1 for exchange, 2 for auction, 3 for courier, None for all)
+              [PyBool] (false for Issued By, true for issued To, None for both)
             [PyDict 3 kvp]
               [PyString "num"]
               [PyInt 100]
