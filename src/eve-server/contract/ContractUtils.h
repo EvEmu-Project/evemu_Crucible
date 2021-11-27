@@ -32,6 +32,8 @@ public:
     static PyResult GetContractEntry(int contractId);
     static PyList* GetContractEntries(std::vector<int> contractIDList);
     static PyResult GetContractListForOwner(PyCallArgs& call);
+    static void GetContractItemIDs(int contractId, std::vector<int>* into);
+    static void GetRequestedItems(int contractId, std::map<int, int>* into);
 private:
     static void FillItemData(DBResultRow* itemRow, PyPackedRow* targetRow);
     static void FillBidData(DBResultRow* bidRow, PyPackedRow* targetRow);

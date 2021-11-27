@@ -35,6 +35,7 @@
 #include "inventory/Inventory.h"
 #include "packets/Contracts.h"
 #include "contract/ContractUtils.h"
+#include "account/AccountService.h"
 
 PyCallable_Make_InnerDispatcher(ContractProxy)
 
@@ -142,10 +143,10 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
         // According to what i had during testing, locationID can only be system, constellation or region. Given that we only store system and region ID, we use OR clause for these
         if (!call.byname.find("locationID")->second->IsNone()) {
             int locationId = call.byname.find("locationID")->second->AsInt()->value();
-            if (locationId >= 30000000 && locationId < 40000000) {
+            if (IsSolarSystemID(locationId)) {
                 // Solar system range
                 query.append(" AND cC.startSolarSystemID = " + std::to_string(locationId));
-            } else if (locationId >= 10000000 && locationId < 20000000) {
+            } else if (IsRegionID(locationId)) {
                 // Region range
                 query.append(" AND cC.startRegionID = " + std::to_string(locationId));
             }
@@ -153,10 +154,10 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
         // Same applies to endLocationID - it uses the same search::QuickQuery() call to get it
         if (!call.byname.find("endLocationID")->second->IsNone()) {
             int locationId = call.byname.find("endLocationID")->second->AsInt()->value();
-            if (locationId >= 30000000 && locationId < 40000000) {
+            if (IsSolarSystemID(locationId)) {
                 // Solar system range
                 query.append(" AND cC.endSolarSystemID = " + std::to_string(locationId));
-            } else if (locationId >= 10000000 && locationId < 20000000) {
+            } else if (IsRegionID(locationId)) {
                 // Region range
                 query.append(" AND cC.endRegionID = " + std::to_string(locationId));
             }
@@ -166,11 +167,12 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
             int issuerId = call.byname.find("issuerID")->second->AsInt()->value();
             if (IsCorp(issuerId)) {
                 // Corporation case
-                query.append("AND cC.issuerCorpID = " + std::to_string(issuerId) + " AND cC.forCorp = true");
+                query.append(" AND cC.issuerCorpID = " + std::to_string(issuerId) + " AND cC.forCorp = true");
             } else {
-                query.append("AND cC.issuerID = " + std::to_string(issuerId) + " AND cC.forCorp = false");
+                query.append(" AND cC.issuerID = " + std::to_string(issuerId) + " AND cC.forCorp = false");
             }
         }
+        query.append(" AND cC.status = 0");
         /**
          * Once query is constructed, we execute it and collect contractID's. Since we can have duplicate values, we first
          * collect it to std::vector, and then we pass it to GetContractEntries function
@@ -197,8 +199,8 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
         PyList* contracts = ContractUtils::GetContractEntries(contractIDs);
         response->SetItemString("contracts", contracts ? contracts : new PyList);
         response->SetItemString("numFound", contracts ? new PyInt(contracts->size()) : new PyInt(0));
-        response->SetItemString("searchTime", new PyInt(153));
-        response->SetItemString("maxResults", new PyInt(1000));
+        response->SetItemString("searchTime", new PyInt(153));  // Since search time is of no relevance to the client, we simply hard-code it
+        response->SetItemString("maxResults", new PyInt(1000)); // Same here - we do not limit the list of contracts queried, so we leave this value hard-coded
 
         return new PyObject("util.KeyVal", response);
     } else {
@@ -354,6 +356,8 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
                      if (req.contractType == 3) {
                          totalVolume += sItemFactory.GetStationRef(req.startStationId)->GetMyInventory()->GetByID(itemID)->GetAttribute(161).get_float() * quantity;
                      }
+
+                     sItemFactory.GetItemRef(itemID)->ChangeOwner(1, true);
                  }
              }
         }
@@ -401,76 +405,44 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         return nullptr;
     }
 
-    /*
-        11:06:19 [Service] contractProxy::CreateContract()
-        11:06:19 [SvcCallTrace]   Call Arguments:
-        11:06:19 [SvcCallTrace]      Tuple: 12 elements
-        11:06:19 [SvcCallTrace]       [ 0]    Integer: 1        Type (1 - exchange, 2 - auction, 3 - courier)
-        11:06:19 [SvcCallTrace]       [ 1]    Boolean: false
-        11:06:19 [SvcCallTrace]       [ 2]       None
-        11:06:19 [SvcCallTrace]       [ 3]    Integer: 20160
-        11:06:19 [SvcCallTrace]       [ 4]    Integer: 0
-        11:06:19 [SvcCallTrace]       [ 5]    Integer: 60014719
-        11:06:19 [SvcCallTrace]       [ 6]       None
-        11:06:19 [SvcCallTrace]       [ 7]    Integer: 150000
-        11:06:19 [SvcCallTrace]       [ 8]    Integer: 0
-        11:06:19 [SvcCallTrace]       [ 9]    Integer: 0
-        11:06:19 [SvcCallTrace]       [10]    WString: 'Just sum stuff'
-        11:06:19 [SvcCallTrace]       [11]     String: ''
-        11:06:19 [SvcCallTrace]  Named Arguments:
-        11:06:19 [SvcCallTrace]   confirm
-        11:06:19 [SvcCallTrace]           None
-        11:06:19 [SvcCallTrace]   flag
-        11:06:19 [SvcCallTrace]        Integer: 4
-        11:06:19 [SvcCallTrace]   forCorp
-        11:06:19 [SvcCallTrace]        Boolean: false
-        11:06:19 [SvcCallTrace]   itemList
-        16:17:17 [SvcCallTrace]       List: 3 elements
-        16:17:17 [SvcCallTrace]       [ 0]   List: 2 elements
-        16:17:17 [SvcCallTrace]       [ 0]   [ 0]    Integer: 140000032
-        16:17:17 [SvcCallTrace]       [ 0]   [ 1]    Integer: 25
-        16:17:17 [SvcCallTrace]       [ 1]   List: 2 elements
-        16:17:17 [SvcCallTrace]       [ 1]   [ 0]    Integer: 140000029
-        16:17:17 [SvcCallTrace]       [ 1]   [ 1]    Integer: 50
-        16:17:17 [SvcCallTrace]       [ 2]   List: 2 elements
-        16:17:17 [SvcCallTrace]       [ 2]   [ 0]    Integer: 140000031
-        16:17:17 [SvcCallTrace]       [ 2]   [ 1]    Integer: 25
-        11:06:19 [SvcCallTrace]   machoVersion
-        11:06:19 [SvcCallTrace]        Integer: 1
-        19:04:19 [SvcCallTrace]   requestItemTypeList
-        19:04:19 [SvcCallTrace]       List: 2 elements
-        19:04:19 [SvcCallTrace]       [ 0]   List: 2 elements
-        19:04:19 [SvcCallTrace]       [ 0]   [ 0]    Integer: 482
-        19:04:19 [SvcCallTrace]       [ 0]   [ 1]    Integer: 2
-        19:04:19 [SvcCallTrace]       [ 1]   List: 2 elements
-        19:04:19 [SvcCallTrace]       [ 1]   [ 0]    Integer: 27790
-        19:04:19 [SvcCallTrace]       [ 1]   [ 1]    Integer: 1
-     */
-
-
-    // sLog.White( "ContractProxy::Handle_CreateContract()", "size=%li", call.tuple->size());
-    // call.Dump(SERVICE__CALL_DUMP);
-
-    // returns new contractID
-    //return nullptr;
     return new PyInt((int) contractId);
 }
 
 PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
-    //  sends contractID to delete
     sLog.White( "ContractProxy::Handle_DeleteContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    /*
-            [PyString "DeleteContract"]
-            [PyTuple 1 items]
-              [PyInt 41239648]
+    int contractId;
+    if (call.tuple->GetItem(0)) {
+        contractId = call.tuple->GetItem(0)->AsInt()->value();
+    } else {
+        return new PyBool(false);
+    }
 
+    // In order to return items back to the owner, we need a full list of entityID's to return. We gather them using utils function
+    std::vector<int> entityIds;
+    ContractUtils::GetContractItemIDs(contractId, &entityIds);
+    for (auto entityID : entityIds) {
+        // We have to put in couple layers of checks here. First one will cut requested item entries out of the equation
+        if (entityID != 0) {
+            // We have to check if we actually got the item ref - in case of invalid entity ID specified.
+            InventoryItemRef ref = sItemFactory.GetItemRef(entityID);
+            if (ref) {
+                ref->ChangeOwner(call.client->GetCharacterID(), true);
+            } else {
+                continue;
+            }
+        }
+    }
 
-      [PySubStream 6 bytes]
-        [PyBool True]
-        */
-    return nullptr;
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+                            "UPDATE ctrContracts SET status = 8 WHERE contractId = %u", contractId))
+    {
+        codelog(DATABASE__ERROR, "Failed to update contract volume: %s", err.c_str());
+    }
+
+    return new PyBool(true);
 }
 
 PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
@@ -488,78 +460,163 @@ PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
 }
 
 PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
+    // For the time being - we ignore the second value in tuple (forCorp), since it's not yet functional.
+    int contractID;
+    if (call.tuple->GetItem(0)) {
+        contractID = call.tuple->GetItem(0)->AsInt()->value();
+    } else {
+        return nullptr;
+    }
+
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp FROM ctrContracts WHERE contractId = %u", contractID))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return nullptr;
+    }
+    if (res.GetRowCount() == 0) {
+        return nullptr;
+    }
+    DBResultRow row;
+    res.GetRow(row);
+    int contractType = row.GetInt(0);
+    int status = row.GetInt(1);
+    int price = row.GetInt(2);
+    int reward = row.GetInt(3);
+    int collateral = row.GetInt(4);
+    float volume = row.GetFloat(5);
+    int startStationID = row.GetInt(6);
+    int issuerID = row.GetInt(7);
+    bool forCorp = row.GetBool(8);
+
+    if (status == 0) {
+        // We can only accept outstanding contracts. If it's not - we ignore the call.
+        switch (contractType) {
+            case 1: {
+                // Item Exchange
+                // We start off by gathering traded and requested items
+                std::vector<int> tradedItems;
+                std::map<int, int> requestedItems;
+                ContractUtils::GetContractItemIDs(contractID, &tradedItems);
+                ContractUtils::GetRequestedItems(contractID, &requestedItems);
+
+                // Next, we perform checks to make sure we fit all contract requirements. I won't do it by nesting if loops - i'll just use trigger booleans;
+                bool iskRequirementMet(true), rewardRequirementMet(true), requestedItemsRequirementsMet(true);
+                if (price > 0) {
+                    if (call.client->GetBalance() < price) {
+                        iskRequirementMet = false;
+                    }
+                }
+                if (reward > 0) {
+                    if (sItemFactory.GetCharacterRef(issuerID)->balance(Account::CreditType::ISK) < reward) {
+                        rewardRequirementMet = false;
+                    }
+                }
+                if (!requestedItems.empty()) {
+                    for (const auto& entry : requestedItems) {
+                        // Since we don't have a direct way to find items by typeID, we go over all items on current station and checking whether we have any of correct type and quantity
+                        // TODO: Implement forCorp loop when corp contracts are unblocked.
+                        if (sItemFactory.GetStationRef(startStationID)->GetMyInventory()->ContainsTypeStackQtyByFlag(entry.first, EVEItemFlags::flagHangar, entry.second) == 0) {
+                            requestedItemsRequirementsMet = false;
+                        }
+                    }
+                }
+
+                // Then, we go for acceptance
+                if (iskRequirementMet && rewardRequirementMet && requestedItemsRequirementsMet) {
+                    // If we have a reward value - then contract's WTB
+                    if (reward > 0) {
+                        AccountService::TranserFunds(issuerID, call.client->GetCharacterID(), reward, "Payment for accepted contract", Journal::EntryType::ContractReward, contractID);
+                    }
+
+                    // If we have price value - then contract's WTS
+                    if (price > 0) {
+                        AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, price, "Payment for accepted contract", Journal::EntryType::ContractPrice, contractID);
+                    }
+
+                    // Then, we go for requested items
+                    if (!requestedItems.empty()) {
+                        for (auto entry : requestedItems) {
+                            int entityID = sItemFactory.GetStationRef(startStationID)->GetMyInventory()->ContainsTypeStackQtyByFlag(entry.first, flagHangar, entry.second);
+                            if (sItemFactory.GetStationRef(startStationID)->GetMyInventory()->GetByID(entityID)->quantity() > entry.second) {
+                                // If located stack contains more than we need, we split it and transfer the required amount.
+                                sItemFactory.GetStationRef(startStationID)->GetMyInventory()->GetByID(entityID)->Split(entry.second)->ChangeOwner(issuerID, true);
+                            } else {
+                                // If not - we simply transfer it to issuer.
+                                sItemFactory.GetItemRef(entityID)->ChangeOwner(issuerID, true);
+                            }
+                        }
+                    }
+
+                    // And finally, we go for traded items
+                    if (!tradedItems.empty()) {
+                        for (auto item : tradedItems) {
+                            sItemFactory.GetItemRef(item)->ChangeOwner(call.client->GetCharacterID(), true);
+                        }
+                    }
+
+                    // Once all manipulations are done, we update contract status. Response is sent outside the switch clause;
+                    DBerror err;
+                    int64 timestamp = int64(GetFileTimeNow());
+                    if (!sDatabase.RunQuery(err,
+                                            "UPDATE ctrContracts SET status = 4, dateAccepted = %li, dateCompleted = %li, acceptorID = %u WHERE contractId = %u",
+                                            timestamp, timestamp, call.client->GetCharacterID(), contractID))
+                    {
+                        codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
+                    }
+                } else {
+                    if (!iskRequirementMet) {
+                        call.client->SendNotifyMsg("You have insufficient funds");
+                        return nullptr;
+                    }
+                    if (!rewardRequirementMet) {
+                        call.client->SendNotifyMsg("Issuer have insufficient funds to pay for the contract");
+                        return nullptr;
+                    }
+                    if (!requestedItemsRequirementsMet) {
+                        call.client->SendNotifyMsg("You do not have required items to accept this contract");
+                        return nullptr;
+                    }
+                }
+                break;
+            }
+            default:
+                // We do not expect anything abnormal.
+                return nullptr;
+        }
+        // Once type-specific manipulations are done, we query brief contract information (requested by client) and send it out.
+        if (!sDatabase.RunQuery(res, "SELECT contractType, startStationID, endStationID, dateAccepted FROM ctrContracts WHERE contractId = %u", contractID))
+        {
+            codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+            return nullptr;
+        }
+
+        // DBResultToCRowset return doesn't work, for some reason (fails at unmarshalling on client's side), so making it a KeyVal dict
+        res.GetRow(row);
+        PyDict* ret = new PyDict;
+        ret->SetItemString("type", new PyInt(row.GetInt(0)));
+        ret->SetItemString("startStationID", new PyInt(row.GetInt(1)));
+        ret->SetItemString("endStationID", new PyInt(row.GetInt(2)));
+        ret->SetItemString("dateAccepted", new PyLong(row.GetInt64(3)));
+        return new PyObject("util.KeyVal", ret);
+    } else {
+        return nullptr;
+    }
+
     /*
-        [PyPackedRow 142 bytes]
-          ["contractID" => <41239407> [I4]]
-          ["type" => <1> [UI1]]
-          ["issuerID" => <1661059544> [I4]]
-          ["issuerCorpID" => <98038978> [I4]]
-          ["forCorp" => <0> [Bool]]
-          ["availability" => <1> [I4]]
-          ["assigneeID" => <649670823> [I4]]
-          ["acceptorID" => <0> [I4]]
-          ["dateIssued" => <129494701600000000> [FileTime]]
-          ["dateExpired" => <129495565600000000> [FileTime]]
-          ["dateAccepted" => <129494701600000000> [FileTime]]
-          ["numDays" => <0> [I4]]
-          ["dateCompleted" => <129494701600000000> [FileTime]]
-          ["startStationID" => <60006433> [I4]]
-          ["startSolarSystemID" => <30000135> [I4]]
-          ["startRegionID" => <10000002> [I4]]
-          ["endStationID" => <60006433> [I4]]
-          ["endSolarSystemID" => <0> [I4]]
-          ["endRegionID" => <0> [I4]]
-          ["price" => <0> [CY]]
-          ["reward" => <100000000> [CY]]
-          ["collateral" => <0> [CY]]
-          ["title" => <this is a contract to Rhonin Caldera> [WStr]]
-          ["description" => <empty string> [WStr]]
-          ["status" => <0> [UI1]]
-          ["crateID" => <1002309350211> [I8]]
-          ["volume" => <6.01> [R8]]
-          ["issuerAllianceID" => <0> [I4]]
-          ["issuerWalletKey" => <0> [I4]]
-          ["acceptorWalletKey" => <0> [I4]]
+    [PyTuple]
+        [PyInt] - ContractID
+        [PyBool] - forCorp
 
+    Return from server -
+     [CRowSet] - Anything Key.Val with named attributes
+        [PyInt] type
+        [PyInt] startStationID
+        [PyInt] endStationID
+        [PyInt] dateAccepted
 
-==================== Sent from Server 81 bytes
-
-[PyObjectData Name: macho.Notification]
-  [PyTuple 6 items]
-    [PyInt 12]
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 4 items]
-        [PyInt 1]
-        [PyInt 699185]
-        [PyNone]
-        [PyNone]
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 4 items]
-        [PyInt 4]
-        [PyString "OnContractAccepted"]
-        [PyList 0 items]
-        [PyString "clientID"]
-    [PyInt 5894042]
-    [PyTuple 1 items]
-      [PyTuple 2 items]
-        [PyInt 0]
-        [PySubStream 15 bytes]
-          [PyTuple 2 items]
-            [PyInt 0]
-            [PyTuple 2 items]
-              [PyInt 1]
-              [PyTuple 1 items]
-                [PyInt 41239473]
-    [PyNone]
-
-
+    There's just 1 self.contractSvc.AcceptContract call in client, so i think that's all the values we need
      */
-
-
-    sLog.White( "ContractProxy::Handle_AcceptContract()", "size=%lu", call.tuple->size());
-    call.Dump(SERVICE__CALL_DUMP);
-
-    return nullptr;
 }
 
 PyResult ContractProxy::Handle_GetMyExpiredContractList(PyCallArgs &call) {

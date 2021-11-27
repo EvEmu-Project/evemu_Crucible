@@ -29,7 +29,7 @@
 #include "PyServiceCD.h"
 #include "ContractUtils.h"
 
-// Since these queries are used in all GET functions, we initialize them as constants and use at will.
+// Since these queries are used in multiple GET functions, we initialize them as constants and use at will.
 const std::string getContractQueryBase = "SELECT contractId as contractID, contractType as type, issuerID, issuerCorpID, forCorp, isPrivate as availability, "
                                "assigneeID, acceptorID, dateIssued, dateExpired, dateAccepted, numDays, dateCompleted, startStationID, startSolarSystemID, "
                                "startRegionID, endStationID, endSolarSystemID, endRegionID, price, reward, collateral, title, description, status, "
@@ -39,6 +39,9 @@ const std::string getContractItemsQueryBase = "SELECT contractId as contractID, 
                                     "licensedProductionRunsRemaining, damage, flagID "
                                     "FROM ctrItems "
                                     "WHERE contractId IN (%s)";
+const std::string getContractItemsShortQueryBase = "SELECT itemID "
+                                                   "FROM ctrItems "
+                                                   "WHERE contractId IN (%s) AND inCrate = true";
 const std::string getContractBidsQueryBase = "SELECT amount, bidderID "
                                    "FROM ctrBids "
                                    "WHERE contractId IN (%s) "
@@ -91,8 +94,7 @@ PyResult ContractUtils::GetContractEntry(int contractId)
 
 /**
  * Queries contracts and returns a PyList object, that contains data for each of them.
- * @param contractIds - String with comma-separated list of ID's to gather (143,144,145).
- *                      NOTE: We use string here, since we already iterate over DB results prior to this function - we don't need another iterator here.
+ * @param contractIds - Vector with all contractID's to search for
  * @return PyList with Contract KeyVal objects.
  */
 PyList* ContractUtils::GetContractEntries(std::vector<int> contractIDList) {
@@ -216,7 +218,13 @@ PyResult ContractUtils::GetContractListForOwner(PyCallArgs& call) {
     PyRep* issuedToBy = call.tuple->GetItem(3);
 
     // OwnerID and contract status values are always present and must have a correct type.
-    if (!ownerID->IsInt() && !contractStatus->IsInt()) {
+    // First we validate if tuple had them in a first place
+    if (ownerID && contractStatus) {
+        // If they were - next we validate that their values are acceptable
+        if (!ownerID->IsInt() && !contractStatus->IsInt()) {
+            return nullptr;
+        }
+    } else {
         return nullptr;
     }
 
@@ -347,3 +355,43 @@ void ContractUtils::FillBidData(DBResultRow *bidRow, PyPackedRow *targetRow) {
     targetRow->SetField("bidderID", new PyInt(bidRow->GetInt(2)));
     targetRow->SetField("bidDateTime", new PyLong(bidRow->GetInt64(3)));
 }
+
+/**
+ * Queries the list of entityID's for a given contract. Primarily used to get the list of items to be returned to owner
+ * upon contract's deletion.
+ * @param contractId - Contract ID to search items in
+ * @param into - Vector instance that will contain the entityID's
+ */
+void ContractUtils::GetContractItemIDs(int contractId, std::vector<int> *into) {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, getContractItemsShortQueryBase.c_str(), std::to_string(contractId).c_str()))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return;
+    }
+
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        into->push_back(row.GetInt(0));
+    }
+}
+
+/**
+ * Queries requested items for a contract and populates provided map with itemType and quantities
+ * @param contractId
+ * @param into
+ */
+void ContractUtils::GetRequestedItems(int contractId, std::map<int32, int32> *into) {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT itemTypeID, quantity FROM ctrItems WHERE contractID = %u AND inCrate = false", contractId))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return;
+    }
+
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        into->insert(std::pair<int, int> (row.GetInt(0), row.GetInt(1)));
+    }
+}
+

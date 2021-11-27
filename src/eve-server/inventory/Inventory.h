@@ -64,6 +64,7 @@ public:
     // this checks all contents, not particular holds/hangars/items
     bool ContainsTypeQty(uint16 typeID, uint32 qty=0) const;
     bool ContainsTypeQtyByFlag(uint16 typeID, EVEItemFlags flag=flagNone, uint32 qty=0) const;
+    int ContainsTypeStackQtyByFlag(uint16 typeID, EVEItemFlags flag=flagNone, uint32 qty=0) const;
     bool ContainsTypeByFlag(uint16 typeID, EVEItemFlags flag=flagNone) const;
 
     float GetCapacity(EVEItemFlags flag) const;

@@ -545,16 +545,40 @@ bool Inventory::ContainsTypeQtyByFlag(uint16 typeID, EVEItemFlags flag, uint32 q
         return false;
 
     for (auto cur : itemVec) {
-        if (cur->quantity() >= qty) {
-            return true;
-        } else {
-            count += cur->quantity();
+        if (cur->typeID() == typeID) {
+            if (cur->quantity() >= qty) {
+                return true;
+            } else {
+                count += cur->quantity();
+            }
         }
     }
 
     return (count >= qty);
 }
 
+/**
+ * This function does essentially the same as ContainsTypeQtyByFlag, but it's criteria is based on finding at least 1 stack that
+ * follows >= rule (while ContainsTypeQtyByFlag calculates total amounts for all items in container).
+ * @param typeID - TypeID to search for
+ * @param flag - Location flag
+ * @param qty - Required quantity
+ * @return ItemID for located entity, 0 if we didn't find it.
+ */
+int Inventory::ContainsTypeStackQtyByFlag(uint16 typeID, EVEItemFlags flag, uint32 qty) const
+{
+    std::vector<InventoryItemRef> itemVec;
+    if (GetItemsByFlag(flag, itemVec) < 1)
+        return 0;
+
+    for (auto cur : itemVec) {
+        if (cur->typeID() == typeID && cur->quantity() >= qty) {
+            return cur->itemID();
+        }
+    }
+
+    return 0;
+}
 
 bool Inventory::ContainsTypeByFlag(uint16 typeID, EVEItemFlags flag) const
 {
