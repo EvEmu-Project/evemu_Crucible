@@ -236,11 +236,11 @@ PyResult ContractUtils::GetContractListForOwner(PyCallArgs& call) {
 
     // First, we finish contracts query by adding filters
     if (issuedToBy->IsNone()) {
-        contracts_query.append("WHERE (issuerID = {OWNER_ID} OR assigneeID = {OWNER_ID}) ");
+        contracts_query.append("WHERE (issuerID = {OWNER_ID} OR assigneeID = {OWNER_ID} OR acceptorID = {OWNER_ID}) ");
     } else {
         bool issued = issuedToBy->AsBool()->value();
         if (issued) {
-            contracts_query.append("WHERE assigneeID = {OWNER_ID} ");
+            contracts_query.append("WHERE (assigneeID = {OWNER_ID} OR acceptorID = {OWNER_ID}) ");
         } else {
             contracts_query.append("WHERE issuerID = {OWNER_ID} ");
         }
@@ -394,4 +394,24 @@ void ContractUtils::GetRequestedItems(int contractId, std::map<int32, int32> *in
         into->insert(std::pair<int, int> (row.GetInt(0), row.GetInt(1)));
     }
 }
+
+/**
+ * Queries traded items and populates the map as ItemID <-> quantity
+ * @param contractId - Contract ID to query
+ * @param into - Target map
+ */
+void ContractUtils::GetContractItemIDsAndQuantities(int contractId, std::map<int, int> *into) {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT itemID, quantity FROM ctrItems WHERE contractID = %u AND inCrate = true", contractId))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return;
+    }
+
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        into->insert(std::pair<int, int> (row.GetInt(0), row.GetInt(1)));
+    }
+}
+
 

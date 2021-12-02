@@ -33,6 +33,7 @@
 #include "contract/ContractProxy.h"
 #include "station/Station.h"
 #include "inventory/Inventory.h"
+#include "system/SolarSystem.h"
 #include "packets/Contracts.h"
 #include "contract/ContractUtils.h"
 #include "account/AccountService.h"
@@ -49,6 +50,7 @@ ContractProxy::ContractProxy( PyServiceMgr *mgr )
     PyCallable_REG_CALL(ContractProxy, CreateContract);
     PyCallable_REG_CALL(ContractProxy, DeleteContract);
     PyCallable_REG_CALL(ContractProxy, AcceptContract);
+    PyCallable_REG_CALL(ContractProxy, CompleteContract);
     PyCallable_REG_CALL(ContractProxy, GetLoginInfo);
     PyCallable_REG_CALL(ContractProxy, SearchContracts);
     PyCallable_REG_CALL(ContractProxy, NumOutstandingContracts);
@@ -251,6 +253,16 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     } else {
         endSystemId = startSystemId;
         endRegionId = 0;
+    }
+
+    // Courier-specific step - if we have a reward, we'd want to take it in advance and store it "in heap" to block no-funds scam
+    if (req.contractType == 3 && req.reward > 0) {
+        if (call.client->GetBalance() >= req.reward) {
+            call.client->AddBalance(-req.reward);
+        } else {
+            call.client->SendNotifyMsg("You do not have enough ISK to pay the reward");
+            return nullptr;
+        }
     }
 
     /**
@@ -469,7 +481,7 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
     }
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp FROM ctrContracts WHERE contractId = %u", contractID))
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID FROM ctrContracts WHERE contractId = %u", contractID))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -488,9 +500,12 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
     int startStationID = row.GetInt(6);
     int issuerID = row.GetInt(7);
     bool forCorp = row.GetBool(8);
+    int startSolarSystemID = row.GetInt(9);
+    int endSolarSystemID = row.GetInt(10);
 
     if (status == 0) {
         // We can only accept outstanding contracts. If it's not - we ignore the call.
+        int64 timestamp = int64(GetFileTimeNow());
         switch (contractType) {
             case 1: {
                 // Item Exchange
@@ -557,7 +572,6 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
 
                     // Once all manipulations are done, we update contract status. Response is sent outside the switch clause;
                     DBerror err;
-                    int64 timestamp = int64(GetFileTimeNow());
                     if (!sDatabase.RunQuery(err,
                                             "UPDATE ctrContracts SET status = 4, dateAccepted = %li, dateCompleted = %li, acceptorID = %u WHERE contractId = %u",
                                             timestamp, timestamp, call.client->GetCharacterID(), contractID))
@@ -580,12 +594,69 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
                 }
                 break;
             }
+            case 3:
+            {
+                // Courier contract
+                // First off, we validate if contract has a collateral. If yes - we check if player has enough ISK to pay. If not - we send a notification and quit
+                if (collateral > 0) {
+                    if (call.client->GetBalance() < collateral) {
+                        call.client->SendNotifyMsg("You do not have enough ISK to pay collateral");
+                        return nullptr;
+                    }
+                    // If we have enough - we take it
+                    call.client->AddBalance(-collateral);
+                }
+
+                /**
+                 * Courier contract acceptance includes following steps:
+                 * - Create a plastic wrap container
+                 * - Set capacity and volume attribute to the volume of the contracted items
+                 * - Move all items inside this container
+                 * -
+                 * - Give that container to the character
+                 * - Update contract entry - move it to In Progress and leave a time-stamp when it was accepted.
+                 */
+                // Create container and set capacity and volume attributes;
+                std::string containerName = sItemFactory.GetSolarSystemRef(startSolarSystemID)->name();
+                containerName = containerName + " -> " + sItemFactory.GetSolarSystemRef(endSolarSystemID)->name() + "(" + std::to_string(volume) + "m3)";
+
+                ItemData itemData(itemPlasticWrap, call.client->GetCharacterID(), locTemp, flagNone);
+                itemData.name = containerName;
+                InventoryItemRef plasticWrap = sItemFactory.SpawnItem(itemData);
+                if (plasticWrap.get() != nullptr) {
+                    plasticWrap->SetAttribute(AttrVolume, volume);
+                    plasticWrap->SetAttribute(AttrCapacity, volume);
+                }
+                plasticWrap->SaveItem();
+                // Then, move all required items into it
+                std::vector<int> items;
+                ContractUtils::GetContractItemIDs(contractID, &items);
+                for (auto item : items) {
+                    InventoryItemRef itm = sItemFactory.GetItemRef(item);
+                    if (itm.get() != nullptr) {
+                        itm->Move(plasticWrap->itemID(), flagNone, true);
+                        itm->ChangeOwner(call.client->GetCharacterID());
+                    }
+                }
+                // And we give the container to the player
+                plasticWrap->Move(startStationID, flagHangar, true);
+
+                // Finally, we update DB entry
+                DBerror err;
+                if (!sDatabase.RunQuery(err,
+                                        "UPDATE ctrContracts SET status = 1, dateAccepted = %li, acceptorID = %u, crateID = %u WHERE contractId = %u",
+                                        timestamp, call.client->GetCharacterID(), plasticWrap->itemID(), contractID))
+                {
+                    codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
+                }
+                break;
+            }
             default:
                 // We do not expect anything abnormal.
                 return nullptr;
         }
         // Once type-specific manipulations are done, we query brief contract information (requested by client) and send it out.
-        if (!sDatabase.RunQuery(res, "SELECT contractType, startStationID, endStationID, dateAccepted FROM ctrContracts WHERE contractId = %u", contractID))
+        if (!sDatabase.RunQuery(res, "SELECT contractId, contractType, startStationID, endStationID, dateAccepted, numDays FROM ctrContracts WHERE contractId = %u", contractID))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
             return nullptr;
@@ -594,30 +665,137 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
         // DBResultToCRowset return doesn't work, for some reason (fails at unmarshalling on client's side), so making it a KeyVal dict
         res.GetRow(row);
         PyDict* ret = new PyDict;
-        ret->SetItemString("type", new PyInt(row.GetInt(0)));
-        ret->SetItemString("startStationID", new PyInt(row.GetInt(1)));
-        ret->SetItemString("endStationID", new PyInt(row.GetInt(2)));
-        ret->SetItemString("dateAccepted", new PyLong(row.GetInt64(3)));
+        ret->SetItemString("contractID", new PyInt(row.GetInt(0)));
+        ret->SetItemString("type", new PyInt(row.GetInt(1)));
+        ret->SetItemString("startStationID", new PyInt(row.GetInt(2)));
+        ret->SetItemString("endStationID", new PyInt(row.GetInt(3)));
+        ret->SetItemString("dateAccepted", new PyLong(row.GetInt64(4)));
+        ret->SetItemString("numDays", new PyInt(row.GetInt(5)));
         return new PyObject("util.KeyVal", ret);
     } else {
         return nullptr;
     }
-
-    /*
-    [PyTuple]
-        [PyInt] - ContractID
-        [PyBool] - forCorp
-
-    Return from server -
-     [CRowSet] - Anything Key.Val with named attributes
-        [PyInt] type
-        [PyInt] startStationID
-        [PyInt] endStationID
-        [PyInt] dateAccepted
-
-    There's just 1 self.contractSvc.AcceptContract call in client, so i think that's all the values we need
-     */
 }
+
+
+PyResult ContractProxy::Handle_CompleteContract(PyCallArgs &call) {
+    sLog.White( "ContractProxy::Handle_CompleteContract()", "size=%lu", call.tuple->size());
+    call.Dump(SERVICE__CALL_DUMP);
+
+    // This packet only has 2 int values in the tuple - not really enough to bother describing it in XMLPktGen
+    int contractID, completionStatus;
+    if (!call.tuple->empty()) {
+        if (call.tuple->GetItem(0)->IsInt() && call.tuple->GetItem(1)->IsInt()) {
+            contractID = call.tuple->GetItem(0)->AsInt()->value();
+            completionStatus = call.tuple->GetItem(1)->AsInt()->value();
+        } else {
+            return new PyBool(false);
+        }
+    } else {
+        return new PyBool(false);
+    }
+
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID FROM ctrContracts WHERE contractId = %u", contractID))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return new PyBool(false);
+    }
+    if (res.GetRowCount() == 0) {
+        return new PyBool(false);
+    }
+    DBResultRow row;
+    res.GetRow(row);
+    int contractType = row.GetInt(0);
+    int status = row.GetInt(1);
+    int reward = row.GetInt(3);
+    int collateral = row.GetInt(4);
+    int startStationID = row.GetInt(6);
+    int endStationID = row.GetInt(7);
+    int issuerID = row.GetInt(8);
+    bool forCorp = row.GetBool(9);
+    int crateID = row.GetInt(10);
+
+    int64 timestamp = int64(GetFileTimeNow());
+    switch (completionStatus) {
+        case 4: {
+            // Complete
+            // First, we need to make sure that the container is indeed located in the end station
+            if (call.client->GetStationID() != endStationID) {
+                call.client->SendNotifyMsg("You have to deliver the package to %s", sItemFactory.GetStationRef(endStationID)->name());
+                return new PyBool(false);
+            }
+            // Then, we validate the presence of all expected items
+            std::map<int, int> expectedItems;
+            ContractUtils::GetContractItemIDsAndQuantities(contractID, &expectedItems);
+            bool allItemsPresent(true);
+            for (const auto& entry : expectedItems) {
+                InventoryItemRef item = sItemFactory.GetItemRef(entry.first);
+                if (item.get()) {
+                    if (item->quantity() == entry.second && item->locationID() == crateID) {
+                        continue;
+                    }
+                }
+                allItemsPresent = false;
+            }
+
+            if (allItemsPresent) {
+                // Once checks have passed, we extract the items into contractor's inventory
+                for (const auto& entry : expectedItems) {
+                    InventoryItemRef item = sItemFactory.GetItemRef(entry.first);
+                    item->ChangeOwner(issuerID, true);
+                    item->Move(endStationID, flagHangar, true);
+                }
+                // Plastic wrap seems to self-destruct after all the items are removed from it, so there's no need to delete it.
+
+                // Then, we return the collateral (if any) and pay the reward (if any)
+                if (collateral > 0) {
+                    call.client->AddBalance(collateral);
+                }
+                if (reward > 0) {
+                    call.client->AddBalance(reward);
+                }
+
+                // Then, we update the contract as Completed.
+                DBerror err;
+                if (!sDatabase.RunQuery(err,
+                                        "UPDATE ctrContracts SET status = %u, dateCompleted = %li WHERE contractId = %u",
+                                        completionStatus, timestamp, contractID))
+                {
+                    codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
+                }
+            } else {
+                call.client->SendNotifyMsg("Not all required items are located in the container");
+                return new PyBool(false);
+            }
+            break;
+        }
+        case 7: {
+            // Fail
+            // We pay the collateral to issuer and update the contract as failed.
+            if (collateral > 0) {
+                // Since we've taken the collateral prior to it and left it "hanging in the air" we put it back into acceptor's wallet and then issue a transfer
+                call.client->AddBalance(collateral);
+                AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, collateral, "Collateral payment for failed contract", Journal::EntryType::ContractCollateral, contractID);
+            }
+            // Then, we update the contract as Афшдув.
+            DBerror err;
+            if (!sDatabase.RunQuery(err,
+                                    "UPDATE ctrContracts SET status = %u, dateCompleted = %li WHERE contractId = %u",
+                                    completionStatus, timestamp, contractID))
+            {
+                codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
+            }
+            break;
+        }
+        default:
+            // We do not expect anything else
+            return new PyBool(false);
+    }
+
+    return new PyBool(true);
+}
+
 
 PyResult ContractProxy::Handle_GetMyExpiredContractList(PyCallArgs &call) {
   sLog.White( "ContractProxy::Handle_GetMyExpiredContractList()", "size=%lu", call.tuple->size());

@@ -43,6 +43,7 @@ protected:
     PyCallable_DECL_CALL(CreateContract);
     PyCallable_DECL_CALL(GetContract);
     PyCallable_DECL_CALL(AcceptContract);
+    PyCallable_DECL_CALL(CompleteContract);
     PyCallable_DECL_CALL(DeleteContract);
     PyCallable_DECL_CALL(NumOutstandingContracts);
     PyCallable_DECL_CALL(GetItemsInStation);
