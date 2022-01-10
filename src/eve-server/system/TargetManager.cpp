@@ -555,8 +555,12 @@ void TargetManager::Destroyed()
             mySE->GetName(), mySE->GetID(), m_modules.size(), m_targets.size(), m_targetedBy.size());
 
     std::string effect = "TargetDestroyed";
+    // in some cases a module being deactivated calls TargetManager::RemoveTargetModule(this)
+    // thus modifying `m_modules` and breaking runtime which leads to SIGSEGV.
+    // To avoid it's better to iterate over a copy of that mapping
+    std::map<uint32, ActiveModule*> mod_copy(m_modules);
     // iterate thru the map of modules targeting this object, and call Deactivate on each.
-    for (auto cur : m_modules) {
+    for (auto cur : mod_copy) {
         //  some modules should immediately cease cycle when target destroyed.  miners are NOT in this call
         switch (cur.second->groupID()) {
             case EVEDB::invGroups::Target_Painter:
@@ -582,6 +586,7 @@ void TargetManager::Destroyed()
             } break;
         }
     }
+    mod_copy.clear();
 
     ClearAllTargets();
 
