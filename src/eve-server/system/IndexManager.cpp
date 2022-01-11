@@ -27,6 +27,7 @@
 
 #include "PyServiceCD.h"
 #include "system/IndexManager.h"
+#include "system/sov/SovereigntyDataMgr.h"
 
 PyCallable_Make_InnerDispatcher(IndexManager)
 
@@ -56,11 +57,28 @@ PyResult IndexManager::Handle_GetAllDevelopmentIndices( PyCallArgs& call ) {
 }
 
 PyResult IndexManager::Handle_GetDevelopmentIndicesForSystem( PyCallArgs& call ) {
-    /*
-        self.devIndices = sm.RemoteSvc('devIndexManager').GetDevelopmentIndicesForSystem(session.solarsystemid2)
-        devIndex = self.devIndices.get(indexID, None)
-        */
-return nullptr;
+    Call_SingleIntegerArg args;
+    if (!args.Decode(&call.tuple)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        return nullptr;
+    }
+
+    if (!IsSolarSystem(args.arg)) {
+        codelog(SERVICE__ERROR, "%s: %d is not a solar system.", args.arg, GetName());
+        return nullptr;
+    }
+
+    SovereigntyData const data = svDataMgr.GetSovereigntyData(args.arg);
+    auto *props = new PyDict;
+    props->SetItemString("points", new PyInt(data.militaryPoints));
+    auto *mp = new PyObject("util.KeyVal", props);
+    props = new PyDict;
+    props->SetItemString("points", new PyInt(data.industrialPoints));
+    auto *ip = new PyObject("util.KeyVal", props);
+    auto *result = new PyDict;
+    result->SetItemString("militaryPoints", mp);
+    result->SetItemString("industrialPoints", ip);
+    return result;
 }
 
 /*
