@@ -46,7 +46,7 @@ ImageServerListener::~ImageServerListener()
 void ImageServerListener::StartAccept()
 {
 #if BOOST_VERSION >= 107400
-    boost::asio::any_io_executor e;
+    boost::asio::any_io_executor e = _acceptor->get_executor();
     boost::asio::execution_context &e_context = e.context();
     auto &context_instance = reinterpret_cast<boost::asio::io_context&>(e_context);
 #else
