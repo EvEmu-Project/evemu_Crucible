@@ -583,30 +583,23 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
 
     // Make sure character reference is not NULL before trying to use it:
     if (character.get()) {
-        // Query Database to get list of ALL skills, then LOOP through each one, checking character for skill, setting level to 5:
-        std::vector<uint32> skillList;
-        db->FullSkillList(skillList);
+        CommandDB::charSkillStates skillList;
+        // Query Database to get the list of those skills, not trained to 5 (either not injected yet or having level up to 4)
+        CommandDB::NotFullyLearnedSkillList(skillList, ownerID);
 
         SkillRef skill;
-        //uint8 oldLevel = 0;
-        uint16 skillID = 0;
-        //uint32 oldPoints = 0, newPoints = 0;
+        uint16 skillID;
 
-        std::vector<uint32>::const_iterator cur = skillList.begin();
-        for (; cur != skillList.end(); ++cur) {
-            skillID = *cur;
-            if (character->HasSkillTrainedToLevel(skillID, level)) {
-                return PyStatic.NewNone();
-            } else if (character->HasSkill(skillID)) {
+        for (auto cur: skillList) {
+            skillID = cur.first;
+            if (cur.second >= 0) {  // the same check as character->HasSkill(skillID)
                 skill = character->GetCharSkillRef(skillID);
-                //oldLevel = skill->GetAttribute(AttrSkillLevel).get_uint32();
-                //oldPoints = skill->GetAttribute(AttrSkillPoints).get_uint32();
                 skill->SetAttribute(AttrSkillLevel, level);
                 skill->SetAttribute(AttrSkillPoints, skill->GetSPForLevel(level));
                 if (skill->flag() == flagSkillInTraining) {
                     skill->SetFlag(flagSkill, false);
                 }
-            } else {    // Character DOES NOT have this skill
+            } else {
                 ItemData idata(skillID, ownerID, ownerID, flagSkill, 1);
                 InventoryItemRef item = sItemFactory.SpawnItem(idata);
 
