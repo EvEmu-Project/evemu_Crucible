@@ -210,6 +210,17 @@ int CommandDB::GetAccountID(std::string name) {
     return row.GetInt(0);
 }
 
+static std::array<uint32, 8> unpubSkills = {
+    3755,  // Jove Frigate
+    3758,  // Jove Cruiser
+    9955,  // Polaris
+    10264, // Concord
+    11075, // Jove Industrial
+    11078, // Jove Battleship
+    19430, // Omnipotent
+    28604, // Tournament Observation
+};
+
 bool CommandDB::FullSkillList(std::vector<uint32> &skillList) {
     skillList.clear();
 
@@ -228,16 +239,71 @@ bool CommandDB::FullSkillList(std::vector<uint32> &skillList) {
 		skillList.push_back( (row.GetInt(0)) );
     }
 
-	// Because we searched skills with published = 1 and some GM skills are not published but still usable,
-	// we will add them manually here:
-	skillList.push_back( 3755 );	// Jove Frigate
-	skillList.push_back( 3758 );	// Jove Cruiser
-	skillList.push_back( 9955 );	// Polaris
-	skillList.push_back( 10264 );	// Concord
-	skillList.push_back( 11075 );	// Jove Industrial
-	skillList.push_back( 11078 );	// Jove Battleship
-	skillList.push_back( 19430 );	// Omnipotent
-	skillList.push_back( 28604 );	// Tournament Observation
+    PushNonPublishedSkills(skillList);
 
     return true;
+}
+
+/*
+ * Returns a vector of pair: <skillID, currentLevel>
+ * Avoids iterating over all the skills defined by building just a bit more complicated DB query so that the DB itself
+ * just returns the final result which does not need to be processed another way than just putting it into the vector
+ *
+ * If the skill is not injected into character's skillbook it's currentLevel is reported -1
+ */
+bool CommandDB::NotFullyLearnedSkillList(CommandDB::charSkillStates &skillList, uint32 charID) {
+    skillList.clear();
+
+    DBQueryResult result;
+    auto query = std::string();
+    query.append(" WITH skillids AS (SELECT typeID "
+                 "FROM `invTypes` "
+                 "WHERE ((`groupID` IN ( "
+                 "SELECT groupID FROM invGroups WHERE categoryID = %u)) AND (published = 1)) ");
+    auto ups_begin = unpubSkills.begin(), ups_end = unpubSkills.end();
+    if (ups_begin != ups_end) {
+        query.append("OR typeID IN (");
+        std::ostringstream types;
+        types << *ups_begin;
+        while (++ups_begin != ups_end) {
+            types << "," << *ups_begin;
+        }
+        query.append(types.str());
+        query.append(")");
+    }
+    query.append(") ");
+    query.append(
+        "SELECT si.typeID AS typeID, e.itemID AS itemID, ea.valueInt AS valueInt "
+        "FROM skillids si "
+        "LEFT OUTER JOIN entity e ON e.locationID = %u AND e.typeID = si.typeID "
+        "LEFT OUTER JOIN entity_attributes ea ON e.itemID = ea.itemID AND ea.attributeID = %u "
+        "WHERE (ea.valueInt < 5 OR ea.valueInt IS NULL)"
+    );
+
+    if (!sDatabase.RunQuery(result, query.c_str(),
+                            EVEDB::invCategories::Skill, charID, AttrSkillLevel
+    )) {
+        codelog(SERVICE__ERROR, "Error in query: %s", result.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    while (result.GetRow(row)) {
+        skillStateDescriptor value;
+        value.first = row.GetUInt(0);
+        if (row.IsNull(1)) {
+            value.second = -1;
+        } else {
+            value.second = row.GetInt(3);
+        }
+        skillList.push_back(value);
+    }
+    return true;
+}
+
+void CommandDB::PushNonPublishedSkills(std::vector<uint32> &skillList) {
+    // Because we searched skills with published = 1 and some GM skills are not published but still usable,
+    // we will add them manually here:
+    for (auto skill: unpubSkills)
+        skillList.push_back(skill);
 }
