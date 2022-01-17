@@ -30,7 +30,11 @@
 
 ImageServerListener::ImageServerListener(boost::asio::io_context& io)
 {
-    _acceptor = new boost::asio::ip::tcp::acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), sConfig.net.imageServerPort));
+#if BOOST_VERSION >= 107400
+    _acceptor = new boost::asio::basic_socket_acceptor<proto>(io, proto::endpoint(proto::v4(), sConfig.net.imageServerPort));
+#else
+    _acceptor = new proto::acceptor(io, proto::endpoint(proto::v4(), sConfig.net.imageServerPort));
+#endif
     StartAccept();
 }
 
@@ -41,9 +45,15 @@ ImageServerListener::~ImageServerListener()
 
 void ImageServerListener::StartAccept()
 {
+#if BOOST_VERSION >= 107400
+    boost::asio::any_io_executor e = _acceptor->get_executor();
+    boost::asio::execution_context &e_context = e.context();
+    auto &context_instance = reinterpret_cast<boost::asio::io_context&>(e_context);
+#else
     boost::asio::executor e = _acceptor->get_executor();
     boost::asio::execution_context &e_context = e.context();
     boost::asio::io_context &context_instance = static_cast<boost::asio::io_context&>(e_context);
+#endif
 
     std::shared_ptr<ImageServerConnection> connection = ImageServerConnection::create(context_instance);
     _acceptor->async_accept(connection->socket(), std::bind(&ImageServerListener::HandleAccept, this, connection));
