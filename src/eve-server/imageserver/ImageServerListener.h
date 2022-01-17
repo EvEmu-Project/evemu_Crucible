@@ -40,6 +40,7 @@
  */
 class ImageServerListener
 {
+    typedef boost::asio::ip::tcp proto;
 public:
     ImageServerListener(boost::asio::io_context& io);
     ~ImageServerListener();
@@ -47,8 +48,11 @@ public:
 private:
     void StartAccept();
     void HandleAccept(std::shared_ptr<ImageServerConnection> connection);
-
-    boost::asio::ip::tcp::acceptor* _acceptor;
+#if BOOST_VERSION >= 107400
+    boost::asio::basic_socket_acceptor<proto>* _acceptor;
+# else
+    proto::acceptor* _acceptor;
+#endif
 };
 
 #endif // __IMAGESERVERLISTENER__H__INCL__
