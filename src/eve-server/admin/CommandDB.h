@@ -31,15 +31,21 @@ class CommandDB
 : public ServiceDB
 {
  public:
+    typedef std::pair<uint32, int32> skillStateDescriptor;
+    typedef std::vector<skillStateDescriptor> charSkillStates;
+
     bool ItemSearch(const char *query, std::map<uint32, std::string> &into);
     bool ItemSearch(uint32 typeID, uint32 &actualTypeID, std::string &actualTypeName,
                     uint32 &actualGroupID, uint32 &actualCategoryID, double &actualRadius);
     int GetAttributeID(const char *attributeName);
     int GetAccountID(std::string name);
     bool FullSkillList(std::vector<uint32> &skillList);
+    static bool NotFullyLearnedSkillList(charSkillStates &skillList, uint32 charID);
     uint32_t GetStation(const char *name);
     uint32_t GetSolarSystem(const char *name);
 
+private:
+    static void PushNonPublishedSkills(std::vector<uint32> &skillList);
 };
 
 
