@@ -672,7 +672,12 @@ void MarketMgr::SetBasePrice()
 
     // this will have to use db to get current data.
     //  mineral prices are (will be) updated via a 'price average' method yet to be written
+    double _tt(GetTimeMSeconds());
     MarketDB::GetMaterialPrices(materialMap);
+    sLog.Magenta("PROFILE", "Old GetMaterialPrices() finished in %.3f seconds", (GetTimeMSeconds() - _tt) / 1000);
+    _tt = GetTimeMSeconds();
+    MarketDB::GetMaterialPricesNew(materialMap);
+    sLog.Magenta("PROFILE", "New GetMaterialPrices() finished in %.3f seconds", (GetTimeMSeconds() - _tt) / 1000);
 
     // add minerals to material maps
     materialMap.insert(mineralMap.begin(), mineralMap.end());

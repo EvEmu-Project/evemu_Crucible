@@ -22,10 +22,12 @@ SET( SOURCE
 
 SET( database_INCLUDE
      "${TARGET_INCLUDE_DIR}/database/dbcore.h"
-     "${TARGET_INCLUDE_DIR}/database/dbtype.h" )
+     "${TARGET_INCLUDE_DIR}/database/dbtype.h"
+)
 SET( database_SOURCE
      "${TARGET_SOURCE_DIR}/database/dbcore.cpp"
-     "${TARGET_SOURCE_DIR}/database/dbtype.cpp" )
+     "${TARGET_SOURCE_DIR}/database/dbtype.cpp"
+)
 
 SET( error_INCLUDE
      "${TARGET_INCLUDE_DIR}/error/ErrorHandler.h" )
@@ -152,4 +154,5 @@ TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${TINYXML_LIBRARIES}
                        "${ZLIB_LIBRARY}"
                        ${CMAKE_NET_LIBS}
-                       ${CMAKE_THREAD_LIBS} )
+                       ${CMAKE_THREAD_LIBS}
+        )

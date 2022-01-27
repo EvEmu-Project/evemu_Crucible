@@ -183,15 +183,18 @@
 // database cleaner service
 #include "DBCleaner.h"
 
-static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
+// new ODB ORM
+#include "../eve-db/EVEORMCore.h"
+
+static const char *const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
 static void SetupSignals();
-static void CatchSignal( int sig_num );
+
+static void CatchSignal(int sig_num);
 
 static volatile bool m_run = true;
 
-int main( int argc, char* argv[] )
-{
+int main(int argc, char *argv[]) {
     double profileStartTime(GetTimeMSeconds());
 
     /* set current time for timer */
@@ -605,10 +608,25 @@ int main( int argc, char* argv[] )
                          sConfig.database.useSocket,
                          sConfig.database.autoReconnect,
                          sConfig.debug.UseProfiling
-                        );
-    if (sDatabase.GetStatus() != DBcore::Connected) {
+    );
+
+    EVEORMCore::get().Initialize(EVEORMCore::dbtype::MYSQL,
+                                sConfig.database.host,
+                                sConfig.database.username,
+                                sConfig.database.password,
+                                sConfig.database.db,
+                                sConfig.database.compress,
+                                sConfig.database.ssl,
+                                sConfig.database.port,
+                                sConfig.database.useSocket,
+                                sConfig.database.autoReconnect,
+                                sConfig.debug.UseProfiling
+    );
+
+    if ( sDatabase.GetStatus() != DBcore::Connected ) {
         // error msg printed in DBcore::Initalize routine
-        std::cout << std::endl << "press any key to exit...";  std::cin.get();
+        std::cout << std::endl << "press any key to exit...";
+        std::cin.get();
         return EXIT_FAILURE;
     }
     std::printf("\n");     // spacer

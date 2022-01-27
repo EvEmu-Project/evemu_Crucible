@@ -10,7 +10,8 @@
 ###############
 # We need a target-specific property INCLUDE_DIRECTORIES which
 # is part of CMake 2.8.8 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
+CMAKE_MINIMUM_REQUIRED(VERSION 3.21 FATAL_ERROR)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
@@ -20,7 +21,8 @@ SET( PROJECT_REPOSITORY          "https://github.com/EvEmu-Project/evemu_Crucibl
 
 # Append our module path
 LIST( APPEND CMAKE_MODULE_PATH
-      "${PROJECT_SOURCE_DIR}/cmake" )
+      "${PROJECT_SOURCE_DIR}/cmake"
+      "${PROJECT_SOURCE_DIR}/dep/OdbCmake/cmake/Modules")
 # Enable testing with CTest
 ENABLE_TESTING()
 
@@ -33,6 +35,8 @@ SET( EVEMU_ROOT ".."
      CACHE PATH "The root directory of EVEmu workspace." )
 SET( TIXML_USE_STL ON
      CACHE BOOL "tinyxml will use native STL." )
+SET( ODB_MYSQL ON CACHE BOOL "ODB MySQL support")
+SET( ODB_PGSQL ON CACHE BOOL "ODB PGSQL support")
 
 IF( CMAKE_CROSSCOMPILING )
   SET( EVEMU_TARGETS_IMPORT ""
@@ -193,7 +197,16 @@ IF( EVEMU_TARGETS_IMPORT )
   INCLUDE( "${EVEMU_TARGETS_IMPORT}" )
 ENDIF( EVEMU_TARGETS_IMPORT )
 
+IF(ODB_MYSQL)
+    LIST(APPEND ODB_COMPONENTS mysql)
+ENDIF(ODB_MYSQL)
+IF(ODB_PGSQL)
+    LIST(APPEND ODB_COMPONENTS pgsql)
+ENDIF(ODB_PGSQL)
+FIND_PACKAGE(ODB REQUIRED COMPONENTS ${ODB_COMPONENTS})
+
 # Add all targets
+ADD_SUBDIRECTORY( "src/eve-db" )
 ADD_SUBDIRECTORY( "src/eve-core" )
 ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
