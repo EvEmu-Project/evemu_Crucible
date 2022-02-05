@@ -29,11 +29,11 @@ waitContainer evemu_db
 cd /src/sql
 cat >/src/sql/evedb.yaml <<EOF
 base-dir: /src/sql/base
-db-database: evemu
-db-host: db
-db-pass: evemu
+db-database: MARIADB_DATABASE
+db-host: $MARIADB_HOST
+db-pass: $MARIADB_PASSWORD
 db-port: 3306
-db-user: evemu
+db-user: $MARIADB_USER
 log-level: Info
 migrations-dir: /src/sql/migrations
 EOF
