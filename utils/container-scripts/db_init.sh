@@ -32,7 +32,7 @@ sed -i "s/database_username/$MARIADB_USER/" /src/utils/config/eve-server.xml
 sed -i "s/database_password/$MARIADB_PASSWORD/" /src/utils/config/eve-server.xml
 sed -i "s/database_name/$MARIADB_DATABASE/" /src/utils/config/eve-server.xml
 sed -i "s/database_port/$MARIADB_PORT/" /src/utils/config/eve-server.xml
-cp /src/utils/config/eve-server.xml /app/etc/eve-server.xml
+
 
 # Write evedb.yaml based upon above variables
 cd /src/sql
