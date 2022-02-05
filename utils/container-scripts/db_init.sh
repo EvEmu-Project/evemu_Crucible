@@ -16,7 +16,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # Function to determine health of MariaDB container
 function waitContainer {
     #Checking if we can actually connect to the container
-    while ! mysql -h $MARIADB_HOST -u $MARIADB_USER -p$MARIADB_PASSWORD -e "use evemu;show tables;" >/dev/null 2>&1; do
+    while ! mysql -h $MARIADB_HOST -u $MARIADB_USER -p$MARIADB_PASSWORD -e "use $MARIADB_DATABASE;show tables;" >/dev/null 2>&1; do
         printf .
         sleep 1
     done
