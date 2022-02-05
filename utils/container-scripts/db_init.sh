@@ -7,6 +7,7 @@ MARIADB_HOST="${MARIADB_HOST:-db}"
 MARIADB_DATABASE="${MARIADB_DATABASE:-evemu}"
 MARIADB_PASSWORD="${MARIADB_PASSWORD:-evemu}"
 MARIADB_USER="${MARIADB_USER:-evemu}"
+MARIADB_PORT="${MARIADB_PORT:-3306}"
 
 
 # Get script path:
@@ -25,6 +26,13 @@ function waitContainer {
 echo "Waiting for DB to start..."
 waitContainer evemu_db
 
+#Write the eve-server.xml variables
+sed 's/database_host/$MARIADB_HOST/' /src/utils/config/eve-server.xml
+sed 's/database_username/$MARIADB_USER/' /src/utils/config/eve-server.xml
+sed 's/database_password/$MARIADB_PASSWORD/' /src/utils/config/eve-server.xml
+sed 's/database_name/$MARIADB_DATABASE/' /src/utils/config/eve-server.xml
+sed 's/database_port/$MARIADB_PORT/' /src/utils/config/eve-server.xml
+
 # Write evedb.yaml based upon above variables
 cd /src/sql
 cat >/src/sql/evedb.yaml <<EOF
@@ -32,7 +40,7 @@ base-dir: /src/sql/base
 db-database: $MARIADB_DATABASE
 db-host: $MARIADB_HOST
 db-pass: $MARIADB_PASSWORD
-db-port: 3306
+db-port: $MARIADB_PORT
 db-user: $MARIADB_USER
 log-level: Info
 migrations-dir: /src/sql/migrations
