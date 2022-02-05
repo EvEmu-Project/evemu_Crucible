@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # This is a script to populate the db container with the sql table data.
-# Author: James
+# Author: James, Gwen
 
-MARIADB_HOST=db
-MARIADB_DATABASE=evemu
-MARIADB_PASSWORD=evemu
-MARIADB_USER=evemu
+MARIADB_HOST="${MARIADB_HOST:-db}"
+MARIADB_DATABASE="${MARIADB_DATABASE:-evemu}"
+MARIADB_PASSWORD="${MARIADB_PASSWORD:-evemu}"
+MARIADB_USER="${MARIADB_USER:-evemu}"
+
 
 # Get script path:
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
