@@ -27,11 +27,11 @@ echo "Waiting for DB to start..."
 waitContainer evemu_db
 
 #Write the eve-server.xml variables
-sed -i 's/database_host/$MARIADB_HOST/' /src/utils/config/eve-server.xml
-sed -i 's/database_username/$MARIADB_USER/' /src/utils/config/eve-server.xml
-sed -i 's/database_password/$MARIADB_PASSWORD/' /src/utils/config/eve-server.xml
-sed -i 's/database_name/$MARIADB_DATABASE/' /src/utils/config/eve-server.xml
-sed -i's/database_port/$MARIADB_PORT/' /src/utils/config/eve-server.xml
+sed -i "s/database_host/$MARIADB_HOST/" /src/utils/config/eve-server.xml
+sed -i "s/database_username/$MARIADB_USER/" /src/utils/config/eve-server.xml
+sed -i "s/database_password/$MARIADB_PASSWORD/" /src/utils/config/eve-server.xml
+sed -i "s/database_name/$MARIADB_DATABASE/" /src/utils/config/eve-server.xml
+sed -i "s/database_port/$MARIADB_PORT/" /src/utils/config/eve-server.xml
 
 # Write evedb.yaml based upon above variables
 cd /src/sql
