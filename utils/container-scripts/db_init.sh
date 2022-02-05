@@ -29,7 +29,7 @@ waitContainer evemu_db
 cd /src/sql
 cat >/src/sql/evedb.yaml <<EOF
 base-dir: /src/sql/base
-db-database: MARIADB_DATABASE
+db-database: $MARIADB_DATABASE
 db-host: $MARIADB_HOST
 db-pass: $MARIADB_PASSWORD
 db-port: 3306
