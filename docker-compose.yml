@@ -16,6 +16,11 @@ services:
     links:
       - "db"
     environment:
+      - MARIADB_HOST=db
+      - MARIADB_USER=evemu
+      - MARIADB_PASSWORD=evemu
+      - MARIADB_DATABASE=evemu
+      - MARIADB_PORT=3306
       - SEED_MARKET=FALSE # Set to TRUE to seed the market when the server starts for the first time
       - SEED_SATURATION=80 # Set saturation level of seed
       - SEED_REGIONS=Derelik,The Citadel,The Forge # Define regions to be seeded
