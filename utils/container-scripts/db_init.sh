@@ -1,12 +1,14 @@
 #!/bin/bash
 
 # This is a script to populate the db container with the sql table data.
-# Author: James
+# Author: James, Gwen
 
-MARIADB_HOST=db
-MARIADB_DATABASE=evemu
-MARIADB_PASSWORD=evemu
-MARIADB_USER=evemu
+MARIADB_HOST="${MARIADB_HOST:-db}"
+MARIADB_DATABASE="${MARIADB_DATABASE:-evemu}"
+MARIADB_PASSWORD="${MARIADB_PASSWORD:-evemu}"
+MARIADB_USER="${MARIADB_USER:-evemu}"
+MARIADB_PORT="${MARIADB_PORT:-3306}"
+
 
 # Get script path:
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
@@ -14,7 +16,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # Function to determine health of MariaDB container
 function waitContainer {
     #Checking if we can actually connect to the container
-    while ! mysql -h $MARIADB_HOST -u $MARIADB_USER -p$MARIADB_PASSWORD -e "use evemu;show tables;" >/dev/null 2>&1; do
+    while ! mysql -h $MARIADB_HOST -u $MARIADB_USER -p$MARIADB_PASSWORD -e "use $MARIADB_DATABASE;show tables;" >/dev/null 2>&1; do
         printf .
         sleep 1
     done
@@ -24,15 +26,23 @@ function waitContainer {
 echo "Waiting for DB to start..."
 waitContainer evemu_db
 
+#Write the eve-server.xml variables
+sed -i "s/database_host/$MARIADB_HOST/" /src/utils/config/eve-server.xml
+sed -i "s/database_username/$MARIADB_USER/" /src/utils/config/eve-server.xml
+sed -i "s/database_password/$MARIADB_PASSWORD/" /src/utils/config/eve-server.xml
+sed -i "s/database_name/$MARIADB_DATABASE/" /src/utils/config/eve-server.xml
+sed -i "s/database_port/$MARIADB_PORT/" /src/utils/config/eve-server.xml
+
+
 # Write evedb.yaml based upon above variables
 cd /src/sql
 cat >/src/sql/evedb.yaml <<EOF
 base-dir: /src/sql/base
-db-database: evemu
-db-host: db
-db-pass: evemu
-db-port: 3306
-db-user: evemu
+db-database: $MARIADB_DATABASE
+db-host: $MARIADB_HOST
+db-pass: $MARIADB_PASSWORD
+db-port: $MARIADB_PORT
+db-user: $MARIADB_USER
 log-level: Info
 migrations-dir: /src/sql/migrations
 EOF
