@@ -115,20 +115,6 @@ bool MiningLaser::CanActivate()
     }
 
     if (canActivate) {
-        // so far, checks have passed and proper hold is set.
-        // check for capacity as final test before allowing mining (ship would know)
-
-        // should we also test for target volume here? ...it's done on every ProcessCycle() call...
-        if (m_shipRef->GetRemainingVolumeByFlag(m_holdFlag) < GetMiningVolume()) {
-            _log(MINING__WARNING, "Activate() - Cargo full.  Denying Activate() on %s", m_targetSE->GetName());
-            if (m_shipRef->HasPilot())
-                m_shipRef->GetPilot()->SendNotifyMsg("Module Activate: Your Cargo is full. - Ref: ServerError 65125");
-
-            return false;
-        }
-    }
-
-    if (canActivate) {
         m_IsInitialCycle = true;
         m_targetSE->SystemMgr()->GetBeltMgr()->SetActive(m_targetSE->SysBubble()->GetID());
 
@@ -271,6 +257,13 @@ void MiningLaser::ProcessCycle(bool abort/*false*/)
     bool oreError(true);
     if (m_shipRef->GetMyInventory()->HasAvailableSpace(m_holdFlag, oRef)) {
         oreError = false;
+        oRef->MergeTypesInCargo(m_shipRef.get(), m_holdFlag);
+    }
+    else {
+        float unitVolume = oRef->GetAttribute(AttrVolume).get_float();
+        float shipVolume = m_shipRef->GetMyInventory()->GetRemainingCapacity(m_holdFlag);
+        float newQuantity = shipVolume / unitVolume;
+        oRef->SetQuantity(newQuantity, false);
         oRef->MergeTypesInCargo(m_shipRef.get(), m_holdFlag);
     }
 
