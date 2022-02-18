@@ -127,6 +127,9 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*=0*/, uint32
     } else {
         // decide which type of wormhole to create here
         const ItemType* whType = GetRandomWormholeType(sig.systemID);
+        if (whType == nullptr)
+            _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::Create() - Create Failure, SystemID not in Database %u", sig.systemID);
+            return;
         destSystem = GetRandomDestination(whType);
         // create wormhole here
         sig.sigName = whType->name();
@@ -289,6 +292,9 @@ void WormholeMgr::CreateExit(SystemManager* pFromSys, uint32 exitSystemID, uint3
 // Pick a random type of wormhole to create based upon the class of the system in question
 const ItemType* WormholeMgr::GetRandomWormholeType(uint32 systemID) {
     std::vector<uint32> destTypes = sDataMgr.GetWHDestinationTypes(sDataMgr.GetWHSystemClass(systemID));
+    if(destTypes.size()<1) {
+        return nullptr
+    }
     uint32 typeID = destTypes[MakeRandomInt(0,destTypes.size()-1)];
     return sItemFactory.GetType(typeID);
 }
