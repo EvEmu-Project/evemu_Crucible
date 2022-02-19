@@ -293,7 +293,7 @@ void WormholeMgr::CreateExit(SystemManager* pFromSys, uint32 exitSystemID, uint3
 const ItemType* WormholeMgr::GetRandomWormholeType(uint32 systemID) {
     std::vector<uint32> destTypes = sDataMgr.GetWHDestinationTypes(sDataMgr.GetWHSystemClass(systemID));
     if(destTypes.size()<1) {
-        return nullptr
+        return nullptr;
     }
     uint32 typeID = destTypes[MakeRandomInt(0,destTypes.size()-1)];
     return sItemFactory.GetType(typeID);
