@@ -263,8 +263,10 @@ void MiningLaser::ProcessCycle(bool abort/*false*/)
         float unitVolume = oRef->GetAttribute(AttrVolume).get_float();
         float shipVolume = m_shipRef->GetMyInventory()->GetRemainingCapacity(m_holdFlag);
         float newQuantity = shipVolume / unitVolume;
-        oRef->SetQuantity(newQuantity, false);
-        oRef->MergeTypesInCargo(m_shipRef.get(), m_holdFlag);
+        if (newQuantity > 1) { // Catch situations where less than a whole unit would be added.
+            oRef->SetQuantity(newQuantity, false);
+            oRef->MergeTypesInCargo(m_shipRef.get(), m_holdFlag);
+        }
     }
 
     // add data to StatisticMgr
