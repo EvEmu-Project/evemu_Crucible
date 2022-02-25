@@ -37,8 +37,8 @@ namespace EvEMath {
         int32 CopyTime(uint16 BaseTime, uint8 ScienceLevel, float SlotModifier=1, float ImplantModifier=1);
         int32 InventionTime(uint32 BaseTime, uint8 AdvLabLevel, float SlotModifier = 1, float ImplantModifier = 1);
         int32 ProductionTime(uint32 BaseTime, float bpProductivityModifier, float ProductionLevel, float TimeModifier=1);
-        int32 ME_ResearchTime(uint32 BaseTime, uint8 MetallurgyLevel, float SlotModifier=1, float ImplantModifier=1);
-        int32 PE_ResearchTime(uint32 BaseTime, uint8 ResearchLevel, float SlotModifier=1, float ImplantModifier=1);
+        int32 ME_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 MetallurgyLevel, float SlotModifier=1, float ImplantModifier=1);
+        int32 PE_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 ResearchLevel, float SlotModifier=1, float ImplantModifier=1);
         int32 RE_ResearchTime(uint32 BaseTime, uint8 ResearchLevel, float SlotModifier=1, float ImplantModifier=1);
 
         float ME_EffectOnWaste(float MaterialAmount, float BaseWasteFactor, float MaterialEfficiency);

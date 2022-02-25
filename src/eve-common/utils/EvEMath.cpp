@@ -65,14 +65,18 @@ int32 EvEMath::RAM::ProductionTime(uint32 BaseTime, float bpProductivityModifier
     return (BaseTime * effModifier * TimeModifier);
 }
 
-int32 EvEMath::RAM::ME_ResearchTime(uint32 BaseTime, uint8 MetallurgyLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
+const int LEVELMODIFIERS [11] = { 0, 105, 250, 595, 1414, 3360, 8000, 19000, 45255, 107700, 256000 }; // This probably needs to go to a more appropriate location
+
+int32 EvEMath::RAM::ME_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 MetallurgyLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
 {
-    return (BaseTime * (13.0f - (0.05f * MetallurgyLevel)) * SlotModifier * ImplantModifier);
+    float LevelModifier = (LEVELMODIFIERS[Runs] / 105) - (LEVELMODIFIERS[BlueprintLevel] / 105);
+    return (BaseTime * (1.0f + (0.05f * MetallurgyLevel)) * SlotModifier * ImplantModifier * LevelModifier) / 13.0f; // Technically this 13 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
 }
 
-int32 EvEMath::RAM::PE_ResearchTime(uint32 BaseTime, uint8 ResearchLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
+int32 EvEMath::RAM::PE_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 ResearchLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
 {
-    return (BaseTime * (15.0f - (0.05f * ResearchLevel)) * SlotModifier * ImplantModifier);
+    float LevelModifier = (LEVELMODIFIERS[Runs] / 105) - (LEVELMODIFIERS[BlueprintLevel] / 105);
+    return (BaseTime * (1.0f + (0.05f * ResearchLevel)) * SlotModifier * ImplantModifier * LevelModifier) / 15.0f; // Technically this 15 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
 }
 
 int32 EvEMath::RAM::RE_ResearchTime(uint32 BaseTime, uint8 ResearchLevel, float SlotModifier, float ImplantModifier)

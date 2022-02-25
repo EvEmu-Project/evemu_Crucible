@@ -429,6 +429,7 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
             pType = &bpRef->type();
             FactoryDB::GetMultipliers(args.AssemblyLineID, pType, into);
             into.productionTime = EvEMath::RAM::ME_ResearchTime(bpRef->type().researchMaterialTime(),
+                                                                bpRef->GetME(), args.runs,
                                                                 pChar->GetSkillLevel(EvESkill::Metallurgy), into.timeMultiplier
                                                                 /*implant modifier here*/);
             into.productionTime *= sConfig.ram.ResME;
@@ -440,6 +441,7 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
             //ch->GetAttribute(AttrResearchCostPercent).get_int();   << this is not used
 
             into.productionTime = EvEMath::RAM::PE_ResearchTime(bpRef->type().researchProductivityTime(),
+                                                                bpRef->GetPE(), args.runs,
                                                                 pChar->GetSkillLevel(EvESkill::Research), into.timeMultiplier
                                                                 /*implant modifier here*/);
             into.productionTime *= sConfig.ram.ResPE;
@@ -478,7 +480,10 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
     into.usageCost *= ceil(into.productionTime / 3600.0f);
     into.cost = into.installCost + into.usageCost;
     // multiply single run time by run count for total time
-    into.productionTime *= args.runs;
+    if (args.activityID != EvERam::Activity::ResearchMaterial && args.activityID != EvERam::Activity::ResearchTime) { // Dont multiply ME/PE activities as the time isnt linear.
+        into.productionTime *= args.runs;
+    }
+    
 
     into.maxJobStartTime = FactoryDB::GetNextFreeTime(args.AssemblyLineID);
 
