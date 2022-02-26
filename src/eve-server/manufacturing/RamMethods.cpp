@@ -56,8 +56,18 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
 
             pType = &bpRef->productType();
         } break;
-        case EvERam::Activity::ResearchMaterial:
+        case EvERam::Activity::ResearchMaterial: {
+            if (bpRef->mLevel() + args.runs > 10){
+                throw UserError ("RamActivityInvalid"); // The client should have a specific user error for this
+            }
+            if (bpRef->copy())
+                throw UserError ("RamCannotResearchABlueprintCopy");
+            pType = &bpRef->type();
+        } break;
         case EvERam::Activity::ResearchTime: {
+            if (bpRef->pLevel() + args.runs > 10){
+                throw UserError ("RamActivityInvalid"); // The client should have a specific user error for this
+            }
             if (bpRef->copy())
                 throw UserError ("RamCannotResearchABlueprintCopy");
             pType = &bpRef->type();
@@ -429,7 +439,7 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
             pType = &bpRef->type();
             FactoryDB::GetMultipliers(args.AssemblyLineID, pType, into);
             into.productionTime = EvEMath::RAM::ME_ResearchTime(bpRef->type().researchMaterialTime(),
-                                                                bpRef->GetME(), args.runs,
+                                                                bpRef->mLevel(), args.runs,
                                                                 pChar->GetSkillLevel(EvESkill::Metallurgy), into.timeMultiplier
                                                                 /*implant modifier here*/);
             into.productionTime *= sConfig.ram.ResME;
@@ -441,7 +451,7 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
             //ch->GetAttribute(AttrResearchCostPercent).get_int();   << this is not used
 
             into.productionTime = EvEMath::RAM::PE_ResearchTime(bpRef->type().researchProductivityTime(),
-                                                                bpRef->GetPE(), args.runs,
+                                                                bpRef->pLevel(), args.runs,
                                                                 pChar->GetSkillLevel(EvESkill::Research), into.timeMultiplier
                                                                 /*implant modifier here*/);
             into.productionTime *= sConfig.ram.ResPE;
