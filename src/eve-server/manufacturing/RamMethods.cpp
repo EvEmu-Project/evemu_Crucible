@@ -110,8 +110,7 @@ void RamMethods::JobsCheck(Character* pChar, const Call_InstallJob& args)
 {
     if (args.activityID == EvERam::Activity::Manufacturing) {
         uint32 jobCount = FactoryDB::CountManufacturingJobs(pChar->itemID());
-        uint charMaxJobs = pChar->GetAttribute(AttrManufactureSlotLimit).get_int()
-                            + pChar->GetSkillLevel(EvESkill::MassProduction)
+        uint charMaxJobs = 1+ pChar->GetSkillLevel(EvESkill::MassProduction)
                             + pChar->GetSkillLevel(EvESkill::AdvancedMassProduction);
 
         if (charMaxJobs <= jobCount)
@@ -119,8 +118,7 @@ void RamMethods::JobsCheck(Character* pChar, const Call_InstallJob& args)
                     .AddAmount ("current", jobCount)
                     .AddAmount ("max", charMaxJobs);
     } else {
-        uint charMaxJobs = pChar->GetAttribute(AttrMaxLaborotorySlots).get_int()
-                            + pChar->GetSkillLevel(EvESkill::LaboratoryOperation)
+        uint charMaxJobs = 1+ pChar->GetSkillLevel(EvESkill::LaboratoryOperation)
                             + pChar->GetSkillLevel(EvESkill::AdvancedLaboratoryOperation);
 
         uint32 jobCount = FactoryDB::CountResearchJobs(pChar->itemID());
