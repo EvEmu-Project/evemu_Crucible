@@ -71,7 +71,7 @@ float EvEMath::RAM::Research_LevelModifier(uint8 BlueprintLevel, int32 Runs)
         return 0.0f;
     }
     const int LEVELMODIFIERS [11] = { 0, 105, 250, 595, 1414, 3360, 8000, 19000, 45255, 107700, 256000 };
-    return (LEVELMODIFIERS[Runs] / 105) - (LEVELMODIFIERS[BlueprintLevel] / 105);
+    return (LEVELMODIFIERS[BlueprintLevel + Runs] / 105) - (LEVELMODIFIERS[BlueprintLevel] / 105);
 }
 
 int32 EvEMath::RAM::ME_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 MetallurgyLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )

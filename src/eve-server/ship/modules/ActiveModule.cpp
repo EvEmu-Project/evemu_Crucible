@@ -291,7 +291,8 @@ void ActiveModule::Process()
     }
 
     // decrement repeat and check for single activation.
-    --m_repeat;
+    if (m_repeat < 999) // do not decrement as default allowing active modules to stay active for extended periods
+        --m_repeat;
     if (m_repeat < 1)
         m_Stop = true;
 
