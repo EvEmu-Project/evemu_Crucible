@@ -176,15 +176,29 @@ void CargoContainer::RemoveItem(InventoryItemRef iRef)
         return;
 
     if (pInventory->IsEmpty()) {
-        if (typeID() == EVEDB::invTypes::PlanetaryLaunchContainer) {
-            sLog.Warning( "CargoContainer::RemoveItem()", "Launch Container %u is empty and being deleted.", m_itemID );
+        switch (typeID()){
+        case EVEDB::invTypes::CargoContainer:
+            sLog.Warning("CargoContainer::RemoveItem()", "Cargo Container %u is empty and being deleted.", m_itemID);
+            Delete();
+            break;
+        case EVEDB::invTypes::PlanetaryLaunchContainer:
+            sLog.Warning("CargoContainer::RemoveItem()", "Launch Container %u is empty and being deleted.", m_itemID);
             PlanetDB::UpdateLaunchStatus(m_itemID, PI::Cargo::Claimed);
-        } else if (typeID() == EVEDB::invTypes::CargoContainer) {
-            sLog.Warning( "CargoContainer::RemoveItem()", "Cargo Container %u is empty and being deleted.", m_itemID );
-        } else {
-            sLog.Warning( "CargoContainer::RemoveItem()", "Non-Cargo Container %u (type: %u) is empty and being deleted.", m_itemID, typeID() );
+            Delete();
+            break;
+        case EVEDB::invTypes::SmallSecureContainer:
+        case EVEDB::invTypes::SmallStandardContainer:
+        case EVEDB::invTypes::MediumSecureContainer:
+        case EVEDB::invTypes::MediumStandardContainer:
+        case EVEDB::invTypes::LargeStandardContainer:
+        case EVEDB::invTypes::LargeSecureContainer:
+            sLog.Warning("CargoContainer::RemoveItem()", "Launch Container %u is empty and being deleted.", m_itemID);
+            break;
+        default:
+            sLog.Warning("CargoContainer::RemoveItem()", "Non-Cargo Container %u (type: %u) is empty and being deleted.", m_itemID, typeID());
+            Delete();
+            break;
         }
-        Delete();
     }
 }
 

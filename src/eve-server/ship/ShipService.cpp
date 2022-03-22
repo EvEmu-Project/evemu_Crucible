@@ -1056,6 +1056,8 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                 _log(ITEM__WARNING, "%s: CargoContainer %u is full.", pClient->GetName(), ccRef->itemID());
                 throw UserError ("NotAllItemsWereMoved");
             }
+            //all container should be unanchored by default
+            jcRef->SetAnchor(false);
         } else if (jcRef.get() != nullptr) {
             if (jcRef->GetMyInventory()->HasAvailableSpace(flagNone, iRef)) {
                 pClient->MoveItem(cur, jcRef->itemID(), flagNone);
@@ -1078,7 +1080,6 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
         }
         continue;
     }
-
     return tuple;
 }
 
