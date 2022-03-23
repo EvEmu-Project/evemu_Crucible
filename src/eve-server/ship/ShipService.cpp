@@ -1072,6 +1072,9 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                 _log(ITEM__WARNING, "%s: Jetcan %u is full.", pClient->GetName(), jcRef->itemID());
                 throw UserError ("NotAllItemsWereMoved");
             }
+            //jetcan should spawn unanchored
+            jcRef->SetAnchor(false);
+            continue;
         } else {
             _log(ITEM__ERROR, "Jettison call for %s - no CC or Jcan.", pClient->GetName());
             throw CustomError ("Item container not found.", cRef->typeID());
