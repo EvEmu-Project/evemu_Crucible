@@ -35,6 +35,13 @@ public:
     LPService(PyServiceMgr *mgr);
     ~LPService();
 
+    // Adds LP to Characters LP Wallet
+    static void AddLP(uint32 characterID, uint32 corporationID, int amount);
+    // Calculate LP reward for missions
+    static int GetLPReward(uint16 missionID, uint32 solarsystemID, uint8 agentLevel);
+    // Return specific LP balance
+    static int GetLPBalanceForCorp(int32 characterID, int32 corporationID);
+
 protected:
     class Dispatcher;
     Dispatcher *const m_dispatch;
@@ -46,6 +53,9 @@ protected:
     PyCallable_DECL_CALL(GetLPsForCharacter);
     PyCallable_DECL_CALL(GetAvailableOffersFromCorp);
 
+    static DBQueryResult GetLPRowsForCharacter(int32 characterID);
+    static void CreateNewLPBalance(int32 characterID, int32 corporationID, int balance);
+    static void UpdateLPBalance(int32 characterID, int32 corporationID, int balance);
 };
 
 #endif /* !__LP_SERVICE__H__INCL__ */

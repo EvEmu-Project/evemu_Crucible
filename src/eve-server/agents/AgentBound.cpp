@@ -29,6 +29,7 @@
 
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
+#include "corporation/LPService.h"
 #include "agents/AgentBound.h"
 #include "station/Station.h"
 
@@ -284,6 +285,8 @@ PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
                 if ((offer.bonusTime > 0) and (offer.bonusTime < (offer.dateAccepted - GetFileTimeNow())))
                     AccountService::TranserFunds(m_agent->GetID(), pchar->itemID(), offer.bonusISK, "Mission Bonus Reward", Journal::EntryType::AgentMissionTimeBonusReward, m_agent->GetID());
                 /** @todo  add lp, etc, etc  */
+                if (offer.rewardLP)
+                    LPService::AddLP(pchar->itemID(), m_agent->GetCorpID(), offer.rewardLP);
                 m_agent->UpdateStandings(call.client, Standings::MissionCompleted, offer.important);
             } break;
             case Defer: {   //10
@@ -370,7 +373,7 @@ PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
 
     // extraInfo data....
     PyDict* xtraInfo = new PyDict();
-        xtraInfo->SetItemString("loyaltyPoints",    new PyInt(call.client->GetLoyaltyPoints(m_agent->GetCorpID())));  // this is char current LP
+        xtraInfo->SetItemString("loyaltyPoints",    new PyInt(LPService::GetLPBalanceForCorp(pchar->itemID(),m_agent->GetCorpID())));  // this is char current LP
         xtraInfo->SetItemString("missionCompleted", new PyBool(missionCompleted));
         xtraInfo->SetItemString("missionQuit",      new PyBool(missionQuit));
         xtraInfo->SetItemString("missionDeclined",  new PyBool(missionDeclined));
@@ -620,7 +623,7 @@ PyDict* AgentBound::GetMissionObjectiveInfo(Client* pClient, MissionOffer& offer
         objectiveData->SetItemString("completionStatus", new PyInt(Mission::Status::Incomplete));
     }
     objectiveData->SetItemString("missionState", new PyInt(offer.stateID /*Mission::State::Offered*/));   // Mission::State:: data here for agentGift populating.  Accepted/failed to display gift items as accepted
-    objectiveData->SetItemString("loyaltyPoints", new PyInt(0));
+    objectiveData->SetItemString("loyaltyPoints", new PyInt(offer.rewardLP));
     objectiveData->SetItemString("researchPoints", new PyInt(0));
 
     /*  this puts title/msg at bottom of right pane
