@@ -47,6 +47,8 @@
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/BeltMgr.h"
+#include "corporation/LPService.h"
+#include "corporation/CorporationDB.h"
 
 PyResult Command_search(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
     if (args.argCount() < 2) {
@@ -946,5 +948,49 @@ PyResult Command_unban(Client* who, CommandDB* db, PyServiceMgr* services, const
         throw CustomError ("Correct Usage: /unban [Character Name / Character ID]");
     }
 
+    return nullptr;
+}
+
+PyResult Command_givelp(Client* who, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+{
+    if (args.argCount() == 4) {
+        uint32 characterID;
+        if (strcmp("me", args.arg(1).c_str())==0) {
+            characterID = who->GetCharID();
+        } else if (args.isNumber(1)) {
+            characterID = stoi(args.arg(1));
+            if (sEntityList.FindClientByCharID(characterID) == nullptr){ 
+                throw CustomError ("Provided characterID is invalid or character is offline");
+            }
+        } else {
+            throw CustomError ("Argument 1 should be a characterID or 'me'");
+        }
+        uint32 corporationID;
+        std::string corpName;
+        if (args.isNumber(2)) {
+            corporationID = stoi(args.arg(2));
+            corpName = CorporationDB::GetCorpName(corporationID);
+            if (strcmp("Unknown", corpName.c_str())==0) {
+                throw CustomError ("Invalid corporationID provided");
+            }
+        } else {
+            throw CustomError ("Argument 2 should be a corporationID");
+        }
+        int amount;
+        if (args.isNumber(3)) {
+            amount = stoi(args.arg(3));
+            if (amount <= 0) {
+                throw CustomError ("Argument 3 should be a positive number");
+            }
+        } else {
+            throw CustomError ("Argument 3 should be a valid number");
+        }
+        LPService::AddLP(characterID, corporationID, amount);
+        std::string message = ("Added %i LP to char %i for corp %s." \
+                               ,amount , characterID, corpName);
+        return(new PyString(message));
+    } else {
+        throw CustomError ("Correct Usage: /givelp ['me'|<characterID>] [corporationID] [amount]");
+    }
     return nullptr;
 }

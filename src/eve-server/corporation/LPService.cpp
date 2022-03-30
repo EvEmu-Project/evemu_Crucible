@@ -24,7 +24,7 @@
 */
 
 #include "eve-server.h"
-
+#include "EntityList.h"
 #include "PyServiceCD.h"
 #include "corporation/LPService.h"
 
@@ -48,6 +48,32 @@ LPService::LPService(PyServiceMgr *mgr)
 LPService::~LPService()
 {
     delete m_dispatch;
+}
+
+void LPService::AddLP(uint32 characterID, uint32 corporationID, int amount)
+{
+  int currentBalance = GetLPBalanceForCorp(characterID, corporationID);
+  if (currentBalance == -1) {
+    CreateNewLPBalance(characterID, corporationID, amount);
+  } else {
+    UpdateLPBalance(characterID, corporationID, currentBalance + amount);
+  }
+  // Notify Client of LP Change
+  OnLPChange ac;
+  ac.corpID = corporationID;
+  PyTuple *answer = ac.Encode();
+  sEntityList.FindClientByCharID(characterID)->SendNotification("OnLPChange", "cash", &answer, false);
+}
+
+int LPService::GetLPReward(uint16 missionID, uint32 solarsystemID, uint8 agentLevel)
+{
+  SystemData m_data;
+  sDataMgr.GetSystemData(solarsystemID, m_data); // Is there a better way to pull the system security from a systemID?
+  int baseLP =  25000; // BaseLP supposedly calculated dynamically based on average mission time and potentially other factors as well.
+  for (int i = 5; i > agentLevel; i--) { // This is just a hacky way to create a psudo-realistic BaseLP value.
+    baseLP /= i;
+  }
+  return (1.6288 - m_data.securityRating ) * baseLP;   // LP reward = (1.6288 - System security) × Base LP
 }
 
 PyResult LPService::Handle_TakeOffer( PyCallArgs& call )
@@ -100,17 +126,31 @@ PyResult LPService::Handle_GetLPForCharacterCorp( PyCallArgs& call )
 04:39:44 [SvcCall]     Argument 'machoVersion':
 04:39:44 [SvcCall]         Integer field: 1
 */
-    return new PyInt( 0 );
+  int corporationID = call.tuple->GetItem(0)->AsInt()->value();
+  int balance = GetLPBalanceForCorp(call.client->GetCharacterID(), corporationID);
+  if (balance < 1)
+    balance = 0;
+  return new PyInt(balance);
 }
 
 // //06:01:19 LPService::Handle_GetLPsForCharacter(): size= 0
 PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
 {
-    //no args
+  //no args
   sLog.White( "LPService::Handle_GetLPsForCharacter()", "size=%lu", call.tuple->size());
-
+  DBQueryResult dbRes = GetLPRowsForCharacter(call.client->GetCharacterID());
+  DBResultRow row;
+  PyList *res = new PyList(dbRes.GetRowCount());
+  int i = 0;
+  while (dbRes.GetRow(row)) {
+    PyTuple *tuple = new PyTuple(2);
+    tuple->SetItemInt(0, row.GetInt(1));
+    tuple->SetItemInt(1, row.GetInt(2));
+    res->SetItem(i, tuple);
+    i++;
+  }
   //call.Dump(SERVICE__CALL_DUMP);
-    return new PyList;
+    return res;
 }
 
 //18:55:57 L CharMgrService::Handle_GetAvailableOffersFromCorp(): size=2, 0=Integer(), 1=Boolean()
@@ -167,4 +207,59 @@ PyResult LPService::Handle_GetAvailableOffersFromCorp( PyCallArgs& call )
     return new PyList;
 }
 
+// Database Methods
+DBQueryResult LPService::GetLPRowsForCharacter(int32 characterID)
+{
+  DBQueryResult dbRes;
+  if (!sDatabase.RunQuery(dbRes,
+      "SELECT "
+      " characterID, corporationID, balance"
+      " FROM lpWallet"
+      " WHERE characterID = %i", \
+      characterID ))
+  {
+      codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
+  }
+  return dbRes;
+}
 
+int LPService::GetLPBalanceForCorp(int32 characterID, int32 corporationID)
+{
+  DBQueryResult dbRes;
+  if (!sDatabase.RunQuery(dbRes,
+      "SELECT "
+      " characterID, corporationID, balance"
+      " FROM lpWallet"
+      " WHERE characterID = %i AND corporationID = %i"
+      " LIMIT 1", \
+      characterID, corporationID ))
+  {
+      codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
+      return -1;
+  }
+  if (dbRes.GetRowCount() == 0)
+    return -1;
+  DBResultRow row;
+  dbRes.GetRow(row);
+  return row.GetInt(2);
+}
+
+void LPService::CreateNewLPBalance(int32 characterID, int32 corporationID, int balance)
+{
+  DBerror err;
+  sDatabase.RunQuery(err,
+    "INSERT INTO lpWallet"
+    " (characterID, corporationID, balance)"
+    " VALUES (%i, %i, %i)", \
+    characterID, corporationID, balance );
+}
+
+void LPService::UpdateLPBalance(int32 characterID, int32 corporationID, int balance)
+{
+  DBerror err;
+  sDatabase.RunQuery(err,
+    "UPDATE lpWallet"
+    " SET balance = %i"
+    " WHERE characterID = %i AND corporationID = %i", \
+    balance, characterID, corporationID );
+}

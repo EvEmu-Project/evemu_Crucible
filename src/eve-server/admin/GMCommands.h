@@ -41,6 +41,8 @@ COMMAND( ban, Acct::Role::ADMIN,
         "(charName) - bans player's account from the server")
 COMMAND( unban, Acct::Role::ADMIN,
         "(charName) - removes ban on player's account")
+COMMAND( givelp, Acct::Role::ADMIN,
+        "('me'|<characterID>) (corporationID) (amount) - adds LP to a character for a specific corporation")
 
 /*
 COMMAND( entity, Acct::Role::ADMIN,
