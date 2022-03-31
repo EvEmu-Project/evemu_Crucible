@@ -95,6 +95,7 @@ class JumpBridgeSE;
 class ArraySE;
 class BatterySE;
 class WeaponSE;
+class ContainerSE;
 class StructureSE
 : public DynamicSystemEntity
 {

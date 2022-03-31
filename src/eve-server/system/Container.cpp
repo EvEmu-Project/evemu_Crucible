@@ -36,12 +36,14 @@
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
+#include "pos/Structure.h"
+
 
 /*
  * CargoContainer
  */
 CargoContainer::CargoContainer(uint32 _containerID, const ItemType &_containerType, const ItemData &_data)
-: InventoryItem(_containerID, _containerType, _data),
+: StructureItem(_containerID, _containerType, _data),
 mySE(nullptr),
 m_isAnchored(false)
 {
@@ -131,7 +133,7 @@ double CargoContainer::GetCapacity(EVEItemFlags flag) const
     return pInventory->GetCapacity(flag);
 }
 
-void CargoContainer::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const {
+void CargoContainer::ValidateAddItem(EVEItemFlags flag, CargoContainerRef item) const {
     pInventory->ValidateAddItem(flag, item);
 }
 
@@ -242,7 +244,7 @@ void CargoContainer::MakeDamageState(DoDestinyDamageState &into) const
  */
 
 ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data)
-: ItemSystemEntity(self, services, system),
+: StructureSE(self, services, system, data),
  m_contRef(self),
  m_deleteTimer(0),
  m_global(false),

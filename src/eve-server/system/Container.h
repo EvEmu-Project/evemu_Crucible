@@ -33,12 +33,14 @@
 #include "inventory/Inventory.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemEntity.h"
+#include "pos/Structure.h"
+
 
 /**
  * InventoryItem which represents cargo container.
  */
 class CargoContainer
-: public InventoryItem
+: public StructureItem
 {
     friend class InventoryItem;    // to let it construct us
 public:
@@ -70,7 +72,7 @@ public:
     /*
      * _ExecAdd validation interface:
      */
-    void ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const;
+    void ValidateAddItem(EVEItemFlags flag, CargoContainerRef item) const;
 
     virtual void RemoveItem(InventoryItemRef iRef);
 
@@ -138,7 +140,7 @@ class SystemManager;
 class ServiceDB;
 
 class ContainerSE
-: public ItemSystemEntity
+: public StructureSE
 {
 public:
     ContainerSE(CargoContainerRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data);
@@ -163,8 +165,8 @@ public:
     void Activate(int32 effectID);
     void Deactivate(int32 effectID);
     void AnchorContainer();
-    bool IsEmpty()                                      { return m_contRef->IsEmpty(); }
-    bool IsAnchored()                                   { return m_contRef->IsAnchored(); }
+    bool IsEmpty()                                      { return m_contRef->GetMyInventory()->IsEmpty(); }
+    bool IsAnchored()                                   { return m_data.status; }
 
     void SetGlobal(bool set=false)                      { m_global = set; }
 
