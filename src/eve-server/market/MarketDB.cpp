@@ -30,6 +30,17 @@
 #include "StaticDataMgr.h"
 #include "market/MarketDB.h"
 
+#include "../../eve-db/EVEORMCore.h"
+#include "../../eve-db/models/invType/InvType.h"
+#include "src/eve-db/odb_gen/InvType_odb.hxx"
+#include <odb/transaction.hxx>
+#include <odb/session.hxx>
+//
+//#include "database/models/invType/InvType.h"
+//#include "database/models/invType/InvType-odb.h"
+//
+//using namespace odb::core;
+
 /*
  * MARKET__ERROR
  * MARKET__WARNING
@@ -525,26 +536,53 @@ void MarketDB::GetManufacturedItems(std::map< uint16, Inv::TypeData >& data)
         data[row.GetInt(0)] = Inv::TypeData();
 }
 
-void MarketDB::GetMaterialPrices(std::map< uint16, Market::matlData >& data)
-{
+void MarketDB::GetMaterialPrices(std::map< uint16, Market::matlData >& data) {
     DBQueryResult res;
     DBResultRow row;
-    std::map< uint16, Market::matlData >::iterator itr;
-    for (itr = data.begin(); itr != data.end(); ++itr) {
+    std::map<uint16, Market::matlData>::iterator itr;
+    for ( itr = data.begin(); itr != data.end(); ++itr ) {
         sDatabase.RunQuery(res, "SELECT basePrice FROM invTypes WHERE typeID = %u", itr->first);
-        if (res.GetRow(row))
+        if ( res.GetRow(row) )
             itr->second.price = (row.GetFloat(0) * 1.05);
     }
 }
 
-void MarketDB::GetMineralPrices(std::map< uint16, Market::matlData >& data)
-{
+void MarketDB::GetMaterialPricesNew(std::map<uint16_t, Market::matlData> &data) {
+    using std::vector;
+
+    vector<uint16_t> ids(0);
+    for ( const auto &it: data ) {
+        ids.push_back(it.first);
+    }
+
+    using namespace odb::core;
+    typedef result<InvType_BasePrice> result;
+    typedef query<InvType_BasePrice> query;
+    {
+        odb::session s;
+        {
+            transaction t(odbDB->begin());
+            result r(
+                odbDB->query<InvType_BasePrice>(
+                    query::typeID.in_range(ids.begin(), ids.end())));
+
+            for ( const auto &it: r ) {
+                auto data_item = data.at(it.typeID);
+                data_item.price = it.basePrice * 1.05;
+            }
+            ids.clear();
+            t.commit();
+        }
+    }
+}
+
+void MarketDB::GetMineralPrices(std::map<uint16, Market::matlData> &data) {
     DBQueryResult res;
     DBResultRow row;
-    std::map< uint16, Market::matlData >::iterator itr;
-    for (itr = data.begin(); itr != data.end(); ++itr) {
+    std::map<uint16, Market::matlData>::iterator itr;
+    for ( itr = data.begin(); itr != data.end(); ++itr ) {
         sDatabase.RunQuery(res, "SELECT basePrice FROM invTypes WHERE typeID = %u", itr->first);
-        if (res.GetRow(row))
+        if ( res.GetRow(row) )
             itr->second.price = (row.GetFloat(0) * 1.15);
     }
 

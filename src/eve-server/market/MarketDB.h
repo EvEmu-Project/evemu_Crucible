@@ -62,6 +62,7 @@ public:
     static void GetShipIDs(std::map<uint16, Inv::TypeData>& data);
     static void GetMineralPrices(std::map< uint16, Market::matlData >& data);   // +15% markup
     static void GetMaterialPrices(std::map< uint16, Market::matlData >& data);  // +5% markup
+    static void GetMaterialPricesNew(std::map< uint16, Market::matlData >& data);  // +5% markup
     static void GetManufacturedItems(std::map<uint16, Inv::TypeData>& data);
     static void UpdateInvPrice(std::map< uint16, Inv::TypeData >& data);
     static void UpdateMktPrice(std::map< uint16, Market::matlData >& data);

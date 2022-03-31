@@ -115,3 +115,6 @@ sql.tar.gz
 
 # CLion Config Files
 .idea
+
+# For those who run just from the project directory
+etc

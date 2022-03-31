@@ -12,6 +12,12 @@ SET( TARGET_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_SOURCE_DIR  "${PROJECT_SOURCE_DIR}/src/${TARGET_NAME}" )
 SET( TARGET_UTILS_DIR   "${PROJECT_SOURCE_DIR}/utils" )
 
+FILE(GLOB_RECURSE ODB_MODELS ../eve-db/models/**/*.h)
+FOREACH (__ODB_MODEL_FILE ${ODB_MODELS})
+    CMAKE_PATH(GET __ODB_MODEL_FILE PARENT_PATH __ODB_MODEL_DIRNAME)
+    LIST(APPEND ODB_MODELS_DIRS ${__ODB_MODEL_DIRNAME})
+ENDFOREACH ()
+LIST(REMOVE_DUPLICATES ODB_MODELS_DIRS)
 #########
 # Files #
 #########
@@ -758,9 +764,14 @@ TARGET_BUILD_PCH( "${TARGET_NAME}"
                   "${TARGET_SOURCE_DIR}/eve-server.cpp" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${eve-common_INCLUDE_DIRS}
+                            "${ODB_COMPILE_OUTPUT_DIR}"
+                            ${ODB_MODELS_DIRS}
                             "${TARGET_INCLUDE_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       "eve-common" )
+                        ${ODB_LIBRARIES}
+                       "eve-db"
+                       "eve-common"
+)
 
 INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )

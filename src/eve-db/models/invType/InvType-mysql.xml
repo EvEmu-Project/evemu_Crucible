@@ -1,0 +1,57 @@
+<changelog xmlns="http://www.codesynthesis.com/xmlns/odb/changelog" database="mysql" version="1">
+  <model version="1">
+    <table name="invTypes" options="ENGINE=InnoDB" kind="object">
+      <column name="typeID" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="groupID" type="SMALLINT UNSIGNED" null="false" default="0"/>
+      <column name="typeName" type="TEXT" null="false"/>
+      <column name="description" type="TEXT" null="false"/>
+      <column name="graphicID" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="radius" type="FLOAT" null="false" default="0"/>
+      <column name="mass" type="FLOAT" null="false" default="0"/>
+      <column name="volume" type="FLOAT" null="false" default="0"/>
+      <column name="capacity" type="FLOAT" null="false" default="0"/>
+      <column name="partitionSize" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="raceID" type="TINYINT UNSIGNED" null="false" default="0"/>
+      <column name="basePrice" type="FLOAT" null="false" default="0"/>
+      <column name="published" type="TINYINT(1)" null="false" default="FALSE"/>
+      <column name="marketGroupID" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="chanceOfDuplicating" type="FLOAT" null="false" default="0"/>
+      <column name="copyTypeID" type="SMALLINT UNSIGNED" null="false" default="0"/>
+      <column name="soundID" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="iconID" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="dataID" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="typeNameID" type="SMALLINT UNSIGNED" null="false"/>
+      <column name="descriptionID" type="SMALLINT UNSIGNED" null="false"/>
+      <primary-key>
+        <column name="typeID"/>
+      </primary-key>
+      <index name="groupID_i">
+        <column name="groupID"/>
+      </index>
+      <index name="graphicID_i">
+        <column name="graphicID"/>
+      </index>
+      <index name="raceID_i">
+        <column name="raceID"/>
+      </index>
+      <index name="marketGroupID_i">
+        <column name="marketGroupID"/>
+      </index>
+      <index name="soundID_i">
+        <column name="soundID"/>
+      </index>
+      <index name="iconID_i">
+        <column name="iconID"/>
+      </index>
+      <index name="dataID_i">
+        <column name="dataID"/>
+      </index>
+      <index name="typeNameID_i">
+        <column name="typeNameID"/>
+      </index>
+      <index name="descriptionID_i">
+        <column name="descriptionID"/>
+      </index>
+    </table>
+  </model>
+</changelog>
