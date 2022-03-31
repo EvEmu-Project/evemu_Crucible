@@ -1315,6 +1315,13 @@ void InventoryItem::SetPosition(const GPoint& pos)
             m_itemID, m_data.position.x, m_data.position.y, m_data.position.z);
 }
 
+void InventoryItem::SetRadius(double radius)
+{
+    this->SetAttribute(AttrRadius, radius);
+    _log(ITEM__RELOCATE, "%s(%u) Relocating to %.2f, %.2f, %.2f.", m_data.name.c_str(), \
+            m_itemID, m_data.position.x, m_data.position.y, m_data.position.z);
+}
+
 void InventoryItem::SetAttribute(uint16 attrID, float num, bool notify/*true*/)
 {
     EvilNumber eNum(num);

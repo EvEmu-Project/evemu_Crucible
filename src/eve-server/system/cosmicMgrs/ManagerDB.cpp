@@ -656,7 +656,7 @@ void ManagerDB::GetDunSpawnInfo(DBQueryResult& res)
 
 void ManagerDB::GetDunTemplates(DBQueryResult& res)
 {
-    if (!sDatabase.RunQuery(res, "SELECT dunTemplateID, dunTemplateName, dunEntryID, dunSpawnID, dunRoomID FROM dunTemplates"))
+    if (!sDatabase.RunQuery(res, "SELECT dunTemplateID, dunTemplateName, dunEntryID, dunSpawnID, dunRoomID, dunTemplateDescription, dunTemplateFactionID FROM dunTemplates"))
         _log(DATABASE__ERROR, "Error in GetDunTemplates query: %s", res.error.c_str());
 }
 

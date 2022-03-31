@@ -55,6 +55,11 @@ public:
     std::string GetLastString( const char* name ) const;
     std::string GetCurrentString( const char* name ) const;
 
+    // PyFloat
+    void SetFloat( const char* name, double value );
+    double GetLastFloat( const char* name ) const;
+    double GetCurrentFloat( const char* name ) const;
+
     void Clear( const char* name );
 
     /**

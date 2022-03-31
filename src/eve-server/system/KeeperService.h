@@ -39,6 +39,7 @@ public:
     KeeperService(EVEServiceManager& mgr);
 
     void BoundReleased (KeeperBound* bound) override;
+    KeeperBound* GetBound() { return m_instance; }
 
 protected:
     SystemDB m_db;
@@ -57,6 +58,10 @@ class KeeperBound : public EVEBoundObject <KeeperBound>
 {
 public:
     KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB* db);
+    virtual void AddRoomObject(DungeonEditSE *pSE) { m_roomObjects.push_back(pSE); }
+    void RemoveRoomObject(uint32 itemID);
+    DungeonEditSE* GetRoomObject(uint32 itemID);
+    virtual uint32 GetCurrentRoomID() { return m_currentRoom; }
 
 protected:
     PyResult EditDungeon(PyCallArgs& call, PyInt* dungeonID);
@@ -64,13 +69,21 @@ protected:
     PyResult Reset(PyCallArgs& call);
     PyResult GotoRoom(PyCallArgs& call, PyInt* roomID);
     PyResult GetCurrentlyEditedRoomID(PyCallArgs& call);
+    PyResult GetRoomObjects(PyCallArgs& call);
+    PyResult GetRoomGroups(PyCallArgs& call, PyInt* roomID);
+    PyResult ObjectSelection(PyCallArgs& call, PyList* objects);
+    PyResult BatchStart(PyCallArgs& call);
+    PyResult BatchEnd(PyCallArgs& call);
 
 protected:
     SystemDB *const m_db;
+
+private:
+    uint32 m_currentDungeon;
+    uint32 m_currentRoom;
+    std::vector<DungeonEditSE*> m_roomObjects;
+    std::vector<int32> m_selectedObjects;
 };
-
-
-
 
 #endif
 

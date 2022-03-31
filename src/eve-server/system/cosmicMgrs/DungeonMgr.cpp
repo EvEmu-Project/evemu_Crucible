@@ -44,12 +44,14 @@ void DungeonDataMgr::Populate()
 
     ManagerDB::GetDunTemplates(*res);
     while (res->GetRow(row)) {
-        // SELECT dunTemplateID, dunTemplateName, dunEntryID, dunSpawnID, dunRoomID FROM dunTemplates
+        //SELECT dunTemplateID, dunTemplateName, dunEntryID, dunSpawnID, dunRoomID, dunTemplateDescription, dunTemplateFactionID FROM dunTemplates
         Dungeon::Template dtemplates = Dungeon::Template();
         dtemplates.dunName = row.GetText(1);
-        dtemplates.dunRoomID = row.GetInt(4);
         dtemplates.dunEntryID = row.GetInt(2);
         dtemplates.dunSpawnClass = row.GetInt(3);
+        dtemplates.dunRoomID = row.GetInt(4);
+        dtemplates.dunDescription = row.GetText(5);
+        dtemplates.dunFactionID = row.GetInt(6);
         templates.emplace(row.GetInt(0), dtemplates);
     }
 
@@ -238,6 +240,7 @@ void DungeonMgr::Load()
     } */
 }
 
+// Create dungeon (dynamically)
 bool DungeonMgr::Create(uint32 templateID, CosmicSignature& sig)
 {
     Dungeon::Template dTemplate = Dungeon::Template();

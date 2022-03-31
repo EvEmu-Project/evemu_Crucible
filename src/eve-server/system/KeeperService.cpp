@@ -43,6 +43,7 @@
 
 #include "system/KeeperService.h"
 #include "system/SystemManager.h"
+#include "dungeon/DungeonDB.h"
 
 KeeperService::KeeperService(EVEServiceManager& mgr) :
     Service("keeper", eAccessLevel_SolarSystem),
@@ -128,6 +129,11 @@ KeeperBound::KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB
     this->Add("Reset", &KeeperBound::Reset);
     this->Add("GotoRoom", &KeeperBound::GotoRoom); //(int room)
     this->Add("GetCurrentlyEditedRoomID", &KeeperBound::GetCurrentlyEditedRoomID);
+    this->Add("GetRoomObjects", &KeeperBound::GetRoomObjects);
+    this->Add("GetRoomGroups", &KeeperBound::GetRoomGroups);
+    this->Add("ObjectSelection", &KeeperBound::ObjectSelection);
+    this->Add("BatchStart", &KeeperBound::BatchStart);
+    this->Add("BatchEnd", &KeeperBound::BatchEnd);
 }
 
 PyResult KeeperBound::EditDungeon(PyCallArgs &call, PyInt* dungeonID)
@@ -136,7 +142,91 @@ PyResult KeeperBound::EditDungeon(PyCallArgs &call, PyInt* dungeonID)
     _log(DUNG__CALL,  "KeeperBound::Handle_EditDungeon  size: %li", call.tuple->size());
     call.Dump(DUNG__CALL_DUMP);
 
+    /*
+    Tasks to accomplish
+    1. Set current position as 0,0,0 in room
+    2. Load all room objects from dunRoomObjects into a vector
+    3. Spawn all room objects using their relative positions from 0,0,0
+    */
+
+    Client *pClient(call.client);
+
+    GPoint roomPos = pClient->GetShipSE()->GetPosition();
+
+    pClient->GetSession()->SetFloat("editor_room_x", roomPos.x);
+    pClient->GetSession()->SetFloat("editor_room_y", roomPos.y);
+    pClient->GetSession()->SetFloat("editor_room_z", roomPos.z);
+
+    pClient->GetSession()->SetInt("editor_bind_id", this->GetBoundID());
+
+    std::vector<Dungeon::RoomObject> objects;
+    DungeonDB::GetRoomObjects(call.byname["roomID"]->AsInt()->value(), objects);
+
+    // Spawn the items in the object list
+    for (auto cur : objects) {
+        GPoint objPos;
+        objPos.x = roomPos.x + cur.x;
+        objPos.y = roomPos.y + cur.y;
+        objPos.z = roomPos.z + cur.z;
+
+        ItemData dData(cur.typeID, 1/*EVE SYSTEM*/, pClient->GetLocationID(), flagNone, "", objPos);
+        InventoryItemRef iRef = InventoryItem::SpawnItem(sItemFactory.GetNextTempID(), dData);
+        if (iRef.get() == nullptr) // Failed to spawn the item
+            continue;
+        DungeonEditSE* oSE;
+        oSE = new DungeonEditSE(iRef, pClient->services(), pClient->SystemMgr(), cur);
+        m_roomObjects.push_back(oSE);
+        pClient->SystemMgr()->AddEntity(oSE, false);
+        // Set the radius from the data structure
+        oSE->DestinyMgr()->SetRadius(cur.radius, true);
+    }
+
+    // Send notification to client to update UI
+    PyList* posList = new PyList();
+        posList->AddItem(new PyFloat(roomPos.x));
+        posList->AddItem(new PyFloat(roomPos.y));
+        posList->AddItem(new PyFloat(roomPos.z));
+
+    PyTuple* payload = new PyTuple(3);
+    payload->SetItem(0, dungeonID); //dungeonID
+    payload->SetItem(1, new PyInt(call.byname["roomID"]->AsInt()->value())); //roomID
+    payload->SetItem(2, posList); //roomPos
+
+    pClient->SendNotification("OnDungeonEdit", "charid", payload, false);
+
+    // update local variables with what we're editing right now
+    this->m_currentRoom = call.byname["roomID"]->AsInt()->value();
+    this->m_currentDungeon = dungeonID->value();
+
     return nullptr;
+}
+
+PyResult KeeperBound::GetRoomObjects(PyCallArgs &call)
+{
+    _log(DUNG__CALL,  "KeeperBound:::Handle_GetRoomObjects  size: %li", call.tuple->size());
+    call.Dump(DUNG__CALL_DUMP);
+
+    DBRowDescriptor *header = new DBRowDescriptor();
+    header->AddColumn("objectID", DBTYPE_I4);
+    header->AddColumn("groupID", DBTYPE_I4);
+
+    CRowSet *rowset = new CRowSet(&header);
+
+    for (auto cur : m_roomObjects) {
+        PyPackedRow *newRow = rowset->NewRow();
+        newRow->SetField("objectID", new PyInt(cur->GetID()));
+        newRow->SetField("groupID", new PyInt(cur->GetData().groupID));
+    }
+
+    return rowset;
+}
+
+PyResult KeeperBound::GetRoomGroups( PyCallArgs& call, PyInt* roomID )
+{
+    _log(DUNG__CALL,  "KeeperBound::Handle_GetRoomGroups  size: %li", call.tuple->size());
+    call.Dump(DUNG__CALL_DUMP);
+
+    return DungeonDB::GetRoomGroups(roomID->value());
 }
 
 PyResult KeeperBound::PlayDungeon(PyCallArgs &call, PyInt* dungeonID)
@@ -152,6 +242,18 @@ PyResult KeeperBound::Reset(PyCallArgs &call)
 {
     _log(DUNG__CALL,  "KeeperBound::Handle_Reset  size: %li", call.tuple->size());
     call.Dump(DUNG__CALL_DUMP);
+
+    if (this->m_roomObjects.size())
+        // reset means unload everything
+        for (auto cur : m_roomObjects)
+            cur->Delete();
+
+    // empty the list
+    this->m_roomObjects.clear();
+
+    // make sure state is sent, this should call the correct flow in the client to update the item
+    call.client->SetStateSent(false);
+    call.client->GetShipSE()->DestinyMgr()->SendSetState();
 
     return nullptr;
 }
@@ -173,3 +275,59 @@ PyResult KeeperBound::GetCurrentlyEditedRoomID(PyCallArgs &call)
     return nullptr;
 }
 
+PyResult KeeperBound::ObjectSelection(PyCallArgs &call, PyList* objects)
+{
+    _log(DUNG__CALL,  "KeeperBound::Handle_ObjectSelection  size: %li", call.tuple->size());
+    call.Dump(DUNG__CALL_DUMP);
+
+    
+    for (auto cur : objects->items) {
+        this->m_selectedObjects.push_back(cur->AsInt()->value());
+    }
+
+    // Return a copy of the list to the client
+    return new PyList(*objects);
+}
+
+PyResult KeeperBound::BatchStart(PyCallArgs &call)
+{
+    // nothing needed for now
+    // might be used by CCP to lock selected items or something
+    return nullptr;
+}
+
+PyResult KeeperBound::BatchEnd(PyCallArgs &call)
+{
+    // make sure state is sent, this should call the correct flow in the client to update the item
+    call.client->SetStateSent(false);
+    call.client->GetShipSE()->DestinyMgr()->SendSetState();
+
+    // send new set state to the client
+    return nullptr;
+}
+
+void KeeperBound::RemoveRoomObject(uint32 itemID)
+{
+    uint32 objectID = 0;
+    for (std::vector <DungeonEditSE*> ::iterator cur = m_roomObjects.begin(); cur != m_roomObjects.end(); cur++) {
+        if ((*cur)->GetID() == itemID) {
+            objectID = (*cur)->GetData().objectID;
+            (*cur)->Delete();
+            SafeDelete(*cur);
+            m_roomObjects.erase(cur);
+            break;
+        }
+    }
+
+    DungeonDB::DeleteObject(objectID);
+}
+
+DungeonEditSE* KeeperBound::GetRoomObject(uint32 itemID)
+{
+    for (std::vector <DungeonEditSE*> ::iterator cur = m_roomObjects.begin(); cur != m_roomObjects.end(); cur++) {
+        if ((*cur)->GetID() == itemID)
+            return (*cur);
+    }
+
+    return nullptr;
+}

@@ -240,6 +240,10 @@ void AnomalyMgr::LoadAnomalies() {
             }
         }
 
+        if (sig.dungeonType == Dungeon::Type::Wormhole) {
+            m_WH++;
+        }
+
         _log(COSMIC_MGR__MESSAGE, "AnomalyMgr::LoadAnomalies() - Created Signal %s(%u) for %s in %s(%u), bubbleID %u with %.3f%% sigStrength.", \
         sDunDataMgr.GetDungeonType(sig.dungeonType), sig.dungeonType, \
         sig.sigName.c_str(), m_system->GetName(), sig.systemID, sig.bubbleID, sig.sigStrength *100);

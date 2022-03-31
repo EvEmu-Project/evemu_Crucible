@@ -830,3 +830,26 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
         }
     }
 }
+
+DungeonEditSE::DungeonEditSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, Dungeon::RoomObject data)
+: ObjectSystemEntity(self, services, system),
+    m_data(data)
+{
+}
+
+PyDict* DungeonEditSE::MakeSlimItem()
+{
+    _log(SE__SLIMITEM, "MakeSlimItem for DungeonEditSE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID", new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID", new PyInt(m_self->typeID()));
+        slim->SetItemString("groupID", new PyInt(m_self->groupID()));
+        slim->SetItemString("dunObjectID", new PyInt(m_self->itemID()));
+        slim->SetItemString("dunRadius", new PyFloat(m_data.radius));
+        slim->SetItemString("dunRoomID", new PyInt(m_data.roomID));
+        slim->SetItemString("dunX", new PyFloat(m_data.x));
+        slim->SetItemString("dunY", new PyFloat(m_data.y));
+        slim->SetItemString("dunZ", new PyFloat(m_data.z));
+
+    return slim;
+}
