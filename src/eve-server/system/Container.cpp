@@ -83,6 +83,8 @@ CargoContainerRef CargoContainer::Spawn( ItemData &data) {
     containerRef->SetAttribute(AttrMass,          containerRef->type().mass(), false);          // Mass
     containerRef->SetAttribute(AttrVolume,        containerRef->GetPackagedVolume(), false);        // Volume
     containerRef->SetAttribute(AttrCapacity,      containerRef->type().capacity(), false);      // Capacity
+    containerRef->SetAttribute(AttrAnchoringDelay,60000, false);  // static 60 sec timer for now
+    containerRef->SetAttribute(AttrUnanchoringDelay,60000, false);  // static 60 sec timer for now
 
     return containerRef;
 }
@@ -194,7 +196,7 @@ void CargoContainer::RemoveItem(InventoryItemRef iRef)
         case EVEDB::invTypes::MediumStandardContainer:
         case EVEDB::invTypes::LargeStandardContainer:
         case EVEDB::invTypes::LargeSecureContainer:
-            sLog.Warning("CargoContainer::RemoveItem()", "Launch Container %u is empty and being deleted.", m_itemID);
+            sLog.Warning("CargoContainer::RemoveItem()", "Launch Container %u is empty 2 days without interaction delete timer starting.", m_itemID);
             break;
         default:
             sLog.Warning("CargoContainer::RemoveItem()", "Non-Cargo Container %u (type: %u) is empty and being deleted.", m_itemID, typeID());
@@ -274,6 +276,12 @@ ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemM
     m_self->SetAttribute(AttrCapacity, m_self->type().capacity(), false);
 }
 
+void ContainerSE::Init()
+{
+    _log(SE__TRACE, "Cargo %s(%u) is being deployed", m_self->name(), m_self->itemID());
+    StructureSE::Init();
+}
+
 ContainerSE::~ContainerSE()
 {
     if (m_targMgr != nullptr)
@@ -289,7 +297,7 @@ ContainerSE::~ContainerSE()
 
 void ContainerSE::Process() {
     /*  Enable base call to Process Targeting and Movement  */
-    SystemEntity::Process();
+    StructureSE::Process();
     if (m_deleteTimer.Check(false)) {
         m_deleteTimer.Disable();
         sLog.Magenta( "ContainerSE::Process()", "Garbage Collection is removing Cargo Container %u.", m_contRef->itemID() );
@@ -298,35 +306,14 @@ void ContainerSE::Process() {
     }
 }
 
-void ContainerSE::Activate(int32 effectID)
-{
-    // check effectID, check current state, check current timer, set new state, update timer
-
-    /** @todo somehow notify client with one of these effects:
-     *  effectAnchorDrop = 649
-     *  effectAnchorLift = 650
-     *  effectAnchorDropForStructures = 1022
-     *  effectAnchorLiftForStructures = 1023
-     *
-     ** @todo  many more effects to send for.....look into later.
-     * effectOnlineForStructures = 901
-     *
-     ** @note  also note there are timers involved here...
-     */
-}
-
-void ContainerSE::Deactivate(int32 effectID)
-{
-    // check effectID, check current state, check current timer, set new state, update timer
-}
-
 void ContainerSE::AnchorContainer()
 {
     m_deleteTimer.Disable();
     m_contRef->SetAnchor(true);
 }
 
-void ContainerSE::EncodeDestiny( Buffer& into )
+//might whant to remove this
+/* void ContainerSE::EncodeDestiny( Buffer& into )
 {
     using namespace Destiny;
     BallHeader head = BallHeader();
@@ -359,7 +346,7 @@ void ContainerSE::EncodeDestiny( Buffer& into )
     into.Append( troll );
 
     _log(SE__DESTINY, "ContainerSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
-}
+} */
 
 void ContainerSE::MakeDamageState(DoDestinyDamageState &into)
 {
@@ -371,7 +358,8 @@ void ContainerSE::MakeDamageState(DoDestinyDamageState &into)
     into.structure = 1;
 }
 
-PyDict *ContainerSE::MakeSlimItem() {
+//might whant to remove this
+/* PyDict *ContainerSE::MakeSlimItem() {
     _log(SE__SLIMITEM, "MakeSlimItem for ContainerSE %s(%u)", m_self->name(), m_self->itemID());
     PyDict *slim = new PyDict();
         slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
@@ -382,8 +370,7 @@ PyDict *ContainerSE::MakeSlimItem() {
         slim->SetItemString("corpID",           IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
         slim->SetItemString("allianceID",       IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
         slim->SetItemString("warFactionID",     IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
-        if (m_contRef->IsAnchored())        // not sure if this is right...testing
-            slim->SetItemString("structureState",       new PyInt(EVEPOS::StructureState::Anchored));
+        slim->SetItemString("structureState",       new PyInt((m_data.state == EVEPOS::StructureState::Anchored)?1:0));
 
     if (is_log_enabled(DESTINY__DEBUG)) {
         _log( DESTINY__DEBUG, "ContainerSE::MakeSlimItem() - %s(%u)", GetName(), GetID());
@@ -391,7 +378,7 @@ PyDict *ContainerSE::MakeSlimItem() {
     }
 
     return slim;
-}
+} */
 
 void ContainerSE::SendDamageStateChanged() {  //working 24Apr15
     DoDestinyDamageState dmgState;
