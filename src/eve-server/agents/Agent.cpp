@@ -35,6 +35,7 @@
 #include "../fleet/FleetService.h"
 #include "../system/SystemManager.h"
 #include "../standing/StandingMgr.h"
+#include "corporation/LPService.h"
 
 
 Agent::Agent(uint32 id)
@@ -114,8 +115,9 @@ void Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     // not sure how this is checked/set
     offer.remoteOfferable    = false;
     offer.remoteCompletable  = false;
+    // LP Reward
+    offer.rewardLP           = LPService::GetLPReward(offer.missionID, m_agentData.solarSystemID, m_agentData.level);   // LP reward = (1.6288 - System security) × Base LP
     // same with these
-    offer.rewardLP           = 0;
     offer.acceptFee          = 0;
 
     // create and save bookmarks for this offer.... not sure how yet.

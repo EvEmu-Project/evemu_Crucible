@@ -165,8 +165,8 @@ public:
     /* specific functions handled in this class. */
     void Init();
     void AnchorContainer();
-    bool IsEmpty()                                      { return m_contRef->IsEmpty(); }
-    bool IsAnchored()                                   { return m_contRef->IsAnchored(); }
+    bool IsEmpty()                                      { return m_contRef->GetMyInventory()->IsEmpty(); }
+    bool IsAnchored()                                   { return m_data.status; }
 
     void SetGlobal(bool set=false)                      { m_global = set; }
 
