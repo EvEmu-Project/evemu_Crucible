@@ -10,6 +10,12 @@
     </tupleInline>
   </elementDef>
 
+  <elementDef name="OnLPChange">
+    <tupleInline>
+      <int name="corpID" />
+    </tupleInline>
+  </elementDef>
+
   <elementDef name="Call_GiveCash">
     <tupleInline>
       <int name="toID" />
