@@ -115,3 +115,12 @@ sql.tar.gz
 
 # CLion Config Files
 .idea
+.vs/CMake Overview
+.vs/cmake.db
+.vs/evemu_Crucible/v17/Browse.VC.db
+.vs/evemu_Crucible/v17/workspaceFileList.bin
+.vs/ProjectSettings.json
+.vs/slnx.sqlite
+.vs/VSWorkspaceState.json
+CMakeSettings.json
+log.ini

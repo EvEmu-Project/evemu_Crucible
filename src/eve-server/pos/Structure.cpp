@@ -453,7 +453,7 @@ void StructureSE::Init()
      */
     if (m_data.timestamp > 0)
     {
-        m_data.timestamp = GetFileTimeNow();
+        // do something constructive here.
     }
 
     if (m_data.state > EVEPOS::StructureState::Anchored)
@@ -1157,6 +1157,11 @@ PyDict *StructureSE::MakeSlimItem()
         tuple->SetItem(2, new PyFloat(m_rotation.z));
         slim->SetItemString("dunRotation", tuple); // direction to moon
         slim->SetItemString("controlTowerID", new PyLong(m_data.towerID));
+    }
+    else if (m_cargo)
+    {
+        slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
+        slim->SetItemString("posTimestamp", PyStatic.NewNone());
     }
 
     if (m_module)

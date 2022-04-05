@@ -83,8 +83,6 @@ CargoContainerRef CargoContainer::Spawn( ItemData &data) {
     containerRef->SetAttribute(AttrMass,          containerRef->type().mass(), false);          // Mass
     containerRef->SetAttribute(AttrVolume,        containerRef->GetPackagedVolume(), false);        // Volume
     containerRef->SetAttribute(AttrCapacity,      containerRef->type().capacity(), false);      // Capacity
-    containerRef->SetAttribute(AttrAnchoringDelay,60000, false);  // static 60 sec timer for now
-    containerRef->SetAttribute(AttrUnanchoringDelay,60000, false);  // static 60 sec timer for now
 
     return containerRef;
 }
@@ -278,7 +276,7 @@ ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemM
 
 void ContainerSE::Init()
 {
-    _log(SE__TRACE, "Cargo %s(%u) is being deployed", m_self->name(), m_self->itemID());
+    _log(POS__TRACE, "Cargo %s(%u) is being deployed", m_self->name(), m_self->itemID());
     StructureSE::Init();
 }
 
@@ -312,41 +310,6 @@ void ContainerSE::AnchorContainer()
     m_contRef->SetAnchor(true);
 }
 
-//might whant to remove this
-/* void ContainerSE::EncodeDestiny( Buffer& into )
-{
-    using namespace Destiny;
-    BallHeader head = BallHeader();
-        head.entityID = GetID();
-        head.radius = GetRadius();
-        head.posX = x();
-        head.posY = y();
-        head.posZ = z();
-        head.mode = Ball::Mode::TROLL;
-        head.flags = Ball::Flag::IsFree | Ball::Flag::IsInteractive;
-    into.Append( head );
-    MassSector mass = MassSector();
-        mass.mass = m_self->type().mass();
-        mass.cloak = 0;
-        mass.harmonic = m_harmonic;
-        mass.corporationID = m_corpID;
-        mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
-    into.Append( mass );
-    DataSector data = DataSector();
-        data.inertia = 1;
-        data.maxSpeed = 1;
-        data.velX = 0;
-        data.velY = 0;
-        data.velZ = 0;
-        data.speedfraction = 1;
-    into.Append( data );
-    TROLL_Struct troll;
-        troll.formationID = 0xFF;
-        troll.effectStamp = sEntityList.GetStamp();
-    into.Append( troll );
-
-    _log(SE__DESTINY, "ContainerSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
-} */
 
 void ContainerSE::MakeDamageState(DoDestinyDamageState &into)
 {
@@ -358,27 +321,6 @@ void ContainerSE::MakeDamageState(DoDestinyDamageState &into)
     into.structure = 1;
 }
 
-//might whant to remove this
-/* PyDict *ContainerSE::MakeSlimItem() {
-    _log(SE__SLIMITEM, "MakeSlimItem for ContainerSE %s(%u)", m_self->name(), m_self->itemID());
-    PyDict *slim = new PyDict();
-        slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
-        slim->SetItemString("typeID",           new PyInt(m_self->typeID()));
-        slim->SetItemString("ownerID",          new PyInt(m_ownerID));
-        slim->SetItemString("name",             new PyString(m_self->itemName()));
-        slim->SetItemString("nameID",           PyStatic.NewNone());
-        slim->SetItemString("corpID",           IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
-        slim->SetItemString("allianceID",       IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
-        slim->SetItemString("warFactionID",     IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
-        slim->SetItemString("structureState",       new PyInt((m_data.state == EVEPOS::StructureState::Anchored)?1:0));
-
-    if (is_log_enabled(DESTINY__DEBUG)) {
-        _log( DESTINY__DEBUG, "ContainerSE::MakeSlimItem() - %s(%u)", GetName(), GetID());
-        slim->Dump(DESTINY__DEBUG, "     ");
-    }
-
-    return slim;
-} */
 
 void ContainerSE::SendDamageStateChanged() {  //working 24Apr15
     DoDestinyDamageState dmgState;
