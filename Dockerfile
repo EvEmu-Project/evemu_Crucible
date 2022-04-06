@@ -14,6 +14,7 @@ ADD /cmake/ /src/cmake
 ADD /dep/ /src/dep
 ADD /src/ /src/src
 ADD /utils/ /src/utils
+ADD /.git/ /src/.git
 
 # make some folders we need for the build
 RUN mkdir -p /src/build /app /app/logs /app/server_cache /app/image_cache

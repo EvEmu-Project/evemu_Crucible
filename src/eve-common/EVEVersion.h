@@ -24,7 +24,7 @@
 */
 
 #ifndef GIT_COMMIT_HASH
-#define GIT_COMMIT_HASH "?"
+#define GIT_COMMIT_HASH "invalid_hash"
 #endif
 
 #ifndef GIT_BRANCH
