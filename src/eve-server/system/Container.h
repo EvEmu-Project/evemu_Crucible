@@ -155,15 +155,12 @@ public:
 
     /* SystemEntity interface */
     virtual void Process();
-    virtual void EncodeDestiny(Buffer& into);
-    virtual PyDict* MakeSlimItem();
     virtual void MakeDamageState(DoDestinyDamageState &into);
     // this uses targetMgr update to send to all interested parties
     virtual void SendDamageStateChanged();
 
     /* specific functions handled in this class. */
-    void Activate(int32 effectID);
-    void Deactivate(int32 effectID);
+    void Init();
     void AnchorContainer();
     bool IsEmpty()                                      { return m_contRef->GetMyInventory()->IsEmpty(); }
     bool IsAnchored()                                   { return m_data.status; }

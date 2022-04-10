@@ -936,9 +936,13 @@ PyResult DogmaIMBound::Handle_Activate(PyCallArgs& call)
             } else if (args.arg2 == onlineForStructures) {
                 pSE->GetPOSSE()->Activate(args.arg2);
             }
-        } else if (pSE->IsContainerSE()) {
-            // not sure what calls are for containers yet
-            pSE->GetContSE()->Activate(args.arg2);
+            if ( pSE->IsContainerSE() and args.arg2 == anchorDrop) {
+                GPoint pos = pSE->GetPosition();
+                pSE->GetContSE()->SetAnchor(call.client, pos);
+            } else if ( pSE->IsContainerSE() and args.arg2 == anchorLift) {
+                pSE->GetContSE()->PullAnchor();
+            }
+        
         } else {
             ; // make error here
         }
