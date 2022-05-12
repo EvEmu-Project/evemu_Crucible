@@ -2,7 +2,6 @@ version: "2.2"
 services:
   server:
     build: . #Build image from source repository
-    #image: "quay.io/evemu/server:latest" #Use prebuilt image
     container_name: evemu_server
     volumes:
       - config:/app/etc
@@ -26,7 +25,7 @@ services:
       - SYS_PTRACE
 
   db:
-    image: "quay.io/bitnami/mariadb:10.4"
+    image: "bitnami/mariadb:10.4"
     container_name: evemu_db
     volumes:
       - db:/bitnami/mariadb
