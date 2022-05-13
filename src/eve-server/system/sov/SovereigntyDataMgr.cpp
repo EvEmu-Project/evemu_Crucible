@@ -133,15 +133,10 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
     sDataMgr.GetSystemData(systemID, sysData);
 
     if (sysData.factionID)
-    { //If we have a factionID, we can set the system's sov data to it
-        args->SetItemString("contested", PyStatic.NewZero());
-        args->SetItemString("corporationID", PyStatic.NewZero());
-        args->SetItemString("claimTime", new PyLong(0));
-        args->SetItemString("claimStructureID", PyStatic.NewZero());
-        args->SetItemString("hubID", PyStatic.NewZero());
-        args->SetItemString("allianceID", new PyInt(sysData.factionID));
-        args->SetItemString("solarSystemID", new PyInt(systemID));
-        _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty(): Faction system %u found, assigning factionID as allianceID.", systemID);
+    {   // If we have a factionID, the system is not claimable.
+        // We dont need to worry about FacWar Sov here, that is handled separately by Handle_GetSystemOccupier
+        _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty(): Faction system %u found, Sending no SovData.", systemID);
+        return new PyNone();
     }
     else
     {
@@ -168,14 +163,9 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
         }
         else
         {
+            // No data means no claim, so we give 'None'
             _log(SOV__INFO, "SovereigntyDataMgr::GetSystemSovereignty(): No data for solarSystemID %u. Sending blank SovereigntyData object.", systemID);
-            args->SetItemString("contested", PyStatic.NewNone());
-            args->SetItemString("corporationID", PyStatic.NewNone());
-            args->SetItemString("claimTime", PyStatic.NewNone());
-            args->SetItemString("claimStructureID", PyStatic.NewNone());
-            args->SetItemString("hubID", PyStatic.NewNone());
-            args->SetItemString("allianceID", PyStatic.NewNone());
-            args->SetItemString("solarSystemID", new PyInt(systemID));
+            return new PyNone();
         }
     }
     return new PyObject("util.KeyVal", args);

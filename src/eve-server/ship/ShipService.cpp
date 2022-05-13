@@ -535,8 +535,8 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
                 //Code for spawning sovereignty structures
 
                 //Check if system is in empire space
-                SolarSystemData sysData;
-                sDataMgr.GetSolarSystemData(pClient->GetSystemID(), sysData);
+                SystemData sysData;
+                sDataMgr.GetSystemData(pClient->GetSystemID(), sysData);
                 if (sysData.factionID) {
                     pClient->SendErrorMsg("Launching sovereignty structures is forbidden in empire space.");
                     return nullptr;
