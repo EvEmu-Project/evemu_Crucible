@@ -330,6 +330,11 @@ void StructureSE::Init()
         case EVEDB::invGroups::Construction_Platform: {
             m_platform = true;
         } break;
+        case EVEDB::invGroups::Secure_Cargo_Container:
+        case EVEDB::invGroups::Audit_Log_Secure_Container:
+        case EVEDB::invGroups::Cargo_Container: {
+            m_cargo = true;
+        } break;
         default: {
             m_module = true;
         }
@@ -416,7 +421,15 @@ void StructureSE::Init()
         dir.normalize();
         m_rotation = dir;
     }
-
+    if (m_cargo)
+    {
+        if (pSE == nullptr)
+        {
+            _log(POS__ERROR, "StructureSE::Init %s(%u) is invalid.  why are we here?", m_self->name(), m_data.itemID);
+            return;
+        }
+        m_duration = 60000; //cargo default to 60 seconds
+    }
     // all POS have 1h duration
     if (m_tower)
     {
@@ -621,7 +634,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     // these errors should throw instead of return.
 
     // Check for required sovereignty upgrades for certain structures
-    if ((m_generator) || (m_jammer) || (m_bridge)) {
+    if ((m_generator) or (m_jammer) or (m_bridge)) {
         SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
         InventoryItemRef ihubRef = sItemFactory.GetItemRef(sovData.hubID);
         uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
@@ -695,7 +708,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             _log(POS__TRACE, "StructureSE::Anchor() - SBUSE %s(%u) is anchoring %u m from %s",
                  GetName(), m_data.itemID, distance, m_gateSE->GetName());
     }
-    else if (m_tcu or m_ihub)
+    else if (m_tcu or m_ihub or m_cargo)
     {
         // these are anchored anywhere in system.
         m_destiny->SetPosition(pos);
@@ -1144,6 +1157,11 @@ PyDict *StructureSE::MakeSlimItem()
         tuple->SetItem(2, new PyFloat(m_rotation.z));
         slim->SetItemString("dunRotation", tuple); // direction to moon
         slim->SetItemString("controlTowerID", new PyLong(m_data.towerID));
+    }
+    else if (m_cargo)
+    {
+        slim->SetItemString("posDelayTime", new PyInt(m_delayTime));
+        slim->SetItemString("posTimestamp", PyStatic.NewNone());
     }
 
     if (m_module)

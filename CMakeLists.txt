@@ -81,6 +81,29 @@ IF( SCM_VERSION AND SCM_REPOSITORY )
   # Set project version and repository
   SET( PROJECT_VERSION    "${SCM_VERSION}" )
   SET( PROJECT_REPOSITORY "${SCM_REPOSITORY}" )
+
+  ###########################
+  # Commit / Branch Strings #
+  ###########################
+
+  # Get the current working branch
+  execute_process(
+      COMMAND git rev-parse --abbrev-ref HEAD
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE GIT_BRANCH
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  # Get the latest commit hash
+  execute_process(
+      COMMAND git rev-parse HEAD
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE GIT_COMMIT_HASH
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  ADD_DEFINITIONS("-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+  ADD_DEFINITIONS("-DGIT_BRANCH=\"${GIT_BRANCH}\"")
+
+
 ENDIF( SCM_VERSION AND SCM_REPOSITORY )
 
 #########
@@ -179,7 +202,7 @@ INCLUDE( "TargetBuildPCH" )
 INCLUDE( "TargetIncludeDirectories" )
 
 # Advertise config.h
-ADD_DEFINITIONS( "-DHAVE_CONFIG_H" )
+ADD_DEFINITIONS( "-DHAVE_CONFIG_H")
 INCLUDE_DIRECTORIES( "${PROJECT_BINARY_DIR}" )
 # Generate config.h
 CONFIGURE_FILE(

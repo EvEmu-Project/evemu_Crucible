@@ -23,6 +23,14 @@
     Author:     "everyone" who ever changed this file.
 */
 
+#ifndef GIT_COMMIT_HASH
+#define GIT_COMMIT_HASH "invalid_hash"
+#endif
+
+#ifndef GIT_BRANCH
+#define GIT_BRANCH "?"
+#endif
+
 #ifndef __EVE_VERSION_H
 #define __EVE_VERSION_H
 
@@ -38,8 +46,11 @@ static const char* const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 
 static const int32 EVEBirthday = 170472;
 
-/*  Allan's Static Definitions */
-static const char* const EVEMU_REVISION = "0.8.4";
+/*  Version Definitions */
+static std::string GIT_SHORT_HASH = std::string(GIT_COMMIT_HASH).erase(7, std::string::npos);
+static std::string REVISION_STRING = std::string("0.8.4-") + std::string(GIT_BRANCH) + std::string("-") + GIT_SHORT_HASH;
+
+static const char* const EVEMU_REVISION = REVISION_STRING.c_str();
 static const char* const EVEMU_BUILD_DATE = __DATE__;
 /* match versions here with stated files for full support */
 static const float Config_Version = 10.3; /* eve-server.xml and EveServerConfig.cpp */

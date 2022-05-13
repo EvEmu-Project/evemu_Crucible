@@ -95,6 +95,7 @@ class JumpBridgeSE;
 class ArraySE;
 class BatterySE;
 class WeaponSE;
+class ContainerSE;
 class StructureSE
 : public DynamicSystemEntity
 {
@@ -236,6 +237,7 @@ private:
     bool m_module :1;           // any structure requiring a control tower
     bool m_reactor :1;
     bool m_platform :1;         // Outpost construction platform
+    bool m_cargo :1;            // cargo container
 };
 
 #endif  // EVEMU_POS_STRUCTURE_H_

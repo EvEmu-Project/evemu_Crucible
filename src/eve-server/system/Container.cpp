@@ -36,12 +36,14 @@
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
+#include "pos/Structure.h"
+
 
 /*
  * CargoContainer
  */
 CargoContainer::CargoContainer(uint32 _containerID, const ItemType &_containerType, const ItemData &_data)
-: InventoryItem(_containerID, _containerType, _data),
+: StructureItem(_containerID, _containerType, _data),
 mySE(nullptr),
 m_isAnchored(false)
 {
@@ -131,7 +133,7 @@ double CargoContainer::GetCapacity(EVEItemFlags flag) const
     return pInventory->GetCapacity(flag);
 }
 
-void CargoContainer::ValidateAddItem(EVEItemFlags flag, InventoryItemRef item) const {
+void CargoContainer::ValidateAddItem(EVEItemFlags flag, CargoContainerRef item) const {
     pInventory->ValidateAddItem(flag, item);
 }
 
@@ -192,7 +194,7 @@ void CargoContainer::RemoveItem(InventoryItemRef iRef)
         case EVEDB::invTypes::MediumStandardContainer:
         case EVEDB::invTypes::LargeStandardContainer:
         case EVEDB::invTypes::LargeSecureContainer:
-            sLog.Warning("CargoContainer::RemoveItem()", "Launch Container %u is empty and being deleted.", m_itemID);
+            sLog.Warning("CargoContainer::RemoveItem()", "Launch Container %u is empty 2 days without interaction delete timer starting.", m_itemID);
             break;
         default:
             sLog.Warning("CargoContainer::RemoveItem()", "Non-Cargo Container %u (type: %u) is empty and being deleted.", m_itemID, typeID());
@@ -242,7 +244,7 @@ void CargoContainer::MakeDamageState(DoDestinyDamageState &into) const
  */
 
 ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data)
-: ItemSystemEntity(self, services, system),
+: StructureSE(self, services, system, data),
  m_contRef(self),
  m_deleteTimer(0),
  m_global(false),
@@ -272,6 +274,12 @@ ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemM
     m_self->SetAttribute(AttrCapacity, m_self->type().capacity(), false);
 }
 
+void ContainerSE::Init()
+{
+    _log(POS__TRACE, "Cargo %s(%u) is being deployed", m_self->name(), m_self->itemID());
+    StructureSE::Init();
+}
+
 ContainerSE::~ContainerSE()
 {
     if (m_targMgr != nullptr)
@@ -287,7 +295,7 @@ ContainerSE::~ContainerSE()
 
 void ContainerSE::Process() {
     /*  Enable base call to Process Targeting and Movement  */
-    SystemEntity::Process();
+    StructureSE::Process();
     if (m_deleteTimer.Check(false)) {
         m_deleteTimer.Disable();
         sLog.Magenta( "ContainerSE::Process()", "Garbage Collection is removing Cargo Container %u.", m_contRef->itemID() );
@@ -296,68 +304,12 @@ void ContainerSE::Process() {
     }
 }
 
-void ContainerSE::Activate(int32 effectID)
-{
-    // check effectID, check current state, check current timer, set new state, update timer
-
-    /** @todo somehow notify client with one of these effects:
-     *  effectAnchorDrop = 649
-     *  effectAnchorLift = 650
-     *  effectAnchorDropForStructures = 1022
-     *  effectAnchorLiftForStructures = 1023
-     *
-     ** @todo  many more effects to send for.....look into later.
-     * effectOnlineForStructures = 901
-     *
-     ** @note  also note there are timers involved here...
-     */
-}
-
-void ContainerSE::Deactivate(int32 effectID)
-{
-    // check effectID, check current state, check current timer, set new state, update timer
-}
-
 void ContainerSE::AnchorContainer()
 {
     m_deleteTimer.Disable();
     m_contRef->SetAnchor(true);
 }
 
-void ContainerSE::EncodeDestiny( Buffer& into )
-{
-    using namespace Destiny;
-    BallHeader head = BallHeader();
-        head.entityID = GetID();
-        head.radius = GetRadius();
-        head.posX = x();
-        head.posY = y();
-        head.posZ = z();
-        head.mode = Ball::Mode::TROLL;
-        head.flags = Ball::Flag::IsFree | Ball::Flag::IsInteractive;
-    into.Append( head );
-    MassSector mass = MassSector();
-        mass.mass = m_self->type().mass();
-        mass.cloak = 0;
-        mass.harmonic = m_harmonic;
-        mass.corporationID = m_corpID;
-        mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
-    into.Append( mass );
-    DataSector data = DataSector();
-        data.inertia = 1;
-        data.maxSpeed = 1;
-        data.velX = 0;
-        data.velY = 0;
-        data.velZ = 0;
-        data.speedfraction = 1;
-    into.Append( data );
-    TROLL_Struct troll;
-        troll.formationID = 0xFF;
-        troll.effectStamp = sEntityList.GetStamp();
-    into.Append( troll );
-
-    _log(SE__DESTINY, "ContainerSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
-}
 
 void ContainerSE::MakeDamageState(DoDestinyDamageState &into)
 {
@@ -369,27 +321,6 @@ void ContainerSE::MakeDamageState(DoDestinyDamageState &into)
     into.structure = 1;
 }
 
-PyDict *ContainerSE::MakeSlimItem() {
-    _log(SE__SLIMITEM, "MakeSlimItem for ContainerSE %s(%u)", m_self->name(), m_self->itemID());
-    PyDict *slim = new PyDict();
-        slim->SetItemString("itemID",           new PyLong(m_self->itemID()));
-        slim->SetItemString("typeID",           new PyInt(m_self->typeID()));
-        slim->SetItemString("ownerID",          new PyInt(m_ownerID));
-        slim->SetItemString("name",             new PyString(m_self->itemName()));
-        slim->SetItemString("nameID",           PyStatic.NewNone());
-        slim->SetItemString("corpID",           IsCorp(m_corpID) ? new PyInt(m_corpID) : PyStatic.NewNone());
-        slim->SetItemString("allianceID",       IsAlliance(m_allyID) ? new PyInt(m_allyID) : PyStatic.NewNone());
-        slim->SetItemString("warFactionID",     IsFaction(m_warID) ? new PyInt(m_warID) : PyStatic.NewNone());
-        if (m_contRef->IsAnchored())        // not sure if this is right...testing
-            slim->SetItemString("structureState",       new PyInt(EVEPOS::StructureState::Anchored));
-
-    if (is_log_enabled(DESTINY__DEBUG)) {
-        _log( DESTINY__DEBUG, "ContainerSE::MakeSlimItem() - %s(%u)", GetName(), GetID());
-        slim->Dump(DESTINY__DEBUG, "     ");
-    }
-
-    return slim;
-}
 
 void ContainerSE::SendDamageStateChanged() {  //working 24Apr15
     DoDestinyDamageState dmgState;

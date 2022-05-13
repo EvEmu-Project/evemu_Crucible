@@ -112,6 +112,9 @@ sql.tar.gz
 
 # VSCode Config Files
 .vscode/
+.vs/
 
 # CLion Config Files
 .idea
+CMakeSettings.json
+log.ini
