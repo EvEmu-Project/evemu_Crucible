@@ -155,7 +155,40 @@ PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
 
 //18:55:57 L CharMgrService::Handle_GetAvailableOffersFromCorp(): size=2, 0=Integer(), 1=Boolean()
 PyResult LPService::Handle_GetAvailableOffersFromCorp( PyCallArgs& call )
-{/**
+{
+  int32 corpID = call.tuple->GetItem(0)->AsInt()->value();
+  if (!corpID >= 1000000 && !corpID <= 1000200) { // Bounds check valid corpID in call, else return empty list.
+    return new PyList;
+  }
+  DBQueryResult dbRes = GetLPOffersForCorp(corpID);
+  DBResultRow row;
+  PyList *res = new PyList(dbRes.GetRowCount());
+  int i = 0;
+  while (dbRes.GetRow(row)) {
+    PyDict *dict = new PyDict();
+    DBQueryResult dbResReqItems = GetRequiredItemsForOffer(row.GetInt(2));
+    PyList *list = new PyList(dbResReqItems.GetRowCount());
+    int j = 0;
+    DBResultRow row2;
+    while (dbResReqItems.GetRow(row)) {
+      PyTuple *tuple2 = new PyTuple(2);
+      tuple2->SetItemInt(0, row2.GetInt(0));
+      tuple2->SetItemInt(1, row2.GetInt(1));
+      list->AddItem(tuple2);
+      j++;
+    }
+    dict->SetItem("typeID", new PyInt(row.GetInt(0)));
+    dict->SetItem("iskCost", new PyInt(row.GetInt(1)));
+    dict->SetItem("reqItems", list);
+    dict->SetItem("offerID", new PyInt(row.GetInt(2)));
+    dict->SetItem("qty", new PyInt(row.GetInt(3)));
+    dict->SetItem("lpCost", new PyInt(row.GetInt(4)));
+    res->SetItem(i, new PyObject("util.KeyVal", dict));
+    i++;
+  }
+  
+  return res;
+  /**
             self.cache.offers = sm.RemoteSvc('LPSvc').GetAvailableOffersFromCorp(self.cache.corpID, True)
 
 05:42:04 [SvcCall] Service LPSvc: calling GetAvailableOffersFromCorp
@@ -204,7 +237,7 @@ PyResult LPService::Handle_GetAvailableOffersFromCorp( PyCallArgs& call )
               [PyString "lpCost"]
               [PyInt 1600]
               */
-    return new PyList;
+    // return new PyList;
 }
 
 // Database Methods
@@ -217,6 +250,36 @@ DBQueryResult LPService::GetLPRowsForCharacter(int32 characterID)
       " FROM lpWallet"
       " WHERE characterID = %i", \
       characterID ))
+  {
+      codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
+  }
+  return dbRes;
+}
+
+DBQueryResult LPService::GetLPOffersForCorp(int32 corporationID)
+{
+  DBQueryResult dbRes;
+  if (!sDatabase.RunQuery(dbRes,
+      "SELECT "
+      " typeID, iskCost, storeID, quantity, lpCost"
+      " FROM lpStore"
+      " WHERE corporationID = %i", \
+      corporationID ))
+  {
+      codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
+  }
+  return dbRes;
+}
+
+DBQueryResult LPService::GetRequiredItemsForOffer(int32 storeID)
+{
+  DBQueryResult dbRes;
+  if (!sDatabase.RunQuery(dbRes,
+      "SELECT "
+      " typeID, quantity"
+      " FROM lpRequiredItems"
+      " WHERE parentID = %i", \
+      storeID ))
   {
       codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
   }
