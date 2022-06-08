@@ -54,6 +54,9 @@ protected:
     PyCallable_DECL_CALL(GetAvailableOffersFromCorp);
 
     static DBQueryResult GetLPRowsForCharacter(int32 characterID);
+    static DBQueryResult GetLPOffersForCorp(int32 corporationID);
+    static DBQueryResult GetRequiredItemsForOffer(int32 storeID);
+    static DBResultRow GetLPOffer(int32 storeID);
     static void CreateNewLPBalance(int32 characterID, int32 corporationID, int balance);
     static void UpdateLPBalance(int32 characterID, int32 corporationID, int balance);
 };

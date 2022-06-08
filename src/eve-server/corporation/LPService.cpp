@@ -27,6 +27,7 @@
 #include "EntityList.h"
 #include "PyServiceCD.h"
 #include "corporation/LPService.h"
+#include "account/AccountService.h"
 
 PyCallable_Make_InnerDispatcher(LPService)
 
@@ -77,13 +78,56 @@ int LPService::GetLPReward(uint16 missionID, uint32 solarsystemID, uint8 agentLe
 }
 
 PyResult LPService::Handle_TakeOffer( PyCallArgs& call )
-{/**
-        sm.RemoteSvc('LPSvc').ExchangeConcordLP(corpID, amount)
-        */
-  sLog.White( "LPService::Handle_TakeOffer()", "size=%lu", call.tuple->size());
-
-  call.Dump(SERVICE__CALL_DUMP);
-    return new PyList;
+{
+  // Tuple 2 Elements [0](Int)CorpID, [1](Int)StoreID
+  int32 corpID = call.tuple->GetItem(0)->AsInt()->value();
+  int32 storeID = call.tuple->GetItem(1)->AsInt()->value();
+  if (!corpID >= 1000000 && !corpID <= 1000200) { // Bounds check valid corpID in call
+    return new PyNone;
+  }
+  if (!storeID >= 1 && !storeID <= 30000) { // Bounds check valid storeID in call
+    return new PyNone;
+  }
+  // Lookup Store Offer
+  DBResultRow offer = GetLPOffer(storeID);
+  int32 typeID = offer.GetInt(0);
+  int32 iskCost = offer.GetInt(1);
+  int32 quantity = offer.GetInt(2);
+  int32 lpCost = offer.GetInt(3);
+  // Confirm char has LP & ISK
+  int32 lpBalance = GetLPBalanceForCorp(call.client->GetCharacterID(), corpID);
+  if (lpBalance < lpCost) {
+    throw CustomError("You do not have enough LP to make this purchase.");
+  }
+  int32 charIsk = call.client->GetBalance();
+  if (charIsk < iskCost) {
+    throw CustomError("You do not have enough ISK to make this purchase.");
+  }
+  // Check required items & remove if all are present.
+  DBQueryResult requiredItems = GetRequiredItemsForOffer(storeID);
+  if (requiredItems.GetRowCount() > 0) {
+    // TODO: Remove required from hangar, the client pre-checks the required items are available or else the button is hidden.
+  }
+  // Remove LP & ISK
+  AddLP(call.client->GetCharacterID(), corpID, -lpCost);
+  AccountService::TranserFunds(call.client->GetCharacterID(), corpID , iskCost, "LP Store purchase", Journal::EntryType::PaymentToLPStore, storeID);
+  // Give char item from store and place in hangar.
+  EVEItemFlags flag;
+  uint32 locationID = 0;
+  locationID = call.client->GetStationID();
+  flag = flagHangar;
+  ItemData idata(
+          typeID,
+          call.client->GetCharacterID(),
+                    locTemp, //temp location
+                    flag,
+                    quantity);
+  InventoryItemRef iRef = sItemFactory.SpawnItem(idata);
+  if (iRef.get() == nullptr)
+    throw CustomError ("Unable to create item of type %i.", typeID);
+  iRef->Move(locationID, flag, true);
+  iRef->SaveItem();
+  return new PyNone;
 }
 
 PyResult LPService::Handle_ExchangeConcordLP( PyCallArgs& call )
@@ -155,7 +199,40 @@ PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
 
 //18:55:57 L CharMgrService::Handle_GetAvailableOffersFromCorp(): size=2, 0=Integer(), 1=Boolean()
 PyResult LPService::Handle_GetAvailableOffersFromCorp( PyCallArgs& call )
-{/**
+{
+  int32 corpID = call.tuple->GetItem(0)->AsInt()->value();
+  if (!corpID >= 1000000 && !corpID <= 1000200) { // Bounds check valid corpID in call, else return empty list.
+    return new PyList;
+  }
+  DBQueryResult dbRes = GetLPOffersForCorp(corpID);
+  DBResultRow row;
+  PyList *res = new PyList(dbRes.GetRowCount());
+  int i = 0;
+  while (dbRes.GetRow(row)) {
+    PyDict *dict = new PyDict();
+    DBQueryResult dbResReqItems = GetRequiredItemsForOffer(row.GetInt(2));
+    PyList *list = new PyList(dbResReqItems.GetRowCount());
+    int j = 0;
+    DBResultRow reqItemsRow;
+    while (dbResReqItems.GetRow(reqItemsRow)) {
+      PyTuple *tuple2 = new PyTuple(2);
+      tuple2->SetItemInt(0, reqItemsRow.GetInt(0));
+      tuple2->SetItemInt(1, reqItemsRow.GetInt(1));
+      list->SetItem(j, tuple2);
+      j++;
+    }
+    dict->SetItem("typeID", new PyInt(row.GetInt(0)));
+    dict->SetItem("iskCost", new PyInt(row.GetInt(1)));
+    dict->SetItem("reqItems", list);
+    dict->SetItem("offerID", new PyInt(row.GetInt(2)));
+    dict->SetItem("qty", new PyInt(row.GetInt(3)));
+    dict->SetItem("lpCost", new PyInt(row.GetInt(4)));
+    res->SetItem(i, new PyObject("util.KeyVal", dict));
+    i++;
+  }
+  
+  return res;
+  /**
             self.cache.offers = sm.RemoteSvc('LPSvc').GetAvailableOffersFromCorp(self.cache.corpID, True)
 
 05:42:04 [SvcCall] Service LPSvc: calling GetAvailableOffersFromCorp
@@ -204,7 +281,7 @@ PyResult LPService::Handle_GetAvailableOffersFromCorp( PyCallArgs& call )
               [PyString "lpCost"]
               [PyInt 1600]
               */
-    return new PyList;
+    // return new PyList;
 }
 
 // Database Methods
@@ -217,6 +294,53 @@ DBQueryResult LPService::GetLPRowsForCharacter(int32 characterID)
       " FROM lpWallet"
       " WHERE characterID = %i", \
       characterID ))
+  {
+      codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
+  }
+  return dbRes;
+}
+
+DBQueryResult LPService::GetLPOffersForCorp(int32 corporationID)
+{
+  DBQueryResult dbRes;
+  if (!sDatabase.RunQuery(dbRes,
+      "SELECT "
+      " typeID, iskCost, storeID, quantity, lpCost"
+      " FROM lpStore"
+      " WHERE corporationID = %i", \
+      corporationID ))
+  {
+      codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
+  }
+  return dbRes;
+}
+
+DBResultRow LPService::GetLPOffer(int32 storeID)
+{
+  DBQueryResult dbResOffer;
+  if (!sDatabase.RunQuery(dbResOffer,
+      "SELECT "
+      " typeID, iskCost, quantity, lpCost"
+      " FROM lpStore"
+      " WHERE storeID = %i LIMIT 1", \
+      storeID ))
+  {
+      codelog(DATABASE__ERROR, "Error in query: %s", dbResOffer.error.c_str());
+  }
+  DBResultRow offerRow;
+  dbResOffer.GetRow(offerRow);
+  return offerRow;
+}
+
+DBQueryResult LPService::GetRequiredItemsForOffer(int32 storeID)
+{
+  DBQueryResult dbRes;
+  if (!sDatabase.RunQuery(dbRes,
+      "SELECT "
+      " typeID, quantity"
+      " FROM lpRequiredItems"
+      " WHERE parentID = %i", \
+      storeID ))
   {
       codelog(DATABASE__ERROR, "Error in query: %s", dbRes.error.c_str());
   }
