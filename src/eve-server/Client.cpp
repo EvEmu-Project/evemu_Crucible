@@ -602,7 +602,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     _log(AUTOPILOT__TRACE, "MoveToLocation() - m_autoPilot = %s", (m_autoPilot ? "true" : "false"));
 
     if (!m_login and (m_locationID == locationID) and !sDataMgr.IsStation(locationID)) {
-        _log(PLAYER__WARNING, "MoveToLocation() - m_locationID == location");
+        _log(PLAYER__WARNING, "mm-simple MoveToLocation() - m_locationID == location"); //mmc
         // This is a simple movement
         SetDestiny(pt, true);
         return;
@@ -619,7 +619,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     // location changed...verify current system and set session data for current system.
     if (IsJump() or ((m_system != nullptr) and (m_system->GetID() != m_systemData.systemID))) {
         //we have different m_system
-        _log(PLAYER__WARNING, "MoveToLocation() - current m_system is %s, systemData is for %s, m_system->GetID(%u) != locationID(%u)", \
+        _log(PLAYER__WARNING, "mm-diff1 - MoveToLocation() - current m_system is %s, systemData is for %s, m_system->GetID(%u) != locationID(%u)", \
                     m_system->GetName(), m_systemData.name.c_str(), m_system->GetID(), m_locationID);
         // if docked, update guestlist
         if (wasDocked) {
@@ -639,7 +639,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
     }
 
     if (m_system == nullptr) {
-        _log(PLAYER__WARNING, "MoveToLocation() - m_system == NULL, m_locationID = %u", m_locationID);
+        _log(PLAYER__WARNING, "mm-cSys MoveToLocation() - m_system == NULL, m_locationID = %u", m_locationID);
         // find our new system's manager
         sItemFactory.SetUsingClient(this);
         m_system = sEntityList.FindOrBootSystem(m_systemData.systemID);
@@ -656,7 +656,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
         // register ourselves with new system manager (this wont hit on login)
         m_system->AddClient(this, count, IsJump());
     }
-
+_log(PLAYER__WARNING, "mm-fin just inf");
     if (sDataMgr.IsStation(m_locationID)) {
         _log(PLAYER__WARNING, "MoveToLocation() - Character %s (%u) Docked in %u.", m_char->name(), m_char->itemID(), m_locationID);
         stDataMgr.GetStationData(m_locationID, m_stationData);
