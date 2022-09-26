@@ -15,15 +15,10 @@ services:
     links:
       - "db"
     environment:
-      - MARIADB_HOST=db
-      - MARIADB_USER=evemu
-      - MARIADB_PASSWORD=evemu
-      - MARIADB_DATABASE=evemu
-      - MARIADB_PORT=3306
-      - SEED_MARKET=FALSE # Set to TRUE to seed the market when the server starts for the first time
-      - SEED_SATURATION=80 # Set saturation level of seed
-      - SEED_REGIONS=Derelik,The Citadel,The Forge # Define regions to be seeded
-      - RUN_WITH_GDB=FALSE #Set to TRUE to run evemu with gdb automatically
+      - SEED_MARKET=${SEED_MARKET:-FALSE} # Set to TRUE to seed the market when the server starts for the first time
+      - SEED_SATURATION=${SEED_SATURATION:-80} # Set saturation level of seed
+      - SEED_REGIONS=${SEED_REGIONS:-Derelik,The Citadel,The Forge} # Define regions to be seeded
+      - RUN_WITH_GDB=${RUN_GDB:-FALSE} #Set to TRUE to run evemu with gdb automatically
     stdin_open: true # Enables stdin for the container. Attach to it with 'docker attach'
     tty: true
     cap_add: #This is required for gdb to work
