@@ -126,6 +126,12 @@
 /************************************************************************/
 /* Dependencies                                                         */
 /************************************************************************/
+// Boost fails to build after 1.74.0 due to the issue described here:
+// https://stackoverflow.com/questions/65840258/boost-1-74-0-asio-executor-migration-issues
+// This #define is a supported workaround
+#if BOOST_VERSION >= 107400
+#define BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT 1
+#endif
 // Boost.Asio
 #include <boost/asio.hpp>
 // Gangsta
