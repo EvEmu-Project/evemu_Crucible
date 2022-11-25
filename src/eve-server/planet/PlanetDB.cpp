@@ -488,7 +488,7 @@ void PlanetDB::UpdatePins(uint32 pinID, PI_CCPin* ccPin)
     Inserts << "INSERT INTO piPins";
     Inserts << " (ccPinID, pinID, schematicID, programType, launchTime,";
     Inserts << " cycleTime, installTime, lastRunTime, receivedInputsLastCycle, hasReceivedInputs,";
-    Inserts << " latitude, longitude, qtyPerCycle, isECU)";
+    Inserts << " latitude, longitude, qtyPerCycle, isECU, isLaunchable, isProcess)";
 
     bool first = true;
     if (pinID) {
@@ -500,7 +500,8 @@ void PlanetDB::UpdatePins(uint32 pinID, PI_CCPin* ccPin)
             Inserts << "(" << ccPin->ccPinID << ", " << itr->first << ", "<< itr->second.schematicID << ", " << itr->second.programType;
             Inserts << ", " << itr->second.lastLaunchTime << ", " << itr->second.cycleTime << ", " << itr->second.installTime;
             Inserts << ", " << itr->second.lastRunTime << ", " << itr->second.receivedInputsLastCycle << ", " << itr->second.hasReceivedInputs;
-            Inserts << ", " << itr->second.latitude << ", " << itr->second.longitude << ", " << itr->second.qtyPerCycle << ", " << itr->second.isECU << ")";
+            Inserts << ", " << itr->second.latitude << ", " << itr->second.longitude << ", " << itr->second.qtyPerCycle << ", " << itr->second.isECU;
+            Inserts << ", " << itr->second.isLaunchable << ", " << itr->second.isProcess << ")";
         }
     } else {
         for (auto cur : ccPin->pins) {
@@ -513,7 +514,8 @@ void PlanetDB::UpdatePins(uint32 pinID, PI_CCPin* ccPin)
             Inserts << "(" << ccPin->ccPinID << ", " << cur.first << ", "<< cur.second.schematicID << ", " << cur.second.programType;
             Inserts << ", " << cur.second.lastLaunchTime << ", " << cur.second.cycleTime << ", " << cur.second.installTime;
             Inserts << ", " << cur.second.lastRunTime << ", " << cur.second.receivedInputsLastCycle << ", " << cur.second.hasReceivedInputs;
-            Inserts << ", " << cur.second.latitude << ", " << cur.second.longitude << ", " << cur.second.qtyPerCycle << ", " << cur.second.isECU << ")";
+            Inserts << ", " << cur.second.latitude << ", " << cur.second.longitude << ", " << cur.second.qtyPerCycle << ", " << cur.second.isECU;
+            Inserts << ", " << cur.second.isLaunchable << ", " << cur.second.isProcess << ")";
         }
     }
 
