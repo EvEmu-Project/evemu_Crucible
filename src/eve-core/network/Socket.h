@@ -26,9 +26,6 @@
 #ifndef __SOCKET_H__INCL__
 #define __SOCKET_H__INCL__
 
-#include <sys/socket.h>
-
-
 /**
  * @brief Simple wrapper for sockets.
  *
@@ -43,17 +40,17 @@ public:
     int connect( const sockaddr* name, unsigned int namelen );
 
     unsigned int recv( void* buf, unsigned int len, int flags );
-    unsigned int recvfrom( void* buf, unsigned int len, int flags, sockaddr* from, unsigned int* fromlen );
+    unsigned int recvfrom( void* buf, unsigned int len, int flags, sockaddr* from, PSOCKLEN_T fromlen );
     unsigned int send( const void* buf, unsigned int len, int flags );
     unsigned int sendto( const void* buf, unsigned int len, int flags, const sockaddr* to, unsigned int tolen );
 
     int bind( const sockaddr* name, unsigned int namelen );
     int listen( int backlog = SOMAXCONN );
 
-    Socket* accept( sockaddr* addr, unsigned int* addrlen );
+    Socket* accept( sockaddr* addr, PSOCKLEN_T addrlen );
 
     int setopt( int level, int optname, const void* optval, unsigned int optlen );
-    int fcntl( int cmd, long arg );
+    int setblocking( bool blocking );
 
 protected:
     Socket( SOCKET sock );

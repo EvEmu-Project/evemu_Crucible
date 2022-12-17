@@ -10,12 +10,6 @@
 #include "EVEServerConfig.h"
 #include "../eve-core/utils/misc.h"
 
-Profiler::Profiler() { }
-
-Profiler::~Profiler() {
-    //ClearAll();
-}
-
 int Profiler::Initialize() {
     ClearAll();
     sLog.Blue("  Profile Manager", "Profiling initialized.");

@@ -44,6 +44,12 @@
 #include "system/Celestial.h"
 #include "system/Container.h"
 
+// Pursche: This change was made to get rid of a circular inclusion between fxData and InventoryItem, this concept is called pImpl and helps us forward declare more stuff.
+struct ModifierContainer : public ModifierContainerBase
+{
+    std::multimap<int8, fxData> modifiers;     // k,v of math, data<math, src, targLoc, targAttr, srcAttr, grpID, typeID>, ordered by key (mathMethod)
+};
+
 /*
  * InventoryItem
  */
@@ -59,7 +65,10 @@ m_delete(false)
 {
     // assert for data consistency
     assert(_data.typeID == _type.id());
-    m_modifiers.clear();
+
+    ModifierContainer* modifierContainer = new ModifierContainer();
+    m_modifierContainer = modifierContainer;
+    modifierContainer->modifiers.clear();
 
     _log(ITEM__TRACE, "II::C'tor - Created Generic Item %p for item %s (%u).", this, m_data.name.c_str(), m_itemID);
 }
@@ -1454,7 +1463,8 @@ bool InventoryItem::SkillCheck(InventoryItemRef refItem)
 // new effects system  -allan 4Feb17
 void InventoryItem::AddModifier(fxData &data)
 {
-    m_modifiers.emplace(data.math, data);
+    ModifierContainer* modifierContainer = static_cast<ModifierContainer*>(m_modifierContainer);
+    modifierContainer->modifiers.emplace(data.math, data);
     if (is_log_enabled(EFFECTS__TRACE))
         _log(EFFECTS__TRACE, "II::AddModifier(): %s(%u) Added to map - <%s>, fxSrc:%s:%s(%u), targ:%s:%s(%u).", \
             m_data.name.c_str(), m_itemID, sFxProc.GetMathMethodName(data.math), \
@@ -1476,7 +1486,9 @@ void InventoryItem::RemoveModifier(fxData &data)
         case FX::Math::PreAssignment:  data.math = FX::Math::PostAssignment;  break;
         case FX::Math::PostAssignment: data.math = FX::Math::PreAssignment;   break;
     }
-    m_modifiers.emplace(data.math, data);
+
+    ModifierContainer* modifierContainer = static_cast<ModifierContainer*>(m_modifierContainer);
+    modifierContainer->modifiers.emplace(data.math, data);
     if (is_log_enabled(EFFECTS__TRACE))
         _log(EFFECTS__TRACE, "II::RemoveModifier(): %s(%u) Removed from map - <%s>, fxSrc:%s:%s(%u), targ:%s:%s(%u).", \
         m_data.name.c_str(), m_itemID, sFxProc.GetMathMethodName(data.math), \
@@ -1488,10 +1500,18 @@ void InventoryItem::RemoveModifier(fxData &data)
 void InventoryItem::ClearModifiers()
 {
     _log(EFFECTS__TRACE, "Clearing modifier map for %s", m_data.name.c_str());
-    m_modifiers.clear();
+
+    ModifierContainer* modifierContainer = static_cast<ModifierContainer*>(m_modifierContainer);
+    modifierContainer->modifiers.clear();
 }
 
 void InventoryItem::ResetAttributes() {
     _log(EFFECTS__TRACE, "Resetting attrib map for %s", m_data.name.c_str());
     pAttributeMap->Load(true);
+}
+
+std::multimap<int8, fxData>& InventoryItem::GetModifiers()
+{
+    ModifierContainer* modifierContainer = static_cast<ModifierContainer*>(m_modifierContainer);
+    return modifierContainer->modifiers;
 }

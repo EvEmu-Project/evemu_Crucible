@@ -118,11 +118,11 @@ namespace EvE {
 
     double trunicate2(double dig=0);
 
-    // methods to print stack trace with file:line
+    /*// methods to print stack trace with file:line
     std::string getExecPath();
     std::string sh(std::string cmd);
     // this is SLOOOWWW as shit!
-    void traceStackLN(void);
+    void traceStackLN(void);*/
 }
 
 #endif /* !__MISC_H__INCL__ */

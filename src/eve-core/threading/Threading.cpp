@@ -18,7 +18,6 @@
 #include "log/LogNew.h"
 #include "log/logsys.h"
 
-
 Threading::Threading()
 : buf(nullptr),
  tv(timeval()),
@@ -85,25 +84,24 @@ void Threading::AddSocket(SOCKET soc) {
     ++nfds;
 }
 
-void Threading::CreateThread(void *(*start_routine) (void *), void *args) {
-    pthread_t thread;
-    int status = pthread_create( &thread, nullptr, start_routine, args);
-    if (status) {
-        _log(THREAD__ERROR, "CreateThread() - Error Creating new thread: %s", strerror(errno));
-    } else {
-        _log(THREAD__INFO, "CreateThread() - Creating new threadID 0x%X", thread);
-        AddThread(thread);
-        pthread_detach(thread);
-    }
+std::thread* Threading::CreateThread(void *(*start_routine) (void *), void *args) {
+
+    std::thread* thread = new std::thread(start_routine, args);
+    AddThread(thread);
+    thread->detach();
+
+    _log(THREAD__INFO, "CreateThread() - Creating new threadID 0x%X", thread->get_id());
+
+    return thread;
 }
 
-void Threading::AddThread(pthread_t thread) {
+void Threading::AddThread(std::thread* thread) {
     m_threads.push_back(thread);
     _log(THREAD__INFO, "AddThread() - Added thread ID 0x%X", thread);
 }
 
-void Threading::RemoveThread(pthread_t thread) {
-    for (std::vector<pthread_t>::iterator cur = m_threads.begin(); cur != m_threads.end(); ++cur) {
+void Threading::RemoveThread(std::thread* thread) {
+    for (std::vector<std::thread*>::iterator cur = m_threads.begin(); cur != m_threads.end(); ++cur) {
         if ((*cur) == thread) {
             _log(THREAD__INFO, "RemoveThread() called for thread ID 0x%X", thread);
             m_threads.erase(cur);
@@ -124,7 +122,7 @@ void Threading::EndThreads() {
         return;
     }
     _log(THREAD__MESSAGE, "EndThreads() - Joining %u currently active threads.", m_threads.size());
-    std::vector<pthread_t>::iterator cur = m_threads.begin();
+    std::vector<std::thread*>::iterator cur = m_threads.begin();
     while ((cur != m_threads.end())) {
         _log(THREAD__TRACE, "EndThreads() - Removing threadID 0x%X", (*cur));
         cur = m_threads.erase(cur);

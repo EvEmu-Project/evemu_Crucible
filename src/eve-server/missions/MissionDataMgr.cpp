@@ -7,7 +7,6 @@
   * @date:      24 June 2018
   *
   */
-
 #include "../EVEServerConfig.h"
 
 #include "Client.h"
@@ -529,7 +528,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         } break;
         case Mission::Type::Cosmos: {
         } break;
-        case Mission::Type::Arc: {
+        case Mission::Type::EpicArc: {
         } break;
         case Mission::Type::Anomic: {
         } break;
@@ -552,7 +551,7 @@ std::string MissionDataMgr::GetTypeName(uint8 typeID)
         case Data:              return "Data";
         case Storyline:         return "Storyline";
         case Cosmos:            return "Cosmos";
-        case Arc:               return "Arc";
+        case EpicArc:           return "Arc";
         case Anomic:            return "Anomic";
         case Burner:            return "Burner";
         default:                return "Invalid";
@@ -572,7 +571,7 @@ std::string MissionDataMgr::GetTypeLabel(uint8 typeID)
         case Data:              return "UI/Agents/MissionTypes/Data";
         case Storyline:         return "UI/Agents/MissionTypes/Storyline";
         case Cosmos:            return "UI/Agents/MissionTypes/Cosmos";
-        case Arc:               return "UI/Agents/MissionTypes/EpicArc";
+        case EpicArc:           return "UI/Agents/MissionTypes/EpicArc";
         case Anomic:            return "UI/Agents/MissionTypes/Anomic";
         case Burner:            return "UI/Agents/MissionTypes/Burner";
         default:                return "Invalid";

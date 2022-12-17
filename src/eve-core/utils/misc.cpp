@@ -23,11 +23,7 @@
     Author:     Zhur
 */
 
-// { backtrace, backtrace_symbols, backtrace_symbols_fd } header file.
-#include "execinfo.h"
-
 // headers for stack trace with File and Line numbers
-#include <unistd.h>
 #include <zconf.h>
 #include "regex"
 
@@ -36,6 +32,7 @@
 
 #include "utils/misc.h"
 #include "utils/utils_string.h"
+#include "utils/CallStack.h"
 
 static uint16 crc16_table[ 256 ] =
 {
@@ -176,27 +173,13 @@ double EvE::max(double x, double y, double z)
 
 void EvE::traceStack(void)
 {
-    uint8 j(0), nptrs(0);
-    #define SIZE 100
-    void *buffer[100];
-    char **strings;
+    std::vector<debug::CallStack::CallInfo> callStack;
+    debug::CallStack::GetCalls(callStack);
 
-    nptrs = backtrace(buffer, SIZE);
-    printf("backtrace() returned %i addresses\n", nptrs);
-
-    /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
-     *       would produce similar output to the following: */
-
-    strings = backtrace_symbols(buffer, nptrs);
-    if (!strings) {
-        printf("backtrace symbols error");
-        return;
+    for (int i = 0; i < callStack.size(); ++i)
+    {
+        printf("[%3d] %15p: %s in %s\n", callStack.size() - i, callStack[i].offset, callStack[i].function.c_str(), callStack[i].module.c_str());
     }
-
-    for (j = 0; j < nptrs; ++j)
-        printf("%s\n", strings[j]);
-
-    free(strings);
 }
 
 bool EvE::icontains(std::string data, std::string toSearch, size_t pos/*0*/)
@@ -289,7 +272,7 @@ double EvE::trunicate2(double dig)
     //return (double)((int)dig*100)/100;
 }
 
-std::string EvE::getExecPath()
+/*std::string EvE::getExecPath()
 {
     char result[PATH_MAX];
     ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
@@ -346,4 +329,4 @@ void EvE::traceStackLN(void)
     }
 
     free(strings);
-}
+}*/

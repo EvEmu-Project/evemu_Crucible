@@ -29,6 +29,7 @@
 #include "PyService.h"
 #include "PyBoundObject.h"
 #include "station/ReprocessingDB.h"
+#include "station/Station.h"
 
 class ReprocessingService
 : public PyService

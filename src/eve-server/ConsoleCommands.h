@@ -74,12 +74,18 @@ private:
     bool m_haltServer;
     bool m_dbError;
 
+    bool HandleCommand(const char* buf);
     void SendMessage(const char *msg);
     void Status(std::string& state, int64& threads, float& vm_usage, float& resident_set, float& user, float& kernel);
 
     void Test();
     void FxProc(uint8 idx=0);
 
+    std::condition_variable m_inputCondition;
+    std::mutex m_inputMutex;
+    std::deque<std::string> m_input;
+    std::deque<std::string> m_inputToProcess;
+    std::thread* m_inputThread;
 };
 
 //Singleton

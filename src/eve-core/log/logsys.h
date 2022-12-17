@@ -37,8 +37,13 @@
  *
  * this is very C-ish, not C++ish, but thats how I felt like writting it
  *
+ *
+ *
  */
 
+#ifndef _WIN32
+#include <execinfo.h>
+#endif
 
 #define LOG_CATEGORY(category) LOG_ ##category ,
 enum LogCategory

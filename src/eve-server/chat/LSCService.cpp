@@ -24,9 +24,9 @@
     Rewrite:    Allan  (incomplete)
 */
 
-#include <boost/algorithm/string.hpp>
-
 #include "eve-server.h"
+
+#include <boost/algorithm/string.hpp>
 
 #include "PyServiceCD.h"
 #include "admin/CommandDispatcher.h"

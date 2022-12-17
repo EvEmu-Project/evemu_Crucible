@@ -281,9 +281,9 @@ ADD_LIBRARY( "${TARGET_NAME}"
              ${tables_INCLUDE}         ${tables_SOURCE}
              ${utils_INCLUDE}          ${utils_SOURCE} )
 
-TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/eve-common.h"
-                  "${TARGET_SOURCE_DIR}/utils/EVEUtils.cpp" )
+
+target_precompile_headers( "${TARGET_NAME}" PUBLIC
+                  "${TARGET_INCLUDE_DIR}/eve-common.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${UTF8CPP_INCLUDE_DIRS}
                             ${UTILS_INCLUDE_DIRS}

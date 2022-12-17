@@ -10,7 +10,7 @@
 #ifndef EVE_THREADING_H
 #define EVE_THREADING_H
 
-#include <pthread.h>
+#include <thread>
 
 #include "../eve-core.h"
 #include "utils/Singleton.h"
@@ -26,9 +26,9 @@ public:
     void RunLoop();
     void Process();
     void AddSocket(SOCKET soc);
-    void AddThread(pthread_t thread);
-    void RemoveThread(pthread_t thread);
-    void CreateThread(void *(*start_routine) (void *), void *args);
+    void AddThread(std::thread* thread);
+    void RemoveThread(std::thread* thread);
+    std::thread* CreateThread(void *(*start_routine) (void *), void *args);
     void EndThreads();
     void ListThreads();
 
@@ -45,7 +45,7 @@ protected:
     uint32 bufferLen;
 
 private:
-    std::vector<pthread_t> m_threads;
+    std::vector<std::thread*> m_threads;
 };
 
 //Singleton

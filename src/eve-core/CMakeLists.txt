@@ -50,7 +50,12 @@ SET( math_SOURCE
 
 SET( memory_INCLUDE
      "${TARGET_INCLUDE_DIR}/memory/RefPtr.h"
-     "${TARGET_INCLUDE_DIR}/memory/SafeMem.h" )
+     "${TARGET_INCLUDE_DIR}/memory/SafeMem.h" 
+     "${TARGET_INCLUDE_DIR}/memory/Allocator.h" 
+     "${TARGET_INCLUDE_DIR}/memory/StackAllocator.h" )
+SET( memory_SOURCE
+     "${TARGET_SOURCE_DIR}/memory/Allocator.cpp" 
+     "${TARGET_SOURCE_DIR}/memory/StackAllocator.cpp" )
 
 SET( network_INCLUDE
      "${TARGET_INCLUDE_DIR}/network/NetUtils.h"
@@ -88,7 +93,8 @@ SET( utils_INCLUDE
      "${TARGET_INCLUDE_DIR}/utils/utils_string.h"
      "${TARGET_INCLUDE_DIR}/utils/utils_time.h"
      "${TARGET_INCLUDE_DIR}/utils/XMLParser.h"
-     "${TARGET_INCLUDE_DIR}/utils/XMLParserEx.h" )
+     "${TARGET_INCLUDE_DIR}/utils/XMLParserEx.h"
+     "${TARGET_INCLUDE_DIR}/utils/CallStack.h" )
 SET( utils_SOURCE
      "${TARGET_SOURCE_DIR}/utils/crc32.cpp"
      "${TARGET_SOURCE_DIR}/utils/Deflate.cpp"
@@ -100,7 +106,8 @@ SET( utils_SOURCE
      "${TARGET_SOURCE_DIR}/utils/utils_hex.cpp"
      "${TARGET_SOURCE_DIR}/utils/utils_string.cpp"
      "${TARGET_SOURCE_DIR}/utils/utils_time.cpp"
-     "${TARGET_SOURCE_DIR}/utils/XMLParser.cpp" )
+     "${TARGET_SOURCE_DIR}/utils/XMLParser.cpp"
+     "${TARGET_SOURCE_DIR}/utils/CallStack.cpp" )
 
 #####################
 # Setup the library #
@@ -120,6 +127,7 @@ SOURCE_GROUP( "src\\database"  FILES ${database_SOURCE} )
 #SOURCE_GROUP( "src\\error"     FILES ${error_SOURCE} )
 SOURCE_GROUP( "src\\log"       FILES ${log_SOURCE} )
 SOURCE_GROUP( "src\\math"      FILES ${math_SOURCE} )
+SOURCE_GROUP( "src\\memory"    FILES ${memory_SOURCE} )
 SOURCE_GROUP( "src\\network"   FILES ${network_SOURCE} )
 SOURCE_GROUP( "src\\threading" FILES ${threading_SOURCE} )
 SOURCE_GROUP( "src\\utils"     FILES ${utils_SOURCE} )
@@ -130,14 +138,13 @@ ADD_LIBRARY( "${TARGET_NAME}"
              #${error_INCLUDE}     ${error_SOURCE}
              ${log_INCLUDE}       ${log_SOURCE}
              ${math_INCLUDE}      ${math_SOURCE}
-             ${memory_INCLUDE}
+             ${memory_INCLUDE}    ${memory_SOURCE}
              ${network_INCLUDE}   ${network_SOURCE}
              ${threading_INCLUDE} ${threading_SOURCE}
              ${utils_INCLUDE}     ${utils_SOURCE} )
 
-TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/eve-core.h"
-                  "${TARGET_SOURCE_DIR}/eve-compat.cpp" )
+target_precompile_headers( "${TARGET_NAME}" PUBLIC
+                  "${TARGET_INCLUDE_DIR}/eve-core.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${Boost_INCLUDE_DIRS}
                             ${MYSQL_INCLUDE_DIRS}

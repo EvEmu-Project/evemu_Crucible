@@ -47,9 +47,8 @@ IF( NOT EVEMU_TARGETS_IMPORT )
   ADD_EXECUTABLE( "${TARGET_NAME}"
                   ${INCLUDE} ${SOURCE} )
 
-  TARGET_BUILD_PCH( "${TARGET_NAME}"
-                    "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h"
-                    "${TARGET_SOURCE_DIR}/eve-xmlpktgen.cpp" )
+  target_precompile_headers( "${TARGET_NAME}" PUBLIC
+                  "${TARGET_INCLUDE_DIR}/eve-xmlpktgen.h" )
   TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                               ${eve-core_INCLUDE_DIRS}
                               "${TARGET_INCLUDE_DIR}" )

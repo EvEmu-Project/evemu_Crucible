@@ -105,7 +105,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, PyServiceMgr* services, cons
             str << "typical use is .tr locationID<br>";  //35
             str << "<br>As there are too many options to explain in this msg, a full usage list can be found on our forums.<br>";  //105
             int size = 500;
-            char reply[size];
+            char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
             snprintf(reply, size, str.str().c_str());
             pClient->SendInfoModalMsg(reply);
             return nullptr;

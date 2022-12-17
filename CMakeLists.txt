@@ -62,7 +62,13 @@ INCLUDE( "DetectScm" )
 # override the setup.
 #
 # Switch to the C++11 standard (required)
-SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
+IF (WIN32)
+  set (CMAKE_CXX_STANDARD 11)
+  SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
+  link_libraries(DbgHelp.lib)
+ELSE()
+  SET( CMAKE_CXX_FLAGS "-std=gnu++11 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
+ENDIF()
 # -Wall -Wextra -Weffc++ -Wconversion -Wdouble-promotion
 # -pg -ggdb -pedantic
 # -fsanitize=thread  -fsanitize=address

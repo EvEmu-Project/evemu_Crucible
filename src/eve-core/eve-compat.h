@@ -64,8 +64,20 @@ int    CreateDirectory( const char* name, void* );
 /*************************************************************************/
 /* winsock2.h                                                            */
 /*************************************************************************/
-#ifndef HAVE_WINSOCK2_H
+#ifdef HAVE_WINSOCK2_H
+typedef int SOCKLEN_T;
+typedef SOCKLEN_T* PSOCKLEN_T;
+
+#   define SHUT_RD      SD_RECEIVE
+#   define SHUT_WR      SD_SEND
+#   define SHUT_RDWR    SD_BOTH
+
+#   define MSG_DONTWAIT 0
+#   define MSG_MORE     MSG_PARTIAL
+#else
 typedef int SOCKET;
+typedef unsigned int SOCKLEN_T;
+typedef SOCKLEN_T* PSOCKLEN_T;
 
 #   define INVALID_SOCKET -1
 #   define SOCKET_ERROR   -1
@@ -103,11 +115,11 @@ typedef int SOCKET;
 #ifndef HAVE_ISNAN
 //#   if defined( HAVE_STD_ISNAN )
 //#       define isnan std::isnan
-#   if defined( HAVE__ISNAN )
-#       define isnan _isnan
+//#   if defined( HAVE__ISNAN )
+//#       define isnan _isnan
 //#   elif defined( HAVE___ISNAN )
 //#       define isnan __isnan
-#   endif
+//#   endif
 #endif /* !HAVE_ISNAN */
 
 /*************************************************************************/
