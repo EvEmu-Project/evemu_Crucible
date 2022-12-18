@@ -27,9 +27,7 @@
 namespace Memory
 {
     Allocator::Allocator()
-    {
-        
-    }
+    {}
 
     Allocator::~Allocator() 
     {

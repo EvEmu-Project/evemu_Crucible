@@ -68,7 +68,6 @@ public:
 
     static void GetCalls(vector<CallStack::CallInfo>& calls); // Get the call information.
     static string Demangle(const char* name);                 // Demangle the C++ function name.
-
 };
 
 }

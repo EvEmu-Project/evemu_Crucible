@@ -85,7 +85,6 @@ void Threading::AddSocket(SOCKET soc) {
 }
 
 std::thread* Threading::CreateThread(void *(*start_routine) (void *), void *args) {
-
     std::thread* thread = new std::thread(start_routine, args);
     AddThread(thread);
     thread->detach();

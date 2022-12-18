@@ -35,9 +35,7 @@ namespace Memory
 {
     StackAllocator::StackAllocator()
         : Allocator() 
-    {
-
-    }
+    {}
 
     void StackAllocator::Init(const std::size_t totalSize, std::string name, bool onlyOffsets, bool debug)
     {
