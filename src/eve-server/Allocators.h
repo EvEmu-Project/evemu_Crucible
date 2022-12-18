@@ -30,8 +30,8 @@ class Allocators
     : public Singleton<Allocators>
 {
 public:
-    Allocators();
-    ~Allocators();
+    Allocators() {};
+    ~Allocators() {};
 
     static const size_t TICK_ALLOCATOR_SIZE = 32 * 1024 * 1024; // 32 MB should be plenty
     Memory::StackAllocator tickAllocator; // This allocator will be reset every at the start of every tick so only store temporary things in it
