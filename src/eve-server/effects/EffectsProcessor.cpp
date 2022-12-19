@@ -279,7 +279,7 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
     double profileStartTime(GetTimeUSeconds());
     using namespace FX;
     //uint8 action = Action::dgmActInvalid;
-    for (auto cur : pItem->m_modifiers) {  // k,v of assoc, data<math, src, targLoc, targAttr, srcAttr, grpID, typeID>
+    for (auto cur : pItem->GetModifiers()) {  // k,v of assoc, data<math, src, targLoc, targAttr, srcAttr, grpID, typeID>
         /*
         if (cur.second.action) {
             action = cur.second.action;

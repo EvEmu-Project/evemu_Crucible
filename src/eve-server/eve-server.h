@@ -60,7 +60,8 @@
 #include "marshal/EVEMarshalOpcodes.h"
 #include "marshal/EVEMarshalStringTable.h"
 #include "marshal/EVEUnmarshal.h"
-
+// memory
+#include "memory/StackAllocator.h"
 // packets
 // TODO  work on moving these OUT of this file
 #include "packets/AccountPkts.h"
@@ -111,5 +112,6 @@
 // utils
 #include "utils/EVEUtils.h"
 
+#include "Allocators.h"
 
 #endif /* !__EVE_SERVER_H__INCL__ */

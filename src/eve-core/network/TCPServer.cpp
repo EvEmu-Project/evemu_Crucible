@@ -47,7 +47,7 @@ BaseTCPServer::~BaseTCPServer()
     // Wait until worker thread terminates
     WaitLoop();
     /*  delete thread here and remove from list */
-    sThread.RemoveThread(pthread_self());
+    sThread.RemoveThread(mThread);
 }
 
 bool BaseTCPServer::IsOpen() const
@@ -101,7 +101,7 @@ bool BaseTCPServer::Open( uint16 port, char* errbuf )
 
     unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
     mSock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
-    mSock->fcntl( F_SETFL, O_NONBLOCK );
+    mSock->setblocking( false );
     if (mSock->listen() == SOCKET_ERROR) {
         _log(TCP_SERVER__ERROR, "Open()::listen() failed, Error: %s", strerror( errno ) );
         if (errbuf)
@@ -128,7 +128,7 @@ void BaseTCPServer::StartLoop()
      * of sending to Thread class for creation and management
      * update this to use Thread class management (sThread) if management here becomes a problem.
      */
-    sThread.CreateThread(TCPServerLoop, this);
+    mThread = sThread.CreateThread(TCPServerLoop, this);
     /*
     pthread_t thread;
     pthread_create( &thread, nullptr, TCPServerLoop, this );
@@ -158,11 +158,11 @@ void BaseTCPServer::ListenNewConnections()
     Socket* sock(nullptr);
     sockaddr_in from = sockaddr_in();
     from.sin_family = AF_INET;
-    unsigned int fromlen = sizeof( from );
+    SOCKLEN_T fromlen = sizeof( from );
     MutexLock lock( mMSock );
 
     while ((sock = mSock->accept((sockaddr*)&from, &fromlen))) {
-        sock->fcntl( F_SETFL, O_NONBLOCK );
+        mSock->setblocking( false );
         unsigned int bufsize = 64 * 1024; // 64kbyte receive buffer, up from default of 8k
         sock->setopt( SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof( bufsize ) );
         // New TCP connection, this must consume the socket.

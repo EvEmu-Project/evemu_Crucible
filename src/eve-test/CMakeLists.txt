@@ -44,9 +44,11 @@ CREATE_TEST_SOURCELIST( TARGET_SOURCELIST "eve-test.cpp"
 ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${TARGET_SOURCELIST} )
 
-TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/eve-test.h"
-                  "${CMAKE_CURRENT_BINARY_DIR}/eve-test.cpp" )
+#TARGET_BUILD_PCH( "${TARGET_NAME}"
+#                  "${TARGET_INCLUDE_DIR}/eve-test.h"
+#                  "${CMAKE_CURRENT_BINARY_DIR}/eve-test.cpp" )
+target_precompile_headers( "${TARGET_NAME}" PUBLIC
+                  "${TARGET_INCLUDE_DIR}/eve-test.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${eve-common_INCLUDE_DIRS}
                             "${TARGET_INCLUDE_DIR}" )

@@ -125,6 +125,9 @@ protected:
 
     /** Worker thread acquires this mutex before it starts processing; used for thread synchronization. */
     mutable Mutex mMLoopRunning;
+
+    /** Thread */
+    std::thread* mThread;
 };
 
 /**

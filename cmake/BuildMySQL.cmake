@@ -27,8 +27,8 @@ IF( WIN32 )
 
   # Windows
   SET( PKG_ARCHIVE "${PKG_NAME}.zip" )
-  SET( PKG_IMPLIB "libmysql.lib")
-  SET( PKG_LIBRARY "libmysql.dll" )
+  SET( PKG_IMPLIB "libmariadb.lib")
+  SET( PKG_LIBRARY "libmariadb.dll" )
 
 ELSEIF( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
   IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )

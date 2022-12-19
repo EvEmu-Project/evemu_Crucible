@@ -7,7 +7,6 @@
  * @Author:         Allan
  * @date:   13 November 2018
  */
-
 #include "../StaticDataMgr.h"
 #include "agents/Agent.h"
 #include "map/MapData.h"
@@ -110,7 +109,7 @@ void MapData::GetMissionDestination(Agent* pAgent, uint8 misionType, MissionOffe
         case Research: {
             //destRange += m_data.level *2;
         } break;
-        case Arc:
+        case EpicArc:
         case Anomic:
         case Burner:
         case Cosmos: {

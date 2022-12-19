@@ -59,8 +59,8 @@ class Profiler
 : public Singleton<Profiler>
 {
 public:
-    Profiler();
-    ~Profiler();
+    Profiler() {};
+    ~Profiler() {};
 
     int Initialize();
 

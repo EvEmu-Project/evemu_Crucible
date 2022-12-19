@@ -111,10 +111,13 @@
 #   include <vld.h>
 #endif /* HAVE_VLD_H */
 
-/* *nix includes */
-// these are quite specific...should be in files that use them, NOT here.
+#ifdef _WIN32
+typedef unsigned int uint;
+typedef unsigned long ulong;
+#else /* *nix includes */
 #include <dirent.h>
 #include <fcntl.h>
+#endif
 
 #ifndef HAVE_ASINH
 #   include <boost/math/special_functions.hpp>

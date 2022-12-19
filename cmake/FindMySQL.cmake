@@ -11,7 +11,7 @@
 # we need to find the dynamic library here; it seems to be
 # mysqlclient on Linux, but libmysql on Windows ...
 IF( WIN32 )
-  LIST( APPEND MYSQL_NAMES "libmysql" )
+  LIST( APPEND MYSQL_NAMES "libmariadb" )
 ELSE( WIN32 )
   LIST( APPEND MYSQL_NAMES "mysqlclient_r" "mysqlclient" )
 ENDIF( WIN32 )

@@ -294,7 +294,7 @@ bool CommandDB::NotFullyLearnedSkillList(CommandDB::charSkillStates &skillList, 
         if (row.IsNull(1)) {
             value.second = -1;
         } else {
-            value.second = row.GetInt(3);
+            value.second = row.GetInt(2);
         }
         skillList.push_back(value);
     }

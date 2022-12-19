@@ -48,7 +48,12 @@ Socket::~Socket()
 {
     ::shutdown( mSock, SHUT_RD );
     ::shutdown( mSock, SHUT_WR );
+
+#if _WIN32
+    ::closesocket( mSock );
+#else
     ::close( mSock );
+#endif
 }
 
 int Socket::connect( const sockaddr* name, unsigned int namelen )
@@ -61,9 +66,9 @@ unsigned int Socket::recv( void* buf, unsigned int len, int flags )
     return ::recv( mSock, (char*)buf, len, flags );
 }
 
-unsigned int Socket::recvfrom( void* buf, unsigned int len, int flags, sockaddr* from, unsigned int* fromlen )
+unsigned int Socket::recvfrom( void* buf, unsigned int len, int flags, sockaddr* from, PSOCKLEN_T fromlen )
 {
-    return ::recvfrom( mSock, buf, len, flags, from, fromlen );
+    return ::recvfrom( mSock, (char*)buf, len, flags, from, fromlen );
 }
 
 unsigned int Socket::send( const void* buf, unsigned int len, int flags )
@@ -86,7 +91,7 @@ int Socket::listen( int backlog )
     return ::listen( mSock, backlog );
 }
 
-Socket* Socket::accept( sockaddr* addr, unsigned int* addrlen )
+Socket* Socket::accept( sockaddr* addr, PSOCKLEN_T addrlen )
 {
     SOCKET sock = ::accept( mSock, addr, addrlen );
 
@@ -101,7 +106,15 @@ int Socket::setopt( int level, int optname, const void* optval, unsigned int opt
     return ::setsockopt( mSock, level, optname, (const char*)optval, optlen );
 }
 
-int Socket::fcntl( int cmd, long arg )
+int Socket::setblocking( bool blocking )
 {
-    return ::fcntl( mSock, cmd, arg );
+#if _WIN32
+    unsigned long mode = blocking ? 0 : 1;
+    return ::ioctlsocket( mSock, FIONBIO, &mode );
+#else
+    int flags = ::fcntl( mSock, F_GETFL, 0 );
+    if ( flags == -1 ) return false;
+    flags = blocking ? ( flags & ~O_NONBLOCK ) : ( flags | O_NONBLOCK );
+    return ::fcntl( mSock, F_SETFL, flags );
+#endif
 }

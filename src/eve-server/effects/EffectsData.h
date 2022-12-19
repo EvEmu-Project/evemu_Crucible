@@ -66,18 +66,6 @@ struct TypeEffects {
     uint16 effectID;
 };
 
-struct fxData {
-    int8 math;          // math used on data
-    int8 fxSrc;         // effect source location
-    int8 targLoc;       // effect target location
-    uint8 action;       // effect *DOES* something (module action aside from modification)
-    uint16 targAttr;
-    uint16 srcAttr;
-    uint16 grpID;       // used to define items in env grouped by item groupID
-    uint16 typeID;      // used to define items in env grouped by skill requirement
-    InventoryItemRef srcRef;   // source item ref, if required
-};
-
 typedef std::map<uint16, Effect> effectMapType;
 
 // these tables are used to decode fields in Effects table

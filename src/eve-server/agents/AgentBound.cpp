@@ -829,7 +829,7 @@ PyTuple* AgentBound::GetMissionObjectives(Client* pClient, MissionOffer& offer)
             objectives->SetItem(0, objType);
         } break;
         case Mission::Type::Anomic:
-        case Mission::Type::Arc:
+        case Mission::Type::EpicArc:
         case Mission::Type::Burner:
         case Mission::Type::Cosmos:
         case Mission::Type::Data:

@@ -579,6 +579,8 @@ int main( int argc, char* argv[] )
     }
     std::printf("\n");     // spacer
 
+    sAllocators.tickAllocator.Init(Allocators::TICK_ALLOCATOR_SIZE, "TickAllocator");
+
     /* Start up the TCP server */
     EVETCPServer tcps;
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
@@ -624,7 +626,7 @@ int main( int argc, char* argv[] )
     Sleep(250);
 
     sThread.Initialize();
-    sLog.Green( "        Threading", "Starting Main Loop thread with ID 0x%X", pthread_self() );
+    sLog.Green( "        Threading", "Starting Main Loop thread with ID 0x%X", std::this_thread::get_id() );
     //sThread.AddThread(pthread_self());
     std::printf("\n");     // spacer
 
@@ -896,6 +898,8 @@ int main( int argc, char* argv[] )
         Timer::SetCurrentTime();
         start = GetTickCount();
 
+        sAllocators.tickAllocator.Reset();
+
         /* Freeze Detector Code */
         //++m_worldLoopCounter;
 
@@ -978,6 +982,9 @@ int main( int argc, char* argv[] )
 static void SetupSignals()
 {
     /* setup sigaction to prevent zombies and catch other non-fatal signals */
+#ifdef _WIN32
+
+#else
     struct sigaction sa;
     sa.sa_handler = SIG_IGN;
     sa.sa_flags = SA_NOCLDWAIT;
@@ -994,6 +1001,7 @@ static void SetupSignals()
         perror("SigPipe Failure");
         return;
     }
+#endif
 
     //::signal( SIGPIPE, SIG_IGN );
     //::signal( SIGCHLD, SIG_IGN );

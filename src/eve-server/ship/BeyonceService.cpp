@@ -592,9 +592,14 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
         // this will need adjustment for warping to bookmarks
         warpToPoint = pSE->GetPosition();
         if (pSE->IsPlanetSE()) {
+#if _WIN32
+            srand(toID);  //this is the only place random() is used....other random functions use rand() as it's non-repeatable.
+            int rando = rand();
+#else
             srandom(toID);  //this is the only place random() is used....other random functions use rand() as it's non-repeatable.
-            int rand = random();
-            double j = (((rand / RAND_MAX) - 1.0f) / 3.0f);
+            int rando = random();
+#endif
+            double j = (((rando / RAND_MAX) - 1.0f) / 3.0f);
             double s = 20 * std::pow(0.025f * (10 * std::log10(radius / 1000000) - 39), 20) + 0.5f;
             s = EvE::max(0.5f, EvE::min(s, 10.5f));
             double t = std::asin((warpToPoint.x / std::fabs(warpToPoint.x)) * (warpToPoint.z / std::sqrt(std::pow(warpToPoint.x, 2) + std::pow(warpToPoint.z, 2)))) + j;
