@@ -598,29 +598,38 @@ PyResult Command_giveallskills(Client* who, CommandDB* db, PyServiceMgr* service
                 skill = character->GetCharSkillRef(skillID);
                 skill->SetAttribute(AttrSkillLevel, level);
                 skill->SetAttribute(AttrSkillPoints, skill->GetSPForLevel(level));
-                if (skill->flag() == flagSkillInTraining) {
-                    skill->SetFlag(flagSkill, false);
-                }
+                character->RemoveFromQueue(skill);
             } else {
-                ItemData idata(skillID, ownerID, ownerID, flagSkill, 1);
-                InventoryItemRef item = sItemFactory.SpawnItem(idata);
+                std::ostringstream str;
+                str << "Skill Gift by ";
+                str << who->GetCharName();
+                ItemData idata(skillID, ownerID, pTarget->GetLocationID(), flagSkill, 1, str.str().c_str());
+                skill = sItemFactory.SpawnSkill(idata);
 
-                if (item.get() == nullptr) {
-                    throw CustomError ("Unable to create item of type %s.", item->typeID());
-                } else {
-                    skill = SkillRef::StaticCast(item);
-                    skill->SetAttribute(AttrSkillLevel, level);
-                    skill->SetAttribute(AttrSkillPoints, skill->GetSPForLevel(level));
-                }
+                if (skill.get() == nullptr)
+                    throw CustomError ("Unable to create item of type %s.", skill->typeID());
+
+                skill->SetAttribute(AttrSkillLevel, level);
+                skill->SetAttribute(AttrSkillPoints, skill->GetSPForLevel(level));
+                // this will inform the client that the skill got injected into their brains!
+                skill->ChangeSingleton(true);
+                skill->Move(ownerID, flagSkill, true);
             }
+
+            OnAdminSkillChange oasc;
+            oasc.skillItemID = skill->itemID();
+            oasc.skillTypeID = skillID;
+            oasc.newSP = skill->GetSPForLevel(level);
+            PyTuple* tmp = oasc.Encode();
+            pTarget->QueueDestinyEvent(&tmp);
 
             //  save gm skill gift in history  -allan
             //  maybe not for this....WAAAAYYY  to much DB traffic for this.
-            //character->SaveSkillHistory(EvESkill::Event::GMGift, Win32TimeNow(), ownerID, skillID.get_uint32(), level, \
+            character->SaveSkillHistory(EvESkill::Event::GMGift, Win32TimeNow(), ownerID, skillID, level, \
             skill->GetAttribute(AttrSkillPoints).get_double());
         }
         // END LOOP
-        pTarget->SendErrorMsg("You need to relog for skills to get saved and show in character sheet.");
+        // pTarget->SendErrorMsg("You need to relog for skills to get saved and show in character sheet.");
         return new PyString ("Gifting skills complete");
     }
 
