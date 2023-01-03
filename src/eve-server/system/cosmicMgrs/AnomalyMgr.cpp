@@ -139,8 +139,12 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
 
     m_procTimer.Start(1000); // Initial 5s timer to ensure everything gets loaded correctly
     // populate the type vector with all of the anomaly types we will use in this system
-    for (int i = 0; i < m_maxSigs; i++) {
+    for (int i = 0; i < m_maxSigs; i++) { // anomaly and signature count should be accounted for while fillimg the typeList vector
         m_typeList.push_back(GetDungeonType());
+    }
+    // add the required anomalies to the list so they're created at the right time
+    for (int i = 0; i < (m_maxSigs / 2); i++) {
+        m_typeList.push_back(Dungeon::Type::Anomaly);
     }
 
     // these use config option to (en/dis)able individual types
@@ -165,17 +169,15 @@ void AnomalyMgr::Process() {
         return;
     if (m_procTimer.Check(/*!sConfig.debug.IsTestServer*/)) {
         // Only generate new signals when a player is in the system
-        if (m_system->PlayerCount() > 0) {
-            // ensure that all wormholes are created at the beginning when the system is loaded
-            auto it = find(m_typeList.begin(), m_typeList.end(), Dungeon::Type::Wormhole);
-            if (it != m_typeList.end()) {
-                m_typeList.erase(m_typeList.begin()+(it - m_typeList.begin()));
-                CreateAnomaly(Dungeon::Type::Wormhole);
+        if (m_system->PlayerCount() > 0 && m_typeList.size () > 0) {
+            auto cur = m_typeList.begin();
+            auto end = m_typeList.end();
+
+            for (; cur != end; cur++) {
+                CreateAnomaly (*cur);
             }
-            if (m_Sigs < m_maxSigs)
-                CreateAnomaly();
-            if (m_Anoms < (m_maxSigs /2))
-                CreateAnomaly(Dungeon::Type::Anomaly);
+
+            m_typeList.clear();
         }
         // Once initial spawn is complete, set correct timer based upon whether this is test server or not
         if (m_firstSpawn) {
@@ -225,8 +227,18 @@ void AnomalyMgr::LoadAnomalies() {
         // Register loaded signatures
         m_dungMgr->MakeDungeon(sig);
         m_sigBySigID.emplace(sig.sigID, sig);
-        m_sigByItemID.emplace(sig.sigItemID, sig);
-        ++m_Sigs;
+        if (sig.dungeonType == Dungeon::Type::Anomaly) {
+            m_anomByItemID.emplace(sig.sigItemID, sig);
+            ++m_Anoms;
+        } else {
+            m_sigByItemID.emplace(sig.sigItemID, sig);
+
+            if (sig.dungeonType == Dungeon::Type::Wormhole) {
+                ++m_WH;
+            } else {
+                ++m_Sigs;
+            }
+        }
 
         _log(COSMIC_MGR__MESSAGE, "AnomalyMgr::LoadAnomalies() - Created Signal %s(%u) for %s in %s(%u), bubbleID %u with %.3f%% sigStrength.", \
         sDunDataMgr.GetDungeonType(sig.dungeonType), sig.dungeonType, \
@@ -258,7 +270,7 @@ void AnomalyMgr::GetAnomalyList(std::vector<CosmicSignature>& sig) {
         sig.push_back(cur.second);
 }
 
-void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
+void AnomalyMgr::CreateAnomaly(int8 typeID)
 {
     // compile data for new system anomaly.
     CosmicSignature sig = CosmicSignature();
@@ -281,11 +293,7 @@ void AnomalyMgr::CreateAnomaly(int8 typeID/*0*/)
     //if (sig.ownerID == 0)
     //    return;     // make error here?
 
-    if (typeID == 0) {
-        sig.dungeonType = m_typeList[m_anomByItemID.size() + m_sigByItemID.size()];
-    } else {  // proc calling anomaly or mission/escalation being setup.
-        sig.dungeonType = typeID;
-    }
+    sig.dungeonType = typeID;
 
     if (sig.dungeonType == 0) {
         _log(COSMIC_MGR__ERROR, "Dungeon Type returned 0 for %s in %s(%u)", \
@@ -449,7 +457,7 @@ uint8 AnomalyMgr::GetDungeonType()
             ++m_WH;
         } break;
         case Dungeon::Type::Anomaly: {   // 7. this is noob dungeon, no probe required
-            if (m_Anoms > (m_maxSigs /2))
+            if (!(m_Anoms < (m_maxSigs / 2)))
                 return GetDungeonType();
         } break;
         case Dungeon::Type::Unrated: {   // 8
