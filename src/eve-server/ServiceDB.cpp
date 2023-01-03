@@ -155,7 +155,7 @@ uint32 ServiceDB::CreateNewAccount( const char* login, const char* pass, const c
     DBerror err;
     if ( !sDatabase.RunQueryLID( err, accountID,
             "INSERT INTO account ( accountName, password, hash, role, clientID )"
-            " VALUES ( '%s', '%s', '%s', %lu, %u )",
+            " VALUES ( '%s', '%s', '%s', %llu, %u )",
                     login, pass, passHash, role, clientID ) )
     {
         sLog.Error( "ServiceDB", "Failed to create a new account '%s':'%s': %s.", login, pass, err.c_str() );
