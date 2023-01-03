@@ -36,7 +36,7 @@ class AnomalyMgr
     void Close();
     void Process();
 
-    void CreateAnomaly(int8 typeID=0);
+    void CreateAnomaly(int8 typeID);
     void SaveAnomaly(CosmicSignature& sig);
     void LoadAnomalies();
 
