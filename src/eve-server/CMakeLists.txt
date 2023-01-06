@@ -636,6 +636,15 @@ SET( test_INCLUDE
 SET( test_SOURCE
     "${TARGET_SOURCE_DIR}/testing/test.cpp")
 
+SET( services_INCLUDE
+     "${TARGET_INCLUDE_DIR}/services/Service.h"
+     "${TARGET_INCLUDE_DIR}/services/BoundService.h"
+     "${TARGET_INCLUDE_DIR}/services/ServiceManager.h")
+SET( services_SOURCE
+     "${TARGET_INCLUDE_DIR}/services/Service.cpp"
+     "${TARGET_INCLUDE_DIR}/services/BoundService.cpp"
+     "${TARGET_INCLUDE_DIR}/services/ServiceManager.cpp")
+
 ########################
 # Setup the executable #
 ########################
@@ -668,6 +677,7 @@ SOURCE_GROUP( "src\\planet"        FILES ${planet_INCLUDE} )
 SOURCE_GROUP( "src\\pos"           FILES ${pos_INCLUDE} )
 SOURCE_GROUP( "src\\qaTools"       FILES ${qaTools_INCLUDE} )
 SOURCE_GROUP( "src\\search"        FILES ${search_INCLUDE} )
+SOURCE_GROUP( "src\\services"      FILES ${services_INCLUDE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_INCLUDE} )
 SOURCE_GROUP( "src\\ship\\modules" FILES ${ship_modules_INCLUDE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_INCLUDE} )
@@ -706,6 +716,7 @@ SOURCE_GROUP( "src\\planet"        FILES ${planet_SOURCE} )
 SOURCE_GROUP( "src\\pos"           FILES ${pos_SOURCE} )
 SOURCE_GROUP( "src\\qaTools"       FILES ${qaTools_SOURCE} )
 SOURCE_GROUP( "src\\search"        FILES ${search_SOURCE} )
+SOURCE_GROUP( "src\\services"      FILES ${services_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
 SOURCE_GROUP( "src\\ship\\modules" FILES ${ship_modules_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
@@ -745,6 +756,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${pos_INCLUDE}            ${pos_SOURCE}
                 ${qaTools_INCLUDE}        ${qaTools_SOURCE}
                 ${search_INCLUDE}         ${search_SOURCE}
+                ${services_INCLUDE}       ${services_SOURCE}
                 ${ship_INCLUDE}           ${ship_SOURCE}
                 ${ship_modules_INCLUDE}   ${ship_modules_SOURCE}
                 ${standing_INCLUDE}       ${standing_SOURCE}
