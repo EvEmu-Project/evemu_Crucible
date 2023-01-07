@@ -142,12 +142,29 @@ private:
 };
 
 /**
+ * @brief Base class used to abstract the dispatch part of the services
+ * 
+ * Used by the service manager to dispatch calls
+ */
+class Dispatcher {
+public:
+    /** Indicates what access level the service has to prevent clients from calling any methods when they shouldn't */
+    virtual const AccessLevel GetAccessLevel() const = 0;
+    /** Indicates the name of the service */
+    virtual const std::string& GetName() const = 0;
+    /**
+     * @brief Handles dispatching a call to this service
+     */
+    virtual PyResult Dispatch(const std::string& name, PyCallArgs& args) = 0;
+};
+
+/**
  * @brief Represents an EVE Online service that exposes methods for clients to call
  * 
  * @author Almamu
  */
 template<class T>
-class Service {
+class Service : public Dispatcher {
 protected:
     Service(const std::string& name, AccessLevel level = AccessLevel::None);
 
@@ -157,15 +174,16 @@ protected:
     void add (const std::string& name, CallHandler <T> handler);
 
 public:
+
     /** Indicates what access level the service has to prevent clients from calling any methods when they shouldn't */
-    const AccessLevel GetAccessLevel() const;
+    const AccessLevel GetAccessLevel() const override;
     /** Indicates the name of the service */
-    const std::string& GetName() const;
+    const std::string& GetName() const override;
 
     /**
      * @brief Handles dispatching a call to this service
      */
-    PyResult Dispatch(const std::string& name, PyCallArgs& args);
+    PyResult Dispatch(const std::string& name, PyCallArgs& args) override;
 
 private:
     /** @var The name of the service */
@@ -185,5 +203,6 @@ public:
 };
 
 template class Service<MachoNetServiceTest>;
+template struct CallHandler<MachoNetServiceTest>;
 
 #endif /* !__SERVICE_H__ */

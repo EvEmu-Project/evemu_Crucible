@@ -26,6 +26,21 @@
 #ifndef __SERVICEMANAGER_H__
 #define __SERVICEMANAGER_H__
 
+#include <map>
+#include <string>
 
+#include "Service.h"
+
+class EVEServiceManager {
+public:
+    EVEServiceManager();
+
+    void Register (Dispatcher* service);
+
+    PyResult Dispatch(const std::string& service, const std::string& method, PyCallArgs& args);
+
+private:
+    std::map <std::string, Dispatcher*> mServices;
+};
 
 #endif /* !__SERVICEMANAGER_H__ */

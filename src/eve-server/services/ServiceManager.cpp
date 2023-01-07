@@ -22,3 +22,22 @@
     ------------------------------------------------------------------------------------
     Author:        Almamu
 */
+
+#include "ServiceManager.h"
+
+EVEServiceManager::EVEServiceManager()
+{
+}
+
+void EVEServiceManager::Register(Dispatcher* service) {
+    this->mServices.insert(std::make_pair(service->GetName(), service));
+}
+
+PyResult EVEServiceManager::Dispatch(const std::string& service, const std::string& method, PyCallArgs& args) {
+    auto it = this->mServices.find(service);
+
+    if (it == this->mServices.end())
+        throw std::runtime_error("Cannot find the requested service");
+
+    return (*it).second->Dispatch(method, args);
+}
