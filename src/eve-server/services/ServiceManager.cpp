@@ -25,7 +25,9 @@
 
 #include "ServiceManager.h"
 
-EVEServiceManager::EVEServiceManager()
+EVEServiceManager::EVEServiceManager(NodeID nodeId) :
+    mLastBoundId (1),
+    mNodeId (nodeId)
 {
 }
 
@@ -33,11 +35,31 @@ void EVEServiceManager::Register(Dispatcher* service) {
     this->mServices.insert(std::make_pair(service->GetName(), service));
 }
 
+BoundID EVEServiceManager::RegisterBoundService(BoundDispatcher* service) {
+    BoundID newBoundId = this->mLastBoundId++;
+
+    // add the bound service to the list
+    this->mBound.insert(
+        std::make_pair(newBoundId, service)
+    );
+
+    return newBoundId;
+}
+
 PyResult EVEServiceManager::Dispatch(const std::string& service, const std::string& method, PyCallArgs& args) {
     auto it = this->mServices.find(service);
 
     if (it == this->mServices.end())
         throw std::runtime_error("Cannot find the requested service");
+
+    return (*it).second->Dispatch(method, args);
+}
+
+PyResult EVEServiceManager::Dispatch(const BoundID& service, const std::string& method, PyCallArgs& args) {
+    auto it = this->mBound.find(service);
+
+    if (it == this->mBound.end())
+        throw std::runtime_error("Cannot find the requested bound service");
 
     return (*it).second->Dispatch(method, args);
 }

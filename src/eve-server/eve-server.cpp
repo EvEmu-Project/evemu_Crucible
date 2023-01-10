@@ -197,7 +197,7 @@ static volatile bool m_run = true;
 int main( int argc, char* argv[] )
 {
     // perform some tests with the new service system to ensure it works fine
-    EVEServiceManager mgr;
+    EVEServiceManager mgr(0xFFAA);
 
     mgr.Register(new MachoNetServiceTest());
 

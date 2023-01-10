@@ -158,7 +158,7 @@ const std::string& Service<T>::GetName() const {
 }
 
 template<class T>
-void Service<T>::add (const std::string& name, CallHandler <T> handler) {
+void Service<T>::Add (const std::string& name, CallHandler <T> handler) {
     this->mHandlers.push_back(std::make_pair (std::string (name), handler));
 }
 
@@ -168,8 +168,6 @@ PyResult Service<T>::Dispatch(const std::string& name, PyCallArgs& args) {
         if (handler.first != name)
             continue;
 
-        // try to call the function, might be a good idea to first check if it matches
-        // to make our lifes easier
         try
         {
             return handler.second(reinterpret_cast <T*> (this), args);
@@ -186,14 +184,13 @@ PyResult Service<T>::Dispatch(const std::string& name, PyCallArgs& args) {
 MachoNetServiceTest::MachoNetServiceTest() :
     Service ("machoNet")
 {
-    this->add("test", &MachoNetServiceTest::test);
-    this->add("secondTest", &MachoNetServiceTest::secondTest);
+    this->Add("test", &MachoNetServiceTest::test);
+    this->Add("secondTest", &MachoNetServiceTest::secondTest);
 }
 
 PyResult MachoNetServiceTest::test (PyCallArgs& args, PyBool* boolean) {
     return new PyString("Hello World");
 }
-
 
 PyResult MachoNetServiceTest::secondTest(PyCallArgs& args, PyInt* value, std::optional<PyInt*> secondValue) {
     std::cout << value->value() << std::endl;

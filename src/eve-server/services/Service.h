@@ -65,7 +65,6 @@ struct CallHandler {
                     // like the client that sent it
                     return (service->*handler) (args);
                 } else {
-                    // TODO: validate parameters
                     if (validateArgs <std::decay_t<Args>...>(args) == false)
                         throw std::invalid_argument("arguments do not match");
 
@@ -157,7 +156,7 @@ protected:
     /**
      * @brief Registers a method handler
      */
-    void add (const std::string& name, CallHandler <T> handler);
+    void Add (const std::string& name, CallHandler <T> handler);
 
 public:
     /** Indicates what access level the service has to prevent clients from calling any methods when they shouldn't */
@@ -178,7 +177,6 @@ private:
     /** @var The map of handlers for this service */
     std::vector <std::pair <std::string, CallHandler <T>>> mHandlers;
 };
-
 
 class MachoNetServiceTest : public Service<MachoNetServiceTest> {
 public:
