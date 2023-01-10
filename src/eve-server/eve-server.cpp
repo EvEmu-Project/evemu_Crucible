@@ -768,7 +768,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("sovMgr", new SovereigntyMgrService(&pyServMgr));
     pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
-    pyServMgr.RegisterService("station", new StationService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     pyServMgr.RegisterService("tutorialSvc", new TutorialService(&pyServMgr));
     pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
@@ -777,6 +776,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
 
     newSvcMgr.Register(new ObjCacheService(sConfig.files.cacheDir.c_str()));
+    newSvcMgr.Register(new StationService());
     newSvcMgr.Register(new StationSvc(&newSvcMgr));
     newSvcMgr.Register(new WormHoleSvc());
     newSvcMgr.Register(new netStateServer());
