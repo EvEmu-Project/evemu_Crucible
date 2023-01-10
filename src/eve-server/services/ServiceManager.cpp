@@ -39,7 +39,7 @@ Dispatcher* EVEServiceManager::Lookup(const std::string& service) {
     auto it = this->mServices.find(service);
 
     if (it == this->mServices.end())
-        throw std::runtime_error("Cannot find the requested service");
+        throw service_not_found(service);
 
     return (*it).second;
 }
@@ -59,7 +59,7 @@ PyResult EVEServiceManager::Dispatch(const std::string& service, const std::stri
     auto it = this->mServices.find(service);
 
     if (it == this->mServices.end())
-        throw std::runtime_error("Cannot find the requested service");
+        throw service_not_found(service);
 
     return (*it).second->Dispatch(method, args);
 }
@@ -68,7 +68,7 @@ PyResult EVEServiceManager::Dispatch(const BoundID& service, const std::string& 
     auto it = this->mBound.find(service);
 
     if (it == this->mBound.end())
-        throw std::runtime_error("Cannot find the requested bound service");
+        throw service_not_found("Bound " + std::to_string(service));
 
     return (*it).second->Dispatch(method, args);
 }

@@ -36,6 +36,7 @@
 
 template<class T>
 class Service;
+class Dispatcher;
 
 enum AccessLevel {
     eAccessLevel_None = 0,
@@ -43,6 +44,18 @@ enum AccessLevel {
     eAccessLevel_LocationPreferred = 2,
     eAccessLevel_SolarSystem = 3,
     eAccessLevel_Station = 4
+};
+
+class method_not_found {
+public:
+    method_not_found(Dispatcher* service, const std::string& method) :
+        method(method),
+        service(service)
+    {
+    }
+
+    const std::string& method;
+    Dispatcher* service;
 };
 
 template <class T> struct is_optional : std::false_type {};
@@ -297,7 +310,7 @@ public:
             }
         }
 
-        throw std::runtime_error("Cannot find matching function to call");
+        throw method_not_found(this, name);
     }
 
 private:

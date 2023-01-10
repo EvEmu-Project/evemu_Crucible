@@ -2625,7 +2625,11 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
 
         handled = true;
     }
-    catch (std::runtime_error)
+    catch (method_not_found ex)
+    {
+        sLog.Error("Client::CallReq", "Unable to find method to handle call to: %s::%s", packet->dest.service.c_str(), req.method.c_str());
+    }
+    catch (service_not_found)
     {
         // ignore the error for now, this will be handled in the future
         // to report errors

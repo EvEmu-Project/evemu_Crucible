@@ -36,6 +36,16 @@ typedef uint32_t NodeID;
 #include "Service.h"
 #include "BoundService.h"
 
+class service_not_found {
+public:
+    service_not_found(const std::string& service) :
+        service(service)
+    {
+    }
+
+    const std::string& service;
+};
+
 class EVEServiceManager {
 public:
     EVEServiceManager(NodeID nodeId);
