@@ -196,30 +196,6 @@ static volatile bool m_run = true;
 
 int main( int argc, char* argv[] )
 {
-#if 0
-    // perform some tests with the new service system to ensure it works fine
-    EVEServiceManager mgr(0xFFAA);
-
-    mgr.Register(new MachoNetServiceTest());
-
-    PyTuple* tuple = new PyTuple(1);
-    PyTuple* secondTuple = new PyTuple(1);
-    PyTuple* thirdTuple = new PyTuple(2);
-
-    tuple->SetItem(0, new PyBool(true));
-    secondTuple->SetItem(0, new PyInt(420));
-    thirdTuple->SetItem(0, new PyInt(69));
-    thirdTuple->SetItem(1, new PyInt(420));
-    PyCallArgs args(nullptr, tuple, new PyDict);
-    PyCallArgs secondArgs(nullptr, secondTuple, new PyDict);
-    PyCallArgs thirdArgs(nullptr, thirdTuple, new PyDict);
-    
-    mgr.Dispatch ("machoNet", "test", args).ssResult->Dump(DEBUG__DEBUG, "Result");
-    mgr.Dispatch("machoNet", "secondTest", secondArgs).ssResult->Dump(DEBUG__DEBUG, "Result");
-    mgr.Dispatch("machoNet", "secondTest", thirdArgs).ssResult->Dump(DEBUG__DEBUG, "Result");
-
-    while (true) Sleep(1000);
-#endif
     double profileStartTime(GetTimeMSeconds());
 
     /* set current time for timer */
