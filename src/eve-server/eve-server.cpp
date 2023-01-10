@@ -730,7 +730,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("billMgr", new BillMgr(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
-    pyServMgr.RegisterService("browserLockdownSvc", new BrowserLockdownService(&pyServMgr));
     pyServMgr.RegisterService("bulkMgr", new BulkMgrService(&pyServMgr));
     pyServMgr.RegisterService("calendarProxy", new CalendarProxy(&pyServMgr));
     pyServMgr.RegisterService("calendarMgr", new CalendarMgrService(&pyServMgr));
@@ -814,6 +813,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new BrowserLockdownService());
     newSvcMgr.Register(new AuthService());
     newSvcMgr.Register(new WarRegistryService(newSvcMgr));
     std::printf("\n");     // spacer
