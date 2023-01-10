@@ -57,8 +57,12 @@ struct CallHandler {
                 auto handler = reinterpret_cast <PyResult(S::*)(PyCallArgs&, Args...)> (erasedHandler);
 
                 if constexpr (sizeof...(Args) == 0) {
-                    // allow calls with more than required arguments to go through
-                    // so methods can be implemented even if we don't care about the extra info
+                    // ensure theres no arguments in the data
+                    if (args.tuple->size() != 0)
+                        throw std::invalid_argument("expected 0 arguments");
+
+                    // all the functions must have the PyCallArgs to know important info about the call
+                    // like the client that sent it
                     return (service->*handler) (args);
                 } else {
                     if (validateArgs <std::decay_t<Args>...>(args) == false)

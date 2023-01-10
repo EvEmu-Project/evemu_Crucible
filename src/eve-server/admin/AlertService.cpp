@@ -52,7 +52,7 @@ AlertService::~AlertService()
   *      to us through BeanDelivery every 15 minutes. When we are in developer mode we should send back PyNone asking the
   *      to send us the stack trace immediately.
   */
-PyResult AlertService::BeanCount(PyCallArgs &call) {
+PyResult AlertService::BeanCount(PyCallArgs &call, PyRep* ignored) {
     _log(CLIENT__WARNING, "AlertService::Handle_BeanCount(): size=%li", call.tuple->size());
     //call.Dump(CLIENT__CALL_DUMP);
 
@@ -75,7 +75,7 @@ PyResult AlertService::BeanCount(PyCallArgs &call) {
   *      meaning that we should code a mErrorID tracker for it. To handle these.
   */
 // note:  this is a rather complicated system....
-PyResult AlertService::BeanDelivery( PyCallArgs& call )
+PyResult AlertService::BeanDelivery(PyCallArgs& call, PyList* beans)
 {
     _log(CLIENT__WARNING, "AlertService::Handle_BeanDelivery(): size=%li", call.tuple->size());
     //call.Dump(CLIENT__CALL_DUMP);
@@ -85,7 +85,7 @@ PyResult AlertService::BeanDelivery( PyCallArgs& call )
     return PyStatic.NewNone();
 }
 
-PyResult AlertService::GroupBeanDelivery( PyCallArgs& call )
+PyResult AlertService::GroupBeanDelivery(PyCallArgs& call, PyBuffer* compressedBeans)
 {
     _log(CLIENT__WARNING, "AlertService::Handle_GroupBeanDelivery(): size=%u", call.tuple->size() );
     //call.Dump(CLIENT__CALL_DUMP);
@@ -103,7 +103,7 @@ PyResult AlertService::GroupBeanDelivery( PyCallArgs& call )
  * and skip the BeanDelivery system.
  * @return guess it should have PyNone back.
  */
-PyResult AlertService::SendClientStackTraceAlert(PyCallArgs &call) {
+PyResult AlertService::SendClientStackTraceAlert(PyCallArgs &call, PyTuple* stackId, PyString* stackTrace, PyString* mode, PyRep* nextErrorKeyHash) {
     _log(CLIENT__WARNING, "AlertService::Handle_SendClientStackTraceAlert(): size=%li", call.tuple->size());
     //call.Dump(CLIENT__CALL_DUMP);
     //  self.stacktraceLogMode[stackID[0]] = sm.ProxySvc('alert').SendClientStackTraceAlert(stackID, stackTrace, mode, nextErrorKeyHash)
