@@ -39,7 +39,10 @@ bool CallHandler<S>::validateArg (size_t index, PyCallArgs & args) {
 
     if (index >= args.tuple->size()) {
         return false;
-    }
+    } 
+
+    if constexpr (std::is_same_v <T, PyRep*>)
+        return true;
 
     PyRep* rep = args.tuple->GetItem(index);
 
@@ -99,6 +102,8 @@ decltype(auto) CallHandler<S>::getAs(size_t index, PyTuple* tup) {
 
     PyRep* rep = tup->GetItem(index);
 
+    if constexpr (std::is_same_v <T, PyRep*>)
+        return rep;
     if constexpr (std::is_same_v <T, PyBool*>)
         return rep->AsBool();
     if constexpr (std::is_same_v <T, PyInt*>)
