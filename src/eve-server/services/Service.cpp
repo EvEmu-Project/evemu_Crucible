@@ -43,6 +43,7 @@ bool CallHandler<S>::validateArg (size_t index, PyCallArgs & args) {
 
     PyRep* rep = args.tuple->GetItem(index);
 
+    // validate type with their parameter equivalent
     if constexpr (std::is_same_v <T, PyBool*>)
         return rep->IsBool();
     if constexpr (std::is_same_v <T, PyInt*>)
@@ -51,6 +52,32 @@ bool CallHandler<S>::validateArg (size_t index, PyCallArgs & args) {
         return rep->IsLong();
     if constexpr (std::is_same_v <T, PyFloat*>)
         return rep->IsFloat();
+    if constexpr (std::is_same_v <T, PyBuffer*>)
+        return rep->IsBuffer();
+    if constexpr (std::is_same_v <T, PyString*>)
+        return rep->IsString();
+    if constexpr (std::is_same_v <T, PyToken*>)
+        return rep->IsToken();
+    if constexpr (std::is_same_v <T, PyTuple*>)
+        return rep->IsTuple();
+    if constexpr (std::is_same_v <T, PyList*>)
+        return rep->IsList();
+    if constexpr (std::is_same_v <T, PyDict*>)
+        return rep->IsDict();
+    if constexpr (std::is_same_v <T, PyNone*>)
+        return rep->IsNone();
+    if constexpr (std::is_same_v <T, PySubStruct*>)
+        return rep->IsSubStruct();
+    if constexpr (std::is_same_v <T, PySubStream*>)
+        return rep->IsSubStream();
+    if constexpr (std::is_same_v <T, PyChecksumedStream*>)
+        return rep->IsChecksumedStream();
+    if constexpr (std::is_same_v <T, PyObject*>)
+        return rep->IsObject();
+    if constexpr (std::is_same_v <T, PyObjectEx*>)
+        return rep->IsObjectEx();
+    if constexpr (std::is_same_v <T, PyPackedRow*>)
+        return rep->IsPackedRow();
 
     return false;
 }
@@ -70,16 +97,42 @@ decltype(auto) CallHandler<S>::getAs(size_t index, PyTuple* tup) {
         throw std::runtime_error("This should not happen. Trying to get parameter out of bounds. What happened to the validation?!");
     }
 
-    PyRep* v = tup->GetItem(index);
+    PyRep* rep = tup->GetItem(index);
 
-    if constexpr (std::is_same_v <T, PyBool*> == true)
-        return v->AsBool();
-    else if constexpr (std::is_same_v <T, PyInt*> == true)
-        return v->AsInt();
-    else if constexpr (std::is_same_v <T, PyLong*> == true)
-        return v->AsLong();
-    else if constexpr (std::is_same_v <T, PyFloat*> == true)
-        return v->AsFloat();
+    if constexpr (std::is_same_v <T, PyBool*>)
+        return rep->AsBool();
+    if constexpr (std::is_same_v <T, PyInt*>)
+        return rep->AsInt();
+    if constexpr (std::is_same_v <T, PyLong*>)
+        return rep->AsLong();
+    if constexpr (std::is_same_v <T, PyFloat*>)
+        return rep->AsFloat();
+    if constexpr (std::is_same_v <T, PyBuffer*>)
+        return rep->AsBuffer();
+    if constexpr (std::is_same_v <T, PyString*>)
+        return rep->AsString();
+    if constexpr (std::is_same_v <T, PyToken*>)
+        return rep->AsToken();
+    if constexpr (std::is_same_v <T, PyTuple*>)
+        return rep->AsTuple();
+    if constexpr (std::is_same_v <T, PyList*>)
+        return rep->AsList();
+    if constexpr (std::is_same_v <T, PyDict*>)
+        return rep->AsDict();
+    if constexpr (std::is_same_v <T, PyNone*>)
+        return rep->AsNone();
+    if constexpr (std::is_same_v <T, PySubStruct*>)
+        return rep->AsSubStruct();
+    if constexpr (std::is_same_v <T, PySubStream*>)
+        return rep->AsSubStream();
+    if constexpr (std::is_same_v <T, PyChecksumedStream*>)
+        return rep->AsChecksumedStream();
+    if constexpr (std::is_same_v <T, PyObject*>)
+        return rep->AsObject();
+    if constexpr (std::is_same_v <T, PyObjectEx*>)
+        return rep->AsObjectEx();
+    if constexpr (std::is_same_v <T, PyPackedRow*>)
+        return rep->AsPackedRow();
 }
 
 template<class T>
