@@ -28,7 +28,7 @@
 #define __OBJCACHE_H_INCL__
 
 #include "cache/ObjCacheDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
 class PyDict;
 
@@ -48,10 +48,9 @@ public:
     PyRep *objectID;
 };
 
-class ObjCacheService : public PyService {
+class ObjCacheService : public Service <ObjCacheService> {
 public:
-    ObjCacheService(PyServiceMgr *mgr, const char *cacheDir);
-    virtual ~ObjCacheService();
+    ObjCacheService(const char *cacheDir);
 
     void PrimeCache();
 
@@ -97,9 +96,6 @@ protected:
     static const char *const CharCreateNewExtraCachableObjects[];
     static const uint32 CharCreateNewExtraCachableObjectCount;
 
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     ObjCacheDB m_db;
 
     std::string m_cacheDir;
@@ -113,7 +109,7 @@ protected:
 
     CacheKeysMap m_cacheKeys;
 
-    PyCallable_DECL_CALL(GetCachableObject)
+    PyResult GetCachableObject(PyCallArgs& call, PyRep* shared, PyRep* objectID, PyTuple* cacheVersion, PyInt* nodeID);
 };
 
 #endif

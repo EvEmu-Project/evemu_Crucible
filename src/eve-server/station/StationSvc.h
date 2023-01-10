@@ -28,26 +28,24 @@
 #define __STATIONSVC_SERVICE_H_INCL__
 
 #include "station/StationDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-
-class StationSvc: public PyService
+class StationSvc : public Service <StationSvc>
 {
 public:
-    StationSvc(PyServiceMgr *mgr);
-    virtual ~StationSvc();
+    StationSvc(EVEServiceManager* mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     StationDB m_db;
 
-    PyCallable_DECL_CALL(GetStationItemBits);
-    PyCallable_DECL_CALL(GetSolarSystem);
-    PyCallable_DECL_CALL(GetStation);
-    PyCallable_DECL_CALL(GetAllianceSystems);
-    PyCallable_DECL_CALL(GetSystemsForAlliance);
+    PyResult GetStationItemBits(PyCallArgs& call);
+    PyResult GetSolarSystem(PyCallArgs& call, PyInt* solarSystemID);
+    PyResult GetStation(PyCallArgs& call, PyInt* stationID);
+    PyResult GetAllianceSystems(PyCallArgs& call);
+    PyResult GetSystemsForAlliance(PyCallArgs& call, PyInt* allianceID);
 
+private:
+    EVEServiceManager* m_manager;
+    ObjCacheService* m_cache;
 };
 #endif

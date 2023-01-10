@@ -753,8 +753,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
     pyServMgr.RegisterService("notificationMgr", new NotificationMgrService(&pyServMgr));
-    pyServMgr.cache_service = new ObjCacheService(&pyServMgr, sConfig.files.cacheDir.c_str());
-    pyServMgr.RegisterService("objectCaching", pyServMgr.cache_service);
     pyServMgr.RegisterService("onlineStatus", new OnlineStatusService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
@@ -771,16 +769,16 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("sovMgr", new SovereigntyMgrService(&pyServMgr));
     pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
     pyServMgr.RegisterService("station", new StationService(&pyServMgr));
-    pyServMgr.RegisterService("stationSvc", new StationSvc(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     pyServMgr.RegisterService("tutorialSvc", new TutorialService(&pyServMgr));
     pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
     pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
-    pyServMgr.RegisterService("wormholeMgr", new WormHoleSvc(&pyServMgr));
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
-    pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new ObjCacheService(sConfig.files.cacheDir.c_str()));
+    newSvcMgr.Register(new StationSvc(&newSvcMgr));
+    newSvcMgr.Register(new WormHoleSvc());
     newSvcMgr.Register(new netStateServer());
     newSvcMgr.Register(new UserService());
     newSvcMgr.Register(new MovementService(&newSvcMgr));
@@ -792,6 +790,11 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new BrowserLockdownService());
     newSvcMgr.Register(new AuthService());
     newSvcMgr.Register(new WarRegistryService(newSvcMgr));
+
+    // keep a reference to cache in the old manager so it still works
+    // TODO: REMOVE ONCE THE CHANGES ARE DONE
+    pyServMgr.cache_service = newSvcMgr.Lookup <ObjCacheService> ("objectCaching");
+    pyServMgr.Initalize(startTime);
     std::printf("\n");     // spacer
 
     // Create In-Memory Database Objects for Critical and High-Use Systems:

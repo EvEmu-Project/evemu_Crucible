@@ -61,6 +61,13 @@ public:
     Dispatcher* Lookup(const std::string& service);
 
     /**
+     * @brief Looks up the given service and returns a reference to it,
+     * casting to the specified type
+     */
+    template<class T>
+    T* Lookup(const std::string& service) { return static_cast <T*> (this->Lookup (service)); }
+
+    /**
      * @brief Registers a new bound service in this service manager
      */
     BoundID RegisterBoundService(BoundDispatcher* obj);
