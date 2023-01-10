@@ -27,19 +27,15 @@
 #ifndef __ONLINESTATUS_SERVICE_H_INCL__
 #define __ONLINESTATUS_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class OnlineStatusService : public PyService {
+class OnlineStatusService : public Service<OnlineStatusService> {
 public:
-    OnlineStatusService(PyServiceMgr *mgr);
-    virtual ~OnlineStatusService();
+    OnlineStatusService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetInitialState);
-    PyCallable_DECL_CALL(GetOnlineStatus);
+    PyResult GetInitialState(PyCallArgs& call);
+    PyResult GetOnlineStatus(PyCallArgs& call, PyInt* characterID);
 };
 
 #endif

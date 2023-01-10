@@ -753,7 +753,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
     pyServMgr.RegisterService("notificationMgr", new NotificationMgrService(&pyServMgr));
-    pyServMgr.RegisterService("onlineStatus", new OnlineStatusService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
     pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
@@ -762,19 +761,20 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
     pyServMgr.RegisterService("repairSvc", new RepairService(&pyServMgr));
     pyServMgr.RegisterService("reprocessingSvc", new ReprocessingService(&pyServMgr));
-    pyServMgr.RegisterService("search", new Search(&pyServMgr));
     pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
     pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
-    pyServMgr.RegisterService("sovMgr", new SovereigntyMgrService(&pyServMgr));
     pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     pyServMgr.RegisterService("tutorialSvc", new TutorialService(&pyServMgr));
-    pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
     pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
 
+    newSvcMgr.Register(new OnlineStatusService());
+    newSvcMgr.Register(new Search());
+    newSvcMgr.Register(new SovereigntyMgrService());
+    newSvcMgr.Register(new VoiceMgrService());
     newSvcMgr.Register(new ObjCacheService(sConfig.files.cacheDir.c_str()));
     newSvcMgr.Register(new StationService());
     newSvcMgr.Register(new StationSvc(&newSvcMgr));

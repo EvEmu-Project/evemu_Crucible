@@ -32,28 +32,13 @@
 #include "system/sov/SovereigntyDB.h"
 #include "system/sov/SovereigntyMgrService.h"
 
-PyCallable_Make_InnerDispatcher(SovereigntyMgrService)
-
-SovereigntyMgrService::SovereigntyMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "sovMgr"),
-  m_dispatch(new Dispatcher(this))
+SovereigntyMgrService::SovereigntyMgrService() :
+    Service("sovMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(SovereigntyMgrService, GetSystemSovereigntyInfo);
-}
-
-SovereigntyMgrService::~SovereigntyMgrService() {
-    delete m_dispatch;
+    this->Add("GetSystemSovereigntyInfo", &SovereigntyMgrService::GetSystemSovereigntyInfo);
 }
 
 // this is only call to this service
-PyResult SovereigntyMgrService::Handle_GetSystemSovereigntyInfo(PyCallArgs &call) {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return svDataMgr.GetSystemSovereignty(args.arg);
+PyResult SovereigntyMgrService::GetSystemSovereigntyInfo(PyCallArgs &call, PyInt* systemID) {
+    return svDataMgr.GetSystemSovereignty(systemID->value());
 }

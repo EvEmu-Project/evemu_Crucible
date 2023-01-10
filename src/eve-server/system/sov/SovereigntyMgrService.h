@@ -28,21 +28,15 @@
 #ifndef __SOVEREIGNTYMGR_SERVICE_H_INCL__
 #define __SOVEREIGNTYMGR_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class SovereigntyMgrService: public PyService
+class SovereigntyMgrService: public Service<SovereigntyMgrService>
 {
 public:
-    SovereigntyMgrService(PyServiceMgr *mgr);
-    virtual ~SovereigntyMgrService();
+    SovereigntyMgrService();
 
 protected:
-    class Dispatcher;
-
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetSystemSovereigntyInfo);
-
+    PyResult GetSystemSovereigntyInfo(PyCallArgs& call, PyInt* systemID);
 };
 
 #endif

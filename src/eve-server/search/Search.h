@@ -27,22 +27,17 @@
 #ifndef EVEMU_SYSTEM_SEARCH_H_
 #define EVEMU_SYSTEM_SEARCH_H_
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "PyServiceCD.h"
 #include "search/SearchDB.h"
 
-class Search
-: public PyService {
-  public:
-    Search(PyServiceMgr* mgr);
-    virtual ~Search();
+class Search : public Service<Search> {
+public:
+    Search();
 
-  protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(Query);
-    PyCallable_DECL_CALL(QuickQuery);
+protected:
+      PyResult Query(PyCallArgs& call, PyString* str, PyList* data);
+      PyResult QuickQuery(PyCallArgs& call, PyString* filter, PyList* data);
 
   private:
     SearchDB* m_db;

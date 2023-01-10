@@ -29,24 +29,15 @@
 #include "EntityList.h"
 #include "chat/OnlineStatusService.h"
 
-PyCallable_Make_InnerDispatcher(OnlineStatusService)
-
-OnlineStatusService::OnlineStatusService(PyServiceMgr *mgr)
-: PyService(mgr, "onlineStatus"),
-m_dispatch(new Dispatcher(this))
+OnlineStatusService::OnlineStatusService() :
+    Service("onlineStatus")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(OnlineStatusService, GetInitialState);
-    PyCallable_REG_CALL(OnlineStatusService, GetOnlineStatus);
-}
-
-OnlineStatusService::~OnlineStatusService() {
-    delete m_dispatch;
+    this->Add("GetInitialState", &OnlineStatusService::GetInitialState);
+    this->Add("GetOnlineStatus", &OnlineStatusService::GetOnlineStatus);
 }
 
 /** @todo finish this */
-PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
+PyResult OnlineStatusService::GetInitialState(PyCallArgs &call) {
 /*
 21:35:16 L OnlineStatusService::Handle_GetInitialState(): size= 0
 21:35:16 [SvcCall]   Call Arguments:
@@ -101,9 +92,9 @@ PyResult OnlineStatusService::Handle_GetInitialState(PyCallArgs &call) {
     return rowset;
 }
 
-PyResult OnlineStatusService::Handle_GetOnlineStatus(PyCallArgs &call) {
+PyResult OnlineStatusService::GetOnlineStatus(PyCallArgs &call, PyInt* characterID) {
     // this is used to query the online state of a character by charID.
-     return sEntityList.PyIsOnline(PyRep::IntegerValue(call.tuple->GetItem(0)));
+     return sEntityList.PyIsOnline(characterID->value());
 }
 
 /*

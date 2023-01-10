@@ -28,23 +28,13 @@
 #include "PyServiceCD.h"
 #include "chat/VoiceMgrService.h"
 
-PyCallable_Make_InnerDispatcher(VoiceMgrService)
-
-VoiceMgrService::VoiceMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "voiceMgr"),
-  m_dispatch(new Dispatcher(this))
+VoiceMgrService::VoiceMgrService() :
+    Service("voiceMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(VoiceMgrService, VoiceEnabled);
+    this->Add("VoiceEnabled", &VoiceMgrService::VoiceEnabled);
 }
 
-VoiceMgrService::~VoiceMgrService()
-{
-    delete m_dispatch;
-}
-
-PyResult VoiceMgrService::Handle_VoiceEnabled(PyCallArgs &call) {
+PyResult VoiceMgrService::VoiceEnabled(PyCallArgs &call) {
     //maybe in future, but not now ...
     return(new PyInt(0));
 }
