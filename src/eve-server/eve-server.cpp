@@ -727,7 +727,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("aggressionMgr", new AggressionMgrService(&pyServMgr));
     pyServMgr.RegisterService("alert", new AlertService(&pyServMgr));
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
-    pyServMgr.RegisterService("authentication", new AuthService(&pyServMgr));
     pyServMgr.RegisterService("billMgr", new BillMgr(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
@@ -809,13 +808,13 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("userSvc", new UserService(&pyServMgr));
     pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
     pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
-    // pyServMgr.RegisterService("warRegistry", new WarRegistryService(&pyServMgr));
     pyServMgr.RegisterService("wormholeMgr", new WormHoleSvc(&pyServMgr));
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("netStateServer", new netStateServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new AuthService());
     newSvcMgr.Register(new WarRegistryService(newSvcMgr));
     std::printf("\n");     // spacer
 
