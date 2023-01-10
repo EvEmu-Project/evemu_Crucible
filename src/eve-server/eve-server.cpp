@@ -736,7 +736,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
     pyServMgr.RegisterService("charMgr", new CharMgrService(&pyServMgr));
-    pyServMgr.RegisterService("clientStatLogger", new ClientStatLogger(&pyServMgr));
     pyServMgr.RegisterService("clientStatsMgr", new ClientStatsMgr(&pyServMgr));
     pyServMgr.RegisterService("config", new ConfigService(&pyServMgr));
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
@@ -784,7 +783,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("objectCaching", pyServMgr.cache_service);
     pyServMgr.RegisterService("onlineStatus", new OnlineStatusService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
-    pyServMgr.RegisterService("petitioner", new PetitionerService(&pyServMgr));
     pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
     pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
     pyServMgr.RegisterService("planetOrbitalRegistryBroker", new PlanetORB(&pyServMgr));
@@ -812,6 +810,8 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new PetitionerService());
+    newSvcMgr.Register(new ClientStatLogger());
     newSvcMgr.Register(new AlertService());
     newSvcMgr.Register(new BrowserLockdownService());
     newSvcMgr.Register(new AuthService());

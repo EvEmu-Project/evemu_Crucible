@@ -26,27 +26,12 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
 #include "admin/PetitionerService.h"
 
-
-PyCallable_Make_InnerDispatcher(PetitionerService)
-
-PetitionerService::PetitionerService(PyServiceMgr *mgr)
-: PyService(mgr, "petitioner"),
-  m_dispatch(new Dispatcher(this))
+PetitionerService::PetitionerService() :
+    Service("petitioner")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(PetitionerService, GetCategories);
-    PyCallable_REG_CALL(PetitionerService, GetCategoryHierarchicalInfo);
-    PyCallable_REG_CALL(PetitionerService, GetUnreadMessages);
 }
-
-PetitionerService::~PetitionerService() {
-    delete m_dispatch;
-}
-
 
 /*
  *
@@ -109,7 +94,7 @@ PetitionerService::~PetitionerService() {
  */
 
 
-PyResult PetitionerService::Handle_GetCategories( PyCallArgs& call )
+PyResult PetitionerService::GetCategories( PyCallArgs& call )
 {
     uint8 size(call.tuple->size());
     sLog.White( "PetitionerService::Handle_GetCategories()", "size=%u ", size );
@@ -121,7 +106,7 @@ PyResult PetitionerService::Handle_GetCategories( PyCallArgs& call )
     return result;
 }
 
-PyResult PetitionerService::Handle_GetCategoryHierarchicalInfo( PyCallArgs& call )
+PyResult PetitionerService::GetCategoryHierarchicalInfo( PyCallArgs& call )
 {
     uint8 size(call.tuple->size());
     sLog.White( "PetitionerService::Handle_GetCategoryHierarchicalInfo()", "size=%u ", size );
@@ -130,7 +115,7 @@ PyResult PetitionerService::Handle_GetCategoryHierarchicalInfo( PyCallArgs& call
 }
 
 //00:28:58 L PetitionerService::Handle_GetUnreadMessages(): size=0
-PyResult PetitionerService::Handle_GetUnreadMessages( PyCallArgs& call )
+PyResult PetitionerService::GetUnreadMessages( PyCallArgs& call )
 {
     //unknown...
     return new PyList();
