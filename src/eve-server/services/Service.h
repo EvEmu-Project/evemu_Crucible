@@ -29,6 +29,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <optional>
 
 #include "python/PyRep.h"
 #include "PyCallable.h"
@@ -44,9 +45,12 @@ enum AccessLevel {
     Station = 4
 };
 
+template <class T> struct is_optional : std::false_type {};
+template <class T> struct is_optional<std::optional<T>> : std::true_type {};
+
 template <class S>
 struct CallHandler {
-    template<typename... Args> CallHandler(PyResult(S::*callHandler)(PyCallArgs&, Args...)) :
+    template<class... Args> CallHandler(PyResult(S::*callHandler)(PyCallArgs&, Args...)) :
         erasedHandler(reinterpret_cast <PyResult(S::*)()> (callHandler)),
         handlerImpl {
             [this](S* service, PyResult(S::*erasedHandler)(), PyCallArgs& args) -> PyResult {
@@ -76,10 +80,13 @@ struct CallHandler {
     }
 
 private:
-    template<typename... Args>
+    template <typename T> bool validateArg(size_t index, PyCallArgs& args);
+    template <typename T> decltype(auto) getAs(size_t index, PyTuple* args);
+
+    template<class... Args>
     bool validateArgs(PyCallArgs& args) {
         constexpr size_t ArgCount = sizeof... (Args);
-        const bool argCountIsValid = args.tuple->size() == ArgCount;
+        const bool argCountIsValid = args.tuple->size() <= ArgCount;
 
         if (argCountIsValid == false) {
             return false;
@@ -89,44 +96,23 @@ private:
         size_t index = 0;
 
         ((
-            isValid = index < args.tuple->size() && validateArg<Args>(index, args) && isValid,
+            isValid = validateArg<Args>(index, args) && isValid,
             ++index
             ), ...);
 
         return isValid;
     }
 
-    template <typename T>
-    bool validateArg(size_t index, PyCallArgs& args) {
-        // TODO: implement all Py types checks here
-        return (std::is_same <T, PyBool*>() && args.tuple->GetItem(index)->IsBool()) ||
-               (std::is_same <T, PyInt*>() && args.tuple->GetItem(index)->IsInt()) ||
-               (std::is_same <T, PyLong*>() && args.tuple->GetItem(index)->IsLong()) ||
-               (std::is_same <T, PyFloat*>() && args.tuple->GetItem(index)->IsFloat());
-    }
-
-    template<typename T>
-    decltype(auto) getAs(PyRep* v) {
-        if constexpr (std::is_same_v <T, PyBool*> == true)
-            return v->AsBool();
-        else if constexpr (std::is_same_v <T, PyInt*> == true)
-            return v->AsInt();
-        else if constexpr (std::is_same_v <T, PyLong*> == true)
-            return v->AsLong();
-        else if constexpr (std::is_same_v <T, PyFloat*> == true)
-            return v->AsFloat();
-    }
-
-    template<typename... Args, size_t... I>
+    template<class... Args, size_t... I>
     PyResult applyImpl(
         S* service,
         PyResult(S::*handler)(PyCallArgs& args, Args...),
         PyCallArgs& args,
         std::index_sequence<I...>) {
-        return (service->*handler) (args, getAs<std::decay_t<Args>>(args.tuple->GetItem(I))...);
+        return (service->*handler) (args, getAs<std::decay_t<Args>>(I, args.tuple)...);
     }
 
-    template<typename... Args>
+    template<class... Args>
     PyResult apply(
         S* service,
         PyResult(S::*handler) (PyCallArgs& args, Args...),
@@ -174,7 +160,6 @@ protected:
     void add (const std::string& name, CallHandler <T> handler);
 
 public:
-
     /** Indicates what access level the service has to prevent clients from calling any methods when they shouldn't */
     const AccessLevel GetAccessLevel() const override;
     /** Indicates the name of the service */
@@ -200,6 +185,7 @@ public:
     MachoNetServiceTest();
 
     PyResult test(PyCallArgs& args, PyBool* boolean);
+    PyResult secondTest(PyCallArgs& args, PyInt* value, std::optional<PyInt*> secondValue);
 };
 
 template class Service<MachoNetServiceTest>;

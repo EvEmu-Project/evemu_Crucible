@@ -183,6 +183,10 @@
 // database cleaner service
 #include "DBCleaner.h"
 
+// testing for new service system
+#include "services/ServiceManager.h"
+#include "services/Service.h"
+
 static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
 static void SetupSignals();
@@ -192,6 +196,29 @@ static volatile bool m_run = true;
 
 int main( int argc, char* argv[] )
 {
+    // perform some tests with the new service system to ensure it works fine
+    EVEServiceManager mgr;
+
+    mgr.Register(new MachoNetServiceTest());
+
+    PyTuple* tuple = new PyTuple(1);
+    PyTuple* secondTuple = new PyTuple(1);
+    PyTuple* thirdTuple = new PyTuple(2);
+
+    tuple->SetItem(0, new PyBool(true));
+    secondTuple->SetItem(0, new PyInt(420));
+    thirdTuple->SetItem(0, new PyInt(69));
+    thirdTuple->SetItem(1, new PyInt(420));
+    PyCallArgs args(nullptr, tuple, new PyDict);
+    PyCallArgs secondArgs(nullptr, secondTuple, new PyDict);
+    PyCallArgs thirdArgs(nullptr, thirdTuple, new PyDict);
+    
+    mgr.Dispatch ("machoNet", "test", args).ssResult->Dump(DEBUG__DEBUG, "Result");
+    mgr.Dispatch("machoNet", "secondTest", secondArgs).ssResult->Dump(DEBUG__DEBUG, "Result");
+    mgr.Dispatch("machoNet", "secondTest", thirdArgs).ssResult->Dump(DEBUG__DEBUG, "Result");
+
+    while (true) Sleep(1000);
+
     double profileStartTime(GetTimeMSeconds());
 
     /* set current time for timer */
