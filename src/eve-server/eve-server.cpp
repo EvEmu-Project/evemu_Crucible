@@ -725,7 +725,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("account", new AccountService(&pyServMgr));
     pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
     pyServMgr.RegisterService("aggressionMgr", new AggressionMgrService(&pyServMgr));
-    pyServMgr.RegisterService("alert", new AlertService(&pyServMgr));
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
     pyServMgr.RegisterService("billMgr", new BillMgr(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
@@ -813,6 +812,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new AlertService());
     newSvcMgr.Register(new BrowserLockdownService());
     newSvcMgr.Register(new AuthService());
     newSvcMgr.Register(new WarRegistryService(newSvcMgr));

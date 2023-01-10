@@ -26,25 +26,21 @@
 #ifndef _ALERT_SERVICE_H
 #define _ALERT_SERVICE_H
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "python/PyTraceLog.h"
 
 
-class AlertService : public PyService {
+class AlertService : public Service<AlertService> {
 public:
-    AlertService(PyServiceMgr *mgr);
+    AlertService();
     virtual ~AlertService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult BeanCount(PyCallArgs &call);
+    PyResult BeanDelivery(PyCallArgs &call);
+    PyResult GroupBeanDelivery(PyCallArgs &call);
+    PyResult SendClientStackTraceAlert(PyCallArgs &call);
 
-    PyResult Handle_BeanCount(PyCallArgs &call);
-    PyResult Handle_BeanDelivery(PyCallArgs &call);
-    PyResult Handle_GroupBeanDelivery(PyCallArgs &call);
-    PyResult Handle_SendClientStackTraceAlert(PyCallArgs &call);
-
-protected:
     PyTraceLog* traceLogger;
 };
 
