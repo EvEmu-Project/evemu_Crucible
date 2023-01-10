@@ -759,7 +759,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("fleetProxy", new FleetProxy(&pyServMgr));
     pyServMgr.RegisterService("holoscreenMgr", new HoloscreenMgrService(&pyServMgr));
     pyServMgr.RegisterService("devIndexManager", new IndexManager(&pyServMgr));
-    pyServMgr.RegisterService("infoGatheringMgr", new InfoGatheringMgr(&pyServMgr));
     pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
     pyServMgr.RegisterService("invbroker", new InvBrokerService(&pyServMgr));
     pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
@@ -809,6 +808,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new InfoGatheringMgr());
     newSvcMgr.Register(new SlashService(&command_dispatcher));
     newSvcMgr.Register(new PetitionerService());
     newSvcMgr.Register(new ClientStatLogger());

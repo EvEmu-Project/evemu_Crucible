@@ -27,20 +27,16 @@
 #ifndef __INFOGATHERINGMGR_SERVICE_H_INCL__
 #define __INFOGATHERINGMGR_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class InfoGatheringMgr : public PyService
+class InfoGatheringMgr : public Service <InfoGatheringMgr>
 {
 public:
-    InfoGatheringMgr(PyServiceMgr *mgr);
-    virtual ~InfoGatheringMgr();
+    InfoGatheringMgr();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetStateAndConfig);
-    PyCallable_DECL_CALL(LogInfoEventsFromClient);
+    PyResult GetStateAndConfig(PyCallArgs& call);
+    PyResult LogInfoEventsFromClient(PyCallArgs& call, PyList* loggedEvents);
 };
 
 #endif

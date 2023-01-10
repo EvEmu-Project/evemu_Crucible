@@ -25,27 +25,16 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
 #include "account/InfoGatheringMgr.h"
 
-PyCallable_Make_InnerDispatcher(InfoGatheringMgr)
-
-InfoGatheringMgr::InfoGatheringMgr(PyServiceMgr *mgr)
-: PyService(mgr, "infoGatheringMgr"),
-  m_dispatch(new Dispatcher(this))
+InfoGatheringMgr::InfoGatheringMgr() :
+    Service("infoGatheringMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(InfoGatheringMgr, GetStateAndConfig);
-    PyCallable_REG_CALL(InfoGatheringMgr, LogInfoEventsFromClient);
-
+    this->Add("GetStateAndConfig", &InfoGatheringMgr::GetStateAndConfig);
+    this->Add("LogInfoEventsFromClient", &InfoGatheringMgr::LogInfoEventsFromClient);
 }
 
-InfoGatheringMgr::~InfoGatheringMgr() {
-    delete m_dispatch;
-}
-
-PyResult InfoGatheringMgr::Handle_GetStateAndConfig(PyCallArgs &call) {
+PyResult InfoGatheringMgr::GetStateAndConfig(PyCallArgs &call) {
 
     PyDict *rsp = new PyDict();
 
@@ -64,7 +53,7 @@ PyResult InfoGatheringMgr::Handle_GetStateAndConfig(PyCallArgs &call) {
     return new PyObject( "util.KeyVal", rsp );
 }
 
-PyResult InfoGatheringMgr::Handle_LogInfoEventsFromClient(PyCallArgs &call) {
+PyResult InfoGatheringMgr::LogInfoEventsFromClient(PyCallArgs &call, PyList* loggedEvents) {
     return PyStatic.NewNone();
 }
 
