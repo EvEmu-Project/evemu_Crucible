@@ -28,41 +28,30 @@
 #include "PyServiceCD.h"
 #include "corporation/LPStore.h"
 
-PyCallable_Make_InnerDispatcher(LPStore)
-
-LPStore::LPStore(PyServiceMgr *mgr)
-: PyService(mgr, "storeServer"),
-  m_dispatch(new Dispatcher(this))
+LPStore::LPStore() :
+    Service("storeServer")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(LPStore, AcceptOffer);
-    PyCallable_REG_CALL(LPStore, GetAvailableOffers);
+    this->Add("AcceptOffer", &LPStore::AcceptOffer);
+    this->Add("GetAvailableOffers", &LPStore::GetAvailableOffers);
 
 }
 
-LPStore::~LPStore()
-{
-    delete m_dispatch;
-}
-
-
-PyResult LPStore::Handle_AcceptOffer( PyCallArgs& call ) {
+PyResult LPStore::AcceptOffer(PyCallArgs& call, PyInt* offerID, PyInt* quantity) {
   /**
             return sm.RemoteSvc('storeServer').AcceptOffer(offerID, quantity)
             */
-  sLog.White( "LPStore::Handle_GetLPsForCharacter()", "size=%lu", call.tuple->size());
+  sLog.White( "LPStore::AcceptOffer()", "size=%lu", call.tuple->size());
 
   call.Dump(SERVICE__CALL_DUMP);
     return new PyList;
 }
 
-PyResult LPStore::Handle_GetAvailableOffers( PyCallArgs& call ) {
+PyResult LPStore::GetAvailableOffers(PyCallArgs& call) {
   /**
             availableOffers = sm.RemoteSvc('storeServer').GetAvailableOffers()
             */
     //no args
-  sLog.White( "LPStore::Handle_GetLPsForCharacter()", "size=%lu", call.tuple->size());
+  sLog.White( "LPStore::GetAvailableOffers()", "size=%lu", call.tuple->size());
 
   call.Dump(SERVICE__CALL_DUMP);
     return new PyList;

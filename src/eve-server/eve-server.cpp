@@ -743,7 +743,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("localizationServer", new LocalizationServerService(&pyServMgr));
     pyServMgr.RegisterService("lookupSvc", new LookupService(&pyServMgr));
     pyServMgr.RegisterService("LPSvc", new LPService(&pyServMgr));
-    pyServMgr.RegisterService("storeServer", new LPStore(&pyServMgr));
     pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
     pyServMgr.RegisterService("machoNet", new NetService(&pyServMgr));
@@ -771,6 +770,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
 
+    newSvcMgr.Register(new LPStore());
     newSvcMgr.Register(new OnlineStatusService());
     newSvcMgr.Register(new Search());
     newSvcMgr.Register(new SovereigntyMgrService());
