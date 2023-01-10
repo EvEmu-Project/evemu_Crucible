@@ -25,8 +25,6 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
 #include "faction/WarRegistryService.h"
 
 /*
@@ -40,89 +38,47 @@
  * FACWAR__RSP_DUMP
  */
 
-class WarRegistryBound
-: public PyBoundObject
+WarRegistryService::WarRegistryService(EVEServiceManager& mgr) :
+    BindableService("warRegistry", mgr)
 {
-public:
-    PyCallable_Make_Dispatcher(WarRegistryBound)
-
-    WarRegistryBound(PyServiceMgr *mgr, uint32 corporationID)
-    : PyBoundObject(mgr),
-      m_dispatch(new Dispatcher(this)),
-      m_corporationID(corporationID)
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "WarRegistryBound";
-
-        PyCallable_REG_CALL(WarRegistryBound, GetWars);
-        /*
-     return self.GetMoniker().RetractWar(againstID)
-     return self.GetMoniker().DeclareWarAgainst(againstID)
-     return self.GetMoniker().ChangeMutualWarFlag(warID, mutual)
-     return self.GetMoniker().GetCostOfWarAgainst(ownerID)
-     */
-    }
-    ~WarRegistryBound()
-    {
-        delete m_dispatch;
-    }
-
-    void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(GetWars);
-
-private:
-    Dispatcher *const m_dispatch;
-
-    uint32 m_corporationID;
-};
-
-PyCallable_Make_InnerDispatcher(WarRegistryService)
-
-WarRegistryService::WarRegistryService(PyServiceMgr *mgr)
-: PyService(mgr, "warRegistry"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
 }
 
-WarRegistryService::~WarRegistryService()
-{
-    delete m_dispatch;
-}
-
-PyBoundObject *WarRegistryService::CreateBoundObject(Client *pClient, const PyRep *bind_args) {
+BoundDispatcher* WarRegistryService::BindObject(PyRep* bindParameters) {
     Call_TwoIntegerArgs args;
-    //crap
-    PyRep* tmp(bind_args->Clone());
-    if (!args.Decode(&tmp)) {
+
+    if (args.Decode(bindParameters->Clone()) == false) {
         codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
         return nullptr;
     }
-    //arg1 = corporationID
-    //arg2 = ???
-    return new WarRegistryBound(m_manager, args.arg1);
+
+    return new WarRegistryBound(args.arg1, this->GetServiceManager (), bindParameters);
 }
 
-PyResult WarRegistryBound::Handle_GetWars( PyCallArgs& call )
+WarRegistryBound::WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, PyRep* bindData) :
+    EVEBoundObject(mgr, bindData),
+    mCorporationID(corporationID)
 {
-    sLog.Debug( "WarRegistryBound", "Called GetWars stub." );
+    this->Add("GetWars", &WarRegistryBound::GetWars);
+}
+
+bool WarRegistryBound::CanClientCall(Client* client) {
+    return true;
+}
+
+PyResult WarRegistryBound::GetWars(PyCallArgs& args, PyInt* ownerID, std::optional<PyInt*> forceRefresh) {
+    sLog.Debug("WarRegistryBound", "Called GetWars stub.");
 
     util_IndexRowset irowset;
 
-    irowset.header.push_back( "warID" );
-    irowset.header.push_back( "declaredByID" );
-    irowset.header.push_back( "againstID" );
-    irowset.header.push_back( "timeDeclared" );
-    irowset.header.push_back( "timeFinished" );
-    irowset.header.push_back( "retracted" );
-    irowset.header.push_back( "retractedBy" );
-    irowset.header.push_back( "billID" );
-    irowset.header.push_back( "mutual" );
+    irowset.header.push_back("warID");
+    irowset.header.push_back("declaredByID");
+    irowset.header.push_back("againstID");
+    irowset.header.push_back("timeDeclared");
+    irowset.header.push_back("timeFinished");
+    irowset.header.push_back("retracted");
+    irowset.header.push_back("retractedBy");
+    irowset.header.push_back("billID");
+    irowset.header.push_back("mutual");
 
     irowset.idName = "warID";
 

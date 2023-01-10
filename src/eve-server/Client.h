@@ -44,6 +44,8 @@
 #include "../eve-common/EVE_Missions.h"
 #include "../eve-common/EVE_Player.h"
 
+#include "services/ServiceManager.h"
+
 class CryptoChallengePacket;
 class EVENotificationStream;
 class PySubStream;
@@ -67,7 +69,7 @@ class Client
   protected EVEPacketDispatcher
 {
 public:
-    Client(PyServiceMgr &services, EVETCPConnection** con);
+    Client(EVEServiceManager& newSvcMgr, PyServiceMgr &services, EVETCPConnection** con);
     // copy c'tor
     Client(const Client& oth) =delete;
     // move c'tor
@@ -341,6 +343,7 @@ protected:
     ShipItemRef m_pod;
     CharacterRef m_char;
     PyServiceMgr& m_services;
+    EVEServiceManager& m_newSvcMgr;
     Scan* m_scan;
     ShipSE* pShipSE;
     TradeSession* m_TS;

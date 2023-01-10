@@ -61,7 +61,7 @@
 
 static const uint32 PING_INTERVAL_MS = 600000; //10m
 
-Client::Client(PyServiceMgr &services, EVETCPConnection** con)
+Client::Client(EVEServiceManager& newSvcMgr, PyServiceMgr &services, EVETCPConnection** con)
 : EVEClientSession(con),
   m_TS(nullptr),
   m_char(CharacterRef(nullptr)),
@@ -70,6 +70,7 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
   pSession(new ClientSession()),
   m_system(nullptr),
   m_services(services),
+  m_newSvcMgr(newSvcMgr),
   m_movePoint(NULL_ORIGIN),
   m_clientState(Player::State::Idle),
   m_stateTimer(0),
@@ -2593,42 +2594,79 @@ void Client::_SendPingResponse(const PyAddress& source, int64 callID)
 /************************************************************************/
 bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
 {
-    PyCallable* dest(nullptr);
-    if (packet->dest.service == "") {
-        //bound object
-        uint32 nodeID = 0, bindID = 0;
-        if (sscanf(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
-            sLog.Error("Client::CallReq","Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
-            return false;
-        }
-
-        if (nodeID != m_services.GetNodeID()) {
-            sLog.Error("Client::CallReq","Unknown nodeID - received %u but expected %u.", nodeID, m_services.GetNodeID());
-            return false;
-        }
-
-        dest = m_services.FindBoundObject(bindID);
-        if (dest == nullptr) {
-            sLog.Error("Client::CallReq", "Failed to find bound object %u.", bindID);
-            return false;
-        }
-    } else {
-        //service
-        dest = m_services.LookupService(packet->dest.service);
-        if (dest == nullptr) {
-            sLog.Error("Client::CallReq","Unable to find service to handle call to: %s", packet->dest.service.c_str());
-            packet->dest.Dump(CLIENT__CALL_DUMP, "    ");
-            throw UserError ("ServiceNotFound"); // this message is invalid (message not found)
-        }
-    }
-
-    //build arguments
+    bool handled = false;
+    // build arguments
     PyCallArgs args(this, req.arg_tuple, req.arg_dict);
+    PyResult result;
 
-    //parts of call may be consumed here
-    m_canThrow = true;      // test for throwable.  -allan 29Jul16      should we use try/catch here?   yes
-    PyResult result(dest->Call(req.method, args));
-    m_canThrow = false;
+    // try to handle with the new service handler and fallback to the old version
+    try
+    {
+        if (packet->dest.service == "") {
+            uint32 nodeID = 0, bindID = 0;
+            if (sscanf(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
+                sLog.Error("Client::CallReq", "Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
+                return false;
+            }
+
+            if (nodeID != m_services.GetNodeID()) {
+                sLog.Error("Client::CallReq", "Unknown nodeID - received %u but expected %u.", nodeID, m_services.GetNodeID());
+                return false;
+            }
+
+            m_canThrow = true;
+            result = m_newSvcMgr.Dispatch(bindID, req.method, args);
+            m_canThrow = false;
+        } else {
+            m_canThrow = true;
+            result = m_newSvcMgr.Dispatch(packet->dest.service, req.method, args);
+            m_canThrow = false;
+        }
+
+        handled = true;
+    }
+    catch (std::runtime_error)
+    {
+        // ignore the error for now, this will be handled in the future
+        // to report errors
+    }
+    
+    if (handled == false) {
+        PyCallable* dest(nullptr);
+
+        if (packet->dest.service == "") {
+            //bound object
+            uint32 nodeID = 0, bindID = 0;
+            if (sscanf(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
+                sLog.Error("Client::CallReq", "Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
+                return false;
+            }
+
+            if (nodeID != m_services.GetNodeID()) {
+                sLog.Error("Client::CallReq", "Unknown nodeID - received %u but expected %u.", nodeID, m_services.GetNodeID());
+                return false;
+            }
+
+            dest = m_services.FindBoundObject(bindID);
+            if (dest == nullptr) {
+                sLog.Error("Client::CallReq", "Failed to find bound object %u.", bindID);
+                return false;
+            }
+        } else {
+            //service
+            dest = m_services.LookupService(packet->dest.service);
+            if (dest == nullptr) {
+                sLog.Error("Client::CallReq", "Unable to find service to handle call to: %s", packet->dest.service.c_str());
+                packet->dest.Dump(CLIENT__CALL_DUMP, "    ");
+                throw UserError("ServiceNotFound"); // this message is invalid (message not found)
+            }
+        }
+
+        //parts of call may be consumed here
+        m_canThrow = true;      // test for throwable.  -allan 29Jul16      should we use try/catch here?   yes
+        result = dest->Call(req.method, args);
+        m_canThrow = false;
+    }
 
     SendSessionChange();  //send out the session change before the return.
     if (is_log_enabled(CLIENT__OUT_ALL)) {

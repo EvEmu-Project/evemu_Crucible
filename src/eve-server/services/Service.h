@@ -38,11 +38,11 @@ template<class T>
 class Service;
 
 enum AccessLevel {
-    None = 0,
-    Location = 1,
-    LocationPreferred = 2,
-    SolarSystem = 3,
-    Station = 4
+    eAccessLevel_None = 0,
+    eAccessLevel_Location = 1,
+    eAccessLevel_LocationPreferred = 2,
+    eAccessLevel_SolarSystem = 3,
+    eAccessLevel_Station = 4
 };
 
 template <class T> struct is_optional : std::false_type {};
@@ -79,8 +79,118 @@ struct CallHandler {
     }
 
 private:
-    template <typename T> bool validateArg(size_t index, PyCallArgs& args);
-    template <typename T> decltype(auto) getAs(size_t index, PyTuple* args);
+    template <typename T> bool validateArg(size_t index, PyCallArgs& args) {
+        // handle optional values
+        if constexpr (is_optional <T>::value) {
+            if (index >= args.tuple->size()) {
+                return true;
+            }
+            else {
+                return validateArg <typename T::value_type>(index, args);
+            }
+        }
+
+        if (index >= args.tuple->size()) {
+            return false;
+        }
+
+        if constexpr (std::is_same_v <T, PyRep*>)
+            return true;
+
+        PyRep* rep = args.tuple->GetItem(index);
+
+        // validate type with their parameter equivalent
+        if constexpr (std::is_same_v <T, PyBool*>)
+            return rep->IsBool();
+        if constexpr (std::is_same_v <T, PyInt*>)
+            return rep->IsInt();
+        if constexpr (std::is_same_v <T, PyLong*>)
+            return rep->IsLong();
+        if constexpr (std::is_same_v <T, PyFloat*>)
+            return rep->IsFloat();
+        if constexpr (std::is_same_v <T, PyBuffer*>)
+            return rep->IsBuffer();
+        if constexpr (std::is_same_v <T, PyString*>)
+            return rep->IsString();
+        if constexpr (std::is_same_v <T, PyToken*>)
+            return rep->IsToken();
+        if constexpr (std::is_same_v <T, PyTuple*>)
+            return rep->IsTuple();
+        if constexpr (std::is_same_v <T, PyList*>)
+            return rep->IsList();
+        if constexpr (std::is_same_v <T, PyDict*>)
+            return rep->IsDict();
+        if constexpr (std::is_same_v <T, PyNone*>)
+            return rep->IsNone();
+        if constexpr (std::is_same_v <T, PySubStruct*>)
+            return rep->IsSubStruct();
+        if constexpr (std::is_same_v <T, PySubStream*>)
+            return rep->IsSubStream();
+        if constexpr (std::is_same_v <T, PyChecksumedStream*>)
+            return rep->IsChecksumedStream();
+        if constexpr (std::is_same_v <T, PyObject*>)
+            return rep->IsObject();
+        if constexpr (std::is_same_v <T, PyObjectEx*>)
+            return rep->IsObjectEx();
+        if constexpr (std::is_same_v <T, PyPackedRow*>)
+            return rep->IsPackedRow();
+
+        return false;
+    }
+
+    template <typename T> decltype(auto) getAs(size_t index, PyTuple* tup) {
+        if constexpr (is_optional <T>::value) {
+            if (index >= tup->size()) {
+                return T{};
+            }
+            else {
+                return std::make_optional(getAs <typename T::value_type>(index, tup));
+            }
+        }
+
+        if (index >= tup->size()) {
+            throw std::runtime_error("This should not happen. Trying to get parameter out of bounds. What happened to the validation?!");
+        }
+
+        PyRep* rep = tup->GetItem(index);
+
+        if constexpr (std::is_same_v <T, PyRep*>)
+            return rep;
+        if constexpr (std::is_same_v <T, PyBool*>)
+            return rep->AsBool();
+        if constexpr (std::is_same_v <T, PyInt*>)
+            return rep->AsInt();
+        if constexpr (std::is_same_v <T, PyLong*>)
+            return rep->AsLong();
+        if constexpr (std::is_same_v <T, PyFloat*>)
+            return rep->AsFloat();
+        if constexpr (std::is_same_v <T, PyBuffer*>)
+            return rep->AsBuffer();
+        if constexpr (std::is_same_v <T, PyString*>)
+            return rep->AsString();
+        if constexpr (std::is_same_v <T, PyToken*>)
+            return rep->AsToken();
+        if constexpr (std::is_same_v <T, PyTuple*>)
+            return rep->AsTuple();
+        if constexpr (std::is_same_v <T, PyList*>)
+            return rep->AsList();
+        if constexpr (std::is_same_v <T, PyDict*>)
+            return rep->AsDict();
+        if constexpr (std::is_same_v <T, PyNone*>)
+            return rep->AsNone();
+        if constexpr (std::is_same_v <T, PySubStruct*>)
+            return rep->AsSubStruct();
+        if constexpr (std::is_same_v <T, PySubStream*>)
+            return rep->AsSubStream();
+        if constexpr (std::is_same_v <T, PyChecksumedStream*>)
+            return rep->AsChecksumedStream();
+        if constexpr (std::is_same_v <T, PyObject*>)
+            return rep->AsObject();
+        if constexpr (std::is_same_v <T, PyObjectEx*>)
+            return rep->AsObjectEx();
+        if constexpr (std::is_same_v <T, PyPackedRow*>)
+            return rep->AsPackedRow();
+    }
 
     template<class... Args>
     bool validateArgs(PyCallArgs& args) {
@@ -151,23 +261,45 @@ public:
 template<class T>
 class Service : public Dispatcher {
 protected:
-    Service(const std::string& name, AccessLevel level = AccessLevel::None);
+    Service(const std::string& name, AccessLevel level = eAccessLevel_None) :
+        mName(std::move(name)),
+        mAccessLevel(level)
+    {
+    }
 
     /**
      * @brief Registers a method handler
      */
-    void Add (const std::string& name, CallHandler <T> handler);
+    void Add(const std::string& name, CallHandler <T> handler) {
+        this->mHandlers.push_back(std::make_pair(std::string(name), handler));
+    }
 
 public:
     /** Indicates what access level the service has to prevent clients from calling any methods when they shouldn't */
-    const AccessLevel GetAccessLevel() const override;
+    const AccessLevel GetAccessLevel() const override { return this->mAccessLevel; }
     /** Indicates the name of the service */
-    const std::string& GetName() const override;
+    const std::string& GetName() const override { return this->mName; }
 
     /**
      * @brief Handles dispatching a call to this service
      */
-    PyResult Dispatch(const std::string& name, PyCallArgs& args) override;
+    PyResult Dispatch(const std::string& name, PyCallArgs& args) override {
+        for (auto handler : this->mHandlers) {
+            if (handler.first != name)
+                continue;
+
+            try
+            {
+                return handler.second(reinterpret_cast <T*> (this), args);
+            }
+            catch (std::invalid_argument)
+            {
+                // ignored, this just means the function does not match the possible calls
+            }
+        }
+
+        throw std::runtime_error("Cannot find matching function to call");
+    }
 
 private:
     /** @var The name of the service */
@@ -177,16 +309,5 @@ private:
     /** @var The map of handlers for this service */
     std::vector <std::pair <std::string, CallHandler <T>>> mHandlers;
 };
-
-class MachoNetServiceTest : public Service<MachoNetServiceTest> {
-public:
-    MachoNetServiceTest();
-
-    PyResult test(PyCallArgs& args, PyBool* boolean);
-    PyResult secondTest(PyCallArgs& args, PyInt* value, std::optional<PyInt*> secondValue);
-};
-
-template class Service<MachoNetServiceTest>;
-template struct CallHandler<MachoNetServiceTest>;
 
 #endif /* !__SERVICE_H__ */

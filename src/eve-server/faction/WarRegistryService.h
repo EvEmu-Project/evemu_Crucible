@@ -26,18 +26,34 @@
 #ifndef __WAR_REGISTRY_SERVICE__H__INCL__
 #define __WAR_REGISTRY_SERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/BoundService.h"
 
-class WarRegistryService : public PyService {
+class WarRegistryService : public BindableService<WarRegistryService> {
 public:
-    WarRegistryService(PyServiceMgr *mgr);
-    ~WarRegistryService();
+    WarRegistryService(EVEServiceManager& mgr);
 
-    PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+protected:
+    BoundDispatcher* BindObject(PyRep* bindParameters) override;
+};
 
+class WarRegistryBound : public EVEBoundObject<WarRegistryBound> {
+    friend WarRegistryService;
+public:
+    PyResult GetWars(PyCallArgs& args, PyInt* ownerID, std::optional<PyInt*> forceRefresh);
+
+    /*
+     * other functions that might be required
+     * return self.GetMoniker().RetractWar(againstID)
+     * return self.GetMoniker().DeclareWarAgainst(againstID)
+     * return self.GetMoniker().ChangeMutualWarFlag(warID, mutual)
+     * return self.GetMoniker().GetCostOfWarAgainst(ownerID)
+     */
+protected:
+    WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, PyRep* bindData);
+
+    bool CanClientCall(Client* client) override;
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    uint32 mCorporationID;
 };
 
 #endif /* __WAR_REGISTRY_SERVICE__H__INCL__ */

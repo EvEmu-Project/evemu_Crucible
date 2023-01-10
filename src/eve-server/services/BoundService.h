@@ -29,23 +29,31 @@
 typedef uint32_t BoundID;
 
 class BoundDispatcher;
+template<class T>
+class BindableService;
+template<class T>
+class EVEBoundObject;
 
 #include "Service.h"
 #include "ServiceManager.h"
 
-
-class BoundDispatcher : public Dispatcher {
+class BoundDispatcher {
 public:
+    /** @returns BoundID The id of the bound service */
+    virtual BoundID GetBoundID() const = 0;
+    /** @returns PyRep* The information of this bound object */
+    virtual PyRep* GetBoundData() const = 0;
+    /** @returns PyTuple* The OID of the bound object */
+    virtual PyTuple* GetOID() const = 0;
+    /**
+     * @brief Handles dispatching a call to this service
+     */
+    virtual PyResult Dispatch(const std::string& name, PyCallArgs& args) = 0;
+protected:
     /**
      * @brief Check performed before dispatching a call to this bound service
      */
     virtual bool CanClientCall(Client* client) = 0;
-    /** @returns BoundID The id of the bound service */
-    virtual const BoundID GetBoundID() = 0;
-    /** @returns PyRep* The information of this bound object */
-    virtual const PyRep* GetBoundData() = 0;
-    /** @returns PyTuple* The OID of the bound object */
-    virtual const PyTuple* GetOID() = 0;
 };
 
 /**
@@ -57,46 +65,146 @@ public:
 template<class T>
 class BindableService : public Service<T> {
 public:
-    BindableService(const std::string& name, EVEServiceManager* mgr);
+    BindableService(const std::string& name, EVEServiceManager& mgr) :
+        Service <T>(name),
+        mManager(mgr)
+    {
+        this->Add("MachoResolveObject", &BindableService<T>::MachoResolveObject);
+        this->Add("MachoBindObject", &BindableService<T>::MachoBindObject);
+    }
 
-    PyResult MachoResolveObject(PyCallArgs& args, PyRep* bindParameters, PyRep* justQuery);
-    PyResult MachoBindObject(PyCallArgs& args, PyRep* bindParameters, std::optional<PyTuple*> call);
+    PyResult MachoResolveObject(PyCallArgs& args, PyRep* bindParameters, PyRep* justQuery) {
+        return new PyInt(this->GetServiceManager().GetNodeID());
+    }
+
+    PyResult MachoBindObject(PyCallArgs& args, PyRep* bindParameters, std::optional<PyTuple*> call) {
+        // register the new instance in the service manager
+        BoundDispatcher* bound = this->BindObject(bindParameters);
+
+        // build the bound service identifier
+        PyTuple* rsp = new PyTuple(2);
+        PyDict* byName = new PyDict();
+
+        byName->SetItem("OID+", bound->GetOID());
+
+        rsp->SetItem(0, new PySubStruct(new PySubStream(bound->GetOID())));
+
+        if (call.has_value() == false) {
+            rsp->SetItem(1, PyStatic.NewNone());
+        } else {
+            // dispatch call
+            CallMachoBindObject_call boundcall;
+
+            if (boundcall.Decode(&call.value()) == false) {
+                codelog(SERVICE__ERROR, "%s Service: Failed to decode boundcall arguments", this->GetName().c_str());
+                return nullptr;
+            }
+
+            _log(SERVICE__MESSAGE, "%s Service: MachoBindObject also contains call to %s", this->GetName().c_str(), boundcall.method_name.c_str());
+
+            PyCallArgs subArgs(args.client, boundcall.arguments, boundcall.dict_arguments);
+
+            PyResult result = bound->Dispatch(boundcall.method_name, subArgs);
+
+            // set the tuple data
+            rsp->SetItem(1, result.ssResult);
+            // TODO: merge the dicts to return the full response data?
+            // Py types are lacking lots of helper methods that could be useful
+        }
+
+        // return the response
+        return PyResult(rsp, byName);
+    }
 
 protected:
     /**
      * @brief Handles the creation of the bound service
      */
     virtual BoundDispatcher* BindObject(PyRep* bindParameters) = 0;
-
+    /** @returns The service manager this service is registered in */
+    EVEServiceManager& GetServiceManager() const { return this->mManager; }
 private:
-    EVEServiceManager* mManager;
+    EVEServiceManager& mManager;
 };
 
 /*
  * @brief Implementation of EVE Online's bound objects
  */
 template<class T>
-class EVEBoundObject : public Service<T>, public BoundDispatcher {
-public:
-    EVEBoundObject(EVEServiceManager* mgr, PyRep* bindData);
+class EVEBoundObject : public BoundDispatcher {
+protected:
+    EVEBoundObject(EVEServiceManager& mgr, PyRep* bindData) :
+        mManager(mgr),
+        mBoundData(bindData)
+    {
+        this->mBoundId = this->GetServiceManager().RegisterBoundService(this);
 
+        // build the id string
+        std::stringstream strBuilder;
+        strBuilder << "N=" << this->GetServiceManager().GetNodeID() << ":" << this->mBoundId;
+
+        // store it
+        this->mIdString = strBuilder.str();
+
+        // build the OID
+        this->mOID = new PyTuple(2);
+        this->mOID->SetItem (0, new PyString (this->mIdString));
+        this->mOID->SetItem (1, new PyLong(GetFileTimeNow())); // this isn't really the datetime, should be a unique ID
+    }
+
+    /**
+     * @brief Registers a method handler
+     */
+    void Add(const std::string& name, CallHandler <T> handler) {
+        this->mHandlers.push_back(std::make_pair(std::string(name), handler));
+    }
+
+public:
     /**
      * @brief Handles dispatching a call to this service
      */
-    PyResult Dispatch(const std::string& name, PyCallArgs& args) override;
+    PyResult Dispatch(const std::string& name, PyCallArgs& args) override {
+        if (this->CanClientCall(args.client) == false)
+            throw std::runtime_error("This client is not allowed to call this bound service");
+
+        for (auto handler : this->mHandlers) {
+            if (handler.first != name)
+                continue;
+
+            try
+            {
+                return handler.second(reinterpret_cast <T*> (this), args);
+            }
+            catch (std::invalid_argument)
+            {
+                // ignored, this just means the function does not match the possible calls
+            }
+        }
+
+        throw std::runtime_error("Cannot find matching function to call");
+    }
 
     /** @returns BoundID The id of the bound service */
-    const BoundID GetBoundID() override { return this->mBoundId; }
+    BoundID GetBoundID() const override { return this->mBoundId; }
     /** @returns PyRep* The information of this bound object */
-    const PyRep* GetBoundData() override { return this->mBoundData; }
+    PyRep* GetBoundData() const override { return this->mBoundData; }
     /** @returns PyTuple* The OID of the bound object */
-    const PyTuple* GetOID() override { return this->mOID; }
+    PyTuple* GetOID() const override { return this->mOID; }
+    /** @returns The service manager this service is registered in */
+    EVEServiceManager& GetServiceManager() const { return this->mManager; }
 private:
-    EVEServiceManager* mManager;
+    /** @var The service manager this bound service is registered in */
+    EVEServiceManager& mManager;
+    /** @var The OID of the service */
     PyTuple* mOID;
+    /** @var The ID string that identifies this service for the clients */
     std::string mIdString;
+    /** @var The data used to request the binding of this service */
     PyRep* mBoundData;
+    /** @var The numeric ID of the bound service */
     BoundID mBoundId;
+    /** @var The map of handlers for this service */
+    std::vector <std::pair <std::string, CallHandler <T>>> mHandlers;
 };
 
 #endif /* !__BOUNDSERVICE_H__ */

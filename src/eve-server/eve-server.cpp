@@ -196,6 +196,7 @@ static volatile bool m_run = true;
 
 int main( int argc, char* argv[] )
 {
+#if 0
     // perform some tests with the new service system to ensure it works fine
     EVEServiceManager mgr(0xFFAA);
 
@@ -218,7 +219,7 @@ int main( int argc, char* argv[] )
     mgr.Dispatch("machoNet", "secondTest", thirdArgs).ssResult->Dump(DEBUG__DEBUG, "Result");
 
     while (true) Sleep(1000);
-
+#endif
     double profileStartTime(GetTimeMSeconds());
 
     /* set current time for timer */
@@ -670,6 +671,7 @@ int main( int argc, char* argv[] )
     /* create a service manager */
     sLog.Green("       ServerInit", "Starting Service Manager");
     PyServiceMgr pyServMgr( 888444, sEntityList );
+    EVEServiceManager newSvcMgr(888444);
     sLog.Blue("  Service Manager", "Service Manager Initialized.");
     /* create a command dispatcher */
     sLog.Green("       ServerInit", "Starting Command Dispatch Manager");
@@ -807,12 +809,14 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("userSvc", new UserService(&pyServMgr));
     pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
     pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
-    pyServMgr.RegisterService("warRegistry", new WarRegistryService(&pyServMgr));
+    // pyServMgr.RegisterService("warRegistry", new WarRegistryService(&pyServMgr));
     pyServMgr.RegisterService("wormholeMgr", new WormHoleSvc(&pyServMgr));
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("netStateServer", new netStateServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
+
+    newSvcMgr.Register(new WarRegistryService(newSvcMgr));
     std::printf("\n");     // spacer
 
     // Create In-Memory Database Objects for Critical and High-Use Systems:
@@ -931,7 +935,7 @@ int main( int argc, char* argv[] )
         //++m_worldLoopCounter;
 
         if ((tcpc = tcps.PopConnection()))
-            sEntityList.Add(new Client(pyServMgr, &tcpc));
+            sEntityList.Add(new Client(newSvcMgr, pyServMgr, &tcpc));
 
         sEntityList.Process();
 
