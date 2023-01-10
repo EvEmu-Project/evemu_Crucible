@@ -82,10 +82,10 @@ private:
     template <typename T> bool validateArg(size_t index, PyCallArgs& args) {
         // handle optional values
         if constexpr (is_optional <T>::value) {
-            if (index >= args.tuple->size()) {
+            // treat Nones on optional values as valid
+            if (index >= args.tuple->size() || args.tuple->GetItem(index)->IsNone()) {
                 return true;
-            }
-            else {
+            } else {
                 return validateArg <typename T::value_type>(index, args);
             }
         }
@@ -140,10 +140,9 @@ private:
 
     template <typename T> decltype(auto) getAs(size_t index, PyTuple* tup) {
         if constexpr (is_optional <T>::value) {
-            if (index >= tup->size()) {
+            if (index >= tup->size() || tup->GetItem(index)->IsNone()) {
                 return T{};
-            }
-            else {
+            } else {
                 return std::make_optional(getAs <typename T::value_type>(index, tup));
             }
         }
