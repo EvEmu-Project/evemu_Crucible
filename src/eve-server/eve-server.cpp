@@ -778,10 +778,10 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
     pyServMgr.RegisterService("wormholeMgr", new WormHoleSvc(&pyServMgr));
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
-    pyServMgr.RegisterService("netStateServer", new netStateServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new netStateServer());
     newSvcMgr.Register(new UserService());
     newSvcMgr.Register(new MovementService(&newSvcMgr));
     newSvcMgr.Register(new InfoGatheringMgr());
