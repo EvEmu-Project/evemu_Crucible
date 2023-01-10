@@ -46,6 +46,11 @@ public:
     void Register(Dispatcher* service);
 
     /**
+     * @brief Looks up the given service and returns a reference to it
+     */
+    Dispatcher* Lookup(const std::string& service);
+
+    /**
      * @brief Registers a new bound service in this service manager
      */
     BoundID RegisterBoundService(BoundDispatcher* obj);

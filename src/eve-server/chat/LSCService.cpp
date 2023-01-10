@@ -58,10 +58,11 @@ const uint32 LSCService::MAX_CHANNEL_ID = 0xFFFFFFFF;
 
 PyCallable_Make_InnerDispatcher(LSCService)
 
-LSCService::LSCService(PyServiceMgr *mgr, CommandDispatcher* cd)
+LSCService::LSCService(PyServiceMgr *mgr, EVEServiceManager* newMgr, CommandDispatcher* cd)
 : PyService(mgr, "LSC"),
   m_dispatch(new Dispatcher(this)),
-  m_commandDispatch(cd)
+  m_commandDispatch(cd),
+    m_newMgr(newMgr)
 {
     _SetCallDispatcher(m_dispatch);
 
@@ -417,7 +418,7 @@ PyResult LSCService::Handle_SendMessage(PyCallArgs& call)
 
     if (message.at(0) == '.') {
         _log(LSC__INFO, "SlashService->SlashCmd() called via LSC Service");
-        static_cast<SlashService *>(m_manager->LookupService("slash"))->SlashCommand(call.client, message);
+        static_cast<SlashService *>(m_newMgr->Lookup("slash"))->SlashCommand(call.client, message);
         itr->second->SendMessage(call.client, message.c_str(), true);
     } else {
         itr->second->SendMessage(call.client, message.c_str());

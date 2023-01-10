@@ -35,6 +35,15 @@ void EVEServiceManager::Register(Dispatcher* service) {
     this->mServices.insert(std::make_pair(service->GetName(), service));
 }
 
+Dispatcher* EVEServiceManager::Lookup(const std::string& service) {
+    auto it = this->mServices.find(service);
+
+    if (it == this->mServices.end())
+        throw std::runtime_error("Cannot find the requested service");
+
+    return (*it).second;
+}
+
 BoundID EVEServiceManager::RegisterBoundService(BoundDispatcher* service) {
     BoundID newBoundId = this->mLastBoundId++;
 

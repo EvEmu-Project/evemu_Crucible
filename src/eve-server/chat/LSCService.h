@@ -34,6 +34,8 @@
 #include "chat/LSCDB.h"
 #include "chat/LSCChannel.h"
 #include "PyService.h"
+#include "services/Service.h"
+#include "services/ServiceManager.h"
 
 
 class CommandDispatcher;
@@ -48,7 +50,7 @@ public:
     static const int32 BASE_CHANNEL_ID;
     static const uint32 MAX_CHANNEL_ID;
 
-    LSCService(PyServiceMgr *mgr, CommandDispatcher *cd);
+    LSCService(PyServiceMgr *mgr, EVEServiceManager* newMgr, CommandDispatcher *cd);
     ~LSCService();
 
     void Init(CommandDispatcher *cd);
@@ -95,6 +97,8 @@ protected:
     PyCallable_DECL_CALL(Page);
     PyCallable_DECL_CALL(MarkMessagesRead);
     PyCallable_DECL_CALL(DeleteMessages);
+
+    EVEServiceManager* m_newMgr;
 
 private:
     void CreateStaticChannels();

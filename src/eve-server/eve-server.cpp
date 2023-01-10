@@ -769,7 +769,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("lookupSvc", new LookupService(&pyServMgr));
     pyServMgr.RegisterService("LPSvc", new LPService(&pyServMgr));
     pyServMgr.RegisterService("storeServer", new LPStore(&pyServMgr));
-    pyServMgr.lsc_service = new LSCService(&pyServMgr, &command_dispatcher);
+    pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
     pyServMgr.RegisterService("machoNet", new NetService(&pyServMgr));
     pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
@@ -794,7 +794,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
     pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
-    pyServMgr.RegisterService("slash", new SlashService(&pyServMgr, &command_dispatcher));
     pyServMgr.RegisterService("sovMgr", new SovereigntyMgrService(&pyServMgr));
     pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
     pyServMgr.RegisterService("station", new StationService(&pyServMgr));
@@ -810,6 +809,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new SlashService(&command_dispatcher));
     newSvcMgr.Register(new PetitionerService());
     newSvcMgr.Register(new ClientStatLogger());
     newSvcMgr.Register(new AlertService());

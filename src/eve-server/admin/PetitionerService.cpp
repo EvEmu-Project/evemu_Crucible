@@ -31,6 +31,9 @@
 PetitionerService::PetitionerService() :
     Service("petitioner")
 {
+    this->Add("GetCategories", &PetitionerService::GetCategories);
+    this->Add("GetCategoryHierarchicalInfo", &PetitionerService::GetCategoryHierarchicalInfo);
+    this->Add("GetUnreadMessages", &PetitionerService::GetUnreadMessages);
 }
 
 /*
