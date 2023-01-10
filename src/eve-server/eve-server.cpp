@@ -776,7 +776,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("map", new MapService(&pyServMgr));
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
-    pyServMgr.RegisterService("movementServer", new MovementService(&pyServMgr));
     pyServMgr.RegisterService("notificationMgr", new NotificationMgrService(&pyServMgr));
     pyServMgr.cache_service = new ObjCacheService(&pyServMgr, sConfig.files.cacheDir.c_str());
     pyServMgr.RegisterService("objectCaching", pyServMgr.cache_service);
@@ -799,7 +798,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("stationSvc", new StationSvc(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     pyServMgr.RegisterService("tutorialSvc", new TutorialService(&pyServMgr));
-    pyServMgr.RegisterService("userSvc", new UserService(&pyServMgr));
     pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
     pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
     pyServMgr.RegisterService("wormholeMgr", new WormHoleSvc(&pyServMgr));
@@ -808,6 +806,8 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
     pyServMgr.Initalize(startTime);
 
+    newSvcMgr.Register(new UserService());
+    newSvcMgr.Register(new MovementService(&newSvcMgr));
     newSvcMgr.Register(new InfoGatheringMgr());
     newSvcMgr.Register(new SlashService(&command_dispatcher));
     newSvcMgr.Register(new PetitionerService());
