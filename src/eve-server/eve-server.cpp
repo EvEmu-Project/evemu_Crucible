@@ -83,7 +83,6 @@
 #include "config/LanguageService.h"
 #include "config/LocalizationServerService.h"
 // contract services
-#include "contract/ContractMgr.h"
 #include "contract/ContractProxy.h"
 // corporation services
 #include "corporation/BillMgr.h"
@@ -720,7 +719,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("corporationSvc", new CorporationService(&pyServMgr));
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
     pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
-    pyServMgr.RegisterService("contractMgr", new ContractMgr(&pyServMgr));
     pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
     pyServMgr.RegisterService("devToolsProvider", new DevToolsProviderService(&pyServMgr));
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
