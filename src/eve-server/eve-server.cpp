@@ -739,7 +739,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("LPSvc", new LPService(&pyServMgr));
     pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
-    pyServMgr.RegisterService("machoNet", new NetService(&pyServMgr));
     pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
     pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
     pyServMgr.RegisterService("map", new MapService(&pyServMgr));
@@ -758,6 +757,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
 
+    newSvcMgr.Register(new NetService(newSvcMgr));
     newSvcMgr.Register(new HoloscreenMgrService());
     newSvcMgr.Register(new Standing());
     newSvcMgr.Register(new TutorialService());

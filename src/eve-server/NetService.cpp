@@ -30,28 +30,20 @@
 #include "PyServiceCD.h"
 #include "cache/ObjCacheService.h"
 
-PyCallable_Make_InnerDispatcher(NetService)
-
-NetService::NetService(PyServiceMgr *mgr)
-: PyService(mgr, "machoNet"),
-  m_dispatch(new Dispatcher(this))
+NetService::NetService(EVEServiceManager& mgr) :
+    Service("machoNet"),
+    m_manager (mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(NetService, GetTime);
-    PyCallable_REG_CALL(NetService, GetInitVals);
-    PyCallable_REG_CALL(NetService, GetClusterSessionStatistics);
+    this->Add("GetTime", &NetService::GetTime);
+    this->Add("GetClusterSessionStatistics", &NetService::GetClusterSessionStatistics);
+    this->Add("GetInitVals", &NetService::GetInitVals);
 }
 
-NetService::~NetService() {
-    delete m_dispatch;
-}
-
-PyResult NetService::Handle_GetTime(PyCallArgs &call) {
+PyResult NetService::GetTime(PyCallArgs &call) {
     return new PyLong(GetFileTimeNow());
 }
 
-PyResult NetService::Handle_GetClusterSessionStatistics(PyCallArgs &call)
+PyResult NetService::GetClusterSessionStatistics(PyCallArgs &call)
 {
     // got this shit working once i understood what the client wanted....only took 4 years
     DBQueryResult res;
@@ -80,10 +72,10 @@ PyResult NetService::Handle_GetClusterSessionStatistics(PyCallArgs &call)
 }
 
 /** @note:  wtf is this used for???  */
-PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
+PyResult NetService::GetInitVals(PyCallArgs &call) {
     PyString* str = new PyString( "machoNet.serviceInfo" );
 
-    PyRep* serverinfo(m_manager->cache_service->GetCacheHint(str));
+    PyRep* serverinfo(m_manager.Lookup <ObjCacheService>("objectCaching")->GetCacheHint(str));
     PyDecRef( str );
 
     PyDict* initvals = new PyDict();
