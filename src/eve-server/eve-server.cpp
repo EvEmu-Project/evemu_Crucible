@@ -701,7 +701,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
     pyServMgr.RegisterService("aggressionMgr", new AggressionMgrService(&pyServMgr));
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
-    pyServMgr.RegisterService("billMgr", new BillMgr(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
     pyServMgr.RegisterService("bulkMgr", new BulkMgrService(&pyServMgr));
@@ -740,7 +739,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
     pyServMgr.RegisterService("map", new MapService(&pyServMgr));
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
-    pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
     pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
@@ -752,6 +750,8 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
 
+    newSvcMgr.Register(new BillMgr());
+    newSvcMgr.Register(new MissionMgrService());
     newSvcMgr.Register(new NotificationMgrService());
     newSvcMgr.Register(new DungeonExplorationMgrService());
     newSvcMgr.Register(new DevToolsProviderService());

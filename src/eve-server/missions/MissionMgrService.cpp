@@ -28,62 +28,13 @@
 #include "PyServiceCD.h"
 #include "missions/MissionMgrService.h"
 
-/*
-class MissionMgrBound
-: public PyBoundObject {
-public:
-
-    PyCallable_Make_Dispatcher(MissionMgrBound)
-
-    MissionMgrBound(PyServiceMgr *mgr, MissionMgrDB *db)
-    : PyBoundObject(mgr, "MissionMgrBound"),
-      m_db(db),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        PyCallable_REG_CALL(MissionMgrBound, )
-        PyCallable_REG_CALL(MissionMgrBound, )
-    }
-    virtual ~MissionMgrBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL()
-    PyCallable_DECL_CALL()
-
-protected:
-    MissionMgrDB *const m_db;
-    Dispatcher *const m_dispatch;   //we own this
-};
-*/
-
-PyCallable_Make_InnerDispatcher(MissionMgrService)
-
-MissionMgrService::MissionMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "missionMgr"),
-  m_dispatch(new Dispatcher(this))
+MissionMgrService::MissionMgrService() :
+    Service("missionMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(MissionMgrService, GetMyCourierMissions);
+    this->Add("GetMyCourierMissions", &MissionMgrService::GetMyCourierMissions);
 }
 
-MissionMgrService::~MissionMgrService() {
-    delete m_dispatch;
-}
-
-/*
-PyBoundObject *MissionMgrService::CreateBoundObject(Client *pClient, PyTuple *bind_args) {
-    _log(CLIENT__MESSAGE, "MissionMgrService bind request for:");
-    bind_args->Dump(CLIENT__MESSAGE, "    ");
-
-    return(new MissionMgrBound(m_manager, &m_db));
-}*/
-
-PyResult MissionMgrService::Handle_GetMyCourierMissions( PyCallArgs& call )
+PyResult MissionMgrService::GetMyCourierMissions(PyCallArgs& call)
 {
     //SELECT * FROM courierMissions
     sLog.White("MissionMgrService", "Handle_GetMyCourierMissions() size=%li", call.tuple->size());
