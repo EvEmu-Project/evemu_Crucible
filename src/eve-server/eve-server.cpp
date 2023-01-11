@@ -739,8 +739,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("invbroker", new InvBrokerService(&pyServMgr));
     pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
     pyServMgr.RegisterService("keeper", new KeeperService(&pyServMgr));
-    pyServMgr.RegisterService("languageSvc", new LanguageService(&pyServMgr));
-    pyServMgr.RegisterService("localizationServer", new LocalizationServerService(&pyServMgr));
     pyServMgr.RegisterService("lookupSvc", new LookupService(&pyServMgr));
     pyServMgr.RegisterService("LPSvc", new LPService(&pyServMgr));
     pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
@@ -770,6 +768,8 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
 
+    newSvcMgr.Register(new LanguageService());
+    newSvcMgr.Register(new LocalizationServerService());
     newSvcMgr.Register(new LPStore());
     newSvcMgr.Register(new OnlineStatusService());
     newSvcMgr.Register(new Search());

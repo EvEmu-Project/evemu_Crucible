@@ -28,24 +28,14 @@
 #include "PyServiceCD.h"
 #include "config/LocalizationServerService.h"
 
-PyCallable_Make_InnerDispatcher(LocalizationServerService)
-
-LocalizationServerService::LocalizationServerService( PyServiceMgr *mgr )
-: PyService(mgr, "localizationServer"),
-  m_dispatch(new Dispatcher(this))
+LocalizationServerService::LocalizationServerService() :
+    Service("localizationServer")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(LocalizationServerService, GetAllTextChanges);
-    PyCallable_REG_CALL(LocalizationServerService, UpdateLocalizationQASettings);
-
+    this->Add("GetAllTextChanges", &LocalizationServerService::GetAllTextChanges);
+    this->Add("UpdateLocalizationQASettings", &LocalizationServerService::UpdateLocalizationQASettings);
 }
 
-LocalizationServerService::~LocalizationServerService() {
-    delete m_dispatch;
-}
-
-PyResult LocalizationServerService::Handle_GetAllTextChanges(PyCallArgs &call)
+PyResult LocalizationServerService::GetAllTextChanges(PyCallArgs &call, PyDict* hashDict)
 {
 /*
                 cacheData = sm.RemoteSvc('localizationServer').GetAllTextChanges(hashData)
@@ -57,7 +47,7 @@ PyResult LocalizationServerService::Handle_GetAllTextChanges(PyCallArgs &call)
     return PyStatic.NewNone();
 }
 
-PyResult LocalizationServerService::Handle_UpdateLocalizationQASettings(PyCallArgs &call)
+PyResult LocalizationServerService::UpdateLocalizationQASettings(PyCallArgs &call)
 {
     /*
      *     sm.RemoteSvc('localizationServer').UpdateLocalizationQASettings(showMessageID=showMessageID, enableBoundaryMarkers=enableBoundaryMarkers)

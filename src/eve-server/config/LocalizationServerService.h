@@ -28,18 +28,14 @@
 
 #include "PyService.h"
 
-class LocalizationServerService : public PyService
+class LocalizationServerService : public Service<LocalizationServerService>
 {
 public:
-    LocalizationServerService(PyServiceMgr *mgr);
-    virtual ~LocalizationServerService();
+    LocalizationServerService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetAllTextChanges);
-    PyCallable_DECL_CALL(UpdateLocalizationQASettings);
+    PyResult GetAllTextChanges(PyCallArgs& call, PyDict* hashDict);
+    PyResult UpdateLocalizationQASettings(PyCallArgs& call);
 };
 
 #endif

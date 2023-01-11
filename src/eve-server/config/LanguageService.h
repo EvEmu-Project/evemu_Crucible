@@ -29,29 +29,17 @@
 #include "config/ConfigDB.h"
 #include "packets/Language.h"
 
-class LanguageService
-: public PyService
+class LanguageService : public Service<LanguageService>
 {
 public:
-    LanguageService(PyServiceMgr *mgr);
-    virtual ~LanguageService();
+    LanguageService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     ConfigDB m_db;
 
-    PyCallable_DECL_CALL(GetLanguages)
-    PyCallable_DECL_CALL(GetTextsForGroup)
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    PyResult GetLanguages(PyCallArgs& call);
+    PyResult GetTextsForGroup(PyCallArgs& call, PyInt* textGroup, PyString* languageID);
 };
-
-
-
-
 
 #endif
 
