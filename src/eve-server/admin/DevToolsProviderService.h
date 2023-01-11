@@ -26,20 +26,16 @@
 #ifndef DEVTOOLSPROVIDER_SERVICE_H
 #define DEVTOOLSPROVIDER_SERVICE_H
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class DevToolsProviderService : public PyService
+class DevToolsProviderService : public Service <DevToolsProviderService>
 {
 public:
-    DevToolsProviderService(PyServiceMgr* mgr);
-    virtual ~DevToolsProviderService();
+    DevToolsProviderService();
 
 protected:
-    class Dispatcher;
-    Dispatcher* const m_dispatch;
-
-    PyCallable_DECL_CALL(GetLoader);
-    PyCallable_DECL_CALL(ExceptionFluentExample);
+    PyResult GetLoader(PyCallArgs& call);
+    PyResult ExceptionFluentExample(PyCallArgs& call, PyInt* value);
 };
 
 #endif

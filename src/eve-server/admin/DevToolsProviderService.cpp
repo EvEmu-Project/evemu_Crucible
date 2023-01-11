@@ -28,50 +28,34 @@
 #include "PyServiceCD.h"
 #include "admin/DevToolsProviderService.h"
 
-PyCallable_Make_InnerDispatcher(DevToolsProviderService)
-
-DevToolsProviderService::DevToolsProviderService(PyServiceMgr* mgr)
-: PyService(mgr, "devToolsProvider"),
-  m_dispatch(new Dispatcher(this))
+DevToolsProviderService::DevToolsProviderService() :
+    Service("devToolsProvider")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(DevToolsProviderService, GetLoader);
-    PyCallable_REG_CALL(DevToolsProviderService, ExceptionFluentExample);
+    this->Add("GetLoader", &DevToolsProviderService::GetLoader);
+    this->Add("ExceptionFluentExample", &DevToolsProviderService::ExceptionFluentExample);
 }
 
-DevToolsProviderService::~DevToolsProviderService()
-{
-    delete m_dispatch;
-}
-
-PyResult DevToolsProviderService::Handle_GetLoader(PyCallArgs& call)
+PyResult DevToolsProviderService::GetLoader(PyCallArgs& call)
 {
     FILE *pFile;
+
     if (pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb"))
     {
         fseek(pFile, 0, SEEK_END);
-	int size = ftell(pFile);
-	char * buf = new char[size];
-	fseek(pFile, 0, SEEK_SET);
-	fread(buf, 1, size, pFile);
-	fclose(pFile);
-	return new PyString(buf, size);
+	    int size = ftell(pFile);
+	    char * buf = new char[size];
+	    fseek(pFile, 0, SEEK_SET);
+	    fread(buf, 1, size, pFile);
+	    fclose(pFile);
+	    return new PyString(buf, size);
     }
+
     return PyStatic.NewNone();
 }
 
-PyResult DevToolsProviderService::Handle_ExceptionFluentExample (PyCallArgs& call)
+PyResult DevToolsProviderService::ExceptionFluentExample (PyCallArgs& call, PyInt* value)
 {
-    Call_SingleIntegerArg arg;
-
-    if (arg.Decode (call.tuple) == false)
-    {
-        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
-        return nullptr;
-    }
-
-    switch (arg.arg)
+    switch (value->value())
     {
         case 0:
             throw UserError ("SalvagingTooComplex").AddTypeName ("type", EVEItemTypeID::itemTypeTrit);
