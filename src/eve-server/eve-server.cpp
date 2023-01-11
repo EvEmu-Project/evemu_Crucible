@@ -729,7 +729,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
     pyServMgr.RegisterService("keeper", new KeeperService(&pyServMgr));
     pyServMgr.RegisterService("lookupSvc", new LookupService(&pyServMgr));
-    pyServMgr.RegisterService("LPSvc", new LPService(&pyServMgr));
     pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
     pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
@@ -746,6 +745,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     
+    newSvcMgr.Register(new LPService());
     newSvcMgr.Register(new ConfigService());
     newSvcMgr.Register(new PhotoUploadService());
     newSvcMgr.Register(new AggressionMgrService(newSvcMgr));
