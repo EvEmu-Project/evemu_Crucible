@@ -26,22 +26,16 @@
 #ifndef EVEMU_SYSTEM_CALENDARPROXY_H__
 #define EVEMU_SYSTEM_CALENDARPROXY_H__
 
+#include "services/Service.h"
 
-#include "PyService.h"
-
-class CalendarProxy
- : public PyService
+class CalendarProxy : Service <CalendarProxy>
 {
-  public:
-    CalendarProxy(PyServiceMgr *mgr);
-    virtual ~CalendarProxy();
+public:
+    CalendarProxy();
 
-  protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetEventList);
-    PyCallable_DECL_CALL(GetEventDetails);
+protected:
+    PyResult GetEventList(PyCallArgs& call, PyInt* month, PyInt* year);
+    PyResult GetEventDetails(PyCallArgs& call, PyInt* eventID, PyInt* ownerID);
 
 };
 

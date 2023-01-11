@@ -701,7 +701,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
-    pyServMgr.RegisterService("calendarProxy", new CalendarProxy(&pyServMgr));
     pyServMgr.RegisterService("calendarMgr", new CalendarMgrService(&pyServMgr));
     pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
@@ -742,6 +741,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     
+    newSvcMgr.Register(new CalendarProxy());
     newSvcMgr.Register(new AccountService());
     newSvcMgr.Register(new BulkMgrService());
     newSvcMgr.Register(new LPService());
