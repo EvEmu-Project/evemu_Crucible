@@ -741,7 +741,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("map", new MapService(&pyServMgr));
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
-    pyServMgr.RegisterService("notificationMgr", new NotificationMgrService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
     pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
@@ -753,6 +752,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
 
+    newSvcMgr.Register(new NotificationMgrService());
     newSvcMgr.Register(new DungeonExplorationMgrService());
     newSvcMgr.Register(new DevToolsProviderService());
     newSvcMgr.Register(new ClientStatsMgr());
