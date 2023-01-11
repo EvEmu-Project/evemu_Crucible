@@ -759,11 +759,11 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
-    pyServMgr.RegisterService("tutorialSvc", new TutorialService(&pyServMgr));
-    pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
-    pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
-    pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
 
+    newSvcMgr.Register(new TutorialService());
+    newSvcMgr.Register(new VoucherService(newSvcMgr));
+    newSvcMgr.Register(new encounterSpawnServer());
+    newSvcMgr.Register(new zActionServer());
     newSvcMgr.Register(new RepairService(newSvcMgr));
     newSvcMgr.Register(new CorporationService());
     newSvcMgr.Register(new LanguageService());

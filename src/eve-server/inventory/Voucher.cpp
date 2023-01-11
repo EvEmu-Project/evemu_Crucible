@@ -25,26 +25,20 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+#include "StaticDataMgr.h"
+#include "Client.h"
+#include "inventory/ItemFactory.h"
 #include "inventory/Voucher.h"
 #include "system/BookmarkDB.h"
 
-PyCallable_Make_InnerDispatcher(VoucherService)
-
-VoucherService::VoucherService(PyServiceMgr *mgr)
-: PyService(mgr, "voucher"),
-  m_dispatch(new Dispatcher(this))
+VoucherService::VoucherService(EVEServiceManager& mgr) :
+    Service("voucher"),
+    m_manager (mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(VoucherService, GetObject);
+    this->Add("GetObject", &VoucherService::GetObject);
 }
 
-VoucherService::~VoucherService() {
-    delete m_dispatch;
-}
-
-PyResult VoucherService::Handle_GetObject( PyCallArgs& call ) {
+PyResult VoucherService::GetObject(PyCallArgs& call, PyInt* voucherID) {
   /**
     voucher = self.GetVoucherSvc().GetObject(voucherID)
     if voucher is None:
@@ -55,47 +49,36 @@ PyResult VoucherService::Handle_GetObject( PyCallArgs& call ) {
     //call.Dump(BOOKMARK__CALL_DUMP);
     // return none for now, to allow client to use default name of 'bookmark'
     //return PyStatic.NewNone();
-
-    PyDict* dict = new PyDict();
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return dict;
-    }
-    InventoryItemRef iRef = sItemFactory.GetItemRef(arg.arg);
+    InventoryItemRef iRef = sItemFactory.GetItemRef(voucherID->value());
     if (iRef.get() == nullptr) {
-        codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark voucher for bmID %u", call.client->GetName(), arg.arg);
-        return dict;
+        codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark voucher for bmID %u", call.client->GetName(), voucherID->value());
+        return new PyDict;
     }
 
     // this is how i return objects for method chaining
     //we just bind up a new voucher object for item requested and give it back to them.
-    VoucherBound *vb = new VoucherBound(m_manager, iRef);
-    return m_manager->BindObject(call.client, vb );
+    VoucherBound* bound = new VoucherBound(m_manager, iRef);
+
+    PyTuple* rsp = new PyTuple(2);
+
+    rsp->SetItem(0, new PySubStruct(new PySubStream(bound->GetOID())));
+    rsp->SetItem(1, PyStatic.NewNone());
+
+    return rsp;
 }
 
-
-PyCallable_Make_InnerDispatcher(VoucherBound)
-
-VoucherBound::VoucherBound(PyServiceMgr* mgr, InventoryItemRef itemRef)
-: PyBoundObject(mgr),
-m_dispatch(new Dispatcher(this))
+VoucherBound::VoucherBound(EVEServiceManager& mgr, InventoryItemRef itemRef) :
+    EVEBoundObject (mgr, nullptr),
+    m_itemRef (itemRef)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    m_strBoundObjectName = "VoucherBound";
-
-    m_itemRef = itemRef;
-
-    PyCallable_REG_CALL(VoucherBound, GetDescription);
+    this->Add("GetDescription", &VoucherBound::GetDescription);
 }
 
-VoucherBound::~VoucherBound()
-{
-    delete m_dispatch;
+bool VoucherBound::CanClientCall(Client* client) {
+    return true; // TODO: implement this check properly
 }
 
-PyResult VoucherBound::Handle_GetDescription(PyCallArgs &call) {
+PyResult VoucherBound::GetDescription(PyCallArgs &call) {
     //   name = voucher.GetDescription()
 
     // get bookmark name (memo) as stored in db.  item.customInfo is bookmarkID this item is copied from
