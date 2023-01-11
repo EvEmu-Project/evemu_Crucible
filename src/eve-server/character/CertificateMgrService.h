@@ -27,31 +27,31 @@
 #define __CERTIFICATE_MGR_SERVICE__H__INCL__
 
 #include "character/CertificateMgrDB.h"
-#include "PyService.h"
+#include "services/Service.h"
+#include "services/ServiceManager.h"
+#include "cache/ObjCacheService.h"
 
-class CertificateMgrService
-: public PyService
+class CertificateMgrService : public Service <CertificateMgrService>
 {
 public:
-    CertificateMgrService(PyServiceMgr *mgr);
-    ~CertificateMgrService();
+    CertificateMgrService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
+    EVEServiceManager& m_manager;
     CertificateMgrDB m_db;
 
-    PyCallable_DECL_CALL(GetMyCertificates);
-    PyCallable_DECL_CALL(GetCertificateCategories);
-    PyCallable_DECL_CALL(GetAllShipCertificateRecommendations);
-    PyCallable_DECL_CALL(GetCertificateClasses);
-    PyCallable_DECL_CALL(GrantCertificate);
-    PyCallable_DECL_CALL(UpdateCertificateFlags);
-    PyCallable_DECL_CALL(BatchCertificateGrant);
-    PyCallable_DECL_CALL(BatchCertificateUpdate);
-    PyCallable_DECL_CALL(GetCertificatesByCharacter);
+    PyResult GetMyCertificates(PyCallArgs& call);
+    PyResult GetCertificateCategories(PyCallArgs& call);
+    PyResult GetAllShipCertificateRecommendations(PyCallArgs& call);
+    PyResult GetCertificateClasses(PyCallArgs& call);
+    PyResult GrantCertificate(PyCallArgs& call, PyInt* certificateID);
+    PyResult UpdateCertificateFlags(PyCallArgs& call, PyInt* certificateID, PyInt* visibility);
+    PyResult BatchCertificateGrant(PyCallArgs& call, PyList* certificateIDs);
+    PyResult BatchCertificateUpdate(PyCallArgs& call, PyDict* batchUpdate);
+    PyResult GetCertificatesByCharacter(PyCallArgs& call, PyInt* characterID);
 
+private:
+    ObjCacheService* m_cache;
 };
 
 #endif /* __CERTIFICATE_MGR_SERVICE__H__INCL__ */
