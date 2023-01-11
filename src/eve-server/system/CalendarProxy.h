@@ -28,7 +28,7 @@
 
 #include "services/Service.h"
 
-class CalendarProxy : Service <CalendarProxy>
+class CalendarProxy : public Service <CalendarProxy>
 {
 public:
     CalendarProxy();
