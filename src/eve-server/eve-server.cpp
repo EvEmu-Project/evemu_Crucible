@@ -697,7 +697,6 @@ int main( int argc, char* argv[] )
     /* Please keep the pyServMgr list clean so it's easier to find things */
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
-    pyServMgr.RegisterService("account", new AccountService(&pyServMgr));
     pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
@@ -743,6 +742,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     
+    newSvcMgr.Register(new AccountService());
     newSvcMgr.Register(new BulkMgrService());
     newSvcMgr.Register(new LPService());
     newSvcMgr.Register(new ConfigService());

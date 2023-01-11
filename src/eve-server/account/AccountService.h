@@ -27,16 +27,14 @@
 #ifndef __ACCOUNTSERVICE_H_INCL__
 #define __ACCOUNTSERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "account/AccountDB.h"
 
 class Client;
 
-class AccountService
-: public PyService {
+class AccountService : public Service <AccountService> {
 public:
-    AccountService(PyServiceMgr *mgr);
-    ~AccountService();
+    AccountService();
 
     // this moves currency, adds journal entries, and sends blink event. handles applicable corp taxes internally.
     //  will throw if fails
@@ -50,21 +48,23 @@ public:
                                       double amount, std::string description, uint32 referenceID = 0);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     AccountDB m_db;
 
-    PyCallable_DECL_CALL(GetCashBalance);
-    PyCallable_DECL_CALL(GetEntryTypes);
-    PyCallable_DECL_CALL(GetKeyMap);
-    PyCallable_DECL_CALL(GiveCash);
-    PyCallable_DECL_CALL(GiveCashFromCorpAccount);
-    PyCallable_DECL_CALL(GetJournal);
-    PyCallable_DECL_CALL(GetJournalForAccounts);
-    PyCallable_DECL_CALL(GetWalletDivisionsInfo);
-    PyCallable_DECL_CALL(GetDefaultContactCost);
-    PyCallable_DECL_CALL(SetContactCost);
+    PyResult GetKeyMap(PyCallArgs& call);
+    PyResult GetEntryTypes(PyCallArgs& call);
+    PyResult GetWalletDivisionsInfo(PyCallArgs& call);
+    PyResult GetDefaultContactCost(PyCallArgs& call);
+    PyResult SetContactCost(PyCallArgs& call, std::optional<PyInt*> cost);
+    PyResult GetCashBalance(PyCallArgs& call, std::optional<PyBool*> isCorpWallet, std::optional<PyInt*> walletKey);
+    PyResult GetCashBalance(PyCallArgs& call, std::optional<PyInt*> isCorpWallet, std::optional<PyInt*> walletKey);
+    PyResult GetJournal(PyCallArgs& call, PyInt* accountKey, PyLong* fromDate, std::optional<PyInt*> entryTypeID, PyInt* corpAccount, std::optional <PyInt*> transactionID, std::optional<PyInt*> rev);
+    PyResult GetJournal(PyCallArgs& call, PyInt* accountKey, PyLong* fromDate, std::optional<PyInt*> entryTypeID, PyBool* corpAccount, std::optional <PyInt*> transactionID, std::optional<PyInt*> rev);
+    PyResult GetJournalForAccounts(PyCallArgs& call, PyInt* accountKeys, PyLong* fromDate, std::optional<PyInt*> entryTypeID, PyBool* corpAccount, std::optional <PyInt*> transactionID, std::optional<PyInt*> rev);
+    PyResult GetJournalForAccounts(PyCallArgs& call, PyInt* accountKeys, PyLong* fromDate, std::optional<PyInt*> entryTypeID, PyInt* corpAccount, std::optional <PyInt*> transactionID, std::optional<PyInt*> rev);
+    PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyWString*> reason);
+    PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyWString*> reason);
+    PyResult GiveCashFromCorpAccount(PyCallArgs& call, PyInt* toID, PyInt* amount, PyInt* fromAcctKey);
+    PyResult GiveCashFromCorpAccount(PyCallArgs& call, PyInt* toID, PyFloat* amount, PyInt* fromAcctKey);
 };
 
 #endif
