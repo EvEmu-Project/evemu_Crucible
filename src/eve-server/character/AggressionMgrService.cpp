@@ -29,89 +29,38 @@
 #include "PyServiceCD.h"
 #include "character/AggressionMgrService.h"
 
-PyCallable_Make_InnerDispatcher(AggressionMgrService)
-
-class AggressionMgrBound
-: public PyBoundObject
+AggressionMgrBound::AggressionMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 systemID) :
+    EVEBoundObject (mgr, bindData),
+    m_systemID (systemID)
 {
-public:
-    PyCallable_Make_Dispatcher(AggressionMgrBound)
+    this->Add("GetCriminalTimeStamps", &AggressionMgrBound::GetCriminalTimeStamps);
+    this->Add("CheckLootRightExceptions", &AggressionMgrBound::CheckLootRightExceptions);
+}
 
-    AggressionMgrBound(PyServiceMgr* mgr)
-    : PyBoundObject(mgr), m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
+bool AggressionMgrBound::CanClientCall(Client* client) {
+    return true; // TODO: properly implement this
+}
 
-        m_strBoundObjectName = "AggressionMgrBound";
-
-        PyCallable_REG_CALL(AggressionMgrBound, GetCriminalTimeStamps);
-        PyCallable_REG_CALL(AggressionMgrBound, CheckLootRightExceptions);
-    }
-
-    virtual ~AggressionMgrBound()
-    {
-        delete m_dispatch;
-    }
-
-    virtual void Release()
-    {
-        // this is not recommended
-        delete this;
-    }
-
-protected:
-    PyCallable_DECL_CALL(GetCriminalTimeStamps);
-    PyCallable_DECL_CALL(CheckLootRightExceptions);
-
-    Dispatcher *const m_dispatch;
-};
-
-PyResult AggressionMgrBound::Handle_GetCriminalTimeStamps(PyCallArgs &call)
+PyResult AggressionMgrBound::GetCriminalTimeStamps(PyCallArgs &call, PyInt* characterID)
 {
-    // arguments: charID
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     return new PyDict();
 }
 
-PyResult AggressionMgrBound::Handle_CheckLootRightExceptions(PyCallArgs &call)
+PyResult AggressionMgrBound::CheckLootRightExceptions(PyCallArgs &call, PyInt* containerID)
 {
-    // arguments: containerID
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     // return true to allow looting
     return new PyBool(true);
 }
 
-AggressionMgrService::AggressionMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "aggressionMgr"), m_dispatch(new Dispatcher(this))
+AggressionMgrService::AggressionMgrService(EVEServiceManager& mgr) :
+    BindableService ("aggressionMgr", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
 }
 
-AggressionMgrService::~AggressionMgrService()
-{
-    delete m_dispatch;
-}
+BoundDispatcher* AggressionMgrService::BindObject(Client* client, PyRep* bindParameters) {
+    if (bindParameters->IsInt() == false) {
+        throw CustomError("Cannot bind service");
+    }
 
-PyBoundObject *AggressionMgrService::CreateBoundObject(Client *pClient, const PyRep *bind_args)
-{
-    _log(CLIENT__MESSAGE, "AggressionMgrService bind request for:");
-    bind_args->Dump(CLIENT__MESSAGE, "    ");
-    /*
-     * 18:26:21 [ClientMessage] AggressionMgrService bind request for:
-     * 18:26:21 [ClientMessage]     Integer field: 30002547     <<-- systemID
-     */
-
-    /** create this in bound obj code?  */
-    // this obj is system-wide, per system.  bound object can be used for multiple clients
-    return (new AggressionMgrBound(m_manager));
+    return new AggressionMgrBound(this->GetServiceManager(), bindParameters, bindParameters->AsInt()->value());
 }

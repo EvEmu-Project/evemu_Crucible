@@ -2614,10 +2614,12 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
                 return false;
             }
 
+            _log(SERVICE__CALLS_BOUND, "%s::%s()", req.remoteObjectStr.c_str(), req.method.c_str());
             m_canThrow = true;
             result = m_newSvcMgr.Dispatch(bindID, req.method, args);
             m_canThrow = false;
         } else {
+            _log(SERVICE__CALLS, "%s::%s()", packet->dest.service.c_str(), req.method.c_str());
             m_canThrow = true;
             result = m_newSvcMgr.Dispatch(packet->dest.service, req.method, args);
             m_canThrow = false;

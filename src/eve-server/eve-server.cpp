@@ -699,7 +699,6 @@ int main( int argc, char* argv[] )
     // move this into a service Init() function?   will need more work to do...
     pyServMgr.RegisterService("account", new AccountService(&pyServMgr));
     pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
-    pyServMgr.RegisterService("aggressionMgr", new AggressionMgrService(&pyServMgr));
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
@@ -721,7 +720,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("dogma", new DogmaService(&pyServMgr));
     pyServMgr.RegisterService("dungeon", new DungeonService(&pyServMgr));
     pyServMgr.RegisterService("entity", new EntityService(&pyServMgr));
-    pyServMgr.RegisterService("facWarMgr", new FactionWarMgrService(&pyServMgr));
     pyServMgr.RegisterService("factory", new FactoryService(&pyServMgr));
     pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
@@ -749,7 +747,8 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
-
+    
+    newSvcMgr.Register(new AggressionMgrService(newSvcMgr));
     newSvcMgr.Register(new BillMgr());
     newSvcMgr.Register(new MissionMgrService());
     newSvcMgr.Register(new NotificationMgrService());
@@ -788,6 +787,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new BrowserLockdownService());
     newSvcMgr.Register(new AuthService());
     newSvcMgr.Register(new WarRegistryService(newSvcMgr));
+    newSvcMgr.Register(new FactionWarMgrService(newSvcMgr));
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE
