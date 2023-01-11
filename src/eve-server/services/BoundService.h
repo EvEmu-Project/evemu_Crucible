@@ -79,7 +79,7 @@ public:
 
     PyResult MachoBindObject(PyCallArgs& args, PyRep* bindParameters, std::optional<PyTuple*> call) {
         // register the new instance in the service manager
-        BoundDispatcher* bound = this->BindObject(bindParameters);
+        BoundDispatcher* bound = this->BindObject(args.client, bindParameters);
 
         // build the bound service identifier
         PyTuple* rsp = new PyTuple(2);
@@ -120,7 +120,7 @@ protected:
     /**
      * @brief Handles the creation of the bound service
      */
-    virtual BoundDispatcher* BindObject(PyRep* bindParameters) = 0;
+    virtual BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) = 0;
     /** @returns The service manager this service is registered in */
     EVEServiceManager& GetServiceManager() const { return this->mManager; }
 private:
@@ -181,7 +181,7 @@ public:
             }
         }
 
-        throw std::runtime_error("Cannot find matching function to call");
+        throw method_not_found ();
     }
 
     /** @returns BoundID The id of the bound service */

@@ -33,7 +33,7 @@ public:
     WarRegistryService(EVEServiceManager& mgr);
 
 protected:
-    BoundDispatcher* BindObject(PyRep* bindParameters) override;
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
 };
 
 class WarRegistryBound : public EVEBoundObject<WarRegistryBound> {

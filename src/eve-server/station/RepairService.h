@@ -39,7 +39,7 @@ public:
 
 protected:
     PyResult UnasembleItems(PyCallArgs& call, PyDict* validIDsByStationID, PyList* skipChecks);
-    BoundDispatcher* BindObject(PyRep* bindParameters) override;
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
 
     PyCallable_DECL_CALL(UnasembleItems);
 };

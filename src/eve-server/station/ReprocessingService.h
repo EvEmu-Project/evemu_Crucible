@@ -26,45 +26,34 @@
 #ifndef __REPROCESSING_SVC_H__
 #define __REPROCESSING_SVC_H__
 
-#include "PyService.h"
-#include "PyBoundObject.h"
+#include "services/BoundService.h"
 #include "station/ReprocessingDB.h"
 #include "station/Station.h"
 
-class ReprocessingService
-: public PyService
+class ReprocessingService : public BindableService <ReprocessingService>
 {
 public:
-    ReprocessingService(PyServiceMgr *mgr);
-    virtual ~ReprocessingService();
+    ReprocessingService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     ReprocessingDB m_db;
 
-    virtual PyBoundObject* CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
 };
 
-class ReprocessingServiceBound
-: public PyBoundObject
+class ReprocessingServiceBound : public EVEBoundObject <ReprocessingServiceBound>
 {
 public:
-    ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB& db, uint32 stationID);
-    virtual ~ReprocessingServiceBound();
-
-    PyCallable_DECL_CALL(GetOptionsForItemTypes);
-    PyCallable_DECL_CALL(GetReprocessingInfo);
-    PyCallable_DECL_CALL(GetQuote);
-    PyCallable_DECL_CALL(GetQuotes);
-    PyCallable_DECL_CALL(Reprocess);
-
-    virtual void Release();
+    ReprocessingServiceBound(EVEServiceManager& mgr, ReprocessingDB& db, uint32 stationID, PyRep* bindData);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    bool CanClientCall(Client* client) override;
+
+    PyResult GetOptionsForItemTypes(PyCallArgs& call, PyDict* typeIDs);
+    PyResult GetReprocessingInfo(PyCallArgs& call);
+    PyResult GetQuote(PyCallArgs& call, PyInt* itemID);
+    PyResult GetQuotes(PyCallArgs& call, PyList* itemIDs, PyInt* activeShipID);
+    PyResult Reprocess(PyCallArgs& call, PyList* itemIDs, PyInt* fromLocation, std::optional<PyInt*> ownerID, std::optional<PyInt*> flag, PyBool* unknown, PyList* skipChecks);
 
     ReprocessingDB& m_db;
 

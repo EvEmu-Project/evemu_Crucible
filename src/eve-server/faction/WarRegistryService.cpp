@@ -43,7 +43,7 @@ WarRegistryService::WarRegistryService(EVEServiceManager& mgr) :
 {
 }
 
-BoundDispatcher* WarRegistryService::BindObject(PyRep* bindParameters) {
+BoundDispatcher* WarRegistryService::BindObject(Client* client, PyRep* bindParameters) {
     Call_TwoIntegerArgs args;
 
     if (args.Decode(bindParameters->Clone()) == false) {

@@ -43,7 +43,7 @@ RepairService::RepairService(EVEServiceManager& mgr) :
     this->Add("UnasembleItems", &RepairService::UnasembleItems);
 }
 
-BoundDispatcher* RepairService::BindObject(PyRep* bindParameters) {
+BoundDispatcher* RepairService::BindObject(Client* client, PyRep* bindParameters) {
     return new RepairServiceBound(bindParameters->AsInt()->value(), bindParameters, this->GetServiceManager());
 }
 

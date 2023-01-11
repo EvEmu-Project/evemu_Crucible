@@ -48,14 +48,7 @@ enum AccessLevel {
 
 class method_not_found {
 public:
-    method_not_found(Dispatcher* service, const std::string& method) :
-        method(method),
-        service(service)
-    {
-    }
-
-    const std::string& method;
-    Dispatcher* service;
+    method_not_found() {}
 };
 
 template <class T> struct is_optional : std::false_type {};
@@ -314,7 +307,7 @@ public:
             }
         }
 
-        throw method_not_found(this, name);
+        throw method_not_found ();
     }
 
 private:
