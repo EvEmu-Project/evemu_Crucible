@@ -28,23 +28,13 @@
 #include "PyServiceCD.h"
 #include "account/ClientStatMgrService.h"
 
-PyCallable_Make_InnerDispatcher(ClientStatsMgr)
-
-ClientStatsMgr::ClientStatsMgr(PyServiceMgr *mgr)
-: PyService(mgr, "clientStatsMgr"),
-  m_dispatch(new Dispatcher(this))
+ClientStatsMgr::ClientStatsMgr() :
+    Service("clientStatsMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ClientStatsMgr, SubmitStats);
+    this->Add("SubmitStats", &ClientStatsMgr::SubmitStats);
 }
 
-ClientStatsMgr::~ClientStatsMgr()
-{
-    delete m_dispatch;
-}
-
-PyResult ClientStatsMgr::Handle_SubmitStats( PyCallArgs& call )
+PyResult ClientStatsMgr::SubmitStats(PyCallArgs& call, PyTuple* data)
 {
     sLog.Debug( "ClientStatsMgr", "Called SubmitStats stub." );
 

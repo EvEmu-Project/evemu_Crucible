@@ -711,7 +711,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
     pyServMgr.RegisterService("charMgr", new CharMgrService(&pyServMgr));
-    pyServMgr.RegisterService("clientStatsMgr", new ClientStatsMgr(&pyServMgr));
     pyServMgr.RegisterService("config", new ConfigService(&pyServMgr));
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
     pyServMgr.RegisterService("corpFittingMgr", new CorpFittingMgr(&pyServMgr));
@@ -756,6 +755,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
 
+    newSvcMgr.Register(new ClientStatsMgr());
     newSvcMgr.Register(new ReprocessingService(newSvcMgr));
     newSvcMgr.Register(new NetService(newSvcMgr));
     newSvcMgr.Register(new HoloscreenMgrService());
