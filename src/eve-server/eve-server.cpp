@@ -702,7 +702,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
     pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
-    pyServMgr.RegisterService("bulkMgr", new BulkMgrService(&pyServMgr));
     pyServMgr.RegisterService("calendarProxy", new CalendarProxy(&pyServMgr));
     pyServMgr.RegisterService("calendarMgr", new CalendarMgrService(&pyServMgr));
     pyServMgr.RegisterService("certificateMgr", new CertificateMgrService(&pyServMgr));
@@ -745,6 +744,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     
+    newSvcMgr.Register(new BulkMgrService());
     newSvcMgr.Register(new LPService());
     newSvcMgr.Register(new ConfigService());
     newSvcMgr.Register(new PhotoUploadService());
