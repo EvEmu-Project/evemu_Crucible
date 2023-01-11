@@ -331,7 +331,7 @@ PyObject *CorporationDB::GetEmploymentRecord(uint32 charID) {
     return DBResultToRowset(res);
 }
 
-uint16 CorporationDB::CreateMedal(uint32 ownerID, uint32 creatorID, std::string& title, std::string& description)
+uint16 CorporationDB::CreateMedal(uint32 ownerID, uint32 creatorID, const std::string& title, const std::string& description)
 {
     std::string cTitle, cDesc;
     sDatabase.DoEscapeString(cTitle, title);
@@ -468,7 +468,7 @@ PyRep* CorporationDB::GetMedalStatuses()
     return DBResultToRowset(res);
 }
 
-void CorporationDB::GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 medalID, std::vector< uint32 >& charVec, std::string& reason)
+void CorporationDB::GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 medalID, std::vector< uint32 >& charVec, const std::string& reason)
 {
     // INSERT INTO chrMedals(recepientID, medalID, corpID, issuerID, reason, date, status) VALUES ()
 

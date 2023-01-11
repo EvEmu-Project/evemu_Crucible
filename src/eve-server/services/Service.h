@@ -125,6 +125,8 @@ private:
             return rep->IsBuffer();
         if constexpr (std::is_same_v <T, PyString*>)
             return rep->IsString();
+        if constexpr (std::is_same_v <T, PyWString*>)
+            return rep->IsWString();
         if constexpr (std::is_same_v <T, PyToken*>)
             return rep->IsToken();
         if constexpr (std::is_same_v <T, PyTuple*>)
@@ -180,6 +182,8 @@ private:
             return rep->AsBuffer();
         if constexpr (std::is_same_v <T, PyString*>)
             return rep->AsString();
+        if constexpr (std::is_same_v <T, PyWString*>)
+            return rep->AsWString();
         if constexpr (std::is_same_v <T, PyToken*>)
             return rep->AsToken();
         if constexpr (std::is_same_v <T, PyTuple*>)

@@ -135,8 +135,8 @@ public:
     PyRep* GetRecipientsOfMedal(int32 medalID);
     PyRep* GetMedalStatuses();
     PyObjectEx* GetMedalDetails(int32 medalID);
-    void GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 medalID, std::vector< uint32 >& charVec, std::string& reason);
-    uint16 CreateMedal(uint32 ownerID, uint32 creatorID, std::string& title, std::string& description);
+    void GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 medalID, std::vector< uint32 >& charVec, const std::string& reason);
+    uint16 CreateMedal(uint32 ownerID, uint32 creatorID, const std::string& title, const std::string& description);
     void SaveMedalData(int64 medalID, std::vector< Corp::MedalData >& dataList);
     void SetMedalStatus(uint32 charID, uint16 medalID, uint8 status);
 

@@ -716,7 +716,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
     pyServMgr.RegisterService("corpFittingMgr", new CorpFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("corpmgr", new CorpMgrService(&pyServMgr));
-    pyServMgr.RegisterService("corporationSvc", new CorporationService(&pyServMgr));
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
     pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
     pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
@@ -766,6 +765,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
 
+    newSvcMgr.Register(new CorporationService());
     newSvcMgr.Register(new LanguageService());
     newSvcMgr.Register(new LocalizationServerService());
     newSvcMgr.Register(new LPStore());
