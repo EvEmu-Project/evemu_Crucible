@@ -28,30 +28,26 @@
 #ifndef __STANDING2_SERVICE_H_INCL__
 #define __STANDING2_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "PyServiceCD.h"
 #include "cache/ObjCacheService.h"
 #include "StandingMgr.h"
 
-class Standing : public PyService
+class Standing : public Service <Standing>
 {
 public:
-    Standing(PyServiceMgr *mgr);
-    virtual ~Standing();
+    Standing();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     StandingDB m_db;
 
-    PyCallable_DECL_CALL(GetSecurityRating);
-    PyCallable_DECL_CALL(GetMyKillRights);
-    PyCallable_DECL_CALL(GetCharStandings);
-    PyCallable_DECL_CALL(GetCorpStandings);
-    PyCallable_DECL_CALL(GetNPCNPCStandings);
-    PyCallable_DECL_CALL(GetStandingTransactions);
-    PyCallable_DECL_CALL(GetStandingCompositions);
+    PyResult GetCharStandings(PyCallArgs& call);
+    PyResult GetCorpStandings(PyCallArgs& call);
+    PyResult GetNPCNPCStandings(PyCallArgs& call);
+    PyResult GetSecurityRating(PyCallArgs& call, PyInt* ownerID);
+    PyResult GetMyKillRights(PyCallArgs& call);
+    PyResult GetStandingTransactions(PyCallArgs& call, PyInt* fromID, PyInt* toID, PyInt* direction, PyInt* eventID, PyInt* eventType, PyLong* eventDateTime);
+    PyResult GetStandingCompositions(PyCallArgs& call, PyInt* fromID, PyInt* toID);
 };
 
 #endif

@@ -730,7 +730,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
     pyServMgr.RegisterService("fleetProxy", new FleetProxy(&pyServMgr));
-    pyServMgr.RegisterService("holoscreenMgr", new HoloscreenMgrService(&pyServMgr));
     pyServMgr.RegisterService("devIndexManager", new IndexManager(&pyServMgr));
     pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
     pyServMgr.RegisterService("invbroker", new InvBrokerService(&pyServMgr));
@@ -757,9 +756,10 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
     pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
-    pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
 
+    newSvcMgr.Register(new HoloscreenMgrService());
+    newSvcMgr.Register(new Standing());
     newSvcMgr.Register(new TutorialService());
     newSvcMgr.Register(new VoucherService(newSvcMgr));
     newSvcMgr.Register(new encounterSpawnServer());
