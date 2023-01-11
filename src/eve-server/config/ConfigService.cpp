@@ -29,47 +29,38 @@
 #include "PyServiceCD.h"
 #include "config/ConfigService.h"
 
-PyCallable_Make_InnerDispatcher(ConfigService)
-
-ConfigService::ConfigService(PyServiceMgr *mgr)
-: PyService(mgr, "config"),
-  m_dispatch(new Dispatcher(this))
+ConfigService::ConfigService() :
+    Service("config")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ConfigService, GetMultiOwnersEx);
-    PyCallable_REG_CALL(ConfigService, GetMultiLocationsEx);
-    PyCallable_REG_CALL(ConfigService, GetMultiStationEx);
-    PyCallable_REG_CALL(ConfigService, GetMultiAllianceShortNamesEx);
-    PyCallable_REG_CALL(ConfigService, GetMultiCorpTickerNamesEx);
-    PyCallable_REG_CALL(ConfigService, GetUnits);
-    PyCallable_REG_CALL(ConfigService, GetMap);
-    PyCallable_REG_CALL(ConfigService, GetMapOffices);
-    PyCallable_REG_CALL(ConfigService, GetMapObjects);
-    PyCallable_REG_CALL(ConfigService, GetMapConnections);
-    PyCallable_REG_CALL(ConfigService, GetMultiGraphicsEx);
-    PyCallable_REG_CALL(ConfigService, GetMultiInvTypesEx);
-    PyCallable_REG_CALL(ConfigService, GetStationSolarSystemsByOwner);
-    PyCallable_REG_CALL(ConfigService, GetCelestialStatistic);
-    PyCallable_REG_CALL(ConfigService, GetDynamicCelestials);
-    PyCallable_REG_CALL(ConfigService, GetMapLandmarks);
-    PyCallable_REG_CALL(ConfigService, SetMapLandmarks);
-}
-
-ConfigService::~ConfigService() {
-    delete m_dispatch;
+    this->Add("GetMultiOwnersEx", &ConfigService::GetMultiOwnersEx);
+    this->Add("GetMultiLocationsEx", &ConfigService::GetMultiLocationsEx);
+    this->Add("GetMultiStationEx", &ConfigService::GetMultiStationEx);
+    this->Add("GetMultiAllianceShortNamesEx", &ConfigService::GetMultiAllianceShortNamesEx);
+    this->Add("GetMultiCorpTickerNamesEx", &ConfigService::GetMultiCorpTickerNamesEx);
+    this->Add("GetUnits", &ConfigService::GetUnits);
+    this->Add("GetMap", &ConfigService::GetMap);
+    this->Add("GetMapOffices", &ConfigService::GetMapOffices);
+    this->Add("GetMapObjects", &ConfigService::GetMapObjects);
+    this->Add("GetMapConnections", &ConfigService::GetMapConnections);
+    this->Add("GetMultiGraphicsEx", &ConfigService::GetMultiGraphicsEx);
+    this->Add("GetMultiInvTypesEx", &ConfigService::GetMultiInvTypesEx);
+    this->Add("GetStationSolarSystemsByOwner", &ConfigService::GetStationSolarSystemsByOwner);
+    this->Add("GetCelestialStatistic", &ConfigService::GetCelestialStatistic);
+    this->Add("GetDynamicCelestials", &ConfigService::GetDynamicCelestials);
+    this->Add("GetMapLandmarks", &ConfigService::GetMapLandmarks);
+    this->Add("SetMapLandmarks", &ConfigService::SetMapLandmarks);
 }
 
 /** @todo put these next two in static data to avoid db hits  */
-PyResult ConfigService::Handle_GetUnits(PyCallArgs &call) {
+PyResult ConfigService::GetUnits(PyCallArgs &call) {
     return m_db.GetUnits();
 }
 
-PyResult ConfigService::Handle_GetMapLandmarks(PyCallArgs &call) {
+PyResult ConfigService::GetMapLandmarks(PyCallArgs &call) {
     return m_db.GetMapLandmarks();
 }
 
-PyResult ConfigService::Handle_GetMultiOwnersEx(PyCallArgs &call) {
+PyResult ConfigService::GetMultiOwnersEx(PyCallArgs &call, PyList* ownerIDs) {
   /*
 23:14:21 L ConfigService: Handle_GetMultiOwnersEx
 23:14:21 [SvcCall]   Call Arguments:
@@ -80,81 +71,120 @@ PyResult ConfigService::Handle_GetMultiOwnersEx(PyCallArgs &call) {
     _log(CACHE__DUMP, "ConfigService::Handle_GetMultiOwnersEx" );
     call.Dump(CACHE__DUMP);
 
-    Call_SingleIntList arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = ownerIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != ownerIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
-    return m_db.GetMultiOwnersEx(arg.ints);
+    return m_db.GetMultiOwnersEx(ints);
 }
 
-PyResult ConfigService::Handle_GetMultiAllianceShortNamesEx(PyCallArgs &call) {
-    Call_SingleIntList arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+PyResult ConfigService::GetMultiAllianceShortNamesEx(PyCallArgs &call, PyList* allianceIDs) {
+
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = allianceIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != allianceIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
-    return m_db.GetMultiAllianceShortNamesEx(arg.ints);
+    return m_db.GetMultiAllianceShortNamesEx(ints);
 }
 
 
-PyResult ConfigService::Handle_GetMultiLocationsEx(PyCallArgs &call) {      // now working correctly  -allan  25April
+PyResult ConfigService::GetMultiLocationsEx(PyCallArgs &call, PyList* locationIDs) {      // now working correctly  -allan  25April
     _log(CACHE__DUMP,  "ConfigService::Handle_GetMultiLocationsEx" );
     call.Dump(CACHE__DUMP);
-    Call_SingleIntList arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = locationIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != locationIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
-    return m_db.GetMultiLocationsEx(arg.ints);
+    return m_db.GetMultiLocationsEx(ints);
 }
 
-PyResult ConfigService::Handle_GetMultiStationEx(PyCallArgs &call) {
+PyResult ConfigService::GetMultiStationEx(PyCallArgs &call, PyList* stationIDs) {
     _log(CACHE__DUMP,  "ConfigService::Handle_GetMultiStationEx" );
     call.Dump(CACHE__DUMP);
-    Call_SingleIntList arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = stationIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != stationIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
-    return m_db.GetMultiStationEx(arg.ints);
+    return m_db.GetMultiStationEx(ints);
 }
 
-PyResult ConfigService::Handle_GetMultiCorpTickerNamesEx(PyCallArgs &call) {
-    Call_SingleIntList arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+PyResult ConfigService::GetMultiCorpTickerNamesEx(PyCallArgs &call, PyList* corporationIDs) {
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = corporationIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != corporationIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
-    return m_db.GetMultiCorpTickerNamesEx(arg.ints);
+    return m_db.GetMultiCorpTickerNamesEx(ints);
 }
 
-PyResult ConfigService::Handle_GetMultiGraphicsEx(PyCallArgs &call) {
-    Call_SingleIntList arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+PyResult ConfigService::GetMultiGraphicsEx(PyCallArgs &call, PyList* graphicIDs) {
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = graphicIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != graphicIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
-    return m_db.GetMultiGraphicsEx(arg.ints);
+    return m_db.GetMultiGraphicsEx(ints);
 }
 
-PyResult ConfigService::Handle_GetMap(PyCallArgs &call) {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetMap(args.arg);
+PyResult ConfigService::GetMap(PyCallArgs &call, PyInt* solarSystemID) {
+    return m_db.GetMap(solarSystemID->value());
 }
 
-PyResult ConfigService::Handle_GetMapOffices(PyCallArgs &call) {
+PyResult ConfigService::GetMapOffices(PyCallArgs &call, PyInt* solarSystemID) {
   /*
 22:38:58 [SvcCall] Service config: calling GetMapOffices
 22:38:58 [SvcCall]   Call Arguments:
@@ -164,101 +194,71 @@ PyResult ConfigService::Handle_GetMapOffices(PyCallArgs &call) {
 22:38:58 [SvcCall]     Argument 'machoVersion':
 22:38:58 [SvcCall]         Integer field: 1
   */
-  Call_SingleIntegerArg args;
-  if (!args.Decode(&call.tuple)) {
-      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-      return nullptr;
-  }
-
-    return m_db.GetMapOffices(args.arg);
+    return m_db.GetMapOffices(solarSystemID->value());
 }
 
-PyResult ConfigService::Handle_GetMapObjects(PyCallArgs &call) {
-    Call_GetMapObjects args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetMapObjects( args.systemID, args.reg, args.con, args.sys, args.sta);
+PyResult ConfigService::GetMapObjects(PyCallArgs &call, PyInt* systemID, PyInt* region, PyInt* constellation, PyInt* system, PyInt* station, PyInt* unknown) {
+    return m_db.GetMapObjects( systemID->value(), region->value(), constellation->value(), system->value(), station->value());
 }
 
-PyResult ConfigService::Handle_GetMultiInvTypesEx(PyCallArgs &call) {
+PyResult ConfigService::GetMultiInvTypesEx(PyCallArgs &call, PyList* typeIDs) {
     _log(CACHE__DUMP,  "ConfigService::Handle_GetMultiInvTypesEx" );
     call.Dump(CACHE__DUMP);
 
-    //parse the PyRep to get the list of IDs to query.
-    Call_SingleIntList arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = typeIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != typeIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
-    return m_db.GetMultiInvTypesEx(arg.ints);
+    return m_db.GetMultiInvTypesEx(ints);
 }
 
 
 //02:10:35 L ConfigService::Handle_GetMapConnections(): size= 6
 //15:12:56 W ConfigDB::GetMapConnections: DB query - System:20000307, B1:0, B2:0, B3:1, Cel:0, _c:1  <-- this means cached
-PyResult ConfigService::Handle_GetMapConnections(PyCallArgs &call) {
+PyResult ConfigService::GetMapConnections(PyCallArgs &call, PyInt* itemID, PyInt* reg, PyInt* con, PyInt* sol, PyInt* cel, PyInt* _c) {
 /**
         this is cached on clientside.  only called if not in client cache
 */
-    Call_GetMapConnections args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     /** @todo check into id sending.... 9 is EvE Universe and 9000001 is EvE WormHole Universe */
-    if (args.id == 9 || args.sol) {
+    if (itemID->value() == 9 || sol->value()) {
         //sLog.Warning( "ConfigService::Handle_GetMapConnections()::args.id = 9 | args.sol");
-        return m_db.GetMapConnections(call.client->GetSystemID(), args.sol, args.reg, args.con, args.cel, args._c);
+        return m_db.GetMapConnections(call.client->GetSystemID(), sol->value(), reg->value(), con->value(), cel->value(), _c->value());
     } else {
-        return m_db.GetMapConnections(args.id, args.sol, args.reg, args.con, args.cel, args._c);
+        return m_db.GetMapConnections(itemID->value(), sol->value(), reg->value(), con->value(), cel->value(), _c->value());
     }
 }
 
-PyResult ConfigService::Handle_GetStationSolarSystemsByOwner(PyCallArgs &call) {
+PyResult ConfigService::GetStationSolarSystemsByOwner(PyCallArgs &call, PyInt* ownerID) {
   // solorSys = sm.RemoteSvc('config').GetStationSolarSystemsByOwner(itemID)
   // solarSys.solarSystemID
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     // this seems to ONLY return solarSystemIDs
-    return m_db.GetStationSolarSystemsByOwner(arg.arg);
+    return m_db.GetStationSolarSystemsByOwner(ownerID->value());
 }
 
-PyResult ConfigService::Handle_GetCelestialStatistic(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetCelestialStatistic(arg.arg);
+PyResult ConfigService::GetCelestialStatistic(PyCallArgs &call, PyInt* celestialID) {
+    return m_db.GetCelestialStatistic(celestialID->value());
 }
 
-PyResult ConfigService::Handle_GetDynamicCelestials(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    if (sDataMgr.IsSolarSystem(arg.arg)) {
+PyResult ConfigService::GetDynamicCelestials(PyCallArgs &call, PyInt* locationID) {
+    if (sDataMgr.IsSolarSystem(locationID->value())) {
         //sLog.Green("GetDynamicCelesitals", " IsSolarSystem %u", arg.arg);
-        return m_db.GetDynamicCelestials(arg.arg);
+        return m_db.GetDynamicCelestials(locationID->value());
     } else {
-        sLog.Error("GetDynamicCelesitals", "!IsSolarSystem %u", arg.arg);
+        sLog.Error("GetDynamicCelesitals", "!IsSolarSystem %u", locationID->value());
         return new PyInt( 0 );
     }
 }
 
-PyResult ConfigService::Handle_SetMapLandmarks(PyCallArgs &call) {
+PyResult ConfigService::SetMapLandmarks(PyCallArgs &call, PyList* landmarkData) {
   /**
             x, y, z = landmark.translation
             data = (landmark.landmarkID,

@@ -709,7 +709,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
     pyServMgr.RegisterService("charMgr", new CharMgrService(&pyServMgr));
-    pyServMgr.RegisterService("config", new ConfigService(&pyServMgr));
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
     pyServMgr.RegisterService("corpFittingMgr", new CorpFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("corpmgr", new CorpMgrService(&pyServMgr));
@@ -747,6 +746,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     
+    newSvcMgr.Register(new ConfigService());
     newSvcMgr.Register(new PhotoUploadService());
     newSvcMgr.Register(new AggressionMgrService(newSvcMgr));
     newSvcMgr.Register(new BillMgr());
