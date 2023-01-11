@@ -720,7 +720,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
     pyServMgr.RegisterService("dogma", new DogmaService(&pyServMgr));
-    pyServMgr.RegisterService("dungeonExplorationMgr", new DungeonExplorationMgrService(&pyServMgr));
     pyServMgr.RegisterService("dungeon", new DungeonService(&pyServMgr));
     pyServMgr.RegisterService("entity", new EntityService(&pyServMgr));
     pyServMgr.RegisterService("facWarMgr", new FactionWarMgrService(&pyServMgr));
@@ -754,6 +753,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
 
+    newSvcMgr.Register(new DungeonExplorationMgrService());
     newSvcMgr.Register(new DevToolsProviderService());
     newSvcMgr.Register(new ClientStatsMgr());
     newSvcMgr.Register(new ReprocessingService(newSvcMgr));

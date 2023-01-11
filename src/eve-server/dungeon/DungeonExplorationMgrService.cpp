@@ -30,23 +30,13 @@
 #include "PyServiceCD.h"
 #include "dungeon/DungeonExplorationMgrService.h"
 
-PyCallable_Make_InnerDispatcher(DungeonExplorationMgrService)
-
-DungeonExplorationMgrService::DungeonExplorationMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "dungeonExplorationMgr"),
-  m_dispatch(new Dispatcher(this))
+DungeonExplorationMgrService::DungeonExplorationMgrService() :
+    Service("dungeonExplorationMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(DungeonExplorationMgrService, GetMyEscalatingPathDetails);
+    this->Add("GetMyEscalatingPathDetails", &DungeonExplorationMgrService::GetMyEscalatingPathDetails);
 }
 
-DungeonExplorationMgrService::~DungeonExplorationMgrService()
-{
-    delete m_dispatch;
-}
-
-PyResult DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails(PyCallArgs &call) {
+PyResult DungeonExplorationMgrService::GetMyEscalatingPathDetails(PyCallArgs &call) {
     // cached response
     /**00:51:32 L DungeonExplorationMgrService::Handle_GetMyEscalatingPathDetails(): size= 0
      * 00:51:32 [SvcCall]   Call Arguments:
