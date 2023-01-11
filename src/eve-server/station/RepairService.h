@@ -26,26 +26,36 @@
 #ifndef __REPAIRSERVICE_SERVICE_INCL_H__
 #define __REPAIRSERVICE_SERVICE_INCL_H__
 
-#include "PyService.h"
+#include "services/BoundService.h"
 
 class Client;
 class Inventory;
 
-class RepairService: public PyService {
+class RepairService : public BindableService <RepairService> {
 public:
-    RepairService(PyServiceMgr* mgr);
-    virtual ~RepairService();
+    RepairService(EVEServiceManager& mgr);
 
     static void GetDamageReports(uint32 itemID, Inventory* pInv, PyList* list);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    PyResult UnasembleItems(PyCallArgs& call, PyDict* validIDsByStationID, PyList* skipChecks);
+    BoundDispatcher* BindObject(PyRep* bindParameters) override;
 
     PyCallable_DECL_CALL(UnasembleItems);
+};
 
+class RepairServiceBound : public EVEBoundObject <RepairServiceBound> {
+public:
+    RepairServiceBound(uint32 locationID, PyRep* bindData, EVEServiceManager& mgr);
+
+protected:
+    PyResult DamageModules(PyCallArgs& call, PyList* itemIDAndAmountOfDamage);
+    PyResult RepairItems(PyCallArgs& call, PyList* itemIDs, PyFloat* iskAmount);
+    PyResult GetDamageReports(PyCallArgs& call, PyList* itemIDs);
+
+    bool CanClientCall(Client* client) override;
+
+    uint32 m_locationID;
 };
 
 #endif

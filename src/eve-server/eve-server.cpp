@@ -753,7 +753,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("planetOrbitalRegistryBroker", new PlanetORB(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
-    pyServMgr.RegisterService("repairSvc", new RepairService(&pyServMgr));
     pyServMgr.RegisterService("reprocessingSvc", new ReprocessingService(&pyServMgr));
     pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
     pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
@@ -765,6 +764,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
     pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
 
+    newSvcMgr.Register(new RepairService(newSvcMgr));
     newSvcMgr.Register(new CorporationService());
     newSvcMgr.Register(new LanguageService());
     newSvcMgr.Register(new LocalizationServerService());
