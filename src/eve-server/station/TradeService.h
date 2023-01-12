@@ -27,21 +27,18 @@
 #ifndef __TRADE_SERVICE_H_INCL__
 #define __TRADE_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/BoundService.h"
 #include "packets/Trade.h"
 
 class Client;
-class TradeBound;
 
-class TradeService : public PyService
+class TradeService : public BindableService <TradeService>
 {
 public:
-    TradeService(PyServiceMgr* mgr);
-    virtual ~TradeService();
+    TradeService(EVEServiceManager& mgr);
 
     uint32 GetTradeSessionID();
 
-    void InitiateTrade(Client* pClient, PyRep* resp);
     void RemoveActiveSession(uint32 myID);
 
     void CancelTrade(Client* pClient);
@@ -56,16 +53,11 @@ public:
     std::map<uint32, ActiveSession> m_activeSessions;      // mapped as myID, ActiveSession
 
 protected:
-    class Dispatcher;
-    Dispatcher* const m_dispatch;
-    PyServiceMgr* m_SvcMgr;
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
 
-    virtual PyBoundObject* CreateBoundObject(Client* pClient, const PyRep* bind_args);
-
-    PyCallable_DECL_CALL(InitiateTrade);
+    PyResult InitiateTrade(PyCallArgs& call, PyInt* characterID);
 
     uint32 m_SessionID;
-
 };
 
 class TradeSession
@@ -106,6 +98,33 @@ public:
 
     std::list<TradeItems> m_tradelist;    //list of items for this trade session
 
+};
+
+class TradeBound : public EVEBoundObject <TradeBound>
+{
+    friend TradeService;
+
+public:
+    TradeBound(EVEServiceManager& mgr, PyRep* bindData);
+
+    void ExchangeItems(Client* pClient, Client* pOther, TradeSession* pTSes);
+    void CancelTrade(Client* pClient, Client* pOther, TradeSession* pTSes);
+
+protected:
+    TradeService* m_TSvc;                // get registered TradeService object
+
+    bool CanClientCall(Client* client) override;
+
+    PyResult OfferMoney(PyCallArgs& call, PyFloat* amount);
+    PyResult Abort(PyCallArgs& call);
+    PyResult ToggleAccept(PyCallArgs& call, PyBool* newAccept);
+    PyResult GetItemID(PyCallArgs& call);
+    PyResult Add(PyCallArgs& call, PyInt* itemID, PyInt* containerID);
+    PyResult MultiAdd(PyCallArgs& call, PyList* itemIDs, PyInt* containerID);
+    PyResult GetItem(PyCallArgs& call);
+    PyResult IsCEOTrade(PyCallArgs& call);
+    PyResult List(PyCallArgs& call);
+    PyResult InitiateTrade(PyCallArgs& call, PyInt* characterID);
 };
 
 #endif//__TRADE_SERVICE_H_INCL__
