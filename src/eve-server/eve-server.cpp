@@ -732,7 +732,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
-    pyServMgr.RegisterService("planetOrbitalRegistryBroker", new PlanetORB(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
     pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
@@ -740,6 +739,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
     pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
     
+    newSvcMgr.Register(new PlanetORB(newSvcMgr));
     newSvcMgr.Register(new CorpMgrService());
     newSvcMgr.Register(new CalendarProxy());
     newSvcMgr.Register(new AccountService());

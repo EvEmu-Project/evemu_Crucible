@@ -27,22 +27,31 @@
 #ifndef EVEMU_PLANET_PLANETORB_BOUND_H_
 #define EVEMU_PLANET_PLANETORB_BOUND_H_
 
-#include "PyService.h"
+#include "services/BoundService.h"
 #include "planet/PlanetDB.h"
 
-class PlanetORB : public PyService {
+class PlanetORB : public BindableService <PlanetORB> {
 public:
-    PlanetORB(PyServiceMgr *mgr);
-    virtual ~PlanetORB();
+    PlanetORB(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
+};
 
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+class PlanetORBBound : public EVEBoundObject <PlanetORBBound> {
+public:
+    PlanetORBBound(EVEServiceManager& mgr, uint32 systemID, PyRep* bindData);
+
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult GetTaxRate(PyCallArgs& call, PyInt* itemID);
+    PyResult GetSettingsInfo(PyCallArgs& call, PyInt* orbitalID);
+    PyResult UpdateSettings(PyCallArgs& call, PyInt* orbitalID, PyInt* reinforceValue, PyObject* taxRateValues, PyFloat* standingValue, PyBool* allowAllianceValue, PyBool* allowStandingsValue);
+    PyResult GMChangeSpaceObjectOwner(PyCallArgs& call, PyInt* itemID, PyInt* corpID);
 
 private:
-    //PyCallable_DECL_CALL()
+    uint32 m_systemID;
 };
 
 #endif  // EVEMU_PLANET_PLANETORB_BOUND_H_
