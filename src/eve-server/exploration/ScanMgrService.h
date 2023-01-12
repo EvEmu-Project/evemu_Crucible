@@ -27,22 +27,39 @@
 #ifndef EVEMU_SCANING_SCANMGR_H_
 #define EVEMU_SCANING_SCANMGR_H_
 
-#include "PyService.h"
+#include "services/BoundService.h"
 #include "exploration/Scan.h"
 #include "exploration/ScanningDB.h"
 
-
-class ScanMgrService : public PyService {
+class ScanMgrService : public Service <ScanMgrService> {
 public:
-    ScanMgrService(PyServiceMgr *mgr);
-    virtual ~ScanMgrService();
+    ScanMgrService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult GetSystemScanMgr(PyCallArgs& call);
 
-    PyCallable_DECL_CALL(GetSystemScanMgr);
+private:
+    EVEServiceManager& m_manager;
+};
 
+class ScanBound : public EVEBoundObject <ScanBound>
+{
+public:
+    ScanBound(EVEServiceManager& mgr, PyRep* bindData, Client* client);
+
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult ConeScan(PyCallArgs& call, PyRep* ignored1, PyRep* ignored2, PyRep* ignored3, PyRep* ignored4, PyRep* ignored5);
+    PyResult RequestScans(PyCallArgs& call, std::optional <PyDict*> probes);
+    PyResult RecoverProbes(PyCallArgs& call, PyList* probeIDs);
+    PyResult DestroyProbe(PyCallArgs& call, PyInt* probeID);
+    PyResult ReconnectToLostProbes(PyCallArgs& call);
+
+private:
+    Scan* m_scan;
+    ScanningDB* m_db;
+    Client* m_client;
 };
 
 #endif  // EVEMU_SCANING_SCANMGR_H_

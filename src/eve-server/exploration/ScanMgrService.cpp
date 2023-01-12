@@ -43,96 +43,50 @@
  * SCAN__DUMP
  */
 
-class ScanBound
-: public PyBoundObject
+ScanMgrService::ScanMgrService(EVEServiceManager& mgr) :
+    Service("scanMgr"),
+    m_manager (mgr)
 {
-public:
-    PyCallable_Make_Dispatcher(ScanBound)
-
-    ScanBound(PyServiceMgr *mgr, Client *pClient)
-    : PyBoundObject(mgr),
-    m_dispatch(new Dispatcher(this)),
-    m_client(pClient)
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "ScanBound";
-
-        PyCallable_REG_CALL(ScanBound, ConeScan);
-        PyCallable_REG_CALL(ScanBound, RequestScans);
-        PyCallable_REG_CALL(ScanBound, RecoverProbes);
-        PyCallable_REG_CALL(ScanBound, ReconnectToLostProbes);
-        PyCallable_REG_CALL(ScanBound, DestroyProbe);
-
-    }
-        /**
-
-        return sm.RemoteSvc('scanMgr').GetSystemScanMgr().ReconnectToLostProbes()
-
-        successProbeIDs = sm.RemoteSvc('scanMgr').GetSystemScanMgr().RecoverProbes(probeIDs)
-
-        sm.RemoteSvc('scanMgr').GetSystemScanMgr().RequestScans(probes)
-
-        sm.RemoteSvc('scanMgr').GetSystemScanMgr().DestroyProbe(probeID)
-
-        */
-
-    virtual ~ScanBound() {delete m_dispatch;}
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(RequestScans);
-    PyCallable_DECL_CALL(ConeScan);
-    PyCallable_DECL_CALL(ReconnectToLostProbes);
-    PyCallable_DECL_CALL(RecoverProbes);
-    PyCallable_DECL_CALL(DestroyProbe);
-
-protected:
-    Dispatcher *const m_dispatch;
-    Scan* m_scan;
-    ScanningDB* m_db;
-    Client* m_client;
-};
-
-PyCallable_Make_InnerDispatcher(ScanMgrService)
-
-ScanMgrService::ScanMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "scanMgr"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ScanMgrService, GetSystemScanMgr);
-
+    this->Add("GetSystemScanMgr", &ScanMgrService::GetSystemScanMgr);
 }
 
-ScanMgrService::~ScanMgrService() {
-    delete m_dispatch;
-}
-
-PyResult ScanMgrService::Handle_GetSystemScanMgr( PyCallArgs& call ) {
+PyResult ScanMgrService::GetSystemScanMgr(PyCallArgs& call) {
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
     }
 
-    ScanBound* pSB = new ScanBound(m_manager, call.client);
-    PyRep* result = m_manager->BindObject(call.client, pSB);
-    return result;
+    ScanBound* pSB = new ScanBound(m_manager, nullptr, call.client);
+
+    return new PySubStruct(new PySubStream(pSB->GetOID()));
 }
 
-PyResult ScanBound::Handle_ConeScan( PyCallArgs& call ) {
+ScanBound::ScanBound(EVEServiceManager& mgr, PyRep* bindData, Client* client) :
+    EVEBoundObject(mgr, bindData),
+    m_client(client)
+{
+    this->Add("ConeScan", &ScanBound::ConeScan);
+    this->Add("RequestScans", &ScanBound::RequestScans);
+    this->Add("RecoverProbes", &ScanBound::RecoverProbes);
+    this->Add("DestroyProbe", &ScanBound::DestroyProbe);
+    this->Add("ReconnectToLostProbes", &ScanBound::ReconnectToLostProbes);
+}
+
+bool ScanBound::CanClientCall(Client* client) {
+    return true; // TODO: properly implement this
+}
+
+PyResult ScanBound::ConeScan( PyCallArgs& call, PyRep* ignored1, PyRep* ignored2, PyRep* ignored3, PyRep* ignored4, PyRep* ignored5) {
     //result = sm.GetService('scanSvc').ConeScan(self.scanangle, rnge * 1000, vec.x, vec.y, vec.z)
     //return sm.RemoteSvc('scanMgr').GetSystemScanMgr().ConeScan(scanangle, scanRange, x, y, z)
     //_log(SCAN__TRACE, "ScanBound::Handle_ConeScan() - size=%li", call.tuple->size());
     //call.Dump(SCAN__DUMP);
 
+    // for this one we're keeping the old mechanism for now as it requires changes on more than just this service
     Call_ConeScan args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        codelog(SERVICE__ERROR, "ScanBound: Failed to decode arguments.");
         //TODO: throw exception
         return PyStatic.NewNone();
     }
@@ -157,7 +111,7 @@ PyResult ScanBound::Handle_ConeScan( PyCallArgs& call ) {
     return m_client->scan()->ConeScan(args);
 }
 
-PyResult ScanBound::Handle_RequestScans( PyCallArgs& call ) {
+PyResult ScanBound::RequestScans(PyCallArgs& call, std::optional <PyDict*> probes) {
     _log(SCAN__TRACE, "ScanBound::Handle_RequestScans() - size=%li", call.tuple->size());
     call.Dump(SCAN__DUMP);
 
@@ -176,31 +130,33 @@ PyResult ScanBound::Handle_RequestScans( PyCallArgs& call ) {
     if (m_client->scan() == nullptr)
         m_client->SetScan(new Scan(m_client));
 
-    PyDict* dict(nullptr);
-    if (call.tuple->GetItem( 0 )->IsDict())
-        dict = call.tuple->GetItem(0)->AsDict();
-
-    m_client->scan()->RequestScans(dict);
+    m_client->scan()->RequestScans(probes.has_value() ? probes.value() : nullptr);
 
     // this call returns a PyNone
     return PyStatic.NewNone();
 }
 
-PyResult ScanBound::Handle_RecoverProbes( PyCallArgs& call ) {
+PyResult ScanBound::RecoverProbes(PyCallArgs& call, PyList* probeIDs) {
     //successProbeIDs = sm.RemoteSvc('scanMgr').GetSystemScanMgr().RecoverProbes(probeIDs)
     // list of probes successfully scooped to cargo
     // this is tested and added in Probe::RecoverProbe()
     PyList* list = new PyList();
 
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        //TODO: throw exception
-        return list;
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = probeIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != probeIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
     SystemEntity* pSE(nullptr);
-    for (auto cur : args.ints) {
+    for (auto cur : ints) {
         pSE = m_client->SystemMgr()->GetSE(cur);
         if (pSE == nullptr)
             continue;
@@ -211,20 +167,13 @@ PyResult ScanBound::Handle_RecoverProbes( PyCallArgs& call ) {
     return list;
 }
 
-PyResult ScanBound::Handle_DestroyProbe( PyCallArgs& call ) {
+PyResult ScanBound::DestroyProbe(PyCallArgs& call, PyInt* probeID) {
     //scanMan = sm.RemoteSvc('scanMgr').GetSystemScanMgr()
     //scanMan.DestroyProbe(probeID)
     _log(SCAN__TRACE, "ScanBound::Handle_DestroyProbe() - size=%li", call.tuple->size());
     call.Dump(SCAN__DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        //TODO: throw exception
-        return nullptr;
-    }
-
-    SystemEntity* pSE(m_client->SystemMgr()->GetSE(arg.arg));
+    SystemEntity* pSE(m_client->SystemMgr()->GetSE(probeID->value()));
     if (pSE != nullptr)
         pSE->Delete();
     SafeDelete(pSE);
@@ -232,7 +181,7 @@ PyResult ScanBound::Handle_DestroyProbe( PyCallArgs& call ) {
     return nullptr;
 }
 
-PyResult ScanBound::Handle_ReconnectToLostProbes( PyCallArgs& call ) {
+PyResult ScanBound::ReconnectToLostProbes(PyCallArgs& call) {
     // no args
     //  will have to test against client launcher vs probe m_moduleID
     // will have to write *something* to loop thru active probes in system for this....
