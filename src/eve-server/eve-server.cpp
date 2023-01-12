@@ -736,8 +736,8 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
     pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
     pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
-    pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
-    
+
+    newSvcMgr.Register(new SkillMgrService(newSvcMgr));
     newSvcMgr.Register(new TradeService(newSvcMgr));
     newSvcMgr.Register(new PlanetORB(newSvcMgr));
     newSvcMgr.Register(new CorpMgrService());
