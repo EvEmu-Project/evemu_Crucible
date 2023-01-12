@@ -109,7 +109,7 @@ PyResult SkillMgrBound::InjectSkillIntoBrain(PyCallArgs &call, PyList* skillItem
     for (size_t list_2_index(0); list_2_cur != skillItemIDs->end(); ++list_2_cur, ++list_2_index) {
         if (!(*list_2_cur)->IsInt()) {
             _log(XMLP__DECODE_ERROR, "Decode Call_InjectSkillIntoBrain failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
-            return false;
+            return nullptr;
         }
 
         const PyInt* t = (*list_2_cur)->AsInt();
