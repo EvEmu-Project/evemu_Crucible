@@ -27,23 +27,72 @@
 #ifndef __SHIP_SERVICE_H_INCL__
 #define __SHIP_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/BoundService.h"
 
-class ShipService
-: public PyService
+class ShipService : public BindableService <ShipService>
 {
 public:
-    ShipService(PyServiceMgr *mgr);
-    virtual ~ShipService();
+    ShipService(PyServiceMgr& oldMgr, EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    //PyCallable_DECL_CALL();
-
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
+
+private:
+    PyServiceMgr& m_oldManager;
+};
+
+
+class ShipBound : public EVEBoundObject <ShipBound>
+{
+public:
+    ShipBound(PyServiceMgr& oldMgr, EVEServiceManager& mgr, PyRep* bindParameters, ShipItem* ship);
+
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult Board(PyCallArgs& call, PyInt* newShipID, std::optional<PyInt*> oldShipID);
+    PyResult Eject(PyCallArgs& call);
+    PyResult LeaveShip(PyCallArgs& call, PyInt* shipID);
+    PyResult ActivateShip(PyCallArgs& call, PyInt* newShipID, std::optional<PyInt*> oldShipID);
+    PyResult Undock(PyCallArgs& call, PyInt* shipID, PyBool* ignoreContraband);
+    PyResult Drop(PyCallArgs& call, PyList* PyToDropList, std::optional <PyInt*> ownerID, PyBool* ignoreWarning);
+    PyResult Scoop(PyCallArgs& call, PyInt* itemID);
+    PyResult ScoopDrone(PyCallArgs& call, PyList* itemIDs);
+    PyResult Jettison(PyCallArgs& call, PyList* itemIDs);
+    PyResult AssembleShip(PyCallArgs& args, PyInt* shipID);
+    PyResult AssembleShip(PyCallArgs& call, PyList* itemIDs);
+    PyResult GetShipConfiguration(PyCallArgs& call);
+    PyResult ConfigureShip(PyCallArgs& call, PyDict* configuration);
+    PyResult LaunchFromContainer(PyCallArgs& call, PyInt* structureID, PyList* ids);
+    PyResult ScoopToSMA(PyCallArgs& call, PyInt* objectID);
+    PyResult BoardStoredShip(PyCallArgs& call, PyInt* structureID, PyInt* shipID);
+    PyResult StoreVessel(PyCallArgs& call, PyInt* destID);
+    PyResult SelfDestruct(PyCallArgs& call, PyInt* shipID);
+
+    PyCallable_DECL_CALL(Board);
+    PyCallable_DECL_CALL(Eject);
+    PyCallable_DECL_CALL(LeaveShip);
+    PyCallable_DECL_CALL(ActivateShip);
+    PyCallable_DECL_CALL(Undock);
+    PyCallable_DECL_CALL(AssembleShip);
+    PyCallable_DECL_CALL(Drop);
+    PyCallable_DECL_CALL(Scoop);
+    PyCallable_DECL_CALL(ScoopDrone);
+    PyCallable_DECL_CALL(ScoopToSMA);
+    PyCallable_DECL_CALL(LaunchFromContainer);
+    PyCallable_DECL_CALL(Jettison);
+    PyCallable_DECL_CALL(ConfigureShip);
+    PyCallable_DECL_CALL(GetShipConfiguration);
+    PyCallable_DECL_CALL(SelfDestruct);
+
+    PyCallable_DECL_CALL(BoardStoredShip);
+    PyCallable_DECL_CALL(StoreVessel);
+
+private:
+    ShipItem* pShip;
+
+    PyServiceMgr& m_manager;
 };
 
 #endif
