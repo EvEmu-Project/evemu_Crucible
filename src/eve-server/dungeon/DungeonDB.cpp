@@ -59,6 +59,31 @@ void DungeonDB::GetArchetypes(DBQueryResult& res)
     _log(DATABASE__ERROR, "Error in GetFactions query: %s", res.error.c_str());
 }
 
+void DungeonDB::GetAllDungeonData(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res, "SELECT dunDungeons.dungeonID "
+    "dungeonName, dungeonStatus, factionID, archetypeID, "
+    "dunRooms.roomID, dunRooms.roomName, objectID, typeID, groupID, "
+    "x, y, z, yaw, pitch, roll, radius "
+	"FROM ((dunDungeons "
+	"INNER JOIN dunRooms ON dunDungeons.dungeonID = dunRooms.dungeonID) "
+	"INNER JOIN dunRoomObjects ON dunRooms.roomID = dunRoomObjects.roomID)"))
+    _log(DATABASE__ERROR, "Error in GetAllDungeonData query: %s", res.error.c_str());
+}
+
+void DungeonDB::GetAllDungeonDataByDungeonID(DBQueryResult& res, uint32 dungeonID)
+{
+    if (!sDatabase.RunQuery(res, "SELECT dunDungeons.dungeonID "
+    "dungeonName, dungeonStatus, factionID, archetypeID, "
+    "dunRooms.roomID, dunRooms.roomName, objectID, typeID, groupID, "
+    "x, y, z, yaw, pitch, roll, radius "
+	"FROM ((dunDungeons "
+	"INNER JOIN dunRooms ON dunDungeons.dungeonID = dunRooms.dungeonID) "
+	"INNER JOIN dunRoomObjects ON dunRooms.roomID = dunRoomObjects.roomID) "
+    "WHERE dunDungeons.dungeonID = %u", dungeonID));
+    _log(DATABASE__ERROR, "Error in GetAllDungeonData query: %s", res.error.c_str());
+}
+
 void DungeonDB::GetDungeons(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res, "SELECT dungeonID, dungeonName, dungeonStatus, NULL as dungeonNameID, factionID, archetypeID "

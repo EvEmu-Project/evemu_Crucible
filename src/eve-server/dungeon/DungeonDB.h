@@ -24,6 +24,8 @@ public:
     static void GetDungeons(DBQueryResult& res);
     static void GetDungeons(uint32 dungeonID, DBQueryResult& res);
     static void GetDungeons(uint32 archetypeID, uint32 factionID, DBQueryResult& res);
+    static void GetAllDungeonData(DBQueryResult& res);
+    static void GetAllDungeonDataByDungeonID(DBQueryResult& res, uint32 dungeonID);
     static void GetGroups(DBQueryResult& res);
     static void GetRoomObjects(uint32 roomID, std::vector< Dungeon::RoomObject >& into);
     static void GetTemplateObjects(uint32 templateID, std::vector< Dungeon::RoomObject >& into);

@@ -339,7 +339,7 @@ void ManagerDB::SaveAnomaly(CosmicSignature& sig)
         " VALUES ('%s', %u, %u, '%s', %u, %u, %u, %u, %u, %f, %f, %f)", \
             sig.sigID.c_str(), sig.sigItemID, sig.dungeonType, sig.sigName.c_str(), sig.systemID, sig.sigTypeID, sig.sigGroupID, \
             sig.scanGroupID, sig.scanAttributeID, sig.position.x, sig.position.y, sig.position.z )) {
-        _log(DATABASE__ERROR, "SaveActiveDungeon - unable to save dungeon");
+        _log(DATABASE__ERROR, "SaveAnomaly - unable to save dungeon");
         }
 }
 
@@ -660,7 +660,7 @@ void ManagerDB::GetDunTemplates(DBQueryResult& res)
         _log(DATABASE__ERROR, "Error in GetDunTemplates query: %s", res.error.c_str());
 }
 
-bool ManagerDB::GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveData >& into)
+/*bool ManagerDB::GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveData >& into)
 {
     DBQueryResult res;
 
@@ -689,9 +689,9 @@ bool ManagerDB::GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveDa
     }
 
     return !into.empty();
-}
+}*/
 
-void ManagerDB::SaveActiveDungeon(Dungeon::ActiveData& dun)
+/*void ManagerDB::SaveActiveDungeon(Dungeon::ActiveData& dun)
 {
     DBerror err;
     if (!sDatabase.RunQuery(err,
@@ -703,7 +703,7 @@ void ManagerDB::SaveActiveDungeon(Dungeon::ActiveData& dun)
     {
         _log(DATABASE__ERROR, "SaveActiveDungeon - unable to save dungeon: %s", err.c_str());
     }
-}
+}*/
 
 void ManagerDB::ClearDungeons()
 {
