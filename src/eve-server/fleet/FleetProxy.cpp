@@ -13,28 +13,17 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
 #include "fleet/FleetProxy.h"
 
-PyCallable_Make_InnerDispatcher(FleetProxy)
-
-FleetProxy::FleetProxy(PyServiceMgr *mgr)
-: PyService(mgr, "fleetProxy"),
-  m_dispatch(new Dispatcher(this))
+FleetProxy::FleetProxy() :
+    Service("fleetProxy")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(FleetProxy, GetAvailableFleets);
-    PyCallable_REG_CALL(FleetProxy, AddFleetFinderAdvert);
-    PyCallable_REG_CALL(FleetProxy, RemoveFleetFinderAdvert);
-    PyCallable_REG_CALL(FleetProxy, GetMyFleetFinderAdvert);
-    PyCallable_REG_CALL(FleetProxy, UpdateAdvertInfo);
-    PyCallable_REG_CALL(FleetProxy, ApplyToJoinFleet);
-}
-
-FleetProxy::~FleetProxy()
-{
-    delete m_dispatch;
+    this->Add("GetAvailableFleets", &FleetProxy::GetAvailableFleets);
+    this->Add("AddFleetFinderAdvert", &FleetProxy::AddFleetFinderAdvert);
+    this->Add("RemoveFleetFinderAdvert", &FleetProxy::RemoveFleetFinderAdvert);
+    this->Add("GetMyFleetFinderAdvert", &FleetProxy::GetMyFleetFinderAdvert);
+    this->Add("UpdateAdvertInfo", &FleetProxy::UpdateAdvertInfo);
+    this->Add("ApplyToJoinFleet", &FleetProxy::ApplyToJoinFleet);
 }
 
 /*
@@ -47,27 +36,21 @@ FLEET__TRACE
 FLEET__DUMP
 FLEET__BIND_DUMP
 */
-PyResult FleetProxy::Handle_GetAvailableFleets(PyCallArgs &call) {
+PyResult FleetProxy::GetAvailableFleets(PyCallArgs &call) {
     return sFltSvc.GetAvailableFleets();
 }
 
-PyResult FleetProxy::Handle_ApplyToJoinFleet(PyCallArgs &call) {
+PyResult FleetProxy::ApplyToJoinFleet(PyCallArgs &call, PyInt* fleetID) {
   // ret = sm.ProxySvc('fleetProxy').ApplyToJoinFleet(fleetID)
    // sLog.White("FleetProxy", "Handle_ApplyToJoinFleet() size=%li", call.tuple->size());
    // call.Dump(FLEET__DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode args.", call.client->GetChar()->name());
-        return new PyBool(false);
-    }
-
     // returns boolean
-    return new PyBool(sFltSvc.AddJoinRequest(arg.arg, call.client));
+    return new PyBool(sFltSvc.AddJoinRequest(fleetID->value(), call.client));
 }
 
     // this is also used to update advert info
-PyResult FleetProxy::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
+PyResult FleetProxy::AddFleetFinderAdvert(PyCallArgs &call, PyObject* info) {
  //  sm.ProxySvc('fleetProxy').AddFleetFinderAdvert(info)
     //sLog.White("FleetProxy", "Handle_AddFleetFinderAdvert() size=%li", call.tuple->size());
     //call.Dump(FLEET__DUMP);
@@ -85,6 +68,7 @@ PyResult FleetProxy::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
     FleetData fData = FleetData();
     sFltSvc.GetFleetData(fleetID, fData);
 
+    // TODO: update this sometime in the future, updating this is way out of the scope of the service changes
     FleetAdvert adata = FleetAdvert();
         adata.fleetID = fleetID;
         adata.hideInfo = args.hideInfo;
@@ -113,7 +97,7 @@ PyResult FleetProxy::Handle_AddFleetFinderAdvert(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult FleetProxy::Handle_RemoveFleetFinderAdvert(PyCallArgs &call) {
+PyResult FleetProxy::RemoveFleetFinderAdvert(PyCallArgs &call) {
    // sLog.White("FleetProxy", "Handle_RemoveFleetFinderAdvert() size=%li", call.tuple->size());
     //call.Dump(FLEET__DUMP);
 
@@ -122,14 +106,14 @@ PyResult FleetProxy::Handle_RemoveFleetFinderAdvert(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult FleetProxy::Handle_GetMyFleetFinderAdvert(PyCallArgs &call) {
+PyResult FleetProxy::GetMyFleetFinderAdvert(PyCallArgs &call) {
    // sLog.White("FleetProxy", "Handle_GetMyFleetFinderAdvert() size=%li", call.tuple->size());
    // call.Dump(FLEET__DUMP);
 
     return sFltSvc.GetFleetAdvert(call.client->GetChar()->fleetID());
 }
 
-PyResult FleetProxy::Handle_UpdateAdvertInfo(PyCallArgs &call) {
+PyResult FleetProxy::UpdateAdvertInfo(PyCallArgs &call, PyInt* numMembers) {
   //   sm.ProxySvc('fleetProxy').UpdateAdvertInfo(numMembers)
     // this call just updates member count in fleet advert.  not needed here, as that is dynamic data.
     //sLog.White("FleetProxy", "Handle_UpdateAdvertInfo() size=%li", call.tuple->size());
