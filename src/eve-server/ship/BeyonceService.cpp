@@ -26,8 +26,7 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+#include "Client.h"
 #include "StaticDataMgr.h"
 #include "cache/ObjCacheService.h"
 #include "planet/PlanetDB.h"
@@ -44,105 +43,18 @@
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "system/cosmicMgrs/ManagerDB.h"
 
-class BeyonceBound
-: public PyBoundObject
+BeyonceService::BeyonceService(EVEServiceManager& mgr)
+: BindableService("beyonce", mgr)
 {
-public:
-    PyCallable_Make_Dispatcher(BeyonceBound)
-
-    BeyonceBound(PyServiceMgr* mgr, Client* pClient)
-    : PyBoundObject(mgr),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "BeyonceBound";
-
-        PyCallable_REG_CALL(BeyonceBound, CmdFollowBall);   //*
-        PyCallable_REG_CALL(BeyonceBound, CmdOrbit);   //*
-        PyCallable_REG_CALL(BeyonceBound, CmdAlignTo);
-        PyCallable_REG_CALL(BeyonceBound, CmdGotoDirection);   //*
-        PyCallable_REG_CALL(BeyonceBound, CmdGotoBookmark);
-        PyCallable_REG_CALL(BeyonceBound, CmdSetSpeedFraction);
-        PyCallable_REG_CALL(BeyonceBound, CmdStop);
-        PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuff);
-        PyCallable_REG_CALL(BeyonceBound, CmdDock);
-        PyCallable_REG_CALL(BeyonceBound, CmdStargateJump);
-        PyCallable_REG_CALL(BeyonceBound, UpdateStateRequest);
-        PyCallable_REG_CALL(BeyonceBound, CmdWarpToStuffAutopilot); //*
-        PyCallable_REG_CALL(BeyonceBound, CmdAbandonLoot);
-
-        PyCallable_REG_CALL(BeyonceBound, CmdFleetRegroup);
-        PyCallable_REG_CALL(BeyonceBound, CmdFleetTagTarget);
-        PyCallable_REG_CALL(BeyonceBound, CmdBeaconJumpFleet);
-        PyCallable_REG_CALL(BeyonceBound, CmdBeaconJumpAlliance);
-        PyCallable_REG_CALL(BeyonceBound, CmdJumpThroughFleet);
-        PyCallable_REG_CALL(BeyonceBound, CmdJumpThroughAlliance);
-        PyCallable_REG_CALL(BeyonceBound, CmdJumpThroughCorporationStructure);
-
-
-        pClient->SetBeyonce(true);
-        if (pClient->IsLogin() and !pClient->IsSetStateSent())
-            pClient->SetBallPark();
-    }
-
-    virtual ~BeyonceBound()
-    {
-        delete m_dispatch;
-    }
-
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(CmdFollowBall);
-    PyCallable_DECL_CALL(CmdOrbit);
-    PyCallable_DECL_CALL(CmdAlignTo);
-    PyCallable_DECL_CALL(CmdGotoDirection);
-    PyCallable_DECL_CALL(CmdGotoBookmark);
-    PyCallable_DECL_CALL(CmdSetSpeedFraction);
-    PyCallable_DECL_CALL(CmdStop);
-    PyCallable_DECL_CALL(CmdWarpToStuff);
-    PyCallable_DECL_CALL(CmdDock);
-    PyCallable_DECL_CALL(CmdStargateJump);
-    PyCallable_DECL_CALL(UpdateStateRequest);
-    PyCallable_DECL_CALL(CmdWarpToStuffAutopilot);
-    PyCallable_DECL_CALL(CmdAbandonLoot);
-
-    PyCallable_DECL_CALL(CmdFleetRegroup);
-    PyCallable_DECL_CALL(CmdFleetTagTarget);
-    PyCallable_DECL_CALL(CmdJumpThroughFleet);
-    PyCallable_DECL_CALL(CmdBeaconJumpFleet);
-    PyCallable_DECL_CALL(CmdBeaconJumpAlliance);
-    PyCallable_DECL_CALL(CmdJumpThroughAlliance);
-    PyCallable_DECL_CALL(CmdJumpThroughCorporationStructure);
-
-protected:
-    Dispatcher *const m_dispatch;
-};
-
-PyCallable_Make_InnerDispatcher(BeyonceService)
-
-BeyonceService::BeyonceService(PyServiceMgr *mgr)
-: PyService(mgr, "beyonce"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(BeyonceService, GetFormations)
+    this->Add("GetFormations", &BeyonceService::GetFormations);
 }
 
-BeyonceService::~BeyonceService() {
-    delete m_dispatch;
-}
-
-PyBoundObject* BeyonceService::CreateBoundObject(Client* pClient, const PyRep* bind_args)
+BoundDispatcher* BeyonceService::BindObject(Client* client, PyRep* bindParameters)
 {
-    return new BeyonceBound(m_manager, pClient);
+    return new BeyonceBound(this->GetServiceManager(), bindParameters, client);
 }
 
-PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
+PyResult BeyonceService::GetFormations(PyCallArgs &call) {
     // this is only called when player enters new system and calls to bind new beyonce
     if (!call.client->IsSetStateSent())
         call.client->CheckBallparkTimer();
@@ -170,7 +82,41 @@ PyResult BeyonceService::Handle_GetFormations(PyCallArgs &call) {
     return res;
 }
 
-PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
+BeyonceBound::BeyonceBound(EVEServiceManager& mgr, PyRep* bindData, Client* client) :
+    EVEBoundObject(mgr, bindData)
+{
+    this->Add("CmdFollowBall", &BeyonceBound::CmdFollowBall);   //*
+    this->Add("CmdOrbit", &BeyonceBound::CmdOrbit);   //*
+    this->Add("CmdAlignTo", &BeyonceBound::CmdAlignTo);
+    this->Add("CmdGotoDirection", &BeyonceBound::CmdGotoDirection);   //*
+    this->Add("CmdGotoBookmark", &BeyonceBound::CmdGotoBookmark);
+    this->Add("CmdSetSpeedFraction", &BeyonceBound::CmdSetSpeedFraction);
+    this->Add("CmdStop", &BeyonceBound::CmdStop);
+    this->Add("CmdWarpToStuff", &BeyonceBound::CmdWarpToStuff);
+    this->Add("CmdDock", &BeyonceBound::CmdDock);
+    this->Add("CmdStargateJump", &BeyonceBound::CmdStargateJump);
+    this->Add("UpdateStateRequest", &BeyonceBound::UpdateStateRequest);
+    this->Add("CmdWarpToStuffAutopilot", &BeyonceBound::CmdWarpToStuffAutopilot); //*
+    this->Add("CmdAbandonLoot", &BeyonceBound::CmdAbandonLoot);
+
+    this->Add("CmdFleetRegroup", &BeyonceBound::CmdFleetRegroup);
+    this->Add("CmdFleetTagTarget", &BeyonceBound::CmdFleetTagTarget);
+    this->Add("CmdBeaconJumpFleet", &BeyonceBound::CmdBeaconJumpFleet);
+    this->Add("CmdBeaconJumpAlliance", &BeyonceBound::CmdBeaconJumpAlliance);
+    this->Add("CmdJumpThroughFleet", &BeyonceBound::CmdJumpThroughFleet);
+    this->Add("CmdJumpThroughAlliance", &BeyonceBound::CmdJumpThroughAlliance);
+    this->Add("CmdJumpThroughCorporationStructure", &BeyonceBound::CmdJumpThroughCorporationStructure);
+
+    client->SetBeyonce(true);
+    if (client->IsLogin() and !client->IsSetStateSent())
+        client->SetBallPark();
+}
+
+bool BeyonceBound::CanClientCall(Client* client) {
+    return true; // TODO: properly implement ths
+}
+
+PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* distance) {
     _log(AUTOPILOT__MESSAGE, "%s called Follow. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
 
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
@@ -189,27 +135,21 @@ PyResult BeyonceBound::Handle_CmdFollowBall(PyCallArgs &call) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
         return PyStatic.NewNone();
     }
-    Call_FollowBall args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    SystemEntity* pSE = pSystem->GetSE(args.ballID);
+    SystemEntity* pSE = pSystem->GetSE(ballID->value());
     if (pSE == nullptr) {
-        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Follow/Approach.", call.client->GetName(), args.ballID);
+        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Follow/Approach.", call.client->GetName(), ballID->value());
         return PyStatic.NewNone();
     }
 
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    pDestiny->Follow(pSE, PyRep::IntegerValue(args.distance));
+    pDestiny->Follow(pSE, PyRep::IntegerValue(distance));
 
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdSetSpeedFraction(PyCallArgs &call) {
+PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFraction) {
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -222,29 +162,24 @@ PyResult BeyonceBound::Handle_CmdSetSpeedFraction(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    Call_SingleRealArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
     /** @todo  rework this...this is to set speed ONLY...NOT to begin moving.  */
     // client should not legally send anything < 0.1 (except on rare occasion a 0.0 instead of Stop.)
-    if ((arg.arg != 0) && (arg.arg < 0.1))
+    if ((speedFraction->value() != 0) && (speedFraction->value() < 0.1))
         return PyStatic.NewNone();
 
     //sLog.Warning( "BeyonceBound", "Handle_CmdSetSpeedFraction %.2f", arg.arg );
     if (!call.client->IsUndock()){
         if (pDestiny->IsMoving()) {
-            pDestiny->SetSpeedFraction(arg.arg);
+            pDestiny->SetSpeedFraction(speedFraction->value());
         } else {
-            pDestiny->SetSpeedFraction(arg.arg, true);
+            pDestiny->SetSpeedFraction(speedFraction->value(), true);
         }
     }
 
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
+PyResult BeyonceBound::CmdAlignTo(PyCallArgs &call, PyInt* entityID) {
     _log(AUTOPILOT__MESSAGE, "%s called Align. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
@@ -263,15 +198,9 @@ PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    CallAlignTo arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    SystemEntity* pEntity = pSystem->GetSE(arg.entityID);
+    SystemEntity* pEntity = pSystem->GetSE(entityID->value());
     if (pEntity == nullptr) {
-        _log(CLIENT__ERROR, "%s: Unable to find entity %u to AlignTo.", call.client->GetName(), arg.entityID);
+        _log(CLIENT__ERROR, "%s: Unable to find entity %u to AlignTo.", call.client->GetName(), entityID->value());
         return PyStatic.NewNone();
     }
 
@@ -283,7 +212,7 @@ PyResult BeyonceBound::Handle_CmdAlignTo(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
+PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y, PyFloat* z) {
     _log(AUTOPILOT__MESSAGE, "%s called GotoDirection. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
@@ -299,22 +228,16 @@ PyResult BeyonceBound::Handle_CmdGotoDirection(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    Call_PointArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    const GPoint dir = GPoint(arg.x, arg.y, arg.z);
+    const GPoint dir = GPoint(x->value(), y->value(), z->value());
     pDestiny->GotoDirection(dir);
 
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
+PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
     _log(AUTOPILOT__MESSAGE, "%s called GotoBookmark. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
@@ -330,12 +253,6 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     double x(0.0), y(0.0), z(0.0);
     uint16 typeID(0);
     uint32 itemID(0), locationID(0);
@@ -346,7 +263,7 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
         sLog.Error( "BeyonceService::Handle_GotoBookmark()", "Attempt to access BookmarkService via (BookmarkService*)(call.client->services().LookupService(\"bookmark\")) returned NULL." );
         return PyStatic.NewNone();
     } else {
-        pBMSvc->LookupBookmark(arg.arg, itemID, typeID, locationID, x, y, z);
+        pBMSvc->LookupBookmark(bookmarkID->value(), itemID, typeID, locationID, x, y, z);
 
         if (typeID == 5) {
             if (call.client->GetSystemID() != locationID) {
@@ -374,7 +291,7 @@ PyResult BeyonceBound::Handle_CmdGotoBookmark(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
+PyResult BeyonceBound::CmdOrbit(PyCallArgs &call, PyInt* entityID, PyRep* rangeValue) {
     _log(AUTOPILOT__MESSAGE, "%s called Orbit. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     call.client->SetAutoPilot(false);
 
@@ -396,21 +313,14 @@ PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    call.Dump(SERVICE__CALL_DUMP);
-    Call_Orbit args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     double range =
-        args.range->IsInt()
-        ? args.range->AsInt()->value()
-        : args.range->AsFloat()->value();
+        rangeValue->IsInt()
+        ? rangeValue->AsInt()->value()
+        : rangeValue->AsFloat()->value();
 
-    SystemEntity* pEntity = pSystem->GetSE(args.entityID);
+    SystemEntity* pEntity = pSystem->GetSE(entityID->value());
     if (pEntity == nullptr) {
-        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), args.entityID);
+        _log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), entityID->value());
         return PyStatic.NewNone();
     }
 
@@ -422,7 +332,7 @@ PyResult BeyonceBound::Handle_CmdOrbit(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
+PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* id) {
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuff. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
@@ -469,21 +379,20 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
     uint32 toID(0);
     std::string stringArg = "";
 
-    if ((call.tuple->GetItem(1)->IsString())
-    or  (call.tuple->GetItem(1)->IsWString())) {
-        stringArg = PyRep::StringContent(call.tuple->GetItem(1));
+    if ((id->IsString())
+    or  (id->IsWString())) {
+        stringArg = PyRep::StringContent(id);
     } else {
-        toID = PyRep::IntegerValueU32(call.tuple->GetItem(1));
+        toID = PyRep::IntegerValueU32(id);
     }
 
-    std::string type = PyRep::StringContent(call.tuple->GetItem(0));
-    if (type == "item" ) {
+    if (type->content() == "item" ) {
         pSE = pSystem->GetSE(toID);
         if (pSE == nullptr) {
             codelog(CLIENT__ERROR, "%s: unable to find item location %u in %s(%u)", call.client->GetName(), toID, pSystem->GetName(), pSystem->GetID());
             return PyStatic.NewNone();
         }
-    } else if (type == "bookmark" ) {
+    } else if (type->content() == "bookmark" ) {
         double x(0.0), y(0.0), z(0.0);
         uint16 typeID(0);
         uint32 locationID(0);
@@ -512,33 +421,33 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
                 return PyStatic.NewNone();
             }
         }
-    } else if (type == "scan") {
+    } else if (type->content() == "scan") {
         uint32 anomID = pSystem->GetAnomMgr()->GetAnomalyID(stringArg);
         pSE = pSystem->GetSE(anomID);
-    } else if (type == "launch") {
+    } else if (type->content() == "launch") {
         //warpToPoint = PlanetDB::GetLaunchPos(toID);
         pSE = pSystem->GetSE(toID);
         // launchpickup - launch, launchid
     }
     // the systems below are not implemented yet.  hold on coding till systems are working and we know what needs to be done here
     // more info can be found in client::menuSvc.py
-    else if (type == "epinstance") {
+    else if (type->content() == "epinstance") {
         // epinstance, instanceid
         //stringArg
         call.client->SendErrorMsg("WarpToInstance is not implemented at this time.");
         return PyStatic.NewNone();
-    } else if (type == "tutorial") {
+    } else if (type->content() == "tutorial") {
         // tutorial, none
         call.client->SendErrorMsg("WarpToTutorial is not implemented at this time.");
         return PyStatic.NewNone();
-    } else if (type == "char") {
+    } else if (type->content() == "char") {
     //  fleet warping
     // [warptomember] char, charid, minrange
     // [warpfleettomember] char, charid, minrange, fleet=1
         call.client->SendErrorMsg("WarpToChar is not implemented at this time.");
         return PyStatic.NewNone();
     } else {
-        sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Unexpected type value: '%s'.", type.c_str() );
+        sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Unexpected type value: '%s'.", type->content().c_str() );
         return PyStatic.NewNone();
     }
 
@@ -646,7 +555,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
     }
     if (warpToPoint.isZero()) {
         // point is zero ....make error and return
-        codelog(CLIENT__ERROR, "%s: warpToPoint.isZero() = true.  Cannot find location %u for '%s'", call.client->GetName(), toID, type.c_str());
+        codelog(CLIENT__ERROR, "%s: warpToPoint.isZero() = true.  Cannot find location %u for '%s'", call.client->GetName(), toID, type->content().c_str());
         call.client->SendErrorMsg("WarpTo: Item location not found.");
         return PyStatic.NewNone();
     }
@@ -660,7 +569,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuff(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
+PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) {
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuffAutopilot. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
@@ -679,16 +588,9 @@ PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-  //  sends targeted celestial itemID as arg.destID
-    CallWarpToStuffAutopilot arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-	}
-
-    SystemEntity* pSE = pSystem->GetSE(arg.destID);
+    SystemEntity* pSE = pSystem->GetSE(destID->value());
     if (pSE == nullptr) {
-	  codelog(CLIENT__ERROR, "%s: unable to find destination Entity for ID %u", call.client->GetName(), arg.destID);
+	  codelog(CLIENT__ERROR, "%s: unable to find destination Entity for ID %u", call.client->GetName(), destID->value());
         return PyStatic.NewNone();
     }
 
@@ -708,7 +610,7 @@ PyResult BeyonceBound::Handle_CmdWarpToStuffAutopilot(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
+PyResult BeyonceBound::CmdStop(PyCallArgs &call) {
     _log(AUTOPILOT__MESSAGE, "%s called Stop. AP: %s, Invul: %s", call.client->GetName(), \
             (call.client->IsAutoPilot() ? "true" : "false"), call.client->IsInvul()?"true":"false");
 
@@ -736,7 +638,7 @@ PyResult BeyonceBound::Handle_CmdStop(PyCallArgs &call) {
 }
 
 // CmdTurboDock (in client code)
-PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
+PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* shipID, std::optional<PyRep*> paymentRequired) {
     _log(AUTOPILOT__MESSAGE, "%s called Dock. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     if (call.client->IsSessionChange()) {
         call.client->SendNotifyMsg("Session Change currently active.");
@@ -758,20 +660,15 @@ PyResult BeyonceBound::Handle_CmdDock(PyCallArgs &call) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager.", call.client->GetName());
         return PyStatic.NewNone();
     }
-    Call_TwoIntegerArgs args;  //sends stationID, shipID
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
 
     //  this sets m_dockStationID for radius checks and other things
-    call.client->SetDockStationID( args.arg1 );
+    call.client->SetDockStationID( celestialID->value() );
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     return pDestiny->AttemptDockOperation();
 }
 
-PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
+PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, PyInt* toStargateID, PyInt* shipID) {
     /*  jump system messages....
 (67187, `{[location]system.name} Traffic Control: your jump-in clearance has expired.`)
 (67191, `{[location]system.name} Traffic Control: you have been cleared for jump-in within {[timeinterval]expiration.writtenForm, from=second, to=second}.`)
@@ -814,40 +711,39 @@ PyResult BeyonceBound::Handle_CmdStargateJump(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    Call_StargateJump args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     /** @todo  check distance from ship to gate */
-    call.client->StargateJump(args.fromStargateID, args.toStargateID);
+    call.client->StargateJump(fromStargateID->value(), toStargateID->value());
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
-PyResult BeyonceBound::Handle_CmdAbandonLoot(PyCallArgs &call) {
+PyResult BeyonceBound::CmdAbandonLoot(PyCallArgs &call, PyList* wreckIDs) {
 	/*  remotePark.CmdAbandonLoot(wrecks)  <- this is pylist from 'abandonAllWrecks'
 	 *  remotePark.CmdAbandonLoot([wreckID]) <- single itemID in list
 	 */
   sLog.White( "BeyonceBound::Handle_CmdAbandonLoot()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-	Call_SingleIntList arg;
-	if (!arg.Decode(&call.tuple)) {
-		codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-		return PyStatic.NewNone();
-	}
+    std::vector<int32> ints;
 
+    PyList::const_iterator list_2_cur = wreckIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != wreckIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
+    }
 	/** @todo  change ownerID to _system for all loot also!!  */
 	SystemEntity* pSE(nullptr);
 	SystemManager* pSysMgr = call.client->SystemMgr();
-	for (auto cur : arg.ints) {
+	for (auto cur : ints) {
         pSE = pSysMgr->GetSE(cur);
         if (pSE == nullptr)
             continue;
@@ -864,7 +760,7 @@ PyResult BeyonceBound::Handle_CmdAbandonLoot(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
+PyResult BeyonceBound::UpdateStateRequest(PyCallArgs &call) {
     codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest. Previous call generated a bad return.  Check Logs.", call.client->GetName());
 
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
@@ -965,21 +861,21 @@ PyResult BeyonceBound::Handle_UpdateStateRequest(PyCallArgs &call) {
  *            return
  *        effect.Activate(beaconID, False)
  */
-PyResult BeyonceBound::Handle_CmdJumpThroughFleet(PyCallArgs &call) {
+PyResult BeyonceBound::CmdJumpThroughFleet(PyCallArgs &call, PyInt* otherCharID, PyInt* otherShipID, PyInt* beaconID, PyInt* solarSystemID) {
     // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughFleet, otherCharID, otherShipID, beaconID, solarsystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughFleet");
     call.Dump(SHIP__WARNING);
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdJumpThroughAlliance(PyCallArgs &call) {
+PyResult BeyonceBound::CmdJumpThroughAlliance(PyCallArgs &call, PyInt* otherShipID, PyInt* beaconID, PyInt* solarSystemID) {
     //sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughAlliance, otherShipID, beaconID, solarsystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughAlliance");
     call.Dump(SHIP__WARNING);
     return PyStatic.NewNone();
 }
 
-PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &call) {
+PyResult BeyonceBound::CmdJumpThroughCorporationStructure(PyCallArgs &call, PyInt* itemID, PyInt* remoteStructureID, PyInt* remoteSystemID) {
     //sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdJumpThroughCorporationStructure, itemID, remoteStructureID, remoteSystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdJumpThroughCorporationStructure");
     call.Dump(SHIP__WARNING);
@@ -999,16 +895,10 @@ PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &cal
         return PyStatic.NewNone();
     }
 
-    Call_BridgeJumpAlliance args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(args.remoteStructureID);
+    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(remoteStructureID->value());
 
     //Check for jump fuel and make sure there is enough fuel available
-    InventoryItemRef bridge = sItemFactory.GetItemRefFromID(args.itemID);
+    InventoryItemRef bridge = sItemFactory.GetItemRefFromID(itemID->value());
     ShipItemRef ship = call.client->GetShip();
 
     std::vector<InventoryItemRef> fuelBayItems;
@@ -1051,13 +941,12 @@ PyResult BeyonceBound::Handle_CmdJumpThroughCorporationStructure(PyCallArgs &cal
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
-PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
+PyResult BeyonceBound::CmdBeaconJumpFleet(PyCallArgs &call, PyInt* characterID, PyInt* beaconID, PyInt* solarSystemID) {
     // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpFleet, charid, beaconID, solarsystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdBeaconJumpFleet");
     call.Dump(SHIP__WARNING);
@@ -1080,13 +969,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    Call_BeaconJumpFleet args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(args.beaconID);
+    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(beaconID->value());
 
     //Check for jump fuel and make sure there is enough fuel available
     ShipItemRef ship = call.client->GetShip();
@@ -1143,13 +1026,12 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpFleet(PyCallArgs &call) {
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
-PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
+PyResult BeyonceBound::CmdBeaconJumpAlliance(PyCallArgs &call, PyInt* beaconID, PyInt* solarSystemID) {
     // sm.StartService('sessionMgr').PerformSessionChange('jump', bp.CmdBeaconJumpAlliance, beaconID, solarSystemID)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdBeaconJumpAlliance");
     call.Dump(SHIP__WARNING);
@@ -1169,13 +1051,7 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
         return PyStatic.NewNone();
     }
 
-    Call_BeaconJumpAlliance args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(args.beaconID);
+    InventoryItemRef beacon = sItemFactory.GetItemRefFromID(beaconID->value());
 
     //Check for jump fuel and make sure there is enough fuel available
     ShipItemRef ship = call.client->GetShip();
@@ -1237,20 +1113,19 @@ PyResult BeyonceBound::Handle_CmdBeaconJumpAlliance(PyCallArgs &call) {
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-    tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-    tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
-PyResult BeyonceBound::Handle_CmdFleetRegroup(PyCallArgs &call) {
+PyResult BeyonceBound::CmdFleetRegroup(PyCallArgs &call) {
     // not sure what this is supposed to do yet
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdFleetRegroup");
     call.Dump(SHIP__WARNING);
     return nullptr;
 }
 
-PyResult BeyonceBound::Handle_CmdFleetTagTarget(PyCallArgs &call) {
+PyResult BeyonceBound::CmdFleetTagTarget(PyCallArgs &call, PyInt* itemID, PyString* tag) {
     // bp.CmdFleetTagTarget(itemID, tag)
     _log(SHIP__WARNING, "BeyonceBound::Handle_CmdFleetTagTarget");
     call.Dump(SHIP__WARNING);

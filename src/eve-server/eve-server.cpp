@@ -698,7 +698,6 @@ int main( int argc, char* argv[] )
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
-    pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
     pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
@@ -730,6 +729,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new BeyonceService(newSvcMgr));
     newSvcMgr.Register(new DungeonService());
     newSvcMgr.Register(new LookupService());
     newSvcMgr.Register(new MapService());

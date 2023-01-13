@@ -28,26 +28,50 @@
 #define __BEYONCE_SERVICE_H_INCL__
 
 #include "ship/ShipDB.h"
-#include "PyService.h"
+#include "services/BoundService.h"
 
-class BeyonceService
-: public PyService {
+class BeyonceService : public BindableService <BeyonceService> {
 public:
-    BeyonceService(PyServiceMgr *mgr);
-    virtual ~BeyonceService();
+    BeyonceService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     ShipDB m_db;
 
-    //PyCallable_DECL_CALL()
-    PyCallable_DECL_CALL(GetFormations)
+    PyResult GetFormations(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher *BindObject(Client *client, PyRep* bindParameters) override;
 };
 
+
+class BeyonceBound : public EVEBoundObject <BeyonceBound>
+{
+public:
+    BeyonceBound(EVEServiceManager& mgr, PyRep* bindData, Client* client);
+
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult CmdFollowBall(PyCallArgs& call, PyInt* ballID, PyRep* distance);
+    PyResult CmdSetSpeedFraction(PyCallArgs& call, PyFloat* speedFraction);
+    PyResult CmdAlignTo(PyCallArgs& call, PyInt* entityID);
+    PyResult CmdGotoDirection(PyCallArgs& call, PyFloat* x, PyFloat* y, PyFloat* z);
+    PyResult CmdGotoBookmark(PyCallArgs& call, PyInt* bookmarkID);
+    PyResult CmdOrbit(PyCallArgs& call, PyInt* entityID, PyRep* rangeValue);
+    PyResult CmdWarpToStuff(PyCallArgs& call, PyString* type, PyRep* id);
+    PyResult CmdWarpToStuffAutopilot(PyCallArgs& call, PyInt* destID);
+    PyResult CmdStop(PyCallArgs& call);
+    PyResult CmdDock(PyCallArgs& call, PyInt* celestialID, PyInt* shipID, std::optional<PyRep*> paymentRequired);
+    PyResult CmdStargateJump(PyCallArgs& call, PyInt* fromStargateID, PyInt* toStargateID, PyInt* shipID);
+    PyResult CmdAbandonLoot(PyCallArgs& call, PyList* wreckIDs);
+    PyResult UpdateStateRequest(PyCallArgs& call);
+    PyResult CmdJumpThroughFleet(PyCallArgs& call, PyInt* otherCharID, PyInt* otherShipID, PyInt* beaconID, PyInt* solarSystemID);
+    PyResult CmdJumpThroughAlliance(PyCallArgs& call, PyInt* otherShipID, PyInt* beaconID, PyInt* solarSystemID);
+    PyResult CmdJumpThroughCorporationStructure(PyCallArgs& call, PyInt* itemID, PyInt* remoteStructureID, PyInt* remoteSystemID);
+    PyResult CmdBeaconJumpFleet(PyCallArgs& call, PyInt* characterID, PyInt* beaconID, PyInt* solarSystemID);
+    PyResult CmdBeaconJumpAlliance(PyCallArgs& call, PyInt* beaconID, PyInt* solarSystemID);
+    PyResult CmdFleetRegroup(PyCallArgs& call);
+    PyResult CmdFleetTagTarget(PyCallArgs& call, PyInt* itemID, PyString* tag);
+};
 
 #endif
