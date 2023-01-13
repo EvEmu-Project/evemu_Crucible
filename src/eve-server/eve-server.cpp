@@ -713,7 +713,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
     pyServMgr.RegisterService("devIndexManager", new IndexManager(&pyServMgr));
     pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
-    pyServMgr.RegisterService("invbroker", new InvBrokerService(&pyServMgr));
     pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
     pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
@@ -723,6 +722,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new InvBrokerService(newSvcMgr));
     newSvcMgr.Register(new KeeperService(newSvcMgr));
     newSvcMgr.Register(new PlanetMgrService(newSvcMgr));
     newSvcMgr.Register(new EntityService(newSvcMgr));

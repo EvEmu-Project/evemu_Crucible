@@ -31,21 +31,56 @@
 
 class PyRep;
 
-class InvBrokerService
-: public PyService
+class InvBrokerService : public BindableService <InvBrokerService>
 {
 public:
-    InvBrokerService(PyServiceMgr *mgr);
-    virtual ~InvBrokerService();
+    InvBrokerService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult GetItemDescriptor(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 
     PyCallable_DECL_CALL(GetItemDescriptor)
+};
+
+class InvBrokerBound : public EVEBoundObject <InvBrokerBound>
+{
+public:
+    InvBrokerBound(EVEServiceManager& mgr, PyRep* bindData, uint32 locationID, uint32 groupID);
+
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult GetContainerContents(PyCallArgs& call, PyInt* containerID, PyInt* locationID);
+    PyResult GetInventoryFromId(PyCallArgs& call, PyInt* inventoryID, PyInt* passive);
+    PyResult GetInventory(PyCallArgs& call, PyInt* containerID, std::optional <PyInt*> ownerID);
+    PyResult SetLabel(PyCallArgs& call, PyInt* itemID, PyRep* itemName);
+    PyResult TrashItems(PyCallArgs& call, PyList* itemIDs, PyInt* locationID);
+    PyResult AssembleCargoContainer(PyCallArgs& call, PyInt* itemID, PyNone* none, PyFloat* zero);
+    PyResult BreakPlasticWrap(PyCallArgs& call);
+    PyResult TakeOutTrash(PyCallArgs& call, PyList* itemIDs);
+    PyResult SplitStack(PyCallArgs& call, PyInt* locationID, PyInt* itemID, PyInt* quantity, PyInt* ownerID);
+    PyResult DeliverToCorpHangar(PyCallArgs& call, PyInt* officeID, PyInt* locationID, PyInt* itemsToDeliver, std::optional <PyInt*> quantity, PyInt* ownerID, PyInt* destinationFlag);
+    PyResult DeliverToCorpMember(PyCallArgs& call, PyInt* corporationMemberID, PyInt* stationID, PyList* itemIDs, std::optional <PyInt*> quantity, PyInt* ownerID);
+
+    PyCallable_DECL_CALL(GetContainerContents);
+    PyCallable_DECL_CALL(GetInventoryFromId);
+    PyCallable_DECL_CALL(GetInventory);
+    PyCallable_DECL_CALL(SetLabel);
+    PyCallable_DECL_CALL(TrashItems);
+    PyCallable_DECL_CALL(AssembleCargoContainer);
+    PyCallable_DECL_CALL(BreakPlasticWrap);
+    PyCallable_DECL_CALL(TakeOutTrash);
+    PyCallable_DECL_CALL(SplitStack);
+    PyCallable_DECL_CALL(DeliverToCorpHangar);
+    PyCallable_DECL_CALL(DeliverToCorpMember);
+
+
+protected:
+    uint32 m_locationID;
+    uint32 m_groupID;
 };
 
 #endif
