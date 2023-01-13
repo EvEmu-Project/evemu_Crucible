@@ -28,40 +28,31 @@
 #include "PyServiceCD.h"
 #include "character/PaperDollService.h"
 
-PyCallable_Make_InnerDispatcher(PaperDollService)
-
-PaperDollService::PaperDollService(PyServiceMgr* mgr)
-: PyService(mgr, "paperDollServer"),
-  m_dispatch(new Dispatcher(this))
+PaperDollService::PaperDollService() :
+    Service("paperDollServer")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(PaperDollService, GetPaperDollData);
-    PyCallable_REG_CALL(PaperDollService, GetMyPaperDollData);
-    PyCallable_REG_CALL(PaperDollService, ConvertAndSavePaperDoll);
-    PyCallable_REG_CALL(PaperDollService, GetPaperDollPortraitDataFor);
-    PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterFull);
-    PyCallable_REG_CALL(PaperDollService, UpdateExistingCharacterLimited);
-}
-
-PaperDollService::~PaperDollService() {
-    delete m_dispatch;
+    this->Add("GetPaperDollData", &PaperDollService::GetPaperDollData);
+    this->Add("GetMyPaperDollData", &PaperDollService::GetMyPaperDollData);
+    this->Add("ConvertAndSavePaperDoll", &PaperDollService::ConvertAndSavePaperDoll);
+    this->Add("GetPaperDollPortraitDataFor", &PaperDollService::GetPaperDollPortraitDataFor);
+    this->Add("UpdateExistingCharacterFull", &PaperDollService::UpdateExistingCharacterFull);
+    this->Add("UpdateExistingCharacterLimited", &PaperDollService::UpdateExistingCharacterLimited);
 }
 
 //17:35:32 L PaperDollService::Handle_GetPaperDollData(): size=1
-PyResult PaperDollService::Handle_GetPaperDollData(PyCallArgs &call) {
+PyResult PaperDollService::GetPaperDollData(PyCallArgs &call, PyInt* characterID) {
     call.Dump(PLAYER__CALL_DUMP);
     // this is called when viewing full body of a character.
 
-    return m_db.GetPaperDollAvatarColors(call.tuple->GetItem(0)->AsInt()->value());
+    return m_db.GetPaperDollAvatarColors(characterID->value());
 }
 
-PyResult PaperDollService::Handle_ConvertAndSavePaperDoll(PyCallArgs &call) {
+PyResult PaperDollService::ConvertAndSavePaperDoll(PyCallArgs &call) {
     call.Dump(PLAYER__CALL_DUMP);
     return nullptr;
 }
 
-PyResult PaperDollService::Handle_UpdateExistingCharacterFull(PyCallArgs &call) {
+PyResult PaperDollService::UpdateExistingCharacterFull(PyCallArgs &call, PyInt* characterID, PyRep* dollInfo, PyRep* portraitInfo, PyBool* dollExists) {
     call.Dump(PLAYER__CALL_DUMP);
     /*
         sm.RemoteSvc('paperDollServer').UpdateExistingCharacterFull(charID, dollInfo, portraitInfo, dollExists)
@@ -69,7 +60,7 @@ PyResult PaperDollService::Handle_UpdateExistingCharacterFull(PyCallArgs &call) 
     return nullptr;
 }
 
-PyResult PaperDollService::Handle_UpdateExistingCharacterLimited(PyCallArgs &call) {
+PyResult PaperDollService::UpdateExistingCharacterLimited(PyCallArgs &call, PyInt* characterID, PyRep* dollData, PyRep* portraitInfo, PyBool* dollExists) {
     call.Dump(PLAYER__CALL_DUMP);
     /*
         sm.RemoteSvc('paperDollServer').UpdateExistingCharacterLimited(charID, dollData, portraitInfo, dollExists)
@@ -83,7 +74,7 @@ PyResult PaperDollService::Handle_UpdateExistingCharacterLimited(PyCallArgs &cal
     return nullptr;
 }
 
-PyResult PaperDollService::Handle_GetPaperDollPortraitDataFor(PyCallArgs &call) {
+PyResult PaperDollService::GetPaperDollPortraitDataFor(PyCallArgs &call, PyInt* characterID) {
     //    data = sm.RemoteSvc('paperDollServer').GetPaperDollPortraitDataFor(charID)
     /*
             portraitData = sm.GetService('cc').GetPortraitData(charID)
@@ -101,10 +92,10 @@ PyResult PaperDollService::Handle_GetPaperDollPortraitDataFor(PyCallArgs &call) 
                 params = self.GetControlParametersFromPoseData(portraitData, fromDB=True).values()
                 self.characterSvc.SetControlParametersFromList(params, charID)
     */
-    return m_db.GetPaperDollPortraitData(PyRep::IntegerValue(call.tuple->GetItem(0)));
+    return m_db.GetPaperDollPortraitData(characterID->value());
 }
 
-PyResult PaperDollService::Handle_GetMyPaperDollData(PyCallArgs &call)
+PyResult PaperDollService::GetMyPaperDollData(PyCallArgs &call, PyInt* characterID)
 {
     call.Dump(PLAYER__CALL_DUMP);
 
