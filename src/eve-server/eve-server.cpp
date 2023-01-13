@@ -726,13 +726,13 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
     pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
     pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
-    pyServMgr.RegisterService("map", new MapService(&pyServMgr));
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new MapService());
     newSvcMgr.Register(new CalendarMgrService());
     newSvcMgr.Register(new AgentMgrService(newSvcMgr));
     newSvcMgr.Register(new ScanMgrService(newSvcMgr));
