@@ -57,8 +57,6 @@ protected:
     PyResult ReconnectToLostProbes(PyCallArgs& call);
 
 private:
-    Scan* m_scan;
-    ScanningDB* m_db;
     Client* m_client;
 };
 
