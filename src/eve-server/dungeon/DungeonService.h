@@ -28,18 +28,34 @@
 #define __DUNGEON_SERVICE_H_INCL__
 
 #include "system/SystemDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-class DungeonService
-: public PyService
-{
+class DungeonService : public Service <DungeonService> {
 public:
-    DungeonService(PyServiceMgr *mgr);
-    ~DungeonService();
+    DungeonService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult IsObjectLocked(PyCallArgs& call, PyInt* objectID);
+    PyResult AddObject(PyCallArgs& call, PyInt* roomID, PyInt* tupeID, PyFloat* x, PyFloat* y, PyFloat* z, PyFloat* pitch, PyFloat* roll, PyFloat* radius);
+    PyResult RemoveObject(PyCallArgs& call, PyInt* objectID);
+    PyResult CopyObject(PyCallArgs& call, PyInt* objectID, PyInt* roomID, PyFloat* offsetX, PyFloat* offsetY, PyFloat* offsetZ);
+    PyResult EditObject(PyCallArgs& call);
+    PyResult EditObjectName(PyCallArgs& call, PyInt* newObjectID, PyWString* objectName);
+    PyResult EditObjectRadius(PyCallArgs& call);
+    PyResult EditObjectXYZ(PyCallArgs& call);
+    PyResult EditObjectYawPitchRoll(PyCallArgs& call);
+    PyResult TemplateAdd(PyCallArgs& call, PyWString* templateName, PyWString* templateDescription);
+    PyResult TemplateRemove(PyCallArgs& call, PyInt* templateID);
+    PyResult TemplateEdit(PyCallArgs& call, PyInt* templateID, PyWString* templateName, PyWString* templateDescription);
+    PyResult AddTemplateObjects(PyCallArgs& call, PyInt* roomID, PyInt* objectID, PyTuple* position);
+    PyResult TemplateObjectAddDungeonList(PyCallArgs& call, PyInt* templateID, PyList* objectIDs);
+    PyResult GetArchetypes(PyCallArgs& call);
+    PyResult DEGetDungeons(PyCallArgs& call);
+    PyResult DEGetTemplates(PyCallArgs& call);
+    PyResult DEGetRooms(PyCallArgs& call);
+    PyResult DEGetRoomObjectPaletteData(PyCallArgs& call);
+    PyResult DEGetFactions(PyCallArgs& call);
+
 
     PyCallable_DECL_CALL(DEGetFactions);
     PyCallable_DECL_CALL(DEGetDungeons);
