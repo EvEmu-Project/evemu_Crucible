@@ -33,37 +33,36 @@
 #include "agents/AgentBound.h"
 #include "station/Station.h"
 
-AgentBound::AgentBound(PyServiceMgr *mgr, Agent *agt)
-: PyBoundObject(mgr),
-m_dispatch(new Dispatcher(this)),
-m_agent(agt)
+AgentBound::AgentBound(EVEServiceManager& mgr, PyRep* bindData, Agent *agt) :
+    EVEBoundObject(mgr, bindData), 
+    m_agent(agt)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    m_strBoundObjectName = "AgentBound";
-
-    PyCallable_REG_CALL(AgentBound, DoAction);
-    PyCallable_REG_CALL(AgentBound, GetAgentLocationWrap);
-    PyCallable_REG_CALL(AgentBound, GetInfoServiceDetails);
-    PyCallable_REG_CALL(AgentBound, GetMissionBriefingInfo);
-    PyCallable_REG_CALL(AgentBound, GetMissionObjectiveInfo);
-    PyCallable_REG_CALL(AgentBound, GetMissionKeywords);
-    PyCallable_REG_CALL(AgentBound, GetMissionJournalInfo);
-    PyCallable_REG_CALL(AgentBound, GetDungeonShipRestrictions);
-    PyCallable_REG_CALL(AgentBound, RemoveOfferFromJournal);
-    PyCallable_REG_CALL(AgentBound, GetOfferJournalInfo);
-    PyCallable_REG_CALL(AgentBound, GetEntryPoint);
-    PyCallable_REG_CALL(AgentBound, GotoLocation);
-    PyCallable_REG_CALL(AgentBound, WarpToLocation);
-    PyCallable_REG_CALL(AgentBound, GetMyJournalDetails);
+    this->Add("DoAction", &AgentBound::DoAction);
+    this->Add("GetAgentLocationWrap", &AgentBound::GetAgentLocationWrap);
+    this->Add("GetInfoServiceDetails", &AgentBound::GetInfoServiceDetails);
+    this->Add("GetMissionBriefingInfo", &AgentBound::GetMissionBriefingInfo);
+    this->Add("GetMissionObjectiveInfo", &AgentBound::GetMissionObjectiveInfo);
+    this->Add("GetMissionKeywords", &AgentBound::GetMissionKeywords);
+    this->Add("GetMissionJournalInfo", &AgentBound::GetMissionJournalInfo);
+    this->Add("GetDungeonShipRestrictions", &AgentBound::GetDungeonShipRestrictions);
+    this->Add("RemoveOfferFromJournal", &AgentBound::RemoveOfferFromJournal);
+    this->Add("GetOfferJournalInfo", &AgentBound::GetOfferJournalInfo);
+    this->Add("GetEntryPoint", &AgentBound::GetEntryPoint);
+    this->Add("GotoLocation", &AgentBound::GotoLocation);
+    this->Add("WarpToLocation", &AgentBound::WarpToLocation);
+    this->Add("GetMyJournalDetails", &AgentBound::GetMyJournalDetails);
 }
 
-PyResult AgentBound::Handle_GetAgentLocationWrap(PyCallArgs &call) {
+bool AgentBound::CanClientCall(Client* client) {
+    return true; // TODO: properly implement this
+}
+
+PyResult AgentBound::GetAgentLocationWrap(PyCallArgs &call) {
     // this is detailed info on agent's location
     return m_agent->GetLocationWrap();
 }
 
-PyResult AgentBound::Handle_GetInfoServiceDetails( PyCallArgs& call ) {
+PyResult AgentBound::GetInfoServiceDetails(PyCallArgs& call) {
     // this is agents personal info... level, division, station, etc.
     return m_agent->GetInfoServiceDetails();
 }
@@ -73,17 +72,11 @@ PyResult AgentBound::Handle_GetInfoServiceDetails( PyCallArgs& call ) {
  * @note   these below are partially coded
  */
 
-PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
+PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID) {
     // this is first call when initiating agent convo
     _log(AGENT__DUMP,  "AgentBound::Handle_DoAction() - size=%li", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
-    // sends PyNone or actionID
-    Call_SingleArg args;
-    if (!args.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
     // this actually returns a complicated tuple depending on other variables involving this agent and char.
     /*
         agentSays, dialogue, extraInfo = self.__GetConversation(agentDialogueWindow, actionID)
@@ -106,7 +99,6 @@ PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
     float standing = EvEMath::Agent::EffectiveStanding(charStanding, bonus);
 
     std::string response = "";
-    uint8 actionID = PyRep::IntegerValueU32(args.arg);
     bool missionQuit = false, missionCompleted = false, missionDeclined = false;
 
     PyTuple* agentSays = new PyTuple(2);
@@ -124,7 +116,7 @@ PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
     }
 
     if (m_agent->CanUseAgent(call.client)) {
-        switch (actionID) {
+        switch (actionID.has_value() ? actionID.value()->value() : 0) {
             case 0: {
                 //  if char has current mission with this agent, add this one.
                 MissionOffer offer = MissionOffer();
@@ -399,7 +391,7 @@ PyResult AgentBound::Handle_DoAction(PyCallArgs &call) {
     return outer;
 }
 
-PyResult AgentBound::Handle_GetMissionBriefingInfo(PyCallArgs &call) {
+PyResult AgentBound::GetMissionBriefingInfo(PyCallArgs &call) {
     // called from iniate agent convo... should be populated when mission available
     // will return PyNone if no mission avalible
     _log(AGENT__MESSAGE,  "AgentBound::Handle_GetMissionBriefingInfo()");
@@ -464,7 +456,7 @@ PyResult AgentBound::Handle_GetMissionBriefingInfo(PyCallArgs &call) {
     return briefingInfo;
 }
 
-PyResult AgentBound::Handle_GetMissionKeywords(PyCallArgs &call) {
+PyResult AgentBound::GetMissionKeywords(PyCallArgs &call, PyInt* contentID) {
     // thse are the variables embedded in the messageIDs
     //self.missionArgs[contentID] = self.GetAgentMoniker(agentID).GetMissionKeywords(contentID)
     _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionKeywords() - size=%li", call.tuple->size());
@@ -511,9 +503,9 @@ PyResult AgentBound::Handle_GetMissionKeywords(PyCallArgs &call) {
     return keywords;
 }
 
-PyResult AgentBound::Handle_GetMissionObjectiveInfo(PyCallArgs &call)
+PyResult AgentBound::GetMissionObjectiveInfo(PyCallArgs &call, std::optional <PyInt*> characterID, std::optional <PyInt*> contentID)
 {
-    // sends charID, contentID
+    // sends charID, contentID (although there's another call without any parameters, hence the optionals used)
     // returns PyDict loaded with mission info  or PyNone
     //  returning mission info sets double-pane view, where PyNone sets single-pane view
     _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionObjectiveInfo() - size=%li", call.tuple->size());
@@ -539,7 +531,7 @@ PyResult AgentBound::Handle_GetMissionObjectiveInfo(PyCallArgs &call)
     return GetMissionObjectiveInfo(call.client, offer);
 }
 
-PyResult AgentBound::Handle_GetMyJournalDetails(PyCallArgs &call) {
+PyResult AgentBound::GetMyJournalDetails(PyCallArgs &call) {
     //parallelCalls.append((sm.GetService('agents').GetAgentMoniker(agentID).GetMyJournalDetails, ()))
     //missionState, importantMission, missionType, missionName, agentID, expirationTime, bookmarks, remoteOfferable, remoteCompletable = each
     // this is to update ONLY info with this agent....
@@ -576,7 +568,7 @@ PyResult AgentBound::Handle_GetMyJournalDetails(PyCallArgs &call) {
     return tuple;
 }
 
-PyResult AgentBound::Handle_GetMissionJournalInfo(PyCallArgs &call) {
+PyResult AgentBound::GetMissionJournalInfo(PyCallArgs &call, PyInt* characterID, PyInt* contentID) {
     //called on rclick in journal to "read details"
     //ret = self.GetAgentMoniker(agentID).GetMissionJournalInfo(charID, contentID)
     _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionJournalInfo() - size=%li", call.tuple->size());
@@ -897,7 +889,7 @@ PyTuple* AgentBound::GetMissionObjectives(Client* pClient, MissionOffer& offer)
  * @note   these do absolutely nothing at this time....
  */
 
-PyResult AgentBound::Handle_GetDungeonShipRestrictions(PyCallArgs &call) {
+PyResult AgentBound::GetDungeonShipRestrictions(PyCallArgs &call, PyInt* dungeonID) {
     //restrictions = self.GetAgentMoniker(agentID).GetDungeonShipRestrictions(dungeonID)
     _log(AGENT__DUMP,  "AgentBound::Handle_GetDungeonShipRestrictions() - size=%li", call.tuple->size());
     call.Dump(AGENT__DUMP);
@@ -905,7 +897,7 @@ PyResult AgentBound::Handle_GetDungeonShipRestrictions(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult AgentBound::Handle_RemoveOfferFromJournal(PyCallArgs &call) {
+PyResult AgentBound::RemoveOfferFromJournal(PyCallArgs &call) {
     //called on rclick in journal to "remove offer"
     //self.GetAgentMoniker(agentID).RemoveOfferFromJournal()
     _log(AGENT__DUMP,  "AgentBound::Handle_RemoveOfferFromJournal() - size=%li", call.tuple->size());
@@ -914,7 +906,7 @@ PyResult AgentBound::Handle_RemoveOfferFromJournal(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult AgentBound::Handle_GetOfferJournalInfo(PyCallArgs &call) {
+PyResult AgentBound::GetOfferJournalInfo(PyCallArgs &call) {
     //html = self.GetAgentMoniker(agentID).GetOfferJournalInfo()
     _log(AGENT__DUMP,  "AgentBound::Handle_GetOfferJournalInfo() - size=%li", call.tuple->size());
     call.Dump(AGENT__DUMP);
@@ -922,7 +914,7 @@ PyResult AgentBound::Handle_GetOfferJournalInfo(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult AgentBound::Handle_GetEntryPoint(PyCallArgs &call) {
+PyResult AgentBound::GetEntryPoint(PyCallArgs &call) {
     //entryPoint = sm.StartService('agents').GetAgentMoniker(bookmark.agentID).GetEntryPoint()
     _log(AGENT__DUMP,  "AgentBound::Handle_GetEntryPoint() - size=%li", call.tuple->size());
     call.Dump(AGENT__DUMP);
@@ -930,7 +922,7 @@ PyResult AgentBound::Handle_GetEntryPoint(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult AgentBound::Handle_GotoLocation(PyCallArgs &call) {
+PyResult AgentBound::GotoLocation(PyCallArgs &call, PyInt* locationType, PyInt* locationNumber, PyInt* referringAgentID) {
     //sm.StartService('agents').GetAgentMoniker(bookmark.agentID).GotoLocation(bookmark.locationType, bookmark.locationNumber, referringAgentID)
     _log(AGENT__DUMP,  "AgentBound::Handle_GotoLocation() - size=%li", call.tuple->size());
     call.Dump(AGENT__DUMP);
@@ -938,7 +930,7 @@ PyResult AgentBound::Handle_GotoLocation(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult AgentBound::Handle_WarpToLocation(PyCallArgs &call) {
+PyResult AgentBound::WarpToLocation(PyCallArgs &call, PyInt* locationType, PyInt* locationNumber, PyFloat* warpRange, PyBool* fleet, PyInt* referringAgentID) {
     //sm.StartService('agents').GetAgentMoniker(bookmark.agentID).WarpToLocation(bookmark.locationType, bookmark.locationNumber, warpRange, fleet, referringAgentID)
     _log(AGENT__DUMP,  "AgentBound::Handle_WarpToLocation() - size=%li", call.tuple->size());
     call.Dump(AGENT__DUMP);

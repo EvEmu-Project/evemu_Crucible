@@ -14,48 +14,37 @@
 #define _EVE_SERVER_AGENTBOUND_H
 
 
-#include "PyBoundObject.h"
+#include "services/BoundService.h"
 #include "PyServiceCD.h"
 #include "agents/Agent.h"
 
-class AgentBound
-: public PyBoundObject
+class AgentBound : public EVEBoundObject <AgentBound>
 {
 public:
-
-    PyCallable_Make_Dispatcher(AgentBound)
-
-    AgentBound(PyServiceMgr *mgr, Agent *agt);
-
-    virtual ~AgentBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(DoAction);
-    PyCallable_DECL_CALL(GetMyJournalDetails);
-    PyCallable_DECL_CALL(GetAgentLocationWrap);
-    PyCallable_DECL_CALL(GetInfoServiceDetails);
-    PyCallable_DECL_CALL(GetMissionKeywords);
-    PyCallable_DECL_CALL(GetMissionJournalInfo);
-    PyCallable_DECL_CALL(GetMissionBriefingInfo);
-    PyCallable_DECL_CALL(GetMissionObjectiveInfo);
-    PyCallable_DECL_CALL(GetDungeonShipRestrictions);
-    PyCallable_DECL_CALL(RemoveOfferFromJournal);
-    PyCallable_DECL_CALL(GetOfferJournalInfo);
-    PyCallable_DECL_CALL(GetEntryPoint);
-    PyCallable_DECL_CALL(GotoLocation);
-    PyCallable_DECL_CALL(WarpToLocation);
+    AgentBound(EVEServiceManager& mgr, PyRep* bindData, Agent *agt);
 
 protected:
     Agent* m_agent;    //we do not own this.
-    Dispatcher* m_dispatch;    //we own this
+
+    bool CanClientCall(Client* client) override;
+    PyResult GetAgentLocationWrap(PyCallArgs& call);
+    PyResult GetInfoServiceDetails(PyCallArgs& call);
+    PyResult DoAction(PyCallArgs& call, std::optional <PyInt*> actionID);
+    PyResult GetMissionBriefingInfo(PyCallArgs& call);
+    PyResult GetMissionKeywords(PyCallArgs& call, PyInt* contentID);
+    PyResult GetMissionObjectiveInfo(PyCallArgs& call, std::optional <PyInt*> characterID, std::optional <PyInt*> contentID);
+    PyResult GetMyJournalDetails(PyCallArgs& call);
+    PyResult GetMissionJournalInfo(PyCallArgs& call, PyInt* characterID, PyInt* contentID);
+    PyResult GetDungeonShipRestrictions(PyCallArgs& call, PyInt* dungeonID);
+    PyResult RemoveOfferFromJournal(PyCallArgs& call);
+    PyResult GetOfferJournalInfo(PyCallArgs& call);
+    PyResult GetEntryPoint(PyCallArgs& call);
+    PyResult GotoLocation(PyCallArgs& call, PyInt* locationType, PyInt* locationNumber, PyInt* referringAgentID);
+    PyResult WarpToLocation(PyCallArgs& call, PyInt* locationType, PyInt* locationNumber, PyFloat* warpRange, PyBool* fleet, PyInt* referringAgentID);
 
 private:
     PyTuple* GetMissionObjectives(Client* pClient, MissionOffer& offer);
     PyDict* GetMissionObjectiveInfo(Client* pClient, MissionOffer& offer);
-
 };
 
 #endif  // _EVE_SERVER_AGENTBOUND_H

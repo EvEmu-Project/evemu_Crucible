@@ -32,14 +32,16 @@
 
 class Agent;
 
-class AgentMgrService : public PyService {
+class AgentMgrService : public BindableService <AgentMgrService> {
 public:
-    AgentMgrService(PyServiceMgr *mgr);
-    virtual ~AgentMgrService();
+    AgentMgrService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult GetAgents(PyCallArgs& call);
+    PyResult GetSolarSystemOfAgent(PyCallArgs& call, PyInt* agentID);
+    PyResult GetMyJournalDetails(PyCallArgs& call);
+    PyResult GetMyEpicJournalDetails(PyCallArgs& call);
+    PyResult GetCareerAgents(PyCallArgs& call);
 
     PyCallable_DECL_CALL(GetAgents);
     PyCallable_DECL_CALL(GetCareerAgents);
@@ -48,21 +50,15 @@ protected:
     PyCallable_DECL_CALL(GetMyEpicJournalDetails);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject* CreateBoundObject(Client *pClient, const PyRep *bind_args);
-
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
 };
 
-class EpicArcService : public PyService {
-  public:
-    EpicArcService(PyServiceMgr *mgr);
-    virtual ~EpicArcService();
+class EpicArcService : public Service <EpicArcService> {
+public:
+    EpicArcService();
 
-  protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-	PyCallable_DECL_CALL(AgentHasEpicMissionsForCharacter);
-
+protected:
+    PyResult AgentHasEpicMissionsForCharacter(PyCallArgs& call, PyInt* agentID);
 };
 
 

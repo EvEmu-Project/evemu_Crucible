@@ -129,6 +129,8 @@ private:
 
 /*
  * @brief Implementation of EVE Online's bound objects
+ * 
+ * @see https://learn.microsoft.com/en-us/windows/win32/com/monikers
  */
 template<class T>
 class EVEBoundObject : public BoundDispatcher {
