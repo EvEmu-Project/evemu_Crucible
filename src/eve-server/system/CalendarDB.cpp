@@ -226,12 +226,12 @@ PyRep* CalendarDB::GetEventDetails(uint32 eventID)
     return new PyObject("util.KeyVal", dict);
 }
 
-void CalendarDB::SaveEventResponse(uint32 charID, Call_SendEventResponse& args)
+void CalendarDB::SaveEventResponse(uint32 charID, uint32 eventID, uint32 response)
 {
     DBerror err;
     sDatabase.RunQuery(err,
         "INSERT INTO `sysCalendarResponses`(`eventID`, `charID`, `response`)"
-        " VALUES (%u, %u, %u)", args.eventID, charID, args.response);
+        " VALUES (%u, %u, %u)", eventID, charID, response);
 }
 
 PyRep* CalendarDB::GetResponsesForCharacter(uint32 charID)
