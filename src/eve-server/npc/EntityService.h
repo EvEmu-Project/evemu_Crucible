@@ -12,37 +12,41 @@
 
 #include "../eve-server.h"
 
-#include "PyBoundObject.h"
+#include "services/BoundService.h"
 #include "PyServiceCD.h"
 
 class SystemManager;
-class EntityService
-: public PyService
+
+class EntityService : public BindableService <EntityService>
 {
 public:
-    EntityService(PyServiceMgr *mgr);
-    virtual ~EntityService();
+    EntityService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client* pClient, const PyRep* bind_args);
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters);
 };
 
-class EntityBound
-: public PyBoundObject
+class EntityBound : public EVEBoundObject <EntityBound>
 {
 public:
-    PyCallable_Make_Dispatcher(EntityBound)
+    EntityBound(EVEServiceManager& mgr, SystemManager* systemMgr, uint32 systemID, PyRep* bindData);
 
-    EntityBound(PyServiceMgr* mgr, SystemManager* systemMgr, uint32 systemID);
-    virtual ~EntityBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult CmdEngage(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdRelinquishControl(PyCallArgs& call, PyList* IDs);
+    PyResult CmdDelegateControl(PyCallArgs& call, PyList* droneIDs, PyInt* controllerID);
+    PyResult CmdAssist(PyCallArgs& call, PyInt* assistID, PyList* droneIDs);
+    PyResult CmdGuard(PyCallArgs& call, PyInt* guardID, PyList* droneIDs);
+    PyResult CmdMine(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdMineRepeatedly(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdUnanchor(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdReturnHome(PyCallArgs& call, PyList* droneIDs);
+    PyResult CmdReturnBay(PyCallArgs& call, PyList* droneIDs);
+    PyResult CmdAbandonDrone(PyCallArgs& call, PyList* droneIDs);
+    PyResult CmdReconnectToDrones(PyCallArgs& call, PyList* droneCandidates);
 
     PyCallable_DECL_CALL(CmdEngage);
     PyCallable_DECL_CALL(CmdRelinquishControl);
@@ -58,7 +62,6 @@ public:
     PyCallable_DECL_CALL(CmdReconnectToDrones);
 
 protected:
-    Dispatcher *const m_dispatch;
     SystemManager* m_sysMgr;
 
     uint32 m_systemID;
