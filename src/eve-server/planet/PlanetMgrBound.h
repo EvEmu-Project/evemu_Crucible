@@ -27,27 +27,64 @@
 #ifndef EVEMU_PLANET_PLANETMGR_BOUND_H_
 #define EVEMU_PLANET_PLANETMGR_BOUND_H_
 
-#include "PyService.h"
+#include "services/BoundService.h"
 #include "planet/PlanetDB.h"
+#include "planet/PlanetMgr.h"
 
-class PyRep;
-
-class PlanetMgrService: public PyService
+class PlanetMgrService : public BindableService <PlanetMgrService>
 {
 public:
-    PlanetMgrService(PyServiceMgr* mgr);
-    virtual ~PlanetMgrService();
+    PlanetMgrService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
-
-    PyCallable_DECL_CALL(GetPlanet);
-    PyCallable_DECL_CALL(DeleteLaunch);
-    PyCallable_DECL_CALL(GetPlanetsForChar);
-    PyCallable_DECL_CALL(GetMyLaunchesDetails);
+    PyResult GetPlanetsForChar(PyCallArgs& call);
+    PyResult GetMyLaunchesDetails(PyCallArgs& call);
+    PyResult GetPlanet(PyCallArgs& call, PyInt* planetID);
+    PyResult DeleteLaunch(PyCallArgs& call, PyInt* launchID);
 };
 
+
+class PlanetMgrBound : public EVEBoundObject <PlanetMgrBound>
+{
+public:
+    PlanetMgrBound(EVEServiceManager& mgr, PyRep* bindData, Client* client, PlanetSE* planet);
+    
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult GetPlanetResourceInfo(PyCallArgs& call);
+    PyResult GetPlanetInfo(PyCallArgs& call);
+    PyResult GetExtractorsForPlanet(PyCallArgs& call, PyInt* planetID);
+    PyResult UserUpdateNetwork(PyCallArgs& call, PyList* commandList);
+    PyResult GetProgramResultInfo(PyCallArgs& call, PyInt* ecuID, PyInt* typeID, PyList* heads, PyFloat* headRadius);
+    PyResult GetResourceData(PyCallArgs& call, PyObject* info);
+    PyResult UserAbandonPlanet(PyCallArgs& call);
+    PyResult UserLaunchCommodities(PyCallArgs& call, PyInt* commandPinID, PyDict* commoditiesToLaunch);
+    PyResult UserTransferCommodities(PyCallArgs& call, PyList* path, PyDict* commodities);
+    PyResult GetCommandPinsForPlanet(PyCallArgs& call, PyInt* planetID);
+    PyResult GetFullNetworkForOwner(PyCallArgs& call, PyInt* planetID, PyInt* characterID);
+    PyResult GMAddCommodity(PyCallArgs& call, PyInt* pinID, PyInt* typeID, PyInt* quantity);
+    PyResult GMConvertCommandCenter(PyCallArgs& call, PyInt* pinID);
+    PyResult GMForceInstallProgram(PyCallArgs& call, PyInt* pinID, PyInt* typeID, PyInt* cycleTime, PyInt* lifetimeHours, PyInt* qtyPerCycle, PyFloat* radius);
+    PyResult GMGetLocalDistributionReport(PyCallArgs& call, PyInt* planetID, PyTuple* surfacePoint);
+    PyResult GMGetSynchedServerState(PyCallArgs& call, PyInt* characterID);
+    PyResult GMRunDepletionSim(PyCallArgs& call);
+
+    /*
+
+    data = planet.remoteHandler.GMGetCompleteResource(resourceTypeID, layer)
+        sh = builder.CreateSHFromBuffer(data.data, data.numBands)
+
+    self.planet.remoteHandler.GMCreateNuggetLayer(self.planetID, typeID)
+        self.GMShowResource(typeID, 'nuggets')      {{ 'nuggets' = layer here }}
+
+        */
+
+protected:
+    Colony* m_colony;
+    PlanetSE* m_planet;
+    PlanetMgr* m_planetMgr;
+};
 #endif  // EVEMU_PLANET_PLANETMGR_BOUND_H_

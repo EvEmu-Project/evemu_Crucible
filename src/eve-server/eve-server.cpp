@@ -722,10 +722,10 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
     pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
-    pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new PlanetMgrService(newSvcMgr));
     newSvcMgr.Register(new EntityService(newSvcMgr));
     newSvcMgr.Register(new FleetProxy());
     newSvcMgr.Register(new DogmaService());
