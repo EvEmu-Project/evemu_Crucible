@@ -27,19 +27,15 @@
 #ifndef EVEMU_SYSTEM_IDXMGR_H__
 #define EVEMU_SYSTEM_IDXMGR_H__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class IndexManager : public PyService {
+class IndexManager : public Service <IndexManager> {
 public:
-    IndexManager(PyServiceMgr *mgr);
-    virtual ~IndexManager();
+    IndexManager();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetAllDevelopmentIndices);
-    PyCallable_DECL_CALL(GetDevelopmentIndicesForSystem);
+    PyResult GetAllDevelopmentIndices(PyCallArgs& call);
+    PyResult GetDevelopmentIndicesForSystem(PyCallArgs& call, PyInt* solarSystemID);
 };
 
 #endif  // EVEMU_SYSTEM_IDXMGR_H__
