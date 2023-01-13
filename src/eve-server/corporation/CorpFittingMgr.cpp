@@ -12,26 +12,17 @@
 #include "PyServiceCD.h"
 #include "corporation/CorpFittingMgr.h"
 
-PyCallable_Make_InnerDispatcher(CorpFittingMgr)
-
-CorpFittingMgr::CorpFittingMgr(PyServiceMgr *mgr)
-: PyService(mgr, "corpFittingMgr"),
-m_dispatch(new Dispatcher(this))
+CorpFittingMgr::CorpFittingMgr() :
+    Service("corpFittingMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CorpFittingMgr, GetFittings);
-    PyCallable_REG_CALL(CorpFittingMgr, SaveFitting);
-    PyCallable_REG_CALL(CorpFittingMgr, SaveManyFittings);
-    PyCallable_REG_CALL(CorpFittingMgr, DeleteFitting);
-    PyCallable_REG_CALL(CorpFittingMgr, UpdateNameAndDescription);
+    this->Add("GetFittings", &CorpFittingMgr::GetFittings);
+    this->Add("SaveFitting", &CorpFittingMgr::SaveFitting);
+    this->Add("SaveManyFittings", &CorpFittingMgr::SaveManyFittings);
+    this->Add("DeleteFitting", &CorpFittingMgr::DeleteFitting);
+    this->Add("UpdateNameAndDescription", &CorpFittingMgr::UpdateNameAndDescription);
 }
 
-CorpFittingMgr::~CorpFittingMgr() {
-    delete m_dispatch;
-}
-
-PyResult CorpFittingMgr::Handle_GetFittings(PyCallArgs &call)
+PyResult CorpFittingMgr::GetFittings(PyCallArgs &call, PyInt* ownerID)
 {
     //self.fittings[ownerID] = self.GetFittingMgr(ownerID).GetFittings(ownerID)
     _log(CORP__CALL, "CorpFittingMgr::Handle_GetFittings()");
@@ -40,7 +31,7 @@ PyResult CorpFittingMgr::Handle_GetFittings(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CorpFittingMgr::Handle_SaveFitting(PyCallArgs &call)
+PyResult CorpFittingMgr::SaveFitting(PyCallArgs &call, PyInt* ownerID, PyObject* fitting)
 {
     //    fitting.ownerID = ownerID
     //    fitting.fittingID = self.GetFittingMgr(ownerID).SaveFitting(ownerID, fitting)
@@ -50,7 +41,7 @@ PyResult CorpFittingMgr::Handle_SaveFitting(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CorpFittingMgr::Handle_SaveManyFittings(PyCallArgs &call)
+PyResult CorpFittingMgr::SaveManyFittings(PyCallArgs &call, PyInt* ownerID, PyDict* fittingsToSave)
 {
     /*
         newFittingIDs = self.GetFittingMgr(ownerID).SaveManyFittings(ownerID, fittingsToSave)
@@ -64,7 +55,7 @@ PyResult CorpFittingMgr::Handle_SaveManyFittings(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CorpFittingMgr::Handle_DeleteFitting(PyCallArgs &call)
+PyResult CorpFittingMgr::DeleteFitting(PyCallArgs &call, PyInt* ownerID, PyInt* fittingID)
 {
     // self.GetFittingMgr(ownerID).DeleteFitting(ownerID, fittingID)
     _log(CORP__CALL, "CorpFittingMgr::Handle_DeleteFitting()");
@@ -73,7 +64,7 @@ PyResult CorpFittingMgr::Handle_DeleteFitting(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CorpFittingMgr::Handle_UpdateNameAndDescription(PyCallArgs &call)
+PyResult CorpFittingMgr::UpdateNameAndDescription(PyCallArgs &call, PyInt* fittingID, PyInt* ownerID, PyWString* name, PyWString* description)
 {
     // self.GetFittingMgr(ownerID).UpdateNameAndDescription(fittingID, ownerID, name, description)
     _log(CORP__CALL, "CorpFittingMgr::Handle_UpdateNameAndDescription()");

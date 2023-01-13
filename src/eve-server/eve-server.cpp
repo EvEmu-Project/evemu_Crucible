@@ -703,7 +703,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
     pyServMgr.RegisterService("charMgr", new CharMgrService(&pyServMgr));
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
-    pyServMgr.RegisterService("corpFittingMgr", new CorpFittingMgr(&pyServMgr));
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
     pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
     pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
@@ -721,6 +720,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new CorpFittingMgr());
     newSvcMgr.Register(new IndexManager());
     newSvcMgr.Register(new InvBrokerService(newSvcMgr));
     newSvcMgr.Register(new KeeperService(newSvcMgr));
