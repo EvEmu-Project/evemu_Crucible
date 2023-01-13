@@ -719,7 +719,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
     pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
     pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
-    pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
     pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
@@ -788,6 +787,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new WarRegistryService(newSvcMgr));
     newSvcMgr.Register(new FactionWarMgrService(newSvcMgr));
     newSvcMgr.Register(new CertificateMgrService(newSvcMgr));
+    newSvcMgr.Register(new MarketProxyService(newSvcMgr));
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE

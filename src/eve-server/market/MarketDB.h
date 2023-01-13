@@ -53,8 +53,8 @@ public:
     static bool RecordTransaction(Market::TxData &data);
     static bool AlterOrderQuantity(uint32 orderID, uint32 new_qty);
 
-    static uint32 FindBuyOrder(Call_PlaceCharOrder &call);
-    static uint32 FindSellOrder(Call_PlaceCharOrder &call);
+    static uint32 FindBuyOrder(uint32 typeID, uint32 stationID, uint32 quantity, double price);
+    static uint32 FindSellOrder(uint32 typeID, uint32 stationID, uint32 quantity, double price);
     static uint32 StoreOrder(Market::SaveData& data);
 
 
