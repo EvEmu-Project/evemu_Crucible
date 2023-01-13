@@ -707,7 +707,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
     pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
-    pyServMgr.RegisterService("factory", new FactoryService(&pyServMgr));
     pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
     pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
@@ -719,6 +718,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new FactoryService());
     newSvcMgr.Register(new PaperDollService());
     newSvcMgr.Register(new CorpFittingMgr());
     newSvcMgr.Register(new IndexManager());
