@@ -697,8 +697,7 @@ int main( int argc, char* argv[] )
     /* Please keep the pyServMgr list clean so it's easier to find things */
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
-    pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
-
+    newSvcMgr.Register(new RamProxyService());
     newSvcMgr.Register(new PosMgr(newSvcMgr));
     newSvcMgr.Register(new FleetObject(newSvcMgr));
     newSvcMgr.Register(new CorpStationMgr(newSvcMgr));

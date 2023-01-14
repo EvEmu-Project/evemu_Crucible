@@ -27,29 +27,25 @@
 #ifndef __RAM_PROXY_SERVICE__H__
 #define __RAM_PROXY_SERVICE__H__
 
-#include "PyService.h"
+#include "services/Service.h"
 
 
-class RamProxyService : public PyService {
+class RamProxyService : public Service <RamProxyService> {
 public:
-    RamProxyService(PyServiceMgr *mgr);
-    virtual ~RamProxyService();
+    RamProxyService();
 
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetJobs2);
-    PyCallable_DECL_CALL(InstallJob);
-    PyCallable_DECL_CALL(CompleteJob);
-    PyCallable_DECL_CALL(AssemblyLinesGet);
-    PyCallable_DECL_CALL(AssemblyLinesSelect);
-    PyCallable_DECL_CALL(GetRelevantCharSkills);
-    PyCallable_DECL_CALL(AssemblyLinesSelectCorp);
-    PyCallable_DECL_CALL(AssemblyLinesSelectPublic);
-    PyCallable_DECL_CALL(AssemblyLinesSelectPrivate);
-    PyCallable_DECL_CALL(AssemblyLinesSelectAlliance);
-    PyCallable_DECL_CALL(UpdateAssemblyLineConfigurations);
+    PyResult GetJobs2(PyCallArgs& call, PyInt* ownerID, PyInt* completed);
+    PyResult InstallJob(PyCallArgs& call, PyRep* locationData, PyRep* itemLocationData, PyRep* bomLocationData, PyRep* flagOutput, PyRep* buildRuns, PyRep* activityID, PyRep* licensedProductionRuns, PyRep* ownerFlag, PyRep* blah);
+    PyResult CompleteJob(PyCallArgs& call, PyRep* info, PyRep* jobID, PyRep* cancel);
+    PyResult AssemblyLinesGet(PyCallArgs& call, PyInt* stationID);
+    PyResult AssemblyLinesSelect(PyCallArgs& call, PyString* filter);
+    PyResult GetRelevantCharSkills(PyCallArgs& call);
+    PyResult AssemblyLinesSelectCorp(PyCallArgs& call);
+    PyResult AssemblyLinesSelectPublic(PyCallArgs& call);
+    PyResult AssemblyLinesSelectPrivate(PyCallArgs& call);
+    PyResult AssemblyLinesSelectAlliance(PyCallArgs& call);
+    PyResult UpdateAssemblyLineConfigurations(PyCallArgs& call, PyRep* installationLocationData, PyRep* rowset);
 
 };
 
