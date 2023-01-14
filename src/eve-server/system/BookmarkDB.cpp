@@ -335,20 +335,20 @@ void BookmarkDB::ChangeOwner(uint32 bookmarkID, uint32 ownerID/*1*/) {
 }
 
 
-bool BookmarkDB::UpdateBookmark(Call_UpdateBookmark& args)
+bool BookmarkDB::UpdateBookmark(int32 bookmarkID, int32 ownerID, int32 folderID, PyRep* memo, PyRep* comment)
 {
     std::string eMemo, eNote;
     eMemo.clear();
     eNote.clear();
-    if (!PyRep::StringContent(args.memo).empty())
-        sDatabase.DoEscapeString(eMemo, PyRep::StringContent(args.memo));
+    if (!PyRep::StringContent(memo).empty())
+        sDatabase.DoEscapeString(eMemo, PyRep::StringContent(memo));
 
-    if (!PyRep::StringContent(args.comment).empty())
-        sDatabase.DoEscapeString(eNote, PyRep::StringContent(args.comment));
+    if (!PyRep::StringContent(comment).empty())
+        sDatabase.DoEscapeString(eNote, PyRep::StringContent(comment));
 
     DBerror err;
     if (!sDatabase.RunQuery(err, "UPDATE bookmarks SET memo = '%s', note = '%s', folderID = %i, ownerID = %i WHERE bookmarkID = %i",
-        eMemo.c_str(), eNote.c_str(), args.folderID, args.ownerID, args.bookmarkID))
+        eMemo.c_str(), eNote.c_str(), folderID, ownerID, bookmarkID))
     {
         sLog.Error( "BmDB::UpdateBookmarkInDatabase()", "Error in query: %s", err.c_str() );
         return false;

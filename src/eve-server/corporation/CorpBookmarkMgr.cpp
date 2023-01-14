@@ -38,32 +38,22 @@
 #include "cache/ObjCacheService.h"
 #include "corporation/CorpBookmarkMgr.h"
 
-PyCallable_Make_InnerDispatcher(CorpBookmarkMgr)
-
-CorpBookmarkMgr::CorpBookmarkMgr(PyServiceMgr* mgr)
-: PyService(mgr, "corpBookmarkMgr"),
-  m_dispatch(new Dispatcher(this))
+CorpBookmarkMgr::CorpBookmarkMgr() :
+    Service("corpBookmarkMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CorpBookmarkMgr, GetBookmarks);
-    PyCallable_REG_CALL(CorpBookmarkMgr, UpdateBookmark);
-    PyCallable_REG_CALL(CorpBookmarkMgr, UpdatePlayerBookmark);
-    PyCallable_REG_CALL(CorpBookmarkMgr, MoveBookmarksToFolder);
-    PyCallable_REG_CALL(CorpBookmarkMgr, CreateFolder);
-    PyCallable_REG_CALL(CorpBookmarkMgr, UpdateFolder);
-    PyCallable_REG_CALL(CorpBookmarkMgr, CopyBookmarks);
-    PyCallable_REG_CALL(CorpBookmarkMgr, DeleteFolder);
-    PyCallable_REG_CALL(CorpBookmarkMgr, MoveFoldersToDB);
-    PyCallable_REG_CALL(CorpBookmarkMgr, DeleteBookmarks);
+    this->Add("GetBookmarks", &CorpBookmarkMgr::GetBookmarks);
+    this->Add("UpdateBookmark", &CorpBookmarkMgr::UpdateBookmark);
+    this->Add("UpdatePlayerBookmark", &CorpBookmarkMgr::UpdatePlayerBookmark);
+    this->Add("MoveBookmarksToFolder", &CorpBookmarkMgr::MoveBookmarksToFolder);
+    this->Add("CreateFolder", &CorpBookmarkMgr::CreateFolder);
+    this->Add("UpdateFolder", &CorpBookmarkMgr::UpdateFolder);
+    this->Add("CopyBookmarks", &CorpBookmarkMgr::CopyBookmarks);
+    this->Add("DeleteFolder", &CorpBookmarkMgr::DeleteFolder);
+    this->Add("MoveFoldersToDB", &CorpBookmarkMgr::MoveFoldersToDB);
+    this->Add("DeleteBookmarks", &CorpBookmarkMgr::DeleteBookmarks);
 }
 
-CorpBookmarkMgr::~CorpBookmarkMgr()
-{
-    delete m_dispatch;
-}
-
-PyResult CorpBookmarkMgr::Handle_GetBookmarks(PyCallArgs& call)
+PyResult CorpBookmarkMgr::GetBookmarks(PyCallArgs& call)
 {
     /*
     ObjectCachedMethodID method_id(GetName(), "GetBookmarks");
@@ -85,80 +75,59 @@ PyResult CorpBookmarkMgr::Handle_GetBookmarks(PyCallArgs& call)
     return result;
 }
 
-PyResult CorpBookmarkMgr::Handle_UpdateBookmark(PyCallArgs& call) {
+PyResult CorpBookmarkMgr::UpdateBookmark(PyCallArgs& call, PyInt* bookmarkID, PyInt* ownerID, PyRep* memo, PyRep* comment, std::optional<PyInt*> folderID) {
     call.Dump(BOOKMARK__CALL_DUMP);
-    Call_UpdateBookmark args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
-    m_db.UpdateBookmark(args);
+    m_db.UpdateBookmark(bookmarkID->value(), ownerID->value(), folderID.has_value() ? folderID.value()->value() : 0, memo, comment);
 
     return PyStatic.NewNone();
 }
 
-PyResult CorpBookmarkMgr::Handle_UpdatePlayerBookmark(PyCallArgs& call) {
+PyResult CorpBookmarkMgr::UpdatePlayerBookmark(PyCallArgs& call, PyInt* bookmarkID, PyInt* ownerID, PyRep* memo, PyRep* comment, std::optional<PyInt*> folderID) {
     call.Dump(BOOKMARK__CALL_DUMP);
-    Call_UpdateBookmark args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
-    m_db.UpdateBookmark(args);
+    m_db.UpdateBookmark(bookmarkID->value(), ownerID->value(), folderID.has_value() ? folderID.value()->value() : 0, memo, comment);
 
     return PyStatic.NewNone();
 }
 
-PyResult CorpBookmarkMgr::Handle_MoveBookmarksToFolder(PyCallArgs& call)
+PyResult CorpBookmarkMgr::MoveBookmarksToFolder(PyCallArgs& call, PyInt* folderID, std::optional<PyObjectEx*> bookmarkIDs)
 {
     // rows = bookmarkMgr.MoveBookmarksToFolder(folderID, bookmarkIDs)
     call.Dump(BOOKMARK__CALL_DUMP);
-    Call_MoveBookmarksToFolder args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
     //args.Dump(BOOKMARK__CALL_DUMP, "    ");
 
-    if (args.object->IsNone())
+    if (bookmarkIDs.has_value() == false)
         return PyStatic.NewNone();
 
-    PyList* bmList = args.object->header()->AsTuple()->GetItem(1)->AsTuple()->GetItem(0)->AsList();
+    PyList* bmList = bookmarkIDs.value()->header()->AsTuple()->GetItem(1)->AsTuple()->GetItem(0)->AsList();
 
     std::vector<int32> bmIDs;
     for (size_t i = 0; i < bmList->size(); ++i)
         bmIDs.push_back(bmList->GetItem(i)->AsInt()->value());
 
-    m_db.MoveBookmarkToFolder(args.folderID, bmIDs);
+    m_db.MoveBookmarkToFolder(folderID->value(), bmIDs);
 
-    return m_db.GetBookmarksInFolder(args.folderID);
+    return m_db.GetBookmarksInFolder(folderID->value());
 }
 
-PyResult CorpBookmarkMgr::Handle_UpdateFolder(PyCallArgs& call)
+PyResult CorpBookmarkMgr::UpdateFolder(PyCallArgs& call, PyInt* folderID, PyRep* folderName)
 {
     //if bookmarkMgr.UpdateFolder(folderID, folderName):
     call.Dump(BOOKMARK__CALL_DUMP);
-    Call_UpdateFolder args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewFalse();
-    }
-
     /** @todo sanitize name */
-    if (!m_db.UpdateFolder(args.folderID, PyRep::StringContent(args.folderName)))
+    if (!m_db.UpdateFolder(folderID->value(), PyRep::StringContent(folderName)))
         return PyStatic.NewFalse();
 
     return PyStatic.NewTrue();
 }
 
-PyResult CorpBookmarkMgr::Handle_CreateFolder(PyCallArgs& call)
+PyResult CorpBookmarkMgr::CreateFolder(PyCallArgs& call, PyRep* folderName)
 {
     //folder = bookmarkMgr.CreateFolder(folderName)
     call.Dump(BOOKMARK__CALL_DUMP);
     /** @todo sanitize name */
-    std::string name = PyRep::StringContent(call.tuple->GetItem( 0 ));
+    std::string name = PyRep::StringContent(folderName);
 
     uint32 ownerID = call.client->GetCorporationID();
     Rsp_CreateFolder result;
@@ -171,22 +140,21 @@ PyResult CorpBookmarkMgr::Handle_CreateFolder(PyCallArgs& call)
     return result.Encode();
 }
 
-PyResult CorpBookmarkMgr::Handle_CopyBookmarks(PyCallArgs& call)
+PyResult CorpBookmarkMgr::CopyBookmarks(PyCallArgs& call, std::optional<PyRep*> bookmarksToCopy, PyInt* folderID)
 {
     call.Dump(BOOKMARK__CALL_DUMP);
     return PyStatic.NewNone();
 }
 
-PyResult CorpBookmarkMgr::Handle_DeleteFolder(PyCallArgs& call)
+PyResult CorpBookmarkMgr::DeleteFolder(PyCallArgs& call, PyInt* folderID, PyRep* unused)
 {
     //deleteFolder, bookmarks = self.corpBookmarkMgr.DeleteFolder(folderID, bookmarkIDs)
     call.Dump(BOOKMARK__CALL_DUMP);
-    uint32 folderID(PyRep::IntegerValueU32(call.tuple->GetItem(0)));
 
     // call db to get list of bmIDs in deleted folder.  return result with this data
     std::vector< int32 > bmIDs;
     bmIDs.clear();
-    m_db.GetBookmarkByFolderID(folderID, bmIDs);
+    m_db.GetBookmarkByFolderID(folderID->value(), bmIDs);
 
     PyList* list = new PyList();
     for (auto cur : bmIDs) {
@@ -195,33 +163,27 @@ PyResult CorpBookmarkMgr::Handle_DeleteFolder(PyCallArgs& call)
         list->AddItem(new PyObject("util.KeyVal", dict));
     }
 
-    m_db.DeleteFolder(folderID);
+    m_db.DeleteFolder(folderID->value());
 
     return list;
 }
 
-PyResult CorpBookmarkMgr::Handle_MoveFoldersToDB(PyCallArgs& call)
+PyResult CorpBookmarkMgr::MoveFoldersToDB(PyCallArgs& call, PyRep* info)
 {
     //rows, folders = self.corpBookmarkMgr.MoveFoldersToDB(info)
     call.Dump(BOOKMARK__CALL_DUMP);
     return PyStatic.NewNone();
 }
 
-PyResult CorpBookmarkMgr::Handle_DeleteBookmarks(PyCallArgs& call)
+PyResult CorpBookmarkMgr::DeleteBookmarks(PyCallArgs& call, std::optional<PyObjectEx*> bookmarkIDs)
 {
     //deletedBookmarks = self.corpBookmarkMgr.DeleteBookmarks(bookmarkIDs)
     call.Dump(BOOKMARK__CALL_DUMP);
-    Call_DeleteBookmarks args;
 
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    if (args.object->IsNone())
+    if (bookmarkIDs.has_value() == false)
         return PyStatic.NewNone();
 
-    PyList* bmList = args.object->header()->AsTuple()->GetItem(1)->AsTuple()->GetItem(0)->AsList();
+    PyList* bmList = bookmarkIDs.value()->header()->AsTuple()->GetItem(1)->AsTuple()->GetItem(0)->AsList();
 
     PyList* list = new PyList();
     for (size_t i = 0; i < bmList->size(); ++i) {
