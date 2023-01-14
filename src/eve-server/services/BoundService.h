@@ -81,6 +81,11 @@ public:
         // register the new instance in the service manager
         BoundDispatcher* bound = this->BindObject(args.client, bindParameters);
 
+        // binding failed for whatever reason, just return none and get on with our lifes
+        if (bound == nullptr) {
+            return nullptr;
+        }
+
         // build the bound service identifier
         PyTuple* rsp = new PyTuple(2);
         PyDict* byName = new PyDict();
