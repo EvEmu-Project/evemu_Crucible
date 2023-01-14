@@ -32,7 +32,7 @@ public:
     PyRep* GetEmploymentRecord(uint32 corpID);
     bool AddEmployment(uint32 allyID, uint32 corpID);
 
-    bool CreateAlliance(Call_CreateAlliance& allyInfo, Client* pClient, uint32& allyID, uint32& corpID);
+    bool CreateAlliance(std::string name, std::string shortName, std::string description, std::string url, Client* pClient, uint32& allyID, uint32& corpID);
 
     PyRep* GetBulletins(uint32 allyID);
     void AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, const std::string& title, const std::string& body);

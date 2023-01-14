@@ -425,13 +425,13 @@ void AllianceDB::UpdateAlliance(uint32 allyID, std::string description, std::str
     }
 }
 
-bool AllianceDB::CreateAlliance(Call_CreateAlliance &allyInfo, Client *pClient, uint32 &allyID, uint32 &corpID)
+bool AllianceDB::CreateAlliance(std::string name, std::string shortName, std::string description, std::string url, Client *pClient, uint32 &allyID, uint32 &corpID)
 {
     std::string aName, aShort, aDesc, aURL;
-    sDatabase.DoEscapeString(aName, allyInfo.allianceName);
-    sDatabase.DoEscapeString(aShort, allyInfo.shortName);
-    sDatabase.DoEscapeString(aDesc, allyInfo.description);
-    sDatabase.DoEscapeString(aURL, allyInfo.url);
+    sDatabase.DoEscapeString(aName, name);
+    sDatabase.DoEscapeString(aShort, shortName);
+    sDatabase.DoEscapeString(aDesc, description);
+    sDatabase.DoEscapeString(aURL, url);
 
     Character *pChar = pClient->GetChar().get();
     uint32 charID = pClient->GetCharacterID();

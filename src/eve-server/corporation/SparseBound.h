@@ -2,34 +2,25 @@
 
 #include "../eve-server.h"
 
-#include "PyBoundObject.h"
+#include "services/BoundService.h"
 #include "PyServiceCD.h"
 #include "corporation/CorporationDB.h"
 
 
-class SparseBound
-: public PyBoundObject
+class SparseBound : public EVEBoundObject <SparseBound>
 {
 public:
-    PyCallable_Make_Dispatcher(SparseBound)
-
-    SparseBound(PyServiceMgr *mgr, CorporationDB& db, uint32 corpID);
-
-    virtual ~SparseBound() {delete m_dispatch;}
-    virtual void Release() {
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(Fetch);
-    PyCallable_DECL_CALL(SelectByUniqueColumnValues);
-    // these may not be used in this version...
-    PyCallable_DECL_CALL(FetchByKey); //([keys])
-    PyCallable_DECL_CALL(GetByKey); //(key)
-
+    SparseBound(EVEServiceManager &mgr, CorporationDB& db, uint32 corpID);
 
 protected:
-    Dispatcher *const m_dispatch;
+    bool CanClientCall(Client* client) override;
+    PyResult Fetch(PyCallArgs& call, PyInt* startPos, PyInt* fetchSize);
+    PyResult SelectByUniqueColumnValues(PyCallArgs& call, PyRep* columnName, PyList* values);
+    // these may not be used in this version...
+    PyResult FetchByKey(PyCallArgs& call, PyList* keys);
+    PyResult GetByKey(PyCallArgs& call, PyInt* keys);
 
+protected:
     CorporationDB& m_db;
     uint32 m_corpID;
 };

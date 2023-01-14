@@ -13,30 +13,23 @@
 #include "corporation/SparseBound.h"
 #include "station/StationDataMgr.h"
 
-SparseBound::SparseBound(PyServiceMgr *mgr, CorporationDB& db, uint32 corpID)
-: PyBoundObject(mgr),
-m_dispatch(new Dispatcher(this)),
-m_db(db),
-m_corpID(corpID)
+SparseBound::SparseBound(EVEServiceManager &mgr, CorporationDB& db, uint32 corpID) :
+    EVEBoundObject(mgr, nullptr),
+    m_db(db),
+    m_corpID(corpID)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(SparseBound, Fetch);
-    PyCallable_REG_CALL(SparseBound, FetchByKey);
-    PyCallable_REG_CALL(SparseBound, GetByKey);
-    PyCallable_REG_CALL(SparseBound, SelectByUniqueColumnValues);
+    this->Add("Fetch", &SparseBound::Fetch);
+    this->Add("FetchByKey", &SparseBound::FetchByKey);
+    this->Add("GetByKey", &SparseBound::GetByKey);
+    this->Add("SelectByUniqueColumnValues", &SparseBound::SelectByUniqueColumnValues);
 }
 
-PyResult SparseBound::Handle_Fetch(PyCallArgs &call)
+bool SparseBound::CanClientCall(Client* client) {
+    return true; // TODO: properly implement this
+}
+PyResult SparseBound::Fetch(PyCallArgs &call, PyInt* startPos, PyInt* fetchSize)
 {
-    //(startPos, fetchSize)
-    Call_TwoIntegerArgs args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.Fetch(call.client->GetCorporationID(), args.arg1, args.arg2);
+    return m_db.Fetch(call.client->GetCorporationID(), startPos->value(), fetchSize->value());
 }
 
 // this is called in a few places to get officeID
@@ -46,16 +39,16 @@ PyResult SparseBound::Handle_Fetch(PyCallArgs &call)
 //        2) owned by the viewer (whom shall also be hangar's owner)
 //  this poses a problem for corp staff when viewing member's hangars.  not sure how to 'fix' this yet.
 //      and i still havent gotten this to work dependably
-PyResult SparseBound::Handle_SelectByUniqueColumnValues(PyCallArgs &call)
+PyResult SparseBound::SelectByUniqueColumnValues(PyCallArgs &call, PyRep* columnName, PyList* values)
 {
     // no packet data for this call
 
     _log(CORP__CALL, "SparseBound::Handle_SelectByUniqueColumnValues()");
     call.Dump(CORP__WARNING);   //so this will dump on all calls
 
-    std::string str = PyRep::StringContent(call.tuple->GetItem(0));
+    std::string str = PyRep::StringContent(columnName);
     // could this be multiple locations?  doubt it.
-    uint32 locationID = PyRep::IntegerValueU32(call.tuple->GetItem(1)->AsList()->GetItem(0));
+    uint32 locationID = PyRep::IntegerValueU32(values->GetItem(0));
 
     std::vector<OfficeData> data;
     stDataMgr.GetStationOfficeIDs(locationID, data);    // this method checks for the type of locationID sent.
@@ -120,7 +113,7 @@ PyResult SparseBound::Handle_SelectByUniqueColumnValues(PyCallArgs &call)
 }
 
 
-PyResult SparseBound::Handle_FetchByKey(PyCallArgs &call) {
+PyResult SparseBound::FetchByKey(PyCallArgs &call, PyList* keys) {
     // this is something about getting member data....
     sLog.Error("SparseBound", "Handle_FetchByKey()");
     call.Dump(CORP__WARNING);   //so this will dump on all calls
@@ -164,7 +157,7 @@ PyResult SparseBound::Handle_FetchByKey(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult SparseBound::Handle_GetByKey(PyCallArgs &call) {
+PyResult SparseBound::GetByKey(PyCallArgs &call, PyInt* keys) {
     sLog.Error("SparseBound", "Handle_GetByKey()");
     call.Dump(CORP__WARNING);   //so this will dump on all calls
 

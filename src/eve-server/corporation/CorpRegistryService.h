@@ -29,39 +29,34 @@
 
 #include "corporation/CorporationDB.h"
 #include "alliance/AllianceDB.h"
-#include "PyService.h"
+#include "services/BoundService.h"
 
-class CorpRegistryService
-: public PyService
+class CorpRegistryService : public BindableService <CorpRegistryService>
 {
 public:
-    CorpRegistryService(PyServiceMgr *mgr);
-    virtual ~CorpRegistryService();
+    CorpRegistryService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     CorporationDB m_db;
 
     /** @note: none of these fully work, and most are skeleton code only */
-    PyCallable_DECL_CALL(CreateAlliance);
-    PyCallable_DECL_CALL(GetRecentKillsAndLosses);
-    PyCallable_DECL_CALL(GetCorporateContacts);
-    PyCallable_DECL_CALL(AddCorporateContact);
-    PyCallable_DECL_CALL(EditCorporateContact);
-    PyCallable_DECL_CALL(RemoveCorporateContacts);
-    PyCallable_DECL_CALL(EditContactsRelationshipID);
-    PyCallable_DECL_CALL(GetLabels);
-    PyCallable_DECL_CALL(CreateLabel);
-    PyCallable_DECL_CALL(DeleteLabel);
-    PyCallable_DECL_CALL(EditLabel);
-    PyCallable_DECL_CALL(AssignLabels);
-    PyCallable_DECL_CALL(RemoveLabels);
-    PyCallable_DECL_CALL(ResignFromCEO);
+    PyResult CreateAlliance(PyCallArgs& call, PyRep* allianceName, PyRep* shortName, PyRep* description, PyRep* url);
+    PyResult GetRecentKillsAndLosses(PyCallArgs& call);
+    PyResult GetCorporateContacts(PyCallArgs& call);
+    PyResult AddCorporateContact(PyCallArgs& call, PyInt* contactID, PyInt* relationshipID);
+    PyResult EditCorporateContact(PyCallArgs& call, PyInt* contactID, PyInt* relationshipID);
+    PyResult RemoveCorporateContacts(PyCallArgs& call, PyList* contactIDs);
+    PyResult EditContactsRelationshipID(PyCallArgs& call, PyList* contactIDs, PyInt* relationshipID);
+    PyResult GetLabels(PyCallArgs& call);
+    PyResult CreateLabel(PyCallArgs& call, PyWString* name, std::optional <PyInt*> color);
+    PyResult DeleteLabel(PyCallArgs& call, PyInt* labelID);
+    PyResult EditLabel(PyCallArgs& call, PyInt* labelID, std::optional <PyWString*> name, std::optional <PyInt*> color);
+    PyResult AssignLabels(PyCallArgs& call, PyList* contactIDs, PyInt* labelMask);
+    PyResult RemoveLabels(PyCallArgs& call, PyList* contactIDs, PyInt* labelMask);
+    PyResult ResignFromCEO(PyCallArgs& call, PyInt* newCeoID);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 };
 
 #endif

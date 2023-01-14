@@ -47,48 +47,38 @@
  * CORP__DB_MESSAGE
  */
 
-
-PyCallable_Make_InnerDispatcher(CorpRegistryService)
-
-CorpRegistryService::CorpRegistryService(PyServiceMgr *mgr)
-: PyService(mgr, "corpRegistry"),
-  m_dispatch(new Dispatcher(this))
+CorpRegistryService::CorpRegistryService(EVEServiceManager& mgr) :
+    BindableService("corpRegistry", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
     /** @note: all of these are skeleton code only */
-    PyCallable_REG_CALL(CorpRegistryService, CreateAlliance);
-    PyCallable_REG_CALL(CorpRegistryService, GetRecentKillsAndLosses);
-    PyCallable_REG_CALL(CorpRegistryService, GetCorporateContacts);
-    PyCallable_REG_CALL(CorpRegistryService, AddCorporateContact);
-    PyCallable_REG_CALL(CorpRegistryService, EditCorporateContact);
-    PyCallable_REG_CALL(CorpRegistryService, RemoveCorporateContacts);
-    PyCallable_REG_CALL(CorpRegistryService, EditContactsRelationshipID);
-    PyCallable_REG_CALL(CorpRegistryService, GetLabels);
-    PyCallable_REG_CALL(CorpRegistryService, CreateLabel);
-    PyCallable_REG_CALL(CorpRegistryService, DeleteLabel);
-    PyCallable_REG_CALL(CorpRegistryService, EditLabel);
-    PyCallable_REG_CALL(CorpRegistryService, AssignLabels);
-    PyCallable_REG_CALL(CorpRegistryService, RemoveLabels);
-    PyCallable_REG_CALL(CorpRegistryService, ResignFromCEO);
+    this->Add("CreateAlliance", &CorpRegistryService::CreateAlliance);
+    this->Add("GetRecentKillsAndLosses", &CorpRegistryService::GetRecentKillsAndLosses);
+    this->Add("GetCorporateContacts", &CorpRegistryService::GetCorporateContacts);
+    this->Add("AddCorporateContact", &CorpRegistryService::AddCorporateContact);
+    this->Add("EditCorporateContact", &CorpRegistryService::EditCorporateContact);
+    this->Add("RemoveCorporateContacts", &CorpRegistryService::RemoveCorporateContacts);
+    this->Add("EditContactsRelationshipID", &CorpRegistryService::EditContactsRelationshipID);
+    this->Add("GetLabels", &CorpRegistryService::GetLabels);
+    this->Add("CreateLabel", &CorpRegistryService::CreateLabel);
+    this->Add("DeleteLabel", &CorpRegistryService::DeleteLabel);
+    this->Add("EditLabel", &CorpRegistryService::EditLabel);
+    this->Add("AssignLabels", &CorpRegistryService::AssignLabels);
+    this->Add("RemoveLabels", &CorpRegistryService::RemoveLabels);
+    this->Add("ResignFromCEO", &CorpRegistryService::ResignFromCEO);
 }
 
-CorpRegistryService::~CorpRegistryService() {
-    delete m_dispatch;
-}
-
-PyBoundObject* CorpRegistryService::CreateBoundObject( Client* pClient, const PyRep* bind_args )
+BoundDispatcher* CorpRegistryService::BindObject(Client* client, PyRep* bindParameters)
 {
-    if (!bind_args->IsTuple()){
-        sLog.Error( "CorpRegistryService::CreateBoundObject", "%s: bind_args is not tuple: '%s'. ", pClient->GetName(), bind_args->TypeString() );
-        pClient->SendErrorMsg("Could not bind object for Corp Registry.  Ref: ServerError 02808.");
+    if (!bindParameters->IsTuple()){
+        sLog.Error( "CorpRegistryService::CreateBoundObject", "%s: bind_args is not tuple: '%s'. ", client->GetName(), bindParameters->TypeString() );
+        client->SendErrorMsg("Could not bind object for Corp Registry.  Ref: ServerError 02808.");
         return nullptr;
     }
 
-    return new CorpRegistryBound(m_manager, m_db, PyRep::IntegerValue(bind_args->AsTuple()->GetItem(0)));
+    return new CorpRegistryBound(this->GetServiceManager(), bindParameters, m_db, PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0)));
 }
 
-PyResult CorpRegistryService::Handle_GetCorporateContacts(PyCallArgs &call)
+PyResult CorpRegistryService::GetCorporateContacts(PyCallArgs &call)
 {
     return m_db.GetContacts(call.client->GetCorporationID());
 }
@@ -103,7 +93,7 @@ PyResult CorpRegistryService::Handle_GetCorporateContacts(PyCallArgs &call)
  * @note   these do absolutely nothing at this time....
  */
 
-PyResult CorpRegistryService::Handle_ResignFromCEO(PyCallArgs &call) {
+PyResult CorpRegistryService::ResignFromCEO(PyCallArgs &call, PyInt* newCeoID) {
     //    self.GetCorpRegistry().ResignFromCEO(newCeoID)
     _log(CORP__CALL, "CorpRegistryService::Handle_ResignFromCEO()");
     call.Dump(CORP__CALL_DUMP);
@@ -111,14 +101,14 @@ PyResult CorpRegistryService::Handle_ResignFromCEO(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_CreateAlliance(PyCallArgs &call) {
+PyResult CorpRegistryService::CreateAlliance(PyCallArgs &call, PyRep* allianceName, PyRep* shortName, PyRep* description, PyRep* url) {
     _log(CORP__CALL, "CorpRegistryService::Handle_CreateAlliance()");
     call.Dump(CORP__CALL_DUMP);
 
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_GetRecentKillsAndLosses(PyCallArgs &call) {
+PyResult CorpRegistryService::GetRecentKillsAndLosses(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryService::Handle_GetRecentKillsAndLosses()");
     call.Dump(CORP__CALL_DUMP);
 
@@ -126,7 +116,7 @@ PyResult CorpRegistryService::Handle_GetRecentKillsAndLosses(PyCallArgs &call) {
 }
 
 
-PyResult CorpRegistryService::Handle_AddCorporateContact(PyCallArgs &call) {
+PyResult CorpRegistryService::AddCorporateContact(PyCallArgs &call, PyInt* contactID, PyInt* relationshipID) {
  /*    def AddCorporateContact(self, contactID, relationshipID):
   *        self.GetCorpRegistry().AddCorporateContact(contactID, relationshipID)
   */
@@ -136,7 +126,7 @@ PyResult CorpRegistryService::Handle_AddCorporateContact(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_EditCorporateContact(PyCallArgs &call) {
+PyResult CorpRegistryService::EditCorporateContact(PyCallArgs &call, PyInt* contactID, PyInt* relationshipID) {
  /*    def EditCorporateContact(self, contactID, relationshipID):
   *        self.GetCorpRegistry().EditCorporateContact(contactID, relationshipID)
   */
@@ -146,7 +136,7 @@ PyResult CorpRegistryService::Handle_EditCorporateContact(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_RemoveCorporateContacts(PyCallArgs &call) {
+PyResult CorpRegistryService::RemoveCorporateContacts(PyCallArgs &call, PyList* contactIDs) {
  /*    def RemoveCorporateContacts(self, contactIDs):
   *        self.GetCorpRegistry().RemoveCorporateContacts(contactIDs)
   */
@@ -156,7 +146,7 @@ PyResult CorpRegistryService::Handle_RemoveCorporateContacts(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_EditContactsRelationshipID(PyCallArgs &call) {
+PyResult CorpRegistryService::EditContactsRelationshipID(PyCallArgs &call, PyList* contactIDs, PyInt* relationshipID) {
  /*    def EditContactsRelationshipID(self, contactIDs, relationshipID):
   *        self.GetCorpRegistry().EditContactsRelationshipID(contactIDs, relationshipID)
   */
@@ -166,14 +156,14 @@ PyResult CorpRegistryService::Handle_EditContactsRelationshipID(PyCallArgs &call
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_GetLabels(PyCallArgs &call) {
+PyResult CorpRegistryService::GetLabels(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryService::Handle_GetLabels()");
     call.Dump(CORP__CALL_DUMP);
 
     return m_db.GetLabels(call.client->GetCorporationID());
 }
 
-PyResult CorpRegistryService::Handle_CreateLabel(PyCallArgs &call) {
+PyResult CorpRegistryService::CreateLabel(PyCallArgs &call, PyWString* name, std::optional <PyInt*> color) {
  /*    def CreateLabel(self, name, color = 0):
   *        return self.GetCorpRegistry().CreateLabel(name, color)
   */
@@ -183,7 +173,7 @@ PyResult CorpRegistryService::Handle_CreateLabel(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_DeleteLabel(PyCallArgs &call) {
+PyResult CorpRegistryService::DeleteLabel(PyCallArgs &call, PyInt* labelID) {
  /*    def DeleteLabel(self, labelID):
   *        self.GetCorpRegistry().DeleteLabel(labelID)
   */
@@ -193,7 +183,7 @@ PyResult CorpRegistryService::Handle_DeleteLabel(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_EditLabel(PyCallArgs &call) {
+PyResult CorpRegistryService::EditLabel(PyCallArgs &call, PyInt* labelID, std::optional <PyWString*> name, std::optional <PyInt*> color) {
  /*    def EditLabel(self, labelID, name = None, color = None):
   *        self.GetCorpRegistry().EditLabel(labelID, name, color)
   */
@@ -203,7 +193,7 @@ PyResult CorpRegistryService::Handle_EditLabel(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_AssignLabels(PyCallArgs &call) {
+PyResult CorpRegistryService::AssignLabels(PyCallArgs &call, PyList* contactIDs, PyInt* labelMask) {
  /*    def AssignLabels(self, contactIDs, labelMask):
   *        self.GetCorpRegistry().AssignLabels(contactIDs, labelMask)
   */
@@ -213,7 +203,7 @@ PyResult CorpRegistryService::Handle_AssignLabels(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CorpRegistryService::Handle_RemoveLabels(PyCallArgs &call) {
+PyResult CorpRegistryService::RemoveLabels(PyCallArgs &call, PyList* contactIDs, PyInt* labelMask) {
 /*    def RemoveLabels(self, contactIDs, labelMask):
  *        self.GetCorpRegistry().RemoveLabels(contactIDs, labelMask)
  */
