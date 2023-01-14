@@ -35,7 +35,7 @@ public:
     bool CreateAlliance(Call_CreateAlliance& allyInfo, Client* pClient, uint32& allyID, uint32& corpID);
 
     PyRep* GetBulletins(uint32 allyID);
-    void AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, std::string& title, std::string& body);
+    void AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, const std::string& title, const std::string& body);
     static void EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body);
     static void DeleteBulletin(uint32 bulletinID);
 
@@ -45,7 +45,7 @@ public:
     PyRep *GetAlliance(uint32 allyID);
 
     PyRep* GetContacts(uint32 allyID);
-    void AddContact(uint32 ownerID, Call_CorporateContactData contactData);
+    void AddContact(uint32 ownerID, int32 contactID, int32 relationshipID);
     void UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID);
     void RemoveContact(uint32 contactID, uint32 ownerID);
 

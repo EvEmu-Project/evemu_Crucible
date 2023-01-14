@@ -13,7 +13,7 @@
 #include "character/Character.h"
 #include "alliance/AllianceDB.h"
 
-void AllianceDB::AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, std::string &title, std::string &body)
+void AllianceDB::AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, const std::string &title, const std::string &body)
 {
     DBerror err;
     sDatabase.RunQuery(err,
@@ -238,14 +238,14 @@ PyRep *AllianceDB::GetContacts(uint32 allyID)
     return obj;
 }
 
-void AllianceDB::AddContact(uint32 ownerID, Call_CorporateContactData contactData)
+void AllianceDB::AddContact(uint32 ownerID, int32 contactID, int32 relationshipID)
 {
     DBerror err;
     sDatabase.RunQuery(err,
                        "INSERT INTO alnContacts (ownerID, contactID, relationshipID, "
                        " inWatchlist, labelMask) VALUES "
                        " (%u, %u, %i, 0, 0) ",
-                       ownerID, contactData.contactID, contactData.relationshipID);
+                       ownerID, contactID, relationshipID);
 }
 
 void AllianceDB::UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID)

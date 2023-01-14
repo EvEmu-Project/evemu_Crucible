@@ -27,27 +27,22 @@
 #ifndef EVE_ALLIANCE_ALLIANCEREGISTRY_H_
 #define EVE_ALLIANCE_ALLIANCEREGISTRY_H_
 
-#include "PyService.h"
+#include "services/BoundService.h"
 #include "alliance/AllianceBound.h"
 
-class AllianceRegistry
- : public PyService
+class AllianceRegistry : public BindableService <AllianceRegistry>
 {
 public:
-    AllianceRegistry(PyServiceMgr *mgr);
-    ~AllianceRegistry();
+    AllianceRegistry(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetAlliance);
-    PyCallable_DECL_CALL(GetRankedAlliances);
-    PyCallable_DECL_CALL(GetEmploymentRecord);
-    PyCallable_DECL_CALL(GetAllianceMembers);
+    PyResult GetAlliance(PyCallArgs& call, PyInt* allianceID);
+    PyResult GetRankedAlliances(PyCallArgs& call, PyInt* maxLen);
+    PyResult GetEmploymentRecord(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetAllianceMembers(PyCallArgs& call, PyInt* allianceID);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject* CreateBoundObject(Client* pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters);
 
 private:
     AllianceDB m_db;

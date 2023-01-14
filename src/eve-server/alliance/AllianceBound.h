@@ -16,59 +16,53 @@
 
 #include "../eve-server.h"
 
-#include "PyBoundObject.h"
+#include "services/BoundService.h"
 #include "PyServiceCD.h"
 #include "alliance/AllianceDB.h"
 
-class AllianceBound
-: public PyBoundObject
+class AllianceBound : public EVEBoundObject <AllianceBound>
 {
 public:
-    PyCallable_Make_Dispatcher(AllianceBound)
-
-    AllianceBound(PyServiceMgr *mgr, AllianceDB& db, uint32 allyID);
-    virtual ~AllianceBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(CreateLabel);
-    PyCallable_DECL_CALL(GetLabels);
-    PyCallable_DECL_CALL(DeleteLabel);
-    PyCallable_DECL_CALL(EditLabel);
-    PyCallable_DECL_CALL(AssignLabels);
-    PyCallable_DECL_CALL(RemoveLabels);
-
-    PyCallable_DECL_CALL(AddBulletin);
-    PyCallable_DECL_CALL(GetBulletins);
-    PyCallable_DECL_CALL(DeleteBulletin);
-
-    PyCallable_DECL_CALL(GetMembers);
-    PyCallable_DECL_CALL(DeclareExecutorSupport);
-    PyCallable_DECL_CALL(DeleteMember);
-    PyCallable_DECL_CALL(GetApplications);
-    PyCallable_DECL_CALL(UpdateApplication);
-    PyCallable_DECL_CALL(AddToVoiceChat);
-    PyCallable_DECL_CALL(PayBill);
-    PyCallable_DECL_CALL(GetBillBalance);
-    PyCallable_DECL_CALL(GetBills);
-    PyCallable_DECL_CALL(GetBillsReceivable);
-    PyCallable_DECL_CALL(GetAllianceContacts);
-    PyCallable_DECL_CALL(AddAllianceContact);
-    PyCallable_DECL_CALL(EditAllianceContact);
-    PyCallable_DECL_CALL(RemoveAllianceContacts);
-    PyCallable_DECL_CALL(EditContactsRelationshipID);
-    PyCallable_DECL_CALL(GetAlliance);
-    PyCallable_DECL_CALL(UpdateAlliance);
+    AllianceBound(EVEServiceManager& mgr, PyRep* bindData, AllianceDB& db, uint32 allyID);
 
     static void FillOAApplicationChange(OnAllianceApplicationChanged& OAAC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New);
-    static void FillOAMemberChange(OnAllianceMemberChange &OAMC, const Alliance::ApplicationInfo &Old, const Alliance::ApplicationInfo &New);
+    static void FillOAMemberChange(OnAllianceMemberChange& OAMC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New);
 
 protected:
-    Dispatcher *const m_dispatch;
+    bool CanClientCall(Client* client) override;
+
+    PyResult CreateLabel(PyCallArgs& call, PyString* name, std::optional<PyInt*> color);
+    PyResult GetLabels(PyCallArgs& call);
+    PyResult DeleteLabel(PyCallArgs& call, PyInt* labelID);
+    PyResult EditLabel(PyCallArgs& call, PyInt* labelID, PyString* name, std::optional<PyInt*> color);
+    PyResult AssignLabels(PyCallArgs& call, PyList* contactIDs, PyInt* labelMask);
+    PyResult RemoveLabels(PyCallArgs& call, PyList* contactIDs, PyInt* labelMask);
+
+    PyResult AddBulletin(PyCallArgs& call, PyWString* title, PyWString* body);
+    PyResult GetBulletins(PyCallArgs& call);
+    PyResult DeleteBulletin(PyCallArgs& call, PyInt* id);
+
+    PyResult GetMembers(PyCallArgs& call);
+    PyResult DeclareExecutorSupport(PyCallArgs& call, PyInt* chosenExecutor);
+    PyResult DeleteMember(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetApplications(PyCallArgs& call);
+    PyResult UpdateApplication(PyCallArgs& call, PyInt* corporationID, PyWString* applicationText, PyInt* state);
+    PyResult AddToVoiceChat(PyCallArgs& call, PyString* channelName);
+    PyResult PayBill(PyCallArgs& call, PyInt* billID, PyInt* fromAccountKey);
+    PyResult GetBillBalance(PyCallArgs& call, PyInt* billID);
+    PyResult GetBills(PyCallArgs& call);
+    PyResult GetBillsReceivable(PyCallArgs& call);
+    PyResult GetAllianceContacts(PyCallArgs& call);
+    PyResult AddAllianceContact(PyCallArgs& call, PyInt* contactID, PyInt* relationshipID);
+    PyResult EditAllianceContact(PyCallArgs& call, PyInt* contactID, PyInt* relationshipID);
+    PyResult RemoveAllianceContacts(PyCallArgs& call, PyList* contactIDs);
+    PyResult EditContactsRelationshipID(PyCallArgs& call, PyList* contactIDs, PyInt* relationshipID);
+    PyResult GetAlliance(PyCallArgs& call);
+    PyResult UpdateAlliance(PyCallArgs& call, PyWString* description, PyWString* url);
 
     AllianceDB& m_db;
+    ObjCacheService* m_cache;
+    LSCService* m_lsc;
 
     uint32 m_allyID;
 };

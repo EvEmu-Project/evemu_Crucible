@@ -697,7 +697,6 @@ int main( int argc, char* argv[] )
     /* Please keep the pyServMgr list clean so it's easier to find things */
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
-    pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
@@ -787,6 +786,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new MarketProxyService(newSvcMgr));
     newSvcMgr.Register(new CharUnboundMgrService(newSvcMgr));
     newSvcMgr.Register(new InsuranceService(newSvcMgr));
+    newSvcMgr.Register(new AllianceRegistry(newSvcMgr));
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE
