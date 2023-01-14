@@ -45,6 +45,8 @@ public:
     virtual PyRep* GetBoundData() const = 0;
     /** @returns PyTuple* The OID of the bound object */
     virtual PyTuple* GetOID() const = 0;
+    /** @returns The string ID */
+    virtual const std::string& GetIDString() const = 0;
     /**
      * @brief Handles dispatching a call to this service
      */
@@ -197,6 +199,8 @@ public:
     PyRep* GetBoundData() const override { return this->mBoundData; }
     /** @returns PyTuple* The OID of the bound object */
     PyTuple* GetOID() const override { return this->mOID; }
+    /** @returns The string ID */
+    const std::string& GetIDString() const override { return this->mIdString; }
     /** @returns The service manager this service is registered in */
     EVEServiceManager& GetServiceManager() const { return this->mManager; }
 private:

@@ -41,18 +41,18 @@
 ContractProxy::ContractProxy () :
     Service("contractProxy")
 {
-    PyCallable_REG_CALL(ContractProxy, GetContract);
-    PyCallable_REG_CALL(ContractProxy, CreateContract);
-    PyCallable_REG_CALL(ContractProxy, DeleteContract);
-    PyCallable_REG_CALL(ContractProxy, AcceptContract);
-    PyCallable_REG_CALL(ContractProxy, CompleteContract);
-    PyCallable_REG_CALL(ContractProxy, GetLoginInfo);
-    PyCallable_REG_CALL(ContractProxy, SearchContracts);
-    PyCallable_REG_CALL(ContractProxy, NumOutstandingContracts);
-    PyCallable_REG_CALL(ContractProxy, CollectMyPageInfo);
-    PyCallable_REG_CALL(ContractProxy, GetItemsInStation);
-    PyCallable_REG_CALL(ContractProxy, GetContractListForOwner);
-    PyCallable_REG_CALL(ContractProxy, GetMyExpiredContractList);
+    this->Add("GetContract", &ContractProxy::GetContract);
+    this->Add("CreateContract", &ContractProxy::CreateContract);
+    this->Add("DeleteContract", &ContractProxy::DeleteContract);
+    this->Add("AcceptContract", &ContractProxy::AcceptContract);
+    this->Add("CompleteContract", &ContractProxy::CompleteContract);
+    this->Add("GetLoginInfo", &ContractProxy::GetLoginInfo);
+    this->Add("SearchContracts", &ContractProxy::SearchContracts);
+    this->Add("NumOutstandingContracts", &ContractProxy::NumOutstandingContracts);
+    this->Add("CollectMyPageInfo", &ContractProxy::CollectMyPageInfo);
+    this->Add("GetItemsInStation", &ContractProxy::GetItemsInStation);
+    this->Add("GetContractListForOwner", &ContractProxy::GetContractListForOwner);
+    this->Add("GetMyExpiredContractList", &ContractProxy::GetMyExpiredContractList);
     /*
      *
             ret = self.contractSvc.CompleteContract(contractID, const.conStatusFinished)
