@@ -698,9 +698,9 @@ int main( int argc, char* argv[] )
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
-    pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new PosMgr(newSvcMgr));
     newSvcMgr.Register(new FleetObject(newSvcMgr));
     newSvcMgr.Register(new CorpStationMgr(newSvcMgr));
     newSvcMgr.Register(new ContractProxy());
