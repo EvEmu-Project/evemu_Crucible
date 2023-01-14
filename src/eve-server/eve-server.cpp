@@ -697,7 +697,6 @@ int main( int argc, char* argv[] )
     /* Please keep the pyServMgr list clean so it's easier to find things */
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
-    pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
     pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
@@ -707,6 +706,7 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new BookmarkService());
     newSvcMgr.Register(new CharMgrService(newSvcMgr));
     newSvcMgr.Register(new SlashService(&command_dispatcher));
     newSvcMgr.Register(new LSCService(newSvcMgr, &command_dispatcher));

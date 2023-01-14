@@ -95,7 +95,7 @@ public:
     void GetAnomaliesBySystem(uint32 systemID, DBQueryResult& res);
     void GetSystemAnomalies(uint32 systemID, DBQueryResult& res);
     void GetSystemAnomalies(uint32 systemID, std::vector< CosmicSignature >& sigs);
-    static GPoint GetAnomalyPos(std::string& string);
+    static GPoint GetAnomalyPos(const std::string& string);
 
     /* wormhole manager */
     static void GetWHSystemClass(DBQueryResult& res);

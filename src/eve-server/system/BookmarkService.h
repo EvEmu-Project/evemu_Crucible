@@ -27,36 +27,32 @@
 #ifndef __BOOKMARK_SERVICE_H_INCL__
 #define __BOOKMARK_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
 #include "system/BookmarkDB.h"
 
-class BookmarkService
-: public PyService
+class BookmarkService : public Service <BookmarkService>
 {
 public:
-    BookmarkService(PyServiceMgr *mgr);
-    virtual ~BookmarkService();
+    BookmarkService();
 
     bool LookupBookmark(uint32 bookmarkID, uint32& itemID, uint16& typeID, uint32& locationID, double& x, double& y, double& z);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
     uint32 nextBookmarkID;
 
     BookmarkDB m_db;
 
-    PyCallable_DECL_CALL(GetBookmarks);
-    PyCallable_DECL_CALL(BookmarkLocation);
-    PyCallable_DECL_CALL(DeleteBookmarks);
-    PyCallable_DECL_CALL(CreateFolder);
-    PyCallable_DECL_CALL(UpdateFolder);
-    PyCallable_DECL_CALL(DeleteFolder);
-    PyCallable_DECL_CALL(MoveBookmarksToFolder);
-    PyCallable_DECL_CALL(CopyBookmarks);
-    PyCallable_DECL_CALL(AddBookmarkFromVoucher);
-    PyCallable_DECL_CALL(BookmarkScanResult);
+    PyResult GetBookmarks(PyCallArgs& call);
+    PyResult BookmarkLocation(PyCallArgs& call, PyInt* itemID, PyInt* ownerID, PyRep* memo, PyRep* comment, std::optional<PyInt*> folderID);
+    PyResult DeleteBookmarks(PyCallArgs& call, std::optional <PyObjectEx*> bookmarks);
+    PyResult CreateFolder(PyCallArgs& call, PyRep* name);
+    PyResult UpdateFolder(PyCallArgs& call, PyInt* folderID, PyRep* folderName);
+    PyResult DeleteFolder(PyCallArgs& call, PyInt* folderID);
+    PyResult MoveBookmarksToFolder(PyCallArgs& call, PyInt* folderID, std::optional <PyObjectEx*> bookmarkIDs);
+    PyResult CopyBookmarks(PyCallArgs& call, std::optional <PyObjectEx*> bookmarksToCopy, std::optional <PyInt*> folderID);
+    PyResult AddBookmarkFromVoucher(PyCallArgs& call, PyInt* itemID, PyInt* ownerID, std::optional <PyInt*> folderID);
+    PyResult BookmarkScanResult(PyCallArgs& call, PyInt* locationID, PyRep* memo, PyRep* comment, PyString* resultID, PyInt* ownerID, std::optional<PyInt*> folderID);
 };
 
 #endif
