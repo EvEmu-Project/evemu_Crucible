@@ -13,24 +13,19 @@
 #ifndef EVEMU_SRC_FLEET_OBJ_H_
 #define EVEMU_SRC_FLEET_OBJ_H_
 
-
+#include "services/BoundService.h"
 #include "fleet/FleetManager.h"
 
-class FleetObject
- : public PyService
+class FleetObject : public BindableService <FleetObject>
 {
 public:
-    FleetObject(PyServiceMgr *mgr);
-    ~FleetObject();
+    FleetObject(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(CreateFleet);
+    PyResult CreateFleet(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
 
 private:
 

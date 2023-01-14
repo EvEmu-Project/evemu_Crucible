@@ -14,60 +14,50 @@
 #define EVEMU_SRC_FLEET_BOUND_H_
 
 
-#include "PyBoundObject.h"
+#include "services/BoundService.h"
 #include "fleet/FleetManager.h"
 
-class FleetBound
- : public PyBoundObject
+class FleetBound : public EVEBoundObject <FleetBound>
 {
-  public:
+public:
+    FleetBound(EVEServiceManager& mgr, PyRep* bindData, uint32 fleetID);
 
-     FleetBound(PyServiceMgr* mgr, uint32 fleetID);
+protected:
+    bool CanClientCall(Client* client) override;
 
-     virtual ~FleetBound();
+    PyResult Init(PyCallArgs& call, std::optional <PyInt*> shipTypeID);
+    PyResult GetInitState(PyCallArgs& call);
+    PyResult GetFleetID(PyCallArgs& call);
+    PyResult Invite(PyCallArgs& call, PyInt* characterID, std::optional<PyInt*> wingID, std::optional <PyInt*> squadID, PyLong* role);
+    PyResult AcceptInvite(PyCallArgs& call, std::optional <PyInt*> shipTypeID);
+    PyResult RejectInvite(PyCallArgs& call);
+    PyResult ChangeWingName(PyCallArgs& call, PyInt* wingID, PyRep* name);
+    PyResult ChangeSquadName(PyCallArgs& call, PyInt* squadID, PyRep* name);
+    PyResult SetOptions(PyCallArgs& call, PyObject* options);
+    PyResult GetJoinRequests(PyCallArgs& call);
+    PyResult RejectJoinRequest(PyCallArgs& call, PyInt* characterID);
+    PyResult AddToVoiceChat(PyCallArgs& call, PyRep* channelName);
+    PyResult SetVoiceMuteStatus(PyCallArgs& call, PyRep* status, PyRep* channel);
+    PyResult ExcludeFromVoiceMute(PyCallArgs& call, PyInt* characterID, PyRep* channel);
+    PyResult GetFleetComposition(PyCallArgs& call);
+    PyResult GetWings(PyCallArgs& call);
+    PyResult SendBroadcast(PyCallArgs& call, PyRep* message, PyInt* group, PyInt* itemID);
+    PyResult UpdateMemberInfo(PyCallArgs& call, std::optional <PyInt*> shipTypeID);
+    PyResult SetMotdEx(PyCallArgs& call, PyRep* motd);
+    PyResult GetMotd(PyCallArgs& call);
+    PyResult LeaveFleet(PyCallArgs& call);
+    PyResult MakeLeader(PyCallArgs& call, PyInt* characterID);
+    PyResult SetBooster(PyCallArgs& call, PyInt* characterID, std::optional <PyInt*> roleBooster);
+    PyResult MoveMember(PyCallArgs& call, PyInt* characterID, std::optional <PyInt*> wingID, std::optional <PyInt*> squadID, std::optional <PyInt*> role, std::optional <PyInt*> booster);
+    PyResult KickMember(PyCallArgs& call, PyInt* characterID);
+    PyResult CreateWing(PyCallArgs& call);
+    PyResult CreateSquad(PyCallArgs& call, PyInt* wingID);
+    PyResult DeleteWing(PyCallArgs& call, PyInt* wingID);
+    PyResult DeleteSquad(PyCallArgs& call, PyInt* squadID);
+    PyResult Reconnect(PyCallArgs& call);
 
-     virtual void Release() {
-         //I hate this statement
-         delete this;
-     }
-
-     PyCallable_DECL_CALL(Init);
-     PyCallable_DECL_CALL(GetInitState);
-     PyCallable_DECL_CALL(GetFleetID);
-     PyCallable_DECL_CALL(Invite);
-     PyCallable_DECL_CALL(AcceptInvite);
-     PyCallable_DECL_CALL(RejectInvite);
-     PyCallable_DECL_CALL(ChangeWingName);
-     PyCallable_DECL_CALL(ChangeSquadName);
-     PyCallable_DECL_CALL(SetOptions);
-     PyCallable_DECL_CALL(GetJoinRequests);
-     PyCallable_DECL_CALL(RejectJoinRequest);
-     PyCallable_DECL_CALL(AddToVoiceChat);
-     PyCallable_DECL_CALL(SetVoiceMuteStatus);
-     PyCallable_DECL_CALL(ExcludeFromVoiceMute);
-     PyCallable_DECL_CALL(GetFleetComposition);
-     PyCallable_DECL_CALL(GetWings);
-     PyCallable_DECL_CALL(SendBroadcast);
-     PyCallable_DECL_CALL(UpdateMemberInfo);
-     PyCallable_DECL_CALL(SetMotdEx);
-     PyCallable_DECL_CALL(GetMotd);
-     PyCallable_DECL_CALL(LeaveFleet);
-     PyCallable_DECL_CALL(MakeLeader);
-     PyCallable_DECL_CALL(SetBooster);
-     PyCallable_DECL_CALL(MoveMember);
-     PyCallable_DECL_CALL(KickMember);
-     PyCallable_DECL_CALL(CreateWing);
-     PyCallable_DECL_CALL(CreateSquad);
-     PyCallable_DECL_CALL(DeleteWing);
-     PyCallable_DECL_CALL(DeleteSquad);
-     PyCallable_DECL_CALL(Reconnect);
-
-  protected:
-     class Dispatcher;
-     Dispatcher *const m_dispatch;
-     Client* m_client;
-
-  private:
+private:
+    Client* m_client;
     uint32 m_fleetID;
 
 };
