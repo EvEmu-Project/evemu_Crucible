@@ -707,12 +707,12 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
     pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
-    pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
     pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new JumpCloneService(newSvcMgr));
     newSvcMgr.Register(new MailMgrService());
     newSvcMgr.Register(new MailingListMgrService());
     newSvcMgr.Register(new CharFittingMgr());
