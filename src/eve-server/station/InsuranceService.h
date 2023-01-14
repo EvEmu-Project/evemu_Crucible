@@ -28,26 +28,38 @@
 #define __INSURANCE_SERVICE_H_INCL__
 
 #include "ship/ShipDB.h"
-#include "PyService.h"
+#include "services/BoundService.h"
 
-class InsuranceService
-: public PyService {
+class InsuranceService : public BindableService <InsuranceService> {
 public:
-    InsuranceService(PyServiceMgr *mgr);
-    virtual ~InsuranceService();
+    InsuranceService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     ShipDB m_db;
 
-    PyCallable_DECL_CALL(GetContractForShip);
-    PyCallable_DECL_CALL(GetInsurancePrice);
+    PyResult GetContractForShip(PyCallArgs& call, PyInt* shipID);
+    PyResult GetInsurancePrice(PyCallArgs& call, PyInt* typeID);
 
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 };
 
+class InsuranceBound : public EVEBoundObject <InsuranceBound>
+{
+public:
+    InsuranceBound(EVEServiceManager& mgr, PyRep* bindData, ShipDB* db);
+
+protected:
+    bool CanClientCall(Client* client) override;
+
+    PyResult InsureShip(PyCallArgs& call, PyInt* shipID, PyFloat* amount, std::optional<PyInt*> isCorporation);
+    PyResult UnInsureShip(PyCallArgs& call, PyInt* shipID);
+    PyResult GetContracts(PyCallArgs& call, std::optional<PyRep*> isCorporation);
+    PyResult GetInsurancePrice(PyCallArgs& call, PyInt* typeID);
+
+protected:
+    ShipDB* m_db;
+    LSCService* m_lsc;
+};
 
 #endif
 

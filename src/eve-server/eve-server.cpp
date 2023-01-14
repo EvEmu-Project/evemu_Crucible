@@ -706,10 +706,11 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
-    pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new SlashService(&command_dispatcher));
+    newSvcMgr.Register(new LSCService(newSvcMgr, &command_dispatcher));
     newSvcMgr.Register(new JumpCloneService(newSvcMgr));
     newSvcMgr.Register(new MailMgrService());
     newSvcMgr.Register(new MailingListMgrService());
@@ -775,7 +776,6 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new UserService());
     newSvcMgr.Register(new MovementService(&newSvcMgr));
     newSvcMgr.Register(new InfoGatheringMgr());
-    newSvcMgr.Register(new SlashService(&command_dispatcher));
     newSvcMgr.Register(new PetitionerService());
     newSvcMgr.Register(new ClientStatLogger());
     newSvcMgr.Register(new AlertService());
@@ -786,7 +786,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new CertificateMgrService(newSvcMgr));
     newSvcMgr.Register(new MarketProxyService(newSvcMgr));
     newSvcMgr.Register(new CharUnboundMgrService(newSvcMgr));
-    newSvcMgr.Register(new LSCService(newSvcMgr, &command_dispatcher));
+    newSvcMgr.Register(new InsuranceService(newSvcMgr));
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE
