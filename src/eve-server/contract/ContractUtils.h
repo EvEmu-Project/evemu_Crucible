@@ -31,7 +31,7 @@ class ContractUtils {
 public:
     static PyResult GetContractEntry(int contractId);
     static PyList* GetContractEntries(std::vector<int> contractIDList);
-    static PyResult GetContractListForOwner(PyCallArgs& call);
+    static PyResult GetContractListForOwner(PyInt* ownerID, PyInt* contractStatus, std::optional <PyInt*> contractType, std::optional <PyBool*> issuedToBy);
     static void GetContractItemIDs(int contractId, std::vector<int>* into);
     static void GetRequestedItems(int contractId, std::map<int, int>* into);
     static void GetContractItemIDsAndQuantities(int contractId, std::map<int, int>* into);

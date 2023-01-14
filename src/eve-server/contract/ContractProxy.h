@@ -27,31 +27,26 @@
 #ifndef __CONTRACT_PROXY_H__INCL__
 #define __CONTRACT_PROXY_H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class ContractProxy
-: public PyService
+class ContractProxy : public Service <ContractProxy>
 {
 public:
-    ContractProxy(PyServiceMgr *mgr);
-    ~ContractProxy();
+    ContractProxy();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(CreateContract);
-    PyCallable_DECL_CALL(GetContract);
-    PyCallable_DECL_CALL(AcceptContract);
-    PyCallable_DECL_CALL(CompleteContract);
-    PyCallable_DECL_CALL(DeleteContract);
-    PyCallable_DECL_CALL(NumOutstandingContracts);
-    PyCallable_DECL_CALL(GetItemsInStation);
-    PyCallable_DECL_CALL(GetLoginInfo);
-    PyCallable_DECL_CALL(SearchContracts);
-    PyCallable_DECL_CALL(CollectMyPageInfo);
-    PyCallable_DECL_CALL(GetMyExpiredContractList);
-    PyCallable_DECL_CALL(GetContractListForOwner);
+    PyResult CreateContract(PyCallArgs& call, PyInt* contractType, PyInt* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyInt*> endStationID, PyFloat* price, PyFloat* reward, PyFloat* collateral, PyWString* title, PyWString* description);
+    PyResult GetContract(PyCallArgs& call, PyInt* contractID);
+    PyResult AcceptContract(PyCallArgs& call, PyInt* contractID);
+    PyResult CompleteContract(PyCallArgs& call, PyInt* contractID, PyInt* completionStatus);
+    PyResult DeleteContract(PyCallArgs& call, PyInt* contractID);
+    PyResult NumOutstandingContracts(PyCallArgs& call);
+    PyResult GetItemsInStation(PyCallArgs& call, PyInt* stationID);
+    PyResult GetLoginInfo(PyCallArgs& call);
+    PyResult SearchContracts(PyCallArgs& call);
+    PyResult CollectMyPageInfo(PyCallArgs& call);
+    PyResult GetMyExpiredContractList(PyCallArgs& call);
+    PyResult GetContractListForOwner(PyCallArgs& call, PyInt* ownerID, PyInt* contractStatus, std::optional <PyInt*> contractType, std::optional <PyBool*> issuedToBy);
 };
 
 #endif /* !__CONTRACT_PROXY_H__INCL__ */

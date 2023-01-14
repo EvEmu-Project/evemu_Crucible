@@ -206,28 +206,7 @@ PyList* ContractUtils::GetContractEntries(std::vector<int> contractIDList) {
  * @param call - Call instance
  * @return - Response obj
  */
-PyResult ContractUtils::GetContractListForOwner(PyCallArgs& call) {
-    /**
-     * This call's tuple have 1 value, that might be either bool or None, depending on selected filter.
-     * Since our XMLPKTGen don't have any adequate way to process that 3-way value, decoding packets is not an option.
-     * So we're manually validating the value types here.
-     */
-    PyRep* ownerID = call.tuple->GetItem(0);
-    PyRep* contractStatus = call.tuple->GetItem(1);
-    PyRep* contractType = call.tuple->GetItem(2);
-    PyRep* issuedToBy = call.tuple->GetItem(3);
-
-    // OwnerID and contract status values are always present and must have a correct type.
-    // First we validate if tuple had them in a first place
-    if (ownerID && contractStatus) {
-        // If they were - next we validate that their values are acceptable
-        if (!ownerID->IsInt() && !contractStatus->IsInt()) {
-            return nullptr;
-        }
-    } else {
-        return nullptr;
-    }
-
+PyResult ContractUtils::GetContractListForOwner(PyInt* ownerID, PyInt* contractStatus, std::optional <PyInt*> contractType, std::optional <PyBool*> issuedToBy) {
     std::string contracts_query = getContractQueryBase;
     std::string items_query = "SELECT contractId, itemTypeID, quantity, inCrate "
                               "FROM ctrItems "
@@ -235,25 +214,20 @@ PyResult ContractUtils::GetContractListForOwner(PyCallArgs& call) {
     std::vector<int> contractIDs;
 
     // First, we finish contracts query by adding filters
-    if (issuedToBy->IsNone()) {
+    if (issuedToBy.has_value() == false) {
         contracts_query.append("WHERE (issuerID = {OWNER_ID} OR assigneeID = {OWNER_ID} OR acceptorID = {OWNER_ID}) ");
     } else {
-        bool issued = issuedToBy->AsBool()->value();
+        bool issued = issuedToBy.value()->AsBool()->value();
         if (issued) {
             contracts_query.append("WHERE (assigneeID = {OWNER_ID} OR acceptorID = {OWNER_ID}) ");
         } else {
             contracts_query.append("WHERE issuerID = {OWNER_ID} ");
         }
     }
-    if (contractType->IsNone()) {
+    if (contractType.has_value() == false) {
         contracts_query.append("AND contractType IN (1,2,3) ");
     } else {
-        if (contractType->IsInt()) {
-            contracts_query.append("AND contractType = " + std::to_string(contractType->AsInt()->value()) + " ");
-        } else {
-            // Unacceptable case - we expect Int only
-            return nullptr;
-        }
+        contracts_query.append("AND contractType = " + std::to_string(contractType.value()->value()) + " ");
     }
     contracts_query.append("AND status = " + std::to_string(contractStatus->AsInt()->value()));
     boost::replace_all(contracts_query, "{OWNER_ID}", std::to_string(ownerID->AsInt()->value()));

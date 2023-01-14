@@ -699,12 +699,12 @@ int main( int argc, char* argv[] )
     // move this into a service Init() function?   will need more work to do...
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
     pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
-    pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new ContractProxy());
     newSvcMgr.Register(new CorpBookmarkMgr());
     newSvcMgr.Register(new BookmarkService());
     newSvcMgr.Register(new CharMgrService(newSvcMgr));
