@@ -707,8 +707,6 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
     pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
-    pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
-    pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
@@ -788,10 +786,12 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new CertificateMgrService(newSvcMgr));
     newSvcMgr.Register(new MarketProxyService(newSvcMgr));
     newSvcMgr.Register(new CharUnboundMgrService(newSvcMgr));
+    newSvcMgr.Register(new LSCService(newSvcMgr, &command_dispatcher));
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE
     pyServMgr.cache_service = newSvcMgr.Lookup <ObjCacheService> ("objectCaching");
+    pyServMgr.lsc_service = newSvcMgr.Lookup <LSCService>("LSC");
     pyServMgr.Initalize(startTime);
     std::printf("\n");     // spacer
 
