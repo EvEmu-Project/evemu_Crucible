@@ -699,15 +699,12 @@ int main( int argc, char* argv[] )
     // move this into a service Init() function?   will need more work to do...
     pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
     pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
-    pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
-    pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
     pyServMgr.RegisterService("charMgr", new CharMgrService(&pyServMgr));
     pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
     pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
     pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
     pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
-    pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
     pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
     pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
     pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
@@ -718,6 +715,8 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new CharFittingMgr());
+    newSvcMgr.Register(new FleetManager());
     newSvcMgr.Register(new FactoryService());
     newSvcMgr.Register(new PaperDollService());
     newSvcMgr.Register(new CorpFittingMgr());
@@ -788,6 +787,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new FactionWarMgrService(newSvcMgr));
     newSvcMgr.Register(new CertificateMgrService(newSvcMgr));
     newSvcMgr.Register(new MarketProxyService(newSvcMgr));
+    newSvcMgr.Register(new CharUnboundMgrService(newSvcMgr));
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE

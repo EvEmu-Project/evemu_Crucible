@@ -33,27 +33,18 @@
 #include "PyServiceCD.h"
 #include "character/CharFittingMgr.h"
 
-PyCallable_Make_InnerDispatcher(CharFittingMgr)
-
-CharFittingMgr::CharFittingMgr(PyServiceMgr *mgr)
-: PyService(mgr, "charFittingMgr"),
-m_dispatch(new Dispatcher(this))
+CharFittingMgr::CharFittingMgr() :
+    Service("charFittingMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CharFittingMgr, GetFittings);
-    PyCallable_REG_CALL(CharFittingMgr, SaveFitting);
-    PyCallable_REG_CALL(CharFittingMgr, SaveManyFittings);
-    PyCallable_REG_CALL(CharFittingMgr, DeleteFitting);
-    PyCallable_REG_CALL(CharFittingMgr, UpdateNameAndDescription);
-}
-
-CharFittingMgr::~CharFittingMgr() {
-    delete m_dispatch;
+    this->Add("GetFittings", &CharFittingMgr::GetFittings);
+    this->Add("SaveFitting", &CharFittingMgr::SaveFitting);
+    this->Add("SaveManyFittings", &CharFittingMgr::SaveManyFittings);
+    this->Add("DeleteFitting", &CharFittingMgr::DeleteFitting);
+    this->Add("UpdateNameAndDescription", &CharFittingMgr::UpdateNameAndDescription);
 }
 
 //11:37:43 L CharFittingMgr::Handle_GetFittings(): size= 1 from 'allan'
-PyResult CharFittingMgr::Handle_GetFittings(PyCallArgs &call) {
+PyResult CharFittingMgr::GetFittings(PyCallArgs &call, PyInt* ownerID) {
     //self.fittings[ownerID] = self.GetFittingMgr(ownerID).GetFittings(ownerID)
     // client/script/environment/fittingsvc.py(112) PersistFitting
 
@@ -63,7 +54,7 @@ PyResult CharFittingMgr::Handle_GetFittings(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult CharFittingMgr::Handle_SaveFitting(PyCallArgs &call)
+PyResult CharFittingMgr::SaveFitting(PyCallArgs &call, PyInt* ownerID, PyObject* fitting)
 {
     //    fitting.ownerID = ownerID
     //    fitting.fittingID = self.GetFittingMgr(ownerID).SaveFitting(ownerID, fitting)
@@ -73,7 +64,7 @@ PyResult CharFittingMgr::Handle_SaveFitting(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CharFittingMgr::Handle_SaveManyFittings(PyCallArgs &call)
+PyResult CharFittingMgr::SaveManyFittings(PyCallArgs &call, PyInt* ownerID, PyDict* fittingsToSave)
 {
     /*
         newFittingIDs = self.GetFittingMgr(ownerID).SaveManyFittings(ownerID, fittingsToSave)
@@ -87,7 +78,7 @@ PyResult CharFittingMgr::Handle_SaveManyFittings(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CharFittingMgr::Handle_DeleteFitting(PyCallArgs &call)
+PyResult CharFittingMgr::DeleteFitting(PyCallArgs &call, PyInt* ownerID, PyInt* fittingID)
 {
     // self.GetFittingMgr(ownerID).DeleteFitting(ownerID, fittingID)
     _log(PLAYER__CALL, "CharFittingMgr::Handle_DeleteFitting()");
@@ -96,7 +87,7 @@ PyResult CharFittingMgr::Handle_DeleteFitting(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CharFittingMgr::Handle_UpdateNameAndDescription(PyCallArgs &call)
+PyResult CharFittingMgr::UpdateNameAndDescription(PyCallArgs &call, PyInt* fittingID, PyInt* ownerID, PyWString* name, PyWString* description)
 {
     // self.GetFittingMgr(ownerID).UpdateNameAndDescription(fittingID, ownerID, name, description)
     _log(PLAYER__CALL, "CharFittingMgr::Handle_UpdateNameAndDescription()");
