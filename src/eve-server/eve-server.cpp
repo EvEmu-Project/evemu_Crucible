@@ -710,11 +710,11 @@ int main( int argc, char* argv[] )
     pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
     pyServMgr.lsc_service = new LSCService(&pyServMgr, &newSvcMgr, &command_dispatcher);
     pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
-    pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
-    pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
+    newSvcMgr.Register(new MailMgrService());
+    newSvcMgr.Register(new MailingListMgrService());
     newSvcMgr.Register(new CharFittingMgr());
     newSvcMgr.Register(new FleetManager());
     newSvcMgr.Register(new FactoryService());

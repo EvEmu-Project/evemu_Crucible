@@ -26,388 +26,367 @@
 #include "eve-server.h"
 
 #include "PyServiceCD.h"
-#include "mail/MailDB.h"
 #include "mail/MailMgrService.h"
 #include "EVE_Mail.h"
 
-PyCallable_Make_InnerDispatcher(MailMgrService)
-
-MailMgrService::MailMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "mailMgr"),
-    m_dispatch(new Dispatcher(this)),
-    m_db(new MailDB())
+MailMgrService::MailMgrService() :
+    Service("mailMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-    PyCallable_REG_CALL(MailMgrService, SendMail);
-    PyCallable_REG_CALL(MailMgrService, PrimeOwners);
-    PyCallable_REG_CALL(MailMgrService, SyncMail);
-    PyCallable_REG_CALL(MailMgrService, GetMailHeaders);
-    PyCallable_REG_CALL(MailMgrService, MoveToTrash);
-    PyCallable_REG_CALL(MailMgrService, MoveFromTrash);
-    PyCallable_REG_CALL(MailMgrService, MarkAsUnread);
-    PyCallable_REG_CALL(MailMgrService, MarkAsRead);
-    PyCallable_REG_CALL(MailMgrService, MoveAllToTrash);
-    PyCallable_REG_CALL(MailMgrService, MoveToTrashByLabel);
-    PyCallable_REG_CALL(MailMgrService, MoveToTrashByList);
-    PyCallable_REG_CALL(MailMgrService, MarkAllAsUnread);
-    PyCallable_REG_CALL(MailMgrService, MarkAsUnreadByLabel);
-    PyCallable_REG_CALL(MailMgrService, MarkAsUnreadByList);
-    PyCallable_REG_CALL(MailMgrService, MarkAllAsRead);
-    PyCallable_REG_CALL(MailMgrService, MarkAsReadByLabel);
-    PyCallable_REG_CALL(MailMgrService, MarkAsReadByList);
-    PyCallable_REG_CALL(MailMgrService, MoveAllFromTrash);
-    PyCallable_REG_CALL(MailMgrService, EmptyTrash);
-    PyCallable_REG_CALL(MailMgrService, DeleteMail);
-    PyCallable_REG_CALL(MailMgrService, GetBody);
-    PyCallable_REG_CALL(MailMgrService, AssignLabels);
-    PyCallable_REG_CALL(MailMgrService, RemoveLabels);
+    this->Add("SendMail", &MailMgrService::SendMail);
+    this->Add("PrimeOwners", &MailMgrService::PrimeOwners);
+    this->Add("SyncMail", &MailMgrService::SyncMail);
+    this->Add("GetMailHeaders", &MailMgrService::GetMailHeaders);
+    this->Add("MoveToTrash", &MailMgrService::MoveToTrash);
+    this->Add("MoveFromTrash", &MailMgrService::MoveFromTrash);
+    this->Add("MarkAsUnread", &MailMgrService::MarkAsUnread);
+    this->Add("MarkAsRead", &MailMgrService::MarkAsRead);
+    this->Add("MoveAllToTrash", &MailMgrService::MoveAllToTrash);
+    this->Add("MoveToTrashByLabel", &MailMgrService::MoveToTrashByLabel);
+    this->Add("MoveToTrashByList", &MailMgrService::MoveToTrashByList);
+    this->Add("MarkAllAsUnread", &MailMgrService::MarkAllAsUnread);
+    this->Add("MarkAsUnreadByLabel", &MailMgrService::MarkAsUnreadByLabel);
+    this->Add("MarkAsUnreadByList", &MailMgrService::MarkAsUnreadByList);
+    this->Add("MarkAllAsRead", &MailMgrService::MarkAllAsRead);
+    this->Add("MarkAsReadByLabel", &MailMgrService::MarkAsReadByLabel);
+    this->Add("MarkAsReadByList", &MailMgrService::MarkAsReadByList);
+    this->Add("MoveAllFromTrash", &MailMgrService::MoveAllFromTrash);
+    this->Add("EmptyTrash", &MailMgrService::EmptyTrash);
+    this->Add("DeleteMail", &MailMgrService::DeleteMail);
+    this->Add("GetBody", &MailMgrService::GetBody);
+    this->Add("AssignLabels", &MailMgrService::AssignLabels);
+    this->Add("RemoveLabels", &MailMgrService::RemoveLabels);
 
     // implemented
-    PyCallable_REG_CALL(MailMgrService, GetLabels);
-    PyCallable_REG_CALL(MailMgrService, EditLabel);
-    PyCallable_REG_CALL(MailMgrService, CreateLabel);
-    PyCallable_REG_CALL(MailMgrService, DeleteLabel);
+    this->Add("GetLabels", &MailMgrService::GetLabels);
+    this->Add("EditLabel", &MailMgrService::EditLabel);
+    this->Add("CreateLabel", &MailMgrService::CreateLabel);
+    this->Add("DeleteLabel", &MailMgrService::DeleteLabel);
 }
 
-MailMgrService::~MailMgrService() {
-    delete m_dispatch;
-    delete m_db;
-}
-
-PyResult MailMgrService::Handle_SendMail(PyCallArgs &call)
+PyResult MailMgrService::SendMail(PyCallArgs &call, PyList* toCharacterIDs, std::optional<PyInt*> listID, std::optional<PyInt*> toCorpOrAllianceID, PyWString* title, PyWString* body, PyInt* isReplyTo, PyInt* isForwardedFrom)
 {
-    Call_SendMail args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
+    std::vector<int32> characters;
 
-    int sender = call.client->GetCharacterID();
-    return new PyInt(m_db->SendMail(sender, args.toCharacterIDs, args.toListID, args.toCorpOrAllianceID, args.title, args.body, args.isReplyTo, args.isForwardedFrom));
-}
-
-PyResult MailMgrService::Handle_PrimeOwners(PyCallArgs &call)
-{
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::PrimeOwners(args.ints);
-}
-
-PyResult MailMgrService::Handle_SyncMail(PyCallArgs &call)
-{
-    int firstId = 0, secondId = 0;
-
-    if (call.tuple->size() == 2 && !call.tuple->GetItem(0)->IsNone() && !call.tuple->GetItem(1)->IsNone())
-    {
-        Call_TwoIntegerArgs args;
-        if (!args.Decode(&call.tuple)) {
-            codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+    PyList::const_iterator list_2_cur = toCharacterIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != toCharacterIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SendMail failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
             return nullptr;
         }
 
+        const PyInt* t = (*list_2_cur)->AsInt();
+        characters.push_back(t->value());
+    }
+
+    int sender = call.client->GetCharacterID();
+    return new PyInt(
+        m_db.SendMail(
+            sender, characters,
+            listID.has_value() ? listID.value()->value() : -1,
+            toCorpOrAllianceID.has_value() ? toCorpOrAllianceID.value()->value() : -1,
+            title->content(), body->content(),
+            isReplyTo->value(),
+            isForwardedFrom->value()
+        )
+    );
+}
+
+PyResult MailMgrService::PrimeOwners(PyCallArgs &call, PyList* ownerIDs)
+{
+    std::vector<int32> owners;
+
+    PyList::const_iterator list_2_cur = ownerIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != ownerIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SendMail failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        owners.push_back(t->value());
+    }
+    return ServiceDB::PrimeOwners(owners);
+}
+
+PyResult MailMgrService::SyncMail(PyCallArgs &call, std::optional<PyInt*> first, std::optional<PyInt*> second)
+{
+    int firstId = 0, secondId = 0;
+
+    if (first.has_value() && second.has_value())
+    {
         // referring to a mail id range
-        int firstId = args.arg1, secondId = args.arg2;
+        int firstId = first.value()->value(), secondId = second.value()->value();
     }
 
     PyDict* dummy = new PyDict;
     dummy->SetItemString("oldMail", PyStatic.NewNone());
-    dummy->SetItemString("newMail", m_db->GetNewMail(call.client->GetCharacterID()));
-    dummy->SetItemString("mailStatus", m_db->GetMailStatus(call.client->GetCharacterID()));
+    dummy->SetItemString("newMail", m_db.GetNewMail(call.client->GetCharacterID()));
+    dummy->SetItemString("mailStatus", m_db.GetMailStatus(call.client->GetCharacterID()));
     return new PyObject("util.KeyVal", dummy);
 }
 
-PyResult MailMgrService::Handle_AssignLabels(PyCallArgs &call)
+PyResult MailMgrService::AssignLabels(PyCallArgs &call, PyList* messageIDs, PyInt* labelID)
 {
-    Call_AssignLabels args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
     }
 
-    int labelID = args.labelId;
-    m_db->ApplyLabels(args.messageIds, labelID);
+    m_db.ApplyLabels(messageIds, labelID->value());
 
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_CreateLabel(PyCallArgs &call)
+PyResult MailMgrService::CreateLabel(PyCallArgs &call, PyWString* name, std::optional<PyInt*> color)
 {
-    Call_CreateLabel args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     uint32 ret;
-    if (m_db->CreateLabel(call.client->GetCharacterID(), args, ret))
+    if (m_db.CreateLabel(call.client->GetCharacterID(), name->content(), color.has_value() ? color.value()->value() : -1, ret))
         return new PyInt(ret);
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_DeleteLabel(PyCallArgs &call)
+PyResult MailMgrService::DeleteLabel(PyCallArgs &call, PyInt* labelID)
 {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db->DeleteLabel(call.client->GetCharacterID(), args.arg /*labelID*/);
+    m_db.DeleteLabel(call.client->GetCharacterID(), labelID->value());
 
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_DeleteMail(PyCallArgs &call)
+PyResult MailMgrService::DeleteMail(PyCallArgs &call, PyList* messageIDs)
 {
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
     }
 
-    std::vector<int32> messageIDs = args.ints;
-
-    for (int i = 0; i < messageIDs.size(); i++) {
-        int32 messageID = messageIDs[i];
-        m_db->DeleteMail(messageID);
+    for (int i = 0; i < messageIds.size(); i++) {
+        int32 messageID = messageIds[i];
+        m_db.DeleteMail(messageID);
     }
 
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_EditLabel(PyCallArgs &call)
+PyResult MailMgrService::EditLabel(PyCallArgs &call, PyInt* labelID, PyWString* name, std::optional<PyInt*> color)
 {
-    Call_EditLabel args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db->EditLabel(call.client->GetCharacterID(), args);
+    m_db.EditLabel(call.client->GetCharacterID(), labelID->value(), name->content(), color.has_value() ? color.value()->value() : -1);
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_EmptyTrash(PyCallArgs &call)
+PyResult MailMgrService::EmptyTrash(PyCallArgs &call)
 {
     // @TODO: TEST
-    m_db->EmptyTrash(call.client->GetCharacterID());
+    m_db.EmptyTrash(call.client->GetCharacterID());
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_GetBody(PyCallArgs &call)
+PyResult MailMgrService::GetBody(PyCallArgs &call, PyInt* messageID, PyInt* isUnread)
 {
-    Call_MailGetBody args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    if (!args.isUnread) {
-        m_db->SetMailUnread(args.messageId);
+    if (!isUnread->value()) {
+        m_db.SetMailUnread(messageID->value());
     } else {
-        m_db->SetMailRead(args.messageId);
+        m_db.SetMailRead(messageID->value());
     }
 
-    return m_db->GetMailBody(args.messageId);
+    return m_db.GetMailBody(messageID->value());
 }
 
-PyResult MailMgrService::Handle_GetLabels(PyCallArgs &call)
+PyResult MailMgrService::GetLabels(PyCallArgs &call)
 {
-    return m_db->GetLabels(call.client->GetCharacterID());
+    return m_db.GetLabels(call.client->GetCharacterID());
 }
 
-PyResult MailMgrService::Handle_GetMailHeaders(PyCallArgs &call)
+PyResult MailMgrService::GetMailHeaders(PyCallArgs &call, PyList* messageIDs)
 {
     // @TODO: Stub
     // contains message ids
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAllAsRead(PyCallArgs &call)
+{
+    m_db.MarkAllAsRead(call.client->GetCharacterID());
+
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAllAsUnread(PyCallArgs &call)
+{
+    m_db.MarkAllAsUnread(call.client->GetCharacterID());
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAsRead(PyCallArgs &call, PyList* messageIDs)
+{
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
+    }
+
+    m_db.SetMailsRead(messageIds);
+
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAsReadByLabel(PyCallArgs &call, PyInt* labelID)
+{
+    m_db.MarkAllAsReadByLabel(call.client->GetCharacterID(), labelID->value());
+
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAsReadByList(PyCallArgs &call, PyInt* listID)
+{
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAsUnread(PyCallArgs &call, PyList* messageIDs)
+{
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
+    }
+
+    m_db.SetMailsUnread(messageIds);
+
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAsUnreadByLabel(PyCallArgs &call, PyInt* labelID)
+{
+    m_db.MarkAllAsUnreadByLabel(call.client->GetCharacterID(), labelID->value());
+
+    return nullptr;
+}
+
+PyResult MailMgrService::MarkAsUnreadByList(PyCallArgs &call, PyList* messageIDs)
+{
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
     }
 
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_MarkAllAsRead(PyCallArgs &call)
+PyResult MailMgrService::MoveAllFromTrash(PyCallArgs &call)
 {
-    m_db->MarkAllAsRead(call.client->GetCharacterID());
-
+    m_db.MoveAllFromTrash(call.client->GetCharacterID());
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_MarkAllAsUnread(PyCallArgs &call)
+PyResult MailMgrService::MoveAllToTrash(PyCallArgs &call)
 {
-    m_db->MarkAllAsUnread(call.client->GetCharacterID());
+    m_db.MoveAllToTrash(call.client->GetCharacterID());
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_MarkAsRead(PyCallArgs &call)
+PyResult MailMgrService::MoveFromTrash(PyCallArgs &call, PyList* messageIDs)
 {
-    // message id list
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
     }
 
-    m_db->SetMailsRead(args.ints);
+    m_db.RemoveStatusMasks(messageIds, mailStatusMaskTrashed);
 
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_MarkAsReadByLabel(PyCallArgs &call)
+PyResult MailMgrService::MoveToTrash(PyCallArgs &call, PyList* messageIDs)
 {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
     }
 
-    int labelId = args.arg;
-    m_db->MarkAllAsReadByLabel(call.client->GetCharacterID(), labelId);
+    m_db.ApplyStatusMasks(messageIds, mailStatusMaskTrashed);
 
     return nullptr;
 }
 
-PyResult MailMgrService::Handle_MarkAsReadByList(PyCallArgs &call)
+PyResult MailMgrService::MoveToTrashByLabel(PyCallArgs &call, PyInt* labelID)
 {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+    return nullptr;
+}
+
+PyResult MailMgrService::MoveToTrashByList(PyCallArgs &call, PyInt* listID)
+{
+    return nullptr;
+}
+
+PyResult MailMgrService::RemoveLabels(PyCallArgs &call, PyList* messageIDs, PyInt* labelID)
+{
+    std::vector<int32> messageIds;
+
+    PyList::const_iterator list_2_cur = messageIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != messageIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_AssignLabels failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        messageIds.push_back(t->value());
     }
 
-    int listId = args.arg;
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MarkAsUnread(PyCallArgs &call)
-{
-    // message id list
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db->SetMailsUnread(args.ints);
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MarkAsUnreadByLabel(PyCallArgs &call)
-{
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int labelId = args.arg;
-    m_db->MarkAllAsUnreadByLabel(call.client->GetCharacterID(), labelId);
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MarkAsUnreadByList(PyCallArgs &call)
-{
-    // @TODO: Stub
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int listId = args.arg;
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MoveAllFromTrash(PyCallArgs &call)
-{
-    m_db->MoveAllFromTrash(call.client->GetCharacterID());
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MoveAllToTrash(PyCallArgs &call)
-{
-    m_db->MoveAllToTrash(call.client->GetCharacterID());
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MoveFromTrash(PyCallArgs &call)
-{
-    // message id list
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db->RemoveStatusMasks(args.ints, mailStatusMaskTrashed);
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MoveToTrash(PyCallArgs &call)
-{
-    // message id list
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db->ApplyStatusMasks(args.ints, mailStatusMaskTrashed);
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MoveToTrashByLabel(PyCallArgs &call)
-{
-    // @TODO: Stub
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int labelId = args.arg;
-
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_MoveToTrashByList(PyCallArgs &call)
-{
-    // @TODO: Stub
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int listId = args.arg;
-
-    return nullptr;
-}
-
-PyResult MailMgrService::Handle_RemoveLabels(PyCallArgs &call)
-{
-    // we reuse Call_AssignLabels here because the arguments match
-    Call_AssignLabels args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db->RemoveLabels(args.messageIds, args.labelId);
+    m_db.RemoveLabels(messageIds, labelID->value());
 
     return nullptr;
 }

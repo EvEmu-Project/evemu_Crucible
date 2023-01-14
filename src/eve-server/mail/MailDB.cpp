@@ -56,7 +56,7 @@ PyRep* MailDB::GetNewMail(int charId)
     return DBResultToCRowset(res);
 }
 
-int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom)
+int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, const std::string& title, const std::string& body, int isReplyTo, int isForwardedFrom)
 {
     // build a string with ',' seperated char ids
     std::string toStr;
@@ -301,7 +301,7 @@ PyRep* MailDB::GetLabels(int characterID) const
     return ret;
 }
 
-bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID) const
+bool MailDB::CreateLabel(int characterID, const std::string& name, int32 color, uint32& newID) const
 {
     // we need to get the next free bit index; can't avoid a SELECT
     DBQueryResult res;
@@ -319,7 +319,7 @@ bool MailDB::CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID)
     }
 
     DBerror error;
-    if (!sDatabase.RunQuery(error, " INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, '%s', %u, %u)" , bit, args.name.c_str(), args.color, characterID))
+    if (!sDatabase.RunQuery(error, " INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, '%s', %u, %u)" , bit, name.c_str(), color, characterID))
     {
         codelog(DATABASE__ERROR, " Failed to insert new mail label into database" );
         // since this is an out parameter, make sure we assign this even in case of an error
@@ -351,17 +351,17 @@ void MailDB::DeleteLabel(int characterID, int labelID) const
                        " WHERE ownerID = %u AND bit = %u;" , characterID, bit);
 }
 
-void MailDB::EditLabel(int characterID, Call_EditLabel& args) const
+void MailDB::EditLabel(int characterID, int labelID, const std::string& name, int32 color) const
 {
-    int bit = BitFromLabelID(args.labelId);
+    int bit = BitFromLabelID(labelID);
 
     DBerror error;
-    if (args.name.length() == 0) {
-        sDatabase.RunQuery(error, " UPDATE mailLabel SET color = %u WHERE bit = %u AND ownerID = %u" , args.color, bit, characterID);
-    } else if (args.color == -1) {
-        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s' WHERE bit = %u AND ownerID = %u" , args.name.c_str(), bit, characterID);
+    if (name.length() == 0) {
+        sDatabase.RunQuery(error, " UPDATE mailLabel SET color = %u WHERE bit = %u AND ownerID = %u" , color, bit, characterID);
+    } else if (color == -1) {
+        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s' WHERE bit = %u AND ownerID = %u" , name.c_str(), bit, characterID);
     } else {
-        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s', color = %u WHERE bit = %u AND ownerID = %u" , args.name.c_str(), args.color, bit, characterID);
+        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s', color = %u WHERE bit = %u AND ownerID = %u" , name.c_str(), color, bit, characterID);
     }
 }
 
