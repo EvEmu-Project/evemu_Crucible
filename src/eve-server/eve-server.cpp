@@ -698,7 +698,6 @@ int main( int argc, char* argv[] )
     /* 'services' here are systems that respond to client calls */
     // move this into a service Init() function?   will need more work to do...
     pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
-    pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
     pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
     pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
 
@@ -787,6 +786,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new CharUnboundMgrService(newSvcMgr));
     newSvcMgr.Register(new InsuranceService(newSvcMgr));
     newSvcMgr.Register(new AllianceRegistry(newSvcMgr));
+    newSvcMgr.Register(new DogmaIMService(newSvcMgr));
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE
