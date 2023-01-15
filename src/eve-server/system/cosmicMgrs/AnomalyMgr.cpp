@@ -47,7 +47,7 @@
  * COSMIC_MGR__DEBUG
  * COSMIC_MGR__TRACE
  */
-AnomalyMgr::AnomalyMgr(SystemManager* mgr, PyServiceMgr& svc)
+AnomalyMgr::AnomalyMgr(SystemManager* mgr, EVEServiceManager& svc)
 :m_services(svc),
 m_system(mgr),
 m_beltMgr(nullptr),

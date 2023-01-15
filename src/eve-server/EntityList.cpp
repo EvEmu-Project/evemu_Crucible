@@ -49,7 +49,7 @@
 #include "corporation/CorporationDB.h"
 
 EntityList::EntityList()
-: m_services( nullptr ),
+: m_services(nullptr),
 m_targTimer(0, true),
 m_stampTimer(0, true),
 m_minuteTimer(0, true),

@@ -83,7 +83,7 @@ class AsteroidSE
 : public ObjectSystemEntity
 {
 public:
-    AsteroidSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system);
+    AsteroidSE(InventoryItemRef self, EVEServiceManager &services, SystemManager *system);
     virtual ~AsteroidSE()                               { /* Do nothing here */ }
 
     /* class type pointer querys. */

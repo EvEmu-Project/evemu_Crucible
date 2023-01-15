@@ -80,7 +80,7 @@ void ProbeItem::Delete() {
 
 
 // abandoned probe c'tor
-ProbeSE::ProbeSE(ProbeItemRef self, PyServiceMgr& services, SystemManager* system)
+ProbeSE::ProbeSE(ProbeItemRef self, EVEServiceManager& services, SystemManager* system)
 : DynamicSystemEntity(self, services, system),
 m_scan(nullptr),
 m_client(nullptr),
@@ -110,7 +110,7 @@ m_scanShips(false)
     _log(SCAN__INFO, "Created Abandoned ProbeSE for %u. expiry: %li", m_self->itemID(), m_expiry);
 }
 
-ProbeSE::ProbeSE(ProbeItemRef self, PyServiceMgr& services, SystemManager* system, InventoryItemRef moduleRef, ShipItemRef shipRef)
+ProbeSE::ProbeSE(ProbeItemRef self, EVEServiceManager& services, SystemManager* system, InventoryItemRef moduleRef, ShipItemRef shipRef)
 : DynamicSystemEntity(self, services, system),
 m_scan(nullptr),
 m_state(Probe::State::Idle),

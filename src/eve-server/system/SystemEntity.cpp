@@ -48,7 +48,7 @@
 
 
 
-SystemEntity::SystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+SystemEntity::SystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : m_self(self),
 m_services(services),
 m_system(system),
@@ -270,7 +270,7 @@ void SystemEntity::Abandon()
 
 
 /* Static / Non-Mobile / Non-Destructable / Celestial Objects - Suns, Planets, Moons, Belts, Gates, Stations */
-StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system)
 {
 }
@@ -315,7 +315,7 @@ void StaticSystemEntity::EncodeDestiny( Buffer& into ) {
     _log(SE__DESTINY, "SSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X, radius:%.1f", GetName(), head.entityID, head.mode, head.flags, head.radius);
 }
 
-BeltSE::BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+BeltSE::BeltSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : StaticSystemEntity(self, services, system)
 {
 }
@@ -340,7 +340,7 @@ bool BeltSE::LoadExtras() {
     return true;
 }
 
-StargateSE::StargateSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+StargateSE::StargateSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : StaticSystemEntity(self, services, system),
 m_sbuSE(nullptr)
 {
@@ -393,7 +393,7 @@ PyDict* StargateSE::MakeSlimItem() {
 
 
 /* Non-Static / Non-Mobile / Non-Destructable / Celestial Objects - Containers, DeadSpace, ForceFields, ScanProbes */
-ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system),
 m_keyType(0)
 {
@@ -488,7 +488,7 @@ void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
     }
 }
 
-FieldSE::FieldSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data)
+FieldSE::FieldSE(InventoryItemRef self, EVEServiceManager &services, SystemManager *system, const FactionData& data)
 : ItemSystemEntity(self, services, system)
 {
     m_warID = data.factionID;
@@ -544,7 +544,7 @@ PyDict *FieldSE::MakeSlimItem()
 
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects - POS Structures, Outposts, Deployables, empty Ships, Asteroids */
-ObjectSystemEntity::ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+ObjectSystemEntity::ObjectSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system),
 m_invul(false)
 {
@@ -650,7 +650,7 @@ void ObjectSystemEntity::Killed(Damage& damage)
     }
 }
 
-DeployableSE::DeployableSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data)
+DeployableSE::DeployableSE(InventoryItemRef self, EVEServiceManager &services, SystemManager *system, const FactionData& data)
 : ObjectSystemEntity(self, services, system)
 {
     m_warID = data.factionID;
@@ -669,7 +669,7 @@ DeployableSE::DeployableSE(const DeployableSE* oth)
 
 
 /* Non-Static / Mobile / Destructible / Celestial Objects - PC's, NPC's, Drones, Ships, Missiles, Wrecks  */
-DynamicSystemEntity::DynamicSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+DynamicSystemEntity::DynamicSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system),
 m_invul(false),
 m_frozen(false)

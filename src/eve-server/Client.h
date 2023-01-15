@@ -51,7 +51,7 @@ class EVENotificationStream;
 class PySubStream;
 class InventoryItem;
 class SystemManager;
-class PyServiceMgr;
+class EVEServiceManager;
 class PyCallStream;
 class PyTuple;
 class LSCChannel;
@@ -69,7 +69,7 @@ class Client
   protected EVEPacketDispatcher
 {
 public:
-    Client(EVEServiceManager& newSvcMgr, PyServiceMgr &services, EVETCPConnection** con);
+    Client(EVEServiceManager& services, EVETCPConnection** con);
     // copy c'tor
     Client(const Client& oth) =delete;
     // move c'tor
@@ -88,7 +88,7 @@ public:
 
     bool                    IsLoaded()                  { return m_loaded; }
 
-    PyServiceMgr&           services() const            { return m_services; }
+    EVEServiceManager&      services() const            { return m_services; }
     // this should never be null
     SystemManager*          SystemMgr() const           { return m_system; }
     // used in msgs and other places where a const char* is needed instead of me forgetting to use .c_str()
@@ -342,8 +342,8 @@ protected:
     ShipItemRef m_ship;
     ShipItemRef m_pod;
     CharacterRef m_char;
-    PyServiceMgr& m_services;
-    EVEServiceManager& m_newSvcMgr;
+    EVEServiceManager& m_services;
+    LSCService* m_lsc;
     Scan* m_scan;
     ShipSE* pShipSE;
     TradeSession* m_TS;

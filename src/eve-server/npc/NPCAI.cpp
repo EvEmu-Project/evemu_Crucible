@@ -793,7 +793,7 @@ void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
 
     SystemManager* pSystem = m_npc->SystemMgr();
     // Missile(InventoryItemRef self, PyServiceMgr &services, SystemManager* system, InventoryItemRef module, SystemEntity* target, ShipItem* ship);
-    Missile* pMissile = new Missile(missileRef, *(pSystem->GetServiceMgr()),  pSystem, m_self, pSE, m_npc);
+    Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(),  pSystem, m_self, pSE, m_npc);
     if (pMissile == nullptr)
         return; // make error here
     double distance = pMissile->GetPosition().distance(pSE->GetPosition());

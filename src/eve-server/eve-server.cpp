@@ -645,52 +645,12 @@ int main( int argc, char* argv[] )
     sEntityList.Initialize();
     /* create a service manager */
     sLog.Green("       ServerInit", "Starting Service Manager");
-    PyServiceMgr pyServMgr( 888444, sEntityList );
     EVEServiceManager newSvcMgr(888444);
-    sLog.Blue("  Service Manager", "Service Manager Initialized.");
     /* create a command dispatcher */
     sLog.Green("       ServerInit", "Starting Command Dispatch Manager");
-    CommandDispatcher command_dispatcher( pyServMgr );
-    RegisterAllCommands( command_dispatcher );
+    CommandDispatcher command_dispatcher(newSvcMgr);
+    RegisterAllCommands(command_dispatcher);
     sLog.Blue(" Command Dispatch", "Command Dispatcher Initialized.");
-    /* create the BubbleManager singleton */
-    sLog.Green("       ServerInit", "Starting Bubble Manager");
-    sBubbleMgr.Initialize();
-    /* create the StandingMgr singleton */
-    sLog.Green("       ServerInit", "Starting Standings Manager");
-    sStandingMgr.Initialize();
-    /* create the FleetService singleton */
-    sLog.Green("       ServerInit", "Starting Fleet Services");
-    sFltSvc.Initialize(&pyServMgr);
-    /* create the MarketMgr singleton */
-    sLog.Green("       ServerInit", "Starting Market Manager");
-    sMktMgr.Initialize(&pyServMgr);
-    sLog.Green("       ServerInit", "Starting Statistics Manager");
-    sStatMgr.Initialize();
-    /* create console command interperter singleton */
-    sLog.Green("       ServerInit", "Starting Console Manager");
-    sConsole.Initialize(&command_dispatcher);
-    std::printf("\n");     // spacer
-
-    sLog.Blue("     ServerConfig", "Cosmic Manager Settings");
-    if (sConfig.cosmic.CiviliansEnabled) {
-        sLog.Green(" Civilian Manager", "Civilian Manager Enabled.");
-        /* create the CivilianMgr singleton */
-        sLog.Green("       ServerInit", "Starting Civilian Manager");
-        sCivMgr.Initialize(&pyServMgr);
-    } else {
-        sLog.Warning(" Civilian Manager", "Civilian Manager Disabled.");
-    }
-    if (sConfig.cosmic.WormHoleEnabled) {
-        sLog.Green(" Wormhole Manager", "Wormhole Manager Enabled.");
-        /* create the WormholeMgr singleton */
-        sLog.Green("       ServerInit", "Starting Wormhole Manager");
-        sWHMgr.Initialize(&pyServMgr);
-    } else {
-        sLog.Warning(" Wormhole Manager", "Wormhole Manager Disabled.");
-    }
-    std::printf("\n");     // spacer
-
     /* Service creation and registration. */
     sLog.Green("       ServerInit", "Registering Service Managers."); // 90 currently known pyServMgr
     double startTime = GetTimeMSeconds();
@@ -729,7 +689,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new CalendarMgrService());
     newSvcMgr.Register(new AgentMgrService(newSvcMgr));
     newSvcMgr.Register(new ScanMgrService(newSvcMgr));
-    newSvcMgr.Register(new ShipService(pyServMgr, newSvcMgr));
+    newSvcMgr.Register(new ShipService(newSvcMgr));
     newSvcMgr.Register(new SkillMgrService(newSvcMgr));
     newSvcMgr.Register(new TradeService(newSvcMgr));
     newSvcMgr.Register(new PlanetORB(newSvcMgr));
@@ -748,7 +708,6 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new DevToolsProviderService());
     newSvcMgr.Register(new ClientStatsMgr());
     newSvcMgr.Register(new ReprocessingService(newSvcMgr));
-    newSvcMgr.Register(new NetService(newSvcMgr));
     newSvcMgr.Register(new HoloscreenMgrService());
     newSvcMgr.Register(new Standing());
     newSvcMgr.Register(new TutorialService());
@@ -765,8 +724,9 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new SovereigntyMgrService());
     newSvcMgr.Register(new VoiceMgrService());
     newSvcMgr.Register(new ObjCacheService(sConfig.files.cacheDir.c_str()));
+    newSvcMgr.Register(new NetService(newSvcMgr));
     newSvcMgr.Register(new StationService());
-    newSvcMgr.Register(new StationSvc(&newSvcMgr));
+    newSvcMgr.Register(new StationSvc(newSvcMgr));
     newSvcMgr.Register(new WormHoleSvc());
     newSvcMgr.Register(new netStateServer());
     newSvcMgr.Register(new UserService());
@@ -789,9 +749,46 @@ int main( int argc, char* argv[] )
 
     // keep a reference to cache in the old manager so it still works
     // TODO: REMOVE ONCE THE CHANGES ARE DONE
-    pyServMgr.cache_service = newSvcMgr.Lookup <ObjCacheService> ("objectCaching");
-    pyServMgr.lsc_service = newSvcMgr.Lookup <LSCService>("LSC");
-    pyServMgr.Initalize(startTime);
+    sEntityList.SetService(&newSvcMgr);
+    std::printf("\n");     // spacer
+
+    sLog.Blue("  Service Manager", "Service Manager Initialized.");
+    /* create the BubbleManager singleton */
+    sLog.Green("       ServerInit", "Starting Bubble Manager");
+    sBubbleMgr.Initialize();
+    /* create the StandingMgr singleton */
+    sLog.Green("       ServerInit", "Starting Standings Manager");
+    sStandingMgr.Initialize();
+    /* create the FleetService singleton */
+    sLog.Green("       ServerInit", "Starting Fleet Services");
+    sFltSvc.Initialize(newSvcMgr);
+    /* create the MarketMgr singleton */
+    sLog.Green("       ServerInit", "Starting Market Manager");
+    sMktMgr.Initialize(newSvcMgr);
+    sLog.Green("       ServerInit", "Starting Statistics Manager");
+    sStatMgr.Initialize();
+    /* create console command interperter singleton */
+    sLog.Green("       ServerInit", "Starting Console Manager");
+    sConsole.Initialize(&command_dispatcher);
+    std::printf("\n");     // spacer
+
+    sLog.Blue("     ServerConfig", "Cosmic Manager Settings");
+    if (sConfig.cosmic.CiviliansEnabled) {
+        sLog.Green(" Civilian Manager", "Civilian Manager Enabled.");
+        /* create the CivilianMgr singleton */
+        sLog.Green("       ServerInit", "Starting Civilian Manager");
+        sCivMgr.Initialize();
+    } else {
+        sLog.Warning(" Civilian Manager", "Civilian Manager Disabled.");
+    }
+    if (sConfig.cosmic.WormHoleEnabled) {
+        sLog.Green(" Wormhole Manager", "Wormhole Manager Enabled.");
+        /* create the WormholeMgr singleton */
+        sLog.Green("       ServerInit", "Starting Wormhole Manager");
+        sWHMgr.Initialize();
+    } else {
+        sLog.Warning(" Wormhole Manager", "Wormhole Manager Disabled.");
+    }
     std::printf("\n");     // spacer
 
     // Create In-Memory Database Objects for Critical and High-Use Systems:
@@ -910,7 +907,7 @@ int main( int argc, char* argv[] )
         //++m_worldLoopCounter;
 
         if ((tcpc = tcps.PopConnection()))
-            sEntityList.Add(new Client(newSvcMgr, pyServMgr, &tcpc));
+            sEntityList.Add(new Client(newSvcMgr, &tcpc));
 
         sEntityList.Process();
 
@@ -961,8 +958,6 @@ int main( int argc, char* argv[] )
         sItemFactory.SaveItems();
     /* Close the entity list */
     sEntityList.Close();
-    /* Close the service manager */
-    pyServMgr.Close();
     /* Shut down the Item system */
     sLog.Warning("   ServerShutdown", "Shutting down Item Factory." );
     sItemFactory.Close();

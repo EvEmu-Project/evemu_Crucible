@@ -19,7 +19,7 @@ class BatterySE
 : public StructureSE
 {
 public:
-    BatterySE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    BatterySE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~BatterySE()                                { /* do nothing here */ }
 
     /* class type pointer querys. */

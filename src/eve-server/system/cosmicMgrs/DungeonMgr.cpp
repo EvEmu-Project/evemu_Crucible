@@ -159,7 +159,7 @@ const char* DungeonDataMgr::GetDungeonType(int8 typeID)
 }
 
 
-DungeonMgr::DungeonMgr(SystemManager* mgr, PyServiceMgr& svc)
+DungeonMgr::DungeonMgr(SystemManager* mgr, EVEServiceManager& svc)
 : m_system(mgr),
 m_services(svc),
 m_anomMgr(nullptr),
@@ -269,7 +269,7 @@ bool DungeonMgr::Create(uint32 templateID, CosmicSignature& sig)
     InventoryItemRef iRef = InventoryItem::SpawnItem(sItemFactory.GetNextTempID(), iData);
     if (iRef.get() == nullptr) // make error and exit
         return false;
-    CelestialSE* cSE = new CelestialSE(iRef, *(m_system->GetServiceMgr()), m_system);
+    CelestialSE* cSE = new CelestialSE(iRef, m_system->GetServiceMgr(), m_system);
     if (cSE == nullptr)
         return false;   //  we'll get over it.
     // dont add signal thru sysMgr.  signal is added when this returns to anomMgr
@@ -359,7 +359,7 @@ bool DungeonMgr::Create(uint32 templateID, CosmicSignature& sig)
         if (iRef.get() == nullptr) // we'll survive...
             continue;
         // should ALL of these be CelestialSEs?
-        cSE = new CelestialSE(iRef, *(m_system->GetServiceMgr()), m_system);
+        cSE = new CelestialSE(iRef, m_system->GetServiceMgr(), m_system);
         m_system->AddEntity(cSE, false);
         items.push_back(iRef->itemID());
         ++itr;

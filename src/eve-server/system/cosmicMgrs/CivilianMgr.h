@@ -21,7 +21,7 @@
  * non-combatant civilians
  */
 
-class PyServiceMgr;
+class EVEServiceManager;
 
 class CivilianMgr
 : public Singleton<CivilianMgr>
@@ -30,12 +30,11 @@ public:
     CivilianMgr();
     ~CivilianMgr()                              { /* do nothing here */ }
 
-    void Initialize(PyServiceMgr* svc);
+    void Initialize();
     void Process();
 
 private:
     ServiceDB* m_db;
-    PyServiceMgr* m_services;
 
     bool m_initalized;
 

@@ -45,7 +45,7 @@ class Missile;
 class Client;
 class EntityList;
 class Inventory;
-class PyServiceMgr;
+class EVEServiceManager;
 
 
 class ItemFactory

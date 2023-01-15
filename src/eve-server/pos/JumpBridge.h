@@ -19,7 +19,7 @@ class JumpBridgeSE
 : public StructureSE
 {
 public:
-    JumpBridgeSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    JumpBridgeSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~JumpBridgeSE()                                { /* do nothing here */ }
 
     /* class type pointer querys. */

@@ -14,17 +14,11 @@
 #include "PyServiceCD.h"
 #include "system/WorldSpaceServer.h"
 
-
-PyCallable_Make_InnerDispatcher(WorldSpaceServer)
-
-WorldSpaceServer::WorldSpaceServer(PyServiceMgr *mgr)
-: PyService(mgr, "worldSpaceServer"),
-m_dispatch(new Dispatcher(this))
+WorldSpaceServer::WorldSpaceServer() :
+    Service("worldSpaceServer")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(WorldSpaceServer, GetWorldSpaceTypeIDFromWorldSpaceID);
-    PyCallable_REG_CALL(WorldSpaceServer, GetWorldSpaceMachoAddress);
+    this->Add("GetWorldSpaceTypeIDFromWorldSpaceID", &WorldSpaceServer::GetWorldSpaceTypeIDFromWorldSpaceID);
+    this->Add("GetWorldSpaceMachoAddress", &WorldSpaceServer::GetWorldSpaceMachoAddress);
 
     /*
         ws = world.GetWorldSpace(worldSpaceTypeID)
@@ -35,12 +29,7 @@ m_dispatch(new Dispatcher(this))
         */
 }
 
-WorldSpaceServer::~WorldSpaceServer() {
-    delete m_dispatch;
-}
-
-
-PyResult WorldSpaceServer::Handle_GetWorldSpaceTypeIDFromWorldSpaceID(PyCallArgs &call) {
+PyResult WorldSpaceServer::GetWorldSpaceTypeIDFromWorldSpaceID(PyCallArgs &call, PyInt* worldSpaceID) {
     /**
      *        worldSpaceTypeID = self.GetWorldSpaceTypeIDFromWorldSpaceID(worldSpaceID)
      */
@@ -50,7 +39,7 @@ PyResult WorldSpaceServer::Handle_GetWorldSpaceTypeIDFromWorldSpaceID(PyCallArgs
     return PyStatic.NewNone();
 }
 
-PyResult WorldSpaceServer::Handle_GetWorldSpaceMachoAddress(PyCallArgs &call) {
+PyResult WorldSpaceServer::GetWorldSpaceMachoAddress(PyCallArgs &call, PyString* address) {
     /**
      *       service, address = wss.GetWorldSpaceMachoAddress(address)
      */

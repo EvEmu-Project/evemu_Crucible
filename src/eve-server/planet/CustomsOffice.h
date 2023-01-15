@@ -24,7 +24,7 @@ class CustomsSE
 : public ObjectSystemEntity
 {
 public:
-    CustomsSE(StructureItemRef sRef, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    CustomsSE(StructureItemRef sRef, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~CustomsSE()  { /* do nothing here */ }
 
 

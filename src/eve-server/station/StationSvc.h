@@ -33,7 +33,7 @@
 class StationSvc : public Service <StationSvc>
 {
 public:
-    StationSvc(EVEServiceManager* mgr);
+    StationSvc(EVEServiceManager& mgr);
 
 protected:
     StationDB m_db;
@@ -45,7 +45,7 @@ protected:
     PyResult GetSystemsForAlliance(PyCallArgs& call, PyInt* allianceID);
 
 private:
-    EVEServiceManager* m_manager;
+    EVEServiceManager& m_manager;
     ObjCacheService* m_cache;
 };
 #endif

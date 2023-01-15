@@ -81,7 +81,7 @@ void CelestialObject::Delete() {
 }
 
 
-CelestialSE::CelestialSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+CelestialSE::CelestialSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : ItemSystemEntity(self, services, system)
 {
     _log(SE__DEBUG, "Created CSE for item %s (%u) with radius of %.1f.", self->name(), self->itemID(), m_radius);
@@ -107,7 +107,7 @@ void CelestialSE::MakeDamageState(DoDestinyDamageState &into)
 }
 
 
-AnomalySE::AnomalySE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
+AnomalySE::AnomalySE(CelestialObjectRef self, EVEServiceManager& services, SystemManager* system)
 : CelestialSE(self, services, system)
 {
 }
@@ -149,7 +149,7 @@ PyDict* AnomalySE::MakeSlimItem()
     return slim;
 }
 
-WormholeSE::WormholeSE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
+WormholeSE::WormholeSE(CelestialObjectRef self, EVEServiceManager& services, SystemManager* system)
 : CelestialSE(self, services, system),
 m_count(0),
 m_wormholeAge(WormHole::Age::Adolescent),

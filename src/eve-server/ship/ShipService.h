@@ -32,21 +32,18 @@
 class ShipService : public BindableService <ShipService>
 {
 public:
-    ShipService(PyServiceMgr& oldMgr, EVEServiceManager& mgr);
+    ShipService(EVEServiceManager& mgr);
 
 protected:
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
-
-private:
-    PyServiceMgr& m_oldManager;
 };
 
 
 class ShipBound : public EVEBoundObject <ShipBound>
 {
 public:
-    ShipBound(PyServiceMgr& oldMgr, EVEServiceManager& mgr, PyRep* bindParameters, ShipItem* ship);
+    ShipBound(EVEServiceManager& mgr, PyRep* bindParameters, ShipItem* ship);
 
 protected:
     bool CanClientCall(Client* client) override;
@@ -91,8 +88,6 @@ protected:
 
 private:
     ShipItem* pShip;
-
-    PyServiceMgr& m_manager;
 };
 
 #endif

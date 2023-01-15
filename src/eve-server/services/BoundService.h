@@ -51,6 +51,10 @@ public:
      * @brief Handles dispatching a call to this service
      */
     virtual PyResult Dispatch(const std::string& name, PyCallArgs& args) = 0;
+    /**
+     * @brief Releases this dispatcher and frees any kept resources
+     */
+    virtual void Release() = 0;
 protected:
     /**
      * @brief Check performed before dispatching a call to this bound service
@@ -191,6 +195,12 @@ public:
         }
 
         throw method_not_found ();
+    }
+    /**
+     * @brief Releases this dispatcher and frees any kept resources
+     */
+    void Release() override {
+        delete this; // we hate this
     }
 
     /** @returns BoundID The id of the bound service */

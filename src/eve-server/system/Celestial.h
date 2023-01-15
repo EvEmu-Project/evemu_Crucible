@@ -88,11 +88,11 @@ protected:
 /**
  * ItemSystemEntity which represents celestial object in space
  */
-class PyServiceMgr;
+class EVEServiceManager;
 
 class CelestialSE : public ItemSystemEntity {
 public:
-    CelestialSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system);
+    CelestialSE(InventoryItemRef self, EVEServiceManager& services, SystemManager* system);
     virtual ~CelestialSE()                              { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -107,7 +107,7 @@ public:
 
 class AnomalySE : public CelestialSE {
 public:
-    AnomalySE(CelestialObjectRef self, PyServiceMgr &services, SystemManager* system);
+    AnomalySE(CelestialObjectRef self, EVEServiceManager &services, SystemManager* system);
     virtual ~AnomalySE()                                { /* Do nothing here */ }
 
     /* class type pointer querys. */
@@ -124,7 +124,7 @@ public:
 
 class WormholeSE : public CelestialSE {
 public:
-    WormholeSE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system);
+    WormholeSE(CelestialObjectRef self, EVEServiceManager& services, SystemManager* system);
     virtual ~WormholeSE()                               { /* Do nothing here */ }
 
     /* class type pointer querys. */

@@ -22,14 +22,14 @@
 
 class DungeonMgr;
 class BeltMgr;
-class PyServiceMgr;
+class EVEServiceManager;
 class SpawnMgr;
 class SystemManager;
 
 class AnomalyMgr
 {
   public:
-    AnomalyMgr(SystemManager* mgr, PyServiceMgr& svc);
+    AnomalyMgr(SystemManager* mgr, EVEServiceManager& svc);
     ~AnomalyMgr();
 
     bool Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr);
@@ -67,7 +67,7 @@ private:
     DungeonMgr* m_dungMgr;
     SpawnMgr* m_spawnMgr;
     SystemManager* m_system;
-    PyServiceMgr& m_services;
+    EVEServiceManager& m_services;
 
     Timer m_spawnTimer;
     Timer m_procTimer;

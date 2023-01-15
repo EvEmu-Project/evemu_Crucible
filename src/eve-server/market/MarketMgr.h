@@ -17,6 +17,7 @@
 
 #include "EntityList.h"
 #include "market/MarketDB.h"
+#include "cache/ObjCacheService.h"
 
 class Client;
 
@@ -27,7 +28,7 @@ public:
     MarketMgr();
     ~MarketMgr();
 
-    int Initialize(PyServiceMgr* pManager);
+    int Initialize(EVEServiceManager& svc);
 
     void Close();
     void GetInfo();
@@ -68,7 +69,7 @@ protected:
 
 private:
     MarketDB m_db;
-    PyServiceMgr* m_manager;
+    ObjCacheService* m_cache;
 
     PyRep* m_marketGroups;  // static market group data
 

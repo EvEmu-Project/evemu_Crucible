@@ -26,7 +26,7 @@
 #include "system/cosmicMgrs/SpawnMgr.h"
 
 
-BeltMgr::BeltMgr(SystemManager* mgr, PyServiceMgr& svc)
+BeltMgr::BeltMgr(SystemManager* mgr, EVEServiceManager& svc)
 : m_respawnTimer(0),
 m_system(mgr),
 m_services(svc),
@@ -159,7 +159,7 @@ bool BeltMgr::Load(uint16 bubbleID) {
         itemRef->SetAttribute(AttrVolume,    itemRef->type().volume());                 // Volume
         itemRef->SetAttribute(AttrMass,      itemRef->type().mass() * entity.quantity); // Mass
 
-        AsteroidSE* pASE = new AsteroidSE(itemRef, *(m_system->GetServiceMgr()), m_system );
+        AsteroidSE* pASE = new AsteroidSE(itemRef, m_system->GetServiceMgr(), m_system );
         if (pASE == nullptr) {
             _log(COSMIC_MGR__WARNING, "BeltMgr::Load() -  Unable to spawn itemID %u - %s (type %u).", entity.itemID, entity.itemName.c_str(), entity.typeID);
             continue;
@@ -414,7 +414,7 @@ void BeltMgr::SpawnAsteroid(uint32 beltID, uint32 typeID, double radius, const G
     if (iRef.get() == nullptr)
         return;
 
-    AsteroidSE* pASE = new AsteroidSE( iRef, *(m_system->GetServiceMgr()), m_system );
+    AsteroidSE* pASE = new AsteroidSE( iRef, m_system->GetServiceMgr(), m_system );
     if (pASE == nullptr)
         return;
 

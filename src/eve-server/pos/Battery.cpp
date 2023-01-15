@@ -22,7 +22,7 @@
 #include "pos/Battery.h"
 
 
-BatterySE::BatterySE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+BatterySE::BatterySE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : StructureSE(structure, services, system, data)
 {
 

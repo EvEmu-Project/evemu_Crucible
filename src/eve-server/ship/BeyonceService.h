@@ -29,6 +29,7 @@
 
 #include "ship/ShipDB.h"
 #include "services/BoundService.h"
+#include "system/BookmarkService.h"
 
 class BeyonceService : public BindableService <BeyonceService> {
 public:
@@ -72,6 +73,9 @@ protected:
     PyResult CmdBeaconJumpAlliance(PyCallArgs& call, PyInt* beaconID, PyInt* solarSystemID);
     PyResult CmdFleetRegroup(PyCallArgs& call);
     PyResult CmdFleetTagTarget(PyCallArgs& call, PyInt* itemID, PyString* tag);
+    
+private:
+    BookmarkService* m_bookmark;
 };
 
 #endif

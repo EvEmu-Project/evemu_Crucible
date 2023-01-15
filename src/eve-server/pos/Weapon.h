@@ -19,7 +19,7 @@ class WeaponSE
 : public StructureSE
 {
 public:
-    WeaponSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    WeaponSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~WeaponSE()                                 { /* do nothing here */ }
 
     /* class type pointer querys. */

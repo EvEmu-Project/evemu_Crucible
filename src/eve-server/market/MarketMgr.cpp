@@ -32,8 +32,7 @@
  */
 
 MarketMgr::MarketMgr()
-: m_marketGroups(nullptr),
-m_manager(nullptr)
+: m_marketGroups(nullptr)
 {
     m_timeStamp = 0;
 }
@@ -50,10 +49,9 @@ void MarketMgr::Close()
     sLog.Warning("        MarketMgr", "Market Manager has been closed." );
 }
 
-int MarketMgr::Initialize(PyServiceMgr* pManager)
+int MarketMgr::Initialize(EVEServiceManager& svc)
 {
-    m_manager = pManager;
-
+    m_cache = svc.Lookup <ObjCacheService>("objectCaching");
     m_timeStamp = MarketDB::GetUpdateTime();
 
     Populate();
@@ -153,7 +151,7 @@ PyRep *MarketMgr::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
     method_name += std::to_string(typeID);
     ObjectCachedMethodID method_id("marketProxy", method_name.c_str());
     //check to see if this method is in the cache already.
-    if (!m_manager->cache_service->IsCacheLoaded(method_id)) {
+    if (!this->m_cache->IsCacheLoaded(method_id)) {
         //this method is not in cache yet, load up the contents and cache it
         DBQueryResult res;
 
@@ -175,12 +173,12 @@ PyRep *MarketMgr::GetNewPriceHistory(uint32 regionID, uint32 typeID) {
             _log(MARKET__DB_ERROR, "Failed to load cache, generating empty contents.");
             result = PyStatic.NewNone();
         }
-        m_manager->cache_service->GiveCache(method_id, &result);
+        this->m_cache->GiveCache(method_id, &result);
     }
 
     //now we know its in the cache one way or the other, so build a
     //cached object cached method call result.
-    result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
+    result = this->m_cache->MakeObjectCachedMethodCallResult(method_id);
 
     if (is_log_enabled(MARKET__DB_TRACE))
         result->Dump(MARKET__DB_TRACE, "    ");
@@ -195,7 +193,7 @@ PyRep *MarketMgr::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
     method_name += std::to_string(typeID);
     ObjectCachedMethodID method_id("marketProxy", method_name.c_str());
     //check to see if this method is in the cache already.
-    if (!m_manager->cache_service->IsCacheLoaded(method_id)) {
+    if (!this->m_cache->IsCacheLoaded(method_id)) {
         //this method is not in cache yet, load up the contents and cache it
         DBQueryResult res;
 
@@ -216,12 +214,12 @@ PyRep *MarketMgr::GetOldPriceHistory(uint32 regionID, uint32 typeID) {
             _log(MARKET__DB_ERROR, "Failed to load cache, generating empty contents.");
             result = PyStatic.NewNone();
         }
-        m_manager->cache_service->GiveCache(method_id, &result);
+        this->m_cache->GiveCache(method_id, &result);
     }
 
     //now we know its in the cache one way or the other, so build a
     //cached object cached method call result.
-    result = m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id);
+    result = this->m_cache->MakeObjectCachedMethodCallResult(method_id);
 
     if (is_log_enabled(MARKET__DB_TRACE))
         result->Dump(MARKET__DB_TRACE, "    ");
@@ -268,7 +266,7 @@ void MarketMgr::InvalidateOrdersCache(uint32 regionID, uint32 typeID)
     method_name += "_";
     method_name += std::to_string(typeID);
     ObjectCachedMethodID method_id("marketProxy", method_name.c_str());
-    m_manager->cache_service->InvalidateCache( method_id );
+    this->m_cache->InvalidateCache( method_id );
 }
 
 

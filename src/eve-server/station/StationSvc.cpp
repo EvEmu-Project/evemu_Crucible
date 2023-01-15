@@ -32,7 +32,7 @@
 #include "station/StationSvc.h"
 #include "system/sov/SovereigntyDataMgr.h"
 
-StationSvc::StationSvc(EVEServiceManager* mgr) :
+StationSvc::StationSvc(EVEServiceManager& mgr) :
     Service("stationSvc"),
     m_manager (mgr)
 {
@@ -42,7 +42,7 @@ StationSvc::StationSvc(EVEServiceManager* mgr) :
     this->Add("GetAllianceSystems", &StationSvc::GetAllianceSystems);
     this->Add("GetSystemsForAlliance", &StationSvc::GetSystemsForAlliance);
 
-    this->m_cache = m_manager->Lookup <ObjCacheService>("objectCaching");
+    this->m_cache = m_manager.Lookup <ObjCacheService>("objectCaching");
 }
 
 PyResult StationSvc::GetStationItemBits(PyCallArgs &call) {

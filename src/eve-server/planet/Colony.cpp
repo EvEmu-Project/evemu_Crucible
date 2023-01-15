@@ -106,7 +106,7 @@ P3             60,000 ISK
 P4          1,200,000 ISK
 */
 
-Colony::Colony(PyServiceMgr* mgr, Client* pClient, SystemEntity* pSE)
+Colony::Colony(EVEServiceManager& mgr, Client* pClient, SystemEntity* pSE)
 :m_svcMgr(mgr),
 m_client(pClient),
 m_pSE(pSE->GetPlanetSE()),
@@ -961,7 +961,7 @@ PyRep* Colony::LaunchCommodities(uint32 pinID, std::map< uint16, uint32 >& items
         data.factionID = m_client->GetWarFactionID();
         data.ownerID = m_client->GetCharacterID();
     // create new container SE
-    ContainerSE* cSE = new ContainerSE(contRef, *m_svcMgr, pSysMgr, data);
+    ContainerSE* cSE = new ContainerSE(contRef, m_svcMgr, pSysMgr, data);
     contRef->SetMySE(cSE);      // item-to-entity internal interface
     //cSE->AnchorContainer();     // avoid GC checks on this container  -no.  has 5d timer set
     pSysMgr->AddEntity(cSE);

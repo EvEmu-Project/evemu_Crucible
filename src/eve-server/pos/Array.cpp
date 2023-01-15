@@ -22,7 +22,7 @@
 #include "pos/Array.h"
 
 
-ArraySE::ArraySE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+ArraySE::ArraySE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : StructureSE(structure, services, system, data)
 {
 

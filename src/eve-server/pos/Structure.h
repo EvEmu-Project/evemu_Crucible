@@ -100,7 +100,7 @@ class StructureSE
 : public DynamicSystemEntity
 {
 public:
-    StructureSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    StructureSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~StructureSE()  { /* do nothing here */ }
 
     /* class type pointer querys. */

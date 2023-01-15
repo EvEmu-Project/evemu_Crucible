@@ -88,7 +88,7 @@ class SystemEntity {
     friend class SystemBubble;    /* only to update m_bubble */
 public:
     // default c'tor
-    SystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    SystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system);
     // copy c'tor
     SystemEntity(const SystemEntity* oth);
     // move c'tor
@@ -213,7 +213,7 @@ public:
     virtual bool                IsConcord()             { return false; }
 
     /* generic functions handled here */
-    PyServiceMgr&               GetServices()           { return m_services; }
+    EVEServiceManager&               GetServices()      { return m_services; }
     SystemBubble*               SysBubble()             { return m_bubble; }
     SystemManager*              SystemMgr()             { return m_system; }
     TargetManager*              TargetMgr()             { return m_targMgr; }
@@ -286,7 +286,7 @@ protected:
     TargetManager*              m_targMgr;              /* we do not own this. only Destructible items will have it */
     DestinyManager*             m_destiny;              /* we do not own this. only mobile items will have it */
 
-    PyServiceMgr&               m_services;
+    EVEServiceManager&          m_services;
 
     InventoryItemRef            m_self;
 
@@ -312,7 +312,7 @@ protected:
 class StaticSystemEntity : public SystemEntity {
 public:
     // default c'tor
-    StaticSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    StaticSystemEntity(InventoryItemRef self, EVEServiceManager&services, SystemManager* system);
     // copy c'tor
     StaticSystemEntity(const StaticSystemEntity* oth);
     // move c'tor
@@ -352,7 +352,7 @@ class BeltSE
 {
 public:
     // default c'tor
-    BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    BeltSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system);
     // copy c'tor
     BeltSE(const BeltSE* oth);
     // move c'tor
@@ -393,7 +393,7 @@ class StargateSE
 {
 public:
     // default c'tor
-    StargateSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    StargateSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system);
     // copy c'tor
     StargateSE(const StargateSE* oth);
     // move c'tor
@@ -439,7 +439,7 @@ protected:
 class ItemSystemEntity : public SystemEntity {
 public:
     // default c'tor
-    ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    ItemSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system);
     // copy c'tor
     ItemSystemEntity(const ItemSystemEntity* oth);
     // move c'tor
@@ -481,7 +481,7 @@ class FieldSE
 {
 public:
     // default c'tor
-    FieldSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    FieldSE(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     // copy c'tor
     FieldSE(const FieldSE* oth);
     // move c'tor
@@ -512,7 +512,7 @@ public:
 class ObjectSystemEntity : public SystemEntity {
 public:
     // default c'tor
-    ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    ObjectSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system);
     // copy c'tor
     ObjectSystemEntity(const ObjectSystemEntity* oth);
     // move c'tor
@@ -558,7 +558,7 @@ class DeployableSE
 {
 public:
     // default c'tor
-    DeployableSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    DeployableSE(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     // copy c'tor
     DeployableSE(const DeployableSE* oth);
     // move c'tor
@@ -586,7 +586,7 @@ public:
 class DynamicSystemEntity : public SystemEntity {
 public:
     // default c'tor
-    DynamicSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    DynamicSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system);
     // copy c'tor
     DynamicSystemEntity(const DynamicSystemEntity* oth);
     // move c'tor

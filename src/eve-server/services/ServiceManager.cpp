@@ -70,5 +70,22 @@ PyResult EVEServiceManager::Dispatch(const BoundID& service, const std::string& 
     if (it == this->mBound.end())
         throw service_not_found("Bound " + std::to_string(service));
 
-    return (*it).second->Dispatch(method, args);
+    return it->second->Dispatch(method, args);
+}
+
+void EVEServiceManager::ClearBoundObject(const BoundID& service) {
+    auto it = this->mBound.find(service);
+
+    if (it == this->mBound.end()) {
+        _log(SERVICE__ERROR, "EVEServiceManager::ClearBoundObject() - Unable to find bound object %u to release.", service);
+        return;
+    }
+
+    _log(SERVICE__MESSAGE, "EVEServiceManager::ClearBoundObject() - Clearing bound object at %s", it->second->GetIDString().c_str());
+    
+    // release the bound, this should cleanup any resources if needed
+    it->second->Release();
+
+    // finally remove it from the list
+    this->mBound.erase(it);
 }

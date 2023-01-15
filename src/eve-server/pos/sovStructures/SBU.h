@@ -16,7 +16,7 @@ class SBUSE
 : public StructureSE
 {
 public:
-    SBUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData);
+    SBUSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& fData);
     virtual ~SBUSE()                                  { /* do nothing here */ }
 
     /* class type pointer querys. */

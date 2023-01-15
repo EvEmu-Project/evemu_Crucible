@@ -31,7 +31,7 @@
 #include "admin/CommandDispatcher.h"
 #include "system/DestinyManager.h"
 
-CommandDispatcher::CommandDispatcher( PyServiceMgr& services )
+CommandDispatcher::CommandDispatcher(EVEServiceManager& services)
 : m_services( services )
 {
     m_commands.clear();
@@ -83,7 +83,7 @@ PyResult CommandDispatcher::Execute( Client* from, const char* msg )
         throw CustomError ("Access denied to command '%s'", sep.arg (0).c_str ());
     }
 
-    return ( *rec->function )( from, &m_db, &m_services, sep );
+    return ( *rec->function )( from, &m_db, m_services, sep );
 }
 
 void CommandDispatcher::AddCommand( const char* cmd, const char* desc, int64 required_role, CommandFunc function )

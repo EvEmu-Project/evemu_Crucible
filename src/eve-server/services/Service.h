@@ -46,6 +46,34 @@ enum AccessLevel {
     eAccessLevel_Station = 4
 };
 
+class PyCallArgs
+{
+public:
+    PyCallArgs(Client* c, PyTuple* tup, PyDict* dict);
+    ~PyCallArgs();
+
+    void Dump(LogType type) const;
+
+    Client* const client;    //we do not own this
+    PyTuple* tuple;        //we own this, but it may be taken
+    std::map<std::string, PyRep*> byname;    //we own this, but elements may be taken.
+};
+
+class PyResult
+{
+public:
+    PyResult();
+    PyResult(PyRep* result);
+    PyResult(PyRep* result, PyDict* namedResult);
+    PyResult(const PyResult& oth);
+    ~PyResult();
+
+    PyResult& operator=(const PyResult& oth);
+
+    PyRep* ssResult;
+    PyDict* ssNamedResult;
+};
+
 class method_not_found {
 public:
     method_not_found() {}

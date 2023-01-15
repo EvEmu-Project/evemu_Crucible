@@ -39,7 +39,6 @@
 
 WormholeMgr::WormholeMgr()
 :  m_updateTimer(0),
-    m_services(nullptr),
     m_initalized(false)
 {
 }
@@ -49,9 +48,8 @@ WormholeMgr::~WormholeMgr()
     /* nothing to do here */
 }
 
-void WormholeMgr::Initialize(PyServiceMgr* svc) {
+void WormholeMgr::Initialize() {
     double start = GetTimeMSeconds();
-    m_services = svc;
 
     m_updateTimer.Start(300000);    // arbitrary 5m default
 
@@ -173,7 +171,7 @@ void WormholeMgr::Create(CosmicSignature& sig, uint32 exitSystemID/*=0*/, uint32
     iRef->SaveItem();
 
     // Reload entity from factory
-    WormholeSE* wSE = new WormholeSE(iRef, *(pSysMgr->GetServiceMgr()), pSysMgr);
+    WormholeSE* wSE = new WormholeSE(iRef, pSysMgr->GetServiceMgr(), pSysMgr);
     if (wSE == nullptr) {
         _log(WORMHOLE_MGR__DEBUG, "WormholeMgr::Create() - SE Create failure for %s(%u)", iRef->name(), iRef->itemID());
         return;

@@ -40,9 +40,8 @@
 #include "system/sov/SovereigntyDataMgr.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 
-ShipService::ShipService(PyServiceMgr& oldMgr, EVEServiceManager& mgr) :
-    BindableService("ship", mgr),
-    m_oldManager (oldMgr)
+ShipService::ShipService(EVEServiceManager& mgr) :
+    BindableService("ship", mgr)
 {
 }
 
@@ -56,13 +55,12 @@ BoundDispatcher *ShipService::BindObject(Client *client, PyRep* bindParameters) 
      */
     _log(CLIENT__MESSAGE, "ShipService bind request");
 
-    return new ShipBound(m_oldManager, this->GetServiceManager(), bindParameters, client->GetShip().get());
+    return new ShipBound(this->GetServiceManager(), bindParameters, client->GetShip().get());
 }
 
-ShipBound::ShipBound (PyServiceMgr& oldMgr, EVEServiceManager& mgr, PyRep* bindParameters, ShipItem* ship) :
+ShipBound::ShipBound (EVEServiceManager& mgr, PyRep* bindParameters, ShipItem* ship) :
     EVEBoundObject(mgr, bindParameters),
-    pShip(ship),
-    m_manager (oldMgr)
+    pShip(ship)
 {
     this->Add("Board", &ShipBound::Board);
     this->Add("Eject", &ShipBound::Eject);
@@ -876,7 +874,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                     throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
-                StructureSE* sSE = new StructureSE(sRef, m_manager, pSysMgr, data);
+                StructureSE* sSE = new StructureSE(sRef, this->GetServiceManager(), pSysMgr, data);
                 location.MakeRandomPointOnSphere(1500.0 + sRef->type().radius());
                 sSE->SetPosition(location);
                 sRef->SaveItem();
@@ -890,7 +888,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                     throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
-                CustomsSE* sSE = new CustomsSE(sRef, m_manager, pSysMgr, data);
+                CustomsSE* sSE = new CustomsSE(sRef, this->GetServiceManager(), pSysMgr, data);
                 location.MakeRandomPointOnSphere(1500.0 + sRef->type().radius());
                 sSE->SetPosition(location);
                 sRef->SaveItem();
@@ -906,7 +904,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                 cRef->Move(pClient->GetLocationID(), flagNone, true);
                 //flagUnanchored: for some DUMB reason, this flag, 1023 yields a PyNone when notifications
                 // are created inside InventoryItem::Move() from passing it into a PyInt() constructor...WTF?
-                DeployableSE* dSE = new DeployableSE(cRef, m_manager, pSysMgr, data);
+                DeployableSE* dSE = new DeployableSE(cRef, this->GetServiceManager(), pSysMgr, data);
                 location.MakeRandomPointOnSphere(1500.0 + cRef->type().radius());
                 dSE->SetPosition(location);
                 cRef->SaveItem();
@@ -930,7 +928,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                             throw CustomError ("Unable to spawn item of type %u.", ccRef->typeID());
 
                         ccRef->Move(pClient->GetLocationID(), flagNone, true);
-                        ContainerSE* cSE = new ContainerSE(ccRef, m_manager, pSysMgr, data);
+                        ContainerSE* cSE = new ContainerSE(ccRef, this->GetServiceManager(), pSysMgr, data);
                         location.MakeRandomPointOnSphere(500.0);
                         cSE->SetPosition(location);
                         ccRef->SaveItem();
@@ -986,7 +984,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
             if (jcRef.get() == nullptr)
                 throw CustomError ("Unable to spawn jetcan.");
             // create new container
-            ContainerSE* cSE = new ContainerSE(jcRef, m_manager, pSysMgr, data);
+            ContainerSE* cSE = new ContainerSE(jcRef, this->GetServiceManager(), pSysMgr, data);
 
             jcRef->SetMySE(cSE);
             // set anchored to avoid deletion when empty

@@ -29,6 +29,7 @@
 
 #include "services/Service.h"
 #include "services/ServiceManager.h"
+#include "cache/ObjCacheService.h"
 
 class NetService : public Service <NetService> {
 public:
@@ -41,6 +42,7 @@ protected:
 
 private:
     EVEServiceManager& m_manager;
+    ObjCacheService* m_cache;
 };
 
 #endif

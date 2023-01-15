@@ -110,6 +110,8 @@ BeyonceBound::BeyonceBound(EVEServiceManager& mgr, PyRep* bindData, Client* clie
     client->SetBeyonce(true);
     if (client->IsLogin() and !client->IsSetStateSent())
         client->SetBallPark();
+
+    this->m_bookmark = this->GetServiceManager().Lookup <BookmarkService>("bookmark");
 }
 
 bool BeyonceBound::CanClientCall(Client* client) {
@@ -257,13 +259,11 @@ PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
     uint16 typeID(0);
     uint32 itemID(0), locationID(0);
 
-    BookmarkService* pBMSvc = (BookmarkService*)(call.client->services().LookupService( "bookmark" ));
-
-    if (pBMSvc == nullptr) {
+    if (this->m_bookmark == nullptr) {
         sLog.Error( "BeyonceService::Handle_GotoBookmark()", "Attempt to access BookmarkService via (BookmarkService*)(call.client->services().LookupService(\"bookmark\")) returned NULL." );
         return PyStatic.NewNone();
     } else {
-        pBMSvc->LookupBookmark(bookmarkID->value(), itemID, typeID, locationID, x, y, z);
+        this->m_bookmark->LookupBookmark(bookmarkID->value(), itemID, typeID, locationID, x, y, z);
 
         if (typeID == 5) {
             if (call.client->GetSystemID() != locationID) {
@@ -398,12 +398,11 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
         uint32 locationID(0);
         uint32 bookmarkID(PyRep::IntegerValueU32(call.tuple->GetItem(1)));
 
-        BookmarkService* bkSrvc = (BookmarkService *)(call.client->services().LookupService( "bookmark" ));
-        if (bkSrvc == nullptr) {
+        if (this->m_bookmark == nullptr) {
             sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Attempt to access BookmarkService returned NULL." );
             return PyStatic.NewNone();
         }
-        bkSrvc->LookupBookmark(bookmarkID, toID, typeID, locationID, x, y, z);
+        this->m_bookmark->LookupBookmark(bookmarkID, toID, typeID, locationID, x, y, z);
 
         if ( typeID == 5 ) {
             if (call.client->GetSystemID() != locationID) {

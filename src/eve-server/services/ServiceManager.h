@@ -81,6 +81,11 @@ public:
      * @brief Dispatches a call to the requested bound service and method and returns the result
      */
     PyResult Dispatch(const BoundID& service, const std::string& method, PyCallArgs& args);
+    
+    /**
+     * @brief Destroys the specified bound object
+     */
+    void ClearBoundObject(const BoundID& service);
 
     /** @returns int The nodeID for the server */
     NodeID GetNodeID() { return this->mNodeId; }

@@ -18,7 +18,7 @@
 #include "system/SystemManager.h"
 
 
-Sentry::Sentry(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+Sentry::Sentry(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : ObjectSystemEntity(self, services, system)
 {
     m_allyID = data.allianceID;

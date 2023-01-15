@@ -1185,7 +1185,7 @@ void Client::SelfEveMail(const char* subject, const char* fmt, ...)
 
     va_end(args);
 
-    m_services.lsc_service->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
+    this->m_lsc->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
     SafeFree(str);
 }
 

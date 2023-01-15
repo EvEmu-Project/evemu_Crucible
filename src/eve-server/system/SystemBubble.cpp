@@ -908,7 +908,7 @@ void SystemBubble::MarkBubble(const GPoint& position, std::string& name, std::st
 
     // create SE for item
     FactionData jetcanData = FactionData();
-    ContainerSE* cSE = new ContainerSE( cRef, *(m_system->GetServiceMgr()), m_system, jetcanData);
+    ContainerSE* cSE = new ContainerSE( cRef, m_system->GetServiceMgr(), m_system, jetcanData);
     if (cSE == nullptr) {
         _log(DESTINY__WARNING, "MarkBubble() could not create SE for %s (%s)", name.c_str(), desc.c_str());
         return;

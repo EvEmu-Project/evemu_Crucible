@@ -44,7 +44,7 @@ class EVENotificationStream;
 class SystemManager;
 class ProbeSE;
 class PyTuple;
-class PyServiceMgr;
+class EVEServiceManager;
 class SystemEntity;
 class TargetManager;
 
@@ -83,7 +83,7 @@ public:
     void RemovePlayer(Client* pClient);
     void AddNPC()                                       { ++m_npcs; }
     void RemoveNPC()                                    { --m_npcs; }
-    void SetService(PyServiceMgr* svc)                  { m_services = svc; }
+    void SetService(EVEServiceManager* svc)             { m_services = svc; }
 
     // updated to use station guest list instead of full clientlist loop
     void GetStationGuestList(uint32 stationID, std::vector<Client* > &result) const;
@@ -166,7 +166,7 @@ public:
 
 
 protected:
-    PyServiceMgr* m_services;    //we do not own this, only used for booting systems.
+    EVEServiceManager* m_services;    //we do not own this, only used for booting systems.
 
     //Mutex mMutex;
 

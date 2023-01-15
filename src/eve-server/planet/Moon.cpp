@@ -52,7 +52,7 @@ Moon::Moon()
 }
 
 
-MoonSE::MoonSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+MoonSE::MoonSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : StaticSystemEntity(self, services, system),
 m_towerSE(nullptr)
 {
