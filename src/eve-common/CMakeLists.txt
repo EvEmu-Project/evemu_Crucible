@@ -117,6 +117,7 @@ SET( packets_INCLUDE
 SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/AccountPkts.cpp"
      "${TARGET_PACKETS_DIR}/packets/Bookmarks.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Calendar.cpp"
      "${TARGET_PACKETS_DIR}/packets/Character.cpp"
      "${TARGET_PACKETS_DIR}/packets/CorporationPkts.cpp"
      "${TARGET_PACKETS_DIR}/packets/Crypto.cpp"
@@ -143,6 +144,7 @@ SET( packets_SOURCE
 SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/AccountPkts.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Bookmarks.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Calendar.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Character.xmlp"
      "${TARGET_SOURCE_DIR}/packets/CorporationPkts.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Crypto.xmlp"

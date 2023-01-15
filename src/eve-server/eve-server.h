@@ -68,6 +68,7 @@
 //  #include "packets/Bookmarks.h"
 //  #include "packets/CorporationPkts.h"
 #include "packets/Crypto.h"
+#include "packets/Calendar.h"
 #include "packets/Character.h"
 #include "packets/Destiny.h"
 #include "packets/DogmaIM.h"

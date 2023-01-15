@@ -335,7 +335,7 @@ PyResult RepairServiceBound::GetDamageReports(PyCallArgs &call, PyList* itemIDs)
         standing = pClient->GetChar()->GetStandingModified(sRef->ownerID(), pClient->GetCharacterID());
     }
 
-    for (auto cur : args.ints) {
+    for (auto cur : ints) {
         RepairListRsp rlr;
             rlr.discount       = "0%";  // not sure....seen 0% and 100% in packets
             rlr.serviceCharge  = "0%";  // not sure....seen 0% in packets
