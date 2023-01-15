@@ -61,7 +61,17 @@ PyResult EVEServiceManager::Dispatch(const std::string& service, const std::stri
     if (it == this->mServices.end())
         throw service_not_found(service);
 
-    return (*it).second->Dispatch(method, args);
+    // check access levels
+    ClientSession* session = args.client->GetSession();
+
+    if (it->second->GetAccessLevel() == eAccessLevel_Location && session->HasValue ("locationid") == false)
+        throw CustomError ("You're not allowed to access this service");
+    else if (it->second->GetAccessLevel() == eAccessLevel_SolarSystem && session->HasValue ("solarsystemid") == false)
+        throw CustomError ("You're not allowed to access this service");
+    else if (it->second->GetAccessLevel() == eAccessLevel_Station && session->HasValue ("stationid") == false)
+        throw CustomError ("You're not allowed to access this service");
+
+    return it->second->Dispatch(method, args);
 }
 
 PyResult EVEServiceManager::Dispatch(const BoundID& service, const std::string& method, PyCallArgs& args) {

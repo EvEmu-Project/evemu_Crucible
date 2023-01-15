@@ -32,6 +32,7 @@
 #include "services/Callable.h"
 #include "services/Service.h"
 #include "services/BoundService.h"
+#include "Client.h"
 
 typedef uint32_t NodeID;
 

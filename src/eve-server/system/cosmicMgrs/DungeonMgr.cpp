@@ -547,7 +547,7 @@ bool DungeonMgr::MakeDungeon(CosmicSignature& sig)
         case Rated: {  // 10
             //sig.dungeonType = 9;
         };
-        case Mission: {   // 1
+        case Dungeon::Type::Mission: {   // 1
             // not sure how im gonna do this one yet...make it unrated for now
             sig.dungeonType = 8;
         };
@@ -671,7 +671,7 @@ void DungeonMgr::CreateDeco(uint32 templateID, CosmicSignature& sig)
 
     using namespace Dungeon::Type;
     switch (sig.dungeonType) {
-        case Mission: {    //1
+        case Dungeon::Type::Mission: {    //1
         } break;
         case Gravimetric: {    //2
             groupVec.push_back(130);    //named roids
