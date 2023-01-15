@@ -30,13 +30,13 @@
 #include "./eve-common.h"
 
 #include "inventory/InventoryDB.h"
+#include "inventory/InventoryItem.h"
 
 typedef std::map<uint16, EvilNumber>    AttrMap;
 typedef AttrMap::iterator               AttrMapItr;
 typedef AttrMap::const_iterator         AttrMapConstItr;
 
 class PyTuple;
-class InventoryItem;
 
 class AttributeMap
 {

@@ -221,6 +221,9 @@ protected:
 
     /** Receive buffer. */
     Buffer* mRecvBuf;
+
+    /** Thread */
+    std::thread* mThread;
 };
 
 #endif /* !__NETWORK__TCP_CONNECTION_H__INCL__ */

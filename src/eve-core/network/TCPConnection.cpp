@@ -58,7 +58,7 @@ TCPConnection::TCPConnection(Socket* socket, uint32 mrIP, uint16 mrPort)
 
 TCPConnection::~TCPConnection()
 {
-    _log(THREAD__WARNING, "Destroying TCPConnection for thread 0x%X", pthread_self());
+    _log(THREAD__WARNING, "Destroying TCPConnection for thread 0x%X", std::this_thread::get_id());
     // Make sure we are disconnected
     Disconnect();
     // Wait for loop to stop
@@ -120,7 +120,8 @@ bool TCPConnection::Connect(uint32 rIP, uint16 rPort, char* errbuf)
 
     int bufsize = 64 * 1024; // 64kbyte recieve buffer, up from default of 8k
     mSock->setopt(SOL_SOCKET, SO_RCVBUF, (char*) &bufsize, sizeof(bufsize));
-    mSock->fcntl(F_SETFL, O_NONBLOCK);
+    //mSock->fcntl(F_SETFL, O_NONBLOCK);
+    mSock->setblocking(false);
     mrIP = rIP;
     mrPort = rPort;
     mSockState = STATE_CONNECTED;
@@ -194,7 +195,7 @@ void TCPConnection::StartLoop()
      * check with sThread.XXXX() for avalible thread from current thread pool.
      * if one is avalible, it will be used, and if not, sThread will create a new one
      */
-    sThread.CreateThread(TCPConnectionLoop, this);
+    mThread = sThread.CreateThread(TCPConnectionLoop, this);
     /*   ORIGINAL CODE HERE
     // Spawn new thread
     pthread_t thread;
@@ -276,7 +277,8 @@ bool TCPConnection::SendData(char* errbuf)
         if (status == SOCKET_ERROR) {
             if (errno == EWOULDBLOCK) {
                 status = 0;
-            } else {
+            }
+            else {
                 if(errbuf)
                     snprintf(errbuf, TCPCONN_ERRBUF_SIZE, "%s", strerror(errno));
                 SafeDelete(buf);
@@ -326,8 +328,14 @@ bool TCPConnection::RecvData(char* errbuf)
 
         status = mSock->recv(&(*mRecvBuf)[ 0 ], (uint)mRecvBuf->size(), MSG_DONTWAIT);
         if (status == SOCKET_ERROR) {
+#ifdef HAVE_WINSOCK2_H
+            int errcode = WSAGetLastError();
+            if (errcode == WSAEWOULDBLOCK)
+                return true;
+#else
             if (errno == EWOULDBLOCK)
                 return true;
+#endif
             if (errbuf)
                 snprintf(errbuf, TCPCONN_ERRBUF_SIZE, "%s", strerror(errno));
             return false;
@@ -383,7 +391,7 @@ void* TCPConnection::TCPConnectionLoop(void* arg)
     assert(tcpc != nullptr);
 
     tcpc->TCPConnectionLoop();
-    sThread.RemoveThread(pthread_self());
+    sThread.RemoveThread(tcpc->mThread);
 
     return nullptr;
 }

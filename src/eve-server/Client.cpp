@@ -197,7 +197,8 @@ Client::~Client() {
 
 bool Client::ProcessNet()
 {
-    if (GetState() != TCPConnection::STATE_CONNECTED)
+    state_t state = GetState();
+    if (state != TCPConnection::STATE_CONNECTED)
         return false;
 
     PyPacket *p(nullptr);
@@ -1759,7 +1760,7 @@ bool Client::IsMissionComplete(MissionOffer& data)
         } break;
         case Mission::Type::Cosmos: {
         } break;
-        case Mission::Type::Arc: {
+        case Mission::Type::EpicArc: {
         } break;
         case Mission::Type::Anomic: {
         } break;

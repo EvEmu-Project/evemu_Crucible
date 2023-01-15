@@ -52,7 +52,7 @@ PyResult Command_savedungeon(Client* pClient, CommandDB* db, PyServiceMgr* servi
         std::ostringstream str; // for 'help' printing
         str << ".savedungeon [groupID] [group name/description]<br>"; //55
         int size = 55;
-        char reply[size];
+        char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
         snprintf(reply, size, str.str().c_str());
         pClient->SendInfoModalMsg(reply);
         return nullptr;

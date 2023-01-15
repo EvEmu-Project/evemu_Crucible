@@ -52,7 +52,7 @@ PyResult Command_siglist(Client* pClient, CommandDB* db, PyServiceMgr* services,
 
     int size(120);
     size += count * 120;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), count, pClient->SystemMgr()->GetName(), pClient->SystemMgr()->GetID());
 
     pClient->SendInfoModalMsg(reply);
@@ -206,7 +206,7 @@ PyResult Command_list(Client* pClient, CommandDB* db, PyServiceMgr* services, co
     int count = into.size();
     int size = count * 90;
     size += 130;    // header
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), pSys->GetName(), pSys->GetID(), beltCount, bubbles, roidSpawns, ratSpawns, npcs, players);
 
     pClient->SendInfoModalMsg(reply);
@@ -275,7 +275,7 @@ PyResult Command_bubblelist(Client* pClient, CommandDB* db, PyServiceMgr* servic
     int count = into.size();
     int size = count * 80;
     size += 90;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), bubble, dynamics, npcs, players);
 
     pClient->SendInfoModalMsg(reply);
@@ -433,7 +433,7 @@ PyResult Command_beltlist(Client* pClient, CommandDB* db, PyServiceMgr* services
     int count = invMap.size();
     int size = count * 60;
     size += 50;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), beltID, count);
 
     pClient->SendInfoModalMsg(reply);
@@ -498,7 +498,7 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* service
     int count = invMap.size();
     int size = count * 90;
     size += 70;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), item->name(), inventoryID, inv, item, count);
 
     pClient->SendInfoModalMsg(reply);
@@ -529,7 +529,7 @@ PyResult Command_shipinventory(Client* pClient, CommandDB* db, PyServiceMgr* ser
     int count = invMap.size();
     int size = count * 60;
     size += 90;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), ship->name(), inventoryID, inv, ship.get(), count);
 
     pClient->SendInfoModalMsg(reply);
@@ -569,7 +569,7 @@ PyResult Command_skilllist(Client* pClient, CommandDB* db, PyServiceMgr* service
     int count = invMap.size();
     int size = count * 80;
     size += 80;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), inventoryID, inv, pClient->GetChar()->name(), count);
 
     pClient->SendInfoModalMsg(reply);
@@ -610,7 +610,7 @@ PyResult Command_attrlist(Client* pClient, CommandDB* db, PyServiceMgr* services
     int count = attrMap.size();
     int size = count * 60;
     size += 70;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), iRef->name(), itemID, count);
 
     pClient->SendInfoModalMsg(reply);
@@ -660,7 +660,7 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* servi
     size += 170;    // %i
     size += 140;    // %l*
     size += 50;     // %s
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(),
              pClient->GetCharacterID(), pClient->GetName(), pClient->GetShipID(), pClient->GetCloneStationID(), pClient->GetClientID(), pClient->GetUserID(),
              pClient->GetSession()->GetSessionID(), pClient->GetLocationID(), pClient->GetStationID(), pClient->GetStationID2(), pClient->GetSystemID(), pClient->GetConstellationID(),
@@ -702,7 +702,7 @@ PyResult Command_targlist(Client* pClient, CommandDB* db, PyServiceMgr* services
     size += 30;    // text
     size += length;
 
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), pClient->GetName(), pClient->GetShipID(), count, into.c_str());
 
     pClient->SendInfoModalMsg(reply);
@@ -760,7 +760,7 @@ PyResult Command_bubbletrack(Client* pClient, CommandDB* db, PyServiceMgr* servi
             str << "typical use is .bubbletrack with no args to mark current bubble.<br>";  //70
             str << "'system' and 'universe' are used to show bubbles using solarsystem map from scan window (using '.showall').<br>";  //110
             int size = 520;
-            char reply[size];
+            char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
             snprintf(reply, size, str.str().c_str());
             pClient->SendInfoModalMsg(reply);
             return nullptr;
@@ -858,7 +858,7 @@ PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* servic
     int size = 77;  // header
     size += length;
 
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), fleetID, into.c_str());
 
     pClient->SendInfoModalMsg(reply);
@@ -907,7 +907,7 @@ PyResult Command_getposition(Client* pClient, CommandDB* db, PyServiceMgr* servi
     str << "Angle for current position is " << angle << "<br>";
     str << "Az: " << azimuth << " Ele: " << elevation;
     int size = 70;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str());
 
     pClient->SendInfoModalMsg(reply);
@@ -933,7 +933,7 @@ PyResult Command_players(Client* pClient, CommandDB* db, PyServiceMgr* services,
 
     int size = cVec.size() * 100;
     size += 80;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str());
 
     pClient->SendInfoModalMsg(reply);
@@ -1108,7 +1108,7 @@ PyResult Command_cargo(Client* pClient, CommandDB* db, PyServiceMgr* services, c
     int size = count * 100;
     size += 150;
     size += corp;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), shipRef->name(), shipRef->itemID(), count);
 
     pClient->SendInfoModalMsg(reply);
@@ -1138,7 +1138,7 @@ PyResult Command_bubblewarp(Client* pClient, CommandDB* db, PyServiceMgr* servic
     pClient->GetShipSE()->DestinyMgr()->WarpTo(pBubble->GetCenter());
 
     int size(50);
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, "Ship Initalized warp to bubbleID %u", bubbleID);
 
     pClient->SendInfoModalMsg(reply);
@@ -1151,7 +1151,7 @@ PyResult Command_runtest(Client* pClient, CommandDB* db, PyServiceMgr* services,
         throw CustomError ("You're not in space.");
 
     int size(30);
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, "Running posTest()");
 
     testing::posTest(pClient);
@@ -1174,7 +1174,7 @@ PyResult Command_bindList(Client* pClient, CommandDB* db, PyServiceMgr* services
     int count = vec.size();
     int size = count * 100;
     size += 45;
-    char reply[size];
+    char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), count);
 
     pClient->SendInfoModalMsg(reply);

@@ -42,6 +42,8 @@ class Inventory;
 class ModuleItem;
 class ShipItem;
 
+struct ModifierContainerBase {};
+
 /*
  * NOTE:
  * this object system should somehow be merged with the SystemEntity stuff
@@ -281,6 +283,8 @@ private:
     ItemData m_data;
     ItemType m_type;
 
+    ModifierContainerBase* m_modifierContainer;
+
 /* new effects processing system */
 public:
     /*  this checks this item's required skills against callers' current skills.
@@ -297,8 +301,7 @@ public:
     //  if itemType requires skill(skillID) return true else return false
     bool HasReqSkill(const uint16 skillID)              { return m_type.HasReqSkill(skillID); }
 
-    // gotta make this public for now...
-    std::multimap<int8, fxData> m_modifiers;     // k,v of math, data<math, src, targLoc, targAttr, srcAttr, grpID, typeID>, ordered by key (mathMethod)
+    std::multimap<int8, fxData>& GetModifiers();
 
 
 /*  new attribute system */

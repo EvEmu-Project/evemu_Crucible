@@ -204,7 +204,7 @@ void Inventory::AddItem(InventoryItemRef iRef) {
         return;
 
     std::map<uint32, InventoryItemRef>::iterator itr = mContents.find(iRef->itemID());
-    std::pair <std::_Rb_tree_iterator <std::pair <const uint32, InventoryItemRef > >, bool > test;
+    std::pair <std::map<uint32, InventoryItemRef>::iterator, bool > test;
     if (itr == mContents.end())
         test = mContents.emplace(iRef->itemID(), iRef);
 

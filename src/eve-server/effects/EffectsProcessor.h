@@ -14,6 +14,7 @@
 
 #include "effects/EffectsDataMgr.h"
 #include "inventory/InventoryItem.h"
+#include "effects/fxData.h"
 
 class Character;
 class GenericModule;

@@ -199,7 +199,7 @@ PyResult SkillMgrBound::Handle_InjectSkillIntoBrain(PyCallArgs &call)
 
         int size = skills.size() * 120;
         size += 100;    // for header, including char name
-        char reply[size];
+        char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
         snprintf(reply, size, str.str().c_str(), skills.size(), call.client->GetName());
 
         call.client->SendInfoModalMsg(reply);

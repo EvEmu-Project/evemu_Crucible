@@ -32,6 +32,20 @@
 /*************************************************************************/
 /* NewLog                                                                */
 /*************************************************************************/
+#ifdef HAVE_WINDOWS_H
+const WORD NewLog::COLOR_TABLE[COLOR_COUNT] =
+{
+    0, // COLOR_DEFAULT
+    0, // COLOR_BLACK
+    FOREGROUND_RED, // COLOR_RED
+    FOREGROUND_GREEN, // COLOR_GREEN
+    FOREGROUND_RED | FOREGROUND_GREEN, // COLOR_YELLOW
+    FOREGROUND_BLUE, // COLOR_BLUE
+    FOREGROUND_RED | FOREGROUND_BLUE, // COLOR_MAGENTA
+    FOREGROUND_GREEN | FOREGROUND_BLUE, // COLOR_CYAN
+    FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE  // COLOR_WHITE
+};
+#else
 const char* const NewLog::COLOR_TABLE[ COLOR_COUNT ] =
 {
     "\033[" "00"    "m", // COLOR_DEFAULT
@@ -44,6 +58,7 @@ const char* const NewLog::COLOR_TABLE[ COLOR_COUNT ] =
     "\033[" "36;01" "m", // COLOR_CYAN
     "\033[" "37;01" "m"  // COLOR_WHITE
 };
+#endif
 
 NewLog::NewLog()
 : mLogfile( NULL ),

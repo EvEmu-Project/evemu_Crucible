@@ -35,7 +35,8 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/ServiceDB.h"
      "${TARGET_INCLUDE_DIR}/StaticDataMgr.h"
      "${TARGET_INCLUDE_DIR}/StatisticMgr.h"
-     "${TARGET_INCLUDE_DIR}/DBCleaner.h")
+     "${TARGET_INCLUDE_DIR}/DBCleaner.h"
+     "${TARGET_INCLUDE_DIR}/Allocators.h")
 SET( SOURCE
      "${TARGET_SOURCE_DIR}/eve-server.cpp"
      "${TARGET_SOURCE_DIR}/Client.cpp"
@@ -251,7 +252,8 @@ SET( effects_INCLUDE
      #"${TARGET_INCLUDE_DIR}/effects/EffectsActions.h"
      "${TARGET_INCLUDE_DIR}/effects/EffectsData.h"
      "${TARGET_INCLUDE_DIR}/effects/EffectsDataMgr.h"
-     "${TARGET_INCLUDE_DIR}/effects/EffectsProcessor.h")
+     "${TARGET_INCLUDE_DIR}/effects/EffectsProcessor.h"
+     "${TARGET_INCLUDE_DIR}/effects/fxData.h")
 SET( effects_SOURCE
      #"${TARGET_SOURCE_DIR}/effects/EffectsActions.cpp"
      "${TARGET_SOURCE_DIR}/effects/EffectsDataMgr.cpp"
@@ -753,9 +755,8 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${test_INCLUDE}           ${test_SOURCE}
                 )
 
-TARGET_BUILD_PCH( "${TARGET_NAME}"
-                  "${TARGET_INCLUDE_DIR}/eve-server.h"
-                  "${TARGET_SOURCE_DIR}/eve-server.cpp" )
+target_precompile_headers( "${TARGET_NAME}" PUBLIC
+                  "${TARGET_INCLUDE_DIR}/eve-server.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${eve-common_INCLUDE_DIRS}
                             "${TARGET_INCLUDE_DIR}" )
