@@ -26,11 +26,10 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
 #include "config/ConfigService.h"
 
 ConfigService::ConfigService() :
-    Service("config")
+    Service("config", eAccessLevel_LocationPreferred)
 {
     this->Add("GetMultiOwnersEx", &ConfigService::GetMultiOwnersEx);
     this->Add("GetMultiLocationsEx", &ConfigService::GetMultiLocationsEx);

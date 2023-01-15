@@ -89,3 +89,7 @@ void EVEServiceManager::ClearBoundObject(const BoundID& service) {
     // finally remove it from the list
     this->mBound.erase(it);
 }
+
+const EVEServiceManager::ServicesMap& EVEServiceManager::GetServices() const {
+    return this->mServices;
+}

@@ -48,6 +48,9 @@ public:
 
 class EVEServiceManager {
 public:
+    typedef std::map<std::string, Dispatcher*> ServicesMap;
+    typedef std::map<BoundID, BoundDispatcher*> BoundServicesMap;
+
     EVEServiceManager(NodeID nodeId);
 
     /**
@@ -87,12 +90,17 @@ public:
      */
     void ClearBoundObject(const BoundID& service);
 
+    /**
+     * @brief Gives access to the service list
+     */
+    const ServicesMap& GetServices() const;
+
     /** @returns int The nodeID for the server */
     NodeID GetNodeID() { return this->mNodeId; }
 
 private:
-    std::map <std::string, Dispatcher*> mServices;
-    std::map <BoundID, BoundDispatcher*> mBound;
+    ServicesMap mServices;
+    BoundServicesMap mBound;
     
     BoundID mLastBoundId;
     NodeID mNodeId;

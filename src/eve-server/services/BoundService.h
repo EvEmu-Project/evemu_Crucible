@@ -71,8 +71,8 @@ protected:
 template<class T>
 class BindableService : public Service<T> {
 public:
-    BindableService(const std::string& name, EVEServiceManager& mgr) :
-        Service <T>(name),
+    BindableService(const std::string& name, EVEServiceManager& mgr, AccessLevel level = eAccessLevel_None) :
+        Service <T>(name, level),
         mManager(mgr)
     {
         this->Add("MachoResolveObject", &BindableService<T>::MachoResolveObject);

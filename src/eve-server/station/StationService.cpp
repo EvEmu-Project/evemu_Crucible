@@ -30,7 +30,7 @@
 #include "station/StationService.h"
 
 StationService::StationService() :
-    Service("station")
+    Service("station", eAccessLevel_Location)
 {
     this->Add("GetSolarSystem", &StationService::GetSolarSystem);
     this->Add("GetGuests", &StationService::GetGuests);

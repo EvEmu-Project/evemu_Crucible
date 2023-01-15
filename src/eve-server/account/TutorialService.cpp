@@ -29,7 +29,7 @@
 #include "account/TutorialService.h"
 
 TutorialService::TutorialService() :
-    Service("tutorialSvc")
+    Service("tutorialSvc", eAccessLevel_Station)
 {
     this->Add("GetTutorials", &TutorialService::GetTutorials);
     this->Add("GetTutorialInfo", &TutorialService::GetTutorialInfo);

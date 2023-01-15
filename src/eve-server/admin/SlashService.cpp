@@ -31,7 +31,7 @@
 #include "admin/SlashService.h"
 
 SlashService::SlashService(CommandDispatcher *cd) :
-    Service("slash"),
+    Service("slash", eAccessLevel_Station),
     m_commandDispatch(cd)
 {
     this->Add("SlashCmd", &SlashService::SlashCmd);

@@ -50,7 +50,7 @@
  */
 
 AccountService::AccountService() :
-    Service("account")
+    Service("account", eAccessLevel_Station)
 {
     this->Add("GetCashBalance", static_cast <PyResult (AccountService::*)(PyCallArgs &, std::optional<PyBool*>, std::optional<PyInt*>)> (&AccountService::GetCashBalance));
     this->Add("GetCashBalance", static_cast <PyResult(AccountService::*)(PyCallArgs &, std::optional<PyInt*>, std::optional<PyInt*>)> (&AccountService::GetCashBalance));

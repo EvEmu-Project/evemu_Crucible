@@ -41,13 +41,11 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
 #include "system/KeeperService.h"
 #include "system/SystemManager.h"
 
 KeeperService::KeeperService(EVEServiceManager& mgr) :
-    Service("keeper"),
+    Service("keeper", eAccessLevel_SolarSystem),
     m_manager (mgr)
 {
     this->Add("GetLevelEditor", &KeeperService::GetLevelEditor);

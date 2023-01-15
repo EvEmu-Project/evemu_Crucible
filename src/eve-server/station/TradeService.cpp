@@ -502,7 +502,7 @@ void TradeBound::ExchangeItems(Client* pClient, Client* pOther, TradeSession* pT
 }
 
 TradeService::TradeService(EVEServiceManager& mgr)
-    : BindableService("trademgr", mgr)
+    : BindableService("trademgr", mgr, eAccessLevel_Station)
 {
     m_SessionID = minTradeCont;
 

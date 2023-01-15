@@ -28,7 +28,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "PyServiceCD.h"
 #include "admin/CommandDispatcher.h"
 #include "admin/SlashService.h"
 #include "chat/LSCService.h"
@@ -57,7 +56,7 @@ const int32 LSCService::BASE_CHANNEL_ID = 2100000000;      //trial accts are spa
 const uint32 LSCService::MAX_CHANNEL_ID = 0xFFFFFFFF;
 
 LSCService::LSCService(EVEServiceManager &mgr, CommandDispatcher* cd) :
-    Service("LSC"),
+    Service("LSC", eAccessLevel_Location),
     m_commandDispatch(cd)
 {
     this->m_slash = mgr.Lookup <SlashService>("slash");
