@@ -28,7 +28,7 @@
 //#include "../../eve-common/EVE_Skills.h"
 
 #include "EntityList.h"
-#include "PyServiceCD.h"
+
 #include "account/AccountService.h"
 #include "cache/ObjCacheService.h"
 #include "character/CharUnboundMgrService.h"

@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "mail/NotificationMgrService.h"
 
 // this service is part of mail and used with the 'notifications' tab of mail window

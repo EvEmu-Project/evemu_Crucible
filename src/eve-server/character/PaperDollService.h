@@ -28,6 +28,8 @@
 
 #include "services/Service.h"
 #include "character/PaperDollDB.h"
+#include "Client.h"
+
 /**
  * \class PaperDollService
  *

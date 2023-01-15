@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "admin/DevToolsProviderService.h"
 
 DevToolsProviderService::DevToolsProviderService() :

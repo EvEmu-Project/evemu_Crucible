@@ -12,7 +12,7 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "system/cosmicMgrs/CivilianMgr.h"
 
 /*  this class will be in charge of all non-combatant npcs ingame, hereinafter refered to as NC.

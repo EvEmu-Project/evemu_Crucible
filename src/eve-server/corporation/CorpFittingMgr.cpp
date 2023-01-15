@@ -9,7 +9,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "corporation/CorpFittingMgr.h"
 
 CorpFittingMgr::CorpFittingMgr() :

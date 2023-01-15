@@ -26,8 +26,8 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "cache/ObjCacheService.h"
 #include "corporation/CorpRegistryService.h"
 #include "corporation/CorpRegistryBound.h"

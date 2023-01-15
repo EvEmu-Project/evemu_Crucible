@@ -27,7 +27,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "alliance/AllianceRegistry.h"
 
 /*

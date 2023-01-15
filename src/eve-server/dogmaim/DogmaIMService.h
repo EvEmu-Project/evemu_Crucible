@@ -28,6 +28,7 @@
 #define __DOGMAIM_SERVICE_H_INCL__
 
 #include "services/BoundService.h"
+#include "Client.h"
 
 class PyRep;
 

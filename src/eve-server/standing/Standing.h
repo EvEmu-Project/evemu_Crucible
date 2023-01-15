@@ -29,9 +29,12 @@
 #define __STANDING2_SERVICE_H_INCL__
 
 #include "services/Service.h"
-#include "PyServiceCD.h"
+
 #include "cache/ObjCacheService.h"
 #include "StandingMgr.h"
+#include "inventory/ItemFactory.h"
+#include "character/Character.h"
+#include "inventory/ItemRef.h"
 
 class Standing : public Service <Standing>
 {

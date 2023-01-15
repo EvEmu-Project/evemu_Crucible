@@ -44,8 +44,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "packets/Planet.h"
 #include "planet/Colony.h"
 #include "planet/Planet.h"

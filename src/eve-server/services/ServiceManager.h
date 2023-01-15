@@ -29,12 +29,11 @@
 #include <map>
 #include <string>
 
-class EVEServiceManager;
+#include "services/Callable.h"
+#include "services/Service.h"
+#include "services/BoundService.h"
 
 typedef uint32_t NodeID;
-
-#include "Service.h"
-#include "BoundService.h"
 
 class service_not_found {
 public:

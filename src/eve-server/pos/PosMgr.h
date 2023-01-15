@@ -12,6 +12,7 @@
 
 #include "services/BoundService.h"
 #include "pos/PosMgrDB.h"
+#include "Client.h"
 
 class PosMgr : public BindableService <PosMgr>
 {

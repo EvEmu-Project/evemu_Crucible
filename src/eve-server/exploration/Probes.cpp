@@ -11,7 +11,7 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyServiceMgr.h"
+
 #include "exploration/Probes.h"
 #include "exploration/Scan.h"
 #include "inventory/AttributeEnum.h"

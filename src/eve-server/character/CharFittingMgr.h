@@ -20,12 +20,6 @@ protected:
     PyResult DeleteFitting(PyCallArgs& call, PyInt* ownerID, PyInt* fittingID);
     PyResult UpdateNameAndDescription(PyCallArgs& call, PyInt* fittingID, PyInt* ownerID, PyWString* name, PyWString* description);
 
-    PyCallable_DECL_CALL(GetFittings);
-    PyCallable_DECL_CALL(SaveFitting);
-    PyCallable_DECL_CALL(SaveManyFittings);
-    PyCallable_DECL_CALL(DeleteFitting);
-    PyCallable_DECL_CALL(UpdateNameAndDescription);
-
 };
 
 #endif  // EVE_CHARACTER_FITTING_MGR_H

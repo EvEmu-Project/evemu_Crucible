@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "cache/ObjCacheService.h"
 #include "character/CertificateMgrService.h"
 

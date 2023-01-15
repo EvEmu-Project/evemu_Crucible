@@ -27,6 +27,9 @@
 #define __WAR_REGISTRY_SERVICE__H__INCL__
 
 #include "services/BoundService.h"
+#include "Client.h"
+
+class EVEServiceManager;
 
 class WarRegistryService : public BindableService<WarRegistryService> {
 public:

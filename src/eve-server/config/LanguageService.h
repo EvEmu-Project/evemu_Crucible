@@ -25,9 +25,11 @@
 #ifndef __LANGUAGE_SERVICE_H_INCL__
 #define __LANGUAGE_SERVICE_H_INCL__
 
-#include "PyService.h"
+
 #include "config/ConfigDB.h"
 #include "packets/Language.h"
+#include "services/Service.h"
+#include "Client.h"
 
 class LanguageService : public Service<LanguageService>
 {

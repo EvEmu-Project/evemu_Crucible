@@ -10,8 +10,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "system/WorldSpaceServer.h"
 
 WorldSpaceServer::WorldSpaceServer() :

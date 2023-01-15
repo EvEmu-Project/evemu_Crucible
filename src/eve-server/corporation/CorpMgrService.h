@@ -29,6 +29,7 @@
 
 #include "corporation/CorporationDB.h"
 #include "services/Service.h"
+#include "Client.h"
 
 class CorpMgrService : public Service <CorpMgrService>
 {

@@ -26,7 +26,7 @@
 
 // this class isnt a singleton, but is instantiated once on server start.
 
-#include "PyServiceCD.h"
+
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "cache/ObjCacheService.h"

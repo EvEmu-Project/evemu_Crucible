@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "corporation/CorporationService.h"

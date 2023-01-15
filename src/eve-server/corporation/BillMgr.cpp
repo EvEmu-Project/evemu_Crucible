@@ -26,7 +26,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "StaticDataMgr.h"
 #include "cache/ObjCacheService.h"
 #include "corporation/BillMgr.h"

@@ -29,6 +29,7 @@
 #define __BILLMGR_SERVICE_H_INCL__
 
 #include "services/Service.h"
+#include "Client.h"
 #include "corporation/CorporationDB.h"
 
 class BillMgr : public Service <BillMgr>

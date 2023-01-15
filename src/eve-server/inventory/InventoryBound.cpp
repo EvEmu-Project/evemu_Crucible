@@ -27,7 +27,7 @@
 #include "eve-server.h"
 #include "../../eve-common/EVE_Station.h"
 
-#include "PyServiceCD.h"
+
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
 #include "inventory/InventoryBound.h"

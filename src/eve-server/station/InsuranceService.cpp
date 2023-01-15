@@ -26,8 +26,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "Client.h"
 #include "account/AccountService.h"
 #include "chat/LSCService.h"

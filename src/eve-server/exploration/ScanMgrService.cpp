@@ -26,8 +26,8 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "Probes.h"
 #include "exploration/ScanMgrService.h"
 #include "system/DestinyManager.h"

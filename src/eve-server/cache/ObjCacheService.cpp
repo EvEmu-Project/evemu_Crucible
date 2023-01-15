@@ -30,7 +30,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+#include "EVEServerConfig.h"
 #include "cache/ObjCacheService.h"
 
 const char *const ObjCacheService::LoginCachableObjects[] = {

@@ -14,7 +14,7 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyService.h"
+
 #include "account/AccountService.h"
 #include "inventory/ItemType.h"
 #include "inventory/InventoryItem.h"

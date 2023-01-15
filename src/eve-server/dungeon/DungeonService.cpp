@@ -41,7 +41,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "dungeon/DungeonService.h"
 #include "dungeon/DungeonDB.h"
 

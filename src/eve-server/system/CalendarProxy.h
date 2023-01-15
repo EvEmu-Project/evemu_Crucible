@@ -27,6 +27,7 @@
 #define EVEMU_SYSTEM_CALENDARPROXY_H__
 
 #include "services/Service.h"
+#include "Client.h"
 
 class CalendarProxy : public Service <CalendarProxy>
 {

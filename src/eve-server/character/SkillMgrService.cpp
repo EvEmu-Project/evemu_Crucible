@@ -26,7 +26,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "character/SkillMgrService.h"
 
 SkillMgrService::SkillMgrService(EVEServiceManager& mgr)

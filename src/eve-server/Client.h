@@ -44,6 +44,7 @@
 #include "../eve-common/EVE_Missions.h"
 #include "../eve-common/EVE_Player.h"
 
+#include "chat/LSCService.h"
 #include "services/ServiceManager.h"
 
 class CryptoChallengePacket;

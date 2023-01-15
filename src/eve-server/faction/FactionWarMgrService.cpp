@@ -26,7 +26,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "cache/ObjCacheService.h"
 #include "faction/FactionWarMgrService.h"
 

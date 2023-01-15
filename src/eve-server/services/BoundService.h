@@ -26,16 +26,16 @@
 #ifndef __BOUNDSERVICE_H__
 #define __BOUNDSERVICE_H__
 
+#include "services/Callable.h"
+#include "services/Service.h"
+
 typedef uint32_t BoundID;
 
-class BoundDispatcher;
-template<class T>
-class BindableService;
-template<class T>
-class EVEBoundObject;
-
-#include "Service.h"
-#include "ServiceManager.h"
+template<class T> class Service;
+class EVEServiceManager;
+class PyResult;
+class PyCallArgs;
+class Client;
 
 class BoundDispatcher {
 public:

@@ -27,7 +27,7 @@
 #ifndef __COLONY_H_INCL__
 #define __COLONY_H_INCL__
 
-#include "PyCallable.h"
+
 
 #include "planet/PlanetDB.h"
 #include "services/ServiceManager.h"

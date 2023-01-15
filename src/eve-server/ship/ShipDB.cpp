@@ -25,7 +25,7 @@ Author: Zhur, Allan
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
+
 #include "ship/ShipDB.h"
 
 

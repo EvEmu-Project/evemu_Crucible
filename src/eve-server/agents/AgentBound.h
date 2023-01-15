@@ -15,7 +15,7 @@
 
 
 #include "services/BoundService.h"
-#include "PyServiceCD.h"
+
 #include "agents/Agent.h"
 
 class AgentBound : public EVEBoundObject <AgentBound>

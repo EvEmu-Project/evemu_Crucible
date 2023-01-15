@@ -40,13 +40,6 @@ protected:
     PyResult GetMaterialsForTypeWithActivity(PyCallArgs& call, PyInt* typeID);
     PyResult GetBlueprintInformationAtLocation(PyCallArgs& call, PyInt* hangarID, PyInt* one);
     PyResult GetBlueprintInformationAtLocationWithFlag(PyCallArgs& call, PyInt* locationID, PyInt* flag, PyInt* one);
-
-private:
-    PyCallable_DECL_CALL(GetBlueprintAttributes);
-    PyCallable_DECL_CALL(GetMaterialsForTypeWithActivity);
-    PyCallable_DECL_CALL(GetMaterialCompositionOfItemType);
-    PyCallable_DECL_CALL(GetBlueprintInformationAtLocation);
-    PyCallable_DECL_CALL(GetBlueprintInformationAtLocationWithFlag);
 };
 
 #endif

@@ -30,6 +30,7 @@
 
 #include "services/Service.h"
 #include "map/MapDB.h"
+#include "Client.h"
 
 class MapService : public Service <MapService>
 {

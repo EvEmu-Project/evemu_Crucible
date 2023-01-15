@@ -55,29 +55,6 @@ protected:
     PyResult DEGetRooms(PyCallArgs& call);
     PyResult DEGetRoomObjectPaletteData(PyCallArgs& call);
     PyResult DEGetFactions(PyCallArgs& call);
-
-
-    PyCallable_DECL_CALL(DEGetFactions);
-    PyCallable_DECL_CALL(DEGetDungeons);
-    PyCallable_DECL_CALL(DEGetTemplates);
-    PyCallable_DECL_CALL(DEGetRooms);
-    PyCallable_DECL_CALL(DEGetRoomObjectPaletteData);
-    PyCallable_DECL_CALL(TemplateRemove);
-    PyCallable_DECL_CALL(TemplateEdit);
-    PyCallable_DECL_CALL(GetArchetypes);
-    PyCallable_DECL_CALL(RemoveObject);
-    PyCallable_DECL_CALL(EditObjectName);
-    PyCallable_DECL_CALL(CopyObject);
-    PyCallable_DECL_CALL(EditObject);
-    PyCallable_DECL_CALL(EditObjectRadius);
-    PyCallable_DECL_CALL(EditObjectXYZ);
-    PyCallable_DECL_CALL(EditObjectYawPitchRoll);
-    PyCallable_DECL_CALL(IsObjectLocked);
-    PyCallable_DECL_CALL(AddTemplateObjects);
-    PyCallable_DECL_CALL(AddObject);
-    PyCallable_DECL_CALL(TemplateAdd);
-    PyCallable_DECL_CALL(TemplateObjectAddDungeonList);
-
 };
 
 

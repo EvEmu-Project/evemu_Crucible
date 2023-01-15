@@ -26,7 +26,8 @@
 #ifndef __LOCALIZATIONSERVER_SERVICE_H_INCL__
 #define __LOCALIZATIONSERVER_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
 class LocalizationServerService : public Service<LocalizationServerService>
 {

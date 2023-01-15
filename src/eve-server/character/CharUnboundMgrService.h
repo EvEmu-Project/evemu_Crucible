@@ -27,6 +27,7 @@
 #define __CHARUNBOUNDMGRSERVICE__H__INCL__
 
 #include "services/Service.h"
+#include "cache/ObjCacheService.h"
 
 /**
  * \class CharUnboundMgrService

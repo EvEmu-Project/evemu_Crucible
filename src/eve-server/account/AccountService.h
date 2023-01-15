@@ -29,8 +29,7 @@
 
 #include "services/Service.h"
 #include "account/AccountDB.h"
-
-class Client;
+#include "Client.h"
 
 class AccountService : public Service <AccountService> {
 public:

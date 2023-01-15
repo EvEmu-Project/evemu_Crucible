@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/CalendarDB.h"
 #include "system/CalendarMgrService.h"
 #include "packets/Calendar.h"

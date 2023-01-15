@@ -33,7 +33,7 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyServiceCD.h"
+
 #include "packets/Bookmarks.h"
 #include "cache/ObjCacheService.h"
 #include "corporation/CorpBookmarkMgr.h"

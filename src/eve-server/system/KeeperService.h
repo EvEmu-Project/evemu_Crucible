@@ -28,7 +28,8 @@
 #define __KEEPER_SERVICE_H_INCL__
 
 #include "system/SystemDB.h"
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
 class KeeperService : public Service <KeeperService>
 {

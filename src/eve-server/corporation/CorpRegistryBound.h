@@ -6,10 +6,10 @@
 
 
 #include "../eve-server.h"
-
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
 #include "corporation/CorporationDB.h"
+#include "services/BoundService.h"
+#include "chat/LSCService.h"
+#include "cache/ObjCacheService.h"
 
 class CorpRegistryBound : public EVEBoundObject <CorpRegistryBound>
 {

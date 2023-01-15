@@ -32,7 +32,7 @@
 #include "../../eve-common/EVE_Calendar.h"
 #include "../../eve-common/EVE_Mail.h"
 
-#include "PyServiceCD.h"
+
 #include "EntityList.h"
 #include "StatisticMgr.h"
 #include "StaticDataMgr.h"

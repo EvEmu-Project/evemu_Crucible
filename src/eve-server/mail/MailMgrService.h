@@ -28,6 +28,7 @@
 
 #include "services/Service.h"
 #include "mail/MailDB.h"
+#include "Client.h"
 
 class MailDB;
 

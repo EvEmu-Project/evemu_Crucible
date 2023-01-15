@@ -23,6 +23,7 @@
     Author: AlTahir
 */
 
+#include "services/Callable.h"
 
 /**
  * Wrapper class. Houses utility functions, used by ContractProxy and ContractMgr

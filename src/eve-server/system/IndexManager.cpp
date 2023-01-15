@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/IndexManager.h"
 #include "system/sov/SovereigntyDataMgr.h"
 #include "inventory/AttributeEnum.h"

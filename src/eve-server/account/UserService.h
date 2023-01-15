@@ -26,8 +26,8 @@
 #ifndef __USER_SERVICE__H__INCL__
 #define __USER_SERVICE__H__INCL__
 
-#include "PyService.h"
 #include "services/Service.h"
+#include "Client.h"
 
 class UserService : public Service<UserService>
 {

@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "character/PhotoUploadService.h"
 #include "imageserver/ImageServer.h"
 

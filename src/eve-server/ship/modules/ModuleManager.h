@@ -14,7 +14,7 @@
 #define EVE_SHIP_MODULES_MODULEMANAGER_H
 
 
-#include "PyService.h"
+
 
 class GenericModule;
 class SystemEntity;

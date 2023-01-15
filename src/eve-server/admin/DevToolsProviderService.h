@@ -27,6 +27,7 @@
 #define DEVTOOLSPROVIDER_SERVICE_H
 
 #include "services/Service.h"
+#include "Client.h"
 
 class DevToolsProviderService : public Service <DevToolsProviderService>
 {

@@ -27,8 +27,10 @@
 #define _SKILLMGR_SERVICE_H
 
 #include "character/CharacterDB.h"
-#include "PyBoundObject.h"
+
 #include "services/BoundService.h"
+#include "services/ServiceManager.h"
+#include "Client.h"
 
 class SkillMgrService : public BindableService <SkillMgrService> {
 public:

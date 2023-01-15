@@ -21,8 +21,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "planet/Moon.h"
 #include "pos/PosMgr.h"
 #include "pos/Array.h"

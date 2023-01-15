@@ -30,7 +30,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "character/CharFittingMgr.h"
 
 CharFittingMgr::CharFittingMgr() :

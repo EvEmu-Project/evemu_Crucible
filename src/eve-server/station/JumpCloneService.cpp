@@ -25,8 +25,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "station/JumpCloneService.h"
 
 JumpCloneService::JumpCloneService(EVEServiceManager& mgr) :

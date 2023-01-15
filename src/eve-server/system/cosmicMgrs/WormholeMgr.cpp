@@ -14,7 +14,7 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "StaticDataMgr.h"
 #include "inventory/InventoryItem.h"
 #include "system/SystemBubble.h"

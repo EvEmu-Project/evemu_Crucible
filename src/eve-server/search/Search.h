@@ -28,8 +28,9 @@
 #define EVEMU_SYSTEM_SEARCH_H_
 
 #include "services/Service.h"
-#include "PyServiceCD.h"
+
 #include "search/SearchDB.h"
+#include "Client.h"
 
 class Search : public Service<Search> {
 public:

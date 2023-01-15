@@ -13,7 +13,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "fleet/FleetManager.h"
 
 FleetManager::FleetManager() :

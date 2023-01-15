@@ -15,8 +15,8 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
-#include "PyBoundObject.h"
+
+
 #include "fleet/FleetBound.h"
 
 /*

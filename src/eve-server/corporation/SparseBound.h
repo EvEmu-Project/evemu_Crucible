@@ -3,9 +3,9 @@
 #include "../eve-server.h"
 
 #include "services/BoundService.h"
-#include "PyServiceCD.h"
-#include "corporation/CorporationDB.h"
 
+#include "corporation/CorporationDB.h"
+#include "Client.h"
 
 class SparseBound : public EVEBoundObject <SparseBound>
 {

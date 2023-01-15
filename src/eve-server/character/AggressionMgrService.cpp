@@ -25,8 +25,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "character/AggressionMgrService.h"
 
 AggressionMgrBound::AggressionMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 systemID) :

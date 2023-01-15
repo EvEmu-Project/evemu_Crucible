@@ -33,7 +33,7 @@
 #include "ConsoleCommands.h"
 #include "EVEServerConfig.h"
 #include "LiveUpdateDB.h"
-#include "PyBoundObject.h"
+
 #include "StaticDataMgr.h"
 #include "chat/LSCService.h"
 #include "character/CharUnboundMgrService.h"

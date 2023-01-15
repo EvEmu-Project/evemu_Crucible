@@ -30,6 +30,7 @@
 #include "services/BoundService.h"
 #include "planet/PlanetDB.h"
 #include "planet/PlanetMgr.h"
+#include "Client.h"
 
 class PlanetMgrService : public BindableService <PlanetMgrService>
 {

@@ -27,7 +27,7 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyCallable.h"
+
 #include "admin/CommandDispatcher.h"
 #include "system/DestinyManager.h"
 

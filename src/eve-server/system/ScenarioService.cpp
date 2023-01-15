@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/ScenarioService.h"
 
 ScenarioService::ScenarioService() :

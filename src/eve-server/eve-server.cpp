@@ -182,10 +182,6 @@
 // database cleaner service
 #include "DBCleaner.h"
 
-// testing for new service system
-#include "services/ServiceManager.h"
-#include "services/Service.h"
-
 static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
 static void SetupSignals();

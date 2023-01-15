@@ -28,6 +28,7 @@
 
 #include "station/StationDB.h"
 #include "services/BoundService.h"
+#include "Client.h"
 
 class JumpCloneService : public BindableService <JumpCloneService>
 {

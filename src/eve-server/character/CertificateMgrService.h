@@ -30,6 +30,7 @@
 #include "services/Service.h"
 #include "services/ServiceManager.h"
 #include "cache/ObjCacheService.h"
+#include "Client.h"
 
 class CertificateMgrService : public Service <CertificateMgrService>
 {

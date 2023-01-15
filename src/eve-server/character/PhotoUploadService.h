@@ -27,6 +27,7 @@
 #define __PHOTOUPLOADSERVICE__H__INCL__
 
 #include "services/Service.h"
+#include "Client.h"
 
 class PhotoUploadService : public Service <PhotoUploadService> {
 public:

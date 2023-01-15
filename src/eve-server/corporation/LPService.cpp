@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 #include "EntityList.h"
-#include "PyServiceCD.h"
+
 #include "corporation/LPService.h"
 #include "account/AccountService.h"
 

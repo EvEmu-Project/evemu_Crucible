@@ -27,7 +27,8 @@
 #define __INVBROKER_SERVICE_H_INCL__
 
 #include "inventory/InventoryDB.h"
-#include "PyService.h"
+#include "services/BoundService.h"
+#include "Client.h"
 
 class PyRep;
 
@@ -41,8 +42,6 @@ protected:
 
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
-
-    PyCallable_DECL_CALL(GetItemDescriptor)
 };
 
 class InvBrokerBound : public EVEBoundObject <InvBrokerBound>
@@ -64,19 +63,6 @@ protected:
     PyResult SplitStack(PyCallArgs& call, PyInt* locationID, PyInt* itemID, PyInt* quantity, PyInt* ownerID);
     PyResult DeliverToCorpHangar(PyCallArgs& call, PyInt* officeID, PyInt* locationID, PyInt* itemsToDeliver, std::optional <PyInt*> quantity, PyInt* ownerID, PyInt* destinationFlag);
     PyResult DeliverToCorpMember(PyCallArgs& call, PyInt* corporationMemberID, PyInt* stationID, PyList* itemIDs, std::optional <PyInt*> quantity, PyInt* ownerID);
-
-    PyCallable_DECL_CALL(GetContainerContents);
-    PyCallable_DECL_CALL(GetInventoryFromId);
-    PyCallable_DECL_CALL(GetInventory);
-    PyCallable_DECL_CALL(SetLabel);
-    PyCallable_DECL_CALL(TrashItems);
-    PyCallable_DECL_CALL(AssembleCargoContainer);
-    PyCallable_DECL_CALL(BreakPlasticWrap);
-    PyCallable_DECL_CALL(TakeOutTrash);
-    PyCallable_DECL_CALL(SplitStack);
-    PyCallable_DECL_CALL(DeliverToCorpHangar);
-    PyCallable_DECL_CALL(DeliverToCorpMember);
-
 
 protected:
     uint32 m_locationID;

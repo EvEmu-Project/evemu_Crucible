@@ -30,7 +30,7 @@
 #include "eve-server.h"
 
 #include "EntityList.h"
-#include "PyServiceCD.h"
+
 #include "StaticDataMgr.h"
 #include "inventory/InvBrokerService.h"
 #include "inventory/InventoryBound.h"

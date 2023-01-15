@@ -26,7 +26,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "chat/LookupService.h"
 
 LookupService::LookupService() :

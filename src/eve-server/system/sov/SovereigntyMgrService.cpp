@@ -27,7 +27,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/sov/SovereigntyDataMgr.h"
 #include "system/sov/SovereigntyDB.h"
 #include "system/sov/SovereigntyMgrService.h"

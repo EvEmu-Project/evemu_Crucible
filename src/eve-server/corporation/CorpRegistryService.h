@@ -30,6 +30,7 @@
 #include "corporation/CorporationDB.h"
 #include "alliance/AllianceDB.h"
 #include "services/BoundService.h"
+#include "Client.h"
 
 class CorpRegistryService : public BindableService <CorpRegistryService>
 {

@@ -13,7 +13,8 @@
 #include "../eve-server.h"
 
 #include "services/BoundService.h"
-#include "PyServiceCD.h"
+#include "Client.h"
+
 
 class SystemManager;
 
@@ -47,19 +48,6 @@ protected:
     PyResult CmdReturnBay(PyCallArgs& call, PyList* droneIDs);
     PyResult CmdAbandonDrone(PyCallArgs& call, PyList* droneIDs);
     PyResult CmdReconnectToDrones(PyCallArgs& call, PyList* droneCandidates);
-
-    PyCallable_DECL_CALL(CmdEngage);
-    PyCallable_DECL_CALL(CmdRelinquishControl);
-    PyCallable_DECL_CALL(CmdDelegateControl);
-    PyCallable_DECL_CALL(CmdAssist);
-    PyCallable_DECL_CALL(CmdGuard);
-    PyCallable_DECL_CALL(CmdMine);
-    PyCallable_DECL_CALL(CmdMineRepeatedly);
-    PyCallable_DECL_CALL(CmdUnanchor);
-    PyCallable_DECL_CALL(CmdReturnHome);
-    PyCallable_DECL_CALL(CmdReturnBay);
-    PyCallable_DECL_CALL(CmdAbandonDrone);
-    PyCallable_DECL_CALL(CmdReconnectToDrones);
 
 protected:
     SystemManager* m_sysMgr;

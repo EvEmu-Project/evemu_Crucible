@@ -28,8 +28,8 @@
 
 #include "../../eve-common/EVE_Character.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "EntityList.h"
 #include "account/AccountService.h"
 #include "character/CharMgrService.h"

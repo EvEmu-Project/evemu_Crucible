@@ -29,6 +29,7 @@
 
 #include "cache/ObjCacheDB.h"
 #include "services/Service.h"
+#include "services/ServiceManager.h"
 
 class PyDict;
 

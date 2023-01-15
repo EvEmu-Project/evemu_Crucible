@@ -10,7 +10,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceMgr.h"
+
 #include "StaticDataMgr.h"
 #include "StatisticMgr.h"
 #include "character/Character.h"

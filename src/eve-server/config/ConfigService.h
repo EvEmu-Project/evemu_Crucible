@@ -29,6 +29,7 @@
 
 #include "config/ConfigDB.h"
 #include "services/Service.h"
+#include "Client.h"
 
 class ConfigService : public Service <ConfigService>
 {

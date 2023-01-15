@@ -33,7 +33,7 @@
 
 #include "chat/LSCDB.h"
 #include "chat/LSCChannel.h"
-#include "PyService.h"
+
 #include "services/Service.h"
 #include "services/ServiceManager.h"
 #include "admin/SlashService.h"

@@ -28,7 +28,8 @@
 #define __DESTINYMANAGER_H_INCL__
 
 #include "eve-compat.h"
-#include "PyCallable.h"
+
+#include "services/Callable.h"
 #include "destiny/DestinyStructs.h"
 #include "inventory/ItemRef.h"
 

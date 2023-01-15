@@ -13,7 +13,7 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "StaticDataMgr.h"
 #include "map/MapData.h"
 #include "system/SystemBubble.h"

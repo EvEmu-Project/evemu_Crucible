@@ -27,7 +27,7 @@
 #include <string>
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "corporation/CorpMgrService.h"
 
 CorpMgrService::CorpMgrService() :

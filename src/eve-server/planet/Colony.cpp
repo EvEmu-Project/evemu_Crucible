@@ -42,7 +42,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceMgr.h"
+
 #include "Client.h"
 #include "inventory/ItemType.h"
 #include "planet/Colony.h"

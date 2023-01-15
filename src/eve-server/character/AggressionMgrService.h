@@ -27,6 +27,7 @@
 #define __AGGRESSIONMGRSERVICE__H__INCL__
 
 #include "services/BoundService.h"
+#include "services/ServiceManager.h"
 
 class AggressionMgrService : public BindableService <AggressionMgrService>
 {

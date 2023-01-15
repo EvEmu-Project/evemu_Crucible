@@ -40,8 +40,6 @@ public:
 protected:
     PyResult UnasembleItems(PyCallArgs& call, PyDict* validIDsByStationID, PyList* skipChecks);
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
-
-    PyCallable_DECL_CALL(UnasembleItems);
 };
 
 class RepairServiceBound : public EVEBoundObject <RepairServiceBound> {

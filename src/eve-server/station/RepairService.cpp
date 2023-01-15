@@ -27,8 +27,8 @@
 #include "eve-server.h"
 #include "packets/Repair.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "Client.h"
 #include "inventory/Inventory.h"
 #include "ship/ShipDB.h"

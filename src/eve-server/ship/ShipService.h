@@ -67,25 +67,6 @@ protected:
     PyResult StoreVessel(PyCallArgs& call, PyInt* destID);
     PyResult SelfDestruct(PyCallArgs& call, PyInt* shipID);
 
-    PyCallable_DECL_CALL(Board);
-    PyCallable_DECL_CALL(Eject);
-    PyCallable_DECL_CALL(LeaveShip);
-    PyCallable_DECL_CALL(ActivateShip);
-    PyCallable_DECL_CALL(Undock);
-    PyCallable_DECL_CALL(AssembleShip);
-    PyCallable_DECL_CALL(Drop);
-    PyCallable_DECL_CALL(Scoop);
-    PyCallable_DECL_CALL(ScoopDrone);
-    PyCallable_DECL_CALL(ScoopToSMA);
-    PyCallable_DECL_CALL(LaunchFromContainer);
-    PyCallable_DECL_CALL(Jettison);
-    PyCallable_DECL_CALL(ConfigureShip);
-    PyCallable_DECL_CALL(GetShipConfiguration);
-    PyCallable_DECL_CALL(SelfDestruct);
-
-    PyCallable_DECL_CALL(BoardStoredShip);
-    PyCallable_DECL_CALL(StoreVessel);
-
 private:
     ShipItem* pShip;
 };

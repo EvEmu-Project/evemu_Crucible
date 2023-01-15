@@ -37,7 +37,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/FactoryService.h"
 

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
+
 #include "Client.h"
 #include "ConsoleCommands.h"
 #include "npc/NPC.h"

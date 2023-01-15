@@ -25,7 +25,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "corporation/LPStore.h"
 
 LPStore::LPStore() :

@@ -27,7 +27,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "dungeon/DungeonExplorationMgrService.h"
 
 DungeonExplorationMgrService::DungeonExplorationMgrService() :

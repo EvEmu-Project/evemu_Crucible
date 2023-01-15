@@ -27,8 +27,8 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
-#include "PyBoundObject.h"
+
+
 #include "packets/Bookmarks.h"
 #include "system/BookmarkService.h"
 #include "system/SystemManager.h"

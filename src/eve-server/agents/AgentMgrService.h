@@ -27,8 +27,9 @@
 #ifndef __AGENTMGR_SERVICE_H_INCL__
 #define __AGENTMGR_SERVICE_H_INCL__
 
+#include "services/BoundService.h"
 #include "agents/AgentDB.h"
-#include "PyService.h"
+#include "Client.h"
 
 class Agent;
 
@@ -42,12 +43,6 @@ protected:
     PyResult GetMyJournalDetails(PyCallArgs& call);
     PyResult GetMyEpicJournalDetails(PyCallArgs& call);
     PyResult GetCareerAgents(PyCallArgs& call);
-
-    PyCallable_DECL_CALL(GetAgents);
-    PyCallable_DECL_CALL(GetCareerAgents);
-    PyCallable_DECL_CALL(GetMyJournalDetails);
-    PyCallable_DECL_CALL(GetSolarSystemOfAgent);
-    PyCallable_DECL_CALL(GetMyEpicJournalDetails);
 
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;

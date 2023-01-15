@@ -26,7 +26,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "ContractUtils.h"
 
 // Since these queries are used in multiple GET functions, we initialize them as constants and use at will.

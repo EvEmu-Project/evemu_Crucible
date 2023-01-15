@@ -3,11 +3,10 @@
 
 #include "admin/CommandDB.h"
 
-
 class Client;
 class Seperator;
 class PyResult;
-class PyServiceMgr;
+class EVEServiceManager;
 
 class CommandDispatcher {
 public:

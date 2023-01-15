@@ -30,6 +30,7 @@
 #include "services/Service.h"
 
 #include "system/BookmarkDB.h"
+#include "Client.h"
 
 class BookmarkService : public Service <BookmarkService>
 {

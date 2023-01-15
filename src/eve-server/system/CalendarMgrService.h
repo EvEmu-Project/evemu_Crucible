@@ -28,6 +28,7 @@
 #define EVEMU_SYSTEM_CALENDARMGR_H__
 
 #include "services/Service.h"
+#include "Client.h"
 
 class CalendarMgrService : public Service <CalendarMgrService>
 {

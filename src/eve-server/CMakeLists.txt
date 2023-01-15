@@ -627,12 +627,14 @@ SET( test_SOURCE
 
 SET( services_INCLUDE
      "${TARGET_INCLUDE_DIR}/services/Service.h"
+     "${TARGET_INCLUDE_DIR}/services/Callable.h"
      "${TARGET_INCLUDE_DIR}/services/BoundService.h"
      "${TARGET_INCLUDE_DIR}/services/ServiceManager.h")
 SET( services_SOURCE
-     "${TARGET_INCLUDE_DIR}/services/Service.cpp"
-     "${TARGET_INCLUDE_DIR}/services/BoundService.cpp"
-     "${TARGET_INCLUDE_DIR}/services/ServiceManager.cpp")
+     "${TARGET_SOURCE_DIR}/services/Service.cpp"
+     "${TARGET_SOURCE_DIR}/services/Callable.cpp"
+     "${TARGET_SOURCE_DIR}/services/BoundService.cpp"
+     "${TARGET_SOURCE_DIR}/services/ServiceManager.cpp")
 
 ########################
 # Setup the executable #

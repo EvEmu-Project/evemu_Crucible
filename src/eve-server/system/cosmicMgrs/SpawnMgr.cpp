@@ -9,7 +9,7 @@
   */
 
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "StaticDataMgr.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"

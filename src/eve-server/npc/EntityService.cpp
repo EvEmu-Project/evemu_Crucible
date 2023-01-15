@@ -9,8 +9,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 
 #include "EVEServerConfig.h"
 #include "npc/EntityService.h"

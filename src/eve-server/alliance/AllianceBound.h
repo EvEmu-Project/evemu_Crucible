@@ -15,10 +15,11 @@
 
 
 #include "../eve-server.h"
-
 #include "services/BoundService.h"
-#include "PyServiceCD.h"
 #include "alliance/AllianceDB.h"
+#include "cache/ObjCacheService.h"
+#include "chat/LSCService.h"
+#include "Client.h"
 
 class AllianceBound : public EVEBoundObject <AllianceBound>
 {
