@@ -28,7 +28,7 @@
 
 #include "system/CalendarDB.h"
 #include "system/CalendarMgrService.h"
-#include "packets/Calendar.h"
+
 
 CalendarMgrService::CalendarMgrService() :
     Service("calendarMgr")
@@ -67,12 +67,6 @@ PyResult CalendarMgrService::DeleteEvent(PyCallArgs& call, PyInt* eventID, PyInt
 
 PyResult CalendarMgrService::SendEventResponse(PyCallArgs& call, PyInt* eventID, PyInt* ownerID, PyInt* response)
 {
-    Call_SendEventResponse args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     CalendarDB::SaveEventResponse(call.client->GetCharacterID(), eventID->value(), response->value());
 
     // if this is an invitation, update calendar for non-denial responses
@@ -131,13 +125,6 @@ PyResult CalendarMgrService::EditPersonalEvent(PyCallArgs& call, PyInt* eventID,
     sLog.Cyan( "CalendarMgrService::Handle_EditPersonalEvent()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    // TODO: update this to not use xmlpktgen, too many changes just for the services update
-    Call_EditEvent args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     return nullptr;
 }
 
@@ -147,13 +134,6 @@ PyResult CalendarMgrService::EditCorporationEvent(PyCallArgs& call, PyInt* event
 
     sLog.Cyan( "CalendarMgrService::Handle_EditCorporationEvent()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
-
-    // TODO: update this to not use xmlpktgen, too many changes just for the services update
-    Call_EditEvent args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
 
     return nullptr;
 }
@@ -165,13 +145,6 @@ PyResult CalendarMgrService::EditAllianceEvent(PyCallArgs& call, PyInt* eventID,
     sLog.Cyan( "CalendarMgrService::Handle_EditAllianceEvent()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    // TODO: update this to not use xmlpktgen, too many changes just for the services update
-    Call_EditEvent args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     return nullptr;
 }
 
@@ -182,15 +155,8 @@ PyResult CalendarMgrService::UpdateEventParticipants(PyCallArgs& call, PyInt* ev
     sLog.Cyan( "CalendarMgrService::Handle_UpdateEventParticipants()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    // TODO: update this to not use xmlpktgen, too many changes just for the services update
-    Call_UpdateEventParticipants args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    // TODO: update this to not use xmlpktgen, too many changes just for the services update
-    CalendarDB::UpdateEventParticipants(args);
+    // TODO: implement this
+    CalendarDB::UpdateEventParticipants();
 
     //  this will need to update invitees and inform them of the invitation
     // their calendar is updated based on their response (SendEventResponse)

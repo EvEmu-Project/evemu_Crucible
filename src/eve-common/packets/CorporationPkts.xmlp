@@ -449,30 +449,6 @@
     </objectInline>
   </elementDef>
 
-  <elementDef name="GetMembersRet">
-    <tupleInline>
-      <int name="characterID" />
-      <int name="corporationID" />
-      <int name="divisionID" />
-      <int name="squadronID" />
-      <string name="title" />
-      <long name="roles" />
-      <long name="grantableRoles" />
-      <long name="startDateTime" />
-      <int name="baseID" />
-      <long name="rolesAtHQ" />
-      <long name="grantableRolesAtHQ" />
-      <long name="rolesAtBase" />
-      <long name="grantableRolesAtBase" />
-      <long name="rolesAtOther" />
-      <long name="grantableRolesAtOther" />
-      <long name="titleMask" />
-      <long name="accountKey" />
-      <long name="rowDate" />
-      <bool name="blockRoles" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="OnObjectPublicAttributesUpdated">
   <!--
         [PyString "OnObjectPublicAttributesUpdated"]
@@ -585,22 +561,6 @@
       <int name="ownerID" />
       <int name="officeID" />
       <int name="officeFolderID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_InsertApplication">
-    <tupleInline>
-      <int name="corpID" />
-      <wstring name="message" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateApplicationOffer">
-    <tupleInline>
-      <int name="charID" />
-      <wstring name="appText" none_marker="0" safe="true" />
-      <int name="newStatus" />
-      <long name="appDateTime" none_marker="0" safe="true" />
     </tupleInline>
   </elementDef>
 
@@ -885,15 +845,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_UpdateApplication">
-    <tupleInline>
-      <int name="corpID" />
-      <string name="message" none_marker="0" safe="true"/>
-      <int name="status" /> <!-- ? -->
-      <long name="date" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="Call_UpdateDivisionNames">
     <tupleInline>
       <string name="div1" none_marker="0" safe="true"/>
@@ -913,14 +864,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_UpdateCorporation">
-    <tupleInline>
-      <string name="description" safe="true"/>
-      <string name="address" none_marker="0" safe="true"/>
-      <real name="tax" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="Call_UpdateLogo">
     <tupleInline>
       <int name="shape1" none_marker="0" />
@@ -930,90 +873,6 @@
       <int name="color2" none_marker="0" />
       <int name="color3" none_marker="0" />
       <string name="typeface" none_marker="0" /> <!-- Prolly always none -->
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetRecruitmentAdsByCriteria">
-    <tupleInline>
-      <long name="typeMask" none_marker="0" safe="true" />
-      <int name="inAlliance" safe="true"/><!-- integer boolean -->
-      <int name="minMembers" none_marker="0" />
-      <int name="maxMembers" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_CreateRecruitmentAd">
-    <tupleInline>
-      <int name="days" none_marker="0" />
-      <long name="typeMask" none_marker="0" safe="true" />
-      <int name="allianceID" none_marker="0" safe="true"/><!-- integer boolean -->
-      <string name="description" none_marker="0" safe="true" />
-      <int name="channelID" none_marker="0" />
-      <list name="recruiters" />
-      <string name="title" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateRecruitmentAd">
-    <tupleInline>
-      <int name="adID" safe="true"/>
-      <long name="typeMask" none_marker="0" safe="true" />
-      <string name="description" none_marker="0" safe="true" />
-      <int name="channelID" none_marker="0" />
-      <list name="recruiters" />
-      <string name="title" none_marker="0" safe="true" />
-      <int name="addedDays" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SetCloneTypeID">
-    <tupleInline>
-      <int name="CloneTypeID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetAssetInventory">
-    <tupleInline>
-      <int name="corpID" safe="true" />
-      <string name="flag" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AuditMember">
-    <tupleInline>
-      <int name="charID" safe="true" />
-      <long name="fromDate" none_marker="0" />
-      <long name="toDate" none_marker="0" />
-      <int name="rowsPerPage" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetAssetInventoryForLocation">
-    <tupleInline>
-      <int name="corpID" />
-      <int name="locationID" />
-      <string name="flag" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetRecentKillsAndLosses">
-    <tupleInline>
-      <int name="number" />
-      <int name="offset" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetMembersByID">
-    <tupleInline>
-      <list name="memberIDs" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetMemberIDsByQuery_Main">
-    <tupleInline>
-      <list name="data" />
-      <int name="includeImplied" safe="true" none_marker="0" /><!-- integer boolean -->
-      <int name="searchTitles" safe="true" none_marker="0" /><!-- integer boolean -->
     </tupleInline>
   </elementDef>
 
@@ -1034,80 +893,6 @@
     </listInline>
   </elementDef>
 
-  <elementDef name="Call_ExecuteActions">
-    <tupleInline>
-      <list name="charIDs" />
-      <string name="verb" />
-      <string name="queryType" />
-      <string name="value" safe="true"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AddBulletin">
-    <tupleInline>
-      <string name="title" safe="true"/>
-      <string name="body" safe="true"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_CreateAlliance">
-    <tupleInline>
-      <wstring name="allianceName" safe="true"/>
-      <string name="shortName" safe="true"/>
-      <wstring name="description" none_marker="0" safe="true"/>
-      <wstring name="url" none_marker="0" safe="true"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateAlliance">
-    <tupleInline>
-      <wstring name="description" none_marker="0" safe="true"/>
-      <string name="url" none_marker="0" safe="true"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_ApplyToJoinAlliance">
-    <tupleInline>
-      <int name="allianceID" />
-      <wstring name="applicationText"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateAllianceApplication">
-    <tupleInline>
-      <int name="corporationID" />
-      <wstring name="applicationText"/>
-      <int name="applicationStatus" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_CorporateContactData">
-    <tupleInline>
-      <int name="contactID" />
-      <int name="relationshipID" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_EditCorporateContacts">
-    <tupleInline>
-      <list name="contactIDs" />
-      <int name="relationshipID" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_RemoveCorporateContacts">
-    <tupleInline>
-      <list name="contactIDs" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_PayoutDividend">
-    <tupleInline>
-      <int name="payShareholders" none_marker="0" safe="true" /><!-- integer boolean -->
-      <real name="payoutAmount" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="Call_UpdateMember">
     <tupleInline>
       <int name="charID" />
@@ -1125,12 +910,6 @@
       <int name="baseID" none_marker="0" />
       <long name="titleMask" none_marker="0" />
       <bool name="blockRoles" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateTitle">
-    <tupleInline>
-      <object name="object" type="PyObject" optional="true" />
     </tupleInline>
   </elementDef>
 
@@ -1158,22 +937,6 @@
       <object name="voteCaseOptions" type="PyObject" optional="true" />
       <long name="startDateTime" none_marker="0" />
       <long name="endDateTime" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetVoteCases">
-    <tupleInline>
-      <int name="corpid" none_marker="0" safe="true" />
-      <int name="status" none_marker="0" safe="true" />
-      <int name="maxLen" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_MoveShares">
-    <tupleInline>
-      <int name="corporationID" />
-      <int name="toShareholderID" />
-      <int name="numberOfShares" />
     </tupleInline>
   </elementDef>
 
@@ -1226,36 +989,4 @@
       </dictInline>
     </tupleInline>
   </elementDef>
-
-  <elementDef name="Call_CreateMedal">
-    <tupleInline>
-      <string name="title" safe="true" />
-      <string name="description" safe="true" />
-      <list name="data" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AwardMedal">
-    <tupleInline>
-      <int name="medalID" safe="true" none_marker="0" />
-      <list name="recipientIDs" />
-      <string name="reason" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_InsertVote">
-    <tupleInline>
-      <int name="corpID" safe="true" />
-      <int name="voteCaseID" safe="true" />
-      <int name="voteValue" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetStationServiceAccessRule">
-    <tupleInline>
-      <int name="stationID" safe="true" />
-      <int name="serviceID" safe="true" />
-    </tupleInline>
-  </elementDef>
-
 </elements>

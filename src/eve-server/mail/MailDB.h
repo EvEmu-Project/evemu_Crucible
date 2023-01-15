@@ -30,8 +30,6 @@
 
 class PyObject;
 class PyString;
-class Call_CreateLabel;
-class Call_EditLabel;
 
 class MailDB : public ServiceDB
 {

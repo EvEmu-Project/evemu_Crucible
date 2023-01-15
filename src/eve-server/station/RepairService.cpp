@@ -309,11 +309,18 @@ PyResult RepairServiceBound::GetDamageReports(PyCallArgs &call, PyList* itemIDs)
      * 20:39:30 [SvcCallDump]         [ 0] List: 1 elements
      * 20:39:30 [SvcCallDump]         [ 0]   [ 0] Integer field: 140012041
      */
+    std::vector <int32> ints;
+
     // TODO: update this when the type changes are in place so these things are easier to work with
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode bind args from '%s'", call.client->GetName());
-        return nullptr;
+    PyList::const_iterator list_2_cur = itemIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
     PyDict* dict = new PyDict();

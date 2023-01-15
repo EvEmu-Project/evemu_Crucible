@@ -22,7 +22,7 @@ protected:
     PyResult GetEveOwners(PyCallArgs& call);
     PyResult GetCorporation(PyCallArgs& call);
     PyResult GetCorporations(PyCallArgs& call, PyInt* corporationID);
-    PyResult GetInfoWindowDataForChar(PyCallArgs& call, PyInt* characterID);
+    PyResult GetInfoWindowDataForChar(PyCallArgs& call, std::optional <PyInt*> characterID);
     PyResult GetLockedItemLocations(PyCallArgs& call);
     PyResult AddCorporation(PyCallArgs& call,
         PyRep* name, PyRep* ticker, PyRep* description, PyRep* url, PyFloat* taxRate,

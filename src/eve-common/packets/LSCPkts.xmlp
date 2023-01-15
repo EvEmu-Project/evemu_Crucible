@@ -235,13 +235,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="CallJoinChannels">
-    <tupleInline>
-      <list name="channels" />
-      <long name="role" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="RspJoinChannels">
     <tupleInline>
       <substreamInline>
@@ -353,29 +346,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="CallLeaveChannels">
-    <tupleInline>
-      <list name="channels" />
-      <bool name="unsubscribe" />
-      <long name="role" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallLeaveChannel">
-    <tupleInline>
-      <raw name="channel" />
-      <int name="unsubscribe" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Page">
-    <tupleInline>
-      <listInt name="recipients" />
-      <wstring name="subject" safe="true" />
-      <wstring name="body" safe="true"/>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="NotifyOnMessage">
     <tupleInline>
       <listInt name="recipients" />
@@ -385,14 +355,6 @@
       <string name="subject" />
       <!-- not sure _exactly_ what timestamp this should be -->
       <long name="sentTime" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_DeleteMessages">
-    <tupleInline>
-      <!-- most likely this could be an LSCChannelMultiDesc too... -->
-      <int name="channelID" />
-      <listInt name="messages" />
     </tupleInline>
   </elementDef>
 
@@ -453,28 +415,6 @@
       <element name="attachments" type="util_Rowset" />
     </tupleInline>
   </elementDef>
-
-  <elementDef name="Call_LookupStringInt">
-    <tupleInline>
-      <wstring name="searchString" />
-      <int name="searchOption" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_LookupIntString">
-    <tupleInline>
-      <int name="searchOption" />
-      <wstring name="searchString" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallGetMembers">
-    <tupleInline>
-      <!-- 0 -->
-      <raw name="channel" />
-    </tupleInline>
-  </elementDef>
-
 </elements>
 
 

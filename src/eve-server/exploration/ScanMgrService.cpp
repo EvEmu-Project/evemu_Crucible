@@ -83,7 +83,7 @@ PyResult ScanBound::ConeScan( PyCallArgs& call, PyRep* ignored1, PyRep* ignored2
     //_log(SCAN__TRACE, "ScanBound::Handle_ConeScan() - size=%li", call.tuple->size());
     //call.Dump(SCAN__DUMP);
 
-    // for this one we're keeping the old mechanism for now as it requires changes on more than just this service
+    // TODO: for this one we're keeping the old mechanism for now as it requires changes on more than just this service
     Call_ConeScan args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "ScanBound: Failed to decode arguments.");

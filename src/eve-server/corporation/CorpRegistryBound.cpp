@@ -178,17 +178,13 @@ PyResult CorpRegistryBound::GetEveOwners(PyCallArgs &call) {
     return m_db.GetEveOwners(m_corpID);
 }
 
-PyResult CorpRegistryBound::GetInfoWindowDataForChar(PyCallArgs& call, PyInt* characterID)
+PyResult CorpRegistryBound::GetInfoWindowDataForChar(PyCallArgs& call, std::optional <PyInt*> characterID)
 {
-    // takes characterID
-    // returns corpID, allianceID, title
-    Call_SingleIntegerArg args;
-
     // if no characterID is specified, just return information for current character
-    if (args.Decode (call.tuple) == false)
+    if (characterID.has_value() == false)
         return CharacterDB::GetInfoWindowDataForChar (call.client->GetCharacterID ());
 
-    return CharacterDB::GetInfoWindowDataForChar (args.arg);
+    return CharacterDB::GetInfoWindowDataForChar (characterID.value()->value());
 }
 
 PyResult CorpRegistryBound::GetCorporation(PyCallArgs &call) {

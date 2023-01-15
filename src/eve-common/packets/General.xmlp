@@ -139,12 +139,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_SingleRealArg">
-    <tupleInline>
-      <real name="arg" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="Call_TwoIntegerArgs">
     <tupleInline>
       <int name="arg1"  safe="true" none_marker="0" />
@@ -160,67 +154,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_SingleBoolArg">
-    <tupleInline>
-      <bool name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_TwoBoolArgs">
-    <tupleInline>
-      <bool name="arg1" />
-      <bool name="arg2" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleStringArg">
-    <tupleInline>
-      <string name="arg"  safe="true" none_marker="" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleWStringArg">
-    <tupleInline>
-      <wstring name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleArg">
-    <tupleInline>
-      <raw name="arg" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SingleIntList">
-    <tupleInline>
-      <listInt name="ints" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_IntBoolArg">
-    <tupleInline>
-      <int name="arg1"  safe="true" none_marker="0" />
-      <bool name="arg2" />
-    </tupleInline>
-  </elementDef>
-
-
-  <elementDef name="CallGetMultiOwnersEx">
-    <tupleInline>
-      <!-- 0 -->
-      <listInt name="entities" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallMachoResolveObject">
-    <tupleInline>
-      <!-- 0 -->
-        <raw name="bindParams" />
-      <!-- 1 -->
-      <int name="justQuery"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="CallMachoBindObject_call">
       <tupleInline>
         <!-- 0 -->
@@ -232,6 +165,7 @@
       </tupleInline>
   </elementDef>
 
+  <!-- Used by EVECollector -->
   <elementDef name="CallMachoBindObject">
     <tupleInline>
       <!-- 0 -->
@@ -240,19 +174,6 @@
         <!-- either 'None', or a CallMachoBindObject_call -->
         <raw name="call" />
     </tupleInline>
-  </elementDef>
-
-  <elementDef name="BoundObject">
-      <substructInline>
-        <substreamInline>
-            <tupleInline>
-              <!-- 0 -->
-              <string name="bindspec" />
-              <!-- 1 -->
-              <long name="timestamp" />
-            </tupleInline>
-        </substreamInline>
-      </substructInline>
   </elementDef>
 
   <elementDef name="ErrorResponse">
@@ -271,17 +192,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="macho_WrongMachoNode">
-    <objectInline>
-        <stringInline value="macho.WrongMachoNode" />
-      <dictInline>
-          <dictInlineEntry key="payload">
-            <int name="nodeID" />
-          </dictInlineEntry>
-      </dictInline>
-    </objectInline>
-  </elementDef>
-
   <elementDef name="NotifyOnAggressionChange">
     <tupleInline>
       <!-- 0 -->
@@ -289,34 +199,6 @@
       <!-- 1 -->
         <!-- maps _something_ to a timestamp -->
       <dictInt name="entries" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallGetInventoryFromId">
-    <tupleInline>
-        <!-- 0 -->
-        <int name="entityID"  safe="true" none_marker="0" />
-        <!-- 1 -->
-        <int name="passive"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallGetMessageDetails">
-    <tupleInline>
-      <!-- 0 -->
-      <int name="channelID"  safe="true" none_marker="0" />
-      <!-- 1 -->
-      <int name="messageID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallMarkMessagesRead">
-    <tupleInline>
-      <!-- 0 -->
-      <listInline>
-        <!-- 0 -->
-        <int name="messageID"  safe="true" none_marker="0" />
-      </listInline>
     </tupleInline>
   </elementDef>
 
@@ -378,28 +260,6 @@
     <tupleInline>
       <string name="msgType"  safe="true" none_marker="" />
       <dictStr name="args" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_InsureShip">
-      <tupleInline>
-          <int name="shipID"  safe="true" none_marker="0" />
-          <real name="amount" />
-          <int name="isCorp"  safe="true" none_marker="0" />
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SearchQuery">
-      <tupleInline>
-          <string name="str" safe="true" none_marker="" />
-          <listInt name="ids" />
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_BoardShip">
-    <tupleInline>
-      <int name="newShipID"  safe="true" none_marker="0" />
-      <int name="oldShipID"  safe="true" none_marker="0" />
     </tupleInline>
   </elementDef>
 

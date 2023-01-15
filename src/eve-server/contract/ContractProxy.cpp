@@ -34,7 +34,7 @@
 #include "station/Station.h"
 #include "inventory/Inventory.h"
 #include "system/SolarSystem.h"
-#include "packets/Contracts.h"
+
 #include "contract/ContractUtils.h"
 #include "account/AccountService.h"
 

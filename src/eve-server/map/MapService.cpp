@@ -171,13 +171,7 @@ PyResult MapService::GetCurrentSovData(PyCallArgs &call, PyInt* locationID)
     sLog.Warning( "MapService::Handle_GetCurrentSovData()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return svDataMgr.GetCurrentSovData(args.arg);
+    return svDataMgr.GetCurrentSovData(locationID->value());
 }
 PyResult MapService::GetRecentSovActivity(PyCallArgs &call)
 {

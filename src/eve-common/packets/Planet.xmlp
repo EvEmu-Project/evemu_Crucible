@@ -106,22 +106,6 @@
         </tupleInline>
     </elementDef>
 
-    <elementDef name="Call_ProgramResults">
-        <tupleInline>
-            <int name="ecuID" />
-            <int name="typeID" />
-            <list name="heads" />
-            <real name="headRadius" />
-        </tupleInline>
-    </elementDef>
-
-    <elementDef name="Call_LaunchCommodities">
-        <tupleInline>
-            <int name="pinID" />
-            <raw name="dict" />
-        </tupleInline>
-    </elementDef>
-
   <elementDef name="Call_ResourceDataDict">
       <dictInline>
         <dictInlineEntry key="proximity">
@@ -150,17 +134,6 @@
         </dictInlineEntry>
       </dictInline>
   </elementDef>
-
-    <elementDef name="Call_UpdateSettings">
-        <tupleInline>
-            <int name="orbitalID" />
-            <int name="reinforceValue" safe="true" />
-            <raw name="taxRateValues" />
-            <int name="standingValue" safe="true" />
-            <bool name="allowAlliance" safe="true" />
-            <bool name="allowStandings" safe="true" />
-        </tupleInline>
-    </elementDef>
 
   <elementDef name="Call_TaxRateValuesDict">
       <dictInline>

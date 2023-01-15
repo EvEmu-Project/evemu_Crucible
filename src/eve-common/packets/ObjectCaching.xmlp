@@ -178,25 +178,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="CallGetCachableObject">
-    <tupleInline>
-      <!-- 0  either bool or int -->
-      <raw name="shared" />
-      <!-- 1 -->
-        <!-- either a string or a tuple -->
-      <raw name="objectID" />
-      <!-- 2 -->
-      <tupleInline>
-        <!-- 0 -->
-        <long name="timestamp" />
-        <!-- 1 -->
-        <int name="version" />
-      </tupleInline>
-      <!-- 3 -->
-      <int name="nodeID" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="RspGetCachableObject">
     <tupleInline>
       <!-- 0 -->

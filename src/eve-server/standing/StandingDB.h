@@ -29,7 +29,7 @@
 #define __STANDINGDB_H_INCL__
 
 #include "ServiceDB.h"
-#include "packets/Standing.h"
+
 
 class PyRep;
 class Client;

@@ -13,7 +13,7 @@
 
 #include "../eve-server.h"
 
-#include "packets/POS.h"
+
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
 #include "inventory/InventoryItem.h"

@@ -2,13 +2,6 @@
 <elements>
 <!--  This is all scanning-related packets.  -->
 
-    <elementDef name="Call_RequestScan">
-        <objectInline>
-            <stringInline value="util.KeyVal" />
-            <objectEx name="pos" type="PyObjectEx" optional="true" />
-        </objectInline>
-    </elementDef>
-
     <elementDef name="Call_ConeScan">
         <tupleInline>
             <real name="ScanAngle" />

@@ -540,86 +540,6 @@ DST_WARPEXIT = 11
       </tupleInline>
   </elementDef>
 
-  <elementDef name="CallAlignTo">
-    <tupleInline>
-      <int name="entityID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallWarpToStuff">
-    <tupleInline>
-      <string name="type"  safe="true" none_marker="" />
-      <int name="ID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="CallWarpToStuffAutopilot">
-    <tupleInline>
-      <int name="destID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_StargateJump">
-    <tupleInline>
-      <int name="fromStargateID"  safe="true" none_marker="0" />
-      <int name="toStargateID"  safe="true" none_marker="0" />
-      <int name="shipID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_BeaconJumpFleet">
-    <tupleInline>
-      <int name="characterID"  safe="true" none_marker="0" />
-      <int name="beaconID"  safe="true" none_marker="0" />
-      <int name="solarSystemID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_BeaconJumpAlliance">
-    <tupleInline>
-      <int name="beaconID"  safe="true" none_marker="0" />
-      <int name="solarSystemID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_BridgeJumpAlliance">
-    <tupleInline>
-      <int name="itemID"  safe="true" none_marker="0" />
-      <int name="remoteStructureID"  safe="true" none_marker="0" />
-      <int name="remoteSystemID"  safe="true" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_FollowBall">
-    <tupleInline>
-      <int name="ballID"  safe="true" none_marker="0" />
-      <!-- may be integer or real -->
-      <raw name="distance" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Orbit">
-    <tupleInline>
-      <int name="entityID"  safe="true" none_marker="0" />
-      <!-- may be integer or real -->
-      <raw name="range" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="SetNotificationRange">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetNotificationRange" />
-        <!-- 1 -->
-        <tupleInline>
-            <!-- 0 -->
-            <int name="entityID" />
-            <!-- 1 -->
-            <real name="range" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
   <elementDef name="SetBallSpeed">
     <tupleInline>
       <stringInline value="SetMaxSpeed" />
@@ -714,43 +634,6 @@ DST_WARPEXIT = 11
             <int name="entityID" />
         <!-- integer boolean I think -->
             <int name="is_free" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="SetBallGlobal">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallGlobal" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-        <!-- integer boolean I think -->
-            <int name="is_global" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="SetBallTroll">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBallTroll" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <int name="maybeAnotherEntityID" />
-        </tupleInline>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="SetBallBoid">
-      <tupleInline>
-        <!-- 0 -->
-        <stringInline value="SetBoid" />
-        <!-- 1 -->
-        <tupleInline>
-            <int name="entityID" />
-            <int name="maybeAnotherEntityID" />
         </tupleInline>
       </tupleInline>
   </elementDef>

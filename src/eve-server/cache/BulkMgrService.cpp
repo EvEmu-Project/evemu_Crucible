@@ -98,7 +98,7 @@
 
 #include "cache/BulkDB.h"
 #include "cache/BulkMgrService.h"
-#include "packets/BulkDataPkts.h"
+
 
 BulkMgrService::BulkMgrService() :
     Service("bulkMgr")

@@ -1,12 +1,5 @@
 <elements>
 
-  <elementDef name="Call_RepairItems">
-    <tupleInline>
-      <list name="itemIDs" />
-      <real name="iskAmount" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="RepairListRsp">
     <objectInline>
       <stringInline value="util.Row" />
@@ -62,13 +55,6 @@
       <int name="repairable" />
       <real name="costToRepairOneUnitOfDamage" />
     </listInline>
-  </elementDef>
-
-  <elementDef name="Call_UnasembleItems">
-    <tupleInline>
-      <dict name="dict" />
-      <list name="list" />
-    </tupleInline>
   </elementDef>
 
 </elements>

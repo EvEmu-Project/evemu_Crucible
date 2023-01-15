@@ -35,52 +35,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_Dogma_Activate">
-    <tupleInline>
-      <int name="itemID" />
-      <wstring name="effectName" safe="true" />
-      <!-- optional: -->
-      <int name="target" none_marker="0" default="0" />
-      <int name="repeat" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Dogma_Deactivate">
-    <tupleInline>
-      <int name="itemID" />
-      <wstring name="effectName" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Dogma_LinkWeapons">
-    <tupleInline>
-      <int name="shipID" />
-      <int name="masterID" />
-      <int name="slaveID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Dogma_LoadAmmoToBank">
-    <tupleInline>
-      <int name="shipID" />
-      <int name="masterID" />
-      <int name="chargeTypeID" />
-      <listInt name="itemIDs" />
-      <int name="chargeLocationID" />
-      <int name="qty" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Dogma_LoadAmmoToModules">
-    <tupleInline>
-      <int name="shipID" />
-      <listInt name="moduleIDs" />
-      <int name="chargeTypeID" />
-      <int name="itemID" />
-      <int name="ammoLocationID" />
-    </tupleInline>
-  </elementDef>
-
   <!--
                   [PyTuple 12 items]
                     [PyString "OnGodmaShipEffect"]

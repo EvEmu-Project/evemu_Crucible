@@ -78,48 +78,6 @@
     </tupleInline>
   </elementDef>
 
-  <!-- not used.  kept here for info
-  <elementDef name="RspGetPostAuthenticationMessage">
-    <tupleInline>
-      <substreamInline>
-        <objectInline>
-          <stringInline value="util.KeyVal" />
-          <dictInline>
-            <dictInlineEntry key="message">
-              <string name="message" />
-            </dictInlineEntry>
-            <dictInlineEntry key="args">
-              <dictInline>
-                <dictInlineEntry key="showStatusBar">
-                  <int name="showStatusBar" />
-                </dictInlineEntry>
-                <dictInlineEntry key="center">
-                  <int name="center" />
-                </dictInlineEntry>
-                <dictInlineEntry key="showAddressBar">
-                  <int name="showAddressBar" />
-                </dictInlineEntry>
-                <dictInlineEntry key="url">
-                  <string name="url" />
-                </dictInlineEntry>
-                <dictInlineEntry key="showOptions">
-                  <int name="showOptions" />
-                </dictInlineEntry>
-                <dictInlineEntry key="showButtons">
-                  <int name="showButtons" />
-                </dictInlineEntry>
-                <dictInlineEntry key="showModal">
-                  <int name="showModal" />
-                </dictInlineEntry>
-              </dictInline>
-            </dictInlineEntry>
-          </dictInline>
-        </objectInline>
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-  -->
-
 </elements>
 
 

@@ -276,7 +276,7 @@ PyRep* CalendarDB::GetResponsesToEvent(uint32 eventID)
     return list;
 }
 
-void CalendarDB::UpdateEventParticipants(Call_UpdateEventParticipants& args)
+void CalendarDB::UpdateEventParticipants()
 {
     DBerror err;
 }

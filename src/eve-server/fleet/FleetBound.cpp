@@ -626,13 +626,7 @@ PyResult FleetBound::MoveMember(PyCallArgs &call, PyInt* characterID, std::optio
     sLog.Warning("FleetBound", "Handle_MoveMember() size=%li", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
-    MoveMemberCall args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode args.", call.client->GetChar()->name());
-        return PyStatic.NewFalse();
-    }
-
-    Character* pChar = sEntityList.FindClientByCharID(args.charID)->GetChar().get();
+    Character* pChar = sEntityList.FindClientByCharID(characterID->value())->GetChar().get();
     if (pChar == nullptr)
         return PyStatic.NewFalse();
 

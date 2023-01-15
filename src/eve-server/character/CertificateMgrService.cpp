@@ -111,12 +111,6 @@ PyResult CertificateMgrService::GrantCertificate(PyCallArgs &call, PyInt* certif
 }
 
 PyResult CertificateMgrService::UpdateCertificateFlags(PyCallArgs &call, PyInt* certificateID, PyInt* visibility) {
-    Call_TwoIntegerArgs arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     call.client->GetChar()->UpdateCertificate(certificateID->value(), visibility->value());
     return PyStatic.NewNone();
 }
