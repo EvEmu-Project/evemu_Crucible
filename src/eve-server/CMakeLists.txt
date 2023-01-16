@@ -204,7 +204,7 @@ SET( corporation_INCLUDE
      "${TARGET_INCLUDE_DIR}/corporation/CorpStationMgr.h"
      "${TARGET_INCLUDE_DIR}/corporation/LPService.h"
      "${TARGET_INCLUDE_DIR}/corporation/LPStore.h"
-     "${TARGET_INCLUDE_DIR}/corporation/SparseBound.h" )
+     "${TARGET_INCLUDE_DIR}/corporation/OfficeSparseBound.h" )
 SET( corporation_SOURCE
      "${TARGET_SOURCE_DIR}/corporation/BillMgr.cpp"
      "${TARGET_SOURCE_DIR}/corporation/CorpBookmarkMgr.cpp"
@@ -217,7 +217,7 @@ SET( corporation_SOURCE
      "${TARGET_SOURCE_DIR}/corporation/CorpStationMgr.cpp"
      "${TARGET_SOURCE_DIR}/corporation/LPService.cpp"
      "${TARGET_SOURCE_DIR}/corporation/LPStore.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/SparseBound.cpp" )
+     "${TARGET_SOURCE_DIR}/corporation/OfficeSparseBound.cpp" )
 
 SET( dogmaim_INCLUDE
      "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMService.h"
@@ -628,11 +628,13 @@ SET( test_SOURCE
 SET( services_INCLUDE
      "${TARGET_INCLUDE_DIR}/services/Service.h"
      "${TARGET_INCLUDE_DIR}/services/Callable.h"
+     "${TARGET_INCLUDE_DIR}/services/SparseBound.h"
      "${TARGET_INCLUDE_DIR}/services/BoundService.h"
      "${TARGET_INCLUDE_DIR}/services/ServiceManager.h")
 SET( services_SOURCE
      "${TARGET_SOURCE_DIR}/services/Service.cpp"
      "${TARGET_SOURCE_DIR}/services/Callable.cpp"
+     "${TARGET_SOURCE_DIR}/services/SparseBound.cpp"
      "${TARGET_SOURCE_DIR}/services/BoundService.cpp"
      "${TARGET_SOURCE_DIR}/services/ServiceManager.cpp")
 

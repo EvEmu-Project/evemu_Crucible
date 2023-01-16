@@ -1217,36 +1217,19 @@ PyObject *CorporationDB::GetStations(uint32 corpID) {
     return DBResultToRowset(res);
 }
 
-PyRep *CorporationDB::Fetch(uint32 corpID, uint32 from, uint32 count) {
-    DBQueryResult res;
 
-    if (!sDatabase.RunQuery(res,
-        "SELECT stationID, stationTypeID, itemID, officeFolderID"
+bool CorporationDB::FetchOfficesKeys (uint32 corporationID, DBQueryResult& res) {
+    return sDatabase.RunQuery (res, "SELECT itemID FROM staOffices WHERE corporationID = %u", corporationID);
+}
+
+bool CorporationDB::FetchOffices (uint32 corpID, uint32 from, uint32 count, DBQueryResult& res) {
+    return sDatabase.RunQuery(res,
+        "SELECT itemID, stationID, stationTypeID, officeFolderID"
         " FROM staOffices "
         " WHERE corporationID = %u "
-        " LIMIT %u, %u ", corpID, from, count
-        ))
-    {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
-        return nullptr;
-    }
-
-    // manually build the return.  easier this way...
-    PyList* list = new PyList();
-
-    DBResultRow row;
-    while (res.GetRow(row)) {
-        PyList* innerList = new PyList();
-            innerList->AddItem(new PyInt(row.GetInt(0)));
-            innerList->AddItem(new PyInt(row.GetInt(1)));   // this wants stationTypeID
-            innerList->AddItem(new PyInt(row.GetInt(2)));
-            innerList->AddItem(new PyInt(row.GetInt(3)));
-        PyTuple* tuple = new PyTuple(2);
-            tuple->SetItem(0, new PyInt(row.GetInt(0)));
-            tuple->SetItem(1, innerList);
-        list->AddItem(tuple);
-    }
-    return list;
+        " LIMIT %u, %u ",
+        corpID, from, count
+        );
 }
 
 //NOTE: it makes sense to push this up to ServiceDB, since others will likely need this too.

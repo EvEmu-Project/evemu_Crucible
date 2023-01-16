@@ -14,7 +14,7 @@
 #include "cache/ObjCacheService.h"
 #include "chat/LSCService.h"
 #include "corporation/CorpRegistryBound.h"
-#include "corporation/SparseBound.h"
+#include "corporation/OfficeSparseBound.h"
 #include "station/StationDB.h"
 #include "station/StationDataMgr.h"
 #include "alliance/AllianceDB.h"
@@ -346,6 +346,8 @@ PyResult CorpRegistryBound::GetMembers(PyCallArgs &call)
     // this just wants a member count and time (and headers)
     uint16 rowCount = m_db.GetMemberCount(m_corpID);
 
+    // TODO: properly implement this call, an example is provided on GetOffices of what's needed
+
     /*  update....do we need to send header also??
      *
         [PyObjectData Name: util.SparseRowset]
@@ -380,6 +382,29 @@ PyResult CorpRegistryBound::GetMembers(PyCallArgs &call)
                   [PyIntegerVar 129515350203058462]
             [PyInt 3]
     */
+
+
+    PyList* headers = new PyList;
+
+    headers->AddItemString ("characterID");
+    headers->AddItemString ("corporationID");
+    headers->AddItemString ("divisionID");
+    headers->AddItemString ("squadronID");
+    headers->AddItemString ("title");
+    headers->AddItemString ("roles");
+    headers->AddItemString ("grantableRoles");
+    headers->AddItemString ("startDateTime");
+    headers->AddItemString ("baseID");
+    headers->AddItemString ("rolesAtHQ");
+    headers->AddItemString ("grantableRolesAtHQ");
+    headers->AddItemString ("rolesAtBase");
+    headers->AddItemString ("grantableRolesAtBase");
+    headers->AddItemString ("rolesAtOther");
+    headers->AddItemString ("grantableRolesAtOther");
+    headers->AddItemString ("titleMask");
+    headers->AddItemString ("accountKey");
+    headers->AddItemString ("rowDate");
+    headers->AddItemString ("blockRoles");
 
     // TODO: rewrite this to properly use different services, right now any calls to the MembersSparseRowset will be directed here
     PyDict *dict = new PyDict();
@@ -1726,28 +1751,21 @@ PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_GetOffices() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
 
-    BoundDispatcher* bObj = new SparseBound(this->GetServiceManager() , m_db, m_corpID);
-    if (bObj == NULL) {
+    PyList* headers = new PyList;
+
+    headers->AddItemString ("itemID");
+    headers->AddItemString ("stationID");
+    headers->AddItemString ("stationTypeID");
+    headers->AddItemString ("officeFolderID");
+
+    OfficeSparseBound* offices = new OfficeSparseBound (this->GetServiceManager (), m_db, m_corpID, headers);
+
+    if (offices == NULL) {
         _log(SERVICE__ERROR, "%s: Unable to create bound object for:", call.client->GetName()); //errors here
         return nullptr;
     }
 
-    // this sends header info and # offices rented by corp
-    // Data will be fetched from the subsequent call to SparseRowset (using self.sr.offices in client)
-    CorpOfficeSparseRowset rsp;
-    rsp.officeCount = StationDB::GetOfficeCount(m_corpID);
-
-    PyDict* dict = new PyDict();
-        dict->SetItemString("realRowCount", new PyInt(rsp.officeCount));
-
-    PyDict* oid = new PyDict();
-    rsp.boundObject = new PySubStruct(new PySubStream(bObj->GetOID()));
-
-    PyObject* obj = rsp.Encode();
-    if (is_log_enabled(CORP__RSP_DUMP))
-        obj->Dump(CORP__RSP_DUMP, "");
-
-    return PyResult(obj, oid);
+    return offices->GetHeader ();
     /*
     [PyTuple 1 items]
       [PySubStream 114 bytes]
@@ -1866,7 +1884,7 @@ PyResult CorpRegistryBound::InsertVoteCase(PyCallArgs &call, PyRep* voteCaseText
     }
     Call_InsertVoteCase args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "CorpRegistryBound: Failed to decode arguments.", );
+        codelog(SERVICE__ERROR, "CorpRegistryBound: Failed to decode arguments.");
         return nullptr;
     }
 

@@ -115,7 +115,8 @@ public:
     bool CreateCorporationChangePacket(OnCorporationChanged & cc, uint32 oldCorpID, uint32 newCorpID);
     bool CreateCorporationCreatePacket(OnCorporationChanged & cc, uint32 oldCorpID, uint32 newCorpID);
 
-    PyRep *Fetch(uint32 corpID, uint32 from, uint32 count);
+    bool FetchOfficesKeys (uint32 corporationID, DBQueryResult& res);
+    bool FetchOffices(uint32 corpID, uint32 from, uint32 count, DBQueryResult& res);
 
     PyObject* GetCorporationBills(uint32 corpID, bool payable);
 

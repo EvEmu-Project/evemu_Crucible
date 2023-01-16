@@ -171,7 +171,7 @@ PyResult CorpMgrService::GetCorporationStations(PyCallArgs &call) {
     call.Dump(CORP__CALL_DUMP);
 
     if (IsPlayerCorp(call.client->GetCorporationID()))
-        return m_db.Fetch(call.client->GetCorporationID(), 0, 50);  // arbitrary values
+        return m_db.GetStations(call.client->GetCorporationID());
 
     _log(CORP__WARNING, "CorpMgrService::Handle_GetCorporationStations() calling for NPC Corp");
     return nullptr;
