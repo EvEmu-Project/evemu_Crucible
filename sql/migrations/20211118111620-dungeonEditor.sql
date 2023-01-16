@@ -25,6 +25,7 @@ CREATE TABLE dunDungeons (
     dungeonStatus INT(10) NOT NULL DEFAULT 0,
     factionID INT(10) NOT NULL DEFAULT 0,
     archetypeID INT(10) NOT NULL DEFAULT 0,
+	dungeonUUID VARCHAR(36) NOT NULL,
     PRIMARY KEY (dungeonID));
 CREATE TABLE dunGroups (
     groupID INT(10) NOT NULL,
