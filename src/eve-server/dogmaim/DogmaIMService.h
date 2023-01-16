@@ -61,8 +61,6 @@ public:
     DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint32 locationID, uint32 groupID);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult ChangeDroneSettings(PyCallArgs& call, PyDict* settings);
     PyResult LinkWeapons(PyCallArgs& call, PyInt* shipID, PyInt* masterID, PyInt* fromID);
     PyResult LinkAllWeapons(PyCallArgs& call, PyInt* shipID);

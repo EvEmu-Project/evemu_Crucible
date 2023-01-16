@@ -105,10 +105,6 @@ DogmaIMBound::DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint3
     this->Add("PeelAndLink", &DogmaIMBound::PeelAndLink);
 }
 
-bool DogmaIMBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult DogmaIMBound::CharGetInfo(PyCallArgs& call) {
     return call.client->GetChar()->GetCharInfo();
 }

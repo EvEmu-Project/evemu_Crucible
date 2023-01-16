@@ -69,10 +69,6 @@ FleetBound::FleetBound(EVEServiceManager& mgr, FleetObject& parent, uint32 fleet
     this->Add("ExcludeFromVoiceMute", &FleetBound::ExcludeFromVoiceMute);
 }
 
-bool FleetBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult FleetBound::GetFleetID(PyCallArgs &call) {
     return new PyInt(m_fleetID);
 }

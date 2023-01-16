@@ -54,8 +54,6 @@ public:
     Client* GetClient () { return this->m_client; }
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult ConeScan(PyCallArgs& call, PyRep* ignored1, PyRep* ignored2, PyRep* ignored3, PyRep* ignored4, PyRep* ignored5);
     PyResult RequestScans(PyCallArgs& call, std::optional <PyDict*> probes);
     PyResult RecoverProbes(PyCallArgs& call, PyList* probeIDs);

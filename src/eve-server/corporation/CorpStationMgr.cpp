@@ -178,10 +178,6 @@ CorpStationMgrIMBound::CorpStationMgrIMBound(EVEServiceManager& mgr, CorpStation
     pStationItem = sEntityList.GetStationByID(station_id).get();
 }
 
-bool CorpStationMgrIMBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult CorpStationMgrIMBound::GetStationOffices(PyCallArgs& call)
 {
     return pStationItem->GetOffices();

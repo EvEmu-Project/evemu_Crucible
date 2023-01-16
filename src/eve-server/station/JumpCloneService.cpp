@@ -71,10 +71,6 @@ JumpCloneBound::JumpCloneBound (EVEServiceManager& mgr, JumpCloneService& parent
         m_locGroupID = EVEDB::invGroups::Solar_System;
 }
 
-bool JumpCloneBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult JumpCloneBound::InstallCloneInStation(PyCallArgs &call) {
     //19:02:15 W JumpCloneBound::Handle_InstallCloneInStation(): size= 0
 

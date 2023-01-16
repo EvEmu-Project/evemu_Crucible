@@ -84,8 +84,6 @@ public:
     CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint32 ownerID, uint16 contFlag);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult List(PyCallArgs& call);
     PyResult ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyInt* isCorporation);
     PyResult ListStationItems(PyCallArgs& call, PyInt* stationID);

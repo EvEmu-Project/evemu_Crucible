@@ -55,8 +55,6 @@ public:
     uint32 GetShipID () { return this->pShip->itemID (); }
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult Board(PyCallArgs& call, PyInt* newShipID, std::optional<PyInt*> oldShipID);
     PyResult Eject(PyCallArgs& call);
     PyResult LeaveShip(PyCallArgs& call, PyInt* shipID);

@@ -80,10 +80,6 @@ InsuranceBound::InsuranceBound(EVEServiceManager& mgr, InsuranceService& parent,
     this->m_lsc = this->GetServiceManager().Lookup <LSCService>("LSC");
 }
 
-bool InsuranceBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult InsuranceBound::UnInsureShip(PyCallArgs& call, PyInt* shipID) {
     m_db->DeleteInsuranceByShipID(shipID->value());
     return PyStatic.NewNone();

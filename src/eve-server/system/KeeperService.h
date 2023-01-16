@@ -59,8 +59,6 @@ public:
     KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB* db);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult EditDungeon(PyCallArgs& call, PyInt* dungeonID);
     PyResult PlayDungeon(PyCallArgs& call, PyInt* dungeonID);
     PyResult Reset(PyCallArgs& call);

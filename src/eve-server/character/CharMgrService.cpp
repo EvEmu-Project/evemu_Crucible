@@ -46,10 +46,6 @@ CharMgrBound::CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint3
     this->Add("ListStationBlueprintItems", &CharMgrBound::ListStationBlueprintItems);
 }
 
-bool CharMgrBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult CharMgrBound::List(PyCallArgs& call)
 {
     return CharacterDB::List(m_ownerID);

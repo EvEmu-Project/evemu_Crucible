@@ -38,8 +38,6 @@ public:
     InventoryBound(EVEServiceManager &mgr, InvBrokerBound& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID,  bool passive);
 
 protected:
-    bool CanClientCall(Client* client) override; 
-
     PyResult GetItem(PyCallArgs& call);
     PyResult StripFitting(PyCallArgs& call);
     PyResult DestroyFitting(PyCallArgs& call, PyInt* itemID);

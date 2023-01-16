@@ -50,8 +50,6 @@ public:
 
     uint32 GetSystemID () { return this->m_systemID; }
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetTaxRate(PyCallArgs& call, PyInt* itemID);
     PyResult GetSettingsInfo(PyCallArgs& call, PyInt* orbitalID);
     PyResult UpdateSettings(PyCallArgs& call, PyInt* orbitalID, PyInt* reinforceValue, PyObject* taxRateValues, PyFloat* standingValue, PyBool* allowAllianceValue, PyBool* allowStandingsValue);

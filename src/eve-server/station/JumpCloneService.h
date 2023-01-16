@@ -54,8 +54,6 @@ public:
     JumpCloneBound(EVEServiceManager& mgr, JumpCloneService& parent, StationDB* db, uint32 locationID);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetCloneState(PyCallArgs& call);
     PyResult GetShipCloneState(PyCallArgs& call);
     PyResult GetPriceForClone(PyCallArgs& call);

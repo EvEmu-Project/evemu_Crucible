@@ -130,10 +130,6 @@ KeeperBound::KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB
     this->Add("GetCurrentlyEditedRoomID", &KeeperBound::GetCurrentlyEditedRoomID);
 }
 
-bool KeeperBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult KeeperBound::EditDungeon(PyCallArgs &call, PyInt* dungeonID)
 {
     //ed.EditDungeon(dungeonID, roomID=roomID)

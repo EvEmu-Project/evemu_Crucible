@@ -53,8 +53,6 @@ public:
     InsuranceBound(EVEServiceManager& mgr, InsuranceService& parent, ShipDB* db);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult InsureShip(PyCallArgs& call, PyInt* shipID, PyFloat* amount, std::optional<PyInt*> isCorporation);
     PyResult UnInsureShip(PyCallArgs& call, PyInt* shipID);
     PyResult GetContracts(PyCallArgs& call, std::optional<PyRep*> isCorporation);

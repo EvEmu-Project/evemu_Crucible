@@ -71,10 +71,6 @@ AllianceBound::AllianceBound(EVEServiceManager& mgr, AllianceRegistry& parent, A
     this->m_lsc = this->GetServiceManager().Lookup <LSCService>("LSC");
 }
 
-bool AllianceBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult AllianceBound::GetAlliance(PyCallArgs &call)
 {
     // Works

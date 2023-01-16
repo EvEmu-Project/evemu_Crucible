@@ -61,8 +61,6 @@ public:
     CorpStationMgrIMBound(EVEServiceManager& mgr, CorpStationMgr& parent, CorporationDB& db, uint32 station_id);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetCorporateStationInfo(PyCallArgs& call);
     PyResult DoStandingCheckForStationService(PyCallArgs& call, PyInt* stationServiceID);
     PyResult GetPotentialHomeStations(PyCallArgs& call);

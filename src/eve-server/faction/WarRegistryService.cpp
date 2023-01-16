@@ -80,10 +80,6 @@ WarRegistryBound::WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr,
     this->Add("GetWars", &WarRegistryBound::GetWars);
 }
 
-bool WarRegistryBound::CanClientCall(Client* client) {
-    return true;
-}
-
 PyResult WarRegistryBound::GetWars(PyCallArgs& args, PyInt* ownerID, std::optional<PyInt*> forceRefresh) {
     sLog.Debug("WarRegistryBound", "Called GetWars stub.");
 

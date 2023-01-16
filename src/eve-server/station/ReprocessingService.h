@@ -51,8 +51,6 @@ public:
     ReprocessingServiceBound(EVEServiceManager& mgr, ReprocessingService& parent, ReprocessingDB& db, uint32 stationID);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetOptionsForItemTypes(PyCallArgs& call, PyDict* typeIDs);
     PyResult GetReprocessingInfo(PyCallArgs& call);
     PyResult GetQuote(PyCallArgs& call, PyInt* itemID);

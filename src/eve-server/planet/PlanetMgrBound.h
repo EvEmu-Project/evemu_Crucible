@@ -61,8 +61,6 @@ public:
     uint32 GetPlanetID () { return this->m_planet->GetID(); }
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetPlanetResourceInfo(PyCallArgs& call);
     PyResult GetPlanetInfo(PyCallArgs& call);
     PyResult GetExtractorsForPlanet(PyCallArgs& call, PyInt* planetID);

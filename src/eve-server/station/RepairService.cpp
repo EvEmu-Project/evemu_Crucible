@@ -195,11 +195,6 @@ RepairServiceBound::RepairServiceBound(EVEServiceManager& mgr, RepairService& pa
     this->Add("GetDamageReports", &RepairServiceBound::GetDamageReports);
 }
 
-
-bool RepairServiceBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this check
-}
-
 PyResult RepairServiceBound::DamageModules(PyCallArgs &call, PyList* itemIDAndAmountOfDamage) {
     /*    itemIDAndAmountOfDamageList.append((item.itemID, amount)) <-- amount is % of damage
      *    self.repairSvc.DamageModules(itemIDAndAmountOfDamageList)

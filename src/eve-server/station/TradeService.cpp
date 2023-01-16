@@ -53,10 +53,6 @@ TradeBound::TradeBound (EVEServiceManager& mgr, TradeService& parent) :
     EVEBoundObject::Add("Abort", &TradeBound::Abort);
 }
 
-bool TradeBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult TradeBound::OfferMoney(PyCallArgs &call, PyFloat* amount) {
     TradeSession* pTSes = call.client->GetTradeSession();
     Client* pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);

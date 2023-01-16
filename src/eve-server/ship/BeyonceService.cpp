@@ -118,10 +118,6 @@ BeyonceBound::BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Clien
     this->m_bookmark = this->GetServiceManager().Lookup <BookmarkService>("bookmark");
 }
 
-bool BeyonceBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement ths
-}
-
 PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* distance) {
     _log(AUTOPILOT__MESSAGE, "%s called Follow. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
 

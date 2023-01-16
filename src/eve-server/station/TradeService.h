@@ -116,8 +116,6 @@ public:
 protected:
     TradeService* m_TSvc;                // get registered TradeService object
 
-    bool CanClientCall(Client* client) override;
-
     PyResult OfferMoney(PyCallArgs& call, PyFloat* amount);
     PyResult Abort(PyCallArgs& call);
     PyResult ToggleAccept(PyCallArgs& call, PyBool* newAccept);

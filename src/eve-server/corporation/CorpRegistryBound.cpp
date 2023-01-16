@@ -138,10 +138,6 @@ CorpRegistryBound::CorpRegistryBound(EVEServiceManager& mgr, CorpRegistryService
     this->m_lsc = this->GetServiceManager().Lookup <LSCService>("LSC");
 }
 
-bool CorpRegistryBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult CorpRegistryBound::GetLocationalRoles(PyCallArgs &call)
 {       // not sure if this is used...
     PyList* list = new PyList();

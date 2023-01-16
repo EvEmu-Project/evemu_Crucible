@@ -64,10 +64,6 @@ PlanetORBBound::PlanetORBBound(EVEServiceManager& mgr, PlanetORB& parent, uint32
 {
 }
 
-bool PlanetORBBound::CanClientCall(Client* client) {
-    return true; // TODO: implement this
-}
-
 PyResult PlanetORBBound::GetTaxRate(PyCallArgs& call, PyInt* itemID)
 {
     //  taxRate = moniker.GetPlanetOrbitalRegistry(session.solarsystemid).GetTaxRate(itemID)

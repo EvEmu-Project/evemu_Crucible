@@ -195,10 +195,6 @@ PosMgrBound::PosMgrBound(EVEServiceManager& mgr, PosMgr& parent, uint32 systemID
     this->Add("UninstallJumpBridgeLink", &PosMgrBound::UninstallJumpBridgeLink);
 }
 
-bool PosMgrBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult PosMgrBound::InstallJumpBridgeLink(PyCallArgs &call, PyInt* localItemID, PyInt* remoteSolarSystemID, PyInt* remoteItemID) {
     /**
      *    def BridgePortals(self, localItemID, remoteSolarSystemID, remoteItemID):

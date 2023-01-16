@@ -33,8 +33,6 @@ public:
 
     uint32 GetAllianceID () const { return this->m_allyID; }
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult CreateLabel(PyCallArgs& call, PyString* name, std::optional<PyInt*> color);
     PyResult GetLabels(PyCallArgs& call);
     PyResult DeleteLabel(PyCallArgs& call, PyInt* labelID);

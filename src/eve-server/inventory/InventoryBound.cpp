@@ -77,10 +77,6 @@ InventoryBound::InventoryBound(EVEServiceManager &mgr, InvBrokerBound& parent, I
             this, m_self->name(), m_itemID, ownerID, sDataMgr.GetFlagName(flag), (m_passive ? "true" : "false"));
 }
 
-bool InventoryBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult InventoryBound::GetItem(PyCallArgs &call) {
     _log(INV__MESSAGE, "Calling InventoryBound::GetItem() for %s(%u)", m_self->name(), m_itemID);
     return m_self->GetItem();

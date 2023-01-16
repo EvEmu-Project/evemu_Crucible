@@ -90,10 +90,6 @@ ScanBound::ScanBound(EVEServiceManager& mgr, ScanMgrService& parent, Client* cli
     this->Add("ReconnectToLostProbes", &ScanBound::ReconnectToLostProbes);
 }
 
-bool ScanBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult ScanBound::ConeScan( PyCallArgs& call, PyRep* ignored1, PyRep* ignored2, PyRep* ignored3, PyRep* ignored4, PyRep* ignored5) {
     //result = sm.GetService('scanSvc').ConeScan(self.scanangle, rnge * 1000, vec.x, vec.y, vec.z)
     //return sm.RemoteSvc('scanMgr').GetSystemScanMgr().ConeScan(scanangle, scanRange, x, y, z)

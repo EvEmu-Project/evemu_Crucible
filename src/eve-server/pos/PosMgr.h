@@ -47,8 +47,6 @@ public:
     uint32 GetSystemID() { return this->m_systemID; }
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult SetTowerPassword(PyCallArgs& call, PyInt* itemID, PyRep* password);
     PyResult SetTowerPassword(PyCallArgs& call, PyInt* itemID, PyRep* password, PyBool* allowCorp, PyBool* allowAlliance);
     PyResult SetShipPassword(PyCallArgs& call, PyWString* password);

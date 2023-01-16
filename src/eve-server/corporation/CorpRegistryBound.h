@@ -25,8 +25,6 @@ public:
     void BoundReleased (OfficeSparseBound* bound) override;
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetEveOwners(PyCallArgs& call);
     PyResult GetCorporation(PyCallArgs& call);
     PyResult GetCorporations(PyCallArgs& call, PyInt* corporationID);

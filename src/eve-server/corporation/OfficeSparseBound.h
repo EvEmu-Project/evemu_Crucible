@@ -42,8 +42,6 @@ public:
     OfficeSparseBound(EVEServiceManager &mgr, CorpRegistryBound& parent, CorporationDB& db, uint32 corpID, PyList* headers);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     /**
      * Fetches the list of key values for the rowset
      *

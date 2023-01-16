@@ -37,10 +37,6 @@ AggressionMgrBound::AggressionMgrBound(EVEServiceManager& mgr, AggressionMgrServ
     this->Add("CheckLootRightExceptions", &AggressionMgrBound::CheckLootRightExceptions);
 }
 
-bool AggressionMgrBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult AggressionMgrBound::GetCriminalTimeStamps(PyCallArgs &call, PyInt* characterID)
 {
     return new PyDict();

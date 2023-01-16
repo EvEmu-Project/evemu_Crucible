@@ -55,8 +55,6 @@ public:
 
     void BoundReleased (InventoryBound* bound) override;
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetContainerContents(PyCallArgs& call, PyInt* containerID, PyInt* locationID);
     PyResult GetInventoryFromId(PyCallArgs& call, PyInt* inventoryID, PyInt* passive);
     PyResult GetInventory(PyCallArgs& call, PyInt* containerID, std::optional <PyInt*> ownerID);

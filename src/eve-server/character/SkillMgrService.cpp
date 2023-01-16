@@ -64,10 +64,6 @@ SkillMgrBound::SkillMgrBound(EVEServiceManager &mgr, SkillMgrService& parent, Ch
     this->Add("GetCharacterAttributeModifiers", &SkillMgrBound::GetCharacterAttributeModifiers);
 }
 
-bool SkillMgrBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult SkillMgrBound::GetRespecInfo(PyCallArgs& call) {
     return m_db.GetRespecInfo(call.client->GetCharacterID());
 }

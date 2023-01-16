@@ -159,10 +159,6 @@ PlanetMgrBound::PlanetMgrBound (EVEServiceManager& mgr, PlanetMgrService& parent
     this->Add("GMRunDepletionSim", &PlanetMgrBound::GMRunDepletionSim);
 }
 
-bool PlanetMgrBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult PlanetMgrBound::GetPlanetResourceInfo(PyCallArgs &call) {
     if (!sConfig.cosmic.PIEnabled) {
         call.client->SendErrorMsg("The PI system is currently disabled.");

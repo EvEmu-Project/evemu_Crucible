@@ -91,10 +91,6 @@ VoucherBound::VoucherBound(EVEServiceManager& mgr, VoucherService& parent, Inven
     this->Add("GetDescription", &VoucherBound::GetDescription);
 }
 
-bool VoucherBound::CanClientCall(Client* client) {
-    return true; // TODO: implement this check properly
-}
-
 PyResult VoucherBound::GetDescription(PyCallArgs &call) {
     //   name = voucher.GetDescription()
 

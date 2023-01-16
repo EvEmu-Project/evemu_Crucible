@@ -85,10 +85,6 @@ InvBrokerBound::InvBrokerBound(EVEServiceManager& mgr, InvBrokerService& parent,
     this->Add("DeliverToCorpMember", &InvBrokerBound::DeliverToCorpMember);
 }
 
-bool InvBrokerBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 //is this completely right?
 PyResult InvBrokerBound::GetContainerContents(PyCallArgs &call, PyInt* containerID, PyInt* locationID)
 {

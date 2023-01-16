@@ -52,8 +52,6 @@ public:
     uint32 GetSystemID() { return this->m_systemID; }
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetCriminalTimeStamps(PyCallArgs& call, PyInt* characterID);
     PyResult CheckLootRightExceptions(PyCallArgs& call, PyInt* containerID);
 

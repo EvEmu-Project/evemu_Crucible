@@ -101,10 +101,6 @@ ShipBound::ShipBound (EVEServiceManager& mgr, ShipService& parent, ShipItem* shi
     this->Add("StoreVessel", &ShipBound::StoreVessel);
 }
 
-bool ShipBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 /* only called in space */
 PyResult ShipBound::Board(PyCallArgs &call, PyInt* newShipID, std::optional<PyInt*> oldShipID) {
     if (call.client->IsSessionChange()) {

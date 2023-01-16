@@ -58,8 +58,6 @@ protected:
     PyResult RepairItems(PyCallArgs& call, PyList* itemIDs, PyFloat* iskAmount);
     PyResult GetDamageReports(PyCallArgs& call, PyList* itemIDs);
 
-    bool CanClientCall(Client* client) override;
-
     uint32 m_locationID;
 };
 

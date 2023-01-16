@@ -30,7 +30,6 @@ public:
 protected:
     Agent* m_agent;    //we do not own this.
 
-    bool CanClientCall(Client* client) override;
     PyResult GetAgentLocationWrap(PyCallArgs& call);
     PyResult GetInfoServiceDetails(PyCallArgs& call);
     PyResult DoAction(PyCallArgs& call, std::optional <PyInt*> actionID);

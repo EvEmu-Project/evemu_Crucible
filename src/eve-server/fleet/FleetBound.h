@@ -27,8 +27,6 @@ public:
     uint32 GetFleetID() { return this->m_fleetID; }
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult Init(PyCallArgs& call, std::optional <PyInt*> shipTypeID);
     PyResult GetInitState(PyCallArgs& call);
     PyResult GetFleetID(PyCallArgs& call);

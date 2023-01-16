@@ -112,10 +112,6 @@ EntityBound::EntityBound(EVEServiceManager &mgr, EntityService& parent, SystemMa
     this->Add("CmdReconnectToDrones", &EntityBound::CmdReconnectToDrones);
 }
 
-bool EntityBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
  // ret = entity.CmdEngage(droneIDs, targetID)
     /*

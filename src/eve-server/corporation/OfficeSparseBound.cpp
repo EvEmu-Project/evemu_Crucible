@@ -59,7 +59,3 @@ void OfficeSparseBound::SendNotification (OnObjectPublicAttributesUpdated& updat
     // TODO: but everyone in the corp should be fine
     sEntityList.CorpNotify(m_corpID, Notify::Types::CorpNews, "OnObjectPublicAttributesUpdated", "corpid", update.Encode());
 }
-
-bool OfficeSparseBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}

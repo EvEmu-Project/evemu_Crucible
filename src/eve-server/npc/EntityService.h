@@ -40,8 +40,6 @@ public:
 
     uint32 GetSystemID() { return this->m_systemID; }
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult CmdEngage(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
     PyResult CmdRelinquishControl(PyCallArgs& call, PyList* IDs);
     PyResult CmdDelegateControl(PyCallArgs& call, PyList* droneIDs, PyInt* controllerID);

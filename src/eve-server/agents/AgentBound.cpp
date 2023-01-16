@@ -53,11 +53,6 @@ AgentBound::AgentBound(EVEServiceManager& mgr, AgentMgrService& parent, Agent *a
     this->Add("WarpToLocation", &AgentBound::WarpToLocation);
     this->Add("GetMyJournalDetails", &AgentBound::GetMyJournalDetails);
 }
-
-bool AgentBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this
-}
-
 PyResult AgentBound::GetAgentLocationWrap(PyCallArgs &call) {
     // this is detailed info on agent's location
     return m_agent->GetLocationWrap();

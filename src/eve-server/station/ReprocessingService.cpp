@@ -88,10 +88,6 @@ ReprocessingServiceBound::ReprocessingServiceBound(EVEServiceManager& mgr, Repro
         m_stationRef->GetRefineData(m_stationCorpID, m_staEfficiency, m_tax);
 }
 
-bool ReprocessingServiceBound::CanClientCall(Client* client) {
-    return true; // TODO: properly implement this check
-}
-
 PyResult ReprocessingServiceBound::GetOptionsForItemTypes(PyCallArgs &call, PyDict* typeIDs) {
     _log(MANUF__INFO, "%s: Calling GetOptionsForItemTypes().", call.client->GetName());
     call.Dump(MANUF__DUMP);

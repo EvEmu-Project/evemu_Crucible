@@ -55,8 +55,6 @@ public:
     BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Client* client);
 
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult CmdFollowBall(PyCallArgs& call, PyInt* ballID, PyRep* distance);
     PyResult CmdSetSpeedFraction(PyCallArgs& call, PyFloat* speedFraction);
     PyResult CmdAlignTo(PyCallArgs& call, PyInt* entityID);

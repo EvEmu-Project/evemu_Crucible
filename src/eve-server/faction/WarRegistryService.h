@@ -60,8 +60,6 @@ public:
 protected:
     WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, WarRegistryService& parent);
 
-    bool CanClientCall(Client* client) override;
-
 private:
     uint32 mCorporationID;
 };

@@ -54,8 +54,6 @@ public:
 protected:
     CharacterDB &m_db;
 
-    bool CanClientCall(Client* client) override;
-
     PyResult GetRespecInfo(PyCallArgs& call);
     PyResult GetSkillQueueAndFreePoints(PyCallArgs& call);
     PyResult GetEndOfTraining(PyCallArgs& call);

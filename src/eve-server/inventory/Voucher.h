@@ -53,8 +53,6 @@ public:
 
     int32 GetVoucherID () { return this->m_itemRef->itemID(); }
 protected:
-    bool CanClientCall(Client* client) override;
-
     PyResult GetDescription(PyCallArgs& call);
 
 private:
