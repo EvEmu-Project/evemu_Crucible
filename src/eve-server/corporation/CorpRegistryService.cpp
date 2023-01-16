@@ -75,7 +75,26 @@ BoundDispatcher* CorpRegistryService::BindObject(Client* client, PyRep* bindPara
         return nullptr;
     }
 
-    return new CorpRegistryBound(this->GetServiceManager(), bindParameters, m_db, PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0)));
+    uint32 corporationID = PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0));
+    auto it = this->m_instances.find (corporationID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    CorpRegistryBound* bound = new CorpRegistryBound(this->GetServiceManager(), *this, m_db, corporationID);
+
+    this->m_instances.insert_or_assign (corporationID, bound);
+
+    return bound;
+}
+
+void CorpRegistryService::BoundReleased (CorpRegistryBound* bound) {
+    auto it = this->m_instances.find (bound->GetCorporationID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 PyResult CorpRegistryService::GetCorporateContacts(PyCallArgs &call)

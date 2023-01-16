@@ -41,8 +41,6 @@ class BoundDispatcher {
 public:
     /** @returns BoundID The id of the bound service */
     virtual BoundID GetBoundID() const = 0;
-    /** @returns PyRep* The information of this bound object */
-    virtual PyRep* GetBoundData() const = 0;
     /** @returns PyTuple* The OID of the bound object */
     virtual PyTuple* GetOID() const = 0;
     /** @returns The string ID */
@@ -52,14 +50,33 @@ public:
      */
     virtual PyResult Dispatch(const std::string& name, PyCallArgs& args) = 0;
     /**
+     * @brief Increases the number of references to this bound object
+     */
+    virtual void NewReference (Client* client) = 0;
+    /**
      * @brief Releases this dispatcher and frees any kept resources
      */
-    virtual void Release() = 0;
+    virtual void Release (Client* client) = 0;
 protected:
     /**
      * @brief Check performed before dispatching a call to this bound service
      */
     virtual bool CanClientCall(Client* client) = 0;
+};
+/**
+ * Parent for any of the bound services
+ *
+ * @tparam Bound
+ */
+template <class Bound>
+class BoundServiceParent {
+public:
+    /**
+     * Called by the bound services when It's getting removed
+     *
+     * @param bound
+     */
+    virtual void BoundReleased (Bound* bound) = 0;
 };
 
 /**
@@ -68,15 +85,15 @@ protected:
  * Due to how EVE requests these bindings sometimes call info is included,
  * so this class provides all the required mechanisms to handle the whole proccess
  */
-template<class T>
-class BindableService : public Service<T> {
+template<class Svc, class Bound>
+class BindableService : public Service<Svc>, public BoundServiceParent<Bound> {
 public:
     BindableService(const std::string& name, EVEServiceManager& mgr, AccessLevel level = eAccessLevel_None) :
-        Service <T>(name, level),
+        Service <Svc>(name, level),
         mManager(mgr)
     {
-        this->Add("MachoResolveObject", &BindableService<T>::MachoResolveObject);
-        this->Add("MachoBindObject", &BindableService<T>::MachoBindObject);
+        this->Add("MachoResolveObject", &Svc::MachoResolveObject);
+        this->Add("MachoBindObject", &Svc::MachoBindObject);
     }
 
     PyResult MachoResolveObject(PyCallArgs& args, PyRep* bindParameters, PyRep* justQuery) {
@@ -91,6 +108,9 @@ public:
         if (bound == nullptr) {
             return nullptr;
         }
+
+        // add the client to the allowed list
+        bound->NewReference (args.client);
 
         // build the bound service identifier
         PyTuple* rsp = new PyTuple(2);
@@ -138,17 +158,17 @@ private:
     EVEServiceManager& mManager;
 };
 
-/*
+/**
  * @brief Implementation of EVE Online's bound objects
  * 
  * @see https://learn.microsoft.com/en-us/windows/win32/com/monikers
  */
-template<class T>
+template<class Bound>
 class EVEBoundObject : public BoundDispatcher {
 protected:
-    EVEBoundObject(EVEServiceManager& mgr, PyRep* bindData) :
+    EVEBoundObject(EVEServiceManager& mgr, BoundServiceParent<Bound>& parent) :
         mManager(mgr),
-        mBoundData(bindData)
+        mParent (parent)
     {
         this->mBoundId = this->GetServiceManager().RegisterBoundService(this);
 
@@ -166,9 +186,15 @@ protected:
     }
 
     /**
+     * Default destructor, override to free resources if needed
+     */
+    virtual ~EVEBoundObject () {
+    }
+
+    /**
      * @brief Registers a method handler
      */
-    void Add(const std::string& name, CallHandler <T> handler) {
+    void Add(const std::string& name, CallHandler <Bound> handler) {
         this->mHandlers.push_back(std::make_pair(std::string(name), handler));
     }
 
@@ -186,7 +212,7 @@ public:
 
             try
             {
-                return handler.second(reinterpret_cast <T*> (this), args);
+                return handler.second(reinterpret_cast <Bound*> (this), args);
             }
             catch (std::invalid_argument)
             {
@@ -197,22 +223,54 @@ public:
         throw method_not_found ();
     }
     /**
-     * @brief Releases this dispatcher and frees any kept resources
+     * @brief Increases the number of references to this bound object
      */
-    void Release() override {
-        delete this; // we hate this
+    void NewReference (Client* client) override {
+        // ensure the client is not there yet
+        auto it = this->mClients.find (client);
+
+        if (it != this->mClients.end ())
+            return;
+
+        // the client didn't hold a reference to this service
+        // so add it to the list and increase the RefCount
+        this->mClients.insert_or_assign (client, true);
+    }
+    /**
+     * @brief Signals this EVEBoundObject that one of the clients that held a reference, released it
+     */
+    void Release(Client* client) override {
+        auto it = this->mClients.find (client);
+
+        // the client doesn't have access to this bound service, so nothing has to be done
+        if (it == this->mClients.end ())
+            return;
+
+        // remove the client for the list, and if that's the last one, free the service
+        this->mClients.erase (it);
+
+        if (this->mClients.size () == 0) {
+            this->GetParent ().BoundReleased (reinterpret_cast <Bound*> (this));
+            delete this; // we hate this
+        }
+    }
+
+    bool CanClientCall(Client* client) override {
+        return this->mClients.find (client) != this->mClients.end();
     }
 
     /** @returns BoundID The id of the bound service */
     BoundID GetBoundID() const override { return this->mBoundId; }
-    /** @returns PyRep* The information of this bound object */
-    PyRep* GetBoundData() const override { return this->mBoundData; }
+    /** @returns The normal service that created this service */
+    BoundServiceParent<Bound>& GetParent () const { return this->mParent; }
     /** @returns PyTuple* The OID of the bound object */
     PyTuple* GetOID() const override { return this->mOID; }
     /** @returns The string ID */
     const std::string& GetIDString() const override { return this->mIdString; }
     /** @returns The service manager this service is registered in */
     EVEServiceManager& GetServiceManager() const { return this->mManager; }
+    /** @returns The list of clients that requested access to this service */
+    std::map <Client*, bool>& GetBoundClients () const { return this->m_clients; }
 private:
     /** @var The service manager this bound service is registered in */
     EVEServiceManager& mManager;
@@ -220,12 +278,14 @@ private:
     PyTuple* mOID;
     /** @var The ID string that identifies this service for the clients */
     std::string mIdString;
-    /** @var The data used to request the binding of this service */
-    PyRep* mBoundData;
+    /** @var The normal service that created this bound object */
+    BoundServiceParent<Bound>& mParent;
     /** @var The numeric ID of the bound service */
     BoundID mBoundId;
     /** @var The map of handlers for this service */
-    std::vector <std::pair <std::string, CallHandler <T>>> mHandlers;
+    std::vector <std::pair <std::string, CallHandler <Bound>>> mHandlers;
+    /** @var The clients that have access to this bound service */
+    std::map <Client*, bool> mClients;
 };
 
 #endif /* !__BOUNDSERVICE_H__ */

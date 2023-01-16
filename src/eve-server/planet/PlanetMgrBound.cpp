@@ -67,12 +67,18 @@ BoundDispatcher* PlanetMgrService::BindObject(Client *client, PyRep* bindParamet
     _log(PLANET__INFO, "PlanetMgrService bind request for:");
     bindParameters->Dump(PLANET__INFO, "    ");
     if (!bindParameters->IsInt()) {
-        _log(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bindParameters->TypeString());
+        _log(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName().c_str(), bindParameters->TypeString());
         return nullptr;
     }
 
+    uint32 planetID = bindParameters->AsInt()->value();
+    auto it = this->m_instances.find (planetID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
     StaticData sData = StaticData();
-    sDataMgr.GetStaticInfo(bindParameters->AsInt()->value(), sData);
+    sDataMgr.GetStaticInfo(planetID, sData);
     SystemManager* pSysMgr = sEntityList.FindOrBootSystem(sData.systemID);
     if (pSysMgr == nullptr) {
         client->SendErrorMsg("system boot failure");
@@ -80,10 +86,24 @@ BoundDispatcher* PlanetMgrService::BindObject(Client *client, PyRep* bindParamet
     }
     SystemEntity* pSE = pSysMgr->GetSE(sData.itemID);
     if (!pSE->IsPlanetSE()) {
-        _log(SERVICE__ERROR, "%s Service: itemID is not planetID or planet not found", GetName());
+        _log(SERVICE__ERROR, "%s Service: itemID is not planetID or planet not found", GetName().c_str());
         return nullptr;
     }
-    return new PlanetMgrBound(this->GetServiceManager (), bindParameters, client, pSE->GetPlanetSE());
+
+    PlanetMgrBound* bound = new PlanetMgrBound(this->GetServiceManager (), *this, client, pSE->GetPlanetSE());
+
+    this->m_instances.insert_or_assign (planetID, bound);
+
+    return bound;
+}
+
+void PlanetMgrService::BoundReleased (PlanetMgrBound* bound) {
+    auto it = this->m_instances.find (bound->GetPlanetID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 PyResult PlanetMgrService::GetPlanetsForChar(PyCallArgs &call) {
@@ -109,8 +129,8 @@ PyResult PlanetMgrService::DeleteLaunch(PyCallArgs& call, PyInt* launchID) {
     return nullptr;
 }
 
-PlanetMgrBound::PlanetMgrBound (EVEServiceManager& mgr, PyRep* bindData, Client* client, PlanetSE* planet) :
-    EVEBoundObject(mgr, bindData),
+PlanetMgrBound::PlanetMgrBound (EVEServiceManager& mgr, PlanetMgrService& parent, Client* client, PlanetSE* planet) :
+    EVEBoundObject(mgr, parent),
     m_planet(planet)
 {
     m_colony = planet->GetColony(client);

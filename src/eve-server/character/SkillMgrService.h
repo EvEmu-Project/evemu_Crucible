@@ -32,9 +32,13 @@
 #include "services/ServiceManager.h"
 #include "Client.h"
 
-class SkillMgrService : public BindableService <SkillMgrService> {
+class SkillMgrBound;
+
+class SkillMgrService : public BindableService <SkillMgrService, SkillMgrBound> {
 public:
     SkillMgrService(EVEServiceManager& mgr);
+
+    void BoundReleased (SkillMgrBound* bound) override;
 
 protected:
     CharacterDB m_db;
@@ -45,7 +49,7 @@ protected:
 class SkillMgrBound : public EVEBoundObject <SkillMgrBound>
 {
 public:
-    SkillMgrBound(EVEServiceManager& mgr, CharacterDB &db, PyRep* bindParameters);
+    SkillMgrBound(EVEServiceManager& mgr, SkillMgrService& parent, CharacterDB &db);
 
 protected:
     CharacterDB &m_db;

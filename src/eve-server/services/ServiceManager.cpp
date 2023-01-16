@@ -83,7 +83,7 @@ PyResult EVEServiceManager::Dispatch(const BoundID& service, const std::string& 
     return it->second->Dispatch(method, args);
 }
 
-void EVEServiceManager::ClearBoundObject(const BoundID& service) {
+void EVEServiceManager::ClearBoundObject(const BoundID& service, Client* client) {
     auto it = this->mBound.find(service);
 
     if (it == this->mBound.end()) {
@@ -94,7 +94,7 @@ void EVEServiceManager::ClearBoundObject(const BoundID& service) {
     _log(SERVICE__MESSAGE, "EVEServiceManager::ClearBoundObject() - Clearing bound object at %s", it->second->GetIDString().c_str());
     
     // release the bound, this should cleanup any resources if needed
-    it->second->Release();
+    it->second->Release(client);
 
     // finally remove it from the list
     this->mBound.erase(it);

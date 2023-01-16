@@ -29,8 +29,8 @@
 
 #include "character/AggressionMgrService.h"
 
-AggressionMgrBound::AggressionMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 systemID) :
-    EVEBoundObject (mgr, bindData),
+AggressionMgrBound::AggressionMgrBound(EVEServiceManager& mgr, AggressionMgrService& parent, uint32 systemID) :
+    EVEBoundObject (mgr, parent),
     m_systemID (systemID)
 {
     this->Add("GetCriminalTimeStamps", &AggressionMgrBound::GetCriminalTimeStamps);
@@ -62,5 +62,24 @@ BoundDispatcher* AggressionMgrService::BindObject(Client* client, PyRep* bindPar
         throw CustomError("Cannot bind service");
     }
 
-    return new AggressionMgrBound(this->GetServiceManager(), bindParameters, bindParameters->AsInt()->value());
+    uint32 systemID = bindParameters->AsInt()->value();
+    auto it = this->m_instances.find (systemID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    AggressionMgrBound* bound = new AggressionMgrBound(this->GetServiceManager(), *this, bindParameters->AsInt()->value());
+
+    this->m_instances.insert_or_assign (systemID, bound);
+
+    return bound;
+}
+
+void AggressionMgrService::BoundReleased (AggressionMgrBound* bound) {
+    auto it = this->m_instances.find (bound->GetSystemID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }

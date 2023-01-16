@@ -36,11 +36,14 @@ JumpCloneService::JumpCloneService(EVEServiceManager& mgr) :
 
 BoundDispatcher* JumpCloneService::BindObject (Client* client, PyRep* bindParameters)
 {
-    return new JumpCloneBound(this->GetServiceManager(), bindParameters, &m_db, client->GetLocationID());
+    return new JumpCloneBound(this->GetServiceManager(), *this, &m_db, client->GetLocationID());
 }
+void JumpCloneService::BoundReleased (JumpCloneBound* bound) {
 
-JumpCloneBound::JumpCloneBound (EVEServiceManager& mgr, PyRep* bindData, StationDB* db, uint32 locationID) : 
-    EVEBoundObject(mgr, bindData),
+
+}
+JumpCloneBound::JumpCloneBound (EVEServiceManager& mgr, JumpCloneService& parent, StationDB* db, uint32 locationID) :
+    EVEBoundObject(mgr, parent),
     m_db(db),
     m_locationID(locationID),                 // station or ship
     m_locGroupID(EVEDB::invGroups::Station)   // solarsystem(for ship) or station

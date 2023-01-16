@@ -35,8 +35,8 @@
 #include "character/CharMgrService.h"
 #include "packets/CorporationPkts.h"
 
-CharMgrBound::CharMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 ownerID, uint16 contFlag) :
-    EVEBoundObject(mgr, bindData),
+CharMgrBound::CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint32 ownerID, uint16 contFlag) :
+    EVEBoundObject(mgr, parent),
     m_ownerID(ownerID),
     m_containerFlag(contFlag)
 {
@@ -152,7 +152,11 @@ BoundDispatcher* CharMgrService::BindObject(Client *client, PyRep* bindParameter
         return nullptr;
     }
 
-    return new CharMgrBound(this->GetServiceManager(), bindParameters, args.arg1, args.arg2);
+    return new CharMgrBound(this->GetServiceManager(), *this, args.arg1, args.arg2);
+}
+
+void CharMgrService::BoundReleased(CharMgrBound *bound) {
+    // nothing to be done here, this bound service is a singleton
 }
 
 PyResult CharMgrService::GetImageServerLink(PyCallArgs& call)

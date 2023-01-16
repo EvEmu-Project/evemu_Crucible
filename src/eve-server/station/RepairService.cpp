@@ -44,7 +44,25 @@ RepairService::RepairService(EVEServiceManager& mgr) :
 }
 
 BoundDispatcher* RepairService::BindObject(Client* client, PyRep* bindParameters) {
-    return new RepairServiceBound(bindParameters->AsInt()->value(), bindParameters, this->GetServiceManager());
+    uint32 locationID = bindParameters->AsInt ()->value ();
+    auto it = this->m_instances.find (locationID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    RepairServiceBound* bound = new RepairServiceBound (this->GetServiceManager(), *this, locationID);
+    this->m_instances.insert_or_assign (locationID, bound);
+
+    return bound;
+}
+
+void RepairService::BoundReleased (RepairServiceBound* bound) {
+    auto it = this->m_instances.find (bound->GetLocationID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 void RepairService::GetDamageReports(uint32 itemID, Inventory* pInv, PyList* list) {
@@ -168,8 +186,8 @@ PyResult RepairService::UnasembleItems(PyCallArgs& call, PyDict* validIDsByStati
     return PyStatic.NewNone();
 }
 
-RepairServiceBound::RepairServiceBound(uint32 locationID, PyRep* bindData, EVEServiceManager& mgr) :
-    EVEBoundObject(mgr, bindData),
+RepairServiceBound::RepairServiceBound(EVEServiceManager& mgr, RepairService& parent, uint32 locationID) :
+    EVEBoundObject(mgr, parent),
     m_locationID(locationID)
 {
     this->Add("DamageModules", &RepairServiceBound::DamageModules);

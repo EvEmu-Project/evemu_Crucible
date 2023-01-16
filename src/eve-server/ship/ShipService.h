@@ -29,21 +29,30 @@
 
 #include "services/BoundService.h"
 
-class ShipService : public BindableService <ShipService>
+class ShipBound;
+
+class ShipService : public BindableService <ShipService, ShipBound>
 {
 public:
     ShipService(EVEServiceManager& mgr);
 
+    void BoundReleased (ShipBound* bound) override;
+
 protected:
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
+
+private:
+    std::map<uint32, ShipBound*> m_instances;
 };
 
 
 class ShipBound : public EVEBoundObject <ShipBound>
 {
 public:
-    ShipBound(EVEServiceManager& mgr, PyRep* bindParameters, ShipItem* ship);
+    ShipBound(EVEServiceManager& mgr, ShipService& parent, ShipItem* ship);
+
+    uint32 GetShipID () { return this->pShip->itemID (); }
 
 protected:
     bool CanClientCall(Client* client) override;

@@ -53,18 +53,22 @@ BoundDispatcher* InvBrokerService::BindObject(Client* client, PyRep* bindParamet
     //crap
     PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName().c_str());
         return nullptr;
     }
 
     _log(INV__BIND, "InvBrokerService bind request:");
     args.Dump(INV__BIND, "    ");
 
-    return new InvBrokerBound(this->GetServiceManager(), bindParameters, args.locationID, args.groupID);
+    return new InvBrokerBound(this->GetServiceManager(), *this, args.locationID, args.groupID);
 }
 
-InvBrokerBound::InvBrokerBound(EVEServiceManager& mgr, PyRep* bindData, uint32 locationID, uint32 groupID) :
-    EVEBoundObject(mgr, bindData),
+void InvBrokerService::BoundReleased (InvBrokerBound* bound) {
+
+}
+
+InvBrokerBound::InvBrokerBound(EVEServiceManager& mgr, InvBrokerService& parent, uint32 locationID, uint32 groupID) :
+    EVEBoundObject(mgr, parent),
     m_locationID(locationID),
     m_groupID(groupID)
 {
@@ -235,9 +239,12 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
         }
     }
 
-    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), nullptr, iRef, flag, ownerID, passive->value());
+    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), *this, iRef, flag, ownerID, passive->value());
 
     return new PySubStruct(new PySubStream(ib->GetOID()));
+}
+void InvBrokerBound::BoundReleased (InventoryBound* bound) {
+    // TODO: see how to properly keep track of these as they're not exactly your normal bound service
 }
 
 //this is a view into an inventory item using a specific flag.
@@ -326,7 +333,7 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
             return nullptr;
     }
 
-    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), nullptr, item, flag, ownerID, false);
+    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), *this, item, flag, ownerID, false);
 
     return new PySubStruct(new PySubStream(ib->GetOID()));
 }

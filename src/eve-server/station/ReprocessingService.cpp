@@ -63,11 +63,15 @@ BoundDispatcher* ReprocessingService::BindObject(Client* client, PyRep* bindPara
         return nullptr;
     }
 
-    return new ReprocessingServiceBound(this->GetServiceManager(), m_db, stationID, bindParameters);
+    return new ReprocessingServiceBound(this->GetServiceManager(), *this, m_db, stationID);
 }
 
-ReprocessingServiceBound::ReprocessingServiceBound(EVEServiceManager& mgr, ReprocessingDB& db, uint32 stationID, PyRep* bindData) :
-    EVEBoundObject(mgr, bindData),
+void ReprocessingService::BoundReleased (ReprocessingServiceBound* bound) {
+
+}
+
+ReprocessingServiceBound::ReprocessingServiceBound(EVEServiceManager& mgr, ReprocessingService& parent, ReprocessingDB& db, uint32 stationID) :
+    EVEBoundObject(mgr, parent),
     m_db(db),
     m_stationCorpID(0),
     m_staEfficiency(0.0f),

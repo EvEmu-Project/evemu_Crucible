@@ -184,7 +184,7 @@ Client::~Client() {
     sEntityList.RemovePlayer(this);
 
     for (auto cur : m_bindSet)
-        m_services.ClearBoundObject(cur);
+        m_services.ClearBoundObject(cur, this);
 
     m_system = nullptr; // DO NOT delete m_system here
 
@@ -2682,7 +2682,7 @@ bool Client::Handle_Notify(PyPacket* packet)
 
             // clear bindID from internal map
             m_bindSet.erase(bindID);
-            m_services.ClearBoundObject(bindID);
+            m_services.ClearBoundObject(bindID, this);
         }
     } else {
         sLog.Error("Client::Notify","Unhandled notification from %s: unknown method '%s'", m_char->name(), notify.method.c_str());

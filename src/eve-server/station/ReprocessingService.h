@@ -30,10 +30,14 @@
 #include "station/ReprocessingDB.h"
 #include "station/Station.h"
 
-class ReprocessingService : public BindableService <ReprocessingService>
+class ReprocessingServiceBound;
+
+class ReprocessingService : public BindableService <ReprocessingService, ReprocessingServiceBound>
 {
 public:
     ReprocessingService(EVEServiceManager& mgr);
+
+    void BoundReleased (ReprocessingServiceBound* bound) override;
 
 protected:
     ReprocessingDB m_db;
@@ -44,7 +48,7 @@ protected:
 class ReprocessingServiceBound : public EVEBoundObject <ReprocessingServiceBound>
 {
 public:
-    ReprocessingServiceBound(EVEServiceManager& mgr, ReprocessingDB& db, uint32 stationID, PyRep* bindData);
+    ReprocessingServiceBound(EVEServiceManager& mgr, ReprocessingService& parent, ReprocessingDB& db, uint32 stationID);
 
 protected:
     bool CanClientCall(Client* client) override;

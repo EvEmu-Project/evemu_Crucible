@@ -51,7 +51,11 @@ BeyonceService::BeyonceService(EVEServiceManager& mgr)
 
 BoundDispatcher* BeyonceService::BindObject(Client* client, PyRep* bindParameters)
 {
-    return new BeyonceBound(this->GetServiceManager(), bindParameters, client);
+    return new BeyonceBound(this->GetServiceManager(), *this, client);
+}
+
+void BeyonceService::BoundReleased (BeyonceBound* bound) {
+
 }
 
 PyResult BeyonceService::GetFormations(PyCallArgs &call) {
@@ -82,8 +86,8 @@ PyResult BeyonceService::GetFormations(PyCallArgs &call) {
     return res;
 }
 
-BeyonceBound::BeyonceBound(EVEServiceManager& mgr, PyRep* bindData, Client* client) :
-    EVEBoundObject(mgr, bindData)
+BeyonceBound::BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Client* client) :
+    EVEBoundObject(mgr, parent)
 {
     this->Add("CmdFollowBall", &BeyonceBound::CmdFollowBall);   //*
     this->Add("CmdOrbit", &BeyonceBound::CmdOrbit);   //*

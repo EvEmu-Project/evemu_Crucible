@@ -48,7 +48,11 @@ InsuranceService::InsuranceService(EVEServiceManager& mgr) :
 }
 
 BoundDispatcher* InsuranceService::BindObject(Client* client, PyRep* bindParameters) {
-    return new InsuranceBound(this->GetServiceManager(), bindParameters, &m_db );
+    return new InsuranceBound(this->GetServiceManager(), *this, &m_db );
+}
+
+void InsuranceService::BoundReleased (InsuranceBound* bound) {
+
 }
 
 PyResult InsuranceService::GetContractForShip(PyCallArgs& call, PyInt* shipID) {
@@ -64,8 +68,8 @@ PyResult InsuranceService::GetInsurancePrice(PyCallArgs& call, PyInt* typeID) {
     return PyStatic.NewZero();
 }
 
-InsuranceBound::InsuranceBound(EVEServiceManager& mgr, PyRep* bindData, ShipDB* db) :
-    EVEBoundObject(mgr, bindData),
+InsuranceBound::InsuranceBound(EVEServiceManager& mgr, InsuranceService& parent, ShipDB* db) :
+    EVEBoundObject(mgr, parent),
     m_db(db)
 {
     this->Add("InsureShip", &InsuranceBound::InsureShip);

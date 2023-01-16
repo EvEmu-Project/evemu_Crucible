@@ -66,22 +66,39 @@ AgentMgrService::AgentMgrService(EVEServiceManager& mgr) :
     this->Add("GetMyEpicJournalDetails", &AgentMgrService::GetMyEpicJournalDetails);
 }
 
-// need a way to check created objects for client/agent combinations to avoid duplicates.
-//  also need a way to check/delete released objects/agents
 BoundDispatcher* AgentMgrService::BindObject(Client* client, PyRep* bindParameters) {
     if (!bindParameters->IsInt()) {
         _log(SERVICE__ERROR, "%s: Non-integer argument '%s'", client->GetName(), bindParameters->TypeString());
         return nullptr;
     }
 
-    uint32 agentID(bindParameters->AsInt()->value());
-    Agent* pAgent(sEntityList.GetAgent(agentID));
+    uint32 agentID = bindParameters->AsInt()->value();
+    Agent* pAgent = sEntityList.GetAgent(agentID);
+
     if (pAgent == nullptr) {
         _log(AGENT__ERROR, "%s: Unable to obtain agent %u", client->GetName(), agentID);
         return nullptr;
     }
 
-    return new AgentBound(this->GetServiceManager(), bindParameters, pAgent);
+    auto it = this->m_instances.find (agentID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    AgentBound* bound = new AgentBound(this->GetServiceManager(), *this, pAgent);
+
+    this->m_instances.insert_or_assign (agentID, bound);
+
+    return bound;
+}
+
+void AgentMgrService::BoundReleased (AgentBound* bound) {
+    auto it = this->m_instances.find (bound->GetAgent()->GetID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 PyResult AgentMgrService::GetAgents(PyCallArgs &call) {

@@ -72,11 +72,29 @@ BoundDispatcher *EntityService::BindObject(Client* client, PyRep* bindParameters
         return nullptr;
     }
 
-    return new EntityBound(this->GetServiceManager(), client->SystemMgr(), systemID, bindParameters);
+    auto it = this->m_instances.find (systemID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    EntityBound* bound = new EntityBound(this->GetServiceManager(), *this, client->SystemMgr(), systemID);
+
+    this->m_instances.insert_or_assign (systemID, bound);
+
+    return bound;
 }
 
-EntityBound::EntityBound(EVEServiceManager &mgr, SystemManager* systemMgr, uint32 systemID, PyRep* bindData) :
-    EVEBoundObject(mgr, bindData),
+void EntityService::BoundReleased (EntityBound* bound) {
+    auto it = this->m_instances.find (bound->GetSystemID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
+
+EntityBound::EntityBound(EVEServiceManager &mgr, EntityService& parent, SystemManager* systemMgr, uint32 systemID) :
+    EVEBoundObject(mgr, parent),
     m_sysMgr(systemMgr),
     m_systemID(systemID)
 {

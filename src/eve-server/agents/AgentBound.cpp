@@ -31,10 +31,11 @@
 #include "account/AccountService.h"
 #include "corporation/LPService.h"
 #include "agents/AgentBound.h"
+#include "agents/AgentMgrService.h"
 #include "station/Station.h"
 
-AgentBound::AgentBound(EVEServiceManager& mgr, PyRep* bindData, Agent *agt) :
-    EVEBoundObject(mgr, bindData), 
+AgentBound::AgentBound(EVEServiceManager& mgr, AgentMgrService& parent, Agent *agt) :
+    EVEBoundObject(mgr, parent),
     m_agent(agt)
 {
     this->Add("DoAction", &AgentBound::DoAction);

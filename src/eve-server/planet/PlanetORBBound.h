@@ -30,18 +30,25 @@
 #include "services/BoundService.h"
 #include "planet/PlanetDB.h"
 
-class PlanetORB : public BindableService <PlanetORB> {
+class PlanetORBBound;
+
+class PlanetORB : public BindableService <PlanetORB, PlanetORBBound> {
 public:
     PlanetORB(EVEServiceManager& mgr);
 
+    void BoundReleased (PlanetORBBound* bound) override;
 protected:
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
+
+private:
+    std::map<uint32, PlanetORBBound*> m_instances;
 };
 
 class PlanetORBBound : public EVEBoundObject <PlanetORBBound> {
 public:
-    PlanetORBBound(EVEServiceManager& mgr, uint32 systemID, PyRep* bindData);
+    PlanetORBBound(EVEServiceManager& mgr, PlanetORB& parent, uint32 systemID);
 
+    uint32 GetSystemID () { return this->m_systemID; }
 protected:
     bool CanClientCall(Client* client) override;
 

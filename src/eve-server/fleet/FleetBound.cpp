@@ -18,6 +18,7 @@
 
 
 #include "fleet/FleetBound.h"
+#include "fleet/FleetObject.h"
 
 /*
 FLEET__ERROR
@@ -30,8 +31,8 @@ FLEET__DUMP
 FLEET__BIND_DUMP
 */
 
-FleetBound::FleetBound(EVEServiceManager& mgr, PyRep* bindData, uint32 fleetID) :
-    EVEBoundObject(mgr, bindData),
+FleetBound::FleetBound(EVEServiceManager& mgr, FleetObject& parent, uint32 fleetID) :
+    EVEBoundObject(mgr, parent),
     m_fleetID (fleetID)
 {
     this->Add("Init", &FleetBound::Init);

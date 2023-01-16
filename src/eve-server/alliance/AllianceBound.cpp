@@ -15,6 +15,7 @@
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "alliance/AllianceBound.h"
+#include "alliance/AllianceRegistry.h"
 #include "alliance/AllianceDB.h"
 #include "alliance/AllianceData.h"
 #include "cache/ObjCacheService.h"
@@ -35,8 +36,8 @@
  * ALLY__RSP_DUMP
  */
 
-AllianceBound::AllianceBound(EVEServiceManager& mgr, PyRep* bindData, AllianceDB& db, uint32 allyID)
-    : EVEBoundObject(mgr, bindData),
+AllianceBound::AllianceBound(EVEServiceManager& mgr, AllianceRegistry& parent, AllianceDB& db, uint32 allyID)
+    : EVEBoundObject(mgr, parent),
       m_db(db)
 {
     this->Add("GetAlliance", &AllianceBound::GetAlliance);

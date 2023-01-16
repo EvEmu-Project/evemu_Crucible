@@ -29,18 +29,27 @@
 #include "services/BoundService.h"
 #include "services/ServiceManager.h"
 
-class AggressionMgrService : public BindableService <AggressionMgrService>
+class AggressionMgrBound;
+
+class AggressionMgrService : public BindableService <AggressionMgrService, AggressionMgrBound>
 {
 public:
     AggressionMgrService(EVEServiceManager& mgr);
 
+    void BoundReleased (AggressionMgrBound* bound) override;
+
 protected:
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
+
+private:
+    std::map <uint32, AggressionMgrBound*> m_instances;
 };
 
 class AggressionMgrBound : public EVEBoundObject <AggressionMgrBound> {
 public:
-    AggressionMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 systemID);
+    AggressionMgrBound(EVEServiceManager& mgr, AggressionMgrService& parent, uint32 systemID);
+
+    uint32 GetSystemID() { return this->m_systemID; }
 
 protected:
     bool CanClientCall(Client* client) override;

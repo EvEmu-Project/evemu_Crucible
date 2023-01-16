@@ -14,10 +14,14 @@
 #include "pos/PosMgrDB.h"
 #include "Client.h"
 
-class PosMgr : public BindableService <PosMgr>
+class PosMgrBound;
+
+class PosMgr : public BindableService <PosMgr, PosMgrBound>
 {
 public:
     PosMgr(EVEServiceManager& mgr);
+
+    void BoundReleased (PosMgrBound* bound) override;
 
 protected:
     PosMgrDB m_db;
@@ -30,12 +34,17 @@ protected:
 
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters);
+
+private:
+    std::map<uint32, PosMgrBound*> m_instances;
 };
 
 class PosMgrBound : public EVEBoundObject <PosMgrBound>
 {
 public:
-    PosMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 systemID);
+    PosMgrBound(EVEServiceManager& mgr, PosMgr& parent, uint32 systemID);
+
+    uint32 GetSystemID() { return this->m_systemID; }
 
 protected:
     bool CanClientCall(Client* client) override;

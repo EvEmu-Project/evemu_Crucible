@@ -58,7 +58,26 @@ BoundDispatcher* AllianceRegistry::BindObject(Client* client, PyRep* bindParamet
         return nullptr;
     }
 
-    return new AllianceBound(this->GetServiceManager(), bindParameters, m_db, PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0)));
+    uint32 allianceID = PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0));
+    auto it = this->m_instances.find (allianceID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    AllianceBound* bound = new AllianceBound(this->GetServiceManager(), *this, m_db, allianceID);
+
+    this->m_instances.insert_or_assign (allianceID, bound);
+
+    return bound;
+}
+
+void AllianceRegistry::BoundReleased (AllianceBound* bound) {
+    auto it = this->m_instances.find (bound->GetAllianceID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 // this is the bind call.  do it like fleet

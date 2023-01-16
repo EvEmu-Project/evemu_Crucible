@@ -30,22 +30,28 @@
 #include "services/Service.h"
 #include "services/BoundService.h"
 
-class VoucherService : public Service <VoucherService> {
+class VoucherBound;
+
+class VoucherService : public Service <VoucherService>, public BoundServiceParent <VoucherBound> {
 public:
     VoucherService(EVEServiceManager& mgr);
+
+    void BoundReleased (VoucherBound* bound) override;
 
 protected:
     PyResult GetObject(PyCallArgs& args, PyInt* voucherID);
 
 private:
     EVEServiceManager& m_manager;
+    std::map <uint32, VoucherBound*> m_instances;
 };
 
 class VoucherBound : public EVEBoundObject <VoucherBound>
 {
 public:
-    VoucherBound(EVEServiceManager& mgr, InventoryItemRef itemRef);
+    VoucherBound(EVEServiceManager& mgr, VoucherService& parent, InventoryItemRef itemRef);
 
+    int32 GetVoucherID () { return this->m_itemRef->itemID(); }
 protected:
     bool CanClientCall(Client* client) override;
 

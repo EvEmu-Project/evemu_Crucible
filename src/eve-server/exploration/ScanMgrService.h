@@ -31,21 +31,27 @@
 #include "exploration/Scan.h"
 #include "exploration/ScanningDB.h"
 
-class ScanMgrService : public Service <ScanMgrService> {
+class ScanBound;
+
+class ScanMgrService : public Service <ScanMgrService>, public BoundServiceParent<ScanBound> {
 public:
     ScanMgrService(EVEServiceManager& mgr);
 
+    void BoundReleased (ScanBound* bound) override;
 protected:
     PyResult GetSystemScanMgr(PyCallArgs& call);
 
 private:
     EVEServiceManager& m_manager;
+    std::map <Client*, ScanBound*> m_instances;
 };
 
 class ScanBound : public EVEBoundObject <ScanBound>
 {
 public:
-    ScanBound(EVEServiceManager& mgr, PyRep* bindData, Client* client);
+    ScanBound(EVEServiceManager& mgr, ScanMgrService& parent, Client* client);
+
+    Client* GetClient () { return this->m_client; }
 
 protected:
     bool CanClientCall(Client* client) override;

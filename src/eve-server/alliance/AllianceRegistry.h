@@ -30,10 +30,14 @@
 #include "services/BoundService.h"
 #include "alliance/AllianceBound.h"
 
-class AllianceRegistry : public BindableService <AllianceRegistry>
+class AllianceBound;
+
+class AllianceRegistry : public BindableService <AllianceRegistry, AllianceBound>
 {
 public:
     AllianceRegistry(EVEServiceManager& mgr);
+
+    void BoundReleased (AllianceBound* bound) override;
 
 protected:
     PyResult GetAlliance(PyCallArgs& call, PyInt* allianceID);
@@ -45,6 +49,7 @@ protected:
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters);
 
 private:
+    std::map<uint32, AllianceBound*> m_instances;
     AllianceDB m_db;
 
 };

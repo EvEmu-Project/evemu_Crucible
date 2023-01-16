@@ -13,6 +13,7 @@
 #include "account/AccountService.h"
 #include "cache/ObjCacheService.h"
 #include "chat/LSCService.h"
+#include "corporation/CorpRegistryService.h"
 #include "corporation/CorpRegistryBound.h"
 #include "corporation/OfficeSparseBound.h"
 #include "station/StationDB.h"
@@ -35,8 +36,8 @@
  * CORP__DB_MESSAGE
  */
 
-CorpRegistryBound::CorpRegistryBound(EVEServiceManager& mgr, PyRep* bindData, CorporationDB& db, uint32 corpID) :
-    EVEBoundObject(mgr, bindData),
+CorpRegistryBound::CorpRegistryBound(EVEServiceManager& mgr, CorpRegistryService& parent, CorporationDB& db, uint32 corpID) :
+    EVEBoundObject(mgr, parent),
     m_db(db)
 {
     this->Add("GetEveOwners", &CorpRegistryBound::GetEveOwners);
@@ -1747,6 +1748,10 @@ PyResult CorpRegistryBound::GetStations(PyCallArgs &call)
     return obj;
 }
 
+void CorpRegistryBound::BoundReleased (OfficeSparseBound* bound) {
+    this->m_offices = nullptr;
+}
+
 PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     _log(CORP__CALL, "CorpRegistryBound::Handle_GetOffices() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
@@ -1758,14 +1763,18 @@ PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     headers->AddItemString ("stationTypeID");
     headers->AddItemString ("officeFolderID");
 
-    OfficeSparseBound* offices = new OfficeSparseBound (this->GetServiceManager (), m_db, m_corpID, headers);
+    if (this->m_offices == nullptr) {
+        this->m_offices = new OfficeSparseBound (this->GetServiceManager (), *this, m_db, m_corpID, headers);
+    }
 
-    if (offices == NULL) {
+    if (this->m_offices == nullptr) {
         _log(SERVICE__ERROR, "%s: Unable to create bound object for:", call.client->GetName()); //errors here
         return nullptr;
     }
 
-    return offices->GetHeader ();
+    this->m_offices->NewReference (call.client);
+
+    return this->m_offices->GetHeader ();
     /*
     [PyTuple 1 items]
       [PySubStream 114 bytes]

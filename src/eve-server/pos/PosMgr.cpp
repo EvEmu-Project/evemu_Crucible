@@ -49,7 +49,26 @@ BoundDispatcher* PosMgr::BindObject(Client* client, PyRep* bindParameters) {
         return nullptr;
     }
 
-    return new PosMgrBound(this->GetServiceManager(), bindParameters, bindParameters->AsInt()->value());
+    uint32 systemID = bindParameters->AsInt()->value();
+    auto it = this->m_instances.find (systemID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    PosMgrBound* bound = new PosMgrBound(this->GetServiceManager(), *this, systemID);
+
+    this->m_instances.insert_or_assign (systemID, bound);
+
+    return bound;
+}
+
+void PosMgr::BoundReleased (PosMgrBound* bound) {
+    auto it = this->m_instances.find (bound->GetSystemID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 PyResult PosMgr::GetControlTowerFuelRequirements(PyCallArgs &call) {
@@ -143,8 +162,8 @@ PyResult PosMgr::GetJumpArrays(PyCallArgs &call) {
     return list;
 }
 
-PosMgrBound::PosMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 systemID) :
-    EVEBoundObject(mgr, bindData)
+PosMgrBound::PosMgrBound(EVEServiceManager& mgr, PosMgr& parent, uint32 systemID) :
+    EVEBoundObject(mgr, parent)
 {
     m_systemID = systemID;
 

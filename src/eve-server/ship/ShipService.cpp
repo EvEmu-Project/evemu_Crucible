@@ -55,11 +55,30 @@ BoundDispatcher *ShipService::BindObject(Client *client, PyRep* bindParameters) 
      */
     _log(CLIENT__MESSAGE, "ShipService bind request");
 
-    return new ShipBound(this->GetServiceManager(), bindParameters, client->GetShip().get());
+    // this service should be bound by locationID and ship, but we'll use shipID for now...
+    uint32 shipID = client->GetShip()->itemID();
+    auto it = this->m_instances.find (shipID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    ShipBound* bound = new ShipBound(this->GetServiceManager(), *this, client->GetShip().get());
+
+    this->m_instances.insert_or_assign (shipID, bound);
+
+    return bound;
 }
 
-ShipBound::ShipBound (EVEServiceManager& mgr, PyRep* bindParameters, ShipItem* ship) :
-    EVEBoundObject(mgr, bindParameters),
+void ShipService::BoundReleased (ShipBound* bound) {
+    auto it = this->m_instances.find (bound->GetShipID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
+ShipBound::ShipBound (EVEServiceManager& mgr, ShipService& parent, ShipItem* ship) :
+    EVEBoundObject(mgr, parent),
     pShip(ship)
 {
     this->Add("Board", &ShipBound::Board);

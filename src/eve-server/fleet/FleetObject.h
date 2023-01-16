@@ -16,10 +16,14 @@
 #include "services/BoundService.h"
 #include "fleet/FleetManager.h"
 
-class FleetObject : public BindableService <FleetObject>
+class FleetBound;
+
+class FleetObject : public BindableService <FleetObject, FleetBound>
 {
 public:
     FleetObject(EVEServiceManager& mgr);
+
+    void BoundReleased (FleetBound* bound) override;
 
 protected:
     PyResult CreateFleet(PyCallArgs& call);
@@ -28,7 +32,7 @@ protected:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
 
 private:
-
+    std::map <uint32, FleetBound*> m_instances;
 
 };
 

@@ -32,10 +32,13 @@
 #include "Client.h"
 
 class Agent;
+class AgentBound;
 
-class AgentMgrService : public BindableService <AgentMgrService> {
+class AgentMgrService : public BindableService <AgentMgrService, AgentBound> {
 public:
     AgentMgrService(EVEServiceManager& mgr);
+
+    void BoundReleased (AgentBound* bound);
 
 protected:
     PyResult GetAgents(PyCallArgs& call);
@@ -46,6 +49,9 @@ protected:
 
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
+
+private:
+    std::map<uint32, AgentBound*> m_instances;
 };
 
 class EpicArcService : public Service <EpicArcService> {

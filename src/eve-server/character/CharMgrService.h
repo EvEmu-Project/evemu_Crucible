@@ -31,9 +31,13 @@
 #include "character/CharacterDB.h"
 #include "services/BoundService.h"
 
-class CharMgrService : public BindableService <CharMgrService> {
+class CharMgrBound;
+
+class CharMgrService : public BindableService <CharMgrService, CharMgrBound> {
 public:
     CharMgrService(EVEServiceManager& mgr);
+
+    void BoundReleased (CharMgrBound* bound) override;
 
 protected:
     CharacterDB m_db;    //using this for now until we decide if we need to split them. Might be bad since we actually have two instances of it, but so far it has no member data.
@@ -77,7 +81,7 @@ protected:
 class CharMgrBound : public EVEBoundObject <CharMgrBound>
 {
 public:
-    CharMgrBound(EVEServiceManager& mgr, PyRep* bindData, uint32 ownerID, uint16 contFlag);
+    CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint32 ownerID, uint16 contFlag);
 
 protected:
     bool CanClientCall(Client* client) override;

@@ -55,15 +55,19 @@ BoundDispatcher* DogmaIMService::BindObject(Client* client, PyRep* bindParameter
     //crap
     PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName().c_str());
         return nullptr;
     }
 
-    return new DogmaIMBound(this->GetServiceManager(), bindParameters, args.locationID, args.groupID);
+    return new DogmaIMBound(this->GetServiceManager(), *this, args.locationID, args.groupID);
 }
 
-DogmaIMBound::DogmaIMBound(EVEServiceManager& mgr, PyRep* bindData, uint32 locationID, uint32 groupID) :
-    EVEBoundObject(mgr, bindData),
+void DogmaIMService::BoundReleased (DogmaIMBound* bound) {
+
+}
+
+DogmaIMBound::DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint32 locationID, uint32 groupID) :
+    EVEBoundObject(mgr, parent),
     m_locationID(locationID),
     m_groupID(groupID)
 {

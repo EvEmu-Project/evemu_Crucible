@@ -27,9 +27,10 @@
 #include "station/StationDataMgr.h"
 #include "services/ServiceManager.h"
 #include "EVE_Mail.h"
+#include "corporation/CorpRegistryBound.h"
 
-OfficeSparseBound::OfficeSparseBound(EVEServiceManager &mgr, CorporationDB& db, uint32 corpID, PyList* headers) :
-    SparseBound (mgr, headers),
+OfficeSparseBound::OfficeSparseBound(EVEServiceManager &mgr, CorpRegistryBound& parent, CorporationDB& db, uint32 corpID, PyList* headers) :
+    SparseBound (mgr, parent, headers),
     m_db(db),
     m_corpID(corpID)
 {

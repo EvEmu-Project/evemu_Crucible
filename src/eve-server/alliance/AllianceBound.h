@@ -21,14 +21,17 @@
 #include "chat/LSCService.h"
 #include "Client.h"
 
+class AllianceRegistry;
+
 class AllianceBound : public EVEBoundObject <AllianceBound>
 {
 public:
-    AllianceBound(EVEServiceManager& mgr, PyRep* bindData, AllianceDB& db, uint32 allyID);
+    AllianceBound(EVEServiceManager& mgr, AllianceRegistry& parent, AllianceDB& db, uint32 allyID);
 
     static void FillOAApplicationChange(OnAllianceApplicationChanged& OAAC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New);
     static void FillOAMemberChange(OnAllianceMemberChange& OAMC, const Alliance::ApplicationInfo& Old, const Alliance::ApplicationInfo& New);
 
+    uint32 GetAllianceID () const { return this->m_allyID; }
 protected:
     bool CanClientCall(Client* client) override;
 

@@ -42,11 +42,24 @@ BoundDispatcher* PlanetORB::BindObject(Client* client, PyRep* bindParameters) {
         throw CustomError("Cannot bind service");
     }
 
-    return new PlanetORBBound(this->GetServiceManager(), bindParameters->AsInt()->value(), bindParameters);
+    uint32 systemID = bindParameters->AsInt()->value();
+    auto it = this->m_instances.find (systemID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    PlanetORBBound* bound = new PlanetORBBound(this->GetServiceManager(), *this, systemID);
+
+    this->m_instances.insert_or_assign (systemID, bound);
+
+    return bound;
 }
 
-PlanetORBBound::PlanetORBBound(EVEServiceManager& mgr, uint32 systemID, PyRep* bindData) :
-    EVEBoundObject(mgr, bindData),
+void PlanetORB::BoundReleased (PlanetORBBound* bound) {
+
+}
+PlanetORBBound::PlanetORBBound(EVEServiceManager& mgr, PlanetORB& parent, uint32 systemID) :
+    EVEBoundObject(mgr, parent),
     m_systemID(systemID)
 {
 }

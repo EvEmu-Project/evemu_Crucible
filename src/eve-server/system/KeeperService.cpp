@@ -46,7 +46,8 @@
 
 KeeperService::KeeperService(EVEServiceManager& mgr) :
     Service("keeper", eAccessLevel_SolarSystem),
-    m_manager (mgr)
+    m_manager (mgr),
+    m_instance (nullptr)
 {
     this->Add("GetLevelEditor", &KeeperService::GetLevelEditor);
     this->Add("ActivateAccelerationGate", &KeeperService::ActivateAccelerationGate);
@@ -55,15 +56,23 @@ KeeperService::KeeperService(EVEServiceManager& mgr) :
     //sm.RemoteSvc('keeper').ClientBSDRevisionChange(action, schemaName, tableName, rowKeys, columnValues, reverting)
 }
 
+void KeeperService::BoundReleased (KeeperBound* bound) {
+    this->m_instance = nullptr;
+}
+
 PyResult KeeperService::GetLevelEditor(PyCallArgs &call)
 {
     // self.ed = sm.RemoteSvc('keeper').GetLevelEditor()  (this is to bind new editor object)
     _log(DUNG__CALL,  "KeeperService::Handle_GetLevelEditor  size: %li", call.tuple->size());
     call.Dump(DUNG__CALL_DUMP);
 
-    KeeperBound *ib = new KeeperBound(m_manager, nullptr, &m_db);
+    if (this->m_instance == nullptr) {
+        this->m_instance = new KeeperBound (m_manager, *this, &m_db);
+    }
 
-    return new PySubStruct(new PySubStream(ib->GetOID()));
+    this->m_instance->NewReference (call.client);
+
+    return new PySubStruct(new PySubStream(this->m_instance->GetOID()));
 }
 
 PyResult KeeperService::CanWarpToPathPlex(PyCallArgs &call, PyInt* instanceID) {
@@ -110,8 +119,8 @@ PyResult KeeperService::ActivateAccelerationGate(PyCallArgs &call, PyInt* itemID
     return new PyLong(Win32TimeNow());
 }
 
-KeeperBound::KeeperBound(EVEServiceManager& mgr, PyRep* bindData, SystemDB* db) :
-    EVEBoundObject(mgr, bindData),
+KeeperBound::KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB* db) :
+    EVEBoundObject(mgr, parent),
     m_db(db)
 {
     this->Add("EditDungeon", &KeeperBound::EditDungeon);

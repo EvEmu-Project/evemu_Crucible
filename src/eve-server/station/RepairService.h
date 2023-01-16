@@ -30,22 +30,29 @@
 
 class Client;
 class Inventory;
+class RepairServiceBound;
 
-class RepairService : public BindableService <RepairService> {
+class RepairService : public BindableService <RepairService, RepairServiceBound> {
 public:
     RepairService(EVEServiceManager& mgr);
+
+    void BoundReleased (RepairServiceBound* bound) override;
 
     static void GetDamageReports(uint32 itemID, Inventory* pInv, PyList* list);
 
 protected:
     PyResult UnasembleItems(PyCallArgs& call, PyDict* validIDsByStationID, PyList* skipChecks);
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
+
+private:
+    std::map<uint32, RepairServiceBound*> m_instances;
 };
 
 class RepairServiceBound : public EVEBoundObject <RepairServiceBound> {
 public:
-    RepairServiceBound(uint32 locationID, PyRep* bindData, EVEServiceManager& mgr);
+    RepairServiceBound(EVEServiceManager& mgr, RepairService& parent, uint32 locationID);
 
+    uint32 GetLocationID () { return this->m_locationID; }
 protected:
     PyResult DamageModules(PyCallArgs& call, PyList* itemIDAndAmountOfDamage);
     PyResult RepairItems(PyCallArgs& call, PyList* itemIDs, PyFloat* iskAmount);

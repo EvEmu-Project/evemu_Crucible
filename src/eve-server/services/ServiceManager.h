@@ -88,7 +88,7 @@ public:
     /**
      * @brief Destroys the specified bound object
      */
-    void ClearBoundObject(const BoundID& service);
+    void ClearBoundObject(const BoundID& service, Client* client);
 
     /**
      * @brief Gives access to the service list

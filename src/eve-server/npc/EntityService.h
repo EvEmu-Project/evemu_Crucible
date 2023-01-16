@@ -17,22 +17,28 @@
 
 
 class SystemManager;
+class EntityBound;
 
-class EntityService : public BindableService <EntityService>
+class EntityService : public BindableService <EntityService, EntityBound>
 {
 public:
     EntityService(EVEServiceManager& mgr);
 
+    void BoundReleased (EntityBound* bound) override;
 protected:
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters);
+
+private:
+    std::map <uint32, EntityBound*> m_instances;
 };
 
 class EntityBound : public EVEBoundObject <EntityBound>
 {
 public:
-    EntityBound(EVEServiceManager& mgr, SystemManager* systemMgr, uint32 systemID, PyRep* bindData);
+    EntityBound(EVEServiceManager& mgr, EntityService& parent, SystemManager* systemMgr, uint32 systemID);
 
+    uint32 GetSystemID() { return this->m_systemID; }
 protected:
     bool CanClientCall(Client* client) override;
 

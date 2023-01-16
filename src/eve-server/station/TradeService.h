@@ -31,11 +31,14 @@
 #include "packets/Trade.h"
 
 class Client;
+class TradeBound;
 
-class TradeService : public BindableService <TradeService>
+class TradeService : public BindableService <TradeService, TradeBound>
 {
 public:
     TradeService(EVEServiceManager& mgr);
+
+    void BoundReleased (TradeBound* bound) override;
 
     uint32 GetTradeSessionID();
 
@@ -105,7 +108,7 @@ class TradeBound : public EVEBoundObject <TradeBound>
     friend TradeService;
 
 public:
-    TradeBound(EVEServiceManager& mgr, PyRep* bindData);
+    TradeBound(EVEServiceManager& mgr, TradeService& parent);
 
     void ExchangeItems(Client* pClient, Client* pOther, TradeSession* pTSes);
     void CancelTrade(Client* pClient, Client* pOther, TradeSession* pTSes);

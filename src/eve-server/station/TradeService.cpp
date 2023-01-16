@@ -37,8 +37,8 @@
 #include "system/SystemManager.h"
 #include "system/Container.h"
 
-TradeBound::TradeBound (EVEServiceManager& mgr, PyRep* bindData) :
-    EVEBoundObject(mgr, bindData)
+TradeBound::TradeBound (EVEServiceManager& mgr, TradeService& parent) :
+    EVEBoundObject(mgr, parent)
 {
     this->m_TSvc = this->GetServiceManager().Lookup <TradeService>("trademgr");
 
@@ -551,9 +551,12 @@ BoundDispatcher* TradeService::BindObject(Client* client, PyRep* bindParameters)
         client->SetTradeSession(itr->second.ourTS);
     }
 
-    return new TradeBound(this->GetServiceManager(), bindParameters);
+    return new TradeBound(this->GetServiceManager(), *this);
 }
 
+void TradeService::BoundReleased (TradeBound* bound) {
+
+}
 
 void TradeService::TransferContainerContents(SystemManager* pSysMgr, InventoryItemRef itemRef, uint32 newOwnerID)
 {
@@ -627,8 +630,9 @@ void TradeService::CancelTrade(Client* pClient) {
     TradeSession* pTSes = pClient->GetTradeSession();
     Client* pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
 
-    TradeBound* pTB = new TradeBound(this->GetServiceManager(), nullptr);
+    TradeBound* pTB = new TradeBound(this->GetServiceManager(), *this);
     pTB->CancelTrade(pClient, pOther, pTSes);
+    delete pTB;
 
     PyTuple* tuple = new PyTuple(2);
         tuple->SetItem(0, new PyString("Cancel"));

@@ -10,11 +10,19 @@
 #include "services/BoundService.h"
 #include "chat/LSCService.h"
 #include "cache/ObjCacheService.h"
+#include "corporation/OfficeSparseBound.h"
 
-class CorpRegistryBound : public EVEBoundObject <CorpRegistryBound>
+class CorpRegistryService;
+class OfficeSparseBound;
+
+class CorpRegistryBound : public EVEBoundObject <CorpRegistryBound>, public BoundServiceParent <OfficeSparseBound>
 {
 public:
-    CorpRegistryBound(EVEServiceManager &mgr, PyRep* bindData, CorporationDB& db, uint32 corpID);
+    CorpRegistryBound(EVEServiceManager &mgr, CorpRegistryService& parent, CorporationDB& db, uint32 corpID);
+
+    uint32 GetCorporationID() const { return this->m_corpID; }
+
+    void BoundReleased (OfficeSparseBound* bound) override;
 
 protected:
     bool CanClientCall(Client* client) override;
@@ -146,6 +154,7 @@ protected:
     CorporationDB& m_db;
     ObjCacheService* m_cache;
     LSCService* m_lsc;
+    OfficeSparseBound* m_offices;
 
     uint32 m_corpID;
 };

@@ -32,10 +32,14 @@
 #include "services/BoundService.h"
 #include "Client.h"
 
-class CorpRegistryService : public BindableService <CorpRegistryService>
+class CorpRegistryBound;
+
+class CorpRegistryService : public BindableService <CorpRegistryService, CorpRegistryBound>
 {
 public:
     CorpRegistryService(EVEServiceManager& mgr);
+
+    void BoundReleased (CorpRegistryBound* bound) override;
 
 protected:
     CorporationDB m_db;
@@ -58,6 +62,9 @@ protected:
 
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
+
+private:
+    std::map<uint32, CorpRegistryBound*> m_instances;
 };
 
 #endif

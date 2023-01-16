@@ -60,11 +60,35 @@ CorpStationMgr::CorpStationMgr(EVEServiceManager& mgr) :
 
 BoundDispatcher* CorpStationMgr::BindObject(Client *client, PyRep* bindParameters) {
     if (!bindParameters->IsInt()) {
-        codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bindParameters->TypeString());
+        codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName().c_str(), bindParameters->TypeString());
         return nullptr;
     }
 
-    return new CorpStationMgrIMBound(this->GetServiceManager(), bindParameters, m_db, bindParameters->AsInt()->value());
+    uint32_t stationID = bindParameters->AsInt ()->value ();
+
+    // ensure the player is in the given station
+    if (client->GetStationID2() != stationID)
+        return nullptr;
+
+    auto it = this->m_instances.find (stationID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    CorpStationMgrIMBound* bound = new CorpStationMgrIMBound(this->GetServiceManager(), *this, m_db, stationID);
+
+    this->m_instances.insert_or_assign (stationID, bound);
+
+    return bound;
+}
+
+void CorpStationMgr::BoundReleased (CorpStationMgrIMBound* bound) {
+    auto it = this->m_instances.find (bound->GetStationID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 PyResult CorpStationMgr::GetImprovementStaticData(PyCallArgs& call)
@@ -122,8 +146,8 @@ PyResult CorpStationMgr::GetStationServiceStates(PyCallArgs& call)
     return DBResultToIntRowDict(res, 2);
 }
 
-CorpStationMgrIMBound::CorpStationMgrIMBound(EVEServiceManager& mgr, PyRep* bindData, CorporationDB& db, uint32 station_id) :
-    EVEBoundObject(mgr, bindData),
+CorpStationMgrIMBound::CorpStationMgrIMBound(EVEServiceManager& mgr, CorpStationMgr& parent, CorporationDB& db, uint32 station_id) :
+    EVEBoundObject(mgr, parent),
     m_db(db),
     m_stationID(station_id)
 {

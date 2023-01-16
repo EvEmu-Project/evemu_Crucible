@@ -32,11 +32,14 @@
 #include "planet/PlanetMgr.h"
 #include "Client.h"
 
-class PlanetMgrService : public BindableService <PlanetMgrService>
+class PlanetMgrBound;
+
+class PlanetMgrService : public BindableService <PlanetMgrService, PlanetMgrBound>
 {
 public:
     PlanetMgrService(EVEServiceManager& mgr);
 
+    void BoundReleased (PlanetMgrBound* bound) override;
 protected:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 
@@ -44,14 +47,19 @@ protected:
     PyResult GetMyLaunchesDetails(PyCallArgs& call);
     PyResult GetPlanet(PyCallArgs& call, PyInt* planetID);
     PyResult DeleteLaunch(PyCallArgs& call, PyInt* launchID);
+
+private:
+    std::map<uint32, PlanetMgrBound*> m_instances;
 };
 
 
 class PlanetMgrBound : public EVEBoundObject <PlanetMgrBound>
 {
 public:
-    PlanetMgrBound(EVEServiceManager& mgr, PyRep* bindData, Client* client, PlanetSE* planet);
-    
+    PlanetMgrBound(EVEServiceManager& mgr, PlanetMgrService& parent, Client* client, PlanetSE* planet);
+
+    uint32 GetPlanetID () { return this->m_planet->GetID(); }
+
 protected:
     bool CanClientCall(Client* client) override;
 

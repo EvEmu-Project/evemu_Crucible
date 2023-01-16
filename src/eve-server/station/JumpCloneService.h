@@ -30,10 +30,14 @@
 #include "services/BoundService.h"
 #include "Client.h"
 
-class JumpCloneService : public BindableService <JumpCloneService>
+class JumpCloneBound;
+
+class JumpCloneService : public BindableService <JumpCloneService, JumpCloneBound>
 {
 public:
     JumpCloneService(EVEServiceManager& mgr);
+
+    void BoundReleased (JumpCloneBound* bound) override;
 
 protected:
     StationDB m_db;
@@ -47,7 +51,7 @@ protected:
 class JumpCloneBound : public EVEBoundObject <JumpCloneBound>
 {
 public:
-    JumpCloneBound(EVEServiceManager& mgr, PyRep* bindData, StationDB* db, uint32 locationID);
+    JumpCloneBound(EVEServiceManager& mgr, JumpCloneService& parent, StationDB* db, uint32 locationID);
 
 protected:
     bool CanClientCall(Client* client) override;

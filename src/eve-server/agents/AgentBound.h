@@ -18,10 +18,14 @@
 
 #include "agents/Agent.h"
 
+class AgentMgrService;
+
 class AgentBound : public EVEBoundObject <AgentBound>
 {
 public:
-    AgentBound(EVEServiceManager& mgr, PyRep* bindData, Agent *agt);
+    AgentBound(EVEServiceManager& mgr, AgentMgrService& parent, Agent *agt);
+
+    Agent* GetAgent () { return this->m_agent; }
 
 protected:
     Agent* m_agent;    //we do not own this.

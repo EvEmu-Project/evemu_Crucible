@@ -23,6 +23,9 @@
     Author:        Almamu
 */
 
+#ifndef __OFFICESPARSEROWSET_H__
+#define __OFFICESPARSEROWSET_H__
+
 #include "../eve-server.h"
 
 #include "services/SparseBound.h"
@@ -31,11 +34,12 @@
 #include "Client.h"
 
 class EVEServiceManager;
+class CorpRegistryBound;
 
 class OfficeSparseBound : public SparseBound <OfficeSparseBound>
 {
 public:
-    OfficeSparseBound(EVEServiceManager &mgr, CorporationDB& db, uint32 corpID, PyList* headers);
+    OfficeSparseBound(EVEServiceManager &mgr, CorpRegistryBound& parent, CorporationDB& db, uint32 corpID, PyList* headers);
 
 protected:
     bool CanClientCall(Client* client) override;
@@ -90,3 +94,5 @@ protected:
     CorporationDB& m_db;
     uint32 m_corpID;
 };
+
+#endif /* !__OFFICESPARSEROWSET_H__ */

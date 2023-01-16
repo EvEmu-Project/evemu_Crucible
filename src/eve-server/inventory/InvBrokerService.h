@@ -31,11 +31,15 @@
 #include "Client.h"
 
 class PyRep;
+class InvBrokerBound;
+class InventoryBound;
 
-class InvBrokerService : public BindableService <InvBrokerService>
+class InvBrokerService : public BindableService <InvBrokerService, InvBrokerBound>
 {
 public:
     InvBrokerService(EVEServiceManager& mgr);
+
+    void BoundReleased (InvBrokerBound* bound) override;
 
 protected:
     PyResult GetItemDescriptor(PyCallArgs& call);
@@ -44,11 +48,12 @@ protected:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 };
 
-class InvBrokerBound : public EVEBoundObject <InvBrokerBound>
+class InvBrokerBound : public EVEBoundObject <InvBrokerBound>, public BoundServiceParent<InventoryBound>
 {
 public:
-    InvBrokerBound(EVEServiceManager& mgr, PyRep* bindData, uint32 locationID, uint32 groupID);
+    InvBrokerBound(EVEServiceManager& mgr, InvBrokerService& parent, uint32 locationID, uint32 groupID);
 
+    void BoundReleased (InventoryBound* bound) override;
 protected:
     bool CanClientCall(Client* client) override;
 

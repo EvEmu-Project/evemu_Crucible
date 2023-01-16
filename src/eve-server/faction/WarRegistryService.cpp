@@ -47,15 +47,34 @@ BoundDispatcher* WarRegistryService::BindObject(Client* client, PyRep* bindParam
     Call_TwoIntegerArgs args;
 
     if (args.Decode(bindParameters->Clone()) == false) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName().c_str());
         return nullptr;
     }
 
-    return new WarRegistryBound(args.arg1, this->GetServiceManager (), bindParameters);
+    uint32 corporationID = args.arg1;
+    auto it = this->m_instances.find (corporationID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    WarRegistryBound* bound = new WarRegistryBound(args.arg1, this->GetServiceManager (), *this);
+
+    this->m_instances.insert_or_assign (corporationID, bound);
+
+    return bound;
 }
 
-WarRegistryBound::WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, PyRep* bindData) :
-    EVEBoundObject(mgr, bindData),
+void WarRegistryService::BoundReleased (WarRegistryBound* bound) {
+    auto it = this->m_instances.find (bound->GetCorporationID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
+
+WarRegistryBound::WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, WarRegistryService& parent) :
+    EVEBoundObject(mgr, parent),
     mCorporationID(corporationID)
 {
     this->Add("GetWars", &WarRegistryBound::GetWars);

@@ -30,11 +30,30 @@ BoundDispatcher* FleetObject::BindObject(Client* client, PyRep* bindParameters)
     }
 
     if (!bindParameters->IsInt()) {
-        _log(FLEET__ERROR, "%s Service: invalid bind argument type %s", GetName(), bindParameters->TypeString());
+        _log(FLEET__ERROR, "%s Service: invalid bind argument type %s", GetName().c_str(), bindParameters->TypeString());
         return nullptr;
     }
 
-    return new FleetBound(this->GetServiceManager(), bindParameters, bindParameters->AsInt()->value());
+    uint32 fleetID = bindParameters->AsInt()->value();
+    auto it = this->m_instances.find (fleetID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    FleetBound* bound = new FleetBound(this->GetServiceManager(), *this, bindParameters->AsInt()->value());
+
+    this->m_instances.insert_or_assign (fleetID, bound);
+
+    return bound;
+}
+
+void FleetObject::BoundReleased (FleetBound* bound) {
+    auto it = this->m_instances.find (bound->GetFleetID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 // FOH::CreateFleet, FOH::

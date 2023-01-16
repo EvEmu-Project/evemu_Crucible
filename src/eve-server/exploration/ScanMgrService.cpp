@@ -49,6 +49,14 @@ ScanMgrService::ScanMgrService(EVEServiceManager& mgr) :
 {
     this->Add("GetSystemScanMgr", &ScanMgrService::GetSystemScanMgr);
 }
+void ScanMgrService::BoundReleased (ScanBound* bound) {
+    auto it = this->m_instances.find (bound->GetClient());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
 
 PyResult ScanMgrService::GetSystemScanMgr(PyCallArgs& call) {
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
@@ -57,13 +65,22 @@ PyResult ScanMgrService::GetSystemScanMgr(PyCallArgs& call) {
         return PyStatic.NewNone();
     }
 
-    ScanBound* pSB = new ScanBound(m_manager, nullptr, call.client);
+    ScanBound* pSB;
+    auto it = this->m_instances.find (call.client);
+
+    if (it == this->m_instances.end ()) {
+        pSB = new ScanBound(m_manager, *this, call.client);
+    } else {
+        pSB = it->second;
+    }
+
+    pSB->NewReference (call.client);
 
     return new PySubStruct(new PySubStream(pSB->GetOID()));
 }
 
-ScanBound::ScanBound(EVEServiceManager& mgr, PyRep* bindData, Client* client) :
-    EVEBoundObject(mgr, bindData),
+ScanBound::ScanBound(EVEServiceManager& mgr, ScanMgrService& parent, Client* client) :
+    EVEBoundObject(mgr, parent),
     m_client(client)
 {
     this->Add("ConeScan", &ScanBound::ConeScan);

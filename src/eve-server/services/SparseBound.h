@@ -31,18 +31,19 @@
 
 class OnObjectPublicAttributesUpdated;
 
-template <class T>
-class SparseBound : public EVEBoundObject<T> {
+template <class Bound>
+class SparseBound : public EVEBoundObject <Bound> {
 public:
-    SparseBound (EVEServiceManager& mgr, PyList* headers) :
-        EVEBoundObject <T> (mgr, nullptr)
+    SparseBound (EVEServiceManager& mgr, BoundServiceParent<Bound>& parent, PyList* headers) :
+        EVEBoundObject <Bound> (mgr, parent),
+        m_header (nullptr)
     {
         // fetch the keys first
         this->InitializeKeys();
 
-        this->Add("Fetch", &SparseBound<T>::Fetch);
-        this->Add("FetchByKey", &SparseBound<T>::FetchByKey);
-        this->Add("SelectByUniqueColumnValues", &SparseBound<T>::SelectByUniqueColumnValues);
+        this->Add("Fetch", &Bound::Fetch);
+        this->Add("FetchByKey", &Bound::FetchByKey);
+        this->Add("SelectByUniqueColumnValues", &Bound::SelectByUniqueColumnValues);
 
         auto cur = headers->begin();
         auto end = headers->end();
@@ -139,7 +140,6 @@ public:
         // let the inheriting class decide how to send the notification
         this->SendNotification (update);
     }
-
 protected:
     PyResult Fetch(PyCallArgs& call, PyInt* startPos, PyInt* fetchSize) {
         DBQueryResult res;

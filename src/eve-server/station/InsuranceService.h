@@ -30,9 +30,13 @@
 #include "ship/ShipDB.h"
 #include "services/BoundService.h"
 
-class InsuranceService : public BindableService <InsuranceService> {
+class InsuranceBound;
+
+class InsuranceService : public BindableService <InsuranceService, InsuranceBound> {
 public:
     InsuranceService(EVEServiceManager& mgr);
+
+    void BoundReleased (InsuranceBound* bound) override;
 
 protected:
     ShipDB m_db;
@@ -46,7 +50,7 @@ protected:
 class InsuranceBound : public EVEBoundObject <InsuranceBound>
 {
 public:
-    InsuranceBound(EVEServiceManager& mgr, PyRep* bindData, ShipDB* db);
+    InsuranceBound(EVEServiceManager& mgr, InsuranceService& parent, ShipDB* db);
 
 protected:
     bool CanClientCall(Client* client) override;

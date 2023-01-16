@@ -31,9 +31,13 @@
 #include "services/BoundService.h"
 #include "system/BookmarkService.h"
 
-class BeyonceService : public BindableService <BeyonceService> {
+class BeyonceBound;
+
+class BeyonceService : public BindableService <BeyonceService, BeyonceBound> {
 public:
     BeyonceService(EVEServiceManager& mgr);
+
+    void BoundReleased (BeyonceBound* bound) override;
 
 protected:
     ShipDB m_db;
@@ -48,7 +52,7 @@ protected:
 class BeyonceBound : public EVEBoundObject <BeyonceBound>
 {
 public:
-    BeyonceBound(EVEServiceManager& mgr, PyRep* bindData, Client* client);
+    BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Client* client);
 
 protected:
     bool CanClientCall(Client* client) override;

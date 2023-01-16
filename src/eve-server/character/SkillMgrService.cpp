@@ -37,11 +37,15 @@ SkillMgrService::SkillMgrService(EVEServiceManager& mgr)
 BoundDispatcher* SkillMgrService::BindObject (Client *client, PyRep* bindParameters) {
     _log(CLIENT__MESSAGE, "SkillMgrService bind request for:");
 
-    return(new SkillMgrBound(this->GetServiceManager(), m_db, bindParameters));
+    return new SkillMgrBound(this->GetServiceManager(), *this, m_db);
 }
 
-SkillMgrBound::SkillMgrBound(EVEServiceManager &mgr, CharacterDB &db, PyRep* bindParameters) :
-    EVEBoundObject(mgr, bindParameters),
+void SkillMgrService::BoundReleased (SkillMgrBound* bound) {
+
+}
+
+SkillMgrBound::SkillMgrBound(EVEServiceManager &mgr, SkillMgrService& parent, CharacterDB &db) :
+    EVEBoundObject(mgr, parent),
     m_db(db)
 {
     this->Add("InjectSkillIntoBrain", &SkillMgrBound::InjectSkillIntoBrain);

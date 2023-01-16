@@ -30,13 +30,18 @@
 #include "Client.h"
 
 class EVEServiceManager;
+class WarRegistryBound;
 
-class WarRegistryService : public BindableService<WarRegistryService> {
+class WarRegistryService : public BindableService<WarRegistryService, WarRegistryBound> {
 public:
     WarRegistryService(EVEServiceManager& mgr);
 
+    void BoundReleased (WarRegistryBound* bound) override;
 protected:
     BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
+
+private:
+    std::map<uint32, WarRegistryBound*> m_instances;
 };
 
 class WarRegistryBound : public EVEBoundObject<WarRegistryBound> {
@@ -44,6 +49,7 @@ class WarRegistryBound : public EVEBoundObject<WarRegistryBound> {
 public:
     PyResult GetWars(PyCallArgs& args, PyInt* ownerID, std::optional<PyInt*> forceRefresh);
 
+    uint32 GetCorporationID() { return this->mCorporationID; }
     /*
      * other functions that might be required
      * return self.GetMoniker().RetractWar(againstID)
@@ -52,9 +58,10 @@ public:
      * return self.GetMoniker().GetCostOfWarAgainst(ownerID)
      */
 protected:
-    WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, PyRep* bindData);
+    WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, WarRegistryService& parent);
 
     bool CanClientCall(Client* client) override;
+
 private:
     uint32 mCorporationID;
 };

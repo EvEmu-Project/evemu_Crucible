@@ -37,6 +37,14 @@ VoucherService::VoucherService(EVEServiceManager& mgr) :
 {
     this->Add("GetObject", &VoucherService::GetObject);
 }
+void VoucherService::BoundReleased (VoucherBound* bound) {
+    auto it = this->m_instances.find (bound->GetVoucherID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
 
 PyResult VoucherService::GetObject(PyCallArgs& call, PyInt* voucherID) {
   /**
@@ -45,19 +53,28 @@ PyResult VoucherService::GetObject(PyCallArgs& call, PyInt* voucherID) {
         return
     self.data[voucherID] = voucher
     */
+    VoucherBound* bound;
+    auto it = this->m_instances.find (voucherID->value());
 
-    //call.Dump(BOOKMARK__CALL_DUMP);
-    // return none for now, to allow client to use default name of 'bookmark'
-    //return PyStatic.NewNone();
-    InventoryItemRef iRef = sItemFactory.GetItemRef(voucherID->value());
-    if (iRef.get() == nullptr) {
-        codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark voucher for bmID %u", call.client->GetName(), voucherID->value());
-        return new PyDict;
+    if (it == this->m_instances.end ()) {
+        //call.Dump(BOOKMARK__CALL_DUMP);
+        // return none for now, to allow client to use default name of 'bookmark'
+        //return PyStatic.NewNone();
+        InventoryItemRef iRef = sItemFactory.GetItemRef(voucherID->value());
+        if (iRef.get() == nullptr) {
+            codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark voucher for bmID %u", call.client->GetName(), voucherID->value());
+            return new PyDict;
+        }
+
+        // this is how i return objects for method chaining
+        //we just bind up a new voucher object for item requested and give it back to them.
+        bound = new VoucherBound(m_manager, *this, iRef);
+        this->m_instances.insert_or_assign (voucherID->value(), bound);
+    } else {
+        bound = it->second;
     }
 
-    // this is how i return objects for method chaining
-    //we just bind up a new voucher object for item requested and give it back to them.
-    VoucherBound* bound = new VoucherBound(m_manager, iRef);
+    bound->NewReference (call.client);
 
     PyTuple* rsp = new PyTuple(2);
 
@@ -67,8 +84,8 @@ PyResult VoucherService::GetObject(PyCallArgs& call, PyInt* voucherID) {
     return rsp;
 }
 
-VoucherBound::VoucherBound(EVEServiceManager& mgr, InventoryItemRef itemRef) :
-    EVEBoundObject (mgr, nullptr),
+VoucherBound::VoucherBound(EVEServiceManager& mgr, VoucherService& parent, InventoryItemRef itemRef) :
+    EVEBoundObject (mgr, parent),
     m_itemRef (itemRef)
 {
     this->Add("GetDescription", &VoucherBound::GetDescription);

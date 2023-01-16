@@ -31,6 +31,7 @@
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
 #include "inventory/InventoryBound.h"
+#include "inventory/InvBrokerService.h"
 #include "planet/CustomsOffice.h"
 #include "planet/Planet.h"
 #include "planet/Colony.h"
@@ -45,8 +46,8 @@
 #include "station/StationDataMgr.h"
 #include "manufacturing/FactoryDB.h"
 
-InventoryBound::InventoryBound(EVEServiceManager &mgr, PyRep* bindData, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
-    EVEBoundObject(mgr, bindData),
+InventoryBound::InventoryBound(EVEServiceManager &mgr, InvBrokerBound& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
+    EVEBoundObject(mgr, parent),
     pInventory(item->GetMyInventory()),
     m_flag(flag),
     m_self(item),

@@ -27,12 +27,15 @@
 #ifndef __CORPSTATIONMGR_SERVICE_H_INCL__
 #define __CORPSTATIONMGR_SERVICE_H_INCL__
 
+#include <map>
+
 #include "corporation/CorporationDB.h"
 #include "services/BoundService.h"
 
 class PyRep;
+class CorpStationMgrIMBound;
 
-class CorpStationMgr : public BindableService <CorpStationMgr>
+class CorpStationMgr : public BindableService <CorpStationMgr, CorpStationMgrIMBound>
 {
 public:
     CorpStationMgr(EVEServiceManager& mgr);
@@ -45,12 +48,17 @@ protected:
 
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
+    void BoundReleased (CorpStationMgrIMBound* bound) override;
+
+private:
+    std::map <uint32_t, CorpStationMgrIMBound*> m_instances;
 };
 
 class CorpStationMgrIMBound : public EVEBoundObject <CorpStationMgrIMBound>
 {
+    friend class CorpStationMgr;
 public:
-    CorpStationMgrIMBound(EVEServiceManager& mgr, PyRep* bindData, CorporationDB& db, uint32 station_id);
+    CorpStationMgrIMBound(EVEServiceManager& mgr, CorpStationMgr& parent, CorporationDB& db, uint32 station_id);
 
 protected:
     bool CanClientCall(Client* client) override;
@@ -80,6 +88,8 @@ protected:
     PyResult GetStationImprovements(PyCallArgs& call);
 
 protected:
+    const uint32 GetStationID() const { return this->m_stationID; }
+
     StationItem* pStationItem;    //we do not own this
 
     CorporationDB& m_db;

@@ -31,11 +31,14 @@
 #include "Client.h"
 
 class PyRep;
+class DogmaIMBound;
 
-class DogmaIMService : public BindableService <DogmaIMService>
+class DogmaIMService : public BindableService <DogmaIMService, DogmaIMBound>
 {
 public:
     DogmaIMService(EVEServiceManager& mgr);
+
+    void BoundReleased (DogmaIMBound* bound) override;
 
 protected:
     PyResult GetAttributeTypes(PyCallArgs& call);
@@ -55,7 +58,7 @@ private:
 class DogmaIMBound : public EVEBoundObject <DogmaIMBound>
 {
 public:
-    DogmaIMBound(EVEServiceManager& mgr, PyRep* bindData, uint32 locationID, uint32 groupID);
+    DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint32 locationID, uint32 groupID);
 
 protected:
     bool CanClientCall(Client* client) override;

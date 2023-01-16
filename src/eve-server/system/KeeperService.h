@@ -31,10 +31,14 @@
 #include "services/Service.h"
 #include "Client.h"
 
-class KeeperService : public Service <KeeperService>
+class KeeperBound;
+
+class KeeperService : public Service <KeeperService>, public BoundServiceParent <KeeperBound>
 {
 public:
     KeeperService(EVEServiceManager& mgr);
+
+    void BoundReleased (KeeperBound* bound) override;
 
 protected:
     SystemDB m_db;
@@ -45,13 +49,14 @@ protected:
 
 private:
     EVEServiceManager& m_manager;
+    KeeperBound* m_instance;
 };
 
 
 class KeeperBound : public EVEBoundObject <KeeperBound>
 {
 public:
-    KeeperBound(EVEServiceManager& mgr, PyRep* bindData, SystemDB* db);
+    KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB* db);
 
 protected:
     bool CanClientCall(Client* client) override;

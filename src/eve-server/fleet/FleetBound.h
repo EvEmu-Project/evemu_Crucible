@@ -17,10 +17,14 @@
 #include "services/BoundService.h"
 #include "fleet/FleetManager.h"
 
+class FleetObject;
+
 class FleetBound : public EVEBoundObject <FleetBound>
 {
 public:
-    FleetBound(EVEServiceManager& mgr, PyRep* bindData, uint32 fleetID);
+    FleetBound(EVEServiceManager& mgr, FleetObject& parent, uint32 fleetID);
+
+    uint32 GetFleetID() { return this->m_fleetID; }
 
 protected:
     bool CanClientCall(Client* client) override;
@@ -57,7 +61,6 @@ protected:
     PyResult Reconnect(PyCallArgs& call);
 
 private:
-    Client* m_client;
     uint32 m_fleetID;
 
 };
