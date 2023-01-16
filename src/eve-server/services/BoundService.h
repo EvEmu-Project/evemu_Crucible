@@ -204,7 +204,7 @@ public:
      */
     PyResult Dispatch(const std::string& name, PyCallArgs& args) override {
         if (this->CanClientCall(args.client) == false)
-            throw std::runtime_error("This client is not allowed to call this bound service");
+            throw CustomError("This client is not allowed to call this bound service");
 
         for (auto handler : this->mHandlers) {
             if (handler.first != name)

@@ -237,6 +237,8 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
 
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), *this, iRef, flag, ownerID, passive->value());
 
+    ib->NewReference(call.client);
+
     return new PySubStruct(new PySubStream(ib->GetOID()));
 }
 void InvBrokerBound::BoundReleased (InventoryBound* bound) {
@@ -330,6 +332,8 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
     }
 
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), *this, item, flag, ownerID, false);
+
+    ib->NewReference(call.client);
 
     return new PySubStruct(new PySubStream(ib->GetOID()));
 }
