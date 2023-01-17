@@ -46,6 +46,19 @@ VALUES (
     0,                  -- pitch value
     0,                  -- roll value
     10000               -- radius in meters
+),
+(
+    NULL,               -- ID of the room object (MUST BE UNIQUE. Check dunRoomObjects AND dunRoomObjectData for collisions)
+    10000,              -- ID of the room
+    17831,              -- TypeID of the item to be inserted
+    10000,              -- GroupID of the item
+    100,                -- x relative position
+    100,                -- y relative position
+    100,                -- z relative position
+    0,                  -- yaw value
+    0,                  -- pitch value
+    0,                  -- roll value
+    10000               -- radius in meters
 );
 
 -- Create a group for the object to be in

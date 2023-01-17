@@ -300,12 +300,126 @@ void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
     }
 }
 
-void SpawnMgr::DoSpawnForAnomaly(SystemBubble* pBubble, uint8 spawnClass)
+// Spawn an individual enemy inside a dungeon (called by dungeonMgr)
+void SpawnMgr::DoSpawnForAnomaly(SystemBubble* pBubble, GPoint pos, uint8 level, uint16 typeID)
 {
     if (pBubble == nullptr)
         return;
     pBubble->SetAnomaly();
-    PrepSpawn(pBubble, spawnClass);
+
+    float secRating = m_system->GetSecValue();
+
+    // Get faction of enemy based on item type
+    Inv::TypeData objType;
+    sDataMgr.GetType(typeID, objType);
+    uint32 factionID = sDataMgr.GetRaceFaction(objType.race);
+
+    if (is_log_enabled(SPAWN__MESSAGE))
+        _log(SPAWN__MESSAGE, "SpawnMgr::DoSpawnForAnomaly() - faction: %s, region %u.", \
+                sDataMgr.GetFactionName(factionID).c_str(), m_system->GetRegionID());
+
+    SpawnGroup group;
+    group.quantity = 1;
+    group.typeID = typeID;
+
+    if (m_toSpawn.size() > 0) {
+        if (is_log_enabled(SPAWN__MESSAGE)) {
+            _log(SPAWN__MESSAGE, "SpawnMgr::DoSpawnForAnomaly() - toSpawn size is %u.", m_toSpawn.size());    //variable
+            _log(SPAWN__MESSAGE, "SpawnMgr::DoSpawnForAnomaly() - Creating spawn for %s in bubbleID %u.", \
+            sDataMgr.GetFactionName(factionID).c_str(), pBubble->GetID());
+        }
+
+        GPoint startPos(pos);
+        GPoint warpToPoint(startPos);
+
+        std::string name = objType.name;
+
+        uint32 corpID = sDataMgr.GetFactionCorp(factionID);
+        FactionData data = FactionData();
+            data.allianceID = factionID;    // this is to set wreck salvage correctly (tests for faction)
+            data.corporationID = corpID;
+            data.factionID = (factionID == factionRogueDrones ? 0 : factionID); // the faction of rogue drones is wrong....should be "0" for client to use it right.
+            data.ownerID = corpID;
+
+        NPC* pNPC(nullptr);
+        InventoryItemRef iRef(nullptr);
+        for (auto cur : m_toSpawn) {
+
+            ItemData idata(cur.typeID, corpID, m_system->GetID(), flagNone, "", startPos, name.c_str());
+            for (uint8 x=0; x < cur.quantity; ++x) {
+                iRef = sItemFactory.SpawnItem(idata);
+                if (iRef.get() == nullptr) {
+                    _log(SPAWN__ERROR, "Failed to spawn item type %u.", cur.typeID);
+                    continue;
+                }
+
+                _log(SPAWN__POP, "SpawnMgr::MakeSpawn - Spawning NPC type %u (%u)", cur.typeID, iRef->itemID());
+
+                pNPC = new NPC(iRef, m_services, m_system, data, this);
+                if (pNPC == nullptr)
+                    continue;
+
+                if (!pNPC->Load()) {
+                    _log(SPAWN__ERROR, "Failed to load NPC data for NPC %u with type %u, depoping.", pNPC->GetID(), pNPC->GetSelf()->typeID());
+                    pNPC->Delete();
+                    continue;
+                }
+
+                m_system->AddNPC(pNPC);
+
+                pNPC->DestinyMgr()->SetPosition(startPos);
+
+                // For large ships, warp them in from a distance
+                if (iRef->GetAttribute(AttrMass) > 10000000) {
+                    // adjust warpIn point so show some variation instead of a straight line.
+                    GPoint warpTo(warpToPoint);
+                    warpTo.MakeRandomPointOnSphere(rand()%(12) *1000);  // random point (1-12) x 1k from center
+                    pNPC->DestinyMgr()->WarpTo(warpTo, (MakeRandomInt(-5, 10) *1000));
+                }
+
+                // Temporary: generate random spawn class
+                uint8 sClass = rand()%(12) + 1;
+
+                SpawnEntry se = SpawnEntry();
+                se.enabled = false;
+                se.groupID = iRef->type().groupID();
+                se.itemID = iRef->itemID();
+                se.total = cur.quantity;
+                se.number = x+1;
+                se.typeID = cur.typeID;
+                se.spawnID = m_spawnID;
+                se.corpID = corpID;
+                se.factionID = factionID;
+                se.spawnClass = sClass;
+                se.spawnGroup = GetSpawnGroup(sClass);
+                se.level = level;
+                if (sClass <= Spawn::Class::Officer) {  // this spawn is for rat.
+                    se.stamp = 0;   // this is for respawn time...do not set here.
+                } else {
+                    se.stamp = sEntityList.GetStamp(); // set time of this spawn for ??
+                }
+                m_spawns.emplace(pBubble->GetID(), se);
+                _log(SPAWN__TRACE, "MakeSpawn() adding SpawnEntry with ID %u to m_spawns. Class: %s, Group:%s, Level: %u.", \
+                            se.spawnID, GetSpawnClassName(se.spawnClass).c_str(), GetSpawnGroupName(se.spawnGroup).c_str(), level);
+            }
+        }
+        
+    ++m_spawnID;
+    m_bubbles.push_back(pBubble);
+
+    //cleanup
+    m_toSpawn.clear();
+    m_ratSpawns.clear();
+
+    _log(SPAWN__TRACE, "MakeSpawn() completed in %s(%u) with %u bubbles in m_bubbles and %u entities in m_spawns.", \
+                m_system->GetName(), m_system->GetID(), m_bubbles.size(), m_spawns.size());
+        return;
+    } else {
+        _log(SPAWN__ERROR, "SpawnMgr::PrepSpawn() - Nothing to spawn.");
+    }
+
+    return;
+
 }
 
 void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)

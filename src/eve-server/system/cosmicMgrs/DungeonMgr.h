@@ -79,11 +79,8 @@ public:
 
     bool Init(AnomalyMgr* anomMgr, SpawnMgr* spawnMgr);
     void Process();
-    void Load();
 
     bool MakeDungeon(CosmicSignature& sig);
-
-    bool Create(uint32 templateID, CosmicSignature& sig);
 
 protected:
     ManagerDB m_db;
@@ -102,7 +99,7 @@ private:
     int8 GetFaction(uint32 factionID);
     int8 GetRandLevel();
 
-    std::map<uint32, std::vector<uint32>> m_dungeonList;  // this holds all items associated with the key 'dungeonID' in this system
+    std::map<uint32, Dungeon::LiveDungeon> m_dungeonList; // This holds all live dungeons in the current system
 };
 
 #endif  // _EVEMU_SYSTEM_DUNGEONMGR_H

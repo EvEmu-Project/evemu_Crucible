@@ -11,8 +11,12 @@
 #include "EVEServerConfig.h"
 
 #include "StaticDataMgr.h"
-#include "system/cosmicMgrs/DungeonMgr.h"
 #include "dungeon/DungeonDB.h"
+#include "system/SystemBubble.h"
+#include "system/cosmicMgrs/SpawnMgr.h"
+#include "system/cosmicMgrs/AnomalyMgr.h"
+#include "system/cosmicMgrs/BeltMgr.h"
+#include "system/cosmicMgrs/DungeonMgr.h"
 
 /*
 Dungeon flow:
@@ -99,12 +103,10 @@ void DungeonDataMgr::Populate()
     DBQueryResult *res = new DBQueryResult();
     DBResultRow row;
 
-    std::map<int8, int32>::iterator itr;
-
     // Multi-index view by dungeonID
     auto &byDungeonID = m_dungeons.get<Dungeon::DungeonsByID>();
 
-    DungeonDB::GetDungeons(*res);
+    DungeonDB::GetAllDungeonData(*res);
     while (res->GetRow(row))
     {
         CreateDungeon(row);
@@ -233,6 +235,26 @@ bool DungeonMgr::Init(AnomalyMgr* anomMgr, SpawnMgr* spawnMgr)
     {
         m_anomMgr = anomMgr;
         m_spawnMgr = spawnMgr;
+
+        if (m_anomMgr == nullptr) {
+            _log(COSMIC_MGR__ERROR, "System Init Fault. anomMgr == nullptr.  Not Initializing Dungeon Manager for %s(%u)", m_system->GetName(), m_system->GetID());
+            return m_initalized;
+        }
+
+        if (m_spawnMgr == nullptr) {
+            _log(COSMIC_MGR__ERROR, "System Init Fault. spawnMgr == nullptr.  Not Initializing Dungeon Manager for %s(%u)", m_system->GetName(), m_system->GetID());
+            return m_initalized;
+        }
+
+        if (!sConfig.cosmic.DungeonEnabled){
+            _log(COSMIC_MGR__INIT, "Dungeon System Disabled.  Not Initializing Dungeon Manager for %s(%u)", m_system->GetName(), m_system->GetID());
+            return true;
+        }
+
+        m_spawnMgr->SetDungMgr(this);
+
+        _log(COSMIC_MGR__INIT, "DungeonMgr Initialized for %s(%u)", m_system->GetName(), m_system->GetID());
+
         m_initalized = true;
         return true;
     }
@@ -242,21 +264,105 @@ bool DungeonMgr::Init(AnomalyMgr* anomMgr, SpawnMgr* spawnMgr)
 void DungeonMgr::Process()
 {
     // TODO: process and update any active dungeons in the system
-}
-
-void DungeonMgr::Load()
-{
-    // TODO: load any previously saved dungeons from the database
+    if (!m_initalized)
+        return;
 }
 
 bool DungeonMgr::MakeDungeon(CosmicSignature& sig)
 {
     // TODO: create a new dungeon using the given signature
-    return false;
-}
-bool DungeonMgr::Create(uint32 templateID, CosmicSignature& sig)
-{
-    // TODO: create a new dungeon using the given template ID and signature
+
+    Dungeon::Dungeon dData;
+    sDunDataMgr.GetRandomDungeon(dData, sig.dungeonType);
+
+    if ((sig.sigGroupID == EVEDB::invGroups::Cosmic_Signature) || (sig.sigGroupID == EVEDB::invGroups::Cosmic_Anomaly)) {
+
+        // Create a new anomaly inventory item to track entire dungeon under
+        ItemData iData(sig.sigTypeID, sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), sig.position/*, info*/);
+
+        InventoryItemRef iRef = sItemFactory.SpawnItem(iData);
+        if (iRef.get() == nullptr)
+            return false;
+        iRef->SetCustomInfo(std::string("livedungeon").c_str());
+        iRef->SaveItem();
+
+        CelestialSE* cSE = new CelestialSE(iRef, m_system->GetServiceMgr(), m_system);
+
+        if (cSE == nullptr)
+            return false;
+
+        // dont add signal thru sysMgr.  signal is added when this returns to anomMgr
+        m_system->AddEntity(cSE, false);
+        sig.sigItemID = iRef->itemID();
+        sig.bubbleID = cSE->SysBubble()->GetID();
+
+        _log(COSMIC_MGR__TRACE, "DungeonMgr::Create() - %s using dungeonID %u", sig.sigName.c_str(), dData.dungeonID);
+
+        // Create the new live dungeon
+        Dungeon::LiveDungeon newDungeon;
+        newDungeon.anomalyID = iRef->itemID();
+        newDungeon.systemID = iRef->itemID();
+
+        // Iterate through rooms and handle item spawning for each room
+        uint16 roomCounter = 0;
+        for (auto const& room : dData.rooms) {
+            Dungeon::LiveRoom newRoom;
+            // Set room position
+            // Handle first room differently as it will be at the origin point of signature
+            if (roomCounter == 0) {
+                newRoom.position = sig.position;
+            } else {
+                // The following rooms shall be 100M kilometers in x direction from previous room.
+                GPoint pos;
+                pos.x = newDungeon.rooms[roomCounter - 1].position.x + 100000000000;
+                pos.y = newDungeon.rooms[roomCounter - 1].position.y;
+                pos.z = newDungeon.rooms[roomCounter - 1].position.z;
+                newRoom.position = pos;
+            }
+
+            for (auto object : room.second.objects ) {
+                GPoint pos;
+                // Set position for each object
+                pos.x = newRoom.position.x + object.x;
+                pos.y = newRoom.position.y + object.y;
+                pos.z = newRoom.position.z + object.z;
+
+                // If invGroup is an NPC, we must spawn it as such
+                Inv::TypeData objType;
+                Inv::GrpData objGroup;
+                sDataMgr.GetType(object.typeID, objType);
+                sDataMgr.GetGroup(objType.groupID, objGroup);
+                if (objGroup.catID == EVEDB::invCategories::Ship || objGroup.catID == EVEDB::invCategories::Drone) {
+                    m_spawnMgr->DoSpawnForAnomaly(sBubbleMgr.FindBubble(m_system->GetID(), pos), pos, GetRandLevel(), object.typeID);
+                } 
+                
+                // Otherwise, spawn as a normal celestial object
+                else {
+                    // Define ItemData object for each RoomObject
+                    ItemData dData(object.typeID, sig.ownerID, sig.systemID, flagNone, sDataMgr.GetTypeName(object.typeID), pos);
+
+                    // Spawn the object (and persist it across system unloads)
+                    iRef = sItemFactory.SpawnItem(dData);
+                    if (iRef.get() == nullptr) {
+                        _log(COSMIC_MGR__ERROR, "DungeonMgr::Create() - Unable to spawn item with type %s for room %u dungeon with anomaly itemID %u", sDataMgr.GetTypeName(object.typeID), roomCounter, newDungeon.anomalyID);
+                        return false;
+                    }
+                    iRef->SetCustomInfo(("livedungeon_" + std::to_string(newDungeon.anomalyID)).c_str());
+                    iRef->SaveItem();
+
+                    cSE = new CelestialSE(iRef, m_system->GetServiceMgr(), m_system);
+                    m_system->AddEntity(cSE, false);
+                    newRoom.items.push_back(iRef->itemID());
+                }
+            }
+
+            newDungeon.rooms.insert({roomCounter, newRoom});
+            roomCounter++;
+        }
+
+        // Finally add the new dungeon to the system-wide list for tracking
+        m_dungeonList.insert({newDungeon.anomalyID, newDungeon});
+    }
     return false;
 }
 

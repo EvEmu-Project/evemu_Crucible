@@ -480,7 +480,7 @@ void ManagerDB::GetGroupTypeIDs(uint8 shipClass, uint16 groupID, uint32 factionI
 void ManagerDB::DeleteSpawnedRats()
 {
     DBerror err;
-    sDatabase.RunQuery(err, "DELETE FROM entity WHERE customInfo LIKE '%beltrat%'");
+    sDatabase.RunQuery(err, "DELETE FROM entity WHERE customInfo LIKE '%%beltrat%%'");
 }
 
 void ManagerDB::CreateRoidItemID(ItemData& idata, AsteroidData& adata)

@@ -146,17 +146,12 @@ namespace Dungeon {
         };
     }
     /* POD structure entries for dungeon data */
-    struct Template {
-        uint8 dunTypeID;
-        uint8 dunSpawnClass;
-        uint16 dunEntryID;
-        int32 dunRoomID;
-        std::string dunName;
-        std::string dunDescription;
-        uint32 dunFactionID;
-    };
 
-    /* Tags for dungeon multi-index container */
+
+
+    // These structures are for dungeons which are not yet spawned (managed by dunDataMgr)
+    
+    // Tags for dungeon multi-index container
     struct DungeonsByID {};
     struct DungeonsByArchetype {};
 
@@ -190,6 +185,17 @@ namespace Dungeon {
         uint32 factionID;
         uint8 archetypeID;
         std::map<uint16, Room> rooms;
+    };
+
+    // These structures are used for dungeons which are actually spawned in space
+    struct LiveRoom {
+        GPoint position;
+        std::vector<uint32> items;
+    };
+    struct LiveDungeon {
+        uint32 systemID;
+        uint32 anomalyID;
+        std::map<uint16, LiveRoom> rooms;
     };
 }
 
