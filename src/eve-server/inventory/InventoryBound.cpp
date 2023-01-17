@@ -46,7 +46,7 @@
 #include "station/StationDataMgr.h"
 #include "manufacturing/FactoryDB.h"
 
-InventoryBound::InventoryBound(EVEServiceManager &mgr, InvBrokerBound& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
+InventoryBound::InventoryBound(EVEServiceManager &mgr, BoundServiceParent<InventoryBound>& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
     EVEBoundObject(mgr, parent),
     pInventory(item->GetMyInventory()),
     m_flag(flag),

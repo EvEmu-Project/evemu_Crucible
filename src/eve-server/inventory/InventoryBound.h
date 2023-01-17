@@ -30,12 +30,10 @@
 #include "services/BoundService.h"
 #include "Client.h"
 
-class InvBrokerBound;
-
 class InventoryBound : public EVEBoundObject <InventoryBound>
 {
 public:
-    InventoryBound(EVEServiceManager &mgr, InvBrokerBound& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID,  bool passive);
+    InventoryBound(EVEServiceManager &mgr, BoundServiceParent<InventoryBound>& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID,  bool passive);
 
 protected:
     PyResult GetItem(PyCallArgs& call);

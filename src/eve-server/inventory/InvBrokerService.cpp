@@ -68,6 +68,10 @@ void InvBrokerService::BoundReleased (InvBrokerBound* bound) {
 
 }
 
+void InvBrokerService::BoundReleased (InventoryBound* bound) {
+    // TODO: see how to properly keep track of these as they're not exactly your normal bound service
+}
+
 InvBrokerBound::InvBrokerBound(EVEServiceManager& mgr, InvBrokerService& parent, uint32 locationID, uint32 groupID) :
     EVEBoundObject(mgr, parent),
     m_locationID(locationID),
@@ -236,14 +240,11 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
         }
     }
 
-    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), *this, iRef, flag, ownerID, passive->value());
+    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), iRef, flag, ownerID, passive->value());
 
     ib->NewReference(call.client);
 
     return new PySubStruct(new PySubStream(ib->GetOID()));
-}
-void InvBrokerBound::BoundReleased (InventoryBound* bound) {
-    // TODO: see how to properly keep track of these as they're not exactly your normal bound service
 }
 
 //this is a view into an inventory item using a specific flag.
@@ -332,7 +333,7 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
             return nullptr;
     }
 
-    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), *this, item, flag, ownerID, false);
+    InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), item, flag, ownerID, false);
 
     ib->NewReference(call.client);
 
