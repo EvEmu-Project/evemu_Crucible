@@ -36,6 +36,7 @@
 #include "station/TradeService.h"
 #include "system/SystemManager.h"
 #include "system/Container.h"
+#include "services/ServiceManager.h"
 
 TradeBound::TradeBound (EVEServiceManager& mgr, TradeService& parent) :
     EVEBoundObject(mgr, parent)

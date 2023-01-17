@@ -45,6 +45,7 @@
 #include "station/ReprocessingService.h"
 #include "Station.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 ReprocessingService::ReprocessingService(EVEServiceManager& mgr) :
     BindableService("reprocessingSvc", mgr)

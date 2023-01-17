@@ -31,6 +31,7 @@
 #include "pos/Tower.h"
 #include "pos/Weapon.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 PosMgr::PosMgr(EVEServiceManager &mgr) :
     BindableService("posMgr", mgr)

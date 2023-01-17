@@ -35,11 +35,11 @@
 #include "chat/LSCChannel.h"
 
 #include "services/Service.h"
-#include "services/ServiceManager.h"
 #include "admin/SlashService.h"
 
 
 class CommandDispatcher;
+class EVEServiceManager;
 
 class LSCService : public Service <LSCService>
 {

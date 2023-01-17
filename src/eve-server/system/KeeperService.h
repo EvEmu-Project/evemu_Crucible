@@ -29,6 +29,7 @@
 
 #include "system/SystemDB.h"
 #include "services/Service.h"
+#include "services/BoundService.h"
 #include "Client.h"
 
 class KeeperBound;

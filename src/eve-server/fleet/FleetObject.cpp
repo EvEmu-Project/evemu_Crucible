@@ -15,6 +15,7 @@
 
 #include "fleet/FleetObject.h"
 #include "fleet/FleetBound.h"
+#include "services/ServiceManager.h"
 
 FleetObject::FleetObject(EVEServiceManager& mgr) :
     BindableService("fleetObjectHandler", mgr)
