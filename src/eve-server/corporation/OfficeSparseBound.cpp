@@ -20,36 +20,42 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Almamu
 */
 
-#include "eve-server.h"
+#include "corporation/OfficeSparseBound.h"
+#include "station/StationDataMgr.h"
+#include "services/ServiceManager.h"
+#include "EVE_Mail.h"
+#include "corporation/CorpRegistryBound.h"
 
-#include "PyBoundObject.h"
-
-PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
-: m_manager(mgr),
-  m_nodeID(0),
-  m_bindID(0)
-{
-    m_strBoundObjectName = "PyBoundObject";
-}
-
-PyBoundObject::~PyBoundObject()
+OfficeSparseBound::OfficeSparseBound(EVEServiceManager &mgr, CorpRegistryBound& parent, CorporationDB& db, uint32 corpID, PyList* headers) :
+    SparseBound (mgr, parent, headers),
+    m_db(db),
+    m_corpID(corpID)
 {
 }
 
-PyResult PyBoundObject::Call(const std::string &method, PyCallArgs &args) {
-    _log(SERVICE__CALLS_BOUND, "%s::%s()", GetName(), method.c_str());
-    args.Dump(SERVICE__CALL_TRACE);
-
-    return PyCallable::Call(method, args);
+bool OfficeSparseBound::LoadIndexes (DBQueryResult& res) {
+    return m_db.FetchOfficesKeys(m_corpID, res);
 }
 
-std::string PyBoundObject::GetBindStr() const {
-    //generate a nice bind string:
-    char bind_str[128];
-    snprintf(bind_str, sizeof(bind_str), "N=%u:%u", nodeID(), bindID());
+bool OfficeSparseBound::LoadFromDatabase (DBQueryResult& res, int startPos, int fetchSize) {
+    return m_db.FetchOffices (m_corpID, startPos, fetchSize, res);
+}
 
-    return(std::string(bind_str));
+bool OfficeSparseBound::LoadFromDatabase (DBQueryResult& row, PyList* keyList) {
+    // TODO: implement this
+    return false;
+}
+
+bool OfficeSparseBound::LoadFromDatabase (DBQueryResult& res, const std::string& columnName, PyList* values) {
+    // TODO: implement this
+    return false;
+}
+
+void OfficeSparseBound::SendNotification (OnObjectPublicAttributesUpdated& update) {
+    // TODO: this should be really notifying only the clients that are bound to this service
+    // TODO: but everyone in the corp should be fine
+    sEntityList.CorpNotify(m_corpID, Notify::Types::CorpNews, "OnObjectPublicAttributesUpdated", "corpid", update.Encode());
 }

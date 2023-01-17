@@ -35,7 +35,7 @@
  * DynamicSystemEntity which represents drone object in space
  */
 
-class PyServiceMgr;
+class EVEServiceManager;
 class Item;
 class DestinyManager;
 class SystemManager;
@@ -47,7 +47,7 @@ class DroneSE
 : public DynamicSystemEntity
 {
 public:
-    DroneSE(InventoryItemRef drone, PyServiceMgr& services, SystemManager* pSystem, const FactionData& data);
+    DroneSE(InventoryItemRef drone, EVEServiceManager& services, SystemManager* pSystem, const FactionData& data);
     virtual ~DroneSE();
 
     /* class type pointer querys. */

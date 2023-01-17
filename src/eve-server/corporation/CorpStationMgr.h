@@ -27,34 +27,72 @@
 #ifndef __CORPSTATIONMGR_SERVICE_H_INCL__
 #define __CORPSTATIONMGR_SERVICE_H_INCL__
 
+#include <map>
+
 #include "corporation/CorporationDB.h"
-#include "PyService.h"
+#include "services/BoundService.h"
 
 class PyRep;
+class CorpStationMgrIMBound;
 
-class CorpStationMgr : public PyService
+class CorpStationMgr : public BindableService <CorpStationMgr, CorpStationMgrIMBound>
 {
 public:
-    CorpStationMgr(PyServiceMgr *mgr);
-    virtual ~CorpStationMgr();
+    CorpStationMgr(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     CorporationDB m_db;
 
-    PyCallable_DECL_CALL(GetStationServiceStates);
-    PyCallable_DECL_CALL(GetImprovementStaticData);
+    PyResult GetStationServiceStates(PyCallArgs& call);
+    PyResult GetImprovementStaticData(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
+    void BoundReleased (CorpStationMgrIMBound* bound) override;
 
+private:
+    std::map <uint32_t, CorpStationMgrIMBound*> m_instances;
 };
 
+class CorpStationMgrIMBound : public EVEBoundObject <CorpStationMgrIMBound>
+{
+    friend class CorpStationMgr;
+public:
+    CorpStationMgrIMBound(EVEServiceManager& mgr, CorpStationMgr& parent, CorporationDB& db, uint32 station_id);
 
+protected:
+    PyResult GetCorporateStationInfo(PyCallArgs& call);
+    PyResult DoStandingCheckForStationService(PyCallArgs& call, PyInt* stationServiceID);
+    PyResult GetPotentialHomeStations(PyCallArgs& call);
+    PyResult SetHomeStation(PyCallArgs& call, PyInt* newHomeStationID);
+    PyResult SetCloneTypeID(PyCallArgs& call, PyInt* cloneTypeID);
+    PyResult GetQuoteForRentingAnOffice(PyCallArgs& call);
+    PyResult RentOffice(PyCallArgs& call, PyInt* amount);
+    PyResult CancelRentOfOffice(PyCallArgs& call);
+    PyResult GetStationOffices(PyCallArgs& call);
+    PyResult GetNumberOfUnrentedOffices(PyCallArgs& call);
+    PyResult MoveCorpHQHere(PyCallArgs& call);
+    //testing
+    PyResult GetCorporateStationOffice(PyCallArgs& call);
+    PyResult DoesPlayersCorpHaveJunkAtStation(PyCallArgs& call);
+    PyResult GetQuoteForGettingCorpJunkBack(PyCallArgs& call);
+    PyResult PayForReturnOfCorpJunk(PyCallArgs& call, PyFloat* cost);
+    PyResult GetStationServiceIdentifiers(PyCallArgs& call);
+    PyResult GetStationDetails(PyCallArgs& call, PyInt* stationID);
+    PyResult GetStationServiceAccessRule(PyCallArgs& call, PyInt* stationID, PyInt* serviceID);
+    PyResult GetStationManagementServiceCostModifiers(PyCallArgs& call, PyInt* stationID);
+    PyResult GetRentableItems(PyCallArgs& call);
+    PyResult GetOwnerIDsOfClonesAtStation(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetStationImprovements(PyCallArgs& call);
 
+protected:
+    const uint32 GetStationID() const { return this->m_stationID; }
 
+    StationItem* pStationItem;    //we do not own this
+
+    CorporationDB& m_db;
+    const uint32 m_stationID;
+};
 
 #endif
 

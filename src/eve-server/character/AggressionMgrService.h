@@ -26,20 +26,36 @@
 #ifndef __AGGRESSIONMGRSERVICE__H__INCL__
 #define __AGGRESSIONMGRSERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/BoundService.h"
+#include "services/ServiceManager.h"
 
-class AggressionMgrService : public PyService
+class AggressionMgrBound;
+
+class AggressionMgrService : public BindableService <AggressionMgrService, AggressionMgrBound>
 {
 public:
-    AggressionMgrService(PyServiceMgr *mgr);
-    virtual ~AggressionMgrService();
+    AggressionMgrService(EVEServiceManager& mgr);
+
+    void BoundReleased (AggressionMgrBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
 
-    //overloaded in order to support bound objects
-    virtual PyBoundObject* CreateBoundObject(Client *pClient, const PyRep *bind_args);
+private:
+    std::map <uint32, AggressionMgrBound*> m_instances;
 };
 
+class AggressionMgrBound : public EVEBoundObject <AggressionMgrBound> {
+public:
+    AggressionMgrBound(EVEServiceManager& mgr, AggressionMgrService& parent, uint32 systemID);
+
+    uint32 GetSystemID() { return this->m_systemID; }
+
+protected:
+    PyResult GetCriminalTimeStamps(PyCallArgs& call, PyInt* characterID);
+    PyResult CheckLootRightExceptions(PyCallArgs& call, PyInt* containerID);
+
+private:
+    uint32 m_systemID;
+};
 #endif // __AGGRESSIONMGRSERVICE__H__INCL__

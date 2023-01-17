@@ -19,14 +19,13 @@ class Colony;
 class PlanetSE;
 class UUNCommand;
 class UUNCommandList;
-class PyServiceMgr;
 class PlanetMgr
 {
 public:
-    PlanetMgr(PyServiceMgr *mgr, Client* pClient, PlanetSE* pPlanet, Colony* pColony);
+    PlanetMgr(Client* pClient, PlanetSE* pPlanet, Colony* pColony);
     virtual ~PlanetMgr()    { /* do nothing here */ }
 
-    PyRep* UpdateNetwork(UUNCommandList& uuncl);
+    PyRep* UpdateNetwork(PyList* commandList);
 
 protected:
     bool CreatePin(UUNCommand& nc);
@@ -45,7 +44,6 @@ protected:
     void PrioritizeRoute(UUNCommand& nc);
 
 private:
-    PyServiceMgr* m_svcMgr;
     Client* m_client;
     Colony* m_colony;
     PlanetSE* m_planet;

@@ -37,7 +37,7 @@
 #include "system/cosmicMgrs/AnomalyMgr.h"
 
 
-CustomsSE::CustomsSE(StructureItemRef sRef, PyServiceMgr &services, SystemManager* system, const FactionData& data)
+CustomsSE::CustomsSE(StructureItemRef sRef, EVEServiceManager &services, SystemManager* system, const FactionData& data)
 : ObjectSystemEntity(sRef, services, system),
 m_system(system)
 {

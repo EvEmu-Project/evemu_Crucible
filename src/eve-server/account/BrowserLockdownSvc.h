@@ -26,21 +26,17 @@
 #ifndef __ACCOUNT__BROWSER_LOCKDOWN_SVC_H__INCL__
 #define __ACCOUNT__BROWSER_LOCKDOWN_SVC_H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class BrowserLockdownService : public PyService
+class BrowserLockdownService : public Service<BrowserLockdownService>
 {
 public:
-    BrowserLockdownService(PyServiceMgr *mgr);
-    ~BrowserLockdownService();
+    BrowserLockdownService();
+
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetFlaggedSitesHash);
-    PyCallable_DECL_CALL(GetFlaggedSitesList);
-    PyCallable_DECL_CALL(GetDefaultHomePage);
-    PyCallable_DECL_CALL(IsBrowserInLockdown);
-
+    PyResult GetFlaggedSitesHash(PyCallArgs& call);
+    PyResult GetFlaggedSitesList(PyCallArgs& call);
+    PyResult GetDefaultHomePage(PyCallArgs& call);
+    PyResult IsBrowserInLockdown(PyCallArgs& call);
 };
 #endif /* !__ACCOUNT__BROWSER_LOCKDOWN_SVC_H__INCL__ */

@@ -26,24 +26,14 @@
 #ifndef __CLIENT_STAT_MGR_SERVICE_H__INCL__
 #define __CLIENT_STAT_MGR_SERVICE_H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class ClientStatsMgr : public PyService {
+class ClientStatsMgr : public Service <ClientStatsMgr> {
 public:
-    ClientStatsMgr(PyServiceMgr *mgr);
-    ~ClientStatsMgr();
+    ClientStatsMgr();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
-
-    //PyCallable_DECL_CALL(MachoBindObject)
-    //PyCallable_DECL_CALL(SubmitStats)
-
-    PyResult Handle_SubmitStats(PyCallArgs &call);
+    PyResult SubmitStats(PyCallArgs &call, PyTuple* data);
 };
 
 #endif//__CLIENT_STAT_MGR_SERVICE_H__INCL__

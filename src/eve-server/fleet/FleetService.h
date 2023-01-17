@@ -27,7 +27,7 @@ public:
     FleetService();
     ~FleetService()                              { /* do nothing here */ }
 
-    void Initialize(PyServiceMgr* svc);
+    void Initialize(EVEServiceManager& svc);
 
     uint32 CreateFleet(Client* pClient);
     PyRep* CreateWing(uint32 fleetID);
@@ -126,7 +126,7 @@ protected:
     uint32 m_squadID;
 
 private:
-    PyServiceMgr* m_services;
+    LSCService* m_lsc;
     bool m_initalized;
 
     std::map<uint32, InviteData>        m_inviteData;       // charID/data

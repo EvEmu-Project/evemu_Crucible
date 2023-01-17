@@ -16,7 +16,7 @@ class TCUSE
 : public StructureSE
 {
 public:
-    TCUSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData);
+    TCUSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& fData);
     virtual ~TCUSE()                                  { /* do nothing here */ }
 
     /* class type pointer querys. */

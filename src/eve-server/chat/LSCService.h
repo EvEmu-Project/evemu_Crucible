@@ -33,14 +33,15 @@
 
 #include "chat/LSCDB.h"
 #include "chat/LSCChannel.h"
-#include "PyService.h"
+
+#include "services/Service.h"
+#include "services/ServiceManager.h"
+#include "admin/SlashService.h"
 
 
 class CommandDispatcher;
 
-class LSCService
-: //public Singleton<ItemFactory>,
-  public PyService
+class LSCService : public Service <LSCService>
 {
 public:
     // All user-created chat channels are created with IDs that are in this set:
@@ -48,7 +49,7 @@ public:
     static const int32 BASE_CHANNEL_ID;
     static const uint32 MAX_CHANNEL_ID;
 
-    LSCService(PyServiceMgr *mgr, CommandDispatcher *cd);
+    LSCService(EVEServiceManager& mgr, CommandDispatcher *cd);
     ~LSCService();
 
     void Init(CommandDispatcher *cd);
@@ -68,35 +69,35 @@ public:
     void SendMail(uint32 sender, const std::vector<int32> &recipients, const std::string &subject, const std::string &content);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
     CommandDispatcher *const m_commandDispatch;
 
-    LSCDB* m_db;
+    LSCDB m_db;
 
     std::map<int32, LSCChannel*> m_channels;  //we own these pointers
 
-    PyCallable_DECL_CALL(GetChannels);
-    PyCallable_DECL_CALL(GetRookieHelpChannel);
-    PyCallable_DECL_CALL(JoinChannels);
-    PyCallable_DECL_CALL(LeaveChannels);
-    PyCallable_DECL_CALL(LeaveChannel);
-    PyCallable_DECL_CALL(CreateChannel);
-    PyCallable_DECL_CALL(Configure);
-    PyCallable_DECL_CALL(DestroyChannel);
-    PyCallable_DECL_CALL(GetMembers);
-    PyCallable_DECL_CALL(GetMember);
-    PyCallable_DECL_CALL(SendMessage);
-    PyCallable_DECL_CALL(Invite);
-    PyCallable_DECL_CALL(AccessControl);
+    PyResult GetChannels(PyCallArgs& call);
+    PyResult GetRookieHelpChannel(PyCallArgs& call);
+    PyResult JoinChannels(PyCallArgs& call, PyList* channelIDs, PyLong* role);
+    PyResult LeaveChannels(PyCallArgs& call, PyList* channels, PyInt* usubscribe, PyLong* role);
+    PyResult LeaveChannel(PyCallArgs& call, PyRep* channelInfo, PyInt* unsubscribe);
+    PyResult CreateChannel(PyCallArgs& call, PyRep* channelName);
+    PyResult Configure(PyCallArgs& call, PyInt* channelID);
+    PyResult DestroyChannel(PyCallArgs& call, PyInt* channelID);
+    PyResult GetMembers(PyCallArgs& call, PyRep* channelInfo);
+    PyResult GetMember(PyCallArgs& call);
+    PyResult SendMessage(PyCallArgs& call, PyRep* channelInfo, PyWString* cMessage);
+    PyResult Invite(PyCallArgs& call, PyInt* characterID, PyInt* channelID);
+    PyResult AccessControl(PyCallArgs& call, PyRep* channelInfo, PyInt* characterID, PyInt* role);
 
-    PyCallable_DECL_CALL(GetMyMessages);
-    PyCallable_DECL_CALL(GetMessageDetails);
-    PyCallable_DECL_CALL(Page);
-    PyCallable_DECL_CALL(MarkMessagesRead);
-    PyCallable_DECL_CALL(DeleteMessages);
+    PyResult GetMyMessages(PyCallArgs& call);
+    PyResult GetMessageDetails(PyCallArgs& call, PyInt* readerID, PyInt* messageID);
+    PyResult Page(PyCallArgs& call, PyList* recipientIDs, PyRep* subject, PyRep* body);
+    PyResult MarkMessagesRead(PyCallArgs& call, PyList* messageIDs);
+    PyResult DeleteMessages(PyCallArgs& call, PyInt* channelID, PyList* messageIDs);
 
 private:
+    SlashService* m_slash;
+
     void CreateStaticChannels();
     LSCChannel *GetChannelByID(int32 channelID);
     LSCChannel *GetChannelByName(std::string  channelName);

@@ -291,7 +291,7 @@ CargoContainerRef StationItem::GetContainerFromInventory(uint32 contID)
 /*
  * Station Entity
  */
-StationSE::StationSE(StationItemRef station, PyServiceMgr &services, SystemManager* system)
+StationSE::StationSE(StationItemRef station, EVEServiceManager &services, SystemManager* system)
 : StaticSystemEntity(station, services, system)
 {
     // Create default dynamic attributes in the AttributeMap:

@@ -10,7 +10,7 @@
 
 #include "system/SystemEntity.h"
 
-class PyServiceMgr;
+class EVEServiceManager;
 class DestinyManager;
 class InventoryItem;
 class SentryAI;
@@ -21,7 +21,7 @@ class Sentry
 : public ObjectSystemEntity
 {
 public:
-    Sentry(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    Sentry(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~Sentry();
 
     /* class type pointer querys. */

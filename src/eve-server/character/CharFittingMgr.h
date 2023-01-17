@@ -3,27 +3,22 @@
  *
  */
 
-
 #ifndef EVE_CHARACTER_FITTING_MGR_H
 #define EVE_CHARACTER_FITTING_MGR_H
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class CharFittingMgr: public PyService
+class CharFittingMgr : public Service <CharFittingMgr>
 {
 public:
-    CharFittingMgr(PyServiceMgr *mgr);
-    virtual ~CharFittingMgr();
+    CharFittingMgr();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-    
-    PyCallable_DECL_CALL(GetFittings);
-    PyCallable_DECL_CALL(SaveFitting);
-    PyCallable_DECL_CALL(SaveManyFittings);
-    PyCallable_DECL_CALL(DeleteFitting);
-    PyCallable_DECL_CALL(UpdateNameAndDescription);
+    PyResult GetFittings(PyCallArgs& call, PyInt* ownerID);
+    PyResult SaveFitting(PyCallArgs& call, PyInt* ownerID, PyObject* fitting);
+    PyResult SaveManyFittings(PyCallArgs& call, PyInt* ownerID, PyDict* fittingsToSave);
+    PyResult DeleteFitting(PyCallArgs& call, PyInt* ownerID, PyInt* fittingID);
+    PyResult UpdateNameAndDescription(PyCallArgs& call, PyInt* fittingID, PyInt* ownerID, PyWString* name, PyWString* description);
 
 };
 

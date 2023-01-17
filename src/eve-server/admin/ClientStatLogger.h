@@ -26,18 +26,14 @@
 #ifndef __CLIENTSTATLOGGER_SERVICE_H_INCL__
 #define __CLIENTSTATLOGGER_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class ClientStatLogger: public PyService
+class ClientStatLogger: public Service <ClientStatLogger>
 {
 public:
-    ClientStatLogger(PyServiceMgr *mgr);
-    virtual ~ClientStatLogger();
+    ClientStatLogger();
 
 protected:
-    class Dispatcher;
-    Dispatcher* const m_dispatch;
-
-    PyCallable_DECL_CALL(LogString);
+    PyResult LogString(PyCallArgs& call, PyString* arg);
 };
 #endif

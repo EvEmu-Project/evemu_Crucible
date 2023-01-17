@@ -26,7 +26,7 @@
 #ifndef __DAMAGE_H_INCL__
 #define __DAMAGE_H_INCL__
 
-#include "PyServiceMgr.h"
+
 #include "inventory/InventoryItem.h"
 #include "system/SystemManager.h"
 

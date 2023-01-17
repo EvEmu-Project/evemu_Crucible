@@ -30,7 +30,7 @@
 #include "system/SystemManager.h"
 #include "system/sov/SovereigntyDataMgr.h"
 
-SBUSE::SBUSE(StructureItemRef structure, PyServiceMgr &services, SystemManager *system, const FactionData &fData)
+SBUSE::SBUSE(StructureItemRef structure, EVEServiceManager &services, SystemManager *system, const FactionData &fData)
     : StructureSE(structure, services, system, fData)
 {
 }

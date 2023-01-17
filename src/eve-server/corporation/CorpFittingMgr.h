@@ -5,24 +5,19 @@
 #ifndef EVE_COPORATION_FITTING_MGR_H
 #define EVE_COPORATION_FITTING_MGR_H
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class CorpFittingMgr: public PyService
+class CorpFittingMgr: public Service <CorpFittingMgr>
 {
 public:
-    CorpFittingMgr(PyServiceMgr *mgr);
-    virtual ~CorpFittingMgr();
+    CorpFittingMgr();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetFittings);
-    PyCallable_DECL_CALL(SaveFitting);
-    PyCallable_DECL_CALL(SaveManyFittings);
-    PyCallable_DECL_CALL(DeleteFitting);
-    PyCallable_DECL_CALL(UpdateNameAndDescription);
-
+    PyResult GetFittings(PyCallArgs& call, PyInt* ownerID);
+    PyResult SaveFitting(PyCallArgs& call, PyInt* ownerID, PyObject* fitting);
+    PyResult SaveManyFittings(PyCallArgs& call, PyInt* ownerID, PyDict* fittingsToSave);
+    PyResult DeleteFitting(PyCallArgs& call, PyInt* ownerID, PyInt* fittingID);
+    PyResult UpdateNameAndDescription(PyCallArgs& call, PyInt* fittingID, PyInt* ownerID, PyWString* name, PyWString* description);
 };
 
 #endif  // EVE_COPORATION_FITTING_MGR_H

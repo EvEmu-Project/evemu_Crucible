@@ -27,58 +27,47 @@
 #define _SKILLMGR_SERVICE_H
 
 #include "character/CharacterDB.h"
-#include "PyBoundObject.h"
-#include "PyService.h"
 
-class SkillMgrService : public PyService {
+#include "services/BoundService.h"
+#include "services/ServiceManager.h"
+#include "Client.h"
+
+class SkillMgrBound;
+
+class SkillMgrService : public BindableService <SkillMgrService, SkillMgrBound> {
 public:
-    SkillMgrService(PyServiceMgr *mgr);
-    virtual ~SkillMgrService();
+    SkillMgrService(EVEServiceManager& mgr);
+
+    void BoundReleased (SkillMgrBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     CharacterDB m_db;
 
-    //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
 };
 
-class SkillMgrBound
-: public PyBoundObject
+class SkillMgrBound : public EVEBoundObject <SkillMgrBound>
 {
 public:
-    SkillMgrBound(PyServiceMgr *mgr, CharacterDB &db);
-    virtual ~SkillMgrBound();
-
-    virtual void Release();
-
-    PyCallable_DECL_CALL(InjectSkillIntoBrain);
-
-    PyCallable_DECL_CALL(CharStartTrainingSkill);
-    PyCallable_DECL_CALL(CharStartTrainingSkillByTypeID);
-    PyCallable_DECL_CALL(CharStopTrainingSkill);
-    PyCallable_DECL_CALL(GetEndOfTraining);
-    PyCallable_DECL_CALL(GetSkillHistory);
-    PyCallable_DECL_CALL(CharAddImplant);
-    PyCallable_DECL_CALL(RemoveImplantFromCharacter);
-
-    PyCallable_DECL_CALL(GetSkillQueueAndFreePoints);
-
-    PyCallable_DECL_CALL(SaveSkillQueue);
-
-    PyCallable_DECL_CALL(AddToEndOfSkillQueue);
-
-    PyCallable_DECL_CALL(RespecCharacter);
-    PyCallable_DECL_CALL(GetRespecInfo);
-    PyCallable_DECL_CALL(GetCharacterAttributeModifiers);
+    SkillMgrBound(EVEServiceManager& mgr, SkillMgrService& parent, CharacterDB &db);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     CharacterDB &m_db;
+
+    PyResult GetRespecInfo(PyCallArgs& call);
+    PyResult GetSkillQueueAndFreePoints(PyCallArgs& call);
+    PyResult GetEndOfTraining(PyCallArgs& call);
+    PyResult GetSkillHistory(PyCallArgs& call);
+    PyResult CharStopTrainingSkill(PyCallArgs& call);
+    PyResult CharStartTrainingSkill(PyCallArgs& call, PyInt* itemID, PyInt* locationID);
+    PyResult AddToEndOfSkillQueue(PyCallArgs& call, PyInt* skillID, PyInt* nextLevel);
+    PyResult InjectSkillIntoBrain(PyCallArgs& call, PyList* skillItemIDs, PyInt* stationID);
+    PyResult SaveSkillQueue(PyCallArgs& call, PyList* skillQueue);
+    PyResult CharStartTrainingSkillByTypeID(PyCallArgs& call, PyInt* skillTypeID);
+    PyResult RespecCharacter(PyCallArgs& call, PyInt* charisma, PyInt* intelligence, PyInt* memory, PyInt* perception, PyInt* willpower);
+    PyResult GetCharacterAttributeModifiers(PyCallArgs& call, PyInt* attr);
+    PyResult CharAddImplant(PyCallArgs& call, PyInt* itemID);
+    PyResult RemoveImplantFromCharacter(PyCallArgs& call, PyInt* itemID);
 };
 
 #endif

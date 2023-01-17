@@ -28,37 +28,31 @@
 #define __CORPORATION_SERVICE_H_INCL__
 
 #include "corporation/CorporationDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-class CorporationService : public PyService
+class CorporationService : public Service<CorporationService>
 {
 public:
-    CorporationService(PyServiceMgr *mgr);
-    virtual ~CorporationService();
+    CorporationService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     CorporationDB m_db;
 
-    PyCallable_DECL_CALL(GetFactionInfo);
-    PyCallable_DECL_CALL(GetCorpInfo);
-    PyCallable_DECL_CALL(GetNPCDivisions);
-    PyCallable_DECL_CALL(GetEmploymentRecord);
-    PyCallable_DECL_CALL(GetRecruitmentAdsByCriteria);
-    PyCallable_DECL_CALL(GetRecruitmentAdRegistryData);
-    PyCallable_DECL_CALL(GetRecruitmentAdsForCorporation);
-
-    PyCallable_DECL_CALL(CreateMedal);
-    PyCallable_DECL_CALL(GiveMedalToCharacters);
-    PyCallable_DECL_CALL(GetMedalsReceived);
-    PyCallable_DECL_CALL(GetMedalDetails);
-    PyCallable_DECL_CALL(GetAllCorpMedals);
-    PyCallable_DECL_CALL(SetMedalStatus);
-    PyCallable_DECL_CALL(GetMedalStatuses);
-    PyCallable_DECL_CALL(GetRecipientsOfMedal);
-
+    PyResult GetNPCDivisions(PyCallArgs& call);
+    PyResult GetEmploymentRecord(PyCallArgs& call, PyInt* characterID);
+    PyResult GetFactionInfo(PyCallArgs& call);
+    PyResult GetCorpInfo(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetRecruitmentAdRegistryData(PyCallArgs& call);
+    PyResult GetRecruitmentAdsByCriteria(PyCallArgs& call, PyInt* typeMask, PyBool* inAlliance, std::optional<PyInt*> minMembers, std::optional<PyInt*> maxMembers);
+    PyResult GetRecruitmentAdsForCorporation(PyCallArgs& call);
+    PyResult CreateMedal(PyCallArgs& call, PyWString* name, PyWString* description, PyList* medalData);
+    PyResult GetMedalsReceived(PyCallArgs& call, PyInt* characterID);
+    PyResult GetMedalDetails(PyCallArgs& call, PyInt* medalID);
+    PyResult GetAllCorpMedals(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetRecipientsOfMedal(PyCallArgs& call, PyInt* medalID);
+    PyResult GiveMedalToCharacters(PyCallArgs& call, PyInt* medalID, PyList* recipientIDs, PyWString* reason);
+    PyResult GetMedalStatuses(PyCallArgs& call);
+    PyResult SetMedalStatus(PyCallArgs& call, PyDict* newStatus);
 };
 
 #endif

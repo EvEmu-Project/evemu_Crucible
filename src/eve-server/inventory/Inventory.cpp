@@ -30,7 +30,7 @@
 #include "ConsoleCommands.h"
 #include "EVEServerConfig.h"
 #include "StaticDataMgr.h"
-#include "PyCallable.h"
+
 #include "character/Character.h"
 #include "inventory/Inventory.h"
 #include "inventory/ItemDB.h"

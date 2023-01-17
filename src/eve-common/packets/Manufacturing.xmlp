@@ -1,24 +1,5 @@
 
 <elements>
-
-  <elementDef name="Call_Reprocess">
-    <tupleInline>
-      <listInt name="items" />
-      <int name="fromLocation" />
-      <int name="ownerID" none_marker="0" />
-      <int name="flag" none_marker="0" />
-      <bool name="unknown" />
-      <listStr name="skipChecks" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetQuotes">
-    <tupleInline>
-      <listInt name="itemIDs" />
-      <int name="activeShipID" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="Rsp_GetBlueprintAttributes">
     <dictInline>
       <dictInlineEntry key="blueprintID">
@@ -135,19 +116,6 @@
       <int name="station" />
       <int name="client" />
     </listInline>
-  </elementDef>
-
-  <elementDef name="Call_GetJobs2">
-    <tupleInline>
-      <int name="ownerID" />
-      <bool name="completed" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AssemblyLinesSelect">
-    <tupleInline>
-      <string name="filter" />
-    </tupleInline>
   </elementDef>
 
   <elementDef name="MaterialList">

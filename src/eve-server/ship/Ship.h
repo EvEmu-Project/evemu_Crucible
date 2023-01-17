@@ -291,7 +291,7 @@ private:
 /**
  * DynamicSystemEntity which represents ship object in space
  */
-class PyServiceMgr;
+class EVEServiceManager;
 class InventoryItem;
 class DestinyManager;
 class Missile;
@@ -302,7 +302,7 @@ class ShipSE
 : public DynamicSystemEntity
 {
 public:
-    ShipSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* pSystem, const FactionData& data);
+    ShipSE(InventoryItemRef self, EVEServiceManager& services, SystemManager* pSystem, const FactionData& data);
     virtual ~ShipSE()                                   { /* do nothing here */ }
 
     /* class type pointer querys. */

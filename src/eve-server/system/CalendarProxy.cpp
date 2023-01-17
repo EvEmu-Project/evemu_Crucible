@@ -25,57 +25,40 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/CalendarDB.h"
 #include "system/CalendarProxy.h"
 
-PyCallable_Make_InnerDispatcher(CalendarProxy)
-
-CalendarProxy::CalendarProxy(PyServiceMgr *mgr)
-: PyService(mgr, "calendarProxy"),
-  m_dispatch(new Dispatcher(this))
+CalendarProxy::CalendarProxy() :
+    Service("calendarProxy")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CalendarProxy, GetEventList);
-    PyCallable_REG_CALL(CalendarProxy, GetEventDetails);
+    this->Add("GetEventList", &CalendarProxy::GetEventList);
+    this->Add("GetEventDetails", &CalendarProxy::GetEventDetails);
 }
 
-CalendarProxy::~CalendarProxy()
+PyResult CalendarProxy::GetEventList(PyCallArgs& call, PyInt* month, PyInt* year)
 {
-    delete m_dispatch;
-}
-
-
-PyResult CalendarProxy::Handle_GetEventList( PyCallArgs& call )
-{
-    Call_TwoIntegerArgs args;   //(month, year)
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     PyList *list = new PyList();
     PyRep* res(nullptr);
 
     // get system events
-    res = CalendarDB::GetEventList(ownerSystem, args.arg1, args.arg2);
+    res = CalendarDB::GetEventList(ownerSystem, month->value(), year->value());
     if (res != nullptr)
         list->AddItem(res);
 
     // get personal events
-    res = CalendarDB::GetEventList(call.client->GetCharacterID(), args.arg1, args.arg2);
+    res = CalendarDB::GetEventList(call.client->GetCharacterID(), month->value(), year->value());
     if (res != nullptr)
         list->AddItem(res);
 
     // get corp events
-    res = CalendarDB::GetEventList(call.client->GetCorporationID(), args.arg1, args.arg2);
+    res = CalendarDB::GetEventList(call.client->GetCorporationID(), month->value(), year->value());
     if (res != nullptr)
         list->AddItem(res);
 
     // get alliance events
     if (IsAlliance(call.client->GetAllianceID())) {
-        res = CalendarDB::GetEventList(call.client->GetAllianceID(), args.arg1, args.arg2);
+        res = CalendarDB::GetEventList(call.client->GetAllianceID(), month->value(), year->value());
         if (res != nullptr)
             list->AddItem(res);
     }
@@ -86,15 +69,9 @@ PyResult CalendarProxy::Handle_GetEventList( PyCallArgs& call )
     return list;
 }
 
-PyResult CalendarProxy::Handle_GetEventDetails( PyCallArgs& call )
+PyResult CalendarProxy::GetEventDetails(PyCallArgs& call, PyInt* eventID, PyInt* ownerID)
 {
     // self.eventDetails[eventID] = self.GetCalendarProxy().GetEventDetails(eventID, ownerID)
-    Call_TwoIntegerArgs args;   //(eventID, ownerID)
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return CalendarDB::GetEventDetails(args.arg1);
+    return CalendarDB::GetEventDetails(eventID->value());
 }
 

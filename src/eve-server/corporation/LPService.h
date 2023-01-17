@@ -26,14 +26,12 @@
 #ifndef __LP_SERVICE__H__INCL__
 #define __LP_SERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class LPService
-: public PyService
+class LPService : public Service <LPService>
 {
 public:
-    LPService(PyServiceMgr *mgr);
-    ~LPService();
+    LPService();
 
     // Adds LP to Characters LP Wallet
     static void AddLP(uint32 characterID, uint32 corporationID, int amount);
@@ -43,15 +41,12 @@ public:
     static int GetLPBalanceForCorp(int32 characterID, int32 corporationID);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(TakeOffer);
-    PyCallable_DECL_CALL(ExchangeConcordLP);
-    PyCallable_DECL_CALL(GetLPExchangeRates);
-    PyCallable_DECL_CALL(GetLPForCharacterCorp);
-    PyCallable_DECL_CALL(GetLPsForCharacter);
-    PyCallable_DECL_CALL(GetAvailableOffersFromCorp);
+    PyResult TakeOffer(PyCallArgs& call, PyInt* corpID, PyInt* storeID);
+    PyResult ExchangeConcordLP(PyCallArgs& call, PyInt* corporationID, PyFloat* amount);
+    PyResult GetLPExchangeRates(PyCallArgs& call);
+    PyResult GetLPForCharacterCorp(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetLPsForCharacter(PyCallArgs& call);
+    PyResult GetAvailableOffersFromCorp(PyCallArgs& call, PyInt* corporationID, PyBool* trueValue);
 
     static DBQueryResult GetLPRowsForCharacter(int32 characterID);
     static DBQueryResult GetLPOffersForCorp(int32 corporationID);

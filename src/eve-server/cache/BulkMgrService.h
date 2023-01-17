@@ -12,28 +12,23 @@
 #ifndef __BULKMGR_SERVICE_H_INCL__
 #define __BULKMGR_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "cache/BulkDB.h"
 
-class BulkMgrService : public PyService
+class BulkMgrService : public Service <BulkMgrService>
 {
 public:
-    BulkMgrService(PyServiceMgr *mgr);
-    virtual ~BulkMgrService();
-public:
+    BulkMgrService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(UpdateBulk);
-    PyCallable_DECL_CALL(GetAllBulkIDs);
-    PyCallable_DECL_CALL(GetVersion);
-    PyCallable_DECL_CALL(GetChunk);
-    PyCallable_DECL_CALL(GetFullFiles);
-    PyCallable_DECL_CALL(GetFullFilesChunk);
-    PyCallable_DECL_CALL(GetUnsubmittedChanges);
-    PyCallable_DECL_CALL(GetUnsubmittedChunk);
+    PyResult UpdateBulk(PyCallArgs& call, PyInt* changeID, std::optional<PyString*> hashValue, PyInt* branch);
+    PyResult GetFullFiles(PyCallArgs& call, std::optional<PyList*> toGet);
+    PyResult GetFullFilesChunk(PyCallArgs& call, PyInt* chunkSetID, PyInt* chunkNumber);
+    PyResult GetVersion(PyCallArgs& call);
+    PyResult GetAllBulkIDs(PyCallArgs& call);
+    PyResult GetChunk(PyCallArgs& call, PyInt* changeID, PyInt* chunkNumber);
+    PyResult GetUnsubmittedChunk(PyCallArgs& call, PyInt* chunkNumber);
+    PyResult GetUnsubmittedChanges(PyCallArgs& call);
 
 private:
 

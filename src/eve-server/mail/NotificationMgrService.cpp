@@ -25,34 +25,25 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
-#include "mail/NotificationMgrService.h"
 
-PyCallable_Make_InnerDispatcher(NotificationMgrService)
+#include "mail/NotificationMgrService.h"
 
 // this service is part of mail and used with the 'notifications' tab of mail window
 
-NotificationMgrService::NotificationMgrService(PyServiceMgr* mgr)
-: PyService(mgr, "notificationMgr"),
-  m_dispatch(new Dispatcher(this))
+NotificationMgrService::NotificationMgrService() :
+    Service("notificationMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(NotificationMgrService, GetByGroupID);
-    PyCallable_REG_CALL(NotificationMgrService, GetUnprocessed);
-    PyCallable_REG_CALL(NotificationMgrService, MarkGroupAsProcessed);
-    PyCallable_REG_CALL(NotificationMgrService, MarkAllAsProcessed);
-    PyCallable_REG_CALL(NotificationMgrService, MarkAsProcessed);
-    PyCallable_REG_CALL(NotificationMgrService, DeleteGroupNotifications);
-    PyCallable_REG_CALL(NotificationMgrService, DeleteAllNotifications);
-    PyCallable_REG_CALL(NotificationMgrService, DeleteNotifications);
+    this->Add("GetByGroupID", &NotificationMgrService::GetByGroupID);
+    this->Add("GetUnprocessed", &NotificationMgrService::GetUnprocessed);
+    this->Add("MarkGroupAsProcessed", &NotificationMgrService::MarkGroupAsProcessed);
+    this->Add("MarkAllAsProcessed", &NotificationMgrService::MarkAllAsProcessed);
+    this->Add("MarkAsProcessed", &NotificationMgrService::MarkAsProcessed);
+    this->Add("DeleteGroupNotifications", &NotificationMgrService::DeleteGroupNotifications);
+    this->Add("DeleteAllNotifications", &NotificationMgrService::DeleteAllNotifications);
+    this->Add("DeleteNotifications", &NotificationMgrService::DeleteNotifications);
 }
 
-NotificationMgrService::~NotificationMgrService() {
-    delete m_dispatch;
-}
-
-PyResult NotificationMgrService::Handle_GetByGroupID(PyCallArgs &call)
+PyResult NotificationMgrService::GetByGroupID(PyCallArgs &call, PyInt* groupID)
 {
 
     sLog.White("NotificationMgrService", "Handle_GetByGroupID() size=%li", call.tuple->size());
@@ -99,17 +90,10 @@ PyResult NotificationMgrService::Handle_GetByGroupID(PyCallArgs &call)
                         [PyInt 11]
               */
               // yes, i have the packet, but wtf is this?
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int groupID = args.arg;
     return new PyTuple(0);
 }
 
-PyResult NotificationMgrService::Handle_GetUnprocessed(PyCallArgs &call)
+PyResult NotificationMgrService::GetUnprocessed(PyCallArgs &call)
 {
     // called when mail window's notifications tab opened
     // see /journal/GetUnprocessed for info..
@@ -117,60 +101,32 @@ PyResult NotificationMgrService::Handle_GetUnprocessed(PyCallArgs &call)
     return new PyTuple(0);
 }
 
-PyResult NotificationMgrService::Handle_MarkGroupAsProcessed(PyCallArgs &call)
-{
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int groupID = args.arg;
-    return nullptr;
-}
-
-PyResult NotificationMgrService::Handle_MarkAllAsProcessed(PyCallArgs &call)
+PyResult NotificationMgrService::MarkGroupAsProcessed(PyCallArgs &call, PyInt* groupID)
 {
     return nullptr;
 }
 
-PyResult NotificationMgrService::Handle_MarkAsProcessed(PyCallArgs &call)
-{
-    Call_SingleArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    PyRep* notificationsList = args.arg;
-    return nullptr;
-}
-
-PyResult NotificationMgrService::Handle_DeleteGroupNotifications(PyCallArgs &call)
-{
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int groupID = args.arg;
-    return nullptr;
-}
-
-PyResult NotificationMgrService::Handle_DeleteAllNotifications(PyCallArgs &call)
+PyResult NotificationMgrService::MarkAllAsProcessed(PyCallArgs &call)
 {
     return nullptr;
 }
 
-PyResult NotificationMgrService::Handle_DeleteNotifications(PyCallArgs &call)
+PyResult NotificationMgrService::MarkAsProcessed(PyCallArgs &call, PyList* notificationIDsToMarkAsRead)
 {
-    Call_SingleArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
+    return nullptr;
+}
 
-    PyRep* notificationsIDs = args.arg;
+PyResult NotificationMgrService::DeleteGroupNotifications(PyCallArgs &call, PyInt* groupID)
+{
+    return nullptr;
+}
+
+PyResult NotificationMgrService::DeleteAllNotifications(PyCallArgs &call)
+{
+    return nullptr;
+}
+
+PyResult NotificationMgrService::DeleteNotifications(PyCallArgs &call, PyList* notificatinIDs)
+{
     return nullptr;
 }

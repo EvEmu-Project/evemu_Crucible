@@ -133,7 +133,7 @@ private:
 /**
  * ContainerEntity which represents container object in space
  */
-class PyServiceMgr;
+class EVEServiceManager;
 class Item;
 class DestinyManager;
 class SystemManager;
@@ -143,7 +143,7 @@ class ContainerSE
 : public StructureSE
 {
 public:
-    ContainerSE(CargoContainerRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data);
+    ContainerSE(CargoContainerRef self, EVEServiceManager &services, SystemManager *system, const FactionData& data);
     virtual ~ContainerSE();
 
     /* Base */
@@ -244,7 +244,7 @@ class WreckSE
 {
 public:
     // put factionID in item's CustomInfo field to allow salvage
-    WreckSE(WreckContainerRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    WreckSE(WreckContainerRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~WreckSE();
 
     /* class type pointer querys. */

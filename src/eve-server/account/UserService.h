@@ -26,39 +26,32 @@
 #ifndef __USER_SERVICE__H__INCL__
 #define __USER_SERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
-class UserService
-: public PyService
+class UserService : public Service<UserService>
 {
 public:
-    UserService(PyServiceMgr *mgr);
-    ~UserService();
+    UserService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetRedeemTokens);
-    PyCallable_DECL_CALL(ReverseRedeem);
-    PyCallable_DECL_CALL(GetCreateDate);
-    PyCallable_DECL_CALL(ReportISKSpammer);
-    PyCallable_DECL_CALL(ReportBot);
-    PyCallable_DECL_CALL(ApplyPilotLicence);
+    PyResult GetRedeemTokens(PyCallArgs& call);
+    PyResult ReverseRedeem(PyCallArgs& call, PyInt* itemID);
+    PyResult GetCreateDate(PyCallArgs& call);
+    PyResult ReportISKSpammer(PyCallArgs& call, PyInt* characterID, PyInt* channelID);
+    PyResult ReportBot(PyCallArgs& call, PyInt* itemID);
+    PyResult ApplyPilotLicence(PyCallArgs& call, PyInt* itemID);
 };
 
-class MovementService
-: public PyService
+class MovementService : public Service<MovementService>
 {
 public:
-    MovementService(PyServiceMgr *mgr);
-    ~MovementService();
+    MovementService(EVEServiceManager *mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    EVEServiceManager* m_manager;
 
-    PyCallable_DECL_CALL(ResolveNodeID);
+    PyResult ResolveNodeID(PyCallArgs& call, PyInt* newWorldSpaceId);
 };
 
 #endif /* __USER_SERVICE__H__INCL__ */

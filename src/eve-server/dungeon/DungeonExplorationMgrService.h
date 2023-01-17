@@ -26,19 +26,14 @@
 #ifndef __DUNGEONEXPLORATIONMGR_SERVICE_H_INCL__
 #define __DUNGEONEXPLORATIONMGR_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class DungeonExplorationMgrService: public PyService {
-
+class DungeonExplorationMgrService: public Service <DungeonExplorationMgrService> {
 public:
-    DungeonExplorationMgrService(PyServiceMgr *mgr);
-    virtual ~DungeonExplorationMgrService();
+    DungeonExplorationMgrService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetMyEscalatingPathDetails);
+    PyResult GetMyEscalatingPathDetails(PyCallArgs& call);
 };
 
 #endif

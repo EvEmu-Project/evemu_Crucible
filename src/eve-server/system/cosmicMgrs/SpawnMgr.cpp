@@ -9,7 +9,7 @@
   */
 
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "StaticDataMgr.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
@@ -37,7 +37,7 @@
  */
 
 /** @todo this class needs a bit more tweaking to work as designed...may/may not spawn all types correctly at this time.  */
-SpawnMgr::SpawnMgr(SystemManager* mgr, PyServiceMgr& svc)
+SpawnMgr::SpawnMgr(SystemManager* mgr, EVEServiceManager& svc)
 : m_system(mgr),
   m_services(svc),
   m_dungMgr(nullptr),

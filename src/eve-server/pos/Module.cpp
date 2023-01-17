@@ -11,7 +11,7 @@
 #include "pos/Module.h"
 
 
-ModuleSE::ModuleSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+ModuleSE::ModuleSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : StructureSE(structure, services, system, data)
 {
 
@@ -30,7 +30,7 @@ void ModuleSE::Process()
 }
 
 
-ReactorSE::ReactorSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+ReactorSE::ReactorSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : StructureSE(structure, services, system, data),
 pData(new ReactorData())
 {

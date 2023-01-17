@@ -25,104 +25,59 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "station/JumpCloneService.h"
 
-class JumpCloneBound
-: public PyBoundObject
-{
-public:
-    PyCallable_Make_Dispatcher(JumpCloneBound)
-
-    JumpCloneBound(PyServiceMgr *mgr, StationDB *db, uint32 locationID )
-    : PyBoundObject(mgr),
-      m_db(db),
-      m_dispatch(new Dispatcher(this)),
-      m_locationID(locationID),                 // station or ship
-      m_locGroupID(EVEDB::invGroups::Station)   // solarsystem(for ship) or station
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "JumpCloneBound";
-
-        PyCallable_REG_CALL(JumpCloneBound, GetCloneState);
-        PyCallable_REG_CALL(JumpCloneBound, GetShipCloneState);
-        PyCallable_REG_CALL(JumpCloneBound, GetPriceForClone);
-        PyCallable_REG_CALL(JumpCloneBound, InstallCloneInStation);
-        PyCallable_REG_CALL(JumpCloneBound, GetStationCloneState);
-        PyCallable_REG_CALL(JumpCloneBound, OfferShipCloneInstallation);
-        PyCallable_REG_CALL(JumpCloneBound, DestroyInstalledClone);
-        PyCallable_REG_CALL(JumpCloneBound, AcceptShipCloneInstallation);
-        PyCallable_REG_CALL(JumpCloneBound, CancelShipCloneInstallation);
-        PyCallable_REG_CALL(JumpCloneBound, CloneJump);
-        /*
-         _ _notifyevents__ = ['OnShipJumpCloneIns*tallationOffered',
-         'OnShipJumpCloneInstallationDone',
-         'OnJumpCloneCacheInvalidated',
-         'OnShipJumpCloneCacheInvalidated',
-         'OnStationJumpCloneCacheInvalidated',
-         'OnShipJumpCloneInstallationCanceled']
-         */
-
-        if (sDataMgr.IsStation(m_locationID))
-            m_locGroupID = EVEDB::invGroups::Solar_System;
-    }
-    virtual ~JumpCloneBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(GetCloneState);
-    PyCallable_DECL_CALL(GetShipCloneState);
-    PyCallable_DECL_CALL(GetPriceForClone);
-    PyCallable_DECL_CALL(InstallCloneInStation);
-    PyCallable_DECL_CALL(GetStationCloneState);
-    PyCallable_DECL_CALL(OfferShipCloneInstallation);
-    PyCallable_DECL_CALL(DestroyInstalledClone);
-    PyCallable_DECL_CALL(AcceptShipCloneInstallation);
-    PyCallable_DECL_CALL(CancelShipCloneInstallation);
-    PyCallable_DECL_CALL(CloneJump);
-
-protected:
-    StationDB *const m_db;        //we do not own this
-    Dispatcher *const m_dispatch;    //we own this
-
-    uint32 m_locationID;
-    uint8 m_locGroupID;
-};
-
-PyCallable_Make_InnerDispatcher(JumpCloneService)
-
-JumpCloneService::JumpCloneService(PyServiceMgr *mgr)
-: PyService(mgr, "jumpCloneSvc"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
-
-    //PyCallable_REG_CALL(JumpCloneService, GetShipCloneState);
+JumpCloneService::JumpCloneService(EVEServiceManager& mgr) :
+    BindableService("jumpCloneSvc", mgr)
+{ 
 }
 
-JumpCloneService::~JumpCloneService() {
-    delete m_dispatch;
-}
-
-PyBoundObject* JumpCloneService::CreateBoundObject( Client* pClient, const PyRep* bind_args )
+BoundDispatcher* JumpCloneService::BindObject (Client* client, PyRep* bindParameters)
 {
-    _log( CLIENT__MESSAGE, "JumpCloneService bind request for:" );
-    bind_args->Dump( CLIENT__MESSAGE, "    " );
+    return new JumpCloneBound(this->GetServiceManager(), *this, &m_db, client->GetLocationID());
+}
+void JumpCloneService::BoundReleased (JumpCloneBound* bound) {
 
-    return new JumpCloneBound( m_manager, &m_db, pClient->GetLocationID() );
+
+}
+JumpCloneBound::JumpCloneBound (EVEServiceManager& mgr, JumpCloneService& parent, StationDB* db, uint32 locationID) :
+    EVEBoundObject(mgr, parent),
+    m_db(db),
+    m_locationID(locationID),                 // station or ship
+    m_locGroupID(EVEDB::invGroups::Station)   // solarsystem(for ship) or station
+{
+    this->Add("GetCloneState", &JumpCloneBound::GetCloneState);
+    this->Add("GetShipCloneState", &JumpCloneBound::GetShipCloneState);
+    this->Add("GetPriceForClone", &JumpCloneBound::GetPriceForClone);
+    this->Add("InstallCloneInStation", &JumpCloneBound::InstallCloneInStation);
+    this->Add("GetStationCloneState", &JumpCloneBound::GetStationCloneState);
+    this->Add("OfferShipCloneInstallation", &JumpCloneBound::OfferShipCloneInstallation);
+    this->Add("DestroyInstalledClone", &JumpCloneBound::DestroyInstalledClone);
+    this->Add("AcceptShipCloneInstallation", &JumpCloneBound::AcceptShipCloneInstallation);
+    this->Add("CancelShipCloneInstallation", &JumpCloneBound::CancelShipCloneInstallation);
+    this->Add("CloneJump", &JumpCloneBound::CloneJump);
+    /*
+     _ _notifyevents__ = ['OnShipJumpCloneIns*tallationOffered',
+     'OnShipJumpCloneInstallationDone',
+     'OnJumpCloneCacheInvalidated',
+     'OnShipJumpCloneCacheInvalidated',
+     'OnStationJumpCloneCacheInvalidated',
+     'OnShipJumpCloneInstallationCanceled']
+     */
+
+    if (sDataMgr.IsStation(m_locationID))
+        m_locGroupID = EVEDB::invGroups::Solar_System;
 }
 
-PyResult JumpCloneBound::Handle_InstallCloneInStation( PyCallArgs &call ) {
+PyResult JumpCloneBound::InstallCloneInStation(PyCallArgs &call) {
     //19:02:15 W JumpCloneBound::Handle_InstallCloneInStation(): size= 0
 
   return nullptr;
 }
 
-PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
+PyResult JumpCloneBound::GetCloneState(PyCallArgs &call) {
     /*  stationClones{jumpCloneID, locationID}
      * shipClones{jumpCloneID, ownerID, locationID}
      * cloneImplants{jumpCloneID, implants}
@@ -140,7 +95,7 @@ PyResult JumpCloneBound::Handle_GetCloneState(PyCallArgs &call) {
     return new PyObject( "util.KeyVal", dict );
 }
 
-PyResult JumpCloneBound::Handle_GetShipCloneState(PyCallArgs &call) {
+PyResult JumpCloneBound::GetShipCloneState(PyCallArgs &call) {
     _log(CHARACTER__INFO, "JumpCloneBound::Handle_GetShipCloneState()");
 
     //Define PyList for ship clones (not dict since client is looking to index through list)
@@ -150,7 +105,7 @@ PyResult JumpCloneBound::Handle_GetShipCloneState(PyCallArgs &call) {
     return clones;
 }
 
-PyResult JumpCloneBound::Handle_GetStationCloneState(PyCallArgs &call) {
+PyResult JumpCloneBound::GetStationCloneState(PyCallArgs &call) {
     _log(CHARACTER__INFO, "JumpCloneBound::Handle_GetStationCloneState()");
 
     PyDict* dict = new PyDict();
@@ -165,7 +120,7 @@ PyResult JumpCloneBound::Handle_GetStationCloneState(PyCallArgs &call) {
     return new PyObject( "util.KeyVal", dict );
 }
 
-PyResult JumpCloneBound::Handle_GetPriceForClone(PyCallArgs &call) {
+PyResult JumpCloneBound::GetPriceForClone(PyCallArgs &call) {
     /*        kwargs = {'amount': None, 'player': 140000038}
      * TypeError: Numeric Formatter expects floating point or signed integer types.
      */
@@ -173,35 +128,35 @@ PyResult JumpCloneBound::Handle_GetPriceForClone(PyCallArgs &call) {
     return new PyInt(1000000);
 }
 
-PyResult JumpCloneBound::Handle_OfferShipCloneInstallation(PyCallArgs &call) {
+PyResult JumpCloneBound::OfferShipCloneInstallation(PyCallArgs &call, PyInt* characterID) {
     //    OfferShipCloneInstallation(charID)  //offeringCharID, targetCharID, shipID, b (b=unknown)
     _log(CHARACTER__INFO, "JumpCloneBound::Handle_OfferShipCloneInstallation()");
 
     return nullptr;
 }
 
-PyResult JumpCloneBound::Handle_DestroyInstalledClone(PyCallArgs &call) {
+PyResult JumpCloneBound::DestroyInstalledClone(PyCallArgs &call, PyInt* cloneID) {
     //    lm.DestroyInstalledClone(cloneID)
     _log(CHARACTER__INFO, "JumpCloneBound::Handle_DestroyInstalledClone()");
 
     return nullptr;
 }
 
-PyResult JumpCloneBound::Handle_AcceptShipCloneInstallation(PyCallArgs &call) {
+PyResult JumpCloneBound::AcceptShipCloneInstallation(PyCallArgs &call) {
     //lm.AcceptShipCloneInstallation()
     _log(CHARACTER__INFO, "JumpCloneBound::Handle_AcceptShipCloneInstallation()");
 
     return nullptr;
 }
 
-PyResult JumpCloneBound::Handle_CancelShipCloneInstallation(PyCallArgs &call) {
+PyResult JumpCloneBound::CancelShipCloneInstallation(PyCallArgs &call) {
     //lm.CancelShipCloneInstallation()
     _log(CHARACTER__INFO, "JumpCloneBound::Handle_CancelShipCloneInstallation()");
 
     return nullptr;
 }
 
-PyResult JumpCloneBound::Handle_CloneJump(PyCallArgs &call) {
+PyResult JumpCloneBound::CloneJump(PyCallArgs &call, PyInt* locationID) {
     //lm.CloneJump, destLocationID
 _log(CHARACTER__INFO, "JumpCloneBound::Handle_CloneJump()");
 

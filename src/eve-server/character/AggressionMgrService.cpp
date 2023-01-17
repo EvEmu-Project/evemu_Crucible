@@ -25,93 +25,57 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "character/AggressionMgrService.h"
 
-PyCallable_Make_InnerDispatcher(AggressionMgrService)
-
-class AggressionMgrBound
-: public PyBoundObject
+AggressionMgrBound::AggressionMgrBound(EVEServiceManager& mgr, AggressionMgrService& parent, uint32 systemID) :
+    EVEBoundObject (mgr, parent),
+    m_systemID (systemID)
 {
-public:
-    PyCallable_Make_Dispatcher(AggressionMgrBound)
+    this->Add("GetCriminalTimeStamps", &AggressionMgrBound::GetCriminalTimeStamps);
+    this->Add("CheckLootRightExceptions", &AggressionMgrBound::CheckLootRightExceptions);
+}
 
-    AggressionMgrBound(PyServiceMgr* mgr)
-    : PyBoundObject(mgr), m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "AggressionMgrBound";
-
-        PyCallable_REG_CALL(AggressionMgrBound, GetCriminalTimeStamps);
-        PyCallable_REG_CALL(AggressionMgrBound, CheckLootRightExceptions);
-    }
-
-    virtual ~AggressionMgrBound()
-    {
-        delete m_dispatch;
-    }
-
-    virtual void Release()
-    {
-        // this is not recommended
-        delete this;
-    }
-
-protected:
-    PyCallable_DECL_CALL(GetCriminalTimeStamps);
-    PyCallable_DECL_CALL(CheckLootRightExceptions);
-
-    Dispatcher *const m_dispatch;
-};
-
-PyResult AggressionMgrBound::Handle_GetCriminalTimeStamps(PyCallArgs &call)
+PyResult AggressionMgrBound::GetCriminalTimeStamps(PyCallArgs &call, PyInt* characterID)
 {
-    // arguments: charID
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     return new PyDict();
 }
 
-PyResult AggressionMgrBound::Handle_CheckLootRightExceptions(PyCallArgs &call)
+PyResult AggressionMgrBound::CheckLootRightExceptions(PyCallArgs &call, PyInt* containerID)
 {
-    // arguments: containerID
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     // return true to allow looting
     return new PyBool(true);
 }
 
-AggressionMgrService::AggressionMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "aggressionMgr"), m_dispatch(new Dispatcher(this))
+AggressionMgrService::AggressionMgrService(EVEServiceManager& mgr) :
+    BindableService ("aggressionMgr", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
 }
 
-AggressionMgrService::~AggressionMgrService()
-{
-    delete m_dispatch;
+BoundDispatcher* AggressionMgrService::BindObject(Client* client, PyRep* bindParameters) {
+    if (bindParameters->IsInt() == false) {
+        throw CustomError("Cannot bind service");
+    }
+
+    uint32 systemID = bindParameters->AsInt()->value();
+    auto it = this->m_instances.find (systemID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    AggressionMgrBound* bound = new AggressionMgrBound(this->GetServiceManager(), *this, bindParameters->AsInt()->value());
+
+    this->m_instances.insert_or_assign (systemID, bound);
+
+    return bound;
 }
 
-PyBoundObject *AggressionMgrService::CreateBoundObject(Client *pClient, const PyRep *bind_args)
-{
-    _log(CLIENT__MESSAGE, "AggressionMgrService bind request for:");
-    bind_args->Dump(CLIENT__MESSAGE, "    ");
-    /*
-     * 18:26:21 [ClientMessage] AggressionMgrService bind request for:
-     * 18:26:21 [ClientMessage]     Integer field: 30002547     <<-- systemID
-     */
+void AggressionMgrService::BoundReleased (AggressionMgrBound* bound) {
+    auto it = this->m_instances.find (bound->GetSystemID());
 
-    /** create this in bound obj code?  */
-    // this obj is system-wide, per system.  bound object can be used for multiple clients
-    return (new AggressionMgrBound(m_manager));
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }

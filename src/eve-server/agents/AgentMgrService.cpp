@@ -50,69 +50,68 @@
 #include "eve-server.h"
 
 #include "EntityList.h"
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
 #include "StaticDataMgr.h"
-#include "cache/ObjCacheService.h"
 #include "agents/Agent.h"
 #include "agents/AgentBound.h"
 #include "agents/AgentMgrService.h"
 #include "missions/MissionDataMgr.h"
 
-PyCallable_Make_InnerDispatcher(AgentMgrService)
-
-AgentMgrService::AgentMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "agentMgr"),
-  m_dispatch(new Dispatcher(this))
+AgentMgrService::AgentMgrService(EVEServiceManager& mgr) :
+    BindableService("agentMgr", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(AgentMgrService, GetAgents);
-    PyCallable_REG_CALL(AgentMgrService, GetCareerAgents);
-    PyCallable_REG_CALL(AgentMgrService, GetMyJournalDetails);
-    PyCallable_REG_CALL(AgentMgrService, GetSolarSystemOfAgent);
-    PyCallable_REG_CALL(AgentMgrService, GetMyEpicJournalDetails);
+    this->Add("GetAgents", &AgentMgrService::GetAgents);
+    this->Add("GetCareerAgents", &AgentMgrService::GetCareerAgents);
+    this->Add("GetMyJournalDetails", &AgentMgrService::GetMyJournalDetails);
+    this->Add("GetSolarSystemOfAgent", &AgentMgrService::GetSolarSystemOfAgent);
+    this->Add("GetMyEpicJournalDetails", &AgentMgrService::GetMyEpicJournalDetails);
 }
 
-AgentMgrService::~AgentMgrService() {
-    delete m_dispatch;
-}
-
-// need a way to check created objects for client/agent combinations to avoid duplicates.
-//  also need a way to check/delete released objects/agents
-PyBoundObject *AgentMgrService::CreateBoundObject(Client* pClient, const PyRep *bind_args) {
-    if (!bind_args->IsInt()) {
-        _log(SERVICE__ERROR, "%s: Non-integer argument '%s'", pClient->GetName(), bind_args->TypeString());
+BoundDispatcher* AgentMgrService::BindObject(Client* client, PyRep* bindParameters) {
+    if (!bindParameters->IsInt()) {
+        _log(SERVICE__ERROR, "%s: Non-integer argument '%s'", client->GetName(), bindParameters->TypeString());
         return nullptr;
     }
 
-    uint32 agentID(bind_args->AsInt()->value());
-    Agent* pAgent(sEntityList.GetAgent(agentID));
+    uint32 agentID = bindParameters->AsInt()->value();
+    Agent* pAgent = sEntityList.GetAgent(agentID);
+
     if (pAgent == nullptr) {
-        _log(AGENT__ERROR, "%s: Unable to obtain agent %u", pClient->GetName(), agentID);
+        _log(AGENT__ERROR, "%s: Unable to obtain agent %u", client->GetName(), agentID);
         return nullptr;
     }
 
-    return new AgentBound(m_manager, pAgent);
+    auto it = this->m_instances.find (agentID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    AgentBound* bound = new AgentBound(this->GetServiceManager(), *this, pAgent);
+
+    this->m_instances.insert_or_assign (agentID, bound);
+
+    return bound;
 }
 
-PyResult AgentMgrService::Handle_GetAgents(PyCallArgs &call) {
+void AgentMgrService::BoundReleased (AgentBound* bound) {
+    auto it = this->m_instances.find (bound->GetAgent()->GetID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
+
+PyResult AgentMgrService::GetAgents(PyCallArgs &call) {
     // this is cached on client side...
     return sDataMgr.GetAgents();
 }
 
-PyResult AgentMgrService::Handle_GetSolarSystemOfAgent(PyCallArgs &call)
+PyResult AgentMgrService::GetSolarSystemOfAgent(PyCallArgs &call, PyInt* agentID)
 {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return sDataMgr.GetAgentSystemID(args.arg);
+    return sDataMgr.GetAgentSystemID(agentID->value());
 }
 
-PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
+PyResult AgentMgrService::GetMyJournalDetails(PyCallArgs &call) {
 // note:  this will show mission data in journal AND "offered" msg in agent data bloc on agent tab in station
 
     _log(AGENT__INFO, "AgentMgrService::Handle_GetMyJournalDetails() - size=%li", call.tuple->size());
@@ -278,7 +277,7 @@ PyResult AgentMgrService::Handle_GetMyJournalDetails(PyCallArgs &call) {
 
 
 /** not handled */
-PyResult AgentMgrService::Handle_GetMyEpicJournalDetails( PyCallArgs& call )
+PyResult AgentMgrService::GetMyEpicJournalDetails(PyCallArgs& call)
 {
     //no args
   _log(AGENT__INFO, "AgentMgrBound::Handle_GetMyEpicJournalDetails() - size=%li", call.tuple->size());
@@ -286,7 +285,7 @@ PyResult AgentMgrService::Handle_GetMyEpicJournalDetails( PyCallArgs& call )
     return new PyList();
 }
 
-PyResult AgentMgrService::Handle_GetCareerAgents(PyCallArgs &call)
+PyResult AgentMgrService::GetCareerAgents(PyCallArgs &call)
 {
   _log(AGENT__INFO, "AgentMgrBound::Handle_GetCareerAgents() - size=%li", call.tuple->size());
     call.Dump(AGENT__DUMP);
@@ -294,23 +293,13 @@ PyResult AgentMgrService::Handle_GetCareerAgents(PyCallArgs &call)
     return PyStatic.NewZero();
 }
 
-
-PyCallable_Make_InnerDispatcher(EpicArcService)
-
-EpicArcService::EpicArcService(PyServiceMgr *mgr)
-: PyService(mgr, "epicArcStatus"),
-  m_dispatch(new Dispatcher(this))
+EpicArcService::EpicArcService() :
+    Service("epicArcStatus")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(EpicArcService, AgentHasEpicMissionsForCharacter);
+    this->Add("AgentHasEpicMissionsForCharacter", &EpicArcService::AgentHasEpicMissionsForCharacter);
 }
 
-EpicArcService::~EpicArcService() {
-    delete m_dispatch;
-}
-
-PyResult EpicArcService::Handle_AgentHasEpicMissionsForCharacter(PyCallArgs &call) {
+PyResult EpicArcService::AgentHasEpicMissionsForCharacter(PyCallArgs &call, PyInt* agentID) {
   /**
      epicArcStatusSvc = sm.RemoteSvc('epicArcStatus').AgentHasEpicMissionsForCharacter(agent.agentID):
      */

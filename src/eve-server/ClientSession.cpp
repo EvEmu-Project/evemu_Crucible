@@ -159,6 +159,18 @@ void ClientSession::EncodeInitialState (PyDict* into)
     mDirty = false;
 }
 
+bool ClientSession::HasValue (const char* name) const
+{
+    PyTuple* valueTuple = _GetValueTuple (name);
+
+    if (valueTuple == nullptr)
+        return false;
+
+    PyRep* value = valueTuple->GetItem(1);
+
+    return value != nullptr && value->IsNone() == false;
+}
+
 PyTuple* ClientSession::_GetValueTuple(const char* name) const
 {
     PyRep* value(mSession->GetItemString(name));

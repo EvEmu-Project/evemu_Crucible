@@ -3,32 +3,6 @@
 
   <include file="packets/General.h" />
 
-  <elementDef name="CallSelectCharacterID">
-    <tupleInline>
-      <int name="charID" />
-      <bool name="loadTutorialDungeon" safe="true" />
-      <raw name="secondChoiceID" />
-    </tupleInline>
-  </elementDef>
-
-    <elementDef name="CallCreateCharacterWithDoll">
-    <tupleInline>
-      <raw name="charactername" />
-      <int name="bloodlineID" />
-      <int name="genderID" />
-      <int name="ancestryID" />
-      <objectInline>
-        <stringInline value="util.KeyVal"/>
-        <dict name="charInfo" />
-      </objectInline>
-      <objectInline>
-        <stringInline value="util.KeyVal"/>
-        <dict name="portraitInfo" />
-      </objectInline>
-      <int name="schoolID" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="OnCharNowInStation">
     <tupleInline>
         <tupleInline>
@@ -48,34 +22,6 @@
         <int name="allianceID" default="0" none_marker="0" />
         <int name="factionID" default="0" none_marker="0" />
       </tupleInline>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_SetNote">
-      <tupleInline>
-          <int name="itemID" />
-          <string name="note" />
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AddOwnerNote">
-    <tupleInline>
-      <wstring name="label" safe="true" />
-      <wstring name="content" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_EditOwnerNote">
-    <tupleInline>
-      <int name="noteID" />
-      <wstring name="label" safe="true" />
-      <wstring name="content" safe="true"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_BatchCertificateUpdate">
-    <tupleInline>
-      <dictRaw name="update" key="uint32" pykey="Int" value="uint32" pyvalue="Int" />
     </tupleInline>
   </elementDef>
 
@@ -134,39 +80,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_SaveSkillQueue">
-    <tupleInline>
-      <!-- 0: List of SkillQueue_Element -->
-      <list name="queue" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_InjectSkillIntoBrain">
-    <tupleInline>
-      <listInt name="skills" />
-      <int name="stationID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_RespecCharacter">
-    <tupleInline>
-        <int name="charisma" />
-        <int name="intelligence" />
-        <int name="memory" />
-        <int name="perception" />
-        <int name="willpower" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AddContact">
-    <tupleInline>
-      <int name="charID" />
-      <int name="standing" />
-      <int name="inWatchlist" />
-      <int name="notify" />
-      <wstring name="note" safe="true" />
-    </tupleInline>
-  </elementDef>
 </elements>
 
 

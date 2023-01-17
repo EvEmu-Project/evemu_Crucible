@@ -26,18 +26,42 @@
 #ifndef __WAR_REGISTRY_SERVICE__H__INCL__
 #define __WAR_REGISTRY_SERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/BoundService.h"
+#include "Client.h"
 
-class WarRegistryService : public PyService {
+class EVEServiceManager;
+class WarRegistryBound;
+
+class WarRegistryService : public BindableService<WarRegistryService, WarRegistryBound> {
 public:
-    WarRegistryService(PyServiceMgr *mgr);
-    ~WarRegistryService();
+    WarRegistryService(EVEServiceManager& mgr);
 
-    PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    void BoundReleased (WarRegistryBound* bound) override;
+protected:
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters) override;
 
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    std::map<uint32, WarRegistryBound*> m_instances;
+};
+
+class WarRegistryBound : public EVEBoundObject<WarRegistryBound> {
+    friend WarRegistryService;
+public:
+    PyResult GetWars(PyCallArgs& args, PyInt* ownerID, std::optional<PyInt*> forceRefresh);
+
+    uint32 GetCorporationID() { return this->mCorporationID; }
+    /*
+     * other functions that might be required
+     * return self.GetMoniker().RetractWar(againstID)
+     * return self.GetMoniker().DeclareWarAgainst(againstID)
+     * return self.GetMoniker().ChangeMutualWarFlag(warID, mutual)
+     * return self.GetMoniker().GetCostOfWarAgainst(ownerID)
+     */
+protected:
+    WarRegistryBound(uint32 corporationID, EVEServiceManager& mgr, WarRegistryService& parent);
+
+private:
+    uint32 mCorporationID;
 };
 
 #endif /* __WAR_REGISTRY_SERVICE__H__INCL__ */

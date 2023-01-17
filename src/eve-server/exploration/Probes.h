@@ -65,15 +65,15 @@ protected:
 /**
  * DynamicSystemEntity which represents celestial object in space
  */
-class PyServiceMgr;
+class EVEServiceManager;
 class Scan;
 
 class ProbeSE : public DynamicSystemEntity {
 public:
     // abandoned probe c'tor
-    ProbeSE(ProbeItemRef self, PyServiceMgr& services, SystemManager* system);
+    ProbeSE(ProbeItemRef self, EVEServiceManager& services, SystemManager* system);
     // launched probe c'tor
-    ProbeSE(ProbeItemRef self, PyServiceMgr& services, SystemManager* system, InventoryItemRef moduleRef, ShipItemRef shipRef);
+    ProbeSE(ProbeItemRef self, EVEServiceManager& services, SystemManager* system, InventoryItemRef moduleRef, ShipItemRef shipRef);
     virtual ~ProbeSE();
 
     /* Process Calls - Overridden as needed in derived classes */

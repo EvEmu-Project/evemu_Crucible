@@ -28,29 +28,46 @@
 #define __KEEPER_SERVICE_H_INCL__
 
 #include "system/SystemDB.h"
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
-class KeeperService
-: public PyService
+class KeeperBound;
+
+class KeeperService : public Service <KeeperService>, public BoundServiceParent <KeeperBound>
 {
 public:
-    KeeperService(PyServiceMgr *mgr);
-    virtual ~KeeperService();
+    KeeperService(EVEServiceManager& mgr);
+
+    void BoundReleased (KeeperBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     SystemDB m_db;
 
-    PyCallable_DECL_CALL(GetLevelEditor);
-	PyCallable_DECL_CALL(ActivateAccelerationGate);
-	PyCallable_DECL_CALL(CanWarpToPathPlex);
+    PyResult GetLevelEditor(PyCallArgs& call);
+    PyResult CanWarpToPathPlex(PyCallArgs& call, PyInt* instanceID);
+    PyResult ActivateAccelerationGate(PyCallArgs& call, PyInt* itemID);
 
-    //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+private:
+    EVEServiceManager& m_manager;
+    KeeperBound* m_instance;
 };
 
+
+class KeeperBound : public EVEBoundObject <KeeperBound>
+{
+public:
+    KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB* db);
+
+protected:
+    PyResult EditDungeon(PyCallArgs& call, PyInt* dungeonID);
+    PyResult PlayDungeon(PyCallArgs& call, PyInt* dungeonID);
+    PyResult Reset(PyCallArgs& call);
+    PyResult GotoRoom(PyCallArgs& call, PyInt* roomID);
+    PyResult GetCurrentlyEditedRoomID(PyCallArgs& call);
+
+protected:
+    SystemDB *const m_db;
+};
 
 
 

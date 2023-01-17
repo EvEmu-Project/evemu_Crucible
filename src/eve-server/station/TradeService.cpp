@@ -29,134 +29,31 @@
 #include <unordered_map>
 
 #include "EntityList.h"
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "station/TradeService.h"
 #include "system/SystemManager.h"
 #include "system/Container.h"
 
-PyCallable_Make_InnerDispatcher(TradeService);
-
-class TradeBound
-: public PyBoundObject
+TradeBound::TradeBound (EVEServiceManager& mgr, TradeService& parent) :
+    EVEBoundObject(mgr, parent)
 {
-  friend TradeService;
+    this->m_TSvc = this->GetServiceManager().Lookup <TradeService>("trademgr");
 
-public:
-    PyCallable_Make_Dispatcher(TradeBound)
-
-    TradeBound(PyServiceMgr *mgr)
-    : PyBoundObject(mgr),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "TradeBound";
-        m_TSvc = (TradeService*)(mgr->LookupService("trademgr"));
-
-        PyCallable_REG_CALL(TradeBound, List);
-        PyCallable_REG_CALL(TradeBound, IsCEOTrade);
-        PyCallable_REG_CALL(TradeBound, GetItemID);
-        PyCallable_REG_CALL(TradeBound, GetItem);
-        PyCallable_REG_CALL(TradeBound, Add);
-        PyCallable_REG_CALL(TradeBound, MultiAdd);
-        PyCallable_REG_CALL(TradeBound, ToggleAccept);
-        PyCallable_REG_CALL(TradeBound, OfferMoney);
-        PyCallable_REG_CALL(TradeBound, Abort);
-    }
-    virtual ~TradeBound()
-    {
-        delete m_dispatch;
-    }
-
-    virtual void Release() {
-        //this needs to die
-        delete this;
-    }
-
-    void ExchangeItems(Client* pClient, Client* pOther, TradeSession* pTSes);
-    void CancelTrade(Client* pClient, Client* pOther, TradeSession* pTSes);
-
-    PyCallable_DECL_CALL(List);
-    PyCallable_DECL_CALL(IsCEOTrade);
-    PyCallable_DECL_CALL(GetItemID);
-    PyCallable_DECL_CALL(GetItem);
-    PyCallable_DECL_CALL(Add);
-    PyCallable_DECL_CALL(MultiAdd);
-    PyCallable_DECL_CALL(ToggleAccept);
-    PyCallable_DECL_CALL(OfferMoney);
-    PyCallable_DECL_CALL(Abort);
-
-protected:
-    Dispatcher *const m_dispatch;
-    TradeService* m_TSvc;                // get registered TradeService object
-};
-
-
-TradeService::TradeService(PyServiceMgr *mgr)
-: PyService(mgr, "trademgr"),
-  m_dispatch(new Dispatcher(this))
-{
-    m_SvcMgr = mgr;
-    _SetCallDispatcher(m_dispatch);
-    m_SessionID = minTradeCont;
-
-    PyCallable_REG_CALL(TradeService, InitiateTrade);
+    EVEBoundObject::Add("List", &TradeBound::List);
+    EVEBoundObject::Add("IsCEOTrade", &TradeBound::IsCEOTrade);
+    EVEBoundObject::Add("GetItemID", &TradeBound::GetItemID);
+    EVEBoundObject::Add("GetItem", &TradeBound::GetItem);
+    EVEBoundObject::Add("Add", &TradeBound::Add);
+    EVEBoundObject::Add("MultiAdd", &TradeBound::MultiAdd);
+    EVEBoundObject::Add("ToggleAccept", &TradeBound::ToggleAccept);
+    EVEBoundObject::Add("OfferMoney", &TradeBound::OfferMoney);
+    EVEBoundObject::Add("Abort", &TradeBound::Abort);
 }
 
-TradeService::~TradeService() {
-    delete m_dispatch;
-}
-
-PyBoundObject* TradeService::CreateBoundObject(Client* pClient, const PyRep *bind_args) {
-    // each client's trade session has it's own bound object.
-    //   create code for multiple sessions per client, using TradeBound and TradeSession.
-    Trade_BindArgs args;
-    //crap
-    PyRep* tmp(bind_args->Clone());
-    if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
-        return nullptr;
-    }
-
-    _log(COLLECT__OTHER_DUMP, "Trade bind request for:");
-    args.Dump(COLLECT__OTHER_DUMP, "    ");
-
-    /** @todo update to multiple trade sessions per client.  current code only allows one at a time. */
-
-    // check to see if this is target calling for a bound object.  if not, create new session
-    std::map<uint32, ActiveSession>::iterator itr = m_activeSessions.find(args.myID);
-    if (itr == m_activeSessions.end()) {
-        TradeSession* pTSes = new TradeSession();
-        pClient->SetTradeSession(pTSes);
-        uint32 contID(GetTradeSessionID());
-        pTSes->m_tradeSession.containerID = contID;
-        pTSes->m_tradeSession.stationID   = args.stationID;
-        pTSes->m_tradeSession.myID        = args.myID;
-        pTSes->m_tradeSession.herID       = args.herID;
-        pTSes->m_tradeSession.myState     = false;
-        pTSes->m_tradeSession.herState    = false;
-        pTSes->m_tradeSession.myMoney     = args.myMoney;
-        pTSes->m_tradeSession.herMoney    = args.herMoney;
-        pTSes->m_tradeSession.fileTime    = args.fileTime;
-        ActiveSession cAS = ActiveSession();
-            cAS.myID = args.myID;
-            cAS.herID = args.herID;
-            cAS.contID = contID;
-            cAS.ourTS = pTSes;
-        m_activeSessions.insert(std::make_pair(args.myID, cAS));
-        m_activeSessions.insert(std::make_pair(args.herID, cAS));
-    } else {
-        pClient->SetTradeSession(itr->second.ourTS);
-    }
-
-    TradeBound* pTB = new TradeBound(m_manager);
-    return pTB;
-}
-
-PyResult TradeBound::Handle_OfferMoney(PyCallArgs &call) {
+PyResult TradeBound::OfferMoney(PyCallArgs &call, PyFloat* amount) {
     TradeSession* pTSes = call.client->GetTradeSession();
     Client* pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);
     Client* pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
@@ -164,12 +61,12 @@ PyResult TradeBound::Handle_OfferMoney(PyCallArgs &call) {
 
     if (call.client->GetCharacterID() == pTSes->m_tradeSession.myID) {
         // this is 'my'
-        pTSes->m_tradeSession.myMoney = call.tuple->GetItem(0)->AsFloat()->value();
+        pTSes->m_tradeSession.myMoney = amount->value();
         list->SetItem(0, new PyFloat(pTSes->m_tradeSession.myMoney));  //myMoney
         list->SetItem(1, new PyFloat(pTSes->m_tradeSession.herMoney)); //herMoney
     } else if (call.client->GetCharacterID() == pTSes->m_tradeSession.herID) {
         // this is 'her'
-        pTSes->m_tradeSession.herMoney = call.tuple->GetItem(0)->AsFloat()->value();
+        pTSes->m_tradeSession.herMoney = amount->value();
         list->SetItem(0, new PyFloat(pTSes->m_tradeSession.myMoney));  //myMoney
         list->SetItem(1, new PyFloat(pTSes->m_tradeSession.herMoney)); //herMoney
     } else {
@@ -200,7 +97,7 @@ PyResult TradeBound::Handle_OfferMoney(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult TradeBound::Handle_Abort(PyCallArgs &call) {
+PyResult TradeBound::Abort(PyCallArgs &call) {
     TradeSession* pTSes = call.client->GetTradeSession();
     Client* pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);
     Client* pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
@@ -241,7 +138,7 @@ void TradeBound::CancelTrade(Client* pClient, Client* pOther, TradeSession* pTSe
     }
 }
 
-PyResult TradeBound::Handle_ToggleAccept(PyCallArgs &call) {
+PyResult TradeBound::ToggleAccept(PyCallArgs &call, PyBool* newAccept) {
     TradeSession* pTSes = call.client->GetTradeSession();
     Client* pClient(nullptr);
     Client* pOther(nullptr);
@@ -253,12 +150,12 @@ PyResult TradeBound::Handle_ToggleAccept(PyCallArgs &call) {
         // this is 'my'
         pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);
         pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
-        myAccept = call.tuple->GetItem(0)->AsBool()->value();
+        myAccept = newAccept->value();
     } else if (call.client->GetCharacterID() == pTSes->m_tradeSession.herID) {
         // this is 'her'
         pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
         pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);
-        herAccept = call.tuple->GetItem(0)->AsBool()->value();
+        herAccept = newAccept->value();
     } else {
         _log(PLAYER__TRADE_MESSAGE, "TradeBound::Handle_ToggleAccept() : %s(%u) - clients are neither mine nor hers.", \
                     call.client->GetName(), call.client->GetCharacterID());
@@ -302,7 +199,7 @@ PyResult TradeBound::Handle_ToggleAccept(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult TradeBound::Handle_GetItemID(PyCallArgs &call) {
+PyResult TradeBound::GetItemID(PyCallArgs &call) {
     _log(CLIENT__CALL_DUMP, "TradeBound::Handle_GetItemID()");
     call.Dump(CLIENT__CALL_DUMP);
     // still not sure what this does...only returns PyNone in packet logs.
@@ -311,18 +208,8 @@ PyResult TradeBound::Handle_GetItemID(PyCallArgs &call) {
 }
 
 /** @todo  refresh other window when item added */
-PyResult TradeBound::Handle_Add(PyCallArgs &call) {
-    Call_TwoIntegerArgs args;
-    /*  .arg1 = itemID to insert into trade
-     *  .arg2 = item's current containerID
-     *  call.byname "qty"
-     */
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return Handle_Abort(call);
-    }
-
-    InventoryItemRef itemRef = sItemFactory.GetItemRef(args.arg1);
+PyResult TradeBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID) {
+    InventoryItemRef itemRef = sItemFactory.GetItemRef(itemID->value());
     if (itemRef.get() == nullptr)  {
         _log(PLAYER__TRADE_MESSAGE, "TradeBound::Handle_Add() - Failed to get ItemRef.");
         //  should i abort trade, or just return null here?  single add, so not a big deal.
@@ -354,7 +241,7 @@ PyResult TradeBound::Handle_Add(PyCallArgs &call) {
 
     uint32 tradeContainerID(pTSes->m_tradeSession.containerID);
     TradeSession::TradeItems mTI = TradeSession::TradeItems();
-        mTI.itemID = args.arg1;
+        mTI.itemID = itemID->value();
         mTI.typeID = itemRef->typeID();
         mTI.ownerID = call.client->GetCharacterID();
         mTI.locationID = tradeContainerID;
@@ -369,7 +256,7 @@ PyResult TradeBound::Handle_Add(PyCallArgs &call) {
     itemRef->Move(tradeContainerID, (EVEItemFlags)flag, true);
 
     PyDict* dict = new PyDict();
-        dict->SetItem(new PyInt(Inv::Update::Location), new PyInt(args.arg2));
+        dict->SetItem(new PyInt(Inv::Update::Location), containerID);
 
     PyPackedRow* row = new PyPackedRow( sDataMgr.CreateHeader() );
         row->SetField("itemID",        new PyLong(mTI.itemID));
@@ -397,15 +284,22 @@ PyResult TradeBound::Handle_Add(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult TradeBound::Handle_MultiAdd(PyCallArgs &call) {
-    TradeMultiAddList args;
+PyResult TradeBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* containerID) {
     /*  .ints = list of itemIDs to insert into trade
      *  .contID = item's current containerID
      *  call.byname "flag"
      */
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return Handle_Abort(call);
+    std::vector<int32> ints;
+
+    PyList::const_iterator list_2_cur = itemIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode TradeMultiAddList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
     uint32 flag(0);
@@ -413,7 +307,7 @@ PyResult TradeBound::Handle_MultiAdd(PyCallArgs &call) {
         flag = PyRep::IntegerValueU32(call.byname.find("flag")->second);
 
     PyDict* dict = new PyDict();
-        dict->SetItem(new PyInt(Inv::Update::Location), new PyInt(args.contID));
+        dict->SetItem(new PyInt(Inv::Update::Location), containerID);
 
     TradeSession* pTSes = call.client->GetTradeSession();
     Client* pClient = sEntityList.FindClientByCharID(pTSes->m_tradeSession.myID);
@@ -431,7 +325,7 @@ PyResult TradeBound::Handle_MultiAdd(PyCallArgs &call) {
     uint32 tradeContID = pTSes->m_tradeSession.containerID;
 
     DBRowDescriptor* header = sDataMgr.CreateHeader();
-    std::vector<int32> list = args.ints;
+    std::vector<int32> list = ints;
     for (auto cur : list) {
         InventoryItemRef itemRef = sItemFactory.GetItemRef(cur);
         if (itemRef.get() == nullptr)  {
@@ -485,7 +379,8 @@ PyResult TradeBound::Handle_MultiAdd(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult TradeBound::Handle_GetItem(PyCallArgs &call) {
+PyResult TradeBound::GetItem(PyCallArgs &call) {
+    // TODO: this might need parameters but I'm not sure
     TradeSession* pTSes = call.client->GetTradeSession();
     PyPackedRow* row = new PyPackedRow( sDataMgr.CreateHeader() );
         row->SetField("itemID",        new PyLong(pTSes->m_tradeSession.containerID));
@@ -500,7 +395,7 @@ PyResult TradeBound::Handle_GetItem(PyCallArgs &call) {
     return row;
 }
 
-PyResult TradeBound::Handle_IsCEOTrade(PyCallArgs &call) {
+PyResult TradeBound::IsCEOTrade(PyCallArgs &call) {
     _log(CLIENT__CALL_DUMP, "TradeBound::Handle_IsCEOTrade()");
     call.Dump(CLIENT__CALL_DUMP);
 
@@ -508,7 +403,7 @@ PyResult TradeBound::Handle_IsCEOTrade(PyCallArgs &call) {
     return new PyBool(false);
 }
 
-PyResult TradeBound::Handle_List(PyCallArgs &call) {
+PyResult TradeBound::List(PyCallArgs &call) {
     TradeSession* pTSes = call.client->GetTradeSession();
     PyList* list = new PyList();
 
@@ -602,6 +497,63 @@ void TradeBound::ExchangeItems(Client* pClient, Client* pOther, TradeSession* pT
     pOther->SendNotification("OnTrade", "charid", &tuple);
 }
 
+TradeService::TradeService(EVEServiceManager& mgr)
+    : BindableService("trademgr", mgr, eAccessLevel_Station)
+{
+    m_SessionID = minTradeCont;
+
+    this->Add("InitiateTrade", &TradeService::InitiateTrade);
+}
+
+BoundDispatcher* TradeService::BindObject(Client* client, PyRep* bindParameters) {
+    // each client's trade session has it's own bound object.
+    //   create code for multiple sessions per client, using TradeBound and TradeSession.
+    Trade_BindArgs args;
+    //crap
+    PyRep* tmp(bindParameters->Clone());
+    if (!args.Decode(&tmp)) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
+        return nullptr;
+    }
+
+    _log(COLLECT__OTHER_DUMP, "Trade bind request for:");
+    args.Dump(COLLECT__OTHER_DUMP, "    ");
+
+    /** @todo update to multiple trade sessions per client.  current code only allows one at a time. */
+
+    // check to see if this is target calling for a bound object.  if not, create new session
+    std::map<uint32, ActiveSession>::iterator itr = m_activeSessions.find(args.myID);
+    if (itr == m_activeSessions.end()) {
+        TradeSession* pTSes = new TradeSession();
+        client->SetTradeSession(pTSes);
+        uint32 contID(GetTradeSessionID());
+        pTSes->m_tradeSession.containerID = contID;
+        pTSes->m_tradeSession.stationID = args.stationID;
+        pTSes->m_tradeSession.myID = args.myID;
+        pTSes->m_tradeSession.herID = args.herID;
+        pTSes->m_tradeSession.myState = false;
+        pTSes->m_tradeSession.herState = false;
+        pTSes->m_tradeSession.myMoney = args.myMoney;
+        pTSes->m_tradeSession.herMoney = args.herMoney;
+        pTSes->m_tradeSession.fileTime = args.fileTime;
+        ActiveSession cAS = ActiveSession();
+        cAS.myID = args.myID;
+        cAS.herID = args.herID;
+        cAS.contID = contID;
+        cAS.ourTS = pTSes;
+        m_activeSessions.insert(std::make_pair(args.myID, cAS));
+        m_activeSessions.insert(std::make_pair(args.herID, cAS));
+    } else {
+        client->SetTradeSession(itr->second.ourTS);
+    }
+
+    return new TradeBound(this->GetServiceManager(), *this);
+}
+
+void TradeService::BoundReleased (TradeBound* bound) {
+
+}
+
 void TradeService::TransferContainerContents(SystemManager* pSysMgr, InventoryItemRef itemRef, uint32 newOwnerID)
 {
     std::map<uint32, InventoryItemRef> InventoryMap;
@@ -627,7 +579,7 @@ void TradeService::TransferContainerContents(SystemManager* pSysMgr, InventoryIt
         cur.second->ChangeOwner(newOwnerID, true);
 }
 
-PyResult TradeService::Handle_InitiateTrade(PyCallArgs &call) {
+PyResult TradeService::InitiateTrade(PyCallArgs &call, PyInt* characterID) {
     Client* target(nullptr);
     if (call.client->GetTradeSession()) {
         target = sEntityList.FindClientByCharID( call.client->GetTradeSession()->m_tradeSession.herID );
@@ -635,14 +587,7 @@ PyResult TradeService::Handle_InitiateTrade(PyCallArgs &call) {
         return nullptr;
     }
 
-    Call_SingleIntegerArg args;
-    //    .arg is char to trade with
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    target = sEntityList.FindClientByCharID( args.arg );
+    target = sEntityList.FindClientByCharID( characterID->value() );
     if (target->GetTradeSession()) {
         Client* otarget = sEntityList.FindClientByCharID( call.client->GetTradeSession()->m_tradeSession.herID );
         call.client->SendErrorMsg("%s is currently trading with %s.  Try again later.", target->GetName(), otarget->GetName());
@@ -664,18 +609,13 @@ PyResult TradeService::Handle_InitiateTrade(PyCallArgs &call) {
         rsp_nc.when      = GetFileTimeNow();
 
     PyObject* resp = rsp_nc.Encode();
-    InitiateTrade(target, resp->Clone());
-
-    return resp;
-}
-
-void TradeService::InitiateTrade(Client* pClient, PyRep* resp) {
     PyTuple* tuple = new PyTuple(3);
-        tuple->SetItem(0, new PyString("Initiate"));
-        tuple->SetItem(1, new PyInt(pClient->GetCharacterID()));
-        tuple->SetItem(2, resp);
+    tuple->SetItem(0, new PyString("Initiate"));
+    tuple->SetItem(1, new PyInt(call.client->GetCharacterID()));
+    tuple->SetItem(2, resp->Clone());
     // now send it, bypassing the extra shit and wrong dest name added in Client::SendNotification
-    pClient->SendNotification("OnTrade", "charid", &tuple);
+    call.client->SendNotification("OnTrade", "charid", &tuple);
+    return resp;
 }
 
 void TradeService::RemoveActiveSession(uint32 myID) {
@@ -686,8 +626,9 @@ void TradeService::CancelTrade(Client* pClient) {
     TradeSession* pTSes = pClient->GetTradeSession();
     Client* pOther = sEntityList.FindClientByCharID(pTSes->m_tradeSession.herID);
 
-    TradeBound* pTB = new TradeBound(m_manager);
+    TradeBound* pTB = new TradeBound(this->GetServiceManager(), *this);
     pTB->CancelTrade(pClient, pOther, pTSes);
+    delete pTB;
 
     PyTuple* tuple = new PyTuple(2);
         tuple->SetItem(0, new PyString("Cancel"));

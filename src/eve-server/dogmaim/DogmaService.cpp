@@ -25,26 +25,16 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
 #include "dogmaim/DogmaService.h"
 #include "StaticDataMgr.h"
 
-PyCallable_Make_InnerDispatcher(DogmaService)
-
-DogmaService::DogmaService( PyServiceMgr *mgr )
-: PyService(mgr, "dogma"),
-  m_dispatch(new Dispatcher(this))
+DogmaService::DogmaService() :
+    Service("dogma")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(DogmaService, GetOperandsForChar);
+    this->Add("GetOperandsForChar", &DogmaService::GetOperandsForChar);
 }
 
-DogmaService::~DogmaService() {
-    delete m_dispatch;
-}
-
-PyResult DogmaService::Handle_GetOperandsForChar(PyCallArgs &call)
+PyResult DogmaService::GetOperandsForChar(PyCallArgs &call)
 {
     return sDataMgr.GetOperands();
 }

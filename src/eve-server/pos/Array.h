@@ -19,7 +19,7 @@ class ArraySE
 : public StructureSE
 {
 public:
-    ArraySE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    ArraySE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~ArraySE()                                  { /* do nothing here */ }
 
     /* class type pointer querys. */

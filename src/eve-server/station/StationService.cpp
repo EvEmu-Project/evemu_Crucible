@@ -26,37 +26,22 @@
 #include "eve-server.h"
 
 #include "EntityList.h"
-#include "PyServiceCD.h"
+#include "Client.h"
 #include "station/StationService.h"
 
-PyCallable_Make_InnerDispatcher(StationService)
-
-StationService::StationService(PyServiceMgr *mgr)
-: PyService(mgr, "station"),
-  m_dispatch(new Dispatcher(this))
+StationService::StationService() :
+    Service("station", eAccessLevel_Location)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(StationService, GetGuests);
-    PyCallable_REG_CALL(StationService, GetSolarSystem);
+    this->Add("GetSolarSystem", &StationService::GetSolarSystem);
+    this->Add("GetGuests", &StationService::GetGuests);
 }
 
-StationService::~StationService() {
-    delete m_dispatch;
-}
-
-PyResult StationService::Handle_GetSolarSystem(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
+PyResult StationService::GetSolarSystem(PyCallArgs &call, PyInt* solarSystemID) {
     // this needs to return some cache status?
-    return new PyObject("util.CachedObject", new PyInt(arg.arg));
+    return new PyObject("util.CachedObject", solarSystemID);
 }
 
-PyResult StationService::Handle_GetGuests(PyCallArgs &call) {
+PyResult StationService::GetGuests(PyCallArgs &call) {
     std::vector<Client*> clients;
     clients.clear();
     sEntityList.GetStationGuestList(call.client->GetStationID(), clients);

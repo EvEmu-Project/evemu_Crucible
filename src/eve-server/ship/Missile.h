@@ -28,7 +28,7 @@
 
 #include "system/SystemEntity.h"
 
-class PyServiceMgr;
+class EVEServiceManager;
 class InventoryItem;
 class DestinyManager;
 class SystemManager;
@@ -38,7 +38,7 @@ class GenericModule;
 class Missile
 : public DynamicSystemEntity {
 public:
-    Missile(InventoryItemRef self, PyServiceMgr& services, SystemManager* pSystem, InventoryItemRef modRef, SystemEntity* tSE, SystemEntity* pSE, GenericModule* pMod=nullptr);
+    Missile(InventoryItemRef self, EVEServiceManager& services, SystemManager* pSystem, InventoryItemRef modRef, SystemEntity* tSE, SystemEntity* pSE, GenericModule* pMod=nullptr);
     virtual ~Missile()                                  { /* do nothing here */ }
 
     /* class type pointer querys. */

@@ -25,30 +25,19 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
 #include "station/HoloscreenMgrService.h"
 
-PyCallable_Make_InnerDispatcher(HoloscreenMgrService)
-
-HoloscreenMgrService::HoloscreenMgrService(PyServiceMgr* mgr)
-: PyService(mgr, "holoscreenMgr"),
-  m_dispatch(new Dispatcher(this))
+HoloscreenMgrService::HoloscreenMgrService() :
+    Service("holoscreenMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(HoloscreenMgrService, GetTwoHourCache);
-    PyCallable_REG_CALL(HoloscreenMgrService, GetRuntimeCache);
-    PyCallable_REG_CALL(HoloscreenMgrService, GetRecentEpicArcCompletions);
-}
-
-HoloscreenMgrService::~HoloscreenMgrService()
-{
-    delete m_dispatch;
+    this->Add("GetRecentEpicArcCompletions", &HoloscreenMgrService::GetRecentEpicArcCompletions);
+    this->Add("GetTwoHourCache", &HoloscreenMgrService::GetTwoHourCache);
+    this->Add("GetRuntimeCache", &HoloscreenMgrService::GetRuntimeCache);
 }
 
 //those objects should be cached
 
-PyResult HoloscreenMgrService::Handle_GetRecentEpicArcCompletions(PyCallArgs& call)
+PyResult HoloscreenMgrService::GetRecentEpicArcCompletions(PyCallArgs& call)
 {       //  this is cached object!!!
     sLog.Debug("HoloscreenMgrService", "Called GetRecentEpicArcCompletions stub.");
 
@@ -60,7 +49,7 @@ PyResult HoloscreenMgrService::Handle_GetRecentEpicArcCompletions(PyCallArgs& ca
     return nullptr;
 }
 
-PyResult HoloscreenMgrService::Handle_GetTwoHourCache(PyCallArgs& call)
+PyResult HoloscreenMgrService::GetTwoHourCache(PyCallArgs& call)
 {
     PyDict* agents = new PyDict();
         agents->SetItemString("Agent_DUMMY", new PyDict());
@@ -72,7 +61,7 @@ PyResult HoloscreenMgrService::Handle_GetTwoHourCache(PyCallArgs& call)
     return new PyObject("util.KeyVal", args);
 }
 
-PyResult HoloscreenMgrService::Handle_GetRuntimeCache(PyCallArgs& call)
+PyResult HoloscreenMgrService::GetRuntimeCache(PyCallArgs& call)
 {
     PyDict* agents = new PyDict();
         agents->SetItemString("Agent_DUMMY", new PyDict());

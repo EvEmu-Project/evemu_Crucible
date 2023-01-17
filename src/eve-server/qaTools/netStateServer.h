@@ -13,23 +13,13 @@
 #ifndef _EVEMU_QATOOLS_NETSTATE_SERVER_H
 #define _EVEMU_QATOOLS_NETSTATE_SERVER_H
 
+#include "services/Service.h"
 
-#include "PyService.h"
 
-
-class netStateServer
-: public PyService
+class netStateServer : public Service<netStateServer>
 {
 public:
-    netStateServer(PyServiceMgr *mgr);
-    ~netStateServer();
-
-protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    //PyCallable_DECL_CALL(DEGetFactions);
-
+    netStateServer();
 };
 
 

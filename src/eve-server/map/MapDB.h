@@ -27,7 +27,7 @@
 #define __MAPDB_H_INCL__
 
 #include "ServiceDB.h"
-#include "packets/Map.h"
+
 
 
 class MapDB

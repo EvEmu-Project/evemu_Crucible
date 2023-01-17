@@ -30,7 +30,7 @@
 
 #include "Client.h"
 #include "EntityList.h"
-#include "PyServiceMgr.h"
+
 #include "StaticDataMgr.h"
 #include "map/MapData.h"
 #include "math/Trig.h"

@@ -22,36 +22,17 @@
   * QATOOLS__RSPDUMP
   */
 
-
-
-
 #include "eve-server.h"
-
-#include "PyServiceCD.h"
-
 #include "zActionServer.h"
 
-
-PyCallable_Make_InnerDispatcher(zActionServer);
-
-zActionServer::zActionServer(PyServiceMgr* mgr)
-: PyService(mgr, "zActionServer"),
-m_dispatch(new Dispatcher(this))
+zActionServer::zActionServer() :
+    Service("zActionServer")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(zActionServer, RequestActionStart);
-    PyCallable_REG_CALL(zActionServer, QA_RequestForceActionStart);
-    
+    this->Add("RequestActionStart", &zActionServer::RequestActionStart);
+    this->Add("QA_RequestForceActionStart", &zActionServer::QA_RequestForceActionStart);
 }
 
-zActionServer::~zActionServer()
-{
-    delete m_dispatch;
-
-}
-
-PyResult zActionServer::Handle_RequestActionStart( PyCallArgs& call )
+PyResult zActionServer::RequestActionStart(PyCallArgs& call, PyInt* entityID, PyInt* actionID, PyBool* interrupt, PyDict* clientProps)
 {
     //    requestThread = uthread.new(self.GetZactionServer().RequestActionStart, entID, actionID, interrupt, clientProps)
     _log(QATOOLS__CALL,  "zActionServer::Handle_RequestActionStart size: %li", call.tuple->size());
@@ -60,7 +41,7 @@ PyResult zActionServer::Handle_RequestActionStart( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult zActionServer::Handle_QA_RequestForceActionStart( PyCallArgs& call )
+PyResult zActionServer::QA_RequestForceActionStart(PyCallArgs& call, PyInt* entityID, PyInt* actionID)
 {
     //    requestThread = uthread.new(self.GetZactionServer().QA_RequestForceActionStart, entID, actionID)
     _log(QATOOLS__CALL,  "zActionServer::Handle_QA_RequestForceActionStart size: %li", call.tuple->size());

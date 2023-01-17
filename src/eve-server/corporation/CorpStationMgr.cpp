@@ -41,8 +41,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "chat/LSCService.h"
@@ -51,129 +51,150 @@
 #include "station/StationDataMgr.h"
 #include "station/StationDB.h"
 
-class CorpStationMgrIMBound
-: public PyBoundObject
+CorpStationMgr::CorpStationMgr(EVEServiceManager& mgr) :
+    BindableService("corpStationMgr", mgr)
 {
-public:
-    PyCallable_Make_Dispatcher(CorpStationMgrIMBound)
-
-    CorpStationMgrIMBound(PyServiceMgr *mgr, CorporationDB& db, uint32 station_id)
-    : PyBoundObject(mgr),
-      m_dispatch(new Dispatcher(this)),
-      m_db(db),
-      m_stationID(station_id)
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "CorpStationMgrIMBound";
-
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationInfo);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, DoStandingCheckForStationService);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetPotentialHomeStations);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, SetHomeStation);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, SetCloneTypeID);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetQuoteForRentingAnOffice);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetNumberOfUnrentedOffices);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, MoveCorpHQHere);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, RentOffice);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, CancelRentOfOffice);
-        //testing
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationOffices);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetCorporateStationOffice);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, DoesPlayersCorpHaveJunkAtStation);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetQuoteForGettingCorpJunkBack);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, PayForReturnOfCorpJunk);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationServiceIdentifiers);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationDetails);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationServiceAccessRule);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationManagementServiceCostModifiers);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetRentableItems);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetOwnerIDsOfClonesAtStation);
-        PyCallable_REG_CALL(CorpStationMgrIMBound, GetStationImprovements);
-
-        pStationItem = sEntityList.GetStationByID(station_id).get();
-    }
-    virtual ~CorpStationMgrIMBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(GetCorporateStationInfo);
-    PyCallable_DECL_CALL(DoStandingCheckForStationService);
-    PyCallable_DECL_CALL(GetPotentialHomeStations);
-    PyCallable_DECL_CALL(SetHomeStation);
-    PyCallable_DECL_CALL(SetCloneTypeID);
-    PyCallable_DECL_CALL(GetQuoteForRentingAnOffice);
-    PyCallable_DECL_CALL(RentOffice);
-    PyCallable_DECL_CALL(CancelRentOfOffice);
-    PyCallable_DECL_CALL(GetStationOffices);
-    PyCallable_DECL_CALL(GetNumberOfUnrentedOffices);
-    PyCallable_DECL_CALL(MoveCorpHQHere);
-    //testing
-    PyCallable_DECL_CALL(GetCorporateStationOffice);
-    PyCallable_DECL_CALL(DoesPlayersCorpHaveJunkAtStation);
-    PyCallable_DECL_CALL(GetQuoteForGettingCorpJunkBack);
-    PyCallable_DECL_CALL(PayForReturnOfCorpJunk);
-    PyCallable_DECL_CALL(GetStationServiceIdentifiers);
-    PyCallable_DECL_CALL(GetStationDetails);
-    PyCallable_DECL_CALL(GetStationServiceAccessRule);
-    PyCallable_DECL_CALL(GetStationManagementServiceCostModifiers);
-    PyCallable_DECL_CALL(GetRentableItems);
-    PyCallable_DECL_CALL(GetOwnerIDsOfClonesAtStation);
-    PyCallable_DECL_CALL(GetStationImprovements);
-
-protected:
-    Dispatcher *const m_dispatch;
-
-    StationItem* pStationItem;    //we do not own this
-
-    CorporationDB& m_db;
-    const uint32 m_stationID;
-};
-
-PyCallable_Make_InnerDispatcher(CorpStationMgr)
-
-CorpStationMgr::CorpStationMgr(PyServiceMgr *mgr)
-: PyService(mgr, "corpStationMgr"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CorpStationMgr, GetStationServiceStates)
-    PyCallable_REG_CALL(CorpStationMgr, GetImprovementStaticData)
+    this->Add("GetStationServiceStates", &CorpStationMgr::GetStationServiceStates);
+    this->Add("GetImprovementStaticData", &CorpStationMgr::GetImprovementStaticData);
 }
 
-CorpStationMgr::~CorpStationMgr() {
-    delete m_dispatch;
-}
-
-
-PyBoundObject *CorpStationMgr::CreateBoundObject(Client *pClient, const PyRep *bind_args) {
-    if (!bind_args->IsInt()) {
-        codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
+BoundDispatcher* CorpStationMgr::BindObject(Client *client, PyRep* bindParameters) {
+    if (!bindParameters->IsInt()) {
+        codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName().c_str(), bindParameters->TypeString());
         return nullptr;
     }
-    return new CorpStationMgrIMBound( m_manager, m_db, bind_args->AsInt()->value() );
+
+    uint32_t stationID = bindParameters->AsInt ()->value ();
+
+    // ensure the player is in the given station
+    if (client->GetStationID2() != stationID)
+        return nullptr;
+
+    auto it = this->m_instances.find (stationID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    CorpStationMgrIMBound* bound = new CorpStationMgrIMBound(this->GetServiceManager(), *this, m_db, stationID);
+
+    this->m_instances.insert_or_assign (stationID, bound);
+
+    return bound;
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetStationOffices( PyCallArgs& call )
+void CorpStationMgr::BoundReleased (CorpStationMgrIMBound* bound) {
+    auto it = this->m_instances.find (bound->GetStationID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
+
+PyResult CorpStationMgr::GetImprovementStaticData(PyCallArgs& call)
+{
+    _log(CORP__CALL, "CorpStationMgr::Handle_GetImprovementStaticData()");
+    call.Dump(CORP__CALL_DUMP);
+
+    DBQueryResult res;
+    StationDB::StationDB::GetOutpostImprovementStaticData(res);
+
+    DBResultRow row;
+
+    DBRowDescriptor* header = new DBRowDescriptor();
+    header->AddColumn("typeID", DBTYPE_I4);
+    header->AddColumn("raceID", DBTYPE_I4);
+    header->AddColumn("requiredAssemblyLineTypeID", DBTYPE_I4);
+    header->AddColumn("requiredImprovementTypeID", DBTYPE_I4);
+
+    CRowSet* rowset = new CRowSet(&header);
+
+    while (res.GetRow(row)) {
+        PyPackedRow* newRow = rowset->NewRow();
+        newRow->SetField("typeID", new PyInt(row.GetInt(0)));
+        newRow->SetField("raceID", new PyInt(row.GetInt(1)));
+        uint32 asmLine = row.GetInt(2);
+        if (asmLine == 0) {
+            newRow->SetField("requiredAssemblyLineTypeID", new PyNone());
+        }
+        else {
+            newRow->SetField("requiredAssemblyLineTypeID", new PyInt(asmLine));
+        }
+        uint32 improvement = row.GetInt(3);
+        if (improvement == 0) {
+            newRow->SetField("requiredImprovementTypeID", new PyNone());
+        }
+        else {
+            newRow->SetField("requiredImprovementTypeID", new PyInt(improvement));
+        }
+    }
+
+    PyDict* dict = new PyDict();
+    dict->SetItemString("improvementTypes", rowset);
+
+    return new PyObject("util.KeyVal", dict);
+}
+
+PyResult CorpStationMgr::GetStationServiceStates(PyCallArgs& call)
+{
+    _log(CORP__CALL, "CorpStationMgr::Handle_GetStationServiceStates()");
+    call.Dump(CORP__CALL_DUMP);
+
+    DBQueryResult res;
+    StationDB::GetStationServiceStates(call.client->GetLocationID(), res);
+
+    return DBResultToIntRowDict(res, 2);
+}
+
+CorpStationMgrIMBound::CorpStationMgrIMBound(EVEServiceManager& mgr, CorpStationMgr& parent, CorporationDB& db, uint32 station_id) :
+    EVEBoundObject(mgr, parent),
+    m_db(db),
+    m_stationID(station_id)
+{
+    this->Add("GetCorporateStationInfo", &CorpStationMgrIMBound::GetCorporateStationInfo);
+    this->Add("DoStandingCheckForStationService", &CorpStationMgrIMBound::DoStandingCheckForStationService);
+    this->Add("GetPotentialHomeStations", &CorpStationMgrIMBound::GetPotentialHomeStations);
+    this->Add("SetHomeStation", &CorpStationMgrIMBound::SetHomeStation);
+    this->Add("SetCloneTypeID", &CorpStationMgrIMBound::SetCloneTypeID);
+    this->Add("GetQuoteForRentingAnOffice", &CorpStationMgrIMBound::GetQuoteForRentingAnOffice);
+    this->Add("GetNumberOfUnrentedOffices", &CorpStationMgrIMBound::GetNumberOfUnrentedOffices);
+    this->Add("MoveCorpHQHere", &CorpStationMgrIMBound::MoveCorpHQHere);
+    this->Add("RentOffice", &CorpStationMgrIMBound::RentOffice);
+    this->Add("CancelRentOfOffice", &CorpStationMgrIMBound::CancelRentOfOffice);
+    //testing
+    this->Add("GetStationOffices", &CorpStationMgrIMBound::GetStationOffices);
+    this->Add("GetCorporateStationOffice", &CorpStationMgrIMBound::GetCorporateStationOffice);
+    this->Add("DoesPlayersCorpHaveJunkAtStation", &CorpStationMgrIMBound::DoesPlayersCorpHaveJunkAtStation);
+    this->Add("GetQuoteForGettingCorpJunkBack", &CorpStationMgrIMBound::GetQuoteForGettingCorpJunkBack);
+    this->Add("PayForReturnOfCorpJunk", &CorpStationMgrIMBound::PayForReturnOfCorpJunk);
+    this->Add("GetStationServiceIdentifiers", &CorpStationMgrIMBound::GetStationServiceIdentifiers);
+    this->Add("GetStationDetails", &CorpStationMgrIMBound::GetStationDetails);
+    this->Add("GetStationServiceAccessRule", &CorpStationMgrIMBound::GetStationServiceAccessRule);
+    this->Add("GetStationManagementServiceCostModifiers", &CorpStationMgrIMBound::GetStationManagementServiceCostModifiers);
+    this->Add("GetRentableItems", &CorpStationMgrIMBound::GetRentableItems);
+    this->Add("GetOwnerIDsOfClonesAtStation", &CorpStationMgrIMBound::GetOwnerIDsOfClonesAtStation);
+    this->Add("GetStationImprovements", &CorpStationMgrIMBound::GetStationImprovements);
+
+    pStationItem = sEntityList.GetStationByID(station_id).get();
+}
+
+PyResult CorpStationMgrIMBound::GetStationOffices(PyCallArgs& call)
 {
     return pStationItem->GetOffices();
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetNumberOfUnrentedOffices( PyCallArgs &call )
+PyResult CorpStationMgrIMBound::GetNumberOfUnrentedOffices(PyCallArgs &call)
 {
     return new PyInt(pStationItem->GetAvalibleOfficeCount());
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetQuoteForRentingAnOffice(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetQuoteForRentingAnOffice(PyCallArgs &call)
 {
     return new PyLong(pStationItem->GetOfficeRentalFee());
 }
 
 // cannot find this call in client code
-PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::GetCorporateStationInfo(PyCallArgs &call) {
     // is this right?
     /* returns:
      *  list(
@@ -193,14 +214,9 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationInfo(PyCallArgs &call)
     return list;
 }
 
-PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
-    Call_SetCloneTypeID arg;
-    if (!arg.Decode(&call.tuple)){
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-    }
-
+PyResult CorpStationMgrIMBound::SetCloneTypeID(PyCallArgs &call, PyInt* cloneTypeID) {
     //Get cost of clone
-    double cost = m_db.GetCloneTypeCostByID(arg.CloneTypeID);
+    double cost = m_db.GetCloneTypeCostByID(cloneTypeID->value());
 
     //take the money, send wallet blink event record the transaction in their journal.
     std::string reason = "DESC: Updating Clone in ";
@@ -219,19 +235,13 @@ PyResult CorpStationMgrIMBound::Handle_SetCloneTypeID(PyCallArgs &call) {
 
     //update type of clone
     CharacterDB c_db;
-    c_db.ChangeCloneType(call.client->GetCharacterID(), arg.CloneTypeID);
+    c_db.ChangeCloneType(call.client->GetCharacterID(), cloneTypeID->value());
     return PyStatic.NewNone();
 }
 
-PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::RentOffice(PyCallArgs &call, PyInt* amount) {
     // corp role is checked in client before this button is shown.  no need to check here.
     // 1 param, corp rent price
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     Client* pClient = call.client;
 
     // see if corp has office in station already.
@@ -239,9 +249,9 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
         throw UserError ("RentingYouHaveAnOfficeHere");
 
     // this may not be needed, as rental fee is queried immediately prior to this call
-    if (arg.arg != pStationItem->GetOfficeRentalFee())
+    if (amount->value() != pStationItem->GetOfficeRentalFee())
         _log(CORP__WARNING, "RentOffice() - Was quoted %i but station reports %u for office rental at %s", \
-                arg.arg, pStationItem->GetOfficeRentalFee(), pStationItem->name());
+            amount->value(), pStationItem->GetOfficeRentalFee(), pStationItem->name());
 
     // check if the corp has enough money
     // remove the money and record the transaction
@@ -249,7 +259,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
     reason += pStationItem->itemName();
     reason += " by ";
     reason += pClient->GetCharName();
-    AccountService::TranserFunds(pClient->GetCorporationID(), pStationItem->GetOwnerID(), arg.arg, reason.c_str(), Journal::EntryType::OfficeRentalFee);
+    AccountService::TranserFunds(pClient->GetCorporationID(), pStationItem->GetOwnerID(), amount->value(), reason.c_str(), Journal::EntryType::OfficeRentalFee);
 /** @note  why is this disabled?
     int64 balance = AccountDB::GetCorpBalance(pClient->GetCorporationID(), Account::KeyType::Cash);
     if (balance < arg.arg) {
@@ -264,7 +274,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
         odata.corporationID = pClient->GetCorporationID();
         odata.expiryTime = Win32TimeNow() + EvE::Time::Month;
         odata.lockDown = false;
-        odata.rentalFee = arg.arg;
+        odata.rentalFee = amount->value();
         odata.typeID = 27;  // office typeID
     pStationItem->RentOffice(odata);
 
@@ -296,7 +306,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
     OnObjectPublicAttributesUpdated update;
         update.notificationParams = new PyDict();
         update.realRowCount = 1; // what is this?
-        update.bindID = GetBindStr();
+        update.bindID = this->GetIDString ();
         update.changePKIndexValue = odata.stationID; // primary key
         update.changes = change.Encode();
     PyTuple* payload = update.Encode();
@@ -313,7 +323,7 @@ PyResult CorpStationMgrIMBound::Handle_RentOffice(PyCallArgs &call) {
     return new PyInt(odata.officeID);
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::GetCorporateStationOffice(PyCallArgs &call) {
   /*
    *        if not session.stationid2:
    *            return
@@ -329,7 +339,7 @@ PyResult CorpStationMgrIMBound::Handle_GetCorporateStationOffice(PyCallArgs &cal
     return pStationItem->GetOffices();
 }
 
-PyResult CorpStationMgrIMBound::Handle_MoveCorpHQHere(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::MoveCorpHQHere(PyCallArgs &call)
 {
     if (call.client->GetCorpHQ() == m_stationID)
         throw UserError ("CorpHQIsAtThisStation");
@@ -355,7 +365,7 @@ PyResult CorpStationMgrIMBound::Handle_MoveCorpHQHere(PyCallArgs &call)
  * @note   these below are partially coded
  */
 
-PyResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::GetPotentialHomeStations(PyCallArgs &call) {
     // this is for station options for xfering clone
     //returns stationID,typeID,serviceMask
 
@@ -392,7 +402,7 @@ PyResult CorpStationMgrIMBound::Handle_GetPotentialHomeStations(PyCallArgs &call
     return list;
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetQuoteForGettingCorpJunkBack(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetQuoteForGettingCorpJunkBack(PyCallArgs &call)
 {   //cost = corpStationMgr.GetQuoteForGettingCorpJunkBack()
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetQuoteForGettingCorpJunkBack()");
     call.Dump(CORP__CALL_DUMP);
@@ -402,7 +412,7 @@ PyResult CorpStationMgrIMBound::Handle_GetQuoteForGettingCorpJunkBack(PyCallArgs
     return new PyInt(pStationItem->GetOfficeRentalFee());
 }
 
-PyResult CorpStationMgrIMBound::Handle_DoesPlayersCorpHaveJunkAtStation(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::DoesPlayersCorpHaveJunkAtStation(PyCallArgs &call)
 {   //if corpStationMgr.DoesPlayersCorpHaveJunkAtStation():
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_DoesPlayersCorpHaveJunkAtStation()");
     call.Dump(CORP__CALL_DUMP);
@@ -413,19 +423,13 @@ PyResult CorpStationMgrIMBound::Handle_DoesPlayersCorpHaveJunkAtStation(PyCallAr
     return PyStatic.NewFalse();
 }
 
-PyResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::SetHomeStation(PyCallArgs &call, PyInt* newHomeStationID) {
     // sm.GetService('corp').GetCorpStationManager().SetHomeStation(newHomeStationID)
     /** @todo this is once a year on live, unless a new char changes corps.
      *  we will need to make other checks when this is called, as i dont think client checks anything.
      */
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    call.client->GetChar()->SetBaseID(arg.arg);
-    CharacterDB::ChangeCloneLocation(call.client->GetCharID(), arg.arg);
+    call.client->GetChar()->SetBaseID(newHomeStationID->value());
+    CharacterDB::ChangeCloneLocation(call.client->GetCharID(), newHomeStationID->value());
     return nullptr;
 }
 
@@ -434,7 +438,7 @@ PyResult CorpStationMgrIMBound::Handle_SetHomeStation(PyCallArgs &call) {
  * @note   these do absolutely nothing at this time....
  */
 
-PyResult CorpStationMgrIMBound::Handle_DoStandingCheckForStationService(PyCallArgs &call) {
+PyResult CorpStationMgrIMBound::DoStandingCheckForStationService(PyCallArgs &call, PyInt* stationServiceID) {
     // not sure what this actually does...
     //   corpStationMgr.DoStandingCheckForStationService(stationServiceID)
     /*
@@ -469,7 +473,7 @@ PyResult CorpStationMgrIMBound::Handle_DoStandingCheckForStationService(PyCallAr
     return PyStatic.NewNone();
 }
 
-PyResult CorpStationMgrIMBound::Handle_CancelRentOfOffice(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::CancelRentOfOffice(PyCallArgs &call)
 {   //  corpStationMgr.CancelRentOfOffice()
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_CancelRentOfOffice()");
     call.Dump(CORP__CALL_DUMP);
@@ -484,7 +488,7 @@ PyResult CorpStationMgrIMBound::Handle_CancelRentOfOffice(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CorpStationMgrIMBound::Handle_PayForReturnOfCorpJunk(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::PayForReturnOfCorpJunk(PyCallArgs &call, PyFloat* cost)
 {   //    corpStationMgr.PayForReturnOfCorpJunk(cost)
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_PayForReturnOfCorpJunk()");
     call.Dump(CORP__CALL_DUMP);
@@ -492,60 +496,7 @@ PyResult CorpStationMgrIMBound::Handle_PayForReturnOfCorpJunk(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult CorpStationMgr::Handle_GetImprovementStaticData(PyCallArgs &call)
-{
-    _log(CORP__CALL, "CorpStationMgr::Handle_GetImprovementStaticData()");
-    call.Dump(CORP__CALL_DUMP);
-
-    DBQueryResult res;
-    StationDB::StationDB::GetOutpostImprovementStaticData(res);
-
-    DBResultRow row;
-
-    DBRowDescriptor *header = new DBRowDescriptor();
-    header->AddColumn("typeID", DBTYPE_I4);
-    header->AddColumn("raceID", DBTYPE_I4);
-    header->AddColumn("requiredAssemblyLineTypeID", DBTYPE_I4);
-    header->AddColumn("requiredImprovementTypeID", DBTYPE_I4);
-
-    CRowSet *rowset = new CRowSet(&header);
-
-    while (res.GetRow(row)) {
-        PyPackedRow *newRow = rowset->NewRow();
-        newRow->SetField("typeID", new PyInt(row.GetInt(0)));
-        newRow->SetField("raceID", new PyInt(row.GetInt(1)));
-        uint32 asmLine = row.GetInt(2);
-        if (asmLine == 0) {
-            newRow->SetField("requiredAssemblyLineTypeID", new PyNone());
-        } else {
-            newRow->SetField("requiredAssemblyLineTypeID", new PyInt(asmLine));
-        }
-        uint32 improvement = row.GetInt(3);
-        if (improvement == 0) {
-            newRow->SetField("requiredImprovementTypeID", new PyNone());
-        } else {
-            newRow->SetField("requiredImprovementTypeID", new PyInt(improvement));
-        }
-    }
-
-    PyDict* dict = new PyDict();
-    dict->SetItemString("improvementTypes", rowset);
-
-    return new PyObject("util.KeyVal", dict);
-}
-
-PyResult CorpStationMgr::Handle_GetStationServiceStates(PyCallArgs &call)
-{
-    _log(CORP__CALL, "CorpStationMgr::Handle_GetStationServiceStates()");
-    call.Dump(CORP__CALL_DUMP);
-
-    DBQueryResult res;
-    StationDB::GetStationServiceStates(call.client->GetLocationID(), res);
-
-    return DBResultToIntRowDict(res, 2);
-}
-
-PyResult CorpStationMgrIMBound::Handle_GetStationServiceIdentifiers(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetStationServiceIdentifiers(PyCallArgs &call)
 {
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationServiceIdentifiers()");
     call.Dump(CORP__CALL_DUMP);
@@ -556,19 +507,13 @@ PyResult CorpStationMgrIMBound::Handle_GetStationServiceIdentifiers(PyCallArgs &
     return DBResultToCRowset(res);
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetStationDetails(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetStationDetails(PyCallArgs &call, PyInt* stationID)
 {
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationDetails()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     DBQueryResult res;
-    StationDB::GetStationDetails(arg.arg, res);
+    StationDB::GetStationDetails(stationID->value(), res);
 
     PyDict* dict = new PyDict();
     DBResultRow row;
@@ -592,26 +537,20 @@ PyResult CorpStationMgrIMBound::Handle_GetStationDetails(PyCallArgs &call)
     return new PyObject("util.KeyVal", dict);
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetStationServiceAccessRule(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetStationServiceAccessRule(PyCallArgs &call, PyInt* stationID, PyInt* serviceID)
 {
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationServiceAccessRule()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_GetStationServiceAccessRule args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     DBQueryResult res;
-    StationDB::GetStationServiceAccessRule(args.stationID, args.serviceID, res);
+    StationDB::GetStationServiceAccessRule(stationID->value(), serviceID->value(), res);
 
     PyDict* dict = new PyDict();
     DBResultRow row;
 
     // If no rule exists for this service, we should return the default
     if (res.GetRowCount() == 0) {
-        dict->SetItemString("serviceID", new PyInt(args.serviceID));
+        dict->SetItemString("serviceID", new PyInt(serviceID->value()));
         dict->SetItemString("minimumStanding", new PyFloat(0));
         dict->SetItemString("minimumCharSecurity", new PyFloat(0));
         dict->SetItemString("maximumCharSecurity", new PyFloat(0));
@@ -632,19 +571,13 @@ PyResult CorpStationMgrIMBound::Handle_GetStationServiceAccessRule(PyCallArgs &c
     return new PyObject("util.KeyVal", dict);
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetStationManagementServiceCostModifiers(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetStationManagementServiceCostModifiers(PyCallArgs &call, PyInt* stationID)
 {
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationManagementServiceCostModifiers()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     DBQueryResult res;
-    StationDB::GetStationManagementServiceCostModifiers(arg.arg, res);
+    StationDB::GetStationManagementServiceCostModifiers(stationID->value(), res);
 
     PyDict* dict = new PyDict();
     DBResultRow row;
@@ -662,7 +595,7 @@ PyResult CorpStationMgrIMBound::Handle_GetStationManagementServiceCostModifiers(
         while (res.GetRow(row)) {
             // Only show services which exist in this station
             uint32 serviceID = row.GetInt(0);
-            uint32 serviceMask = stDataMgr.GetStationServiceMask(arg.arg);
+            uint32 serviceMask = stDataMgr.GetStationServiceMask(stationID->value());
             if((serviceMask & serviceID) == serviceID) 
             {
                 PyPackedRow *newRow = rowset->NewRow();
@@ -684,7 +617,7 @@ PyResult CorpStationMgrIMBound::Handle_GetStationManagementServiceCostModifiers(
     return rowset;
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetRentableItems(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetRentableItems(PyCallArgs &call)
 {
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetRentableItems()");
     call.Dump(CORP__CALL_DUMP);
@@ -695,24 +628,18 @@ PyResult CorpStationMgrIMBound::Handle_GetRentableItems(PyCallArgs &call)
     return DBResultToCRowset(res);    
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetOwnerIDsOfClonesAtStation(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetOwnerIDsOfClonesAtStation(PyCallArgs &call, PyInt* corporationID)
 {
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetOwnerIDsOfClonesAtStation()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     DBQueryResult res;
-    StationDB::GetOwnerIDsOfClonesAtStation(call.client->GetLocationID(), arg.arg, res);
+    StationDB::GetOwnerIDsOfClonesAtStation(call.client->GetLocationID(), corporationID->value(), res);
 
     return DBResultToCRowset(res);    
 }
 
-PyResult CorpStationMgrIMBound::Handle_GetStationImprovements(PyCallArgs &call)
+PyResult CorpStationMgrIMBound::GetStationImprovements(PyCallArgs &call)
 {
     _log(CORP__CALL, "CorpStationMgrIMBound::Handle_GetStationImprovements()");
     call.Dump(CORP__CALL_DUMP);

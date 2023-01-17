@@ -26,51 +26,49 @@
 #ifndef MAIL_MGR_SERIVCE_H
 #define MAIL_MGR_SERVICE_H
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "mail/MailDB.h"
+#include "Client.h"
 
 class MailDB;
 
-class MailMgrService : public PyService
+class MailMgrService : public Service <MailMgrService>
 {
 public:
-    MailMgrService(PyServiceMgr *mgr);
-    virtual ~MailMgrService();
+    MailMgrService();
 
 protected:
-    MailDB* m_db;
+    MailDB m_db;
 
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(SendMail);
-    PyCallable_DECL_CALL(PrimeOwners);
-    PyCallable_DECL_CALL(SyncMail);
-    PyCallable_DECL_CALL(GetMailHeaders);
-    PyCallable_DECL_CALL(MoveToTrash);
-    PyCallable_DECL_CALL(MoveFromTrash);
-    PyCallable_DECL_CALL(MarkAsUnread);
-    PyCallable_DECL_CALL(MarkAsRead);
-    PyCallable_DECL_CALL(MoveAllToTrash);
-    PyCallable_DECL_CALL(MoveToTrashByLabel);
-    PyCallable_DECL_CALL(MoveToTrashByList);
-    PyCallable_DECL_CALL(MarkAllAsUnread);
-    PyCallable_DECL_CALL(MarkAsUnreadByLabel);
-    PyCallable_DECL_CALL(MarkAsUnreadByList);
-    PyCallable_DECL_CALL(MarkAllAsRead);
-    PyCallable_DECL_CALL(MarkAsReadByLabel);
-    PyCallable_DECL_CALL(MarkAsReadByList);
-    PyCallable_DECL_CALL(MoveAllFromTrash);
-    PyCallable_DECL_CALL(EmptyTrash);
-    PyCallable_DECL_CALL(DeleteMail);
-    PyCallable_DECL_CALL(GetBody);
-    PyCallable_DECL_CALL(AssignLabels);
-    PyCallable_DECL_CALL(RemoveLabels);
+    PyResult SendMail(PyCallArgs& call, PyList* toCharacterIDs, std::optional<PyInt*> listID, std::optional<PyInt*> toCorpOrAllianceID, PyWString* title, PyWString* body, PyInt* isReplyTo, PyInt* isForwardedFrom);
+    PyResult PrimeOwners(PyCallArgs& call, PyList* ownerIDs);
+    PyResult SyncMail(PyCallArgs& call, std::optional<PyInt*> first, std::optional<PyInt*> second);
+    PyResult GetMailHeaders(PyCallArgs& call, PyList* messageIDs);
+    PyResult MoveToTrash(PyCallArgs& call, PyList* messageIDs);
+    PyResult MoveFromTrash(PyCallArgs& call, PyList* messageIDs);
+    PyResult MarkAsUnread(PyCallArgs& call, PyList* messageIDs);
+    PyResult MarkAsRead(PyCallArgs& call, PyList* messageIDs);
+    PyResult MoveAllToTrash(PyCallArgs& call);
+    PyResult MoveToTrashByLabel(PyCallArgs& call, PyInt* labelID);
+    PyResult MoveToTrashByList(PyCallArgs& call, PyInt* listID);
+    PyResult MarkAllAsUnread(PyCallArgs& call);
+    PyResult MarkAsUnreadByLabel(PyCallArgs& call, PyInt* labelID);
+    PyResult MarkAsUnreadByList(PyCallArgs& call, PyList* messageIDs);
+    PyResult MarkAllAsRead(PyCallArgs& call);
+    PyResult MarkAsReadByLabel(PyCallArgs& call, PyInt* labelID);
+    PyResult MarkAsReadByList(PyCallArgs& call, PyInt* listID);
+    PyResult MoveAllFromTrash(PyCallArgs& call);
+    PyResult EmptyTrash(PyCallArgs& call);
+    PyResult DeleteMail(PyCallArgs& call, PyList* messageIDs);
+    PyResult GetBody(PyCallArgs& call, PyInt* messageID, PyInt* isUnread);
+    PyResult AssignLabels(PyCallArgs& call, PyList* messageIDs, PyInt* labelID);
+    PyResult RemoveLabels(PyCallArgs& call, PyList* messageIDs, PyInt* labelID);
 
     // implemented
-    PyCallable_DECL_CALL(GetLabels);
-    PyCallable_DECL_CALL(EditLabel);
-    PyCallable_DECL_CALL(CreateLabel);
-    PyCallable_DECL_CALL(DeleteLabel);
+    PyResult GetLabels(PyCallArgs& call);
+    PyResult EditLabel(PyCallArgs& call, PyInt* labelID, PyWString* name, std::optional<PyInt*> color);
+    PyResult CreateLabel(PyCallArgs& call, PyWString* name, std::optional<PyInt*> color);
+    PyResult DeleteLabel(PyCallArgs& call, PyInt* labelID);
 };
 
 

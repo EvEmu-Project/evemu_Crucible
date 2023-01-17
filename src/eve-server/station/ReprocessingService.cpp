@@ -39,90 +39,77 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+#include "Client.h"
 #include "packets/Manufacturing.h"
 #include "manufacturing/RamMethods.h"
 #include "station/ReprocessingService.h"
 #include "Station.h"
 #include "system/SystemManager.h"
 
-PyCallable_Make_InnerDispatcher(ReprocessingService)
-PyCallable_Make_InnerDispatcher(ReprocessingServiceBound)
-
-ReprocessingService::ReprocessingService(PyServiceMgr *mgr)
-: PyService(mgr, "reprocessingSvc"),
-  m_dispatch(new Dispatcher(this))
+ReprocessingService::ReprocessingService(EVEServiceManager& mgr) :
+    BindableService("reprocessingSvc", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
 }
 
-ReprocessingService::~ReprocessingService() {
-    delete m_dispatch;
-}
-
-PyBoundObject *ReprocessingService::CreateBoundObject(Client *pClient, const PyRep *bind_args) {
-    if (!bind_args->IsInt()) {
-        _log(SERVICE__ERROR, "%s: Non-integer bind argument '%s'", pClient->GetName(), bind_args->TypeString());
+BoundDispatcher* ReprocessingService::BindObject(Client* client, PyRep* bindParameters) {
+    if (!bindParameters->IsInt()) {
+        _log(SERVICE__ERROR, "%s: Non-integer bind argument '%s'", client->GetName(), bindParameters->TypeString());
         return nullptr;
     }
 
-    uint32 stationID = bind_args->AsInt()->value();
+    uint32 stationID = bindParameters->AsInt()->value();
     if (!sDataMgr.IsStation(stationID)) {
-        _log(SERVICE__ERROR, "%s: Expected stationID, but got %u.", pClient->GetName(), stationID);
+        _log(SERVICE__ERROR, "%s: Expected stationID, but got %u.", client->GetName(), stationID);
         return nullptr;
     }
 
-    return new ReprocessingServiceBound(m_manager, m_db, stationID);
+    return new ReprocessingServiceBound(this->GetServiceManager(), *this, m_db, stationID);
 }
 
+void ReprocessingService::BoundReleased (ReprocessingServiceBound* bound) {
 
-ReprocessingServiceBound::ReprocessingServiceBound(PyServiceMgr *mgr, ReprocessingDB& db, uint32 stationID)
-: PyBoundObject(mgr),
-m_dispatch(new Dispatcher(this)),
-m_db(db),
-m_stationCorpID(0),
-m_staEfficiency(0.0f),
-m_tax(0.0f)
+}
+
+ReprocessingServiceBound::ReprocessingServiceBound(EVEServiceManager& mgr, ReprocessingService& parent, ReprocessingDB& db, uint32 stationID) :
+    EVEBoundObject(mgr, parent),
+    m_db(db),
+    m_stationCorpID(0),
+    m_staEfficiency(0.0f),
+    m_tax(0.0f)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    m_strBoundObjectName = "ReprocessingServiceBound";
-
-    PyCallable_REG_CALL(ReprocessingServiceBound, GetOptionsForItemTypes);
-    PyCallable_REG_CALL(ReprocessingServiceBound, GetReprocessingInfo);
-    PyCallable_REG_CALL(ReprocessingServiceBound, GetQuote);
-    PyCallable_REG_CALL(ReprocessingServiceBound, GetQuotes);
-    PyCallable_REG_CALL(ReprocessingServiceBound, Reprocess);
+    this->Add("GetOptionsForItemTypes", &ReprocessingServiceBound::GetOptionsForItemTypes);
+    this->Add("GetReprocessingInfo", &ReprocessingServiceBound::GetReprocessingInfo);
+    this->Add("GetQuote", &ReprocessingServiceBound::GetQuote);
+    this->Add("GetQuotes", &ReprocessingServiceBound::GetQuotes);
+    this->Add("Reprocess", &ReprocessingServiceBound::Reprocess);
 
     m_stationRef = sItemFactory.GetStationRef(stationID);
     if (m_stationRef.get() != nullptr)
         m_stationRef->GetRefineData(m_stationCorpID, m_staEfficiency, m_tax);
 }
 
-ReprocessingServiceBound::~ReprocessingServiceBound() {
-    delete m_dispatch;
-}
-
-void ReprocessingServiceBound::Release() {
-    //I hate this statement
-    delete this;
-}
-
-PyResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::GetOptionsForItemTypes(PyCallArgs &call, PyDict* typeIDs) {
     _log(MANUF__INFO, "%s: Calling GetOptionsForItemTypes().", call.client->GetName());
     call.Dump(MANUF__DUMP);
 
-    Call_GetOptionsForItemTypes args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        call.client->SendErrorMsg("Internal Server Error.  Ref: ServerError 01588.");
-        return nullptr;
+    std::map <uint32, PyRep*> typeIDMap;
+
+    // TODO: rewrite this after the python types are improved
+    PyDict::const_iterator dict_2_cur = typeIDs->begin();
+    for (size_t dict_2_index(0); dict_2_cur != typeIDs->end(); ++dict_2_cur, ++dict_2_index) {
+        if (!dict_2_cur->first->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_GetOptionsForItemTypes failed: Key %u in dict dict_2 is not an integer: %s", dict_2_index, dict_2_cur->first->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* k = dict_2_cur->first->AsInt();
+        typeIDMap[k->value()] = dict_2_cur->second->Clone();
     }
 
     Rsp_GetOptionsForItemTypes      rsp;
     Rsp_GetOptionsForItemTypes_Arg  arg;
 
-    for (auto cur : args.typeIDs) {
+    for (auto cur : typeIDMap) {
         arg.isRecyclable = sDataMgr.IsRecyclable(cur.first);
         arg.isRefinable = sDataMgr.IsRefinable(cur.first);
         rsp.typeIDs[cur.first] = arg.Encode();
@@ -131,7 +118,7 @@ PyResult ReprocessingServiceBound::Handle_GetOptionsForItemTypes(PyCallArgs &cal
     return rsp.Encode();
 }
 
-PyResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::GetReprocessingInfo(PyCallArgs &call) {
     Client *pClient = call.client;
     Rsp_GetReprocessingInfo rsp;
         rsp.standing = GetStanding(pClient);
@@ -141,28 +128,28 @@ PyResult ReprocessingServiceBound::Handle_GetReprocessingInfo(PyCallArgs &call) 
     return rsp.Encode();
 }
 
-PyResult ReprocessingServiceBound::Handle_GetQuote(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;    // itemID
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        call.client->SendErrorMsg("Internal Server Error.  Ref: ServerError 01588.");
-        return nullptr;
-    }
-
-    return GetQuote(arg.arg, call.client);
+PyResult ReprocessingServiceBound::GetQuote(PyCallArgs &call, PyInt* itemID) {
+    return GetQuote(itemID->value(), call.client);
 }
 
-PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::GetQuotes(PyCallArgs &call, PyList* itemIDs, PyInt* activeShipID) {
     // why shipID here?  processing in cap indy ships?
-     Call_GetQuotes args;
-     if (!args.Decode(&call.tuple)) {
-         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-         call.client->SendErrorMsg("Internal Server Error.  Ref: ServerError 01588.");
-         return nullptr;
-     }
+
+    std::vector<uint32> items;
+
+    PyList::const_iterator list_2_cur = itemIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_GetQuotes failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        items.push_back(t->value());
+    }
 
     Rsp_GetQuotes rsp;
-    for (auto cur : args.itemIDs) {
+    for (auto cur : items) {
         PyRep* quote = GetQuote(cur, call.client);
         if (quote != nullptr)
             rsp.quotes[cur] = quote;
@@ -171,7 +158,34 @@ PyResult ReprocessingServiceBound::Handle_GetQuotes(PyCallArgs &call) {
     return rsp.Encode();
 }
 
-PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
+PyResult ReprocessingServiceBound::Reprocess(PyCallArgs &call, PyList* itemIDs, PyInt* fromLocation, std::optional<PyInt*> ownerID, std::optional<PyInt*> flag, PyBool* unknown, PyList* skipChecks) {
+    // TODO: rewrite these once the python types are improved
+    std::vector<uint32> items;
+
+    PyList::const_iterator list_2_cur = itemIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_Reprocess failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        items.push_back(t->value());
+    }
+
+    std::vector<std::string> skipChecksVector;
+
+    PyList::const_iterator list_3_cur = skipChecks->begin();
+    for (uint32 list_3_index(0); list_3_cur != skipChecks->end(); ++list_3_cur, ++list_3_index) {
+        if (!(*list_3_cur)->IsString()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_Reprocess failed: Element %u in list list_3 is not a string: %s", list_3_index, (*list_3_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyString* t = (*list_3_cur)->AsString();
+        skipChecksVector.push_back(t->content());
+    }
+
     if (!sDataMgr.IsStation(call.client->GetLocationID())) {
         _log(MANUF__WARNING, "Character %s tried to reprocess, but isn't is station.", call.client->GetName());
         return nullptr;
@@ -180,20 +194,12 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
     _log(MANUF__INFO, "%s: Calling Reprocess().", call.client->GetName());
     call.Dump(MANUF__DUMP);
 
-    Call_Reprocess args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        call.client->SendErrorMsg("Internal Server Error.  Ref: ServerError 01588.");
-        return nullptr;
-    }
+    if (ownerID.has_value() == false)
+        ownerID = new PyInt(call.client->GetCharacterID());
+    if (flag.has_value() == false || flag.value()->value() == flagNone)
+        flag = new PyInt(flagHangar);
 
-    if (args.ownerID == 0)  // should never hit.
-        args.ownerID = call.client->GetCharacterID();
-
-    if (args.flag == flagNone)  // should never hit.
-        args.flag = flagHangar;
-
-    if (args.ownerID == call.client->GetCorporationID()) {
+    if (ownerID.value()->value() == call.client->GetCorporationID()) {
         if ((call.client->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager) {
             _log(MANUF__WARNING, "%s(%u) doesnt have FactoryManager role to access materials for reprocessing.", \
                         call.client->GetName(), call.client->GetCharacterID());
@@ -202,12 +208,12 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
             return nullptr;
         }
 
-        sRamMthd.HangarRolesCheck(call.client, args.flag);
+        sRamMthd.HangarRolesCheck(call.client, flag.value()->value());
     }
 
     InventoryItemRef iRef(nullptr);
     double tax = CalcTax(GetStanding(call.client));
-    for (auto cur : args.items)  {
+    for (auto cur : items)  {
         iRef = sItemFactory.GetItemRef(cur);
         if (iRef.get() == nullptr)
             continue;
@@ -233,13 +239,13 @@ PyResult ReprocessingServiceBound::Handle_Reprocess(PyCallArgs &call) {
             if (quantity == 0)
                 continue;
 
-            ItemData idata(itr->typeID, args.ownerID, locTemp, flagNone, quantity);
+            ItemData idata(itr->typeID, ownerID.value()->value(), locTemp, flagNone, quantity);
             InventoryItemRef iRef2 = sItemFactory.SpawnItem( idata );
             if (iRef2.get() == nullptr)
                 continue;
 
             // update this for corp usage
-            iRef2->Move(m_stationRef->GetID(), (EVEItemFlags)args.flag, true);
+            iRef2->Move(m_stationRef->GetID(), (EVEItemFlags)flag.value()->value(), true);
         }
 
         uint32 qtyLeft = iRef->quantity() % iRef->type().portionSize();

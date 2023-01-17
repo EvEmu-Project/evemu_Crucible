@@ -12,28 +12,22 @@
 #ifndef EVEMU_SRC_FLEET_MGR_H_
 #define EVEMU_SRC_FLEET_MGR_H_
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "fleet/FleetService.h"
 
-class FleetManager: public PyService
+class FleetManager: public Service <FleetManager>
 {
 public:
-    FleetManager(PyServiceMgr *mgr);
-    ~FleetManager();
+    FleetManager();
 
 protected:
-
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(ForceLeaveFleet);
-    PyCallable_DECL_CALL(AddToWatchlist);
-    PyCallable_DECL_CALL(RemoveFromWatchlist);
-    PyCallable_DECL_CALL(RegisterForDamageUpdates);
-    PyCallable_DECL_CALL(GetActiveStatus);
-    PyCallable_DECL_CALL(BroadcastToBubble);
-    PyCallable_DECL_CALL(BroadcastToSystem);
-
+    PyResult ForceLeaveFleet(PyCallArgs& call);
+    PyResult GetActiveStatus(PyCallArgs& call);
+    PyResult BroadcastToBubble(PyCallArgs& call, PyString* name, PyInt* groupID, PyInt* itemID);
+    PyResult BroadcastToSystem(PyCallArgs& call, PyString* name, PyInt* groupID, PyInt* itemID);
+    PyResult AddToWatchlist(PyCallArgs& call, PyInt* characterID, PyRep* fav);
+    PyResult RemoveFromWatchlist(PyCallArgs& call, PyInt* characterID, PyRep* fav);
+    PyResult RegisterForDamageUpdates(PyCallArgs& call, PyRep* fav);
 };
 
 #endif  // EVEMU_SRC_FLEET_MGR_H_

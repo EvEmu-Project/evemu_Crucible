@@ -26,23 +26,13 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+#include "Client.h"
 #include "system/WormholeSvc.h"
 
-
-PyCallable_Make_InnerDispatcher(WormHoleSvc)
-
-WormHoleSvc::WormHoleSvc(PyServiceMgr *mgr)
-: PyService(mgr, "wormholeMgr"),
-  m_dispatch(new Dispatcher(this))
+WormHoleSvc::WormHoleSvc()
+: Service("wormholeMgr", eAccessLevel_Location)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(WormHoleSvc, WormholeJump);
-}
-
-WormHoleSvc::~WormHoleSvc() {
-    delete m_dispatch;
+    this->Add("WormholeJump", &WormHoleSvc::WormholeJump);
 }
 
 /*{'messageKey': 'CantEnterWormholeGlobalCriminalFlag', 'dataID': 17877563, 'suppressable': False, 'bodyID': 257299, 'messageType': 'info', 'urlAudio': '', 'urlIcon': '', 'titleID': 257298, 'messageID': 2844}
@@ -51,7 +41,7 @@ WormHoleSvc::~WormHoleSvc() {
  * {'messageKey': 'CantOnlineSovInWormhole', 'dataID': 17877461, 'suppressable': False, 'bodyID': 257260, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2935}
  * {'messageKey': 'CantTargetWhileEnteringWormhole', 'dataID': 17877231, 'suppressable': False, 'bodyID': 257172, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2798}
  */
-PyResult WormHoleSvc::Handle_WormholeJump( PyCallArgs& call ) {
+PyResult WormHoleSvc::WormholeJump(PyCallArgs& call, PyInt* itemID) {
   /**
       sm.RemoteSvc('wormholeMgr').WormholeJump, itemID)
       */
@@ -84,13 +74,7 @@ PyResult WormHoleSvc::Handle_WormholeJump( PyCallArgs& call ) {
         throw UserError ("CantEnterWormholeWhileCloaked");
     }
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    InventoryItemRef wormhole = sItemFactory.GetItemRefFromID(arg.arg);
+    InventoryItemRef wormhole = sItemFactory.GetItemRefFromID(itemID->value());
 
     //Check for jump fuel and make sure there is enough fuel available
     ShipItemRef ship = call.client->GetShip();

@@ -10,7 +10,7 @@
 #include "Client.h"
 #include "system/SystemManager.h"
 
-OutpostSE::OutpostSE(StationItemRef station, PyServiceMgr &services, SystemManager* system)
+OutpostSE::OutpostSE(StationItemRef station, EVEServiceManager &services, SystemManager* system)
 : StationSE(station, services, system) 
 {
     // Create default dynamic attributes in the AttributeMap:

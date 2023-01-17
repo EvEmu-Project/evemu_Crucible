@@ -28,13 +28,13 @@
  */
 
 
-class PyServiceMgr;
+class EVEServiceManager;
 class SystemManager;
 
 class BeltMgr
 {
 public:
-    BeltMgr(SystemManager* mgr, PyServiceMgr& svc);
+    BeltMgr(SystemManager* mgr, EVEServiceManager& svc);
     ~BeltMgr()    { /* do nothing here */ }
 
     void Init();
@@ -66,7 +66,7 @@ protected:
 
 private:
     SystemManager* m_system;    //we do not own this
-    PyServiceMgr& m_services;    //we do not own this
+    EVEServiceManager& m_services;    //we do not own this
 
     bool m_initialized;
 

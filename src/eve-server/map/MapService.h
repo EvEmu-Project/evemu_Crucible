@@ -28,44 +28,39 @@
 #ifndef __MAP_SERVICE_H_INCL__
 #define __MAP_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "map/MapDB.h"
+#include "Client.h"
 
-class MapService : public PyService
+class MapService : public Service <MapService>
 {
 public:
-    MapService(PyServiceMgr *mgr);
-    virtual ~MapService();
+    MapService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     MapDB m_db;
 
-    PyCallable_DECL_CALL(GetStationExtraInfo);
-    PyCallable_DECL_CALL(GetSolarSystemPseudoSecurities);
-    PyCallable_DECL_CALL(GetSolarSystemVisits);
-    PyCallable_DECL_CALL(GetBeaconCount);
-    PyCallable_DECL_CALL(GetStuckSystems);
-    PyCallable_DECL_CALL(GetRecentSovActivity);
-    PyCallable_DECL_CALL(GetDeadspaceAgentsMap);
-    PyCallable_DECL_CALL(GetDeadspaceComplexMap);
-    PyCallable_DECL_CALL(GetIncursionGlobalReport);
-    PyCallable_DECL_CALL(GetSystemsInIncursions);
-    PyCallable_DECL_CALL(GetSystemsInIncursionsGM);
-    PyCallable_DECL_CALL(GetStationCount);
-    PyCallable_DECL_CALL(GetMapLandmarks);
-    PyCallable_DECL_CALL(GetMyExtraMapInfo);
-    PyCallable_DECL_CALL(GetMyExtraMapInfoAgents);  //ColorStarsByMyAgents
-    PyCallable_DECL_CALL(GetHistory);
-    PyCallable_DECL_CALL(GetVictoryPoints);
-    PyCallable_DECL_CALL(GetAllianceJumpBridges);
-    PyCallable_DECL_CALL(GetAllianceBeacons);
-    PyCallable_DECL_CALL(GetLinkableJumpArrays);
-    PyCallable_DECL_CALL(GetCurrentSovData);
-    // custom call for displaying all items in system
-    PyCallable_DECL_CALL(GetCurrentEntities);
+    PyResult GetCurrentEntities(PyCallArgs& call);
+    PyResult GetSolarSystemVisits(PyCallArgs& call);
+    PyResult GetMyExtraMapInfoAgents(PyCallArgs& call);
+    PyResult GetMyExtraMapInfo(PyCallArgs& call);
+    PyResult GetBeaconCount(PyCallArgs& call);
+    PyResult GetStationExtraInfo(PyCallArgs& call);
+    PyResult GetSolarSystemPseudoSecurities(PyCallArgs& call);
+    PyResult GetStationCount(PyCallArgs& call);
+    PyResult GetHistory(PyCallArgs& call, PyInt* int1, PyInt* int2);
+    PyResult GetLinkableJumpArrays(PyCallArgs& call);
+    PyResult GetAllianceJumpBridges(PyCallArgs& call);
+    PyResult GetAllianceBeacons(PyCallArgs& call);
+    PyResult GetCurrentSovData(PyCallArgs& call, PyInt* locationID);
+    PyResult GetRecentSovActivity(PyCallArgs& call);
+    PyResult GetDeadspaceAgentsMap(PyCallArgs& call, PyInt* languageID);
+    PyResult GetDeadspaceComplexMap(PyCallArgs& call, PyInt* languageID);
+    PyResult GetSystemsInIncursions(PyCallArgs& call);
+    PyResult GetSystemsInIncursionsGM(PyCallArgs& call);
+    PyResult GetIncursionGlobalReport(PyCallArgs& call);
+    PyResult GetVictoryPoints(PyCallArgs& call);
+    PyResult GetStuckSystems(PyCallArgs& call);
 
 };
 

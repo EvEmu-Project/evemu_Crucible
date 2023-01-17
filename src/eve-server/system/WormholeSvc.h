@@ -26,22 +26,15 @@
 #ifndef EVEMU_SYSTEM_WORMHOLESVC_H_
 #define EVEMU_SYSTEM_WORMHOLESVC_H_
 
-#include "PyService.h"
-//#include "system/SystemDB.h"
+#include "services/Service.h"
 
-class WormHoleSvc
-: public PyService
+class WormHoleSvc : public Service<WormHoleSvc>
 {
 public:
-    WormHoleSvc(PyServiceMgr *mgr);
-    virtual ~WormHoleSvc();
+    WormHoleSvc();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    //WormholeDB m_db;
-    PyCallable_DECL_CALL(WormholeJump);
+    PyResult WormholeJump(PyCallArgs& call, PyInt* itemID);
 };
 
 #endif  // EVEMU_SYSTEM_WORMHOLESVC_H_

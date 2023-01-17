@@ -30,7 +30,7 @@
 #include "system/SystemManager.h"
 #include "system/sov/SovereigntyDataMgr.h"
 
-IHubSE::IHubSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData)
+IHubSE::IHubSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& fData)
 : StructureSE(structure, services, system, fData)
 {
 }

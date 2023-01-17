@@ -85,11 +85,11 @@ private:
 
 class AnomalyMgr;
 class SpawnMgr;
-class PyServiceMgr;
+class EVEServiceManager;
 
 class DungeonMgr {
 public:
-    DungeonMgr(SystemManager *system, PyServiceMgr& svc);
+    DungeonMgr(SystemManager *system, EVEServiceManager& svc);
     ~DungeonMgr();
 
 
@@ -113,7 +113,7 @@ private:
     AnomalyMgr* m_anomMgr;
     SpawnMgr* m_spawnMgr;
     SystemManager* m_system;
-    PyServiceMgr& m_services;
+    EVEServiceManager& m_services;
 
     int8 GetFaction(uint32 factionID);
     int8 GetRandLevel();

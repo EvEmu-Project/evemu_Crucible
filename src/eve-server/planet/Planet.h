@@ -30,7 +30,7 @@ private:
 
 
 class Colony;
-class PyServiceMgr;
+class EVEServiceManager;
 class SystemManager;
 class CustomsSE;
 class Call_ResourceDataDict;
@@ -39,7 +39,7 @@ class PlanetSE
 : public StaticSystemEntity
 {
 public:
-    PlanetSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    PlanetSE(InventoryItemRef self, EVEServiceManager&services, SystemManager* system);
     virtual ~PlanetSE();
 
     /* Process Calls - Overridden as needed in derived classes */

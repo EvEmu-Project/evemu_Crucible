@@ -11,7 +11,7 @@
 
 #include "ServiceDB.h"
 
-#include "packets/Calendar.h"
+
 
 class CalendarDB {
   public:
@@ -19,8 +19,8 @@ class CalendarDB {
       static void DeleteEvent(uint32 eventID);
       static uint32 SaveSystemEvent(uint32 ownerID, uint32 creatorID, int64 startDateTime, uint8 autoEventType,
                                     std::string title, std::string description, bool important=false);
-      static void SaveEventResponse(uint32 charID, Call_SendEventResponse &args);
-      static void UpdateEventParticipants(Call_UpdateEventParticipants &args);
+      static void SaveEventResponse(uint32 charID, uint32 eventID, uint32 response);
+      static void UpdateEventParticipants(); // TODO: implement this
 
       static PyRep* SaveNewEvent(uint32 ownerID, Call_CreateEventWithInvites &args);
       static PyRep* SaveNewEvent(uint32 ownerID, uint32 creatorID, Call_CreateEvent &args);

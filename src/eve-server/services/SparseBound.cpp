@@ -20,42 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Almamu
 */
 
-#ifndef __PYBOUNDOBJECT_H_INCL__
-#define __PYBOUNDOBJECT_H_INCL__
-
-#include "PyCallable.h"
-
-class PyBoundObject
-: public PyCallable {
-public:
-    PyBoundObject(PyServiceMgr *mgr);
-    virtual ~PyBoundObject();
-
-    virtual void Release() = 0;
-
-    uint32 nodeID() const                               { return m_nodeID; }
-    uint32 bindID() const                               { return m_bindID; }
-
-    //returns string "N=(nodeID):(bindID)"
-    std::string GetBindStr() const;
-    const char* GetName() const                         { return m_strBoundObjectName.c_str(); };
-
-    //just to say who we are:
-    virtual PyResult Call(const std::string &method, PyCallArgs &args);
-
-protected:
-    friend class PyServiceMgr;    //for access to _SetNodeBindID only.
-    void _SetNodeBindID(uint32 nodeID, uint32 bindID)   { m_nodeID = nodeID; m_bindID = bindID; }
-
-    PyServiceMgr *const m_manager;
-    std::string m_strBoundObjectName;
-
-private:
-    uint32 m_nodeID;
-    uint32 m_bindID;
-};
-
-#endif
+#include "SparseBound.h"

@@ -37,7 +37,7 @@
 #include "system/SystemManager.h"
 
 
-NPC::NPC(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data, SpawnMgr* spawnMgr)
+NPC::NPC(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data, SpawnMgr* spawnMgr)
 : DynamicSystemEntity(self, services, system),
 m_spawnMgr(spawnMgr),
 m_AI(new NPCAIMgr(this))

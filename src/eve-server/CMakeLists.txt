@@ -27,11 +27,6 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/NetService.h"
      "${TARGET_INCLUDE_DIR}/POD_containers.h"
      "${TARGET_INCLUDE_DIR}/Profiler.h"
-     "${TARGET_INCLUDE_DIR}/PyBoundObject.h"
-     "${TARGET_INCLUDE_DIR}/PyCallable.h"
-     "${TARGET_INCLUDE_DIR}/PyService.h"
-     "${TARGET_INCLUDE_DIR}/PyServiceCD.h"
-     "${TARGET_INCLUDE_DIR}/PyServiceMgr.h"
      "${TARGET_INCLUDE_DIR}/ServiceDB.h"
      "${TARGET_INCLUDE_DIR}/StaticDataMgr.h"
      "${TARGET_INCLUDE_DIR}/StatisticMgr.h"
@@ -48,10 +43,6 @@ SET( SOURCE
      "${TARGET_SOURCE_DIR}/LiveUpdateDB.cpp"
      "${TARGET_SOURCE_DIR}/NetService.cpp"
      "${TARGET_SOURCE_DIR}/Profiler.cpp"
-     "${TARGET_SOURCE_DIR}/PyBoundObject.cpp"
-     "${TARGET_SOURCE_DIR}/PyCallable.cpp"
-     "${TARGET_SOURCE_DIR}/PyService.cpp"
-     "${TARGET_SOURCE_DIR}/PyServiceMgr.cpp"
      "${TARGET_SOURCE_DIR}/ServiceDB.cpp"
      "${TARGET_SOURCE_DIR}/StaticDataMgr.cpp"
      "${TARGET_SOURCE_DIR}/StatisticMgr.cpp"
@@ -195,11 +186,9 @@ SET( config_SOURCE
      "${TARGET_SOURCE_DIR}/config/LocalizationServerService.cpp" )
 
 SET( contract_INCLUDE
-     "${TARGET_INCLUDE_DIR}/contract/ContractMgr.h"
      "${TARGET_INCLUDE_DIR}/contract/ContractProxy.h"
      "${TARGET_INCLUDE_DIR}/contract/ContractUtils.h" )
 SET( contract_SOURCE
-     "${TARGET_SOURCE_DIR}/contract/ContractMgr.cpp"
      "${TARGET_SOURCE_DIR}/contract/ContractProxy.cpp"
      "${TARGET_SOURCE_DIR}/contract/ContractUtils.cpp" )
 
@@ -215,7 +204,7 @@ SET( corporation_INCLUDE
      "${TARGET_INCLUDE_DIR}/corporation/CorpStationMgr.h"
      "${TARGET_INCLUDE_DIR}/corporation/LPService.h"
      "${TARGET_INCLUDE_DIR}/corporation/LPStore.h"
-     "${TARGET_INCLUDE_DIR}/corporation/SparseBound.h" )
+     "${TARGET_INCLUDE_DIR}/corporation/OfficeSparseBound.h" )
 SET( corporation_SOURCE
      "${TARGET_SOURCE_DIR}/corporation/BillMgr.cpp"
      "${TARGET_SOURCE_DIR}/corporation/CorpBookmarkMgr.cpp"
@@ -228,7 +217,7 @@ SET( corporation_SOURCE
      "${TARGET_SOURCE_DIR}/corporation/CorpStationMgr.cpp"
      "${TARGET_SOURCE_DIR}/corporation/LPService.cpp"
      "${TARGET_SOURCE_DIR}/corporation/LPStore.cpp"
-     "${TARGET_SOURCE_DIR}/corporation/SparseBound.cpp" )
+     "${TARGET_SOURCE_DIR}/corporation/OfficeSparseBound.cpp" )
 
 SET( dogmaim_INCLUDE
      "${TARGET_INCLUDE_DIR}/dogmaim/DogmaIMService.h"
@@ -636,6 +625,19 @@ SET( test_INCLUDE
 SET( test_SOURCE
     "${TARGET_SOURCE_DIR}/testing/test.cpp")
 
+SET( services_INCLUDE
+     "${TARGET_INCLUDE_DIR}/services/Service.h"
+     "${TARGET_INCLUDE_DIR}/services/Callable.h"
+     "${TARGET_INCLUDE_DIR}/services/SparseBound.h"
+     "${TARGET_INCLUDE_DIR}/services/BoundService.h"
+     "${TARGET_INCLUDE_DIR}/services/ServiceManager.h")
+SET( services_SOURCE
+     "${TARGET_SOURCE_DIR}/services/Service.cpp"
+     "${TARGET_SOURCE_DIR}/services/Callable.cpp"
+     "${TARGET_SOURCE_DIR}/services/SparseBound.cpp"
+     "${TARGET_SOURCE_DIR}/services/BoundService.cpp"
+     "${TARGET_SOURCE_DIR}/services/ServiceManager.cpp")
+
 ########################
 # Setup the executable #
 ########################
@@ -668,6 +670,7 @@ SOURCE_GROUP( "src\\planet"        FILES ${planet_INCLUDE} )
 SOURCE_GROUP( "src\\pos"           FILES ${pos_INCLUDE} )
 SOURCE_GROUP( "src\\qaTools"       FILES ${qaTools_INCLUDE} )
 SOURCE_GROUP( "src\\search"        FILES ${search_INCLUDE} )
+SOURCE_GROUP( "src\\services"      FILES ${services_INCLUDE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_INCLUDE} )
 SOURCE_GROUP( "src\\ship\\modules" FILES ${ship_modules_INCLUDE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_INCLUDE} )
@@ -706,6 +709,7 @@ SOURCE_GROUP( "src\\planet"        FILES ${planet_SOURCE} )
 SOURCE_GROUP( "src\\pos"           FILES ${pos_SOURCE} )
 SOURCE_GROUP( "src\\qaTools"       FILES ${qaTools_SOURCE} )
 SOURCE_GROUP( "src\\search"        FILES ${search_SOURCE} )
+SOURCE_GROUP( "src\\services"      FILES ${services_SOURCE} )
 SOURCE_GROUP( "src\\ship"          FILES ${ship_SOURCE} )
 SOURCE_GROUP( "src\\ship\\modules" FILES ${ship_modules_SOURCE} )
 SOURCE_GROUP( "src\\standing"      FILES ${standing_SOURCE} )
@@ -745,6 +749,7 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
                 ${pos_INCLUDE}            ${pos_SOURCE}
                 ${qaTools_INCLUDE}        ${qaTools_SOURCE}
                 ${search_INCLUDE}         ${search_SOURCE}
+                ${services_INCLUDE}       ${services_SOURCE}
                 ${ship_INCLUDE}           ${ship_SOURCE}
                 ${ship_modules_INCLUDE}   ${ship_modules_SOURCE}
                 ${standing_INCLUDE}       ${standing_SOURCE}

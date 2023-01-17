@@ -1371,7 +1371,7 @@ void ActiveModule::LaunchMissile()
     }
 
     SystemManager* pSystem = pClient->SystemMgr();
-    Missile* pMissile = new Missile(missileRef, *(pSystem->GetServiceMgr()), pSystem, m_modRef, m_targetSE, m_shipRef->GetPilot()->GetShipSE(), this);
+    Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(), pSystem, m_modRef, m_targetSE, m_shipRef->GetPilot()->GetShipSE(), this);
     if (pMissile == nullptr) {
         _log(ITEM__ERROR ,"Unable to create SE #%u:'%s' of type %u.", m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID());
         pClient->SendErrorMsg("Your %s in %s experienced a launching error and was disabled.", m_chargeRef->name(), m_modRef->name());
@@ -1425,7 +1425,7 @@ void ActiveModule::LaunchProbe()
 
     probeRef->SetPosition(pos);
     SystemManager* pSystem = pClient->SystemMgr();
-    ProbeSE* pProbe = new ProbeSE(probeRef, *(pSystem->GetServiceMgr()), pSystem, m_modRef, m_shipRef);
+    ProbeSE* pProbe = new ProbeSE(probeRef, pSystem->GetServiceMgr(), pSystem, m_modRef, m_shipRef);
     if (pProbe == nullptr)
         return; // make error here
 

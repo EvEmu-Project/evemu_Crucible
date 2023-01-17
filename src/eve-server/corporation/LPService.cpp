@@ -25,30 +25,19 @@
 
 #include "eve-server.h"
 #include "EntityList.h"
-#include "PyServiceCD.h"
+
 #include "corporation/LPService.h"
 #include "account/AccountService.h"
 
-PyCallable_Make_InnerDispatcher(LPService)
-
-LPService::LPService(PyServiceMgr *mgr)
-: PyService(mgr, "LPSvc"),
-  m_dispatch(new Dispatcher(this))
+LPService::LPService() :
+    Service("LPSvc")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(LPService, TakeOffer);
-    PyCallable_REG_CALL(LPService, ExchangeConcordLP);
-    PyCallable_REG_CALL(LPService, GetLPExchangeRates);
-    PyCallable_REG_CALL(LPService, GetLPsForCharacter);
-    PyCallable_REG_CALL(LPService, GetLPForCharacterCorp);
-    PyCallable_REG_CALL(LPService, GetAvailableOffersFromCorp);
-
-}
-
-LPService::~LPService()
-{
-    delete m_dispatch;
+    this->Add("TakeOffer", &LPService::TakeOffer);
+    this->Add("ExchangeConcordLP", &LPService::ExchangeConcordLP);
+    this->Add("GetLPExchangeRates", &LPService::GetLPExchangeRates);
+    this->Add("GetLPsForCharacter", &LPService::GetLPsForCharacter);
+    this->Add("GetLPForCharacterCorp", &LPService::GetLPForCharacterCorp);
+    this->Add("GetAvailableOffersFromCorp", &LPService::GetAvailableOffersFromCorp);
 }
 
 void LPService::AddLP(uint32 characterID, uint32 corporationID, int amount)
@@ -77,25 +66,22 @@ int LPService::GetLPReward(uint16 missionID, uint32 solarsystemID, uint8 agentLe
   return (1.6288 - m_data.securityRating ) * baseLP;   // LP reward = (1.6288 - System security) × Base LP
 }
 
-PyResult LPService::Handle_TakeOffer( PyCallArgs& call )
+PyResult LPService::TakeOffer(PyCallArgs& call, PyInt* corpID, PyInt* storeID)
 {
-  // Tuple 2 Elements [0](Int)CorpID, [1](Int)StoreID
-  int32 corpID = call.tuple->GetItem(0)->AsInt()->value();
-  int32 storeID = call.tuple->GetItem(1)->AsInt()->value();
-  if (!corpID >= 1000000 && !corpID <= 1000200) { // Bounds check valid corpID in call
+  if (!corpID->value() >= 1000000 && !corpID->value() <= 1000200) { // Bounds check valid corpID in call
     return new PyNone;
   }
-  if (!storeID >= 1 && !storeID <= 30000) { // Bounds check valid storeID in call
+  if (!storeID->value() >= 1 && !storeID->value() <= 30000) { // Bounds check valid storeID in call
     return new PyNone;
   }
   // Lookup Store Offer
-  DBResultRow offer = GetLPOffer(storeID);
+  DBResultRow offer = GetLPOffer(storeID->value());
   int32 typeID = offer.GetInt(0);
   int32 iskCost = offer.GetInt(1);
   int32 quantity = offer.GetInt(2);
   int32 lpCost = offer.GetInt(3);
   // Confirm char has LP & ISK
-  int32 lpBalance = GetLPBalanceForCorp(call.client->GetCharacterID(), corpID);
+  int32 lpBalance = GetLPBalanceForCorp(call.client->GetCharacterID(), corpID->value());
   if (lpBalance < lpCost) {
     throw CustomError("You do not have enough LP to make this purchase.");
   }
@@ -104,13 +90,13 @@ PyResult LPService::Handle_TakeOffer( PyCallArgs& call )
     throw CustomError("You do not have enough ISK to make this purchase.");
   }
   // Check required items & remove if all are present.
-  DBQueryResult requiredItems = GetRequiredItemsForOffer(storeID);
+  DBQueryResult requiredItems = GetRequiredItemsForOffer(storeID->value());
   if (requiredItems.GetRowCount() > 0) {
     // TODO: Remove required from hangar, the client pre-checks the required items are available or else the button is hidden.
   }
   // Remove LP & ISK
-  AddLP(call.client->GetCharacterID(), corpID, -lpCost);
-  AccountService::TranserFunds(call.client->GetCharacterID(), corpID , iskCost, "LP Store purchase", Journal::EntryType::PaymentToLPStore, storeID);
+  AddLP(call.client->GetCharacterID(), corpID->value(), -lpCost);
+  AccountService::TranserFunds(call.client->GetCharacterID(), corpID->value(), iskCost, "LP Store purchase", Journal::EntryType::PaymentToLPStore, storeID->value());
   // Give char item from store and place in hangar.
   EVEItemFlags flag;
   uint32 locationID = 0;
@@ -130,7 +116,7 @@ PyResult LPService::Handle_TakeOffer( PyCallArgs& call )
   return new PyNone;
 }
 
-PyResult LPService::Handle_ExchangeConcordLP( PyCallArgs& call )
+PyResult LPService::ExchangeConcordLP(PyCallArgs& call, PyInt* corporationID, PyFloat* amount)
 {/**
             ret = sm.RemoteSvc('LPSvc').TakeOffer(self.cache.corpID, data.offerID)
             */
@@ -141,7 +127,7 @@ PyResult LPService::Handle_ExchangeConcordLP( PyCallArgs& call )
 }
 
 //17:09:54 L LPService::Handle_GetLPExchangeRates(): size= 0
-PyResult LPService::Handle_GetLPExchangeRates( PyCallArgs& call )
+PyResult LPService::GetLPExchangeRates(PyCallArgs& call)
 {/**
             self.cache.exchangeRates = sm.RemoteSvc('LPSvc').GetLPExchangeRates()
 
@@ -156,7 +142,7 @@ PyResult LPService::Handle_GetLPExchangeRates( PyCallArgs& call )
 }
 
 //18:46:38 L CharMgrService::Handle_GetLPForCharacterCorp(): size= 1, 0=Integer(1000049)
-PyResult LPService::Handle_GetLPForCharacterCorp( PyCallArgs& call )
+PyResult LPService::GetLPForCharacterCorp(PyCallArgs& call, PyInt* corporationID)
 {/**
                 self.cache.lps = sm.RemoteSvc('LPSvc').GetLPForCharacterCorp(corpID)
          self.cache.concordLps = sm.RemoteSvc('LPSvc').GetLPForCharacterCorp(const.corpCONCORD)
@@ -170,15 +156,14 @@ PyResult LPService::Handle_GetLPForCharacterCorp( PyCallArgs& call )
 04:39:44 [SvcCall]     Argument 'machoVersion':
 04:39:44 [SvcCall]         Integer field: 1
 */
-  int corporationID = call.tuple->GetItem(0)->AsInt()->value();
-  int balance = GetLPBalanceForCorp(call.client->GetCharacterID(), corporationID);
+  int balance = GetLPBalanceForCorp(call.client->GetCharacterID(), corporationID->value());
   if (balance < 1)
     balance = 0;
   return new PyInt(balance);
 }
 
 // //06:01:19 LPService::Handle_GetLPsForCharacter(): size= 0
-PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
+PyResult LPService::GetLPsForCharacter(PyCallArgs& call)
 {
   //no args
   sLog.White( "LPService::Handle_GetLPsForCharacter()", "size=%lu", call.tuple->size());
@@ -198,13 +183,12 @@ PyResult LPService::Handle_GetLPsForCharacter( PyCallArgs& call )
 }
 
 //18:55:57 L CharMgrService::Handle_GetAvailableOffersFromCorp(): size=2, 0=Integer(), 1=Boolean()
-PyResult LPService::Handle_GetAvailableOffersFromCorp( PyCallArgs& call )
+PyResult LPService::GetAvailableOffersFromCorp(PyCallArgs& call, PyInt* corporationID, PyBool* trueValue)
 {
-  int32 corpID = call.tuple->GetItem(0)->AsInt()->value();
-  if (!corpID >= 1000000 && !corpID <= 1000200) { // Bounds check valid corpID in call, else return empty list.
+  if (!corporationID->value() >= 1000000 && !corporationID->value() <= 1000200) { // Bounds check valid corpID in call, else return empty list.
     return new PyList;
   }
-  DBQueryResult dbRes = GetLPOffersForCorp(corpID);
+  DBQueryResult dbRes = GetLPOffersForCorp(corporationID->value());
   DBResultRow row;
   PyList *res = new PyList(dbRes.GetRowCount());
   int i = 0;

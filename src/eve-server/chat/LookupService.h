@@ -28,30 +28,26 @@
 #define __LOOKUPSVC_SERVICE_H_INCL__
 
 #include "chat/LSCDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-class LookupService
-: public PyService
+class LookupService : public Service <LookupService>
 {
 public:
-    LookupService(PyServiceMgr *mgr);
-    virtual ~LookupService();
+    LookupService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(LookupCharacters);
-    PyCallable_DECL_CALL(LookupPCOwners);
-    PyCallable_DECL_CALL(LookupOwners);
-    PyCallable_DECL_CALL(LookupPlayerCharacters);
-    PyCallable_DECL_CALL(LookupCorporations);
-    PyCallable_DECL_CALL(LookupFactions);
-    PyCallable_DECL_CALL(LookupCorporationTickers);
-    PyCallable_DECL_CALL(LookupStations);
-    PyCallable_DECL_CALL(LookupKnownLocationsByGroup);
-    PyCallable_DECL_CALL(LookupNoneNPCAccountOwners);
-    PyCallable_DECL_CALL(LookupEvePlayerCharacters);
+    // most of these don't seem to be in the client code anymore and should probably be removed
+    PyResult LookupEvePlayerCharacters(PyCallArgs& call, PyWString* searchString, PyInt* exact);
+    PyResult LookupCharacters(PyCallArgs& call, PyWString* searchString, PyInt* exact);
+    PyResult LookupPCOwners(PyCallArgs& call, PyWString* searchString, PyInt* exact);
+    PyResult LookupOwners(PyCallArgs& call, PyWString* searchString, PyInt* exact);
+    PyResult LookupNoneNPCAccountOwners(PyCallArgs& call, PyWString* searchString, PyInt* exact);
+    PyResult LookupPlayerCharacters(PyCallArgs& call, PyWString* searchString);
+    PyResult LookupCorporations(PyCallArgs& call, PyWString* searchString);
+    PyResult LookupFactions(PyCallArgs& call, PyWString* searchString);
+    PyResult LookupCorporationTickers(PyCallArgs& call, PyWString* searchString);
+    PyResult LookupStations(PyCallArgs& call, PyWString* searchString);
+    PyResult LookupKnownLocationsByGroup(PyCallArgs& call, PyWString* searchString, PyInt* exact);
 };
 
 

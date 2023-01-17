@@ -25,32 +25,16 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
 #include "admin/ClientStatLogger.h"
 
-PyCallable_Make_InnerDispatcher(ClientStatLogger)
-
-ClientStatLogger::ClientStatLogger(PyServiceMgr *mgr)
-:PyService(mgr, "clientStatLogger"),
-m_dispatch(new Dispatcher(this))
+ClientStatLogger::ClientStatLogger() :
+    Service("clientStatLogger")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ClientStatLogger, LogString);
+    this->Add("LogString", &ClientStatLogger::LogString);
 }
 
-ClientStatLogger::~ClientStatLogger() {
-    delete m_dispatch;
-}
-
-PyResult ClientStatLogger::Handle_LogString(PyCallArgs &call) {
-    Call_SingleStringArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    sLog.Error("LogFromClient", "%s", args.arg.c_str());
+PyResult ClientStatLogger::LogString(PyCallArgs &call, PyString* arg) {
+    sLog.Error("LogFromClient", "%s", arg->content ().c_str());
 
     return nullptr;
 }

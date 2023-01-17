@@ -27,31 +27,27 @@
 #ifndef __EVEMU_CORP_CORPBM_H
 #define __EVEMU_CORP_CORPBM_H
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "system/BookmarkDB.h"
 
-class CorpBookmarkMgr : public PyService
+class CorpBookmarkMgr : public Service <CorpBookmarkMgr>
 {
 public:
-    CorpBookmarkMgr(PyServiceMgr* mgr);
-    virtual ~CorpBookmarkMgr();
+    CorpBookmarkMgr();
 
 protected:
-    class Dispatcher;
-    Dispatcher* const m_dispatch;
-
     BookmarkDB m_db;
 
-    PyCallable_DECL_CALL(GetBookmarks);
-    PyCallable_DECL_CALL(UpdateBookmark);
-    PyCallable_DECL_CALL(UpdatePlayerBookmark);
-    PyCallable_DECL_CALL(MoveBookmarksToFolder);
-    PyCallable_DECL_CALL(CreateFolder);
-    PyCallable_DECL_CALL(UpdateFolder);
-    PyCallable_DECL_CALL(CopyBookmarks);
-    PyCallable_DECL_CALL(DeleteFolder);
-    PyCallable_DECL_CALL(MoveFoldersToDB);
-    PyCallable_DECL_CALL(DeleteBookmarks);
+    PyResult GetBookmarks(PyCallArgs& call);
+    PyResult UpdateBookmark(PyCallArgs& call, PyInt* bookmarkID, PyInt* ownerID, PyRep* memo, PyRep* comment, std::optional<PyInt*> folderID);
+    PyResult UpdatePlayerBookmark(PyCallArgs& call, PyInt* bookmarkID, PyInt* ownerID, PyRep* memo, PyRep* comment, std::optional<PyInt*> folderID);
+    PyResult MoveBookmarksToFolder(PyCallArgs& call, PyInt* folderID, std::optional<PyObjectEx*> bookmarkIDs);
+    PyResult CreateFolder(PyCallArgs& call, PyRep* folderName);
+    PyResult UpdateFolder(PyCallArgs& call, PyInt* folderID, PyRep* folderName);
+    PyResult CopyBookmarks(PyCallArgs& call, std::optional<PyRep*> bookmarksToCopy, PyInt* folderID);
+    PyResult DeleteFolder(PyCallArgs& call, PyInt* folderID, PyRep* unused);
+    PyResult MoveFoldersToDB(PyCallArgs& call, PyRep* info);
+    PyResult DeleteBookmarks(PyCallArgs& call, std::optional<PyObjectEx*> bookmarkIDs);
 
 };
 

@@ -29,35 +29,30 @@
 #include <algorithm>    // Added to prevent std::find from freaking out
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "contract/ContractProxy.h"
 #include "station/Station.h"
 #include "inventory/Inventory.h"
 #include "system/SolarSystem.h"
-#include "packets/Contracts.h"
+
 #include "contract/ContractUtils.h"
 #include "account/AccountService.h"
 
-PyCallable_Make_InnerDispatcher(ContractProxy)
-
-ContractProxy::ContractProxy( PyServiceMgr *mgr )
-: PyService(mgr, "contractProxy"),
-  m_dispatch(new Dispatcher(this))
+ContractProxy::ContractProxy () :
+    Service("contractProxy")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ContractProxy, GetContract);
-    PyCallable_REG_CALL(ContractProxy, CreateContract);
-    PyCallable_REG_CALL(ContractProxy, DeleteContract);
-    PyCallable_REG_CALL(ContractProxy, AcceptContract);
-    PyCallable_REG_CALL(ContractProxy, CompleteContract);
-    PyCallable_REG_CALL(ContractProxy, GetLoginInfo);
-    PyCallable_REG_CALL(ContractProxy, SearchContracts);
-    PyCallable_REG_CALL(ContractProxy, NumOutstandingContracts);
-    PyCallable_REG_CALL(ContractProxy, CollectMyPageInfo);
-    PyCallable_REG_CALL(ContractProxy, GetItemsInStation);
-    PyCallable_REG_CALL(ContractProxy, GetContractListForOwner);
-    PyCallable_REG_CALL(ContractProxy, GetMyExpiredContractList);
+    this->Add("GetContract", &ContractProxy::GetContract);
+    this->Add("CreateContract", &ContractProxy::CreateContract);
+    this->Add("DeleteContract", &ContractProxy::DeleteContract);
+    this->Add("AcceptContract", &ContractProxy::AcceptContract);
+    this->Add("CompleteContract", &ContractProxy::CompleteContract);
+    this->Add("GetLoginInfo", &ContractProxy::GetLoginInfo);
+    this->Add("SearchContracts", &ContractProxy::SearchContracts);
+    this->Add("NumOutstandingContracts", &ContractProxy::NumOutstandingContracts);
+    this->Add("CollectMyPageInfo", &ContractProxy::CollectMyPageInfo);
+    this->Add("GetItemsInStation", &ContractProxy::GetItemsInStation);
+    this->Add("GetContractListForOwner", &ContractProxy::GetContractListForOwner);
+    this->Add("GetMyExpiredContractList", &ContractProxy::GetMyExpiredContractList);
     /*
      *
             ret = self.contractSvc.CompleteContract(contractID, const.conStatusFinished)
@@ -72,13 +67,7 @@ ContractProxy::ContractProxy( PyServiceMgr *mgr )
      */
 }
 
-ContractProxy::~ContractProxy()
-{
-    delete m_dispatch;
-}
-
-
-PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
+PyResult ContractProxy::SearchContracts(PyCallArgs &call) {
     // We will not proceed, if contractType is not specified
     if (!call.byname.find("contractType")->second->IsNone()) {
         int contractType = call.byname.find("contractType")->second->AsInt()->value();
@@ -211,12 +200,9 @@ PyResult ContractProxy::Handle_SearchContracts(PyCallArgs &call) {
     }
 }
 
-PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
-    Call_CreateContract req;
-    if (!req.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
+PyResult ContractProxy::CreateContract(PyCallArgs &call, 
+    PyInt* contractType, PyInt* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyInt*> endStationID,
+    PyFloat* price, PyFloat* reward, PyFloat* collateral, PyWString* title, PyWString* description) {
     int startStationDivision, startSystemId, startRegionId, endSystemId, endRegionId;
     bool forCorp;
 
@@ -235,17 +221,17 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         codelog(SERVICE__ERROR, "forCorp value is of invalid type");
         return nullptr;
     }
-    if (sDataMgr.IsStation(req.startStationId)) {
-        startSystemId = sDataMgr.GetStationSystem(req.startStationId);
-        startRegionId = sDataMgr.GetStationRegion(req.startStationId);
+    if (sDataMgr.IsStation(startStationID->value())) {
+        startSystemId = sDataMgr.GetStationSystem(startStationID->value());
+        startRegionId = sDataMgr.GetStationRegion(startStationID->value());
     } else {
         codelog(SERVICE__ERROR, "Specified start Station ID has no Station counterparts in DB");
         return nullptr;
     }
-    if (req.endStationId != 0) {
-        if (sDataMgr.IsStation(req.endStationId)) {
-            endSystemId = sDataMgr.GetStationSystem(req.endStationId);
-            endRegionId = sDataMgr.GetStationRegion(req.endStationId);
+    if (endStationID.has_value()) {
+        if (sDataMgr.IsStation(endStationID.value()->value())) {
+            endSystemId = sDataMgr.GetStationSystem(endStationID.value()->value());
+            endRegionId = sDataMgr.GetStationRegion(endStationID.value()->value());
         } else {
             codelog(SERVICE__ERROR, "Specified end Station ID has no Station counterparts in DB");
             return nullptr;
@@ -256,9 +242,9 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     }
 
     // Courier-specific step - if we have a reward, we'd want to take it in advance and store it "in heap" to block no-funds scam
-    if (req.contractType == 3 && req.reward > 0) {
-        if (call.client->GetBalance() >= req.reward) {
-            call.client->AddBalance(-req.reward);
+    if (contractType->value() == 3 && reward->value() > 0) {
+        if (call.client->GetBalance() >= reward->value()) {
+            call.client->AddBalance(-reward->value());
         } else {
             call.client->SendNotifyMsg("You do not have enough ISK to pay the reward");
             return nullptr;
@@ -282,10 +268,10 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         "%li, %li, %u, %u, %u, "
         "%u, %u, %u, %u, %u, %u,"
         "%u, %u, %u, '%s', '%s', %u, %u)",
-        req.contractType, call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, req.isPrivate?1:0, req.assigneeID,
-        int64(GetFileTimeNow()), int64(GetRelativeFileTime(0, 0, req.expireTime)), req.expireTime, req.duration, req.expireTime / 1440,
-        req.startStationId, startSystemId, startRegionId, req.endStationId, endSystemId, endRegionId,
-        req.price, req.reward, req.collateral, req.title.c_str(), req.description.c_str(), call.client->GetAllianceID(), startStationDivision))
+        contractType->value(), call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, isPrivate->value()?1:0, assigneeID.has_value() ? assigneeID.value()->value() : 0,
+        int64(GetFileTimeNow()), int64(GetRelativeFileTime(0, 0, expireTime->value())), expireTime->value(), duration->value(), expireTime->value() / 1440,
+        startStationID->value(), startSystemId, startRegionId, endStationID.has_value() ? endStationID.value()->value() : 0, endSystemId, endRegionId,
+        price->value(), reward->value(), collateral->value(), title->content().c_str(), description->content().c_str(), call.client->GetAllianceID(), startStationDivision))
     {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
@@ -365,8 +351,8 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
                         std::to_string(flag)+ "),");
 
                      // We only calculate volume for courier-type contracts - the other types don't use this value.
-                     if (req.contractType == 3) {
-                         totalVolume += sItemFactory.GetStationRef(req.startStationId)->GetMyInventory()->GetByID(itemID)->GetAttribute(161).get_float() * quantity;
+                     if (contractType->value() == 3) {
+                         totalVolume += sItemFactory.GetStationRef(startStationID->value())->GetMyInventory()->GetByID(itemID)->GetAttribute(161).get_float() * quantity;
                      }
 
                      sItemFactory.GetItemRef(itemID)->ChangeOwner(1, true);
@@ -403,7 +389,7 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
         }
 
         // We only insert volume for courier-type contracts - the other types don't use this value.
-        if (req.contractType == 3) {
+        if (contractType->value() == 3) {
             DBerror err;
             if (!sDatabase.RunQuery(err,
                                     "UPDATE ctrContracts SET volume = %f WHERE contractId = %u", totalVolume, contractId))
@@ -420,20 +406,13 @@ PyResult ContractProxy::Handle_CreateContract(PyCallArgs &call) {
     return new PyInt((int) contractId);
 }
 
-PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
+PyResult ContractProxy::DeleteContract(PyCallArgs &call, PyInt* contractID) {
     sLog.White( "ContractProxy::Handle_DeleteContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    int contractId;
-    if (call.tuple->GetItem(0)) {
-        contractId = call.tuple->GetItem(0)->AsInt()->value();
-    } else {
-        return new PyBool(false);
-    }
-
     // In order to return items back to the owner, we need a full list of entityID's to return. We gather them using utils function
     std::vector<int> entityIds;
-    ContractUtils::GetContractItemIDs(contractId, &entityIds);
+    ContractUtils::GetContractItemIDs(contractID->value(), &entityIds);
     for (auto entityID : entityIds) {
         // We have to put in couple layers of checks here. First one will cut requested item entries out of the equation
         if (entityID != 0) {
@@ -449,7 +428,7 @@ PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
 
     DBerror err;
     if (!sDatabase.RunQuery(err,
-                            "UPDATE ctrContracts SET status = 8 WHERE contractId = %u", contractId))
+                            "UPDATE ctrContracts SET status = 8 WHERE contractId = %u", contractID->value()))
     {
         codelog(DATABASE__ERROR, "Failed to update contract volume: %s", err.c_str());
     }
@@ -457,31 +436,15 @@ PyResult ContractProxy::Handle_DeleteContract(PyCallArgs &call) {
     return new PyBool(true);
 }
 
-PyResult ContractProxy::Handle_GetContract(PyCallArgs &call) {
-    if (!call.tuple->empty()) {
-        if (call.tuple->GetItem(0)->IsInt()) {
-            return ContractUtils::GetContractEntry(call.tuple->GetItem(0)->AsInt()->value());
-        } else {
-            codelog(SERVICE__ERROR, "Invalid parameter in GetContract call");
-            return nullptr;
-        }
-    } else {
-        codelog(SERVICE__ERROR, "Empty GetContract call. Aborting");
-        return nullptr;
-    }
+PyResult ContractProxy::GetContract(PyCallArgs &call, PyInt* contractID) {
+    return ContractUtils::GetContractEntry(contractID->value());
 }
 
-PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
+PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
     // For the time being - we ignore the second value in tuple (forCorp), since it's not yet functional.
-    int contractID;
-    if (call.tuple->GetItem(0)) {
-        contractID = call.tuple->GetItem(0)->AsInt()->value();
-    } else {
-        return nullptr;
-    }
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID FROM ctrContracts WHERE contractId = %u", contractID))
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID FROM ctrContracts WHERE contractId = %u", contractID->value()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -512,8 +475,8 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
                 // We start off by gathering traded and requested items
                 std::vector<int> tradedItems;
                 std::map<int, int> requestedItems;
-                ContractUtils::GetContractItemIDs(contractID, &tradedItems);
-                ContractUtils::GetRequestedItems(contractID, &requestedItems);
+                ContractUtils::GetContractItemIDs(contractID->value(), &tradedItems);
+                ContractUtils::GetRequestedItems(contractID->value(), &requestedItems);
 
                 // Next, we perform checks to make sure we fit all contract requirements. I won't do it by nesting if loops - i'll just use trigger booleans;
                 bool iskRequirementMet(true), rewardRequirementMet(true), requestedItemsRequirementsMet(true);
@@ -541,12 +504,12 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
                 if (iskRequirementMet && rewardRequirementMet && requestedItemsRequirementsMet) {
                     // If we have a reward value - then contract's WTB
                     if (reward > 0) {
-                        AccountService::TranserFunds(issuerID, call.client->GetCharacterID(), reward, "Payment for accepted contract", Journal::EntryType::ContractReward, contractID);
+                        AccountService::TranserFunds(issuerID, call.client->GetCharacterID(), reward, "Payment for accepted contract", Journal::EntryType::ContractReward, contractID->value());
                     }
 
                     // If we have price value - then contract's WTS
                     if (price > 0) {
-                        AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, price, "Payment for accepted contract", Journal::EntryType::ContractPrice, contractID);
+                        AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, price, "Payment for accepted contract", Journal::EntryType::ContractPrice, contractID->value());
                     }
 
                     // Then, we go for requested items
@@ -630,7 +593,7 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
                 plasticWrap->SaveItem();
                 // Then, move all required items into it
                 std::vector<int> items;
-                ContractUtils::GetContractItemIDs(contractID, &items);
+                ContractUtils::GetContractItemIDs(contractID->value(), &items);
                 for (auto item : items) {
                     InventoryItemRef itm = sItemFactory.GetItemRef(item);
                     if (itm.get() != nullptr) {
@@ -678,22 +641,9 @@ PyResult ContractProxy::Handle_AcceptContract(PyCallArgs &call) {
 }
 
 
-PyResult ContractProxy::Handle_CompleteContract(PyCallArgs &call) {
+PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, PyInt* completionStatus) {
     sLog.White( "ContractProxy::Handle_CompleteContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
-
-    // This packet only has 2 int values in the tuple - not really enough to bother describing it in XMLPktGen
-    int contractID, completionStatus;
-    if (!call.tuple->empty()) {
-        if (call.tuple->GetItem(0)->IsInt() && call.tuple->GetItem(1)->IsInt()) {
-            contractID = call.tuple->GetItem(0)->AsInt()->value();
-            completionStatus = call.tuple->GetItem(1)->AsInt()->value();
-        } else {
-            return new PyBool(false);
-        }
-    } else {
-        return new PyBool(false);
-    }
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID FROM ctrContracts WHERE contractId = %u", contractID))
@@ -717,7 +667,7 @@ PyResult ContractProxy::Handle_CompleteContract(PyCallArgs &call) {
     int crateID = row.GetInt(10);
 
     int64 timestamp = int64(GetFileTimeNow());
-    switch (completionStatus) {
+    switch (completionStatus->value()) {
         case 4: {
             // Complete
             // First, we need to make sure that the container is indeed located in the end station
@@ -727,7 +677,7 @@ PyResult ContractProxy::Handle_CompleteContract(PyCallArgs &call) {
             }
             // Then, we validate the presence of all expected items
             std::map<int, int> expectedItems;
-            ContractUtils::GetContractItemIDsAndQuantities(contractID, &expectedItems);
+            ContractUtils::GetContractItemIDsAndQuantities(contractID->value(), &expectedItems);
             bool allItemsPresent(true);
             for (const auto& entry : expectedItems) {
                 InventoryItemRef item = sItemFactory.GetItemRef(entry.first);
@@ -760,7 +710,7 @@ PyResult ContractProxy::Handle_CompleteContract(PyCallArgs &call) {
                 DBerror err;
                 if (!sDatabase.RunQuery(err,
                                         "UPDATE ctrContracts SET status = %u, dateCompleted = %li WHERE contractId = %u",
-                                        completionStatus, timestamp, contractID))
+                                        completionStatus->value(), timestamp, contractID->value()))
                 {
                     codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
                 }
@@ -776,13 +726,13 @@ PyResult ContractProxy::Handle_CompleteContract(PyCallArgs &call) {
             if (collateral > 0) {
                 // Since we've taken the collateral prior to it and left it "hanging in the air" we put it back into acceptor's wallet and then issue a transfer
                 call.client->AddBalance(collateral);
-                AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, collateral, "Collateral payment for failed contract", Journal::EntryType::ContractCollateral, contractID);
+                AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, collateral, "Collateral payment for failed contract", Journal::EntryType::ContractCollateral, contractID->value());
             }
             // Then, we update the contract as Афшдув.
             DBerror err;
             if (!sDatabase.RunQuery(err,
                                     "UPDATE ctrContracts SET status = %u, dateCompleted = %li WHERE contractId = %u",
-                                    completionStatus, timestamp, contractID))
+                                    completionStatus->value(), timestamp, contractID->value()))
             {
                 codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
             }
@@ -797,7 +747,7 @@ PyResult ContractProxy::Handle_CompleteContract(PyCallArgs &call) {
 }
 
 
-PyResult ContractProxy::Handle_GetMyExpiredContractList(PyCallArgs &call) {
+PyResult ContractProxy::GetMyExpiredContractList(PyCallArgs &call) {
   sLog.White( "ContractProxy::Handle_GetMyExpiredContractList()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 /*
@@ -908,7 +858,7 @@ PyResult ContractProxy::Handle_GetMyExpiredContractList(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult ContractProxy::Handle_NumOutstandingContracts(PyCallArgs &call) {
+PyResult ContractProxy::NumOutstandingContracts(PyCallArgs &call) {
     sLog.White( "ContractProxy::Handle_NumOutstandingContracts()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     /*
@@ -927,21 +877,16 @@ PyResult ContractProxy::Handle_NumOutstandingContracts(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult ContractProxy::Handle_GetItemsInStation(PyCallArgs &call) {
-    if (call.tuple->GetItem(0)->IsInt()) {
-        uint32 station = call.tuple->GetItem(0)->AsInt()->value();
+PyResult ContractProxy::GetItemsInStation(PyCallArgs &call, PyInt* stationID) {
+    uint32 station = call.tuple->GetItem(0)->AsInt()->value();
 
-        if (sDataMgr.IsStation(station)) {
-            CRowSet *rowSet = sItemFactory.GetStationRef(station)->GetMyInventory()->List(flagHangar);
+    if (sDataMgr.IsStation(stationID->value()) == false)
+        return nullptr;
 
-            return rowSet;
-        }
-    }
-
-    return nullptr;
+    return sItemFactory.GetStationRef(station)->GetMyInventory()->List(flagHangar);
 }
 
-PyResult ContractProxy::Handle_CollectMyPageInfo(PyCallArgs &call) {
+PyResult ContractProxy::CollectMyPageInfo(PyCallArgs &call) {
     sLog.White( "ContractProxy::Handle_CollectMyPageInfo()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     std::string mainQuery = "SELECT "
@@ -1005,11 +950,11 @@ PyResult ContractProxy::Handle_CollectMyPageInfo(PyCallArgs &call) {
     return new PyObject("util.KeyVal", vals);
 }
 
-PyResult ContractProxy::Handle_GetContractListForOwner(PyCallArgs &call) {
+PyResult ContractProxy::GetContractListForOwner(PyCallArgs &call, PyInt* ownerID, PyInt* contractStatus, std::optional <PyInt*> contractType, std::optional <PyBool*> issuedToBy) {
     sLog.White( "ContractProxy::Handle_GetContractListForOwner()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    return ContractUtils::GetContractListForOwner(call);
+    return ContractUtils::GetContractListForOwner(ownerID, contractStatus, contractType, issuedToBy);
     /*
      *  client call....
       [PyTuple 2 items]
@@ -1190,7 +1135,7 @@ PyResult ContractProxy::Handle_GetContractListForOwner(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult ContractProxy::Handle_GetLoginInfo(PyCallArgs &call)
+PyResult ContractProxy::GetLoginInfo(PyCallArgs &call)
 {
     // currently a stub as I need to redesign or change some sub systems for this.
 

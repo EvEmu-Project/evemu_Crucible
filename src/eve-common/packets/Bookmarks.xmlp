@@ -1,29 +1,5 @@
 
 <elements>
-<!--
-    //     [0] PyInt:      sends id of entity the calling char is in...ship/station/system/pos/etc
-    //     [1] PyInt:       ownerID = charID of char making the bm
-    //     [2] Py(W)String:  memo for the bookmark
-    //     [3] Py(W)String:  comment for the bookmark
-    //     [4] PyInt:        folderID bookmark is being placed into.  default=0
-    -->
-  <elementDef name="Call_BookmarkLocation">
-    <tupleInline>
-        <int name="itemID" none_marker="0" />
-        <int name="ownerID" />
-        <raw name="memo" />
-        <raw name="comment" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AddBookmarkFromVoucher">
-      <tupleInline>
-          <int name="itemID" />
-          <int name="ownerID" />
-          <int name="folderID"  none_marker="0"/>
-      </tupleInline>
-  </elementDef>
-
   <elementDef name="Rsp_BookmarkLocation">
     <tupleInline>
         <int name="bookmarkID" />
@@ -33,53 +9,6 @@
         <real name="y" />
         <real name="z" />
         <int name="locationID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_DeleteBookmarks">
-    <tupleInline>
-        <objectEx name="object" type="PyObjectEx" optional="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_MoveBookmarksToFolder">
-    <tupleInline>
-      <int name="folderID" none_marker="0"/>
-      <objectEx name="object" type="PyObjectEx" optional="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_CopyBookmarks">
-      <tupleInline>
-          <objectEx name="object" type="PyObjectEx" optional="true" />
-          <int name="folderID" none_marker="0"/>
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateBookmark">
-    <tupleInline>
-        <int name="bookmarkID" />
-        <int name="ownerID" />
-        <raw name="memo" />
-        <raw name="comment" />
-        <int name="folderID"  none_marker="0"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateFolder">
-    <tupleInline>
-        <int name="folderID"  none_marker="0"/>
-        <raw name="folderName" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_BookmarkScanResult">
-    <tupleInline>
-        <int name="locationID" />
-        <raw name="memo" />
-        <raw name="comment" />
-        <string name="resultID" />
-        <int name="ownerID" />
     </tupleInline>
   </elementDef>
 

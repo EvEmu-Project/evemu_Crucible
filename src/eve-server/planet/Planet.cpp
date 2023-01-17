@@ -43,7 +43,7 @@ Planet::Planet()
 }
 
 
-PlanetSE::PlanetSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+PlanetSE::PlanetSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : StaticSystemEntity(self, services, system),
 pCO(nullptr)
 {
@@ -258,7 +258,7 @@ Colony* PlanetSE::GetColony(Client* pClient)
     std::map<uint32, Colony*>::const_iterator itr = m_colonies.find(pClient->GetCharacterID());
     if (itr != m_colonies.end())
         return itr->second;
-    Colony* pColony = new Colony(&m_services, pClient, this);
+    Colony* pColony = new Colony(m_services, pClient, this);
     m_colonies[pClient->GetCharacterID()] = pColony;
 
     return pColony;

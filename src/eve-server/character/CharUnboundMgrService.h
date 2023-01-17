@@ -26,7 +26,8 @@
 #ifndef __CHARUNBOUNDMGRSERVICE__H__INCL__
 #define __CHARUNBOUNDMGRSERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "cache/ObjCacheService.h"
 
 /**
  * \class CharUnboundMgrService
@@ -38,16 +39,12 @@
  * @author caytchen
  * @date April 2011
  */
-class CharUnboundMgrService : public PyService {
+class CharUnboundMgrService : public Service <CharUnboundMgrService> {
 public:
-    CharUnboundMgrService(PyServiceMgr* mgr);
-    ~CharUnboundMgrService();
+    CharUnboundMgrService(EVEServiceManager& mgr);
 
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(SelectCharacterID);
+    PyResult SelectCharacterID(PyCallArgs& call, PyInt* characterID, std::optional <PyInt*> loadDungeon, std::optional <PyInt*> secondChoiceID);
 
     /**
      * \brief Get details on a character id
@@ -57,7 +54,7 @@ private:
      * @param[in] call character id
      * @return PyResult character details
      */
-    PyCallable_DECL_CALL(GetCharacterToSelect);
+    PyResult GetCharacterToSelect(PyCallArgs& call, PyInt* characterID);
 
     /**
      * \brief Get a list of characters on this account
@@ -67,7 +64,7 @@ private:
      * @param[in] call empty
      * @return PyResult list of characters
      */
-    PyCallable_DECL_CALL(GetCharactersToSelect);
+    PyResult GetCharactersToSelect(PyCallArgs& call);
 
     /**
      * \brief Get a lightweight list of characters on this account
@@ -77,7 +74,7 @@ private:
      * @param[in] call empty
      * @return PyResult list of characters with characterID and characterName
      */
-    PyCallable_DECL_CALL(GetCharacterInfo);
+    PyResult GetCharacterInfo(PyCallArgs& call);
 
     /**
      * \brief Client check if this account is currently receiving a character from an character transfer
@@ -87,11 +84,11 @@ private:
      * @param[in] call empty
      * @return PyResult true if there is a character transfer queued for this account, false if not
      */
-    PyCallable_DECL_CALL(IsUserReceivingCharacter);
+    PyResult IsUserReceivingCharacter(PyCallArgs& call);
 
-    PyCallable_DECL_CALL(DeleteCharacter);
-    PyCallable_DECL_CALL(PrepareCharacterForDelete);
-    PyCallable_DECL_CALL(CancelCharacterDeletePrepare);
+    PyResult DeleteCharacter(PyCallArgs& call, PyInt* characterID);
+    PyResult PrepareCharacterForDelete(PyCallArgs& call, PyInt* characterID);
+    PyResult CancelCharacterDeletePrepare(PyCallArgs& call, PyInt* characterID);
 
     /**
      * \brief Client check to see if a name may be used for a new character
@@ -101,11 +98,14 @@ private:
      * @param[in] call name to check
      * @return PyResult true if the name may be used
      */
-    PyCallable_DECL_CALL(ValidateNameEx);
+    PyResult ValidateNameEx(PyCallArgs& call, PyRep* name);
 
-    PyCallable_DECL_CALL(GetCharCreationInfo);
-    PyCallable_DECL_CALL(GetCharNewExtraCreationInfo);
-    PyCallable_DECL_CALL(CreateCharacterWithDoll);
+    PyResult GetCharCreationInfo(PyCallArgs& call);
+    PyResult GetCharNewExtraCreationInfo(PyCallArgs& call);
+    PyResult CreateCharacterWithDoll(PyCallArgs& call, PyRep* characterName, PyInt* bloodlineID, PyInt* genderID, PyInt* ancestryID, PyObject* characterInfo, PyObject* portraitInfo, PyInt* schoolID);
+
+private:
+    ObjCacheService* m_cache;
 };
 
 #endif // __CHARUNBOUNDMGRSERVICE__H__INCL__

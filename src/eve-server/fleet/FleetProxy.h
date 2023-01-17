@@ -12,29 +12,21 @@
 #ifndef EVEMU_SRC_FLEET_PROXY_H_
 #define EVEMU_SRC_FLEET_PROXY_H_
 
-
+#include "services/Service.h"
 #include "fleet/FleetManager.h"
 
-class FleetProxy
- : public PyService
+class FleetProxy : public Service <FleetProxy>
 {
-  public:
-    FleetProxy(PyServiceMgr *mgr);
-    ~FleetProxy();
-
-  protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetAvailableFleets);
-    PyCallable_DECL_CALL(AddFleetFinderAdvert);
-    PyCallable_DECL_CALL(RemoveFleetFinderAdvert);
-    PyCallable_DECL_CALL(ApplyToJoinFleet);
-    PyCallable_DECL_CALL(GetMyFleetFinderAdvert);
-    PyCallable_DECL_CALL(UpdateAdvertInfo);
+public:
+    FleetProxy();
 
 protected:
-
+    PyResult GetAvailableFleets(PyCallArgs& call);
+    PyResult ApplyToJoinFleet(PyCallArgs& call, PyInt* fleetID);
+    PyResult AddFleetFinderAdvert(PyCallArgs& call, PyObject* info);
+    PyResult RemoveFleetFinderAdvert(PyCallArgs& call);
+    PyResult GetMyFleetFinderAdvert(PyCallArgs& call);
+    PyResult UpdateAdvertInfo(PyCallArgs& call, PyInt* numMembers);
 };
 
 #endif  // EVEMU_SRC_FLEET_PROXY_H_

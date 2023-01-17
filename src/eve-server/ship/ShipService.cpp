@@ -24,8 +24,8 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 
 #include "EVEServerConfig.h"
 #include "npc/Drone.h"
@@ -40,91 +40,13 @@
 #include "system/sov/SovereigntyDataMgr.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 
-
-class ShipBound
-: public PyBoundObject
+ShipService::ShipService(EVEServiceManager& mgr) :
+    BindableService("ship", mgr)
 {
-public:
-    PyCallable_Make_Dispatcher(ShipBound)
-
-    ShipBound(PyServiceMgr *mgr, ShipItem* ship)
-    : PyBoundObject(mgr),
-      pShip(ship),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "ShipBound";
-
-        PyCallable_REG_CALL(ShipBound, Board);
-        PyCallable_REG_CALL(ShipBound, Eject);
-        PyCallable_REG_CALL(ShipBound, LeaveShip);
-        PyCallable_REG_CALL(ShipBound, ActivateShip);
-        PyCallable_REG_CALL(ShipBound, Undock);
-        PyCallable_REG_CALL(ShipBound, AssembleShip);
-        PyCallable_REG_CALL(ShipBound, Drop);
-        PyCallable_REG_CALL(ShipBound, Scoop);
-        PyCallable_REG_CALL(ShipBound, ScoopDrone);
-        PyCallable_REG_CALL(ShipBound, ScoopToSMA);
-        PyCallable_REG_CALL(ShipBound, LaunchFromContainer);
-        PyCallable_REG_CALL(ShipBound, Jettison);
-        PyCallable_REG_CALL(ShipBound, ConfigureShip);
-        PyCallable_REG_CALL(ShipBound, GetShipConfiguration);
-        PyCallable_REG_CALL(ShipBound, SelfDestruct);
-
-        PyCallable_REG_CALL(ShipBound, BoardStoredShip);
-        PyCallable_REG_CALL(ShipBound, StoreVessel);
-    }
-
-    virtual ~ShipBound() {delete m_dispatch;}
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(Board);
-    PyCallable_DECL_CALL(Eject);
-    PyCallable_DECL_CALL(LeaveShip);
-    PyCallable_DECL_CALL(ActivateShip);
-    PyCallable_DECL_CALL(Undock);
-    PyCallable_DECL_CALL(AssembleShip);
-    PyCallable_DECL_CALL(Drop);
-    PyCallable_DECL_CALL(Scoop);
-    PyCallable_DECL_CALL(ScoopDrone);
-    PyCallable_DECL_CALL(ScoopToSMA);
-    PyCallable_DECL_CALL(LaunchFromContainer);
-    PyCallable_DECL_CALL(Jettison);
-    PyCallable_DECL_CALL(ConfigureShip);
-    PyCallable_DECL_CALL(GetShipConfiguration);
-    PyCallable_DECL_CALL(SelfDestruct);
-
-    PyCallable_DECL_CALL(BoardStoredShip);
-    PyCallable_DECL_CALL(StoreVessel);
-
-protected:
-    Dispatcher *const m_dispatch;
-
-private:
-    ShipItem* pShip;
-};
-
-PyCallable_Make_InnerDispatcher(ShipService)
-
-ShipService::ShipService(PyServiceMgr *mgr)
-: PyService(mgr, "ship"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
-
-    //PyCallable_REG_CALL(ShipService,);
-}
-
-ShipService::~ShipService() {
-    delete m_dispatch;
 }
 
 /** @todo do we need more data here?  */
-PyBoundObject *ShipService::CreateBoundObject(Client *pClient, const PyRep *bind_args) {
+BoundDispatcher *ShipService::BindObject(Client *client, PyRep* bindParameters) {
     /*
      * 23:08:44 [ClientMsg] ShipService bind request
      * 23:08:44 [ClientMsg]      Tuple: 2 elements
@@ -132,22 +54,57 @@ PyBoundObject *ShipService::CreateBoundObject(Client *pClient, const PyRep *bind
      * 23:08:44 [ClientMsg]       [ 1]    Integer: 15           <<-- location's groupID
      */
     _log(CLIENT__MESSAGE, "ShipService bind request");
-    bind_args->Dump(CLIENT__MESSAGE, "    ");
-    return new ShipBound(m_manager, pClient->GetShip().get());
+
+    // this service should be bound by locationID and ship, but we'll use shipID for now...
+    uint32 shipID = client->GetShip()->itemID();
+    auto it = this->m_instances.find (shipID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    ShipBound* bound = new ShipBound(this->GetServiceManager(), *this, client->GetShip().get());
+
+    this->m_instances.insert_or_assign (shipID, bound);
+
+    return bound;
+}
+
+void ShipService::BoundReleased (ShipBound* bound) {
+    auto it = this->m_instances.find (bound->GetShipID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
+ShipBound::ShipBound (EVEServiceManager& mgr, ShipService& parent, ShipItem* ship) :
+    EVEBoundObject(mgr, parent),
+    pShip(ship)
+{
+    this->Add("Board", &ShipBound::Board);
+    this->Add("Eject", &ShipBound::Eject);
+    this->Add("LeaveShip", &ShipBound::LeaveShip);
+    this->Add("ActivateShip", &ShipBound::ActivateShip);
+    this->Add("Undock", &ShipBound::Undock);
+    this->Add("AssembleShip", static_cast <PyResult (ShipBound::*)(PyCallArgs&, PyInt*)> (&ShipBound::AssembleShip));
+    this->Add("AssembleShip", static_cast <PyResult(ShipBound::*)(PyCallArgs&, PyList*)> (&ShipBound::AssembleShip));
+    this->Add("Drop", &ShipBound::Drop);
+    this->Add("Scoop", &ShipBound::Scoop);
+    this->Add("ScoopDrone", &ShipBound::ScoopDrone);
+    this->Add("ScoopToSMA", &ShipBound::ScoopToSMA);
+    this->Add("LaunchFromContainer", &ShipBound::LaunchFromContainer);
+    this->Add("Jettison", &ShipBound::Jettison);
+    this->Add("ConfigureShip", &ShipBound::ConfigureShip);
+    this->Add("GetShipConfiguration", &ShipBound::GetShipConfiguration);
+    this->Add("SelfDestruct", &ShipBound::SelfDestruct);
+    this->Add("BoardStoredShip", &ShipBound::BoardStoredShip);
+    this->Add("StoreVessel", &ShipBound::StoreVessel);
 }
 
 /* only called in space */
-PyResult ShipBound::Handle_Board(PyCallArgs &call) {
+PyResult ShipBound::Board(PyCallArgs &call, PyInt* newShipID, std::optional<PyInt*> oldShipID) {
     if (call.client->IsSessionChange()) {
         call.client->SendNotifyMsg("Session Change currently active.");
-        return nullptr;
-    }
-
-    Call_BoardShip args;
-    //     .arg1 (newShipID) -  itemID of the ship to be boarded
-    //     .arg2 (oldShipID) -  itemID of the current ship
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
 
@@ -173,15 +130,15 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
     }
 
     // this will segfault if newShipID is invalid or not in system inventory
-    pShipSE = pSystem->GetSE(args.newShipID)->GetShipSE();
+    pShipSE = pSystem->GetSE(newShipID->value())->GetShipSE();
 
     if (pShipSE == nullptr) {
-        _log(SHIP__ERROR, "Handle_Board() - Failed to get new ship %u for %s.", args.newShipID, pClient->GetName());
+        _log(SHIP__ERROR, "Handle_Board() - Failed to get new ship %u for %s.", newShipID->value(), pClient->GetName());
         throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 25107.");
     }
 
     if (pShipSE->GetTypeID() == itemTypeCapsule) {
-        codelog(ITEM__ERROR, "Empty Pod %u in space.  SystemID %u.", args.newShipID, pSystem->GetID());
+        codelog(ITEM__ERROR, "Empty Pod %u in space.  SystemID %u.", newShipID->value(), pSystem->GetID());
         throw CustomError ("You already have a pod.  These cannot be boarded manally.");
     }
 
@@ -205,14 +162,14 @@ PyResult ShipBound::Handle_Board(PyCallArgs &call) {
 
     /* return error msg from this call, if applicable (not sure how yet), else nodeid and timestamp */
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
 /* only called in space */
-PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
+PyResult ShipBound::Eject(PyCallArgs &call) {
     if (call.client->IsSessionChange()) {
         call.client->SendNotifyMsg("Session Change currently active.");
         return nullptr;
@@ -246,24 +203,18 @@ PyResult ShipBound::Handle_Eject(PyCallArgs &call) {
 
     /* return error msg from this call, if applicable (not sure how yet), else nodeid and timestamp */
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+    // 
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
 // NOTE  LeaveShip and ActivateShip are working.  dont fuck with them
 /* only called when docked. */
-PyResult ShipBound::Handle_LeaveShip(PyCallArgs &call)
+PyResult ShipBound::LeaveShip(PyCallArgs &call, PyInt* shipID)
 {
     if (call.client->IsSessionChange()) {
         call.client->SendNotifyMsg("Session Change currently active.");
-        return nullptr;
-    }
-
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
 
@@ -284,25 +235,17 @@ PyResult ShipBound::Handle_LeaveShip(PyCallArgs &call)
 }
 
 /* only called when docked. */
-PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call) {
+PyResult ShipBound::ActivateShip(PyCallArgs &call, PyInt* newShipID, std::optional<PyInt*> oldShipID) {
     //self.instanceCache, self.instanceFlagQuantityCache, self.wbData = self.remoteShipMgr.ActivateShip(shipID, oldShipID)
 
     if (call.client->IsSessionChange()) {
         call.client->SendNotifyMsg("Session Change currently active.");
         return nullptr;
     }
-    Call_BoardShip args;
-    //     .arg1 (newShipID) -  itemID of the ship to be boarded
-    //     .arg2 (oldShipID) -  itemID of the current ship
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     Client* pClient = call.client;
-    ShipItemRef newShipRef = sItemFactory.GetShipRef(args.newShipID);
+    ShipItemRef newShipRef = sItemFactory.GetShipRef(newShipID->value());
     if (newShipRef.get() == nullptr) {
-        sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get new ship %u.", pClient->GetName(), args.newShipID);
+        sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get new ship %u.", pClient->GetName(), newShipID->value());
         throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173+1");
     }
     //ShipMustBeInPersonalHangar
@@ -319,7 +262,7 @@ PyResult ShipBound::Handle_ActivateShip(PyCallArgs &call) {
     return rsp;
 }
 
-PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
+PyResult ShipBound::Undock(PyCallArgs &call, PyInt* shipID, PyBool* ignoreContraband) {
     //ShipIllegalTypeUndock
 
     /*  we could have some fun with these....
@@ -330,12 +273,6 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
      * (258697, `{system} Traffic Control is currently offline and unable to process your undocking request. Please try again in a moment.`)
      */
 
-    Call_IntBoolArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
-    }
-
     Client* pClient = call.client;
     ShipItemRef pShip = pClient->GetShip();
     if (pShip.get() == nullptr) {
@@ -343,8 +280,7 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
         throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
     }
 
-    // nowhere near implementing this one yet....
-    bool ignoreContraband(args.arg2);
+    // nowhere near implementing ignoreContraband yet....
 
     //  get vector of online modules as (k,v) pair,
     //    where key is slotID, value is moduleID
@@ -362,13 +298,12 @@ PyResult ShipBound::Handle_Undock(PyCallArgs &call) {
     pClient->UndockFromStation();
 
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
-PyResult ShipBound::Handle_Drop(PyCallArgs &call)
+PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <PyInt*> oOwnerID, PyBool* ignoreWarning)
 {
     _log(SHIP__INFO, "ShipBound::Handle_Drop()");
     call.Dump(SHIP__INFO);
@@ -378,14 +313,7 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
         return nullptr;
     }
 
-    Call_Drop3 args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    PyList* PyToDropList = args.toDrop;
-    uint32 ownerID = args.ownerID;  // not sent for LaunchDrone() command  (not needed)
+   uint32 ownerID = oOwnerID.has_value () ? oOwnerID.value()->value() : 1;  // not sent for LaunchDrone() command  (not needed)
     //used for LaunchUpgradePlatformWarning
     // args.ignoreWarning
 
@@ -789,23 +717,16 @@ PyResult ShipBound::Handle_Drop(PyCallArgs &call)
     return dict;
 }
 
-PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        //TODO: throw exception
-        return nullptr;
-    }
-
+PyResult ShipBound::Scoop(PyCallArgs &call, PyInt* itemID) {
     Client* pClient(call.client);
     SystemManager* pSysMgr(pClient->SystemMgr());
     if (pSysMgr == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager.", pClient->GetName());
         return PyStatic.mtDict();
     }
-    SystemEntity* pSE = pSysMgr->GetSE(arg.arg);
+    SystemEntity* pSE = pSysMgr->GetSE(itemID->value());
     if (pSE == nullptr) {
-        _log(SERVICE__ERROR, "%s: Unable to find object %i to scoop.", pClient->GetName(), arg.arg);
+        _log(SERVICE__ERROR, "%s: Unable to find object %i to scoop.", pClient->GetName(), itemID->value());
         return PyStatic.mtDict();
         //{'FullPath': u'UI/Messages', 'messageID': 258825, 'label': u'ScoopObjectGoneBody'}(u'{target} is no longer there.', None, {u'{target}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'target'}})
     }
@@ -831,7 +752,7 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
 
     InventoryItemRef iRef = pSE->GetSelf();
     if (iRef.get() == nullptr) {
-        codelog(CLIENT__ERROR, "ItemRef for %i not found.", arg.arg);
+        codelog(CLIENT__ERROR, "ItemRef for %i not found.", itemID->value());
         return PyStatic.mtDict();
     }
 
@@ -856,11 +777,18 @@ PyResult ShipBound::Handle_Scoop(PyCallArgs &call) {
     return PyStatic.mtDict();
 }
 
-PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.mtDict();
+PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
+    std::vector <int32> ints;
+
+    PyList::const_iterator list_2_cur = itemIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
     // per patch notes, if ship is too far to scoop, it will automagically travel closer till drone is within range, then scoop and stop
 
@@ -868,8 +796,8 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
     SystemEntity* pDroneSE(nullptr);
     InventoryItemRef iRef(nullptr);
     SystemManager* pSysMgr(pClient->SystemMgr());
-    std::vector<int32>::const_iterator cur = args.ints.begin();
-    for(; cur != args.ints.end(); ++cur) {
+    std::vector<int32>::const_iterator cur = ints.begin();
+    for(; cur != ints.end(); ++cur) {
         pDroneSE = pSysMgr->GetSE(*cur);
         if (pDroneSE == nullptr) {
             _log(SERVICE__ERROR, "%s: Unable to find droneSE %i to scoop.", pClient->GetName(), *cur);
@@ -908,14 +836,19 @@ PyResult ShipBound::Handle_ScoopDrone(PyCallArgs &call) {
     return PyStatic.mtDict();
 }
 
-PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        //TODO: throw exception
-        return nullptr;
-    }
+PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
+    std::vector <int32> ints;
 
+    PyList::const_iterator list_2_cur = itemIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
+    }
     Client* pClient(call.client);
     if (!pClient->IsInSpace()) {
         _log(SERVICE__ERROR, "%s: Trying to jettison items when not in space!", pClient->GetName());
@@ -939,15 +872,10 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
         /** @todo  determine if this is char or corp here */
         data.ownerID = pClient->GetCharacterID();
 
-    // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-
     //args contains id's of items to jettison
-    std::vector<int32>::iterator itr = args.ints.begin();
+    std::vector<int32>::iterator itr = ints.begin();
     // loop thru items to see if there is a container in this list.
-    for (; itr != args.ints.end(); ++itr) {
+    for (; itr != ints.end(); ++itr) {
         // running this list twice is fuckedup, but not sure of another way to determine if container is in jettison list.
         iRef = sItemFactory.GetItemRef(*itr);
         if (iRef.get() == nullptr)
@@ -961,13 +889,13 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                     throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
-                StructureSE* sSE = new StructureSE(sRef, *m_manager, pSysMgr, data);
+                StructureSE* sSE = new StructureSE(sRef, this->GetServiceManager(), pSysMgr, data);
                 location.MakeRandomPointOnSphere(1500.0 + sRef->type().radius());
                 sSE->SetPosition(location);
                 sRef->SaveItem();
                 pSysMgr->AddEntity(sSE);
                 pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
-                itr = args.ints.erase(itr);
+                itr = ints.erase(itr);
             } break;
             case EVEDB::invCategories::Orbitals: {
                 sRef = sItemFactory.GetStructureRef(*itr);
@@ -975,13 +903,13 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                     throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
-                CustomsSE* sSE = new CustomsSE(sRef, *m_manager, pSysMgr, data);
+                CustomsSE* sSE = new CustomsSE(sRef, this->GetServiceManager(), pSysMgr, data);
                 location.MakeRandomPointOnSphere(1500.0 + sRef->type().radius());
                 sSE->SetPosition(location);
                 sRef->SaveItem();
                 pSysMgr->AddEntity(sSE);
                 pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
-                itr = args.ints.erase(itr);
+                itr = ints.erase(itr);
             } break;
             case EVEDB::invCategories::Deployable: {
                 cRef = sItemFactory.GetItemRef(*itr);
@@ -991,13 +919,13 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                 cRef->Move(pClient->GetLocationID(), flagNone, true);
                 //flagUnanchored: for some DUMB reason, this flag, 1023 yields a PyNone when notifications
                 // are created inside InventoryItem::Move() from passing it into a PyInt() constructor...WTF?
-                DeployableSE* dSE = new DeployableSE(cRef, *m_manager, pSysMgr, data);
+                DeployableSE* dSE = new DeployableSE(cRef, this->GetServiceManager(), pSysMgr, data);
                 location.MakeRandomPointOnSphere(1500.0 + cRef->type().radius());
                 dSE->SetPosition(location);
                 cRef->SaveItem();
                 pSysMgr->AddEntity(dSE);
                 pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
-                itr = args.ints.erase(itr);
+                itr = ints.erase(itr);
             } break;
             /** @todo  Handle other cargo */
 
@@ -1015,7 +943,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                             throw CustomError ("Unable to spawn item of type %u.", ccRef->typeID());
 
                         ccRef->Move(pClient->GetLocationID(), flagNone, true);
-                        ContainerSE* cSE = new ContainerSE(ccRef, *m_manager, pSysMgr, data);
+                        ContainerSE* cSE = new ContainerSE(ccRef, this->GetServiceManager(), pSysMgr, data);
                         location.MakeRandomPointOnSphere(500.0);
                         cSE->SetPosition(location);
                         ccRef->SaveItem();
@@ -1023,8 +951,8 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
                         pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
 
                         // container found.  remove this item from list, then break out of here and use to contain all other non-pos items
-                        args.ints.erase(itr);
-                        itr = args.ints.end();
+                        ints.erase(itr);
+                        itr = ints.end();
                     } break;
                     case EVEDB::invGroups::Construction_Platform:
                     case EVEDB::invGroups::Mobile_Sentry_Gun:
@@ -1046,7 +974,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
     }
 
     // container check complete, loop thru list for other items
-    for (auto cur : args.ints) {
+    for (auto cur : ints) {
         iRef = sItemFactory.GetItemRef(cur);
         if (iRef.get() == nullptr)
             continue;
@@ -1071,7 +999,7 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
             if (jcRef.get() == nullptr)
                 throw CustomError ("Unable to spawn jetcan.");
             // create new container
-            ContainerSE* cSE = new ContainerSE(jcRef, *m_manager, pSysMgr, data);
+            ContainerSE* cSE = new ContainerSE(jcRef, this->GetServiceManager(), pSysMgr, data);
 
             jcRef->SetMySE(cSE);
             // set anchored to avoid deletion when empty
@@ -1123,10 +1051,21 @@ PyResult ShipBound::Handle_Jettison(PyCallArgs &call) {
         continue;
     }
 
-    return tuple;
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }
 
-PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
+PyResult ShipBound::AssembleShip(PyCallArgs& args, PyInt* shipID) {
+    // this one has subSystems as a byname argument, handled by the AssembleShip call with a PyList for now
+    PyList* list = new PyList();
+
+    list->AddItem(shipID);
+
+    return this->AssembleShip(args, list);
+}
+
+PyResult ShipBound::AssembleShip(PyCallArgs &call, PyList* itemIDs) {
     /* 13:05:41 [BindDump] NodeID: 888444 BindID: 129 calling AssembleShip in service manager 'ShipBound'
      * 13:05:41 [BindDump]   Call Arguments:
      * 13:05:41 [BindDump]       Tuple: 1 elements
@@ -1184,13 +1123,17 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
         itemIDList.push_back(PyRep::IntegerValueU32(call.tuple->GetItem(0)));
         subSystemList = call.byname.find("subSystems")->second->AsList();
     } else if (call.tuple->GetItem(0)->IsList()) {
-        Call_AssembleShip args;
-        if (!args.Decode(&call.tuple)) {
-            codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-            return nullptr;
+        PyList::const_iterator list_2_cur = itemIDs->begin();
+        for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+            if (!(*list_2_cur)->IsInt()) {
+                _log(XMLP__DECODE_ERROR, "Decode Call_AssembleShip failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+                return nullptr;
+            }
+
+            const PyInt* t = (*list_2_cur)->AsInt();
+            itemIDList.push_back(t->value());
         }
-        itemIDList = args.items;
-    } else if (call.tuple->size() == 2) {
+    } else if (call.tuple->size() == 2) { // this one doesn't seem to be anywhere in the normal client code
         if (call.tuple->GetItem(0)->IsInt()
         and call.tuple->GetItem(1)->IsString()) {
             // This block is for how DNA calls AssembleShip
@@ -1251,17 +1194,16 @@ PyResult ShipBound::Handle_AssembleShip(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult ShipBound::Handle_GetShipConfiguration(PyCallArgs &call)
+PyResult ShipBound::GetShipConfiguration(PyCallArgs &call)
 {
     PyDict* dict = new PyDict();
     dict->SetItemString("allowFleetSMBUsage", new PyBool(call.client->GetShipSE()->GetFleetSMBUsage()));
     return dict;
 }
 
-PyResult ShipBound::Handle_ConfigureShip(PyCallArgs &call)
+PyResult ShipBound::ConfigureShip(PyCallArgs &call, PyDict* configuration)
 {
-    PyDict* dict = call.tuple->GetItem(0)->AsDict();
-    call.client->GetShipSE()->SetFleetSMBUsage(dict->GetItemString("allowFleetSMBUsage")->AsBool());
+    call.client->GetShipSE()->SetFleetSMBUsage(configuration->GetItemString("allowFleetSMBUsage")->AsBool());
 
     return nullptr;
 }
@@ -1277,7 +1219,7 @@ PyResult ShipBound::Handle_ConfigureShip(PyCallArgs &call)
  */
 
 
-PyResult ShipBound::Handle_LaunchFromContainer(PyCallArgs &call) {
+PyResult ShipBound::LaunchFromContainer(PyCallArgs &call, PyInt* structureID, PyList* ids) {
     /*
      * def LaunchSMAContents(self, invItems):
      *        ids = []
@@ -1296,7 +1238,7 @@ PyResult ShipBound::Handle_LaunchFromContainer(PyCallArgs &call) {
 
 
 // ShipMaintenanceArray
-PyResult ShipBound::Handle_ScoopToSMA(PyCallArgs &call) {
+PyResult ShipBound::ScoopToSMA(PyCallArgs &call, PyInt* objectID) {
     // no packet data
 
     _log(SERVICE__CALL_DUMP, "ShipBound::Handle_ScoopToSMA()");
@@ -1306,7 +1248,7 @@ PyResult ShipBound::Handle_ScoopToSMA(PyCallArgs &call) {
 }
 
 
-PyResult ShipBound::Handle_BoardStoredShip(PyCallArgs &call) {
+PyResult ShipBound::BoardStoredShip(PyCallArgs &call, PyInt* structureID, PyInt* shipID) {
     // no packet data
 
     //sm.StartService('sessionMgr').PerformSessionChange('board', ship.BoardStoredShip, structureID, shipID)
@@ -1316,7 +1258,7 @@ PyResult ShipBound::Handle_BoardStoredShip(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult ShipBound::Handle_StoreVessel(PyCallArgs &call) {
+PyResult ShipBound::StoreVessel(PyCallArgs &call, PyInt* destID) {
     // no packet data
 
     //sm.StartService('sessionMgr').PerformSessionChange('storeVessel', ship.StoreVessel, destID)
@@ -1326,7 +1268,7 @@ PyResult ShipBound::Handle_StoreVessel(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult ShipBound::Handle_SelfDestruct(PyCallArgs &call) {
+PyResult ShipBound::SelfDestruct(PyCallArgs &call, PyInt* shipID) {
     /** @todo finish this later
      * 22:13:29 L ShipBound::Handle_SelfDestruct(): size=1
      * 22:13:29 [SvcCall]   Call Arguments:
@@ -1427,8 +1369,7 @@ PyResult ShipBound::Handle_SelfDestruct(PyCallArgs &call) {
      */
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
-    PyTuple* tuple = new PyTuple(2);
-        tuple->SetItem(0, new PyString(GetBindStr()));    // node info here
-        tuple->SetItem(1, new PyLong(GetFileTimeNow()));
-    return tuple;
+    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
+    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    return this->GetOID();
 }

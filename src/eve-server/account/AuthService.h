@@ -27,23 +27,18 @@
 #ifndef __AUTH_H_INCL__
 #define __AUTH_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class AuthService : public PyService {
+class AuthService : public Service <AuthService> {
 public:
-    AuthService(PyServiceMgr *mgr);
-    virtual ~AuthService();
+    AuthService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(Ping);
-    PyCallable_DECL_CALL(GetPostAuthenticationMessage);
-    PyCallable_DECL_CALL(AmUnderage);
-    PyCallable_DECL_CALL(AccruedTime);
-    PyCallable_DECL_CALL(SetLanguageID);
-
+    PyResult Ping(PyCallArgs& call);
+    PyResult GetPostAuthenticationMessage(PyCallArgs& call);
+    PyResult AmUnderage(PyCallArgs& call);
+    PyResult AccruedTime(PyCallArgs& call);
+    PyResult SetLanguageID(PyCallArgs& call, PyRep* languageID);
 };
 
 #endif

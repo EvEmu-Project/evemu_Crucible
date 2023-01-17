@@ -36,7 +36,7 @@
 #include "ship/modules/GenericModule.h"
 #include "system/Damage.h"
 
-Missile::Missile( InventoryItemRef self, PyServiceMgr& services, SystemManager* pSystem, InventoryItemRef modRef, SystemEntity* tSE, SystemEntity* pSE, GenericModule* pMod)
+Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemManager* pSystem, InventoryItemRef modRef, SystemEntity* tSE, SystemEntity* pSE, GenericModule* pMod)
 : DynamicSystemEntity(self, services, pSystem),
   m_modRef(modRef),
   m_targetSE(tSE),

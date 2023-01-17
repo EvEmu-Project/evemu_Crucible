@@ -2385,7 +2385,7 @@ bool ShipItem::ValidateItemSpecifics(InventoryItemRef iRef)
 
 
 /* DynamicSystemEntity representing ship object in space */
-ShipSE::ShipSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* pSystem, const FactionData& data)
+ShipSE::ShipSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* pSystem, const FactionData& data)
 : DynamicSystemEntity(self, services, pSystem),
 m_shipRef(ShipItemRef::StaticCast(self)),
 m_processTimerTick(SHIP_PROCESS_TICK_MS),   //5s

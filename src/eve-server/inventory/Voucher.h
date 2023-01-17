@@ -27,47 +27,36 @@
 #ifndef EVEMU_INVENTORY_VOUCHER_H_
 #define EVEMU_INVENTORY_VOUCHER_H_
 
-#include "PyService.h"
-#include "PyBoundObject.h"
+#include "services/Service.h"
+#include "services/BoundService.h"
 
-class VoucherService : public PyService {
+class VoucherBound;
+
+class VoucherService : public Service <VoucherService>, public BoundServiceParent <VoucherBound> {
 public:
-    VoucherService(PyServiceMgr *mgr);
-    virtual ~VoucherService();
+    VoucherService(EVEServiceManager& mgr);
+
+    void BoundReleased (VoucherBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult GetObject(PyCallArgs& args, PyInt* voucherID);
 
-
-    PyCallable_DECL_CALL(GetObject);
-
+private:
+    EVEServiceManager& m_manager;
+    std::map <uint32, VoucherBound*> m_instances;
 };
 
-
-class VoucherBound
-: public PyBoundObject
+class VoucherBound : public EVEBoundObject <VoucherBound>
 {
 public:
-    VoucherBound(PyServiceMgr* mgr, InventoryItemRef itemRef);
+    VoucherBound(EVEServiceManager& mgr, VoucherService& parent, InventoryItemRef itemRef);
 
-    virtual ~VoucherBound();
-
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(GetDescription);
-
+    int32 GetVoucherID () { return this->m_itemRef->itemID(); }
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
+    PyResult GetDescription(PyCallArgs& call);
 
 private:
     InventoryItemRef m_itemRef;
-
 };
 
 #endif  // EVEMU_INVENTORY_VOUCHER_H_

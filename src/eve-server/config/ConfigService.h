@@ -28,38 +28,34 @@
 #define __CONFIG_SERVICE_H_INCL__
 
 #include "config/ConfigDB.h"
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
-class ConfigService : public PyService
+class ConfigService : public Service <ConfigService>
 {
 public:
-    ConfigService(PyServiceMgr *mgr);
-    virtual ~ConfigService();
+    ConfigService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     ConfigDB m_db;
 
-    PyCallable_DECL_CALL(GetMultiOwnersEx);
-    PyCallable_DECL_CALL(GetMultiLocationsEx);
-    PyCallable_DECL_CALL(GetMultiStationEx);
-    PyCallable_DECL_CALL(GetMultiAllianceShortNamesEx);
-    PyCallable_DECL_CALL(GetMultiCorpTickerNamesEx);
-    PyCallable_DECL_CALL(GetUnits);
-    PyCallable_DECL_CALL(GetMapObjects);
-    PyCallable_DECL_CALL(GetMapOffices);
-    PyCallable_DECL_CALL(GetMap);
-    PyCallable_DECL_CALL(GetMapConnections);
-    PyCallable_DECL_CALL(GetMultiGraphicsEx);
-    PyCallable_DECL_CALL(GetMultiInvTypesEx);
-    PyCallable_DECL_CALL(GetStationSolarSystemsByOwner);
-    PyCallable_DECL_CALL(GetCelestialStatistic);
-    PyCallable_DECL_CALL(GetDynamicCelestials);
-    PyCallable_DECL_CALL(GetMapLandmarks);
-    PyCallable_DECL_CALL(SetMapLandmarks);
-
+    PyResult GetUnits(PyCallArgs& call);
+    PyResult GetMapLandmarks(PyCallArgs& call);
+    PyResult GetMultiOwnersEx(PyCallArgs& call, PyList* ownerIDs);
+    PyResult GetMultiAllianceShortNamesEx(PyCallArgs& call, PyList* allianceIDs);
+    PyResult GetMultiLocationsEx(PyCallArgs& call, PyList* locationIDs);
+    PyResult GetMultiStationEx(PyCallArgs& call, PyList* stationIDs);
+    PyResult GetMultiCorpTickerNamesEx(PyCallArgs& call, PyList* corporationIDs);
+    PyResult GetMultiGraphicsEx(PyCallArgs& call, PyList* graphicIDs);
+    PyResult GetMap(PyCallArgs& call, PyInt* solarSystemID);
+    PyResult GetMapOffices(PyCallArgs& call, PyInt* solarSystemID);
+    PyResult GetMapObjects(PyCallArgs& call, PyInt* systemID, PyInt* region, PyInt* constellation, PyInt* system, PyInt* station, PyInt* unknown);
+    PyResult GetMultiInvTypesEx(PyCallArgs& call, PyList* typeIDs);
+    PyResult GetMapConnections(PyCallArgs& call, PyInt* itemID, PyInt* reg, PyInt* con, PyInt* sol, PyInt* cel, PyInt* _c);
+    PyResult GetStationSolarSystemsByOwner(PyCallArgs& call, PyInt* ownerID);
+    PyResult GetCelestialStatistic(PyCallArgs& call, PyInt* celestialID);
+    PyResult GetDynamicCelestials(PyCallArgs& call, PyInt* locationID);
+    PyResult SetMapLandmarks(PyCallArgs& call, PyList* landmarkData);
 };
 
 #endif

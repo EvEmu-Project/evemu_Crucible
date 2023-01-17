@@ -29,7 +29,7 @@
 #define __CONFIGDB_H_INCL__
 
 #include "ServiceDB.h"
-  #include "packets/Map.h"
+
 
 class PyRep;
 

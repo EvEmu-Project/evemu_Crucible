@@ -26,138 +26,62 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "chat/LookupService.h"
 
-
-PyCallable_Make_InnerDispatcher(LookupService)
-
-LookupService::LookupService(PyServiceMgr *mgr)
-: PyService(mgr, "lookupSvc"),
-  m_dispatch(new Dispatcher(this))
+LookupService::LookupService() :
+    Service("lookupSvc")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(LookupService, LookupCharacters);
-    PyCallable_REG_CALL(LookupService, LookupOwners);
-    PyCallable_REG_CALL(LookupService, LookupPlayerCharacters);
-    PyCallable_REG_CALL(LookupService, LookupCorporations);
-    PyCallable_REG_CALL(LookupService, LookupFactions);
-    PyCallable_REG_CALL(LookupService, LookupCorporationTickers);
-    PyCallable_REG_CALL(LookupService, LookupStations);
-    PyCallable_REG_CALL(LookupService, LookupKnownLocationsByGroup);
-    PyCallable_REG_CALL(LookupService, LookupEvePlayerCharacters);
-    PyCallable_REG_CALL(LookupService, LookupPCOwners);
-    PyCallable_REG_CALL(LookupService, LookupNoneNPCAccountOwners);
+    this->Add("LookupCharacters", &LookupService::LookupCharacters);
+    this->Add("LookupOwners", &LookupService::LookupOwners);
+    this->Add("LookupPlayerCharacters", &LookupService::LookupPlayerCharacters);
+    this->Add("LookupCorporations", &LookupService::LookupCorporations);
+    this->Add("LookupFactions", &LookupService::LookupFactions);
+    this->Add("LookupCorporationTickers", &LookupService::LookupCorporationTickers);
+    this->Add("LookupStations", &LookupService::LookupStations);
+    this->Add("LookupKnownLocationsByGroup", &LookupService::LookupKnownLocationsByGroup);
+    this->Add("LookupEvePlayerCharacters", &LookupService::LookupEvePlayerCharacters);
+    this->Add("LookupPCOwners", &LookupService::LookupPCOwners);
+    this->Add("LookupNoneNPCAccountOwners", &LookupService::LookupNoneNPCAccountOwners);
 }
 
-LookupService::~LookupService() {
-    delete m_dispatch;
+PyResult LookupService::LookupEvePlayerCharacters(PyCallArgs& call, PyWString* searchString, PyInt* exact) {
+    return ServiceDB::LookupChars(searchString->content().c_str(), exact->value() ? true : false);
 }
 
-PyResult LookupService::Handle_LookupEvePlayerCharacters(PyCallArgs& call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
-}
-
-PyResult LookupService::Handle_LookupCharacters(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
+PyResult LookupService::LookupCharacters(PyCallArgs &call, PyWString* searchString, PyInt* exact) {
+    return ServiceDB::LookupChars(searchString->content().c_str(), exact->value() ? true : false);
 }
 
 // this may actually be a call to search for player corps by name.
-PyResult LookupService::Handle_LookupPCOwners(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupChars(args.searchString.c_str(), args.searchOption ? true : false);
+PyResult LookupService::LookupPCOwners(PyCallArgs &call, PyWString* searchString, PyInt* exact) {
+    return ServiceDB::LookupChars(searchString->content().c_str(), exact->value() ? true : false);
 }
 //LookupOwners
-PyResult LookupService::Handle_LookupOwners(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupOwners(args.searchString.c_str(),  args.searchOption ? true : false );
+PyResult LookupService::LookupOwners(PyCallArgs &call, PyWString* searchString, PyInt* exact) {
+    return ServiceDB::LookupOwners(searchString->content().c_str(), exact->value() ? true : false);
 }
 
-PyResult LookupService::Handle_LookupNoneNPCAccountOwners(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupOwners(args.searchString.c_str(),  args.searchOption ? true : false );
+PyResult LookupService::LookupNoneNPCAccountOwners(PyCallArgs &call, PyWString* searchString, PyInt* exact) {
+    return ServiceDB::LookupOwners(searchString->content().c_str(), exact->value() ? true : false);
 }
 
-PyResult LookupService::Handle_LookupPlayerCharacters(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupChars(args.searchString.c_str(), false);
+PyResult LookupService::LookupPlayerCharacters(PyCallArgs &call, PyWString* searchString) {
+    return ServiceDB::LookupChars(searchString->content().c_str(), false);
 }
-PyResult LookupService::Handle_LookupCorporations(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupCorporations(args.searchString);
+PyResult LookupService::LookupCorporations(PyCallArgs &call, PyWString* searchString) {
+    return ServiceDB::LookupCorporations(searchString->content().c_str());
 }
-PyResult LookupService::Handle_LookupFactions(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupFactions(args.searchString);
+PyResult LookupService::LookupFactions(PyCallArgs &call, PyWString* searchString) {
+    return ServiceDB::LookupFactions(searchString->content().c_str());
 }
-PyResult LookupService::Handle_LookupCorporationTickers(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupCorporationTickers(args.searchString);
+PyResult LookupService::LookupCorporationTickers(PyCallArgs &call, PyWString* searchString) {
+    return ServiceDB::LookupCorporationTickers(searchString->content().c_str());
 }
-PyResult LookupService::Handle_LookupStations(PyCallArgs &call) {
-    Call_LookupStringInt args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupStations(args.searchString);
+PyResult LookupService::LookupStations(PyCallArgs &call, PyWString* searchString) {
+    return ServiceDB::LookupStations(searchString->content().c_str());
 }
 
-PyResult LookupService::Handle_LookupKnownLocationsByGroup(PyCallArgs &call) {
-    Call_LookupIntString args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return ServiceDB::LookupKnownLocationsByGroup(args.searchString, args.searchOption);
+PyResult LookupService::LookupKnownLocationsByGroup(PyCallArgs &call, PyWString* searchString, PyInt* exact) {
+    return ServiceDB::LookupKnownLocationsByGroup(searchString->content().c_str(), exact->value() ? true : false);
 }

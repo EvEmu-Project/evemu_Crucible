@@ -14,7 +14,7 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyService.h"
+
 #include "account/AccountService.h"
 #include "inventory/ItemType.h"
 #include "inventory/InventoryItem.h"
@@ -26,25 +26,24 @@
 #include "system/SystemManager.h"
 
 
-PlanetMgr::PlanetMgr(PyServiceMgr *mgr, Client* pClient, PlanetSE* pPlanet, Colony* pColony)
-:m_svcMgr(mgr),
+PlanetMgr::PlanetMgr(Client* pClient, PlanetSE* pPlanet, Colony* pColony) :
  m_client(pClient),
  m_colony(pColony),
 m_planet(pPlanet)
 {
 }
 
-PyRep* PlanetMgr::UpdateNetwork(UUNCommandList& uuncl)
+PyRep* PlanetMgr::UpdateNetwork(PyList* commandList)
 {
     using namespace PI;
     bool cancel = false;
-    for (int i = 0; i < uuncl.commandList->size(); ++i) {
+    for (int i = 0; i < commandList->size(); ++i) {
         if (cancel)
             return m_colony->GetColony();
         UUNCommand uunc;
-        if (!uunc.Decode(uuncl.commandList->GetItem(i)->AsTuple())) {
+        if (!uunc.Decode(commandList->GetItem(i)->AsTuple())) {
             _log(SERVICE__ERROR, "Failed to decode args for UUNCommand");
-            uuncl.commandList->Dump(PLANET__WARNING, "      ");
+            commandList->Dump(PLANET__WARNING, "      ");
             m_client->SendErrorMsg("Internal Server Error.  Ref: ServerError 04508.");
             return nullptr;
         }

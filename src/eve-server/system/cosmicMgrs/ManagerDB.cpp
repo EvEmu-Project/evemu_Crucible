@@ -363,7 +363,7 @@ void ManagerDB::GetAnomaliesBySystem(uint32 systemID, DBQueryResult& res)
         }
 }
 
-GPoint ManagerDB::GetAnomalyPos(std::string& string)
+GPoint ManagerDB::GetAnomalyPos(const std::string& string)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT x,y,z FROM sysSignatures WHERE sigID = '%s'", string.c_str()))

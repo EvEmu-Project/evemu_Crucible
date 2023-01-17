@@ -27,25 +27,49 @@
 #define __JUMPCLONE_SERVICE_H_INCL__
 
 #include "station/StationDB.h"
-#include "PyService.h"
+#include "services/BoundService.h"
+#include "Client.h"
 
-class JumpCloneService
-: public PyService
+class JumpCloneBound;
+
+class JumpCloneService : public BindableService <JumpCloneService, JumpCloneBound>
 {
 public:
-    JumpCloneService(PyServiceMgr *mgr);
-    virtual ~JumpCloneService();
+    JumpCloneService(EVEServiceManager& mgr);
+
+    void BoundReleased (JumpCloneBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     StationDB m_db;
 
     //PyCallable_DECL_CALL(GetShipCloneState)
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
+};
+
+class JumpCloneBound : public EVEBoundObject <JumpCloneBound>
+{
+public:
+    JumpCloneBound(EVEServiceManager& mgr, JumpCloneService& parent, StationDB* db, uint32 locationID);
+
+protected:
+    PyResult GetCloneState(PyCallArgs& call);
+    PyResult GetShipCloneState(PyCallArgs& call);
+    PyResult GetPriceForClone(PyCallArgs& call);
+    PyResult InstallCloneInStation(PyCallArgs& call);
+    PyResult GetStationCloneState(PyCallArgs& call);
+    PyResult OfferShipCloneInstallation(PyCallArgs& call, PyInt* characterID);
+    PyResult DestroyInstalledClone(PyCallArgs& call, PyInt* cloneID);
+    PyResult AcceptShipCloneInstallation(PyCallArgs& call);
+    PyResult CancelShipCloneInstallation(PyCallArgs& call);
+    PyResult CloneJump(PyCallArgs& call, PyInt* locationID);
+
+protected:
+    StationDB *const m_db;        //we do not own this
+
+    uint32 m_locationID;
+    uint8 m_locGroupID;
 };
 
 #endif

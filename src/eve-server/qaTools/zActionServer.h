@@ -13,24 +13,16 @@
 #ifndef _EVEMU_QATOOLS_ZACTION_SERVER_H
 #define _EVEMU_QATOOLS_ZACTION_SERVER_H
 
+#include "services/Service.h"
 
-#include "PyService.h"
-
-
-class zActionServer
-: public PyService
+class zActionServer : public Service <zActionServer>
 {
 public:
-    zActionServer(PyServiceMgr *mgr);
-    ~zActionServer();
-
+    zActionServer();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(RequestActionStart);
-    PyCallable_DECL_CALL(QA_RequestForceActionStart);
+    PyResult RequestActionStart(PyCallArgs& call, PyInt* entityID, PyInt* actionID, PyBool* interrupt, PyDict* clientProps);
+    PyResult QA_RequestForceActionStart(PyCallArgs& call, PyInt* entityID, PyInt* actionID);
 
 };
 

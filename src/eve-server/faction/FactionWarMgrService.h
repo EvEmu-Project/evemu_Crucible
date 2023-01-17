@@ -28,53 +28,49 @@
 #define __FACTION_WAR_MGR__H__INCL__
 
 #include "faction/FactionWarMgrDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-class FactionWarMgrService : public PyService
+class FactionWarMgrService : public Service <FactionWarMgrService>
 {
 public:
-    FactionWarMgrService(PyServiceMgr *mgr);
-    ~FactionWarMgrService();
+    FactionWarMgrService(EVEServiceManager& mgr);
 
-    PyCallable_DECL_CALL(GetWarFactions);
-    PyCallable_DECL_CALL(GetFWSystems);
-    PyCallable_DECL_CALL(RefreshCorps);
-    PyCallable_DECL_CALL(GetMyCharacterRankOverview);
-    PyCallable_DECL_CALL(GetMyCharacterRankInfo);
-    PyCallable_DECL_CALL(GetFactionMilitiaCorporation);
-    PyCallable_DECL_CALL(GetCorporationWarFactionID);
-    PyCallable_DECL_CALL(GetCharacterRankInfo);
-    PyCallable_DECL_CALL(GetFactionalWarStatus);
-    PyCallable_DECL_CALL(GetSystemStatus);
-    PyCallable_DECL_CALL(GetFactionCorporations);
-    PyCallable_DECL_CALL(GetSystemsConqueredThisRun);
-    PyCallable_DECL_CALL(IsEnemyFaction);
-    PyCallable_DECL_CALL(IsEnemyCorporation);
-
-    PyCallable_DECL_CALL(JoinFactionAsCharacter);
-    PyCallable_DECL_CALL(JoinFactionAsCharacterRecommendationLetter);
-    PyCallable_DECL_CALL(JoinFactionAsCorporation);
-    PyCallable_DECL_CALL(JoinFactionAsAlliance);
-    PyCallable_DECL_CALL(LeaveFactionAsAlliance);
-    PyCallable_DECL_CALL(LeaveFactionAsCorporation);
-    PyCallable_DECL_CALL(WithdrawJoinFactionAsAlliance);
-    PyCallable_DECL_CALL(WithdrawJoinFactionAsCorporation);
-    PyCallable_DECL_CALL(WithdrawLeaveFactionAsAlliance);
-    PyCallable_DECL_CALL(WithdrawLeaveFactionAsCorporation);
-
-    PyCallable_DECL_CALL(GetStats_FactionInfo);
-    PyCallable_DECL_CALL(GetStats_Corp);
-    PyCallable_DECL_CALL(GetStats_Character);
-    PyCallable_DECL_CALL(GetStats_Alliance);
-    PyCallable_DECL_CALL(GetStats_Militia);
-    PyCallable_DECL_CALL(GetStats_CorpPilots);
-    PyCallable_DECL_CALL(GetStats_TopAndAllKillsAndVPs);
-
+protected:
+    PyResult GetWarFactions(PyCallArgs& call);
+    PyResult GetFWSystems(PyCallArgs& call); 
+    PyResult GetMyCharacterRankOverview(PyCallArgs& call);
+    PyResult GetMyCharacterRankInfo(PyCallArgs& call);
+    PyResult GetFactionMilitiaCorporation(PyCallArgs& call, PyInt* factionID);
+    PyResult GetSystemStatus(PyCallArgs& call, PyInt* solarsystemID, PyInt* warFactionID);
+    PyResult IsEnemyFaction(PyCallArgs& call, PyInt* enemyID, PyInt* factionID);
+    PyResult IsEnemyCorporation(PyCallArgs& call, PyInt* enemyID, PyInt* factionID);
+    PyResult GetCharacterRankInfo(PyCallArgs& call, PyInt* characterID);
+    PyResult GetFactionalWarStatus(PyCallArgs& call);
+    PyResult JoinFactionAsCharacter(PyCallArgs& call, PyInt* factionID);
+    PyResult GetCorporationWarFactionID(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetSystemsConqueredThisRun(PyCallArgs& call);
+    PyResult GetFactionCorporations(PyCallArgs& call, PyInt* factionID);
+    PyResult JoinFactionAsCharacterRecommendationLetter(PyCallArgs& call, PyInt* factionID, PyInt* itemID);
+    PyResult JoinFactionAsAlliance(PyCallArgs& call, PyInt* factionID);
+    PyResult JoinFactionAsCorporation(PyCallArgs& call, PyInt* factionID);
+    PyResult GetStats_FactionInfo(PyCallArgs& call);
+    PyResult GetStats_TopAndAllKillsAndVPs(PyCallArgs& call);
+    PyResult GetStats_Character(PyCallArgs& call);
+    PyResult GetStats_Corp(PyCallArgs& call);
+    PyResult GetStats_Alliance(PyCallArgs& call);
+    PyResult GetStats_Militia(PyCallArgs& call);
+    PyResult GetStats_CorpPilots(PyCallArgs& call);
+    PyResult LeaveFactionAsAlliance(PyCallArgs& call, PyInt* factionID);
+    PyResult LeaveFactionAsCorporation(PyCallArgs& call, PyInt* factionID);
+    PyResult WithdrawJoinFactionAsAlliance(PyCallArgs& call, PyInt* factionID);
+    PyResult WithdrawJoinFactionAsCorporation(PyCallArgs& call, PyInt* factionID);
+    PyResult WithdrawLeaveFactionAsAlliance(PyCallArgs& call, PyInt* factionID);
+    PyResult WithdrawLeaveFactionAsCorporation(PyCallArgs& call, PyInt* factionID);
+    PyResult RefreshCorps(PyCallArgs& call);
 
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
+    ObjCacheService* m_cache;
+    EVEServiceManager& m_manager;
     FactionWarMgrDB m_db;
 };
 

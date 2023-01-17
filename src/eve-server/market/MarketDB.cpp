@@ -190,7 +190,7 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 }
 
 //NOTE: needs a lot of work to implement orderRange
-uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
+uint32 MarketDB::FindBuyOrder(uint32 typeID, uint32 stationID, uint32 quantity, double price) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT orderID"
@@ -202,10 +202,10 @@ uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
         "  AND price > %.2f"
         " ORDER BY price DESC"
         " LIMIT 1;",
-        call.typeID,
-        call.stationID,
-        call.quantity,
-        call.price - 0.1/*, sConfig.market.FindBuyOrder*/))
+        typeID,
+        stationID,
+        quantity,
+        price - 0.1/*, sConfig.market.FindBuyOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -218,7 +218,7 @@ uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
     return 0;    //no order found.
 }
 
-uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call)
+uint32 MarketDB::FindSellOrder(uint32 typeID, uint32 stationID, uint32 quantity, double price)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
@@ -231,10 +231,10 @@ uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call)
         "  AND price < %.2f"
         " ORDER BY price ASC"
         " LIMIT 1;",
-        call.typeID,
-        call.stationID,
-        call.quantity,
-        call.price + 0.1/*, sConfig.market.FindSellOrder*/))
+        typeID,
+        stationID,
+        quantity,
+        price + 0.1/*, sConfig.market.FindSellOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;

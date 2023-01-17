@@ -16,57 +16,6 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_GiveCash">
-    <tupleInline>
-      <int name="toID" />
-      <real name="amount" safe="true" />
-      <string name="reason" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GiveCorpCash">
-    <tupleInline>
-      <int name="toID" />
-      <real name="amount" safe="true"/>
-      <int name="fromAcctKey" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetJournal">
-  <!--  GetJournal(     keyID, fromDate,        None,                 1)
-        GetJournal(accountKey, fromDate,   entryType, self.isCorpWallet, rev=1)
-        GetJournal(accountKey, fromDate, entryTypeID,       corpAccount, transactionID, rev)  -->
-    <tupleInline>
-      <int name="accountKey" />
-      <long name="fromDate" />
-      <int name="entryTypeID" none_marker="0" safe="true" />
-      <bool name="corpAccount" none_marker="0" safe="true" /> <!-- corpAccount could be either bool or interger  -->
-      <int name="transactionID" none_marker="0" safe="true" />
-      <int name="rev" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetJournals">
-  <!--  GetJournalForAccounts(accountKeys, fromDate, entryTypeID, corpAccount, transactionID, rev)  -->
-    <tupleInline>
-      <list name="accountKeys" />
-      <long name="fromDate" />
-      <int name="entryTypeID" none_marker="0" />
-      <int name="corpAccount" safe="true" /> <!-- corpAccount could be either bool or interger  -->
-      <int name="transactionID" none_marker="0" />
-      <int name="rev" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="RspGetCashBalance">
-    <tupleInline>
-      <!-- 0 -->
-      <substreamInline>
-        <real name="credits" />
-      </substreamInline>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="OnBillReceived">
     <tupleInline>
       <int name="notificationID" /><!-- notificationID in "Unprocessed Notifications" from mail.notifications -->

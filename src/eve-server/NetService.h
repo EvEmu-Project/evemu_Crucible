@@ -27,21 +27,22 @@
 #ifndef __NET_H_INCL__
 #define __NET_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "services/ServiceManager.h"
+#include "cache/ObjCacheService.h"
 
-class NetService : public PyService {
+class NetService : public Service <NetService> {
 public:
-    NetService(PyServiceMgr *mgr);
-    ~NetService();
+    NetService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult GetTime(PyCallArgs& call);
+    PyResult GetClusterSessionStatistics(PyCallArgs& call);
+    PyResult GetInitVals(PyCallArgs& call);
 
-    PyCallable_DECL_CALL(GetInitVals);
-    PyCallable_DECL_CALL(GetTime);
-    PyCallable_DECL_CALL(GetClusterSessionStatistics);
-
+private:
+    EVEServiceManager& m_manager;
+    ObjCacheService* m_cache;
 };
 
 #endif

@@ -25,42 +25,31 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/ScenarioService.h"
 
-
-PyCallable_Make_InnerDispatcher(ScenarioService)
-
-ScenarioService::ScenarioService(PyServiceMgr *mgr)
-: PyService(mgr, "scenario"),
-  m_dispatch(new Dispatcher(this))
+ScenarioService::ScenarioService() :
+    Service("scenario")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ScenarioService, ResetD);
-    PyCallable_REG_CALL(ScenarioService, PlayDungeon);
-    PyCallable_REG_CALL(ScenarioService, EditRoom);
-    PyCallable_REG_CALL(ScenarioService, GotoRoom);
-    PyCallable_REG_CALL(ScenarioService, GetDunObjects);
-    PyCallable_REG_CALL(ScenarioService, GetSelObjects);
-    PyCallable_REG_CALL(ScenarioService, IsSelectedByObjID);
-    PyCallable_REG_CALL(ScenarioService, DuplicateSelection);
-    PyCallable_REG_CALL(ScenarioService, SetSelectionByID);
-    PyCallable_REG_CALL(ScenarioService, SetSelectedRadius);
-    PyCallable_REG_CALL(ScenarioService, SetRotate);
-    PyCallable_REG_CALL(ScenarioService, RotateSelected);
-    PyCallable_REG_CALL(ScenarioService, JitterSelection);
-    PyCallable_REG_CALL(ScenarioService, ArrangeSelection);
-    PyCallable_REG_CALL(ScenarioService, DeleteSelected);
-    PyCallable_REG_CALL(ScenarioService, RefreshSelection);
+    this->Add("ResetD", &ScenarioService::ResetD);
+    this->Add("PlayDungeon", &ScenarioService::PlayDungeon);
+    this->Add("EditRoom", &ScenarioService::EditRoom);
+    this->Add("GotoRoom", &ScenarioService::GotoRoom);
+    this->Add("GetDunObjects", &ScenarioService::GetDunObjects);
+    this->Add("GetSelObjects", &ScenarioService::GetSelObjects);
+    this->Add("IsSelectedByObjID", &ScenarioService::IsSelectedByObjID);
+    this->Add("DuplicateSelection", &ScenarioService::DuplicateSelection);
+    this->Add("SetSelectionByID", &ScenarioService::SetSelectionByID);
+    this->Add("SetSelectedRadius", &ScenarioService::SetSelectedRadius);
+    this->Add("SetRotate", &ScenarioService::SetRotate);
+    this->Add("RotateSelected", &ScenarioService::RotateSelected);
+    this->Add("JitterSelection", &ScenarioService::JitterSelection);
+    this->Add("ArrangeSelection", &ScenarioService::ArrangeSelection);
+    this->Add("DeleteSelected", &ScenarioService::DeleteSelected);
+    this->Add("RefreshSelection", &ScenarioService::RefreshSelection);
 }
 
-ScenarioService::~ScenarioService() {
-    delete m_dispatch;
-}
-
-
-PyResult ScenarioService::Handle_ResetD( PyCallArgs& call )
+PyResult ScenarioService::ResetD(PyCallArgs& call)
 {
     _log(DUNG__CALL, "ScenarioService::ResetD()" );
     call.Dump(DUNG__CALL_DUMP);
@@ -68,7 +57,7 @@ PyResult ScenarioService::Handle_ResetD( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_PlayDungeon( PyCallArgs& call )
+PyResult ScenarioService::PlayDungeon(PyCallArgs& call, PyInt* dungeonVID, PyInt* selectedRoom)
 {
 //PlayDungeon(dungeonVID, selectedRoom)
     _log(DUNG__CALL, "ScenarioService::PlayDungeon()" );
@@ -77,7 +66,7 @@ PyResult ScenarioService::Handle_PlayDungeon( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_EditRoom( PyCallArgs& call )
+PyResult ScenarioService::EditRoom(PyCallArgs& call, PyInt* dungeonVID, PyInt* selectedRoom)
 {
     //EditRoom(dungeonVID, selectedRoom)
     _log(DUNG__CALL, "ScenarioService::EditRoom()" );
@@ -86,7 +75,7 @@ PyResult ScenarioService::Handle_EditRoom( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_GotoRoom( PyCallArgs& call )
+PyResult ScenarioService::GotoRoom(PyCallArgs& call, PyInt* selectedRoom)
 {
 //GotoRoom(selectedRoom)
     _log(DUNG__CALL, "ScenarioService::GotoRoom()" );
@@ -95,7 +84,7 @@ PyResult ScenarioService::Handle_GotoRoom( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_GetDunObjects( PyCallArgs& call )
+PyResult ScenarioService::GetDunObjects(PyCallArgs& call)
 {
 //GetDunObjects() (returns list of slim items)
     _log(DUNG__CALL, "ScenarioService::GetDunObjects()" );
@@ -104,7 +93,7 @@ PyResult ScenarioService::Handle_GetDunObjects( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_GetSelObjects( PyCallArgs& call )
+PyResult ScenarioService::GetSelObjects(PyCallArgs& call)
 {
 //GetSelObjects() (returns list of slim items)
     _log(DUNG__CALL, "ScenarioService::GetSelObjects()" );
@@ -113,7 +102,7 @@ PyResult ScenarioService::Handle_GetSelObjects( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_IsSelectedByObjID( PyCallArgs& call )
+PyResult ScenarioService::IsSelectedByObjID(PyCallArgs& call, PyInt* dunObjectID)
 {
 //IsSelectedByObjID(dunObjectID)
     _log(DUNG__CALL, "ScenarioService::IsSelectedByObjID()" );
@@ -122,7 +111,7 @@ PyResult ScenarioService::Handle_IsSelectedByObjID( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_DuplicateSelection( PyCallArgs& call )
+PyResult ScenarioService::DuplicateSelection(PyCallArgs& call, PyInt* amount, PyFloat* x, PyFloat* y, PyFloat* z)
 {
 //DuplicateSelection(amount, X, Y, Z)
     _log(DUNG__CALL, "ScenarioService::DuplicateSelection()" );
@@ -131,7 +120,7 @@ PyResult ScenarioService::Handle_DuplicateSelection( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_SetSelectionByID( PyCallArgs& call )
+PyResult ScenarioService::SetSelectionByID(PyCallArgs& call, PyList* ids)
 {
 //SetSelectionByID(ids)
     _log(DUNG__CALL, "ScenarioService::SetSelectionByID()" );
@@ -140,7 +129,7 @@ PyResult ScenarioService::Handle_SetSelectionByID( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_SetSelectedRadius( PyCallArgs& call )
+PyResult ScenarioService::SetSelectedRadius(PyCallArgs& call, PyFloat* minRadius, PyFloat* maxRadius)
 {
 //SetSelectedRadius(minRadius, maxRadius)
     _log(DUNG__CALL, "ScenarioService::SetSelectedRadius()" );
@@ -149,7 +138,7 @@ PyResult ScenarioService::Handle_SetSelectedRadius( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_SetRotate( PyCallArgs& call )
+PyResult ScenarioService::SetRotate(PyCallArgs& call, PyFloat* yaw, PyFloat* pitch, PyFloat* roll)
 {
 //SetRotate(y, p, r)
     _log(DUNG__CALL, "ScenarioService::SetRotate()" );
@@ -158,7 +147,7 @@ PyResult ScenarioService::Handle_SetRotate( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_RotateSelected( PyCallArgs& call )
+PyResult ScenarioService::RotateSelected(PyCallArgs& call, PyFloat* yaw, PyFloat* pitch, PyFloat* roll)
 {
 //RotateSelected(yaw, pitch, roll)
     _log(DUNG__CALL, "ScenarioService::RotateSelected()" );
@@ -167,7 +156,7 @@ PyResult ScenarioService::Handle_RotateSelected( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_JitterSelection( PyCallArgs& call )
+PyResult ScenarioService::JitterSelection(PyCallArgs& call, PyFloat* x, PyFloat* y, PyFloat* z)
 {
 //JitterSelection(X, Y, Z)
     _log(DUNG__CALL, "ScenarioService::JitterSelection()" );
@@ -176,7 +165,7 @@ PyResult ScenarioService::Handle_JitterSelection( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_ArrangeSelection( PyCallArgs& call )
+PyResult ScenarioService::ArrangeSelection(PyCallArgs& call, PyFloat* x, PyFloat* y, PyFloat* z)
 {
 //ArrangeSelection(X, Y, Z)
     _log(DUNG__CALL, "ScenarioService::ArrangeSelection()" );
@@ -185,7 +174,7 @@ PyResult ScenarioService::Handle_ArrangeSelection( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_DeleteSelected( PyCallArgs& call )
+PyResult ScenarioService::DeleteSelected(PyCallArgs& call)
 {
 //DeleteSelected()
     _log(DUNG__CALL, "ScenarioService::DeleteSelected()" );
@@ -194,7 +183,7 @@ PyResult ScenarioService::Handle_DeleteSelected( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult ScenarioService::Handle_RefreshSelection( PyCallArgs& call )
+PyResult ScenarioService::RefreshSelection(PyCallArgs& call)
 {
     //RefreshSelection()
     _log(DUNG__CALL, "ScenarioService::RefreshSelection()" );

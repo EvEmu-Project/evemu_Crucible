@@ -73,6 +73,14 @@ public:
      */
     void EncodeInitialState (PyDict* into);
 
+    /**
+     * Checks if a value is present in the session
+     *
+     * @param name
+     * @return
+     */
+    bool HasValue (const char* name) const;
+
     int64 GetSessionID()  { return m_sessionID; }
 
 protected:

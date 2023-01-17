@@ -27,7 +27,7 @@
 #ifndef EVEMU_SYSTEM_SEARCHDB_H_
 #define EVEMU_SYSTEM_SEARCHDB_H_
 
-#include "PyService.h"
+#include "ServiceDB.h"
 
 //  -allan 5Aug14
 enum SearchTypes {

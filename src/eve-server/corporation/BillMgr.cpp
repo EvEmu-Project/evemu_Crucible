@@ -26,47 +26,39 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "StaticDataMgr.h"
 #include "cache/ObjCacheService.h"
 #include "corporation/BillMgr.h"
 
-PyCallable_Make_InnerDispatcher(BillMgr)
-
-BillMgr::BillMgr(PyServiceMgr *mgr)
-: PyService(mgr, "billMgr"),
-  m_dispatch(new Dispatcher(this)) {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(BillMgr, CharPayBill);
-    PyCallable_REG_CALL(BillMgr, CharGetBills);
-    PyCallable_REG_CALL(BillMgr, CharGetBillsReceivable);
-    PyCallable_REG_CALL(BillMgr, GetBillTypes);
-    PyCallable_REG_CALL(BillMgr, PayCorporationBill);
-    PyCallable_REG_CALL(BillMgr, GetCorporationBills);
-    PyCallable_REG_CALL(BillMgr, GetCorporationBillsReceivable);
-    PyCallable_REG_CALL(BillMgr, GetAutomaticPaySettings);
-    PyCallable_REG_CALL(BillMgr, SendAutomaticPaySettings);
+BillMgr::BillMgr() :
+    Service("billMgr")
+{
+    this->Add("CharPayBill", &BillMgr::CharPayBill);
+    this->Add("CharGetBills", &BillMgr::CharGetBills);
+    this->Add("CharGetBillsReceivable", &BillMgr::CharGetBillsReceivable);
+    this->Add("GetBillTypes", &BillMgr::GetBillTypes);
+    this->Add("PayCorporationBill", &BillMgr::PayCorporationBill);
+    this->Add("GetCorporationBills", &BillMgr::GetCorporationBills);
+    this->Add("GetCorporationBillsReceivable", &BillMgr::GetCorporationBillsReceivable);
+    this->Add("GetAutomaticPaySettings", &BillMgr::GetAutomaticPaySettings);
+    this->Add("SendAutomaticPaySettings", &BillMgr::SendAutomaticPaySettings);
 }
 
-BillMgr::~BillMgr() {
-    delete m_dispatch;
-}
-
-PyResult BillMgr::Handle_GetBillTypes(PyCallArgs& call) {
+PyResult BillMgr::GetBillTypes(PyCallArgs& call) {
     return sDataMgr.GetBillTypes();
 }
 
-PyResult BillMgr::Handle_GetCorporationBills(PyCallArgs &call) {
+PyResult BillMgr::GetCorporationBills(PyCallArgs &call) {
     return m_db.GetCorporationBills(call.client->GetCorporationID(), true);
 }
 
-PyResult BillMgr::Handle_GetCorporationBillsReceivable(PyCallArgs &call) {
+PyResult BillMgr::GetCorporationBillsReceivable(PyCallArgs &call) {
     return m_db.GetCorporationBills(call.client->GetCorporationID(), false);
 }
 
 
-PyResult BillMgr::Handle_CharPayBill(PyCallArgs &call) {
+PyResult BillMgr::CharPayBill(PyCallArgs &call, PyInt* billID) {
     //   sm.RemoteSvc('billMgr').CharPayBill(bill.billID)
     sLog.Warning("BillMgr", "Handle_CharPayBill() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
@@ -75,7 +67,7 @@ PyResult BillMgr::Handle_CharPayBill(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult BillMgr::Handle_CharGetBills(PyCallArgs &call) {
+PyResult BillMgr::CharGetBills(PyCallArgs &call) {
     //   return sm.RemoteSvc('billMgr').CharGetBills()
     sLog.Warning("BillMgr", "Handle_CharGetBills() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
@@ -84,7 +76,7 @@ PyResult BillMgr::Handle_CharGetBills(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult BillMgr::Handle_CharGetBillsReceivable(PyCallArgs &call) {
+PyResult BillMgr::CharGetBillsReceivable(PyCallArgs &call) {
     //   bills = sm.RemoteSvc('billMgr').CharGetBillsReceivable()
     sLog.Warning("BillMgr", "Handle_CharGetBillsReceivable() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
@@ -93,7 +85,7 @@ PyResult BillMgr::Handle_CharGetBillsReceivable(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult BillMgr::Handle_PayCorporationBill(PyCallArgs &call) {
+PyResult BillMgr::PayCorporationBill(PyCallArgs &call, PyInt* billID) {
     //  sm.RemoteSvc('billMgr').PayCorporationBill(bill.billID, fromAccountKey=eve.session.corpAccountKey)
     sLog.Warning("BillMgr", "Handle_PayCorporationBill() size=%li", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
@@ -103,7 +95,7 @@ PyResult BillMgr::Handle_PayCorporationBill(PyCallArgs &call) {
 }
 
 
-PyResult BillMgr::Handle_SendAutomaticPaySettings(PyCallArgs &call) {
+PyResult BillMgr::SendAutomaticPaySettings(PyCallArgs &call, PyDict* automaticPaymentSettings) {
     //    sm.RemoteSvc('billMgr').SendAutomaticPaySettings(self.automaticPaymentSettings)
 
     // if corp in alliance, get settings for all 6, else ignore AllianceMaintainanceBill (5)
@@ -132,7 +124,7 @@ PyResult BillMgr::Handle_SendAutomaticPaySettings(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult BillMgr::Handle_GetAutomaticPaySettings(PyCallArgs &call) {
+PyResult BillMgr::GetAutomaticPaySettings(PyCallArgs &call) {
     //    ambSettings = sm.RemoteSvc('billMgr').GetAutomaticPaySettings()
     // returns t/f for bill types
     DBQueryResult res;

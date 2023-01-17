@@ -27,30 +27,26 @@
 #ifndef EVEMU_SYSTEM_CALENDARMGR_H__
 #define EVEMU_SYSTEM_CALENDARMGR_H__
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
-class CalendarMgrService
- : public PyService
+class CalendarMgrService : public Service <CalendarMgrService>
 {
-  public:
-    CalendarMgrService(PyServiceMgr *mgr);
-     ~CalendarMgrService();
+public:
+    CalendarMgrService();
 
-  protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetResponsesForCharacter);
-    PyCallable_DECL_CALL(CreatePersonalEvent);
-    PyCallable_DECL_CALL(CreateCorporationEvent);
-    PyCallable_DECL_CALL(CreateAllianceEvent);
-    PyCallable_DECL_CALL(UpdateEventParticipants);
-    PyCallable_DECL_CALL(EditPersonalEvent);
-    PyCallable_DECL_CALL(EditCorporationEvent);
-    PyCallable_DECL_CALL(EditAllianceEvent);
-    PyCallable_DECL_CALL(SendEventResponse);
-    PyCallable_DECL_CALL(DeleteEvent);
-    PyCallable_DECL_CALL(GetResponsesToEvent);
+protected:
+    PyResult GetResponsesForCharacter(PyCallArgs& call);
+    PyResult GetResponsesToEvent(PyCallArgs& call, PyInt* eventID, PyInt* ownerID);
+    PyResult DeleteEvent(PyCallArgs& call, PyInt* eventID, PyInt* ownerID);
+    PyResult SendEventResponse(PyCallArgs& call, PyInt* eventID, PyInt* ownerID, PyInt* response);
+    PyResult CreatePersonalEvent(PyCallArgs& call, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important, PyList* invitees);
+    PyResult CreateCorporationEvent(PyCallArgs& call, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important);
+    PyResult CreateAllianceEvent(PyCallArgs& call, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important);
+    PyResult EditPersonalEvent(PyCallArgs& call, PyInt* eventID, PyLong* oldDateTime, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important);
+    PyResult EditCorporationEvent(PyCallArgs& call, PyInt* eventID, PyLong* oldDateTime, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important);
+    PyResult EditAllianceEvent(PyCallArgs& call, PyInt* eventID, PyLong* oldDateTime, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important);
+    PyResult UpdateEventParticipants(PyCallArgs& call, PyInt* eventID, PyList* charsToAdd, PyList* charsToRemove);
 };
 
 #endif // EVEMU_SYSTEM_CALENDARMGR_H__
