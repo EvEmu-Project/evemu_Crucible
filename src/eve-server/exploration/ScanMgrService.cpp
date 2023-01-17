@@ -33,6 +33,7 @@
 #include "system/DestinyManager.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
+#include "services/ServiceManager.h"
 
 /* SCAN__ERROR
  * SCAN__WARNING

@@ -34,6 +34,7 @@
 #include "station/InsuranceService.h"
 #include "system/SystemEntity.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 /* TODO:
 * - set ship->basePrice to use history market value from marketProxy!

@@ -19,6 +19,7 @@
 
 #include "fleet/FleetBound.h"
 #include "fleet/FleetObject.h"
+#include "services/ServiceManager.h"
 
 /*
 FLEET__ERROR

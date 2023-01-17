@@ -183,8 +183,13 @@ Client::~Client() {
     // remove char from entitylist
     sEntityList.RemovePlayer(this);
 
-    for (auto cur : m_bindSet)
-        m_services.ClearBoundObject(cur, this);
+    // reverse this so we destroy from newest to older
+    // this prevents use after free
+    auto cur = m_bindSet.rbegin ();
+    auto end = m_bindSet.rend ();
+
+    for (; cur != end; ++cur)
+        m_services.ClearBoundObject(*cur, this);
 
     m_system = nullptr; // DO NOT delete m_system here
 

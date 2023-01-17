@@ -37,6 +37,7 @@
 #include "station/StationDataMgr.h"
 #include "station/StationOffice.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 InvBrokerService::InvBrokerService(EVEServiceManager &mgr) :
     BindableService("invbroker", mgr)

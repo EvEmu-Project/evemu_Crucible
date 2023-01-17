@@ -34,6 +34,7 @@
 #include "account/AccountService.h"
 #include "character/CharMgrService.h"
 #include "packets/CorporationPkts.h"
+#include "services/ServiceManager.h"
 
 CharMgrBound::CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint32 ownerID, uint16 contFlag) :
     EVEBoundObject(mgr, parent),

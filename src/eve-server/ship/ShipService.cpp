@@ -39,6 +39,7 @@
 #include "system/SystemManager.h"
 #include "system/sov/SovereigntyDataMgr.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
+#include "services/ServiceManager.h"
 
 ShipService::ShipService(EVEServiceManager& mgr) :
     BindableService("ship", mgr)

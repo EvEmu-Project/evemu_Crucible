@@ -28,6 +28,7 @@
 
 #include "services/Callable.h"
 #include "services/Service.h"
+#include "Client.h"
 
 typedef uint32_t BoundID;
 
@@ -55,8 +56,9 @@ public:
     virtual void NewReference (Client* client) = 0;
     /**
      * @brief Releases this dispatcher and frees any kept resources
+     * @returns Whether the bound object was destroyed or someone still has a reference to it
      */
-    virtual void Release (Client* client) = 0;
+    virtual bool Release (Client* client) = 0;
 protected:
     /**
      * @brief Check performed before dispatching a call to this bound service
@@ -235,16 +237,19 @@ public:
         // the client didn't hold a reference to this service
         // so add it to the list and increase the RefCount
         this->mClients.insert_or_assign (client, true);
+        // also add it to the bind list of the client
+        client->AddBindID (this->GetBoundID ());
     }
     /**
      * @brief Signals this EVEBoundObject that one of the clients that held a reference, released it
+     * @returns Whether the bound object was destroyed or someone still has a reference to it
      */
-    void Release(Client* client) override {
+    bool Release(Client* client) override {
         auto it = this->mClients.find (client);
 
         // the client doesn't have access to this bound service, so nothing has to be done
         if (it == this->mClients.end ())
-            return;
+            return false;
 
         // remove the client for the list, and if that's the last one, free the service
         this->mClients.erase (it);
@@ -252,7 +257,10 @@ public:
         if (this->mClients.size () == 0) {
             this->GetParent ().BoundReleased (reinterpret_cast <Bound*> (this));
             delete this; // we hate this
+            return true;
         }
+
+        return false;
     }
 
     bool CanClientCall(Client* client) override {
