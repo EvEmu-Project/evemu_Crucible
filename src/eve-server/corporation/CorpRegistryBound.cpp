@@ -38,7 +38,8 @@
 
 CorpRegistryBound::CorpRegistryBound(EVEServiceManager& mgr, CorpRegistryService& parent, CorporationDB& db, uint32 corpID) :
     EVEBoundObject(mgr, parent),
-    m_db(db)
+    m_db(db),
+    m_offices (nullptr)
 {
     this->Add("GetEveOwners", &CorpRegistryBound::GetEveOwners);
     this->Add("GetCorporation", &CorpRegistryBound::GetCorporation);

@@ -34,17 +34,23 @@ class OnObjectPublicAttributesUpdated;
 template <class Bound>
 class SparseBound : public EVEBoundObject <Bound> {
 public:
-    SparseBound (EVEServiceManager& mgr, BoundServiceParent<Bound>& parent, PyList* headers) :
+    SparseBound (EVEServiceManager& mgr, BoundServiceParent<Bound>& parent) :
         EVEBoundObject <Bound> (mgr, parent),
         m_header (nullptr)
     {
-        // fetch the keys first
-        this->InitializeKeys();
-
         this->Add("Fetch", &SparseBound <Bound>::Fetch);
         this->Add("FetchByKey", &SparseBound <Bound>::FetchByKey);
         this->Add("SelectByUniqueColumnValues", &SparseBound <Bound>::SelectByUniqueColumnValues);
+    }
 
+    ~SparseBound () {
+        PyDecRef (this->m_header);
+    }
+
+    /**
+     * Primes the index list and initializes the header
+     */
+    void Prime (PyList* headers) {
         auto cur = headers->begin();
         auto end = headers->end();
 
@@ -56,6 +62,9 @@ public:
 
             this->m_columns.push_back ((*cur)->AsString ()->content ().c_str ());
         }
+
+        // fetch the keys first
+        this->InitializeKeys();
 
         // build the required header
         PyDict* boundObjectArguments = new PyDict();
@@ -75,14 +84,10 @@ public:
         arguments->SetItem (2, new PyInt (this->m_indexMap.size()));
 
         this->m_header = new PyObject ("util.SparseRowset", arguments);
-
-        PyIncRef (this->m_header);
-    }
-    ~SparseBound () {
-        PyDecRef (this->m_header);
+        this->m_primed = true;
     }
 
-    PyObject* GetHeader () { return this->m_header; }
+    PyObject* GetHeader () { assert (this->m_primed); return this->m_header; }
 
     /**
      * Notifies the bound clients about a new row on the sparse rowset's data
@@ -302,6 +307,8 @@ private:
     std::map<uint64_t, uint32_t> m_indexMap;
     /** Column list for this rowset */
     std::vector <std::string> m_columns;
+    /** Indicates if the sparse bound was primer already or not */
+    bool m_primed;
 };
 
 #endif //EVEMU_SPARSEBOUND_H
