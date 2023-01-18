@@ -28,6 +28,7 @@
 
 
 #include "station/JumpCloneService.h"
+#include "services/ServiceManager.h"
 
 JumpCloneService::JumpCloneService(EVEServiceManager& mgr) :
     BindableService("jumpCloneSvc", mgr)

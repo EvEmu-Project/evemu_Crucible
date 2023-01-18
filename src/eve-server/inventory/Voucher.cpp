@@ -30,6 +30,7 @@
 #include "inventory/ItemFactory.h"
 #include "inventory/Voucher.h"
 #include "system/BookmarkDB.h"
+#include "services/ServiceManager.h"
 
 VoucherService::VoucherService(EVEServiceManager& mgr) :
     Service("voucher"),

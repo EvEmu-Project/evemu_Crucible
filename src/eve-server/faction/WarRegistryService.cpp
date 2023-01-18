@@ -26,6 +26,7 @@
 #include "eve-server.h"
 
 #include "faction/WarRegistryService.h"
+#include "services/ServiceManager.h"
 
 /*
  * FACWAR__ERROR

@@ -41,9 +41,9 @@ public:
         // fetch the keys first
         this->InitializeKeys();
 
-        this->Add("Fetch", &Bound::Fetch);
-        this->Add("FetchByKey", &Bound::FetchByKey);
-        this->Add("SelectByUniqueColumnValues", &Bound::SelectByUniqueColumnValues);
+        this->Add("Fetch", &SparseBound <Bound>::Fetch);
+        this->Add("FetchByKey", &SparseBound <Bound>::FetchByKey);
+        this->Add("SelectByUniqueColumnValues", &SparseBound <Bound>::SelectByUniqueColumnValues);
 
         auto cur = headers->begin();
         auto end = headers->end();

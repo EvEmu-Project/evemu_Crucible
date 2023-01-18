@@ -32,6 +32,7 @@
 #include "admin/SlashService.h"
 #include "chat/LSCService.h"
 #include "fleet/FleetService.h"
+#include "services/ServiceManager.h"
 
 
 /** @todo

@@ -27,6 +27,7 @@
 
 
 #include "account/UserService.h"
+#include "services/ServiceManager.h"
 
 MovementService::MovementService(EVEServiceManager *mgr) :
     Service("movementServer"),
