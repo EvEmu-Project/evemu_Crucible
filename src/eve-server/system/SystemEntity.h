@@ -653,7 +653,6 @@ public:
 
 private:
     Dungeon::RoomObject m_data;
-
 };
 
 
