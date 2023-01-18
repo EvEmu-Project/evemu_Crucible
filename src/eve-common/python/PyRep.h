@@ -229,6 +229,8 @@ public:
     // None returns 0. Returned as unsigned 32b int
     static uint32 IntegerValueU32(PyRep* pRep);
 
+    static double FloatValue(PyRep* pRep);
+
 protected:
     virtual ~PyRep();
     const PyType mType;

@@ -19,6 +19,7 @@ void DBCleaner::Initialize() {
     CleanGroupFromSpace(EVEDB::invGroups::Scanner_Probe); //Clean scanner probes floating in space
     CleanGroupFromSpace(EVEDB::invGroups::Survey_Probe); //Clean survey probes floating in space
     CleanOrphanedWormholes(); //Clean up orphaned wormhole entities
+    CleanDungeonEntities();
 
     // Don't add anything below this line
     sLog.Blue("        DBCleaner", "Cleaning complete.");
@@ -35,7 +36,7 @@ void DBCleaner::CleanEntity(uint32 type) {
 void DBCleaner::CleanGroupFromSpace(uint32 groupID) {
     DBerror err;
     // Delete entity attributes associated with removed entities
-    sDatabase.RunQuery(err, "DELETE entity_attributes FROM entity_attributes WHERE itemID IN "
+    sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID IN "
     "(SELECT itemID FROM entity "
     "INNER JOIN invTypes USING (typeID) "
     "WHERE groupID = %u)", groupID);
@@ -48,7 +49,7 @@ void DBCleaner::CleanGroupFromSpace(uint32 groupID) {
 void DBCleaner::CleanOrphanedWormholes() {
     DBerror err;
     // Delete wormholes which don't have any reference in the sysSignatures table
-    sDatabase.RunQuery(err, "DELETE entity_attributes FROM entity_attributes WHERE itemID IN "
+    sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID IN "
     "(SELECT itemID FROM entity "
     "INNER JOIN invTypes USING (typeID) "
     "WHERE itemID NOT IN (SELECT sigItemID FROM sysSignatures) "
@@ -58,4 +59,15 @@ void DBCleaner::CleanOrphanedWormholes() {
     "INNER JOIN invTypes USING (typeID) "
     "WHERE itemID NOT IN (SELECT sigItemID FROM sysSignatures) "
     "AND locationID >= 30000000 AND locationID <= 32000000 AND groupID = %u", EVEDB::invGroups::Wormhole); 
+}
+
+void DBCleaner::CleanDungeonEntities() {
+    DBerror err;
+    // Delete entities from live dungeons which should not persist across server restarts
+    sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID IN "
+    "(SELECT itemID FROM entity "
+    "WHERE customInfo LIKE '%%livedungeon%%')");
+
+    sDatabase.RunQuery(err, "DELETE FROM entity WHERE "
+    "customInfo LIKE '%%livedungeon%%'");
 }

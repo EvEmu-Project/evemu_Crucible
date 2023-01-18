@@ -78,6 +78,7 @@ class ReactorSE;
 class JumpBridgeSE;
 class PlatformSE;
 class OutpostSE;
+class DungeonEditSE;
 
 /*
  * base class for all SystemEntities  - no TargetMgr or DestinyMgr
@@ -157,6 +158,7 @@ public:
     virtual Missile*            GetMissileSE()          { return nullptr; }
     virtual ShipSE*             GetShipSE()             { return nullptr; }
     virtual Concord*            GetConcordSE()          { return nullptr; }
+    virtual DungeonEditSE*      GetDungeonEditSE()      { return nullptr; }
 
     /* class type tests, grouped by base class.  public for anyone to access. */
     /* Base */
@@ -211,6 +213,7 @@ public:
     virtual bool                IsMissileSE()           { return false; }
     virtual bool                IsShipSE()              { return false; }
     virtual bool                IsConcord()             { return false; }
+    virtual bool                IsDungeonEditSE()       { return false; }
 
     /* generic functions handled here */
     EVEServiceManager&               GetServices()      { return m_services; }
@@ -232,6 +235,8 @@ public:
     const char*                 GetName() const         { return m_self->name(); }
     const GPoint&               GetPosition() const     { return m_self->position(); }
     void                  SetPosition(const GPoint &pos){ m_self->SetPosition(pos); }
+    void                        SetRadius(double radius){ m_self->SetRadius(radius); }
+    void                        Rename(const char *name){ m_self->Rename(name); }
     inline double               x()                     { return m_self->position().x; }
     inline double               y()                     { return m_self->position().y; }
     inline double               z()                     { return m_self->position().z; }
@@ -579,7 +584,6 @@ public:
 };
 
 
-
 /* Non-Static / Mobile / Destructible / Celestial Objects
  *- Drones, Ships, Missiles, Wrecks
  * - has TargetMgr and DestinyMgr*/
@@ -628,6 +632,27 @@ public:
 private:
     bool m_invul;
     bool m_frozen;
+};
+
+class DungeonEditSE : public ObjectSystemEntity{
+public:
+    DungeonEditSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system, Dungeon::RoomObject data);
+    virtual ~DungeonEditSE()                                { /* Do nothing here */ }
+
+    /* class type pointer querys. */
+    virtual DungeonEditSE*      GetDungeonEditSE()          { return this; }
+    /* class type tests. */
+    /* Base */
+    virtual bool                IsDungeonEditSE()           { return true; }
+    Dungeon::RoomObject         GetData()                   { return m_data; }
+
+    /* SystemEntity interface */
+    //virtual void                EncodeDestiny( Buffer& into );
+
+    virtual PyDict*             MakeSlimItem();
+
+private:
+    Dungeon::RoomObject m_data;
 };
 
 

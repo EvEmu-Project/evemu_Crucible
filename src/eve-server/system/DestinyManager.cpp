@@ -2289,6 +2289,22 @@ void DestinyManager::SetPosition(const GPoint &pt, bool update /*false*/) {
     }
 }
 
+void DestinyManager::SetRadius(double radius, bool update /*false*/) {
+    _log(DESTINY__TRACE, "Destiny::SetPosition() called by %s(%u)", mySE->GetName(), mySE->GetID());
+
+    m_radius = radius;
+
+    mySE->SetRadius(m_radius);
+
+    if (update) {
+        SetBallRadius du;
+        du.entityID = mySE->GetID();
+        du.radius = m_radius;
+        PyTuple* up = du.Encode();
+        SendSingleDestinyUpdate(&up);   // consumed
+    }
+}
+
 // settings for ship, npc and missile max speeds
 void DestinyManager::SetMaxVelocity(float maxVelocity)
 {
@@ -3117,7 +3133,7 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
                     (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID()) );
         mySE->SysBubble()->BubblecastDestiny( updates, events, "destiny" );
     } else {
-        _log(DESTINY__WARNING, "[%u] Cannot BubbleCast destiny update (u:%u, e:%u); entity (%u) is not in any bubble.", \
+        _log(DESTINY__ERROR, "[%u] Cannot BubbleCast destiny update (u:%u, e:%u); entity (%u) is not in any bubble.", \
                 sEntityList.GetStamp(), updates.size(), events.size(), mySE->GetID() );
         if (sConfig.debug.IsTestServer)
             EvE::traceStack();
