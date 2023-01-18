@@ -46,6 +46,7 @@
 #include "dungeon/DungeonDB.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/KeeperService.h"
+#include "services/ServiceManager.h"
 
 DungeonService::DungeonService() :
     Service("dungeon")
