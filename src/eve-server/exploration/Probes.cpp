@@ -107,7 +107,7 @@ m_scanShips(false)
     m_expiry = GetFileTimeNow() + (EvE::Time::Hour *5);  // 5h abandoned lifespan
     m_lifeTimer.Start(5*60*60*1000);        // 5h to ms
 
-    _log(SCAN__INFO, "Created Abandoned ProbeSE for %u. expiry: %li", m_self->itemID(), m_expiry);
+    _log(SCAN__INFO, "Created Abandoned ProbeSE for %u. expiry: %lli", m_self->itemID(), m_expiry);
 }
 
 ProbeSE::ProbeSE(ProbeItemRef self, EVEServiceManager& services, SystemManager* system, InventoryItemRef moduleRef, ShipItemRef shipRef)
@@ -211,7 +211,7 @@ m_scanShips(false)
     if (pChar->HasAttribute(AttrScanStrengthBonus))
         m_scanStrength *= (1 + (0.01f * pChar->GetAttribute(AttrScanStrengthBonus).get_float()));
 
-    _log(SCAN__INFO, "Created ProbeSE for %u. timeNow: %.0f, expiry: %li, scan Str: %.4f, deviation: %.5f, ship: %s", \
+    _log(SCAN__INFO, "Created ProbeSE for %u. timeNow: %.0f, expiry: %lli, scan Str: %.4f, deviation: %.5f, ship: %s", \
             m_self->itemID(), GetFileTimeNow(), m_expiry, m_scanStrength, m_scanDeviation, m_scanShips?"true":"false");
 }
 

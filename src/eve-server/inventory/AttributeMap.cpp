@@ -234,7 +234,7 @@ void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*tru
                 _log(ATTRIBUTE__MISSING, "Attribute %u not in map.  Adding as %.2f for %s(%u)", \
                         attrID, num.get_float(), mItem.name(), mItem.itemID());
             } else {
-                _log(ATTRIBUTE__MISSING, "Attribute %u not in map.  Adding as %li for %s(%u)", \
+                _log(ATTRIBUTE__MISSING, "Attribute %u not in map.  Adding as %lli for %s(%u)", \
                     attrID, num.get_int(), mItem.name(), mItem.itemID());
             }
         }
@@ -243,7 +243,7 @@ void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*tru
                 _log(ATTRIBUTE__ADD, "Attribute %u not in map.  Adding as %.2f for %s(%u)", \
                 attrID, num.get_float(), mItem.name(), mItem.itemID());
             } else {
-                _log(ATTRIBUTE__ADD, "Attribute %u not in map.  Adding as %li for %s(%u)", \
+                _log(ATTRIBUTE__ADD, "Attribute %u not in map.  Adding as %lli for %s(%u)", \
                 attrID, num.get_int(), mItem.name(), mItem.itemID());
             }
         }
@@ -263,15 +263,15 @@ void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*tru
                 _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %.2f to %.2f for %s(%u)", \
                         attrID, itr->second.get_float(), num.get_float(), mItem.name(), mItem.itemID());
             } else {
-                _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %.2f to %li for %s(%u)", \
+                _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %.2f to %lli for %s(%u)", \
                         attrID, itr->second.get_float(), num.get_int(), mItem.name(), mItem.itemID());
             }
         } else {
             if (num.isFloat()) {
-                _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %li to %.2f for %s(%u)", \
+                _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %lli to %.2f for %s(%u)", \
                         attrID, itr->second.get_int(), num.get_float(), mItem.name(), mItem.itemID());
             } else {
-                _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %li to %li for %s(%u)", \
+                _log(ATTRIBUTE__CHANGE, "Changing Attribute %u from %lli to %lli for %s(%u)", \
                         attrID, itr->second.get_int(), num.get_int(), mItem.name(), mItem.itemID());
             }
         }

@@ -265,7 +265,7 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
         "price, reward, collateral, title, description, issuerAllianceID, startStationDivision) "
         "VALUES "
         "(%u, %u, %u, %u, %u, %u, "
-        "%li, %li, %u, %u, %u, "
+        "%lli, %lli, %u, %u, %u, "
         "%u, %u, %u, %u, %u, %u,"
         "%u, %u, %u, '%s', '%s', %u, %u)",
         contractType->value(), call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, isPrivate->value()?1:0, assigneeID.has_value() ? assigneeID.value()->value() : 0,
@@ -536,7 +536,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                     // Once all manipulations are done, we update contract status. Response is sent outside the switch clause;
                     DBerror err;
                     if (!sDatabase.RunQuery(err,
-                                            "UPDATE ctrContracts SET status = 4, dateAccepted = %li, dateCompleted = %li, acceptorID = %u WHERE contractId = %u",
+                                            "UPDATE ctrContracts SET status = 4, dateAccepted = %lli, dateCompleted = %lli, acceptorID = %u WHERE contractId = %u",
                                             timestamp, timestamp, call.client->GetCharacterID(), contractID))
                     {
                         codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
@@ -607,7 +607,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                 // Finally, we update DB entry
                 DBerror err;
                 if (!sDatabase.RunQuery(err,
-                                        "UPDATE ctrContracts SET status = 1, dateAccepted = %li, acceptorID = %u, crateID = %u WHERE contractId = %u",
+                                        "UPDATE ctrContracts SET status = 1, dateAccepted = %lli, acceptorID = %u, crateID = %u WHERE contractId = %u",
                                         timestamp, call.client->GetCharacterID(), plasticWrap->itemID(), contractID))
                 {
                     codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
@@ -709,7 +709,7 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
                 // Then, we update the contract as Completed.
                 DBerror err;
                 if (!sDatabase.RunQuery(err,
-                                        "UPDATE ctrContracts SET status = %u, dateCompleted = %li WHERE contractId = %u",
+                                        "UPDATE ctrContracts SET status = %u, dateCompleted = %lli WHERE contractId = %u",
                                         completionStatus->value(), timestamp, contractID->value()))
                 {
                     codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
@@ -731,7 +731,7 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
             // Then, we update the contract as Афшдув.
             DBerror err;
             if (!sDatabase.RunQuery(err,
-                                    "UPDATE ctrContracts SET status = %u, dateCompleted = %li WHERE contractId = %u",
+                                    "UPDATE ctrContracts SET status = %u, dateCompleted = %lli WHERE contractId = %u",
                                     completionStatus->value(), timestamp, contractID->value()))
             {
                 codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());

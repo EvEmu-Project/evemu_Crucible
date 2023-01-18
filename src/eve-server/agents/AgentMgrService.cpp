@@ -115,7 +115,7 @@ PyResult AgentMgrService::GetSolarSystemOfAgent(PyCallArgs &call, PyInt* agentID
 PyResult AgentMgrService::GetMyJournalDetails(PyCallArgs &call) {
 // note:  this will show mission data in journal AND "offered" msg in agent data bloc on agent tab in station
 
-    _log(AGENT__INFO, "AgentMgrService::Handle_GetMyJournalDetails() - size=%li", call.tuple->size());
+    _log(AGENT__INFO, "AgentMgrService::Handle_GetMyJournalDetails() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     /** @todo  journal details
@@ -281,14 +281,14 @@ PyResult AgentMgrService::GetMyJournalDetails(PyCallArgs &call) {
 PyResult AgentMgrService::GetMyEpicJournalDetails(PyCallArgs& call)
 {
     //no args
-  _log(AGENT__INFO, "AgentMgrBound::Handle_GetMyEpicJournalDetails() - size=%li", call.tuple->size());
+  _log(AGENT__INFO, "AgentMgrBound::Handle_GetMyEpicJournalDetails() - size=%lli", call.tuple->size());
 
     return new PyList();
 }
 
 PyResult AgentMgrService::GetCareerAgents(PyCallArgs &call)
 {
-  _log(AGENT__INFO, "AgentMgrBound::Handle_GetCareerAgents() - size=%li", call.tuple->size());
+  _log(AGENT__INFO, "AgentMgrBound::Handle_GetCareerAgents() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     return PyStatic.NewZero();
@@ -304,7 +304,7 @@ PyResult EpicArcService::AgentHasEpicMissionsForCharacter(PyCallArgs &call, PyIn
   /**
      epicArcStatusSvc = sm.RemoteSvc('epicArcStatus').AgentHasEpicMissionsForCharacter(agent.agentID):
      */
-    _log(AGENT__INFO, "EpicArcService::Handle_AgentHasEpicMissionsForCharacter() - size=%li", call.tuple->size());
+    _log(AGENT__INFO, "EpicArcService::Handle_AgentHasEpicMissionsForCharacter() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     // return boolean

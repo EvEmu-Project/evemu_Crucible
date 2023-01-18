@@ -68,7 +68,7 @@ bool PyDumpVisitor::VisitNone( const PyNone* rep )
 
 bool PyDumpVisitor::VisitBuffer( const PyBuffer* rep )
 {
-    _print( "%s Buffer (%lu):", _pfx(), rep->content().size() );
+    _print( "%s Buffer (%llu):", _pfx(), rep->content().size() );
 
     _pfxExtend( "  " );
     _dump( _pfx(), &rep->content()[ 0 ], rep->content().size() );
@@ -82,7 +82,7 @@ bool PyDumpVisitor::VisitString( const PyString *rep )
     if (IsPrintable( rep ) )
         _print( "%s    String: '%s'", _pfx(), rep->content().c_str() );
     else
-        _print( "%sBinary String: (len=%lu)", _pfx(), rep->content().length() );
+        _print( "%sBinary String: (len=%llu)", _pfx(), rep->content().length() );
 
     return true;
 }
@@ -93,7 +93,7 @@ bool PyDumpVisitor::VisitWString( const PyWString* rep )
     if (IsPrintable( rep ) )
         _print( "%s   WString: '%s'", _pfx(), rep->content().c_str() );
     else
-        _print( "%ssBinary WString: (len=%lu)'", _pfx(), rep->content().length() );
+        _print( "%ssBinary WString: (len=%llu)'", _pfx(), rep->content().length() );
 
     return true;
 }
@@ -111,7 +111,7 @@ bool PyDumpVisitor::VisitTuple( const PyTuple* rep )
     if (rep->empty())
         _print( "%s Tuple: Empty", _pfx() );
     else  {
-        _print( "%s Tuple: %lu elements", _pfx(), rep->size() );
+        _print( "%s Tuple: %llu elements", _pfx(), rep->size() );
 
         PyTuple::const_iterator cur = rep->begin(), end = rep->end();
         for ( uint8 i(0); cur != end; ++cur, ++i )  {
@@ -136,7 +136,7 @@ bool PyDumpVisitor::VisitList( const PyList* rep )
     if (rep->empty())
         _print( "%s  List: Empty", _pfx() );
     else {
-        _print( "%s  List: %lu elements", _pfx(), rep->size() );
+        _print( "%s  List: %llu elements", _pfx(), rep->size() );
 
         PyList::const_iterator cur = rep->begin(), end = rep->end();
         for (uint8 i(0); cur != end; ++cur, ++i )  {
@@ -160,7 +160,7 @@ bool PyDumpVisitor::VisitDict( const PyDict* rep )
     if (rep->empty())
         _print( "%s Dictionary: Empty", _pfx() );
     else {
-        _print( "%s Dictionary: %lu entries", _pfx(), rep->size() );
+        _print( "%s Dictionary: %llu entries", _pfx(), rep->size() );
 
         PyDict::const_iterator cur = rep->begin(), end = rep->end();
         for (uint8 i(0); cur != end; ++cur, ++i )  {

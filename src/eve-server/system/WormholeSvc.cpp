@@ -45,7 +45,7 @@ PyResult WormHoleSvc::WormholeJump(PyCallArgs& call, PyInt* itemID) {
   /**
       sm.RemoteSvc('wormholeMgr').WormholeJump, itemID)
       */
-    sLog.White("WormHoleSvc", "Handle_WormholeJump() size=%li", call.tuple->size());
+    sLog.White("WormHoleSvc", "Handle_WormholeJump() size=%lli", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     /*

@@ -71,7 +71,7 @@ PyResult AgentBound::GetInfoServiceDetails(PyCallArgs& call) {
 
 PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID) {
     // this is first call when initiating agent convo
-    _log(AGENT__DUMP,  "AgentBound::Handle_DoAction() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_DoAction() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     // this actually returns a complicated tuple depending on other variables involving this agent and char.
@@ -456,7 +456,7 @@ PyResult AgentBound::GetMissionBriefingInfo(PyCallArgs &call) {
 PyResult AgentBound::GetMissionKeywords(PyCallArgs &call, PyInt* contentID) {
     // thse are the variables embedded in the messageIDs
     //self.missionArgs[contentID] = self.GetAgentMoniker(agentID).GetMissionKeywords(contentID)
-    _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionKeywords() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionKeywords() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     /*   none of this really matters as we're not using 'contentID' like live does
@@ -505,7 +505,7 @@ PyResult AgentBound::GetMissionObjectiveInfo(PyCallArgs &call, std::optional <Py
     // sends charID, contentID (although there's another call without any parameters, hence the optionals used)
     // returns PyDict loaded with mission info  or PyNone
     //  returning mission info sets double-pane view, where PyNone sets single-pane view
-    _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionObjectiveInfo() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionObjectiveInfo() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     MissionOffer offer = MissionOffer();
@@ -532,7 +532,7 @@ PyResult AgentBound::GetMyJournalDetails(PyCallArgs &call) {
     //parallelCalls.append((sm.GetService('agents').GetAgentMoniker(agentID).GetMyJournalDetails, ()))
     //missionState, importantMission, missionType, missionName, agentID, expirationTime, bookmarks, remoteOfferable, remoteCompletable = each
     // this is to update ONLY info with this agent....
-    _log(AGENT__DUMP,  "AgentBound::Handle_GetMyJournalDetails() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GetMyJournalDetails() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     PyTuple *tuple = new PyTuple(2);
@@ -568,7 +568,7 @@ PyResult AgentBound::GetMyJournalDetails(PyCallArgs &call) {
 PyResult AgentBound::GetMissionJournalInfo(PyCallArgs &call, PyInt* characterID, PyInt* contentID) {
     //called on rclick in journal to "read details"
     //ret = self.GetAgentMoniker(agentID).GetMissionJournalInfo(charID, contentID)
-    _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionJournalInfo() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionJournalInfo() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     MissionOffer offer = MissionOffer();
@@ -888,7 +888,7 @@ PyTuple* AgentBound::GetMissionObjectives(Client* pClient, MissionOffer& offer)
 
 PyResult AgentBound::GetDungeonShipRestrictions(PyCallArgs &call, PyInt* dungeonID) {
     //restrictions = self.GetAgentMoniker(agentID).GetDungeonShipRestrictions(dungeonID)
-    _log(AGENT__DUMP,  "AgentBound::Handle_GetDungeonShipRestrictions() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GetDungeonShipRestrictions() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     return nullptr;
@@ -897,7 +897,7 @@ PyResult AgentBound::GetDungeonShipRestrictions(PyCallArgs &call, PyInt* dungeon
 PyResult AgentBound::RemoveOfferFromJournal(PyCallArgs &call) {
     //called on rclick in journal to "remove offer"
     //self.GetAgentMoniker(agentID).RemoveOfferFromJournal()
-    _log(AGENT__DUMP,  "AgentBound::Handle_RemoveOfferFromJournal() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_RemoveOfferFromJournal() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     return nullptr;
@@ -905,7 +905,7 @@ PyResult AgentBound::RemoveOfferFromJournal(PyCallArgs &call) {
 
 PyResult AgentBound::GetOfferJournalInfo(PyCallArgs &call) {
     //html = self.GetAgentMoniker(agentID).GetOfferJournalInfo()
-    _log(AGENT__DUMP,  "AgentBound::Handle_GetOfferJournalInfo() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GetOfferJournalInfo() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     return nullptr;
@@ -913,7 +913,7 @@ PyResult AgentBound::GetOfferJournalInfo(PyCallArgs &call) {
 
 PyResult AgentBound::GetEntryPoint(PyCallArgs &call) {
     //entryPoint = sm.StartService('agents').GetAgentMoniker(bookmark.agentID).GetEntryPoint()
-    _log(AGENT__DUMP,  "AgentBound::Handle_GetEntryPoint() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GetEntryPoint() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     return nullptr;
@@ -921,7 +921,7 @@ PyResult AgentBound::GetEntryPoint(PyCallArgs &call) {
 
 PyResult AgentBound::GotoLocation(PyCallArgs &call, PyInt* locationType, PyInt* locationNumber, PyInt* referringAgentID) {
     //sm.StartService('agents').GetAgentMoniker(bookmark.agentID).GotoLocation(bookmark.locationType, bookmark.locationNumber, referringAgentID)
-    _log(AGENT__DUMP,  "AgentBound::Handle_GotoLocation() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_GotoLocation() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     return nullptr;
@@ -929,7 +929,7 @@ PyResult AgentBound::GotoLocation(PyCallArgs &call, PyInt* locationType, PyInt* 
 
 PyResult AgentBound::WarpToLocation(PyCallArgs &call, PyInt* locationType, PyInt* locationNumber, PyFloat* warpRange, PyBool* fleet, PyInt* referringAgentID) {
     //sm.StartService('agents').GetAgentMoniker(bookmark.agentID).WarpToLocation(bookmark.locationType, bookmark.locationNumber, warpRange, fleet, referringAgentID)
-    _log(AGENT__DUMP,  "AgentBound::Handle_WarpToLocation() - size=%li", call.tuple->size());
+    _log(AGENT__DUMP,  "AgentBound::Handle_WarpToLocation() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
     return nullptr;

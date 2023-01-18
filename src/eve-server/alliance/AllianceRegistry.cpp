@@ -92,7 +92,7 @@ PyResult AllianceRegistry::GetAlliance(PyCallArgs &call, PyInt* allianceID) {
      * 01:22:07 [SvcError]       [ 1]    Integer: 1
      */
 
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAlliance() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAlliance() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetAlliance(allianceID->value());
@@ -100,7 +100,7 @@ PyResult AllianceRegistry::GetAlliance(PyCallArgs &call, PyInt* allianceID) {
 
 PyResult AllianceRegistry::GetAllianceMembers(PyCallArgs &call, PyInt* allianceID) {
     // members = sm.RemoteSvc('allianceRegistry').GetAllianceMembers(itemID)  <-- returns dict of corpIDs
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceMembers() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceMembers() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetAllianceMembers(allianceID->value());
@@ -115,7 +115,7 @@ PyResult AllianceRegistry::GetRankedAlliances(PyCallArgs &call, PyInt* maxLen) {
      *               self.rankedAlliances.standings[a.allianceID] = s
      */
 
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetRankedAlliances() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetRankedAlliances() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetRankedAlliances();
@@ -124,7 +124,7 @@ PyResult AllianceRegistry::GetRankedAlliances(PyCallArgs &call, PyInt* maxLen) {
 //Not sure why this doesn't work
 PyResult AllianceRegistry::GetEmploymentRecord(PyCallArgs &call, PyInt* corporationID) {
     //  allianceHistory = sm.RemoteSvc('allianceRegistry').GetEmploymentRecord(itemID)
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetEmploymentRecord() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetEmploymentRecord() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetEmploymentRecord(corporationID->value());

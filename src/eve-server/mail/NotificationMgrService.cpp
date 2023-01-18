@@ -46,7 +46,7 @@ NotificationMgrService::NotificationMgrService() :
 PyResult NotificationMgrService::GetByGroupID(PyCallArgs &call, PyInt* groupID)
 {
 
-    sLog.White("NotificationMgrService", "Handle_GetByGroupID() size=%li", call.tuple->size());
+    sLog.White("NotificationMgrService", "Handle_GetByGroupID() size=%lli", call.tuple->size());
     call.Dump(MAIL__DUMP);
     /*
             [PyString "GetByGroupID"]

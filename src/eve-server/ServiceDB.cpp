@@ -572,7 +572,7 @@ void ServiceDB::SaveKillOrLoss(KillData &data) {
             " INSERT INTO chrKillTable (solarSystemID, victimCharacterID, victimCorporationID, victimAllianceID, victimFactionID,"
             "victimShipTypeID, victimDamageTaken, finalCharacterID, finalCorporationID, finalAllianceID, finalFactionID, finalShipTypeID,"
             "finalWeaponTypeID, finalSecurityStatus, finalDamageDone, killBlob, killTime, moonID)"
-            " VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%f,%u,'%s',%li,%u)",
+            " VALUES (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%f,%u,'%s',%lli,%u)",
                 data.solarSystemID, data.victimCharacterID, data.victimCorporationID,
                 data.victimAllianceID, data.victimFactionID, data.victimShipTypeID, data.victimDamageTaken,
                 data.finalCharacterID, data.finalCorporationID, data.finalAllianceID, data.finalFactionID,

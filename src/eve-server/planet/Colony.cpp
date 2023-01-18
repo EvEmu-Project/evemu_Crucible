@@ -546,7 +546,7 @@ void Colony::CreateRoute(uint16 routeID, uint32 typeID, uint32 qty, PyList* path
     m_srcRoutes.emplace(route.srcPinID, route);
     m_destRoutes.emplace(route.destPinID, route);
 
-    _log(COLONY__INFO, "Colony::CreateRoute() - Created route id %u for %u of typeID %u, making %li hops.", routeID, qty, typeID, path->size() -1);
+    _log(COLONY__INFO, "Colony::CreateRoute() - Created route id %u for %u of typeID %u, making %lli hops.", routeID, qty, typeID, path->size() -1);
 
     // route has been created and added to list.  check for materials being moved, and if source has the mat, remove qty and send to dest.
     std::map<uint32, PI_Pin>::iterator srcPin = ccPin->pins.find(route.srcPinID);
@@ -1397,7 +1397,7 @@ void Colony::ProcessECUs(bool& updateTimes)
 
         if ((ecu.second.expiryTime < EvE::Time::Second ) or (ecu.second.expiryTime > m_procTime)) {
             if (is_log_enabled(COLONY__DEBUG))
-                _log(COLONY__DEBUG, "Colony::ProcessECUs() - expiryTime (%li) > m_procTime (%li).", \
+                _log(COLONY__DEBUG, "Colony::ProcessECUs() - expiryTime (%lli) > m_procTime (%lli).", \
                         ecu.second.expiryTime, m_procTime);
             continue;
         }
@@ -1494,7 +1494,7 @@ void Colony::ProcessECUs(bool& updateTimes)
         updateTimes = true;
 
         if (is_log_enabled(COLONY__DEBUG))
-            _log(COLONY__DEBUG, "Colony::ProcessECUs() - Processing complete.  timeNow %li, expiryTime %li, lastRunTime %li", \
+            _log(COLONY__DEBUG, "Colony::ProcessECUs() - Processing complete.  timeNow %lli, expiryTime %lli, lastRunTime %lli", \
                     GetFileTimeNow(), ecu.second.expiryTime, ecu.second.lastRunTime);
     }
 }
@@ -1528,7 +1528,7 @@ void Colony::ProcessPlants(bool& updateTimes)
     std::map<uint32, PI_Pin>::iterator destPin;
     std::map<uint16, uint32>::iterator itemItr;
     std::map<uint32, PI_Plant>::iterator destPlant;
-    _log(COLONY__INFO, "Colony::ProcessPlants() - Begin Plant Processing.  m_procTime: %li", m_procTime);
+    _log(COLONY__INFO, "Colony::ProcessPlants() - Begin Plant Processing.  m_procTime: %lli", m_procTime);
     while (curCycle < 5) {
         if (is_log_enabled(COLONY__DEBUG))
             _log(COLONY__DEBUG, "Colony::ProcessPlants() - Begin Process loop for pLevel %u.", curCycle);
@@ -1575,13 +1575,13 @@ void Colony::ProcessPlants(bool& updateTimes)
 
             if (plant->second.lastRunTime >= m_procTime) {
                 if (is_log_enabled(COLONY__DEBUG))
-                    _log(COLONY__DEBUG, "Colony::ProcessPlants() - lastRunTime (%li) >= m_procTime (%li).", \
+                    _log(COLONY__DEBUG, "Colony::ProcessPlants() - lastRunTime (%lli) >= m_procTime (%lli).", \
                                 plant->second.lastRunTime, m_procTime);
                 continue;
             }
 
             if (is_log_enabled(COLONY__DEBUG))
-                _log(COLONY__DEBUG, "Colony::ProcessPlants() - last run time %li.", plant->second.lastRunTime);
+                _log(COLONY__DEBUG, "Colony::ProcessPlants() - last run time %lli.", plant->second.lastRunTime);
 
             // second, check processing times for active plants
             delta = (m_procTime - plant->second.lastRunTime)  / EvE::Time::Second;
@@ -1795,7 +1795,7 @@ void Colony::ProcessPlants(bool& updateTimes)
                 updateTimes = true;
 
                 if (is_log_enabled(COLONY__DEBUG))
-                    _log(COLONY__DEBUG, "Colony::ProcessPlants() - Received Inputs.  timeNow %li, lastRunTime %li", \
+                    _log(COLONY__DEBUG, "Colony::ProcessPlants() - Received Inputs.  timeNow %lli, lastRunTime %lli", \
                                 GetFileTimeNow(), plant->second.lastRunTime);
             } else {
                 cycles = 0;

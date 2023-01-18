@@ -75,7 +75,7 @@ void CertificateMgrDB::AddCertificate(uint32 charID, CharCerts cert) {
     DBerror err;
     if (!sDatabase.RunQuery( err,
         "INSERT INTO chrCertificates (characterID, certificateID, grantDate, visibilityFlags)"
-        " VALUES (%u, %u, %li, %u)", charID, cert.certificateID, cert.grantDate, cert.visibilityFlags))  {
+        " VALUES (%u, %u, %lli, %u)", charID, cert.certificateID, cert.grantDate, cert.visibilityFlags))  {
         _log(DATABASE__ERROR, "Failed to insert certificates of character %u: %s", charID, err.c_str() );
     }
 }

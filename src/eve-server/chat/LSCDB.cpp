@@ -123,7 +123,7 @@ void LSCDB::UpdateSubscription(int32 channelID, Client* pClient) {
     sDatabase.RunQuery(err,
         " INSERT INTO channelChars "
         " (channelID, corpID, charID, allianceID, role, extra) "
-        " VALUES (%i, %i, %i, %i, %li, 0) ",
+        " VALUES (%i, %i, %i, %i, %lli, 0) ",
         channelID, pClient->GetCorporationID(),  pClient->GetCharacterID(), pClient->GetAllianceID(), pClient->GetAccountRole());
 }
 
@@ -410,7 +410,7 @@ uint32 LSCDB::StoreMail(uint32 senderID, uint32 recipID, const char * subject, c
     if (!sDatabase.RunQueryLID(err, messageID,
         " INSERT INTO eveMail "
         " (channelID, senderID, subject, created) "
-        " VALUES (%u, %u, '%s', %li) ",
+        " VALUES (%u, %u, '%s', %lli) ",
                                recipID, senderID, escaped.c_str(), sentTime ))
     {
         _log(DATABASE__ERROR, "Error in query, message header couldn't be saved: %s", err.c_str());
