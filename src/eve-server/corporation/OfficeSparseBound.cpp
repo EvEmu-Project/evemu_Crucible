@@ -30,10 +30,11 @@
 #include "corporation/CorpRegistryBound.h"
 
 OfficeSparseBound::OfficeSparseBound(EVEServiceManager &mgr, CorpRegistryBound& parent, CorporationDB& db, uint32 corpID, PyList* headers) :
-    SparseBound (mgr, parent, headers),
+    SparseBound (mgr, parent),
     m_db(db),
     m_corpID(corpID)
 {
+    this->Prime (headers);
 }
 
 bool OfficeSparseBound::LoadIndexes (DBQueryResult& res) {
