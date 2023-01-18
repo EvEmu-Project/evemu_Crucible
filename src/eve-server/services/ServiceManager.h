@@ -84,6 +84,16 @@ public:
      * @brief Dispatches a call to the requested bound service and method and returns the result
      */
     PyResult Dispatch(const BoundID& service, const std::string& method, PyCallArgs& args);
+
+    /**
+     * @brief Generates a string with debug information on the call
+     */
+    std::string DebugDispatch (const std::string& service, const std::string& method, PyCallArgs& args);
+
+    /**
+     * @brief Generates a string with debug information on the call
+     */
+    std::string DebugDispatch (const BoundID& service, const std::string& method, PyCallArgs& args);
     
     /**
      * @brief Destroys the specified bound object

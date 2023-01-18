@@ -60,6 +60,7 @@ template <class T> struct is_optional<std::optional<T>> : std::true_type {};
 struct CallHandlerBase {
 public:
     virtual PyResult operator() (void* service, PyCallArgs& args) const = 0;
+    virtual const std::string& getSignature () = 0;
 };
 
 template <class S>
@@ -86,10 +87,16 @@ struct CallHandler : public CallHandlerBase {
                     }
                 }
             }
-    { }
+    {
+        this->generateSignature <std::decay_t <Args>...> ();
+    }
 
     PyResult operator() (void* service, PyCallArgs& args) const override {
         return handlerImpl(reinterpret_cast <S*> (service), erasedHandler, args);
+    }
+
+    const std::string& getSignature () {
+        return this->signature;
     }
 
 private:
@@ -222,11 +229,71 @@ private:
         size_t index = 0;
 
         ((
-                isValid = validateArg<Args>(index, args) && isValid,
-                        ++index
+            isValid = validateArg<Args>(index, args) && isValid, ++index
         ), ...);
 
         return isValid;
+    }
+
+    template <typename T> std::string translateParameter() {
+        // handle optional values
+        if constexpr (is_optional <T>::value) {
+            // treat Nones on optional values as valid
+            return "std::optional<" + translateParameter <typename T::value_type>() + ">";
+        }
+
+        if constexpr (std::is_same_v <T, PyRep*>)
+            return "PyRep*";
+
+        // validate type with their parameter equivalent
+        if constexpr (std::is_same_v <T, PyBool*>)
+            return "PyBool*";
+        if constexpr (std::is_same_v <T, PyInt*>)
+            return "PyInt*";
+        if constexpr (std::is_same_v <T, PyLong*>)
+            return "PyLong*";
+        if constexpr (std::is_same_v <T, PyFloat*>)
+            return "PyFloat*";
+        if constexpr (std::is_same_v <T, PyBuffer*>)
+            return "PyBuffer*";
+        if constexpr (std::is_same_v <T, PyString*>)
+            return "PyString*";
+        if constexpr (std::is_same_v <T, PyWString*>)
+            return "PyWString*";
+        if constexpr (std::is_same_v <T, PyToken*>)
+            return "PyToken*";
+        if constexpr (std::is_same_v <T, PyTuple*>)
+            return "PyTuple*";
+        if constexpr (std::is_same_v <T, PyList*>)
+            return "PyList*";
+        if constexpr (std::is_same_v <T, PyDict*>)
+            return "PyDict*";
+        if constexpr (std::is_same_v <T, PyNone*>)
+            return "PyNone*";
+        if constexpr (std::is_same_v <T, PySubStruct*>)
+            return "PySubStruct*";
+        if constexpr (std::is_same_v <T, PySubStream*>)
+            return "PySubStream*";
+        if constexpr (std::is_same_v <T, PyChecksumedStream*>)
+            return "PyChecksumedStream*";
+        if constexpr (std::is_same_v <T, PyObject*>)
+            return "PyObject*";
+        if constexpr (std::is_same_v <T, PyObjectEx*>)
+            return "PyObjectEx*";
+        if constexpr (std::is_same_v <T, PyPackedRow*>)
+            return "PyPackedRow*";
+
+        return "Unknown";
+    }
+
+    template<class... Args>
+    void generateSignature () {
+        constexpr size_t length = sizeof... (Args);
+        size_t index = 0;
+
+        ((
+            signature += translateParameter <Args> (), signature += (index < (length - 1) ? "," : ""), ++ index
+        ), ...);
     }
 
     template<class... Args, size_t... I>
@@ -251,6 +318,7 @@ private:
 
     PyResult(S::*erasedHandler)() = nullptr;
     std::function <PyResult(S* service, PyResult(S::* erasedHandler)(), PyCallArgs& args)> handlerImpl;
+    std::string signature;
 };
 
 #endif //EVEMU_CALLABLE_H

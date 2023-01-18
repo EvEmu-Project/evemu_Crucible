@@ -51,6 +51,10 @@ public:
      */
     virtual PyResult Dispatch(const std::string& name, PyCallArgs& args) = 0;
     /**
+     * @brief Builds a string with information about calling a method in this service
+     */
+    virtual std::string DebugDispatch (const std::string& name) = 0;
+    /**
      * @brief Increases the number of references to this bound object
      */
     virtual void NewReference (Client* client) = 0;
@@ -225,6 +229,24 @@ public:
 
         throw method_not_found ();
     }
+
+    /**
+     * @brief Builds a string with information about calling a method in this service
+     */
+    std::string DebugDispatch (const std::string& name) override {
+        std::string result = name + " candidates: \n";
+
+        for (auto handler : this->mHandlers) {
+            if (handler.first != name)
+                continue;
+
+            result += "\t(" + handler.second->getSignature () + ")";
+            result += "\n";
+        }
+
+        return result;
+    }
+
     /**
      * @brief Increases the number of references to this bound object
      */

@@ -2601,12 +2601,12 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
     // build arguments
     PyCallArgs args(this, req.arg_tuple, req.arg_dict);
     PyResult result;
+    uint32 nodeID = 0, bindID = 0;
 
     // try to handle with the new service handler and fallback to the old version
     try
     {
         if (packet->dest.service == "") {
-            uint32 nodeID = 0, bindID = 0;
             if (sscanf(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
                 sLog.Error("Client::CallReq", "Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
                 return false;
@@ -2631,6 +2631,14 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
     catch (method_not_found ex)
     {
         sLog.Error("Client::CallReq", "Unable to find method to handle call to: %s::%s", packet->dest.service.c_str(), req.method.c_str());
+
+        if (sConfig.debug.IsTestServer) {
+            if (packet->dest.service == "") {
+                sLog.Error("Client::CallReq", m_services.DebugDispatch(bindID, req.method, args).c_str());
+            } else {
+                sLog.Error("Client::CallReq", m_services.DebugDispatch(packet->dest.service, req.method, args).c_str());
+            }
+        }
     }
     catch (service_not_found)
     {

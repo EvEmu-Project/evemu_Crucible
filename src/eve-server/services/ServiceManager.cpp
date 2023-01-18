@@ -83,6 +83,93 @@ PyResult EVEServiceManager::Dispatch(const BoundID& service, const std::string& 
     return it->second->Dispatch(method, args);
 }
 
+std::string pyRepToString (PyRep* v) {
+    if (v->IsBool () == true)
+        return "PyBool*";
+    if (v->IsInt () == true)
+        return "PyInt*";
+    if (v->IsLong () == true)
+        return "PyLong*";
+    if (v->IsFloat () == true)
+        return "PyFloat*";
+    if (v->IsBuffer () == true)
+        return "PyBuffer*";
+    if (v->IsString () == true)
+        return "PyString*";
+    if (v->IsWString () == true)
+        return "PyWString*";
+    if (v->IsToken () == true)
+        return "PyToken*";
+    if (v->IsTuple () == true)
+        return "PyTuple*";
+    if (v->IsList () == true)
+        return "PyList*";
+    if (v->IsDict () == true)
+        return "PyDict*";
+    if (v->IsNone () == true)
+        return "PyNone*";
+    if (v->IsSubStruct () == true)
+        return "PySubStruct*";
+    if (v->IsSubStream () == true)
+        return "PySubStream*";
+    if (v->IsChecksumedStream () == true)
+        return "PyChecksumedStream*";
+    if (v->IsObject () == true)
+        return "PyObject*";
+    if (v->IsObjectEx () == true)
+        return "PyObjectEx*";
+    if (v->IsPackedRow () == true)
+        return "PyPackedRow*";
+
+    return "Unknown";
+}
+
+std::string EVEServiceManager::DebugDispatch (const std::string& service, const std::string& method, PyCallArgs& args) {
+    auto it = this->mServices.find (service);
+
+    if (it == this->mServices.end ())
+        return "Service not found";
+
+    std::string result = it->second->DebugDispatch (method);
+
+    result += "\n\nDoes not match parameters: \n\t(";
+
+    for (int i = 0; i < args.tuple->size(); i ++) {
+        result += pyRepToString(args.tuple->GetItem(i));
+
+        if (i < (args.tuple->size () - 1)) {
+            result += ",";
+        }
+    }
+
+    result += ")";
+
+    return result;
+}
+
+std::string EVEServiceManager::DebugDispatch (const BoundID& service, const std::string& method, PyCallArgs& args) {
+    auto it = this->mBound.find (service);
+
+    if (it == this->mBound.end ())
+        return "Service not found";
+
+    std::string result = it->second->DebugDispatch (method);
+
+    result += "\n\nDoes not match parameters: \n\t(";
+
+    for (int i = 0; i < args.tuple->size(); i ++) {
+        result += pyRepToString(args.tuple->GetItem(i));
+
+        if (i < (args.tuple->size () - 1)) {
+            result += ",";
+        }
+    }
+
+    result += ")";
+
+    return result;
+}
+
 void EVEServiceManager::ClearBoundObject(const BoundID& service, Client* client) {
     auto it = this->mBound.find(service);
 
