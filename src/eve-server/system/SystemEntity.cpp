@@ -831,7 +831,7 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
     }
 }
 
-DungeonEditSE::DungeonEditSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, Dungeon::RoomObject data)
+DungeonEditSE::DungeonEditSE(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, Dungeon::RoomObject data)
 : ObjectSystemEntity(self, services, system),
     m_data(data)
 {

@@ -636,7 +636,7 @@ private:
 
 class DungeonEditSE : public ObjectSystemEntity{
 public:
-    DungeonEditSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system, Dungeon::RoomObject data);
+    DungeonEditSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system, Dungeon::RoomObject data);
     virtual ~DungeonEditSE()                                { /* Do nothing here */ }
 
     /* class type pointer querys. */
