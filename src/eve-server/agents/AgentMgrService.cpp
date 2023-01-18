@@ -55,6 +55,7 @@
 #include "agents/AgentBound.h"
 #include "agents/AgentMgrService.h"
 #include "missions/MissionDataMgr.h"
+#include "services/ServiceManager.h"
 
 AgentMgrService::AgentMgrService(EVEServiceManager& mgr) :
     BindableService("agentMgr", mgr)

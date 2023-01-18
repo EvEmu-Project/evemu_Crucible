@@ -38,7 +38,7 @@ class AgentMgrService : public BindableService <AgentMgrService, AgentBound> {
 public:
     AgentMgrService(EVEServiceManager& mgr);
 
-    void BoundReleased (AgentBound* bound);
+    void BoundReleased (AgentBound* bound) override;
 
 protected:
     PyResult GetAgents(PyCallArgs& call);

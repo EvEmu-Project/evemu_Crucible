@@ -34,12 +34,13 @@ class PyRep;
 class InvBrokerBound;
 class InventoryBound;
 
-class InvBrokerService : public BindableService <InvBrokerService, InvBrokerBound>
+class InvBrokerService : public BindableService <InvBrokerService, InvBrokerBound>, public BoundServiceParent<InventoryBound>
 {
 public:
     InvBrokerService(EVEServiceManager& mgr);
 
     void BoundReleased (InvBrokerBound* bound) override;
+    void BoundReleased (InventoryBound* bound) override;
 
 protected:
     PyResult GetItemDescriptor(PyCallArgs& call);
@@ -48,12 +49,11 @@ protected:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 };
 
-class InvBrokerBound : public EVEBoundObject <InvBrokerBound>, public BoundServiceParent<InventoryBound>
+class InvBrokerBound : public EVEBoundObject <InvBrokerBound>
 {
 public:
     InvBrokerBound(EVEServiceManager& mgr, InvBrokerService& parent, uint32 locationID, uint32 groupID);
 
-    void BoundReleased (InventoryBound* bound) override;
 protected:
     PyResult GetContainerContents(PyCallArgs& call, PyInt* containerID, PyInt* locationID);
     PyResult GetInventoryFromId(PyCallArgs& call, PyInt* inventoryID, PyInt* passive);

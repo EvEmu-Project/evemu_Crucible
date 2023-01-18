@@ -64,6 +64,7 @@
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "station/Outpost.h"
+#include "services/ServiceManager.h"
 
 SystemManager::SystemManager(uint32 systemID, EVEServiceManager &svc)
 :m_services(svc),

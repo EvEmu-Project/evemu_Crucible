@@ -31,6 +31,7 @@
 #include "planet/PlanetORBBound.h"
 #include "planet/CustomsOffice.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 PlanetORB::PlanetORB(EVEServiceManager& mgr) :
     BindableService("planetOrbitalRegistryBroker", mgr)

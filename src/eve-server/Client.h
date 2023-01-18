@@ -45,7 +45,7 @@
 #include "../eve-common/EVE_Player.h"
 
 #include "chat/LSCService.h"
-#include "services/ServiceManager.h"
+// #include "services/ServiceManager.h"
 
 class CryptoChallengePacket;
 class EVENotificationStream;

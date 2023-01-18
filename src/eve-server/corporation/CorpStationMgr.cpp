@@ -50,6 +50,7 @@
 #include "station/Station.h"
 #include "station/StationDataMgr.h"
 #include "station/StationDB.h"
+#include "services/ServiceManager.h"
 
 CorpStationMgr::CorpStationMgr(EVEServiceManager& mgr) :
     BindableService("corpStationMgr", mgr)

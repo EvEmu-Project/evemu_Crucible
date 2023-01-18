@@ -94,10 +94,10 @@ void EVEServiceManager::ClearBoundObject(const BoundID& service, Client* client)
     _log(SERVICE__MESSAGE, "EVEServiceManager::ClearBoundObject() - Clearing bound object at %s", it->second->GetIDString().c_str());
     
     // release the bound, this should cleanup any resources if needed
-    it->second->Release(client);
-
-    // finally remove it from the list
-    this->mBound.erase(it);
+    if (it->second->Release(client) == true) {
+        // finally remove it from the list
+        this->mBound.erase(it);
+    }
 }
 
 const EVEServiceManager::ServicesMap& EVEServiceManager::GetServices() const {

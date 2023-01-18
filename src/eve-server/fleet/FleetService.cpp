@@ -17,6 +17,7 @@
 #include "fleet/FleetService.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 /*
 FLEET__ERROR

@@ -35,6 +35,7 @@
 #include "station/RepairService.h"
 #include "station/Station.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 
 RepairService::RepairService(EVEServiceManager& mgr) :

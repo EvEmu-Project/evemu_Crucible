@@ -28,6 +28,7 @@
 
 #include "services/Callable.h"
 #include "services/Service.h"
+#include "Client.h"
 
 typedef uint32_t BoundID;
 
@@ -55,8 +56,9 @@ public:
     virtual void NewReference (Client* client) = 0;
     /**
      * @brief Releases this dispatcher and frees any kept resources
+     * @returns Whether the bound object was destroyed or someone still has a reference to it
      */
-    virtual void Release (Client* client) = 0;
+    virtual bool Release (Client* client) = 0;
 protected:
     /**
      * @brief Check performed before dispatching a call to this bound service
@@ -92,8 +94,8 @@ public:
         Service <Svc>(name, level),
         mManager(mgr)
     {
-        this->Add("MachoResolveObject", &Svc::MachoResolveObject);
-        this->Add("MachoBindObject", &Svc::MachoBindObject);
+        this->Add("MachoResolveObject", &BindableService<Svc, Bound>::MachoResolveObject);
+        this->Add("MachoBindObject", &BindableService<Svc, Bound>::MachoBindObject);
     }
 
     PyResult MachoResolveObject(PyCallArgs& args, PyRep* bindParameters, PyRep* justQuery) {
@@ -194,8 +196,9 @@ protected:
     /**
      * @brief Registers a method handler
      */
-    void Add(const std::string& name, CallHandler <Bound> handler) {
-        this->mHandlers.push_back(std::make_pair(std::string(name), handler));
+    template <class H, class... Args>
+    void Add(const std::string& name, PyResult(H::*callHandler)(PyCallArgs&, Args...)) {
+        this->mHandlers.push_back(std::make_pair(std::string(name), new CallHandler <H> (callHandler)));
     }
 
 public:
@@ -212,7 +215,7 @@ public:
 
             try
             {
-                return handler.second(reinterpret_cast <Bound*> (this), args);
+                return (*handler.second)(reinterpret_cast <void*> (this), args);
             }
             catch (std::invalid_argument)
             {
@@ -235,16 +238,19 @@ public:
         // the client didn't hold a reference to this service
         // so add it to the list and increase the RefCount
         this->mClients.insert_or_assign (client, true);
+        // also add it to the bind list of the client
+        client->AddBindID (this->GetBoundID ());
     }
     /**
      * @brief Signals this EVEBoundObject that one of the clients that held a reference, released it
+     * @returns Whether the bound object was destroyed or someone still has a reference to it
      */
-    void Release(Client* client) override {
+    bool Release(Client* client) override {
         auto it = this->mClients.find (client);
 
         // the client doesn't have access to this bound service, so nothing has to be done
         if (it == this->mClients.end ())
-            return;
+            return false;
 
         // remove the client for the list, and if that's the last one, free the service
         this->mClients.erase (it);
@@ -252,7 +258,10 @@ public:
         if (this->mClients.size () == 0) {
             this->GetParent ().BoundReleased (reinterpret_cast <Bound*> (this));
             delete this; // we hate this
+            return true;
         }
+
+        return false;
     }
 
     bool CanClientCall(Client* client) override {
@@ -283,7 +292,7 @@ private:
     /** @var The numeric ID of the bound service */
     BoundID mBoundId;
     /** @var The map of handlers for this service */
-    std::vector <std::pair <std::string, CallHandler <Bound>>> mHandlers;
+    std::vector <std::pair <std::string, CallHandlerBase*>> mHandlers;
     /** @var The clients that have access to this bound service */
     std::map <Client*, bool> mClients;
 };
