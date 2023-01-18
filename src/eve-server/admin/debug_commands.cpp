@@ -627,9 +627,9 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, EVEServiceManager &
     str << "shipid: %u <br>"; //14+10
     str << "cloneStationID: %u <br>"; //21+10
 
-    str << "clientid: %li <br>"; //16+10
+    str << "clientid: %lli <br>"; //16+10
     str << "userid: %u <br>"; //14+10
-    str << "sessionID: %li <br>"; //18+20
+    str << "sessionID: %lli <br>"; //18+20
 
     str << "locationid: %u <br>"; //18+10
     str << "stationid: %i <br>"; //17+10
@@ -641,11 +641,11 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, EVEServiceManager &
     str << "corpid: %u <br>"; //14+10
     str << "hqID: %u <br>"; //12+10
     str << "corpAccountKey: %i <br>"; //22+10
-    str << "corpRole: %li <br>"; //17+20
-    str << "rolesAtAll: %li <br>"; //19+20
-    str << "rolesAtBase: %li <br>"; //20+20
-    str << "rolesAtHQ: %li <br>"; //18+20
-    str << "rolesAtOther: %li <br>"; //21+20
+    str << "corpRole: %lli <br>"; //17+20
+    str << "rolesAtAll: %lli <br>"; //19+20
+    str << "rolesAtBase: %lli <br>"; //20+20
+    str << "rolesAtHQ: %lli <br>"; //18+20
+    str << "rolesAtOther: %lli <br>"; //21+20
 
     str << "fleetID: %i <br>"; //14+10
     str << "wingID: %i <br>"; //13+10
@@ -653,7 +653,7 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, EVEServiceManager &
     str << "job: %s <br>"; //10+10
     str << "role: %s <br>"; //11+10
     str << "booster: %s <br>"; //14+10
-    str << "joinTime: %li <br>"; //16+20
+    str << "joinTime: %lli <br>"; //16+20
 
     int size = 32;  // header
     size += 445;    // text

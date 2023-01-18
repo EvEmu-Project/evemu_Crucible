@@ -358,7 +358,7 @@ public:
     {
         char buff[32]; // max uint32 will result in a 10 char string, a float will result in a ? char string.
         if (mType == evil_number_int)
-            snprintf(buff, 32, "%li", iVal);
+            snprintf(buff, 32, "%lli", iVal);
         else if (mType == evil_number_float)
             snprintf(buff, 32, "%f", fVal);
         else

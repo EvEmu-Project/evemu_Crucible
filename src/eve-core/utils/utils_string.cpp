@@ -161,7 +161,7 @@ const char* itoa( int64 num )
     static char buf[ _ITOA_BUFLEN ];
     memset( buf, 0, _ITOA_BUFLEN );
 
-    snprintf( buf, _ITOA_BUFLEN, "%li", num );
+    snprintf( buf, _ITOA_BUFLEN, "%lli", num );
 
     return buf;
 }

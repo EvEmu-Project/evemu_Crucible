@@ -135,7 +135,7 @@ void AnomalySE::EncodeDestiny(Buffer& into)
         main.formationID = 0xFF;
     into.Append( main );
 
-    _log(SE__DESTINY, "AnomalySE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "AnomalySE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict* AnomalySE::MakeSlimItem()
@@ -185,7 +185,7 @@ void WormholeSE::EncodeDestiny(Buffer& into)
     STOP_Struct main;
         main.formationID = 0xFF;
     into.Append( main );
-    _log(SE__DESTINY, "WormholeSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "WormholeSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict* WormholeSE::MakeSlimItem()

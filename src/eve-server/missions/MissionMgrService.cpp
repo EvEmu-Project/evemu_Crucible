@@ -37,7 +37,7 @@ MissionMgrService::MissionMgrService() :
 PyResult MissionMgrService::GetMyCourierMissions(PyCallArgs& call)
 {
     //SELECT * FROM courierMissions
-    sLog.White("MissionMgrService", "Handle_GetMyCourierMissions() size=%li", call.tuple->size());
+    sLog.White("MissionMgrService", "Handle_GetMyCourierMissions() size=%lli", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;

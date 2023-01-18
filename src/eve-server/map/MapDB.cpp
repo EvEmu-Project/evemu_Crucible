@@ -328,8 +328,8 @@ void MapDB::UpdateKillData(uint32 sysID, SystemKillData& data)
 {
     DBerror err;
     sDatabase.RunQuery(err, "UPDATE mapDynamicData SET killsHour = %u, kills24Hour = %u, factionKills = %u, factionKills24Hour = %u,"
-    "  podKillsHour = %u, podKills24Hour = %u, killsDateTime = %li, kills24DateTime = %li, podDateTime = %li, pod24DateTime = %li,"
-    "  factionDateTime = %li, faction24DateTime = %li",
+    "  podKillsHour = %u, podKills24Hour = %u, killsDateTime = %lli, kills24DateTime = %lli, podDateTime = %lli, pod24DateTime = %lli,"
+    "  factionDateTime = %lli, faction24DateTime = %lli",
     data.killsHour, data.kills24Hour, data.factionKills, data.factionKills24Hour, data.podKillsHour, data.podKills24Hour,
     data.killsDateTime, data.kills24DateTime, data.factionDateTime, data.faction24DateTime, data.podDateTime, data.pod24DateTime);
 }

@@ -201,7 +201,7 @@ PyResult RepairServiceBound::DamageModules(PyCallArgs &call, PyList* itemIDAndAm
      *    self.repairSvc.DamageModules(itemIDAndAmountOfDamageList)
      */
 
-    _log(PHYSICS__INFO, "RepairSvcBound::Handle_DamageModules() size=%li", call.tuple->size());
+    _log(PHYSICS__INFO, "RepairSvcBound::Handle_DamageModules() size=%lli", call.tuple->size());
     call.Dump(PHYSICS__INFO);
 
     return PyStatic.NewNone();

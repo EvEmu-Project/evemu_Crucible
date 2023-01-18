@@ -249,7 +249,7 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
  */
 PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID) {
     if (is_log_enabled(INV__DUMP)) {
-        _log(INV__DUMP, "IB::Handle_Add() size= %li", call.tuple->size());
+        _log(INV__DUMP, "IB::Handle_Add() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
     }
 
@@ -308,7 +308,7 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
 // this call is for moving items to *THIS* inventory
 PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* containerID) {
     if (is_log_enabled(INV__DUMP)) {
-        _log(INV__DUMP, "IB::Handle_MultiAdd() size= %li", call.tuple->size());
+        _log(INV__DUMP, "IB::Handle_MultiAdd() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
     }
 

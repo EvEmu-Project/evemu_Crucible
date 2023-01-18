@@ -127,7 +127,7 @@ PyResult RamProxyService::GetJobs2(PyCallArgs &call, PyInt* ownerID, PyInt* comp
 PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRep* itemLocationData, PyRep* bomLocationData, PyRep* flagOutput, PyRep* buildRuns, PyRep* activityID, PyRep* licensedProductionRuns, PyRep* ownerFlag, PyRep* blah) {
     //job = sm.ProxySvc('ramProxy').InstallJob(installationLocationData, installedItemLocationData, bomLocationData, flagOutput, quoteData.buildRuns, quoteData.activityID, quoteData.licensedProductionRuns, not quoteData.ownerFlag, 'blah', quoteOnly=1, installedItem=quoteData.blueprint, maxJobStartTime=quoteData.assemblyLine.nextFreeTime + 1 * MIN, inventionItems=quoteData.inventionItems, inventionOutputItemID=quoteData.inventionItems.outputType)
 
-    _log(MANUF__DUMP, "RamProxyService::Handle_InstallJob() - size=%li", call.tuple->size());
+    _log(MANUF__DUMP, "RamProxyService::Handle_InstallJob() - size=%lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     Call_InstallJob args;
@@ -563,7 +563,7 @@ PyResult RamProxyService::CompleteJob(PyCallArgs &call, PyRep* info, PyRep* jobI
      * 23:35:54 [ManufDump]       [ 1]    Integer: 2                        jobID
      * 23:35:54 [ManufDump]       [ 2]    Boolean: false                    cancel
      */
-    _log(MANUF__DUMP, "RamProxyService::Handle_CompleteJob() - size=%li", call.tuple->size());
+    _log(MANUF__DUMP, "RamProxyService::Handle_CompleteJob() - size=%lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     Call_CompleteJob args;
@@ -796,7 +796,7 @@ PyResult RamProxyService::CompleteJob(PyCallArgs &call, PyRep* info, PyRep* jobI
 }
 
 PyResult RamProxyService::UpdateAssemblyLineConfigurations(PyCallArgs &call, PyRep* installationLocationData, PyRep* rowset) {
-    _log(MANUF__DUMP, "RamProxyService::Handle_UpdateAssemblyLineConfigurations() - size=%li", call.tuple->size());
+    _log(MANUF__DUMP, "RamProxyService::Handle_UpdateAssemblyLineConfigurations() - size=%lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     //RamConfigAssemblyLinesAccessDenied

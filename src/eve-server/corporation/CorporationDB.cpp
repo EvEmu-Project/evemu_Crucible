@@ -340,7 +340,7 @@ uint16 CorporationDB::CreateMedal(uint32 ownerID, uint32 creatorID, const std::s
     DBerror err;
     sDatabase.RunQueryLID(err, medalID,
         " INSERT INTO crpMedals (ownerID, creatorID, title, description, date)"
-        " VALUES (%u, %u, '%s', '%s', %li)", ownerID, creatorID, cTitle.c_str(), cDesc.c_str(), GetFileTimeNow());
+        " VALUES (%u, %u, '%s', '%s', %lli)", ownerID, creatorID, cTitle.c_str(), cDesc.c_str(), GetFileTimeNow());
 
     return medalID;
 }
@@ -1270,7 +1270,7 @@ void CorporationDB::EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataT
 {
     DBerror err;
     sDatabase.RunQuery(err,
-        "UPDATE crpBulletins SET editCharacterID = %u, editDateTime = %li, title = '%s', body = '%s'"
+        "UPDATE crpBulletins SET editCharacterID = %u, editDateTime = %lli, title = '%s', body = '%s'"
         " WHERE bulletinID = %u", eCharID, eDataTime, title.c_str(), body.c_str(), bulletinID);
 }
 
@@ -1402,7 +1402,7 @@ uint32 CorporationDB::CreateAdvert(Client* pClient, uint32 corpID, int64 typeMas
     sDatabase.RunQueryLID(err, adID, "INSERT INTO crpAdRegistry"
     " (corporationID, allianceID, stationID, regionID, raceMask, typeMask,"
     "  createDateTime, expiryDateTime, description, title, memberCount, channelID)"
-    " VALUES (%u,%u,%u,%u,%u,%li,%f,%f,'%s','%s',%u,%u)",
+    " VALUES (%u,%u,%u,%u,%u,%lli,%f,%f,'%s','%s',%u,%u)",
         corpID, pClient->GetAllianceID(), pClient->GetStationID(), pClient->GetRegionID(), 15, typeMask, // raceMask isnt implemented yet
         GetFileTimeNow(), GetFileTimeNow() + (EvE::Time::Day * days), description.c_str(), title.c_str(), members, channelID);
 
@@ -1414,7 +1414,7 @@ void CorporationDB::UpdateAdvert(uint16 adID, uint32 corpID, int64 typeMask, int
     int64 time = GetFileTimeNow() + (EvE::Time::Day * days);
     DBerror err;
     sDatabase.RunQuery(err, "UPDATE crpAdRegistry"
-        " SET typeMask=%li, expiryDateTime=%li, description='%s', title='%s', memberCount=%u, channelID=%u"
+        " SET typeMask=%lli, expiryDateTime=%lli, description='%s', title='%s', memberCount=%u, channelID=%u"
         " WHERE adID=%u ",
         typeMask, time, description.c_str(), title.c_str(), members, channelID, adID);
 }
@@ -1516,7 +1516,7 @@ bool CorporationDB::InsertApplication(Corp::ApplicationInfo& aInfo) {
     if (!sDatabase.RunQueryLID(err, aInfo.appID,
         " INSERT INTO crpApplications"
         " (corporationID, characterID, applicationText, applicationDateTime)"
-        " VALUES (%u, %u, '%s', %li)",
+        " VALUES (%u, %u, '%s', %lli)",
         aInfo.corpID, aInfo.charID, escaped.c_str(), aInfo.appTime))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", err.c_str());
@@ -1967,7 +1967,7 @@ PyRep* CorporationDB::GetItemEvents(uint32 corpID, uint32 charID, int64 fromDate
     if (!sDatabase.RunQuery(res,
         " SELECT eventID, corporationID, characterID, eventTypeID, eventDateTime"
         " FROM crpItemEvent"
-        " WHERE corporationID = %u AND characterID = %u AND eventDateTime > %li AND eventDateTime <= %li "
+        " WHERE corporationID = %u AND characterID = %u AND eventDateTime > %lli AND eventDateTime <= %lli "
         " LIMIT %u", corpID, charID, fromDate, toDate, rowsPerPage))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
@@ -2007,7 +2007,7 @@ void CorporationDB::AddRoleHistory(uint32 corpID, uint32 charID, uint32 issuerID
     DBerror err;
     sDatabase.RunQuery(err,
         "INSERT INTO crpRoleHistroy (corporationID, characterID, issuerID, changeTime, oldRoles, newRoles, grantable)"
-        " VALUES (%u, %u, %u, %f, %li, %li, %i)", corpID, charID, issuerID, GetFileTimeNow(), oldRoles, newRoles, (grantable ? 1 : 0));
+        " VALUES (%u, %u, %u, %f, %lli, %lli, %i)", corpID, charID, issuerID, GetFileTimeNow(), oldRoles, newRoles, (grantable ? 1 : 0));
 }
 
 PyRep* CorporationDB::GetRoleHistroy(uint32 corpID, uint32 charID, int64 fromDate, int64 toDate, uint8 rowsPerPage)
@@ -2016,7 +2016,7 @@ PyRep* CorporationDB::GetRoleHistroy(uint32 corpID, uint32 charID, int64 fromDat
     if (!sDatabase.RunQuery(res,
         " SELECT corporationID, characterID, issuerID, changeTime, oldRoles, newRoles, grantable"
         " FROM crpRoleHistroy"
-        " WHERE corporationID = %u and characterID = %u AND changeTime > %li AND changeTime <= %li "
+        " WHERE corporationID = %u and characterID = %u AND changeTime > %lli AND changeTime <= %lli "
         " LIMIT %u", corpID, charID, fromDate, toDate, rowsPerPage))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
@@ -2106,7 +2106,7 @@ void CorporationDB::AddVoteCase(uint32 corpID, uint32 charID, Call_InsertVoteCas
     sDatabase.RunQueryLID(err, voteCaseID,
         " INSERT INTO crpVoteItems( "
         " corporationID, voteType, voteCaseText, description, startDateTime, endDateTime)"
-        " VALUES (%u, %u, '%s', '%s', %li, %li)",
+        " VALUES (%u, %u, '%s', '%s', %lli, %lli)",
         args.corporationID, args.voteType, args.voteCaseText.c_str(), args.description.c_str(), args.startDateTime, args.endDateTime);
 
     std::stringstream str;

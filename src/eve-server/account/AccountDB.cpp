@@ -153,7 +153,7 @@ PyRep* AccountDB::GetJournal(uint32 ownerID, int8 entryTypeID, uint16 accountKey
         "SELECT transactionID, transactionDate, referenceID, entryTypeID, ownerID1, ownerID2, accountKey, amount,"
         " balance, description, currency, 1 AS sortValue"
         " FROM %s"
-        " WHERE transactionDate > %li AND accountKey = %u %s AND ownerID = %u %s",
+        " WHERE transactionDate > %lli AND accountKey = %u %s AND ownerID = %u %s",
         tblName.c_str(), fromDate, accountKey, entryType.c_str(), ownerID, sort.c_str()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());

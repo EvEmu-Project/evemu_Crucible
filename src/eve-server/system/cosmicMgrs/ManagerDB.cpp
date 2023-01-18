@@ -698,7 +698,7 @@ void ManagerDB::GetDunTemplates(DBQueryResult& res)
         "INSERT INTO dunActive" //Active Dungeons
         " (systemID, dungeonID, state, dunTemplateID, dunExpiryTime, xpos, ypos, zpos)"
         " VALUES "
-        "(%u, %u, %u, %u, %li, %f, %f, %f)",
+        "(%u, %u, %u, %u, %lli, %f, %f, %f)",
         dun.systemID, dun.dunItemID, dun.state, dun.dunTemplateID, dun.dunExpiryTime, dun.x, dun.y, dun.z ))
     {
         _log(DATABASE__ERROR, "SaveActiveDungeon - unable to save dungeon: %s", err.c_str());
@@ -734,7 +734,7 @@ void ManagerDB::GetStatisticData(DBQueryResult& res, int64 starttime)
     if (!sDatabase.RunQuery(res,
         "SELECT pcShots, pcMissiles, ramJobs, shipsSalvaged, pcBounties, npcBounties, oreMined, iskMarket, probesLaunched, sitesScanned"
         " FROM srvStatisticData"
-        " WHERE timeStamp > %li", starttime))
+        " WHERE timeStamp > %lli", starttime))
         codelog(DATABASE__ERROR, "Error in GetStatisticData query: %s", res.error.c_str());
 }
 

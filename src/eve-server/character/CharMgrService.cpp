@@ -455,7 +455,7 @@ PyResult CharMgrService::LogSettings(PyCallArgs& call, PyRep* settingsInfoRet) {
      *              [PyString "machoVersion"]
      *              [PyInt 1]
      */
-    sLog.Warning( "CharMgrService::Handle_LogSettings()", "size= %li", call.tuple->size());
+    sLog.Warning( "CharMgrService::Handle_LogSettings()", "size= %lli", call.tuple->size());
     call.Dump(CHARACTER__TRACE);
     return nullptr;
 }
@@ -617,7 +617,7 @@ PyResult CharMgrService::GetOwnerNote(PyCallArgs &call, PyInt* noteID)
             ["label" => <S:Folders> [WStr]]
             */
 
-    sLog.Warning( "CharMgrService::Handle_GetOwnerNote()", "size= %li", call.tuple->size());
+    sLog.Warning( "CharMgrService::Handle_GetOwnerNote()", "size= %lli", call.tuple->size());
     call.Dump(CHARACTER__DEBUG);
     return nullptr;
     //return m_db.GetOwnerNote(call.client->GetCharacterID());
@@ -662,7 +662,7 @@ PyResult CharMgrService::GetOwnerNoteLabels(PyCallArgs &call)
             ["label" => <N:Pelorn's PvP Route> [WStr]]
     [PyNone]
 */
-  sLog.Warning( "CharMgrService::Handle_GetOwnerNoteLabels()", "size= %li", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_GetOwnerNoteLabels()", "size= %lli", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
     return m_db.GetOwnerNoteLabels(call.client->GetCharacterID());
@@ -760,7 +760,7 @@ PyResult CharMgrService::EditContactsRelationshipID(PyCallArgs& call, PyList* co
 
 PyResult CharMgrService::GetFactions(PyCallArgs& call)
 {
-    sLog.Warning( "CharMgrService::Handle_GetFactions()", "size= %li", call.tuple->size());
+    sLog.Warning( "CharMgrService::Handle_GetFactions()", "size= %lli", call.tuple->size());
     call.Dump(CHARACTER__TRACE);
     return nullptr;
 }

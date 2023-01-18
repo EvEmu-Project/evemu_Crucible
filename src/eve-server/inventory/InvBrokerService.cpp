@@ -121,7 +121,7 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
             if e.args[0] == 'CrpAccessDenied':
                 self.CloseContainer(itemid)
     */
-    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventoryFromId() size=%li", call.tuple->size());
+    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventoryFromId() size=%lli", call.tuple->size());
     call.Dump(INV__DUMP);
 
     sItemFactory.SetUsingClient( call.client );
@@ -250,7 +250,7 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
 //this is a view into an inventory item using a specific flag.
 PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std::optional <PyInt*> cOwnerID) {
     /** @note  this means "Get the Inventory containing this itemID */
-    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventory() size=%li", call.tuple->size());
+    _log(INV__DUMP, "InvBrokerBound::Handle_GetInventory() size=%lli", call.tuple->size());
     call.Dump(INV__DUMP);
 
     uint32 ownerID = cOwnerID.has_value() ? cOwnerID.value()->value() : 0;

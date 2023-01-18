@@ -94,7 +94,7 @@ ScanBound::ScanBound(EVEServiceManager& mgr, ScanMgrService& parent, Client* cli
 PyResult ScanBound::ConeScan( PyCallArgs& call, PyRep* ignored1, PyRep* ignored2, PyRep* ignored3, PyRep* ignored4, PyRep* ignored5) {
     //result = sm.GetService('scanSvc').ConeScan(self.scanangle, rnge * 1000, vec.x, vec.y, vec.z)
     //return sm.RemoteSvc('scanMgr').GetSystemScanMgr().ConeScan(scanangle, scanRange, x, y, z)
-    //_log(SCAN__TRACE, "ScanBound::Handle_ConeScan() - size=%li", call.tuple->size());
+    //_log(SCAN__TRACE, "ScanBound::Handle_ConeScan() - size=%lli", call.tuple->size());
     //call.Dump(SCAN__DUMP);
 
     // TODO: for this one we're keeping the old mechanism for now as it requires changes on more than just this service
@@ -126,7 +126,7 @@ PyResult ScanBound::ConeScan( PyCallArgs& call, PyRep* ignored1, PyRep* ignored2
 }
 
 PyResult ScanBound::RequestScans(PyCallArgs& call, std::optional <PyDict*> probes) {
-    _log(SCAN__TRACE, "ScanBound::Handle_RequestScans() - size=%li", call.tuple->size());
+    _log(SCAN__TRACE, "ScanBound::Handle_RequestScans() - size=%lli", call.tuple->size());
     call.Dump(SCAN__DUMP);
 
     DestinyManager* pDestiny = m_client->GetShipSE()->DestinyMgr();
@@ -184,7 +184,7 @@ PyResult ScanBound::RecoverProbes(PyCallArgs& call, PyList* probeIDs) {
 PyResult ScanBound::DestroyProbe(PyCallArgs& call, PyInt* probeID) {
     //scanMan = sm.RemoteSvc('scanMgr').GetSystemScanMgr()
     //scanMan.DestroyProbe(probeID)
-    _log(SCAN__TRACE, "ScanBound::Handle_DestroyProbe() - size=%li", call.tuple->size());
+    _log(SCAN__TRACE, "ScanBound::Handle_DestroyProbe() - size=%lli", call.tuple->size());
     call.Dump(SCAN__DUMP);
 
     SystemEntity* pSE(m_client->SystemMgr()->GetSE(probeID->value()));

@@ -330,7 +330,7 @@ uint32 MarketDB::StoreOrder(Market::SaveData &data) {
         " ) VALUES ("
         "    %u, %u, %u, %u, %u, %u,"
         "    %u, %.2f, %.2f, %u, %u, %u,"
-        "    %li, %u, %u, %u, %u, %u, %u"
+        "    %lli, %u, %u, %u, %u, %u, %u"
         " )",
         data.typeID, data.ownerID, data.regionID, data.stationID, data.solarSystemID, data.orderRange,
         data.bid?1:0, data.price, data.escrow, data.minVolume, data.volEntered, data.volRemaining,
@@ -363,7 +363,7 @@ PyRep *MarketDB::GetTransactions(uint32 clientID, Market::TxData& data) {
         "   transactionType, clientID, regionID, stationID, corpTransaction, characterID"
         " FROM mktTransactions "
         " WHERE clientID=%u %s AND quantity>=%u AND price>=%.2f AND "
-        " transactionDate>=%li %s AND keyID=%u AND characterID=%u",
+        " transactionDate>=%lli %s AND keyID=%u AND characterID=%u",
         clientID, typeID.c_str(), data.quantity, data.price,
         data.time, buy.c_str(), data.accountKey, data.memberID))
     {
@@ -467,7 +467,7 @@ int64 MarketDB::GetUpdateTime()
 void MarketDB::SetUpdateTime(int64 setTime)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "UPDATE mktUpdates SET timeStamp = %li WHERE server = 1", setTime);
+    sDatabase.RunQuery(err, "UPDATE mktUpdates SET timeStamp = %lli WHERE server = 1", setTime);
 }
 
 /** @todo this needs work for better logic.   may need to pull data from transactions */
