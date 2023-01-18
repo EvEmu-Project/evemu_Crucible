@@ -512,6 +512,8 @@ PyResult PosMgrBound::SetTowerPassword(PyCallArgs& call, PyInt* itemID, PyRep* p
     if (password->IsString() or password->IsWString())
         pTSE->SetPassword(PyRep::StringContent(password));
     pTSE->UpdatePassword();
+
+    return PyStatic.NewNone();
 }
 
 PyResult PosMgrBound::SetTowerPassword(PyCallArgs &call, PyInt* itemID, PyRep* password, PyBool* allowCorp, PyBool* allowAlliance) {

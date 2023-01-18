@@ -861,6 +861,8 @@ PyResult DogmaIMBound::Deactivate(PyCallArgs& call, PyInt* itemID, PyInt* effect
     else {
         ; // make error here
     }
+
+    return PyStatic.NewNone();
 }
 
 PyResult DogmaIMBound::Deactivate(PyCallArgs& call, PyInt* itemID, PyWString* effectName)
