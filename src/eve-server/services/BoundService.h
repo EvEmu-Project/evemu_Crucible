@@ -196,8 +196,9 @@ protected:
     /**
      * @brief Registers a method handler
      */
-    void Add(const std::string& name, CallHandler <Bound> handler) {
-        this->mHandlers.push_back(std::make_pair(std::string(name), handler));
+    template <class H, class... Args>
+    void Add(const std::string& name, PyResult(H::*callHandler)(PyCallArgs&, Args...)) {
+        this->mHandlers.push_back(std::make_pair(std::string(name), new CallHandler <H> (callHandler)));
     }
 
 public:
@@ -214,7 +215,7 @@ public:
 
             try
             {
-                return handler.second(reinterpret_cast <void*> (this), args);
+                return (*handler.second)(reinterpret_cast <void*> (this), args);
             }
             catch (std::invalid_argument)
             {
@@ -291,7 +292,7 @@ private:
     /** @var The numeric ID of the bound service */
     BoundID mBoundId;
     /** @var The map of handlers for this service */
-    std::vector <std::pair <std::string, CallHandler <Bound>>> mHandlers;
+    std::vector <std::pair <std::string, CallHandlerBase*>> mHandlers;
     /** @var The clients that have access to this bound service */
     std::map <Client*, bool> mClients;
 };
