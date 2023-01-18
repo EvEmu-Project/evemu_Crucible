@@ -94,8 +94,8 @@ public:
         Service <Svc>(name, level),
         mManager(mgr)
     {
-        this->Add("MachoResolveObject", &Svc::MachoResolveObject);
-        this->Add("MachoBindObject", &Svc::MachoBindObject);
+        this->Add("MachoResolveObject", &BindableService<Svc, Bound>::MachoResolveObject);
+        this->Add("MachoBindObject", &BindableService<Svc, Bound>::MachoBindObject);
     }
 
     PyResult MachoResolveObject(PyCallArgs& args, PyRep* bindParameters, PyRep* justQuery) {
@@ -214,7 +214,7 @@ public:
 
             try
             {
-                return handler.second(reinterpret_cast <Bound*> (this), args);
+                return handler.second(reinterpret_cast <void*> (this), args);
             }
             catch (std::invalid_argument)
             {

@@ -57,34 +57,39 @@ public:
 template <class T> struct is_optional : std::false_type {};
 template <class T> struct is_optional<std::optional<T>> : std::true_type {};
 
+struct CallHandlerBase {
+public:
+    virtual PyResult operator() (void* service, PyCallArgs& args) const = 0;
+};
+
 template <class S>
-struct CallHandler {
+struct CallHandler : public CallHandlerBase {
     template<class... Args> CallHandler(PyResult(S::*callHandler)(PyCallArgs&, Args...)) :
             erasedHandler(reinterpret_cast <PyResult(S::*)()> (callHandler)),
             handlerImpl {
-                    [this](S* service, PyResult(S::*erasedHandler)(), PyCallArgs& args) -> PyResult {
-                        auto handler = reinterpret_cast <PyResult(S::*)(PyCallArgs&, Args...)> (erasedHandler);
+                [this](S* service, PyResult(S::*erasedHandler)(), PyCallArgs& args) -> PyResult {
+                    auto handler = reinterpret_cast <PyResult(S::*)(PyCallArgs&, Args...)> (erasedHandler);
 
-                        if constexpr (sizeof...(Args) == 0) {
-                            // ensure theres no arguments in the data
-                            if (args.tuple->size() != 0)
-                                throw std::invalid_argument("expected 0 arguments");
+                    if constexpr (sizeof...(Args) == 0) {
+                        // ensure there's no arguments in the data
+                        if (args.tuple->size() != 0)
+                            throw std::invalid_argument("expected 0 arguments");
 
-                            // all the functions must have the PyCallArgs to know important info about the call
-                            // like the client that sent it
-                            return (service->*handler) (args);
-                        } else {
-                            if (validateArgs <std::decay_t<Args>...>(args) == false)
-                                throw std::invalid_argument("arguments do not match");
+                        // all the functions must have the PyCallArgs to know important info about the call
+                        // like the client that sent it
+                        return (service->*handler) (args);
+                    } else {
+                        if (this->validateArgs <std::decay_t<Args>...>(args) == false)
+                            throw std::invalid_argument("arguments do not match");
 
-                            return apply(service, handler, args);
-                        }
+                        return this->apply(service, handler, args);
                     }
+                }
             }
     { }
 
-    PyResult operator() (S* service, PyCallArgs& args) const {
-        return handlerImpl(service, erasedHandler, args);
+    PyResult operator() (void* service, PyCallArgs& args) const override {
+        return handlerImpl(reinterpret_cast <S*> (service), erasedHandler, args);
     }
 
 private:
