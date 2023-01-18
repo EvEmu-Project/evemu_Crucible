@@ -93,7 +93,6 @@ void DungeonDataMgr::GetRandomDungeon(Dungeon::Dungeon& dungeon, uint8 archetype
     std::advance(it, randomIndex);
     // Assign the selected dungeon to the output parameter
     dungeon = *it;
-
 }
 
 void DungeonDataMgr::Populate()
@@ -276,7 +275,6 @@ bool DungeonMgr::MakeDungeon(CosmicSignature& sig)
     sDunDataMgr.GetRandomDungeon(dData, sig.dungeonType);
 
     if ((sig.sigGroupID == EVEDB::invGroups::Cosmic_Signature) || (sig.sigGroupID == EVEDB::invGroups::Cosmic_Anomaly)) {
-
         // Create a new anomaly inventory item to track entire dungeon under
         ItemData iData(sig.sigTypeID, sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), sig.position/*, info*/);
 

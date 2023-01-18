@@ -344,7 +344,6 @@ void SpawnMgr::DoSpawnForAnomaly(SystemBubble* pBubble, GPoint pos, uint8 level,
         NPC* pNPC(nullptr);
         InventoryItemRef iRef(nullptr);
         for (auto cur : m_toSpawn) {
-
             ItemData idata(cur.typeID, corpID, m_system->GetID(), flagNone, "", startPos, name.c_str());
             for (uint8 x=0; x < cur.quantity; ++x) {
                 iRef = sItemFactory.SpawnItem(idata);
@@ -419,7 +418,6 @@ void SpawnMgr::DoSpawnForAnomaly(SystemBubble* pBubble, GPoint pos, uint8 level,
     }
 
     return;
-
 }
 
 void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)

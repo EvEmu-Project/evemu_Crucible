@@ -55,7 +55,6 @@ protected:
     PyResult DEGetRooms(PyCallArgs& call);
     PyResult DEGetRoomObjectPaletteData(PyCallArgs& call);
     PyResult DEGetFactions(PyCallArgs& call);
-
 };
 
 
