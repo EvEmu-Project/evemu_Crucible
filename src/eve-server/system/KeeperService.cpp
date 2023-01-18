@@ -94,24 +94,23 @@ PyResult KeeperService::CanWarpToPathPlex(PyCallArgs &call, PyInt* instanceID) {
 	return nullptr;
 }
 
-/**  Hard-coded to random location....just to play with right now.
-		will need to edit later to implement in missions/etc  */
 PyResult KeeperService::ActivateAccelerationGate(PyCallArgs &call, PyInt* itemID) {
     _log(DUNG__CALL,  "KeeperService::Handle_ActivateAccelerationGate  size: %li", call.tuple->size());
     call.Dump(DUNG__CALL_DUMP);
 
     Client *pClient(call.client);
 
-    /** @todo   this should be called for gate... */
-    //pClient->GetShipSE()->DestinyMgr()->SendSpecialEffect10(args.arg, 0, "effects.WarpGateEffect", 0, 1, 0);
+    // Send gate activation effect
+    pClient->GetShipSE()->DestinyMgr()->SendSpecialEffect10(itemID->value(), 0, "effects.WarpGateEffect", 0, 1, 0);
 
-    double distance = MakeRandomFloat(5, 25) * ONE_AU_IN_METERS;
+    // Currently, next rooms are at a fixed distance from previous room (on x axis), so we can just warp the ship in that direction
     GPoint currentPosition(pClient->GetShipSE()->GetPosition());
     GPoint deltaPosition;
-    deltaPosition.x = MakeRandomFloat(-1.0, 1.0) * distance;
-    deltaPosition.y = MakeRandomFloat(-1.0, 1.0) * distance;
-    deltaPosition.z = MakeRandomFloat(-2.0, 2.0) * ONE_AU_IN_METERS;
-    GPoint warpToPoint(currentPosition+deltaPosition);              // Make a warp-in point variable
+    deltaPosition.x = NEXT_DUNGEON_ROOM_DIST;
+    deltaPosition.y = 0;
+    deltaPosition.z = 0;
+
+    GPoint warpToPoint(currentPosition+deltaPosition);
     GVector vectorToDestination(currentPosition, warpToPoint);
     double distanceToDestination = vectorToDestination.length();
     pClient->GetShipSE()->DestinyMgr()->WarpTo(warpToPoint, distanceToDestination);

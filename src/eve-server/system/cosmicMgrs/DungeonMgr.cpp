@@ -314,7 +314,7 @@ bool DungeonMgr::MakeDungeon(CosmicSignature& sig)
             } else {
                 // The following rooms shall be 100M kilometers in x direction from previous room.
                 GPoint pos;
-                pos.x = newDungeon.rooms[roomCounter - 1].position.x + 100000000000;
+                pos.x = newDungeon.rooms[roomCounter - 1].position.x + NEXT_DUNGEON_ROOM_DIST;
                 pos.y = newDungeon.rooms[roomCounter - 1].position.y;
                 pos.z = newDungeon.rooms[roomCounter - 1].position.z;
                 newRoom.position = pos;
