@@ -249,9 +249,9 @@ PyResult CorpRegistryBound::GetLabels(PyCallArgs &call)
     return m_db.GetLabels(call.client->GetCorporationID());
 }
 
-PyResult CorpRegistryBound::CanViewVotes(PyCallArgs &call)
+PyResult CorpRegistryBound::CanViewVotes(PyCallArgs &call, PyInt* corporationID)
 {   // working
-    return m_db.PyHasShares(call.client->GetCharacterID(), m_corpID);
+    return m_db.PyHasShares(call.client->GetCharacterID(), corporationID->value());
 }
 
 PyResult CorpRegistryBound::GetMemberIDsWithMoreThanAvgShares(PyCallArgs &call)
@@ -1758,6 +1758,8 @@ PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     headers->AddItemString ("stationID");
     headers->AddItemString ("stationTypeID");
     headers->AddItemString ("officeFolderID");
+
+    return nullptr;
 
     if (this->m_offices == nullptr) {
         this->m_offices = new OfficeSparseBound (this->GetServiceManager (), *this, m_db, m_corpID, headers);

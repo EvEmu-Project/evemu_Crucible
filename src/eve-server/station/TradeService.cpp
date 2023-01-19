@@ -499,7 +499,7 @@ void TradeBound::ExchangeItems(Client* pClient, Client* pOther, TradeSession* pT
 }
 
 TradeService::TradeService(EVEServiceManager& mgr)
-    : BindableService("trademgr", mgr, eAccessLevel_Station)
+    : BindableService("trademgr", mgr, eAccessLevel_SolarSystem2)
 {
     m_SessionID = minTradeCont;
 

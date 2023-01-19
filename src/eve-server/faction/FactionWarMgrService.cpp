@@ -42,7 +42,7 @@
  */
 
 FactionWarMgrService::FactionWarMgrService(EVEServiceManager& mgr) :
-    Service("facWarMgr"),
+    Service("facWarMgr", eAccessLevel_SolarSystem2),
     m_manager (mgr)
 {
     this->Add("GetWarFactions", &FactionWarMgrService::GetWarFactions);

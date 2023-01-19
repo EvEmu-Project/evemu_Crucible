@@ -39,7 +39,7 @@
 #include "corporation/CorpBookmarkMgr.h"
 
 CorpBookmarkMgr::CorpBookmarkMgr() :
-    Service("corpBookmarkMgr")
+    Service("corpBookmarkMgr", eAccessLevel_Corporation)
 {
     this->Add("GetBookmarks", &CorpBookmarkMgr::GetBookmarks);
     this->Add("UpdateBookmark", &CorpBookmarkMgr::UpdateBookmark);

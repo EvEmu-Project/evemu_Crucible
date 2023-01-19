@@ -30,7 +30,7 @@
 #include "system/WormholeSvc.h"
 
 WormHoleSvc::WormHoleSvc()
-: Service("wormholeMgr", eAccessLevel_Location)
+: Service("wormholeMgr")
 {
     this->Add("WormholeJump", &WormHoleSvc::WormholeJump);
 }

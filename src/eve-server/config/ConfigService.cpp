@@ -29,7 +29,7 @@
 #include "config/ConfigService.h"
 
 ConfigService::ConfigService() :
-    Service("config", eAccessLevel_LocationPreferred)
+    Service("config", eAccessLevel_Character)
 {
     this->Add("GetMultiOwnersEx", &ConfigService::GetMultiOwnersEx);
     this->Add("GetMultiLocationsEx", &ConfigService::GetMultiLocationsEx);

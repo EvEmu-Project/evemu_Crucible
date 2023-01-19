@@ -44,7 +44,7 @@
 #include "system/cosmicMgrs/ManagerDB.h"
 
 BeyonceService::BeyonceService(EVEServiceManager& mgr)
-: BindableService("beyonce", mgr)
+: BindableService("beyonce", mgr, eAccessLevel_SolarSystem2)
 {
     this->Add("GetFormations", &BeyonceService::GetFormations);
 }

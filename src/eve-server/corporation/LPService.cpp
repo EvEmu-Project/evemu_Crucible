@@ -30,7 +30,7 @@
 #include "account/AccountService.h"
 
 LPService::LPService() :
-    Service("LPSvc")
+    Service("LPSvc", eAccessLevel_Character)
 {
     this->Add("TakeOffer", &LPService::TakeOffer);
     this->Add("ExchangeConcordLP", &LPService::ExchangeConcordLP);

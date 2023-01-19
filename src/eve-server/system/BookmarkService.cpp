@@ -46,7 +46,7 @@ BOOKMARK__RSP_DUMP
 */
 
 BookmarkService::BookmarkService() :
-    Service("bookmark", eAccessLevel_Station)
+    Service("bookmark")
 {
     this->Add("GetBookmarks", &BookmarkService::GetBookmarks);
     this->Add("CreateFolder", &BookmarkService::CreateFolder);

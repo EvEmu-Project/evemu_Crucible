@@ -103,7 +103,7 @@ PyResult CharMgrBound::ListStationBlueprintItems(PyCallArgs& call, PyInt* locati
 }
 
 CharMgrService::CharMgrService(EVEServiceManager& mgr) :
-    BindableService("charMgr", mgr)
+    BindableService("charMgr", mgr, eAccessLevel_Character)
 {
     this->Add("GetPublicInfo", &CharMgrService::GetPublicInfo);
     this->Add("GetPublicInfo3", &CharMgrService::GetPublicInfo3);

@@ -30,7 +30,7 @@
 #include "chat/OnlineStatusService.h"
 
 OnlineStatusService::OnlineStatusService() :
-    Service("onlineStatus")
+    Service("onlineStatus", eAccessLevel_Character)
 {
     this->Add("GetInitialState", &OnlineStatusService::GetInitialState);
     this->Add("GetOnlineStatus", &OnlineStatusService::GetOnlineStatus);

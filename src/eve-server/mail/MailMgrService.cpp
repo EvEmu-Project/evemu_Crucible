@@ -30,7 +30,7 @@
 #include "EVE_Mail.h"
 
 MailMgrService::MailMgrService() :
-    Service("mailMgr")
+    Service("mailMgr", eAccessLevel_Character)
 {
     this->Add("SendMail", &MailMgrService::SendMail);
     this->Add("PrimeOwners", &MailMgrService::PrimeOwners);
