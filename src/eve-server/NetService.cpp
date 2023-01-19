@@ -97,8 +97,20 @@ PyResult NetService::GetInitVals(PyCallArgs &call) {
                 case eAccessLevel_SolarSystem:
                     value = new PyString("solarsystem");
                     break;
+                case eAccessLevel_SolarSystem2:
+                    value = new PyString("solarsystem2");
+                    break;
                 case eAccessLevel_Station:
                     value = new PyString("station");
+                    break;
+                case eAccessLevel_Character:
+                    value = new PyString("character");
+                    break;
+                case eAccessLevel_Corporation:
+                    value = new PyString("corporation");
+                    break;
+                case eAccessLevel_User:
+                    value = new PyString("bulk");
                     break;
             }
 
