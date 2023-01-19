@@ -1759,8 +1759,6 @@ PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     headers->AddItemString ("stationTypeID");
     headers->AddItemString ("officeFolderID");
 
-    return nullptr;
-
     if (this->m_offices == nullptr) {
         this->m_offices = new OfficeSparseBound (this->GetServiceManager (), *this, m_db, m_corpID, headers);
     }
