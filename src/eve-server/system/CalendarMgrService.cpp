@@ -31,7 +31,7 @@
 
 
 CalendarMgrService::CalendarMgrService() :
-    Service("calendarMgr")
+    Service("calendarMgr", eAccessLevel_Character)
 {
     this->Add("CreatePersonalEvent", &CalendarMgrService::CreatePersonalEvent);
     this->Add("CreateCorporationEvent", &CalendarMgrService::CreateCorporationEvent);

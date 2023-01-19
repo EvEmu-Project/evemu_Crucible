@@ -68,7 +68,7 @@ protected:
     PyResult GetShareholders(PyCallArgs& call);
     PyResult PayoutDividend(PyCallArgs& call, PyBool* payShareholders, PyFloat* payoutAmount);
 
-    PyResult CanViewVotes(PyCallArgs& call);
+    PyResult CanViewVotes(PyCallArgs& call, PyInt* corporationID);
     PyResult InsertVoteCase(PyCallArgs& call, PyRep* voteCaseText, PyRep* description, PyInt* corporationID, PyInt* voteType, std::optional <PyObject*> voteCaseOptions, PyLong* startDateTime, PyLong* endDateTime);
     PyResult GetVotes(PyCallArgs& call, PyInt* corporationId, PyInt* voteCaseID);
     PyResult CanVote(PyCallArgs& call, PyInt* corporationID);

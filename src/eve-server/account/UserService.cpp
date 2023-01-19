@@ -45,7 +45,7 @@ PyResult MovementService::ResolveNodeID(PyCallArgs& call, PyInt* newWorldSpaceId
 }
 
 UserService::UserService() :
-    Service("userSvc")
+    Service("userSvc", eAccessLevel_User)
 {
     this->Add("GetRedeemTokens", &UserService::GetRedeemTokens);
     this->Add("ReverseRedeem", &UserService::ReverseRedeem);

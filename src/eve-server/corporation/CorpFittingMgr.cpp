@@ -13,7 +13,7 @@
 #include "corporation/CorpFittingMgr.h"
 
 CorpFittingMgr::CorpFittingMgr() :
-    Service("corpFittingMgr")
+    Service("corpFittingMgr", eAccessLevel_Corporation)
 {
     this->Add("GetFittings", &CorpFittingMgr::GetFittings);
     this->Add("SaveFitting", &CorpFittingMgr::SaveFitting);

@@ -29,7 +29,7 @@
 #include "admin/PetitionerService.h"
 
 PetitionerService::PetitionerService() :
-    Service("petitioner")
+    Service("petitioner", eAccessLevel_Character)
 {
     this->Add("GetCategories", &PetitionerService::GetCategories);
     this->Add("GetCategoryHierarchicalInfo", &PetitionerService::GetCategoryHierarchicalInfo);

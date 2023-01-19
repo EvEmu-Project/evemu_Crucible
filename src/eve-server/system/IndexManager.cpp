@@ -31,7 +31,7 @@
 #include "inventory/AttributeEnum.h"
 
 IndexManager::IndexManager() :
-    Service("devIndexManager")
+    Service("devIndexManager", eAccessLevel_SolarSystem2)
 {
     this->Add("GetAllDevelopmentIndices", &IndexManager::GetAllDevelopmentIndices);
     this->Add("GetDevelopmentIndicesForSystem", &IndexManager::GetDevelopmentIndicesForSystem);

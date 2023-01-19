@@ -34,7 +34,7 @@
 #include "system/sov/SovereigntyDataMgr.h"
 
 MapService::MapService() :
-    Service("map")
+    Service("map", eAccessLevel_Character)
 {
     this->Add("GetHistory", &MapService::GetHistory);
     this->Add("GetBeaconCount", &MapService::GetBeaconCount);    //ColorStarsByCynosuralFields

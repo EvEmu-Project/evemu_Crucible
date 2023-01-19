@@ -101,7 +101,7 @@
 
 
 BulkMgrService::BulkMgrService() :
-    Service("bulkMgr")
+    Service("bulkMgr", eAccessLevel_User)
 {
     this->Add("GetChunk", &BulkMgrService::GetChunk);
     this->Add("UpdateBulk", &BulkMgrService::UpdateBulk);

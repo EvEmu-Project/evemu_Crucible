@@ -30,7 +30,7 @@
 #include "chat/LookupService.h"
 
 LookupService::LookupService() :
-    Service("lookupSvc")
+    Service("lookupSvc", eAccessLevel_Character)
 {
     this->Add("LookupCharacters", &LookupService::LookupCharacters);
     this->Add("LookupOwners", &LookupService::LookupOwners);

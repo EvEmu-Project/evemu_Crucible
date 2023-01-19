@@ -17,7 +17,11 @@ enum AccessLevel {
     eAccessLevel_Location = 1,
     eAccessLevel_LocationPreferred = 2,
     eAccessLevel_SolarSystem = 3,
-    eAccessLevel_Station = 4
+    eAccessLevel_SolarSystem2 = 4,
+    eAccessLevel_Station = 5,
+    eAccessLevel_Character = 6,
+    eAccessLevel_Corporation = 7,
+    eAccessLevel_User = 8
 };
 
 class method_not_found {

@@ -30,7 +30,7 @@
 #include "character/CertificateMgrService.h"
 
 CertificateMgrService::CertificateMgrService(EVEServiceManager& mgr) :
-    Service("certificateMgr"),
+    Service("certificateMgr", eAccessLevel_Character),
     m_manager (mgr)
 {
     this->Add("GetMyCertificates", &CertificateMgrService::GetMyCertificates);

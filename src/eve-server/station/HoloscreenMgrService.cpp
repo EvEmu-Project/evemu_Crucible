@@ -28,7 +28,7 @@
 #include "station/HoloscreenMgrService.h"
 
 HoloscreenMgrService::HoloscreenMgrService() :
-    Service("holoscreenMgr")
+    Service("holoscreenMgr", eAccessLevel_Character)
 {
     this->Add("GetRecentEpicArcCompletions", &HoloscreenMgrService::GetRecentEpicArcCompletions);
     this->Add("GetTwoHourCache", &HoloscreenMgrService::GetTwoHourCache);

@@ -47,7 +47,7 @@
 #include "services/ServiceManager.h"
 
 KeeperService::KeeperService(EVEServiceManager& mgr) :
-    Service("keeper", eAccessLevel_SolarSystem),
+    Service("keeper", eAccessLevel_SolarSystem2),
     m_manager (mgr),
     m_instance (nullptr)
 {

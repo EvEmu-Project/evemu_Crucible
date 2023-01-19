@@ -45,7 +45,7 @@
  */
 
 ScanMgrService::ScanMgrService(EVEServiceManager& mgr) :
-    Service("scanMgr", eAccessLevel_SolarSystem),
+    Service("scanMgr", eAccessLevel_SolarSystem2),
     m_manager (mgr)
 {
     this->Add("GetSystemScanMgr", &ScanMgrService::GetSystemScanMgr);

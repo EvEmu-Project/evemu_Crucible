@@ -64,11 +64,14 @@ PyResult EVEServiceManager::Dispatch(const std::string& service, const std::stri
     // check access levels
     ClientSession* session = args.client->GetSession();
 
-    if (it->second->GetAccessLevel() == eAccessLevel_Location && session->HasValue ("locationid") == false)
-        throw CustomError ("You're not allowed to access this service");
-    else if (it->second->GetAccessLevel() == eAccessLevel_SolarSystem && session->HasValue ("solarsystemid") == false)
-        throw CustomError ("You're not allowed to access this service");
-    else if (it->second->GetAccessLevel() == eAccessLevel_Station && session->HasValue ("stationid") == false)
+    if (
+            (it->second->GetAccessLevel() == eAccessLevel_Location && session->HasValue ("locationid") == false) ||
+            (it->second->GetAccessLevel() == eAccessLevel_SolarSystem && session->HasValue ("solarsystemid") == false) ||
+            (it->second->GetAccessLevel() == eAccessLevel_SolarSystem2 && session->HasValue ("solarsystemid2") == false) ||
+            (it->second->GetAccessLevel() == eAccessLevel_Character && session->HasValue ("charid") == false) ||
+            (it->second->GetAccessLevel() == eAccessLevel_Corporation && session->HasValue ("corpid") == false) ||
+            (it->second->GetAccessLevel() == eAccessLevel_User && session->HasValue ("userid") == false)
+        )
         throw CustomError ("You're not allowed to access this service");
 
     return it->second->Dispatch(method, args);

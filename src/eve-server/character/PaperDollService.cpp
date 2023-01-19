@@ -29,7 +29,7 @@
 #include "character/PaperDollService.h"
 
 PaperDollService::PaperDollService() :
-    Service("paperDollServer")
+    Service("paperDollServer", eAccessLevel_Character)
 {
     this->Add("GetPaperDollData", &PaperDollService::GetPaperDollData);
     this->Add("GetMyPaperDollData", &PaperDollService::GetMyPaperDollData);

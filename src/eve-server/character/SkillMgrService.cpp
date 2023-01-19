@@ -30,7 +30,7 @@
 #include "character/SkillMgrService.h"
 
 SkillMgrService::SkillMgrService(EVEServiceManager& mgr)
-: BindableService("skillMgr", mgr)
+: BindableService("skillMgr", mgr, eAccessLevel_Character)
 {
 }
 

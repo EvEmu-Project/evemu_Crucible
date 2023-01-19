@@ -31,7 +31,7 @@
 // this service is part of mail and used with the 'notifications' tab of mail window
 
 NotificationMgrService::NotificationMgrService() :
-    Service("notificationMgr")
+    Service("notificationMgr", eAccessLevel_Character)
 {
     this->Add("GetByGroupID", &NotificationMgrService::GetByGroupID);
     this->Add("GetUnprocessed", &NotificationMgrService::GetUnprocessed);

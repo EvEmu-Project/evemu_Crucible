@@ -29,7 +29,7 @@
 #include "mail/MailingListMgrService.h"
 
 MailingListMgrService::MailingListMgrService() :
-    Service("mailingListsMgr")
+    Service("mailingListsMgr", eAccessLevel_Character)
 {
     this->Add("GetJoinedLists", &MailingListMgrService::GetJoinedLists);
     this->Add("Create", &MailingListMgrService::Create);
