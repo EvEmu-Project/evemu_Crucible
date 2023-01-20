@@ -27,7 +27,7 @@ echo "Using x86_64 build..."
 # Download with curl
 DOWNLOAD_URL=$(curl -s https://api.github.com/repos/EvEmu-Project/EVEDBTool/releases/latest \
         | grep browser_download_url \
-        | grep evedbtool \
+        | grep evedbtool | grep -v exe \
         | cut -d '"' -f 4)
 fi
 
