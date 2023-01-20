@@ -45,6 +45,7 @@ public:
 
 private:
     PyResult SelectCharacterID(PyCallArgs& call, PyInt* characterID, std::optional <PyInt*> loadDungeon, std::optional <PyInt*> secondChoiceID);
+    PyResult SelectCharacterID(PyCallArgs& call, PyInt* characterID, std::optional <PyBool*> loadDungeon, std::optional <PyInt*> secondChoiceID);
 
     /**
      * \brief Get details on a character id
