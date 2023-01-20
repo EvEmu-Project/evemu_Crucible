@@ -40,7 +40,8 @@ CharUnboundMgrService::CharUnboundMgrService(EVEServiceManager& mgr) :
 {
     this->m_cache = mgr.Lookup <ObjCacheService>("objectCaching");
 
-    this->Add("SelectCharacterID", &CharUnboundMgrService::SelectCharacterID);
+    this->Add("SelectCharacterID", static_cast <PyResult (CharUnboundMgrService::*) (PyCallArgs&, PyInt*, std::optional <PyInt*>, std::optional <PyInt*>)> (&CharUnboundMgrService::SelectCharacterID));
+    this->Add("SelectCharacterID", static_cast <PyResult (CharUnboundMgrService::*) (PyCallArgs&, PyInt*, std::optional <PyBool*>, std::optional <PyInt*>)> (&CharUnboundMgrService::SelectCharacterID));
     this->Add("GetCharacterToSelect", &CharUnboundMgrService::GetCharacterToSelect);
     this->Add("GetCharactersToSelect", &CharUnboundMgrService::GetCharactersToSelect);
     this->Add("GetCharacterInfo", &CharUnboundMgrService::GetCharacterInfo);
@@ -118,6 +119,12 @@ PyResult CharUnboundMgrService::GetCharNewExtraCreationInfo(PyCallArgs &call) {
     this->m_cache->InsertCacheHints(ObjCacheService::hCharCreateNewExtraCachables, result);
     _log(CLIENT__MESSAGE, "Sending char new extra creation info reply");
     return result;
+}
+
+PyResult CharUnboundMgrService::SelectCharacterID(PyCallArgs& call, PyInt* characterID, std::optional <PyBool*> loadDungeon, std::optional <PyInt*> secondChoiceID) {
+    PyInt* loadDungeons = new PyInt (loadDungeon.has_value () ? loadDungeon.value()->value() : 0);
+
+    return this->SelectCharacterID (call, characterID, loadDungeons, secondChoiceID);
 }
 
 PyResult CharUnboundMgrService::SelectCharacterID(PyCallArgs &call, PyInt* characterID, std::optional <PyInt*> loadDungeon, std::optional <PyInt*> secondChoiceID)
