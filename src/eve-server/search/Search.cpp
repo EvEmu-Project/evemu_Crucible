@@ -35,7 +35,7 @@ Search::Search() :
     this->Add("QuickQuery", &Search::QuickQuery);
 }
 
-PyResult Search::Query(PyCallArgs& call, PyString* filter, PyList* data) {
+PyResult Search::Query(PyCallArgs& call, PyWString* filter, PyList* data) {
     std::string str = filter->content();
     Replace(str);
 
@@ -63,7 +63,7 @@ PyResult Search::Query(PyCallArgs& call, PyString* filter, PyList* data) {
 }
 
 
-PyResult Search::QuickQuery(PyCallArgs& call, PyString* filter, PyList* data)  {
+PyResult Search::QuickQuery(PyCallArgs& call, PyWString* filter, PyList* data)  {
 /*         QuickQuery(query, groupIDList, hideNPC=hideNPC, onlyAltName=onlyAltName)
 */
     std::string str = filter->content();
