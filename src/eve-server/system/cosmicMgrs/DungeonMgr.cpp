@@ -95,6 +95,19 @@ void DungeonDataMgr::GetRandomDungeon(Dungeon::Dungeon& dungeon, uint8 archetype
     dungeon = *it;
 }
 
+void DungeonDataMgr::GetDungeon(Dungeon::Dungeon& dungeon, uint32 dungeonID) {
+    // Multi-index view by dungeonID
+    auto &byDungeonID = m_dungeons.get<Dungeon::DungeonsByID>();
+
+    auto it = byDungeonID.find(dungeonID);
+        if (it != byDungeonID.end())
+        {
+            dungeon = *it;
+        } else {
+            _log(DUNG__ERROR, "GetDungeon() - Failed to find dungeon with id %u", dungeonID);
+        }
+}
+
 void DungeonDataMgr::Populate()
 {
     // Populate dungeon datasets from DB
@@ -267,12 +280,18 @@ void DungeonMgr::Process()
         return;
 }
 
-bool DungeonMgr::MakeDungeon(CosmicSignature& sig)
+bool DungeonMgr::MakeDungeon(CosmicSignature& sig, uint32 dungeonID)
 {
     // TODO: create a new dungeon using the given signature
 
     Dungeon::Dungeon dData;
-    sDunDataMgr.GetRandomDungeon(dData, sig.dungeonType);
+
+    // If we are given a dungeonID, use it otherwise pick a random dungeon based on archetype
+    if (dungeonID == 0) {
+        sDunDataMgr.GetRandomDungeon(dData, sig.dungeonType);
+    } else {
+        sDunDataMgr.GetDungeon(dData, dungeonID);
+    }
 
     if ((sig.sigGroupID == EVEDB::invGroups::Cosmic_Signature) || (sig.sigGroupID == EVEDB::invGroups::Cosmic_Anomaly)) {
         // Create a new anomaly inventory item to track entire dungeon under

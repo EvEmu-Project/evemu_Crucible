@@ -19,7 +19,6 @@
 
 #include "system/cosmicMgrs/ManagerDB.h"
 
-
 class DungeonMgr;
 class BeltMgr;
 class EVEServiceManager;

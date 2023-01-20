@@ -45,6 +45,7 @@
 #include "system/SystemManager.h"
 #include "dungeon/DungeonDB.h"
 #include "services/ServiceManager.h"
+#include "system/cosmicMgrs/DungeonMgr.h"
 
 KeeperService::KeeperService(EVEServiceManager& mgr) :
     Service("keeper", eAccessLevel_SolarSystem2),
@@ -234,6 +235,21 @@ PyResult KeeperBound::PlayDungeon(PyCallArgs &call, PyInt* dungeonID)
     //ed.PlayDungeon(dungeonID, roomID=roomID, godmode=godmode)
     _log(DUNG__CALL,  "KeeperBound::Handle_PlayDungeon  size: %lli", call.tuple->size());
     call.Dump(DUNG__CALL_DUMP);
+
+    // Play the currently selected dungeon at the player's current position
+    sDunDataMgr.UpdateDungeon(dungeonID->value());
+    
+    Client *pClient(call.client);
+
+    CosmicSignature sig;
+    sig.systemID = pClient->GetSystemID();
+    sig.ownerID = pClient->GetCharacterID();
+    sig.sigName = "DebugDungeon";
+    sig.position = pClient->GetShipSE()->GetPosition();
+
+    pClient->SystemMgr()->GetDungMgr()->MakeDungeon(sig, dungeonID->value());
+
+    _log(DUNG__INFO, "KeeperBound::PlayDungeon() created dungeon %u for playtest.", dungeonID->value());
 
     return nullptr;
 }

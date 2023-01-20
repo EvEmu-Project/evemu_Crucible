@@ -32,6 +32,7 @@ public:
     int Initialize();
 
     void GetRandomDungeon(Dungeon::Dungeon& dungeon, uint8 archetype);
+    void GetDungeon(Dungeon::Dungeon& dungeon, uint32 dungeonID);
     void UpdateDungeon(uint32 dungeonID);
     void GetDungeons(std::vector<Dungeon::Dungeon>& dunList);
     uint32 GetDungeonID()                               { return ++m_dungeonID; }
@@ -80,7 +81,7 @@ public:
     bool Init(AnomalyMgr* anomMgr, SpawnMgr* spawnMgr);
     void Process();
 
-    bool MakeDungeon(CosmicSignature& sig);
+    bool MakeDungeon(CosmicSignature& sig, uint32 dungeonID = 0);
 
 protected:
     ManagerDB m_db;
