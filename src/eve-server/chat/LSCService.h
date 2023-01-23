@@ -79,6 +79,7 @@ protected:
     PyResult GetRookieHelpChannel(PyCallArgs& call);
     PyResult JoinChannels(PyCallArgs& call, PyList* channelIDs, PyLong* role);
     PyResult LeaveChannels(PyCallArgs& call, PyList* channels, PyInt* usubscribe, PyLong* role);
+    PyResult LeaveChannels(PyCallArgs& call, PyList* channels, PyBool* usubscribe, PyLong* role);
     PyResult LeaveChannel(PyCallArgs& call, PyRep* channelInfo, PyInt* unsubscribe);
     PyResult CreateChannel(PyCallArgs& call, PyRep* channelName);
     PyResult Configure(PyCallArgs& call, PyInt* channelID);

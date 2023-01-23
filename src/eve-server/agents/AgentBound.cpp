@@ -565,7 +565,7 @@ PyResult AgentBound::GetMyJournalDetails(PyCallArgs &call) {
     return tuple;
 }
 
-PyResult AgentBound::GetMissionJournalInfo(PyCallArgs &call, PyInt* characterID, PyInt* contentID) {
+PyResult AgentBound::GetMissionJournalInfo(PyCallArgs &call, std::optional <PyInt*> characterID, std::optional <PyInt*> contentID) {
     //called on rclick in journal to "read details"
     //ret = self.GetAgentMoniker(agentID).GetMissionJournalInfo(charID, contentID)
     _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionJournalInfo() - size=%lli", call.tuple->size());

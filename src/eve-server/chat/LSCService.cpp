@@ -66,7 +66,8 @@ LSCService::LSCService(EVEServiceManager &mgr, CommandDispatcher* cd) :
     this->Add("GetChannels", &LSCService::GetChannels);
     this->Add("GetRookieHelpChannel", &LSCService::GetRookieHelpChannel);
     this->Add("JoinChannels", &LSCService::JoinChannels);
-    this->Add("LeaveChannels", &LSCService::LeaveChannels);
+    this->Add("LeaveChannels", static_cast <PyResult (LSCService::*)(PyCallArgs& call, PyList* channels, PyBool* usubscribe, PyLong* role)> (&LSCService::LeaveChannels));
+    this->Add("LeaveChannels", static_cast <PyResult (LSCService::*)(PyCallArgs& call, PyList* channels, PyInt* usubscribe, PyLong* role)> (&LSCService::LeaveChannels));
     this->Add("LeaveChannel", &LSCService::LeaveChannel);
     this->Add("CreateChannel", &LSCService::CreateChannel);
     this->Add("Configure", &LSCService::Configure);
@@ -694,6 +695,9 @@ PyResult LSCService::LeaveChannel(PyCallArgs &call, PyRep* channelInfo, PyInt* u
     return PyStatic.NewNone();
 }
 
+PyResult LSCService::LeaveChannels(PyCallArgs &call, PyList* channels, PyBool* unsubscribe, PyLong* role) {
+    return this->LeaveChannels (call, channels, new PyInt (unsubscribe->value ()), role);
+}
 
 PyResult LSCService::LeaveChannels(PyCallArgs &call, PyList* channels, PyInt* unsubscribe, PyLong* role) {
     if (is_log_enabled(LSC__CALL_DUMP)) {
