@@ -63,7 +63,7 @@ MailMgrService::MailMgrService() :
     this->Add("DeleteLabel", &MailMgrService::DeleteLabel);
 }
 
-PyResult MailMgrService::SendMail(PyCallArgs &call, PyList* toCharacterIDs, std::optional<PyInt*> listID, std::optional<PyInt*> toCorpOrAllianceID, PyWString* title, PyWString* body, PyInt* isReplyTo, PyInt* isForwardedFrom)
+PyResult MailMgrService::SendMail(PyCallArgs &call, PyList* toCharacterIDs, std::optional<PyInt*> listID, std::optional<PyInt*> toCorpOrAllianceID, PyWString* title, PyWString* body, PyBool* isReplyTo, PyBool* isForwardedFrom)
 {
     std::vector<int32> characters;
 
@@ -196,7 +196,7 @@ PyResult MailMgrService::EmptyTrash(PyCallArgs &call)
     return nullptr;
 }
 
-PyResult MailMgrService::GetBody(PyCallArgs &call, PyInt* messageID, PyInt* isUnread)
+PyResult MailMgrService::GetBody(PyCallArgs &call, PyInt* messageID, PyBool* isUnread)
 {
     if (!isUnread->value()) {
         m_db.SetMailUnread(messageID->value());

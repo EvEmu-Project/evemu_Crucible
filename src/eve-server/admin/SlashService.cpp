@@ -37,7 +37,7 @@ SlashService::SlashService(CommandDispatcher *cd) :
     this->Add("SlashCmd", &SlashService::SlashCmd);
 }
 
-PyResult SlashService::SlashCmd (PyCallArgs& call, PyString* command)
+PyResult SlashService::SlashCmd (PyCallArgs& call, PyWString* command)
 {
     if (is_log_enabled(COMMAND__DUMP)) {
         sLog.White("SlashService::Handle_SlashCmd()", "size=%lu", call.tuple->size());
