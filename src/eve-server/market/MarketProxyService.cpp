@@ -171,7 +171,7 @@ PyResult MarketProxyService::GetOrders(PyCallArgs &call, PyInt* typeID) {
     return result;
 }
 
-PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, PyInt* typeID, PyFloat* price, PyInt* quantity, PyInt* bid, PyInt* orderRange, PyInt* itemID, PyInt* minVolume, PyInt* duration, PyBool* useCorp, std::optional<PyRep*> located) {
+PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, PyInt* typeID, PyFloat* price, PyInt* quantity, PyInt* bid, PyInt* orderRange, std::optional <PyInt*> itemID, PyInt* minVolume, PyInt* duration, PyBool* useCorp, std::optional<PyRep*> located) {
     //self.GetMarketProxy().PlaceCharOrder(int(stationID), int(typeID), round(float(price), 2), int(quantity), int(bid), int(orderRange),
     //   itemID = None, int(minVolume = 1), int(duration = 14), useCorp = False, located = None)
     // located = [officeFolderID, officeID] or None
@@ -214,7 +214,7 @@ PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, 
      * corp checks coded for ram/reproc.  use as template
      */
 
-    if (bid->value() and (itemID->value() == 0)) {  //buy
+    if (bid->value() and (itemID.has_value () == false || itemID.value()->value() == 0)) {  //buy
         // check for corp usage and get standings with station owners
         float fStanding(0), cStanding(0);
         if (useCorp->value()) {
@@ -327,9 +327,9 @@ PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, 
         }*/
 
         //verify that they actually have the item in the quantity specified...
-        InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
+        InventoryItemRef iRef = sItemFactory.GetItemRef(itemID.value ()->value());
         if (iRef.get() == nullptr) {
-            _log(ITEM__ERROR, "PlaceCharOrder - Failed to find item %i for sell order.", itemID->value());
+            _log(ITEM__ERROR, "PlaceCharOrder - Failed to find item %i for sell order.", itemID.value ()->value());
             call.client->SendErrorMsg("Unable to find item to sell.");
             return nullptr;
         }
