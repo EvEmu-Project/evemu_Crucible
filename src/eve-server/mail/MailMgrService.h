@@ -40,7 +40,7 @@ public:
 protected:
     MailDB m_db;
 
-    PyResult SendMail(PyCallArgs& call, PyList* toCharacterIDs, std::optional<PyInt*> listID, std::optional<PyInt*> toCorpOrAllianceID, PyWString* title, PyWString* body, PyInt* isReplyTo, PyInt* isForwardedFrom);
+    PyResult SendMail(PyCallArgs& call, PyList* toCharacterIDs, std::optional<PyInt*> listID, std::optional<PyInt*> toCorpOrAllianceID, PyWString* title, PyWString* body, PyBool* isReplyTo, PyBool* isForwardedFrom);
     PyResult PrimeOwners(PyCallArgs& call, PyList* ownerIDs);
     PyResult SyncMail(PyCallArgs& call, std::optional<PyInt*> first, std::optional<PyInt*> second);
     PyResult GetMailHeaders(PyCallArgs& call, PyList* messageIDs);
@@ -60,7 +60,7 @@ protected:
     PyResult MoveAllFromTrash(PyCallArgs& call);
     PyResult EmptyTrash(PyCallArgs& call);
     PyResult DeleteMail(PyCallArgs& call, PyList* messageIDs);
-    PyResult GetBody(PyCallArgs& call, PyInt* messageID, PyInt* isUnread);
+    PyResult GetBody(PyCallArgs& call, PyInt* messageID, PyBool* isUnread);
     PyResult AssignLabels(PyCallArgs& call, PyList* messageIDs, PyInt* labelID);
     PyResult RemoveLabels(PyCallArgs& call, PyList* messageIDs, PyInt* labelID);
 

@@ -37,7 +37,7 @@ protected:
     PyResult GetMissionKeywords(PyCallArgs& call, PyInt* contentID);
     PyResult GetMissionObjectiveInfo(PyCallArgs& call, std::optional <PyInt*> characterID, std::optional <PyInt*> contentID);
     PyResult GetMyJournalDetails(PyCallArgs& call);
-    PyResult GetMissionJournalInfo(PyCallArgs& call, PyInt* characterID, PyInt* contentID);
+    PyResult GetMissionJournalInfo(PyCallArgs &call, std::optional <PyInt*> characterID, std::optional <PyInt*> contentID);
     PyResult GetDungeonShipRestrictions(PyCallArgs& call, PyInt* dungeonID);
     PyResult RemoveOfferFromJournal(PyCallArgs& call);
     PyResult GetOfferJournalInfo(PyCallArgs& call);
