@@ -84,7 +84,7 @@ DogmaIMBound::DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint3
     this->Add("DestroyWeaponBank", &DogmaIMBound::DestroyWeaponBank);
     this->Add("GetCharacterBaseAttributes", &DogmaIMBound::GetCharacterBaseAttributes);
     this->Add("Activate", static_cast <PyResult(DogmaIMBound::*)(PyCallArgs&, PyInt*, PyInt*)> (&DogmaIMBound::Activate));
-    this->Add("Activate", static_cast <PyResult(DogmaIMBound::*)(PyCallArgs&, PyInt*, PyWString*, PyInt*, PyInt*)> (&DogmaIMBound::Activate));
+    this->Add("Activate", static_cast <PyResult(DogmaIMBound::*)(PyCallArgs&, PyInt*, PyWString*, std::optional <PyInt*>, PyInt*)> (&DogmaIMBound::Activate));
     this->Add("Deactivate", static_cast <PyResult(DogmaIMBound::*)(PyCallArgs&, PyInt*, PyWString*)> (&DogmaIMBound::Deactivate));
     this->Add("Deactivate", static_cast <PyResult(DogmaIMBound::*)(PyCallArgs&, PyInt*, PyInt*)> (&DogmaIMBound::Deactivate));
     this->Add("Overload", &DogmaIMBound::Overload);
@@ -805,7 +805,7 @@ PyResult DogmaIMBound::Activate(PyCallArgs& call, PyInt* itemID, PyInt* effectID
     return PyStatic.NewOne();
 }
 
-PyResult DogmaIMBound::Activate(PyCallArgs& call, PyInt* itemID, PyWString* effectName, PyInt* target, PyInt* repeat)
+PyResult DogmaIMBound::Activate(PyCallArgs& call, PyInt* itemID, PyWString* effectName, std::optional <PyInt*> target, PyInt* repeat)
 {
     // ret = self.GetDogmaLM().Activate(itemID, effectName, target, repeat)  - i cant find where this return is used but is "1" in packet logs
     Client* pClient(call.client);
@@ -821,7 +821,7 @@ PyResult DogmaIMBound::Activate(PyCallArgs& call, PyInt* itemID, PyWString* effe
     *
     */
     // activate ship module
-    pClient->GetShip()->Activate(itemID->value(), effectName->content(), target->value(), repeat->value());
+    pClient->GetShip()->Activate(itemID->value(), effectName->content(), target.has_value () ? target.value ()->value() : 0, repeat->value());
     // are there any other cases to test for here?
 
     // returns 1 on success (throw error otherwise)
