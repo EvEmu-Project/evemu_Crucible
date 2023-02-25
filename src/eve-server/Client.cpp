@@ -2639,6 +2639,9 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
                 sLog.Error("Client::CallReq", m_services.DebugDispatch(packet->dest.service, req.method, args).c_str());
             }
         }
+
+        // ensure some data is returned
+        result = nullptr;
     }
     catch (service_not_found)
     {

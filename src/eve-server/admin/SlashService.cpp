@@ -34,10 +34,21 @@ SlashService::SlashService(CommandDispatcher *cd) :
     Service("slash"),
     m_commandDispatch(cd)
 {
-    this->Add("SlashCmd", &SlashService::SlashCmd);
+    this->Add("SlashCmd", static_cast <PyResult (SlashService::*) (PyCallArgs &, PyWString*)> (&SlashService::SlashCmd));
+    this->Add("SlashCmd", static_cast <PyResult (SlashService::*) (PyCallArgs &, PyString*)> (&SlashService::SlashCmd));
 }
 
 PyResult SlashService::SlashCmd (PyCallArgs& call, PyWString* command)
+{
+    if (is_log_enabled(COMMAND__DUMP)) {
+        sLog.White("SlashService::Handle_SlashCmd()", "size=%lu", call.tuple->size());
+        call.Dump(COMMAND__DUMP);
+    }
+
+    return SlashCommand (call.client, command->content());
+}
+
+PyResult SlashService::SlashCmd (PyCallArgs& call, PyString* command)
 {
     if (is_log_enabled(COMMAND__DUMP)) {
         sLog.White("SlashService::Handle_SlashCmd()", "size=%lu", call.tuple->size());
