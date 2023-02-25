@@ -74,7 +74,7 @@ protected:
     PyResult DestroyWeaponBank(PyCallArgs& call, PyInt* shipID, PyInt* itemID);
     PyResult GetCharacterBaseAttributes(PyCallArgs& call);
     PyResult Activate(PyCallArgs& call, PyInt* itemID, PyInt* effectID);
-    PyResult Activate(PyCallArgs& call, PyInt* itemID, PyWString* effectName, PyInt* target, PyInt* repeat);
+    PyResult Activate(PyCallArgs& call, PyInt* itemID, PyWString* effectName, std::optional <PyInt*> target, PyInt* repeat);
     PyResult Deactivate(PyCallArgs& call, PyInt* itemID, PyInt* effect);
     PyResult Deactivate(PyCallArgs& call, PyInt* itemID, PyWString* effectName);
     PyResult Overload(PyCallArgs& call, PyInt* itemID, PyInt* effectID);
