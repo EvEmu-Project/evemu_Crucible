@@ -39,6 +39,7 @@ protected:
     CommandDispatcher *const m_commandDispatch;
 
     PyResult SlashCmd(PyCallArgs& call, PyWString* command);
+    PyResult SlashCmd(PyCallArgs& call, PyString* command);
 };
 
 #endif
