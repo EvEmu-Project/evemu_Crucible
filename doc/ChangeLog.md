@@ -1,3 +1,14 @@
+*** 0.8.5 ***
+- [FEAT] Dungeon Editor
+- [FEAT] Cynosural Field Generators
+- [FEAT] Jump Drives
+- [FEAT] Outpost creation and destruction
+- [FEAT] Wormholes
+- [FEAT] Loyalty Points, mission rewards and store
+- Support aarch64 architecture
+- Complete service rewrite
+- Many minor bugfixes and overall improvements
+
 *** 0.8.4 ***
 - Added support for aarch64 with docker-compose
 - [FEAT] Alliances Implemented
