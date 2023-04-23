@@ -294,8 +294,8 @@ public:
     BoundID GetBoundID() const override { return this->mBoundId; }
     /** @returns The normal service that created this service */
     BoundServiceParent<Bound>& GetParent () const { return this->mParent; }
-    /** @returns PyTuple* The OID of the bound object */
-    PyTuple* GetOID() const override { return this->mOID; }
+    /** @returns PyTuple* The (cloned) OID of the bound object */
+    PyTuple* GetOID() const override { return this->mOID->Clone ()->AsTuple (); }
     /** @returns The string ID */
     const std::string& GetIDString() const override { return this->mIdString; }
     /** @returns The service manager this service is registered in */
