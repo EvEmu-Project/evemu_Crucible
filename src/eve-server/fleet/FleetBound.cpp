@@ -231,7 +231,7 @@ PyResult FleetBound::GetInitState(PyCallArgs &call) {
     return rsp.Encode();
 }
 
-PyResult FleetBound::Invite(PyCallArgs &call, PyInt* characterID, std::optional<PyInt*> wingID, std::optional <PyInt*> squadID, PyLong* role) {
+PyResult FleetBound::Invite(PyCallArgs &call, PyInt* characterID, std::optional<PyInt*> wingID, std::optional <PyInt*> squadID, std::optional <PyLong*> role) {
     sLog.Warning("FleetBound", "Handle_Invite() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
@@ -248,7 +248,7 @@ PyResult FleetBound::Invite(PyCallArgs &call, PyInt* characterID, std::optional<
         data.invited = pClient;
         data.wingID = wingID.has_value() ? wingID.value()->value() : 0;  // default sends 0
         data.squadID = squadID.has_value() ? squadID.value()->value() : 0;  // default sends 0
-        data.role = role->value();
+        data.role = role.has_value () ? role.value ()->value () : Fleet::Role::Member; // member as default
 
     if (data.role == Fleet::Role::FleetLeader) {
         data.wingID = -1;

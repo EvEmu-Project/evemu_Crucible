@@ -30,7 +30,7 @@ protected:
     PyResult Init(PyCallArgs& call, std::optional <PyInt*> shipTypeID);
     PyResult GetInitState(PyCallArgs& call);
     PyResult GetFleetID(PyCallArgs& call);
-    PyResult Invite(PyCallArgs& call, PyInt* characterID, std::optional<PyInt*> wingID, std::optional <PyInt*> squadID, PyLong* role);
+    PyResult Invite(PyCallArgs& call, PyInt* characterID, std::optional<PyInt*> wingID, std::optional <PyInt*> squadID, std::optional <PyLong*> role);
     PyResult AcceptInvite(PyCallArgs& call, std::optional <PyInt*> shipTypeID);
     PyResult RejectInvite(PyCallArgs& call);
     PyResult ChangeWingName(PyCallArgs& call, PyInt* wingID, PyRep* name);
