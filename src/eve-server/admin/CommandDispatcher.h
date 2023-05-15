@@ -3,16 +3,15 @@
 
 #include "admin/CommandDB.h"
 
-
 class Client;
 class Seperator;
 class PyResult;
-class PyServiceMgr;
+class EVEServiceManager;
 
 class CommandDispatcher {
 public:
     //this is the prototype for a command function:
-    typedef PyResult (*CommandFunc)(Client *who, CommandDB *db, PyServiceMgr *services, const Seperator &args);
+    typedef PyResult (*CommandFunc)(Client *who, CommandDB *db, EVEServiceManager& services, const Seperator &args);
 
     class CommandRecord {
     public:
@@ -25,7 +24,7 @@ public:
         CommandFunc function;
     };
 
-    CommandDispatcher(PyServiceMgr &services);
+    CommandDispatcher(EVEServiceManager &services);
     virtual ~CommandDispatcher();
 
     void Close();
@@ -36,7 +35,7 @@ public:
     void ListCommands();
 
 protected:
-    PyServiceMgr &m_services;
+    EVEServiceManager &m_services;
     CommandDB m_db;
 
     std::map<std::string, CommandRecord *> m_commands;    //we own these pointers

@@ -28,7 +28,7 @@
  * 754     controlTowerProjectileROFBonus  NULL    -25
  * 872     disallowOffensiveModifiers  NULL    1
  */
-WeaponSE::WeaponSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+WeaponSE::WeaponSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : StructureSE(structure, services, system, data)
 {
 

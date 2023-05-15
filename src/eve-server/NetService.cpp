@@ -27,31 +27,24 @@
 #include "eve-server.h"
 
 #include "NetService.h"
-#include "PyServiceCD.h"
 #include "cache/ObjCacheService.h"
 
-PyCallable_Make_InnerDispatcher(NetService)
-
-NetService::NetService(PyServiceMgr *mgr)
-: PyService(mgr, "machoNet"),
-  m_dispatch(new Dispatcher(this))
+NetService::NetService(EVEServiceManager& mgr) :
+    Service("machoNet"),
+    m_manager (mgr)
 {
-    _SetCallDispatcher(m_dispatch);
+    this->Add("GetTime", &NetService::GetTime);
+    this->Add("GetClusterSessionStatistics", &NetService::GetClusterSessionStatistics);
+    this->Add("GetInitVals", &NetService::GetInitVals);
 
-    PyCallable_REG_CALL(NetService, GetTime);
-    PyCallable_REG_CALL(NetService, GetInitVals);
-    PyCallable_REG_CALL(NetService, GetClusterSessionStatistics);
+    this->m_cache = this->m_manager.Lookup <ObjCacheService>("objectCaching");
 }
 
-NetService::~NetService() {
-    delete m_dispatch;
-}
-
-PyResult NetService::Handle_GetTime(PyCallArgs &call) {
+PyResult NetService::GetTime(PyCallArgs &call) {
     return new PyLong(GetFileTimeNow());
 }
 
-PyResult NetService::Handle_GetClusterSessionStatistics(PyCallArgs &call)
+PyResult NetService::GetClusterSessionStatistics(PyCallArgs &call)
 {
     // got this shit working once i understood what the client wanted....only took 4 years
     DBQueryResult res;
@@ -80,10 +73,63 @@ PyResult NetService::Handle_GetClusterSessionStatistics(PyCallArgs &call)
 }
 
 /** @note:  wtf is this used for???  */
-PyResult NetService::Handle_GetInitVals(PyCallArgs &call) {
-    PyString* str = new PyString( "machoNet.serviceInfo" );
+PyResult NetService::GetInitVals(PyCallArgs &call) {
+    PyString* str(new PyString("machoNet.serviceInfo"));
 
-    PyRep* serverinfo(m_manager->cache_service->GetCacheHint(str));
+    //  look into this.  what's it for?  are we using it right?  missing anything?
+    // client calls this, then loads cached data upon return.  not sure how this is used yet
+    if (!this->m_cache->IsCacheLoaded(str)) {
+        PyDict* dict = new PyDict();
+        // build the service info for the client to know where to direct calls
+        for (auto svc : this->m_manager.GetServices()) {
+            PyRep* value = nullptr;
+
+            switch (svc.second->GetAccessLevel()) {
+                case eAccessLevel_None:
+                    value = PyStatic.NewNone();
+                    break;
+                case eAccessLevel_Location:
+                    value = new PyString("location");
+                    break;
+                case eAccessLevel_LocationPreferred:
+                    value = new PyString("locationPreferred");
+                    break;
+                case eAccessLevel_SolarSystem:
+                    value = new PyString("solarsystem");
+                    break;
+                case eAccessLevel_SolarSystem2:
+                    value = new PyString("solarsystem2");
+                    break;
+                case eAccessLevel_Station:
+                    value = new PyString("station");
+                    break;
+                case eAccessLevel_Character:
+                    value = new PyString("character");
+                    break;
+                case eAccessLevel_Corporation:
+                    value = new PyString("corporation");
+                    break;
+                case eAccessLevel_User:
+                    value = new PyString("bulk");
+                    break;
+            }
+
+            dict->SetItemString(svc.second->GetName().c_str(), value);
+        }
+        /* ServiceCallGPCS.py:197
+         *        where = self.machoNet.serviceInfo[service]
+         *        if where:
+         *            for (k, v,) in self.machoNet.serviceInfo.iteritems():
+         *                if ((k != service) and (v and (v.startswith(where) or where.startswith(v)))):
+         *                    nodeID = self.services.get(k, None)
+         *                    break
+         */
+
+        //register it
+        this->m_cache->GiveCache(str, (PyRep**)&dict);
+    }
+
+    PyRep* serverinfo(this->m_cache->GetCacheHint(str));
     PyDecRef( str );
 
     PyDict* initvals = new PyDict();

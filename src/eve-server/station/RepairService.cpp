@@ -27,92 +27,187 @@
 #include "eve-server.h"
 #include "packets/Repair.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "Client.h"
 #include "inventory/Inventory.h"
 #include "ship/ShipDB.h"
 #include "station/RepairService.h"
 #include "station/Station.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
-class RepairSvcBound
-: public PyBoundObject
+
+RepairService::RepairService(EVEServiceManager& mgr) :
+    BindableService ("repairSvc", mgr)
 {
-public:
-    PyCallable_Make_Dispatcher(RepairSvcBound)
-
-    RepairSvcBound(PyServiceMgr* mgr, uint32 locationID)
-    : PyBoundObject(mgr),
-    m_dispatch(new Dispatcher(this)),
-    m_locationID(locationID)    // this is stationID
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "RepairSvcBound";
-
-        PyCallable_REG_CALL(RepairSvcBound, GetDamageReports);
-        PyCallable_REG_CALL(RepairSvcBound, RepairItems);
-        PyCallable_REG_CALL(RepairSvcBound, DamageModules);
-    }
-    virtual ~RepairSvcBound() {
-        delete m_dispatch;
-    }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(GetDamageReports);
-    PyCallable_DECL_CALL(RepairItems);
-    PyCallable_DECL_CALL(DamageModules);
-
-protected:
-    Dispatcher* const m_dispatch;
-
-    uint32 m_locationID;
-};
-
-PyCallable_Make_InnerDispatcher(RepairService)
-
-RepairService::RepairService(PyServiceMgr *mgr)
-: PyService(mgr, "repairSvc"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(RepairService, UnasembleItems);
+    this->Add("UnasembleItems", &RepairService::UnasembleItems);
 }
 
-RepairService::~RepairService() {
-    delete m_dispatch;
+BoundDispatcher* RepairService::BindObject(Client* client, PyRep* bindParameters) {
+    uint32 locationID = bindParameters->AsInt ()->value ();
+    auto it = this->m_instances.find (locationID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    RepairServiceBound* bound = new RepairServiceBound (this->GetServiceManager(), *this, locationID);
+    this->m_instances.insert_or_assign (locationID, bound);
+
+    return bound;
 }
 
-PyBoundObject* RepairService::CreateBoundObject(Client* pClient, const PyRep* bind_args) {
-    _log(CLIENT__MESSAGE, "RepairService bind request for:");
-    bind_args->Dump(CLIENT__MESSAGE, "    ");
+void RepairService::BoundReleased (RepairServiceBound* bound) {
+    auto it = this->m_instances.find (bound->GetLocationID());
 
-    return new RepairSvcBound(m_manager, bind_args->AsInt()->value());
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
-PyResult RepairSvcBound::Handle_DamageModules(PyCallArgs &call) {
-    /*    itemIDAndAmountOfDamageList.append((item.itemID, amount)) <-- amount is % of damage
-     *    self.repairSvc.DamageModules(itemIDAndAmountOfDamageList)
+void RepairService::GetDamageReports(uint32 itemID, Inventory* pInv, PyList* list) {
+    std::vector<InventoryItemRef> itemRefVec;
+    InventoryItemRef iRef = pInv->GetByID(itemID);
+    if (iRef.get() == nullptr) {
+        iRef = sItemFactory.GetItemRef(itemID);
+        if (iRef.get() == nullptr)
+            return;
+    }
+    itemRefVec.push_back(iRef);
+    if (iRef->IsShipItem()) {
+        if (iRef->GetShipItem()->IsActive()) {
+            iRef->GetShipItem()->GetModuleRefVec(itemRefVec);
+        }
+        else {
+            iRef->GetShipItem()->GetModuleItemVec(itemRefVec);
+        }
+    }
+
+    for (auto cur : itemRefVec) {
+        RepairItemData rid;
+        rid.itemID = cur->itemID();
+        rid.typeID = cur->typeID();
+        rid.groupID = cur->groupID();
+        rid.damage = cur->GetAttribute(AttrDamage).get_int();
+        rid.maxHealth = cur->GetAttribute(AttrHP).get_int();
+        // not sure how to find this data
+        rid.repairable = 1;
+        if (cur->IsShipItem()) {    // have to check for drone here, also
+            rid.damage += cur->GetAttribute(AttrArmorDamage).get_int();
+            rid.maxHealth += cur->GetAttribute(AttrArmorHP).get_int();
+            // ship is (basePrice)*7.5e-10
+            rid.costToRepairOneUnitOfDamage = (cur->type().basePrice() * sConfig.rates.ShipRepairModifier);
+        }
+        else {
+            // modules are (basePrice)*1.25e-6
+            rid.costToRepairOneUnitOfDamage = (cur->type().basePrice() * sConfig.rates.ModuleRepairModifier);
+        }
+
+        list->AddItem(rid.Encode());
+    }
+}
+
+PyResult RepairService::UnasembleItems(PyCallArgs& call, PyDict* validIDsByStationID, PyList* skipChecks) {
+    // sm.RemoteSvc('repairSvc').UnasembleItems(dict(validIDsByStationID), skipChecks)
+
+    /*
+     * 15:17:44 [PhysicsInfo]  Call_UnasembleItems
+     * 15:17:44 [PhysicsInfo]  dict:
+     * 15:17:44 [PhysicsInfo]      Dictionary: 2 entries
+     * 15:17:44 [PhysicsInfo]        [ 0] Key: Integer field: 60004591     <-- stationID
+     * 15:17:44 [PhysicsInfo]        [ 0] Value: List: 3 elements          <-- list of 2 element tuples
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 0] Tuple: 2 elements  <-- tuple of itemID/stationID
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 0]   [ 0] Integer field: 140006472
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 0]   [ 1] Integer field: 60004591
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 1] Tuple: 2 elements  <-- tuple of itemID/stationID
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 1]   [ 0] Integer field: 140006477
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 1]   [ 1] Integer field: 60004591
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 2] Tuple: 2 elements  <-- tuple of itemID/stationID
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 2]   [ 0] Integer field: 140006476
+     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 2]   [ 1] Integer field: 60004591
+     * 15:17:44 [PhysicsInfo]        [ 1] Key: Integer field: 60014137     <-- stationID
+     * 15:17:44 [PhysicsInfo]        [ 1] Value: List: 1 elements          <-- list of 2 element tuples
+     * 15:17:44 [PhysicsInfo]        [ 1] Value:   [ 0] Tuple: 2 elements  <-- tuple of itemID/stationID
+     * 15:17:44 [PhysicsInfo]        [ 1] Value:   [ 0]   [ 0] Integer field: 140000028
+     * 15:17:44 [PhysicsInfo]        [ 1] Value:   [ 0]   [ 1] Integer field: 60014137
+     * 15:17:44 [PhysicsInfo]  list:
+     * 15:17:44 [PhysicsInfo]      List: Empty                             <-- skipChecks, not sure what this is for
      */
 
-    _log(PHYSICS__INFO, "RepairSvcBound::Handle_DamageModules() size=%li", call.tuple->size());
-    call.Dump(PHYSICS__INFO);
+    PyList* pList(nullptr);
+    PyTuple* tuple(nullptr);
+    InventoryItemRef iRef(nullptr);
+    uint32 itemID(0); //,locationID = 0,  itemLoc = 0;
 
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode bind args from '%s'", call.client->GetName());
-        return nullptr;
+    if (skipChecks->size() > 0)
+        ;  // skipChecks is populated....do something constructive here
+
+    /** @todo  may have to switch to station inventory to get item to check if this is container, and remove items BEFORE repacking!!  */
+    for (PyDict::const_iterator dictItr = validIDsByStationID->begin(); dictItr != validIDsByStationID->end(); ++dictItr) {
+        // Dictionary key is LocationID, value is tuple of itemID/item locationID
+        //locationID = dictItr->first->AsInt()->value();
+        pList = dictItr->second->AsList();
+        if (pList != nullptr) {
+            // Iterate through list.
+            for (PyList::const_iterator listItr = pList->begin(); listItr != pList->end(); ++listItr) {
+                // List is tuples of itemID, LocationID pairs.
+                tuple = (*listItr)->AsTuple();
+                if (tuple != nullptr) {
+                    // Get the itemID.
+                    itemID = PyRep::IntegerValue(tuple->GetItem(0));
+                    //itemLoc = PyRep::IntegerValue(tuple->GetItem(1));
+                    iRef = sItemFactory.GetItemRef(itemID);
+                    if (iRef.get() != nullptr) {
+                        // Add type exceptions here.
+                        if (iRef->categoryID() == EVEDB::invCategories::Blueprint
+                            or iRef->categoryID() == EVEDB::invCategories::Skill
+                            or iRef->categoryID() == EVEDB::invCategories::Material) {
+                            // Item cannot be repackaged once used!
+                            continue;
+                        }
+                        // if this is a ship, remove all modules and empty cargo holds before repacking
+                        //  maybe we should instruct player that ship is fitted/has cargo, and let them do this
+                        if (iRef->IsShipItem()) {
+                            iRef->GetShipItem()->EmptyCargo();
+                            iRef->GetShipItem()->StripFitting();
+                            // check insurance and delete if applicable
+                            ShipDB::DeleteInsuranceByShipID(itemID);
+                        }
+
+                        iRef->ChangeSingleton(false, true);
+                    }
+                }
+            }
+        }
     }
+
+    // MultipleItemsFailedToRepackage
 
     return PyStatic.NewNone();
 }
 
-PyResult RepairSvcBound::Handle_RepairItems(PyCallArgs &call) {
+RepairServiceBound::RepairServiceBound(EVEServiceManager& mgr, RepairService& parent, uint32 locationID) :
+    EVEBoundObject(mgr, parent),
+    m_locationID(locationID)
+{
+    this->Add("DamageModules", &RepairServiceBound::DamageModules);
+    this->Add("RepairItems", &RepairServiceBound::RepairItems);
+    this->Add("GetDamageReports", &RepairServiceBound::GetDamageReports);
+}
+
+PyResult RepairServiceBound::DamageModules(PyCallArgs &call, PyList* itemIDAndAmountOfDamage) {
+    /*    itemIDAndAmountOfDamageList.append((item.itemID, amount)) <-- amount is % of damage
+     *    self.repairSvc.DamageModules(itemIDAndAmountOfDamageList)
+     */
+
+    _log(PHYSICS__INFO, "RepairSvcBound::Handle_DamageModules() size=%lli", call.tuple->size());
+    call.Dump(PHYSICS__INFO);
+
+    return PyStatic.NewNone();
+}
+
+PyResult RepairServiceBound::RepairItems(PyCallArgs &call, PyList* itemIDs, PyFloat* iskAmount) {
     //  self.repairSvc.RepairItems(itemIDs, amount['qty'])
     /*
      * 00:18:28 W RepairSvcBound::Handle_RepairItems(): size= 2
@@ -122,13 +217,7 @@ PyResult RepairSvcBound::Handle_RepairItems(PyCallArgs &call) {
      * 00:18:28 [PhysicsInfo]         [ 0]   [ 0] Integer field: 140005905  <-- itemID
      * 00:18:28 [PhysicsInfo]         [ 1] Real field: 112500.000000        <-- isk amount to spend on repairs.
      */
-
-    Call_RepairItems args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode bind args from '%s'", call.client->GetName());
-        return nullptr;
-    }
-    if (args.iskAmount < 0.01)
+    if (iskAmount->value() < 0.01)
         return nullptr;
 
     /* itemIDs is list of itemIDs to repair.
@@ -140,7 +229,7 @@ PyResult RepairSvcBound::Handle_RepairItems(PyCallArgs &call) {
     double cost(0), total(0);
     uint32 damage(0);
     std::vector<InventoryItemRef> itemRefVec;
-    PyList::const_iterator itr = args.itemIDs->begin(), end = args.itemIDs->end();
+    PyList::const_iterator itr = itemIDs->begin(), end = itemIDs->end();
     for (; itr != end; ++itr) {
         iRef = sItemFactory.GetItemRef(PyRep::IntegerValueU32(*itr));
         if (iRef.get() == nullptr)
@@ -161,8 +250,8 @@ PyResult RepairSvcBound::Handle_RepairItems(PyCallArgs &call) {
     }
 
     float fraction = 1.0;
-    if (args.iskAmount < total)
-        fraction = total / args.iskAmount;
+    if (iskAmount->value() < total)
+        fraction = total / iskAmount->value();
 
     /** @todo  entire repair be based on items damage vs mats list at market value
      * get bp required mats for building.
@@ -226,7 +315,7 @@ PyResult RepairSvcBound::Handle_RepairItems(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult RepairSvcBound::Handle_GetDamageReports(PyCallArgs &call) {
+PyResult RepairServiceBound::GetDamageReports(PyCallArgs &call, PyList* itemIDs) {
     /*
      * 20:39:30 W RepairSvcBound::Handle_GetDamageReports(): size= 1
      * 20:39:30 [SvcCallDump]   Call Arguments:
@@ -234,10 +323,18 @@ PyResult RepairSvcBound::Handle_GetDamageReports(PyCallArgs &call) {
      * 20:39:30 [SvcCallDump]         [ 0] List: 1 elements
      * 20:39:30 [SvcCallDump]         [ 0]   [ 0] Integer field: 140012041
      */
-    Call_SingleIntList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode bind args from '%s'", call.client->GetName());
-        return nullptr;
+    std::vector <int32> ints;
+
+    // TODO: update this when the type changes are in place so these things are easier to work with
+    PyList::const_iterator list_2_cur = itemIDs->begin();
+    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ints.push_back(t->value());
     }
 
     PyDict* dict = new PyDict();
@@ -252,7 +349,7 @@ PyResult RepairSvcBound::Handle_GetDamageReports(PyCallArgs &call) {
         standing = pClient->GetChar()->GetStandingModified(sRef->ownerID(), pClient->GetCharacterID());
     }
 
-    for (auto cur : args.ints) {
+    for (auto cur : ints) {
         RepairListRsp rlr;
             rlr.discount       = "0%";  // not sure....seen 0% and 100% in packets
             rlr.serviceCharge  = "0%";  // not sure....seen 0% in packets
@@ -263,130 +360,4 @@ PyResult RepairSvcBound::Handle_GetDamageReports(PyCallArgs &call) {
     }
 
     return dict;
-}
-
-void RepairService::GetDamageReports(uint32 itemID, Inventory* pInv, PyList* list) {
-    std::vector<InventoryItemRef> itemRefVec;
-    InventoryItemRef iRef = pInv->GetByID(itemID);
-    if (iRef.get() == nullptr) {
-        iRef = sItemFactory.GetItemRef(itemID);
-        if (iRef.get() == nullptr)
-            return;
-    }
-    itemRefVec.push_back(iRef);
-    if (iRef->IsShipItem()) {
-        if (iRef->GetShipItem()->IsActive()) {
-            iRef->GetShipItem()->GetModuleRefVec(itemRefVec);
-        } else {
-            iRef->GetShipItem()->GetModuleItemVec(itemRefVec);
-        }
-    }
-
-    for (auto cur : itemRefVec) {
-        RepairItemData rid;
-        rid.itemID                     = cur->itemID();
-        rid.typeID                     = cur->typeID();
-        rid.groupID                    = cur->groupID();
-        rid.damage                     = cur->GetAttribute(AttrDamage).get_int();
-        rid.maxHealth                  = cur->GetAttribute(AttrHP).get_int();
-        // not sure how to find this data
-        rid.repairable                 = 1;
-        if (cur->IsShipItem()) {    // have to check for drone here, also
-            rid.damage                 += cur->GetAttribute(AttrArmorDamage).get_int();
-            rid.maxHealth              += cur->GetAttribute(AttrArmorHP).get_int();
-            // ship is (basePrice)*7.5e-10
-            rid.costToRepairOneUnitOfDamage = (cur->type().basePrice() * sConfig.rates.ShipRepairModifier);
-        } else {
-            // modules are (basePrice)*1.25e-6
-            rid.costToRepairOneUnitOfDamage = (cur->type().basePrice() * sConfig.rates.ModuleRepairModifier);
-        }
-
-        list->AddItem(rid.Encode());
-    }
-}
-
-PyResult RepairService::Handle_UnasembleItems(PyCallArgs &call) {
-    // sm.RemoteSvc('repairSvc').UnasembleItems(dict(validIDsByStationID), skipChecks)
-
-    /*
-     * 15:17:44 [PhysicsInfo]  Call_UnasembleItems
-     * 15:17:44 [PhysicsInfo]  dict:
-     * 15:17:44 [PhysicsInfo]      Dictionary: 2 entries
-     * 15:17:44 [PhysicsInfo]        [ 0] Key: Integer field: 60004591     <-- stationID
-     * 15:17:44 [PhysicsInfo]        [ 0] Value: List: 3 elements          <-- list of 2 element tuples
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 0] Tuple: 2 elements  <-- tuple of itemID/stationID
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 0]   [ 0] Integer field: 140006472
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 0]   [ 1] Integer field: 60004591
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 1] Tuple: 2 elements  <-- tuple of itemID/stationID
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 1]   [ 0] Integer field: 140006477
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 1]   [ 1] Integer field: 60004591
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 2] Tuple: 2 elements  <-- tuple of itemID/stationID
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 2]   [ 0] Integer field: 140006476
-     * 15:17:44 [PhysicsInfo]        [ 0] Value:   [ 2]   [ 1] Integer field: 60004591
-     * 15:17:44 [PhysicsInfo]        [ 1] Key: Integer field: 60014137     <-- stationID
-     * 15:17:44 [PhysicsInfo]        [ 1] Value: List: 1 elements          <-- list of 2 element tuples
-     * 15:17:44 [PhysicsInfo]        [ 1] Value:   [ 0] Tuple: 2 elements  <-- tuple of itemID/stationID
-     * 15:17:44 [PhysicsInfo]        [ 1] Value:   [ 0]   [ 0] Integer field: 140000028
-     * 15:17:44 [PhysicsInfo]        [ 1] Value:   [ 0]   [ 1] Integer field: 60014137
-     * 15:17:44 [PhysicsInfo]  list:
-     * 15:17:44 [PhysicsInfo]      List: Empty                             <-- skipChecks, not sure what this is for
-     */
-
-    Call_UnasembleItems args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "Failed to decode bind args from '%s'", call.client->GetName());
-        return nullptr;
-    }
-    args.Dump(PHYSICS__INFO);
-
-    PyList *pList(nullptr);
-    PyTuple *tuple(nullptr);
-    InventoryItemRef iRef(nullptr);
-    uint32 itemID(0); //,locationID = 0,  itemLoc = 0;
-
-    if (args.list->size() > 0)
-        ;  // skipChecks is populated....do something constructive here
-
-    /** @todo  may have to switch to station inventory to get item to check if this is container, and remove items BEFORE repacking!!  */
-    for (PyDict::const_iterator dictItr = args.dict->begin(); dictItr != args.dict->end(); ++dictItr) {
-        // Dictionary key is LocationID, value is tuple of itemID/item locationID
-        //locationID = dictItr->first->AsInt()->value();
-        pList = dictItr->second->AsList();
-        if (pList != nullptr) {
-            // Iterate through list.
-            for (PyList::const_iterator listItr = pList->begin(); listItr != pList->end(); ++listItr) {
-                // List is tuples of itemID, LocationID pairs.
-                tuple = (*listItr)->AsTuple();
-                if (tuple != nullptr) {
-                    // Get the itemID.
-                    itemID = PyRep::IntegerValue(tuple->GetItem(0));
-                    //itemLoc = PyRep::IntegerValue(tuple->GetItem(1));
-                    iRef = sItemFactory.GetItemRef(itemID);
-                    if (iRef.get() != nullptr) {
-                        // Add type exceptions here.
-                        if (iRef->categoryID() == EVEDB::invCategories::Blueprint
-                        or iRef->categoryID() == EVEDB::invCategories::Skill
-                        or iRef->categoryID() == EVEDB::invCategories::Material) {
-                            // Item cannot be repackaged once used!
-                            continue;
-                        }
-                        // if this is a ship, remove all modules and empty cargo holds before repacking
-                        //  maybe we should instruct player that ship is fitted/has cargo, and let them do this
-                        if (iRef->IsShipItem()) {
-                            iRef->GetShipItem()->EmptyCargo();
-                            iRef->GetShipItem()->StripFitting();
-                            // check insurance and delete if applicable
-                            ShipDB::DeleteInsuranceByShipID(itemID);
-                        }
-
-                        iRef->ChangeSingleton(false, true);
-                    }
-                }
-            }
-        }
-    }
-
-    // MultipleItemsFailedToRepackage
-
-    return PyStatic.NewNone();
 }

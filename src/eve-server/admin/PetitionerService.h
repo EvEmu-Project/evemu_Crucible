@@ -26,22 +26,16 @@
 #ifndef __PETITIONER_SERVICE_H_INCL__
 #define __PETITIONER_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class PetitionerService
-: public PyService {
+class PetitionerService : public Service<PetitionerService> {
 public:
-    PetitionerService(PyServiceMgr *mgr);
-    virtual ~PetitionerService();
+    PetitionerService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetCategories);
-    PyCallable_DECL_CALL(GetCategoryHierarchicalInfo);
-    PyCallable_DECL_CALL(GetUnreadMessages);
-
+    PyResult GetCategories(PyCallArgs& call);
+    PyResult GetCategoryHierarchicalInfo(PyCallArgs& call);
+    PyResult GetUnreadMessages(PyCallArgs& call);
 };
 
 #endif

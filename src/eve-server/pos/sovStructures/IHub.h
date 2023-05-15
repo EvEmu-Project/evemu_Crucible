@@ -16,7 +16,7 @@ class IHubSE
 : public StructureSE
 {
 public:
-    IHubSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& fData);
+    IHubSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& fData);
     virtual ~IHubSE()                                  { /* do nothing here */ }
 
     /* class type pointer querys. */

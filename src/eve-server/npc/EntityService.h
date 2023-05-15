@@ -12,53 +12,48 @@
 
 #include "../eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+#include "services/BoundService.h"
+#include "Client.h"
+
 
 class SystemManager;
-class EntityService
-: public PyService
+class EntityBound;
+
+class EntityService : public BindableService <EntityService, EntityBound>
 {
 public:
-    EntityService(PyServiceMgr *mgr);
-    virtual ~EntityService();
+    EntityService(EVEServiceManager& mgr);
 
+    void BoundReleased (EntityBound* bound) override;
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client* pClient, const PyRep* bind_args);
+    BoundDispatcher* BindObject(Client* client, PyRep* bindParameters);
+
+private:
+    std::map <uint32, EntityBound*> m_instances;
 };
 
-class EntityBound
-: public PyBoundObject
+class EntityBound : public EVEBoundObject <EntityBound>
 {
 public:
-    PyCallable_Make_Dispatcher(EntityBound)
+    EntityBound(EVEServiceManager& mgr, EntityService& parent, SystemManager* systemMgr, uint32 systemID);
 
-    EntityBound(PyServiceMgr* mgr, SystemManager* systemMgr, uint32 systemID);
-    virtual ~EntityBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(CmdEngage);
-    PyCallable_DECL_CALL(CmdRelinquishControl);
-    PyCallable_DECL_CALL(CmdDelegateControl);
-    PyCallable_DECL_CALL(CmdAssist);
-    PyCallable_DECL_CALL(CmdGuard);
-    PyCallable_DECL_CALL(CmdMine);
-    PyCallable_DECL_CALL(CmdMineRepeatedly);
-    PyCallable_DECL_CALL(CmdUnanchor);
-    PyCallable_DECL_CALL(CmdReturnHome);
-    PyCallable_DECL_CALL(CmdReturnBay);
-    PyCallable_DECL_CALL(CmdAbandonDrone);
-    PyCallable_DECL_CALL(CmdReconnectToDrones);
+    uint32 GetSystemID() { return this->m_systemID; }
+protected:
+    PyResult CmdEngage(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdRelinquishControl(PyCallArgs& call, PyList* IDs);
+    PyResult CmdDelegateControl(PyCallArgs& call, PyList* droneIDs, PyInt* controllerID);
+    PyResult CmdAssist(PyCallArgs& call, PyInt* assistID, PyList* droneIDs);
+    PyResult CmdGuard(PyCallArgs& call, PyInt* guardID, PyList* droneIDs);
+    PyResult CmdMine(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdMineRepeatedly(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdUnanchor(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdReturnHome(PyCallArgs& call, PyList* droneIDs);
+    PyResult CmdReturnBay(PyCallArgs& call, PyList* droneIDs);
+    PyResult CmdAbandonDrone(PyCallArgs& call, PyList* droneIDs);
+    PyResult CmdReconnectToDrones(PyCallArgs& call, PyList* droneCandidates);
 
 protected:
-    Dispatcher *const m_dispatch;
     SystemManager* m_sysMgr;
 
     uint32 m_systemID;

@@ -116,6 +116,7 @@ public:
 
     /* public-access generic functions handled in base class. */
     void                    SetPosition(const GPoint& pos);     // change coords of item
+    void                    SetRadius(double radius);
     void                    SetCustomInfo(const char *ci);
     void                    ChangeOwner(uint32 new_owner, bool notify=false);
     // remove item from old location, add to new location and (optionally) notify client of changes

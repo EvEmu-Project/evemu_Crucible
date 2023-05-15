@@ -30,8 +30,6 @@
 
 class PyObject;
 class PyString;
-class Call_CreateLabel;
-class Call_EditLabel;
 
 class MailDB : public ServiceDB
 {
@@ -47,9 +45,9 @@ public:
     void MarkAllAsRead(uint32 characterID);
     void MarkAllAsUnread(uint32 characterID);
 
-    bool CreateLabel(int characterID, Call_CreateLabel& args, uint32& newID) const;
+    bool CreateLabel(int characterID, const std::string& name, int32 color, uint32& newID) const;
     void DeleteLabel(int characterID, int labelID) const;
-    void EditLabel(int characterID, Call_EditLabel& args) const;
+    void EditLabel(int characterID, int labelID, const std::string& name, int32 color) const;
     void ApplyLabel(int32 messageID, int labelID);
     void ApplyLabels(std::vector<int32> messageIDs, int labelID);
 
@@ -109,7 +107,7 @@ public:
     void RemoveLabelMask(int32 messageID, int mask);
     void RemoveLabelMasks(std::vector<int32> messageIDs, int mask);
 
-    int SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, std::string& title, std::string& body, int isReplyTo, int isForwardedFrom);
+    int SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, const std::string& title, const std::string& body, int isReplyTo, int isForwardedFrom);
     PyRep* GetNewMail(int charId);
     PyRep* GetMailStatus(int charId);
 

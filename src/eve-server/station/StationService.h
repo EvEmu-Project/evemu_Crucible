@@ -28,22 +28,16 @@
 #define __STATION_SERVICE_H_INCL__
 
 #include "station/StationDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-class StationService : public PyService
+class StationService : public Service <StationService>
 {
 public:
-    StationService(PyServiceMgr *mgr);
-    virtual ~StationService();
+    StationService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    StationDB m_db;
-
-    PyCallable_DECL_CALL(GetGuests);
-    PyCallable_DECL_CALL(GetSolarSystem);
+    PyResult GetSolarSystem(PyCallArgs& call, PyInt* solarSystemID);
+    PyResult GetGuests(PyCallArgs& call);
 };
 
 #endif

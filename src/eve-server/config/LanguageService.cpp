@@ -25,82 +25,22 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "config/LanguageService.h"
 
-/*
-class LanguageBound
-: public PyBoundObject {
-public:
-
-    PyCallable_Make_Dispatcher(LanguageBound)
-
-    LanguageBound(PyServiceMgr *mgr, LanguageDB *db)
-    : PyBoundObject(mgr, "LanguageBound"),
-      m_db(db),
-      m_dispatch(new Dispatcher(this))
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        PyCallable_REG_CALL(LanguageBound, )
-        PyCallable_REG_CALL(LanguageBound, )
-    }
-    virtual ~LanguageBound() { delete m_dispatch; }
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL()
-    PyCallable_DECL_CALL()
-
-protected:
-    LanguageDB *const m_db;
-    Dispatcher *const m_dispatch;   //we own this
-};
-*/
-
-PyCallable_Make_InnerDispatcher(LanguageService)
-
-LanguageService::LanguageService(PyServiceMgr *mgr)
-: PyService(mgr, "languageSvc"),
-  m_dispatch(new Dispatcher(this))
+LanguageService::LanguageService() :
+    Service("languageSvc")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(LanguageService, GetLanguages);
-    PyCallable_REG_CALL(LanguageService, GetTextsForGroup);
+    this->Add("GetLanguages", &LanguageService::GetLanguages);
+    this->Add("GetTextsForGroup", &LanguageService::GetTextsForGroup);
 }
 
-LanguageService::~LanguageService() {
-    delete m_dispatch;
+PyResult LanguageService::GetLanguages(PyCallArgs &call) {
+    return m_db.ListLanguages();
 }
 
+PyResult LanguageService::GetTextsForGroup(PyCallArgs &call, PyInt* textGroup, PyString* languageID) {
 
-/*
-PyBoundObject *LanguageService::CreateBoundObject(Client *pClient, PyTuple *bind_args) {
-    _log(CLIENT__MESSAGE, "LanguageService bind request for:");
-    bind_args->Dump(CLIENT__MESSAGE, "    ");
-
-    return(new LanguageBound(m_manager, &m_db));
-}*/
-
-
-PyResult LanguageService::Handle_GetLanguages(PyCallArgs &call) {
-    PyRep *result = NULL;
-
-    result = m_db.ListLanguages();
-
-    return result;
-}
-PyResult LanguageService::Handle_GetTextsForGroup(PyCallArgs &call) {
-    Call_GetTextsForGroup args;
-
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetTextsForGroup(args.languageID, args.textgroup);
+    return m_db.GetTextsForGroup(languageID->content(), textGroup->value());
 }
 

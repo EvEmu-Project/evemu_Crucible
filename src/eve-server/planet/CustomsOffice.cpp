@@ -37,7 +37,7 @@
 #include "system/cosmicMgrs/AnomalyMgr.h"
 
 
-CustomsSE::CustomsSE(StructureItemRef sRef, PyServiceMgr &services, SystemManager* system, const FactionData& data)
+CustomsSE::CustomsSE(StructureItemRef sRef, EVEServiceManager &services, SystemManager* system, const FactionData& data)
 : ObjectSystemEntity(sRef, services, system),
 m_system(system)
 {
@@ -393,7 +393,7 @@ void CustomsSE::EncodeDestiny( Buffer& into )
 [Offset: (0, 2598, 1)]
 */
 
-    _log(SE__DESTINY, "CustomsSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "CustomsSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict *CustomsSE::MakeSlimItem() {

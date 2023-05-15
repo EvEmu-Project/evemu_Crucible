@@ -9,26 +9,17 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 
 #include "EVEServerConfig.h"
 #include "npc/EntityService.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
-
-PyCallable_Make_InnerDispatcher(EntityService)
-
-EntityService::EntityService(PyServiceMgr *mgr)
-: PyService(mgr, "entity"),
-m_dispatch(new Dispatcher(this))
+EntityService::EntityService(EVEServiceManager& mgr) :
+    BindableService("entity", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
-}
-
-EntityService::~EntityService() {
-    delete m_dispatch;
 }
 
 /*  drone states...
@@ -68,48 +59,61 @@ DRONE__AI_TRACE
 */
 
 /** @todo  will need to make sure this object is deleted when changing systems  */
-PyBoundObject *EntityService::CreateBoundObject(Client* pClient, const PyRep* bind_args) {
+BoundDispatcher *EntityService::BindObject(Client* client, PyRep* bindParameters) {
     _log(DRONE__DUMP, "EntityService bind request");
-    bind_args->Dump(DRONE__DUMP, "    ");
-    if (!bind_args->IsInt()) {
-        codelog(SERVICE__ERROR, "%s: Non-integer bind argument '%s'", pClient->GetName(), bind_args->TypeString());
+    bindParameters->Dump(DRONE__DUMP, "    ");
+    if (!bindParameters->IsInt()) {
+        codelog(SERVICE__ERROR, "%s: Non-integer bind argument '%s'", client->GetName(), bindParameters->TypeString());
         return nullptr;
     }
 
-    uint32 systemID = bind_args->AsInt()->value();
+    uint32 systemID = bindParameters->AsInt()->value();
     if (!sDataMgr.IsSolarSystem(systemID)) {
-        codelog(SERVICE__ERROR, "%s: Expected systemID, but got %u.", pClient->GetName(), systemID);
+        codelog(SERVICE__ERROR, "%s: Expected systemID, but got %u.", client->GetName(), systemID);
         return nullptr;
     }
 
-    return new EntityBound(m_manager, pClient->SystemMgr(), systemID);
+    auto it = this->m_instances.find (systemID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    EntityBound* bound = new EntityBound(this->GetServiceManager(), *this, client->SystemMgr(), systemID);
+
+    this->m_instances.insert_or_assign (systemID, bound);
+
+    return bound;
 }
 
-EntityBound::EntityBound(PyServiceMgr *mgr, SystemManager* systemMgr, uint32 systemID)
-: PyBoundObject(mgr),
-m_sysMgr(systemMgr),
-m_systemID(systemID),
-m_dispatch(new Dispatcher(this))
+void EntityService::BoundReleased (EntityBound* bound) {
+    auto it = this->m_instances.find (bound->GetSystemID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
+}
+
+EntityBound::EntityBound(EVEServiceManager &mgr, EntityService& parent, SystemManager* systemMgr, uint32 systemID) :
+    EVEBoundObject(mgr, parent),
+    m_sysMgr(systemMgr),
+    m_systemID(systemID)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    m_strBoundObjectName = "EntityBound";
-
-    PyCallable_REG_CALL(EntityBound, CmdEngage);
-    PyCallable_REG_CALL(EntityBound, CmdRelinquishControl);
-    PyCallable_REG_CALL(EntityBound, CmdDelegateControl);
-    PyCallable_REG_CALL(EntityBound, CmdAssist);
-    PyCallable_REG_CALL(EntityBound, CmdGuard);
-    PyCallable_REG_CALL(EntityBound, CmdMine);
-    PyCallable_REG_CALL(EntityBound, CmdMineRepeatedly);
-    PyCallable_REG_CALL(EntityBound, CmdUnanchor);
-    PyCallable_REG_CALL(EntityBound, CmdReturnHome);
-    PyCallable_REG_CALL(EntityBound, CmdReturnBay);
-    PyCallable_REG_CALL(EntityBound, CmdAbandonDrone);
-    PyCallable_REG_CALL(EntityBound, CmdReconnectToDrones);
+    this->Add("CmdEngage", &EntityBound::CmdEngage);
+    this->Add("CmdRelinquishControl", &EntityBound::CmdRelinquishControl);
+    this->Add("CmdDelegateControl", &EntityBound::CmdDelegateControl);
+    this->Add("CmdAssist", &EntityBound::CmdAssist);
+    this->Add("CmdGuard", &EntityBound::CmdGuard);
+    this->Add("CmdMine", &EntityBound::CmdMine);
+    this->Add("CmdMineRepeatedly", &EntityBound::CmdMineRepeatedly);
+    this->Add("CmdUnanchor", &EntityBound::CmdUnanchor);
+    this->Add("CmdReturnHome", &EntityBound::CmdReturnHome);
+    this->Add("CmdReturnBay", &EntityBound::CmdReturnBay);
+    this->Add("CmdAbandonDrone", &EntityBound::CmdAbandonDrone);
+    this->Add("CmdReconnectToDrones", &EntityBound::CmdReconnectToDrones);
 }
 
-PyResult EntityBound::Handle_CmdEngage(PyCallArgs &call) {
+PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
  // ret = entity.CmdEngage(droneIDs, targetID)
     /*
         [PySubStream 104 bytes]
@@ -179,7 +183,7 @@ PyResult EntityBound::Handle_CmdEngage(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdRelinquishControl(PyCallArgs &call) {
+PyResult EntityBound::CmdRelinquishControl(PyCallArgs &call, PyList* IDs) {
  // ret = entity.CmdRelinquishControl(IDs)
     _log(DRONE__TRACE, "EntityBound::Handle_CmdRelinquishControl()");
     call.Dump(DRONE__DUMP);
@@ -188,7 +192,7 @@ PyResult EntityBound::Handle_CmdRelinquishControl(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdDelegateControl(PyCallArgs &call) {
+PyResult EntityBound::CmdDelegateControl(PyCallArgs &call, PyList* droneIDs, PyInt* controllerID) {
  // ret = entity.CmdDelegateControl(droneIDs, controllerID)
     _log(DRONE__TRACE, "EntityBound::Handle_CmdDelegateControl()");
     call.Dump(DRONE__DUMP);
@@ -197,7 +201,7 @@ PyResult EntityBound::Handle_CmdDelegateControl(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdAssist(PyCallArgs &call) {
+PyResult EntityBound::CmdAssist(PyCallArgs &call, PyInt* assistID, PyList* droneIDs) {
  // ret = entity.CmdAssist(assistID, droneIDs)
     _log(DRONE__TRACE, "EntityBound::Handle_CmdAssist()");
     call.Dump(DRONE__DUMP);
@@ -206,7 +210,7 @@ PyResult EntityBound::Handle_CmdAssist(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdGuard(PyCallArgs &call) {
+PyResult EntityBound::CmdGuard(PyCallArgs &call, PyInt* guardID, PyList* droneIDs) {
  // ret = entity.CmdGuard(guardID, droneIDs)
     _log(DRONE__TRACE, "EntityBound::Handle_CmdGuard()");
     call.Dump(DRONE__DUMP);
@@ -215,7 +219,7 @@ PyResult EntityBound::Handle_CmdGuard(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdMine(PyCallArgs &call) {
+PyResult EntityBound::CmdMine(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
  // ret = entity.CmdMine(droneIDs, targetID)
     /*
      * 16:19:14 [DroneTrace] EntityBound::Handle_CmdMine()
@@ -239,7 +243,7 @@ PyResult EntityBound::Handle_CmdMine(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdMineRepeatedly(PyCallArgs &call) {
+PyResult EntityBound::CmdMineRepeatedly(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
  // ret = entity.CmdMineRepeatedly(droneIDs, targetID)
     /*)
      * 16:20:28 [DroneTrace] EntityBound::Handle_CmdMineRepeatedly()
@@ -262,7 +266,7 @@ PyResult EntityBound::Handle_CmdMineRepeatedly(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdUnanchor(PyCallArgs &call) {
+PyResult EntityBound::CmdUnanchor(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
  // ret = entity.CmdUnanchor(droneIDs, targetID)
     _log(DRONE__TRACE, "EntityBound::Handle_CmdUnanchor()");
     call.Dump(DRONE__DUMP);
@@ -271,7 +275,7 @@ PyResult EntityBound::Handle_CmdUnanchor(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdReturnHome(PyCallArgs &call) {
+PyResult EntityBound::CmdReturnHome(PyCallArgs &call, PyList* droneIDs) {
  // ret = entity.CmdReturnHome(droneIDs)
     // this is return and orbit command
     /*
@@ -291,7 +295,7 @@ PyResult EntityBound::Handle_CmdReturnHome(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdReturnBay(PyCallArgs &call) {
+PyResult EntityBound::CmdReturnBay(PyCallArgs &call, PyList* droneIDs) {
  // ret = entity.CmdReturnBay(droneIDs)
     /*
         [PySubStream 97 bytes]
@@ -341,7 +345,7 @@ PyResult EntityBound::Handle_CmdReturnBay(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdAbandonDrone(PyCallArgs &call) {
+PyResult EntityBound::CmdAbandonDrone(PyCallArgs &call, PyList* droneIDs) {
  // ret = entity.CmdAbandonDrone(droneIDs)
     /*
      * 16:23:23 [DroneTrace] EntityBound::Handle_CmdAbandonDrone()
@@ -357,7 +361,7 @@ PyResult EntityBound::Handle_CmdAbandonDrone(PyCallArgs &call) {
     return new PyDict();
 }
 
-PyResult EntityBound::Handle_CmdReconnectToDrones(PyCallArgs &call) {
+PyResult EntityBound::CmdReconnectToDrones(PyCallArgs &call, PyList* droneCandidates) {
     // ret = entity.CmdReconnectToDrones(droneCandidates)
     //     for errStr, dicty in ret.iteritems():
     // this sends a list of drones in local space owned by calling character

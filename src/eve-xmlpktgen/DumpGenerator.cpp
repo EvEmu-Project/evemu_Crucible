@@ -169,7 +169,7 @@ bool ClassDumpGenerator::ProcessLong( const TiXmlElement* field )
     }
 
     fprintf( mOutputFile,
-             "    _log( l_type, \"%%s%s=%%li\", pfx, %s );\n"
+             "    _log( l_type, \"%%s%s=%%lli\", pfx, %s );\n"
              "\n",
              name, name
     );
@@ -509,7 +509,7 @@ bool ClassDumpGenerator::ProcessListLong( const TiXmlElement* field )
         "\n"
         "    std::vector<int64>::const_iterator cur = %s.begin();\n"
         "    for (int index = 0; cur != %s.end(); ++cur, ++index )\n"
-        "        _log( l_type, \"%%s   [%%02d] %%li\", pfx, index, (*cur) );\n"
+        "        _log( l_type, \"%%s   [%%02d] %%lli\", pfx, index, (*cur) );\n"
         "\n",
         name, name, name, name
     );

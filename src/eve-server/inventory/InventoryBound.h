@@ -26,48 +26,40 @@
 #ifndef _INVENTORY_BOUND_H
 #define _INVENTORY_BOUND_H
 
-#include "PyBoundObject.h"
-#include "PyService.h"
 
-class InventoryBound
-: public PyBoundObject
+#include "services/BoundService.h"
+#include "Client.h"
+
+class InventoryBound : public EVEBoundObject <InventoryBound>
 {
 public:
-    InventoryBound(PyServiceMgr *mgr, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID,  bool passive);
-    virtual ~InventoryBound();
-
-    virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(List);
-    PyCallable_DECL_CALL(Add);
-    PyCallable_DECL_CALL(MultiAdd);
-    PyCallable_DECL_CALL(GetItem);
-    PyCallable_DECL_CALL(RemoveChargeToCargo);
-    PyCallable_DECL_CALL(RemoveChargeToHangar);
-    PyCallable_DECL_CALL(MultiMerge);
-    PyCallable_DECL_CALL(StackAll);
-    PyCallable_DECL_CALL(StripFitting);
-    PyCallable_DECL_CALL(DestroyFitting);
-    PyCallable_DECL_CALL(SetPassword);
-    PyCallable_DECL_CALL(CreateBookmarkVouchers);
-    PyCallable_DECL_CALL(RunRefiningProcess);
-    PyCallable_DECL_CALL(ImportExportWithPlanet);
-    PyCallable_DECL_CALL(TakeOutTrash);
-    PyCallable_DECL_CALL(ListDroneBay);
-    PyCallable_DECL_CALL(Build);
+    InventoryBound(EVEServiceManager &mgr, BoundServiceParent<InventoryBound>& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID,  bool passive);
 
 protected:
+    PyResult GetItem(PyCallArgs& call);
+    PyResult StripFitting(PyCallArgs& call);
+    PyResult DestroyFitting(PyCallArgs& call, PyInt* itemID);
+    PyResult StackAll(PyCallArgs& call, std::optional <PyInt*> flag);
+    PyResult ImportExportWithPlanet(PyCallArgs& call, PyInt* spaceportPinID, PyDict* importData, PyDict* exportData, PyFloat* taxRate);
+    PyResult RemoveChargeToHangar(PyCallArgs& call, PyTuple* chargeInfo, std::optional<PyRep*> quantity);
+    PyResult RemoveChargeToCargo(PyCallArgs& call, PyTuple* chargeInfo, std::optional<PyRep*> quantity);
+    PyResult MultiMerge(PyCallArgs& call, PyList* items, std::optional<PyRep*> sourceContainerID);
+    PyResult Add(PyCallArgs& call, PyInt* itemID, PyInt* containerID);
+    PyResult MultiAdd(PyCallArgs& call, PyList* itemIDs, PyInt* containerID);
+    PyResult List(PyCallArgs& call, std::optional <PyInt*> listFlag);
+    PyResult CreateBookmarkVouchers(PyCallArgs& call, PyList* bookmarkIDs, PyInt* flag, PyBool* isMove);
+    PyResult TakeOutTrash(PyCallArgs& call, PyInt* itemIDs);
+    PyResult SetPassword(PyCallArgs& call, PyInt* which, PyString* newPassword, PyString* oldPassword);
+    PyResult ListDroneBay(PyCallArgs& call);
+    PyResult RunRefiningProcess(PyCallArgs& call);
+    PyResult Build(PyCallArgs& call);
+
     bool m_passive;     // still not sure what this is for
     EVEItemFlags m_flag;
 
     uint32 m_itemID;
     uint32 m_ownerID;
 
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
     Inventory* pInventory;
 
     InventoryItemRef m_self;

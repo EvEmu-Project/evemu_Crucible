@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
+
 #include "Client.h"
 #include "ConsoleCommands.h"
 #include "npc/NPC.h"
@@ -29,7 +29,7 @@
 #include "testing/test.h"
 
 
-PyResult Command_siglist(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_siglist(Client* pClient, CommandDB* db, EVEServiceManager& services, const Seperator& args) {
     /* this command is used to test anomaly system   -allan 21Feb15
      *   will list all anomalies, by systemID.
      */
@@ -59,7 +59,7 @@ PyResult Command_siglist(Client* pClient, CommandDB* db, PyServiceMgr* services,
     return new PyString(reply);
 }
 
-PyResult Command_heal(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_heal(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (args.argCount()== 1) {
         pClient->GetShip()->Heal();
@@ -79,7 +79,7 @@ PyResult Command_heal(Client* pClient, CommandDB* db, PyServiceMgr* services, co
     return(new PyString("Heal successful!"));
 }
 
-PyResult Command_healtarget(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_healtarget(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (args.argCount()== 1) {
         pClient->GetShip()->Heal();
@@ -99,7 +99,7 @@ PyResult Command_healtarget(Client* pClient, CommandDB* db, PyServiceMgr* servic
     return(new PyString("Heal successful!"));
 }
 
-PyResult Command_status(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_status(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     //if (!pClient->IsInSpace())
     //    throw CustomError ("You're not in space.");
@@ -131,7 +131,7 @@ PyResult Command_status(Client* pClient, CommandDB* db, PyServiceMgr* services, 
     return new PyString(reply);
 }
 
-PyResult Command_list(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_list(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug system entities
      * wip.   -allan 25Apr15    -UD 15July19
      */
@@ -213,7 +213,7 @@ PyResult Command_list(Client* pClient, CommandDB* db, PyServiceMgr* services, co
     return new PyString(reply);
 }
 
-PyResult Command_bubblelist(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_bubblelist(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug bubble entities
      * wip.   -allan 2June16
      */
@@ -282,7 +282,7 @@ PyResult Command_bubblelist(Client* pClient, CommandDB* db, PyServiceMgr* servic
     return new PyString(reply);
 }
 
-PyResult Command_commandlist(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_commandlist(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /*
      * this command will send the client a list of loaded game commands, role required, and description.  -allan 23May15
      */
@@ -298,7 +298,7 @@ PyResult Command_commandlist(Client* pClient, CommandDB* db, PyServiceMgr* servi
 }
 
 
-PyResult Command_secstatus(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_secstatus(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /*
      * this command will send the client the security status of the current Character.  -allan 5July15
      */
@@ -312,7 +312,7 @@ PyResult Command_secstatus(Client* pClient, CommandDB* db, PyServiceMgr* service
     return new PyString(reply);
 }
 
-PyResult Command_destinyvars(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_destinyvars(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.  This call needs DestinyMgr.");
@@ -347,7 +347,7 @@ PyResult Command_destinyvars(Client* pClient, CommandDB* db, PyServiceMgr* servi
     return new PyString(reply);
 }
 
-PyResult Command_shipvars(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_shipvars(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");
@@ -386,7 +386,7 @@ PyResult Command_shipvars(Client* pClient, CommandDB* db, PyServiceMgr* services
     return new PyString(reply);
 }
 
-PyResult Command_halt(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_halt(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");
@@ -405,14 +405,14 @@ PyResult Command_halt(Client* pClient, CommandDB* db, PyServiceMgr* services, co
     return new PyString(reply);
 }
 
-PyResult Command_shutdown(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_shutdown(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* ingame command to immediatly save loaded items and halt server.
      */
     sConsole.HaltServer();
     return nullptr;
 }
 
-PyResult Command_beltlist(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_beltlist(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug asteroid creation/management
      * wip.   -allan 15April16
      */
@@ -440,7 +440,7 @@ PyResult Command_beltlist(Client* pClient, CommandDB* db, PyServiceMgr* services
     return new PyString(reply);
 }
 
-PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_inventory(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug inventory
      * wip.   -allan 15Mar16
      */
@@ -505,7 +505,7 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, PyServiceMgr* service
     return new PyString(reply);
 }
 
-PyResult Command_shipinventory(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_shipinventory(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug inventory
      * wip.   -allan 15Mar16
      */
@@ -536,7 +536,7 @@ PyResult Command_shipinventory(Client* pClient, CommandDB* db, PyServiceMgr* ser
     return new PyString(reply);
 }
 
-PyResult Command_skilllist(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_skilllist(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug char skills
      * wip.   -allan 15Mar16
      */
@@ -576,7 +576,7 @@ PyResult Command_skilllist(Client* pClient, CommandDB* db, PyServiceMgr* service
     return new PyString(reply);
 }
 
-PyResult Command_attrlist(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_attrlist(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug attributes
      * wip.   -allan 15Mar17
      */
@@ -617,7 +617,7 @@ PyResult Command_attrlist(Client* pClient, CommandDB* db, PyServiceMgr* services
     return new PyString(reply);
 }
 
-PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_showsession(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     std::ostringstream str;
     str.clear();
     str << "Current Session Values.<br><br>"; //32
@@ -627,9 +627,9 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* servi
     str << "shipid: %u <br>"; //14+10
     str << "cloneStationID: %u <br>"; //21+10
 
-    str << "clientid: %li <br>"; //16+10
+    str << "clientid: %lli <br>"; //16+10
     str << "userid: %u <br>"; //14+10
-    str << "sessionID: %li <br>"; //18+20
+    str << "sessionID: %lli <br>"; //18+20
 
     str << "locationid: %u <br>"; //18+10
     str << "stationid: %i <br>"; //17+10
@@ -641,11 +641,11 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* servi
     str << "corpid: %u <br>"; //14+10
     str << "hqID: %u <br>"; //12+10
     str << "corpAccountKey: %i <br>"; //22+10
-    str << "corpRole: %li <br>"; //17+20
-    str << "rolesAtAll: %li <br>"; //19+20
-    str << "rolesAtBase: %li <br>"; //20+20
-    str << "rolesAtHQ: %li <br>"; //18+20
-    str << "rolesAtOther: %li <br>"; //21+20
+    str << "corpRole: %lli <br>"; //17+20
+    str << "rolesAtAll: %lli <br>"; //19+20
+    str << "rolesAtBase: %lli <br>"; //20+20
+    str << "rolesAtHQ: %lli <br>"; //18+20
+    str << "rolesAtOther: %lli <br>"; //21+20
 
     str << "fleetID: %i <br>"; //14+10
     str << "wingID: %i <br>"; //13+10
@@ -653,7 +653,7 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* servi
     str << "job: %s <br>"; //10+10
     str << "role: %s <br>"; //11+10
     str << "booster: %s <br>"; //14+10
-    str << "joinTime: %li <br>"; //16+20
+    str << "joinTime: %lli <br>"; //16+20
 
     int size = 32;  // header
     size += 445;    // text
@@ -673,7 +673,7 @@ PyResult Command_showsession(Client* pClient, CommandDB* db, PyServiceMgr* servi
     return new PyString(reply);
 }
 
-PyResult Command_shipdna(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_shipdna(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     char reply[200];
     snprintf(reply, 200, "%s", pClient->GetShip()->GetShipDNA().c_str());
@@ -682,7 +682,7 @@ PyResult Command_shipdna(Client* pClient, CommandDB* db, PyServiceMgr* services,
     return new PyString(reply);
 }
 
-PyResult Command_targlist(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_targlist(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace()) {
         pClient->SendInfoModalMsg("You are not in Space.");
@@ -709,7 +709,7 @@ PyResult Command_targlist(Client* pClient, CommandDB* db, PyServiceMgr* services
     return new PyString(reply);
 }
 
-PyResult Command_track(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_track(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     bool tracking = sEntityList.GetTracking();
     std::string track = "enabled";
@@ -726,7 +726,7 @@ PyResult Command_track(Client* pClient, CommandDB* db, PyServiceMgr* services, c
     return new PyString(reply);
 }
 
-PyResult Command_bubbletrack(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_bubbletrack(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     std::string track = "enabled";
     std::string type = "bubble";
@@ -798,7 +798,7 @@ PyResult Command_bubbletrack(Client* pClient, CommandDB* db, PyServiceMgr* servi
     return new PyString(reply);
 }
 
-PyResult Command_warpto(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_warpto(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");
@@ -818,7 +818,7 @@ PyResult Command_warpto(Client* pClient, CommandDB* db, PyServiceMgr* services, 
 }
 
 
-PyResult Command_entityspawn(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_entityspawn(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");
@@ -838,7 +838,7 @@ PyResult Command_entityspawn(Client* pClient, CommandDB* db, PyServiceMgr* servi
     return new PyString(reply);
 }
 
-PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_fleetboost(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     uint32 fleetID = pClient->GetChar()->fleetID();
 
@@ -865,7 +865,7 @@ PyResult Command_fleetboost(Client* pClient, CommandDB* db, PyServiceMgr* servic
     return new PyString(reply);
 }
 
-PyResult Command_fleetinvite(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_fleetinvite(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->InFleet())
         throw CustomError ("You're not in a fleet.");
@@ -882,7 +882,7 @@ PyResult Command_fleetinvite(Client* pClient, CommandDB* db, PyServiceMgr* servi
     return new PyString(reply);
 }
 
-PyResult Command_getposition(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_getposition(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");
@@ -914,7 +914,7 @@ PyResult Command_getposition(Client* pClient, CommandDB* db, PyServiceMgr* servi
     return new PyString(reply);
 }
 
-PyResult Command_players(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_players(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     std::vector<Client*> cVec;
     sEntityList.GetClients(cVec);
@@ -940,7 +940,7 @@ PyResult Command_players(Client* pClient, CommandDB* db, PyServiceMgr* services,
     return new PyString(reply);
 }
 
-PyResult Command_showall(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_showall(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     std::string showall = "Enabled";
     if (pClient->IsShowall()) {
@@ -956,7 +956,7 @@ PyResult Command_showall(Client* pClient, CommandDB* db, PyServiceMgr* services,
     return new PyString(reply);
 }
 
-PyResult Command_autostop(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_autostop(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     std::string stop = "Enabled";
     if (pClient->AutoStop()) {
@@ -972,7 +972,7 @@ PyResult Command_autostop(Client* pClient, CommandDB* db, PyServiceMgr* services
     return new PyString(reply);
 }
 
-PyResult Command_cargo(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args) {
+PyResult Command_cargo(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /* this command is used to debug inventory
      *   -allan 2Jul20
      */
@@ -1115,7 +1115,7 @@ PyResult Command_cargo(Client* pClient, CommandDB* db, PyServiceMgr* services, c
     return new PyString(reply);
 }
 
-PyResult Command_bubblewarp(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_bubblewarp(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");
@@ -1145,7 +1145,7 @@ PyResult Command_bubblewarp(Client* pClient, CommandDB* db, PyServiceMgr* servic
     return new PyString(reply);
 }
 
-PyResult Command_runtest(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_runtest(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");
@@ -1158,11 +1158,14 @@ PyResult Command_runtest(Client* pClient, CommandDB* db, PyServiceMgr* services,
     return nullptr;
 }
 
-PyResult Command_bindList(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_bindList(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
+    // TODO: properly implement this
+    /*
     std::ostringstream str;
     str.clear();
     str << "Current Bound Object Listing (%u)<br><br>"; //45
+
 
     std::vector<PyServiceMgr::BoundObj> vec;
     pClient->services().BoundObjectVec(vec);
@@ -1180,9 +1183,11 @@ PyResult Command_bindList(Client* pClient, CommandDB* db, PyServiceMgr* services
     pClient->SendInfoModalMsg(reply);
 
     return nullptr;
+    */
+    throw CustomError("Not supported with new ServiceManager yet");
 }
 
-PyResult Command_dropLoot(Client* pClient, CommandDB* db, PyServiceMgr* services, const Seperator& args)
+PyResult Command_dropLoot(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (!pClient->IsInSpace())
         throw CustomError ("You're not in space.");

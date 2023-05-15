@@ -142,7 +142,7 @@ void PosMgrDB::SaveBaseData(EVEPOS::StructureData& data)
     sDatabase.RunQuery(err,
         "INSERT INTO posStructureData "
         "(itemID, towerID, anchorpointID, state, status, timestamp, canUse, canView, canTake)"
-        " VALUES ( %i, %i, %i, %i, %i, %li, %i, %i, %i)",
+        " VALUES ( %i, %i, %i, %i, %i, %lli, %i, %i, %i)",
         data.itemID, data.towerID, data.anchorpointID, data.state, data.status, data.timestamp, data.use, data.view, data.take);
 }
 
@@ -150,7 +150,7 @@ void PosMgrDB::UpdateBaseData(EVEPOS::StructureData& data)
 {
     DBerror err;
     sDatabase.RunQuery(err,
-        "UPDATE posStructureData SET state=%i, status=%i, timestamp=%li WHERE itemID = %i",
+        "UPDATE posStructureData SET state=%i, status=%i, timestamp=%lli WHERE itemID = %i",
         data.state, data.status, data.timestamp, data.itemID);
 }
 
@@ -365,7 +365,7 @@ void PosMgrDB::SaveCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData& 
         "INSERT INTO posCustomsOfficeData (itemID, ownerID, allowAlly, allowStandings, selectedHour, standingValue,"
         " corpTax, allyTax, horribleTax, badTax, neutTax, goodTax, highTax, timestamp,"
         " rotX, rotY, rotZ, orbitalHackerProgress, orbitalHackerID, state, status, level)"
-        " VALUES (%u, %u, %u, %u, %u, %u, %f, %f, %f, %f, %f, %f, %f, %li, %f, %f, %f, %f, %u, %i, %i, %i)",
+        " VALUES (%u, %u, %u, %u, %u, %u, %f, %f, %f, %f, %f, %f, %f, %lli, %f, %f, %f, %f, %u, %i, %i, %i)",
         cData.itemID, cData.ownerID, cData.allowAlliance, cData.allowStandings, cData.selectedHour, cData.standingValue,
         cData.taxRateValues[TaxValues::Corp], cData.taxRateValues[TaxValues::Alliance], cData.taxRateValues[TaxValues::StandingHorrible],
         cData.taxRateValues[TaxValues::StandingBad], cData.taxRateValues[TaxValues::StandingNeutral], cData.taxRateValues[TaxValues::StandingGood],
@@ -380,7 +380,7 @@ void PosMgrDB::UpdateCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData
     sDatabase.RunQuery(err,
         "UPDATE posCustomsOfficeData"
         " SET allowAlly=%u, allowStandings=%u, selectedHour=%u, standingValue=%u,"
-        " corpTax=%f, allyTax=%f, horribleTax=%f, badTax=%f, neutTax=%f, goodTax=%f, highTax=%f, timestamp=%li,"
+        " corpTax=%f, allyTax=%f, horribleTax=%f, badTax=%f, neutTax=%f, goodTax=%f, highTax=%f, timestamp=%lli,"
         " orbitalHackerProgress=%f, orbitalHackerID=%u, state=%i, status=%i"
         " WHERE itemID=%i",
         cData.allowAlliance, cData.allowStandings, cData.selectedHour, cData.standingValue,
@@ -412,7 +412,7 @@ void PosMgrDB::UpdateCustomsData(EVEPOS::CustomsData& cData, EVEPOS::OrbitalData
 void PosMgrDB::UpdateTimeStamp(int32 itemID, EVEPOS::StructureData& data)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "UPDATE posStructureData SET timestamp=%li WHERE itemID = %u", data.timestamp, itemID);
+    sDatabase.RunQuery(err, "UPDATE posStructureData SET timestamp=%lli WHERE itemID = %u", data.timestamp, itemID);
 }
 
 

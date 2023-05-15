@@ -1,29 +1,4 @@
 <elements>
-
-  <elementDef name="InitiateTradeRsp_WithCash">
-    <objectInline>
-      <stringInline value="util.Moniker" />
-      <tupleInline>
-        <stringInline value="trademgr" />
-        <int name ="nodeID" />
-        <tupleInline>
-          <int name="stationID" />
-          <tupleInline>
-            <int name="myID" />
-            <int name="herID" />
-          </tupleInline>
-          <tupleInline>
-            <real name="myMoney" />
-            <real name="herMoney" />
-          </tupleInline>
-          <int name="state" none_marker="0" />
-          <long name="when" none_marker="0" />
-        </tupleInline>
-        <int name="unk2" none_marker="0" />
-      </tupleInline>
-    </objectInline>
-  </elementDef>
-
   <elementDef name="InitiateTradeRsp_NoCash">
     <objectInline>
       <stringInline value="util.Moniker" />
@@ -90,14 +65,6 @@
       <objectEx name="list" type="PyObjectEx" />
     </listInline>
   </elementDef>
-
-  <elementDef name="TradeMultiAddList">
-    <tupleInline>
-      <listInt name="ints" />
-      <int name="contID" />
-    </tupleInline>
-  </elementDef>
-
 
 </elements>
 

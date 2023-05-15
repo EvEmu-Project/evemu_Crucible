@@ -1,14 +1,11 @@
-
  /**
-  * @name DungeonMgr.h
+  * @name DungeonMgr.cpp
   *     Dungeon management system for EVEmu
   *
-  * @Author:        Allan
-  * @date:          12 December 2015
-  *
+  * @Author:        James
+  * @date:          13 December 2022
   */
-
-
+ 
 
 #ifndef _EVEMU_SYSTEM_DUNGEONMGR_H
 #define _EVEMU_SYSTEM_DUNGEONMGR_H
@@ -18,21 +15,12 @@
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/ManagerDB.h"
 
+//Shiny multi-index containers
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/member.hpp>
 
-/*
- * struct Dungeon::ActiveData {
- *    uint32 systemID;
- *    uint32 dungeonID;
- *    uint8 dunTemplateID;
- *    int64 dunExpiryTime;
- *    uint8 state;
- *    double x;
- *    double y;
- *    double z;
- * };
- */
-
-// this class is a singleton object to have a common place for all dungeon template data
+// this class is a singleton object to have a common place for all in-memory dungeon data
 class DungeonDataMgr
 : public Singleton< DungeonDataMgr >
 {
@@ -43,35 +31,33 @@ public:
     // Initializes the Table:
     int Initialize();
 
-    void AddDungeon(Dungeon::ActiveData& dungeon);
-    void GetDungeons(std::vector<Dungeon::ActiveData>& dunList);
-
-    bool GetTemplate(uint32 templateID, Dungeon::Template& dTemplate);
-
+    void GetRandomDungeon(Dungeon::Dungeon& dungeon, uint8 archetype);
+    void GetDungeon(Dungeon::Dungeon& dungeon, uint32 dungeonID);
+    void UpdateDungeon(uint32 dungeonID);
+    void GetDungeons(std::vector<Dungeon::Dungeon>& dunList);
     uint32 GetDungeonID()                               { return ++m_dungeonID; }
-
     const char* GetDungeonType(int8 typeID);
-
-protected:
-    typedef std::map<uint32, Dungeon::Template> DunTemplateDef;                       //templateID/data
-    typedef std::unordered_multimap<uint32, Dungeon::ActiveData> ActiveDungeonDef;    //systemID/data
-    typedef std::unordered_multimap<uint32, Dungeon::RoomData> DunRoomsDef;           //roomID/data
-    typedef std::unordered_multimap<uint32, Dungeon::EntryData> DunEntryDef;          //entryID/data
-    typedef std::unordered_multimap<uint32, Dungeon::GroupData> DunGroupsDef;         //groupID/data
-
-    DunTemplateDef templates;         // templateID/data
-
-public:
-    ActiveDungeonDef activeDungeons;  // systemID/data
-    DunEntryDef entrys;               // entryID/data
-    DunRoomsDef rooms;                // roomID/data
-    DunGroupsDef groups;              // groupID/data
 
 private:
     void Populate();
+    void FillObject(DBResultRow row);
+    void CreateDungeon(DBResultRow row);
 
+    //Multi-index container for dungeon data
+    typedef boost::multi_index_container<
+        Dungeon::Dungeon,
+        boost::multi_index::indexed_by<
+            boost::multi_index::hashed_non_unique<
+                boost::multi_index::tag<Dungeon::DungeonsByID>,
+                boost::multi_index::member<Dungeon::Dungeon, uint32, &Dungeon::Dungeon::dungeonID>
+                >,
+            boost::multi_index::hashed_non_unique<
+                boost::multi_index::tag<Dungeon::DungeonsByArchetype>,
+                boost::multi_index::member<Dungeon::Dungeon, uint8, &Dungeon::Dungeon::archetypeID>
+                >>> DunDataContainer;
+
+    DunDataContainer m_dungeons;
     uint32 m_dungeonID;
-
 };
 
 #define sDunDataMgr \
@@ -85,21 +71,17 @@ private:
 
 class AnomalyMgr;
 class SpawnMgr;
-class PyServiceMgr;
+class EVEServiceManager;
 
 class DungeonMgr {
 public:
-    DungeonMgr(SystemManager *system, PyServiceMgr& svc);
+    DungeonMgr(SystemManager *system, EVEServiceManager& svc);
     ~DungeonMgr();
-
 
     bool Init(AnomalyMgr* anomMgr, SpawnMgr* spawnMgr);
     void Process();
-    void Load();
 
-    bool MakeDungeon(CosmicSignature& sig);
-
-    bool Create(uint32 templateID, CosmicSignature& sig);
+    bool MakeDungeon(CosmicSignature& sig, uint32 dungeonID = 0);
 
 protected:
     ManagerDB m_db;
@@ -113,17 +95,12 @@ private:
     AnomalyMgr* m_anomMgr;
     SpawnMgr* m_spawnMgr;
     SystemManager* m_system;
-    PyServiceMgr& m_services;
+    EVEServiceManager& m_services;
 
     int8 GetFaction(uint32 factionID);
     int8 GetRandLevel();
 
-    void AddDecoToVector(uint8 dunType, uint32 templateID, std::vector<uint16>& groupVec);
-
-
-    std::vector<Dungeon::GroupData> m_anomalyItems;
-
-    std::map<uint32, std::vector<uint32>> m_dungeonList;  // this holds all items associated with the key 'dungeonID' in this system
+    std::map<uint32, Dungeon::LiveDungeon> m_dungeonList; // This holds all live dungeons in the current system
 };
 
 #endif  // _EVEMU_SYSTEM_DUNGEONMGR_H

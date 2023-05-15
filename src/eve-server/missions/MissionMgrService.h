@@ -25,26 +25,17 @@
 #ifndef __MISSIONMGR_SERVICE_H_INCL__
 #define __MISSIONMGR_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "missions/MissionDB.h"
 
-class MissionMgrService
-: public PyService
+class MissionMgrService : public Service <MissionMgrService>
 {
 public:
-    MissionMgrService(PyServiceMgr *mgr);
-    virtual ~MissionMgrService();
+    MissionMgrService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     //MissionDB m_db;
-
-    PyCallable_DECL_CALL(GetMyCourierMissions);
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    PyResult GetMyCourierMissions(PyCallArgs& call);
 };
 
 #endif

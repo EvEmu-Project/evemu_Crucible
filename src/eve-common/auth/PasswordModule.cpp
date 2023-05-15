@@ -59,12 +59,12 @@ bool PasswordModule::GeneratePassHash(
     // Find index of first non-space
     const size_t frontIndex =
         std::find_if( username.begin(), username.end(),
-                      std::not1( std::ptr_fun( ::isspace ) ) )
+            [](int c) { return !std::isspace(c); })
         - username.begin();
     // Find reverse index of last non-space
     const size_t backIndex  =
         std::find_if( username.rbegin(), username.rend(),
-                      std::not1( std::ptr_fun( ::isspace ) ) )
+            [](int c) { return !std::isspace(c); })
         - username.rbegin();
 
     // Trim the username

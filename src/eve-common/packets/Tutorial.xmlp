@@ -2,12 +2,6 @@
 
 <elements>
 
-  <elementDef name="Call_GetTutorialInfo">
-      <tupleInline>
-          <int name="tutorialID" />
-      </tupleInline>
-  </elementDef>
-
   <elementDef name="Rsp_GetTutorialInfo">
     <objectInline>
       <stringInline value="util.KeyVal" />

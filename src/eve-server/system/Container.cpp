@@ -243,7 +243,7 @@ void CargoContainer::MakeDamageState(DoDestinyDamageState &into) const
  *        return False
  */
 
-ContainerSE::ContainerSE(CargoContainerRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+ContainerSE::ContainerSE(CargoContainerRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : StructureSE(self, services, system, data),
  m_contRef(self),
  m_deleteTimer(0),
@@ -466,7 +466,7 @@ void WreckContainer::MakeSlimItemChange()
 }
 
 // wrecks are invul. but shouldnt be.  see todo notes
-WreckSE::WreckSE(WreckContainerRef self, PyServiceMgr &services, SystemManager* system, const FactionData &data)
+WreckSE::WreckSE(WreckContainerRef self, EVEServiceManager &services, SystemManager* system, const FactionData &data)
 : DynamicSystemEntity(self, services, system),
 m_deleteTimer(sConfig.rates.WorldDecay *60 *1000),
 m_abandoned(false),
@@ -539,7 +539,7 @@ void WreckSE::EncodeDestiny( Buffer& into )
         troll.formationID = 0xFF;
         troll.effectStamp = sEntityList.GetStamp();
     into.Append( troll );
-    _log(SE__DESTINY, "WreckSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "WreckSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict *WreckSE::MakeSlimItem() {

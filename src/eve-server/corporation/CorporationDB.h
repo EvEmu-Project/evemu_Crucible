@@ -68,7 +68,7 @@ public:
     PyRep *GetMyApplications(uint32 charID);
     PyRep *GetApplications(uint32 corpID);
 
-    void MoveShares(uint32 ownerID, uint32 corpID, Call_MoveShares& args);
+    void MoveShares(uint32 ownerID, uint32 corpID, int32 corporationID, int32 toShareholderID, int32 numberOfShares);
     PyRep *GetShares(uint32 corpID);
     PyRep *GetMyShares(uint32 ownerID);
     bool HasShares(uint32 charID, uint32 corpID);
@@ -101,7 +101,7 @@ public:
     PyRep *GetCorpInfo(uint32 corpID);
 
     PyRep* GetContacts(uint32 corpID);
-    void AddContact(uint32 ownerID, Call_CorporateContactData corpData);
+    void AddContact(uint32 ownerID, int32 contactID, int32 relationshipID);
     void UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID);
     void RemoveContact(uint32 contactID, uint32 ownerID);
 
@@ -115,7 +115,8 @@ public:
     bool CreateCorporationChangePacket(OnCorporationChanged & cc, uint32 oldCorpID, uint32 newCorpID);
     bool CreateCorporationCreatePacket(OnCorporationChanged & cc, uint32 oldCorpID, uint32 newCorpID);
 
-    PyRep *Fetch(uint32 corpID, uint32 from, uint32 count);
+    bool FetchOfficesKeys (uint32 corporationID, DBQueryResult& res);
+    bool FetchOffices(uint32 corpID, uint32 from, uint32 count, DBQueryResult& res);
 
     PyObject* GetCorporationBills(uint32 corpID, bool payable);
 
@@ -135,8 +136,8 @@ public:
     PyRep* GetRecipientsOfMedal(int32 medalID);
     PyRep* GetMedalStatuses();
     PyObjectEx* GetMedalDetails(int32 medalID);
-    void GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 medalID, std::vector< uint32 >& charVec, std::string& reason);
-    uint16 CreateMedal(uint32 ownerID, uint32 creatorID, std::string& title, std::string& description);
+    void GiveMedalToCharacters(uint32 issuerID, uint32 corpID, int32 medalID, std::vector< uint32 >& charVec, const std::string& reason);
+    uint16 CreateMedal(uint32 ownerID, uint32 creatorID, const std::string& title, const std::string& description);
     void SaveMedalData(int64 medalID, std::vector< Corp::MedalData >& dataList);
     void SetMedalStatus(uint32 charID, uint16 medalID, uint8 status);
 
@@ -165,7 +166,7 @@ public:
     static std::string GetCorpName(uint32 corpID);
     static std::string GetDivisionName(uint32 corpID, uint16 acctKey);
     bool UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif);
-    bool UpdateCorporation(uint32 corpID, const Call_UpdateCorporation & upd, PyDict * notif);
+    bool UpdateCorporation(uint32 corpID, const std::string& description, const std::string& url, double taxRate, PyDict* notif);
     bool UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif);
 
     PyRep* GetAssetInventory(uint32 corpID, EVEItemFlags locFlag, const char* flags);

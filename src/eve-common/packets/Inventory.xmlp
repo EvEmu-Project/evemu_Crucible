@@ -2,142 +2,10 @@
 
 <elements>
 
-  <elementDef name="CallSetLabel">
-    <tupleInline>
-      <int name="itemID" />
-      <raw name="itemName" />
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="InvBroker_BindArgs">
     <tupleInline>
       <int name="locationID" />
       <int name="groupID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Inventory_GetInventory">
-    <tupleInline>
-      <int name="container" />
-      <int name="ownerID" none_marker="0" safe="true" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_TrashItems">
-      <tupleInline>
-          <listInt name="items" />
-          <int name="locationID" />
-      </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_RemoveCharge">
-    <tupleInline>
-      <int name="shipID" />
-      <int name="flagID" />
-      <int name="typeID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Add_3">
-    <tupleInline>
-      <int name="itemID" />
-      <int name="quantity" />
-      <int name="flag" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_Add_2">
-    <tupleInline>
-      <int name="itemID" />
-      <int name="containerID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_MultiAdd_2">
-    <tupleInline>
-      <listInt name="itemIDs" />
-      <int name="containerID" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_MultiAdd_3">
-    <tupleInline>
-      <listInt name="itemIDs" />
-      <int name="quantity" none_marker="1" /> <!-- almost always 1 on a multiadd -->
-      <int name="flag" />
-    </tupleInline>
-  </elementDef>
-
-    <elementDef name="Call_Drop3">
-        <tupleInline>
-            <list name="toDrop" />
-            <int name="ownerID" none_marker="1" />
-            <bool name="ignoreWarning" />
-        </tupleInline>
-    </elementDef>
-
-  <elementDef name="Inventory_CallReplaceCharges">
-    <tupleInline>
-      <int name="flag" />
-      <int name="itemID" />
-      <int name="quantity" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_MultiMerge">
-    <tupleInline>
-      <list name="mergeData"/>
-      <int name="locationID"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="MultiMergeData">
-    <tupleInline>
-      <int name="sourceID"/>
-      <int name="destID"/>
-      <int name="qty"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Inventory_CallStackAll">
-    <tupleInline>
-      <int name="locationFlag" none_marker="0"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AssembleShip">
-    <tupleInline>
-      <listInt name="items" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_AssembleShipWithName">
-    <tupleInline>
-      <int name="itemID" />
-      <stringInline value="itemName" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_List">
-    <tupleInline>
-      <int name="flag" none_marker="0" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_CreateVouchers">
-    <tupleInline>
-        <list name="bmIDs" />
-        <int name="flag" />
-        <bool name="isMove" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_PlanetCustomsXfer">
-    <tupleInline>
-        <int name="spaceportPinID" />
-        <dict name="importData" />
-        <dict name="exportData" />
-        <real name="taxRate" />
     </tupleInline>
   </elementDef>
 
@@ -243,12 +111,6 @@
       <raw name="itemRow" />
       <!-- 1: map from row index (ix* constants) to the old value for the item.  -->
       <dictInt name="changes" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_GetOptionsForItemTypes">
-    <tupleInline>
-        <dictInt name="typeIDs" />
     </tupleInline>
   </elementDef>
 

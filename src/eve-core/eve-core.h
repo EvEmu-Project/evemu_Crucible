@@ -69,6 +69,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <thread>
 
 // Standard Template Library includes
 #include <algorithm>

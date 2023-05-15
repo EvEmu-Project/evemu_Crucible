@@ -13,47 +13,11 @@
     </objectInline>
   </elementDef>
 
-  <!-- not used...may not need this -->
-  <elementDef name="FleetInitCall">
-    <tupleInline>
-      <tupleInline>
-        <int name="myShipTypeID" none_marker="0"/>
-      </tupleInline>
-      <dict name="unknownDict" optional="true"/>
-    </tupleInline>
-  </elementDef>
-
   <elementDef name="SendBroadCastCall">
     <tupleInline>
         <string name="msg" />
         <int name="group"  none_marker="0"/>
         <int name="itemID" none_marker="0"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="FleetInviteCall">
-    <tupleInline>
-        <int name="charID" />
-        <int name="wingID" none_marker="0"/>
-        <int name="squadID" none_marker="0"/>
-        <int name="role" none_marker="4"/>  <!-- 'default' member invite sends PyNone, which is then set to this none_marker.  set default to Role::Member (4) -->
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="SetBoosterCall">
-    <tupleInline>
-        <int name="charID" />
-        <int name="booster" none_marker="0"/>
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="MoveMemberCall">
-    <tupleInline>
-        <int name="charID" />
-        <int name="wingID" none_marker="0"/>
-        <int name="squadID" none_marker="0"/>
-        <int name="role" none_marker="0"/>
-        <int name="booster" none_marker="0"/>
     </tupleInline>
   </elementDef>
 
@@ -90,13 +54,6 @@
         </dictInlineEntry>
       </dictInline>
     </objectInline>
-  </elementDef>
-
-  <elementDef name="RenameCall">
-    <tupleInline>
-        <int name="unitID" />
-        <raw name="name" />
-    </tupleInline>
   </elementDef>
 
   <elementDef name="GetInitStateRSP">

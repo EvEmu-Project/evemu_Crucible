@@ -339,7 +339,7 @@ void ManagerDB::SaveAnomaly(CosmicSignature& sig)
         " VALUES ('%s', %u, %u, '%s', %u, %u, %u, %u, %u, %f, %f, %f)", \
             sig.sigID.c_str(), sig.sigItemID, sig.dungeonType, sig.sigName.c_str(), sig.systemID, sig.sigTypeID, sig.sigGroupID, \
             sig.scanGroupID, sig.scanAttributeID, sig.position.x, sig.position.y, sig.position.z )) {
-        _log(DATABASE__ERROR, "SaveActiveDungeon - unable to save dungeon");
+        _log(DATABASE__ERROR, "SaveAnomaly - unable to save dungeon");
         }
 }
 
@@ -363,7 +363,7 @@ void ManagerDB::GetAnomaliesBySystem(uint32 systemID, DBQueryResult& res)
         }
 }
 
-GPoint ManagerDB::GetAnomalyPos(std::string& string)
+GPoint ManagerDB::GetAnomalyPos(const std::string& string)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT x,y,z FROM sysSignatures WHERE sigID = '%s'", string.c_str()))
@@ -480,7 +480,7 @@ void ManagerDB::GetGroupTypeIDs(uint8 shipClass, uint16 groupID, uint32 factionI
 void ManagerDB::DeleteSpawnedRats()
 {
     DBerror err;
-    sDatabase.RunQuery(err, "DELETE FROM entity WHERE customInfo LIKE '%beltrat%'");
+    sDatabase.RunQuery(err, "DELETE FROM entity WHERE customInfo LIKE '%%beltrat%%'");
 }
 
 void ManagerDB::CreateRoidItemID(ItemData& idata, AsteroidData& adata)
@@ -656,11 +656,11 @@ void ManagerDB::GetDunSpawnInfo(DBQueryResult& res)
 
 void ManagerDB::GetDunTemplates(DBQueryResult& res)
 {
-    if (!sDatabase.RunQuery(res, "SELECT dunTemplateID, dunTemplateName, dunEntryID, dunSpawnID, dunRoomID FROM dunTemplates"))
+    if (!sDatabase.RunQuery(res, "SELECT dunTemplateID, dunTemplateName, dunEntryID, dunSpawnID, dunRoomID, dunTemplateDescription, dunTemplateFactionID FROM dunTemplates"))
         _log(DATABASE__ERROR, "Error in GetDunTemplates query: %s", res.error.c_str());
 }
 
-bool ManagerDB::GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveData >& into)
+/*bool ManagerDB::GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveData >& into)
 {
     DBQueryResult res;
 
@@ -689,21 +689,21 @@ bool ManagerDB::GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveDa
     }
 
     return !into.empty();
-}
+}*/
 
-void ManagerDB::SaveActiveDungeon(Dungeon::ActiveData& dun)
+/*void ManagerDB::SaveActiveDungeon(Dungeon::ActiveData& dun)
 {
     DBerror err;
     if (!sDatabase.RunQuery(err,
         "INSERT INTO dunActive" //Active Dungeons
         " (systemID, dungeonID, state, dunTemplateID, dunExpiryTime, xpos, ypos, zpos)"
         " VALUES "
-        "(%u, %u, %u, %u, %li, %f, %f, %f)",
+        "(%u, %u, %u, %u, %lli, %f, %f, %f)",
         dun.systemID, dun.dunItemID, dun.state, dun.dunTemplateID, dun.dunExpiryTime, dun.x, dun.y, dun.z ))
     {
         _log(DATABASE__ERROR, "SaveActiveDungeon - unable to save dungeon: %s", err.c_str());
     }
-}
+}*/
 
 void ManagerDB::ClearDungeons()
 {
@@ -734,7 +734,7 @@ void ManagerDB::GetStatisticData(DBQueryResult& res, int64 starttime)
     if (!sDatabase.RunQuery(res,
         "SELECT pcShots, pcMissiles, ramJobs, shipsSalvaged, pcBounties, npcBounties, oreMined, iskMarket, probesLaunched, sitesScanned"
         " FROM srvStatisticData"
-        " WHERE timeStamp > %li", starttime))
+        " WHERE timeStamp > %lli", starttime))
         codelog(DATABASE__ERROR, "Error in GetStatisticData query: %s", res.error.c_str());
 }
 

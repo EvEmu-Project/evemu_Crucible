@@ -11,51 +11,57 @@
 
 #include "eve-server.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "fleet/FleetObject.h"
 #include "fleet/FleetBound.h"
+#include "services/ServiceManager.h"
 
-PyCallable_Make_InnerDispatcher(FleetObject)
-
-FleetObject::FleetObject(PyServiceMgr *mgr)
-: PyService(mgr, "fleetObjectHandler"),
-  m_dispatch(new Dispatcher(this))
+FleetObject::FleetObject(EVEServiceManager& mgr) :
+    BindableService("fleetObjectHandler", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(FleetObject, CreateFleet);
+    this->Add("CreateFleet", &FleetObject::CreateFleet);
 }
 
-FleetObject::~FleetObject()
-{
-    delete m_dispatch;
-}
-
-PyBoundObject* FleetObject::CreateBoundObject( Client* pClient, const PyRep* bind_args )
+BoundDispatcher* FleetObject::BindObject(Client* client, PyRep* bindParameters)
 {
     if (is_log_enabled(FLEET__BIND_DUMP)) {
         _log( FLEET__BIND_DUMP, "FleetObject bind request for:" );
-        bind_args->Dump( FLEET__BIND_DUMP, "    " );
+        bindParameters->Dump( FLEET__BIND_DUMP, "    " );
     }
 
-    if (!bind_args->IsInt()) {
-        _log(FLEET__ERROR, "%s Service: invalid bind argument type %s", GetName(), bind_args->TypeString());
+    if (!bindParameters->IsInt()) {
+        _log(FLEET__ERROR, "%s Service: invalid bind argument type %s", GetName().c_str(), bindParameters->TypeString());
         return nullptr;
     }
-    /*  do we need to bind object like this?   probably not, cause it works as-is
-    //we just bind up a new inventory object for container requested and give it back to them.
-    InventoryBound *ib = new InventoryBound(m_manager, item, flag);
-    PyRep *result = m_manager->BindObject(call.client, ib);
-    */
-    return new FleetBound( m_manager, bind_args->AsInt()->value());
+
+    uint32 fleetID = bindParameters->AsInt()->value();
+    auto it = this->m_instances.find (fleetID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    FleetBound* bound = new FleetBound(this->GetServiceManager(), *this, bindParameters->AsInt()->value());
+
+    this->m_instances.insert_or_assign (fleetID, bound);
+
+    return bound;
+}
+
+void FleetObject::BoundReleased (FleetBound* bound) {
+    auto it = this->m_instances.find (bound->GetFleetID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 // FOH::CreateFleet, FOH::
-PyResult FleetObject::Handle_CreateFleet(PyCallArgs &call) {
+PyResult FleetObject::CreateFleet(PyCallArgs &call) {
     //self.fleet = sm.RemoteSvc('fleetObjectHandler').CreateFleet()
     FleetBindRSP fbr;
-        fbr.nodeID = 888444;    // may have to update this later, or use dedicated fleet node
+        fbr.nodeID = this->GetServiceManager().GetNodeID();    // may have to update this later, or use dedicated fleet node
         fbr.fleetID = sFltSvc.CreateFleet(call.client);
         fbr.unknown = 0;
     if (fbr.fleetID == 0)

@@ -41,59 +41,43 @@
  * STANDING__RSPDUMP
  */
 
-PyCallable_Make_InnerDispatcher(Standing)
-
-Standing::Standing(PyServiceMgr *mgr)
-: PyService(mgr, "standing2"),
-  m_dispatch(new Dispatcher(this))
+Standing::Standing() :
+    Service("standing2")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(Standing, GetSecurityRating);
-    PyCallable_REG_CALL(Standing, GetMyKillRights);
-    PyCallable_REG_CALL(Standing, GetCharStandings);
-    PyCallable_REG_CALL(Standing, GetCorpStandings);
-    PyCallable_REG_CALL(Standing, GetNPCNPCStandings);
-    PyCallable_REG_CALL(Standing, GetStandingTransactions);
-    PyCallable_REG_CALL(Standing, GetStandingCompositions);
-
+    this->Add("GetCharStandings", &Standing::GetCharStandings);
+    this->Add("GetCorpStandings", &Standing::GetCorpStandings);
+    this->Add("GetNPCNPCStandings", &Standing::GetNPCNPCStandings);
+    this->Add("GetSecurityRating", &Standing::GetSecurityRating);
+    this->Add("GetMyKillRights", &Standing::GetMyKillRights);
+    this->Add("GetStandingTransactions", &Standing::GetStandingTransactions);
+    this->Add("GetStandingCompositions", &Standing::GetStandingCompositions);
 }
 
-Standing::~Standing() {
-    delete m_dispatch;
-}
-
-PyResult Standing::Handle_GetCharStandings(PyCallArgs &call) {
+PyResult Standing::GetCharStandings(PyCallArgs &call) {
     return m_db.GetCharStandings(call.client);
 }
 
-PyResult Standing::Handle_GetCorpStandings(PyCallArgs &call) {
+PyResult Standing::GetCorpStandings(PyCallArgs &call) {
     return m_db.GetCorpStandings(call.client);
 }
 
-PyResult Standing::Handle_GetNPCNPCStandings(PyCallArgs &call) {
+PyResult Standing::GetNPCNPCStandings(PyCallArgs &call) {
     return sStandingMgr.GetFactionStandings();
 }
 
 /** @todo  need to add a standing from corpCONCORD to any/all charID, corpID, allyID  for security rating (as seen in client code) */
 
-PyResult Standing::Handle_GetSecurityRating(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    CharacterRef cRef = sItemFactory.GetCharacterRef( arg.arg );
+PyResult Standing::GetSecurityRating(PyCallArgs &call, PyInt* ownerID) {
+    CharacterRef cRef = sItemFactory.GetCharacterRef(ownerID->value());
     if  (cRef.get() == nullptr) {
-        _log(STANDING__WARNING, "Character %u not found.", arg.arg);
+        _log(STANDING__WARNING, "Character %u not found.", ownerID->value());
         return nullptr;
     }
 
     return new PyFloat( cRef->GetSecurityRating() );
 }
 
-PyResult Standing::Handle_GetMyKillRights(PyCallArgs &call) {
+PyResult Standing::GetMyKillRights(PyCallArgs &call) {
     // self.killRightsCache, self.killedRightsCache = sm.RemoteSvc('standing2').GetMyKillRights()
     // each cache holds k,v where key is toID or fromID
     _log(STANDING__MESSAGE,  "Standing::Handle_GetMyKillRights()");
@@ -111,21 +95,15 @@ PyResult Standing::Handle_GetMyKillRights(PyCallArgs &call) {
     return KillRights;
 }
 
-PyResult Standing::Handle_GetStandingTransactions(PyCallArgs &call) {
+PyResult Standing::GetStandingTransactions(PyCallArgs &call, PyInt* fromID, PyInt* toID, PyInt* direction, PyInt* eventID, PyInt* eventType, PyLong* eventDateTime) {
     // data = sm.RemoteSvc('standing2').GetStandingTransactions(fromID, toID, direction, eventID, eventType, eventDateTime)
     _log(STANDING__MESSAGE,  "Standing::Handle_GetStandingTransactions()");
     call.Dump(STANDING__DUMP);
 
-    Call_GetStandingTransactions args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetStandingTransactions(args);
+    return m_db.GetStandingTransactions(fromID->value(), toID->value());
 }
 
-PyResult Standing::Handle_GetStandingCompositions(PyCallArgs &call) {
+PyResult Standing::GetStandingCompositions(PyCallArgs &call, PyInt* fromID, PyInt* toID) {
 /**  no clue what this is yet
                 self.sr.data = sm.RemoteSvc('standing2').GetStandingCompositions(fromID, toID)
             if self.sr.data:
@@ -137,11 +115,5 @@ PyResult Standing::Handle_GetStandingCompositions(PyCallArgs &call) {
     _log(STANDING__MESSAGE,  "Standing::Handle_GetStandingCompositions()");
     call.Dump(STANDING__DUMP);
 
-    Call_GetStandingComposition args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetStandingCompositions(args.fromID, args.toID);
+    return m_db.GetStandingCompositions(fromID->value(), toID->value());
 }

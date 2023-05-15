@@ -30,7 +30,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+#include "EVEServerConfig.h"
 #include "cache/ObjCacheService.h"
 
 const char *const ObjCacheService::LoginCachableObjects[] = {
@@ -138,21 +138,16 @@ const char *const ObjCacheService::CharCreateNewExtraCachableObjects[] = {
 };
 const uint32 ObjCacheService::CharCreateNewExtraCachableObjectCount = sizeof(ObjCacheService::CharCreateNewExtraCachableObjects) / sizeof(const char *);
 
-PyCallable_Make_InnerDispatcher(ObjCacheService)
-
-ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
-: PyService(mgr, "objectCaching"),
-  m_dispatch(new Dispatcher(this)),
-  m_cacheDir(cacheDir)
+ObjCacheService::ObjCacheService(const char *cacheDir) :
+    Service("objectCaching"),
+    m_cacheDir(cacheDir)
 {
     std::string _basePath = sConfig.files.cacheDir;
     if (_basePath[_basePath.size() - 1] != '/')
         _basePath += "/";
     CreateDirectory(_basePath.c_str(), nullptr);
 
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ObjCacheService, GetCachableObject);
+    this->Add("GetCachableObject", &ObjCacheService::GetCachableObject);
 
     //register full name -> short key in m_cacheKeys
     m_cacheKeys["config.BulkData.paperdollResources"] = "config.BulkData.paperdollResources";
@@ -249,11 +244,15 @@ ObjCacheService::ObjCacheService(PyServiceMgr *mgr, const char *cacheDir)
     m_cacheKeys["charNewExtraCreationInfo.specialities"] = "specialities";
 }
 
-ObjCacheService::~ObjCacheService() {
-    delete m_dispatch;
-}
+PyResult ObjCacheService::GetCachableObject(PyCallArgs &call, PyRep* shared, PyRep* objectID, PyTuple* cacheVersion, PyInt* nodeID) {
+    int64 timestamp = 0;
+    int64 version = 0;
 
-PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
+    // nothing here is used yet, but is kept here as documentation for when it's eventually used
+    if (cacheVersion->size() == 2) {
+        timestamp = PyRep::IntegerValue(cacheVersion->GetItem(0));
+        version = PyRep::IntegerValue(cacheVersion->GetItem(1));
+    }
   /*
 20:27:48 L ObjCacheService: Handle_GetCachableObject
 20:27:48 [SvcCall]   Call Arguments:
@@ -272,13 +271,7 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
   */
     //sLog.White( "ObjCacheService", "Handle_GetCachableObject" );
     //call.Dump(SERVICE__CALL_DUMP);
-    CallGetCachableObject args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    if (!_LoadCachableObject(args.objectID))
+    if (!_LoadCachableObject(objectID))
         return nullptr;   //print done already
 
     //should we check their version? I am pretty sure they check it and only request what they want.
@@ -290,7 +283,7 @@ PyResult ObjCacheService::Handle_GetCachableObject(PyCallArgs &call) {
     }
     */
 
-    PyObject *result = m_cache.GetCachedObject(args.objectID);
+    PyObject *result = m_cache.GetCachedObject(objectID);
 
     return result;
 }

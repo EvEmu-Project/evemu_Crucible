@@ -55,6 +55,11 @@ public:
     std::string GetLastString( const char* name ) const;
     std::string GetCurrentString( const char* name ) const;
 
+    // PyFloat
+    void SetFloat( const char* name, double value );
+    double GetLastFloat( const char* name ) const;
+    double GetCurrentFloat( const char* name ) const;
+
     void Clear( const char* name );
 
     /**
@@ -72,6 +77,14 @@ public:
      * @param into
      */
     void EncodeInitialState (PyDict* into);
+
+    /**
+     * Checks if a value is present in the session
+     *
+     * @param name
+     * @return
+     */
+    bool HasValue (const char* name) const;
 
     int64 GetSessionID()  { return m_sessionID; }
 

@@ -24,35 +24,18 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
-
 #include "netStateServer.h"
 
-
-PyCallable_Make_InnerDispatcher(netStateServer);
-
-netStateServer::netStateServer(PyServiceMgr* mgr)
-: PyService(mgr, "netStateServer"),
-m_dispatch(new Dispatcher(this))
+netStateServer::netStateServer()
+: Service("netStateServer")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    //PyCallable_REG_CALL(DungeonService, IsObjectLocked);
-
 }
-
-netStateServer::~netStateServer()
-{
-    delete m_dispatch;
-
-}
-
 
 /*
  * PyResult encounterSpawnServer::Handle_( PyCallArgs& call )
  * {
  *    //
- *    _log(QATOOLS__CALL,  "encounterSpawnServer::Handle_ size: %li", call.tuple->size());
+ *    _log(QATOOLS__CALL,  "encounterSpawnServer::Handle_ size: %lli", call.tuple->size());
  *    call.Dump(QATOOLS__DUMP);
  *
  *    return nullptr;

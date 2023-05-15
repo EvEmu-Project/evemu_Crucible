@@ -27,42 +27,39 @@
 #ifndef __AGENTMGR_SERVICE_H_INCL__
 #define __AGENTMGR_SERVICE_H_INCL__
 
+#include "services/BoundService.h"
 #include "agents/AgentDB.h"
-#include "PyService.h"
+#include "Client.h"
 
 class Agent;
+class AgentBound;
 
-class AgentMgrService : public PyService {
+class AgentMgrService : public BindableService <AgentMgrService, AgentBound> {
 public:
-    AgentMgrService(PyServiceMgr *mgr);
-    virtual ~AgentMgrService();
+    AgentMgrService(EVEServiceManager& mgr);
+
+    void BoundReleased (AgentBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetAgents);
-    PyCallable_DECL_CALL(GetCareerAgents);
-    PyCallable_DECL_CALL(GetMyJournalDetails);
-    PyCallable_DECL_CALL(GetSolarSystemOfAgent);
-    PyCallable_DECL_CALL(GetMyEpicJournalDetails);
+    PyResult GetAgents(PyCallArgs& call);
+    PyResult GetSolarSystemOfAgent(PyCallArgs& call, PyInt* agentID);
+    PyResult GetMyJournalDetails(PyCallArgs& call);
+    PyResult GetMyEpicJournalDetails(PyCallArgs& call);
+    PyResult GetCareerAgents(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject* CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;
 
+private:
+    std::map<uint32, AgentBound*> m_instances;
 };
 
-class EpicArcService : public PyService {
-  public:
-    EpicArcService(PyServiceMgr *mgr);
-    virtual ~EpicArcService();
+class EpicArcService : public Service <EpicArcService> {
+public:
+    EpicArcService();
 
-  protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-	PyCallable_DECL_CALL(AgentHasEpicMissionsForCharacter);
-
+protected:
+    PyResult AgentHasEpicMissionsForCharacter(PyCallArgs& call, PyInt* agentID);
 };
 
 

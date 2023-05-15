@@ -17,6 +17,7 @@
 #include "fleet/FleetService.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+#include "services/ServiceManager.h"
 
 /*
 FLEET__ERROR
@@ -32,14 +33,14 @@ FLEET__BIND_DUMP
 //  Manager class functions and methods...
 
 FleetService::FleetService()
-: m_services(nullptr),
+: m_lsc(nullptr),
 m_initalized(false)
 {
 }
 
-void FleetService::Initialize(PyServiceMgr* svc)
+void FleetService::Initialize(EVEServiceManager& svc)
 {
-    m_services = svc;
+    m_lsc = svc.Lookup <LSCService>("LSC");
 
     m_joinReq.clear();
     m_inviteData.clear();
@@ -132,11 +133,11 @@ uint32 FleetService::CreateFleet(Client *pClient)
             sData.boost.leader, sData.boost.armored, sData.boost.info, sData.boost.siege, sData.boost.skirmish, sData.boost.mining);
 
     if (sConfig.chat.EnableFleetChat)
-        m_services->lsc_service->CreateSystemChannel(m_fleetID);
+        m_lsc->CreateSystemChannel(m_fleetID);
     if (sConfig.chat.EnableWingChat)
-        m_services->lsc_service->CreateSystemChannel(m_wingID);
+        m_lsc->CreateSystemChannel(m_wingID);
     if (sConfig.chat.EnableSquadChat)
-        m_services->lsc_service->CreateSystemChannel(m_squadID);
+        m_lsc->CreateSystemChannel(m_squadID);
 
     // increment counters after channels are created (to avoid wrong channel creation)
     ++m_fleetID;
@@ -168,7 +169,7 @@ PyRep* FleetService::CreateWing(uint32 fleetID)
     SendFleetUpdate(fleetID, "OnFleetWingAdded", tuple1);
 
     if (sConfig.chat.EnableWingChat)
-        m_services->lsc_service->CreateSystemChannel(m_wingID);
+        m_lsc->CreateSystemChannel(m_wingID);
 
     std::list<int32> wing, squad;
     wing.clear();
@@ -210,7 +211,7 @@ void FleetService::CreateSquad(uint32 fleetID, uint32 wingID)
     SendFleetUpdate(fleetID, "OnFleetSquadAdded", tuple);
 
     if (sConfig.chat.EnableSquadChat)
-        m_services->lsc_service->CreateSystemChannel(m_squadID);
+        m_lsc->CreateSystemChannel(m_squadID);
 
     std::list<int32> wing, squad;
     wing.clear();

@@ -25,24 +25,21 @@
 #ifndef __SLASH_SERVICE_H_INCL__
 #define __SLASH_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
 class CommandDispatcher;
 
-class SlashService
-: public PyService {
+class SlashService : public Service<SlashService> {
 public:
-    SlashService(PyServiceMgr *mgr, CommandDispatcher *cd);
-    virtual ~SlashService();
+    SlashService(CommandDispatcher *cd);
 
     PyResult SlashCommand(Client * client, std::string command);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
     CommandDispatcher *const m_commandDispatch;
 
-    PyCallable_DECL_CALL(SlashCmd);
+    PyResult SlashCmd(PyCallArgs& call, PyWString* command);
+    PyResult SlashCmd(PyCallArgs& call, PyString* command);
 };
 
 #endif

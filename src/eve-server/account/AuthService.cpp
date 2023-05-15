@@ -26,34 +26,23 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
-#include "PyServiceCD.h"
 #include "account/AuthService.h"
 
-PyCallable_Make_InnerDispatcher(AuthService)
-
-AuthService::AuthService(PyServiceMgr *mgr)
-: PyService(mgr, "authentication"),
-m_dispatch(new Dispatcher(this))
+AuthService::AuthService() :
+    Service ("authentication")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(AuthService, Ping);
-    PyCallable_REG_CALL(AuthService, GetPostAuthenticationMessage);
-    PyCallable_REG_CALL(AuthService, AmUnderage);
-    PyCallable_REG_CALL(AuthService, AccruedTime);
-    PyCallable_REG_CALL(AuthService, SetLanguageID);
-
+    this->Add("Ping", &AuthService::Ping);
+    this->Add("GetPostAuthenticationMessage", &AuthService::GetPostAuthenticationMessage);
+    this->Add("AmUnderage", &AuthService::AmUnderage);
+    this->Add("AccruedTime", &AuthService::AccruedTime);
+    this->Add("SetLanguageID", &AuthService::SetLanguageID);
 }
 
-AuthService::~AuthService() {
-    delete m_dispatch;
-}
-
-PyResult AuthService::Handle_Ping(PyCallArgs &call) {
+PyResult AuthService::Ping(PyCallArgs &call) {
     return new PyLong(GetFileTimeNow());
 }
 
-PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call)
+PyResult AuthService::GetPostAuthenticationMessage(PyCallArgs &call)
 {
     if (sConfig.account.loginMessage.empty())
         return PyStatic.NewNone();
@@ -63,29 +52,29 @@ PyResult AuthService::Handle_GetPostAuthenticationMessage(PyCallArgs &call)
     return new PyObject( "util.KeyVal", args );
 }
 
-PyResult AuthService::Handle_AmUnderage(PyCallArgs &call)
+PyResult AuthService::AmUnderage(PyCallArgs &call)
 {
     //  return sm.RemoteSvc('authentication').AmUnderage()
-    sLog.Warning("AuthService", "Handle_AmUnderage() size=%li", call.tuple->size());
+    sLog.Warning("AuthService", "Handle_AmUnderage() size=%lli", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     // return boolean
     return new PyBool(false);
 }
 
-PyResult AuthService::Handle_AccruedTime(PyCallArgs &call)
+PyResult AuthService::AccruedTime(PyCallArgs &call)
 {
     // return sm.RemoteSvc('authentication').AccruedTime()
-    sLog.Warning("AuthService", "Handle_AccruedTime() size=%li", call.tuple->size());
+    sLog.Warning("AuthService", "Handle_AccruedTime() size=%lli", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;
 }
 
-PyResult AuthService::Handle_SetLanguageID(PyCallArgs &call)
+PyResult AuthService::SetLanguageID(PyCallArgs &call, PyRep* languageID)
 {
     //sm.RemoteSvc('authentication').SetLanguageID(setlanguageID)
-    sLog.Warning("AuthService", "Handle_SetLanguageID() size=%li", call.tuple->size());
+    sLog.Warning("AuthService", "Handle_SetLanguageID() size=%lli", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
     return nullptr;

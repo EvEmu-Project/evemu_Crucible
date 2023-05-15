@@ -84,10 +84,10 @@ public:
     static void GetDunTemplates(DBQueryResult& res);
     static void GetDunGroupData(DBQueryResult& res);
     static void GetDunSpawnInfo(DBQueryResult& res);
-    static void SaveActiveDungeon(Dungeon::ActiveData& dun);
+    //static void SaveActiveDungeon(Dungeon::ActiveData& dun);
     static void ClearDungeons();
     static void ClearDungeons(uint32 systemID);
-    static bool GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveData >& into);
+    //static bool GetSavedDungeons(uint32 systemID, std::vector< Dungeon::ActiveData >& into);
 
     /* anomaly manager */
     void SaveAnomaly(CosmicSignature& sig);
@@ -95,7 +95,7 @@ public:
     void GetAnomaliesBySystem(uint32 systemID, DBQueryResult& res);
     void GetSystemAnomalies(uint32 systemID, DBQueryResult& res);
     void GetSystemAnomalies(uint32 systemID, std::vector< CosmicSignature >& sigs);
-    static GPoint GetAnomalyPos(std::string& string);
+    static GPoint GetAnomalyPos(const std::string& string);
 
     /* wormhole manager */
     static void GetWHSystemClass(DBQueryResult& res);

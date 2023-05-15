@@ -83,7 +83,6 @@
 #include "config/LanguageService.h"
 #include "config/LocalizationServerService.h"
 // contract services
-#include "contract/ContractMgr.h"
 #include "contract/ContractProxy.h"
 // corporation services
 #include "corporation/BillMgr.h"
@@ -642,13 +641,114 @@ int main( int argc, char* argv[] )
     sEntityList.Initialize();
     /* create a service manager */
     sLog.Green("       ServerInit", "Starting Service Manager");
-    PyServiceMgr pyServMgr( 888444, sEntityList );
-    sLog.Blue("  Service Manager", "Service Manager Initialized.");
+    EVEServiceManager newSvcMgr(888444);
     /* create a command dispatcher */
     sLog.Green("       ServerInit", "Starting Command Dispatch Manager");
-    CommandDispatcher command_dispatcher( pyServMgr );
-    RegisterAllCommands( command_dispatcher );
+    CommandDispatcher command_dispatcher(newSvcMgr);
+    RegisterAllCommands(command_dispatcher);
     sLog.Blue(" Command Dispatch", "Command Dispatcher Initialized.");
+    /* Service creation and registration. */
+    sLog.Green("       ServerInit", "Registering Service Managers."); // 90 currently known pyServMgr
+    double startTime = GetTimeMSeconds();
+    /* Please keep the pyServMgr list clean so it's easier to find things */
+    /* 'services' here are systems that respond to client calls */
+    // move this into a service Init() function?   will need more work to do...
+    newSvcMgr.Register(new RamProxyService());
+    newSvcMgr.Register(new PosMgr(newSvcMgr));
+    newSvcMgr.Register(new FleetObject(newSvcMgr));
+    newSvcMgr.Register(new CorpStationMgr(newSvcMgr));
+    newSvcMgr.Register(new ContractProxy());
+    newSvcMgr.Register(new CorpBookmarkMgr());
+    newSvcMgr.Register(new BookmarkService());
+    newSvcMgr.Register(new CharMgrService(newSvcMgr));
+    newSvcMgr.Register(new SlashService(&command_dispatcher));
+    newSvcMgr.Register(new LSCService(newSvcMgr, &command_dispatcher));
+    newSvcMgr.Register(new JumpCloneService(newSvcMgr));
+    newSvcMgr.Register(new MailMgrService());
+    newSvcMgr.Register(new MailingListMgrService());
+    newSvcMgr.Register(new CharFittingMgr());
+    newSvcMgr.Register(new FleetManager());
+    newSvcMgr.Register(new FactoryService());
+    newSvcMgr.Register(new PaperDollService());
+    newSvcMgr.Register(new CorpFittingMgr());
+    newSvcMgr.Register(new IndexManager());
+    newSvcMgr.Register(new InvBrokerService(newSvcMgr));
+    newSvcMgr.Register(new KeeperService(newSvcMgr));
+    newSvcMgr.Register(new PlanetMgrService(newSvcMgr));
+    newSvcMgr.Register(new EntityService(newSvcMgr));
+    newSvcMgr.Register(new FleetProxy());
+    newSvcMgr.Register(new DogmaService());
+    newSvcMgr.Register(new BeyonceService(newSvcMgr));
+    newSvcMgr.Register(new DungeonService());
+    newSvcMgr.Register(new LookupService());
+    newSvcMgr.Register(new MapService());
+    newSvcMgr.Register(new CalendarMgrService());
+    newSvcMgr.Register(new AgentMgrService(newSvcMgr));
+    newSvcMgr.Register(new ScanMgrService(newSvcMgr));
+    newSvcMgr.Register(new ShipService(newSvcMgr));
+    newSvcMgr.Register(new SkillMgrService(newSvcMgr));
+    newSvcMgr.Register(new TradeService(newSvcMgr));
+    newSvcMgr.Register(new PlanetORB(newSvcMgr));
+    newSvcMgr.Register(new CorpMgrService());
+    newSvcMgr.Register(new CalendarProxy());
+    newSvcMgr.Register(new AccountService());
+    newSvcMgr.Register(new BulkMgrService());
+    newSvcMgr.Register(new LPService());
+    newSvcMgr.Register(new ConfigService());
+    newSvcMgr.Register(new PhotoUploadService());
+    newSvcMgr.Register(new AggressionMgrService(newSvcMgr));
+    newSvcMgr.Register(new BillMgr());
+    newSvcMgr.Register(new MissionMgrService());
+    newSvcMgr.Register(new NotificationMgrService());
+    newSvcMgr.Register(new DungeonExplorationMgrService());
+    newSvcMgr.Register(new DevToolsProviderService());
+    newSvcMgr.Register(new ClientStatsMgr());
+    newSvcMgr.Register(new ReprocessingService(newSvcMgr));
+    newSvcMgr.Register(new HoloscreenMgrService());
+    newSvcMgr.Register(new Standing());
+    newSvcMgr.Register(new TutorialService());
+    newSvcMgr.Register(new VoucherService(newSvcMgr));
+    newSvcMgr.Register(new encounterSpawnServer());
+    newSvcMgr.Register(new zActionServer());
+    newSvcMgr.Register(new RepairService(newSvcMgr));
+    newSvcMgr.Register(new CorporationService());
+    newSvcMgr.Register(new LanguageService());
+    newSvcMgr.Register(new LocalizationServerService());
+    newSvcMgr.Register(new LPStore());
+    newSvcMgr.Register(new OnlineStatusService());
+    newSvcMgr.Register(new Search());
+    newSvcMgr.Register(new SovereigntyMgrService());
+    newSvcMgr.Register(new VoiceMgrService());
+    newSvcMgr.Register(new ObjCacheService(sConfig.files.cacheDir.c_str()));
+    newSvcMgr.Register(new NetService(newSvcMgr));
+    newSvcMgr.Register(new StationService());
+    newSvcMgr.Register(new StationSvc(newSvcMgr));
+    newSvcMgr.Register(new WormHoleSvc());
+    newSvcMgr.Register(new netStateServer());
+    newSvcMgr.Register(new UserService());
+    newSvcMgr.Register(new MovementService(&newSvcMgr));
+    newSvcMgr.Register(new InfoGatheringMgr());
+    newSvcMgr.Register(new PetitionerService());
+    newSvcMgr.Register(new ClientStatLogger());
+    newSvcMgr.Register(new AlertService());
+    newSvcMgr.Register(new BrowserLockdownService());
+    newSvcMgr.Register(new AuthService());
+    newSvcMgr.Register(new WarRegistryService(newSvcMgr));
+    newSvcMgr.Register(new FactionWarMgrService(newSvcMgr));
+    newSvcMgr.Register(new CertificateMgrService(newSvcMgr));
+    newSvcMgr.Register(new MarketProxyService(newSvcMgr));
+    newSvcMgr.Register(new CharUnboundMgrService(newSvcMgr));
+    newSvcMgr.Register(new InsuranceService(newSvcMgr));
+    newSvcMgr.Register(new AllianceRegistry(newSvcMgr));
+    newSvcMgr.Register(new DogmaIMService(newSvcMgr));
+    newSvcMgr.Register(new CorpRegistryService(newSvcMgr));
+
+    // keep a reference to cache in the old manager so it still works
+    // TODO: REMOVE ONCE THE CHANGES ARE DONE
+    sEntityList.SetService(&newSvcMgr);
+    std::printf("\n");     // spacer
+
+    sLog.Blue("  Service Manager", "Service Manager Initialized.");
     /* create the BubbleManager singleton */
     sLog.Green("       ServerInit", "Starting Bubble Manager");
     sBubbleMgr.Initialize();
@@ -657,10 +757,10 @@ int main( int argc, char* argv[] )
     sStandingMgr.Initialize();
     /* create the FleetService singleton */
     sLog.Green("       ServerInit", "Starting Fleet Services");
-    sFltSvc.Initialize(&pyServMgr);
+    sFltSvc.Initialize(newSvcMgr);
     /* create the MarketMgr singleton */
     sLog.Green("       ServerInit", "Starting Market Manager");
-    sMktMgr.Initialize(&pyServMgr);
+    sMktMgr.Initialize(newSvcMgr);
     sLog.Green("       ServerInit", "Starting Statistics Manager");
     sStatMgr.Initialize();
     /* create console command interperter singleton */
@@ -673,7 +773,7 @@ int main( int argc, char* argv[] )
         sLog.Green(" Civilian Manager", "Civilian Manager Enabled.");
         /* create the CivilianMgr singleton */
         sLog.Green("       ServerInit", "Starting Civilian Manager");
-        sCivMgr.Initialize(&pyServMgr);
+        sCivMgr.Initialize();
     } else {
         sLog.Warning(" Civilian Manager", "Civilian Manager Disabled.");
     }
@@ -681,111 +781,10 @@ int main( int argc, char* argv[] )
         sLog.Green(" Wormhole Manager", "Wormhole Manager Enabled.");
         /* create the WormholeMgr singleton */
         sLog.Green("       ServerInit", "Starting Wormhole Manager");
-        sWHMgr.Initialize(&pyServMgr);
+        sWHMgr.Initialize();
     } else {
         sLog.Warning(" Wormhole Manager", "Wormhole Manager Disabled.");
     }
-    std::printf("\n");     // spacer
-
-    /* Service creation and registration. */
-    sLog.Green("       ServerInit", "Registering Service Managers."); // 90 currently known pyServMgr
-    double startTime = GetTimeMSeconds();
-    /* Please keep the pyServMgr list clean so it's easier to find things */
-    /* 'services' here are systems that respond to client calls */
-    // move this into a service Init() function?   will need more work to do...
-    pyServMgr.RegisterService("account", new AccountService(&pyServMgr));
-    pyServMgr.RegisterService("agentMgr", new AgentMgrService(&pyServMgr));
-    pyServMgr.RegisterService("aggressionMgr", new AggressionMgrService(&pyServMgr));
-    pyServMgr.RegisterService("alert", new AlertService(&pyServMgr));
-    pyServMgr.RegisterService("allianceRegistry", new AllianceRegistry(&pyServMgr));
-    pyServMgr.RegisterService("authentication", new AuthService(&pyServMgr));
-    pyServMgr.RegisterService("billMgr", new BillMgr(&pyServMgr));
-    pyServMgr.RegisterService("beyonce", new BeyonceService(&pyServMgr));
-    pyServMgr.RegisterService("bookmark", new BookmarkService(&pyServMgr));
-    pyServMgr.RegisterService("browserLockdownSvc", new BrowserLockdownService(&pyServMgr));
-    pyServMgr.RegisterService("bulkMgr", new BulkMgrService(&pyServMgr));
-    pyServMgr.RegisterService("calendarProxy", new CalendarProxy(&pyServMgr));
-    pyServMgr.RegisterService("calendarMgr", new CalendarMgrService(&pyServMgr));
-    pyServMgr.RegisterService("certificateMgr", new CertificateMgrService(&pyServMgr));
-    pyServMgr.RegisterService("charFittingMgr", new CharFittingMgr(&pyServMgr));
-    pyServMgr.RegisterService("charUnboundMgr", new CharUnboundMgrService(&pyServMgr));
-    pyServMgr.RegisterService("charMgr", new CharMgrService(&pyServMgr));
-    pyServMgr.RegisterService("clientStatLogger", new ClientStatLogger(&pyServMgr));
-    pyServMgr.RegisterService("clientStatsMgr", new ClientStatsMgr(&pyServMgr));
-    pyServMgr.RegisterService("config", new ConfigService(&pyServMgr));
-    pyServMgr.RegisterService("corpBookmarkMgr", new CorpBookmarkMgr(&pyServMgr));
-    pyServMgr.RegisterService("corpFittingMgr", new CorpFittingMgr(&pyServMgr));
-    pyServMgr.RegisterService("corpmgr", new CorpMgrService(&pyServMgr));
-    pyServMgr.RegisterService("corporationSvc", new CorporationService(&pyServMgr));
-    pyServMgr.RegisterService("corpRegistry", new CorpRegistryService(&pyServMgr));
-    pyServMgr.RegisterService("corpStationMgr", new CorpStationMgr(&pyServMgr));
-    pyServMgr.RegisterService("contractMgr", new ContractMgr(&pyServMgr));
-    pyServMgr.RegisterService("contractProxy", new ContractProxy(&pyServMgr));
-    pyServMgr.RegisterService("devToolsProvider", new DevToolsProviderService(&pyServMgr));
-    pyServMgr.RegisterService("dogmaIM", new DogmaIMService(&pyServMgr));
-    pyServMgr.RegisterService("dogma", new DogmaService(&pyServMgr));
-    pyServMgr.RegisterService("dungeonExplorationMgr", new DungeonExplorationMgrService(&pyServMgr));
-    pyServMgr.RegisterService("dungeon", new DungeonService(&pyServMgr));
-    pyServMgr.RegisterService("entity", new EntityService(&pyServMgr));
-    pyServMgr.RegisterService("facWarMgr", new FactionWarMgrService(&pyServMgr));
-    pyServMgr.RegisterService("factory", new FactoryService(&pyServMgr));
-    pyServMgr.RegisterService("fleetMgr", new FleetManager(&pyServMgr));
-    pyServMgr.RegisterService("fleetObjectHandler", new FleetObject(&pyServMgr));
-    pyServMgr.RegisterService("fleetProxy", new FleetProxy(&pyServMgr));
-    pyServMgr.RegisterService("holoscreenMgr", new HoloscreenMgrService(&pyServMgr));
-    pyServMgr.RegisterService("devIndexManager", new IndexManager(&pyServMgr));
-    pyServMgr.RegisterService("infoGatheringMgr", new InfoGatheringMgr(&pyServMgr));
-    pyServMgr.RegisterService("insuranceSvc", new InsuranceService(&pyServMgr));
-    pyServMgr.RegisterService("invbroker", new InvBrokerService(&pyServMgr));
-    pyServMgr.RegisterService("jumpCloneSvc", new JumpCloneService(&pyServMgr));
-    pyServMgr.RegisterService("keeper", new KeeperService(&pyServMgr));
-    pyServMgr.RegisterService("languageSvc", new LanguageService(&pyServMgr));
-    pyServMgr.RegisterService("localizationServer", new LocalizationServerService(&pyServMgr));
-    pyServMgr.RegisterService("lookupSvc", new LookupService(&pyServMgr));
-    pyServMgr.RegisterService("LPSvc", new LPService(&pyServMgr));
-    pyServMgr.RegisterService("storeServer", new LPStore(&pyServMgr));
-    pyServMgr.lsc_service = new LSCService(&pyServMgr, &command_dispatcher);
-    pyServMgr.RegisterService("LSC", pyServMgr.lsc_service);
-    pyServMgr.RegisterService("machoNet", new NetService(&pyServMgr));
-    pyServMgr.RegisterService("mailMgr", new MailMgrService(&pyServMgr));
-    pyServMgr.RegisterService("mailingListsMgr", new MailingListMgrService(&pyServMgr));
-    pyServMgr.RegisterService("map", new MapService(&pyServMgr));
-    pyServMgr.RegisterService("marketProxy", new MarketProxyService(&pyServMgr));
-    pyServMgr.RegisterService("missionMgr", new MissionMgrService(&pyServMgr));
-    pyServMgr.RegisterService("movementServer", new MovementService(&pyServMgr));
-    pyServMgr.RegisterService("notificationMgr", new NotificationMgrService(&pyServMgr));
-    pyServMgr.cache_service = new ObjCacheService(&pyServMgr, sConfig.files.cacheDir.c_str());
-    pyServMgr.RegisterService("objectCaching", pyServMgr.cache_service);
-    pyServMgr.RegisterService("onlineStatus", new OnlineStatusService(&pyServMgr));
-    pyServMgr.RegisterService("paperDollServer", new PaperDollService(&pyServMgr));
-    pyServMgr.RegisterService("petitioner", new PetitionerService(&pyServMgr));
-    pyServMgr.RegisterService("photoUploadSvc", new PhotoUploadService(&pyServMgr));
-    pyServMgr.RegisterService("planetMgr", new PlanetMgrService(&pyServMgr));
-    pyServMgr.RegisterService("planetOrbitalRegistryBroker", new PlanetORB(&pyServMgr));
-    pyServMgr.RegisterService("posMgr", new PosMgr(&pyServMgr));
-    pyServMgr.RegisterService("ramProxy", new RamProxyService(&pyServMgr));
-    pyServMgr.RegisterService("repairSvc", new RepairService(&pyServMgr));
-    pyServMgr.RegisterService("reprocessingSvc", new ReprocessingService(&pyServMgr));
-    pyServMgr.RegisterService("search", new Search(&pyServMgr));
-    pyServMgr.RegisterService("scanMgr", new ScanMgrService(&pyServMgr));
-    pyServMgr.RegisterService("ship", new ShipService(&pyServMgr));
-    pyServMgr.RegisterService("skillMgr", new SkillMgrService(&pyServMgr));
-    pyServMgr.RegisterService("slash", new SlashService(&pyServMgr, &command_dispatcher));
-    pyServMgr.RegisterService("sovMgr", new SovereigntyMgrService(&pyServMgr));
-    pyServMgr.RegisterService("standing2", new Standing(&pyServMgr));
-    pyServMgr.RegisterService("station", new StationService(&pyServMgr));
-    pyServMgr.RegisterService("stationSvc", new StationSvc(&pyServMgr));
-    pyServMgr.RegisterService("trademgr", new TradeService(&pyServMgr));
-    pyServMgr.RegisterService("tutorialSvc", new TutorialService(&pyServMgr));
-    pyServMgr.RegisterService("userSvc", new UserService(&pyServMgr));
-    pyServMgr.RegisterService("voiceMgr", new VoiceMgrService(&pyServMgr));
-    pyServMgr.RegisterService("voucher", new VoucherService(&pyServMgr));
-    pyServMgr.RegisterService("warRegistry", new WarRegistryService(&pyServMgr));
-    pyServMgr.RegisterService("wormholeMgr", new WormHoleSvc(&pyServMgr));
-    pyServMgr.RegisterService("encounterSpawnServer", new encounterSpawnServer(&pyServMgr));
-    pyServMgr.RegisterService("netStateServer", new netStateServer(&pyServMgr));
-    pyServMgr.RegisterService("zActionServer", new zActionServer(&pyServMgr));
-    pyServMgr.Initalize(startTime);
     std::printf("\n");     // spacer
 
     // Create In-Memory Database Objects for Critical and High-Use Systems:
@@ -904,7 +903,7 @@ int main( int argc, char* argv[] )
         //++m_worldLoopCounter;
 
         if ((tcpc = tcps.PopConnection()))
-            sEntityList.Add(new Client(pyServMgr, &tcpc));
+            sEntityList.Add(new Client(newSvcMgr, &tcpc));
 
         sEntityList.Process();
 
@@ -955,8 +954,6 @@ int main( int argc, char* argv[] )
         sItemFactory.SaveItems();
     /* Close the entity list */
     sEntityList.Close();
-    /* Close the service manager */
-    pyServMgr.Close();
     /* Shut down the Item system */
     sLog.Warning("   ServerShutdown", "Shutting down Item Factory." );
     sItemFactory.Close();

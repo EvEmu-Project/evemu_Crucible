@@ -27,40 +27,32 @@
 #define __SCENARIO_SERVICE_H_INCL__
 
 #include "system/SystemDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-class ScenarioService
-: public PyService
+class ScenarioService : public Service <ScenarioService>
 {
 public:
-    ScenarioService(PyServiceMgr *mgr);
-    virtual ~ScenarioService();
+    ScenarioService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     SystemDB m_db;
 
-    PyCallable_DECL_CALL(ResetD);
-    PyCallable_DECL_CALL(PlayDungeon);
-    PyCallable_DECL_CALL(EditRoom);
-    PyCallable_DECL_CALL(GotoRoom);
-    PyCallable_DECL_CALL(GetDunObjects);
-    PyCallable_DECL_CALL(GetSelObjects);
-    PyCallable_DECL_CALL(IsSelectedByObjID);
-    PyCallable_DECL_CALL(DuplicateSelection);
-    PyCallable_DECL_CALL(SetSelectionByID);
-    PyCallable_DECL_CALL(SetSelectedRadius);
-    PyCallable_DECL_CALL(SetRotate);
-    PyCallable_DECL_CALL(RotateSelected);
-    PyCallable_DECL_CALL(JitterSelection);
-    PyCallable_DECL_CALL(ArrangeSelection);
-    PyCallable_DECL_CALL(DeleteSelected);
-    PyCallable_DECL_CALL(RefreshSelection);
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    PyResult ResetD(PyCallArgs& call);
+    PyResult PlayDungeon(PyCallArgs& call, PyInt* dungeonVID, PyInt* selectedRoom);
+    PyResult EditRoom(PyCallArgs& call, PyInt* dungeonVID, PyInt* selectedRoom);
+    PyResult GotoRoom(PyCallArgs& call, PyInt* selectedRoom);
+    PyResult GetDunObjects(PyCallArgs& call);
+    PyResult GetSelObjects(PyCallArgs& call);
+    PyResult IsSelectedByObjID(PyCallArgs& call, PyInt* dunObjectID);
+    PyResult DuplicateSelection(PyCallArgs& call, PyInt* amount, PyFloat* x, PyFloat* y, PyFloat* z);
+    PyResult SetSelectionByID(PyCallArgs& call, PyList* ids);
+    PyResult SetSelectedRadius(PyCallArgs& call, PyFloat* minRadius, PyFloat* maxRadius);
+    PyResult SetRotate(PyCallArgs& call, PyFloat* yaw, PyFloat* pitch, PyFloat* roll);
+    PyResult RotateSelected(PyCallArgs& call, PyFloat* yaw, PyFloat* pitch, PyFloat* roll);
+    PyResult JitterSelection(PyCallArgs& call, PyFloat* x, PyFloat* y, PyFloat* z);
+    PyResult ArrangeSelection(PyCallArgs& call, PyFloat* x, PyFloat* y, PyFloat* z);
+    PyResult DeleteSelected(PyCallArgs& call);
+    PyResult RefreshSelection(PyCallArgs& call);
 };
 
 #endif

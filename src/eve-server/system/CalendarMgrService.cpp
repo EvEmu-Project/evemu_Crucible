@@ -25,61 +25,39 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/CalendarDB.h"
 #include "system/CalendarMgrService.h"
-#include "packets/Calendar.h"
 
-PyCallable_Make_InnerDispatcher(CalendarMgrService)
 
-CalendarMgrService::CalendarMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "calendarMgr"),
-  m_dispatch(new Dispatcher(this))
+CalendarMgrService::CalendarMgrService() :
+    Service("calendarMgr", eAccessLevel_Character)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CalendarMgrService, CreatePersonalEvent);
-    PyCallable_REG_CALL(CalendarMgrService, CreateCorporationEvent);
-    PyCallable_REG_CALL(CalendarMgrService, CreateAllianceEvent);
-    PyCallable_REG_CALL(CalendarMgrService, UpdateEventParticipants);
-    PyCallable_REG_CALL(CalendarMgrService, EditPersonalEvent);
-    PyCallable_REG_CALL(CalendarMgrService, EditCorporationEvent);
-    PyCallable_REG_CALL(CalendarMgrService, EditAllianceEvent);
-    PyCallable_REG_CALL(CalendarMgrService, GetResponsesForCharacter);
-    PyCallable_REG_CALL(CalendarMgrService, SendEventResponse);
-    PyCallable_REG_CALL(CalendarMgrService, DeleteEvent);
-    PyCallable_REG_CALL(CalendarMgrService, GetResponsesToEvent);
+    this->Add("CreatePersonalEvent", &CalendarMgrService::CreatePersonalEvent);
+    this->Add("CreateCorporationEvent", &CalendarMgrService::CreateCorporationEvent);
+    this->Add("CreateAllianceEvent", &CalendarMgrService::CreateAllianceEvent);
+    this->Add("UpdateEventParticipants", &CalendarMgrService::UpdateEventParticipants);
+    this->Add("EditPersonalEvent", &CalendarMgrService::EditPersonalEvent);
+    this->Add("EditCorporationEvent", &CalendarMgrService::EditCorporationEvent);
+    this->Add("EditAllianceEvent", &CalendarMgrService::EditAllianceEvent);
+    this->Add("GetResponsesForCharacter", &CalendarMgrService::GetResponsesForCharacter);
+    this->Add("SendEventResponse", &CalendarMgrService::SendEventResponse);
+    this->Add("DeleteEvent", &CalendarMgrService::DeleteEvent);
+    this->Add("GetResponsesToEvent", &CalendarMgrService::GetResponsesToEvent);
 }
 
-CalendarMgrService::~CalendarMgrService()
-{
-    delete m_dispatch;
-}
-
-PyResult CalendarMgrService::Handle_GetResponsesForCharacter(PyCallArgs& call) {
+PyResult CalendarMgrService::GetResponsesForCharacter(PyCallArgs& call) {
     return CalendarDB::GetResponsesForCharacter(call.client->GetCharacterID());
 }
 
-PyResult CalendarMgrService::Handle_GetResponsesToEvent(PyCallArgs& call)
+PyResult CalendarMgrService::GetResponsesToEvent(PyCallArgs& call, PyInt* eventID, PyInt* ownerID)
 {
-    Call_TwoIntegerArgs args;   //(eventID, ownerID)
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return CalendarDB::GetResponsesToEvent(args.arg1); // eventID
+    return CalendarDB::GetResponsesToEvent(eventID->value()); // eventID
 }
 
-PyResult CalendarMgrService::Handle_DeleteEvent( PyCallArgs& call )
+PyResult CalendarMgrService::DeleteEvent(PyCallArgs& call, PyInt* eventID, PyInt* ownerID)
 {
-    Call_TwoIntegerArgs args;   //(eventID, ownerID)
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    CalendarDB::DeleteEvent(args.arg1); // eventID
+    CalendarDB::DeleteEvent(eventID->value()); // eventID
 
     // Calendar must be reloaded or the event won't actually show as deleted.
     call.client->SendNotification("OnReloadCalendar", "charid", new PyTuple(0), false);
@@ -87,28 +65,23 @@ PyResult CalendarMgrService::Handle_DeleteEvent( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult CalendarMgrService::Handle_SendEventResponse( PyCallArgs& call )
+PyResult CalendarMgrService::SendEventResponse(PyCallArgs& call, PyInt* eventID, PyInt* ownerID, PyInt* response)
 {
-    Call_SendEventResponse args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    CalendarDB::SaveEventResponse(call.client->GetCharacterID(), args);
+    CalendarDB::SaveEventResponse(call.client->GetCharacterID(), eventID->value(), response->value());
 
     // if this is an invitation, update calendar for non-denial responses
 
     return nullptr;
 }
 
-PyResult CalendarMgrService::Handle_CreatePersonalEvent( PyCallArgs& call )
+PyResult CalendarMgrService::CreatePersonalEvent(PyCallArgs& call, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important, PyList* invitees)
 {
     // newEventID = self.calendarMgr.CreatePersonalEvent(dateTime, duration, title, description, important, invitees)
 
     sLog.Cyan( "CalendarMgrService::Handle_CreatePersonalEvent()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
+    // TODO: update this to not use xmlpktgen, too many changes just for the services update
     Call_CreateEventWithInvites args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
@@ -119,8 +92,9 @@ PyResult CalendarMgrService::Handle_CreatePersonalEvent( PyCallArgs& call )
     return CalendarDB::SaveNewEvent(call.client->GetCharacterID(), args);
 }
 
-PyResult CalendarMgrService::Handle_CreateCorporationEvent( PyCallArgs& call )
+PyResult CalendarMgrService::CreateCorporationEvent(PyCallArgs& call, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important)
 {
+    // TODO: update this to not use xmlpktgen, too many changes just for the services update
     Call_CreateEvent args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
@@ -131,8 +105,9 @@ PyResult CalendarMgrService::Handle_CreateCorporationEvent( PyCallArgs& call )
     return CalendarDB::SaveNewEvent(call.client->GetCorporationID(), call.client->GetCharacterID(), args);
 }
 
-PyResult CalendarMgrService::Handle_CreateAllianceEvent( PyCallArgs& call )
+PyResult CalendarMgrService::CreateAllianceEvent(PyCallArgs& call, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important)
 {
+    // TODO: update this to not use xmlpktgen, too many changes just for the services update
     Call_CreateEvent args;
     if (!args.Decode(&call.tuple)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
@@ -143,68 +118,45 @@ PyResult CalendarMgrService::Handle_CreateAllianceEvent( PyCallArgs& call )
     return CalendarDB::SaveNewEvent(call.client->GetAllianceID(), call.client->GetCharacterID(), args);
 }
 
-PyResult CalendarMgrService::Handle_EditPersonalEvent( PyCallArgs& call )
+PyResult CalendarMgrService::EditPersonalEvent(PyCallArgs& call, PyInt* eventID, PyLong* oldDateTime, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important)
 {
     //self.calendarMgr.EditPersonalEvent(eventID, oldDateTime, dateTime, duration, title, description, important)
 
     sLog.Cyan( "CalendarMgrService::Handle_EditPersonalEvent()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    Call_EditEvent args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     return nullptr;
 }
 
-PyResult CalendarMgrService::Handle_EditCorporationEvent( PyCallArgs& call )
+PyResult CalendarMgrService::EditCorporationEvent(PyCallArgs& call, PyInt* eventID, PyLong* oldDateTime, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important)
 {
     // self.calendarMgr.EditCorporationEvent(eventID, oldDateTime, dateTime, duration, title, description, important)
 
     sLog.Cyan( "CalendarMgrService::Handle_EditCorporationEvent()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    Call_EditEvent args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     return nullptr;
 }
 
-PyResult CalendarMgrService::Handle_EditAllianceEvent( PyCallArgs& call )
+PyResult CalendarMgrService::EditAllianceEvent(PyCallArgs& call, PyInt* eventID, PyLong* oldDateTime, PyLong* dateTime, PyInt* duration, PyWString* title, PyWString* description, PyRep* important)
 {
     //self.calendarMgr.EditAllianceEvent(eventID, oldDateTime, dateTime, duration, title, description, important)
 
     sLog.Cyan( "CalendarMgrService::Handle_EditAllianceEvent()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    Call_EditEvent args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
     return nullptr;
 }
 
-PyResult CalendarMgrService::Handle_UpdateEventParticipants( PyCallArgs& call )
+PyResult CalendarMgrService::UpdateEventParticipants(PyCallArgs& call, PyInt* eventID, PyList* charsToAdd, PyList* charsToRemove)
 {
     // self.calendarMgr.UpdateEventParticipants(eventID, charsToAdd, charsToRemove)
 
     sLog.Cyan( "CalendarMgrService::Handle_UpdateEventParticipants()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    Call_UpdateEventParticipants args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return PyStatic.NewNone();
-    }
-
-    CalendarDB::UpdateEventParticipants(args);
+    // TODO: implement this
+    CalendarDB::UpdateEventParticipants();
 
     //  this will need to update invitees and inform them of the invitation
     // their calendar is updated based on their response (SendEventResponse)

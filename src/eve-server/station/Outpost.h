@@ -18,7 +18,7 @@ class PlatformSE
 : public StructureSE
 {
 public:
-    PlatformSE(StructureItemRef structure, PyServiceMgr &services, SystemManager *system, const FactionData &fData)
+    PlatformSE(StructureItemRef structure, EVEServiceManager &services, SystemManager *system, const FactionData &fData)
     : StructureSE(structure, services, system, fData)   { /* do nothing here */ }
 
     virtual ~PlatformSE()                               { /* do nothing here */ }
@@ -38,7 +38,7 @@ class OutpostSE
 : public StationSE
 {
 public:
-    OutpostSE(StationItemRef station, PyServiceMgr &services, SystemManager* system);
+    OutpostSE(StationItemRef station, EVEServiceManager &services, SystemManager* system);
     virtual ~OutpostSE()                                { /* Do nothing here */ }
 
     /* class type pointer querys. */

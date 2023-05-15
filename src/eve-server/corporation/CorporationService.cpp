@@ -25,41 +25,31 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "corporation/CorporationService.h"
 #include "station/StationDataMgr.h"
 
-PyCallable_Make_InnerDispatcher(CorporationService)
-
-CorporationService::CorporationService(PyServiceMgr *mgr)
-: PyService(mgr, "corporationSvc"),
-  m_dispatch(new Dispatcher(this))
+CorporationService::CorporationService() :
+    Service("corporationSvc")
 {
-    _SetCallDispatcher(m_dispatch);
+    this->Add("GetFactionInfo", &CorporationService::GetFactionInfo);
+    this->Add("GetCorpInfo", &CorporationService::GetCorpInfo);
+    this->Add("GetNPCDivisions", &CorporationService::GetNPCDivisions);
+    this->Add("GetEmploymentRecord", &CorporationService::GetEmploymentRecord);
+    this->Add("GetRecruitmentAdsByCriteria", &CorporationService::GetRecruitmentAdsByCriteria);
+    this->Add("GetRecruitmentAdRegistryData", &CorporationService::GetRecruitmentAdRegistryData);
+    this->Add("GetRecruitmentAdsForCorporation", &CorporationService::GetRecruitmentAdsForCorporation);
 
-    PyCallable_REG_CALL(CorporationService, GetFactionInfo);
-    PyCallable_REG_CALL(CorporationService, GetCorpInfo);
-    PyCallable_REG_CALL(CorporationService, GetNPCDivisions);
-    PyCallable_REG_CALL(CorporationService, GetEmploymentRecord);
-    PyCallable_REG_CALL(CorporationService, GetRecruitmentAdsByCriteria);
-    PyCallable_REG_CALL(CorporationService, GetRecruitmentAdRegistryData);
-    PyCallable_REG_CALL(CorporationService, GetRecruitmentAdsForCorporation);
-
-    PyCallable_REG_CALL(CorporationService, GetMedalsReceived);
-    PyCallable_REG_CALL(CorporationService, GetMedalDetails);
-    PyCallable_REG_CALL(CorporationService, GetAllCorpMedals);
-    PyCallable_REG_CALL(CorporationService, CreateMedal);
-    PyCallable_REG_CALL(CorporationService, GiveMedalToCharacters);
-    PyCallable_REG_CALL(CorporationService, SetMedalStatus);
-    PyCallable_REG_CALL(CorporationService, GetMedalStatuses);
-    PyCallable_REG_CALL(CorporationService, GetRecipientsOfMedal);
-}
-
-
-CorporationService::~CorporationService() {
-    delete m_dispatch;
+    this->Add("GetMedalsReceived", &CorporationService::GetMedalsReceived);
+    this->Add("GetMedalDetails", &CorporationService::GetMedalDetails);
+    this->Add("GetAllCorpMedals", &CorporationService::GetAllCorpMedals);
+    this->Add("CreateMedal", &CorporationService::CreateMedal);
+    this->Add("GiveMedalToCharacters", &CorporationService::GiveMedalToCharacters);
+    this->Add("SetMedalStatus", &CorporationService::SetMedalStatus);
+    this->Add("GetMedalStatuses", &CorporationService::GetMedalStatuses);
+    this->Add("GetRecipientsOfMedal", &CorporationService::GetRecipientsOfMedal);
 }
 
 /*
@@ -77,22 +67,16 @@ CorporationService::~CorporationService() {
  * CORP__DB_MESSAGE
  */
 
-PyResult CorporationService::Handle_GetNPCDivisions(PyCallArgs &call)
+PyResult CorporationService::GetNPCDivisions(PyCallArgs &call)
 {
     return sDataMgr.GetNPCDivisions();
 }
 
-PyResult CorporationService::Handle_GetEmploymentRecord(PyCallArgs &call) {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetEmploymentRecord(args.arg);
+PyResult CorporationService::GetEmploymentRecord(PyCallArgs &call, PyInt* characterID) {
+    return m_db.GetEmploymentRecord(characterID->value());
 }
 
-PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
+PyResult CorporationService::GetFactionInfo(PyCallArgs &call) {
     /*self.factionIDbyNPCCorpID, self.factionRegions, self.factionConstellations, self.factionSolarSystems,
      * self.factionRaces, self.factionStationCount, self.factionSolarSystemCount, self.npcCorpInfo = sm.RemoteSvc('corporationSvc').GetFactionInfo()
      *        for corpID, factionID in self.factionIDbyNPCCorpID.iteritems():
@@ -111,19 +95,11 @@ PyResult CorporationService::Handle_GetFactionInfo(PyCallArgs &call) {
 }
 
 // this wants corp market info
-PyResult CorporationService::Handle_GetCorpInfo(PyCallArgs &call)
-{
-    //corpmktinfo = sm.RemoteSvc('corporationSvc').GetCorpInfo(itemID)
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetMktInfo(args.arg);
+PyResult CorporationService::GetCorpInfo(PyCallArgs &call, PyInt* corporationID) {
+    return m_db.GetMktInfo(corporationID->value());
 }
 
-PyResult CorporationService::Handle_GetRecruitmentAdRegistryData( PyCallArgs& call )
+PyResult CorporationService::GetRecruitmentAdRegistryData(PyCallArgs& call)
 {   // working
     _log(CORP__CALL, "CorporationService::Handle_GetRecruitmentAdRegistryData()");
     call.Dump(CORP__CALL_DUMP);
@@ -137,21 +113,18 @@ PyResult CorporationService::Handle_GetRecruitmentAdRegistryData( PyCallArgs& ca
     return args;
 }
 
-PyResult CorporationService::Handle_GetRecruitmentAdsByCriteria( PyCallArgs& call )
+PyResult CorporationService::GetRecruitmentAdsByCriteria(PyCallArgs& call, PyInt* typeMask, PyBool* inAlliance, std::optional<PyInt*> minMembers, std::optional<PyInt*> maxMembers)
 {    //   return sm.RemoteSvc('corporationSvc').GetRecruitmentAdsByCriteria(typeMask, isInAlliance, minMembers, maxMembers)
     _log(CORP__CALL, "CorporationService::Handle_GetRecruitmentAdsByCriteria()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_GetRecruitmentAdsByCriteria args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetAdRegistryData(args.typeMask, args.inAlliance, args.minMembers, args.maxMembers);
+    return m_db.GetAdRegistryData(
+        typeMask->value(), inAlliance->value(),
+        minMembers.has_value () ? minMembers.value ()->value() : 0,
+        maxMembers.has_value () ? maxMembers.value ()->value() : 0);
 }
 
-PyResult CorporationService::Handle_GetRecruitmentAdsForCorporation( PyCallArgs& call )
+PyResult CorporationService::GetRecruitmentAdsForCorporation(PyCallArgs& call)
 {
     // recruitments = self.GetCorpRegistry().GetRecruitmentAdsForCorporation()
     _log(CORP__CALL, "CorporationService::Handle_GetRecruitmentAdsForCorporation()");
@@ -165,7 +138,7 @@ PyResult CorporationService::Handle_GetRecruitmentAdsForCorporation( PyCallArgs&
  * @note   these below are partially coded
  */
 
-PyResult CorporationService::Handle_CreateMedal(PyCallArgs &call)
+PyResult CorporationService::CreateMedal(PyCallArgs &call, PyWString* name, PyWString* description, PyList* medalData)
 {
     // destroy = sm.StartService('medals').CreateMedal(mName, mDesc, cMedalData)
     //  destroy = true will close window
@@ -184,24 +157,17 @@ PyResult CorporationService::Handle_CreateMedal(PyCallArgs &call)
                                  Journal::EntryType::MedalCreation,
                                  call.client->GetStationID(),
                                  Account::KeyType::Cash);
-
-    Call_CreateMedal args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    if (args.title.size() > 30)
+    if (name->size() > 30)
         throw UserError ("MedalNameTooLong");
-    if (args.description.size() < 3)
+    if (description->size() < 3)
         throw UserError ("MedalDescriptionTooShort");
-    if (args.description.size() > 150)
+    if (description->size() > 150)
         throw UserError ("MedalDescriptionTooLong");
 
     // not sure of the requirements for these errors....
      // MedalNameInvalid, MedalNameInvalid2, MedalDescriptionInvalid2
 
-    uint16 medalID = m_db.CreateMedal(call.client->GetCorporationID(), call.client->GetCharacterID(), args.title, args.description);
+    uint16 medalID = m_db.CreateMedal(call.client->GetCorporationID(), call.client->GetCharacterID(), name->content (), description->content ());
     if (medalID == 0) {
         // error on save.
         call.client->SendErrorMsg("Error when saving Medal Data.  Ref: ServerError xxxxx");
@@ -212,7 +178,7 @@ PyResult CorporationService::Handle_CreateMedal(PyCallArgs &call)
     std::vector<Corp::MedalData> dataList;
     //if (is_log_enabled(CORP__PKT_TRACE))
     //    args.data->Dump(CORP__PKT_TRACE, "");
-    for (PyList::const_iterator itr = args.data->begin(); itr != args.data->end(); ++itr) {
+    for (PyList::const_iterator itr = medalData->begin(); itr != medalData->end(); ++itr) {
         list = (*itr)->AsList();
         if (list == nullptr)
             continue;
@@ -230,7 +196,7 @@ PyResult CorporationService::Handle_CreateMedal(PyCallArgs &call)
     return PyStatic.NewFalse();
 }
 
-PyResult CorporationService::Handle_GetMedalsReceived(PyCallArgs &call) {
+PyResult CorporationService::GetMedalsReceived(PyCallArgs &call, PyInt* characterID) {
     // this should be cached
     //  medalInfo, medalGraphics = sm.StartService('medals').GetMedalsReceived(charID)
     /*
@@ -241,46 +207,29 @@ PyResult CorporationService::Handle_GetMedalsReceived(PyCallArgs &call) {
     _log(CORP__CALL, "CorporationService::Handle_GetMedalsReceived()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     PyTuple* res = new PyTuple(2);
-        res->SetItem(0, m_db.GetMedalsReceived(arg.arg));
-        res->SetItem(1, m_db.GetMedalsReceivedDetails(arg.arg));
+        res->SetItem(0, m_db.GetMedalsReceived(characterID->value()));
+        res->SetItem(1, m_db.GetMedalsReceivedDetails(characterID->value()));
     if (is_log_enabled(CORP__RSP_DUMP))
         res->Dump(CORP__RSP_DUMP, "");
     return res;
 }
 
-PyResult CorporationService::Handle_GetMedalDetails(PyCallArgs &call)
+PyResult CorporationService::GetMedalDetails(PyCallArgs &call, PyInt* medalID)
 {   // working
     _log(CORP__CALL, "CorporationService::Handle_GetMedalDetails()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetMedalDetails(arg.arg);
+    return m_db.GetMedalDetails(medalID->value());
 }
 
-PyResult CorporationService::Handle_GetAllCorpMedals( PyCallArgs& call )
+PyResult CorporationService::GetAllCorpMedals(PyCallArgs& call, PyInt* corporationID)
 {   //working
     // medals, medalDetails = sm.RemoteSvc('corporationSvc').GetAllCorpMedals(corpID)
     _log(CORP__CALL, "CorporationService::Handle_GetAllCorpMedals()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
+    // TODO: use the corporationID supplied by the caller?
     PyTuple* res = new PyTuple(2);
         res->SetItem(0, m_db.GetAllCorpMedals(call.client->GetCorporationID()));
         res->SetItem(1, m_db.GetCorpMedalData(call.client->GetCorporationID()));
@@ -289,18 +238,12 @@ PyResult CorporationService::Handle_GetAllCorpMedals( PyCallArgs& call )
     return res;
 }
 
-PyResult CorporationService::Handle_GetRecipientsOfMedal(PyCallArgs &call)
+PyResult CorporationService::GetRecipientsOfMedal(PyCallArgs &call, PyInt* medalID)
 {
     //   recipients = sm.RemoteSvc('corporationSvc').GetRecipientsOfMedal(medalID)
     //          called from GetMedalSubContent in corp_ui_member_deco
     _log(CORP__CALL, "CorporationService::Handle_GetRecipientsOfMedal()");
     call.Dump(CORP__CALL_DUMP);
-
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
     /*
      *     issuerID = recipients.issuerID
@@ -308,10 +251,10 @@ PyResult CorporationService::Handle_GetRecipientsOfMedal(PyCallArgs &call)
      *     statusID, statusName = self.GetStatus(recipients.status)
      *     reason = recipients.reason
      */
-    return m_db.GetRecipientsOfMedal(arg.arg);
+    return m_db.GetRecipientsOfMedal(medalID->value());
 }
 
-PyResult CorporationService::Handle_GiveMedalToCharacters(PyCallArgs &call)
+PyResult CorporationService::GiveMedalToCharacters(PyCallArgs &call, PyInt* medalID, PyList* recipientIDs, PyWString* reason)
 {
     //  sm.RemoteSvc('corporationSvc').GiveMedalToCharacters(medalID, recipientID, reason)
     /*
@@ -325,36 +268,30 @@ PyResult CorporationService::Handle_GiveMedalToCharacters(PyCallArgs &call)
     _log(CORP__CALL, "CorporationService::Handle_GiveMedalToCharacters()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_AwardMedal args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     // can award one medal to multiple chars at once, at 5m isk per award
     std::vector< uint32 > charVec;
-    for (PyList::const_iterator itr = args.recipientIDs->begin(); itr != args.recipientIDs->end(); ++itr)
+    for (PyList::const_iterator itr = recipientIDs->begin(); itr != recipientIDs->end(); ++itr)
         charVec.push_back(PyRep::IntegerValue(*itr));
 
     uint32 cost = sConfig.rates.medalAwardCost;
     cost *= charVec.size();
 
     //take the money, send wallet blink event record the transaction in corp journal.
-    std::string reason = "DESC: Awarding Medal by ";
-    reason += call.client->GetName();
+    std::string finalReason = "DESC: Awarding Medal by ";
+    finalReason += call.client->GetName();
     AccountService::TranserFunds(
                                  call.client->GetCorporationID(),
                                  call.client->GetStationID(),
                                  cost,
-                                 reason.c_str(),
+                                 finalReason,
                                  Journal::EntryType::MedalIssuing);
 
-    m_db.GiveMedalToCharacters(call.client->GetCharacterID(), call.client->GetCorporationID(), args.medalID, charVec, args.reason);
+    m_db.GiveMedalToCharacters(call.client->GetCharacterID(), call.client->GetCorporationID(), medalID->value(), charVec, reason->content());
 
     return nullptr;
 }
 
-PyResult CorporationService::Handle_GetMedalStatuses(PyCallArgs &call)
+PyResult CorporationService::GetMedalStatuses(PyCallArgs &call)
 {
     //  return sm.RemoteSvc('corporationSvc').GetMedalStatuses()
     //  statusID, statusName = self.GetStatus(theyareallthesame.status)
@@ -374,7 +311,7 @@ PyResult CorporationService::Handle_GetMedalStatuses(PyCallArgs &call)
  * @note   these do absolutely nothing at this time....
  */
 
-PyResult CorporationService::Handle_SetMedalStatus(PyCallArgs &call)
+PyResult CorporationService::SetMedalStatus(PyCallArgs &call, PyDict* newStatus)
 {
     //  sm.RemoteSvc('corporationSvc').SetMedalStatus(statusdict)
     //    this is called from char PD for setting view permissions on received medals

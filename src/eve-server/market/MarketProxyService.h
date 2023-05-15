@@ -27,36 +27,38 @@
 #define __MARKETPROXY_SERVICE_H_INCL__
 
 #include "market/MarketDB.h"
-#include "PyService.h"
+#include "services/Service.h"
+#include "services/ServiceManager.h"
 
-class MarketProxyService
-: public PyService
+#include "cache/ObjCacheService.h"
+
+class MarketProxyService : public Service <MarketProxyService>
 {
 public:
-    MarketProxyService(PyServiceMgr *mgr);
-    virtual ~MarketProxyService();
+    MarketProxyService(EVEServiceManager& mgr);
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     MarketDB m_db;
 
-    PyCallable_DECL_CALL(GetStationAsks);
-    PyCallable_DECL_CALL(GetSystemAsks);
-    PyCallable_DECL_CALL(GetRegionBest);
-    PyCallable_DECL_CALL(GetMarketGroups);
-    PyCallable_DECL_CALL(GetOrders);
-    PyCallable_DECL_CALL(GetOldPriceHistory);
-    PyCallable_DECL_CALL(GetNewPriceHistory);
-    PyCallable_DECL_CALL(PlaceCharOrder);
-    PyCallable_DECL_CALL(GetCharOrders);
-    PyCallable_DECL_CALL(ModifyCharOrder);
-    PyCallable_DECL_CALL(CancelCharOrder);
-    PyCallable_DECL_CALL(CharGetNewTransactions);
-    PyCallable_DECL_CALL(CorpGetNewTransactions);
-    PyCallable_DECL_CALL(StartupCheck);
-    PyCallable_DECL_CALL(GetCorporationOrders);
+    PyResult GetMarketGroups(PyCallArgs& call);
+    PyResult StartupCheck(PyCallArgs& call);
+    PyResult GetCharOrders(PyCallArgs& call);
+    PyResult GetCorporationOrders(PyCallArgs& call);
+    PyResult GetStationAsks(PyCallArgs& call);
+    PyResult GetSystemAsks(PyCallArgs& call);
+    PyResult GetRegionBest(PyCallArgs& call);
+    PyResult GetOldPriceHistory(PyCallArgs& call, PyInt* typeID);
+    PyResult GetNewPriceHistory(PyCallArgs& call, PyInt* typeID);
+    PyResult CorpGetNewTransactions(PyCallArgs& call, PyRep* sellBuy, PyRep* typeID, PyRep* clientID, PyRep* quantity, PyRep* fromDate, PyRep* maxPrice, PyRep* minPrice, PyRep* accountKey, PyRep* memberID);
+    PyResult CharGetNewTransactions(PyCallArgs& call, PyRep* sellBuy, PyRep* typeID, PyRep* clientID, PyRep* quantity, PyRep* fromDate, PyRep* maxPrice, PyRep* minPrice);
+    PyResult GetOrders(PyCallArgs& call, PyInt* typeID);
+    PyResult PlaceCharOrder(PyCallArgs& call, PyInt* stationID, PyInt* typeID, PyFloat* price, PyInt* quantity, PyInt* bid, PyInt* orderRange, std::optional <PyInt*> itemID, PyInt* minVolume, PyInt* duration, PyBool* useCorp, std::optional<PyRep*> located);
+    PyResult ModifyCharOrder(PyCallArgs& call, PyInt* orderID, PyFloat* newPrice, PyInt* bid, PyInt* stationID, PyInt* solarSystemID, PyFloat* price, PyInt* range, PyInt* volRemaining, PyLong* issueDate);
+    PyResult CancelCharOrder(PyCallArgs& call, PyInt* orderID, PyInt* regionID);
+
+private:
+    EVEServiceManager& m_manager;
+    ObjCacheService* m_cache;
 };
 
 #endif

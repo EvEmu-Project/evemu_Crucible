@@ -11,26 +11,16 @@
 #ifndef __EVE_SYSTEM_WORLDSPACE_H_
 #define __EVE_SYSTEM_WORLDSPACE_H_
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class WorldSpaceServer
-: public PyService
+class WorldSpaceServer : public Service <WorldSpaceServer>
 {
 public:
-    WorldSpaceServer(PyServiceMgr *mgr);
-    virtual ~WorldSpaceServer();
+    WorldSpaceServer();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetWorldSpaceTypeIDFromWorldSpaceID);
-    PyCallable_DECL_CALL(GetWorldSpaceMachoAddress);
-
-    //PyCallable_DECL_CALL()
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *CreateBoundObject(Client* pClient, const PyRep* bind_args);
+    PyResult GetWorldSpaceTypeIDFromWorldSpaceID(PyCallArgs& call, PyInt* worldSpaceID);
+    PyResult GetWorldSpaceMachoAddress(PyCallArgs& call, PyString* address);
 };
 
 #endif  // __EVE_SYSTEM_WORLDSPACE_H_

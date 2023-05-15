@@ -24,7 +24,7 @@
  * connecting, and saving of wormholes.
  */
 
-class PyServiceMgr;
+class EVEServiceManager;
 class SystemManager;
 
 class WormholeMgr
@@ -34,7 +34,7 @@ public:
     WormholeMgr();
     ~WormholeMgr();
 
-    void Initialize(PyServiceMgr* svc);
+    void Initialize();
     void Process();
 
     void Create(CosmicSignature& sig, uint32 exitSystemID=0, uint32 exitSourceItemID=0);
@@ -45,7 +45,6 @@ public:
 private:
     ManagerDB* m_mdb;
     ServiceDB* m_sdb;
-    PyServiceMgr* m_services;
 
     Timer m_updateTimer;
 

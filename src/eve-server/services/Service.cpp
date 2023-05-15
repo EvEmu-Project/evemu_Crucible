@@ -20,60 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Almamu
 */
 
-#include "eve-server.h"
-
-#include "PyServiceCD.h"
-#include "contract/ContractMgr.h"
-
-PyCallable_Make_InnerDispatcher(ContractMgr)
-
-ContractMgr::ContractMgr(PyServiceMgr *mgr)
-: PyService(mgr, "contractMgr"),
-  m_dispatch(new Dispatcher(this))
-{
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(ContractMgr, NumRequiringAttention);
-}
-
-ContractMgr::~ContractMgr()
-{
-    delete m_dispatch;
-}
-
-PyResult ContractMgr::Handle_NumRequiringAttention( PyCallArgs& call )
-{
-    sLog.Warning( "ContractMgr", "Called NumRequiringAttention stub." );
-
-    PyDict* args = new PyDict;
-    args->SetItemString( "n", new PyInt( 0 ) );
-    args->SetItemString( "ncorp", new PyInt( 0 ) );
-
-    return new PyObject( "util.KeyVal", args );
-}
-
-
-/*
-conAvailMyAlliance = 3
-conAvailMyCorp = 2
-conAvailMyself = 1
-conAvailPublic = 0
-conStatusOutstanding = 0
-conStatusInProgress = 1
-conStatusFinishedIssuer = 2
-conStatusFinishedContractor = 3
-conStatusFinished = 4
-conStatusCancelled = 5
-conStatusRejected = 6
-conStatusFailed = 7
-conStatusDeleted = 8
-conStatusReversed = 9
-conTypeNothing = 0
-conTypeItemExchange = 1
-conTypeAuction = 2
-conTypeCourier = 3
-conTypeLoan = 4
-*/
+#include "Service.h"

@@ -27,11 +27,11 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyCallable.h"
+
 #include "admin/CommandDispatcher.h"
 #include "system/DestinyManager.h"
 
-CommandDispatcher::CommandDispatcher( PyServiceMgr& services )
+CommandDispatcher::CommandDispatcher(EVEServiceManager& services)
 : m_services( services )
 {
     m_commands.clear();
@@ -83,7 +83,7 @@ PyResult CommandDispatcher::Execute( Client* from, const char* msg )
         throw CustomError ("Access denied to command '%s'", sep.arg (0).c_str ());
     }
 
-    return ( *rec->function )( from, &m_db, &m_services, sep );
+    return ( *rec->function )( from, &m_db, m_services, sep );
 }
 
 void CommandDispatcher::AddCommand( const char* cmd, const char* desc, int64 required_role, CommandFunc function )
@@ -99,7 +99,7 @@ void CommandDispatcher::ListCommands() {
     sLog.Green("  EVEmu", "Currently Loaded %lu Commands:", m_commands.size());
     std::map<std::string, CommandDispatcher::CommandRecord*>::iterator itr = m_commands.begin();
     for (; itr != m_commands.end(); ++itr) {
-        sLog.Magenta("    Call and Role", "%s - %p (%li)",
+        sLog.Magenta("    Call and Role", "%s - %p (%lli)",
                      itr->first.c_str(), itr->second->required_role, itr->second->required_role);
     }
 }

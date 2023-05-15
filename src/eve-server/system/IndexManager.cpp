@@ -25,28 +25,19 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "system/IndexManager.h"
 #include "system/sov/SovereigntyDataMgr.h"
 #include "inventory/AttributeEnum.h"
 
-PyCallable_Make_InnerDispatcher(IndexManager)
-
-IndexManager::IndexManager(PyServiceMgr *mgr)
-: PyService(mgr, "devIndexManager"),
-  m_dispatch(new Dispatcher(this))
+IndexManager::IndexManager() :
+    Service("devIndexManager", eAccessLevel_SolarSystem2)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(IndexManager, GetAllDevelopmentIndices);
-    PyCallable_REG_CALL(IndexManager, GetDevelopmentIndicesForSystem);
+    this->Add("GetAllDevelopmentIndices", &IndexManager::GetAllDevelopmentIndices);
+    this->Add("GetDevelopmentIndicesForSystem", &IndexManager::GetDevelopmentIndicesForSystem);
 }
 
-IndexManager::~IndexManager() {
-    delete m_dispatch;
-}
-
-PyResult IndexManager::Handle_GetAllDevelopmentIndices( PyCallArgs& call ) {
+PyResult IndexManager::GetAllDevelopmentIndices(PyCallArgs& call) {
 
     /*
 22:49:13 L IndexManager::Handle_GetAllDevelopmentIndices(): size= 0
@@ -58,20 +49,14 @@ PyResult IndexManager::Handle_GetAllDevelopmentIndices( PyCallArgs& call ) {
     return nullptr;
 }
 
-PyResult IndexManager::Handle_GetDevelopmentIndicesForSystem( PyCallArgs& call ) {
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
+PyResult IndexManager::GetDevelopmentIndicesForSystem(PyCallArgs& call, PyInt* solarSystemID) {
     DBRowDescriptor *header = new DBRowDescriptor();
     header->AddColumn("attributeID", DBTYPE_I4);
     header->AddColumn("points", DBTYPE_I2);
     header->AddColumn("increasing", DBTYPE_BOOL);
     //CRowSet *rowset = new CRowSet(&header);
 
-    SovereigntyData sovData = svDataMgr.GetSovereigntyData(args.arg);
+    SovereigntyData sovData = svDataMgr.GetSovereigntyData(solarSystemID->value());
     PyPackedRow *row1 = new PyPackedRow(header);
     PyPackedRow *row2 = new PyPackedRow(header);
     PyPackedRow *row3 = new PyPackedRow(header);

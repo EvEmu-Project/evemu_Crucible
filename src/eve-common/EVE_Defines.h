@@ -62,7 +62,6 @@
  * 9e0    fake items
  */
 
-
 #ifndef EVE_DEFINES_H
 #define EVE_DEFINES_H
 

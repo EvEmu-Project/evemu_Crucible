@@ -37,86 +37,58 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/FactoryService.h"
 
-PyCallable_Make_InnerDispatcher(FactoryService)
-
-FactoryService::FactoryService(PyServiceMgr *mgr)
-: PyService(mgr, "factory"),
-  m_dispatch(new Dispatcher(this))
+FactoryService::FactoryService() :
+    Service("factory")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(FactoryService, GetBlueprintAttributes);
-    PyCallable_REG_CALL(FactoryService, GetMaterialsForTypeWithActivity);
-    PyCallable_REG_CALL(FactoryService, GetMaterialCompositionOfItemType);
-    PyCallable_REG_CALL(FactoryService, GetBlueprintInformationAtLocation);
-    PyCallable_REG_CALL(FactoryService, GetBlueprintInformationAtLocationWithFlag);
+    this->Add("GetBlueprintAttributes", &FactoryService::GetBlueprintAttributes);
+    this->Add("GetMaterialsForTypeWithActivity", &FactoryService::GetMaterialsForTypeWithActivity);
+    this->Add("GetMaterialCompositionOfItemType", &FactoryService::GetMaterialCompositionOfItemType);
+    this->Add("GetBlueprintInformationAtLocation", &FactoryService::GetBlueprintInformationAtLocation);
+    this->Add("GetBlueprintInformationAtLocationWithFlag", &FactoryService::GetBlueprintInformationAtLocationWithFlag);
 }
 
-FactoryService::~FactoryService() {
-    delete m_dispatch;
-}
-
-PyResult FactoryService::Handle_GetMaterialCompositionOfItemType(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode args.");
-        return nullptr;
-    }
-
+PyResult FactoryService::GetMaterialCompositionOfItemType(PyCallArgs &call, PyInt* typeID) {
     // Outpost construction platforms require a different query
-    if ((arg.arg == EVEDB::invTypes::CaldariResearchOutpost) or
-    (arg.arg == EVEDB::invTypes::AmarrFactoryOutpost) or
-    (arg.arg == EVEDB::invTypes::GallenteAdministrativeOutpost) or
-    (arg.arg == EVEDB::invTypes::MinmatarServiceOutpost)) {
+    if ((typeID->value() == EVEDB::invTypes::CaldariResearchOutpost) or
+    (typeID->value() == EVEDB::invTypes::AmarrFactoryOutpost) or
+    (typeID->value() == EVEDB::invTypes::GallenteAdministrativeOutpost) or
+    (typeID->value() == EVEDB::invTypes::MinmatarServiceOutpost)) {
         DBQueryResult res;
-        FactoryDB::GetOutpostMaterialCompositionOfItemType(arg.arg, res);
+        FactoryDB::GetOutpostMaterialCompositionOfItemType(typeID->value(), res);
         return DBResultToRowset(res);
     }
 
-    return FactoryDB::GetMaterialCompositionOfItemType(arg.arg);
+    return FactoryDB::GetMaterialCompositionOfItemType(typeID->value());
 }
 
-PyResult FactoryService::Handle_GetBlueprintAttributes(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode args.");
-        return nullptr;
-    }
-
-    BlueprintRef bRef = sItemFactory.GetBlueprintRef( arg.arg );
+PyResult FactoryService::GetBlueprintAttributes(PyCallArgs &call, PyInt* blueprintID) {
+    BlueprintRef bRef = sItemFactory.GetBlueprintRef(blueprintID->value());
     if (bRef.get() == nullptr)
         return nullptr;
 
     return bRef->GetBlueprintAttributes();
 }
 
-PyResult FactoryService::Handle_GetMaterialsForTypeWithActivity(PyCallArgs &call) {
-    // this is the material and manuf tab of bp.  -working  allan 1Jan17
-	Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Failed to decode args.");
-        return nullptr;
-    }
-
-    return sDataMgr.GetBPMatlData(arg.arg);
+PyResult FactoryService::GetMaterialsForTypeWithActivity(PyCallArgs &call, PyInt* typeID) {
+    return sDataMgr.GetBPMatlData(typeID->value());
 }
 
 
 // these next two are for corp locked items calls
-PyResult FactoryService::Handle_GetBlueprintInformationAtLocation(PyCallArgs &call) {
+PyResult FactoryService::GetBlueprintInformationAtLocation(PyCallArgs &call, PyInt* hangarID, PyInt* one) {
     //    blueprints = sm.RemoteSvc('factory').GetBlueprintInformationAtLocation(hangarID, 1)
-    _log(MANUF__MESSAGE, "FactoryService::GetBlueprintInformationAtLocation() size= %li", call.tuple->size());
+    _log(MANUF__MESSAGE, "FactoryService::GetBlueprintInformationAtLocation() size= %lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
     return nullptr;
 }
 
-PyResult FactoryService::Handle_GetBlueprintInformationAtLocationWithFlag(PyCallArgs &call) {
+PyResult FactoryService::GetBlueprintInformationAtLocationWithFlag(PyCallArgs &call, PyInt* locationID, PyInt* flag, PyInt* one) {
     //blueprints = sm.RemoteSvc('factory').GetBlueprintInformationAtLocationWithFlag(locationID, self.flagInput, 1)
-    _log(MANUF__MESSAGE, "FactoryService::Handle_GetBlueprintInformationAtLocationWithFlag() size= %li", call.tuple->size());
+    _log(MANUF__MESSAGE, "FactoryService::Handle_GetBlueprintInformationAtLocationWithFlag() size= %lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
     return nullptr;
 }

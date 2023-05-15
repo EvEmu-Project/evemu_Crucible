@@ -539,7 +539,7 @@ uint32 FactoryDB::InstallJob(const uint32 ownerID, const uint32 installerID, Cal
         " (ownerID, installerID, assemblyLineID, installedItemID, installTime, beginProductionTime, endProductionTime,"
         " runs, outputFlag, licensedProductionRuns, completedStatusID, installedInSolarSystemID)"
         " VALUES"
-        " (%u, %u, %i, %i, %.0f, %li, %li,"
+        " (%u, %u, %i, %i, %.0f, %lli, %lli,"
         " %i, %i, %i, 0, %i)",
         ownerID, installerID, args.AssemblyLineID, args.bpItemID, GetFileTimeNow(), beginTime, endTime,
         args.runs, args.outputFlag, args.copyRuns, systemID))
@@ -551,7 +551,7 @@ uint32 FactoryDB::InstallJob(const uint32 ownerID, const uint32 installerID, Cal
     // update nextFreeTime
     if (!sDatabase.RunQuery(err,
         "UPDATE ramAssemblyLines"
-        " SET nextFreeTime = %li"
+        " SET nextFreeTime = %lli"
         " WHERE assemblyLineID = %i",
         endTime, args.AssemblyLineID))
     {

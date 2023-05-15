@@ -26,8 +26,10 @@
 #ifndef __PAPERDOLLSERVICE__H__INCL__
 #define __PAPERDOLLSERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 #include "character/PaperDollDB.h"
+#include "Client.h"
+
 /**
  * \class PaperDollService
  *
@@ -38,23 +40,20 @@
  * @author caytchen
  * @date April 2011
  */
-class PaperDollService : public PyService {
+class PaperDollService : public Service <PaperDollService> {
 public:
-    PaperDollService(PyServiceMgr* mgr);
-    virtual ~PaperDollService();
+    PaperDollService();
+
+protected:
+    PyResult GetPaperDollData(PyCallArgs& call, PyInt* characterID);
+    PyResult ConvertAndSavePaperDoll(PyCallArgs& call);
+    PyResult UpdateExistingCharacterFull(PyCallArgs& call, PyInt* characterID, PyRep* dollInfo, PyRep* portraitInfo, PyBool* dollExists);
+    PyResult UpdateExistingCharacterLimited(PyCallArgs& call, PyInt* characterID, PyRep* dollData, PyRep* portraitInfo, PyBool* dollExists);
+    PyResult GetPaperDollPortraitDataFor(PyCallArgs& call, PyInt* characterID);
+    PyResult GetMyPaperDollData(PyCallArgs& call, PyInt* characterID);
 
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
 	PaperDollDB m_db;
-
-    PyCallable_DECL_CALL(GetPaperDollData);
-    PyCallable_DECL_CALL(ConvertAndSavePaperDoll);
-    PyCallable_DECL_CALL(UpdateExistingCharacterFull);
-    PyCallable_DECL_CALL(UpdateExistingCharacterLimited);
-    PyCallable_DECL_CALL(GetPaperDollPortraitDataFor);
-    PyCallable_DECL_CALL(GetMyPaperDollData);
 };
 
 #endif // __PAPERDOLLSERVICE__H__INCL__

@@ -68,7 +68,7 @@ PyRep* CalendarDB::SaveNewEvent(uint32 ownerID, Call_CreateEventWithInvites& arg
         if (!sDatabase.RunQueryLID(err, eventID,
             "INSERT INTO sysCalendarEvents(ownerID, creatorID, eventDateTime, eventDuration, importance,"
             " eventTitle, eventText, flag, month, year)"
-            " VALUES (%u, %u, %li, %u, %u, '%s', '%s', %u, %u, %u)",
+            " VALUES (%u, %u, %lli, %u, %u, '%s', '%s', %u, %u, %u)",
             ownerID, ownerID, args.startDateTime, args.duration, args.important, args.title.c_str(),
             args.description.c_str(), Calendar::Flag::Personal, data.month, data.year))
         {
@@ -79,7 +79,7 @@ PyRep* CalendarDB::SaveNewEvent(uint32 ownerID, Call_CreateEventWithInvites& arg
         if (!sDatabase.RunQueryLID(err, eventID,
             "INSERT INTO sysCalendarEvents(ownerID, creatorID, eventDateTime, importance,"
             " eventTitle, eventText, flag, month, year)"
-            " VALUES (%u, %u, %li, %u, '%s', '%s', %u, %u, %u)",
+            " VALUES (%u, %u, %lli, %u, '%s', '%s', %u, %u, %u)",
             ownerID, ownerID, args.startDateTime, args.important, args.title.c_str(),
             args.description.c_str(), Calendar::Flag::Personal, data.month, data.year))
         {
@@ -116,7 +116,7 @@ PyRep* CalendarDB::SaveNewEvent(uint32 ownerID, uint32 creatorID, Call_CreateEve
         if (!sDatabase.RunQueryLID(err, eventID,
             "INSERT INTO sysCalendarEvents(ownerID, creatorID, eventDateTime, eventDuration, importance,"
             " eventTitle, eventText, flag, month, year)"
-            " VALUES (%u, %u, %li, %u, %u, '%s', '%s', %u, %u, %u)",
+            " VALUES (%u, %u, %lli, %u, %u, '%s', '%s', %u, %u, %u)",
             ownerID, creatorID, args.startDateTime, args.duration, args.important,
             args.title.c_str(), args.description.c_str(), flag, data.month, data.year))
         {
@@ -127,7 +127,7 @@ PyRep* CalendarDB::SaveNewEvent(uint32 ownerID, uint32 creatorID, Call_CreateEve
         if (!sDatabase.RunQueryLID(err, eventID,
             "INSERT INTO sysCalendarEvents(ownerID, creatorID, eventDateTime, importance,"
             " eventTitle, eventText, flag, month, year)"
-            " VALUES (%u, %u, %li, %u, '%s', '%s', %u, %u, %u)",
+            " VALUES (%u, %u, %lli, %u, '%s', '%s', %u, %u, %u)",
             ownerID, creatorID, args.startDateTime, args.important,
             args.title.c_str(), args.description.c_str(), flag, data.month, data.year))
         {
@@ -151,7 +151,7 @@ uint32 CalendarDB::SaveSystemEvent(uint32 ownerID, uint32 creatorID, int64 start
     sDatabase.RunQueryLID(err, eventID,
         "INSERT INTO sysCalendarEvents(ownerID, creatorID, eventDateTime, autoEventType,"
         " eventTitle, eventText, flag, month, year, importance)"
-        " VALUES (%u, %u, %li, %u, '%s', '%s', %u, %u, %u, %u)",
+        " VALUES (%u, %u, %lli, %u, '%s', '%s', %u, %u, %u, %u)",
         ownerID, creatorID, startDateTime, autoEventType, title.c_str(), description.c_str(),
         Calendar::Flag::Automated, data.month, data.year, important?1:0);
 
@@ -226,12 +226,12 @@ PyRep* CalendarDB::GetEventDetails(uint32 eventID)
     return new PyObject("util.KeyVal", dict);
 }
 
-void CalendarDB::SaveEventResponse(uint32 charID, Call_SendEventResponse& args)
+void CalendarDB::SaveEventResponse(uint32 charID, uint32 eventID, uint32 response)
 {
     DBerror err;
     sDatabase.RunQuery(err,
         "INSERT INTO `sysCalendarResponses`(`eventID`, `charID`, `response`)"
-        " VALUES (%u, %u, %u)", args.eventID, charID, args.response);
+        " VALUES (%u, %u, %u)", eventID, charID, response);
 }
 
 PyRep* CalendarDB::GetResponsesForCharacter(uint32 charID)
@@ -276,7 +276,7 @@ PyRep* CalendarDB::GetResponsesToEvent(uint32 eventID)
     return list;
 }
 
-void CalendarDB::UpdateEventParticipants(Call_UpdateEventParticipants& args)
+void CalendarDB::UpdateEventParticipants()
 {
     DBerror err;
 }

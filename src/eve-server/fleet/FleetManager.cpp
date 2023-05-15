@@ -13,31 +13,21 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "fleet/FleetManager.h"
 
-PyCallable_Make_InnerDispatcher(FleetManager)
-
-FleetManager::FleetManager(PyServiceMgr *mgr)
-: PyService(mgr, "fleetMgr"),
-  m_dispatch(new Dispatcher(this))
+FleetManager::FleetManager() :
+    Service("fleetMgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(FleetManager, GetActiveStatus);
-    PyCallable_REG_CALL(FleetManager, ForceLeaveFleet);
-    PyCallable_REG_CALL(FleetManager, BroadcastToBubble);
-    PyCallable_REG_CALL(FleetManager, BroadcastToSystem);
+    this->Add("GetActiveStatus", &FleetManager::GetActiveStatus);
+    this->Add("ForceLeaveFleet", &FleetManager::ForceLeaveFleet);
+    this->Add("BroadcastToBubble", &FleetManager::BroadcastToBubble);
+    this->Add("BroadcastToSystem", &FleetManager::BroadcastToSystem);
 
     // stubs
-    PyCallable_REG_CALL(FleetManager, AddToWatchlist);
-    PyCallable_REG_CALL(FleetManager, RemoveFromWatchlist);
-    PyCallable_REG_CALL(FleetManager, RegisterForDamageUpdates);
-}
-
-FleetManager::~FleetManager()
-{
-    delete m_dispatch;
+    this->Add("AddToWatchlist", &FleetManager::AddToWatchlist);
+    this->Add("RemoveFromWatchlist", &FleetManager::RemoveFromWatchlist);
+    this->Add("RegisterForDamageUpdates", &FleetManager::RegisterForDamageUpdates);
 }
 
 /*
@@ -50,8 +40,8 @@ FLEET__TRACE
 FLEET__DUMP
 FLEET__BIND_DUMP
 */
-PyResult FleetManager::Handle_ForceLeaveFleet(PyCallArgs &call) {
-    sLog.Warning("FleetManager", "Handle_ForceLeaveFleet() size=%li", call.tuple->size());
+PyResult FleetManager::ForceLeaveFleet(PyCallArgs &call) {
+    sLog.Warning("FleetManager", "Handle_ForceLeaveFleet() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
     sFltSvc.LeaveFleet(call.client);
@@ -60,10 +50,10 @@ PyResult FleetManager::Handle_ForceLeaveFleet(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult FleetManager::Handle_GetActiveStatus(PyCallArgs &call) {
+PyResult FleetManager::GetActiveStatus(PyCallArgs &call) {
   //   self.activeStatus = sm.RemoteSvc('fleetMgr').GetActiveStatus()
     // have seen this return PyNone in logs.  dont know why...bad fleetID maybe?
-    sLog.Warning("FleetManager", "Handle_GetActiveStatus() size=%li", call.tuple->size());
+    sLog.Warning("FleetManager", "Handle_GetActiveStatus() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
   /*
@@ -121,7 +111,7 @@ PyResult FleetManager::Handle_GetActiveStatus(PyCallArgs &call) {
     return rsp.Encode();
 }
 
-PyResult FleetManager::Handle_BroadcastToBubble(PyCallArgs &call) {
+PyResult FleetManager::BroadcastToBubble(PyCallArgs &call, PyString* name, PyInt* groupID, PyInt* itemID) {
   //     sm.RemoteSvc('fleetMgr').BroadcastToBubble(name, self.broadcastScope, itemID)
     /*
      * 00:06:49 W FleetManager: Handle_BroadcastToSysBubble() size=3
@@ -131,57 +121,45 @@ PyResult FleetManager::Handle_BroadcastToBubble(PyCallArgs &call) {
      * 00:06:49 [FleetDump]         [ 1] Integer field: 3           <-- groupID
      * 00:06:49 [FleetDump]         [ 2] Integer field: 140006694   <-- charID
      */
-    sLog.Warning("FleetManager", "Handle_BroadcastToSysBubble() size=%li", call.tuple->size());
+    sLog.Warning("FleetManager", "Handle_BroadcastToSysBubble() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
-    SendBroadCastCall args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode args.", call.client->GetChar()->name());
-        return nullptr;
-    }
-
-    sFltSvc.FleetBroadcast(call.client, args.itemID, Fleet::BCast::Scope::Bubble, args.group, args.msg);
+    sFltSvc.FleetBroadcast(call.client, itemID->value(), Fleet::BCast::Scope::Bubble, groupID->value(), name->content());
 
     return nullptr;
 }
 
-PyResult FleetManager::Handle_BroadcastToSystem(PyCallArgs &call) {
+PyResult FleetManager::BroadcastToSystem(PyCallArgs &call, PyString* name, PyInt* groupID, PyInt* itemID) {
   //     sm.RemoteSvc('fleetMgr').BroadcastToSystem(name, self.broadcastScope, itemID)
-    sLog.Warning("FleetManager", "Handle_BroadcastToSystem() size=%li", call.tuple->size());
+    sLog.Warning("FleetManager", "Handle_BroadcastToSystem() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
-    SendBroadCastCall args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode args.", call.client->GetChar()->name());
-        return nullptr;
-    }
-
-    sFltSvc.FleetBroadcast(call.client, args.itemID, Fleet::BCast::Scope::System, args.group, args.msg);
+    sFltSvc.FleetBroadcast(call.client, itemID->value(), Fleet::BCast::Scope::System, groupID->value(), name->content());
 
     return nullptr;
 }
 
-PyResult FleetManager::Handle_AddToWatchlist(PyCallArgs &call) {
+PyResult FleetManager::AddToWatchlist(PyCallArgs &call, PyInt* characterID, PyRep* fav) {
     /**
      *        sm.RemoteSvc('fleetMgr').AddToWatchlist(charID, fav)
      */
-    sLog.Warning("FleetManager", "Handle_AddToWatchlist() size=%li", call.tuple->size());
+    sLog.Warning("FleetManager", "Handle_AddToWatchlist() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
     return nullptr;
 }
 
-PyResult FleetManager::Handle_RemoveFromWatchlist(PyCallArgs &call) {
+PyResult FleetManager::RemoveFromWatchlist(PyCallArgs &call, PyInt* characterID, PyRep* fav) {
     /**
      *        sm.RemoteSvc('fleetMgr').RemoveFromWatchlist(charID, fav)
      */
-    sLog.Warning("FleetManager", "Handle_RemoveFromWatchlist() size=%li", call.tuple->size());
+    sLog.Warning("FleetManager", "Handle_RemoveFromWatchlist() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
     return nullptr;
 }
 
-PyResult FleetManager::Handle_RegisterForDamageUpdates(PyCallArgs &call) {
+PyResult FleetManager::RegisterForDamageUpdates(PyCallArgs &call, PyRep* fav) {
     /**
         fav = self.GetWatchlistMembers()
         sm.RemoteSvc('fleetMgr').RegisterForDamageUpdates(fav)
@@ -191,7 +169,7 @@ PyResult FleetManager::Handle_RegisterForDamageUpdates(PyCallArgs &call) {
      *        17:38:00 [SvcCall]       Tuple: 1 elements
      *        17:38:00 [SvcCall]         [ 0] List: Empty
      */
-    sLog.Warning("FleetManager", "Handle_RegisterForDamageUpdates() size=%li", call.tuple->size());
+    sLog.Warning("FleetManager", "Handle_RegisterForDamageUpdates() size=%lli", call.tuple->size());
     call.Dump(FLEET__DUMP);
 
     // returns nothing

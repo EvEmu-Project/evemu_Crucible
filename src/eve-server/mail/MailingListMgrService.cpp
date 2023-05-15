@@ -25,44 +25,34 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "mail/MailingListMgrService.h"
 
-PyCallable_Make_InnerDispatcher(MailingListMgrService)
-
-MailingListMgrService::MailingListMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "mailingListsMgr"),
-    m_dispatch(new Dispatcher(this))
+MailingListMgrService::MailingListMgrService() :
+    Service("mailingListsMgr", eAccessLevel_Character)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(MailingListMgrService, GetJoinedLists);
-    PyCallable_REG_CALL(MailingListMgrService, Create);
-    PyCallable_REG_CALL(MailingListMgrService, Join);
-    PyCallable_REG_CALL(MailingListMgrService, Leave);
-    PyCallable_REG_CALL(MailingListMgrService, Delete);
-    PyCallable_REG_CALL(MailingListMgrService, KickMembers);
-    PyCallable_REG_CALL(MailingListMgrService, GetMembers);
-    PyCallable_REG_CALL(MailingListMgrService, SetEntityAccess);
-    PyCallable_REG_CALL(MailingListMgrService, ClearEntityAccess);
-    PyCallable_REG_CALL(MailingListMgrService, SetMembersMuted);
-    PyCallable_REG_CALL(MailingListMgrService, SetMembersOperator);
-    PyCallable_REG_CALL(MailingListMgrService, SetMembersClear);
-    PyCallable_REG_CALL(MailingListMgrService, SetDefaultAccess);
-    PyCallable_REG_CALL(MailingListMgrService, GetInfo);
-    PyCallable_REG_CALL(MailingListMgrService, GetSettings);
-    PyCallable_REG_CALL(MailingListMgrService, GetWelcomeMail);
-    PyCallable_REG_CALL(MailingListMgrService, SaveWelcomeMail);
-    PyCallable_REG_CALL(MailingListMgrService, SendWelcomeMail);
-    PyCallable_REG_CALL(MailingListMgrService, ClearWelcomeMail);
+    this->Add("GetJoinedLists", &MailingListMgrService::GetJoinedLists);
+    this->Add("Create", &MailingListMgrService::Create);
+    this->Add("Join", &MailingListMgrService::Join);
+    this->Add("Leave", &MailingListMgrService::Leave);
+    this->Add("Delete", &MailingListMgrService::Delete);
+    this->Add("KickMembers", &MailingListMgrService::KickMembers);
+    this->Add("GetMembers", &MailingListMgrService::GetMembers);
+    this->Add("SetEntityAccess", &MailingListMgrService::SetEntityAccess);
+    this->Add("ClearEntityAccess", &MailingListMgrService::ClearEntityAccess);
+    this->Add("SetMembersMuted", &MailingListMgrService::SetMembersMuted);
+    this->Add("SetMembersOperator", &MailingListMgrService::SetMembersOperator);
+    this->Add("SetMembersClear", &MailingListMgrService::SetMembersClear);
+    this->Add("SetDefaultAccess", &MailingListMgrService::SetDefaultAccess);
+    this->Add("GetInfo", &MailingListMgrService::GetInfo);
+    this->Add("GetSettings", &MailingListMgrService::GetSettings);
+    this->Add("GetWelcomeMail", &MailingListMgrService::GetWelcomeMail);
+    this->Add("SaveWelcomeMail", &MailingListMgrService::SaveWelcomeMail);
+    this->Add("SendWelcomeMail", &MailingListMgrService::SendWelcomeMail);
+    this->Add("ClearWelcomeMail", &MailingListMgrService::ClearWelcomeMail);
 }
 
-MailingListMgrService::~MailingListMgrService()
-{
-    delete m_dispatch;
-}
-
-PyResult MailingListMgrService::Handle_GetJoinedLists(PyCallArgs& call)
+PyResult MailingListMgrService::GetJoinedLists(PyCallArgs& call)
 {
     // @TODO: Test
     // no args
@@ -71,81 +61,50 @@ PyResult MailingListMgrService::Handle_GetJoinedLists(PyCallArgs& call)
     return m_db.GetJoinedMailingLists(call.client->GetCharacterID());
 }
 
-PyResult MailingListMgrService::Handle_Create(PyCallArgs& call)
+PyResult MailingListMgrService::Create(PyCallArgs& call, PyWString* name, PyInt* defaultAccess, PyInt* defaultMemberAccess, std::optional<PyInt*> mailCost)
 {
     // @TODO: Test
     sLog.Debug("MailingListMgrService", "Called Create stub" );
-    Call_CreateMailingList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    uint32 r = m_db.CreateMailingList(call.client->GetCharacterID(), args.name, args.defaultAccess,
-                                   args.defaultMemberAccess, args.mailCost);
+    uint32 r = m_db.CreateMailingList(call.client->GetCharacterID(), name->content(), defaultAccess->value(),
+                                   defaultMemberAccess->value(), mailCost.has_value() ? mailCost.value()->value() : 0);
     if (r >= 0) {
         return new PyInt(r);
     }
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_Join(PyCallArgs& call)
+PyResult MailingListMgrService::Join(PyCallArgs& call, PyRep* listName)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called Join stub" );
-    Call_SingleStringArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
-    std::string listName = args.arg;
+    std::string listNameStr = PyRep::StringContent (listName);
     // returns mailing list object
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_Leave(PyCallArgs& call)
+PyResult MailingListMgrService::Leave(PyCallArgs& call, PyInt* listID)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called Leave stub" );
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int listID = args.arg;
     // no return values
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_Delete(PyCallArgs& call)
+PyResult MailingListMgrService::Delete(PyCallArgs& call, PyInt* listID)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called Delete stub" );
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int listID = args.arg;
     // no return values
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_KickMembers(PyCallArgs& call)
+PyResult MailingListMgrService::KickMembers(PyCallArgs& call, PyInt* listID, PyList* memberIDs)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called KickMembers stub" );
-    Call_MemberList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    for (int i = 0; i < args.memberIDs->size(); i++) {
-        PyRep *member = args.memberIDs->GetItem(i);
+    for (int i = 0; i < memberIDs->size(); i++) {
+        PyRep *member = memberIDs->GetItem(i);
         member->Dump(SERVICE__ERROR, "member item");
     }
 
@@ -153,115 +112,67 @@ PyResult MailingListMgrService::Handle_KickMembers(PyCallArgs& call)
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_GetMembers(PyCallArgs& call)
+PyResult MailingListMgrService::GetMembers(PyCallArgs& call, PyInt* listID)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called GetMembers stub" );
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int listID = args.arg;
-    return m_db.GetMailingListMembers(listID);
+    return m_db.GetMailingListMembers(listID->value());
 }
 
-PyResult MailingListMgrService::Handle_SetEntityAccess(PyCallArgs& call)
+PyResult MailingListMgrService::SetEntityAccess(PyCallArgs& call, PyInt* listID, PyInt* entityID, PyInt* access)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called SetEntityAccess stub" );
-    Call_SetEntityAccess args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
     // no return values
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_ClearEntityAccess(PyCallArgs& call)
+PyResult MailingListMgrService::ClearEntityAccess(PyCallArgs& call, PyInt* listID, PyInt* entityID)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called ClearEntityAccess stub" );
-    Call_ClearEntityAccess args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     // no return values
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_SetMembersMuted(PyCallArgs& call)
+PyResult MailingListMgrService::SetMembersMuted(PyCallArgs& call, PyInt* listID, PyList* memberIDs)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called SetMembersMuted stub" );
-    Call_MemberList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_SetMembersOperator(PyCallArgs& call)
+PyResult MailingListMgrService::SetMembersOperator(PyCallArgs& call, PyInt* listID, PyList* memberIDs)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called SetMembersOperator stub" );
-    Call_MemberList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_SetMembersClear(PyCallArgs& call)
+PyResult MailingListMgrService::SetMembersClear(PyCallArgs& call, PyInt* listID, PyList* memberIDs)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called SetMembersClear stub" );
-    Call_MemberList args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_SetDefaultAccess(PyCallArgs& call)
+PyResult MailingListMgrService::SetDefaultAccess(PyCallArgs& call, PyInt* listID, PyInt* defaultAccess, PyInt* defaultMemberAccess, std::optional<PyInt*> mailCost)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called SetDefaultAccess stub" );
-    Call_SetDefaultAccess args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db.SetMailingListDefaultAccess(args.listID, args.defaultAccess,
-                                      args.defaultMemberAccess, args.mailCost);
+    m_db.SetMailingListDefaultAccess(listID->value(), defaultAccess->value(),
+                                      defaultMemberAccess->value(), mailCost.has_value() ? mailCost.value()->value() : 0);
 
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_GetInfo(PyCallArgs& call)
+PyResult MailingListMgrService::GetInfo(PyCallArgs& call, PyInt* listID)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called GetInfo stub" );
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
-    int listID = args.arg;
-    if (listID == 0) {
+    if (listID->value() == 0) {
         PyDict *ret = new PyDict();
         ret->SetItem("displayName", new PyString("Test"));
         return new PyObject("util.KeyVal", ret);
@@ -269,76 +180,45 @@ PyResult MailingListMgrService::Handle_GetInfo(PyCallArgs& call)
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_GetSettings(PyCallArgs& call)
+PyResult MailingListMgrService::GetSettings(PyCallArgs& call, PyInt* listID)
 {
     // @TODO: Test
     sLog.Debug("MailingListMgrService", "Called GetSettings stub" );
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     // return:
     // .access: list (ownerID, accessLevel)
     // .defaultAccess
     // .defaultMemberAccess
 
-    int listID = args.arg;
-    return m_db.MailingListGetSettings(listID);
+    return m_db.MailingListGetSettings(listID->value());
 }
 
-PyResult MailingListMgrService::Handle_GetWelcomeMail(PyCallArgs& call)
+PyResult MailingListMgrService::GetWelcomeMail(PyCallArgs& call, PyInt* listID)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called GetWelcomeMail stub" );
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    int listID = args.arg;
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_SaveWelcomeMail(PyCallArgs& call)
+PyResult MailingListMgrService::SaveWelcomeMail(PyCallArgs& call, PyInt* listID, PyWString* title, PyWString* body)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called SaveWelcomeMail stub" );
-    Call_SaveWelcomeMail args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_SendWelcomeMail(PyCallArgs& call)
+PyResult MailingListMgrService::SendWelcomeMail(PyCallArgs& call, PyInt* listID, PyWString* title, PyWString* body)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called SendWelcomeMail stub" );
-    Call_SaveWelcomeMail args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     return nullptr;
 }
 
-PyResult MailingListMgrService::Handle_ClearWelcomeMail(PyCallArgs& call)
+PyResult MailingListMgrService::ClearWelcomeMail(PyCallArgs& call, PyInt* listID)
 {
     // @TODO: Stub
     sLog.Debug("MailingListMgrService", "Called ClearWelcomeMail stub" );
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
 
-    int listID = args.arg;
     // no return value
     return nullptr;
 }

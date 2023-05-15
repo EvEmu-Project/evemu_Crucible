@@ -27,25 +27,81 @@
 #ifndef __DOGMAIM_SERVICE_H_INCL__
 #define __DOGMAIM_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/BoundService.h"
+#include "Client.h"
 
 class PyRep;
+class DogmaIMBound;
 
-class DogmaIMService
-: public PyService
+class DogmaIMService : public BindableService <DogmaIMService, DogmaIMBound>
 {
 public:
-    DogmaIMService(PyServiceMgr *mgr);
-    virtual ~DogmaIMService();
+    DogmaIMService(EVEServiceManager& mgr);
+
+    void BoundReleased (DogmaIMBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetAttributeTypes);
+    PyResult GetAttributeTypes(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
+
+private:
+    ObjCacheService* m_cache;
+};
+
+
+/** this is either DogmaLM (Location Manager) or DogmaIM (Instance Manager) for bound objects.
+ * it depends on the object, location, and calling function
+ *    i see no reason to change it at this point.
+ */
+class DogmaIMBound : public EVEBoundObject <DogmaIMBound>
+{
+public:
+    DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint32 locationID, uint32 groupID);
+
+protected:
+    PyResult ChangeDroneSettings(PyCallArgs& call, PyDict* settings);
+    PyResult LinkWeapons(PyCallArgs& call, PyInt* shipID, PyInt* masterID, PyInt* fromID);
+    PyResult LinkAllWeapons(PyCallArgs& call, PyInt* shipID);
+    PyResult UnlinkModule(PyCallArgs& call, PyInt* shipID, PyInt* moduleID);
+    PyResult UnlinkAllModules(PyCallArgs& call, PyInt* shipID);
+    PyResult OverloadRack(PyCallArgs& call, PyInt* itemID);
+    PyResult StopOverloadRack(PyCallArgs& call, PyInt* itemID);
+    PyResult CharGetInfo(PyCallArgs& call);
+    PyResult ItemGetInfo(PyCallArgs& call, PyInt* itemID);
+    PyResult GetAllInfo(PyCallArgs& call, PyBool* getCharInfo, PyBool* getShipInfo);
+    PyResult DestroyWeaponBank(PyCallArgs& call, PyInt* shipID, PyInt* itemID);
+    PyResult GetCharacterBaseAttributes(PyCallArgs& call);
+    PyResult Activate(PyCallArgs& call, PyInt* itemID, PyInt* effectID);
+    PyResult Activate(PyCallArgs& call, PyInt* itemID, PyWString* effectName, std::optional <PyInt*> target, PyInt* repeat);
+    PyResult Deactivate(PyCallArgs& call, PyInt* itemID, PyInt* effect);
+    PyResult Deactivate(PyCallArgs& call, PyInt* itemID, PyWString* effectName);
+    PyResult Overload(PyCallArgs& call, PyInt* itemID, PyInt* effectID);
+    PyResult StopOverload(PyCallArgs& call, PyInt* itemID, PyInt* effectID);
+    PyResult CancelOverloading(PyCallArgs& call, PyInt* itemID);
+    PyResult SetModuleOnline(PyCallArgs& call, PyInt* locationID, PyInt* moduleID);
+    PyResult TakeModuleOffline(PyCallArgs& call, PyInt* locationID, PyInt* moduleID);
+    PyResult LoadAmmoToBank(PyCallArgs& call, PyInt* shipID, PyInt* masterID, PyInt* chargeTypeID, PyList* cItemIDs, PyInt* chargeLocationID, std::optional <PyInt*> qty);
+    PyResult LoadAmmoToModules(PyCallArgs& call, PyInt* shipID, PyList* cModuleIDs, PyInt* chargeTypeID, PyInt* itemID, PyInt* ammoLocationId);
+    PyResult GetTargets(PyCallArgs& call);
+    PyResult GetTargeters(PyCallArgs& call);
+    PyResult AddTarget(PyCallArgs& call, PyInt* targetID);
+    PyResult RemoveTarget(PyCallArgs& call, PyInt* targetID);
+    PyResult ClearTargets(PyCallArgs& call);
+    PyResult InitiateModuleRepair(PyCallArgs& call, PyInt* itemID);
+    PyResult StopModuleRepair(PyCallArgs& call, PyInt* itemID);
+    PyResult MergeModuleGroups(PyCallArgs& call, PyInt* shipID, PyInt* masterID, PyInt* slaveID);
+    PyResult PeelAndLink(PyCallArgs& call, PyInt* shipID, PyInt* masterID, PyInt* slaveID);
+
+    /*  OBO == ??  (pos targeting)
+     * flag, targetList = self.GetDogmaLM().AddTargetOBO(sid, tid) (structureID, targetID)
+     * self.GetDogmaLM().RemoveTargetOBO(sid, tid)  (structureID, targetID)
+    */
+private:
+
+    uint32 m_locationID;
+    uint32 m_groupID;
 };
 
 #endif

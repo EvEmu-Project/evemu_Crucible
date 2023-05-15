@@ -30,6 +30,7 @@
 #include "system/BubbleManager.h"
 #include "system/SolarSystem.h"
 #include "system/SystemDB.h"
+#include "chat/LSCService.h"
 
 
 class PyRep;
@@ -48,7 +49,7 @@ class AnomalyMgr;
 class BeltMgr;
 class DungeonMgr;
 class SpawnMgr;
-class PyServiceMgr;
+class EVEServiceManager;
 
 class DynamicEntityFactory {
 public:
@@ -59,7 +60,7 @@ public:
 class SystemManager
 {
 public:
-    SystemManager(uint32 systemID, PyServiceMgr &svc);//, ItemData idata);
+    SystemManager(uint32 systemID, EVEServiceManager &svc);//, ItemData idata);
     ~SystemManager();
 
     bool ProcessTic();          // called at 1Hz.
@@ -84,7 +85,7 @@ public:
     const char* GetSystemSecurityClass()                { return m_data.securityClass.c_str(); }
     const float GetSystemSecurityRating()               { return m_data.securityRating; }
 
-    PyServiceMgr* GetServiceMgr()                       { return &m_services; }
+    EVEServiceManager& GetServiceMgr()                  { return m_services; }
     Inventory* GetSystemInv()                           { return m_solarSystemRef->GetMyInventory(); }
     SolarSystemRef GetSystemRef()                       { return m_solarSystemRef; }
 
@@ -181,7 +182,8 @@ private:
     DungeonMgr* m_dungMgr;      //we own this, never NULL.
     SpawnMgr* m_spawnMgr;       //we own this, never NULL.
 
-    PyServiceMgr& m_services;
+    EVEServiceManager& m_services;
+    LSCService* m_lsc;
     SolarSystemRef m_solarSystemRef;
 
     // static system data

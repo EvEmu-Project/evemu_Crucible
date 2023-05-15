@@ -27,23 +27,19 @@
 #define __FACTORY_SERVICE_H__
 
 #include "manufacturing/FactoryDB.h"
-#include "PyService.h"
+#include "services/Service.h"
 
-class FactoryService : public PyService
+class FactoryService : public Service <FactoryService>
 {
 public:
-    FactoryService(PyServiceMgr *mgr);
-    virtual ~FactoryService();
+    FactoryService();
 
-private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetBlueprintAttributes);
-    PyCallable_DECL_CALL(GetMaterialsForTypeWithActivity);
-    PyCallable_DECL_CALL(GetMaterialCompositionOfItemType);
-    PyCallable_DECL_CALL(GetBlueprintInformationAtLocation);
-    PyCallable_DECL_CALL(GetBlueprintInformationAtLocationWithFlag);
+protected:
+    PyResult GetMaterialCompositionOfItemType(PyCallArgs& call, PyInt* typeID);
+    PyResult GetBlueprintAttributes(PyCallArgs& call, PyInt* blueprintID);
+    PyResult GetMaterialsForTypeWithActivity(PyCallArgs& call, PyInt* typeID);
+    PyResult GetBlueprintInformationAtLocation(PyCallArgs& call, PyInt* hangarID, PyInt* one);
+    PyResult GetBlueprintInformationAtLocationWithFlag(PyCallArgs& call, PyInt* locationID, PyInt* flag, PyInt* one);
 };
 
 #endif

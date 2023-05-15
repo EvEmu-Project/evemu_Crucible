@@ -20,7 +20,7 @@ class ModuleSE
 : public StructureSE
 {
 public:
-    ModuleSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    ModuleSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~ModuleSE()                                 { /* do nothing here */ }
 
     /* class type pointer querys. */
@@ -43,7 +43,7 @@ class ReactorSE
 : public StructureSE
 {
 public:
-    ReactorSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data);
+    ReactorSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);
     virtual ~ReactorSE();
 
     /* class type pointer querys. */

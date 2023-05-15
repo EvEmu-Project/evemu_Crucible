@@ -26,40 +26,36 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+#include "Client.h"
 #include "admin/CommandDispatcher.h"
 #include "admin/SlashService.h"
 
-
-PyCallable_Make_InnerDispatcher(SlashService)
-
-SlashService::SlashService(PyServiceMgr *mgr, CommandDispatcher *cd)
-: PyService(mgr, "slash"),
-  m_dispatch(new Dispatcher(this)),
-  m_commandDispatch(cd)
+SlashService::SlashService(CommandDispatcher *cd) :
+    Service("slash"),
+    m_commandDispatch(cd)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(SlashService, SlashCmd);
+    this->Add("SlashCmd", static_cast <PyResult (SlashService::*) (PyCallArgs &, PyWString*)> (&SlashService::SlashCmd));
+    this->Add("SlashCmd", static_cast <PyResult (SlashService::*) (PyCallArgs &, PyString*)> (&SlashService::SlashCmd));
 }
 
-SlashService::~SlashService() {
-    delete m_dispatch;
-}
-
-PyResult SlashService::Handle_SlashCmd( PyCallArgs& call )
+PyResult SlashService::SlashCmd (PyCallArgs& call, PyWString* command)
 {
     if (is_log_enabled(COMMAND__DUMP)) {
         sLog.White("SlashService::Handle_SlashCmd()", "size=%lu", call.tuple->size());
         call.Dump(COMMAND__DUMP);
     }
-    Call_SingleStringArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+
+    return SlashCommand (call.client, command->content());
+}
+
+PyResult SlashService::SlashCmd (PyCallArgs& call, PyString* command)
+{
+    if (is_log_enabled(COMMAND__DUMP)) {
+        sLog.White("SlashService::Handle_SlashCmd()", "size=%lu", call.tuple->size());
+        call.Dump(COMMAND__DUMP);
     }
 
-    return SlashCommand( call.client, arg.arg );
+    return SlashCommand (call.client, command->content());
 }
 
 PyResult SlashService::SlashCommand(Client * client, std::string command)

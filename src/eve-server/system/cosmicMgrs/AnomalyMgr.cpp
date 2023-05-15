@@ -13,7 +13,7 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "StaticDataMgr.h"
 #include "map/MapData.h"
 #include "system/SystemBubble.h"
@@ -47,7 +47,7 @@
  * COSMIC_MGR__DEBUG
  * COSMIC_MGR__TRACE
  */
-AnomalyMgr::AnomalyMgr(SystemManager* mgr, PyServiceMgr& svc)
+AnomalyMgr::AnomalyMgr(SystemManager* mgr, EVEServiceManager& svc)
 :m_services(svc),
 m_system(mgr),
 m_beltMgr(nullptr),
@@ -238,6 +238,10 @@ void AnomalyMgr::LoadAnomalies() {
             } else {
                 ++m_Sigs;
             }
+        }
+
+        if (sig.dungeonType == Dungeon::Type::Wormhole) {
+            m_WH++;
         }
 
         _log(COSMIC_MGR__MESSAGE, "AnomalyMgr::LoadAnomalies() - Created Signal %s(%u) for %s in %s(%u), bubbleID %u with %.3f%% sigStrength.", \

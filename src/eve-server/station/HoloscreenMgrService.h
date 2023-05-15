@@ -26,21 +26,17 @@
 #ifndef HOLOSCREENMGR_SERVICE_H
 #define HOLOSCREENMGR_SERVICE_H
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class HoloscreenMgrService : public PyService
+class HoloscreenMgrService : public Service<HoloscreenMgrService>
 {
 public:
-    HoloscreenMgrService(PyServiceMgr* mgr);
-    virtual ~HoloscreenMgrService();
+    HoloscreenMgrService();
 
 protected:
-    class Dispatcher;
-    Dispatcher* const m_dispatch;
-
-    PyCallable_DECL_CALL(GetTwoHourCache);
-    PyCallable_DECL_CALL(GetRecentEpicArcCompletions);
-    PyCallable_DECL_CALL(GetRuntimeCache);
+    PyResult GetRecentEpicArcCompletions(PyCallArgs& call);
+    PyResult GetTwoHourCache(PyCallArgs& call);
+    PyResult GetRuntimeCache(PyCallArgs& call);
 };
 
 #endif

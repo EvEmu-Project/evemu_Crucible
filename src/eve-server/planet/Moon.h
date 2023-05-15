@@ -14,7 +14,7 @@
 
 #include "system/SystemEntity.h"
 
-class PyServiceMgr;
+class EVEServiceManager;
 class SystemManager;
 
 class Moon
@@ -29,7 +29,7 @@ class MoonSE
 : public StaticSystemEntity
 {
 public:
-    MoonSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system);
+    MoonSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system);
     virtual ~MoonSE()                                   { /* Do nothing here */ }
 
     /* class type pointer querys. */

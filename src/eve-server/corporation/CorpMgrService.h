@@ -28,29 +28,25 @@
 #define __CORPMGR_SERVICE_H_INCL__
 
 #include "corporation/CorporationDB.h"
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
-class CorpMgrService : public PyService
+class CorpMgrService : public Service <CorpMgrService>
 {
 public:
-    CorpMgrService(PyServiceMgr *mgr);
-    virtual ~CorpMgrService();
+    CorpMgrService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     CorporationDB m_db;
 
-    PyCallable_DECL_CALL(GetPublicInfo);
-    PyCallable_DECL_CALL(GetCorporations);
-    PyCallable_DECL_CALL(GetAssetInventory);
-    PyCallable_DECL_CALL(GetCorporationStations);
-    PyCallable_DECL_CALL(GetCorporationIDForCharacter);
-    PyCallable_DECL_CALL(GetAssetInventoryForLocation);
-    PyCallable_DECL_CALL(SearchAssets);
-    PyCallable_DECL_CALL(AuditMember);
-
+    PyResult GetPublicInfo(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetCorporations(PyCallArgs& call, PyInt* corporationID);
+    PyResult GetCorporationIDForCharacter(PyCallArgs& call, PyInt* characterID);
+    PyResult AuditMember(PyCallArgs& call, PyInt* memberID, PyLong* fromDate, PyLong* toDate, std::optional<PyInt*> rowsPerPage);
+    PyResult GetAssetInventory(PyCallArgs& call, PyInt* corporationID, PyString* which);
+    PyResult GetAssetInventoryForLocation(PyCallArgs& call, PyInt* corporationID, PyInt* stationID, PyString* which);
+    PyResult GetCorporationStations(PyCallArgs& call);
+    PyResult SearchAssets(PyCallArgs& call, PyString* which, std::optional<PyInt*> itemCategoryID, std::optional<PyInt*> itemGroupID, std::optional<PyInt*> itemTypeID, std::optional<PyInt*> quantity);
 };
 
 #endif

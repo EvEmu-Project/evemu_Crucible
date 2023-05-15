@@ -26,25 +26,21 @@
 #ifndef __NOTIFICATIONMGRSERVICE__H__INCL__
 #define __NOTIFICATIONMGRSERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class NotificationMgrService : public PyService {
+class NotificationMgrService : public Service <NotificationMgrService> {
 public:
-    NotificationMgrService(PyServiceMgr* mgr);
-    virtual ~NotificationMgrService();
+    NotificationMgrService();
 
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetByGroupID);
-    PyCallable_DECL_CALL(GetUnprocessed);
-    PyCallable_DECL_CALL(MarkGroupAsProcessed);
-    PyCallable_DECL_CALL(MarkAllAsProcessed);
-    PyCallable_DECL_CALL(MarkAsProcessed);
-    PyCallable_DECL_CALL(DeleteGroupNotifications);
-    PyCallable_DECL_CALL(DeleteAllNotifications);
-    PyCallable_DECL_CALL(DeleteNotifications);
+    PyResult GetByGroupID(PyCallArgs& call, PyInt* groupID);
+    PyResult GetUnprocessed(PyCallArgs& call);
+    PyResult MarkGroupAsProcessed(PyCallArgs& call, PyInt* groupID);
+    PyResult MarkAllAsProcessed(PyCallArgs& call);
+    PyResult MarkAsProcessed(PyCallArgs& call, PyList* notificationIDsToMarkAsRead);
+    PyResult DeleteGroupNotifications(PyCallArgs& call, PyInt* groupID);
+    PyResult DeleteAllNotifications(PyCallArgs& call);
+    PyResult DeleteNotifications(PyCallArgs& call, PyList* notificatinIDs);
 };
 
 #endif

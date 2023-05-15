@@ -71,7 +71,7 @@ AsteroidItemRef AsteroidItem::SpawnTemp(ItemData& idata, AsteroidData& adata) {
 
 //iRef = InventoryItem::SpawnItem(sItemFactory.GetNextTempID(), iData);
 
-AsteroidSE::AsteroidSE(InventoryItemRef self, PyServiceMgr& services, SystemManager* system)
+AsteroidSE::AsteroidSE(InventoryItemRef self, EVEServiceManager& services, SystemManager* system)
 : ObjectSystemEntity(self, services, system),
 m_growTimer(sConfig.cosmic.BeltGrowth *60 *60 *1000)  // hours->ms
 {
@@ -105,7 +105,7 @@ void AsteroidSE::EncodeDestiny( Buffer& into )
         main.formationID = 0xFF;
     into.Append( main );
 
-    _log(SE__DESTINY, "AsteroidSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "AsteroidSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 void AsteroidSE::MakeDamageState(DoDestinyDamageState &into) {

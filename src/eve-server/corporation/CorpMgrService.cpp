@@ -27,31 +27,21 @@
 #include <string>
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "corporation/CorpMgrService.h"
 
-PyCallable_Make_InnerDispatcher(CorpMgrService)
-
-CorpMgrService::CorpMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "corpmgr"),
-  m_dispatch(new Dispatcher(this))
+CorpMgrService::CorpMgrService() :
+    Service("corpmgr")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CorpMgrService, GetPublicInfo);
-    PyCallable_REG_CALL(CorpMgrService, GetCorporations);
-    PyCallable_REG_CALL(CorpMgrService, GetAssetInventory);
-    PyCallable_REG_CALL(CorpMgrService, GetCorporationStations);
-    PyCallable_REG_CALL(CorpMgrService, GetCorporationIDForCharacter);
-    PyCallable_REG_CALL(CorpMgrService, GetAssetInventoryForLocation);
-    PyCallable_REG_CALL(CorpMgrService, SearchAssets);
-    PyCallable_REG_CALL(CorpMgrService, AuditMember);
+    this->Add("GetPublicInfo", &CorpMgrService::GetPublicInfo);
+    this->Add("GetCorporations", &CorpMgrService::GetCorporations);
+    this->Add("GetAssetInventory", &CorpMgrService::GetAssetInventory);
+    this->Add("GetCorporationStations", &CorpMgrService::GetCorporationStations);
+    this->Add("GetCorporationIDForCharacter", &CorpMgrService::GetCorporationIDForCharacter);
+    this->Add("GetAssetInventoryForLocation", &CorpMgrService::GetAssetInventoryForLocation);
+    this->Add("SearchAssets", &CorpMgrService::SearchAssets);
+    this->Add("AuditMember", &CorpMgrService::AuditMember);
 }
-
-CorpMgrService::~CorpMgrService() {
-    delete m_dispatch;
-}
-
 
 /*
  * CORP__ERROR
@@ -68,53 +58,27 @@ CorpMgrService::~CorpMgrService() {
  * CORP__DB_MESSAGE
  */
 
-
-PyResult CorpMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetCorpInfo(arg.arg);
+PyResult CorpMgrService::GetPublicInfo(PyCallArgs &call, PyInt* corporationID) {
+    return m_db.GetCorpInfo(corporationID->value());
 }
 
-PyResult CorpMgrService::Handle_GetCorporations(PyCallArgs &call) {
-    // called by non-member
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetCorporations(arg.arg);
+PyResult CorpMgrService::GetCorporations(PyCallArgs &call, PyInt* corporationID) {
+    return m_db.GetCorporations(corporationID->value());
 }
 
-PyResult CorpMgrService::Handle_GetCorporationIDForCharacter(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return new PyInt(m_db.GetCorpIDforChar(arg.arg));
+PyResult CorpMgrService::GetCorporationIDForCharacter(PyCallArgs &call, PyInt* characterID) {
+    return new PyInt(m_db.GetCorpIDforChar(characterID->value()));
 }
 
-PyResult CorpMgrService::Handle_AuditMember(PyCallArgs &call) {
+PyResult CorpMgrService::AuditMember(PyCallArgs &call, PyInt* memberID, PyLong* fromDate, PyLong* toDate, std::optional<PyInt*> rowsPerPage) {
     // logItemEventRows, crpRoleHistroyRows = sm.RemoteSvc('corpmgr').AuditMember(memberID, fromDate, toDate, rowsPerPage)
 
     _log(CORP__CALL, "CorpMgrService::Handle_AuditMember()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_AuditMember args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     PyTuple* tuple = new PyTuple(2);
-    tuple->SetItem(0, m_db.GetItemEvents(call.client->GetCorporationID(), args.charID, args.fromDate, args.toDate, args.rowsPerPage));
-    tuple->SetItem(1, m_db.GetRoleHistroy(call.client->GetCorporationID(), args.charID, args.fromDate, args.toDate, args.rowsPerPage));
+    tuple->SetItem(0, m_db.GetItemEvents(call.client->GetCorporationID(), memberID->value(), fromDate->value(), toDate->value(), rowsPerPage.has_value() ? rowsPerPage.value()->value() : 0));
+    tuple->SetItem(1, m_db.GetRoleHistroy(call.client->GetCorporationID(), memberID->value(), fromDate->value(), toDate->value(), rowsPerPage.has_value() ? rowsPerPage.value()->value() : 0));
 
     if (is_log_enabled(CORP__RSP_DUMP))
         tuple->Dump(CORP__RSP_DUMP, "    ");
@@ -122,43 +86,37 @@ PyResult CorpMgrService::Handle_AuditMember(PyCallArgs &call) {
     return tuple;
 }
 
-PyResult CorpMgrService::Handle_GetAssetInventory(PyCallArgs &call) {
+PyResult CorpMgrService::GetAssetInventory(PyCallArgs &call, PyInt* corporationID, PyString* which) {
     // rows = sm.RemoteSvc('corpmgr').GetAssetInventory(eve.session.corpid, which)
     // this is called from corp asset screen.  wants a return of locationIDs of stations where corp hangers have items
     _log(CORP__CALL, "CorpMgrService::Handle_GetAssetInventory()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_GetAssetInventory args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     EVEItemFlags locFlag = flagNone;
     std::ostringstream flags;
     flags << "(";
-    if (args.flag.compare("offices") == 0) {
+    if (which->content().compare("offices") == 0) {
         locFlag = flagOffice;
         flags << flagHangar << "," << flagCorpHangar2 << "," << flagCorpHangar3 << "," << flagCorpHangar4 << "," << flagCorpHangar5;
         flags  << "," << flagCorpHangar6 << "," << flagCorpHangar7;
-    } else if (args.flag.compare("junk") == 0) {        // this is 'impounded' tab for all locations
+    } else if (which->content().compare("junk") == 0) {        // this is 'impounded' tab for all locations
         locFlag = flagImpounded;
         flags << flagImpounded;
-    } else if (args.flag.compare("property") == 0) {    // this is 'inSpace' tab...LSC, ALSC, POS, etc
+    } else if (which->content().compare("property") == 0) {    // this is 'inSpace' tab...LSC, ALSC, POS, etc
         locFlag = flagProperty;
         flags << flagHangar << "," << flagCorpHangar2 << "," << flagCorpHangar3 << "," << flagCorpHangar4 << "," << flagCorpHangar5;
         flags  << "," << flagCorpHangar6 << "," << flagCorpHangar7;
-    } else if (args.flag.compare("deliveries") == 0) {
+    } else if (which->content().compare("deliveries") == 0) {
         locFlag = flagCorpMarket;
         flags << flagCorpMarket;
     } else {
-        _log(CORP__ERROR, "CorpMgrService::Handle_GetAssetInventory: flag is %s", args.flag.c_str());
+        _log(CORP__ERROR, "CorpMgrService::Handle_GetAssetInventory: flag is %s", which->content().c_str());
         return nullptr;
     }
 
     flags << ")";
 
-    PyRep* rsp = m_db.GetAssetInventory(args.corpID, locFlag, flags.str().c_str());
+    PyRep* rsp = m_db.GetAssetInventory(corporationID->value(), locFlag, flags.str().c_str());
     if (is_log_enabled(CORP__RSP_DUMP))
         rsp->Dump(CORP__RSP_DUMP, "    ");
 
@@ -166,47 +124,41 @@ PyResult CorpMgrService::Handle_GetAssetInventory(PyCallArgs &call) {
     return rsp;
 }
 
-PyResult CorpMgrService::Handle_GetAssetInventoryForLocation(PyCallArgs &call) {
+PyResult CorpMgrService::GetAssetInventoryForLocation(PyCallArgs &call, PyInt* corporationID, PyInt* stationID, PyString* which) {
     //  items = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(eve.session.corpid, stationID, which)
     _log(CORP__CALL, "CorpMgrService::Handle_GetAssetInventoryForLocation()");
     call.Dump(CORP__CALL_DUMP);
 
-    Call_GetAssetInventoryForLocation args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     EVEItemFlags locFlag = flagNone;
     std::ostringstream flags;
     flags << "(";
-    if (args.flag.compare("offices") == 0) {
+    if (which->content().compare("offices") == 0) {
         locFlag = flagOffice;
         flags << flagHangar << "," << flagCorpHangar2 << "," << flagCorpHangar3 << "," << flagCorpHangar4 << "," << flagCorpHangar5;
         flags  << "," << flagCorpHangar6 << "," << flagCorpHangar7;
-    } else if (args.flag.compare("junk") == 0) {
+    } else if (which->content().compare("junk") == 0) {
         locFlag = flagImpounded;
         flags << flagImpounded;
-    } else if (args.flag.compare("property") == 0) {    // this is 'inSpace' tab...LSC, POS, etc
+    } else if (which->content().compare("property") == 0) {    // this is 'inSpace' tab...LSC, POS, etc
         locFlag = flagProperty;
         flags << flagHangar << "," << flagCorpHangar2 << "," << flagCorpHangar3 << "," << flagCorpHangar4 << "," << flagCorpHangar5;
         flags  << "," << flagCorpHangar6 << "," << flagCorpHangar7;
-    } else if (args.flag.compare("deliveries") == 0) {
+    } else if (which->content().compare("deliveries") == 0) {
         locFlag = flagCorpMarket;
         flags << flagCorpMarket;
     } else {
-        _log(CORP__ERROR, "CorpMgrService::Handle_GetAssetInventory: flag is %s", args.flag.c_str());
+        _log(CORP__ERROR, "CorpMgrService::Handle_GetAssetInventory: flag is %s", which->content().c_str());
         return nullptr;
     }
 
     flags << ")";
     //  returns a CRowSet
     //  this can be called on system/station/office that isnt loaded, so must hit db for info.
-    return m_db.GetAssetInventoryForLocation(args.corpID, args.locationID, flags.str().c_str());
+    return m_db.GetAssetInventoryForLocation(corporationID->value(), stationID->value(), flags.str().c_str());
 }
 
 // this is called for corp trade
-PyResult CorpMgrService::Handle_GetCorporationStations(PyCallArgs &call) {
+PyResult CorpMgrService::GetCorporationStations(PyCallArgs &call) {
   /**           this is called from trademgr.py (and others)
         stations = sm.RemoteSvc('corpmgr').GetCorporationStations()
         for station in stations:
@@ -219,14 +171,14 @@ PyResult CorpMgrService::Handle_GetCorporationStations(PyCallArgs &call) {
     call.Dump(CORP__CALL_DUMP);
 
     if (IsPlayerCorp(call.client->GetCorporationID()))
-        return m_db.Fetch(call.client->GetCorporationID(), 0, 50);  // arbitrary values
+        return m_db.GetStations(call.client->GetCorporationID());
 
     _log(CORP__WARNING, "CorpMgrService::Handle_GetCorporationStations() calling for NPC Corp");
     return nullptr;
 }
 
 
-PyResult CorpMgrService::Handle_SearchAssets(PyCallArgs &call) {
+PyResult CorpMgrService::SearchAssets(PyCallArgs &call, PyString* which, std::optional<PyInt*> itemCategoryID, std::optional<PyInt*> itemGroupID, std::optional<PyInt*> itemTypeID, std::optional<PyInt*> quantity) {
     //   rows = sm.RemoteSvc('corpmgr').SearchAssets(which, itemCategoryID, itemGroupID, itemTypeID, qty)
     // 'which' is a filter type or None
     _log(CORP__CALL, "CorpMgrService::Handle_SearchAssets()");

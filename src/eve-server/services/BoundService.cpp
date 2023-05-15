@@ -20,36 +20,7 @@
     Place - Suite 330, Boston, MA 02111-1307, USA, or go to
     http://www.gnu.org/copyleft/lesser.txt.
     ------------------------------------------------------------------------------------
-    Author:        Zhur
+    Author:        Almamu
 */
 
-#include "eve-server.h"
-
-#include "PyBoundObject.h"
-
-PyBoundObject::PyBoundObject(PyServiceMgr *mgr)
-: m_manager(mgr),
-  m_nodeID(0),
-  m_bindID(0)
-{
-    m_strBoundObjectName = "PyBoundObject";
-}
-
-PyBoundObject::~PyBoundObject()
-{
-}
-
-PyResult PyBoundObject::Call(const std::string &method, PyCallArgs &args) {
-    _log(SERVICE__CALLS_BOUND, "%s::%s()", GetName(), method.c_str());
-    args.Dump(SERVICE__CALL_TRACE);
-
-    return PyCallable::Call(method, args);
-}
-
-std::string PyBoundObject::GetBindStr() const {
-    //generate a nice bind string:
-    char bind_str[128];
-    snprintf(bind_str, sizeof(bind_str), "N=%u:%u", nodeID(), bindID());
-
-    return(std::string(bind_str));
-}
+#include "BoundService.h"

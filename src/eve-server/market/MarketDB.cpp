@@ -190,7 +190,7 @@ PyRep *MarketDB::GetOrderRow(uint32 orderID) {
 }
 
 //NOTE: needs a lot of work to implement orderRange
-uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
+uint32 MarketDB::FindBuyOrder(uint32 typeID, uint32 stationID, uint32 quantity, double price) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT orderID"
@@ -202,10 +202,10 @@ uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
         "  AND price > %.2f"
         " ORDER BY price DESC"
         " LIMIT 1;",
-        call.typeID,
-        call.stationID,
-        call.quantity,
-        call.price - 0.1/*, sConfig.market.FindBuyOrder*/))
+        typeID,
+        stationID,
+        quantity,
+        price - 0.1/*, sConfig.market.FindBuyOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -218,7 +218,7 @@ uint32 MarketDB::FindBuyOrder(Call_PlaceCharOrder &call) {
     return 0;    //no order found.
 }
 
-uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call)
+uint32 MarketDB::FindSellOrder(uint32 typeID, uint32 stationID, uint32 quantity, double price)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
@@ -231,10 +231,10 @@ uint32 MarketDB::FindSellOrder(Call_PlaceCharOrder &call)
         "  AND price < %.2f"
         " ORDER BY price ASC"
         " LIMIT 1;",
-        call.typeID,
-        call.stationID,
-        call.quantity,
-        call.price + 0.1/*, sConfig.market.FindSellOrder*/))
+        typeID,
+        stationID,
+        quantity,
+        price + 0.1/*, sConfig.market.FindSellOrder*/))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -330,7 +330,7 @@ uint32 MarketDB::StoreOrder(Market::SaveData &data) {
         " ) VALUES ("
         "    %u, %u, %u, %u, %u, %u,"
         "    %u, %.2f, %.2f, %u, %u, %u,"
-        "    %li, %u, %u, %u, %u, %u, %u"
+        "    %lli, %u, %u, %u, %u, %u, %u"
         " )",
         data.typeID, data.ownerID, data.regionID, data.stationID, data.solarSystemID, data.orderRange,
         data.bid?1:0, data.price, data.escrow, data.minVolume, data.volEntered, data.volRemaining,
@@ -363,7 +363,7 @@ PyRep *MarketDB::GetTransactions(uint32 clientID, Market::TxData& data) {
         "   transactionType, clientID, regionID, stationID, corpTransaction, characterID"
         " FROM mktTransactions "
         " WHERE clientID=%u %s AND quantity>=%u AND price>=%.2f AND "
-        " transactionDate>=%li %s AND keyID=%u AND characterID=%u",
+        " transactionDate>=%lli %s AND keyID=%u AND characterID=%u",
         clientID, typeID.c_str(), data.quantity, data.price,
         data.time, buy.c_str(), data.accountKey, data.memberID))
     {
@@ -467,7 +467,7 @@ int64 MarketDB::GetUpdateTime()
 void MarketDB::SetUpdateTime(int64 setTime)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "UPDATE mktUpdates SET timeStamp = %li WHERE server = 1", setTime);
+    sDatabase.RunQuery(err, "UPDATE mktUpdates SET timeStamp = %lli WHERE server = 1", setTime);
 }
 
 /** @todo this needs work for better logic.   may need to pull data from transactions */

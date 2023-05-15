@@ -27,7 +27,7 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "alliance/AllianceRegistry.h"
 
 /*
@@ -41,38 +41,47 @@
  * ALLY__RSP_DUMP
  */
 
-PyCallable_Make_InnerDispatcher(AllianceRegistry)
-
-AllianceRegistry::AllianceRegistry(PyServiceMgr *mgr)
-: PyService(mgr, "allianceRegistry"),
-m_dispatch(new Dispatcher(this))
+AllianceRegistry::AllianceRegistry(EVEServiceManager& mgr) :
+    BindableService("allianceRegistry", mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(AllianceRegistry, GetAlliance);     //  bound object call
-    PyCallable_REG_CALL(AllianceRegistry, GetRankedAlliances);
-    PyCallable_REG_CALL(AllianceRegistry, GetEmploymentRecord);
-    PyCallable_REG_CALL(AllianceRegistry, GetAllianceMembers);
+    this->Add("GetAlliance", &AllianceRegistry::GetAlliance);
+    this->Add("GetRankedAlliances", &AllianceRegistry::GetRankedAlliances);
+    this->Add("GetEmploymentRecord", &AllianceRegistry::GetEmploymentRecord);
+    this->Add("GetAllianceMembers", &AllianceRegistry::GetAllianceMembers);
 }
 
-AllianceRegistry::~AllianceRegistry()
+BoundDispatcher* AllianceRegistry::BindObject(Client* client, PyRep* bindParameters)
 {
-    delete m_dispatch;
-}
-
-PyBoundObject* AllianceRegistry::CreateBoundObject( Client* pClient, const PyRep* bind_args )
-{
-    if (!bind_args->IsTuple()){
-        sLog.Error( "AllianceRegistry::CreateBoundObject", "%s: bind_args is not tuple: '%s'. ", pClient->GetName(), bind_args->TypeString() );
-        pClient->SendErrorMsg("Could not bind object for Ally Registry.  Ref: ServerError 02808.");
+    if (!bindParameters->IsTuple()){
+        sLog.Error( "AllianceRegistry::CreateBoundObject", "%s: bind_args is not tuple: '%s'. ", client->GetName(), bindParameters->TypeString() );
+        client->SendErrorMsg("Could not bind object for Ally Registry.  Ref: ServerError 02808.");
         return nullptr;
     }
 
-    return new AllianceBound(m_manager, m_db, PyRep::IntegerValue(bind_args->AsTuple()->GetItem(0)));
+    uint32 allianceID = PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0));
+    auto it = this->m_instances.find (allianceID);
+
+    if (it != this->m_instances.end ())
+        return it->second;
+
+    AllianceBound* bound = new AllianceBound(this->GetServiceManager(), *this, m_db, allianceID);
+
+    this->m_instances.insert_or_assign (allianceID, bound);
+
+    return bound;
+}
+
+void AllianceRegistry::BoundReleased (AllianceBound* bound) {
+    auto it = this->m_instances.find (bound->GetAllianceID());
+
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
 // this is the bind call.  do it like fleet
-PyResult AllianceRegistry::Handle_GetAlliance(PyCallArgs &call) {
+PyResult AllianceRegistry::GetAlliance(PyCallArgs &call, PyInt* allianceID) {
     //alliance = sm.RemoteSvc('allianceRegistry').GetAlliance(allianceID)
     /*
      * 01:22:07 [SvcCall] Service allianceRegistry::MachoResolveObject()
@@ -83,31 +92,21 @@ PyResult AllianceRegistry::Handle_GetAlliance(PyCallArgs &call) {
      * 01:22:07 [SvcError]       [ 1]    Integer: 1
      */
 
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAlliance() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAlliance() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-    return m_db.GetAlliance(args.arg);
+    return m_db.GetAlliance(allianceID->value());
 }
 
-PyResult AllianceRegistry::Handle_GetAllianceMembers(PyCallArgs &call) {
+PyResult AllianceRegistry::GetAllianceMembers(PyCallArgs &call, PyInt* allianceID) {
     // members = sm.RemoteSvc('allianceRegistry').GetAllianceMembers(itemID)  <-- returns dict of corpIDs
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceMembers() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetAllianceMembers() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-    return m_db.GetAllianceMembers(args.arg);
+    return m_db.GetAllianceMembers(allianceID->value());
 }
 
-PyResult AllianceRegistry::Handle_GetRankedAlliances(PyCallArgs &call) {
+PyResult AllianceRegistry::GetRankedAlliances(PyCallArgs &call, PyInt* maxLen) {
     /*
      *           self.rankedAlliances.alliances = sm.RemoteSvc('allianceRegistry').GetRankedAlliances(maxLen)
      *           self.rankedAlliances.standings = {}
@@ -116,23 +115,17 @@ PyResult AllianceRegistry::Handle_GetRankedAlliances(PyCallArgs &call) {
      *               self.rankedAlliances.standings[a.allianceID] = s
      */
 
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetRankedAlliances() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetRankedAlliances() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
     return m_db.GetRankedAlliances();
 }
 
 //Not sure why this doesn't work
-PyResult AllianceRegistry::Handle_GetEmploymentRecord(PyCallArgs &call) {
+PyResult AllianceRegistry::GetEmploymentRecord(PyCallArgs &call, PyInt* corporationID) {
     //  allianceHistory = sm.RemoteSvc('allianceRegistry').GetEmploymentRecord(itemID)
-    _log(ALLY__CALL, "AllianceRegistry::Handle_GetEmploymentRecord() size=%li", call.tuple->size());
+    _log(ALLY__CALL, "AllianceRegistry::Handle_GetEmploymentRecord() size=%lli", call.tuple->size());
     call.Dump(ALLY__CALL_DUMP);
 
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetEmploymentRecord(arg.arg);
+    return m_db.GetEmploymentRecord(corporationID->value());
 }

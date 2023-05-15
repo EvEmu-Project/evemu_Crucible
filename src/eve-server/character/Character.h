@@ -28,7 +28,7 @@
 #define __CHARACTER__H__INCL__
 
 #include "StaticDataMgr.h"
-#include "character/CertificateMgrService.h"
+#include "character/CertificateMgrDB.h"
 #include "character/CharacterDB.h"
 #include "character/Skill.h"
 #include "corporation/CorporationDB.h"

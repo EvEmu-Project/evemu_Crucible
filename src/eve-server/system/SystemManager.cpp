@@ -64,8 +64,9 @@
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "station/Outpost.h"
+#include "services/ServiceManager.h"
 
-SystemManager::SystemManager(uint32 systemID, PyServiceMgr &svc)
+SystemManager::SystemManager(uint32 systemID, EVEServiceManager &svc)
 :m_services(svc),
 m_bountyTimer(0),
 m_minutetimer(0, true),
@@ -109,6 +110,8 @@ m_secValue(1.1f)
     m_secValue -= m_data.securityRating;  // range is 0.1 for 1.0 system to 2.0 for -0.9 system
 
     _log(COMMON__MESSAGE, "Created SystemManager %p for System %s(%u)", this, m_data.name.c_str(), m_data.systemID);
+
+    this->m_lsc = svc.Lookup <LSCService>("LSC");
 }
 
 SystemManager::~SystemManager() {
@@ -175,9 +178,9 @@ bool SystemManager::BootSystem() {
         m_bountyTimer.Start(sConfig.server.BountyPayoutTimer * 60 * 1000);
 
     //create our chat channels
-    m_services.lsc_service->CreateSystemChannel(m_data.regionID);
-    m_services.lsc_service->CreateSystemChannel(m_data.constellationID);
-    m_services.lsc_service->CreateSystemChannel(m_data.systemID);
+    this->m_lsc->CreateSystemChannel(m_data.regionID);
+    this->m_lsc->CreateSystemChannel(m_data.constellationID);
+    this->m_lsc->CreateSystemChannel(m_data.systemID);
 
     // inform MarketBot of loaded system and stations in this system.
     //sMktBotMgr.AddSystem();
@@ -367,7 +370,7 @@ void SystemManager::UnloadSystem() {
     MapDB::SetSystemActive(m_data.systemID, false);
 
     /** @todo finish this for lsc */
-    m_services.lsc_service->SystemUnload(m_data.systemID, m_data.constellationID, m_data.regionID);
+    this->m_lsc->SystemUnload(m_data.systemID, m_data.constellationID, m_data.regionID);
 
     // remove solar system item from ItemFactory
     sItemFactory.RemoveItem(m_data.systemID);
@@ -392,13 +395,13 @@ bool SystemManager::LoadSystemStatics() {
                 /*  types 12242 - 22298 in group 15 are outposts */
                 /*  types 29323 - 29390 in group 15 are wrecked stations */
                 StationItemRef itemRef = sItemFactory.GetStationRef(cur.itemID);
-                StationSE *pSSE = new StationSE(itemRef, *(GetServiceMgr()), this);
+                StationSE *pSSE = new StationSE(itemRef, GetServiceMgr(), this);
                 sEntityList.AddStation(cur.itemID, itemRef);
                 pSE = pSSE;
             } break;
             case EVEDB::invGroups::Asteroid_Belt: {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialRef(cur.itemID);
-                BeltSE *pBSE = new BeltSE(itemRef, *(GetServiceMgr()), this);
+                BeltSE *pBSE = new BeltSE(itemRef, GetServiceMgr(), this);
                 pBSE->SetBeltMgr(m_beltMgr);
                 ++m_beltCount;
                 pSE = pBSE;
@@ -406,7 +409,7 @@ bool SystemManager::LoadSystemStatics() {
             case EVEDB::invGroups::Stargate: {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialRef(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
-                StargateSE *pSSE = new StargateSE(itemRef, *(GetServiceMgr()), this);
+                StargateSE *pSSE = new StargateSE(itemRef, GetServiceMgr(), this);
                 m_gateMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pSSE));
                 ++m_gateCount;
                 pSE = pSSE;
@@ -414,21 +417,21 @@ bool SystemManager::LoadSystemStatics() {
             case EVEDB::invGroups::Planet: {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialRef(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
-                PlanetSE *pPSE = new PlanetSE(itemRef, *(GetServiceMgr()), this);
+                PlanetSE *pPSE = new PlanetSE(itemRef, GetServiceMgr(), this);
                 m_planetMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pPSE));
                 pSE = pPSE;
             } break;
             case EVEDB::invGroups::Moon: {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialRef(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
-                MoonSE *pMSE = new MoonSE(itemRef, *(GetServiceMgr()), this);
+                MoonSE *pMSE = new MoonSE(itemRef, GetServiceMgr(), this);
                 m_moonMap.insert(std::pair<uint32, SystemEntity*>(cur.itemID, pMSE));
                 pSE = pMSE;
             } break;
             case EVEDB::invGroups::Sun: {    // suns dont have anything special, so they are generic SSEs
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialRef(cur.itemID);
                 itemRef->SetAttribute(AttrRadius, cur.radius, false);
-                StaticSystemEntity *pSSE = new StaticSystemEntity(itemRef, *(GetServiceMgr()), this);
+                StaticSystemEntity *pSSE = new StaticSystemEntity(itemRef, GetServiceMgr(), this);
                 pSE = pSSE;
             } break;
             default: {
@@ -557,7 +560,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             InventoryItemRef asteroid = sItemFactory.GetItemRef( entity.itemID );
             if (asteroid.get() == nullptr)
                 ; /** @todo make error msg here */
-            AsteroidSE* aSE = new AsteroidSE(asteroid, *(sysMgr.GetServiceMgr()), &sysMgr);
+            AsteroidSE* aSE = new AsteroidSE(asteroid, sysMgr.GetServiceMgr(), &sysMgr);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making AsteroidSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return aSE;
         } break;
@@ -566,7 +569,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             if (ship.get() == nullptr)
                 return nullptr;
             /** @todo make error msg here */
-            ShipSE* sSE = new ShipSE(ship, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+            ShipSE* sSE = new ShipSE(ship, sysMgr.GetServiceMgr(), &sysMgr, data);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making ShipSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return sSE;
         } break;
@@ -576,7 +579,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 return nullptr;
             /** @todo make error msg here */
             deployable->SetAttribute(AttrRadius, deployable->type().radius());     // Can you set this somehow from the type class ?
-            DeployableSE* dSE = new DeployableSE(deployable, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+            DeployableSE* dSE = new DeployableSE(deployable, sysMgr.GetServiceMgr(), &sysMgr, data);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making DeployableSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return dSE;
         } break;
@@ -590,7 +593,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             StructureSE* pSSE(nullptr);
             switch(entity.groupID) {
                 case EVEDB::invGroups::Control_Tower: {
-                    TowerSE* tSE = new TowerSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    TowerSE* tSE = new TowerSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making TowerSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = tSE;
                 } break;
@@ -598,7 +601,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Mobile_Projectile_Sentry:
                 case EVEDB::invGroups::Mobile_Laser_Sentry:
                 case EVEDB::invGroups::Mobile_Hybrid_Sentry: {
-                    WeaponSE* wSE = new WeaponSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    WeaponSE* wSE = new WeaponSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making WeaponSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE =  wSE;
                 } break;
@@ -608,7 +611,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Warp_Scrambling_Battery:
                 case EVEDB::invGroups::Energy_Neutralizing_Battery:
                 case EVEDB::invGroups::Target_Painting_Battery: {
-                    BatterySE* bSE = new BatterySE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    BatterySE* bSE = new BatterySE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making BatterySE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = bSE;
                 } break;
@@ -622,24 +625,24 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Scanner_Array:
                 case EVEDB::invGroups::Logistics_Array:
                 case EVEDB::invGroups::Structure_Repair_Array: {
-                    ArraySE* aSE = new ArraySE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    ArraySE* aSE = new ArraySE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making ArraySE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = aSE;
                 } break;
                 case EVEDB::invGroups::Silo:
                 case EVEDB::invGroups::Moon_Mining:
                 case EVEDB::invGroups::Mobile_Reactor: {
-                    ReactorSE* rSE = new ReactorSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    ReactorSE* rSE = new ReactorSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making ReactorSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = rSE;
                 } break;
                 case EVEDB::invGroups::Jump_Portal_Array: {
-                    JumpBridgeSE* jbSE = new JumpBridgeSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    JumpBridgeSE* jbSE = new JumpBridgeSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making JumpBridgeSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = jbSE;
                 } break;
                 default: {
-                    StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    StructureSE* sSE = new StructureSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making StructureSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     pSSE = sSE;
                 } break;
@@ -655,22 +658,22 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             //Test for different types of sov structures
             switch(entity.groupID) {
                 case EVEDB::invGroups::Territorial_Claim_Units: {
-                    TCUSE* sSE = new TCUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    TCUSE* sSE = new TCUSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making TCUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     sSSE = sSE;
                 } break;
                 case EVEDB::invGroups::Sovereignty_Blockade_Units: {
-                    SBUSE* sSE = new SBUSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    SBUSE* sSE = new SBUSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making SBUSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     sSSE = sSE;
                 } break;
                 case EVEDB::invGroups::Infrastructure_Hubs: {
-                    IHubSE* sSE = new IHubSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    IHubSE* sSE = new IHubSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making IHubSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     sSSE = sSE;
                 } break;
                 default: { //Should never be called, therefore print an error log
-                    StructureSE* sSE = new StructureSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    StructureSE* sSE = new StructureSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__ERROR, "DynamicEntityFactory::BuildEntity() Default sovereignty StructureSE created for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     sSSE = sSE;
                 } break;
@@ -687,7 +690,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 case EVEDB::invGroups::Test_Orbitals:
                 case EVEDB::invGroups::Orbital_Construction_Platform:
                 case EVEDB::invGroups::Orbital_Infrastructure: {
-                    pCoSE = new CustomsSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    pCoSE = new CustomsSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     //structure->GetMyInventory()->LoadContents();  this is called during structureItem creation
                     if ((entity.planetID) and (entity.groupID != EVEDB::invGroups::Test_Orbitals)) {
                         pCoSE->SetPlanet(entity.planetID);
@@ -711,7 +714,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     if (wreck.get() == nullptr)
                         return nullptr;
                     /** @todo make error msg here */
-                    WreckSE* wSE = new WreckSE(wreck, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    WreckSE* wSE = new WreckSE(wreck, sysMgr.GetServiceMgr(), &sysMgr, data);
                     wreck->GetMyInventory()->LoadContents();
                     wreck->SetMySE(wSE);
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making WreckSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
@@ -726,7 +729,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     if (contRef.get() == nullptr)
                         return nullptr;
                     /** @todo make error msg here */
-                    ContainerSE* cSE = new ContainerSE(contRef, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    ContainerSE* cSE = new ContainerSE(contRef, sysMgr.GetServiceMgr(), &sysMgr, data);
                     contRef->GetMyInventory()->LoadContents();
                     contRef->SetMySE(cSE);
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making ContainerSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
@@ -758,7 +761,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     if (celestial.get() == nullptr)
                         return nullptr;
                     /** @todo make error msg here */
-                    CelestialSE* cSE = new CelestialSE(celestial, *(sysMgr.GetServiceMgr()), &sysMgr);
+                    CelestialSE* cSE = new CelestialSE(celestial, sysMgr.GetServiceMgr(), &sysMgr);
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making CelestialSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return cSE;
                 } break;
@@ -766,7 +769,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     StructureItemRef structure = sItemFactory.GetStructureRef( entity.itemID );
                     if (structure.get() == nullptr)
                         return nullptr;
-                    PlatformSE* pSE = new PlatformSE(structure, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                    PlatformSE* pSE = new PlatformSE(structure, sysMgr.GetServiceMgr(), &sysMgr, data);
                     _log(POS__TRACE, "DynamicEntityFactory::BuildEntity() making PlatformSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return pSE;
                 }
@@ -775,7 +778,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     if (celestial.get() == nullptr)
                         return nullptr;
                     /** @todo make error msg here */
-                    WormholeSE* wSE = new WormholeSE(celestial, *(sysMgr.GetServiceMgr()), &sysMgr);
+                    WormholeSE* wSE = new WormholeSE(celestial, sysMgr.GetServiceMgr(), &sysMgr);
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making WormholeSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return wSE;
                 } break;
@@ -785,7 +788,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     if (celestial.get() == nullptr)
                         return nullptr;
                     /** @todo make error msg here */
-                    AnomalySE* aSE = new AnomalySE(celestial, *(sysMgr.GetServiceMgr()), &sysMgr);
+                    AnomalySE* aSE = new AnomalySE(celestial, sysMgr.GetServiceMgr(), &sysMgr);
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making AnomalySE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return aSE;
                 } break;
@@ -796,7 +799,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     if (iRef.get() == nullptr)
                         return nullptr;
                     /** @todo make error msg here */
-                    ItemSystemEntity* iSE = new ItemSystemEntity(iRef, *(sysMgr.GetServiceMgr()), &sysMgr);
+                    ItemSystemEntity* iSE = new ItemSystemEntity(iRef, sysMgr.GetServiceMgr(), &sysMgr);
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making ISE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return iSE;
                 } break;
@@ -810,7 +813,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 if (contRef.get() == nullptr)
                     return nullptr;
                 /** @todo make error msg here */
-                ContainerSE* cSE = new ContainerSE(contRef, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                ContainerSE* cSE = new ContainerSE(contRef, sysMgr.GetServiceMgr(), &sysMgr, data);
                 contRef->GetMyInventory()->LoadContents();
                 contRef->SetMySE(cSE);
                 _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making ContainerSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
@@ -822,7 +825,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 if (sentryRef.get() == nullptr)
                     return nullptr;
                 /** @todo make error msg here */
-                Sentry* SentrySE = new Sentry(sentryRef, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                Sentry* SentrySE = new Sentry(sentryRef, sysMgr.GetServiceMgr(), &sysMgr, data);
                 _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making SentrySE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                 return SentrySE;
             }
@@ -863,7 +866,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 if (npcRef.get() == nullptr)
                     return nullptr;
                 /** @todo make error msg here */
-                NPC* npcSE = new NPC(npcRef, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+                NPC* npcSE = new NPC(npcRef, sysMgr.GetServiceMgr(), &sysMgr, data);
                 npcSE->Load();
                 sEntityList.AddNPC();
                 _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making NPCSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
@@ -875,7 +878,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                 if (iRef.get() == nullptr)
                     return nullptr;
                 /** @todo make error msg here */
-                ItemSystemEntity* cSE = new ItemSystemEntity(iRef, *(sysMgr.GetServiceMgr()), &sysMgr);
+                ItemSystemEntity* cSE = new ItemSystemEntity(iRef, sysMgr.GetServiceMgr(), &sysMgr);
                 _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making ISE item for %s (%u)", entity.itemName.c_str(), entity.itemID);
                 return cSE;
             }
@@ -885,7 +888,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             if (drone.get() == nullptr)
                 return nullptr;
             /** @todo make error msg here */
-            DroneSE* dSE = new DroneSE(drone, *(sysMgr.GetServiceMgr()), &sysMgr, data);
+            DroneSE* dSE = new DroneSE(drone, sysMgr.GetServiceMgr(), &sysMgr, data);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making DroneSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return dSE;
         } break;
@@ -899,7 +902,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
                     // make sure these are owned by eve system
                     pRef->ChangeOwner(1);
                     //these probes are abandoned and offline.  give them 5h lifetime
-                    ProbeSE* pSE = new ProbeSE(pRef, *(sysMgr.GetServiceMgr()), &sysMgr);
+                    ProbeSE* pSE = new ProbeSE(pRef, sysMgr.GetServiceMgr(), &sysMgr);
                     _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making ProbeSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
                     return pSE;
                 } break;

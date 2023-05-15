@@ -30,7 +30,7 @@
 #include "Client.h"
 #include "Container.h"
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "StatisticMgr.h"
 #include "account/AccountService.h"
 #include "character/Character.h"
@@ -48,7 +48,7 @@
 
 
 
-SystemEntity::SystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+SystemEntity::SystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : m_self(self),
 m_services(services),
 m_system(system),
@@ -140,7 +140,7 @@ void SystemEntity::EncodeDestiny( Buffer& into )
     RIGID_Struct main;
         main.formationID = 0xFF;
     into.Append( main );
-    _log(SE__DESTINY, "SE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "SE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 void SystemEntity::Killed(Damage& damage)
@@ -270,7 +270,7 @@ void SystemEntity::Abandon()
 
 
 /* Static / Non-Mobile / Non-Destructable / Celestial Objects - Suns, Planets, Moons, Belts, Gates, Stations */
-StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+StaticSystemEntity::StaticSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system)
 {
 }
@@ -312,10 +312,10 @@ void StaticSystemEntity::EncodeDestiny( Buffer& into ) {
     RIGID_Struct main;
         main.formationID = 0xFF;
     into.Append( main );
-    _log(SE__DESTINY, "SSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X, radius:%.1f", GetName(), head.entityID, head.mode, head.flags, head.radius);
+    _log(SE__DESTINY, "SSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X, radius:%.1f", GetName(), head.entityID, head.mode, head.flags, head.radius);
 }
 
-BeltSE::BeltSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+BeltSE::BeltSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : StaticSystemEntity(self, services, system)
 {
 }
@@ -340,7 +340,7 @@ bool BeltSE::LoadExtras() {
     return true;
 }
 
-StargateSE::StargateSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+StargateSE::StargateSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : StaticSystemEntity(self, services, system),
 m_sbuSE(nullptr)
 {
@@ -393,7 +393,7 @@ PyDict* StargateSE::MakeSlimItem() {
 
 
 /* Non-Static / Non-Mobile / Non-Destructable / Celestial Objects - Containers, DeadSpace, ForceFields, ScanProbes */
-ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+ItemSystemEntity::ItemSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system),
 m_keyType(0)
 {
@@ -473,7 +473,7 @@ void ItemSystemEntity::EncodeDestiny( Buffer& into )
         main.formationID = 0xFF;
     into.Append( main );
 
-    _log(SE__DESTINY, "ISE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "ISE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
@@ -488,7 +488,7 @@ void ItemSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
     }
 }
 
-FieldSE::FieldSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data)
+FieldSE::FieldSE(InventoryItemRef self, EVEServiceManager &services, SystemManager *system, const FactionData& data)
 : ItemSystemEntity(self, services, system)
 {
     m_warID = data.factionID;
@@ -534,7 +534,7 @@ void FieldSE::EncodeDestiny( Buffer& into )
         into.Append( main );
     }
 
-    _log(SE__DESTINY, "FSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "FSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict *FieldSE::MakeSlimItem()
@@ -544,7 +544,7 @@ PyDict *FieldSE::MakeSlimItem()
 
 
 /* Non-Static / Non-Mobile / Destructible / Celestial Objects - POS Structures, Outposts, Deployables, empty Ships, Asteroids */
-ObjectSystemEntity::ObjectSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+ObjectSystemEntity::ObjectSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system),
 m_invul(false)
 {
@@ -592,7 +592,7 @@ void ObjectSystemEntity::EncodeDestiny( Buffer& into )
         main.formationID = 0xFF;
     into.Append( main );
 
-    _log(SE__DESTINY, "OSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "OSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict* ObjectSystemEntity::MakeSlimItem() {
@@ -650,7 +650,7 @@ void ObjectSystemEntity::Killed(Damage& damage)
     }
 }
 
-DeployableSE::DeployableSE(InventoryItemRef self, PyServiceMgr &services, SystemManager *system, const FactionData& data)
+DeployableSE::DeployableSE(InventoryItemRef self, EVEServiceManager &services, SystemManager *system, const FactionData& data)
 : ObjectSystemEntity(self, services, system)
 {
     m_warID = data.factionID;
@@ -669,7 +669,7 @@ DeployableSE::DeployableSE(const DeployableSE* oth)
 
 
 /* Non-Static / Mobile / Destructible / Celestial Objects - PC's, NPC's, Drones, Ships, Missiles, Wrecks  */
-DynamicSystemEntity::DynamicSystemEntity(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+DynamicSystemEntity::DynamicSystemEntity(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : SystemEntity(self, services, system),
 m_invul(false),
 m_frozen(false)
@@ -751,7 +751,7 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into )
         main.formationID = 0xFF;
     into.Append( main );
 
-    _log(SE__DESTINY, "DSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "DSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 void DynamicSystemEntity::MakeDamageState(DoDestinyDamageState &into) {
@@ -829,4 +829,27 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
             AccountService::TranserFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
         }
     }
+}
+
+DungeonEditSE::DungeonEditSE(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, Dungeon::RoomObject data)
+: ObjectSystemEntity(self, services, system),
+    m_data(data)
+{
+}
+
+PyDict* DungeonEditSE::MakeSlimItem()
+{
+    _log(SE__SLIMITEM, "MakeSlimItem for DungeonEditSE %s(%u)", GetName(), m_self->itemID());
+    PyDict *slim = new PyDict();
+        slim->SetItemString("itemID", new PyLong(m_self->itemID()));
+        slim->SetItemString("typeID", new PyInt(m_self->typeID()));
+        slim->SetItemString("groupID", new PyInt(m_self->groupID()));
+        slim->SetItemString("dunObjectID", new PyInt(m_self->itemID()));
+        slim->SetItemString("dunRadius", new PyFloat(m_data.radius));
+        slim->SetItemString("dunRoomID", new PyInt(m_data.roomID));
+        slim->SetItemString("dunX", new PyFloat(m_data.x));
+        slim->SetItemString("dunY", new PyFloat(m_data.y));
+        slim->SetItemString("dunZ", new PyFloat(m_data.z));
+
+    return slim;
 }

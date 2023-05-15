@@ -27,9 +27,10 @@
 #ifndef __COLONY_H_INCL__
 #define __COLONY_H_INCL__
 
-#include "PyCallable.h"
+
 
 #include "planet/PlanetDB.h"
+#include "services/ServiceManager.h"
 
 class PlanetSE;
 class SystemEntity;
@@ -37,7 +38,7 @@ class PlanetMgr;
 
 class Colony {
 public:
-    Colony(PyServiceMgr* mgr, Client* pClient, SystemEntity* pSE);
+    Colony(EVEServiceManager& mgr, Client* pClient, SystemEntity* pSE);
     ~Colony();
 
     void Init();
@@ -92,7 +93,7 @@ public:
     int64 GetSimTime()                                  { return m_procTime; }
 
 private:
-    PyServiceMgr* m_svcMgr;
+    EVEServiceManager& m_svcMgr;
     PlanetSE* m_pSE;
     PI_CCPin* ccPin;
     Client* m_client;

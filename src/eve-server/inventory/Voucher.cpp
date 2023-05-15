@@ -25,77 +25,74 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+#include "StaticDataMgr.h"
+#include "Client.h"
+#include "inventory/ItemFactory.h"
 #include "inventory/Voucher.h"
 #include "system/BookmarkDB.h"
+#include "services/ServiceManager.h"
 
-PyCallable_Make_InnerDispatcher(VoucherService)
-
-VoucherService::VoucherService(PyServiceMgr *mgr)
-: PyService(mgr, "voucher"),
-  m_dispatch(new Dispatcher(this))
+VoucherService::VoucherService(EVEServiceManager& mgr) :
+    Service("voucher"),
+    m_manager (mgr)
 {
-    _SetCallDispatcher(m_dispatch);
+    this->Add("GetObject", &VoucherService::GetObject);
+}
+void VoucherService::BoundReleased (VoucherBound* bound) {
+    auto it = this->m_instances.find (bound->GetVoucherID());
 
-    PyCallable_REG_CALL(VoucherService, GetObject);
+    if (it == this->m_instances.end ())
+        return;
+
+    this->m_instances.erase (it);
 }
 
-VoucherService::~VoucherService() {
-    delete m_dispatch;
-}
-
-PyResult VoucherService::Handle_GetObject( PyCallArgs& call ) {
+PyResult VoucherService::GetObject(PyCallArgs& call, PyInt* voucherID) {
   /**
     voucher = self.GetVoucherSvc().GetObject(voucherID)
     if voucher is None:
         return
     self.data[voucherID] = voucher
     */
+    VoucherBound* bound;
+    auto it = this->m_instances.find (voucherID->value());
 
-    //call.Dump(BOOKMARK__CALL_DUMP);
-    // return none for now, to allow client to use default name of 'bookmark'
-    //return PyStatic.NewNone();
+    if (it == this->m_instances.end ()) {
+        //call.Dump(BOOKMARK__CALL_DUMP);
+        // return none for now, to allow client to use default name of 'bookmark'
+        //return PyStatic.NewNone();
+        InventoryItemRef iRef = sItemFactory.GetItemRef(voucherID->value());
+        if (iRef.get() == nullptr) {
+            codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark voucher for bmID %u", call.client->GetName(), voucherID->value());
+            return new PyDict;
+        }
 
-    PyDict* dict = new PyDict();
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return dict;
+        // this is how i return objects for method chaining
+        //we just bind up a new voucher object for item requested and give it back to them.
+        bound = new VoucherBound(m_manager, *this, iRef);
+        this->m_instances.insert_or_assign (voucherID->value(), bound);
+    } else {
+        bound = it->second;
     }
-    InventoryItemRef iRef = sItemFactory.GetItemRef(arg.arg);
-    if (iRef.get() == nullptr) {
-        codelog(ITEM__ERROR, "%s: Failed to retrieve bookmark voucher for bmID %u", call.client->GetName(), arg.arg);
-        return dict;
-    }
 
-    // this is how i return objects for method chaining
-    //we just bind up a new voucher object for item requested and give it back to them.
-    VoucherBound *vb = new VoucherBound(m_manager, iRef);
-    return m_manager->BindObject(call.client, vb );
+    bound->NewReference (call.client);
+
+    PyTuple* rsp = new PyTuple(2);
+
+    rsp->SetItem(0, new PySubStruct(new PySubStream(bound->GetOID())));
+    rsp->SetItem(1, PyStatic.NewNone());
+
+    return rsp;
 }
 
-
-PyCallable_Make_InnerDispatcher(VoucherBound)
-
-VoucherBound::VoucherBound(PyServiceMgr* mgr, InventoryItemRef itemRef)
-: PyBoundObject(mgr),
-m_dispatch(new Dispatcher(this))
+VoucherBound::VoucherBound(EVEServiceManager& mgr, VoucherService& parent, InventoryItemRef itemRef) :
+    EVEBoundObject (mgr, parent),
+    m_itemRef (itemRef)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    m_strBoundObjectName = "VoucherBound";
-
-    m_itemRef = itemRef;
-
-    PyCallable_REG_CALL(VoucherBound, GetDescription);
+    this->Add("GetDescription", &VoucherBound::GetDescription);
 }
 
-VoucherBound::~VoucherBound()
-{
-    delete m_dispatch;
-}
-
-PyResult VoucherBound::Handle_GetDescription(PyCallArgs &call) {
+PyResult VoucherBound::GetDescription(PyCallArgs &call) {
     //   name = voucher.GetDescription()
 
     // get bookmark name (memo) as stored in db.  item.customInfo is bookmarkID this item is copied from

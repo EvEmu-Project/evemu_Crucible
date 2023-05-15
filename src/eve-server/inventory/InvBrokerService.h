@@ -27,25 +27,49 @@
 #define __INVBROKER_SERVICE_H_INCL__
 
 #include "inventory/InventoryDB.h"
-#include "PyService.h"
+#include "services/BoundService.h"
+#include "Client.h"
 
 class PyRep;
+class InvBrokerBound;
+class InventoryBound;
 
-class InvBrokerService
-: public PyService
+class InvBrokerService : public BindableService <InvBrokerService, InvBrokerBound>, public BoundServiceParent<InventoryBound>
 {
 public:
-    InvBrokerService(PyServiceMgr *mgr);
-    virtual ~InvBrokerService();
+    InvBrokerService(EVEServiceManager& mgr);
+
+    void BoundReleased (InvBrokerBound* bound) override;
+    void BoundReleased (InventoryBound* bound) override;
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult GetItemDescriptor(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
+};
 
-    PyCallable_DECL_CALL(GetItemDescriptor)
+class InvBrokerBound : public EVEBoundObject <InvBrokerBound>
+{
+public:
+    InvBrokerBound(EVEServiceManager& mgr, InvBrokerService& parent, uint32 locationID, uint32 groupID);
+
+protected:
+    PyResult GetContainerContents(PyCallArgs& call, PyInt* containerID, PyInt* locationID);
+    PyResult GetInventoryFromId(PyCallArgs& call, PyInt* inventoryID, PyInt* passive);
+    PyResult GetInventory(PyCallArgs& call, PyInt* containerID, std::optional <PyInt*> ownerID);
+    PyResult SetLabel(PyCallArgs& call, PyInt* itemID, PyRep* itemName);
+    PyResult TrashItems(PyCallArgs& call, PyList* itemIDs, PyInt* locationID);
+    PyResult AssembleCargoContainer(PyCallArgs& call, PyInt* itemID, PyNone* none, PyFloat* zero);
+    PyResult BreakPlasticWrap(PyCallArgs& call);
+    PyResult TakeOutTrash(PyCallArgs& call, PyList* itemIDs);
+    PyResult SplitStack(PyCallArgs& call, PyInt* locationID, PyInt* itemID, PyInt* quantity, PyInt* ownerID);
+    PyResult DeliverToCorpHangar(PyCallArgs& call, PyInt* officeID, PyInt* locationID, PyInt* itemsToDeliver, std::optional <PyInt*> quantity, PyInt* ownerID, PyInt* destinationFlag);
+    PyResult DeliverToCorpMember(PyCallArgs& call, PyInt* corporationMemberID, PyInt* stationID, PyList* itemIDs, std::optional <PyInt*> quantity, PyInt* ownerID);
+
+protected:
+    uint32 m_locationID;
+    uint32 m_groupID;
 };
 
 #endif

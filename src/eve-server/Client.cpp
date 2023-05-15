@@ -33,7 +33,7 @@
 #include "ConsoleCommands.h"
 #include "EVEServerConfig.h"
 #include "LiveUpdateDB.h"
-#include "PyBoundObject.h"
+
 #include "StaticDataMgr.h"
 #include "chat/LSCService.h"
 #include "character/CharUnboundMgrService.h"
@@ -61,7 +61,7 @@
 
 static const uint32 PING_INTERVAL_MS = 600000; //10m
 
-Client::Client(PyServiceMgr &services, EVETCPConnection** con)
+Client::Client(EVEServiceManager& services, EVETCPConnection** con)
 : EVEClientSession(con),
   m_TS(nullptr),
   m_char(CharacterRef(nullptr)),
@@ -126,6 +126,8 @@ Client::Client(PyServiceMgr &services, EVETCPConnection** con)
     m_channels.clear();
     m_hangarLoaded.clear();
 
+    this->m_lsc = m_services.Lookup <LSCService>("LSC");
+
     // Start handshake
     Reset();
 }
@@ -163,8 +165,7 @@ Client::~Client() {
         if (!sConsole.IsShutdown()) {
             if (IsDocked()) {
                 if (GetTradeSession()) {
-                    TradeService* mts = (TradeService*)(m_services.LookupService("trademgr"));
-                    mts->CancelTrade(this);
+                    this->services().Lookup <TradeService>("trademgr")->CancelTrade(this);
                 }
                 CharNoLongerInStation();
                 // remove char from station
@@ -182,8 +183,13 @@ Client::~Client() {
     // remove char from entitylist
     sEntityList.RemovePlayer(this);
 
-    for (auto cur : m_bindSet)
-        m_services.ClearBoundObject(cur);
+    // reverse this so we destroy from newest to older
+    // this prevents use after free
+    auto cur = m_bindSet.rbegin ();
+    auto end = m_bindSet.rend ();
+
+    for (; cur != end; ++cur)
+        m_services.ClearBoundObject(*cur, this);
 
     m_system = nullptr; // DO NOT delete m_system here
 
@@ -310,7 +316,7 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     }
 
     //create corp and ally chat channels (if not already created)
-    m_services.lsc_service->CharacterLogin(this);
+    this->m_lsc->CharacterLogin(this);
 
     // load char LPs
     //m_lpMap
@@ -333,7 +339,7 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     m_ship->SetShipCapacitorLevel(1.0);
 
     // send MOTD and server data to 'local' chat channel
-    m_services.lsc_service->SendServerMOTD(this);
+    this->m_lsc->SendServerMOTD(this);
 
     return (m_loaded = true);
 }
@@ -900,8 +906,7 @@ void Client::DockToStation() {
 
 void Client::UndockFromStation() {
     if (m_TS != nullptr) {
-        TradeService* mts = (TradeService*)(m_services.LookupService("trademgr"));
-        mts->CancelTrade(this);
+        this->services().Lookup <TradeService>("trademgr")->CancelTrade(this);
     }
 
     m_invul = true;
@@ -933,7 +938,7 @@ void Client::CreateShipSE() {
         data.corporationID = GetCorporationID();
         data.factionID = GetWarFactionID();
         data.ownerID = GetCharacterID();
-    pShipSE = new ShipSE(m_ship, *(m_system->GetServiceMgr()), m_system, data);
+    pShipSE = new ShipSE(m_ship, m_system->GetServiceMgr(), m_system, data);
     _log(PLAYER__MESSAGE, "CreateShipSE() - pShipSE %p created for %s(%u)", pShipSE, m_char->name(), m_char->itemID());
 }
 
@@ -1113,7 +1118,7 @@ void Client::Eject()
         data.factionID = GetWarFactionID();
         data.allianceID = GetAllianceID();
         data.corporationID = GetCorporationID();
-    ShipSE* newShipSE = new ShipSE(m_pod, *(m_system->GetServiceMgr()), m_system, data);
+    ShipSE* newShipSE = new ShipSE(m_pod, m_system->GetServiceMgr(), m_system, data);
     if (newShipSE == nullptr) {
         _log(PLAYER__ERROR, "%s Eject() - pShipSE = NULL for shipID %u.", m_char->name(), m_pod->itemID());
         // we should probably send char to their clone station if this happens....
@@ -1147,7 +1152,7 @@ void Client::ResetAfterPopped(GPoint& position)
         data.corporationID = GetCorporationID();
         data.factionID = GetWarFactionID();
         data.ownerID = GetCharacterID();
-    ShipSE* newShipSE = new ShipSE(m_pod, *(m_system->GetServiceMgr()), m_system, data);
+    ShipSE* newShipSE = new ShipSE(m_pod, m_system->GetServiceMgr(), m_system, data);
     if (newShipSE == nullptr) {
         _log(PLAYER__ERROR, "%s ResetAfterPopped() - pShipSE = NULL for shipID %u.", m_char->name(), m_pod->itemID());
         // we should probably send char to their clone station if this happens....
@@ -2593,43 +2598,58 @@ void Client::_SendPingResponse(const PyAddress& source, int64 callID)
 /************************************************************************/
 bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
 {
-    PyCallable* dest(nullptr);
-    if (packet->dest.service == "") {
-        //bound object
-        uint32 nodeID = 0, bindID = 0;
-        if (sscanf(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
-            sLog.Error("Client::CallReq","Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
-            return false;
-        }
+    // build arguments
+    PyCallArgs args(this, req.arg_tuple, req.arg_dict);
+    PyResult result;
+    uint32 nodeID = 0, bindID = 0;
 
-        if (nodeID != m_services.GetNodeID()) {
-            sLog.Error("Client::CallReq","Unknown nodeID - received %u but expected %u.", nodeID, m_services.GetNodeID());
-            return false;
-        }
+    // try to handle with the new service handler and fallback to the old version
+    try
+    {
+        if (packet->dest.service == "") {
+            if (sscanf(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
+                sLog.Error("Client::CallReq", "Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
+                return false;
+            }
 
-        dest = m_services.FindBoundObject(bindID);
-        if (dest == nullptr) {
-            sLog.Error("Client::CallReq", "Failed to find bound object %u.", bindID);
-            return false;
-        }
-    } else {
-        //service
-        dest = m_services.LookupService(packet->dest.service);
-        if (dest == nullptr) {
-            sLog.Error("Client::CallReq","Unable to find service to handle call to: %s", packet->dest.service.c_str());
-            packet->dest.Dump(CLIENT__CALL_DUMP, "    ");
-            throw UserError ("ServiceNotFound"); // this message is invalid (message not found)
+            if (nodeID != m_services.GetNodeID()) {
+                sLog.Error("Client::CallReq", "Unknown nodeID - received %u but expected %u.", nodeID, m_services.GetNodeID());
+                return false;
+            }
+
+            _log(SERVICE__CALLS_BOUND, "%s::%s()", req.remoteObjectStr.c_str(), req.method.c_str());
+            m_canThrow = true;
+            result = m_services.Dispatch(bindID, req.method, args);
+            m_canThrow = false;
+        } else {
+            _log(SERVICE__CALLS, "%s::%s()", packet->dest.service.c_str(), req.method.c_str());
+            m_canThrow = true;
+            result = m_services.Dispatch(packet->dest.service, req.method, args);
+            m_canThrow = false;
         }
     }
+    catch (method_not_found ex)
+    {
+        sLog.Error("Client::CallReq", "Unable to find method to handle call to: %s::%s", packet->dest.service.c_str(), req.method.c_str());
 
-    //build arguments
-    PyCallArgs args(this, req.arg_tuple, req.arg_dict);
+        if (sConfig.debug.IsTestServer) {
+            if (packet->dest.service == "") {
+                sLog.Error("Client::CallReq", m_services.DebugDispatch(bindID, req.method, args).c_str());
+            } else {
+                sLog.Error("Client::CallReq", m_services.DebugDispatch(packet->dest.service, req.method, args).c_str());
+            }
+        }
 
-    //parts of call may be consumed here
-    m_canThrow = true;      // test for throwable.  -allan 29Jul16      should we use try/catch here?   yes
-    PyResult result(dest->Call(req.method, args));
-    m_canThrow = false;
-
+        // ensure some data is returned
+        result = nullptr;
+    }
+    catch (service_not_found)
+    {
+        sLog.Error("Client::CallReq", "Unable to find service to handle call to: %s", packet->dest.service.c_str());
+        packet->dest.Dump(CLIENT__CALL_DUMP, "    ");
+        throw UserError("ServiceNotFound"); // this message is invalid (message not found)
+    }
+    
     SendSessionChange();  //send out the session change before the return.
     if (is_log_enabled(CLIENT__OUT_ALL)) {
         if (result.ssResult != nullptr)
@@ -2678,7 +2698,7 @@ bool Client::Handle_Notify(PyPacket* packet)
 
             // clear bindID from internal map
             m_bindSet.erase(bindID);
-            m_services.ClearBoundObject(bindID);
+            m_services.ClearBoundObject(bindID, this);
         }
     } else {
         sLog.Error("Client::Notify","Unhandled notification from %s: unknown method '%s'", m_char->name(), notify.method.c_str());

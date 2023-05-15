@@ -27,22 +27,16 @@
 #ifndef __LP_STORE_H_INCL__
 #define __LP_STORE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class LPStore
- : public PyService
+class LPStore : public Service<LPStore>
 {
   public:
-    LPStore(PyServiceMgr *mgr);
-    virtual ~LPStore();
+    LPStore();
 
   protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(AcceptOffer);
-    PyCallable_DECL_CALL(GetAvailableOffers);
-
+      PyResult AcceptOffer(PyCallArgs& call, PyInt* offerID, PyInt* quantity);
+      PyResult GetAvailableOffers(PyCallArgs& call);
 };
 
 #endif /* !__LP_STORE_H_INCL__ */

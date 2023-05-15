@@ -32,7 +32,7 @@
 #include "../../eve-common/EVE_Calendar.h"
 #include "../../eve-common/EVE_Mail.h"
 
-#include "PyServiceCD.h"
+
 #include "EntityList.h"
 #include "StatisticMgr.h"
 #include "StaticDataMgr.h"
@@ -43,29 +43,20 @@
 #include "station/StationDataMgr.h"
 #include "system/CalendarDB.h"
 
-PyCallable_Make_InnerDispatcher(RamProxyService)
-
-RamProxyService::RamProxyService(PyServiceMgr *mgr)
-: PyService(mgr, "ramProxy"),
-  m_dispatch(new Dispatcher(this))
+RamProxyService::RamProxyService() :
+    Service("ramProxy")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(RamProxyService, AssemblyLinesGet);
-    PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelect);
-    PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelectPublic);
-    PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelectPrivate);
-    PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelectCorp);
-    PyCallable_REG_CALL(RamProxyService, AssemblyLinesSelectAlliance);
-    PyCallable_REG_CALL(RamProxyService, GetJobs2);
-    PyCallable_REG_CALL(RamProxyService, InstallJob);
-    PyCallable_REG_CALL(RamProxyService, CompleteJob);
-    PyCallable_REG_CALL(RamProxyService, GetRelevantCharSkills);
-    PyCallable_REG_CALL(RamProxyService, UpdateAssemblyLineConfigurations);
-}
-
-RamProxyService::~RamProxyService() {
-    delete m_dispatch;
+    this->Add("AssemblyLinesGet", &RamProxyService::AssemblyLinesGet);
+    this->Add("AssemblyLinesSelect", &RamProxyService::AssemblyLinesSelect);
+    this->Add("AssemblyLinesSelectPublic", &RamProxyService::AssemblyLinesSelectPublic);
+    this->Add("AssemblyLinesSelectPrivate", &RamProxyService::AssemblyLinesSelectPrivate);
+    this->Add("AssemblyLinesSelectCorp", &RamProxyService::AssemblyLinesSelectCorp);
+    this->Add("AssemblyLinesSelectAlliance", &RamProxyService::AssemblyLinesSelectAlliance);
+    this->Add("GetJobs2", &RamProxyService::GetJobs2);
+    this->Add("InstallJob", &RamProxyService::InstallJob);
+    this->Add("CompleteJob", &RamProxyService::CompleteJob);
+    this->Add("GetRelevantCharSkills", &RamProxyService::GetRelevantCharSkills);
+    this->Add("UpdateAssemblyLineConfigurations", &RamProxyService::UpdateAssemblyLineConfigurations);
 }
 
 /*
@@ -79,82 +70,64 @@ RamProxyService::~RamProxyService() {
  * MANUF__DUMP
  */
 
-PyResult RamProxyService::Handle_GetRelevantCharSkills(PyCallArgs &call) {
+PyResult RamProxyService::GetRelevantCharSkills(PyCallArgs &call) {
     return call.client->GetChar()->GetRAMSkills();
 }
 
-PyResult RamProxyService::Handle_AssemblyLinesSelectPublic(PyCallArgs &call) {
+PyResult RamProxyService::AssemblyLinesSelectPublic(PyCallArgs &call) {
     return FactoryDB::AssemblyLinesSelectPublic(call.client->GetRegionID());
 }
 
-PyResult RamProxyService::Handle_AssemblyLinesSelectPrivate(PyCallArgs &call) {
+PyResult RamProxyService::AssemblyLinesSelectPrivate(PyCallArgs &call) {
     return FactoryDB::AssemblyLinesSelectPrivate(call.client->GetCharacterID());
 }
 
-PyResult RamProxyService::Handle_AssemblyLinesSelectCorp(PyCallArgs &call) {
+PyResult RamProxyService::AssemblyLinesSelectCorp(PyCallArgs &call) {
     /** @todo  this needs to search db for POS arrays based on corp */
     return FactoryDB::AssemblyLinesSelectCorporation(call.client->GetCorporationID());
 }
 
-PyResult RamProxyService::Handle_AssemblyLinesSelectAlliance(PyCallArgs &call) {
+PyResult RamProxyService::AssemblyLinesSelectAlliance(PyCallArgs &call) {
     /** @todo  this needs to search db for POS arrays based on alliance */
     return FactoryDB::AssemblyLinesSelectAlliance(call.client->GetAllianceID());
 }
 
-PyResult RamProxyService::Handle_AssemblyLinesGet(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;  // containerID (stationID)
-    if (!arg.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "Unable to decode args.");
-        return nullptr;
-    }
-
-    return FactoryDB::AssemblyLinesGet(arg.arg);
+PyResult RamProxyService::AssemblyLinesGet(PyCallArgs &call, PyInt* stationID) {
+    return FactoryDB::AssemblyLinesGet(stationID->value());
 }
 
-PyResult RamProxyService::Handle_AssemblyLinesSelect(PyCallArgs &call) {
-    Call_AssemblyLinesSelect args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    if (args.filter == "region") {
+PyResult RamProxyService::AssemblyLinesSelect(PyCallArgs &call, PyString* filter) {
+    if (filter->content() == "region") {
         return FactoryDB::AssemblyLinesSelectPublic(call.client->GetRegionID());
-    } else if (args.filter == "char") {
+    } else if (filter->content() == "char") {
         return FactoryDB::AssemblyLinesSelectPersonal(call.client->GetCharacterID());
-    } else if (args.filter == "corp") {
+    } else if (filter->content() == "corp") {
         return FactoryDB::AssemblyLinesSelectCorporation(call.client->GetCorporationID());
-    } else if (args.filter == "alliance") {
+    } else if (filter->content() == "alliance") {
         return FactoryDB::AssemblyLinesSelectAlliance(call.client->GetAllianceID());
     }
 
-    _log(SERVICE__ERROR, "Unknown filter '%s'.", args.filter.c_str());
+    _log(SERVICE__ERROR, "Unknown filter '%s'.", filter->content().c_str());
     return nullptr;
 }
 
-PyResult RamProxyService::Handle_GetJobs2(PyCallArgs &call) {
-    Call_GetJobs2 args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    if (args.ownerID == call.client->GetCorporationID())
+PyResult RamProxyService::GetJobs2(PyCallArgs &call, PyInt* ownerID, PyInt* completed) {
+    if (ownerID->value() == call.client->GetCorporationID())
         if ((call.client->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager) {
             // what other roles (if any) can view corp factory jobs?
             call.client->SendInfoModalMsg("You cannot view your corporation's jobs because you are not a Factory Manager.");
             return nullptr;
         }
 
-    return FactoryDB::GetJobs2(args.ownerID, args.completed);
+    return FactoryDB::GetJobs2(ownerID->value(), completed->value());
 }
 
 /** @todo update this for corp usage */
 /** @todo  add missing/unhandled indy types (RE, invention, ??)  */
-PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
+PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRep* itemLocationData, PyRep* bomLocationData, PyRep* flagOutput, PyRep* buildRuns, PyRep* activityID, PyRep* licensedProductionRuns, PyRep* ownerFlag, PyRep* blah) {
     //job = sm.ProxySvc('ramProxy').InstallJob(installationLocationData, installedItemLocationData, bomLocationData, flagOutput, quoteData.buildRuns, quoteData.activityID, quoteData.licensedProductionRuns, not quoteData.ownerFlag, 'blah', quoteOnly=1, installedItem=quoteData.blueprint, maxJobStartTime=quoteData.assemblyLine.nextFreeTime + 1 * MIN, inventionItems=quoteData.inventionItems, inventionOutputItemID=quoteData.inventionItems.outputType)
 
-    _log(MANUF__DUMP, "RamProxyService::Handle_InstallJob() - size=%li", call.tuple->size());
+    _log(MANUF__DUMP, "RamProxyService::Handle_InstallJob() - size=%lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     Call_InstallJob args;
@@ -575,7 +548,7 @@ PyResult RamProxyService::Handle_InstallJob(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
+PyResult RamProxyService::CompleteJob(PyCallArgs &call, PyRep* info, PyRep* jobID, PyRep* cancel) {
     /*
      * 23:35:54 [ManufDump] RamProxyService::Handle_CompleteJob() - size 3
      * 23:35:54 [ManufDump]   Call Arguments:
@@ -590,7 +563,7 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
      * 23:35:54 [ManufDump]       [ 1]    Integer: 2                        jobID
      * 23:35:54 [ManufDump]       [ 2]    Boolean: false                    cancel
      */
-    _log(MANUF__DUMP, "RamProxyService::Handle_CompleteJob() - size=%li", call.tuple->size());
+    _log(MANUF__DUMP, "RamProxyService::Handle_CompleteJob() - size=%lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     Call_CompleteJob args;
@@ -822,8 +795,8 @@ PyResult RamProxyService::Handle_CompleteJob(PyCallArgs &call) {
     return PyStatic.NewNone();
 }
 
-PyResult RamProxyService::Handle_UpdateAssemblyLineConfigurations(PyCallArgs &call) {
-    _log(MANUF__DUMP, "RamProxyService::Handle_UpdateAssemblyLineConfigurations() - size=%li", call.tuple->size());
+PyResult RamProxyService::UpdateAssemblyLineConfigurations(PyCallArgs &call, PyRep* installationLocationData, PyRep* rowset) {
+    _log(MANUF__DUMP, "RamProxyService::Handle_UpdateAssemblyLineConfigurations() - size=%lli", call.tuple->size());
     call.Dump(MANUF__DUMP);
 
     //RamConfigAssemblyLinesAccessDenied

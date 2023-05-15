@@ -26,18 +26,14 @@
 #ifndef __VOICE_MGR__H__INCL__
 #define __VOICE_MGR__H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class VoiceMgrService : public PyService {
+class VoiceMgrService : public Service <VoiceMgrService> {
 public:
-    VoiceMgrService(PyServiceMgr *mgr);
-    ~VoiceMgrService();
+    VoiceMgrService();
 
-    PyCallable_DECL_CALL(VoiceEnabled);
-
-private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+protected:
+    PyResult VoiceEnabled(PyCallArgs& call);
 };
 
 #endif /* __VOICE_MGR__H__INCL__ */

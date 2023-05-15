@@ -109,7 +109,7 @@ PyRep *StandingDB::PrimeCharStandings(uint32 charID)
     return DBResultToRowset(res);
 }
 
-PyRep *StandingDB::GetStandingTransactions(Call_GetStandingTransactions &args)
+PyRep *StandingDB::GetStandingTransactions(uint32 fromID, uint32 toID)
 {
     //GetStandingTransactions(fromID, toID, direction, eventID, eventType, eventDateTime)
     /** @todo update this for direction */
@@ -131,7 +131,7 @@ PyRep *StandingDB::GetStandingTransactions(Call_GetStandingTransactions &args)
                             "  msg"
                             " FROM repStandingChanges"
                             " WHERE toID = %u AND fromID = %u",
-                            args.toID, args.fromID))
+                            toID, fromID))
     {
         codelog(SERVICE__ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;

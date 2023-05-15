@@ -552,10 +552,10 @@ void PlanetDB::UpdateECUPin(uint32 pinID, PI_CCPin* ccPin)
         "  headRadius = %f,"
         "  qtyPerCycle = %u,"
         "  schematicID = %u,"
-        "  expiryTime = %li,"
-        "  cycleTime = %li,"
-        "  installTime = %li,"
-        "  lastRunTime = %li"
+        "  expiryTime = %lli,"
+        "  cycleTime = %lli,"
+        "  installTime = %lli,"
+        "  lastRunTime = %lli"
         " WHERE pinID = %u",
         itr->second.programType, itr->second.headRadius, itr->second.qtyPerCycle, itr->second.schematicID, itr->second.expiryTime,
         itr->second.cycleTime, itr->second.installTime, itr->second.lastRunTime, pinID))

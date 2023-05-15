@@ -29,7 +29,7 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyCallable.h"
+
 
 /* this is only called by Inventory::LoadContents()
  * it is optimized for specific calling objects, to avoid multiple db hits while loading,

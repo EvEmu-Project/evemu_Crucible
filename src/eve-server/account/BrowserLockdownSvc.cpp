@@ -27,29 +27,19 @@
 #include "eve-server.h"
 #include "EVE_Consts.h"
 
-#include "PyServiceCD.h"
+#include "EVEServerConfig.h"
 #include "account/BrowserLockdownSvc.h"
 
-
-PyCallable_Make_InnerDispatcher(BrowserLockdownService)
-
-BrowserLockdownService::BrowserLockdownService( PyServiceMgr *mgr )
-: PyService(mgr, "browserLockdownSvc"),
-  m_dispatch(new Dispatcher(this))
+BrowserLockdownService::BrowserLockdownService()
+: Service ("browserLockdownSvc")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(BrowserLockdownService, GetFlaggedSitesHash);
-    PyCallable_REG_CALL(BrowserLockdownService, GetFlaggedSitesList);
-    PyCallable_REG_CALL(BrowserLockdownService, GetDefaultHomePage);
-    PyCallable_REG_CALL(BrowserLockdownService, IsBrowserInLockdown);
+    this->Add("GetFlaggedSitesHash", &BrowserLockdownService::GetFlaggedSitesHash);
+    this->Add("GetFlaggedSitesList", &BrowserLockdownService::GetFlaggedSitesList);
+    this->Add("GetDefaultHomePage", &BrowserLockdownService::GetDefaultHomePage);
+    this->Add("IsBrowserInLockdown", &BrowserLockdownService::IsBrowserInLockdown);
 }
 
-BrowserLockdownService::~BrowserLockdownService() {
-    delete m_dispatch;
-}
-
-PyResult BrowserLockdownService::Handle_GetFlaggedSitesHash(PyCallArgs &call)
+PyResult BrowserLockdownService::GetFlaggedSitesHash(PyCallArgs &call)
 {
     /* Future updates should be the md5 sum of the cache/browser/flaggedsites.dat file from user/appdata/Local/CCP/EVE
      *  as we dont have this list (which is sent from GetFlaggedSitesList), we send the md5 sum for an empty set.
@@ -58,19 +48,19 @@ PyResult BrowserLockdownService::Handle_GetFlaggedSitesHash(PyCallArgs &call)
     //return new PyString("d751713988987e9331980363e24189ce");    // avianrr
 }
 
-PyResult BrowserLockdownService::Handle_GetFlaggedSitesList(PyCallArgs &call)
+PyResult BrowserLockdownService::GetFlaggedSitesList(PyCallArgs &call)
 {
     // all packets show none here, however, this throws error for me in crucible.
     //  needs to be empty list to play nice with above hash
     return PyStatic.mtList();
 }
 
-PyResult BrowserLockdownService::Handle_GetDefaultHomePage(PyCallArgs &call)
+PyResult BrowserLockdownService::GetDefaultHomePage(PyCallArgs &call)
 {
     return new PyWString(HomePageURL);
 }
 
-PyResult BrowserLockdownService::Handle_IsBrowserInLockdown(PyCallArgs &call)
+PyResult BrowserLockdownService::IsBrowserInLockdown(PyCallArgs &call)
 {
     return new PyBool(sConfig.server.DisableIGB);
 }

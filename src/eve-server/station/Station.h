@@ -171,14 +171,14 @@ private:
 /**
  * StaticSystemEntity which represents Station object in space
  */
-class PyServiceMgr;
+class EVEServiceManager;
 class SystemManager;
 
 class StationSE
 : public StaticSystemEntity
 {
 public:
-    StationSE(StationItemRef station, PyServiceMgr &services, SystemManager* system);
+    StationSE(StationItemRef station, EVEServiceManager &services, SystemManager* system);
     virtual ~StationSE()                                { /* Do nothing here */ }
 
     /* class type pointer querys. */

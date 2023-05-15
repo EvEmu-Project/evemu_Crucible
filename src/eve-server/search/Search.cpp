@@ -28,53 +28,45 @@
 
 #include "search/Search.h"
 
-PyCallable_Make_InnerDispatcher(Search)
-
-Search::Search(PyServiceMgr* mgr)
-: PyService(mgr, "search"),
-  m_dispatch(new Dispatcher(this))
+Search::Search() :
+    Service("search")
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(Search, Query);
-    PyCallable_REG_CALL(Search, QuickQuery);
+    this->Add("Query", &Search::Query);
+    this->Add("QuickQuery", &Search::QuickQuery);
 }
 
-Search::~Search() {
-    delete m_dispatch;
-}
-
-PyResult Search::Handle_Query( PyCallArgs& call ) {
-    Call_SearchQuery args;
-    if (!args.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        call.client->SendErrorMsg("Search Failed.  Try using a different search string.");
-        return nullptr;
-    }
-
-    std::string str = args.str;
+PyResult Search::Query(PyCallArgs& call, PyWString* filter, PyList* data) {
+    std::string str = filter->content();
     Replace(str);
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
-        if (EvE::icontains(args.str, cur))
+        if (EvE::icontains(str, cur))
             throw CustomError ("Search String contains invalid characters");
 
-    return m_db->Query( str, &args.ids, call.client->GetCharacterID() );
+    // TODO: this should be possible to improve once there's updates to the type system
+    // all the collections needs some overhaul on how they work
+    std::vector<int> ids;
+    
+    PyList::const_iterator list_2_cur = data->begin();
+    for (size_t list_2_index(0); list_2_cur != data->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SearchQuery failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ids.push_back(t->value());
+    }
+
+    return m_db->Query( str, &ids, call.client->GetCharacterID() );
 }
 
 
-PyResult Search::Handle_QuickQuery( PyCallArgs& call )  {
+PyResult Search::QuickQuery(PyCallArgs& call, PyWString* filter, PyList* data)  {
 /*         QuickQuery(query, groupIDList, hideNPC=hideNPC, onlyAltName=onlyAltName)
 */
-    Call_SearchQuery args;
-    if (!args.Decode(&call.tuple)) {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        call.client->SendErrorMsg("Search Failed.  Try using a different search string.");
-        return nullptr;
-    }
-
-    std::string str = args.str;
+    std::string str = filter->content();
 	Replace(str);
 
     bool hideNPC = true, onlyAltName = false;
@@ -86,10 +78,26 @@ PyResult Search::Handle_QuickQuery( PyCallArgs& call )  {
 
     // this hits db directly, so test for possible sql injection code
     for (const auto cur : badCharsSearch)
-        if (EvE::icontains(args.str, cur))
+        if (EvE::icontains(str, cur))
             throw CustomError ("Search String contains invalid characters");
 
-    return m_db->QuickQuery( str, &args.ids, call.client->GetCharacterID(), hideNPC, onlyAltName);
+
+    // TODO: this should be possible to improve once there's updates to the type system
+    // all the collections needs some overhaul on how they work
+    std::vector<int> ids;
+
+    PyList::const_iterator list_2_cur = data->begin();
+    for (size_t list_2_index(0); list_2_cur != data->end(); ++list_2_cur, ++list_2_index) {
+        if (!(*list_2_cur)->IsInt()) {
+            _log(XMLP__DECODE_ERROR, "Decode Call_SearchQuery failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
+            return nullptr;
+        }
+
+        const PyInt* t = (*list_2_cur)->AsInt();
+        ids.push_back(t->value());
+    }
+
+    return m_db->QuickQuery( str, &ids, call.client->GetCharacterID(), hideNPC, onlyAltName);
 }
 
 void Search::Replace(std::string &str) {

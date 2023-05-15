@@ -12,7 +12,7 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
-#include "PyServiceMgr.h"
+
 #include "system/cosmicMgrs/CivilianMgr.h"
 
 /*  this class will be in charge of all non-combatant npcs ingame, hereinafter refered to as NC.
@@ -34,13 +34,11 @@
 
 
 CivilianMgr::CivilianMgr()
-: m_services(nullptr)
 {
     m_initalized = false;
 }
 
-void CivilianMgr::Initialize(PyServiceMgr* svc) {
-    m_services = svc;
+void CivilianMgr::Initialize() {
     m_initalized = true;
     sLog.Blue(" Civilian Manager", "Civilian Manager Initialized.");
     /* load current data, start timers, process current data, and create new items, if needed */

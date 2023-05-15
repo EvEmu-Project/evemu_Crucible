@@ -25,33 +25,23 @@
 #ifndef __LANGUAGE_SERVICE_H_INCL__
 #define __LANGUAGE_SERVICE_H_INCL__
 
-#include "PyService.h"
-#include "config/ConfigDB.h"
-#include "packets/Language.h"
 
-class LanguageService
-: public PyService
+#include "config/ConfigDB.h"
+
+#include "services/Service.h"
+#include "Client.h"
+
+class LanguageService : public Service<LanguageService>
 {
 public:
-    LanguageService(PyServiceMgr *mgr);
-    virtual ~LanguageService();
+    LanguageService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     ConfigDB m_db;
 
-    PyCallable_DECL_CALL(GetLanguages)
-    PyCallable_DECL_CALL(GetTextsForGroup)
-
-    //overloaded in order to support bound objects:
-    //virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+    PyResult GetLanguages(PyCallArgs& call);
+    PyResult GetTextsForGroup(PyCallArgs& call, PyInt* textGroup, PyString* languageID);
 };
-
-
-
-
 
 #endif
 

@@ -81,7 +81,7 @@ void CelestialObject::Delete() {
 }
 
 
-CelestialSE::CelestialSE(InventoryItemRef self, PyServiceMgr &services, SystemManager* system)
+CelestialSE::CelestialSE(InventoryItemRef self, EVEServiceManager &services, SystemManager* system)
 : ItemSystemEntity(self, services, system)
 {
     _log(SE__DEBUG, "Created CSE for item %s (%u) with radius of %.1f.", self->name(), self->itemID(), m_radius);
@@ -107,7 +107,7 @@ void CelestialSE::MakeDamageState(DoDestinyDamageState &into)
 }
 
 
-AnomalySE::AnomalySE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
+AnomalySE::AnomalySE(CelestialObjectRef self, EVEServiceManager& services, SystemManager* system)
 : CelestialSE(self, services, system)
 {
 }
@@ -135,7 +135,7 @@ void AnomalySE::EncodeDestiny(Buffer& into)
         main.formationID = 0xFF;
     into.Append( main );
 
-    _log(SE__DESTINY, "AnomalySE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "AnomalySE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict* AnomalySE::MakeSlimItem()
@@ -149,7 +149,7 @@ PyDict* AnomalySE::MakeSlimItem()
     return slim;
 }
 
-WormholeSE::WormholeSE(CelestialObjectRef self, PyServiceMgr& services, SystemManager* system)
+WormholeSE::WormholeSE(CelestialObjectRef self, EVEServiceManager& services, SystemManager* system)
 : CelestialSE(self, services, system),
 m_count(0),
 m_wormholeAge(WormHole::Age::Adolescent),
@@ -185,7 +185,7 @@ void WormholeSE::EncodeDestiny(Buffer& into)
     STOP_Struct main;
         main.formationID = 0xFF;
     into.Append( main );
-    _log(SE__DESTINY, "WormholeSE::EncodeDestiny(): %s - id:%li, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
+    _log(SE__DESTINY, "WormholeSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
 PyDict* WormholeSE::MakeSlimItem()

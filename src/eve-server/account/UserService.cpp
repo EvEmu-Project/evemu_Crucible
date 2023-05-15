@@ -25,53 +25,37 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "account/UserService.h"
+#include "services/ServiceManager.h"
 
-PyCallable_Make_InnerDispatcher(MovementService)
-
-MovementService::MovementService(PyServiceMgr *mgr)
-: PyService(mgr, "movementServer"),
-m_dispatch(new Dispatcher(this))
+MovementService::MovementService(EVEServiceManager *mgr) :
+    Service("movementServer"),
+    m_manager(mgr)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(MovementService, ResolveNodeID);
+    this->Add("ResolveNodeID", &MovementService::ResolveNodeID);
 }
 
-MovementService::~MovementService() {
-    delete m_dispatch;
-}
-
-PyResult MovementService::Handle_ResolveNodeID( PyCallArgs& call )
+PyResult MovementService::ResolveNodeID(PyCallArgs& call, PyInt* newWorldSpaceId)
 {
-    sLog.Yellow( "MovementService", "Handle_ResolveNodeID" );
+    sLog.Yellow( "MovementService", "ResolveNodeID" );
     call.Dump(CHARACTER__DEBUG);
 
-    return new PyInt(888444);
+    return new PyInt(this->m_manager->GetNodeID());
 }
 
-PyCallable_Make_InnerDispatcher(UserService)
-
-UserService::UserService(PyServiceMgr *mgr)
-: PyService(mgr, "userSvc"),
-  m_dispatch(new Dispatcher(this))
+UserService::UserService() :
+    Service("userSvc", eAccessLevel_User)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(UserService, GetRedeemTokens);
-    PyCallable_REG_CALL(UserService, ReverseRedeem);
-    PyCallable_REG_CALL(UserService, GetCreateDate);
-    PyCallable_REG_CALL(UserService, ReportISKSpammer);
-    PyCallable_REG_CALL(UserService, ReportBot);
-    PyCallable_REG_CALL(UserService, ApplyPilotLicence);
+    this->Add("GetRedeemTokens", &UserService::GetRedeemTokens);
+    this->Add("ReverseRedeem", &UserService::ReverseRedeem);
+    this->Add("GetCreateDate", &UserService::GetCreateDate);
+    this->Add("ReportISKSpammer", &UserService::ReportISKSpammer);
+    this->Add("ReportBot", &UserService::ReportBot);
+    this->Add("ApplyPilotLicence", &UserService::ApplyPilotLicence);
 }
 
-UserService::~UserService() {
-    delete m_dispatch;
-}
-
-PyResult UserService::Handle_GetRedeemTokens( PyCallArgs& call )
+PyResult UserService::GetRedeemTokens(PyCallArgs& call)
 {
     /*
     sLog.Yellow( "UserService", "Handle_GetRedeemTokens" );
@@ -177,7 +161,7 @@ PyResult UserService::Handle_GetRedeemTokens( PyCallArgs& call )
     return new PyList();
 }
 
-PyResult UserService::Handle_ReverseRedeem( PyCallArgs& call )
+PyResult UserService::ReverseRedeem(PyCallArgs& call, PyInt* itemID)
 {
     //sm.RemoteSvc('userSvc').ReverseRedeem(item.itemID)
     sLog.Yellow( "UserService", "Handle_ReverseRedeem" );
@@ -193,12 +177,12 @@ PyResult UserService::Handle_ReverseRedeem( PyCallArgs& call )
      */
 }
 
-PyResult UserService::Handle_GetCreateDate( PyCallArgs& call )
+PyResult UserService::GetCreateDate(PyCallArgs& call)
 {
     return new PyLong(call.client->GetChar()->createDateTime());
 }
 
-PyResult UserService::Handle_ReportISKSpammer( PyCallArgs& call )
+PyResult UserService::ReportISKSpammer(PyCallArgs& call, PyInt* characterID, PyInt* channelID)
 {
     // sm.RemoteSvc('userSvc').ReportISKSpammer(charID, channelID, spamEntries)
     sLog.Yellow( "UserService", "Handle_ReportISKSpammer" );
@@ -207,7 +191,7 @@ PyResult UserService::Handle_ReportISKSpammer( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult UserService::Handle_ReportBot( PyCallArgs& call )
+PyResult UserService::ReportBot(PyCallArgs& call, PyInt* itemID)
 {
     sLog.Yellow( "UserService", "Handle_ReportBot" );
     call.Dump(CHARACTER__DEBUG);
@@ -215,7 +199,7 @@ PyResult UserService::Handle_ReportBot( PyCallArgs& call )
     return nullptr;
 }
 
-PyResult UserService::Handle_ApplyPilotLicence( PyCallArgs& call )
+PyResult UserService::ApplyPilotLicence(PyCallArgs& call, PyInt* itemID)
 {
     //sm.RemoteSvc('userSvc').ApplyPilotLicence(itemID, justQuery=True)
     sLog.Yellow( "UserService", "Handle_ApplyPilotLicence" );

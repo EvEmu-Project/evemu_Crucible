@@ -26,18 +26,15 @@
 #ifndef __PHOTOUPLOADSERVICE__H__INCL__
 #define __PHOTOUPLOADSERVICE__H__INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 
-class PhotoUploadService : public PyService {
+class PhotoUploadService : public Service <PhotoUploadService> {
 public:
-    PhotoUploadService(PyServiceMgr* mgr);
-    virtual ~PhotoUploadService();
+    PhotoUploadService();
 
 private:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(Upload);
+    PyResult Upload(PyCallArgs& call, PyString* contents);
 };
 
 #endif // __PHOTOUPLOADSERVICE__H__INCL__

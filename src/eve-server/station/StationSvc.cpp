@@ -26,67 +26,47 @@
 #include "eve-server.h"
 
 #include "Client.h"
-#include "PyServiceCD.h"
 #include "StaticDataMgr.h"
 #include "cache/ObjCacheService.h"
 #include "station/StationDataMgr.h"
 #include "station/StationSvc.h"
 #include "system/sov/SovereigntyDataMgr.h"
 
-
-PyCallable_Make_InnerDispatcher(StationSvc)
-
-StationSvc::StationSvc(PyServiceMgr *mgr)
-: PyService(mgr, "stationSvc"),
-  m_dispatch(new Dispatcher(this))
+StationSvc::StationSvc(EVEServiceManager& mgr) :
+    Service("stationSvc"),
+    m_manager (mgr)
 {
-    _SetCallDispatcher(m_dispatch);
+    this->Add("GetStationItemBits", &StationSvc::GetStationItemBits);
+    this->Add("GetSolarSystem", &StationSvc::GetSolarSystem);
+    this->Add("GetStation", &StationSvc::GetStation);
+    this->Add("GetAllianceSystems", &StationSvc::GetAllianceSystems);
+    this->Add("GetSystemsForAlliance", &StationSvc::GetSystemsForAlliance);
 
-    PyCallable_REG_CALL(StationSvc, GetStationItemBits);
-    PyCallable_REG_CALL(StationSvc, GetSolarSystem);
-    PyCallable_REG_CALL(StationSvc, GetStation);
-    PyCallable_REG_CALL(StationSvc, GetAllianceSystems);
-    PyCallable_REG_CALL(StationSvc, GetSystemsForAlliance);
+    this->m_cache = m_manager.Lookup <ObjCacheService>("objectCaching");
 }
 
-StationSvc::~StationSvc() {
-    delete m_dispatch;
-}
-
-PyResult StationSvc::Handle_GetStationItemBits(PyCallArgs &call) {
+PyResult StationSvc::GetStationItemBits(PyCallArgs &call) {
     return stDataMgr.GetStationItemBits(call.client->GetStationID());
 }
 
-PyResult StationSvc::Handle_GetSolarSystem(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
+PyResult StationSvc::GetSolarSystem(PyCallArgs &call, PyInt* solarSystemID) {
+    ObjectCachedMethodID method_id(GetName().c_str(), "GetSolarSystem");
+
+    if (!this->m_cache->IsCacheLoaded(method_id)) {
+        PyPackedRow *t = SystemDB::GetSolarSystemPackedRow(solarSystemID->value());
+
+        this->m_cache->GiveCache(method_id, (PyRep **)&t);
     }
 
-    ObjectCachedMethodID method_id(GetName(), "GetSolarSystem");
-
-    if (!m_manager->cache_service->IsCacheLoaded(method_id)) {
-        PyPackedRow *t = SystemDB::GetSolarSystemPackedRow(arg.arg);
-
-        m_manager->cache_service->GiveCache(method_id, (PyRep **)&t);
-    }
-
-    return(m_manager->cache_service->MakeObjectCachedMethodCallResult(method_id));
+    return(this->m_cache->MakeObjectCachedMethodCallResult(method_id));
 }
 
-PyResult StationSvc::Handle_GetStation(PyCallArgs &call) {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return stDataMgr.GetStationPyData(arg.arg);
+PyResult StationSvc::GetStation(PyCallArgs &call, PyInt* stationID) {
+    return stDataMgr.GetStationPyData(stationID->value());
 }
 
 //This is called when opening up the sov dashboard
-PyResult StationSvc::Handle_GetAllianceSystems(PyCallArgs &call) {
+PyResult StationSvc::GetAllianceSystems(PyCallArgs &call) {
   sLog.White( "StationSvc::Handle_GetAllianceSystems()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
@@ -94,7 +74,8 @@ PyResult StationSvc::Handle_GetAllianceSystems(PyCallArgs &call) {
 }
 
 //This call is made by client when player opens 'Settled Systems' dropdown in alliance details ui
-PyResult StationSvc::Handle_GetSystemsForAlliance(PyCallArgs &call) {
+PyResult StationSvc::GetSystemsForAlliance(PyCallArgs &call, PyInt* allianceID) {
+    // systems = sm.RemoteSvc('stationSvc').GetSystemsForAlliance(session.allianceid)
   sLog.White( "StationSvc::Handle_GetSystemsForAlliance()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
     return nullptr;

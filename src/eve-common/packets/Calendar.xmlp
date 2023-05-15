@@ -24,35 +24,5 @@
     </tupleInline>
   </elementDef>
 
-  <elementDef name="Call_SendEventResponse">
-    <tupleInline>
-      <int name="eventID" />
-      <int name="ownerID" />
-      <int name="response" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_EditEvent">
-    <tupleInline>
-      <int name="eventID" />
-      <long name="oldDateTime" />
-      <long name="dateTime" />
-      <int name="duration" />
-      <wstring name="title" />
-      <wstring name="description" />
-      <!-- really a soft boolean -->
-      <int name="important" />
-    </tupleInline>
-  </elementDef>
-
-  <elementDef name="Call_UpdateEventParticipants">
-    <tupleInline>
-      <int name="eventID" />
-      <list name="charsToAdd" />
-      <list name="charsToRemove" />
-    </tupleInline>
-  </elementDef>
-
-
 </elements>
 

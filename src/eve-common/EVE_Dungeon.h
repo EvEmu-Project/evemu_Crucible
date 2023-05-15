@@ -145,69 +145,58 @@ namespace Dungeon {
             FacWarLoyaltyPointsGranted = 48
         };
     }
+    /* POD structure entries for dungeon data */
 
-    /* POD structure for active dungeon */
-    struct ActiveData {
-        uint8 state;
-        uint32 systemID;
-        uint32 dunItemID;
-        uint32 dunTemplateID;
-        int64 dunExpiryTime;
+
+
+    // These structures are for dungeons which are not yet spawned (managed by dunDataMgr)
+    
+    // Tags for dungeon multi-index container
+    struct DungeonsByID {};
+    struct DungeonsByArchetype {};
+
+    struct RoomObject {
+        uint32 objectID;
+        uint32 roomID;
+        uint16 typeID;
+        uint16 groupID;
         double x;
         double y;
         double z;
-    };
-    
-    /* POD structure entries for dungeon data */
-    struct Template {
-        uint8 dunTypeID;
-        uint8 dunSpawnClass;
-        uint16 dunEntryID;
-        int32 dunRoomID;
-        std::string dunName;
+        double yaw;
+        double pitch;
+        double roll;
+        double radius;
     };
 
-    struct RoomInfo {
-        uint8 dunRoomType;
-        uint8 dunRoomCategory;
-        uint8 dunRoomSpawnID;
-        uint8 dunRoomSpawnType;
-        uint16 dunRoomID;
-    };
-
-    struct RoomData {
+    struct Room {
+        uint16 roomID;
+        std::string roomName;
+        std::vector<RoomObject> objects;
         int16 x;
         int16 y;
         int16 z;
-        int32 dunGroupID;
     };
 
-    struct GroupData {
-        uint8 typeCatID;    // this is categoryID of the itemType, and needed to simplify create/spawn code
-        int16 typeID;
-        int16 typeGrpID;   // this is groupID of the itemType, and needed to simplify create/spawn code
-        int16 x;
-        int16 y;
-        int16 z;
-        uint16 radius;
-        std::string typeName;
+    struct Dungeon {
+        uint32 dungeonID;
+        std::string name;
+        uint8 status;
+        uint32 factionID;
+        uint8 archetypeID;
+        std::map<uint16, Room> rooms;
     };
 
-    struct RoomSpawnInfo {
-        int16 x;
-        int16 y;
-        int16 z;
-        uint16 dunRoomSpawnID;
-        uint16 dunRoomSpawnType;
+    // These structures are used for dungeons which are actually spawned in space
+    struct LiveRoom {
+        GPoint position;
+        std::vector<uint32> items;
     };
-
-    struct EntryData {
-        int16 x;
-        int16 y;
-        int16 z;
-        uint16 dunEntryID;
+    struct LiveDungeon {
+        uint32 systemID;
+        uint32 anomalyID;
+        std::map<uint16, LiveRoom> rooms;
     };
-
 }
 
 /*

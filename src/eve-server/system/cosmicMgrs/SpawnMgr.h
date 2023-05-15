@@ -17,7 +17,7 @@
 #include "system/cosmicMgrs/ManagerDB.h"
 
 class NPC;
-class PyServiceMgr;
+class EVEServiceManager;
 class SystemManager;
 class SystemBubble;
 class DungeonMgr;
@@ -25,7 +25,7 @@ class DungeonMgr;
 class SpawnMgr
 {
 public:
-    SpawnMgr(SystemManager* mgr, PyServiceMgr& svc);
+    SpawnMgr(SystemManager* mgr, EVEServiceManager& svc);
     ~SpawnMgr()                                         { /* nothing do to yet */ }
 
     bool Init();
@@ -41,7 +41,7 @@ public:
     std::string GetSpawnGroupName(int8 sGroup);
 
     bool DoSpawnForBubble(SystemBubble* pBubble);
-    void DoSpawnForAnomaly(SystemBubble* pBubble, uint8 spawnClass);
+    void DoSpawnForAnomaly(SystemBubble* pBubble, GPoint pos, uint8 level, uint16 typeID);
     void DoSpawnForMission(SystemBubble* pBubble, uint32 regionID);
     void DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID);
 
@@ -81,7 +81,7 @@ protected:
 
 private:
     SystemManager* m_system;    //we do not own this
-    PyServiceMgr& m_services;    //we do not own this
+    EVEServiceManager& m_services;    //we do not own this
     DungeonMgr* m_dungMgr;    //we do not own this
 
     Timer m_ratTimer;

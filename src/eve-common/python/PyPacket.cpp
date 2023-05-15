@@ -282,13 +282,13 @@ service("")
 void PyAddress::Dump(FILE *into, const char *pfx) const {
     switch(type) {
         case Any:
-            fprintf(into, "%sAny: service='%s' callID=%li", pfx, service.c_str(), callID);
+            fprintf(into, "%sAny: service='%s' callID=%lli", pfx, service.c_str(), callID);
         break;
         case Node:
-            fprintf(into, "%sNode: nodeID=%li service='%s' callID=%li", pfx, objectID, service.c_str(), callID);
+            fprintf(into, "%sNode: nodeID=%lli service='%s' callID=%lli", pfx, objectID, service.c_str(), callID);
         break;
         case Client:
-            fprintf(into, "%sClient: clientID=%li service='%s' callID=%li", pfx, objectID, service.c_str(), callID);
+            fprintf(into, "%sClient: clientID=%lli service='%s' callID=%lli", pfx, objectID, service.c_str(), callID);
         break;
         case Broadcast:
             fprintf(into, "%sBroadcast: broadcastID='%s' narrowcast=(not implemented) idtype='%s'", pfx, service.c_str(), bcast_idtype.c_str());
@@ -302,13 +302,13 @@ void PyAddress::Dump(FILE *into, const char *pfx) const {
 void PyAddress::Dump(LogType ltype, const char *pfx) const {
     switch(type) {
         case Any:
-            _log(ltype, "%sAny: service='%s' callID=%li", pfx, service.c_str(), callID);
+            _log(ltype, "%sAny: service='%s' callID=%lli", pfx, service.c_str(), callID);
         break;
         case Node:
-            _log(ltype, "%sNode: nodeID=%li service='%s' callID=%li", pfx, objectID, service.c_str(), callID);
+            _log(ltype, "%sNode: nodeID=%lli service='%s' callID=%lli", pfx, objectID, service.c_str(), callID);
         break;
         case Client:
-            _log(ltype, "%sClient: clientID=%li callID=%li service='%s'", pfx, objectID, callID, service.c_str());
+            _log(ltype, "%sClient: clientID=%lli callID=%lli service='%s'", pfx, objectID, callID, service.c_str());
         break;
         case Broadcast:
             _log(ltype, "%sBroadcast: broadcastID='%s' narrowcast=(not implemented) idtype='%s'", pfx, service.c_str(), bcast_idtype.c_str());
@@ -369,7 +369,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
     switch(PyRep::IntegerValue(tuple->items[0])) {
         case Any: {
             if (tuple->items.size() != 3) {
-                codelog(NET__PACKET_ERROR, "Invalid number of elements in Any address tuple: %lu", tuple->items.size());
+                codelog(NET__PACKET_ERROR, "Invalid number of elements in Any address tuple: %llu", tuple->items.size());
                 PyDecRef(base);
                 PySafeDecRef(tuple);
                 return false;
@@ -385,7 +385,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         }  break;
         case Node: {
             if (tuple->items.size() != 4) {
-                codelog(NET__PACKET_ERROR, "Invalid number of elements in Node address tuple: %lu", tuple->items.size());
+                codelog(NET__PACKET_ERROR, "Invalid number of elements in Node address tuple: %llu", tuple->items.size());
                 PyDecRef(base);
                 PySafeDecRef(tuple);
                 return false;
@@ -402,7 +402,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         }  break;
         case Client: {
             if (tuple->items.size() != 4) {
-                codelog(NET__PACKET_ERROR, "Invalid number of elements in Client address tuple: %lu", tuple->items.size());
+                codelog(NET__PACKET_ERROR, "Invalid number of elements in Client address tuple: %llu", tuple->items.size());
                 PyDecRef(base);
                 PySafeDecRef(tuple);
                 return false;
@@ -419,7 +419,7 @@ bool PyAddress::Decode(PyRep *&in_object) {
         }  break;
         case Broadcast: {
             if (tuple->items.size() != 4) {
-                codelog(NET__PACKET_ERROR, "Invalid number of elements in Broadcast address tuple: %lu", tuple->items.size());
+                codelog(NET__PACKET_ERROR, "Invalid number of elements in Broadcast address tuple: %llu", tuple->items.size());
                 PyDecRef(base);
                 PySafeDecRef(tuple);
                 return false;
@@ -615,7 +615,7 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
     }
 
     if (payload->items.size() != 1) {
-        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - invalid tuple length %lu", payload->items.size());
+        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - invalid tuple length %llu", payload->items.size());
         PyDecRef(payload);
         return false;
     }
@@ -634,7 +634,7 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
     }
 
     if (payload2->items.size() != 2) {
-        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - invalid tuple2 length %lu", payload2->items.size());
+        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - invalid tuple2 length %llu", payload2->items.size());
         PyDecRef(payload);
         PySafeDecRef(payload2);
         return false;
@@ -680,7 +680,7 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
         return false;
     }
     if (maint->items.size() != 4) {
-        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - packet body has %lu elements, expected %d", maint->items.size(), 4);
+        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - packet body has %llu elements, expected %d", maint->items.size(), 4);
         PyDecRef(payload);
         PySafeDecRef(ss);
         PySafeDecRef(maint);
@@ -839,7 +839,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
 
     //decode payload tuple
     if (payload->items.size() != 2) {
-        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - invalid tuple length %lu", payload->items.size());
+        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - invalid tuple length %llu", payload->items.size());
         PyDecRef(payload);
         return false;
     }
@@ -856,7 +856,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
     }
 
     if (payload2->items.size() != 2) {
-        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - invalid tuple2 length %lu", payload2->items.size());
+        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - invalid tuple2 length %llu", payload2->items.size());
         PyDecRef(payload);
         PyDecRef(payload2);
         return false;
@@ -904,7 +904,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
         return false;
     }
     if (robjt->items.size() != 2) {
-        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - packet body has %lu elements, expected %d", robjt->items.size(), 2);
+        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - packet body has %llu elements, expected %d", robjt->items.size(), 2);
         PyDecRef(ss);
         PyDecRef(payload);
         PyDecRef(payload2);
@@ -951,7 +951,7 @@ bool EVENotificationStream::Decode(const std::string &pkt_type, const std::strin
         return false;
     }
     if (subt->items.size() != 2) {
-        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - packet body has %lu elements, expected %d", subt->items.size(), 2);
+        codelog(NET__PACKET_ERROR, "EVENotificationStream::Decode() - packet body has %llu elements, expected %d", subt->items.size(), 2);
         PyDecRef(ss);
         PyDecRef(payload);
         PyDecRef(payload2);

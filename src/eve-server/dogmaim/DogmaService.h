@@ -26,20 +26,15 @@
 #ifndef __DOGMA_SERVICE_H_INCL__
 #define __DOGMA_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
 
-class DogmaService
-: public PyService
+class DogmaService : public Service <DogmaService>
 {
 public:
-    DogmaService(PyServiceMgr *mgr);
-    virtual ~DogmaService();
+    DogmaService();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
-    PyCallable_DECL_CALL(GetOperandsForChar);
+    PyResult GetOperandsForChar(PyCallArgs& call);
 };
 
 #endif

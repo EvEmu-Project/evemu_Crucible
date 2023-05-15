@@ -28,30 +28,27 @@
 #ifndef __BILLMGR_SERVICE_H_INCL__
 #define __BILLMGR_SERVICE_H_INCL__
 
-#include "PyService.h"
+#include "services/Service.h"
+#include "Client.h"
 #include "corporation/CorporationDB.h"
 
-class BillMgr : public PyService
+class BillMgr : public Service <BillMgr>
 {
 public:
-    BillMgr(PyServiceMgr *mgr);
-    virtual ~BillMgr();
+    BillMgr();
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
+    PyResult GetBillTypes(PyCallArgs& call);
+    PyResult GetCorporationBills(PyCallArgs& call);
+    PyResult GetCorporationBillsReceivable(PyCallArgs& call);
+    PyResult CharPayBill(PyCallArgs& call, PyInt* billID);
+    PyResult CharGetBills(PyCallArgs& call);
+    PyResult CharGetBillsReceivable(PyCallArgs& call);
+    PyResult PayCorporationBill(PyCallArgs& call, PyInt* billID);
+    PyResult SendAutomaticPaySettings(PyCallArgs& call, PyDict* automaticPaymentSettings);
+    PyResult GetAutomaticPaySettings(PyCallArgs& call);
 
     CorporationDB m_db;
-
-    PyCallable_DECL_CALL(CharPayBill);
-    PyCallable_DECL_CALL(CharGetBills);
-    PyCallable_DECL_CALL(GetBillTypes);
-    PyCallable_DECL_CALL(CharGetBillsReceivable);
-    PyCallable_DECL_CALL(PayCorporationBill);
-    PyCallable_DECL_CALL(GetCorporationBills);
-    PyCallable_DECL_CALL(GetCorporationBillsReceivable);
-    PyCallable_DECL_CALL(SendAutomaticPaySettings);
-    PyCallable_DECL_CALL(GetAutomaticPaySettings);
 };
 
 #endif

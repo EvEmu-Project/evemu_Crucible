@@ -26,104 +26,92 @@
 
 #include "eve-server.h"
 
-#include "PyServiceCD.h"
+
 #include "StaticDataMgr.h"
 #include "map/MapData.h"
 #include "map/MapService.h"
 #include "system/SystemManager.h"
 #include "system/sov/SovereigntyDataMgr.h"
 
-PyCallable_Make_InnerDispatcher(MapService)
-
-MapService::MapService(PyServiceMgr *mgr)
-: PyService(mgr, "map"),
-  m_dispatch(new Dispatcher(this))
+MapService::MapService() :
+    Service("map", eAccessLevel_Character)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(MapService, GetHistory);
-    PyCallable_REG_CALL(MapService, GetBeaconCount);    //ColorStarsByCynosuralFields
-    PyCallable_REG_CALL(MapService, GetStationCount);    //ColorStarsByStationCount
-    PyCallable_REG_CALL(MapService, GetMyExtraMapInfo);     //ColorStarsByCorpMates
-    PyCallable_REG_CALL(MapService, GetStationExtraInfo);
-    PyCallable_REG_CALL(MapService, GetSolarSystemVisits);
-    PyCallable_REG_CALL(MapService, GetLinkableJumpArrays);
-    PyCallable_REG_CALL(MapService, GetMyExtraMapInfoAgents);  //ColorStarsByMyAgents
-    PyCallable_REG_CALL(MapService, GetSolarSystemPseudoSecurities);
+    this->Add("GetHistory", &MapService::GetHistory);
+    this->Add("GetBeaconCount", &MapService::GetBeaconCount);    //ColorStarsByCynosuralFields
+    this->Add("GetStationCount", &MapService::GetStationCount);    //ColorStarsByStationCount
+    this->Add("GetMyExtraMapInfo", &MapService::GetMyExtraMapInfo);     //ColorStarsByCorpMates
+    this->Add("GetStationExtraInfo", &MapService::GetStationExtraInfo);
+    this->Add("GetSolarSystemVisits", &MapService::GetSolarSystemVisits);
+    this->Add("GetLinkableJumpArrays", &MapService::GetLinkableJumpArrays);
+    this->Add("GetMyExtraMapInfoAgents", &MapService::GetMyExtraMapInfoAgents);  //ColorStarsByMyAgents
+    this->Add("GetSolarSystemPseudoSecurities", &MapService::GetSolarSystemPseudoSecurities);
 
     /**  not handled yet...these are empty calls  */
-    PyCallable_REG_CALL(MapService, GetStuckSystems);
-    PyCallable_REG_CALL(MapService, GetRecentSovActivity);
-    PyCallable_REG_CALL(MapService, GetDeadspaceAgentsMap);
-    PyCallable_REG_CALL(MapService, GetDeadspaceComplexMap);
-    PyCallable_REG_CALL(MapService, GetIncursionGlobalReport);
-    PyCallable_REG_CALL(MapService, GetSystemsInIncursions);    //ColorStarsByIncursions
-    PyCallable_REG_CALL(MapService, GetSystemsInIncursionsGM);  //ColorStarsByIncursions
-    PyCallable_REG_CALL(MapService, GetVictoryPoints);
-    PyCallable_REG_CALL(MapService, GetAllianceJumpBridges);
-    PyCallable_REG_CALL(MapService, GetAllianceBeacons);
-    PyCallable_REG_CALL(MapService, GetCurrentSovData);
+    this->Add("GetStuckSystems", &MapService::GetStuckSystems);
+    this->Add("GetRecentSovActivity", &MapService::GetRecentSovActivity);
+    this->Add("GetDeadspaceAgentsMap", &MapService::GetDeadspaceAgentsMap);
+    this->Add("GetDeadspaceComplexMap", &MapService::GetDeadspaceComplexMap);
+    this->Add("GetIncursionGlobalReport", &MapService::GetIncursionGlobalReport);
+    this->Add("GetSystemsInIncursions", &MapService::GetSystemsInIncursions);    //ColorStarsByIncursions
+    this->Add("GetSystemsInIncursionsGM", &MapService::GetSystemsInIncursionsGM);  //ColorStarsByIncursions
+    this->Add("GetVictoryPoints", &MapService::GetVictoryPoints);
+    this->Add("GetAllianceJumpBridges", &MapService::GetAllianceJumpBridges);
+    this->Add("GetAllianceBeacons", &MapService::GetAllianceBeacons);
+    this->Add("GetCurrentSovData", &MapService::GetCurrentSovData);
     // custom call for displaying all items in system
-    PyCallable_REG_CALL(MapService, GetCurrentEntities);
+    this->Add ("GetCurrentEntities", &MapService::GetCurrentEntities);
 }
 
-MapService::~MapService()
-{
-    delete m_dispatch;
-}
-
-PyResult MapService::Handle_GetCurrentEntities(PyCallArgs &call)
+PyResult MapService::GetCurrentEntities(PyCallArgs &call)
 {
     return call.client->SystemMgr()->GetCurrentEntities();
 }
 
-PyResult MapService::Handle_GetSolarSystemVisits(PyCallArgs &call)
+PyResult MapService::GetSolarSystemVisits(PyCallArgs &call)
 {
     return MapDB::GetSolSystemVisits(call.client->GetCharacterID());
 }
 
-PyResult MapService::Handle_GetMyExtraMapInfoAgents(PyCallArgs &call)
+PyResult MapService::GetMyExtraMapInfoAgents(PyCallArgs &call)
 {
     return StandingDB::GetMyStandings(call.client->GetCharacterID());
 }
 
-PyResult MapService::Handle_GetMyExtraMapInfo(PyCallArgs &call)
+PyResult MapService::GetMyExtraMapInfo(PyCallArgs &call)
 {
     return CharacterDB::GetMyCorpMates(call.client->GetCorporationID());
 }
 
-PyResult MapService::Handle_GetBeaconCount(PyCallArgs &call)
+PyResult MapService::GetBeaconCount(PyCallArgs &call)
 {
     return MapDB::GetDynamicData(2, 24);
 }
 
-PyResult MapService::Handle_GetStationExtraInfo(PyCallArgs &call)
+PyResult MapService::GetStationExtraInfo(PyCallArgs &call)
 {
     return sMapData.GetStationExtraInfo();
 }
 
-PyResult MapService::Handle_GetSolarSystemPseudoSecurities(PyCallArgs &call)
+PyResult MapService::GetSolarSystemPseudoSecurities(PyCallArgs &call)
 {
     // cant find a call to this in client (possible old call)
     return sMapData.GetPseudoSecurities();
 }
 
-PyResult MapService::Handle_GetStationCount(PyCallArgs &call)
+PyResult MapService::GetStationCount(PyCallArgs &call)
 {
     // cached on client side.  if cache is empty, this call is made.
     return sDataMgr.GetStationCount();
 }
 
-PyResult MapService::Handle_GetHistory(PyCallArgs &call) {
-    uint8 int1 = PyRep::IntegerValueU32(call.tuple->GetItem(0));
-    uint8 int2 = PyRep::IntegerValueU32(call.tuple->GetItem(1));
+PyResult MapService::GetHistory(PyCallArgs &call, PyInt* int1, PyInt* int2) {
     if (is_log_enabled(SERVICE__CALLS))
         sLog.Cyan( "MapService::Handle_GetHistory()", "type: %i, timeframe: %i", int1, int2 );
 
-    return MapDB::GetDynamicData(int1, int2);
+    return MapDB::GetDynamicData(int1->value(), int2->value());
 }
 
-PyResult MapService::Handle_GetLinkableJumpArrays(PyCallArgs &call)
+PyResult MapService::GetLinkableJumpArrays(PyCallArgs &call)
 {   // working
     DBQueryResult res;
     PosMgrDB::GetLinkableJumpArrays(call.client->GetCorporationID(), res);
@@ -142,7 +130,7 @@ PyResult MapService::Handle_GetLinkableJumpArrays(PyCallArgs &call)
 
 /** not handled */
 
-PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
+PyResult MapService::GetAllianceJumpBridges(PyCallArgs &call)
 {
     /**     bridgesByLocation = m.GetAllianceJumpBridges()
      *      for toLocID, fromLocID in bridgesByLocation:
@@ -165,7 +153,7 @@ PyResult MapService::Handle_GetAllianceJumpBridges(PyCallArgs &call)
     return list;
 }
 
-PyResult MapService::Handle_GetAllianceBeacons(PyCallArgs &call)
+PyResult MapService::GetAllianceBeacons(PyCallArgs &call)
 {
     sLog.Warning( "MapService::Handle_GetAllianceBeacons()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
@@ -174,7 +162,7 @@ PyResult MapService::Handle_GetAllianceBeacons(PyCallArgs &call)
     return svDataMgr.GetAllianceBeacons(call.client->GetAllianceID());
 }
 
-PyResult MapService::Handle_GetCurrentSovData(PyCallArgs &call)
+PyResult MapService::GetCurrentSovData(PyCallArgs &call, PyInt* locationID)
 {/**
     data = sm.RemoteSvc('map').GetCurrentSovData(constellationID)
     returns locationID, ?
@@ -183,15 +171,9 @@ PyResult MapService::Handle_GetCurrentSovData(PyCallArgs &call)
     sLog.Warning( "MapService::Handle_GetCurrentSovData()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return svDataMgr.GetCurrentSovData(args.arg);
+    return svDataMgr.GetCurrentSovData(locationID->value());
 }
-PyResult MapService::Handle_GetRecentSovActivity(PyCallArgs &call)
+PyResult MapService::GetRecentSovActivity(PyCallArgs &call)
 {
     /** @todo will have to make db table for this one.  */
     /*
@@ -223,7 +205,7 @@ PyResult MapService::Handle_GetRecentSovActivity(PyCallArgs &call)
 }
 
 //   DED Agent Site Report
-PyResult MapService::Handle_GetDeadspaceAgentsMap(PyCallArgs &call)
+PyResult MapService::GetDeadspaceAgentsMap(PyCallArgs &call, PyInt* languageID)
 {/* no packet data
         dungeons = sm.RemoteSvc('map').GetDeadspaceAgentsMap(eve.session.languageID)
         solarSystemID, dungeonID, difficulty, dungeonName = dungeons
@@ -235,7 +217,7 @@ PyResult MapService::Handle_GetDeadspaceAgentsMap(PyCallArgs &call)
 
 //  DED Deadspace Report
 //22:37:54 L MapService::Handle_GetDeadspaceComplexMap(): size= 1
-PyResult MapService::Handle_GetDeadspaceComplexMap(PyCallArgs &call)
+PyResult MapService::GetDeadspaceComplexMap(PyCallArgs &call, PyInt* languageID)
 {/* no packet data
         dungeons = sm.RemoteSvc('map').GetDeadspaceComplexMap(eve.session.languageID)
         solarSystemID, dungeonID, difficulty, dungeonName = dungeons
@@ -250,7 +232,7 @@ PyResult MapService::Handle_GetDeadspaceComplexMap(PyCallArgs &call)
     return result;
 }
 
-PyResult MapService::Handle_GetSystemsInIncursions(PyCallArgs &call) {
+PyResult MapService::GetSystemsInIncursions(PyCallArgs &call) {
     /**  EVE_Incursion.h
      *        participatingSystems = ms.GetSystemsInIncursions()
      *        for solarSystemID, sceneType in participatingSystems:
@@ -273,7 +255,7 @@ PyResult MapService::Handle_GetSystemsInIncursions(PyCallArgs &call) {
     return list;
 }
 
-PyResult MapService::Handle_GetSystemsInIncursionsGM(PyCallArgs &call) {
+PyResult MapService::GetSystemsInIncursionsGM(PyCallArgs &call) {
     /**
      *        participatingSystems = ms.GetSystemsInIncursionsGM()
      *        for solarSystemID, sceneType in participatingSystems:
@@ -297,7 +279,7 @@ PyResult MapService::Handle_GetSystemsInIncursionsGM(PyCallArgs &call) {
 }
 
 //05:52:07 L MapService::Handle_GetIncursionGlobalReport(): size= 0
-PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call) {
+PyResult MapService::GetIncursionGlobalReport(PyCallArgs &call) {
   /**
             report = sm.RemoteSvc('map').GetIncursionGlobalReport()
             rewardGroupIDs = [ r.rewardGroupID for r in report ]
@@ -362,7 +344,7 @@ PyResult MapService::Handle_GetIncursionGlobalReport(PyCallArgs &call) {
 
 //   factional warfare shit
 //https://wiki.eveonline.com/en/wiki/Victory_Points_and_Command_Bunker
-PyResult MapService::Handle_GetVictoryPoints(PyCallArgs &call)
+PyResult MapService::GetVictoryPoints(PyCallArgs &call)
 {/**           factionID, viewmode, solarsystemid, threshold, current in oldhistory.iteritems():
                  */
     sLog.Warning( "MapService::Handle_GetVictoryPoints()", "size=%lu", call.tuple->size());
@@ -372,7 +354,7 @@ PyResult MapService::Handle_GetVictoryPoints(PyCallArgs &call)
 }
 
 
-PyResult MapService::Handle_GetStuckSystems(PyCallArgs &call)
+PyResult MapService::GetStuckSystems(PyCallArgs &call)
 {
     // cant find a call to this in client (possible old call)
     sLog.Warning( "MapService::Handle_GetStuckSystems()", "size=%lu", call.tuple->size());

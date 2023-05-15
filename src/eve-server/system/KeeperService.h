@@ -28,32 +28,63 @@
 #define __KEEPER_SERVICE_H_INCL__
 
 #include "system/SystemDB.h"
-#include "PyService.h"
+#include "services/Service.h"
+#include "services/BoundService.h"
+#include "Client.h"
 
-class KeeperService
-: public PyService
+class KeeperBound;
+
+class KeeperService : public Service <KeeperService>, public BoundServiceParent <KeeperBound>
 {
 public:
-    KeeperService(PyServiceMgr *mgr);
-    virtual ~KeeperService();
+    KeeperService(EVEServiceManager& mgr);
+
+    void BoundReleased (KeeperBound* bound) override;
+    KeeperBound* GetBound() { return m_instance; }
 
 protected:
-    class Dispatcher;
-    Dispatcher *const m_dispatch;
-
     SystemDB m_db;
 
-    PyCallable_DECL_CALL(GetLevelEditor);
-	PyCallable_DECL_CALL(ActivateAccelerationGate);
-	PyCallable_DECL_CALL(CanWarpToPathPlex);
+    PyResult GetLevelEditor(PyCallArgs& call);
+    PyResult CanWarpToPathPlex(PyCallArgs& call, PyInt* instanceID);
+    PyResult ActivateAccelerationGate(PyCallArgs& call, PyInt* itemID);
 
-    //overloaded in order to support bound objects:
-    virtual PyBoundObject *CreateBoundObject(Client *pClient, const PyRep *bind_args);
+private:
+    EVEServiceManager& m_manager;
+    KeeperBound* m_instance;
 };
 
 
+class KeeperBound : public EVEBoundObject <KeeperBound>
+{
+public:
+    KeeperBound(EVEServiceManager& mgr, KeeperService& parent, SystemDB* db);
+    virtual void AddRoomObject(DungeonEditSE *pSE) { m_roomObjects.push_back(pSE); }
+    void RemoveRoomObject(uint32 itemID);
+    DungeonEditSE* GetRoomObject(uint32 itemID);
+    virtual uint32 GetCurrentRoomID() { return m_currentRoom; }
 
+protected:
+    PyResult EditDungeon(PyCallArgs& call, PyInt* dungeonID);
+    PyResult PlayDungeon(PyCallArgs& call, PyInt* dungeonID);
+    PyResult Reset(PyCallArgs& call);
+    PyResult GotoRoom(PyCallArgs& call, PyInt* roomID);
+    PyResult GetCurrentlyEditedRoomID(PyCallArgs& call);
+    PyResult GetRoomObjects(PyCallArgs& call);
+    PyResult GetRoomGroups(PyCallArgs& call, PyInt* roomID);
+    PyResult ObjectSelection(PyCallArgs& call, PyList* objects);
+    PyResult BatchStart(PyCallArgs& call);
+    PyResult BatchEnd(PyCallArgs& call);
 
+protected:
+    SystemDB *const m_db;
+
+private:
+    uint32 m_currentDungeon;
+    uint32 m_currentRoom;
+    std::vector<DungeonEditSE*> m_roomObjects;
+    std::vector<int32> m_selectedObjects;
+};
 
 #endif
 

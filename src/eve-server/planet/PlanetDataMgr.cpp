@@ -225,7 +225,7 @@ PyRep* PIDataMgr::GetProgramResultInfo(Colony* pColony, uint32 pinID, uint16 typ
     uint32 qtyPerCycle = GetProgramOutput(iRef, iCycleTime);
     //qtyPerCycle *= heads->size();
 
-    _log(PLANET__TRACE, "PlanetMgr::GetProgramResultInfo() - cycleTime:%.2f, iCycleTime:%li, length:%.2f, numCycles:%u, qtyPerCycle:%u, heads: %u, headRadius:%.4f", \
+    _log(PLANET__TRACE, "PlanetMgr::GetProgramResultInfo() - cycleTime:%.2f, iCycleTime:%lli, length:%.2f, numCycles:%u, qtyPerCycle:%u, heads: %u, headRadius:%.4f", \
                 cycleTime, iCycleTime, length, numCycles, qtyPerCycle, heads->size(), headRadius);
 
     PyTuple* res = new PyTuple(3);

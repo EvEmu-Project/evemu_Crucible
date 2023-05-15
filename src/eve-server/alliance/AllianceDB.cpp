@@ -13,7 +13,7 @@
 #include "character/Character.h"
 #include "alliance/AllianceDB.h"
 
-void AllianceDB::AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, std::string &title, std::string &body)
+void AllianceDB::AddBulletin(uint32 allyID, uint32 ownerID, uint32 cCharID, const std::string &title, const std::string &body)
 {
     DBerror err;
     sDatabase.RunQuery(err,
@@ -26,7 +26,7 @@ void AllianceDB::EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime
 {
     DBerror err;
     sDatabase.RunQuery(err,
-                       "UPDATE alnBulletins SET editCharacterID = %u, editDateTime = %li, title = '%s', body = '%s'"
+                       "UPDATE alnBulletins SET editCharacterID = %u, editDateTime = %lli, title = '%s', body = '%s'"
                        " WHERE bulletinID = %u",
                        eCharID, eDataTime, title.c_str(), body.c_str(), bulletinID);
 }
@@ -172,7 +172,7 @@ bool AllianceDB::InsertApplication(Alliance::ApplicationInfo &aInfo)
     if (!sDatabase.RunQueryLID(err, aInfo.appID,
                                " INSERT INTO alnApplications"
                                " (corporationID, allianceID, applicationText, state, applicationDateTime)"
-                               " VALUES (%u, %u, '%s', %u, %li)",
+                               " VALUES (%u, %u, '%s', %u, %lli)",
                                aInfo.corpID, aInfo.allyID, escaped.c_str(), aInfo.state, GetFileTimeNow()))
     {
         codelog(ALLY__DB_ERROR, "Error in query: %s", err.c_str());
@@ -238,14 +238,14 @@ PyRep *AllianceDB::GetContacts(uint32 allyID)
     return obj;
 }
 
-void AllianceDB::AddContact(uint32 ownerID, Call_CorporateContactData contactData)
+void AllianceDB::AddContact(uint32 ownerID, int32 contactID, int32 relationshipID)
 {
     DBerror err;
     sDatabase.RunQuery(err,
                        "INSERT INTO alnContacts (ownerID, contactID, relationshipID, "
                        " inWatchlist, labelMask) VALUES "
                        " (%u, %u, %i, 0, 0) ",
-                       ownerID, contactData.contactID, contactData.relationshipID);
+                       ownerID, contactID, relationshipID);
 }
 
 void AllianceDB::UpdateContact(int32 relationshipID, uint32 contactID, uint32 ownerID)
@@ -425,13 +425,13 @@ void AllianceDB::UpdateAlliance(uint32 allyID, std::string description, std::str
     }
 }
 
-bool AllianceDB::CreateAlliance(Call_CreateAlliance &allyInfo, Client *pClient, uint32 &allyID, uint32 &corpID)
+bool AllianceDB::CreateAlliance(std::string name, std::string shortName, std::string description, std::string url, Client *pClient, uint32 &allyID, uint32 &corpID)
 {
     std::string aName, aShort, aDesc, aURL;
-    sDatabase.DoEscapeString(aName, allyInfo.allianceName);
-    sDatabase.DoEscapeString(aShort, allyInfo.shortName);
-    sDatabase.DoEscapeString(aDesc, allyInfo.description);
-    sDatabase.DoEscapeString(aURL, allyInfo.url);
+    sDatabase.DoEscapeString(aName, name);
+    sDatabase.DoEscapeString(aShort, shortName);
+    sDatabase.DoEscapeString(aDesc, description);
+    sDatabase.DoEscapeString(aURL, url);
 
     Character *pChar = pClient->GetChar().get();
     uint32 charID = pClient->GetCharacterID();

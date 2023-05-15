@@ -29,7 +29,7 @@
 #define __STANDINGDB_H_INCL__
 
 #include "ServiceDB.h"
-#include "packets/Standing.h"
+
 
 class PyRep;
 class Client;
@@ -43,7 +43,7 @@ public:
     PyRep* GetCharStandings(Client* pClient);
     PyRep* PrimeCharStandings(uint32 charID);
     PyRep* GetCharNPCStandings(uint32 charID);
-    PyRep* GetStandingTransactions(Call_GetStandingTransactions &args);
+    PyRep* GetStandingTransactions(uint32 fromID, uint32 toID);
     PyRep* GetStandingCompositions(uint32 fromID, uint32 toID);
 
 

@@ -228,7 +228,7 @@ bool ConsoleCommand::HandleCommand(const char* buf)
         float vm(0.0f), rss(0.0f), user(0.0f), kernel(0.0f);
         Status(state, threads, vm, rss, user, kernel);
         sLog.Warning("     Memory Usage", " RSS: %.3fMb  VM: %.3fMb", rss, vm);
-        sLog.Warning("    Server Status", "  S: %s | T: %li(%u) | U: %.2f | K: %.2f", \
+        sLog.Warning("    Server Status", "  S: %s | T: %lli(%u) | U: %.2f | K: %.2f", \
             state.data(), threads, aThreads, user, kernel);
         std::string uptime;
         sEntityList.GetUpTime(uptime);
@@ -297,22 +297,22 @@ bool ConsoleCommand::HandleCommand(const char* buf)
     }
     else if (strncmp(buf, "o", 1) == 0) {
         sLog.Green("  EVEmu", "Common Account Roles:");
-        sLog.Warning("     Acct::Role::DEV", " %li(%p)", Acct::Role::DEV, Acct::Role::DEV);
-        sLog.Warning("     Acct::Role::STD", " %li(%p)", Acct::Role::STD, Acct::Role::STD);
-        sLog.Warning("     Acct::Role::VIP", " %li(%p)", Acct::Role::VIP, Acct::Role::VIP);
-        sLog.Warning("    Acct::Role::VIP+", " %li(%p)", Acct::Role::EPLAYER, Acct::Role::EPLAYER);
-        sLog.Warning("    Acct::Role::VIEW", " %li(%p)", Acct::Role::VIEW, Acct::Role::VIEW);
-        sLog.Warning("    Acct::Role::BOSS", " %li(%p)", Acct::Role::BOSS, Acct::Role::BOSS);
-        sLog.Warning("   Acct::Role::SLASH", " %li(%p)", Acct::Role::SLASH, Acct::Role::SLASH);
-        sLog.Warning(" Acct::Role::CREATOR", " %li(%p)", Acct::Role::CREATOR, Acct::Role::CREATOR);
+        sLog.Warning("     Acct::Role::DEV", " %lli(%p)", Acct::Role::DEV, Acct::Role::DEV);
+        sLog.Warning("     Acct::Role::STD", " %lli(%p)", Acct::Role::STD, Acct::Role::STD);
+        sLog.Warning("     Acct::Role::VIP", " %lli(%p)", Acct::Role::VIP, Acct::Role::VIP);
+        sLog.Warning("    Acct::Role::VIP+", " %lli(%p)", Acct::Role::EPLAYER, Acct::Role::EPLAYER);
+        sLog.Warning("    Acct::Role::VIEW", " %lli(%p)", Acct::Role::VIEW, Acct::Role::VIEW);
+        sLog.Warning("    Acct::Role::BOSS", " %lli(%p)", Acct::Role::BOSS, Acct::Role::BOSS);
+        sLog.Warning("   Acct::Role::SLASH", " %lli(%p)", Acct::Role::SLASH, Acct::Role::SLASH);
+        sLog.Warning(" Acct::Role::CREATOR", " %lli(%p)", Acct::Role::CREATOR, Acct::Role::CREATOR);
         std::printf("\n");     // spacer
         sLog.Green("  EVEmu", "Common Corp Roles:");
-        sLog.Warning("     Corp::Role::All", " %li(%p)", Corp::Role::All, Corp::Role::All);
-        sLog.Warning("    Corp::Role::Cont", " %li(%p)", Corp::Role::AllContainer, Corp::Role::AllContainer);
-        sLog.Warning("   Corp::Role::Admin", " %li(%p)", Corp::Role::Admin, Corp::Role::Admin);
-        sLog.Warning("  Corp::Role::Hangar", " %li(%p)", Corp::Role::AllHangar, Corp::Role::AllHangar);
-        sLog.Warning(" Corp::Role::Account", " %li(%p)", Corp::Role::AllAccount, Corp::Role::AllAccount);
-        sLog.Warning("Corp::Role::Starbase", " %li(%p)", Corp::Role::AllStarbase, Corp::Role::AllStarbase);
+        sLog.Warning("     Corp::Role::All", " %lli(%p)", Corp::Role::All, Corp::Role::All);
+        sLog.Warning("    Corp::Role::Cont", " %lli(%p)", Corp::Role::AllContainer, Corp::Role::AllContainer);
+        sLog.Warning("   Corp::Role::Admin", " %lli(%p)", Corp::Role::Admin, Corp::Role::Admin);
+        sLog.Warning("  Corp::Role::Hangar", " %lli(%p)", Corp::Role::AllHangar, Corp::Role::AllHangar);
+        sLog.Warning(" Corp::Role::Account", " %lli(%p)", Corp::Role::AllAccount, Corp::Role::AllAccount);
+        sLog.Warning("Corp::Role::Starbase", " %lli(%p)", Corp::Role::AllStarbase, Corp::Role::AllStarbase);
     }
     else if (strncmp(buf, "o", 1) == 0) {
         pCommand->ListCommands();
@@ -394,7 +394,7 @@ void ConsoleCommand::Status(std::string& state, int64& threads, float& vm_usage,
     ifs.close();
 
     if (sConfig.debug.IsTestServer)
-        _log(SERVER__INFO, "ConsoleCommand::Status() proc/self/stat returns RSS: %li, VM: %li", rss, vsize);
+        _log(SERVER__INFO, "ConsoleCommand::Status() proc/self/stat returns RSS: %lli, VM: %lli", rss, vsize);
 
     /*  state = One character from the string "RSDZTW" where
               R is running,

@@ -31,7 +31,7 @@
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/SystemEntity.h"
 
-class PyServiceMgr;
+class EVEServiceManager;
 class DestinyManager;
 class InventoryItem;
 class Missile;
@@ -42,7 +42,7 @@ class NPC
 : public DynamicSystemEntity
 {
 public:
-    NPC(InventoryItemRef self, PyServiceMgr& services, SystemManager* system, const FactionData& data, SpawnMgr* spawnMgr = nullptr);
+    NPC(InventoryItemRef self, EVEServiceManager& services, SystemManager* system, const FactionData& data, SpawnMgr* spawnMgr = nullptr);
     virtual ~NPC();
 
     /* class type pointer querys. */

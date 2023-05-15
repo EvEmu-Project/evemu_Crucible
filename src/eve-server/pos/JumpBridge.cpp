@@ -12,7 +12,7 @@
 #include "system/SystemManager.h"
 #include "planet/Moon.h"
 
-JumpBridgeSE::JumpBridgeSE(StructureItemRef structure, PyServiceMgr& services, SystemManager* system, const FactionData& data)
+JumpBridgeSE::JumpBridgeSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data)
 : StructureSE(structure, services, system, data)
 {
     m_bridgeData = EVEPOS::JumpBridgeData();

@@ -28,67 +28,37 @@
 
 #include "../../eve-common/EVE_Character.h"
 
-#include "PyBoundObject.h"
-#include "PyServiceCD.h"
+
+
 #include "EntityList.h"
 #include "account/AccountService.h"
 #include "character/CharMgrService.h"
 #include "packets/CorporationPkts.h"
+#include "services/ServiceManager.h"
 
-class CharMgrBound
-: public PyBoundObject
+CharMgrBound::CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint32 ownerID, uint16 contFlag) :
+    EVEBoundObject(mgr, parent),
+    m_ownerID(ownerID),
+    m_containerFlag(contFlag)
 {
-public:
-	PyCallable_Make_Dispatcher(CharMgrBound);
+    this->Add("List", &CharMgrBound::List);
+    this->Add("ListStations", &CharMgrBound::ListStations);
+    this->Add("ListStationItems", &CharMgrBound::ListStationItems);
+    this->Add("ListStationBlueprintItems", &CharMgrBound::ListStationBlueprintItems);
+}
 
-    CharMgrBound(PyServiceMgr *mgr, uint32 ownerID, uint16 contFlag)
-		: PyBoundObject(mgr),
-		m_dispatch(new Dispatcher(this)),
-		m_ownerID(ownerID),
-		m_containerFlag(contFlag)
-    {
-        _SetCallDispatcher(m_dispatch);
-
-        m_strBoundObjectName = "CharMgrBound";
-
-        PyCallable_REG_CALL(CharMgrBound, List);
-        PyCallable_REG_CALL(CharMgrBound, ListStations);
-        PyCallable_REG_CALL(CharMgrBound, ListStationItems);
-        PyCallable_REG_CALL(CharMgrBound, ListStationBlueprintItems);
-	}
-
-    virtual ~CharMgrBound() {delete m_dispatch;}
-
-	virtual void Release() {
-        //I hate this statement
-        delete this;
-    }
-
-    PyCallable_DECL_CALL(List);
-    PyCallable_DECL_CALL(ListStations);
-    PyCallable_DECL_CALL(ListStationItems);
-    PyCallable_DECL_CALL(ListStationBlueprintItems);
-
-protected:
-    Dispatcher *const m_dispatch;
-
-    uint32 m_ownerID;
-    uint16 m_containerFlag;     // this is EVEContainerType defined in EVE_Inventory.h
-};
-
-
-PyResult CharMgrBound::Handle_List( PyCallArgs& call )
+PyResult CharMgrBound::List(PyCallArgs& call)
 {
     return CharacterDB::List(m_ownerID);
 }
 
-PyResult CharMgrBound::Handle_ListStationItems( PyCallArgs& call )
+PyResult CharMgrBound::ListStationItems(PyCallArgs& call, PyInt* stationID)
 {
     // this is the assets window
-    return CharacterDB::ListStationItems(m_ownerID, PyRep::IntegerValue(call.tuple->GetItem(0)));
+    return CharacterDB::ListStationItems(m_ownerID, stationID->value());
 }
 
-PyResult CharMgrBound::Handle_ListStations( PyCallArgs& call )
+PyResult CharMgrBound::ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyInt* isCorporation)
 {
     //stations = sm.GetService('invCache').GetInventory(const.containerGlobal).ListStations(blueprintOnly, isCorp)
 
@@ -98,10 +68,8 @@ PyResult CharMgrBound::Handle_ListStations( PyCallArgs& call )
     /** @todo  test m_containerFlag to determine correct flag here and append to flagIDs string? */
 
     uint32 ownerID(m_ownerID);
-    bool bpOnly(PyRep::IntegerValue(call.tuple->GetItem(0)));
-    bool isCorp(PyRep::IntegerValue(call.tuple->GetItem(1)));
 
-    if (isCorp) {
+    if (isCorporation->value()) {
         Client* pClient = sEntityList.FindClientByCharID(m_ownerID);
         if (pClient == nullptr)
             return nullptr; // make error here
@@ -111,10 +79,10 @@ PyResult CharMgrBound::Handle_ListStations( PyCallArgs& call )
         flagIDs << flagCorpHangar5 << "," << flagCorpHangar6 << "," << flagCorpHangar7;
     }
 
-    return CharacterDB::ListStations(ownerID, flagIDs, isCorp, bpOnly);
+    return CharacterDB::ListStations(ownerID, flagIDs, isCorporation->value(), blueprintOnly->value());
 }
 
-PyResult CharMgrBound::Handle_ListStationBlueprintItems( PyCallArgs& call )
+PyResult CharMgrBound::ListStationBlueprintItems(PyCallArgs& call, PyInt* locationID, PyInt* stationID, PyInt* forCorporation)
 {
     // this is the BP tab of the S&I window
     call.Dump(CHARACTER__DEBUG);
@@ -125,80 +93,70 @@ PyResult CharMgrBound::Handle_ListStationBlueprintItems( PyCallArgs& call )
      */
     uint32 ownerID(m_ownerID);
 
-    uint32 locationID(PyRep::IntegerValueU32(call.tuple->GetItem(0)));
-    uint32 stationID(PyRep::IntegerValueU32(call.tuple->GetItem(1)));
-    bool forCorp(PyRep::IntegerValueU32(call.tuple->GetItem(2)));
-
-    if (forCorp) { //forCorp
+    if (forCorporation->value()) { //forCorp
         Client* pClient = sEntityList.FindClientByCharID(m_ownerID);
         if (pClient == nullptr)
             return nullptr; // make error here
         ownerID = pClient->GetCorporationID();
     }
-    return CharacterDB::ListStationBlueprintItems(ownerID, stationID, forCorp);
+    return CharacterDB::ListStationBlueprintItems(ownerID, stationID->value(), forCorporation->value());
 }
 
-
-PyCallable_Make_InnerDispatcher(CharMgrService)
-
-CharMgrService::CharMgrService(PyServiceMgr *mgr)
-: PyService(mgr, "charMgr"),
-  m_dispatch(new Dispatcher(this))
+CharMgrService::CharMgrService(EVEServiceManager& mgr) :
+    BindableService("charMgr", mgr, eAccessLevel_Character)
 {
-    _SetCallDispatcher(m_dispatch);
-
-    PyCallable_REG_CALL(CharMgrService, GetPublicInfo);
-    PyCallable_REG_CALL(CharMgrService, GetPublicInfo3);
-    PyCallable_REG_CALL(CharMgrService, GetPrivateInfo);
-    PyCallable_REG_CALL(CharMgrService, GetTopBounties);
-    PyCallable_REG_CALL(CharMgrService, AddToBounty);
-    PyCallable_REG_CALL(CharMgrService, GetContactList);
-    PyCallable_REG_CALL(CharMgrService, GetCloneTypeID);
-    PyCallable_REG_CALL(CharMgrService, GetHomeStation);
-    PyCallable_REG_CALL(CharMgrService, GetFactions);
-    PyCallable_REG_CALL(CharMgrService, SetActivityStatus);
-    PyCallable_REG_CALL(CharMgrService, GetSettingsInfo);
-    PyCallable_REG_CALL(CharMgrService, LogSettings);
-    PyCallable_REG_CALL(CharMgrService, GetCharacterDescription);
-    PyCallable_REG_CALL(CharMgrService, SetCharacterDescription);
-    PyCallable_REG_CALL(CharMgrService, GetPaperdollState);
-    PyCallable_REG_CALL(CharMgrService, GetNote);
-    PyCallable_REG_CALL(CharMgrService, SetNote);
-    PyCallable_REG_CALL(CharMgrService, AddOwnerNote);
-    PyCallable_REG_CALL(CharMgrService, GetOwnerNote);
-    PyCallable_REG_CALL(CharMgrService, GetOwnerNoteLabels);
-    PyCallable_REG_CALL(CharMgrService, AddContact);
-    PyCallable_REG_CALL(CharMgrService, EditContact);
-    PyCallable_REG_CALL(CharMgrService, DeleteContacts);
-    PyCallable_REG_CALL(CharMgrService, GetRecentShipKillsAndLosses);
-    PyCallable_REG_CALL(CharMgrService, BlockOwners);
-    PyCallable_REG_CALL(CharMgrService, UnblockOwners);
-    PyCallable_REG_CALL(CharMgrService, EditContactsRelationshipID);
-    PyCallable_REG_CALL(CharMgrService, GetImageServerLink);
+    this->Add("GetPublicInfo", &CharMgrService::GetPublicInfo);
+    this->Add("GetPublicInfo3", &CharMgrService::GetPublicInfo3);
+    this->Add("GetPrivateInfo", &CharMgrService::GetPrivateInfo);
+    this->Add("GetTopBounties", &CharMgrService::GetTopBounties);
+    this->Add("AddToBounty", &CharMgrService::AddToBounty);
+    this->Add("GetContactList", &CharMgrService::GetContactList);
+    this->Add("GetCloneTypeID", &CharMgrService::GetCloneTypeID);
+    this->Add("GetHomeStation", &CharMgrService::GetHomeStation);
+    this->Add("GetFactions", &CharMgrService::GetFactions);
+    this->Add("SetActivityStatus", &CharMgrService::SetActivityStatus);
+    this->Add("GetSettingsInfo", &CharMgrService::GetSettingsInfo);
+    this->Add("LogSettings", &CharMgrService::LogSettings);
+    this->Add("GetCharacterDescription", &CharMgrService::GetCharacterDescription);
+    this->Add("SetCharacterDescription", &CharMgrService::SetCharacterDescription);
+    this->Add("GetPaperdollState", &CharMgrService::GetPaperdollState);
+    this->Add("GetNote", &CharMgrService::GetNote);
+    this->Add("SetNote", &CharMgrService::SetNote);
+    this->Add("AddOwnerNote", &CharMgrService::AddOwnerNote);
+    this->Add("GetOwnerNote", &CharMgrService::GetOwnerNote);
+    this->Add("GetOwnerNoteLabels", &CharMgrService::GetOwnerNoteLabels);
+    this->Add("AddContact", &CharMgrService::AddContact);
+    this->Add("EditContact", &CharMgrService::EditContact);
+    this->Add("DeleteContacts", &CharMgrService::DeleteContacts);
+    this->Add("GetRecentShipKillsAndLosses", &CharMgrService::GetRecentShipKillsAndLosses);
+    this->Add("BlockOwners", &CharMgrService::BlockOwners);
+    this->Add("UnblockOwners", &CharMgrService::UnblockOwners);
+    this->Add("EditContactsRelationshipID", &CharMgrService::EditContactsRelationshipID);
+    this->Add("GetImageServerLink", &CharMgrService::GetImageServerLink);
     //these 2 are for labels in PnP window;
-    PyCallable_REG_CALL(CharMgrService, GetLabels);
-    PyCallable_REG_CALL(CharMgrService, CreateLabel);
+    this->Add("GetLabels", &CharMgrService::GetLabels);
+    this->Add("CreateLabel", &CharMgrService::CreateLabel);
 }
 
-CharMgrService::~CharMgrService() {
-    delete m_dispatch;
-}
-
-PyBoundObject *CharMgrService::CreateBoundObject(Client *pClient, const PyRep *bind_args) {
+BoundDispatcher* CharMgrService::BindObject(Client *client, PyRep* bindParameters) {
     _log(CHARACTER__BIND, "CharMgrService bind request:");
-    bind_args->Dump(CHARACTER__BIND, "    ");
+    bindParameters->Dump(CHARACTER__BIND, "    ");
     Call_TwoIntegerArgs args;
     //crap
-    PyRep* tmp(bind_args->Clone());
+    PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
         codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
         return nullptr;
     }
 
-    return new CharMgrBound(m_manager, args.arg1, args.arg2);
+    return new CharMgrBound(this->GetServiceManager(), *this, args.arg1, args.arg2);
 }
 
-PyResult CharMgrService::Handle_GetImageServerLink( PyCallArgs& call )
+void CharMgrService::BoundReleased(CharMgrBound *bound) {
+    // nothing to be done here, this bound service is a singleton
+}
+
+PyResult CharMgrService::GetImageServerLink(PyCallArgs& call)
 {
     // only called by billboard service for bounties...
     //  serverLink = sm.RemoteSvc('charMgr').GetImageServerLink()
@@ -208,38 +166,32 @@ PyResult CharMgrService::Handle_GetImageServerLink( PyCallArgs& call )
     return new PyString(urlBuilder.str());
 }
 
-PyResult CharMgrService::Handle_GetRecentShipKillsAndLosses( PyCallArgs& call )
+PyResult CharMgrService::GetRecentShipKillsAndLosses(PyCallArgs& call, PyInt* num, std::optional<PyInt*> startIndex)
 {   /* cached object - can return db object as DBResultToCRowset*/
     return m_db.GetKillOrLoss(call.client->GetCharacterID());
 }
 
-PyResult CharMgrService::Handle_GetTopBounties( PyCallArgs& call )
+PyResult CharMgrService::GetTopBounties(PyCallArgs& call)
 {
     return m_db.GetTopBounties();
 }
 
-PyResult CharMgrService::Handle_GetLabels( PyCallArgs& call )
+PyResult CharMgrService::GetLabels(PyCallArgs& call)
 {
     return m_db.GetLabels(call.client->GetCharacterID());
 }
 
-PyResult CharMgrService::Handle_GetPaperdollState( PyCallArgs& call )
+PyResult CharMgrService::GetPaperdollState(PyCallArgs& call)
 {
     return new PyInt(Char::PDState::NoRecustomization);
 }
 
-PyResult CharMgrService::Handle_GetPublicInfo3(PyCallArgs &call)
+PyResult CharMgrService::GetPublicInfo3(PyCallArgs &call, PyInt* characterID)
 {
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    return m_db.GetCharPublicInfo3(arg.arg);
+    return m_db.GetCharPublicInfo3(characterID->value());
 }
 
-PyResult CharMgrService::Handle_GetContactList(PyCallArgs &call)
+PyResult CharMgrService::GetContactList(PyCallArgs &call)
 {
     PyDict* dict = new PyDict();
         dict->SetItemString("addresses", m_db.GetContacts(call.client->GetCharacterID(), false));
@@ -250,32 +202,18 @@ PyResult CharMgrService::Handle_GetContactList(PyCallArgs &call)
     return args;
 }
 
-PyResult CharMgrService::Handle_GetPrivateInfo( PyCallArgs& call )
+PyResult CharMgrService::GetPrivateInfo(PyCallArgs& call, PyInt* characterID)
 {
     // self.memberinfo = self.charMgr.GetPrivateInfo(self.charID)
     // this is called by corp/editMember
-
-    // single int arg: charid
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    PyRep* args(m_db.GetCharPrivateInfo(arg.arg));
+    PyRep* args(m_db.GetCharPrivateInfo(characterID->value()));
     if (is_log_enabled(CLIENT__RSP_DUMP))
         args->Dump(CLIENT__RSP_DUMP, "");
     return args;
 }
 
-PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
+PyResult CharMgrService::GetPublicInfo(PyCallArgs &call, PyInt* ownerID) {
     //single int arg: char id or corp id
-    Call_SingleIntegerArg arg;
-    if (!arg.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     /*if (IsAgent(args.arg)) {
         //handle agents special right now...
         PyRep *result = m_db.GetAgentPublicInfo(args.arg);
@@ -286,45 +224,39 @@ PyResult CharMgrService::Handle_GetPublicInfo(PyCallArgs &call) {
         return result;
     }*/
 
-    PyRep *result = m_db.GetCharPublicInfo(arg.arg);
+    PyRep *result = m_db.GetCharPublicInfo(ownerID->value());
     if (result == nullptr)
-        codelog(CHARACTER__ERROR, "%s: Failed to find char %u", call.client->GetName(), arg.arg);
+        codelog(CHARACTER__ERROR, "%s: Failed to find char %u", call.client->GetName(), ownerID->value());
 
     return result;
 }
 
-PyResult CharMgrService::Handle_AddToBounty( PyCallArgs& call )
+PyResult CharMgrService::AddToBounty(PyCallArgs& call, PyInt* characterID, PyInt* amount)
 {
-    Call_TwoIntegerArgs args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    if (call.client->GetCharacterID() == args.arg1){
+    if (call.client->GetCharacterID() == characterID->value()){
         call.client->SendErrorMsg("You cannot put a bounty on yourself.");
         return nullptr;
     }
 
-    if (args.arg2 < call.client->GetBalance()) {
+    if (amount->value() < call.client->GetBalance()) {
         std::string reason = "Placing Bounty on ";
-        reason += m_db.GetCharName(args.arg1);
-        AccountService::TranserFunds(call.client->GetCharacterID(), corpCONCORD, args.arg2, reason, Journal::EntryType::Bounty, args.arg1);
-        m_db.AddBounty(args.arg1, call.client->GetCharacterID(), args.arg2);
+        reason += m_db.GetCharName(characterID->value());
+        AccountService::TranserFunds(call.client->GetCharacterID(), corpCONCORD, amount->value(), reason, Journal::EntryType::Bounty, characterID->value());
+        m_db.AddBounty(characterID->value(), call.client->GetCharacterID(), amount->value());
         // new system gives target a mail from concord about placement of bounty and char name placing it.
     } else {
         std::map<std::string, PyRep *> res;
-        res["amount"] = new PyFloat(args.arg2);
+        res["amount"] = new PyFloat(amount->value());
         res["balance"] = new PyFloat(call.client->GetBalance());
         throw UserError ("NotEnoughMoney")
-                .AddISK ("amount", args.arg2)
+                .AddISK ("amount", amount->value())
                 .AddISK ("balance", call.client->GetBalance ());
     }
 
     return PyStatic.NewNone();
 }
 
-PyResult CharMgrService::Handle_GetCloneTypeID( PyCallArgs& call )
+PyResult CharMgrService::GetCloneTypeID(PyCallArgs& call)
 {
 	uint32 typeID;
 	if (!m_db.GetActiveCloneType(call.client->GetCharacterID(), typeID ) )
@@ -337,7 +269,7 @@ PyResult CharMgrService::Handle_GetCloneTypeID( PyCallArgs& call )
     return new PyInt(typeID);
 }
 
-PyResult CharMgrService::Handle_GetHomeStation( PyCallArgs& call )
+PyResult CharMgrService::GetHomeStation(PyCallArgs& call)
 {
 	uint32 stationID = 0;
     if (!CharacterDB::GetCharHomeStation(call.client->GetCharacterID(), stationID) ) {
@@ -347,17 +279,11 @@ PyResult CharMgrService::Handle_GetHomeStation( PyCallArgs& call )
     return new PyInt(stationID);
 }
 
-PyResult CharMgrService::Handle_SetActivityStatus( PyCallArgs& call ) {
-    Call_TwoIntegerArgs args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
+PyResult CharMgrService::SetActivityStatus(PyCallArgs& call, PyInt* afk, PyInt* secondsAFK) {
     sLog.Cyan("CharMgrService::SetActivityStatus()", "Player %s(%u) AFK:%s, time:%i.", \
-            call.client->GetName(), call.client->GetCharacterID(), (args.arg1 ? "true" : "false"), args.arg2);
+            call.client->GetName(), call.client->GetCharacterID(), (afk->value() ? "true" : "false"), secondsAFK->value());
 
-    if (args.arg1) {
+    if (afk->value()) {
         call.client->SetAFK(true);
     } else {
         call.client->SetAFK(false);
@@ -368,40 +294,26 @@ PyResult CharMgrService::Handle_SetActivityStatus( PyCallArgs& call ) {
     return nullptr;
 }
 
-PyResult CharMgrService::Handle_GetCharacterDescription(PyCallArgs &call)
+PyResult CharMgrService::GetCharacterDescription(PyCallArgs &call, PyInt* characterID)
 {
-    //takes characterID
-    Call_SingleIntegerArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     sItemFactory.SetUsingClient(call.client);
-    CharacterRef c = sItemFactory.GetCharacterRef(args.arg);
+    CharacterRef c = sItemFactory.GetCharacterRef(characterID->value());
     if (!c ) {
-        _log(CHARACTER__ERROR, "GetCharacterDescription failed to load character %u.", args.arg);
+        _log(CHARACTER__ERROR, "GetCharacterDescription failed to load character %u.", characterID->value());
         return nullptr;
     }
 
     return new PyString(c->description());
 }
 
-PyResult CharMgrService::Handle_SetCharacterDescription(PyCallArgs &call)
+PyResult CharMgrService::SetCharacterDescription(PyCallArgs &call, PyWString* description)
 {
-    //takes WString of bio
-    Call_SingleStringArg args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     CharacterRef c = call.client->GetChar();
     if (!c ) {
         _log(CHARACTER__ERROR, "SetCharacterDescription called with no char!");
         return nullptr;
     }
-    c->SetDescription(args.arg.c_str());
+    c->SetDescription(description->content().c_str());
 
     return nullptr;
 }
@@ -410,7 +322,7 @@ PyResult CharMgrService::Handle_SetCharacterDescription(PyCallArgs &call)
  * @note   these below are partially coded
  */
 
-PyResult CharMgrService::Handle_GetSettingsInfo( PyCallArgs& call ) {
+PyResult CharMgrService::GetSettingsInfo(PyCallArgs& call) {
     /**
      *    def UpdateSettingsStatistics(self):
      *        code, verified = macho.Verify(sm.RemoteSvc('charMgr').GetSettingsInfo())
@@ -454,8 +366,9 @@ PyResult CharMgrService::Handle_GetSettingsInfo( PyCallArgs& call ) {
     return res;
 }
 
-//  this is a return call from client after GetSettingsInfo
-PyResult CharMgrService::Handle_LogSettings( PyCallArgs& call ) {
+// this takes in the value returned from the function we return in GetSettingsInfo
+// based on the captured data, this is used to gather info about game settings the players use
+PyResult CharMgrService::LogSettings(PyCallArgs& call, PyRep* settingsInfoRet) {
     /*
      *    [PyTuple 1 items]
      *      [PyTuple 2 items]
@@ -542,38 +455,31 @@ PyResult CharMgrService::Handle_LogSettings( PyCallArgs& call ) {
      *              [PyString "machoVersion"]
      *              [PyInt 1]
      */
-    sLog.Warning( "CharMgrService::Handle_LogSettings()", "size= %li", call.tuple->size());
+    sLog.Warning( "CharMgrService::Handle_LogSettings()", "size= %lli", call.tuple->size());
     call.Dump(CHARACTER__TRACE);
     return nullptr;
 }
 
 //17:09:10 L CharMgrService::Handle_GetNote(): size= 1
-PyResult CharMgrService::Handle_GetNote( PyCallArgs& call )
+PyResult CharMgrService::GetNote(PyCallArgs& call, PyInt* itemID)
 {
     uint32 ownerID = call.client->GetCharacterID();
-    uint32 itemID = call.tuple->GetItem(0)->AsInt()->value();
 
-	PyString *str = m_db.GetNote(ownerID, itemID);
+	PyString *str = m_db.GetNote(ownerID, itemID->value());
     if (!str)
         str = new PyString("");
 
     return str;
 }
 
-PyResult CharMgrService::Handle_SetNote(PyCallArgs &call)
+PyResult CharMgrService::SetNote(PyCallArgs &call, PyInt* itemID, PyString* note)
 {
-    Call_SetNote args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
-    m_db.SetNote(call.client->GetCharacterID(), args.itemID, args.note.c_str());
+    m_db.SetNote(call.client->GetCharacterID(), itemID->value(), note->content().c_str());
 
     return PyStatic.NewNone();
 }
 
-PyResult CharMgrService::Handle_AddOwnerNote( PyCallArgs& call ) {
+PyResult CharMgrService::AddOwnerNote(PyCallArgs& call, PyString* idStr, PyWString* part) {
     /*
     15:51:12 Server: AddOwnerNote call made to charMgr
     15:51:12 [SvcCall] Service charMgr: calling AddOwnerNote
@@ -671,7 +577,7 @@ PyResult CharMgrService::Handle_AddOwnerNote( PyCallArgs& call ) {
 }
 
 
-PyResult CharMgrService::Handle_GetOwnerNote(PyCallArgs &call)
+PyResult CharMgrService::GetOwnerNote(PyCallArgs &call, PyInt* noteID)
 {  /*
         [PyObjectEx Type2]
           [PyTuple 2 items]
@@ -711,13 +617,13 @@ PyResult CharMgrService::Handle_GetOwnerNote(PyCallArgs &call)
             ["label" => <S:Folders> [WStr]]
             */
 
-    sLog.Warning( "CharMgrService::Handle_GetOwnerNote()", "size= %li", call.tuple->size());
+    sLog.Warning( "CharMgrService::Handle_GetOwnerNote()", "size= %lli", call.tuple->size());
     call.Dump(CHARACTER__DEBUG);
     return nullptr;
     //return m_db.GetOwnerNote(call.client->GetCharacterID());
 }
 
-PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
+PyResult CharMgrService::GetOwnerNoteLabels(PyCallArgs &call)
 {  /*
         [PyObjectEx Type2]
           [PyTuple 2 items]
@@ -756,7 +662,7 @@ PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
             ["label" => <N:Pelorn's PvP Route> [WStr]]
     [PyNone]
 */
-  sLog.Warning( "CharMgrService::Handle_GetOwnerNoteLabels()", "size= %li", call.tuple->size());
+  sLog.Warning( "CharMgrService::Handle_GetOwnerNoteLabels()", "size= %lli", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
     return m_db.GetOwnerNoteLabels(call.client->GetCharacterID());
@@ -768,39 +674,28 @@ PyResult CharMgrService::Handle_GetOwnerNoteLabels(PyCallArgs &call)
 
 //18:07:30 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(2784)
 //18:07:35 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(63177)
-PyResult CharMgrService::Handle_AddContact( PyCallArgs& call )
+PyResult CharMgrService::AddContact(PyCallArgs& call, PyInt* characterID, PyFloat* standing, PyInt* inWatchlist, PyBool* notify, std::optional<PyWString*> note)
 {
   sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%lu", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
-    Call_AddContact args;
-    if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-        return nullptr;
-    }
-
     //TODO: Notify char that they have been added as a contact if notify is True
 
-    m_db.AddContact(call.client->GetCharacterID(), args.charID, args.standing, args.inWatchlist);
+    m_db.AddContact(call.client->GetCharacterID(), characterID->value(), standing->value(), inWatchlist->value());
+
   return nullptr;
 }
 
-PyResult CharMgrService::Handle_EditContact( PyCallArgs& call )
+PyResult CharMgrService::EditContact(PyCallArgs& call, PyInt* characterID, PyFloat* standing, PyInt* inWatchlist, PyBool* notify, std::optional<PyWString*> note)
 {
   sLog.Warning( "CharMgrService::Handle_EditContact()", "size=%lu", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
-  Call_AddContact args;
-  if (!args.Decode(&call.tuple)) {
-      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-      return nullptr;
-  }
-
-  m_db.UpdateContact(args.standing, args.charID, call.client->GetCharacterID());
+  m_db.UpdateContact(standing->value(), characterID->value(), call.client->GetCharacterID());
   return nullptr;
 }
 
-PyResult CharMgrService::Handle_CreateLabel( PyCallArgs& call )
+PyResult CharMgrService::CreateLabel(PyCallArgs& call)
 {
   sLog.Warning( "CharMgrService::Handle_CreateLabel()", "size=%lu", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
@@ -808,65 +703,47 @@ PyResult CharMgrService::Handle_CreateLabel( PyCallArgs& call )
   return nullptr;
 }
 
-PyResult CharMgrService::Handle_DeleteContacts( PyCallArgs& call )
+PyResult CharMgrService::DeleteContacts(PyCallArgs& call, PyList* contactIDs)
 {
   // sm.RemoteSvc('charMgr').DeleteContacts([contactIDs])
 
   sLog.Warning( "CharMgrService::Handle_DeleteContacts()", "size=%lu", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
-  Call_RemoveCorporateContacts args;
-  if (!args.Decode(&call.tuple)) {
-      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-      return nullptr;
-  }
-
-  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+  for (PyList::const_iterator itr = contactIDs->begin(); itr != contactIDs->end(); ++itr) {
       m_db.RemoveContact(PyRep::IntegerValueU32(*itr), call.client->GetCharacterID());
   }
 
   return nullptr;
 }
 
-PyResult CharMgrService::Handle_BlockOwners( PyCallArgs& call )
+PyResult CharMgrService::BlockOwners(PyCallArgs& call, PyList* ownerIDs)
 {
   //        sm.RemoteSvc('charMgr').BlockOwners([ownerID])
   sLog.Warning( "CharMgrService::Handle_BlockOwners()", "size=%lu", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
-  Call_RemoveCorporateContacts args;
-  if (!args.Decode(&call.tuple)) {
-      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-      return nullptr;
-  }
-
-  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+  for (PyList::const_iterator itr = ownerIDs->begin(); itr != ownerIDs->end(); ++itr) {
       m_db.SetBlockContact(PyRep::IntegerValueU32(*itr), call.client->GetCharacterID(), true);
   }
 
   return nullptr;
 }
 
-PyResult CharMgrService::Handle_UnblockOwners( PyCallArgs& call )
+PyResult CharMgrService::UnblockOwners(PyCallArgs& call, PyList* ownerIDs)
 {
   //            sm.RemoteSvc('charMgr').UnblockOwners(blocked)
   sLog.Warning( "CharMgrService::Handle_UnblockOwners()", "size=%lu", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
-  Call_RemoveCorporateContacts args;
-  if (!args.Decode(&call.tuple)) {
-      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-      return nullptr;
-  }
-
-  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
+  for (PyList::const_iterator itr = ownerIDs->begin(); itr != ownerIDs->end(); ++itr) {
       m_db.SetBlockContact(PyRep::IntegerValueU32(*itr), call.client->GetCharacterID(), false);
   }
 
   return nullptr;
 }
 
-PyResult CharMgrService::Handle_EditContactsRelationshipID( PyCallArgs& call )
+PyResult CharMgrService::EditContactsRelationshipID(PyCallArgs& call, PyList* contactIDs, PyInt* relationshipID)
 {
   /*
             sm.RemoteSvc('charMgr').EditContactsRelationshipID(contactIDs, relationshipID)
@@ -874,22 +751,16 @@ PyResult CharMgrService::Handle_EditContactsRelationshipID( PyCallArgs& call )
   sLog.Warning( "CharMgrService::Handle_EditContactsRelationshipID()", "size=%lu", call.tuple->size());
   call.Dump(CHARACTER__DEBUG);
 
-  Call_EditCorporateContacts args;
-  if (!args.Decode(&call.tuple)) {
-      codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
-      return nullptr;
-  }
-
-  for (PyList::const_iterator itr = args.contactIDs->begin(); itr != args.contactIDs->end(); ++itr) {
-      m_db.UpdateContact(args.relationshipID, PyRep::IntegerValueU32(*itr), call.client->GetCharacterID());
+  for (PyList::const_iterator itr = contactIDs->begin(); itr != contactIDs->end(); ++itr) {
+      m_db.UpdateContact(relationshipID->value(), PyRep::IntegerValueU32(*itr), call.client->GetCharacterID());
   }
 
   return nullptr;
 }
 
-PyResult CharMgrService::Handle_GetFactions( PyCallArgs& call )
+PyResult CharMgrService::GetFactions(PyCallArgs& call)
 {
-    sLog.Warning( "CharMgrService::Handle_GetFactions()", "size= %li", call.tuple->size());
+    sLog.Warning( "CharMgrService::Handle_GetFactions()", "size= %lli", call.tuple->size());
     call.Dump(CHARACTER__TRACE);
     return nullptr;
 }
