@@ -62,7 +62,8 @@ MarketProxyService::MarketProxyService(EVEServiceManager& mgr) :
     this->Add("GetOrders", &MarketProxyService::GetOrders);
     this->Add("GetOldPriceHistory", &MarketProxyService::GetOldPriceHistory);
     this->Add("GetNewPriceHistory", &MarketProxyService::GetNewPriceHistory);
-    this->Add("PlaceCharOrder", &MarketProxyService::PlaceCharOrder);
+    this->Add("PlaceCharOrder", static_cast <PyResult (MarketProxyService::*)(PyCallArgs &call, PyInt*, PyInt*, PyFloat*, PyInt*, PyInt*, PyInt*, std::optional <PyInt*>, PyInt*, PyInt*, PyBool*, std::optional<PyRep*>)> (&MarketProxyService::PlaceCharOrder));
+    this->Add("PlaceCharOrder", static_cast <PyResult (MarketProxyService::*)(PyCallArgs &call, PyInt*, PyInt*, PyFloat*, PyInt*, PyInt*, PyInt*, std::optional <PyInt*>, PyInt*, PyInt*, PyInt*, std::optional<PyRep*>)> (&MarketProxyService::PlaceCharOrder));
     this->Add("GetCharOrders", &MarketProxyService::GetCharOrders);
     this->Add("ModifyCharOrder", &MarketProxyService::ModifyCharOrder);
     this->Add("CancelCharOrder", &MarketProxyService::CancelCharOrder);
@@ -527,6 +528,11 @@ PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, 
 
     //returns nothing.
     return nullptr;
+}
+
+PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, PyInt* typeID, PyFloat* price, PyInt* quantity, PyInt* bid, PyInt* orderRange, std::optional <PyInt*> itemID, PyInt* minVolume, PyInt* duration, PyInt* useCorp, std::optional<PyRep*> located) {
+    // Used when character has a corp wallet, client sends a PyInt instead of a PyBool
+    return PlaceCharOrder(call, stationID, typeID, price, quantity, bid, orderRange, itemID, minVolume, duration, new PyBool(useCorp->value()), located);
 }
 
 PyResult MarketProxyService::ModifyCharOrder(PyCallArgs &call, PyInt* orderID, PyFloat* newPrice, PyInt* bid, PyInt* stationID, PyInt* solarSystemID, PyFloat* price, PyInt* range, PyInt* volRemaining, PyLong* issueDate) {
