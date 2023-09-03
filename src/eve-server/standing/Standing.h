@@ -49,7 +49,7 @@ protected:
     PyResult GetNPCNPCStandings(PyCallArgs& call);
     PyResult GetSecurityRating(PyCallArgs& call, PyInt* ownerID);
     PyResult GetMyKillRights(PyCallArgs& call);
-    PyResult GetStandingTransactions(PyCallArgs& call, PyInt* fromID, PyInt* toID, PyInt* direction, PyInt* eventID, PyInt* eventType, PyLong* eventDateTime);
+    PyResult GetStandingTransactions(PyCallArgs& call, PyInt* fromID, PyInt* toID, PyInt* direction, std::optional<PyInt*> eventID, std::optional<PyInt*> eventType, std::optional<PyLong*> eventDateTime);
     PyResult GetStandingCompositions(PyCallArgs& call, PyInt* fromID, PyInt* toID);
 };
 

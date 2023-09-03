@@ -95,7 +95,7 @@ PyResult Standing::GetMyKillRights(PyCallArgs &call) {
     return KillRights;
 }
 
-PyResult Standing::GetStandingTransactions(PyCallArgs &call, PyInt* fromID, PyInt* toID, PyInt* direction, PyInt* eventID, PyInt* eventType, PyLong* eventDateTime) {
+PyResult Standing::GetStandingTransactions(PyCallArgs &call, PyInt* fromID, PyInt* toID, PyInt* direction, std::optional<PyInt*> eventID, std::optional<PyInt*> eventType, std::optional<PyLong*> eventDateTime) {
     // data = sm.RemoteSvc('standing2').GetStandingTransactions(fromID, toID, direction, eventID, eventType, eventDateTime)
     _log(STANDING__MESSAGE,  "Standing::Handle_GetStandingTransactions()");
     call.Dump(STANDING__DUMP);
