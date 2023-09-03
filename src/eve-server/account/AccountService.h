@@ -62,6 +62,9 @@ protected:
     PyResult GetJournalForAccounts(PyCallArgs& call, PyInt* accountKeys, PyLong* fromDate, std::optional<PyInt*> entryTypeID, PyInt* corpAccount, std::optional <PyInt*> transactionID, std::optional<PyInt*> rev);
     PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyWString*> reason);
     PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyWString*> reason);
+    PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyString*> reason);
+    PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyString*> reason);
+    PyResult GiveCash(PyCallArgs &call, PyInt* toID, PyFloat* amount, std::string reason);
     PyResult GiveCashFromCorpAccount(PyCallArgs& call, PyInt* toID, PyInt* amount, PyInt* fromAcctKey);
     PyResult GiveCashFromCorpAccount(PyCallArgs& call, PyInt* toID, PyFloat* amount, PyInt* fromAcctKey);
 };

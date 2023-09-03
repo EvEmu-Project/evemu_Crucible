@@ -58,6 +58,8 @@ AccountService::AccountService() :
     this->Add("GetKeyMap", &AccountService::GetKeyMap);
     this->Add("GiveCash", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyInt *, std::optional <PyWString*>)> (&AccountService::GiveCash));
     this->Add("GiveCash", static_cast <PyResult(AccountService::*)(PyCallArgs &, PyInt *, PyFloat *, std::optional <PyWString*>)> (&AccountService::GiveCash));
+    this->Add("GiveCash", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyInt *, std::optional <PyString*>)> (&AccountService::GiveCash));
+    this->Add("GiveCash", static_cast <PyResult(AccountService::*)(PyCallArgs &, PyInt *, PyFloat *, std::optional <PyString*>)> (&AccountService::GiveCash));
     this->Add("GiveCashFromCorpAccount", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyInt *, PyInt *)> (&AccountService::GiveCashFromCorpAccount));
     this->Add("GiveCashFromCorpAccount", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyFloat *, PyInt *)> (&AccountService::GiveCashFromCorpAccount));
     this->Add("GetJournal", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyLong *, std::optional<PyInt*>, PyInt *, std::optional <PyInt*>, std::optional<PyInt*>)> (&AccountService::GetJournal));
@@ -198,10 +200,22 @@ PyResult AccountService::GetJournalForAccounts(PyCallArgs &call, PyInt* accountK
 }
 
 PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyWString*> reason) {
-    return GiveCash(call, toID, new PyFloat(amount->value()), reason);
+    return GiveCash(call, toID, new PyFloat(amount->value()), reason.has_value()?reason.value()->content():std::string());
 }
 
-PyResult AccountService::GiveCash(PyCallArgs &call, PyInt* toID, PyFloat* amount, std::optional <PyWString*> reason)
+PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyWString*> reason) {
+    return GiveCash(call, toID, amount, reason.has_value()?reason.value()->content():std::string());
+}
+
+PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyString*> reason) {
+    return GiveCash(call, toID, new PyFloat(amount->value()), reason.has_value()?reason.value()->content():std::string());
+}
+
+PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyString*> reason) {
+    return GiveCash(call, toID, amount, reason.has_value()?reason.value()->content():std::string());
+}
+
+PyResult AccountService::GiveCash(PyCallArgs &call, PyInt* toID, PyFloat* amount, std::string reason)
 {
     if (is_log_enabled(ACCOUNT__CALL_DUMP)) {
         sLog.Log( "AccountService::Handle_GiveCash()", "size=%lu", call.tuple->size());
@@ -209,14 +223,14 @@ PyResult AccountService::GiveCash(PyCallArgs &call, PyInt* toID, PyFloat* amount
     }
 
     std::string reasonStr = "DESC: ";
-    if (!reason.has_value() || reason.value()->size() < 1) {
+    if (reason.size() < 1) {
         reasonStr += "No Reason Given";
     } else {
         // this hits db directly, so test for possible sql injection code
         for (const auto cur : badChars)
-            if (EvE::icontains(reason.value()->content(), cur))
+            if (EvE::icontains(reason, cur))
                 throw CustomError ("Description contains invalid characters");
-        reasonStr += reason.value()->content();
+        reasonStr += reason;
     }
 
     TranserFunds(call.client->GetCharacterID(), toID->value(), amount->value(), reasonStr.c_str(), Journal::EntryType::PlayerDonation, call.client->GetCharacterID());
