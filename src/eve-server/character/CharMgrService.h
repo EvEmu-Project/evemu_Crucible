@@ -62,7 +62,9 @@ protected:
     PyResult GetPaperdollState(PyCallArgs& call);
     PyResult GetNote(PyCallArgs& call, PyInt* itemID);
     PyResult SetNote(PyCallArgs& call, PyInt* itemID, PyString* note);
+    PyResult AddContact(PyCallArgs& call, PyInt* characterID, PyInt* standing, PyInt* inWatchlist, PyInt* notify, std::optional<PyString*> note);
     PyResult AddContact(PyCallArgs& call, PyInt* characterID, PyFloat* standing, PyInt* inWatchlist, PyBool* notify, std::optional<PyWString*> note);
+    PyResult EditContact(PyCallArgs& call, PyInt* characterID, PyInt* standing, PyInt* inWatchlist, PyInt* notify, std::optional<PyString*> note);
     PyResult EditContact(PyCallArgs& call, PyInt* characterID, PyFloat* standing, PyInt* inWatchlist, PyBool* notify, std::optional<PyWString*> note);
     PyResult GetRecentShipKillsAndLosses(PyCallArgs& call, PyInt* num, std::optional<PyInt*> startIndex);
     PyResult GetLabels(PyCallArgs& call);

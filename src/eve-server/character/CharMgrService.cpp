@@ -125,8 +125,10 @@ CharMgrService::CharMgrService(EVEServiceManager& mgr) :
     this->Add("AddOwnerNote", &CharMgrService::AddOwnerNote);
     this->Add("GetOwnerNote", &CharMgrService::GetOwnerNote);
     this->Add("GetOwnerNoteLabels", &CharMgrService::GetOwnerNoteLabels);
-    this->Add("AddContact", &CharMgrService::AddContact);
-    this->Add("EditContact", &CharMgrService::EditContact);
+    this->Add("AddContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyInt*, PyInt*, PyInt*, std::optional<PyString*>)> (&CharMgrService::AddContact));
+    this->Add("AddContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyFloat*, PyInt*, PyBool*, std::optional<PyWString*>)> (&CharMgrService::AddContact));
+    this->Add("EditContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyInt*, PyInt*, PyInt*, std::optional<PyString*>)> (&CharMgrService::EditContact));
+    this->Add("EditContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyFloat*, PyInt*, PyBool*, std::optional<PyWString*>)> (&CharMgrService::EditContact));
     this->Add("DeleteContacts", &CharMgrService::DeleteContacts);
     this->Add("GetRecentShipKillsAndLosses", &CharMgrService::GetRecentShipKillsAndLosses);
     this->Add("BlockOwners", &CharMgrService::BlockOwners);
@@ -674,6 +676,19 @@ PyResult CharMgrService::GetOwnerNoteLabels(PyCallArgs &call)
 
 //18:07:30 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(2784)
 //18:07:35 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(63177)
+
+PyResult CharMgrService::AddContact(PyCallArgs& call, PyInt* characterID, PyInt* standing, PyInt* inWatchlist, PyInt* notify, std::optional<PyString*> note)
+{
+  sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%lu", call.tuple->size());
+  call.Dump(CHARACTER__DEBUG);
+
+    //TODO: Notify char that they have been added as a contact if notify is True
+
+    m_db.AddContact(call.client->GetCharacterID(), characterID->value(), standing->value(), inWatchlist->value());
+
+  return nullptr;
+}
+
 PyResult CharMgrService::AddContact(PyCallArgs& call, PyInt* characterID, PyFloat* standing, PyInt* inWatchlist, PyBool* notify, std::optional<PyWString*> note)
 {
   sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%lu", call.tuple->size());
@@ -683,6 +698,15 @@ PyResult CharMgrService::AddContact(PyCallArgs& call, PyInt* characterID, PyFloa
 
     m_db.AddContact(call.client->GetCharacterID(), characterID->value(), standing->value(), inWatchlist->value());
 
+  return nullptr;
+}
+
+PyResult CharMgrService::EditContact(PyCallArgs& call, PyInt* characterID, PyInt* standing, PyInt* inWatchlist, PyInt* notify, std::optional<PyString*> note)
+{
+  sLog.Warning( "CharMgrService::Handle_EditContact()", "size=%lu", call.tuple->size());
+  call.Dump(CHARACTER__DEBUG);
+
+  m_db.UpdateContact(standing->value(), characterID->value(), call.client->GetCharacterID());
   return nullptr;
 }
 

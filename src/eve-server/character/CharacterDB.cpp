@@ -890,7 +890,7 @@ PyRep* CharacterDB::GetContacts(uint32 charID, bool blocked)
         return nullptr;
     }
 
-    return DBResultToIndexRowset(res, "contactID");
+    return DBResultToCRowset(res);
 }
 
 void CharacterDB::AddContact(uint32 ownerID, uint32 charID, int32 standing, bool inWatchlist)
