@@ -1929,10 +1929,11 @@ PyRep* CorporationDB::GetMemberTrackingInfo(uint32 corpID)
 
 PyRep* CorporationDB::GetMemberTrackingInfoSimple(uint32 corpID)
 {
+    // lastOnline may need something else more accurate, without lastOnline, the member list does not work for someone is a corp member
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT c.characterID, c.corporationID, c.logoffDateTime, c.logonDateTime, c.title, c.startDateTime, c.corpRole AS roles,"
-        " c.baseID, c.blockRoles, IFNULL(e.typeID, 0) AS shipTypeID"
+        " c.baseID, c.blockRoles, IFNULL(e.typeID, 0) AS shipTypeID, c.logonDateTime AS lastOnline"
         " FROM chrCharacters AS c"
         "  LEFT JOIN entity AS e ON e.itemID = c.shipID"
         " WHERE corporationID = %u", corpID))
