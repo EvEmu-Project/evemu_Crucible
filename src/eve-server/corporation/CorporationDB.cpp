@@ -1224,7 +1224,7 @@ bool CorporationDB::FetchOfficesKeys (uint32 corporationID, DBQueryResult& res) 
 
 bool CorporationDB::FetchOffices (uint32 corpID, uint32 from, uint32 count, DBQueryResult& res) {
     return sDatabase.RunQuery(res,
-        "SELECT itemID, stationID, stationTypeID, officeFolderID"
+        "SELECT itemID, stationID, stationTypeID, officeFolderID, typeID"
         " FROM staOffices "
         " WHERE corporationID = %u "
         " LIMIT %u, %u ",
