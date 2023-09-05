@@ -80,7 +80,7 @@ public:
         PyTuple* arguments = new PyTuple (3);
 
         arguments->SetItem (0, headers);
-        arguments->SetItem (1, new PySubStruct (new PySubStream (this->GetOID())));
+        arguments->SetItem (1, new PySubStruct (new PySubStream (boundServiceInformation)));
         arguments->SetItem (2, new PyInt (this->m_indexMap.size()));
 
         this->m_header = new PyObject ("util.SparseRowset", arguments);
