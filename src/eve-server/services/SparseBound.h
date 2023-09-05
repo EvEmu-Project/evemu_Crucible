@@ -87,7 +87,7 @@ public:
         this->m_primed = true;
     }
 
-    PyObject* GetHeader () { assert (this->m_primed); return this->m_header; }
+    PyObject* GetHeader () { assert (this->m_primed); PyIncRef(this->m_header); return this->m_header; }
 
     /**
      * Notifies the bound clients about a new row on the sparse rowset's data
