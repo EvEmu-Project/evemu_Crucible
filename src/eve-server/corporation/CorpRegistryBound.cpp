@@ -1762,6 +1762,12 @@ PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     headers->AddItemString ("typeID");
 
     if (this->m_offices == nullptr) {
+        _log(CORP__CALL, "CorpRegistryBound::Handle_GetOffices() size=%lli m_offices nullptr", call.tuple->size());
+        this->m_offices = new OfficeSparseBound (this->GetServiceManager (), *this, m_db, m_corpID, headers);
+    } else {
+        _log(CORP__CALL, "CorpRegistryBound::Handle_GetOffices() size=%lli m_offices not nullptr", call.tuple->size());
+        this->m_offices = nullptr;
+        // Resetting m_offices because of server crash if more than one character is logged in and part of the same corp
         this->m_offices = new OfficeSparseBound (this->GetServiceManager (), *this, m_db, m_corpID, headers);
     }
 
