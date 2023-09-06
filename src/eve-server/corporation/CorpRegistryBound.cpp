@@ -1480,7 +1480,7 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
     return nullptr;
 }
 
-PyResult CorpRegistryBound::UpdateApplicationOffer(PyCallArgs &call, PyInt* characterID, PyRep* applicationText, PyInt* status, PyLong* applicationDateTime) {
+PyResult CorpRegistryBound::UpdateApplicationOffer(PyCallArgs &call, PyInt* characterID, PyRep* applicationText, PyInt* status, PyNone* applicationDateTime) {
     //     return self.GetCorpRegistry().UpdateApplicationOffer(characterID, applicationText, status, applicationDateTime = None) NOTE: time not used.
     _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateApplicationOffer() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
@@ -1759,6 +1759,7 @@ PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     headers->AddItemString ("stationID");
     headers->AddItemString ("stationTypeID");
     headers->AddItemString ("officeFolderID");
+    headers->AddItemString ("typeID");
 
     if (this->m_offices == nullptr) {
         this->m_offices = new OfficeSparseBound (this->GetServiceManager (), *this, m_db, m_corpID, headers);

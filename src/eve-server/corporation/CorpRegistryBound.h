@@ -47,7 +47,7 @@ protected:
     PyResult GetMyApplications(PyCallArgs& call);
     PyResult InsertApplication(PyCallArgs& call, PyInt* corporationID, PyRep* message);
     PyResult GetApplications(PyCallArgs& call);
-    PyResult UpdateApplicationOffer(PyCallArgs& call, PyInt* characterID, PyRep* applicationText, PyInt* status, PyLong* applicationDateTime);
+    PyResult UpdateApplicationOffer(PyCallArgs &call, PyInt* characterID, PyRep* applicationText, PyInt* status, PyNone* applicationDateTime);
     PyResult DeleteApplication(PyCallArgs& call, PyInt* corporationID, PyInt* characterID);
 
     PyResult UpdateDivisionNames(PyCallArgs& call,
