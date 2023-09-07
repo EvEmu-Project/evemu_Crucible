@@ -877,7 +877,7 @@ PyResult ContractProxy::NumOutstandingContracts(PyCallArgs &call) {
     return nullptr;
 }
 
-PyResult ContractProxy::GetItemsInStation(PyCallArgs &call, PyInt* stationID) {
+PyResult ContractProxy::GetItemsInStation(PyCallArgs &call, PyInt* stationID, std::optional<PyInt*> forCorp) {
     uint32 station = call.tuple->GetItem(0)->AsInt()->value();
 
     if (sDataMgr.IsStation(stationID->value()) == false)
