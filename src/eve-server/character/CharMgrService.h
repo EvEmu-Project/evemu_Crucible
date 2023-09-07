@@ -87,6 +87,7 @@ public:
 
 protected:
     PyResult List(PyCallArgs& call);
+    PyResult ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyBool* isCorporation);
     PyResult ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyInt* isCorporation);
     PyResult ListStationItems(PyCallArgs& call, PyInt* stationID);
     PyResult ListStationBlueprintItems(PyCallArgs& call, PyInt* locationID, PyInt* stationID, PyInt* forCorporation);
