@@ -42,7 +42,12 @@ ContractProxy::ContractProxy () :
     Service("contractProxy")
 {
     this->Add("GetContract", &ContractProxy::GetContract);
-    this->Add("CreateContract", &ContractProxy::CreateContract);
+    this->Add("CreateContract", static_cast <PyResult(ContractProxy::*)(PyCallArgs &,PyInt*, PyBool*, std::optional <PyNone*>, PyInt*, PyInt*, PyInt*, std::optional<PyNone*>, PyInt*, PyInt*, PyInt*, PyString*, PyString*)> (&ContractProxy::CreateContract));
+    this->Add("CreateContract", static_cast <PyResult(ContractProxy::*)(PyCallArgs &,PyInt*, PyBool*, std::optional <PyInt*>, PyInt*, PyInt*, PyInt*, std::optional<PyNone*>, PyInt*, PyInt*, PyInt*, PyString*, PyString*)> (&ContractProxy::CreateContract));
+    this->Add("CreateContract", static_cast <PyResult(ContractProxy::*)(PyCallArgs &,PyInt*, PyBool*, std::optional <PyInt*>, PyInt*, PyInt*, PyInt*, std::optional<PyNone*>, PyInt*, PyInt*, PyInt*, PyWString*, PyString*)> (&ContractProxy::CreateContract));
+    this->Add("CreateContract", static_cast <PyResult(ContractProxy::*)(PyCallArgs &,PyInt*, PyBool*, std::optional <PyNone*>, PyInt*, PyInt*, PyInt*, std::optional<PyInt*>, PyInt*, PyInt*, PyInt*, PyString*, PyString*)> (&ContractProxy::CreateContract));
+    this->Add("CreateContract", static_cast <PyResult(ContractProxy::*)(PyCallArgs &,PyInt*, PyBool*, std::optional <PyNone*>, PyInt*, PyInt*, PyInt*, std::optional <PyNone*>, PyInt*, PyInt*, PyInt*, PyWString*,PyString*)> (&ContractProxy::CreateContract));
+    this->Add("CreateContract", static_cast <PyResult(ContractProxy::*)(PyCallArgs&, PyInt*, PyInt*, std::optional <PyInt*>, PyInt*, PyInt*, PyInt*, std::optional<PyInt*>, PyInt*, PyInt*, PyInt*, PyWString*, PyWString*)> (&ContractProxy::CreateContract));
     this->Add("DeleteContract", &ContractProxy::DeleteContract);
     this->Add("AcceptContract", &ContractProxy::AcceptContract);
     this->Add("CompleteContract", &ContractProxy::CompleteContract);
@@ -200,9 +205,40 @@ PyResult ContractProxy::SearchContracts(PyCallArgs &call) {
     }
 }
 
+PyResult ContractProxy::CreateContract(PyCallArgs &call,
+    PyInt* contractType, PyBool* isPrivate, std::optional <PyNone*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID,
+    PyInt* price, PyInt* reward, PyInt* collateral, PyString* title, PyString* description) {
+    return CreateContract(call, contractType, new PyInt(isPrivate->value()), std::nullopt, expireTime, duration, startStationID, std::nullopt, price, reward, collateral, new PyWString(title->content()), new PyWString(description->content()));
+}
+
+PyResult ContractProxy::CreateContract(PyCallArgs &call,
+    PyInt* contractType, PyBool* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID,
+    PyInt* price, PyInt* reward, PyInt* collateral, PyString* title, PyString* description) {
+    return CreateContract(call, contractType, new PyInt(isPrivate->value()), assigneeID, expireTime, duration, startStationID, std::nullopt, price, reward, collateral, new PyWString(title->content()), new PyWString(description->content()));
+}
+
+PyResult ContractProxy::CreateContract(PyCallArgs &call,
+    PyInt* contractType, PyBool* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID,
+    PyInt* price, PyInt* reward, PyInt* collateral, PyWString* title, PyString* description) {
+    return CreateContract(call, contractType, new PyInt(isPrivate->value()), assigneeID, expireTime, duration, startStationID, std::nullopt, price, reward, collateral, title, new PyWString(description->content()));
+}
+
+PyResult ContractProxy::CreateContract(PyCallArgs &call,
+    PyInt* contractType, PyBool* isPrivate, std::optional <PyNone*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyInt*> endStationID,
+    PyInt* price, PyInt* reward, PyInt* collateral, PyString* title, PyString* description) {
+    return CreateContract(call, contractType, new PyInt(isPrivate->value()), std::nullopt, expireTime, duration, startStationID, endStationID, price, reward, collateral, new PyWString(title->content()), new PyWString(description->content()));
+}
+
+PyResult ContractProxy::CreateContract(PyCallArgs &call,
+    PyInt* contractType, PyBool* isPrivate, std::optional <PyNone*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID,
+    PyInt* price, PyInt* reward, PyInt* collateral, PyWString* title, PyString* description) {
+    return CreateContract(call, contractType, new PyInt(isPrivate->value()), std::nullopt, expireTime, duration, startStationID, std::nullopt, price, reward, collateral, title, new PyWString(description->content()));
+}
+
+
 PyResult ContractProxy::CreateContract(PyCallArgs &call, 
     PyInt* contractType, PyInt* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyInt*> endStationID,
-    PyFloat* price, PyFloat* reward, PyFloat* collateral, PyWString* title, PyWString* description) {
+    PyInt* price, PyInt* reward, PyInt* collateral, PyWString* title, PyWString* description) {
     int startStationDivision, startSystemId, startRegionId, endSystemId, endRegionId;
     bool forCorp;
 
