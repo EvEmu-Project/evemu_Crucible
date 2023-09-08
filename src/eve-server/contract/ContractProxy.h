@@ -35,13 +35,18 @@ public:
     ContractProxy();
 
 protected:
-    PyResult CreateContract(PyCallArgs& call, PyInt* contractType, PyInt* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyInt*> endStationID, PyFloat* price, PyFloat* reward, PyFloat* collateral, PyWString* title, PyWString* description);
+    PyResult CreateContract(PyCallArgs &call, PyInt* contractType, PyBool* isPrivate, std::optional <PyNone*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID, PyInt* price, PyInt* reward, PyInt* collateral, PyString* title, PyString* description);
+    PyResult CreateContract(PyCallArgs &call, PyInt* contractType, PyBool* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID, PyInt* price, PyInt* reward, PyInt* collateral, PyString* title, PyString* description);
+    PyResult CreateContract(PyCallArgs &call, PyInt* contractType, PyBool* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID, PyInt* price, PyInt* reward, PyInt* collateral, PyWString* title, PyString* description);
+    PyResult CreateContract(PyCallArgs &call, PyInt* contractType, PyBool* isPrivate, std::optional <PyNone*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyInt*> endStationID, PyInt* price, PyInt* reward, PyInt* collateral, PyString* title, PyString* description);
+    PyResult CreateContract(PyCallArgs &call, PyInt* contractType, PyBool* isPrivate, std::optional <PyNone*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyNone*> endStationID, PyInt* price, PyInt* reward, PyInt* collateral, PyWString* title, PyString* description);
+    PyResult CreateContract(PyCallArgs& call, PyInt* contractType, PyInt* isPrivate, std::optional <PyInt*> assigneeID, PyInt* expireTime, PyInt* duration, PyInt* startStationID, std::optional<PyInt*> endStationID, PyInt* price, PyInt* reward, PyInt* collateral, PyWString* title, PyWString* description);
     PyResult GetContract(PyCallArgs& call, PyInt* contractID);
     PyResult AcceptContract(PyCallArgs& call, PyInt* contractID);
     PyResult CompleteContract(PyCallArgs& call, PyInt* contractID, PyInt* completionStatus);
     PyResult DeleteContract(PyCallArgs& call, PyInt* contractID);
     PyResult NumOutstandingContracts(PyCallArgs& call);
-    PyResult GetItemsInStation(PyCallArgs& call, PyInt* stationID);
+    PyResult GetItemsInStation(PyCallArgs& call, PyInt* stationID, std::optional<PyInt*> forCorp);
     PyResult GetLoginInfo(PyCallArgs& call);
     PyResult SearchContracts(PyCallArgs& call);
     PyResult CollectMyPageInfo(PyCallArgs& call);

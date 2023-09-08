@@ -42,7 +42,8 @@ CharMgrBound::CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint3
     m_containerFlag(contFlag)
 {
     this->Add("List", &CharMgrBound::List);
-    this->Add("ListStations", &CharMgrBound::ListStations);
+    this->Add("ListStations", static_cast <PyResult (CharMgrBound::*)(PyCallArgs&, PyInt*, PyBool*)> (&CharMgrBound::ListStations));
+    this->Add("ListStations", static_cast <PyResult (CharMgrBound::*)(PyCallArgs&, PyInt*, PyInt*)> (&CharMgrBound::ListStations));
     this->Add("ListStationItems", &CharMgrBound::ListStationItems);
     this->Add("ListStationBlueprintItems", &CharMgrBound::ListStationBlueprintItems);
 }
@@ -56,6 +57,11 @@ PyResult CharMgrBound::ListStationItems(PyCallArgs& call, PyInt* stationID)
 {
     // this is the assets window
     return CharacterDB::ListStationItems(m_ownerID, stationID->value());
+}
+
+PyResult CharMgrBound::ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyBool* isCorporation)
+{
+  return ListStations(call, blueprintOnly, new PyInt(isCorporation->value()));
 }
 
 PyResult CharMgrBound::ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyInt* isCorporation)
