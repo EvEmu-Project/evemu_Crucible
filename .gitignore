@@ -94,6 +94,7 @@ zlib/
 build/
 build_iwyu/
 staging/
+out/
 
 # doxygen output
 doxygen/
