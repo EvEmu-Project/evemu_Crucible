@@ -140,6 +140,7 @@ void SystemBubble::Process()
 //from the bubble and stuck into the vector for re-classification.
 void SystemBubble::ProcessWander(std::vector<SystemEntity*> &wanderers) {
     DynamicSystemEntity* pDSE(nullptr);
+    AsteroidSE* pASE(nullptr);
     std::map<uint32, SystemEntity*>::iterator itr = m_dynamicEntities.begin();
     while (itr != m_dynamicEntities.end()) {
         if (itr->second == nullptr) {
@@ -147,6 +148,11 @@ void SystemBubble::ProcessWander(std::vector<SystemEntity*> &wanderers) {
             continue;
         }
         if (itr->second->IsWormholeSE()) {
+            ++itr;
+            continue;
+        }
+        pASE = itr->second->GetAsteroidSE(); // Check if dynamic entity is an Asteroid, GetDynamicSE() will be a nullptr as AsteroidSE objects are technically not dynamic entities.
+        if (pASE != nullptr) {
             ++itr;
             continue;
         }
