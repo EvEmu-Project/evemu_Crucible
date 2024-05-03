@@ -289,8 +289,10 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
     }
 
     float capacity = 0.0f;
-    if (call.byname.find("capacity") != call.byname.end())
-        capacity = PyRep::IntegerValueU32(call.byname.find("capacity")->second);
+    if (call.byname.find("capacity") != call.byname.end()) {
+        capacity = PyRep::FloatValue(call.byname.find("capacity")->second);
+        m_self->SetAttribute(AttrCapacity, capacity); // The client is telling us the calculated capacity, lets use it to avoid manually calculating it.
+    }
 
     if (quantity < 1)
         quantity = 1;
