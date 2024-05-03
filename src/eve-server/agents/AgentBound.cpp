@@ -277,6 +277,7 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 if (offer.rewardLP)
                     LPService::AddLP(pchar->itemID(), m_agent->GetCorpID(), offer.rewardLP);
                 m_agent->UpdateStandings(call.client, Standings::MissionCompleted, offer.important);
+                m_agent->RemoveOffer(pchar->itemID());
             } break;
             case Defer: {   //10
                 // extend expiry time and close

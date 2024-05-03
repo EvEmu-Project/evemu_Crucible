@@ -155,7 +155,8 @@ void MapData::GetMissionDestination(Agent* pAgent, uint8 misionType, MissionOffe
 
                 while (run) {
                     run = false;
-                    systemID = sysList.at(MakeRandomInt(0, (sysList.size() -1)));
+                    uint32 randomIndex = MakeRandomInt(0, (sysList.size() -1));
+                    systemID = sysList.at(randomIndex);
                     if (station and (sDataMgr.GetStationCount(systemID) < 1)) {
                         run = true;
                         ++count;
@@ -166,6 +167,7 @@ void MapData::GetMissionDestination(Agent* pAgent, uint8 misionType, MissionOffe
                         _log(AGENT__ERROR, "Agent::GetMissionDestination() - no station found within 1 jump." );
                         return;
                     }
+                    sysList.erase(sysList.begin() + randomIndex); // If we have searched a system already then do not try it again
                 }
             }
             if (station) {
