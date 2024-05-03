@@ -111,7 +111,7 @@ PyResult RamProxyService::AssemblyLinesSelect(PyCallArgs &call, PyString* filter
     return nullptr;
 }
 
-PyResult RamProxyService::GetJobs2(PyCallArgs &call, PyInt* ownerID, PyInt* completed) {
+PyResult RamProxyService::GetJobs2(PyCallArgs &call, PyInt* ownerID, PyBool* completed) {
     if (ownerID->value() == call.client->GetCorporationID())
         if ((call.client->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager) {
             // what other roles (if any) can view corp factory jobs?
