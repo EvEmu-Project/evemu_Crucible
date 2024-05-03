@@ -150,6 +150,12 @@ void SystemBubble::ProcessWander(std::vector<SystemEntity*> &wanderers) {
             ++itr;
             continue;
         }
+        ObjectSystemEntity* pOSE(nullptr);
+        pOSE = itr->second->GetObjectSE(); // Check if dynamic entity is an ObjectSystemEntity and keep it loaded until we unload the system entirely.
+        if (pOSE != nullptr) {
+            ++itr;
+            continue;
+        }
         pDSE = itr->second->GetDynamicSE();
         if (pDSE == nullptr) {
             itr = m_dynamicEntities.erase(itr);

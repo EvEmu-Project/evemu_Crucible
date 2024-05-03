@@ -193,7 +193,7 @@ void StructureItem::Rename(std::string name)
 }
 
 StructureSE::StructureSE(StructureItemRef structure, EVEServiceManager&services, SystemManager *system, const FactionData &data)
-    : DynamicSystemEntity(structure, services, system),
+    : ObjectSystemEntity(structure, services, system),
     m_moonSE(nullptr),
     m_planetSE(nullptr),
     m_towerSE(nullptr),

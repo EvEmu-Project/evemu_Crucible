@@ -35,7 +35,7 @@ public:
     RamProxyService();
 
 private:
-    PyResult GetJobs2(PyCallArgs& call, PyInt* ownerID, PyInt* completed);
+    PyResult GetJobs2(PyCallArgs& call, PyInt* ownerID, PyBool* completed);
     PyResult InstallJob(PyCallArgs& call, PyRep* locationData, PyRep* itemLocationData, PyRep* bomLocationData, PyRep* flagOutput, PyRep* buildRuns, PyRep* activityID, PyRep* licensedProductionRuns, PyRep* ownerFlag, PyRep* blah);
     PyResult CompleteJob(PyCallArgs& call, PyRep* info, PyRep* jobID, PyRep* cancel);
     PyResult AssemblyLinesGet(PyCallArgs& call, PyInt* stationID);
