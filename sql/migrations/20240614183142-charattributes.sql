@@ -1,5 +1,6 @@
--- Fixed character attributes
+-- Fixed character attributes to make them correct to vanilla Crucible
 -- Removed outdated attributes from chrAncestries and chrBloodlines, adding them to chrAttributes as baseAttributes (PER 20 WIL 20 CHA 19 MEM 20 INT 20)
+-- Fixed starting skills, job skills did not exist in Crucible
 
 
 -- +migrate Up

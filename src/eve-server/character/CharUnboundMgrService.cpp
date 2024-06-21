@@ -310,11 +310,13 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
              char_type->bloodlineID(), cdata.ancestryID);
         // dont really care if this fails.  not enough to deny creation ...maybe make error?
     }
-	//  Career Skills
+
+	/* OUTDATED: Career skills not used in Crucible. Uncomment to restore old functionality.
+        //  Career Skills
     if (!CharacterDB::GetSkillsByCareer(cdata.careerID, startingSkills)) {
         _log(CLIENT__ERROR, "Failed to load char Career skills for %u.", cdata.careerSpecialityID);
         // dont really care if this fails.  not enough to deny creation ...maybe make error?
-    }
+    } */
 
     //spawn all the skills
     uint8 skillLevel = 0;
