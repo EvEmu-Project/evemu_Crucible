@@ -1125,6 +1125,9 @@ bool CharacterDB::ChangeCloneLocation(uint32 characterID, uint32 locationID)
     return true;
 }
 
+/* OUTDATED VERSION: Uses old character attributes, which have been migrated to chrAttributes as baseAttribute. Uncomment to restore old functionality of race 
+and bloodline specific attributes. New version is below as GetAttributesFromAttributes
+
 bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
     DBQueryResult res;
 
@@ -1151,7 +1154,60 @@ bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligen
     willpower += row.GetUInt(4);
 
     return (true);
+} 
+ */
+
+bool CharacterDB::GetAttributesFromAttributes(uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
+
+    DBQueryResult res;
+
+    if (!sDatabase.RunQuery(res,
+        " SELECT "
+        "  attributeID, baseAttribute "
+        " FROM chrAttributes "))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return (false);
+    }
+        
+    for(int i = 0; i < res.GetRowCount(); i++){
+
+        DBResultRow row;
+        uint32 attributeID;
+
+        if (!res.GetRow(row)) {
+        codelog(DATABASE__ERROR, "Failed to find attribute information for attribute %d", attributeID);
+            return false;
+        }
+
+        attributeID = row.GetUInt(0);
+
+        switch (attributeID)
+        {
+        case (uint32)1:
+            intelligence += row.GetUInt(1);
+            break;
+        case (uint32)2:
+            charisma += row.GetUInt(1);
+            break;
+        case (uint32)3:
+            perception += row.GetUInt(1);
+            break;
+        case (uint32)4:
+            memory += row.GetUInt(1);
+            break;
+        case (uint32)5:
+            willpower += row.GetUInt(1);
+            break;
+        default:
+            codelog(DATABASE__ERROR, "Unknown attribute %d", attributeID); 
+            break;
+        }
+    }
+    
+    return (true);
 }
+
 
 bool CharacterDB::GetCareerBySchool(uint32 schoolID, uint8 &raceID, uint32 &careerID) {
     DBQueryResult res;
@@ -2042,11 +2098,12 @@ bool CharacterDB::GetCharacterType(uint8 bloodlineID, CharacterTypeData &into) {
         "  maleDescription,"
         "  femaleDescription,"
         "  corporationID,"
-        "  perception,"
-        "  willpower,"
-        "  charisma,"
-        "  memory,"
-        "  intelligence,"
+        //OUTDATED
+        //"  perception,"
+        //"  willpower,"
+        //"  charisma,"
+        //"  memory,"
+        //"  intelligence,"
         "  shortDescription,"
         "  shortMaleDescription,"
         "  shortFemaleDescription "
@@ -2070,14 +2127,9 @@ bool CharacterDB::GetCharacterType(uint8 bloodlineID, CharacterTypeData &into) {
     into.maleDescription = row.GetText(3);
     into.femaleDescription = row.GetText(4);
     into.corporationID = row.GetUInt(5);
-    into.perception = row.GetUInt(6);
-    into.willpower = row.GetUInt(7);
-    into.charisma = row.GetUInt(8);
-    into.memory = row.GetUInt(9);
-    into.intelligence = row.GetUInt(10);
-    into.shortDescription = row.GetText(11);
-    into.shortMaleDescription = row.GetText(12);
-    into.shortFemaleDescription = row.GetText(13);
+    into.shortDescription = row.GetText(6);
+    into.shortMaleDescription = row.GetText(7);
+    into.shortFemaleDescription = row.GetText(8);
     return true;
 }
 

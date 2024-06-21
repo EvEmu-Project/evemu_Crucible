@@ -159,8 +159,13 @@ public:
      * @param[out] willpower Bonus to willpower.
      * @return True if operation succeeded, false if failed.
      */
-    static bool        GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower);
 
+
+    /* OUTDATED, new below
+     * static bool        GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower); 
+     */
+    static bool        GetAttributesFromAttributes(uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower);
+   
     static bool        GetBaseSkills(std::map< uint32, uint8 >& into);
     static bool        GetSkillsByRace(uint32 raceID, std::map< uint32, uint8 >& into);
     static bool        GetSkillsByCareer(uint32 careerID, std::map< uint32, uint8 >& into);

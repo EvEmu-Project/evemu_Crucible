@@ -272,11 +272,21 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
         cpor.Build(charRef->itemID(), portraitInfoData);
 
     // query attribute bonuses from ancestry
-    if (!CharacterDB::GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)) {
-        _log(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.", char_type->bloodlineID(), cdata.ancestryID);
+     if (!CharacterDB::GetAttributesFromAttributes(intelligence, charisma, perception, memory, willpower)) {
+        _log(CLIENT__ERROR, "Failed to load char attributes.");
         sItemFactory.UnsetUsingClient();
         return PyStatic.NewZero();
     }
+
+    /* OUTDATED VERSION: Uses old character attributes, which have been migrated to chrAttributes as baseAttribute. Uncomment to restore old functionality of race 
+     * and bloodline specific attributes. 
+     * if (!CharacterDB::GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)) {
+     *   _log(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.", char_type->bloodlineID(), cdata.ancestryID);
+     *   sItemFactory.UnsetUsingClient();
+     *   return PyStatic.NewZero();
+     * }
+     */
+   
     // triple attributes and save
     uint8 multiplier = sConfig.character.statMultiplier;
     charRef->SetAttribute(AttrIntelligence, intelligence * multiplier, false);
