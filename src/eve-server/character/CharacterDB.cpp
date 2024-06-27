@@ -1125,40 +1125,7 @@ bool CharacterDB::ChangeCloneLocation(uint32 characterID, uint32 locationID)
     return true;
 }
 
-/* OUTDATED VERSION: Uses old character attributes, which have been migrated to chrAttributes as baseAttribute. Uncomment to restore old functionality of race 
-and bloodline specific attributes. New version is below as GetAttributesFromAttributes
-
-bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
-    DBQueryResult res;
-
-    if (!sDatabase.RunQuery(res,
-        " SELECT "
-        "  intelligence, charisma, perception, memory, willpower "
-        " FROM chrAncestries "
-        " WHERE ancestryID = %u ", ancestryID))
-    {
-        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return (false);
-    }
-
-    DBResultRow row;
-    if (!res.GetRow(row)) {
-        codelog(DATABASE__ERROR, "Failed to find ancestry information for ancestry %u", ancestryID);
-        return false;
-    }
-
-    intelligence += row.GetUInt(0);
-    charisma += row.GetUInt(1);
-    perception += row.GetUInt(2);
-    memory += row.GetUInt(3);
-    willpower += row.GetUInt(4);
-
-    return (true);
-} 
- */
-
 bool CharacterDB::GetAttributesFromAttributes(uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
-
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
@@ -1171,9 +1138,8 @@ bool CharacterDB::GetAttributesFromAttributes(uint8 &intelligence, uint8 &charis
     }
         
     for(int i = 0; i < res.GetRowCount(); i++){
-
         DBResultRow row;
-        uint32 attributeID;
+        uint32 attributeID = 0;
 
         if (!res.GetRow(row)) {
         codelog(DATABASE__ERROR, "Failed to find attribute information for attribute %d", attributeID);
@@ -1207,7 +1173,6 @@ bool CharacterDB::GetAttributesFromAttributes(uint8 &intelligence, uint8 &charis
     
     return (true);
 }
-
 
 bool CharacterDB::GetCareerBySchool(uint32 schoolID, uint8 &raceID, uint32 &careerID) {
     DBQueryResult res;
@@ -2098,12 +2063,6 @@ bool CharacterDB::GetCharacterType(uint8 bloodlineID, CharacterTypeData &into) {
         "  maleDescription,"
         "  femaleDescription,"
         "  corporationID,"
-        //OUTDATED
-        //"  perception,"
-        //"  willpower,"
-        //"  charisma,"
-        //"  memory,"
-        //"  intelligence,"
         "  shortDescription,"
         "  shortMaleDescription,"
         "  shortFemaleDescription "

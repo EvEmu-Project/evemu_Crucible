@@ -160,10 +160,6 @@ public:
      * @return True if operation succeeded, false if failed.
      */
 
-
-    /* OUTDATED, new below
-     * static bool        GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower); 
-     */
     static bool        GetAttributesFromAttributes(uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower);
    
     static bool        GetBaseSkills(std::map< uint32, uint8 >& into);

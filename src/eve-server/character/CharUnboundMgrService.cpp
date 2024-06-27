@@ -278,15 +278,6 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
         return PyStatic.NewZero();
     }
 
-    /* OUTDATED VERSION: Uses old character attributes, which have been migrated to chrAttributes as baseAttribute. Uncomment to restore old functionality of race 
-     * and bloodline specific attributes. 
-     * if (!CharacterDB::GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)) {
-     *   _log(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.", char_type->bloodlineID(), cdata.ancestryID);
-     *   sItemFactory.UnsetUsingClient();
-     *   return PyStatic.NewZero();
-     * }
-     */
-   
     // triple attributes and save
     uint8 multiplier = sConfig.character.statMultiplier;
     charRef->SetAttribute(AttrIntelligence, intelligence * multiplier, false);
@@ -310,13 +301,6 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
              char_type->bloodlineID(), cdata.ancestryID);
         // dont really care if this fails.  not enough to deny creation ...maybe make error?
     }
-
-	/* OUTDATED: Career skills not used in Crucible. Uncomment to restore old functionality.
-        //  Career Skills
-    if (!CharacterDB::GetSkillsByCareer(cdata.careerID, startingSkills)) {
-        _log(CLIENT__ERROR, "Failed to load char Career skills for %u.", cdata.careerSpecialityID);
-        // dont really care if this fails.  not enough to deny creation ...maybe make error?
-    } */
 
     //spawn all the skills
     uint8 skillLevel = 0;
