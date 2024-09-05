@@ -424,6 +424,7 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
             pType = &bpRef->productType();
             FactoryDB::GetMultipliers(args.AssemblyLineID, pType, into);
             into.materialMultiplier += bpRef->GetME();
+            into.materialMultiplier *= (1.0f - (0.05f * pChar->GetSkillLevel(EvESkill::ProductionEfficiency)));
             into.materialMultiplier *= sConfig.ram.MatMod;
             into.charTimeMultiplier *= (1.0f - (0.04f * pChar->GetSkillLevel(EvESkill::Industry)));
             into.productionTime = EvEMath::RAM::ProductionTime(bpRef->type().productionTime(), bpRef->type().productivityModifier(),
