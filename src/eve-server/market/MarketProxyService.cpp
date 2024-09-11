@@ -117,7 +117,7 @@ PyResult MarketProxyService::CharGetNewTransactions(PyCallArgs &call, PyRep* sel
 {
     Market::TxData data = Market::TxData();
         data.clientID = clientID->IsNone() ? 0 : PyRep::IntegerValueU32(clientID);
-        data.isBuy = sellBuy->IsNone() ? 0 : PyRep::IntegerValueU32(sellBuy);
+        data.isBuy = sellBuy->IsNone() ? -1 : PyRep::IntegerValueU32(sellBuy);
         data.price = minPrice->IsNone() ? 0 : PyRep::IntegerValueU32(minPrice);
         data.quantity = quantity->IsNone() ? 0 : PyRep::IntegerValueU32(quantity);
         data.typeID = typeID->IsNone() ? 0 : PyRep::IntegerValueU32(typeID);
