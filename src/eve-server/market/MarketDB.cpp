@@ -351,12 +351,15 @@ PyRep *MarketDB::GetTransactions(uint32 clientID, Market::TxData& data) {
         typeID = "AND typeID=";
         typeID += std::to_string(data.typeID);
     }
+
     std::string buy = "";
     if (data.isBuy > -1) {
         buy = "AND transactionType=";
         buy += std::to_string(data.isBuy);
     }
+
     DBQueryResult res;
+
     if (!sDatabase.RunQuery(res,
         "SELECT"
         "   transactionID, transactionDate, typeID, keyID, quantity, price,"
@@ -365,8 +368,8 @@ PyRep *MarketDB::GetTransactions(uint32 clientID, Market::TxData& data) {
         " WHERE clientID=%u %s AND quantity>=%u AND price>=%.2f AND "
         " transactionDate>=%lli %s AND keyID=%u AND characterID=%u",
         clientID, typeID.c_str(), data.quantity, data.price,
-        data.time, buy.c_str(), data.accountKey, data.memberID))
-    {
+        data.time, buy.c_str(), data.accountKey, data.memberID)
+    ) {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
