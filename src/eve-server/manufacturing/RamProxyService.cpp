@@ -217,7 +217,6 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
     sRamMthd.LinePermissionCheck(call.client, args);
     sRamMthd.ItemOwnerCheck(call.client, args, bpRef);
 
-
     // this is a bit funky, but works quite well....
     // decode path to BP and BOM location
     // i am populating this for corp and personal to have common call to mat'l checks that follow
@@ -326,6 +325,7 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
     std::string reason = "DESC: Installing ";
     reason += sRamMthd.GetActivityName(args.activityID);
     reason += " job in ";
+
     if (sDataMgr.IsStation(locationID)) {
         reason += stDataMgr.GetStationName(locationID);
     } else {    // test for POS after that system is more complete...
@@ -336,13 +336,16 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         reason += " by ";
         reason += call.client->GetName();
     }
-    AccountService::TranserFunds(call.client->GetCharacterID(),
-                                 stDataMgr.GetOwnerID(locationID),
-                                 cost,
-                                 reason.c_str(),
-                                 Journal::EntryType::FactorySlotRentalFee,
-                                 locationID,    // shows rental location (stationID)
-                                 Account::KeyType::Cash);
+
+    AccountService::TransferFunds(
+        call.client->GetCharacterID(),
+        stDataMgr.GetOwnerID(locationID),
+        cost,
+        reason.c_str(),
+        Journal::EntryType::FactorySlotRentalFee,
+        locationID,    // shows rental location (stationID)
+        Account::KeyType::Cash
+    );
 
     int64 beginTime(GetFileTimeNow());
     if (beginTime < rsp.maxJobStartTime)
@@ -545,6 +548,7 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
 
     // increment statistic counter
     sStatMgr.Increment(Stat::ramJobs);
+
     return nullptr;
 }
 

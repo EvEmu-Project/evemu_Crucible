@@ -1280,17 +1280,15 @@ void Character::SaveFullCharacter() {
     SaveSkillQueue();
 }
 
-void Character::PayBounty(CharacterRef cRef)
-{
+void Character::PayBounty(CharacterRef cRef) {
     std::string reason = "Bounty for the killing of ";
     reason += cRef->itemName();
-    AccountService::TranserFunds(corpCONCORD, m_itemID, cRef->bounty(), reason, Journal::EntryType::Bounty, cRef->itemID());
+    AccountService::TransferFunds(corpCONCORD, m_itemID, cRef->bounty(), reason, Journal::EntryType::Bounty, cRef->itemID());
     // add data to StatisticMgr
     sStatMgr.Add(Stat::pcBounties, cRef->bounty());
 }
 
-void Character::SetLoginTime()
-{
+void Character::SetLoginTime() {
     m_loginTime = sEntityList.GetStamp();
     m_db.SetLogInTime(m_itemID);
 }

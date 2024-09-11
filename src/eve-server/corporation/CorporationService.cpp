@@ -138,8 +138,7 @@ PyResult CorporationService::GetRecruitmentAdsForCorporation(PyCallArgs& call)
  * @note   these below are partially coded
  */
 
-PyResult CorporationService::CreateMedal(PyCallArgs &call, PyWString* name, PyWString* description, PyList* medalData)
-{
+PyResult CorporationService::CreateMedal(PyCallArgs &call, PyWString* name, PyWString* description, PyList* medalData) {
     // destroy = sm.StartService('medals').CreateMedal(mName, mDesc, cMedalData)
     //  destroy = true will close window
 
@@ -149,14 +148,16 @@ PyResult CorporationService::CreateMedal(PyCallArgs &call, PyWString* name, PyWS
     reason += call.client->GetName();
     reason += " in ";   // just extra shit.  this will show in tooltip.  ;)
     reason += stDataMgr.GetStationName(call.client->GetStationID());
-    AccountService::TranserFunds(
-                                 call.client->GetCorporationID(),
-                                 call.client->GetStationID(),
-                                 sConfig.rates.medalCreateCost,
-                                 reason.c_str(),
-                                 Journal::EntryType::MedalCreation,
-                                 call.client->GetStationID(),
-                                 Account::KeyType::Cash);
+    AccountService::TransferFunds(
+        call.client->GetCorporationID(),
+        call.client->GetStationID(),
+        sConfig.rates.medalCreateCost,
+        reason.c_str(),
+        Journal::EntryType::MedalCreation,
+        call.client->GetStationID(),
+        Account::KeyType::Cash
+    );
+
     if (name->size() > 30)
         throw UserError ("MedalNameTooLong");
     if (description->size() < 3)
@@ -254,8 +255,7 @@ PyResult CorporationService::GetRecipientsOfMedal(PyCallArgs &call, PyInt* medal
     return m_db.GetRecipientsOfMedal(medalID->value());
 }
 
-PyResult CorporationService::GiveMedalToCharacters(PyCallArgs &call, PyInt* medalID, PyList* recipientIDs, PyWString* reason)
-{
+PyResult CorporationService::GiveMedalToCharacters(PyCallArgs &call, PyInt* medalID, PyList* recipientIDs, PyWString* reason) {
     //  sm.RemoteSvc('corporationSvc').GiveMedalToCharacters(medalID, recipientID, reason)
     /*
      * 13:24:32 [CorpCallDump]   Call Arguments:
@@ -279,12 +279,13 @@ PyResult CorporationService::GiveMedalToCharacters(PyCallArgs &call, PyInt* meda
     //take the money, send wallet blink event record the transaction in corp journal.
     std::string finalReason = "DESC: Awarding Medal by ";
     finalReason += call.client->GetName();
-    AccountService::TranserFunds(
-                                 call.client->GetCorporationID(),
-                                 call.client->GetStationID(),
-                                 cost,
-                                 finalReason,
-                                 Journal::EntryType::MedalIssuing);
+    AccountService::TransferFunds(
+        call.client->GetCorporationID(),
+        call.client->GetStationID(),
+        cost,
+        finalReason,
+        Journal::EntryType::MedalIssuing
+    );
 
     m_db.GiveMedalToCharacters(call.client->GetCharacterID(), call.client->GetCorporationID(), medalID->value(), charVec, reason->content());
 
