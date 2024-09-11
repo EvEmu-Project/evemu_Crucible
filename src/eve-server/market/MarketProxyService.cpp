@@ -467,7 +467,7 @@ PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, 
             // set an upper bound (this used to be a while loop that spun
             // forever in some cases)
             for (int i = 0; i < 1000; i++) {
-                _log(MARKET__DUMP, "Mkt::PlaceCharOrder(): issue 16 - finding buy order: %i, %i, %i, %.2f", typeID->value(), stationID->value(), quantity->value(), price->value());
+                _log(MARKET__DUMP, "Mkt::PlaceCharOrder(): finding buy order: %i, %i, %i, %.2f", typeID->value(), stationID->value(), quantity->value(), price->value());
 
                 orderID = MarketDB::FindBuyOrder(typeID->value(), stationID->value(), quantity->value(), price->value());
 
@@ -497,12 +497,13 @@ PyResult MarketProxyService::PlaceCharOrder(PyCallArgs &call, PyInt* stationID, 
                     continue;
                 }
 
-                _log(MARKET__DUMP, "Mkt::PlaceCharOrder(): issue 16 - order completed");
+                _log(MARKET__DUMP, "Mkt::PlaceCharOrder(): order resolved");
+
                 break;
             }
 
             if (!completedOrder) {
-                _log(MARKET__ERROR, "PlaceCharOrder - failed to find a matching market order within 1000 attempts. 1");
+                _log(MARKET__ERROR, "PlaceCharOrder - failed to find a matching market order within 1000 attempts.");
 
                 call.client->SendErrorMsg("Failed to find a suitable market order in a reasonable amount of time.");
 
