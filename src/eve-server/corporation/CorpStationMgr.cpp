@@ -225,14 +225,16 @@ PyResult CorpStationMgrIMBound::SetCloneTypeID(PyCallArgs &call, PyInt* cloneTyp
     reason += call.client->GetSystemName();
     reason += " at ";
     reason += stDataMgr.GetStationName(call.client->GetStationID());
-    AccountService::TranserFunds(
-                    call.client->GetCharacterID(),
-                    call.client->GetStationID(),
-                    cost,
-                    reason.c_str(),
-                    Journal::EntryType::CloneActivation,
-                    call.client->GetStationID(),
-                    Account::KeyType::Cash);
+
+    AccountService::TransferFunds(
+        call.client->GetCharacterID(),
+        call.client->GetStationID(),
+        cost,
+        reason.c_str(),
+        Journal::EntryType::CloneActivation,
+        call.client->GetStationID(),
+        Account::KeyType::Cash
+    );
 
     //update type of clone
     CharacterDB c_db;
@@ -260,7 +262,9 @@ PyResult CorpStationMgrIMBound::RentOffice(PyCallArgs &call, PyInt* amount) {
     reason += pStationItem->itemName();
     reason += " by ";
     reason += pClient->GetCharName();
-    AccountService::TranserFunds(pClient->GetCorporationID(), pStationItem->GetOwnerID(), amount->value(), reason.c_str(), Journal::EntryType::OfficeRentalFee);
+
+    AccountService::TransferFunds(pClient->GetCorporationID(), pStationItem->GetOwnerID(), amount->value(), reason.c_str(), Journal::EntryType::OfficeRentalFee);
+
 /** @note  why is this disabled?
     int64 balance = AccountDB::GetCorpBalance(pClient->GetCorporationID(), Account::KeyType::Cash);
     if (balance < arg.arg) {

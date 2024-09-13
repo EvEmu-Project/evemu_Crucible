@@ -192,8 +192,8 @@ customInfo is actually used in client
     - there are many logConst and event** msgs not implemented/researched (LP, FacWar, StandingTransactions, more)
 
 20:41:06 [Bound] InsuranceBound::InsureShip()
-20:41:06 [AcctTrace] TranserFunds() - from: 90000000, to: 1000132, entry: 19, refID: 0, amount: 0.33, fKey: 1000, tKey: 1000
-20:41:06 [AcctTrace] TranserFunds() - toID: 1000132 is neither player nor player corp.
+20:41:06 [AcctTrace] TransferFunds() - from: 90000000, to: 1000132, entry: 19, refID: 0, amount: 0.33, fKey: 1000, tKey: 1000
+20:41:06 [AcctTrace] TransferFunds() - toID: 1000132 is neither player nor player corp.
 20:41:06 [SvcMsg] New messageID: 1
 20:41:06 [SvcMsg] Delivered message from 1000132 to recipient 90000000
     - ins mail working.  need contractID, expiry date, and few other things...

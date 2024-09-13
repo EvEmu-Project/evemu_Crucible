@@ -239,8 +239,7 @@ PyResult CharMgrService::GetPublicInfo(PyCallArgs &call, PyInt* ownerID) {
     return result;
 }
 
-PyResult CharMgrService::AddToBounty(PyCallArgs& call, PyInt* characterID, PyInt* amount)
-{
+PyResult CharMgrService::AddToBounty(PyCallArgs& call, PyInt* characterID, PyInt* amount) {
     if (call.client->GetCharacterID() == characterID->value()){
         call.client->SendErrorMsg("You cannot put a bounty on yourself.");
         return nullptr;
@@ -249,7 +248,7 @@ PyResult CharMgrService::AddToBounty(PyCallArgs& call, PyInt* characterID, PyInt
     if (amount->value() < call.client->GetBalance()) {
         std::string reason = "Placing Bounty on ";
         reason += m_db.GetCharName(characterID->value());
-        AccountService::TranserFunds(call.client->GetCharacterID(), corpCONCORD, amount->value(), reason, Journal::EntryType::Bounty, characterID->value());
+        AccountService::TransferFunds(call.client->GetCharacterID(), corpCONCORD, amount->value(), reason, Journal::EntryType::Bounty, characterID->value());
         m_db.AddBounty(characterID->value(), call.client->GetCharacterID(), amount->value());
         // new system gives target a mail from concord about placement of bounty and char name placing it.
     } else {

@@ -343,12 +343,11 @@ uint32 MarketDB::StoreOrder(Market::SaveData &data) {
     return orderID;
 }
 
-PyRep *MarketDB::GetTransactions(uint32 clientID, Market::TxData& data) {
-    //transactionID, transactionDate, typeID, keyID, quantity, price,
-    //  transactionType, clientID, regionID, stationID, corpTransaction, characterID
+// Retrieves the market transactions owned by the current `characterID`.
+PyRep *MarketDB::GetTransactions(uint32 characterID, Market::TxData& data) {
     std::string typeID = "";
     if (data.typeID) {
-        typeID = "AND typeID=";
+        typeID = "typeID=";
         typeID += std::to_string(data.typeID);
     }
 
@@ -358,17 +357,47 @@ PyRep *MarketDB::GetTransactions(uint32 clientID, Market::TxData& data) {
         buy += std::to_string(data.isBuy);
     }
 
+    std::string client = "";
+    if (data.clientID) {
+        client = "AND clientID=";
+        client += std::to_string(data.clientID);
+    }
+
     DBQueryResult res;
 
-    if (!sDatabase.RunQuery(res,
+    // Because the game client tries to resolve the identities of automated
+    // trader NPCs when using the wallet view, there's a possibility that trader
+    // NPCs won't exist like a typical player/corp, which causes errors when the
+    // server tries to look up identity information about the client. So if a
+    // trader NPC is the transaction's client, we instead replace it with the
+    // player's ID as a workaround - this means that the player will see
+    // themselves as the client when looking at their wallet transactions, but
+    // the database is still storing the actual value.
+    //
+    // A different solution to this issue could be to instead seed the database
+    // with trader NPCs, but that hasn't been done yet and/or may not be
+    // warranted.
+    if (!sDatabase.RunQuery(
+        res,
         "SELECT"
-        "   transactionID, transactionDate, typeID, keyID, quantity, price,"
-        "   transactionType, clientID, regionID, stationID, corpTransaction, characterID"
+        " transactionID, transactionDate, typeID, keyID, quantity, price,"
+        " transactionType, "
+        " CASE WHEN clientID >= %i AND clientID <= %i THEN %u ELSE clientID END AS clientID,"
+        " regionID, stationID, corpTransaction, characterID"
         " FROM mktTransactions "
-        " WHERE clientID=%u %s AND quantity>=%u AND price>=%.2f AND "
-        " transactionDate>=%lli %s AND keyID=%u AND characterID=%u",
-        clientID, typeID.c_str(), data.quantity, data.price,
-        data.time, buy.c_str(), data.accountKey, data.memberID)
+        " WHERE quantity>=%u %s AND price>=%.2f AND "
+        " transactionDate>=%lli %s AND keyID=%u AND characterID=%u %s",
+        minTrader-1, // includes trader joe
+        maxTrader,
+        characterID,
+        data.quantity,
+        typeID.c_str(),
+        data.price,
+        data.time,
+        buy.c_str(),
+        data.accountKey,
+        data.isCorp ? data.memberID : characterID,
+        client.c_str())
     ) {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -377,9 +406,8 @@ PyRep *MarketDB::GetTransactions(uint32 clientID, Market::TxData& data) {
     return DBResultToRowset(res);
 }
 
+// See `GetTransactions` for additional fields/data structures.
 bool MarketDB::RecordTransaction(Market::TxData &data) {
-    //transactionID, transactionDate, typeID, keyID, quantity, price,
-    //  transactionType, clientID, regionID, stationID, corpTransaction, characterID
     DBerror err;
     if (!sDatabase.RunQuery(err,
         "INSERT INTO"
@@ -390,8 +418,8 @@ bool MarketDB::RecordTransaction(Market::TxData &data) {
         " %f, %u, %u, %u, %f,"
         " %u, %u, %u, %u, %u, %u)",
         GetFileTimeNow(), data.typeID, data.accountKey, data.quantity, data.price,
-        data.isBuy > 0?1:0, data.clientID, data.regionID, data.stationID, data.isCorp?1:0, data.memberID))
-    {
+        data.isBuy > 0?1:0, data.clientID, data.regionID, data.stationID, data.isCorp ? 1:0, data.memberID)
+    ) {
         codelog(MARKET__DB_ERROR, "Error in query: %s", err.c_str());
         return false;
     }

@@ -66,53 +66,67 @@ int LPService::GetLPReward(uint16 missionID, uint32 solarsystemID, uint8 agentLe
   return (1.6288 - m_data.securityRating ) * baseLP;   // LP reward = (1.6288 - System security) × Base LP
 }
 
-PyResult LPService::TakeOffer(PyCallArgs& call, PyInt* corpID, PyInt* storeID)
-{
+PyResult LPService::TakeOffer(PyCallArgs& call, PyInt* corpID, PyInt* storeID) {
   if (!corpID->value() >= 1000000 && !corpID->value() <= 1000200) { // Bounds check valid corpID in call
     return new PyNone;
   }
+
   if (!storeID->value() >= 1 && !storeID->value() <= 30000) { // Bounds check valid storeID in call
     return new PyNone;
   }
+
   // Lookup Store Offer
   DBResultRow offer = GetLPOffer(storeID->value());
   int32 typeID = offer.GetInt(0);
   int32 iskCost = offer.GetInt(1);
   int32 quantity = offer.GetInt(2);
   int32 lpCost = offer.GetInt(3);
+
   // Confirm char has LP & ISK
   int32 lpBalance = GetLPBalanceForCorp(call.client->GetCharacterID(), corpID->value());
   if (lpBalance < lpCost) {
     throw CustomError("You do not have enough LP to make this purchase.");
   }
+
   int32 charIsk = call.client->GetBalance();
   if (charIsk < iskCost) {
     throw CustomError("You do not have enough ISK to make this purchase.");
   }
+
   // Check required items & remove if all are present.
   DBQueryResult requiredItems = GetRequiredItemsForOffer(storeID->value());
   if (requiredItems.GetRowCount() > 0) {
     // TODO: Remove required from hangar, the client pre-checks the required items are available or else the button is hidden.
   }
+
   // Remove LP & ISK
   AddLP(call.client->GetCharacterID(), corpID->value(), -lpCost);
-  AccountService::TranserFunds(call.client->GetCharacterID(), corpID->value(), iskCost, "LP Store purchase", Journal::EntryType::PaymentToLPStore, storeID->value());
+
+  AccountService::TransferFunds(call.client->GetCharacterID(), corpID->value(), iskCost, "LP Store purchase", Journal::EntryType::PaymentToLPStore, storeID->value());
+
   // Give char item from store and place in hangar.
   EVEItemFlags flag;
   uint32 locationID = 0;
   locationID = call.client->GetStationID();
   flag = flagHangar;
+
   ItemData idata(
-          typeID,
-          call.client->GetCharacterID(),
-                    locTemp, //temp location
-                    flag,
-                    quantity);
+    typeID,
+    call.client->GetCharacterID(),
+    locTemp, //temp location
+    flag,
+    quantity
+  );
+
   InventoryItemRef iRef = sItemFactory.SpawnItem(idata);
-  if (iRef.get() == nullptr)
+
+  if (iRef.get() == nullptr) {
     throw CustomError ("Unable to create item of type %i.", typeID);
+  }
+
   iRef->Move(locationID, flag, true);
   iRef->SaveItem();
+
   return new PyNone;
 }
 

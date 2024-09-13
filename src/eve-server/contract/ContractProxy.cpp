@@ -540,12 +540,12 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                 if (iskRequirementMet && rewardRequirementMet && requestedItemsRequirementsMet) {
                     // If we have a reward value - then contract's WTB
                     if (reward > 0) {
-                        AccountService::TranserFunds(issuerID, call.client->GetCharacterID(), reward, "Payment for accepted contract", Journal::EntryType::ContractReward, contractID->value());
+                        AccountService::TransferFunds(issuerID, call.client->GetCharacterID(), reward, "Payment for accepted contract", Journal::EntryType::ContractReward, contractID->value());
                     }
 
                     // If we have price value - then contract's WTS
                     if (price > 0) {
-                        AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, price, "Payment for accepted contract", Journal::EntryType::ContractPrice, contractID->value());
+                        AccountService::TransferFunds(call.client->GetCharacterID(), issuerID, price, "Payment for accepted contract", Journal::EntryType::ContractPrice, contractID->value());
                     }
 
                     // Then, we go for requested items
@@ -762,7 +762,7 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
             if (collateral > 0) {
                 // Since we've taken the collateral prior to it and left it "hanging in the air" we put it back into acceptor's wallet and then issue a transfer
                 call.client->AddBalance(collateral);
-                AccountService::TranserFunds(call.client->GetCharacterID(), issuerID, collateral, "Collateral payment for failed contract", Journal::EntryType::ContractCollateral, contractID->value());
+                AccountService::TransferFunds(call.client->GetCharacterID(), issuerID, collateral, "Collateral payment for failed contract", Journal::EntryType::ContractCollateral, contractID->value());
             }
             // Then, we update the contract as Афшдув.
             DBerror err;
