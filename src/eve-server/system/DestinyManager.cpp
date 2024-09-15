@@ -478,21 +478,15 @@ void DestinyManager::UpdateVelocity(bool isMoving) {
     }
 }
 
-//Global Actions:
 void DestinyManager::Stop() {
-    if (m_stop)
-        return;
-
     // AP not implemented yet in this version  -allan 4Mar15
-    //Clear autopilot
-    if (mySE->HasPilot())
+    // Clear autopilot
+    if (mySE->HasPilot()) {
         mySE->GetPilot()->SetAutoPilot(false);
+    }
 
     if (m_userSpeedFraction == 0.0f) {
-        //state is already at stop. but m_stop wasnt set.
-        // set m_stop and return.
         m_stop = true;
-        return;
     } else if  ((m_ballMode == Destiny::Ball::Mode::WARP) and (!IsWarping()))  {
         //warp aborted before initialized.  standard Stop() applies.
         m_ballMode = Destiny::Ball::Mode::STOP;
