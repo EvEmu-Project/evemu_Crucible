@@ -11,6 +11,7 @@
 #include "StatisticMgr.h"
 #include "exploration/Probes.h"
 #include "exploration/Scan.h"
+#include "inventory/AttributeEnum.h"
 #include "ship/Missile.h"
 #include "ship/modules/ActiveModule.h"
 #include "ship/modules/ModuleItem.h"
@@ -541,6 +542,30 @@ uint32 ActiveModule::DoCycle()
         }
     }
 
+    // check if ship has sufficient capacitor capacity - if not, abort the cycle
+    if (m_modRef->HasAttribute(AttrCapacitorNeed)) {
+        float remainingCapacitorCharge = m_shipRef->GetAttribute(AttrCapacitorCharge).get_float();
+        float requiredCapacitorCharge = GetAttribute(AttrCapacitorNeed).get_float();
+
+        float newCap = remainingCapacitorCharge - requiredCapacitorCharge;
+
+        if (newCap < 0) {
+            m_shipRef->GetPilot()->SendNotifyMsg(
+                "This module requires %.0f GJ, but your capacitor only has %.0f GJ remaining.",
+                requiredCapacitorCharge,
+                remainingCapacitorCharge
+            );
+
+            AbortCycle();
+
+            return 0;
+        }
+
+        float shipTotalCapacitor = m_shipRef->GetAttribute(AttrCapacitorCapacity).get_float();
+
+        m_shipRef->SetShipCapacitorLevel(newCap / shipTotalCapacitor);
+    }
+
     // not sure if this is entirely accurate...wip
     switch (m_modRef->groupID()) {
         case EVEDB::invGroups::Projectile_Weapon:
@@ -1041,6 +1066,21 @@ bool ActiveModule::CanActivate()
         if (!m_shipRef->GetMyInventory()->ContainsTypeQtyByFlag(typeID, EVEItemFlags::flagCargoHold, qtyNeed)) {
             m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your inventory.", \
                     qtyNeed, sItemFactory.GetType(typeID)->name().c_str());
+            return false;
+        }
+    }
+
+    if (m_modRef->HasAttribute(AttrCapacitorNeed)) {
+        float remainingCapacitorCharge = m_shipRef->GetAttribute(AttrCapacitorCharge).get_float();
+        float requiredCapacitorCharge = GetAttribute(AttrCapacitorNeed).get_float();
+
+        if (requiredCapacitorCharge > remainingCapacitorCharge) {
+            m_shipRef->GetPilot()->SendNotifyMsg(
+                "This module requires %.0f GJ, but your capacitor only has %.0f GJ remaining.",
+                requiredCapacitorCharge,
+                remainingCapacitorCharge
+            );
+
             return false;
         }
     }
