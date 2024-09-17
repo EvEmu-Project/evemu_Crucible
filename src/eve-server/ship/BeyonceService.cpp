@@ -131,6 +131,8 @@ PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* dis
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+        return PyStatic.NewNone();
     }
     SystemManager* pSystem = call.client->SystemMgr();
     if (pSystem == nullptr) {
@@ -162,6 +164,8 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+        return PyStatic.NewNone();
     }
 
     /** @todo  rework this...this is to set speed ONLY...NOT to begin moving.  */
@@ -189,6 +193,8 @@ PyResult BeyonceBound::CmdAlignTo(PyCallArgs &call, PyInt* entityID) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
@@ -224,6 +230,8 @@ PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    } else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
@@ -302,6 +310,8 @@ PyResult BeyonceBound::CmdOrbit(PyCallArgs &call, PyInt* entityID, PyRep* rangeV
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+        return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
@@ -351,6 +361,8 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
     }
     if (pDestiny->IsWarping()){
         call.client->SendNotifyMsg( "You are already warping");
+        return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
@@ -577,6 +589,8 @@ PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) 
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+        return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
@@ -623,6 +637,8 @@ PyResult BeyonceBound::CmdStop(PyCallArgs &call) {
     if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+        return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
@@ -649,6 +665,8 @@ PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* ship
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
@@ -704,6 +722,8 @@ PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, 
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
@@ -769,6 +789,8 @@ PyResult BeyonceBound::UpdateStateRequest(PyCallArgs &call) {
     }
     if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     }
 
@@ -892,6 +914,8 @@ PyResult BeyonceBound::CmdJumpThroughCorporationStructure(PyCallArgs &call, PyIn
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+        return PyStatic.NewNone();
     }
 
     InventoryItemRef beacon = sItemFactory.GetItemRefFromID(remoteStructureID->value());
@@ -965,6 +989,8 @@ PyResult BeyonceBound::CmdBeaconJumpFleet(PyCallArgs &call, PyInt* characterID, 
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
+        return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     }
 
@@ -1047,6 +1073,8 @@ PyResult BeyonceBound::CmdBeaconJumpAlliance(PyCallArgs &call, PyInt* beaconID, 
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
+        return PyStatic.NewNone();
+    }  else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     }
 

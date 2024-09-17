@@ -54,6 +54,7 @@ namespace Player {
             Uncloak     = 9,
             DriveJump   = 10,
             WormholeJump = 11,
+            LoginWarp = 12,
         };
     }
 }

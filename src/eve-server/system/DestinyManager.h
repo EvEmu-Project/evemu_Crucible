@@ -221,6 +221,9 @@ public:
     bool IsFrozen()                                     { return m_frozen; }
     void SetFrozen(bool set=false)                      { m_frozen = set; }
 
+    // Prevents actions if the player is performing the login warp
+    bool AbortIfLoginWarping(bool showMsg);
+
 protected:
     void ProcessState();
 
