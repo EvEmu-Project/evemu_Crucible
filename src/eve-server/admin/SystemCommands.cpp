@@ -930,21 +930,42 @@ PyResult Command_update(Client *pClient, CommandDB *db, EVEServiceManager &servi
 }
 
 PyResult Command_sendstate(Client *pClient, CommandDB *db, EVEServiceManager &services, const Seperator &args) {
-    if (!pClient->IsInSpace())
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if in space");
+    if (!pClient->IsInSpace()) {
         throw CustomError ("You're not in space.");
-    if (pClient->GetShipSE()->DestinyMgr() == nullptr)
-        pClient->SetDestiny(NULL_ORIGIN);
-    if (pClient->GetShipSE()->SysBubble() == nullptr)
-        pClient->EnterSystem(pClient->GetSystemID());
-    if (pClient->IsSessionChange()) {
-        pClient->SendInfoModalMsg("Session Change Active.  Wait %u seconds before issuing another command.",
-                                  pClient->GetSessionChangeTime());
-        return new PyString("SessionChange Active.  Request Denied.");
     }
 
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if destiny manager is null");
+    if (pClient->GetShipSE()->DestinyMgr() == nullptr) {
+        _log(COMMAND__MESSAGE, "SystemCommands::SendState() - destiny manager is null, setting to null origin");
+        pClient->SetDestiny(NULL_ORIGIN);
+    }
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if bubble is null");
+    if (pClient->GetShipSE()->SysBubble() == nullptr) {
+        _log(COMMAND__MESSAGE, "SystemCommands::SendState() - bubble is null, setting system id");
+        pClient->EnterSystem(pClient->GetSystemID());
+    }
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if session is changing");
+    if (pClient->IsSessionChange()) {
+        pClient->SendInfoModalMsg(
+            "Session Change Active. Wait %u seconds before issuing another command.",
+            pClient->GetSessionChangeTime()
+        );
+
+        return new PyString("SessionChange Active. Request Denied.");
+    }
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - setting state sent to false");
     pClient->SetStateSent(false);
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - sending SetState");
     pClient->GetShipSE()->DestinyMgr()->SendSetState();
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - setting session timer");
     pClient->SetSessionTimer();
+
     return new PyString("Update sent.");
 }
 

@@ -1697,9 +1697,17 @@ void DestinyManager::WarpCruise(uint16 sec_into_warp) {
         m_warpState->decel = true;
     }
 
-    if (is_log_enabled(DESTINY__WARP_TRACE))
-        _log(DESTINY__WARP_TRACE, "Destiny::WarpCruise(): %s(%u) - Warp Cruising(%us): velocity %.4f m/s. with %.2f m left to go.", \
-                mySE->GetName(), mySE->GetID(), sec_into_warp, m_warpState->warpSpeed, m_targetDistance);
+    if (is_log_enabled(DESTINY__WARP_TRACE)) {
+        _log(
+            DESTINY__WARP_TRACE,
+            "Destiny::WarpCruise(): %s(%u) - Warp Cruising(%us): velocity %.4f m/s. with %.2f m left to go.",
+            mySE->GetName(),
+            mySE->GetID(),
+            sec_into_warp,
+            m_warpState->warpSpeed,
+            m_targetDistance
+        );
+    }
 
     WarpUpdate(m_warpState->warpSpeed);
 }
@@ -1729,19 +1737,43 @@ void DestinyManager::WarpUpdate(double currentShipSpeed) {
     m_velocity = (m_warpState->warp_vector * currentShipSpeed);
     SetPosition(m_targetPoint - (m_warpState->warp_vector * m_targetDistance));
 
-    if (m_warpState->decel) {
-        if (mySE->SysBubble() == nullptr) {
-            if (is_log_enabled(DESTINY__WARP_TRACE))
-                _log(DESTINY__WARP_TRACE, "Destiny::WarpUpdate()  %s(%u): Ship is %f from center of target bubble %u.",\
-                        mySE->GetName(), mySE->GetID(), m_targBubble->GetCenter().distance(m_position), m_targBubble->GetID());
-            if (m_targBubble->InBubble(m_position, true)) {
-                if (is_log_enabled(DESTINY__WARP_TRACE))
-                    _log(DESTINY__WARP_TRACE, "Destiny::WarpUpdate()  %s(%u): Ship at %.2f,%.2f,%.2f is calling Add() for bubble %u.", \
-                            mySE->GetName(), mySE->GetID(), m_position.x, m_position.y, m_position.z, m_targBubble->GetID());
-                m_targBubble->Add(mySE);
-                SetPosition(m_position, true);
-            }
+    if (is_log_enabled(DESTINY__WARP_TRACE)) {
+        _log(
+            DESTINY__WARP_TRACE,
+            "Destiny::WarpUpdate()  %s(%u): Ship is %f from center of target bubble %u.",
+            mySE->GetName(),
+            mySE->GetID(),
+            m_targBubble->GetCenter().distance(m_position),
+            m_targBubble->GetID()
+        );
+    }
+
+    if (m_targBubble->InBubble(m_position, true)) {
+        if (is_log_enabled(DESTINY__WARP_TRACE)) {
+            _log(
+                DESTINY__WARP_TRACE,
+                "Destiny::WarpUpdate()  %s(%u): Ship at %.2f,%.2f,%.2f is calling Add() for bubble %u.",
+                mySE->GetName(),
+                mySE->GetID(),
+                m_position.x,
+                m_position.y,
+                m_position.z,
+                m_targBubble->GetID()
+            );
         }
+
+        m_targBubble->Add(mySE);
+
+        SetPosition(m_position, true);
+    } else {
+        _log(
+            DESTINY__WARP_TRACE,
+            "Destiny::WarpUpdate()  %s(%u): adding to midWarpSystemBubble.",
+            mySE->GetName(),
+            mySE->GetID()
+        );
+        SystemBubble* midWarpSystemBubble(sBubbleMgr.GetBubble(mySE->SystemMgr(), m_position));
+        midWarpSystemBubble->Add(mySE);
     }
 }
 
@@ -2116,25 +2148,30 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
 
     // send client updates
     std::vector<PyTuple*> updates;
+
     // acknowledge client's warpto request
     CmdWarpTo wt;
-        wt.entityID = mySE->GetID();
-        wt.dest_x = m_targetPoint.x;
-        wt.dest_y = m_targetPoint.y;
-        wt.dest_z = m_targetPoint.z;
-        wt.distance = m_stopDistance;
-        wt.warpSpeed = GetWarpSpeed();      // warp speed x10
+    wt.entityID = mySE->GetID();
+    wt.dest_x = m_targetPoint.x;
+    wt.dest_y = m_targetPoint.y;
+    wt.dest_z = m_targetPoint.z;
+    wt.distance = m_stopDistance;
+    wt.warpSpeed = GetWarpSpeed(); // warp speed x10
+
     updates.push_back(wt.Encode());
-    //send a warp effect...
+
+    // send a warp effect...
     OnSpecialFX10 sfx;
-        sfx.guid = "effects.Warping";
-        sfx.entityID = mySE->GetID();
-        sfx.isOffensive = false;
-        sfx.start = true;
-        sfx.active = true;
+    sfx.guid = "effects.Warping";
+    sfx.entityID = mySE->GetID();
+    sfx.isOffensive = false;
+    sfx.start = true;
+    sfx.active = true;
+
     updates.push_back(sfx.Encode());
     SendDestinyUpdate(updates);
     updates.clear();
+
     //set massive for warp, per client, but self-only
     SetBallMassive bm;
     bm.entityID = mySE->GetID();
@@ -3167,21 +3204,62 @@ void DestinyManager::SendTerminalExplosion(uint32 shipID, uint32 bubbleID, bool 
 }
 
 void DestinyManager::SendSetState() const {
-    if (!mySE->HasPilot())
+    if (!mySE->HasPilot()) {
         return;
+    }
 
-    if (is_log_enabled(DESTINY__MESSAGE))
-        _log(DESTINY__MESSAGE, "Destiny::SendSetState() Called for Ship:%s(%u) Pilot:%s(%u)", \
-                        mySE->GetName(), mySE->GetID(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID());
+    if (is_log_enabled(DESTINY__MESSAGE)) {
+        _log(
+            DESTINY__MESSAGE,
+            "Destiny::SendSetState() Called for Ship:%s(%u) Pilot:%s(%u)",
+            mySE->GetName(),
+            mySE->GetID(),
+            mySE->GetPilot()->GetName(),
+            mySE->GetPilot()->GetCharacterID()
+        );
+    }
+
+    // if the player is not warping, tell the client they're not warping
+    std::vector<PyTuple*> updates;
+    OnSpecialFX10 sfx;
+    sfx.guid = "effects.Warping";
+    sfx.entityID = mySE->GetID();
+    sfx.isOffensive = false;
+    sfx.start = false;
+    sfx.active = false;
+    if (m_ballMode == Destiny::Ball::Mode::WARP) {
+        sfx.start = true; // TODO: verify if this is necessary
+        sfx.active = true;
+    }
+
+    updates.push_back(sfx.Encode());
+    SendDestinyUpdate(updates);
+    updates.clear();
 
     SetState ss;
-        ss.stamp = sEntityList.GetStamp();
-        ss.ego = mySE->GetID();
+
+    ss.stamp = sEntityList.GetStamp();
+    ss.ego = mySE->GetID();
+
+    if (mySE->SysBubble() == nullptr) {
+        // returning here preemptively avoids a segfault, but isn't a good
+        // situation. seems like it happens during warp, just after the player
+        // has been removed from a bubble.
+        sLog.Error(
+            "DestinyManager::SendSetState()",
+            "Destiny::SendSetState() the player isn't in a system bubble! Aborting attempt to send state."
+        );
+
+        return;
+    }
 
     mySE->SystemMgr()->MakeSetState(mySE->SysBubble(), ss);
+
     PyTuple* tmp(ss.Encode());
-    //setstate should be alone and immediate.  send directly
-    mySE->GetPilot()->QueueDestinyUpdate(&tmp, true, true);   // consumed
+
+    // setstate should be alone and immediate. send directly
+    mySE->GetPilot()->QueueDestinyUpdate(&tmp, true, true); // consumed
+
     mySE->GetPilot()->SetStateSent(true);
 }
 
@@ -3211,19 +3289,32 @@ void DestinyManager::SendDestinyUpdate(std::vector<PyTuple*> &updates, bool self
 
 void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vector<PyTuple*>& events, bool self_only/*false*/) const {
     // this check shouldnt be needed...
-    if (!mySE->SystemMgr()->IsLoaded())
+    if (!mySE->SystemMgr()->IsLoaded()) {
         return;
+    }
+
     if (self_only) {
         if (!mySE->HasPilot()) {
             // this entity is NOT a player ship...change to BubbleCast (or silently fail)
             if (mySE->SysBubble() != nullptr) {
                 if (is_log_enabled(DESTINY__UPDATES))
-                    _log( DESTINY__UPDATES, "[%u] BubbleCasting destiny update (u:%lu, e:%lu) for stamp %u to bubbleID %u from %s(%u)", \
-                            sEntityList.GetStamp(), updates.size(), events.size(), sEntityList.GetStamp(), mySE->SysBubble()->GetID(), mySE->GetName(), mySE->GetID() );
-                mySE->SysBubble()->BubblecastDestiny( updates, events, "destiny" );
+                    _log(
+                        DESTINY__UPDATES,
+                        "[%u] BubbleCasting destiny update (u:%lu, e:%lu) for stamp %u to bubbleID %u from %s(%u)",
+                        sEntityList.GetStamp(),
+                        updates.size(),
+                        events.size(),
+                        sEntityList.GetStamp(),
+                        mySE->SysBubble()->GetID(),
+                        mySE->GetName(),
+                        mySE->GetID()
+                    );
+                mySE->SysBubble()->BubblecastDestiny(updates, events, "destiny" );
             }
+
             return;
         }
+
         if (is_log_enabled(PLAYER__MESSAGE))
             _log(PLAYER__MESSAGE, "[%u] DestinyManager::SendDestinyUpdate() (u:%lu, e:%lu) called as 'self_only' for %s(%i)", \
                     sEntityList.GetStamp(), updates.size(), events.size(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID());
@@ -3238,31 +3329,58 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
             mySE->GetPilot()->QueueDestinyEvent(&(*itr));
         }
     } else if (mySE->IsOperSE()) { //These are global entities, so we have to send update to all bubbles in a system
-        if (is_log_enabled(DESTINY__UPDATES))
-            _log(DESTINY__UPDATES, "[%u] BubbleCasting global structure destiny update (u:%u, e:%u) for stamp %u to all bubbles from %s(%u)", \
-                    sEntityList.GetStamp(), updates.size(), events.size(), sEntityList.GetStamp(), \
-                    (mySE->HasPilot()?mySE->GetPilot()->GetName():mySE->GetName()),\
-                    (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID()) );
+        if (is_log_enabled(DESTINY__UPDATES)) {
+            _log(
+                DESTINY__UPDATES,
+                "[%u] BubbleCasting global structure destiny update (u:%u, e:%u) for stamp %u to all bubbles from %s(%u)",
+                sEntityList.GetStamp(),
+                updates.size(),
+                events.size(),
+                sEntityList.GetStamp(),
+                (mySE->HasPilot()?mySE->GetPilot()->GetName():mySE->GetName()),
+                (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID())
+            );
+        }
 
         //Get all clients in the system which the SE is in
         /** @todo  this isnt right....will segfault.  needs to be fixed */
         std::vector<Client*> cv;
+
         mySE->SystemMgr()->GetClientList(cv);
+
         for(auto const& value: cv) {
             value->GetShipSE()->SysBubble()->BubblecastDestiny(updates, events, "destiny");
         }
     } else if (mySE->SysBubble() != nullptr) {
-        if (is_log_enabled(DESTINY__UPDATES))
-            _log(DESTINY__UPDATES, "[%u] BubbleCasting destiny update (u:%u, e:%u) for stamp %u to bubbleID %u from %s(%u)", \
-                    sEntityList.GetStamp(), updates.size(), events.size(), sEntityList.GetStamp(), mySE->SysBubble()->GetID(),   \
-                    (mySE->HasPilot()?mySE->GetPilot()->GetName():mySE->GetName()),\
-                    (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID()) );
+        if (is_log_enabled(DESTINY__UPDATES)) {
+            _log(
+                DESTINY__UPDATES,
+                "[%u] BubbleCasting destiny update (u:%u, e:%u) for stamp %u to bubbleID %u from %s(%u)",
+                sEntityList.GetStamp(),
+                updates.size(),
+                events.size(),
+                sEntityList.GetStamp(),
+                mySE->SysBubble()->GetID(),
+                (mySE->HasPilot()?mySE->GetPilot()->GetName():mySE->GetName()),
+                (mySE->HasPilot()?mySE->GetPilot()->GetCharID():mySE->GetID())
+            );
+        }
+
         mySE->SysBubble()->BubblecastDestiny( updates, events, "destiny" );
     } else {
-        _log(DESTINY__ERROR, "[%u] Cannot BubbleCast destiny update (u:%u, e:%u); entity (%u) is not in any bubble.", \
-                sEntityList.GetStamp(), updates.size(), events.size(), mySE->GetID() );
-        if (sConfig.debug.IsTestServer)
-            EvE::traceStack();
+        _log(
+            DESTINY__ERROR,
+            "[%u] Cannot BubbleCast destiny update (u:%u, e:%u); entity (%u) is not in any bubble.",
+            sEntityList.GetStamp(),
+            updates.size(),
+            events.size(),
+            mySE->GetID()
+        );
+
+        // if (sConfig.debug.IsTestServer) {
+        //     EvE::traceStack();
+        // }
+
         //sBubbleMgr.Add(mySE);
         //mySE->SysBubble()->BubblecastDestiny( updates, events, "destiny" );
     }
