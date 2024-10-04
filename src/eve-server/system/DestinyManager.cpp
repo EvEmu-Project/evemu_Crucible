@@ -3219,7 +3219,9 @@ void DestinyManager::SendSetState() const {
         );
     }
 
-    // if the player is not warping, tell the client they're not warping
+    // if the player is not warping, tell the client they're not warping.
+    // As of 2024-10-03, this doesn't always work and there are still issues
+    // with the client sometimes not starting a warp sequence.
     std::vector<PyTuple*> updates;
     OnSpecialFX10 sfx;
     sfx.guid = "effects.Warping";
@@ -3242,9 +3244,8 @@ void DestinyManager::SendSetState() const {
     ss.ego = mySE->GetID();
 
     if (mySE->SysBubble() == nullptr) {
-        // returning here preemptively avoids a segfault, but isn't a good
-        // situation. seems like it happens during warp, just after the player
-        // has been removed from a bubble.
+        // returning here preemptively avoids a segfault (good), but isn't a
+        // good situation to encounter.
         sLog.Error(
             "DestinyManager::SendSetState()",
             "Destiny::SendSetState() the player isn't in a system bubble! Aborting attempt to send state."
