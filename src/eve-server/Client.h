@@ -203,6 +203,7 @@ public:
     bool SelectCharacter(int32 char_id=0);
     bool IsHangarLoaded(uint32 stationID);
 
+    void UpdateBubble();
     void WarpIn();
     void WarpOut();
     void EnterSystem(uint32 systemID);     // only called by gm command, and only if (bubble == null)
@@ -244,6 +245,7 @@ public:
     bool IsBubbleWait()                                 { return m_bubbleWait; }
     bool IsSetStateSent()                               { return m_setStateSent; }
     bool IsSessionChange()                              { return m_sessionChangeActive; }
+    bool IsLoginWarping();
     uint32 GetSessionChangeTime()                       { return m_sessionTimer.GetRemainingTime() / 1000; }
 
     void SetInvul(bool invul=false)                     { m_invul = invul; }
@@ -251,6 +253,7 @@ public:
     void SetBeyonce(bool beyonce=false)                 { m_beyonce = beyonce; }
     void SetUncloak(bool uncloak=false)                 { m_uncloak = uncloak; }
     void SetBubbleWait(bool wait=false)                 { m_bubbleWait = wait; }
+    void SetLoginWarpComplete();
     void SetStateSent(bool set=false)                   { m_setStateSent = set; }
     void SetSessionTimer()                              { m_sessionChangeActive = true; m_sessionTimer.Start(Player::Timer::Session); }
     void SetSessionChange(bool set=false)               { m_sessionChangeActive = set; }
@@ -402,6 +405,10 @@ protected:
     GPoint m_movePoint;
     // dock location in space (absolute)
     GPoint m_dockPoint;
+    // upon login, the player needs to warp to a location, but the warp
+    // has to be queued to the next tick after login events have been processed
+    GPoint m_loginWarpPoint;
+    GPoint m_loginWarpRandomPoint;
 
     std::set<LSCChannel*>   m_channels;    //we do not own these.
     std::map<uint32, bool>  m_hangarLoaded;

@@ -478,21 +478,45 @@ void DestinyManager::UpdateVelocity(bool isMoving) {
     }
 }
 
-//Global Actions:
+// `AbortIfLoginWarping` prevents the player from moving, warping, stopping,
+// etc. if the player is logging in and attempting to warp back to their
+// previous position.
+//
+// If `showMsg` is `true`, the player will be notified of their inability to
+// perform the action they requested.
+//
+// TODO: This should be called more often, such as when the player is trying to
+// do most Destiny actions - eject, orbit, follow, etc. These were implemented
+// in BeyonceService, but some other edge cases may remain.
+bool DestinyManager::AbortIfLoginWarping(bool showMsg) {
+    Client* pClient = mySE->GetPilot();
+    if (pClient != nullptr && pClient->IsLoginWarping()) {
+        if (showMsg) {
+            pClient->SendNotifyMsg("You cannot perform this action right now.");
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
 void DestinyManager::Stop() {
-    if (m_stop)
+    // Usually there's no need to show a message for this because it gets
+    // triggered unnecessarily a few times upon login. Commands that should
+    // show a notification are handled in BeyonceService.
+    if (AbortIfLoginWarping(false)) {
         return;
+    }
 
     // AP not implemented yet in this version  -allan 4Mar15
-    //Clear autopilot
-    if (mySE->HasPilot())
+    // Clear autopilot
+    if (mySE->HasPilot()) {
         mySE->GetPilot()->SetAutoPilot(false);
+    }
 
     if (m_userSpeedFraction == 0.0f) {
-        //state is already at stop. but m_stop wasnt set.
-        // set m_stop and return.
         m_stop = true;
-        return;
     } else if  ((m_ballMode == Destiny::Ball::Mode::WARP) and (!IsWarping()))  {
         //warp aborted before initialized.  standard Stop() applies.
         m_ballMode = Destiny::Ball::Mode::STOP;
@@ -1647,8 +1671,10 @@ void DestinyManager::WarpStop(double currentShipSpeed) {
         _log(DESTINY__WARP_TRACE, "Destiny::WarpStop(): %s(%u): Ship currently at %.2f,%.2f,%.2f.", \
                 mySE->GetName(), mySE->GetID(), m_position.x, m_position.y, m_position.z);
     }
-    if (mySE->IsShipSE())
+    if (mySE->IsShipSE()) {
         _log(AUTOPILOT__MESSAGE, "Destiny::WarpStop(): %s(%u) - Warp complete.", mySE->GetName(), mySE->GetID());
+        mySE->GetPilot()->SetLoginWarpComplete();
+    }
     m_targetPoint += (m_warpState->warp_vector *10000);
     // SetSpeedFraction() checks for m_state = Warp and warpstate != null to set decel variables correctly with warp decel.
     //   have to call this BEFORE deleting or reseting m_state or WarpState.
@@ -1656,8 +1682,9 @@ void DestinyManager::WarpStop(double currentShipSpeed) {
     m_stop = true;
     SafeDelete(m_warpState);
     m_targBubble = nullptr;
-    if ((mySE->IsNPCSE()) and (mySE->GetNPCSE()->GetAIMgr() != nullptr))
+    if ((mySE->IsNPCSE()) and (mySE->GetNPCSE()->GetAIMgr() != nullptr)) {
         mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
+    }
 }
 
 //called whenever an entity is going away and can no longer be used as a target

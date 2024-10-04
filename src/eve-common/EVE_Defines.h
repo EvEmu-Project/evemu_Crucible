@@ -396,7 +396,7 @@
 (itemID == npcTraderJoe)
 
 #define IsTrader(itemID) \
-(((itemID >= minTrader) && (itemID <= maxTrader))
+((itemID >= minTrader) && (itemID <= maxTrader))
 
 
 /*

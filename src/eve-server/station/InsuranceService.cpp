@@ -173,8 +173,15 @@ PyResult InsuranceBound::InsureShip(PyCallArgs& call, PyInt* shipID, PyFloat* am
         std::string reason = "Insurance Premium on ";
         reason += call.client->GetShip()->itemName();
         reason += ".  Reference ID : xxxxx";     // put contractID here
-        AccountService::TranserFunds(call.client->GetCharacterID(), corpSCC, amount->value(), reason, \
-                Journal::EntryType::Insurance, -shipRef->itemID());     // for paying ins, shipID should be negative
+
+        AccountService::TransferFunds(
+            call.client->GetCharacterID(),
+            corpSCC,
+            amount->value(),
+            reason,
+            Journal::EntryType::Insurance,
+            -shipRef->itemID()
+        );  // for paying ins, shipID should be negative
     } else {
         throw UserError ("InsureShipFailed");
     }

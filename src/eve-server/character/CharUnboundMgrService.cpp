@@ -368,9 +368,8 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
 
     std::string reason = "DESC: Inheritance Payment to ";
     reason += charRef->itemName();
-    AccountService::TranserFunds(corpSCC, charRef->itemID(), sConfig.character.startBalance, reason, Journal::EntryType::Inheritance);
-    AccountService::TranserFunds(corpSCC, charRef->itemID(), sConfig.character.startAurBalance, reason, \
-                            Journal::EntryType::Inheritance, 0, Account::KeyType::AUR, Account::KeyType::AUR);
+    AccountService::TransferFunds(corpSCC, charRef->itemID(), sConfig.character.startBalance, reason, Journal::EntryType::Inheritance);
+    AccountService::TransferFunds(corpSCC, charRef->itemID(), sConfig.character.startAurBalance, reason, Journal::EntryType::Inheritance, 0, Account::KeyType::AUR, Account::KeyType::AUR);
 
     charRef->LogOut();
     sRef->LogOut();

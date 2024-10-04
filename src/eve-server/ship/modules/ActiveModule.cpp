@@ -11,6 +11,7 @@
 #include "StatisticMgr.h"
 #include "exploration/Probes.h"
 #include "exploration/Scan.h"
+#include "inventory/AttributeEnum.h"
 #include "ship/Missile.h"
 #include "ship/modules/ActiveModule.h"
 #include "ship/modules/ModuleItem.h"
@@ -505,8 +506,10 @@ void ActiveModule::DeOverload()
     m_overLoaded = false;
 }
 
-uint32 ActiveModule::DoCycle()
-{
+// `DoCycle` performs checks before activating the module for its next cycle.
+// These checks include applying all capacitor and item consumption
+// requirements.
+uint32 ActiveModule::DoCycle() {
     if (m_destinyMgr == nullptr) {
         // make error for no destiny/bubble
         AbortCycle();
@@ -539,6 +542,30 @@ uint32 ActiveModule::DoCycle()
                 return 0;
             }
         }
+    }
+
+    // check if ship has sufficient capacitor capacity - if not, abort the cycle
+    if (m_modRef->HasAttribute(AttrCapacitorNeed)) {
+        float remainingCapacitorCharge = m_shipRef->GetAttribute(AttrCapacitorCharge).get_float();
+        float requiredCapacitorCharge = GetAttribute(AttrCapacitorNeed).get_float();
+
+        float newCap = remainingCapacitorCharge - requiredCapacitorCharge;
+
+        if (newCap < 0) {
+            m_shipRef->GetPilot()->SendNotifyMsg(
+                "This module requires %.0f GJ, but your capacitor only has %.0f GJ remaining.",
+                requiredCapacitorCharge,
+                remainingCapacitorCharge
+            );
+
+            AbortCycle();
+
+            return 0;
+        }
+
+        float shipTotalCapacitor = m_shipRef->GetAttribute(AttrCapacitorCapacity).get_float();
+
+        m_shipRef->SetShipCapacitorLevel(newCap / shipTotalCapacitor);
     }
 
     // not sure if this is entirely accurate...wip
@@ -799,21 +826,16 @@ void ActiveModule::DeactivateCycle(bool abort/*false*/)
 }
 
 void ActiveModule::ProcessActiveCycle() {
-    if (m_Stop)
+    if (m_Stop) {
         SetModuleState(Module::State::Deactivating);
+    }
 
     if (m_ModuleState == Module::State::Deactivating) {
         DeactivateCycle();
         return;
     }
 
-    float newCap = (m_shipRef->GetAttribute(AttrCapacitorCharge).get_float() - GetAttribute(AttrCapacitorNeed)).get_float();
-    if (newCap >= 0 ) {
-        m_shipRef->SetAttribute(AttrCapacitorCharge, newCap);
-        SetTimer(DoCycle());
-    } else {
-        AbortCycle();
-    }
+    SetTimer(DoCycle());
 }
 
 void ActiveModule::SetTimer(uint32 time) {
@@ -1028,8 +1050,7 @@ void ActiveModule::ReprocessCharge()
     m_chargeRef->ClearModifiers();
 }
 
-bool ActiveModule::CanActivate()
-{
+bool ActiveModule::CanActivate() {
     // there is still more to be done here.  wip
     //  modules that require specific tests are coded in their module class, which will call this if their specific checks pass
 
@@ -1041,6 +1062,24 @@ bool ActiveModule::CanActivate()
         if (!m_shipRef->GetMyInventory()->ContainsTypeQtyByFlag(typeID, EVEItemFlags::flagCargoHold, qtyNeed)) {
             m_shipRef->GetPilot()->SendNotifyMsg("This module requires you to have %u units of %s in your inventory.", \
                     qtyNeed, sItemFactory.GetType(typeID)->name().c_str());
+            return false;
+        }
+    }
+
+     // check if ship has sufficient capacitor capacity
+    if (m_modRef->HasAttribute(AttrCapacitorNeed)) {
+        float remainingCapacitorCharge = m_shipRef->GetAttribute(AttrCapacitorCharge).get_float();
+        float requiredCapacitorCharge = GetAttribute(AttrCapacitorNeed).get_float();
+
+        float newCap = remainingCapacitorCharge - requiredCapacitorCharge;
+
+        if (newCap < 0) {
+            m_shipRef->GetPilot()->SendNotifyMsg(
+                "This module requires %.0f GJ, but your capacitor only has %.0f GJ remaining.",
+                requiredCapacitorCharge,
+                remainingCapacitorCharge
+            );
+
             return false;
         }
     }

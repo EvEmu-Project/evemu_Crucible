@@ -819,14 +819,14 @@ void DynamicSystemEntity::AwardBounty(Client* pClient)
             reason += pClient->GetName();
             data.reason = reason;
             for (auto cur :members)
-                AccountService::TranserFunds(corpCONCORD, cur, bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
+                AccountService::TransferFunds(corpCONCORD, cur, bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
         }
     } else {
         data.amount = bounty;
         if (sConfig.server.BountyPayoutDelayed) {
             m_system->AddBounty(pClient->GetCharacterID(), data);
         } else {
-            AccountService::TranserFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
+            AccountService::TransferFunds(corpCONCORD, pClient->GetCharacterID(), bounty, reason.c_str(), Journal::EntryType::BountyPrize, -GetTypeID());
         }
     }
 }

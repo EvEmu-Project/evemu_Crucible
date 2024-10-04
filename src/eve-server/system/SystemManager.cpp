@@ -1157,8 +1157,7 @@ void SystemManager::AddMarker(SystemEntity* pSE, bool sendBall/*false*/, bool ad
 }
 
 
-void SystemManager::AddBounty(uint32 charID, BountyData& data)
-{
+void SystemManager::AddBounty(uint32 charID, BountyData& data) {
     /*
 struct BountyData {     // this is comming from rat killed.
     uint32 fromID;
@@ -1196,9 +1195,9 @@ struct BountyData {     // this is comming from rat killed.
     }
 }
 
-void SystemManager::PayBounties()
-{
+void SystemManager::PayBounties() {
     _log(CLIENT__TEXT, "PayBounties called for system %s(%u).", m_data.name.c_str(), m_data.systemID);
+
     int8 count = 0;
         /* recDescNpcBountyList = 'NBL'                <-- descrives a full list of [typeID: qty]
          * recDescNpcBountyListTruncated = 'NBLT'      <-- describes a trunicated list
@@ -1241,11 +1240,14 @@ recStoreItems = 'STOREITEMS'
             }
             // will have to figure out how to *correctly* limit this data to count<20 or so...
         } //else {
-            reason += ",...";    // this will show as "truncated" in client
+
+        reason += ",...";    // this will show as "truncated" in client
         //}
-        AccountService::TranserFunds(corpCONCORD, cur.first, cur.second.amount, reason, Journal::EntryType::BountyPrizes, m_data.systemID);
+
+        AccountService::TransferFunds(corpCONCORD, cur.first, cur.second.amount, reason, Journal::EntryType::BountyPrizes, m_data.systemID);
         count = 0;
     }
+
     m_ratMap.clear();
     m_bountyMap.clear();
 }
