@@ -216,7 +216,7 @@ public:
     virtual bool                IsDungeonEditSE()       { return false; }
 
     /* generic functions handled here */
-    EVEServiceManager&               GetServices()      { return m_services; }
+    EVEServiceManager&          GetServices()           { return m_services; }
     SystemBubble*               SysBubble()             { return m_bubble; }
     SystemManager*              SystemMgr()             { return m_system; }
     TargetManager*              TargetMgr()             { return m_targMgr; }

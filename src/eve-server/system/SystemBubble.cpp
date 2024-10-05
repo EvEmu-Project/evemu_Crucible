@@ -193,43 +193,78 @@ void SystemBubble::ProcessWander(std::vector<SystemEntity*> &wanderers) {
         ResetBubbleRatSpawn();
 }
 
-void SystemBubble::Add(SystemEntity* pSE)
-{
+void SystemBubble::Add(SystemEntity* pSE) {
     //if they are already in this bubble, do not continue.
     if (m_entities.find(pSE->GetID()) != m_entities.end()) {
-        _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Add() - Tried to add Static Entity %u to bubble %u, but it is already in here.",\
-             pSE->GetID(), m_bubbleID);
+        _log(
+            DESTINY__BUBBLE_TRACE,
+            "SystemBubble::Add() - Tried to add Static Entity %u to bubble %u, but it is already in here.",
+            pSE->GetID(),
+            m_bubbleID
+        );
+
         return;
     }
 
     pSE->m_bubble = this;
-    // global entities also in SystemMgr's static list.  this is used for SystemBubble->IsEmpty() deletion check
+
+    // global entities also in SystemMgr's static list.  this is used for
+    // SystemBubble->IsEmpty() deletion check
     if (pSE->IsStaticEntity() or pSE->isGlobal()) {
-        _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Add() - Entity %s(%u) is static or global or both.", pSE->GetName(), pSE->GetID() );
-        // all static and global entities (stations, gates, asteroid fields, cyno fields, etc) are put into bubble's staticEntity map
+        _log(
+            DESTINY__BUBBLE_TRACE,
+            "SystemBubble::Add() - Entity %s(%u) is static or global or both.",
+            pSE->GetName(),
+            pSE->GetID()
+        );
+
+        // all static and global entities (stations, gates, asteroid fields,
+        // cyno fields, etc) are put into bubble's staticEntity map
         m_entities[pSE->GetID()] = pSE;
+
         return;
     }
 
     //if they are already in this bubble, do not continue.
     if (m_dynamicEntities.find(pSE->GetID()) != m_dynamicEntities.end()) {
-        _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Add() - Tried to add Dynamic Entity %u to bubble %u, but it is already in here.",\
-                pSE->GetID(), m_bubbleID);
+        _log(
+            DESTINY__BUBBLE_TRACE,
+            "SystemBubble::Add() - Tried to add Dynamic Entity %u to bubble %u, but it is already in here.",
+            pSE->GetID(),
+            m_bubbleID
+        );
+
         return;
     }
 
-    _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Add() - Adding entity %u to bubble %u.  Dist to center: %.2f", \
-            pSE->GetID(), m_bubbleID, m_center.distance(pSE->GetPosition()));
+    _log(
+        DESTINY__BUBBLE_TRACE,
+        "SystemBubble::Add() - Adding entity %u to bubble %u.  Dist to center: %.2f",
+        pSE->GetID(),
+        m_bubbleID,
+        m_center.distance(pSE->GetPosition())
+    );
 
     if (is_log_enabled(DESTINY__BUBBLE_DEBUG)) {
         GPoint startPoint( pSE->GetPosition() );
         GVector direction(startPoint, NULL_ORIGIN);
+
         double rangeToStar = direction.length();
+
         rangeToStar /= ONE_AU_IN_METERS;
-        _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::Add() - Distance to Star %.2f AU.  %u/%u Entities in bubble %u",\
-                rangeToStar, m_entities.size(), m_dynamicEntities.size(), m_bubbleID);
-        //if (sConfig.debug.StackTrace)
+
+        _log(
+            DESTINY__BUBBLE_DEBUG,
+            "SystemBubble::Add() - Distance to Star %.2f AU.  %u/%u Entities in bubble %u",
+            rangeToStar,
+            m_entities.size(),
+            m_dynamicEntities.size(),
+            m_bubbleID
+        );
+
+        // if (sConfig.debug.StackTrace) {
         //    EvE::traceStack();
+        // }
     }
 
     if (pSE->HasPilot()) {
@@ -237,18 +272,27 @@ void SystemBubble::Add(SystemEntity* pSE)
         if (m_belt) {
             // check for roids and load/spawn as needed.
             m_system->GetBeltMgr()->CheckSpawn(m_bubbleID);
-            if (sConfig.npc.RoamingSpawns)
-                if (!m_spawnTimer.Enabled())
+
+            if (sConfig.npc.RoamingSpawns) {
+                if (!m_spawnTimer.Enabled()) {
                     SetSpawnTimer(true);
+                }
+            }
         }
-        if (m_gate and sConfig.npc.StaticSpawns)
-            if (!m_spawnTimer.Enabled())
+
+        if (m_gate and sConfig.npc.StaticSpawns) {
+            if (!m_spawnTimer.Enabled()) {
                 SetSpawnTimer(false);
+            }
+        }
 
         Client* pClient(pSE->GetPilot());
+
         SendAddBalls( pSE );
-        if (!m_players.empty())
+
+        if (!m_players.empty()) {
             AddBallExclusive(pSE);  // adds new player to all players in bubble, if any
+        }
 
         m_players[pClient->GetCharacterID()] = pClient;   //add to bubble's player list
     } else {
@@ -341,8 +385,7 @@ void SystemBubble::SetBelt(InventoryItemRef itemRef)
         m_ice = true;
 }
 
-void SystemBubble::SetGate(uint32 gateID)
-{
+void SystemBubble::SetGate(uint32 gateID) {
     m_gate = true;
     sBubbleMgr.AddSpawnID(m_bubbleID, gateID);
 }
@@ -795,45 +838,52 @@ void SystemBubble::SyncPos() {
     for (auto player : m_players)
         for (auto dse : m_dynamicEntities) {
             SetBallPosition du;
-                du.entityID = dse.first;
-                du.x = dse.second->GetPosition().x;
-                du.y = dse.second->GetPosition().y;
-                du.z = dse.second->GetPosition().z;
+
+            du.entityID = dse.first;
+            du.x = dse.second->GetPosition().x;
+            du.y = dse.second->GetPosition().y;
+            du.z = dse.second->GetPosition().z;
+
             PyTuple* up = du.Encode();
+
             player.second->GetShipSE()->DestinyMgr()->SendSingleDestinyUpdate(&up);
         }
 }
 
-void SystemBubble::CmdDropLoot()
-{
+void SystemBubble::CmdDropLoot() {
     for (auto dse : m_dynamicEntities) {
-        if (dse.second->IsNPCSE())
+        if (dse.second->IsNPCSE()) {
             dse.second->GetNPCSE()->CmdDropLoot();
+        }
     }
 }
 
 
-void SystemBubble::RemoveMarkers()
-{
-    if (m_hasMarkers)
+void SystemBubble::RemoveMarkers() {
+    if (m_hasMarkers) {
         for (auto cur : m_markers) {
             m_system->RemoveEntity(cur.second);
             cur.second->Delete(); // delete marker cans here
             SafeDelete(cur.second);
         }
+    }
+
     m_markers.clear();
     m_centerSE = nullptr;
     m_hasMarkers = false;
 }
 
 
-void SystemBubble::MarkCenter()
-{
+void SystemBubble::MarkCenter() {
     // we are not creating markers on system boot.
-    if (!m_system->IsLoaded())
+    if (!m_system->IsLoaded()) {
         return;
-    if (m_hasMarkers)
+    }
+
+    if (m_hasMarkers) {
         return;
+    }
+
     // create jetcan to mark bubble center
     std::string str = "Center Marker for Bubble #", desc = "Bubble Center"; //std::to_string(m_bubbleID);
     str += std::to_string(m_bubbleID);
