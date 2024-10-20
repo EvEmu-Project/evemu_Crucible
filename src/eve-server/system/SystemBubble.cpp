@@ -134,63 +134,104 @@ void SystemBubble::Process()
     }
 }
 
-//called every 30s from the bubble manager.
-//verifies that each entity is still in this bubble.
-//if any entity is no longer in the bubble, they are removed
-//from the bubble and stuck into the vector for re-classification.
-void SystemBubble::ProcessWander(std::vector<SystemEntity*> &wanderers) {
-    DynamicSystemEntity* pDSE(nullptr);
-    std::map<uint32, SystemEntity*>::iterator itr = m_dynamicEntities.begin();
+// called regularly (once every minute or so) from the bubble manager.
+// verifies that each entity is still in this bubble.
+// if any entity is no longer in the bubble, they are removed
+// from the bubble and stuck into the vector for re-classification.
+void SystemBubble::ProcessWander(std::vector<SystemEntity *> &wanderers) {
+    DynamicSystemEntity *pDSE(nullptr);
+
+    _log(DESTINY__DEBUG, "SystemBubble::ProcessWander() starting");
+
+    std::map<uint32, SystemEntity *>::iterator itr = m_dynamicEntities.begin();
     while (itr != m_dynamicEntities.end()) {
+        _log(DESTINY__TRACE, "SystemBubble::ProcessWander() checking if second is nullptr");
         if (itr->second == nullptr) {
+            _log(DESTINY__TRACE, "SystemBubble::ProcessWander() erasing dynamic entities");
             itr = m_dynamicEntities.erase(itr);
             continue;
         }
+
+        _log(DESTINY__DEBUG, "SystemBubble::ProcessWander() (itr->first=%u, itr->second=%p) %s", itr->first, itr->second, itr->second->GetName());
+
+        _log(DESTINY__TRACE, "SystemBubble::ProcessWander() checking if wormhole");
         if (itr->second->IsWormholeSE()) {
+            _log(DESTINY__TRACE, "SystemBubble::ProcessWander() entity is a wormhole");
             ++itr;
             continue;
         }
-        ObjectSystemEntity* pOSE(nullptr);
-        pOSE = itr->second->GetObjectSE(); // Check if dynamic entity is an ObjectSystemEntity and keep it loaded until we unload the system entirely.
+
+        // Check if dynamic entity is an ObjectSystemEntity, and keep it loaded
+        // until we unload the system entirely.
+        ObjectSystemEntity *pOSE(nullptr);
+        _log(DESTINY__TRACE, "SystemBubble::ProcessWander() getting pOSE");
+        pOSE = itr->second->GetObjectSE();
         if (pOSE != nullptr) {
             ++itr;
             continue;
         }
+
+        _log(DESTINY__TRACE, "SystemBubble::ProcessWander() getting dynamicSE");
         pDSE = itr->second->GetDynamicSE();
         if (pDSE == nullptr) {
+            _log(DESTINY__TRACE, "SystemBubble::ProcessWander() pDSE is nullptr");
             itr = m_dynamicEntities.erase(itr);
             continue;
         }
+
+        _log(DESTINY__TRACE, "SystemBubble::ProcessWander() checking if destiny or is warping");
         if ((pDSE->DestinyMgr() == nullptr) or pDSE->DestinyMgr()->IsWarping()) {
+            _log(DESTINY__TRACE, "SystemBubble::ProcessWander() destinymgr is nullptr or player is warping");
             ++itr;
             continue;
         }
+
         // is this shit really needed??
+        _log(DESTINY__TRACE, "SystemBubble::ProcessWander() checking if system ID differs from expected");
         if (pDSE->SystemMgr()->GetID() != m_systemID) {
-            // this entity is in a different system!  this shouldnt happen....
+            // this entity is in a different system! This shouldnt happen....
             // remove this entity, insert into wanderers, and continue
             wanderers.push_back(pDSE);
-            _log(DESTINY__WARNING, "SystemBubble::ProcessWander() - entity %u is in %u but this is %u.", \
-                                pDSE->GetID(), pDSE->SystemMgr()->GetID(), m_systemID);
+
+            _log(
+                DESTINY__WARNING,
+                "SystemBubble::ProcessWander() - entity %u is in %u but this is %u.",
+                pDSE->GetID(),
+                pDSE->SystemMgr()->GetID(),
+                m_systemID
+            );
+
             itr = m_dynamicEntities.erase(itr);
             pDSE = nullptr;
             continue;
         }
+
+        _log(DESTINY__TRACE, "SystemBubble::ProcessWander() checking if DSE in bubble");
         if (!InBubble(pDSE->GetPosition())) {
             wanderers.push_back(pDSE);
-            //17:38:57 [DestinyWarning] SystemBubble::ProcessWander() - entity 140006173(sys:30002507) not in bubble 1 for systemID 30002510.
-            _log(DESTINY__WARNING, "SystemBubble::ProcessWander() - entity %u(sys:%u) not in bubble %u for systemID %u.", \
-                        pDSE->GetID(), pDSE->SystemMgr()->GetID(), m_bubbleID, m_systemID);
+
+            _log(
+                DESTINY__WARNING,
+                "SystemBubble::ProcessWander() - entity %u(sys:%u) not in bubble %u for systemID %u.",
+                pDSE->GetID(),
+                pDSE->SystemMgr()->GetID(),
+                m_bubbleID,
+                m_systemID
+            );
+
             itr = m_dynamicEntities.erase(itr);
             pDSE = nullptr;
             continue;
         }
+
         ++itr;
     }
+
     pDSE = nullptr;
 
-    if (!m_players.empty() and m_spawned)
+    if (!m_players.empty() and m_spawned) {
         ResetBubbleRatSpawn();
+    }
 }
 
 void SystemBubble::Add(SystemEntity* pSE) {
@@ -303,36 +344,113 @@ void SystemBubble::Add(SystemEntity* pSE) {
     }
 
     // all non-global entities (players, npcs, roids, containers, etc) are put into bubble's dynamicEntity map
+    _log(
+        DESTINY__BUBBLE_DEBUG,
+        "SystemBubble::Add() - Added pSE %p (%s) to bubble %u",
+        pSE->GetName(),
+        pSE,
+        m_bubbleID
+    );
+
     m_dynamicEntities[pSE->GetID()] = pSE;
 }
 
-void SystemBubble::Remove(SystemEntity *pSE) {
-    //assume that the entity is properly registered for its ID
-    if (pSE->m_bubble == nullptr) {
-        if (sConfig.debug.StackTrace)
-            EvE::traceStack();
-		return;
+/**
+ * Provides a means to remove an entity from the SystemBubble's map of tracked
+ * dynamic entities without unsetting the SystemEntity's bubble.
+ *
+ * See `SystemBubble::Remove` for calling this and also unsetting the
+ * `SystemEntity`'s bubble.
+ */
+void SystemBubble::Untrack(SystemEntity *pSE) {
+    if (pSE == nullptr) {
+        return;
     }
 
-    _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Remove() - Removing entity %u from bubble %u", pSE->GetID(), m_bubbleID);
+    uint32 pseId(pSE->GetID());
 
-    m_entities.erase(pSE->GetID());
-    m_dynamicEntities.erase(pSE->GetID());
+    // assume that the entity is properly registered for its ID
+    if (pSE->m_bubble == nullptr) {
+        _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::Remove() - Entity %u bubble pointer is null for bubble %u", pseId, m_bubbleID);
+
+        if (sConfig.debug.StackTrace) {
+            EvE::traceStack();
+        }
+
+        return;
+    }
+
+    _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Remove() - Removing entity %u from bubble %u", pseId, m_bubbleID);
+
+    m_entities.erase(pseId);
+
+    _log(
+        DESTINY__BUBBLE_TRACE,
+        "SystemBubble::Remove() - Removing entity %u from bubble %u - erasing from dynamic entities",
+        pseId,
+        m_bubbleID
+    );
+
+    m_dynamicEntities.erase(pseId);
 
     if (pSE->HasPilot()) {
-        m_players.erase(pSE->GetPilot()->GetCharacterID());
+        _log(
+            DESTINY__BUBBLE_TRACE,
+            "SystemBubble::Remove() - Removing entity %u from bubble %u - erasing from dynamic entities",
+            pseId,
+            m_bubbleID
+        );
+
+        Client *pilotClient(pSE->GetPilot());
+
+        if (pilotClient == nullptr) {
+            _log(
+                DESTINY__BUBBLE_TRACE,
+                "SystemBubble::Remove() - Removing entity %u from bubble %u - pilot client is nullptr, returning",
+                pseId,
+                m_bubbleID
+            );
+
+            return;
+        }
+
+        int32 charId(pSE->GetPilot()->GetCharacterID());
+
+        m_players.erase(charId);
+
+        _log(
+            DESTINY__BUBBLE_TRACE,
+            "SystemBubble::Remove() - Removing entity %u from bubble %u - removing balls",
+            pseId,
+            m_bubbleID
+        );
+
         RemoveBalls(pSE);
     }
 
-    //notify everybody else in the bubble of the removal.
-    if (!m_players.empty())
+    // notify everybody else in the bubble of the removal
+    if (!m_players.empty()) {
         RemoveBall(pSE);
+    }
 
-    if (pSE->IsDroneSE())
-        m_drones.erase(pSE->GetID());
+    if (pSE->IsDroneSE()) {
+        m_drones.erase(pseId);
+    }
 
-    if (is_log_enabled(DESTINY__BUBBLE_DEBUG))
+}
+
+/**
+ * Calls `SystemBubble::Untrack`, and also sets the bubble for the
+ * `SystemEntity` to a `nullptr`. Generally speaking, if the bubble for a
+ * `SystemEntity` is a `nullptr`, it is not assumed to be in space - call
+ * `Untrack` instead if you don't want to do this.
+ */
+void SystemBubble::Remove(SystemEntity *pSE) {
+    Untrack(pSE);
+
+    if (is_log_enabled(DESTINY__BUBBLE_DEBUG)) {
         sLog.Warning("SystemBubble::Remove()", "Removing entity %u from bubble %u", pSE->GetID(), m_bubbleID);
+    }
 
     pSE->m_bubble = nullptr;
 }
@@ -775,31 +893,41 @@ void SystemBubble::RemoveBallExclusive(SystemEntity *about_who) {
     PySafeDecRef( tmp );
 }
 
-void SystemBubble::RemoveBalls( SystemEntity* to_who ) {
-    if (!m_system->IsLoaded())
+void SystemBubble::RemoveBalls(SystemEntity *to_who) {
+    if (!m_system->IsLoaded()) {
         return;
-    if (m_dynamicEntities.empty())
+    }
+
+    if (m_dynamicEntities.empty()) {
         return;
-    if ((!to_who->HasPilot()) or (to_who->SysBubble() == nullptr))
+    }
+
+    if ((!to_who->HasPilot()) or (to_who->SysBubble() == nullptr)) {
         return;
-    Client* pClient = to_who->GetPilot();
-    if ((pClient == nullptr) or pClient->IsDock() or pClient->IsDocked())
+    }
+
+    Client *pClient = to_who->GetPilot();
+    if ((pClient == nullptr) or pClient->IsDock() or pClient->IsDocked()) {
         return;
+    }
 
     RemoveBallsFromBP remove_balls;
 
-    for (auto cur : m_dynamicEntities)
+    for (auto cur : m_dynamicEntities) {
         remove_balls.balls.push_back(cur.first);
+    }
 
-    if (remove_balls.balls.empty())
+    if (remove_balls.balls.empty()) {
         return;
+    }
 
-    _log( DESTINY__MESSAGE, "SystemBubble::RemoveBalls() - sending to %s", pClient->GetName());
-    if (is_log_enabled(DESTINY__BALL_DUMP))
-        remove_balls.Dump( DESTINY__BALL_DUMP, "    " );
+    _log(DESTINY__MESSAGE, "SystemBubble::RemoveBalls() - sending to %s", pClient->GetName());
+    if (is_log_enabled(DESTINY__BALL_DUMP)) {
+        remove_balls.Dump(DESTINY__BALL_DUMP, "    ");
+    }
 
-    PyTuple* tmp = remove_balls.Encode();
-    pClient->QueueDestinyUpdate( &tmp );
+    PyTuple *tmp = remove_balls.Encode();
+    pClient->QueueDestinyUpdate(&tmp);
 }
 
 PyObject* SystemBubble::GetDroneState() const

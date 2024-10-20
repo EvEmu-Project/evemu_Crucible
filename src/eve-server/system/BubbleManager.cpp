@@ -112,8 +112,9 @@ void BubbleManager::Process() {
         }
     }
 
-    if (m_emptyTimer.Check())   //60s
+    if (m_emptyTimer.Check()) {  //60s
         RemoveEmpty();
+    }
 
     if (sConfig.debug.UseProfiling)
         sProfiler.AddTime(Profile::bubbles, GetTimeUSeconds() - profileStartTime);
@@ -196,10 +197,37 @@ void BubbleManager::NewBubbleCenter(GVector shipVelocity, GPoint &newCenter) {
 
 void BubbleManager::Remove(SystemEntity *ent) {
     // suns, planets and moons arent in bubbles
-    //if (ent->IsStaticEntity())
+    // if (ent->IsStaticEntity())
     //    return;
     if (ent->SysBubble() != nullptr) {
-        _log(DESTINY__BUBBLE_TRACE, "BubbleManager::Remove(): Entity %s(%u) being removed from Bubble %u", ent->GetName(), ent->GetID(), ent->SysBubble()->GetID() );
+        _log(
+            DESTINY__BUBBLE_DEBUG,
+            "BubbleManager::Remove(): Entity %s(%u) being removed from Bubble %u",
+            ent->GetName(),
+            ent->GetID(),
+            ent->SysBubble()->GetID()
+        );
+
+        // iterate through all other bubbles and determine if the entity is
+        // in them.
+        std::list<SystemBubble *>::iterator itr = m_bubbles.begin();
+        while (itr != m_bubbles.end()) {
+            if (*itr == nullptr) {
+                continue;
+            }
+
+            _log(
+                DESTINY__BUBBLE_DEBUG,
+                "BubbleManager::Remove(): Entity %s(%u) being untracked from Bubble %u",
+                ent->GetName(),
+                ent->GetID(),
+                ent->SysBubble()->GetID()
+            );
+
+            (*itr)->Untrack(ent);
+            ++itr;
+        }
+
         ent->SysBubble()->Remove(ent);
     }
 }
