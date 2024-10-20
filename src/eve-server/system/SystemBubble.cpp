@@ -436,7 +436,6 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
     if (pSE->IsDroneSE()) {
         m_drones.erase(pseId);
     }
-
 }
 
 /**
