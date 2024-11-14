@@ -97,6 +97,14 @@ public:
     void PrintEntityList();
 
     void Add(SystemEntity* pSE);
+    /**
+     * Provides a means to remove an entity from the SystemBubble's map of
+     * tracked dynamic entities without unsetting the SystemEntity's bubble.
+     *
+     * See `SystemBubble::Remove` for calling this and also unsetting the
+     * `SystemEntity`'s bubble.
+     */
+    void Untrack(SystemEntity* pSE);
     void Remove(SystemEntity* pSE);
     void ProcessWander(std::vector< SystemEntity* >& wanderers);
 
