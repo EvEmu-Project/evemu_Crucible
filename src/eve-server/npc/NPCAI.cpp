@@ -274,6 +274,135 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     m_warpFollowDistance = 5000;     // 5km follow distance
     m_isWarpFollowing = false;
     m_warpFollowTarget = nullptr;
+
+    // Initialize NPC class related members
+    m_npcClass = 0;
+    m_npcSubClass = 0;
+    m_spawnClass = 0;
+    m_isCommander = false;
+    m_isOfficer = false;
+
+    // Initialize NPC class and behaviors
+    InitializeNPCClass();
+}
+
+void NPCAIMgr::InitializeNPCClass() {
+    if (m_self.get() == nullptr)
+        return;
+
+    // Get NPC class data from database based on groupID and factionID
+    uint32 groupID = m_self->groupID();
+    uint32 factionID = m_npc->GetWarFactionID();
+
+    // Query npcClassGroup table to get class info
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT shipClass, sub "
+        "FROM npcClassGroup "
+        "WHERE groupID = %u "
+        "AND factionID = %u",
+        groupID, factionID))
+    {
+        _log(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return;
+    }
+
+    DBResultRow row;
+    if (!res.GetRow(row))
+        return;
+
+    m_npcClass = row.GetUInt(0);
+    m_npcSubClass = row.GetUInt(1);
+
+    // Check for special NPC types using correct attribute IDs
+    m_isCommander = m_self->HasAttribute(AttrEntityBracketColour);  // 798
+    m_isOfficer = m_self->HasAttribute(AttrEntitySecurityStatusKillBonus);  // 252
+
+    _log(NPC__AI_TRACE, "NPC %s(%u) initialized as class %u.%u %s%s", 
+         m_npc->GetName(), m_npc->GetID(), m_npcClass, m_npcSubClass,
+         m_isCommander ? "Commander " : "",
+         m_isOfficer ? "Officer " : "");
+}
+
+void NPCAIMgr::ProcessClassBehavior() {
+    // Process special behaviors based on NPC class
+    if (m_isOfficer) {
+        // Officers have higher chance to use electronic warfare
+        if (ShouldUseEwar())
+            UseEwarModule();
+    }
+
+    if (m_isCommander) {
+        // Commanders coordinate with nearby NPCs
+        CheckForReinforcements(nullptr);
+    }
+
+    // Process class-specific behaviors
+    switch(m_npcClass) {
+        case 1: // Frigate behavior
+            // Fast, agile, may use ECM
+            if (ShouldUseECM())
+                UseECMModule();
+            break;
+
+        case 4: // Cruiser behavior
+            // Balanced, may use damps
+            if (ShouldUseDamps())
+                UseDampsModule();
+            break;
+
+        case 7: // Battleship behavior
+            // Heavy weapons, may use neuts
+            if (ShouldUseNeut())
+                UseNeutModule();
+            break;
+    }
+}
+
+bool NPCAIMgr::ShouldUseECM() {
+    // Check if NPC has ECM modules
+    if (!m_self->HasAttribute(AttrEntityTargetJamDurationChance))
+        return false;
+
+    // Get ECM chance and check against random roll
+    float ecmChance = m_self->GetAttribute(AttrEntityTargetJamDurationChance).get_float();
+    return (MakeRandomFloat() < ecmChance);
+}
+
+bool NPCAIMgr::ShouldUseEwar() {
+    // Check if NPC has EWAR modules using correct attribute ID
+    if (!m_self->HasAttribute(AttrEntityTargetJamDurationChance))  // 930
+        return false;
+
+    float ewarChance = m_self->GetAttribute(AttrEntityTargetJamDurationChance).get_float();
+    return (MakeRandomFloat() < ewarChance);
+}
+
+bool NPCAIMgr::ShouldUseDamps() {
+    // Check if NPC has sensor dampener modules
+    if (!m_self->HasAttribute(AttrEntitySensorDampenDurationChance))
+        return false;
+
+    float dampsChance = m_self->GetAttribute(AttrEntitySensorDampenDurationChance).get_float();
+    return (MakeRandomFloat() < dampsChance);
+}
+
+bool NPCAIMgr::ShouldUseNeut() {
+    // Check if NPC has energy neutralizer modules
+    if (!m_self->HasAttribute(AttrEntityCapacitorDrainDurationChance))
+        return false;
+
+    float neutChance = m_self->GetAttribute(AttrEntityCapacitorDrainDurationChance).get_float();
+    return (MakeRandomFloat() < neutChance);
+}
+
+bool NPCAIMgr::ShouldUseNos() {
+    // Check if NPC has energy vampire modules
+    if (!m_self->HasAttribute(AttrEntityCapacitorDrainDurationChance))
+        return false;
+
+    float nosChance = m_self->GetAttribute(AttrEntityCapacitorDrainDurationChance).get_float();
+    return (MakeRandomFloat() < nosChance);
 }
 
 void NPCAIMgr::Process() {
@@ -364,7 +493,7 @@ void NPCAIMgr::Process() {
             }
             // Add position sanity check
             if (pSE->GetPosition().isNaN()) {
-                _log(NPC__ERROR, "%s(%u): Target position is invalid. Clearing target.", 
+                _log(NPC__AI_TRACE, "%s(%u): Target position is invalid. Clearing target.", 
                      m_npc->GetName(), m_npc->GetID());
                 ClearTarget(pSE);
                 return;
@@ -1018,4 +1147,217 @@ void NPCAIMgr::SetWarpFollow(SystemEntity* pSE) {
             }
         }
     }
+}
+
+// Implement module use methods using existing effects
+void NPCAIMgr::UseEwarModule() {
+    SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(false);
+    if (pTarget == nullptr)
+        return;
+
+    // Check if we have EWAR modules and they are in range
+    if (!m_self->HasAttribute(AttrEntityTargetJam))
+        return;
+
+    float maxRange = m_self->GetAttribute(AttrEntityTargetJamMaxRange).get_float();
+    if (m_npc->GetPosition().distance(pTarget->GetPosition()) > maxRange)
+        return;
+
+    float duration = m_self->GetAttribute(AttrEntityTargetJamDuration).get_float();
+
+    // 使用正确的SendSpecialEffect参数
+    m_destiny->SendSpecialEffect(
+        m_self->itemID(),          // entityID
+        m_self->itemID(),          // moduleID
+        m_self->typeID(),          // moduleTypeID
+        pTarget->GetID(),          // targetID
+        0,                         // chargeTypeID
+        "effects.TargetJam",       // guid
+        true,                      // isOffensive
+        true,                      // start
+        true,                      // isActive
+        duration,                  // duration
+        1,                         // repeat
+        0                          // graphicInfo
+    );
+
+    _log(NPC__TRACE, "%s(%u): Using EWAR module on %s(%u) for %.1f seconds.", 
+         m_npc->GetName(), m_npc->GetID(), pTarget->GetName(), pTarget->GetID(), duration);
+}
+
+void NPCAIMgr::UseECMModule() {
+    SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(false);
+    if (pTarget == nullptr)
+        return;
+
+    // Check if we have ECM modules and they are in range
+    if (!m_self->HasAttribute(AttrEntityTargetJamDurationChance))
+        return;
+
+    float maxRange = m_self->GetAttribute(AttrEntityTargetJamMaxRange).get_float();
+    if (m_npc->GetPosition().distance(pTarget->GetPosition()) > maxRange)
+        return;
+
+    float duration = m_self->GetAttribute(AttrEntityTargetJamDuration).get_float();
+
+    // 使用正确的SendSpecialEffect参数
+    m_destiny->SendSpecialEffect(
+        m_self->itemID(),          // entityID
+        m_self->itemID(),          // moduleID
+        m_self->typeID(),          // moduleTypeID
+        pTarget->GetID(),          // targetID
+        0,                         // chargeTypeID
+        "effects.ECM",             // guid
+        true,                      // isOffensive
+        true,                      // start
+        true,                      // isActive
+        duration,                  // duration
+        1,                         // repeat
+        0                          // graphicInfo
+    );
+
+    _log(NPC__TRACE, "%s(%u): Using ECM module on %s(%u) for %.1f seconds.", 
+         m_npc->GetName(), m_npc->GetID(), pTarget->GetName(), pTarget->GetID(), duration);
+}
+
+void NPCAIMgr::UseDampsModule() {
+    SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(false);
+    if (pTarget == nullptr)
+        return;
+
+    // Check if we have sensor dampener modules and they are in range
+    if (!m_self->HasAttribute(AttrEntitySensorDampenDurationChance))
+        return;
+
+    float maxRange = m_self->GetAttribute(AttrEntitySensorDampenMaxRange).get_float();
+    if (m_npc->GetPosition().distance(pTarget->GetPosition()) > maxRange)
+        return;
+
+    // Get dampener effect duration and multiplier
+    float duration = m_self->GetAttribute(AttrEntitySensorDampenDuration).get_float();
+    float multiplier = m_self->GetAttribute(AttrEntitySensorDampenMultiplier).get_float();
+
+    // 使用正确的SendSpecialEffect参数
+    m_destiny->SendSpecialEffect(
+        m_self->itemID(),          // entityID
+        m_self->itemID(),          // moduleID
+        m_self->typeID(),          // moduleTypeID
+        pTarget->GetID(),          // targetID
+        0,                         // chargeTypeID
+        "effects.SensorDampener",  // guid
+        true,                      // isOffensive
+        true,                      // start
+        true,                      // isActive
+        duration,                  // duration
+        1,                         // repeat
+        0                          // graphicInfo
+    );
+
+    _log(NPC__TRACE, "%s(%u): Using Sensor Dampener on %s(%u) with multiplier %.2f for %.1f seconds.", 
+         m_npc->GetName(), m_npc->GetID(), pTarget->GetName(), pTarget->GetID(), multiplier, duration);
+}
+
+void NPCAIMgr::UseNeutModule() {
+    SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(false);
+    if (pTarget == nullptr)
+        return;
+
+    // Check if we have neutralizer modules and they are in range
+    if (!m_self->HasAttribute(AttrEntityCapacitorDrainDurationChance))
+        return;
+
+    float maxRange = m_self->GetAttribute(AttrEntityCapacitorDrainMaxRange).get_float();
+    if (m_npc->GetPosition().distance(pTarget->GetPosition()) > maxRange)
+        return;
+
+    // Get neutralizer effect duration and amount
+    float duration = m_self->GetAttribute(AttrEntityCapacitorDrainDuration).get_float();
+    float amount = m_self->GetAttribute(AttrEntityCapacitorDrainAmount).get_float();
+
+    // 使用正确的SendSpecialEffect参数
+    m_destiny->SendSpecialEffect(
+        m_self->itemID(),                  // entityID
+        m_self->itemID(),                  // moduleID
+        m_self->typeID(),                  // moduleTypeID
+        pTarget->GetID(),                  // targetID
+        0,                                 // chargeTypeID
+        "effects.EnergyNeutralizer",       // guid
+        true,                              // isOffensive
+        true,                              // start
+        true,                              // isActive
+        duration,                          // duration
+        1,                                 // repeat
+        0                                  // graphicInfo
+    );
+
+    _log(NPC__TRACE, "%s(%u): Using Energy Neutralizer on %s(%u) draining %.1f cap for %.1f seconds.", 
+         m_npc->GetName(), m_npc->GetID(), pTarget->GetName(), pTarget->GetID(), amount, duration);
+}
+
+void NPCAIMgr::UseNosModule() {
+    SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(false);
+    if (pTarget == nullptr)
+        return;
+
+    // Check if we have nosferatu modules and they are in range
+    if (!m_self->HasAttribute(AttrEntityCapacitorDrainDurationChance))
+        return;
+
+    float maxRange = m_self->GetAttribute(AttrEntityCapacitorDrainMaxRange).get_float();
+    if (m_npc->GetPosition().distance(pTarget->GetPosition()) > maxRange)
+        return;
+
+    // Get nosferatu effect duration and amount
+    float duration = m_self->GetAttribute(AttrEntityCapacitorDrainDuration).get_float();
+    float amount = m_self->GetAttribute(AttrEntityCapacitorDrainAmount).get_float();
+
+    // 使用正确的SendSpecialEffect参数
+    m_destiny->SendSpecialEffect(
+        m_self->itemID(),                  // entityID
+        m_self->itemID(),                  // moduleID
+        m_self->typeID(),                  // moduleTypeID
+        pTarget->GetID(),                  // targetID
+        0,                                 // chargeTypeID
+        "effects.EnergyVampire",           // guid
+        true,                              // isOffensive
+        true,                              // start
+        true,                              // isActive
+        duration,                          // duration
+        1,                                 // repeat
+        0                                  // graphicInfo
+    );
+
+    _log(NPC__TRACE, "%s(%u): Using Energy Vampire on %s(%u) draining %.1f cap for %.1f seconds.", 
+         m_npc->GetName(), m_npc->GetID(), pTarget->GetName(), pTarget->GetID(), amount, duration);
+}
+
+void NPCAIMgr::CheckForReinforcements(SystemEntity* pSE) {
+    // Get all entities in bubble
+    std::map<uint32, SystemEntity*> entityMap;
+    m_npc->SysBubble()->GetEntities(entityMap);
+
+    // Count friendly NPCs in range
+    uint32 friendlyCount = 0;
+    for (auto& entry : entityMap) {
+        SystemEntity* entity = entry.second;
+        if (entity == nullptr || entity == m_npc)
+            continue;
+            
+        if (entity->IsNPCSE() && 
+            entity->GetWarFactionID() == m_npc->GetWarFactionID() && 
+            m_npc->GetPosition().distance(entity->GetPosition()) < m_signalRange)
+        {
+            friendlyCount++;
+        }
+    }
+
+    // If we don't have enough friends nearby and haven't signaled yet, call for help
+    if (friendlyCount < 3 && !m_hasSignaled) {
+        SystemEntity* pTarget = (pSE != nullptr) ? pSE : m_npc->TargetMgr()->GetFirstTarget(false);
+        if (pTarget != nullptr)
+            SetSignaling(pTarget);
+    }
+
+    _log(NPC__AI_TRACE, "%s(%u): Checking reinforcements - Found %u friendly NPCs in range.", 
+         m_npc->GetName(), m_npc->GetID(), friendlyCount);
 }

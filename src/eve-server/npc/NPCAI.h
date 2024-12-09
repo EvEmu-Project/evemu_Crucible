@@ -194,6 +194,20 @@ private:
     bool ShouldUseDamps();    // Sensor Dampeners
     bool ShouldUseNeut();     // Energy Neutralizers
     bool ShouldUseNos();      // Energy Vampires
+
+    // Add module use methods
+    void UseEwarModule();
+    void UseECMModule();
+    void UseDampsModule(); 
+    void UseNeutModule();
+    void UseNosModule();
+
+    // Effect IDs from dgmEffects.sql
+    static const uint32 EFFECT_ECM = 38;              // ECM effect
+    static const uint32 EFFECT_TARGET_JAM = 39;       // Target jam
+    static const uint32 EFFECT_ENERGY_NEUT = 40;      // Energy neutralizer
+    static const uint32 EFFECT_ENERGY_VAMP = 41;      // Energy vampire
+    static const uint32 EFFECT_SENSOR_DAMP = 42;      // Sensor dampener
 };
 
 #endif
