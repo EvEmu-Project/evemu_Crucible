@@ -763,8 +763,8 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
 target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-server.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
-                            ${eve-common_INCLUDE_DIRS}
-                            "${TARGET_INCLUDE_DIR}" )
+    ${eve-common_INCLUDE_DIRS}
+    "${TARGET_INCLUDE_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common" )
 
@@ -772,3 +772,5 @@ INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
 INSTALL( FILES "${TARGET_UTILS_DIR}/config/devtools.raw"
          DESTINATION "etc" )
+
+add_dependencies(${TARGET_NAME} eve-common)

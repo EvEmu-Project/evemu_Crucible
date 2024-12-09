@@ -10,9 +10,16 @@
 ###############
 # We need a target-specific property INCLUDE_DIRECTORIES which
 # is part of CMake 2.8.8 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
+CMAKE_MINIMUM_REQUIRED( VERSION 3.10 FATAL_ERROR )
 
-PROJECT( "evemu" )
+# 设置策略
+cmake_policy(SET CMP0048 NEW)
+cmake_policy(SET CMP0054 NEW)
+cmake_policy(SET CMP0074 NEW)
+cmake_policy(SET CMP0021 NEW)
+cmake_policy(SET CMP0167 NEW)
+
+PROJECT( "evemu" VERSION 0.7.0 )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
 SET( PROJECT_VENDOR              "The EVEmu development team" )
 SET( PROJECT_VERSION             "this is not used anymore, CMake pulls version from Git Tree Info (cmake/GitTreeInfo.cmake)" )
@@ -67,7 +74,12 @@ IF (WIN32)
   SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
   link_libraries(DbgHelp.lib)
 ELSE()
-  SET( CMAKE_CXX_FLAGS "-std=gnu++17 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
+  # Linux 编译设置
+  set (CMAKE_CXX_STANDARD 17)
+  SET( CMAKE_CXX_FLAGS "-std=gnu++17 -march=native -Werror=return-type -fabi-version=14 -fPIC ${CMAKE_CXX_FLAGS}" )
+  # 添加 -fPIC 以支持位置无关代码
+  # 可能需要的其他 Linux 特定标志
+  SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread" )
 ENDIF()
 # -Wall -Wextra -Weffc++ -Wconversion -Wdouble-promotion
 # -pg -ggdb -pedantic
@@ -179,7 +191,6 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 ############
 INCLUDE( "BuildPackage" )
 
-
 BUILD_PACKAGE( "Boost" )
 BUILD_PACKAGE( "MySQL" )
 BUILD_PACKAGE( "TinyXML" )
@@ -227,3 +238,19 @@ ADD_SUBDIRECTORY( "src/eve-core" )
 ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
+
+IF (NOT WIN32)
+  # Linux 下可能需要的额外库
+  find_package(Threads REQUIRED)
+  list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
+  
+  # 检查是否需要 dl 库
+  include(CheckLibraryExists)
+  CHECK_LIBRARY_EXISTS(dl dlopen "" HAVE_LIBDL)
+  if(HAVE_LIBDL)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES dl)
+  endif()
+endif()
+
+# 使用 CMake 的路径处理函数
+file(TO_CMAKE_PATH "${PROJECT_SOURCE_DIR}/dep" DEP_PATH)

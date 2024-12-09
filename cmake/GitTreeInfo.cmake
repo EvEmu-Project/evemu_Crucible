@@ -16,6 +16,8 @@
 #   <prefix>_VERSION    - a nice version string
 #
 
+cmake_policy(SET CMP0054 NEW)
+
 MACRO( GIT_TREE_INFO PATH PREFIX )
   # Obtain branch name
   EXECUTE_PROCESS( COMMAND "${GIT_EXECUTABLE}" symbolic-ref HEAD

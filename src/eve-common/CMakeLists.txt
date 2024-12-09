@@ -241,13 +241,20 @@ SOURCE_GROUP( "src\\tables"          FILES ${tables_SOURCE} )
 SOURCE_GROUP( "src\\utils"           FILES ${utils_SOURCE} )
 
 FILE( MAKE_DIRECTORY "${TARGET_PACKETS_DIR}/packets" )
-ADD_CUSTOM_COMMAND( OUTPUT ${packets_INCLUDE} ${packets_SOURCE}
-                    COMMAND "eve-xmlpktgen"
-                    ARGS -I "${TARGET_PACKETS_DIR}/packets"
-                         -S "${TARGET_PACKETS_DIR}/packets"
-                         ${packets_XMLP}
-                    DEPENDS "eve-xmlpktgen"
-                    COMMENT "Generating packet files..." )
+ADD_CUSTOM_COMMAND(
+    OUTPUT ${packets_INCLUDE} ${packets_SOURCE}
+    COMMAND "eve-xmlpktgen"
+    ARGS -I "${TARGET_PACKETS_DIR}/packets"
+         -S "${TARGET_PACKETS_DIR}/packets"
+         ${packets_XMLP}
+    DEPENDS "eve-xmlpktgen"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    COMMENT "Generating packet files..."
+)
+
+ADD_CUSTOM_TARGET(generate_packets
+    DEPENDS ${packets_INCLUDE} ${packets_SOURCE}
+)
 
 ADD_LIBRARY( "${TARGET_NAME}"
              ${INCLUDE}                ${SOURCE}
@@ -263,15 +270,17 @@ ADD_LIBRARY( "${TARGET_NAME}"
              ${tables_INCLUDE}         ${tables_SOURCE}
              ${utils_INCLUDE}          ${utils_SOURCE} )
 
+add_dependencies(${TARGET_NAME} generate_packets)
+add_dependencies(${TARGET_NAME} eve-xmlpktgen)
 
 target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-common.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
-                            ${UTF8CPP_INCLUDE_DIRS}
-                            ${UTILS_INCLUDE_DIRS}
-                            ${eve-core_INCLUDE_DIRS}
-                            "${TARGET_INCLUDE_DIR}"
-                            "${TARGET_PACKETS_DIR}" )
+    ${UTF8CPP_INCLUDE_DIRS}
+    ${UTILS_INCLUDE_DIRS}
+    ${eve-core_INCLUDE_DIRS}
+    "${TARGET_INCLUDE_DIR}"
+    "${TARGET_PACKETS_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        ${UTILS_LIBRARIES}
                        "eve-core" )

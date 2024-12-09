@@ -6,46 +6,24 @@
 # We need "TiXmlNode::TINYXML_ELEMENT" which is present
 # in TinyXML 2.6.0 and later.
 FIND_PACKAGE( "TinyXML" 2.6.0 )
-SET( PKG_FOUND "${TINYXML_FOUND}" )
+SET( PKG_FOUND TRUE )  # 直接设置为找到，使用本地文件
 
-IF( PKG_FOUND )
-  RETURN()
-ENDIF( PKG_FOUND )
+# 设置包含目录和库
+SET( TINYXML_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/DEP/tinyxml" )
+SET( TINYXML_LIBRARIES "tinyxml" )
 
-# Cache entries
-SET( TINYXML_URL
-  "http://downloads.sourceforge.net/project/tinyxml/tinyxml/2.6.2/tinyxml_2_6_2.tar.gz"
-  CACHE STRING "URL of the TinyXML source archive" )
-MARK_AS_ADVANCED( TINYXML_URL )
-
-# Setup the needed variables
-SET( PKG_URL "${TINYXML_URL}" )
-SET( PKG_MD5 "c1b864c96804a10526540c664ade67f0" )
-SET( PKG_ARCHIVE_PREFIX "/tinyxml" )
-
-SET( PKG_CMAKELISTS "
+# 如果启用 STL
 IF( TIXML_USE_STL )
-  ADD_DEFINITIONS( \"-DTIXML_USE_STL\" )
+  ADD_DEFINITIONS( "-DTIXML_USE_STL" )
 ENDIF( TIXML_USE_STL )
 
-INCLUDE_DIRECTORIES(
-  \"\${CMAKE_CURRENT_SOURCE_DIR}\"
-  )
+# 添加库
 ADD_LIBRARY(
-  \"tinyxml\"
-  # Source:
-  \"tinystr.h\"
-  \"tinystr.cpp\"
-  \"tinyxml.h\"
-  \"tinyxml.cpp\"
-  \"tinyxmlerror.cpp\"
-  \"tinyxmlparser.cpp\"
-  )
-
-SET( TINYXML_INCLUDE_DIRS
-  \"\${CMAKE_CURRENT_SOURCE_DIR}\"
-  PARENT_SCOPE )
-SET( TINYXML_LIBRARIES
-  \"tinyxml\"
-  PARENT_SCOPE )
-" )
+  "tinyxml"
+  "${PROJECT_SOURCE_DIR}/DEP/tinyxml/tinystr.h"
+  "${PROJECT_SOURCE_DIR}/DEP/tinyxml/tinystr.cpp"
+  "${PROJECT_SOURCE_DIR}/DEP/tinyxml/tinyxml.h"
+  "${PROJECT_SOURCE_DIR}/DEP/tinyxml/tinyxml.cpp"
+  "${PROJECT_SOURCE_DIR}/DEP/tinyxml/tinyxmlerror.cpp"
+  "${PROJECT_SOURCE_DIR}/DEP/tinyxml/tinyxmlparser.cpp"
+)

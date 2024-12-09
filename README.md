@@ -16,9 +16,9 @@ EVEmu is a work-in-progress server emulator for the space MMO EVE Online. This i
 [ChangeLog](doc/ChangeLog.md)
 
 ## EVEmu Software Development Kit ##
-The EVEmu project maintains a set of pre-configured tools and environments which help setting up a new devlopment station. [Check them out](https://github.com/EvEmu-Project/EvEmu_SDK)
+The EVEmu project maintains a set of pre-configured tools and environments that help with setting up a new development station. [Check them out](https://github.com/EvEmu-Project/EvEmu_SDK)
 
-Additional details on the SDK is [available on the wiki](https://wiki.evemu.dev/wiki/EVEmu-SDK).
+Additional details on the SDK are [available on the wiki](https://wiki.evemu.dev/wiki/EVEmu-SDK).
 
 ## `docker-compose` Quickstart
  EVEmu can be run with Docker Compose:
@@ -31,7 +31,7 @@ docker-compose -p evemu up --build -d
 
 By changing `build:` to `image:` in `docker-compose.yml`, you can use the prebuilt images available.
 
-Configuraiton files are stored in the `evemu_config` volume. These can be modified and will persist across restarts.
+Configuration files are stored in the `evemu_config` volume. These can be modified and will persist across restarts.
 
 To shutdown EVEmu:
 ```
@@ -65,7 +65,7 @@ do with the source code downloaded from this project.
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
-    Foundation; either version 2 of the License, or (at your option) any later
+    Foundation, either version 3 of the License, or (at your option) any later
     version.
 
     This program is distributed in the hope that it will be useful, but WITHOUT
@@ -73,8 +73,6 @@ do with the source code downloaded from this project.
     FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License along with
-    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-    Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-    http://www.gnu.org/copyleft/lesser.txt.
+    this program; if not, see https://www.gnu.org/licenses/.
     ------------------------------------------------------------------------------------
 
