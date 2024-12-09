@@ -271,9 +271,11 @@ void NPCAIMgr::Process() {
 
     if (m_warpOutTimer.Check(false)) {
         // disallow warpout if spawn has active respawn timer (spawn is being chained)
-        if (m_npc->GetSpawnMgr()->IsChaining(m_npc->SysBubble()->GetID())) {
+        if (m_npc->GetSpawnMgr() && m_npc->GetSpawnMgr()->IsChaining(m_npc->SysBubble()->GetID())) {
             m_state = NPCAI::State::Idle;
             m_warpOutTimer.Disable();
+            // Add destiny stop to ensure movement is halted when canceling warp
+            m_destiny->Stop();
         }
     }
 
@@ -285,6 +287,14 @@ void NPCAIMgr::Process() {
      *   Fleeing,    // running away....use m_maxSpeed then warp away when out of range	(does this make sense??)
      *   Signaling   // calling for help..use m_orbitSpeed *2 to speed tank while calling for reinforcements
      */
+    // Add state validation while keeping original comments
+    if (m_state < NPCAI::State::Idle || m_state > NPCAI::State::WarpFollow) {
+        _log(NPC__ERROR, "Invalid state %d for NPC %s(%u). Resetting to Idle.", 
+             m_state, m_npc->GetName(), m_npc->GetID());
+        SetIdle();
+        return;
+    }
+
     switch(m_state) {
         case NPCAI::State::Idle: {
             if (m_beginFindTarget.Check()) {
@@ -306,7 +316,7 @@ void NPCAIMgr::Process() {
                         }
                     }
                     pDestiny = cur->GetShipSE()->DestinyMgr();
-                    if (pDestiny == nullptr)   // this shouldnt be needed, but whatever...
+                    if (pDestiny == nullptr)
                         continue;
                     if (pDestiny->IsCloaked() or pDestiny->IsWarping())
                         continue;
@@ -316,9 +326,9 @@ void NPCAIMgr::Process() {
                     Target(cur->GetShipSE());
                     return;
                 }
-                if (sConfig.npc.IdleWander)
-                    if (!m_isWandering)
-                        SetWander();
+                // Combine conditions to reduce nesting while maintaining functionality
+                if (sConfig.npc.IdleWander && !m_isWandering)
+                    SetWander();
             } else {
                 if (!m_beginFindTarget.Enabled())
                     m_beginFindTarget.Start(m_attackSpeed);  //find target is based on npc attack speed.
@@ -327,18 +337,23 @@ void NPCAIMgr::Process() {
         case NPCAI::State::Chasing:
         case NPCAI::State::Following:
         case NPCAI::State::Engaged: {
-            if (m_npc->TargetMgr()->HasNoTargets()) {
-                _log(NPC__AI_TRACE, "%s(%u): Stopped %s - HasNoTargets = true.", m_npc->GetName(), m_npc->GetID(), GetStateName(m_state).c_str());
+            // Add null check for TargetMgr while keeping existing logic
+            if (!m_npc->TargetMgr() || m_npc->TargetMgr()->HasNoTargets()) {
+                _log(NPC__AI_TRACE, "%s(%u): Stopped %s - HasNoTargets = true.", 
+                     m_npc->GetName(), m_npc->GetID(), GetStateName(m_state).c_str());
                 SetIdle();
                 return;
             }
             SystemEntity* pSE = m_npc->TargetMgr()->GetFirstTarget(false);
-            if (pSE == nullptr) {
-                _log(NPC__AI_TRACE, "%s(%u): Stopped %s - GetFirstTarget() returned NULL.", m_npc->GetName(), m_npc->GetID(), GetStateName(m_state).c_str());
-                SetIdle();
+            // Add position validation while maintaining existing checks
+            if (pSE == nullptr || pSE->SysBubble() == nullptr) {
+                ClearTarget(pSE);
                 return;
             }
-            if (pSE->SysBubble() == nullptr) {
+            // Add position sanity check
+            if (pSE->GetPosition().isNaN()) {
+                _log(NPC__ERROR, "%s(%u): Target position is invalid. Clearing target.", 
+                     m_npc->GetName(), m_npc->GetID());
                 ClearTarget(pSE);
                 return;
             }
@@ -346,11 +361,13 @@ void NPCAIMgr::Process() {
             if (m_missileTimer.Check())
                 LaunchMissile(m_missileTypeID, pSE);
         } break;
+        // Keep these states for future implementation
         case NPCAI::State::WarpOut:
         case NPCAI::State::WarpFollow:
         case NPCAI::State::Fleeing:
         case NPCAI::State::Signaling:{
-            _log(NPC__AI_TRACE, "%s(%u): Called %s - needs to be completed.", m_npc->GetName(), m_npc->GetID(), GetStateName(m_state).c_str());
+            _log(NPC__AI_TRACE, "%s(%u): Called %s - needs to be completed.", 
+                 m_npc->GetName(), m_npc->GetID(), GetStateName(m_state).c_str());
             m_state = NPCAI::State::Idle;
             // not sure how im gonna do these
         } break;
@@ -450,24 +467,29 @@ void NPCAIMgr::SetIdle() {
     m_state = NPCAI::State::Idle;
     m_destiny->Stop();
     m_destiny->SetMaxVelocity(m_orbitSpeed);
+    // Add speed fraction reset to ensure complete stop
+    m_destiny->SetSpeedFraction(0.0f);
 
-    m_missileTimer.Disable();
-    m_webifierTimer.Disable();
-    m_beginFindTarget.Disable();
-    m_mainAttackTimer.Disable();
-    m_armorRepairTimer.Disable();
-    m_warpScramblerTimer.Disable();
-    m_shieldBoosterTimer.Disable();
+    // Keep all timer disables - each has specific functionality
+    m_missileTimer.Disable();        // Stops missile launches
+    m_webifierTimer.Disable();       // Stops webifier effects
+    m_beginFindTarget.Disable();     // Stops target searching
+    m_mainAttackTimer.Disable();     // Stops main weapon attacks  
+    m_armorRepairTimer.Disable();    // Stops armor repair cycles
+    m_warpScramblerTimer.Disable();  // Stops warp scrambling effects
+    m_shieldBoosterTimer.Disable();  // Stops shield boost cycles
+
+    m_isWandering = false;  // Reset wandering state
 
     SystemBubble* pBubble = m_npc->SysBubble();
     //disallow warpout if anomaly, incursion or mission rat
-    if (pBubble->IsAnomaly() or pBubble->IsIncursion() or pBubble->IsMission())
+    if (pBubble && (pBubble->IsAnomaly() || pBubble->IsIncursion() || pBubble->IsMission()))
         return;
 
     //disallow warpout by NOT setting timer.
     if (sConfig.npc.WarpOut > 0)
         if (m_npc->GetSpawnMgr() != nullptr)
-            m_warpOutTimer.Start(sConfig.npc.WarpOut *1000); // s to ms
+            m_warpOutTimer.Start(sConfig.npc.WarpOut * 1000); // s to ms
 }
 
 void NPCAIMgr::SetChasing(SystemEntity* pSE) {
