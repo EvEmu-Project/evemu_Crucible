@@ -58,6 +58,8 @@ AccountService::AccountService() :
     this->Add("GetKeyMap", &AccountService::GetKeyMap);
     this->Add("GiveCash", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyInt *, std::optional <PyWString*>)> (&AccountService::GiveCash));
     this->Add("GiveCash", static_cast <PyResult(AccountService::*)(PyCallArgs &, PyInt *, PyFloat *, std::optional <PyWString*>)> (&AccountService::GiveCash));
+    this->Add("GiveCash", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyInt *, std::optional <PyString*>)> (&AccountService::GiveCash));
+    this->Add("GiveCash", static_cast <PyResult(AccountService::*)(PyCallArgs &, PyInt *, PyFloat *, std::optional <PyString*>)> (&AccountService::GiveCash));
     this->Add("GiveCashFromCorpAccount", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyInt *, PyInt *)> (&AccountService::GiveCashFromCorpAccount));
     this->Add("GiveCashFromCorpAccount", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyFloat *, PyInt *)> (&AccountService::GiveCashFromCorpAccount));
     this->Add("GetJournal", static_cast <PyResult (AccountService::*)(PyCallArgs &, PyInt *, PyLong *, std::optional<PyInt*>, PyInt *, std::optional <PyInt*>, std::optional<PyInt*>)> (&AccountService::GetJournal));
@@ -198,28 +200,47 @@ PyResult AccountService::GetJournalForAccounts(PyCallArgs &call, PyInt* accountK
 }
 
 PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyWString*> reason) {
-    return GiveCash(call, toID, new PyFloat(amount->value()), reason);
+    return GiveCash(call, toID, new PyFloat(amount->value()), reason.has_value()?reason.value()->content():std::string());
 }
 
-PyResult AccountService::GiveCash(PyCallArgs &call, PyInt* toID, PyFloat* amount, std::optional <PyWString*> reason)
-{
+PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyWString*> reason) {
+    return GiveCash(call, toID, amount, reason.has_value()?reason.value()->content():std::string());
+}
+
+PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyString*> reason) {
+    return GiveCash(call, toID, new PyFloat(amount->value()), reason.has_value()?reason.value()->content():std::string());
+}
+
+PyResult AccountService::GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyString*> reason) {
+    return GiveCash(call, toID, amount, reason.has_value()?reason.value()->content():std::string());
+}
+
+PyResult AccountService::GiveCash(PyCallArgs &call, PyInt* toID, PyFloat* amount, std::string reason) {
     if (is_log_enabled(ACCOUNT__CALL_DUMP)) {
         sLog.Log( "AccountService::Handle_GiveCash()", "size=%lu", call.tuple->size());
         call.Dump(ACCOUNT__CALL_DUMP);
     }
 
     std::string reasonStr = "DESC: ";
-    if (!reason.has_value() || reason.value()->size() < 1) {
+    if (reason.size() < 1) {
         reasonStr += "No Reason Given";
     } else {
         // this hits db directly, so test for possible sql injection code
         for (const auto cur : badChars)
-            if (EvE::icontains(reason.value()->content(), cur))
+            if (EvE::icontains(reason, cur))
                 throw CustomError ("Description contains invalid characters");
-        reasonStr += reason.value()->content();
+        reasonStr += reason;
     }
 
-    TranserFunds(call.client->GetCharacterID(), toID->value(), amount->value(), reasonStr.c_str(), Journal::EntryType::PlayerDonation, call.client->GetCharacterID());
+    TransferFunds(
+        call.client->GetCharacterID(),
+        toID->value(),
+        amount->value(),
+        reasonStr.c_str(),
+        Journal::EntryType::PlayerDonation,
+        call.client->GetCharacterID()
+    );
+
     return nullptr;
 }
 
@@ -259,19 +280,47 @@ PyResult AccountService::GiveCashFromCorpAccount(PyCallArgs &call, PyInt* toID, 
         reason += call.client->GetCharName();
     }
 
-    TranserFunds(call.client->GetCorporationID(), toID->value(), amount->value(), reason.c_str(), Journal::EntryType::CorporationAccountWithdrawal, \
-                call.client->GetCharacterID(), fromAcctKey->value(), toAcctKey, call.client);
+    TransferFunds(
+        call.client->GetCorporationID(),
+        toID->value(),
+        amount->value(),
+        reason.c_str(),
+        Journal::EntryType::CorporationAccountWithdrawal,
+        call.client->GetCharacterID(),
+        fromAcctKey->value(),
+        toAcctKey,
+        call.client
+    );
+
     return nullptr;
 }
 
-void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std::string reason /*""*/, uint8 entryTypeID /*Journal::EntryType::Undefined*/, \
-                                  uint32 referenceID/*0*/, uint16 fromKey/*Account::KeyType::Cash*/, uint16 toKey/*Account::KeyType::Cash*/,
-                                  Client* pClient/*nullptr*/)
-{
-    if (is_log_enabled(ACCOUNT__TRACE))
-        _log(ACCOUNT__TRACE, "TranserFunds() - from: %u, to: %u, entry: %u, refID: %u, amount: %.2f, fKey: %u, tKey: %u", \
-                            fromID, toID, entryTypeID, referenceID, amount, fromKey, toKey);
+void AccountService::TransferFunds(
+    uint32 fromID,
+    uint32 toID,
+    double amount,
+    std::string reason /*""*/,
+    uint8 entryTypeID /*Journal::EntryType::Undefined*/,
+    uint32 referenceID /*0*/,
+    uint16 fromKey /*Account::KeyType::Cash*/,
+    uint16 toKey /*Account::KeyType::Cash*/,
+    Client* pClient /*nullptr*/
+) {
+    if (is_log_enabled(ACCOUNT__TRACE)) {
+        _log(ACCOUNT__TRACE,
+            "TransferFunds() - from: %u, to: %u, entry: %u, refID: %u, amount: %.2f, fKey: %u, tKey: %u",
+            fromID,
+            toID,
+            entryTypeID,
+            referenceID,
+            amount,
+            fromKey,
+            toKey
+        );
+    }
+
     uint8 fromCurrency = Account::CreditType::ISK;
+
     if (IsAUR(fromKey)) {
         fromCurrency = Account::CreditType::AURUM;
     } else if (IsDustKey(fromKey)) {
@@ -279,23 +328,49 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
     }
 
     double newBalanceFrom(0), newBalanceTo(0);
+
     Client* pClientFrom(nullptr);
+
     if (IsCharacterID(fromID)) {
         pClientFrom = sEntityList.FindClientByCharID(fromID);
         if (pClientFrom == nullptr) {
-            // sender is offline. xfer funds thru db.
+            // sender is offline. transfer funds through the database instead
             newBalanceFrom = AccountDB::OfflineFundXfer(fromID, -amount, fromCurrency);
         } else {
             // this will throw if it fails
             pClientFrom->AddBalance(-amount, fromCurrency);
             newBalanceFrom = pClientFrom->GetBalance(fromCurrency);
         }
-        AccountDB::AddJournalEntry(fromID, entryTypeID, fromID, toID, fromCurrency, fromKey, -amount, newBalanceFrom, reason, referenceID);
+
+        AccountDB::AddJournalEntry(
+            fromID,
+            entryTypeID,
+            fromID,
+            toID,
+            fromCurrency,
+            fromKey,
+            -amount,
+            newBalanceFrom,
+            reason,
+            referenceID
+        );
     } else if (IsPlayerCorp(fromID)) {
         uint32 userID(0);
-        if (pClient != nullptr)
+        if (pClient != nullptr) {
             userID = pClient->GetCharacterID();
-        HandleCorpTransaction(fromID, entryTypeID, userID?userID:fromID, toID, fromCurrency, fromKey, -amount, reason, referenceID);
+        }
+
+        HandleCorpTransaction(
+            fromID,
+            entryTypeID,
+            userID ? userID : fromID,
+            toID,
+            fromCurrency,
+            fromKey,
+            -amount,
+            reason,
+            referenceID
+        );
     } // fromID could be npc or _System.  nothing to do on this side.
 
     uint8 toCurrency = Account::CreditType::ISK;
@@ -306,6 +381,7 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
     }
 
     Client* pClientTo(nullptr);
+
     if (IsCharacterID(toID)) {
         pClientTo = sEntityList.FindClientByCharID(toID);
         if (pClientTo == nullptr) {
@@ -315,24 +391,67 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
             // this will throw if it fails
             pClientTo->AddBalance(amount, toCurrency);
             /** @todo if this DOES fail, return funds to origin.  this needs a try/catch block */
-            //TranserFunds(corpSCC, fromID, amount, reason, Journal::EntryType::Undefined, referenceID, fromKey, fromKey);
+            //TransferFunds(corpSCC, fromID, amount, reason, Journal::EntryType::Undefined, referenceID, fromKey, fromKey);
             newBalanceTo = pClientTo->GetBalance(toCurrency);
         }
-        AccountDB::AddJournalEntry(toID, entryTypeID, fromID, toID, toCurrency, toKey, amount, newBalanceTo, reason, referenceID);
+
+        AccountDB::AddJournalEntry(
+            toID,
+            entryTypeID,
+            fromID,
+            toID,
+            toCurrency,
+            toKey,
+            amount,
+            newBalanceTo,
+            reason,
+            referenceID
+        );
     } else if (IsPlayerCorp(toID)) {
         uint32 userID(0);
-        if (pClient != nullptr)
+
+        if (pClient != nullptr) {
             userID = pClient->GetCharacterID();
-        HandleCorpTransaction(toID, entryTypeID, fromID, userID?userID:toID, toCurrency, toKey, amount, reason, referenceID);
+        }
+
+        HandleCorpTransaction(
+            toID,
+            entryTypeID,
+            fromID,
+            userID?userID:toID,
+            toCurrency,
+            toKey,
+            amount,
+            reason,
+            referenceID
+        );
         return;
     } else {
-        _log(ACCOUNT__TRACE, "TranserFunds() - toID: %s(%u) is neither player nor player corp.  Not sending update.", \
-                sDataMgr.GetCorpName(toID).c_str(), toID);
+        AccountDB::AddJournalEntry(
+            toID,
+            entryTypeID,
+            fromID,
+            toID,
+            toCurrency,
+            toKey,
+            amount,
+            newBalanceTo,
+            reason,
+            referenceID
+        );
+
+        _log(ACCOUNT__TRACE,
+            "TransferFunds() - toID: %s(%u) is neither player nor player corp.  Not sending update.",
+            sDataMgr.GetCorpName(toID).c_str(),
+            toID
+        );
+
         return;
     }
 
-    if ((pClientTo != nullptr) and pClientTo->IsCharCreation())
+    if ((pClientTo != nullptr) and pClientTo->IsCharCreation()) {
         return;
+    }
 
     /* corp taxes...
      *   bounty prizes and mission rewards are taxed by the players corp based on corp tax rate.
@@ -341,13 +460,18 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
      */
 
     // are bounty payments grouped on timer?
-    if ((entryTypeID == Journal::EntryType::BountyPrize)
-    or  (entryTypeID == Journal::EntryType::BountyPrizes))
-        if (sConfig.server.BountyPayoutDelayed)
-            if (amount < sConfig.rates.TaxedAmount)  // is amount worth taxing?  default is 75k
+    if ((entryTypeID == Journal::EntryType::BountyPrize) || (entryTypeID == Journal::EntryType::BountyPrizes)) {
+        if (sConfig.server.BountyPayoutDelayed) {
+            // is amount worth taxing?  default is 75k
+            if (amount < sConfig.rates.TaxedAmount)  {
                 return;
+            }
+        }
+    }
+
     float tax = 0;
     uint32 corpID = 0;
+
     if (pClientTo != nullptr) {
         tax = pClientTo->GetCorpTaxRate() * amount;
         corpID = pClientTo->GetCorporationID();
@@ -358,24 +482,48 @@ void AccountService::TranserFunds(uint32 fromID, uint32 toID, double amount, std
     }
 
     // just in case something went wrong.....
-    if (!IsCorp(corpID))
+    if (!IsCorp(corpID)) {
         return;
-    // is tax worth the accounting hassle? (from corp pov)  default is 5k
-    if (tax < sConfig.rates.TaxAmount)
+    }
+
+    // is tax worth the accounting hassle? (from corp pov) default is 5k
+    if (tax < sConfig.rates.TaxAmount) {
         return;
+    }
 
     reason = "DESC: Corporation Tax on pirate bounty";
     switch (entryTypeID) {
         // Corp Taxed payment types
         case Journal::EntryType::BountyPrize:
         case Journal::EntryType::BountyPrizes: {
-            TranserFunds(toID, corpID, tax, reason.c_str(), Journal::EntryType::CorporationTaxNpcBounties, referenceID);
+            TransferFunds(
+                toID,
+                corpID,
+                tax,
+                reason.c_str(),
+                Journal::EntryType::CorporationTaxNpcBounties,
+                referenceID
+            );
         } break;
         case Journal::EntryType::AgentMissionReward: {
-            TranserFunds(toID, corpID, tax, reason.c_str(), Journal::EntryType::CorporationTaxAgentRewards, referenceID);
+            TransferFunds(
+                toID,
+                corpID,
+                tax,
+                reason.c_str(),
+                Journal::EntryType::CorporationTaxAgentRewards,
+                referenceID
+            );
         } break;
         case Journal::EntryType::AgentMissionTimeBonusReward: {
-            TranserFunds(toID, corpID, tax, reason.c_str(), Journal::EntryType::CorporationTaxAgentBonusRewards, referenceID);
+            TransferFunds(
+                toID,
+                corpID,
+                tax,
+                reason.c_str(),
+                Journal::EntryType::CorporationTaxAgentBonusRewards,
+                referenceID
+            );
         } break;
     }
 }

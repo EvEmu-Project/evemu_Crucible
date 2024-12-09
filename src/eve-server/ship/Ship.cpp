@@ -2489,8 +2489,7 @@ void ShipSE::Process() {
     m_shipRef->ProcessModules();
 }
 
-void ShipSE::DamageRandModule(float chance)
-{
+void ShipSE::DamageRandModule(float chance) {
     if (chance == 0)
         return;
     if (chance > MakeRandomFloat())
@@ -2498,17 +2497,26 @@ void ShipSE::DamageRandModule(float chance)
 }
 
 void ShipSE::PayInsurance() {
-    if (m_self->groupID() == EVEDB::invGroups::Rookieship)
+    if (m_self->groupID() == EVEDB::invGroups::Rookieship) {
         return;
+    }
+
     std::string reason = "Insurance payment for loss of the ship ";
     reason += m_self->itemName();
-    AccountService::TranserFunds(corpSCC, m_ownerID, m_db.GetShipInsurancePayout(m_self->itemID()), \
-            reason, Journal::EntryType::Insurance, m_self->typeID());
+
+    AccountService::TransferFunds(
+        corpSCC,
+        m_ownerID,
+        m_db.GetShipInsurancePayout(m_self->itemID()),
+        reason,
+        Journal::EntryType::Insurance,
+        m_self->typeID()
+    );
+
     ShipDB::DeleteInsuranceByShipID(m_self->itemID());
 }
 
-void ShipSE::ResetShipSystemMgr(SystemManager* pSystem)
-{
+void ShipSE::ResetShipSystemMgr(SystemManager* pSystem) {
     m_system = pSystem;
 }
 

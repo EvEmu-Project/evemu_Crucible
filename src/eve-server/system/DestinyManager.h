@@ -221,6 +221,9 @@ public:
     bool IsFrozen()                                     { return m_frozen; }
     void SetFrozen(bool set=false)                      { m_frozen = set; }
 
+    // Prevents actions if the player is performing the login warp
+    bool AbortIfLoginWarping(bool showMsg);
+
 protected:
     void ProcessState();
 
@@ -293,7 +296,7 @@ protected:
     float m_maxOrbitSpeedFraction;      //fuzzy logic - ship's max speed based on orbit data
 
     uint32 m_followDistance;            //in m
-    uint32 m_targetDistance;            //in m
+    double m_targetDistance;            //in m
     double m_moveTime;                  //in ms       - time when speed change started.  used to calculate m_timeFraction
     double m_callTime;                  //in ms       - time client call was processed.  this is to coordinate tic calculations
 

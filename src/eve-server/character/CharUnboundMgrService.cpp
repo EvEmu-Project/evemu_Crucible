@@ -272,11 +272,12 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
         cpor.Build(charRef->itemID(), portraitInfoData);
 
     // query attribute bonuses from ancestry
-    if (!CharacterDB::GetAttributesFromAncestry(cdata.ancestryID, intelligence, charisma, perception, memory, willpower)) {
-        _log(CLIENT__ERROR, "Failed to load char create details. Bloodline %u, ancestry %u.", char_type->bloodlineID(), cdata.ancestryID);
+     if (!CharacterDB::GetAttributesFromAttributes(intelligence, charisma, perception, memory, willpower)) {
+        _log(CLIENT__ERROR, "Failed to load char attributes.");
         sItemFactory.UnsetUsingClient();
         return PyStatic.NewZero();
     }
+
     // triple attributes and save
     uint8 multiplier = sConfig.character.statMultiplier;
     charRef->SetAttribute(AttrIntelligence, intelligence * multiplier, false);
@@ -298,11 +299,6 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
     if (!CharacterDB::GetSkillsByRace(char_type->race(), startingSkills)) {
         _log(CLIENT__ERROR, "Failed to load char Race skills. Bloodline %u, Ancestry %u.",
              char_type->bloodlineID(), cdata.ancestryID);
-        // dont really care if this fails.  not enough to deny creation ...maybe make error?
-    }
-	//  Career Skills
-    if (!CharacterDB::GetSkillsByCareer(cdata.careerID, startingSkills)) {
-        _log(CLIENT__ERROR, "Failed to load char Career skills for %u.", cdata.careerSpecialityID);
         // dont really care if this fails.  not enough to deny creation ...maybe make error?
     }
 
@@ -372,9 +368,8 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
 
     std::string reason = "DESC: Inheritance Payment to ";
     reason += charRef->itemName();
-    AccountService::TranserFunds(corpSCC, charRef->itemID(), sConfig.character.startBalance, reason, Journal::EntryType::Inheritance);
-    AccountService::TranserFunds(corpSCC, charRef->itemID(), sConfig.character.startAurBalance, reason, \
-                            Journal::EntryType::Inheritance, 0, Account::KeyType::AUR, Account::KeyType::AUR);
+    AccountService::TransferFunds(corpSCC, charRef->itemID(), sConfig.character.startBalance, reason, Journal::EntryType::Inheritance);
+    AccountService::TransferFunds(corpSCC, charRef->itemID(), sConfig.character.startAurBalance, reason, Journal::EntryType::Inheritance, 0, Account::KeyType::AUR, Account::KeyType::AUR);
 
     charRef->LogOut();
     sRef->LogOut();

@@ -74,13 +74,13 @@ PyRep* PlanetMgr::UpdateNetwork(PyList* commandList)
     return m_colony->GetColony();
 }
 
-bool PlanetMgr::UpgradeCommandCenter(UUNCommand& nc)
-{
+bool PlanetMgr::UpgradeCommandCenter(UUNCommand& nc) {
     // the return here is used to cancel loop in UpdateNetwork.  return false = continue
 
     int8 oldLevel = m_colony->GetLevel(), newLevel = (int8)PyRep::IntegerValue(nc.command_data->GetItem(1));
     int32 cost = 0;
     using namespace PI::Pin;
+
     while (oldLevel != newLevel) {
         //  calculate total upgrade cost in cases where upgrading multiple levels at once
         switch (oldLevel) {
@@ -92,47 +92,55 @@ bool PlanetMgr::UpgradeCommandCenter(UUNCommand& nc)
         }
         ++oldLevel;
     }
+
     //take the money, send wallet blink event record the transaction in their journal.
     std::string reason = "DESC:  Command Center upgrade on ";
     reason += m_planet->GetName();
     uint32 ownerID = corpCONCORD;
-    if (m_planet->SystemMgr()->GetSystemSecurityRating() < 0.5)
+
+    if (m_planet->SystemMgr()->GetSystemSecurityRating() < 0.5) {
         ownerID = corpInterbus;
-    AccountService::TranserFunds(
-                    m_client->GetCharacterID(),
-                    ownerID,  // concord in empire, interbus otherwise
-                    cost,
-                    reason.c_str(),
-                    Journal::EntryType::PlanetaryConstruction,
-                    m_planet->GetID(),
-                    Account::KeyType::Cash);
+    }
+
+    AccountService::TransferFunds(
+        m_client->GetCharacterID(),
+        ownerID,  // concord in empire, interbus otherwise
+        cost,
+        reason.c_str(),
+        Journal::EntryType::PlanetaryConstruction,
+        m_planet->GetID(),
+        Account::KeyType::Cash
+    );
 
     m_colony->UpgradeCommandCenter(PyRep::IntegerValue(nc.command_data->GetItem(0)), newLevel);
     return false;
 }
 
-bool PlanetMgr::CreatePin(UUNCommand& nc)
-{
+bool PlanetMgr::CreatePin(UUNCommand& nc) {
     // the return here is used to break out of loop if needed.  return false = continue
     using namespace EVEDB::invGroups;
     uint32 typeID = PyRep::IntegerValueU32(nc.command_data->GetItem(1));
     uint32 groupID = sItemFactory.GetType(typeID)->groupID();
+
     switch (groupID) {
         case Command_Centers: {
             //take the money, send wallet blink event record the transaction in their journal.
             std::string reason = "DESC:  Command Center construction on ";
             reason += m_planet->GetName();
             uint32 ownerID = corpCONCORD;
-            if (m_planet->SystemMgr()->GetSystemSecurityRating() < 0.5)
+            if (m_planet->SystemMgr()->GetSystemSecurityRating() < 0.5) {
                 ownerID = corpInterbus;
-            AccountService::TranserFunds(
-                        m_client->GetCharacterID(),
-                        ownerID,  // concord in empire, interbus otherwise
-                        90000,
-                        reason.c_str(),
-                        Journal::EntryType::PlanetaryConstruction,
-                        m_planet->GetID(),
-                        Account::KeyType::Cash);
+            }
+
+            AccountService::TransferFunds(
+                m_client->GetCharacterID(),
+                ownerID,  // concord in empire, interbus otherwise
+                90000,
+                reason.c_str(),
+                Journal::EntryType::PlanetaryConstruction,
+                m_planet->GetID(),
+                Account::KeyType::Cash
+            );
 
             UUNCCommandCenter uunccc;
             if (!uunccc.Decode(nc.command_data)) {
@@ -232,22 +240,25 @@ bool PlanetMgr::CreatePin(UUNCommand& nc)
     reason += " Construction on ";
     reason += m_planet->GetName();
     uint32 ownerID = corpCONCORD;
-    if (m_planet->SystemMgr()->GetSystemSecurityRating() < 0.5)
+
+    if (m_planet->SystemMgr()->GetSystemSecurityRating() < 0.5) {
         ownerID = corpInterbus;
-    AccountService::TranserFunds(
-                m_client->GetCharacterID(),
-                ownerID,  // concord in empire, interbus otherwise
-                cost,
-                reason.c_str(),
-                Journal::EntryType::PlanetaryConstruction,
-                m_planet->GetID(),
-                Account::KeyType::Cash);
+    }
+
+    AccountService::TransferFunds(
+        m_client->GetCharacterID(),
+        ownerID,  // concord in empire, interbus otherwise
+        cost,
+        reason.c_str(),
+        Journal::EntryType::PlanetaryConstruction,
+        m_planet->GetID(),
+        Account::KeyType::Cash
+    );
 
     return false;
 }
 
-void PlanetMgr::CreateLink(UUNCommand& nc)
-{
+void PlanetMgr::CreateLink(UUNCommand& nc) {
     uint32 src = 0, dest = 0, level = 0;
     if (nc.command_data->GetItem(0)->IsInt()) {
         if (nc.command_data->GetItem(1)->IsInt()) {

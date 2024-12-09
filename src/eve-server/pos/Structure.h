@@ -97,7 +97,7 @@ class BatterySE;
 class WeaponSE;
 class ContainerSE;
 class StructureSE
-: public DynamicSystemEntity
+: public ObjectSystemEntity
 {
 public:
     StructureSE(StructureItemRef structure, EVEServiceManager& services, SystemManager* system, const FactionData& data);

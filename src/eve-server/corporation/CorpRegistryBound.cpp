@@ -580,14 +580,16 @@ PyResult CorpRegistryBound::AddCorporation(PyCallArgs &call,
     reason += " (";
     reason += args.corpTicker;
     reason += ")";
-    AccountService::TranserFunds(
-                                pClient->GetCharacterID(),
-                                m_db.GetStationOwner(pClient->GetStationID()),  // station owner files paperwork, this is fee for that
-                                corp_cost,
-                                reason.c_str(),
-                                Journal::EntryType::CorporationRegistrationFee,
-                                pClient->GetStationID(),
-                                Account::KeyType::Cash);
+
+    AccountService::TransferFunds(
+        pClient->GetCharacterID(),
+        m_db.GetStationOwner(pClient->GetStationID()),  // station owner files paperwork, this is fee for that
+        corp_cost,
+        reason.c_str(),
+        Journal::EntryType::CorporationRegistrationFee,
+        pClient->GetStationID(),
+        Account::KeyType::Cash
+    );
 
     // add corp event for creating new corp
     m_db.AddItemEvent(corpID, pClient->GetCharacterID(), Corp::EventType::CreatedCorporation);
@@ -782,14 +784,16 @@ PyResult CorpRegistryBound::UpdateLogo(PyCallArgs &call,
     }
 
     std::string reason = "Change Corporation Logo.";
+
     // move cash and record the transaction.
-    AccountService::TranserFunds(
+    AccountService::TransferFunds(
         call.client->GetCharacterID(),
-                                 m_db.GetStationOwner(call.client->GetStationID()),
-                                 logo_change,
-                                 reason,
-                                 Journal::EntryType::CorporationLogoChangeCost,
-                                 Account::KeyType::Cash);   // main wallet
+        m_db.GetStationOwner(call.client->GetStationID()),
+        logo_change,
+        reason,
+        Journal::EntryType::CorporationLogoChangeCost,
+        Account::KeyType::Cash
+    ); // main wallet
 
     // Send notification to those in the station
     /** @todo update this to use CorpNotify() */
@@ -886,7 +890,7 @@ PyResult CorpRegistryBound::CreateRecruitmentAd(PyCallArgs &call, PyInt* days, P
         case 28:   amount = 7500000;  break;
     }
 
-    AccountService::TranserFunds(m_corpID, call.client->GetCorpHQ(), amount, "Initial Advert Time for Corp Recruit Advert", Journal::EntryType::CorporationAdvertisementFee, call.client->GetCharacterID());
+    AccountService::TransferFunds(m_corpID, call.client->GetCorpHQ(), amount, "Initial Advert Time for Corp Recruit Advert", Journal::EntryType::CorporationAdvertisementFee, call.client->GetCharacterID());
 
     int32 adID = m_db.CreateAdvert(call.client, m_corpID, typeMask->value(), days->value(), m_db.GetCorpMemberCount(m_corpID), description->content(), channelID->value(), title->content());
 
@@ -936,7 +940,7 @@ PyResult CorpRegistryBound::UpdateRecruitmentAd(PyCallArgs &call, PyInt* adID, P
             case 14:   amount = 3500000;  break;
         }
 
-        AccountService::TranserFunds(m_corpID, call.client->GetCorpHQ(), amount, "Added Advert Time to Corp Recruit Advert", Journal::EntryType::CorporationAdvertisementFee);
+        AccountService::TransferFunds(m_corpID, call.client->GetCorpHQ(), amount, "Added Advert Time to Corp Recruit Advert", Journal::EntryType::CorporationAdvertisementFee);
 
         // do some funky shit to determine days left for advert then add additional time if requested
         int64 time = m_db.GetAdvertTime(adID->value(), m_corpID);
@@ -1288,14 +1292,17 @@ PyResult CorpRegistryBound::PayoutDividend(PyCallArgs &call, PyBool* paySharehol
 
     // get total amount and divide by # of ids to pay
     float amount = payoutAmount->value() / toIDs.size();
-    if (amount < 0.01)
+    if (amount < 0.01) {
         return nullptr;  //make error here?
+    }
 
-        // pay each id and record xfer
-        std::string reason = "Dividend Payment from ";
+    // pay each id and record xfer
+    std::string reason = "Dividend Payment from ";
     reason += ""; //corp name here
-    for (auto cur : toIDs)
-        AccountService::TranserFunds(m_corpID, cur, amount, reason.c_str(), Journal::EntryType::CorporationDividendPayment, call.client->GetCharacterID());
+
+    for (auto cur : toIDs) {
+        AccountService::TransferFunds(m_corpID, cur, amount, reason.c_str(), Journal::EntryType::CorporationDividendPayment, call.client->GetCharacterID());
+    }
 
     return nullptr;
 }
@@ -1480,7 +1487,7 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
     return nullptr;
 }
 
-PyResult CorpRegistryBound::UpdateApplicationOffer(PyCallArgs &call, PyInt* characterID, PyRep* applicationText, PyInt* status, PyLong* applicationDateTime) {
+PyResult CorpRegistryBound::UpdateApplicationOffer(PyCallArgs &call, PyInt* characterID, PyRep* applicationText, PyInt* status, PyNone* applicationDateTime) {
     //     return self.GetCorpRegistry().UpdateApplicationOffer(characterID, applicationText, status, applicationDateTime = None) NOTE: time not used.
     _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateApplicationOffer() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
@@ -1759,6 +1766,7 @@ PyResult CorpRegistryBound::GetOffices(PyCallArgs &call) {
     headers->AddItemString ("stationID");
     headers->AddItemString ("stationTypeID");
     headers->AddItemString ("officeFolderID");
+    headers->AddItemString ("typeID");
 
     if (this->m_offices == nullptr) {
         this->m_offices = new OfficeSparseBound (this->GetServiceManager (), *this, m_db, m_corpID, headers);
@@ -2304,7 +2312,7 @@ PyResult CorpRegistryBound::CreateAlliance(PyCallArgs &call, PyRep* allianceName
 
     AllianceDB a_db;
     Client* pClient(call.client);
-    
+
     std::string allianceNameStr = PyRep::StringContent(allianceName);
     std::string shortNameStr = PyRep::StringContent(shortName);
     std::string descriptionStr = PyRep::StringContent(description);
@@ -2344,14 +2352,16 @@ PyResult CorpRegistryBound::CreateAlliance(PyCallArgs &call, PyRep* allianceName
     reason += " (";
     reason += shortNameStr;
     reason += ")";
-    AccountService::TranserFunds(
-                                pClient->GetCharacterID(),
-                                m_db.GetStationOwner(pClient->GetStationID()),  // station owner files paperwork, this is fee for that
-                                ally_cost,
-                                reason.c_str(),
-                                Journal::EntryType::AllianceRegistrationFee,
-                                pClient->GetStationID(),
-                                Account::KeyType::Cash);
+
+    AccountService::TransferFunds(
+        pClient->GetCharacterID(),
+        m_db.GetStationOwner(pClient->GetStationID()),  // station owner files paperwork, this is fee for that
+        ally_cost,
+        reason.c_str(),
+        Journal::EntryType::AllianceRegistrationFee,
+        pClient->GetStationID(),
+        Account::KeyType::Cash
+    );
 
     //creating an alliance will affect eveStaticOwners, so we gotta invalidate the cache...
     //  call to db.AddCorporation() will update eveStaticOwners with new corp

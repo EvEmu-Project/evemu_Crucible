@@ -268,8 +268,6 @@ void PlanetDB::LoadPins(uint32 ccPinID, std::map<uint32, PI_Pin>& pins)
             pin.headRadius              = row.GetFloat(14);
             pin.lastLaunchTime          = row.GetInt64(15);
             pin.cycleTime               = row.GetInt64(16);
-            if (pin.isECU)              // ecu time is stored as filetime, but used as hours
-                pin.cycleTime           /= EvE::Time::Hour;
             pin.expiryTime              = row.GetInt64(17);
             pin.installTime             = row.GetInt64(18);
             pin.lastRunTime             = row.GetInt64(19);
@@ -446,7 +444,7 @@ void PlanetDB::SavePins(PI_CCPin* ccPin)
     Inserts << " (ccPinID, pinID, typeID, ownerID, level, latitude, longitude,";
     Inserts << " isCommandCenter, isLaunchable, isProcess, isStorage, isECU,";
     Inserts << " schematicID, programType, headRadius, launchTime,";
-    Inserts << " cycleTime, expiryTime, installTime, lastRunTime)";
+    Inserts << " cycleTime, expiryTime, installTime, lastRunTime, qtyPerCycle)";
 
     bool first = true;
     uint32 ccPinID = ccPin->ccPinID;
@@ -460,7 +458,7 @@ void PlanetDB::SavePins(PI_CCPin* ccPin)
         Inserts << "(" << ccPinID << ", " << cur.first << ", " << cur.second.typeID << ", " << cur.second.ownerID << ", " << cur.second.level << ", " << cur.second.latitude << ", " << cur.second.longitude << ", ";
         Inserts << cur.second.isCommandCenter << ", " << cur.second.isLaunchable << ", " << cur.second.isProcess << ", " << cur.second.isStorage <<", " << cur.second.isECU << ", ";
         Inserts << cur.second.schematicID << ", " << cur.second.programType << ", " << cur.second.headRadius << ", " << cur.second.lastLaunchTime;
-        Inserts << ", " << cur.second.cycleTime << ", " << cur.second.expiryTime << ", " << cur.second.installTime << ", " << cur.second.lastRunTime << ")";
+        Inserts << ", " << cur.second.cycleTime << ", " << cur.second.expiryTime << ", " << cur.second.installTime << ", " << cur.second.lastRunTime << ", " << cur.second.qtyPerCycle << ")";
     }
 
     if (!first) {
@@ -473,7 +471,9 @@ void PlanetDB::SavePins(PI_CCPin* ccPin)
         Inserts << " cycleTime=VALUES(cycleTime),";
         Inserts << " expiryTime=VALUES(expiryTime), ";
         Inserts << " installTime=VALUES(installTime),";
-        Inserts << " lastRunTime=VALUES(lastRunTime);";
+        Inserts << " lastRunTime=VALUES(lastRunTime),";
+        Inserts << " ownerID=VALUES(ownerID),";
+        Inserts << " typeID=VALUES(typeID);";
         // execute the command.
         DBerror err;
         if (!sDatabase.RunQuery(err, Inserts.str().c_str()))
@@ -487,7 +487,8 @@ void PlanetDB::UpdatePins(uint32 pinID, PI_CCPin* ccPin)
     // start the insert into command.
     Inserts << "INSERT INTO piPins";
     Inserts << " (ccPinID, pinID, schematicID, programType, launchTime,";
-    Inserts << " cycleTime, installTime, lastRunTime, receivedInputsLastCycle, hasReceivedInputs)";
+    Inserts << " cycleTime, installTime, lastRunTime, receivedInputsLastCycle, hasReceivedInputs,";
+    Inserts << " latitude, longitude, qtyPerCycle, isECU, isLaunchable, isProcess)";
 
     bool first = true;
     if (pinID) {
@@ -498,7 +499,9 @@ void PlanetDB::UpdatePins(uint32 pinID, PI_CCPin* ccPin)
             Inserts << " VALUES ";
             Inserts << "(" << ccPin->ccPinID << ", " << itr->first << ", "<< itr->second.schematicID << ", " << itr->second.programType;
             Inserts << ", " << itr->second.lastLaunchTime << ", " << itr->second.cycleTime << ", " << itr->second.installTime;
-            Inserts  << ", " << itr->second.lastRunTime << ", " << itr->second.receivedInputsLastCycle << ", " << itr->second.hasReceivedInputs << ")";
+            Inserts << ", " << itr->second.lastRunTime << ", " << itr->second.receivedInputsLastCycle << ", " << itr->second.hasReceivedInputs;
+            Inserts << ", " << itr->second.latitude << ", " << itr->second.longitude << ", " << itr->second.qtyPerCycle << ", " << itr->second.isECU;
+            Inserts << ", " << itr->second.isLaunchable << ", " << itr->second.isProcess << ")";
         }
     } else {
         for (auto cur : ccPin->pins) {
@@ -510,7 +513,9 @@ void PlanetDB::UpdatePins(uint32 pinID, PI_CCPin* ccPin)
             }
             Inserts << "(" << ccPin->ccPinID << ", " << cur.first << ", "<< cur.second.schematicID << ", " << cur.second.programType;
             Inserts << ", " << cur.second.lastLaunchTime << ", " << cur.second.cycleTime << ", " << cur.second.installTime;
-            Inserts << ", " << cur.second.lastRunTime << ", " << cur.second.receivedInputsLastCycle << ", " << cur.second.hasReceivedInputs << ")";
+            Inserts << ", " << cur.second.lastRunTime << ", " << cur.second.receivedInputsLastCycle << ", " << cur.second.hasReceivedInputs;
+            Inserts << ", " << cur.second.latitude << ", " << cur.second.longitude << ", " << cur.second.qtyPerCycle << ", " << cur.second.isECU;
+            Inserts << ", " << cur.second.isLaunchable << ", " << cur.second.isProcess << ")";
         }
     }
 

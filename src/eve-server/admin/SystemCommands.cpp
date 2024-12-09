@@ -4,10 +4,12 @@
  *
  */
 
+#include "EVE_Defines.h"
 #include "eve-server.h"
 
 #include "Client.h"
 #include "ConsoleCommands.h"
+#include "log/logsys.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 #include "admin/AllCommands.h"
@@ -48,6 +50,36 @@ PyResult Command_goto(Client* pClient, CommandDB* db, EVEServiceManager &service
 
 PyResult Command_translocate(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     return Command_tr(pClient,db,services,args);
+}
+
+// `UpdateBubble` is a reusable function that synchronizes the player's position
+// and ensures that their bubble exists.
+static PyResult UpdateBubble(Client *pClient) {
+    if (!pClient->IsInSpace())
+        throw CustomError ("You're not in space.");
+    if (pClient->GetShipSE()->DestinyMgr() == nullptr)
+        pClient->SetDestiny(NULL_ORIGIN);
+    if (pClient->GetShipSE()->SysBubble() == nullptr)
+        pClient->EnterSystem(pClient->GetSystemID());
+    if (pClient->IsSessionChange()) {
+        pClient->SendInfoModalMsg("Session Change Active.  Wait %u seconds before issuing another command.",
+                                  pClient->GetSessionChangeTime());
+        return new PyString("SessionChange Active.  Request Denied.");
+    }
+
+    pClient->GetShipSE()->DestinyMgr()->SetPosition(pClient->GetShipSE()->GetPosition(), true);
+
+    SystemBubble *pBubble = pClient->GetShipSE()->SysBubble();
+    if (pBubble == nullptr) {
+        sBubbleMgr.Add(pClient->GetShipSE());
+        pBubble = pClient->GetShipSE()->SysBubble();
+    }
+    pBubble->SendAddBalls(pClient->GetShipSE());
+
+    pClient->SetStateSent(false);
+    pClient->GetShipSE()->DestinyMgr()->SendSetState();
+    pClient->SetSessionTimer();
+    return new PyString("Update sent.");
 }
 
 /*   hardcoded menu translocates in client
@@ -393,9 +425,45 @@ PyResult Command_tr(Client* pClient, CommandDB* db, EVEServiceManager &services,
                 locationID = pClient2->GetSystemID();
             }
         }
-    }
-    //  connect to dataMgrs for location verification
-    else if (!sDataMgr.IsStation(locationID) and !sDataMgr.IsSolarSystem(locationID)) {
+    } else if (IsCelestialID(locationID) || IsStargateID(locationID) || IsSolarSystemID(locationID)) {
+        // This section of code primarily governs the behavior of clicking
+        // "TR me here" in the in-game client menus, for things like asteroid
+        // belts, planets, stargates, etc.
+
+        // As of 2024-09-15, translocating is overall still a bit buggy. When
+        // switching solar systems, the client may sometimes be unable to
+        // navigate even though the position may be fine upon next login. Could
+        // this be solvable by calling UpdateBubble()?
+
+        DBQueryResult res;
+        DBResultRow row;
+
+        if (!sDatabase.RunQuery(res, "SELECT solarSystemID, x,y,z FROM mapDenormalize WHERE itemID = %i LIMIT 1;", locationID)) {
+            codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+            throw CustomError ("Translocate: Unable to find celestial location %i", locationID);
+        }
+
+        if (!res.GetRow(row)) {
+            throw CustomError("Translocate: No data for celestial location %i", locationID);
+        }
+
+        if (pClient->IsDocked()) {
+            pClient->UndockFromStation();
+        }
+
+        if (IsSolarSystemID(locationID)) {
+            // translocate to the solar system's star directly
+            pt.x = 0;
+            pt.y = 0;
+            pt.z = 0;
+        } else {
+            locationID = row.GetInt(0);
+            pt.x = row.GetDouble(1);
+            pt.y = row.GetDouble(2);
+            pt.z = row.GetDouble(3);
+        }
+    } else if (!sDataMgr.IsStation(locationID) and !sDataMgr.IsSolarSystem(locationID)) {
+        // connect to dataMgrs for location verification
         throw CustomError ("Translocate: Invalid Location %i", locationID);
     }
 
@@ -403,11 +471,28 @@ PyResult Command_tr(Client* pClient, CommandDB* db, EVEServiceManager &services,
         pOtherClient->JumpOutEffect(pOtherClient->GetLocationID());
         pOtherClient->MoveToLocation(locationID, pt);
         pOtherClient->JumpInEffect();
+        if (pOtherClient->IsInSpace()) {
+            pOtherClient->GetShipSE()->DestinyMgr()->Stop();
+            UpdateBubble(pOtherClient);
+        }
+
+        // translocating can interrupt the login warp bubble, leaving the
+        // player unable to do anything
+        pOtherClient->SetLoginWarpComplete();
     } else {
         pClient->JumpOutEffect(myLocationID);
         pClient->MoveToLocation(locationID, pt);
         pClient->JumpInEffect();
+        if (pClient->IsInSpace()) {
+            pClient->GetShipSE()->DestinyMgr()->Stop();
+            UpdateBubble(pClient);
+        }
+
+        // translocating can interrupt the login warp bubble, leaving the
+        // player unable to do anything
+        pClient->SetLoginWarpComplete();
     }
+
     return nullptr;
 }
 
@@ -839,50 +924,48 @@ PyResult Command_syncpos(Client* pClient, CommandDB* db, EVEServiceManager &serv
     return new PyString("All Positions synchronized.");
 }
 
+
 PyResult Command_update(Client *pClient, CommandDB *db, EVEServiceManager &services, const Seperator &args) {
-    if (!pClient->IsInSpace())
-        throw CustomError ("You're not in space.");
-    if (pClient->GetShipSE()->DestinyMgr() == nullptr)
-        pClient->SetDestiny(NULL_ORIGIN);
-    if (pClient->GetShipSE()->SysBubble() == nullptr)
-        pClient->EnterSystem(pClient->GetSystemID());
-    if (pClient->IsSessionChange()) {
-        pClient->SendInfoModalMsg("Session Change Active.  Wait %u seconds before issuing another command.",
-                                  pClient->GetSessionChangeTime());
-        return new PyString("SessionChange Active.  Request Denied.");
-    }
-
-    pClient->GetShipSE()->DestinyMgr()->SetPosition(pClient->GetShipSE()->GetPosition(), true);
-
-    SystemBubble *pBubble = pClient->GetShipSE()->SysBubble();
-    if (pBubble == nullptr) {
-        sBubbleMgr.Add(pClient->GetShipSE());
-        pBubble = pClient->GetShipSE()->SysBubble();
-    }
-    pBubble->SendAddBalls(pClient->GetShipSE());
-
-    pClient->SetStateSent(false);
-    pClient->GetShipSE()->DestinyMgr()->SendSetState();
-    pClient->SetSessionTimer();
-    return new PyString("Update sent.");
+    return UpdateBubble(pClient);
 }
 
 PyResult Command_sendstate(Client *pClient, CommandDB *db, EVEServiceManager &services, const Seperator &args) {
-    if (!pClient->IsInSpace())
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if in space");
+    if (!pClient->IsInSpace()) {
         throw CustomError ("You're not in space.");
-    if (pClient->GetShipSE()->DestinyMgr() == nullptr)
-        pClient->SetDestiny(NULL_ORIGIN);
-    if (pClient->GetShipSE()->SysBubble() == nullptr)
-        pClient->EnterSystem(pClient->GetSystemID());
-    if (pClient->IsSessionChange()) {
-        pClient->SendInfoModalMsg("Session Change Active.  Wait %u seconds before issuing another command.",
-                                  pClient->GetSessionChangeTime());
-        return new PyString("SessionChange Active.  Request Denied.");
     }
 
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if destiny manager is null");
+    if (pClient->GetShipSE()->DestinyMgr() == nullptr) {
+        _log(COMMAND__MESSAGE, "SystemCommands::SendState() - destiny manager is null, setting to null origin");
+        pClient->SetDestiny(NULL_ORIGIN);
+    }
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if bubble is null");
+    if (pClient->GetShipSE()->SysBubble() == nullptr) {
+        _log(COMMAND__MESSAGE, "SystemCommands::SendState() - bubble is null, setting system id");
+        pClient->EnterSystem(pClient->GetSystemID());
+    }
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - checking if session is changing");
+    if (pClient->IsSessionChange()) {
+        pClient->SendInfoModalMsg(
+            "Session Change Active. Wait %u seconds before issuing another command.",
+            pClient->GetSessionChangeTime()
+        );
+
+        return new PyString("SessionChange Active. Request Denied.");
+    }
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - setting state sent to false");
     pClient->SetStateSent(false);
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - sending SetState");
     pClient->GetShipSE()->DestinyMgr()->SendSetState();
+
+    _log(COMMAND__MESSAGE, "SystemCommands::SendState() - setting session timer");
     pClient->SetSessionTimer();
+
     return new PyString("Update sent.");
 }
 

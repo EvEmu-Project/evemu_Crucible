@@ -890,7 +890,7 @@ PyRep* CharacterDB::GetContacts(uint32 charID, bool blocked)
         return nullptr;
     }
 
-    return DBResultToIndexRowset(res, "contactID");
+    return DBResultToCRowset(res);
 }
 
 void CharacterDB::AddContact(uint32 ownerID, uint32 charID, int32 standing, bool inWatchlist)
@@ -1125,31 +1125,52 @@ bool CharacterDB::ChangeCloneLocation(uint32 characterID, uint32 locationID)
     return true;
 }
 
-bool CharacterDB::GetAttributesFromAncestry(uint32 ancestryID, uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
+bool CharacterDB::GetAttributesFromAttributes(uint8 &intelligence, uint8 &charisma, uint8 &perception, uint8 &memory, uint8 &willpower) {
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
         " SELECT "
-        "  intelligence, charisma, perception, memory, willpower "
-        " FROM chrAncestries "
-        " WHERE ancestryID = %u ", ancestryID))
+        "  attributeID, baseAttribute "
+        " FROM chrAttributes "))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return (false);
     }
+        
+    for(int i = 0; i < res.GetRowCount(); i++){
+        DBResultRow row;
+        uint32 attributeID = 0;
 
-    DBResultRow row;
-    if (!res.GetRow(row)) {
-        codelog(DATABASE__ERROR, "Failed to find ancestry information for ancestry %u", ancestryID);
-        return false;
+        if (!res.GetRow(row)) {
+        codelog(DATABASE__ERROR, "Failed to find attribute information for attribute %d", attributeID);
+            return false;
+        }
+
+        attributeID = row.GetUInt(0);
+
+        switch (attributeID)
+        {
+        case (uint32)1:
+            intelligence += row.GetUInt(1);
+            break;
+        case (uint32)2:
+            charisma += row.GetUInt(1);
+            break;
+        case (uint32)3:
+            perception += row.GetUInt(1);
+            break;
+        case (uint32)4:
+            memory += row.GetUInt(1);
+            break;
+        case (uint32)5:
+            willpower += row.GetUInt(1);
+            break;
+        default:
+            codelog(DATABASE__ERROR, "Unknown attribute %d", attributeID); 
+            break;
+        }
     }
-
-    intelligence += row.GetUInt(0);
-    charisma += row.GetUInt(1);
-    perception += row.GetUInt(2);
-    memory += row.GetUInt(3);
-    willpower += row.GetUInt(4);
-
+    
     return (true);
 }
 
@@ -2042,11 +2063,6 @@ bool CharacterDB::GetCharacterType(uint8 bloodlineID, CharacterTypeData &into) {
         "  maleDescription,"
         "  femaleDescription,"
         "  corporationID,"
-        "  perception,"
-        "  willpower,"
-        "  charisma,"
-        "  memory,"
-        "  intelligence,"
         "  shortDescription,"
         "  shortMaleDescription,"
         "  shortFemaleDescription "
@@ -2070,14 +2086,9 @@ bool CharacterDB::GetCharacterType(uint8 bloodlineID, CharacterTypeData &into) {
     into.maleDescription = row.GetText(3);
     into.femaleDescription = row.GetText(4);
     into.corporationID = row.GetUInt(5);
-    into.perception = row.GetUInt(6);
-    into.willpower = row.GetUInt(7);
-    into.charisma = row.GetUInt(8);
-    into.memory = row.GetUInt(9);
-    into.intelligence = row.GetUInt(10);
-    into.shortDescription = row.GetText(11);
-    into.shortMaleDescription = row.GetText(12);
-    into.shortFemaleDescription = row.GetText(13);
+    into.shortDescription = row.GetText(6);
+    into.shortMaleDescription = row.GetText(7);
+    into.shortFemaleDescription = row.GetText(8);
     return true;
 }
 

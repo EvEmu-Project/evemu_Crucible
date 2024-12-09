@@ -1033,21 +1033,22 @@ PyRep* Colony::LaunchCommodities(uint32 pinID, std::map< uint16, uint32 >& items
         //take the money, send wallet blink event record the transaction in their journal.
         std::string reason = "DESC:  Launching PI items from ";
         reason += m_pSE->GetName();
-        AccountService::TranserFunds(
-                    m_client->GetCharacterID(),
-                    corpCONCORD,  // pSysMgr->GetSovHolder(),
-                    cost,
-                    reason.c_str(),
-                    Journal::EntryType::PlanetaryExportTax,
-                    m_pSE->GetID(),
-                    Account::KeyType::Cash);
+
+        AccountService::TransferFunds(
+            m_client->GetCharacterID(),
+            corpCONCORD,  // pSysMgr->GetSovHolder(),
+            cost,
+            reason.c_str(),
+            Journal::EntryType::PlanetaryExportTax,
+            m_pSE->GetID(),
+            Account::KeyType::Cash
+        );
     }
 
     return new PyLong(pin->second.lastLaunchTime);
 }
 
-void Colony::PlanetXfer(uint32 spaceportID, std::map< uint32, uint16 > importItems, std::map< uint32, uint16 > exportItems, double taxRate)
-{
+void Colony::PlanetXfer(uint32 spaceportID, std::map< uint32, uint16 > importItems, std::map< uint32, uint16 > exportItems, double taxRate) {
     // import is from CO to planet.  export is from planet to CO
     // this method will make the transfer of items from real to virtual and back as necessary
 
@@ -1110,14 +1111,16 @@ void Colony::PlanetXfer(uint32 spaceportID, std::map< uint32, uint16 > importIte
         //take the money, send wallet blink event record the transaction in their journal.
         std::string reason = "DESC:  Importing items to ";
         reason += m_pSE->GetName();
-        AccountService::TranserFunds(
-                            m_client->GetCharacterID(),
-                            m_pSE->GetCustomsOffice()->GetOwnerID(),
-                            cost,
-                            reason.c_str(),
-                            Journal::EntryType::PlanetaryImportTax,
-                            m_pSE->GetID(),
-                            Account::KeyType::Cash);
+
+        AccountService::TransferFunds(
+            m_client->GetCharacterID(),
+            m_pSE->GetCustomsOffice()->GetOwnerID(),
+            cost,
+            reason.c_str(),
+            Journal::EntryType::PlanetaryImportTax,
+            m_pSE->GetID(),
+            Account::KeyType::Cash
+        );
     }
 
     // reset cost for possible export taxes
@@ -1161,14 +1164,16 @@ void Colony::PlanetXfer(uint32 spaceportID, std::map< uint32, uint16 > importIte
         //take the money, send wallet blink event record the transaction in their journal.
         std::string reason = "DESC:  Exporting items from ";
         reason += m_pSE->GetName();
-        AccountService::TranserFunds(
-                            m_client->GetCharacterID(),
-                            m_pSE->GetCustomsOffice()->GetOwnerID(),
-                            cost,
-                            reason.c_str(),
-                            Journal::EntryType::PlanetaryExportTax,
-                            m_pSE->GetID(),
-                            Account::KeyType::Cash);
+
+        AccountService::TransferFunds(
+            m_client->GetCharacterID(),
+            m_pSE->GetCustomsOffice()->GetOwnerID(),
+            cost,
+            reason.c_str(),
+            Journal::EntryType::PlanetaryExportTax,
+            m_pSE->GetID(),
+            Account::KeyType::Cash
+        );
     }
 
     pin->second.lastLaunchTime = GetFileTimeNow();  // launch cycle time is 60s
@@ -1251,7 +1256,7 @@ PyTuple* Colony::GetPins()
 
         if (cur.second.isECU) {
             if (cur.second.installTime > 0) {
-                dict->SetItem("cycleTime", new PyFloat(cur.second.cycleTime / EvE::Time::Hour));
+                dict->SetItem("cycleTime", new PyLong(cur.second.cycleTime));
                 dict->SetItem("expiryTime", new PyLong(cur.second.expiryTime));
                 dict->SetItem("headRadius", new PyFloat(cur.second.headRadius));
                 dict->SetItem("installTime", new PyLong(cur.second.installTime));

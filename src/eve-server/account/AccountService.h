@@ -36,15 +36,31 @@ public:
     AccountService();
 
     // this moves currency, adds journal entries, and sends blink event. handles applicable corp taxes internally.
-    //  will throw if fails
-    static void TranserFunds(uint32 fromID, uint32 toID, double amount, std::string reason = "", \
-                            uint8 entryTypeID = Journal::EntryType::Undefined, uint32 referenceID = 0, \
-                            uint16 fromKey = Account::KeyType::Cash, uint16 toKey = Account::KeyType::Cash, \
-                            Client* pClient=nullptr);
+    // will throw if fails
+    static void TransferFunds(
+        uint32 fromID,
+        uint32 toID,
+        double amount,
+        std::string reason = "",
+        uint8 entryTypeID = Journal::EntryType::Undefined,
+        uint32 referenceID = 0,
+        uint16 fromKey = Account::KeyType::Cash,
+        uint16 toKey = Account::KeyType::Cash,
+        Client* pClient=nullptr
+    );
 
     // this should be the ONLY method to alter corp balances, and ONLY called from TransferFunds()
-    static void HandleCorpTransaction(uint32 corpID, int8 entryTypeID, uint32 fromID, uint32 toID, int8 currency, uint16 accountKey, \
-                                      double amount, std::string description, uint32 referenceID = 0);
+    static void HandleCorpTransaction(
+        uint32 corpID,
+        int8 entryTypeID,
+        uint32 fromID,
+        uint32 toID,
+        int8 currency,
+        uint16 accountKey,
+        double amount,
+        std::string description,
+        uint32 referenceID = 0
+    );
 
 protected:
     AccountDB m_db;
@@ -62,6 +78,9 @@ protected:
     PyResult GetJournalForAccounts(PyCallArgs& call, PyInt* accountKeys, PyLong* fromDate, std::optional<PyInt*> entryTypeID, PyInt* corpAccount, std::optional <PyInt*> transactionID, std::optional<PyInt*> rev);
     PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyWString*> reason);
     PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyWString*> reason);
+    PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyInt* amount, std::optional <PyString*> reason);
+    PyResult GiveCash(PyCallArgs& call, PyInt* toID, PyFloat* amount, std::optional <PyString*> reason);
+    PyResult GiveCash(PyCallArgs &call, PyInt* toID, PyFloat* amount, std::string reason);
     PyResult GiveCashFromCorpAccount(PyCallArgs& call, PyInt* toID, PyInt* amount, PyInt* fromAcctKey);
     PyResult GiveCashFromCorpAccount(PyCallArgs& call, PyInt* toID, PyFloat* amount, PyInt* fromAcctKey);
 };

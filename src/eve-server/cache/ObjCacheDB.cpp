@@ -780,7 +780,7 @@ PyRep *ObjCacheDB::Generate_invMetaTypes()
 PyRep *ObjCacheDB::Generate_chrBloodlines()
 {
     DBQueryResult res;
-    const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower, charisma, memory, intelligence, shortDescription, shortMaleDescription, shortFemaleDescription, iconID, bloodlineNameID, descriptionID, dataID FROM chrBloodlines";
+    const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, shortDescription, shortMaleDescription, shortFemaleDescription, iconID, bloodlineNameID, descriptionID, dataID FROM chrBloodlines";
     if (!sDatabase.RunQuery(res, q))
     {
         _log(DATABASE__ERROR, "Error in query for cached object 'config.Bloodlines': %s", res.error.c_str());
@@ -888,7 +888,7 @@ PyRep *ObjCacheDB::Generate_invContrabandTypes()
 PyRep *ObjCacheDB::Generate_c_chrBloodlines()
 {
     DBQueryResult res;
-    const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, perception, willpower, charisma, memory, intelligence, shortDescription, shortMaleDescription, shortFemaleDescription, iconID, bloodlineNameID, descriptionID, dataID FROM chrBloodlines";
+    const char *q = "SELECT bloodlineID, bloodlineName, raceID, description, maleDescription, femaleDescription, shipTypeID, corporationID, shortDescription, shortMaleDescription, shortFemaleDescription, iconID, bloodlineNameID, descriptionID, dataID FROM chrBloodlines";
     if (!sDatabase.RunQuery(res, q))
     {
         _log(DATABASE__ERROR, "Error in query for cached object 'charCreationInfo.bloodlines': %s", res.error.c_str());
@@ -912,7 +912,7 @@ PyRep *ObjCacheDB::Generate_c_chrRaces()
 PyRep *ObjCacheDB::Generate_c_chrAncestries()
 {
     DBQueryResult res;
-    const char *q = "SELECT ancestryID, ancestryName, bloodlineID, description, perception, willpower, charisma, memory, intelligence, iconID, iconID AS graphicID, shortDescription, ancestryNameID, descriptionID, dataID FROM chrAncestries";
+    const char *q = "SELECT ancestryID, ancestryName, bloodlineID, description, iconID, iconID AS graphicID, shortDescription, ancestryNameID, descriptionID, dataID FROM chrAncestries";
     if (!sDatabase.RunQuery(res, q))
     {
         _log(DATABASE__ERROR, "Error in query for cached object 'charCreationInfo.ancestries': %s", res.error.c_str());

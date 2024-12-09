@@ -1,0 +1,5 @@
+-- Adds an index to mktOrders that drastically speeds up market fetching.
+-- +migrate Up
+CREATE INDEX solarSystem on mktOrders(solarSystemID);
+-- +migrate Down
+DROP INDEX solarSystem on mktOrders;

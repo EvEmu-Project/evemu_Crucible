@@ -288,7 +288,7 @@ bool SystemManager::SystemActivity() {
 
 // called from EntityList::Process() and EntityList::Close()
 void SystemManager::UnloadSystem() {
-    if (!m_loaded)
+    if (!m_loaded or !SafeToUnload())
         return;
 
     sLog.Magenta("    SystemManager", "UnloadSystem() called for %s(%u).", m_data.name.c_str(), m_data.systemID);
@@ -1063,7 +1063,7 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
             if (pSE->IsOperSE()) //Entities which need to be acted upon while nobody is in the system
                 m_opStaticEntities[itemID] = pSE;
             if (m_loaded)   // only update when system is already loaded
-                SendStaticBall(pSE);
+                SendStaticBall(pSE); 
         } else if (pSE->IsProbeSE()) {
             // probes are now running sub-hz tics, so dont add to proc list.
             addSignal = false;  // redundant...called with AddSignal=false
@@ -1157,8 +1157,7 @@ void SystemManager::AddMarker(SystemEntity* pSE, bool sendBall/*false*/, bool ad
 }
 
 
-void SystemManager::AddBounty(uint32 charID, BountyData& data)
-{
+void SystemManager::AddBounty(uint32 charID, BountyData& data) {
     /*
 struct BountyData {     // this is comming from rat killed.
     uint32 fromID;
@@ -1196,9 +1195,9 @@ struct BountyData {     // this is comming from rat killed.
     }
 }
 
-void SystemManager::PayBounties()
-{
+void SystemManager::PayBounties() {
     _log(CLIENT__TEXT, "PayBounties called for system %s(%u).", m_data.name.c_str(), m_data.systemID);
+
     int8 count = 0;
         /* recDescNpcBountyList = 'NBL'                <-- descrives a full list of [typeID: qty]
          * recDescNpcBountyListTruncated = 'NBLT'      <-- describes a trunicated list
@@ -1241,11 +1240,14 @@ recStoreItems = 'STOREITEMS'
             }
             // will have to figure out how to *correctly* limit this data to count<20 or so...
         } //else {
-            reason += ",...";    // this will show as "truncated" in client
+
+        reason += ",...";    // this will show as "truncated" in client
         //}
-        AccountService::TranserFunds(corpCONCORD, cur.first, cur.second.amount, reason, Journal::EntryType::BountyPrizes, m_data.systemID);
+
+        AccountService::TransferFunds(corpCONCORD, cur.first, cur.second.amount, reason, Journal::EntryType::BountyPrizes, m_data.systemID);
         count = 0;
     }
+
     m_ratMap.clear();
     m_bountyMap.clear();
 }
@@ -1712,13 +1714,18 @@ void SystemManager::UpdateData()
 // checks for if it is safe to mark the system for unloading
 bool SystemManager::SafeToUnload()
 {
-    for (auto cur: GetOperationalStatics()) {
+    for (auto cur: GetEntities() ) {
         //If there are any ongoing operations by operational static structures, we don't want to unload the system until this is complete
         if (cur.second->IsPOSSE()) {
             if ((cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Unanchoring) or
             (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Anchoring) or
             (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Offlining) or
             (cur.second->GetPOSSE()->GetProcState() == EVEPOS::ProcState::Onlining)) {
+                return false;
+            }
+        }
+        if (cur.second->IsPlanetSE()) {
+            if (cur.second->GetPlanetSE()->HasColony()) { // Need to prevent unloading of any Planet SE where colonies exist so that they continue to be processed.
                 return false;
             }
         }

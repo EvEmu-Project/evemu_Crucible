@@ -42,7 +42,8 @@ CharMgrBound::CharMgrBound(EVEServiceManager& mgr, CharMgrService& parent, uint3
     m_containerFlag(contFlag)
 {
     this->Add("List", &CharMgrBound::List);
-    this->Add("ListStations", &CharMgrBound::ListStations);
+    this->Add("ListStations", static_cast <PyResult (CharMgrBound::*)(PyCallArgs&, PyInt*, PyBool*)> (&CharMgrBound::ListStations));
+    this->Add("ListStations", static_cast <PyResult (CharMgrBound::*)(PyCallArgs&, PyInt*, PyInt*)> (&CharMgrBound::ListStations));
     this->Add("ListStationItems", &CharMgrBound::ListStationItems);
     this->Add("ListStationBlueprintItems", &CharMgrBound::ListStationBlueprintItems);
 }
@@ -56,6 +57,11 @@ PyResult CharMgrBound::ListStationItems(PyCallArgs& call, PyInt* stationID)
 {
     // this is the assets window
     return CharacterDB::ListStationItems(m_ownerID, stationID->value());
+}
+
+PyResult CharMgrBound::ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyBool* isCorporation)
+{
+  return ListStations(call, blueprintOnly, new PyInt(isCorporation->value()));
 }
 
 PyResult CharMgrBound::ListStations(PyCallArgs& call, PyInt* blueprintOnly, PyInt* isCorporation)
@@ -125,8 +131,10 @@ CharMgrService::CharMgrService(EVEServiceManager& mgr) :
     this->Add("AddOwnerNote", &CharMgrService::AddOwnerNote);
     this->Add("GetOwnerNote", &CharMgrService::GetOwnerNote);
     this->Add("GetOwnerNoteLabels", &CharMgrService::GetOwnerNoteLabels);
-    this->Add("AddContact", &CharMgrService::AddContact);
-    this->Add("EditContact", &CharMgrService::EditContact);
+    this->Add("AddContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyInt*, PyInt*, PyInt*, std::optional<PyString*>)> (&CharMgrService::AddContact));
+    this->Add("AddContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyFloat*, PyInt*, PyBool*, std::optional<PyWString*>)> (&CharMgrService::AddContact));
+    this->Add("EditContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyInt*, PyInt*, PyInt*, std::optional<PyString*>)> (&CharMgrService::EditContact));
+    this->Add("EditContact", static_cast <PyResult(CharMgrService::*)(PyCallArgs&, PyInt*, PyFloat*, PyInt*, PyBool*, std::optional<PyWString*>)> (&CharMgrService::EditContact));
     this->Add("DeleteContacts", &CharMgrService::DeleteContacts);
     this->Add("GetRecentShipKillsAndLosses", &CharMgrService::GetRecentShipKillsAndLosses);
     this->Add("BlockOwners", &CharMgrService::BlockOwners);
@@ -231,8 +239,7 @@ PyResult CharMgrService::GetPublicInfo(PyCallArgs &call, PyInt* ownerID) {
     return result;
 }
 
-PyResult CharMgrService::AddToBounty(PyCallArgs& call, PyInt* characterID, PyInt* amount)
-{
+PyResult CharMgrService::AddToBounty(PyCallArgs& call, PyInt* characterID, PyInt* amount) {
     if (call.client->GetCharacterID() == characterID->value()){
         call.client->SendErrorMsg("You cannot put a bounty on yourself.");
         return nullptr;
@@ -241,7 +248,7 @@ PyResult CharMgrService::AddToBounty(PyCallArgs& call, PyInt* characterID, PyInt
     if (amount->value() < call.client->GetBalance()) {
         std::string reason = "Placing Bounty on ";
         reason += m_db.GetCharName(characterID->value());
-        AccountService::TranserFunds(call.client->GetCharacterID(), corpCONCORD, amount->value(), reason, Journal::EntryType::Bounty, characterID->value());
+        AccountService::TransferFunds(call.client->GetCharacterID(), corpCONCORD, amount->value(), reason, Journal::EntryType::Bounty, characterID->value());
         m_db.AddBounty(characterID->value(), call.client->GetCharacterID(), amount->value());
         // new system gives target a mail from concord about placement of bounty and char name placing it.
     } else {
@@ -674,6 +681,19 @@ PyResult CharMgrService::GetOwnerNoteLabels(PyCallArgs &call)
 
 //18:07:30 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(2784)
 //18:07:35 L CharMgrService::Handle_AddContact(): size=1, 0=Integer(63177)
+
+PyResult CharMgrService::AddContact(PyCallArgs& call, PyInt* characterID, PyInt* standing, PyInt* inWatchlist, PyInt* notify, std::optional<PyString*> note)
+{
+  sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%lu", call.tuple->size());
+  call.Dump(CHARACTER__DEBUG);
+
+    //TODO: Notify char that they have been added as a contact if notify is True
+
+    m_db.AddContact(call.client->GetCharacterID(), characterID->value(), standing->value(), inWatchlist->value());
+
+  return nullptr;
+}
+
 PyResult CharMgrService::AddContact(PyCallArgs& call, PyInt* characterID, PyFloat* standing, PyInt* inWatchlist, PyBool* notify, std::optional<PyWString*> note)
 {
   sLog.Warning( "CharMgrService::Handle_AddContact()", "size=%lu", call.tuple->size());
@@ -683,6 +703,15 @@ PyResult CharMgrService::AddContact(PyCallArgs& call, PyInt* characterID, PyFloa
 
     m_db.AddContact(call.client->GetCharacterID(), characterID->value(), standing->value(), inWatchlist->value());
 
+  return nullptr;
+}
+
+PyResult CharMgrService::EditContact(PyCallArgs& call, PyInt* characterID, PyInt* standing, PyInt* inWatchlist, PyInt* notify, std::optional<PyString*> note)
+{
+  sLog.Warning( "CharMgrService::Handle_EditContact()", "size=%lu", call.tuple->size());
+  call.Dump(CHARACTER__DEBUG);
+
+  m_db.UpdateContact(standing->value(), characterID->value(), call.client->GetCharacterID());
   return nullptr;
 }
 

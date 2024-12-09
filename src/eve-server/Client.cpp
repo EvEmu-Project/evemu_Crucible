@@ -24,6 +24,8 @@
     Updates:    Allan (rewrite), AlTahir(DaVinci)
 */
 
+#include "EVE_Consts.h"
+#include "EVE_Player.h"
 #include "eve-server.h"
 #include "../eve-common/EVEVersion.h"
 #include "../eve-common/EVE_Character.h"
@@ -293,14 +295,21 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     m_ship->SetPlayer(this);
 
     GPoint pos(NULL_ORIGIN);
-    if (sDataMgr.IsSolarSystem(m_locationID))
-        pos = m_ship->position();
-
-    MoveToLocation(m_locationID, pos);
 
     if (sDataMgr.IsSolarSystem(m_locationID)) {
-        WarpIn();
+        pos = m_ship->position();
+
+        m_loginWarpPoint = pos;
+        m_loginWarpRandomPoint = m_ship->position();
+        m_loginWarpRandomPoint.MakeRandomPointOnSphere(0.5*ONE_AU_IN_METERS);
+
+        MoveToLocation(m_locationID, m_loginWarpRandomPoint);
+
+        // Cloak the player and uncloak them as soon as they start the login
+        // warp.
+        pShipSE->DestinyMgr()->Cloak();
     } else {
+        MoveToLocation(m_locationID, pos);
         if (m_ship->typeID() == itemTypeCapsule) {
             if (sConfig.server.NoobShipCheck) {
                 StationItemRef sRef = m_system->GetStationFromInventory(m_locationID);
@@ -329,7 +338,7 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     CharacterDB::SetCharacterOnlineStatus(charID, true);
     sItemFactory.UnsetUsingClient();
 
-
+    // if applicable, the login warp gets triggered here
     SetStateTimer(Player::State::Login, Player::Timer::Login);
     SetInvulTimer(Player::Timer::WarpInInvul);
     //SetCloakTimer(Player::Timer::LoginCloak);
@@ -479,8 +488,15 @@ void Client::ProcessClient() {
                     _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: Login");
                     m_login = false;
                     SetBallPark();
-                    m_clientState = Player::State::Idle;
+                    if (sDataMgr.IsSolarSystem(m_locationID)) {
+                        WarpIn();
+                    }
                     m_ship->GetModuleManager()->UpdateChargeQty();  //  <<<< huge hack here....cant find another way to do it yet.
+                    } break;
+                case Player::State::LoginWarp: {
+                    _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: LoginWarp");
+                    pShipSE->DestinyMgr()->UnCloak();
+                    pShipSE->DestinyMgr()->WarpTo(m_loginWarpPoint);
                     } break;
                 case Player::State::Jump: {
                     _log(CLIENT__TIMER, "ProcessClient()::CheckState():  case: Jump");
@@ -543,23 +559,73 @@ void Client::ProcessClient() {
         sProfiler.AddTime(Profile::client, GetTimeUSeconds() - profileStartTime);
 }
 
+// `UpdateBubble` is a reusable function that synchronizes the player's position
+// and ensures that their bubble exists. Do not call this if the player is
+// docked.
+void Client::UpdateBubble() {
+    if (GetShipSE()->DestinyMgr() == nullptr) {
+        SetDestiny(NULL_ORIGIN);
+    }
+
+    if (GetShipSE()->SysBubble() == nullptr) {
+        EnterSystem(GetSystemID());
+    }
+
+    GetShipSE()->DestinyMgr()->SetPosition(GetShipSE()->GetPosition(), true);
+
+    SystemBubble *pBubble = GetShipSE()->SysBubble();
+    if (pBubble == nullptr) {
+        sBubbleMgr.Add(GetShipSE());
+        pBubble = GetShipSE()->SysBubble();
+    }
+
+    pBubble->SendAddBalls(GetShipSE());
+
+    SetStateSent(false);
+    GetShipSE()->DestinyMgr()->SendSetState();
+    // SetSessionTimer(); // TODO: leaving here for reference, but probably isn't needed in the future
+}
+
+// `WarpIn` is executed upon player login, but should only be executed if the
+// player was in space when they last logged out.
+//
+// The login warp-in process is a multi-step process. First, the player's ship
+// is immediately moved to a position around 0.5 AU away from their logged-out
+// position.
+//
+// However, merely setting the position isn't enough. The client needs to
+// subsequently synchronize the state of the player & the surrounding bubble
+// with the server, so `UpdateBubble` is called. This is important because
+// during the process of establishing the warp vector, the player's ship is
+// going to be aligning to warp for a few seconds, and so the client needs to
+// know what's in its current bubble for that duration.
+//
+// During the development of `WarpIn()`, it was observed that the behavior of
+// the ship was inconsistent if `Destiny->WarpTo()` was called immediately after
+// the above position change and `UpdateBubble` calls. So instead, the session
+// state timer is set to 0, and the player's client state is set to `LoginWarp`,
+// which allows the warp to get processed on the next server tick.
+//
+// See: `Client::IsLoginWarping`
+//
+// See: `Client::SetLoginWarpComplete`
 void Client::WarpIn() {
-    sLog.Blue("Client::WarpIn()", "%s(%u) called WarpIn().  Finish code here.", GetName(), m_char->itemID());
+    sLog.Blue("Client::WarpIn()", "%s(%u) called WarpIn().", GetName(), m_char->itemID());
     char ci[45];
     snprintf(ci, sizeof(ci), "InSpace: %s(%u)", GetName(), m_char->itemID());
     m_ship->SetCustomInfo(ci);
-    if (!InPod())
+    if (!InPod()) {
         m_ship->SetFlag(flagNone);
-    return;
-    /*
-    // We are just logging in, so we need to warp to our last position from our WarpOut spot.
-    //  when implemented, make sure we move the ship item, if needed....check this
-    GPoint warpToPoint(m_ship->position());
-    GPoint warpFromPoint(m_ship->position());
-    warpFromPoint.MakeRandomPointOnSphere(0.5*ONE_AU_IN_METERS);
-    pShipSE->DestinyMgr()->SetPosition(warpFromPoint);
-    pShipSE->DestinyMgr()->WarpTo(warpToPoint);        // Warp ship from the random login point to the position saved on last disconnect
-    */
+    }
+
+    UpdateBubble();
+
+    // This will queue up the login warp-in on the next server tick. Calling
+    // SetStateTimer allows it to be processed on the next tick instead of
+    // getting timed out and ignored by a session change timer.
+    SetStateTimer(0);
+
+    m_clientState = Player::State::LoginWarp;
 }
 
 void Client::WarpOut() {
@@ -1624,6 +1690,7 @@ std::string Client::GetStateName(int8 state)
         case Player::State::Logout:    return "Logout";
         case Player::State::Board:     return "Board";
         case Player::State::Login:     return "Login";
+        case Player::State::LoginWarp: return "LoginWarp";
     }
     return "Undefined";
 }
@@ -2649,7 +2716,7 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
         packet->dest.Dump(CLIENT__CALL_DUMP, "    ");
         throw UserError("ServiceNotFound"); // this message is invalid (message not found)
     }
-    
+
     SendSessionChange();  //send out the session change before the return.
     if (is_log_enabled(CLIENT__OUT_ALL)) {
         if (result.ssResult != nullptr)
@@ -2842,3 +2909,30 @@ void Client::SelfChatMessage(const char* fmt, ...)
     SafeFree(str);
 }
 
+// `IsLoginWarping` returns `true` if the player is performing the warp that
+// occurs during login, or is just about to. The player's state will either be
+// `LoginWarp`, or it will still have `loginWarpPoint` set to a non-zero value.
+// Upon terminating the login warp bubble, Destiny should reset the login warp
+// point and, if the player's state is set to `LoginWarp`, it should be reset to
+// idle, if possible.
+//
+// The activation of this warp bubble cannot be stopped under any circumstance,
+// unless of course the player's ship has not despawned between logout and login
+// (in which case the login warp would not have been triggered in the first
+// place).
+bool Client::IsLoginWarping() {
+    return m_clientState == Player::State::Login || m_clientState == Player::State::LoginWarp || !m_loginWarpPoint.isZero() || !m_loginWarpRandomPoint.isZero();
+}
+
+// For context and guidelines on how to use this function, see the code
+// documentation for `Client::IsLoginWarping`.
+//
+// It is safe to repeatedly call this function without consequence.
+void Client::SetLoginWarpComplete() {
+    if (m_clientState == Player::State::LoginWarp) {
+        m_clientState = Player::State::Idle;
+    }
+
+    m_loginWarpPoint = NULL_ORIGIN;
+    m_loginWarpRandomPoint = NULL_ORIGIN;
+}

@@ -80,14 +80,14 @@ public:
         PyTuple* arguments = new PyTuple (3);
 
         arguments->SetItem (0, headers);
-        arguments->SetItem (1, new PySubStruct (new PySubStream (this->GetOID())));
+        arguments->SetItem (1, new PySubStruct (new PySubStream (boundServiceInformation)));
         arguments->SetItem (2, new PyInt (this->m_indexMap.size()));
 
         this->m_header = new PyObject ("util.SparseRowset", arguments);
         this->m_primed = true;
     }
 
-    PyObject* GetHeader () { assert (this->m_primed); return this->m_header; }
+    PyObject* GetHeader () { assert (this->m_primed); PyIncRef(this->m_header); return this->m_header; }
 
     /**
      * Notifies the bound clients about a new row on the sparse rowset's data

@@ -223,6 +223,7 @@ public:
         Clear();
         level = 0;
         ccPinID = 0;
+        qtyPerCycle = 0;
     }
 
     uint8 GetLevel()                                    { return level; }
@@ -230,6 +231,7 @@ public:
 
     uint8 level;
     uint32 ccPinID;
+    uint32 qtyPerCycle; 
 
     // pinID, pinData
     std::map<uint32, PI_Pin> pins;

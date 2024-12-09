@@ -463,8 +463,8 @@ void TradeBound::ExchangeItems(Client* pClient, Client* pOther, TradeSession* pT
     reason += pOther->GetCharName();
     reason += " in ";
     reason += pClient->GetSystemName();     // use system name or station name here?
-    AccountService::TranserFunds(pClient->GetCharacterID(), pOther->GetCharacterID(), pTSes->m_tradeSession.myMoney, reason, Journal::EntryType::PlayerTrading, pClient->GetStationID());
-    AccountService::TranserFunds(pOther->GetCharacterID(), pClient->GetCharacterID(), pTSes->m_tradeSession.herMoney, reason, Journal::EntryType::PlayerTrading, pClient->GetStationID());
+    AccountService::TransferFunds(pClient->GetCharacterID(), pOther->GetCharacterID(), pTSes->m_tradeSession.myMoney, reason, Journal::EntryType::PlayerTrading, pClient->GetStationID());
+    AccountService::TransferFunds(pOther->GetCharacterID(), pClient->GetCharacterID(), pTSes->m_tradeSession.herMoney, reason, Journal::EntryType::PlayerTrading, pClient->GetStationID());
 
     //PyDict* dict = new PyDict();
     //    dict->SetItem(new PyInt(Inv::Update::Location), new PyInt(pTSes->m_tradeSession.containerID));
