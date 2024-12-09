@@ -191,11 +191,15 @@ PyResult SkillMgrBound::SaveSkillQueue(PyCallArgs &call, PyList* skillQueue) {
     SkillQueue_Element el;
     PyList::const_iterator itr = skillQueue->begin(), end = skillQueue->end();
     for (; itr != end; ++itr) {
-        if (!el.Decode(*itr))         {
+        if (!el.Decode(*itr)) {
             _log(SERVICE__ERROR, "%s: Failed to decode element of SkillQueue (%u). Skipping.", call.client->GetName(), PyRep::IntegerValueU32(*itr));
             continue;
         }
-        cRef->AddToSkillQueue( el.typeID, el.level );
+        // 客户端可能发送浮点数作为技能等级,这里需要强制转换为整数
+        // 修复 "TypeError: integer argument expected, got float" 错误
+        // 技能等级在数据库和服务器端都应该是整数类型
+        el.level = static_cast<int>(el.level);
+        cRef->AddToSkillQueue(el.typeID, el.level);
     }
 
     cRef->UpdateSkillQueueEndTime();
