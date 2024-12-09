@@ -527,11 +527,17 @@ bool PyString::visit( PyVisitor& v ) const
 
 int32 PyString::hash() const
 {
-    if (mHashCache != -1 )
+    if (mHashCache != -1)
         return mHashCache;
 
     if (mValue.length() > 0) {
-        mHashCache = std::hash<std::string>{} (mValue);
+        size_t hashValue = std::hash<std::string>{}(mValue);
+        // 检查哈希值是否超出 int32 范围
+        if (hashValue > static_cast<size_t>(INT32_MAX)) {
+            // 对超出范围的哈希值进行处理，保持一致性
+            hashValue = (hashValue & INT32_MAX) | (hashValue >> 31);
+        }
+        mHashCache = static_cast<int32>(hashValue);
     } else {
         mHashCache = 0;
     }
@@ -576,11 +582,17 @@ size_t PyWString::size() const
 
 int32 PyWString::hash() const
 {
-    if (mHashCache != -1 )
+    if (mHashCache != -1)
         return mHashCache;
 
     if (mValue.length() > 0) {
-        mHashCache = std::hash<std::string>{} (mValue);
+        size_t hashValue = std::hash<std::string>{}(mValue);
+        // 检查哈希值是否超出 int32 范围
+        if (hashValue > static_cast<size_t>(INT32_MAX)) {
+            // 对超出范围的哈希值进行处理，保持一致性
+            hashValue = (hashValue & INT32_MAX) | (hashValue >> 31);
+        }
+        mHashCache = static_cast<int32>(hashValue);
     } else {
         mHashCache = 0;
     }

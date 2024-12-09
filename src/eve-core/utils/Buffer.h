@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -50,27 +50,19 @@ public:
      */
     template< typename T >
     class const_iterator
-    : public std::iterator< std::random_access_iterator_tag, T >
     {
-        /// Typedef for our base due to readibility.
-        typedef std::iterator< std::random_access_iterator_tag, T > _Base;
-
     public:
-        /// Typedef for iterator category.
-        typedef typename _Base::iterator_category iterator_category;
-        /// Typedef for value type.
-        typedef typename _Base::value_type        value_type;
-        /// Typedef for difference type.
-        typedef typename _Base::difference_type   difference_type;
-        /// Typedef for pointer.
-        typedef typename _Base::pointer           pointer;
-        /// Typedef for reference.
-        typedef typename _Base::reference         reference;
+        /// Typedef for our base due to readibility.
+        // 直接定义所需的类型，而不是继承自 std::iterator
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
 
-        /// Typedef for const pointer.
-        typedef const T* const_pointer;
-        /// Typedef for const reference.
-        typedef const T& const_reference;
+        // 定义 const 版本的指针和引用类型
+        using const_pointer = const T*;
+        using const_reference = const T&;
 
         /**
          * @brief Default constructor.
@@ -229,95 +221,109 @@ public:
      * @author Bloody.Rabbit
      */
     template< typename T >
-    class iterator
-    : public const_iterator< T >
+    class iterator : public const_iterator< T >
     {
-        /// Typedef for our base due to readibility.
-        typedef const_iterator< T > _Base;
-
     public:
-        /// Typedef for iterator category.
-        typedef typename _Base::iterator_category iterator_category;
-        /// Typedef for value type.
-        typedef typename _Base::value_type        value_type;
-        /// Typedef for difference type.
-        typedef typename _Base::difference_type   difference_type;
-        /// Typedef for pointer.
-        typedef typename _Base::pointer           pointer;
-        /// Typedef for const pointer.
-        typedef typename _Base::const_pointer     const_pointer;
-        /// Typedef for reference.
-        typedef typename _Base::reference         reference;
-        /// Typedef for const reference.
-        typedef typename _Base::const_reference   const_reference;
+        // 从 const_iterator 继承类型定义
+        using iterator_category = typename const_iterator<T>::iterator_category;
+        using value_type = typename const_iterator<T>::value_type;
+        using difference_type = typename const_iterator<T>::difference_type;
+        using pointer = typename const_iterator<T>::pointer;
+        using reference = typename const_iterator<T>::reference;
+        using const_pointer = typename const_iterator<T>::const_pointer;
+        using const_reference = typename const_iterator<T>::const_reference;
 
-        /**
-         * @brief Default constructor.
-         *
-         * @param[in] buffer The parent Buffer.
-         * @param[in] index  The index.
-         */
-        iterator( Buffer* buffer = NULL, size_type index = 0 ) : _Base( buffer, index ) {}
-        /// Copy constructor.
-        iterator( const iterator& oth ) : _Base( oth ) {}
-
-        /// Copy operator.
-        iterator& operator=( const iterator& oth ) { *(_Base*)this = oth; return *this; }
-
-        /**
-         * @brief Converts iterator to another iterator
-         *        with different type.
-         *
-         * @return The new iterator.
-         */
-        template< typename T2 >
-        iterator< T2 > As() const { return iterator< T2 >( _Base::mBuffer, _Base::mIndex ); }
-
-        /// Dereference operator.
-        reference operator*() const { return const_cast< reference >( **(_Base*)this ); }
-        /// Dereference operator.
-        pointer operator->() const { return &**this; }
-        /// Subscript operator.
-        reference operator[]( difference_type diff ) const { return *( *this + diff ); }
-
-        /// Sum operator.
-        iterator operator+( difference_type diff ) const
+        iterator(Buffer* buffer = NULL, size_type index = 0) 
+        : const_iterator<T>(buffer, index) 
         {
-            iterator res( *this );
-            return ( res += diff );
         }
-        /// Add operator.
-        iterator operator+=( difference_type diff ) { *(_Base*)this += diff; return *this; }
-        /// Preincrement operator.
-        iterator& operator++() { ++*(_Base*)this; return *this; }
-        /// Postincrement operator.
-        iterator operator++( int )
+
+        iterator(const iterator& oth) 
+        : const_iterator<T>(oth) 
         {
-            iterator res( *this );
+        }
+
+        iterator& operator=(const iterator& oth) 
+        { 
+            const_iterator<T>::operator=(oth);
+            return *this;
+        }
+
+        template< typename T2 >
+        iterator<T2> As() const 
+        { 
+            return iterator<T2>(const_iterator<T>::mBuffer, const_iterator<T>::mIndex); 
+        }
+
+        reference operator*() const 
+        { 
+            return const_cast<reference>(const_iterator<T>::operator*()); 
+        }
+
+        pointer operator->() const 
+        { 
+            return &**this; 
+        }
+
+        reference operator[](difference_type diff) const 
+        { 
+            return *(*this + diff); 
+        }
+
+        iterator operator+(difference_type diff) const
+        {
+            iterator res(*this);
+            return (res += diff);
+        }
+
+        iterator& operator+=(difference_type diff)
+        {
+            const_iterator<T>::operator+=(diff);
+            return *this;
+        }
+
+        iterator& operator++() 
+        { 
+            const_iterator<T>::operator++(); 
+            return *this; 
+        }
+
+        iterator operator++(int)
+        {
+            iterator res(*this);
             ++*this;
             return res;
         }
 
-        /// Diff operator.
-        iterator operator-( difference_type diff ) const
+        iterator operator-(difference_type diff) const
         {
-            iterator res( *this );
-            return ( res -= diff );
+            iterator res(*this);
+            return (res -= diff);
         }
-        /// Subtract operator.
-        iterator& operator-=( difference_type diff ) { *(_Base*)this -= diff; return *this; }
-        /// Predecrement operator.
-        iterator& operator--() { --*(_Base*)this; return *this; }
-        /// Postdecrement operator.
-        iterator operator--( int )
+
+        iterator& operator-=(difference_type diff) 
+        { 
+            const_iterator<T>::operator-=(diff); 
+            return *this; 
+        }
+
+        iterator& operator--() 
+        { 
+            const_iterator<T>::operator--(); 
+            return *this; 
+        }
+
+        iterator operator--(int)
         {
-            iterator res( *this );
+            iterator res(*this);
             --*this;
             return res;
         }
 
-        /// Diff operator.
-        difference_type operator-( const _Base& oth ) const { return ( *(_Base*)this - oth ); }
+        difference_type operator-(const const_iterator<T>& oth) const 
+        { 
+            return const_iterator<T>::operator-(oth); 
+        }
     };
 
     /**

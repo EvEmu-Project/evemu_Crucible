@@ -69,7 +69,7 @@ public:
         // build the required header
         PyDict* boundObjectArguments = new PyDict();
 
-        boundObjectArguments->SetItem ("realRowCount", new PyInt (this->m_indexMap.size()));
+        boundObjectArguments->SetItem ("realRowCount", new PyInt (static_cast<int32>(this->m_indexMap.size())));
 
         PyTuple* boundServiceInformation = new PyTuple(3);
 
@@ -81,7 +81,7 @@ public:
 
         arguments->SetItem (0, headers);
         arguments->SetItem (1, new PySubStruct (new PySubStream (boundServiceInformation)));
-        arguments->SetItem (2, new PyInt (this->m_indexMap.size()));
+        arguments->SetItem (2, new PyInt (static_cast<int32>(this->m_indexMap.size())));
 
         this->m_header = new PyObject ("util.SparseRowset", arguments);
         this->m_primed = true;
@@ -289,7 +289,7 @@ private:
 
         DBQueryResult res;
         DBResultRow row;
-        size_t index = 0;
+        uint32_t index = 0;
 
         if (!this->LoadIndexes (res)) {
             codelog (SERVICE__ERROR, "Cannot fetch indexes for the sparse bound");

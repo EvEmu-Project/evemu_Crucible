@@ -1273,7 +1273,7 @@ void DestinyManager::Orbit() {
         m_orbiting = Destiny::Ball::Orbit::Far;
         // fudge distance for a smaller orbit
         // modify this based on calculated distance
-        mPosAdj = -m_followDistance / 25;
+        mPosAdj = static_cast<float>(-static_cast<int64>(m_followDistance)) / 25;
         _log(DESTINY__ORBIT_TRACE, "2 - too far");
     } else if (centers < m_followDistance) {
         m_orbiting = Destiny::Ball::Orbit::Close;

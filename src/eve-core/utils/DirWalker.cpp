@@ -49,35 +49,48 @@ DirWalker::~DirWalker()
 const char* DirWalker::currentFileName()
 {
 #ifdef HAVE_WINDOWS_H
-    return mValid ? mFindData.cFileName : NULL;
+    if (!mValid) 
+        return NULL;
+    
+    static char fileName[MAX_PATH];
+    #ifdef _UNICODE
+        wcstombs(fileName, mFindData.cFileName, MAX_PATH);
+        return fileName;
+    #else
+        return mFindData.cFileName;
+    #endif
 #else /* !HAVE_WINDOWS_H */
     return NULL != mFile ? mFile->d_name : NULL;
 #endif /* !HAVE_WINDOWS_H */
 }
 
-bool DirWalker::OpenDir( const char* dir, const char* suffix )
+bool DirWalker::OpenDir(const char* dir, const char* suffix)
 {
     CloseDir();
 
 #ifdef HAVE_WINDOWS_H
-    // Let Windows do the suffix matching
-    std::string d( dir );
+    std::string d(dir);
     d += "/*";
     d += suffix;
 
-    mFind = ::FindFirstFile( d.c_str(), &mFindData );
-    mValid = ( INVALID_HANDLE_VALUE != mFind );
+    #ifdef _UNICODE
+        wchar_t widePath[MAX_PATH];
+        mbstowcs(widePath, d.c_str(), MAX_PATH);
+        mFind = ::FindFirstFileW(widePath, &mFindData);
+    #else
+        mFind = ::FindFirstFileA(d.c_str(), &mFindData);
+    #endif
+
+    mValid = (INVALID_HANDLE_VALUE != mFind);
     mFirst = true;
 
-    // If no file was found, see if at least
-    // the directory was found ...
-    return ( mValid ? true : ( ERROR_PATH_NOT_FOUND != ::GetLastError() ) );
+    return (mValid ? true : (ERROR_PATH_NOT_FOUND != ::GetLastError()));
 #else /* !HAVE_WINDOWS_H */
-    mDir = ::opendir( dir );
+    mDir = ::opendir(dir);
     mFile = NULL;
     mSuffix = suffix;
 
-    return ( NULL != mDir );
+    return (NULL != mDir);
 #endif /* !HAVE_WINDOWS_H */
 }
 
@@ -101,13 +114,17 @@ void DirWalker::CloseDir()
 bool DirWalker::NextFile()
 {
 #ifdef HAVE_WINDOWS_H
-    if( INVALID_HANDLE_VALUE == mFind )
+    if (INVALID_HANDLE_VALUE == mFind)
         return false;
 
-    if( mFirst )
+    if (mFirst)
         mFirst = false;
     else
-        mValid = ( TRUE == ::FindNextFile( mFind, &mFindData ) );
+        #ifdef _UNICODE
+            mValid = (TRUE == ::FindNextFileW(mFind, &mFindData));
+        #else
+            mValid = (TRUE == ::FindNextFileA(mFind, &mFindData));
+        #endif
 
     return mValid;
 #else /* !HAVE_WINDOWS_H */

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @name EffectsProcessor.cpp
  *   This file is for decoding and processing the effect data
  *   Copyright 2017  Alasiya-EVEmu Team
@@ -138,8 +138,8 @@ void FxProc::ParseExpression(InventoryItem* pItem, Expression expression, fxData
             ParseExpression(pItem, sFxDataMgr.GetExpression(expression.arg1), data, pMod);   //source
             ParseExpression(pItem, sFxDataMgr.GetExpression(expression.arg2), data, pMod);   //skillID
             if (!data.fxSrc) {    // fxSrc = Self in this case.  update to remove this hack?
-                //_log(EFFECTS__TRACE, "FxProc::ParseExpression(): SRLG: setting fxSrc from %s to Skill for %s.  self: %s", \
-                        GetSourceName(data.fxSrc), data.srcRef->name(), (pItem == data.srcRef.get() ? "true" : "false"));
+                //_log(EFFECTS__TRACE, "FxProc::ParseExpression(): SRLG: setting fxSrc from %s to Skill for %s.  self: %s", 
+                //        GetSourceName(data.fxSrc), data.srcRef->name(), (pItem == data.srcRef.get() ? "true" : "false"));
                 data.fxSrc = Source::Skill;
             }
         } break;

@@ -1,4 +1,3 @@
-
 /**
  * @name DataClasses.h
  *  data container classes that cannot be trivially constructed/destructed
@@ -17,7 +16,7 @@
 
 
 // POS class container for processing-type items
-class ReactorData {
+struct ReactorData {
 public:
     ReactorData();
     ~ReactorData();

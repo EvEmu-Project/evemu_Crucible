@@ -1,4 +1,4 @@
-/*      CorpRegistryBound.cpp
+﻿/*      CorpRegistryBound.cpp
  *      bound object to access functions for specific corp
  *
  *
@@ -314,7 +314,7 @@ PyResult CorpRegistryBound::GetSuggestedTickerNames(PyCallArgs &call, PyWString*
     PyList* result = new PyList();
     SuggestedTickerName sTN;
     sTN.tName.clear();
-    uint32 cnLen = name->content().length();
+    uint32 cnLen = static_cast<uint32>(name->content().length());
     // Easiest ticker-generation method: get the capital letters.
     for (uint32 i=0; i < cnLen; ++i)
         if (name->content()[i] >= 'A' && name->content()[i] <= 'Z')
@@ -329,7 +329,7 @@ PyResult CorpRegistryBound::GetSuggestedAllianceShortNames(PyCallArgs &call, PyW
     PyList* result = new PyList();
     SuggestedShortName sSN;
     sSN.sName.clear();
-    uint32 cnLen = name->content().length();
+    uint32 cnLen = static_cast<uint32>(name->content().length());
     // Easiest ticker-generation method: get the capital letters.
     for (uint32 i=0; i < cnLen; ++i)
         if (name->content()[i] >= 'A' && name->content()[i] <= 'Z')
@@ -462,8 +462,8 @@ PyResult CorpRegistryBound::GetMembersPaged(PyCallArgs &call, PyInt* page) {
     PyList* list = new PyList();
     DBResultRow row;
     while (res.GetRow(row)) {
-        //SELECT characterID, corporationID, title, rolesAtAll, grantableRoles, startDateTime, rolesAtHQ, grantableRolesAtHQ, \
-          rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, titleMask, corpAccountKey, baseID, blockRoles, name
+        //SELECT characterID, corporationID, title, rolesAtAll, grantableRoles, startDateTime, rolesAtHQ, grantableRolesAtHQ, 
+        //  rolesAtBase, grantableRolesAtBase, rolesAtOther, grantableRolesAtOther, titleMask, corpAccountKey, baseID, blockRoles, name
         PyDict* dict = new PyDict();
         dict->SetItemString( "characterID",             new PyInt(row.GetInt(0)));
         dict->SetItemString( "corporationID",           new PyInt(row.GetInt(1)));
@@ -904,6 +904,8 @@ PyResult CorpRegistryBound::CreateRecruitmentAd(PyCallArgs &call, PyInt* days, P
     if (recruiters.empty())
         recruiters.push_back(call.client->GetCharacterID());
 
+    uint32 cost = sConfig.rates.medalAwardCost * static_cast<uint32>(recruiters.size());
+
     m_db.AddRecruiters(adID, (int32)m_corpID, recruiters);
 
     return nullptr;
@@ -961,6 +963,8 @@ PyResult CorpRegistryBound::UpdateRecruitmentAd(PyCallArgs &call, PyInt* adID, P
     // if no recruiters defined, default to creating character
     if (recruiters.empty())
         recruiters.push_back(call.client->GetCharacterID());
+
+    uint32 cost = sConfig.rates.medalAwardCost * static_cast<uint32>(recruiters.size());
 
     m_db.AddRecruiters(adID->value(), (int32)m_corpID, recruiters);
 
@@ -1154,10 +1158,10 @@ PyResult CorpRegistryBound::GetMemberIDsByQuery(PyCallArgs &call, PyList* queryL
     return list;
 }
 
-//SELECT `characterID`\
-`corpRole`, `rolesAtAll`, `rolesAtHQ`, `rolesAtBase`, `rolesAtOther`, \
-`grantableRoles`, `grantableRolesAtHQ`, `grantableRolesAtBase`, `grantableRolesAtOther`,\
-`titleMask`, `blockRoles`, `baseID`, `startDateTime` FROM `chrCharacters` WHERE 1
+//SELECT `characterID`
+//`corpRole`, `rolesAtAll`, `rolesAtHQ`, `rolesAtBase`, `rolesAtOther`, 
+//`grantableRoles`, `grantableRolesAtHQ`, `grantableRolesAtBase`, `grantableRolesAtOther`,
+//`titleMask`, `blockRoles`, `baseID`, `startDateTime` FROM `chrCharacters` WHERE 1
 bool CorpRegistryBound::GetSearchValues(int8 op, PyRep* rep, std::ostringstream& query)
 {
     using namespace Corp;

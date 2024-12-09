@@ -34,9 +34,13 @@
 /************************************************************************/
 size_t BaseRowsetReader::FindColumn( const char* name )
 {
-    const uint32 cc = columnCount();
+    size_t cc = columnCount();
+    if (cc > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("RowsetReader", "Column count %zu exceeds maximum allowed value", cc);
+        return cc;
+    }
 
-    for( uint32 i = 0; i < cc; ++i )
+    for(size_t i = 0; i < cc; ++i)
     {
         if( 0 == strcmp( name, columnName( i ) ) )
             return i;

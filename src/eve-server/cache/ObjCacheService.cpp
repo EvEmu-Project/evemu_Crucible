@@ -145,7 +145,12 @@ ObjCacheService::ObjCacheService(const char *cacheDir) :
     std::string _basePath = sConfig.files.cacheDir;
     if (_basePath[_basePath.size() - 1] != '/')
         _basePath += "/";
-    CreateDirectory(_basePath.c_str(), nullptr);
+    #ifdef WIN32
+        std::wstring wBasePath(_basePath.begin(), _basePath.end());
+        CreateDirectoryW(wBasePath.c_str(), nullptr);
+    #else
+        mkdir(_basePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    #endif
 
     this->Add("GetCachableObject", &ObjCacheService::GetCachableObject);
 

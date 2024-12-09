@@ -52,13 +52,36 @@ ImageServer::ImageServer()
     sLog.Cyan("      ImageServer", "Image Server URL: %s", _url.c_str());
     sLog.Cyan("      ImageServer", "Image Server path: %s", _basePath.c_str());
 
-    if (CreateDirectory( _basePath.c_str(), NULL ) == 0) {
-        for (int i = 0; i < CategoryCount; i++) {
-            std::string subdir = _basePath;
-            subdir.append(Categories[i]);
-            CreateDirectory( subdir.c_str(), NULL );
+    #ifdef _UNICODE
+        wchar_t widePath[MAX_PATH];
+        #ifdef _WIN32
+            size_t convertedChars = 0;
+            mbstowcs_s(&convertedChars, widePath, MAX_PATH, _basePath.c_str(), _TRUNCATE);
+        #else
+            mbstowcs(widePath, _basePath.c_str(), MAX_PATH);
+        #endif
+        if (CreateDirectoryW(widePath, NULL) == 0) {
+            for (int i = 0; i < CategoryCount; i++) {
+                std::string subdir = _basePath;
+                subdir.append(Categories[i]);
+                #ifdef _WIN32
+                    mbstowcs_s(&convertedChars, widePath, MAX_PATH, subdir.c_str(), _TRUNCATE);
+                #else
+                    mbstowcs(widePath, subdir.c_str(), MAX_PATH);
+                #endif
+                CreateDirectoryW(widePath, NULL);
+            }
         }
-    } /* else directory probably exists */
+    #else
+        if (CreateDirectoryA(_basePath.c_str(), NULL) == 0) {
+            for (int i = 0; i < CategoryCount; i++) {
+                std::string subdir = _basePath;
+                subdir.append(Categories[i]);
+                CreateDirectoryA(subdir.c_str(), NULL);
+            }
+        }
+    #endif
+
     sLog.Blue("      ImageServer", "Image Server Initalized.");
 }
 
@@ -90,7 +113,20 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     //std::ofstream stream;
     std::string dirName = "Character";
     std::string path(GetFilePath(dirName, characterID, 512));
-    FILE * fp = fopen(path.c_str(), "wb");
+    FILE* fp = nullptr;
+    #ifdef _WIN32
+        errno_t err = fopen_s(&fp, path.c_str(), "wb");
+        if (err != 0 || fp == nullptr) {
+            sLog.Error("      ImageServer", " Failed to open file for writing: %s", path.c_str());
+            return;
+        }
+    #else
+        fp = fopen(path.c_str(), "wb");
+        if (fp == nullptr) {
+            sLog.Error("      ImageServer", " Failed to open file for writing: %s", path.c_str());
+            return;
+        }
+    #endif
 
     //stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
     std::shared_ptr<std::vector<char> > data = _limboImages[creatorAccountID];
@@ -121,9 +157,16 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
 
     //std::ifstream stream;
     std::string path(GetFilePath(category, id, size));
-    FILE * fp = fopen(path.c_str(), "rb");
-    if (fp == NULL)
-        return std::shared_ptr<std::vector<char> >();
+    FILE* fp = nullptr;
+    #ifdef _WIN32
+        errno_t err = fopen_s(&fp, path.c_str(), "rb");
+        if (err != 0 || fp == nullptr)
+            return std::shared_ptr<std::vector<char> >();
+    #else
+        fp = fopen(path.c_str(), "rb");
+        if (fp == nullptr)
+            return std::shared_ptr<std::vector<char> >();
+    #endif
     fseek(fp, 0, SEEK_END);
     size_t length = ftell(fp);
     fseek(fp, 0, SEEK_SET);

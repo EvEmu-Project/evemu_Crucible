@@ -39,15 +39,20 @@ PyResult DevToolsProviderService::GetLoader(PyCallArgs& call)
 {
     FILE *pFile;
 
-    if (pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb"))
+#ifdef _WIN32
+    errno_t err;
+    if ((err = fopen_s(&pFile, EVEMU_ROOT"/etc/devtools.raw", "rb")) == 0)
+#else
+    if ((pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb")) != nullptr)
+#endif
     {
         fseek(pFile, 0, SEEK_END);
-	    int size = ftell(pFile);
-	    char * buf = new char[size];
-	    fseek(pFile, 0, SEEK_SET);
-	    fread(buf, 1, size, pFile);
-	    fclose(pFile);
-	    return new PyString(buf, size);
+        int size = ftell(pFile);
+        char * buf = new char[size];
+        fseek(pFile, 0, SEEK_SET);
+        fread(buf, 1, size, pFile);
+        fclose(pFile);
+        return new PyString(buf, size);
     }
 
     return PyStatic.NewNone();

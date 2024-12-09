@@ -103,7 +103,7 @@ public:
     uint8 GetRatSpawnCount()                            { return m_activeRatSpawns; }
     uint16 GetRoidSpawnCount()                          { return m_activeRoidSpawns; }
     uint32 PlayerCount()                                { return m_players; }
-    uint32 GetSysNPCCount()                             { return m_npcs.size(); }
+    uint32 GetSysNPCCount()                             { return static_cast<uint32>(m_npcs.size()); }
 
     // CosmicMgr interface
     BeltMgr* GetBeltMgr()                               { return m_beltMgr; }

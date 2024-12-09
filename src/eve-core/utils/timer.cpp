@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -138,10 +138,22 @@ uint32 Timer::GetCurrentTime() {
 const void Timer::SetCurrentTime()
 {
     int64 tickCount = GetSteadyTime();
-    if (lastTime == 0)
+    if (lastTime == 0) {
         currentTime = 0;
-    else
-        currentTime += (tickCount - lastTime);
+    } else {
+        int64 timeDiff = tickCount - lastTime;
+        
+        // 检查时间差是否超出 uint32 范围
+        if (timeDiff > static_cast<int64>(UINT32_MAX)) {
+            sLog.Warning("Timer", "Time difference %lld exceeds uint32 range, capping to maximum", timeDiff);
+            timeDiff = UINT32_MAX;
+        } else if (timeDiff < 0) {
+            sLog.Warning("Timer", "Negative time difference detected: %lld, using 0", timeDiff);
+            timeDiff = 0;
+        }
+        
+        currentTime += static_cast<uint32>(timeDiff);
+    }
     lastTime = tickCount;
     //currentSeconds = (tickCount / 1000);
 }

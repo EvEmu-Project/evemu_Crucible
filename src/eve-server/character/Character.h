@@ -40,7 +40,7 @@
 /**
  * Simple container for raw character type data.
  */
-class CharacterTypeData {
+struct CharacterTypeData {
 public:
     CharacterTypeData(
         const char* _bloodlineName = "",

@@ -1055,8 +1055,8 @@ bool CorporationDB::UpdateTitle(uint32 corpID, Call_UpdateTitleData& args, PyDic
 
     std::string query = "UPDATE crpRoleTitles SET ";
 
-    int N = dbQ.size();
-    for (int i = 0; i < N; ++i) {
+    size_t N = dbQ.size();
+    for (size_t i = 0; i < N; ++i) {
         query += dbQ[i];
         if (i < N - 1)
             query += ", ";
@@ -1751,8 +1751,8 @@ bool CorporationDB::UpdateDivisionNames(uint32 corpID, const Call_UpdateDivision
 
     std::string query = "UPDATE crpWalletDivisons SET ";
 
-    int N = dbQ.size();
-    for (int i = 0; i < N; ++i) {
+    size_t N = dbQ.size();
+    for (size_t i = 0; i < N; ++i) {
         query += dbQ[i];
         if (i < N - 1)
             query += ", ";
@@ -1845,8 +1845,8 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const std::string& descript
 
     std::string query = " UPDATE crpCorporation SET ";
 
-    int N = dbQ.size();
-    for (int i = 0; i < N; i++) {
+    size_t N = dbQ.size();
+    for (size_t i = 0; i < N; i++) {
         query += dbQ[i];
         if (i < N - 1) query += ", ";
     }
@@ -1893,8 +1893,8 @@ bool CorporationDB::UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDic
 
     std::string query = " UPDATE crpCorporation SET ";
 
-    int N = dbQ.size();
-    for (int i = 0; i < N; i++) {
+    size_t N = dbQ.size();
+    for (size_t i = 0; i < N; i++) {
         query += dbQ[i];
         if (i < N - 1) query += ", ";
     }

@@ -1,6 +1,5 @@
-
-
 #include <stdio.h>
+#include <climits>
 #include "eve-server.h"
 
 
@@ -28,6 +27,15 @@
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "testing/test.h"
 
+namespace {
+    int SafeSizeToInt(size_t size) {
+        if (size > static_cast<size_t>(INT_MAX)) {
+            sLog.Warning("Debug Commands", "Size %zu exceeds INT_MAX, capping at %d", size, INT_MAX);
+            return INT_MAX;
+        }
+        return static_cast<int>(size);
+    }
+}
 
 PyResult Command_siglist(Client* pClient, CommandDB* db, EVEServiceManager& services, const Seperator& args) {
     /* this command is used to test anomaly system   -allan 21Feb15
@@ -39,7 +47,7 @@ PyResult Command_siglist(Client* pClient, CommandDB* db, EVEServiceManager& serv
     pAM->GetAnomalyList(sig);
     pAM->GetSignatureList(sig);
 
-    int count = sig.size();
+    int count = SafeSizeToInt(sig.size());
     std::ostringstream str;
     str.clear();
     str << "There are currently %u active signals in %s(%u)<br>"; //80
@@ -50,8 +58,7 @@ PyResult Command_siglist(Client* pClient, CommandDB* db, EVEServiceManager& serv
         str << sigs.sigID.c_str() << " "  << sigs.sigItemID << " " << sigs.bubbleID << " " << pAM->GetScanGroupName(sigs.scanGroupID) << " '" << sigs.sigName.c_str() << "'<br>"; //120
     }
 
-    int size(120);
-    size += count * 120;
+    int size = SafeSizeToInt(120 + count * 120);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), count, pClient->SystemMgr()->GetName(), pClient->SystemMgr()->GetID());
 
@@ -203,9 +210,8 @@ PyResult Command_list(Client* pClient, CommandDB* db, EVEServiceManager &service
             str << " [" << cur.second->GetName() << "]<br>"; // 13 + 27 + 40 for name (80)
     }
 
-    int count = into.size();
-    int size = count * 90;
-    size += 130;    // header
+    int count = SafeSizeToInt(into.size());
+    int size = SafeSizeToInt(count * 90 + 130);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), pSys->GetName(), pSys->GetID(), beltCount, bubbles, roidSpawns, ratSpawns, npcs, players);
 
@@ -272,9 +278,8 @@ PyResult Command_bubblelist(Client* pClient, CommandDB* db, EVEServiceManager &s
         }
     }
 
-    int count = into.size();
-    int size = count * 80;
-    size += 90;
+    int count = SafeSizeToInt(into.size());
+    int size = SafeSizeToInt(count * 80 + 90);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), bubble, dynamics, npcs, players);
 
@@ -430,9 +435,8 @@ PyResult Command_beltlist(Client* pClient, CommandDB* db, EVEServiceManager &ser
     for (auto cur : invMap)
         str << cur->GetName() << ": " << cur->GetID() << "<br>"; // 20 + 40 for name (60)
 
-    int count = invMap.size();
-    int size = count * 60;
-    size += 50;
+    int count = SafeSizeToInt(invMap.size());
+    int size = SafeSizeToInt(count * 60 + 50);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), beltID, count);
 
@@ -495,9 +499,8 @@ PyResult Command_inventory(Client* pClient, CommandDB* db, EVEServiceManager &se
             str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << "): " << cur.second->itemName() << "<br>"; // 20 + 70 for name (90)
     }
 
-    int count = invMap.size();
-    int size = count * 90;
-    size += 70;
+    int count = SafeSizeToInt(invMap.size());
+    int size = SafeSizeToInt(count * 90 + 70);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), item->name(), inventoryID, inv, item, count);
 
@@ -526,9 +529,8 @@ PyResult Command_shipinventory(Client* pClient, CommandDB* db, EVEServiceManager
     for (auto cur : invMap)
         str << cur.first << "(" << sDataMgr.GetFlagName(cur.second->flag()) << "): " << cur.second->itemName() << "<br>"; // 20 + 40 for name (60)
 
-    int count = invMap.size();
-    int size = count * 60;
-    size += 90;
+    int count = SafeSizeToInt(invMap.size());
+    int size = SafeSizeToInt(count * 60 + 90);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), ship->name(), inventoryID, inv, ship.get(), count);
 
@@ -566,9 +568,8 @@ PyResult Command_skilllist(Client* pClient, CommandDB* db, EVEServiceManager &se
             str << "]<br>"; // 45 + 3 + 15 + 5 (70)
     }
 
-    int count = invMap.size();
-    int size = count * 80;
-    size += 80;
+    int count = SafeSizeToInt(invMap.size());
+    int size = SafeSizeToInt(count * 80 + 80);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), inventoryID, inv, pClient->GetChar()->name(), count);
 
@@ -607,9 +608,8 @@ PyResult Command_attrlist(Client* pClient, CommandDB* db, EVEServiceManager &ser
         str << "<br>"; // 4 + 15 + 35 (54)
     }
 
-    int count = attrMap.size();
-    int size = count * 60;
-    size += 70;
+    int count = SafeSizeToInt(attrMap.size());
+    int size = SafeSizeToInt(count * 60 + 70);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), iRef->name(), itemID, count);
 
@@ -698,10 +698,7 @@ PyResult Command_targlist(Client* pClient, CommandDB* db, EVEServiceManager &ser
     str << "    %u entries in list<br>";   //30
     str << "%s"; //length
 
-    int size = 60;  // header
-    size += 30;    // text
-    size += length;
-
+    int size = SafeSizeToInt(60 + 30 + length);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), pClient->GetName(), pClient->GetShipID(), count, into.c_str());
 
@@ -855,9 +852,7 @@ PyResult Command_fleetboost(Client* pClient, CommandDB* db, EVEServiceManager &s
     str << "<color=aqua>FleetID %u Command and Boost Data Window.</color><br><br>";   //77
     str << "%s"; //length
 
-    int size = 77;  // header
-    size += length;
-
+    int size = SafeSizeToInt(77 + length);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), fleetID, into.c_str());
 
@@ -906,7 +901,7 @@ PyResult Command_getposition(Client* pClient, CommandDB* db, EVEServiceManager &
     str.clear();
     str << "Angle for current position is " << angle << "<br>";
     str << "Az: " << azimuth << " Ele: " << elevation;
-    int size = 70;
+    int size = SafeSizeToInt(70);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str());
 
@@ -931,8 +926,7 @@ PyResult Command_players(Client* pClient, CommandDB* db, EVEServiceManager &serv
         str << cur->GetSystemName().c_str() << "<br>";
     }
 
-    int size = cVec.size() * 100;
-    size += 80;
+    int size = SafeSizeToInt(cVec.size() * 100 + 80);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str());
 
@@ -1105,9 +1099,7 @@ PyResult Command_cargo(Client* pClient, CommandDB* db, EVEServiceManager &servic
         }
     }
 
-    int size = count * 100;
-    size += 150;
-    size += corp;
+    int size = SafeSizeToInt(count * 100 + 150 + corp);
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
     snprintf(reply, size, str.str().c_str(), shipRef->name(), shipRef->itemID(), count);
 

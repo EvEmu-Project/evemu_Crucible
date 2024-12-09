@@ -61,6 +61,13 @@
 #include "pos/Tower.h"
 #include "system/cosmicMgrs/WormholeMgr.h"
 
+// 添加安全函数宏定义
+#ifdef _WIN32
+    #define SAFE_SCANF sscanf_s
+#else
+    #define SAFE_SCANF sscanf
+#endif
+
 static const uint32 PING_INTERVAL_MS = 600000; //10m
 
 Client::Client(EVEServiceManager& services, EVETCPConnection** con)
@@ -2674,7 +2681,7 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
     try
     {
         if (packet->dest.service == "") {
-            if (sscanf(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
+            if (SAFE_SCANF(req.remoteObjectStr.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
                 sLog.Error("Client::CallReq", "Failed to parse bind string '%s'.", req.remoteObjectStr.c_str());
                 return false;
             }
@@ -2751,8 +2758,8 @@ bool Client::Handle_Notify(PyPacket* packet)
                 continue;
             }
 
-            if (sscanf(element.boundID.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
-                sLog.Error("Client::Notify","Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.", \
+            if (SAFE_SCANF(element.boundID.c_str(), "N=%u:%u", &nodeID, &bindID) != 2) {
+                sLog.Error("Client::Notify", "Notification '%s' from %s: Failed to parse bind string '%s'. Skipping.",
                            notify.method.c_str(), m_char->name(), element.boundID.c_str());
                 continue;
             }

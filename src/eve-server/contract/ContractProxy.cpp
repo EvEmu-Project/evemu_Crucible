@@ -95,7 +95,7 @@ PyResult ContractProxy::SearchContracts(PyCallArgs &call) {
             std::string types;
             for (auto index = 0; index < itemTypes->size(); index++) {
                 types.append(std::to_string(itemTypes->GetItem(index)->AsInt()->value()));
-                if (index != itemTypes->size() - 1) {
+                if (index != static_cast<int32>(itemTypes->size() - 1)) {
                     types.append(",");
                 }
             }
@@ -194,7 +194,11 @@ PyResult ContractProxy::SearchContracts(PyCallArgs &call) {
         PyDict* response = new PyDict;
         PyList* contracts = ContractUtils::GetContractEntries(contractIDs);
         response->SetItemString("contracts", contracts ? contracts : new PyList);
-        response->SetItemString("numFound", contracts ? new PyInt(contracts->size()) : new PyInt(0));
+        if (contracts != nullptr) {
+            response->SetItemString("numFound", new PyInt(static_cast<int32>(contracts->size())));
+        } else {
+            response->SetItemString("numFound", new PyInt(0));
+        }
         response->SetItemString("searchTime", new PyInt(153));  // Since search time is of no relevance to the client, we simply hard-code it
         response->SetItemString("maxResults", new PyInt(1000)); // Same here - we do not limit the list of contracts queried, so we leave this value hard-coded
 
@@ -332,7 +336,7 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
                                 "WHERE entity.itemID IN (%s)";
             std::string queryIds;
             std::map<int, int> expectedQuantities;              // Key is itemID, value is quantity. We use map to save time on list iteration
-            for (int index = 0; index < tradedItems->size(); index++) {
+            for (int32 index = 0; index < static_cast<int32>(tradedItems->size()); index++) {
                 PyList *tradedItem = tradedItems->GetItem(index)->AsList();
                 int itemID = tradedItem->GetItem(0)->AsInt()->value();
                 int quantity = tradedItem->GetItem(1)->AsInt()->value();
@@ -341,7 +345,7 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
                 expectedQuantities[itemID] = quantity;
 
                 // if it's not the last item - add a trailing comma
-                if (index != tradedItems->size() - 1) {
+                if (index != static_cast<int32>(tradedItems->size() - 1)) {
                     queryIds.append(", ");
                 }
             }
@@ -886,11 +890,62 @@ PyResult ContractProxy::GetMyExpiredContractList(PyCallArgs &call) {
                           [PyTuple 2 items]
                             [PyString "acceptorWalletKey"]
                             [PyInt 3]
+                          [PyTuple 2 items]
+                            [PyString "crateID"]
+                            [PyInt 20]
+                          [PyTuple 2 items]
+                            [PyString "contractID"]
+                            [PyInt 3]
+              [PyPackedRow 146 bytes]
+                ["contractID" => <41239648> [I4]]
+                ["type" => <1> [UI1]]
+                ["issuerID" => <649670823> [I4]]
+                ["issuerCorpID" => <98038978> [I4]]
+                ["forCorp" => <0> [Bool]]
+                ["availability" => <1> [I4]]
+                ["assigneeID" => <1661059544> [I4]]
+                ["acceptorID" => <0> [I4]]
+                ["dateIssued" => <129494707760000000> [FileTime]]
+                ["dateExpired" => <129495571760000000> [FileTime]]
+                ["dateAccepted" => <129494707760000000> [FileTime]]
+                ["numDays" => <0> [I4]]
+                ["dateCompleted" => <129494707760000000> [FileTime]]
+                ["startStationID" => <60006433> [I4]]
+                ["startSolarSystemID" => <30000135> [I4]]
+                ["startRegionID" => <10000002> [I4]]
+                ["endStationID" => <60006433> [I4]]
+                ["endSolarSystemID" => <0> [I4]]
+                ["endRegionID" => <0> [I4]]
+                ["price" => <150000000> [CY]]
+                ["reward" => <0> [CY]]
+                ["collateral" => <0> [CY]]
+                ["title" => <quafe!> [WStr]]
+                ["status" => <0> [UI1]]
+                ["volume" => <6> [R8]]
+                ["issuerAllianceID" => <0> [I4]]
+                ["issuerWalletKey" => <0> [I4]]
+                ["acceptorWalletKey" => <0> [I4]]
+                ["crateID" => <1002309425092> [I8]]
+                ["contractID" => <41239648> [I4]]
             [PyString "items"]
-            [PyDict 0 kvp]
+            [PyDict 1 kvp]
+              [PyInt 41239648]
+              [PyList 1 items]
+                [PyObjectData Name: util.Row]
+                  [PyDict 2 kvp]
+                    [PyString "header"]
+                    [PyList 3 items]
+                      [PyString "itemTypeID"]
+                      [PyString "quantity"]
+                      [PyString "inCrate"]
+                    [PyString "line"]
+                    [PyList 3 items]
+                      [PyInt 3898]
+                      [PyInt 6]
+                      [PyBool True]
             [PyString "bids"]
             [PyDict 0 kvp]
-            */
+     */
     return nullptr;
 }
 

@@ -1,5 +1,4 @@
-
- /**
+/**
   * @name FleetService.h
   *     Fleet Service code for EVEmu
   *
@@ -98,7 +97,14 @@ public:
     void GetJoinRequests(uint32 fleetID, std::vector<Client*>& data);
     void RemoveJoinRequest(uint32 fleetID, Client* pClient);
 
-    uint8 GetFleetMemberCount(uint32 fleetID)          { return m_fleetMembers.count(fleetID); }
+    uint8 GetFleetMemberCount(uint32 fleetID) {
+        size_t count = m_fleetMembers.count(fleetID);
+        if (count > 255) {  // uint8 最大值
+            sLog.Warning("FleetService", "Fleet member count %zu exceeds uint8 maximum, capping at 255", count);
+            return 255;
+        }
+        return static_cast<uint8>(count);
+    }
 
     std::string GetJobName(int8 job);
     std::string GetRoleName(int8 role);

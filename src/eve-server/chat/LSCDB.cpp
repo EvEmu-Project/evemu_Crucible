@@ -79,7 +79,7 @@ int32 LSCDB::GetNextAvailableChannelID()
     }
 
         // Check to make sure that the next available channelID is not equal to the Maximum channel ID value
-    if ( currentChannelID <= LSCService::MAX_CHANNEL_ID )
+    if ( static_cast<uint32>(currentChannelID) <= LSCService::MAX_CHANNEL_ID )
         return currentChannelID;
 
     return 0;    // No free channel IDs found (this should never happen as there are way too many IDs to exhaust)

@@ -1,5 +1,4 @@
-
- /**
+/**
   * @name Scan.cpp
   *   Scanning methods for EVEmu
   *
@@ -581,7 +580,7 @@ struct CosmicSignature {
 void Scan::GetSignalData(SignalData& data, std::vector<ProbeSE*>& probeVec)
 {
     // probeVec has only probes than are in range of a signal it can scan
-    uint8 probeCount = probeVec.size();
+    uint8 probeCount = static_cast<uint8>(probeVec.size());
     float probeMultiplier(0.0f);
     switch(probeCount) {
         //  new style...already calculated (in python) for 1 to 8 probes
@@ -683,7 +682,7 @@ void Scan::GetSignalData(SignalData& data, std::vector<ProbeSE*>& probeVec)
 
 void Scan::CalcProbeAngles(GPoint& sigPos, std::vector<ProbeSE*>& probeVec, std::map<float, std::pair<ProbeSE*, ProbeSE*>>& angleMap ) {
     bool run(true);
-    uint8 count(probeVec.size()), x(0), y(1);
+    uint8 count(static_cast<uint8>(probeVec.size())), x(0), y(1);
     float dot(0.0f), angle(0.0f);
     ProbeSE* p1(nullptr);
     while (x < count) {

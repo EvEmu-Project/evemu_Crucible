@@ -1,5 +1,4 @@
-
-/**
+﻿/**
  * @name StaticDataMgr.cpp
  *   memory object caching system for retrieving, managing and saving ingame data
  *
@@ -14,6 +13,7 @@
 
 #include "../eve-common/EVE_Character.h"
 #include "../eve-common/EVE_POS.h"
+#include <climits>     // 添加此头文件用于 INT_MAX
 
 #include "StaticDataMgr.h"
 #include "EVEServerConfig.h"
@@ -24,12 +24,22 @@
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/ManagerDB.h"
 
-/*
- * DATA__ERROR          # specific "data not found but should be there" msgs
- * DATA__WARNING        # misc "data not found but nbd" msgs
- * DATA__MESSAGE        # misc data msgs (mt)
- * DATA__INFO           # data loading msgs (container and amount) (mt)
- */
+ /*
+  * DATA__ERROR          # specific "data not found but should be there" msgs
+  * DATA__WARNING        # misc "data not found but nbd" msgs
+  * DATA__MESSAGE        # misc data msgs (mt)
+  * DATA__INFO           # data loading msgs (container and amount) (mt)
+  */
+
+namespace {
+    int SafeSizeToInt(size_t size) {
+        if (size > static_cast<size_t>(INT_MAX)) {
+            sLog.Warning("StaticDataMgr", "Size %zu exceeds INT_MAX, capping at %d", size, INT_MAX);
+            return INT_MAX;
+        }
+        return static_cast<int>(size);
+    }
+}
 
 StaticDataMgr::StaticDataMgr()
 : m_keyMap(nullptr),
@@ -316,7 +326,7 @@ void StaticDataMgr::Populate()
         while (res->GetRow(row)) {
             m_whClassDestinations[i].push_back(row.GetUInt(0));
         }
-        size += m_whClassDestinations[i].size();
+        size += SafeSizeToInt(m_whClassDestinations[i].size());
     }
 
     sLog.Cyan("    StaticDataMgr", "%lu WH Destination Classes loaded in %.3fms.",
@@ -332,7 +342,7 @@ void StaticDataMgr::Populate()
         while (res->GetRow(row)) {
             m_whClassSystems[i].push_back(row.GetUInt(0));
         }
-        size += m_whClassSystems[i].size();
+        size += SafeSizeToInt(m_whClassSystems[i].size());
     }
 
     sLog.Cyan("    StaticDataMgr", "%lu WH Class Systems loaded in %.3fms.",

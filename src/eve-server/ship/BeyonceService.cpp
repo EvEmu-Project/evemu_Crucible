@@ -947,9 +947,9 @@ PyResult BeyonceBound::CmdJumpThroughCorporationStructure(PyCallArgs &call, PyIn
 
     uint32 quantityLeft = fuelQuantity;
     for (auto cur : requiredItems) {
-        if (cur->quantity() >= quantityLeft) {
+        if (static_cast<uint32>(cur->quantity()) >= quantityLeft) {
             //If we have all the quantity we need in the current stack, decrement the amount we need and break
-            cur->AlterQuantity(-quantityLeft, true);
+            cur->AlterQuantity(static_cast<int32>(-static_cast<int64>(quantityLeft)), true);
             break;
         } else {
             //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack
@@ -1037,9 +1037,9 @@ PyResult BeyonceBound::CmdBeaconJumpFleet(PyCallArgs &call, PyInt* characterID, 
     }
 
     for (auto cur : requiredItems) {
-        if (cur->quantity() > fuelQuantity) {
+        if (static_cast<uint32>(cur->quantity()) > fuelQuantity) {
             //If we have all the quantity we need in the current stack, decrement the amount we need and break
-            cur->AlterQuantity(-fuelQuantity, true);
+            cur->AlterQuantity(static_cast<int32>(-static_cast<int64>(fuelQuantity)), true);
             break;
         } else {
             //If the stack doesn't have the full amount delete item
@@ -1122,9 +1122,9 @@ PyResult BeyonceBound::CmdBeaconJumpAlliance(PyCallArgs &call, PyInt* beaconID, 
 
     uint32 quantityLeft = fuelQuantity;
     for (auto cur : requiredItems) {
-        if (cur->quantity() >= quantityLeft) {
+        if (static_cast<uint32>(cur->quantity()) >= quantityLeft) {
             //If we have all the quantity we need in the current stack, decrement the amount we need and break
-            cur->AlterQuantity(-quantityLeft, true);
+            cur->AlterQuantity(static_cast<int32>(-static_cast<int64>(quantityLeft)), true);
             break;
         } else {
             //If the stack doesn't have the full amount, decrement the quantity from what we need and zero out the stack

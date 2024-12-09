@@ -169,10 +169,10 @@ PyResult SkillMgrBound::InjectSkillIntoBrain(PyCallArgs &call, PyList* skillItem
             str << cur.first << " - " << status << "<br>"; //40 for name, 80 for status (120)
         }
 
-        int size = skills.size() * 120;
+        size_t size = skills.size() * 120;
         size += 100;    // for header, including char name
         char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-        snprintf(reply, size, str.str().c_str(), skills.size(), call.client->GetName());
+        snprintf(reply, size, str.str().c_str(), static_cast<uint32>(skills.size()), call.client->GetName());
 
         call.client->SendInfoModalMsg(reply);
     }

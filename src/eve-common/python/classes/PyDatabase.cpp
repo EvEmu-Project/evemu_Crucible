@@ -59,16 +59,33 @@ DBRowDescriptor::DBRowDescriptor( const DBResultRow& row )
 
 uint32 DBRowDescriptor::ColumnCount() const
 {
-    return _GetColumnList()->size();
+    size_t count = _GetColumnList()->size();
+    if (count > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("DBRowDescriptor", "Column count %zu exceeds maximum allowed value", count);
+        return 0;
+    }
+    return static_cast<uint32>(count);
 }
 
 PyString* DBRowDescriptor::GetColumnName( uint32 index ) const
 {
+    size_t columnCount = _GetColumnList()->size();
+    if (index >= columnCount) {
+        sLog.Error("DBRowDescriptor", "Column index %u out of range (max: %zu)", 
+                   index, columnCount - 1);
+        return nullptr;
+    }
     return _GetColumn( index )->GetItem( 0 )->AsString();
 }
 
 DBTYPE DBRowDescriptor::GetColumnType( uint32 index ) const
 {
+    size_t columnCount = _GetColumnList()->size();
+    if (index >= columnCount) {
+        sLog.Error("DBRowDescriptor", "Column index %u out of range (max: %zu)", 
+                   index, columnCount - 1);
+        return DBTYPE_ERROR;
+    }
     return (DBTYPE)_GetColumn( index )->GetItem( 1 )->AsInt()->value();
 }
 

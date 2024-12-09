@@ -299,7 +299,7 @@ public:
     {
         sha_update( sha_info,
                     reinterpret_cast< const SHA_BYTE* >( value.c_str() ),
-                    value.size() * sizeof( wchar_t ) );
+                    static_cast<int>(value.size() * sizeof( wchar_t )) );
     }
 
     /* finish computing the SHA digest */
@@ -392,6 +392,9 @@ public:
         char *hex_digest;
         size_t i, j;
         std::string retval;
+        if (len > static_cast<size_t>(INT_MAX / 2)) {
+            len = static_cast<size_t>(INT_MAX / 2);
+        }
         retval.resize(len * 2);
         hex_digest = &retval[0];
 
@@ -414,19 +417,18 @@ public:
         SHAobject temp;
         std::string retval;
         char *hex_digest;
-        int i, j;
+        size_t i, j;
 
         /* Get the raw (binary) digest value */
         SHAcopy(self, &temp);
         sha_final(digest, &temp);
 
         /* Create a new string */
-        //retval = PyString_FromStringAndSize(NULL, sizeof(digest) * 2);
         retval.resize(sizeof(digest) * 2);
         hex_digest = &retval[0];
 
         /* Make hex version of the digest */
-        for(i=j=0; i<(int)sizeof(digest); i++) {
+        for(i=j=0; i<sizeof(digest); i++) {
             char c;
             c = (digest[i] >> 4) & 0xf;
             c = (c>9) ? c+'a'-10 : c + '0';

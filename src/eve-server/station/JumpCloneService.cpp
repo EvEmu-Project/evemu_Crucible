@@ -91,7 +91,7 @@ PyResult JumpCloneBound::GetCloneState(PyCallArgs &call) {
 
     dict->SetItemString( "clones", clones );
     dict->SetItemString( "implants", implants );
-    dict->SetItemString( "timeLastJump", new PyLong(GetFileTimeNow() -(EvE::Time::Hour *MakeRandomFloat(1, 23))) );   /** @todo fix this to call.client->GetChar()->LastJumpTime()*/
+    dict->SetItemString( "timeLastJump", new PyLong(GetFileTimeNow() - static_cast<float>(EvE::Time::Hour) * MakeRandomFloat(1, 23)) );   /** @todo fix this to call.client->GetChar()->LastJumpTime()*/
 
     return new PyObject( "util.KeyVal", dict );
 }
@@ -116,7 +116,7 @@ PyResult JumpCloneBound::GetStationCloneState(PyCallArgs &call) {
 
     dict->SetItemString( "clones", clones );
     dict->SetItemString( "implants", implants );
-    dict->SetItemString( "timeLastJump", new PyLong(GetFileTimeNow() -(EvE::Time::Hour *MakeRandomFloat(1, 23))) );   /** @todo fix this to call.client->GetChar()->LastJumpTime()*/
+    dict->SetItemString( "timeLastJump", new PyLong(GetFileTimeNow() - static_cast<float>(EvE::Time::Hour) * MakeRandomFloat(1, 23)) );   /** @todo fix this to call.client->GetChar()->LastJumpTime()*/
 
     return new PyObject( "util.KeyVal", dict );
 }

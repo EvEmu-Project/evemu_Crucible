@@ -29,8 +29,7 @@
 #include "ServiceDB.h"
 #include "inventory/ItemType.h"
 
-
-class ItemData;
+struct ItemData;
 
 class ItemDB
 {

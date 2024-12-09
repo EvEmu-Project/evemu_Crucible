@@ -51,19 +51,32 @@ bool DeflateData( const Buffer& input, Buffer& output )
 {
     const Buffer::iterator<uint8> out = output.end<uint8>();
 
-    size_t outputSize = compressBound( input.size() );
-    output.ResizeAt( out, outputSize );
-
-    int res = compress( &*out, (uLongf*)&outputSize, &input[0], input.size() );
-
-    if( Z_OK == res )
-    {
-        output.ResizeAt( out, outputSize );
-        return true;
+    // 检查输入大小是否超出 uLong 范围
+    if (input.size() > static_cast<size_t>(ULONG_MAX)) {
+        sLog.Error("Deflate", "Input size %zu exceeds maximum allowed value", input.size());
+        return false;
     }
-    else
-    {
-        output.ResizeAt( out, 0 );
+
+    // 计算所需的输出缓冲区大小
+    uLong inputSize = static_cast<uLong>(input.size());
+    size_t outputSize = compressBound(inputSize);
+
+    // 检查输出大小是否超出 uLong 范围
+    if (outputSize > static_cast<size_t>(ULONG_MAX)) {
+        sLog.Error("Deflate", "Required output size %zu exceeds maximum allowed value", outputSize);
+        return false;
+    }
+
+    output.ResizeAt(out, outputSize);
+
+    uLong compressedSize = static_cast<uLong>(outputSize);
+    int res = compress(&*out, &compressedSize, &input[0], inputSize);
+
+    if (Z_OK == res) {
+        output.ResizeAt(out, static_cast<size_t>(compressedSize));
+        return true;
+    } else {
+        output.ResizeAt(out, 0);
         return false;
     }
 }
@@ -82,26 +95,41 @@ bool InflateData( const Buffer& input, Buffer& output )
 {
     const Buffer::iterator<uint8> out = output.end<uint8>();
 
+    // 检查输入大小是否超出 uLong 范围
+    if (input.size() > static_cast<size_t>(ULONG_MAX)) {
+        sLog.Error("Deflate", "Input size %zu exceeds maximum allowed value", input.size());
+        return false;
+    }
+
     size_t outputSize = 0;
     size_t sizeMultiplier = 0;
+    uLong inputSize = static_cast<uLong>(input.size());
 
     int res = 0;
-    do
-    {
-        outputSize = ( input.size() << ++sizeMultiplier );
-        output.ResizeAt( out, outputSize );
+    do {
+        outputSize = (input.size() << ++sizeMultiplier);
+        
+        // 检查输出大小是否超出 uLong 范围
+        if (outputSize > static_cast<size_t>(ULONG_MAX)) {
+            sLog.Error("Deflate", "Required output size %zu exceeds maximum allowed value", outputSize);
+            return false;
+        }
 
-        res = uncompress( &*out, (uLongf*)&outputSize, &input[0], input.size() );
-    } while( Z_BUF_ERROR == res );
+        output.ResizeAt(out, outputSize);
+        uLong uncompressedSize = static_cast<uLong>(outputSize);
 
-    if( Z_OK == res )
-    {
-        output.ResizeAt( out, outputSize );
+        res = uncompress(&*out, &uncompressedSize, &input[0], inputSize);
+        
+        if (res == Z_OK) {
+            outputSize = static_cast<size_t>(uncompressedSize);
+        }
+    } while (Z_BUF_ERROR == res);
+
+    if (Z_OK == res) {
+        output.ResizeAt(out, outputSize);
         return true;
-    }
-    else
-    {
-        output.ResizeAt( out, 0 );
+    } else {
+        output.ResizeAt(out, 0);
         return false;
     }
 }

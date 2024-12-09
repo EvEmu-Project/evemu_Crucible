@@ -99,7 +99,7 @@ PetitionerService::PetitionerService() :
 
 PyResult PetitionerService::GetCategories( PyCallArgs& call )
 {
-    uint8 size(call.tuple->size());
+    uint8 size = static_cast<uint8>(call.tuple->size());
     sLog.White( "PetitionerService::Handle_GetCategories()", "size=%u ", size );
 
     PyList* result = new PyList();
@@ -111,7 +111,7 @@ PyResult PetitionerService::GetCategories( PyCallArgs& call )
 
 PyResult PetitionerService::GetCategoryHierarchicalInfo( PyCallArgs& call )
 {
-    uint8 size(call.tuple->size());
+    uint8 size = static_cast<uint8>(call.tuple->size());
     sLog.White( "PetitionerService::Handle_GetCategoryHierarchicalInfo()", "size=%u ", size );
 
     return new PyList();

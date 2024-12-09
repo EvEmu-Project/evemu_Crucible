@@ -37,7 +37,14 @@ public:
     void GetTypeEffect(uint16 typeID, std::vector< TypeEffects >& typeEffMap);
 
     float GetFxTime()                                   { return m_time; }
-    uint16 GetFxSize()                                  { return m_fxMap.size(); }
+    uint16 GetFxSize() {
+        size_t count = m_fxMap.size();
+        if (count > 65535) {  // uint16 最大值
+            sLog.Warning("FxDataMgr", "Effect count %zu exceeds uint16 maximum, capping at 65535", count);
+            return 65535;
+        }
+        return static_cast<uint16>(count);
+    }
 
 protected:
     void GetOperands(DBQueryResult& res);

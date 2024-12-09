@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ double GetFileTimeNow()  // -allan
     double time = GetTimeMSeconds();
     time /= 1000;   // to second
     time += SECS_BETWEEN_EPOCHS;    // offset
-    time *= EvE::Time::Second; // to 100 uSeconds
+    time *= static_cast<double>(EvE::Time::Second); // to 100 uSeconds 显式转换枚举
     return time;
 }
 
@@ -118,7 +118,7 @@ double GetRelativeFileTime(int days, int hours, int minutes, int seconds) {
     }
 
     time += SECS_BETWEEN_EPOCHS;    // offset
-    time *= EvE::Time::Second; // to 100 uSeconds
+    time *= static_cast<double>(EvE::Time::Second); // to 100 uSeconds 显式转换枚举
     return time;
 }
 
@@ -136,20 +136,20 @@ double GetTimeMSeconds() {  // -allan
     //  this returns milliseconds in microsecond resolution
     using namespace std::chrono;
     /*
-    auto now = steady_clock::now();
-    duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
-    */
-    auto duration = system_clock::now().time_since_epoch();     // return in nanoseconds
-    double time = duration_cast<microseconds>(duration).count();
-    return (time / 1000);
+   auto now = steady_clock::now();
+   duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+   */
+    auto duration = system_clock::now().time_since_epoch();
+    auto microseconds_count = duration_cast<microseconds>(duration).count();
+    return static_cast<double>(microseconds_count) / 1000.0;
 }
 
 double GetTimeUSeconds() {  // -allan
     //  this returns microseconds in nanosecond resolution
     using namespace std::chrono;
     auto duration = system_clock::now().time_since_epoch();     // return in nanoseconds
-    double time = duration_cast<nanoseconds>(duration).count();
-    return (time / 1000);
+    auto nanoseconds_count = duration_cast<nanoseconds>(duration).count();
+    return static_cast<double>(nanoseconds_count) / 1000.0;
 }
 
 // Get current date/time, format is YYYY-MM-DD.HH:mm:ss
@@ -188,18 +188,19 @@ std::string GetMTimeTillNow(double fromTime)
 EvE::TimeParts GetTimeParts(int64 filetime/*0*/)
 {
     // time sent as (windows)FILETIME; convert to unix time
-    double time(filetime /EvE::Time::Second);// to Seconds
+    double time = static_cast<double>(filetime);
+    time /= static_cast<double>(EvE::Time::Second);// to Seconds
     time -= SECS_BETWEEN_EPOCHS;    // epoc offset
 
     // Calculate total days
-    uint16 day = (time / 86400) +1;
-    uint16 seconds = fmod(time, 86400);
+    uint32 total_days = static_cast<uint32>(time / 86400) + 1;
+    uint32 total_seconds = static_cast<uint32>(std::fmod(time, 86400));
 
     // year loop
     uint16 year = 1970;
+    uint32 day = total_days;
     while (day >= 365) {
-        if ((year % 400 == 0)
-        or ((year % 4 == 0) and (year % 100 != 0))) {
+        if ((year % 400 == 0) || ((year % 4 == 0) && (year % 100 != 0))) {
             day -= 366;
         } else {
             day -= 365;
@@ -255,15 +256,15 @@ EvE::TimeParts GetTimeParts(int64 filetime/*0*/)
 
     EvE::TimeParts data = EvE::TimeParts();
     data.year   = year;
-    data.month  = month;
-    data.day    = day;
-    data.wn     = d.week_number();
-    data.wd     = d.day_of_week();
-    data.dy     = d.day_of_year();
-    data.hour   = seconds / 3600;
-    data.min    = fmod(seconds, 3600) / 60;
-    data.sec    = fmod(fmod(seconds, 3600), 60);
-    data.ms     = fmod(time, 1000);
+    data.month  = static_cast<uint8>(month & 0xFF);
+    data.day    = static_cast<uint8>(day & 0xFF);
+    data.wn     = static_cast<uint8>(d.week_number() & 0xFF);
+    data.wd     = static_cast<uint8>(d.day_of_week() & 0xFF);
+    data.dy     = static_cast<uint16>(d.day_of_year());
+    data.hour   = static_cast<uint8>(total_seconds / 3600);
+    data.min    = static_cast<uint8>((total_seconds % 3600) / 60);
+    data.sec    = static_cast<uint8>(total_seconds % 60);
+    data.ms     = static_cast<uint16>(std::fmod(time, 1000));
 
     return data;
 }

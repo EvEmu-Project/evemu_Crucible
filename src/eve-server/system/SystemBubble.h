@@ -77,8 +77,22 @@ public:
 
     /* various count queries */
     uint32 CountNPCs();
-    uint32 CountPlayers()                               { return m_players.size(); }
-    uint32 CountDynamics()                              { return m_dynamicEntities.size(); }
+    uint32 CountPlayers() {
+        size_t count = m_players.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Warning("SystemBubble", "Player count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
+    uint32 CountDynamics() {
+        size_t count = m_dynamicEntities.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Warning("SystemBubble", "Dynamic entities count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
 
     /* used for bubble management */
     bool IsEmpty() const                                { return (m_entities.empty() ? m_dynamicEntities.empty() : false); }

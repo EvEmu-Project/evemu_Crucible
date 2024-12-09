@@ -70,7 +70,7 @@ void ImageServerConnection::ProcessHeaders()
         {
             found = true;
             _category = ImageServer::Categories[i];
-            request = request.substr(strlen(ImageServer::Categories[i]));
+            request = request.substr(static_cast<int>(strlen(ImageServer::Categories[i])));
             break;
         }
     }
@@ -87,7 +87,7 @@ void ImageServerConnection::ProcessHeaders()
     }
     request = request.substr(1);
 
-    int del = request.find_first_of('_');
+    int del = static_cast<int>(request.find_first_of('_'));
     if (del == std::string::npos)
     {
         NotFound();

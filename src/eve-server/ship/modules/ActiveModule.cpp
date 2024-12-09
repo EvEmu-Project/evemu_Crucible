@@ -530,9 +530,9 @@ uint32 ActiveModule::DoCycle() {
             /** @todo this may need more work later in the case of multiple stacks */
             InventoryItemRef iRef(m_shipRef->GetMyInventory()->GetByTypeFlag(typeID, EVEItemFlags::flagCargoHold));
             if (iRef.get() != nullptr) {
-                if (iRef->quantity() > qtyNeed) {
+                if (static_cast<uint32>(iRef->quantity()) > qtyNeed) {
                     //If we have all the quantity we need in the current stack, decrement the amount we need and break
-                    iRef->AlterQuantity(-qtyNeed, true);
+                    iRef->AlterQuantity(static_cast<int32>(-static_cast<int64>(qtyNeed)), true);
                 } else {
                     // Delete item
                     iRef->SetQuantity(0, true, true);

@@ -274,7 +274,7 @@ PyResult CorporationService::GiveMedalToCharacters(PyCallArgs &call, PyInt* meda
         charVec.push_back(PyRep::IntegerValue(*itr));
 
     uint32 cost = sConfig.rates.medalAwardCost;
-    cost *= charVec.size();
+    cost *= static_cast<uint32>(charVec.size());
 
     //take the money, send wallet blink event record the transaction in corp journal.
     std::string finalReason = "DESC: Awarding Medal by ";

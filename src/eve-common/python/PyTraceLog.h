@@ -94,9 +94,18 @@ public:
     {
         if (toFile == true)
         {
+#ifdef _WIN32
+            errno_t err = fopen_s(&mFout, path, "w+");
+            if (err != 0) {
+                printf("[error]PyTraceLog: sorry initializing the output file failed (error: %d)\n", err);
+                mFout = NULL;
+            }
+#else
             mFout = fopen(path, "w+");
-            if (mFout == NULL)
-                printf("[error]PyTraceLog: sorry initializing the output file failed\n");
+            if (mFout == NULL) {
+                printf("[error]PyTraceLog: sorry initializing the output file failed (error: %s)\n", strerror(errno));
+            }
+#endif
         }
 
 #ifdef HAVE_WINDOWS_H

@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -772,8 +772,8 @@ void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
     if (typeID == 0)
         return;
     // Actually Launch a missile, creating a new Destiny object for it
-    // ItemData( uint32 _typeID, uint32 _ownerID, uint32 _locationID, EVEItemFlags _flag, const char *_name = "", \
-              const GPoint &_position = NULL_ORIGIN, const char *_customInfo = "", bool _contraband = false);
+    // ItemData( uint32 _typeID, uint32 _ownerID, uint32 _locationID, EVEItemFlags _flag, const char *_name = "", 
+    //          const GPoint &_position = NULL_ORIGIN, const char *_customInfo = "", bool _contraband = false);
     ItemData idata(typeID, m_npc->GetID(), m_npc->GetLocationID(), flagMissile, "NPC Missile", m_npc->GetPosition());
     InventoryItemRef missileRef = sItemFactory.SpawnItem(idata);
     if (missileRef.get() == nullptr)

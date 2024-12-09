@@ -340,7 +340,7 @@ void PlanetDB::LoadRoutes(uint32 ccPinID, std::map<uint16, PI_Route >& routes)
         tempPath = row.GetText(5);
         if (!tempPath.empty()) {
             // route string is not empty, so extract one number at a time until it is
-            int pos = 0;
+            size_t pos = 0;
             std::string tempString = "";
 
             while ((pos = tempPath.find_first_of(':')) > 0 ) {

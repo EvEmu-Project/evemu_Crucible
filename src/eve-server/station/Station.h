@@ -81,19 +81,37 @@ public:
      * @param[in] stationID ID of station to load.
      * @return Pointer to new Station object; NULL if fails.
      */
-    static StationItemRef Load( uint32 stationID);
-    static StationItemRef Spawn( ItemData &data);
+    static StationItemRef Load(uint32 stationID);
+    static StationItemRef Spawn(ItemData &data);
 
     StationType* GetStationType() { return &m_stationType; }
     ShipItemRef GetShipFromInventory(uint32 shipID);
     CargoContainerRef GetContainerFromInventory(uint32 contID);
 
     // station methods here for offices, reprocessing, and docking.
-    PyRep* GetOffices()                                 { PyIncRef(m_officePyData); return m_officePyData; }  // cached officeData for client call
-    int8 GetAvalibleOfficeCount()                       { return maxRentableOffices - m_officeMap.size(); }
-    int32 GetOfficeRentalFee()                          { return m_data.officeRentalFee; }
-    uint32 GetOwnerID()                                 { return m_data.corporationID; }
-    uint32 GetID()                                      { return m_data.stationID; }
+    PyRep* GetOffices() { 
+        PyIncRef(m_officePyData); 
+        return m_officePyData; 
+    }
+
+    int8 GetAvalibleOfficeCount() {
+        size_t currentOffices = m_officeMap.size();
+        if (currentOffices > MAX_RENTABLE_OFFICES) {
+            sLog.Warning("StationItem", "Current office count %zu exceeds maximum rentable offices", currentOffices);
+            return 0;
+        }
+        
+        int8 availableOffices = static_cast<int8>(MAX_RENTABLE_OFFICES - currentOffices);
+        if (availableOffices < 0) {
+            return 0;
+        }
+        
+        return availableOffices;
+    }
+
+    uint32 GetOfficeRentalFee() { return m_data.officeRentalFee; }
+    uint32 GetOwnerID() { return m_data.corporationID; }
+    uint32 GetID() { return m_data.stationID; }
     void RentOffice(OfficeData& odata);
     uint32 GetOfficeID(uint32 corpID);
 
@@ -101,7 +119,7 @@ public:
     void AddLoadedOffice(uint32 officeID);
     void RemoveLoadedOffice(uint32 officeID);
 
-    bool IsLoaded()                                     { return m_loaded; }
+    bool IsLoaded() { return m_loaded; }
     bool IsOfficeLoaded(uint32 officeID);
 
     void GetGuestList(std::vector<Client*>& cVec);
@@ -126,7 +144,7 @@ protected:
 
     // Template loader:
     template<class _Ty>
-    static RefPtr<_Ty> _LoadItem( uint32 stationID, const ItemType &type, const ItemData &data)
+    static RefPtr<_Ty> _LoadItem(uint32 stationID, const ItemType &type, const ItemData &data)
     {
         if (type.groupID() != EVEDB::invGroups::Station) {
             _log(ITEM__ERROR, "Trying to load %s as Station.", sDataMgr.GetGroupName(type.groupID()));
@@ -135,7 +153,7 @@ protected:
             return RefPtr<_Ty>(nullptr);
         }
         // cast the type
-        const StationType &stType = static_cast<const StationType &>( type );
+        const StationType &stType = static_cast<const StationType &>(type);
 
         // load celestial data
         CelestialObjectData cData = CelestialObjectData();
@@ -145,7 +163,7 @@ protected:
         return StationItemRef(new StationItem(stationID, stType, data, cData));
     }
 
-    static uint32 CreateItemID( ItemData &data);
+    static uint32 CreateItemID(ItemData &data);
 
     // internal office methods
     void SendBill();
@@ -153,20 +171,19 @@ protected:
     void RecoverOffice(uint32 officeID);
 
 private:
-    PyRep*                                              m_officePyData;
-    StationType                                         m_stationType;
-    StationData                                         m_data;
+    // 在私有部分定义常量
+    static const int8 MAX_RENTABLE_OFFICES = 127;
 
-    bool                                                m_loaded;  // are offices loaded?
-    uint32                                              m_stationID;
-
-    std::map<uint32, Client*>                           m_guestList; // charID/Client*
-
-    std::map<uint32, OfficeData>                        m_officeMap;   // officeID/data
-    std::map<uint32, bool>                              m_officeLoaded;
-
+    // 成员变量
+    PyRep* m_officePyData;
+    StationType m_stationType;
+    StationData m_data;
+    bool m_loaded;
+    uint32 m_stationID;
+    std::map<uint32, Client*> m_guestList;
+    std::map<uint32, OfficeData> m_officeMap;
+    std::map<uint32, bool> m_officeLoaded;
 };
-
 
 /**
  * StaticSystemEntity which represents Station object in space

@@ -180,7 +180,7 @@ PyResult InsuranceBound::InsureShip(PyCallArgs& call, PyInt* shipID, PyFloat* am
             amount->value(),
             reason,
             Journal::EntryType::Insurance,
-            -shipRef->itemID()
+            static_cast<int32>(-static_cast<int64>(shipRef->itemID()))
         );  // for paying ins, shipID should be negative
     } else {
         throw UserError ("InsureShipFailed");

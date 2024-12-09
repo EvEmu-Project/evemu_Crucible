@@ -1,4 +1,4 @@
- /*
+﻿ /*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -276,7 +276,7 @@ PyResult Command_spawn(Client* pClient, CommandDB* db, EVEServiceManager &servic
             throw CustomError ("Argument 3 should be the number of spawns of this type you want to create");
 
         spawnCount = atoi(args.arg(2).c_str());
-        if (spawnCount > maximumSpawnCountAllowed)
+        if (static_cast<uint32>(spawnCount) > maximumSpawnCountAllowed) 
             throw CustomError ("Argument 3, spawn count, is allowed to be no more than 100");
     }
 
@@ -311,7 +311,7 @@ PyResult Command_spawn(Client* pClient, CommandDB* db, EVEServiceManager &servic
 
     GPoint loc;
 
-    for(spawnIndex=0; spawnIndex < spawnCount; ++spawnIndex)
+    for (uint32 i = 0; i < static_cast<uint32>(spawnCount); ++i) 
     {
         loc = pClient->GetShipSE()->GetPosition();
 

@@ -75,7 +75,14 @@ public:
     void ClearSystemBubbles(uint32 systemID);
     void RemoveBubble(uint32 systemID, SystemBubble* pSB);
 
-    uint32 Count()                                      { return m_bubbles.size(); }
+    uint32 Count() {
+        size_t count = m_bubbles.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Warning("BubbleManager", "Bubble count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
     uint32 GetBubbleID()                                { return ++m_bubbleID; }
 
     // for spawn system     -allan 15April16

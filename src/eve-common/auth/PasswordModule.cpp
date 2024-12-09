@@ -100,14 +100,20 @@ bool PasswordModule::GeneratePassHash(
     const uint8* _pass    = reinterpret_cast< const uint8* >( pass );
     size_t       _passLen = passLen * sizeof( uint16 );
 
+    // 添加溢出检查
+    if (_userLen > static_cast<size_t>(INT_MAX) || 
+        _passLen > static_cast<size_t>(INT_MAX)) {
+        return false;  // 数据太大，无法处理
+    }
+
     // Helper digest buffer
     uint8 digest[ SHA_DIGESTSIZE ];
 
     // Initialize the hash
     ShaModule::SHAobject shaObj;
     ShaModule::sha_init( &shaObj );
-    ShaModule::sha_update( &shaObj, _pass, _passLen );
-    ShaModule::sha_update( &shaObj, _user, _userLen );
+    ShaModule::sha_update( &shaObj, _pass, static_cast<int>(_passLen) );
+    ShaModule::sha_update( &shaObj, _user, static_cast<int>(_userLen) );
 
     // The hashing loop
     for( size_t i = 0; i < 1000; ++i )
@@ -118,7 +124,7 @@ bool PasswordModule::GeneratePassHash(
         // Rehash the whole stuff
         ShaModule::sha_init( &shaObj );
         ShaModule::sha_update( &shaObj, digest, SHA_DIGESTSIZE );
-        ShaModule::sha_update( &shaObj, _user, _userLen );
+        ShaModule::sha_update( &shaObj, _user, static_cast<int>(_userLen) );
     }
 
     // Obtain the resulting hash

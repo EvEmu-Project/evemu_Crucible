@@ -122,7 +122,7 @@ bool LSCChannel::JoinChannel(Client* pClient) {
 
     OnLSC_JoinChannel join;
         join.sender = _MakeSenderInfo(pClient);
-        join.member_count = (int32)m_chars.size();
+        join.member_count = static_cast<int32>(m_chars.size());
         join.channelID = EncodeID();
 
     MulticastTarget mct;
@@ -159,7 +159,7 @@ void LSCChannel::LeaveChannel(Client *pClient)
 
     OnLSC_LeaveChannel leave;
     leave.sender = _MakeSenderInfo(pClient);
-    leave.member_count = (int32)m_chars.size();
+    leave.member_count = static_cast<int32>(m_chars.size());
     leave.channelID = EncodeID();
 
     PyTuple *answer = leave.Encode();
@@ -206,7 +206,7 @@ void LSCChannel::SendMessage(Client * c, const char * message, bool self/*false*
     sm.sender = _MakeSenderInfo(c);
     sm.channelID = EncodeID();
     sm.message = message;
-    sm.member_count = m_chars.size();
+    sm.member_count = static_cast<int32>(m_chars.size());
 
     PyTuple *answer = sm.Encode();
     sEntityList.Multicast("OnLSC", GetTypeString(), &answer, mct);
@@ -238,7 +238,7 @@ void LSCChannel::SendServerMOTD(Client* pClient) {
     sm.sender = _FakeSenderInfo();
     sm.channelID = EncodeID();
     sm.message = msg;
-    sm.member_count = m_chars.size();
+    sm.member_count = static_cast<int32>(m_chars.size());
 
     PyTuple *answer = sm.Encode();
     pClient->SendNotification("OnLSC", GetTypeString(), &answer);
@@ -325,7 +325,7 @@ PyRep *LSCChannel::EncodeStaticChannel(uint32 charID) {
         line.subscribed = IsStaticChannel(m_channelID);
         line.groupMessageID = m_groupMessageID;
         line.channelMessageID = m_channelMessageID;
-        line.estimatedMemberCount = m_chars.size();
+        line.estimatedMemberCount = static_cast<int32>(m_chars.size());
     return line.Encode();
 }
 
@@ -347,7 +347,7 @@ PyRep *LSCChannel::EncodeDynamicChannel(uint32 charID) {
         info.languageRestriction = m_languageRestriction;
         info.groupMessageID = m_groupMessageID;
         info.channelMessageID = m_channelMessageID;
-        info.estimatedMemberCount = m_chars.size();
+        info.estimatedMemberCount = static_cast<int32>(m_chars.size());
     return info.Encode();
 }
 

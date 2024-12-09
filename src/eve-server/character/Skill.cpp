@@ -96,7 +96,7 @@ uint32 Skill::GetCurrentSP(Character* ch, int64 startTime/*0*/)
     /** @todo this isnt completely right.... */
     // at this point, the skill is in training.  calculate accumulated sp and return
     uint32 delta(0);
-    uint32 timeElapsed((GetFileTimeNow() - startTime) / EvE::Time::Second);
+    uint32 timeElapsed((GetFileTimeNow() - startTime) / static_cast<double>(EvE::Time::Second));
     // skill in training - return updated SP based on elapsed training
     delta = (timeElapsed / 60) * ch->GetSPPerMin(this);
     currentSP += delta;
@@ -119,7 +119,7 @@ uint32 Skill::GetRemainingSP(Character* ch, int64 curTime/*0*/)
     // get full sp needed for next level
     uint32 remainingSP(GetSPForLevel(level) - GetAttribute(AttrSkillPoints).get_uint32());
 
-    float timeLeft((ch->GetEndOfTraining() - curTime) / EvE::Time::Second);
+    float timeLeft((ch->GetEndOfTraining() - curTime) / static_cast<double>(EvE::Time::Second));
     // if remaining time > 1m, subtract spm from total to get remaining
     if (timeLeft > 60)
         remainingSP -= ((timeLeft / 60) * ch->GetSPPerMin(this));
@@ -141,7 +141,7 @@ uint32 Skill::GetTrainingTime(Character* ch, int64 startTime/*0*/)
     if (startTime == 0)
         return timeLeft;
 
-    uint32 delta = (uint32)ceil((GetFileTimeNow() -  startTime) / EvE::Time::Second);
+    uint32 delta = (uint32)ceil((GetFileTimeNow() - startTime) / static_cast<double>(EvE::Time::Second));
     if (delta < 1)
         return timeLeft;
 

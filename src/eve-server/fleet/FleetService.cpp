@@ -1,5 +1,4 @@
-
- /**
+﻿/**
   * @name FleetService.cpp
   *     Fleet Service code for EVEmu
   *     This singleton object is used to access and manipulate all dynamic fleet data
@@ -149,7 +148,7 @@ uint32 FleetService::CreateFleet(Client *pClient)
 
 PyRep* FleetService::CreateWing(uint32 fleetID)
 {
-    int8 count = m_fleetWings.count(fleetID);
+    int8 count = static_cast<int8>(m_fleetWings.count(fleetID));
     // do we need an error here?
     if (count > 4)
         return nullptr;
@@ -292,7 +291,7 @@ bool FleetService::AddMember(Client* pClient, uint32 fleetID, int32 wingID, int3
     }
 
     PyTuple* count = new PyTuple(1);
-        count->SetItem(0, new PyInt((255 - m_fleetMembers.count(fleetID))));  // this is slots left from 255 (256 - leader)
+        count->SetItem(0, new PyInt(static_cast<int32>(255 - m_fleetMembers.count(fleetID))));  // this is slots left from 255 (256 - leader)
     pClient->SendNotification("OnFleetActive", "clientID", count, true);
 
     std::list<int32> wing, squad;
@@ -972,7 +971,7 @@ PyRep* FleetService::GetFleetAdvert(uint32 fleetID)
         fleetRSP.public_allowedEntities = new PyObjectEx(false, publicTuple2);
 
         fleetRSP.local_minStanding = itr->second.local_minStanding;
-        fleetRSP.numMembers = m_fleetMembers.count(itr->first);
+        fleetRSP.numMembers = static_cast<int32>(m_fleetMembers.count(itr->first));
         fleetRSP.hideInfo = itr->second.hideInfo;
         fleetRSP.public_minSecurity = itr->second.public_minSecurity;
         fleetRSP.inviteScope = itr->second.inviteScope;
@@ -1304,7 +1303,7 @@ PyRep* FleetService::GetAvailableFleets() {
             fleetRSP.public_allowedEntities = new PyObjectEx(false, publicTuple2);
 
             fleetRSP.local_minStanding = cur.second.local_minStanding;
-            fleetRSP.numMembers = m_fleetMembers.count(cur.first);
+            fleetRSP.numMembers = static_cast<int32>(m_fleetMembers.count(cur.first));
             fleetRSP.hideInfo = cur.second.hideInfo;
             fleetRSP.public_minSecurity = cur.second.public_minSecurity;
             fleetRSP.inviteScope = cur.second.inviteScope;
@@ -1562,7 +1561,7 @@ std::vector<Client *> FleetService::GetFleetClients(uint32 fleetID) {
 void FleetService::SendActiveStatus(uint32 fleetID, int32 wingID, int32 squadID)
 {
     PyTuple* count = new PyTuple(1);
-    count->SetItem(0, new PyInt((255 - m_fleetMembers.count(fleetID))));  // this is slots left from 255 (256 - leader)
+    count->SetItem(0, new PyInt(static_cast<int32>(255 - m_fleetMembers.count(fleetID))));  // this is slots left from 255 (256 - leader)
     SendFleetUpdate(fleetID, "OnFleetActive", count);
 
     if (wingID > 0) {
@@ -1706,8 +1705,8 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
     str << "<color=teal>" << fData.name << "  Created By: " << fData.creator->GetChar()->itemName();
     str << "  Members: " << std::to_string(m_fleetMembers.count(fleetID)) << "</color><br>"; //54
     length += 54;
-    length += fData.name.size();
-    length += fData.creator->GetChar()->itemName().size();
+    length += static_cast<uint16>(fData.name.size());
+    length += static_cast<uint16>(fData.creator->GetChar()->itemName().size());
 
     if ((fData.leader != nullptr) and (fData.leader->IsInSpace()) and (pChar = fData.leader->GetChar().get()) != nullptr) {
         if (m_fleetWings.count(fleetID) > pChar->GetSkillLevel(EvESkill::FleetCommand)) {
@@ -1719,7 +1718,7 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
         }
         length += 13;
         str << "Fleet Cmdr: " << pChar->itemName(); //12
-        length += pChar->itemName().size();
+        length += static_cast<uint16>(pChar->itemName().size());
 
         str << "    " << std::to_string(pChar->GetSkillLevel(EvESkill::FleetCommand)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::WingCommand)) << "/";
         str << std::to_string(pChar->GetSkillLevel(EvESkill::Leadership)) << "</color><br>";//15
@@ -1754,7 +1753,7 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
             length += 30;
         }
         str << "Fleet Booster: " << pChar->itemName();//15
-        length += pChar->itemName().size();
+        length += static_cast<uint16>(pChar->itemName().size());
         str << "    " << std::to_string(pChar->GetSkillLevel(EvESkill::ArmoredWarfare)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::InformationWarfare)) << "/";
         str << std::to_string(pChar->GetSkillLevel(EvESkill::SiegeWarfare)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::SkirmishWarfare)) << "/";
         str << std::to_string(pChar->GetSkillLevel(EvESkill::MiningForeman)) << "</color><br>";//30
@@ -1788,14 +1787,14 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
             }
             length += 13;
             str << "  " << wData.name.c_str() << " Cmdr: " << pChar->itemName(); //10
-            length += wData.name.size();
-            length += pChar->itemName().size();
+            length += static_cast<uint16>(wData.name.size());
+            length += static_cast<uint16>(pChar->itemName().size());
             str << "    " << std::to_string(pChar->GetSkillLevel(EvESkill::FleetCommand)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::WingCommand)) << "/";
             str << std::to_string(pChar->GetSkillLevel(EvESkill::Leadership)) << "</color><br>";//15
             length += 30;
         } else {
             str << "  <color=red>" << wData.name.c_str() << " No Cmdr</color><br>";//33
-            length += wData.name.size();
+            length += static_cast<uint16>(wData.name.size());
             length += 35;
         }
         if ((wData.booster != nullptr) and (wData.booster->IsInSpace())
@@ -1824,14 +1823,14 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
                 length += 30;
             }
             str << "  " << "Booster: " << pChar->itemName();//11
-            length += pChar->itemName().size();
+            length += static_cast<uint16>(pChar->itemName().size());
             str << "    " << std::to_string(pChar->GetSkillLevel(EvESkill::ArmoredWarfare)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::InformationWarfare));
             str << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::SiegeWarfare)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::SkirmishWarfare)) << "/";
             str << std::to_string(pChar->GetSkillLevel(EvESkill::MiningForeman)) << "</color><br>";//32
             length += 38;
         } else {
             str << "  <color=red>" << wData.name.c_str() << " No Booster</color><br>";//43
-            length += wData.name.size();
+            length += static_cast<uint16>(wData.name.size());
             length += 45;
             wboost = false;
         }
@@ -1857,14 +1856,14 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
                 }
                 length += 13;
                 str << "    " << sData.name.c_str() <<  " Cmdr: " << pChar->itemName(); //11
-                length += sData.name.size();
-                length += pChar->itemName().size();
+                length += static_cast<uint16>(sData.name.size());
+                length += static_cast<uint16>(pChar->itemName().size());
                 str << "    " << std::to_string(pChar->GetSkillLevel(EvESkill::FleetCommand)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::WingCommand)) << "/";
                 str << std::to_string(pChar->GetSkillLevel(EvESkill::Leadership)) << "</color><br>";//21
                 length += 22;
             } else {
                 str << "    <color=red>" << sData.name.c_str() << " No Cmdr</color><br>";
-                length += sData.name.size();
+                length += static_cast<uint16>(sData.name.size());
                 length += 37;
             }
             if ((sData.booster != nullptr) and (sData.booster->IsInSpace()) and (pChar = sData.booster->GetChar().get()) != nullptr) {
@@ -1892,14 +1891,14 @@ std::string FleetService::GetBoosterData(uint32 fleetID, uint16& length)
                     length += 30;
                 }
                 str << "    Booster: " << pChar->itemName();//13
-                length += pChar->itemName().size();
+                length += static_cast<uint16>(pChar->itemName().size());
                 str << "    " << std::to_string(pChar->GetSkillLevel(EvESkill::ArmoredWarfare)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::InformationWarfare));
                 str << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::SiegeWarfare)) << "/" << std::to_string(pChar->GetSkillLevel(EvESkill::SkirmishWarfare)) << "/";
                 str << std::to_string(pChar->GetSkillLevel(EvESkill::MiningForeman)) << "</color><br>";//25
                 length += 40;
             } else {
                 str << "    <color=red>" << sData.name.c_str() << " No Booster</color><br>";//45
-                length += sData.name.size();
+                length += static_cast<uint16>(sData.name.size());
                 length += 43;
                 sboost = false;
             }

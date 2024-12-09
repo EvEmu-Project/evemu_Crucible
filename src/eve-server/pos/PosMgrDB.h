@@ -1,4 +1,3 @@
-
 /**
  * @name PosMgrDB.h
  *   DataBase methods for all POS items
@@ -13,7 +12,7 @@
 
 #include "ServiceDB.h"
 #include "../../eve-common/EVE_POS.h"
-
+#include "../DataClasses.h"
 
 struct ReactorData;
 

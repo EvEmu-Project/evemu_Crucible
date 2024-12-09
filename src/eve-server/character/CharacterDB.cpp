@@ -273,9 +273,9 @@ PyRep* CharacterDB::ValidateCharNameRep(std::string name)
         return new PyInt(-7);
 
     // check for multiple spaces
-    int found = name.find(" ");
+    int found = static_cast<int>(name.find(" "));
     if (found != name.npos) {
-        found = name.find(" ", found + 1, 1);
+        found = static_cast<int>(name.find(" ", static_cast<size_t>(found) + 1, 1));
         if (found != name.npos)
             return new PyInt(-6);
     }
@@ -353,9 +353,9 @@ void CharacterDB::ValidateCharName(std::string name)
             throw UserError ("CharNameInvalidSomeChar");
 
     // check for multiple spaces
-    int found = name.find(" ");
+    int found = static_cast<int>(name.find(" "));
     if (found != name.npos) {
-        found = name.find(" ", found + 1, 1);
+        found = static_cast<int>(name.find(" ", static_cast<size_t>(found) + 1, 1));
         if (found != name.npos)
             throw UserError ("CharNameInvalidMaxSpaces");
     }
@@ -1137,7 +1137,7 @@ bool CharacterDB::GetAttributesFromAttributes(uint8 &intelligence, uint8 &charis
         return (false);
     }
         
-    for(int i = 0; i < res.GetRowCount(); i++){
+    for(size_t i = 0; i < res.GetRowCount(); i++){
         DBResultRow row;
         uint32 attributeID = 0;
 
@@ -1146,7 +1146,7 @@ bool CharacterDB::GetAttributesFromAttributes(uint8 &intelligence, uint8 &charis
             return false;
         }
 
-        attributeID = row.GetUInt(0);
+        attributeID = static_cast<uint32>(row.GetUInt(0));
 
         switch (attributeID)
         {

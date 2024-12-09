@@ -390,11 +390,11 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         std::vector<InventoryItemRef>::iterator refItr = items.begin();
         for (; refItr != items.end(); ++refItr)
             if ((*refItr)->typeID() == itemItr->typeID) {
-                if (qtyNeeded >= (*refItr)->quantity()) {
+                if (qtyNeeded >= static_cast<uint32>((*refItr)->quantity())) {
                     qtyNeeded -= (*refItr)->quantity();
                     (*refItr)->Delete();
                 } else {
-                    (*refItr)->AlterQuantity(-qtyNeeded, true);
+                    (*refItr)->AlterQuantity(static_cast<int32>(-static_cast<int64>(qtyNeeded)), true);
                     break;  // we are done, stop searching
                 }
             }

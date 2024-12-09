@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -153,33 +153,45 @@ bool MarshalStream::VisitBuffer( const PyBuffer* rep )
     Put<uint8>( Op_PyBuffer );
 
     const Buffer& buf = rep->content();
+    size_t size = buf.size();
 
-    PutSizeEx( (uint32)buf.size() );
-    Put( buf.begin<uint8>(), buf.end<uint8>() );
+    // 检查缓冲区大小是否超过限制
+    if (size > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("MarshalStream", "Buffer size %zu exceeds maximum allowed value", size);
+        return false;
+    }
+
+    PutSizeEx(static_cast<uint32>(size));
+    Put(buf.begin<uint8>(), buf.end<uint8>());
 
     return true;
 }
 
 bool MarshalStream::VisitString( const PyString* rep )
 {
-    size_t len(rep->content().size());
-
-    if ( len == 0 ) {
-        Put<uint8>( Op_PyEmptyString );
-    } else if ( len == 1 ) {
-        Put<uint8>( Op_PyCharString );
-        Put<uint8>( rep->content()[0] );
+    size_t len = rep->content().size();
+    
+    if (len == 0) {
+        Put<uint8>(Op_PyEmptyString);
+    } else if (len == 1) {
+        Put<uint8>(Op_PyCharString);
+        Put<uint8>(rep->content()[0]);
     } else {
+        // 检查字符串长度是否超过限制
+        if (len > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Error("MarshalStream", "String length %zu exceeds maximum allowed value", len);
+            return false;
+        }
+
         //string is long enough for a string table entry, check it.
-        const uint8 index = sMarshalStringTable.LookupIndex( rep->content() );
-        if ( index > STRING_TABLE_ERROR ) {
-            Put<uint8>( Op_PyStringTableItem );
-            Put<uint8>( index );
+        const uint8 index = sMarshalStringTable.LookupIndex(rep->content());
+        if (index > STRING_TABLE_ERROR) {
+            Put<uint8>(Op_PyStringTableItem);
+            Put<uint8>(index);
         } else {
-        // NOTE: they seem to have stopped using Op_PyShortString
-            Put<uint8>( Op_PyLongString );
-            PutSizeEx( (uint32)len );
-            Put( rep->content().begin(), rep->content().end() );
+            Put<uint8>(Op_PyLongString);
+            PutSizeEx(static_cast<uint32>(len));
+            Put(rep->content().begin(), rep->content().end());
         }
     }
 
@@ -188,17 +200,22 @@ bool MarshalStream::VisitString( const PyString* rep )
 
 bool MarshalStream::VisitWString( const PyWString* rep )
 {
-    size_t len(rep->content().size());
+    size_t len = rep->content().size();
 
-    if ( len == 0 ) {
-        Put<uint8>( Op_PyEmptyWString );
+    if (len == 0) {
+        Put<uint8>(Op_PyEmptyWString);
     } else {
+        // 检查字符串长度是否超过限制
+        if (len > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Error("MarshalStream", "WString length %zu exceeds maximum allowed value", len);
+            return false;
+        }
+
         // We don't have to consider any conversions because
         // UTF-8 is more space-efficient than UCS-2.
-
-        Put<uint8>( Op_PyWStringUTF8 );
-        PutSizeEx( (uint32)len );
-        Put( rep->content().begin(), rep->content().end() );
+        Put<uint8>(Op_PyWStringUTF8);
+        PutSizeEx(static_cast<uint32>(len));
+        Put(rep->content().begin(), rep->content().end());
     }
 
     return true;
@@ -209,25 +226,38 @@ bool MarshalStream::VisitToken( const PyToken* rep )
     Put<uint8>( Op_PyToken );
 
     const std::string& str = rep->content();
+    size_t size = str.size();
 
-    PutSizeEx( (uint32)str.size() );
-    Put( str.begin(), str.end() );
+    // 检查字符串长度是否超过限制
+    if (size > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("MarshalStream", "Token string length %zu exceeds maximum allowed value", size);
+        return false;
+    }
+
+    PutSizeEx(static_cast<uint32>(size));
+    Put(str.begin(), str.end());
 
     return true;
 }
 
 bool MarshalStream::VisitTuple( const PyTuple* rep )
 {
-    uint32 size(rep->size());
-    if ( size == 0 ) {
+    size_t size = rep->size();
+    if (size > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("MarshalStream", "Tuple size %zu exceeds maximum allowed value", size);
+        return false;
+    }
+    
+    uint32 usize = static_cast<uint32>(size);
+    if (usize == 0) {
         Put<uint8>( Op_PyEmptyTuple );
-    } else if ( size == 1 ) {
+    } else if (usize == 1) {
         Put<uint8>( Op_PyOneTuple );
-    } else if ( size == 2 ) {
+    } else if (usize == 2) {
         Put<uint8>( Op_PyTwoTuple );
     } else {
         Put<uint8>( Op_PyTuple );
-        PutSizeEx( size );
+        PutSizeEx(usize);
     }
 
     return PyVisitor::VisitTuple( rep );
@@ -235,14 +265,20 @@ bool MarshalStream::VisitTuple( const PyTuple* rep )
 
 bool MarshalStream::VisitList( const PyList* rep )
 {
-    uint32 size(rep->size());
-    if ( size == 0 ) {
+    size_t size = rep->size();
+    if (size > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("MarshalStream", "List size %zu exceeds maximum allowed value", size);
+        return false;
+    }
+    
+    uint32 usize = static_cast<uint32>(size);
+    if (usize == 0) {
         Put<uint8>( Op_PyEmptyList );
-    } else if ( size == 1 ) {
+    } else if (usize == 1) {
         Put<uint8>( Op_PyOneList );
     } else {
         Put<uint8>( Op_PyList );
-        PutSizeEx( size );
+        PutSizeEx(usize);
     }
 
     return PyVisitor::VisitList( rep );
@@ -250,9 +286,14 @@ bool MarshalStream::VisitList( const PyList* rep )
 
 bool MarshalStream::VisitDict( const PyDict* rep )
 {
-    uint32 size(rep->size());
+    size_t size = rep->size();
+    if (size > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("MarshalStream", "Dict size %zu exceeds maximum allowed value", size);
+        return false;
+    }
+    
     Put<uint8>( Op_PyDict );
-    PutSizeEx( size );
+    PutSizeEx(static_cast<uint32>(size));
 
     //we have to reverse the order of key/value to be value/key, so do not call base class.
     PyDict::const_iterator cur = rep->begin(), end = rep->end();
@@ -311,31 +352,37 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* pyPackedRow )
     header->visit( *this );
 
     // create the sizemap and sort it by bitsize, the value of the map indicates the index of the column
-    // this can be used to identify things easily
+   // this can be used to identify things easily
     std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
     std::map<uint8,uint8> booleanColumns;
 
     uint32 columnCount = header->ColumnCount();
+    uint8 booleansBitLength = 0;
     size_t byteDataBitLength = 0;
-    size_t booleansBitLength = 0;
     size_t nullsBitLength = 0;
 
     // go through all the columns to gather the required information
-    for (uint32_t i = 0; i < columnCount; i ++)
+    for (uint32_t i = 0; i < columnCount; i++)
     {
-        DBTYPE columnType = header->GetColumnType (i);
-        uint8_t size = DBTYPE_GetSizeBits (columnType);
+        DBTYPE columnType = header->GetColumnType(i);
+        uint8_t size = DBTYPE_GetSizeBits(columnType);
 
         // count booleans
         if (columnType == DBTYPE_BOOL)
         {
+            // 检查是否超出 uint8 范围
+            if (booleansBitLength == UINT8_MAX) {
+                sLog.Error("MarshalStream", "Boolean columns count exceeds maximum allowed value");
+                return false;
+            }
+            
             // register the boolean in the list and increase the length
-            booleanColumns.insert (std::make_pair (i, booleansBitLength));
-            booleansBitLength ++;
+            booleanColumns.insert(std::make_pair(static_cast<uint8>(i), booleansBitLength));
+            booleansBitLength++;
         }
 
         // also count all columns as possible nulls
-        nullsBitLength ++;
+        nullsBitLength++;
 
         // increase the bytedata length only if a column is longer than 7 bits
         // this is used as an indicator of what is written in the first second, or third part
@@ -343,7 +390,7 @@ bool MarshalStream::VisitPackedRow( const PyPackedRow* pyPackedRow )
             byteDataBitLength += size;
 
         // add the column to the list
-        sizeMap.insert (std::make_pair (size, i));
+        sizeMap.insert(std::make_pair(size, i));
     }
 
     // reserve the space for the buffers
@@ -481,9 +528,16 @@ bool MarshalStream::VisitSubStream( const PySubStream* rep )
 
     //we have the marshaled data, use it.
     const Buffer& data = rep->data()->content();
+    size_t size = data.size();
 
-    PutSizeEx( (uint32)data.size() );
-    Put( data.begin<uint8>(), data.end<uint8>() );
+    // 检查数据大小是否超过限制
+    if (size > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("MarshalStream", "SubStream data size %zu exceeds maximum allowed value", size);
+        return false;
+    }
+
+    PutSizeEx(static_cast<uint32>(size));
+    Put(data.begin<uint8>(), data.end<uint8>());
 
     return true;
 }
@@ -521,8 +575,9 @@ void MarshalStream::SaveVarInteger( const PyLong* v )
     }
 }
 
-bool MarshalStream::SaveRLE(const Buffer& in )
+bool MarshalStream::SaveRLE(const Buffer& in)
 {
+    size_t in_size = in.size();
     // TODO: REWRITE THIS, AS IT IS RIGHT NOW IS INEFFICIENT, I'VE CONVERTED THE BUFFER CLASS TO A BASTARDIZED VERSION OF A NORMAL BYTE ARRAY
     // ALMAMU - 2021/04/22 - After many years the buggy "SaveZeroCompressed" function has been laid to rest
     //                       may this todo be a way to remind us how unstable and fragile the EVEmu core is
@@ -531,7 +586,7 @@ bool MarshalStream::SaveRLE(const Buffer& in )
     //                       "hopefully" this brings our marshaller closer to fully featured
 
     // reserve double the buffer size just in case, we do not want to run out of space or else the iterators will start to complain
-    Buffer out(in.size() * 2, 0);
+    Buffer out(in_size * 2, 0);
 
     // this code has been used and ported through different projects
     // both ntt's reverence and Captnoord's re-implementation of evemu core have the exact same code
@@ -543,9 +598,9 @@ bool MarshalStream::SaveRLE(const Buffer& in )
     int out_ix = 0;
     int start, end, count;
     int zerochains = 0;
-    int in_size = in.size();
+    size_t buffer_size = in_size;
 
-    while(in_ix < in_size)
+    while(in_ix < static_cast<int>(buffer_size))
     {
         if(!nibble)
         {
@@ -554,9 +609,7 @@ bool MarshalStream::SaveRLE(const Buffer& in )
         }
 
         start = in_ix;
-        end = in_ix+8;
-        if(end > in_size)
-            end = in_size;
+        end = std::min(in_ix + 8, static_cast<int>(buffer_size));
 
         if(in[in_ix])
         {
@@ -591,9 +644,14 @@ bool MarshalStream::SaveRLE(const Buffer& in )
     }
 
     // Write the packed in
-    PutSizeEx( (uint32) out_ix);
-    if ( 0 < out.size() )
-        Put( out.begin<uint8>(), out.begin<uint8>() + out_ix );
+    if (out_ix < 0 || static_cast<uint32>(out_ix) > UINT32_MAX) {
+        sLog.Error("MarshalStream", "Packed size %d exceeds maximum allowed value", out_ix);
+        return false;
+    }
+    
+    PutSizeEx(static_cast<uint32>(out_ix));
+    if (out_ix > 0)
+        Put(out.begin<uint8>(), out.begin<uint8>() + out_ix);
 
     return true;
 }

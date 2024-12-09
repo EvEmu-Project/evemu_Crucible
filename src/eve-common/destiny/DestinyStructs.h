@@ -82,6 +82,12 @@ DST_WARPEXIT = 11
  */
 #pragma pack(1)
 
+// 添加编译器特定的警告禁用
+#ifdef _MSC_VER
+    #pragma warning(push)
+    #pragma warning(disable: 4200)  // 禁用零大小数组警告
+#endif
+
 struct AddBall_header {
     uint8 packet_type;  /* 0 = full state, 1 = balls */
     uint32 stamp;  /* statestamp */
@@ -89,7 +95,7 @@ struct AddBall_header {
 
 struct NameSector {
     uint8  name_len;        //in 16 bit increments
-    uint16 name[0];         //utf16
+    uint16 name[0];         //utf16  // 这是一个灵活数组成员
 };
 
 struct BallHeader {
@@ -130,7 +136,7 @@ struct MiniBall {
 
 struct MiniBallList {
     uint16 count;
-    MiniBall balls[0];
+    MiniBall balls[0];      // 这是一个灵活数组成员
 };
 
 struct GOTO_Struct {
@@ -229,6 +235,10 @@ struct TotalStruct {
     union SpecificSectors specific;
 };
 
+// 恢复警告设置
+#ifdef _MSC_VER
+    #pragma warning(pop)
+#endif
 
 #pragma pack()
 

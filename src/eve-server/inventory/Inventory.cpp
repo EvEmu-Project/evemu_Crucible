@@ -457,7 +457,7 @@ uint32 Inventory::GetItemsByFlag(EVEItemFlags flag, std::vector<InventoryItemRef
     auto range = m_contentsByFlag.equal_range(flag);
     for ( auto itr = range.first; itr != range.second; ++itr )
             items.push_back(itr->second);
-    return items.size();
+    return static_cast<uint32>(items.size());
 }
 
 bool Inventory::GetTypesByFlag(EVEItemFlags flag, std::map< uint16, InventoryItemRef >& items)
@@ -526,7 +526,7 @@ bool Inventory::ContainsTypeQty(uint16 typeID, uint32 qty/*0*/) const
     uint32 count(0);
     for (auto cur : mContents) {
         if (cur.second->typeID() == typeID ) {
-            if (cur.second->quantity() >= qty) {
+            if (static_cast<uint32>(cur.second->quantity()) >= qty) {
                 return true;
             } else {
                 count += cur.second->quantity();
@@ -546,7 +546,7 @@ bool Inventory::ContainsTypeQtyByFlag(uint16 typeID, EVEItemFlags flag, uint32 q
 
     for (auto cur : itemVec) {
         if (cur->typeID() == typeID) {
-            if (cur->quantity() >= qty) {
+            if (static_cast<uint32>(cur->quantity()) >= qty) {
                 return true;
             } else {
                 count += cur->quantity();
@@ -572,7 +572,7 @@ int Inventory::ContainsTypeStackQtyByFlag(uint16 typeID, EVEItemFlags flag, uint
         return 0;
 
     for (auto cur : itemVec) {
-        if (cur->typeID() == typeID && cur->quantity() >= qty) {
+        if (cur->typeID() == typeID && static_cast<uint32>(cur->quantity()) >= qty) {
             return cur->itemID();
         }
     }

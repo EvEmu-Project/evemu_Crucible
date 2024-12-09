@@ -31,32 +31,46 @@ uint32 ResolveIP(const char* hostname, char* errbuf) {
 #ifdef HAVE_WINSOCK2_H
     static InitWinsock ws;
 #endif /* !HAVE_WINSOCK2_H */
-    if( errbuf )
+    if (errbuf)
         errbuf[0] = 0;
 
-    if( hostname == NULL )
-    {
-        if( errbuf )
+    if (hostname == NULL) {
+        if (errbuf)
             snprintf(errbuf, ERRBUF_SIZE, "ResolveIP(): hostname == NULL");
         return 0;
     }
 
-    hostent* phostent = gethostbyname( hostname );
-    if( phostent == NULL)
-    {
-        if( errbuf )
+    struct addrinfo hints = {0};
+    hints.ai_family = AF_INET;      // IPv4
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    struct addrinfo* result = NULL;
+    int ret = getaddrinfo(hostname, NULL, &hints, &result);
+    
+    if (ret != 0) {
+        if (errbuf) {
 #ifdef HAVE_WINSOCK2_H
-            snprintf( errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %i", WSAGetLastError() );
+            snprintf(errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %d", WSAGetLastError());
 #else /* !HAVE_WINSOCK2_H */
-            snprintf( errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %s", strerror( errno ) );
+            snprintf(errbuf, ERRBUF_SIZE, "Unable to get the host name. Error: %s", gai_strerror(ret));
 #endif /* !HAVE_WINSOCK2_H */
+        }
         return 0;
     }
 
-    in_addr addr;
-    memcpy( &addr, phostent->h_addr, phostent->h_length );
+    // 获取第一个 IPv4 地址
+    uint32 addr = 0;
+    for (struct addrinfo* ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+        if (ptr->ai_family == AF_INET) {
+            struct sockaddr_in* ipv4 = (struct sockaddr_in*)ptr->ai_addr;
+            addr = ipv4->sin_addr.s_addr;
+            break;
+        }
+    }
 
-    return addr.s_addr;
+    freeaddrinfo(result);
+    return addr;
 }
 
 /*bool ParseAddress(const char* iAddress, int32* oIP, int16* oPort, char* errbuf) {

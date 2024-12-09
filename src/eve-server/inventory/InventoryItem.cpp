@@ -1252,9 +1252,9 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry& result )
             /** @todo fix this once we start tracking effects */
             // on login, this is current time
             if (IsCharacterID(m_itemID)) {
-                es.startTime = GetFileTimeNow() - EvE::Time::Minute; // m_timestamp
+                es.startTime = GetFileTimeNow() - static_cast<double>(EvE::Time::Minute); // m_timestamp
             } else {
-                es.startTime = GetFileTimeNow() - EvE::Time::Minute; // GetAttribute(AttrStartTime).get_int();
+                es.startTime = GetFileTimeNow() - static_cast<double>(EvE::Time::Minute); // GetAttribute(AttrStartTime).get_int();
             }
             es.duration = -1;
             es.repeat = 0;

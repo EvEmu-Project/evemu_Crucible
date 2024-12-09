@@ -1,5 +1,4 @@
-
- /**
+/**
   * @name PlanetDataMgr.cpp
   *   Specific Class for managing planet and pi data
   * @Author:         Allan
@@ -220,7 +219,7 @@ PyRep* PIDataMgr::GetProgramResultInfo(Colony* pColony, uint32 pinID, uint16 typ
     cycleTime = EvE::max(floor(two) + 1);    //4
     cycleTime = 0.25 * (pow(2, cycleTime));  // this is (float) in hours (0.25, 0.5, etc)
     numCycles = (uint16)(length / cycleTime);   //73
-    int64 iCycleTime = cycleTime * EvE::Time::Hour;
+    int64 iCycleTime = static_cast<float>(EvE::Time::Hour) * cycleTime;
 
     uint32 qtyPerCycle = GetProgramOutput(iRef, iCycleTime);
     //qtyPerCycle *= heads->size();
@@ -296,7 +295,7 @@ uint32 PIDataMgr::GetProgramOutputPrediction(InventoryItemRef iRef, int64 cycleT
     uint32 val = 0;
     if (numCycles > 120)    // hardcoded in client
         numCycles = 120;
-    for (int i=1; i <= numCycles; ++i)
+    for (uint32 i = 1; i <= numCycles; ++i)
         val += GetProgramOutput(iRef, cycleTime, i * cycleTime);
     return val;
 }
@@ -308,7 +307,7 @@ uint32 PIDataMgr::GetMaxOutput(InventoryItemRef iRef, uint32 qtyPerCycle/*0*/, i
     if (cycleTime == 0)
         cycleTime = iRef->GetAttribute(AttrPinCycleTime).get_int() * EvE::Time::Second; // base time is 300s
     float scalar = iRef->GetAttribute(AttrECUNoiseFactor).get_float() +1;
-    return (scalar * qtyPerCycle) * cycleTime / EvE::Time::Second / 900.0;
+    return (scalar * qtyPerCycle) * cycleTime / static_cast<float>(EvE::Time::Second) / 900.0;
 }
 
 uint16 PIDataMgr::GetHeadType(uint16 ecuTypeID, uint16 programType)

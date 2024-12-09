@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -70,15 +70,52 @@ TCPConnection::~TCPConnection()
 std::string TCPConnection::GetAddress()
 {
     /* "The Matrix is a system, Neo. That system is our enemy. But when you're inside, you look around, what do you see?" */
-    in_addr addr;
-    addr.s_addr = GetrIP();
+    char ip_str[INET_ADDRSTRLEN];
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));  // 初始化结构体
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = GetrIP();
 
-    char address[22];
-    int len(snprintf(address, 22, "%s:%u", inet_ntoa(addr), GetrPort()));
+    bool success = false;
+#ifdef HAVE_WINSOCK2_H
+    // Windows 平台
+    WCHAR wide_ip[INET_ADDRSTRLEN];
+    DWORD wide_size = INET_ADDRSTRLEN;
+    if (WSAAddressToStringW((LPSOCKADDR)&addr, sizeof(struct sockaddr_in), 
+                           NULL, wide_ip, &wide_size) == 0) {
+        // 转换宽字符为多字节
+        if (WideCharToMultiByte(CP_UTF8, 0, wide_ip, -1, 
+                               ip_str, INET_ADDRSTRLEN, NULL, NULL) > 0) {
+            success = true;
+        } else {
+            DWORD error = GetLastError();
+            sLog.Error("TCPConnection", "WideCharToMultiByte failed with error: %d", error);
+        }
+    } else {
+        DWORD error = WSAGetLastError();
+        sLog.Error("TCPConnection", "WSAAddressToStringW failed with error: %d", error);
+    }
+#else
+    // Linux/Unix 平台
+    if (inet_ntop(AF_INET, &(addr.sin_addr), ip_str, INET_ADDRSTRLEN) != NULL) {
+        success = true;
+    } else {
+        sLog.Error("TCPConnection", "inet_ntop failed with error: %s", strerror(errno));
+    }
+#endif
+
+    if (!success)
+        return std::string();
+
+    // 使用足够大的缓冲区来存储 IP:端口
+    char address[INET_ADDRSTRLEN + 8];  // 额外空间用于":端口"
+    int result_len = snprintf(address, sizeof(address), "%s:%u", ip_str, GetrPort());
 
     /* snprintf will return < 0 when a error occurs so return empty string */
-    if(len < 0)
+    if (result_len < 0 || result_len >= static_cast<int>(sizeof(address))) {
+        sLog.Error("TCPConnection", "Address buffer overflow");
         return std::string();
+    }
 
     return address;
 }

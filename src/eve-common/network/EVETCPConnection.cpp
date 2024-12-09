@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -55,9 +55,12 @@ void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
     const Buffer::iterator<uint32> bufLen = pBuffer->end<uint32>();
     pBuffer->ResizeAt( bufLen, 1 );
 
-    if (PACKET_SIZE_LIMIT < pBuffer->size()) {
-        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", pBuffer->size(), PACKET_SIZE_LIMIT );
-        SafeDelete( pBuffer );
+    // 检查缓冲区大小
+    size_t bufferSize = pBuffer->size();
+    if (bufferSize > PACKET_SIZE_LIMIT) {
+        sLog.Error("Network", "Packet length %zu exceeds hardcoded packet length limit %u.", 
+                   bufferSize, PACKET_SIZE_LIMIT);
+        SafeDelete(pBuffer);
         return;
     }
 
@@ -69,17 +72,25 @@ void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
     }
 
     if (success) {
-       // if (is_log_enabled(DEBUG__DEBUG))
+        // if (is_log_enabled(DEBUG__DEBUG))
        //     DumpBuffer( pBuffer, PACKET_OUTBOUND );
-        // write length
-        *bufLen = ( pBuffer->size() - sizeof( uint32 ) );
-        Send( &pBuffer );
+        // 检查最终大小
+        bufferSize = pBuffer->size();
+        if (bufferSize > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Error("Network", "Final packet length %zu exceeds maximum uint32 value", bufferSize);
+            SafeDelete(pBuffer);
+            return;
+        }
+
+        // write length (subtract the size of length field itself)
+        *bufLen = static_cast<uint32>(bufferSize - sizeof(uint32));
+        Send(&pBuffer);
     } else {
-        sLog.Error( "Network", "Failed to marshal new packet." );
+        sLog.Error("Network", "Failed to marshal new packet.");
     }
 
     PySafeDecRef(rep);
-    SafeDelete( pBuffer );
+    SafeDelete(pBuffer);
 }
 
 PyRep* EVETCPConnection::PopRep()

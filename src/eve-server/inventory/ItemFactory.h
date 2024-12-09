@@ -35,8 +35,8 @@ struct CharacterData;
 struct CorpData;
 struct OfficeData;
 struct AsteroidData;
+struct ItemData;
 
-class ItemData;
 class ItemType;
 class BlueprintType;
 class CharacterType;
@@ -57,7 +57,14 @@ public:
 
     void Close();
     int Initialize();
-    uint32 Count()                                      { return m_items.size(); }
+    uint32 Count() {
+        size_t count = m_items.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Error("ItemFactory", "Item count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
 
     void SaveItems();
     void RemoveItem(uint32 itemID);

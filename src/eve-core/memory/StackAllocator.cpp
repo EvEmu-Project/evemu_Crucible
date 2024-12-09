@@ -123,7 +123,12 @@ namespace Memory
 #ifdef _DEBUG
         if (_debug)
         {
-            printf("%s\tAllocated \t@C %p \t@R %p \tO %u \tP %u", _name, reinterpret_cast<void*>(currentAddress), reinterpret_cast<void*>(nextAddress), tempOffset, padding);
+            printf("%s\tAllocated \t@C %p \t@R %p \tO %zu \tP %zu", 
+                   _name.c_str(), 
+                   reinterpret_cast<void*>(currentAddress), 
+                   reinterpret_cast<void*>(nextAddress), 
+                   tempOffset, 
+                   padding);
         }
 #endif
         _peak.store(std::max(_peak.load(), _used.load()));
@@ -180,7 +185,7 @@ namespace Memory
 #ifdef _DEBUG
         if (_debug)
         {
-            printf("%s \tReset", _name);
+            printf("%s \tReset", _name.c_str());
         }
 #endif
     }

@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -541,7 +541,7 @@ PyResult LSCService::Configure(PyCallArgs& call, PyInt* channelID)
      * 20:43:44 [LSC_CDump]         Integer field: 1
      * 20:43:44 [LSC_CDump]     Argument 'motd':
      * 20:43:44 [LSC_CDump]         WString: 'test MOTD'
-     *
+     * 
      * 21:13:02 W LSCService::Handle_Configure(): size=1
      * 21:13:02 [LSC_CDump]   Call Arguments:
      * 21:13:02 [LSC_CDump]       Tuple: 1 elements
@@ -1073,7 +1073,7 @@ void LSCService::CreateStaticChannels() {
     str << "Please state where your bookmark will be traded, contracted or if you're hoping to fleet with the salvager looking for work. <br>";
     str << "If you are contracting or trading bookmarks dont forget to</color> <color=0xff007fff>Abandon all wrecks and containers</color><color=0xffffffff>.</color><br><br>";
     str << "<b><u><color=0xff00ff00>Useful Links.</color></u><br>";
-    str << "<loc><url=http://evemaps.dotlan.net/>DOTLAN</url></loc></b><color=0xffffffff> - A database of everything you need to know about New Eden; maps, corporations, navigations and much more.</color><color=0xff0000ff>NOTE:</color><color=0xffffffff> While this site is specific for Tranquility, the maps and navigation are the same here on EVEmu.</color><br>";
+    str << "<loc><url=http://evemaps.dotlan.net/>DOTLAN</url></loc><color=0xffffffff> - A database of everything you need to know about New Eden; maps, corporations, navigations and much more.</color><color=0xff0000ff>NOTE:</color><color=0xffffffff> While this site is specific for Tranquility, the maps and navigation are the same here on EVEmu.</color><br>";
     str << "<loc><url=http://o.smium.org>Osmium</url></loc><color=0xffffffff> - A site where pilots post their ship fittings to help players get the most out of their ship class.</color><br>";
     str << "<loc><url=http://eve-survival.org/wikka.php?wakka=MissionReports>EVE Survival</url></loc><color=0xffffffff> - A database of missions within New Eden. Here you can find information about gaining the upper hand on those sneaky NPCs and how to perfectly run the mission in question.</color><br>";
     str << "<loc><url=http://www.fuzzwork.co.uk/>Fuzz Work</url></loc><color=0xffffffff> - A brilliant site that has many awesome calculators for LP stores, Blueprints, Invention, Ore and much more!</color><br>";
@@ -1084,7 +1084,7 @@ void LSCService::CreateStaticChannels() {
     str.str("");
     str << "<br><color=0xffffffff>Welcome to the</color> <color=0xff00ffff>GM Command</color><color=0xffffffff> channel.<br><br>";
     str << "This channel is intended for using dot commands.</color>";
-    CreateChannel(2900000000, 1, "Command", str.str().c_str(), nullptr, "command", LSC::Type::custom, cspa, 0, 0, true);
+    CreateChannel(BASE_CHANNEL_ID, 1, "Command", str.str().c_str(), nullptr, "command", LSC::Type::custom, cspa, 0, 0, true);
 }
 
 void LSCService::SendServerMOTD(Client* pClient)

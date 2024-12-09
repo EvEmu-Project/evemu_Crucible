@@ -1229,7 +1229,13 @@ recStoreItems = 'STOREITEMS'
         std::string reason = "NBLT: "; //this needs to be populated as [NBL(T): type:amt, type:amt, ... ] to get proper shit in client
         std::map<uint32, RatDataMap>::iterator itr = m_ratMap.find(cur.first);
         if (itr != m_ratMap.end()) {
-            count = itr->second.size();
+            size_t mapSize = itr->second.size();
+            if (mapSize > 127) {  // max value for int8
+                _log(SE__ERROR, "SystemManager::ProcessRatBounties() - rat map size %u exceeds int8 maximum, truncating to 127.", mapSize);
+                count = 127;
+            } else {
+                count = static_cast<int8>(mapSize);
+            }
             for (auto cur : itr->second) {
                 reason += std::to_string(cur.first);
                 reason += ":";

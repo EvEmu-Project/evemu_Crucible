@@ -105,10 +105,38 @@ public:
     PyRep* PyIsOnline(uint32 charID);
 
     uint32 GetNPCCount()                                { return m_npcs; }
-    uint32 GetClientCount() const                       { return m_clients.size(); }
-    uint32 GetPlayerCount() const                       { return m_players.size(); }
-    uint32 GetSystemCount() const                       { return m_systems.size(); }
-    uint32 GetStationCount() const                      { return m_stations.size(); }
+    uint32 GetClientCount() const {
+        size_t count = m_clients.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Warning("EntityList", "Client count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
+    uint32 GetPlayerCount() const {
+        size_t count = m_players.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Warning("EntityList", "Player count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
+    uint32 GetSystemCount() const {
+        size_t count = m_systems.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Warning("EntityList", "System count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
+    uint32 GetStationCount() const {
+        size_t count = m_stations.size();
+        if (count > static_cast<size_t>(UINT32_MAX)) {
+            sLog.Warning("EntityList", "Station count %zu exceeds uint32 maximum", count);
+            return UINT32_MAX;
+        }
+        return static_cast<uint32>(count);
+    }
     uint16 GetClientSeed()                              { return ++m_clientSeedID; }
 
     /* stamp shit here */

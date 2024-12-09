@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -508,54 +508,69 @@ PyRep* UnmarshalStream::LoadPackedRow()
     // PyPackedRows are just a packed form of blue.DBRow
     // these take a DBRowDescriptor and the column data in different formats
     PyRep* header_element = LoadRep();
-    if( NULL == header_element )
+    if (NULL == header_element)
         return nullptr;
 
     // create the base packed row to be filled with data
-    PyPackedRow* row = new PyPackedRow( (DBRowDescriptor*)header_element );
+    PyPackedRow* row = new PyPackedRow((DBRowDescriptor*)header_element);
 
     // create the sizemap and sort it by bitsize, the value of the map indicates the index of the column
     // this can be used to identify things easily
-    std::multimap< uint8, uint32, std::greater< uint8 > > sizeMap;
-    std::map<uint8,uint8> booleanColumns;
+    std::multimap<uint8, uint32, std::greater<uint8>> sizeMap;
+    std::map<uint8, uint8> booleanColumns;
 
     uint32 columnCount = row->header()->ColumnCount();
+    uint8 booleansBitLength = 0;  // 使用 uint8 类型
     size_t byteDataBitLength = 0;
-    size_t booleansBitLength = 0;
     size_t nullsBitLength = 0;
 
-    for (uint32 i(0); i < columnCount; i++ )
+    // go through all the columns to gather the required information
+    for (uint32 i = 0; i < columnCount; i++)
     {
-        DBTYPE columnType = row->header()->GetColumnType (i);
-        uint8_t size = DBTYPE_GetSizeBits (columnType);
+        DBTYPE columnType = row->header()->GetColumnType(i);
+        uint8 size = DBTYPE_GetSizeBits(columnType);
 
         // count booleans
         if (columnType == DBTYPE_BOOL)
         {
-            booleanColumns.insert (std::make_pair (i, booleansBitLength));
+            // 检查是否超出 uint8 范围
+            if (booleansBitLength == UINT8_MAX) {
+                sLog.Error("UnmarshalStream", "Boolean columns count exceeds maximum allowed value");
+                PyDecRef(row);
+                return nullptr;
+            }
+
+            // register the boolean in the list and increase the length
+            booleanColumns.insert(std::make_pair(static_cast<uint8>(i), booleansBitLength));
             booleansBitLength++;
         }
 
-        // count all columns as possible nulls
-        nullsBitLength ++;
+        // also count all columns as possible nulls
+        nullsBitLength++;
 
         // increase the bytedata length only if a column is longer than 7 bits
-        // this is used as an indicator of what is written in the first, second or third part
+         // this is used as an indicator of what is written in the first, second or third part
         if (size >= 8)
             byteDataBitLength += size;
 
         // add the column to the list
-        sizeMap.insert (std::make_pair (size, i));
+        sizeMap.insert(std::make_pair(size, i));
     }
 
     size_t expectedByteSize = (byteDataBitLength >> 3) + ((booleansBitLength + nullsBitLength) >> 3) + 1;
 
-    // reserve enough space for the buffer
-    Buffer unpacked (expectedByteSize, 0);
+    // 检查大小是否超出范围
+    if (expectedByteSize > static_cast<size_t>(ULONG_MAX)) {
+        sLog.Error("UnmarshalStream", "Expected byte size %zu exceeds maximum allowed value", expectedByteSize);
+        PyDecRef(header_element);
+        return nullptr;
+    }
 
-    if( !LoadRLE(unpacked) )
-    {
-        PyDecRef( header_element );
+    // reserve enough space for the buffer
+    Buffer unpacked(static_cast<unsigned long>(expectedByteSize), 0);
+
+    if (!LoadRLE(unpacked)) {
+        PyDecRef(header_element);
         return nullptr;
     }
 
@@ -570,8 +585,26 @@ PyRep* UnmarshalStream::LoadPackedRow()
         const uint32 index = cur->second;
         const DBTYPE columnType = row->header ()->GetColumnType (index);
 
-        unsigned long nullBit = byteDataBitLength + booleansBitLength + cur->second;
+        size_t nullBitOffset = byteDataBitLength + booleansBitLength + cur->second;
+        if (nullBitOffset > static_cast<size_t>(ULONG_MAX)) {
+            sLog.Error("UnmarshalStream", "Bit offset %zu exceeds maximum allowed value", nullBitOffset);
+            PyDecRef(row);
+            return nullptr;
+        }
+
+        size_t maxByteOffset = nullBitOffset >> 3;
+        if (maxByteOffset > static_cast<size_t>(ULONG_MAX)) {
+            sLog.Error("UnmarshalStream", "Byte offset %zu exceeds maximum allowed value", maxByteOffset);
+            PyDecRef(row);
+            return nullptr;
+        }
+
+        unsigned long nullBit = static_cast<unsigned long>(nullBitOffset + cur->second);
         unsigned long nullByte = nullBit >> 3;
+
+        unsigned long boolBit = static_cast<unsigned long>(byteDataBitLength + booleanColumns.find(cur->second)->second);
+        unsigned long boolByte = boolBit >> 3;
+
         // setup the iterator to the proper byte
         // first check for nulls
         bitIterator = unpacked.begin<uint8>() + nullByte;
@@ -656,8 +689,23 @@ PyRep* UnmarshalStream::LoadPackedRow()
             case DBTYPE_BOOL:
             {
                 // get the bit this boolean should be read from
-                unsigned long boolBit = byteDataBitLength + booleanColumns.find (index)->second;
-                unsigned long boolByte = boolBit >> 3;
+                size_t boolBitOffset = byteDataBitLength + booleanColumns.find(cur->second)->second;
+                if (boolBitOffset > static_cast<size_t>(ULONG_MAX)) {
+                    sLog.Error("UnmarshalStream", "Boolean bit offset %zu exceeds maximum allowed value", boolBitOffset);
+                    PyDecRef(row);
+                    return nullptr;
+                }
+
+                size_t boolByteOffset = boolBitOffset >> 3;
+                if (boolByteOffset > static_cast<size_t>(ULONG_MAX)) {
+                    sLog.Error("UnmarshalStream", "Boolean byte offset %zu exceeds maximum allowed value", boolByteOffset);
+                    PyDecRef(row);
+                    return nullptr;
+                }
+
+                unsigned long boolBit = static_cast<unsigned long>(boolBitOffset);
+                unsigned long boolByte = static_cast<unsigned long>(boolByteOffset);
+
                 // setup the iterator to the proper byte
                 bitIterator = unpacked.begin<uint8>() + boolByte;
 
@@ -759,10 +807,15 @@ PyObjectEx* UnmarshalStream::LoadObjectEx( bool is_type_2 )
 
 bool UnmarshalStream::LoadRLE(Buffer& out)
 {
-    const uint32 in_size = ReadSizeEx();
+    // 获取输入大小并检查范围
+    size_t in_size = ReadSizeEx();
+    if (in_size > static_cast<size_t>(ULONG_MAX)) {
+        sLog.Error("UnmarshalStream", "Input size %zu exceeds maximum allowed value", in_size);
+        return false;
+    }
 
     Buffer::const_iterator<uint8> cur, end;
-    cur = Read<uint8>(in_size );
+    cur = Read<uint8>(static_cast<unsigned long>(in_size));
     end = cur + in_size;
     Buffer::const_iterator<uint8> in_ix = cur;
     int out_ix = 0;
@@ -783,7 +836,7 @@ bool UnmarshalStream::LoadRLE(Buffer& out)
 
         if(count >= 0)
         {
-            if (out_ix + count + 1 > out.size())
+            if (out_ix + count + 1 > static_cast<int>(out.size()))
                 return false;
 
             while(count-- >= 0)
@@ -791,7 +844,8 @@ bool UnmarshalStream::LoadRLE(Buffer& out)
         }
         else
         {
-            if (out_ix - count > out.size())
+            // 检查输出缓冲区大小
+            if (out_ix - count > static_cast<int>(out.size()))
                 return false;
 
             while(count++ && in_ix < end)
@@ -803,6 +857,5 @@ bool UnmarshalStream::LoadRLE(Buffer& out)
     // set to 0
     // while(out_ix < out.size())
     //    out[out_ix++] = 0;
-
     return true;
 }

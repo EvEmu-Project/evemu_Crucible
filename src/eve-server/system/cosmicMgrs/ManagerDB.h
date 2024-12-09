@@ -1,5 +1,4 @@
-
- /**
+/**
   * @name ManagerDB.h
   *   memory object caching system for managing and saving ingame data
   * @Author:         Allan
@@ -17,7 +16,7 @@
 #include "POD_containers.h"
 #include "system/SystemDB.h"
 
-class ItemData;
+struct ItemData;
 
 class ManagerDB {
 public:

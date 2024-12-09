@@ -268,10 +268,15 @@ void ServiceDB::ProcessRealChange(const char * key, double oldValue, double newV
     val->items[1] = new PyFloat(newValue);
     notif->SetItemString(key, val);
 
-    int* nullInt(nullptr);
+    // 使用 std::ostringstream 替代 fcvt
+    std::ostringstream ss;
+    ss.precision(2);  // 设置精度为2位小数
+    ss.setf(std::ios::fixed, std::ios::floatfield);  // 使用定点表示法
+    ss << newValue;
+
     std::string qValue(key);
     qValue += " = ";
-    qValue += fcvt(newValue, 2, nullInt, nullInt);
+    qValue += ss.str();
     dbQ.push_back(qValue);
 }
 

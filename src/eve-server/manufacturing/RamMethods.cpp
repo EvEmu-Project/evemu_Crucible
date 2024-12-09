@@ -1,5 +1,4 @@
-
- /**
+/**
   * @name RamMethods.cpp
   *   methods for R.A.M. activities
   *
@@ -353,7 +352,7 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const P
 
     for (auto cur : reqItems) {
         if (cur.isSkill) { // check skill (quantity is required level)
-            if (pClient->GetChar()->GetSkillLevel(cur.typeID) < cur.quantity) {
+            if (pClient->GetChar()->GetSkillLevel(cur.typeID) < static_cast<int32>(cur.quantity)) {
                 throw UserError ("RamNeedSkillForJob")
                         .AddFormatValue ("skillID", new PyInt (cur.typeID))
                         .AddFormatValue ("skillLevel", new PyInt (cur.quantity));
@@ -365,7 +364,7 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const P
             std::map<uint16, InventoryItemRef>::iterator itr = items.find(cur.typeID);
             if (itr != items.end())
                 if (itr->second->typeID() == cur.typeID) {
-                    if (itr->second->quantity() < qtyNeeded)
+                    if (static_cast<uint32>(itr->second->quantity()) < qtyNeeded)
                         qtyNeeded -= itr->second->quantity();
                     else
                         qtyNeeded = 0;

@@ -91,10 +91,18 @@ int64 filesize( FILE* fd )
 {
 #ifdef HAVE_SYS_STAT_H
     struct stat st;
-    ::fstat( ::fileno( fd ), &st );
+#ifdef _WIN32
+    ::fstat(_fileno(fd), &st);
+#else
+    ::fstat(fileno(fd), &st);
+#endif
     return st.st_size;
 #else /* !HAVE_SYS_STAT_H */
-    return ::filelength( ::fileno( fd ) );
+#ifdef _WIN32
+    return ::_filelength(_fileno(fd));
+#else
+    return ::filelength(fileno(fd));
+#endif
 #endif /* !HAVE_SYS_STAT_H */
 }
 
@@ -126,7 +134,7 @@ double MakeRandomFloat( double low, double high )
     if( !seeded )
     {
         time_t x = ::time( NULL );
-        ::srand( x * ( x % (time_t)( high - low ) ) );
+        ::srand(static_cast<unsigned int>((x * (x % static_cast<time_t>(high - low))) & 0xFFFFFFFF));
         seeded = true;
     }
 
@@ -178,7 +186,11 @@ void EvE::traceStack(void)
 
     for (int i = 0; i < callStack.size(); ++i)
     {
-        printf("[%3d] %15p: %s in %s\n", callStack.size() - i, callStack[i].offset, callStack[i].function.c_str(), callStack[i].module.c_str());
+        printf("[%3zu] %p: %s in %s\n", 
+               static_cast<size_t>(callStack.size() - i), 
+               (void*)(uintptr_t)callStack[i].offset, 
+               callStack[i].function.c_str(), 
+               callStack[i].module.c_str());
     }
 }
 
@@ -197,19 +209,20 @@ const char* EvE::FormatTime(int64 time/*-1*/) {
         return "Invalid Time";
     if (time < 1)
         return "None";
-    double seconds = time;
+    
+    double seconds = static_cast<double>(time);
     double minutes = seconds / 60.0;
-    float hours = minutes / 60.0;
-    float days = hours / 24.0;
-    float weeks = days / 7.0;
-    float months = days / 30.0;
+    double hours = minutes / 60.0;
+    double days = hours / 24.0;
+    double weeks = days / 7.0;
+    double months = days / 30.0;
 
-    int s(fmod(seconds, 60.0));
-    int m(fmod(minutes, 60.0));
-    int h(fmod(hours, 24.0));
-    int d(fmod(days, 7.0));
-    int w(fmod(weeks, 4.0));
-    int M(fmod(months, 12.0));
+    int s = static_cast<int>(std::fmod(seconds, 60.0));
+    int m = static_cast<int>(std::fmod(minutes, 60.0));
+    int h = static_cast<int>(std::fmod(hours, 24.0));
+    int d = static_cast<int>(std::fmod(days, 7.0));
+    int w = static_cast<int>(std::fmod(weeks, 4.0));
+    int M = static_cast<int>(std::fmod(months, 12.0));
 
     std::ostringstream uptime;
     if (M)
@@ -233,19 +246,20 @@ const char* EvE::FormatTime(double time/*-1*/) {
         return "Invalid Time";
     if (time < 1)
         return "None";
+    
     double seconds = time;
     double minutes = seconds / 60.0;
-    float hours = minutes / 60.0;
-    float days = hours / 24.0;
-    float weeks = days / 7.0;
-    float months = days / 30.0;
+    double hours = minutes / 60.0;
+    double days = hours / 24.0;
+    double weeks = days / 7.0;
+    double months = days / 30.0;
 
-    int s(fmod(seconds, 60.0));
-    int m(fmod(minutes, 60.0));
-    int h(fmod(hours, 24.0));
-    int d(fmod(days, 7.0));
-    int w(fmod(weeks, 4.0));
-    int M(fmod(months, 12.0));
+    int s = static_cast<int>(std::fmod(seconds, 60.0));
+    int m = static_cast<int>(std::fmod(minutes, 60.0));
+    int h = static_cast<int>(std::fmod(hours, 24.0));
+    int d = static_cast<int>(std::fmod(days, 7.0));
+    int w = static_cast<int>(std::fmod(weeks, 4.0));
+    int M = static_cast<int>(std::fmod(months, 12.0));
 
     std::ostringstream uptime;
     if (M)
@@ -266,10 +280,8 @@ const char* EvE::FormatTime(double time/*-1*/) {
 
 double EvE::trunicate2(double dig)
 {
-    int64 first = dig * 100;
-    double ret = (float)first / 100;
-    return ret;
-    //return (double)((int)dig*100)/100;
+    int64 first = static_cast<int64>(dig * 100);
+    return static_cast<double>(first) / 100.0;
 }
 
 /*std::string EvE::getExecPath()

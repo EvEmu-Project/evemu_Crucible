@@ -420,7 +420,15 @@ bool CachedObjectMgr::SaveCachedToFile(const std::string &cacheDir, const PyRep 
     header.timestamp = res->second->timestamp;
     header.version = res->second->version;
     header.magic = CacheFileMagic;
-    header.length = res->second->cache->content().size();
+    
+    // 添加大小检查
+    size_t contentSize = res->second->cache->content().size();
+    if (contentSize > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Error("CachedObjMgr", "Cache content size %zu exceeds maximum allowed size", contentSize);
+        fclose(f);
+        return false;
+    }
+    header.length = static_cast<uint32>(contentSize);
 
     if (fwrite(&header, sizeof(header), 1, f) != 1) {
         fclose(f);

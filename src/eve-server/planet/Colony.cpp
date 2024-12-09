@@ -195,7 +195,7 @@ void Colony::Save()
     m_db.SaveLinks(ccPin);
     m_db.SaveRoutes(ccPin);
     m_db.SaveContents(ccPin);
-    m_db.UpdatePlanetPins(m_colonyID, ccPin->pins.size());
+    m_db.UpdatePlanetPins(m_colonyID, static_cast<uint8>(ccPin->pins.size()));
 }
 
 // called by PlanetSE::Process() for loaded colony.
@@ -497,6 +497,9 @@ void Colony::CreateLink(uint32 src, uint32 dest, uint16 level) {
     ccPin->links[iRef->itemID()] = link;
 
     m_db.SaveLinks(ccPin);
+    m_db.SaveRoutes(ccPin);
+    m_db.SaveContents(ccPin);
+    m_db.UpdatePlanetPins(m_colonyID, static_cast<uint8>(ccPin->pins.size()));
     _log(COLONY__INFO, "Colony::CreateLink() - Created link - id:%u,  src:%u, dest:%u, level:%u", iRef->itemID(), src, dest, level);
 }
 
@@ -606,6 +609,9 @@ void Colony::UpgradeLink(uint32 src, uint32 dest, uint8 level)
             if (itr->second.endpoint2 == dest) {
                 itr->second.level = level;
                 m_db.SaveLinks(ccPin);
+                m_db.SaveRoutes(ccPin);
+                m_db.SaveContents(ccPin);
+                m_db.UpdatePlanetPins(m_colonyID, static_cast<uint8>(ccPin->pins.size()));
                 return;
             }
 }
@@ -674,7 +680,7 @@ void Colony::RemovePin(uint32 pinID)
     m_db.RemovePin(pinID);
     m_db.SaveLinks(ccPin);
     m_db.SaveRoutes(ccPin);
-    m_db.UpdatePlanetPins(m_colonyID, ccPin->pins.size());
+    m_db.UpdatePlanetPins(m_colonyID, static_cast<uint8>(ccPin->pins.size()));
     _log(COLONY__INFO, "Colony::RemovePin() - Removed pin %u with %u routes and %u links.  Upset %u routes by removing this pin", \
                             pinID, routeCount, linkCount, pathCount);
 }
@@ -838,9 +844,9 @@ void Colony::SetProgramResults(uint32 ecuID, uint16 typeID, uint16 numCycles, fl
         return;
     }
 
-    itr->second.cycleTime = cycleTime * EvE::Time::Hour ;
+    itr->second.cycleTime = static_cast<float>(EvE::Time::Hour) * cycleTime;
     itr->second.programType = typeID;
-    itr->second.expiryTime = (cycleTime * numCycles) * EvE::Time::Hour + GetFileTimeNow();
+    itr->second.expiryTime = static_cast<float>(EvE::Time::Hour) * (cycleTime * numCycles) + GetFileTimeNow();
     itr->second.headRadius = headRadius;
     itr->second.qtyPerCycle = qtyPerCycle;
     itr->second.schematicID = sPIDataMgr.GetHeadType(sItemFactory.GetItemRef(ecuID)->typeID(), typeID);
@@ -1662,15 +1668,15 @@ void Colony::ProcessPlants(bool& updateTimes)
                 }
 
                 // remove contents from storage pin
-                amount = it->second.commodityQuantity * cycles;
-                if (itemItr->second > amount) {
-                    itemItr->second -= amount;
+                uint32 amount = static_cast<uint32>(it->second.commodityQuantity) * static_cast<uint32>(cycles);
+                if (static_cast<uint32>(itemItr->second) > amount) {
+                    itemItr->second -= static_cast<int32>(amount);
                 } else {
-                    amount = itemItr->second;
+                    amount = static_cast<uint32>(itemItr->second);
                     srcPin->second.contents.erase(itemItr);
                 }
                 if (is_log_enabled(COLONY__DEBUG))
-                    _log(COLONY__DEBUG, "Colony::ProcessPlants() - Removed %i %s (%u) from src %u.", \
+                    _log(COLONY__DEBUG, "Colony::ProcessPlants() - Removed %" PRIu32 " %s (%u) from src %u.", \
                             amount, sPIDataMgr.GetProductName(it->second.commodityTypeID), it->second.commodityTypeID, srcPin->first);
 
                 // update contents of storage pin
@@ -1749,7 +1755,7 @@ void Colony::ProcessPlants(bool& updateTimes)
                         updateTimes = true;
                         continue;
                     }
-                    if (itemItr->second >= mats.second * cycles) {
+                    if (static_cast<uint32>(itemItr->second) >= static_cast<uint32>(mats.second * cycles)) {
                         itemItr->second -= mats.second * cycles;
                         plant->second.receivedInputsLastCycle = true;
                     } else {

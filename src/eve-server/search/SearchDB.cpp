@@ -148,7 +148,12 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
 }
 
 PyRep *SearchDB::QuickQuery(std::string string, std::vector<int> *searchID, uint32 charID, bool hideNPC, bool onlyAltName) {
-    uint8 size(searchID->size());
+    size_t vectorSize = searchID->size();
+    if (vectorSize > 255) {
+        _log(DATABASE__ERROR, "SearchDB::QuickQuery() - searchID vector size %u exceeds uint8 maximum.", vectorSize);
+        return nullptr;
+    }
+    uint8 size = static_cast<uint8>(vectorSize);
 
     if (((size == 1) and (searchID->at(0) == 2))
     or  (hideNPC)) {

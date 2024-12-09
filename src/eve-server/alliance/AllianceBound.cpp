@@ -1,4 +1,3 @@
-
 /**
   * @name AllianceBound.cpp
   *     Alliance Bound code
@@ -295,7 +294,7 @@ void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged &OAAC, 
         OAAC.allianceIDOld = new PyInt(Old.allyID);
         OAAC.stateOld = new PyInt(Old.state);
         OAAC.applicationDateTimeOld = new PyLong(Old.appTime);
-        if (Old.deleted == true)
+        if (Old.deleted)
         {
             OAAC.deletedOld = new PyBool(true);
         }
@@ -308,7 +307,7 @@ void AllianceBound::FillOAApplicationChange(OnAllianceApplicationChanged &OAAC, 
         OAAC.allianceIDNew = new PyInt(New.allyID);
         OAAC.stateNew = new PyInt(New.state);
         OAAC.applicationDateTimeNew = new PyLong(New.appTime);
-        if (New.deleted == true)
+        if (New.deleted)
         {
             OAAC.deletedNew = new PyBool(true);
         }

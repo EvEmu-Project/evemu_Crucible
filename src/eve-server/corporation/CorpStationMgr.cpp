@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -601,8 +601,7 @@ PyResult CorpStationMgrIMBound::GetStationManagementServiceCostModifiers(PyCallA
             // Only show services which exist in this station
             uint32 serviceID = row.GetInt(0);
             uint32 serviceMask = stDataMgr.GetStationServiceMask(stationID->value());
-            if((serviceMask & serviceID) == serviceID) 
-            {
+            if((serviceMask & serviceID) == serviceID) {
                 PyPackedRow *newRow = rowset->NewRow();
                 newRow->SetField("serviceID", new PyInt(serviceID));
                 newRow->SetField("discountPerGoodStandingPoint", new PyFloat(0));
@@ -665,9 +664,9 @@ PyResult CorpStationMgrIMBound::GetStationImprovements(PyCallArgs &call)
         while (res.GetRow(row))
             for (int i = 0; i < 6; i++)
                 if (row.GetInt(i) == 0)
-                    imp[i] == new PyNone();
+                    imp[i] = new PyNone();
                 else 
-                    imp[i] == new PyInt(row.GetInt(i));
+                    imp[i] = new PyInt(row.GetInt(i));
 
     dict->SetItemString("improvementTier2aTypeID", imp[0]);
     dict->SetItemString("improvementTier3aTypeID", imp[1]);

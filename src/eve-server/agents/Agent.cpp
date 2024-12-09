@@ -1,5 +1,4 @@
-
- /**
+/**
   * @name Agent.cpp
   *   agent specific code
   *    original agent code by zhur, this was completely rewritten based on new data.
@@ -96,7 +95,7 @@ void Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     offer.originID           = m_agentData.stationID;
     offer.originOwnerID      = m_agentData.corporationID;
     offer.originSystemID     = m_agentData.solarSystemID;
-    offer.expiryTime         = GetFileTimeNow() + EvE::Time::Day;
+    offer.expiryTime         = GetFileTimeNow() + static_cast<int64>(EvE::Time::Day);
 
     // make function to determine destination based on mission type, agent level, agent location, and some other shit.
     //offer.destinationID      = 0;
@@ -452,20 +451,20 @@ std::string Agent::GetMinReqStanding(uint8 level)
 {
     switch(level) {
         // these are agentCorp -> char
-        case 1:     return "-2.0";
-        case 2:     return "1.0";
-        case 3:     return "3.0";
-        case 4:     return "5.0";
-        case 5:     return "7.0";
+        case 1:     return std::to_string(-2.0);
+        case 2:     return std::to_string(1.0);
+        case 3:     return std::to_string(3.0);
+        case 4:     return std::to_string(5.0);
+        case 5:     return std::to_string(7.0);
         //these are agent/corp/faction -> char
-        case 11:     return "-1.0";
-        case 12:     return "1.5";
-        case 13:     return "3.5";
-        case 14:     return "5.5";
-        case 15:     return "7.5";
+        case 11:    return std::to_string(-1.0);
+        case 12:    return std::to_string(1.5);
+        case 13:    return std::to_string(3.5);
+        case 14:    return std::to_string(5.5);
+        case 15:    return std::to_string(7.5);
     };
 
-    return "-0.5";
+    return std::to_string(-0.5);
 }
 
 

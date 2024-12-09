@@ -1,5 +1,4 @@
-
- /**
+/**
   * @name MarketMgr.cpp
   *   singleton object for storing, manipulating and managing in-game market data
   *   this mgr keeps track of market data without abusing the db on every call. (vs old system)
@@ -364,7 +363,7 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
             _log(MARKET__TRACE, "ExecuteBuyOrder - unhandled edge case");
         }
 
-    } else if (iRef->quantity() > oInfo.quantity) {
+    } else if (static_cast<uint32>(iRef->quantity()) > oInfo.quantity) {
         // The seller is selling more items than the buy order is bidding for.
         qtyStatus = Market::QtyStatus::Over;
         qtySold = oInfo.quantity;
@@ -375,7 +374,7 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
             // NPC trader joe is a blackhole, just subtract the amount of items
             // we're selling to him and call it a day. Also applies to other
             // trader NPCs.
-            iRef->AlterQuantity(-oInfo.quantity, true);
+            iRef->AlterQuantity(static_cast<int32>(-static_cast<int64>(oInfo.quantity)), true);
         } else {
             _log(MARKET__TRACE, "ExecuteBuyOrder - buyer is something else?");
 

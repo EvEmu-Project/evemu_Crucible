@@ -1,4 +1,3 @@
-
 #include "Client.h"
 #include "EntityList.h"
 #include "EVEServerConfig.h"
@@ -693,7 +692,12 @@ void ShipItem::LoadLinkedWeapons(GenericModule* pMod, std::vector<int32>& charge
     if (cRef.get() == nullptr)
         throw UserError ("CantFindChargeToAdd");
 
-    int8 size(chargeIDs.size());
+    size_t vectorSize = chargeIDs.size();
+    if (vectorSize > 127) {  // max value for int8
+        _log(SHIP__ERROR, "ShipItem::LoadLinkedWeapons() - chargeIDs size %zu exceeds int8 maximum.", vectorSize);
+        return;
+    }
+    int8 size = static_cast<int8>(vectorSize);
     //load charge in master
     VerifyHoldType(pMod->flag(), cRef, m_pilot);
     m_ModuleManager->LoadCharge(cRef, pMod->flag());
@@ -1474,7 +1478,7 @@ void ShipItem::LinkWeaponLoop(std::list<GenericModule*>& weaponList)
             // didnt match, or list empty.  make new master.
             master = (*itr);
             if (is_log_enabled(MODULE__INFO))
-                _log(MODULE__INFO, "ShipItem::LinkWeaponLoop() - Setting %s(%s-%u) to master.",\
+                _log(MODULE__INFO, "ShipItem::LinkWeaponLoop() - Setting %s(%s-%u) to master.", \
                     (*itr)->GetSelf()->name(), sDataMgr.GetFlagName((*itr)->flag()), (*itr)->itemID());
             // set blank list for this master.
             std::list<GenericModule*> slaves;
@@ -1667,7 +1671,12 @@ uint8 ShipItem::GetLinkedCount(GenericModule* pMod)
     std::map<GenericModule*, std::list<GenericModule*>>::iterator itr = m_linkedWeapons.find(pMod);
     if (itr == m_linkedWeapons.end())
         return 1;
-    return itr->second.size() + 1;
+    size_t listSize = itr->second.size();
+    if (listSize > 254) {  // max value for uint8 - 1 (we add 1 later)
+        _log(SHIP__ERROR, "ShipItem::GetLinkedCount() - linked weapons size %zu exceeds uint8 maximum.", listSize);
+        return 255;
+    }
+    return static_cast<uint8>(listSize + 1);
 }
 
 uint8 ShipItem::GetLoadedLinkedCount(GenericModule* pMod)

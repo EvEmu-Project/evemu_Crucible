@@ -10,6 +10,12 @@
 #include "EVEServerConfig.h"
 #include "../eve-core/utils/misc.h"
 
+#ifdef _WIN32
+    #define SIZE_T_FMT "%Iu"    // Windows 使用 %Iu 
+#else
+    #define SIZE_T_FMT "%zu"    // Unix/Linux 使用 %zu
+#endif
+
 int Profiler::Initialize() {
     ClearAll();
     sLog.Blue("  Profile Manager", "Profiling initialized.");
@@ -275,13 +281,17 @@ void Profiler::PrintProfile()
     //std::printf("\n");     // spacer
     std::printf("\t\tUnimplemented Calls\n");
     GetRunTimes(m_server, h, l, a);
-    std::printf("        *Main()  %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_server.size(), h, l, a );
+    std::printf("        *Main()  " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_server.size(), h, l, a);
     GetRunTimes(m_map, h, l, a);
-    std::printf("          *Map   %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_map.size(), h, l, a );
+    std::printf("          *Map   " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_map.size(), h, l, a);
     GetRunTimes(m_items, h, l, a);
-    std::printf("        *Items   %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_items.size(),  h, l, a );
+    std::printf("        *Items   " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_items.size(), h, l, a);
     GetRunTimes(m_functions, h, l, a);
-    std::printf("    *Functions   %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_functions.size(), h, l, a );
+    std::printf("    *Functions   " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_functions.size(), h, l, a);
 
     std::printf(" Profile Times Compiled in %.4fus\n", (GetTimeUSeconds() -startTime) );
 }
@@ -302,13 +312,17 @@ void Profiler::PrintStartUpData()
     std::printf("\n");     // spacer
     std::printf("\t\tUnimplemented Calls\n");
     GetRunTimes(m_server, h, l, a);
-    std::printf("        *Main()  %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_server.size(), h, l, a );
+    std::printf("        *Main()  " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_server.size(), h, l, a);
     GetRunTimes(m_map, h, l, a);
-    std::printf("          *Map   %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_map.size(), h, l, a );
+    std::printf("          *Map   " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_map.size(), h, l, a);
     GetRunTimes(m_items, h, l, a);
-    std::printf("        *Items   %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_items.size(),  h, l, a );
+    std::printf("        *Items   " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_items.size(), h, l, a);
     GetRunTimes(m_functions, h, l, a);
-    std::printf("    *Functions   %u times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", m_functions.size(), h, l, a );
+    std::printf("    *Functions   " SIZE_T_FMT " times.   \tHi: %.4f   \tLo: %.4fus   \tAvg: %.4fus\n", 
+               m_functions.size(), h, l, a);
 
     std::printf(" Profile Times Compiled in %.4fus\n", (GetTimeUSeconds() -startTime) );
 }
@@ -322,9 +336,14 @@ void Profiler::GetRunTimes(std::vector< double >& container, float& h, float& l,
         return;
     }
 
-    uint32 size = container.size();
+    size_t size = container.size();
+    if (size > static_cast<size_t>(UINT32_MAX)) {
+        sLog.Warning("Profiler", "Container size " SIZE_T_FMT " exceeds uint32 maximum", size);
+        size = UINT32_MAX;
+    }
+    
     float total(0.0f), lo(0.0f), hi(0.0f);
-    for (uint32 i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         total += container.at(i);
         if ((lo > container.at(i)) or (lo < 0.000001f))
             lo = container.at(i);

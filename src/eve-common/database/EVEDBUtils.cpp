@@ -158,7 +158,7 @@ void populateResListWithValues(DBQueryResult &result, PyList *into) {
     uint32 r(0);
     while(result.GetRow(row)) {
         PyList *linedata = new PyList(cc);
-        for(auto index = 0; index < cc; index++)
+        for(uint32 index = 0; index < cc; index++)
             linedata->SetItem(index, DBColumnToPyRep(row, index));
         into->items.push_back(linedata);
     }
@@ -186,13 +186,13 @@ PyObject *DBResultToIndexRowset(DBQueryResult &result, uint32 key_index) {
     //start building the IndexRowset
     PyDict *args = new PyDict();
 
-    if (cc == 0 || cc < key_index)
+    if (cc == 0 || key_index >= cc)
         return new PyObject("util.IndexRowset", args);
 
     //list off the column names:
     PyList *header = new PyList(cc);
     args->SetItemString("header", header);
-    for (uint32 i(0); i < cc; ++i)
+    for (uint32 i = 0; i < cc; ++i)
         header->SetItemString(i, result.ColumnName(i));
 
     //RowClass:
