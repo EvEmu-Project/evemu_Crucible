@@ -84,6 +84,10 @@ public:
     /* for command dropLoot - commands all npcs in bubble to jettison loot */
     void CmdDropLoot();
 
+    float GetShieldPct() const;
+    float GetArmorPct() const;
+    float GetHullPct() const;
+
 protected:
     NPCAIMgr* m_AI;
     SpawnMgr* m_spawnMgr;

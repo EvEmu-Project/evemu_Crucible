@@ -157,6 +157,18 @@ private:
     Timer m_warpOutTimer;
     Timer m_warpScramblerTimer;
     Timer m_webifierTimer;
+
+    float m_fleeHealthThreshold;     // Health threshold to trigger fleeing
+    float m_signalHealthThreshold;   // Health threshold to trigger signaling
+    uint32 m_signalRange;           // Range for signaling other NPCs
+    uint32 m_maxChaseTime;          // Maximum time to chase target
+    Timer m_chaseTimer;             // Timer for chase duration
+    Timer m_signalTimer;            // Timer for signaling cooldown
+    bool m_hasSignaled;             // Flag to track if already signaled
+    
+    void CheckForReinforcements(SystemEntity* pSE);
+    bool ShouldFlee();
+    void SignalNearbyNPCs();
 };
 
 #endif

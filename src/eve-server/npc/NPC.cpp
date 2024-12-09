@@ -410,3 +410,15 @@ void NPC::CmdDropLoot()
         //DropLoot(jetCanRef, m_self->groupID());
     }
 }
+
+float NPC::GetShieldPct() const {
+    return m_shieldCharge / m_shieldCapacity;
+}
+
+float NPC::GetArmorPct() const {
+    return 1.0f - (m_armorDamage / m_self->GetAttribute(AttrArmorHP).get_float());
+}
+
+float NPC::GetHullPct() const {
+    return 1.0f - (m_hullDamage / m_self->GetAttribute(AttrHP).get_float());
+}

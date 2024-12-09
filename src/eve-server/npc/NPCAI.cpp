@@ -258,11 +258,17 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     */
 
     // does this need to be running if there are no players in bubble?
-    //  yes...npcs will warp out when no targets in sight range, but need a process tic to do that.
-   // m_processTimer.Start(m_attackSpeed);
+   //  yes...npcs will warp out when no targets in sight range, but need a process tic to do that.
+  // m_processTimer.Start(m_attackSpeed);
 
-    // maybe this can be used to tell spawnMgr to respawn this npc as required....
-    //    AttrEntityGroupRespawnChance = 640,
+   // maybe this can be used to tell spawnMgr to respawn this npc as required....
+   //    AttrEntityGroupRespawnChance = 640,
+    // Initialize AI behavior thresholds and timers
+    m_fleeHealthThreshold = 0.25f;    // Flee at 25% health
+    m_signalHealthThreshold = 0.50f;  // Signal at 50% health
+    m_signalRange = 100000;           // 100km signal range
+    m_maxChaseTime = 30000;           // 30 second max chase time
+    m_hasSignaled = false;            // Initialize signal flag
 }
 
 void NPCAIMgr::Process() {
@@ -287,7 +293,8 @@ void NPCAIMgr::Process() {
      *   Fleeing,    // running away....use m_maxSpeed then warp away when out of range	(does this make sense??)
      *   Signaling   // calling for help..use m_orbitSpeed *2 to speed tank while calling for reinforcements
      */
-    // Add state validation while keeping original comments
+
+    // Add additional state validation check
     if (m_state < NPCAI::State::Idle || m_state > NPCAI::State::WarpFollow) {
         _log(NPC__ERROR, "Invalid state %d for NPC %s(%u). Resetting to Idle.", 
              m_state, m_npc->GetName(), m_npc->GetID());
@@ -316,7 +323,7 @@ void NPCAIMgr::Process() {
                         }
                     }
                     pDestiny = cur->GetShipSE()->DestinyMgr();
-                    if (pDestiny == nullptr)
+                    if (pDestiny == nullptr)   // this shouldnt be needed, but whatever...  
                         continue;
                     if (pDestiny->IsCloaked() or pDestiny->IsWarping())
                         continue;
@@ -380,6 +387,25 @@ void NPCAIMgr::Process() {
     if (m_armorRepairTimer.Enabled())
         if (m_armorRepairTimer.Check())
             m_npc->UseArmorRepairer();
+
+    // Add health checks for fleeing/signaling after existing state processing
+    if (m_state != NPCAI::State::Fleeing && m_state != NPCAI::State::WarpOut) {
+        if (ShouldFlee()) {
+            SystemEntity* pSE = m_npc->TargetMgr()->GetFirstTarget(false);
+            if (pSE)
+                SetFleeing(pSE);
+        }
+        // Check shield percentage using NPC's shield attributes
+        // If shield is below threshold and NPC hasn't called for help yet, signal nearby allies
+        else if (!m_hasSignaled && 
+                (m_npc->GetSelf()->GetAttribute(AttrShieldCharge).get_float() / 
+                 m_npc->GetSelf()->GetAttribute(AttrShieldCapacity).get_float()) < m_signalHealthThreshold) 
+        {
+            SystemEntity* pSE = m_npc->TargetMgr()->GetFirstTarget(false);
+            if (pSE)
+                SetSignaling(pSE);
+        }
+    }
 }
 
 bool NPCAIMgr::IsFighting() {
@@ -546,14 +572,27 @@ void NPCAIMgr::SetFleeing(SystemEntity* pSE) {
     // actively fleeing
     //  use superspeed to disengage, then warp.  << both these will need to be written.
     //  this state is only usable by higher-class npcs.
+
+    // Add flee implementation while keeping original comments
+    GPoint myPos = m_npc->GetPosition();
+    GPoint targetPos = pSE->GetPosition();
+    GVector fleeVector = myPos - targetPos;
+    fleeVector.normalize();
+    
+    // Set flee destination 150km away in flee direction
+    GPoint fleeDest = myPos + (fleeVector * 150000);
+
     m_destiny->SetMaxVelocity(m_maxSpeed);
+    m_destiny->GotoPoint(fleeDest);
     m_state = NPCAI::State::Fleeing;
-    m_warpOutTimer.Disable();
+    
+    // Start warp out timer after fleeing distance reached
+    if (sConfig.npc.WarpOut > 0)
+        m_warpOutTimer.Start(sConfig.npc.WarpOut * 1000);
 }
 
-// not used yet
 void NPCAIMgr::SetSignaling(SystemEntity* pSE) {
-    if (pSE == nullptr)
+    if (pSE == nullptr || m_hasSignaled)
         return;
     if ((m_state == NPCAI::State::Signaling) and m_destiny->IsOrbiting())
         return;
@@ -562,10 +601,47 @@ void NPCAIMgr::SetSignaling(SystemEntity* pSE) {
     // actively signaling
     //  start speedtanking while signaling.  (im sure this is cheating, but fuckem.)
     //  this state is only usable by higher-class npcs.
+
+    // Implement signaling while keeping original comments
     m_destiny->SetMaxVelocity(m_orbitSpeed * 2);
-    m_destiny->Orbit(pSE, m_falloff);  //try to get outside orbit range
+    m_destiny->Orbit(pSE, m_falloff * 1.5);  // Extended orbit range for safety
     m_state = NPCAI::State::Signaling;
-    m_warpOutTimer.Disable();
+
+    // Signal nearby NPCs for help
+    SignalNearbyNPCs();
+    
+    m_hasSignaled = true;
+    m_signalTimer.Start(30000); // 30s cooldown
+}
+
+void NPCAIMgr::SignalNearbyNPCs() {
+    // Use existing bubble methods to get entities
+    std::map<uint32, SystemEntity*> entityMap;
+    m_npc->SysBubble()->GetEntities(entityMap);
+
+    // Iterate through map instead of vector
+    for (auto& entry : entityMap) {
+        SystemEntity* entity = entry.second;
+        if (entity == nullptr)
+            continue;
+            
+        // Skip self and non-NPC entities
+        if (entity == m_npc || !entity->IsNPCSE())
+            continue;
+            
+        // Only signal NPCs of same faction within range
+        if (entity->GetWarFactionID() == m_npc->GetWarFactionID() && 
+            m_npc->GetPosition().distance(entity->GetPosition()) < m_signalRange)
+        {
+            // Tell nearby NPC to assist
+            NPC* pNPC = entity->GetNPCSE();
+            if (pNPC && pNPC->GetAIMgr()) {
+                SystemEntity* pTarget = m_npc->TargetMgr()->GetFirstTarget(false);
+                if (pTarget)
+                    pNPC->GetAIMgr()->Target(pTarget);
+            }
+        }
+    }
 }
 
 void NPCAIMgr::CheckDistance(SystemEntity* pSE)
@@ -885,4 +961,15 @@ std::string NPCAIMgr::GetStateName(int8 stateID)
         case NPCAI::State::WarpFollow:     return "Following Warp";
         default:                           return "Invalid";
     }
+}
+
+bool NPCAIMgr::ShouldFlee() {
+    // Check shield/armor/hull levels to determine if NPC should flee
+    float shieldPct = m_npc->GetShieldPct();
+    float armorPct = m_npc->GetArmorPct(); 
+    float hullPct = m_npc->GetHullPct();
+
+    return (shieldPct < m_fleeHealthThreshold && 
+            armorPct < m_fleeHealthThreshold && 
+            hullPct < m_fleeHealthThreshold);
 }
