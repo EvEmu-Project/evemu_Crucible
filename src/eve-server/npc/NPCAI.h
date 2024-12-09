@@ -82,6 +82,8 @@ public:
     void LaunchMissile(uint16 typeID, SystemEntity* pTargSE);   // us to them
     void MissileLaunched(Missile* pMissile); // them to us
 
+    void SetWarpFollow(SystemEntity* pSE);
+
 protected:
     void Attack(SystemEntity* pTargSE);
     void SetIdle();
@@ -169,6 +171,29 @@ private:
     void CheckForReinforcements(SystemEntity* pSE);
     bool ShouldFlee();
     void SignalNearbyNPCs();
+
+    // Add warp follow related members
+    Timer m_warpFollowTimer;         // Timer to check warp follow status
+    uint32 m_warpFollowTimeout;      // Maximum time to wait for warp follow
+    uint32 m_warpFollowDistance;     // Distance to maintain during warp follow
+    bool m_isWarpFollowing;          // Flag to track warp follow state
+    SystemEntity* m_warpFollowTarget; // Target being followed in warp
+
+    // Add NPC class and behavior related members
+    uint8 m_npcClass;        // NPC class from npcClassGroup
+    uint8 m_npcSubClass;     // NPC sub-class for specific behaviors
+    uint8 m_spawnClass;      // Spawn class from npcSpawnClass
+    bool m_isCommander;      // Flag for commander NPCs
+    bool m_isOfficer;        // Flag for officer NPCs
+
+    // Add behavior control methods
+    void InitializeNPCClass();
+    void ProcessClassBehavior();
+    bool ShouldUseECM();      // Electronic Counter Measures
+    bool ShouldUseEwar();     // Electronic Warfare
+    bool ShouldUseDamps();    // Sensor Dampeners
+    bool ShouldUseNeut();     // Energy Neutralizers
+    bool ShouldUseNos();      // Energy Vampires
 };
 
 #endif

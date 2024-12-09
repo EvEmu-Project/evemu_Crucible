@@ -269,6 +269,11 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     m_signalRange = 100000;           // 100km signal range
     m_maxChaseTime = 30000;           // 30 second max chase time
     m_hasSignaled = false;            // Initialize signal flag
+
+    m_warpFollowTimeout = 30000;     // 30 seconds timeout for warp follow
+    m_warpFollowDistance = 5000;     // 5km follow distance
+    m_isWarpFollowing = false;
+    m_warpFollowTarget = nullptr;
 }
 
 void NPCAIMgr::Process() {
@@ -972,4 +977,45 @@ bool NPCAIMgr::ShouldFlee() {
     return (shieldPct < m_fleeHealthThreshold && 
             armorPct < m_fleeHealthThreshold && 
             hullPct < m_fleeHealthThreshold);
+}
+
+void NPCAIMgr::SetWarpFollow(SystemEntity* pSE) {
+    if (pSE == nullptr)
+        return;
+
+    _log(NPC__AI_TRACE, "%s(%u): Begin warp following %s(%u).", 
+         m_npc->GetName(), m_npc->GetID(), pSE->GetName(), pSE->GetID());
+
+    m_warpFollowTarget = pSE;
+    m_isWarpFollowing = true;
+    m_state = NPCAI::State::WarpFollow;
+    m_warpFollowTimer.Start(m_warpFollowTimeout);
+
+    // Initial warp to target's destination
+    if (pSE->DestinyMgr()->IsWarping()) {
+        GPoint warpDest = pSE->DestinyMgr()->GetTargetPoint();
+        if (!warpDest.isNaN()) {
+            // Calculate offset position to avoid exact same destination
+            GVector offset = GVector(MakeRandomFloat(-1000, 1000),
+                                   MakeRandomFloat(-1000, 1000),
+                                   MakeRandomFloat(-1000, 1000));
+            warpDest += offset;
+
+            _log(NPC__AI_TRACE, "%s(%u): Following warp to position (%.1f, %.1f, %.1f)", 
+                 m_npc->GetName(), m_npc->GetID(), warpDest.x, warpDest.y, warpDest.z);
+
+            m_destiny->WarpTo(warpDest);
+
+            // Update spawn location if needed
+            if (m_npc->GetSpawnMgr()) {
+                // Use SystemEntity instead of GPoint for FindBubble
+                SystemEntity* pWarpSE = m_npc->SystemMgr()->GetSE(pSE->GetLocationID());
+                if (pWarpSE) {
+                    SystemBubble* pBubble = sBubbleMgr.FindBubble(pWarpSE);
+                    if (pBubble)
+                        m_npc->GetSpawnMgr()->MoveSpawn(m_npc, pBubble);
+                }
+            }
+        }
+    }
 }
