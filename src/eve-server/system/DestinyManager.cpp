@@ -3386,3 +3386,39 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
         //mySE->SysBubble()->BubblecastDestiny( updates, events, "destiny" );
     }
 }
+
+void DestinyManager::WarpScrambled(InventoryItemRef moduleRef, bool apply) {
+    if (apply) {
+        m_isWarpScrambled = true;
+        m_scramblerID = moduleRef->itemID();
+        m_scrambleStrength = moduleRef->GetAttribute(AttrWarpScrambleStrength).get_float();
+
+        // 发送状态更新到客户端
+        PyTuple* tuple = new PyTuple(3);
+        tuple->SetItem(0, new PyInt(m_scramblerID));
+        tuple->SetItem(1, new PyFloat(m_scrambleStrength));
+        tuple->SetItem(2, new PyBool(true));
+
+        // 创建OnModuleWarpScramble消息
+        PyTuple* update = new PyTuple(2);
+        update->SetItem(0, new PyString("OnModuleWarpScramble"));
+        update->SetItem(1, tuple);
+        SendSingleDestinyUpdate(&update);  // 传递PyTuple**
+    } else {
+        m_isWarpScrambled = false;
+        m_scramblerID = 0;
+        m_scrambleStrength = 0;
+
+        // 发送状态更新到客户端
+        PyTuple* tuple = new PyTuple(3);
+        tuple->SetItem(0, new PyInt(m_scramblerID));
+        tuple->SetItem(1, new PyFloat(0));
+        tuple->SetItem(2, new PyBool(false));
+
+        // 创建OnModuleWarpScramble消息
+        PyTuple* update = new PyTuple(2);
+        update->SetItem(0, new PyString("OnModuleWarpScramble"));
+        update->SetItem(1, tuple);
+        SendSingleDestinyUpdate(&update);  // 传递PyTuple**
+    }
+}

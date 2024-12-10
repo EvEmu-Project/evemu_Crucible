@@ -11,6 +11,7 @@
 #define __EVEMU_SHIP_DRONEAI_H__
 
 #include "ship/modules/TurretFormulas.h"
+#include "system/DestinyManager.h"
 
 // only for drones
 namespace DroneAI {
@@ -47,8 +48,30 @@ public:
     DroneAIMgr(DroneSE *who);
 
     void Process();
+    bool IsInControlRange();
+    void ProcessCombat();
+    void ProcessMining();
+    void IdleOrbit();
+    void SetFleeing(SystemEntity* pTarget);
+    void SetGuarding(SystemEntity* pTarget);
+    bool IsHostile(SystemEntity* pTarget);
+    void Target(SystemEntity* pTarget);
 
-    void Target(SystemEntity *by_who);
+    // 采矿相关方法
+    float GetMiningTargetScore(SystemEntity* pTarget);
+    bool IsCargoFull();
+    void CheckMiningDistance(SystemEntity* pTarget);
+    void SendMiningEffect(SystemEntity* pTarget);
+    float CalculateMiningAmount();
+    void UpdateAsteroidRadius(SystemEntity* pTarget, float newVolume);
+    void TransferOreToCargoHold(SystemEntity* pTarget, float amount);
+    float GetOreValueScore(uint16 typeID);
+
+    // 战斗相关方法
+    float GetTargetScore(SystemEntity* pTarget);
+    float CalculateThreatLevel(SystemEntity* pTarget);
+    float GetAssistTargetScore(SystemEntity* pTarget, SystemEntity* pAssistTarget);
+
     void Targeted(SystemEntity *by_who);
     void TargetLost(SystemEntity *by_who);
 
@@ -61,6 +84,13 @@ public:
     void Return();
     void AssignShip(ShipSE* pSE)                        { m_assignedShip = pSE; }
 
+    void SetApproaching(SystemEntity* pTarget);
+    void SetPursuit(SystemEntity* pTarget);
+    void SetAssisting(SystemEntity* pTarget);
+
+    void UseWebifier(SystemEntity* pTarget);
+    void UseWarpScrambler(SystemEntity* pTarget);
+
 protected:
     void Attack(SystemEntity* pTarget);
     void SetEngaged(SystemEntity* pTarget);
@@ -70,6 +100,31 @@ protected:
 
     int8 m_state;
     std::string GetStateName(int8 stateID);
+
+    DroneSE* m_pDrone;
+    DestinyManager* m_destiny;
+    ShipSE* m_assignedShip;
+    TurretFormulas m_formula;
+
+    // 无人机属性
+    float m_emDamage;
+    float m_expDamage; 
+    float m_kinDamage;
+    float m_therDamage;
+    float m_orbitRange;
+    float m_maxSpeed;
+    float m_optimalRange;
+    float m_falloff;
+
+    // 无人机控制
+    uint32 m_controllerID;
+    uint32 m_controllerOwnerID;
+    uint32 m_droneControlDistance;
+
+    // 添加警戒范围相关属性
+    float m_guardRange;         // 警戒范围
+    float m_assistRange;        // 协助范围
+    bool m_aggressiveGuard;     // 是否主动攻击进入警戒范围的敌人
 
 private:
     //cached to reduce access times. (faster but uses more memory)
@@ -85,11 +140,6 @@ private:
     uint32 m_targetRange;
     uint32 m_armorRepairDuration;
     uint32 m_shieldBoosterDuration;
-
-    DroneSE* m_pDrone;
-    ShipSE* m_assignedShip;
-
-    TurretFormulas m_formula;
 
     Timer m_processTimer;
     Timer m_mainAttackTimer;

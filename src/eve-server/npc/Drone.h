@@ -124,6 +124,11 @@ private:
     uint32 m_controllerID;
     uint32 m_controllerOwnerID;
 
+    // 无人机状态
+    int8 m_state;
+    bool m_isActive;
+    bool m_isPopped;
+
     double m_orbitRange;
     double m_emDamage;
     double m_expDamage;

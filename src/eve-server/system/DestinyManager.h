@@ -118,7 +118,7 @@ public:
     void EntityRemoved(SystemEntity* pSE);
 
     /* Configuration methods */
-    void WebbedMe(InventoryItemRef modRef, bool apply=false);
+    void WebbedMe(InventoryItemRef moduleRef, bool apply);
     void SpeedBoost(bool deactivate=false);             // reset speed variables and bubblecast ship's AB/MWD modified speed (module activate/deactivate)
     void SetPosition(const GPoint& pt, bool update=false);
     void SetRadius(double radius, bool update = false);
@@ -224,6 +224,8 @@ public:
     // Prevents actions if the player is performing the login warp
     bool AbortIfLoginWarping(bool showMsg);
 
+    void WarpScrambled(InventoryItemRef moduleRef, bool apply);
+
 protected:
     void ProcessState();
 
@@ -312,7 +314,6 @@ protected:
     void BeginMovement();               //set initial variables for all movement (common code)
     void UpdateVelocity(bool isMoving=false);
 
-private:
     bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
 
@@ -387,6 +388,10 @@ private:
         GVector warp_vector;        //target direction based on ship's initial position
     };
     WarpState* m_warpState;		    //we own this.
+
+    bool m_isWarpScrambled;     // 添加状态标记
+    uint32 m_scramblerID;       // 记录scrambler的ID
+    float m_scrambleStrength;   // scramble强度
 };
 
 #endif

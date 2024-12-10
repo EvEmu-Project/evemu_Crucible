@@ -285,6 +285,13 @@ public:
     virtual bool                HasPilot()              { return false; }
     virtual Client*             GetPilot()              { return nullptr; }
 
+    // 实体类型检查
+    virtual bool IsAsteroid() const                    { return false; }
+    virtual bool IsIce() const                         { return false; }
+    virtual bool IsPlayerSE() const                    { return false; }
+    virtual bool IsNPCSE() const                       { return false; }
+    virtual bool IsDroneSE() const                     { return false; }
+
 protected:
     SystemBubble*               m_bubble;               /* we do not own this. never NULL in space */
     SystemManager*              m_system;               /* we do not own this  never NULL in space */

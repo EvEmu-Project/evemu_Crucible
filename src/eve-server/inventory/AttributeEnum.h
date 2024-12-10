@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ enum EveAttrEnum {
     AttrCapacitorNeed = 6,                              // cap need per cycle.  also dischargeAttributeID in dgmEffects
     AttrMinRange = 8,                                   // only used by 22476 which is non-published
     AttrHP = 9,
+    AttrMaxHP = 10,          // 最大生命值
     AttrPowerOutput = 11,
     AttrLowSlots = 12,
     AttrMedSlots = 13,
@@ -465,7 +466,7 @@ enum EveAttrEnum {
     AttrEntityConvoyDroneMin = 502,
     AttrEntityConvoyDroneMax = 503,
     AttrEntityWarpScrambleChance = 504,                 // npcUsageChanceAttributeID in dgmEffects
-    AttrWarpScrambleDuration = 505,
+    AttrWarpScrambleDuration = 468,
     AttrMissileLaunchDuration = 506,
     AttrEntityMissileTypeID = 507,
     AttrEntityCruiseSpeed = 508,
@@ -1704,7 +1705,7 @@ enum EveAttrEnum {
     AttrScanDurationBonus = 1906,  // not used
     AttrScanStrengthBonusModule = 1907,  // not used
     AttrScanWormholeStrength = 1908,  // not used
-    AttrDScanImmune = 1958      // not used, but neat idea
+    AttrDScanImmune = 1958,      // not used, but neat idea
     /*
     warfareLinkCPUAdd   1882
     warfareLinkCPUPenalty   1883
@@ -1810,6 +1811,9 @@ enum EveAttrEnum {
     modeAgilityPostDiv  2002
     modeVelocityPostDiv     2003
     */
+    // Drone Attributes
+    AttrEntityWebifierDuration = 569,        // 从dgmAttributeTypes.sql中获取正确的ID
+    AttrEntityWebifierStrength = 570,        // 从dgmAttributeTypes.sql中获取正确的ID
 };
 
 #endif // AttributeEnum_h__

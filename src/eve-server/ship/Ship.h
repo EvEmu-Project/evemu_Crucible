@@ -379,6 +379,16 @@ public:
     bool GetFleetSMBUsage()                             { return m_allowFleetSMBUsage; }
     void SetFleetSMBUsage(bool set=false)               { m_allowFleetSMBUsage = set; }
 
+    float GetShieldPct() const {
+        return m_self->GetAttribute(AttrShieldCharge).get_float() / 
+               m_self->GetAttribute(AttrShieldCapacity).get_float();
+    }
+
+    float GetArmorPct() const {
+        return 1.0f - (m_self->GetAttribute(AttrArmorDamage).get_float() / 
+                      m_self->GetAttribute(AttrArmorHP).get_float());
+    }
+
 protected:
     ShipItemRef m_shipRef;
 
