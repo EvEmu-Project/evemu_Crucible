@@ -891,7 +891,6 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 StructureSE* sSE = new StructureSE(sRef, this->GetServiceManager(), pSysMgr, data);
-                sSE->Init();
                 location.MakeRandomPointOnSphere(1500.0 + sRef->type().radius());
                 sSE->SetPosition(location);
                 sRef->SaveItem();
@@ -906,7 +905,6 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 CustomsSE* sSE = new CustomsSE(sRef, this->GetServiceManager(), pSysMgr, data);
-                sSE->Init();
                 location.MakeRandomPointOnSphere(1500.0 + sRef->type().radius());
                 sSE->SetPosition(location);
                 sRef->SaveItem();
