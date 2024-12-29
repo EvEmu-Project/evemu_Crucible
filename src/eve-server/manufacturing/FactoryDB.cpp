@@ -257,7 +257,7 @@ PyRep *FactoryDB::AssemblyLinesSelectPublic(const uint32 regionID) {
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
-        "SELECT"
+        "SELECT DISTINCT"
         " station.stationID AS containerID,"
         " station.stationTypeID AS containerTypeID,"
         " station.solarSystemID AS containerLocationID,"
@@ -283,7 +283,7 @@ PyRep *FactoryDB::AssemblyLinesSelectPersonal(const uint32 charID) {
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
-        "SELECT"
+        "SELECT DISTINCT"
         " station.stationID AS containerID,"
         " station.stationTypeID AS containerTypeID,"
         " station.solarSystemID AS containerLocationID,"
@@ -307,7 +307,7 @@ PyRep *FactoryDB::AssemblyLinesSelectPrivate(const uint32 charID) {
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
-        "SELECT"
+        "SELECT DISTINCT"
         " station.stationID AS containerID,"
         " station.stationTypeID AS containerTypeID,"
         " station.solarSystemID AS containerLocationID,"
@@ -331,7 +331,7 @@ PyRep *FactoryDB::AssemblyLinesSelectCorporation(const uint32 corpID) {
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
-        "SELECT"
+        "SELECT DISTINCT"
         " station.stationID AS containerID,"
         " station.stationTypeID AS containerTypeID,"
         " station.solarSystemID AS containerLocationID,"
@@ -355,8 +355,22 @@ PyRep *FactoryDB::AssemblyLinesSelectCorporation(const uint32 corpID) {
 PyRep *FactoryDB::AssemblyLinesSelectAlliance(const int32 allianceID) {
     DBQueryResult res;
 
+    // This produces the same output but with less complex joins and
+    // the quantity column is completely redundant.
+    // SELECT
+    //     job.containerId,
+    //     station.stationTypeId AS containerTypeId,
+    //     station.solarSystemId AS containerLocationId,
+    //     job.typeId as assemblyLineTypeId,
+    //     COUNT(job.containerId) as quantity,
+    //     station.corporationId as ownerId
+    //     FROM industrySlots AS job 
+    //         JOIN evemu.staStations AS station ON station.stationId = job.containerId
+    //         JOIN evemu.crpCorporation AS corp ON corp.corporationId = station.corporationId
+    //     GROUP BY job.containerId, job.typeId;
+
     if (!sDatabase.RunQuery(res,
-        "SELECT"
+        "SELECT DISTINCT"
         " station.stationID AS containerID,"
         " station.stationTypeID AS containerTypeID,"
         " station.solarSystemID AS containerLocationID,"
