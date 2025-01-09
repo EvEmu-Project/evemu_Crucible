@@ -3350,7 +3350,9 @@ void DestinyManager::SendDestinyUpdate( std::vector<PyTuple*>& updates, std::vec
         mySE->SystemMgr()->GetClientList(cv);
 
         for(auto const& value: cv) {
-            value->GetShipSE()->SysBubble()->BubblecastDestiny(updates, events, "destiny");
+             if (value->GetShipSE() != nullptr) {
+                value->GetShipSE()->SysBubble()->BubblecastDestiny(updates, events, "destiny");
+            }
         }
     } else if (mySE->SysBubble() != nullptr) {
         if (is_log_enabled(DESTINY__UPDATES)) {
