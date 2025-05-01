@@ -1,4 +1,3 @@
-version: "2.2"
 services:
   server:
     build: . #Build image from source repository
@@ -25,7 +24,7 @@ services:
       - SYS_PTRACE
 
   db:
-    image: "bitnami/mariadb:10.4"
+    image: "bitnami/mariadb:11.4"
     container_name: evemu_db
     volumes:
       - db:/bitnami/mariadb

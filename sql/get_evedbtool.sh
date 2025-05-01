@@ -9,7 +9,7 @@ then
     exit
 fi
 
-arch=$(uname -i)
+arch=$(arch)
 
 if [[ $arch == aarch64* ]];
 then
