@@ -1,13 +1,30 @@
-# This script constitutes the reproducible build environment for EVEmu.
-# Always build EVEmu binaries using docker in a reproducible fashion for issue reporting.
+# Base image for building EVEmu using Debian 12
+FROM debian:12 AS base
 
-# This is a multi Stage Build, we start by makeing the base image we will use.
-FROM fedora:37 as base
-RUN dnf groupinstall -y "Development Tools" && dnf install -y cmake git zlib-devel mariadb-devel boost-devel tinyxml-devel utf8cpp-devel mariadb shadow-utils gdb gcc-c++
+# Install build dependencies
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    git \
+    curl \
+    wget \
+    zlib1g-dev \
+    libmariadb-dev \
+    libboost-all-dev \
+    libtinyxml-dev \
+    ca-certificates \
+    g++ \
+    gdb \
+    libutfcpp-dev \
+    mariadb-client \
+    passwd \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Now we use the base image to build the project
-FROM base as app-build
-# We Add what we need for the build, if you need to add more; remember you may need to update .dockerignore
+# Build stage
+FROM base AS app-build
+
+# Add project files
 ADD CMakeLists.txt /src/
 ADD config.h.in /src/
 ADD /cmake/ /src/cmake
@@ -16,31 +33,35 @@ ADD /src/ /src/src
 ADD /utils/ /src/utils
 ADD /.git/ /src/.git
 
-# make some folders we need for the build
+# Create necessary directories
 RUN mkdir -p /src/build /app /app/logs /app/server_cache /app/image_cache
-# set our default path for the build
+
+# Set working directory
 WORKDIR /src/build
-# and run the build
+
+# Configure and build the project
 RUN cmake -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Debug .. 
-# we can pull the # of cores on the system and change the build to match the system
 RUN make -j$(nproc)
 RUN make install
 
-# Now we switch to makeing the image that will run the code that we have build
-FROM base as app
+# Final runtime image
+FROM base AS app
+
 LABEL description="EVEmu Server"
-# copy our utils to this image
+
+# Copy built assets
 COPY --from=app-build /src/utils/ /src/utils
-# add in the files to load the database
-ADD /sql/ /src/sql
-# copy our compiled code to this image
 COPY --from=app-build /app/ /app
 
+# Add SQL loading tools
+ADD /sql/ /src/sql
+
+# Run SQL tool script
 RUN cd /src/sql && ./get_evedbtool.sh
 
-# Expose the port the server is on.
+# Expose server ports
 EXPOSE 26000
 EXPOSE 26001
 
-# Start the app via the script.
-CMD /src/utils/container-scripts/start.sh
+# Default command
+CMD ["/src/utils/container-scripts/start.sh"]
