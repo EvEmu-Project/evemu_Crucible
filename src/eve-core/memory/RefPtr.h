@@ -108,6 +108,7 @@ protected:
     void DecRef() const
     {
         if (mDeleted) {
+            // ---modulefix; issue with installing and uninstalling modules caused a soft freeze and unable to make changes to modules in fit screen.
             _log(REFPTR__ERROR, "IncRef() - Attempted to increase ref count on deleted object! Current Count: %u", mRefCount);
             std::cerr << "FATAL: IncRef() called on deleted object! Type: " << typeid(*this).name() << std::endl;
             EvE::traceStack();
