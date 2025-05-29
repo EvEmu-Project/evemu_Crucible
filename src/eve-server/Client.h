@@ -173,7 +173,7 @@ public:
     float GetBounty() const                             { return m_char->bounty(); }
     float GetSecurityRating() const                     { return m_char->GetSecurityRating(); }
 
-    bool AddBalance(float amount, uint8 type=Account::CreditType::ISK)
+    bool AddBalance(double amount, uint8 type=Account::CreditType::ISK) // ---marketbot update
                                                         { return m_char->AlterBalance(amount, type); }
     float GetBalance(uint8 type=Account::CreditType::ISK)
                                                         { return m_char->balance(type); }

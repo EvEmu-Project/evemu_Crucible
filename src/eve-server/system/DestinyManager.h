@@ -33,6 +33,9 @@
 #include "destiny/DestinyStructs.h"
 #include "inventory/ItemRef.h"
 
+// ---warpbouncefix
+#include <cstdint>
+
 //0=no orbit, >0=in orbit, 1=at distance 2=too close , 3=too far, 4=way too close, 5=way too far
 namespace Destiny {
     namespace Ball {
@@ -313,6 +316,7 @@ protected:
     void UpdateVelocity(bool isMoving=false);
 
 private:
+    uint64_t m_ignoreBumpUntil;         // ---warpbouncefix
     bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
 
@@ -346,6 +350,7 @@ private:
     void WarpDecel(uint16 sec_into_warp);
     void WarpStop(double currentShipSpeed);
     void WarpUpdate(double currentShipSpeed);
+    bool m_skipNextBumpCheck = false;               // ---warpbouncefix
 
     // Variables used during Warp.
     class WarpState {

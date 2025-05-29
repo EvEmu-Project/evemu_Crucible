@@ -12,6 +12,13 @@
 #ifndef EVEMU_MARKET_MARKETBOTMGR_H_
 #define EVEMU_MARKET_MARKETBOTMGR_H_
 
+// ---marketbot update; this has to be declared first.
+// ---marketbot update; issue with global timers, will have to fix later; this makes marketbot timer self contained.
+#include <chrono>
+
+using Clock = std::chrono::steady_clock;
+using TimePoint = std::chrono::time_point<Clock>;
+// ---marketbot update
 
 #include "eve-compat.h"
 #include "eve-common.h"
@@ -43,10 +50,23 @@ public:
     ~MarketBotMgr() { /* do nothing here */ }
 
     int Initialize();
-    void Process();
+    void Process(bool overrideTimer = false);
 
     void AddSystem();
     void RemoveSystem();
+    // ---marketbot changes
+    int PlaceBuyOrders(uint32 systemID);
+    int PlaceSellOrders(uint32 systemID);
+    int ExpireOldOrders();
+
+    std::vector<uint32> GetEligibleSystems();
+    uint32 SelectRandomItemID();
+    uint32 GetRandomQuantity(uint32 groupID);
+    double CalculateBuyPrice(uint32 itemID);
+    double CalculateSellPrice(uint32 itemID);
+
+    void ForceRun(bool resetTimer = true); // debug command to force MarketBot to run first cycle to generate NPC buy and sell orders.
+    // ---
 
 private:
     Timer m_updateTimer;

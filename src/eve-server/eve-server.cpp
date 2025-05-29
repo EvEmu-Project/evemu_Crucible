@@ -189,6 +189,8 @@ static void CatchSignal( int sig_num );
 
 static volatile bool m_run = true;
 
+CommandDispatcher* g_dispatcher = nullptr; // ---commandlist update
+
 int main( int argc, char* argv[] )
 {
     double profileStartTime(GetTimeMSeconds());
@@ -645,6 +647,7 @@ int main( int argc, char* argv[] )
     /* create a command dispatcher */
     sLog.Green("       ServerInit", "Starting Command Dispatch Manager");
     CommandDispatcher command_dispatcher(newSvcMgr);
+    g_dispatcher = &command_dispatcher; // ---commandlist update
     RegisterAllCommands(command_dispatcher);
     sLog.Blue(" Command Dispatch", "Command Dispatcher Initialized.");
     /* Service creation and registration. */

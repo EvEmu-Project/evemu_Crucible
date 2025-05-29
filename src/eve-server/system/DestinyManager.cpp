@@ -52,6 +52,7 @@
 
 DestinyManager::DestinyManager(SystemEntity *self)
 : mySE(self),
+m_ignoreBumpUntil(0), // ---warpbouncefix
 m_maxSpeed(1.0f),
 m_shipAccelTime(0.0f),
 m_shipMaxAccelTime(0.0f),
@@ -593,6 +594,10 @@ void DestinyManager::Eject()
 void DestinyManager::CheckBump()
 {
     double profileStartTime(GetTimeUSeconds());
+
+    // Skip bump checks if within immunity window (e.g., post warp-to-0m or bookmark warp)
+    if (GetTimeMSeconds() < m_ignoreBumpUntil) // ---warpbouncefix
+        return;
 
     //  collision detection code here
     /*  in this case, we are ONLY interested in objects
@@ -2145,6 +2150,11 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     }
 
     m_ballMode = Destiny::Ball::Mode::WARP;
+
+    // ---warpbouncefix; set bump immunity if this was a warp-to-0m or other close warp
+    if (m_stopDistance == 0) {
+        m_ignoreBumpUntil = GetTimeMSeconds() + 3000;  // 3 seconds of immunity from bump
+    }
 
     // send client updates
     std::vector<PyTuple*> updates;
