@@ -1,3 +1,11 @@
+*** 0.8.6 ***
+- [FEAT] MarketBot
+- Market system fixes
+- Contract/corp system fixes
+- Various space manoeuvring fixes
+- CI/CD system improvements and fixing build issues with Docker
+- Many minor bugfixes and stability improvements
+
 *** 0.8.5 ***
 - [FEAT] Dungeon Editor
 - [FEAT] Cynosural Field Generators
