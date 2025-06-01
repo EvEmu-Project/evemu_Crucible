@@ -23,6 +23,7 @@
 #include "station/StationDB.h"
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/ManagerDB.h"
+#include <random> // ---marketbot changes
 
 /*
  * DATA__ERROR          # specific "data not found but should be there" msgs
@@ -90,6 +91,9 @@ void StaticDataMgr::Close()
 int StaticDataMgr::Initialize()
 {
     Populate();
+    // ---marketbot changes
+    sLog.Cyan("    StaticDataMgr", "Loaded %zu solar systems into m_systemData.", m_systemData.size());
+    // ---
     sLog.Blue("    StaticDataMgr", "Static Data Manager Initialized.");
     return 1;
 }
@@ -2209,5 +2213,29 @@ void StaticDataMgr::AddOutpost(StationData &stData)
     // Update m_stationSystem
     if (m_stationSystem.find(stData.stationID) == m_stationSystem.end()) {
         m_stationSystem.emplace(stData.stationID, stData.systemID);
+    }
+}
+
+// ---marketbot changes
+bool StaticDataMgr::GetStationListForSystem(uint32 systemID, std::vector<uint32>& stations) const {
+    auto itr = m_stationList.find(systemID);
+    if (itr != m_stationList.end() && !itr->second.empty()) {
+        stations = itr->second;
+        return true;
+    }
+    return false;
+}
+
+void StaticDataMgr::GetRandomSystemIDs(size_t count, std::vector<uint32>& outSystems) const {
+    outSystems.clear();
+    for (const auto& [systemID, data] : m_systemData) {
+        outSystems.push_back(systemID);
+    }
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(outSystems.begin(), outSystems.end(), g);
+
+    if (outSystems.size() > count) {
+        outSystems.resize(count);
     }
 }

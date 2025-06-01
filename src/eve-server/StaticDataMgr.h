@@ -157,7 +157,10 @@ public:
     DBRowDescriptor*    CreateHeader();
 
     void                AddOutpost(StationData &stData);
-
+    // ---marketbot changes
+    bool GetStationListForSystem(uint32 systemID, std::vector<uint32>& stations) const;
+    void GetRandomSystemIDs(size_t count, std::vector<uint32>& outSystems) const;
+    // ---
 protected:
     void                Populate();
 

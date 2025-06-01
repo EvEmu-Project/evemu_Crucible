@@ -27,6 +27,32 @@
 #include "system/cosmicMgrs/BeltMgr.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "testing/test.h"
+#include "admin/CommandDispatcher.h" // ---commandlist update
+#include "EVE_Roles.h" // ---commandlist update
+#include "market/MarketBotMgr.h" // ---marketbot update
+
+// ---comandlist update; helper function to convert role strings into names
+struct RoleDisplayInfo {
+    int64_t value;
+    const char* name;
+    const char* color;
+};
+
+// Order from lowest privilege to highest
+static const std::vector<RoleDisplayInfo> roleDisplayOrder = {
+    {Acct::Role::PLAYER,      "PLAYER",      "#00cc00"},
+    {Acct::Role::VIPLOGIN,    "VIP",         "#009999"},
+    {Acct::Role::SPAWN,       "SPAWN",       "#3366ff"},
+    {Acct::Role::GML,         "GML",         "#cc6600"},
+    {Acct::Role::GMH,         "GMH",         "#cc0000"},
+    {Acct::Role::PROGRAMMER,  "PROGRAMMER",  "#9933cc"},
+    {Acct::Role::ADMIN,       "ADMIN",       "#990000"},
+    {Acct::Role::DEV,         "DEV",         "#6600cc"},
+    {Acct::Role::BOSS,        "BOSS",        "#000000"}
+};
+
+extern CommandDispatcher* g_dispatcher;
+// ---commandlist update
 
 
 PyResult Command_siglist(Client* pClient, CommandDB* db, EVEServiceManager& services, const Seperator& args) {
@@ -282,21 +308,44 @@ PyResult Command_bubblelist(Client* pClient, CommandDB* db, EVEServiceManager &s
     return new PyString(reply);
 }
 
-PyResult Command_commandlist(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
-    /*
-     * this command will send the client a list of loaded game commands, role required, and description.  -allan 23May15
-     */
+// ---commandlist update
+PyResult Command_commandlist(Client* pClient, CommandDB* db, EVEServiceManager& services, const Seperator& args) {
+    std::ostringstream out;
+    out << "<b>Available Commands (Grouped by Role)</b><br><br>";
 
-    char reply[65];
-    snprintf(reply, 65,
-             "Working on making this list...check back later.<br>" //53
-             " -Allan"); //9
+    const auto& commands = g_dispatcher->GetCommandList();
 
-    pClient->SendInfoModalMsg(reply);
+    // Group commands by required role
+    std::map<int64_t, std::vector<std::pair<std::string, std::string>>> groupedCommands;
+    for (const auto& [name, record] : commands) {
+        if (pClient->GetAccountRole() < record->required_role)
+            continue;
 
-    return new PyString(reply);
+        groupedCommands[record->required_role].emplace_back(name, record->description);
+    }
+
+    // Output groups by display order
+    for (const auto& roleInfo : roleDisplayOrder) {
+        auto it = groupedCommands.find(roleInfo.value);
+        if (it == groupedCommands.end())
+            continue;
+
+        out << "<span style='color:" << roleInfo.color << "'><b>[" << roleInfo.name << " Commands]</b></span><br>";
+
+        for (const auto& [cmdName, cmdDesc] : it->second) {
+            out << "<span style='color:" << roleInfo.color << "'>/" << cmdName;
+            if (!cmdDesc.empty())
+                out << " - " << cmdDesc;
+            out << "</span><br>";
+        }
+
+        out << "<br>";
+    }
+
+    pClient->SendInfoModalMsg(out.str().c_str());
+    return new PyString("Command list sent.");
 }
-
+// ---commandlist update
 
 PyResult Command_secstatus(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
     /*
@@ -1208,6 +1257,13 @@ PyResult Command_dropLoot(Client* pClient, CommandDB* db, EVEServiceManager &ser
     pBubble->CmdDropLoot();
 
     return nullptr;
+}
+
+// ---marketbot update; forcerun command
+PyResult Command_marketbot_run(Client* pClient, CommandDB* db, EVEServiceManager& services, const Seperator& args) {
+    sMktBotMgr.ForceRun();
+    pClient->SendNotifyMsg("MarketBot has been forced to refresh orders.");
+    return new PyString("MarketBot refresh cycle triggered.");
 }
 
 /* groove's new command.....

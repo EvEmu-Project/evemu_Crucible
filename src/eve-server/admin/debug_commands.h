@@ -66,3 +66,6 @@
           " - list of current bound objects (with clients)." )
  COMMAND( dropLoot, Acct::Role::PROGRAMMER,
           " - commands all npcs in bubble to jettison loot." )
+ // ---comandlist update; new commands
+ COMMAND(marketbot_run, Acct::Role::PROGRAMMER,
+          " - Forces MarketBot to refresh orders immediately.")

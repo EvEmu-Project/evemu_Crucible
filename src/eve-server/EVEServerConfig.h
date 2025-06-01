@@ -237,6 +237,8 @@ public:
         std::string cacheDir;
         // used as the base directory for the image server
         std::string imageDir;
+        // used as the path for the MarketBot.xml settings file
+        std::string marketBotSettings;
     } files;
 
     // From <net>

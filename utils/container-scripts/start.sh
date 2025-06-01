@@ -14,6 +14,10 @@ if [ ! -f "/app/etc/log.ini" ]; then
     echo "log.ini not found, installing..."
     cp /src/utils/config/log.ini /app/etc/
 fi
+if [ ! -f "/app/etc/MarketBot.xml" ]; then
+    echo "MarketBot.xml not found, installing..."
+    cp /src/utils/config/MarketBot.xml /app/etc/
+fi
 if [ ! -f "/app/etc/devtools.raw" ]; then
     echo "devtools.raw not found, installing..."
     cp /src/utils/config/devtools.raw /app/etc/

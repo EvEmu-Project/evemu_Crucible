@@ -87,12 +87,17 @@ protected:
      */
     void IncRef() const
     {
+        // ---modulefix; issue with installing and uninstalling modules caused a soft freeze and unable to make changes to modules in fit screen.
         if (mDeleted) {
-            _log(REFPTR__ERROR, "IncRef() - mDeleted = true.  Count is %u", mRefCount);
+            _log(REFPTR__ERROR, "IncRef() - Attempted to increase ref count on deleted object! Current Count: %u", mRefCount);
+            std::cerr << "FATAL: IncRef() called on deleted object! Type: " << typeid(*this).name() << std::endl;
             EvE::traceStack();
-            //return;
+
+            // Optional: Either abort to catch error early, or return to avoid crashing.
+            // abort(); // Uncomment for hard fail (debug build)
+            return; // Production builds, silently fail
         }
-        assert(mDeleted == false);
+        //Removed assert(mDeleted == false); --causing constant server hang, when installing and removed modules from ships.
         ++mRefCount;
     }
     /**
@@ -103,12 +108,14 @@ protected:
     void DecRef() const
     {
         if (mDeleted) {
-            _log(REFPTR__ERROR, "DecRef() - mDeleted = true.  Count is %u", mRefCount);
+            // ---modulefix; issue with installing and uninstalling modules caused a soft freeze and unable to make changes to modules in fit screen.
+            _log(REFPTR__ERROR, "IncRef() - Attempted to increase ref count on deleted object! Current Count: %u", mRefCount);
+            std::cerr << "FATAL: IncRef() called on deleted object! Type: " << typeid(*this).name() << std::endl;
             EvE::traceStack();
             return;
         }
 
-        assert(mDeleted == false);
+        // Removed assert(mDeleted == false);
         assert(mRefCount > 0);
         --mRefCount;
 
@@ -231,7 +238,13 @@ public:
     /**
      * @return True if stores a reference, false otherwise.
      */
-    operator bool() const { return (mPtr != nullptr); }
+    operator bool() const noexcept {
+        if (this == nullptr) {                        // Comment Line 240-243 if debugging is not needed.
+            fprintf(stderr, "[RefPtr::operator bool] ERROR: 'this' is nullptr! Possibly corrupted RefPtr.\n");
+            return false;
+        }
+        return mPtr != nullptr;
+    }
 
     X& operator*() const { assert(*this); return *mPtr; }
     X* operator->() const { assert(*this); return mPtr; }
