@@ -14,7 +14,7 @@ ENDIF( PKG_FOUND )
 
 # Cache entries
 SET( Boost_URL
-  "http://downloads.sourceforge.net/project/boost/boost/1.67.0/boost_1_67_0.tar.bz2"
+  "https://archives.boost.io/release/1.67.0/source/boost_1_67_0.tar.bz2"
   CACHE STRING "URL of the Boost source archive" )
 MARK_AS_ADVANCED( Boost_URL )
 

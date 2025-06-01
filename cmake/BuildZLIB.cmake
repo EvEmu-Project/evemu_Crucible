@@ -3,10 +3,7 @@
 # download and build of source archive.
 #
 
-# Version 1.2.3 (July 2005) eliminates potential security
-# vulnerabilities in zlib 1.2.1 and 1.2.2, so all users of those
-# versions should upgrade immediately.
-FIND_PACKAGE( "ZLIB" 1.2.3 )
+FIND_PACKAGE( "ZLIB" 1.2.7 )
 SET( PKG_FOUND "${ZLIB_FOUND}" )
 
 IF( PKG_FOUND )
@@ -15,14 +12,15 @@ ENDIF( PKG_FOUND )
 
 # Cache entries
 SET( ZLIB_URL
-  "http://downloads.sourceforge.net/project/libpng/zlib/1.2.7/zlib-1.2.7.tar.bz2"
+  "https://zlib.net/fossils/zlib-1.2.7.tar.gz"
   CACHE STRING "URL of the zlib source archive" )
 MARK_AS_ADVANCED( ZLIB_URL )
 
 # Setup the needed variables
 SET( PKG_URL "${ZLIB_URL}" )
-SET( PKG_MD5 "2ab442d169156f34c379c968f3f482dd" )
+SET( PKG_MD5 "60DF6A37C56E7C1366CCA812414F7B85" )
 SET( PKG_ARCHIVE_PREFIX "/zlib-1.2.7" )
+#SET( PKG_EXTRACT_PREFIX "/zlib-1.2.7")
 
 SET( PKG_CMAKELISTS "
 INCLUDE_DIRECTORIES(
