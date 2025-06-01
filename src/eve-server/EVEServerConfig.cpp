@@ -256,6 +256,7 @@ EVEServerConfig::EVEServerConfig()
     files.logSettings = "../etc/log.ini";
     files.cacheDir = "../server_cache/";
     files.imageDir = "../image_cache/";
+    files.marketBotSettings = "../etc/MarketBot.xml";
 
     // net
     net.port = 26000;
