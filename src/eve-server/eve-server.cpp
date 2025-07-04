@@ -25,6 +25,12 @@
  */
 
 #include "eve-server.h"
+#include <atomic>
+
+// Global TCP server instance for cleanup access
+EVETCPServer tcps;
+std::atomic<bool> m_needsSave(false);
+
 // version
 #include "../eve-common/EVEVersion.h"
 
@@ -583,7 +589,6 @@ int main( int argc, char* argv[] )
     sAllocators.tickAllocator.Init(Allocators::TICK_ALLOCATOR_SIZE, "TickAllocator");
 
     /* Start up the TCP server */
-    EVETCPServer tcps;
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
     sLog.Green( "       ServerInit", "Starting TCP Server");
     if (tcps.Open(sConfig.net.port, errbuf)) {
@@ -914,9 +919,9 @@ int main( int argc, char* argv[] )
         m_run = sConsole.Process();
 
         /* do the stuff for thread sleeping */
-        start = GetTickCount() - start;
-        if (m_sleepTime > start)
-            std::this_thread::sleep_for(std::chrono::milliseconds(start));
+        uint32 elapsed = GetTickCount() - start;
+        uint32 sleepTime = m_sleepTime > elapsed ? m_sleepTime - elapsed : 0;
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
     }
 
     /*
@@ -953,7 +958,7 @@ int main( int argc, char* argv[] )
     /* Close the standings manager */
     sStandingMgr.Close();
     sLog.Warning("   ServerShutdown", "Saving Items." );
-    if (!sConsole.IsDbError())
+    if (m_needsSave && !sConsole.IsDbError())
         sItemFactory.SaveItems();
     /* Close the entity list */
     sEntityList.Close();
@@ -1028,9 +1033,8 @@ static void CatchSignal( int sig_num )
     sLog.Error( "    Signal System", "Caught signal: %d", sig_num );
     if (sConfig.debug.StackTrace)
         EvE::traceStack();
-    //SafeSave();
+    m_needsSave = true;
     m_run = false;
-    //CleanUp();
 }
 
 static void CleanUp() {
@@ -1039,7 +1043,7 @@ static void CleanUp() {
     if (!sConsole.IsDbError())
         ServiceDB::SetServerOnlineStatus(false);
     /* stop TCP listener */
-    //tcps.Close();
+    tcps.Close();
     sLog.Warning("   ServerShutdown", "TCP listener stopped." );
     /* stop Image Server */
     sImageServer.Stop();
