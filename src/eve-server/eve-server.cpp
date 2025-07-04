@@ -25,6 +25,9 @@
  */
 
 #include "eve-server.h"
+
+// Global TCP server instance for cleanup access
+EVETCPServer tcps;
 // version
 #include "../eve-common/EVEVersion.h"
 
@@ -583,7 +586,6 @@ int main( int argc, char* argv[] )
     sAllocators.tickAllocator.Init(Allocators::TICK_ALLOCATOR_SIZE, "TickAllocator");
 
     /* Start up the TCP server */
-    EVETCPServer tcps;
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
     sLog.Green( "       ServerInit", "Starting TCP Server");
     if (tcps.Open(sConfig.net.port, errbuf)) {
@@ -1039,7 +1041,7 @@ static void CleanUp() {
     if (!sConsole.IsDbError())
         ServiceDB::SetServerOnlineStatus(false);
     /* stop TCP listener */
-    //tcps.Close();
+    tcps.Close();
     sLog.Warning("   ServerShutdown", "TCP listener stopped." );
     /* stop Image Server */
     sImageServer.Stop();
