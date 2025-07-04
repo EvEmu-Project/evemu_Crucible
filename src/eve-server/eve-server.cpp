@@ -916,9 +916,9 @@ int main( int argc, char* argv[] )
         m_run = sConsole.Process();
 
         /* do the stuff for thread sleeping */
-        start = GetTickCount() - start;
-        if (m_sleepTime > start)
-            std::this_thread::sleep_for(std::chrono::milliseconds(start));
+        uint32 elapsed = GetTickCount() - start;
+        uint32 sleepTime = m_sleepTime > elapsed ? m_sleepTime - elapsed : 0;
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
     }
 
     /*
@@ -1030,9 +1030,8 @@ static void CatchSignal( int sig_num )
     sLog.Error( "    Signal System", "Caught signal: %d", sig_num );
     if (sConfig.debug.StackTrace)
         EvE::traceStack();
-    //SafeSave();
+    sItemFactory.SaveItems();
     m_run = false;
-    //CleanUp();
 }
 
 static void CleanUp() {
