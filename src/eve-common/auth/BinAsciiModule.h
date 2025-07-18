@@ -23,6 +23,8 @@
     Author:        Captnoord
 */
 
+#include <eve-compat.h>
+#include <string.h>
 #ifndef BIN_ASCII_MODULE_H
 #define BIN_ASCII_MODULE_H
 
