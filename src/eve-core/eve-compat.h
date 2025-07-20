@@ -98,20 +98,6 @@ typedef SOCKLEN_T* PSOCKLEN_T;
 #   define asinh boost::math::asinh
 #endif /* !HAVE_ASINH */
 
-#ifndef HAVE_FINITE
-#   if defined( HAVE_ISFINITE )
-#       define finite isfinite
-#   elif defined( HAVE_STD_FINITE )
-#       define finite std::finite
-#   elif defined( HAVE_STD_ISFINITE )
-#       define finite std::isfinite
-#   elif defined( HAVE__FINITE )
-#       define finite _finite
-#   elif defined( HAVE___FINITE )
-#       define finite __finite
-#   endif /* HAVE___FINITE */
-#endif /* !HAVE_FINITE */
-
 #ifndef HAVE_ISNAN
 //#   if defined( HAVE_STD_ISNAN )
 //#       define isnan std::isnan

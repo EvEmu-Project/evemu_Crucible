@@ -89,10 +89,6 @@
 // Define if __isnan is available.
 #cmakedefine HAVE___ISNAN 1
 
-// HAVE_STD_FINITE
-// Define if std::finite is available.
-#cmakedefine HAVE_STD_FINITE 1
-
 // HAVE_STD_ISFINITE
 // Define if std::isfinite is available.
 #cmakedefine HAVE_STD_ISFINITE 1

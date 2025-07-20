@@ -142,13 +142,10 @@ CHECK_CXX_SYMBOL_EXISTS( _isnan   "cfloat" HAVE__ISNAN )
 #CHECK_CXX_SYMBOL_EXISTS( __isnan  "cmath"  HAVE___ISNAN )
 
 CHECK_CXX_SOURCE_COMPILES(
-  "#include <cmath>\nint main() { return std::finite( 0 ); }\n"
-  HAVE_STD_FINITE )
-CHECK_CXX_SOURCE_COMPILES(
-  "#include <cmath>\nint main() { return std::isfinite( 0 ); }\n"
+  "#include <cmath>\nint main() { return static_cast<int>(std::isfinite( 0 )); }\n"
   HAVE_STD_ISFINITE )
 CHECK_CXX_SOURCE_COMPILES(
-  "#include <cmath>\nint main() { return std::isnan( 0 ); }\n"
+  "#include <cmath>\nint main() { return static_cast<int>(std::isnan( 0 )); }\n"
   HAVE_STD_ISNAN )
 
 # cstdarg

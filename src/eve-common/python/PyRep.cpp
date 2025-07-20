@@ -302,7 +302,7 @@ bool PyFloat::visit( PyVisitor& v ) const
 int32 PyFloat::hash() const
 {
 #define Py_IS_INFINITY( X ) \
-    ( !finite( X ) && !isnan( X ) )
+    ( !isfinite( X ) && !isnan( X ) )
 
     double v = mValue;
     double intpart=0.0, fractpart=0.0;
