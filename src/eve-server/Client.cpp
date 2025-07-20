@@ -212,18 +212,17 @@ bool Client::ProcessNet()
     PyPacket *p(nullptr);
     while ((p = PopPacket())) {
         try {
-            if (!DispatchPacket(p))
+            if (!DispatchPacket(p)) {
                 sLog.Error("Client", "%s: Failed to dispatch packet of type %s (%i).", m_char->name(), MACHONETMSG_TYPE_NAMES[ p->type ], (int)p->type);
+            }
         }
         catch(PyException& e) {
             _SendException(p->dest, p->source.callID, p->type, WRAPPEDEXCEPTION, &e.ssException);
         }
 
-        p = nullptr;
+        SafeDelete(p);
     }
 
-    // cleanup
-    SafeDelete(p);
     // send queue
     _SendQueuedUpdates();
 
