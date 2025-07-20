@@ -25,16 +25,20 @@ RUN apt-get update && \
 FROM base AS app-build
 
 # Add project files
-ADD CMakeLists.txt /src/
-ADD config.h.in /src/
-ADD /cmake/ /src/cmake
-ADD /dep/ /src/dep
-ADD /src/ /src/src
-ADD /utils/ /src/utils
-ADD /.git/ /src/.git
+COPY CMakeLists.txt /src/
+COPY config.h.in /src/
+COPY /cmake/ /src/cmake
+COPY /dep/ /src/dep
+COPY /src/ /src/src
+COPY /utils/ /src/utils
+# Included for cmake to read git rev-hash
+COPY /.git/ /src/.git
 
 # Create necessary directories
 RUN mkdir -p /src/build /app /app/logs /app/server_cache /app/image_cache
+
+ENV MYSQL_INCLUDE_DIR="/usr/include/mariadb"
+ENV MYSQL_LIBRARIES="/usr/lib/x86_64-linux-gnu/libmariadbclient.so"
 
 # Set working directory
 WORKDIR /src/build
@@ -54,7 +58,7 @@ COPY --from=app-build /src/utils/ /src/utils
 COPY --from=app-build /app/ /app
 
 # Add SQL loading tools
-ADD /sql/ /src/sql
+COPY /sql/ /src/sql
 
 # Run SQL tool script
 RUN cd /src/sql && ./get_evedbtool.sh
