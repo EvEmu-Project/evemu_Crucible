@@ -159,6 +159,16 @@ Client::~Client() {
 
         sLog.Green("  Client::Logout()","%s (Acct:%u) logging out.", m_char->name(), GetUserID());
 
+        // Save character's current position information
+        if (sDataMgr.IsSolarSystem(m_locationID) && pShipSE != nullptr) {
+            GPoint currentPosition = pShipSE->GetPosition();
+            sLog.Blue("Client::Logout()", "Saving character position for %s(%u) at %.2f,%.2f,%.2f in system %u", 
+                      m_char->name(), m_char->itemID(), currentPosition.x, currentPosition.y, currentPosition.z, m_locationID);
+            
+            // Update character data with position information
+            m_char->SetLocation(m_locationID, m_systemData);
+        }
+
         if (!sConsole.IsDbError()) {
             ServiceDB::SetAccountOnlineStatus(GetUserID(), false);
             CharacterDB::SetCharacterOnlineStatus(m_char->itemID(), false);
@@ -635,6 +645,16 @@ void Client::WarpOut() {
     m_ship->SetCustomInfo(ci);
     if (!InPod())
         m_ship->SetFlag(flagShipOffline);
+
+    // Critical fix: Save the latest ship position to database
+    if (pShipSE != nullptr) {
+        GPoint currentPosition = pShipSE->GetPosition();
+        sLog.Blue("Client::WarpOut()", "Saving ship position for %s(%u) at %.2f,%.2f,%.2f", 
+                  GetName(), m_char->itemID(), currentPosition.x, currentPosition.y, currentPosition.z);
+        m_ship->SetPosition(currentPosition);
+        m_ship->SaveShip();
+    }
+
     pShipSE->SetPosition(m_ship->position());
     DestroyShipSE();
     return;
