@@ -215,7 +215,7 @@ public:
         {
             // make sure we have same parent buffer
             if (!mBuffer || !oth.mBuffer) {
-                return 0;
+                throw BufferAccessException("Cannot calculate difference between iterators with null buffers");
             }
             assert( oth.mBuffer == mBuffer );
             // return difference in element offset
@@ -394,6 +394,7 @@ public:
                 memset(mBuffer, fill, len);
             }
         }
+        // For len == 0, members are already initialized to safe defaults
     }
     /**
      * @brief Creates buffer with given content.
@@ -660,8 +661,11 @@ public:
             // obtain byte length of input data
             const size_type _len = sizeof( typename std::iterator_traits< Iter >::value_type ) * ( last - first );
             
-            // Additional bounds check
-            if (_index + _len > mSize) {
+            // Validate _len is not negative and doesn't overflow
+            if (last < first) {
+                throw BufferAccessException("Invalid iterator range: last < first");
+            }
+            if (_len > mSize || _index > mSize - _len) {
                 throw BufferAccessException("Buffer overflow - index: " + std::to_string(_index) + 
                                           ", len: " + std::to_string(_len) + 
                                           ", size: " + std::to_string(mSize));
@@ -869,6 +873,7 @@ protected:
     {
         if (requiredSize == 0) {
             SafeFree(mBuffer);
+            mBuffer = nullptr;
             mCapacity = 0;
             mSize = 0;
             return;
