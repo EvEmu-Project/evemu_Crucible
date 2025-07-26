@@ -630,12 +630,14 @@ void Client::WarpIn() {
 
     UpdateBubble();
 
-    // This will queue up the login warp-in on the next server tick. Calling
-    // SetStateTimer allows it to be processed on the next tick instead of
-    // getting timed out and ignored by a session change timer.
-    SetStateTimer(0);
-
-    m_clientState = Player::State::LoginWarp;
+    // Only trigger login warp if the saved position and current position are significantly different
+    if ((m_ship->position() - m_loginWarpPoint).length() > 1.0) {
+        SetStateTimer(0);
+        m_clientState = Player::State::LoginWarp;
+    } else {
+        // If already at the correct position, skip warp and go idle
+        m_clientState = Player::State::Idle;
+    }
 }
 
 void Client::WarpOut() {
