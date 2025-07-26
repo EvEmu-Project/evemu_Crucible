@@ -60,6 +60,7 @@ class ConsoleCommand
     bool IsShutdown()                                   { return m_haltServer; }
     // avoid using db after it has lost connection.
     bool IsDbError()                                    { return m_dbError; }
+    void Stop();
 
 private:
     // we do not own any of these...

@@ -519,3 +519,16 @@ void ConsoleCommand::FxProc(uint8 idx/*0*/) {
 
     sLog.Magenta("CC::FxProc", "- effects processed in %.3fms", (GetTimeMSeconds() - start));
 }
+
+void ConsoleCommand::Stop()
+{
+    if (m_inputThread != nullptr) {
+        m_inputThreadRunning = false;
+        if (m_inputThread->joinable()) {
+            m_inputThread->join();
+        }
+        delete m_inputThread;
+        m_inputThread = nullptr;
+    }
+    sLog.Warning("   ConsoleCommand", "Console Command Interpreter stopped.");
+}

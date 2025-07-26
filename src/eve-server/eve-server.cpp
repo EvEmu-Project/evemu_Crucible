@@ -989,9 +989,11 @@ int main( int argc, char* argv[] )
     sLog.Warning("   ServerShutdown", "Closing the Bubble Manager." );
     sBubbleMgr.clear();
     /* Close the command dispatcher */
+    sLog.Warning("   ServerShutdown", "Closing the Command Dispatcher." );
     // command_dispatcher.Close(); // command_dispatcher is not in scope here
     /* Stop Console Command Interpreter */
-    //sConsole.Stop();
+    sLog.Warning("   ServerShutdown", "Stopping Console Command Interpreter." );
+    sConsole.Stop();
     /* close the db handler */
     sLog.Warning("   ServerShutdown", "Closing DataBase Connection." );
     sDatabase.Close();
@@ -1002,6 +1004,9 @@ int main( int argc, char* argv[] )
     sLog.Warning("   ServerShutdown", "EVEmu is Offline.");
     /* close logfile */
     log_close_logfile();
+    
+    // Force exit after cleanup
+    sLog.Warning("   ServerShutdown", "Cleanup complete, forcing exit." );
     exit(EXIT_SUCCESS);
 }
 
@@ -1056,8 +1061,8 @@ static void CatchSignal( int sig_num )
         EvE::traceStack();
     //SafeSave();
     m_run = false;
-    CleanUp();
-    exit(EXIT_SUCCESS);
+    CleanUp(); // Restore this line to let CleanUp function handle cleanup
+    // exit(EXIT_SUCCESS); // Remove this line to let CleanUp function handle exit
 }
 
 static void CleanUp() {
@@ -1123,7 +1128,8 @@ static void CleanUp() {
     sLog.Warning("   ServerShutdown", "Closing the Command Dispatcher." );
     // command_dispatcher.Close(); // command_dispatcher is not in scope here
     /* Stop Console Command Interpreter */
-    //sConsole.Stop();
+    sLog.Warning("   ServerShutdown", "Stopping Console Command Interpreter." );
+    sConsole.Stop();
     /* close the db handler */
     sLog.Warning("   ServerShutdown", "Closing DataBase Connection." );
     sDatabase.Close();
@@ -1134,6 +1140,10 @@ static void CleanUp() {
     sLog.Warning("   ServerShutdown", "EVEmu is Offline.");
     /* close logfile */
     log_close_logfile();
+    
+    // Force exit after cleanup
+    sLog.Warning("   ServerShutdown", "Cleanup complete, forcing exit." );
+    exit(EXIT_SUCCESS);
 }
 
 /*      Freeze Detector Code taken from TrinityCore.  figure out how to implement here (based on seeing occasional freezes on main)  -allan 29Dec15
