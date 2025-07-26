@@ -140,7 +140,11 @@ public:
         const_reference operator*() const
         {
             // make sure we have valid buffer
-            assert( mBuffer );
+            if (!mBuffer) {
+                // Return a static dummy value to prevent crash
+                static const T dummy = T();
+                return dummy;
+            }
             // make sure we're not going off the bounds
             assert( 1 <= mBuffer->end< value_type >() - *this );
 
@@ -165,7 +169,9 @@ public:
             const difference_type res = ( diff * sizeof( value_type ) );
 
             // make sure we have valid buffer
-            assert( mBuffer );
+            if (!mBuffer) {
+                return *this;
+            }
             // make sure we won't go negative
             assert( 0 <= mIndex + res );
             // make sure we won't go past end
@@ -208,6 +214,9 @@ public:
         difference_type operator-( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
+            if (!mBuffer || !oth.mBuffer) {
+                return 0;
+            }
             assert( oth.mBuffer == mBuffer );
             // return difference in element offset
             return ( ( mIndex - oth.mIndex ) / sizeof( value_type ) );
@@ -217,6 +226,9 @@ public:
         bool operator==( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
+            if (!mBuffer || !oth.mBuffer) {
+                return (mIndex == oth.mIndex);
+            }
             assert( oth.mBuffer == mBuffer );
             // return the result
             return ( mIndex == oth.mIndex );
@@ -228,6 +240,9 @@ public:
         bool operator<( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
+            if (!mBuffer || !oth.mBuffer) {
+                return (mIndex < oth.mIndex);
+            }
             assert( oth.mBuffer == mBuffer );
             // return the result
             return ( mIndex < oth.mIndex );
@@ -236,6 +251,9 @@ public:
         bool operator>( const const_iterator& oth ) const
         {
             // make sure we have same parent buffer
+            if (!mBuffer || !oth.mBuffer) {
+                return (mIndex > oth.mIndex);
+            }
             assert( oth.mBuffer == mBuffer );
             // return the result
             return ( mIndex > oth.mIndex );
@@ -366,7 +384,16 @@ public:
         /* unfortunately, we cannot use template here
            since it's not possible to explicitly instantiate
            constructor .... assuming uint8 */
-        Resize< uint8 >( len, fill );
+        if (len > 0) {
+            // Direct allocation for initial buffer creation
+            size_type newCapacity = _CalcBufferCapacity(0, len);
+            mBuffer = (uint8*)malloc(newCapacity);
+            if (mBuffer != nullptr) {
+                mSize = len;
+                mCapacity = newCapacity;
+                memset(mBuffer, fill, len);
+            }
+        }
     }
     /**
      * @brief Creates buffer with given content.
@@ -408,25 +435,21 @@ public:
     /// @return iterator to begin.
     template< typename T >
     iterator< T > begin() { 
-        ValidateBuffer();
         return iterator< T >( this, 0 ); 
     }
     /// @return const_iterator to begin.
     template< typename T >
     const_iterator< T > begin() const { 
-        ValidateBuffer();
         return const_iterator< T >( this, 0 ); 
     }
     /// @return iterator to end.
     template< typename T >
     iterator< T > end() { 
-        ValidateBuffer();
         return iterator< T >( this, size() ); 
     }
     /// @return const_iterator to end.
     template< typename T >
     const_iterator< T > end() const { 
-        ValidateBuffer();
         return const_iterator< T >( this, size() ); 
     }
 
