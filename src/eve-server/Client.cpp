@@ -636,7 +636,28 @@ void Client::WarpIn() {
         m_clientState = Player::State::LoginWarp;
     } else {
         // If already at the correct position, skip warp and go idle
+        // But still ensure the ship is properly added to bubble and visible
         m_clientState = Player::State::Idle;
+        
+        // Clear login warp flags to prevent IsLoginWarping() from returning true
+        m_loginWarpPoint = NULL_ORIGIN;
+        m_loginWarpRandomPoint = NULL_ORIGIN;
+        
+        // Force a bubble update to ensure ship is visible and send state to client
+        if (GetShipSE()->SysBubble() != nullptr) {
+            // Ensure ship is stopped, uncloaked, and state is sent to client to prevent ghosting
+            GetShipSE()->DestinyMgr()->Stop();
+            GetShipSE()->DestinyMgr()->UnCloak();
+            
+            // Force add ship to bubble if not already there
+            if (GetShipSE()->SysBubble()->GetEntity(GetShipSE()->GetID()) == nullptr) {
+                GetShipSE()->SysBubble()->Add(GetShipSE());
+            }
+            
+            GetShipSE()->SysBubble()->SendAddBalls(GetShipSE());
+            SetStateSent(false);
+            GetShipSE()->DestinyMgr()->SendSetState();
+        }
     }
 }
 
