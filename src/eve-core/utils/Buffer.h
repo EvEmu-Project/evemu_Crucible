@@ -867,6 +867,12 @@ protected:
      */
     void _Reallocate( size_type requiredSize )
     {
+        if (requiredSize == 0) {
+            SafeFree(mBuffer);
+            mCapacity = 0;
+            mSize = 0;
+            return;
+        }
         // calculate new capacity for required size
         size_type newCapacity = _CalcBufferCapacity( capacity(), requiredSize );
         // make sure new capacity is bigger than required size
