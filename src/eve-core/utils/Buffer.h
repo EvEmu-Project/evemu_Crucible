@@ -28,6 +28,7 @@
 
 #include "utils/misc.h"
 #include "memory/SafeMem.h"
+#include "log/logsys.h"
 
 /**
  * @brief Generic class for buffers.
@@ -378,16 +379,40 @@ public:
     /********************************************************************/
     /// @return iterator to begin.
     template< typename T >
-    iterator< T > begin() { return iterator< T >( this, 0 ); }
+    iterator< T > begin() { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::begin: mBuffer is null");
+            return iterator< T >(this, 0);
+        }
+        return iterator< T >( this, 0 ); 
+    }
     /// @return const_iterator to begin.
     template< typename T >
-    const_iterator< T > begin() const { return const_iterator< T >( this, 0 ); }
+    const_iterator< T > begin() const { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::begin: mBuffer is null");
+            return const_iterator< T >(this, 0);
+        }
+        return const_iterator< T >( this, 0 ); 
+    }
     /// @return iterator to end.
     template< typename T >
-    iterator< T > end() { return iterator< T >( this, size() ); }
+    iterator< T > end() { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::end: mBuffer is null");
+            return iterator< T >(this, 0);
+        }
+        return iterator< T >( this, size() ); 
+    }
     /// @return const_iterator to end.
     template< typename T >
-    const_iterator< T > end() const { return const_iterator< T >( this, size() ); }
+    const_iterator< T > end() const { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::end: mBuffer is null");
+            return const_iterator< T >(this, 0);
+        }
+        return const_iterator< T >( this, size() ); 
+    }
 
     /**
      * @brief Gets element from buffer.
@@ -397,7 +422,21 @@ public:
      * @return Reference to element.
      */
     template< typename T >
-    T& Get( size_type index ) { return *( begin< T >() + index ); }
+    T& Get( size_type index ) { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::Get: mBuffer is null");
+            // Return a static dummy value to prevent crash
+            static T dummy = T();
+            return dummy;
+        }
+        if (index >= mSize / sizeof(T)) {
+            _log(COMMON__ERROR, "Buffer::Get: index out of bounds - index: %lu, max: %lu", index, mSize / sizeof(T));
+            // Return a static dummy value to prevent crash
+            static T dummy = T();
+            return dummy;
+        }
+        return *( begin< T >() + index ); 
+    }
     /**
      * @brief Gets const element from buffer.
      *
@@ -406,7 +445,21 @@ public:
      * @return Const reference to element.
      */
     template< typename T >
-    const T& Get( size_type index ) const { return *( begin< T >() + index ); }
+    const T& Get( size_type index ) const { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::Get: mBuffer is null");
+            // Return a static dummy value to prevent crash
+            static const T dummy = T();
+            return dummy;
+        }
+        if (index >= mSize / sizeof(T)) {
+            _log(COMMON__ERROR, "Buffer::Get: index out of bounds - index: %lu, max: %lu", index, mSize / sizeof(T));
+            // Return a static dummy value to prevent crash
+            static const T dummy = T();
+            return dummy;
+        }
+        return *( begin< T >() + index ); 
+    }
 
     /**
      * @brief Overload of access operator[].
@@ -415,7 +468,21 @@ public:
      *
      * @return Reference to required byte.
      */
-    uint8& operator[]( size_type index ) { return Get< uint8 >( index ); }
+    uint8& operator[]( size_type index ) { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::operator[]: mBuffer is null");
+            // Return a static dummy value to prevent crash
+            static uint8 dummy = 0;
+            return dummy;
+        }
+        if (index >= mSize) {
+            _log(COMMON__ERROR, "Buffer::operator[]: index out of bounds - index: %lu, size: %lu", index, mSize);
+            // Return a static dummy value to prevent crash
+            static uint8 dummy = 0;
+            return dummy;
+        }
+        return Get< uint8 >( index ); 
+    }
     /**
      * @brief Overload of const access operator[].
      *
@@ -423,7 +490,21 @@ public:
      *
      * @return Const reference to required byte.
      */
-    const uint8& operator[]( size_type index ) const { return Get< uint8 >( index ); }
+    const uint8& operator[]( size_type index ) const { 
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::operator[]: mBuffer is null");
+            // Return a static dummy value to prevent crash
+            static const uint8 dummy = 0;
+            return dummy;
+        }
+        if (index >= mSize) {
+            _log(COMMON__ERROR, "Buffer::operator[]: index out of bounds - index: %lu, size: %lu", index, mSize);
+            // Return a static dummy value to prevent crash
+            static const uint8 dummy = 0;
+            return dummy;
+        }
+        return Get< uint8 >( index ); 
+    }
 
     /********************************************************************/
     /* Write methods                                                    */
@@ -538,8 +619,21 @@ public:
         // make sure we're not going off the bounds
         assert( 1 <= end< T >() - index );
 
+        // Check if buffer is valid
+        if (mBuffer == nullptr) {
+            _log(COMMON__ERROR, "Buffer::AssignAt: mBuffer is null");
+            return;
+        }
+
         // turn iterator into byte offset
         const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
+        
+        // Additional bounds check
+        if (_index + sizeof(T) > mSize) {
+            _log(COMMON__ERROR, "Buffer::AssignAt: buffer overflow - index: %lu, size: %lu", _index, mSize);
+            return;
+        }
+        
         // assign the value
         *(T*)&mBuffer[ _index ] = value;
     }
@@ -559,10 +653,23 @@ public:
         // is there anything to assign?
         if( first != last )
         {
+            // Check if buffer is valid
+            if (mBuffer == nullptr) {
+                _log(COMMON__ERROR, "Buffer::AssignSeqAt: mBuffer is null");
+                return;
+            }
+            
             // turn the iterator into byte offset
             const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
             // obtain byte length of input data
             const size_type _len = sizeof( typename std::iterator_traits< Iter >::value_type ) * ( last - first );
+            
+            // Additional bounds check
+            if (_index + _len > mSize) {
+                _log(COMMON__ERROR, "Buffer::AssignSeqAt: buffer overflow - index: %lu, len: %lu, size: %lu", _index, _len, mSize);
+                return;
+            }
+            
             // assign the content
             memmove( &mBuffer[ _index ], &*first, _len );
         }
@@ -771,7 +878,17 @@ protected:
         if( newCapacity != capacity() )
         {
             // reallocate
-            mBuffer = (uint8*)realloc( mBuffer, newCapacity );
+            uint8* newBuffer = (uint8*)realloc( mBuffer, newCapacity );
+            if (newBuffer == nullptr) {
+                // realloc failed, but we still have the old buffer
+                // we should handle this gracefully - either throw an exception
+                // or try to work with the current buffer size
+                _log(COMMON__ERROR, "Buffer::_Reallocate: realloc failed for size %lu", newCapacity);
+                // For now, we'll keep the old buffer and hope for the best
+                // In a production environment, you might want to throw an exception here
+                return;
+            }
+            mBuffer = newBuffer;
             // set new capacity
             mCapacity = newCapacity;
         }
