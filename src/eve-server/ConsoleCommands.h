@@ -48,7 +48,7 @@ class ConsoleCommand
 {
   public:
     ConsoleCommand();
-    ~ConsoleCommand()                                   { /* do nothing here */ }
+    ~ConsoleCommand();
 
     void Initialize(CommandDispatcher* cd);
 
@@ -86,6 +86,7 @@ private:
     std::deque<std::string> m_input;
     std::deque<std::string> m_inputToProcess;
     std::thread* m_inputThread;
+    std::atomic<bool> m_inputThreadRunning;
 };
 
 //Singleton

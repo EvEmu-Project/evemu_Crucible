@@ -36,8 +36,13 @@ PlanetDataMgr::PlanetDataMgr()
 int PlanetDataMgr::Initialize()
 {
     _Populate();
-    sLog.Blue("    PlanetDataMgr", "Planet Data Manager Initialized.");
+    sLog.Blue("      PlanetDataMgr", "Planet Data Manager Initialized.");
     return 1;
+}
+
+void PlanetDataMgr::Close()
+{
+    sLog.Warning("      PlanetDataMgr", "Planet Data Manager has been closed.");
 }
 
 void PlanetDataMgr::_Populate()
@@ -98,6 +103,11 @@ int PIDataMgr::Initialize()
     _Populate();
     sLog.Blue("        PIDataMgr", "Planet Interaction Data Manager Initialized.");
     return 1;
+}
+
+void PIDataMgr::Close()
+{
+    sLog.Warning("         PIDataMgr", "PI Data Manager has been closed.");
 }
 
 // do we need anything from piPinMap?  - maps SchematicID to manuf facility's typeID

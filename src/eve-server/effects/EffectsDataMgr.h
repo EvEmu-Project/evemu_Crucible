@@ -23,6 +23,7 @@ public:
 
     int Initialize();
     void Populate();
+    void Close();
     bool isWarpSafe(uint16 eID);
     bool isOffensive(uint16 eID);
     bool isAssistance(uint16 eID);

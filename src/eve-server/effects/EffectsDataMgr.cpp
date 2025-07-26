@@ -30,6 +30,11 @@ int FxDataMgr::Initialize()
     return 1;
 }
 
+void FxDataMgr::Close()
+{
+    sLog.Warning("        FxDataMgr", "Effects Data Manager has been closed.");
+}
+
 void FxDataMgr::Populate()
 {
     if (m_loaded)

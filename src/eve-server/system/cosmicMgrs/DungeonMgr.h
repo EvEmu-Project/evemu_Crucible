@@ -30,6 +30,7 @@ public:
 
     // Initializes the Table:
     int Initialize();
+    void Close();
 
     void GetRandomDungeon(Dungeon::Dungeon& dungeon, uint8 archetype);
     void GetDungeon(Dungeon::Dungeon& dungeon, uint32 dungeonID);

@@ -24,6 +24,7 @@ public:
 
     // Initializes the Table:
     int Initialize();
+    void Close();
 
     void GetPlanetData(uint32 planetID, std::vector<uint16> &typeIDs);
 
@@ -54,6 +55,7 @@ public:
 
     // Initializes the Table:
     int Initialize();
+    void Close();
 
     PyRep* GetProgramResultInfo(Colony* pColony, uint32 pinID, uint16 typeID, PyList* heads, float headRadius);
 

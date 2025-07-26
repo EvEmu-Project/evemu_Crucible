@@ -36,10 +36,14 @@ DungeonDataMgr::DungeonDataMgr()
 
 int DungeonDataMgr::Initialize()
 {
-    // Loads all dungeons from database upon server initialisation
     Populate();
-    sLog.Blue("       DunDataMgr", "Dungeon Data Manager Initialized.");
+    sLog.Blue("       DungeonMgr", "Dungeon Data Manager Initialized.");
     return 1;
+}
+
+void DungeonDataMgr::Close()
+{
+    sLog.Warning("       DungeonMgr", "Dungeon Data Manager has been closed.");
 }
 
 void DungeonDataMgr::UpdateDungeon(uint32 dungeonID)

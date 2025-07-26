@@ -41,15 +41,25 @@
 
 
 ConsoleCommand::ConsoleCommand()
- :plscc(nullptr),
-  pBubbles(nullptr),
-  pSystems(nullptr),
-  pCommand(nullptr),
-  buf(nullptr),
-  tv(timeval()),
-  m_haltServer(false),
-  m_dbError(false)
+: m_haltServer(false),
+  m_dbError(false),
+  m_inputThread(nullptr),
+  m_inputThreadRunning(false)
 {
+    buf = new char[BUFLEN];
+    FD_ZERO(&fds);
+}
+
+ConsoleCommand::~ConsoleCommand()
+{
+    if (m_inputThread != nullptr) {
+        m_inputThreadRunning = false;
+        if (m_inputThread->joinable()) {
+            m_inputThread->join();
+        }
+        delete m_inputThread;
+    }
+    SafeDelete(buf);
 }
 
 void ConsoleCommand::Initialize(CommandDispatcher* cd)
@@ -61,10 +71,12 @@ void ConsoleCommand::Initialize(CommandDispatcher* cd)
     sLog.Blue( "   ConsoleCommand", "Console Commands Initialized." );
     sLog.Yellow( "   ConsoleCommand", "Enter 'h' for current list of supported commands." );
 
+    m_inputThreadRunning = true;
     m_inputThread = new std::thread([&] {
         std::string temp;
-        while (true) {
+        while (m_inputThreadRunning) {
             std::getline(std::cin, temp);
+            if (!m_inputThreadRunning) break;
             std::lock_guard<std::mutex> lock(m_inputMutex);
             m_input.push_back(std::move(temp));
             m_inputCondition.notify_one();

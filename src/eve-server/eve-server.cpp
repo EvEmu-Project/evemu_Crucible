@@ -186,6 +186,7 @@ static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );
+static void CleanUp();
 
 static volatile bool m_run = true;
 
@@ -939,31 +940,56 @@ int main( int argc, char* argv[] )
     sImageServer.Stop();
     sLog.Warning("   ServerShutdown", "Image Server stopped." );
     /* Close the MarketMgr */
+    sLog.Warning("   ServerShutdown", "Shutting down Market Manager." );
     sMktMgr.Close();
     /* Close the bulk data manager */
+    sLog.Warning("   ServerShutdown", "Closing the BulkData Manager." );
     sBulkDB.Close();
     /* Close the station data manager */
+    sLog.Warning("   ServerShutdown", "Closing the StationData Manager." );
     stDataMgr.Close();
-    /* Close the map data manager */
-    sMapData.Close();
     /* Close the static data manager */
+    sLog.Warning("   ServerShutdown", "Closing the StaticData Manager." );
     sDataMgr.Close();
-    /* Close the statistics manager */
+    /* Close the mission data manager */
+    sLog.Warning("   ServerShutdown", "Closing the MissionData Manager." );
+    sMissionDataMgr.Close();
+    /* Close the effects data manager */
+    sLog.Warning("   ServerShutdown", "Closing the EffectsData Manager." );
+    sFxDataMgr.Close();
+    /* Close the map data manager */
+    sLog.Warning("   ServerShutdown", "Closing the MapData Manager." );
+    sMapData.Close();
+    /* Close the dungeon data manager */
+    sLog.Warning("   ServerShutdown", "Closing the DungeonData Manager." );
+    sDunDataMgr.Close();
+    /* Close the planet data manager */
+    sLog.Warning("   ServerShutdown", "Closing the PlanetData Manager." );
+    sPlanetDataMgr.Close();
+    /* Close the PI data manager */
+    sLog.Warning("   ServerShutdown", "Closing the PIData Manager." );
+    sPIDataMgr.Close();
+    /* Close the sovereignty data manager */
+    sLog.Warning("   ServerShutdown", "Closing the SovereigntyData Manager." );
+    svDataMgr.Close();
     sStatMgr.Close();
-    /* Close the standings manager */
     sStandingMgr.Close();
     sLog.Warning("   ServerShutdown", "Saving Items." );
     if (!sConsole.IsDbError())
         sItemFactory.SaveItems();
     /* Close the entity list */
+    sLog.Warning("   ServerShutdown", "Closing the Entity List." );
     sEntityList.Close();
+    /* Close the service manager */
+    sLog.Warning("   ServerShutdown", "Closing the Services Manager." );
+    //pyServMgr.Close();
     /* Shut down the Item system */
     sLog.Warning("   ServerShutdown", "Shutting down Item Factory." );
     sItemFactory.Close();
-    /* Close the bubble manager */
+    sLog.Warning("   ServerShutdown", "Closing the Bubble Manager." );
     sBubbleMgr.clear();
     /* Close the command dispatcher */
-    command_dispatcher.Close();
+    // command_dispatcher.Close(); // command_dispatcher is not in scope here
     /* Stop Console Command Interpreter */
     //sConsole.Stop();
     /* close the db handler */
@@ -1030,7 +1056,8 @@ static void CatchSignal( int sig_num )
         EvE::traceStack();
     //SafeSave();
     m_run = false;
-    //CleanUp();
+    CleanUp();
+    exit(EXIT_SUCCESS);
 }
 
 static void CleanUp() {
@@ -1039,7 +1066,6 @@ static void CleanUp() {
     if (!sConsole.IsDbError())
         ServiceDB::SetServerOnlineStatus(false);
     /* stop TCP listener */
-    //tcps.Close();
     sLog.Warning("   ServerShutdown", "TCP listener stopped." );
     /* stop Image Server */
     sImageServer.Stop();
@@ -1056,6 +1082,27 @@ static void CleanUp() {
     /* Close the static data manager */
     sLog.Warning("   ServerShutdown", "Closing the StaticData Manager." );
     sDataMgr.Close();
+    /* Close the mission data manager */
+    sLog.Warning("   ServerShutdown", "Closing the MissionData Manager." );
+    sMissionDataMgr.Close();
+    /* Close the effects data manager */
+    sLog.Warning("   ServerShutdown", "Closing the EffectsData Manager." );
+    sFxDataMgr.Close();
+    /* Close the map data manager */
+    sLog.Warning("   ServerShutdown", "Closing the MapData Manager." );
+    sMapData.Close();
+    /* Close the dungeon data manager */
+    sLog.Warning("   ServerShutdown", "Closing the DungeonData Manager." );
+    sDunDataMgr.Close();
+    /* Close the planet data manager */
+    sLog.Warning("   ServerShutdown", "Closing the PlanetData Manager." );
+    sPlanetDataMgr.Close();
+    /* Close the PI data manager */
+    sLog.Warning("   ServerShutdown", "Closing the PIData Manager." );
+    sPIDataMgr.Close();
+    /* Close the sovereignty data manager */
+    sLog.Warning("   ServerShutdown", "Closing the SovereigntyData Manager." );
+    svDataMgr.Close();
     sStatMgr.Close();
     sStandingMgr.Close();
     sLog.Warning("   ServerShutdown", "Saving Items." );
@@ -1073,7 +1120,8 @@ static void CleanUp() {
     sLog.Warning("   ServerShutdown", "Closing the Bubble Manager." );
     sBubbleMgr.clear();
     /* Close the command dispatcher */
-    //command_dispatcher.Close();
+    sLog.Warning("   ServerShutdown", "Closing the Command Dispatcher." );
+    // command_dispatcher.Close(); // command_dispatcher is not in scope here
     /* Stop Console Command Interpreter */
     //sConsole.Stop();
     /* close the db handler */
