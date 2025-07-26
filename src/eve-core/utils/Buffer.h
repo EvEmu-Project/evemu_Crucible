@@ -29,6 +29,8 @@
 #include "utils/misc.h"
 #include "memory/SafeMem.h"
 #include "log/logsys.h"
+#include <stdexcept>
+#include <string>
 
 /**
  * @brief Generic class for buffers.
@@ -43,6 +45,36 @@ class Buffer
 public:
     /// Typedef for size type.
     typedef size_t size_type;
+
+    /**
+     * @brief Buffer exception class.
+     */
+    class BufferException : public std::runtime_error
+    {
+    public:
+        explicit BufferException(const std::string& message) 
+            : std::runtime_error("Buffer error: " + message) {}
+    };
+
+    /**
+     * @brief Buffer access exception class.
+     */
+    class BufferAccessException : public BufferException
+    {
+    public:
+        explicit BufferAccessException(const std::string& message) 
+            : BufferException(message) {}
+    };
+
+    /**
+     * @brief Buffer allocation exception class.
+     */
+    class BufferAllocationException : public BufferException
+    {
+    public:
+        explicit BufferAllocationException(const std::string& message) 
+            : BufferException(message) {}
+    };
 
     /**
      * @brief Buffer's const iterator.
@@ -376,37 +408,25 @@ public:
     /// @return iterator to begin.
     template< typename T >
     iterator< T > begin() { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::begin: mBuffer is null");
-            return iterator< T >(this, 0);
-        }
+        ValidateBuffer();
         return iterator< T >( this, 0 ); 
     }
     /// @return const_iterator to begin.
     template< typename T >
     const_iterator< T > begin() const { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::begin: mBuffer is null");
-            return const_iterator< T >(this, 0);
-        }
+        ValidateBuffer();
         return const_iterator< T >( this, 0 ); 
     }
     /// @return iterator to end.
     template< typename T >
     iterator< T > end() { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::end: mBuffer is null");
-            return iterator< T >(this, 0);
-        }
+        ValidateBuffer();
         return iterator< T >( this, size() ); 
     }
     /// @return const_iterator to end.
     template< typename T >
     const_iterator< T > end() const { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::end: mBuffer is null");
-            return const_iterator< T >(this, 0);
-        }
+        ValidateBuffer();
         return const_iterator< T >( this, size() ); 
     }
 
@@ -416,21 +436,11 @@ public:
      * @param[in] index Index of element in the buffer.
      *
      * @return Reference to element.
+     * @throws BufferAccessException if index is out of bounds or buffer is null
      */
     template< typename T >
     T& Get( size_type index ) { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::Get: mBuffer is null");
-            // Return a static dummy value to prevent crash
-            static T dummy = T();
-            return dummy;
-        }
-        if (index >= mSize / sizeof(T)) {
-            _log(COMMON__ERROR, "Buffer::Get: index out of bounds - index: %lu, max: %lu", index, mSize / sizeof(T));
-            // Return a static dummy value to prevent crash
-            static T dummy = T();
-            return dummy;
-        }
+        ValidateBounds<T>(index);
         return *( begin< T >() + index ); 
     }
     /**
@@ -439,21 +449,11 @@ public:
      * @param[in] index Index of element in the buffer.
      *
      * @return Const reference to element.
+     * @throws BufferAccessException if index is out of bounds or buffer is null
      */
     template< typename T >
     const T& Get( size_type index ) const { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::Get: mBuffer is null");
-            // Return a static dummy value to prevent crash
-            static const T dummy = T();
-            return dummy;
-        }
-        if (index >= mSize / sizeof(T)) {
-            _log(COMMON__ERROR, "Buffer::Get: index out of bounds - index: %lu, max: %lu", index, mSize / sizeof(T));
-            // Return a static dummy value to prevent crash
-            static const T dummy = T();
-            return dummy;
-        }
+        ValidateBounds<T>(index);
         return *( begin< T >() + index ); 
     }
 
@@ -463,20 +463,10 @@ public:
      * @param[in] index Index of byte to be returned.
      *
      * @return Reference to required byte.
+     * @throws BufferAccessException if index is out of bounds or buffer is null
      */
     uint8& operator[]( size_type index ) { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::operator[]: mBuffer is null");
-            // Return a static dummy value to prevent crash
-            static uint8 dummy = 0;
-            return dummy;
-        }
-        if (index >= mSize) {
-            _log(COMMON__ERROR, "Buffer::operator[]: index out of bounds - index: %lu, size: %lu", index, mSize);
-            // Return a static dummy value to prevent crash
-            static uint8 dummy = 0;
-            return dummy;
-        }
+        ValidateByteIndex(index);
         return Get< uint8 >( index ); 
     }
     /**
@@ -485,20 +475,10 @@ public:
      * @param[in] index Index of byte to be returned.
      *
      * @return Const reference to required byte.
+     * @throws BufferAccessException if index is out of bounds or buffer is null
      */
     const uint8& operator[]( size_type index ) const { 
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::operator[]: mBuffer is null");
-            // Return a static dummy value to prevent crash
-            static const uint8 dummy = 0;
-            return dummy;
-        }
-        if (index >= mSize) {
-            _log(COMMON__ERROR, "Buffer::operator[]: index out of bounds - index: %lu, size: %lu", index, mSize);
-            // Return a static dummy value to prevent crash
-            static const uint8 dummy = 0;
-            return dummy;
-        }
+        ValidateByteIndex(index);
         return Get< uint8 >( index ); 
     }
 
@@ -608,6 +588,7 @@ public:
      *
      * @param[in] index Point at which the value should be assigned.
      * @param[in] value New content.
+     * @throws BufferAccessException if buffer is null or index is out of bounds
      */
     template< typename T >
     void AssignAt( const_iterator< T > index, const T& value )
@@ -615,19 +596,17 @@ public:
         // make sure we're not going off the bounds
         assert( 1 <= end< T >() - index );
 
-        // Check if buffer is valid
-        if (mBuffer == nullptr) {
-            _log(COMMON__ERROR, "Buffer::AssignAt: mBuffer is null");
-            return;
-        }
-
+        // Validate buffer and bounds
+        ValidateBuffer();
+        
         // turn iterator into byte offset
         const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
         
         // Additional bounds check
         if (_index + sizeof(T) > mSize) {
-            _log(COMMON__ERROR, "Buffer::AssignAt: buffer overflow - index: %lu, size: %lu", _index, mSize);
-            return;
+            throw BufferAccessException("Buffer overflow - index: " + std::to_string(_index) + 
+                                      ", size: " + std::to_string(mSize) + 
+                                      ", required: " + std::to_string(sizeof(T)));
         }
         
         // assign the value
@@ -639,6 +618,7 @@ public:
      * @param[in] index Point at which the sequence of elements should be assigned.
      * @param[in] first Iterator pointing to first element.
      * @param[in] last  Iterator pointing to element after the last one.
+     * @throws BufferAccessException if buffer is null or index is out of bounds
      */
     template< typename Iter >
     void AssignSeqAt( const_iterator< typename std::iterator_traits< Iter >::value_type > index, Iter first, Iter last )
@@ -649,11 +629,8 @@ public:
         // is there anything to assign?
         if( first != last )
         {
-            // Check if buffer is valid
-            if (mBuffer == nullptr) {
-                _log(COMMON__ERROR, "Buffer::AssignSeqAt: mBuffer is null");
-                return;
-            }
+            // Validate buffer
+            ValidateBuffer();
             
             // turn the iterator into byte offset
             const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
@@ -662,8 +639,9 @@ public:
             
             // Additional bounds check
             if (_index + _len > mSize) {
-                _log(COMMON__ERROR, "Buffer::AssignSeqAt: buffer overflow - index: %lu, len: %lu, size: %lu", _index, _len, mSize);
-                return;
+                throw BufferAccessException("Buffer overflow - index: " + std::to_string(_index) + 
+                                          ", len: " + std::to_string(_len) + 
+                                          ", size: " + std::to_string(mSize));
             }
             
             // assign the content
@@ -862,6 +840,7 @@ protected:
      * Reallocates buffer so it can efficiently store given amount of data.
      *
      * @param[in] requiredSize The least required new size of buffer, in bytes.
+     * @throws BufferAllocationException if realloc fails
      */
     void _Reallocate( size_type requiredSize )
     {
@@ -876,13 +855,10 @@ protected:
             // reallocate
             uint8* newBuffer = (uint8*)realloc( mBuffer, newCapacity );
             if (newBuffer == nullptr) {
-                // realloc failed, but we still have the old buffer
-                // we should handle this gracefully - either throw an exception
-                // or try to work with the current buffer size
-                _log(COMMON__ERROR, "Buffer::_Reallocate: realloc failed for size %lu", newCapacity);
-                // For now, we'll keep the old buffer and hope for the best
-                // In a production environment, you might want to throw an exception here
-                return;
+                // realloc failed - throw exception with detailed information
+                throw BufferAllocationException("realloc failed for size " + std::to_string(newCapacity) + 
+                                              " bytes (current capacity: " + std::to_string(capacity()) + 
+                                              ", required size: " + std::to_string(requiredSize) + ")");
             }
             mBuffer = newBuffer;
             // set new capacity
@@ -919,6 +895,54 @@ protected:
             return currentCapacity;
         else
             return newCapacity;
+    }
+
+    /**
+     * @brief Validates buffer state.
+     * 
+     * @throws BufferAccessException if buffer is invalid
+     */
+    void ValidateBuffer() const {
+        if (mBuffer == nullptr) {
+            throw BufferAccessException("Buffer is null");
+        }
+    }
+
+    /**
+     * @brief Validates index bounds.
+     * 
+     * @param index The index to validate
+     * @param maxIndex The maximum valid index
+     * @throws BufferAccessException if index is out of bounds
+     */
+    void ValidateIndex(size_type index, size_type maxIndex) const {
+        if (index >= maxIndex) {
+            throw BufferAccessException("Index out of bounds: " + std::to_string(index) + 
+                                      " >= " + std::to_string(maxIndex));
+        }
+    }
+
+    /**
+     * @brief Validates buffer bounds for type T.
+     * 
+     * @param index The index to validate
+     * @throws BufferAccessException if index is out of bounds for type T
+     */
+    template<typename T>
+    void ValidateBounds(size_type index) const {
+        ValidateBuffer();
+        ValidateIndex(index, mSize / sizeof(T));
+    }
+
+    /**
+     * @brief Validates byte index bounds.
+     * 
+     * @param index The byte index to validate
+     * @throws BufferAccessException if index is out of bounds
+     */
+    void ValidateByteIndex(size_type index) const {
+        ValidateBuffer();
+        ValidateIndex(index, mSize);
     }
 };
 
