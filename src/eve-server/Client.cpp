@@ -310,8 +310,8 @@ bool Client::SelectCharacter(int32 charID/*0*/)
         pos = m_ship->position();
 
         m_loginWarpPoint = pos;
+        // Use the actual saved position instead of a random point
         m_loginWarpRandomPoint = m_ship->position();
-        m_loginWarpRandomPoint.MakeRandomPointOnSphere(0.5*ONE_AU_IN_METERS);
 
         MoveToLocation(m_locationID, m_loginWarpRandomPoint);
 
