@@ -631,7 +631,7 @@ void Client::WarpIn() {
     UpdateBubble();
 
     // Only trigger login warp if the saved position and current position are significantly different
-    if ((m_ship->position() - m_loginWarpPoint).length() > 1.0) {
+    if ((m_ship->position() - m_loginWarpPoint).length() > 5.0) {
         SetStateTimer(0);
         m_clientState = Player::State::LoginWarp;
     } else {
