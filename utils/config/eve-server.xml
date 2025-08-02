@@ -61,7 +61,7 @@ boolean can use either 0/1 OR true/false.
         <LoadOldMissions>false</LoadOldMissions><!-- bool - allow display of expired/completed missions in journal -->
         <AsteroidsOnDScan>true</AsteroidsOnDScan><!-- bool - show asteroids on directional scanner -->
         <CargoMassAdditive>false</CargoMassAdditive><!-- bool - add mass of cargo to ship's mass (will effect mobility) -->
-        <TraderJoe>true</TraderJoe><!-- bool - enables the market bot to automatically buy and sell items on the market-->
+        <TraderJoe>false</TraderJoe><!-- bool - enables the market bot to automatically buy and sell items on the market-->
     </server>
 
     <world>
