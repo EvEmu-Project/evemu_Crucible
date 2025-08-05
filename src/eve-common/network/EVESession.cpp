@@ -36,9 +36,7 @@
 #include "EVEVersion.h"
 
 EVEClientSession::EVEClientSession(EVETCPConnection** n)
-: mNet(*n),
-mPacketHandler(nullptr)
-{
+: mNet(*n), mPacketHandler(&EVEClientSession::_HandleVersion) {
     *n = nullptr;
 }
 
@@ -48,19 +46,18 @@ EVEClientSession::~EVEClientSession() {
 }
 
 void EVEClientSession::Reset() {
-    mPacketHandler = nullptr;
+    mPacketHandler = &EVEClientSession::_HandleVersion;
 
-    if (GetState() != TCPConnection::STATE_CONNECTED)
+    if (GetState() != TCPConnection::STATE_CONNECTED) {
         // Connection has been lost, there's no point in reset
         return;
+    }
 
     VersionExchangeServer version;
     _GetVersion(version);
 
     PyRep* res(version.Encode());
     mNet->QueueRep(res);
-
-    mPacketHandler = &EVEClientSession::_HandleVersion;
 }
 
 void EVEClientSession::QueuePacket(PyPacket* packet) {
@@ -132,8 +129,9 @@ PyPacket* EVEClientSession::_HandleCommand(PyRep* rep) {
         } else {
             sLog.Debug("_HandleCommand", "%s: Got VK command, vipKey=%s.", GetAddress().c_str(), cmd.vipKey.c_str());
 
-            if (_VerifyVIPKey(cmd.vipKey))
+            if (_VerifyVIPKey(cmd.vipKey)) {
                 mPacketHandler = &EVEClientSession::_HandleCrypto;
+            }
         }
     } else {
         if (is_log_enabled(NET__PRES_ERROR)) {
