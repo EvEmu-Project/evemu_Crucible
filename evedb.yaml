@@ -1,0 +1,12 @@
+base-dir: base
+db-database: evemu
+db-host: 127.0.0.1
+db-pass: evemu
+db-port: "3306"
+db-user: evemu
+dungeon-dir: dungeons
+log-level: Info
+migrations-dir: migrations
+seed-regions:
+    - Derelik
+seed-saturation: 80

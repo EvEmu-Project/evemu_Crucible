@@ -285,13 +285,13 @@ PyResult LSCService::JoinChannels(PyCallArgs &call, PyList* channelIDs, PyLong* 
         } else if ((*cur)->IsTuple()) {
             PyTuple* prt = (*cur)->AsTuple();
             if (prt->items.size() != 1 or !prt->items[0]->IsTuple()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
             prt = prt->items[0]->AsTuple();
 
             if (prt->items.size() != 2 or /* !prt->items[0]->IsString() or unnessecary */ !prt->items[1]->IsInt()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
             toJoin.insert(prt->items[1]->AsInt()->value());
@@ -386,7 +386,7 @@ PyResult LSCService::SendMessage(PyCallArgs& call, PyRep* channelInfo, PyWString
     } else {
         Call_SendMessage args;
         if (!args.Decode(&call.tuple)) {
-            codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             return PyStatic.NewNone();
         }
         channel_id = args.channel.id;
@@ -665,17 +665,17 @@ PyResult LSCService::LeaveChannel(PyCallArgs &call, PyRep* channelInfo, PyInt* u
             prt = prt->GetItem(0)->AsTuple();
 
             if (prt->items.size() != 2 or !prt->GetItem(1)->IsInt()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 return PyStatic.NewNone();
             }
 
             toLeave = prt->GetItem(1)->AsInt()->value();
         } else {
-            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             return PyStatic.NewNone();
         }
     } else {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return PyStatic.NewNone();
     }
 
@@ -721,7 +721,7 @@ PyResult LSCService::LeaveChannels(PyCallArgs &call, PyList* channels, PyInt* un
             }
 
             if (!prt->GetItem(0)->IsTuple()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
             prt = prt->GetItem(0)->AsTuple();
@@ -730,13 +730,13 @@ PyResult LSCService::LeaveChannels(PyCallArgs &call, PyList* channels, PyInt* un
                 prt = prt->GetItem(0)->AsTuple();
 
             if (prt->size() != 2 or !prt->GetItem(1)->IsInt()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
 
             toLeave.insert(prt->GetItem(1)->AsInt()->value());
         } else {
-            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             continue;
         }
     }
@@ -806,17 +806,17 @@ PyResult LSCService::GetMembers(PyCallArgs &call, PyRep* channelInfo) {
 
             if (prt->items.size() != 2 or !prt->GetItem(1)->IsInt())
             {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 return nullptr;
             }
 
             channelID = prt->GetItem(1)->AsInt()->value();
         } else {
-            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             return nullptr;
         }
     } else {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return nullptr;
     }
 
@@ -1084,7 +1084,8 @@ void LSCService::CreateStaticChannels() {
     str.str("");
     str << "<br><color=0xffffffff>Welcome to the</color> <color=0xff00ffff>GM Command</color><color=0xffffffff> channel.<br><br>";
     str << "This channel is intended for using dot commands.</color>";
-    CreateChannel(2900000000, 1, "Command", str.str().c_str(), nullptr, "command", LSC::Type::custom, cspa, 0, 0, true);
+    // CreateChannel(2900000000, 1, "Command", str.str().c_str(), nullptr, "command", LSC::Type::custom, cspa, 0, 0, true);
+    CreateChannel(2900000000U, 1, "Command", str.str().c_str(), nullptr, "command", LSC::Type::custom, cspa, 0, 0, true);
 }
 
 void LSCService::SendServerMOTD(Client* pClient)

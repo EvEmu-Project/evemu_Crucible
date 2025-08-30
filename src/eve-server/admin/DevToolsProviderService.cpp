@@ -39,7 +39,8 @@ PyResult DevToolsProviderService::GetLoader(PyCallArgs& call)
 {
     FILE *pFile;
 
-    if (pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb"))
+    // if (pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb")) 
+    if ((pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb")) != nullptr)
     {
         fseek(pFile, 0, SEEK_END);
 	    int size = ftell(pFile);

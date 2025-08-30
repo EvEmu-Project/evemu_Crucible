@@ -143,13 +143,13 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
     // charID = sm.RemoteSvc('charUnboundMgr').CreateCharacterWithDoll(charactername, bloodlineID, genderID, ancestryID, charInfo, portraitInfo, schoolID)
     // ensure the PyObject* is an util.KeyVal, this might benefit from some helper methods instead of directly using the PyObject
     if (characterInfo->type()->content() != "util.KeyVal" || characterInfo->arguments()->IsDict() == false) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode characterInfo", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode characterInfo", GetName().c_str());
         return PyStatic.NewZero();
     }
 
     // ensure the PyObject* is an util.KeyVal, this might benefit from some helper methods instead of directly using the PyObject
     if (portraitInfo->type()->content() != "util.KeyVal" || portraitInfo->arguments()->IsDict() == false) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode portraitInfo", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode portraitInfo", GetName().c_str());
         return PyStatic.NewZero();
     }
 

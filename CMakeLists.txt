@@ -10,7 +10,7 @@
 ###############
 # We need a target-specific property INCLUDE_DIRECTORIES which
 # is part of CMake 2.8.8 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
+cmake_minimum_required(VERSION 3.5)
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
@@ -67,7 +67,8 @@ IF (WIN32)
   SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
   link_libraries(DbgHelp.lib)
 ELSE()
-  SET( CMAKE_CXX_FLAGS "-std=gnu++17 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
+  SET( CMAKE_CXX_FLAGS "-std=gnu++17 -march=native -Werror=return-type -Wno-deprecated-declarations -Wno-nonnull ${CMAKE_CXX_FLAGS}" )
+
 ENDIF()
 # -Wall -Wextra -Weffc++ -Wconversion -Wdouble-promotion
 # -pg -ggdb -pedantic
@@ -177,6 +178,9 @@ CHECK_CXX_SYMBOL_EXISTS( localtime_s "ctime" HAVE_LOCALTIME_S )
 ############
 # Packages #
 ############
+# Prefer system Boost
+set(Boost_NO_BOOST_CMAKE ON)
+set(Boost_NO_SYSTEM_PATHS OFF)
 INCLUDE( "BuildPackage" )
 
 

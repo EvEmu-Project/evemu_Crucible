@@ -513,7 +513,7 @@ BoundDispatcher* TradeService::BindObject(Client* client, PyRep* bindParameters)
     //crap
     PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName().c_str());
         return nullptr;
     }
 

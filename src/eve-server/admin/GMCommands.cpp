@@ -995,9 +995,18 @@ PyResult Command_givelp(Client* who, CommandDB* db, EVEServiceManager &services,
             throw CustomError ("Argument 3 should be a valid number");
         }
         LPService::AddLP(characterID, corporationID, amount);
-        std::string message = ("Added %i LP to char %i for corp %s." \
-                               ,amount , characterID, corpName);
+        // std::string message = ("Added %i LP to char %i for corp %s." \
+        //                        ,amount , characterID, corpName);
+        // return(new PyString(message));
+        // 修复字符串拼接 08/29
+        char buffer[256];
+        snprintf(buffer, sizeof(buffer), "Added %i LP to char %u for corp %s.", 
+                 amount, characterID, corpName.c_str());
+        std::string message = buffer;
+        
         return(new PyString(message));
+
+
     } else {
         throw CustomError ("Correct Usage: /givelp ['me'|<characterID>] [corporationID] [amount]");
     }

@@ -53,6 +53,10 @@ uint8 DBTYPE_GetSizeBits( DBTYPE type )
         case DBTYPE_STR:
         case DBTYPE_WSTR:
             return 0;
+        // Add default case to handle the missing enumeration values: 8/27
+            default:
+            // Handle DBTYPE_EMPTY, DBTYPE_ERROR and any other unknown types
+            return 0;
     }
 
     return 0;

@@ -183,6 +183,11 @@ float strtof( const char* nptr, char** endptr )
 #ifndef HAVE_LOCALTIME_R
 tm* localtime_r( const time_t* timep, tm* result )
 {
+#ifdef __APPLE__
+    // 在 macOS 上使用系统自带的 localtime_r
+    return ::localtime_r(timep, result);
+#else
+
 #   ifdef HAVE_LOCALTIME_S
     const errno_t err = ::localtime_s( result, timep );
     if( 0 != err )
@@ -199,5 +204,7 @@ tm* localtime_r( const time_t* timep, tm* result )
 #   endif /* !HAVE_LOCALTIME_S */
 
     return result;
+#endif /* __APPLE__ */
+
 }
 #endif /* !HAVE_LOCALTIME_R */

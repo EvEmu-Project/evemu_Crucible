@@ -175,11 +175,20 @@ public:
      *        PyDecRef(&oth);
      * }
      */
+    // Fix PyRep Assignment Operators
     // copy assignment
-    PyRep& operator= (const PyRep& oth) = default;
-    // move assignment
-    PyRep& operator= (PyRep&& oth) = default;
-
+#ifdef __APPLE__
+    PyRep& operator= (const PyRep& oth) = delete ;
+#else    
+    PyRep& operator= (const PyRep& oth) = default ;
+    
+#endif  
+    // move assignment    
+#ifdef __APPLE__
+      PyRep& operator= (PyRep&& oth) = delete ;
+#else
+    PyRep& operator= (PyRep&& oth) = default ;
+#endif
 
     /**
      * @brief Dumps object to file.
