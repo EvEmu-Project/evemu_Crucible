@@ -83,7 +83,16 @@ SET( admin_INCLUDE
      "${TARGET_INCLUDE_DIR}/admin/PetitionerService.h"
      "${TARGET_INCLUDE_DIR}/admin/SlashService.h"
      "${TARGET_INCLUDE_DIR}/admin/SystemCommands.h"
-     "${TARGET_INCLUDE_DIR}/admin/CommandHelper.h" )
+     "${TARGET_INCLUDE_DIR}/admin/CommandHelper.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/AllCommandRegistrars.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/CommandManager.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/DebugCommands.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/GMCommands.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/HelpSystem.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/ICommand.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/LegacyCommandAdapter.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/ParameterValidator.h"
+     "${TARGET_INCLUDE_DIR}/admin/commands/SystemCommands.h" )
 SET( admin_SOURCE
      "${TARGET_SOURCE_DIR}/admin/AlertService.cpp"
      "${TARGET_SOURCE_DIR}/admin/debug_commands.cpp"
@@ -97,7 +106,16 @@ SET( admin_SOURCE
      "${TARGET_SOURCE_DIR}/admin/PetitionerService.cpp"
      "${TARGET_SOURCE_DIR}/admin/SlashService.cpp"
      "${TARGET_SOURCE_DIR}/admin/SystemCommands.cpp"
-     "${TARGET_SOURCE_DIR}/admin/CommandHelper.cpp" )
+     "${TARGET_SOURCE_DIR}/admin/CommandHelper.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/AllCommandRegistrars.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/CommandManager.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/GMCommands.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/HelpSystem.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/ICommand.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/LegacyCommandAdapter.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/ParameterValidator.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/SystemCommands.cpp"
+     "${TARGET_SOURCE_DIR}/admin/commands/DebugCommands.cpp" )
 
 SET( agent_INCLUDE
      "${TARGET_INCLUDE_DIR}/agents/Agent.h"
