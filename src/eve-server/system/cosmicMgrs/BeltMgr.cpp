@@ -1,5 +1,5 @@
 
- /**
+/**
   * @name BeltMgr.cpp
   *     Asteroid Belt Spawn management system for EVEmu
   *
@@ -286,7 +286,7 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
     radius *= sConfig.cosmic.roidRadiusMultiplier;
     double roidradius = 0, theta = 0, randRadius = 0, elevation = 0;
     if (anomaly) {
-        pcs += roidDist.size();
+        pcs += static_cast<int8>(roidDist.size());
         radius += (radius * secValue);
         radius += (pcs * 1000 / 4);
         elevation = (radius / 4);

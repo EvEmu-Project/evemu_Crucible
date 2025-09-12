@@ -181,6 +181,7 @@ SET( python_SOURCE
      "${TARGET_SOURCE_DIR}/python/PyDumpVisitor.cpp"
      "${TARGET_SOURCE_DIR}/python/PyLookupDump.cpp"
      "${TARGET_SOURCE_DIR}/python/PyPacket.cpp"
+     "${TARGET_SOURCE_DIR}/python/PyPacketValidator.cpp"
      "${TARGET_SOURCE_DIR}/python/PyRep.cpp"
      "${TARGET_SOURCE_DIR}/python/PyVisitor.cpp"
      "${TARGET_SOURCE_DIR}/python/PyXMLGenerator.cpp" )

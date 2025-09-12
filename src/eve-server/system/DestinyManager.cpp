@@ -970,7 +970,7 @@ bool DestinyManager::IsTurn() {    //this is working.  dont change
  *       // If the inputs are too close for comfort, linearly interpolate
  *       // and normalize the result.
  *
- *       Quaternion result = v0 + t*(v1 – v0);
+ *       Quaternion result = v0 + t*(v1 - v0);
  *       result.normalize();
  *       return result;
  *   }
@@ -979,7 +979,7 @@ bool DestinyManager::IsTurn() {    //this is working.  dont change
  *   double theta_0 = acos(dot);  // theta_0 = angle between input vectors
  *   double theta = theta_0*t;    // theta = angle between v0 and result
  *
- *   Quaternion v2 = v1 – v0*dot;
+ *   Quaternion v2 = v1 - v0*dot;
  *   v2.normalize();              // { v0, v2 } is now an orthonormal basis
  *
  *   return v0*cos(theta) + v2*sin(theta);
@@ -1273,7 +1273,7 @@ void DestinyManager::Orbit() {
         m_orbiting = Destiny::Ball::Orbit::Far;
         // fudge distance for a smaller orbit
         // modify this based on calculated distance
-        mPosAdj = -m_followDistance / 25;
+        mPosAdj = -static_cast<float>(m_followDistance) / 25;
         _log(DESTINY__ORBIT_TRACE, "2 - too far");
     } else if (centers < m_followDistance) {
         m_orbiting = Destiny::Ball::Orbit::Close;
@@ -2140,8 +2140,9 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
      *   however, this does NOT affect original calculations for energy needed, etc...
      */
     if (m_targBubble->HasWarpBubble()) {
-        if (!mySE->GetSelf()->HasAttribute(AttrWarpBubbleImmune))
-            ;   // not immune to bubble
+        if (!mySE->GetSelf()->HasAttribute(AttrWarpBubbleImmune)) {
+            // not immune to bubble
+        }
     }
 
     m_ballMode = Destiny::Ball::Mode::WARP;
@@ -2778,6 +2779,8 @@ void DestinyManager::Jump(bool showCloak)
     Halt();
     if (showCloak) {
         m_cloaked = true;
+    } else {
+        m_cloaked = false;
     }
     if (mySE->SysBubble() != nullptr)
         mySE->SysBubble()->RemoveExclusive(mySE);

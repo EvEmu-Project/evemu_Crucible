@@ -320,7 +320,7 @@ GenericModule* ModuleManager::GetRandModule()
     if (modVec.empty () == true)
         return nullptr;
 
-    return modVec[MakeRandomInt(0, modVec.size())];
+    return modVec[MakeRandomInt(0, static_cast<uint32>(modVec.size()))];
 }
 
 bool ModuleManager::InstallRig(ModuleItemRef mRef, EVEItemFlags flag) {

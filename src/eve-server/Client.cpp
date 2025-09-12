@@ -1551,7 +1551,19 @@ void Client::ExecuteJump() {
 
     //OnScannerInfoRemoved  - no args.  flushes current scan data in client
     SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
-    pShipSE->Jump();
+    
+    // Don't cloak during login warp to prevent ships appearing cloaked after login
+    bool shouldCloak = !IsLoginWarping();
+    _log(CLIENT__TRACE, "ExecuteJump() - IsLoginWarping: %s, shouldCloak: %s", 
+         IsLoginWarping() ? "true" : "false", shouldCloak ? "true" : "false");
+    
+    // Force no cloak during login to ensure ships don't appear cloaked
+    if (m_clientState == Player::State::Login || m_clientState == Player::State::LoginWarp) {
+        shouldCloak = false;
+        _log(CLIENT__TRACE, "ExecuteJump() - Forcing shouldCloak=false due to login state");
+    }
+    
+    pShipSE->Jump(shouldCloak);
 
     MoveToLocation(m_moveSystemID, m_movePoint);
 

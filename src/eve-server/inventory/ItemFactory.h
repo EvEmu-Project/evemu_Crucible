@@ -57,7 +57,7 @@ public:
 
     void Close();
     int Initialize();
-    uint32 Count()                                      { return m_items.size(); }
+    uint32 Count()                                      { return static_cast<uint32>(m_items.size()); }
 
     void SaveItems();
     void RemoveItem(uint32 itemID);

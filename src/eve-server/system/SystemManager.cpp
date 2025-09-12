@@ -70,10 +70,10 @@ SystemManager::SystemManager(uint32 systemID, EVEServiceManager &svc)
 :m_services(svc),
 m_bountyTimer(0),
 m_minutetimer(0, true),
-m_anomMgr(new AnomalyMgr(this, svc)),
-m_beltMgr(new BeltMgr(this, svc)),
-m_dungMgr(new DungeonMgr(this, svc)),
-m_spawnMgr(new SpawnMgr(this, svc)),
+m_anomMgr(std::make_unique<AnomalyMgr>(this, svc)),
+m_beltMgr(std::make_unique<BeltMgr>(this, svc)),
+m_dungMgr(std::make_unique<DungeonMgr>(this, svc)),
+m_spawnMgr(std::make_unique<SpawnMgr>(this, svc)),
 m_loaded(false),
 m_entityChanged(false),
 m_docked(0),
@@ -124,10 +124,8 @@ SystemManager::~SystemManager() {
     if (m_loaded)
         UnloadSystem();
 
-    SafeDelete(m_dungMgr);
-    SafeDelete(m_anomMgr);
-    SafeDelete(m_beltMgr);
-    SafeDelete(m_spawnMgr);
+    // Smart pointers automatically handle cleanup
+    // No need for manual SafeDelete calls
 }
 
 bool SystemManager::BootSystem() {
@@ -207,12 +205,12 @@ bool SystemManager::LoadCosmicMgrs()
         return false;
     }
 
-    if (!m_dungMgr->Init(m_anomMgr, m_spawnMgr)) {
+    if (!m_dungMgr->Init(m_anomMgr.get(), m_spawnMgr.get())) {
         _log(SERVER__INIT_ERR, "Unable to load Dungeon Manager during boot of system %u.", m_data.systemID);
         return false;
     }
 
-    if (!m_anomMgr->Init(m_beltMgr, m_dungMgr, m_spawnMgr)) {
+    if (!m_anomMgr->Init(m_beltMgr.get(), m_dungMgr.get(), m_spawnMgr.get())) {
         _log(SERVER__INIT_ERR, "Unable to load Anomaly Manager during boot of system %u.", m_data.systemID);
         return false;
     }
@@ -402,7 +400,7 @@ bool SystemManager::LoadSystemStatics() {
             case EVEDB::invGroups::Asteroid_Belt: {
                 CelestialObjectRef itemRef = sItemFactory.GetCelestialRef(cur.itemID);
                 BeltSE *pBSE = new BeltSE(itemRef, GetServiceMgr(), this);
-                pBSE->SetBeltMgr(m_beltMgr);
+                pBSE->SetBeltMgr(m_beltMgr.get());
                 ++m_beltCount;
                 pSE = pBSE;
             } break;
@@ -558,8 +556,9 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
     switch (entity.categoryID) {
         case EVEDB::invCategories::Asteroid: {
             InventoryItemRef asteroid = sItemFactory.GetItemRef( entity.itemID );
-            if (asteroid.get() == nullptr)
-                ; /** @todo make error msg here */
+            if (asteroid.get() == nullptr) {
+                /** @todo make error msg here */
+            }
             AsteroidSE* aSE = new AsteroidSE(asteroid, sysMgr.GetServiceMgr(), &sysMgr);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making AsteroidSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return aSE;
@@ -1229,7 +1228,7 @@ recStoreItems = 'STOREITEMS'
         std::string reason = "NBLT: "; //this needs to be populated as [NBL(T): type:amt, type:amt, ... ] to get proper shit in client
         std::map<uint32, RatDataMap>::iterator itr = m_ratMap.find(cur.first);
         if (itr != m_ratMap.end()) {
-            count = itr->second.size();
+            count = static_cast<int8>(itr->second.size());
             for (auto cur : itr->second) {
                 reason += std::to_string(cur.first);
                 reason += ":";

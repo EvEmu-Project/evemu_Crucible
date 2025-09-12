@@ -367,7 +367,7 @@ public:
     bool LaunchDrone(InventoryItemRef dRef);
     void ScoopDrone(SystemEntity* pSE);
     // returns current count of drones in space for this ship
-    uint8 DroneCount()                                  { return m_drones.size(); }
+    uint8 DroneCount()                                  { return static_cast<uint8>(m_drones.size()); }
 
     bool GetFleetSMBUsage()                             { return m_allowFleetSMBUsage; }
     void SetFleetSMBUsage(bool set=false)               { m_allowFleetSMBUsage = set; }

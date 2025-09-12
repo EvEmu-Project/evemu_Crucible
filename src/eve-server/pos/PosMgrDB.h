@@ -15,7 +15,7 @@
 #include "../../eve-common/EVE_POS.h"
 
 
-struct ReactorData;
+class ReactorData;
 
 class StructureSE;
 
