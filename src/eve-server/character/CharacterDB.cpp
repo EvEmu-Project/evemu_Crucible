@@ -2139,3 +2139,71 @@ bool CharacterDB::GetBloodlineByCharacterType(uint16 characterTypeID, uint8 &blo
 
     return true;
 }
+
+PyRep *CharacterDB::GetCharacterShipFittings(uint32 charID) {
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+                            "SELECT id as fittingID, name, description, shipID FROM chrShipFittings WHERE characterID = %u", charID)) {
+        _log(DATABASE__ERROR, "Error in GetFittings query: %s", res.error.c_str());
+        return new PyDict();
+    }
+
+    PyDict *ret = new PyDict();
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        uint32 fittingID = row.GetInt(0);
+        std::string name = row.GetText(1);
+        std::string description = row.GetText(2);
+        uint32 shipID = row.GetInt(3);
+
+        auto *fitting = new PyDict();
+        fitting->SetItemString("fittingID", new PyInt(fittingID));
+        fitting->SetItemString("ownerID", new PyInt(charID));
+        fitting->SetItemString("name", new PyWString(name));
+        fitting->SetItemString("description", new PyWString(description));
+        fitting->SetItemString("shipTypeID", new PyInt(shipID));
+
+        auto *fitData = new PyList();
+        if (DBQueryResult fitRes; sDatabase.RunQuery(fitRes,
+                                                     "SELECT itemID, flagID, qty FROM shipFittings WHERE fittingID = %u", fittingID)) {
+            DBResultRow fitRow;
+            while (fitRes.GetRow(fitRow)) {
+                fitData->AddItem(new_tuple(new PyInt(fitRow.GetInt(0)), new PyInt(fitRow.GetInt(1)), new PyInt(fitRow.GetInt(2))));
+            }
+        }
+
+        fitting->SetItemString("fitData", fitData);
+        ret->SetItem(new PyInt(fittingID), new PyObject("util.KeyVal", fitting));
+    }
+    return ret;
+}
+
+uint32_t CharacterDB::SaveCharShipFitting(PyDict &fitting, uint32_t ownerID) {
+    uint32_t fittingID = 0;
+    DBerror err;
+    auto name = PyRep::StringContent(fitting.GetItemString("name"));
+    auto description = PyRep::StringContent(fitting.GetItemString("description"));
+    auto shipTypeID = fitting.GetItemString("shipTypeID")->AsInt()->value();
+    if (!sDatabase.RunQueryLID(err, fittingID,
+                               "INSERT INTO chrShipFittings (characterID, name, description, shipID) VALUES (%u, '%s', '%s', %u)",
+                               ownerID,
+                               name.c_str(),
+                               description.c_str(),
+                               shipTypeID)) {
+        codelog(DATABASE__ERROR, "Error in SaveCharShipFitting query: %s", err.c_str());
+        return 0;
+    }
+    auto fitData = fitting.GetItemString("fitData")->AsList();
+    for (auto fitItem : *fitData) {
+        auto item = fitItem->AsTuple()->GetItem(0)->AsInt()->value();
+        auto flagID = fitItem->AsTuple()->GetItem(1)->AsInt()->value();
+        auto qty = fitItem->AsTuple()->GetItem(2)->AsInt()->value();
+        if (!sDatabase.RunQuery(err,
+                                "INSERT INTO shipFittings (fittingID, itemID, flagID, qty) VALUES (%u, %u, %u, %u)",
+                                fittingID, item, flagID, qty)) {
+            codelog(DATABASE__ERROR, "Error in SaveCharShipFitting fitData query: %s", err.c_str());
+            return 0;
+        }
+    }
+    return fittingID;
+}

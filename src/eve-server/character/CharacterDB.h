@@ -291,6 +291,9 @@ public:
      * @return True on success, false on failure.
      */
     static bool GetBloodlineByCharacterType(uint16 characterTypeID, uint8& bloodlineID);
+
+    static PyRep* GetCharacterShipFittings(uint32 charID);
+    static uint32_t SaveCharShipFitting(PyDict &fitting, uint32_t ownerID);
 };
 
 #endif
