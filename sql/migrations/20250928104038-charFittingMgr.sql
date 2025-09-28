@@ -13,7 +13,7 @@ create table shipFittings
 );
 
 -- +migrate Down
-delete table shipFittings;
+drop table shipFittings;
 alter table chrShipFittings drop column name;
 alter table chrShipFittings drop column description;
 alter table chrShipFittings add shipDNA text null;
