@@ -2152,8 +2152,9 @@ PyRep *CharacterDB::GetCharacterShipFittings(uint32 charID) {
     DBResultRow row;
     while (res.GetRow(row)) {
         uint32 fittingID = row.GetInt(0);
-        std::string name = row.GetText(1);
-        std::string description = row.GetText(2);
+        std::string name, description;
+        sDatabase.DoEscapeString(name, row.GetText(1));
+        sDatabase.DoEscapeString(description, row.GetText(2));
         uint32 shipID = row.GetInt(3);
 
         auto *fitting = new PyDict();
@@ -2181,8 +2182,9 @@ PyRep *CharacterDB::GetCharacterShipFittings(uint32 charID) {
 uint32_t CharacterDB::SaveCharShipFitting(PyDict &fitting, uint32_t ownerID) {
     uint32_t fittingID = 0;
     DBerror err;
-    auto name = PyRep::StringContent(fitting.GetItemString("name"));
-    auto description = PyRep::StringContent(fitting.GetItemString("description"));
+    std::string name, description;
+    sDatabase.DoEscapeString(name, PyRep::StringContent(fitting.GetItemString("name")));
+    sDatabase.DoEscapeString(description, PyRep::StringContent(fitting.GetItemString("description")));
     auto shipTypeID = fitting.GetItemString("shipTypeID")->AsInt()->value();
     if (!sDatabase.RunQueryLID(err, fittingID,
                                "INSERT INTO chrShipFittings (characterID, name, description, shipID) VALUES (%u, '%s', '%s', %u)",

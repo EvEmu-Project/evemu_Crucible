@@ -51,6 +51,10 @@ PyResult CharFittingMgr::GetFittings(PyCallArgs &call, PyInt *ownerID) {
 }
 
 PyResult CharFittingMgr::SaveFitting(PyCallArgs &call, PyInt *ownerID, PyObject *fitting) {
+    if (!fitting->arguments()->IsDict()) {
+        codelog(SERVICE__ERROR, "CharFittingMgr::Handle_SaveFitting() - passed fitting is not a dict.");
+        return nullptr;
+    }
     auto fittingData = fitting->arguments()->AsDict();
     auto fittingID = m_db.SaveCharShipFitting(*fittingData, ownerID->value());
 
@@ -82,10 +86,14 @@ PyResult CharFittingMgr::DeleteFitting(PyCallArgs &call, PyInt *ownerID, PyInt *
 }
 
 PyResult CharFittingMgr::UpdateNameAndDescription(PyCallArgs &call, PyInt *fittingID, PyInt *ownerID, PyWString *name, PyWString *description) {
+    std::string cName, cDescription;
+    sDatabase.DoEscapeString(cName, name->content());
+    sDatabase.DoEscapeString(cDescription, description->content());
+
     DBerror err;
     if (!sDatabase.RunQuery(err, "UPDATE chrShipFittings SET name = '%s', description = '%s' WHERE id = %u AND characterID = %u",
-                            name->content().c_str(),
-                            description->content().c_str(),
+                            cName.c_str(),
+                            cDescription.c_str(),
                             fittingID->value(), ownerID->value())) {
         _log(DATABASE__ERROR, "Error updating fitting %u for character %u: %s", fittingID->value(), ownerID->value(), err.c_str());
     }
