@@ -63,5 +63,12 @@ RUN cd /src/sql && ./get_evedbtool.sh
 EXPOSE 26000
 EXPOSE 26001
 
+# Change ownership of the application to evemu
+RUN useradd evemu
+RUN chown -R evemu:evemu /app
+RUN chown -R evemu:evemu /src
+
+ENTRYPOINT ["/bin/sh", "/src/utils/container-scripts/entry.sh"]
+
 # Default command
 CMD ["/src/utils/container-scripts/start.sh"]
