@@ -262,7 +262,8 @@ void EntityList::Process() {
                     cur.second->UpdateData();   // update active system timers and dynamic data every 5m
             }
             if (m_minutes % 15 == 0) { // ~15m
-                sMktBotMgr.Process();  // 15m to 30m ---marketbot update; enabled this for timer checks in process
+                if (sConfig.server.TraderJoe) // Only run MarketBot if TraderJoe is enabled in config
+                    sMktBotMgr.Process();  // 15m to 30m ---marketbot update; enabled this for timer checks in process
                 sConsole.UpdateStatus();
             }
             if (m_minutes % 60 == 0) { // ~1h

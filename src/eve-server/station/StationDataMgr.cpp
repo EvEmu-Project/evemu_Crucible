@@ -1,5 +1,5 @@
 
- /**
+/**
   * @name StationDataMgr.cpp
   *   memory object caching system for managing and saving ingame static and dynamic station data
   *
@@ -91,10 +91,10 @@ void StationDataMgr::Populate()
     //res->Reset();
     StationDB::GetStationData(*res);
     while (res->GetRow(row)) {
-        //SELECT s.stationID, s.x, s.y, s.z, st.dockOrientationX, st.dockOrientationY, st.dockOrientationZ, s.dockingCostPerVolume, s.maxShipVolumeDockable,8 \
-        s.officeSlots, s.officeRentalCost, s.operationID, s.stationTypeID, s.corporationID, s.stationName, s.reprocessingStationsTake, s.reprocessingEfficiency,16 \
-        s.reprocessingHangarFlag, st.conquerable, st.hangarGraphicID, m.orbitID, m.radius, m.security, o.description, o.descriptionID,24\
-        t.graphicID, s.solarSystemID, s.constellationID, s.regionID, st.dockEntryX, st.dockEntryY, st.dockEntryZ 31
+        //SELECT s.stationID, s.x, s.y, s.z, st.dockOrientationX, st.dockOrientationY, st.dockOrientationZ, s.dockingCostPerVolume, s.maxShipVolumeDockable,8
+        //s.officeSlots, s.officeRentalCost, s.operationID, s.stationTypeID, s.corporationID, s.stationName, s.reprocessingStationsTake, s.reprocessingEfficiency,16
+        //s.reprocessingHangarFlag, st.conquerable, st.hangarGraphicID, m.orbitID, m.radius, m.security, o.description, o.descriptionID,24
+        //t.graphicID, s.solarSystemID, s.constellationID, s.regionID, st.dockEntryX, st.dockEntryY, st.dockEntryZ 31
         StationData sData = StationData();
         sData.stationID                 = row.GetUInt(0);
         sData.operationID               = row.GetInt(11);

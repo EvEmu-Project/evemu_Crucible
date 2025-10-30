@@ -1,5 +1,5 @@
 
- /**
+/**
   * @name EntityService.cpp
   *   Drone Control class
   * @Author:    Allan
@@ -14,6 +14,7 @@
 
 #include "EVEServerConfig.h"
 #include "npc/EntityService.h"
+#include "npc/Drone.h"
 #include "system/SystemManager.h"
 #include "services/ServiceManager.h"
 
@@ -285,13 +286,47 @@ PyResult EntityBound::CmdReturnHome(PyCallArgs &call, PyList* droneIDs) {
 02:18:26 [DroneDump]       [ 0]   List: 1 elements
 02:18:26 [DroneDump]       [ 0]   [ 0]    Integer: 140001219
 */
+    _log(DRONE__TRACE, "EntityBound::Handle_CmdReturnHome()");
     call.Dump(DRONE__DUMP);
 
-    //Drone* pDrone = m_sysMgr->GetSE()->GetDroneSE();
-    //pDrone->DestinyMgr()->Orbit(pShipSE, 800);
+    ShipSE* pShipSE = call.client->GetShipSE();
+    if (pShipSE == nullptr) {
+        _log(DRONE__ERROR, "CmdReturnHome: Client %s has no ship.", call.client->GetName());
+        return new PyDict();
+    }
 
+    // Process each drone ID in the list
+    for (PyList::const_iterator itr = droneIDs->begin(); itr != droneIDs->end(); ++itr) {
+        if (!(*itr)->IsInt()) {
+            _log(DRONE__ERROR, "CmdReturnHome: Invalid drone ID type.");
+            continue;
+        }
+        
+        uint32 droneID = (*itr)->AsInt()->value();
+        SystemEntity* pSE = m_sysMgr->GetSE(droneID);
+        if (pSE == nullptr) {
+            _log(DRONE__ERROR, "CmdReturnHome: Drone %u not found in system.", droneID);
+            continue;
+        }
+        
+        if (!pSE->IsDroneSE()) {
+            _log(DRONE__ERROR, "CmdReturnHome: Entity %u is not a drone.", droneID);
+            continue;
+        }
+        
+        DroneSE* pDrone = pSE->GetDroneSE();
+        if (pDrone->GetOwner() != call.client) {
+            _log(DRONE__ERROR, "CmdReturnHome: Client %s does not own drone %u.", call.client->GetName(), droneID);
+            continue;
+        }
+        
+        // Clear any current targets and return to ship for orbit
+        pDrone->GetAI()->ClearAllTargets();
+        pDrone->GetAI()->Return();
+        
+        _log(DRONE__TRACE, "CmdReturnHome: Drone %u returning to orbit ship %u.", droneID, pShipSE->GetID());
+    }
 
-    call.client->SendNotifyMsg("Drone Control is not implemented yet.");
     return new PyDict();
 }
 
@@ -328,7 +363,43 @@ PyResult EntityBound::CmdReturnBay(PyCallArgs &call, PyList* droneIDs) {
     _log(DRONE__TRACE, "EntityBound::Handle_CmdReturnBay()");
     call.Dump(DRONE__DUMP);
 
-    call.client->SendNotifyMsg("Drone Control is not implemented yet.");
+    ShipSE* pShipSE = call.client->GetShipSE();
+    if (pShipSE == nullptr) {
+        _log(DRONE__ERROR, "CmdReturnBay: Client %s has no ship.", call.client->GetName());
+        return new PyDict();
+    }
+
+    // Process each drone ID in the list
+    for (PyList::const_iterator itr = droneIDs->begin(); itr != droneIDs->end(); ++itr) {
+        if (!(*itr)->IsInt()) {
+            _log(DRONE__ERROR, "CmdReturnBay: Invalid drone ID type.");
+            continue;
+        }
+        
+        uint32 droneID = (*itr)->AsInt()->value();
+        SystemEntity* pSE = m_sysMgr->GetSE(droneID);
+        if (pSE == nullptr) {
+            _log(DRONE__ERROR, "CmdReturnBay: Drone %u not found in system.", droneID);
+            continue;
+        }
+        
+        if (!pSE->IsDroneSE()) {
+            _log(DRONE__ERROR, "CmdReturnBay: Entity %u is not a drone.", droneID);
+            continue;
+        }
+        
+        DroneSE* pDrone = pSE->GetDroneSE();
+        if (pDrone->GetOwner() != call.client) {
+            _log(DRONE__ERROR, "CmdReturnBay: Client %s does not own drone %u.", call.client->GetName(), droneID);
+            continue;
+        }
+        
+        // Clear any current targets and scoop the drone
+        pDrone->GetAI()->ClearAllTargets();
+        pShipSE->ScoopDrone(pSE);
+        
+        _log(DRONE__TRACE, "CmdReturnBay: Drone %u scooped by ship %u.", droneID, pShipSE->GetID());
+    }
 
     // returns nodeID and timestamp and dict of error msg
     /*

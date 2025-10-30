@@ -85,10 +85,10 @@ typedef std::vector<QueuedSkill> SkillQueue;
 //class InventoryItem;
 //class Client;
 
-struct CharacterTypeData;
+class CharacterTypeData;
 struct CharacterData;
 struct KillData;
-struct ItemData;
+class ItemData;
 struct CorpData;
 
 class CharacterDB : public ServiceDB

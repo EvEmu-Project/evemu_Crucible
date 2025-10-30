@@ -32,6 +32,7 @@
 #include "python/PyVisitor.h"
 #include "python/PyRep.h"
 #include "python/PyDumpVisitor.h"
+#include "python/PyPacketValidator.h"
 
 const char* MACHONETMSG_TYPE_NAMES[MACHONETMSG_TYPE_COUNT] =
 {
@@ -126,6 +127,12 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
+    // Enhanced validation: Check packet integrity before processing
+    if (!PyPacketValidator::ValidatePacketStructure(packet, "PyPacket::Decode()")) {
+        PyDecRef(packet);
+        return false;
+    }
+
     if (packet->IsChecksumedStream()) {
         //TODO: check cs->checksum
         packet = packet->AsChecksumedStream()->stream();
@@ -161,8 +168,8 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
-    if (tuple->items.size() != 7) {
-        codelog(NET__PACKET_ERROR, "PyPacket::Decode() - packet body does not contain a tuple of length 7 (is %u)", tuple->items.size());
+    if (!PyPacketValidator::ValidateTupleSize(tuple, 7, "PyPacket::Decode() - main tuple") ||
+        !PyPacketValidator::ValidateTupleElements(tuple, "PyPacket::Decode() - main tuple")) {
         PyDecRef(packet);
         return false;
     }
@@ -350,8 +357,15 @@ bool PyAddress::Decode(PyRep *&in_object) {
     }
 
     if (tuple->items.size() < 3) {
-        codelog(NET__PACKET_ERROR, "Not enough elements in address tuple: %u", tuple->items.size());
+        codelog(NET__PACKET_ERROR, "PyAddress::Decode() - not enough elements in address tuple: %u", tuple->items.size());
         tuple->Dump(NET__PACKET_ERROR, "  ");
+        PyDecRef(base);
+        PyDecRef(tuple);
+        return false;
+    }
+
+    // Enhanced validation: Check tuple elements exist
+    if (!PyPacketValidator::ValidateTupleElements(tuple, "PyAddress::Decode() - address tuple")) {
         PyDecRef(base);
         PyDecRef(tuple);
         return false;
@@ -633,8 +647,8 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
         return false;
     }
 
-    if (payload2->items.size() != 2) {
-        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - invalid tuple2 length %llu", payload2->items.size());
+    if (!PyPacketValidator::ValidateTupleSize(payload2, 2, "PyCallStream::Decode() - payload2") ||
+        !PyPacketValidator::ValidateTupleElements(payload2, "PyCallStream::Decode() - payload2")) {
         PyDecRef(payload);
         PySafeDecRef(payload2);
         return false;
@@ -679,8 +693,8 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
         codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - maint is null.");
         return false;
     }
-    if (maint->items.size() != 4) {
-        codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - packet body has %llu elements, expected %d", maint->items.size(), 4);
+    if (!PyPacketValidator::ValidateTupleSize(maint, 4, "PyCallStream::Decode() - maint tuple") ||
+        !PyPacketValidator::ValidateTupleElements(maint, "PyCallStream::Decode() - maint tuple")) {
         PyDecRef(payload);
         PySafeDecRef(ss);
         PySafeDecRef(maint);

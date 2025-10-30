@@ -31,6 +31,7 @@
 #include "system/SolarSystem.h"
 #include "system/SystemDB.h"
 #include "chat/LSCService.h"
+#include <memory>
 
 
 class PyRep;
@@ -103,13 +104,13 @@ public:
     uint8 GetRatSpawnCount()                            { return m_activeRatSpawns; }
     uint16 GetRoidSpawnCount()                          { return m_activeRoidSpawns; }
     uint32 PlayerCount()                                { return m_players; }
-    uint32 GetSysNPCCount()                             { return m_npcs.size(); }
+    uint32 GetSysNPCCount()                             { return static_cast<uint32>(m_npcs.size()); }
 
     // CosmicMgr interface
-    BeltMgr* GetBeltMgr()                               { return m_beltMgr; }
-    SpawnMgr* GetSpawnMgr()                             { return m_spawnMgr; }
-    AnomalyMgr* GetAnomMgr()                            { return m_anomMgr; }
-    DungeonMgr* GetDungMgr()                            { return m_dungMgr; }
+    BeltMgr* GetBeltMgr()                               { return m_beltMgr.get(); }
+    SpawnMgr* GetSpawnMgr()                             { return m_spawnMgr.get(); }
+    AnomalyMgr* GetAnomMgr()                            { return m_anomMgr.get(); }
+    DungeonMgr* GetDungMgr()                            { return m_dungMgr.get(); }
 
     // range is 0.1 for 1.0 system to 2.0 for -0.9 system
     float GetSecValue()                                 { return m_secValue; }
@@ -177,10 +178,10 @@ protected:
     bool LoadPlayerDynamics();
 
 private:
-    AnomalyMgr* m_anomMgr;      //we own this, never NULL.
-    BeltMgr* m_beltMgr;         //we own this, never NULL.
-    DungeonMgr* m_dungMgr;      //we own this, never NULL.
-    SpawnMgr* m_spawnMgr;       //we own this, never NULL.
+    std::unique_ptr<AnomalyMgr> m_anomMgr;      //we own this, never NULL.
+    std::unique_ptr<BeltMgr> m_beltMgr;         //we own this, never NULL.
+    std::unique_ptr<DungeonMgr> m_dungMgr;      //we own this, never NULL.
+    std::unique_ptr<SpawnMgr> m_spawnMgr;       //we own this, never NULL.
 
     EVEServiceManager& m_services;
     LSCService* m_lsc;

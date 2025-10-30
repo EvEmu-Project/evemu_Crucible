@@ -1,5 +1,5 @@
 
- /**
+/**
   * @name ManagerDB.cpp
   *   cosmic manager database methods
   * @Author:         Allan
@@ -333,10 +333,16 @@ void ManagerDB::GetMoonResouces(DBQueryResult& res)
 void ManagerDB::SaveAnomaly(CosmicSignature& sig)
 {// sysSignatures (sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,x,y,z)
     DBerror err;
+    // Use INSERT ... ON DUPLICATE KEY UPDATE to handle existing signatures gracefully
     if (!sDatabase.RunQuery(err,
         "INSERT INTO sysSignatures"
         " (sigID,sigItemID,dungeonType,sigName,systemID,sigTypeID,sigGroupID,scanGroupID,scanAttributeID,x,y,z)"
-        " VALUES ('%s', %u, %u, '%s', %u, %u, %u, %u, %u, %f, %f, %f)", \
+        " VALUES ('%s', %u, %u, '%s', %u, %u, %u, %u, %u, %f, %f, %f)"
+        " ON DUPLICATE KEY UPDATE"
+        " sigItemID=VALUES(sigItemID), dungeonType=VALUES(dungeonType), sigName=VALUES(sigName),"
+        " systemID=VALUES(systemID), sigTypeID=VALUES(sigTypeID), sigGroupID=VALUES(sigGroupID),"
+        " scanGroupID=VALUES(scanGroupID), scanAttributeID=VALUES(scanAttributeID),"
+        " x=VALUES(x), y=VALUES(y), z=VALUES(z)", \
             sig.sigID.c_str(), sig.sigItemID, sig.dungeonType, sig.sigName.c_str(), sig.systemID, sig.sigTypeID, sig.sigGroupID, \
             sig.scanGroupID, sig.scanAttributeID, sig.position.x, sig.position.y, sig.position.z )) {
         _log(DATABASE__ERROR, "SaveAnomaly - unable to save dungeon");

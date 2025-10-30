@@ -159,6 +159,16 @@ Client::~Client() {
 
         sLog.Green("  Client::Logout()","%s (Acct:%u) logging out.", m_char->name(), GetUserID());
 
+        // Save character's current position information
+        if (sDataMgr.IsSolarSystem(m_locationID) && pShipSE != nullptr) {
+            GPoint currentPosition = pShipSE->GetPosition();
+            sLog.Blue("Client::Logout()", "Saving character position for %s(%u) at %.2f,%.2f,%.2f in system %u", 
+                      m_char->name(), m_char->itemID(), currentPosition.x, currentPosition.y, currentPosition.z, m_locationID);
+            
+            // Update character data with position information
+            m_char->SetLocation(m_locationID, m_systemData);
+        }
+
         if (!sConsole.IsDbError()) {
             ServiceDB::SetAccountOnlineStatus(GetUserID(), false);
             CharacterDB::SetCharacterOnlineStatus(m_char->itemID(), false);
@@ -300,8 +310,8 @@ bool Client::SelectCharacter(int32 charID/*0*/)
         pos = m_ship->position();
 
         m_loginWarpPoint = pos;
+        // Use the actual saved position instead of a random point
         m_loginWarpRandomPoint = m_ship->position();
-        m_loginWarpRandomPoint.MakeRandomPointOnSphere(0.5*ONE_AU_IN_METERS);
 
         MoveToLocation(m_locationID, m_loginWarpRandomPoint);
 
@@ -620,12 +630,35 @@ void Client::WarpIn() {
 
     UpdateBubble();
 
-    // This will queue up the login warp-in on the next server tick. Calling
-    // SetStateTimer allows it to be processed on the next tick instead of
-    // getting timed out and ignored by a session change timer.
-    SetStateTimer(0);
-
-    m_clientState = Player::State::LoginWarp;
+    // Only trigger login warp if the saved position and current position are significantly different
+    if ((m_ship->position() - m_loginWarpPoint).length() > 5.0) {
+        SetStateTimer(0);
+        m_clientState = Player::State::LoginWarp;
+    } else {
+        // If already at the correct position, skip warp and go idle
+        // But still ensure the ship is properly added to bubble and visible
+        m_clientState = Player::State::Idle;
+        
+        // Clear login warp flags to prevent IsLoginWarping() from returning true
+        m_loginWarpPoint = NULL_ORIGIN;
+        m_loginWarpRandomPoint = NULL_ORIGIN;
+        
+        // Force a bubble update to ensure ship is visible and send state to client
+        if (GetShipSE()->SysBubble() != nullptr) {
+            // Ensure ship is stopped, uncloaked, and state is sent to client to prevent ghosting
+            GetShipSE()->DestinyMgr()->Stop();
+            GetShipSE()->DestinyMgr()->UnCloak();
+            
+            // Force add ship to bubble if not already there
+            if (GetShipSE()->SysBubble()->GetEntity(GetShipSE()->GetID()) == nullptr) {
+                GetShipSE()->SysBubble()->Add(GetShipSE());
+            }
+            
+            GetShipSE()->SysBubble()->SendAddBalls(GetShipSE());
+            SetStateSent(false);
+            GetShipSE()->DestinyMgr()->SendSetState();
+        }
+    }
 }
 
 void Client::WarpOut() {
@@ -635,6 +668,16 @@ void Client::WarpOut() {
     m_ship->SetCustomInfo(ci);
     if (!InPod())
         m_ship->SetFlag(flagShipOffline);
+
+    // Critical fix: Save the latest ship position to database
+    if (pShipSE != nullptr) {
+        GPoint currentPosition = pShipSE->GetPosition();
+        sLog.Blue("Client::WarpOut()", "Saving ship position for %s(%u) at %.2f,%.2f,%.2f", 
+                  GetName(), m_char->itemID(), currentPosition.x, currentPosition.y, currentPosition.z);
+        m_ship->SetPosition(currentPosition);
+        m_ship->SaveShip();
+    }
+
     pShipSE->SetPosition(m_ship->position());
     DestroyShipSE();
     return;
@@ -1508,7 +1551,19 @@ void Client::ExecuteJump() {
 
     //OnScannerInfoRemoved  - no args.  flushes current scan data in client
     SendNotification("OnScannerInfoRemoved", "charid", new PyTuple(0), true);  // this is sequenced
-    pShipSE->Jump();
+    
+    // Don't cloak during login warp to prevent ships appearing cloaked after login
+    bool shouldCloak = !IsLoginWarping();
+    _log(CLIENT__TRACE, "ExecuteJump() - IsLoginWarping: %s, shouldCloak: %s", 
+         IsLoginWarping() ? "true" : "false", shouldCloak ? "true" : "false");
+    
+    // Force no cloak during login to ensure ships don't appear cloaked
+    if (m_clientState == Player::State::Login || m_clientState == Player::State::LoginWarp) {
+        shouldCloak = false;
+        _log(CLIENT__TRACE, "ExecuteJump() - Forcing shouldCloak=false due to login state");
+    }
+    
+    pShipSE->Jump(shouldCloak);
 
     MoveToLocation(m_moveSystemID, m_movePoint);
 

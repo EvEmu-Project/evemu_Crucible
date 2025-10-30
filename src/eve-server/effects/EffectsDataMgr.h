@@ -37,7 +37,7 @@ public:
     void GetTypeEffect(uint16 typeID, std::vector< TypeEffects >& typeEffMap);
 
     float GetFxTime()                                   { return m_time; }
-    uint16 GetFxSize()                                  { return m_fxMap.size(); }
+    uint16 GetFxSize()                                  { return static_cast<uint16>(m_fxMap.size()); }
 
 protected:
     void GetOperands(DBQueryResult& res);

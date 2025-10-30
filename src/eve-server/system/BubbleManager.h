@@ -75,7 +75,7 @@ public:
     void ClearSystemBubbles(uint32 systemID);
     void RemoveBubble(uint32 systemID, SystemBubble* pSB);
 
-    uint32 Count()                                      { return m_bubbles.size(); }
+    uint32 Count()                                      { return static_cast<uint32>(m_bubbles.size()); }
     uint32 GetBubbleID()                                { return ++m_bubbleID; }
 
     // for spawn system     -allan 15April16

@@ -1,5 +1,5 @@
 
- /**
+/**
   * @name FleetService.h
   *     Fleet Service code for EVEmu
   *
@@ -98,7 +98,7 @@ public:
     void GetJoinRequests(uint32 fleetID, std::vector<Client*>& data);
     void RemoveJoinRequest(uint32 fleetID, Client* pClient);
 
-    uint8 GetFleetMemberCount(uint32 fleetID)          { return m_fleetMembers.count(fleetID); }
+    uint8 GetFleetMemberCount(uint32 fleetID)          { return static_cast<uint8>(m_fleetMembers.count(fleetID)); }
 
     std::string GetJobName(int8 job);
     std::string GetRoleName(int8 role);
