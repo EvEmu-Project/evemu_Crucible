@@ -7,6 +7,33 @@
 
 #include <array>
 
+// To add Apple-specific compatibility, we need to include the proper headers for integer types on macOS. Here's the updated file with the necessary changes:
+#include <string>
+// Platform-specific includes for integer types
+#ifdef __APPLE__
+#include <sys/types.h>
+#else
+#include <cstdint>
+#endif
+
+// Type definitions for compatibility
+#ifdef __APPLE__
+typedef u_int8_t uint8;
+typedef u_int16_t uint16;
+typedef u_int32_t uint32;
+typedef int32_t int32;
+typedef int64_t int64;
+#else
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef int32_t int32;
+typedef int64_t int64;
+#endif
+
+// Include the actual GPoint and GVector definitions
+#include "../eve-core/math/gpoint.h"
+
 // define default home page for IGB
 const std::string HomePageURL = "https://evemu.dev/";
 

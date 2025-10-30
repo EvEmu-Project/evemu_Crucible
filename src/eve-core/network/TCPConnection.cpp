@@ -272,7 +272,13 @@ bool TCPConnection::SendData(char* errbuf)
         if (mSendQueue.empty()) {
             status = mSock->send(&(*buf)[ 0 ], (uint)buf->size(), MSG_NOSIGNAL);
         } else {
+            // status = mSock->send(&(*buf)[ 0 ], (uint)buf->size(), (MSG_NOSIGNAL | MSG_MORE));
+            // MSG_MORE is not available on macOS, use 0 instead
+            #ifdef __APPLE__
+            status = mSock->send(&(*buf)[ 0 ], (uint)buf->size(), MSG_NOSIGNAL);
+            #else
             status = mSock->send(&(*buf)[ 0 ], (uint)buf->size(), (MSG_NOSIGNAL | MSG_MORE));
+            #endif
         }
         if (status == SOCKET_ERROR) {
             if (errno == EWOULDBLOCK) {

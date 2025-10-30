@@ -23,7 +23,14 @@
     SOFTWARE.
 */
 #pragma once
+#include <string>
+#include <cstdio>
+#include <cassert>
 #include <atomic>
+
+#ifdef __APPLE__
+#include <cstddef> // Ensure std::size_t is defined on Apple platforms
+#endif
 
 namespace Memory
 {

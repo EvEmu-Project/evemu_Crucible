@@ -32,7 +32,19 @@
 /*
  * u?int(8|16|32|64)
  */
-#ifdef HAVE_INTTYPES_H
+#ifdef __APPLE__
+// 在 macOS 上，使用标准整数类型
+#include <stdint.h>
+typedef int8_t   int8;
+typedef uint8_t  uint8;
+typedef int16_t  int16;
+typedef uint16_t uint16;
+typedef int32_t  int32;
+typedef uint32_t uint32;
+typedef int64_t  int64;
+typedef uint64_t uint64;
+// other
+#elif HAVE_INTTYPES_H
 typedef  int8_t   int8;
 typedef uint8_t  uint8;
 typedef  int16_t  int16;
@@ -94,6 +106,11 @@ typedef SOCKLEN_T* PSOCKLEN_T;
 /*************************************************************************/
 /* cfloat, cmath                                                         */
 /*************************************************************************/
+#ifdef __APPLE__
+// 在 macOS 上，使用标准库函数
+#include <cmath>
+#else
+
 #ifndef HAVE_ASINH
 #   define asinh boost::math::asinh
 #endif /* !HAVE_ASINH */
@@ -121,6 +138,7 @@ typedef SOCKLEN_T* PSOCKLEN_T;
 //#       define isnan __isnan
 //#   endif
 #endif /* !HAVE_ISNAN */
+#endif /* __APPLE__ */
 
 /*************************************************************************/
 /* cstdarg                                                               */
@@ -134,11 +152,21 @@ typedef SOCKLEN_T* PSOCKLEN_T;
 /* cstdio                                                                */
 /*************************************************************************/
 #ifndef HAVE_SNPRINTF
+    #ifdef __APPLE__
+        // 在 macOS 上，使用标准 snprintf
+        #define snprintf snprintf
+    #else
 #   define snprintf _snprintf
+    #endif
 #endif /* !HAVE_SNPRINTF */
 
 #ifndef HAVE_VSNPRINTF
+    #ifdef __APPLE__
+        // 在 macOS 上，使用标准 vsnprintf
+        #define vsnprintf vsnprintf
+    #else
 #   define vsnprintf _vsnprintf
+    #endif
 #endif /* !HAVE_VSNPRINTF */
 
 #ifndef HAVE_ASPRINTF

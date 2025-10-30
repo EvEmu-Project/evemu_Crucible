@@ -37,8 +37,12 @@
 #include "eve-core.h"
 
 // UTF8-CPP
+// UTF8-CPP - macOS compatibility
+#ifdef __APPLE__
+#include <utf8cpp/utf8.h>
+#else
 #include <utf8.h>
-
+#endif
 /************************************************************************/
 /* eve-common includes                                                  */
 /************************************************************************/

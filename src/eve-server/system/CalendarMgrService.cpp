@@ -84,7 +84,7 @@ PyResult CalendarMgrService::CreatePersonalEvent(PyCallArgs& call, PyLong* dateT
     // TODO: update this to not use xmlpktgen, too many changes just for the services update
     Call_CreateEventWithInvites args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return PyStatic.NewNone();
     }
 
@@ -97,7 +97,7 @@ PyResult CalendarMgrService::CreateCorporationEvent(PyCallArgs& call, PyLong* da
     // TODO: update this to not use xmlpktgen, too many changes just for the services update
     Call_CreateEvent args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return PyStatic.NewNone();
     }
 
@@ -110,7 +110,7 @@ PyResult CalendarMgrService::CreateAllianceEvent(PyCallArgs& call, PyLong* dateT
     // TODO: update this to not use xmlpktgen, too many changes just for the services update
     Call_CreateEvent args;
     if (!args.Decode(&call.tuple)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return PyStatic.NewNone();
     }
 

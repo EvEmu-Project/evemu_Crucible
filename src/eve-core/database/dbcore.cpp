@@ -552,6 +552,7 @@ void DBQueryResult::SetResult( MYSQL_RES* res, uint32 colCount )
     }
 }
 
+// ... existing code ...
 bool DBQueryResult::GetRow( DBResultRow& into )
 {
     if (mResult == nullptr)
@@ -561,13 +562,16 @@ bool DBQueryResult::GetRow( DBResultRow& into )
     if (row == nullptr)
         return false;
 
-    const ulong* lengths = mysql_fetch_lengths( mResult );
+    const unsigned long* lengths = mysql_fetch_lengths( mResult );  // Changed ulong to unsigned long
     if (lengths == nullptr)
         return false;
 
     into.SetData( this, row, lengths );
     return true;
 }
+// ... existing code ...
+
+
 
 const char* DBQueryResult::ColumnName( uint32 index ) const
 {
@@ -617,12 +621,13 @@ mResult( nullptr )
 {
 }
 
-void DBResultRow::SetData( DBQueryResult* res, MYSQL_ROW& row, const ulong* lengths )
+void DBResultRow::SetData( DBQueryResult* res, MYSQL_ROW& row, const unsigned long* lengths )  // Changed ulong to unsigned long
 {
     mRow = row;
     mResult = res;
     mLengths = lengths;
 }
+// ... existing code ...
 
 uint32 DBResultRow::ColumnLength( uint32 index ) const
 {

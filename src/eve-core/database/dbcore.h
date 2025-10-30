@@ -98,6 +98,7 @@ protected:
     static const DBTYPE MYSQL_DBTYPE_TABLE_UNSIGNED[];
 };
 
+// ... existing code ...
 class DBResultRow
 {
 public:
@@ -126,14 +127,14 @@ public:
 protected:
     //for DBQueryResult
     friend class DBQueryResult;
-    void SetData( DBQueryResult* res, MYSQL_ROW& row, const ulong* lengths );
+    void SetData( DBQueryResult* res, MYSQL_ROW& row, const unsigned long* lengths );  // Changed ulong to unsigned long
 
     MYSQL_ROW mRow;
-    const ulong* mLengths;
+    const unsigned long* mLengths;  // Changed ulong to unsigned long
 
     DBQueryResult* mResult;
 };
-
+// ... existing code ...
 class DBcore
 : public Singleton<DBcore>
 {

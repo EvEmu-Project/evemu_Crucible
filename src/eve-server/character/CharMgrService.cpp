@@ -153,7 +153,8 @@ BoundDispatcher* CharMgrService::BindObject(Client *client, PyRep* bindParameter
     //crap
     PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        // codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return nullptr;
     }
 

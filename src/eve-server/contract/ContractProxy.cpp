@@ -200,7 +200,7 @@ PyResult ContractProxy::SearchContracts(PyCallArgs &call) {
 
         return new PyObject("util.KeyVal", response);
     } else {
-        codelog(SERVICE__ERROR, "%s: ContractType was not specified. Aborting search", GetName());
+        codelog(SERVICE__ERROR, "%s: ContractType was not specified. Aborting search", GetName().c_str());
         return nullptr;
     }
 }

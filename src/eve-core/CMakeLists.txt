@@ -143,6 +143,32 @@ ADD_LIBRARY( "${TARGET_NAME}"
              ${threading_INCLUDE} ${threading_SOURCE}
              ${utils_INCLUDE}     ${utils_SOURCE} )
 
+# macOS specific header handling
+IF(APPLE)
+    # Remove problematic flags that cause header conflicts
+    STRING(REPLACE "-march=native" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    
+    # Add macOS specific workarounds for header conflicts
+    ADD_DEFINITIONS(-D__restrict=restrict)
+    ADD_DEFINITIONS(-D__DARWIN_C_LEVEL=199506L)
+    
+    # Additional macOS-specific settings
+    # Fix for missing clock_gettime on older macOS versions
+    IF(NOT CMAKE_CXX_STANDARD)
+        SET(CMAKE_CXX_STANDARD 11)  # Ensure C++11 or higher
+    ENDIF()
+    
+    # Link against macOS frameworks that might be needed
+    FIND_LIBRARY(CORESERVICES_LIBRARY CoreServices)
+    FIND_LIBRARY(SYSTEMCONFIGURATION_LIBRARY SystemConfiguration)
+    IF(CORESERVICES_LIBRARY)
+        TARGET_LINK_LIBRARIES("${TARGET_NAME}" ${CORESERVICES_LIBRARY})
+    ENDIF()
+    IF(SYSTEMCONFIGURATION_LIBRARY)
+        TARGET_LINK_LIBRARIES("${TARGET_NAME}" ${SYSTEMCONFIGURATION_LIBRARY})
+    ENDIF()
+ENDIF()
+
 target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-core.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
@@ -160,3 +186,11 @@ TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "${ZLIB_LIBRARY}"
                        ${CMAKE_NET_LIBS}
                        ${CMAKE_THREAD_LIBS} )
+# Modify the precompiled header creation to avoid conflicting includes
+TARGET_BUILD_PCH( eve-core
+    "eve-core.h"
+    "cmake_pch.hxx"
+    CXX
+    DISABLE_INCLUDES
+    )
+    

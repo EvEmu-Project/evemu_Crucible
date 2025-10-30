@@ -29,6 +29,11 @@
 #include "python/PyRep.h"
 #include "utils/EvilNumber.h"
 
+#ifdef __APPLE__
+#include <cstdio>  // 用于std::snprintf
+#include <cmath>   // 用于std::isnan, std::isinf等数学函数
+#endif
+
 EvilNumber EvilZero = EvilNumber();
 EvilNumber EvilZerof = EvilNumber(0.0f);
 EvilNumber EvilOne = EvilNumber(1);
@@ -142,7 +147,12 @@ bool EvilNumber::isNaN()
         return true;
     if ( mType == evil_number_int )
         return false;
+    
+#ifdef __APPLE__
+    return isnan(fVal);
+#else    
     return std::isnan(fVal);
+#endif    
 }
 
 bool EvilNumber::isInf()
@@ -151,7 +161,11 @@ bool EvilNumber::isInf()
         return true;
     if ( mType == evil_number_int )
         return false;
+#ifdef __APPLE__
+    return isinf(fVal);
+#else    
     return std::isinf(fVal);
+#endif
 }
 
 bool EvilNumber::get_bool()

@@ -30,7 +30,23 @@
 /** @todo  this file has many specific headers not used by everything in evemu.
  * this should be trimmed down with specific headers in files that need them
  */
+// Add these at the very top of eve-core.h, before any C++ headers
+#ifndef __APPLE__
+#define __restrict restrict
+#define _Nonnull
+#define _Nullable
+#endif
 
+// macOS compatibility
+#ifdef __APPLE__
+#   define _DARWIN_C_SOURCE 1 // For POSIX compliance on macOS
+#   include <AvailabilityMacros.h>
+#endif
+
+// Then include system headers before C++ headers
+#include <sys/types.h>
+#include <stddef.h>
+#include <stdint.h>
 /*************************************************************************/
 /* Header configuration                                                  */
 /*************************************************************************/
@@ -57,6 +73,14 @@
 /*************************************************************************/
 /* Includes                                                              */
 /*************************************************************************/
+// Then include C++ headers
+// Add these to eve-core.h
+#include <string>
+#include <cstdio>
+#include <cassert>
+#include <cstdlib>
+#include <memory>
+#include <csignal>
 // Standard library includes
 #include <cassert>
 #include <cerrno>
@@ -124,6 +148,29 @@ typedef unsigned long ulong;
 #   include <boost/math/special_functions.hpp>
 #endif /* !HAVE_ASINH */
 
+// macOS compatibility macros
+#ifdef __APPLE__
+// Define endian conversion macros for macOS
+#   ifndef htole16
+#       define htole16(x) OSSwapHostToLittleInt16(x)
+#   endif
+#   ifndef htole32
+#       define htole32(x) OSSwapHostToLittleInt32(x)
+#   endif
+#   ifndef htole64
+#       define htole64(x) OSSwapHostToLittleInt64(x)
+#   endif
+#   ifndef le16toh
+#       define le16toh(x) OSSwapLittleToHostInt16(x)
+#   endif
+#   ifndef le32toh
+#       define le32toh(x) OSSwapLittleToHostInt32(x)
+#   endif
+#   ifndef le64toh
+#       define le64toh(x) OSSwapLittleToHostInt64(x)
+#   endif
+#endif
+
 /************************************************************************/
 /* Dependencies                                                         */
 /************************************************************************/
@@ -152,3 +199,13 @@ typedef unsigned long ulong;
 #include "log/logsys.h"
 
 #endif /* !__EVE_CORE_H__INCL__ */
+
+#ifdef __APPLE__
+// macOS-specific definitions
+#ifndef MSG_MORE
+#define MSG_MORE 0
+#endif
+
+// Add other macOS-specific compatibility definitions here
+
+#endif // __APPLE__
