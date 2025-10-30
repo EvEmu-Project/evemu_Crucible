@@ -1,9 +1,10 @@
 services:
   server:
+    image: "evemu_server"
     build: . #Build image from source repository
-    container_name: evemu_server
+    container_name: server
     volumes:
-      - config:/app/etc
+      - ./config:/app/etc
       - server_cache:/app/server_cache
       - image_cache:/app/image_cache
     ports:
@@ -20,25 +21,25 @@ services:
       - RUN_WITH_GDB=${RUN_GDB:-FALSE} #Set to TRUE to run evemu with gdb automatically
     stdin_open: true # Enables stdin for the container. Attach to it with 'docker attach'
     tty: true
-    cap_add: #This is required for gdb to work
-      - SYS_PTRACE
+    # cap_add: #This is required for gdb to work
+    #   - SYS_PTRACE
 
   db:
-    image: "bitnami/mariadb:11.4"
-    container_name: evemu_db
+    image: "mariadb:11.8"
+    container_name: db
     volumes:
-      - db:/bitnami/mariadb
+      - db:/var/lib/mysql
     # If you want to connect to the Database pick your host port to map it to, (host-port:container-port) below. 
     #ports:
     #  - "3306:3306"  
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_RANDOM_ROOT_PASSWORD=true
       - MARIADB_USER=evemu
       - MARIADB_PASSWORD=evemu
       - MARIADB_DATABASE=evemu
+
 volumes:
   db:
-  config:
   server_cache:
   image_cache:
 

@@ -96,6 +96,9 @@ build_iwyu/
 staging/
 out/
 
+# evenmu runtime
+config/
+
 # doxygen output
 doxygen/
 !doxygen/ChangeLog.md

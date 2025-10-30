@@ -20,29 +20,32 @@ The EVEmu project maintains a set of pre-configured tools and environments that 
 
 Additional details on the SDK are [available on the wiki](https://wiki.evemu.dev/wiki/EVEmu-SDK).
 
-## `docker-compose` Quickstart
+## `docker compose` Quickstart
  EVEmu can be run with Docker Compose:
 ```
 git clone https://github.com/EvEmu-Project/evemu_Crucible.git
 cd evemu_Crucible
-docker-compose -p evemu up --build -d
+docker compose up -d
 ```
-**NOTE:** Add `--build` to the `docker-compose up` command to force a rebuild of the source. This is useful when making code changes.
+**NOTE:** Add `--build` to the `docker compose up` command to force a rebuild of the source. This is useful when making code changes.
 
-By changing `build:` to `image:` in `docker-compose.yml`, you can use the prebuilt images available.
+~~By changing `build:` to `image:` in `docker-compose.yml`, you can use the prebuilt images available.~~
 
-Configuration files are stored in the `evemu_config` volume. These can be modified and will persist across restarts.
+Configuration files are stored in `./config/`. These can be modified and will persist across restarts.
 
 To shutdown EVEmu:
 ```
-docker-compose -p evemu down
+docker compose stop
 ```
 
 ## Building with Docker
- EVEmu can now be built with docker to ensure a consistent dependency base. This can be done by executing `docker build .` in the root directory.
+ EVEmu can now be built with docker to ensure a consistent dependency base. This can be done by executing `docker compose build` in the root directory.
  It is highly suggested to build EVEmu from the latest release available on the releases page.
 
  [Releases](https://github.com/EvEmu-Project/evemu_Crucible/releases)
+
+## Accounts
+ Accounts will be created automatically when logging in with the client if the username is not already taken.
 
 ## Communication / Contact
  Check out the new [EVEmu Project website](https://evemu.dev), our [Discord](https://discord.gg/fTfAREYxbz) and [Forums](https://forums.evemu.dev)!
