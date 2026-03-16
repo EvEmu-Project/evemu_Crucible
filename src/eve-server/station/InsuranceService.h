@@ -43,6 +43,7 @@ protected:
 
     PyResult GetContractForShip(PyCallArgs& call, PyInt* shipID);
     PyResult GetInsurancePrice(PyCallArgs& call, PyInt* typeID);
+    PyResult GetInsurancePrices(PyCallArgs& call, PyList* typeIDs);
 
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters);
 };

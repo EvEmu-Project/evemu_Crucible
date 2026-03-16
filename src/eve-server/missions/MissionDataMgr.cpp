@@ -285,6 +285,7 @@ void MissionDataMgr::Populate()
         offer.dungeonLocationID = row.GetInt(32);
         offer.dungeonSolarSystemID = row.GetInt(33);
         offer.dateCompleted = 0;
+        offer.contentID = 0;
         // will need to determine how to store/retrieve bookmarks as a list of dicts here
         offer.bookmarks = new PyList();
         m_offers.emplace(row.GetInt(2), offer);
@@ -335,6 +336,7 @@ void MissionDataMgr::Populate()
         offer.destinationSystemID = 0;
         offer.dungeonLocationID = 0;
         offer.dungeonSolarSystemID = 0;
+        offer.contentID = 0;
         offer.bookmarks = new PyList(); //invalid offers will not have bms
         m_xoffers.emplace(row.GetInt(2), offer);
     }
@@ -443,6 +445,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
     data.destinationSystemID    = 0;
     data.dungeonLocationID      = 0;
     data.dungeonSolarSystemID   = 0;
+    data.contentID              = 0;
     data.bookmarks              = new PyList();
 
     /** @todo  this will need to be adjusted for raceID eventually */

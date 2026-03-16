@@ -119,6 +119,8 @@ public:
     PyTuple  *payload;
     PyDict   *named_payload;
     PyRep*      contextKey;
+    std::string applicationID;
+    std::string languageID;
 
 #if 0
     //options:

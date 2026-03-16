@@ -45,7 +45,14 @@ PyRep *FactionWarMgrDB::GetWarFactions() {
         return nullptr;
     }
 
-    return DBResultToIntIntDict(res);
+    _log(DATABASE__RESULTS, "GetWarFactions query returned %lu rows", res.GetRowCount());
+    
+    PyRep* result = DBResultToIntIntDict(res);
+    if (result != nullptr) {
+        _log(DATABASE__INFO, "GetWarFactions returned %d factions", ((PyDict*)result)->size());
+    }
+    
+    return result;
 }
 
 PyRep* FactionWarMgrDB::GetFacWarSystems()
@@ -58,6 +65,8 @@ PyRep* FactionWarMgrDB::GetFacWarSystems()
         return nullptr;
     }
 
+    _log(DATABASE__RESULTS, "GetFacWarSystems query returned %lu rows", res.GetRowCount());
+    
     PyDict* result = new PyDict();
     PyDict* dict;
     DBResultRow row;
@@ -67,6 +76,9 @@ PyRep* FactionWarMgrDB::GetFacWarSystems()
         dict->SetItemString("factionID", new PyInt(row.GetInt(2)));
         result->SetItem(new PyInt(row.GetInt(0)), dict );
     }
+    
+    _log(DATABASE__INFO, "GetFacWarSystems returned %d systems", result->size());
+    
     return result;
 }
 

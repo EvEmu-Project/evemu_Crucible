@@ -72,6 +72,8 @@
 #include "packets/Character.h"
 #include "packets/Destiny.h"
 #include "packets/DogmaIM.h"
+// crimewatch
+#include "packets/Crimewatch.h"
 //  #include "packets/Fleet.h"
 #include "packets/General.h"
 #include "packets/Inventory.h"

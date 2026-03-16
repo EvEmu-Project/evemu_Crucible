@@ -46,6 +46,7 @@ protected:
     PyResult GetMyJournalDetails(PyCallArgs& call);
     PyResult GetMyEpicJournalDetails(PyCallArgs& call);
     PyResult GetCareerAgents(PyCallArgs& call);
+    PyResult GetAgentsInSpace(PyCallArgs& call);
 
     //overloaded in order to support bound objects:
     BoundDispatcher* BindObject(Client *client, PyRep* bindParameters) override;

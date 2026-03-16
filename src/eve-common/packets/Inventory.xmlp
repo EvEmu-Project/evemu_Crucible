@@ -64,6 +64,9 @@
       <dictInlineEntry key="time">
         <long name="time" />
       </dictInlineEntry>
+      <dictInlineEntry key="wallclockTime">
+        <long name="wallclockTime" />
+      </dictInlineEntry>
     </dictInline>
   </elementDef>
 

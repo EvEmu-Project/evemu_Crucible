@@ -65,7 +65,9 @@ type(__Fake_Invalid_Type),
 userid(0),
 payload(nullptr),
 named_payload(nullptr),
-contextKey(nullptr)
+contextKey(nullptr),
+applicationID(),
+languageID()
 {
 }
 
@@ -73,6 +75,7 @@ PyPacket::~PyPacket()
 {
     PySafeDecRef(payload);
     PySafeDecRef(named_payload);
+    PySafeDecRef(contextKey);
 }
 
 PyPacket *PyPacket::Clone() const
@@ -88,6 +91,12 @@ PyPacket *PyPacket::Clone() const
         res->named_payload = nullptr;
     else
         res->named_payload = named_payload->Clone()->AsDict();
+    if (contextKey == nullptr)
+        res->contextKey = nullptr;
+    else
+        res->contextKey = contextKey->Clone();
+    res->applicationID = applicationID;
+    res->languageID = languageID;
     return res;
 }
 
@@ -161,8 +170,8 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
-    if (tuple->items.size() != 7) {
-        codelog(NET__PACKET_ERROR, "PyPacket::Decode() - packet body does not contain a tuple of length 7 (is %u)", tuple->items.size());
+    if (tuple->items.size() != 7 && tuple->items.size() != 9) {
+        codelog(NET__PACKET_ERROR, "PyPacket::Decode() - packet body does not contain a tuple of length 7 or 9 (is %u)", tuple->items.size());
         PyDecRef(packet);
         return false;
     }
@@ -232,12 +241,50 @@ bool PyPacket::Decode(PyRep **in_packet)
         return false;
     }
 
+    // contextKey, gives the client extra information on what exactly is going on
+    // this is PyNone almost 100% of the time and seems to be used in the node<->proxy communication
+    if (tuple->items.size() == 9) {
+        if (tuple->items[6]->IsNone()) {
+            contextKey = nullptr;
+        } else {
+            contextKey = tuple->items[6];
+            PyIncRef(contextKey);
+        }
+
+        // applicationID, used for routing
+        if (tuple->items[7]->IsNone()) {
+            applicationID = "";
+        } else if (tuple->items[7]->IsString()) {
+            applicationID = tuple->items[7]->AsString()->content();
+        } else {
+            codelog(NET__PACKET_ERROR, "PyPacket::Decode() - Eighth main tuple element is neither string or none.");
+            PyDecRef(packet);
+            return false;
+        }
+
+        // languageID
+        if (tuple->items[8]->IsNone()) {
+            languageID = "";
+        } else if (tuple->items[8]->IsString()) {
+            languageID = tuple->items[8]->AsString()->content();
+        } else {
+            codelog(NET__PACKET_ERROR, "PyPacket::Decode() - Ninth main tuple element is neither string or none.");
+            PyDecRef(packet);
+            return false;
+        }
+    } else {
+        // For 7-element tuples, set defaults
+        contextKey = nullptr;
+        applicationID = "";
+        languageID = "";
+    }
+
     PyDecRef(packet);
     return true;
 }
 
 PyRep *PyPacket::Encode() {
-    PyTuple *arg_tuple = new PyTuple(7);
+    PyTuple *arg_tuple = new PyTuple(9);
     //command
     arg_tuple->items[0] = new PyInt(type);
     //source
@@ -266,6 +313,20 @@ PyRep *PyPacket::Encode() {
         arg_tuple->items[6] = PyStatic.NewNone();
     } else {
         arg_tuple->items[6] = contextKey;
+    }
+
+    // applicationID, used for routing
+    if (applicationID.empty()) {
+        arg_tuple->items[7] = PyStatic.NewNone();
+    } else {
+        arg_tuple->items[7] = new PyString(applicationID);
+    }
+
+    // languageID
+    if (languageID.empty()) {
+        arg_tuple->items[8] = PyStatic.NewNone();
+    } else {
+        arg_tuple->items[8] = new PyString(languageID);
     }
 
     return new PyObject( type_string.c_str(), arg_tuple );
@@ -608,7 +669,7 @@ bool PyCallStream::Decode(const std::string &type, PyTuple *&in_payload) {
         return false;
     }
 
-    if (type != "macho.CallReq") {
+    if (type != "macho.CallReq" && type != "carbon.common.script.net.machoNetPacket.CallReq") {
         codelog(NET__PACKET_ERROR, "PyCallStream::Decode() - packet payload has unknown string type '%s'", type.c_str());
         PyDecRef(payload);
         return false;

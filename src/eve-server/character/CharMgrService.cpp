@@ -119,9 +119,11 @@ CharMgrService::CharMgrService(EVEServiceManager& mgr) :
     this->Add("GetContactList", &CharMgrService::GetContactList);
     this->Add("GetCloneTypeID", &CharMgrService::GetCloneTypeID);
     this->Add("GetHomeStation", &CharMgrService::GetHomeStation);
+    this->Add("GetHomeStationRow", &CharMgrService::GetHomeStationRow);
     this->Add("GetFactions", &CharMgrService::GetFactions);
     this->Add("SetActivityStatus", &CharMgrService::SetActivityStatus);
     this->Add("GetSettingsInfo", &CharMgrService::GetSettingsInfo);
+    this->Add("GetCharacterSettings", &CharMgrService::GetCharacterSettings);
     this->Add("LogSettings", &CharMgrService::LogSettings);
     this->Add("GetCharacterDescription", &CharMgrService::GetCharacterDescription);
     this->Add("SetCharacterDescription", &CharMgrService::SetCharacterDescription);
@@ -153,7 +155,7 @@ BoundDispatcher* CharMgrService::BindObject(Client *client, PyRep* bindParameter
     //crap
     PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", this->GetName());
         return nullptr;
     }
 
@@ -286,6 +288,18 @@ PyResult CharMgrService::GetHomeStation(PyCallArgs& call)
     return new PyInt(stationID);
 }
 
+PyResult CharMgrService::GetHomeStationRow(PyCallArgs& call)
+{
+    sLog.Debug("CharMgrService", "GetHomeStationRow called for Char %u (%s)", call.client->GetCharacterID(), call.client->GetName());
+    PyRep* result = CharacterDB::GetHomeStationRow(call.client->GetCharacterID());
+    if (result == nullptr) {
+        sLog.Error( "CharMgrService", "Could't get the home station row for Char %u", call.client->GetCharacterID() );
+        return PyStatic.NewNone();
+    }
+    sLog.Debug("CharMgrService", "GetHomeStationRow returned successfully for Char %u", call.client->GetCharacterID());
+    return result;
+}
+
 PyResult CharMgrService::SetActivityStatus(PyCallArgs& call, PyInt* afk, PyInt* secondsAFK) {
     sLog.Cyan("CharMgrService::SetActivityStatus()", "Player %s(%u) AFK:%s, time:%i.", \
             call.client->GetName(), call.client->GetCharacterID(), (afk->value() ? "true" : "false"), secondsAFK->value());
@@ -371,6 +385,11 @@ PyResult CharMgrService::GetSettingsInfo(PyCallArgs& call) {
 
     res->items[ 1 ] = new PyInt( 0 );
     return res;
+}
+
+PyResult CharMgrService::GetCharacterSettings(PyCallArgs& call) {
+    sLog.Debug("CharMgrService", "GetCharacterSettings called - returning empty dict");
+    return new PyDict();
 }
 
 // this takes in the value returned from the function we return in GetSettingsInfo

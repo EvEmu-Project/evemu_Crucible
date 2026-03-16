@@ -78,6 +78,17 @@ private:
     PyResult GetCharacterInfo(PyCallArgs& call);
 
     /**
+     * \brief Get character selection data for the character selection screen
+     *
+     * Returns user details, training details, and character details needed for character selection.
+     * This is the main method called by the client when showing the character selection screen.
+     *
+     * @param[in] call empty
+     * @return PyResult tuple of (userDetails, trainingDetails, characterDetails)
+     */
+    PyResult GetCharacterSelectionData(PyCallArgs& call);
+
+    /**
      * \brief Client check if this account is currently receiving a character from an character transfer
      *
      * Since we have no infrastructure for character transfer, this is not implemented and will always return false
@@ -94,12 +105,14 @@ private:
     /**
      * \brief Client check to see if a name may be used for a new character
      *
-     * Validates a name by checking if it confirms to naming standards and if it doesn't exist. No idea as to how this differs from ValidateName.
+     * Validates a name by checking if it confirms to naming standards and if it doesn't exist.
      *
-     * @param[in] call name to check
+     * @param[in] call call arguments
+     * @param[in] name name to check
+     * @param[in] loadDungeon load dungeon flag (unused)
      * @return PyResult true if the name may be used
      */
-    PyResult ValidateNameEx(PyCallArgs& call, PyRep* name);
+    PyResult ValidateNameEx(PyCallArgs& call, PyRep* name, PyInt* loadDungeon = nullptr);
 
     PyResult GetCharCreationInfo(PyCallArgs& call);
     PyResult GetCharNewExtraCreationInfo(PyCallArgs& call);

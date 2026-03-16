@@ -41,7 +41,7 @@ struct MissionOffer {
     uint32 offerID;
     uint32 agentID;
     uint32 briefingID;          // this is mission briefing messageID for locale
-    //uint32 contentID;           // on live, this is specific char data for mission keywords.  we're not using it
+    uint32 contentID;           // on live, this is specific char data for mission keywords.  we're not using it
     uint32 characterID;
     uint32 rewardISK;
     uint32 bonusISK;

@@ -61,7 +61,7 @@ CorpStationMgr::CorpStationMgr(EVEServiceManager& mgr) :
 
 BoundDispatcher* CorpStationMgr::BindObject(Client *client, PyRep* bindParameters) {
     if (!bindParameters->IsInt()) {
-        codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", GetName().c_str(), bindParameters->TypeString());
+        codelog(SERVICE__ERROR, "%s Service: invalid bind argument type %s", this->GetName().c_str(), bindParameters->TypeString());
         return nullptr;
     }
 

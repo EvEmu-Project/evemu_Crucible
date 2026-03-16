@@ -38,6 +38,7 @@ public:
 protected:
     PyResult GetWarFactions(PyCallArgs& call);
     PyResult GetFWSystems(PyCallArgs& call); 
+    PyResult GetFacWarSystems(PyCallArgs& call);
     PyResult GetMyCharacterRankOverview(PyCallArgs& call);
     PyResult GetMyCharacterRankInfo(PyCallArgs& call);
     PyResult GetFactionMilitiaCorporation(PyCallArgs& call, PyInt* factionID);

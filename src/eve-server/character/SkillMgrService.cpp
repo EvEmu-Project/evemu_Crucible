@@ -62,6 +62,7 @@ SkillMgrBound::SkillMgrBound(EVEServiceManager &mgr, SkillMgrService& parent, Ch
     this->Add("GetRespecInfo", &SkillMgrBound::GetRespecInfo);
     this->Add("RespecCharacter", &SkillMgrBound::RespecCharacter);
     this->Add("GetCharacterAttributeModifiers", &SkillMgrBound::GetCharacterAttributeModifiers);
+    this->Add("GetRequiredSkills", &SkillMgrBound::GetRequiredSkills);
 }
 
 PyResult SkillMgrBound::GetRespecInfo(PyCallArgs& call) {
@@ -277,4 +278,53 @@ PyResult SkillMgrBound::RemoveImplantFromCharacter(PyCallArgs& call, PyInt* item
 {
     //sends itemid
     return nullptr;
+}
+
+PyResult SkillMgrBound::GetRequiredSkills(PyCallArgs& call, PyInt* typeID)
+{
+    // Get required skills for a given typeID
+    // Returns a dictionary of {skillTypeID: requiredLevel}
+    PyDict* result = new PyDict();
+    
+    // Query skill requirement attributes for this type
+    // Attribute ID 182 = requiredSkill1 (stores the skill type ID)
+    // Attribute ID 277 = requiredSkill1Level (stores the required skill level)
+    // Attribute ID 183 = requiredSkill2 (stores the skill type ID)
+    // Attribute ID 278 = requiredSkill2Level (stores the required skill level)
+    // Attribute ID 184 = requiredSkill3 (stores the skill type ID)
+    // Attribute ID 279 = requiredSkill3Level (stores the required skill level)
+    // Attribute ID 1285 = requiredSkill4 (stores the skill type ID)
+    // Attribute ID 1286 = requiredSkill4Level (stores the required skill level)
+    // Attribute ID 1287 = requiredSkill5 (stores the skill type ID)
+    // Attribute ID 1288 = requiredSkill5Level (stores the required skill level)
+    
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT"
+        "   d1.attributeID as skillAttrID,"
+        "   d1.valueInt as skillTypeID,"
+        "   d2.valueInt as skillLevel"
+        " FROM dgmTypeAttributes d1"
+        " LEFT JOIN dgmTypeAttributes d2 ON d1.typeID = d2.typeID"
+        "   AND d2.attributeID = d1.attributeID + 95"  // 277 = 182 + 95, 278 = 183 + 95, etc.
+        " WHERE d1.typeID = %u"
+        " AND d1.attributeID IN (182, 183, 184, 1285, 1287)"
+        " AND d1.valueInt IS NOT NULL"
+        " AND d1.valueInt != 0",
+        typeID->value())) {
+        codelog(DATABASE__ERROR, "Error in GetRequiredSkills query: %s", res.error.c_str());
+        return result;
+    }
+    
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        uint32 skillTypeID = row.GetUInt(1);
+        uint32 skillLevel = row.IsNull(2) ? 1 : row.GetUInt(2);
+        // Ensure skillTypeID is not 0 or invalid
+        if (skillTypeID > 0) {
+            result->SetItem(new PyInt(skillTypeID), new PyInt(skillLevel));
+        }
+    }
+    
+    return result;
 }

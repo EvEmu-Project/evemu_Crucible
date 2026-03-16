@@ -70,7 +70,7 @@ protected:
     PyResult StopOverloadRack(PyCallArgs& call, PyInt* itemID);
     PyResult CharGetInfo(PyCallArgs& call);
     PyResult ItemGetInfo(PyCallArgs& call, PyInt* itemID);
-    PyResult GetAllInfo(PyCallArgs& call, PyBool* getCharInfo, PyBool* getShipInfo);
+    PyResult GetAllInfo(PyCallArgs& call, PyRep* getCharInfo, PyRep* getShipInfo, PyRep* getStationInfo = nullptr);
     PyResult DestroyWeaponBank(PyCallArgs& call, PyInt* shipID, PyInt* itemID);
     PyResult GetCharacterBaseAttributes(PyCallArgs& call);
     PyResult Activate(PyCallArgs& call, PyInt* itemID, PyInt* effectID);

@@ -58,6 +58,7 @@ MapService::MapService() :
     this->Add("GetAllianceJumpBridges", &MapService::GetAllianceJumpBridges);
     this->Add("GetAllianceBeacons", &MapService::GetAllianceBeacons);
     this->Add("GetCurrentSovData", &MapService::GetCurrentSovData);
+    this->Add("GetFacWarZoneInfo", &MapService::GetFacWarZoneInfo);
     // custom call for displaying all items in system
     this->Add ("GetCurrentEntities", &MapService::GetCurrentEntities);
 }
@@ -370,5 +371,13 @@ PyResult MapService::GetStuckSystems(PyCallArgs &call)
     res = tuple0;
 
     return res;
+}
+
+PyResult MapService::GetFacWarZoneInfo(PyCallArgs &call, PyInt* factionID)
+{
+    sLog.Warning( "MapService::Handle_GetFacWarZoneInfo()", "size=%lu", call.tuple->size());
+    call.Dump(SERVICE__CALL_DUMP);
+
+    return PyStatic.NewNone();
 }
 

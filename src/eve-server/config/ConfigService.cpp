@@ -48,6 +48,7 @@ ConfigService::ConfigService() :
     this->Add("GetDynamicCelestials", &ConfigService::GetDynamicCelestials);
     this->Add("GetMapLandmarks", &ConfigService::GetMapLandmarks);
     this->Add("SetMapLandmarks", &ConfigService::SetMapLandmarks);
+    this->Add("GetAverageMarketPrices", &ConfigService::GetAverageMarketPrices);
 }
 
 /** @todo put these next two in static data to avoid db hits  */
@@ -272,5 +273,34 @@ PyResult ConfigService::SetMapLandmarks(PyCallArgs &call, PyList* landmarkData) 
     call.Dump(CACHE__DUMP);
 
     return nullptr;
+}
+
+PyResult ConfigService::GetAverageMarketPrices(PyCallArgs &call) {
+    /**
+     * Returns a dictionary of typeID to average market price
+     * This is used by the client to display estimated item values
+     */
+    _log(CACHE__DUMP,  "ConfigService::Handle_GetAverageMarketPrices()");
+    call.Dump(CACHE__DUMP);
+
+    PyDict* result = new PyDict();
+    
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT typeID, basePrice"
+        " FROM invtypes"
+        " WHERE basePrice > 0")) {
+        codelog(DATABASE__ERROR, "Error in GetAverageMarketPrices query: %s", res.error.c_str());
+        return result;
+    }
+    
+    DBResultRow row;
+    while (res.GetRow(row)) {
+        uint32 typeID = row.GetUInt(0);
+        double basePrice = row.GetDouble(1);
+        result->SetItem(new PyInt(typeID), new PyFloat(basePrice));
+    }
+    
+    return result;
 }
 

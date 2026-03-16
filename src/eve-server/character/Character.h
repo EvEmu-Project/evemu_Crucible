@@ -229,7 +229,7 @@ public:
     void            SetFleetData(CharFleetData& fleet);
     uint32          PickAlternateShip(uint32 locationID);
 
-    void            SetClient(Client* pClient)          { m_pClient = pClient; }
+    void            SetClient(Client* pClient);
     Client*         GetClient()                         { return m_pClient; }
 
     void            AddItem(InventoryItemRef item);

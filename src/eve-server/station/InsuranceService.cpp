@@ -45,7 +45,7 @@ InsuranceService::InsuranceService(EVEServiceManager& mgr) :
 {
     this->Add("GetContractForShip", &InsuranceService::GetContractForShip);
     this->Add("GetInsurancePrice", &InsuranceService::GetInsurancePrice);
-	//SetSessionCheck?
+    this->Add("GetInsurancePrices", &InsuranceService::GetInsurancePrices);
 }
 
 BoundDispatcher* InsuranceService::BindObject(Client* client, PyRep* bindParameters) {
@@ -67,6 +67,25 @@ PyResult InsuranceService::GetInsurancePrice(PyCallArgs& call, PyInt* typeID) {
         return new PyFloat(type->basePrice());
 
     return PyStatic.NewZero();
+}
+
+PyResult InsuranceService::GetInsurancePrices(PyCallArgs& call, PyList* typeIDs) {
+    /* called when docked to get prices for multiple ship types */
+    PyDict* result = new PyDict();
+    
+    if (typeIDs != nullptr) {
+        for (size_t i = 0; i < typeIDs->size(); ++i) {
+            PyInt* typeID = typeIDs->GetItem(i)->AsInt();
+            if (typeID != nullptr) {
+                const ItemType* type = sItemFactory.GetType(typeID->value());
+                if (type != nullptr) {
+                    result->SetItem(new PyInt(typeID->value()), new PyFloat(type->basePrice()));
+                }
+            }
+        }
+    }
+    
+    return result;
 }
 
 InsuranceBound::InsuranceBound(EVEServiceManager& mgr, InsuranceService& parent, ShipDB* db) :

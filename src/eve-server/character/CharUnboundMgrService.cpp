@@ -45,6 +45,7 @@ CharUnboundMgrService::CharUnboundMgrService(EVEServiceManager& mgr) :
     this->Add("GetCharacterToSelect", &CharUnboundMgrService::GetCharacterToSelect);
     this->Add("GetCharactersToSelect", &CharUnboundMgrService::GetCharactersToSelect);
     this->Add("GetCharacterInfo", &CharUnboundMgrService::GetCharacterInfo);
+    this->Add("GetCharacterSelectionData", &CharUnboundMgrService::GetCharacterSelectionData);
     this->Add("IsUserReceivingCharacter", &CharUnboundMgrService::IsUserReceivingCharacter);
     this->Add("DeleteCharacter", &CharUnboundMgrService::DeleteCharacter);
     this->Add("PrepareCharacterForDelete", &CharUnboundMgrService::PrepareCharacterForDelete);
@@ -55,9 +56,22 @@ CharUnboundMgrService::CharUnboundMgrService(EVEServiceManager& mgr) :
     this->Add("CreateCharacterWithDoll", &CharUnboundMgrService::CreateCharacterWithDoll);
 }
 
-PyResult CharUnboundMgrService::ValidateNameEx(PyCallArgs &call, PyRep* name)
+PyResult CharUnboundMgrService::ValidateNameEx(PyCallArgs &call, PyRep* name, PyInt* loadDungeon)
 {
-    return CharacterDB::ValidateCharNameRep(PyRep::StringContent(name));
+    std::string nameStr = PyRep::StringContent(name);
+    _log(CLIENT__MESSAGE, "ValidateNameEx: name='%s', length=%zu", nameStr.c_str(), nameStr.length());
+    
+    PyRep* result = CharacterDB::ValidateCharNameRep(nameStr);
+    if (result != nullptr) {
+        _log(CLIENT__MESSAGE, "ValidateNameEx: result type=%s", result->TypeString());
+        if (result->IsInt()) {
+            _log(CLIENT__MESSAGE, "ValidateNameEx: result value=%d", result->AsInt()->value());
+        }
+    } else {
+        _log(CLIENT__MESSAGE, "ValidateNameEx: result is nullptr");
+    }
+    
+    return result;
 }
 
 PyResult CharUnboundMgrService::GetCharacterToSelect(PyCallArgs &call, PyInt* characterID)
@@ -106,6 +120,60 @@ PyResult CharUnboundMgrService::GetCharacterInfo(PyCallArgs &call) {
     return nullptr;
 }
 
+PyResult CharUnboundMgrService::GetCharacterSelectionData(PyCallArgs &call) {
+    uint32 accountID = call.client->GetUserID();
+    
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT "
+        "  accountID, "
+        "  accountName, "
+        "  logonCount, "
+        "  lastLogin "
+        "FROM account "
+        "WHERE accountID=%u", accountID))
+    {
+        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+        return nullptr;
+    }
+    
+    DBResultRow row;
+    if (!res.GetRow(row)) {
+        _log(CLIENT__ERROR, "No account found for accountID %u", accountID);
+        return nullptr;
+    }
+    
+    PyDict* userDetailsDict = new PyDict();
+    userDetailsDict->SetItemString("accountID", new PyLong(row.GetUInt(0)));
+    userDetailsDict->SetItemString("accountName", new PyString(row.GetText(1)));
+    userDetailsDict->SetItemString("logonCount", new PyLong(row.GetUInt(2)));
+    userDetailsDict->SetItemString("lastLogin", new PyLong(row.GetUInt(3)));
+    userDetailsDict->SetItemString("subscriptionEndTime", new PyLong(0));
+    userDetailsDict->SetItemString("maxCharacterSlots", new PyLong(3));
+    userDetailsDict->SetItemString("characterSlots", new PyLong(3));
+    userDetailsDict->SetItemString("userName", new PyString(row.GetText(1)));
+    userDetailsDict->SetItemString("creationDate", new PyLong(0));
+    
+    PyTuple* userDetailsTuple = new PyTuple(1);
+    userDetailsTuple->SetItem(0, new PyObject("util.KeyVal", userDetailsDict));
+    
+    PyTuple* trainingDetails = new PyTuple(0);
+    
+    PyRep* characterDetails = CharacterDB::GetCharacterList(accountID);
+    if (characterDetails == nullptr) {
+        characterDetails = new PyList();
+    }
+    
+    PyTuple* result = new PyTuple(3);
+    result->SetItem(0, userDetailsTuple);
+    result->SetItem(1, trainingDetails);
+    result->SetItem(2, characterDetails);
+    
+    _log(CLIENT__MESSAGE, "Sending character selection data for accountID %u", accountID);
+    
+    return result;
+}
+
 PyResult CharUnboundMgrService::GetCharCreationInfo(PyCallArgs &call) {
     PyDict *result = new PyDict();
     //send all the cache hints needed for char creation.
@@ -142,14 +210,16 @@ PyResult CharUnboundMgrService::SelectCharacterID(PyCallArgs &call, PyInt* chara
 PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep* characterName, PyInt* bloodlineID, PyInt* genderID, PyInt* ancestryID, PyObject* characterInfo, PyObject* portraitInfo, PyInt* schoolID) {
     // charID = sm.RemoteSvc('charUnboundMgr').CreateCharacterWithDoll(charactername, bloodlineID, genderID, ancestryID, charInfo, portraitInfo, schoolID)
     // ensure the PyObject* is an util.KeyVal, this might benefit from some helper methods instead of directly using the PyObject
-    if (characterInfo->type()->content() != "util.KeyVal" || characterInfo->arguments()->IsDict() == false) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode characterInfo", GetName());
+    std::string charInfoType = characterInfo->type()->content();
+    if ((charInfoType != "util.KeyVal" && charInfoType != "utillib.KeyVal") || characterInfo->arguments()->IsDict() == false) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode characterInfo (type=%s)", GetName(), charInfoType.c_str());
         return PyStatic.NewZero();
     }
 
     // ensure the PyObject* is an util.KeyVal, this might benefit from some helper methods instead of directly using the PyObject
-    if (portraitInfo->type()->content() != "util.KeyVal" || portraitInfo->arguments()->IsDict() == false) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode portraitInfo", GetName());
+    std::string portraitInfoType = portraitInfo->type()->content();
+    if ((portraitInfoType != "util.KeyVal" && portraitInfoType != "utillib.KeyVal") || portraitInfo->arguments()->IsDict() == false) {
+        codelog(SERVICE__ERROR, "%s: Failed to decode portraitInfo (type=%s)", GetName(), portraitInfoType.c_str());
         return PyStatic.NewZero();
     }
 
@@ -160,6 +230,9 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
 
     Client* pClient = call.client;
     pClient->CreateChar(true);
+
+    // mark that we have received the portrait
+    pClient->SetPicRec(true);
 
     if (!pClient->RecPic())
         pClient->SendInfoModalMsg("The Portrait for this character was not received.  Your character will still be created, but the server will not have their picture.");

@@ -65,6 +65,7 @@ AgentMgrService::AgentMgrService(EVEServiceManager& mgr) :
     this->Add("GetMyJournalDetails", &AgentMgrService::GetMyJournalDetails);
     this->Add("GetSolarSystemOfAgent", &AgentMgrService::GetSolarSystemOfAgent);
     this->Add("GetMyEpicJournalDetails", &AgentMgrService::GetMyEpicJournalDetails);
+    this->Add("GetAgentsInSpace", &AgentMgrService::GetAgentsInSpace);
 }
 
 BoundDispatcher* AgentMgrService::BindObject(Client* client, PyRep* bindParameters) {
@@ -140,7 +141,7 @@ PyResult AgentMgrService::GetMyJournalDetails(PyCallArgs &call) {
     std::vector<MissionOffer> data;
     sMissionDataMgr.LoadMissionOffers(call.client->GetCharacterID(), data);
     for (auto cur : data) {
-        PyTuple* mData = new PyTuple(9);
+        PyTuple* mData = new PyTuple(10);
         mData->SetItem(0, new PyInt(cur.stateID)); //missionState  .. these may be wrong also.
         mData->SetItem(1, new PyInt(cur.important?1:0)); //importantMission  -- integer boolean
         mData->SetItem(2, new PyString(sMissionDataMgr.GetTypeLabel(cur.typeID))); //missionTypeLabel
@@ -150,6 +151,7 @@ PyResult AgentMgrService::GetMyJournalDetails(PyCallArgs &call) {
         mData->SetItem(6, cur.bookmarks->Clone()); //bookmarks -- if populated, this is PyList of PyDicts as defined below...
         mData->SetItem(7, new PyBool(cur.remoteOfferable)); //remoteOfferable
         mData->SetItem(8, new PyBool(cur.remoteCompletable)); //remoteCompletable
+        mData->SetItem(9, new PyInt(cur.contentID)); //contentID
         missions->AddItem(mData);
     }
     tuple->SetItem(0, missions);
@@ -292,6 +294,13 @@ PyResult AgentMgrService::GetCareerAgents(PyCallArgs &call)
     call.Dump(AGENT__DUMP);
 
     return PyStatic.NewZero();
+}
+
+PyResult AgentMgrService::GetAgentsInSpace(PyCallArgs &call)
+{
+    sLog.Debug("AgentMgrService", "GetAgentsInSpace called - returning empty dict");
+    PyDict* result = new PyDict();
+    return result;
 }
 
 EpicArcService::EpicArcService() :

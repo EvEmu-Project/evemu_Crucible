@@ -33,6 +33,11 @@ LPStore::LPStore() :
 {
     this->Add("AcceptOffer", &LPStore::AcceptOffer);
     this->Add("GetAvailableOffers", &LPStore::GetAvailableOffers);
+    this->Add("GetAvailableOffersFromCorp", &LPStore::GetAvailableOffersFromCorp);
+    this->Add("GetLPForCharacterCorp", &LPStore::GetLPForCharacterCorp);
+    this->Add("GetLPExchangeRates", &LPStore::GetLPExchangeRates);
+    this->Add("ExchangeConcordLP", &LPStore::ExchangeConcordLP);
+    this->Add("TakeOffer", &LPStore::TakeOffer);
 
 }
 
@@ -55,5 +60,56 @@ PyResult LPStore::GetAvailableOffers(PyCallArgs& call) {
 
   call.Dump(SERVICE__CALL_DUMP);
     return new PyList;
+}
+
+PyResult LPStore::GetAvailableOffersFromCorp(PyCallArgs& call, PyInt* corpID) {
+  /**
+            self.cache.offers = sm.RemoteSvc('LPSvc').GetAvailableOffersFromCorp(self.cache.corpID)
+            */
+  sLog.White( "LPStore::GetAvailableOffersFromCorp()", "size=%lu", call.tuple->size());
+
+  call.Dump(SERVICE__CALL_DUMP);
+    return new PyList;
+}
+
+PyResult LPStore::GetLPForCharacterCorp(PyCallArgs& call, PyInt* corpID) {
+  /**
+            self.cache.lps = sm.RemoteSvc('LPSvc').GetLPForCharacterCorp(corpID)
+            */
+  sLog.White( "LPStore::GetLPForCharacterCorp()", "size=%lu", call.tuple->size());
+
+  call.Dump(SERVICE__CALL_DUMP);
+    return new PyInt(0);
+}
+
+PyResult LPStore::GetLPExchangeRates(PyCallArgs& call) {
+  /**
+            self.cache.exchangeRates = sm.RemoteSvc('LPSvc').GetLPExchangeRates()
+            */
+  sLog.White( "LPStore::GetLPExchangeRates()", "size=%lu", call.tuple->size());
+
+  call.Dump(SERVICE__CALL_DUMP);
+    PyDict* result = new PyDict();
+    return result;
+}
+
+PyResult LPStore::ExchangeConcordLP(PyCallArgs& call, PyInt* corpID, PyInt* amount) {
+  /**
+            sm.RemoteSvc('LPSvc').ExchangeConcordLP(corpID, amount)
+            */
+  sLog.White( "LPStore::ExchangeConcordLP()", "size=%lu", call.tuple->size());
+
+  call.Dump(SERVICE__CALL_DUMP);
+    return new PyNone;
+}
+
+PyResult LPStore::TakeOffer(PyCallArgs& call, PyInt* corpID, PyInt* offerID, PyInt* quantity) {
+  /**
+            ret = sm.RemoteSvc('LPSvc').TakeOffer(self.cache.corpID, data.offerID, numberOfOffers)
+            */
+  sLog.White( "LPStore::TakeOffer()", "size=%lu", call.tuple->size());
+
+  call.Dump(SERVICE__CALL_DUMP);
+    return new PyBool(true);
 }
 

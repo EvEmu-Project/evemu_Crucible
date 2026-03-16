@@ -56,6 +56,7 @@ protected:
     PyResult GetCelestialStatistic(PyCallArgs& call, PyInt* celestialID);
     PyResult GetDynamicCelestials(PyCallArgs& call, PyInt* locationID);
     PyResult SetMapLandmarks(PyCallArgs& call, PyList* landmarkData);
+    PyResult GetAverageMarketPrices(PyCallArgs& call);
 };
 
 #endif

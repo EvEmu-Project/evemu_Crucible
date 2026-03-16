@@ -206,6 +206,7 @@ public:
     void UpdateBubble();
     void WarpIn();
     void WarpOut();
+    void SaveLocationData(const char* customInfoPrefix = nullptr);  // Shared helper for saving location data
     void EnterSystem(uint32 systemID);     // only called by gm command, and only if (bubble == null)
     // this will accept null coords and adjust position to random moon
     void MoveToLocation(uint32 location, const GPoint &pt);

@@ -108,10 +108,20 @@ public:
 
     PyResult MachoBindObject(PyCallArgs& args, PyRep* bindParameters, std::optional<PyTuple*> call) {
         // register the new instance in the service manager
+        codelog(SERVICE__MESSAGE, "%s Service: MachoBindObject called", this->GetName().c_str());
+        bindParameters->Dump(SERVICE__MESSAGE, "BindParameters: ");
+        if (call.has_value()) {
+            codelog(SERVICE__MESSAGE, "%s Service: MachoBindObject has call", this->GetName().c_str());
+            call.value()->Dump(SERVICE__MESSAGE, "Call: ");
+        } else {
+            codelog(SERVICE__MESSAGE, "%s Service: MachoBindObject has no call", this->GetName().c_str());
+        }
+
         BoundDispatcher* bound = this->BindObject(args.client, bindParameters);
 
         // binding failed for whatever reason, just return none and get on with our lifes
         if (bound == nullptr) {
+            codelog(SERVICE__ERROR, "%s Service: BindObject returned nullptr", this->GetName().c_str());
             return nullptr;
         }
 
@@ -127,8 +137,12 @@ public:
         rsp->SetItem(0, new PySubStruct(new PySubStream(bound->GetOID())));
 
         if (call.has_value() == false) {
+            codelog(SERVICE__MESSAGE, "%s Service: MachoBindObject has no call, returning None", this->GetName().c_str());
             rsp->SetItem(1, PyStatic.NewNone());
         } else {
+            codelog(SERVICE__MESSAGE, "%s Service: MachoBindObject has call, attempting to decode", this->GetName().c_str());
+            call.value()->Dump(SERVICE__MESSAGE, "Call value: ");
+            
             // dispatch call
             CallMachoBindObject_call boundcall;
 
@@ -141,7 +155,14 @@ public:
 
             PyCallArgs subArgs(args.client, boundcall.arguments, boundcall.dict_arguments);
 
+            _log(SERVICE__MESSAGE, "%s Service: Calling Dispatch for method '%s'", this->GetName().c_str(), boundcall.method_name.c_str());
             PyResult result = bound->Dispatch(boundcall.method_name, subArgs);
+            _log(SERVICE__MESSAGE, "%s Service: Dispatch returned", this->GetName().c_str());
+
+            _log(SERVICE__MESSAGE, "%s Service: Dispatch result ssResult is None? %s", this->GetName().c_str(), (result.ssResult->IsNone() ? "true" : "false"));
+            if (result.ssResult == nullptr) {
+                _log(SERVICE__ERROR, "%s Service: Dispatch result ssResult is nullptr!", this->GetName().c_str());
+            }
 
             // set the tuple data
             rsp->SetItem(1, result.ssResult);
@@ -150,7 +171,9 @@ public:
         }
 
         // return the response
-        return PyResult(rsp, byName);
+        PyResult finalResult(rsp, byName);
+        _log(SERVICE__MESSAGE, "%s Service: MachoBindObject returning final result", this->GetName().c_str());
+        return finalResult;
     }
 
 protected:

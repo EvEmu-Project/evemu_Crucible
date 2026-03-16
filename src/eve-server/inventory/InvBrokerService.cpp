@@ -54,7 +54,7 @@ BoundDispatcher* InvBrokerService::BindObject(Client* client, PyRep* bindParamet
     //crap
     PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", GetName().c_str());
+        codelog(SERVICE__ERROR, "%s: Failed to decode bind args.", this->GetName().c_str());
         return nullptr;
     }
 

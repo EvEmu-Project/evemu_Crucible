@@ -111,6 +111,9 @@
           <dictInlineEntry key="user_affiliateid">
               <int name="user_affiliateid" />
           </dictInlineEntry>
+          <dictInlineEntry key="user_sso_token">
+              <wstring name="user_sso_token" safe="true" none_marker="" />
+          </dictInlineEntry>
         </dictInline>
     </tupleInline>
   </elementDef>

@@ -423,6 +423,20 @@ void Character::SetDescription(const char *newDescription) {
     SaveCharacter();
 }
 
+void Character::SetClient(Client* pClient) {
+    m_pClient = pClient;
+    
+    if (m_pClient != nullptr) {
+        Rsp_CommonGetInfo_Entry entry;
+        if (Populate(entry)) {
+            PyTuple* tuple = new PyTuple(2);
+            tuple->SetItem(0, new PyInt(m_itemID));
+            tuple->SetItem(1, new PyObject("util.KeyVal", entry.Encode()));
+            m_pClient->SendNotification("OnGodmaPrimeItem", "clientID", tuple);
+        }
+    }
+}
+
 void Character::JoinCorporation(const CorpData &data) {
     // Add new employment history record    -allan  25Mar14   update 20Jan15   update again 23May19
     CharacterDB::AddEmployment(m_itemID, data.corporationID, m_corpData.corporationID);

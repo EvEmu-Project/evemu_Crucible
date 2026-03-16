@@ -47,6 +47,7 @@ FactionWarMgrService::FactionWarMgrService(EVEServiceManager& mgr) :
 {
     this->Add("GetWarFactions", &FactionWarMgrService::GetWarFactions);
     this->Add("GetFWSystems", &FactionWarMgrService::GetFWSystems);
+    this->Add("GetFacWarSystems", &FactionWarMgrService::GetFacWarSystems);
     this->Add("GetMyCharacterRankOverview", &FactionWarMgrService::GetMyCharacterRankOverview);
     this->Add("GetMyCharacterRankInfo", &FactionWarMgrService::GetMyCharacterRankInfo);
     this->Add("GetFactionMilitiaCorporation", &FactionWarMgrService::GetFactionMilitiaCorporation);
@@ -77,16 +78,43 @@ FactionWarMgrService::FactionWarMgrService(EVEServiceManager& mgr) :
     this->Add("RefreshCorps", &FactionWarMgrService::RefreshCorps);
 
     this->m_cache = this->m_manager.Lookup <ObjCacheService>("objectCaching");
+    
+    if (this->m_cache == nullptr)
+    {
+        sLog.Error("FactionWarMgrService", "Failed to lookup objectCaching service");
+    }
+    else
+    {
+        sLog.Debug("FactionWarMgrService", "objectCaching service found");
+    }
 }
 
 PyResult FactionWarMgrService::GetWarFactions(PyCallArgs &call) {
     ObjectCachedMethodID method_id(GetName().c_str(), "GetWarFactions");
 
     if (!this->m_cache->IsCacheLoaded(method_id)) {
+        sLog.Debug("FactionWarMgrService", "GetWarFactions cache not loaded, querying database");
+        
         PyRep *res = m_db.GetWarFactions();
-        if (res == NULL)
+        if (res == NULL) {
+            sLog.Error("FactionWarMgrService", "GetWarFactions returned NULL");
             return nullptr;
+        }
+        
+        sLog.Debug("FactionWarMgrService", "GetWarFactions returned valid result, size=%d", ((PyDict*)res)->size());
         this->m_cache->GiveCache(method_id, &res);
+        
+        if (res != nullptr) {
+            sLog.Error("FactionWarMgrService", "GiveCache did not consume res, memory leak!");
+        }
+        
+        if (!this->m_cache->IsCacheLoaded(method_id)) {
+            sLog.Error("FactionWarMgrService", "GetWarFactions cache failed to load");
+            return nullptr;
+        }
+    }
+    else {
+        sLog.Debug("FactionWarMgrService", "GetWarFactions cache already loaded");
     }
 
     return this->m_cache->MakeObjectCachedMethodCallResult(method_id);
@@ -94,34 +122,58 @@ PyResult FactionWarMgrService::GetWarFactions(PyCallArgs &call) {
 
 PyResult FactionWarMgrService::GetFWSystems(PyCallArgs& call)
 {
-    /*
-      [PySubStream 3625 bytes]
-        [PyDict 171 kvp]
-          [PyInt 30002813]
-          [PyDict 2 kvp]
-            [PyString "occupierID"]
-            [PyInt 500001]
-            [PyString "factionID"]
-            [PyInt 500001]
-          [PyInt 30005295]
-          [PyDict 2 kvp]
-            [PyString "occupierID"]
-            [PyInt 500004]
-            [PyString "factionID"]
-            [PyInt 500004]
-            */
     ObjectCachedMethodID method_id( GetName().c_str(), "GetFacWarSystems" );
 
     if ( !this->m_cache->IsCacheLoaded( method_id ) )
     {
+        sLog.Debug("FactionWarMgrService", "GetFacWarSystems cache not loaded, querying database");
+        
         PyRep* res = m_db.GetFacWarSystems();
         if ( res == NULL )
-            return nullptr;
+        {
+            sLog.Error("FactionWarMgrService", "GetFacWarSystems returned NULL, creating empty dict");
+            res = new PyDict();
+        }
+        else
+        {
+            sLog.Debug("FactionWarMgrService", "GetFacWarSystems returned valid result, size=%d", ((PyDict*)res)->size());
+        }
 
+        sLog.Debug("FactionWarMgrService", "Calling GiveCache for GetFacWarSystems");
         this->m_cache->GiveCache( method_id, &res );
+        
+        if (res != nullptr)
+        {
+            sLog.Error("FactionWarMgrService", "GiveCache did not consume res, memory leak!");
+        }
+        
+        if (this->m_cache->IsCacheLoaded(method_id))
+        {
+            sLog.Debug("FactionWarMgrService", "GetFacWarSystems cache loaded successfully");
+        }
+        else
+        {
+            sLog.Error("FactionWarMgrService", "GetFacWarSystems cache failed to load");
+            return nullptr;
+        }
+    }
+    else
+    {
+        sLog.Debug("FactionWarMgrService", "GetFacWarSystems cache already loaded");
     }
 
-    return this->m_cache->MakeObjectCachedMethodCallResult( method_id );
+    PyObject* result = this->m_cache->MakeObjectCachedMethodCallResult( method_id );
+    if (result == nullptr)
+    {
+        sLog.Error("FactionWarMgrService", "MakeObjectCachedMethodCallResult returned nullptr");
+    }
+    
+    return result;
+}
+
+PyResult FactionWarMgrService::GetFacWarSystems(PyCallArgs& call)
+{
+    return GetFWSystems(call);
 }
 
 /**     ***********************************************************************

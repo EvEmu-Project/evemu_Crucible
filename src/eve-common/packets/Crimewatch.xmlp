@@ -1,0 +1,54 @@
+<elements>
+
+  <elementDef name="Crimewatch_BindArgs">
+    <tupleInline>
+      <int name="locationID" />
+      <int name="groupID" />
+    </tupleInline>
+  </elementDef>
+
+  <elementDef name="Crimewatch_Engagement">
+    <dictInline>
+      <dictInlineEntry key="engagementID">
+        <int name="engagementID" />
+      </dictInlineEntry>
+      <dictInlineEntry key="issuerID">
+        <int name="issuerID" />
+      </dictInlineEntry>
+      <dictInlineEntry key="charID">
+        <int name="charID" />
+      </dictInlineEntry>
+      <dictInlineEntry key="duration">
+        <int name="duration" />
+      </dictInlineEntry>
+      <dictInlineEntry key="expiredTime">
+        <int name="expiredTime" />
+      </dictInlineEntry>
+      <dictInlineEntry key="status">
+        <int name="status" />
+      </dictInlineEntry>
+      <dictInlineEntry key="typeID">
+        <int name="typeID" />
+      </dictInlineEntry>
+      <dictInlineEntry key="level">
+        <int name="level" />
+      </dictInlineEntry>
+      <dictInlineEntry key="factionID">
+        <int name="factionID" />
+      </dictInlineEntry>
+      <dictInlineEntry key="weaponModifier">
+        <int name="weaponModifier" />
+      </dictInlineEntry>
+      <dictInlineEntry key="shieldModifier">
+        <int name="shieldModifier" />
+      </dictInlineEntry>
+      <dictInlineEntry key="armorModifier">
+        <int name="armorModifier" />
+      </dictInlineEntry>
+      <dictInlineEntry key="hpModifier">
+        <int name="hpModifier" />
+      </dictInlineEntry>
+    </dictInline>
+  </elementDef>
+
+</elements>

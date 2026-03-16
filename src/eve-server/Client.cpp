@@ -62,6 +62,11 @@
 #include "system/cosmicMgrs/WormholeMgr.h"
 
 static const uint32 PING_INTERVAL_MS = 600000; //10m
+// Login warp distance threshold: 1000 meters - small distance to determine if ship should warp on login
+// This prevents unnecessary warps when ship is already very close to the expected position
+// In EVE Online, this distance should be small enough to avoid unnecessary warps but large enough 
+// to account for minor position discrepancies during gameplay
+static const double LOGIN_WARP_DISTANCE_THRESHOLD = 1000.0; // 1000 meters (in game units)
 
 Client::Client(EVEServiceManager& services, EVETCPConnection** con)
 : EVEClientSession(con),
@@ -159,6 +164,15 @@ Client::~Client() {
 
         sLog.Green("  Client::Logout()","%s (Acct:%u) logging out.", m_char->name(), GetUserID());
 
+        // Update character data with location information (position is already saved via WarpOut/SaveLocationData)
+        if (sDataMgr.IsSolarSystem(m_locationID)) {
+            sLog.Blue("Client::Logout()", "Updating character location for %s(%u) in system %u", 
+                      m_char->name(), m_char->itemID(), m_locationID);
+            
+            // Update character data with location information
+            m_char->SetLocation(m_locationID, m_systemData);
+        }
+
         if (!sConsole.IsDbError()) {
             ServiceDB::SetAccountOnlineStatus(GetUserID(), false);
             CharacterDB::SetCharacterOnlineStatus(m_char->itemID(), false);
@@ -179,7 +193,12 @@ Client::~Client() {
     }
 
     // save shipstate and remove from ItemFactory
-    m_ship->LogOut();
+    // Note: Ship position and state have already been saved via WarpOut()->SaveLocationData()
+    // LogOut() is still called to handle other logout tasks (setting offline flag, removing from factory, etc.)
+    // but it will not cause duplicate position saves since position was already persisted
+    if (m_ship.get() != nullptr) {
+        m_ship->LogOut();
+    }
 
     m_system->RemoveClient(this, true);
     // remove char from entitylist
@@ -300,8 +319,8 @@ bool Client::SelectCharacter(int32 charID/*0*/)
         pos = m_ship->position();
 
         m_loginWarpPoint = pos;
+        // Use the actual saved position instead of a random point
         m_loginWarpRandomPoint = m_ship->position();
-        m_loginWarpRandomPoint.MakeRandomPointOnSphere(0.5*ONE_AU_IN_METERS);
 
         MoveToLocation(m_locationID, m_loginWarpRandomPoint);
 
@@ -620,23 +639,72 @@ void Client::WarpIn() {
 
     UpdateBubble();
 
-    // This will queue up the login warp-in on the next server tick. Calling
-    // SetStateTimer allows it to be processed on the next tick instead of
-    // getting timed out and ignored by a session change timer.
-    SetStateTimer(0);
+    // Only trigger login warp if the saved position and current position are significantly different
+    if ((m_ship->position() - m_loginWarpPoint).length() > LOGIN_WARP_DISTANCE_THRESHOLD) {
+        SetStateTimer(0);
+        m_clientState = Player::State::LoginWarp;
+    } else {
+        // If already at the correct position, skip warp and go idle
+        // But still ensure the ship is properly added to bubble and visible
+        m_clientState = Player::State::Idle;
+        
+        // Clear login warp flags to prevent IsLoginWarping() from returning true
+        m_loginWarpPoint = NULL_ORIGIN;
+        m_loginWarpRandomPoint = NULL_ORIGIN;
+        
+        // Force a bubble update to ensure ship is visible and send state to client
+        auto* se = GetShipSE();
+        if (se != nullptr && se->SysBubble() != nullptr) {
+            // Ensure ship is stopped, uncloaked, and state is sent to client to prevent ghosting
+            se->DestinyMgr()->Stop();
+            se->DestinyMgr()->UnCloak();
+            
+            // Force add ship to bubble if not already there
+            if (se->SysBubble()->GetEntity(se->GetID()) == nullptr) {
+                se->SysBubble()->Add(se);
+            }
+            
+            se->SysBubble()->SendAddBalls(se);
+            SetStateSent(false);
+            se->DestinyMgr()->SendSetState();
+        }
+    }
+}
 
-    m_clientState = Player::State::LoginWarp;
+void Client::SaveLocationData(const char* customInfoPrefix) {
+    // Save the latest ship position to database
+    if (m_ship.get() != nullptr) {
+        if (pShipSE != nullptr) {
+            GPoint currentPosition = pShipSE->GetPosition();
+            sLog.Blue("Client::SaveLocationData()", "Saving ship position for %s(%u) at %.2f,%.2f,%.2f", 
+                      GetName(), m_char->itemID(), currentPosition.x, currentPosition.y, currentPosition.z);
+            m_ship->SetPosition(currentPosition);
+        } else {
+            sLog.Blue("Client::SaveLocationData()", "Saving ship position for %s(%u) using m_ship position (pShipSE is null)", 
+                      GetName(), m_char->itemID());
+        }
+        m_ship->SaveShip();
+    }
+    
+    // Set custom info if prefix is provided
+    if (customInfoPrefix != nullptr && m_ship.get() != nullptr) {
+        char ci[45];
+        snprintf(ci, sizeof(ci), "%s: %s(%u)", customInfoPrefix, GetName(), m_char->itemID());
+        m_ship->SetCustomInfo(ci);
+        if (!InPod())
+            m_ship->SetFlag(flagShipOffline);
+    }
 }
 
 void Client::WarpOut() {
     sLog.Blue("Client::WarpOut()", "Client Destructor for %s(%u) called WarpOut().  Finish code here.", GetName(), m_char->itemID());
-    char ci[45];
-    snprintf(ci, sizeof(ci), "Logout: %s(%u)", GetName(), m_char->itemID());
-    m_ship->SetCustomInfo(ci);
-    if (!InPod())
-        m_ship->SetFlag(flagShipOffline);
-    pShipSE->SetPosition(m_ship->position());
-    DestroyShipSE();
+    
+    // Use shared location saving logic
+    SaveLocationData("Logout");
+    
+    if (pShipSE != nullptr && m_ship.get() != nullptr) {
+        DestroyShipSE();
+    }
     return;
     /*
     SetInvulTimer(Player::Timer::WarpOutInvul);
@@ -1953,20 +2021,22 @@ void Client::InitSession(int32 characterID)
      */
     if (sDataMgr.IsStation(stationID)) {
         m_locationID = stationID;
-        pSession->Clear("solarsystemid");    //must be 0 in station
-        pSession->Clear("shipid");    //must be 0 in station
+        pSession->Clear("solarsystemid");
+        pSession->SetInt("shipid", m_shipId);
         pSession->SetInt("stationid", stationID);
         pSession->SetInt("stationid2", stationID);
         pSession->SetInt("locationid", stationID);
         pSession->SetInt("worldspaceid", stationID);
+        pSession->Clear("structureid");
     } else {
         m_locationID = solarSystemID;
-        pSession->Clear("stationid");   //must be 0 in space
-        pSession->Clear("stationid2");  //must be 0 in space
-        pSession->Clear("worldspaceid");  //must be 0 in space
+        pSession->Clear("stationid");
+        pSession->Clear("stationid2");
+        pSession->Clear("worldspaceid");
         pSession->SetInt("shipid", m_shipId);
         pSession->SetInt("solarsystemid", solarSystemID);
         pSession->SetInt("locationid", solarSystemID);
+        pSession->Clear("structureid");
     }
 
     sDataMgr.GetSystemData(m_locationID, m_systemData);
@@ -1986,20 +2056,22 @@ void Client::UpdateSession()
     uint32 solarsystemID = m_char->solarSystemID();
     if (sDataMgr.IsStation(stationID)) {
         pSession->Clear("solarsystemid");    //must be 0 in station
-        pSession->Clear("shipid");    //must be 0 in station
+        pSession->SetInt("shipid", m_shipId);
         //pSession->Clear("worldspaceid");    //not used here (yet)
 
         pSession->SetInt("stationid", stationID);
-        pSession->SetInt("stationid2", stationID);   // client uses this for continer location checks
+        pSession->SetInt("stationid2", stationID);
         pSession->SetInt("worldspaceid", stationID);
         pSession->SetInt("locationid", stationID);
+        pSession->Clear("structureid");
     } else {
         pSession->Clear("stationid");
         pSession->Clear("stationid2");
         pSession->Clear("worldspaceid");
-        pSession->SetInt("solarsystemid", solarsystemID); //  used to tell client they are in space
+        pSession->SetInt("solarsystemid", solarsystemID);
         pSession->SetInt("locationid", solarsystemID);
         pSession->SetInt("shipid", m_shipId);
+        pSession->Clear("structureid");
     }
 
     // solarsystemid2 is used by client to determine current system.  NOTE:  *MUST* be set to current system.

@@ -97,6 +97,7 @@ ShipBound::ShipBound (EVEServiceManager& mgr, ShipService& parent, ShipItem* shi
     this->Add("Jettison", &ShipBound::Jettison);
     this->Add("ConfigureShip", &ShipBound::ConfigureShip);
     this->Add("GetShipConfiguration", &ShipBound::GetShipConfiguration);
+    this->Add("GetDirtTimestamp", &ShipBound::GetDirtTimestamp);
     this->Add("SelfDestruct", &ShipBound::SelfDestruct);
     this->Add("BoardStoredShip", &ShipBound::BoardStoredShip);
     this->Add("StoreVessel", &ShipBound::StoreVessel);
@@ -253,11 +254,12 @@ PyResult ShipBound::ActivateShip(PyCallArgs &call, PyInt* newShipID, std::option
 
     pClient->BoardShip(newShipRef);
 
-    // response should return ship modules, loaded charges, and linked weapons
-    PyTuple* rsp = new PyTuple(3);
+    // response should return ship modules, loaded charges, linked weapons, and heat states
+    PyTuple* rsp = new PyTuple(4);
         rsp->SetItem(0, newShipRef->GetShipState());    //dict of ship modules
         rsp->SetItem(1, newShipRef->GetChargeState());    //dict of flagID/subLocation{loc, flag, typeID}
         rsp->SetItem(2, newShipRef->GetLinkedWeapons()); // dict of linked modules
+        rsp->SetItem(3, new PyList()); // heat states (empty for now)
     if (is_log_enabled(CLIENT__INFO))
         rsp->Dump(CLIENT__INFO, "    ");
     return rsp;
@@ -1202,6 +1204,14 @@ PyResult ShipBound::GetShipConfiguration(PyCallArgs &call)
     PyDict* dict = new PyDict();
     dict->SetItemString("allowFleetSMBUsage", new PyBool(call.client->GetShipSE()->GetFleetSMBUsage()));
     return dict;
+}
+
+PyResult ShipBound::GetDirtTimestamp(PyCallArgs &call, PyInt* itemID)
+{
+    _log(SERVICE__MESSAGE, "ShipBound::GetDirtTimestamp called for item %u", 
+         itemID ? itemID->value() : 0);
+
+    return new PyLong(0);
 }
 
 PyResult ShipBound::ConfigureShip(PyCallArgs &call, PyDict* configuration)

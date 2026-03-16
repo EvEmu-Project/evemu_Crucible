@@ -68,6 +68,7 @@ protected:
     PyResult AssembleShip(PyCallArgs& call, PyList* itemIDs);
     PyResult GetShipConfiguration(PyCallArgs& call);
     PyResult ConfigureShip(PyCallArgs& call, PyDict* configuration);
+    PyResult GetDirtTimestamp(PyCallArgs& call, PyInt* itemID);
     PyResult LaunchFromContainer(PyCallArgs& call, PyInt* structureID, PyList* ids);
     PyResult ScoopToSMA(PyCallArgs& call, PyInt* objectID);
     PyResult BoardStoredShip(PyCallArgs& call, PyInt* structureID, PyInt* shipID);

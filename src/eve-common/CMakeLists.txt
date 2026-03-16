@@ -109,11 +109,11 @@ SET( packets_INCLUDE
      "${TARGET_PACKETS_DIR}/packets/Planet.h"
      "${TARGET_PACKETS_DIR}/packets/Repair.h"
      "${TARGET_PACKETS_DIR}/packets/Scan.h"
-     #"${TARGET_PACKETS_DIR}/packets/Salvage.h"
      "${TARGET_PACKETS_DIR}/packets/Sovereignty.h"
      "${TARGET_PACKETS_DIR}/packets/Trade.h"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.h"
-     "${TARGET_PACKETS_DIR}/packets/Wallet.h" )
+     "${TARGET_PACKETS_DIR}/packets/Wallet.h"
+     "${TARGET_PACKETS_DIR}/packets/Crimewatch.h" )
 SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/AccountPkts.cpp"
      "${TARGET_PACKETS_DIR}/packets/Bookmarks.cpp"
@@ -140,7 +140,8 @@ SET( packets_SOURCE
      "${TARGET_PACKETS_DIR}/packets/Sovereignty.cpp"
      "${TARGET_PACKETS_DIR}/packets/Trade.cpp"
      "${TARGET_PACKETS_DIR}/packets/Tutorial.cpp"
-     "${TARGET_PACKETS_DIR}/packets/Wallet.cpp" )
+     "${TARGET_PACKETS_DIR}/packets/Wallet.cpp"
+     "${TARGET_PACKETS_DIR}/packets/Crimewatch.cpp" )
 SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/AccountPkts.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Bookmarks.xmlp"
@@ -167,7 +168,8 @@ SET( packets_XMLP
      "${TARGET_SOURCE_DIR}/packets/Sovereignty.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Trade.xmlp"
      "${TARGET_SOURCE_DIR}/packets/Tutorial.xmlp"
-     "${TARGET_SOURCE_DIR}/packets/Wallet.xmlp" )
+     "${TARGET_SOURCE_DIR}/packets/Wallet.xmlp"
+     "${TARGET_SOURCE_DIR}/packets/Crimewatch.xmlp" )
 
 SET( python_INCLUDE
      "${TARGET_INCLUDE_DIR}/python/PyDumpVisitor.h"
