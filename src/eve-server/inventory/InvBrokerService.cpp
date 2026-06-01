@@ -121,6 +121,8 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
             if e.args[0] == 'CrpAccessDenied':
                 self.CloseContainer(itemid)
     */
+    _log(INV__MESSAGE, "InvBrokerBound::GetInventoryFromId() called - inventoryID=%u, passive=%d, caller=%s, locationID=%u", \
+            inventoryID->value(), passive->value(), call.client->GetName(), m_locationID);
     _log(INV__DUMP, "InvBrokerBound::Handle_GetInventoryFromId() size=%lli", call.tuple->size());
     call.Dump(INV__DUMP);
 

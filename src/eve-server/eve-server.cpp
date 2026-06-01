@@ -896,9 +896,24 @@ int main( int argc, char* argv[] )
      * THE MAIN LOOP
      * Everything except IO should happen in this loop, in this thread context.
      */
+     // Diagnostic counters for main loop rate
+    uint32 loopCount = 0;
+    uint32 loopDiagStart = 0;
+
     while (m_run) {
         Timer::SetCurrentTime();
         start = GetTickCount();
+
+        // Diagnostic: measure main loop rate
+        ++loopCount;
+        uint32 loopNow = GetTickCount();
+        if (loopDiagStart == 0) loopDiagStart = loopNow;
+        if ((loopNow - loopDiagStart) >= 5000) {
+            sLog.Warning("LoopDiag", "Main loop: %u iterations in %u ms (%.1f iter/sec) sleep=%u",
+                loopCount, (loopNow - loopDiagStart), (loopCount * 1000.0 / (loopNow - loopDiagStart)), m_sleepTime);
+            loopCount = 0;
+            loopDiagStart = loopNow;
+        }
 
         sAllocators.tickAllocator.Reset();
 
@@ -916,7 +931,7 @@ int main( int argc, char* argv[] )
         /* do the stuff for thread sleeping */
         start = GetTickCount() - start;
         if (m_sleepTime > start)
-            std::this_thread::sleep_for(std::chrono::milliseconds(start));
+            std::this_thread::sleep_for(std::chrono::milliseconds(m_sleepTime - start));
     }
 
     /*

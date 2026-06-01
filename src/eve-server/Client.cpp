@@ -51,6 +51,7 @@
 //#include "npc/DroneAI.h"
 #include "station/StationDataMgr.h"
 #include "station/StationOffice.h"
+#include "system/Damage.h"
 #include "system/DestinyManager.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
@@ -86,6 +87,8 @@ Client::Client(EVEServiceManager& services, EVETCPConnection** con)
   m_jetcanTimer(0),
   m_sessionTimer(0),
   m_uncloakTimer(0),
+  m_selfDestructTimer(0),
+  m_selfDestructTickTimer(0),
   m_destinyEventQueue(new PyList()),
   m_destinyUpdateQueue(new PyList()),
   m_nextNotifySequence(0)
@@ -117,6 +120,7 @@ Client::Client(EVEServiceManager& services, EVETCPConnection** con)
     m_setStateSent = false;
     m_validSession = false;
     m_sessionChangeActive = false;
+    m_selfDestructing = false;
 
     //m_toGate = 0;
     m_locationID = 0;
@@ -233,10 +237,21 @@ bool Client::ProcessNet()
 bool Client::SelectCharacter(int32 charID/*0*/)
 {
     if (sEntityList.IsOnline(charID)) {
-        sLog.Error("Client::SelectCharacter()", "Char %u already online.", charID);
-        SendErrorMsg("That Character is already online.  Selection Failed.");
-        CloseClientConnection();
-        return false;
+        //fix: detect stale sessions instead of hard-rejecting
+        Client* staleClient = sEntityList.FindClientByCharID(charID);
+        if (staleClient != nullptr && staleClient != this) {
+            sLog.Warning("Client::SelectCharacter()", "Char %u has stale session — removing ghost.", charID);
+            sEntityList.RemovePlayer(staleClient);
+        } else if (staleClient == nullptr) {
+            sLog.Warning("Client::SelectCharacter()", "Char %u ghost entry in m_players — removing.", charID);
+            sEntityList.RemoveGhostPlayer(charID);
+        } else {
+            // same client re-selecting. this is a real duplicate
+            sLog.Error("Client::SelectCharacter()", "Char %u already online on this client.", charID);
+            SendErrorMsg("That Character is already online.  Selection Failed.");
+            CloseClientConnection();
+            return false;
+        }
     }
 
     InitSession(charID);
@@ -351,6 +366,21 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     this->m_lsc->SendServerMOTD(this);
 
     return (m_loaded = true);
+}
+
+static std::string FormatSelfDestructCountdown(uint32 ms)
+{
+    uint32 secs = (ms + 999) / 1000;
+    if (secs == 0) return "0 Seconds";
+    if (secs >= 120) return "2 Minutes";
+    uint32 minutes = secs / 60;
+    uint32 seconds = secs % 60;
+    if (minutes > 0 && seconds == 0)
+        return std::to_string(minutes) + (minutes == 1 ? " Minute" : " Minutes");
+    if (minutes > 0)
+        return std::to_string(minutes) + (minutes == 1 ? " Minute " : " Minutes ")
+             + std::to_string(seconds) + (seconds == 1 ? " Second" : " Seconds");
+    return std::to_string(seconds) + (seconds == 1 ? " Second" : " Seconds");
 }
 
 void Client::ProcessClient() {
@@ -554,6 +584,42 @@ void Client::ProcessClient() {
             }
             pShipSE->ApplyBoost(bData);
         }
+
+        if (m_selfDestructing) {
+        if (m_selfDestructTimer.Check(false)) {
+            // Deadline reached — send SelfDestructImmediate and kill the ship
+            m_selfDestructTickTimer.Disable();
+            m_selfDestructing = false;
+            _log(CLIENT__TIMER, "%s: Self-destruct detonated.", m_char->name());
+
+            // SelfDestructImmediate uses {[character]player.name} in its localization template,
+            // which calls cfg.eveowners.Get(charID). Player characters are not in eveStaticOwners,
+            // so the C extension returns NULL → SystemError: NULL object passed to Py_BuildValue.
+            // Use SendNotifyMsg (CustomNotify) instead to bypass the broken localization path.
+            SendNotifyMsg("Your ship has self-destructed.");
+
+            if (pShipSE->DestinyMgr() != nullptr && pShipSE->SysBubble() != nullptr)
+                pShipSE->DestinyMgr()->SendTerminalExplosion(pShipSE->GetID(), pShipSE->SysBubble()->GetID(), pShipSE->isGlobal());
+
+            Damage damage(pShipSE, true);
+            pShipSE->Killed(damage);
+        } else if (m_selfDestructTickTimer.Check(false)) {
+            // Countdown tick — send SelfDestructTimer with remaining time
+            uint32 remaining = m_selfDestructTimer.GetRemainingTime();
+            Notify_OnRemoteMessage nt;
+            nt.msgType = "SelfDestructTimer";
+            PyTuple* wt = new PyTuple(2);
+            wt->SetItem(0, new PyInt(4));
+            wt->SetItem(1, new PyInt(pShipSE->GetTypeID()));
+            nt.args["what"] = wt;
+            nt.args["time"] = new PyString(FormatSelfDestructCountdown(remaining));
+            PyTuple* tmpt = nt.Encode();
+            SendNotification("OnRemoteMessage", "charid", &tmpt);
+
+            if (remaining > 1000)
+                m_selfDestructTickTimer.Start(10000);
+        }
+    }
 
     if (sConfig.debug.UseProfiling)
         sProfiler.AddTime(Profile::client, GetTimeUSeconds() - profileStartTime);
@@ -909,10 +975,12 @@ void Client::SetBallPark() {
 }
 
 void Client::CheckBallparkTimer() {
+    // Timer being disabled here is expected when GetFormations() is called before
+    // BeyonceBound construction (which starts the timer via SetBallPark).
     if (!m_ballparkTimer.Enabled()) {
-        sLog.Error("CheckBallparkTimer()", "BallPark Timer is disabled.");
+        _log(CLIENT__WARNING, "CheckBallparkTimer(): BallPark Timer is disabled (pre-beyonce state, expected during login/undock).");
     } else {
-        sLog.Warning("CheckBallparkTimer()", "BallPark Time remaining %ums", m_ballparkTimer.GetRemainingTime());
+        _log(CLIENT__WARNING, "CheckBallparkTimer(): BallPark Time remaining %ums", m_ballparkTimer.GetRemainingTime());
     }
 
     _log(CLIENT__TIMER, "CheckBallparkTimer():  State: %s, SetState: %s, Beyonce: %s, Login: %s", \
@@ -1077,7 +1145,10 @@ void Client::BoardShip(ShipItemRef newShipRef)
     }
 
     SetShip(newShipRef);
-    SetSessionTimer();
+    // Send session change immediately so client receives updated shipid and fires OnSessionChanged
+    // (previously SetSessionTimer() was used, which never actually sent the session change when docked)
+    if (!m_login)
+        SendSessionChange();
 }
 
 void Client::Board(ShipSE* newShipSE)
@@ -1288,8 +1359,8 @@ void Client::SetShip(ShipItemRef shipRef) {
     m_char->SetActiveShip(m_shipId);
     if (sDataMgr.IsSolarSystem(m_locationID)) {
         m_char->Move(m_shipId, flagPilot, true);
-        pSession->SetInt("shipid", m_shipId); // update shipID in session
     }
+    pSession->SetInt("shipid", m_shipId); // update shipID in session (always, docked or in-space)
 
     if (m_validSession or m_charCreation)
         m_ship->SetPlayer(this);
@@ -1630,14 +1701,53 @@ void Client::SetInvulTimer(uint32 time/*Player::Timer::Default*/)
     }
 
     if (m_invulTimer.Enabled()) {
-        _log(CLIENT__ERROR, "%s: Invul Timer called but timer already enabled with %ums remaining.", m_char->name(), m_invulTimer.GetRemainingTime());
-        EvE::traceStack();
-        return;
+        if (m_invulTimer.GetRemainingTime() > 0) {
+            _log(CLIENT__ERROR, "%s: Invul Timer called but timer already enabled with %ums remaining.", m_char->name(), m_invulTimer.GetRemainingTime());
+            EvE::traceStack();
+            return;
+        }
+        // Timer has fired (0ms remaining) but wasn't explicitly disabled — reset it.
+        m_invulTimer.Disable();
     }
 
     _log(CLIENT__TIMER, "%s: Invul Timer set at %ums.   current state time is %ums", m_char->name(), time, m_invulTimer.GetCurrentTime());
     m_invulTimer.Start(time);
     SetInvul(true);
+}
+
+void Client::StartSelfDestruct()
+{
+    if (!IsInSpace() || pShipSE == nullptr)
+        return;
+
+    if (m_selfDestructing) {
+        CancelSelfDestruct();
+        return;
+    }
+
+    m_selfDestructing = true;
+    m_selfDestructTimer.Start(120000);
+    m_selfDestructTickTimer.Start(10000);
+
+    Notify_OnRemoteMessage n;
+    n.msgType = "SelfDestructTimer";
+    PyTuple* what = new PyTuple(2);
+    what->SetItem(0, new PyInt(4));
+    what->SetItem(1, new PyInt(pShipSE->GetTypeID()));
+    n.args["what"] = what;
+    n.args["time"] = new PyString("2 Minutes");
+    PyTuple* tmp = n.Encode();
+    SendNotification("OnRemoteMessage", "charid", &tmp);
+
+    _log(CLIENT__TIMER, "%s: Self-destruct initiated (120s countdown).", m_char->name());
+}
+
+void Client::CancelSelfDestruct()
+{
+    m_selfDestructing = false;
+    m_selfDestructTimer.Disable();
+    m_selfDestructTickTimer.Disable();
+    _log(CLIENT__TIMER, "%s: Self-destruct cancelled.", m_char->name());
 }
 
 void Client::SetStateTimer( int8 state, uint32 time/*Player::Timer::Default*/)

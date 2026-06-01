@@ -54,6 +54,6 @@ PyResult LPStore::GetAvailableOffers(PyCallArgs& call) {
   sLog.White( "LPStore::GetAvailableOffers()", "size=%lu", call.tuple->size());
 
   call.Dump(SERVICE__CALL_DUMP);
-    return new PyList;
+    return new PyDict;
 }
 

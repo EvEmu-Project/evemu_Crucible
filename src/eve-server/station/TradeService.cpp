@@ -584,14 +584,26 @@ PyResult TradeService::InitiateTrade(PyCallArgs &call, PyInt* characterID) {
     Client* target(nullptr);
     if (call.client->GetTradeSession()) {
         target = sEntityList.FindClientByCharID( call.client->GetTradeSession()->m_tradeSession.herID );
-        call.client->SendErrorMsg("You are currently trading with %s.  You can only trade with one player at a time.", target->GetName());
+        if (target == nullptr) {
+            call.client->SendErrorMsg("You are currently in a trade session.  You can only trade with one player at a time.");
+        } else {
+            call.client->SendErrorMsg("You are currently trading with %s.  You can only trade with one player at a time.", target->GetName());
+        }
         return nullptr;
     }
 
     target = sEntityList.FindClientByCharID( characterID->value() );
+    if (target == nullptr) {
+        call.client->SendErrorMsg("Trade target is not online.");
+        return nullptr;
+    }
     if (target->GetTradeSession()) {
-        Client* otarget = sEntityList.FindClientByCharID( call.client->GetTradeSession()->m_tradeSession.herID );
-        call.client->SendErrorMsg("%s is currently trading with %s.  Try again later.", target->GetName(), otarget->GetName());
+        Client* otarget = sEntityList.FindClientByCharID( target->GetTradeSession()->m_tradeSession.herID );
+        if (otarget == nullptr) {
+            call.client->SendErrorMsg("%s is currently trading.  Try again later.", target->GetName());
+        } else {
+            call.client->SendErrorMsg("%s is currently trading with %s.  Try again later.", target->GetName(), otarget->GetName());
+        }
         return nullptr;
     }
 
@@ -615,7 +627,9 @@ PyResult TradeService::InitiateTrade(PyCallArgs &call, PyInt* characterID) {
     tuple->SetItem(1, new PyInt(call.client->GetCharacterID()));
     tuple->SetItem(2, resp->Clone());
     // now send it, bypassing the extra shit and wrong dest name added in Client::SendNotification
+    PyIncRef(tuple);
     call.client->SendNotification("OnTrade", "charid", &tuple);
+    target->SendNotification("OnTrade", "charid", &tuple);
     return resp;
 }
 

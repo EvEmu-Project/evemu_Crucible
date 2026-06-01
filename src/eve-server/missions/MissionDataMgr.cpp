@@ -188,8 +188,36 @@ void MissionDataMgr::Populate()
     }
     sLog.Cyan("   MissionDataMgr", "%lu(%lu) Mining Mission Data Sets loaded in %.3fms.", m_mining.size(), m_miningImp.size(), (GetTimeMSeconds() - start));
 
+    // See A371 §Phase1 (Encounter mission data loading)
     start = GetTimeMSeconds();
-    sLog.Cyan("   MissionDataMgr", "0(0) Encounter Mission Data Sets loaded in %.3fms.", (GetTimeMSeconds() - start));
+    MissionDB::LoadEncounterData(*res);
+    while (res->GetRow(row)) {
+        EncounterData data = EncounterData();
+        data.missionID     = row.GetInt(0);
+        data.briefingID    = row.GetInt(1);
+        data.name          = row.GetText(2);
+        data.level         = row.GetInt(3);
+        data.typeID        = row.GetInt(4);
+        data.important     = row.GetBool(5);
+        data.storyline     = row.GetBool(6);
+        data.rewardISK     = row.GetInt(7);
+        data.rewardItemID  = row.GetInt(8);
+        data.rewardItemQty = row.GetInt(9);
+        data.bonusISK      = row.GetInt(10);
+        data.bonusTime     = row.GetInt(11);
+        data.range         = row.GetInt(12);
+        data.raceID        = row.GetInt(13);
+        data.npcCount      = row.GetInt(14);
+        data.dungeonID     = row.GetInt(15);
+        data.npcGroupID    = row.GetInt(16);
+        data.briefingText  = row.GetText(17);
+        if (data.important) {
+            m_encounterImp.emplace(row.GetInt(3), data);
+        } else {
+            m_encounter.emplace(row.GetInt(3), data);
+        }
+    }
+    sLog.Cyan("   MissionDataMgr", "%lu(%lu) Encounter Mission Data Sets loaded in %.3fms.", m_encounter.size(), m_encounterImp.size(), (GetTimeMSeconds() - start));
 
     start = GetTimeMSeconds();
     sLog.Cyan("   MissionDataMgr", "0(0) Storyline Mission Data Sets loaded in %.3fms.", (GetTimeMSeconds() - start));
@@ -459,6 +487,10 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
+            if (cVec.empty()) {
+                _log(AGENT__ERROR, "CreateMissionOffer() - no Courier data for level %u (important=%s)", level, important?"true":"false");
+                return;
+            }
             cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
             // verify mission race acceptable
             if ((cData.raceID) and ((cData.raceID & raceID) != raceID)) {
@@ -496,6 +528,12 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
+            if (cVec.empty()) {
+                _log(AGENT__ERROR, "CreateMissionOffer() - no Mining data for level %u (important=%s)", level, important?"true":"false");
+                // Fall back to Courier
+                CreateMissionOffer(Mission::Type::Courier, level, raceID, important, data);
+                return;
+            }
             cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
 
             data.name               = cData.name;
@@ -517,8 +555,49 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         case Mission::Type::Tutorial: {
         } break;
         case Mission::Type::Encounter: {
+            // See A371 §Phase1 (Encounter offer creation)
+            EncounterData eData = EncounterData();
+            std::vector<EncounterData> eVec;
+            if (important) {
+                auto itr = m_encounterImp.equal_range(level);
+                for (auto it = itr.first; it != itr.second; ++it)
+                    eVec.push_back(it->second);
+            } else {
+                auto itr = m_encounter.equal_range(level);
+                for (auto it = itr.first; it != itr.second; ++it)
+                    eVec.push_back(it->second);
+            }
+            if (eVec.empty()) {
+                _log(AGENT__DEBUG, "No encounter data for level %u (important=%s), falling back to Courier.", level, important?"true":"false");
+                // Recursive call with Courier fallback — safe since Courier data is always populated
+                CreateMissionOffer(Mission::Type::Courier, level, raceID, important, data);
+                return;
+            }
+            eData = eVec[MakeRandomInt(0, (eVec.size() -1))];
+
+            data.name               = eData.name;
+            data.typeID             = eData.typeID;
+            data.bonusISK           = eData.bonusISK;
+            data.rewardISK          = eData.rewardISK;
+            data.bonusTime          = eData.bonusTime;
+            data.important          = eData.important;
+            data.storyline          = eData.storyline;
+            data.missionID          = eData.missionID;
+            data.briefingID         = eData.briefingID;
+            data.briefingText       = eData.briefingText;
+            data.rewardItemID       = eData.rewardItemID;
+            data.rewardItemQty      = eData.rewardItemQty;
+            data.courierTypeID      = 0;
+            data.courierAmount      = 0;
+            data.courierItemVolume  = 0;
+            data.range              = eData.range;
+            data.dungeonLocationID  = eData.dungeonID;
         } break;
         case Mission::Type::Trade: {
+            // Trade missions not implemented — fall back to Courier
+            _log(AGENT__DEBUG, "Trade missions not implemented, falling back to Courier.");
+            CreateMissionOffer(Mission::Type::Courier, level, raceID, important, data);
+            return;
         } break;
         case Mission::Type::Research: {
         } break;
@@ -537,6 +616,32 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
     _log(AGENT__DEBUG, "Created %s level %u %s offer - '%s'", (important?"an important":"a"), level, GetTypeName(data.typeID).c_str(), data.name.c_str());
 }
 
+
+// See A371 §Phase1 (Check encounter data availability at given level)
+bool MissionDataMgr::HasEncounterData(uint8 level)
+{
+    return (m_encounter.count(level) > 0) || (m_encounterImp.count(level) > 0);
+}
+
+// See A371 §Phase2 (Lookup encounter data by missionID for NPC spawning details)
+bool MissionDataMgr::GetEncounterData(uint16 missionID, uint8 typeID, uint8 level, EncounterData& data)
+{
+    auto range = m_encounter.equal_range(level);
+    for (auto it = range.first; it != range.second; ++it) {
+        if (it->second.missionID == missionID) {
+            data = it->second;
+            return true;
+        }
+    }
+    auto rangeImp = m_encounterImp.equal_range(level);
+    for (auto it = rangeImp.first; it != rangeImp.second; ++it) {
+        if (it->second.missionID == missionID) {
+            data = it->second;
+            return true;
+        }
+    }
+    return false;
+}
 
 std::string MissionDataMgr::GetTypeName(uint8 typeID)
 {

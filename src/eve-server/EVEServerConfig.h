@@ -160,6 +160,7 @@ public:
         float ResPE;
         float ResME;
         float InventTime;
+        float ProdMod;
     } ram;
 
     // From <account>

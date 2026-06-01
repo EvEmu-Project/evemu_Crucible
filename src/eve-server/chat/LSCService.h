@@ -33,6 +33,7 @@
 
 #include "chat/LSCDB.h"
 #include "chat/LSCChannel.h"
+#include "mail/MailDB.h"
 
 #include "services/Service.h"
 #include "admin/SlashService.h"
@@ -72,6 +73,7 @@ protected:
     CommandDispatcher *const m_commandDispatch;
 
     LSCDB m_db;
+    MailDB m_mailDb;
 
     std::map<int32, LSCChannel*> m_channels;  //we own these pointers
 

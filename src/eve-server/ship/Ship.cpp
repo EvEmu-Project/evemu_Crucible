@@ -2504,16 +2504,30 @@ void ShipSE::PayInsurance() {
     std::string reason = "Insurance payment for loss of the ship ";
     reason += m_self->itemName();
 
+    float payout_amount = m_db.GetShipInsurancePayout(m_self->itemID());
+
     AccountService::TransferFunds(
         corpSCC,
         m_ownerID,
-        m_db.GetShipInsurancePayout(m_self->itemID()),
+        payout_amount,
         reason,
         Journal::EntryType::Insurance,
         m_self->typeID()
     );
 
     ShipDB::DeleteInsuranceByShipID(m_self->itemID());
+
+    Client* pPilot = GetPilot();
+    if (pPilot != nullptr) {
+        pPilot->SendSystemMail(
+            "Insurance Payout",
+            "Dear Pilot,<br><br>"
+            "Your ship, %s, has been destroyed and an insurance payment of %.2f ISK has been transferred to your account.<br><br>"
+            "Best Regards,<br>The Secure Commerce Commission",
+            m_self->itemName().c_str(),
+            payout_amount
+        );
+    }
 }
 
 void ShipSE::ResetShipSystemMgr(SystemManager* pSystem) {
