@@ -30,6 +30,8 @@ public:
 
     bool IsLocator()                                    { return m_agentData.locator; }
     bool IsResearch()                                   { return m_agentData.research; }
+    bool IsAura()                                       { return m_agentData.typeID == Agents::Type::Aura; }
+    bool IsTutorial()                                   { return m_agentData.typeID == Agents::Type::Tutorial; }
 
     uint8 GetLevel()                                    { return m_agentData.level; }
     int8 GetQuality()                                   { return m_agentData.quality; }

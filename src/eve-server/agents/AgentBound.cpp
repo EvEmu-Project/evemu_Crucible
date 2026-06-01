@@ -164,6 +164,11 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 }
             } break;
             case RequestMission: {  //2
+                if (m_agent->IsAura() || m_agent->IsTutorial()) {
+                    agentSays->SetItem(0, new PyString("I'm sorry, I don't have any missions for you right now."));
+                    agentSays->SetItem(1, PyStatic.NewNone());
+                    break;
+                }
                 MissionOffer offer = MissionOffer();
                 m_agent->MakeOffer(pchar->itemID(), offer);
                 m_agent->SendMissionUpdate(call.client, "offered");

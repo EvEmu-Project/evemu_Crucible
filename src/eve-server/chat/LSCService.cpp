@@ -30,6 +30,7 @@
 
 #include "admin/CommandDispatcher.h"
 #include "admin/SlashService.h"
+#include "Client.h"
 #include "chat/LSCService.h"
 #include "fleet/FleetService.h"
 #include "services/ServiceManager.h"
@@ -1139,39 +1140,57 @@ PyResult LSCService::Page(PyCallArgs &call, PyList* recipientIDs, PyRep* subject
 
 //stuck here to be close to related functionality
 void LSCService::SendMail(uint32 sender, const std::vector<int32> &recipients, const std::string &subject, const std::string &content) {
-    NotifyOnMessage notify;
-    std::set<uint32> successful_recipients;
+    // Write to mailMessage/mailStatus tables — these are the tables the client's
+    // mailMgr service reads from via SyncMail/GetBody.
+    std::vector<int> charIDs(recipients.begin(), recipients.end());
+    int messageID = m_mailDb.SendMail((int)sender, charIDs, -1, -1, subject, content, 0, 0);
+    if (messageID == 0) {
+        _log(SERVICE__ERROR, "LSCService::SendMail - failed to store mail from %u, subject: %s", sender, subject.c_str());
+        return;
+    }
+    _log(SERVICE__MESSAGE, "LSCService::SendMail - stored mail %u from %u to %zu recipient(s), subject: %s",
+         messageID, sender, recipients.size(), subject.c_str());
 
-    notify.subject = subject;
-    notify.sentTime = Win32TimeNow();
-    notify.senderID = sender;
-
-    // there's attachmentID and messageID... does this means a single message can contain multiple attachments?
-    // eg. text/plain and text/html? we should be watching for this at reading mails...
-    // created should be creation time. But Win32TimeNow returns int64, and is stored as bigint(20),
-    // so change in the db is needed
-    std::vector<int32>::const_iterator cur, end;
-    cur = recipients.begin();
-    end = recipients.end();
-
-    for(; cur != end; cur++) {
-        uint32 messageID = m_db.StoreMail(sender, *cur, subject.c_str(), content.c_str(), notify.sentTime);
-        if (messageID == 0) {
-            _log(SERVICE__ERROR, "Failed to store message from %u for recipient %u", sender, *cur);
+    // Step 1: Push OnMailUndeleted to each online recipient.
+    // OnMailUndeleted calls SyncMail() which initialises mailHeaders from the DB
+    // (safe even when mailHeaders is None / not yet open).  SyncMail acquires
+    // mailSvc's uthread.Lock.
+    for (int32 charID : recipients) {
+        Client* pClient = sEntityList.FindClientByCharID((uint32)charID);
+        if (pClient == nullptr)
             continue;
-        }
-        //TODO: supposed to have a different messageID in each notify I suspect..
-        notify.messageID = messageID;
-
-        _log(SERVICE__MESSAGE, "Delivered message from %u to recipient %u", sender, *cur);
-        //record this person in the 'delivered to' list:
-        notify.recipients.push_back(*cur);
-        successful_recipients.insert(*cur);
+       PyList* msgList = new PyList();
+        msgList->AddItem(new PyInt(messageID));
+        PyTuple* args = new PyTuple(1);
+        args->SetItem(0, msgList);
+        pClient->SendNotification("OnMailUndeleted", "charid", args, false);
     }
 
-    //now, send a notification to each successful recipient
-    PyTuple *answer = notify.Encode();
-    sEntityList.Multicast(successful_recipients, "OnMessage", "*multicastID", &answer, false);
+   // Step 2: Push OnMailSent to trigger the neocom blink via OnNewMailReceived.
+    // OnMailSent acquires the same uthread.Lock, so it runs only after SyncMail
+    // (from OnMailUndeleted above) has released it — guaranteeing mailHeaders is
+    // populated and non-None when OnMailSent runs.
+    int64 sentDate = Win32TimeNow();
+    std::string toCharStr;
+    for (size_t i = 0; i < recipients.size(); i++) {
+        if (i > 0) toCharStr += ",";
+        toCharStr += std::to_string(recipients[i]);
+    }
+    for (int32 charID : recipients) {
+        Client* pClient = sEntityList.FindClientByCharID((uint32)charID);
+        if (pClient == nullptr)
+            continue;
+        PyTuple* args2 = new PyTuple(8);
+        args2->SetItem(0, new PyInt(messageID));
+        args2->SetItem(1, new PyInt((int32)sender));
+        args2->SetItem(2, new PyLong(sentDate));
+        args2->SetItem(3, new PyString(toCharStr));
+        args2->SetItem(4, PyStatic.NewNone());   // toListID
+        args2->SetItem(5, PyStatic.NewNone());   // toCorpOrAllianceID
+        args2->SetItem(6, new PyString(subject));
+        args2->SetItem(7, new PyInt(0));         // statusMask
+        pClient->SendNotification("OnMailSent", "charid", args2, false);
+    }
 }
 
 
@@ -1190,6 +1209,23 @@ void Client::SelfEveMail(const char* subject, const char* fmt, ...)
     va_end(args);
 
     this->m_lsc->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
+    SafeFree(str);
+}
+
+// Send automated mail from "EVE System" (senderID=1).
+// The client's OnMailSent handler sees senderID != session.charid → classifies as inbox, not sent.
+void Client::SendSystemMail(const char* subject, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    char* str = nullptr;
+    vasprintf(&str, fmt, args);
+    assert(str);
+
+    va_end(args);
+
+    this->m_lsc->SendMail(1, GetCharacterID(), subject, str);
     SafeFree(str);
 }
 

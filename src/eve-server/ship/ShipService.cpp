@@ -251,7 +251,46 @@ PyResult ShipBound::ActivateShip(PyCallArgs &call, PyInt* newShipID, std::option
     }
     //ShipMustBeInPersonalHangar
 
-    pClient->BoardShip(newShipRef);
+    // Prime the client's godmaStateManager with the new ship's full module data BEFORE
+    // sending the session change.  When ActivateShip is called from TryActivateShip
+    // (the "Make Active" path), the client's _MakeShipActive runs immediately on the
+    // ActivateShip response.  It calls GetFittedItems(shipID) which reads from
+    // stateManager.itemsByLocationID[shipID].  Normally that is populated by Prime()
+    // (triggered via godmaStateManager.ProcessSessionChange when session.shipid changes),
+    // but Prime calls GetAllInfo as a separate RPC — it races against _MakeShipActive
+    // and typically loses.  By sending ProcessGodmaPrimeLocation first (it arrives before
+    // the session change and response), the stateManager is already populated when
+    // _MakeShipActive and then GetFitting run.
+    {
+        PyDict* shipInfoDict = newShipRef->GetShipInfo();
+        if (shipInfoDict != nullptr) {
+            PyTuple* primePayload = new PyTuple(2);
+            primePayload->SetItem(0, new PyInt(newShipRef->itemID()));  // locationID = ship item ID
+            primePayload->SetItem(1, shipInfoDict);                      // data = full module attribute dict
+            pClient->SendNotification("ProcessGodmaPrimeLocation", "charid", &primePayload);
+        }
+    }
+
+    // Only board if not already piloting this ship.  When BoardStoredShip boards first
+    // and then _MakeShipActive calls ActivateShip to confirm state, we must not re-board
+    // (it would send a second session change and create a loop).
+    if (pClient->GetShipID() != newShipID->value())
+        pClient->BoardShip(newShipRef);
+
+    // Send slot-count attribute change events so the fitting window's DelayedAnim path
+    // also triggers GetFitting() as a fallback after OnModuleAttributeChanges fires.
+    static const uint16 slotAttrs[] = { AttrLowSlots, AttrMedSlots, AttrHiSlots, AttrRigSlots };
+    for (uint16 attrID : slotAttrs) {
+        Notify_OnModuleAttributeChange modChange;
+        modChange.ownerID   = newShipRef->ownerID();
+        modChange.itemKey   = new PyInt(newShipRef->itemID());
+        modChange.attributeID = attrID;
+        modChange.time      = GetFileTimeNow();
+        modChange.newValue  = newShipRef->GetAttribute(attrID).GetPyObject();
+        modChange.oldValue  = PyStatic.NewNone();
+        PyTuple* event = modChange.Encode();
+        pClient->QueueDestinyEvent(&event);
+    }
 
     // response should return ship modules, loaded charges, and linked weapons
     PyTuple* rsp = new PyTuple(3);
@@ -1156,6 +1195,7 @@ PyResult ShipBound::AssembleShip(PyCallArgs &call, PyList* itemIDs) {
     }
 
     ShipItemRef ship(nullptr);
+    PyList* resultList = new PyList();
     for (auto cur : itemIDList) {
         ship = sItemFactory.GetShipRef(cur);
 
@@ -1193,8 +1233,16 @@ PyResult ShipBound::AssembleShip(PyCallArgs &call, PyList* itemIDs) {
         }
 
         ship->ChangeSingleton(true, true);
+        resultList->AddItem(ship->GetItemRow());
     }
-    return nullptr;
+    // Return assembled ship rows so the client updates its cached item state.
+    // Expected: ([PyPackedRow, ...], {10: 0})
+    PyDict* resultDict = new PyDict();
+    resultDict->SetItem(new PyInt(10), new PyInt(0));
+    PyTuple* result = new PyTuple(2);
+    result->SetItem(0, resultList);
+    result->SetItem(1, resultDict);
+    return result;
 }
 
 PyResult ShipBound::GetShipConfiguration(PyCallArgs &call)
@@ -1252,13 +1300,33 @@ PyResult ShipBound::ScoopToSMA(PyCallArgs &call, PyInt* objectID) {
 
 
 PyResult ShipBound::BoardStoredShip(PyCallArgs &call, PyInt* structureID, PyInt* shipID) {
-    // no packet data
+    // Called when the player right-clicks a ship in the station hangar and selects "Make Active".
+    // Client side: sm.StartService('sessionMgr').PerformSessionChange('board', ship.BoardStoredShip, structureID, shipID)
+    // structureID = stationID (the containing structure), shipID = ship to board.
 
-    //sm.StartService('sessionMgr').PerformSessionChange('board', ship.BoardStoredShip, structureID, shipID)
-    _log(SERVICE__CALL_DUMP, "ShipBound::Handle_BoardStoredShip()");
-    call.Dump(SERVICE__CALL_DUMP);
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return nullptr;
+    }
 
-    return nullptr;
+     Client* pClient = call.client;
+    ShipItemRef newShipRef = sItemFactory.GetShipRef(shipID->value());
+    if (newShipRef.get() == nullptr) {
+        sLog.Error("ShipBound::BoardStoredShip()", "%s: Failed to get ship %u.", pClient->GetName(), shipID->value());
+        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173+2");
+    }
+
+    pClient->BoardShip(newShipRef);
+
+    // Return same format as ActivateShip: (shipState, chargeState, linkedWeapons).
+    // The subsequent _MakeShipActive (triggered by the session change) will call
+    // ActivateShip again to confirm state; that call will skip re-boarding because
+    // the client is already on this ship, and will send the slot attribute notifications.
+    PyTuple* rsp = new PyTuple(3);
+        rsp->SetItem(0, newShipRef->GetShipState());
+        rsp->SetItem(1, newShipRef->GetChargeState());
+        rsp->SetItem(2, newShipRef->GetLinkedWeapons());
+    return rsp;
 }
 
 PyResult ShipBound::StoreVessel(PyCallArgs &call, PyInt* destID) {
@@ -1372,6 +1440,13 @@ PyResult ShipBound::SelfDestruct(PyCallArgs &call, PyInt* shipID) {
      */
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     // returns nodeID and timestamp
+    // If already self-destructing, cancel the countdown and throw the abort error
+    if (call.client->IsSelfDestructing()) {
+        uint32 elapsed = (120000 - call.client->GetSelfDestructRemainingMs()) / 1000;
+        call.client->CancelSelfDestruct();
+        throw UserError ("SelfDestructAborted2").AddAmount("when", (int)elapsed);
+    }
+    call.client->StartSelfDestruct();
     // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
     //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
     return this->GetOID();

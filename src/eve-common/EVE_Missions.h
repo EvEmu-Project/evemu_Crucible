@@ -60,6 +60,7 @@ struct MissionOffer {
     double dateAccepted;
     double dateCompleted;
     std::string name;
+    std::string briefingText;   // fix: server-side briefing text for encounter missions
     PyList* bookmarks;
 };
 
@@ -81,6 +82,28 @@ struct CourierData {
     uint32 bonusISK;
     float itemVolume;
     std::string name;
+};
+
+// (Encounter/combat mission data struct)
+struct EncounterData {
+    bool important;
+    bool storyline;
+    uint8 level;
+    uint8 typeID;       // Mission::Type::Encounter
+    uint8 range;
+    uint8 raceID;
+    uint8 npcCount;     // number of NPCs to spawn in the mission pocket
+    uint16 bonusTime;
+    uint16 missionID;
+    uint16 rewardItemID;
+    uint16 rewardItemQty;
+    uint32 briefingID;
+    uint32 rewardISK;
+    uint32 bonusISK;
+    uint32 dungeonID;   // dungeon template ID (links to dunTemplates, or 0 for dynamic spawn)
+    uint32 npcGroupID;  // invGroup of NPCs to spawn if no dungeon template
+    std::string name;
+    std::string briefingText;   // server-side briefing text for encounter missions
 };
 
 namespace Mission {

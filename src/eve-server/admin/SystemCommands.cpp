@@ -69,6 +69,9 @@ static PyResult UpdateBubble(Client *pClient) {
 
     pClient->GetShipSE()->DestinyMgr()->SetPosition(pClient->GetShipSE()->GetPosition(), true);
 
+    // A-04 fix: halt the ship to zero velocity before sending state
+    pClient->GetShipSE()->DestinyMgr()->Halt();
+    
     SystemBubble *pBubble = pClient->GetShipSE()->SysBubble();
     if (pBubble == nullptr) {
         sBubbleMgr.Add(pClient->GetShipSE());

@@ -25,6 +25,7 @@ public:
     static void LoadMiningData(DBQueryResult& res);
     static void LoadMissionData(DBQueryResult& res);
     static void LoadCourierData(DBQueryResult& res);
+    static void LoadEncounterData(DBQueryResult& res);
     static void LoadClosedOffers(DBQueryResult& res);
     static void LoadMissionBookMark(DBQueryResult& res, std::vector<int32>& bmIDs);
 

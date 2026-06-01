@@ -476,8 +476,8 @@ PyResult ContractProxy::GetContract(PyCallArgs &call, PyInt* contractID) {
     return ContractUtils::GetContractEntry(contractID->value());
 }
 
-PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
-    // For the time being - we ignore the second value in tuple (forCorp), since it's not yet functional.
+PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID, std::optional<PyBool*> forCorp) {
+    //fix: accept optional forCorp parameter from client (not yet used for corp contracts)
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID FROM ctrContracts WHERE contractId = %u", contractID->value()))
@@ -498,7 +498,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
     float volume = row.GetFloat(5);
     int startStationID = row.GetInt(6);
     int issuerID = row.GetInt(7);
-    bool forCorp = row.GetBool(8);
+    bool isForCorp = row.GetBool(8);  // fix: renamed to avoid shadowing parameter
     int startSolarSystemID = row.GetInt(9);
     int endSolarSystemID = row.GetInt(10);
 
@@ -573,7 +573,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                     DBerror err;
                     if (!sDatabase.RunQuery(err,
                                             "UPDATE ctrContracts SET status = 4, dateAccepted = %lli, dateCompleted = %lli, acceptorID = %u WHERE contractId = %u",
-                                            timestamp, timestamp, call.client->GetCharacterID(), contractID))
+                                            timestamp, timestamp, call.client->GetCharacterID(), contractID->value()))
                     {
                         codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
                     }
@@ -644,7 +644,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                 DBerror err;
                 if (!sDatabase.RunQuery(err,
                                         "UPDATE ctrContracts SET status = 1, dateAccepted = %lli, acceptorID = %u, crateID = %u WHERE contractId = %u",
-                                        timestamp, call.client->GetCharacterID(), plasticWrap->itemID(), contractID))
+                                        timestamp, call.client->GetCharacterID(), plasticWrap->itemID(), contractID->value()))
                 {
                     codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
                 }
@@ -655,7 +655,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                 return nullptr;
         }
         // Once type-specific manipulations are done, we query brief contract information (requested by client) and send it out.
-        if (!sDatabase.RunQuery(res, "SELECT contractId, contractType, startStationID, endStationID, dateAccepted, numDays FROM ctrContracts WHERE contractId = %u", contractID))
+        if (!sDatabase.RunQuery(res, "SELECT contractId, contractType, startStationID, endStationID, dateAccepted, numDays FROM ctrContracts WHERE contractId = %u", contractID->value()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
             return nullptr;
@@ -672,6 +672,8 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
         ret->SetItemString("numDays", new PyInt(row.GetInt(5)));
         return new PyObject("util.KeyVal", ret);
     } else {
+      // fix: notify client that contract is no longer available
+        call.client->SendNotifyMsg("This contract is no longer available.");
         return nullptr;
     }
 }
@@ -682,7 +684,7 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
     call.Dump(SERVICE__CALL_DUMP);
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID FROM ctrContracts WHERE contractId = %u", contractID))
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID FROM ctrContracts WHERE contractId = %u", contractID->value()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return new PyBool(false);
@@ -699,7 +701,7 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
     int startStationID = row.GetInt(6);
     int endStationID = row.GetInt(7);
     int issuerID = row.GetInt(8);
-    bool forCorp = row.GetBool(9);
+     bool isForCorp = row.GetBool(9);
     int crateID = row.GetInt(10);
 
     int64 timestamp = int64(GetFileTimeNow());
@@ -919,7 +921,8 @@ PyResult ContractProxy::GetItemsInStation(PyCallArgs &call, PyInt* stationID, st
     if (sDataMgr.IsStation(stationID->value()) == false)
         return nullptr;
 
-    return sItemFactory.GetStationRef(station)->GetMyInventory()->List(flagHangar);
+    // fix: filter station hangar to only show the calling character's items
+    return sItemFactory.GetStationRef(station)->GetMyInventory()->List(flagHangar, call.client->GetCharacterID());
 }
 
 PyResult ContractProxy::CollectMyPageInfo(PyCallArgs &call) {

@@ -34,6 +34,7 @@
 #include "system/Container.h"
 #include "system/SystemManager.h"
 #include "station/Station.h"
+#include "inventory/Inventory.h"
 
 DogmaIMService::DogmaIMService(EVEServiceManager& mgr) :
     BindableService("dogmaIM", mgr)  // IM = Instance Manager, also LM = Location Manager
@@ -138,6 +139,7 @@ PyResult DogmaIMBound::GetCharacterBaseAttributes(PyCallArgs& call)
 
 PyResult DogmaIMBound::ItemGetInfo(PyCallArgs& call, PyInt* itemID) {
     // called when item 'row' info not in shipState data from GetAllInfo() return
+    _log(INV__MESSAGE, "DogmaIM::ItemGetInfo() called for itemID=%u by %s", itemID->value(), call.client->GetName());
     InventoryItemRef itemRef = sItemFactory.GetItemRef(itemID->value());
     if (itemRef.get() == nullptr ) {
         _log(INV__ERROR, "Unable to load item %u", itemID->value());
@@ -483,15 +485,55 @@ PyResult DogmaIMBound::GetAllInfo(PyCallArgs& call, PyBool* getCharInfo, PyBool*
     PyDict* rsp = new PyDict();
     rsp->SetItemString("activeShipID", new PyInt(pClient->GetShipID()));
     // Set "locationInfo" in the Dictionary
-    /** @todo  havent found a populated item in packet logs
-     *
-        def ProcessLocationInfo(self, cData):
-            for locationID, datas in cData.iteritems():
-        --still dont know what 'datas' are
-        ** this has *something* to do with POS
-        */
+    // ProcessLocationInfo(cData) iterates cData.iteritems() -> (locationID, datas)
+    // and calls ProcessGodmaPrimeLocation(locationID, datas) for each.
+    // Populating this with station hangar items ensures they are primed into godma.StateManager.invitems
+    // DURING Prime() (while priming=True), which is required for UpdateItem to insert them into invitems.
+    // Without this, station items are missing from invitems and drag-drop silently fails in _Add().
     if (getShipInfo->value()) {
-        rsp->SetItemString("locationInfo", new PyDict());
+        PyDict* locationInfo = new PyDict();
+        if (pClient->IsDocked()) {
+            uint32 stationID = pClient->GetStationID();
+            uint32 charID = pClient->GetCharacterID();
+            InventoryItemRef stRef = sItemFactory.GetItemRef(stationID);
+            if (stRef.get() != nullptr) {
+                Inventory* stInv = stRef->GetMyInventory();
+                if (stInv != nullptr) {
+                    stInv->LoadContents();
+                    std::vector<InventoryItemRef> hangarItems;
+                    stInv->GetItemsByFlag(flagHangar, hangarItems);
+                    PyDict* stationItemDict = new PyDict();
+                    for (auto& iRef : hangarItems) {
+                        if (iRef.get() == nullptr) continue;
+                        if (iRef->ownerID() != charID) continue;
+                        Rsp_CommonGetInfo_Entry entry;
+                        if (!iRef->Populate(entry)) continue;
+                        if (entry.attributes.find(AttrQuantity) == entry.attributes.end())
+                            entry.attributes[AttrQuantity] = new PyInt(iRef->quantity());
+                        // Override locationID in the packed row to charID.
+                        // UpdateItem() unconditionally skips items where IsStation(locationID)==true.
+                        // charID is a known godma location (always in invByID after Prime) and
+                        // IsStation(charID)==false, so UpdateItem will insert the item into invitems.
+                        // After a successful drag-drop, OnItemChange replaces the temporary locationID.
+                        if (entry.invItem != nullptr) {
+                            PyPackedRow* invRow = (PyPackedRow*)entry.invItem;
+                            invRow->SetField("locationID", new PyInt((int32)charID));
+                        }
+                        _log(INV__MESSAGE, "GetAllInfo: locationInfo adding station item %u (type %u) qty %u for char %u (locationID faked to charID)", \
+                            iRef->itemID(), iRef->typeID(), iRef->quantity(), charID);
+                        stationItemDict->SetItem(new PyInt(iRef->itemID()), new PyObject("util.KeyVal", entry.Encode()));
+                    }
+                    if (stationItemDict->size() > 0) {
+                        _log(INV__MESSAGE, "GetAllInfo: locationInfo: %zu hangar items for stationID=%u char=%u (locationIDs faked to charID)", \
+                            stationItemDict->size(), stationID, charID);
+                        locationInfo->SetItem(new PyInt(stationID), stationItemDict);
+                    } else {
+                        PyDecRef(stationItemDict);
+                    }
+                }
+            }
+        }
+        rsp->SetItemString("locationInfo", locationInfo);
     } else {
         rsp->SetItemString("locationInfo", PyStatic.NewNone());
     }

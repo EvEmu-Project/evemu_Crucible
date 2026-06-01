@@ -184,6 +184,11 @@ void EntityList::RemovePlayer(Client* pClient)
         }
 }
 
+void EntityList::RemoveGhostPlayer(uint32 charID)
+{
+    m_players.erase(charID);
+}
+
 
 void EntityList::Process() {
     Client* pClient(nullptr);

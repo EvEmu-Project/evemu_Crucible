@@ -173,7 +173,10 @@ void MapData::GetMissionDestination(Agent* pAgent, uint8 misionType, MissionOffe
             if (station) {
                 std::vector<uint32> list;
                 sDataMgr.GetStationList(systemID, list);
-                if (list.size() < 2) {
+                if (list.empty()) {
+                    _log(AGENT__ERROR, "Agent::GetMissionDestination() - no stations in system %u", systemID);
+                    offer.destinationID = 0;
+                } else if (list.size() < 2) {
                     offer.destinationID = list.at(0);
                 } else {
                     bool run = true;

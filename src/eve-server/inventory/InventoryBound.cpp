@@ -1,4 +1,4 @@
-/*
+﻿/*
     ------------------------------------------------------------------------------------
     LICENSE:
     ------------------------------------------------------------------------------------
@@ -248,6 +248,8 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
  * Adding Modules to a specific slot on ship
  */
 PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID) {
+    _log(INV__MESSAGE, "IB::Add() called - itemID=%u from containerID=%u, m_flag=%u, destinationID=%u", \
+            itemID->value(), containerID->value(), (uint32)m_flag, m_itemID);
     if (is_log_enabled(INV__DUMP)) {
         _log(INV__DUMP, "IB::Handle_Add() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
@@ -264,6 +266,10 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
     }
 
     InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
+    if (iRef.get() == nullptr) {
+        _log(INV__ERROR, "IB::Add() - item %i not found in factory. Cannot move.", itemID->value());
+        return nullptr;
+    }
 
     bool moveStack = false;
     int32 quantity = 0;
@@ -284,6 +290,10 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
         moveStack = true;
         quantity = iRef->quantity();
     } else if (call.client->IsInSpace() and (toFlag == flagCargoHold) and (quantity == 0)) {
+        moveStack = true;
+        quantity = iRef->quantity();
+    } else if (!call.client->IsInSpace() and (toFlag == flagCargoHold) and (quantity == 0)) {
+        // docked: no explicit qty sent by client â€” move the whole stack (same intent as in-space case)
         moveStack = true;
         quantity = iRef->quantity();
     }
@@ -307,6 +317,8 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
 
 // this call is for moving items to *THIS* inventory
 PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* containerID) {
+    _log(INV__MESSAGE, "IB::MultiAdd() called - containerID=%u, m_flag=%u, destinationID=%u, caller=%s", \
+            containerID->value(), (uint32)m_flag, m_itemID, call.client->GetName());
     if (is_log_enabled(INV__DUMP)) {
         _log(INV__DUMP, "IB::Handle_MultiAdd() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
@@ -567,6 +579,13 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
 
         // move item to new location
         if (ship) {
+            // safety check: GetShipItem() returns nullptr for non-ShipItem objects
+            ShipItem* pSelf = m_self->GetShipItem();
+            if (pSelf == nullptr) {
+                _log(INV__ERROR, "IB::MoveItems() - GetShipItem() returned nullptr for item %u (cat %u). Cannot move item %u.", \
+                        m_self->itemID(), m_self->categoryID(), iRef->itemID());
+                continue;
+            }
             // are we adding module to ship using autoFit?
             if (toFlag == flagNone) {
                // assert(iRef->categoryID() != EVEDB::invCategories::Charge); // crash here...this should NOT happen.
@@ -583,17 +602,17 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             }
 
             // verify item is allowed in container first
-            m_self->GetShipItem()->VerifyHoldType(toFlag, iRef, pClient); // this will throw if it fails
+            pSelf->VerifyHoldType(toFlag, iRef, pClient); // this will throw if it fails
 
             // then check for module limits
             if (IsModuleSlot(toFlag)) {
-                m_self->GetShipItem()->TryModuleLimitChecks(toFlag, iRef); // this will throw if it fails
+                pSelf->TryModuleLimitChecks(toFlag, iRef); // this will throw if it fails
             } else if (IsCargoHoldFlag(toFlag) or IsHangarFlag(toFlag) or (toFlag == flagDroneBay)) {
                 pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
             }
 
             // check adding item to ship...if it fails, return to previous container
-            if (m_self->GetShipItem()->AddItemByFlag(toFlag, iRef, pClient) < 1) {
+            if (pSelf->AddItemByFlag(toFlag, iRef, pClient) < 1) {
                 //ALL items *should* have a loaded container item.
                 InventoryItemRef contRef = sItemFactory.GetItemContainerRef(*itr);
                 if (contRef.get() != nullptr) {
@@ -752,6 +771,105 @@ PyResult InventoryBound::List(PyCallArgs &call, std::optional <PyInt*> listFlag)
 }
 */
 
+    // Prime godma on the client so items in this inventory are registered in the client
+    // StateManager before the user drags them.  VirtualInvWindow._Add() calls
+    // GetStateManager().GetItem(itemID) before issuing the Add() RPC; if the item is not
+    // known to godma the call returns None, None.stacksize raises AttributeError that is
+    // silently swallowed, and no Add() RPC is ever sent.
+    //
+    // For station hangars:  send one OnGodmaPrimeItem(shipID, faked_row) per item.
+    //   OnGodmaPrimeItem IS dispatched via ScatterEvent; itemsByLocationID[shipID] already
+    //   exists (ship IB::List fires at login).  ProcessGodmaPrimeLocation sent as a free
+    //   charid notification is silently dropped by the client (no "On" prefix â†’ not a
+    //   ScatterEvent handler) so we cannot use it here.
+    //
+    // For non-station inventory:  use ProcessGodmaPrimeLocation as normal (it IS processed
+    //   when sent as a bound-object response, and the client calls it during Prime()).
+    if (call.client != nullptr) {
+        std::vector<InventoryItemRef> invItems;
+        if (flag == flagNone) {
+            pInventory->GetInventoryVec(invItems);
+        } else {
+            pInventory->GetItemsByFlag(flag, invItems);
+        }
+        bool isStationHangar = (call.client->IsDocked() && (IsStationID(m_itemID) || IsOfficeID(m_itemID)));
+        _log(INV__MESSAGE, "IB::List() godma prime: %zu raw items found for locationID=%u ownerFilter=%u flag=%s isStation=%d", \
+            invItems.size(), m_itemID, m_ownerID, sDataMgr.GetFlagName(flag), (int)isStationHangar);
+
+        if (isStationHangar && !invItems.empty()) {
+            // For station hangars we send one OnGodmaPrimeItem(shipID, faked_row) per item.
+            // OnGodmaPrimeItem IS dispatched via ScatterEvent (has the "On" prefix), unlike
+            // ProcessGodmaPrimeLocation which is only called during server-initiated Prime() and
+            // is silently ignored when sent as a free charid notification.
+            // itemsByLocationID[shipID] is always present (ship IB::List fires at login), so
+            // the has_key(shipID) check in the client's OnGodmaPrimeItem handler always passes.
+            // We fake locationID=shipID and flagID=flagCargoHold so UpdateItem's IsStation()/
+            // flag-allowlist checks accept the item and insert it into godma invitems.
+            uint32 shipID = call.client->GetShipID();
+            if (shipID != 0) {
+                for (auto& iRef : invItems) {
+                    if (iRef.get() == nullptr)
+                        continue;
+                    if (m_ownerID != 0 && iRef->ownerID() != m_ownerID) {
+                        _log(INV__MESSAGE, "IB::List() godma prime: skipping item %u owner=%u (filter=%u)", \
+                            iRef->itemID(), iRef->ownerID(), m_ownerID);
+                        continue;
+                    }
+                    Rsp_CommonGetInfo_Entry entry;
+                    if (!iRef->Populate(entry))
+                        continue;
+                    if (entry.attributes.find(AttrQuantity) == entry.attributes.end())
+                        entry.attributes[AttrQuantity] = new PyInt(iRef->quantity());
+                    if (entry.invItem != nullptr && !entry.invItem->IsNone()) {
+                        PyPackedRow* invRow = (PyPackedRow*)entry.invItem;
+                        invRow->SetField("locationID", new PyInt((int32)shipID));
+                        invRow->SetField("flagID", new PyInt(flagCargoHold));
+                    }
+                    _log(INV__MESSAGE, "IB::List() godma prime: sending OnGodmaPrimeItem for %s(%u) qty=%u (locationID faked to shipID=%u, flagID=flagCargoHold)", \
+                        iRef->name(), iRef->itemID(), iRef->quantity(), shipID);
+                    PyTuple* primePayload = new PyTuple(2);
+                    primePayload->SetItem(0, new PyInt(shipID));
+                    primePayload->SetItem(1, new PyObject("util.KeyVal", entry.Encode()));
+                    call.client->SendNotification("OnGodmaPrimeItem", "charid", &primePayload);
+                }
+            } else {
+                _log(INV__MESSAGE, "IB::List() godma prime: shipID=0, skipping station hangar prime for locationID=%u", m_itemID);
+            }
+        } else if (!isStationHangar && !invItems.empty()) {
+            // Non-station inventory: use ProcessGodmaPrimeLocation as normal.
+            PyDict* locationData = new PyDict();
+            for (auto& iRef : invItems) {
+                if (iRef.get() == nullptr)
+                    continue;
+                if (m_ownerID != 0 && iRef->ownerID() != m_ownerID)
+                    continue;
+                Rsp_CommonGetInfo_Entry entry;
+                if (!iRef->Populate(entry))
+                               _log(INV__MESSAGE, "IB::List() godma prime: locationData empty after owner filter â€” skipping ProcessGodmaPrimeLocation for locationID=%u", \
+                    m_itemID);
+     continue;
+                if (entry.attributes.find(AttrQuantity) == entry.attributes.end())
+                    entry.attributes[AttrQuantity] = new PyInt(iRef->quantity());
+                locationData->SetItem(new PyInt(iRef->itemID()), new PyObject("util.KeyVal", entry.Encode()));
+            }
+            if (locationData->size() > 0) {
+                _log(INV__MESSAGE, "IB::List() sending ProcessGodmaPrimeLocation for locationID=%u with %zu items to %s", \
+                    m_itemID, locationData->size(), call.client->GetName());
+                PyTuple* primePayload = new PyTuple(2);
+                primePayload->SetItem(0, new PyInt(m_itemID));
+                primePayload->SetItem(1, locationData);
+                call.client->SendNotification("ProcessGodmaPrimeLocation", "charid", &primePayload);
+            } else {
+                _log(INV__MESSAGE, "IB::List() godma prime: locationData empty after owner filter â€” skipping ProcessGodmaPrimeLocation for locationID=%u", \
+                    m_itemID);
+                PyDecRef(locationData);
+            }
+        } else {
+            _log(INV__MESSAGE, "IB::List() godma prime: no items to prime for locationID=%u (isStation=%d)", \
+                m_itemID, (int)isStationHangar);
+        }
+    }
+
     return pInventory->List(flag, m_ownerID);
 }
 
@@ -849,7 +967,6 @@ PyResult InventoryBound::TakeOutTrash(PyCallArgs &call, PyInt* itemIDs) {
     call.Dump(INV__DUMP);
     return nullptr;
 }
-
 PyResult InventoryBound::SetPassword(PyCallArgs &call, PyInt* which, PyString* newPassword, PyString* oldPassword) {
     _log(INV__MESSAGE, "%s Calling InventoryBound::SetPassword() for %s(%u)", call.client->GetName(), m_self->name(), m_itemID);
     call.Dump(INV__DUMP);

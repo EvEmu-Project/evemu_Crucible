@@ -483,7 +483,7 @@ void ShipSE::Killed(Damage &fatal_blow) {
         data.finalAllianceID = killer->GetAllianceID();
         data.finalFactionID = (killer->GetWarFactionID() > 500021 ? 500021 : killer->GetWarFactionID());
         data.finalShipTypeID = killer->GetTypeID();
-        data.finalWeaponTypeID = fatal_blow.weaponRef->typeID();
+        data.finalWeaponTypeID = (fatal_blow.weaponRef ? fatal_blow.weaponRef->typeID() : m_self->typeID());
         data.finalSecurityStatus = 0;   /* fix this */
         data.finalDamageDone = fatal_blow.GetTotal();
 

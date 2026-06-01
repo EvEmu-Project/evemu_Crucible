@@ -216,6 +216,10 @@ public:
     void SetUncloakTimer(uint32 time=Player::Timer::Default);     // send time=0 to disable
     void SetBallParkTimer(uint32 time=Player::Timer::Default);     // send time=0 to disable
     void SetStateTimer(int8 state, uint32 time=Player::Timer::Default);     // send time=0 to disable
+    void StartSelfDestruct();
+    void CancelSelfDestruct();
+    bool IsSelfDestructing() const                      { return m_selfDestructing; }
+    uint32 GetSelfDestructRemainingMs() const           { return m_selfDestructTimer.GetRemainingTime(); }
     void SetDestiny(const GPoint& pt, bool update=false);
     ShipItemRef SpawnNewRookieShip(uint32 stationID);
     void LoadStationHangar(uint32 stationID);
@@ -293,6 +297,8 @@ public:
     void SendInfoModalMsg(const char *fmt, ...);
     void SelfChatMessage(const char *fmt, ...);
     void SelfEveMail(const char *subject, const char *fmt, ...);
+    // Sends automated mail from "EVE System" (senderID=1) — arrives in pilot's INBOX, not Sent folder.
+    void SendSystemMail(const char *subject, const char *fmt, ...);
     void ChannelJoined(LSCChannel *chan);
     void ChannelLeft(LSCChannel *chan);
     void UpdateSessionInt( const char *sessionType, int value );
@@ -377,7 +383,8 @@ protected:
     bool m_bubbleWait;
     bool m_setStateSent;
     bool m_sessionChangeActive; // used to delay actions requiring destiny updates
-
+    bool m_selfDestructing;     // true while 2-minute self-destruct countdown is active
+    
     int32 m_wing;
     int32 m_squad;
 
@@ -400,6 +407,8 @@ protected:
     Timer m_logoutTimer;     // used to hold client object until WarpOut finishes
     Timer m_sessionTimer;    // used to prevent multiple session changes from occurring too fast
     Timer m_ballparkTimer;   // this is to properly send SetState data after a delay (cant do it correctly otherwise)
+    Timer m_selfDestructTimer;     // 2-minute kill deadline for self-destruct
+    Timer m_selfDestructTickTimer; // 10-second tick for SelfDestructTimer notifications
 
     // this is GPoint on jump and dock heading on undock
     GPoint m_movePoint;

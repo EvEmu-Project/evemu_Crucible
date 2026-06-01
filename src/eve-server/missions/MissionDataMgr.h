@@ -39,6 +39,11 @@ public:
     void                LoadAgentOffers(const uint32 agentID, std::map<uint32, MissionOffer>& data);
     void                CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data);
 
+    // (Encounter data availability check)
+    bool                HasEncounterData(uint8 level);
+    // (Encounter data lookup by missionID)
+    bool                GetEncounterData(uint16 missionID, uint8 typeID, uint8 level, EncounterData& data);
+
     std::string         GetTypeName(uint8 typeID);
     std::string         GetTypeLabel(uint8 typeID);
 
@@ -57,6 +62,9 @@ private:
     std::multimap<uint8, CourierData> m_courierImp;    // level/data
     std::multimap<uint8, CourierData> m_mining;     // level/data
     std::multimap<uint8, CourierData> m_miningImp;     // level/data
+    // (Encounter mission data storage)
+    std::multimap<uint8, EncounterData> m_encounter;   // level/data
+    std::multimap<uint8, EncounterData> m_encounterImp;   // level/data
     std::multimap<uint8, MissionData> m_missions;   // level/data
     std::multimap<uint8, MissionData> m_missionsImp;   // level/data
     std::multimap<uint32, MissionOffer> m_offers;   // charID/data      current mission offers by charID

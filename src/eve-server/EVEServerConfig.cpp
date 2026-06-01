@@ -134,6 +134,7 @@ EVEServerConfig::EVEServerConfig()
     ram.ProdTime = 1.0;
     ram.CopyTime = 1.0;
     ram.InventTime = 1.0;
+    ram.ProdMod = 1.0;
 
     // account
     account.autoAccountRole = Acct::Role::STD;
@@ -280,6 +281,7 @@ bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
     AddMemberParser( "market",      &EVEServerConfig::ProcessMarket );
     AddMemberParser( "ram",     &EVEServerConfig::ProcessBPTimes );
     AddMemberParser( "account",     &EVEServerConfig::ProcessAccount );
+    AddMemberParser( "bpTimes",     &EVEServerConfig::ProcessBPTimes );
     AddMemberParser( "character",   &EVEServerConfig::ProcessCharacter );
     AddMemberParser( "npc",         &EVEServerConfig::ProcessNPC );
     AddMemberParser( "cosmic",      &EVEServerConfig::ProcessCosmic );
@@ -303,6 +305,7 @@ bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
     RemoveParser( "rates" );
     RemoveParser( "market" );
     RemoveParser( "ram" );
+    RemoveParser( "bpTimes" );
     RemoveParser( "account" );
     RemoveParser( "character" );
     RemoveParser( "npc" );
@@ -343,6 +346,11 @@ bool EVEServerConfig::ProcessServer( const TiXmlElement* ele )
     AddValueParser( "LoadOldMissions",      server.LoadOldMissions );
     AddValueParser( "AsteroidsOnDScan",     server.AsteroidsOnDScan );
     AddValueParser( "CargoMassAdditive",    server.CargoMassAdditive );
+    // fix: register elements that appear in <server> section of config
+    AddValueParser( "UseBeanCount",         debug.BeanCount );
+    AddValueParser( "UseStackTrace",        debug.StackTrace );
+    AddValueParser( "StackTrace",           debug.StackTrace );
+    AddValueParser( "UseMarketBot",         server.TraderJoe );
 
     const bool result = ParseElementChildren( ele );
 
@@ -364,6 +372,10 @@ bool EVEServerConfig::ProcessServer( const TiXmlElement* ele )
     RemoveParser( "LoadOldMissions" );
     RemoveParser( "AsteroidsOnDScan" );
     RemoveParser( "CargoMassAdditive" );
+    RemoveParser( "UseBeanCount" );
+    RemoveParser( "UseStackTrace" );
+    RemoveParser( "StackTrace" );
+    RemoveParser( "UseMarketBot" );
 
     return result;
 }
@@ -514,6 +526,10 @@ bool EVEServerConfig::ProcessBPTimes(const TiXmlElement* ele)
     AddValueParser( "ResPE",            ram.ResPE);
     AddValueParser( "ReTime",           ram.ReTime);
     AddValueParser( "InventTime",       ram.InventTime);
+    // fix: register additional bpTimes elements from config
+    AddValueParser( "ResRE",            ram.ReTime);
+    AddValueParser( "ResCopy",          ram.CopyTime);
+    AddValueParser( "ProdMod",          ram.ProdMod);
 
     const bool result = ParseElementChildren( ele );
 
@@ -526,6 +542,9 @@ bool EVEServerConfig::ProcessBPTimes(const TiXmlElement* ele)
     RemoveParser( "ResPE" );
     RemoveParser( "ReTime" );
     RemoveParser( "InventTime" );
+    RemoveParser( "ResRE" );
+    RemoveParser( "ResCopy" );
+    RemoveParser( "ProdMod" );
 
     return result;
 }
@@ -644,6 +663,7 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
     AddValueParser( "logSettings",      files.logSettings );
     AddValueParser( "cacheDir",         files.cacheDir );
     AddValueParser( "imageDir",         files.imageDir );
+    AddValueParser( "marketBotSettings", files.marketBotSettings );
 
     const bool result = ParseElementChildren( ele );
 
@@ -651,6 +671,7 @@ bool EVEServerConfig::ProcessFiles( const TiXmlElement* ele )
     RemoveParser( "logSettings" );
     RemoveParser( "cacheDir" );
     RemoveParser( "imageDir" );
+    RemoveParser( "marketBotSettings" );
 
     return result;
 }

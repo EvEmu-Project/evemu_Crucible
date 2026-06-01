@@ -29,20 +29,21 @@ void AgentDB::LoadAgentData(uint32 agentID, AgentData& data)
         "   agt.corporationID,"
         "   agt.locationID, "   //5
         "   agt.isLocator,"
-        "   chr.solarSystemID,"
-        "   chr.stationID,"
-        "   chr.gender,"
-        "   bl.bloodlineID,"    //10
+        "   COALESCE(chr.solarSystemID, ss.solarSystemID, 0) AS solarSystemID," //7
+        "   COALESCE(chr.stationID, agt.locationID) AS stationID,"        //8
+        "   COALESCE(chr.gender, 0) AS gender,"                           //9
+        "   COALESCE(bl.bloodlineID, 1) AS bloodlineID,"                  //10
         "   itm.typeID, "
         "   crp.friendID, "
         "   crp.enemyID, "
         "   crp.factionID, "
-        "   chr.characterName " //15
+        "   COALESCE(chr.characterName, '') AS characterName "            //15
         " FROM agtAgents AS agt"
         " LEFT JOIN chrNPCCharacters AS chr ON chr.characterID = agt.agentID"
         " LEFT JOIN crpNPCCorporations AS crp ON crp.corporationID = agt.corporationID"
         " LEFT JOIN bloodlineTypes AS bl ON bl.typeID = chr.typeID"
         " LEFT JOIN mapDenormalize AS itm ON itm.itemID = agt.locationID"
+        " LEFT JOIN staStations AS ss ON ss.stationID = agt.locationID"
         " WHERE agt.agentID = %u", agentID))
     {
         codelog(DATABASE__ERROR, "Error in GetAgents query: %s", res.error.c_str());

@@ -1084,6 +1084,32 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
         //    pClient->SendNotification("OnItemsChanged", "charid", &tmp, false); //unsequenced.  <<--  this is called for multiple items
         //else
             pClient->SendNotification("OnItemChange", "clientID", &tmp, false); //unsequenced.  <<-- this is for single items
+            // Prime this item in godma when it arrives in a station hangar or office.
+            // Items in the hangar need to be in godma's invitems (GetItem() must return non-None)
+            // before the client can drag them to the cargo hold.  We fake locationID to shipID and
+            // send OnGodmaPrimeItem(shipID, row) so:
+            //   - OnGodmaPrimeItem IS dispatched via ScatterEvent (has the "On" prefix).
+            //   - itemsByLocationID[shipID] is always present (ship IB::List fires at login).
+            //   - has_key(shipID) check in the client's handler passes.
+            //   - UpdateItem: IsStation(shipID)==false, categoryID==categoryShip, flagCargoHold OK.
+            if ((sDataMgr.IsStation(m_data.locationID) || IsOfficeID(m_data.locationID)) && m_data.flag == flagHangar
+                    && m_data.ownerID == toID) {
+                uint32 shipID = pClient->GetShipID();
+                Rsp_CommonGetInfo_Entry godmaEntry;
+                if (this->Populate(godmaEntry) && shipID != 0) {
+                    if (godmaEntry.invItem != nullptr && !godmaEntry.invItem->IsNone()) {
+                        PyPackedRow* invRow = (PyPackedRow*)godmaEntry.invItem;
+                        invRow->SetField("locationID", new PyInt((int32)shipID));
+                        invRow->SetField("flagID", new PyInt(flagCargoHold));
+                    }
+                    _log(INV__MESSAGE, "SendItemChange: sending OnGodmaPrimeItem for item %s(%u) in station %u to char %s (locationID faked to shipID=%u, flagID faked to flagCargoHold)",
+                        m_data.name.c_str(), m_itemID, m_data.locationID, pClient->GetName(), shipID);
+                    PyTuple* primePayload = new PyTuple(2);
+                    primePayload->SetItem(0, new PyInt(shipID));              // shipID: itemsByLocationID[shipID] always exists
+                    primePayload->SetItem(1, new PyObject("util.KeyVal", godmaEntry.Encode()));
+                    pClient->SendNotification("OnGodmaPrimeItem", "charid", &primePayload);
+                }
+            }
     } else if (IsPlayerCorp(toID)) {
         if (sDataMgr.IsStation(m_data.locationID)) {
             sEntityList.CorpNotify(toID, Notify::Types::ItemUpdateStation, "OnItemChange","*stationid&corpid", tmp);
@@ -1240,7 +1266,14 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry& result )
     //} else if (m_type.id() == 51) { // for vouchers
     //    result.description = m_data.name;
 
-    if (pAttributeMap->GetAttribute(AttrOnline).get_bool()) {
+    // Only send effectOnline for module-category items. Ships and characters must not receive
+    // effectOnline in activeEffects: ships have AttrOnline=1 from InitAttribs() but are not
+    // modules, and sending effectOnline for ships causes the client dogma engine to apply the
+    // online-effect expressions (cpuLoad += ship.cpu) on the ship itself, which overloads the
+    // CPU budget and prevents all fitted modules from going online. This corrupts the fitting
+    // window state (wrong slot visibility, all modules offline) for every ship on login.
+    if ((m_type.categoryID() == EVEDB::invCategories::Module)
+    and (pAttributeMap->GetAttribute(AttrOnline).get_bool())) {
         EntityEffectState es;
             es.env_itemID = m_itemID;
             es.env_charID = m_data.ownerID;
@@ -1251,11 +1284,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry& result )
             es.env_effectID = 16;
             /** @todo fix this once we start tracking effects */
             // on login, this is current time
-            if (IsCharacterID(m_itemID)) {
-                es.startTime = GetFileTimeNow() - EvE::Time::Minute; // m_timestamp
-            } else {
-                es.startTime = GetFileTimeNow() - EvE::Time::Minute; // GetAttribute(AttrStartTime).get_int();
-            }
+            es.startTime = GetFileTimeNow() - EvE::Time::Minute;
             es.duration = -1;
             es.repeat = 0;
             es.randomSeed = PyStatic.NewNone();

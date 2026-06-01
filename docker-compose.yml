@@ -37,6 +37,9 @@ services:
       - MARIADB_USER=evemu
       - MARIADB_PASSWORD=evemu
       - MARIADB_DATABASE=evemu
+    command:
+      - --innodb-use-native-aio=0
+      - --log-warnings=1
 
 volumes:
   db:

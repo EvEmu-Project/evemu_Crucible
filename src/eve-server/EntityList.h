@@ -81,6 +81,8 @@ public:
     void AddPlayer(Client* pClient);
     //  this must only be called for a logged-in character.
     void RemovePlayer(Client* pClient);
+    //  removes a null/ghost entry from m_players by charID when no Client* is available.
+    void RemoveGhostPlayer(uint32 charID);
     void AddNPC()                                       { ++m_npcs; }
     void RemoveNPC()                                    { --m_npcs; }
     void SetService(EVEServiceManager* svc)             { m_services = svc; }
