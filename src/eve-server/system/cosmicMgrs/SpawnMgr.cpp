@@ -833,8 +833,7 @@ void SpawnMgr::MakeSpawn(SystemBubble* pBubble, uint32 factionID, uint8 sClass, 
             m_system->AddNPC(pNPC);
 
             pNPC->DestinyMgr()->SetPosition(startPos);
-            //  begin warp.  this may have to be looked into later for timing of large spawns (>6)
-            //  actually looks kinda cool when larger ships come in later...
+            //  begin warp - timing of rat fleet is ensured by destiny
             if (sClass <= Spawn::Class::Officer) {   // ratspawn will warp in, others will not.
                 // adjust warpIn point so show some variation instead of a straight line.
                 GPoint warpTo(warpToPoint);
