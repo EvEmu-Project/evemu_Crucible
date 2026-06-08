@@ -225,7 +225,14 @@ void DestinyManager::ProcessState() {
             float dot = toVec.dotProduct(m_shipHeading);
             float degrees = EvE::Trig::Rad2Deg(std::acos(dot));
 
-            if ((degrees < WARP_ALIGNMENT) and (m_timeFraction > 0.749)) {
+            if (mySE->IsNPCSE() && mySE->SysBubble()->CountPlayers() <= 0)
+            {
+                // this is an NPC that was spawned off-grid - nobody will ever see it, so just warp it in so it doesn't get disposed randomly
+                m_shipHeading = toVec;
+                InitWarp();
+                return;
+            } else if ((degrees < WARP_ALIGNMENT) and (m_timeFraction > 0.749)) {
+                // entering warp from here is the happy path for most cases
                 m_shipHeading = toVec;
                 InitWarp();
                 return;
