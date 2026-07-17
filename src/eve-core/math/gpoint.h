@@ -76,8 +76,39 @@ public:
     GVector(Ga::GaFloat X,Ga::GaFloat Y,Ga::GaFloat Z):Ga::GaVec3(X, Y, Z){}
     GVector(const GPoint& oth):Ga::GaVec3(oth){}
     GVector(const Ga::GaVec3& oth):Ga::GaVec3(oth){}
+    
+    // Исправленный конструктор направления между точками
     GVector(const GPoint& from, const GPoint& to)
-        : Ga::GaVec3( (to.x-from.x), (to.y-from.y), (to.z-from.z) ) {}
+        : Ga::GaVec3( (to.x - from.x), (to.y - from.y), (to.z - from.z) ) {}
+
+    // Явный, рабочий метод нормализации вектора для GVector
+    void normalize() {
+        double len = std::sqrt(x*x + y*y + z*z);
+        if (len > 1e-12) {
+            x /= len;
+            y /= len;
+            z /= len;
+        } else {
+            // Защита от деления на ноль, если точки совпали
+            x = 0.0;
+            y = 0.0;
+            z = 0.0;
+        }
+    }
+
+    // Возвращает длину вектора
+    double length() const {
+        return std::sqrt(x*x + y*y + z*z);
+    }
+
+    // Проверка вектора на нулевые значения
+    bool isZero() const {
+        return (std::abs(x) < 1e-6 && std::abs(y) < 1e-6 && std::abs(z) < 1e-6);
+    }
+    
+    bool isNotZero() const {
+        return !isZero();
+    }
 };
 
 class GVector4 : public GVector {

@@ -28,29 +28,24 @@
 double Vector3D::magnitude() const
 {
     double m;
-
-    //calculate the length of the Vector3D
     m = (x * x) + (y * y) + (z * z);
     m = sqrt(m);
-
     return m;
 }
 
 void Vector3D::normalize()
 {
-    double m;
-
-    //calculate the length of the Vector3D
-    m = (x * x) + (y * y) + (z * z);
-    m = sqrt(m);
-
-    // if the length is zero then the Vector3D is zero so return
-    if (m == 0)
-    {
+    double m = sqrt(x*x + y*y + z*z);
+    
+    // Если длина почти ноль — устанавливаем вектор в (1,0,0)
+    // Это защита от деления на ноль и от нулевого вектора
+    if (m < 1e-12) {
+        x = 0.0;
+        y = 0.0;
+        z = 0.0;
         return;
     }
-
-    //Scale the Vector3D to a unit length
+    
     x /= m;
     y /= m;
     z /= m;
@@ -72,7 +67,7 @@ Vector3D Vector3D::crossProduct(const Vector3D &v) const
 Vector3D Vector3D::reflection(Vector3D norm) const
 {
     Vector3D refl;
-    refl = norm * (-2 * dotProduct(norm));
+    refl = norm * (2 * dotProduct(norm));
     refl = (*this) - refl;
     return refl;
 }
