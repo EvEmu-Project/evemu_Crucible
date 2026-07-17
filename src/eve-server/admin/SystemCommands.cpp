@@ -30,6 +30,11 @@
 #include "tables/invGroups.h"
 #include "tables/invCategories.h"
 
+#include "market/MarketDB.h"
+#include "inventory/ItemType.h"
+#include "station/StationDataMgr.h"
+#include "system/SystemManager.h"
+
 PyResult Command_goto(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
     if (args.argCount() != 4
@@ -1059,5 +1064,273 @@ PyResult Command_pos(Client* pClient, CommandDB* db, EVEServiceManager &services
      * 16:39:26 [CmdDump]       Tuple: 1 elements
      * 16:39:26 [CmdDump]         [ 0] String: '/pos offline 140035963'
      */
+    return nullptr;
+}
+
+
+
+
+// ============================================================================
+// Market Command - /bay (FINAL VERSION)
+// ============================================================================
+
+/**
+ * Вспомогательная функция: поиск ID предмета по точному имени
+ */
+static uint32 FindItemIDByExactName(const std::string& itemName)
+{
+    DBQueryResult res;
+    DBResultRow row;
+    
+    std::string escapedName = itemName;
+    size_t pos = 0;
+    while ((pos = escapedName.find("'", pos)) != std::string::npos) {
+        escapedName.replace(pos, 1, "''");
+        pos += 2;
+    }
+    
+    if (sDatabase.RunQuery(res,
+        "SELECT typeID FROM invTypes WHERE typeName = '%s' AND published = 1 LIMIT 1",
+        escapedName.c_str())) {
+        if (res.GetRow(row)) {
+            return row.GetUInt(0);
+        }
+    }
+    
+    return 0;
+}
+
+/**
+ * Команда /bay - Создание SELL ордера от бота в Jita
+ * Использование: /bay ItemName* quantity
+ * Пример: /bay Tritanium* 1000
+ */
+PyResult Command_bay(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
+{
+    // Проверка аргументов
+    if (args.argCount() < 3) {
+        throw CustomError("Usage: /bay ItemName* quantity\n"
+                         "Example: /bay Tritanium* 1000");
+    }
+
+    // Собираем имя предмета из всех аргументов, кроме последнего
+    std::string itemName;
+    for (int i = 1; i < args.argCount() - 1; ++i) {
+        if (!itemName.empty()) itemName += " ";
+        itemName += args.arg(i);
+    }
+    
+    // Проверяем звездочку
+    if (itemName.find('*') == std::string::npos) {
+        throw CustomError("Item name must end with '*'\n"
+                         "Example: /bay Tritanium* 1000");
+    }
+    
+    // Удаляем звездочку
+    size_t starPos = itemName.find('*');
+    if (starPos != std::string::npos) {
+        itemName = itemName.substr(0, starPos);
+    }
+    
+    // Убираем пробелы в начале и конце
+    while (!itemName.empty() && itemName.back() == ' ') {
+        itemName.pop_back();
+    }
+    while (!itemName.empty() && itemName.front() == ' ') {
+        itemName.erase(0, 1);
+    }
+    
+    if (itemName.empty()) {
+        throw CustomError("Item name cannot be empty.");
+    }
+
+    // Парсим количество (последний аргумент)
+    if (!args.isNumber(args.argCount() - 1)) {
+        throw CustomError("Quantity must be a number.");
+    }
+    
+    uint32 quantity = atoi(args.arg(args.argCount() - 1).c_str());
+    if (quantity == 0) {
+        throw CustomError("Quantity must be greater than 0.");
+    }
+
+    // Ищем ID предмета
+    uint32 itemID = FindItemIDByExactName(itemName);
+    if (itemID == 0) {
+        throw CustomError("Item '%s' not found in database.", itemName.c_str());
+    }
+
+    // Получаем информацию о предмете
+    const ItemType* type = sItemFactory.GetType(itemID);
+    if (!type) {
+        throw CustomError("Invalid item ID: %u", itemID);
+    }
+
+    // Константы Jita
+    const uint32 JITA_STATION_ID = 60003760;
+    const uint32 JITA_SYSTEM_ID = 30000142;
+    const uint32 JITA_REGION_ID = 10000002;
+    const uint32 BOT_OWNER_ID = 90000002;
+
+    // Получаем данные системы
+    SystemData sysData;
+    if (!sDataMgr.GetSystemData(JITA_SYSTEM_ID, sysData)) {
+        throw CustomError("Failed to get system data.");
+    }
+
+    // Рассчитываем цену (базовая цена * 1.0)
+    double price = type->basePrice() * 1.0;
+
+    // Создаем SELL ордер от бота в Jita
+    Market::SaveData order;
+    order.typeID = itemID;
+    order.regionID = JITA_REGION_ID;
+    order.stationID = JITA_STATION_ID;
+    order.solarSystemID = JITA_SYSTEM_ID;
+    order.minVolume = 1;
+    order.volEntered = quantity;
+    order.volRemaining = quantity;
+    order.price = price;
+    order.escrow = 0;
+    order.duration = 30;
+    order.bid = false; // SELL
+    order.issued = GetFileTimeNow();
+    order.isCorp = false;
+    order.ownerID = BOT_OWNER_ID;
+    order.orderRange = -1;
+    order.memberID = 0;
+    order.accountKey = 1000;
+
+    bool success = MarketDB::StoreOrder(order);
+    
+    if (!success) {
+        throw CustomError("Failed to create SELL order.");
+    }
+
+    // Логируем создание
+    sLog.Green("Command", "%s: Created SELL order for %s (ID: %u) x%u at Jita, price %.2f ISK", 
+               pClient->GetName(), type->name().c_str(), itemID, quantity, price);
+
+    // Успех - без сообщения игроку
+    return nullptr;
+}
+
+
+// ============================================================================
+// Market Command - /sell (BUY order from bot at Jita, price * 0.9)
+// ============================================================================
+
+/**
+ * Команда /sell - Создание BUY ордера от бота в Jita (скупка)
+ * Использование: /sell ItemName* quantity
+ * Пример: /sell Tritanium* 1000
+ */
+PyResult Command_sell(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
+{
+    // Проверка аргументов
+    if (args.argCount() < 3) {
+        throw CustomError("Usage: /sell ItemName* quantity\n"
+                         "Example: /sell Tritanium* 1000");
+    }
+
+    // Собираем имя предмета из всех аргументов, кроме последнего
+    std::string itemName;
+    for (int i = 1; i < args.argCount() - 1; ++i) {
+        if (!itemName.empty()) itemName += " ";
+        itemName += args.arg(i);
+    }
+    
+    // Проверяем звездочку
+    if (itemName.find('*') == std::string::npos) {
+        throw CustomError("Item name must end with '*'\n"
+                         "Example: /sell Tritanium* 1000");
+    }
+    
+    // Удаляем звездочку
+    size_t starPos = itemName.find('*');
+    if (starPos != std::string::npos) {
+        itemName = itemName.substr(0, starPos);
+    }
+    
+    // Убираем пробелы в начале и конце
+    while (!itemName.empty() && itemName.back() == ' ') {
+        itemName.pop_back();
+    }
+    while (!itemName.empty() && itemName.front() == ' ') {
+        itemName.erase(0, 1);
+    }
+    
+    if (itemName.empty()) {
+        throw CustomError("Item name cannot be empty.");
+    }
+
+    // Парсим количество (последний аргумент)
+    if (!args.isNumber(args.argCount() - 1)) {
+        throw CustomError("Quantity must be a number.");
+    }
+    
+    uint32 quantity = atoi(args.arg(args.argCount() - 1).c_str());
+    if (quantity == 0) {
+        throw CustomError("Quantity must be greater than 0.");
+    }
+
+    // Ищем ID предмета
+    uint32 itemID = FindItemIDByExactName(itemName);
+    if (itemID == 0) {
+        throw CustomError("Item '%s' not found in database.", itemName.c_str());
+    }
+
+    // Получаем информацию о предмете
+    const ItemType* type = sItemFactory.GetType(itemID);
+    if (!type) {
+        throw CustomError("Invalid item ID: %u", itemID);
+    }
+
+    // Константы Jita
+    const uint32 JITA_STATION_ID = 60003760;
+    const uint32 JITA_SYSTEM_ID = 30000142;
+    const uint32 JITA_REGION_ID = 10000002;
+    const uint32 BOT_OWNER_ID = 90000002;
+
+    // Получаем данные системы
+    SystemData sysData;
+    if (!sDataMgr.GetSystemData(JITA_SYSTEM_ID, sysData)) {
+        throw CustomError("Failed to get system data.");
+    }
+
+    // Рассчитываем цену (базовая цена * 0.9 - скупка дешевле)
+    double price = type->basePrice() * 0.9;
+    double totalPrice = price * quantity;
+
+    // Создаем BUY ордер от бота в Jita
+    Market::SaveData order;
+    order.typeID = itemID;
+    order.regionID = JITA_REGION_ID;
+    order.stationID = JITA_STATION_ID;
+    order.solarSystemID = JITA_SYSTEM_ID;
+    order.minVolume = 1;
+    order.volEntered = quantity;
+    order.volRemaining = quantity;
+    order.price = price;
+    order.escrow = totalPrice;
+    order.duration = 30;
+    order.bid = true;  // BUY
+    order.issued = GetFileTimeNow();
+    order.isCorp = false;
+    order.ownerID = BOT_OWNER_ID;
+    order.orderRange = -1;
+    order.memberID = 0;
+    order.accountKey = 1000;
+
+    bool success = MarketDB::StoreOrder(order);
+    
+    if (!success) {
+        throw CustomError("Failed to create BUY order.");
+    }
+
+    // Логируем создание
+    sLog.Green("Command", "%s: Created BUY order for %s (ID: %u) x%u at Jita, price %.2f ISK (escrow: %.2f)", 
+               pClient->GetName(), type->name().c_str(), itemID, quantity, price, totalPrice);
+
     return nullptr;
 }

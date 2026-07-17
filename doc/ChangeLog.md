@@ -1,3 +1,11 @@
+*** Fix ***
+[REFACTOR] Reworked physics engine for official-like behavior (not exact replica)
+[MISC] Increased precision of coordinate, velocity, and vector calculations (partial, WIP)
+[DRONE] Added workarounds for drone behavior; now flying and engaging targets (further refinement required)
+[MARKET] Reworked MarketBot; currently supports ore only (configurable via hardcoded list or DB-driven randomization)
+[CMD] Added /bay and /sell commands: MarketBot now places orders in the station by item name , not ID. (only Jita IV - Moon 4 - Caldari Navy Assembly Plant)
+[MARKET] Added dedicated bot character (third slot, ID: 90000002); configurable via search in source files
+
 *** 0.8.6 ***
 - [FEAT] MarketBot
 - Market system fixes

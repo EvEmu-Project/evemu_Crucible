@@ -30,8 +30,8 @@ services:
     volumes:
       - db:/var/lib/mysql
     # If you want to connect to the Database pick your host port to map it to, (host-port:container-port) below. 
-    #ports:
-    #  - "3306:3306"  
+    ports:
+      - "3306:3306"  
     environment:
       - MARIADB_RANDOM_ROOT_PASSWORD=true
       - MARIADB_USER=evemu

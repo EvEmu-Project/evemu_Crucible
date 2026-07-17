@@ -3,8 +3,8 @@
     LICENSE:
     ------------------------------------------------------------------------------------
     This file is part of EVEmu: EVE Online Server Emulator
-    Copyright 2006 - 2008 The EVEmu Team
-    For the latest information visit http://evemu.mmoforge.org
+    Copyright 2006 - 2021 The EVEmu Team
+    For the latest information visit https://evemu.dev
     ------------------------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by the Free Software
@@ -73,6 +73,7 @@ public:
     /* specific functions handled here. */
     Client* GetOwner()                                  { return m_pClient; }
     DroneAIMgr* GetAI()                                 { return m_AI; }
+    SystemManager* GetSystemManager()                   { return m_system; }  // <-- ДОБАВЛЕНО
 
     void Launch(ShipSE* pShipSE);           //add drone entity to system
     void Online(ShipSE* pShipSE=nullptr);         //  if nullptr sent, assign to controlling ship
@@ -136,5 +137,3 @@ private:
 };
 
 #endif /* !__DRONE__H__INCL__ */
-
-

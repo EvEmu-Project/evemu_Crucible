@@ -65,6 +65,9 @@ public:
     double CalculateSellPrice(uint32 itemID);
 
     void ForceRun(bool resetTimer = true); // debug command to force MarketBot to run first cycle to generate NPC buy and sell orders.
+    
+    // Проверка количества ордеров для конкретного предмета на станции
+    bool HasTooManyOrders(uint32 itemID, uint32 stationID, bool isBuy);
     // ---
 private:
     TimePoint m_nextRunTime;

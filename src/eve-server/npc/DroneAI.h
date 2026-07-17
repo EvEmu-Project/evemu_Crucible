@@ -60,10 +60,17 @@ public:
     void SetIdle();
     void Return();
     void AssignShip(ShipSE* pSE)                        { m_assignedShip = pSE; }
+    
+    void SetEngaged(SystemEntity* pTarget);
+    void FightTarget(SystemEntity* pTarget);
+    
+    // Новые методы для управления приказами
+    void SetAttackOrder(bool active)                    { m_hasAttackOrder = active; }
+    bool HasAttackOrder() const                         { return m_hasAttackOrder; }
+    void StopAttack();  // Отменить приказ атаки
 
 protected:
     void Attack(SystemEntity* pTarget);
-    void SetEngaged(SystemEntity* pTarget);
     void ClearTarget(SystemEntity* pTarget);
     void AttackTarget(SystemEntity* pTarget);
     void CheckDistance(SystemEntity* pTarget);
@@ -96,6 +103,8 @@ private:
     Timer m_beginFindTarget;
     Timer m_warpScramblerTimer;
     Timer m_webifierTimer;
+
+    bool m_hasAttackOrder;  // <-- ДОБАВЛЕНО: запоминает приказ атаковать
 };
 
 #endif  // __EVEMU_SHIP_DRONEAI_H__

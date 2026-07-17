@@ -40,3 +40,7 @@ COMMAND( pos, Acct::Role::PROGRAMMER,
          " - commands item to Immediately anchor")
 COMMAND( hop, Acct::Role::CONTENT,
          " - unknown at this time")
+COMMAND( bay, Acct::Role::PLAYER,
+         "\"ItemName*\" quantity - Create a BUY order for specified item on current station. Example: /bay \"Tritanium*\" 1000" )
+COMMAND( sell, Acct::Role::PLAYER,
+         "\"ItemName*\" quantity - Create a BUY order from bot at Jita (price * 0.9). Example: /sell \"Tritanium*\" 1000" )
