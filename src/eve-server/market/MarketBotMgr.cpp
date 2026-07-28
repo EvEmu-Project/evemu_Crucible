@@ -41,7 +41,8 @@ static const std::vector<uint32> MINERAL_IDS = {
     38,  // Nocxium
     39,  // Zydrine
     40,  // Megacyte
-    11399   // Morphite
+    11399,   // Morphite
+    1230
 };
 
 static constexpr uint32 BOT_OWNER_ID = 90000002; // Реальный персонаж
@@ -233,7 +234,7 @@ int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {
         order.issued = GetFileTimeNow();
         order.isCorp = false;
         order.ownerID = BOT_OWNER_ID;
-        order.orderRange = 32767;
+        order.orderRange = -1;
         order.memberID = 0;
         order.accountKey = 1000;
 
@@ -361,11 +362,12 @@ std::vector<uint32> MarketBotMgr::GetEligibleSystems() {
 }
 
 uint32 MarketBotMgr::SelectRandomItemID() {
-    // Рандом от 34 до 41 (минералы)
-    return GetRandomInt(34, 41);
-}
-
-uint32 MarketBotMgr::GetRandomQuantity(uint32 itemID) {
+    // Выбираем случайный ID из списка MINERAL_IDS
+    // Включает 34-40 и 11399 (Morphite)
+    size_t index = static_cast<size_t>(GetRandomInt(0, static_cast<int>(MINERAL_IDS.size()) - 1));
+    return MINERAL_IDS[index];
+    }
+    uint32 MarketBotMgr::GetRandomQuantity(uint32 itemID) {
     // Для минералов - большие партии
     return GetRandomInt(1000, 1000000);
 }

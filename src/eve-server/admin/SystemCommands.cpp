@@ -1100,13 +1100,22 @@ static uint32 FindItemIDByExactName(const std::string& itemName)
     return 0;
 }
 
+// ============================================================================
+// Market Command - /bay (FINAL VERSION - using direct SQL)
+// ============================================================================
+
 /**
- * Команда /bay - Создание SELL ордера от бота в Jita
+ * Команда /bay - Создание SELL ордера на станции игрока
  * Использование: /bay ItemName* quantity
  * Пример: /bay Tritanium* 1000
  */
 PyResult Command_bay(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
+    // Проверка, что игрок на станции
+    if (!pClient->IsDocked()) {
+        throw CustomError("You must be docked at a station to use this command.");
+    }
+
     // Проверка аргументов
     if (args.argCount() < 3) {
         throw CustomError("Usage: /bay ItemName* quantity\n"
@@ -1166,27 +1175,36 @@ PyResult Command_bay(Client* pClient, CommandDB* db, EVEServiceManager &services
         throw CustomError("Invalid item ID: %u", itemID);
     }
 
-    // Константы Jita
-    const uint32 JITA_STATION_ID = 60003760;
-    const uint32 JITA_SYSTEM_ID = 30000142;
-    const uint32 JITA_REGION_ID = 10000002;
-    const uint32 BOT_OWNER_ID = 90000002;
-
-    // Получаем данные системы
-    SystemData sysData;
-    if (!sDataMgr.GetSystemData(JITA_SYSTEM_ID, sysData)) {
-        throw CustomError("Failed to get system data.");
+    // Получаем ID станции игрока
+    uint32 stationID = pClient->GetStationID();
+    
+    // Получаем данные станции через прямой SQL-запрос
+    DBQueryResult res;
+    DBResultRow row;
+    
+    if (!sDatabase.RunQuery(res, 
+        "SELECT solarSystemID, regionID FROM staStations WHERE stationID = %u LIMIT 1;", 
+        stationID)) {
+        throw CustomError("Failed to query station data: %s", res.error.c_str());
     }
+    
+    if (!res.GetRow(row)) {
+        throw CustomError("Station %u not found in database.", stationID);
+    }
+    
+    uint32 systemID = row.GetUInt(0);
+    uint32 regionID = row.GetUInt(1);
+    const uint32 BOT_OWNER_ID = 90000002;
 
     // Рассчитываем цену (базовая цена * 1.0)
     double price = type->basePrice() * 1.0;
 
-    // Создаем SELL ордер от бота в Jita
+    // Создаем SELL ордер от бота на станции игрока
     Market::SaveData order;
     order.typeID = itemID;
-    order.regionID = JITA_REGION_ID;
-    order.stationID = JITA_STATION_ID;
-    order.solarSystemID = JITA_SYSTEM_ID;
+    order.regionID = regionID;
+    order.stationID = stationID;
+    order.solarSystemID = systemID;
     order.minVolume = 1;
     order.volEntered = quantity;
     order.volRemaining = quantity;
@@ -1208,25 +1226,29 @@ PyResult Command_bay(Client* pClient, CommandDB* db, EVEServiceManager &services
     }
 
     // Логируем создание
-    sLog.Green("Command", "%s: Created SELL order for %s (ID: %u) x%u at Jita, price %.2f ISK", 
-               pClient->GetName(), type->name().c_str(), itemID, quantity, price);
+    sLog.Green("Command", "%s: Created SELL order for %s (ID: %u) x%u at station %u (system %u), price %.2f ISK", 
+               pClient->GetName(), type->name().c_str(), itemID, quantity, stationID, systemID, price);
 
-    // Успех - без сообщения игроку
     return nullptr;
 }
 
 
 // ============================================================================
-// Market Command - /sell (BUY order from bot at Jita, price * 0.9)
+// Market Command - /sell (FINAL VERSION - using direct SQL)
 // ============================================================================
 
 /**
- * Команда /sell - Создание BUY ордера от бота в Jita (скупка)
+ * Команда /sell - Создание BUY ордера на станции игрока (скупка)
  * Использование: /sell ItemName* quantity
  * Пример: /sell Tritanium* 1000
  */
 PyResult Command_sell(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
+    // Проверка, что игрок на станции
+    if (!pClient->IsDocked()) {
+        throw CustomError("You must be docked at a station to use this command.");
+    }
+
     // Проверка аргументов
     if (args.argCount() < 3) {
         throw CustomError("Usage: /sell ItemName* quantity\n"
@@ -1286,28 +1308,37 @@ PyResult Command_sell(Client* pClient, CommandDB* db, EVEServiceManager &service
         throw CustomError("Invalid item ID: %u", itemID);
     }
 
-    // Константы Jita
-    const uint32 JITA_STATION_ID = 60003760;
-    const uint32 JITA_SYSTEM_ID = 30000142;
-    const uint32 JITA_REGION_ID = 10000002;
-    const uint32 BOT_OWNER_ID = 90000002;
-
-    // Получаем данные системы
-    SystemData sysData;
-    if (!sDataMgr.GetSystemData(JITA_SYSTEM_ID, sysData)) {
-        throw CustomError("Failed to get system data.");
+    // Получаем ID станции игрока
+    uint32 stationID = pClient->GetStationID();
+    
+    // Получаем данные станции через прямой SQL-запрос
+    DBQueryResult res;
+    DBResultRow row;
+    
+    if (!sDatabase.RunQuery(res, 
+        "SELECT solarSystemID, regionID FROM staStations WHERE stationID = %u LIMIT 1;", 
+        stationID)) {
+        throw CustomError("Failed to query station data: %s", res.error.c_str());
     }
+    
+    if (!res.GetRow(row)) {
+        throw CustomError("Station %u not found in database.", stationID);
+    }
+    
+    uint32 systemID = row.GetUInt(0);
+    uint32 regionID = row.GetUInt(1);
+    const uint32 BOT_OWNER_ID = 90000002;
 
     // Рассчитываем цену (базовая цена * 0.9 - скупка дешевле)
     double price = type->basePrice() * 0.9;
     double totalPrice = price * quantity;
 
-    // Создаем BUY ордер от бота в Jita
+    // Создаем BUY ордер от бота на станции игрока
     Market::SaveData order;
     order.typeID = itemID;
-    order.regionID = JITA_REGION_ID;
-    order.stationID = JITA_STATION_ID;
-    order.solarSystemID = JITA_SYSTEM_ID;
+    order.regionID = regionID;
+    order.stationID = stationID;
+    order.solarSystemID = systemID;
     order.minVolume = 1;
     order.volEntered = quantity;
     order.volRemaining = quantity;
@@ -1329,8 +1360,8 @@ PyResult Command_sell(Client* pClient, CommandDB* db, EVEServiceManager &service
     }
 
     // Логируем создание
-    sLog.Green("Command", "%s: Created BUY order for %s (ID: %u) x%u at Jita, price %.2f ISK (escrow: %.2f)", 
-               pClient->GetName(), type->name().c_str(), itemID, quantity, price, totalPrice);
+    sLog.Green("Command", "%s: Created BUY order for %s (ID: %u) x%u at station %u (system %u), price %.2f ISK (escrow: %.2f)", 
+               pClient->GetName(), type->name().c_str(), itemID, quantity, stationID, systemID, price, totalPrice);
 
     return nullptr;
 }

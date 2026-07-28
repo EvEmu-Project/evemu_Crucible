@@ -222,7 +222,7 @@ EVEServerConfig::EVEServerConfig()
     crime.WeaponFlagTime = 60 /*s*/;//N
 
     // testing
-    testing.EnableDrones = false;
+    testing.EnableDrones = true;
     testing.ShipHeat = false;
 
     // debug
@@ -231,7 +231,7 @@ EVEServerConfig::EVEServerConfig()
     debug.BubbleTrack = false;
     debug.IsTestServer = true;
     debug.UseProfiling = false;
-    debug.PositionHack = false;
+    debug.PositionHack = true;
     debug.UseShipTracking = false;
     debug.DeleteTrackingCans = true;
     debug.SpawnTest = false;

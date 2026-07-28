@@ -41,6 +41,6 @@ COMMAND( pos, Acct::Role::PROGRAMMER,
 COMMAND( hop, Acct::Role::CONTENT,
          " - unknown at this time")
 COMMAND( bay, Acct::Role::PLAYER,
-         "\"ItemName*\" quantity - Create a BUY order for specified item on current station. Example: /bay \"Tritanium*\" 1000" )
+         "\"ItemName*\" quantity - Create a SELL order at your current station. Example: /bay \"Tritanium*\" 1000" )
 COMMAND( sell, Acct::Role::PLAYER,
-         "\"ItemName*\" quantity - Create a BUY order from bot at Jita (price * 0.9). Example: /sell \"Tritanium*\" 1000" )
+         "\"ItemName*\" quantity - Create a BUY order at your current station (price * 0.9). Example: /sell \"Tritanium*\" 1000" )
