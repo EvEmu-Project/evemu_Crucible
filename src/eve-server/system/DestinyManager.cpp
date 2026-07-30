@@ -1164,22 +1164,105 @@ void DestinyManager::WarpUpdate(double currentShipSpeed) {
 
 void DestinyManager::WarpStop(double currentShipSpeed) {
     if (is_log_enabled(DESTINY__WARP_TRACE)) {
-        _log(DESTINY__WARP_TRACE, "Destiny::WarpStop(): %s(%u) - Warp complete. Exit velocity %.4f m/s with %.2f m left to go.",
-                mySE->GetName(), mySE->GetID(), currentShipSpeed, m_targetDistance);
+        _log(DESTINY__WARP_TRACE, 
+            "Destiny::WarpStop(): %s(%u) - Warp complete. Exit velocity %.4f m/s with %.2f m left to go.",
+            mySE->GetName(), mySE->GetID(), currentShipSpeed, m_targetDistance
+        );
     }
-    if (mySE->IsShipSE()) {
-        _log(AUTOPILOT__MESSAGE, "Destiny::WarpStop(): %s(%u) - Warp complete.", mySE->GetName(), mySE->GetID());
-        mySE->GetPilot()->SetLoginWarpComplete();
-    }
-    m_targetPoint += (m_warpState->warp_vector * 10000);
-    SetSpeedFraction(0.0);
+    
+    // ===== 1. ОБНОВЛЯЕМ ПАРАМЕТРЫ КОРАБЛЯ =====
+    UpdateShipVariables();
+    
+    // ===== 2. СОХРАНЯЕМ ВАРП-ВЕКТОР ДЛЯ ФИНАЛЬНОЙ КОРРЕКЦИИ =====
+    GVector warpVector = m_warpState->warp_vector;
+    
+    // ===== 3. СБРАСЫВАЕМ ВСЕ СКОРОСТИ =====
+    m_velocity = GVector(0, 0, 0);
+    m_oldVelocity = GVector(0, 0, 0);
+    m_targetVelocity = GVector(0, 0, 0);
+    
+    // ===== 4. ВОССТАНАВЛИВАЕМ НОРМАЛЬНЫЕ ПАРАМЕТРЫ =====
+    m_maxSpeed = m_maxShipSpeed;
+    m_userSpeedFraction = 0.0;
+    m_activeSpeedFraction = 0.0;
     m_stop = true;
+    m_ballMode = Destiny::Ball::Mode::STOP;
+    m_stateStamp = sEntityList.GetStamp();
+    
+    // ===== 5. КОРРЕКТИРУЕМ ФИНАЛЬНУЮ ПОЗИЦИЮ =====
+    m_targetPoint += (warpVector * 10000);
+    
+    // ===== 6. ОБНОВЛЯЕМ ПОЗИЦИЮ (ТОЛЬКО СЕРВЕР, БЕЗ ОТПРАВКИ КЛИЕНТУ) =====
+    m_position = m_targetPoint;
+    mySE->SetPosition(m_position);
+    
+    // ===== 7. ВЫЧИСЛЯЕМ HEADING =====
+    CalculateHeading();
+    
+    // ===== 8. ВЫЧИСЛЯЕМ ROLL =====
+    CalculateRoll(GetDeltaTime());
+    
+    // ===== 9. ОТПРАВЛЯЕМ ОДИН ПАКЕТ С ПОЗИЦИЕЙ И СКОРОСТЬЮ =====
+    std::vector<PyTuple*> updates;
+    
+    // Позиция
+    SetBallPosition posPacket;
+    posPacket.entityID = mySE->GetID();
+    posPacket.x = m_position.x;
+    posPacket.y = m_position.y;
+    posPacket.z = m_position.z;
+    updates.push_back(posPacket.Encode());
+    
+    // Скорость (ноль)
+    SetBallVelocity velPacket;
+    velPacket.entityID = mySE->GetID();
+    velPacket.x = 0;
+    velPacket.y = 0;
+    velPacket.z = 0;
+    updates.push_back(velPacket.Encode());
+    
+    // Команда STOP для отключения клиентской физики
+    CmdStop stopPacket;
+    stopPacket.entityID = mySE->GetID();
+    updates.push_back(stopPacket.Encode());
+    
+    // Отправляем одним пакетом
+    SendDestinyUpdate(updates);
+    
+    // ===== 10. ПРОВЕРЯЕМ КОЛЛИЗИИ =====
+    if (mySE->HasPilot())
+        CheckBump();
+    
+    // ===== 11. ОЧИЩАЕМ СОСТОЯНИЕ ВАРПА =====
     SafeDelete(m_warpState);
     m_targBubble = nullptr;
+    
+    // ===== 12. ДЛЯ КОРАБЛЕЙ ИГРОКОВ =====
+    if (mySE->IsShipSE()) {
+        _log(AUTOPILOT__MESSAGE, 
+            "Destiny::WarpStop(): %s(%u) - Warp complete.", 
+            mySE->GetName(), mySE->GetID()
+        );
+        if (mySE->HasPilot()) {
+            mySE->GetPilot()->SetLoginWarpComplete();
+        }
+    }
+    
+    // ===== 13. ДЛЯ NPC =====
     if ((mySE->IsNPCSE()) and (mySE->GetNPCSE()->GetAIMgr() != nullptr)) {
         mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
     }
-    Halt();
+    
+    // ===== 14. ЛОГИРУЕМ РЕЗУЛЬТАТ =====
+    if (is_log_enabled(DESTINY__MOVE_TRACE)) {
+        _log(DESTINY__MOVE_TRACE, 
+            "WarpStop complete: %s(%u) pos=(%.2f,%.2f,%.2f) maxSpeed=%.2f, agility=%.3f, mass=%.2f, velocity=(%.2f,%.2f,%.2f)",
+            mySE->GetName(), mySE->GetID(),
+            m_position.x, m_position.y, m_position.z,
+            m_maxShipSpeed, m_agility, m_mass,
+            m_velocity.x, m_velocity.y, m_velocity.z
+        );
+    }
 }
 
 void DestinyManager::WarpTo(const GPoint& where, int32 distance, bool autoPilot, SystemEntity* pSE) {
@@ -1194,46 +1277,97 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance, bool autoPilot,
     m_targetEntity.first = 0;
     m_targetEntity.second = nullptr;
 
-    m_stopDistance = distance;
+    // ===== РАСЧЕТ ДИСТАНЦИИ С УЧЕТОМ РАДИУСА =====
+    double stopDistance = static_cast<double>(distance);
+    double targetRadius = 0.0;
+    double myRadius = mySE->GetRadius();
+    double minDistance = 1000.0;  // Минимальная дистанция по умолчанию
+    
+    if (pSE) {
+        targetRadius = pSE->GetRadius();
+        
+        // Минимальная дистанция = радиус цели + радиус корабля + запас
+        minDistance = targetRadius + myRadius + 1000.0;  // 1км запас
+        
+        // Проверяем тип цели через существующие методы
+        if (pSE->IsStationSE()) {
+            // Для станций - паркуемся рядом
+            minDistance = targetRadius + myRadius + 500.0;
+            
+            // Используем существующий метод GetDockPosY
+            double dockY = stDataMgr.GetDockPosY(pSE->GetID());
+            if (dockY > 0) {
+                // Если есть точка дока - используем её Y координату
+                // Но не меняем where, так как это const
+                _log(DESTINY__WARP_TRACE, 
+                    "WarpTo: Station %s(%u) dockY=%.2f, radius=%.2f",
+                    pSE->GetName(), pSE->GetID(), dockY, targetRadius);
+            }
+        }
+        else if (pSE->IsShipSE()) {
+            // Для кораблей - держимся на расстоянии
+            minDistance = targetRadius + myRadius + 2000.0;  // 2км до корабля
+        }
+        // Убираем IsStructureSE - его нет
+    }
+    
+    // Используем переданную дистанцию или минимальную
+    if (stopDistance < minDistance) {
+        _log(DESTINY__WARP_TRACE, 
+            "WarpTo: Adjusted stopDistance from %.2f to %.2f (minDistance)",
+            stopDistance, minDistance);
+        stopDistance = minDistance;
+    }
+    
+    m_stopDistance = static_cast<int32>(stopDistance);
+    
+    // ===== РАСЧЕТ КОНЕЧНОЙ ТОЧКИ =====
     GVector warp_distance(m_position, where);
-    m_targetDistance = warp_distance.length();
-    m_targetDistance -= static_cast<double>(m_stopDistance);
+    double totalDistance = warp_distance.length();
+    m_targetDistance = totalDistance - stopDistance;
+    
+    // Защита от отрицательной дистанции
+    if (m_targetDistance < 100.0) {
+        _log(DESTINY__WARNING, 
+            "WarpTo: Target too close! totalDist=%.2f, stopDist=%.2f, targetDist=%.2f",
+            totalDistance, stopDistance, m_targetDistance);
+        m_targetDistance = 100.0;
+        stopDistance = totalDistance - 100.0;
+        m_stopDistance = static_cast<int32>(stopDistance);
+    }
+    
+    // Вычисляем точку назначения
     warp_distance.normalize();
-    warp_distance *= m_stopDistance;
-    m_targetPoint -= warp_distance;
-
-    m_targBubble = sBubbleMgr.GetBubble(mySE->SystemMgr(), m_targetPoint);
-    if (is_log_enabled(DESTINY__WARP_TRACE))
-        _log(DESTINY__TRACE, "Destiny::WarpTo() - %s(%u) target bubble: %u  m_stopDistance: %i  m_targetDistance: %.2f",
-            mySE->GetName(), mySE->GetID(), m_targBubble->GetID(), m_stopDistance, m_targetDistance);
-
-    if (mySE->IsNPCSE() or mySE->IsDroneSE()) {
-        m_ballMode = Destiny::Ball::Mode::WARP;
-
-        std::vector<PyTuple*> updates;
-        CmdWarpTo wt;
-        wt.entityID = mySE->GetID();
-        wt.dest_x = m_targetPoint.x;
-        wt.dest_y = m_targetPoint.y;
-        wt.dest_z = m_targetPoint.z;
-        wt.distance = m_stopDistance;
-        wt.warpSpeed = GetWarpSpeed();
-        updates.push_back(wt.Encode());
-        OnSpecialFX10 sfx;
-        sfx.guid = "effects.Warping";
-        sfx.entityID = mySE->GetID();
-        sfx.isOffensive = false;
-        sfx.start = true;
-        sfx.active = true;
-        updates.push_back(sfx.Encode());
-        SendDestinyUpdate(updates);
-        if (is_log_enabled(NPC__MESSAGE))
-            _log(NPC__MESSAGE, "Destiny::WarpTo() NPC %s(%u) to:%u from:%u, m_targetPoint: %.2f,%.2f,%.2f  m_stopDistance: %i  m_targetDistance: %.2f",
-                    mySE->GetName(), mySE->GetID(), m_targBubble->GetID(), mySE->SysBubble()->GetID(),
-                    m_targetPoint.x, m_targetPoint.y, m_targetPoint.z, m_stopDistance, m_targetDistance);
-        return;
+    warp_distance *= stopDistance;
+    m_targetPoint = where - warp_distance;
+    
+    // Проверяем, что точка не внутри цели
+    if (pSE && pSE->GetRadius() > 0) {
+        double distToTarget = m_position.distance(m_targetPoint);
+        if (distToTarget < pSE->GetRadius()) {
+            // Если точка внутри цели - корректируем
+            GVector correction(m_targetPoint, where);
+            correction.normalize();
+            correction *= (pSE->GetRadius() + myRadius + 500.0);
+            m_targetPoint = where - correction;
+            
+            _log(DESTINY__WARNING, 
+                "WarpTo: Corrected target point (was inside target radius)");
+        }
     }
 
+    // ===== ПОЛУЧАЕМ БАБЛ ДЛЯ ТОЧКИ НАЗНАЧЕНИЯ =====
+    m_targBubble = sBubbleMgr.GetBubble(mySE->SystemMgr(), m_targetPoint);
+    
+    if (is_log_enabled(DESTINY__WARP_TRACE)) {
+        _log(DESTINY__TRACE, 
+            "Destiny::WarpTo() - %s(%u) target bubble: %u  stopDistance: %.2f  targetDistance: %.2f  targetRadius: %.2f",
+            mySE->GetName(), mySE->GetID(), 
+            m_targBubble ? m_targBubble->GetID() : 0,
+            stopDistance, m_targetDistance, targetRadius);
+    }
+
+    // ===== ПРОВЕРКА КАПА =====
     if (mySE->HasPilot()) {
         if (m_targetDistance < static_cast<double>(minWarpDistance)) {
             mySE->GetPilot()->SendErrorMsg("That is too close for your Warp Drive.");
@@ -1245,29 +1379,22 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance, bool autoPilot,
         }
 
         Client *pClient = mySE->GetPilot();
-
         double currentShipCap = pClient->GetShip()->GetAttribute(AttrCapacitorCharge).get_float();
-        double capNeeded = m_mass * m_warpCapacitorNeed * (static_cast<double>(m_targetDistance) / static_cast<double>(ONE_AU_IN_METERS));
+        double capNeeded = m_mass * m_warpCapacitorNeed * (m_targetDistance / static_cast<double>(ONE_AU_IN_METERS));
         capNeeded *= (1.0 - (0.1 * pClient->GetChar()->GetSkillLevel(EvESkill::WarpDriveOperation)));
-
-        _log(DESTINY__WARNING, "Warp Cap need for %s(%u) is %.4f", mySE->GetName(), mySE->GetID(), capNeeded);
 
         if (capNeeded > currentShipCap) {
             capNeeded = (currentShipCap / m_warpCapacitorNeed) / m_mass;
             if (capNeeded > 1) {
-                m_targetDistance = static_cast<double>(capNeeded) * static_cast<double>(ONE_AU_IN_METERS);
+                m_targetDistance = capNeeded * static_cast<double>(ONE_AU_IN_METERS);
                 GVector warp_direction(m_position, where);
                 GPoint newTarget(m_position + (warp_direction * m_targetDistance));
-
                 m_targBubble = sBubbleMgr.GetBubble(mySE->SystemMgr(), newTarget);
-                if (is_log_enabled(DESTINY__WARP_TRACE))
-                    _log(DESTINY__TRACE, "Destiny::WarpTo():Update - %s(%u) target bubble: %u  m_stopDistance: %i  m_targetDistance: %.2f",
-                        mySE->GetName(), mySE->GetID(), m_targBubble->GetID(), m_stopDistance, m_targetDistance);
             } else {
                 pClient->SendErrorMsg("You don't have enough capacitor charge to warp.");
-                _log(DESTINY__WARNING, "Destiny::WarpTo() - %s(%u): Capacitor needed vs current  %.3f / %.3f",
-                        mySE->GetName(), mySE->GetID(), capNeeded, currentShipCap);
-
+                _log(DESTINY__WARNING, 
+                    "Destiny::WarpTo() - %s(%u): Capacitor needed vs current  %.3f / %.3f",
+                    mySE->GetName(), mySE->GetID(), capNeeded, currentShipCap);
                 m_ballMode = Destiny::Ball::Mode::STOP;
                 m_targBubble = nullptr;
                 SafeDelete(m_warpState);
@@ -1276,19 +1403,20 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance, bool autoPilot,
         } else {
             capNeeded = currentShipCap - capNeeded;
         }
-
         m_capNeeded = capNeeded;
     }
 
-    if (m_targBubble->HasWarpBubble()) {
-        if (!mySE->GetSelf()->HasAttribute(AttrWarpBubbleImmune))
-            ;
+    // ===== ОТПРАВКА ПАКЕТОВ =====
+    if (m_targBubble && m_targBubble->HasWarpBubble()) {
+        if (!mySE->GetSelf()->HasAttribute(AttrWarpBubbleImmune)) {
+            // Попали в варп-бабл
+            // ...
+        }
     }
 
     m_ballMode = Destiny::Ball::Mode::WARP;
 
     std::vector<PyTuple*> updates;
-
     CmdWarpTo wt;
     wt.entityID = mySE->GetID();
     wt.dest_x = m_targetPoint.x;
@@ -1296,7 +1424,6 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance, bool autoPilot,
     wt.dest_z = m_targetPoint.z;
     wt.distance = m_stopDistance;
     wt.warpSpeed = GetWarpSpeed();
-
     updates.push_back(wt.Encode());
 
     OnSpecialFX10 sfx;
@@ -1305,10 +1432,9 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance, bool autoPilot,
     sfx.isOffensive = false;
     sfx.start = true;
     sfx.active = true;
-
     updates.push_back(sfx.Encode());
+    
     SendDestinyUpdate(updates);
-    updates.clear();
 
     SetBallMassive bm;
     bm.entityID = mySE->GetID();
@@ -1317,16 +1443,12 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance, bool autoPilot,
     SendSingleDestinyUpdate(&up, true);
 
     if (is_log_enabled(DESTINY__WARP_TRACE)) {
-        _log(
-            DESTINY__WARP_TRACE,
-            "Destiny::WarpTo() toBubble:%u from:%u, m_targetPoint: %.2f,%.2f,%.2f  m_stopDistance: %i  m_targetDistance: %.2f",
-            m_targBubble->GetID(),
-            mySE->SysBubble()->GetID(),
-            m_targetPoint.x,
-            m_targetPoint.y,
-            m_targetPoint.z,
-            m_stopDistance,
-            m_targetDistance
+        _log(DESTINY__WARP_TRACE,
+            "Destiny::WarpTo() toBubble:%u from:%u, targetPoint: (%.2f,%.2f,%.2f) stopDistance: %i targetDistance: %.2f",
+            m_targBubble ? m_targBubble->GetID() : 0,
+            mySE->SysBubble() ? mySE->SysBubble()->GetID() : 0,
+            m_targetPoint.x, m_targetPoint.y, m_targetPoint.z,
+            m_stopDistance, m_targetDistance
         );
     }
 }
@@ -1580,7 +1702,7 @@ void DestinyManager::UpdateShipVariables() {
     m_massMKg = m_mass / 1000000;
 
     if (sRef->HasAttribute(AttrWarpSpeedMultiplier))
-        m_shipWarpSpeed = sRef->GetAttribute(AttrWarpSpeedMultiplier).get_float();
+        m_shipWarpSpeed = sRef->GetAttribute(AttrWarpSpeedMultiplier).get_float() * 3.0; // стандартную скорсть 3 а.е. домножаем на модификатор
     if (sRef->HasAttribute(AttrInetia))
         m_shipInertia = sRef->GetAttribute(AttrInetia).get_float();
     if (sRef->HasAttribute(AttrMaxVelocity))

@@ -1263,9 +1263,9 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry& result )
     }
 
     for (AttrMapItr itr = pAttributeMap->begin(), end = pAttributeMap->end(); itr != end; ++itr) {
-        //localization.GetByLabel('UI/Fitting/FittingWindow/WarpSpeed', distText=util.FmtDist(max(1.0, bws) * wsm * 3 * const.AU, 2))
+        //localization.GetByLabel('UI/Fitting/FittingWindow/WarpSpeed', distText=util.FmtDist(max(1.0, bws) * wsm * 3 * const.AU, 2)) Деление на 3 теперь при вызове данных из БД, теперь это модификатор скорости Варпа
         if ((*itr).first == AttrWarpSpeedMultiplier) {
-            result.attributes[AttrWarpSpeedMultiplier] = new PyFloat((*itr).second.get_float() /3);
+            result.attributes[AttrWarpSpeedMultiplier] = new PyFloat((*itr).second.get_float());
         } else {
             result.attributes[(*itr).first] = (*itr).second.GetPyObject();
         }

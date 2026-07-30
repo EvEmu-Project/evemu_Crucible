@@ -458,7 +458,7 @@ PyRep *ObjCacheDB::Generate_invTypeReactions()
 PyRep *ObjCacheDB::Generate_dgmTypeAttribs()
 {
     DBQueryResult res;
-    const char *q = "SELECT typeID, attributeID, IF(valueInt IS NULL, valueFloat, valueInt) AS value FROM dgmTypeAttributes";
+    const char *q = "SELECT typeID, attributeID, CASE WHEN attributeID = 600 THEN IF(valueInt IS NULL, valueFloat, valueInt) / 3.0 ELSE IF(valueInt IS NULL, valueFloat, valueInt) END AS value FROM dgmTypeAttributes";
     if (!sDatabase.RunQuery(res, q))
     {
         _log(DATABASE__ERROR, "Error in query for cached object 'config.BulkData.dgmtypeattribs': %s",res.error.c_str());
@@ -466,6 +466,7 @@ PyRep *ObjCacheDB::Generate_dgmTypeAttribs()
     }
     return DBResultToCRowset(res);
 }
+
 
 PyRep *ObjCacheDB::Generate_dgmTypeEffects()
 {

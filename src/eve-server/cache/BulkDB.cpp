@@ -354,7 +354,10 @@ PyRep* BulkDB::GetDogmaTypeAttribs(uint8 chunkID)   // 36 chunks
 {   //353290
     DBQueryResult res;
     std::ostringstream q;
-    q << "SELECT typeID, attributeID, IF(valueInt IS NULL, valueFloat, valueInt) AS value FROM dgmTypeAttributes";
+    q << "SELECT typeID, attributeID, CASE WHEN attributeID = 600 THEN IF(valueInt IS NULL, valueFloat, valueInt) / 3.0 ELSE IF(valueInt IS NULL, valueFloat, valueInt) END AS value FROM dgmTypeAttributes";
+
+
+    
     switch (chunkID) {
         case 1: {
             q << " LIMIT 0, 10000";

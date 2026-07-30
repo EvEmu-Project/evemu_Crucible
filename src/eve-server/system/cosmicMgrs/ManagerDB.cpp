@@ -85,11 +85,15 @@ void ManagerDB::GetAttributeTypes(DBQueryResult& res)
 
 void ManagerDB::GetTypeAttributes(DBQueryResult& res)
 {
-    if (!sDatabase.RunQuery(res, "SELECT typeID, attributeID, valueInt, valueFloat FROM dgmTypeAttributes"))
+    // Модифицируем SQL-запрос: если attributeID равен 600, делим значение valueFloat на 3.0
+    const char* q = "SELECT typeID, attributeID, valueInt, CASE WHEN attributeID = 600 THEN valueFloat / 3.0 ELSE valueFloat END AS valueFloat FROM dgmTypeAttributes";
+
+    if (!sDatabase.RunQuery(res, q))
         codelog(DATABASE__ERROR, "Error in GetTypeAttributes query: %s", res.error.c_str());
 
     _log(DATABASE__RESULTS, "GetTypeAttributes returned %lu items", res.GetRowCount());
 }
+
 
 void ManagerDB::LoadNPCCorpFactionData(DBQueryResult& res)
 {
