@@ -37,8 +37,16 @@ PhotoUploadService::PhotoUploadService() :
 
 PyResult PhotoUploadService::Upload(PyCallArgs &call, PyString* contents)
 {
-    std::shared_ptr<std::vector<char> > data(new std::vector<char>(contents->content().begin(), contents->content().end()));
-    sImageServer.ReportNewImage(call.client->GetUserID(), data);
+    if (contents == nullptr || contents->content().empty() ||
+        contents->content().size() > ImageServerLimits::MAX_IMAGE_BYTES)
+        return new PyBool(false);
+
+    std::shared_ptr<std::vector<char> > data(
+        new std::vector<char>(
+            contents->content().begin(),
+            contents->content().end()));
+    if (!sImageServer.ReportNewImage(call.client->GetUserID(), data))
+        return new PyBool(false);
 
     call.client->SetPicRec(true);
     sLog.Magenta("   PhotoUploadSvc", "Received image from account %u, size: %u", call.client->GetUserID(), (uint32)contents->content().size());

@@ -42,11 +42,17 @@ class ServiceDB
 {
 public:
     static bool GetAccountInformation(CryptoChallengePacket& ccp, AccountData& aData, std::string& failMsg);
+    static bool GetAccountInformation(
+        const std::string& username,
+        AccountData& aData);
     static bool UpdateAccountHash( const char* username, std::string &hash );
+    static bool UpdateAccountPasswordKdf(
+        uint32 accountID,
+        const std::string& verifier );
     static bool IncrementLoginCount(uint32 accountID );
-    static void UpdatePassword(uint32 accountID, const char* pass);
 
     uint32 GetStationOwner(uint32 stationID);
+    static uint32 GetSceneIDForStation(uint32 stationID);
 
     // not used cause eveConstants table doesnt exist...omitted from ccp dump
     static bool GetConstant(const char *name, uint32 &into);
@@ -90,11 +96,14 @@ protected:
      * exist at login.
      *
      * @param login is a const char string containing the name.
-     * @param pass is a const char string containing the password.
+     * @param passHash is the client-compatible legacy password hash.
      * @param role is the users role in the game.
      * @author firefoxpdm, xanarox
      */
-    static uint32 CreateNewAccount( const char* login, const char* pass, const char* passHash, int64 role );
+    static uint32 CreateNewAccount(
+        const char* login,
+        const char* passHash,
+        int64 role);
 };
 
 

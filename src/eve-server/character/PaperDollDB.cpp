@@ -49,7 +49,18 @@ PyRep* PaperDollDB::GetPaperDollAvatarColors(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-		"SELECT colorID, colorNameA, colorNameBC, weight, gloss  FROM avatar_colors WHERE charID=%u", charID))
+		"SELECT a.colorID, a.colorNameA, a.colorNameBC, "
+		"a.weight, a.gloss "
+		"FROM avatar_colors AS a "
+		"INNER JOIN paperdollColors AS c "
+		"ON c.colorID = a.colorID "
+		"INNER JOIN paperdollColorNames AS nA "
+		"ON nA.colorNameID = a.colorNameA "
+		"LEFT JOIN paperdollColorNames AS nBC "
+		"ON nBC.colorNameID = a.colorNameBC "
+		"WHERE a.charID=%u "
+		"AND (a.colorNameBC = 0 OR nBC.colorNameID IS NOT NULL)",
+		charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
         return nullptr;
@@ -62,7 +73,15 @@ PyRep* PaperDollDB::GetPaperDollAvatarModifiers(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-		"SELECT modifierLocationID, paperdollResourceID, paperdollResourceVariation FROM avatar_modifiers WHERE charID=%u", charID))
+		"SELECT m.modifierLocationID, m.paperdollResourceID, "
+		"m.paperdollResourceVariation "
+		"FROM avatar_modifiers AS m "
+		"INNER JOIN paperdollModifierLocations AS l "
+		"ON l.modifierLocationID = m.modifierLocationID "
+		"INNER JOIN paperdollResources AS r "
+		"ON r.paperdollResourceID = m.paperdollResourceID "
+		"WHERE m.charID=%u",
+		charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
         return nullptr;
@@ -75,7 +94,13 @@ PyRep* PaperDollDB::GetPaperDollAvatarSculpts(uint32 charID) const {
 
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-		"SELECT sculptLocationID, weightUpDown, weightLeftRight, weightForwardBack FROM avatar_sculpts WHERE charID=%u", charID))
+		"SELECT s.sculptLocationID, s.weightUpDown, "
+		"s.weightLeftRight, s.weightForwardBack "
+		"FROM avatar_sculpts AS s "
+		"INNER JOIN paperdollSculptingLocations AS l "
+		"ON l.sculptLocationID = s.sculptLocationID "
+		"WHERE s.charID=%u",
+		charID))
     {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
         return nullptr;
@@ -87,7 +112,17 @@ PyRep* PaperDollDB::GetPaperDollAvatarSculpts(uint32 charID) const {
 PyRep* PaperDollDB::GetPaperDollPortraitData(uint32 charID) const
 {
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT * FROM chrPortraitData WHERE charID = %u", charID)) {
+    if (!sDatabase.RunQuery(
+            res,
+            "SELECT p.* FROM chrPortraitData AS p "
+            "INNER JOIN chrBackgrounds AS b "
+            "ON b.backgroundID = p.backgroundID "
+            "INNER JOIN chrLights AS l "
+            "ON l.lightID = p.lightID "
+            "INNER JOIN paperdollColorNames AS c "
+            "ON c.colorNameID = p.lightColorID "
+            "WHERE p.charID = %u",
+            charID)) {
         _log(DATABASE__ERROR, "Error in GetMyPaperDollData query: %s", res.error.c_str());
         return nullptr;
     }

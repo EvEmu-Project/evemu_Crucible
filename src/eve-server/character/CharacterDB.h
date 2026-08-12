@@ -97,7 +97,9 @@ public:
     static uint32 NewCharacter(const CharacterData& data, const CorpData& corpData);
     static bool SaveCharacter(uint32 charID, const CharacterData &data);
     static bool SaveCorpData(uint32 charID, const CorpData &data);
-    static void DeleteCharacter(uint32 charID);
+    static bool DeleteCharacter(uint32 charID);
+    static bool DeleteCharacter(uint32 accountID, uint32 charID);
+    static bool IsCharacterOwned(uint32 accountID, uint32 charID);
     // this changes corp member counts, adds employment history, and updates char's corp and start date
     static void AddEmployment(uint32 charID, uint32 corpID, uint32 oldCorpID=0);
     static bool GetCharacterData(uint32 characterID, CharacterData &into);
@@ -117,8 +119,21 @@ public:
 
     static PyRep *GetCharacterList(uint32 accountID);
     static PyRep *GetCharSelectInfo(uint32 charID);
+    static PyRep *GetCharSelectInfo(uint32 accountID, uint32 charID);
     void SetAvatar(uint32 charID, PyRep* hairDarkness);
     void SetAvatarColors(uint32 charID, uint32 colorID, uint32 colorNameA, uint32 colorNameBC, double weight, double gloss);
+    static bool IsValidAvatarModifier(
+        uint32 modifierLocationID,
+        uint32 paperdollResourceID);
+    static bool IsValidAvatarColor(
+        uint32 colorID,
+        uint32 colorNameA,
+        uint32 colorNameBC);
+    static bool IsValidAvatarSculpt(uint32 sculptLocationID);
+    static bool AreValidPortraitReferences(
+        uint32 backgroundID,
+        uint32 lightID,
+        uint32 lightColorID);
     void SetAvatarModifiers(uint32 charID, PyRep* modifierLocationID,  PyRep* paperdollResourceID, PyRep* paperdollResourceVariation);
     void SetAvatarSculpts(uint32 charID, PyRep* sculptLocationID, PyRep* weightUpDown, PyRep* weightLeftRight, PyRep* weightForwardBack);
     void SetPortraitInfo(uint32 charID, PortraitInfo &data);

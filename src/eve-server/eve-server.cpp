@@ -30,6 +30,8 @@
 
 #include "EVEServerConfig.h"
 #include "NetService.h"
+#include "ServerLifecycle.h"
+#include "ServerLoopTiming.h"
 // data managers
 #include "StaticDataMgr.h"
 #include "StatisticMgr.h"
@@ -170,9 +172,10 @@
 #include "system/BubbleManager.h"
 #include "system/KeeperService.h"
 #include "system/ScenarioService.h"
-#include "system/sov/SovereigntyMgrService.h"
-#include "system/sov/SovereigntyDataMgr.h"
+#include "system/WorldSpaceServer.h"
 #include "system/WormholeSvc.h"
+#include "system/sov/SovereigntyDataMgr.h"
+#include "system/sov/SovereigntyMgrService.h"
 // cosmic managers
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "system/cosmicMgrs/CivilianMgr.h"
@@ -182,12 +185,19 @@
 // database cleaner service
 #include "DBCleaner.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 
 static void SetupSignals();
 static void CatchSignal( int sig_num );
+#ifdef _WIN32
+static BOOL WINAPI ConsoleControlHandler(DWORD controlType);
+#endif
 
-static volatile bool m_run = true;
+static volatile sig_atomic_t m_run = 1;
 
 CommandDispatcher* g_dispatcher = nullptr; // ---commandlist update
 
@@ -214,6 +224,13 @@ int main( int argc, char* argv[] )
     if (!sConfig.ParseFile(SRV_CONFIG_FILE)) {
         sLog.Error( "       ServerInit", "ERROR: Loading server configuration '%s' failed.", SRV_CONFIG_FILE );
         std::cout << std::endl << "press any key to exit...";  std::cin.get();
+        return EXIT_FAILURE;
+    }
+
+    if (!sConfig.ApplyDatabaseEnvironment()) {
+        sLog.Error(
+            "       ServerInit",
+            "EVEMU_DB_PASSWORD is missing or exceeds the maximum length.");
         return EXIT_FAILURE;
     }
 
@@ -582,19 +599,8 @@ int main( int argc, char* argv[] )
 
     sAllocators.tickAllocator.Init(Allocators::TICK_ALLOCATOR_SIZE, "TickAllocator");
 
-    /* Start up the TCP server */
     EVETCPServer tcps;
     char errbuf[ TCPCONN_ERRBUF_SIZE ];
-    sLog.Green( "       ServerInit", "Starting TCP Server");
-    if (tcps.Open(sConfig.net.port, errbuf)) {
-        sLog.Blue( "    BaseTCPServer", "TCP Server started on port %u.", sConfig.net.port );
-    } else {
-        sLog.Error( "    BaseTCPServer", "Error starting TCP Server: %s.", errbuf );
-        std::cout << std::endl << "press any key to exit...";  std::cin.get();
-        return EXIT_FAILURE;
-    }
-    std::printf("\n");     // spacer
-    Sleep(250);
 
     /* connect to the database */
     sLog.Green("       ServerInit", "Connecting to DataBase");
@@ -730,6 +736,7 @@ int main( int argc, char* argv[] )
     newSvcMgr.Register(new netStateServer());
     newSvcMgr.Register(new UserService());
     newSvcMgr.Register(new MovementService(&newSvcMgr));
+    newSvcMgr.Register(new WorldSpaceServer());
     newSvcMgr.Register(new InfoGatheringMgr());
     newSvcMgr.Register(new PetitionerService());
     newSvcMgr.Register(new ClientStatLogger());
@@ -880,6 +887,19 @@ int main( int argc, char* argv[] )
     }
     std::printf("\n");     // spacer
 
+    sLog.Green( "       ServerInit", "Starting TCP Server");
+    if ( !tcps.Open( sConfig.net.port, errbuf ) ) {
+        sLog.Error(
+            "    BaseTCPServer",
+            "Error starting TCP Server: %s.",
+            errbuf);
+        return EXIT_FAILURE;
+    }
+    sLog.Blue(
+        "    BaseTCPServer",
+        "TCP Server started on port %u.",
+        sConfig.net.port);
+
     sLog.Blue("       ServerInit", "Server Initialized in %.3f Seconds.", (GetTimeMSeconds() - profileStartTime) / 1000);
     sLog.Error("       ServerInit", "Main Loop Starting.");
 
@@ -896,7 +916,7 @@ int main( int argc, char* argv[] )
      * THE MAIN LOOP
      * Everything except IO should happen in this loop, in this thread context.
      */
-    while (m_run) {
+    while (m_run != 0) {
         Timer::SetCurrentTime();
         start = GetTickCount();
 
@@ -910,13 +930,18 @@ int main( int argc, char* argv[] )
 
         sEntityList.Process();
 
-        /*  process console commands, if any, and check for 'exit' command */
-        m_run = sConsole.Process();
+        /* Process console commands without re-enabling signal shutdown. */
+        const bool consoleRun = sConsole.Process();
+        if (!ServerLifecycle::ShouldContinue(m_run != 0, consoleRun))
+            m_run = 0;
 
-        /* do the stuff for thread sleeping */
+        /* Sleep for the part of the configured period not spent processing. */
         start = GetTickCount() - start;
-        if (m_sleepTime > start)
-            std::this_thread::sleep_for(std::chrono::milliseconds(start));
+        const uint32 sleepTime = ServerLoop::RemainingSleepMilliseconds(
+            m_sleepTime,
+            start);
+        if (sleepTime != 0)
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
     }
 
     /*
@@ -983,7 +1008,12 @@ static void SetupSignals()
 {
     /* setup sigaction to prevent zombies and catch other non-fatal signals */
 #ifdef _WIN32
-
+    if (!SetConsoleCtrlHandler(ConsoleControlHandler, TRUE)) {
+        sLog.Warning(
+            "    Signal System",
+            "Unable to register console control handler: %lu",
+            GetLastError());
+    }
 #else
     struct sigaction sa;
     sa.sa_handler = SIG_IGN;
@@ -1022,6 +1052,23 @@ static void SetupSignals()
     ::signal( SIGHUP, CatchSignal );
     #endif /* SIGHUP */
 }
+
+#ifdef _WIN32
+static BOOL WINAPI ConsoleControlHandler(DWORD controlType)
+{
+    switch (controlType) {
+        case CTRL_C_EVENT:
+        case CTRL_BREAK_EVENT:
+        case CTRL_CLOSE_EVENT:
+        case CTRL_LOGOFF_EVENT:
+        case CTRL_SHUTDOWN_EVENT:
+            m_run = 0;
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+#endif
 
 static void CatchSignal( int sig_num )
 {

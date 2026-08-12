@@ -40,12 +40,6 @@ const size_t HASH_LEN = sizeof( HASH );
 
 int auth_PasswordModuleTest( int argc, char* argv[] )
 {
-    // Print input data
-    ::printf( "username='%s' (len=%lu)\n"
-              "password='%s' (len=%lu)\n",
-              USERNAME.c_str(), USERNAME.length(),
-              PASSWORD.c_str(), PASSWORD.length() );
-
     // Generate the hash
     std::string hash;
     if( !PasswordModule::GeneratePassHash(
@@ -65,6 +59,78 @@ int auth_PasswordModuleTest( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    ::puts( "Hash computation OK" );
+    std::string invalidHash = "unexpected";
+    if( PasswordModule::GeneratePassHash( "", PASSWORD, invalidHash ) ||
+        !invalidHash.empty() )
+    {
+        ::fprintf( stderr, "Empty usernames must be rejected" );
+        return EXIT_FAILURE;
+    }
+
+    invalidHash = "unexpected";
+    if( PasswordModule::GeneratePassHash( USERNAME, "", invalidHash ) ||
+        !invalidHash.empty() )
+    {
+        ::fprintf( stderr, "Empty passwords must be rejected" );
+        return EXIT_FAILURE;
+    }
+
+    const std::string credential = "client credential";
+    std::string verifier;
+    if (!PasswordModule::GenerateArgon2idVerifier(credential, verifier)) {
+        ::fprintf(stderr, "Argon2id verifier generation failed");
+        return EXIT_FAILURE;
+    }
+
+    if (verifier.compare(
+            0,
+            sizeof("$argon2id$v=19$m=65536,t=3,p=1$") - 1,
+            "$argon2id$v=19$m=65536,t=3,p=1$") != 0) {
+        ::fprintf(stderr, "Argon2id verifier format is invalid");
+        return EXIT_FAILURE;
+    }
+
+    if (!PasswordModule::VerifyArgon2idVerifier(credential, verifier) ||
+        PasswordModule::VerifyArgon2idVerifier("wrong credential", verifier)) {
+        ::fprintf(stderr, "Argon2id verifier comparison failed");
+        return EXIT_FAILURE;
+    }
+
+    if (!PasswordModule::VerifyCredential(credential, credential, verifier) ||
+        PasswordModule::VerifyCredential("wrong credential", credential,
+                                         verifier)) {
+        ::fprintf(stderr, "KDF-first credential verification failed");
+        return EXIT_FAILURE;
+    }
+
+    std::string conflictingVerifier;
+    if (!PasswordModule::GenerateArgon2idVerifier(
+            "different credential", conflictingVerifier) ||
+        PasswordModule::VerifyCredential(
+            credential, credential, conflictingVerifier) ||
+        !PasswordModule::VerifyCredential(credential, credential, "") ||
+        PasswordModule::VerifyCredential("wrong credential", credential, "")) {
+        ::fprintf(stderr, "Legacy credential fallback failed");
+        return EXIT_FAILURE;
+    }
+
+    std::string randomHex;
+    if (!PasswordModule::GenerateSecureRandomHex(32, randomHex) ||
+        randomHex.size() != 64 ||
+        PasswordModule::GenerateSecureRandomHex(0, randomHex) ||
+        !randomHex.empty()) {
+        ::fprintf(stderr, "Secure random hexadecimal generation failed");
+        return EXIT_FAILURE;
+    }
+
+    std::string invalidVerifier = "unexpected";
+    if (PasswordModule::GenerateArgon2idVerifier("", invalidVerifier) ||
+        !invalidVerifier.empty() ||
+        PasswordModule::VerifyArgon2idVerifier(credential, "unexpected")) {
+        ::fprintf(stderr, "Invalid Argon2id inputs were accepted");
+        return EXIT_FAILURE;
+    }
+
+    ::puts( "Hash and Argon2id computation OK" );
     return EXIT_SUCCESS;
 }

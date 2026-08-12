@@ -39,7 +39,7 @@
 Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemManager* pSystem, InventoryItemRef modRef, SystemEntity* tSE, SystemEntity* pSE, GenericModule* pMod)
 : DynamicSystemEntity(self, services, pSystem),
   m_modRef(modRef),
-  m_targetSE(tSE),
+  m_targetID(tSE != nullptr ? tSE->GetID() : 0),
   m_fromSE(pSE),
   m_hitTimer(0),
   m_lifeTimer(0),
@@ -49,6 +49,9 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
   m_speed(0),
   m_hullHP(self->GetAttribute(AttrHP).get_int())
 {
+    if (pSE == nullptr || tSE == nullptr)
+        return;
+
     if (pSE->HasPilot()) {
         m_ownerID = pSE->GetPilot()->GetChar()->itemID();
     } else {
@@ -233,6 +236,17 @@ void Missile::MakeDamageState(DoDestinyDamageState &into) {
 }
 
 void Missile::HitTarget() {
+    SystemManager* system = SystemMgr();
+    SystemEntity* target = system == nullptr ? nullptr :
+        system->GetSE(m_targetID);
+    if (target == nullptr) {
+        _log(DAMAGE__WARNING,
+             "Missile::HitTarget() - target %u no longer exists.",
+             m_targetID);
+        m_alive = false;
+        return;
+    }
+
     // Create Damage object:
     Damage d(m_fromSE, m_modRef, m_self, EVEEffectID::missileLaunching);
 
@@ -249,13 +263,13 @@ void Missile::HitTarget() {
      * MIN being a function that chooses the lower of the given vaules,
      * ln is natural logarithm.
      */
-    double Sr = m_targetSE->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();    // this is a default number, based on itemtype
+    double Sr = target->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();    // this is a default number, based on itemtype
     double Er = m_self->GetAttribute(AttrAoeCloudSize).get_float(); // Explosion Radius
     double Ev = m_self->GetAttribute(AttrAoeVelocity).get_float(); // Explosion Velocity
     double DRF = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float(); // Damage Reduction Factor
     double DRS = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float(); // Damage Reduction Sensitivity
 
-    GPoint Vel = m_targetSE->GetVelocity();
+    GPoint Vel = target->GetVelocity();
     double V = Vel.length();
     if (V <= 0)
         V = 1;
@@ -268,7 +282,7 @@ void Missile::HitTarget() {
     // apply missile damage formula to computed total damage
     d *= EvE::min1(v1, v2);
 
-    m_targetSE->ApplyDamage(d);
+    target->ApplyDamage(d);
     m_alive = false;
 }
 
@@ -278,9 +292,6 @@ void Missile::EndOfLife() {
 }
 
 void Missile::Delete() {
-    //  cleanup here
-    if (m_alive)
-        return;
-    // do we need to do anything else here?
+    m_alive = false;
     SystemEntity::Delete();
 }

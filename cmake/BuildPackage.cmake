@@ -19,6 +19,7 @@
 #
 #   PKG_URL        - URL of the source package.
 #   PKG_MD5        - MD5 sum of the source package.
+#   PKG_SHA256     - SHA-256 sum of the source package.
 #   PKG_CMAKELISTS - Content of a listfile of the package.
 #
 #  c) may define one or more of the following variables:
@@ -39,13 +40,30 @@ MACRO( BUILD_PACKAGE PKG )
       GET_FILENAME_COMPONENT( PKG_ARCHIVE "${PKG_URL}" NAME )
     ENDIF( NOT DEFINED PKG_ARCHIVE )
 
-    # Now we have name, URL and MD5 of the source
-    # archive; proceed with the download
+    # Now we have the archive name, URL, and integrity value.
     MESSAGE( STATUS "Downloading or verifying ${PKG_ARCHIVE}" )
-    FILE(
-      DOWNLOAD "${PKG_URL}" "${CMAKE_CURRENT_BINARY_DIR}/${PKG_ARCHIVE}"
-      SHOW_PROGRESS EXPECTED_MD5 "${PKG_MD5}"
-      )
+    IF( DEFINED PKG_SHA256 AND NOT "${PKG_SHA256}" STREQUAL "" )
+      FILE(
+        DOWNLOAD "${PKG_URL}"
+                 "${CMAKE_CURRENT_BINARY_DIR}/${PKG_ARCHIVE}"
+        SHOW_PROGRESS EXPECTED_HASH "SHA256=${PKG_SHA256}"
+        STATUS PKG_DOWNLOAD_STATUS
+        )
+    ELSE()
+      FILE(
+        DOWNLOAD "${PKG_URL}"
+                 "${CMAKE_CURRENT_BINARY_DIR}/${PKG_ARCHIVE}"
+        SHOW_PROGRESS EXPECTED_MD5 "${PKG_MD5}"
+        STATUS PKG_DOWNLOAD_STATUS
+        )
+    ENDIF()
+
+    LIST( GET PKG_DOWNLOAD_STATUS 0 PKG_DOWNLOAD_CODE )
+    IF( NOT PKG_DOWNLOAD_CODE EQUAL 0 )
+      MESSAGE( FATAL_ERROR
+        "Failed to download or verify ${PKG_ARCHIVE}: "
+        "${PKG_DOWNLOAD_STATUS}" )
+    ENDIF()
 
     # If the archive is newer than the extracted
     # directory, proceed with extraction
@@ -87,6 +105,7 @@ MACRO( BUILD_PACKAGE PKG )
   UNSET( PKG_FOUND )
   UNSET( PKG_URL )
   UNSET( PKG_MD5 )
+  UNSET( PKG_SHA256 )
   UNSET( PKG_CMAKELISTS )
   UNSET( PKG_ARCHIVE )
   UNSET( PKG_ARCHIVE_PREFIX )

@@ -36,6 +36,61 @@
  * CORP__DB_MESSAGE
  */
 
+namespace {
+
+void RequireCorporationRole(
+    Client* client,
+    uint32 corporationID,
+    int64 requiredRoles,
+    const char* error )
+{
+    if ( client->GetCorporationID() != corporationID ||
+         !IsPlayerCorp( corporationID ) ||
+         (client->GetCorpRole() & requiredRoles) == 0 )
+        throw CustomError( error );
+}
+
+bool IsCorporationMember( uint32 corpID, uint32 characterID )
+{
+    return IsCharacterID( characterID ) &&
+        CharacterDB::GetCorpID( characterID ) == corpID;
+}
+
+const char* GetMemberQueryColumn( const std::string& queryType )
+{
+    if ( queryType == "roles" )
+        return "corpRole";
+    if ( queryType == "rolesAtAll" )
+        return "rolesAtAll";
+    if ( queryType == "rolesAtHQ" )
+        return "rolesAtHQ";
+    if ( queryType == "rolesAtBase" )
+        return "rolesAtBase";
+    if ( queryType == "rolesAtOther" )
+        return "rolesAtOther";
+    if ( queryType == "grantableRoles" )
+        return "grantableRoles";
+    if ( queryType == "grantableRolesAtHQ" )
+        return "grantableRolesAtHQ";
+    if ( queryType == "grantableRolesAtBase" )
+        return "grantableRolesAtBase";
+    if ( queryType == "grantableRolesAtOther" )
+        return "grantableRolesAtOther";
+    if ( queryType == "baseID" )
+        return "baseID";
+    if ( queryType == "startDateTime" )
+        return "startDateTime";
+    if ( queryType == "characterID" )
+        return "characterID";
+    if ( queryType == "characterName" )
+        return "characterName";
+    if ( queryType == "titleMask" )
+        return "titleMask";
+    return nullptr;
+}
+
+}
+
 CorpRegistryBound::CorpRegistryBound(EVEServiceManager& mgr, CorpRegistryService& parent, CorporationDB& db, uint32 corpID) :
     EVEBoundObject(mgr, parent),
     m_db(db),
@@ -247,12 +302,12 @@ PyResult CorpRegistryBound::GetShareholders(PyCallArgs &call)
 
 PyResult CorpRegistryBound::GetLabels(PyCallArgs &call)
 {   // working
-    return m_db.GetLabels(call.client->GetCorporationID());
+    return m_db.GetLabels(m_corpID);
 }
 
 PyResult CorpRegistryBound::CanViewVotes(PyCallArgs &call, PyInt* corporationID)
 {   // working
-    return m_db.PyHasShares(call.client->GetCharacterID(), corporationID->value());
+    return m_db.PyHasShares(call.client->GetCharacterID(), m_corpID);
 }
 
 PyResult CorpRegistryBound::GetMemberIDsWithMoreThanAvgShares(PyCallArgs &call)
@@ -262,18 +317,28 @@ PyResult CorpRegistryBound::GetMemberIDsWithMoreThanAvgShares(PyCallArgs &call)
 
 PyResult CorpRegistryBound::GetRecruiters(PyCallArgs &call, PyInt* corpID, PyInt* adID)
 {   // working
-    return m_db.GetRecruiters(corpID->value(), adID->value());
+    return m_db.GetRecruiters(m_corpID, adID->value());
 }
 
 PyResult CorpRegistryBound::DeleteTitle(PyCallArgs &call, PyInt* titleID)
 {   // working
-    m_db.DeleteTitle(call.client->GetCorporationID(), titleID->value());
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation title deletion denied" );
+    m_db.DeleteTitle(m_corpID, titleID->value());
     return nullptr;
 }
 
 PyResult CorpRegistryBound::DeleteRecruitmentAd(PyCallArgs &call, PyInt* adID)
 {   // working
-    m_db.DeleteAdvert(adID->value());
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::PersonnelManager,
+        "Corporation recruitment ad deletion denied" );
+    m_db.DeleteAdvert(m_corpID, adID->value());
     return nullptr;
 }
 
@@ -294,6 +359,8 @@ PyResult CorpRegistryBound::GetRecentKillsAndLosses(PyCallArgs &call, PyInt* num
 
 PyResult CorpRegistryBound::GetMember(PyCallArgs &call, PyInt* characterID)
 {   // not working
+    if ( !IsCorporationMember( m_corpID, characterID->value() ) )
+        throw CustomError( "Corporation member access denied" );
     _log(CORP__CALL, "CorpRegistryBound::Handle_GetMember()");
     PyRep* rep = m_db.GetMember(characterID->value());
 
@@ -422,6 +489,11 @@ PyResult CorpRegistryBound::UpdateDivisionNames(PyCallArgs &call,
     PyRep* div1, PyRep* div2, PyRep* div3, PyRep* div4, PyRep* div5, PyRep* div6, PyRep* div8,
     PyRep* wal1, PyRep* wal2, PyRep* wal3, PyRep* wal4, PyRep* wal5, PyRep* wal6, PyRep* wal7)
 {   // working
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::Accountant,
+        "Corporation division update denied" );
     // TODO: stop using this and make use of the parameters, changing this is way too out of the scope of the service manager changes
     Call_UpdateDivisionNames args;
     if (!args.Decode(&call.tuple)) {
@@ -500,8 +572,12 @@ PyResult CorpRegistryBound::GetMembersByIds(PyCallArgs &call, PyList* memberIDs)
     call.Dump(CORP__CALL_DUMP);
 
     PyList* list = new PyList();
-    for (PyList::const_iterator itr = memberIDs->begin(); itr != memberIDs->end(); ++itr)
-        list->AddItem(new PyObject("util.KeyVal", m_db.GetMember(PyRep::IntegerValueU32(*itr))));
+    for (PyList::const_iterator itr = memberIDs->begin(); itr != memberIDs->end(); ++itr) {
+        const uint32 characterID = PyRep::IntegerValueU32(*itr);
+        if ( !IsCorporationMember( m_corpID, characterID ) )
+            continue;
+        list->AddItem(new PyObject("util.KeyVal", m_db.GetMember(characterID)));
+    }
 
     if (is_log_enabled(CORP__RSP_DUMP))
         list->Dump(CORP__RSP_DUMP, "");
@@ -646,6 +722,12 @@ PyResult CorpRegistryBound::UpdateTitle(PyCallArgs &call,
     _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateTitle()");
     //call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation title update denied" );
+
     // TODO: stop using this and make use of the parameters, changing this is way too out of the scope of the service manager changes
     Call_UpdateTitleData args;
     if (!args.Decode(&call.tuple)) {
@@ -674,6 +756,12 @@ PyResult CorpRegistryBound::UpdateTitles(PyCallArgs &call, PyObject* titles) {
     //    self.GetCorpRegistry().UpdateTitles(titles)
     _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateTitles()");
     //call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation title update denied" );
     if (!call.tuple->GetItem(0)->IsObject()) {
         codelog(CORP__ERROR, "Tuple Item is wrong type: %s.  Expected PyObject.", call.tuple->GetItem(0)->TypeString());
         return nullptr;
@@ -728,6 +816,11 @@ PyResult CorpRegistryBound::UpdateTitles(PyCallArgs &call, PyObject* titles) {
 }
 
 PyResult CorpRegistryBound::UpdateCorporation(PyCallArgs &call, PyRep* description, PyRep* url, PyFloat* tax) {
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation update denied" );
     _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateCorporation() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
     Notify_IntRaw notif;
@@ -758,6 +851,11 @@ PyResult CorpRegistryBound::UpdateLogo(PyCallArgs &call,
     PyRep* color1, PyRep* color2, PyRep* color3,
     PyRep* typeface)
 {
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation logo update denied" );
     // TODO: stop using this and make use of the parameters, changing this is way too out of the scope of the service manager changes
     Call_UpdateLogo args;
     if (!args.Decode(&call.tuple)) {
@@ -811,6 +909,12 @@ PyResult CorpRegistryBound::AddBulletin(PyCallArgs &call, PyRep* title, PyRep* b
     _log(CORP__CALL, "CorpRegistryBound::Handle_AddBulletin()");
     call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::PersonnelManager,
+        "Corporation bulletin update denied" );
+
     std::string titleStr = PyRep::StringContent(title);
     std::string bodyStr = PyRep::StringContent(body);
 
@@ -841,7 +945,13 @@ PyResult CorpRegistryBound::AddBulletin(PyCallArgs &call, PyRep* title, PyRep* b
         if (bulletinID >= 100000) {
             AllianceDB::EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, titleStr, bodyStr);
         } else {
-            m_db.EditBulletin(bulletinID, call.client->GetCharacterID(), editDateTime, titleStr, bodyStr);
+            m_db.EditBulletin(
+                m_corpID,
+                bulletinID,
+                call.client->GetCharacterID(),
+                editDateTime,
+                titleStr,
+                bodyStr);
         }
 
     } else {
@@ -856,10 +966,16 @@ PyResult CorpRegistryBound::DeleteBulletin(PyCallArgs &call, PyInt* bulletinID) 
     _log(CORP__CALL, "CorpRegistryBound::Handle_DeleteBulletin() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::PersonnelManager,
+        "Corporation bulletin deletion denied" );
+
     if (bulletinID->value() >= 100000) {
         AllianceDB::DeleteBulletin(bulletinID->value());
     } else {
-        m_db.DeleteBulletin(bulletinID->value());
+        m_db.DeleteBulletin(m_corpID, bulletinID->value());
     }
     return nullptr;
 }
@@ -868,6 +984,12 @@ PyResult CorpRegistryBound::CreateRecruitmentAd(PyCallArgs &call, PyInt* days, P
     // return self.GetCorpRegistry().CreateRecruitmentAd(days, typeMask, allianceID, description, channelID, recruiters, title)
     _log(CORP__CALL, "CorpRegistryBound::Handle_CreateRecruitmentAd()");
     call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::PersonnelManager,
+        "Corporation recruitment ad creation denied" );
     /*
      * 00:41:50 [SvcCall] Service CorpRegistryBound::CreateRecruitmentAd()
      * 00:41:50 W CorpRegistryBound::Handle_CreateRecruitmentAd(): size= 7
@@ -913,6 +1035,12 @@ PyResult CorpRegistryBound::UpdateRecruitmentAd(PyCallArgs &call, PyInt* adID, P
     // return self.GetCorpRegistry().UpdateRecruitmentAd(adID, typeMask, description, channelID, recruiters, title, addedDays)
     _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateRecruitmentAd() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::PersonnelManager,
+        "Corporation recruitment ad update denied" );
 
     /*
      * 04:47:40 [CorpCall] CorpRegistryBound::Handle_UpdateRecruitmentAd() size=7
@@ -964,13 +1092,23 @@ PyResult CorpRegistryBound::UpdateRecruitmentAd(PyCallArgs &call, PyInt* adID, P
 
     m_db.AddRecruiters(adID->value(), (int32)m_corpID, recruiters);
 
-    return m_db.GetAdvert(adID->value());
+    return m_db.GetAdvert(m_corpID, adID->value());
 }
 
 PyResult CorpRegistryBound::MoveCompanyShares(PyCallArgs &call, PyInt* corporationID, PyInt* toShareholderID, PyInt* numberOfShares) {
     // return self.GetCorpRegistry().MoveCompanyShares(corporationID, toShareholderID, numberOfShares)
     _log(CORP__CALL, "CorpRegistryBound::Handle_MoveCompanyShares()");
     call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation share transfer denied" );
+    if ( corporationID->value() != static_cast<int32>( m_corpID ) ||
+         !IsCharacterID( toShareholderID->value() ) ||
+         numberOfShares->value() <= 0 )
+        throw CustomError( "Invalid corporation share transfer" );
 
     if (IsCorp(toShareholderID->value())) {
         call.client->SendInfoModalMsg("You cannot give shares to a corporation.");
@@ -986,7 +1124,13 @@ PyResult CorpRegistryBound::MoveCompanyShares(PyCallArgs &call, PyInt* corporati
     }
 
     /** @todo  test for moving shares between players.  can we do that? */
-    m_db.MoveShares(m_corpID, corpID, corporationID->value(), toShareholderID->value(), numberOfShares->value());
+    if ( !m_db.MoveShares(
+            m_corpID,
+            corpID,
+            corporationID->value(),
+            toShareholderID->value(),
+            numberOfShares->value() ) )
+        throw CustomError( "Corporation share transfer failed" );
     return nullptr;
 }
 
@@ -994,6 +1138,13 @@ PyResult CorpRegistryBound::MovePrivateShares(PyCallArgs &call, PyInt* corporati
     // return self.GetCorpRegistry().MovePrivateShares(corporationID, toShareholderID, numberOfShares)
     _log(CORP__CALL, "CorpRegistryBound::Handle_MovePrivateShares()");
     call.Dump(CORP__CALL_DUMP);
+
+    if ( !IsPlayerCorp( corporationID->value() ) ||
+         !IsCharacterID( toShareholderID->value() ) ||
+         numberOfShares->value() <= 0 ||
+         !m_db.HasShares(
+             call.client->GetCharacterID(), corporationID->value() ) )
+        throw CustomError( "Invalid private share transfer" );
 
     uint32 corpID = 0;
     Client* pClient = sEntityList.FindClientByCharID(toShareholderID->value());
@@ -1005,7 +1156,13 @@ PyResult CorpRegistryBound::MovePrivateShares(PyCallArgs &call, PyInt* corporati
 
     // gonna have to do this one different...
     //  will need shares OF WHAT corpID also.
-    m_db.MoveShares(call.client->GetCharacterID(), corpID, corporationID->value(), toShareholderID->value(), numberOfShares->value());
+    if ( !m_db.MoveShares(
+            call.client->GetCharacterID(),
+            corpID,
+            corporationID->value(),
+            toShareholderID->value(),
+            numberOfShares->value() ) )
+        throw CustomError( "Private share transfer failed" );
     return nullptr;
 }
 
@@ -1058,7 +1215,7 @@ PyResult CorpRegistryBound::GetMemberIDsByQuery(PyCallArgs &call, PyList* queryL
     // query holder
     std::ostringstream query;
     query << "SELECT characterID FROM chrCharacters WHERE corporationID = ";
-    query << m_corpID << " AND ";
+    query << m_corpID << " AND (";
 
     bool set = false;
     // decode query format
@@ -1074,11 +1231,13 @@ PyResult CorpRegistryBound::GetMemberIDsByQuery(PyCallArgs &call, PyList* queryL
                 return nullptr;
             }
 
-            if (args3.queryType.compare("roles") == 0) {
-                query << "corpRole";
-            } else {
-                query << args3.queryType;
+            const char* column = GetMemberQueryColumn(args3.queryType);
+            if ( column == nullptr ) {
+                _log(CORP__ERROR,
+                    "CorpRegistryBound: invalid member query column");
+                return nullptr;
             }
+            query << column;
 
             if (GetSearchValues(args3.searchOp, args3.valueRaw, query)) {
                 set = true;
@@ -1112,11 +1271,13 @@ PyResult CorpRegistryBound::GetMemberIDsByQuery(PyCallArgs &call, PyList* queryL
                 } break;
             }
 
-            if (args4.queryType.compare("roles") == 0) {
-                query << "corpRole";
-            } else {
-                query << args4.queryType;
+            const char* column = GetMemberQueryColumn(args4.queryType);
+            if ( column == nullptr ) {
+                _log(CORP__ERROR,
+                    "CorpRegistryBound: invalid member query column");
+                return nullptr;
             }
+            query << column;
 
             if (GetSearchValues(args4.searchOp, args4.valueRaw, query)) {
                 set = true;
@@ -1133,8 +1294,10 @@ PyResult CorpRegistryBound::GetMemberIDsByQuery(PyCallArgs &call, PyList* queryL
     // get corp memberlist based on query
     std::vector<uint32> result;
     // make sure we have a valid query before sending to db method
-    if (set)
+    if (set) {
+        query << ")";
         m_db.GetMembersForQuery(query, result);
+    }
 
     // create/clear list as needed
     if (list == nullptr) {
@@ -1200,21 +1363,24 @@ bool CorpRegistryBound::GetSearchValues(int8 op, PyRep* rep, std::ostringstream&
         } break;
         case SearchOp::STR_CONTAINS:
         case SearchOp::STR_LIKE: {
-            query << "%";
-            query << PyRep::StringContent(rep);
-            query << "% ";
+            std::string escaped;
+            sDatabase.DoEscapeString(escaped, PyRep::StringContent(rep));
+            query << " LIKE '%" << escaped << "%' ";
         } break;
         case SearchOp::STR_STARTS_WITH: {
-            query << PyRep::StringContent(rep);
-            query << "%";
+            std::string escaped;
+            sDatabase.DoEscapeString(escaped, PyRep::StringContent(rep));
+            query << " LIKE '" << escaped << "%' ";
         } break;
         case SearchOp::STR_ENDS_WITH: {
-            query << "%";
-            query << PyRep::StringContent(rep);
+            std::string escaped;
+            sDatabase.DoEscapeString(escaped, PyRep::StringContent(rep));
+            query << " LIKE '%" << escaped << "' ";
         } break;
         case SearchOp::STR_IS: {
-            query << " = ";
-            query << PyRep::StringContent(rep);
+            std::string escaped;
+            sDatabase.DoEscapeString(escaped, PyRep::StringContent(rep));
+            query << " = '" << escaped << "' ";
         } break;
         default: {
             _log(CORP__ERROR, "CorpRegistryBound::GetSearchValues() sent invalid searchOp %i", op);
@@ -1289,6 +1455,9 @@ PyResult CorpRegistryBound::PayoutDividend(PyCallArgs &call, PyBool* paySharehol
     } else {
         // not used yet
     }
+
+    if ( toIDs.empty() )
+        return nullptr;
 
     // get total amount and divide by # of ids to pay
     float amount = payoutAmount->value() / toIDs.size();
@@ -1377,6 +1546,14 @@ PyResult CorpRegistryBound::UpdateMember(PyCallArgs &call,
     if (!IsCharacterID(args.charID))
         return nullptr;
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation member role update denied" );
+    if ( CharacterDB::GetCorpID(args.charID) != m_corpID )
+        throw CustomError("Corporation member role update denied");
+
     int64 oldRole(0);
     bool grantable(false);  // boolean - do new roles have grantable privs?  they may.
 
@@ -1412,11 +1589,12 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
     //  if so, put check here and return msg to player on hit
 
     // can we send app to non-player corp?
-    if (!IsPlayerCorp(corporationID->value()))
+    if ( corporationID->value() != static_cast<int32>( m_corpID ) ||
+         !IsPlayerCorp( m_corpID ) )
         return nullptr;
     // check member limit
-    if (m_db.GetCorpMemberCount(corporationID->value()) + 1 > m_db.GetCorpMemberLimit(corporationID->value())) {
-        call.client->SendNotifyMsg("%s cannot accept any new members at this time.", m_db.GetCorpName(corporationID->value()).c_str());
+    if (m_db.GetCorpMemberCount(m_corpID) + 1 > m_db.GetCorpMemberLimit(m_corpID)) {
+        call.client->SendNotifyMsg("%s cannot accept any new members at this time.", m_db.GetCorpName(m_corpID).c_str());
         return nullptr;
     }
 
@@ -1429,7 +1607,7 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
     Corp::ApplicationInfo aInfo = Corp::ApplicationInfo();
         aInfo.valid = true;
         aInfo.charID = charID;
-        aInfo.corpID = corporationID->value();
+        aInfo.corpID = m_corpID;
         aInfo.appText = PyRep::StringContent (message);
         aInfo.role = Corp::Role::Member;
         aInfo.grantRole = Corp::Role::Member;  // this is "None"
@@ -1443,7 +1621,7 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
         return nullptr;
     }
 
-    m_db.AddItemEvent(corporationID->value(), charID, Corp::EventType::AppliedForMembershipOfCorporation);
+    m_db.AddItemEvent(m_corpID, charID, Corp::EventType::AppliedForMembershipOfCorporation);
 
     // this is sent for any change, including new
     Corp::ApplicationInfo oldInfo = Corp::ApplicationInfo();
@@ -1452,9 +1630,9 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
     FillOCApplicationChange(OCAC, oldInfo, aInfo);
     // would this be for another corp??
     //  could you bind/req this call from a diff corp?
-    OCAC.corpID = corporationID->value();
+    OCAC.corpID = m_corpID;
     OCAC.charID = charID;
-    sEntityList.CorpNotify(corporationID->value(), Notify::Types::CorpAppNew, "OnCorporationApplicationChanged", "*corpid&corprole", OCAC.Encode());
+    sEntityList.CorpNotify(m_corpID, Notify::Types::CorpAppNew, "OnCorporationApplicationChanged", "*corpid&corprole", OCAC.Encode());
     // this is also sent to applicant
     call.client->SendNotification("OnCorporationApplicationChanged", "*corpid&corprole", OCAC.Encode(), false);
 
@@ -1465,14 +1643,14 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
     std::string subject = "New application from ";
     subject += call.client->GetName();
     std::vector<int32> recipients;
-    recipients.push_back(m_db.GetCorporationCEO(corporationID->value()));
+    recipients.push_back(m_db.GetCorporationCEO(m_corpID));
     this->m_lsc->SendMail(charID, recipients, subject, aInfo.appText);
 
     // should this be sent from mail system?  maybe not...cannot determine type from mail.
     // for now, this notification will need to be created/sent from same method sending mail.
     PyDict* dict = new PyDict();
         dict->SetItemString("applicationText", new PyString(aInfo.appText));
-        dict->SetItemString("corpID", new PyInt(corporationID->value()));
+        dict->SetItemString("corpID", new PyInt(m_corpID));
         dict->SetItemString("charID", new PyInt(charID));
     OnNotify onn;
         onn.created = GetFileTimeNow();
@@ -1480,7 +1658,7 @@ PyResult CorpRegistryBound::InsertApplication(PyCallArgs &call, PyInt* corporati
         onn.notifyID = 0;
         onn.senderID = charID;
         onn.typeID  = Notify::Types::CorpAppNew;
-    sEntityList.CorpNotify(corporationID->value(), Notify::Types::CorpAppNew, "OnNotificationReceived", "clientID", onn.Encode());
+    sEntityList.CorpNotify(m_corpID, Notify::Types::CorpAppNew, "OnNotificationReceived", "clientID", onn.Encode());
 
     /// Reply: ~\x00\x00\x00\x00\x01
     //returns none
@@ -1491,6 +1669,12 @@ PyResult CorpRegistryBound::UpdateApplicationOffer(PyCallArgs &call, PyInt* char
     //     return self.GetCorpRegistry().UpdateApplicationOffer(characterID, applicationText, status, applicationDateTime = None) NOTE: time not used.
     _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateApplicationOffer() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::PersonnelManager,
+        "Corporation application update denied" );
 
     // can we send app to non-player corp?
     if (!IsPlayerCorp(m_corpID))
@@ -1605,14 +1789,24 @@ PyResult CorpRegistryBound::DeleteApplication(PyCallArgs & call, PyInt* corporat
     _log(CORP__CALL, "CorpRegistryBound::Handle_DeleteApplication() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::PersonnelManager,
+        "Corporation application deletion denied" );
+
+    if ( corporationID->value() != static_cast<int32>( m_corpID ) ||
+         !IsCharacterID( characterID->value() ) )
+        return PyStatic.NewFalse();
+
     OnCorporationApplicationChanged ocac;
-        ocac.corpID = corporationID->value();
+        ocac.corpID = m_corpID;
         ocac.charID = characterID->value();
     Corp::ApplicationInfo newInfo = Corp::ApplicationInfo();
         newInfo.valid = false;
     Corp::ApplicationInfo oldInfo = Corp::ApplicationInfo();
         oldInfo.valid = true;
-        oldInfo.corpID = corporationID->value();
+        oldInfo.corpID = m_corpID;
         oldInfo.charID = characterID->value();
     if (!m_db.GetCurrentApplicationInfo(oldInfo)) {
         codelog(SERVICE__ERROR, "%s: Failed to query application info for char %u corp %u", call.client->GetName(), ocac.charID, ocac.corpID);
@@ -1902,6 +2096,13 @@ PyResult CorpRegistryBound::InsertVoteCase(PyCallArgs &call, PyRep* voteCaseText
         return nullptr;
     }
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Corporation vote creation denied" );
+    args.corporationID = m_corpID;
+
     if (!args.voteCaseOptions->arguments()->IsDict()) {
         codelog(CORP__ERROR, "voteCaseOptions Argument is wrong type: %s.  Expected PyDict.", args.voteCaseOptions->arguments()->TypeString());
         return nullptr;
@@ -2019,7 +2220,7 @@ PyResult CorpRegistryBound::GetVoteCasesByCorporation(PyCallArgs &call, PyInt* c
     call.Dump(CORP__CALL_DUMP);
 
     if (status.has_value() && maxLen.has_value()) {
-        return m_db.GetVoteItems(corporationID->value(), status.value()->value(), maxLen.value()->value());
+        return m_db.GetVoteItems(m_corpID, status.value()->value(), maxLen.value()->value());
     } else if (call.tuple->size() == 1) {
         return m_db.GetVoteItems(m_corpID);
     } else {
@@ -2035,7 +2236,7 @@ PyResult CorpRegistryBound::GetVoteCaseOptions(PyCallArgs &call, PyInt* corporat
     call.Dump(CORP__CALL_DUMP);
 
     // TODO: also support specifying corporationID as parameters so shareholders can vote
-    PyRep* rsp = m_db.GetVoteOptions(voteCaseID->value());
+    PyRep* rsp = m_db.GetVoteOptions(m_corpID, voteCaseID->value());
     if (is_log_enabled(CORP__RSP_DUMP))
         rsp->Dump(CORP__RSP_DUMP, "");
 
@@ -2058,7 +2259,7 @@ PyResult CorpRegistryBound::GetVotes(PyCallArgs &call, PyInt* corporationId, PyI
             */
 
     // TODO: also support specifying corporationID as parameters so shareholders can vote
-    PyRep* rsp = m_db.GetVotes(voteCaseID->value());
+    PyRep* rsp = m_db.GetVotes(m_corpID, voteCaseID->value());
     if (is_log_enabled(CORP__RSP_DUMP))
         rsp->Dump(CORP__RSP_DUMP, "");
 
@@ -2158,7 +2359,7 @@ PyResult CorpRegistryBound::GetSanctionedActionsByCorporation(PyCallArgs &call, 
      */
 
 
-    return m_db.GetSanctionedItems(corporationID->value(), state->value());
+    return m_db.GetSanctionedItems(m_corpID, state->value());
 }
 
 PyResult CorpRegistryBound::CanVote(PyCallArgs &call, PyInt* corporationID) {
@@ -2176,7 +2377,12 @@ PyResult CorpRegistryBound::InsertVote(PyCallArgs &call, PyInt* corporationID, P
     call.Dump(CORP__CALL_DUMP);
 
     // can you change your vote?  will we have to check for votes already cast and update them?
-    m_db.CastVote(corporationID->value(), call.client->GetCharacterID(), voteCaseID->value(), voteValue->value());
+    if (!m_db.CastVote(
+            m_corpID,
+            call.client->GetCharacterID(),
+            voteCaseID->value(),
+            voteValue->value()))
+        return PyStatic.NewFalse();
 
     // returns none
     return PyStatic.NewNone();
@@ -2208,6 +2414,12 @@ PyResult CorpRegistryBound::AddCorporateContact(PyCallArgs &call, PyInt* contact
     _log(CORP__CALL, "CorpRegistryBound::Handle_AddCorporateContact()");
     call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::Diplomat,
+        "Corporation contact update denied" );
+
     m_db.AddContact(m_corpID, contactID->value(), relationshipID->value());
 
     return nullptr;
@@ -2218,6 +2430,12 @@ PyResult CorpRegistryBound::EditCorporateContact(PyCallArgs &call, PyInt* contac
     _log(CORP__CALL, "CorpRegistryBound::Handle_EditCorporateContact()");
     call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::Diplomat,
+        "Corporation contact update denied" );
+
     m_db.UpdateContact(relationshipID->value(), contactID->value(), m_corpID);
 
     return nullptr;
@@ -2227,6 +2445,12 @@ PyResult CorpRegistryBound::EditContactsRelationshipID(PyCallArgs &call, PyList*
     //self.GetCorpRegistry().EditContactsRelationshipID(contactIDs, relationshipID)
     _log(CORP__CALL, "CorpRegistryBound::Handle_EditContactsRelationshipID()");
     call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::Diplomat,
+        "Corporation contact update denied" );
 
     for (PyList::const_iterator itr = contactIDs->begin(); itr != contactIDs->end(); ++itr) {
         m_db.UpdateContact(relationshipID->value(), PyRep::IntegerValueU32(*itr), m_corpID);
@@ -2239,6 +2463,12 @@ PyResult CorpRegistryBound::RemoveCorporateContacts(PyCallArgs &call, PyList* co
     // self.GetCorpRegistry().RemoveCorporateContacts(contactIDs)
     _log(CORP__CALL, "CorpRegistryBound::Handle_RemoveCorporateContacts()");
     call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director | Corp::Role::Diplomat,
+        "Corporation contact update denied" );
 
     for (PyList::const_iterator itr = contactIDs->begin(); itr != contactIDs->end(); ++itr) {
         m_db.RemoveContact(PyRep::IntegerValueU32(*itr), m_corpID);
@@ -2309,6 +2539,12 @@ PyResult CorpRegistryBound::CreateAlliance(PyCallArgs &call, PyRep* allianceName
     //self.GetCorpRegistry().CreateAlliance(allianceName, shortName, description, url)
     _log(CORP__CALL, "CorpRegistryBound::Handle_CreateAlliance() size=%lli", call.tuple->size());
     call.Dump(CORP__CALL_DUMP);
+
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Alliance creation denied" );
 
     AllianceDB a_db;
     Client* pClient(call.client);
@@ -2403,6 +2639,12 @@ PyResult CorpRegistryBound::ApplyToJoinAlliance(PyCallArgs &call, PyInt* allianc
     _log(CORP__CALL, "CorpRegistryBound::Handle_ApplyToJoinAlliance()");
     call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Alliance application denied" );
+
     AllianceDB a_db;
 
     Alliance::ApplicationInfo app;
@@ -2474,6 +2716,12 @@ PyResult CorpRegistryBound::DeleteAllianceApplication(PyCallArgs &call, PyInt* a
     _log(CORP__CALL, "CorpRegistryBound::Handle_DeleteAllianceApplication()");
     call.Dump(CORP__CALL_DUMP);
 
+    RequireCorporationRole(
+        call.client,
+        m_corpID,
+        Corp::Role::Director,
+        "Alliance application deletion denied" );
+
     //This is not implemented by client, no context menu option
 
     AllianceDB a_db;
@@ -2481,9 +2729,9 @@ PyResult CorpRegistryBound::DeleteAllianceApplication(PyCallArgs &call, PyInt* a
     //Old application info
     Alliance::ApplicationInfo oldInfo = Alliance::ApplicationInfo();
 
-    if (!a_db.GetCurrentApplicationInfo(allianceID->value(), call.client->GetCorporationID(), oldInfo))
+    if (!a_db.GetCurrentApplicationInfo(allianceID->value(), m_corpID, oldInfo))
     {
-        _log(SERVICE__ERROR, "%s: Failed to query application for corp %u alliance %u", call.client->GetName(), call.client->GetCorporationID(), allianceID->value());
+        _log(SERVICE__ERROR, "%s: Failed to query application for corp %u alliance %u", call.client->GetName(), m_corpID, allianceID->value());
         return nullptr;
     }
 

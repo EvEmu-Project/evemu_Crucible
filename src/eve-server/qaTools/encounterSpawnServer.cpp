@@ -26,7 +26,7 @@
 #include "encounterSpawnServer.h"
 
 encounterSpawnServer::encounterSpawnServer() :
-    Service("encounterSpawnServer")
+    Service("encounterSpawnServer", eAccessLevel_User, Acct::Role::QA)
 {
     this->Add("GetMyEncounters", &encounterSpawnServer::GetMyEncounters);
     this->Add("RequestActivateEncounters", &encounterSpawnServer::RequestActivateEncounters);

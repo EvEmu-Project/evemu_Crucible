@@ -26,6 +26,8 @@
 #ifndef __IMAGESERVERCONNECTION__H__INCL__
 #define __IMAGESERVERCONNECTION__H__INCL__
 
+#include <atomic>
+
 #include "imageserver/ImageServer.h"
 
 /**
@@ -42,20 +44,24 @@ class ImageServerConnection : public std::enable_shared_from_this<ImageServerCon
 {
 public:
     static std::shared_ptr<ImageServerConnection> create(boost::asio::io_context& io);
+    ~ImageServerConnection();
+
+    static bool AtCapacity();
+
     void Process();
     boost::asio::ip::tcp::socket& socket();
 
 private:
     ImageServerConnection(boost::asio::io_context& io);
-    void ProcessHeaders();
+    void ProcessHeaders(
+        const boost::system::error_code& error,
+        std::size_t bytesTransferred);
     void SendImage();
     void NotFound();
     void Close();
     void Redirect();
     void RedirectLocation();
     void RedirectFinalize();
-
-    static bool starts_with(std::string& haystack, const char *const needle);
 
     // request data
     std::string _category;
@@ -65,9 +71,13 @@ private:
 
     boost::asio::streambuf _buffer;
     boost::asio::ip::tcp::socket _socket;
+    boost::asio::steady_timer _timer;
     std::shared_ptr<std::vector<char> > _imageData;
 
-    static boost::asio::const_buffers_1 _responseOK;
+    static std::atomic<std::size_t> _activeConnections;
+
+    static boost::asio::const_buffers_1 _responseJpeg;
+    static boost::asio::const_buffers_1 _responsePng;
     static boost::asio::const_buffers_1 _responseNotFound;
     static boost::asio::const_buffers_1 _responseRedirectBegin;
     static boost::asio::const_buffers_1 _responseRedirectEnd;

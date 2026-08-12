@@ -153,9 +153,16 @@ BoundDispatcher* CharMgrService::BindObject(Client *client, PyRep* bindParameter
     //crap
     PyRep* tmp(bindParameters->Clone());
     if (!args.Decode(&tmp)) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        codelog(
+            SERVICE__ERROR,
+            "%s: Failed to decode arguments.",
+            GetName().c_str()
+            );
         return nullptr;
     }
+
+    if ( args.arg1 != static_cast<uint32>( client->GetCharacterID() ) )
+        return nullptr;
 
     return new CharMgrBound(this->GetServiceManager(), *this, args.arg1, args.arg2);
 }
@@ -214,6 +221,19 @@ PyResult CharMgrService::GetPrivateInfo(PyCallArgs& call, PyInt* characterID)
 {
     // self.memberinfo = self.charMgr.GetPrivateInfo(self.charID)
     // this is called by corp/editMember
+    const uint32 targetID = characterID->value();
+    const int64 managementRoles =
+        Corp::Role::Director | Corp::Role::PersonnelManager;
+    const bool isSelf = targetID == static_cast<uint32>(
+        call.client->GetCharacterID());
+    const bool isManagedMember =
+        IsPlayerCorp( call.client->GetCorporationID() ) &&
+        CharacterDB::GetCorpID( targetID ) == static_cast<uint32>(
+            call.client->GetCorporationID() ) &&
+        (call.client->GetCorpRole() & managementRoles) != 0;
+    if ( !isSelf && !isManagedMember )
+        return nullptr;
+
     PyRep* args(m_db.GetCharPrivateInfo(characterID->value()));
     if (is_log_enabled(CLIENT__RSP_DUMP))
         args->Dump(CLIENT__RSP_DUMP, "");

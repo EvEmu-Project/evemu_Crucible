@@ -27,7 +27,7 @@
 #include "netStateServer.h"
 
 netStateServer::netStateServer()
-: Service("netStateServer")
+: Service("netStateServer", eAccessLevel_User, Acct::Role::QA)
 {
 }
 

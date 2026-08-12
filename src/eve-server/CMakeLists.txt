@@ -28,6 +28,7 @@ SET( INCLUDE
      "${TARGET_INCLUDE_DIR}/POD_containers.h"
      "${TARGET_INCLUDE_DIR}/Profiler.h"
      "${TARGET_INCLUDE_DIR}/ServiceDB.h"
+     "${TARGET_INCLUDE_DIR}/ServerLifecycle.h"
      "${TARGET_INCLUDE_DIR}/StaticDataMgr.h"
      "${TARGET_INCLUDE_DIR}/StatisticMgr.h"
      "${TARGET_INCLUDE_DIR}/DBCleaner.h"
@@ -768,7 +769,65 @@ TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common" )
 
+IF ( WIN32 )
+  IF ( TARGET mysql )
+    SET( RUNTIME_DLLS "$<TARGET_FILE:mysql>" )
+  ELSE()
+    GET_FILENAME_COMPONENT( MYSQL_LIBRARY_DIR
+                            "${MYSQL_LIBRARIES}" DIRECTORY )
+    SET( RUNTIME_DLLS
+         "${MYSQL_LIBRARY_DIR}/libmariadb.dll" )
+  ENDIF()
+
+  IF ( CMAKE_CXX_PLATFORM_ID STREQUAL "MinGW" )
+    GET_FILENAME_COMPONENT( LLVM_MINGW_BIN
+                            "${CMAKE_CXX_COMPILER}" DIRECTORY )
+    LIST( APPEND RUNTIME_DLLS
+          "${LLVM_MINGW_BIN}/libc++.dll"
+          "${LLVM_MINGW_BIN}/libunwind.dll" )
+  ENDIF()
+
+  ADD_CUSTOM_COMMAND(
+    TARGET "${TARGET_NAME}" POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:${TARGET_NAME}>/../etc"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:${TARGET_NAME}>/../logs"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:${TARGET_NAME}>/../server_cache"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:${TARGET_NAME}>/../image_cache"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            ${RUNTIME_DLLS}
+            "$<TARGET_FILE_DIR:${TARGET_NAME}>"
+    COMMAND "${CMAKE_COMMAND}"
+            "-DSOURCE=${TARGET_UTILS_DIR}/config/eve-server.xml"
+            "-DDESTINATION_DIR=$<TARGET_FILE_DIR:${TARGET_NAME}>/../etc"
+            -P
+            "${PROJECT_SOURCE_DIR}/cmake/CopyRuntimeFileIfMissing.cmake"
+    COMMAND "${CMAKE_COMMAND}"
+            "-DSOURCE=${TARGET_UTILS_DIR}/config/log.ini"
+            "-DDESTINATION_DIR=$<TARGET_FILE_DIR:${TARGET_NAME}>/../etc"
+            -P
+            "${PROJECT_SOURCE_DIR}/cmake/CopyRuntimeFileIfMissing.cmake"
+    COMMAND "${CMAKE_COMMAND}"
+            "-DSOURCE=${TARGET_UTILS_DIR}/config/MarketBot.xml"
+            "-DDESTINATION_DIR=$<TARGET_FILE_DIR:${TARGET_NAME}>/../etc"
+            -P
+            "${PROJECT_SOURCE_DIR}/cmake/CopyRuntimeFileIfMissing.cmake"
+    COMMAND "${CMAKE_COMMAND}"
+            "-DSOURCE=${TARGET_UTILS_DIR}/config/devtools.raw"
+            "-DDESTINATION_DIR=$<TARGET_FILE_DIR:${TARGET_NAME}>/../etc"
+            -P
+            "${PROJECT_SOURCE_DIR}/cmake/CopyRuntimeFileIfMissing.cmake"
+    VERBATIM )
+ENDIF()
+
 INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
-INSTALL( FILES "${TARGET_UTILS_DIR}/config/devtools.raw"
+INSTALL( FILES
+         "${TARGET_UTILS_DIR}/config/eve-server.xml"
+         "${TARGET_UTILS_DIR}/config/log.ini"
+         "${TARGET_UTILS_DIR}/config/MarketBot.xml"
+         "${TARGET_UTILS_DIR}/config/devtools.raw"
          DESTINATION "etc" )

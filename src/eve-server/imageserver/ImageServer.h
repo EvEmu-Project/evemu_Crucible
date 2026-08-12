@@ -29,6 +29,7 @@
 #include <memory>
 
 #include "eve-common.h"
+#include "network/ImageServerLimits.h"
 #include "utils/Singleton.h"
 #include "EVEServerConfig.h"
 
@@ -54,8 +55,9 @@ public:
 
     std::string& url();
 
-    void ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char> > imageData);
+    bool ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char> > imageData);
     void ReportNewCharacter(uint32 creatorAccountID, uint32 characterID);
+    bool RemoveCharacterImage(uint32 characterID);
 
     std::string GetFilePath(std::string& category, uint32 id, uint32 size);
     std::shared_ptr<std::vector<char> > GetImage(std::string& category, uint32 id, uint32 size);

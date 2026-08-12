@@ -58,13 +58,16 @@ SET( memory_SOURCE
      "${TARGET_SOURCE_DIR}/memory/StackAllocator.cpp" )
 
 SET( network_INCLUDE
-     "${TARGET_INCLUDE_DIR}/network/NetUtils.h"
+      "${TARGET_INCLUDE_DIR}/network/ImageRequestParser.h"
+      "${TARGET_INCLUDE_DIR}/network/ImageServerLimits.h"
+      "${TARGET_INCLUDE_DIR}/network/NetUtils.h"
      "${TARGET_INCLUDE_DIR}/network/Socket.h"
      "${TARGET_INCLUDE_DIR}/network/StreamPacketizer.h"
      "${TARGET_INCLUDE_DIR}/network/TCPConnection.h"
      "${TARGET_INCLUDE_DIR}/network/TCPServer.h" )
 SET( network_SOURCE
-     "${TARGET_SOURCE_DIR}/network/NetUtils.cpp"
+      "${TARGET_SOURCE_DIR}/network/ImageRequestParser.cpp"
+      "${TARGET_SOURCE_DIR}/network/NetUtils.cpp"
      "${TARGET_SOURCE_DIR}/network/Socket.cpp"
      "${TARGET_SOURCE_DIR}/network/StreamPacketizer.cpp"
      "${TARGET_SOURCE_DIR}/network/TCPConnection.cpp"
@@ -146,9 +149,8 @@ ADD_LIBRARY( "${TARGET_NAME}"
 target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-core.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
-                            ${Boost_INCLUDE_DIRS}
-                            ${MYSQL_INCLUDE_DIRS}
-                            ${GANGSTA_INCLUDE_DIRS}
+                             ${MYSQL_INCLUDE_DIRS}
+                             ${GANGSTA_INCLUDE_DIRS}
                             ${TINYXML_INCLUDE_DIRS}
                             "${ZLIB_INCLUDE_DIR}"
                             "${TARGET_INCLUDE_DIR}" )

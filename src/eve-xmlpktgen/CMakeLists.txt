@@ -55,6 +55,17 @@ IF( NOT EVEMU_TARGETS_IMPORT )
   TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                          "eve-core" )
 
+  IF( CMAKE_CXX_PLATFORM_ID STREQUAL "MinGW" )
+    GET_FILENAME_COMPONENT( LLVM_MINGW_BIN
+                            "${CMAKE_CXX_COMPILER}" DIRECTORY )
+    ADD_CUSTOM_COMMAND(
+      TARGET "${TARGET_NAME}" POST_BUILD
+      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+              "${LLVM_MINGW_BIN}/libc++.dll"
+              "${LLVM_MINGW_BIN}/libunwind.dll"
+              "$<TARGET_FILE_DIR:${TARGET_NAME}>" )
+  ENDIF()
+
   IF( EVEMU_TARGETS_EXPORT )
     EXPORT( TARGETS "${TARGET_NAME}"
             FILE "${EVEMU_TARGETS_EXPORT}" )

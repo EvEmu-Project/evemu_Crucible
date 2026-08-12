@@ -26,6 +26,10 @@
 #ifndef __UTILS__BUFFER_H__INCL__
 #define __UTILS__BUFFER_H__INCL__
 
+#include <cstring>
+#include <limits>
+#include <type_traits>
+
 #include "utils/misc.h"
 #include "memory/SafeMem.h"
 
@@ -42,6 +46,9 @@ class Buffer
 public:
     /// Typedef for size type.
     typedef size_t size_type;
+
+    template< typename T >
+    class iterator;
 
     /**
      * @brief Buffer's const iterator.
@@ -63,9 +70,9 @@ public:
         /// Typedef for difference type.
         typedef typename _Base::difference_type   difference_type;
         /// Typedef for pointer.
-        typedef typename _Base::pointer           pointer;
+        typedef const T*                          pointer;
         /// Typedef for reference.
-        typedef typename _Base::reference         reference;
+        typedef const T&                          reference;
 
         /// Typedef for const pointer.
         typedef const T* const_pointer;
@@ -90,6 +97,9 @@ public:
         {
         }
 
+        /// Converts an iterator to a const iterator.
+        const_iterator( const iterator< T >& oth );
+
         /// Copy operator.
         const_iterator& operator=( const const_iterator& oth )
         {
@@ -108,20 +118,51 @@ public:
         const_iterator< T2 > As() const { return const_iterator< T2 >( mBuffer, mIndex ); }
 
         /// Dereference operator.
-        const_reference operator*() const
+        decltype(auto) operator*() const
         {
             // make sure we have valid buffer
             assert( mBuffer );
             // make sure we're not going off the bounds
-            assert( 1 <= mBuffer->end< value_type >() - *this );
+            assert( mIndex <= mBuffer->size() );
+            assert( sizeof( value_type ) <= mBuffer->size() - mIndex );
 
-            // obtain the value and return
-            return *(const_pointer)&( mBuffer->mBuffer )[ mIndex ];
+            if constexpr ( sizeof( value_type ) == 1 )
+            {
+                return static_cast< const uint8& >(
+                    mBuffer->mBuffer[ mIndex ] );
+            }
+            else
+            {
+                static_assert(
+                    std::is_trivially_copyable<value_type>::value,
+                    "Buffer values must be trivially copyable" );
+                std::memcpy(
+                    &mValue,
+                    &mBuffer->mBuffer[ mIndex ],
+                    sizeof( value_type ) );
+                return static_cast< const value_type& >( mValue );
+            }
         }
         /// Dereference operator.
-        const_pointer operator->() const { return &**this; }
+        const_pointer operator->() const
+        {
+            assert( mBuffer );
+            assert( mIndex <= mBuffer->size() );
+            assert( sizeof( value_type ) <= mBuffer->size() - mIndex );
+
+            if constexpr ( sizeof( value_type ) == 1 )
+            {
+                return reinterpret_cast< const_pointer >(
+                    &mBuffer->mBuffer[ mIndex ] );
+            }
+
+            return &**this;
+        }
         /// Subscript operator.
-        const_reference operator[]( difference_type diff ) const { return *( *this + diff ); }
+        decltype(auto) operator[]( difference_type diff ) const
+        {
+            return *( *this + diff );
+        }
 
         /// Sum operator.
         const_iterator operator+( difference_type diff ) const
@@ -132,18 +173,23 @@ public:
         /// Add operator.
         const_iterator& operator+=( difference_type diff )
         {
-            // turn the diff into byte diff
-            const difference_type res = ( diff * sizeof( value_type ) );
-
             // make sure we have valid buffer
             assert( mBuffer );
-            // make sure we won't go negative
-            assert( 0 <= mIndex + res );
-            // make sure we won't go past end
-            assert( mIndex + res <= mBuffer->size() );
-
-            // set new index
-            mIndex += res;
+            if( 0 <= diff )
+            {
+                const size_type elements = static_cast<size_type>( diff );
+                assert(
+                    elements <= ( mBuffer->size() - mIndex ) /
+                                sizeof( value_type ) );
+                mIndex += elements * sizeof( value_type );
+            }
+            else
+            {
+                const size_type elements =
+                    static_cast<size_type>( -( diff + 1 ) ) + 1;
+                assert( elements <= mIndex / sizeof( value_type ) );
+                mIndex -= elements * sizeof( value_type );
+            }
 
             return *this;
         }
@@ -164,7 +210,16 @@ public:
             return ( res -= diff );
         }
         /// Subtract operator.
-        const_iterator& operator-=( difference_type diff ) { return ( *this += ( -diff ) ); }
+        const_iterator& operator-=( difference_type diff )
+        {
+            if( diff == std::numeric_limits<difference_type>::min() )
+            {
+                assert( false );
+                return *this;
+            }
+
+            return ( *this += ( -diff ) );
+        }
         /// Predecrement operator.
         const_iterator& operator--() { return ( *this -= 1 ); }
         /// Postdecrement operator.
@@ -181,7 +236,12 @@ public:
             // make sure we have same parent buffer
             assert( oth.mBuffer == mBuffer );
             // return difference in element offset
-            return ( ( mIndex - oth.mIndex ) / sizeof( value_type ) );
+            if( mIndex >= oth.mIndex )
+                return static_cast<difference_type>(
+                    ( mIndex - oth.mIndex ) / sizeof( value_type ) );
+
+            return -static_cast<difference_type>(
+                ( oth.mIndex - mIndex ) / sizeof( value_type ) );
         }
 
         /// Equal operator.
@@ -217,10 +277,18 @@ public:
         bool operator>=( const const_iterator& oth ) const { return !( *this < oth ); }
 
     protected:
+        template< typename >
+        friend class const_iterator;
+        template< typename >
+        friend class iterator;
+        friend class Buffer;
+
         /// Index in buffer, in bytes.
         size_type mIndex;
         /// The parent Buffer.
         const Buffer* mBuffer;
+        /// Aligned storage for values read from byte storage.
+        mutable value_type mValue{};
     };
 
     /**
@@ -235,6 +303,9 @@ public:
         /// Typedef for our base due to readibility.
         typedef const_iterator< T > _Base;
 
+        template< typename >
+        friend class const_iterator;
+
     public:
         /// Typedef for iterator category.
         typedef typename _Base::iterator_category iterator_category;
@@ -242,14 +313,71 @@ public:
         typedef typename _Base::value_type        value_type;
         /// Typedef for difference type.
         typedef typename _Base::difference_type   difference_type;
-        /// Typedef for pointer.
-        typedef typename _Base::pointer           pointer;
         /// Typedef for const pointer.
         typedef typename _Base::const_pointer     const_pointer;
-        /// Typedef for reference.
-        typedef typename _Base::reference         reference;
         /// Typedef for const reference.
         typedef typename _Base::const_reference   const_reference;
+
+        class reference_proxy
+        {
+        public:
+            reference_proxy( Buffer* buffer, size_type index )
+            : mBuffer( buffer ),
+              mIndex( index )
+            {
+            }
+
+            operator T() const
+            {
+                Validate();
+                T value;
+                std::memcpy( &value, &mBuffer->mBuffer[ mIndex ], sizeof( T ) );
+                return value;
+            }
+
+            reference_proxy& operator=( const T& value )
+            {
+                Validate();
+                std::memcpy(
+                    &mBuffer->mBuffer[ mIndex ], &value, sizeof( T ) );
+                return *this;
+            }
+
+            reference_proxy& operator=( const reference_proxy& value )
+            {
+                return *this = static_cast<T>( value );
+            }
+
+            const T* operator->() const
+            {
+                Validate();
+                mValue = static_cast<T>( *this );
+                return &mValue;
+            }
+
+        private:
+            void Validate() const
+            {
+                assert( mBuffer );
+                assert( mIndex <= mBuffer->size() );
+                assert( sizeof( T ) <= mBuffer->size() - mIndex );
+            }
+
+            Buffer* mBuffer;
+            size_type mIndex;
+            mutable T mValue{};
+        };
+
+        /// Typedef for reference.
+        typedef typename std::conditional<
+            sizeof( T ) == 1,
+            T&,
+            reference_proxy>::type reference;
+        /// Typedef for pointer.
+        typedef typename std::conditional<
+            sizeof( T ) == 1,
+            T*,
+            reference_proxy>::type pointer;
 
         /**
          * @brief Default constructor.
@@ -259,10 +387,17 @@ public:
          */
         iterator( Buffer* buffer = NULL, size_type index = 0 ) : _Base( buffer, index ) {}
         /// Copy constructor.
-        iterator( const iterator& oth ) : _Base( oth ) {}
+        iterator( const iterator& oth )
+        : _Base( oth._Base::mBuffer, oth._Base::mIndex )
+        {
+        }
 
         /// Copy operator.
-        iterator& operator=( const iterator& oth ) { *(_Base*)this = oth; return *this; }
+        iterator& operator=( const iterator& oth )
+        {
+            _Base::operator=( _Base( oth._Base::mBuffer, oth._Base::mIndex ) );
+            return *this;
+        }
 
         /**
          * @brief Converts iterator to another iterator
@@ -274,11 +409,42 @@ public:
         iterator< T2 > As() const { return iterator< T2 >( _Base::mBuffer, _Base::mIndex ); }
 
         /// Dereference operator.
-        reference operator*() const { return const_cast< reference >( **(_Base*)this ); }
+        decltype(auto) operator*() const
+        {
+            Buffer* buffer = const_cast<Buffer*>( _Base::mBuffer );
+            if constexpr ( sizeof( T ) == 1 )
+            {
+                assert( buffer );
+                assert( _Base::mIndex < buffer->size() );
+                return ( buffer->mBuffer[ _Base::mIndex ] );
+            }
+            else
+            {
+                static_assert(
+                    std::is_trivially_copyable<T>::value,
+                    "Buffer values must be trivially copyable" );
+                return reference_proxy( buffer, _Base::mIndex );
+            }
+        }
         /// Dereference operator.
-        pointer operator->() const { return &**this; }
+        decltype(auto) operator->() const
+        {
+            if constexpr ( sizeof( T ) == 1 )
+            {
+                assert( _Base::mBuffer );
+                assert( _Base::mIndex < _Base::mBuffer->size() );
+                return reinterpret_cast< pointer >(
+                    &_Base::mBuffer->mBuffer[ _Base::mIndex ] );
+            }
+
+            return reference_proxy( const_cast<Buffer*>( _Base::mBuffer ),
+                                    _Base::mIndex );
+        }
         /// Subscript operator.
-        reference operator[]( difference_type diff ) const { return *( *this + diff ); }
+        decltype(auto) operator[]( difference_type diff ) const
+        {
+            return *( *this + diff );
+        }
 
         /// Sum operator.
         iterator operator+( difference_type diff ) const
@@ -287,9 +453,17 @@ public:
             return ( res += diff );
         }
         /// Add operator.
-        iterator operator+=( difference_type diff ) { *(_Base*)this += diff; return *this; }
+        iterator& operator+=( difference_type diff )
+        {
+            _Base::operator+=( diff );
+            return *this;
+        }
         /// Preincrement operator.
-        iterator& operator++() { ++*(_Base*)this; return *this; }
+        iterator& operator++()
+        {
+            _Base::operator++();
+            return *this;
+        }
         /// Postincrement operator.
         iterator operator++( int )
         {
@@ -305,9 +479,17 @@ public:
             return ( res -= diff );
         }
         /// Subtract operator.
-        iterator& operator-=( difference_type diff ) { *(_Base*)this -= diff; return *this; }
+        iterator& operator-=( difference_type diff )
+        {
+            _Base::operator-=( diff );
+            return *this;
+        }
         /// Predecrement operator.
-        iterator& operator--() { --*(_Base*)this; return *this; }
+        iterator& operator--()
+        {
+            _Base::operator--();
+            return *this;
+        }
         /// Postdecrement operator.
         iterator operator--( int )
         {
@@ -317,7 +499,10 @@ public:
         }
 
         /// Diff operator.
-        difference_type operator-( const _Base& oth ) const { return ( *(_Base*)this - oth ); }
+        difference_type operator-( const _Base& oth ) const
+        {
+            return _Base::operator-( oth );
+        }
     };
 
     /**
@@ -397,7 +582,10 @@ public:
      * @return Reference to element.
      */
     template< typename T >
-    T& Get( size_type index ) { return *( begin< T >() + index ); }
+    decltype(auto) Get( size_type index )
+    {
+        return *( begin< T >() + index );
+    }
     /**
      * @brief Gets const element from buffer.
      *
@@ -406,7 +594,10 @@ public:
      * @return Const reference to element.
      */
     template< typename T >
-    const T& Get( size_type index ) const { return *( begin< T >() + index ); }
+    decltype(auto) Get( size_type index ) const
+    {
+        return *( begin< T >() + index );
+    }
 
     /**
      * @brief Overload of access operator[].
@@ -539,9 +730,11 @@ public:
         assert( 1 <= end< T >() - index );
 
         // turn iterator into byte offset
-        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
-        // assign the value
-        *(T*)&mBuffer[ _index ] = value;
+        const size_type _index = _ByteOffset( index );
+        static_assert(
+            std::is_trivially_copyable<T>::value,
+            "Buffer values must be trivially copyable" );
+        std::memcpy( &mBuffer[ _index ], &value, sizeof( T ) );
     }
     /**
      * @brief Assigns a sequence of elements to buffer at specific point.
@@ -560,11 +753,24 @@ public:
         if( first != last )
         {
             // turn the iterator into byte offset
-            const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
+            const size_type _index = _ByteOffset( index );
             // obtain byte length of input data
             const size_type _len = sizeof( typename std::iterator_traits< Iter >::value_type ) * ( last - first );
-            // assign the content
-            memmove( &mBuffer[ _index ], &*first, _len );
+            if constexpr ( sizeof( typename std::iterator_traits<Iter>::
+                                  value_type ) == 1 )
+            {
+                // Byte sequences can be copied without an intermediate value.
+                std::memmove( &mBuffer[ _index ], &*first, _len );
+            }
+            else
+            {
+                typename std::iterator_traits< Iter >::difference_type offset = 0;
+                for ( Iter current = first; current != last;
+                      ++current, ++offset )
+                    AssignAt( index + offset,
+                              static_cast<typename std::iterator_traits<Iter>::
+                                          value_type>( *current ) );
+            }
         }
     }
 
@@ -648,7 +854,7 @@ public:
         assert( index <= end< T >() );
 
         // turn iterator into byte offset
-        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
+        const size_type _index = _ByteOffset( index );
         // obtain required size in bytes
         const size_type _requiredSize = sizeof( T ) * requiredCount;
 
@@ -696,7 +902,7 @@ public:
         _ResizeAt< T >( index, requiredCount );
 
         // turn iterator into byte offset
-        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
+        const size_type _index = _ByteOffset( index );
         // obtain required size in bytes
         const size_type _requiredSize = sizeof( T ) * requiredCount;
 
@@ -713,6 +919,14 @@ protected:
     size_type mSize;
     /// Current capacity of buffer, in bytes.
     size_type mCapacity;
+
+    template< typename T >
+    size_type _ByteOffset( const const_iterator< T >& index ) const
+    {
+        assert( index.mBuffer == this );
+        assert( index.mIndex <= size() );
+        return index.mIndex;
+    }
 
     /**
      * @brief Resizes buffer.
@@ -743,7 +957,7 @@ protected:
         assert( index <= end< T >() );
 
         // turn index into byte offset
-        const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
+        const size_type _index = _ByteOffset( index );
         // obtain required size in bytes
         const size_type _requiredSize = sizeof( T ) * requiredCount;
 
@@ -808,5 +1022,13 @@ protected:
             return newCapacity;
     }
 };
+
+template< typename T >
+Buffer::const_iterator< T >::const_iterator(
+    const Buffer::iterator< T >& oth )
+: mIndex( oth.mIndex ),
+  mBuffer( oth.mBuffer )
+{
+}
 
 #endif /* !__UTILS__BUFFER_H__INCL__ */

@@ -26,7 +26,7 @@
 #include "zActionServer.h"
 
 zActionServer::zActionServer() :
-    Service("zActionServer")
+    Service("zActionServer", eAccessLevel_User, Acct::Role::QA)
 {
     this->Add("RequestActionStart", &zActionServer::RequestActionStart);
     this->Add("QA_RequestForceActionStart", &zActionServer::QA_RequestForceActionStart);

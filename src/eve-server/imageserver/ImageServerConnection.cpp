@@ -24,17 +24,47 @@
 */
 
 #include "imageserver/ImageServerConnection.h"
+#include "network/ImageRequestParser.h"
 
-boost::asio::const_buffers_1 ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
+namespace {
+
+constexpr char RESPONSE_JPEG[] =
+    "HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n";
+constexpr char RESPONSE_PNG[] =
+    "HTTP/1.0 200 OK\r\nContent-Type: image/png\r\n\r\n";
+
+}
+
+std::atomic<std::size_t> ImageServerConnection::_activeConnections(0);
+
+boost::asio::const_buffers_1 ImageServerConnection::_responseJpeg =
+    boost::asio::buffer(RESPONSE_JPEG, sizeof(RESPONSE_JPEG) - 1);
+boost::asio::const_buffers_1 ImageServerConnection::_responsePng =
+    boost::asio::buffer(RESPONSE_PNG, sizeof(RESPONSE_PNG) - 1);
 boost::asio::const_buffers_1 ImageServerConnection::_responseNotFound = boost::asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
 boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectBegin = boost::asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
 boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectEnd = boost::asio::buffer("\r\n\r\n", 4);
 
 ImageServerConnection::ImageServerConnection(boost::asio::io_context& io)
-: _socket(io),
+: _buffer(ImageServerLimits::MAX_HEADER_BYTES),
+  _socket(io),
+  _timer(io),
 _id(0),
 _size(0)
 {
+}
+
+ImageServerConnection::~ImageServerConnection()
+{
+    boost::system::error_code error;
+    _timer.cancel(error);
+    _socket.close(error);
+    _activeConnections.fetch_sub(1);
+}
+
+bool ImageServerConnection::AtCapacity()
+{
+    return _activeConnections.load() >= ImageServerLimits::MAX_CONNECTIONS;
 }
 
 boost::asio::ip::tcp::socket& ImageServerConnection::socket()
@@ -44,61 +74,48 @@ boost::asio::ip::tcp::socket& ImageServerConnection::socket()
 
 void ImageServerConnection::Process()
 {
-    // receive all HTTP headers from the client
-    boost::asio::async_read_until(_socket, _buffer, "\r\n\r\n", std::bind(&ImageServerConnection::ProcessHeaders, shared_from_this()));
+    _timer.expires_after(ImageServerLimits::REQUEST_TIMEOUT);
+    std::shared_ptr<ImageServerConnection> self = shared_from_this();
+    _timer.async_wait([self](const boost::system::error_code& error) {
+        if (!error)
+            self->Close();
+    });
+
+    boost::asio::async_read_until(
+        _socket,
+        _buffer,
+        "\r\n\r\n",
+        [self](
+            const boost::system::error_code& error,
+            std::size_t bytesTransferred) {
+            self->ProcessHeaders(error, bytesTransferred);
+        });
 }
 
-void ImageServerConnection::ProcessHeaders()
+void ImageServerConnection::ProcessHeaders(
+    const boost::system::error_code& error,
+    std::size_t bytesTransferred)
 {
+    (void)bytesTransferred;
+    if (error) {
+        Close();
+        return;
+    }
+
     std::istream stream(&_buffer);
     std::string request;
 
     // every request line ends with \r\n
     std::getline(stream, request, '\r');
 
-    if (!starts_with(request, "GET /"))
-    {
+    ImageRequest parsed = { "", 0, 0 };
+    if (!ParseImageRequest(request, parsed)) {
         NotFound();
         return;
     }
-    request = request.substr(5);
-
-    bool found = false;
-    for (uint32 i = 0; i < ImageServer::CategoryCount; i++)
-    {
-        if (starts_with(request, ImageServer::Categories[i]))
-        {
-            found = true;
-            _category = ImageServer::Categories[i];
-            request = request.substr(strlen(ImageServer::Categories[i]));
-            break;
-        }
-    }
-    if (!found)
-    {
-        NotFound();
-        return;
-    }
-
-    if (!starts_with(request, "/"))
-    {
-        NotFound();
-        return;
-    }
-    request = request.substr(1);
-
-    int del = request.find_first_of('_');
-    if (del == std::string::npos)
-    {
-        NotFound();
-        return;
-    }
-
-    // might have some extra data but atoi shouldn't care
-    std::string idStr = request.substr(0, del);
-    std::string sizeStr = request.substr(del + 1);
-    _id = atoi(idStr.c_str());
-    _size = atoi(sizeStr.c_str());
+    _category = parsed.category;
+    _id = parsed.id;
+    _size = parsed.size;
 
     _imageData = sImageServer.GetImage(_category, _id, _size);
     if (!_imageData) {
@@ -116,50 +133,111 @@ void ImageServerConnection::ProcessHeaders()
     }
 
     // first we have to send the responseOK, then our actual result
-    boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
+    const boost::asio::const_buffers_1& response =
+        _category == "Character" ? _responseJpeg : _responsePng;
+    std::shared_ptr<ImageServerConnection> self = shared_from_this();
+    boost::asio::async_write(
+        _socket,
+        response,
+        [self](const boost::system::error_code& error, std::size_t) {
+            if (error)
+                self->Close();
+            else
+                self->SendImage();
+        });
 }
 
 void ImageServerConnection::SendImage()
 {
-    boost::asio::async_write(_socket, boost::asio::buffer(*_imageData, _imageData->size()), boost::asio::transfer_all(), std::bind(&ImageServerConnection::Close, shared_from_this()));
+    if (!_imageData || _imageData->empty()) {
+        Close();
+        return;
+    }
+
+    std::shared_ptr<ImageServerConnection> self = shared_from_this();
+    boost::asio::async_write(
+        _socket,
+        boost::asio::buffer(*_imageData, _imageData->size()),
+        [self](const boost::system::error_code&, std::size_t) {
+            self->Close();
+        });
 }
 
 void ImageServerConnection::NotFound()
 {
-    boost::asio::async_write(_socket, _responseNotFound, boost::asio::transfer_all(), std::bind(&ImageServerConnection::Close, shared_from_this()));
+    std::shared_ptr<ImageServerConnection> self = shared_from_this();
+    boost::asio::async_write(
+        _socket,
+        _responseNotFound,
+        [self](const boost::system::error_code&, std::size_t) {
+            self->Close();
+        });
 }
 
 void ImageServerConnection::Redirect()
 {
-    boost::asio::async_write(_socket, _responseRedirectBegin, boost::asio::transfer_all(), std::bind(&ImageServerConnection::RedirectLocation, shared_from_this()));
+    std::shared_ptr<ImageServerConnection> self = shared_from_this();
+    boost::asio::async_write(
+        _socket,
+        _responseRedirectBegin,
+        [self](const boost::system::error_code& error, std::size_t) {
+            if (error)
+                self->Close();
+            else
+                self->RedirectLocation();
+        });
 }
 
 void ImageServerConnection::RedirectLocation()
 {
-    sLog.Error("     Image Server"," RedirectLocation() called.");
     std::string extension = _category == "Character" ? "jpg" : "png";
     std::stringstream url;
     url << ImageServer::FallbackURL << _category << "/" << _id << "_" << _size << "." << extension;
     _redirectUrl = url.str();
-    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl), boost::asio::transfer_all(), std::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
+    std::shared_ptr<ImageServerConnection> self = shared_from_this();
+    boost::asio::async_write(
+        _socket,
+        boost::asio::buffer(_redirectUrl),
+        [self](const boost::system::error_code& error, std::size_t) {
+            if (error)
+                self->Close();
+            else
+                self->RedirectFinalize();
+        });
 }
 
 void ImageServerConnection::RedirectFinalize()
 {
-    boost::asio::async_write(_socket, _responseRedirectEnd, boost::asio::transfer_all(), std::bind(&ImageServerConnection::Close, shared_from_this()));
+    std::shared_ptr<ImageServerConnection> self = shared_from_this();
+    boost::asio::async_write(
+        _socket,
+        _responseRedirectEnd,
+        [self](const boost::system::error_code&, std::size_t) {
+            self->Close();
+        });
 }
 
 void ImageServerConnection::Close()
 {
-    _socket.close();
-}
-
-bool ImageServerConnection::starts_with(std::string& haystack, const char *const needle)
-{
-    return haystack.substr(0, strlen(needle)).compare(needle) == 0;
+    boost::system::error_code error;
+    _timer.cancel(error);
+    _socket.close(error);
 }
 
 std::shared_ptr<ImageServerConnection> ImageServerConnection::create(boost::asio::io_context& io)
 {
-    return std::shared_ptr<ImageServerConnection>(new ImageServerConnection(io));
+    std::size_t current = _activeConnections.load();
+    while (current < ImageServerLimits::MAX_CONNECTIONS &&
+           !_activeConnections.compare_exchange_weak(current, current + 1)) {
+    }
+    if (current >= ImageServerLimits::MAX_CONNECTIONS)
+        return std::shared_ptr<ImageServerConnection>();
+
+    try {
+        return std::shared_ptr<ImageServerConnection>(
+            new ImageServerConnection(io));
+    } catch (const std::bad_alloc&) {
+        _activeConnections.fetch_sub(1);
+        throw;
+    }
 }

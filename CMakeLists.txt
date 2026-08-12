@@ -10,7 +10,7 @@
 ###############
 # We need a target-specific property INCLUDE_DIRECTORIES which
 # is part of CMake 2.8.8 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
+CMAKE_MINIMUM_REQUIRED( VERSION 3.16 FATAL_ERROR )
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
@@ -64,8 +64,18 @@ INCLUDE( "DetectScm" )
 # Switch to the C++11 standard (required)
 IF (WIN32)
   set (CMAKE_CXX_STANDARD 17)
-  SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
-  link_libraries(DbgHelp.lib)
+  set (CMAKE_CXX_STANDARD_REQUIRED ON)
+  IF (MSVC)
+    SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
+    link_libraries(DbgHelp.lib Mswsock.lib Ws2_32.lib Bcrypt.lib)
+  ELSE()
+    ADD_DEFINITIONS(
+      "-DHAVE_WINDOWS_H"
+      "-DHAVE_WINSOCK2_H"
+      "-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION"
+      )
+    link_libraries(dbghelp mswsock ws2_32 bcrypt)
+  ENDIF()
 ELSE()
   SET( CMAKE_CXX_FLAGS "-std=gnu++17 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
 ENDIF()
@@ -181,12 +191,19 @@ INCLUDE( "BuildPackage" )
 
 
 BUILD_PACKAGE( "Boost" )
+BUILD_PACKAGE( "Argon2" )
 BUILD_PACKAGE( "MySQL" )
 BUILD_PACKAGE( "TinyXML" )
 BUILD_PACKAGE( "UTF8CPP" )
 BUILD_PACKAGE( "ZLIB" )
 
 FIND_PACKAGE( "Threads" REQUIRED )
+
+# Boost 1.67 uses removed C++17 compatibility APIs. Treat its headers as a
+# system dependency so its compatibility warnings do not mask project ones.
+IF( Boost_INCLUDE_DIRS )
+  INCLUDE_DIRECTORIES( SYSTEM ${Boost_INCLUDE_DIRS} )
+ENDIF()
 
 ADD_SUBDIRECTORY( "dep/gangsta" )
 ADD_SUBDIRECTORY( "dep/utils" )
@@ -227,3 +244,4 @@ ADD_SUBDIRECTORY( "src/eve-core" )
 ADD_SUBDIRECTORY( "src/eve-xmlpktgen" )
 ADD_SUBDIRECTORY( "src/eve-common" )
 ADD_SUBDIRECTORY( "src/eve-server" )
+ADD_SUBDIRECTORY( "src/eve-test" )

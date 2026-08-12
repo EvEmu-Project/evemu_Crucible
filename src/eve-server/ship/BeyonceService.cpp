@@ -42,6 +42,96 @@
 #include "system/SystemManager.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "system/cosmicMgrs/ManagerDB.h"
+#include "destiny/MovementCommand.h"
+#include <cmath>
+#include <limits>
+
+namespace {
+
+constexpr int64 kMaximumWarpDistance =
+    static_cast<int64>(std::numeric_limits<int32>::max());
+
+bool ReadNumericCommandValue(const PyRep* value, double& numericValue)
+{
+    if (value == nullptr)
+        return false;
+
+    if (value->IsInt()) {
+        numericValue = value->AsInt()->value();
+        return true;
+    }
+    if (value->IsLong()) {
+        numericValue = static_cast<double>(value->AsLong()->value());
+        return true;
+    }
+    if (value->IsFloat()) {
+        numericValue = value->AsFloat()->value();
+        return true;
+    }
+
+    return false;
+}
+
+bool ReadMovementRange(const PyRep* value, uint32& range, bool allowZero)
+{
+    double numericValue(0.0);
+    if (!ReadNumericCommandValue(value, numericValue) ||
+        !std::isfinite(numericValue) || numericValue < 0.0 ||
+        numericValue > static_cast<double>(BUBBLE_RADIUS_METERS)) {
+        return false;
+    }
+
+    const uint32 converted = static_cast<uint32>(numericValue);
+    if ((!allowZero && converted == 0) ||
+        converted > BUBBLE_RADIUS_METERS)
+        return false;
+
+    range = converted;
+    return true;
+}
+
+bool ReadWarpDistance(const PyRep* value, int64& distance)
+{
+    double numericValue(0.0);
+    if (!ReadNumericCommandValue(value, numericValue) ||
+        !std::isfinite(numericValue) || numericValue < 0.0 ||
+        numericValue > static_cast<double>(kMaximumWarpDistance)) {
+        return false;
+    }
+
+    distance = static_cast<int64>(numericValue);
+    return true;
+}
+
+bool AddWarpDistance(int64& distance, double addition)
+{
+    if (!std::isfinite(addition) || addition < 0.0 ||
+        addition > static_cast<double>(kMaximumWarpDistance - distance))
+        return false;
+
+    distance += static_cast<int64>(addition);
+    return true;
+}
+
+bool ReadUnsignedCommandID(const PyRep* value, uint32& id)
+{
+    double numericValue(0.0);
+    if (!ReadNumericCommandValue(value, numericValue) ||
+        !std::isfinite(numericValue) || numericValue <= 0.0 ||
+        numericValue > static_cast<double>(
+            std::numeric_limits<uint32>::max())) {
+        return false;
+    }
+
+    const uint32 converted = static_cast<uint32>(numericValue);
+    if (converted == 0)
+        return false;
+
+    id = converted;
+    return true;
+}
+
+} // namespace
 
 BeyonceService::BeyonceService(EVEServiceManager& mgr)
 : BindableService("beyonce", mgr, eAccessLevel_SolarSystem2)
@@ -121,6 +211,17 @@ BeyonceBound::BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Clien
 PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* distance) {
     _log(AUTOPILOT__MESSAGE, "%s called Follow. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
 
+    if (ballID == nullptr || ballID->value() <= 0) {
+        _log(CLIENT__ERROR, "%s: invalid Follow target.", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
+    uint32 followDistance(0);
+    if (!ReadMovementRange(distance, followDistance, true)) {
+        _log(CLIENT__ERROR, "%s: invalid Follow range.", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -148,7 +249,7 @@ PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* dis
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    pDestiny->Follow(pSE, PyRep::IntegerValue(distance));
+    pDestiny->Follow(pSE, followDistance);
 
     return PyStatic.NewNone();
 }
@@ -169,8 +270,12 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
     }
 
     /** @todo  rework this...this is to set speed ONLY...NOT to begin moving.  */
-    // client should not legally send anything < 0.1 (except on rare occasion a 0.0 instead of Stop.)
-    if ((speedFraction->value() != 0) && (speedFraction->value() < 0.1))
+    // Client speed fractions are bounded, except for zero which means stop.
+    if (speedFraction == nullptr)
+        return PyStatic.NewNone();
+
+    const double fraction = speedFraction->value();
+    if (!DestinyMovement::IsValidSpeedFraction(fraction))
         return PyStatic.NewNone();
 
     //sLog.Warning( "BeyonceBound", "Handle_CmdSetSpeedFraction %.2f", arg.arg );
@@ -187,6 +292,11 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
 
 PyResult BeyonceBound::CmdAlignTo(PyCallArgs &call, PyInt* entityID) {
     _log(AUTOPILOT__MESSAGE, "%s called Align. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    if (entityID == nullptr || entityID->value() <= 0) {
+        _log(CLIENT__ERROR, "%s: invalid Align target.", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -238,10 +348,22 @@ PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y
         return PyStatic.NewNone();
     }
 
+    if (x == nullptr || y == nullptr || z == nullptr) {
+        _log(CLIENT__ERROR, "%s: invalid direction arguments.",
+             call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
+    const GPoint dir(x->value(), y->value(), z->value());
+    if (!DestinyMovement::IsValidDirection(dir)) {
+        _log(CLIENT__ERROR, "%s: invalid direction.",
+             call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    const GPoint dir = GPoint(x->value(), y->value(), z->value());
     pDestiny->GotoDirection(dir);
 
     return PyStatic.NewNone();
@@ -250,6 +372,12 @@ PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y
 PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
     _log(AUTOPILOT__MESSAGE, "%s called GotoBookmark. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
+
+    if (bookmarkID == nullptr) {
+        _log(CLIENT__ERROR, "%s: invalid bookmark argument.",
+             call.client->GetName());
+        return PyStatic.NewNone();
+    }
 
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
@@ -261,6 +389,15 @@ PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
+    } else if (pDestiny->AbortIfLoginWarping(true)) {
+        return PyStatic.NewNone();
+    }
+
+    SystemManager* pSystem = call.client->SystemMgr();
+    if (pSystem == nullptr) {
+        codelog(CLIENT__ERROR, "%s: Client has no system manager!",
+                call.client->GetName());
+        return PyStatic.NewNone();
     }
 
     double x(0.0), y(0.0), z(0.0);
@@ -271,7 +408,12 @@ PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
         sLog.Error( "BeyonceService::Handle_GotoBookmark()", "Attempt to access BookmarkService via (BookmarkService*)(call.client->services().LookupService(\"bookmark\")) returned NULL." );
         return PyStatic.NewNone();
     } else {
-        this->m_bookmark->LookupBookmark(bookmarkID->value(), itemID, typeID, locationID, x, y, z);
+        if (!this->m_bookmark->LookupBookmark(bookmarkID->value(), itemID,
+                                               typeID, locationID, x, y, z)) {
+            _log(CLIENT__ERROR, "%s: bookmark %u was not found.",
+                 call.client->GetName(), bookmarkID->value());
+            return PyStatic.NewNone();
+        }
 
         if (typeID == 5) {
             if (call.client->GetSystemID() != locationID) {
@@ -280,16 +422,28 @@ PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
             }
 
             GPoint point(x, y, z);
+            if (point.isNaN() || point.isInf()) {
+                _log(CLIENT__ERROR, "%s: bookmark %u has invalid position.",
+                     call.client->GetName(), bookmarkID->value());
+                return PyStatic.NewNone();
+            }
             pDestiny->GotoPoint(point);
         } else {
             // Bookmark type is of a static system entity, so search for it and obtain its coordinates:
-            SystemEntity* pSE = call.client->SystemMgr()->GetSE(itemID);
+            SystemEntity* pSE = pSystem->GetSE(itemID);
             if (pSE == nullptr) {
                 sLog.Error( "BeyonceService::Handle_GotoBookmark()", "%s: unable to find location %d", call.client->GetName(), itemID );
                 return PyStatic.NewNone();
             }
 
-            pDestiny->GotoPoint( pSE->GetPosition() );
+            const GPoint point = pSE->GetPosition();
+            if (point.isNaN() || point.isInf()) {
+                _log(CLIENT__ERROR,
+                     "%s: bookmark %u target has invalid position.",
+                     call.client->GetName(), bookmarkID->value());
+                return PyStatic.NewNone();
+            }
+            pDestiny->GotoPoint(point);
         }
     }
 
@@ -301,7 +455,17 @@ PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
 
 PyResult BeyonceBound::CmdOrbit(PyCallArgs &call, PyInt* entityID, PyRep* rangeValue) {
     _log(AUTOPILOT__MESSAGE, "%s called Orbit. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
-    call.client->SetAutoPilot(false);
+
+    if (entityID == nullptr || entityID->value() <= 0) {
+        _log(CLIENT__ERROR, "%s: invalid Orbit target.", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
+    uint32 orbitRange(0);
+    if (!ReadMovementRange(rangeValue, orbitRange, false)) {
+        _log(CLIENT__ERROR, "%s: invalid Orbit range.", call.client->GetName());
+        return PyStatic.NewNone();
+    }
 
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
@@ -323,27 +487,29 @@ PyResult BeyonceBound::CmdOrbit(PyCallArgs &call, PyInt* entityID, PyRep* rangeV
         return PyStatic.NewNone();
     }
 
-    double range =
-        rangeValue->IsInt()
-        ? rangeValue->AsInt()->value()
-        : rangeValue->AsFloat()->value();
-
     SystemEntity* pEntity = pSystem->GetSE(entityID->value());
     if (pEntity == nullptr) {
         _log(CLIENT__ERROR, "%s: Unable to find entity %u to Orbit.", call.client->GetName(), entityID->value());
         return PyStatic.NewNone();
     }
 
+    call.client->SetAutoPilot(false);
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    pDestiny->Orbit(pEntity, range);
+    pDestiny->Orbit(pEntity, orbitRange);
 
     return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* id) {
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuff. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+
+    if (type == nullptr || id == nullptr) {
+        _log(CLIENT__ERROR, "%s: invalid warp request arguments.", call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
     //call.client->SetAutoPilot(false);
 
   _log(SERVICE__CALL_DUMP, "BeyonceBound::Handle_CmdWarpToStuff() - size=%lli", call.tuple->size());
@@ -375,15 +541,24 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
         return PyStatic.NewNone();
     }
 
-    bool fleet(false);
-    if (call.byname.find("fleet") != call.byname.end())
-        if (!(call.byname.find("fleet")->second->IsNone()))
-            fleet = call.byname.find("fleet")->second->AsBool()->value();
+    const auto fleetArg = call.byname.find("fleet");
+    if (fleetArg != call.byname.end() && fleetArg->second != nullptr &&
+        !fleetArg->second->IsNone()) {
+        if (!fleetArg->second->IsBool()) {
+            _log(CLIENT__ERROR, "%s: invalid fleet argument.",
+                 call.client->GetName());
+            return PyStatic.NewNone();
+        }
+    }
 
     // get the warp-to distance specified by the client
-    int32 distance(0); //Was set to 5000; setting to 0 makes warp in to station and gate more realistic.
-    if (call.byname.find("minRange") != call.byname.end())
-        distance = PyRep::IntegerValueU32(call.byname.find("minRange")->second);
+    int64 distance(0); //Was set to 5000; setting to 0 makes warp in to station and gate more realistic.
+    const auto minRange = call.byname.find("minRange");
+    if (minRange != call.byname.end() && !minRange->second->IsNone() &&
+        !ReadWarpDistance(minRange->second, distance)) {
+        _log(CLIENT__ERROR, "%s: invalid warp range.", call.client->GetName());
+        return PyStatic.NewNone();
+    }
 
     GPoint warpToPoint(NULL_ORIGIN);
     SystemEntity* pSE(nullptr);
@@ -391,11 +566,14 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
     uint32 toID(0);
     std::string stringArg = "";
 
-    if ((id->IsString())
-    or  (id->IsWString())) {
+    if ((id->IsString()) or (id->IsWString())) {
         stringArg = PyRep::StringContent(id);
-    } else {
-        toID = PyRep::IntegerValueU32(id);
+    } else if (type->content() == "item" || type->content() == "launch") {
+        if (!ReadUnsignedCommandID(id, toID)) {
+            _log(CLIENT__ERROR, "%s: invalid warp destination ID.",
+                 call.client->GetName());
+            return PyStatic.NewNone();
+        }
     }
 
     if (type->content() == "item" ) {
@@ -408,13 +586,23 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
         double x(0.0), y(0.0), z(0.0);
         uint16 typeID(0);
         uint32 locationID(0);
-        uint32 bookmarkID(PyRep::IntegerValueU32(call.tuple->GetItem(1)));
+        uint32 bookmarkID(0);
+        if (!ReadUnsignedCommandID(call.tuple->GetItem(1), bookmarkID)) {
+            _log(CLIENT__ERROR, "%s: invalid bookmark ID.",
+                 call.client->GetName());
+            return PyStatic.NewNone();
+        }
 
         if (this->m_bookmark == nullptr) {
             sLog.Error( "BeyonceService::Handle_WarpToStuff()", "Attempt to access BookmarkService returned NULL." );
             return PyStatic.NewNone();
         }
-        this->m_bookmark->LookupBookmark(bookmarkID, toID, typeID, locationID, x, y, z);
+        if (!this->m_bookmark->LookupBookmark(bookmarkID, toID, typeID,
+                                               locationID, x, y, z)) {
+            _log(CLIENT__ERROR, "%s: bookmark %u was not found.",
+                 call.client->GetName(), bookmarkID);
+            return PyStatic.NewNone();
+        }
 
         if ( typeID == 5 ) {
             if (call.client->GetSystemID() != locationID) {
@@ -531,9 +719,17 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             // this makes ship warp to station dock elevation (y), instead of warping to stations "center point" position (where icon is)
             warpToPoint.y = stDataMgr.GetDockPosY(pSE->GetID());
         } else if (pSE->IsCOSE()) {
-            distance += (radius / 2);
+            if (!AddWarpDistance(distance, radius / 2)) {
+                _log(CLIENT__ERROR, "%s: invalid customs office radius.",
+                     call.client->GetName());
+                return PyStatic.NewNone();
+            }
         } else if (pSE->IsGateSE()) {
-            distance += (radius / 3);  // fudge the distance a bit for gates... its' a lil close by default
+            if (!AddWarpDistance(distance, radius / 3)) {
+                _log(CLIENT__ERROR, "%s: invalid gate radius.",
+                     call.client->GetName());
+                return PyStatic.NewNone();
+            }
         } else if (pSE->IsMoonSE()) {
             if (pSE->GetMoonSE()->HasTower()) {
                 // if moon has a tower, make warpin point 20km inside edge of tower's bubble.
@@ -549,7 +745,11 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
                 warpToPoint -= (radius * 1.25f);
             }
         } else if (pSE->IsWormholeSE()) {
-                distance += 20000;  // add 20k for wh
+            if (!AddWarpDistance(distance, 20000.0)) {
+                _log(CLIENT__ERROR, "%s: invalid wormhole range.",
+                     call.client->GetName());
+                return PyStatic.NewNone();
+            }
         } else if (radius > 90000) {
             // this doesnt work for moons
             warpToPoint.x += ((radius + 500000) * std::cos(radius));
@@ -564,24 +764,35 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             warpToPoint -= stopPoint;
         }
     }
-    if (warpToPoint.isZero()) {
+    if (warpToPoint.isZero() || warpToPoint.isNaN() ||
+        warpToPoint.isInf()) {
         // point is zero ....make error and return
         codelog(CLIENT__ERROR, "%s: warpToPoint.isZero() = true.  Cannot find location %u for '%s'", call.client->GetName(), toID, type->content().c_str());
         call.client->SendErrorMsg("WarpTo: Item location not found.");
         return PyStatic.NewNone();
     }
 
+    if (!AddWarpDistance(
+            distance, call.client->GetShipSE()->GetRadius() * 2.0)) {
+        _log(CLIENT__ERROR, "%s: warp distance is out of range.",
+             call.client->GetName());
+        return PyStatic.NewNone();
+    }
     call.client->SetInvul(false);
     call.client->SetUndock(false);
-
-    distance += (call.client->GetShipSE()->GetRadius() * 2); // add ship diameter to distance
-    pDestiny->WarpTo(warpToPoint, distance);
+    pDestiny->WarpTo(warpToPoint, static_cast<int32>(distance));
 
     return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) {
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuffAutopilot. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
+    if (destID == nullptr || destID->value() <= 0) {
+        _log(CLIENT__ERROR, "%s: invalid autopilot destination.",
+             call.client->GetName());
+        return PyStatic.NewNone();
+    }
+
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -607,18 +818,15 @@ PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) 
         return PyStatic.NewNone();
     }
 
-    call.client->SetInvul(false);
-    call.client->SetUndock(false);
     // AP shit here.....
-    call.client->SetAutoPilot(true);
-    call.client->UpdateSessionInt("solarsystemid", pSystem->GetID());
-    //call.client->UpdateSession();
-    //call.client->SendSessionChange();
-
     uint16 distance = sConfig.world.apWarptoDistance;    //10km default
     //Adding in ship and target object radius'
     //distance += call.client->GetShipSE()->GetRadius() + pSE->GetRadius();
     pDestiny->WarpTo(pSE->GetPosition(), distance, true, pSE);
+    call.client->SetInvul(false);
+    call.client->SetUndock(false);
+    call.client->SetAutoPilot(true);
+    call.client->UpdateSessionInt("solarsystemid", pSystem->GetID());
 
     return PyStatic.NewNone();
 }
@@ -632,8 +840,6 @@ PyResult BeyonceBound::CmdStop(PyCallArgs &call) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
     }
-    if (!pDestiny->IsMoving())
-        return PyStatic.NewNone();
     if (pDestiny->IsWarping()) {
         call.client->SendNotifyMsg( "You can't do this while warping");
         return PyStatic.NewNone();

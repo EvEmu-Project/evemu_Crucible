@@ -39,16 +39,22 @@
 #include "threading/Threading.h"
 // #include "testing/test.h"
 
+namespace {
+
+constexpr std::size_t MAX_PENDING_INPUT_LINES = 256;
+
+}
 
 ConsoleCommand::ConsoleCommand()
  :plscc(nullptr),
   pBubbles(nullptr),
   pSystems(nullptr),
   pCommand(nullptr),
-  buf(nullptr),
-  tv(timeval()),
-  m_haltServer(false),
-  m_dbError(false)
+   buf(nullptr),
+   tv(timeval()),
+   m_haltServer(false),
+   m_dbError(false),
+   m_inputThread(nullptr)
 {
 }
 
@@ -61,11 +67,15 @@ void ConsoleCommand::Initialize(CommandDispatcher* cd)
     sLog.Blue( "   ConsoleCommand", "Console Commands Initialized." );
     sLog.Yellow( "   ConsoleCommand", "Enter 'h' for current list of supported commands." );
 
-    m_inputThread = new std::thread([&] {
+    m_inputThread = new std::thread([this] {
         std::string temp;
-        while (true) {
-            std::getline(std::cin, temp);
+        while (std::getline(std::cin, temp)) {
+            if (temp.empty())
+                continue;
+
             std::lock_guard<std::mutex> lock(m_inputMutex);
+            if (m_input.size() >= MAX_PENDING_INPUT_LINES)
+                continue;
             m_input.push_back(std::move(temp));
             m_inputCondition.notify_one();
         }
@@ -89,8 +99,9 @@ bool ConsoleCommand::Process() {
     }
 
     bool continueRunning = true;
-    for (auto&& input : m_inputToProcess)
-    {
+    for (auto&& input : m_inputToProcess) {
+        if (input.empty())
+            continue;
         continueRunning &= HandleCommand(input.c_str());
     }
     m_inputToProcess.clear();

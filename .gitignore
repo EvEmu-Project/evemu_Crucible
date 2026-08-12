@@ -95,6 +95,10 @@ build/
 build_iwyu/
 staging/
 out/
+build-windows/
+mariadb-data/
+Tools/archives/
+sql/evemu-db-verify-*/
 
 # evenmu runtime
 config/
@@ -113,6 +117,7 @@ sql/tables_old/
 
 # misc shit
 sql.tar.gz
+leaut32.exe
 
 # VSCode Config Files
 .vscode/

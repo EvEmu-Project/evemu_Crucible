@@ -285,13 +285,13 @@ PyResult LSCService::JoinChannels(PyCallArgs &call, PyList* channelIDs, PyLong* 
         } else if ((*cur)->IsTuple()) {
             PyTuple* prt = (*cur)->AsTuple();
             if (prt->items.size() != 1 or !prt->items[0]->IsTuple()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
             prt = prt->items[0]->AsTuple();
 
             if (prt->items.size() != 2 or /* !prt->items[0]->IsString() or unnessecary */ !prt->items[1]->IsInt()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
             toJoin.insert(prt->items[1]->AsInt()->value());
@@ -386,7 +386,7 @@ PyResult LSCService::SendMessage(PyCallArgs& call, PyRep* channelInfo, PyWString
     } else {
         Call_SendMessage args;
         if (!args.Decode(&call.tuple)) {
-            codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            codelog(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             return PyStatic.NewNone();
         }
         channel_id = args.channel.id;
@@ -400,7 +400,16 @@ PyResult LSCService::SendMessage(PyCallArgs& call, PyRep* channelInfo, PyWString
         return PyStatic.NewNone();
     }
 
-    if (message.at(0) == '.') {
+    if (message.empty()) {
+        _log(LSC__WARNING, "Handle_SendMessage rejected an empty message.");
+        return PyStatic.NewNone();
+    }
+
+    if (message.front() == '.') {
+        if ((call.client->GetAccountRole() & Acct::Role::SLASH) !=
+            Acct::Role::SLASH)
+            return PyStatic.NewNone();
+
         _log(LSC__INFO, "SlashService->SlashCmd() called via LSC Service");
         m_slash->SlashCommand(call.client, message);
         itr->second->SendMessage(call.client, message.c_str(), true);
@@ -665,17 +674,17 @@ PyResult LSCService::LeaveChannel(PyCallArgs &call, PyRep* channelInfo, PyInt* u
             prt = prt->GetItem(0)->AsTuple();
 
             if (prt->items.size() != 2 or !prt->GetItem(1)->IsInt()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 return PyStatic.NewNone();
             }
 
             toLeave = prt->GetItem(1)->AsInt()->value();
         } else {
-            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             return PyStatic.NewNone();
         }
     } else {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return PyStatic.NewNone();
     }
 
@@ -721,7 +730,7 @@ PyResult LSCService::LeaveChannels(PyCallArgs &call, PyList* channels, PyInt* un
             }
 
             if (!prt->GetItem(0)->IsTuple()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
             prt = prt->GetItem(0)->AsTuple();
@@ -730,13 +739,13 @@ PyResult LSCService::LeaveChannels(PyCallArgs &call, PyList* channels, PyInt* un
                 prt = prt->GetItem(0)->AsTuple();
 
             if (prt->size() != 2 or !prt->GetItem(1)->IsInt()) {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 continue;
             }
 
             toLeave.insert(prt->GetItem(1)->AsInt()->value());
         } else {
-            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             continue;
         }
     }
@@ -806,17 +815,17 @@ PyResult LSCService::GetMembers(PyCallArgs &call, PyRep* channelInfo) {
 
             if (prt->items.size() != 2 or !prt->GetItem(1)->IsInt())
             {
-                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+                _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
                 return nullptr;
             }
 
             channelID = prt->GetItem(1)->AsInt()->value();
         } else {
-            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+            _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
             return nullptr;
         }
     } else {
-        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName());
+        _log(SERVICE__ERROR, "%s: Failed to decode arguments.", GetName().c_str());
         return nullptr;
     }
 
@@ -1129,7 +1138,11 @@ PyResult LSCService::Page(PyCallArgs &call, PyList* recipientIDs, PyRep* subject
     std::string subjectStr = PyRep::StringContent(subject);
     std::string bodyStr = PyRep::StringContent(body);
 
-    _log(SERVICE__MESSAGE, "%s: Received evemail msg with subject '%s': %s", call.client->GetName(), subjectStr.c_str(), bodyStr.c_str());
+    _log(
+        SERVICE__MESSAGE,
+        "%s: Received evemail message for %zu recipients.",
+        call.client->GetName(),
+        recipients.size());
 
     SendMail(call.client->GetCharacterID(), recipients, subjectStr, bodyStr);
 

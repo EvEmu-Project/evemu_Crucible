@@ -1195,7 +1195,7 @@ PyObject *CorporationDB::GetEveOwners(uint32 corpID) {
         ))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
-        return nullptr;
+        return DBResultToRowset(res);
     }
 
     return DBResultToRowset(res);
@@ -1252,26 +1252,38 @@ uint32 CorporationDB::GetStationOwner(uint32 stationID) {
     return row.GetUInt(0);
 }
 
-void CorporationDB::DeleteBulletin(uint32 bulletinID)
+void CorporationDB::DeleteBulletin(uint32 corpID, uint32 bulletinID)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "DELETE FROM crpBulletins WHERE bulletinID = %u", bulletinID);
+    sDatabase.RunQuery(err,
+        "DELETE FROM crpBulletins WHERE corporationID = %u "
+        "AND bulletinID = %u", corpID, bulletinID);
 }
 
 void CorporationDB::AddBulletin(uint32 corpID, uint32 ownerID, uint32 cCharID, std::string& title, std::string& body)
 {
     DBerror err;
+    std::string escapedTitle;
+    std::string escapedBody;
+    sDatabase.DoEscapeString(escapedTitle, title);
+    sDatabase.DoEscapeString(escapedBody, body);
     sDatabase.RunQuery(err,
         "INSERT INTO crpBulletins (corporationID, ownerID, createCharacterID, createDateTime, editCharacterID, editDateTime, title, body)"
-        " VALUES (%u, %u, %u, %f, %u, %f, '%s', '%s')", corpID, ownerID, cCharID, GetFileTimeNow(), cCharID, GetFileTimeNow(), title.c_str(), body.c_str());
+        " VALUES (%u, %u, %u, %f, %u, %f, '%s', '%s')", corpID, ownerID, cCharID, GetFileTimeNow(), cCharID, GetFileTimeNow(), escapedTitle.c_str(), escapedBody.c_str());
 }
 
-void CorporationDB::EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body)
+void CorporationDB::EditBulletin(uint32 corpID, uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body)
 {
     DBerror err;
+    std::string escapedTitle;
+    std::string escapedBody;
+    sDatabase.DoEscapeString(escapedTitle, title);
+    sDatabase.DoEscapeString(escapedBody, body);
     sDatabase.RunQuery(err,
         "UPDATE crpBulletins SET editCharacterID = %u, editDateTime = %lli, title = '%s', body = '%s'"
-        " WHERE bulletinID = %u", eCharID, eDataTime, title.c_str(), body.c_str(), bulletinID);
+        " WHERE corporationID = %u AND bulletinID = %u",
+        eCharID, eDataTime, escapedTitle.c_str(), escapedBody.c_str(), corpID,
+        bulletinID);
 }
 
 PyRep* CorporationDB::GetBulletins(uint32 corpID)
@@ -1372,7 +1384,7 @@ PyRep* CorporationDB::GetAdRegistryData(int64 typeMask/*0*/, bool inAlliance/*fa
     return DBResultToCRowset(res);
 }
 
-PyRep* CorporationDB::GetAdvert(uint16 adID)
+PyRep* CorporationDB::GetAdvert(uint32 corpID, uint16 adID)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
@@ -1380,7 +1392,7 @@ PyRep* CorporationDB::GetAdvert(uint16 adID)
         "  adID, corporationID, allianceID, stationID, regionID, raceMask, typeMask,"
         "  createDateTime, expiryDateTime, title, description, memberCount, channelID"
         " FROM crpAdRegistry"
-        "  WHERE adID = %u", adID))
+        "  WHERE corporationID = %u AND adID = %u", corpID, adID))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -1389,22 +1401,28 @@ PyRep* CorporationDB::GetAdvert(uint16 adID)
     return DBResultToCRowset(res);
 }
 
-void CorporationDB::DeleteAdvert(uint16 adID)
+void CorporationDB::DeleteAdvert(uint32 corpID, uint16 adID)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "DELETE FROM crpAdRegistry WHERE adID=%u ", adID);
+    sDatabase.RunQuery(err,
+        "DELETE FROM crpAdRegistry WHERE corporationID = %u "
+        "AND adID = %u", corpID, adID);
 }
 
 uint32 CorporationDB::CreateAdvert(Client* pClient, uint32 corpID, int64 typeMask, int8 days, uint16 members, std::string description, uint32 channelID, std::string title)
 {
     uint32 adID(0);
     DBerror err;
+    std::string escapedDescription;
+    std::string escapedTitle;
+    sDatabase.DoEscapeString(escapedDescription, description);
+    sDatabase.DoEscapeString(escapedTitle, title);
     sDatabase.RunQueryLID(err, adID, "INSERT INTO crpAdRegistry"
     " (corporationID, allianceID, stationID, regionID, raceMask, typeMask,"
     "  createDateTime, expiryDateTime, description, title, memberCount, channelID)"
     " VALUES (%u,%u,%u,%u,%u,%lli,%f,%f,'%s','%s',%u,%u)",
         corpID, pClient->GetAllianceID(), pClient->GetStationID(), pClient->GetRegionID(), 15, typeMask, // raceMask isnt implemented yet
-        GetFileTimeNow(), GetFileTimeNow() + (EvE::Time::Day * days), description.c_str(), title.c_str(), members, channelID);
+        GetFileTimeNow(), GetFileTimeNow() + (EvE::Time::Day * days), escapedDescription.c_str(), escapedTitle.c_str(), members, channelID);
 
     return adID;
 }
@@ -1413,10 +1431,15 @@ void CorporationDB::UpdateAdvert(uint16 adID, uint32 corpID, int64 typeMask, int
 {
     int64 time = GetFileTimeNow() + (EvE::Time::Day * days);
     DBerror err;
+    std::string escapedDescription;
+    std::string escapedTitle;
+    sDatabase.DoEscapeString(escapedDescription, description);
+    sDatabase.DoEscapeString(escapedTitle, title);
     sDatabase.RunQuery(err, "UPDATE crpAdRegistry"
         " SET typeMask=%lli, expiryDateTime=%lli, description='%s', title='%s', memberCount=%u, channelID=%u"
-        " WHERE adID=%u ",
-        typeMask, time, description.c_str(), title.c_str(), members, channelID, adID);
+        " WHERE adID=%u AND corporationID=%u ",
+        typeMask, time, escapedDescription.c_str(), escapedTitle.c_str(), members, channelID,
+        adID, corpID);
 }
 
 int64 CorporationDB::GetAdvertTime(uint16 adID, uint32 corpID)
@@ -1472,13 +1495,15 @@ PyRep *CorporationDB::GetApplications(uint32 corpID) {
 
 bool CorporationDB::GetCurrentApplicationInfo(Corp::ApplicationInfo& aInfo) {
     DBQueryResult res;
+    std::string escaped;
+    sDatabase.DoEscapeString(escaped, aInfo.appText);
     if (!sDatabase.RunQuery(res,
         " SELECT"
         " applicationID, applicationText, roles, grantableRoles, status,"
         " applicationDateTime, lastCorpUpdaterID, deleted"
         " FROM crpApplications"
         " WHERE characterID = %u AND corporationID = %u AND applicationText = '%s'",
-        aInfo.charID, aInfo.corpID, aInfo.appText.c_str()))
+        aInfo.charID, aInfo.corpID, escaped.c_str()))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         aInfo.valid = false;
@@ -1538,7 +1563,9 @@ bool CorporationDB::UpdateApplication(const Corp::ApplicationInfo& aInfo) {
     if (!sDatabase.RunQuery(err,
         " UPDATE crpApplications"
         " SET status = %u, lastCorpUpdaterID = %u, applicationText = '%s'"
-        " WHERE applicationID = %u", aInfo.status, aInfo.lastCID, escaped.c_str(), aInfo.appID))
+        " WHERE applicationID = %u AND corporationID = %u AND characterID = %u",
+        aInfo.status, aInfo.lastCID, escaped.c_str(), aInfo.appID,
+        aInfo.corpID, aInfo.charID))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", err.c_str());
         return false;
@@ -1551,7 +1578,8 @@ bool CorporationDB::DeleteApplication(const Corp::ApplicationInfo& aInfo) {
     if (!sDatabase.RunQuery(err,
         " UPDATE crpApplications"
         " SET status = 3, deleted = 1"
-        " WHERE applicationID = %u", aInfo.appID))
+        " WHERE applicationID = %u AND corporationID = %u AND characterID = %u",
+        aInfo.appID, aInfo.corpID, aInfo.charID))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", err.c_str());
         return false;
@@ -2058,6 +2086,7 @@ PyRep* CorporationDB::GetRoleHistroy(uint32 corpID, uint32 charID, int64 fromDat
 
 void CorporationDB::AddVoteCase(uint32 corpID, uint32 charID, Call_InsertVoteCase& args)
 {   // working
+    args.corporationID = corpID;
     PyDict* dict = args.voteCaseOptions->arguments()->AsDict();
     dict->Dump(CORP__TRACE, "    ");
 
@@ -2102,13 +2131,20 @@ void CorporationDB::AddVoteCase(uint32 corpID, uint32 charID, Call_InsertVoteCas
         data.push_back(args2);
     }
 
+    std::string voteText;
+    std::string voteDescription;
+    sDatabase.DoEscapeString(voteText, args.voteCaseText);
+    sDatabase.DoEscapeString(voteDescription, args.description);
+
     uint32 voteCaseID(0);
     DBerror err;
-    sDatabase.RunQueryLID(err, voteCaseID,
+    if (!sDatabase.RunQueryLID(err, voteCaseID,
         " INSERT INTO crpVoteItems( "
         " corporationID, voteType, voteCaseText, description, startDateTime, endDateTime)"
         " VALUES (%u, %u, '%s', '%s', %lli, %lli)",
-        args.corporationID, args.voteType, args.voteCaseText.c_str(), args.description.c_str(), args.startDateTime, args.endDateTime);
+        args.corporationID, args.voteType, voteText.c_str(),
+        voteDescription.c_str(), args.startDateTime, args.endDateTime))
+        return;
 
     std::stringstream str;
     str << "INSERT INTO crpVoteOptions (voteCaseID, optionID, optionText, parameter, parameter1, parameter2) VALUES ";
@@ -2120,7 +2156,11 @@ void CorporationDB::AddVoteCase(uint32 corpID, uint32 charID, Call_InsertVoteCas
         } else {
             str << ",";
         }
-        str << "(" << std::to_string((int64)voteCaseID) << "," << std::to_string(cur.optionID) << ",\"" << cur.optionText << "\"," << std::to_string(cur.parameter) << ",";
+        std::string optionText;
+        sDatabase.DoEscapeString(optionText, cur.optionText);
+        str << "(" << std::to_string((int64)voteCaseID) << ","
+            << std::to_string(cur.optionID) << ",'" << optionText << "',"
+            << std::to_string(cur.parameter) << ",";
         str << std::to_string(cur.parameter1) << "," << std::to_string(cur.parameter2) << ")";
     }
 
@@ -2154,12 +2194,18 @@ PyRep* CorporationDB::GetVoteItems(uint32 corpID, uint8 status/*0*/, uint8 maxLe
 }
 
 // this shit changes based on type of vote....optionID for xxx, parameter for xxx
-PyRep* CorporationDB::GetVoteOptions(uint32 voteCaseID)
+PyRep* CorporationDB::GetVoteOptions(uint32 corpID, uint32 voteCaseID)
 {   // working
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT voteCaseID, optionID, optionText, parameter, parameter1, parameter2, votesFor"
-        " FROM crpVoteOptions WHERE voteCaseID = %u", voteCaseID))
+        "SELECT options.voteCaseID, options.optionID, options.optionText, "
+        "options.parameter, options.parameter1, options.parameter2, "
+        "options.votesFor"
+        " FROM crpVoteOptions AS options"
+        " INNER JOIN crpVoteItems AS items"
+        " ON items.voteCaseID = options.voteCaseID"
+        " WHERE options.voteCaseID = %u AND items.corporationID = %u",
+        voteCaseID, corpID))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -2187,12 +2233,16 @@ PyRep* CorporationDB::GetSanctionedItems(uint32 corpID, uint8 status/*0*/)
     return DBResultToCRowset(res);
 }
 
-PyRep* CorporationDB::GetVotes(uint32 voteCaseID)
+PyRep* CorporationDB::GetVotes(uint32 corpID, uint32 voteCaseID)
 {   // working
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT charID, voteCaseID, optionID FROM crpVotes"
-        " WHERE voteCaseID = %u", voteCaseID))
+        "SELECT votes.charID, votes.voteCaseID, votes.optionID"
+        " FROM crpVotes AS votes"
+        " INNER JOIN crpVoteItems AS items"
+        " ON items.voteCaseID = votes.voteCaseID"
+        " WHERE votes.voteCaseID = %u AND items.corporationID = %u",
+        voteCaseID, corpID))
     {
         codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -2201,52 +2251,98 @@ PyRep* CorporationDB::GetVotes(uint32 voteCaseID)
     return DBResultToCIndexedRowset(res, "charID");
 }
 
-void CorporationDB::CastVote(uint32 corpID, uint32 charID, uint32 voteCaseID, uint8 optionID)
+bool CorporationDB::CastVote(uint32 corpID, uint32 charID, uint32 voteCaseID, uint8 optionID)
 {   // working
+    if ( !IsCharacterID( charID ) || !HasShares( charID, corpID ) )
+        return false;
+
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT voteCaseID FROM crpVoteItems"
+        " WHERE voteCaseID = %u AND corporationID = %u",
+        voteCaseID, corpID))
+        return false;
+
+    DBResultRow row;
+    if (!res.GetRow(row))
+        return false;
+    if (!sDatabase.RunQuery(res,
+        "SELECT optionID FROM crpVoteOptions"
+        " WHERE voteCaseID = %u AND optionID = %u",
+        voteCaseID, optionID) || !res.GetRow(row))
+        return false;
+    if (!sDatabase.RunQuery(res,
+        "SELECT charID FROM crpVotes"
+        " WHERE charID = %u AND voteCaseID = %u",
+        charID, voteCaseID))
+        return false;
+    if (res.GetRow(row))
+        return false;
+
     DBerror err;
-    sDatabase.RunQuery(err, "UPDATE crpVoteItems SET votesMade=votesMade + 1 WHERE voteCaseID = %u", voteCaseID);
-    sDatabase.RunQuery(err, "UPDATE crpVoteOptions SET votesFor=votesFor + 1 WHERE voteCaseID = %u AND optionID = %u", voteCaseID, optionID);
-    sDatabase.RunQuery(err,
-            "INSERT INTO crpVotes (charID,corpID,voteCaseID,optionID)"
-            " VALUES (%u,%u,%u,%u)", charID, corpID, voteCaseID, optionID);
+    if (!sDatabase.RunQuery(err,
+        "UPDATE crpVoteItems SET votesMade = votesMade + 1"
+        " WHERE voteCaseID = %u AND corporationID = %u",
+        voteCaseID, corpID))
+        return false;
+    if (!sDatabase.RunQuery(err,
+        "UPDATE crpVoteOptions SET votesFor = votesFor + 1"
+        " WHERE voteCaseID = %u AND optionID = %u",
+        voteCaseID, optionID))
+        return false;
+    return sDatabase.RunQuery(err,
+        "INSERT INTO crpVotes (charID,corpID,voteCaseID,optionID)"
+        " VALUES (%u,%u,%u,%u)", charID, corpID, voteCaseID, optionID);
 }
 
 
-void CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, int32 corporationID, int32 toShareholderID, int32 numberOfShares)
+bool CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, int32 corporationID, int32 toShareholderID, int32 numberOfShares)
 {   // working
     //MoveShares(corporationID, toShareholderID, numberOfShares)
     //  this will also send share update notifications as its' easier to do here..
+
+    if ( numberOfShares <= 0 || !IsPlayerCorp( corporationID ) )
+        return false;
 
     // get old owner data
     bool isCorp = false;
     if (IsPlayerCorp(ownerID))
         isCorp = true;
     DBQueryResult res;
-    sDatabase.RunQuery(res,"SELECT shares FROM crpShares WHERE corporationID = %u AND shareholderID = %u ", corpID, ownerID);
+    if ( !sDatabase.RunQuery(
+            res,
+            "SELECT shares FROM crpShares WHERE corporationID = %u "
+            "AND shareholderID = %u ",
+            corporationID,
+            ownerID ) )
+        return false;
     DBResultRow row;
-    if (res.GetRow(row)) {
-        // add to notification
-        /** @todo update this to use CorpNotify() */
-        OnCorpShareChange corpUpdate;
-            corpUpdate.corpID = corpID;
-            corpUpdate.ownerID = ownerID;
-            corpUpdate.oldShares = row.GetInt(0);
-            corpUpdate.newShares = row.GetInt(0) - numberOfShares;
-        MulticastTarget mct;
-        if (isCorp) {
-            mct.corporations.insert(corpID);
-        } else {
-            mct.characters.insert(ownerID);
-        }
-        PyTuple* tuple = corpUpdate.Encode();
-        sEntityList.Multicast("OnShareChange", "*corpid&corprole", &tuple, mct);
+    if (!res.GetRow(row) || row.GetInt64(0) < numberOfShares)
+        return false;
+
+    // add to notification
+    /** @todo update this to use CorpNotify() */
+    OnCorpShareChange corpUpdate;
+        corpUpdate.corpID = corporationID;
+        corpUpdate.ownerID = ownerID;
+        corpUpdate.oldShares = row.GetInt(0);
+        corpUpdate.newShares = row.GetInt(0) - numberOfShares;
+    MulticastTarget mct;
+    if (isCorp) {
+        mct.corporations.insert(corporationID);
+    } else {
+        mct.characters.insert(ownerID);
     }
+    PyTuple* tuple = corpUpdate.Encode();
+    sEntityList.Multicast("OnShareChange", "*corpid&corprole", &tuple, mct);
 
     DBerror err;
     // remove from old owner
-    sDatabase.RunQuery(err,
+    if ( !sDatabase.RunQuery(err,
         "UPDATE crpShares SET shares = shares - %i"
-        " WHERE corporationID = %u AND shareholderID = %u ", numberOfShares, corporationID, ownerID);
+        " WHERE corporationID = %u AND shareholderID = %u ",
+        numberOfShares, corporationID, ownerID) )
+        return false;
 
     // get new owner data
     uint16 oldShares = 0;
@@ -2262,10 +2358,10 @@ void CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, int32 corporationI
     }
     OnCharShareChange charUpdate;
     charUpdate.ownerID = toShareholderID;
-    charUpdate.corpID = corpID;
+    charUpdate.corpID = corporationID;
     charUpdate.newShares = numberOfShares; // plus existing shares this owner has of this corp
     //res.Reset();
-    sDatabase.RunQuery(res,"SELECT shares, shareholderCorporationID FROM crpShares WHERE corporationID = %u AND shareholderID = %u ", corpID, toShareholderID);
+    sDatabase.RunQuery(res,"SELECT shares, shareholderCorporationID FROM crpShares WHERE corporationID = %u AND shareholderID = %u ", corporationID, toShareholderID);
     // this isnt completely right.   also throws error
     //  AttributeError: 'dict' object has no attribute 'header'
     if (res.GetRow(row)) {
@@ -2281,7 +2377,7 @@ void CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, int32 corporationI
     }
 
     charUpdate.newShares = (oldShares + numberOfShares);
-    charUpdate.newCorpID = corpID;
+    charUpdate.newCorpID = corporationID;
     charUpdate.newOwnerID = toShareholderID;
     charUpdate.newOwnerNewCorpID = (isCorp ? 0 : oldCorpID);
 
@@ -2289,7 +2385,7 @@ void CorporationDB::MoveShares(uint32 ownerID, uint32 corpID, int32 corporationI
         pClient->SendNotification("OnShareChange", "charid", charUpdate.Encode());
 
     // add to new owner
-    sDatabase.RunQuery(err,
+    return sDatabase.RunQuery(err,
         "INSERT INTO crpShares (corporationID, shareholderID, shares, shareholderCorporationID)"
         " VALUES (%i, %i, %i, %u)"
         " ON DUPLICATE KEY UPDATE shares = shares + %i", corporationID, toShareholderID, numberOfShares, corpID, numberOfShares);
@@ -2347,7 +2443,8 @@ bool CorporationDB::HasShares(uint32 charID, uint32 corpID)
         return false;
     }
 
-    if (res.GetRowCount())
+    DBResultRow row;
+    if (res.GetRow(row) && row.GetInt64(0) > 0)
         return true;
 
     return false;

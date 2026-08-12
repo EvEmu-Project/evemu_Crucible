@@ -11,6 +11,18 @@ To download the latest release of EVEDBTool, simply run ./get_evedbtool.sh (Linu
 
 To install the EVEmu database, run './evedbtool install'
 
+## Disposable database verification
+
+On Windows PowerShell, run the isolated install, backup/restore, migration,
+and character-deletion checks with:
+
+```
+.\verify_database.ps1 -Port 13306
+```
+
+The runner creates its temporary MariaDB data under this project, removes it
+after a successful run, and refuses work directories outside the workspace.
+
 ## EVEDBTool Usage
 ```
 Usage: evedbtool [--version] [--help] <command> [<args>]

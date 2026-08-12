@@ -156,7 +156,7 @@ public:
     bool IsOrbiting()                                   { return (m_ballMode == Destiny::Ball::Mode::ORBIT); }
     bool IsFollowing()                                  { return (m_ballMode == Destiny::Ball::Mode::FOLLOW); }
     //bool IsJumping()                                  { return (m_ballMode == Destiny::Ball::Mode::STOP); }
-    bool IsWarping()                                    { return (m_warpState ? true : false); }
+    bool IsWarping()                                    { return m_warpState != nullptr || m_ballMode == Destiny::Ball::Mode::WARP; }
     bool IsCloaked()                                    { return m_cloaked; }
     bool IsTurning()                                    { return m_turning; }
     bool IsTractored()                                  { return m_tractored; }
@@ -216,13 +216,14 @@ public:
 
     // set all movement vars for missile and add to system
     //  this is used by all entities (pc, npc, drone, sentry, pos, etc)
-    void MakeMissile(Missile* missile);
+    bool MakeMissile(Missile* missile);
 
     bool IsFrozen()                                     { return m_frozen; }
     void SetFrozen(bool set=false)                      { m_frozen = set; }
 
     // Prevents actions if the player is performing the login warp
     bool AbortIfLoginWarping(bool showMsg);
+    void ClearWarpBubbleReference(SystemBubble* pSB);
 
 protected:
     void ProcessState();
@@ -235,8 +236,8 @@ protected:
     bool m_hasSentShipUpdates;
 
     //things dictated by our entity's configuration:
-    uint8 m_warpAccelTime;              //in s      - calculated internally for warp stages
-    uint8 m_warpDecelTime;              //in s      - calculated internally for warp stages
+    uint32 m_warpAccelTime;             //in s      - calculated internally for warp stages
+    uint32 m_warpDecelTime;             //in s      - calculated internally for warp stages
 
     float m_mass;                       //in kg
     float m_massMKg;                    //in mg     - Millionths of kg (mg)
@@ -309,12 +310,14 @@ protected:
     void MoveObject();                  //apply velocity to our position for this round of movement
     void Orbit();
     void Follow();                      //follow or approach object in space
-    void BeginMovement();               //set initial variables for all movement (common code)
+    void BeginMovement(bool preserveSpeed = false);
+                                        //set initial variables for movement
     void UpdateVelocity(bool isMoving=false);
 
 private:
     bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
+    bool m_directionCommandActive;
 
     // check to align destiny movement to tic
     bool m_ticAlign;
@@ -341,11 +344,14 @@ private:
     // Internal Warp Methods
     Timer m_warpTimer;
     void InitWarp();
-    void WarpAccel(uint16 sec_into_warp);
-    void WarpCruise(uint16 sec_into_warp);
-    void WarpDecel(uint16 sec_into_warp);
+    void SetWarpBubble(SystemBubble* pSB);
+    void ClearWarpBubble();
+    void WarpAccel(uint32 sec_into_warp);
+    void WarpCruise(uint32 sec_into_warp);
+    void WarpDecel(uint32 sec_into_warp);
     void WarpStop(double currentShipSpeed);
     void WarpUpdate(double currentShipSpeed);
+    void AbortWarp();
 
     // Variables used during Warp.
     class WarpState {

@@ -29,22 +29,42 @@
 #include "imageserver/ImageServerListener.h"
 
 ImageServerListener::ImageServerListener(boost::asio::io_context& io)
+    : _acceptor(nullptr),
+      _retryTimer(io)
 {
+    const boost::asio::ip::address bindAddress =
+        boost::asio::ip::address::from_string(sConfig.net.imageServerBind);
 #if BOOST_VERSION >= 107400
-    _acceptor = new boost::asio::basic_socket_acceptor<proto>(io, proto::endpoint(proto::v4(), sConfig.net.imageServerPort));
+    _acceptor = new boost::asio::basic_socket_acceptor<proto>(
+        io,
+        proto::endpoint(bindAddress, sConfig.net.imageServerPort));
 #else
-    _acceptor = new proto::acceptor(io, proto::endpoint(proto::v4(), sConfig.net.imageServerPort));
+    _acceptor = new proto::acceptor(
+        io,
+        proto::endpoint(bindAddress, sConfig.net.imageServerPort));
 #endif
     StartAccept();
 }
 
 ImageServerListener::~ImageServerListener()
 {
+    boost::system::error_code error;
+    _retryTimer.cancel(error);
+    _acceptor->close(error);
     delete _acceptor;
 }
 
 void ImageServerListener::StartAccept()
 {
+    if (ImageServerConnection::AtCapacity()) {
+        _retryTimer.expires_after(ImageServerLimits::ACCEPT_RETRY_DELAY);
+        _retryTimer.async_wait([this](const boost::system::error_code& error) {
+            if (!error)
+                StartAccept();
+        });
+        return;
+    }
+
 #if BOOST_VERSION >= 107400
     boost::asio::any_io_executor e = _acceptor->get_executor();
     boost::asio::execution_context &e_context = e.context();
@@ -55,12 +75,29 @@ void ImageServerListener::StartAccept()
     boost::asio::io_context &context_instance = static_cast<boost::asio::io_context&>(e_context);
 #endif
 
-    std::shared_ptr<ImageServerConnection> connection = ImageServerConnection::create(context_instance);
-    _acceptor->async_accept(connection->socket(), std::bind(&ImageServerListener::HandleAccept, this, connection));
+    std::shared_ptr<ImageServerConnection> connection =
+        ImageServerConnection::create(context_instance);
+    if (!connection) {
+        StartAccept();
+        return;
+    }
+
+    _acceptor->async_accept(
+        connection->socket(),
+        [this, connection](
+            const boost::system::error_code& error) {
+            HandleAccept(error, connection);
+        });
 }
 
-void ImageServerListener::HandleAccept(std::shared_ptr<ImageServerConnection> connection)
+void ImageServerListener::HandleAccept(
+    const boost::system::error_code& error,
+    std::shared_ptr<ImageServerConnection> connection)
 {
-    connection->Process();
+    if (error == boost::asio::error::operation_aborted)
+        return;
+
+    if (!error)
+        connection->Process();
     StartAccept();
 }

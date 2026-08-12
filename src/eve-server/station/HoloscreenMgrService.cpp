@@ -27,50 +27,55 @@
 
 #include "station/HoloscreenMgrService.h"
 
-HoloscreenMgrService::HoloscreenMgrService() :
-    Service("holoscreenMgr", eAccessLevel_Character)
-{
-    this->Add("GetRecentEpicArcCompletions", &HoloscreenMgrService::GetRecentEpicArcCompletions);
-    this->Add("GetTwoHourCache", &HoloscreenMgrService::GetTwoHourCache);
-    this->Add("GetRuntimeCache", &HoloscreenMgrService::GetRuntimeCache);
+HoloscreenMgrService::HoloscreenMgrService()
+    : Service("holoscreenMgr", eAccessLevel_Character) {
+  this->Add("GetRecentEpicArcCompletions",
+            &HoloscreenMgrService::GetRecentEpicArcCompletions);
+  this->Add("GetTwoHourCache", &HoloscreenMgrService::GetTwoHourCache);
+  this->Add("GetRuntimeCache", &HoloscreenMgrService::GetRuntimeCache);
+  this->Add("GetNewsTickerData", &HoloscreenMgrService::GetNewsTickerData);
 }
 
-//those objects should be cached
+// those objects should be cached
 
-PyResult HoloscreenMgrService::GetRecentEpicArcCompletions(PyCallArgs& call)
-{       //  this is cached object!!!
-    sLog.Debug("HoloscreenMgrService", "Called GetRecentEpicArcCompletions stub.");
+PyResult HoloscreenMgrService::GetRecentEpicArcCompletions(
+    PyCallArgs &call) { //  this is cached object!!!
+  sLog.Debug("HoloscreenMgrService",
+             "Called GetRecentEpicArcCompletions stub.");
 
-    /*
-     *        characterID
-     *        completionDate
-     */
+  /*
+   *        characterID
+   *        completionDate
+   */
 
-    return nullptr;
+  return new PyList();
 }
 
-PyResult HoloscreenMgrService::GetTwoHourCache(PyCallArgs& call)
-{
-    PyDict* agents = new PyDict();
-        agents->SetItemString("Agent_DUMMY", new PyDict());
-    PyDict* args = new PyDict();
-        args->SetItemString("careerAgents", agents);
-        args->SetItemString("incursionReport", new PyList());
-        args->SetItemString("epicArcAgents", new PyDict());
-        args->SetItemString("sovChangesReport", new PyList());
-    return new PyObject("util.KeyVal", args);
+PyResult HoloscreenMgrService::GetTwoHourCache(PyCallArgs &call) {
+  PyDict *agents = new PyDict();
+  agents->SetItemString("Agent_DUMMY", new PyDict());
+  PyDict *args = new PyDict();
+  args->SetItemString("careerAgents", agents);
+  args->SetItemString("incursionReport", new PyList());
+  args->SetItemString("epicArcAgents", new PyDict());
+  args->SetItemString("sovChangesReport", new PyList());
+  return new PyObject("util.KeyVal", args);
 }
 
-PyResult HoloscreenMgrService::GetRuntimeCache(PyCallArgs& call)
-{
-    PyDict* agents = new PyDict();
-        agents->SetItemString("Agent_DUMMY", new PyDict());
-    PyDict* args = new PyDict();
-        args->SetItemString("careerAgents", agents);
-        args->SetItemString("incursionReport", new PyList());
-        args->SetItemString("epicArcAgents", new PyDict());
-        args->SetItemString("sovChangesReport", new PyList());
-    return new PyObject("util.KeyVal", args);
+PyResult HoloscreenMgrService::GetRuntimeCache(PyCallArgs &call) {
+  PyDict *agents = new PyDict();
+  agents->SetItemString("Agent_DUMMY", new PyDict());
+  PyDict *args = new PyDict();
+  args->SetItemString("careerAgents", agents);
+  args->SetItemString("incursionReport", new PyList());
+  args->SetItemString("epicArcAgents", new PyDict());
+  args->SetItemString("sovChangesReport", new PyList());
+  return new PyObject("util.KeyVal", args);
+}
+
+PyResult HoloscreenMgrService::GetNewsTickerData(PyCallArgs &call) {
+  // Keep the server-side fallback data-only and independent of remote TLS.
+  return new PyString("<news/>");
 }
 
 /*  sovChangesReport

@@ -28,6 +28,19 @@
 
 #include "EVEServerConfig.h"
 
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+
+namespace {
+constexpr std::size_t MAX_DATABASE_PASSWORD_LENGTH = 256;
+constexpr uint16 DEFAULT_DATABASE_PORT = 3306;
+constexpr char DATABASE_HOST_TEMPLATE[] = "database_host";
+constexpr char DATABASE_USERNAME_TEMPLATE[] = "database_username";
+constexpr char DATABASE_PASSWORD_TEMPLATE[] = "database_password";
+constexpr char DATABASE_NAME_TEMPLATE[] = "database_name";
+}
+
 /*************************************************************************/
 /* EVEServerConfig                                                       */
 /*************************************************************************/
@@ -136,7 +149,8 @@ EVEServerConfig::EVEServerConfig()
     ram.InventTime = 1.0;
 
     // account
-    account.autoAccountRole = Acct::Role::STD;
+    account.autoAccountRole = 0;
+    account.allowPlaceboCrypto = false;
     account.loginMessage = "";
 
     // character
@@ -228,6 +242,7 @@ EVEServerConfig::EVEServerConfig()
     // debug
     debug.BeanCount = false;
     debug.StackTrace = false;
+    debug.CharacterSelectTrace = false;
     debug.BubbleTrack = false;
     debug.IsTestServer = true;
     debug.UseProfiling = false;
@@ -241,8 +256,8 @@ EVEServerConfig::EVEServerConfig()
     // database
     database.host = "localhost";
     database.port = 3306;
-    database.username = "eve";
-    database.password = "eve";
+    database.username.clear();
+    database.password.clear();
     database.db = "evemu";
     database.compress = false;
     database.ssl = false;
@@ -260,6 +275,7 @@ EVEServerConfig::EVEServerConfig()
 
     // net
     net.port = 26000;
+    net.imageServerBind = "127.0.0.1";
     net.imageServer = "localhost";
     net.imageServerPort = 26001;
 
@@ -269,6 +285,39 @@ EVEServerConfig::EVEServerConfig()
     threads.ImageServerThreads = 1;//N
     threads.NetworkThreads = 2;//N
     threads.WorldThreads = 2;//N
+}
+
+bool EVEServerConfig::ApplyDatabaseEnvironment()
+{
+    const char* password = std::getenv("EVEMU_DB_PASSWORD");
+    if (password != nullptr &&
+        std::strlen(password) > MAX_DATABASE_PASSWORD_LENGTH) {
+        return false;
+    }
+
+    if (database.host == DATABASE_HOST_TEMPLATE) {
+        database.host = "127.0.0.1";
+    }
+    if (database.username == DATABASE_USERNAME_TEMPLATE) {
+        database.username = "evemu";
+    }
+    if (database.db == DATABASE_NAME_TEMPLATE) {
+        database.db = "evemu";
+    }
+    if (database.port == 0) {
+        database.port = DEFAULT_DATABASE_PORT;
+    }
+
+    if (database.password == DATABASE_PASSWORD_TEMPLATE) {
+        if (password == nullptr) {
+            return false;
+        }
+        database.password = password;
+    } else if (password != nullptr) {
+        database.password = password;
+    }
+
+    return true;
 }
 
 bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
@@ -296,6 +345,13 @@ bool EVEServerConfig::ProcessEveServer( const TiXmlElement* ele )
 
     // parse the element
     const bool result = ParseElementChildren( ele );
+
+    // Auto-created accounts may never receive a privileged role.  An invalid
+    // value fails closed instead of silently creating a developer account.
+    if (account.autoAccountRole != 0 &&
+        account.autoAccountRole != Acct::Role::STD) {
+        account.autoAccountRole = 0;
+    }
 
     // leaving element, reduce allowed syntax
     RemoveParser( "server" );
@@ -533,11 +589,13 @@ bool EVEServerConfig::ProcessBPTimes(const TiXmlElement* ele)
 bool EVEServerConfig::ProcessAccount( const TiXmlElement* ele )
 {
     AddValueParser( "autoAccountRole",  account.autoAccountRole );
+    AddValueParser( "allowPlaceboCrypto", account.allowPlaceboCrypto );
     AddValueParser( "loginMessage",     account.loginMessage );
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "autoAccountRole" );
+    RemoveParser( "allowPlaceboCrypto" );
     RemoveParser( "loginMessage" );
 
     return result;
@@ -659,12 +717,14 @@ bool EVEServerConfig::ProcessNet( const TiXmlElement* ele )
 {
     AddValueParser( "port",             net.port );
     AddValueParser( "imageServerPort",  net.imageServerPort);
+    AddValueParser( "imageServerBind",  net.imageServerBind);
     AddValueParser( "imageServer",      net.imageServer);
 
     const bool result = ParseElementChildren( ele );
 
     RemoveParser( "port" );
     RemoveParser( "imageServerPort" );
+    RemoveParser( "imageServerBind" );
     RemoveParser( "imageServer" );
 
     return result;
@@ -821,6 +881,7 @@ bool EVEServerConfig::ProcessDebug(const TiXmlElement* ele)
 {
     AddValueParser( "UseBeanCount",         debug.BeanCount );
     AddValueParser( "UseStackTrace",        debug.StackTrace );
+    AddValueParser( "CharacterSelectTrace", debug.CharacterSelectTrace );
     AddValueParser( "IsTestServer",         debug.IsTestServer );
     AddValueParser( "UseProfiling",         debug.UseProfiling );
     AddValueParser( "UseShipTracking",      debug.UseShipTracking );
@@ -835,6 +896,7 @@ bool EVEServerConfig::ProcessDebug(const TiXmlElement* ele)
 
     RemoveParser( "UseBeanCount" );
     RemoveParser( "UseStackTrace" );
+    RemoveParser( "CharacterSelectTrace" );
     RemoveParser( "IsTestServer" );
     RemoveParser( "UseProfiling" );
     RemoveParser( "UseShipTracking" );

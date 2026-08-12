@@ -27,23 +27,28 @@
 #define __STREAM_PACKETIZER_H__INCL__
 
 #include "utils/Buffer.h"
+#include "network/ProtocolLimits.h"
 
 class StreamPacketizer
 {
 public:
     ~StreamPacketizer();
 
-    void InputData( const Buffer& data );
-    void Process();
+    bool InputData( const Buffer& data );
+    bool Process();
 
     Buffer* PopPacket();
 
     void ClearBuffers();
 
+    bool IsInvalid() const { return mInvalid; }
+
 protected:
     Buffer mBuffer;
 
     std::queue<Buffer*> mPackets;
+    std::size_t mQueuedBytes = 0;
+    bool mInvalid = false;
 };
 
 #endif /* !__STREAM_PACKETIZER_H__INCL__ */

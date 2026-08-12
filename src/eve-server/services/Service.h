@@ -50,6 +50,8 @@ public:
     virtual const AccessLevel GetAccessLevel() const = 0;
     /** Indicates the name of the service */
     virtual const std::string& GetName() const = 0;
+    /** Indicates the account role required to access the service */
+    virtual int64 GetRequiredRole() const = 0;
     /**
      * @brief Handles dispatching a call to this service
      */
@@ -68,9 +70,13 @@ public:
 template<class T>
 class Service : public Dispatcher {
 protected:
-    Service(const std::string& name, AccessLevel level = eAccessLevel_None) :
+    Service(
+        const std::string& name,
+        AccessLevel level = eAccessLevel_None,
+        int64 requiredRole = 0) :
         mName(std::move(name)),
-        mAccessLevel(level)
+        mAccessLevel(level),
+        mRequiredRole(requiredRole)
     {
     }
 
@@ -87,6 +93,8 @@ public:
     const AccessLevel GetAccessLevel() const override { return this->mAccessLevel; }
     /** Indicates the name of the service */
     const std::string& GetName() const override { return this->mName; }
+    /** Indicates the account role required to access the service */
+    int64 GetRequiredRole() const override { return this->mRequiredRole; }
 
     /**
      * @brief Handles dispatching a call to this service
@@ -131,6 +139,8 @@ private:
     std::string mName;
     /** @var The access level required to access this service */
     AccessLevel mAccessLevel;
+    /** @var The account role required to access this service */
+    int64 mRequiredRole;
     /** @var The map of handlers for this service */
     std::vector <std::pair <std::string, CallHandlerBase*>> mHandlers;
 };

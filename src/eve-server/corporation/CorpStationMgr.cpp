@@ -243,9 +243,12 @@ PyResult CorpStationMgrIMBound::SetCloneTypeID(PyCallArgs &call, PyInt* cloneTyp
 }
 
 PyResult CorpStationMgrIMBound::RentOffice(PyCallArgs &call, PyInt* amount) {
-    // corp role is checked in client before this button is shown.  no need to check here.
     // 1 param, corp rent price
     Client* pClient = call.client;
+    const int64 rentRoles = Corp::Role::Director | Corp::Role::CanRentOffice;
+    if ( !IsPlayerCorp( pClient->GetCorporationID() ) ||
+         (pClient->GetCorpRole() & rentRoles) == 0 )
+        throw CustomError("Corporation office rental denied");
 
     // see if corp has office in station already.
     if (pStationItem->GetOfficeID(pClient->GetCorporationID()))
@@ -346,6 +349,11 @@ PyResult CorpStationMgrIMBound::GetCorporateStationOffice(PyCallArgs &call) {
 
 PyResult CorpStationMgrIMBound::MoveCorpHQHere(PyCallArgs &call)
 {
+    const int64 hqRoles = Corp::Role::Director | Corp::Role::StationManager;
+    if ( !IsPlayerCorp( call.client->GetCorporationID() ) ||
+         (call.client->GetCorpRole() & hqRoles) == 0 )
+        throw CustomError("Corporation headquarters update denied");
+
     if (call.client->GetCorpHQ() == m_stationID)
         throw UserError ("CorpHQIsAtThisStation");
 

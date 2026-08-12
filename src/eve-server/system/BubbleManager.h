@@ -27,12 +27,14 @@
 
 
 #include <unordered_map>
+#include <unordered_set>
 #include "system/SystemEntity.h"
 
 static const float BUBBLE_RADIUS_METERS = 300000.0f;       // EVE retail uses 250km and allows grid manipulation  NOTE:  this is based on testing for best results.  -allan
 static const float BUBBLE_HYSTERESIS_METERS = 5000.0f;     // How far out of the existing bubble a ship needs to fly before being placed into a new or different bubble
 
 class SystemBubble;
+class DestinyManager;
 class GPoint;
 
 //the purpose of this object is to make a nice container for
@@ -73,9 +75,18 @@ public:
     void Remove(SystemEntity* ent);
     void clear();
     void ClearSystemBubbles(uint32 systemID);
+    // Unregister and delete a bubble. Safe to call for an untracked bubble.
     void RemoveBubble(uint32 systemID, SystemBubble* pSB);
+    void RegisterWarpReference(SystemBubble* pSB, DestinyManager* pDM);
+    void UnregisterWarpReference(SystemBubble* pSB, DestinyManager* pDM);
 
-    uint32 Count()                                      { return m_bubbles.size(); }
+    uint32 Count() {
+        uint32 count = 0;
+        for (SystemBubble* pBubble : m_bubbles)
+            if (pBubble != nullptr)
+                ++count;
+        return count;
+    }
     uint32 GetBubbleID()                                { return ++m_bubbleID; }
 
     // for spawn system     -allan 15April16
@@ -108,12 +119,15 @@ private:
     /* map of bubbleID, spawnID */
     std::map<uint16, uint32> m_spawnIDs;
 
-    std::list<SystemBubble*> m_bubbles;                 //for proc only.
+    std::list<SystemBubble*> m_bubbles;                 // owns bubbles.
     std::vector<SystemEntity*> m_wanderers;             //entities that are no longer in their bubble, but not removed
 
     std::map<uint32, SystemBubble*> m_bubbleIDMap;     // bubbleID/bubble*
 
     std::unordered_multimap<uint32, SystemBubble*> m_sysBubbleMap;  // systemID/bubble*
+    std::unordered_map<
+        SystemBubble*,
+        std::unordered_set<DestinyManager*>> m_warpReferences;
 };
 
 //Singleton

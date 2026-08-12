@@ -25,6 +25,7 @@
 */
 
 #include <boost/algorithm/string.hpp>
+#include <cmath>
 #include "eve-server.h"
 
 #include "EntityList.h"
@@ -48,6 +49,47 @@
  * ACCOUNT__DB_INFO
  * ACCOUNT__DB_MESSAGE
  */
+
+namespace {
+
+int64 CorporationWalletTakeRole( uint16 accountKey )
+{
+    switch ( accountKey ) {
+        case Account::KeyType::Cash:  return Corp::Role::AccountCanTake1;
+        case Account::KeyType::Cash2: return Corp::Role::AccountCanTake2;
+        case Account::KeyType::Cash3: return Corp::Role::AccountCanTake3;
+        case Account::KeyType::Cash4: return Corp::Role::AccountCanTake4;
+        case Account::KeyType::Cash5: return Corp::Role::AccountCanTake5;
+        case Account::KeyType::Cash6: return Corp::Role::AccountCanTake6;
+        case Account::KeyType::Cash7: return Corp::Role::AccountCanTake7;
+        default:                      return 0;
+    }
+}
+
+void RequireCorporationWalletRead( Client* client, uint16 accountKey )
+{
+    const int64 roles = client->GetCorpRole();
+    const int64 readRoles = Corp::Role::Director |
+        Corp::Role::Accountant | Corp::Role::JuniorAccountant;
+    if ( !IsPlayerCorp( client->GetCorporationID() ) ||
+         CorporationWalletTakeRole( accountKey ) == 0 ||
+         (roles & readRoles) == 0 )
+        throw CustomError( "Corporation wallet access denied" );
+}
+
+void RequireCorporationWalletWithdrawal(
+    Client* client,
+    uint16 accountKey )
+{
+    const int64 roles = client->GetCorpRole();
+    const int64 takeRole = CorporationWalletTakeRole( accountKey );
+    const int64 broadRoles = Corp::Role::Director | Corp::Role::Accountant;
+    if ( !IsPlayerCorp( client->GetCorporationID() ) ||
+         takeRole == 0 || (roles & (broadRoles | takeRole)) == 0 )
+        throw CustomError( "Corporation wallet withdrawal denied" );
+}
+
+}
 
 AccountService::AccountService() :
     Service("account", eAccessLevel_Character)
@@ -83,6 +125,9 @@ PyResult AccountService::GetEntryTypes(PyCallArgs &call)
 
 PyResult AccountService::GetWalletDivisionsInfo(PyCallArgs &call)
 {
+    RequireCorporationWalletRead(
+        call.client,
+        Account::KeyType::Cash );
     return m_db.GetWalletDivisionsInfo(call.client->GetCorporationID());
 }
 
@@ -140,6 +185,7 @@ PyResult AccountService::GetCashBalance(PyCallArgs &call, std::optional<PyInt*> 
         accountKey = walletKey.value()->value();
 
     if (isCorpWallet.has_value() && isCorpWallet.value()->value()) {
+        RequireCorporationWalletRead( call.client, accountKey );
         balance = AccountDB::GetCorpBalance( call.client->GetCorporationID(), accountKey);
     } else {
         int8 type = Account::CreditType::ISK;
@@ -166,8 +212,12 @@ PyResult AccountService::GetJournal(PyCallArgs &call, PyInt* accountKey, PyLong*
     }
 
     uint32 ownerID(call.client->GetCharacterID());
-    if (corpAccount->value())
+    if (corpAccount->value()) {
+        RequireCorporationWalletRead(
+            call.client,
+            accountKey->value());
         ownerID = call.client->GetCorporationID();
+    }
 
     PyRep* res = m_db.GetJournal(ownerID, entryTypeID.has_value() ? entryTypeID.value()->value() : 0, accountKey->value(), fromDate->value(), rev.has_value() ? rev.value()->value() : 0);
     if (is_log_enabled(ACCOUNT__RSP_DUMP))
@@ -188,8 +238,12 @@ PyResult AccountService::GetJournalForAccounts(PyCallArgs &call, PyInt* accountK
         call.Dump(ACCOUNT__CALL_DUMP);
     }
     uint32 ownerID = call.client->GetCharacterID();
-    if (corpAccount->value())
+    if (corpAccount->value()) {
+        RequireCorporationWalletRead(
+            call.client,
+            Account::KeyType::Cash);
         ownerID = call.client->GetCorporationID();
+    }
 
     uint16 acctKey = Account::KeyType::Cash;
 
@@ -255,6 +309,11 @@ PyResult AccountService::GiveCashFromCorpAccount(PyCallArgs &call, PyInt* toID, 
         call.Dump(ACCOUNT__CALL_DUMP);
     }
 
+    const uint16 fromKey = fromAcctKey->value();
+    RequireCorporationWalletWithdrawal( call.client, fromKey );
+    if ( !std::isfinite( amount->value() ) || amount->value() <= 0 )
+        throw CustomError( "Invalid corporation wallet amount" );
+
     uint16 toAcctKey = Account::KeyType::Cash;
     if (call.byname.find("toAccountKey") != call.byname.end())
         toAcctKey = PyRep::IntegerValue(call.byname.find("toAccountKey")->second);
@@ -287,7 +346,7 @@ PyResult AccountService::GiveCashFromCorpAccount(PyCallArgs &call, PyInt* toID, 
         reason.c_str(),
         Journal::EntryType::CorporationAccountWithdrawal,
         call.client->GetCharacterID(),
-        fromAcctKey->value(),
+        fromKey,
         toAcctKey,
         call.client
     );

@@ -74,13 +74,11 @@ bool ServiceDB::GetAccountInformation( CryptoChallengePacket& ccp, AccountData& 
 
     DBQueryResult res;
     if ( !sDatabase.RunQuery( res,
-        "SELECT accountID, clientID, password, hash, role, type, online, banned, logonCount, lastLogin"
+        "SELECT accountID, clientID, hash, passwordKdf, role, type, online, banned, logonCount, lastLogin"
         " FROM account WHERE accountName = '%s'", eLogin.c_str() ) )
     {
         sLog.Error( "ServiceDB", "Error in query: %s.", res.error.c_str() );
         failMsg = "Error in DB Query";
-        failMsg += ": Account not found for ";
-        failMsg += eLogin;
         //failMsg += res.error.c_str();     // do we wanna sent the db error msg to client?
         return false;
     }
@@ -89,10 +87,10 @@ bool ServiceDB::GetAccountInformation( CryptoChallengePacket& ccp, AccountData& 
     if (!res.GetRow( row )) {
         // account not found, create new one if autoAccountRole is not zero (0)
         if (sConfig.account.autoAccountRole > 0) {
-            std::string ePass, ePassHash;
-            sDatabase.DoEscapeString(ePass, ccp.user_password);
-            sDatabase.DoEscapeString(ePassHash, ccp.user_password_hash);
-            uint32 accountID = CreateNewAccount( eLogin.c_str(), ePass.c_str(), ePassHash.c_str(), sConfig.account.autoAccountRole);
+            uint32 accountID = CreateNewAccount(
+                ccp.user_name.c_str(),
+                ccp.user_password_hash.c_str(),
+                sConfig.account.autoAccountRole);
             if ( accountID > 0 ) {
                 // add new account successful, get account info
                 return GetAccountInformation(ccp, aData, failMsg);
@@ -109,8 +107,8 @@ bool ServiceDB::GetAccountInformation( CryptoChallengePacket& ccp, AccountData& 
     aData.name       = eLogin;
     aData.id         = row.GetInt(0);
     aData.clientID   = row.GetInt(1);
-    aData.password   = (row.IsNull(2) ? "" : row.GetText(2));
-    aData.hash       = (row.IsNull(3) ? "" : row.GetText(3));
+    aData.hash       = (row.IsNull(2) ? "" : row.GetText(2));
+    aData.passwordKdf = (row.IsNull(3) ? "" : row.GetText(3));
     aData.role       = row.GetInt64(4);
     aData.type       = row.GetUInt(5);
     aData.online     = row.GetInt(6) ? true : false;
@@ -121,15 +119,88 @@ bool ServiceDB::GetAccountInformation( CryptoChallengePacket& ccp, AccountData& 
     return true;
 }
 
+bool ServiceDB::GetAccountInformation(
+    const std::string& username,
+    AccountData& aData )
+{
+    if ( username.empty() )
+        return false;
+
+    std::string escapedUsername;
+    sDatabase.DoEscapeString( escapedUsername, username );
+
+    DBQueryResult res;
+    if ( !sDatabase.RunQuery(
+            res,
+            "SELECT accountID, clientID, hash, passwordKdf, role, type, "
+            "online, banned, logonCount, lastLogin "
+            "FROM account WHERE accountName = '%s'",
+            escapedUsername.c_str() ) ) {
+        sLog.Error( "ServiceDB", "Unable to query API account credentials." );
+        return false;
+    }
+
+    DBResultRow row;
+    if ( !res.GetRow( row ) )
+        return false;
+
+    aData.name = escapedUsername;
+    aData.id = row.GetInt( 0 );
+    aData.clientID = row.GetInt( 1 );
+    aData.hash = row.IsNull( 2 ) ? "" : row.GetText( 2 );
+    aData.passwordKdf = row.IsNull( 3 ) ? "" : row.GetText( 3 );
+    aData.role = row.GetInt64( 4 );
+    aData.type = row.GetUInt( 5 );
+    aData.online = row.GetInt( 6 ) != 0;
+    aData.banned = row.GetInt( 7 ) != 0;
+    aData.visits = row.GetInt( 8 );
+    aData.last_login = row.IsNull( 9 ) ? "" : row.GetText( 9 );
+    return true;
+}
+
 bool ServiceDB::UpdateAccountHash( const char* username, std::string & hash )
 {
-    std::string eLogin, eHash;
+    if ( username == nullptr || username[0] == '\0' || hash.empty() )
+        return false;
+
+    std::string verifier;
+    if ( !PasswordModule::GenerateArgon2idVerifier( hash, verifier ) )
+        return false;
+
+    std::string eLogin, eVerifier;
     sDatabase.DoEscapeString(eLogin, username);
-    sDatabase.DoEscapeString(eHash, hash);
+    sDatabase.DoEscapeString(eVerifier, verifier);
 
     DBerror err;
-    if (!sDatabase.RunQuery(err, "UPDATE account SET hash='%s' WHERE accountName='%s'", eHash.c_str(), eLogin.c_str())) {
-        sLog.Error( "AccountDB", "Unable to update account information for: %s.", username );
+    if (!sDatabase.RunQuery(err,
+            "UPDATE account SET passwordKdf='%s', hash='' "
+            "WHERE accountName='%s'",
+            eVerifier.c_str(), eLogin.c_str())) {
+        sLog.Error( "AccountDB", "Unable to migrate account verifier." );
+        return false;
+    }
+
+    return true;
+}
+
+bool ServiceDB::UpdateAccountPasswordKdf(
+    uint32 accountID,
+    const std::string& verifier )
+{
+    if ( accountID == 0 || verifier.empty() )
+        return false;
+
+    std::string eVerifier;
+    sDatabase.DoEscapeString( eVerifier, verifier );
+
+    DBerror err;
+    if ( !sDatabase.RunQuery(
+            err,
+            "UPDATE account SET passwordKdf='%s', hash='' "
+            "WHERE accountID=%u",
+            eVerifier.c_str(),
+            accountID ) ) {
+        sLog.Error( "AccountDB", "Unable to migrate account verifier." );
         return false;
     }
 
@@ -147,29 +218,43 @@ bool ServiceDB::IncrementLoginCount( uint32 accountID )
     return true;
 }
 
-uint32 ServiceDB::CreateNewAccount( const char* login, const char* pass, const char* passHash, int64 role )
+uint32 ServiceDB::CreateNewAccount(
+    const char* login,
+    const char* passHash,
+    int64 role)
 {
+    if ( login == nullptr || passHash == nullptr )
+        return 0;
+
+    std::string verifier;
+    if ( !PasswordModule::GenerateArgon2idVerifier( passHash, verifier ) ) {
+        sLog.Error( "ServiceDB", "Failed to generate account verifier." );
+        return 0;
+    }
+
+    std::string eLogin, eVerifier;
+    sDatabase.DoEscapeString( eLogin, login );
+    sDatabase.DoEscapeString( eVerifier, verifier );
+
     uint32 accountID(0);
     uint32 clientID(sEntityList.GetClientSeed());
 
     DBerror err;
     if ( !sDatabase.RunQueryLID( err, accountID,
-            "INSERT INTO account ( accountName, password, hash, role, clientID )"
-            " VALUES ( '%s', '%s', '%s', %llu, %u )",
-                    login, pass, passHash, role, clientID ) )
+            "INSERT INTO account "
+            "( accountName, password, hash, passwordKdf, role, clientID )"
+            " VALUES ( '%s', '', '', '%s', %llu, %u )",
+                    eLogin.c_str(), eVerifier.c_str(), role, clientID ) )
     {
-        sLog.Error( "ServiceDB", "Failed to create a new account '%s':'%s': %s.", login, pass, err.c_str() );
+        sLog.Error(
+            "ServiceDB",
+            "Failed to create account for client seed %u.",
+            clientID);
         return 0;
     }
 
     sDatabase.RunQuery(err, "UPDATE srvStatus SET ClientSeed = ClientSeed + 1 WHERE AI = 1");
     return accountID;
-}
-
-void ServiceDB::UpdatePassword(uint32 accountID, const char* pass)
-{
-    DBerror err;
-    sDatabase.RunQuery(err, "UPDATE account SET password = '%s' WHERE accountID=%u", pass, accountID);
 }
 
 void ServiceDB::SetServerOnlineStatus(bool online) {
@@ -207,34 +292,58 @@ uint32 ServiceDB::GetStationOwner(uint32 stationID)
 
     DBResultRow row;
     if (res.GetRow(row)) {
-        return row.GetInt(0);
+      return row.GetInt(0);
     } else {
-        return 1;
+      return 1;
     }
 }
 
-bool ServiceDB::GetConstant(const char *name, uint32 &into)
-{
-    DBQueryResult res;
+uint32 ServiceDB::GetSceneIDForStation(uint32 stationID) {
+  DBQueryResult res;
+  if (!sDatabase.RunQuery(
+          res,
+          "SELECT COALESCE(lsStation.sceneID, lsSystem.sceneID, 0) "
+          "FROM staStations st "
+          "LEFT JOIN locationscenes lsStation "
+          "ON lsStation.locationID = st.stationID "
+          "LEFT JOIN locationscenes lsSystem "
+          "ON lsSystem.locationID = st.solarSystemID "
+          "WHERE st.stationID = %u LIMIT 1",
+          stationID)) {
+    _log(DATABASE__ERROR, "Scene lookup failed for station %u: %s", stationID,
+         res.error.c_str());
+    return 0;
+  }
 
-    std::string escaped;
-    sDatabase.DoEscapeString(escaped, name);
+  DBResultRow row;
+  if (!res.GetRow(row))
+    return 0;
 
-    if (!sDatabase.RunQuery(res, "SELECT constantValue FROM eveConstants WHERE constantID='%s'", escaped.c_str() ))
-    {
-        codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
-        return false;
-    }
+  return row.GetUInt(0);
+}
 
-    DBResultRow row;
-    if (!res.GetRow(row)) {
-        _log(DATABASE__MESSAGE, "Unable to find constant %s", name);
-        return false;
-    }
+bool ServiceDB::GetConstant(const char *name, uint32 &into) {
+  DBQueryResult res;
 
-    into = row.GetUInt(0);
+  std::string escaped;
+  sDatabase.DoEscapeString(escaped, name);
 
-    return true;
+  if (!sDatabase.RunQuery(
+          res, "SELECT constantValue FROM eveConstants WHERE constantID='%s'",
+          escaped.c_str())) {
+    codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
+    return false;
+  }
+
+  DBResultRow row;
+  if (!res.GetRow(row)) {
+    _log(DATABASE__MESSAGE, "Unable to find constant %s", name);
+    return false;
+  }
+
+  into = row.GetUInt(0);
+
+  return true;
 }
 
 void ServiceDB::ProcessStringChange(const char* key, const std::string& oldValue, std::string newValue, PyDict* notif, std::vector< std::string >& dbQ)

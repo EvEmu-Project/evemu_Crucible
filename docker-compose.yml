@@ -15,17 +15,17 @@ services:
     links:
       - "db"
     environment:
-      - SEED_MARKET=${SEED_MARKET:-FALSE} # Set to TRUE to seed the market when the server starts for the first time
-      - SEED_SATURATION=${SEED_SATURATION:-80} # Set saturation level of seed
-      - SEED_REGIONS=${SEED_REGIONS:-Derelik,The Citadel,The Forge,Essence} # Define regions to be seeded
-      - RUN_WITH_GDB=${RUN_GDB:-FALSE} #Set to TRUE to run evemu with gdb automatically
-    stdin_open: true # Enables stdin for the container. Attach to it with 'docker attach'
-    tty: true
-    # cap_add: #This is required for gdb to work
-    #   - SYS_PTRACE
+      MARIADB_HOST: db
+      MARIADB_PORT: "3306"
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-evemu}
+      MARIADB_USER: ${MARIADB_USER:-evemu}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?MARIADB_PASSWORD must be set}
+      SEED_MARKET: ${SEED_MARKET:-FALSE}
+      SEED_SATURATION: ${SEED_SATURATION:-80}
+      SEED_REGIONS: ${SEED_REGIONS:-Derelik,The Citadel,The Forge,Essence}
 
   db:
-    image: "mariadb:11.8"
+    image: "mariadb:12.3.2"
     container_name: db
     volumes:
       - db:/var/lib/mysql
@@ -34,9 +34,9 @@ services:
     #  - "3306:3306"  
     environment:
       - MARIADB_RANDOM_ROOT_PASSWORD=true
-      - MARIADB_USER=evemu
-      - MARIADB_PASSWORD=evemu
-      - MARIADB_DATABASE=evemu
+      - MARIADB_USER=${MARIADB_USER:-evemu}
+      - MARIADB_PASSWORD=${MARIADB_PASSWORD:?MARIADB_PASSWORD must be set}
+      - MARIADB_DATABASE=${MARIADB_DATABASE:-evemu}
 
 volumes:
   db:

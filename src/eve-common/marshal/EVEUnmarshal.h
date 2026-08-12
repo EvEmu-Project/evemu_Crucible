@@ -26,6 +26,8 @@
 #ifndef EVE_UNMARSHAL_H
 #define EVE_UNMARSHAL_H
 
+#include <cstring>
+
 #include "python/PyRep.h"
 
 
@@ -71,34 +73,52 @@ public:
     PyRep* Load( const Buffer& data );
 
 protected:
-    /** Peeks element from stream. */
-    template<typename T>
-    const T& Peek() const { return *Peek<T>( 1 ); }
-    /** Peeks elements from stream. */
-    template<typename T>
-    Buffer::const_iterator<T> Peek( size_t count ) const { return mInItr.As<T>(); }
-
-    /** Reads element from stream. */
-    template<typename T>
-    const T& Read() { return *Read<T>( 1 ); }
-    /** Reads elements from stream. */
-    template<typename T>
-    Buffer::const_iterator<T> Read( size_t count )
-    {
-        Buffer::const_iterator<T> res = Peek<T>( count );
-        mInItr = ( res + count ).template As<uint8>();
-        return res;
-    }
-
     /** Reads extended size from stream. */
-    uint32 ReadSizeEx()
-    {
-        uint32 size = Read<uint8>();
-        if( 0xFF == size )
-            size = Read<uint32>();
+    bool ReadSizeEx( uint32& size );
 
-        return size;
+    /** Reads a primitive value without assuming alignment. */
+    template<typename T>
+    bool ReadValue( T& value )
+    {
+        if( sizeof( T ) > RemainingBytes() )
+        {
+            mFailed = true;
+            return false;
+        }
+
+        memcpy( &value, &*mInItr, sizeof( T ) );
+        mInItr += sizeof( T );
+        return true;
     }
+
+    /** Peeks a primitive value without assuming alignment. */
+    template<typename T>
+    bool PeekValue( T& value ) const
+    {
+        if( sizeof( T ) > RemainingBytes() )
+            return false;
+
+        memcpy( &value, &*mInItr, sizeof( T ) );
+        return true;
+    }
+
+    /** Reads a byte range and advances the input cursor. */
+    bool ReadBytes( size_t count,
+                    Buffer::const_iterator<uint8>& bytes );
+
+    /** Returns the unread payload length. */
+    size_t RemainingBytes() const;
+
+    /** Rejects malformed or excessively expensive object graphs. */
+    bool BeginRep();
+    void EndRep();
+
+    /** Validates a counted container before allocation. */
+    bool ValidateContainerCount( uint32 count,
+                                 size_t minimumBytesPerItem );
+
+    /** Marks the current stream invalid. */
+    void MarkFailed() { mFailed = true; }
 
     /** Initializes loading and loads rep from stream. */
     PyRep* LoadStream( size_t streamLength );
@@ -112,7 +132,7 @@ protected:
      * @param[in] streamLength Length of stream.
      * @param[in] saveCount    Number of saved objects within the stream.
      */
-    void CreateObjectStore( size_t streamLength, uint32 saveCount );
+    bool CreateObjectStore( size_t streamLength, uint32 saveCount );
     /**
      * @brief Destroys object store.
      */
@@ -123,7 +143,7 @@ protected:
      *
      * @return Storage index.
      */
-    uint32 GetStorageIndex() { return *mStoreIndexItr++; }
+    bool GetStorageIndex( uint32& index );
     /**
      * @brief Obtains previously stored object.
      *
@@ -138,7 +158,7 @@ protected:
      * @param[in] index  Index of object.
      * @param[in] object The object to be stored.
      */
-    void StoreObject( uint32 index, PyRep* object );
+    bool StoreObject( uint32 index, PyRep* object );
 
 private:
     /** Loads none from stream. */
@@ -150,13 +170,37 @@ private:
     PyRep* LoadBoolFalse() { return PyStatic.NewFalse(); }
 
     /** Loads long long integer from stream. */
-    PyRep* LoadIntegerLongLong() { return new PyLong( Read<int64>() ); }
+    PyRep* LoadIntegerLongLong()
+    {
+        int64 value = 0;
+        if( !ReadValue( value ) )
+            return nullptr;
+        return new PyLong( value );
+    }
     /** Loads long integer from stream. */
-    PyRep* LoadIntegerLong() { return new PyInt( Read<int32>() ); }
+    PyRep* LoadIntegerLong()
+    {
+        int32 value = 0;
+        if( !ReadValue( value ) )
+            return nullptr;
+        return new PyInt( value );
+    }
     /** Loads signed short from stream. */
-    PyRep* LoadIntegerSignedShort() { return new PyInt( Read<int16>() ); }
+    PyRep* LoadIntegerSignedShort()
+    {
+        int16 value = 0;
+        if( !ReadValue( value ) )
+            return nullptr;
+        return new PyInt( value );
+    }
     /** Loads byte integer from stream. */
-    PyRep* LoadIntegerByte() { return new PyInt( Read<int8>() ); }
+    PyRep* LoadIntegerByte()
+    {
+        int8 value = 0;
+        if( !ReadValue( value ) )
+            return nullptr;
+        return new PyInt( value );
+    }
     /** Loads variable length integer from stream. */
     PyRep* LoadIntegerVar();
     /** Loads minus one integer from stream. */
@@ -167,7 +211,13 @@ private:
     PyRep* LoadIntegerOne() { return new PyInt( 1 ); }
 
     /** Loads real from stream. */
-    PyRep* LoadReal() { return new PyFloat( Read<double>() ); }
+    PyRep* LoadReal()
+    {
+        double value = 0.0;
+        if( !ReadValue( value ) )
+            return nullptr;
+        return new PyFloat( value );
+    }
     /** Loads zero real from stream. */
     PyRep* LoadRealZero() { return new PyFloat( 0.0 ); }
 
@@ -245,11 +295,24 @@ private:
 
     /** Buffer iterator we are processing. */
     Buffer::const_iterator<uint8> mInItr;
+    /** End of the complete input buffer. */
+    Buffer::const_iterator<uint8> mEndItr;
+    /** End of payload, excluding the saved-object index table. */
+    Buffer::const_iterator<uint8> mPayloadEnd;
+    /** Input buffer identity used to validate iterator state. */
+    const Buffer* mData = nullptr;
 
     /** Next store index for referencing in the buffer. */
-    Buffer::const_iterator<uint32> mStoreIndexItr;
+    Buffer::const_iterator<uint8> mStoreIndexItr;
+    /** End of saved-object index table. */
+    Buffer::const_iterator<uint8> mStoreIndexEnd;
     /** Referenced objects within the buffer. */
     PyList* mStoredObjects;
+
+    /** Stream validation state. */
+    bool mFailed = false;
+    size_t mDepth = 0;
+    size_t mObjectCount = 0;
 
     /** Load function map. */
     static PyRep* ( UnmarshalStream::* const s_mLoadMap[] )();

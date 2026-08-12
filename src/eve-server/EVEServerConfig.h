@@ -45,6 +45,8 @@ public:
     EVEServerConfig();
     ~EVEServerConfig()                                  { /* do nothing here */}
 
+    bool ApplyDatabaseEnvironment();
+
     // From <server>
     struct {
         bool TraderJoe;
@@ -166,6 +168,8 @@ public:
     struct {
         /// Role to assign to auto created account; set to 0 to disable auto account creation.
         int64 autoAccountRole;
+        /// Permit the legacy placebo handshake only in an explicit local profile.
+        bool allowPlaceboCrypto;
         /// A message shown to every client on login (if enabled in <World><LoginMsg>).
         std::string loginMessage;
     } account;
@@ -247,6 +251,8 @@ public:
         uint16 port;
         /// Port at which the imageServer should listen.
         uint16 imageServerPort;
+        /// Interface on which the image listener accepts connections.
+        std::string imageServerBind;
         /// the imageServer for char images. should be the evemu server external ip/host
         std::string imageServer;
     } net;
@@ -332,6 +338,7 @@ public:
     struct {
         bool BeanCount;
         bool StackTrace;
+        bool CharacterSelectTrace;
         bool BubbleTrack;
         bool SpawnTest;
         bool IsTestServer;    // to distinguish between live production server or experimental testing server

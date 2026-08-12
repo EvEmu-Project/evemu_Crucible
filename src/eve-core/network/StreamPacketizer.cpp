@@ -32,30 +32,73 @@ StreamPacketizer::~StreamPacketizer()
     ClearBuffers();
 }
 
-void StreamPacketizer::InputData( const Buffer& data )
+bool StreamPacketizer::InputData( const Buffer& data )
 {
+    if (mInvalid || mBuffer.size() > EveProtocol::MAX_BUFFERED_PACKET_BYTES)
+        return false;
+
+    const std::size_t available =
+        EveProtocol::MAX_BUFFERED_PACKET_BYTES - mBuffer.size();
+    if (data.size() > available) {
+        mInvalid = true;
+        return false;
+    }
+
     mBuffer.AppendSeq( data.begin<uint8>(), data.end<uint8>() );
+
+    if (mBuffer.size() >= sizeof(uint32)) {
+        const uint32 length = *mBuffer.begin<uint32>();
+        if (length == 0 || length > EveProtocol::MAX_PACKET_SIZE) {
+            mInvalid = true;
+            return false;
+        }
+    }
+
+    return true;
 }
 
-void StreamPacketizer::Process()
+bool StreamPacketizer::Process()
 {
+    if (mInvalid)
+        return false;
+
     Buffer::const_iterator<uint8> cur = mBuffer.begin<uint8>(), end = mBuffer.end<uint8>();
     while( true ) {
         if (sizeof(uint32) > (end - cur))
             break;
 
         const Buffer::const_iterator<uint32> len = cur.As<uint32>();
+        if (*len == 0 || *len > EveProtocol::MAX_PACKET_SIZE) {
+            mInvalid = true;
+            return false;
+        }
+
         const Buffer::const_iterator<uint8> start = ( len + 1 ).As<uint8>();
 
         if (*len > (uint32)(end - start))
             break;
 
+        if (mPackets.size() >= EveProtocol::MAX_QUEUED_PACKET_COUNT ||
+            static_cast<std::size_t>(*len) >
+                EveProtocol::MAX_QUEUED_PACKET_BYTES - mQueuedBytes) {
+            mInvalid = true;
+            return false;
+        }
+
         mPackets.push( new Buffer(start, start + *len));
+        mQueuedBytes += *len;
         cur = (start + *len);
     }
 
     if( cur != mBuffer.begin<uint8>() )
         mBuffer.AssignSeq( cur, end );
+
+    if (mBuffer.size() > EveProtocol::MAX_PACKET_SIZE + sizeof(uint32)) {
+        mInvalid = true;
+        return false;
+    }
+
+    return true;
 }
 
 Buffer* StreamPacketizer::PopPacket()
@@ -64,6 +107,7 @@ Buffer* StreamPacketizer::PopPacket()
     if (!mPackets.empty()) {
         buf = mPackets.front();
         mPackets.pop();
+        mQueuedBytes -= buf->size();
     }
 
     return buf;
@@ -74,4 +118,8 @@ void StreamPacketizer::ClearBuffers()
     Buffer* buf(nullptr);
     while ((buf = PopPacket()))
         SafeDelete( buf );
+
+    mBuffer.Resize<uint8>(0);
+    mQueuedBytes = 0;
+    mInvalid = false;
 }

@@ -60,9 +60,10 @@ SET( database_SOURCE
      "${TARGET_SOURCE_DIR}/database/RowsetReader.cpp"
      "${TARGET_SOURCE_DIR}/database/RowsetToSQL.cpp" )
 
-SET( destiny_INCLUDE
-     "${TARGET_INCLUDE_DIR}/destiny/DestinyBinDump.h"
-     "${TARGET_INCLUDE_DIR}/destiny/DestinyStructs.h" )
+ SET( destiny_INCLUDE
+      "${TARGET_INCLUDE_DIR}/destiny/DestinyBinDump.h"
+      "${TARGET_INCLUDE_DIR}/destiny/DestinyStructs.h"
+      "${TARGET_INCLUDE_DIR}/destiny/MovementCommand.h" )
 SET( destiny_SOURCE
      "${TARGET_SOURCE_DIR}/destiny/DestinyBinDump.cpp" )
 
@@ -267,11 +268,13 @@ ADD_LIBRARY( "${TARGET_NAME}"
 target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-common.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
-                            ${UTF8CPP_INCLUDE_DIRS}
+                             ${ARGON2_INCLUDE_DIRS}
+                             ${UTF8CPP_INCLUDE_DIRS}
                             ${UTILS_INCLUDE_DIRS}
                             ${eve-core_INCLUDE_DIRS}
                             "${TARGET_INCLUDE_DIR}"
                             "${TARGET_PACKETS_DIR}" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
-                       ${UTILS_LIBRARIES}
+                        ${ARGON2_LIBRARIES}
+                        ${UTILS_LIBRARIES}
                        "eve-core" )

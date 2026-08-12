@@ -48,7 +48,7 @@
  */
 
 CorpRegistryService::CorpRegistryService(EVEServiceManager& mgr) :
-    BindableService("corpRegistry", mgr)
+    BindableService("corpRegistry", mgr, eAccessLevel_Corporation)
 {
     /** @note: all of these are skeleton code only */
     this->Add("CreateAlliance", &CorpRegistryService::CreateAlliance);
@@ -67,25 +67,54 @@ CorpRegistryService::CorpRegistryService(EVEServiceManager& mgr) :
     this->Add("ResignFromCEO", &CorpRegistryService::ResignFromCEO);
 }
 
-BoundDispatcher* CorpRegistryService::BindObject(Client* client, PyRep* bindParameters)
-{
-    if (!bindParameters->IsTuple()){
-        sLog.Error( "CorpRegistryService::CreateBoundObject", "%s: bind_args is not tuple: '%s'. ", client->GetName(), bindParameters->TypeString() );
-        client->SendErrorMsg("Could not bind object for Corp Registry.  Ref: ServerError 02808.");
-        return nullptr;
-    }
+BoundDispatcher *CorpRegistryService::BindObject(Client *client,
+                                                 PyRep *bindParameters) {
+  if (client == nullptr) {
+    sLog.Error("CorpRegistryService::BindObject", "Client is null.");
+    return nullptr;
+  }
 
-    uint32 corporationID = PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0));
-    auto it = this->m_instances.find (corporationID);
+  if (bindParameters == nullptr) {
+    sLog.Error("CorpRegistryService::CreateBoundObject",
+               "%s: bind_args is null.", client->GetName());
+    client->SendErrorMsg("Could not bind object for Corp Registry.");
+    return nullptr;
+  }
 
-    if (it != this->m_instances.end ())
-        return it->second;
+  if (!bindParameters->IsTuple()) {
+    sLog.Error("CorpRegistryService::CreateBoundObject",
+               "%s: bind_args is not tuple: '%s'.", client->GetName(),
+               bindParameters->TypeString());
+    client->SendErrorMsg(
+        "Could not bind object for Corp Registry.  Ref: ServerError 02808.");
+    return nullptr;
+  }
 
-    CorpRegistryBound* bound = new CorpRegistryBound(this->GetServiceManager(), *this, m_db, corporationID);
+  if (bindParameters->AsTuple()->size() < 1) {
+    client->SendErrorMsg("Could not bind object for Corp Registry.");
+    return nullptr;
+  }
 
-    this->m_instances.insert_or_assign (corporationID, bound);
+  const uint32 corporationID =
+      PyRep::IntegerValue(bindParameters->AsTuple()->GetItem(0));
+  // NPC-corp members also bind this service during login.  Keep the
+  // session-corporation check so the bound object cannot be cross-corp.
+  if (!IsCorp(corporationID) ||
+      corporationID != static_cast<uint32>(client->GetCorporationID())) {
+    client->SendErrorMsg("Could not bind object for Corp Registry.");
+    return nullptr;
+  }
+  auto it = this->m_instances.find(corporationID);
 
-    return bound;
+  if (it != this->m_instances.end())
+    return it->second;
+
+  CorpRegistryBound *bound = new CorpRegistryBound(this->GetServiceManager(),
+                                                   *this, m_db, corporationID);
+
+  this->m_instances.insert_or_assign(corporationID, bound);
+
+  return bound;
 }
 
 void CorpRegistryService::BoundReleased (CorpRegistryBound* bound) {

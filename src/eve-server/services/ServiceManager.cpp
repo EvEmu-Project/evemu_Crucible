@@ -74,6 +74,11 @@ PyResult EVEServiceManager::Dispatch(const std::string& service, const std::stri
         )
         throw CustomError ("You're not allowed to access this service");
 
+    const int64 requiredRole = it->second->GetRequiredRole();
+    if (requiredRole != 0 &&
+        (args.client->GetAccountRole() & requiredRole) != requiredRole)
+        throw CustomError ("You're not allowed to access this service");
+
     return it->second->Dispatch(method, args);
 }
 

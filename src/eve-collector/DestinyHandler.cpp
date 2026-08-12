@@ -37,6 +37,23 @@
 #include "../common/RowsetReader.h"
 #include "../common/DestinyBinDump.h"
 
+#include <cstddef>
+
+namespace {
+
+constexpr std::size_t kMaxAddBalls2DiagnosticBytes = 64U * 1024U;
+constexpr std::size_t kMaxAddBalls2DiagnosticEntries = 4096U;
+
+void ReleaseAddBalls2State(AddBalls2 *update) {
+    if (update == nullptr)
+        return;
+
+    PySafeDecRef(update->state);
+    update->state = nullptr;
+}
+
+} // namespace
+
 //NOTE: there is also a plural version of thisDoDestinyUpdates, which
 //carries any number of DoDestinyUpdate bodies in its top level list.
 void EVECollectDispatcher::Notify_DoDestinyUpdate(const PyPacket *packet, EVENotificationStream **in_notify) {
@@ -126,6 +143,56 @@ void EVECollectDispatcher::Destiny_AddBalls(const PyPacket *packet, DoDestinyAct
     _hex(COLLECT__DESTINY_HEX, data, len);
 
     Destiny::DumpUpdate(COLLECT__DESTINY, data, len);
+}
+
+void EVECollectDispatcher::Destiny_AddBalls2(
+    const PyPacket *packet, DoDestinyAction *action) {
+    if (action == nullptr || action->update == nullptr) {
+        codelog(COLLECT__ERROR, "Missing AddBalls2 action data");
+        return;
+    }
+
+    AddBalls2 update;
+    if (!update.Decode(action->update)) {
+        ReleaseAddBalls2State(&update);
+        codelog(COLLECT__ERROR, "Failed to decode AddBalls2 arguments");
+        return;
+    }
+
+    if (update.state == nullptr || update.extraBallData == nullptr) {
+        ReleaseAddBalls2State(&update);
+        codelog(COLLECT__ERROR, "Decoded AddBalls2 has missing data");
+        return;
+    }
+
+    const std::size_t state_bytes = update.state->size();
+    const std::size_t entry_count = update.extraBallData->size();
+    _log(COLLECT__DESTINY,
+         "AddBalls2 stamp=%d state_bytes=%zu entries=%zu",
+         update.stateStamp, state_bytes, entry_count);
+
+    if (state_bytes > kMaxAddBalls2DiagnosticBytes
+        || entry_count > kMaxAddBalls2DiagnosticEntries) {
+        codelog(COLLECT__ERROR,
+                "Skipping oversized AddBalls2 diagnostic: bytes=%zu "
+                "entries=%zu",
+                state_bytes, entry_count);
+        ReleaseAddBalls2State(&update);
+        return;
+    }
+
+    if (is_log_enabled(COLLECT__DESTINY)) {
+        _log(COLLECT__DESTINY, "AddBalls2 state hash=%d",
+             update.state->hash());
+    }
+
+    if (state_bytes != 0 && is_log_enabled(COLLECT__DESTINY)) {
+        const uint8 *data = &update.state->content()[0];
+        Destiny::DumpUpdate(
+            COLLECT__DESTINY, data, static_cast<uint32>(state_bytes));
+    }
+
+    ReleaseAddBalls2State(&update);
 }
 
 

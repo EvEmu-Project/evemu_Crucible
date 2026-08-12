@@ -55,7 +55,7 @@ public:
 
     /* specific functions handled here. */
     uint32 GetLauncherID()                              { return m_fromSE->GetID(); }
-    SystemEntity* GetTargetSE()                         { return m_targetSE; }
+    uint32 GetTargetID()                                 { return m_targetID; }
 
     void SetHitTimer(uint32 setTime)                    { m_hitTimer.Start(setTime); }
     void SetSpeed(double speed)                         { m_speed = speed; }
@@ -66,7 +66,7 @@ public:
     double GetSpeed()                                   { return m_speed; }
 
 protected:
-    SystemEntity* m_targetSE;
+    uint32 m_targetID;
     SystemEntity* m_fromSE;
     InventoryItemRef m_modRef;
 

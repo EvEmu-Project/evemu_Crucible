@@ -5,6 +5,7 @@
 #endif
 
     DESTINY_HANDLER(AddBalls)
+    DESTINY_HANDLER(AddBalls2)
     DESTINY_HANDLER(SetState)
 
 #undef DESTINY_HANDLER

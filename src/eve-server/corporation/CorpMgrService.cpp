@@ -28,7 +28,21 @@
 #include "eve-server.h"
 
 
+#include "character/CharacterDB.h"
 #include "corporation/CorpMgrService.h"
+
+namespace {
+
+bool IsCallerCorporation(
+    const PyCallArgs& call,
+    uint32 corporationID )
+{
+    return IsPlayerCorp( corporationID ) &&
+        corporationID == static_cast<uint32>(
+            call.client->GetCorporationID() );
+}
+
+}
 
 CorpMgrService::CorpMgrService() :
     Service("corpmgr")
@@ -76,6 +90,11 @@ PyResult CorpMgrService::AuditMember(PyCallArgs &call, PyInt* memberID, PyLong* 
     _log(CORP__CALL, "CorpMgrService::Handle_AuditMember()");
     call.Dump(CORP__CALL_DUMP);
 
+    if ( !IsPlayerCorp( call.client->GetCorporationID() ) ||
+         CharacterDB::GetCorpID( memberID->value() ) !=
+             call.client->GetCorporationID() )
+        return nullptr;
+
     PyTuple* tuple = new PyTuple(2);
     tuple->SetItem(0, m_db.GetItemEvents(call.client->GetCorporationID(), memberID->value(), fromDate->value(), toDate->value(), rowsPerPage.has_value() ? rowsPerPage.value()->value() : 0));
     tuple->SetItem(1, m_db.GetRoleHistroy(call.client->GetCorporationID(), memberID->value(), fromDate->value(), toDate->value(), rowsPerPage.has_value() ? rowsPerPage.value()->value() : 0));
@@ -91,6 +110,9 @@ PyResult CorpMgrService::GetAssetInventory(PyCallArgs &call, PyInt* corporationI
     // this is called from corp asset screen.  wants a return of locationIDs of stations where corp hangers have items
     _log(CORP__CALL, "CorpMgrService::Handle_GetAssetInventory()");
     call.Dump(CORP__CALL_DUMP);
+
+    if ( !IsCallerCorporation( call, corporationID->value() ) )
+        return nullptr;
 
     EVEItemFlags locFlag = flagNone;
     std::ostringstream flags;
@@ -128,6 +150,9 @@ PyResult CorpMgrService::GetAssetInventoryForLocation(PyCallArgs &call, PyInt* c
     //  items = sm.RemoteSvc('corpmgr').GetAssetInventoryForLocation(eve.session.corpid, stationID, which)
     _log(CORP__CALL, "CorpMgrService::Handle_GetAssetInventoryForLocation()");
     call.Dump(CORP__CALL_DUMP);
+
+    if ( !IsCallerCorporation( call, corporationID->value() ) )
+        return nullptr;
 
     EVEItemFlags locFlag = flagNone;
     std::ostringstream flags;

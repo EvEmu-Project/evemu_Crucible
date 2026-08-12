@@ -1398,7 +1398,11 @@ void ActiveModule::LaunchMissile()
 
     // Launch a missile, creating a new Destiny object for it
     Client* pClient = m_shipRef->GetPilot();
-    if (pClient == nullptr)
+    SystemManager* pSystem = pClient == nullptr
+        ? nullptr
+        : pClient->SystemMgr();
+    if (pSystem == nullptr || m_targetSE == nullptr ||
+        pSystem->GetSE(m_targetSE->GetID()) != m_targetSE)
         return;
     ItemData idata(m_chargeRef->typeID(), pClient->GetCharacterID(), pClient->GetLocationID(), flagMissile, m_chargeRef->name(), m_shipRef->position() );
     InventoryItemRef missileRef = sItemFactory.SpawnItem(idata);
@@ -1409,7 +1413,6 @@ void ActiveModule::LaunchMissile()
         return;
     }
 
-    SystemManager* pSystem = pClient->SystemMgr();
     Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(), pSystem, m_modRef, m_targetSE, m_shipRef->GetPilot()->GetShipSE(), this);
     if (pMissile == nullptr) {
         _log(ITEM__ERROR ,"Unable to create SE #%u:'%s' of type %u.", m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID());
@@ -1425,7 +1428,11 @@ void ActiveModule::LaunchMissile()
         travelTime = 1;
     pMissile->SetSpeed(missileSpeed);
     pMissile->SetHitTimer(travelTime *1000);
-    pMissile->DestinyMgr()->MakeMissile(pMissile);
+    if (!pMissile->DestinyMgr()->MakeMissile(pMissile)) {
+        pMissile->Delete();
+        SafeDelete(pMissile);
+        return;
+    }
 
     // Reduce ammo charge by 1 unit:
     ConsumeCharge();

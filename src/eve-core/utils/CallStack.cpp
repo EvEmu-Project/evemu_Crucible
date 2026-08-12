@@ -48,10 +48,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <windows.h>
 #include <imagehlp.h>
 #if defined(__MINGW32__)
-#define PACKAGE         1 // Supress cmake error.
-#define PACKAGE_VERSION 1 // Supress cmake error.
-#include <bfd.h>
 #include <cxxabi.h>
+#if defined(EVEMU_USE_BFD)
+#define PACKAGE         1 // Suppress cmake error.
+#define PACKAGE_VERSION 1 // Suppress cmake error.
+#include <bfd.h>
+#endif
 #endif
 #else
 #include <execinfo.h>
@@ -115,7 +117,7 @@ public:
 private:
     CRITICAL_SECTION cs;
 } cs;
-#if defined(__MINGW32__)
+#if defined(__MINGW32__) && defined(EVEMU_USE_BFD)
 class bfd_usage : noncopyable
 {
 public:
@@ -214,7 +216,7 @@ void CallStack::GetCalls(vector<CallStack::CallInfo>& calls)
         fprintf(stderr, "Error: Failed to initialize symbol context.\n");
         return;
     }
-#ifdef __MINGW32__
+#if defined(__MINGW32__) && defined(EVEMU_USE_BFD)
     bfd_usage bfdu;
 #endif
 
@@ -268,7 +270,7 @@ void CallStack::GetCalls(vector<CallStack::CallInfo>& calls)
         string module_name = Unknown_Module;
         if(module_base && GetModuleFileNameA(reinterpret_cast<HINSTANCE>(module_base), module_name_raw, MAX_PATH)) module_name = module_name_raw;
 
-#if defined(__MINGW32__)
+#if defined(__MINGW32__) && defined(EVEMU_USE_BFD)
         string function = bfdu.get_function_name(frame.AddrPC.Offset);
         if(function.empty())
         {

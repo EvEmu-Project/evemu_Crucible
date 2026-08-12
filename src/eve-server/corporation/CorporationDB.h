@@ -61,14 +61,14 @@ public:
     PyObject *GetStations(uint32 corpID);
     PyObject *GetEveOwners(uint32 corpID);
     PyRep* GetBulletins(uint32 corpID);
-    void DeleteBulletin(uint32 bulletinID);
+    void DeleteBulletin(uint32 corpID, uint32 bulletinID);
     void AddBulletin(uint32 corpID, uint32 ownerID, uint32 cCharID, std::string& title, std::string& body);
-    void EditBulletin(uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body);
+    void EditBulletin(uint32 corpID, uint32 bulletinID, uint32 eCharID, int64 eDataTime, std::string& title, std::string& body);
 
     PyRep *GetMyApplications(uint32 charID);
     PyRep *GetApplications(uint32 corpID);
 
-    void MoveShares(uint32 ownerID, uint32 corpID, int32 corporationID, int32 toShareholderID, int32 numberOfShares);
+    bool MoveShares(uint32 ownerID, uint32 corpID, int32 corporationID, int32 toShareholderID, int32 numberOfShares);
     PyRep *GetShares(uint32 corpID);
     PyRep *GetMyShares(uint32 ownerID);
     bool HasShares(uint32 charID, uint32 corpID);
@@ -84,11 +84,11 @@ public:
     PyRep *GetItemEvents(uint32 corpID, uint32 charID, int64 fromDate, int64 toDate, uint8 rowsPerPage);
     PyRep *GetRoleHistroy(uint32 corpID, uint32 charID, int64 fromDate, int64 toDate, uint8 rowsPerPage);
 
-    void CastVote(uint32 corpID, uint32 charID, uint32 voteCaseID, uint8 optionID);
+    bool CastVote(uint32 corpID, uint32 charID, uint32 voteCaseID, uint8 optionID);
     void AddVoteCase(uint32 corpID, uint32 charID, Call_InsertVoteCase& args);
-    PyRep* GetVotes(uint32 voteCaseID);
+    PyRep* GetVotes(uint32 corpID, uint32 voteCaseID);
     PyRep* GetVoteItems(uint32 corpID, uint8 status=0, uint8 maxLen=20);
-    PyRep* GetVoteOptions(uint32 voteCaseID);
+    PyRep* GetVoteOptions(uint32 corpID, uint32 voteCaseID);
     PyRep* GetSanctionedItems(uint32 corpID, uint8 status=0);
 
     void GetAutoPay(uint32 corpID, DBQueryResult& res);
@@ -144,8 +144,8 @@ public:
     PyRep* GetAdTypeData();
     PyRep* GetAdGroupData();
     PyRep* GetAdRegistryData(int64 typeMask=0, bool inAlliance=false, int16 minMembers=0, uint16 maxMembers=12602);
-    PyRep* GetAdvert(uint16 adID);
-    void DeleteAdvert(uint16 adID);
+    PyRep* GetAdvert(uint32 corpID, uint16 adID);
+    void DeleteAdvert(uint32 corpID, uint16 adID);
 
     uint32 CreateAdvert(Client* pClient, uint32 corpID, int64 typeMask, int8 days, uint16 members, std::string description,
                       uint32 channelID, std::string title);

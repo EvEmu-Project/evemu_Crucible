@@ -49,7 +49,7 @@
 #include "services/ServiceManager.h"
 
 DungeonService::DungeonService() :
-    Service("dungeon")
+    Service("dungeon", eAccessLevel_User, Acct::Role::PROGRAMMER)
 {
     // objects
     this->Add("IsObjectLocked", &DungeonService::IsObjectLocked);

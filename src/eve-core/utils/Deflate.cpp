@@ -29,12 +29,13 @@
 #include "eve-core.h"
 
 #include "utils/Deflate.h"
+#include "network/ProtocolLimits.h"
 
 const uint8 DeflateHeaderByte = 0x78; //'x'
 
 bool IsDeflated( const Buffer& data )
 {
-    return ( DeflateHeaderByte == data[0] );
+    return data.size() != 0 && DeflateHeaderByte == data[0];
 }
 
 bool DeflateData( Buffer& data )
@@ -80,28 +81,41 @@ bool InflateData( Buffer& data )
 
 bool InflateData( const Buffer& input, Buffer& output )
 {
+    if (input.size() == 0 || input.size() > EveProtocol::MAX_PACKET_SIZE)
+        return false;
+
     const Buffer::iterator<uint8> out = output.end<uint8>();
 
-    size_t outputSize = 0;
-    size_t sizeMultiplier = 0;
-
-    int res = 0;
-    do
-    {
-        outputSize = ( input.size() << ++sizeMultiplier );
-        output.ResizeAt( out, outputSize );
-
-        res = uncompress( &*out, (uLongf*)&outputSize, &input[0], input.size() );
-    } while( Z_BUF_ERROR == res );
-
-    if( Z_OK == res )
-    {
-        output.ResizeAt( out, outputSize );
-        return true;
-    }
+    size_t outputSize = input.size();
+    if (outputSize < EveProtocol::MAX_PACKET_SIZE / 2)
+        outputSize *= 2;
     else
-    {
-        output.ResizeAt( out, 0 );
-        return false;
+        outputSize = EveProtocol::MAX_PACKET_SIZE;
+
+    while (true) {
+        output.ResizeAt( out, outputSize );
+
+        uLongf uncompressedSize = static_cast<uLongf>(outputSize);
+        const int res = uncompress(
+            &*out,
+            &uncompressedSize,
+            &input[0],
+            static_cast<uLong>(input.size()));
+
+        if (Z_OK == res) {
+            output.ResizeAt(out, static_cast<size_t>(uncompressedSize));
+            return true;
+        }
+
+        if (res != Z_BUF_ERROR || outputSize == EveProtocol::MAX_PACKET_SIZE)
+            break;
+
+        output.ResizeAt(out, 0);
+        outputSize = std::min(
+            outputSize * 2,
+            EveProtocol::MAX_PACKET_SIZE);
     }
+
+    output.ResizeAt(out, 0);
+    return false;
 }

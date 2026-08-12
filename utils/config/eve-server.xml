@@ -19,7 +19,9 @@ boolean can use either 0/1 OR true/false.
         7131450020691447808 (0x62f8000280c40000)  ROLE_DEV     = ROLE_CREATOR | ROLE_QA | ROLE_PROGRAMMER
         7203507614729375744 (0x63f8000280c40000)  ROLE_BOSS    = ROLE_ADMIN | ROLE_DEV
         -->
-        <autoAccountRole>7131450020691447808</autoAccountRole>
+        <autoAccountRole>0</autoAccountRole>
+        <!-- This local profile supports the legacy client handshake. -->
+        <allowPlaceboCrypto>true</allowPlaceboCrypto>
         <!--
         <loginMessage>
             &lt;html&gt;
@@ -38,11 +40,8 @@ boolean can use either 0/1 OR true/false.
     </account>
 
     <server>
-        <UseBeanCount>true</UseBeanCount>  <!-- bool  -client python error reporting -->
-        <UseStackTrace>false</UseStackTrace><!-- bool -log client python error reports to evemu_client_stack_trace.txt-->
         <NoobShipCheck>true</NoobShipCheck><!-- bool  -check for ship in hangar when docking in a pod -->
         <ServerSleepTime>10</ServerSleepTime><!-- ms -->
-        <StackTrace>false</StackTrace><!-- bool  -(en/dis)ables sending StackTrace on client errors -->
         <maxPlayers>250</maxPlayers>
         <idleSleepTime>1000</idleSleepTime><!-- in ms (1 sec default) -->
         <processTic>1.0</processTic><!-- used to slow down server process tics.  <1.0 is faster, >1.0 slower -->
@@ -230,6 +229,9 @@ boolean can use either 0/1 OR true/false.
     </testing>
 
     <debug><!-- switches for various server methods -->
+        <UseBeanCount>true</UseBeanCount><!-- request client Python error details -->
+        <UseStackTrace>true</UseStackTrace><!-- log client Python stack traces -->
+        <CharacterSelectTrace>true</CharacterSelectTrace><!-- trace character login -->
         <BubbleTrack>false</BubbleTrack><!-- bool - create jetcans at center and edges of bubble (7 per bubble) -->
         <SpawnTest>false</SpawnTest><!-- bool - enables 5s respawn timer -->
         <IsTestServer>true</IsTestServer>  <!--  bool   -some functions disabled for live server -->
@@ -281,6 +283,7 @@ boolean can use either 0/1 OR true/false.
 
     <net>
         <port>26000</port>
+        <imageServerBind>127.0.0.1</imageServerBind>
         <!-- Set to IP address which CLIENT can use to access port 26001 on server. -->
         <imageServer>127.0.0.1</imageServer>
         <imageServerPort>26001</imageServerPort>

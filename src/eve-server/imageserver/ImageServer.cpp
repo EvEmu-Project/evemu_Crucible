@@ -28,7 +28,10 @@
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
 
-const char *const ImageServer::FallbackURL = "http://image.eveonline.com/";
+#include <cerrno>
+#include <cstdio>
+
+const char *const ImageServer::FallbackURL = "https://image.eveonline.com/";
 
 const char *const ImageServer::Categories[] = {
     "Alliance",
@@ -46,7 +49,9 @@ ImageServer::ImageServer()
     _url = urlBuilder.str();
 
     _basePath = sConfig.files.imageDir;
-    if (_basePath[_basePath.size() - 1] != '/')
+    if (_basePath.empty())
+        throw std::invalid_argument("Image server directory is required");
+    if (_basePath.back() != '/')
         _basePath += "/";
 
     sLog.Cyan("      ImageServer", "Image Server URL: %s", _url.c_str());
@@ -62,16 +67,24 @@ ImageServer::ImageServer()
     sLog.Blue("      ImageServer", "Image Server Initalized.");
 }
 
-void ImageServer::ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char> > imageData)
+bool ImageServer::ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<char> > imageData)
 {
-    sLog.Warning("      ImageServer"," ReportNewImage() called.");
+    if (!imageData || imageData->empty() ||
+        imageData->size() > ImageServerLimits::MAX_IMAGE_BYTES) {
+        sLog.Warning("      ImageServer", "Rejected image upload size.");
+        return false;
+    }
+
     Lock lock(_limboLock);
 
-    if (_limboImages.find(accountID) != _limboImages.end()) {
-        _limboImages.insert(std::pair<uint32,std::shared_ptr<std::vector<char> > >(accountID, imageData));
-    } else {
-        _limboImages[accountID] = imageData;
+    if (_limboImages.find(accountID) == _limboImages.end() &&
+        _limboImages.size() >= ImageServerLimits::MAX_PENDING_UPLOADS) {
+        sLog.Warning("      ImageServer", "Rejected image upload capacity.");
+        return false;
     }
+
+    _limboImages[accountID] = imageData;
+    return true;
 }
 
 void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID)
@@ -94,9 +107,23 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
 
     //stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
     std::shared_ptr<std::vector<char> > data = _limboImages[creatorAccountID];
+    if (!data || data->empty() ||
+        data->size() > ImageServerLimits::MAX_IMAGE_BYTES || fp == NULL) {
+        if (fp != NULL)
+            fclose(fp);
+        _limboImages.erase(creatorAccountID);
+        sLog.Error("      ImageServer", "Unable to save uploaded image.");
+        return;
+    }
 
-    fwrite(&((*data)[0]), 1, data->size(), fp);
-    fclose(fp);
+    const std::size_t written = fwrite(
+        data->data(), 1, data->size(), fp);
+    const int closeResult = fclose(fp);
+    if (written != data->size() || closeResult != 0) {
+        _limboImages.erase(creatorAccountID);
+        sLog.Error("      ImageServer", "Unable to save uploaded image.");
+        return;
+    }
 
     //std::copy(data->begin(), data->end(), std::ostream_iterator<char>(stream));
     //stream.flush();
@@ -112,6 +139,20 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     sLog.Green("      ImageServer", "Received image from %u and saved as %s", creatorAccountID, path.c_str());
 }
 
+bool ImageServer::RemoveCharacterImage(uint32 characterID)
+{
+    std::string category = "Character";
+    const std::string path = GetFilePath( category, characterID, 512 );
+    if ( std::remove( path.c_str() ) == 0 || errno == ENOENT )
+        return true;
+
+    sLog.Warning(
+        "      ImageServer",
+        "Unable to remove character image for %u.",
+        characterID );
+    return false;
+}
+
 std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
 {
     sLog.Cyan("      ImageServer"," GetImage() called. Cat: %s, id: %u, size:%u", category.c_str(), id, size);
@@ -124,9 +165,21 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     FILE * fp = fopen(path.c_str(), "rb");
     if (fp == NULL)
         return std::shared_ptr<std::vector<char> >();
-    fseek(fp, 0, SEEK_END);
-    size_t length = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        fclose(fp);
+        return std::shared_ptr<std::vector<char> >();
+    }
+
+    const long fileLength = ftell(fp);
+    if (fileLength <= 0 ||
+        static_cast<std::size_t>(fileLength) >
+            ImageServerLimits::MAX_IMAGE_BYTES ||
+        fseek(fp, 0, SEEK_SET) != 0) {
+        fclose(fp);
+        return std::shared_ptr<std::vector<char> >();
+    }
+
+    const std::size_t length = static_cast<std::size_t>(fileLength);
 
     //stream.open(path, std::ios::binary | std::ios::in);
     // not found or other error
@@ -138,12 +191,20 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     //int length = stream.tellg();
     //stream.seekg(0, std::ios::beg);
 
-    std::shared_ptr<std::vector<char> > ret = std::shared_ptr<std::vector<char> >(new std::vector<char>());
-    ret->resize(length);
+    std::shared_ptr<std::vector<char> > ret;
+    try {
+        ret = std::make_shared<std::vector<char> >(length);
+    } catch (const std::bad_alloc&) {
+        fclose(fp);
+        throw;
+    }
 
     // HACK
     //stream.read(&((*ret)[0]), length);
-    fread(&((*ret)[0]), 1, length, fp);
+    const std::size_t read = fread(ret->data(), 1, length, fp);
+    const int closeResult = fclose(fp);
+    if (read != length || closeResult != 0)
+        return std::shared_ptr<std::vector<char> >();
 
     return ret;
 }
@@ -151,9 +212,6 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
 std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 size)
 {
     std::string extension = category == "Character" ? "jpg" : "png";
-
-    // HACK: We don't have any other
-    size = 512;
 
     std::stringstream builder;
     builder << _basePath << category << "/" << id << "_" << size << "." << extension;
@@ -177,7 +235,7 @@ bool ImageServer::ValidateSize(std::string& category, uint32 size)
 
 bool ImageServer::ValidateCategory(std::string& category)
 {
-    for (int i = 0; i < 5; i++)
+    for (uint32 i = 0; i < CategoryCount; i++)
         if (category == Categories[i])
             return true;
     return false;

@@ -26,9 +26,126 @@
 
 #include "eve-server.h"
 
+#include <array>
+#include <cmath>
+
 #include "EVEServerConfig.h"
 #include "character/Character.h"
 #include "character/CharacterDB.h"
+#include "imageserver/ImageServer.h"
+
+namespace {
+
+bool DeleteCharacterRows( uint32 characterID, DBerror& error )
+{
+    if ( !sDatabase.RunQuery(
+            error,
+            "DELETE FROM eveMailDetails USING eveMail, eveMailDetails "
+            "WHERE eveMail.messageID = eveMailDetails.messageID "
+            "AND (senderID = %u OR channelID = %u)",
+            characterID,
+            characterID ) ||
+         !sDatabase.RunQuery(
+             error,
+             "DELETE FROM webBounties "
+             "WHERE characterID = %u OR ownerID = %u",
+             characterID,
+             characterID ) ||
+         !sDatabase.RunQuery(
+             error,
+             "DELETE FROM chrContacts "
+             "WHERE ownerID = %u OR contactID = %u",
+             characterID,
+             characterID ) ||
+         !sDatabase.RunQuery(
+             error,
+             "DELETE FROM repStandings "
+             "WHERE fromID = %u OR toID = %u",
+             characterID,
+             characterID ) ||
+         !sDatabase.RunQuery(
+             error,
+             "DELETE FROM repStandingChanges "
+             "WHERE fromID = %u OR toID = %u",
+             characterID,
+             characterID ) )
+        return false;
+
+    const std::array<const char*, 29> queries = {{
+        "DELETE FROM eveMail WHERE senderID = %u OR channelID = %u",
+        "DELETE FROM mailStatus WHERE characterID = %u",
+        "DELETE FROM mailMessage WHERE senderID = %u",
+        "DELETE FROM channelChars WHERE charID = %u",
+        "DELETE FROM bookmarks WHERE ownerID = %u",
+        "DELETE FROM bookmarkFolders WHERE ownerID = %u",
+        "DELETE FROM mktOrders WHERE ownerID = %u",
+        "DELETE FROM mktTransactions WHERE clientID = %u",
+        "DELETE FROM chrCertificates WHERE characterID = %u",
+        "DELETE FROM chrEmployment WHERE characterID = %u",
+        "DELETE FROM jnlCharacters WHERE ownerID = %u",
+        "DELETE FROM crpShares WHERE shareholderID = %u",
+        "DELETE FROM chrSkillHistory WHERE characterID = %u",
+        "DELETE FROM chrSkillQueue WHERE characterID = %u",
+        "DELETE FROM crpApplications WHERE characterID = %u",
+        "DELETE FROM chrCharacterAttributes WHERE charID = %u",
+        "DELETE FROM chrPausedSkillQueue WHERE characterID = %u",
+        "DELETE FROM chrOwnerNote WHERE ownerID = %u",
+        "DELETE FROM chrLabels WHERE ownerID = %u",
+        "DELETE FROM chrVisitedSystems WHERE characterID = %u",
+        "DELETE FROM cacheOwners WHERE ownerID = %u",
+        "DELETE FROM chrPortraitData WHERE charID = %u",
+        "DELETE FROM entity_attributes "
+        "WHERE itemID IN (SELECT itemID FROM entity WHERE ownerID = %u)",
+        "DELETE FROM entity WHERE ownerID = %u",
+        "DELETE FROM avatar_colors WHERE charID = %u",
+        "DELETE FROM avatar_modifiers WHERE charID = %u",
+        "DELETE FROM avatar_sculpts WHERE charID = %u",
+        "DELETE FROM avatars WHERE charID = %u",
+        "DELETE FROM chrCharacters WHERE characterID = %u"
+    }};
+
+    for ( std::size_t index = 0; index < queries.size(); ++index ) {
+        if ( index == 0 ) {
+            if ( !sDatabase.RunQuery(
+                    error,
+                    queries[index],
+                    characterID,
+                    characterID ) )
+                return false;
+            continue;
+        }
+
+        if ( !sDatabase.RunQuery( error, queries[index], characterID ) )
+            return false;
+    }
+
+    return true;
+}
+
+bool DecrementCorporationMemberCount(
+    uint32 corporationID,
+    DBerror& error )
+{
+    if ( !IsPlayerCorp( corporationID ) )
+        return true;
+
+    return sDatabase.RunQuery(
+        error,
+        "UPDATE crpCorporation SET memberCount = memberCount - 1 "
+        "WHERE corporationID = %u AND memberCount > 0",
+        corporationID );
+}
+
+bool CompleteCharacterDelete(
+    uint32 characterID,
+    uint32 corporationID,
+    DBerror& error )
+{
+    return DeleteCharacterRows( characterID, error ) &&
+        DecrementCorporationMemberCount( corporationID, error );
+}
+
+}
 
 uint32 CharacterDB::NewCharacter(const CharacterData& data, const CorpData& corpData) {
     DBerror err;
@@ -126,44 +243,97 @@ bool CharacterDB::SaveCorpData(uint32 characterID, const CorpData &data) {
     return true;
 }
 
-void CharacterDB::DeleteCharacter(uint32 characterID) {
-    /**
-     *        0 matches in bounties
-     *        4 matches in channelChars
-     *        0 matches in chrOwnerNote
-     *        0 matches in ramJobs
-     */
+bool CharacterDB::DeleteCharacter(uint32 characterID) {
+    DBerror error;
+    if ( !sDatabase.RunQuery( error, "START TRANSACTION" ) )
+        return false;
 
-    DBerror err;
-    sDatabase.RunQuery(err, "DELETE FROM eveMailDetails"
-                            " USING eveMail, eveMailDetails"
-                            " WHERE eveMail.messageID = eveMailDetails.messageID"
-                            " AND (senderID = %u OR channelID = %u)", characterID, characterID);
-    sDatabase.RunQuery(err, "DELETE FROM eveMail WHERE (senderID = %u OR channelID = %u)", characterID, characterID);
-    sDatabase.RunQuery(err, "DELETE FROM bookmarks WHERE ownerID = %u",  characterID);
-    sDatabase.RunQuery(err, "DELETE FROM bookmarkFolders WHERE ownerID = %u",  characterID);
-    //sDatabase.RunQuery(err, "DELETE FROM bookmarkVouchers WHERE ownerID = %u",  characterID);
-    sDatabase.RunQuery(err, "DELETE FROM mktOrders WHERE ownerID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM mktTransactions WHERE clientID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM repStandings WHERE (fromID = %u OR toID = %u)", characterID, characterID);
-    sDatabase.RunQuery(err, "DELETE FROM repStandingChanges WHERE (fromID = %u OR toID = %u)", characterID, characterID);
-    sDatabase.RunQuery(err, "DELETE FROM chrCertificates WHERE characterID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM chrCharacters WHERE characterID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM chrEmployment WHERE characterID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM jnlCharacters WHERE ownerID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM crpShares WHERE shareholderID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM chrSkillHistory WHERE characterID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM chrSkillQueue WHERE characterID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM crpApplications WHERE characterID=%u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM chrCharacterAttributes WHERE charID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM chrPausedSkillQueue WHERE characterID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM entity_attributes"
-                            " WHERE itemID IN (SELECT itemID FROM entity WHERE ownerID = %u)", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM entity WHERE ownerID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM avatar_colors WHERE charID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM avatar_modifiers WHERE charID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM avatar_sculpts WHERE charID = %u", characterID);
-    sDatabase.RunQuery(err, "DELETE FROM avatars WHERE charID = %u", characterID);
+    auto rollback = [&error]() {
+        DBerror rollbackError;
+        sDatabase.RunQuery( rollbackError, "ROLLBACK" );
+    };
+
+    DBQueryResult result;
+    if ( !sDatabase.RunQuery(
+            result,
+            "SELECT corporationID FROM chrCharacters "
+            "WHERE characterID = %u FOR UPDATE",
+            characterID ) ) {
+        rollback();
+        return false;
+    }
+
+    DBResultRow row;
+    if ( !result.GetRow( row ) ) {
+        rollback();
+        return false;
+    }
+
+    const uint32 corporationID = row.GetUInt( 0 );
+    if ( !CompleteCharacterDelete( characterID, corporationID, error ) ||
+         !sDatabase.RunQuery( error, "COMMIT" ) ) {
+        rollback();
+        return false;
+    }
+
+    sImageServer.RemoveCharacterImage( characterID );
+    return true;
+}
+
+bool CharacterDB::IsCharacterOwned(uint32 accountID, uint32 charID)
+{
+    DBQueryResult result;
+    if (!sDatabase.RunQuery(
+            result,
+            "SELECT characterID FROM chrCharacters "
+            "WHERE accountID=%u AND characterID=%u LIMIT 1",
+            accountID,
+            charID))
+        return false;
+
+    DBResultRow row;
+    return result.GetRow(row);
+}
+
+bool CharacterDB::DeleteCharacter(uint32 accountID, uint32 charID)
+{
+    DBerror error;
+    if ( !sDatabase.RunQuery( error, "START TRANSACTION" ) )
+        return false;
+
+    auto rollback = []() {
+        DBerror rollbackError;
+        sDatabase.RunQuery( rollbackError, "ROLLBACK" );
+    };
+
+    DBQueryResult result;
+    if ( !sDatabase.RunQuery(
+            result,
+            "SELECT corporationID FROM chrCharacters "
+            "WHERE accountID=%u AND characterID=%u AND online=0 "
+            "AND deletePrepareDateTime > 0 "
+            "AND deletePrepareDateTime <= %lli FOR UPDATE",
+            accountID,
+            charID,
+            GetFileTimeNow() ) ) {
+        rollback();
+        return false;
+    }
+
+    DBResultRow row;
+    if ( !result.GetRow( row ) ) {
+        rollback();
+        return false;
+    }
+
+    if ( !CompleteCharacterDelete( charID, row.GetUInt( 0 ), error ) ||
+         !sDatabase.RunQuery( error, "COMMIT" ) ) {
+        rollback();
+        return false;
+    }
+
+    sImageServer.RemoveCharacterImage( charID );
+    return true;
 }
 
 bool CharacterDB::ReportRespec(uint32 characterId)
@@ -232,6 +402,13 @@ PyRep *CharacterDB::GetCharacterList(uint32 accountID) {
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
+    }
+
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Character list rows=%u account=%u.",
+            res.GetRowCount(),
+            accountID);
     }
 
     return DBResultToCRowset(res);
@@ -406,8 +583,14 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
         DBResultRow row;
         /** @todo  need to make proper error here. */
         // this causes blanks on char sel screen if there is no ship, or shipID is wrong.
-        if (!res.GetRow(row))
+        if (!res.GetRow(row)) {
+            if (sConfig.debug.CharacterSelectTrace) {
+                codelog(CLIENT__WARNING,
+                    "CharacterSelect: No ship row for character=%u.",
+                    characterID);
+            }
             return PyStatic.NewNone();
+        }
 
         sDatabase.DoEscapeString(shipName, row.GetText(0));
         shipTypeID = row.GetUInt(1);
@@ -460,7 +643,22 @@ PyRep *CharacterDB::GetCharSelectInfo(uint32 characterID) {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
     }
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Character detail rows=%u character=%u.",
+            res.GetRowCount(),
+            characterID);
+    }
     return DBResultToCRowset(res);
+}
+
+PyRep *CharacterDB::GetCharSelectInfo(
+    uint32 accountID,
+    uint32 characterID)
+{
+    if (!IsCharacterOwned(accountID, characterID))
+        return nullptr;
+    return GetCharSelectInfo(characterID);
 }
 
 PyRep *CharacterDB::GetCharPublicInfo(uint32 characterID) {
@@ -1217,6 +1415,16 @@ uint32 CharacterDB::GetStartingStationByCareer(uint32 careerID)
 }
 
 void CharacterDB::SetAvatar(uint32 charID, PyRep* hairDarkness) {
+	if (hairDarkness == nullptr || !hairDarkness->IsFloat()
+	    || !std::isfinite(hairDarkness->AsFloat()->value()))
+	{
+		codelog(
+			CHARACTER__WARNING,
+			"Rejected malformed avatar appearance for character=%u.",
+			charID);
+		return;
+	}
+
 	//populate the DB with avatar information
 	DBerror err;
 	if (!sDatabase.RunQuery(err,
@@ -1229,6 +1437,17 @@ void CharacterDB::SetAvatar(uint32 charID, PyRep* hairDarkness) {
 }
 
 void CharacterDB::SetAvatarColors(uint32 charID, uint32 colorID, uint32 colorNameA, uint32 colorNameBC, double weight, double gloss) {
+	if (!IsValidAvatarColor(colorID, colorNameA, colorNameBC)
+	    || !std::isfinite(weight) || !std::isfinite(gloss))
+	{
+		codelog(
+			CHARACTER__WARNING,
+			"Rejected unknown avatar color for character=%u color=%u.",
+			charID,
+			colorID);
+		return;
+	}
+
 	//add avatar colors to the DB
 	DBerror err;
 	if (!sDatabase.RunQuery(err,
@@ -1240,32 +1459,209 @@ void CharacterDB::SetAvatarColors(uint32 charID, uint32 colorID, uint32 colorNam
 	}
 }
 
+bool CharacterDB::IsValidAvatarModifier(
+    uint32 modifierLocationID,
+    uint32 paperdollResourceID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(
+        res,
+        "SELECT 1 FROM paperdollModifierLocations AS l, "
+        "paperdollResources AS r "
+        "WHERE l.modifierLocationID = %u "
+        "AND r.paperdollResourceID = %u",
+        modifierLocationID,
+        paperdollResourceID))
+    {
+        codelog(
+            DATABASE__ERROR,
+            "Error validating avatar modifier: %s",
+            res.error.c_str());
+        return false;
+    }
+
+    return res.GetRowCount() == 1;
+}
+
+bool CharacterDB::IsValidAvatarColor(
+    uint32 colorID,
+    uint32 colorNameA,
+    uint32 colorNameBC)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(
+        res,
+        "SELECT 1 FROM paperdollColors AS c "
+        "INNER JOIN paperdollColorNames AS a "
+        "ON a.colorNameID = %u "
+        "LEFT JOIN paperdollColorNames AS bc "
+        "ON bc.colorNameID = %u "
+        "WHERE c.colorID = %u "
+        "AND (%u = 0 OR bc.colorNameID IS NOT NULL)",
+        colorNameA,
+        colorNameBC,
+        colorID,
+        colorNameBC))
+    {
+        codelog(
+            DATABASE__ERROR,
+            "Error validating avatar color: %s",
+            res.error.c_str());
+        return false;
+    }
+
+    return res.GetRowCount() == 1;
+}
+
+bool CharacterDB::IsValidAvatarSculpt(uint32 sculptLocationID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(
+        res,
+        "SELECT 1 FROM paperdollSculptingLocations "
+        "WHERE sculptLocationID = %u",
+        sculptLocationID))
+    {
+        codelog(
+            DATABASE__ERROR,
+            "Error validating avatar sculpt: %s",
+            res.error.c_str());
+        return false;
+    }
+
+    return res.GetRowCount() == 1;
+}
+
+bool CharacterDB::AreValidPortraitReferences(
+    uint32 backgroundID,
+    uint32 lightID,
+    uint32 lightColorID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(
+        res,
+        "SELECT 1 FROM chrBackgrounds AS b, chrLights AS l, "
+        "paperdollColorNames AS c "
+        "WHERE b.backgroundID = %u "
+        "AND l.lightID = %u "
+        "AND c.colorNameID = %u",
+        backgroundID,
+        lightID,
+        lightColorID))
+    {
+        codelog(
+            DATABASE__ERROR,
+            "Error validating portrait references: %s",
+            res.error.c_str());
+        return false;
+    }
+
+    return res.GetRowCount() == 1;
+}
+
 void CharacterDB::SetAvatarModifiers(uint32 charID, PyRep* modifierLocationID,  PyRep* paperdollResourceID, PyRep* paperdollResourceVariation) {
+	if (modifierLocationID == nullptr || !modifierLocationID->IsInt()
+	    || paperdollResourceID == nullptr || !paperdollResourceID->IsInt())
+	{
+		codelog(
+			CHARACTER__WARNING,
+			"Rejected malformed avatar modifier for character=%u.",
+			charID);
+		return;
+	}
+
+	const int32 locationValue = modifierLocationID->AsInt()->value();
+	const int32 resourceValue = paperdollResourceID->AsInt()->value();
+	if (locationValue < 0 || resourceValue < 0
+	    || !IsValidAvatarModifier(
+			static_cast<uint32>(locationValue),
+			static_cast<uint32>(resourceValue)))
+	{
+		codelog(
+			CHARACTER__WARNING,
+			"Rejected unknown avatar modifier character=%u "
+			"location=%d resource=%d.",
+			charID,
+			locationValue,
+			resourceValue);
+		return;
+	}
+
+	const uint32 variationValue =
+		paperdollResourceVariation != nullptr
+		&& paperdollResourceVariation->IsInt()
+		? static_cast<uint32>(
+			paperdollResourceVariation->AsInt()->value())
+		: 0;
+
 	//add avatar modifiers to the DB
 	DBerror err;
 	if (!sDatabase.RunQuery(err,
 		"INSERT INTO avatar_modifiers (charID, modifierLocationID, paperdollResourceID, paperdollResourceVariation)"
 		" VALUES (%u, %u, %u, %u)",
 		charID,
-		modifierLocationID->AsInt()->value(),
-		paperdollResourceID->AsInt()->value(),
-		paperdollResourceVariation->IsInt() ? paperdollResourceVariation->AsInt()->value() : 0 ))
+		static_cast<uint32>(locationValue),
+		static_cast<uint32>(resourceValue),
+		variationValue))
 	{
 		codelog(DATABASE__ERROR, "Error in query: %s", err.c_str());
 	}
 }
 
 void CharacterDB::SetAvatarSculpts(uint32 charID, PyRep* sculptLocationID, PyRep* weightUpDown, PyRep* weightLeftRight, PyRep* weightForwardBack) {
+	if (sculptLocationID == nullptr || !sculptLocationID->IsInt())
+	{
+		codelog(
+			CHARACTER__WARNING,
+			"Rejected malformed avatar sculpt for character=%u.",
+			charID);
+		return;
+	}
+
+	const int32 locationValue = sculptLocationID->AsInt()->value();
+	if (locationValue < 0
+	    || !IsValidAvatarSculpt(static_cast<uint32>(locationValue)))
+	{
+		codelog(
+			CHARACTER__WARNING,
+			"Rejected unknown avatar sculpt character=%u location=%d.",
+			charID,
+			locationValue);
+		return;
+	}
+
+	const double upDown =
+		weightUpDown != nullptr && weightUpDown->IsFloat()
+		? weightUpDown->AsFloat()->value()
+		: 0.0;
+	const double leftRight =
+		weightLeftRight != nullptr && weightLeftRight->IsFloat()
+		? weightLeftRight->AsFloat()->value()
+		: 0.0;
+	const double forwardBack =
+		weightForwardBack != nullptr && weightForwardBack->IsFloat()
+		? weightForwardBack->AsFloat()->value()
+		: 0.0;
+	if (!std::isfinite(upDown) || !std::isfinite(leftRight)
+	    || !std::isfinite(forwardBack))
+	{
+		codelog(
+			CHARACTER__WARNING,
+			"Rejected non-finite avatar sculpt for character=%u.",
+			charID);
+		return;
+	}
+
 	//add avatar sculpts to the DB
 	DBerror err;
 	if (!sDatabase.RunQuery(err,
 		"INSERT INTO avatar_sculpts (charID, sculptLocationID, weightUpDown, weightLeftRight, weightForwardBack)"
 		" VALUES (%u, %u, %f, %f, %f)",
 		charID,
-		sculptLocationID->AsInt()->value(),
-		weightUpDown->IsFloat() ? weightUpDown->AsFloat()->value() : 0.0,
-		weightLeftRight->IsFloat() ? weightLeftRight->AsFloat()->value() : 0.0,
-		weightForwardBack->IsFloat() ? weightForwardBack->AsFloat()->value() : 0.0))
+		static_cast<uint32>(locationValue),
+		upDown,
+		leftRight,
+		forwardBack))
 	{
 		codelog(DATABASE__ERROR, "Error in query: %s", err.c_str());
 	}
@@ -1273,6 +1669,17 @@ void CharacterDB::SetAvatarSculpts(uint32 charID, PyRep* sculptLocationID, PyRep
 
 void CharacterDB::SetPortraitInfo(uint32 charID, PortraitInfo& data)
 {
+    if (!AreValidPortraitReferences(
+            data.backgroundID,
+            data.lightID,
+            data.lightColorID)) {
+        codelog(
+            CHARACTER__WARNING,
+            "Rejected unknown portrait references for character=%u.",
+            charID);
+        return;
+    }
+
     DBerror err;
     if (!sDatabase.RunQuery(err,
         "INSERT INTO chrPortraitData "

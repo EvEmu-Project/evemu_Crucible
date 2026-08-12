@@ -67,6 +67,7 @@ m_spawnTimer(0)
     m_players.clear();
     m_entities.clear();
     m_dynamicEntities.clear();
+    m_drones.clear();
 
     m_systemID = pSystem->GetID();
     m_bubbleID = sBubbleMgr.GetBubbleID();
@@ -77,19 +78,27 @@ m_spawnTimer(0)
 
 SystemBubble::~SystemBubble()
 {
-    if (m_hasMarkers)
-        for (auto cur : m_markers) {
-            cur.second->Delete(); // delete marker cans here
-            SafeDelete(cur.second);
-        }
+    clear();
 }
 
 void SystemBubble::clear() {
     if (m_hasMarkers)
         for (auto cur : m_markers) {
+            if (cur.second == nullptr)
+                continue;
             cur.second->Delete(); // delete marker cans here
             SafeDelete(cur.second);
         }
+
+    for (auto cur : m_entities) {
+        if (cur.second != nullptr && cur.second->m_bubble == this)
+            cur.second->m_bubble = nullptr;
+    }
+
+    for (auto cur : m_dynamicEntities) {
+        if (cur.second != nullptr && cur.second->m_bubble == this)
+            cur.second->m_bubble = nullptr;
+    }
 
     m_ice = false;
     m_belt = false;
@@ -100,11 +109,18 @@ void SystemBubble::clear() {
     m_incursion = false;
     m_hasBubble = false;
     m_hasMarkers = false;
+    m_tcuSE = nullptr;
+    m_sbuSE = nullptr;
+    m_ihubSE = nullptr;
+    m_towerSE = nullptr;
+    m_centerSE = nullptr;
+    m_spawnTimer.Disable();
 
     m_markers.clear();
     m_players.clear();
     m_entities.clear();
     m_dynamicEntities.clear();
+    m_drones.clear();
 }
 
 void SystemBubble::Process()
@@ -235,6 +251,12 @@ void SystemBubble::ProcessWander(std::vector<SystemEntity *> &wanderers) {
 }
 
 void SystemBubble::Add(SystemEntity* pSE) {
+    if (pSE == nullptr)
+        return;
+
+    if (pSE->m_bubble != nullptr && pSE->m_bubble != this)
+        return;
+
     //if they are already in this bubble, do not continue.
     if (m_entities.find(pSE->GetID()) != m_entities.end()) {
         _log(
@@ -363,22 +385,11 @@ void SystemBubble::Add(SystemEntity* pSE) {
  * `SystemEntity`'s bubble.
  */
 void SystemBubble::Untrack(SystemEntity *pSE) {
-    if (pSE == nullptr) {
+    if (pSE == nullptr || pSE->m_bubble != this) {
         return;
     }
 
     uint32 pseId(pSE->GetID());
-
-    // assume that the entity is properly registered for its ID
-    if (pSE->m_bubble == nullptr) {
-        _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::Remove() - Entity %u bubble pointer is null for bubble %u", pseId, m_bubbleID);
-
-        if (sConfig.debug.StackTrace) {
-            EvE::traceStack();
-        }
-
-        return;
-    }
 
     _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Remove() - Removing entity %u from bubble %u", pseId, m_bubbleID);
 
@@ -406,26 +417,24 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
         if (pilotClient == nullptr) {
             _log(
                 DESTINY__BUBBLE_TRACE,
-                "SystemBubble::Remove() - Removing entity %u from bubble %u - pilot client is nullptr, returning",
+                "SystemBubble::Remove() - Removing entity %u from bubble %u - pilot client is nullptr",
+                pseId,
+                m_bubbleID
+            );
+        } else {
+            int32 charId(pSE->GetPilot()->GetCharacterID());
+
+            m_players.erase(charId);
+
+            _log(
+                DESTINY__BUBBLE_TRACE,
+                "SystemBubble::Remove() - Removing entity %u from bubble %u - removing balls",
                 pseId,
                 m_bubbleID
             );
 
-            return;
+            RemoveBalls(pSE);
         }
-
-        int32 charId(pSE->GetPilot()->GetCharacterID());
-
-        m_players.erase(charId);
-
-        _log(
-            DESTINY__BUBBLE_TRACE,
-            "SystemBubble::Remove() - Removing entity %u from bubble %u - removing balls",
-            pseId,
-            m_bubbleID
-        );
-
-        RemoveBalls(pSE);
     }
 
     // notify everybody else in the bubble of the removal
@@ -445,6 +454,9 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
  * `Untrack` instead if you don't want to do this.
  */
 void SystemBubble::Remove(SystemEntity *pSE) {
+    if (pSE == nullptr || pSE->m_bubble != this)
+        return;
+
     Untrack(pSE);
 
     if (is_log_enabled(DESTINY__BUBBLE_DEBUG)) {
@@ -455,7 +467,7 @@ void SystemBubble::Remove(SystemEntity *pSE) {
 }
 
 void SystemBubble::RemoveExclusive(SystemEntity *pSE) {
-    if (pSE->m_bubble == nullptr)
+    if (pSE == nullptr || pSE->m_bubble != this)
         return;
 
     _log(DESTINY__BUBBLE_TRACE, "SystemBubble::RemoveExclusive() - Removing entity %u from bubble %u", pSE->GetID(), m_bubbleID);

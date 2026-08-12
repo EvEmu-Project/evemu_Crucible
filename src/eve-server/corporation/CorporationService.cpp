@@ -142,6 +142,11 @@ PyResult CorporationService::CreateMedal(PyCallArgs &call, PyWString* name, PyWS
     // destroy = sm.StartService('medals').CreateMedal(mName, mDesc, cMedalData)
     //  destroy = true will close window
 
+    const int64 medalRoles = Corp::Role::Director | Corp::Role::PersonnelManager;
+    if ( !IsPlayerCorp( call.client->GetCorporationID() ) ||
+         (call.client->GetCorpRole() & medalRoles) == 0 )
+        throw CustomError("Corporation medal creation denied");
+
     //take the money, send wallet blink event record the transaction in corp journal.
     // if not enough corp funds, throw from here and avoid the overhead of decoding call...
     std::string reason = "DESC: Medal Creation by ";
@@ -267,6 +272,11 @@ PyResult CorporationService::GiveMedalToCharacters(PyCallArgs &call, PyInt* meda
      */
     _log(CORP__CALL, "CorporationService::Handle_GiveMedalToCharacters()");
     call.Dump(CORP__CALL_DUMP);
+
+    const int64 medalRoles = Corp::Role::Director | Corp::Role::PersonnelManager;
+    if ( !IsPlayerCorp( call.client->GetCorporationID() ) ||
+         (call.client->GetCorpRole() & medalRoles) == 0 )
+        throw CustomError("Corporation medal award denied");
 
     // can award one medal to multiple chars at once, at 5m isk per award
     std::vector< uint32 > charVec;

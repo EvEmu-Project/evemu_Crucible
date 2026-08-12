@@ -15,7 +15,6 @@ RUN apt-get update && \
     libtinyxml-dev \
     ca-certificates \
     g++ \
-    gdb \
     libutfcpp-dev \
     mariadb-client \
     passwd \
@@ -31,7 +30,6 @@ ADD /cmake/ /src/cmake
 ADD /dep/ /src/dep
 ADD /src/ /src/src
 ADD /utils/ /src/utils
-ADD /.git/ /src/.git
 
 # Create necessary directories
 RUN mkdir -p /src/build /app /app/logs /app/server_cache /app/image_cache
@@ -40,7 +38,7 @@ RUN mkdir -p /src/build /app /app/logs /app/server_cache /app/image_cache
 WORKDIR /src/build
 
 # Configure and build the project
-RUN cmake -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Debug .. 
+RUN cmake -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Release ..
 RUN make -j$(nproc)
 RUN make install
 

@@ -33,6 +33,13 @@ Mutex mLogSys;
 
 FILE *logsys_log_file(nullptr);
 
+namespace {
+
+constexpr size_t LOG_MESSAGE_LIMIT = 4096;
+const char LOG_TRUNCATION_MARKER[] = " ... truncated ...";
+
+}  // namespace
+
 #define LOG_CATEGORY(category) #category ,
 const char *log_category_names[NUMBER_OF_LOG_CATEGORIES] = {
     #include "log/logtypes.h"
@@ -83,8 +90,8 @@ void log_messageVA(LogType type, const char *fmt, va_list args) {
 
 extern void log_messageVA( LogType type, uint32 iden, const char *fmt, va_list args )
 {
-    /* allocate enough room for a med message  (changed from 4k to 1k) */
-    size_t log_msg_size = 0x400;
+    /* Keep attacker-controlled log values bounded. */
+    const size_t log_msg_size = LOG_MESSAGE_LIMIT;
     size_t log_msg_index = 0;
     char* log_msg = (char*)malloc(log_msg_size);
 
@@ -93,24 +100,46 @@ extern void log_messageVA( LogType type, uint32 iden, const char *fmt, va_list a
     time_t tTime;
     time(&tTime);
     localtime_r( &tTime, &t );
-    int va_size = snprintf(&log_msg[log_msg_index], log_msg_size, "%02u:%02u:%02u [%s] ", t.tm_hour, t.tm_min, t.tm_sec, log_type_info[type].display_name );
-
-    /* store the resulting size */
-    log_msg_size-=va_size;
-    log_msg_index+=va_size;
+    int va_size = snprintf(
+        &log_msg[log_msg_index],
+        log_msg_size,
+        "%02u:%02u:%02u [%s] ",
+        t.tm_hour,
+        t.tm_min,
+        t.tm_sec,
+        log_type_info[type].display_name);
+    if (va_size < 0)
+        va_size = 0;
+    log_msg_index = static_cast<size_t>(va_size) < log_msg_size
+        ? static_cast<size_t>(va_size)
+        : log_msg_size - 1;
 
     /* add the required spaces */
-    for (uint32 i = 0; i < iden; i++)
+    for (uint32 i = 0; i < iden && log_msg_index + 1 < log_msg_size; i++)
         log_msg[log_msg_index++] = ' ';
 
-    /* make sure the resulting size is corrected */
-    log_msg_size-=iden;
-
     /* put in the rest of the va stuff */
-    va_size = vsnprintf(&log_msg[log_msg_index], log_msg_size, fmt, args);
-    log_msg_index+=va_size;
+    const size_t remaining = log_msg_size - log_msg_index;
+    va_size = vsnprintf(&log_msg[log_msg_index], remaining, fmt, args);
+    const bool truncated =
+        va_size < 0 || static_cast<size_t>(va_size) >= remaining;
+    if (va_size > 0) {
+        const size_t written = static_cast<size_t>(va_size);
+        log_msg_index += written < remaining ? written : remaining - 1;
+    }
+
+    if (truncated) {
+        const size_t marker_size = sizeof(LOG_TRUNCATION_MARKER) - 1;
+        const size_t marker_start = log_msg_size - marker_size - 2;
+        if (log_msg_index > marker_start)
+            log_msg_index = marker_start;
+        memcpy(&log_msg[log_msg_index], LOG_TRUNCATION_MARKER, marker_size);
+        log_msg_index += marker_size;
+    }
 
     /* make sure that there is a new line at the end */
+    if (log_msg_index + 2 > log_msg_size)
+        log_msg_index = log_msg_size - 2;
     log_msg[log_msg_index++] = '\n';
     log_msg[log_msg_index++] = '\0';
 
@@ -176,7 +205,7 @@ bool load_log_settings(const char *filename) {
         ++i;
         if (fgets(linebuf, 512, f) == nullptr)
             continue;
-        if (sscanf(linebuf, "%[^=]=%[^\r\n]\n", type_name, value) != 2)
+        if (sscanf(linebuf, "%255[^=]=%255[^\r\n]", type_name, value) != 2)
             continue;
 
         if (type_name[0] == '\0' || type_name[0] == '#')

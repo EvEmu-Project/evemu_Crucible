@@ -1,3 +1,8 @@
+*** Unreleased ***
+- Smoothed direct direction commands by preserving acceleration across WASD
+  changes, ignoring duplicate direction packets, and normalizing turns.
+- Fixed immediate movement releases being ignored before the first movement tic.
+
 *** 0.8.6 ***
 - [FEAT] MarketBot
 - Market system fixes

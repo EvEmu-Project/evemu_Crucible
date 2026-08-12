@@ -32,7 +32,7 @@ struct AccountData {
     int64 role;
     std::string name;
     std::string hash;
-    std::string password;
+    std::string passwordKdf;
     std::string last_login;
 };
 

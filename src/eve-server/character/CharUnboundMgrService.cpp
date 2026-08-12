@@ -62,17 +62,51 @@ PyResult CharUnboundMgrService::ValidateNameEx(PyCallArgs &call, PyRep* name)
 
 PyResult CharUnboundMgrService::GetCharacterToSelect(PyCallArgs &call, PyInt* characterID)
 {
-    return CharacterDB::GetCharSelectInfo(characterID->value());
+    const uint32 accountID = call.client->GetUserID();
+    const uint32 charID = characterID->value();
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: GetCharacterToSelect account=%u "
+            "character=%u.",
+            accountID,
+            charID);
+    }
+
+    PyRep* result = CharacterDB::GetCharSelectInfo(accountID, charID);
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: GetCharacterToSelect response=%s.",
+            result == nullptr ? "null" : "present");
+    }
+    return result;
 }
 
 PyResult CharUnboundMgrService::GetCharactersToSelect(PyCallArgs &call)
 {
-    return CharacterDB::GetCharacterList(call.client->GetUserID());
+    const uint32 accountID = call.client->GetUserID();
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: GetCharactersToSelect account=%u.",
+            accountID);
+    }
+
+    PyRep* result = CharacterDB::GetCharacterList(accountID);
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: GetCharactersToSelect response=%s.",
+            result == nullptr ? "null" : "present");
+    }
+    return result;
 }
 
 PyResult CharUnboundMgrService::DeleteCharacter(PyCallArgs &call, PyInt* characterID)
 {
-    CharacterDB::DeleteCharacter(characterID->value());
+    if ( !CharacterDB::DeleteCharacter(
+        call.client->GetUserID(),
+        characterID->value() ) ) {
+        call.client->SendErrorMsg("Character deletion failed.");
+        return new PyBool(false);
+    }
     return nullptr;
 }
 
@@ -129,13 +163,31 @@ PyResult CharUnboundMgrService::SelectCharacterID(PyCallArgs& call, PyInt* chara
 
 PyResult CharUnboundMgrService::SelectCharacterID(PyCallArgs &call, PyInt* characterID, std::optional <PyInt*> loadDungeon, std::optional <PyInt*> secondChoiceID)
 {
-    if (!IsCharacterID(characterID->value())) {
-        sLog.Error("Client::SelectCharacter()", "CharacterID %u invalid.", characterID->value());
-        call.client->SendErrorMsg("Character ID %u invalid.  Ref: ServerError 00522", characterID->value());
+    const uint32 charID = characterID->value();
+    const uint32 accountID = call.client->GetUserID();
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: SelectCharacterID account=%u "
+            "character=%u.",
+            accountID,
+            charID);
+    }
+
+    if (!IsCharacterID(charID) ||
+        !CharacterDB::IsCharacterOwned(
+            accountID,
+            charID)) {
+        sLog.Error("Client::SelectCharacter()", "CharacterID %u invalid.", charID);
+        call.client->SendErrorMsg("Character selection failed.");
         return nullptr;
     }
 
-    call.client->SelectCharacter(characterID->value());
+    const bool selected = call.client->SelectCharacter(charID);
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: SelectCharacterID result=%s.",
+            selected ? "success" : "failure");
+    }
     return nullptr;
 }
 
@@ -143,13 +195,21 @@ PyResult CharUnboundMgrService::CreateCharacterWithDoll(PyCallArgs &call, PyRep*
     // charID = sm.RemoteSvc('charUnboundMgr').CreateCharacterWithDoll(charactername, bloodlineID, genderID, ancestryID, charInfo, portraitInfo, schoolID)
     // ensure the PyObject* is an util.KeyVal, this might benefit from some helper methods instead of directly using the PyObject
     if (characterInfo->type()->content() != "util.KeyVal" || characterInfo->arguments()->IsDict() == false) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode characterInfo", GetName());
+        codelog(
+            SERVICE__ERROR,
+            "%s: Failed to decode characterInfo",
+            GetName().c_str()
+            );
         return PyStatic.NewZero();
     }
 
     // ensure the PyObject* is an util.KeyVal, this might benefit from some helper methods instead of directly using the PyObject
     if (portraitInfo->type()->content() != "util.KeyVal" || portraitInfo->arguments()->IsDict() == false) {
-        codelog(SERVICE__ERROR, "%s: Failed to decode portraitInfo", GetName());
+        codelog(
+            SERVICE__ERROR,
+            "%s: Failed to decode portraitInfo",
+            GetName().c_str()
+            );
         return PyStatic.NewZero();
     }
 

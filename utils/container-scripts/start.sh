@@ -1,11 +1,11 @@
 #!/bin/bash
 
+set -Eeuo pipefail
+
 echo "Initializing EVEmu..."
 
-#Initialize the database
-/src/utils/container-scripts/db_init.sh
-
 #Initialize configuration files
+mkdir -p /app/etc
 if [ ! -f "/app/etc/eve-server.xml" ]; then
     echo "eve-server.xml not found, installing..."
     cp /src/utils/config/eve-server.xml /app/etc/
@@ -23,10 +23,13 @@ if [ ! -f "/app/etc/devtools.raw" ]; then
     cp /src/utils/config/devtools.raw /app/etc/
 fi
 
+# Initialize the database only after the effective configuration exists.
+/src/utils/container-scripts/db_init.sh
+
 #Start eve-server
 echo "Starting eve-server..."
 cd /app/bin/
-if [ "$RUN_WITH_GDB" == "TRUE" ]; then
+if [[ "${RUN_WITH_GDB:-FALSE}" == "TRUE" ]]; then
     echo "=== Running EVEmu with gdb ==="
     gdb -ex run ./eve-server
 else

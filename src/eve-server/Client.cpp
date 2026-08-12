@@ -61,7 +61,426 @@
 #include "pos/Tower.h"
 #include "system/cosmicMgrs/WormholeMgr.h"
 
+#include <cstdint>
+
 static const uint32 PING_INTERVAL_MS = 600000; //10m
+
+namespace {
+
+bool ConstantTimeEqual(const std::string& left, const std::string& right)
+{
+    if (left.size() != right.size())
+        return false;
+
+    unsigned char difference = 0;
+    for (size_t index = 0; index < left.size(); ++index)
+        difference |= static_cast<unsigned char>(left[index] ^ right[index]);
+
+    return difference == 0;
+}
+
+constexpr size_t kDestinyTraceLabelLimit = 48;
+constexpr size_t kDestinyTraceHashByteBudget = 256;
+constexpr size_t kDestinyTraceHashNodeBudget = 64;
+constexpr size_t kDestinyTraceHashDepthLimit = 8;
+constexpr size_t kDestinyTraceHashCollectionLimit = 16;
+constexpr size_t kDestinyTraceQueuePreview = 4;
+constexpr uint32 kDestinyTraceHashOffset = 2166136261u;
+constexpr uint32 kDestinyTraceHashPrime = 16777619u;
+constexpr uint8 kDestinyTraceHashNull = 0xf0;
+constexpr uint8 kDestinyTraceHashTruncated = 0xf1;
+constexpr uint8 kDestinyTraceHashNodeLimit = 0xf2;
+constexpr uint8 kDestinyTraceHashDepthLimitMarker = 0xf3;
+
+bool IsDestinyTraceLabelChar(unsigned char value)
+{
+    return (value >= 'A' && value <= 'Z')
+        || (value >= 'a' && value <= 'z')
+        || (value >= '0' && value <= '9')
+        || value == '_'
+        || value == '-'
+        || value == '.';
+}
+
+std::string BoundedDestinyTraceLabel(const PyRep* update)
+{
+    if (update == nullptr)
+        return "null";
+    if (!update->IsTuple())
+        return "non_tuple";
+
+    const PyTuple* tuple = update->AsTuple();
+    if (tuple->empty())
+        return "missing_label";
+
+    const PyRep* label = tuple->GetItem(0);
+    if (label == nullptr || !label->IsString())
+        return "non_string";
+
+    const std::string& value = label->AsString()->content();
+    std::string result;
+    result.reserve(kDestinyTraceLabelLimit);
+    for (size_t index = 0;
+         index < value.size() && index < kDestinyTraceLabelLimit;
+         ++index) {
+        const unsigned char character =
+            static_cast<unsigned char>(value[index]);
+        result.push_back(
+            IsDestinyTraceLabelChar(character)
+                ? static_cast<char>(character)
+                : '_');
+    }
+
+    return result.empty() ? "empty_label" : result;
+}
+
+const char* DestinyTraceShape(const PyRep* update)
+{
+    return update != nullptr && update->IsTuple() ? "tuple" : "other";
+}
+
+size_t DestinyTraceItemCount(const PyRep* update)
+{
+    return update != nullptr && update->IsTuple()
+        ? update->AsTuple()->size()
+        : 0;
+}
+
+void MixDestinyTraceByte(uint32& hash, uint8 value)
+{
+    hash ^= value;
+    hash *= kDestinyTraceHashPrime;
+}
+
+void MixDestinyTraceUnsigned(uint32& hash, uint64_t value)
+{
+    for (size_t index = 0; index < sizeof(value); ++index) {
+        MixDestinyTraceByte(hash, static_cast<uint8>(value));
+        value >>= 8;
+    }
+}
+
+void MixDestinyTraceText(
+    uint32& hash,
+    const std::string& value,
+    size_t& byteBudget)
+{
+    MixDestinyTraceUnsigned(hash, value.size());
+    size_t count = value.size();
+    if (count > byteBudget)
+        count = byteBudget;
+
+    for (size_t index = 0; index < count; ++index)
+        MixDestinyTraceByte(hash, static_cast<uint8>(value[index]));
+
+    byteBudget -= count;
+    if (count < value.size())
+        MixDestinyTraceByte(hash, kDestinyTraceHashTruncated);
+}
+
+void MixDestinyTraceBuffer(
+    uint32& hash,
+    const Buffer& value,
+    size_t& byteBudget)
+{
+    MixDestinyTraceUnsigned(hash, value.size());
+    size_t count = value.size();
+    if (count > byteBudget)
+        count = byteBudget;
+
+    for (size_t index = 0; index < count; ++index)
+        MixDestinyTraceByte(hash, value[index]);
+
+    byteBudget -= count;
+    if (count < value.size())
+        MixDestinyTraceByte(hash, kDestinyTraceHashTruncated);
+}
+
+void MixDestinyTraceRep(
+    const PyRep* rep,
+    uint32& hash,
+    size_t& byteBudget,
+    size_t& nodeBudget,
+    size_t depth)
+{
+    if (rep == nullptr) {
+        MixDestinyTraceByte(hash, kDestinyTraceHashNull);
+        return;
+    }
+    if (nodeBudget == 0) {
+        MixDestinyTraceByte(hash, kDestinyTraceHashNodeLimit);
+        return;
+    }
+
+    --nodeBudget;
+    MixDestinyTraceByte(hash, static_cast<uint8>(rep->GetType()));
+    if (depth >= kDestinyTraceHashDepthLimit) {
+        MixDestinyTraceByte(hash, kDestinyTraceHashDepthLimitMarker);
+        return;
+    }
+
+    if (rep->IsInt()) {
+        MixDestinyTraceUnsigned(
+            hash,
+            static_cast<uint64_t>(rep->AsInt()->value()));
+        return;
+    }
+    if (rep->IsLong()) {
+        MixDestinyTraceUnsigned(
+            hash,
+            static_cast<uint64_t>(rep->AsLong()->value()));
+        return;
+    }
+    if (rep->IsFloat()) {
+        const double value = rep->AsFloat()->value();
+        const uint8* bytes = reinterpret_cast<const uint8*>(&value);
+        for (size_t index = 0; index < sizeof(value); ++index)
+            MixDestinyTraceByte(hash, bytes[index]);
+        return;
+    }
+    if (rep->IsBool()) {
+        MixDestinyTraceByte(
+            hash,
+            rep->AsBool()->value() ? 1u : 0u);
+        return;
+    }
+    if (rep->IsBuffer()) {
+        MixDestinyTraceBuffer(
+            hash,
+            rep->AsBuffer()->content(),
+            byteBudget);
+        return;
+    }
+    if (rep->IsString()) {
+        MixDestinyTraceText(
+            hash,
+            rep->AsString()->content(),
+            byteBudget);
+        return;
+    }
+    if (rep->IsTuple()) {
+        const PyTuple* tuple = rep->AsTuple();
+        MixDestinyTraceUnsigned(hash, tuple->size());
+        size_t count = 0;
+        for (; count < tuple->size()
+               && count < kDestinyTraceHashCollectionLimit;
+             ++count) {
+            MixDestinyTraceRep(
+                tuple->GetItem(count),
+                hash,
+                byteBudget,
+                nodeBudget,
+                depth + 1);
+        }
+        if (count < tuple->size())
+            MixDestinyTraceByte(hash, kDestinyTraceHashTruncated);
+        return;
+    }
+    if (rep->IsList()) {
+        const PyList* list = rep->AsList();
+        MixDestinyTraceUnsigned(hash, list->size());
+        size_t count = 0;
+        for (; count < list->size()
+               && count < kDestinyTraceHashCollectionLimit;
+             ++count) {
+            MixDestinyTraceRep(
+                list->GetItem(count),
+                hash,
+                byteBudget,
+                nodeBudget,
+                depth + 1);
+        }
+        if (count < list->size())
+            MixDestinyTraceByte(hash, kDestinyTraceHashTruncated);
+        return;
+    }
+    if (rep->IsDict()) {
+        const PyDict* dict = rep->AsDict();
+        MixDestinyTraceUnsigned(hash, dict->size());
+        size_t count = 0;
+        for (PyDict::const_iterator item = dict->begin();
+             item != dict->end()
+                 && count < kDestinyTraceHashCollectionLimit;
+             ++item, ++count) {
+            MixDestinyTraceRep(
+                item->first,
+                hash,
+                byteBudget,
+                nodeBudget,
+                depth + 1);
+            MixDestinyTraceRep(
+                item->second,
+                hash,
+                byteBudget,
+                nodeBudget,
+                depth + 1);
+        }
+        if (count < dict->size())
+            MixDestinyTraceByte(hash, kDestinyTraceHashTruncated);
+        return;
+    }
+    if (rep->IsObject()) {
+        const PyObject* object = rep->AsObject();
+        MixDestinyTraceRep(
+            object->type(),
+            hash,
+            byteBudget,
+            nodeBudget,
+            depth + 1);
+        MixDestinyTraceRep(
+            object->arguments(),
+            hash,
+            byteBudget,
+            nodeBudget,
+            depth + 1);
+    }
+}
+
+// This is a bounded diagnostic fingerprint, not an integrity primitive.
+uint32 BoundedDestinyTraceHash(const PyRep* rep)
+{
+    uint32 hash = kDestinyTraceHashOffset;
+    size_t byteBudget = kDestinyTraceHashByteBudget;
+    size_t nodeBudget = kDestinyTraceHashNodeBudget;
+    MixDestinyTraceRep(rep, hash, byteBudget, nodeBudget, 0);
+    return hash;
+}
+
+uint32 BoundedDestinyTraceEnvelopeHash(
+    const PyRep* updates,
+    const PyRep* events)
+{
+    uint32 hash = kDestinyTraceHashOffset;
+    size_t byteBudget = kDestinyTraceHashByteBudget;
+    size_t nodeBudget = kDestinyTraceHashNodeBudget;
+    MixDestinyTraceRep(updates, hash, byteBudget, nodeBudget, 0);
+    MixDestinyTraceRep(events, hash, byteBudget, nodeBudget, 0);
+    return hash;
+}
+
+struct DestinyQueueTrace {
+    const char* phase = "unknown";
+    const char* envelope = "unknown";
+    std::string label = "unknown";
+    const char* shape = "unknown";
+    size_t itemCount = 0;
+    int32 stamp = 0;
+    bool stampPresent = false;
+    bool sequencePresent = false;
+    bool sequenceDeferred = false;
+    uint32 sequenceValue = 0;
+    bool waitForBubble = false;
+    bool setStateKnown = false;
+    bool setState = false;
+    size_t updateQueueBefore = 0;
+    size_t updateQueueAfter = 0;
+    size_t eventQueueBefore = 0;
+    size_t eventQueueAfter = 0;
+    uint32 payloadHash = 0;
+};
+
+void LogDestinyQueueTrace(const DestinyQueueTrace& trace)
+{
+    if (!is_log_enabled(DESTINY__UPDATES))
+        return;
+
+    _log(
+        DESTINY__UPDATES,
+        "DestinyQueueTrace phase=%s envelope=%s label=%s shape=%s "
+        "items=%zu stampPresent=%u stamp=%d sequencePresent=%u "
+        "sequenceDeferred=%u sequenceValue=%u waitForBubble=%u "
+        "setStateKnown=%u setState=%u updateQueueBefore=%zu "
+        "updateQueueAfter=%zu eventQueueBefore=%zu eventQueueAfter=%zu "
+        "payloadHash=0x%08x",
+        trace.phase,
+        trace.envelope,
+        trace.label.c_str(),
+        trace.shape,
+        trace.itemCount,
+        trace.stampPresent ? 1u : 0u,
+        trace.stamp,
+        trace.sequencePresent ? 1u : 0u,
+        trace.sequenceDeferred ? 1u : 0u,
+        trace.sequenceValue,
+        trace.waitForBubble ? 1u : 0u,
+        trace.setStateKnown ? 1u : 0u,
+        trace.setState ? 1u : 0u,
+        trace.updateQueueBefore,
+        trace.updateQueueAfter,
+        trace.eventQueueBefore,
+        trace.eventQueueAfter,
+        trace.payloadHash);
+}
+
+bool ReadDestinyQueueAction(
+    const PyRep* action,
+    int32& stamp,
+    const PyRep*& update)
+{
+    stamp = 0;
+    update = nullptr;
+    if (action == nullptr || !action->IsTuple())
+        return false;
+
+    const PyTuple* tuple = action->AsTuple();
+    if (tuple->size() != 2)
+        return false;
+
+    const PyRep* stampRep = tuple->GetItem(0);
+    const PyRep* updateRep = tuple->GetItem(1);
+    if (stampRep == nullptr || !stampRep->IsInt() || updateRep == nullptr)
+        return false;
+
+    stamp = stampRep->AsInt()->value();
+    update = updateRep;
+    return true;
+}
+
+void LogDestinyQueueActions(const PyList* updates)
+{
+    if (!is_log_enabled(DESTINY__UPDATES) || updates == nullptr)
+        return;
+
+    const size_t actionCount = updates->size();
+    size_t previewCount = actionCount;
+    if (previewCount > kDestinyTraceQueuePreview)
+        previewCount = kDestinyTraceQueuePreview;
+
+    for (size_t index = 0; index < previewCount; ++index) {
+        int32 stamp = 0;
+        const PyRep* update = nullptr;
+        if (!ReadDestinyQueueAction(
+                updates->GetItem(index), stamp, update)) {
+            _log(
+                DESTINY__UPDATES,
+                "DestinyQueueTrace phase=flush_action index=%zu "
+                "malformed=1",
+                index);
+            continue;
+        }
+
+        _log(
+            DESTINY__UPDATES,
+            "DestinyQueueTrace phase=flush_action index=%zu label=%s "
+            "shape=%s items=%zu stampPresent=1 stamp=%d "
+            "payloadHash=0x%08x",
+            index,
+            BoundedDestinyTraceLabel(update).c_str(),
+            DestinyTraceShape(update),
+            DestinyTraceItemCount(update),
+            stamp,
+            BoundedDestinyTraceHash(update));
+    }
+
+    if (previewCount < actionCount) {
+        _log(
+            DESTINY__UPDATES,
+            "DestinyQueueTrace phase=flush_action truncated=%zu",
+            actionCount - previewCount);
+    }
+}
+
+}  // namespace
 
 Client::Client(EVEServiceManager& services, EVETCPConnection** con)
 : EVEClientSession(con),
@@ -213,17 +632,15 @@ bool Client::ProcessNet()
     while ((p = PopPacket())) {
         try {
             if (!DispatchPacket(p))
-                sLog.Error("Client", "%s: Failed to dispatch packet of type %s (%i).", m_char->name(), MACHONETMSG_TYPE_NAMES[ p->type ], (int)p->type);
+                sLog.Error("Client", "%s: Failed to dispatch packet of type %s (%i).", GetName(), MACHONETMSG_TYPE_NAMES[ p->type ], (int)p->type);
         }
         catch(PyException& e) {
             _SendException(p->dest, p->source.callID, p->type, WRAPPEDEXCEPTION, &e.ssException);
         }
 
+        SafeDelete(p);
         p = nullptr;
     }
-
-    // cleanup
-    SafeDelete(p);
     // send queue
     _SendQueuedUpdates();
 
@@ -232,6 +649,20 @@ bool Client::ProcessNet()
 
 bool Client::SelectCharacter(int32 charID/*0*/)
 {
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Begin account=%u character=%u.",
+            GetUserID(),
+            charID);
+    }
+
+    if (!IsCharacterID(charID) ||
+        !CharacterDB::IsCharacterOwned(GetUserID(), charID)) {
+        SendErrorMsg("Character selection failed.");
+        CloseClientConnection();
+        return false;
+    }
+
     if (sEntityList.IsOnline(charID)) {
         sLog.Error("Client::SelectCharacter()", "Char %u already online.", charID);
         SendErrorMsg("That Character is already online.  Selection Failed.");
@@ -246,6 +677,14 @@ bool Client::SelectCharacter(int32 charID/*0*/)
         CloseClientConnection();
         return false;
     }
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Session initialized character=%u system=%u "
+            "location=%u.",
+            charID,
+            m_systemData.systemID,
+            m_locationID);
+    }
 
     sEntityList.AddPlayer(this);
     sItemFactory.SetUsingClient(this);
@@ -257,6 +696,12 @@ bool Client::SelectCharacter(int32 charID/*0*/)
         CloseClientConnection();
         return false;
     }
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: System loaded character=%u system=%u.",
+            charID,
+            m_systemData.systemID);
+    }
 
     m_char = sItemFactory.GetCharacterRef(charID);
     if (m_char.get() == nullptr) {
@@ -265,6 +710,11 @@ bool Client::SelectCharacter(int32 charID/*0*/)
         sItemFactory.UnsetUsingClient();
         CloseClientConnection();
         return false;
+    }
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Character object loaded character=%u.",
+            charID);
     }
 
     m_char->VerifySP();
@@ -293,6 +743,12 @@ bool Client::SelectCharacter(int32 charID/*0*/)
     }
 
     m_ship->SetPlayer(this);
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Ship object loaded character=%u ship=%u.",
+            charID,
+            m_shipId);
+    }
 
     GPoint pos(NULL_ORIGIN);
 
@@ -349,6 +805,13 @@ bool Client::SelectCharacter(int32 charID/*0*/)
 
     // send MOTD and server data to 'local' chat channel
     this->m_lsc->SendServerMOTD(this);
+
+    if (sConfig.debug.CharacterSelectTrace) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Complete account=%u character=%u.",
+            GetUserID(),
+            charID);
+    }
 
     return (m_loaded = true);
 }
@@ -1903,7 +2366,8 @@ void Client::CharNowInStation() {
  * ****************************************************************/
 void Client::InitSession(int32 characterID)
 {
-    if (!IsCharacterID(characterID)) {
+    if (!IsCharacterID(characterID) ||
+        !CharacterDB::IsCharacterOwned(GetUserID(), characterID)) {
         sLog.Error("Client::InitSession()", "characterID is not valid");
         return;
     }
@@ -2175,12 +2639,53 @@ void Client::QueueDestinyEvent(PyTuple** event) {
 }
 
 void Client::QueueDestinyUpdate(PyTuple **update, bool DoPackage /*false*/, bool IsSetState /*false*/) {
-    if ((update == nullptr) or ((*update) == nullptr))
+    const bool traceEnabled = is_log_enabled(DESTINY__UPDATES);
+    const size_t updateQueueBefore = m_destinyUpdateQueue->size();
+    const size_t eventQueueBefore = m_destinyEventQueue->size();
+
+    if ((update == nullptr) or ((*update) == nullptr)) {
+        if (traceEnabled) {
+            _log(
+                DESTINY__UPDATES,
+                "DestinyQueueTrace phase=drop reason=null_update "
+                "updateQueueBefore=%zu updateQueueAfter=%zu "
+                "eventQueueBefore=%zu eventQueueAfter=%zu",
+                updateQueueBefore,
+                m_destinyUpdateQueue->size(),
+                eventQueueBefore,
+                m_destinyEventQueue->size());
+        }
         return;
-    if (sDataMgr.IsStation(m_locationID))
+    }
+    if (sDataMgr.IsStation(m_locationID)) {
+        if (traceEnabled) {
+            _log(
+                DESTINY__UPDATES,
+                "DestinyQueueTrace phase=drop reason=station "
+                "updateQueueBefore=%zu updateQueueAfter=%zu "
+                "eventQueueBefore=%zu eventQueueAfter=%zu",
+                updateQueueBefore,
+                m_destinyUpdateQueue->size(),
+                eventQueueBefore,
+                m_destinyEventQueue->size());
+        }
         return;
+    }
+
     DoDestinyAction act;
-        act.stamp = sEntityList.GetStamp();
+    act.stamp = sEntityList.GetStamp();
+
+    std::string traceLabel;
+    const char* traceShape = "unknown";
+    size_t traceItemCount = 0;
+    uint32 tracePayloadHash = 0;
+    if (traceEnabled) {
+        traceLabel = BoundedDestinyTraceLabel(*update);
+        traceShape = DestinyTraceShape(*update);
+        traceItemCount = DestinyTraceItemCount(*update);
+        tracePayloadHash = BoundedDestinyTraceHash(*update);
+    }
+
     if (DoPackage/* or m_packaged*/) {
         if (IsSetState) {
             // send the setstate buffer alone
@@ -2206,16 +2711,75 @@ void Client::QueueDestinyUpdate(PyTuple **update, bool DoPackage /*false*/, bool
             t->Dump(CLIENT__QUEUE_DUMP, "");
         SendNotification("DoDestinyUpdate", "clientID", &t, false);
         PyDecRef(t);
+
+        if (traceEnabled) {
+            DestinyQueueTrace trace;
+            trace.phase = "send_immediate";
+            trace.envelope = "DoDestinyUpdateMain_2";
+            trace.label = traceLabel;
+            trace.shape = traceShape;
+            trace.itemCount = traceItemCount;
+            trace.stamp = act.stamp;
+            trace.stampPresent = true;
+            trace.waitForBubble = m_bubbleWait;
+            trace.setStateKnown = true;
+            trace.setState = IsSetState;
+            trace.updateQueueBefore = updateQueueBefore;
+            trace.updateQueueAfter = m_destinyUpdateQueue->size();
+            trace.eventQueueBefore = eventQueueBefore;
+            trace.eventQueueAfter = m_destinyEventQueue->size();
+            trace.payloadHash = tracePayloadHash;
+            LogDestinyQueueTrace(trace);
+        }
     } else {
         act.update = *update;
         m_packaged = true;
         m_destinyUpdateQueue->AddItem(act.Encode());
+
+        if (traceEnabled) {
+            DestinyQueueTrace trace;
+            trace.phase = "enqueue";
+            trace.envelope = "deferred";
+            trace.label = traceLabel;
+            trace.shape = traceShape;
+            trace.itemCount = traceItemCount;
+            trace.stamp = act.stamp;
+            trace.stampPresent = true;
+            trace.sequenceDeferred = true;
+            trace.waitForBubble = m_bubbleWait;
+            trace.setStateKnown = true;
+            trace.setState = false;
+            trace.updateQueueBefore = updateQueueBefore;
+            trace.updateQueueAfter = m_destinyUpdateQueue->size();
+            trace.eventQueueBefore = eventQueueBefore;
+            trace.eventQueueAfter = m_destinyEventQueue->size();
+            trace.payloadHash = tracePayloadHash;
+            LogDestinyQueueTrace(trace);
+        }
     }
 }
 
 void Client::_SendQueuedUpdates() {
+    const bool traceEnabled = is_log_enabled(DESTINY__UPDATES);
+    const size_t updateQueueBefore = m_destinyUpdateQueue->size();
+    const size_t eventQueueBefore = m_destinyEventQueue->size();
+    const uint32 tracePayloadHash = traceEnabled
+        ? BoundedDestinyTraceEnvelopeHash(
+            updateQueueBefore != 0 ? m_destinyUpdateQueue : nullptr,
+            eventQueueBefore != 0 ? m_destinyEventQueue : nullptr)
+        : 0;
+    const char* traceEnvelope = "none";
+    const char* traceLabel = "none";
+    const char* traceShape = "none";
+
+    if (traceEnabled)
+        LogDestinyQueueActions(m_destinyUpdateQueue);
+
     if (!m_destinyUpdateQueue->empty()) {
         if (m_destinyEventQueue->empty()) {
+            traceEnvelope = "DoDestinyUpdateMain_2";
+            traceLabel = "queued_updates";
+            traceShape = "updates_only";
             DoDestinyUpdateMain_2 dum;
                 dum.updates = m_destinyUpdateQueue;
                 dum.waitForBubble = m_bubbleWait;
@@ -2224,6 +2788,9 @@ void Client::_SendQueuedUpdates() {
                 t->Dump(CLIENT__QUEUE_DUMP, "");
             SendNotification("DoDestinyUpdate", "clientID", &t);
         } else {
+            traceEnvelope = "DoDestinyUpdateMain";
+            traceLabel = "queued_updates_and_events";
+            traceShape = "updates_and_events";
             DoDestinyUpdateMain dum;
                 dum.updates = m_destinyUpdateQueue;
                 dum.events = m_destinyEventQueue;
@@ -2234,6 +2801,9 @@ void Client::_SendQueuedUpdates() {
             SendNotification("DoDestinyUpdate", "clientID", &t);
         }
     } else if (!m_destinyEventQueue->empty()) {
+        traceEnvelope = "OnMultiEvent";
+        traceLabel = "queued_events";
+        traceShape = "events_only";
         Notify_OnMultiEvent nom;
             nom.events = m_destinyEventQueue;
         PyTuple* t = nom.Encode();
@@ -2246,6 +2816,26 @@ void Client::_SendQueuedUpdates() {
     m_destinyUpdateQueue->clear();
     m_destinyEventQueue->clear();
     m_packaged = false;
+
+    if (traceEnabled && (updateQueueBefore != 0 || eventQueueBefore != 0)) {
+        DestinyQueueTrace trace;
+        trace.phase = "flush";
+        trace.envelope = traceEnvelope;
+        trace.label = traceLabel;
+        trace.shape = traceShape;
+        trace.itemCount = updateQueueBefore != 0
+            ? updateQueueBefore
+            : eventQueueBefore;
+        trace.sequencePresent = true;
+        trace.sequenceValue = m_nextNotifySequence;
+        trace.waitForBubble = m_bubbleWait;
+        trace.updateQueueBefore = updateQueueBefore;
+        trace.updateQueueAfter = m_destinyUpdateQueue->size();
+        trace.eventQueueBefore = eventQueueBefore;
+        trace.eventQueueAfter = m_destinyEventQueue->size();
+        trace.payloadHash = tracePayloadHash;
+        LogDestinyQueueTrace(trace);
+    }
 }
 
 void Client::SendNotification(const char *notifyType, const char *idType, PyTuple *payload, bool seq /*true*/) {
@@ -2375,24 +2965,22 @@ bool Client::_VerifyVersion(VersionExchangeClient& version)
 
 bool Client::_VerifyCrypto(CryptoRequestPacket& cr)
 {
-    if (cr.keyVersion != "placebo") {
-        //I'm sure cr.keyVersion can specify either CryptoAPI or PyCrypto, but its all binary so im not sure how.
-        CryptoAPIRequestParams car;
-        if (!car.Decode(cr.keyParams)) {
-            sLog.Error("Client","%s: Received invalid CryptoAPI request!", GetAddress().c_str());
-        } else {
-            sLog.Error("Client","%s: Unhandled CryptoAPI request: hashmethod=%s sessionkeylength=%d provider=%s sessionkeymethod=%s", GetAddress().c_str(), car.hashmethod.c_str(), car.sessionkeylength, car.provider.c_str(), car.sessionkeymethod.c_str());
-            SendErrorMsg("Invalid CryptoAPI request - You must change your client to use Placebo crypto in common.ini to talk to this server.");
-        }
-
+    if (cr.keyVersion != "placebo" || !sConfig.account.allowPlaceboCrypto) {
+        sLog.Warning(
+            "Client",
+            "%s: Rejected unsupported or disabled crypto mode.",
+            GetAddress().c_str());
+        SendErrorMsg("This server does not permit the requested crypto mode.");
         return false;
-    } else {
-        sLog.Debug("Client","%s: Received Placebo crypto request, accepting.", GetAddress().c_str());
-
-        //send out accept response
-        PyRep* rsp = new PyString("OK CC");
-        mNet->QueueRep(rsp);
     }
+
+    sLog.Warning(
+        "Client",
+        "%s: Accepted explicitly enabled placebo crypto.",
+        GetAddress().c_str());
+
+    PyRep* rsp = new PyString("OK CC");
+    mNet->QueueRep(rsp);
 
     return true;
 }
@@ -2426,22 +3014,40 @@ bool Client::_VerifyLogin(CryptoChallengePacket& ccp)
         return _LoginFail(failMsg);
     }
 
-    if (!ccp.user_password.empty()) {
-        sLog.Warning("  Client::Login()", "%s(%u) - Using Plain Password", aData.name.c_str(), aData.clientID);
-        if (strcmp(aData.password.c_str(), ccp.user_password.c_str()) != 0) {
-            failMsg = "The plain Password you entered is incorrect for this account.";
-            return _LoginFail(failMsg);
-        }
-    } else {
-        //sLog.Warning("  Client::Login()", "%s(%u) - Using Hashed Password", aData.name.c_str(), aData.clientID);
-        if (strcmp(aData.hash.c_str(), ccp.user_password_hash.c_str()) != 0) {
-            failMsg = "The Password you entered is incorrect for this account.";
-            return _LoginFail(failMsg);
-        }
+    if (!ccp.user_password.empty())
+        return _LoginFail(failMsg);
 
-        if (!ccp.user_password.empty())
-            ServiceDB::UpdatePassword(aData.id, ccp.user_password.c_str());
+    bool credentialsValid = false;
+    if (!aData.passwordKdf.empty()) {
+        credentialsValid = PasswordModule::VerifyArgon2idVerifier(
+            ccp.user_password_hash,
+            aData.passwordKdf);
+    } else if (!aData.hash.empty()) {
+        credentialsValid = ConstantTimeEqual(
+            aData.hash,
+            ccp.user_password_hash);
+        if (credentialsValid) {
+            std::string verifier;
+            if (PasswordModule::GenerateArgon2idVerifier(
+                    ccp.user_password_hash,
+                    verifier)) {
+                if (!ServiceDB::UpdateAccountPasswordKdf(
+                        aData.id,
+                        verifier)) {
+                    sLog.Error(
+                        "Client",
+                        "Unable to persist migrated account verifier.");
+                }
+            } else {
+                sLog.Error(
+                    "Client",
+                    "Unable to generate migrated account verifier.");
+            }
+        }
     }
+
+    if (!credentialsValid)
+        return _LoginFail(failMsg);
 
     /** @todo  check this character/account for newbie status and revoke as needed before account update.  */
 
@@ -2665,10 +3271,33 @@ void Client::_SendPingResponse(const PyAddress& source, int64 callID)
 /************************************************************************/
 bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
 {
+    if (req.arg_tuple == nullptr) {
+        sLog.Error("Client::CallReq", "Rejected call with null arguments.");
+        return false;
+    }
+
     // build arguments
     PyCallArgs args(this, req.arg_tuple, req.arg_dict);
     PyResult result;
     uint32 nodeID = 0, bindID = 0;
+    const bool traceCharacterSelect =
+        sConfig.debug.CharacterSelectTrace &&
+        (req.method == "GetCharactersToSelect" ||
+         req.method == "GetCharacterToSelect" ||
+         req.method == "SelectCharacterID");
+
+    if (traceCharacterSelect) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Call service=%s method=%s.",
+            packet->dest.service.c_str(),
+            req.method.c_str());
+    }
+
+    m_canThrow = true;
+    struct CanThrowReset {
+        bool& value;
+        ~CanThrowReset() { value = false; }
+    } canThrowReset{m_canThrow};
 
     // try to handle with the new service handler and fallback to the old version
     try
@@ -2685,14 +3314,10 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
             }
 
             _log(SERVICE__CALLS_BOUND, "%s::%s()", req.remoteObjectStr.c_str(), req.method.c_str());
-            m_canThrow = true;
             result = m_services.Dispatch(bindID, req.method, args);
-            m_canThrow = false;
         } else {
             _log(SERVICE__CALLS, "%s::%s()", packet->dest.service.c_str(), req.method.c_str());
-            m_canThrow = true;
             result = m_services.Dispatch(packet->dest.service, req.method, args);
-            m_canThrow = false;
         }
     }
     catch (method_not_found ex)
@@ -2715,6 +3340,13 @@ bool Client::Handle_CallReq(PyPacket* packet, PyCallStream& req)
         sLog.Error("Client::CallReq", "Unable to find service to handle call to: %s", packet->dest.service.c_str());
         packet->dest.Dump(CLIENT__CALL_DUMP, "    ");
         throw UserError("ServiceNotFound"); // this message is invalid (message not found)
+    }
+
+    if (traceCharacterSelect) {
+        codelog(CLIENT__WARNING,
+            "CharacterSelect: Return result=%s named=%s.",
+            result.ssResult == nullptr ? "null" : "present",
+            result.ssNamedResult == nullptr ? "null" : "present");
     }
 
     SendSessionChange();  //send out the session change before the return.
@@ -2880,13 +3512,13 @@ void Client::SelfChatMessage(const char* fmt, ...)
 
     if (m_channels.empty()) {
         if (m_char.get() != nullptr)
-            sLog.Error("Client", "%s: Tried to send self chat, but we are not joined to any channels: %s", m_char->name(), str);
+            sLog.Error("Client", "%s: Tried to send self chat without a channel.", m_char->name());
         free(str);
         return;
     }
 
     if (m_char.get() != nullptr)
-        sLog.White("Client","%s: Self message on all channels: %s", m_char->name(), str);
+        sLog.White("Client", "%s: Self message sent on all channels.", m_char->name());
 
     //this is such a pile of crap, but im not sure whats better.
     //maybe a private message...

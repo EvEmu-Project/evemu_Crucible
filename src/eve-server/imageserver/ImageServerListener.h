@@ -26,6 +26,8 @@
 #ifndef __IMAGESERVERLISTENER__H__INCL__
 #define __IMAGESERVERLISTENER__H__INCL__
 
+#include <boost/asio/steady_timer.hpp>
+
 #include "imageserver/ImageServerConnection.h"
 
 /**
@@ -47,12 +49,15 @@ public:
 
 private:
     void StartAccept();
-    void HandleAccept(std::shared_ptr<ImageServerConnection> connection);
+    void HandleAccept(
+        const boost::system::error_code& error,
+        std::shared_ptr<ImageServerConnection> connection);
 #if BOOST_VERSION >= 107400
     boost::asio::basic_socket_acceptor<proto>* _acceptor;
 # else
     proto::acceptor* _acceptor;
 #endif
+    boost::asio::steady_timer _retryTimer;
 };
 
 #endif // __IMAGESERVERLISTENER__H__INCL__

@@ -1,35 +1,52 @@
 #!/bin/bash
 
-echo "Downloading latest EVEDBTool..."
+set -Eeuo pipefail
 
-# Check if curl is available or not
-if ! command -v curl &> /dev/null
-then
-    echo "Wget or curl not found, please install one of these."
-    exit
-fi
+readonly EVEDBTOOL_VERSION="0.0.6"
+readonly EVEDBTOOL_BASE_URL="https://github.com/EvEmu-Project/EVEDBTool/releases/download"
+readonly X86_64_SHA256="a78b9ae56660a092bccb4dd82e4d3857a2a6bd7cfd2273c89899011bf4a05d10"
+readonly AARCH64_SHA256="d091161e0dcc51f4bea8e4106a0959b4d8f5c02e519d86fc93ece8b20f90361a"
 
-arch=$(arch)
+fail() {
+    printf 'get_evedbtool: %s\n' "$1" >&2
+    exit 1
+}
 
-if [[ $arch == aarch64* ]];
-then
-echo "Using aarch64 build..."
-# Download with curl
-DOWNLOAD_URL=$(curl -s https://api.github.com/repos/EvEmu-Project/EVEDBTool/releases/latest \
-        | grep browser_download_url \
-        | grep evedb_aarch64 \
-        | cut -d '"' -f 4)
-fi
+command -v curl >/dev/null 2>&1 || fail "curl is required"
+command -v sha256sum >/dev/null 2>&1 || fail "sha256sum is required"
 
-if [[ $arch == x86_64* ]];
-then
-echo "Using x86_64 build..."
-# Download with curl
-DOWNLOAD_URL=$(curl -s https://api.github.com/repos/EvEmu-Project/EVEDBTool/releases/latest \
-        | grep browser_download_url \
-        | grep evedbtool | grep -v exe \
-        | cut -d '"' -f 4)
-fi
+case "$(uname -m)" in
+    aarch64)
+        asset="evedb_aarch64"
+        expected_sha256="$AARCH64_SHA256"
+        ;;
+    x86_64)
+        asset="evedbtool"
+        expected_sha256="$X86_64_SHA256"
+        ;;
+    *)
+        fail "unsupported architecture: $(uname -m)"
+        ;;
+esac
 
-curl --output evedbtool -s -L "$DOWNLOAD_URL"
-chmod +x evedbtool
+download_url="${EVEDBTOOL_BASE_URL}/${EVEDBTOOL_VERSION}/${asset}"
+temporary_file="$(mktemp "evedbtool.tmp.XXXXXX")"
+trap 'rm -f "$temporary_file"' EXIT
+
+curl \
+    --fail \
+    --silent \
+    --show-error \
+    --location \
+    --proto '=https' \
+    --tlsv1.2 \
+    --output "$temporary_file" \
+    "$download_url"
+
+actual_sha256="$(sha256sum "$temporary_file" | awk '{print $1}')"
+[[ "$actual_sha256" == "$expected_sha256" ]] || \
+    fail "download checksum mismatch"
+
+chmod 0755 "$temporary_file"
+mv -f "$temporary_file" evedbtool
+trap - EXIT

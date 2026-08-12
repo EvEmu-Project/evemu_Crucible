@@ -29,7 +29,7 @@
 #include "admin/DevToolsProviderService.h"
 
 DevToolsProviderService::DevToolsProviderService() :
-    Service("devToolsProvider")
+    Service("devToolsProvider", eAccessLevel_User, Acct::Role::PROGRAMMER)
 {
     this->Add("GetLoader", &DevToolsProviderService::GetLoader);
     this->Add("ExceptionFluentExample", &DevToolsProviderService::ExceptionFluentExample);

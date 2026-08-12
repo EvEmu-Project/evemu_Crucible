@@ -69,6 +69,10 @@ PyResult KeeperService::GetLevelEditor(PyCallArgs &call)
     _log(DUNG__CALL,  "KeeperService::Handle_GetLevelEditor  size: %lli", call.tuple->size());
     call.Dump(DUNG__CALL_DUMP);
 
+    if ((call.client->GetAccountRole() & Acct::Role::PROGRAMMER) !=
+        Acct::Role::PROGRAMMER)
+        throw CustomError("You're not allowed to access the level editor");
+
     if (this->m_instance == nullptr) {
         this->m_instance = new KeeperBound (m_manager, *this, &m_db);
     }

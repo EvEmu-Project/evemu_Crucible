@@ -1,6 +1,11 @@
 *
-!.git
-.git/objects/*
+.git
+.env
+**/.env
+*.pem
+*.key
+credentials.*
+secrets.*
 !src
 !utils
 !sql

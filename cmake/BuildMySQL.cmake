@@ -15,9 +15,9 @@ ENDIF( PKG_FOUND )
 IF( WIN32 )
   IF( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     # Windows 64-bit
-    SET( PKG_NAME "mariadb-11.4.5-winx64" )
-    SET( PKG_MD5 "233dacfa80d594e40e21d086b1f0ba42" )
-    SET( MYSQL_DOWNLOAD_URL "https://archive.mariadb.org///mariadb-11.4.5/winx64-packages/mariadb-11.4.5-winx64.zip")
+    SET( PKG_NAME "mariadb-12.3.2-winx64" )
+    SET( PKG_MD5 "63ddb7dfc5aa5d6d490085c01b7016e8" )
+    SET( MYSQL_DOWNLOAD_URL "https://downloads.mariadb.org/rest-api/mariadb/12.3.2/mariadb-12.3.2-winx64.zip")
   ELSE()
     # Windows 32-bit
     SET( PKG_NAME "mariadb-10.5.9-win32" )

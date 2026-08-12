@@ -35,6 +35,7 @@
 #include "map/MapData.h"
 #include "system/BubbleManager.h"
 #include "system/Container.h"
+#include "system/DestinyManager.h"
 #include "system/SystemBubble.h"
 #include "system/SystemEntity.h"
 #include "system/SystemManager.h"
@@ -49,9 +50,11 @@ m_bubbleID(0)
     m_wanderers.clear();
     m_bubbleIDMap.clear();
     m_sysBubbleMap.clear();
+    m_warpReferences.clear();
 }
 
 BubbleManager::~BubbleManager() {
+    clear();
 }
 
 int BubbleManager::Initialize() {
@@ -64,8 +67,21 @@ int BubbleManager::Initialize() {
 }
 
 void BubbleManager::clear() {
-    for (auto cur : m_bubbles)
-        SafeDelete(cur);
+    while (!m_bubbles.empty()) {
+        SystemBubble* pBubble = m_bubbles.front();
+        if (pBubble == nullptr) {
+            m_bubbles.pop_front();
+            continue;
+        }
+
+        RemoveBubble(pBubble->GetSystemID(), pBubble);
+    }
+
+    m_wanderers.clear();
+    m_bubbleIDMap.clear();
+    m_sysBubbleMap.clear();
+    m_warpReferences.clear();
+    m_spawnIDs.clear();
 
     sLog.Warning("        BubbleMgr", "Bubble Manager has been closed." );
 }
@@ -74,6 +90,9 @@ void BubbleManager::Process() {
     double profileStartTime(GetTimeUSeconds());
 
     for (auto cur : m_bubbles) {
+        if (cur == nullptr)
+            continue;
+
         // process each belt and gate bubble for spawns
         if (cur->IsBelt() or cur->IsGate())
             cur->Process();
@@ -144,13 +163,20 @@ void BubbleManager::RemoveEmpty()
 {
     std::list<SystemBubble*>::iterator itr = m_bubbles.begin();
     while (itr != m_bubbles.end()) {
-        if ((*itr)->IsEmpty()) {
-            _log(DESTINY__BUBBLE_DEBUG, "BubbleManager::RemoveEmpty() - Bubble %u is empty and is being deleted from the system.", (*itr)->GetID() );
-            RemoveBubble((*itr)->GetSystem()->GetID(), (*itr));
+        SystemBubble* pBubble = *itr;
+        if (pBubble == nullptr) {
             itr = m_bubbles.erase(itr);
-        } else {
-            ++itr;
+            continue;
         }
+
+        if (!pBubble->IsEmpty()) {
+            ++itr;
+            continue;
+        }
+
+        _log(DESTINY__BUBBLE_DEBUG, "BubbleManager::RemoveEmpty() - Bubble %u is empty and is being deleted from the system.", pBubble->GetID() );
+        RemoveBubble(pBubble->GetSystemID(), pBubble);
+        itr = m_bubbles.begin();
     }
 }
 
@@ -196,39 +222,23 @@ void BubbleManager::NewBubbleCenter(GVector shipVelocity, GPoint &newCenter) {
 }
 
 void BubbleManager::Remove(SystemEntity *ent) {
+    if (ent == nullptr)
+        return;
+
     // suns, planets and moons arent in bubbles
     // if (ent->IsStaticEntity())
     //    return;
-    if (ent->SysBubble() != nullptr) {
+    SystemBubble* pBubble = ent->SysBubble();
+    if (pBubble != nullptr) {
         _log(
             DESTINY__BUBBLE_DEBUG,
             "BubbleManager::Remove(): Entity %s(%u) being removed from Bubble %u",
             ent->GetName(),
             ent->GetID(),
-            ent->SysBubble()->GetID()
+            pBubble->GetID()
         );
 
-        // iterate through all other bubbles and determine if the entity is
-        // in them.
-        std::list<SystemBubble *>::iterator itr = m_bubbles.begin();
-        while (itr != m_bubbles.end()) {
-            if (*itr == nullptr) {
-                continue;
-            }
-
-            _log(
-                DESTINY__BUBBLE_DEBUG,
-                "BubbleManager::Remove(): Entity %s(%u) being untracked from Bubble %u",
-                ent->GetName(),
-                ent->GetID(),
-                ent->SysBubble()->GetID()
-            );
-
-            (*itr)->Untrack(ent);
-            ++itr;
-        }
-
-        ent->SysBubble()->Remove(ent);
+        pBubble->Remove(ent);
     }
 }
 
@@ -251,7 +261,7 @@ SystemBubble* BubbleManager::FindBubble(uint32 systemID, const GPoint &pos) cons
 
     auto range = m_sysBubbleMap.equal_range(systemID);
     for ( auto itr = range.first; itr != range.second; ++itr )
-        if (itr->second->InBubble(pos))
+        if (itr->second != nullptr && itr->second->InBubble(pos))
             return itr->second;
 
     //not in any existing bubble.
@@ -271,7 +281,7 @@ SystemBubble* BubbleManager::MakeBubble(SystemManager* sysMgr, GPoint pos) {
     // determine if new center (pos) is within 2x radius of another bubble center. (overlap)
     auto range = m_sysBubbleMap.equal_range(sysMgr->GetID());
     for ( auto itr = range.first; itr != range.second; ++itr )
-        if (itr->second->IsOverlap(pos)) {
+        if (itr->second != nullptr && itr->second->IsOverlap(pos)) {
             GVector dir(itr->second->GetCenter(), pos);
             dir.normalize();
             _log(DESTINY__BUBBLE_DEBUG, "BubbleManager::MakeBubble()::IsOverlap() - dir: %.3f,%.3f,%.3f", dir.x, dir.y, dir.z);
@@ -294,33 +304,143 @@ SystemBubble* BubbleManager::MakeBubble(SystemManager* sysMgr, GPoint pos) {
 SystemBubble* BubbleManager::FindBubbleByID(uint16 bubbleID)
 {
     std::map<uint32, SystemBubble*>::iterator itr = m_bubbleIDMap.find(bubbleID);
-    if (itr != m_bubbleIDMap.end())
+    if (itr != m_bubbleIDMap.end() && itr->second != nullptr)
         return itr->second;
     return nullptr;
 }
 
 void BubbleManager::ClearSystemBubbles(uint32 systemID)
 {
+    std::vector<SystemBubble*> bubbles;
+    auto addBubble = [&bubbles](SystemBubble* pBubble) {
+        if (pBubble == nullptr)
+            return;
+        if (std::find(bubbles.begin(), bubbles.end(), pBubble) ==
+            bubbles.end())
+            bubbles.push_back(pBubble);
+    };
+
     auto range = m_sysBubbleMap.equal_range(systemID);
-    for (auto itr = range.first; itr != range.second; ++itr){
-        m_bubbles.remove(itr->second);
-        m_bubbleIDMap.erase(itr->second->GetID());
+    for (auto itr = range.first; itr != range.second; ++itr)
+        addBubble(itr->second);
+
+    for (SystemBubble* pBubble : m_bubbles) {
+        if (pBubble != nullptr && pBubble->GetSystemID() == systemID)
+            addBubble(pBubble);
     }
+
+    for (const auto& entry : m_bubbleIDMap) {
+        if (entry.second != nullptr &&
+            entry.second->GetSystemID() == systemID)
+            addBubble(entry.second);
+    }
+
+    for (SystemBubble* pBubble : bubbles)
+        RemoveBubble(systemID, pBubble);
 
     m_sysBubbleMap.erase(systemID);
 }
 
-void BubbleManager::RemoveBubble(uint32 systemID, SystemBubble* pSB)
+void BubbleManager::RegisterWarpReference(
+    SystemBubble* pSB,
+    DestinyManager* pDM)
 {
-    auto range = m_sysBubbleMap.equal_range(systemID);
-    for (auto itr = range.first; itr != range.second; ++itr)
-        if (itr->second == pSB) {
-            m_sysBubbleMap.erase(itr);
-            return;
+    if (pSB == nullptr || pDM == nullptr)
+        return;
+
+    m_warpReferences[pSB].insert(pDM);
+}
+
+void BubbleManager::UnregisterWarpReference(
+    SystemBubble* pSB,
+    DestinyManager* pDM)
+{
+    if (pSB == nullptr || pDM == nullptr)
+        return;
+
+    auto itr = m_warpReferences.find(pSB);
+    if (itr == m_warpReferences.end())
+        return;
+
+    itr->second.erase(pDM);
+    if (itr->second.empty())
+        m_warpReferences.erase(itr);
+}
+
+void BubbleManager::RemoveBubble(uint32 /*systemID*/, SystemBubble* pSB)
+{
+    if (pSB == nullptr)
+        return;
+
+    bool tracked = false;
+    for (SystemBubble* pBubble : m_bubbles) {
+        if (pBubble == pSB) {
+            tracked = true;
+            break;
         }
-    std::map<uint32, SystemBubble*>::iterator itr = m_bubbleIDMap.find(pSB->GetID());
-    if (itr != m_bubbleIDMap.end())
-        m_bubbleIDMap.erase(itr);
+    }
+
+    if (!tracked) {
+        for (const auto& entry : m_bubbleIDMap) {
+            if (entry.second == pSB) {
+                tracked = true;
+                break;
+            }
+        }
+    }
+
+    if (!tracked) {
+        for (const auto& entry : m_sysBubbleMap) {
+            if (entry.second == pSB) {
+                tracked = true;
+                break;
+            }
+        }
+    }
+
+    if (!tracked)
+        tracked = m_warpReferences.find(pSB) != m_warpReferences.end();
+
+    if (!tracked)
+        return;
+
+    auto warpItr = m_warpReferences.find(pSB);
+    if (warpItr != m_warpReferences.end()) {
+        std::vector<DestinyManager*> references(
+            warpItr->second.begin(), warpItr->second.end());
+        m_warpReferences.erase(warpItr);
+
+        for (DestinyManager* pDM : references) {
+            if (pDM != nullptr)
+                pDM->ClearWarpBubbleReference(pSB);
+        }
+    }
+
+    const uint16 bubbleID = pSB->GetID();
+
+    for (auto itr = m_bubbles.begin(); itr != m_bubbles.end();) {
+        if (*itr == pSB)
+            itr = m_bubbles.erase(itr);
+        else
+            ++itr;
+    }
+
+    for (auto itr = m_bubbleIDMap.begin(); itr != m_bubbleIDMap.end();) {
+        if (itr->second == pSB)
+            itr = m_bubbleIDMap.erase(itr);
+        else
+            ++itr;
+    }
+
+    for (auto itr = m_sysBubbleMap.begin(); itr != m_sysBubbleMap.end();) {
+        if (itr->second == pSB)
+            itr = m_sysBubbleMap.erase(itr);
+        else
+            ++itr;
+    }
+
+    m_spawnIDs.erase(bubbleID);
+    SafeDelete(pSB);
 }
 
 /* for beltmgr */
@@ -352,13 +472,16 @@ uint32 BubbleManager::GetBubbleCount(uint32 systemID) {
     uint32 count = 0;
     auto range = m_sysBubbleMap.equal_range(systemID);
     for (auto itr = range.first; itr != range.second; ++itr)
-        ++count;
+        if (itr->second != nullptr)
+            ++count;
     return count;
 }
 
 void BubbleManager::GetBubbleCenterMarkers(std::vector<CosmicSignature>& anom) {
     ContainerSE* cSE(nullptr);
     for (auto cur : m_sysBubbleMap) {
+        if (cur.second == nullptr)
+            continue;
         cSE = cur.second->GetCenterMarker();
         if (cSE == nullptr)
             continue;
@@ -383,6 +506,8 @@ void BubbleManager::GetBubbleCenterMarkers(uint32 systemID, std::vector<CosmicSi
     ContainerSE* cSE(nullptr);
     auto range = m_sysBubbleMap.equal_range(systemID);
     for (auto itr = range.first; itr != range.second; ++itr) {
+        if (itr->second == nullptr)
+            continue;
         cSE = itr->second->GetCenterMarker();
         if (cSE == nullptr)
             continue;
@@ -406,22 +531,26 @@ void BubbleManager::GetBubbleCenterMarkers(uint32 systemID, std::vector<CosmicSi
 
 void BubbleManager::MarkCenters() {
     for (auto cur : m_sysBubbleMap)
-        cur.second->MarkCenter();
+        if (cur.second != nullptr)
+            cur.second->MarkCenter();
 }
 
 void BubbleManager::RemoveMarkers() {
     for (auto cur : m_sysBubbleMap)
-        cur.second->RemoveMarkers();
+        if (cur.second != nullptr)
+            cur.second->RemoveMarkers();
 }
 
 void BubbleManager::MarkCenters(uint32 systemID) {
     auto range = m_sysBubbleMap.equal_range(systemID);
     for (auto itr = range.first; itr != range.second; ++itr)
-        itr->second->MarkCenter();
+        if (itr->second != nullptr)
+            itr->second->MarkCenter();
 }
 
 void BubbleManager::RemoveMarkers(uint32 systemID) {
     auto range = m_sysBubbleMap.equal_range(systemID);
     for (auto itr = range.first; itr != range.second; ++itr)
-        itr->second->RemoveMarkers();
+        if (itr->second != nullptr)
+            itr->second->RemoveMarkers();
 }

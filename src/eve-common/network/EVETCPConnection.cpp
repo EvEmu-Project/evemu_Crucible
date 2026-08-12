@@ -28,12 +28,14 @@
 #include "marshal/EVEMarshal.h"
 #include "marshal/EVEUnmarshal.h"
 #include "network/EVETCPConnection.h"
+#include "network/ProtocolLimits.h"
 
 /*************************************************************************/
 /* EVETCPConnection                                                      */
 /*************************************************************************/
 const uint32 EVETCPConnection::TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
-const uint32 EVETCPConnection::PACKET_SIZE_LIMIT = 1024 * 1024; // 1 megabyte
+const uint32 EVETCPConnection::PACKET_SIZE_LIMIT =
+    static_cast<uint32>(EveProtocol::MAX_PACKET_SIZE);
 
 EVETCPConnection::EVETCPConnection()
 : TCPConnection(),
@@ -55,12 +57,6 @@ void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
     const Buffer::iterator<uint32> bufLen = pBuffer->end<uint32>();
     pBuffer->ResizeAt( bufLen, 1 );
 
-    if (PACKET_SIZE_LIMIT < pBuffer->size()) {
-        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", pBuffer->size(), PACKET_SIZE_LIMIT );
-        SafeDelete( pBuffer );
-        return;
-    }
-
     bool success(false);
     if (compress) {
         success = MarshalDeflate(rep, *pBuffer);
@@ -68,12 +64,17 @@ void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
         success = MarshalDeflate(rep, *pBuffer, PACKET_SIZE_LIMIT);
     }
 
-    if (success) {
+    if (success && pBuffer->size() - sizeof(uint32) <= PACKET_SIZE_LIMIT) {
        // if (is_log_enabled(DEBUG__DEBUG))
        //     DumpBuffer( pBuffer, PACKET_OUTBOUND );
         // write length
         *bufLen = ( pBuffer->size() - sizeof( uint32 ) );
         Send( &pBuffer );
+    } else if (success) {
+        sLog.Error(
+            "Network",
+            "Outbound packet exceeds the %u byte limit.",
+            PACKET_SIZE_LIMIT);
     } else {
         sLog.Error( "Network", "Failed to marshal new packet." );
     }
@@ -111,9 +112,18 @@ bool EVETCPConnection::ProcessReceivedData( char* errbuf )
     MutexLock lock( mMInQueue );
 
     // put bytes into packetizer
-    mInQueue.InputData( *mRecvBuf );
+    if (!mInQueue.InputData(*mRecvBuf)) {
+        if (errbuf != nullptr)
+            snprintf(errbuf, TCPCONN_ERRBUF_SIZE, "Inbound packet limit");
+        return false;
+    }
+
     // process packetizer
-    mInQueue.Process();
+    if (!mInQueue.Process()) {
+        if (errbuf != nullptr)
+            snprintf(errbuf, TCPCONN_ERRBUF_SIZE, "Invalid inbound frame");
+        return false;
+    }
     mTimeoutTimer.Start();
 
     return true;

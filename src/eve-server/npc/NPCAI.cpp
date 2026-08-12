@@ -792,6 +792,10 @@ void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
         missileRef->MultiplyAttribute(AttrAoeFalloff, m_self->GetAttribute(AttrMissileEntityAoeFalloffMultiplier));
 
     SystemManager* pSystem = m_npc->SystemMgr();
+    if (pSE == nullptr || pSystem == nullptr ||
+        pSystem->GetSE(pSE->GetID()) != pSE)
+        return;
+
     // Missile(InventoryItemRef self, PyServiceMgr &services, SystemManager* system, InventoryItemRef module, SystemEntity* target, ShipItem* ship);
     Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(),  pSystem, m_self, pSE, m_npc);
     if (pMissile == nullptr)
@@ -803,7 +807,11 @@ void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
         travelTime = 1;
     pMissile->SetSpeed(missileSpeed);
     pMissile->SetHitTimer(travelTime *1000);
-    pMissile->DestinyMgr()->MakeMissile(pMissile);
+    if (!pMissile->DestinyMgr()->MakeMissile(pMissile)) {
+        pMissile->Delete();
+        SafeDelete(pMissile);
+        return;
+    }
 
     // tell target a missile has been launched at them.. (defender missile trigger for ship, tower, pos, npc, others?)
     if (typeID != 265)  // but only if it's NOT a defender missile

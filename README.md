@@ -33,6 +33,17 @@ docker compose up -d
 
 Configuration files are stored in `./config/`. These can be modified and will persist across restarts.
 
+### Native local database
+
+The native Windows database is local-only and reads its password from the
+`EVEMU_DB_PASSWORD` user environment variable. Run database migrations through
+the wrapper so the password is kept out of `evedb.yaml`:
+
+```powershell
+.\sql\run-evedbtool.ps1 status
+.\sql\run-evedbtool.ps1 up
+```
+
 To shutdown EVEmu:
 ```
 docker compose stop

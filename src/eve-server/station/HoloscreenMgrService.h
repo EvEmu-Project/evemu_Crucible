@@ -37,6 +37,7 @@ protected:
     PyResult GetRecentEpicArcCompletions(PyCallArgs& call);
     PyResult GetTwoHourCache(PyCallArgs& call);
     PyResult GetRuntimeCache(PyCallArgs& call);
+    PyResult GetNewsTickerData(PyCallArgs& call);
 };
 
 #endif

@@ -1,7 +1,16 @@
-#/bin/bash
-MYSQL_USER=evemu
-MYSQL_PASS=evemu
-DB_NAME=evemu
+#!/bin/bash
+
+set -Eeuo pipefail
+
+: "${MYSQL_USER:?MYSQL_USER must be set}"
+: "${MYSQL_PASSWORD:?MYSQL_PASSWORD must be set}"
+: "${DB_NAME:?DB_NAME must be set}"
+MYSQL_HOST="${MYSQL_HOST:-127.0.0.1}"
+MYSQL_PORT="${MYSQL_PORT:-3306}"
+
+[[ "$MYSQL_HOST" =~ ^[A-Za-z0-9_.:-]+$ ]] || exit 2
+[[ "$MYSQL_PORT" =~ ^[0-9]+$ ]] || exit 2
+(( MYSQL_PORT > 0 && MYSQL_PORT <= 65535 )) || exit 2
 
 unset blacklist
 
@@ -28,7 +37,13 @@ _ "sysSignatures webBounties"
 
 SQL_STRING="SHOW TABLES;"
 # Pipe the SQL into mysql
-TABLES=$(echo $SQL_STRING | mysql -u$MYSQL_USER -p$MYSQL_PASS $DB_NAME -Bs)
+TABLES=$(MYSQL_PWD="$MYSQL_PASSWORD" mysql \
+    --skip-auto-rehash \
+    --host="$MYSQL_HOST" \
+    --port="$MYSQL_PORT" \
+    --user="$MYSQL_USER" \
+    --database="$DB_NAME" \
+    --batch --skip-column-names --execute="$SQL_STRING")
 
 mkdir -p dump
 
@@ -43,9 +58,13 @@ fi
 for i in ${TABLES} ; do
 	if [[ ${blacklist} == *${i}* ]]; then
 		echo "Dumping $i without data"
-		mysqldump --add-drop-table -d -u $MYSQL_USER -p$MYSQL_PASS $DB_NAME $i | gzip > "dump/${i}.sql.gz"
+		MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --add-drop-table -d \
+			--host="$MYSQL_HOST" --port="$MYSQL_PORT" \
+			--user="$MYSQL_USER" "$DB_NAME" "$i" | gzip > "dump/${i}.sql.gz"
 	else
 		echo "Dumping $i"
-		mysqldump --add-drop-table -u $MYSQL_USER -p$MYSQL_PASS $DB_NAME $i | gzip > "dump/${i}.sql.gz"
+		MYSQL_PWD="$MYSQL_PASSWORD" mysqldump --add-drop-table \
+			--host="$MYSQL_HOST" --port="$MYSQL_PORT" \
+			--user="$MYSQL_USER" "$DB_NAME" "$i" | gzip > "dump/${i}.sql.gz"
 	fi
 done
