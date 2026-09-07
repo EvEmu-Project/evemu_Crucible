@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "CallStack.h"
+
 #include <vector>
 #include <string>
 #include <cstdlib>
@@ -48,15 +49,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <windows.h>
 #include <imagehlp.h>
 #if defined(__MINGW32__)
-#define PACKAGE         1 // Supress cmake error.
-#define PACKAGE_VERSION 1 // Supress cmake error.
+#include <cxxabi.h>   // 必须包含，用于 Demangle
+#endif
+// 禁用 BFD，因为 MinGW 环境缺少完整 BFD 库
+#define NO_BFD 1
+#if defined(__MINGW32__) && !defined(NO_BFD)
+#define PACKAGE         1
+#define PACKAGE_VERSION 1
+#define _GNU_SOURCE 1
 #include <bfd.h>
+#include <ansidecl.h>
 #include <cxxabi.h>
 #endif
 #else
 #include <execinfo.h>
 #include <cxxabi.h>
 #endif
+
 
 using namespace debug;
 using namespace std;
@@ -116,6 +125,7 @@ private:
     CRITICAL_SECTION cs;
 } cs;
 #if defined(__MINGW32__)
+#ifndef NO_BFD
 class bfd_usage : noncopyable
 {
 public:
@@ -200,6 +210,7 @@ private:
         }
     }
 };
+#endif // NO_BFD
 #endif // __MINGW32__
 #endif // _WIN32
 
@@ -214,7 +225,10 @@ void CallStack::GetCalls(vector<CallStack::CallInfo>& calls)
         fprintf(stderr, "Error: Failed to initialize symbol context.\n");
         return;
     }
-#ifdef __MINGW32__
+// #ifdef __MINGW32__
+//     bfd_usage bfdu;
+// #endif
+#if defined(__MINGW32__) && !defined(NO_BFD)
     bfd_usage bfdu;
 #endif
 
@@ -268,7 +282,8 @@ void CallStack::GetCalls(vector<CallStack::CallInfo>& calls)
         string module_name = Unknown_Module;
         if(module_base && GetModuleFileNameA(reinterpret_cast<HINSTANCE>(module_base), module_name_raw, MAX_PATH)) module_name = module_name_raw;
 
-#if defined(__MINGW32__)
+#if defined(__MINGW32__) && !defined(NO_BFD)
+        
         string function = bfdu.get_function_name(frame.AddrPC.Offset);
         if(function.empty())
         {

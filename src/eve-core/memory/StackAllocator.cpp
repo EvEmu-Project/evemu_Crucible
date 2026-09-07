@@ -30,6 +30,8 @@
 #include <iostream>
 #endif
 #include <cassert>
+/** ninja error 9/7 */
+#include <cstdio>
 
 namespace Memory
 {

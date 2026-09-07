@@ -28,7 +28,7 @@
 #define EVEMU_EVESERVER_CONSOLECOMMANDS_H_
 
 #define BUFLEN 256
-
+#include <condition_variable> // ninja error 9/7
 #include "eve-server.h"
 #include "EVEServerConfig.h"
 

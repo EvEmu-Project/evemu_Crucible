@@ -115,20 +115,23 @@
 #ifdef _WIN32
 typedef unsigned int uint;
 typedef unsigned long ulong;
+#  include <windows.h>
+#  include <winsock2.h>
+#  include <ws2tcpip.h>   // 用于 getaddrinfo 等
 #else /* *nix includes */
 #include <dirent.h>
 #include <fcntl.h>
 #endif
 
-#ifndef HAVE_ASINH
-#   include <boost/math/special_functions.hpp>
-#endif /* !HAVE_ASINH */
+// #ifndef HAVE_ASINH
+// #   include <boost/math/special_functions.hpp>
+// #endif /* !HAVE_ASINH */
 
 /************************************************************************/
 /* Dependencies                                                         */
 /************************************************************************/
 // Boost.Asio
-#include <boost/asio.hpp>
+// #include <boost/asio.hpp>
 
 /*************************************************************************/
 /* MMGR - Memory Manager                                                 */
@@ -148,7 +151,7 @@ typedef unsigned long ulong;
 // utils
 #include "utils/FastInt.h"
 // logs
-#include "log/LogNew.h"
-#include "log/logsys.h"
+// #include "log/LogNew.h"
+// #include "log/logsys.h"
 
 #endif /* !__EVE_CORE_H__INCL__ */

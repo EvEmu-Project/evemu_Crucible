@@ -26,6 +26,10 @@
 #pragma once
 #include "Allocator.h"
 #include <mutex>
+/** ninja error 9/7 */
+#include <string>
+#include <cstdio>
+#include <cassert>
 
 namespace Memory
 {
