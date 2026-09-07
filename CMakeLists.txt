@@ -64,7 +64,11 @@ INCLUDE( "DetectScm" )
 # Switch to the C++11 standard (required)
 IF (WIN32)
   set (CMAKE_CXX_STANDARD 17)
-  SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
+  IF(MSVC)
+    SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
+  ELSE()
+    SET( CMAKE_CXX_FLAGS "-DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H ${CMAKE_CXX_FLAGS}" )
+  ENDIF()
   link_libraries(DbgHelp.lib)
 ELSE()
   SET( CMAKE_CXX_FLAGS "-std=gnu++17 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
@@ -192,6 +196,7 @@ ADD_SUBDIRECTORY( "dep/gangsta" )
 ADD_SUBDIRECTORY( "dep/utils" )
 
 SET( CMAKE_NET_LIBS
+  ws2_32 mswsock
   "${CMAKE_NET_LIBS_INIT}" )
 SET( CMAKE_THREAD_LIBS
   "${CMAKE_THREAD_LIBS_INIT}" )

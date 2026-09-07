@@ -23,7 +23,11 @@
     SOFTWARE.
 */
 #pragma once
+/** add ninja error 9/7 */
 #include <atomic>
+#include <string>
+#include <cstdio>
+#include <cassert>
 
 namespace Memory
 {

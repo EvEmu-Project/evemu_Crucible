@@ -23,7 +23,7 @@
     Author:     Zhur
     Updates:    Allan
 */
-
+#include <boost/date_time/gregorian/gregorian.hpp>
 #ifndef __UTILS_TIME_H__INCL__
 #define __UTILS_TIME_H__INCL__
 

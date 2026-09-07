@@ -6,6 +6,10 @@
 #define EVE_CONSTANTS_H
 
 #include <array>
+/**ninja error 9/7 */
+#include <string>
+#include <cstdint>
+#include "eve-common.h"
 
 // define default home page for IGB
 const std::string HomePageURL = "https://evemu.dev/";

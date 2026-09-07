@@ -31,11 +31,35 @@
 /*************************************************************************/
 /* EVEServerConfig                                                       */
 /*************************************************************************/
+// 忽略解析器：用于注册那些需要被识别但无需处理任何值的 XML 元素
+class IgnoreParser : public XMLParser::ElementParser
+{
+public:
+    bool Parse( const TiXmlElement* field ) override
+    {
+        // 不做任何操作，直接返回成功
+        return true;
+    }
+};
+
+
+/*************************************************************************/
+/* EVEServerConfig                                                       */
+/*************************************************************************/
 EVEServerConfig::EVEServerConfig()
 {
     // register needed parsers
     AddMemberParser( "eve-server", &EVEServerConfig::ProcessEveServer );
-
+    
+    /**
+      注册忽略解析器，消除 Unknown element 错误（不注释配置）
+    */
+    AddParser( "UseBeanCount",      new IgnoreParser() );
+    AddParser( "UseStackTrace",     new IgnoreParser() );
+    AddParser( "StackTrace",        new IgnoreParser() );
+    AddParser( "UseMarketBot",      new IgnoreParser() );
+    AddParser( "bpTimes",           new IgnoreParser() );
+    AddParser( "marketBotSettings", new IgnoreParser() );
     // Set sane defaults
 
     // items with a "N" behind them are NOT implemented

@@ -31,6 +31,8 @@
 #include "eve-common.h"
 #include "utils/Singleton.h"
 #include "EVEServerConfig.h"
+/** ninja error 9/7 */
+#include <boost/asio.hpp>
 
 class ImageServerListener;
 
