@@ -46,12 +46,53 @@ docker compose stop
 
 ## Building with CMake and Ninja on Windows (using w64devkit)
 @author:chuengeric
+
 For developers who prefer a native Windows build without Docker, you can use [w64devkit](https://github.com/skeeto/w64devkit) along with the Ninja generator.
+
+**Prerequisites:**
+- Download and extract [w64devkit](https://github.com/skeeto/w64devkit/releases) to a folder, e.g., `C:\w64devkit`.
+- Add `C:\w64devkit\mingw64\bin` to your system `PATH` (temporarily with `set PATH=C:\w64devkit\mingw64\bin;%PATH%` or permanently via Environment Variables).
+- Verify the tools are available: `gcc --version`, `cmake --version`, `ninja --version`.
+
+
+Download and extract w64devkit to a folder, e.g., C:\w64devkit. The recommended version is x86_64-16.2.0-release-mcf-seh-ucrt-rt_v14-rev1.7z (or later), which includes GCC 16.2.0, CMake 4.4.3, and Ninja 1.13.2. These versions have been tested and are known to work with this project.
+
+Add C:\w64devkit\mingw64\bin to your system PATH (temporarily with set PATH=C:\w64devkit\mingw64\bin;%PATH% or permanently via Environment Variables).
+
+Verify the tools are available by running the following commands and checking the output:
+
+text
+gcc --version      # should show 16.2.0 or similar
+cmake --version    # should show 4.4.3 or later
+ninja --version    # should show 1.13.2 or later
+(updated 2012-09-07)
+
+
+**Clean build (recommended):**
+```cmd
+cd C:\path\to\evemu_Crucible
+rmdir /S build
+mkdir build
+cd build
+Configure with CMake:
+The following command uses -O0 (no optimization) to minimize memory consumption during compilation, which is helpful for development on resource-constrained machines.
 
 **Note:** The following command uses `-O0` (no optimization) to minimize memory consumption during compilation, which is helpful for development on resource-constrained machines.
 
 ```bash
 cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -G "Ninja" -DCMAKE_C_COMPILER="C:/w64devkit/mingw64/bin/x86_64-w64-mingw32-gcc.exe" -DCMAKE_CXX_COMPILER="C:/w64devkit/mingw64/bin/x86_64-w64-mingw32-g++.exe" -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DCMAKE_CXX_FLAGS="-O0 -g0 -fno-keep-inline-dllexport -fno-keep-static-consts -pipe -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H -IC:/w64devkit/mingw64/include" ..
+
+Build the project:
+
+bash
+ninja
+Or equivalently:
+
+bash
+cmake --build .
+After a successful build, the executables (e.g., eve-server.exe) will be located in the build/ directory.
+
+Note: If you have sufficient memory (>8 GB), you may change -O0 to -O2 for better runtime performance, but compilation will take longer and consume more RAM.
 
 ## Accounts
  Accounts will be created automatically when logging in with the client if the username is not already taken.
