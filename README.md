@@ -44,6 +44,15 @@ docker compose stop
 
  [Releases](https://github.com/EvEmu-Project/evemu_Crucible/releases)
 
+## Building with CMake and Ninja on Windows (using w64devkit)
+@author:chuengeric
+For developers who prefer a native Windows build without Docker, you can use [w64devkit](https://github.com/skeeto/w64devkit) along with the Ninja generator.
+
+**Note:** The following command uses `-O0` (no optimization) to minimize memory consumption during compilation, which is helpful for development on resource-constrained machines.
+
+```bash
+cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -G "Ninja" -DCMAKE_C_COMPILER="C:/w64devkit/mingw64/bin/x86_64-w64-mingw32-gcc.exe" -DCMAKE_CXX_COMPILER="C:/w64devkit/mingw64/bin/x86_64-w64-mingw32-g++.exe" -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DCMAKE_CXX_FLAGS="-O0 -g0 -fno-keep-inline-dllexport -fno-keep-static-consts -pipe -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H -IC:/w64devkit/mingw64/include" ..
+
 ## Accounts
  Accounts will be created automatically when logging in with the client if the username is not already taken.
 
