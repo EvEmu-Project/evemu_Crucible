@@ -796,13 +796,8 @@ void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
     Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(),  pSystem, m_self, pSE, m_npc);
     if (pMissile == nullptr)
         return; // make error here
-    double distance = pMissile->GetPosition().distance(pSE->GetPosition());
-    double missileSpeed = missileRef->GetAttribute(AttrMaxVelocity).get_float();
-    double travelTime = (distance/missileSpeed);
-    if (travelTime < 1)
-        travelTime = 1;
-    pMissile->SetSpeed(missileSpeed);
-    pMissile->SetHitTimer(travelTime *1000);
+    // the missile flies itself (see DestinyManager).  it hits when its path reaches the target
+    pMissile->SetSpeed(missileRef->GetAttribute(AttrMaxVelocity).get_float());
     pMissile->DestinyMgr()->MakeMissile(pMissile);
 
     // tell target a missile has been launched at them.. (defender missile trigger for ship, tower, pos, npc, others?)

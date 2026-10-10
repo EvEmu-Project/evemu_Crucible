@@ -40,8 +40,8 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
 : DynamicSystemEntity(self, services, pSystem),
   m_modRef(modRef),
   m_targetSE(tSE),
+  m_targetID(tSE->GetID()),
   m_fromSE(pSE),
-  m_hitTimer(0),
   m_lifeTimer(0),
   m_damageMod(1),
   m_alive(true),
@@ -156,8 +156,13 @@ void Missile::Process() {
     /*  Enable base call to Process Targeting and Movement  */
     SystemEntity::Process();
 
-    if (m_hitTimer.Check(false)) {
-        m_hitTimer.Disable();
+    // the impact is found by the movement simulation, on the tick the missile's path reaches its target
+    if (m_destiny->HasMissileHit()) {
+        m_targetSE = SystemMgr()->GetSE(m_targetID);
+        if (m_targetSE == nullptr) {
+            EndOfLife();
+            return;
+        }
         HitTarget();
     }
     if (sConfig.debug.UseProfiling)
@@ -169,12 +174,12 @@ void Missile::EncodeDestiny( Buffer& into )
     using namespace Destiny;
     BallHeader head = BallHeader();
         head.entityID = GetID();
-        head.mode = Ball::Mode::MISSILE;
+        head.mode = m_destiny->GetState();
         head.radius = GetRadius();
         head.posX = x();
         head.posY = y();
         head.posZ = z();
-        head.flags = Ball::Flag::IsFree;
+        head.flags = Ball::Flag::IsFree | (m_destiny->IsMassive() ? Ball::Flag::IsMassive : 0);
     into.Append( head );
     MassSector mass = MassSector();
         mass.mass = m_destiny->GetMass();
@@ -183,24 +188,7 @@ void Missile::EncodeDestiny( Buffer& into )
         mass.corporationID = m_corpID;
         mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
     into.Append( mass );
-    DataSector data = DataSector();
-        data.maxSpeed = m_speed;
-        data.velX = m_destiny->GetVelocity().x;
-        data.velY = m_destiny->GetVelocity().y;
-        data.velZ = m_destiny->GetVelocity().z;
-        data.inertia = m_destiny->GetInertia();
-        data.speedfraction = m_destiny->GetSpeedFraction();
-    into.Append( data );
-    MISSILE_Struct miss;
-        miss.ownerID = m_ownerID;
-        miss.formationID = 0xFF;
-        miss.effectStamp = m_destiny->GetStateStamp();
-        miss.targetID = m_destiny->GetTargetID();
-        miss.followRange = (float)m_destiny->GetFollowDistance();
-        miss.x = x();
-        miss.y = y();
-        miss.z = z();
-    into.Append(miss);
+    m_destiny->EncodeDestiny( into );
 
     _log(SE__DESTINY, "Missile::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }

@@ -135,6 +135,8 @@ public:
     /* this is to send new global ball added to system AFTER SetState has been sent */
     void SendStaticBall(SystemEntity* pSE);
     void MakeSetState(const SystemBubble* pBubble, SetState& into) const;
+    // the balls a client in this bubble knows about (used for collisions)
+    void GetBallparkEntities(const SystemBubble* pBubble, std::map<uint32, SystemEntity*>& into) const;
 
     uint32 GetRandBeltID();
     uint32 GetClosestPlanetID(const GPoint& myPos);

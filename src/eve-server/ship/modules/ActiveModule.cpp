@@ -1418,13 +1418,8 @@ void ActiveModule::LaunchMissile()
         return;
     }
 
-    float distance = pMissile->GetSelf()->position().distance(m_targetSE->GetPosition());
-    float missileSpeed = pMissile->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
-    float travelTime = (distance/missileSpeed);
-    if (travelTime < 1)
-        travelTime = 1;
-    pMissile->SetSpeed(missileSpeed);
-    pMissile->SetHitTimer(travelTime *1000);
+    // the missile flies itself (see DestinyManager).  it hits when its path reaches the target
+    pMissile->SetSpeed(pMissile->GetSelf()->GetAttribute(AttrMaxVelocity).get_float());
     pMissile->DestinyMgr()->MakeMissile(pMissile);
 
     // Reduce ammo charge by 1 unit:

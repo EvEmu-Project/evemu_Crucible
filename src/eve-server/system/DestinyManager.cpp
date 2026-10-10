@@ -36,8 +36,9 @@
  *    methods) at the moment it is sent.  the update is stamped with the current tick, and our state is the
  *    state at that tick, so the client applies it to the same state we did.
  *  - once per tick SystemManager::ProcessDestiny() calls EvolveThrust() on every moving entity, then
- *    EvolveMove() on every moving entity (the client works out every ball's thrust from the same snapshot
- *    before it moves any of them), then PostEvolve() for server-side consequences.
+ *    EvolveCollide() and EvolveMove() on every moving entity (the client works out every ball's thrust and
+ *    collisions from the same snapshot before it moves any of them), then PostEvolve() for server-side consequences.
+ *  - collisions and missile impacts are in DestinyCollision.cpp.
  *
  * The formulas are taken from the Crucible client's destiny.dll.  The open-sourced destiny in __destiny/ is a
  * much later version, and differs in the warp curve, orbit precession and goto homing range.
@@ -134,6 +135,8 @@ m_frozen(false)
     m_warpDistance = -1.0;
     m_warpMinRange = 0.0;
     m_warpFactor = 0;
+    m_missileOwnerID = 0;
+    m_missileDragFactor = 1.0;
 
     m_shipHeading = GVector(NULL_ORIGIN);
     m_stateStamp = 0;
@@ -142,10 +145,10 @@ m_frozen(false)
     m_warpActivated = false;
     m_warpExited = false;
     m_targetLost = false;
+    m_missileHit = false;
 
     m_cloaked = false;
     m_tractored = false;
-    m_bump = false;
 }
 
 DestinyManager::~DestinyManager() {
@@ -216,32 +219,80 @@ void DestinyManager::EvolveThrust(int32 tick) {
             }
             m_thrust = OrbitThrust(pTarget, tick);
         } break;
+        case Ball::Mode::MISSILE: {
+            // a missile flies straight out along its launch direction for its first tick, then chases the target
+            if (((tick - m_effectStamp) * Destiny::TICK_MS) < 801) {
+                m_thrust = GotoThrust(m_targetPoint);
+                break;
+            }
+            SystemEntity* pTarget = GetFollowTarget();
+            if (pTarget == nullptr) {
+                ApplyStop();
+                break;
+            }
+            m_thrust = MissileThrust(pTarget);
+        } break;
         default:
-            // MISSILE is moved in EvolveMove().  everything else doesn't move under its own power
+            // nothing else moves under its own power
             break;
     }
 }
 
-// phase 2 of the client's Ballpark::Evolve() - moves the ball
-void DestinyManager::EvolveMove(int32 tick) {
+// phase 2 of the client's Ballpark::Evolve().  massive balls check for collisions with the other massive balls in their
+//  ballpark, which gives them an extra acceleration for this tick.  this is also where a missile finds it has hit
+void DestinyManager::EvolveCollide(Destiny::BallparkSnapshot& ballpark) {
     using namespace Destiny;
+    m_collision = CollisionResult();
+    if (!IsMassive())
+        return;
+    SystemBubble* pBubble(mySE->SysBubble());
+    if (pBubble == nullptr)
+        return;
+    const CollisionBall* pSelf(ballpark.Get(mySE));
+    if (pSelf == nullptr)
+        return;
+
     if (m_ballMode == Ball::Mode::MISSILE) {
-        MoveMissile();
+        // missiles only ever test against their target
+        SystemEntity* pTarget(GetFollowTarget());
+        if ((pTarget == nullptr) or (pTarget->SysBubble() != pBubble))
+            return;
+        const CollisionBall* pOther(ballpark.Get(pTarget));
+        if ((pOther == nullptr) or (pOther->id == pSelf->ownerID))
+            return;
+        Collide(*pSelf, *pOther, 0, m_collision);
+        if (m_collision.hitFollowTarget)
+            m_missileHit = true;
         return;
     }
+
+    for (auto pOther : ballpark.GetMassiveBalls(pBubble))
+        if (pOther->id != pSelf->id)
+            Collide(*pSelf, *pOther, 0, m_collision);
+
+    if (is_log_enabled(DESTINY__MOVE_TRACE) and (m_collision.time >= 0.0))
+        _log(DESTINY__MOVE_TRACE, "Destiny::EvolveCollide() - %s(%u) collides at %.3f of this tick.  accel: %.3f,%.3f,%.3f",
+                mySE->GetName(), mySE->GetID(), m_collision.time, m_collision.accel.x, m_collision.accel.y, m_collision.accel.z);
+}
+
+// phase 3 of the client's Ballpark::Evolve() - moves the ball
+void DestinyManager::EvolveMove(int32 tick) {
+    using namespace Destiny;
+    // a collision adds to this tick's thrust
+    GVector accel(m_collision.accel.x + m_thrust.x, m_collision.accel.y + m_thrust.y, m_collision.accel.z + m_thrust.z);
 
     GPoint pos(m_position);
     GVector vel(m_velocity);
     if (IsWarping()) {
         if (WarpDistance(pos, vel, static_cast<double>(tick - m_effectStamp) * DST_DT)) {
             // just dropped out of warp.  the client integrates one step from the exit point and coasts from there
-            Integrate(pos, vel, m_thrust);
+            Integrate(pos, vel, accel);
         }
     } else {
         // nothing to do for a ball at rest.  this also leaves fixed balls alone
-        if (vel.isZero() and m_thrust.isZero())
+        if (vel.isZero() and accel.isZero())
             return;
-        Integrate(pos, vel, m_thrust);
+        Integrate(pos, vel, accel);
     }
 
     m_velocity = vel;
@@ -285,23 +336,30 @@ void DestinyManager::PostEvolve() {
 
     if (sConfig.debug.PositionHack)
         SetPosition(m_position, true);
-
-    if (sConfig.cosmic.BumpEnabled)
-        if (mySE->HasPilot() and (mySE->SysBubble() != nullptr) and mySE->SysBubble()->HasPlayers())
-            CheckBump();
 }
 
 /* ======================================================================================
  *  client physics, from the Crucible client's destiny.dll
  * ====================================================================================== */
 
-// mass used in the client's equations of motion: mass * agility(inertia modifier)
+// mass used in the client's equations of motion: mass * agility(inertia modifier).  missiles get lighter as they speed up
 double DestinyManager::BallMass() const {
-    return static_cast<double>(m_mass) * AsFloat(m_shipInertia);
+    double agility(AsFloat(m_shipInertia));
+    if (m_ballMode == Destiny::Ball::Mode::MISSILE)
+        agility = Destiny::MissileAgility(agility, m_velocity);
+    return static_cast<double>(m_mass) * agility;
 }
 
-// Ballpark::GotoThrust.  full thrust towards the target, scaled down once within one tick of travel
-GVector DestinyManager::GotoThrust(const GPoint& target) const {
+// the client works out exp(-friction * tick / m) when a ball is added or its mass or agility changes, and keeps it.
+//  for a missile that happens when it is launched, at its base agility
+double DestinyManager::DragFactor() const {
+    if (m_ballMode == Destiny::Ball::Mode::MISSILE)
+        return m_missileDragFactor;
+    return Destiny::DragFactor(static_cast<double>(m_mass) * AsFloat(m_shipInertia));
+}
+
+// Ballpark::GotoThrust.  full thrust towards the target, scaled down once within one tick of travel (except for missiles)
+GVector DestinyManager::GotoThrust(const GPoint& target, bool missile/*false*/) const {
     GVector a(m_position, target);
     double mass = BallMass();
     if (mass <= 0.0)
@@ -315,7 +373,7 @@ GVector DestinyManager::GotoThrust(const GPoint& target) const {
     double maxThrust = (fraction * DST_FRICTION * maxVel) / mass;
 
     Normalize(a);
-    if (len2 < homing * homing) {
+    if (!missile and (len2 < homing * homing)) {
         double coff = len2 / (homing * homing);
         a *= coff * maxThrust * coff;
     } else {
@@ -385,6 +443,27 @@ GVector DestinyManager::OrbitThrust(SystemEntity* pTarget, int32 tick) const {
     return GVector((radialFactor * radial.x + toVec.x * transverseFactor) * maxThrust,
                    (radialFactor * radial.y + toVec.y * transverseFactor) * maxThrust,
                    (radialFactor * radial.z + toVec.z * transverseFactor) * maxThrust);
+}
+
+// Ballpark::Evolve, MISSILE case.  aims where the target will be when we get there, if it keeps its velocity
+GVector DestinyManager::MissileThrust(SystemEntity* pTarget) {
+    const GPoint& otherPos = pTarget->GetPosition();
+    GVector otherVel(pTarget->GetVelocity());
+    GVector delta(otherPos, m_position);
+    double dist = std::sqrt((delta.x * delta.x + delta.y * delta.y) + delta.z * delta.z);
+    double catchTime = dist / static_cast<double>(m_maxShipSpeed);
+    GPoint lead(otherVel.x * catchTime + otherPos.x, otherVel.y * catchTime + otherPos.y, otherVel.z * catchTime + otherPos.z);
+    // follow range is -(both radii), so this is the target's centre
+    double range = (static_cast<double>(m_followRange) + AsFloat(m_radius)) + AsFloat(pTarget->GetRadius());
+    if (dist == 0.0) {
+        m_targetPoint = GPoint(range + otherPos.x, range * 0.0 + otherPos.y, range * 0.0 + otherPos.z);
+    } else {
+        double invDist = 1.0 / dist;
+        m_targetPoint = GPoint(delta.x * range * invDist + lead.x,
+                               delta.y * range * invDist + lead.y,
+                               delta.z * range * invDist + lead.z);
+    }
+    return GotoThrust(m_targetPoint, true);
 }
 
 // the client enters warp once it is pointed within ~8 degrees of the destination at over 75% of max speed.
@@ -471,34 +550,12 @@ bool DestinyManager::WarpDistance(GPoint& pos, GVector& vel, double t) {
     return exited;
 }
 
-// Ballpark::Integrate.  exact solution for thrust against linear drag over one tick
+// Ballpark::Integrate over one tick (see Destiny::Integrate)
 void DestinyManager::Integrate(GPoint& pos, GVector& vel, const GVector& accel) const {
     double m = BallMass();
     if (m <= 0.0)
         return;
-
-    const double k = DST_FRICTION;
-    const double t = DST_DT;
-    const double tf = std::exp(-k * t / m);
-    const double k2 = k * k;
-    const double ook2 = 1.0 / k2;
-    const double ook = 1.0 / k;
-
-    pos.x = ((accel.x * m * (tf - 1.0) + ((vel.x + accel.x * t) - vel.x * tf) * k) * m + k2 * pos.x) * ook2;
-    pos.y = ((accel.y * m * (tf - 1.0) + ((vel.y + accel.y * t) - vel.y * tf) * k) * m + k2 * pos.y) * ook2;
-    pos.z = ((accel.z * m * (tf - 1.0) + ((vel.z + accel.z * t) - vel.z * tf) * k) * m + k2 * pos.z) * ook2;
-    vel.x = (accel.x * m - (accel.x * m - vel.x * k) * tf) * ook;
-    vel.y = (accel.y * m - (accel.y * m - vel.y * k) * tf) * ook;
-    vel.z = (accel.z * m - (accel.z * m - vel.z * k) * tf) * ook;
-}
-
-// missiles are still moved in a straight line towards their target point.  their impact is timed by Missile
-void DestinyManager::MoveMissile() {
-    GVector moveVector(m_position, m_targetPoint);
-    moveVector.normalize();
-    m_shipHeading = moveVector;
-    m_velocity = (moveVector * m_maxShipSpeed);
-    MoveBallTo(m_position + m_velocity);
+    Destiny::Integrate(pos, vel, accel, m, DragFactor(), DST_DT);
 }
 
 /* ======================================================================================
@@ -582,7 +639,7 @@ SystemEntity* DestinyManager::GetFollowTarget() {
     return m_targetEntity.second;
 }
 
-// Ballpark::StopAllFollowers.  the client stops everything following a ball when it enters warp
+// Ballpark::StopAllFollowers.  the client stops everything following a ball (including missiles) when it enters warp
 void DestinyManager::StopFollowers() {
     using namespace Destiny;
     for (auto cur : mySE->SystemMgr()->GetTicEntities()) {
@@ -591,7 +648,8 @@ void DestinyManager::StopFollowers() {
         DestinyManager* pDestiny = cur.second->DestinyMgr();
         if (pDestiny == nullptr)
             continue;
-        if ((pDestiny->m_ballMode != Ball::Mode::FOLLOW) and (pDestiny->m_ballMode != Ball::Mode::ORBIT))
+        if ((pDestiny->m_ballMode != Ball::Mode::FOLLOW) and (pDestiny->m_ballMode != Ball::Mode::ORBIT)
+        and (pDestiny->m_ballMode != Ball::Mode::MISSILE))
             continue;
         if (pDestiny->m_targetEntity.first == mySE->GetID())
             pDestiny->ApplyStop();
@@ -632,12 +690,8 @@ void DestinyManager::OnWarpExited() {
                 mySE->GetName(), mySE->GetID(), m_position.x, m_position.y, m_position.z,
                 m_position.distance(m_targetPoint), m_velocity.length());
 
-    // the client makes the ball massive when it drops out of warp.  we don't simulate collisions, so undo that
-    SetBallMassive bm;
-        bm.entityID = mySE->GetID();
-        bm.is_massive = false;
-    PyTuple* up = bm.Encode();
-    SendSingleDestinyUpdate(&up);   // consumed
+    // the client makes the ball massive when it drops out of warp.  put it back to what it should be
+    SendMassive();
 
     m_targBubble = nullptr;
 
@@ -648,6 +702,36 @@ void DestinyManager::OnWarpExited() {
 
     if ((mySE->IsNPCSE()) and (mySE->GetNPCSE()->GetAIMgr() != nullptr))
         mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
+}
+
+void DestinyManager::SendMassive() const {
+    SetBallMassive bm;
+        bm.entityID = mySE->GetID();
+        bm.is_massive = IsMassive();
+    PyTuple* up = bm.Encode();
+    SendSingleDestinyUpdate(&up);   // consumed
+}
+
+// NPCs and missiles are solid.  ships only when bumping is enabled
+bool DestinyManager::IsMassive() const {
+    // the client clears the flag when warp proper starts, and sets it again when the ball drops out (see OnWarpExited())
+    if (IsWarping())
+        return false;
+    if (mySE->IsNPCSE() or mySE->IsMissileSE())
+        return true;
+    if (mySE->IsShipSE())
+        return sConfig.cosmic.BumpEnabled;
+    return false;
+}
+
+// the ball's mode and flags come from its encoding (see BallparkSnapshot::Get()), the rest from the simulation
+void DestinyManager::GetCollisionState(Destiny::CollisionBall& ball) const {
+    ball.pos = m_position;
+    ball.vel = m_velocity;
+    ball.thrust = m_thrust;
+    ball.dragFactor = DragFactor();
+    ball.followID = m_targetEntity.first;
+    ball.ownerID = m_missileOwnerID;
 }
 
 // keeps a warping entity in the bubble it is passing through, ending in the bubble at the exit point
@@ -827,102 +911,6 @@ void DestinyManager::Eject()
     SendJettisonPacket();
 }
 
-// Global collision methods
-//  check for collision.  called by PostEvolve()
-void DestinyManager::CheckBump()
-{
-    double profileStartTime(GetTimeUSeconds());
-
-    //  collision detection code here
-    /*  in this case, we are ONLY interested in objects
-     *   that have drifted within each others radius (for whatever reason)
-     *  this only checks for ships running sub-warp speeds
-     *   in relation to other objects in bubble.
-     */
-
-    // NOTE:  object's "massive = true" means it can bump/collide  (massive = solid)
-
-    // initial implementation will ONLY check player ships for bumping.
-    std::vector<Client*> vPlayers;
-    mySE->SysBubble()->GetPlayers(vPlayers);
-    Client* pClient = mySE->GetPilot();
-    GPoint pos(GetPosition());
-    float distance = 0.0f;
-    for (auto cur : vPlayers) {
-        if (cur == pClient)
-            continue;
-        distance = pos.distance(cur->GetShipSE()->GetPosition());
-        distance -= (mySE->GetRadius() - cur->GetShipSE()->GetRadius());
-        if (distance < BUMP_DISTANCE) {
-            Bump(cur->GetShipSE());
-            m_bump = true;
-        } else {
-            m_bump = false;
-        }
-    }
-    /** @todo  add data and checks for each ship bumped
-     * to give single bump msg for each ship combo
-     * without spamming their overview
-     */
-
-    if (sConfig.debug.UseProfiling)
-        sProfiler.AddTime(Profile::collision, GetTimeUSeconds() - profileStartTime);
-}
-
-void DestinyManager::Bump(SystemEntity* pSE)
-{
-    if (m_bump)
-        return;
-    // bump code here
-    /*  determine most massive object...maybe not.  use percentiles here (becham math)
-     *  determine direction(s) involved
-     *  determine speed(s) involved
-     *  determine new headings based on above
-     *  determine new speed based on above
-     *
-     * NOTE static or large objects wont move, but will apply equal and opposite force.
-     * un-anchored objects WILL move (jetcans, wrecks, portable hangers)
-     */
-
-    /* bump math, by Scheulagh Santorine, Ph.D.
-     *  velocity of bumped object immediately after bump
-     * v2(t=0+) = 2v1*m1/m1+m2
-     */
-
-    /*  run-time options for bumping jetcans, biomass, and other space objects
-     *   bump drones??  prolly not, for simplicity
-     */
-    std::string msg1 = "You have bumped ";
-    msg1 += pSE->GetPilot()->GetName();
-    mySE->GetPilot()->SendNotifyMsg(msg1.c_str());
-    // this test isnt needed right now, as it's ONLY checking against players and will always return true.
-    //  will keep it in here for later expansion.
-    if (pSE->HasPilot()) {
-        std::string msg2 = "You have been bumped by ";
-        msg2 += mySE->GetPilot()->GetName();
-        pSE->GetPilot()->SendNotifyMsg(msg2.c_str());
-    }
-}
-
-void DestinyManager::Bounce(GVector direction, float speed)
-{
-    // bounce code here (not used yet)
-    /*  this code will update ship movement after being bumped
-     *  all items will drift to a complete stop, unless other movement is called.
-     */
-    Normalize(direction);
-    m_velocity = direction * speed;
-
-    SetBallVelocity bv;
-        bv.entityID = mySE->GetID();
-        bv.x = m_velocity.x;
-        bv.y = m_velocity.y;
-        bv.z = m_velocity.z;
-    PyTuple* up = bv.Encode();
-    SendSingleDestinyUpdate(&up);   // consumed
-    Stop();
-}
-
 //called whenever an entity is going away and can no longer be used as a target
 void DestinyManager::EntityRemoved(SystemEntity *pSE) {
     if (m_targetEntity.second == pSE) {
@@ -969,7 +957,7 @@ void DestinyManager::BeginMovement() {
         updates.push_back(sbagility.Encode());
         SetBallMassive sbmassive;
             sbmassive.entityID = mySE->GetID();
-            sbmassive.is_massive = false;       // disable client-side bump checks
+            sbmassive.is_massive = IsMassive();
         updates.push_back(sbmassive.Encode());
         SetBallMass sbmass;
             sbmass.entityID = mySE->GetID();
@@ -1176,7 +1164,7 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     //set massive for warp, per client, but self-only
     SetBallMassive bm;
         bm.entityID = mySE->GetID();
-        bm.is_massive = false;       // disable client-side bump checks
+        bm.is_massive = IsMassive();
     PyTuple *up = bm.Encode();
     SendSingleDestinyUpdate(&up, true);   // consumed
 }
@@ -1491,7 +1479,7 @@ Battleships 0.155
         updates.push_back(sbagility.Encode());
         SetBallMassive sbmassive;
             sbmassive.entityID = mySE->GetID();
-            sbmassive.is_massive = false;       // disable client-side bump checks
+            sbmassive.is_massive = IsMassive();
         updates.push_back(sbmassive.Encode());
         SetBallMass sbmass;
             sbmass.entityID = mySE->GetID();
@@ -1512,21 +1500,14 @@ void DestinyManager::MakeMissile(Missile* pMissile) {
     m_massMKg = m_mass / 1000000; //changes mass from Kg to MillionKg (10^-6)
     m_shipInertia = pMissile->GetSelf()->GetAttribute(AttrInetia).get_float();
     m_shipAgility = m_massMKg * m_shipInertia;
-
-    m_ballMode = Destiny::Ball::Mode::MISSILE;
-    m_stateStamp = sEntityList.GetStamp();
+    // the client works out the drag factor when it adds the ball, while it is still a plain (stopped) ball
+    m_missileDragFactor = Destiny::DragFactor(static_cast<double>(m_mass) * AsFloat(m_shipInertia));
 
     SystemEntity* pTarget = pMissile->GetTargetSE();
-    m_targetPoint = GPoint(pTarget->GetPosition());
-    m_targetEntity.first = pTarget->GetID();
-    m_targetEntity.second = pTarget;
-    m_followRange = static_cast<float>(m_position.distance(m_targetPoint));
+    ApplyLaunchMissile(pMissile->GetLauncherSE(), pTarget);
+    m_stateStamp = sEntityList.GetStamp();
 
-    GVector moveVector(m_position, m_targetPoint);
-    moveVector.normalize();     //change vector to direction
-    m_shipHeading = moveVector;
-
-    SetUndockSpeed();   /* sets all needed variables for max velocity */
+    // AddBalls already has the launched state, and LaunchMissile below sets the same state again
     mySE->SystemMgr()->AddEntity(pMissile, false); // we are not adding missiles to anomaly map
 
     std::vector<PyTuple*> updates;
@@ -1538,10 +1519,77 @@ void DestinyManager::MakeMissile(Missile* pMissile) {
         miss.shipID = pMissile->GetLauncherID();
         miss.targetID = pTarget->GetID();
         miss.missileID = pMissile->GetID();
-        miss.unk1 = 1;
-        miss.unk2 = 1;
+        miss.isAimed = 1;       // point the missile at the target rather than along the launcher's velocity
+        miss.isMassive = 1;     // lets the client find the impact
     updates.push_back(miss.Encode());
     SendDestinyUpdate(updates); //consumed
+}
+
+/* Ballpark::LaunchMissile (destiny.dll 0x10037120) followed by Ballpark::MissileFollow (0x100200b0).
+ * the missile starts at the launcher's centre, moving at 1 m/s towards the target, and chases it at full speed.
+ *  a client only knows about balls in its own bubble.  if the target isn't there, or is cloaked, the missile is
+ *  fired along the launcher's velocity instead, and can't hit anything
+ */
+void DestinyManager::ApplyLaunchMissile(SystemEntity* pLauncher, SystemEntity* pTarget) {
+    using namespace Destiny;
+    if (pLauncher == nullptr)
+        return;
+    const GPoint ownerPos(pLauncher->GetPosition());
+    bool canFollow((pTarget != nullptr) and (pTarget != pLauncher) and (pTarget->SysBubble() == pLauncher->SysBubble()));
+    if (canFollow and (pTarget->DestinyMgr() != nullptr) and pTarget->DestinyMgr()->IsCloaked())
+        canFollow = false;
+
+    GVector vel;
+    if (canFollow) {
+        vel = GVector(ownerPos, pTarget->GetPosition());
+        Normalize(vel);
+    } else {
+        GVector ownerVel(pLauncher->GetVelocity());
+        GVector dir(ownerVel);
+        Normalize(dir);
+        if ((dir.x * dir.x + dir.y * dir.y + dir.z * dir.z) == 0.0) {
+            // the client uses the launcher's orientation here, which we don't track.  its heading is close
+            if (pLauncher->DestinyMgr() != nullptr)
+                dir = pLauncher->DestinyMgr()->GetHeading();
+        }
+        double ownerMaxVel(0.0);
+        if (pLauncher->DestinyMgr() != nullptr)
+            ownerMaxVel = AsFloat(pLauncher->DestinyMgr()->GetMaxVelocity());
+        double scale(150.0);
+        if (150.0 <= ownerMaxVel)
+            scale = ownerMaxVel;
+        vel = GVector(dir.x * scale + ownerVel.x, dir.y * scale + ownerVel.y, dir.z * scale + ownerVel.z);
+    }
+
+    MoveBallTo(ownerPos);
+    m_velocity = vel;
+    m_shipHeading = vel;
+    Normalize(m_shipHeading);
+
+    if (!canFollow) {
+        if (m_maxShipSpeed > 0.0f) {
+            GVector dir(vel);
+            Normalize(dir);
+            ApplyGotoPoint(GPoint(m_position.x + dir.x * DST_GOTO_DIRECTION_RANGE,
+                                  m_position.y + dir.y * DST_GOTO_DIRECTION_RANGE,
+                                  m_position.z + dir.z * DST_GOTO_DIRECTION_RANGE));
+        }
+        return;
+    }
+
+    ApplyStop();
+    m_targetEntity.first = pTarget->GetID();
+    m_targetEntity.second = pTarget;
+    // negative, so the missile goes for the target's centre rather than its surface
+    m_followRange = -(static_cast<float>(pTarget->GetRadius()) + static_cast<float>(m_radius));
+    m_missileOwnerID = pLauncher->GetID();
+    m_effectStamp = static_cast<int32>(sEntityList.GetStamp());
+    // straight out along the launch direction for the first tick (see EvolveThrust())
+    GVector dir(m_velocity);
+    Normalize(dir);
+    m_targetPoint = GPoint(dir.x * 1.0e16, dir.y * 1.0e16, dir.z * 1.0e16);
+    m_speedFraction = 1.0f;
+    m_ballMode = Ball::Mode::MISSILE;
 }
 
 void DestinyManager::UpdateNewShip(const ShipItemRef newShipRef) {
@@ -2149,8 +2197,19 @@ void DestinyManager::EncodeDestiny(Buffer& into) const {
                 go.z = m_targetPoint.z;
             into.Append( go );
         }  break;
+        case Ball::Mode::MISSILE: {
+            MISSILE_Struct miss;
+                miss.formationID = 0xFF;
+                miss.targetID = m_targetEntity.first;
+                miss.followRange = m_followRange;
+                miss.ownerID = m_missileOwnerID;
+                miss.effectStamp = m_effectStamp;
+                miss.x = m_targetPoint.x;
+                miss.y = m_targetPoint.y;
+                miss.z = m_targetPoint.z;
+            into.Append( miss );
+        }  break;
         default: {
-            // missiles are encoded by Missile::EncodeDestiny()
             STOP_Struct main;
                 main.formationID = 0xFF;
             into.Append( main );

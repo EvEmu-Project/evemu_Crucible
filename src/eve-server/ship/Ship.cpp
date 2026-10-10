@@ -2598,11 +2598,9 @@ void ShipSE::EncodeDestiny( Buffer& into) {
         head.posX = x();
         head.posY = y();
         head.posZ = z();
-        if (m_self->HasPilot()) {
-            head.flags = Ball::Flag::IsInteractive | Ball::Flag::IsFree;
-        } else {
-            head.flags = Ball::Flag::IsFree;
-        }
+        head.flags = Ball::Flag::IsFree | (m_destiny->IsMassive() ? Ball::Flag::IsMassive : 0);
+        if (m_self->HasPilot())
+            head.flags |= Ball::Flag::IsInteractive;
     into.Append( head);
     MassSector mass = MassSector();
         mass.mass = m_destiny->GetMass();

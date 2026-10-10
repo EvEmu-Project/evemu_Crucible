@@ -132,7 +132,7 @@ void NPC::EncodeDestiny( Buffer& into )
         head.posX = x();
         head.posY = y();
         head.posZ = z();
-        head.flags = Ball::Flag::IsMassive | Ball::Flag::IsFree;
+        head.flags = Ball::Flag::IsFree | (m_destiny->IsMassive() ? Ball::Flag::IsMassive : 0);
     into.Append( head );
     MassSector mass = MassSector();
         mass.mass = m_destiny->GetMass();

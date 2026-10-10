@@ -8,8 +8,8 @@
           <int name="missileID" />
           <int name="targetID" />
           <int name="shipID" />
-          <int name="unk1" />
-          <int name="unk2" />
+          <int name="isAimed" />
+          <int name="isMassive" />
         </tupleInline>
       </tupleInline>
   </elementDef>

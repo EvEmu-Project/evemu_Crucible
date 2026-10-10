@@ -223,13 +223,10 @@ void Profiler::PrintProfile()
     } else {
         std::printf("        Spawns   Disabled.\n");
     }
-    if (sConfig.cosmic.BumpEnabled) {
-        GetRunTimes(m_collision, h, l, a);
-        GetSize(m_collision.size(), fSize);
-        std::printf("    Collisions   %s times.   \tHi: %.4fus   \tLo: %.4fus   \tAvg: %.4fus\n", fSize.c_str(), h, l, a );
-    } else {
-        std::printf("    Collisions   Disabled.\n");
-    }
+    // collisions always run (NPCs are solid).  BumpEnabled only makes player ships solid too
+    GetRunTimes(m_collision, h, l, a);
+    GetSize(m_collision.size(), fSize);
+    std::printf("    Collisions   %s times.   \tHi: %.4fus   \tLo: %.4fus   \tAvg: %.4fus\n", fSize.c_str(), h, l, a );
     if (sConfig.testing.EnableDrones) {
         GetRunTimes(m_drone, h, l, a);
         GetSize(m_drone.size(), fSize);

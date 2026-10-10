@@ -55,6 +55,7 @@
 #include "station/Station.h"
 #include "system/Asteroid.h"
 #include "system/Container.h"
+#include "system/DestinyCollision.h"
 #include "system/DestinyManager.h"
 #include "system/SolarSystem.h"
 #include "system/SystemBubble.h"
@@ -298,6 +299,13 @@ void SystemManager::ProcessDestiny() {
 
     for (auto cur : movers)
         cur.second->EvolveThrust(tick);
+    // collisions see every ball's thrust and position from the start of the tick, so they go between the two passes
+    double profileStartTime(GetTimeUSeconds());
+    Destiny::BallparkSnapshot ballpark(this);
+    for (auto cur : movers)
+        cur.second->EvolveCollide(ballpark);
+    if (sConfig.debug.UseProfiling)
+        sProfiler.AddTime(Profile::collision, GetTimeUSeconds() - profileStartTime);
     for (auto cur : movers)
         cur.second->EvolveMove(tick);
 
@@ -1335,6 +1343,16 @@ void SystemManager::RemoveSpawnBubble(SystemBubble* pBubble)
 uint32 SystemManager::GetRandBeltID()
 {
     return m_beltVector.at(MakeRandomInt(0, m_beltCount));
+}
+
+// the balls a client in this bubble knows about: the system's static balls plus the bubble's visible balls.  keep in step with MakeSetState()
+void SystemManager::GetBallparkEntities(const SystemBubble* pBubble, std::map<uint32, SystemEntity*>& into) const {
+    for (auto cur : m_staticEntities)
+        into.emplace(cur.first, cur.second);
+    for (auto cur : m_opStaticEntities)
+        into.emplace(cur.first, cur.second);
+    if (pBubble != nullptr)
+        pBubble->GetEntities(into);
 }
 
 void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) const {

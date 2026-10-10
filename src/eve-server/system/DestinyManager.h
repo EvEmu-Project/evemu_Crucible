@@ -31,6 +31,7 @@
 
 #include "services/Callable.h"
 #include "destiny/DestinyStructs.h"
+#include "system/DestinyCollision.h"
 #include "inventory/ItemRef.h"
 
 class Buffer;
@@ -43,8 +44,6 @@ class ShipSE;
 class SystemBubble;
 class SystemEntity;
 class SystemManager;
-
-static const uint16 BUMP_DISTANCE = 50;     //in meters.  < this = hit.
 
 /* this object manages an entity's position and movement in a system.
  *
@@ -62,11 +61,17 @@ public:
 
     /* per-tick simulation.  called by SystemManager::ProcessDestiny() for every moving entity in the system, in this order */
     void EvolveThrust(int32 tick);  // phase 1: work out thrust (all entities are evaluated before any of them move)
-    void EvolveMove(int32 tick);    // phase 2: integrate position and velocity
+    void EvolveCollide(Destiny::BallparkSnapshot& ballpark);   // phase 2: collisions, for massive balls
+    void EvolveMove(int32 tick);    // phase 3: integrate position and velocity
     void PostEvolve();              // server-side consequences (bubbles, warp side effects).  may add/remove entities
 
     // appends the DataSector and mode-specific part of this ball for SetState/AddBalls
     void EncodeDestiny(Buffer& into) const;
+    // fills in the moving parts of this ball for the collision code
+    void GetCollisionState(Destiny::CollisionBall& ball) const;
+    // massive (solid) ball.  the client only runs collisions for massive balls, against other massive balls.
+    //  this is the flag the client currently has for us, so it is false during warp
+    bool IsMassive() const;
 
     void SendSingleDestinyEvent(PyTuple** ev, bool self_only=false) const;
     void SendSingleDestinyUpdate(PyTuple** up, bool self_only=false) const;
@@ -122,8 +127,8 @@ public:
     bool IsStopped()                                    { return (m_ballMode == Destiny::Ball::Mode::STOP); }
     bool IsOrbiting()                                   { return (m_ballMode == Destiny::Ball::Mode::ORBIT); }
     bool IsFollowing()                                  { return (m_ballMode == Destiny::Ball::Mode::FOLLOW); }
-    bool IsAligningForWarp()                            { return ((m_ballMode == Destiny::Ball::Mode::WARP) and (m_effectStamp == -1)); }
-    bool IsWarping()                                    { return ((m_ballMode == Destiny::Ball::Mode::WARP) and (m_effectStamp != -1)); }
+    bool IsAligningForWarp() const                      { return ((m_ballMode == Destiny::Ball::Mode::WARP) and (m_effectStamp == -1)); }
+    bool IsWarping() const                              { return ((m_ballMode == Destiny::Ball::Mode::WARP) and (m_effectStamp != -1)); }
     bool IsCloaked()                                    { return m_cloaked; }
     bool IsTractored()                                  { return m_tractored; }
 
@@ -177,6 +182,8 @@ public:
     // set all movement vars for missile and add to system
     //  this is used by all entities (pc, npc, drone, sentry, pos, etc)
     void MakeMissile(Missile* missile);
+    // this missile's path touches its target this tick.  Missile::Process() applies the damage
+    bool HasMissileHit() const                          { return m_missileHit; }
 
     bool IsFrozen()                                     { return m_frozen; }
     void SetFrozen(bool set=false)                      { m_frozen = set; }
@@ -219,6 +226,9 @@ protected:
     double m_warpDistance;              // [mLastCollision] total length of warp proper
     double m_warpMinRange;              // [mFollowId as double] warp-to range
     int32 m_warpFactor;                 // [mOwnerId] warp speed in AU/s * 10
+    uint32 m_missileOwnerID;            // [mOwnerId] for missiles: the ball that launched us
+    double m_missileDragFactor;         // [Ball+0x80] the client works out a missile's drag once, when it is added
+    Destiny::CollisionResult m_collision;   // [Ball+0x180, +0x88] this tick's collision response
 
     GVector m_shipHeading;              // direction ship is facing.  follows velocity, kept when stopped
     uint32 m_stateStamp;                // stamp of when current state began
@@ -228,6 +238,7 @@ protected:
     bool m_warpActivated;
     bool m_warpExited;
     bool m_targetLost;
+    bool m_missileHit;
 
     //User controlled information
     bool m_cloaked;
@@ -241,6 +252,7 @@ private:
     void ApplyGotoPoint(const GPoint& point);
     void ApplyFollow(SystemEntity* pSE, float range, uint8 mode);
     void ApplyWarpTo(const GPoint& where, double minRange, int32 warpFactor);
+    void ApplyLaunchMissile(SystemEntity* pLauncher, SystemEntity* pTarget);
     void MoveBallTo(const GPoint& pt);
 
     void BeginMovement();               // common setup for all movement commands
@@ -250,24 +262,20 @@ private:
 
     // client physics (destiny.dll)
     double BallMass() const;
-    GVector GotoThrust(const GPoint& target) const;
+    double DragFactor() const;
+    GVector GotoThrust(const GPoint& target, bool missile=false) const;
+    GVector MissileThrust(SystemEntity* pTarget);
     GVector OrbitThrust(SystemEntity* pTarget, int32 tick) const;
     bool IsAlignedForWarp() const;
     void RealWarp(int32 tick);
     bool WarpDistance(GPoint& pos, GVector& vel, double t);
     void Integrate(GPoint& pos, GVector& vel, const GVector& accel) const;
-    void MoveMissile();
 
     // server-side warp handling
     void OnWarpActivated();
     void OnWarpExited();
     void UpdateWarpBubble();
-
-    // Internal Collision Methods   -allan Nov 2015
-    bool m_bump;
-    void CheckBump();                              //iterate thru objects in current bubble to check for collisions
-    void Bump(SystemEntity* who);                  //math methods for determining direction and speed of bumped ships
-    void Bounce(GVector direction, float speed);   //packet sending for ships after bounce
+    void SendMassive() const;           // tells clients our current massive flag
 };
 
 #endif

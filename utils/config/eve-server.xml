@@ -212,7 +212,7 @@ boolean can use either 0/1 OR true/false.
         <roidRadiusMultiplier>1.0</roidRadiusMultiplier><!-- float  used to change belt radius and roid size -->
         <WormHoleEnabled>true</WormHoleEnabled><!-- bool -->
         <CiviliansEnabled>false</CiviliansEnabled><!-- bool -->
-        <BumpEnabled>false</BumpEnabled><!-- bool -->
+        <BumpEnabled>false</BumpEnabled><!-- bool.  makes player ships solid, so they bump into each other, NPCs and stations -->
     </cosmic>
 
     <exploring><!--  control amount of specific sites per system (adjusted by truSec) -->
