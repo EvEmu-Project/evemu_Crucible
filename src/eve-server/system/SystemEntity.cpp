@@ -725,7 +725,7 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into )
     using namespace Destiny;
     BallHeader head = BallHeader();
         head.entityID = m_self->itemID();
-        head.mode = Ball::Mode::STOP;
+        head.mode = m_destiny->GetState();
         head.radius = m_radius;
         head.posX = x();
         head.posY = y();
@@ -739,17 +739,8 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into )
         mass.corporationID = m_corpID;
         mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
     into.Append( mass );
-    DataSector data = DataSector();
-        data.inertia = m_destiny->GetInertia();
-        data.maxSpeed = m_destiny->GetMaxVelocity();
-        data.velX = m_destiny->GetVelocity().x;
-        data.velY = m_destiny->GetVelocity().y;
-        data.velZ = m_destiny->GetVelocity().z;
-        data.speedfraction = m_destiny->GetSpeedFraction();
-    into.Append( data );
-    STOP_Struct main;
-        main.formationID = 0xFF;
-    into.Append( main );
+    // movement data and mode-specific part are written by destiny
+    m_destiny->EncodeDestiny( into );
 
     _log(SE__DESTINY, "DSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }

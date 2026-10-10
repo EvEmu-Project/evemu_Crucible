@@ -64,6 +64,7 @@ public:
     ~SystemManager();
 
     bool ProcessTic();          // called at 1Hz.
+    void ProcessDestiny();      // called at 1Hz, before anything else is processed for the new stamp.  moves all entities one tick
     bool BootSystem();
     void UnloadSystem();
     void UpdateData();          // called from EntityList every 5m for active systems
@@ -72,6 +73,7 @@ public:
 
     SystemEntity* GetSE(uint32 entityID) const;
     NPC* GetNPCSE(uint32 entityID) const;
+    const std::map<uint32, SystemEntity*>& GetTicEntities() const { return m_ticEntities; }
     ShipItemRef GetShipFromInventory(uint32 shipID);
     StationItemRef GetStationFromInventory(uint32 stationID);
     CargoContainerRef GetContainerFromInventory(uint32 contID);

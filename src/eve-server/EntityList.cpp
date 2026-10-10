@@ -223,6 +223,12 @@ void EntityList::Process() {
 
         ++m_stamp;
 
+        // move every entity to the new stamp first.  destiny updates from here on are stamped with it, and the
+        //  client applies them to its own simulation at this stamp, so our state must already be there
+        for (auto cur : m_systems)
+            if (cur.second != nullptr)
+                cur.second->ProcessDestiny();
+
         for (auto cur : m_players)
             if (cur.second->IsValidSession())   // verify client is constructed before calling ProcessClient() on it
                 cur.second->ProcessClient();

@@ -277,6 +277,38 @@ bool SystemManager::ProcessTic() {
     return SystemActivity();
 }
 
+/* runs one tick of movement for every entity, the same way the client's Ballpark::Evolve() does:
+ *  every entity's thrust is worked out from the same snapshot before any entity moves, then all are moved.
+ *  this tick's evolve starts from the previous stamp, as EntityList has already advanced to the current one.
+ *  EntityList calls this for every system before anything else runs for the new stamp, so commands issued during
+ *  this stamp are applied to the state at this stamp, as they are on the client.
+ */
+void SystemManager::ProcessDestiny() {
+    int32 tick(static_cast<int32>(sEntityList.GetStamp()) - 1);
+
+    std::vector<std::pair<uint32, DestinyManager*>> movers;
+    movers.reserve(m_ticEntities.size());
+    for (auto cur : m_ticEntities) {
+        if ((cur.second == nullptr) or cur.second->IsDead())
+            continue;
+        DestinyManager* pDestiny(cur.second->DestinyMgr());
+        if (pDestiny != nullptr)
+            movers.emplace_back(cur.first, pDestiny);
+    }
+
+    for (auto cur : movers)
+        cur.second->EvolveThrust(tick);
+    for (auto cur : movers)
+        cur.second->EvolveMove(tick);
+
+    // post-move work can add or remove entities, so look each one up again
+    for (auto cur : movers) {
+        SystemEntity* pSE(GetSE(cur.first));
+        if ((pSE != nullptr) and (pSE->DestinyMgr() == cur.second))
+            cur.second->PostEvolve();
+    }
+}
+
 bool SystemManager::SystemActivity() {
     if (m_activityTime == 0)
         return true;

@@ -2611,58 +2611,8 @@ void ShipSE::EncodeDestiny( Buffer& into) {
         mass.corporationID = m_corpID;
         mass.allianceID = (IsAlliance(m_allyID) ? m_allyID : -1);
     into.Append( mass);
-    DataSector data = DataSector();
-        data.inertia = m_destiny->GetInertia();
-        data.maxSpeed = m_destiny->GetMaxVelocity();
-        data.velX = m_destiny->GetVelocity().x;
-        data.velY = m_destiny->GetVelocity().y;
-        data.velZ = m_destiny->GetVelocity().z;
-        data.speedfraction = m_destiny->GetSpeedFraction();
-    into.Append( data);
-    switch (mode) {
-        case Ball::Mode::WARP: {
-            GPoint target = m_destiny->GetTargetPoint();
-            WARP_Struct warp;
-                warp.formationID = 0xFF;
-                warp.targX = target.x;
-                warp.targY = target.y;
-                warp.targZ = target.z;
-                warp.speed = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
-                // warp timing.  see ShipSE::EncodeDestiny() for notes/updates
-                warp.effectStamp = -1; //m_destiny->GetStateStamp();   //timestamp when warp started
-                warp.followRange = 0;   //this isnt right
-                warp.followID = 0;  //this isnt right
-            into.Append(warp);
-        }  break;
-        case Ball::Mode::FOLLOW: {
-            FOLLOW_Struct follow;
-                follow.followID = m_destiny->GetTargetID();
-                follow.followRange = m_destiny->GetFollowDistance();
-                follow.formationID = 0xFF;
-            into.Append(follow);
-        }  break;
-        case Ball::Mode::ORBIT: {
-            ORBIT_Struct orbit;
-                orbit.targetID = m_destiny->GetTargetID();
-                orbit.followRange = m_destiny->GetFollowDistance();
-                orbit.formationID = 0xFF;
-            into.Append(orbit);
-        }  break;
-        case Ball::Mode::GOTO: {
-            GPoint target = m_destiny->GetTargetPoint();
-            GOTO_Struct go;
-                go.formationID = 0xFF;
-                go.x = target.x;
-                go.y = target.y;
-                go.z = target.z;
-            into.Append(go);
-        }  break;
-        default: {
-            STOP_Struct main;
-                main.formationID = 0xFF;
-            into.Append(main);
-        } break;
-    }
+    // movement data and mode-specific part are written by destiny
+    m_destiny->EncodeDestiny( into );
 
     std::string modeStr = "Goto";
     switch (mode) {
@@ -2681,7 +2631,7 @@ void ShipSE::EncodeDestiny( Buffer& into) {
     }
 
     _log(SE__DESTINY, "ShipSE::EncodeDestiny(): %s - id:%lli, mode:%s, flags:0x%X, Vel:%.1f, %.1f, %.1f", \
-            GetName(), head.entityID, modeStr.c_str(), head.flags, data.velX, data.velY, data.velZ);
+            GetName(), head.entityID, modeStr.c_str(), head.flags, m_destiny->GetVelocity().x, m_destiny->GetVelocity().y, m_destiny->GetVelocity().z);
 }
 
 void ShipSE::MakeDamageState(DoDestinyDamageState &into) {

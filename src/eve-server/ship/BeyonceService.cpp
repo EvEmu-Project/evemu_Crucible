@@ -174,13 +174,9 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
         return PyStatic.NewNone();
 
     //sLog.Warning( "BeyonceBound", "Handle_CmdSetSpeedFraction %.2f", arg.arg );
-    if (!call.client->IsUndock()){
-        if (pDestiny->IsMoving()) {
-            pDestiny->SetSpeedFraction(speedFraction->value());
-        } else {
-            pDestiny->SetSpeedFraction(speedFraction->value(), true);
-        }
-    }
+    // a stopped ship starts moving along its heading.  a moving ship just changes speed
+    if (!call.client->IsUndock())
+        pDestiny->SetSpeedFraction(speedFraction->value(), true);
 
     return PyStatic.NewNone();
 }

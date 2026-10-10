@@ -150,21 +150,23 @@ struct STOP_Struct {
     uint8  formationID;
 };
 
+/* layout verified against the Crucible client destiny.dll (ReadBallFromStream) */
 struct WARP_Struct {
     uint8  formationID;
-    double targX;             //object+0xD0 (as a set of 3)
+    double targX;               // goto point.  original destination while aligning, range-adjusted exit point once in warp
     double targY;
     double targZ;
-    int32 effectStamp;   //statestamp of when warp started
-    int64 followRange;   //unknown   -4616189618054758400 when warp is initiated.  calculation unknown for other values (used during warp)
-    int64 followID;      //unknown   4669471951536783360 when warp is initiated or ship enters new bubble (AddBalls), 0 otherwise
-    int32 speed;
+    int32  effectStamp;         // -1 while aligning, tick that warp proper started otherwise
+    double totalDistance;       // length of warp proper in m (-1.0 while aligning)
+    double minRange;            // warp-to range in m
+    int64  warpFactor;          // warp speed in AU/s * 10
 };
 
+/* client reads ORBIT exactly like FOLLOW */
 struct ORBIT_Struct {
     uint8  formationID;
-    uint32 targetID;
-    double followRange;
+    int64  followID;
+    float  followRange;
 };
 
 struct MISSILE_Struct {
