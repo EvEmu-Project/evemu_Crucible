@@ -35,8 +35,8 @@ COMMAND( killallnpcs, Acct::Role::ADMIN,
 COMMAND( cloak, Acct::Role::VIP,
          " - instantly and unconditionally toggles cloak state of your vessel")
 COMMAND( sov, Acct::Role::CONTENT,
-         " - unknown at this time")
+         "complete (itemID) - finishes the sov structure's current anchoring/onlining now")
 COMMAND( pos, Acct::Role::PROGRAMMER,
-         " - commands item to Immediately anchor")
+         "(online|offline|anchor|unanchor) (itemID) - changes a structure's state immediately")
 COMMAND( hop, Acct::Role::CONTENT,
-         " - unknown at this time")
+         "(distance)[m|km|au] - moves your ship that far along its heading")

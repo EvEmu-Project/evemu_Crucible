@@ -36,6 +36,7 @@ public:
 
 protected:
     PyResult GetLoader(PyCallArgs& call);
+    PyResult GetScript(PyCallArgs& call);   // GM tools source (etc/gmtools.py), run by the devtools loader
     PyResult ExceptionFluentExample(PyCallArgs& call, PyInt* value);
 };
 

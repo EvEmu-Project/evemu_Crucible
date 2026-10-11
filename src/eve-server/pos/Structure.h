@@ -176,6 +176,8 @@ public:
 
     inline void                 SetPOSState(int8 state) { m_data.state = state; }
     inline void                 SetTimer(uint32 time)   { m_procTimer.SetTimer(time); }
+    // runs the pending state change (anchoring, onlining, etc) on the next Process().  false if nothing is pending
+    bool                        CompleteStateChange()   { if (!m_procTimer.Enabled()) return false; m_procTimer.Trigger(); return true; }
 
     void                        SetUsageFlags(int8 view=0, int8 take=0, int8 use=0);
     inline int8                 CanUse()                { return m_data.use; }

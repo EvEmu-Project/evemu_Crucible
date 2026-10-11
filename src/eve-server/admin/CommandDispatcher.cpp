@@ -31,6 +31,15 @@
 #include "admin/CommandDispatcher.h"
 #include "system/DestinyManager.h"
 
+// command names are matched without case: the client sends some in mixed case (/spawnN)
+static std::string CommandKey(const std::string& name) {
+    std::string key(name);
+    for (auto& c : key)
+        c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
+    return key;
+}
+
+
 CommandDispatcher::CommandDispatcher(EVEServiceManager& services)
 : m_services( services )
 {
@@ -69,7 +78,7 @@ PyResult CommandDispatcher::Execute( Client* from, const char* msg )
         throw UserError ("").AddFormatValue ("reason", new PyString (reason));
     }
 
-    std::map<std::string, CommandRecord*>::const_iterator itr = m_commands.find( sep.arg( 0 ) );
+    std::map<std::string, CommandRecord*>::const_iterator itr = m_commands.find( CommandKey(sep.arg( 0 )) );
     if (m_commands.end() == itr ) {
         _log(COMMAND__ERROR, "Unable to find command '%s' for %s", sep.arg( 0 ).c_str(), from->GetName() );
         throw CustomError ("Unknown command '%s'", sep.arg (0).c_str ());
@@ -88,11 +97,12 @@ PyResult CommandDispatcher::Execute( Client* from, const char* msg )
 
 void CommandDispatcher::AddCommand( const char* cmd, const char* desc, int64 required_role, CommandFunc function )
 {
-    std::map<std::string, CommandRecord*>::iterator itr = m_commands.find( cmd );
+    std::string key(CommandKey(cmd));
+    std::map<std::string, CommandRecord*>::iterator itr = m_commands.find( key );
     if (itr != m_commands.end())
         SafeDelete( itr->second );
 
-    m_commands[cmd] = new CommandRecord( cmd, desc, required_role, function );
+    m_commands[key] = new CommandRecord( cmd, desc, required_role, function );
 }
 
 void CommandDispatcher::ListCommands() {

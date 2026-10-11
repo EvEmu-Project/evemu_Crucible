@@ -32,6 +32,7 @@ DevToolsProviderService::DevToolsProviderService() :
     Service("devToolsProvider")
 {
     this->Add("GetLoader", &DevToolsProviderService::GetLoader);
+    this->Add("GetScript", &DevToolsProviderService::GetScript);
     this->Add("ExceptionFluentExample", &DevToolsProviderService::ExceptionFluentExample);
 }
 
@@ -51,6 +52,32 @@ PyResult DevToolsProviderService::GetLoader(PyCallArgs& call)
     }
 
     return PyStatic.NewNone();
+}
+
+/* the client runs devtools.raw for sessions with elevated roles.  its loader then asks for this: the EVEmu GM tools
+ *  (utils/config/gmtools.py, installed to etc/), as python source that the client compiles itself.
+ *  it is read on every call, so it can be edited without restarting the server.  clients reload it on login,
+ *  or with 'Reload Insider' on the neocom
+ */
+PyResult DevToolsProviderService::GetScript(PyCallArgs& call)
+{
+    const int64 gmRoles = Acct::Role::GML | Acct::Role::WORLDMOD | Acct::Role::GMH | Acct::Role::ADMIN
+                        | Acct::Role::PROGRAMMER | Acct::Role::CONTENT;
+    if ((call.client->GetAccountRole() & gmRoles) == 0)
+        return PyStatic.NewNone();
+
+    FILE* pFile = fopen(EVEMU_ROOT"/etc/gmtools.py", "rb");
+    if (pFile == nullptr) {
+        _log(SERVICE__ERROR, "DevToolsProvider: cannot open %s/etc/gmtools.py", EVEMU_ROOT);
+        return PyStatic.NewNone();
+    }
+    std::string source;
+    char buf[4096];
+    size_t n(0);
+    while ((n = fread(buf, 1, sizeof(buf), pFile)) > 0)
+        source.append(buf, n);
+    fclose(pFile);
+    return new PyString(source);
 }
 
 PyResult DevToolsProviderService::ExceptionFluentExample (PyCallArgs& call, PyInt* value)

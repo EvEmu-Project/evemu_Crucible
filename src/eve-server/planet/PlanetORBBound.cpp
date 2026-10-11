@@ -63,13 +63,27 @@ PlanetORBBound::PlanetORBBound(EVEServiceManager& mgr, PlanetORB& parent, uint32
     EVEBoundObject(mgr, parent),
     m_systemID(systemID)
 {
+    this->Add("GetTaxRate", &PlanetORBBound::GetTaxRate);
+    this->Add("GetSettingsInfo", &PlanetORBBound::GetSettingsInfo);
+    this->Add("UpdateSettings", &PlanetORBBound::UpdateSettings);
+    this->Add("GMChangeSpaceObjectOwner", &PlanetORBBound::GMChangeSpaceObjectOwner);
+}
+
+namespace {
+    CustomsSE* GetCustomsOffice(uint32 systemID, uint32 itemID) {
+        SystemManager* pSystem(sEntityList.FindOrBootSystem(systemID));
+        SystemEntity* pSE(pSystem == nullptr ? nullptr : pSystem->GetSE(itemID));
+        if ((pSE == nullptr) or (pSE->GetCOSE() == nullptr))
+            throw CustomError ("Customs office %u not found", itemID);
+        return pSE->GetCOSE();
+    }
 }
 
 PyResult PlanetORBBound::GetTaxRate(PyCallArgs& call, PyInt* itemID)
 {
     //  taxRate = moniker.GetPlanetOrbitalRegistry(session.solarsystemid).GetTaxRate(itemID)
     // NOTE:  "return PyNone()" = access denied to customs office.
-    CustomsSE* pCOSE = sEntityList.FindOrBootSystem(m_systemID)->GetSE(itemID->value())->GetCOSE();
+    CustomsSE* pCOSE(GetCustomsOffice(m_systemID, itemID->value()));
 
     /** @todo  there's more to this...check for standings, alliance  */
     if (IsPlayerCorp(pCOSE->GetOwnerID()))
@@ -84,7 +98,7 @@ PyResult PlanetORBBound::GetSettingsInfo(PyCallArgs& call, PyInt* orbitalID)
     /*   self.orbitalData = self.remoteOrbitalRegistry.GetSettingsInfo(self.orbitalID)  << for customs offices
      *   self.selectedHour, self.taxRateValues, self.standingLevel, self.allowAlliance, self.allowStandings = self.orbitalData
      */
-    CustomsSE* pCOSE = sEntityList.FindOrBootSystem(m_systemID)->GetSE(orbitalID->value())->GetCOSE();
+    CustomsSE* pCOSE(GetCustomsOffice(m_systemID, orbitalID->value()));
     return pCOSE->GetSettingsInfo();
 }
 
@@ -101,7 +115,7 @@ PyResult PlanetORBBound::UpdateSettings(PyCallArgs& call, PyInt* orbitalID, PyIn
         return nullptr;
     }
 
-    CustomsSE* pCOSE = sEntityList.FindOrBootSystem(m_systemID)->GetSE(orbitalID->value())->GetCOSE();
+    CustomsSE* pCOSE(GetCustomsOffice(m_systemID, orbitalID->value()));
     pCOSE->UpdateSettings(reinforceValue->value(), standingValue->value(), allowAllianceValue->value(), allowStandingsValue->value(), dict);
 
     return nullptr;
@@ -133,6 +147,12 @@ PyResult PlanetORBBound::GMChangeSpaceObjectOwner(PyCallArgs& call, PyInt* itemI
     */
     _log(PLANET__DEBUG, "PlanetORBBound::Handle_GMChangeSpaceObjectOwner - size=%lli", call.tuple->size());
     call.Dump(PLANET__DUMP);
+
+    if ((call.client->GetAccountRole() & (Acct::Role::GML | Acct::Role::GMH | Acct::Role::WORLDMOD)) == 0)
+        throw CustomError ("Not allowed");
+    CustomsSE* pCOSE(GetCustomsOffice(m_systemID, itemID->value()));
+    int32 allianceID(corpID->value() == call.client->GetCorporationID() ? call.client->GetAllianceID() : 0);
+    pCOSE->ChangeOwner(corpID->value(), allianceID);
 
     return PyStatic.NewNone();
 }

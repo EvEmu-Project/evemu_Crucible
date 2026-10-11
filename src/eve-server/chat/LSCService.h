@@ -56,6 +56,12 @@ public:
 
     PyResult ExecuteCommand(Client *from, const char *msg);
 
+    /* chat gags (/gag, /ungag).  kept in memory: a server restart lifts them */
+    static void Gag(uint32 charID, int64 until, const std::string& reason);
+    static void Ungag(uint32 charID);
+    // true while the character is gagged.  fills in when it ends (filetime) and why
+    static bool IsGagged(uint32 charID, int64& until, std::string& reason);
+
     void CharacterLogin(Client *pClient);
     void SendServerMOTD(Client* pClient);
 
@@ -74,6 +80,7 @@ protected:
     LSCDB m_db;
 
     std::map<int32, LSCChannel*> m_channels;  //we own these pointers
+    static std::map<uint32, std::pair<int64, std::string>> s_gags;   // charID -> (until, reason)
 
     PyResult GetChannels(PyCallArgs& call);
     PyResult GetRookieHelpChannel(PyCallArgs& call);

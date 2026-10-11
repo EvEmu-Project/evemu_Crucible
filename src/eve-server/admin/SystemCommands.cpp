@@ -27,6 +27,7 @@
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/BeltMgr.h"
 #include "admin/CommandHelper.h"
+#include "pos/Structure.h"
 #include "tables/invGroups.h"
 #include "tables/invCategories.h"
 
@@ -1022,42 +1023,96 @@ PyResult Command_cloak(Client* pClient, CommandDB* db, EVEServiceManager &servic
 }
 
 PyResult Command_hop(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
-    /*22:49:01 W GMCommands: Command_hop(): This command passes args.argCount() = 1.
-     * sm.RemoteSvc('slash').SlashCmd('/hop %s' % distance)
-     */
-    return nullptr;
+    /* sm.RemoteSvc('slash').SlashCmd('/hop %s' % distance)
+     * the benchmark script sends '/hop 10000' right after undocking, so plain numbers are meters.
+     * moves the ship that far along its heading */
+    if (args.argCount() < 2)
+        throw CustomError ("Correct Usage: /hop (distance)[m|km|au]");
+    if (!pClient->IsInSpace())
+        throw CustomError ("You must be in space to hop.");
+
+    std::string arg(args.arg(1));
+    char* end(nullptr);
+    double distance(strtod(arg.c_str(), &end));
+    std::string unit(end);
+    if (unit.empty() and (args.argCount() > 2))
+        unit = args.arg(2);
+    if (EvE::icontains(unit, "au")) {
+        distance *= ONE_AU_IN_METERS;
+    } else if (EvE::icontains(unit, "km")) {
+        distance *= 1000;
+    }
+    if ((distance <= 0) or (distance > (100 * ONE_AU_IN_METERS)))
+        throw CustomError ("Distance must be between 0 and 100au");
+
+    GVector heading(pClient->GetShipSE()->DestinyMgr()->GetHeading());
+    if (heading.isZero())
+        heading = pClient->GetShipSE()->DestinyMgr()->GetVelocity();
+    if (heading.isZero()) {
+        GPoint random(NULL_ORIGIN);
+        random.MakeRandomPointOnSphere(1.0);
+        heading = random;
+    }
+    heading.normalize();
+
+    GPoint pos(pClient->GetShipSE()->GetPosition() + (heading * distance));
+    pClient->MoveToLocation(pClient->GetLocationID(), pos);
+    return new PyString("Hopped.");
 }
 
-//13:54:11 W GMCommands: Command_sov(): This command passes args.argCount() = 3.
+namespace {
+    StructureSE* GetStructure(Client* pClient, const Seperator& args, uint32 index) {
+        if (!pClient->IsInSpace())
+            throw CustomError ("You must be in space.");
+        if ((args.argCount() <= index) or !args.isNumber(index))
+            throw CustomError ("Missing structure itemID");
+        uint32 itemID(atoi(args.arg(index).c_str()));
+        SystemEntity* pSE(pClient->SystemMgr()->GetSE(itemID));
+        if ((pSE == nullptr) or (pSE->GetPOSSE() == nullptr))
+            throw CustomError ("%u is not a structure in this system", itemID);
+        return pSE->GetPOSSE();
+    }
+}
+
 PyResult Command_sov(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
-    sLog.Warning("GMCommands: Command_sov()", "This command passes args.argCount() = %u.", args.argCount());
     /*
      *  ' /sov complete ' + str(itemID)
+     *  finishes whatever the sov structure is doing (anchoring, onlining, etc) now
      */
-    /*
-     * 16:40:32 [CmdDump]   Call Arguments:
-     * 16:40:32 [CmdDump]       Tuple: 1 elements
-     * 16:40:32 [CmdDump]         [ 0] String: '/sov complete 140035963'
-     */
-    return nullptr;
+    if ((args.argCount() < 3) or (strcasecmp(args.arg(1).c_str(), "complete") != 0))
+        throw CustomError ("Correct Usage: /sov complete (itemID)");
+    StructureSE* pSE(GetStructure(pClient, args, 2));
+    if (!pSE->CompleteStateChange())
+        return new PyString("Nothing to complete.");
+    return new PyString("Completed.");
 }
 
-//13:54:11 W GMCommands: Command_pos(): This command passes args.argCount() = 3.
 PyResult Command_pos(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
-//    sLog.Warning("SystemCommands: Command_pos()", "This command passes args.argCount() = %u.", args.argCount());
-
     /*
      * ' /pos online ' + str(itemID)
      * ' /pos unanchor ' + str(itemID)
      * ' /pos anchor ' + str(itemID)
      * ' /pos offline ' + str(itemID)
      * ' /pos fuel [itemID]
+     *  these skip the anchoring/onlining delays
      */
+    if (args.argCount() < 3)
+        throw CustomError ("Correct Usage: /pos (online|offline|anchor|unanchor) (itemID)");
+    std::string cmd(args.arg(1));
+    StructureSE* pSE(GetStructure(pClient, args, 2));
 
-    /*
-     * 16:39:26 [CmdDump]   Call Arguments:
-     * 16:39:26 [CmdDump]       Tuple: 1 elements
-     * 16:39:26 [CmdDump]         [ 0] String: '/pos offline 140035963'
-     */
-    return nullptr;
+    if (strcasecmp(cmd.c_str(), "online") == 0) {
+        pSE->Activate(EVEEffectID::onlineForStructures);
+    } else if (strcasecmp(cmd.c_str(), "offline") == 0) {
+        pSE->Deactivate(EVEEffectID::onlineForStructures);
+    } else if (strcasecmp(cmd.c_str(), "anchor") == 0) {
+        GPoint pos(pSE->GetPosition());
+        pSE->SetAnchor(pClient, pos);
+    } else if (strcasecmp(cmd.c_str(), "unanchor") == 0) {
+        pSE->PullAnchor();
+    } else {
+        throw CustomError ("/pos %s is not supported", cmd.c_str());
+    }
+    pSE->CompleteStateChange();
+    return new PyString("Done.");
 }

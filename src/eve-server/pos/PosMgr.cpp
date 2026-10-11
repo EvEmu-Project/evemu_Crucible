@@ -724,6 +724,14 @@ PyResult PosMgrBound::CompleteOrbitalStateChange(PyCallArgs &call, PyInt* itemID
     _log(POS__TRACE,  "PosMgrBound::Handle_CompleteOrbitalStateChange()");
     call.Dump(POS__DUMP);
 
+    if ((call.client->GetAccountRole() & (Acct::Role::GML | Acct::Role::GMH | Acct::Role::WORLDMOD)) == 0)
+        throw CustomError ("Not allowed");
+    SystemManager* pSystem(sEntityList.FindOrBootSystem(m_systemID));
+    SystemEntity* pSE(pSystem == nullptr ? nullptr : pSystem->GetSE(itemID->value()));
+    if ((pSE == nullptr) or (pSE->GetPOSSE() == nullptr))
+        throw CustomError ("%u has no state change to complete", itemID->value());
+    pSE->GetPOSSE()->CompleteStateChange();
+
     return PyStatic.NewNone();
 }
 

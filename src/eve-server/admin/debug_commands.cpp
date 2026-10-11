@@ -85,24 +85,51 @@ PyResult Command_siglist(Client* pClient, CommandDB* db, EVEServiceManager& serv
     return new PyString(reply);
 }
 
+/* /heal                  my ship
+ * /heal <charID>         that pilot's ship
+ * /heal <itemID> [...]   that ship, module ("GM: Repair this module") or object in space.  extra args are ignored
+ */
 PyResult Command_heal(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
-    if (args.argCount()== 1) {
+    if (args.argCount() == 1) {
         pClient->GetShip()->Heal();
-    } else if (args.argCount() == 2) {
-        if (!args.isNumber(1))
-            throw CustomError ("Argument 1 should be a character ID");
+        return new PyString("Heal successful!");
+    }
+    if (!args.isNumber(1))
+        throw CustomError ("Correct Usage: /heal [charID|shipID|moduleID]");
 
-        uint32 entity = atoi(args.arg(1).c_str());
-
-        Client *target = sEntityList.FindClientByCharID(entity);
-        if (target == NULL)
-            throw CustomError ("Cannot find Character by the entityID %d", entity);
-
-        target->GetShip()->Heal();
+    uint32 id(atoi(args.arg(1).c_str()));
+    if (IsCharacterID(id)) {
+        Client* pTarget(sEntityList.FindClientByCharID(id));
+        if (pTarget == nullptr)
+            throw CustomError ("Cannot find Character by the entityID %u", id);
+        pTarget->GetShip()->Heal();
+        return new PyString("Heal successful!");
     }
 
-    return(new PyString("Heal successful!"));
+    // something in space here (an npc, structure, drone...)
+    SystemEntity* pSE((pClient->SystemMgr() == nullptr) ? nullptr : pClient->SystemMgr()->GetSE(id));
+    if ((pSE != nullptr) and !pSE->IsShipSE()) {
+        InventoryItemRef iRef(pSE->GetSelf());
+        iRef->SetAttribute(AttrDamage, EvilZero);
+        iRef->SetAttribute(AttrArmorDamage, EvilZero);
+        iRef->SetAttribute(AttrShieldCharge, iRef->GetAttribute(AttrShieldCapacity));
+        pSE->SendDamageStateChanged();
+        return new PyString("Heal successful!");
+    }
+
+    InventoryItemRef iRef(sItemFactory.GetItemRef(id));
+    if (iRef.get() == nullptr)
+        throw CustomError ("Cannot find item %u", id);
+    if (iRef->categoryID() == EVEDB::invCategories::Ship) {
+        ShipItemRef sRef(sItemFactory.GetShipRef(id));
+        if (sRef.get() != nullptr)
+            sRef->Heal();
+    } else {
+        // a module or charge
+        iRef->SetAttribute(AttrDamage, EvilZero);
+    }
+    return new PyString("Repaired.");
 }
 
 PyResult Command_healtarget(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)

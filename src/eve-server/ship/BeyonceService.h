@@ -65,6 +65,7 @@ protected:
     PyResult CmdWarpToStuffAutopilot(PyCallArgs& call, PyInt* destID);
     PyResult CmdStop(PyCallArgs& call);
     PyResult CmdDock(PyCallArgs& call, PyInt* celestialID, PyInt* shipID, std::optional<PyRep*> paymentRequired);
+    PyResult CmdTurboDock(PyCallArgs& call, PyInt* stationID, std::optional<PyRep*> paymentRequired);
     PyResult CmdStargateJump(PyCallArgs& call, PyInt* fromStargateID, PyInt* toStargateID, PyInt* shipID);
     PyResult CmdAbandonLoot(PyCallArgs& call, PyList* wreckIDs);
     PyResult UpdateStateRequest(PyCallArgs& call);

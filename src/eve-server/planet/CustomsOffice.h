@@ -70,6 +70,9 @@ public:
 
     void    VerifyAddItem(InventoryItemRef iRef);   // this must throw on failure
 
+    // GM: Take Control
+    void    ChangeOwner(uint32 corpID, int32 allianceID);
+
 protected:
     void                        SendSlimUpdate();
     void                        SendEffectUpdate(int16 effectID, bool active);

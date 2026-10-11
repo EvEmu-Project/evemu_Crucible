@@ -6,6 +6,8 @@
 #include "admin/SystemCommands.h"
 
 #include "admin/debug_commands.h"
+#include "admin/DungeonCommands.h"
+#include "admin/GMToolCommands.h"
 
 //clean up macros
 #undef COMMAND

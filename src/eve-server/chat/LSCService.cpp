@@ -400,15 +400,47 @@ PyResult LSCService::SendMessage(PyCallArgs& call, PyRep* channelInfo, PyWString
         return PyStatic.NewNone();
     }
 
+    if (message.empty())
+        return PyStatic.NewNone();
+
     if (message.at(0) == '.') {
         _log(LSC__INFO, "SlashService->SlashCmd() called via LSC Service");
         m_slash->SlashCommand(call.client, message);
         itr->second->SendMessage(call.client, message.c_str(), true);
     } else {
+        int64 until(0);
+        std::string reason;
+        if (IsGagged(call.client->GetCharacterID(), until, reason)) {
+            int64 minutes((until - GetFileTimeNow()) / Win32Time_Minute + 1);
+            throw CustomError ("You are gagged for another %lli minutes: %s", minutes, reason.c_str());
+        }
         itr->second->SendMessage(call.client, message.c_str());
     }
 
     return PyStatic.NewNone();
+}
+
+std::map<uint32, std::pair<int64, std::string>> LSCService::s_gags;
+
+void LSCService::Gag(uint32 charID, int64 until, const std::string& reason) {
+    s_gags[charID] = std::make_pair(until, reason);
+}
+
+void LSCService::Ungag(uint32 charID) {
+    s_gags.erase(charID);
+}
+
+bool LSCService::IsGagged(uint32 charID, int64& until, std::string& reason) {
+    std::map<uint32, std::pair<int64, std::string>>::iterator itr = s_gags.find(charID);
+    if (itr == s_gags.end())
+        return false;
+    if (itr->second.first <= GetFileTimeNow()) {
+        s_gags.erase(itr);
+        return false;
+    }
+    until = itr->second.first;
+    reason = itr->second.second;
+    return true;
 }
 
 PyResult LSCService::AccessControl(PyCallArgs& call, PyRep* channelInfo, PyInt* characterID, PyInt* role)

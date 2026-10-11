@@ -69,6 +69,7 @@ protected:
     PyResult OverloadRack(PyCallArgs& call, PyInt* itemID);
     PyResult StopOverloadRack(PyCallArgs& call, PyInt* itemID);
     PyResult CharGetInfo(PyCallArgs& call);
+    PyResult LogAttribute(PyCallArgs& call, PyInt* itemID, PyInt* attributeID, std::optional<PyRep*> reason);
     PyResult ItemGetInfo(PyCallArgs& call, PyInt* itemID);
     PyResult GetAllInfo(PyCallArgs& call, PyBool* getCharInfo, PyBool* getShipInfo);
     PyResult DestroyWeaponBank(PyCallArgs& call, PyInt* shipID, PyInt* itemID);

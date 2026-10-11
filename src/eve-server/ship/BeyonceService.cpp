@@ -98,6 +98,7 @@ BeyonceBound::BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Clien
     this->Add("CmdStop", &BeyonceBound::CmdStop);
     this->Add("CmdWarpToStuff", &BeyonceBound::CmdWarpToStuff);
     this->Add("CmdDock", &BeyonceBound::CmdDock);
+    this->Add("CmdTurboDock", &BeyonceBound::CmdTurboDock);
     this->Add("CmdStargateJump", &BeyonceBound::CmdStargateJump);
     this->Add("UpdateStateRequest", &BeyonceBound::UpdateStateRequest);
     this->Add("CmdWarpToStuffAutopilot", &BeyonceBound::CmdWarpToStuffAutopilot); //*
@@ -678,6 +679,38 @@ PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* ship
     call.client->SetDockStationID( celestialID->value() );
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
+    return pDestiny->AttemptDockOperation();
+}
+
+// GM (ctrl+shift+alt dock): skips the approach by moving the ship to the station first
+PyResult BeyonceBound::CmdTurboDock(PyCallArgs &call, PyInt* stationID, std::optional<PyRep*> paymentRequired) {
+    if ((call.client->GetAccountRole() & Acct::Role::GML) != Acct::Role::GML)
+        throw CustomError ("Not allowed");
+    if (call.client->IsSessionChange()) {
+        call.client->SendNotifyMsg("Session Change currently active.");
+        return PyStatic.NewNone();
+    }
+    ShipSE* pShip(call.client->GetShipSE());
+    SystemManager* pSystem(call.client->SystemMgr());
+    if ((pShip == nullptr) or (pShip->DestinyMgr() == nullptr) or (pSystem == nullptr))
+        return PyStatic.NewNone();
+    SystemEntity* pStation(pSystem->GetSE(stationID->value()));
+    if ((pStation == nullptr) or !pStation->IsStationSE())
+        throw CustomError ("Station %u not found", stationID->value());
+
+    DestinyManager* pDestiny(pShip->DestinyMgr());
+    if (pDestiny->IsWarping())
+        pDestiny->Stop();
+    // just outside the station, on the side the ship is on
+    GVector dir(pStation->GetPosition(), pShip->GetPosition());
+    if (dir.isZero())
+        dir = GVector(1, 0, 0);
+    dir.normalize();
+    GPoint pos(pStation->GetPosition() + (dir * (pStation->GetRadius() + pShip->GetRadius() + 500)));
+    pDestiny->Halt();
+    pDestiny->SetPosition(pos, true);
+
+    call.client->SetDockStationID(stationID->value());
     return pDestiny->AttemptDockOperation();
 }
 

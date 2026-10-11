@@ -80,6 +80,7 @@ DogmaIMBound::DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint3
     this->Add("StopOverloadRack", &DogmaIMBound::StopOverloadRack);
     this->Add("CharGetInfo", &DogmaIMBound::CharGetInfo);
     this->Add("ItemGetInfo", &DogmaIMBound::ItemGetInfo);
+    this->Add("LogAttribute", &DogmaIMBound::LogAttribute);
     this->Add("GetAllInfo", &DogmaIMBound::GetAllInfo);
     this->Add("DestroyWeaponBank", &DogmaIMBound::DestroyWeaponBank);
     this->Add("GetCharacterBaseAttributes", &DogmaIMBound::GetCharacterBaseAttributes);
@@ -135,6 +136,32 @@ PyResult DogmaIMBound::GetCharacterBaseAttributes(PyCallArgs& call)
     return result;
 }
 
+
+PyResult DogmaIMBound::LogAttribute(PyCallArgs& call, PyInt* itemID, PyInt* attributeID, std::optional<PyRep*> reason)
+{
+    /* godma.LogAttribute (ctrl+click an attribute in show info).  the client LogError()s each line we return
+     *   ret = dogmaLM.LogAttribute(itemID, attributeID, 'Value on client was %s.' % clientValue)
+     */
+    if ((call.client->GetAccountRole() & (Acct::Role::CONTENT | Acct::Role::QA | Acct::Role::PROGRAMMER | Acct::Role::GMH)) == 0)
+        return PyStatic.NewNone();
+
+    PyList* list = new PyList();
+    InventoryItemRef iRef(sItemFactory.GetItemRef(itemID->value()));
+    if (iRef.get() == nullptr) {
+        list->AddItem(new PyString("Server: item " + std::to_string(itemID->value()) + " not found"));
+        return list;
+    }
+    uint16 attrID(attributeID->value());
+    char buf[256];
+    snprintf(buf, sizeof(buf), "Server: %s(%u) attribute %u: value %s, default %s",
+             iRef->name(), iRef->itemID(), attrID,
+             iRef->GetAttribute(attrID).to_str().c_str(),
+             iRef->GetDefaultAttribute(attrID).to_str().c_str());
+    list->AddItem(new PyString(buf));
+    if (reason.has_value() and (reason.value()->IsString() or reason.value()->IsWString()))
+        list->AddItem(new PyString(PyRep::StringContent(reason.value())));
+    return list;
+}
 
 PyResult DogmaIMBound::ItemGetInfo(PyCallArgs& call, PyInt* itemID) {
     // called when item 'row' info not in shipState data from GetAllInfo() return

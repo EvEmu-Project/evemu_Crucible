@@ -269,6 +269,18 @@ void CustomsSE::SendEffectUpdate(int16 effectID, bool active)
     m_destiny->SendSingleDestinyEvent(&event);   // consumed
 }
 
+void CustomsSE::ChangeOwner(uint32 corpID, int32 allianceID)
+{
+    m_self->ChangeOwner(corpID, true);
+    m_ownerID = corpID;
+    m_corpID = corpID;
+    m_allyID = allianceID;
+    m_cData.ownerID = corpID;
+    m_oData.standingOwnerID = corpID;
+    m_db.UpdateCustomsData(m_cData, m_oData);
+    SendSlimUpdate();
+}
+
 void CustomsSE::SendSlimUpdate()
 {
     PyDict *slim = new PyDict();

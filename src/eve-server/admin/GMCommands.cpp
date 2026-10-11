@@ -28,6 +28,8 @@
 
 
 #include "eve-server.h"
+
+#include "account/AccountService.h"
 //#include "../../eve-common/EVE_Skills.h"
 
 #include "Client.h"
@@ -92,42 +94,34 @@ PyResult Command_search(Client* who, CommandDB* db, EVEServiceManager &services,
 
 PyResult Command_giveisk(Client* who, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
-    if (args.argCount() < 3) {
-        throw CustomError ("Correct Usage: /giveisk [entityID ('me'=self)] [amount]");
-    }
+    if (args.argCount() < 3)
+        throw CustomError ("Correct Usage: /giveisk [charID|me] [amount]");
 
-    // Check for target (arg #1) for either a number or the string "me":
-    std::string target = "";
-    if (!args.isNumber(1))
-    {
-        target = args.arg(1);
-        if (target != "me")
-            throw CustomError ("Argument 1 should be an entity ID ('me'=self)");
+    uint32 charID(0);
+    if (args.arg(1) == "me") {
+        charID = who->GetCharacterID();
+    } else if (args.isNumber(1)) {
+        charID = atol(args.arg(1).c_str());
+    } else {
+        throw CustomError ("Argument 1 should be a character ID ('me'=self)");
     }
-
-    // If target (arg #1) is not the string "me" then decode number from argument string, otherwise get this character's ID:
-    uint32 entity;
-    if (target == "")
-        entity = atol(args.arg(1).c_str());
-    else
-        entity = who->GetCharacterID();
+    if (!IsCharacterID(charID))
+        throw CustomError ("%u is not a character ID", charID);
 
     if (!args.isNumber(2))
         throw CustomError ("Argument 2 should be an amount of ISK");
-    double amount = strtod(args.arg(2).c_str(), NULL);
+    double amount(strtod(args.arg(2).c_str(), nullptr));
+    if (amount == 0.0)
+        throw CustomError ("Amount must not be zero");
 
-    Client* tgt;
-    if (entity >= maxNPCItem)
-    {
-        tgt = sEntityList.FindClientByCharID(entity);
-        if (!tgt)
-            throw CustomError ("Unable to find character %u", entity);
+    // works for offline characters too
+    std::string reason("GM grant by ");
+    reason += who->GetName();
+    if (amount > 0.0) {
+        AccountService::TransferFunds(corpSCC, charID, amount, reason, Journal::EntryType::GMCashTransfer);
+    } else {
+        AccountService::TransferFunds(charID, corpSCC, -amount, reason, Journal::EntryType::GMCashTransfer);
     }
-    else
-        throw CustomError ("Invalid entityID for characters %u", entity);
-/** @todo update this */
-    // GiveCash
-    tgt->AddBalance(amount, Account::CreditType::ISK);
     return new PyString("Operation successful.");
 }
 
@@ -194,6 +188,12 @@ PyResult Command_spawnn(Client* who, CommandDB* db, EVEServiceManager &services,
         return new PyString("Unknown typeID or typeName returned no matches.");
     }
 
+    int count(args.isNumber(1) ? atoi(args.arg(1).c_str()) : 1);
+    if (count < 1)
+        count = 1;
+    if (count > 50)
+        count = 50;
+    for (int spawned = 0; spawned < count; ++spawned) {
     GPoint loc(who->GetShipSE()->GetPosition());
     // Calculate a random coordinate on the sphere centered on the player's position with
     // a radius equal to the radius of the ship/celestial being spawned times 10 for really good measure of separation:
@@ -230,8 +230,9 @@ PyResult Command_spawnn(Client* who, CommandDB* db, EVEServiceManager &services,
     // Actually do the spawn using SystemManager's BuildEntity:
     if (!who->SystemMgr()->BuildDynamicEntity(entity))
         return new PyString("Spawn Failed: typeID or typeName not supported.");
+    }
 
-    sLog.Yellow("Command", "%s: Spawned %u.", who->GetName(), typeID);
+    sLog.Yellow("Command", "%s: Spawned %u x%i.", who->GetName(), typeID, count);
 
     return new PyString("Spawn successful.");
 }
@@ -493,61 +494,48 @@ PyResult Command_setattr(Client* who, CommandDB* db, EVEServiceManager &services
 
 PyResult Command_fit(Client* who, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
-    throw CustomError ("This command is currently disabled.");
-/*
-    uint32 typeID = 0;
-    uint32 itemID = 0;
-    EVEItemFlags flag = (EVEItemFlags)0;
-    uint32 powerSlot = 0;
-    uint32 useableSlot = 0;
-    std::string affectName = "online";
+    if ((args.argCount() < 3) or !args.isNumber(2))
+        throw CustomError ("Correct Usage: /fit [me|charID] [typeID]");
 
-    if (args.argCount() < 3) {
-        throw CustomError ("Correct Usage: /fit [me|itemID] [typeID] [flag=??]");
+    Client* pTarget(who);
+    if (args.arg(1) != "me") {
+        if (!args.isNumber(1))
+            throw CustomError ("Argument 1 should be 'me' or a character ID");
+        pTarget = sEntityList.FindClientByCharID(atoi(args.arg(1).c_str()));
+        if (pTarget == nullptr)
+            throw CustomError ("Character %s is not online", args.arg(1).c_str());
     }
+    if (pTarget->InPod())
+        throw CustomError ("You can't fit modules to a capsule");
 
-    // DNA tells us what slot to use but we're going to ignore it
-    if (args.arg(1) == "me") {
-        itemID = who->GetShip()->itemID();
-    } else {
-        itemID = atoi(args.arg(1).c_str());
+    uint32 typeID(atoi(args.arg(2).c_str()));
+    const ItemType* pType(sItemFactory.GetType(typeID));
+    if ((pType == nullptr) or ((pType->categoryID() != EVEDB::invCategories::Module) and (pType->categoryID() != EVEDB::invCategories::Subsystem)))
+        throw CustomError ("%u is not a module", typeID);
+
+    ShipItemRef sRef(pTarget->GetShip());
+    ItemData idata(typeID, pTarget->GetCharacterID(), locTemp, flagNone, 1);
+    InventoryItemRef iRef(sItemFactory.SpawnItem(idata));
+    if (iRef.get() == nullptr)
+        throw CustomError ("Unable to create item of type %u", typeID);
+
+    EVEItemFlags flag(sRef->FindAvailableModuleSlot(iRef));
+    if (flag == flagIllegal) {
+        iRef->Delete();
+        throw CustomError ("No free slot for the %s", pType->name().c_str());
     }
-
-    typeID = atoi(args.arg(2).c_str());
-    if (args.argCount() >= 4) {
-        std::string::size_type n = args.arg(3).find("flag=");
-        if (n != std::string::npos) {
-            flag = (EVEItemFlags)atoi(args.arg(3).substr(5).c_str());
-        }
+    try {
+        sRef->VerifyHoldType(flag, iRef, pTarget);
+        sRef->TryModuleLimitChecks(flag, iRef);
+    } catch (...) {
+        iRef->Delete();
+        throw;
     }
-
-
-    if (typeID == 0) {
-        throw PyException(MakeCustomError("Unable to create item of type %u.", typeID));
-    } else {
-        ItemData idata(
-                       typeID,
-                       who->GetCharacterID(),
-                       30002187, //temp location
-                       flagHangar,
-                       1
-                       );
-
-        InventoryItemRef i = sItemFactory.SpawnItem(idata);
-        if (!i) {
-            throw PyException(MakeCustomError("Unable to create item of type %u.", typeID));
-        }
-
-        //ShipItemRef ship = services->item_factory->GetShip(itemID);
-        //who->MoveItem(i->itemID(), itemID, flag);
-        //i->Move(itemID, flag);
-        //ship->AddItem(i);
-
-        //return new PyBool(true);
+    if (sRef->AddItemByFlag(flag, iRef, pTarget) < 1) {
+        iRef->Delete();
+        throw CustomError ("Could not fit the %s", pType->name().c_str());
     }
-    //return new PyBool(false);
-    return PyStatic.NewOne();
-    */
+    return new PyString("Fitted.");
 }
 
 PyResult Command_giveallskills(Client* who, CommandDB* db, EVEServiceManager &services, const Seperator& args) {
@@ -651,8 +639,10 @@ PyResult Command_giveskill(Client* who, CommandDB* db, EVEServiceManager &servic
     if (args.argCount() == 4) {
         if (args.isNumber(1)) {
             ownerID = atoi(args.arg(1).c_str());
-            character = sEntityList.FindClientByCharID(ownerID)->GetChar();
-            pTarget = character->GetClient();
+            pTarget = sEntityList.FindClientByCharID(ownerID);
+            if (pTarget == nullptr)
+                throw CustomError ("Character %u is not online.", ownerID);
+            character = pTarget->GetChar();
         } else if (args.arg(1) == "me") {
             ownerID = who->GetCharacterID();
             character = who->GetChar();
@@ -736,32 +726,34 @@ PyResult Command_giveskill(Client* who, CommandDB* db, EVEServiceManager &servic
 }
 
 PyResult Command_online(Client *who, CommandDB *db, EVEServiceManager& services, const Seperator &args) {
-    if (args.argCount() == 2) {
-        if (strcmp("me", args.arg(1).c_str())!=0)
-            if (!args.isNumber(1))
-                throw CustomError ("Argument 1 should be an entity ID or me (me=self)");
+    // the client's "/Online modules" sends the shipID
+    if (args.argCount() != 2)
+        throw CustomError ("Correct Usage: /online [me|charID|shipID]");
 
-        uint32 entity(atoi(args.arg(1).c_str()));
-        Client* tgt(nullptr);
-
-        if (strcmp("me", args.arg(1).c_str())==0) {
-            tgt = who;
-        } else {
-            tgt = sEntityList.FindClientByCharID(entity);
-            if (!tgt)
-                throw CustomError ("Unable to find character %u", entity);
-        }
-
-        if (!tgt->InPod()) {
-            tgt->GetShip()->OnlineAll();
-        } else {
+    ShipItemRef sRef;
+    if (args.arg(1) == "me") {
+        if (who->InPod())
             throw CustomError ("Command failed: You can't activate modules while in a pod");
+        sRef = who->GetShip();
+    } else if (args.isNumber(1)) {
+        uint32 id(atoi(args.arg(1).c_str()));
+        if (IsCharacterID(id)) {
+            Client* pTarget(sEntityList.FindClientByCharID(id));
+            if (pTarget == nullptr)
+                throw CustomError ("Unable to find character %u", id);
+            if (pTarget->InPod())
+                throw CustomError ("Command failed: You can't activate modules while in a pod");
+            sRef = pTarget->GetShip();
+        } else {
+            sRef = sItemFactory.GetShipRef(id);
         }
-
-        return(new PyString("All modules have been put Online"));
     } else {
-        throw CustomError ("Command failed: You got the arguments all wrong.");
+        throw CustomError ("Argument 1 should be me, a character ID or a ship ID");
     }
+    if (sRef.get() == nullptr)
+        throw CustomError ("Unable to find that ship");
+    sRef->OnlineAll();
+    return(new PyString("All modules have been put Online"));
 }
 
 PyResult Command_unload(Client *who, CommandDB *db, EVEServiceManager& services, const Seperator &args) {
@@ -802,8 +794,22 @@ PyResult Command_unload(Client *who, CommandDB *db, EVEServiceManager& services,
         //if (tgt->IsInSpace())
         //    throw CustomError ("Character needs to be docked.");
 
-        if (args.argCount() == 3 && strcmp("all", args.arg(2).c_str())!=0)
-            tgt->GetShip()->GetModuleManager()->UnfitModule( itemID );
+        if (args.argCount() == 3 && strcmp("all", args.arg(2).c_str())!=0) {
+            // the client's "GM: /unload me this type" sends a typeID rather than an itemID
+            std::vector<InventoryItemRef> modules;
+            tgt->GetShip()->GetModuleManager()->GetModuleListOfRefsAsc(modules);
+            bool found(false);
+            for (auto cur : modules)
+                if (cur->itemID() == itemID)
+                    found = true;
+            if (found) {
+                tgt->GetShip()->GetModuleManager()->UnfitModule( itemID );
+            } else {
+                for (auto cur : modules)
+                    if (cur->typeID() == itemID)
+                        tgt->GetShip()->GetModuleManager()->UnfitModule( cur->itemID() );
+            }
+        }
 
         if (args.argCount() == 3 && strcmp("all", args.arg(2).c_str())==0)
             tgt->GetShip()->UnloadAllModules();
@@ -861,9 +867,13 @@ PyResult Command_dogma(Client* who, CommandDB* db, EVEServiceManager &services, 
     } else {
         i = sItemFactory.GetItemRef(atoi(args.arg(1).c_str()));
     }
+    if (i.get() == nullptr)
+        throw CustomError ("/dogma Unable to find item %s", args.arg(1).c_str());
+    uint32 attributeID(db->GetAttributeID(attributeName));
+    if (attributeID == 0)
+        throw CustomError ("/dogma Unknown attribute %s", attributeName);
 
-
-    i->SetAttribute(db->GetAttributeID(attributeName), attributeValue);
+    i->SetAttribute(attributeID, attributeValue);
     /** @todo  for modules and ships, this will need to call some kind of 'reload' to reset the attrib mem object before new attrib takes affect.  */
 
     return nullptr;
@@ -903,37 +913,37 @@ PyResult Command_kick(Client* who, CommandDB* db, EVEServiceManager &services, c
 
 PyResult Command_ban(Client* who, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
-    Client *target;
-
-    if (args.argCount() == 2)
-    {
-        if (!args.isNumber(1))
-        {
-            const char *name = args.arg(1).c_str();
-            target = sEntityList.FindClientByName(name);
+    std::string name;
+    Client* target(nullptr);
+    if (args.argCount() == 2) {
+        if (args.isNumber(1)) {
+            target = sEntityList.FindClientByCharID(atoi(args.arg(1).c_str()));
+            if (target == nullptr)
+                throw CustomError ("Character %s is not online.  Use their name to ban them while offline", args.arg(1).c_str());
+        } else {
+            name = args.arg(1);
         }
-        else
-            throw CustomError ("Correct Usage: /ban [Character Name]");
+    } else if (args.argCount() == 3) {
+        //support for characters with first and last names
+        name = args.arg(1) + " " + args.arg(2);
+    } else {
+        throw CustomError ("Correct Usage: /ban [charID|Character Name]");
     }
-    //support for characters with first and last names
-    else if (args.argCount() == 3)
-    {
-        if (args.isHexNumber(1))
-            throw CustomError ("Unknown arguments");
 
-        std::string name = args.arg(1) + " " + args.arg(2);
-        target = sEntityList.FindClientByName(name.c_str()) ;
+    if (target == nullptr)
+        target = sEntityList.FindClientByName(name.c_str());
+    if (target != nullptr) {
+        target->BanClient();
+        target->DisconnectClient();
+        return new PyString("Banned.");
     }
-    else
-        throw CustomError ("Correct Usage: /ban [Character Name]");
 
-    //ban client
-    target->BanClient();
-
-    //disconnect client
-    target->DisconnectClient();
-
-    return nullptr;
+    // offline
+    uint32 accountID(db->GetAccountID(name));
+    if (accountID == 0)
+        throw CustomError ("Cannot find character %s", name.c_str());
+    ServiceDB::SetAccountBanStatus(accountID, true);
+    return new PyString("Banned.");
 }
 
 PyResult Command_unban(Client* who, CommandDB* db, EVEServiceManager &services, const Seperator& args)
