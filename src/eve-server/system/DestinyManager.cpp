@@ -786,7 +786,11 @@ bool DestinyManager::AbortIfLoginWarping(bool showMsg) {
     return false;
 }
 
-void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/*false*/) {
+/* only sets the speed.  Crucible's destiny (SetSpeedFraction 0x10022040) just clamps and stores the fraction, so a
+ *  stopped ship stays stopped.  starting it here would also need a GotoDirection, which the client's autopilot
+ *  takes as the pilot taking over (it sets speed before approaching a gate, and switches itself off).
+ */
+void DestinyManager::SetSpeedFraction(float fraction/*1.0*/) {
     if (!std::isfinite(fraction))
         return;
     if (fraction < 0.0f) {
@@ -810,19 +814,6 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
         SendSingleDestinyUpdate(&up);   // consumed
     }
 
-    // setting a speed while stopped starts the ship moving along its current heading
-    if (startMovement and (fraction > 0.0f) and (m_ballMode == Destiny::Ball::Mode::STOP)) {
-        GVector heading(m_velocity);
-        if (heading.lengthSquared() < 0.01)
-            heading = m_shipHeading;
-        if (heading.isZero()) {
-            heading = GVector(m_position);
-            if (heading.isZero())
-                heading = GVector(0, 0, 1);
-        }
-        Normalize(heading);
-        GotoDirection(heading);
-    }
 }
 
 void DestinyManager::Stop() {
@@ -1062,10 +1053,6 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
         distance = 0;
     GPoint destination(where);
     double minRange(static_cast<double>(distance));
-
-    // check for autopilot.  it has 'special' checks in client for auto-disable by destiny update
-    if (autoPilot and (pSE != nullptr))
-        Follow(pSE, distance);
 
     GVector toDestination(m_position, destination);
     double warpDistance(toDestination.length() - minRange);

@@ -75,7 +75,7 @@ boolean can use either 0/1 OR true/false.
         <loginInfo>true</loginInfo><!-- bool -->
         <loginMsg>true</loginMsg><!-- bool -->
         <mailDelay>5</mailDelay>
-        <apWarptoDistance>1000</apWarptoDistance><!-- in meters - sets autopilot warp stop distance from object (15km default)-->
+        <apWarptoDistance>15000</apWarptoDistance><!-- in meters - sets autopilot warp stop distance from object (15km default)-->
         <saveOnMove>true</saveOnMove><!-- bool - save items when Move()'d -->
         <saveOnUpdate>true</saveOnUpdate><!-- bool - save items when values or attributes updated -->
         <shipBoardDistance>500</shipBoardDistance><!-- int  - max distance to board ship in space (5c default) -->

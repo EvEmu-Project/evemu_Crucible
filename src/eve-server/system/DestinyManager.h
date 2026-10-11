@@ -113,7 +113,7 @@ public:
     void GotoPoint(const GPoint &point);
     void GotoDirection(const GPoint &direction);
     // startMovement will start a stopped ship moving along its current heading
-    void SetSpeedFraction(float fraction=1.0f, bool startMovement=false);
+    void SetSpeedFraction(float fraction=1.0f);
 
     /* Larger movement */
     void WarpTo(const GPoint& where, int32 distance = 0, bool autoPilot = false, SystemEntity* pSE = nullptr);

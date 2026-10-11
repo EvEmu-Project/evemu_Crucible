@@ -169,15 +169,14 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
         return PyStatic.NewNone();
     }
 
-    /** @todo  rework this...this is to set speed ONLY...NOT to begin moving.  */
+    // this sets speed ONLY.  it doesn't start a stopped ship moving (see DestinyManager::SetSpeedFraction)
     // client should not legally send anything < 0.1 (except on rare occasion a 0.0 instead of Stop.)
     if ((speedFraction->value() != 0) && (speedFraction->value() < 0.1))
         return PyStatic.NewNone();
 
     //sLog.Warning( "BeyonceBound", "Handle_CmdSetSpeedFraction %.2f", arg.arg );
-    // a stopped ship starts moving along its heading.  a moving ship just changes speed
     if (!call.client->IsUndock())
-        pDestiny->SetSpeedFraction(speedFraction->value(), true);
+        pDestiny->SetSpeedFraction(speedFraction->value());
 
     return PyStatic.NewNone();
 }
@@ -612,7 +611,7 @@ PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) 
     //call.client->UpdateSession();
     //call.client->SendSessionChange();
 
-    uint16 distance = sConfig.world.apWarptoDistance;    //10km default
+    uint16 distance = sConfig.world.apWarptoDistance;    // 15km default, as in Crucible (it became 10km in 2019)
     //Adding in ship and target object radius'
     //distance += call.client->GetShipSE()->GetRadius() + pSE->GetRadius();
     pDestiny->WarpTo(pSE->GetPosition(), distance, true, pSE);
