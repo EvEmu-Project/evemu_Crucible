@@ -280,19 +280,26 @@ PyResult ShipBound::Undock(PyCallArgs &call, PyInt* shipID, PyBool* ignoreContra
         sLog.Error("ShipBound::Handle_ActivateShip()", "%s: Failed to get ship item.", pClient->GetName());
         throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 15173");
     }
+    if (!pClient->IsDocked() || shipID->value()!=pShip->itemID() || pShip->ownerID()!=pClient->GetCharacterID())
+        throw CustomError("The requested ship is not available for undocking.");
 
     // nowhere near implementing ignoreContraband yet....
 
     //  get vector of online modules as (k,v) pair,
     //    where key is slotID, value is moduleID
     if (call.byname.find("onlineModules") != call.byname.end()) {
+        if (!call.byname["onlineModules"]->IsDict()) throw CustomError("Invalid online module list.");
         PyDict* onlineModules = call.byname["onlineModules"]->AsDict();
         if (is_log_enabled(MODULE__INFO)) {
             _log(MODULE__INFO, "Dumping 'onlineModules' List");
             onlineModules->Dump(MODULE__INFO, "   ");
         }
         PyDict::const_iterator cur = onlineModules->begin(), end = onlineModules->end();
-        for (; cur != end; ++cur)
+        for (; cur != end; ++cur) {
+            if (!cur->second->IsInt() || !pShip->GetModuleManager()->GetModule(uint32(cur->second->AsInt()->value())))
+                throw CustomError("The requested module is not fitted to this ship.");
+        }
+        for (cur=onlineModules->begin();cur!=end;++cur)
             pShip->AddModuleToOnlineVec(cur->second->AsInt()->value());
     }
 

@@ -26,6 +26,9 @@
 #include "inventory/InventoryBound.h"
 #include "inventory/InvBrokerService.h"
 #include "dogmaim/DogmaIMService.h"
+#include "ship/ShipService.h"
+#include "ship/BeyonceService.h"
+#include "system/Damage.h"
 #include <chrono>
 #include <limits>
 #include <memory>
@@ -932,8 +935,22 @@ void MarketCrashAudit(const char* mode, EVEServiceManager& services) {
 #include "testing/StandingCrashAudit.inc"
 #include "testing/TradeAudit.inc"
 #include "testing/ItemStateAudit.inc"
+#include "testing/TravelCombatAudit.inc"
 
 bool IsCoreAuditMode(const char* mode) {
+    if (mode && (!std::strcmp(mode,"--core-audit-crash-travel-warp") || !std::strcmp(mode,"--core-audit-recover-travel-warp") || !std::strcmp(mode,"--core-audit-crash-travel-warp-committed") || !std::strcmp(mode,"--core-audit-recover-travel-warp-committed"))) return true;
+    if (mode && (!std::strcmp(mode,"--core-audit-crash-travel-pod") || !std::strcmp(mode,"--core-audit-recover-travel-pod") || !std::strcmp(mode,"--core-audit-crash-travel-pod-committed") || !std::strcmp(mode,"--core-audit-recover-travel-pod-committed") ||
+        !std::strcmp(mode,"--core-audit-crash-travel-gate") || !std::strcmp(mode,"--core-audit-recover-travel-gate") || !std::strcmp(mode,"--core-audit-crash-travel-gate-committed") || !std::strcmp(mode,"--core-audit-recover-travel-gate-committed"))) return true;
+    if (mode && (!std::strcmp(mode,"--core-audit-travel-warp") || !std::strcmp(mode,"--core-audit-travel-inputs") || !std::strcmp(mode,"--core-audit-travel-gate-failure") || !std::strcmp(mode,"--core-audit-combat-pod-loss"))) return true;
+    if (mode && (!std::strcmp(mode,"--core-audit-crash-travel-undock") || !std::strcmp(mode,"--core-audit-recover-travel-undock") ||
+        !std::strcmp(mode,"--core-audit-crash-travel-undock-committed") || !std::strcmp(mode,"--core-audit-recover-travel-undock-committed") ||
+        !std::strcmp(mode,"--core-audit-crash-travel-loss") || !std::strcmp(mode,"--core-audit-recover-travel-loss") ||
+        !std::strcmp(mode,"--core-audit-crash-travel-loss-committed") || !std::strcmp(mode,"--core-audit-recover-travel-loss-committed"))) return true;
+    if (mode && (!std::strcmp(mode,"--core-audit-travel-undock-failure") || !std::strcmp(mode,"--core-audit-travel-docked-rpc") ||
+        !std::strcmp(mode,"--core-audit-travel-gate-validation") || !std::strcmp(mode,"--core-audit-travel-location-failures") ||
+        !std::strcmp(mode,"--core-audit-travel-roundtrip") || !std::strcmp(mode,"--core-audit-travel-recover-fixture") ||
+        !std::strcmp(mode,"--core-audit-combat-invalid-damage") || !std::strcmp(mode,"--core-audit-combat-damage-persistence") ||
+        !std::strcmp(mode,"--core-audit-combat-weaponless-kill") || !std::strcmp(mode,"--core-audit-combat-wreck-failure"))) return true;
     if (mode && (!std::strcmp(mode,"--core-audit-crash-fitting-fit") || !std::strcmp(mode,"--core-audit-recover-fitting-fit") ||
         !std::strcmp(mode,"--core-audit-crash-fitting-fit-committed") || !std::strcmp(mode,"--core-audit-recover-fitting-fit-committed") ||
         !std::strcmp(mode,"--core-audit-crash-fitting-unfit") || !std::strcmp(mode,"--core-audit-recover-fitting-unfit") ||
@@ -966,11 +983,20 @@ bool CoreAuditEnvironmentValid() {
     DBResultRow row;
     return sDatabase.RunQuery(result, "SELECT marker FROM coreAuditEnvironment WHERE id=1") &&
            result.GetRow(row) && (!std::strcmp(row.GetText(0), "isolated-evemu-development") ||
-                                 !std::strcmp(row.GetText(0), "isolated-mining-logout-audit") || !std::strcmp(row.GetText(0), "isolated-persistence-audit"));
+                                 !std::strcmp(row.GetText(0), "isolated-mining-logout-audit") || !std::strcmp(row.GetText(0), "isolated-persistence-audit") ||
+                                 !std::strcmp(row.GetText(0), "isolated-travel-combat-audit"));
 }
 
 int RunCoreAudit(const char* mode, EVEServiceManager& services) {
     try {
+        if (std::strstr(mode,"-travel-") && (std::strstr(mode,"--core-audit-crash-")==mode || std::strstr(mode,"--core-audit-recover-")==mode)) {
+            TravelCrashAudit(mode,services);std::printf("CORE_AUDIT RESULT: %u failures\n",failures);return failures ? EXIT_FAILURE : EXIT_SUCCESS;
+        }
+        if (std::strstr(mode,"--core-audit-travel-")==mode || std::strstr(mode,"--core-audit-combat-")==mode) {
+            TravelAudit(mode,services);
+            std::printf("CORE_AUDIT RESULT: %u failures\n",failures);
+            return failures ? EXIT_FAILURE : EXIT_SUCCESS;
+        }
         if (std::strstr(mode,"-fitting-") && (std::strstr(mode,"crash") || std::strstr(mode,"recover"))) {
             FittingCrashAudit(mode,services);
             std::printf("CORE_AUDIT RESULT: %u failures\n",failures);

@@ -1186,6 +1186,7 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
 
 void InventoryItem::SaveItem()
 {
+    if (m_delete) return;
     ItemData data(m_data.name.c_str(),
                   m_type.id(),
                   m_data.ownerID,
@@ -1384,6 +1385,8 @@ PyObject* InventoryItem::ItemGetInfo()
 }
 
 void InventoryItem::SetCustomInfo(const char *ci) {
+    if (m_data.customInfo==(ci ? ci : "")) return;
+    PrepareTransaction();
     if (ci != nullptr) {
         m_data.customInfo = ci;
     } else {
@@ -1398,6 +1401,7 @@ void InventoryItem::SetPosition(const GPoint& pos)
 {
     if (m_data.position == pos)
         return;
+    PrepareTransaction();
     /*
     if (pos.isZero() and sDataMgr.IsSolarSystem(m_data.locationID)) {
         _log(DESTINY__TRACE, "II::SetPosition() - %s(%u) point is zero", m_data.name.c_str(), m_itemID);

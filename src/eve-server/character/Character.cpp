@@ -394,12 +394,18 @@ bool Character::AlterBalance(double amount, uint8 type) {
     return true;
 }
 void Character::SetLocation(uint32 stationID, SystemData& data) {
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start character location change.");
+    CharacterRef self(this);
+    const CharacterData before=m_charData;
+    DBTransaction::OnRollback([self,before]() {self->m_charData=before;});
     m_charData.locationID = (stationID == 0 ? data.systemID : stationID);
     m_charData.stationID = stationID;
     m_charData.solarSystemID = data.systemID;
     m_charData.constellationID = data.constellationID;
     m_charData.regionID = data.regionID;
     SaveCharacter();
+    if (!transaction.Commit()) throw CustomError("Character location could not be saved; travel was cancelled.");
 }
 
 void Character::SetDescription(const char *newDescription) {
@@ -1225,14 +1231,26 @@ void Character::AddItem(InventoryItemRef iRef)
 
 void Character::SetActiveShip(uint32 shipID)
 {
+    if (m_charData.shipID==shipID) return;
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot save the active ship.");
+    CharacterRef self(this);const uint32 before=m_charData.shipID;
+    DBTransaction::OnRollback([self,before]() {self->m_charData.shipID=before;});
     m_charData.shipID = shipID;
     m_db.SetCurrentShip(m_itemID, shipID);
+    if (!transaction.Commit()) throw CustomError("The active ship could not be saved.");
 }
 
 void Character::SetActivePod(uint32 podID)
 {
+    if (m_charData.capsuleID==podID) return;
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot save the active capsule.");
+    CharacterRef self(this);const uint32 before=m_charData.capsuleID;
+    DBTransaction::OnRollback([self,before]() {self->m_charData.capsuleID=before;});
     m_charData.capsuleID = podID;
     m_db.SetCurrentPod(m_itemID, podID);
+    if (!transaction.Commit()) throw CustomError("The active capsule could not be saved.");
 }
 
 void Character::ResetClone()

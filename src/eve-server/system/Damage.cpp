@@ -42,6 +42,7 @@
 #include "system/Container.h"
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
+#include <memory>
 
 /*
 DAMAGE
@@ -94,10 +95,21 @@ weaponRef(InventoryItemRef(nullptr)),
 chargeRef(InventoryItemRef(nullptr))
 {
     assert(fatal_blow and "Damage() fatal_blow called without 2nd param being true!");
+    modifier=1.0f;
 }
 
 bool SystemEntity::ApplyDamage(Damage &d) {
     double profileStartTime(GetTimeUSeconds());
+    if (!d.srcSE || !d.weaponRef || !std::isfinite(d.GetTotal()) || !std::isfinite(d.GetModifier()) ||
+        d.GetKinetic()<0 || d.GetThermal()<0 || d.GetEM()<0 || d.GetExplosive()<0 || d.GetModifier()<0)
+        return false;
+    if (m_killed) return true;
+    const bool persistentShip=IsShipSE() && !IsNPC(GetID());
+    std::unique_ptr<DBTransaction> transaction;
+    if (persistentShip) {
+        transaction.reset(new DBTransaction());
+        if (!transaction->Started()) return false;
+    }
 
     if (is_log_enabled(DAMAGE__MESSAGE)) {
         if (d.srcSE->IsNPCSE()) {
@@ -166,6 +178,7 @@ bool SystemEntity::ApplyDamage(Damage &d) {
 
     // apply damage modifier from config
     d *= sConfig.rates.damageRate;
+    if (!std::isfinite(d.GetTotal()) || d.GetTotal()<0) return false;
 
     // this is calculated and created on every call...
     Damage DamageToShield = d.MultiplyDup(
@@ -276,6 +289,14 @@ bool SystemEntity::ApplyDamage(Damage &d) {
     }
 
     if (killed) {
+        if (persistentShip && HasPilot()) {
+            try {Killed(d);}
+            catch (const PyException& error) {error.ssException->Dump(DAMAGE__ERROR,"ship destruction cancelled: ");return false;}
+            return transaction->Commit();
+        }
+        // Legacy unpiloted entities retire themselves outside the player-loss
+        // transaction. Finish the health unit before invoking that path.
+        if (transaction && !transaction->Commit()) return false;
         if (m_killed)
             return true;
 
@@ -287,6 +308,10 @@ bool SystemEntity::ApplyDamage(Damage &d) {
         Killed(d);  // this must NOT remove dead SE from system.
         SystemEntity::Killed(d);    // this removes dead SE from system then deletes itemRef and all its contents
     } else {
+        if (persistentShip) {
+            m_self->GetAttributeMap()->SaveShipState();
+            if (!transaction->Commit()) return false;
+        }
         /**
          * ALL dmg msgs working  22Apr15 (hacked - found the actual msgIDs)
          * fixed msgIDs and removed xmlp  - 15Sept19
@@ -361,9 +386,166 @@ bool SystemEntity::ApplyDamage(Damage &d) {
     return killed;
 }
 
+// Preserve the existing security policy after a committed player loss. Its
+// aggression/war eligibility rules require a separate gameplay audit.
+static void PublishKillSecurity(SystemManager* system,Client* victim,SystemEntity* killer) {
+    if (!killer->HasPilot() || killer->GetPilot()==victim || system->GetSystemSecurityRating()<=0) return;
+    auto aggressor=killer->GetPilot()->GetChar();
+    const double modifier=1+((victim->GetSecurityRating()-killer->GetPilot()->GetSecurityRating())/90);
+    const double loss=6.0*system->GetSystemSecurityRating()*modifier*(killer->GetPilot()->GetSecurityRating()+10)*sConfig.rates.secRate;
+    DBTransaction::Publish([aggressor,loss]() {aggressor->secStatusChange(loss);});
+}
+
 void ShipSE::Killed(Damage &fatal_blow) {
     if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
         return; // make error here?
+    if (m_killed) return;
+
+    if (HasPilot() && GetPilot()->InPod()) {
+        Client* pilot=GetPilot();ShipItemRef deadPod=m_shipRef;
+        SystemEntity* killer=fatal_blow.srcSE ? fatal_blow.srcSE : this;
+        const GPoint position=m_destiny->GetPosition();
+        if (!std::isfinite(position.x) || !std::isfinite(position.y) || !std::isfinite(position.z))
+            throw CustomError("The capsule loss has an invalid position.");
+        DBTransaction transaction;
+        if (!transaction.Started()) throw CustomError("The capsule loss could not be saved.");
+        const std::string name=pilot->GetName()+std::string("'s Frozen Corpse");
+        ItemData corpseData(10041,m_ownerID,m_system->GetID(),flagNone,name.c_str(),position);
+        auto corpse=sItemFactory.SpawnItem(corpseData);
+        if (!corpse) throw CustomError("The corpse could not be saved; the capsule was preserved.");
+        DBSystemDynamicEntity entity = DBSystemDynamicEntity();
+        entity.itemID=corpse->itemID();entity.typeID=10041;entity.itemName=name;entity.ownerID=m_ownerID;
+        entity.corporationID=m_corpID;entity.allianceID=m_allyID;entity.factionID=m_warID;
+        entity.categoryID=EVEDB::invCategories::Celestial;entity.groupID=EVEDB::invGroups::Biomass;entity.position=position;
+        auto prepared=std::make_shared<std::unique_ptr<SystemEntity>>(DynamicEntityFactory::BuildEntity(*m_system,entity));
+        if (!*prepared) throw CustomError("The corpse could not be prepared; the capsule was preserved.");
+        KillData data = KillData();
+        data.solarSystemID=m_system->GetID();data.victimCharacterID=pilot->GetCharacterID();
+        data.victimCorporationID=m_corpID;data.victimAllianceID=m_allyID;data.victimFactionID=m_warID;
+        data.victimShipTypeID=deadPod->typeID();data.victimDamageTaken=deadPod->GetAttribute(AttrHP).get_uint32()+deadPod->GetAttribute(AttrArmorHP).get_uint32()+deadPod->GetAttribute(AttrShieldCapacity).get_uint32();
+        data.finalCharacterID=killer->HasPilot() ? killer->GetPilot()->GetCharacterID() : (killer->IsDroneSE() ? killer->GetSelf()->ownerID() : killer->GetID());
+        data.finalCorporationID=killer->GetCorporationID();data.finalAllianceID=killer->GetAllianceID();data.finalFactionID=std::min<uint32>(killer->GetWarFactionID(),500021);
+        data.finalShipTypeID=killer->GetTypeID();data.finalWeaponTypeID=fatal_blow.weaponRef ? fatal_blow.weaponRef->typeID() : 0;
+        data.finalDamageDone=fatal_blow.GetTotal();data.killTime=GetFileTimeNow();
+        data.killBlob="<items><i t=670 f=0 s=1 d=0 x=1/></items>";
+        pilot->GetChar()->LogKill(data);MapDB::AddKill(m_system->GetID());MapDB::AddFactionKill(m_system->GetID());MapDB::AddPodKill(m_system->GetID());
+        if (killer->HasPilot() && killer!=this && pilot->GetChar()->bounty()>0) killer->GetPilot()->GetChar()->PayBounty(pilot->GetChar());
+        PublishKillSecurity(m_system,pilot,killer);
+        const uint32 id=GetID(),bubble=m_bubble->GetID();SystemManager* system=m_system;
+        DBTransaction::Publish([this,deadPod,id,bubble,system,prepared]() {
+            m_killed=true;deadPod->SetPopped(true);
+            if (m_targMgr) {m_targMgr->ClearModules();m_targMgr->ClearAllTargets(false);m_targMgr->Destroyed();}
+            m_destiny->SendTerminalExplosion(id,bubble,isGlobal());
+            system->AddEntity(prepared->release());
+        });
+        pilot->ResetAfterPodded();
+        deadPod->Delete();
+        if (!transaction.Commit()) throw CustomError("The capsule loss could not be saved; the capsule was preserved.");
+        return;
+    }
+
+    // A player ship loss is one durable operation. No explosion, capsule,
+    // wreck or retired module is published until every required write commits.
+    if (HasPilot() && !GetPilot()->InPod()) {
+        Client* pilot=GetPilot();
+        ShipItemRef deadShip=m_shipRef,pod=pilot->GetPod();
+        SystemEntity* killer=fatal_blow.srcSE ? fatal_blow.srcSE : this;
+        if (!pod || !std::isfinite(fatal_blow.GetTotal()) || fatal_blow.GetTotal()<0)
+            throw CustomError("The ship loss could not be saved.");
+        GPoint position=m_destiny->GetPosition();
+        if (!std::isfinite(position.x) || !std::isfinite(position.y) || !std::isfinite(position.z))
+            throw CustomError("The ship loss has an invalid position.");
+        const uint32 deadID=GetID(),systemID=m_system->GetID(),bubbleID=m_bubble->GetID();
+        const uint32 killerID=killer->HasPilot() ? killer->GetPilot()->GetCharacterID() :
+            (killer->IsDroneSE() ? killer->GetSelf()->ownerID() : killer->GetID());
+        uint32 wreckType=sDataMgr.GetWreckID(GetTypeID());
+        if (!IsWreckTypeID(wreckType)) wreckType=26557;
+        const std::string name=deadShip->itemName()+" Wreck";
+        DBTransaction transaction;
+        if (!transaction.Started()) throw CustomError("The ship loss could not be saved.");
+        ItemData wreckData(wreckType,pilot->GetCharacterID(),systemID,flagNone,name.c_str(),position,itoa(m_allyID));
+        auto wreck=sItemFactory.SpawnWreckContainer(wreckData);
+        if (!wreck) throw CustomError("The wreck could not be saved; the ship was preserved.");
+
+        KillData data = KillData();
+        data.solarSystemID=systemID;data.victimCharacterID=pilot->GetCharacterID();
+        data.victimCorporationID=m_corpID;data.victimAllianceID=m_allyID;data.victimFactionID=m_warID;
+        data.victimShipTypeID=deadShip->typeID();
+        data.victimDamageTaken=deadShip->GetAttribute(AttrHP).get_uint32()+deadShip->GetAttribute(AttrArmorHP).get_uint32()+deadShip->GetAttribute(AttrShieldCapacity).get_uint32();
+        data.finalCharacterID=killerID;data.finalCorporationID=killer->GetCorporationID();
+        data.finalAllianceID=killer->GetAllianceID();data.finalFactionID=std::min<uint32>(killer->GetWarFactionID(),500021);
+        data.finalShipTypeID=killer->GetTypeID();data.finalWeaponTypeID=fatal_blow.weaponRef ? fatal_blow.weaponRef->typeID() : 0;
+        data.finalDamageDone=fatal_blow.GetTotal();data.killTime=GetFileTimeNow();
+
+        // Clear target/module references before the fitting transaction retires
+        // moved or destroyed modules, while retaining all live state on rollback.
+        DBTransaction::Publish([this,deadShip,deadID,bubbleID]() {
+            m_killed=true;deadShip->SetPopped(true);
+            if (m_targMgr) {m_targMgr->ClearModules();m_targMgr->ClearAllTargets(false);m_targMgr->Destroyed();}
+            AbortCycle();AbandonDrones();
+            m_destiny->SendTerminalExplosion(deadID,bubbleID,isGlobal());
+            m_destiny->SendJettisonPacket();
+        });
+        std::map<uint32,InventoryItemRef> contents;
+        deadShip->GetMyInventory()->GetInventoryMap(contents);
+        std::ostringstream blob;blob<<"<items>";
+        for (auto entry:contents) {
+            auto item=entry.second;
+            if (IsCharacterID(item->itemID()) || item->flag()==flagPilot) continue;
+            const uint32 quantity=item->quantity();
+            const EVEItemFlags flag=item->flag();
+            uint32 singleton=item->isSingleton() ? 1 : 0;
+            if (item->categoryID()==EVEDB::invCategories::Blueprint)
+                singleton=BlueprintRef::StaticCast(item)->copy() ? 2 : singleton;
+            uint32 dropped=0;
+            if (!IsRigSlot(flag) && IsEven(MakeRandomInt(0,100)))
+                dropped=quantity>1 ? MakeRandomInt(0,quantity) : 1;
+            blob<<"<i t="<<item->typeID()<<" f="<<uint32(flag)<<" s="<<singleton<<" d="<<dropped<<" x="<<(quantity-dropped)<<"/>";
+            if (dropped) {
+                InventoryItemRef survivor=item;
+                if (dropped<quantity) {
+                    survivor=item->Split(dropped,false);
+                    if (!survivor) throw CustomError("The wreck contents could not be saved.");
+                }
+                survivor->Move(wreck->itemID(),flagNone,false);
+            }
+        }
+        blob<<"</items>";data.killBlob=blob.str();pilot->GetChar()->LogKill(data);
+        PayInsurance();MapDB::AddKill(systemID);MapDB::AddFactionKill(systemID);
+        PublishKillSecurity(m_system,pilot,killer);
+
+        GPoint podPosition=position;
+        podPosition.MakeRandomPointOnSphere(deadShip->radius()+pod->radius()+MakeRandomFloat(100,200));
+        pod->Move(systemID,flagNone,false);pod->SetPosition(podPosition);pod->Heal();
+        char ci[45];snprintf(ci,sizeof(ci),"InSpace: %s(%u)",pilot->GetName(),pilot->GetCharacterID());
+        pod->SetCustomInfo(ci);pod->SaveShip();
+        pilot->GetChar()->SetActiveShip(pod->itemID());pilot->GetChar()->Move(pod->itemID(),flagPilot,true);
+
+        // Construct world entities before commit, without registering them.
+        FactionData podFaction = FactionData();
+        podFaction.ownerID=pilot->GetCharacterID();podFaction.corporationID=m_corpID;
+        podFaction.allianceID=m_allyID;podFaction.factionID=m_warID;
+        auto preparedPod=std::make_shared<std::unique_ptr<ShipSE>>(new ShipSE(pod,m_services,m_system,podFaction));
+        DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
+        wreckEntity.itemID=wreck->itemID();wreckEntity.typeID=wreckType;wreckEntity.itemName=name;
+        wreckEntity.ownerID=pilot->GetCharacterID();wreckEntity.corporationID=killer->GetCorporationID();
+        wreckEntity.allianceID=killer->GetAllianceID();wreckEntity.factionID=sDataMgr.GetWreckFaction(wreckType);
+        wreckEntity.categoryID=EVEDB::invCategories::Celestial;wreckEntity.groupID=EVEDB::invGroups::Wreck;wreckEntity.position=position;
+        auto preparedWreck=std::make_shared<std::unique_ptr<SystemEntity>>(DynamicEntityFactory::BuildEntity(*m_system,wreckEntity));
+        if (!*preparedWreck) throw CustomError("The wreck could not be prepared; the ship was preserved.");
+        deadShip->Delete();
+        DBTransaction::Publish([this,pilot,podPosition,deadShip,preparedPod,preparedWreck,deadID]() mutable {
+            pilot->ResetAfterPopped(podPosition,preparedPod->release());
+            auto wreckSE=preparedWreck->release();
+            wreckSE->GetWreckSE()->SetLaunchedByID(deadID);
+            if (pilot->InFleet()) wreckSE->GetWreckSE()->SetFleetID(pilot->GetFleetID());
+            m_system->AddEntity(wreckSE);
+            if (m_targMgr) {m_targMgr->Destroyed();SafeDelete(m_targMgr);}
+            m_system->RemoveEntity(this);
+        });
+        if (!transaction.Commit()) throw CustomError("The ship loss could not be saved; the ship was preserved.");
+        return;
+    }
 
     m_shipRef->SetPopped(true);
 
@@ -483,7 +665,7 @@ void ShipSE::Killed(Damage &fatal_blow) {
         data.finalAllianceID = killer->GetAllianceID();
         data.finalFactionID = (killer->GetWarFactionID() > 500021 ? 500021 : killer->GetWarFactionID());
         data.finalShipTypeID = killer->GetTypeID();
-        data.finalWeaponTypeID = fatal_blow.weaponRef->typeID();
+        data.finalWeaponTypeID = fatal_blow.weaponRef ? fatal_blow.weaponRef->typeID() : 0;
         data.finalSecurityStatus = 0;   /* fix this */
         data.finalDamageDone = fatal_blow.GetTotal();
 
@@ -570,6 +752,7 @@ void ShipSE::Killed(Damage &fatal_blow) {
         InventoryItemRef corpseItemRef = sItemFactory.SpawnItem( corpseItemData );
         if (corpseItemRef.get() == nullptr) {
             sLog.Error("Ship::Killed()", "Creating Corpse Item Failed for %s of type %u", corpse_name.c_str(), corpseTypeID);
+        } else {
             DBSystemDynamicEntity corpseEntity = DBSystemDynamicEntity();
             corpseEntity.allianceID = m_allyID;
             corpseEntity.categoryID = EVEDB::invCategories::Celestial;

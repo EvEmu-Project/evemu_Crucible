@@ -638,9 +638,9 @@ int main( int argc, char* argv[] )
     DBResultRow persistenceRow;
     if (!sDatabase.RunQuery(persistenceTables,
         "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() "
-        "AND table_name IN ('entity','entity_attributes','chrCharacters','crpWalletDivisons','jnlCharacters','jnlCorporations','mktOrders','mktTransactions','invBlueprints','shipInsurance','mktOrderItems','chrTradeItems','shipWeaponGroups','chrCharacterAttributes') AND engine='InnoDB'") ||
-        !persistenceTables.GetRow(persistenceRow) || persistenceRow.GetUInt(0) != 14) {
-        sLog.Error("ServerInit", "Persistence migrations including 20261011021500 and InnoDB inventory, wallet, market and fitting tables are required.");
+        "AND table_name IN ('entity','entity_attributes','chrCharacters','crpWalletDivisons','jnlCharacters','jnlCorporations','mktOrders','mktTransactions','invBlueprints','shipInsurance','mktOrderItems','chrTradeItems','shipWeaponGroups','chrCharacterAttributes','chrKillTable','chrVisitedSystems','mapDynamicData') AND engine='InnoDB'") ||
+        !persistenceTables.GetRow(persistenceRow) || persistenceRow.GetUInt(0) != 17) {
+        sLog.Error("ServerInit", "Persistence migrations including 20261011140000 and InnoDB inventory, wallet, market, fitting, travel and kill tables are required.");
         return EXIT_FAILURE;
     }
     DBQueryResult marketMoney; DBResultRow marketMoneyRow;

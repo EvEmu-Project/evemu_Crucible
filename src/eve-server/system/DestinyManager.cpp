@@ -1778,13 +1778,21 @@ void DestinyManager::WarpUpdate(double currentShipSpeed) {
 }
 
 void DestinyManager::WarpStop(double currentShipSpeed) {
+    // Keep the warp pending if its arrival cannot be saved. The next tick
+    // retries the durable write before clients see warp completion.
+    if (mySE->IsShipSE() && !IsNPC(mySE->GetID())) {
+        DBTransaction transaction;
+        if (!transaction.Started()) return;
+        mySE->GetShipSE()->GetShipItemRef()->SaveShip();
+        if (!transaction.Commit()) return;
+    }
     if (is_log_enabled(DESTINY__WARP_TRACE)) {
         _log(DESTINY__WARP_TRACE, "Destiny::WarpStop(): %s(%u) - Warp complete. Exit velocity %.4f m/s with %.2f m left to go.", \
                 mySE->GetName(), mySE->GetID(), currentShipSpeed, m_targetDistance);
         _log(DESTINY__WARP_TRACE, "Destiny::WarpStop(): %s(%u): Ship currently at %.2f,%.2f,%.2f.", \
                 mySE->GetName(), mySE->GetID(), m_position.x, m_position.y, m_position.z);
     }
-    if (mySE->IsShipSE()) {
+    if (mySE->HasPilot()) {
         _log(AUTOPILOT__MESSAGE, "Destiny::WarpStop(): %s(%u) - Warp complete.", mySE->GetName(), mySE->GetID());
         mySE->GetPilot()->SetLoginWarpComplete();
     }
@@ -2392,6 +2400,7 @@ PyResult DestinyManager::AttemptDockOperation() {
         AlignTo( station );   // Turn ship and move toward docking point - client will usually call Dock() automatically...sometimes
         if (mySE->HasPilot() and mySE->GetPilot()->CanThrow())
             throw UserError ("DockingApproach");
+        return PyStatic.NewNone();
     }
 
     pClient->SetStateTimer(Player::State::Dock, sConfig.world.StationDockDelay *1000); // default @ 4sec();

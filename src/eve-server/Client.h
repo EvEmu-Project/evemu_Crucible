@@ -187,7 +187,7 @@ public:
     void DockToStation();
     void PickAlternateShip();
     void ResetAfterPodded();
-    void ResetAfterPopped(GPoint& position);  //  delete killed ship, reset player to pod, add pod to system
+    void ResetAfterPopped(GPoint& position, ShipSE* preparedPod=nullptr);  // reset player to a committed pod and add it to the system
     void Eject();       // only called in space
     void Board(ShipSE* newShipSE); // only called when in space
     void BoardShip(ShipItemRef newShipRef); // only called when docked

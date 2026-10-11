@@ -112,13 +112,23 @@ BeyonceBound::BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Clien
     this->Add("CmdJumpThroughCorporationStructure", &BeyonceBound::CmdJumpThroughCorporationStructure);
 
     client->SetBeyonce(true);
-    if (client->IsLogin() and !client->IsSetStateSent())
+    if (client->IsInSpace() and client->GetShipSE() and client->IsLogin() and !client->IsSetStateSent())
         client->SetBallPark();
 
     this->m_bookmark = this->GetServiceManager().Lookup <BookmarkService>("bookmark");
 }
 
+PyResult BeyonceBound::Dispatch(const std::string& name, PyCallArgs& args) {
+    if (!args.client || !args.client->IsInSpace() || !args.client->GetShipSE() ||
+        !args.client->GetShipSE()->DestinyMgr() || !args.client->SystemMgr())
+        throw CustomError("Your ship must be in space before requesting movement.");
+    return EVEBoundObject<BeyonceBound>::Dispatch(name,args);
+}
+
 PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* distance) {
+    if (!distance->IsInt() && !distance->IsLong() && !distance->IsFloat()) throw CustomError("The approach range is invalid.");
+    const double range=distance->IsFloat() ? distance->AsFloat()->value() : double(PyRep::IntegerValue(distance));
+    if (!std::isfinite(range) || range<0 || range>1000000) throw CustomError("The approach range is invalid.");
     _log(AUTOPILOT__MESSAGE, "%s called Follow. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
 
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
@@ -148,12 +158,14 @@ PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* dis
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    pDestiny->Follow(pSE, PyRep::IntegerValue(distance));
+    pDestiny->Follow(pSE,static_cast<uint32>(range));
 
     return PyStatic.NewNone();
 }
 
 PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFraction) {
+    if (!std::isfinite(speedFraction->value()) || speedFraction->value()<0 || speedFraction->value()>1)
+        throw CustomError("Ship speed must be between zero and full speed.");
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -221,6 +233,9 @@ PyResult BeyonceBound::CmdAlignTo(PyCallArgs &call, PyInt* entityID) {
 }
 
 PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y, PyFloat* z) {
+    const double magnitude=std::hypot(std::hypot(x->value(),y->value()),z->value());
+    if (!std::isfinite(magnitude) || magnitude<=0 || magnitude>2)
+        throw CustomError("The movement direction is invalid.");
     _log(AUTOPILOT__MESSAGE, "%s called GotoDirection. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
@@ -241,7 +256,7 @@ PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    const GPoint dir = GPoint(x->value(), y->value(), z->value());
+    const GPoint dir = GPoint(x->value()/magnitude, y->value()/magnitude, z->value()/magnitude);
     pDestiny->GotoDirection(dir);
 
     return PyStatic.NewNone();
@@ -323,10 +338,9 @@ PyResult BeyonceBound::CmdOrbit(PyCallArgs &call, PyInt* entityID, PyRep* rangeV
         return PyStatic.NewNone();
     }
 
-    double range =
-        rangeValue->IsInt()
-        ? rangeValue->AsInt()->value()
-        : rangeValue->AsFloat()->value();
+    if (!rangeValue->IsInt() && !rangeValue->IsFloat()) throw CustomError("The orbit range is invalid.");
+    double range = rangeValue->IsInt() ? rangeValue->AsInt()->value() : rangeValue->AsFloat()->value();
+    if (!std::isfinite(range) || range<0 || range>1000000) throw CustomError("The orbit range is invalid.");
 
     SystemEntity* pEntity = pSystem->GetSE(entityID->value());
     if (pEntity == nullptr) {
@@ -376,14 +390,23 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
     }
 
     bool fleet(false);
-    if (call.byname.find("fleet") != call.byname.end())
-        if (!(call.byname.find("fleet")->second->IsNone()))
-            fleet = call.byname.find("fleet")->second->AsBool()->value();
+    if (call.byname.find("fleet") != call.byname.end()) {
+        auto value=call.byname.find("fleet")->second;
+        if (!value->IsNone()) {
+            if (!value->IsBool()) throw CustomError("The fleet warp request is invalid.");
+            fleet=value->AsBool()->value();
+        }
+    }
 
     // get the warp-to distance specified by the client
     int32 distance(0); //Was set to 5000; setting to 0 makes warp in to station and gate more realistic.
-    if (call.byname.find("minRange") != call.byname.end())
-        distance = PyRep::IntegerValueU32(call.byname.find("minRange")->second);
+    if (call.byname.find("minRange") != call.byname.end()) {
+        auto value=call.byname.find("minRange")->second;
+        if (!value->IsInt() && !value->IsLong()) throw CustomError("The warp range is invalid.");
+        const int64 requested=PyRep::IntegerValue(value);
+        if (requested<0 || requested>100000) throw CustomError("The warp range is invalid.");
+        distance=requested;
+    }
 
     GPoint warpToPoint(NULL_ORIGIN);
     SystemEntity* pSE(nullptr);
@@ -654,6 +677,9 @@ PyResult BeyonceBound::CmdStop(PyCallArgs &call) {
 
 // CmdTurboDock (in client code)
 PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* shipID, std::optional<PyRep*> paymentRequired) {
+    if (shipID->value()!=call.client->GetShipID() || !sDataMgr.IsStation(celestialID->value()) ||
+        !call.client->SystemMgr()->GetSE(celestialID->value()))
+        throw CustomError("The requested ship or docking station is unavailable.");
     _log(AUTOPILOT__MESSAGE, "%s called Dock. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     if (call.client->IsSessionChange()) {
         call.client->SendNotifyMsg("Session Change currently active.");
@@ -686,6 +712,7 @@ PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* ship
 }
 
 PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, PyInt* toStargateID, PyInt* shipID) {
+    if (shipID->value()!=call.client->GetShipID()) throw CustomError("The requested ship is unavailable.");
     /*  jump system messages....
 (67187, `{[location]system.name} Traffic Control: your jump-in clearance has expired.`)
 (67191, `{[location]system.name} Traffic Control: you have been cleared for jump-in within {[timeinterval]expiration.writtenForm, from=second, to=second}.`)

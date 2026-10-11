@@ -1062,6 +1062,7 @@ void ShipItem::OfflineAll()
 
 void ShipItem::SaveShip()
 {
+    if (IsDeleted()) return;
     SaveItem();                         // Save ship info
     pAttributeMap->SaveShipState();     // save ship damage
     m_ModuleManager->SaveModules();     // Save item info for modules fitted to this ship

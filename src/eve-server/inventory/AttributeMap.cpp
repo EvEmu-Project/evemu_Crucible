@@ -33,6 +33,7 @@
 #include "inventory/AttributeMap.h"
 #include "inventory/InventoryItem.h"
 #include <memory>
+#include <limits>
 
 
 /*
@@ -105,6 +106,7 @@ bool AttributeMap::SaveAttributes() {
 }
 
 bool AttributeMap::Save() {
+    if (mItem.IsDeleted()) return true;
     /** @note
      * we are saving:
      *   ability attribs for characters
@@ -515,7 +517,9 @@ void AttributeMap::CopyAttributes(std::map< uint16, EvilNumber >& attrMap)
 
 void AttributeMap::SaveShipState()
 {
+    if (mItem.IsDeleted()) return;
     std::ostringstream Inserts;
+    Inserts.precision(std::numeric_limits<double>::max_digits10);
     // start the insert into command.
     Inserts << "REPLACE INTO entity_attributes ";
     Inserts << " (itemID, attributeID, valueInt, valueFloat) VALUES";
@@ -591,6 +595,14 @@ void AttributeMap::SaveShipState()
         }
     }
 
+    itr = mAttributes.find(AttrCapacitorCharge);
+    if (itr != mAttributes.end()) {
+        if (save) Inserts << ",";
+        save = true;
+        Inserts << "(" << mItem.itemID() << ", " << itr->first << ", ";
+        if (itr->second.get_type() == evil_number_int) Inserts << itr->second.get_int() << ", NULL)";
+        else Inserts << " NULL, " << itr->second.get_double() << ")";
+    }
     if (save) {
         DBerror err;
         if (!sDatabase.RunQuery(err, Inserts.str().c_str())) {

@@ -6,7 +6,8 @@ double TradeScalar(const char* sql) {
 }
 void TradeFixtureGuard() {
     DBQueryResult result; DBResultRow row;
-    if (!sDatabase.RunQuery(result,"SELECT marker FROM coreAuditEnvironment WHERE id=1") || !result.GetRow(row) || std::strcmp(row.GetText(0),"isolated-persistence-audit"))
+    if (!sDatabase.RunQuery(result,"SELECT marker FROM coreAuditEnvironment WHERE id=1") || !result.GetRow(row) ||
+        (std::strcmp(row.GetText(0),"isolated-persistence-audit") && std::strcmp(row.GetText(0),"isolated-travel-combat-audit")))
         throw std::runtime_error("Trade fixtures require the disposable persistence database");
 }
 void TradeFixturePrepare() {

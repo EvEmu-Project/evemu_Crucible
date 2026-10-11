@@ -53,6 +53,7 @@ class BeyonceBound : public EVEBoundObject <BeyonceBound>
 {
 public:
     BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Client* client);
+    PyResult Dispatch(const std::string& name, PyCallArgs& args) override;
 
 protected:
     PyResult CmdFollowBall(PyCallArgs& call, PyInt* ballID, PyRep* distance);
