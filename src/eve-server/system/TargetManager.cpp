@@ -36,6 +36,7 @@
 #include "Profiler.h"
 #include "Client.h"
 #include "inventory/AttributeEnum.h"
+#include "npc/Drone.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 #include "pos/Structure.h"
@@ -348,6 +349,8 @@ void TargetManager::TargetLost(SystemEntity *tSE) {
     mySE->DestinyMgr()->EntityRemoved(tSE);
     if (mySE->IsNPCSE())
         mySE->GetNPCSE()->TargetLost(tSE);
+    if (mySE->IsDroneSE())
+        mySE->GetDroneSE()->TargetLost(tSE);
     if (!mySE->HasPilot())
         return;
     Notify_OnTarget te;

@@ -189,6 +189,10 @@ bool AttributeMap::Save() {
             if (damage)
                 if (itr->first == AttrDamage)
                     save = true;
+            // drones keep their armor damage too (launching or reloading the server must not repair them)
+            if (mItem.categoryID() == EVEDB::invCategories::Drone)
+                if (itr->first == AttrArmorDamage)
+                    save = true;
             if (module)
                 if (itr->first == AttrOnline)
                     save = true;

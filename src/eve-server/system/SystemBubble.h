@@ -164,7 +164,6 @@ public:
     void SetIHubSE(IHubSE* pIHub)                        { m_ihubSE = pIHub; }
 
     /* for system setstate */
-    PyObject* GetDroneState() const;
 
     /* for command .syncloc - updates all players in bubble with positions of all dSE */
     void SyncPos();
@@ -201,7 +200,6 @@ private:
     std::map<uint32, SystemEntity*> m_markers;          // bubble marker cans.  we do own these.
     std::map<uint32, SystemEntity*> m_dynamicEntities;  //entities which may/may not move. we do not own these.
     std::map<uint32, SystemEntity*> m_entities;         //we do not own these.
-    std::map<uint32, DroneSE*> m_drones;                //we do not own these.
 
     // for spawn system     -allan 15July15
     Timer m_spawnTimer;

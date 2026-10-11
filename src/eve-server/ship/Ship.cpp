@@ -2743,15 +2743,19 @@ void ShipSE::ApplyBoost(BoostData& bData)
 }
 //{'FullPath': u'UI/Messages', 'messageID': 257802, 'label': u'DronesDroppedBecauseOfBandwidthModificationBody'}(u'The drone control bandwidth of your ship has been modified causing you to lose the ability to control some drones.', None, None)
 
-bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
-    Character* pChar = GetPilot()->GetChar().get();
-    sLog.Magenta("ShipSE::LaunchDrone()","%s: Launching drone %u",  pChar->name(), dRef->itemID());
+/* launches one drone (a single item, not a stack) just outside the hull, under this ship's control.
+ *  limits (drone count, bandwidth) are checked by the caller
+ */
+DroneSE* ShipSE::LaunchDrone(InventoryItemRef dRef) {
+    Client* pClient(GetPilot());
+    Character* pChar(pClient->GetChar().get());
+    _log(DRONE__TRACE, "ShipSE::LaunchDrone() - %s: Launching drone %u", pChar->name(), dRef->itemID());
 
     dRef->Move(GetLocationID(), flagNone, true);
-    dRef->ChangeSingleton(true);
+    dRef->ChangeSingleton(true, true);
 
     GPoint position(GetPosition());
-    position.MakeRandomPointOnSphere(500.0);
+    position.MakeRandomPointOnSphere(GetRadius() + dRef->type().radius() + MakeRandomFloat(100.0, 400.0));
     dRef->SetPosition(position);
 
     //now we create an SE to represent it.
@@ -2761,60 +2765,8 @@ bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
         data.factionID = pChar->warFactionID();
         data.ownerID = pChar->itemID();
     DroneSE* pDrone = new DroneSE(dRef, m_services, m_system, data);
-
-    // tell new drone it's being launched.
-    pDrone->Launch(this);
-    // add drone to launched drone map (whether onlined or not)
-    m_drones.emplace(dRef->itemID(), dRef.get());
-
-    /*
-    AttrDroneBandwidth = 1271,     <-- ship attribute  (total)
-    AttrDroneBandwidthUsed = 1272, <-- drone attribute
-    AttrDroneBandwidthLoad = 1273, <-- ship attribute  (current used)
-    */
-    //  if ship doesnt have bandwidth for drone, it will not online after launch (inert)
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    load += dRef->GetAttribute(AttrDroneBandwidthUsed);
-    if (load <= m_shipRef->GetAttribute(AttrDroneBandwidth)) {
-        pDrone->Online();
-        pDrone->GetAI()->SetIdle();
-        m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
-        return true;
-    }
-    //{'FullPath': u'UI/Messages', 'messageID': 258031, 'label': u'MaxBandwidthExceededBody'}(u"You don't have enough bandwidth to launch {droneName}. You need {bandwidthNeeded} Mbit/s but {droneName} requires {droneBandwidthUsed} Mbit/s.", None, {u'{droneName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneName'}, u'{droneBandwidthUsed}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneBandwidthUsed'}, u'{bandwidthNeeded}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'bandwidthNeeded'}})
-    //{'FullPath': u'UI/Messages', 'messageID': 258041, 'label': u'MaxBandwidthExceeded2Body'}(u"You don't have enough bandwidth to launch {droneName}. You need {droneBandwidthUsed} Mbit/s but only have {bandwidthLeft} Mbit/s available.", None, {u'{droneName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneName'}, u'{bandwidthLeft}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'bandwidthLeft'}, u'{droneBandwidthUsed}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneBandwidthUsed'}})
-    return false;
+    m_system->AddEntity(pDrone);
+    pDrone->SetController(this);
+    return pDrone;
 }
 
-void ShipSE::ScoopDrone(SystemEntity* pSE) {
-    m_drones.erase(pSE->GetID());
-    pSE->GetDroneSE()->Offline();
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    load -= pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed);
-    m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
-}
-
-void ShipSE::UpdateDrones(std::map<int16, int8> &attribs) {
-    // update drones in space with new attrib settings
-    for (auto cur : m_drones) {
-        cur.second->SetAttribute(AttrDroneFocusFire, attribs[AttrDroneFocusFire]);
-        cur.second->SetAttribute(AttrDroneIsAgressive, attribs[AttrDroneIsAgressive]);
-        cur.second->SetAttribute(AttrFightersAttackAndFollow, attribs[AttrFightersAttackAndFollow]);
-        //cur.second->SetAttribute(AttrDroneIsChaotic, attribs[AttrDroneIsChaotic]);    // no longer used?
-    }
-}
-
-void ShipSE::AbandonDrones() {
-    SystemEntity* pSE(nullptr);
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    for (auto cur : m_drones) {
-        pSE = m_system->GetSE(cur.first);
-        if (pSE != nullptr)
-            if (pSE->IsDroneSE()) {
-                pSE->GetDroneSE()->Abandon();
-                load -= pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed);
-            }
-    }
-    m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
-}
-//AttrDroneControlDistance

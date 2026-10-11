@@ -42,6 +42,7 @@
  */
 class Client;
 class GenericModule;
+class DroneSE;
 
 class ShipItem
 : public InventoryItem
@@ -350,7 +351,6 @@ public:
     void DamageRandModule(float chance);
     void ResetShipSystemMgr(SystemManager* pSystem);    // this is to reset system manager for jumps, etc.
     void SaveShip()                                     { m_shipRef->SaveShip(); }
-    void UpdateDrones(std::map<int16, int8> &attribs);    // used to update drone settings
 
     //cancel all active modules
     void AbortCycle()                                   { m_shipRef->AbortCycle(); }
@@ -363,11 +363,7 @@ public:
 
     float CalculateRechargeRate(float Capacity, float RechargeTimeMS, float Current);
 
-    void AbandonDrones();
-    bool LaunchDrone(InventoryItemRef dRef);
-    void ScoopDrone(SystemEntity* pSE);
-    // returns current count of drones in space for this ship
-    uint8 DroneCount()                                  { return m_drones.size(); }
+    DroneSE* LaunchDrone(InventoryItemRef dRef);
 
     bool GetFleetSMBUsage()                             { return m_allowFleetSMBUsage; }
     void SetFleetSMBUsage(bool set=false)               { m_allowFleetSMBUsage = set; }
@@ -398,8 +394,6 @@ private:
     /*  for POS field */
     std::string m_towerPass;
 
-    /* launched drones */
-    std::map<uint32, InventoryItem*> m_drones;
 };
 
 #endif /* !__SHIP__H__INCL__ */

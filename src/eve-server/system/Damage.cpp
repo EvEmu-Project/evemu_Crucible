@@ -99,6 +99,9 @@ chargeRef(InventoryItemRef(nullptr))
 bool SystemEntity::ApplyDamage(Damage &d) {
     double profileStartTime(GetTimeUSeconds());
 
+    // aggressive drones and drones guarding us respond to this
+    DroneSE::OnAggression(this, d.srcSE);
+
     if (is_log_enabled(DAMAGE__MESSAGE)) {
         if (d.srcSE->IsNPCSE()) {
             _log(DAMAGE__MESSAGE, "%s(%u): Initializing %.2f damage from NPC %s(%u) with K:%.3f, T:%.3f, EM:%.3f, E:%.3f",\
@@ -329,23 +332,18 @@ bool SystemEntity::ApplyDamage(Damage &d) {
             d.srcSE->GetPilot()->QueueDestinyEvent(&tuple);
         } else if (d.srcSE->IsDroneSE()) {
             // verify drone has owner set
-            if (d.srcSE->GetDroneSE()->GetOwner() != nullptr) {
-                //  notify player of damage done by drone
+            Client* pController(d.srcSE->GetDroneSE()->GetControllerClient());
+            if (pController != nullptr) {
+                //  notify the controlling pilot of damage done by their drone, the same way as their own turrets'
                 PyDict* dict = new PyDict();
-                    dict->SetItemString("source", new PyInt(d.srcSE->GetID()));
+                    dict->SetItemString("weapon", new PyInt(d.srcSE->GetSelf()->typeID()));
                     dict->SetItemString("target", new PyInt(GetID()));
-                /*
-                PyTuple* tuple = new PyTuple(2);
-                    tuple->AddItem(0, PyStatic.NewNone());  // i dont know what this is
-                    tuple->AddItem(1, new PyInt(d.srcSE->GetDroneSE()->GetOwner()->GetCharID())):
-                */
-                    //dict->SetItemString("owner", tuple));
                     dict->SetItemString("damage", new PyFloat(total_damage));
                 PyTuple* tuple = new PyTuple(3);
                     tuple->SetItem(0, new PyString("OnDamageMessage"));
-                    tuple->SetItem(1, new PyString(Dmg::Msg::Taken[damageID]));
+                    tuple->SetItem(1, new PyString(Dmg::Msg::Given[damageID]));
                     tuple->SetItem(2, dict);
-                d.srcSE->GetDroneSE()->GetOwner()->QueueDestinyEvent(&tuple);
+                pController->QueueDestinyEvent(&tuple);
             } else {
                 // make error about active drone with no owner set
                 _log(DRONE__WARNING, "Drone %u attacking %s with no owner set.", d.srcSE->GetID(), GetName());
@@ -378,7 +376,9 @@ void ShipSE::Killed(Damage &fatal_blow) {
         pClient = killer->GetPilot();
         killerID = pClient->GetCharacterID();
     } else if (killer->IsDroneSE()) {
-        pClient = killer->GetDroneSE()->GetOwner();
+        pClient = killer->GetDroneSE()->GetControllerClient();
+        if (pClient == nullptr)
+            pClient = killer->GetDroneSE()->GetOwnerClient();
         if (pClient == nullptr) {
             /** @todo  make error here */
             sLog.Error("Ship::Killed()", "killer == IsDrone and pPlayer == nullptr");
@@ -498,7 +498,7 @@ void ShipSE::Killed(Damage &fatal_blow) {
         blob << "<items><i t=" << data.victimShipTypeID << " f=0 s=1 d=0 x=1/></items>";
     } else {
         AbortCycle();
-        AbandonDrones();
+        // our drones lose control when this ship is removed from the system
 
         // remove all charges (per packet data)  ...why???
         //GetShipItemRef()->UnloadAllModules();

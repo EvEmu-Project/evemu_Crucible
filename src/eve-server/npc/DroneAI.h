@@ -12,90 +12,130 @@
 
 #include "ship/modules/TurretFormulas.h"
 
-// only for drones
 namespace DroneAI {
+    // drone activity states, as the client's drones window labels them.  sent in OnDroneStateChange and the SetState droneState
     namespace State {
         enum {
-            Invalid           = -1,
-            // defined in client
-            Idle              = 0,  // not doing anything....idle.
-            Combat            = 1,  // fighting - needs targetID
-            Mining            = 2,  // unsure - needs targetID
-            Approaching       = 3,  // too close to chase, but to far to engage
-            Departing         = 4,  // return to ship
-            Departing2        = 5,  // leaving.  different from Departing
-            Pursuit           = 6,  // target out of range to attack/follow, but within npc sight range....use mwd/ab if equiped
-            Fleeing           = 7,  // running away
-            Operating         = 9,  // whats diff from engaged here?
-            Engaged           = 10, // non-combat? - needs targetID
-            // internal only
-            Unknown           = 8,  // as stated
-            Guarding          = 11,
-            Assisting         = 12,
-            Incapacitated     = 13  //
+            Idle            = 0,
+            Combat          = 1,    // "Fighting"
+            Mining          = 2,
+            Approaching     = 3,
+            Returning       = 4,    // returning to orbit the ship
+            ReturningToBay  = 5,
+            Following       = 6,    // guarding or assisting another pilot
+            Fleeing         = 7,
+            Operating       = 9,    // electronic warfare
+            Repairing       = 10    // logistics
+        };
+    }
+    // what the drone has been told to do
+    namespace Order {
+        enum {
+            Idle            = 0,    // orbit the controlling ship
+            Engage          = 1,
+            Mine            = 2,    // one cycle, then return and orbit
+            MineRepeatedly  = 3,
+            ReturnHome      = 4,
+            ReturnBay       = 5,
+            Guard           = 6,
+            Assist          = 7
+        };
+    }
+    // what the drone's main effect does to its target
+    namespace Action {
+        enum {
+            None            = 0,
+            Attack          = 1,
+            Mine            = 2,
+            RepairShield    = 3,
+            RepairArmor     = 4,
+            Web             = 5,
+            Ewar            = 6     // jammers, painters, dampeners, disruptors, neutralizers.  effects only, for now
         };
     }
 }
 
 class DroneSE;
 class SystemEntity;
-class Timer;
-class EvilNumber;
+class ShipSE;
 
 class DroneAIMgr {
 public:
-    DroneAIMgr(DroneSE *who);
+    DroneAIMgr(DroneSE* pDrone);
 
+    // called once per tick while the drone is controlled
     void Process();
 
-    void Target(SystemEntity *by_who);
-    void Targeted(SystemEntity *by_who);
-    void TargetLost(SystemEntity *by_who);
+    /* orders.  from EntityBound commands, drone settings and aggression */
+    void Engage(SystemEntity* pTarget);
+    void Mine(SystemEntity* pTarget, bool repeat);
+    void ReturnHome();
+    void ReturnToBay();
+    void Guard(uint32 charID);
+    void Assist(uint32 charID);
+    void SetIdle();             // orbit the controlling ship
+    void Stop();                // control lost.  the drone stops where it is
 
-    void ClearTargets();
-    void ClearAllTargets();
+    // our target lock was lost (target destroyed, removed, jammed...)
+    void TargetLost(SystemEntity* pTarget);
+    // someone attacked our controller, a pilot we are guarding, or us
+    void Aggressed(SystemEntity* pAttacker);
 
-    int8 GetState();
-
-    void SetIdle();
-    void Return();
-    void AssignShip(ShipSE* pSE)                        { m_assignedShip = pSE; }
-
-protected:
-    void Attack(SystemEntity* pTarget);
-    void SetEngaged(SystemEntity* pTarget);
-    void ClearTarget(SystemEntity* pTarget);
-    void AttackTarget(SystemEntity* pTarget);
-    void CheckDistance(SystemEntity* pTarget);
-
-    int8 m_state;
-    std::string GetStateName(int8 stateID);
+    uint8 GetState() const                              { return m_state; }
+    uint8 GetOrder() const                              { return m_order; }
+    uint8 GetAction() const                             { return m_action; }
+    uint32 GetTargetID() const                          { return m_targetID; }
+    uint32 GetActivityCharID() const                    { return m_activityCharID; }
+    bool IsMining() const                               { return (m_cycleActive and (m_action == DroneAI::Action::Mine)); }
 
 private:
-    //cached to reduce access times. (faster but uses more memory)
-    double m_sigRadius;
-    double m_attackSpeed;
-    double m_entityFlyRange;
-    double m_entityOrbitRange;
-    double m_entityChaseRange;
-    double m_entityAttackRange;
+    void ProcessIdle(ShipSE* pController);
+    void ProcessReturn(ShipSE* pController, bool toBay);
+    void ProcessEngage(ShipSE* pController);
+    void ProcessMine(ShipSE* pController);
+    void ProcessGuard(ShipSE* pController);
 
-    uint32 m_chaseSpeed;
-    uint32 m_cruiseSpeed;
-    uint32 m_targetRange;
-    uint32 m_armorRepairDuration;
-    uint32 m_shieldBoosterDuration;
+    void SetOrder(uint8 order, uint32 targetID=0);
+    void SetState(uint8 state);
+    void StopCycle();
 
-    DroneSE* m_pDrone;
-    ShipSE* m_assignedShip;
+    // movement.  each only sends anything when it changes what the drone is doing
+    void OrbitTarget(SystemEntity* pTarget, double range, double speed);
+    void ApproachTarget(SystemEntity* pTarget, double range, double speed);
+    void StopMoving();
+
+    // effects of one cycle of our main effect
+    void Fire(SystemEntity* pTarget);
+    void FinishMiningCycle(ShipSE* pController, SystemEntity* pRoid);
+    void SendEffect(SystemEntity* pTarget, bool start);
+    void StartWeb(SystemEntity* pTarget);
+    void StopWeb();
+
+    // target lock with the drone's own sensors
+    bool LockTarget(SystemEntity* pTarget);
+    void ReleaseTarget();
+
+    // the target this drone should be attacking, for guard/assist/aggression
+    SystemEntity* PickAggressor();
+
+    DroneSE* m_pDrone;          //we do not own this
+
+    uint8 m_state;
+    uint8 m_order;
+    uint8 m_action;
+    uint8 m_moveMode;
+    uint32 m_targetID;          // engage/mine target
+    uint32 m_activityCharID;    // pilot we guard/assist
+    uint32 m_moveTargetID;
+    uint32 m_aggressorID;       // most recent attacker, for aggressive mode and guarding
+    uint32 m_webbedID;          // target we are currently webbing
+    double m_moveRange;
+    double m_moveSpeed;
+
+    bool m_cycleActive;
+    Timer m_cycleTimer;         // weapon/mining/repair cycle
 
     TurretFormulas m_formula;
-
-    Timer m_processTimer;
-    Timer m_mainAttackTimer;
-    Timer m_beginFindTarget;
-    Timer m_warpScramblerTimer;
-    Timer m_webifierTimer;
 };
 
 #endif  // __EVEMU_SHIP_DRONEAI_H__

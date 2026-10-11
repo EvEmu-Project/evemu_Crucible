@@ -53,6 +53,9 @@ protected:
     PyResult CmdAbandonDrone(PyCallArgs& call, PyList* droneIDs);
     PyResult CmdReconnectToDrones(PyCallArgs& call, PyList* droneCandidates);
 
+    PyResult Mine(PyCallArgs& call, PyList* droneIDs, PyInt* targetID, bool repeat);
+    PyResult GuardOrAssist(PyCallArgs& call, uint32 charID, PyList* droneIDs, bool guard);
+
 protected:
     SystemManager* m_sysMgr;
 

@@ -1451,7 +1451,8 @@ Battleships 0.155
     if (sRef->HasAttribute(AttrWarpCapacitorNeed))
         m_warpCapacitorNeed = sRef->GetAttribute(AttrWarpCapacitorNeed).get_float() *2;
 
-    if (mySE->IsNPCSE() or mySE->IsDroneSE())
+    // drones set their own speed for what they are doing (see DroneAIMgr)
+    if (mySE->IsNPCSE())
         m_maxShipSpeed = sRef->GetAttribute(AttrEntityCruiseSpeed).get_float();
 
     /* The product of Mass and the Inertia Modifier gives the ship's agility

@@ -352,55 +352,74 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
                     throw CustomError ("Drones are disabled.");
                 }
 
-                if (pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32() < 1) {
+                CharacterRef cRef(pClient->GetChar());
+                ShipSE* pShipSE(pClient->GetShipSE());
+                uint32 maxDrones(cRef->GetAttribute(AttrMaxActiveDrones).get_uint32());
+                if (maxDrones < 1) {
                     throw UserError ("NoDroneManagementAbilities")
                             .AddFormatValue ("typeID", new PyInt (iRef->typeID ()));
                     //{'FullPath': u'UI/Messages', 'messageID': 259203, 'label': u'NoDroneManagementAbilitiesBody'}(u'You cannot launch {[item]typeID.nameWithArticle} because you do not have the ability to control any drones.', None, {u'{[item]typeID.nameWithArticle}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'nameWithArticle', 'args': 0, 'kwargs': {}, 'variableName': 'typeID'}})
                 }
-                if (pClient->GetChar()->GetAttribute(AttrMaxActiveDrones).get_uint32() <= pClient->GetShipSE()->DroneCount()) {
-                    throw UserError ("NoDroneManagementAbilitiesLeft")
-                            .AddFormatValue ("item", new PyInt (iRef->typeID ()))
-                            .AddFormatValue ("limit", new PyInt (pClient->GetChar ()->GetAttribute (AttrMaxActiveDrones).get_uint32()));
-                    //{'FullPath': u'UI/Messages', 'messageID': 259140, 'label': u'NoDroneManagementAbilitiesLeftBody'}(u'You cannot launch {[item]item.name} because you are already controlling {[numeric]limit} drones, as much as you have skill to.', None, {u'{[numeric]limit}': {'conditionalValues': [], 'variableType': 9, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'limit'}, u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
-                }
+                if ((pShipSE == nullptr) or pClient->InPod())
+                    throw CustomError ("You need a ship to launch drones.");
 
-                if (iRef->flag() != flagDroneBay) {
-                    throw UserError ("DropItemNotInDroneBay")
-                            .AddFormatValue ("item", new PyInt (iRef->typeID ()));
+                // errors go in the item's result list as (msgName, args), which the client shows as UserErrors
+                auto addError = [&](const char* msgName, PyDict* args) {
+                    PyTuple* err = new PyTuple(2);
+                        err->SetItem(0, new PyString(msgName));
+                        err->SetItem(1, args);
+                    list->AddItem(err);
+                };
+
+                if ((iRef->flag() != flagDroneBay) or (iRef->locationID() != pShip->itemID())) {
                     // {'FullPath': u'UI/Messages', 'messageID': 259680, 'label': u'DropItemNotInDroneBayBody'}(u'{[item]item.name} cannot be dropped because it is not in your drone bay.', None, {u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
+                    PyDict* args = new PyDict();
+                        args->SetItemString("item", new PyInt(iRef->typeID()));
+                    addError("DropItemNotInDroneBay", args);
+                    break;
                 }
 
-                // This item is a drone, so launch it into space:
-                if (qty > 1) {
-                    for (uint8 i = 0; i < qty; ++i) {
-                        InventoryItemRef newItem = iRef->Split(1);
-                        if (newItem.get() == nullptr) {
-                            _log(INV__ERROR, "ShipBound::Handle_Drop() - Error splitting item %u. Skipping.", iRef->itemID());
-                            continue;
-                        }
-                        if (newItem->quantity() > 1)
-                            _log(INV__ERROR, "ShipBound::Handle_Drop() - Split item %u qty > 1 (%u).  Continuing.", newItem->itemID(), newItem->quantity());
-
-                        if (pClient->GetShipSE()->LaunchDrone(newItem)) {
-                            dropped = true;
-                            shipDrop = true;
-                            list->AddItem(new PyInt(newItem->itemID()));
-                        } else
-                            throw UserError ("MaxBandwithExceeded2")
-                                    .AddTypeName ("droneNAme", newItem->typeID ())
-                                    .AddAmount ("droneBandwithUsed", newItem->GetAttribute (AttrDroneBandwidthUsed).get_uint32())
-                                    .AddAmount ("bandwidthLeft", pShip->GetAttribute (AttrDroneBandwidth).get_uint32 () - pShip->GetAttribute (AttrDroneBandwidthLoad).get_uint32());
+                int32 count(qty);
+                int32 available(iRef->isSingleton() ? 1 : iRef->quantity());
+                if (count > available)
+                    count = available;
+                double bandwidth(pShip->GetAttribute(AttrDroneBandwidth).get_double());
+                double needed(iRef->type().HasAttribute(AttrDroneBandwidthUsed) ? iRef->type().GetAttribute(AttrDroneBandwidthUsed).get_double() : 0.0);
+                for (int32 i = 0; i < count; ++i) {
+                    if (DroneSE::CountControlledBy(pSystem, pClient->GetCharacterID()) >= maxDrones) {
+                        //{'FullPath': u'UI/Messages', 'messageID': 259140, 'label': u'NoDroneManagementAbilitiesLeftBody'}(u'You cannot launch {[item]item.name} because you are already controlling {[numeric]limit} drones, as much as you have skill to.', None, {u'{[numeric]limit}': {'conditionalValues': [], 'variableType': 9, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'limit'}, u'{[item]item.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'item'}})
+                        PyDict* args = new PyDict();
+                            args->SetItemString("item", new PyInt(iRef->typeID()));
+                            args->SetItemString("limit", new PyInt(maxDrones));
+                        addError("NoDroneManagementAbilitiesLeft", args);
+                        break;
                     }
-                } else {
-                    if (pClient->GetShipSE()->LaunchDrone(iRef)) {
-                        dropped = true;
-                        shipDrop = true;
-                        list->AddItem(new PyInt(iRef->itemID()));
-                    } else
-                            throw UserError ("MaxBandwithExceeded2")
-                                    .AddTypeName ("droneNAme", iRef->typeID ())
-                                    .AddAmount ("droneBandwithUsed", iRef->GetAttribute (AttrDroneBandwidthUsed).get_uint32())
-                                    .AddAmount ("bandwidthLeft", pShip->GetAttribute (AttrDroneBandwidth).get_uint32 () - pShip->GetAttribute (AttrDroneBandwidthLoad).get_uint32());
+                    double used(DroneSE::BandwidthUsedBy(pSystem, pShipSE->GetID()));
+                    if (used + needed > bandwidth) {
+                        //{'FullPath': u'UI/Messages', 'messageID': 258041, 'label': u'MaxBandwidthExceeded2Body'}(u"You don't have enough bandwidth to launch {droneName}. You need {droneBandwidthUsed} Mbit/s but only have {bandwidthLeft} Mbit/s available.")
+                        PyDict* args = new PyDict();
+                            args->SetItemString("droneName", new PyString(iRef->itemName()));
+                            args->SetItemString("droneBandwidthUsed", new PyInt(static_cast<int32>(needed)));
+                            args->SetItemString("bandwidthLeft", new PyInt(static_cast<int32>(bandwidth - used)));
+                        addError("MaxBandwidthExceeded2", args);
+                        break;
+                    }
+
+                    // launch one drone off the stack.  the last one is the stack itself
+                    InventoryItemRef dRef(iRef);
+                    if (!iRef->isSingleton() and (iRef->quantity() > 1)) {
+                        dRef = iRef->Split(1);
+                        if (dRef.get() == nullptr) {
+                            _log(INV__ERROR, "ShipBound::Handle_Drop() - Error splitting item %u. Skipping.", iRef->itemID());
+                            break;
+                        }
+                    }
+                    pShipSE->LaunchDrone(dRef);
+                    list->AddItem(new PyInt(dRef->itemID()));
+                    dropped = true;
+                    shipDrop = true;
+                    if (dRef == iRef)
+                        break;
                 }
             } break;
             case EVEDB::invCategories::Structure: {
@@ -698,7 +717,7 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
     // returns dict of dropped items as {itemID, data} where data is list of itemIDs dropped (split stack if applicable)
     // however, on non-throw error, data is tuple of errID, errDetailsType, errDetails (unknown where these are defined)
 
-        if (dropped) {
+        if (dropped or !list->empty()) {
             dict->SetItem(new PyInt(iRef->itemID()), list);
         } else {
             PyTuple* err = new PyTuple(3);
@@ -745,11 +764,17 @@ PyResult ShipBound::Scoop(PyCallArgs &call, PyInt* itemID) {
         if (pSE->GetContSE()->IsAnchored())
             throw CustomError ("%s is anchored.  Cannot scoop.", pSE->GetName());
 
-    // check drones for other pilots control
-    if (pSE->IsDroneSE())
-        if (pSE->GetDroneSE()->IsEnabled())
-            if (pSE->GetDroneSE()->GetOwner() != pClient)
-                throw CustomError ("%s is under another pilot's control.  Cannot scoop.", pSE->GetName());
+    // drones: ours, or abandoned
+    if (pSE->IsDroneSE()) {
+        DroneSE* pDrone(pSE->GetDroneSE());
+        uint32 charID(pClient->GetCharacterID());
+        if ((pDrone->IsControlled() and (pDrone->GetControllerOwnerID() != charID))
+        or  (IsCharacterID(pDrone->GetOwnerID()) and (pDrone->GetOwnerID() != charID)))
+            throw CustomError ("%s is under another pilot's control.  Cannot scoop.", pSE->GetName());
+        pDrone->ScoopTo(pClient->GetShipSE(), flagCargoHold);   // throws if it won't fit
+        SafeDelete(pDrone);
+        return PyStatic.mtDict();
+    }
 
     InventoryItemRef iRef = pSE->GetSelf();
     if (iRef.get() == nullptr) {
@@ -765,9 +790,6 @@ PyResult ShipBound::Scoop(PyCallArgs &call, PyInt* itemID) {
         // perform data cleanup for structures
         if (pSE->IsPOSSE())
             pSE->GetPOSSE()->Scoop();
-        // perform data cleanup for drones
-        if (pSE->IsDroneSE())
-            pClient->GetShipSE()->ScoopDrone(pSE);
         // move it into the cargo bay:
         pClient->MoveItem(iRef->itemID(), pClient->GetShipID(), flagCargoHold);
         pSysMgr->RemoveEntity(pSE);
@@ -778,63 +800,55 @@ PyResult ShipBound::Scoop(PyCallArgs &call, PyInt* itemID) {
     return PyStatic.mtDict();
 }
 
+/* returns {droneID: (msgName, args)} for drones that could not be scooped, as the entity commands do.
+ *  a drone we control that is too far away is told to come back to the bay instead
+ */
 PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
-    std::vector <int32> ints;
-
-    PyList::const_iterator list_2_cur = itemIDs->begin();
-    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
-        if (!(*list_2_cur)->IsInt()) {
-            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
-            return nullptr;
-        }
-
-        const PyInt* t = (*list_2_cur)->AsInt();
-        ints.push_back(t->value());
-    }
-    // per patch notes, if ship is too far to scoop, it will automagically travel closer till drone is within range, then scoop and stop
-
     Client* pClient(call.client);
-    SystemEntity* pDroneSE(nullptr);
-    InventoryItemRef iRef(nullptr);
     SystemManager* pSysMgr(pClient->SystemMgr());
-    std::vector<int32>::const_iterator cur = ints.begin();
-    for(; cur != ints.end(); ++cur) {
-        pDroneSE = pSysMgr->GetSE(*cur);
-        if (pDroneSE == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneSE %i to scoop.", pClient->GetName(), *cur);
+    ShipSE* pShipSE(pClient->GetShipSE());
+    PyDict* errors = new PyDict();
+    if ((pSysMgr == nullptr) or (pShipSE == nullptr))
+        return errors;
+    uint32 charID(pClient->GetCharacterID());
+
+    for (PyList::const_iterator itr = itemIDs->begin(); itr != itemIDs->end(); ++itr) {
+        if (!(*itr)->IsInt())
+            continue;
+        uint32 droneID((*itr)->AsInt()->value());
+        SystemEntity* pSE(pSysMgr->GetSE(droneID));
+        if ((pSE == nullptr) or !pSE->IsDroneSE()) {
+            //{'FullPath': u'UI/Messages', 'messageID': 258825, 'label': u'ScoopObjectGoneBody'}(u'{target} is no longer there.')
+            PyDict* args = new PyDict();
+                args->SetItemString("target", new PyString("The drone"));
+            PyTuple* err = new PyTuple(2);
+                err->SetItem(0, new PyString("ScoopObjectGone"));
+                err->SetItem(1, args);
+            errors->SetItem(new PyInt(droneID), err);
             continue;
         }
+        DroneSE* pDrone(pSE->GetDroneSE());
 
-        iRef = pDroneSE->GetSelf();
-        if (iRef.get() == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneItem %i to scoop.", pClient->GetName(), *cur);
-            continue;
+        // ours, or abandoned
+        if ((pDrone->IsControlled() and (pDrone->GetControllerOwnerID() != charID))
+        or  (IsCharacterID(pDrone->GetOwnerID()) and (pDrone->GetOwnerID() != charID)))
+            throw CustomError ("The %s is under another pilot's control.  Cannot scoop.", pDrone->GetName());
+
+        double distance(pDrone->GetPosition().distance(pShipSE->GetPosition()) - pDrone->GetRadius() - pShipSE->GetRadius());
+        if (distance > 2500.0) {
+            if (pDrone->GetControllerID() == pShipSE->GetID()) {
+                pDrone->GetAI()->ReturnToBay();
+                continue;
+            }
+            throw CustomError ("The %s is too far away to scoop.", pDrone->GetName());
         }
 
-        //AttrDroneBaySlotsLeft??
-        // Check to see that this is really a drone:
-        pClient->GetShip()->VerifyHoldType(flagDroneBay, iRef, pClient);
-
-        // check ownership/control
-        if (pDroneSE->GetDroneSE()->IsEnabled())
-            if (pDroneSE->GetDroneSE()->GetOwner() != pClient)
-                throw CustomError ("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
-
-        // Check drone bay capacity:
-        if (pClient->GetShip()->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {  // this will throw if it fails
-            // We have enough Drone bay capacity to hold the drone,
-            // so take ownership of it and move it into the Drone bay:
-            iRef->ChangeOwner(pClient->GetCharacterID(), true);
-            pClient->MoveItem(iRef->itemID(), pClient->GetShipID(), flagDroneBay);
-            pClient->GetShipSE()->ScoopDrone(pDroneSE);
-            pSysMgr->RemoveEntity(pDroneSE);
-            SafeDelete(pDroneSE);
-        }
+        // these throw if the drone won't fit
+        pDrone->ScoopTo(pShipSE, flagDroneBay);
+        SafeDelete(pDrone);
     }
 
-    /** @todo complete error msgs here */
-    // returns error on error else mtDict
-    return PyStatic.mtDict();
+    return errors;
 }
 
 PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {

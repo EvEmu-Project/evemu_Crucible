@@ -975,11 +975,23 @@ PyResult DogmaIMBound::ChangeDroneSettings(PyCallArgs& call, PyDict* settings) {
      * 22:04:44 [SvcCall]         [ 0]   [ 2] Value: Integer field: 1
      */
     
-    std::map<int16, int8> attribs;
-    for (PyDict::const_iterator itr = settings->begin(); itr != settings->end(); ++itr)
-        attribs[PyRep::IntegerValueU32(itr->first)] = PyRep::IntegerValue(itr->second);
-
-    call.client->GetShipSE()->UpdateDrones(attribs);
+    // the client sends this before every launch, and with only the changed key from hotkeys.
+    //  the settings belong to the pilot; drones read them from the controlling character
+    CharacterRef cRef(call.client->GetChar());
+    for (PyDict::const_iterator itr = settings->begin(); itr != settings->end(); ++itr) {
+        uint16 attrID(PyRep::IntegerValueU32(itr->first));
+        switch (attrID) {
+            case AttrDroneIsAgressive:
+            case AttrDroneFocusFire:
+            case AttrFightersAttackAndFollow: {
+                int64 value(itr->second->IsFloat() ? static_cast<int64>(itr->second->AsFloat()->value()) : PyRep::IntegerValue(itr->second));
+                cRef->SetAttribute(attrID, EvilNumber(value != 0 ? 1 : 0), false);
+            } break;
+            default:
+                _log(DRONE__WARNING, "ChangeDroneSettings: ignoring unknown setting %u from %s", attrID, call.client->GetName());
+                break;
+        }
+    }
 
     // returns nothing
     return nullptr;

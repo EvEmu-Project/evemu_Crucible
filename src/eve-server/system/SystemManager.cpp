@@ -265,6 +265,9 @@ bool SystemManager::ProcessTic() {
     m_dungMgr->Process();
     m_spawnMgr->Process();
 
+    // drones that reached their ship during this tick
+    ProcessDroneReturns();
+
     // process planets for PI
     if (m_minutetimer.Check()) {
         //++m_minutes;  // not used at this time
@@ -344,6 +347,10 @@ void SystemManager::UnloadSystem() {
     m_beltMgr->ClearAll();
     // close anomaly mgr, which saves and removes sigs from system
     m_anomMgr->Close();
+
+    // drones are deleted with the rest of the entities below.  nothing may look them up meanwhile
+    m_drones.clear();
+    m_droneReturns.clear();
 
     // remove static and dynamic entities
     std::map<uint32, SystemEntity*>::iterator itr = m_entities.begin();
@@ -1118,6 +1125,9 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
 
         // Add Entity's Item Ref to Solar System Dynamic Inventory:
         m_solarSystemRef->AddItemToInventory( pSE->GetSelf() );
+
+        if (pSE->IsDroneSE())
+            m_drones[itemID] = pSE->GetDroneSE();
     }
     sBubbleMgr.Add(pSE);
     // add item to our AnomalyMgr
@@ -1129,6 +1139,10 @@ void SystemManager::RemoveEntity(SystemEntity* pSE) {
     /** @note  this does not remove static balls (bubble center markers) and no clue why */
     if (pSE == nullptr)
         return;
+    // a ship leaving space (docking, jumping, logging off, destroyed) loses control of its drones
+    if (pSE->IsShipSE())
+        DroneSE::ReleaseDronesOf(this, pSE->GetID());
+    m_drones.erase(pSE->GetID());
     sBubbleMgr.Remove(pSE);
     // Remove Entity's Item Ref from Solar System Dynamic Inventory:
     RemoveItemFromInventory(pSE->GetSelf());
@@ -1345,6 +1359,60 @@ uint32 SystemManager::GetRandBeltID()
     return m_beltVector.at(MakeRandomInt(0, m_beltCount));
 }
 
+void SystemManager::ProcessDroneReturns() {
+    if (m_droneReturns.empty())
+        return;
+    std::vector<uint32> returns;
+    returns.swap(m_droneReturns);
+    for (auto droneID : returns) {
+        std::map<uint32, DroneSE*>::iterator itr = m_drones.find(droneID);
+        if (itr == m_drones.end())
+            continue;
+        DroneSE* pDrone(itr->second);
+        if (pDrone->FinishReturnToBay())
+            SafeDelete(pDrone);     // no longer in space
+    }
+}
+
+/* the client keeps this rowset for its own drones.  rows for drones whose ball it doesn't have are listed as
+ *  "in distant space".  owned drones that aren't listed are offered for reconnection, so uncontrolled drones are left out.
+ *  lines must be lists (the client edits them in place), and the header is needed even with no rows
+ */
+PyObject* SystemManager::MakeDroneState(uint32 charID) const {
+    PyList* header = new PyList(7);
+        header->SetItemString(0, "droneID");
+        header->SetItemString(1, "ownerID");
+        header->SetItemString(2, "controllerID");
+        header->SetItemString(3, "activityState");
+        header->SetItemString(4, "typeID");
+        header->SetItemString(5, "controllerOwnerID");
+        header->SetItemString(6, "targetID");
+    PyList* lines = new PyList();
+    for (auto cur : m_drones) {
+        DroneSE* pDrone(cur.second);
+        if (!pDrone->IsControlled() or (charID == 0))
+            continue;
+        if ((pDrone->GetOwnerID() != charID) and (pDrone->GetControllerOwnerID() != charID))
+            continue;
+        uint32 targetID(pDrone->GetTargetID());
+        PyList* line = new PyList(7);
+            line->SetItem(0, new PyInt(cur.first));
+            line->SetItem(1, new PyInt(pDrone->GetOwnerID()));
+            line->SetItem(2, new PyInt(pDrone->GetControllerID()));
+            line->SetItem(3, new PyInt(pDrone->GetState()));
+            line->SetItem(4, new PyInt(pDrone->GetSelf()->typeID()));
+            line->SetItem(5, new PyInt(pDrone->GetControllerOwnerID()));
+            line->SetItem(6, (targetID == 0 ? PyStatic.NewNone() : new PyInt(targetID)));
+        lines->AddItem(line);
+    }
+
+    PyDict* dict = new PyDict();
+        dict->SetItemString("header", header);
+        dict->SetItemString("RowClass", new PyToken("util.Row"));
+        dict->SetItemString("lines", lines);
+    return new PyObject("util.Rowset", dict);
+}
+
 // the balls a client in this bubble knows about: the system's static balls plus the bubble's visible balls.  keep in step with MakeSetState()
 void SystemManager::GetBallparkEntities(const SystemBubble* pBubble, std::map<uint32, SystemEntity*>& into) const {
     for (auto cur : m_staticEntities)
@@ -1416,7 +1484,13 @@ void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) c
     }
 
     into.destiny_state = new PyBuffer( &stateBuffer );
-    into.droneState = pBubble->GetDroneState(); //SystemDB::GetSolDroneState( m_data.systemID );
+    {
+        uint32 charID(0);
+        std::map<uint32, SystemEntity*>::const_iterator ego = m_entities.find(into.ego);
+        if ((ego != m_entities.end()) and ego->second->HasPilot())
+            charID = ego->second->GetPilot()->GetCharacterID();
+        into.droneState = MakeDroneState(charID);
+    }
 
     /* SolarSystem info.  this avoids the old way of a DB hit for every call.  */
     PyPackedRow* row = new PyPackedRow(sDataMgr.CreateHeader());

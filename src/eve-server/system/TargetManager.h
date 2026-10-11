@@ -135,6 +135,7 @@ public:
 
     bool                CanAttack()                     { return m_canAttack; }
     bool                HasNoTargets() const            { return m_targets.empty(); }
+    bool                HasActiveModules() const        { return !m_modules.empty(); }   // modules (mining lasers...) working on us
 
     /* PC Module Methods (for module deactivation on target removed) */
     void                Destroyed();    // this does NOT remove target from targeters map

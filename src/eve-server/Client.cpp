@@ -47,7 +47,7 @@
 #include "map/MapDB.h"
 #include "missions/MissionDataMgr.h"
 #include "npc/NPC.h"
-//#include "npc/Drone.h"
+#include "npc/Drone.h"
 //#include "npc/DroneAI.h"
 #include "station/StationDataMgr.h"
 #include "station/StationOffice.h"
@@ -1117,6 +1117,8 @@ void Client::Board(ShipSE* newShipSE)
         m_ship->Eject();
 
         pShipSE->DestinyMgr()->Eject();
+        // drones answer to a pilot in a ship.  leaving it loses control of them
+        DroneSE::ReleaseDronesOf(m_system, pShipSE->GetID());
 
         SetShip(newShipSE->GetShipItemRef());
         pShipSE = newShipSE;

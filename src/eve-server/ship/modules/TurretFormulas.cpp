@@ -135,27 +135,55 @@ float TurretFormulas::GetNPCToHit(NPC* pNPC, SystemEntity* pTarget)
     return 0;
 }
 
+/* standard turret hit chance, with the drone's skill-adjusted stats:
+ *   chance = 0.5 ^ ( ((angular / tracking) * (sigResolution / targetSig))^2 + (max(0, range - optimal) / falloff)^2 )
+ *  angular velocity uses only the part of the relative velocity across the line of sight.  ranges are surface to surface,
+ *  as for the drone's other range checks.  returns the damage modifier: 3 for a wrecking shot, 0 for a miss
+ */
 float TurretFormulas::GetDroneToHit(DroneSE* pDrone, SystemEntity* pTarget)
 {
-    if (pTarget == nullptr)
+    if ((pTarget == nullptr) or (pTarget->DestinyMgr() == nullptr))
         return 0;
-    float falloff = pDrone->GetSelf()->GetAttribute(AttrFalloff).get_float();
-    float distance = pDrone->DestinyMgr()->GetPosition().distance(pTarget->DestinyMgr()->GetPosition());
-    GVector vector = pTarget->GetVelocity() - pDrone->GetVelocity();
-    float transversalV = vector.length();
-    float a = (transversalV / (distance * pDrone->GetSelf()->GetAttribute(AttrTrackingSpeed).get_float()));
-    float b = (pDrone->GetSelf()->GetAttribute(AttrOptimalSigRadius).get_float() / pTarget->GetSelf()->GetAttribute(AttrSignatureRadius).get_float());
-    float c = pow((a * b), 2);
-    float d = EvE::max(distance - pDrone->GetSelf()->GetAttribute(AttrEntityAttackRange).get_float());
-    float e = pow((d / falloff), 2);
-    float ChanceToHit = pow(0.5, c + e);
-    float rNum = MakeRandomFloat(0.0, 1.0);
+    const DroneStats& stats(pDrone->Stats());
+
+    GVector los(pDrone->GetPosition(), pTarget->GetPosition());
+    double centres(los.length());
+    double range(centres - pDrone->GetRadius() - pTarget->GetRadius());
+    if (range < 0.0)
+        range = 0.0;
+
+    double trackingTerm(0.0);
+    if ((centres > 0.0) and (stats.tracking > 0.0)) {
+        los = GVector(los.x / centres, los.y / centres, los.z / centres);
+        GVector rel(pTarget->GetVelocity() - pDrone->GetVelocity());
+        double radial(rel.x * los.x + rel.y * los.y + rel.z * los.z);
+        GVector transversal(rel.x - los.x * radial, rel.y - los.y * radial, rel.z - los.z * radial);
+        double angular(transversal.length() / centres);
+        double targetSig(25.0);
+        if (pTarget->GetSelf()->HasAttribute(AttrSignatureRadius))
+            targetSig = pTarget->GetSelf()->GetAttribute(AttrSignatureRadius).get_double();
+        if (targetSig <= 0.0)
+            targetSig = 25.0;
+        trackingTerm = (angular / stats.tracking) * (stats.sigResolution / targetSig);
+    }
+
+    double rangeTerm(0.0);
+    double outside(range - stats.optimalRange);
+    if (outside > 0.0) {
+        if (stats.falloff <= 0.0)
+            return 0;
+        rangeTerm = outside / stats.falloff;
+    }
+
+    double chance(std::pow(0.5, trackingTerm * trackingTerm + rangeTerm * rangeTerm));
+    float rNum(MakeRandomFloat(0.0, 1.0));
+    _log(DAMAGE__TRACE, "Drone::GetToHit - range:%.0f (opt %.0f, falloff %.0f) tracking term %.3f, range term %.3f, chance %.4f, rand %.4f",
+         range, stats.optimalRange, stats.falloff, trackingTerm, rangeTerm, chance, rNum);
+    if (rNum >= chance)
+        return 0;
     if (rNum <= sConfig.rates.DroneCritChance)
         return 3.0f;
-    if (rNum < ChanceToHit)
-        return (rNum + 0.49);
-    // drones will have a minimum damage instead of zero
-    return 0.1;
+    return (rNum + 0.49);
 }
 
 float TurretFormulas::GetSentryToHit(Sentry* pSentry, SystemEntity* pTarget)

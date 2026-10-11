@@ -44,6 +44,7 @@ class SystemEntity;
 class SystemBubble;
 class SetState;
 class DestinyManager;
+class DroneSE;
 
 class AnomalyMgr;
 class BeltMgr;
@@ -137,6 +138,13 @@ public:
     void MakeSetState(const SystemBubble* pBubble, SetState& into) const;
     // the balls a client in this bubble knows about (used for collisions)
     void GetBallparkEntities(const SystemBubble* pBubble, std::map<uint32, SystemEntity*>& into) const;
+
+    /* drones in this system */
+    const std::map<uint32, DroneSE*>& GetDrones() const { return m_drones; }
+    // a drone has reached its ship's drone bay.  it is moved there after this tick's processing
+    void QueueDroneReturn(uint32 droneID)               { m_droneReturns.push_back(droneID); }
+    // SetState droneState: the drones this pilot owns or controls, anywhere in the system
+    PyObject* MakeDroneState(uint32 charID) const;
 
     uint32 GetRandBeltID();
     uint32 GetClosestPlanetID(const GPoint& myPos);
@@ -232,6 +240,9 @@ private:
     std::map<uint32, SystemEntity*> m_ticEntities;      // this list is for entities that need process tics (objects, npc, client ships)
     std::map<uint32, SystemEntity*> m_staticEntities;   // this list is for static entities to send in setstate
     std::map<uint32, SystemEntity*> m_opStaticEntities; // this list is for static entities which are operational and need to be initialized and operated upon even when system is empty
+    std::map<uint32, DroneSE*> m_drones;                // all drones in space here.  we do not own these (they are also in m_entities)
+    std::vector<uint32> m_droneReturns;                 // drones to move into their ship's drone bay after this tick
+    void ProcessDroneReturns();
 
     // for bounty processing (20m timer)
     Timer m_bountyTimer;

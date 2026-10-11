@@ -582,6 +582,10 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
                 }
             }
 
+            //{'FullPath': u'UI/Messages', 'messageID': 259155, 'label': u'DronesNotLoadableInSpaceBody'}(u'You cannot load to or unload from the drone bay while in space.', None, None)
+            if (pClient->IsInSpace() and ((toFlag == flagDroneBay) != (iRef->flag() == flagDroneBay)))
+                throw UserError ("DronesNotLoadableInSpace");
+
             // verify item is allowed in container first
             m_self->GetShipItem()->VerifyHoldType(toFlag, iRef, pClient); // this will throw if it fails
 
