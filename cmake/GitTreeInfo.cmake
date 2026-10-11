@@ -54,21 +54,22 @@ MACRO( GIT_TREE_INFO PATH PREFIX )
                    ERROR_QUIET )
 
   # Build a nice version string
-  IF( "${PREFIX}_TAG_EXACT" )
+  # (the variable names must be unquoted here: IF() no longer dereferences quoted arguments, CMP0054)
+  IF( ${PREFIX}_TAG_EXACT )
     # We have an exact tag, use that and nothing else
     SET( "${PREFIX}_VERSION" "${${PREFIX}_TAG_EXACT}" )
-  ELSE( "${PREFIX}_TAG_EXACT" )
+  ELSE()
     # Set version to hash (hash is always available)
     SET( "${PREFIX}_VERSION" "${${PREFIX}_HASH}" )
 
     # If we have branch name, prepend it
-    IF( "${PREFIX}_BRANCH" )
+    IF( ${PREFIX}_BRANCH )
       SET( "${PREFIX}_VERSION" "${${PREFIX}_BRANCH}-${${PREFIX}_VERSION}" )
-    ENDIF( "${PREFIX}_BRANCH" )
+    ENDIF()
 
     # If we have last tag, prepend it
-    IF( "${PREFIX}_TAG_LAST" )
+    IF( ${PREFIX}_TAG_LAST )
       SET( "${PREFIX}_VERSION" "${${PREFIX}_TAG_LAST}-${${PREFIX}_VERSION}" )
-    ENDIF( "${PREFIX}_TAG_LAST" )
-  ENDIF( "${PREFIX}_TAG_EXACT" )
+    ENDIF()
+  ENDIF()
 ENDMACRO( GIT_TREE_INFO )

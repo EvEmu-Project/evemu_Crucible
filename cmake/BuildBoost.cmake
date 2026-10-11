@@ -3,14 +3,29 @@
 # download and build of source archive.
 #
 
-# We need "boost::asio::transfer_exactly" which is present
-# in Boost 1.47.0 and later.
-FIND_PACKAGE( "Boost" 1.67.0 COMPONENTS "system" )
-SET( PKG_FOUND "${Boost_FOUND}" )
-
-IF( PKG_FOUND )
+# Boost 1.70 and later install a CMake package config (BoostConfig.cmake), and CMake 3.30 and
+# later no longer provide FindBoost (policy CMP0167), so look for the package config first.
+# Boost.System is header-only since 1.69 (1.89 dropped its stub library and "system" component
+# altogether), so only the headers are needed from an installed Boost.
+FIND_PACKAGE( "Boost" 1.69.0 CONFIG QUIET )
+IF( Boost_FOUND AND TARGET "Boost::headers" )
+  GET_TARGET_PROPERTY( Boost_INCLUDE_DIRS "Boost::headers" INTERFACE_INCLUDE_DIRECTORIES )
+  SET( Boost_LIBRARIES "Boost::headers" )
+  SET( PKG_FOUND TRUE )
   RETURN()
-ENDIF( PKG_FOUND )
+ENDIF()
+
+# Older CMake still has FindBoost, which also finds Boost releases without a package config.
+IF( NOT POLICY CMP0167 )
+  FIND_PACKAGE( "Boost" 1.67.0 COMPONENTS "system" )
+  SET( PKG_FOUND "${Boost_FOUND}" )
+
+  IF( PKG_FOUND )
+    RETURN()
+  ENDIF( PKG_FOUND )
+ENDIF()
+
+SET( PKG_FOUND FALSE )
 
 # Cache entries
 SET( Boost_URL

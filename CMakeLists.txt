@@ -8,9 +8,9 @@
 ###############
 # CMake setup #
 ###############
-# We need a target-specific property INCLUDE_DIRECTORIES which
-# is part of CMake 2.8.8 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
+# Works with CMake 3.16 (Ubuntu 20.04, Debian 12 has 3.25) up to 4.3.  The range sets every policy up to
+# the newer version to NEW behaviour, so newer CMake releases don't fall back to deprecated behaviour.
+CMAKE_MINIMUM_REQUIRED( VERSION 3.16...4.3 )
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
