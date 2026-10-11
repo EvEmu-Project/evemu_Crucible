@@ -85,6 +85,8 @@ class DungeonEditSE;
  * complete rewrite of entity class system  - allan  9 January 2016
  * finally added rule of 5.  -allan 4Nov21
  */
+#include <set>
+
 class SystemEntity {
     friend class SystemBubble;    /* only to update m_bubble */
 public:
@@ -255,6 +257,11 @@ public:
     void                        DropLoot(WreckContainerRef wreckRef, uint32 groupID, uint32 owner);
     void                        AwardSecurityStatus(InventoryItemRef iRef, Character* pChar);
     bool                        ApplyDamage(Damage &d); /* This method is defined in Damage.cpp */
+    /* blows this entity up the same way combat does (explosion, wreck/pod/killmail, removal).  defined in Damage.cpp */
+    void                        Destroy(Damage &d);
+    /* GM: unkillable entities never drop below 1 structure hp.  kept by itemID, so it survives leaving and re-entering space */
+    static void                 SetUnkillable(uint32 itemID, bool set);
+    static bool                 IsUnkillable(uint32 itemID);
     double                      DistanceTo2(const SystemEntity* other);
     PyTuple*                    MakeDamageState();
 
@@ -296,6 +303,8 @@ protected:
     InventoryItemRef            m_self;
 
     bool                        m_killed;
+
+    static std::set<uint32>     s_unkillable;
 
     double                      m_radius;
 

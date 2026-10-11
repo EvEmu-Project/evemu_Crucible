@@ -157,6 +157,38 @@ def Ban(charID):
         Slash('/ban %d' % charID)
 
 
+def KillShip(charID):
+    if charID == session.charid:
+        if Confirm('Destroy your own ship?'):
+            Slash('/kill me')
+    elif Confirm("Destroy %s's ship?" % OwnerName(charID)):
+        Slash('/kill %d' % charID)
+
+
+def KillItem(itemID, slimItem):
+    pilot = getattr(slimItem, 'charID', None)
+    if pilot and not util.IsNPC(pilot) and not Confirm("Destroy %s's ship?" % OwnerName(pilot)):
+        return
+    Slash('/kill %d' % itemID)
+
+
+def UnkillableMenu(target):
+    return ('Unkillable', [
+        ('On', Slash, ('/unkillable %s on' % target,)),
+        ('Off', Slash, ('/unkillable %s off' % target,)),
+    ])
+
+
+def Killable(slimItem):
+    """Ships, NPCs, drones and structures.  Celestials, stations and gates can't be destroyed."""
+    cats = [const.categoryShip, const.categoryEntity, const.categoryDrone]
+    for name in ('categoryStructure', 'categoryOrbital', 'categorySovereigntyStructure', 'categoryDeployable'):
+        cat = getattr(const, name, None)
+        if cat is not None:
+            cats.append(cat)
+    return getattr(slimItem, 'categoryID', None) in cats
+
+
 # ------------------------------------------------------------------------------------------------
 #  context menus
 # ------------------------------------------------------------------------------------------------
@@ -174,6 +206,9 @@ def CharacterEntries(charID):
         ('Heal ship', Slash, ('/heal %s' % ('' if me else charID),)),
         ('Repair modules', Slash, ('/repairmodules %s' % ('' if me else charID),)),
         ('Online all modules', Slash, ('/online %s' % who,)),
+        None,
+        ('Destroy ship...', KillShip, (charID,)),
+        UnkillableMenu(who),
     ]
     if not me:
         m += [
@@ -224,8 +259,9 @@ def ItemEntries(itemID, typeID, slimItem=None):
     if slimItem is not None:
         m.append(None)
         cat = getattr(slimItem, 'categoryID', None)
-        if cat == const.categoryEntity:
-            m.append(('Kill', Slash, ('/kill %d' % itemID,)))
+        if Killable(slimItem):
+            m.append(('Kill', KillItem, (itemID, slimItem)))
+            m.append(UnkillableMenu(itemID))
         if cat in (const.categoryShip, const.categoryEntity, const.categoryDrone):
             m.append(('Unspawn', Slash, ('/unspawn %d' % itemID,)))
         m.append(('Go here', Slash, ('/tr me %d' % itemID,)))

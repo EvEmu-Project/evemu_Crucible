@@ -685,39 +685,78 @@ PyResult Command_createitem(Client* pClient, CommandDB* db, EVEServiceManager &s
 }
 
 
+namespace {
+    // me, a character (their ship), or anything in your system.  never celestials, stations or gates
+    SystemEntity* FindKillTarget(Client* pClient, const Seperator& args, const char* usage) {
+        if (args.argCount() < 2)
+            throw CustomError (usage);
+        SystemEntity* pSE(nullptr);
+        if (args.arg(1) == "me") {
+            pSE = pClient->GetShipSE();
+        } else if (args.isNumber(1)) {
+            uint32 id(atoi(args.arg(1).c_str()));
+            if (IsCharacterID(id)) {
+                Client* pTarget(sEntityList.FindClientByCharID(id));
+                if (pTarget == nullptr)
+                    throw CustomError ("Character %u is not online", id);
+                if (!pTarget->IsInSpace())
+                    throw CustomError ("%s is docked", pTarget->GetName());
+                pSE = pTarget->GetShipSE();
+            } else if (pClient->SystemMgr() != nullptr) {
+                pSE = pClient->SystemMgr()->GetSE(id);
+            }
+        } else {
+            throw CustomError (usage);
+        }
+        if (pSE == nullptr)
+            throw CustomError ("%s is not in space in your system", args.arg(1).c_str());
+        if (pSE->IsStaticEntity())
+            throw CustomError ("%s can't be destroyed", pSE->GetName());
+        return pSE;
+    }
+}
+
 PyResult Command_kill(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
 {
-    if (args.argCount() == 2) {
-        if (!args.isNumber(1)) {
-            throw CustomError ("Argument 1 should be a character ID");
-        }
-        int entity = atoi(args.arg(1).c_str());
+    SystemEntity* pSE(FindKillTarget(pClient, args, "Correct Usage: /kill (itemID|charID|me)"));
+    if (pSE->IsDead())
+        throw CustomError ("%s is already dead", pSE->GetName());
 
-        ShipItemRef sRef = sItemFactory.GetShipRef(entity);
-        if (sRef.get() == NULL)
-            throw CustomError ("/kill NOT supported on non-ship types at this time");
+    // the killer is the GM's ship.  killmails need a weapon, so that's the ship too
+    SystemEntity* pKiller(pClient->IsInSpace() ? pClient->GetShipSE() : nullptr);
+    if ((pKiller == nullptr) or (pKiller == pSE))
+        pKiller = pSE;
+    Damage damage(pKiller, true);
+    damage.weaponRef = pKiller->GetSelf();
 
-        SystemEntity* shipEntity = pClient->SystemMgr()->GetSE(entity);
-        if (shipEntity == nullptr) {
-            throw CustomError ("/kill cannot process this object");
-            sLog.Error("GMCommands - Command_kill()", "Cannot process this object, aborting kill: %s [%u]", sRef->name(), sRef->itemID());
+    std::string name(pSE->GetName());
+    uint32 itemID(pSE->GetID());
+    SystemEntity::SetUnkillable(itemID, false);
+    pSE->Destroy(damage);
+
+    sLog.Yellow("Command", "%s: killed %s(%u).", pClient->GetName(), name.c_str(), itemID);
+    return new PyString("Destroyed " + name + ".");
+}
+
+PyResult Command_unkillable(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
+{
+    const char* usage("Correct Usage: /unkillable (itemID|charID|me) [on|off]");
+    SystemEntity* pSE(FindKillTarget(pClient, args, usage));
+    bool set(!SystemEntity::IsUnkillable(pSE->GetID()));
+    if (args.argCount() > 2) {
+        if (strcasecmp(args.arg(2).c_str(), "on") == 0) {
+            set = true;
+        } else if (strcasecmp(args.arg(2).c_str(), "off") == 0) {
+            set = false;
         } else {
-            pClient->SystemMgr()->RemoveEntity(shipEntity);
-            if (shipEntity->IsNPCSE()) {
-                NPC* npcEntity = shipEntity->GetNPCSE();
-                Damage damage(pClient->GetShipSE(),true);
-                npcEntity->Killed(damage);
-                delete npcEntity;
-            } else {
-                Damage damage(pClient->GetShipSE(),true);
-                shipEntity->Killed(damage);
-                sRef->Delete();
-            }
+            throw CustomError (usage);
         }
-    } else
-        throw CustomError ("Correct Usage: /kill <entityID>");
+    }
+    SystemEntity::SetUnkillable(pSE->GetID(), set);
 
-    return nullptr;
+    std::string msg(pSE->GetName());
+    msg += (set ? " is now unkillable." : " can be killed again.");
+    return new PyString(msg);
 }
 
 PyResult Command_killallnpcs(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)

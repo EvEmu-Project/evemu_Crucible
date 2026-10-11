@@ -96,6 +96,35 @@ chargeRef(InventoryItemRef(nullptr))
     assert(fatal_blow and "Damage() fatal_blow called without 2nd param being true!");
 }
 
+std::set<uint32> SystemEntity::s_unkillable;
+
+void SystemEntity::SetUnkillable(uint32 itemID, bool set)
+{
+    if (set) {
+        s_unkillable.insert(itemID);
+    } else {
+        s_unkillable.erase(itemID);
+    }
+}
+
+bool SystemEntity::IsUnkillable(uint32 itemID)
+{
+    return (s_unkillable.find(itemID) != s_unkillable.end());
+}
+
+void SystemEntity::Destroy(Damage &d)
+{
+    if (m_killed)
+        return;
+    m_killed = true;
+
+    if ((m_destiny != nullptr) and (m_bubble != nullptr))
+        m_destiny->SendTerminalExplosion(m_self->itemID(), m_bubble->GetID(), isGlobal());
+
+    Killed(d);  // this must NOT remove dead SE from system.
+    SystemEntity::Killed(d);    // this removes dead SE from system then deletes itemRef and all its contents
+}
+
 bool SystemEntity::ApplyDamage(Damage &d) {
     double profileStartTime(GetTimeUSeconds());
 
@@ -263,6 +292,16 @@ bool SystemEntity::ApplyDamage(Damage &d) {
                 m_self->SetAttribute(AttrDamage, new_damage);
                 _log(DAMAGE__DEBUG, "%s(%u): Applying %.2f damage to structure. New structure damage: %.2f",
                      GetName(), GetID(), hull_damage, new_damage);
+            } else if (IsUnkillable(GetID())) {
+                // GM: hold at 1hp
+                float max_damage = m_self->GetAttribute(AttrHP).get_float() - 1.0f;
+                float old_damage = m_self->GetAttribute(AttrDamage).get_float();
+                if (max_damage > old_damage) {
+                    total_damage += (max_damage - old_damage);
+                    m_self->SetAttribute(AttrDamage, max_damage);
+                }
+                _log(DAMAGE__INFO, "%s(%u): %.2f damage would have destroyed us, but we're unkillable.",
+                     GetName(), GetID(), hull_damage);
             } else {
                 total_damage += available_hull;
                 //dead....
@@ -282,13 +321,8 @@ bool SystemEntity::ApplyDamage(Damage &d) {
         if (m_killed)
             return true;
 
-        m_killed = true;
-
         // OnNotify:OnTransmission -  (235799, `You have killed this defenseless NPC, bully.  Also, you have killed this NPC and are receiving this message.`)
-        m_destiny->SendTerminalExplosion(m_self->itemID(), m_bubble->GetID(), isGlobal());
-
-        Killed(d);  // this must NOT remove dead SE from system.
-        SystemEntity::Killed(d);    // this removes dead SE from system then deletes itemRef and all its contents
+        Destroy(d);
     } else {
         /**
          * ALL dmg msgs working  22Apr15 (hacked - found the actual msgIDs)

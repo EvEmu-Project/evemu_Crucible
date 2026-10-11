@@ -29,7 +29,9 @@ COMMAND( addball, Acct::Role::PLAYER,
 COMMAND( addball2, Acct::Role::PLAYER,
          "- Sends BubbleManager AddBalls2.")
 COMMAND( kill, Acct::Role::VIP,
-         "(entityID) - insta-pops a destroyable ship, drone, structure, if applicable")
+         "(itemID|charID|me) - destroys a ship, NPC, drone, structure or container in your system.  charID kills their ship")
+COMMAND( unkillable, Acct::Role::VIP,
+         "(itemID|charID|me) [on|off] - toggles whether something can be destroyed.  unkillable things stop at 1 structure hp")
 COMMAND( killallnpcs, Acct::Role::ADMIN,
          " - insta-pops all NPC ships in the current bubble")
 COMMAND( cloak, Acct::Role::VIP,
