@@ -26,6 +26,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include "eve-server.h"
+#include <cmath>
 
 #include "EntityList.h"
 
@@ -319,256 +320,42 @@ void AccountService::TransferFunds(
         );
     }
 
-    uint8 fromCurrency = Account::CreditType::ISK;
-
-    if (IsAUR(fromKey)) {
-        fromCurrency = Account::CreditType::AURUM;
-    } else if (IsDustKey(fromKey)) {
-        fromCurrency = Account::CreditType::MPLEX;
-    }
-
-    double newBalanceFrom(0), newBalanceTo(0);
-
-    Client* pClientFrom(nullptr);
-
-    if (IsCharacterID(fromID)) {
-        pClientFrom = sEntityList.FindClientByCharID(fromID);
-        if (pClientFrom == nullptr) {
-            // sender is offline. transfer funds through the database instead
-            newBalanceFrom = AccountDB::OfflineFundXfer(fromID, -amount, fromCurrency);
-        } else {
-            // this will throw if it fails
-            pClientFrom->AddBalance(-amount, fromCurrency);
-            newBalanceFrom = pClientFrom->GetBalance(fromCurrency);
-        }
-
-        AccountDB::AddJournalEntry(
-            fromID,
-            entryTypeID,
-            fromID,
-            toID,
-            fromCurrency,
-            fromKey,
-            -amount,
-            newBalanceFrom,
-            reason,
-            referenceID
-        );
-    } else if (IsPlayerCorp(fromID)) {
-        uint32 userID(0);
-        if (pClient != nullptr) {
-            userID = pClient->GetCharacterID();
-        }
-
-        HandleCorpTransaction(
-            fromID,
-            entryTypeID,
-            userID ? userID : fromID,
-            toID,
-            fromCurrency,
-            fromKey,
-            -amount,
-            reason,
-            referenceID
-        );
-    } // fromID could be npc or _System.  nothing to do on this side.
-
-    uint8 toCurrency = Account::CreditType::ISK;
-    if (IsAUR(toKey)) {
-        toCurrency = Account::CreditType::AURUM;
-    } else if (IsDustKey(toKey)) {
-        toCurrency = Account::CreditType::MPLEX;
-    }
-
-    Client* pClientTo(nullptr);
-
-    if (IsCharacterID(toID)) {
-        pClientTo = sEntityList.FindClientByCharID(toID);
-        if (pClientTo == nullptr) {
-            // receipient is offline. xfer funds thru db
-            newBalanceTo = AccountDB::OfflineFundXfer(toID, amount, toCurrency);
-        } else {
-            // this will throw if it fails
-            pClientTo->AddBalance(amount, toCurrency);
-            /** @todo if this DOES fail, return funds to origin.  this needs a try/catch block */
-            //TransferFunds(corpSCC, fromID, amount, reason, Journal::EntryType::Undefined, referenceID, fromKey, fromKey);
-            newBalanceTo = pClientTo->GetBalance(toCurrency);
-        }
-
-        AccountDB::AddJournalEntry(
-            toID,
-            entryTypeID,
-            fromID,
-            toID,
-            toCurrency,
-            toKey,
-            amount,
-            newBalanceTo,
-            reason,
-            referenceID
-        );
-    } else if (IsPlayerCorp(toID)) {
-        uint32 userID(0);
-
-        if (pClient != nullptr) {
-            userID = pClient->GetCharacterID();
-        }
-
-        HandleCorpTransaction(
-            toID,
-            entryTypeID,
-            fromID,
-            userID?userID:toID,
-            toCurrency,
-            toKey,
-            amount,
-            reason,
-            referenceID
-        );
-        return;
-    } else {
-        AccountDB::AddJournalEntry(
-            toID,
-            entryTypeID,
-            fromID,
-            toID,
-            toCurrency,
-            toKey,
-            amount,
-            newBalanceTo,
-            reason,
-            referenceID
-        );
-
-        _log(ACCOUNT__TRACE,
-            "TransferFunds() - toID: %s(%u) is neither player nor player corp.  Not sending update.",
-            sDataMgr.GetCorpName(toID).c_str(),
-            toID
-        );
-
-        return;
-    }
-
-    if ((pClientTo != nullptr) and pClientTo->IsCharCreation()) {
-        return;
-    }
-
-    /* corp taxes...
-     *   bounty prizes and mission rewards are taxed by the players corp based on corp tax rate.
-     *   there is a possibility the char receiving these payments could be offline (for whatever reason)
-     *   these payments are only taxed if they are above amount set in server config.
-     */
-
-    // are bounty payments grouped on timer?
-    if ((entryTypeID == Journal::EntryType::BountyPrize) || (entryTypeID == Journal::EntryType::BountyPrizes)) {
-        if (sConfig.server.BountyPayoutDelayed) {
-            // is amount worth taxing?  default is 75k
-            if (amount < sConfig.rates.TaxedAmount)  {
-                return;
-            }
-        }
-    }
-
-    float tax = 0;
-    uint32 corpID = 0;
-
-    if (pClientTo != nullptr) {
-        tax = pClientTo->GetCorpTaxRate() * amount;
-        corpID = pClientTo->GetCorporationID();
-    } else {
-        //  recipient is offline...try to get needed data from db
-        tax = CharacterDB::GetCorpTaxRate(toID) * amount;
-        corpID = CharacterDB::GetCorpID(toID);
-    }
-
-    // just in case something went wrong.....
-    if (!IsCorp(corpID)) {
-        return;
-    }
-
-    // is tax worth the accounting hassle? (from corp pov) default is 5k
-    if (tax < sConfig.rates.TaxAmount) {
-        return;
-    }
-
-    reason = "DESC: Corporation Tax on pirate bounty";
+    if (amount == 0) return; // Optional fees and money-free trades use zero.
+    if (!std::isfinite(amount) || amount < 0 || amount > 1000000000000.0)
+        throw CustomError("Invalid payment amount.");
+    amount = std::round(amount * 100.0) / 100.0;
+    if (amount == 0) return;
+    std::vector<AccountDB::Transfer> transfers{{fromID,toID,fromKey,toKey,amount,entryTypeID,referenceID,reason}};
+    Client* recipient = IsCharacterID(toID) ? sEntityList.FindClientByCharID(toID) : nullptr;
+    uint8 taxEntry = 0;
     switch (entryTypeID) {
-        // Corp Taxed payment types
         case Journal::EntryType::BountyPrize:
-        case Journal::EntryType::BountyPrizes: {
-            TransferFunds(
-                toID,
-                corpID,
-                tax,
-                reason.c_str(),
-                Journal::EntryType::CorporationTaxNpcBounties,
-                referenceID
-            );
-        } break;
-        case Journal::EntryType::AgentMissionReward: {
-            TransferFunds(
-                toID,
-                corpID,
-                tax,
-                reason.c_str(),
-                Journal::EntryType::CorporationTaxAgentRewards,
-                referenceID
-            );
-        } break;
-        case Journal::EntryType::AgentMissionTimeBonusReward: {
-            TransferFunds(
-                toID,
-                corpID,
-                tax,
-                reason.c_str(),
-                Journal::EntryType::CorporationTaxAgentBonusRewards,
-                referenceID
-            );
-        } break;
+        case Journal::EntryType::BountyPrizes: taxEntry = Journal::EntryType::CorporationTaxNpcBounties; break;
+        case Journal::EntryType::AgentMissionReward: taxEntry = Journal::EntryType::CorporationTaxAgentRewards; break;
+        case Journal::EntryType::AgentMissionTimeBonusReward: taxEntry = Journal::EntryType::CorporationTaxAgentBonusRewards; break;
     }
-}
-
-void AccountService::HandleCorpTransaction(uint32 corpID, int8 entryTypeID, uint32 fromID, uint32 toID, int8 currency, \
-                                            uint16 accountKey, double amount, std::string description, \
-                                            uint32 referenceID/*0*/)
-{
-    if (is_log_enabled(ACCOUNT__TRACE))
-        _log(ACCOUNT__TRACE, "HandleCorpTransaction() - corp: %u, from: %u, to: %u, entry: %u, refID: %u, amount: %.2f, key: %u, currency: %u", \
-                        corpID, fromID, toID, entryTypeID, referenceID, amount, accountKey, currency);
-    double balance = AccountDB::GetCorpBalance(corpID, accountKey);
-    // verify funds available for withdraw first
-    if (amount < 0) {
-        if (-amount > balance) {
-            std::map<std::string, PyRep *> args;
-            args["owner"] = new PyString(CorporationDB::GetCorpName(corpID));
-            args["amount"] = new PyFloat(-amount);
-            args["balance"] = new PyFloat(balance);
-            args["division"] = new PyString(CorporationDB::GetDivisionName(corpID, accountKey));
-            throw UserError ("NotEnoughMoneyCorp")
-                    .AddOwnerName ("owner", corpID)
-                    .AddISK ("amount", -amount)
-                    .AddISK ("balance", balance)
-                    .AddFormatValue ("division", new PyString (CorporationDB::GetDivisionName (corpID, accountKey)));
+    if (taxEntry && IsCharacterID(toID) && (!recipient || !recipient->IsCharCreation())) {
+        const uint32 corp = recipient ? recipient->GetCorporationID() : CharacterDB::GetCorpID(toID);
+        const double rate = recipient ? recipient->GetCorpTaxRate() : CharacterDB::GetCorpTaxRate(toID);
+        const double tax = std::round(rate * amount * 100.0) / 100.0;
+        const bool delayedBounty = sConfig.server.BountyPayoutDelayed && (entryTypeID == Journal::EntryType::BountyPrize || entryTypeID == Journal::EntryType::BountyPrizes);
+        if (IsPlayerCorp(corp) && tax > 0 && tax >= sConfig.rates.TaxAmount && (!delayedBounty || amount >= sConfig.rates.TaxedAmount))
+            transfers.push_back({toID,corp,toKey,Account::KeyType::Cash,tax,taxEntry,referenceID,"DESC: Corporation Tax"});
+    }
+    const auto changes = AccountDB::TransferAtomic(transfers,pClient ? pClient->GetCharacterID() : 0);
+    // Nested transfers publish only when the complete exchange has committed.
+    DBTransaction::Publish([changes]() {
+    for (const auto& change : changes) {
+        if (IsCharacterID(change.ownerID)) {
+            Client* client = sEntityList.FindClientByCharID(change.ownerID);
+            if (client) client->GetChar()->SetBalanceFromDatabase(change.balance,change.currency);
+        } else {
+            OnAccountChange notification;
+            notification.ownerid = change.ownerID;
+            notification.balance = change.balance;
+            notification.accountKey = change.key == Account::KeyType::Cash ? "cash" : "cash" + std::to_string(change.key-Account::KeyType::Cash+1);
+            sEntityList.CorpNotify(change.ownerID,126,"OnAccountChange","*corpid&corpAccountKey",notification.Encode());
         }
     }
-    // get new corp balance
-    balance += amount;
-    // update corp balance
-    AccountDB::UpdateCorpBalance(corpID, accountKey, balance);
-
-    OnAccountChange oac;
-    switch (accountKey) {
-        case Account::KeyType::Cash2: oac.accountKey = "cash2"; break;
-        case Account::KeyType::Cash3: oac.accountKey = "cash3"; break;
-        case Account::KeyType::Cash4: oac.accountKey = "cash4"; break;
-        case Account::KeyType::Cash5: oac.accountKey = "cash5"; break;
-        case Account::KeyType::Cash6: oac.accountKey = "cash6"; break;
-        case Account::KeyType::Cash7: oac.accountKey = "cash7"; break;
-        case Account::KeyType::Cash:
-        default:                      oac.accountKey = "cash";  break;
-    }
-    oac.balance = balance;
-    oac.ownerid = corpID;
-    sEntityList.CorpNotify(corpID, 126 /*WalletChange*/, "OnAccountChange", "*corpid&corpAccountKey", oac.Encode());
-    AccountDB::AddJournalEntry(corpID, entryTypeID, fromID, toID, currency, accountKey, amount, balance, description, referenceID);
+    });
 }

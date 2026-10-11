@@ -389,6 +389,12 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                     } break;
                     case Target::Other: {
                         // ... module containing the src item (from charge)
+                        // Charge removal can already have moved the inventory item.
+                        // The caller retains the actual module while applying its post effects.
+                        if (pItem->categoryID()==EVEDB::invCategories::Module || pItem->categoryID()==EVEDB::invCategories::Subsystem) {
+                            itemRefVec.push_back(InventoryItemRef(pItem));
+                            break;
+                        }
                         if (cur.second.srcRef->flag() == flagNone) {
                             _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): SourceItem.flag is flagNone but need actual flag to acquire module.");
                             _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Item Data for %s(%u) - src(%s:%u)  targ(%s:%u) .", \
@@ -397,7 +403,8 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                             EvE::traceStack();
                             continue;
                         }
-                        itemRefVec.push_back(pShip->GetModuleManager()->GetModule(cur.second.srcRef->flag())->GetSelf());
+                        GenericModule* module=pShip->GetModuleManager()->GetModule(cur.second.srcRef->flag());
+                        if (module) itemRefVec.push_back(module->GetSelf());
                     } break;
                     case Target::Target: {
                         // ... current target (focused, volatile...removed on 'invalid target')

@@ -1,4 +1,4 @@
 #!/bin/sh
 
 chown -R evemu:evemu /app
-exec runuser -u evemu "$@"
+exec runuser -u evemu -- "$@"

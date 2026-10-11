@@ -39,13 +39,14 @@ public:
     static bool GetItemData(uint32 itemID, ItemData &into);   // called by RefPtr<_Ty> _Load() at InventoryItem.h:245
     static bool DeleteItem(uint32 itemID);
 
-    static void UpdateLocation(uint32 itemID, uint32 locationID, EVEItemFlags flag);
+    static bool UpdateLocation(uint32 itemID, uint32 locationID, EVEItemFlags flag);
+    static bool UpdateQuantity(uint32 itemID, int32 expectedQuantity, int32 quantity);
 
     static uint32 NewItem(const ItemData &data);
 
     static bool SaveItem(uint32 itemID, const ItemData &data);
     static void SaveItems(std::vector< Inv::SaveData > &data);
-    static void SaveAttributes(bool isChar, std::vector< Inv::AttrData > &data);
+    static bool SaveAttributes(bool isChar, std::vector< Inv::AttrData > &data);
 
     // only used in ConsoleCommands to test/process fx data
     static void GetItems(uint16 catID, std::map<uint16, std::string> &typeIDs);

@@ -21,7 +21,8 @@ class ActiveModule : public GenericModule
 {
 public:
     ActiveModule(ModuleItemRef mRef, ShipItemRef sRef);
-    virtual             ~ActiveModule()                 { /* Do nothing here */ }
+    virtual             ~ActiveModule();
+    void PrepareForLogout();
 
     /* class type pointer querys, public for anyone to access. */
     virtual ActiveModule* GetActiveModule()             { return this; }
@@ -73,6 +74,7 @@ public:
     void                ShowEffect(bool active=false, bool abort=false);
 
 protected:
+    void DetachTarget();
     // we do not own any of these next 5
     SystemBubble*       m_bubble;
     SystemEntity*       m_targetSE;

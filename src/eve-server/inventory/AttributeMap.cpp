@@ -32,6 +32,7 @@
 #include "StaticDataMgr.h"
 #include "inventory/AttributeMap.h"
 #include "inventory/InventoryItem.h"
+#include <memory>
 
 
 /*
@@ -208,11 +209,20 @@ bool AttributeMap::Save() {
         }
     }
 
-    if (!attribs.empty())
-        ItemDB::SaveAttributes(IsCharacterID(mItem.itemID()), attribs);
-    return true;
+    return attribs.empty() || ItemDB::SaveAttributes(IsCharacterID(mItem.itemID()), attribs);
 }
 
+void AttributeMap::PrepareMutation(uint16 attrID) {
+    if (!DBTransaction::Active()) return;
+    InventoryItemRef self(&mItem);
+    const auto found=mAttributes.find(attrID);
+    const bool existed=found!=mAttributes.end();
+    const EvilNumber before=existed ? found->second : EvilZero;
+    DBTransaction::OnRollback([this,self,attrID,existed,before]() {
+        if (existed) mAttributes[attrID]=before;
+        else mAttributes.erase(attrID);
+    });
+}
 
 void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*true*/)
 {
@@ -224,6 +234,7 @@ void AttributeMap::SetAttribute(uint16 attrID, EvilNumber& num, bool notify/*tru
         return;
     }
     AttrMapItr itr = mAttributes.find(attrID);
+    if (itr==mAttributes.end() || itr->second!=num) PrepareMutation(attrID);
     if (itr == mAttributes.end()) {
         mAttributes.emplace(attrID, num);
         if (notify) {
@@ -302,6 +313,7 @@ void AttributeMap::MultiplyAttribute(uint16 attrID, EvilNumber& num, bool notify
         return; // it doesnt exist...nothing to do.
 
     EvilNumber oldValue(itr->second);
+    PrepareMutation(attrID);
     itr->second *= num;
 
     if (notify)
@@ -432,6 +444,13 @@ bool AttributeMap::SendChanges(PyTuple* attrChange) {
     if (attrChange == nullptr)
         return true;
 
+    if (DBTransaction::Active()) {
+        InventoryItemRef self(&mItem);
+        auto packet=std::shared_ptr<PyTuple>(attrChange,[](PyTuple* value) { PyDecRef(value); });
+        DBTransaction::Publish([self,packet]() { self->GetAttributeMap()->SendChanges(packet->Clone()->AsTuple()); });
+        return true;
+    }
+
     /** @todo update this to use my new multicast replacement */
     if (IsPlayerCorp(mItem.ownerID())) {
         // there is no code to get corp AND loc in multicast.  it sends to both
@@ -443,10 +462,14 @@ bool AttributeMap::SendChanges(PyTuple* attrChange) {
         } else {
             sEntityList.Multicast("OnItemChange", "corpid", &attrChange, mct);
         }
+        // Multicast consumes the tuple but does not clear the caller's pointer.
+        attrChange=nullptr;
     }
 
-    if (IsCorp(mItem.ownerID()))
+    if (IsCorp(mItem.ownerID())) {
+        PySafeDecRef(attrChange);
         return true;
+    }
 
     Client* pClient(nullptr);
     if (IsCharacterID(mItem.itemID())) {
@@ -457,12 +480,15 @@ bool AttributeMap::SendChanges(PyTuple* attrChange) {
 
     if (pClient == nullptr) {
         _log(PLAYER__WARNING, "AttributeMap::SendChanges() - ownerID for %u not found", mItem.itemID() );
+        PyDecRef(attrChange);
         return false;
     }
 
     // avoid flooding the client on login
-    if (pClient->IsLogin())
+    if (pClient->IsLogin()) {
+        PyDecRef(attrChange);
         return true;
+    }
 
     if (is_log_enabled(ATTRIBUTE__CHANGE)) {
         _log(ATTRIBUTE__CHANGE, "Sending Attribute changes for %s(%u)", mItem.name(), mItem.itemID());
@@ -582,18 +608,16 @@ void AttributeMap::DeleteAttribute(uint16 attrID) {
     _log(ATTRIBUTE__DELETE, "Delete Attribute %u for %s(%u)", attrID, mItem.name(), mItem.itemID());
     AttrMapItr itr = mAttributes.find(attrID);
     if (itr != mAttributes.end()) {
-        mAttributes.erase(itr);
-        // if it's not in the map, it's not in db, either...
+        DBTransaction transaction;
         DBerror err;
-        if (IsCharacterID(mItem.itemID())) {
-            if (!sDatabase.RunQuery(err, "DELETE FROM chrCharacterAttributes WHERE charID = %u AND attributeID = %u", mItem.itemID(), attrID)) {
-                _log(DATABASE__ERROR, "DeleteAttribute - unable to delete attribute %u for %u - %s", attrID, mItem.itemID(), err.c_str());
-            }
-        } else {
-            if (!sDatabase.RunQuery(err, "DELETE FROM entity_attributes WHERE itemID = %u AND attributeID = %u", mItem.itemID(), attrID)) {
-                _log(DATABASE__ERROR, "DeleteAttribute - unable to delete attribute %u for %u - %s", attrID, mItem.itemID(), err.c_str());
-            }
-        }
+        const bool character=IsCharacterID(mItem.itemID());
+        if (!transaction.Started() || !sDatabase.RunQuery(err,character ?
+            "DELETE FROM chrCharacterAttributes WHERE charID=%u AND attributeID=%u" :
+            "DELETE FROM entity_attributes WHERE itemID=%u AND attributeID=%u",mItem.itemID(),attrID))
+            throw CustomError("Attribute removal failed; the attribute was not removed.");
+        PrepareMutation(attrID);
+        mAttributes.erase(itr);
+        if (!transaction.Commit()) throw CustomError("Attribute removal failed; the attribute was not removed.");
     } else {
         _log(ATTRIBUTE__WARNING, "Attribute %u not found in %s(%u) when calling delete ", attrID, mItem.name(), mItem.itemID());
     }

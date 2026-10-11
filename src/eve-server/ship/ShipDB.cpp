@@ -89,10 +89,10 @@ bool ShipDB::IsShipInsured(uint32 shipID)
     return false;
 }
 
-void ShipDB::ClearWeaponGroups(uint32 shipID)
+bool ShipDB::ClearWeaponGroups(uint32 shipID)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "DELETE FROM shipWeaponGroups WHERE shipID = %u", shipID );
+    return sDatabase.RunQuery(err, "DELETE FROM shipWeaponGroups WHERE shipID = %u", shipID );
 }
 
 void ShipDB::LoadWeaponGroups(uint32 shipID, DBQueryResult& res)
@@ -100,10 +100,12 @@ void ShipDB::LoadWeaponGroups(uint32 shipID, DBQueryResult& res)
     sDatabase.RunQuery(res, "SELECT masterID, slaveID FROM shipWeaponGroups WHERE shipID = %u", shipID );
 }
 
-void ShipDB::SaveWeaponGroups(uint32 shipID, std::multimap< uint32, uint32 >& data)
+bool ShipDB::SaveWeaponGroups(uint32 shipID, std::multimap< uint32, uint32 >& data)
 {
+    DBTransaction transaction;
+    if (!transaction.Started()) return false;
     DBerror err;
-    sDatabase.RunQuery(err, "DELETE FROM shipWeaponGroups WHERE shipID = %u", shipID );
+    if (!ClearWeaponGroups(shipID)) return false;
     std::ostringstream Inserts;
     // start the insert data.
     Inserts << "INSERT INTO shipWeaponGroups";
@@ -119,7 +121,6 @@ void ShipDB::SaveWeaponGroups(uint32 shipID, std::multimap< uint32, uint32 >& da
         Inserts << "(" << shipID << ", " << cur.first << ", " << cur.second << ")";
     }
 
-    if (!first)
-        if (!sDatabase.RunQuery(err, Inserts.str().c_str()))
-            _log(DATABASE__ERROR, "SaveLinkedWeapons - unable to save data - %s", err.c_str());
+    if (!first && !sDatabase.RunQuery(err, Inserts.str().c_str())) return false;
+    return transaction.Commit();
 }

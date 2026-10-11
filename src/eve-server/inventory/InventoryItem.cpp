@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include <limits>
 
 #include "../../eve-common/EVE_Mail.h"
 
@@ -146,7 +147,7 @@ InventoryItemRef InventoryItem::Load(uint32 itemID)
 
 InventoryItemRef InventoryItem::SpawnItem(uint32 itemID, const ItemData &data)
 {
-    if (data.quantity == 0)
+    if (itemID == 0 or data.quantity == 0)
         return InventoryItemRef(nullptr);
     const ItemType *iType = sItemFactory.GetType(data.typeID);
     if (iType == nullptr)
@@ -570,6 +571,16 @@ void InventoryItem::RemoveItem(InventoryItemRef iRef)
 
 void InventoryItem::Delete()
 {
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start item deletion.");
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID) && !ItemDB::DeleteItem(m_itemID))
+        throw CustomError("Item delete failed; the item was not removed.");
+    DeleteFromCache();
+    if (!transaction.Commit()) throw CustomError("Item deletion failed; the item was restored.");
+}
+
+void InventoryItem::DeleteFromCache() {
+    PrepareTransaction();
     m_delete = true;
 
     // get out of client's sight.
@@ -587,10 +598,45 @@ void InventoryItem::Delete()
         }
     }
 
-    // remove from DB
-    ItemDB::DeleteItem(m_itemID);
     // remove from factory cache
     sItemFactory.RemoveItem(m_itemID);
+}
+
+void InventoryItem::DiscardUncommitted() {
+    InventoryItemRef self(this);
+    if (IsValidLocationID(m_data.locationID)) {
+        auto container=sItemFactory.GetItemRef(m_data.locationID);
+        if (container && container->GetMyInventory()) container->GetMyInventory()->RemoveItem(self);
+    }
+    m_delete=true;
+    sItemFactory.RemoveItem(m_itemID);
+}
+
+void InventoryItem::PrepareTransaction() {
+    if (!DBTransaction::Active()) return;
+    InventoryItemRef self(this);
+    const ItemData before=m_data;
+    const bool deleted=m_delete;
+    const EvilNumber volume=GetAttribute(AttrVolume);
+    const EvilNumber quantity=GetAttribute(AttrQuantity);
+    const bool hasQuantity=HasAttribute(AttrQuantity);
+    DBTransaction::OnRollback([self,before,deleted,volume,quantity,hasQuantity]() {
+        if (IsValidLocationID(self->m_data.locationID)) {
+            auto container=sItemFactory.GetItemRef(self->m_data.locationID);
+            // Undo cache membership directly. Gameplay RemoveItem can delete an
+            // empty cargo container or unfit modules, which must never run here.
+            if (container && container->GetMyInventory()) container->GetMyInventory()->RemoveItem(self);
+        }
+        self->m_data=before;
+        self->m_delete=deleted;
+        self->SetAttribute(AttrVolume,volume,false);
+        if (hasQuantity) self->SetAttribute(AttrQuantity,quantity,false);
+        sItemFactory.AddItem(self);
+        if (!deleted && IsValidLocationID(before.locationID)) {
+            auto container=sItemFactory.GetItemRef(before.locationID);
+            if (container && container->GetMyInventory()) container->GetMyInventory()->AddItem(self);
+        }
+    });
 }
 
 void InventoryItem::ToVirtual(uint32 locationID)
@@ -670,6 +716,16 @@ void InventoryItem::Donate(uint32 new_owner/*ownerSystem*/, uint32 new_location/
     if ((new_location == m_data.locationID) and (new_flag == m_data.flag) and (new_owner == m_data.ownerID) and !notify)
         return; //nothing to do...
 
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start item ownership transfer.");
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID)) {
+        ItemData data=m_data;
+        data.ownerID=new_owner; data.locationID=new_location; data.flag=new_flag;
+        if (!ItemDB::SaveItem(m_itemID,data))
+            throw CustomError("Item ownership transfer failed; the item was not transferred.");
+    }
+
+    PrepareTransaction();
     InventoryItemRef iRef(nullptr);
     uint32 old_location = m_data.locationID, old_owner = m_data.ownerID;
     EVEItemFlags old_flag = m_data.flag;
@@ -705,9 +761,6 @@ void InventoryItem::Donate(uint32 new_owner/*ownerSystem*/, uint32 new_location/
         }
     }
 
-    SaveItem();
-    //ItemDB::UpdateLocation(m_itemID, m_data.locationID, m_data.flag);
-
     // changes are cleared after sending, so make 2 sets to send to old owner and new owner
     if (notify) {
         std::map<int32, PyRep *> changes;
@@ -728,11 +781,49 @@ void InventoryItem::Donate(uint32 new_owner/*ownerSystem*/, uint32 new_location/
             SendItemChange(old_owner, changes);
         }
     }
+    if (!transaction.Commit()) throw CustomError("Item ownership transfer failed; the item was restored.");
 }
 
 void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*flagNone*/, bool notify/*false*/) {
     if ((new_location == m_data.locationID) and (new_flag == m_data.flag) and !notify)
         return; //nothing to do...
+
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start item movement.");
+    // Characters use chrCharacters; their inventory membership has no entity row.
+    if (!IsCharacterID(m_itemID) && !IsAgent(m_itemID) && !IsTempItem(m_itemID) && !IsNPC(m_itemID) && !m_delete &&
+        (new_location == locRAMItems || IsValidLocationID(new_location) || IsTrading(new_location))) {
+        if (!ItemDB::UpdateLocation(m_itemID,new_location,new_flag))
+            throw CustomError("Item move failed; the item was not moved.");
+    }
+
+    PublishMove(new_location,new_flag,notify);
+    if (!transaction.Commit()) throw CustomError("Item move failed; the item was restored.");
+}
+
+void InventoryItem::AssembleAndMove(uint32 location, EVEItemFlags flag, bool notify) {
+    if (m_data.quantity != 1 || !IsValidLocationID(location))
+        throw CustomError("Only a single module can be fitted.");
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start module assembly.");
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID)) {
+        ItemData data=m_data;
+        data.singleton=true;
+        data.locationID=location;
+        data.flag=flag;
+        if (!ItemDB::SaveItem(m_itemID,data))
+            throw CustomError("Module fit write failed; the module was not fitted.");
+    }
+    PrepareTransaction();
+    m_data.singleton=true;
+    SetAttribute(AttrVolume,GetPackagedVolume(),false);
+    PublishMove(location,flag,notify);
+    if (!transaction.Commit()) throw CustomError("Module fitting failed; the module was restored.");
+}
+
+void InventoryItem::PublishMove(uint32 new_location, EVEItemFlags new_flag, bool notify) {
+    PrepareTransaction();
+    const bool alreadyDeleted=m_delete;
 
     InventoryItemRef iRef(nullptr);
     uint32 old_location = m_data.locationID;
@@ -756,6 +847,8 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
         _log(ITEM__TRACE, "II::Move()::Remove() - same same same.");
     }
 
+    // Removing a rig can destroy it. Its nested deletion already moved it to the junkyard.
+    if (!alreadyDeleted && m_delete) return;
     // update data
     m_data.flag = new_flag;
     m_data.locationID = new_location;
@@ -781,9 +874,6 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
     if (IsTempItem(m_itemID) or IsNPC(m_itemID))
         return;
 
-    if ((m_data.locationID == locRAMItems || IsValidLocationID(m_data.locationID)) and (!m_delete))
-        ItemDB::UpdateLocation(m_itemID, m_data.locationID, m_data.flag);
-
     //notify about the changes.
     if (notify) {
         std::map<int32, PyRep *> changes;
@@ -795,32 +885,57 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
     }
 }
 
-InventoryItemRef InventoryItem::Split(int32 qty/*0*/, bool notify/*true*/, bool silent/*false*/) {
-    if (qty < 1) {
-        _log(ITEM__ERROR, "II::Split() - %s(%u): Asked to split into a chunk of %i", m_data.name.c_str(), m_itemID, qty);
+InventoryItemRef InventoryItem::Split(int32 qty, bool notify, bool silent) {
+    if (qty < 1 || qty > m_data.quantity || m_data.singleton || IsTempItem(m_itemID) || IsNPC(m_itemID))
         return InventoryItemRef(nullptr);
+    InventoryItemRef source(this);
+    ItemData child=m_data;
+    child.quantity=qty;
+    if (silent) child.locationID=locTemp;
+    uint32 childID = 0;
+    {
+        DBTransaction transaction;
+        if (!transaction.Started()) return InventoryItemRef(nullptr);
+        childID = ItemDB::NewItem(child);
+        if (!childID) return InventoryItemRef(nullptr);
+        DBerror attributes;
+        if (!sDatabase.RunQuery(attributes,"INSERT INTO entity_attributes(itemID,attributeID,valueInt,valueFloat) SELECT %u,attributeID,IF(attributeID=%u,%i,valueInt),IF(attributeID=%u,NULL,valueFloat) FROM entity_attributes WHERE itemID=%u",childID,AttrQuantity,qty,AttrQuantity,m_itemID))
+            return InventoryItemRef(nullptr);
+        if (m_type.categoryID()==EVEDB::invCategories::Blueprint) {
+            DBerror error; uint32 copied=0;
+            if (!sDatabase.RunQuery(error,copied,"INSERT INTO invBlueprints(itemID,copy,mLevel,pLevel,runs) SELECT %u,copy,mLevel,pLevel,runs FROM invBlueprints WHERE itemID=%u",childID,m_itemID) || copied!=1)
+                return InventoryItemRef(nullptr);
+        }
+        const int32 remainder = m_data.quantity - qty;
+        if (!ItemDB::UpdateQuantity(m_itemID,m_data.quantity,remainder) || (remainder == 0 && !ItemDB::DeleteItem(m_itemID)) || !transaction.Commit())
+            return InventoryItemRef(nullptr);
     }
-    if (!AlterQuantity(-qty, notify)) {
-        _log(ITEM__ERROR, "II::Split() - %s(%u): Failed to remove quantity of %i during split.", m_data.name.c_str(), m_itemID, qty);
-        return InventoryItemRef(nullptr);
+    // No factory, inventory or client sees a child until its source debit commits.
+    auto result = sItemFactory.GetItemRef(childID);
+    if (!result) {
+        sLog.Error("Inventory split","Committed child %u could not load; stopping before stale caches can save.",childID);
+        std::_Exit(EXIT_FAILURE);
     }
-
-    ItemData idata(m_type.id(), m_data.ownerID, locTemp, m_data.flag, qty);
-    InventoryItemRef iRef = sItemFactory.SpawnItem(idata);
-    if (iRef.get() == nullptr)
-        return InventoryItemRef(nullptr);  // couldnt spawn new item...we'll get over it.
-
-    if (silent)
-        return iRef;
-
-    iRef->Move(m_data.locationID, m_data.flag, notify);
-    return iRef;
+    DBTransaction::OnRollback([result]() { result->DiscardUncommitted(); });
+    PublishQuantity(m_data.quantity-qty,notify,true);
+    if (notify && !silent) {
+        std::map<int32,PyRep*> changes;
+        changes[Inv::Update::Location] = new PyInt(locTemp);
+        result->SendItemChange(result->ownerID(),changes);
+    }
+    return result;
 }
-
 void InventoryItem::Relocate(uint32 locID, EVEItemFlags flag) {
     if ((locID == m_data.locationID) and (flag == m_data.flag))
         return; //nothing to do...
 
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID) && IsValidLocationID(locID)) {
+        DBTransaction transaction;
+        if (!transaction.Started() || !ItemDB::UpdateLocation(m_itemID,locID,flag) || !transaction.Commit())
+            throw CustomError("Item relocation failed; the item was not moved.");
+    }
+
+    PrepareTransaction();
     InventoryItemRef iRef(nullptr);
     uint32 old_location = m_data.locationID;
     EVEItemFlags old_flag = m_data.flag;
@@ -844,9 +959,6 @@ void InventoryItem::Relocate(uint32 locID, EVEItemFlags flag) {
         }
     }
 
-    if (IsValidLocationID(m_data.locationID))
-        ItemDB::UpdateLocation(m_itemID, m_data.locationID, m_data.flag);
-
     //notify about the changes.
     std::map<int32, PyRep *> changes;
     if (m_data.locationID != old_location)
@@ -856,45 +968,24 @@ void InventoryItem::Relocate(uint32 locID, EVEItemFlags flag) {
     SendItemChange(m_data.ownerID, changes);   //changes is consumed
 }
 
-bool InventoryItem::Merge(InventoryItemRef to_merge, int32 qty/*0*/, bool notify/*true*/) {
-    if (to_merge.get() == nullptr)
-        return false;
-
-    if (m_data.singleton or to_merge->isSingleton())
-        throw CustomError ("You cannot stack assembled items.");
-
-    if (m_type.id() != to_merge->typeID()) {
-        _log(ITEM__WARNING, "II::Merge() - %s (%u): Asked to merge with %s (%u).", m_data.name.c_str(), m_itemID, to_merge->name(), to_merge->itemID());
-        return false;
+bool InventoryItem::Merge(InventoryItemRef source, int32 qty, bool notify) {
+    if (!source || source->itemID()==m_itemID || qty<0 || IsTempItem(m_itemID) || IsTempItem(source->itemID())) return false;
+    if (m_data.singleton || source->isSingleton()) throw CustomError("You cannot stack assembled items.");
+    if (m_type.id()!=source->typeID() || m_data.ownerID!=source->ownerID()) return false;
+    if (qty==0) qty=source->quantity();
+    const int64 total=static_cast<int64>(m_data.quantity)+qty;
+    if (qty<1 || qty>source->quantity() || m_data.quantity<0 || total>std::numeric_limits<int32>::max()) return false;
+    const int32 remainder=source->quantity()-qty;
+    {
+        DBTransaction transaction;
+        if (!transaction.Started() || !ItemDB::UpdateQuantity(source->itemID(),source->quantity(),remainder) ||
+            !ItemDB::UpdateQuantity(m_itemID,m_data.quantity,static_cast<int32>(total)) ||
+            (remainder==0 && !ItemDB::DeleteItem(source->itemID())) || !transaction.Commit()) return false;
     }
-
-    if (qty < 1)
-        qty = to_merge->quantity();
-
-    // AlterQuantity will delete items with qty < 1
-    if (!to_merge->AlterQuantity(-qty, notify)) {
-        _log(ITEM__ERROR, "II::Merge() - %s (%u): Failed to remove quantity %u.", to_merge->name(), to_merge->itemID(), qty);
-        if (IsCharacterID(m_data.ownerID)) {
-            Client* pClient = sEntityList.FindClientByCharID(m_data.ownerID);
-            if (pClient != nullptr)
-                pClient->SendErrorMsg("Internal Server Error.  Ref: ServerError 63138");
-        }
-        return false;
-    }
-
-    if (!AlterQuantity(qty, notify)) {
-        _log(ITEM__ERROR, "%s (%u): Failed to add quantity %u.", m_data.name.c_str(), m_itemID, qty);
-        if (IsCharacterID(m_data.ownerID)) {
-            Client* pClient = sEntityList.FindClientByCharID(m_data.ownerID);
-            if (pClient != nullptr)
-                pClient->SendErrorMsg("Internal Server Error.  Ref: ServerError 63238");
-        }
-        return false;
-    }
-
+    source->PublishQuantity(remainder,notify,true);
+    PublishQuantity(static_cast<int32>(total),notify,false);
     return true;
 }
-
 void InventoryItem::MergeTypesInCargo(ShipItem* pShip, EVEItemFlags flag/*flagNone*/)
 {
     // get existing type in cargo
@@ -927,72 +1018,54 @@ bool InventoryItem::AlterQuantity(int32 qty, bool notify/*false*/) {
         return false;
     }
 
-    int32 new_qty = m_data.quantity + qty;
-    if (new_qty < 0) {
+    const int64 new_qty = static_cast<int64>(m_data.quantity) + qty;
+    if (new_qty < 0 or new_qty > std::numeric_limits<int32>::max()) {
         codelog(ITEM__ERROR, "II::AlterQuantity() - %s(%u): Tried to remove %i from stack of %i for ownerID %u.", \
                 m_data.name.c_str(), m_itemID, qty, m_data.quantity, m_data.ownerID);
         // make player error msg here.....
-        Delete();
         return false;
     }
 
-    return SetQuantity(new_qty, notify);
+    return SetQuantity(static_cast<int32>(new_qty), notify);
 }
 
-bool InventoryItem::SetQuantity(int32 qty, bool notify/*false*/, bool deleteOnZero/*true*/) {
-    //if an object is singleton, there is only one, and it shouldn't be able to alter qty
-    if (m_data.singleton) {
-        _log(ITEM__ERROR, "II::SetQuantity() - %s(%u): Failed to set quantity %i; the items singleton bit is set", m_data.name.c_str(), m_itemID, qty);
-        // make player error msg here.....
-        return false;
+bool InventoryItem::SetQuantity(int32 qty, bool notify, bool deleteOnZero) {
+    if (qty<0 || m_data.singleton) return false;
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID)) {
+        DBTransaction transaction;
+        if (!transaction.Started() || !ItemDB::UpdateQuantity(m_itemID,m_data.quantity,qty) ||
+            (qty==0 && deleteOnZero && !ItemDB::DeleteItem(m_itemID)) || !transaction.Commit()) return false;
     }
-    int32 old_qty = m_data.quantity;
-    m_data.quantity = qty;
-
-    /* this isnt needed.  quantity has hard limit.
-    if (m_data.quantity > maxEveItem) {
-        codelog(ITEM__ERROR, "II::SetQuantity() - %s(%u): quantity overflow", m_data.name.c_str(), m_itemID);
-        m_data.quantity = maxEveItem -1;
-        if (IsCharacterID(m_data.ownerID)) {
-            Client* pClient = sEntityList.FindClientByCharID(m_data.ownerID);
-            if (pClient != nullptr)
-                pClient->SendInfoModalMsg("Your %s has reached quantity limits of this server.<br>If you try to add any more to this stack, you will lose items.  This is your only warning.", m_data.name.c_str());
-        }
-    } */
-
-    if (notify or (IsCargoHoldFlag(m_data.flag) and (m_type.categoryID() == EVEDB::invCategories::Charge))) {
-        std::map<int32, PyRep *> changes;
-        changes[Inv::Update::StackSize] = new PyInt(old_qty);
-        SendItemChange(m_data.ownerID, changes); //changes is consumed
-    }
-
-    // how are we gonna do modules owned by corp here???
-    if (IsFittingSlot(m_data.flag) and (m_type.categoryID() == EVEDB::invCategories::Charge))
-        if (IsCharacterID(m_data.ownerID)/* or IsPlayerCorp(m_data.ownerID)*/) {
-            Client* pClient = sEntityList.FindClientByCharID(m_data.ownerID);
-            SetAttribute(AttrQuantity, m_data.quantity, pClient == nullptr ? notify : pClient->IsInSpace());
-        }
-
-    if (m_data.quantity < 1) {
-        if (deleteOnZero)
-            Delete();
-        return true;
-    }
-
-    if (sConfig.world.saveOnUpdate)
-        SaveItem();
-
+    PublishQuantity(qty,notify,deleteOnZero);
     return true;
 }
 
+void InventoryItem::PublishQuantity(int32 qty, bool notify, bool deleteOnZero) {
+    PrepareTransaction();
+    const int32 oldQuantity=m_data.quantity;
+    m_data.quantity=qty;
+    if (notify || (IsCargoHoldFlag(m_data.flag) && m_type.categoryID()==EVEDB::invCategories::Charge)) {
+        std::map<int32,PyRep*> changes;
+        changes[Inv::Update::StackSize]=new PyInt(oldQuantity);
+        SendItemChange(m_data.ownerID,changes);
+    }
+    if (IsFittingSlot(m_data.flag) && m_type.categoryID()==EVEDB::invCategories::Charge && IsCharacterID(m_data.ownerID)) {
+        Client* client=sEntityList.FindClientByCharID(m_data.ownerID);
+        SetAttribute(AttrQuantity,qty,client ? client->IsInSpace() : notify);
+    }
+    if (qty==0 && deleteOnZero) DeleteFromCache();
+}
 bool InventoryItem::SetFlag(EVEItemFlags flag, bool notify/*false*/) {
     if (m_data.flag == flag)
         return true;
 
     EVEItemFlags old_flag = m_data.flag;
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID) && !m_delete) {
+        DBTransaction transaction;
+        if (!transaction.Started() || !ItemDB::UpdateLocation(m_itemID,m_data.locationID,flag) || !transaction.Commit()) return false;
+    }
+    PrepareTransaction();
     m_data.flag = flag;
-
-    ItemDB::UpdateLocation(m_itemID, m_data.locationID, m_data.flag);
 
     if (notify) {
         std::map<int32, PyRep *> changes;
@@ -1008,18 +1081,15 @@ bool InventoryItem::ChangeSingleton(bool singleton, bool notify/*false*/) {
         return true;    //nothing to do...
 
     bool old_singleton(m_data.singleton);
+    if (singleton && m_data.quantity > 1) return false;
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID)) {
+        ItemData data=m_data;
+        data.singleton=singleton;
+        DBTransaction transaction;
+        if (!transaction.Started() || !ItemDB::SaveItem(m_itemID,data) || !transaction.Commit()) return false;
+    }
+    PrepareTransaction();
     m_data.singleton = singleton;
-
-    //verify quantity is -1 for singletons
-    if (m_data.singleton)
-        if (m_data.quantity > 1) {
-            _log(ITEM__WARNING, "%s(%u) is changing singleton to %s and qty is currently %i", \
-                    m_data.name.c_str(), m_itemID, singleton?"On":"Off", m_data.quantity);
-            m_data.quantity = -1;
-        }
-
-    if (sConfig.world.saveOnUpdate)
-        SaveItem();
 
     if (notify) {
         std::map<int32, PyRep *> changes;
@@ -1037,10 +1107,16 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify/*false*/) {
         return; //nothing to do...
 
     uint32 old_owner = m_data.ownerID;
+    if (!IsValidOwner(new_owner)) throw CustomError("Invalid item owner.");
+    if (!IsTempItem(m_itemID) && !IsNPC(m_itemID)) {
+        ItemData data=m_data;
+        data.ownerID=new_owner;
+        DBTransaction transaction;
+        if (!transaction.Started() || !ItemDB::SaveItem(m_itemID,data) || !transaction.Commit())
+            throw CustomError("Item ownership write failed; the item was not transferred.");
+    }
+    PrepareTransaction();
     m_data.ownerID = new_owner;
-
-    if (sConfig.world.saveOnUpdate)
-        SaveItem();
 
     //notify about the changes.
     if (notify) {
@@ -1056,6 +1132,17 @@ void InventoryItem::ChangeOwner(uint32 new_owner, bool notify/*false*/) {
 
 //contents of changes are consumed and cleared
 void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &changes) {
+    if (DBTransaction::Active() && !changes.empty()) {
+        using Changes=std::map<int32,PyRep*>;
+        auto pending=std::shared_ptr<Changes>(new Changes(),[](Changes* values) {
+            for (auto& value:*values) PySafeDecRef(value.second);
+            delete values;
+        });
+        pending->swap(changes);
+        InventoryItemRef self(this);
+        DBTransaction::Publish([self,toID,pending]() { self->SendItemChange(toID,*pending); });
+        return;
+    }
     if (IsNPCCorp(toID) or (toID == 1) or IsFaction(toID))   //IsValidOwner()
         return;
     if (sConsole.IsShutdown())
@@ -1065,7 +1152,7 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
 
     NotifyOnItemChange change;
         change.itemRow = GetItemRow();
-        change.changes = changes;
+        change.changes.swap(changes);
     PyTuple *tmp = change.Encode();
 
     if (is_log_enabled(ITEM__CHANGE)) {
@@ -1076,10 +1163,14 @@ void InventoryItem::SendItemChange(uint32 toID, std::map<int32, PyRep *> &change
     //TODO: figure out the appropriate list of interested people...
     if (IsCharacterID(toID)) {
         Client* pClient = sEntityList.FindClientByCharID(toID);
-        if (pClient == nullptr)
+        if (pClient == nullptr) {
+            PySafeDecRef(tmp);
             return;
-        if (pClient->IsCharCreation())
+        }
+        if (pClient->IsCharCreation()) {
+            PySafeDecRef(tmp);
             return;
+        }
         //if (IsShipItem()) //(pClient->IsBoard())
         //    pClient->SendNotification("OnItemsChanged", "charid", &tmp, false); //unsequenced.  <<--  this is called for multiple items
         //else
@@ -1171,9 +1262,12 @@ PyPackedRow* InventoryItem::GetItemRow() const
 void InventoryItem::GetItemRow(PyPackedRow* into) const
 {
     int32 qty = (m_data.singleton ? -1 : m_data.quantity);
-    if (m_type.categoryID() == EVEDB::invCategories::Blueprint)
-        if (sItemFactory.GetBlueprintRef(m_itemID)->copy())
-            qty = -2;
+    // A deferred deletion notification retains this object after its row and
+    // factory entry are gone. Read metadata from the retained blueprint itself.
+    if (m_type.categoryID() == EVEDB::invCategories::Blueprint) {
+        const Blueprint* blueprint=dynamic_cast<const Blueprint*>(this);
+        if (blueprint && blueprint->copy()) qty=-2;
+    }
 
     into->SetField("itemID",       new PyLong(m_itemID));
     into->SetField("typeID",       new PyInt(m_type.id()));

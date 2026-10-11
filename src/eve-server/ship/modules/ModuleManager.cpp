@@ -26,6 +26,129 @@
 #include "station/Station.h"
 #include "system/DestinyManager.h"
 
+#include <functional>
+#include <set>
+
+struct ModuleManager::FittingTransaction {
+    std::set<GenericModule*> created, retired;
+    std::set<GenericModule*> chargeEffects;
+    std::map<GenericModule*,bool> onlineStates;
+    std::set<uint32> unfitted, movingCharges;
+    std::vector<std::function<void()>> finish;
+};
+
+std::shared_ptr<ModuleManager::FittingTransaction> ModuleManager::PrepareFittingTransaction() {
+    if (m_fittingTransaction) return m_fittingTransaction;
+    assert(DBTransaction::Active());
+    auto state=std::make_shared<FittingTransaction>();
+    m_fittingTransaction=state;
+    ShipItemRef ship(pShipItem);
+    const auto modules=m_modules, systems=m_systems, fittings=m_fittings;
+    const auto groups=m_modByGroup;
+    const auto charges=m_charges;
+    const auto low=m_LowSlots, mid=m_MidSlots, high=m_HighSlots, rigs=m_RigSlots, subsystems=m_SubSystemSlots;
+    const auto scan=m_rigScanBonus;
+    DBTransaction::OnRollback([this,ship,state,modules,systems,fittings,groups,charges,low,mid,high,rigs,subsystems,scan]() {
+        m_modules=modules; m_systems=systems; m_fittings=fittings; m_modByGroup=groups; m_charges=charges;
+        m_LowSlots=low; m_MidSlots=mid; m_HighSlots=high; m_RigSlots=rigs; m_SubSystemSlots=subsystems; m_rigScanBonus=scan;
+        m_fittingTransaction.reset();
+        // Existing objects never ran irreversible effects while the SQL unit was open.
+        for (auto module:state->created) delete module;
+    });
+    DBTransaction::Publish([this,ship,state]() {
+        m_fittingTransaction.reset();
+        for (const auto& finish:state->finish) finish();
+    });
+    return state;
+}
+
+void ModuleManager::RetireModule(GenericModule* module) {
+    auto state=PrepareFittingTransaction();
+    if (!state->retired.insert(module).second) return;
+    state->unfitted.insert(module->itemID());
+    // Detach first: moving its charge out of the ship must not recursively unload it.
+    deleteModuleRef(module->flag(),module);
+    UnloadCharge(module);
+    if (module->IsLinked()) pShipItem->UnlinkGroup(module,true,true);
+    DBerror error;
+    if (!sDatabase.RunQuery(error,
+        "INSERT INTO entity_attributes(itemID,attributeID,valueInt,valueFloat) SELECT itemID,%u,0,NULL FROM entity WHERE itemID=%u ON DUPLICATE KEY UPDATE valueInt=0,valueFloat=NULL",
+        AttrOnline,module->itemID())) throw CustomError("Module offline write failed; the fitting change was rolled back.");
+    // Keep the original runtime object, cycle and charge reference intact until commit.
+    state->finish.push_back([module]() {
+        module->AbortCycle();
+        if (module->IsLoaded()) module->UnloadCharge();
+        module->Offline();
+        delete module;
+    });
+}
+
+void ModuleManager::PublishChargeState(GenericModule* module) {
+    auto state=PrepareFittingTransaction();
+    if (!state->chargeEffects.insert(module).second) return;
+    state->finish.push_back([this,module,context=state.get()]() {
+        if (context->retired.count(module)) return;
+        const auto found=m_charges.find(module->flag());
+        InventoryItemRef desired=found==m_charges.end() ? InventoryItemRef(nullptr) : found->second;
+        const bool prime=desired && (!module->IsLoaded() || module->GetLoadedChargeRef().get()!=desired.get());
+        if (module->IsLoaded() && (!desired || module->GetLoadedChargeRef().get()!=desired.get())) module->UnloadCharge();
+        if (!desired) return;
+        module->LoadCharge(desired);
+        if (prime && pShipItem->HasPilot() && pShipItem->GetPilot()->IsInSpace()) {
+            Rsp_CommonGetInfo_Entry entry;
+            if (desired->Populate(entry)) {
+                PyTuple* packet=new PyTuple(2);
+                packet->SetItem(0,new PyInt(desired->locationID()));
+                packet->SetItem(1,new PyObject("util.KeyVal",entry.Encode()));
+                pShipItem->GetPilot()->SendNotification("OnGodmaPrimeItem","clientID",packet);
+            }
+        }
+    });
+}
+
+void ModuleManager::SetOnlineState(GenericModule* module, bool online) {
+    if (!module) throw CustomError("The fitted module no longer exists.");
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start module state change.");
+    auto state=PrepareFittingTransaction();
+    auto running=[](GenericModule* value) {return value->GetModuleState()>=Module::State::Online && value->GetModuleState()<=Module::State::Activated;};
+    if (online && pShipItem->HasPilot() && pShipItem->GetPilot()->IsInSpace()) {
+        if (module->GetAttribute(AttrDamage)>=module->GetAttribute(AttrHP)) throw CustomError("The module is too damaged to be put online.");
+        EvilNumber cpu=pShipItem->GetAttribute(AttrCpuLoad),power=pShipItem->GetAttribute(AttrPowerLoad);
+        // Account for requested states in this unit without running effects before commit.
+        for (const auto& pending:state->onlineStates) {
+            if (state->retired.count(pending.first)) continue;
+            const int change=static_cast<int>(pending.second)-static_cast<int>(running(pending.first));
+            cpu+=pending.first->GetAttribute(AttrCpu)*change;
+            power+=pending.first->GetAttribute(AttrPower)*change;
+        }
+        for (auto retired:state->retired) if (running(retired)) {
+            cpu-=retired->GetAttribute(AttrCpu);power-=retired->GetAttribute(AttrPower);
+        }
+        const auto pending=state->onlineStates.find(module);
+        const bool requested=pending==state->onlineStates.end() ? running(module) : pending->second;
+        if (!requested) {cpu+=module->GetAttribute(AttrCpu);power+=module->GetAttribute(AttrPower);}
+        if (cpu>pShipItem->GetAttribute(AttrCpuOutput) || power>pShipItem->GetAttribute(AttrPowerOutput))
+            throw CustomError("The ship does not have enough CPU or power to put this module online.");
+    }
+    if (!IsTempItem(module->itemID()) && !IsNPC(module->itemID())) {
+        DBQueryResult result;DBResultRow row;DBerror error;
+        if (!sDatabase.RunQuery(result,"SELECT itemID FROM entity WHERE itemID=%u AND ownerID=%u AND locationID=%u AND flag=%u FOR UPDATE",
+            module->itemID(),pShipItem->ownerID(),pShipItem->itemID(),module->flag()) || !result.GetRow(row) ||
+            !sDatabase.RunQuery(error,"INSERT INTO entity_attributes(itemID,attributeID,valueInt,valueFloat) VALUES (%u,%u,%u,NULL) ON DUPLICATE KEY UPDATE valueInt=VALUES(valueInt),valueFloat=NULL",
+                module->itemID(),AttrOnline,online ? 1u : 0u)) throw CustomError("Module state write failed; the previous state was preserved.");
+    }
+    module->GetSelf()->SetAttribute(AttrOnline,online ? 1 : 0,true);
+    const bool first=state->onlineStates.emplace(module,online).second;
+    state->onlineStates[module]=online;
+    if (first) state->finish.push_back([module,context=state.get()]() {
+        if (context->retired.count(module)) return;
+        if (context->onlineStates.at(module)) module->Online();
+        else {module->AbortCycle();module->Offline();}
+    });
+    if (!transaction.Commit()) throw CustomError("Module state change failed; the previous state was restored.");
+}
+
 /*
  * MODULE__ERROR
  * MODULE__WARNING
@@ -303,10 +426,8 @@ GenericModule* ModuleManager::GetModule(EVEItemFlags flag)
 
 GenericModule* ModuleManager::GetModule(uint32 itemID)
 {
-    InventoryItemRef iRef = sItemFactory.GetItemRef(itemID);
-    if (iRef.get() != nullptr)
-        return GetModule(iRef->flag());
-
+    for (const auto& entry:m_modules)
+        if (entry.second && entry.second->itemID()==itemID) return entry.second;
     return nullptr;
 }
 
@@ -326,7 +447,10 @@ GenericModule* ModuleManager::GetRandModule()
 bool ModuleManager::InstallRig(ModuleItemRef mRef, EVEItemFlags flag) {
     if (((mRef->groupID() >= EVEDB::invGroups::Rig_Armor) and (mRef->groupID() <= EVEDB::invGroups::Rig_Astronautic))
     or (mRef->groupID() == EVEDB::invGroups::Rig_Electronics_Superiority)) {
-        AddModule(mRef,flag);
+        DBTransaction transaction;
+        if (!transaction.Started()) return false;
+        PrepareFittingTransaction();
+        if (!AddModule(mRef,flag)) return false;
         // hack to get total scan bonus from rigs, if applicable
         // do we need to check for and set anything else here?
         if (mRef->groupID() == EVEDB::invGroups::Rig_Electronics) {
@@ -343,7 +467,7 @@ bool ModuleManager::InstallRig(ModuleItemRef mRef, EVEItemFlags flag) {
                 } break;
             }
         }
-        return true;
+        return transaction.Commit();
     } else {
         codelog(MODULE__TRACE, "MM::InstallRig() - %s tried to fit %s(%u), which is not a rig", pShipItem->GetPilot()->GetName(), mRef->name(), mRef->itemID());
     }
@@ -366,7 +490,9 @@ void ModuleManager::UninstallRig(uint32 itemID)
 
     _log(MODULE__TRACE, "%s(%u) calling MM::UninstallRig()", pMod->GetSelf()->name(), pMod->itemID());
 
-    pMod->Offline();
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start rig removal.");
+    PrepareFittingTransaction();
 
     if (pMod->groupID() == EVEDB::invGroups::Rig_Electronics) {
         switch (pMod->typeID()) {
@@ -383,9 +509,13 @@ void ModuleManager::UninstallRig(uint32 itemID)
         }
     }
 
-    if (!sConfig.debug.IsTestServer)
+    RetireModule(pMod);
+    if (!sConfig.debug.IsTestServer) {
         pMod->RemoveRig();
-    deleteModuleRef(pMod->flag(), pMod);
+        if (sItemFactory.GetItemRefFromID(pMod->itemID(),false) && !pMod->GetSelf()->GetAttributeMap()->Save())
+            throw CustomError("Rig condition save failed; removal was rolled back.");
+    }
+    if (!transaction.Commit()) throw CustomError("Rig removal failed; the fitting was restored.");
 }
 
 bool ModuleManager::InstallSubSystem(ModuleItemRef mRef, EVEItemFlags flag)
@@ -396,8 +526,7 @@ bool ModuleManager::InstallSubSystem(ModuleItemRef mRef, EVEItemFlags flag)
         return false;
     }
 
-    AddModule(mRef,flag);
-    return true;
+    return AddModule(mRef,flag);
 }
 
 // not used
@@ -461,18 +590,10 @@ void ModuleManager::UnfitModule(uint32 itemID)
 
     _log(MODULE__TRACE, "%s(%u) calling MM::UnfitModule(itemID)", pMod->GetSelf()->name(), pMod->itemID());
 
-    pMod->AbortCycle();
-    if (pMod->IsLoaded())
-         UnloadCharge(pMod);
-
-    if (pMod->IsLinked())
-        pShipItem->UnlinkGroup(itemID, true);
-
-    pMod->Offline();
-
-    deleteModuleRef(pMod->flag(), pMod);
-    // delete the GenericModule object (but not the ModuleItem object)
-    SafeDelete(pMod);
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start module removal.");
+    RetireModule(pMod);
+    if (!transaction.Commit()) throw CustomError("Module removal failed; the fitting was restored.");
 }
 
 void ModuleManager::UnfitModule(EVEItemFlags flag) {
@@ -484,18 +605,7 @@ void ModuleManager::UnfitModule(EVEItemFlags flag) {
 
     _log(MODULE__TRACE, "%s(%u) calling MM::UnfitModule(flag)", pMod->GetSelf()->name(), pMod->itemID());
 
-    pMod->AbortCycle();
-    if (pMod->IsLoaded())
-        UnloadCharge(pMod);
-
-    if (pMod->IsLinked())
-        pShipItem->UnlinkGroup(pMod->itemID(), true);
-
-    pMod->Offline();
-
-    deleteModuleRef(flag, pMod);
-    // delete the GenericModule object (but not the ModuleItem object)
-    SafeDelete(pMod);
+    UnfitModule(pMod->itemID());
 }
 
 // cannot throw without test
@@ -525,23 +635,27 @@ bool ModuleManager::AddModule(ModuleItemRef mRef, EVEItemFlags flag)
         return false;
     }
 
+    DBTransaction transaction;
+    if (!transaction.Started()) return false;
+    auto state=PrepareFittingTransaction();
     // create new module object
     GenericModule* pMod = ModuleFactory(mRef, ShipItemRef(pShipItem));
     if (pMod == nullptr)
         return false; // error here?
 
+    state->created.insert(pMod);
     pMod->SetModuleState(Module::State::Offline);
+
+    // Persist assembly and slot before publishing the module manager entry.
+    mRef->AssembleAndMove(pShipItem->itemID(),flag,pShipItem->HasPilot() ? pShipItem->GetPilot()->IsInSpace() : false);
 
     addModuleRef(flag, pMod);
 
     if (m_initalized and pShipItem->HasPilot())
-        if (mRef->GetAttribute(AttrOnline).get_bool())
-            pMod->Online();
+        if (mRef->GetAttribute(AttrOnline).get_bool() && !state->unfitted.count(mRef->itemID()))
+            SetOnlineState(pMod,true);
 
-    // verify module's singleton flag is set
-    mRef->ChangeSingleton(true, pShipItem->HasPilot()?pShipItem->GetPilot()->IsInSpace():false);
-
-    return true;
+    return transaction.Commit();
     /*
     if (is_log_enabled(MODULE__DEBUG)) { // debug msg?
         std::map<std::string, PyRep *> args;
@@ -575,7 +689,7 @@ void ModuleManager::Online(uint32 itemID)
     }
 
     _log(MODULE__MESSAGE, "MM::Online(itemID) -  %s going Online", pMod->GetSelf()->name());
-    pMod->Online();
+    SetOnlineState(pMod,true);
 }
 
 void ModuleManager::Online(EVEItemFlags flag)
@@ -591,7 +705,7 @@ void ModuleManager::Online(EVEItemFlags flag)
     }
 
     _log(MODULE__MESSAGE, "MM::Online(flag) -  %s going Online", pMod->GetSelf()->name());
-    pMod->Online();
+    SetOnlineState(pMod,true);
 }
 
 void ModuleManager::Offline(uint32 itemID)
@@ -603,12 +717,12 @@ void ModuleManager::Offline(uint32 itemID)
     }
     if (!pMod->isOnline()) {
         _log(MODULE__WARNING, "MM::Offline(itemID) -  %s not Online", pMod->GetSelf()->name());
-        pMod->SetModuleState(Module::State::Offline);
+        SetOnlineState(pMod,false);
         return;
     }
 
     _log(MODULE__MESSAGE, "MM::Offline(itemID) -  %s going Offline", pMod->GetSelf()->name());
-    pMod->Offline();
+    SetOnlineState(pMod,false);
 }
 
 void ModuleManager::Offline(EVEItemFlags flag)
@@ -620,11 +734,11 @@ void ModuleManager::Offline(EVEItemFlags flag)
     }
     if (!pMod->isOnline()) {
         _log(MODULE__WARNING, "MM::Offline(flag) -  %s not Online", pMod->GetSelf()->name());
-        pMod->SetModuleState(Module::State::Offline);
+        SetOnlineState(pMod,false);
         return;
     }
     _log(MODULE__MESSAGE, "MM::Offline(flag) -  %s going Offline", pMod->GetSelf()->name());
-    pMod->Offline();
+    SetOnlineState(pMod,false);
 }
 
 void ModuleManager::AbortCycle()
@@ -632,6 +746,13 @@ void ModuleManager::AbortCycle()
     for (auto cur : m_modules)
         if (cur.second != nullptr)
             cur.second->AbortCycle();
+}
+
+void ModuleManager::PrepareForLogout()
+{
+    for (auto cur : m_modules)
+        if (cur.second != nullptr && cur.second->IsActiveModule())
+            cur.second->GetActiveModule()->PrepareForLogout();
 }
 
 void ModuleManager::OnlineAll()
@@ -682,7 +803,7 @@ void ModuleManager::Activate(int32 itemID, uint16 effectID, int32 targetID, int3
                 pMod->GetSelf()->name(), effectID, sFxDataMgr.GetEffectName(effectID).c_str(), targetID, repeat);
 
     if (effectID == 16) { //16    online
-        pMod->Online();
+        SetOnlineState(pMod,true);
         return;
     }
     /*{'FullPath': u'UI/Messages', 'messageID': 259628, 'label': u'InvalidTargetCanAlreadyTractoredBody'}(u'The {[item]module.name} cannot engage a tractor beam on that object as it is already being tractor beamed by something else.', None, {u'{[item]module.name}': {'conditionalValues': [], 'variableType': 2, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'module'}})
@@ -732,7 +853,7 @@ void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
     // test for effectName "online", which is sent thru rclick menu in HUD to offline module
     if (effectName.compare("online") == 0) {
         _log(MODULE__TRACE, "MM::Deactivate() - %s Offlining - '%s'", pMod->GetSelf()->name(), effectName.c_str());
-        pMod->Offline();
+        SetOnlineState(pMod,false);
         return;
     }
     if (pMod->GetModuleState() != Module::State::Activated)  // we dont need an error msgs here....this is acceptable, as the module may not be active
@@ -888,220 +1009,88 @@ void ModuleManager::StopModuleRepair(uint32 modID)
     }
 }
 
-void ModuleManager::LoadCharge(InventoryItemRef chargeRef, EVEItemFlags flag)
-{
-    GenericModule* pMod = GetModule(flag);
-    if (pMod == nullptr) {
-        _log(MODULE__ERROR, "MM::LoadCharge() - module not found at %s", sDataMgr.GetFlagName(flag));
+void ModuleManager::LoadCharge(InventoryItemRef chargeRef, EVEItemFlags flag) {
+    GenericModule* module=GetModule(flag);
+    if (!module || !chargeRef) throw CustomError("The module or ammunition no longer exists.");
+    if (chargeRef->ownerID()!=pShipItem->ownerID()) throw CustomError("You cannot load another owner's ammunition.");
+    const double volume=chargeRef->GetAttribute(AttrVolume).get_float();
+    if (!std::isfinite(volume) || volume<=0 || chargeRef->quantity()<1) throw CustomError("Invalid ammunition quantity or volume.");
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start ammunition loading.");
+    PrepareFittingTransaction();
+    InventoryItemRef loaded=GetLoadedChargeOnModule(flag);
+    if (loaded.get()==chargeRef.get()) {
+        if (!transaction.Commit()) throw CustomError("Ammunition loading failed.");
         return;
     }
-    float modCapacity = pMod->GetAttribute(AttrCapacity).get_float();
-    float chargeVolume = chargeRef->GetAttribute(AttrVolume).get_float();
-
-    bool loaded = pMod->IsLoaded();
-
+    if (loaded && loaded->typeID()!=chargeRef->typeID()) {
+        UnloadCharge(module);
+        loaded=InventoryItemRef(nullptr);
+    }
+    double capacity=module->GetAttribute(AttrCapacity).get_float();
+    if (loaded) capacity-=volume*loaded->quantity();
+    if (!std::isfinite(capacity) || capacity<volume) {
+        if (!transaction.Commit()) throw CustomError("Ammunition loading failed.");
+        return;
+    }
+    int32 quantity=static_cast<int32>(std::min<double>(chargeRef->quantity(),std::floor(capacity/volume)));
+    if (quantity<1) throw CustomError("There is no room for ammunition.");
+    if (quantity<chargeRef->quantity()) {
+        chargeRef=chargeRef->Split(quantity,false,true);
+        if (!chargeRef) throw CustomError("Ammunition stack split failed; loading was rolled back.");
+    }
     if (loaded) {
-        if (chargeRef->typeID() == pMod->GetLoadedChargeRef()->typeID()) {
-            modCapacity -= (chargeVolume * pMod->GetLoadedChargeRef()->quantity());
-            _log(MODULE__TRACE, "MM::LoadCharge() - %s reloading with same type. remaining capy:%.2f", pMod->GetSelf()->name(), modCapacity);
-        } else {
-            // change charges
-            UnloadCharge(pMod);
-            loaded = false;
-            // update module capy
-            modCapacity = pMod->GetAttribute(AttrCapacity).get_float();
-            _log(MODULE__TRACE, "MM::LoadCharge() - %s reloading with different type. empty capy:%.2f", pMod->GetSelf()->name(), modCapacity);
-        }
+        if (!loaded->Merge(chargeRef,quantity,true)) throw CustomError("Ammunition merge failed; loading was rolled back.");
+        chargeRef=loaded; // The merged source may already have been deleted.
     } else {
-        _log(MODULE__TRACE, "MM::LoadCharge() - %s not loaded. capy:%.2f", pMod->GetSelf()->name(), modCapacity);
+        chargeRef->SetAttribute(AttrQuantity,EvilZero,false);
+        chargeRef->Move(pShipItem->itemID(),flag,pShipItem->HasPilot() && pShipItem->GetPilot()->IsDocked());
+        m_charges[flag]=chargeRef;
     }
-
-    //{'FullPath': u'UI/Messages', 'messageID': 256676, 'label': u'CannotLoadNotEnoughChargesBody'}(u'There are not enough charges to fully load all of your modules. Some of your modules have been left partially loaded or empty.', None, None)
-
-    // check quantities
-    if (modCapacity < chargeVolume)
-        return;
-
-    int32 loadQty = floor((modCapacity / chargeVolume));
-    if (loadQty < 1)
-        return;
-
-    if (loadQty < chargeRef->quantity()) {
-        InventoryItemRef cRef(chargeRef);
-        chargeRef = chargeRef->Split(loadQty, false, true);
-        if (chargeRef.get() == nullptr) {
-            _log(MODULE__ERROR, "");
-            if (pShipItem->HasPilot())
-                pShipItem->GetPilot()->SendNotifyMsg("Could not split stack of %s.  %s was not reloaded.", \
-                        cRef->name(), pMod->GetSelf()->name());
-            return;
-        }
-    } else {
-        loadQty = chargeRef->quantity();
-    }
-
-    /* loaded charges are set in a "SubLocation" in client.
-     * they then become a nullItem, with only type and qty references.
-     * the sublocation is identified as a tuple of itemKey(shipID, flagID, typeID)
-     * all updates for that charge (which seems to be only attrib changes), are referenced using it's itemKey
-     * when sending charge item change with locationID or flagID, client will correctly add as sublocation
-     *    when in space, but only for the first update.  subsequent changes need to use OnModuleAttributeChange (OMAC)
-     *
-     * when docked, List() sends charges as invItem, and client doesnt process that as a sublocation.  (OMAC method)
-     * because of this, OMAC isn't used when docked, and OnItemChange (OIC) is the update client will correctly process.
-     */
-
-    if (loaded) {
-        //  merge addt'l charges with currently loaded charges (fillup)
-        pMod->GetLoadedChargeRef()->Merge(chargeRef, loadQty);
-    } else {
-        // if module wasnt previously loaded, add to ship's inventory and charge map
-        chargeRef->SetAttribute(AttrQuantity, EvilZero, false);    // OMAC
-        chargeRef->Move(pShipItem->itemID(), flag, pShipItem->HasPilot()?pShipItem->GetPilot()->IsDocked():false);
-        //chargeRef->Move(pShipItem->itemID(), flag, false);
-        m_charges.emplace(flag, chargeRef);
-    }
-
-    // this will enable module loading blink if ship in space, even on reload/fillup
-    pMod->LoadCharge(chargeRef);
-
-    //  just found a call i was missing.... 19Aug20
-    /*
-     *                  [PyTuple 3 items]
-     *                    [PyString "OnGodmaPrimeItem"]
-     *                    [PyIntegerVar 1002332228246]  <<-- item locationID
-     *                    [PyObjectData Name: util.KeyVal]
-     *                      [PyDict 5 kvp]
-     *                        [PyString "itemID"]
-     *                        [PyTuple 3 items]
-     *                          [PyIntegerVar 1002332228246]
-     *                          [PyInt 27]
-     *                          [PyInt 30028]
-     *                        [PyString "attributes"]
-     *                        [PyDict 23 kvp]
-     *                        [PyString "invItem"]
-     *                        [PyNone]
-     *                        [PyString "time"]
-     *                        [PyIntegerVar 129527520208602524]
-     *                        [PyString "activeEffects"]
-     *                        [PyDict 0 kvp]
-     *    [PyDict 1 kvp]
-     *      [PyString "sn"]
-     *      [PyIntegerVar 131]
-     */
-    // send update to client for processing new subLocation   -found/added 19Aug20
-    if (!loaded)
-        if (pShipItem->HasPilot() and pShipItem->GetPilot()->IsInSpace()) {
-            Rsp_CommonGetInfo_Entry entry2;
-            if (chargeRef->Populate(entry2)) {
-                PyTuple* tuple = new PyTuple(3);
-                    tuple->SetItem(0, new PyInt(chargeRef->locationID()));
-                    tuple->SetItem(1, new PyInt(chargeRef->flag()));
-                    tuple->SetItem(2, new PyInt(chargeRef->typeID()));
-                PyTuple* result = new PyTuple(2);
-                    result->SetItem(0, new PyInt(chargeRef->locationID()));
-                    result->SetItem(1, new PyObject("util.KeyVal", entry2.Encode()));
-                pShipItem->GetPilot()->SendNotification("OnGodmaPrimeItem", "clientID", result);     // this is sequenced
-            } else {
-                sLog.Error("MM::LoadCharge","cannot Populate() %s", chargeRef->name());
-            }
-        }
-
-    //chargeRef->SetQuantity(loadQty, true);                  // OIC
-    chargeRef->SetAttribute(AttrQuantity, loadQty, true);   // OMAC
+    PublishChargeState(module);
+    chargeRef->SetAttribute(AttrQuantity,chargeRef->quantity(),true);
+    if (!transaction.Commit()) throw CustomError("Ammunition loading failed; the previous state was restored.");
 }
 
-void ModuleManager::UnloadCharge(GenericModule* pMod)
-{
-    if (pMod == nullptr) {
-        _log(MODULE__ERROR, "MM::UnloadCharge() - module invalid");
+void ModuleManager::UnloadCharge(GenericModule* module) {
+    if (!module) return;
+    if (m_fittingTransaction && m_fittingTransaction->movingCharges.count(module->itemID())) return;
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start ammunition removal.");
+    auto state=PrepareFittingTransaction();
+    const auto found=m_charges.find(module->flag());
+    InventoryItemRef charge=found==m_charges.end() ? InventoryItemRef(nullptr) : found->second;
+    if (!charge) {
+        if (!transaction.Commit()) throw CustomError("Ammunition removal failed.");
         return;
     }
-
-    _log(MODULE__TRACE, "%s(%u) calling MM::UnloadCharge()", pMod->GetSelf()->name(), pMod->itemID());
-
-    // verify no charge at flag in map
-    m_charges.erase(pMod->flag());
-
-    if (!pMod->IsLoaded()) {
-        _log(MODULE__ERROR, "MM::UnloadCharge() - %s at %s is not loaded", \
-                pMod->GetSelf()->name(), sDataMgr.GetFlagName(pMod->flag()));
-        return;
-    }
-
-    InventoryItemRef chargeRef(pMod->GetLoadedChargeRef());
-    if (chargeRef.get() == nullptr) {
-        _log(MODULE__ERROR, "MM::UnloadCharge() - charge not found on module %s at %s", \
-                pMod->GetSelf()->name(), sDataMgr.GetFlagName(pMod->flag()));
-        return;
-    }
-
-    pMod->UnloadCharge();
-
-    // if charge is depleted, update has already been sent to client thru OMAC
-    if (chargeRef->quantity() < 1)
-        return;
-
-    // at this point, we are changing a loaded charge.  remove charge from module, check for stacking, update client.
-    /* to trigger client to remove and clear out a loaded charge, send a qty=0 update using either
-     *  OnModuleAttributeChange thru Godma when in space or OnItemChange thru InventoryItem when docked
-     */
-
-    chargeRef->SetAttribute(AttrQuantity, EvilZero);    // OMAC
-
-    if (sDataMgr.IsStation(pShipItem->locationID())) {
-        StationItemRef sRef = sEntityList.GetStationByID(pShipItem->locationID());
-        if (sRef.get() != nullptr) {
-            InventoryItemRef iRef = sRef->GetMyInventory()->GetByTypeFlag(chargeRef->typeID(), flagHangar);
-            if (iRef.get() != nullptr) {
-                // merge with existing item
-                iRef->Merge(chargeRef);         // OIC  preferred
-                //iRef->AlterQuantity(chargeRef->quantity() + iRef->quantity(), true);
-                //chargeRef->SetQuantity(0, true);         // OIC alternate
-                return;
-            } else {
-                chargeRef->Move(pShipItem->locationID(), flagHangar, true);
-            }
-        } else { // this will be an error.  cant find station ship is docked in
-            _log(MODULE__ERROR, "MM::UnloadCharge() - Station %u not found for ship %u owned by %s",\
-                    pShipItem->locationID(), pShipItem->itemID(), \
-                    pShipItem->HasPilot()? pShipItem->GetPilot()->GetName() : itoa(pShipItem->ownerID()));
-            chargeRef->Move(pShipItem->locationID(), flagHangar, true);
-        }
-    } else {
-        /*
-        EVEItemFlags flag = flagCargoHold;
-        // check for existence of ammohold...not yet.  only one ship has it (cockroach)
-        if (pShipItem->HasAttribute(AttrAmmoHoldCapacity)) {
-            // verify hold capy
-            if (pShipItem->GetMyInventory()->HasAvailableSpace(flag, chargeRef))
-                flag = flagAmmoHold;
-        } else
-        */
-        if (pShipItem->GetMyInventory()->HasAvailableSpace(flagCargoHold, chargeRef)) {
-            InventoryItemRef iRef = pShipItem->GetMyInventory()->GetByTypeFlag(chargeRef->typeID(), flagCargoHold);
-            if (iRef.get() != nullptr) {
-                // merge with existing item
-                // in case we're merging into existing stack, get current qty
-                int16 qty(chargeRef->quantity());
-                chargeRef->Delete();
-                iRef->AlterQuantity(qty, true);
-                return;
-            }
-
-            chargeRef->Relocate(pShipItem->itemID(), flagCargoHold);
-        } else {
-            // dunno what to do at this point....the charge is already removed but cargo is full...pilot not paying attention
-            // fuckit....space the bitch
-            if (pShipItem->HasPilot())
-                pShipItem->GetPilot()->SendNotifyMsg("Your cargo is full, so your %s was jettisoned and lost.", chargeRef->name());
-
-            chargeRef->Delete();
+    if (charge->ownerID()!=pShipItem->ownerID()) throw CustomError("Loaded ammunition has an invalid owner.");
+    m_charges.erase(module->flag());
+    PublishChargeState(module);
+    state->movingCharges.insert(module->itemID());
+    if (charge->quantity()>0) {
+        const bool docked=sDataMgr.IsStation(pShipItem->locationID());
+        const uint32 destination=docked ? pShipItem->locationID() : pShipItem->itemID();
+        const EVEItemFlags flag=docked ? flagHangar : flagCargoHold;
+        if (!docked && !pShipItem->GetMyInventory()->HasAvailableSpace(flag,charge))
+            throw CustomError("There is not enough cargo space to unload the ammunition.");
+        charge->SetAttribute(AttrQuantity,EvilZero,true);
+        // Move first, then merge only a matching stack belonging to this owner.
+        charge->Move(destination,flag,true);
+        InventoryItemRef container=sItemFactory.GetItemRef(destination);
+        InventoryItemRef stack=container && container->GetMyInventory() ? container->GetMyInventory()->GetByTypeFlag(charge->typeID(),flag) : InventoryItemRef(nullptr);
+        if (stack && stack.get()!=charge.get() && stack->ownerID()==charge->ownerID()) {
+            if (!stack->Merge(charge,charge->quantity(),true)) throw CustomError("Ammunition merge failed; removal was rolled back.");
         }
     }
+    state->movingCharges.erase(module->itemID());
+    if (!transaction.Commit()) throw CustomError("Ammunition removal failed; the loaded state was restored.");
 }
-
 InventoryItemRef ModuleManager::GetLoadedChargeOnModule(EVEItemFlags flag) {
+    if (m_fittingTransaction) {
+        const auto found=m_charges.find(flag);
+        return found==m_charges.end() ? InventoryItemRef(nullptr) : found->second;
+    }
     GenericModule* pMod = GetModule(flag);
     if ((pMod != nullptr) and pMod->IsLoaded() )
         return pMod->GetLoadedChargeRef();

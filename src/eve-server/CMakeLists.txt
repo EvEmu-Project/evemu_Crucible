@@ -762,6 +762,11 @@ ADD_EXECUTABLE( "${TARGET_NAME}"
 
 target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-server.h" )
+OPTION(EVEMU_ENABLE_CORE_AUDIT "Build guarded core gameplay/database audit modes" OFF)
+IF(EVEMU_ENABLE_CORE_AUDIT)
+  TARGET_SOURCES("${TARGET_NAME}" PRIVATE "${TARGET_SOURCE_DIR}/testing/CoreAudit.cpp")
+  TARGET_COMPILE_DEFINITIONS("${TARGET_NAME}" PRIVATE EVEMU_ENABLE_CORE_AUDIT)
+ENDIF()
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${eve-common_INCLUDE_DIRS}
                             "${TARGET_INCLUDE_DIR}" )

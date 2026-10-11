@@ -136,6 +136,7 @@ bool FactoryDB::SaveBlueprintData(uint32 blueprintID, EvERam::bpData& data) {
         " VALUES"
         "  (%u, %u, %i, %i, %i)"
         "ON DUPLICATE KEY UPDATE "
+        "copy=VALUES(copy), "
         "mLevel=VALUES(mLevel), "
         "pLevel=VALUES(pLevel), "
         "runs=VALUES(runs) ",

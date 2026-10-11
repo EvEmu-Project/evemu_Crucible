@@ -45,6 +45,7 @@
 #include "station/Outpost.h"
 #include "station/StationDataMgr.h"
 #include "manufacturing/FactoryDB.h"
+#include "station/TradeService.h"
 
 InventoryBound::InventoryBound(EVEServiceManager &mgr, BoundServiceParent<InventoryBound>& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
     EVEBoundObject(mgr, parent),
@@ -248,6 +249,9 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
  * Adding Modules to a specific slot on ship
  */
 PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID) {
+    DBTransaction inventoryUnit;
+    if (!inventoryUnit.Started()) throw CustomError("Cannot start inventory transfer.");
+    PyResult result=[&]() -> PyResult {
     if (is_log_enabled(INV__DUMP)) {
         _log(INV__DUMP, "IB::Handle_Add() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
@@ -264,6 +268,14 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
     }
 
     InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
+    if (!iRef) throw CustomError("The item no longer exists.");
+    if (TradeService::ReservedRoot(iRef)) {
+        if (m_ownerID!=call.client->GetCharacterID()) throw CustomError("Withdraw trade items into your own inventory.");
+        int32 requested=0;auto amount=call.byname.find("qty");
+        if (amount!=call.byname.end()) requested=PyRep::IntegerValue(amount->second);
+        GetServiceManager().Lookup<TradeService>("trademgr")->WithdrawItem(call.client,iRef,m_itemID,static_cast<EVEItemFlags>(toFlag),requested,requested<=0);
+        Call_SingleIntegerArg result;result.arg=iRef->itemID();return result.Encode();
+    }
 
     bool moveStack = false;
     int32 quantity = 0;
@@ -303,10 +315,17 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
     items.push_back(itemID->value());
 
     return MoveItems(call.client, items, (EVEItemFlags)toFlag, quantity, moveStack, capacity);
+
+    }();
+    if (!inventoryUnit.Commit()) throw CustomError("Inventory transfer failed; the items were restored.");
+    return result;
 }
 
 // this call is for moving items to *THIS* inventory
 PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* containerID) {
+    DBTransaction inventoryUnit;
+    if (!inventoryUnit.Started()) throw CustomError("Cannot start inventory transfer.");
+    PyResult result=[&]() -> PyResult {
     if (is_log_enabled(INV__DUMP)) {
         _log(INV__DUMP, "IB::Handle_MultiAdd() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
@@ -370,6 +389,10 @@ PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* cont
                 items.size(), containerID->value(), sDataMgr.GetFlagName(m_flag), m_self->name(), m_itemID, sDataMgr.GetFlagName(toFlag));
 
     return MoveItems( call.client, items, (EVEItemFlags)toFlag, quantity, moveStack, capacity);
+
+    }();
+    if (!inventoryUnit.Commit()) throw CustomError("Inventory transfer failed; the items were restored.");
+    return result;
 }
 
 PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, EVEItemFlags toFlag, int32 quantity, bool moveStack, float capacity)
@@ -485,6 +508,11 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             continue;
         }
 
+        if (TradeService::ReservedRoot(iRef)) {
+            if (m_ownerID!=pClient->GetCharacterID()) throw CustomError("Withdraw trade items into your own inventory.");
+            GetServiceManager().Lookup<TradeService>("trademgr")->WithdrawItem(pClient,iRef,m_itemID,toFlag,quantity,moveStack);
+            continue;
+        }
         if (iRef->typeID() == EVEDB::invTypes::Bookmark) {
             // update this to keep owner/creator and other data
             iRef->Donate(m_ownerID, m_itemID, toFlag);

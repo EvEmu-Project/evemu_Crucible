@@ -63,8 +63,7 @@ void ConsoleCommand::Initialize(CommandDispatcher* cd)
 
     m_inputThread = new std::thread([&] {
         std::string temp;
-        while (true) {
-            std::getline(std::cin, temp);
+        while (std::getline(std::cin, temp)) {
             std::lock_guard<std::mutex> lock(m_inputMutex);
             m_input.push_back(std::move(temp));
             m_inputCondition.notify_one();

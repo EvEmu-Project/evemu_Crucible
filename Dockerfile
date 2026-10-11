@@ -41,7 +41,7 @@ WORKDIR /src/build
 
 # Configure and build the project
 RUN cmake -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Debug .. 
-RUN make -j$(nproc)
+RUN make -j4
 RUN make install
 
 # Final runtime image

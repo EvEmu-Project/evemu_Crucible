@@ -122,6 +122,9 @@ public:
     // remove item from old location, add to new location and (optionally) notify client of changes
     // will bcast to corp for item update (incomplete)
     void                    Move(uint32 new_location=locTemp, EVEItemFlags flag=flagNone, bool notify=false);
+    void                    AssembleAndMove(uint32 location, EVEItemFlags flag, bool notify);
+    // Evict a newly created item after its enclosing transaction rolls back.
+    void                    DiscardUncommitted();
     // same as Move() but xfer ownership also
     // will bcast to corp for item update (incomplete)
     void                    Donate(uint32 new_owner=ownerSystem, uint32 new_location=locTemp, EVEItemFlags new_flag=flagNone, bool notify=true);
@@ -281,6 +284,10 @@ protected:
 
 private:
     bool m_delete;
+    void DeleteFromCache();
+    void PrepareTransaction();
+    void PublishQuantity(int32 quantity, bool notify, bool deleteOnZero);
+    void PublishMove(uint32 location, EVEItemFlags flag, bool notify);
     ItemData m_data;
     ItemType m_type;
 

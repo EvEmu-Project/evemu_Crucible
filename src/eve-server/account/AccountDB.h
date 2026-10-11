@@ -32,6 +32,16 @@
 class AccountDB
 {
 public:
+    struct Transfer {
+        uint32 fromID, toID;
+        uint16 fromKey, toKey;
+        double amount;
+        uint8 entryTypeID;
+        uint32 referenceID;
+        std::string description;
+    };
+    struct WalletChange { uint32 ownerID; uint16 key; uint8 currency; double balance; };
+    static std::vector<WalletChange> TransferAtomic(const std::vector<Transfer>& transfers, uint32 actingCharacterID);
     PyRep* GetWalletDivisionsInfo(uint32 corpID);
 
     PyRep* GetJournal(uint32 ownerID, int8 entryTypeID, uint16 accountKey, int64 fromDate, bool reverse = false);
@@ -40,7 +50,7 @@ public:
     static double GetCorpBalance(uint32 corpID, uint16 accountKey);
     static void UpdateCorpBalance(uint32 corpID, uint16 accountKey, double amount);
 
-    static void AddJournalEntry(uint32 ownerID, int8 entryTypeID, uint32 ownerFromID, uint32 ownerToID, int8 currency, uint16 accountKey, \
+    static bool AddJournalEntry(uint32 ownerID, int8 entryTypeID, uint32 ownerFromID, uint32 ownerToID, int8 currency, uint16 accountKey, \
                                 double amount, double newBalance, std::string description, uint32 referenceID = 0);
 
 };

@@ -13,6 +13,8 @@
 #ifndef EVE_SHIP_MODULES_MODULEMANAGER_H
 #define EVE_SHIP_MODULES_MODULEMANAGER_H
 
+#include <memory>
+
 
 
 
@@ -98,6 +100,7 @@ public:
     void ShipJumping();
     void Process();
     void AbortCycle();
+    void PrepareForLogout();
 
     InventoryItemRef GetLoadedChargeOnModule(EVEItemFlags flag);
     InventoryItemRef GetLoadedChargeOnModule(InventoryItemRef moduleRef);
@@ -140,6 +143,13 @@ public:
     void UpdateChargeQty();
 
 private:
+    struct FittingTransaction;
+    std::shared_ptr<FittingTransaction> PrepareFittingTransaction();
+    void RetireModule(GenericModule* module);
+    void PublishChargeState(GenericModule* module);
+    void SetOnlineState(GenericModule* module, bool online);
+    std::shared_ptr<FittingTransaction> m_fittingTransaction;
+
     // adds module ref to map, modifies rof if applicable, sets maps for fit-by-group, adjusts slot count
     void addModuleRef(EVEItemFlags flag, GenericModule* pMod);
     // removes module ref from maps and adjusts slot count

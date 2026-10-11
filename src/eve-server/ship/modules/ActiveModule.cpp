@@ -239,14 +239,41 @@ void ActiveModule::Update()
     }
 }
 
+ActiveModule::~ActiveModule()
+{
+    DetachTarget();
+}
+
+void ActiveModule::DetachTarget()
+{
+    if (m_targetSE != nullptr && m_targetSE->TargetMgr() != nullptr)
+        m_targetSE->TargetMgr()->RemoveTargetModule(this);
+    m_targetSE = nullptr;
+    m_targetID = 0;
+}
+
+void ActiveModule::PrepareForLogout()
+{
+    const int8 previousState = m_ModuleState;
+    // Finish/abort the cycle while the pilot and ship entity are still valid.
+    try {
+        if (IsActive()) {
+            // A queued stop normally waits for the timer; teardown cannot wait.
+            m_Stop = false;
+            AbortCycle();
+        }
+    } catch (PyException&) {
+        sLog.Error("Module Logout", "Unable to finish cycle for module %u; clearing its target references.", itemID());
+    }
+    Clear();
+    if (previousState < Module::State::Online)
+        SetModuleState(previousState);
+}
+
 void ActiveModule::Clear()
 {
     _log(MODULE__TRACE, "%s(%u) calling Clear()", m_modRef->name(), m_modRef->itemID());
-    if (m_targetSE != nullptr)
-        if (m_targetSE->TargetMgr() != nullptr)
-            m_targetSE->TargetMgr()->RemoveTargetModule(this);
-
-    m_targetSE = nullptr;
+    DetachTarget();
 
     m_Stop = true;
     m_repeat = 1;
@@ -317,7 +344,17 @@ void ActiveModule::Process()
 void ActiveModule::RemoveTarget(SystemEntity* pSE) {
     if (m_targetSE == pSE) {
         _log(MODULE__TRACE, "ActiveModule::RemoveTarget called on %s on %s to remove %s", m_modRef->name(), m_shipRef->name(), pSE->GetName());
-        Deactivate();
+        // Mining depletion has already delivered the remaining ore. Calling the
+        // derived cycle here would harvest again and recurse into target deletion.
+        try {
+            if (IsActive()) {
+                SetModuleState(Module::State::Deactivating);
+                ActiveModule::DeactivateCycle(true);
+            }
+        } catch (PyException&) {
+            sLog.Error("Module Target", "Unable to finish target removal for module %u; clearing its references.", itemID());
+        }
+        Clear();
     }
 }
 

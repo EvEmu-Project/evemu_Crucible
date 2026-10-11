@@ -187,12 +187,25 @@ static const char* const SRV_CONFIG_FILE = EVEMU_ROOT "/etc/eve-server.xml";
 static void SetupSignals();
 static void CatchSignal( int sig_num );
 
+#ifdef EVEMU_ENABLE_CORE_AUDIT
+#include "testing/CoreAudit.h"
+#endif
 static volatile bool m_run = true;
 
 CommandDispatcher* g_dispatcher = nullptr; // ---commandlist update
 
 int main( int argc, char* argv[] )
 {
+    int auditExitCode = EXIT_SUCCESS;
+#ifdef EVEMU_ENABLE_CORE_AUDIT
+    const bool coreAudit = argc == 2 && IsCoreAuditMode(argv[1]);
+    if (argc>1 && std::strncmp(argv[1],"--core-audit-",13)==0 && !coreAudit) {
+        std::fprintf(stderr,"Unknown or malformed core audit scenario.\n");
+        return EXIT_FAILURE;
+    }
+    if (coreAudit && (!std::getenv("EVEMU_CORE_AUDIT") || std::strcmp(std::getenv("EVEMU_CORE_AUDIT"), "1")))
+        return EXIT_FAILURE;
+#endif
     double profileStartTime(GetTimeMSeconds());
 
     /* set current time for timer */
@@ -616,6 +629,33 @@ int main( int argc, char* argv[] )
     }
     std::printf("\n");     // spacer
 
+    // Refuse audit fixtures before normal startup can mutate an unmarked database.
+#ifdef EVEMU_ENABLE_CORE_AUDIT
+    if (coreAudit && !CoreAuditEnvironmentValid()) return EXIT_FAILURE;
+#endif
+    // Refuse the old MyISAM layout: START TRANSACTION cannot protect those tables.
+    DBQueryResult persistenceTables;
+    DBResultRow persistenceRow;
+    if (!sDatabase.RunQuery(persistenceTables,
+        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() "
+        "AND table_name IN ('entity','entity_attributes','chrCharacters','crpWalletDivisons','jnlCharacters','jnlCorporations','mktOrders','mktTransactions','invBlueprints','shipInsurance','mktOrderItems','chrTradeItems','shipWeaponGroups','chrCharacterAttributes') AND engine='InnoDB'") ||
+        !persistenceTables.GetRow(persistenceRow) || persistenceRow.GetUInt(0) != 14) {
+        sLog.Error("ServerInit", "Persistence migrations including 20261011021500 and InnoDB inventory, wallet, market and fitting tables are required.");
+        return EXIT_FAILURE;
+    }
+    DBQueryResult marketMoney; DBResultRow marketMoneyRow;
+    if (!sDatabase.RunQuery(marketMoney,
+        "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() "
+        "AND ((table_name='mktOrders' AND column_name IN ('price','escrow')) OR (table_name='mktTransactions' AND column_name='price')) "
+        "AND data_type='decimal' AND numeric_scale=2 AND numeric_precision>=16") ||
+        !marketMoney.GetRow(marketMoneyRow) || marketMoneyRow.GetUInt(0)!=3) {
+        sLog.Error("ServerInit","Market monetary precision migration 20261011001500 is required before startup.");
+        return EXIT_FAILURE;
+    }
+    if (!TradeService::RecoverAbandonedTrades()) {
+        sLog.Error("ServerInit","Trade reservation migration 20261011013000 is required, and abandoned trades must recover successfully before startup.");
+        return EXIT_FAILURE;
+    }
     // Clean DB upon initialisation
     dbClean.Initialize();
     std::printf("\n");
@@ -892,6 +932,12 @@ int main( int argc, char* argv[] )
     //     !!!  DO NOT PUT ANY INITIALIZATION CODE OR CALLS BELOW THIS LINE   !!!
     /////////////////////////////////////////////////////////////////////////////////////
 
+    #ifdef EVEMU_ENABLE_CORE_AUDIT
+    if (coreAudit) {
+        auditExitCode = RunCoreAudit(argv[1], newSvcMgr);
+        m_run = false;
+    }
+    #endif
     /*
      * THE MAIN LOOP
      * Everything except IO should happen in this loop, in this thread context.
@@ -976,7 +1022,7 @@ int main( int argc, char* argv[] )
     sLog.Warning("   ServerShutdown", "EVEmu is Offline.");
     /* close logfile */
     log_close_logfile();
-    exit(EXIT_SUCCESS);
+    exit(auditExitCode);
 }
 
 static void SetupSignals()

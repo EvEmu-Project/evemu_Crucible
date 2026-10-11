@@ -45,7 +45,12 @@ public:
     void RemoveActiveSession(uint32 myID);
 
     void CancelTrade(Client* pClient);
-    void TransferContainerContents(SystemManager* pSysMgr, InventoryItemRef itemRef, uint32 newOwnerID);
+    void CancelSession(TradeSession* session);
+    void FinishSession(TradeSession* session, const char* event);
+    TradeSession* RequireSession(Client* client, uint32 containerID = 0);
+    static bool RecoverAbandonedTrades();
+    static uint32 ReservedRoot(InventoryItemRef item);
+    void WithdrawItem(Client* client, InventoryItemRef item, uint32 destination, EVEItemFlags flag, int32 quantity, bool wholeStack);
 
     struct ActiveSession {
         uint32 myID;
@@ -69,7 +74,7 @@ class TradeSession
     friend class TradeService;
 
 public:
-    TradeSession() {}
+    TradeSession() : m_tradeSession{} {}
     ~TradeSession() {}
 
     struct Session {
@@ -108,13 +113,15 @@ class TradeBound : public EVEBoundObject <TradeBound>
     friend TradeService;
 
 public:
-    TradeBound(EVEServiceManager& mgr, TradeService& parent);
+    TradeBound(EVEServiceManager& mgr, TradeService& parent, uint32 containerID = 0);
 
     void ExchangeItems(Client* pClient, Client* pOther, TradeSession* pTSes);
     void CancelTrade(Client* pClient, Client* pOther, TradeSession* pTSes);
 
 protected:
     TradeService* m_TSvc;                // get registered TradeService object
+    uint32 m_containerID;
+    void AddItems(PyCallArgs& call, const std::vector<uint32>& items, uint32 sourceContainer, int32 quantity);
 
     PyResult OfferMoney(PyCallArgs& call, PyFloat* amount);
     PyResult Abort(PyCallArgs& call);

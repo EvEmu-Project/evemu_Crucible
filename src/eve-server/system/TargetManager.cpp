@@ -277,7 +277,7 @@ void TargetManager::ClearModules() {
 
         cur = m_modules.erase (cur);
 
-        module->AbortCycle ();
+        module->PrepareForLogout();
     }
 }
 
@@ -609,6 +609,8 @@ void TargetManager::Destroyed()
                 module->Deactivate(effect);
             } break;
         }
+        // Also detach modules already deactivating when the target was destroyed.
+        module->RemoveTarget(mySE);
     }
 
     Dump();

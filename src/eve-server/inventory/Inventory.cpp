@@ -597,7 +597,7 @@ bool Inventory::ContainsTypeByFlag(uint16 typeID, EVEItemFlags flag) const
 void Inventory::StackAll(EVEItemFlags locFlag, uint32 ownerID/*0*/)
 {
     InventoryItemRef iRef(nullptr);
-    std::vector<InventoryItemRef> delVec;
+    std::vector<std::pair<InventoryItemRef,InventoryItemRef>> merges;
     std::map<uint16, InventoryItemRef> types;
     std::map<uint16, InventoryItemRef>::iterator tItr = types.end();
 
@@ -617,15 +617,15 @@ void Inventory::StackAll(EVEItemFlags locFlag, uint32 ownerID/*0*/)
                 types.emplace(iRef->typeID(), iRef);
             } else {
                 // found another stack of this type.
-                delVec.push_back(iRef);
-                // fake merge as calling II::Merge() will invalidate iterator
-                tItr->second->SetQuantity(tItr->second->quantity() + iRef->quantity(), true, false);
+                // Defer mutation until traversal completes; use the same atomic
+                // merge as individual stacking instead of credit-then-delete.
+                merges.emplace_back(tItr->second,iRef);
             }
         }
     }
 
-    for (auto cur : delVec)
-        cur->Delete();
+    for (const auto& merge : merges)
+        merge.first->Merge(merge.second,0,true);
 }
 
 float Inventory::GetStoredVolume(EVEItemFlags flag, bool combined/*true*/) const

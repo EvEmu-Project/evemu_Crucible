@@ -47,7 +47,7 @@ public:
     // Returns true if the order is complete; false otherwise.
     bool ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef iRef, uint32 quantity, bool useCorp, uint32 typeID, uint32 stationID, double price, uint16 accountKey = Account::KeyType::Cash);
     // market order placed by seller to sell items (usually at higher prices)
-    void ExecuteSellOrder(Client *buyer, uint32 orderID, uint32 quantity, float price, uint32 stationID, uint32 typeID, bool useCorp);
+    void ExecuteSellOrder(Client *buyer, uint32 orderID, uint32 quantity, double price, uint32 stationID, uint32 typeID, bool useCorp);
     //forces a refresh of market data.
     void SendOnOwnOrderChanged(Client* pClient, uint32 orderID, uint8 action, bool isCorp = false, PyRep* order = nullptr);
 

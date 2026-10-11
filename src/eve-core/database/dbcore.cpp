@@ -151,7 +151,7 @@ bool DBcore::Reconnect()
     if (pStatus == Connected)
         _log(DATABASE__MESSAGE, "DBCore recovery successful.  Continuing.");
 
-    return pStatus;
+    return pStatus == Connected;
 }
 
 void DBcore::Initialize(std::string host, std::string user, std::string password, std::string database, bool compress/*false*/,
@@ -216,7 +216,7 @@ void DBcore::ping()
 {
     // well, if it's locked, someone's using it. If someone's using it, it doesn't need a ping
     if ( MDatabase.TryLock() ) {
-        mysql_ping(mysql);
+        if (!m_transaction) mysql_ping(mysql);
         MDatabase.Unlock();
     }
 }
@@ -312,6 +312,12 @@ bool DBcore::DoQuery_locked(DBerror &err, const char *query, int querylen, bool 
 {
     double profileStartTime = GetTimeUSeconds();
 
+    if (m_transaction && (m_transactionFailed || pStatus != Connected)) {
+        m_transactionFailed = true;
+        err.SetError(CR_SERVER_LOST, "Transaction has failed; rollback required");
+        return false;
+    }
+
     if (mysql == nullptr) {
         pStatus = Error;
         codelog(DATABASE__ERROR, "DBCore - mysql = null");
@@ -331,20 +337,20 @@ bool DBcore::DoQuery_locked(DBerror &err, const char *query, int querylen, bool 
 
     if (mysql_real_query(mysql, query, querylen)) {
         uint num = mysql_errno(mysql);
-        if (num > 0)
-            pStatus = Error;
+        err.SetError(num, mysql_error(mysql));
+        if (m_transaction) m_transactionFailed = true;
 
         // there are many correctable errors to check for
-        if ((num == CR_SERVER_LOST) or (num == CR_SERVER_GONE_ERROR)) {
+        if ((num == CR_SERVER_LOST) or (num == CR_SERVER_GONE_ERROR)
+#ifdef ER_CONNECTION_KILLED
+            or (num == ER_CONNECTION_KILLED)
+#endif
+        ) {
+            pStatus = Error;
             _log(DATABASE__ERROR, "DBCore error - server lost or gone.");
-            if (!Reconnect())
-                return false;
+            if (!m_transaction && retry && Reconnect())
+                return DoQuery_locked(err, query, querylen, false);
         }
-
-        if ((pStatus == Connected) and retry)
-            return DoQuery_locked(err, query, querylen, retry);
-
-        err.SetError(num, mysql_error(mysql));
         codelog(DATABASE__ERROR, "DBCore Query - #%u in '%s': %s", err.GetErrNo(), query, err.c_str());
         return false;
     }
@@ -355,6 +361,102 @@ bool DBcore::DoQuery_locked(DBerror &err, const char *query, int querylen, bool 
         sProfiler.AddTime(9, GetTimeUSeconds() - profileStartTime);
 
     return true;
+}
+
+DBTransaction::DBTransaction() : m_db(sDatabase) {
+    m_db.MDatabase.Lock();
+    if (m_db.m_transaction) {
+        m_started = !m_db.m_transactionFailed;
+        return;
+    }
+    DBerror error;
+    if (!m_db.DoQuery_locked(error, "START TRANSACTION", 17)) return;
+    m_owner = m_started = true;
+    m_db.m_transaction = true;
+    m_db.m_transactionFailed = false;
+    my_bool reconnect = false;
+    mysql_options(m_db.mysql, MYSQL_OPT_RECONNECT, &reconnect);
+}
+
+bool DBTransaction::Active() {
+    MutexLock lock(sDatabase.MDatabase);
+    return sDatabase.m_transaction;
+}
+
+void DBTransaction::Publish(std::function<void()> action) {
+    MutexLock lock(sDatabase.MDatabase);
+    if (sDatabase.m_transaction) sDatabase.m_afterCommit.push_back(std::move(action));
+    else action();
+}
+
+void DBTransaction::OnRollback(std::function<void()> action) {
+    MutexLock lock(sDatabase.MDatabase);
+    if (sDatabase.m_transaction) sDatabase.m_afterRollback.push_back(std::move(action));
+}
+
+bool DBTransaction::Commit() {
+    if (m_done) return true;
+    if (!m_started || m_db.m_transactionFailed) return false;
+    if (m_owner) {
+        DBerror error;
+        if (!m_db.DoQuery_locked(error, "COMMIT", 6, false)) {
+            // The server may have committed before its reply was lost. Stop rather
+            // than publish stale memory or retry a payment; restart loads DB truth.
+            if (m_db.pStatus != DBcore::Connected) {
+                sLog.Error("Database transaction", "Commit outcome unknown; stopping to preserve persisted state.");
+                std::_Exit(EXIT_FAILURE);
+            }
+            return false;
+        }
+    }
+    m_done = true;
+    if (m_owner) {
+        m_db.m_transaction = m_db.m_transactionFailed = false;
+        my_bool reconnect=m_db.pReconnect;
+        mysql_options(m_db.mysql,MYSQL_OPT_RECONNECT,&reconnect);
+        auto publish=std::move(m_db.m_afterCommit);
+        m_db.m_afterCommit.clear();
+        m_db.m_afterRollback.clear();
+        try { for (auto& action:publish) action(); }
+        catch (...) {
+            sLog.Error("Database transaction","Committed state could not be published; stopping so restart reloads database truth.");
+            std::_Exit(EXIT_FAILURE);
+        }
+    }
+    return true;
+}
+
+DBTransaction::~DBTransaction() {
+    if (m_started && !m_done) m_db.m_transactionFailed = true;
+    if (m_owner && !m_done) {
+        if (m_db.pStatus == DBcore::Connected && mysql_real_query(m_db.mysql, "ROLLBACK", 8)) {
+            const uint error=mysql_errno(m_db.mysql);
+            if (error==CR_SERVER_LOST || error==CR_SERVER_GONE_ERROR
+#ifdef ER_CONNECTION_KILLED
+                || error==ER_CONNECTION_KILLED
+#endif
+            ) {
+                // No COMMIT was attempted here; disconnect rolls back the open
+                // transaction. Reopen only after cached provisional state is undone.
+                m_db.pStatus=DBcore::Error;
+            } else {
+                sLog.Error("Database transaction","Rollback was not acknowledged; stopping before cached state can be saved.");
+                std::_Exit(EXIT_FAILURE);
+            }
+        }
+        m_db.m_transaction = m_db.m_transactionFailed = false;
+        my_bool reconnect = m_db.pReconnect;
+        mysql_options(m_db.mysql, MYSQL_OPT_RECONNECT, &reconnect);
+        auto undo=std::move(m_db.m_afterRollback);
+        m_db.m_afterRollback.clear();
+        m_db.m_afterCommit.clear();
+        try { for (auto action=undo.rbegin();action!=undo.rend();++action) (*action)(); }
+        catch (...) {
+            sLog.Error("Database transaction","Rollback cache recovery failed; stopping so restart reloads database truth.");
+            std::_Exit(EXIT_FAILURE);
+        }
+    }
+    m_db.MDatabase.Unlock();
 }
 
 
@@ -369,7 +471,7 @@ void DBcore::DoEscapeString(std::string &to, const std::string &from)
     uint32 len = (uint32)from.length();
     to.resize(len * 2);   // make enough room
     uint32 esc_len = mysql_real_escape_string(mysql, &to[0], from.c_str(), len);
-    to.resize(esc_len + 1); // optional.
+    to.resize(esc_len);
 }
 
 //look for things in the string which might cause SQL problems

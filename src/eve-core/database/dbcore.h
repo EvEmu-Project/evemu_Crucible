@@ -38,8 +38,11 @@
 #include "utils/Singleton.h"
 #include "database/dbtype.h"
 #include "threading/Mutex.h"
+#include <functional>
+#include <vector>
 
 class DBcore;
+class DBTransaction;
 
 class DBerror
 {
@@ -180,6 +183,7 @@ protected:
     //void CallShutdown();
 
 private:
+    friend class DBTransaction;
     //MDatabase must be locked before these calls:
     bool    DoQuery_locked(DBerror &err, const char *query, int querylen, bool retry = true);
 
@@ -192,6 +196,10 @@ private:
     bool    pReconnect;
     bool    pSocket;
     bool    pSSL;
+    bool    m_transaction = false;
+    bool    m_transactionFailed = false;
+    std::vector<std::function<void()>> m_afterCommit;
+    std::vector<std::function<void()>> m_afterRollback;
 
     int16   pPort;
 
@@ -199,6 +207,26 @@ private:
     std::string pUser;
     std::string pPassword;
     std::string pDatabase;
+};
+
+// Holds the connection mutex for the entire unit of work. Failed statements poison
+// the transaction; connection loss is never replayed on a fresh connection.
+class DBTransaction {
+public:
+    DBTransaction();
+    ~DBTransaction();
+    bool Started() const { return m_started; }
+    bool Commit();
+    static bool Active();
+    static void Publish(std::function<void()> action);
+    static void OnRollback(std::function<void()> action);
+    DBTransaction(const DBTransaction&) = delete;
+    DBTransaction& operator=(const DBTransaction&) = delete;
+private:
+    DBcore& m_db;
+    bool m_owner = false;
+    bool m_started = false;
+    bool m_done = false;
 };
 
 #define sDatabase \

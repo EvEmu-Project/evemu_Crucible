@@ -208,11 +208,11 @@ float EvEMath::Agent::GetStandingBonus(float fromStanding, uint32 fromFactionID,
     return bonus;
 }
 
-float EvEMath::Market::BrokerFee(uint8 brSkillLvl, float fStanding, float cStanding, float orderValue)
+double EvEMath::Market::BrokerFee(uint8 brSkillLvl, float fStanding, float cStanding, double orderValue)
 {
-    float wStanding = (0.7f * fStanding + 0.3f * cStanding) / 10.0f;
-    float fee = 0.01f * (1.0f - (0.05f * brSkillLvl)) * pow(2, -2 * wStanding);
-    return EvE::max(fee * orderValue, 100.0f);
+    const double wStanding = (0.7 * fStanding + 0.3 * cStanding) / 10.0;
+    const double fee = 0.01 * (1.0 - (0.05 * brSkillLvl)) * pow(2, -2 * wStanding);
+    return std::max(fee * orderValue, 100.0);
 }
 
 float EvEMath::Market::RelistFee(float oldPrice, float newPrice, float brokerPercent/*0.01*/, float discount/*0*/)

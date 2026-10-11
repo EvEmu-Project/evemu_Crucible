@@ -220,7 +220,8 @@ public:
     /**
      * Primary public interface:
      */
-    bool            AlterBalance(float amount, uint8 type);
+    bool            AlterBalance(double amount, uint8 type);
+    void            SetBalanceFromDatabase(double balance, uint8 type);
     void            SetLocation(uint32 stationID, SystemData& data);
     void            JoinCorporation(const CorpData& data);
     void            SetDescription(const char *newDescription);
@@ -286,7 +287,7 @@ public:
     bool                    gender() const                      { return m_charData.gender; }
 
     float                   bounty() const                      { return m_charData.bounty; }
-    float                   balance(uint8 type);
+    double                  balance(uint8 type);
     float                   GetSecurityRating() const           { return m_charData.securityRating; }
     uint32					loginTime() const                   { return m_loginTime; }
     uint32                  logonMinutes() const                { return m_charData.logonMinutes; }

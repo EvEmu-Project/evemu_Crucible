@@ -119,7 +119,7 @@ public:
     /* virtual functions default to base class and overridden as needed */
     virtual void            Delete();  //remove the item from the DB.
     // overload to merge the blueprints properly
-    virtual bool            Merge(InventoryItemRef to_merge, uint32 qty=0, bool notify=true);
+    bool                    Merge(InventoryItemRef to_merge, int32 qty=0, bool notify=true) override;
     // overload to split the blueprints properly
     virtual InventoryItemRef Split(int32 qty_to_take, bool notify=true)
                                                         { return SplitBlueprint( qty_to_take, notify ); }
@@ -133,7 +133,7 @@ public:
     const BlueprintType&    type()                const { return m_bpType; }
     const ItemType&         productType()         const { return m_bpType.productType(); }
     uint32                  productTypeID()       const { return m_bpType.productTypeID(); }
-    bool                    copy()                      { return m_data.copy; }
+    bool                    copy() const                { return m_data.copy; }
     int8                    mLevel()                    { return m_data.mLevel; }
     int8                    pLevel()                    { return m_data.pLevel; }
     int16                   runs()                      { return m_data.runs; }
@@ -141,15 +141,15 @@ public:
     float                   GetME();
 
     // set methods
-    void                    SetMLevel(int8 me)          { m_data.mLevel = me; SaveBlueprint(); }
-    void                    SetPLevel(int8 pe)          { m_data.pLevel = pe; SaveBlueprint(); }
-    void                    SetCopy(bool copy)          { m_data.copy = copy; SaveBlueprint(); }
-    void                    SetRuns(int16 runs)         { m_data.runs = runs; SaveBlueprint(); }
+    void                    SetMLevel(int32 me);
+    void                    SetPLevel(int32 pe);
+    void                    SetCopy(bool copy);
+    void                    SetRuns(int32 runs);
 
     // update methods
-    void                    UpdateMLevel(int8 me)       { m_data.mLevel += me; SaveBlueprint(); }
-    void                    UpdatePLevel(int8 pe)       { m_data.pLevel += pe; SaveBlueprint(); }
-    void                    UpdateRuns(int16 runs)      { m_data.runs += runs; SaveBlueprint(); }
+    void                    UpdateMLevel(int32 me);
+    void                    UpdatePLevel(int32 pe);
+    void                    UpdateRuns(int32 runs);
 
     // is this used?  should it be?
     bool                    infinite()                  { return (m_data.runs < 0); }
@@ -187,7 +187,7 @@ protected:
         return BlueprintRef( new Blueprint( blueprintID, bpType, data, bdata ) );
     }
 
-    void                    SaveBlueprint();
+    void                    StoreBlueprintData(EvERam::bpData data);
     static uint32           CreateItemID( ItemData& data, EvERam::bpData& bdata);
 
 private:

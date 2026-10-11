@@ -210,11 +210,20 @@ uint32 ItemDB::NewItem(const ItemData &data) {
     return uid;
 }
 
-void ItemDB::UpdateLocation(uint32 itemID, uint32 locationID, EVEItemFlags flag)
+bool ItemDB::UpdateLocation(uint32 itemID, uint32 locationID, EVEItemFlags flag)
 {
     DBerror err;
-    sDatabase.RunQuery(err, "UPDATE entity SET locationID = %u, flag = %u WHERE itemID = %u", \
-    locationID, (uint16)flag, itemID);
+    uint32 affected = 0;
+    return sDatabase.RunQuery(err, affected, "UPDATE entity SET locationID = %u, flag = %u WHERE itemID = %u", \
+    locationID, (uint16)flag, itemID) && affected == 1;
+}
+
+bool ItemDB::UpdateQuantity(uint32 itemID, int32 expectedQuantity, int32 quantity) {
+    DBerror error; uint32 affected = 0;
+    if (!sDatabase.RunQuery(error, affected, "UPDATE entity SET quantity=%i WHERE itemID=%u AND quantity=%i",quantity,itemID,expectedQuantity) || affected != 1) return false;
+    // Loaded ammunition keeps a second quantity attribute; never leave it stale
+    // if a process stops between the stack write and the next attribute save.
+    return sDatabase.RunQuery(error,"UPDATE entity_attributes SET valueInt=%i,valueFloat=NULL WHERE itemID=%u AND attributeID=%u",quantity,itemID,AttrQuantity);
 }
 
 bool ItemDB::SaveItem(uint32 itemID, const ItemData &data) {
@@ -233,7 +242,8 @@ bool ItemDB::SaveItem(uint32 itemID, const ItemData &data) {
     sDatabase.DoEscapeString(customInfoEsc, data.customInfo);
 
     DBerror err;
-    if (!sDatabase.RunQuery(err,
+    uint32 affected = 0;
+    if (!sDatabase.RunQuery(err, affected,
         "UPDATE entity"
         " SET"
         "  itemName = '%s',"
@@ -241,7 +251,7 @@ bool ItemDB::SaveItem(uint32 itemID, const ItemData &data) {
         "  locationID = %u,"
         "  flag = %u,"
         "  singleton = %u,"
-        "  quantity = %u,"
+        "  quantity = %i,"
         "  x = %f, y = %f, z = %f,"
         "  customInfo = '%s'"
         " WHERE itemID = %u",
@@ -259,7 +269,7 @@ bool ItemDB::SaveItem(uint32 itemID, const ItemData &data) {
         return false;
     }
 
-    return true;
+    return affected == 1;
 }
 
 void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
@@ -287,7 +297,9 @@ void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
         Inserts << "(" << cur.itemID << ", " << cur.typeID << ", " << cur.ownerID << ", " << cur.locationID << ", ";
         Inserts << cur.flag << ", " << cur.contraband << ", " << (cur.singleton ? 1 : 0) << ", ";
         Inserts << cur.quantity << ", " << std::to_string(cur.position.x) << ", " << std::to_string(cur.position.y) << ", " << std::to_string(cur.position.z);
-        Inserts << ", '" << cur.customInfo << "')";
+        std::string customInfoEsc;
+        sDatabase.DoEscapeString(customInfoEsc, cur.customInfo);
+        Inserts << ", '" << customInfoEsc << "')";
     }
 
     if (!first) {
@@ -303,18 +315,22 @@ void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
         Inserts << "z=VALUES(z), ";
         Inserts << "customInfo=VALUES(customInfo) ";
         DBerror err;
-        if (!sDatabase.RunQuery(err, Inserts.str().c_str()))
+        if (!sDatabase.RunQuery(err, "%s", Inserts.str().c_str()))
             _log(DATABASE__ERROR, "SaveItems - unable to save data - %s", err.c_str());
     }
 }
 
-void ItemDB::SaveAttributes(bool isChar, std::vector<Inv::AttrData>& data)
+bool ItemDB::SaveAttributes(bool isChar, std::vector<Inv::AttrData>& data)
 {
+    if (data.empty())
+        return true;
+    DBTransaction transaction;
+    if (!transaction.Started()) return false;
     std::ostringstream Inserts;
     // start the insert into command.
     if (isChar) {
         DBerror err;
-        sDatabase.RunQuery(err, "DELETE FROM chrCharacterAttributes WHERE charID = %u", data[0].itemID);
+        if (!sDatabase.RunQuery(err, "DELETE FROM chrCharacterAttributes WHERE charID = %u", data[0].itemID)) return false;
         Inserts << "INSERT INTO chrCharacterAttributes";
         Inserts << " (charID, attributeID, valueInt, valueFloat)";
     } else {
@@ -343,9 +359,12 @@ void ItemDB::SaveAttributes(bool isChar, std::vector<Inv::AttrData>& data)
         Inserts << "valueInt=VALUES(valueInt), ";
         Inserts << "valueFloat=VALUES(valueFloat)";
         DBerror err;
-        if (!sDatabase.RunQuery(err, Inserts.str().c_str()))
+        if (!sDatabase.RunQuery(err, "%s", Inserts.str().c_str())) {
             _log(DATABASE__ERROR, "SaveItems - unable to save data - %s", err.c_str());
+            return false;
+        }
     }
+    return transaction.Commit();
 }
 
 bool ItemDB::DeleteItem(uint32 itemID) {
@@ -354,6 +373,8 @@ bool ItemDB::DeleteItem(uint32 itemID) {
         return false;
     }
 
+    DBTransaction transaction;
+    if (!transaction.Started()) return false;
     DBerror err;
     if (!sDatabase.RunQuery(err, "DELETE FROM entity WHERE itemID = %u", itemID)) {
         codelog(DATABASE__ERROR, "Failed to delete item %u: %s", itemID, err.c_str());
@@ -364,7 +385,8 @@ bool ItemDB::DeleteItem(uint32 itemID) {
         codelog(DATABASE__ERROR, "Failed to delete item %u: %s", itemID, err.c_str());
         return false;
     }
-    return true;
+    if (!sDatabase.RunQuery(err,"DELETE FROM invBlueprints WHERE itemID=%u",itemID)) return false;
+    return transaction.Commit();
 }
 
 void ItemDB::GetItems(uint16 catID, std::map< uint16, std::string >& typeIDs) {

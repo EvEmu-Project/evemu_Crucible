@@ -249,6 +249,7 @@ public:
     void MergeModuleGroups(uint32 masterID, uint32 slaveID);    // this should not throw
     uint32 UnlinkWeapon(uint32 moduleID);
     void UnlinkGroup(uint32 memberID, bool update=false);
+    void UnlinkGroup(GenericModule* member, bool update, bool force=false);
     void UnlinkAllWeapons();
     PyRep* GetLinkedWeapons();
     void OfflineGroup(GenericModule* pMod);
@@ -265,6 +266,7 @@ protected:
     void LoadWeaponGroups();
     // to save linked weapons
     void SaveWeaponGroups();
+    void PrepareWeaponGroupsTransaction();
     // this single iteration loop will link same type weapons, then remove the weapon from the list.
     //  non-linked weapons are kept in list to be checked upon return to caller.
     void LinkWeaponLoop(std::list< GenericModule* >& moduleVec);

@@ -60,8 +60,8 @@ struct CharacterData {
     int64 loginTime;
     int64 createDateTime;
     float bounty;
-    float balance;
-    float aurBalance;
+    double balance;
+    double aurBalance;
     float securityRating;
     std::string name;
     std::string title;

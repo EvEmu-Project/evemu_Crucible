@@ -138,6 +138,9 @@ Client::~Client() {
     if (!m_loaded)
         return;
 
+    if (m_ship.get() != nullptr && m_ship->GetModuleManager() != nullptr)
+        m_ship->GetModuleManager()->PrepareForLogout();
+
     m_loaded = false;
 
     if (pShipSE != nullptr)

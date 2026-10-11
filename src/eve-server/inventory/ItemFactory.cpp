@@ -45,6 +45,20 @@
 #include "system/SolarSystem.h"
 #include "system/SystemManager.h"
 
+namespace {
+template<class Ref, class Create>
+Ref SpawnPersistentItem(Create create) {
+    DBTransaction transaction;
+    if (!transaction.Started()) return Ref(nullptr);
+    Ref item=create();
+    if (!item) return Ref(nullptr);
+    sItemFactory.AddItem(item);
+    DBTransaction::OnRollback([item]() { item->DiscardUncommitted(); });
+    if (!transaction.Commit()) return Ref(nullptr);
+    return item;
+}
+}
+
 ItemFactory::ItemFactory()
 :m_pClient(nullptr),
 m_nextTempID(0),
@@ -377,11 +391,7 @@ ProbeItemRef ItemFactory::GetProbeRef(uint32 probeID) {
 
 
 InventoryItemRef ItemFactory::SpawnItem(ItemData &data) {
-    InventoryItemRef iRef = InventoryItem::Spawn(data);
-    if (iRef.get() != nullptr)
-        AddItem(iRef);
-
-    return iRef;
+    return SpawnPersistentItem<InventoryItemRef>([&data]() { return InventoryItem::Spawn(data); });
 }
 
 InventoryItemRef ItemFactory::SpawnTempItem(ItemData &data) {
@@ -395,20 +405,12 @@ CharacterRef ItemFactory::SpawnCharacter(CharacterData &charData, CorpData &corp
 }
 
 ShipItemRef ItemFactory::SpawnShip(ItemData &data) {
-    ShipItemRef iRef = ShipItem::Spawn(data);
-    if (iRef.get() != nullptr)
-        AddItem(iRef);
-
-    return iRef;
+    return SpawnPersistentItem<ShipItemRef>([&data]() { return ShipItem::Spawn(data); });
 }
 
 SkillRef ItemFactory::SpawnSkill(ItemData &data)
 {
-    SkillRef iRef = Skill::Spawn(data);
-    if (iRef.get() != nullptr)
-        AddItem(iRef);
-
-    return iRef;
+    return SpawnPersistentItem<SkillRef>([&data]() { return Skill::Spawn(data); });
 }
 
 StructureItemRef ItemFactory::SpawnStructure(ItemData &data)
@@ -458,11 +460,7 @@ StationOfficeRef ItemFactory::SpawnOffice(ItemData &idata, OfficeData& odata)
 
 CargoContainerRef ItemFactory::SpawnCargoContainer(ItemData &data)
 {
-    CargoContainerRef iRef = CargoContainer::Spawn(data);
-    if (iRef.get() != nullptr)
-        AddItem(iRef);
-
-    return iRef;
+    return SpawnPersistentItem<CargoContainerRef>([&data]() { return CargoContainer::Spawn(data); });
 }
 
 WreckContainerRef ItemFactory::SpawnWreckContainer(ItemData &data)
@@ -476,11 +474,7 @@ WreckContainerRef ItemFactory::SpawnWreckContainer(ItemData &data)
 
 ModuleItemRef ItemFactory::SpawnModule(ItemData& data)
 {
-    ModuleItemRef iRef = ModuleItem::Spawn(data);
-    if (iRef.get() != nullptr)
-        AddItem(iRef);
-
-    return iRef;
+    return SpawnPersistentItem<ModuleItemRef>([&data]() { return ModuleItem::Spawn(data); });
 }
 
 ProbeItemRef ItemFactory::SpawnProbe(ItemData& data)

@@ -82,6 +82,7 @@ public:
     AttrMapItr end();
 
 protected:
+    void PrepareMutation(uint16 attrID);
     /**
      * @brief internal function to handle the change.
      *

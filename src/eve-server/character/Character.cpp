@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include "account/AccountDB.h"
 //#include "../../eve-common/EVE_Skills.h"
 
 #include "Client.h"
@@ -360,55 +361,38 @@ void Character::Delete() {
     InventoryItem::Delete();
 }
 
-float Character::balance(uint8 type)
-{
-    if (type == Account::CreditType::ISK) {
-        return m_charData.balance;
-    } else if (type == Account::CreditType::AURUM) {
-        return m_charData.aurBalance;
-    } else {
-        _log(ACCOUNT__ERROR, "Character::balance() - invalid type %u", type);
-    }
-    return 0.0f;
+double Character::balance(uint8 type) {
+    if (type == Account::CreditType::ISK) return m_charData.balance;
+    if (type == Account::CreditType::AURUM) return m_charData.aurBalance;
+    return 0.0;
 }
 
-bool Character::AlterBalance(float amount, uint8 type) {
-    if (amount == 0)
-        return true;
-
-    // amount can be negative.  check for funds to remove, if applicable
-    if ((balance(type) + amount) < 0) {
-        std::map<std::string, PyRep *> args;
-        args["amount"] = new PyFloat(-amount);
-        args["balance"] = new PyFloat(balance(type));
-        throw UserError ("NotEnoughMoney")
-                .AddISK ("amount", -amount)
-                .AddISK ("balance", balance (type));
-    }
-
-    //adjust balance and send notification of change
-    OnAccountChange ac;
-    ac.ownerid = m_itemID;
+void Character::SetBalanceFromDatabase(double value, uint8 type) {
+    OnAccountChange notification;
+    notification.ownerid = m_itemID;
+    notification.balance = value;
     if (type == Account::CreditType::ISK) {
-        m_charData.balance += amount;
-        // cap isk balance at one trillion
-        if (m_charData.balance > 1000000000000)
-            m_charData.balance = 1000000000000;
-        ac.balance = m_charData.balance;
-        ac.accountKey = "cash";
+        m_charData.balance = value;
+        notification.accountKey = "cash";
     } else if (type == Account::CreditType::AURUM) {
-        m_charData.aurBalance += amount;
-        ac.balance = m_charData.aurBalance;
-        ac.accountKey = "AURUM";
+        m_charData.aurBalance = value;
+        notification.accountKey = "AURUM";
+    } else {
+        throw CustomError("Unsupported wallet currency.");
     }
+    if (m_pClient) {
+        PyTuple* answer = notification.Encode();
+        m_pClient->SendNotification("OnAccountChange","cash",&answer,false);
+    }
+}
 
-    PyTuple *answer = ac.Encode();
-    m_pClient->SendNotification("OnAccountChange", "cash", &answer, false);
-
-    SaveCharacter();
+bool Character::AlterBalance(double amount, uint8 type) {
+    if (amount == 0) return true;
+    const double committedBalance = AccountDB::OfflineFundXfer(m_itemID,amount,type);
+    CharacterRef self(this);
+    DBTransaction::Publish([self,committedBalance,type]() { self->SetBalanceFromDatabase(committedBalance,type); });
     return true;
 }
-
 void Character::SetLocation(uint32 stationID, SystemData& data) {
     m_charData.locationID = (stationID == 0 ? data.systemID : stationID);
     m_charData.stationID = stationID;

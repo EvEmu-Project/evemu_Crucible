@@ -199,13 +199,14 @@ uint32 MarketDB::FindBuyOrder(uint32 typeID, uint32 stationID, uint32 quantity, 
         "  AND typeID=%u"
         "  AND stationID=%u"
         "  AND volRemaining >= %u"
-        "  AND price > %.2f"
+        "  AND price >= %.2f"
+        "  AND (minVolume<=%u OR volRemaining=%u)"
         " ORDER BY price DESC"
         " LIMIT 1;",
         typeID,
         stationID,
         quantity,
-        price - 0.1/*, sConfig.market.FindBuyOrder*/))
+        price,quantity,quantity))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -228,13 +229,13 @@ uint32 MarketDB::FindSellOrder(uint32 typeID, uint32 stationID, uint32 quantity,
         "  AND typeID=%u"
         "  AND stationID=%u"
         "  AND volRemaining >= %u"
-        "  AND price < %.2f"
+        "  AND price <= %.2f"
         " ORDER BY price ASC"
         " LIMIT 1;",
         typeID,
         stationID,
         quantity,
-        price + 0.1/*, sConfig.market.FindSellOrder*/))
+        price))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
         return 0;
@@ -253,19 +254,19 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT"
-        " volRemaining,"
-        " price,"
-        " typeID,"
-        " stationID,"
-        " regionID,"
-        " ownerID,"
-        " bid,"
-        " isCorp,"
-        " memberID,"
-        " accountKey"
-        " FROM mktOrders"
-        " WHERE orderID=%u",
-        orderID))
+        " o.volRemaining,"
+        " o.price,"
+        " o.typeID,"
+        " o.stationID,"
+        " o.regionID,"
+        " o.ownerID,"
+        " o.bid,"
+        " o.isCorp,"
+        " o.memberID,"
+        " o.accountKey, o.escrow, COALESCE(stock.itemID,0), o.minVolume"
+        " FROM mktOrders o LEFT JOIN mktOrderItems stock ON stock.orderID=o.orderID"
+        " WHERE o.orderID=%u%s",
+        orderID, DBTransaction::Active() ? " FOR UPDATE" : ""))
     {
         _log(MARKET__DB_ERROR, "Error in query: %s.", res.error.c_str());
         return false;
@@ -278,7 +279,7 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
     }
 
     oInfo.quantity   = row.GetUInt(0);
-    oInfo.price      = row.GetFloat(1);
+    oInfo.price      = row.GetDouble(1);
     oInfo.typeID     = row.GetUInt(2);
     oInfo.stationID  = row.GetUInt(3);
     oInfo.regionID   = row.GetUInt(4);
@@ -287,6 +288,10 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
     oInfo.isCorp     = row.GetBool(7);
     oInfo.memberID   = row.GetUInt(8);
     oInfo.accountKey = row.GetUInt(9);
+    oInfo.escrow     = row.GetDouble(10);
+    oInfo.escrowItemID = row.GetUInt(11);
+    oInfo.minVolume = row.GetUInt(12);
+    oInfo.orderID = orderID;
 
     return true;
 }
@@ -294,7 +299,8 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
 //NOTE: this logic needs some work if there are multiple concurrent market services running at once.  there wont be.
 bool MarketDB::AlterOrderQuantity(uint32 orderID, uint32 new_qty) {
     DBerror err;
-    if (!sDatabase.RunQuery(err, "UPDATE mktOrders SET volRemaining = %u WHERE orderID = %u",  new_qty, orderID)) {
+    uint32 affected=0;
+    if (!sDatabase.RunQuery(err, affected, "UPDATE mktOrders SET volRemaining = %u WHERE orderID = %u",  new_qty, orderID) || affected!=1) {
         _log(MARKET__DB_ERROR, "Error in query: %s.", err.c_str());
         return false;
     }
@@ -303,7 +309,8 @@ bool MarketDB::AlterOrderQuantity(uint32 orderID, uint32 new_qty) {
 
 bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
     DBerror err;
-    if (!sDatabase.RunQuery(err, "UPDATE mktOrders SET price = %.2f WHERE orderID = %u", new_price, orderID)) {
+    uint32 affected=0;
+    if (!sDatabase.RunQuery(err, affected, "UPDATE mktOrders SET price = %.2f WHERE orderID = %u", new_price, orderID) || affected!=1) {
         _log(MARKET__DB_ERROR, "Error in query: %s.", err.c_str());
         return false;
     }
@@ -312,7 +319,8 @@ bool MarketDB::AlterOrderPrice(uint32 orderID, double new_price) {
 
 bool MarketDB::DeleteOrder(uint32 orderID) {
     DBerror err;
-    if (!sDatabase.RunQuery(err, "DELETE FROM mktOrders WHERE orderID = %u", orderID)) {
+    uint32 affected=0;
+    if (!sDatabase.RunQuery(err, affected, "DELETE FROM mktOrders WHERE orderID = %u", orderID) || affected!=1) {
         _log(MARKET__DB_ERROR, "Error in query: %s.", err.c_str());
         return false;
     }

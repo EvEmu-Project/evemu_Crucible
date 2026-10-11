@@ -486,6 +486,9 @@ void ShipItem::AddItem(InventoryItemRef iRef)
 // cannot throw
 uint32 ShipItem::AddItemByFlag(EVEItemFlags flag, InventoryItemRef iRef, Client* pClient/*nullptr*/)
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start ship fitting change.");
+    uint32 result=[&]() -> uint32 {
     if (iRef.get() == nullptr)
         return 0;
 
@@ -509,7 +512,6 @@ uint32 ShipItem::AddItemByFlag(EVEItemFlags flag, InventoryItemRef iRef, Client*
             return iRef->itemID();
         } else if (iRef->categoryID() == EVEDB::invCategories::Module) {
             ModuleItemRef mRef = ModuleItemRef::StaticCast(iRef);
-            mRef->ChangeSingleton(true, false);
             // rigs are classed in the module category.  check here and call appropriate method as needed.
             if (IsRigSlot(flag)) {
                 if (!m_ModuleManager->InstallRig(mRef, flag))
@@ -519,15 +521,19 @@ uint32 ShipItem::AddItemByFlag(EVEItemFlags flag, InventoryItemRef iRef, Client*
         } else if (iRef->categoryID() == EVEDB::invCategories::Subsystem) {
             ModuleItemRef mRef = ModuleItemRef::StaticCast(iRef);
             //mRef->SetOnline(true);  // is this needed here?
-            mRef->ChangeSingleton(true, false);
             if (!m_ModuleManager->InstallSubSystem(mRef, flag))
                 return 0;
         }
         //m_ModuleManager->UpdateModules(flag);
     }
 
-    iRef->Move(m_itemID, flag, true);
+    if (iRef->locationID()!=m_itemID || iRef->flag()!=flag)
+        iRef->Move(m_itemID, flag, true);
     return iRef->itemID();
+
+    }();
+    if (!fittingUnit.Commit()) throw CustomError("Ship fitting change failed; the previous state was restored.");
+    return result;
 }
 
 void ShipItem::RemoveItem(InventoryItemRef iRef)
@@ -1064,8 +1070,14 @@ void ShipItem::SaveShip()
 void ShipItem::RemoveRig(InventoryItemRef iRef) {
     if (iRef.get() == nullptr)
         return;
+    if (iRef->ownerID()!=ownerID() || iRef->locationID()!=itemID() || !IsRigSlot(iRef->flag()))
+        throw CustomError("The rig is not fitted to this ship.");
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Cannot start rig removal.");
     m_ModuleManager->UninstallRig(iRef->itemID());
-    iRef->Move(itemID(), flagCargoHold, true);
+    // A destroyed rig was evicted by DeleteFromCache; never add it back as cargo.
+    if (sItemFactory.GetItemRefFromID(iRef->itemID(),false)) iRef->Move(itemID(), flagCargoHold, true);
+    if (!transaction.Commit()) throw CustomError("Rig removal failed; the fitting was restored.");
 }
 
 void ShipItem::ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge)
@@ -1307,6 +1319,10 @@ void ShipItem::HeatDamageCheck(GenericModule* pMod)
 
 void ShipItem::StripFitting()
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start fitting change.");
+    PrepareWeaponGroupsTransaction();
+    [&]() {
     UnlinkAllWeapons();
 
     EVEItemFlags flag = flagCargoHold;
@@ -1319,6 +1335,9 @@ void ShipItem::StripFitting()
         m_ModuleManager->UnfitModule(cur->itemID());
         cur->Move(locationID(), flag, true);
     }
+
+    }();
+    if (!fittingUnit.Commit()) throw CustomError("Fitting change failed; the previous state was restored.");
 }
 
 void ShipItem::EmptyCargo()
@@ -1361,6 +1380,10 @@ void ShipItem::GetLinkedWeaponMods( EVEItemFlags flag, std::vector<GenericModule
 // only called from dogma call.  can throw
 void ShipItem::LinkWeapon(uint32 masterID, uint32 slaveID)
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start fitting change.");
+    PrepareWeaponGroupsTransaction();
+    [&]() {
     if (masterID == slaveID)
         return;
     GenericModule* pMod1 = m_ModuleManager->GetModule(masterID);
@@ -1368,10 +1391,17 @@ void ShipItem::LinkWeapon(uint32 masterID, uint32 slaveID)
     LinkWeapon(pMod1, pMod2);
 
     SaveWeaponGroups();
+
+    }();
+    if (!fittingUnit.Commit()) throw CustomError("Fitting change failed; the previous state was restored.");
 }
 
 void ShipItem::LinkWeapon(GenericModule* pMaster, GenericModule* pSlave)
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start fitting change.");
+    PrepareWeaponGroupsTransaction();
+    [&]() {
     if ((pMaster == nullptr) or (pSlave == nullptr))
         return; // make error here?
     if (pMaster == pSlave)
@@ -1398,6 +1428,9 @@ void ShipItem::LinkWeapon(GenericModule* pMaster, GenericModule* pSlave)
         itr->second.push_back(pSlave);
     }
     pSlave->SetLinked(true);
+
+    }();
+    if (!fittingUnit.Commit()) throw CustomError("Fitting change failed; the previous state was restored.");
 }
 
 void ShipItem::MergeModuleGroups(uint32 masterID, uint32 slaveID)
@@ -1412,6 +1445,10 @@ void ShipItem::PeelAndLink(uint32 masterID, uint32 slaveID)
 
 void ShipItem::LinkAllWeapons()
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start fitting change.");
+    PrepareWeaponGroupsTransaction();
+    [&]() {
     std::list< GenericModule* > weaponList;
     m_ModuleManager->GetWeapons(weaponList);
 
@@ -1440,6 +1477,9 @@ void ShipItem::LinkAllWeapons()
     }
 
     SaveWeaponGroups();
+
+    }();
+    if (!fittingUnit.Commit()) throw CustomError("Fitting change failed; the previous state was restored.");
 }
 
 void ShipItem::LinkWeaponLoop(std::list<GenericModule*>& weaponList)
@@ -1518,6 +1558,10 @@ void ShipItem::LinkWeaponLoop(std::list<GenericModule*>& weaponList)
  */
 uint32 ShipItem::UnlinkWeapon(uint32 moduleID)
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start fitting change.");
+    PrepareWeaponGroupsTransaction();
+    uint32 result=[&]() -> uint32 {
     GenericModule* pMod1(m_ModuleManager->GetModule(moduleID));
     if (pMod1 == nullptr)
         return 0; // make error here?
@@ -1551,17 +1595,31 @@ uint32 ShipItem::UnlinkWeapon(uint32 moduleID)
         tuple->SetItem(1, new PyInt(m_itemID));
         tuple->SetItem(2, result);      //GetLinkedWeapons()
     // send 'new' group data to client
-    m_pilot->QueueDestinyEvent(&tuple);
+    ShipItemRef self(this);
+    auto packet=std::shared_ptr<PyTuple>(tuple,[](PyTuple* value){PyDecRef(value);});
+    DBTransaction::Publish([self,packet]() {
+        if (!self->HasPilot()) return;
+        PyTuple* event=packet->Clone()->AsTuple();
+        self->GetPilot()->QueueDestinyEvent(&event);
+    });
     // send immediately (otherwise it will wait until after this call returns, which negates this hack
     //m_pilot->FlushQueue();
 
     // return slaveID, which client will use to delete it's map and continue processing
     return slaveID;
+
+    }();
+    if (!fittingUnit.Commit()) throw CustomError("Fitting change failed; the previous state was restored.");
+    return result;
 }
 
 // only called from dogma call.  can throw
 void ShipItem::UnlinkWeapon(uint32 masterID, uint32 slaveID)
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start fitting change.");
+    PrepareWeaponGroupsTransaction();
+    [&]() {
     if (masterID == slaveID)
         return;
     GenericModule* pMod1(m_ModuleManager->GetModule(masterID));
@@ -1593,23 +1651,55 @@ void ShipItem::UnlinkWeapon(uint32 masterID, uint32 slaveID)
             ++itr2;
         }
     }
+
+    }();
+    SaveWeaponGroups();
+    if (!fittingUnit.Commit()) throw CustomError("Fitting change failed; the previous state was restored.");
 }
 
 // only called from dogma call.  can throw
 void ShipItem::UnlinkGroup(uint32 memberID, bool update/*false*/)
 {
-    GenericModule* pMod1(m_ModuleManager->GetModule(memberID));
+    UnlinkGroup(m_ModuleManager->GetModule(memberID),update,false);
+}
+
+void ShipItem::PrepareWeaponGroupsTransaction() {
+    if (!DBTransaction::Active()) return;
+    ShipItemRef self(this);
+    const auto before=m_linkedWeapons;
+    std::map<GenericModule*,std::pair<bool,bool>> flags;
+    std::list<GenericModule*> weapons;
+    m_ModuleManager->GetWeapons(weapons);
+    for (auto module:weapons) flags[module]={module->IsLinked(),module->IsMaster()};
+    for (const auto& group:before) {
+        flags[group.first]={group.first->IsLinked(),group.first->IsMaster()};
+        for (auto member:group.second) flags[member]={member->IsLinked(),member->IsMaster()};
+    }
+    DBTransaction::OnRollback([self,before,flags]() {
+        self->m_linkedWeapons=before;
+        for (const auto& entry:flags) {
+            entry.first->SetLinked(entry.second.first);
+            entry.first->SetLinkMaster(entry.second.second);
+        }
+    });
+}
+
+void ShipItem::UnlinkGroup(GenericModule* pMod1, bool update, bool force)
+{
     if (pMod1 == nullptr)
         return; // make error here?
 
     // if master is loading or active, then whole group is
-    if (pMod1->IsActive())
+    if (!force && pMod1->IsActive())
         throw UserError ("CantUngroupModuleActive");
-    if (pMod1->IsLoading())
+    if (!force && pMod1->IsLoading())
         throw UserError ("CantUngroupModuleLoading");
 
     std::map<GenericModule*, std::list<GenericModule*>>::iterator itr = m_linkedWeapons.find(pMod1);
     if (itr != m_linkedWeapons.end()) {
+        DBTransaction transaction;
+        if (!transaction.Started()) throw CustomError("Cannot start weapon group removal.");
+        PrepareWeaponGroupsTransaction();
         pMod1->SetLinked(false);
         pMod1->SetLinkMaster(false);
         std::list<GenericModule*>::iterator itr2 = itr->second.begin();
@@ -1620,12 +1710,17 @@ void ShipItem::UnlinkGroup(uint32 memberID, bool update/*false*/)
                 m_linkedWeapons.erase(itr);
                 SaveWeaponGroups();
                 if (update) {
-                    PyTuple* tuple = new PyTuple(3);
-                        tuple->SetItem(0, new PyString("OnWeaponGroupDestroyed"));
-                        tuple->SetItem(1, new PyInt(m_itemID));
-                        tuple->SetItem(2, new PyInt(memberID));
-                    m_pilot->QueueDestinyEvent(&tuple);
+                    ShipItemRef self(this);const uint32 master=pMod1->itemID();
+                    DBTransaction::Publish([self,master]() {
+                        if (!self->HasPilot()) return;
+                        PyTuple* tuple=new PyTuple(3);
+                        tuple->SetItem(0,new PyString("OnWeaponGroupDestroyed"));
+                        tuple->SetItem(1,new PyInt(self->itemID()));
+                        tuple->SetItem(2,new PyInt(master));
+                        self->GetPilot()->QueueDestinyEvent(&tuple);
+                    });
                 }
+                if (!transaction.Commit()) throw CustomError("Weapon group removal failed; the group was restored.");
                 return;
             }
         }
@@ -1635,7 +1730,7 @@ void ShipItem::UnlinkGroup(uint32 memberID, bool update/*false*/)
             std::list<GenericModule*>::iterator itr2 = cur.second.begin();
             while (itr2 != cur.second.end()) {
                 if ((*itr2) == pMod1) {
-                    UnlinkGroup(cur.first->itemID(), update);
+                    UnlinkGroup(cur.first, update, force);
                     return;
                 }
                 ++itr2;
@@ -1647,6 +1742,10 @@ void ShipItem::UnlinkGroup(uint32 memberID, bool update/*false*/)
 // called from here and dogma call.  can throw
 void ShipItem::UnlinkAllWeapons()
 {
+    DBTransaction fittingUnit;
+    if (!fittingUnit.Started()) throw CustomError("Cannot start fitting change.");
+    PrepareWeaponGroupsTransaction();
+    [&]() {
     std::list< GenericModule* > weaponList;
     m_ModuleManager->GetWeapons(weaponList);
     for (auto cur : weaponList) {
@@ -1660,6 +1759,9 @@ void ShipItem::UnlinkAllWeapons()
     }
     m_linkedWeapons.clear();
     ShipDB::ClearWeaponGroups(m_itemID);
+
+    }();
+    if (!fittingUnit.Commit()) throw CustomError("Fitting change failed; the previous state was restored.");
 }
 
 uint8 ShipItem::GetLinkedCount(GenericModule* pMod)
@@ -1736,7 +1838,7 @@ void ShipItem::SaveWeaponGroups()
             for (auto slave : cur.second)
                 data.emplace(cur.first->itemID(), slave->itemID());
 
-    ShipDB::SaveWeaponGroups(m_itemID, data);
+    if (!ShipDB::SaveWeaponGroups(m_itemID, data)) throw CustomError("Weapon group write failed; the change was rolled back.");
 }
 
 void ShipItem::LoadWeaponGroups()

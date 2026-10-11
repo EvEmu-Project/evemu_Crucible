@@ -27,6 +27,8 @@
 #include "eve-server.h"
 
 #include "account/AccountDB.h"
+#include "corporation/CorporationDB.h"
+#include <cmath>
 
 /*
  * ACCOUNT__ERROR
@@ -43,29 +45,25 @@
  * ACCOUNT__DB_MESSAGE
  */
 
-double AccountDB::OfflineFundXfer(uint32 charID, double amount, uint8 type)
-{
-    std::string from = "";
-    switch (type) {
-        case Account::CreditType::ISK:      from = "balance";    break;
-        case Account::CreditType::AURUM:    from = "aurBalance"; break;
-        case Account::CreditType::MPLEX:    return 0; //make error..this isnt used yet
-    }
-
-    double balance = 0;
-    DBQueryResult res;
-    sDatabase.RunQuery(res, "SELECT %s FROM chrCharacters WHERE characterID = %u", from.c_str(), charID);
-    DBResultRow row;
-    if (res.GetRow(row))
-        balance = row.GetDouble(0);
-
-    balance += amount;
-    DBerror err;
-    sDatabase.RunQuery(err, "UPDATE chrCharacters SET %s = %f WHERE characterID = %u", from.c_str(), balance, charID);
+double AccountDB::OfflineFundXfer(uint32 charID, double amount, uint8 type) {
+    if (!std::isfinite(amount) || std::abs(amount) > 1000000000000.0 || (type != Account::CreditType::ISK && type != Account::CreditType::AURUM))
+        throw CustomError("Invalid wallet change.");
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Wallet database unavailable.");
+    const char* column = type == Account::CreditType::ISK ? "balance" : "aurBalance";
+    DBQueryResult result; DBResultRow row;
+    if (!sDatabase.RunQuery(result,"SELECT %s FROM chrCharacters WHERE characterID=%u FOR UPDATE",column,charID) || !result.GetRow(row))
+        throw CustomError("Wallet owner unavailable.");
+    const double oldBalance = row.GetDouble(0);
+    const double balance = std::round((oldBalance + amount)*100.0)/100.0;
+    if (!std::isfinite(balance) || balance < 0)
+        throw UserError("NotEnoughMoney").AddISK("amount",-amount).AddISK("balance",oldBalance);
+    if (balance > 1000000000000.0) throw CustomError("Wallet balance limit exceeded.");
+    DBerror error; uint32 affected = 0;
+    if (!sDatabase.RunQuery(error,affected,"UPDATE chrCharacters SET %s=%.2f WHERE characterID=%u",column,balance,charID) || affected != 1 || !transaction.Commit())
+        throw CustomError("Wallet write failed; wallet was not changed.");
     return balance;
 }
-
-
 double AccountDB::GetCorpBalance(uint32 corpID, uint16 accountKey)
 {
     std::string acctKey = "";
@@ -163,11 +161,11 @@ PyRep* AccountDB::GetJournal(uint32 ownerID, int8 entryTypeID, uint16 accountKey
     return DBResultToCRowset(res);
 }
 
-void AccountDB::AddJournalEntry(uint32 ownerID, int8 entryTypeID, uint32 ownerFromID, uint32 ownerToID, int8 currency, \
+bool AccountDB::AddJournalEntry(uint32 ownerID, int8 entryTypeID, uint32 ownerFromID, uint32 ownerToID, int8 currency, \
                                 uint16 accountKey, double amount, double newBalance, std::string description, uint32 referenceID/*0*/ )
 {
     if (entryTypeID == Journal::EntryType::SkipLog)
-        return;
+        return true;
     // account key 0 is usually sent by the client, it should be the main cash account
     if (accountKey == 0)
         accountKey = Account::KeyType::Cash;
@@ -179,10 +177,69 @@ void AccountDB::AddJournalEntry(uint32 ownerID, int8 entryTypeID, uint32 ownerFr
     if (IsCorp(ownerID))
         tblName = "jnlCorporations";
 
-    // dont care if this fails...
     DBerror err;
-    sDatabase.RunQuery(err,
+    return sDatabase.RunQuery(err,
         "INSERT INTO %s (ownerID, entryTypeID, accountKey, transactionDate, ownerID1, ownerID2, referenceID, currency, amount, balance, description)"
         " VALUES (%u,%u,%u,%f,%u,%u,%u,%i,%.2f,%.2f,'%s')",
         tblName.c_str(), ownerID, entryTypeID, accountKey, GetFileTimeNow(), ownerFromID, ownerToID, referenceID, currency, amount, newBalance, eDesc.c_str());
+}
+
+std::vector<AccountDB::WalletChange> AccountDB::TransferAtomic(const std::vector<Transfer>& transfers, uint32 actingCharacterID) {
+    DBTransaction transaction;
+    if (!transaction.Started()) throw CustomError("Wallet database unavailable; payment was not completed.");
+    std::vector<WalletChange> changes;
+    for (const auto& transfer : transfers) {
+        if (!std::isfinite(transfer.amount) || transfer.amount <= 0 || transfer.amount > 1000000000000.0)
+            throw CustomError("Invalid payment amount.");
+        const double amount = std::round(transfer.amount * 100.0) / 100.0;
+        if (amount <= 0) throw CustomError("Payment must be at least 0.01.");
+        auto currency = [](uint16 key) -> uint8 {
+            if (key == 0 || key == Account::KeyType::Escrow || (key >= Account::KeyType::Cash && key <= Account::KeyType::Cash7)) return Account::CreditType::ISK;
+            if (IsAUR(key)) return Account::CreditType::AURUM;
+            throw CustomError("Unsupported wallet account.");
+        };
+        const uint8 fromCurrency = currency(transfer.fromKey), toCurrency = currency(transfer.toKey);
+        if (fromCurrency != toCurrency) throw CustomError("Cannot transfer between different currencies.");
+        for (unsigned side = 0; side < 2; ++side) {
+            const uint32 owner = side ? transfer.toID : transfer.fromID;
+            const uint16 requestedKey = side ? transfer.toKey : transfer.fromKey;
+            const uint16 key = requestedKey ? requestedKey : Account::KeyType::Cash;
+            const uint8 type = side ? toCurrency : fromCurrency;
+            const double delta = side ? amount : -amount;
+            double balance = 0;
+            if (IsCharacterID(owner) || IsPlayerCorp(owner)) {
+                const bool corp = IsPlayerCorp(owner);
+                if ((!corp && key != Account::KeyType::Cash && !IsAUR(key)) || (corp && type != Account::CreditType::ISK))
+                    throw CustomError("Invalid wallet account for owner.");
+                const std::string table = corp ? "crpWalletDivisons" : "chrCharacters";
+                const std::string id = corp ? "corporationID" : "characterID";
+                const std::string column = corp ? "balance" + std::to_string(key - Account::KeyType::Cash + 1) : (type == Account::CreditType::ISK ? "balance" : "aurBalance");
+                DBQueryResult result; DBResultRow row;
+                if (!sDatabase.RunQuery(result,"SELECT %s FROM %s WHERE %s=%u FOR UPDATE",column.c_str(),table.c_str(),id.c_str(),owner) || !result.GetRow(row))
+                    throw CustomError("Wallet owner unavailable; payment was not completed.");
+                const double oldBalance = row.GetDouble(0);
+                balance = std::round((oldBalance + delta) * 100.0) / 100.0;
+                if (!std::isfinite(balance) || balance < 0) {
+                    if (corp) throw UserError("NotEnoughMoneyCorp").AddOwnerName("owner",owner).AddISK("amount",-delta).AddISK("balance",oldBalance)
+                        .AddFormatValue("division",new PyString(CorporationDB::GetDivisionName(owner,key)));
+                    throw UserError("NotEnoughMoney").AddISK("amount",-delta).AddISK("balance",oldBalance);
+                }
+                if (balance > 1000000000000.0) throw CustomError("Wallet balance limit exceeded; payment was not completed.");
+                DBerror error; uint32 affected = 0;
+                if (!sDatabase.RunQuery(error,affected,"UPDATE %s SET %s=%.2f WHERE %s=%u",table.c_str(),column.c_str(),balance,id.c_str(),owner) || affected != 1)
+                    throw CustomError("Wallet write failed; payment was not completed.");
+                changes.push_back({owner,key,type,balance});
+            } else if (owner != 1 && !IsNPCCorp(owner) && !IsAgent(owner)) {
+                throw CustomError("Invalid wallet owner.");
+            }
+            uint32 from = transfer.fromID, to = transfer.toID;
+            if (IsPlayerCorp(owner) && actingCharacterID) {
+                if (side) to = actingCharacterID; else from = actingCharacterID;
+            }
+            if (!AddJournalEntry(owner,transfer.entryTypeID,from,to,type,key,delta,balance,transfer.description,transfer.referenceID))
+                throw CustomError("Wallet journal write failed; payment was not completed.");
+        }
+    }
+    if (!transaction.Commit()) throw CustomError("Wallet commit failed; payment was not completed.");
+    return changes;
 }

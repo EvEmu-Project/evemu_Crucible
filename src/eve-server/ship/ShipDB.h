@@ -51,8 +51,8 @@ public:
     // linking save/load methods  -allan 05Jan19
     static void LoadWeaponGroups(uint32 shipID, DBQueryResult& res);
     // this will delete existing regardless of save state
-    static void SaveWeaponGroups(uint32 shipID, std::multimap<uint32, uint32>& data);
-    static void ClearWeaponGroups(uint32 shipID);
+    static bool SaveWeaponGroups(uint32 shipID, std::multimap<uint32, uint32>& data);
+    static bool ClearWeaponGroups(uint32 shipID);
 };
 
 #endif

@@ -175,7 +175,7 @@ public:
 
     bool AddBalance(double amount, uint8 type=Account::CreditType::ISK) // ---marketbot update
                                                         { return m_char->AlterBalance(amount, type); }
-    float GetBalance(uint8 type=Account::CreditType::ISK)
+    double GetBalance(uint8 type=Account::CreditType::ISK)
                                                         { return m_char->balance(type); }
 
     // ship functions

@@ -30,6 +30,7 @@
 
 #include "packets/Manufacturing.h"
 #include "manufacturing/Blueprint.h"
+#include <limits>
 
 /*
  * BlueprintType
@@ -69,11 +70,16 @@ BlueprintRef Blueprint::Load(uint32 blueprintID) {
 }
 
 BlueprintRef Blueprint::Spawn(ItemData& data, EvERam::bpData& bdata) {
+    DBTransaction transaction;
+    if (!transaction.Started()) return BlueprintRef(nullptr);
     uint32 blueprintID(Blueprint::CreateItemID(data, bdata));
     if (blueprintID == 0)
         return BlueprintRef(nullptr);
     BlueprintRef bRef = Blueprint::Load(blueprintID);
+    if (!bRef) return BlueprintRef(nullptr);
     sItemFactory.AddItem(bRef);
+    DBTransaction::OnRollback([bRef]() { bRef->DiscardUncommitted(); });
+    if (!transaction.Commit()) return BlueprintRef(nullptr);
     return bRef;
 }
 
@@ -90,7 +96,6 @@ uint32 Blueprint::CreateItemID(ItemData& data, EvERam::bpData& bdata) {
 
     // insert blueprint data into DB
     if (!FactoryDB::SaveBlueprintData(blueprintID, bdata)) {
-        ItemDB::DeleteItem(blueprintID);
         return 0;
     }
 
@@ -98,42 +103,80 @@ uint32 Blueprint::CreateItemID(ItemData& data, EvERam::bpData& bdata) {
 }
 
 void Blueprint::Delete() {
-    FactoryDB::DeleteBlueprint(m_itemID);
     InventoryItem::Delete();
 }
 
 BlueprintRef Blueprint::SplitBlueprint(int32 qty_to_take, bool notify/*true*/) {
+    DBTransaction transaction;
+    if (!transaction.Started()) return BlueprintRef(nullptr);
     // split item
     BlueprintRef bRef = BlueprintRef::StaticCast(InventoryItem::Split(qty_to_take, notify));
     if (bRef.get() == nullptr)
         return BlueprintRef(nullptr);
 
-    // copy our attributes
-    bRef->SetCopy(m_data.copy);
-    bRef->SetMLevel(m_data.mLevel);
-    bRef->SetPLevel(m_data.pLevel);
-    bRef->SetRuns(m_data.runs);
-    bRef->SaveBlueprint();
+    // InventoryItem::Split copies stored blueprint metadata with the source debit.
+    if (!transaction.Commit()) return BlueprintRef(nullptr);
     return bRef;
 }
 
-bool Blueprint::Merge(InventoryItemRef itemRef, uint32 qty, bool notify) {
-    //  singleton is checked and error thrown in InventoryItem::Merge()
-    BlueprintRef bpRef = BlueprintRef::StaticCast(itemRef);
-    if (m_data.mLevel != bpRef->mLevel())
+bool Blueprint::Merge(InventoryItemRef itemRef, int32 qty, bool notify) {
+    if (!itemRef || itemRef->categoryID()!=EVEDB::invCategories::Blueprint || itemRef->typeID()!=typeID() || itemRef->itemID()==m_itemID)
         return false;
-    if (m_data.pLevel != bpRef->pLevel())
+    auto bpRef=BlueprintRef::StaticCast(itemRef);
+    if (m_data.copy!=bpRef->copy() || m_data.mLevel!=bpRef->mLevel() || m_data.pLevel!=bpRef->pLevel() || m_data.runs!=bpRef->runs())
         return false;
-    if (m_data.runs != bpRef->runs())
+    DBTransaction transaction;
+    DBQueryResult result;DBResultRow row;
+    if (!transaction.Started() || !sDatabase.RunQuery(result,"SELECT itemID,copy,mLevel,pLevel,runs FROM invBlueprints WHERE itemID IN (%u,%u) ORDER BY itemID FOR UPDATE",m_itemID,itemRef->itemID()))
         return false;
-    if (!InventoryItem::Merge(itemRef, qty, notify))
-        return false;
-    return true;
+    unsigned count=0;
+    while (result.GetRow(row)) {
+        if (row.GetBool(1)!=m_data.copy || row.GetInt(2)!=m_data.mLevel || row.GetInt(3)!=m_data.pLevel || row.GetInt(4)!=m_data.runs) return false;
+        ++count;
+    }
+    return count==2 && InventoryItem::Merge(itemRef,qty,notify) && transaction.Commit();
 }
 
-void Blueprint::SaveBlueprint() {
-    _log( MANUF__TRACE, "Saving blueprint %u.", m_itemID );
-    FactoryDB::SaveBlueprintData(m_itemID, m_data);
+void Blueprint::StoreBlueprintData(EvERam::bpData data) {
+    DBTransaction transaction;
+    DBQueryResult result;DBResultRow row;
+    if (!transaction.Started() || !sDatabase.RunQuery(result,"SELECT copy,mLevel,pLevel,runs FROM invBlueprints WHERE itemID=%u FOR UPDATE",m_itemID) || !result.GetRow(row) ||
+        row.GetBool(0)!=m_data.copy || row.GetInt(1)!=m_data.mLevel || row.GetInt(2)!=m_data.pLevel || row.GetInt(3)!=m_data.runs || !FactoryDB::SaveBlueprintData(m_itemID,data))
+        throw CustomError("Blueprint save failed; research and copy state were not changed.");
+    BlueprintRef self(this);const auto before=m_data;
+    DBTransaction::OnRollback([self,before]() { self->m_data=before; });
+    m_data=data;
+    if (!transaction.Commit()) throw CustomError("Blueprint save failed; research and copy state were not changed.");
+}
+void Blueprint::SetMLevel(int32 me) {
+    if (me<std::numeric_limits<int8>::min() || me>std::numeric_limits<int8>::max()) throw CustomError("Blueprint material level is outside its supported range.");
+    auto data=m_data;data.mLevel=me;StoreBlueprintData(data);
+}
+void Blueprint::SetPLevel(int32 pe) {
+    if (pe<std::numeric_limits<int8>::min() || pe>std::numeric_limits<int8>::max()) throw CustomError("Blueprint productivity level is outside its supported range.");
+    auto data=m_data;data.pLevel=pe;StoreBlueprintData(data);
+}
+void Blueprint::SetCopy(bool copy) {
+    auto data=m_data;data.copy=copy;StoreBlueprintData(data);
+}
+void Blueprint::SetRuns(int32 runs) {
+    if (runs<std::numeric_limits<int16>::min() || runs>std::numeric_limits<int16>::max()) throw CustomError("Blueprint runs are outside their supported range.");
+    auto data=m_data;data.runs=runs;StoreBlueprintData(data);
+}
+void Blueprint::UpdateMLevel(int32 me) {
+    const int64 level=static_cast<int64>(m_data.mLevel)+me;
+    if (level<std::numeric_limits<int8>::min() || level>std::numeric_limits<int8>::max()) throw CustomError("Blueprint material level is outside its supported range.");
+    SetMLevel(static_cast<int32>(level));
+}
+void Blueprint::UpdatePLevel(int32 pe) {
+    const int64 level=static_cast<int64>(m_data.pLevel)+pe;
+    if (level<std::numeric_limits<int8>::min() || level>std::numeric_limits<int8>::max()) throw CustomError("Blueprint productivity level is outside its supported range.");
+    SetPLevel(static_cast<int32>(level));
+}
+void Blueprint::UpdateRuns(int32 runs) {
+    const int64 total=static_cast<int64>(m_data.runs)+runs;
+    if (total<std::numeric_limits<int16>::min() || total>std::numeric_limits<int16>::max()) throw CustomError("Blueprint runs are outside their supported range.");
+    SetRuns(static_cast<int32>(total));
 }
 
 PyDict* Blueprint::GetBlueprintAttributes() {
