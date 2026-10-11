@@ -61,8 +61,14 @@ public:
     void Activate(int32 itemID, uint16 effectID, int32 targetID, int32 repeat);
     void Deactivate(uint32 itemID, std::string effectName);
     void DeactivateAllModules();
-    void Overload(uint32 itemID);
-    void DeOverload(uint32 itemID);
+    // overheating.  linked weapons overload as a group.  false if the module can't be overloaded
+    bool Overload(uint32 itemID, bool set);
+    // stop=false cancels a pending overload, true a pending stop
+    void CancelOverloading(uint32 itemID, bool stop);
+    // overloads (or stops) every module in itemID's rack that can be.  changed gets the moduleIDs that will change
+    void OverloadRack(uint32 itemID, bool set, std::vector<uint32>& changed);
+    // takes every module out of overload (docking)
+    void ClearOverloads();
     void DamageModule(uint32 itemID, float amount);
     void DamageModule(GenericModule* pMod, float amount);
     void DamageRandModule();
@@ -122,7 +128,6 @@ public:
     void SaveModules();
 
     void GetActiveModules(uint8 rack, std::vector< GenericModule* >& modVec);
-    void GetActiveModulesHeat(uint8 rack, float &heat);
     // returns # of active non-ol'd modules for this rack
     uint8 GetActiveModulesCount(uint8 rack);
     uint8 GetFittedModuleCountByGroup(uint16 groupID);

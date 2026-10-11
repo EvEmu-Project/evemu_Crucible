@@ -14,3 +14,5 @@ COMMAND( nukem, Acct::Role::ADMIN,
          "- kills every NPC in your bubble (same as /killallnpcs)" )
 COMMAND( entity, Acct::Role::SPAWN,
          "deploy (count) (typeID|\"type name\") - spawns NPCs next to you" )
+COMMAND( heat, Acct::Role::VIP,
+         "[hi|med|low|all] [percent] [me|charID] - shows or sets a ship's rack heat.  no arguments shows yours" )

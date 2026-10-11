@@ -17,6 +17,7 @@ MODULE__TRACE
 #include "Client.h"
 #include "ship/modules/GenericModule.h"
 #include "ship/modules/ActiveModule.h"
+#include "packets/DogmaIM.h"
 
 
 GenericModule::GenericModule(ModuleItemRef mRef, ShipItemRef sRef)
@@ -30,6 +31,8 @@ m_linked(false),
 m_linkMaster(false),
 m_isWarpSafe(false),
 m_overLoaded(false),
+m_pendingOverload(false),
+m_pendingStopOverload(false),
 m_chargeLoaded(false),
 m_hiPower(false),
 m_medPower(false),
@@ -161,6 +164,9 @@ void GenericModule::Offline()
     if (m_shipRef->IsPopped())                          // only for player ships
         return;
 
+    // offline modules can't be overloaded (this removes the overload effects while the module's other effects are still on)
+    SetOverloaded(false);
+
     switch(m_ModuleState) {
         case Module::State::Unfitted: {
             m_modRef->SetOnline(false, isRig());
@@ -176,12 +182,12 @@ void GenericModule::Offline()
         case Module::State::Deactivating: {
             _log(MODULE__MESSAGE, "GenericModule::Offline() called for deactivating module %u(%s).",itemID(), m_modRef->name());
             if (IsActiveModule())
-                GetActiveModule()->AbortCycle();
+                GetActiveModule()->AbortCycle(true);
         } break;
         case Module::State::Activated: {
             _log(MODULE__MESSAGE, "GenericModule::Offline() called for active module %u(%s).",itemID(), m_modRef->name());
             if (IsActiveModule())
-                GetActiveModule()->AbortCycle();
+                GetActiveModule()->AbortCycle(true);
         } break;
     }
 
@@ -217,18 +223,82 @@ void GenericModule::Offline()
     m_modRef->SetOnline(false, isRig());
 }
 
-void GenericModule::Overload()
+void GenericModule::RequestOverload(bool set, bool deferred)
 {
-    ProcessEffects(FX::State::Overloaded, true);
-    sFxProc.ApplyEffects(m_modRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), true);
-    //m_modRef->ClearModifiers();
+    if (deferred) {
+        m_pendingOverload = (set and !m_overLoaded);
+        m_pendingStopOverload = (!set and m_overLoaded);
+        return;
+    }
+    SetOverloaded(set);
 }
 
-void GenericModule::DeOverload()
+void GenericModule::ApplyPendingOverload()
 {
-    ProcessEffects(FX::State::Overloaded, false);
-    sFxProc.ApplyEffects(m_modRef.get(), m_shipRef->GetPilot()->GetChar().get(), m_shipRef.get(), true);
-    //m_modRef->ClearModifiers();
+    if (m_pendingOverload) {
+        SetOverloaded(true);
+    } else if (m_pendingStopOverload) {
+        SetOverloaded(false);
+    }
+}
+
+void GenericModule::SetOverloaded(bool set)
+{
+    m_pendingOverload = false;
+    m_pendingStopOverload = false;
+    // the overload effects are applied and removed as changes to the current values, so only do it on a real change
+    if (set == m_overLoaded)
+        return;
+
+    // effects are processed with the pilot's character.  without one, leave the module as it is (ships clear this before the pilot leaves)
+    Client* pClient(m_shipRef->GetPilot());
+    if (pClient == nullptr)
+        return;
+    ProcessEffects(FX::State::Overloaded, set);
+    sFxProc.ApplyEffects(m_modRef.get(), pClient->GetChar().get(), m_shipRef.get(), true);
+    m_overLoaded = set;
+    SendOverloadEffect(set);
+}
+
+uint16 GenericModule::GetOverloadEffectID()
+{
+    std::map<uint16, Effect> effectMap;
+    m_modRef->type().GetEffectMap(FX::State::Overloaded, effectMap);
+    if (effectMap.empty())
+        return 0;
+    return effectMap.begin()->first;
+}
+
+void GenericModule::SendOverloadEffect(bool active)
+{
+    // godma's OnGodmaShipEffect.  for overload effects this sets the module's overload state and clears the pending flag
+    Client* pClient(m_shipRef->GetPilot());
+    uint16 effectID(GetOverloadEffectID());
+    if ((pClient == nullptr) or (effectID == 0))
+        return;
+
+    GodmaEnvironment ge;
+        ge.selfID = itemID();
+        ge.charID = m_shipRef->ownerID();
+        ge.shipID = m_shipRef->itemID();
+        ge.target = PyStatic.NewNone();
+        ge.subLoc = PyStatic.NewNone();
+        ge.area = new PyList();
+        ge.effectID = effectID;
+    Notify_OnGodmaShipEffect shipEff;
+        shipEff.itemID = ge.selfID;
+        shipEff.effectID = effectID;
+        shipEff.timeNow = GetFileTimeNow();
+        shipEff.start = (active ? 1 : 0);
+        shipEff.active = (active ? 1 : 0);
+        shipEff.environment = ge.Encode();
+        shipEff.startTime = shipEff.timeNow;
+        shipEff.duration = -1;
+        shipEff.repeat = 0;
+        shipEff.randomSeed = 0;
+        shipEff.error = PyStatic.NewNone();
+    PyTuple* tuple = shipEff.Encode();
+    pClient->QueueDestinyEvent(&tuple);
 }
 
 void GenericModule::ProcessEffects(int8 state, bool active/*false*/)

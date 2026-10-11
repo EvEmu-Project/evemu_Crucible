@@ -10,6 +10,7 @@
 #include "inventory/Inventory.h"
 #include "npc/Drone.h"
 #include "ship/Ship.h"
+#include "packets/DogmaIM.h"
 #include "ship/modules/GenericModule.h"
 #include "station/Station.h"
 #include "system/DestinyManager.h"
@@ -351,6 +352,9 @@ void ShipItem::ProcessModules() {
 void ShipItem::Eject()
 {
     if (m_ModuleManager != nullptr) {
+        // overload effects need the pilot, so they come off before the pilot leaves
+        m_ModuleManager->ClearOverloads();
+        StopHeating();
         m_ModuleManager->AbortCycle();
         m_ModuleManager->CharacterLeavingShip();
     }
@@ -363,6 +367,9 @@ void ShipItem::Dock() {
     m_isDocking = true;
 
     m_ModuleManager->DeactivateAllModules();
+    // modules stop cycling on docking, and lose their overload
+    m_ModuleManager->ClearOverloads();
+    StopHeating();
     m_onlineModuleVec.clear();
     // remove ship effects and char skill effects for docking.
     ProcessEffects();
@@ -1124,185 +1131,236 @@ void ShipItem::ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge)
 
 */
 
-void ShipItem::ProcessHeat()
-{
-    double start = GetTimeUSeconds();
-    float heat(0.0f);
-    // heat loop
-    for (uint16 i = AttrHeatHi; i < AttrHeatLow + 1; ++i) {
-        heat = GetAttribute(i).get_float();
-        // the ordering here is important
-        //heat -= log(-(heat + 1));
-        if (heat > 1.0f)
-            heat -= DissipateHeat(i, heat);
-        heat += GenerateHeat(i);
-        if (heat > 1.0f) {  // not concerned about anything < 1
-            if (heat > 100)
-                heat = 100.0f;
-            SetAttribute(i, heat);
-        } //else
-          //  DeleteAttribute(i);
-        heat = 0.0f;
-    }
-    _log(SHIP__HEAT, "ShipItem::ProcessHeat() Executed in %.3f us.", GetTimeUSeconds() - start);
-
-    /*  proc times with 3 banks of 8 modules each (from 0 - 3 modules actived)
-13:05:44 [ShipHeat] ShipItem::ProcessHeat() Executed in 867.000 us.
-13:05:50 [ShipHeat] ShipItem::ProcessHeat() Executed in 1205.000 us.
-13:05:56 [ShipHeat] ShipItem::ProcessHeat() Executed in 1051.500 us.
-13:06:02 [ShipHeat] ShipItem::ProcessHeat() Executed in 1665.750 us.
-13:06:08 [ShipHeat] ShipItem::ProcessHeat() Executed in 1108.500 us.
-13:06:14 [ShipHeat] ShipItem::ProcessHeat() Executed in 1090.250 us.
-13:06:20 [ShipHeat] ShipItem::ProcessHeat() Executed in 1011.250 us.
-13:06:26 [ShipHeat] ShipItem::ProcessHeat() Executed in 938.500 us.
-     */
-}
-
-float ShipItem::GenerateHeat(uint16 attrID)
-{
-    /**  @note  still not sure how live builds heat, but here's how im gonna do it.
-     * during normal op, modules make heat that builds slowly
-     *  normal module operation will not build excessive heat on ship...it was designed for it.
-     * the difference here is pilots will now be able to SEE the heat buildup (dont recall if it showed on HUD w/o OL)
-     * overloaded modules will build excessive heat, using a diff heat generation method,
-     * and will begin to damage it's rack from overheating (heat > rack heat capy).
-     */
-
-    /*  heat buildup
-     * H = 3(e^t)
-     * t = (sum of active module's heat damage / 10) + 1
-     *   t must be > 1.0 to avoid negatives.  if no modules active, t=1.0 and log(1.0)=0
-     *   this may look funny, but is rather accurate generation of module heat from normal op.
-     */
-
-    float t(1.0f);
-    std::string rack = "";
-    //std::vector< GenericModule* > modVec;
-    switch(attrID) {
-        case AttrHeatHi: {
-            rack = "Hi";
-            //m_ModuleManager->GetActiveModules(EVEEffectID::hiPower, modVec);
-            m_ModuleManager->GetActiveModulesHeat(EVEEffectID::hiPower, t);
-        } break;
-        case AttrHeatMed: {
-            rack = "Mid";
-            m_ModuleManager->GetActiveModulesHeat(EVEEffectID::medPower, t);
-        } break;
-        case AttrHeatLow: {
-            rack = "Low";
-            m_ModuleManager->GetActiveModulesHeat(EVEEffectID::loPower, t);
-        } break;
-        default: {
-            _log(SHIP__HEAT, "GenerateHeat() - %s invalid rack sent (%u)", name(), attrID);
-            return 0;
-        } break;
-    }
-
-    if (t < 1.2)
-        return 0;
-
-    //log(t) *3;   //0.28 when t=1.1,  1.2 when t=1.5,  4.1 when t=3.9 (highest i found), 6.8 when t=5.55
-    float heat = log(t) *3 * GetAttribute(AttrHeatGenerationMultiplier).get_float();
-
-    _log(SHIP__HEAT, "%s generated %.2f heat points from the %s rack this tic.  t = %.3f", name(), heat, rack.c_str(), t);
-    return heat;
-}
-
-float ShipItem::DissipateHeat(uint16 attrID, float heat)
-{
-    //H = ln^t
-    float t(1.0f + heat), newHeat(0.0f);
-    std::string rack = "";
-    switch(attrID) {
-        case AttrHeatHi: {
-            rack = "Hi";
-        } break;
-        case AttrHeatMed: {
-            rack = "Mid";
-        } break;
-        case AttrHeatLow: {
-            rack = "Low";
-        } break;
-        default: {
-            _log(SHIP__HEAT, "DissipateHeat() - %s invalid rack sent (%u)", name(), attrID);
-            return 0.0f;
-        } break;
-    }
-
-    newHeat = log(t);    //0.18 when t=1.2, 3.1 when t=21.9, 3.9 when t=51.9, 4.6 when t=99.9
-
-    if (newHeat < 0)
-        newHeat = 0.0f;
-
-    _log(SHIP__HEAT, "%s dissipated %.2f heat points from the %s rack this tic.  was %.1f, is %.1f, t = %.3f", \
-            name(), newHeat, rack.c_str(), heat, (heat - newHeat), t);
-
-    return newHeat;
-}
-
 void ShipItem::DamageGroup(GenericModule* pMod)
 {
     // not used yet
 }
 
-/*
- * AttrHeatDamage = 1211,
- * AttrHeatDamageBonus = 1213,          // module attrib (float x/100 = %)
- * AttrHeatGenerationMultiplier = 1224, // ship attrib
- * AttrThermodynamicsHeatDamage = 1229, // skill attrib
- * AttrHeatDamageMultiplier = 1485,     // system beacon effect
-*/
+namespace {
+    // per rack: high, medium, low
+    const uint16 heatAttr[3]        = { AttrHeatHi, AttrHeatMed, AttrHeatLow };
+    const uint16 capacityAttr[3]    = { AttrHeatCapacityHi, AttrHeatCapacityMed, AttrHeatCapacityLow };
+    const uint16 dissipationAttr[3] = { AttrHeatDissipationRateHi, AttrHeatDissipationRateMed, AttrHeatDissipationRateLow };
+    const uint16 rateAttr[3]        = { AttrHeatAbsorbtionRateHi, AttrHeatAbsorbtionRateMed, AttrHeatAbsorbtionRateLow };
+    const uint16 attenuationAttr[3] = { AttrHeatAttenuationHi, AttrHeatAttenuationMed, AttrHeatAttenuationLow };
+    const EVEItemFlags firstSlot[3] = { flagHiSlot0, flagMidSlot0, flagLowSlot0 };
+}
 
-/*
-Slt  Att   Damage chance multiplier at distance from overheated module (in %)
-            1       2       3       4       5       6       7
-1   0.00    0.10
-2   0.25    0.25
-3   0.50    0.50    0.25
-4   0.63    0.63    0.40    0.25
-5   0.71    0.71    0.50    0.36    0.25
-6   0.76    0.76    0.58    0.44    0.33    0.25
-7   0.79    0.79    0.62    0.49    0.39    0.31    0.24
-8   0.82    0.82    0.67    0.55    0.45    0.37    0.30    0.25
-*/
-//Cycles to burnout = total module HP/ (hp heat damage per cycle - (hp heat damage per cycle*thermodynamics level*5/100))
+int8 ShipItem::GetHeatRack(EVEItemFlags flag)
+{
+    if ((flag >= flagHiSlot0) and (flag <= flagHiSlot7))
+        return 0;
+    if ((flag >= flagMidSlot0) and (flag <= flagMidSlot7))
+        return 1;
+    if ((flag >= flagLowSlot0) and (flag <= flagLowSlot7))
+        return 2;
+    return -1;
+}
+
+ShipItem::RackHeat& ShipItem::GetRackState(int8 rack)
+{
+    RackHeat& r = m_rackHeat[rack];
+    if (!r.init) {
+        // heat saved with the ship starts cooling from now
+        r.init = true;
+        r.heat = GetAttribute(heatAttr[rack]).get_double();
+        r.time = GetFileTimeNow();
+        r.rate = 0.0;
+    }
+    return r;
+}
+
+/* the client's godma GetHeatState():
+ *   not heating:  H(t) = H * e^(-t * heatDissipationRate)
+ *   heating:      H(t) = C - (C - H) * e^(-t * rate * heatGenerationMultiplier)
+ *  t in seconds, C = heat capacity.  a rack doesn't cool while it is heating.
+ */
+double ShipItem::RackHeatAt(int8 rack, int64 time)
+{
+    RackHeat& r = GetRackState(rack);
+    double capacity(GetAttribute(capacityAttr[rack]).get_double());
+    if (capacity <= 0)
+        capacity = 100.0;
+    double seconds((time - r.time) / (double)EvE::Time::Second);
+    if (seconds < 0)
+        seconds = 0;
+
+    double heat(0.0);
+    if (r.rate < 5e-08) {
+        heat = r.heat * exp(-seconds * GetAttribute(dissipationAttr[rack]).get_double());
+    } else {
+        double k(exp(-seconds * r.rate * GetAttribute(AttrHeatGenerationMultiplier).get_double()));
+        heat = capacity - (capacity - r.heat) * k;
+    }
+    if (heat < 0)
+        heat = 0;
+    if (heat > capacity)
+        heat = capacity;
+    return heat;
+}
+
+double ShipItem::GetRackHeat(int8 rack)
+{
+    if ((rack < 0) or (rack > 2))
+        return 0;
+    return RackHeatAt(rack, GetFileTimeNow());
+}
+
+void ShipItem::SetRackHeat(int8 rack, double heat)
+{
+    if ((rack < 0) or (rack > 2))
+        return;
+    RackHeat& r = GetRackState(rack);
+    r.heat = (heat < 0 ? 0 : heat);
+    r.time = GetFileTimeNow();
+    SyncRackHeat(rack);
+}
+
+void ShipItem::SetModuleHeating(GenericModule* pMod, bool heating)
+{
+    int8 rack(GetHeatRack(pMod->flag()));
+    if (rack < 0)
+        return;
+    RackHeat& r = GetRackState(rack);
+    if (heating) {
+        if (!r.modules.insert(pMod->itemID()).second)
+            return;
+    } else if (r.modules.erase(pMod->itemID()) == 0) {
+        return;
+    }
+    SyncRackHeat(rack);
+}
+
+void ShipItem::SyncRackHeat(int8 rack)
+{
+    int64 now(GetFileTimeNow());
+    RackHeat& r = GetRackState(rack);
+    double heat(RackHeatAt(rack, now));
+    double rate(0.0);
+    for (auto id : r.modules) {
+        GenericModule* pMod(m_ModuleManager->GetModule(id));
+        if (pMod != nullptr)
+            rate += pMod->GetAttribute(AttrHeatAbsorbtionRateModifier).get_double();
+    }
+    r.heat = heat;
+    r.time = now;
+    r.rate = rate;
+    _log(SHIP__HEAT, "%s(%u): rack %i heat %.2f, heating rate %.4f (%u modules)", name(), itemID(), rack, heat, rate, r.modules.size());
+
+    SetAttribute(heatAttr[rack], heat, false);
+    SetAttribute(rateAttr[rack], rate, false);
+    // the client needs both with the same time, even when the value didn't change, or its gauges jump
+    SendHeatChange(heatAttr[rack], heat, now);
+    SendHeatChange(rateAttr[rack], rate, now);
+}
+
+void ShipItem::SendHeatChange(uint16 attrID, double value, int64 time)
+{
+    Client* pClient(GetPilot());
+    if ((pClient == nullptr) or pClient->IsLogin() or (pClient->GetShipID() != itemID()))
+        return;
+    Notify_OnModuleAttributeChange modChange;
+        modChange.ownerID = ownerID();
+        modChange.itemKey = new PyInt(itemID());
+        modChange.attributeID = attrID;
+        modChange.time = time;
+        modChange.newValue = new PyFloat(value);
+        modChange.oldValue = new PyFloat(value);
+    PyTuple* tuple = modChange.Encode();
+    pClient->QueueDestinyEvent(&tuple);
+}
+
+void ShipItem::UpdateHeatAttributes()
+{
+    int64 now(GetFileTimeNow());
+    for (int8 rack = 0; rack < 3; ++rack) {
+        RackHeat& r = GetRackState(rack);
+        r.heat = RackHeatAt(rack, now);
+        r.time = now;
+        SetAttribute(heatAttr[rack], r.heat, false);
+        SetAttribute(rateAttr[rack], r.rate, false);
+    }
+}
+
+void ShipItem::StopHeating()
+{
+    for (int8 rack = 0; rack < 3; ++rack) {
+        RackHeat& r = GetRackState(rack);
+        if (r.modules.empty())
+            continue;
+        r.modules.clear();
+        SyncRackHeat(rack);
+    }
+}
+
+/* heat damage, after each overloaded cycle (Kadesh Priestess' 2011 analysis):
+ *  every online module in the rack, the overloaded one included, may take the overloaded module's heatDamage.
+ *  chance = rack heat (0-1) * (online high+medium+low modules / high+medium+low+rig slots) * heatAttenuation ^ distance
+ *  distance is in slots from the overloaded module, without wrapping round the rack.  heatAttenuation is per rack, from the ship.
+ *  a module whose damage reaches its hp burns out and goes offline.
+ */
 void ShipItem::HeatDamageCheck(GenericModule* pMod)
 {
-    if (pMod->IsLinked())       // linked slaves will contribute to heat calculation, but not individually.
-        if (!pMod->IsMaster())  // heat is calculated by master and multiplied by #linked modules
-            return;
+    int8 rack(GetHeatRack(pMod->flag()));
+    if (rack < 0)
+        return;
+    float heatDamage(pMod->GetAttribute(AttrHeatDamage).get_float());
+    if (heatDamage <= 0)
+        return;
+    double capacity(GetAttribute(capacityAttr[rack]).get_double());
+    if (capacity <= 0)
+        capacity = 100.0;
+    double heat(GetRackHeat(rack) / capacity);
+    if (heat <= 0)
+        return;
 
-    // check ship's current bank heat to determine chance for pMod to take heat damage.
-    //  damage to other modules based on table above.
-    float curHeat(0.0f), damChance(0.0f);
-    if (pMod->isHighPower()) {
-        curHeat = GetAttribute(AttrHeatHi).get_float();
-        damChance = GetAttribute(AttrHeatAttenuationHi).get_float();
-    } else if (pMod->isMediumPower()) {
-        curHeat = GetAttribute(AttrHeatMed).get_float();
-        damChance = GetAttribute(AttrHeatAttenuationMed).get_float();
-    } else if (pMod->isLowPower()) {
-        curHeat = GetAttribute(AttrHeatLow).get_float();
-        damChance = GetAttribute(AttrHeatAttenuationLow).get_float();
+    uint32 slots(GetAttribute(AttrHiSlots).get_uint32() + GetAttribute(AttrMedSlots).get_uint32()
+               + GetAttribute(AttrLowSlots).get_uint32() + GetAttribute(AttrRigSlots).get_uint32());
+    if (slots == 0)
+        return;
+    uint32 online(0);
+    for (int8 i = 0; i < 3; ++i)
+        for (uint8 slot = 0; slot < 8; ++slot) {
+            GenericModule* cur(m_ModuleManager->GetModule((EVEItemFlags)(firstSlot[i] + slot)));
+            if ((cur != nullptr) and cur->isOnline())
+                ++online;
+        }
+    double slotFactor(online / (double)slots);
+    if (slotFactor > 1)
+        slotFactor = 1;
+    double attenuation(GetAttribute(attenuationAttr[rack]).get_double());
+    int srcSlot(pMod->flag() - firstSlot[rack]);
+
+    std::vector<GenericModule*> damaged;
+    for (uint8 slot = 0; slot < 8; ++slot) {
+        GenericModule* cur(m_ModuleManager->GetModule((EVEItemFlags)(firstSlot[rack] + slot)));
+        if ((cur == nullptr) or !cur->isOnline() or cur->IsBurntOut())
+            continue;
+        double chance(heat * slotFactor * pow(attenuation, abs(slot - srcSlot)));
+        if (MakeRandomFloat() < chance)
+            damaged.push_back(cur);
     }
 
-    std::vector<uint32> modVec;
-    // if this module is grouped, all modules will take same damage.
-    if (pMod->IsLinked()) {
-        // not used yet
-    } else {
-        // module not linked.  continue with default heat damage calc's
-        // determine position and get adjacent modules
-        uint8 flag = pMod->flag();
-
-        // determine modules to damage and add to list
-        uint32 moduleID(0);
-
-        //modVec.push_back(moduleID);
+    for (auto cur : damaged) {
+        float hp(cur->GetAttribute(AttrHP).get_float());
+        float damage(cur->GetAttribute(AttrDamage).get_float() + heatDamage);
+        if (damage > hp)
+            damage = hp;
+        cur->SetAttribute(AttrDamage, damage);
+        _log(SHIP__HEAT, "%s(%u): %s takes %.2f heat damage from %s (%.2f/%.2f)", name(), itemID(), \
+                cur->GetSelf()->name(), heatDamage, pMod->GetSelf()->name(), damage, hp);
+        if (damage >= hp)
+            BurnOut(cur);
     }
+}
 
-    for (auto cur : modVec)
-        DamageModule(cur);
+void ShipItem::BurnOut(GenericModule* pMod)
+{
+    Client* pClient(GetPilot());
+    if (pClient != nullptr)
+        pClient->SendNotifyMsg("Your %s has burned out.", pMod->GetSelf()->name());
+    // stops it now, takes it out of overload, and tells the client it's offline.  it can't be onlined until repaired
+    pMod->Offline();
 }
 
 void ShipItem::StripFitting()
@@ -2150,6 +2208,7 @@ void ShipItem::VerifyHoldType(EVEItemFlags flag, InventoryItemRef iRef, Client* 
 // this one is called from GetAllInfo
 PyDict* ShipItem::GetShipInfo()
 {
+    UpdateHeatAttributes();
     if (!pInventory->LoadContents())  {
         _log( INV__ERROR, "%s(%u): Failed to load contents for ShipGetInfo", name(), itemID());
         return nullptr;
@@ -2481,9 +2540,6 @@ void ShipSE::Process() {
         if (sConfig.debug.UseProfiling)
             sProfiler.AddTime(Profile::ship, GetTimeUSeconds() - profileStartTime);
 
-        // proc heat on the 5s cap/shield tic, if enabled
-        if (sConfig.testing.ShipHeat)
-            m_shipRef->ProcessHeat();
     }
 
     m_shipRef->ProcessModules();

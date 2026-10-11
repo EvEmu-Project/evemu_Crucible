@@ -29,6 +29,7 @@
  *  /baniskspammer      character menu > Ban ISK Spammer
  *  /nukem              benchmark script
  *  /entity deploy      WM: /Entity deploy this type
+ *  /heat               testing: shows or sets rack heat
  */
 
 #include "eve-server.h"
@@ -41,6 +42,7 @@
 #include "admin/SlashService.h"
 #include "admin/CommandHelper.h"
 #include "chat/LSCService.h"
+#include "ship/Ship.h"
 #include "services/ServiceManager.h"
 
 namespace {
@@ -189,4 +191,53 @@ PyResult Command_entity(Client* pClient, CommandDB* db, EVEServiceManager &servi
     std::string cmd("spawn " + std::to_string(typeID) + " " + args.arg(2));
     Seperator spawn(cmd.c_str());
     return Command_spawn(pClient, db, services, spawn);
+}
+
+// /heat [hi|med|low|all] [percent] [me|charID]
+PyResult Command_heat(Client* pClient, CommandDB* db, EVEServiceManager &services, const Seperator& args)
+{
+    const char* usage("Correct Usage: /heat [hi|med|low|all] [percent] [me|charID]");
+    Client* pTarget(pClient);
+    if ((args.argCount() > 3) and (args.arg(3) != "me")) {
+        pTarget = FindCharacter(args, 3);
+        if (pTarget == nullptr)
+            throw CustomError ("Character %s is not online", args.arg(3).c_str());
+    }
+    if (!pTarget->IsInSpace())
+        throw CustomError ("%s is not in space", pTarget->GetName());
+    ShipItemRef sRef(pTarget->GetShip());
+
+    if (args.argCount() > 1) {
+        int8 first(0), last(2);
+        std::string rack(args.arg(1));
+        if (strcasecmp(rack.c_str(), "hi") == 0) {
+            first = last = 0;
+        } else if ((strcasecmp(rack.c_str(), "med") == 0) or (strcasecmp(rack.c_str(), "mid") == 0)) {
+            first = last = 1;
+        } else if ((strcasecmp(rack.c_str(), "low") == 0) or (strcasecmp(rack.c_str(), "lo") == 0)) {
+            first = last = 2;
+        } else if (strcasecmp(rack.c_str(), "all") != 0) {
+            throw CustomError (usage);
+        }
+        if ((args.argCount() < 3) or !args.isNumber(2))
+            throw CustomError (usage);
+        double percent(strtod(args.arg(2).c_str(), nullptr));
+        if (percent < 0)
+            percent = 0;
+        if (percent > 100)
+            percent = 100;
+        const uint16 capacity[3] = { AttrHeatCapacityHi, AttrHeatCapacityMed, AttrHeatCapacityLow };
+        for (int8 i = first; i <= last; ++i)
+            sRef->SetRackHeat(i, percent / 100.0 * sRef->GetAttribute(capacity[i]).get_double());
+    }
+
+    const uint16 capacity[3] = { AttrHeatCapacityHi, AttrHeatCapacityMed, AttrHeatCapacityLow };
+    double pct[3];
+    for (int8 i = 0; i < 3; ++i) {
+        double cap(sRef->GetAttribute(capacity[i]).get_double());
+        pct[i] = (cap > 0 ? sRef->GetRackHeat(i) / cap * 100.0 : 0);
+    }
+    char buf[128];
+    snprintf(buf, sizeof(buf), "%s rack heat: high %.1f%%, medium %.1f%%, low %.1f%%", sRef->name(), pct[0], pct[1], pct[2]);
+    return new PyString(buf);
 }

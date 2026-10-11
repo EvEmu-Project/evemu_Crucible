@@ -81,6 +81,7 @@ protected:
     PyResult Overload(PyCallArgs& call, PyInt* itemID, PyInt* effectID);
     PyResult StopOverload(PyCallArgs& call, PyInt* itemID, PyInt* effectID);
     PyResult CancelOverloading(PyCallArgs& call, PyInt* itemID);
+    PyResult CancelStopOverloading(PyCallArgs& call, PyInt* itemID);
     PyResult SetModuleOnline(PyCallArgs& call, PyInt* locationID, PyInt* moduleID);
     PyResult TakeModuleOffline(PyCallArgs& call, PyInt* locationID, PyInt* moduleID);
     PyResult LoadAmmoToBank(PyCallArgs& call, PyInt* shipID, PyInt* masterID, PyInt* chargeTypeID, PyList* cItemIDs, PyInt* chargeLocationID, std::optional <PyInt*> qty);

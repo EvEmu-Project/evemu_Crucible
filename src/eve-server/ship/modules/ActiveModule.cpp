@@ -34,7 +34,8 @@ m_needsCharge(false),
 m_needsTarget(false),
 m_targetID(0),
 m_effectID(0),
-m_Stop(true)
+m_Stop(true),
+m_heating(false)
 {
     m_repeat = 1000;    //based on client data
 
@@ -242,6 +243,7 @@ void ActiveModule::Update()
 void ActiveModule::Clear()
 {
     _log(MODULE__TRACE, "%s(%u) calling Clear()", m_modRef->name(), m_modRef->itemID());
+    UpdateCycleHeat(false);
     if (m_targetSE != nullptr)
         if (m_targetSE->TargetMgr() != nullptr)
             m_targetSE->TargetMgr()->RemoveTargetModule(this);
@@ -400,6 +402,7 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
     m_destinyMgr = pShip->DestinyMgr();
 
     // Do initial cycle immediately while we start timer
+    UpdateCycleHeat(true);
     SetTimer(DoCycle());
 
     if (!m_timer.Enabled()) {
@@ -494,16 +497,36 @@ void ActiveModule::SetSlaveData(ShipSE* pShip) {
     m_destinyMgr = pShip->DestinyMgr();
 }
 
-void ActiveModule::Overload()
+void ActiveModule::UpdateCycleHeat(bool cycling)
 {
-    m_overLoaded = true;
-    GenericModule::Overload();
+    std::vector<GenericModule*> modules;
+    if (m_linkMaster)
+        m_shipRef->GetLinkedWeaponMods(m_modRef->flag(), modules);
+    if (modules.empty())
+        modules.push_back(this);
+
+    m_heating = false;
+    for (auto cur : modules) {
+        cur->ApplyPendingOverload();
+        bool heating(cycling and cur->IsOverloaded());
+        if (heating)
+            m_heating = true;
+        m_shipRef->SetModuleHeating(cur, heating);
+    }
 }
 
-void ActiveModule::DeOverload()
+void ActiveModule::CheckHeatDamage()
 {
-    GenericModule::DeOverload();
-    m_overLoaded = false;
+    // after an overloaded cycle, each overloaded module may damage itself and its rack
+    std::vector<GenericModule*> modules;
+    if (m_linkMaster)
+        m_shipRef->GetLinkedWeaponMods(m_modRef->flag(), modules);
+    if (modules.empty())
+        modules.push_back(this);
+
+    for (auto cur : modules)
+        if (cur->IsOverloaded() and !cur->IsBurntOut())
+            m_shipRef->HeatDamageCheck(cur);
 }
 
 // `DoCycle` performs checks before activating the module for its next cycle.
@@ -667,10 +690,6 @@ uint32 ActiveModule::DoCycle() {
         } break;
     }
 
-    // do heat damage if overloaded...this will be handled in shipItem class
-    if (m_overLoaded)
-        m_shipRef->HeatDamageCheck(this);
-
     EvilNumber cycleTime = 10000;   // default to 10s
     if (m_modRef->HasAttribute(AttrSpeed, cycleTime)) {
         ; //return cycleTime.get_int();
@@ -680,7 +699,7 @@ uint32 ActiveModule::DoCycle() {
     return cycleTime.get_int();
 }
 
-void ActiveModule::AbortCycle()
+void ActiveModule::AbortCycle(bool force/*false*/)
 {
     _log(MODULE__TRACE, "%s(%u) calling AbortCycle() - state: %s, m_stop:%s", \
             m_modRef->name(), m_modRef->itemID(), GetModuleStateName(m_ModuleState), m_Stop?"true":"false");
@@ -689,7 +708,7 @@ void ActiveModule::AbortCycle()
         return;
 
     // if stop is already set, let module finish cycle.
-    if (m_Stop)
+    if (m_Stop and !force)
         return;
     // Immediately stop active cycle for things such as insufficient cap, remove module, init warp, target destroyed, target left bubble, or miner deactivated by player:
     SetModuleState(Module::State::Deactivating);
@@ -826,6 +845,14 @@ void ActiveModule::DeactivateCycle(bool abort/*false*/)
 }
 
 void ActiveModule::ProcessActiveCycle() {
+    // the cycle that just ended was overloaded
+    if (m_heating) {
+        CheckHeatDamage();
+        // heat damage can burn this module out, which stops it
+        if (m_ModuleState < Module::State::Deactivating)
+            return;
+    }
+
     if (m_Stop) {
         SetModuleState(Module::State::Deactivating);
     }
@@ -835,6 +862,7 @@ void ActiveModule::ProcessActiveCycle() {
         return;
     }
 
+    UpdateCycleHeat(true);
     SetTimer(DoCycle());
 }
 

@@ -742,26 +742,83 @@ void ModuleManager::Deactivate(uint32 itemID, std::string effectName)
     pMod->Deactivate(effectName);
 }
 
-void ModuleManager::Overload(uint32 itemID)
+bool ModuleManager::Overload(uint32 itemID, bool set)
 {
     GenericModule* pMod = GetModule(itemID);
     if (pMod == nullptr) {
         _log(MODULE__ERROR, "MM::Overload() - Called on module %u that is not loaded.", itemID);
-        return;
+        return false;
     }
-    _log(MODULE__TRACE, "MM::Overload() - %s Overloading...", pMod->GetSelf()->name());
-    pMod->Overload();
+    if (set and ((pMod->GetOverloadEffectID() == 0) or !pMod->isOnline() or pMod->IsBurntOut()))
+        return false;
+
+    std::vector<GenericModule*> modules;
+    if (pMod->IsLinked())
+        pShipItem->GetLinkedWeaponMods(pMod->flag(), modules);
+    if (modules.empty())
+        modules.push_back(pMod);
+
+    // a cycling module changes when its next cycle starts.  linked weapons cycle through their master
+    bool deferred(false);
+    for (auto cur : modules)
+        if (cur->IsActive())
+            deferred = true;
+
+    _log(MODULE__TRACE, "MM::Overload() - %s %s overload%s", pMod->GetSelf()->name(), (set ? "starting" : "stopping"), (deferred ? " at its next cycle" : ""));
+    for (auto cur : modules)
+        cur->RequestOverload(set, deferred);
+    return true;
 }
 
-void ModuleManager::DeOverload(uint32 itemID)
+void ModuleManager::CancelOverloading(uint32 itemID, bool stop)
 {
     GenericModule* pMod = GetModule(itemID);
-    if (pMod == nullptr) {
-        _log(MODULE__ERROR, "MM::DeOverload() - Called on module %u that is not loaded.", itemID);
+    if (pMod == nullptr)
         return;
+
+    std::vector<GenericModule*> modules;
+    if (pMod->IsLinked())
+        pShipItem->GetLinkedWeaponMods(pMod->flag(), modules);
+    if (modules.empty())
+        modules.push_back(pMod);
+
+    for (auto cur : modules) {
+        if (stop) {
+            cur->CancelStopOverloading();
+        } else {
+            cur->CancelOverloading();
+        }
     }
-    _log(MODULE__TRACE, "MM::DeOverload() - %s DeOverload...", pMod->GetSelf()->name());
-    pMod->DeOverload();
+}
+
+void ModuleManager::OverloadRack(uint32 itemID, bool set, std::vector<uint32>& changed)
+{
+    GenericModule* pMod = GetModule(itemID);
+    if (pMod == nullptr)
+        return;
+    EVEItemFlags first(flagIllegal);
+    switch (ShipItem::GetHeatRack(pMod->flag())) {
+        case 0: first = flagHiSlot0;    break;
+        case 1: first = flagMidSlot0;   break;
+        case 2: first = flagLowSlot0;   break;
+        default: return;
+    }
+    for (uint8 i = 0; i < 8; ++i) {
+        GenericModule* cur = GetModule((EVEItemFlags)(first + i));
+        if ((cur == nullptr) or (cur->IsOverloaded() == set))
+            continue;
+        if (std::find(changed.begin(), changed.end(), cur->itemID()) != changed.end())
+            continue;
+        if (Overload(cur->itemID(), set))
+            changed.push_back(cur->itemID());
+    }
+}
+
+void ModuleManager::ClearOverloads()
+{
+    for (auto cur : m_modules)
+        if (cur.second != nullptr)
+            cur.second->SetOverloaded(false);
 }
 
 void ModuleManager::DamageModule(uint32 itemID, float amount)
@@ -1436,31 +1493,6 @@ void ModuleManager::GetActiveModules(uint8 rack, std::vector< GenericModule* >& 
         if (cur->IsActive())
             if (!cur->IsOverloaded())
                 modVec.push_back(cur);
-}
-
-void ModuleManager::GetActiveModulesHeat(uint8 rack, float& heat)
-{
-    std::vector< GenericModule* > modVecAll;
-    switch (rack) {
-        case EVEEffectID::hiPower: {
-            GetModulesInBank(flagHiSlot0, modVecAll);
-        } break;
-        case EVEEffectID::medPower: {
-            GetModulesInBank(flagMidSlot0, modVecAll);
-        } break;
-        case EVEEffectID::loPower: {
-            GetModulesInBank(flagLowSlot0, modVecAll);
-        } break;
-    }
-
-    for (auto cur : modVecAll)
-        if (cur->IsActive()) {
-            if (!cur->IsOverloaded())
-                heat += cur->GetAttribute(AttrHeatDamage).get_float() /10;
-        } else {
-            //AttrHeatAbsorbtionRateModifier    -- if this module is inactive, it will absorb this much heat.
-            heat -= cur->GetAttribute(AttrHeatAbsorbtionRateModifier).get_float() *10;
-        }
 }
 
 uint8 ModuleManager::GetActiveModulesCount(uint8 rack)

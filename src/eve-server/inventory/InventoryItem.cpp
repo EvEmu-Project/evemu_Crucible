@@ -38,6 +38,7 @@
 #include "pos/Structure.h"
 #include "ship/Ship.h"
 #include "ship/modules/ModuleItem.h"
+#include "ship/modules/GenericModule.h"
 #include "station/Station.h"
 #include "station/StationOffice.h"
 #include "system/Asteroid.h"
@@ -1260,6 +1261,26 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry& result )
             es.repeat = 0;
             es.randomSeed = PyStatic.NewNone();
         result.activeEffects[es.env_effectID] = es.Encode();
+
+        if ((m_type.categoryID() == EVEDB::invCategories::Module) and IsFittingSlot(m_data.flag)) {
+            ShipItemRef sRef(sItemFactory.GetShipRef(m_data.locationID));
+            GenericModule* pMod(((sRef.get() == nullptr) or (sRef->GetModuleManager() == nullptr)) ? nullptr : sRef->GetModule(m_data.flag));
+            if ((pMod != nullptr) and pMod->IsOverloaded()) {
+                EntityEffectState ol;
+                    ol.env_itemID = m_itemID;
+                    ol.env_charID = m_data.ownerID;
+                    ol.env_shipID = m_data.locationID;
+                    ol.env_target = m_data.locationID;
+                    ol.env_other = PyStatic.NewNone();
+                    ol.env_area = PyStatic.NewNone();
+                    ol.env_effectID = pMod->GetOverloadEffectID();
+                    ol.startTime = GetFileTimeNow();
+                    ol.duration = -1;
+                    ol.repeat = 0;
+                    ol.randomSeed = PyStatic.NewNone();
+                result.activeEffects[ol.env_effectID] = ol.Encode();
+            }
+        }
     }
 
     for (AttrMapItr itr = pAttributeMap->begin(), end = pAttributeMap->end(); itr != end; ++itr) {

@@ -42,6 +42,7 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
   m_targetSE(tSE),
   m_targetID(tSE->GetID()),
   m_fromSE(pSE),
+  m_fromID(pSE->GetID()),
   m_lifeTimer(0),
   m_damageMod(1),
   m_alive(true),
@@ -123,9 +124,8 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
         }
     }
 
-    /** @todo update this when rack overloading is implemented... */
-    if (IsOverloaded())
-        m_damageMod *= (1 + self->GetAttribute(AttrOverloadDamageModifier).get_float());
+    // overloading a launcher doesn't change missile damage.  in Crucible a launcher's overload effect (overloadRofBonus)
+    //  shortens its cycle time.  overloadDamageModifier is only on turrets.
 
     flightTime *= sConfig.rates.missileTime;
 
@@ -155,6 +155,12 @@ void Missile::Process() {
     double profileStartTime(GetTimeUSeconds());
     /*  Enable base call to Process Targeting and Movement  */
     SystemEntity::Process();
+
+    // a missile whose shooter has gone (left the system, died, cloaked or left the missile's bubble) does no damage
+    if (!ShooterPresent()) {
+        EndOfLife();
+        return;
+    }
 
     // the impact is found by the movement simulation, on the tick the missile's path reaches its target
     if (m_destiny->HasMissileHit()) {
@@ -258,6 +264,21 @@ void Missile::HitTarget() {
 
     m_targetSE->ApplyDamage(d);
     m_alive = false;
+}
+
+/* Crucible's destiny (server side of Evolve, after moving a missile) looks up the missile's owner each tick.
+ *  if the owner is gone, cloaked, or in a different bubble (when the missile is in one), the missile collides with
+ *  itself and is removed without hitting anything.  this is why missiles stop doing damage once their shooter warps off.
+ */
+bool Missile::ShooterPresent() {
+    m_fromSE = SystemMgr()->GetSE(m_fromID);
+    if ((m_fromSE == nullptr) or m_fromSE->IsDead())
+        return false;
+    if ((m_fromSE->DestinyMgr() != nullptr) and m_fromSE->DestinyMgr()->IsCloaked())
+        return false;
+    if ((SysBubble() != nullptr) and (m_fromSE->SysBubble() != SysBubble()))
+        return false;
+    return true;
 }
 
 void Missile::EndOfLife() {

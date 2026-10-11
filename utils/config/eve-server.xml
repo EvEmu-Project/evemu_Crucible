@@ -225,7 +225,6 @@ boolean can use either 0/1 OR true/false.
     </exploring>
 
     <testing><!-- switches for various incomplete/testing code sections -->
-        <ShipHeat>false</ShipHeat><!-- bool -->
         <EnableDrones>true</EnableDrones><!-- bool -->
     </testing>
 

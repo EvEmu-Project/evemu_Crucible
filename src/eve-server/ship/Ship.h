@@ -122,8 +122,9 @@ public:
     void OfflineAll();
     void Activate(int32 itemID, std::string effectName, int32 targetID, int32 repeat);
     void Deactivate(int32 itemID, std::string effectName) { m_ModuleManager->Deactivate(itemID, effectName); }
-    void Overload(uint32 itemID)                        { m_ModuleManager->Overload(itemID); }
-    void CancelOverloading(uint32 itemID)               { m_ModuleManager->DeOverload(itemID); }
+    bool Overload(uint32 itemID, bool set=true)         { return m_ModuleManager->Overload(itemID, set); }
+    void CancelOverloading(uint32 itemID, bool stop=false) { m_ModuleManager->CancelOverloading(itemID, stop); }
+    void OverloadRack(uint32 itemID, bool set, std::vector<uint32>& changed) { m_ModuleManager->OverloadRack(itemID, set, changed); }
     void ReplaceCharges(EVEItemFlags flag, InventoryItemRef newCharge);
     void RemoveRig(InventoryItemRef iRef);
     void UpdateModules();       // called when undocking to online modules in OnlineModuleList sent from client
@@ -156,13 +157,22 @@ public:
     PyRep* ModuleRepair(uint32 modID)                   { return m_ModuleManager->ModuleRepair(modID); }
     void StopModuleRepair(uint32 modID)                 { m_ModuleManager->StopModuleRepair(modID); }
 
-    // OL and Heat damage shit
-    void ProcessHeat();
-    // heat generated per tic by ship's active modules (passive *may not* generate heat yet.)
-    float GenerateHeat(uint16 attrID);
-    // heat dissipated per tic by ship's design and pilots skills
-    float DissipateHeat(uint16 attrID, float heat);
-    // this method does just that....checks for heat-induced damage from overheated modules
+    /* rack heat.  racks are 0=high, 1=medium, 2=low (-1 for any other slot).
+     *  a rack heats up while it has overloaded modules cycling, and cools down otherwise.  heat isn't ticked:
+     *  it is worked out from the last change with the same formulas the client uses to animate the HUD gauges.
+     */
+    static int8 GetHeatRack(EVEItemFlags flag);
+    // a module started (or stopped) an overloaded cycle.  updates its rack's heating rate and tells the client
+    void SetModuleHeating(GenericModule* pMod, bool heating);
+    // current heat of a rack, 0 to its heat capacity
+    double GetRackHeat(int8 rack);
+    // GM: sets a rack's heat (0 to its heat capacity).  it keeps heating or cooling from there
+    void SetRackHeat(int8 rack, double heat);
+    // brings the heat attributes up to date, for ship info sent to the client
+    void UpdateHeatAttributes();
+    // docking: stops all rack heating
+    void StopHeating();
+    // after one of pMod's overloaded cycles, pMod and its rack may take heat damage
     void HeatDamageCheck(GenericModule* pMod);
     void DamageModule(uint32 modID, float amt=1)        { m_ModuleManager->DamageModule(modID, amt); }
     void DamageRandModule()                             { m_ModuleManager->DamageRandModule(); }
@@ -280,6 +290,20 @@ private:
 
     std::vector<uint32> m_onlineModuleVec;      // for onlining modules when undocking
     std::map<GenericModule*, std::list<GenericModule*>> m_linkedWeapons; // masterID/data (slaveIDs)
+
+    struct RackHeat {
+        bool init = false;
+        double heat = 0.0;          // heat when last changed
+        int64 time = 0;             // when it last changed (filetime)
+        double rate = 0.0;          // heating rate (sum of heatAbsorbtionRateModifier of the heating modules)
+        std::set<uint32> modules;   // modules cycling overloaded
+    };
+    RackHeat m_rackHeat[3];
+    RackHeat& GetRackState(int8 rack);
+    double RackHeatAt(int8 rack, int64 time);
+    void SyncRackHeat(int8 rack);
+    void SendHeatChange(uint16 attrID, double value, int64 time);
+    void BurnOut(GenericModule* pMod);
 
     void ProcessShipEffects(bool update=false);
 

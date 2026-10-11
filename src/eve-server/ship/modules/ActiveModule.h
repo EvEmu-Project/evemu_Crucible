@@ -36,9 +36,7 @@ public:
     // this will not move charge item.
     // must NOT throw
     virtual void        UnloadCharge();
-    virtual void        Overload();
-    virtual void        AbortCycle();
-    virtual void        DeOverload();
+    virtual void        AbortCycle(bool force=false);
     virtual void        Deactivate(std::string effect="");
     /* cancel current cycle after timer ends. */
     virtual void        DeactivateCycle(bool abort=false); // this needs state=Deactivating for normal op.  set abort=true to cancel current cycle
@@ -81,6 +79,10 @@ protected:
     TargetManager*      m_targMgr;
 
     void                Clear();
+    /* heat.  a cycle starting (or the module stopping) applies pending overload requests, and tells the ship
+     *  which modules are heating their rack.  linked weapons do this for the whole group */
+    void                UpdateCycleHeat(bool cycling);
+    void                CheckHeatDamage();
     void                ProcessActiveCycle();           // checks and sets cap use
     void                UpdateCharge(uint16 attrID, uint16 testAttrID, uint16 srcAttrID, InventoryItemRef iRef);
     void                UpdateDamage(uint16 attrID, uint16 srcAttrID, InventoryItemRef iRef);
@@ -102,6 +104,7 @@ protected:
 
     // protected to allow derived usage
     bool                m_Stop :1;
+    bool                m_heating :1;                   // the current cycle is overloaded
     bool                m_usesCharge :1;
     bool                m_needsCharge :1;
     bool                m_needsTarget :1;

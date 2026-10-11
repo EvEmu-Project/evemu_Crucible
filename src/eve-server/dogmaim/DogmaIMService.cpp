@@ -91,6 +91,7 @@ DogmaIMBound::DogmaIMBound(EVEServiceManager& mgr, DogmaIMService& parent, uint3
     this->Add("Overload", &DogmaIMBound::Overload);
     this->Add("StopOverload", &DogmaIMBound::StopOverload);
     this->Add("CancelOverloading", &DogmaIMBound::CancelOverloading);
+    this->Add("CancelStopOverloading", &DogmaIMBound::CancelStopOverloading);
     this->Add("SetModuleOnline", &DogmaIMBound::SetModuleOnline);
     this->Add("TakeModuleOffline", &DogmaIMBound::TakeModuleOffline);
     this->Add("LoadAmmoToBank", &DogmaIMBound::LoadAmmoToBank);
@@ -915,59 +916,85 @@ PyResult DogmaIMBound::Deactivate(PyCallArgs& call, PyInt* itemID, PyWString* ef
     return PyStatic.NewNone();
 }
 
-PyResult DogmaIMBound::Overload(PyCallArgs& call, PyInt* itemID, PyInt* effectID) {
-    /*
-     * 23:52:45 L DogmaIMBound::Handle_Overload(): size=2
-     * 23:52:45 [SvcCallDump]   Call Arguments:
-     * 23:52:45 [SvcCallDump]       Tuple: 2 elements
-     * 23:52:45 [SvcCallDump]         [ 0] Integer field: 140002542
-     * 23:52:45 [SvcCallDump]         [ 1] Integer field: 3035
-     */
-    // self.GetDogmaLM().Overload(itemID, effectID)
-
-    Client* pClient(call.client);
-    //TODO:  need to verify pilot can OL modules
-    // AttrRequiredThermoDynamicsSkill
-    pClient->GetShip()->Overload(itemID->value());
-    return nullptr;
+namespace {
+    // overloading needs Thermodynamics, at the level the module asks for (at least 1)
+    void CheckThermodynamics(Client* pClient, GenericModule* pMod) {
+        int8 level(1);
+        if (pMod != nullptr) {
+            int8 required(pMod->GetAttribute(AttrRequiredThermoDynamicsSkill).get_int());
+            if (required > level)
+                level = required;
+        }
+        if (pClient->GetChar()->GetSkillLevel(EvESkill::Thermodynamics) < level)
+            throw CustomError ("You need Thermodynamics %s to overload this module.", (level > 1 ? std::to_string(level).c_str() : "trained"));
+    }
 }
 
-// this one is called from Deactivate() when module is OL
+PyResult DogmaIMBound::Overload(PyCallArgs& call, PyInt* itemID, PyInt* effectID) {
+    // self.GetDogmaLM().Overload(itemID, effectID)
+    //  the client marks the module pending until we send the overload effect's OnGodmaShipEffect.  errors leave it unmarked.
+    Client* pClient(call.client);
+    if (!pClient->IsInSpace())
+        throw CustomError ("You can only overload modules in space.");
+    GenericModule* pMod(pClient->GetShip()->GetModuleManager()->GetModule((uint32)itemID->value()));
+    if (pMod == nullptr)
+        throw CustomError ("That module isn't fitted to your ship.");
+    CheckThermodynamics(pClient, pMod);
+    if (pMod->GetOverloadEffectID() == 0)
+        throw CustomError ("Your %s can't be overloaded.", pMod->GetSelf()->name());
+    if (pMod->IsBurntOut())
+        throw CustomError ("Your %s is too damaged to overload.", pMod->GetSelf()->name());
+    if (!pMod->isOnline())
+        throw CustomError ("Your %s must be online to overload it.", pMod->GetSelf()->name());
+
+    pClient->GetShip()->Overload(itemID->value(), true);
+    return PyStatic.NewNone();
+}
+
 PyResult DogmaIMBound::StopOverload(PyCallArgs& call, PyInt* itemID, PyInt* effectID)
 {
-    Client* pClient(call.client);
-    //  cancel overload then deactivate module
-    pClient->GetShip()->CancelOverloading(itemID->value());
-    pClient->GetShip()->Deactivate(itemID->value(), sFxDataMgr.GetEffectName(effectID->value()));
-    // returns none
+    // the overload button turned off.  this doesn't stop the module itself
+    call.client->GetShip()->Overload(itemID->value(), false);
     return PyStatic.NewNone();
 }
 
 PyResult DogmaIMBound::CancelOverloading(PyCallArgs& call, PyInt* itemID) {
-    // self.dogmaLM.CancelOverloading(itemID)
+    // self.dogmaLM.CancelOverloading(itemID)  - a pending overload is called off
+    call.client->GetShip()->CancelOverloading(itemID->value(), false);
+    return PyStatic.NewNone();
+}
 
-    Client* pClient(call.client);
-    pClient->GetShip()->CancelOverloading(itemID->value());
-    return nullptr;
+PyResult DogmaIMBound::CancelStopOverloading(PyCallArgs& call, PyInt* itemID) {
+    // self.dogmaLM.CancelStopOverloading(itemID)  - a pending stop is called off
+    call.client->GetShip()->CancelOverloading(itemID->value(), true);
+    return PyStatic.NewNone();
 }
 
 PyResult DogmaIMBound::OverloadRack(PyCallArgs& call, PyInt* itemID) {
     /* moduleIDs = self.GetDogmaLM().OverloadRack(itemID)
-     *   moduleIDs is list of modules in rack.
+     *   itemID is the rack's first module.  the client marks the returned modules pending.  must be a list
      */
     Client* pClient(call.client);
-    // not supported yet
+    if (!pClient->IsInSpace())
+        throw CustomError ("You can only overload modules in space.");
+    CheckThermodynamics(pClient, nullptr);
+    std::vector<uint32> changed;
+    pClient->GetShip()->OverloadRack(itemID->value(), true, changed);
     PyList* list = new PyList();
+    for (auto cur : changed)
+        list->AddItem(new PyInt(cur));
     return list;
 }
 
 PyResult DogmaIMBound::StopOverloadRack(PyCallArgs& call, PyInt* itemID) {
     /* moduleIDs = self.GetDogmaLM().StopOverloadRack(itemID)
-     *   moduleIDs is list of modules in rack.
+     *   the client marks every returned module pending stop, so only overloaded ones go back.  must be a list
      */
-    Client* pClient(call.client);
-    // not supported yet
+    std::vector<uint32> changed;
+    call.client->GetShip()->OverloadRack(itemID->value(), false, changed);
     PyList* list = new PyList();
+    for (auto cur : changed)
+        list->AddItem(new PyInt(cur));
     return list;
 }
 

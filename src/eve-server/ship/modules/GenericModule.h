@@ -112,7 +112,8 @@ public:
     /* generic access functions to be handled in derived classes (must override) */
     virtual void Process()                              { /* do nothing here */ }
     virtual void Deactivate(std::string effect="")      { /* do nothing here */ }
-    virtual void AbortCycle()                           { /* do nothing here */ }
+    // force stops the cycle even if the module was already stopping after its current cycle
+    virtual void AbortCycle(bool force=false)           { /* do nothing here */ }
     // this will not move charge item.
     // must NOT throw
     virtual void LoadCharge(InventoryItemRef charge)    { /* do nothing here */ }
@@ -135,8 +136,20 @@ public:
     /* generic access functions to be overridden in derived classes as needed */
     virtual void Update()      // this is used to set char mods on active modules created before pilot entered ship
                                                         { /* do nothing here */ }
-    virtual void Overload();
-    virtual void DeOverload();
+    /* overheating.
+     *  set=true/false asks for overload on/off.  deferred requests (the module is cycling) wait for the next cycle.
+     *  the client's overload button blinks until SetOverloaded() sends it the overload effect's start/stop.
+     */
+    void RequestOverload(bool set, bool deferred);
+    void CancelOverloading()                            { m_pendingOverload = false; }
+    void CancelStopOverloading()                        { m_pendingStopOverload = false; }
+    // applies or removes the overload effects now and tells the client
+    void SetOverloaded(bool set);
+    // a deferred request takes effect.  called when a cycle starts or the module stops
+    void ApplyPendingOverload();
+    // the module's overload effect (effectCategory 5), 0 if it can't be overloaded
+    uint16 GetOverloadEffectID();
+    bool IsBurntOut()                                   { return GetAttribute(AttrDamage) >= GetAttribute(AttrHP); }
     virtual uint16 GetReloadTime()                      { return 0; }
     virtual uint32 GetTargetID()                        { return 0; }
 
@@ -146,6 +159,7 @@ public:
 
 protected:
     const char*         GetModuleStateName(int8 state);
+    void                SendOverloadEffect(bool active);
 
     ModuleItemRef       m_modRef;
     ShipItemRef         m_shipRef;
@@ -167,6 +181,8 @@ protected:
     bool                m_launcher     :1;
     bool                m_turret       :1;
     bool                m_overLoaded   :1;
+    bool                m_pendingOverload :1;
+    bool                m_pendingStopOverload :1;
     bool                m_chargeLoaded :1;
 };
 

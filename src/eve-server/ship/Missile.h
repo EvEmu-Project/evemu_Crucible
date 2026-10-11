@@ -54,25 +54,26 @@ public:
     virtual PyDict *MakeSlimItem();
 
     /* specific functions handled here. */
-    uint32 GetLauncherID()                              { return m_fromSE->GetID(); }
+    uint32 GetLauncherID()                              { return m_fromID; }
     SystemEntity* GetLauncherSE()                       { return m_fromSE; }
     SystemEntity* GetTargetSE()                         { return m_targetSE; }
 
     void SetSpeed(double speed)                         { m_speed = speed; }
 
     bool IsAlive()                                      { return m_alive; }
-    bool IsOverloaded()                                 { return false; }
 
     double GetSpeed()                                   { return m_speed; }
 
 protected:
     SystemEntity* m_targetSE;           // only valid while the target is in the system.  check m_targetID
     uint32 m_targetID;
-    SystemEntity* m_fromSE;
+    SystemEntity* m_fromSE;             // only valid while the shooter is in the system.  check m_fromID
+    uint32 m_fromID;
     InventoryItemRef m_modRef;
 
     void HitTarget();
     void EndOfLife();
+    bool ShooterPresent();
 
     Timer m_lifeTimer;
 
