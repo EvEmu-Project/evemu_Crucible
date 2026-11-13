@@ -7,7 +7,7 @@ concurrency:
 on:
   push:
     branches: [master, evemu-crucible-modernization]
-    tags: ["v*"]
+    tags: ["v*", "stable-rizonx"]
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -207,7 +207,7 @@ jobs:
 
   release:
     name: Publish GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/tags/stable-rizonx'
     needs: [linux, windows, docker]
     runs-on: ubuntu-22.04
     permissions:
