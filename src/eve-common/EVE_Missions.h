@@ -13,6 +13,7 @@ struct MissionData {
         bool storyline;
         uint8 level;
         uint8 typeID;
+        uint8 raceID;
         uint8 range;
         uint16 missionID;
         uint32 briefingID;

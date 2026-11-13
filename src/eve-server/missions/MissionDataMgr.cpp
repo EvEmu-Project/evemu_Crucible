@@ -16,6 +16,7 @@
 #include "database/EVEDBUtils.h"
 #include "missions/MissionDataMgr.h"
 #include "inventory/ItemFactory.h"
+#include <algorithm>
 
 MissionDataMgr::MissionDataMgr()
 {
@@ -75,7 +76,7 @@ void MissionDataMgr::Process()
                 if (itr->second.stateID == Mission::State::Accepted) {
                     pAgent->SendMissionUpdate(pClient, "failed");
                     itr->second.stateID = Mission::State::Failed;
-                    if (itr->second.courierTypeID) {
+                    if (itr->second.typeID != Mission::Type::Encounter && itr->second.courierTypeID) {
                         // remove item from player's possession
                         if (pClient != nullptr) {
                             pClient->RemoveMissionItem(itr->second.courierTypeID, itr->second.courierAmount);
@@ -230,6 +231,7 @@ void MissionDataMgr::Populate()
         data.name = row.GetText(2);
         data.level = row.GetInt(3);
         data.typeID = row.GetInt(4);
+        data.raceID = row.GetUInt(7);
         data.important = row.GetBool(5);
         data.storyline = row.GetBool(6);
         data.constellationID = row.GetInt(8);
@@ -247,6 +249,15 @@ void MissionDataMgr::Populate()
         }
     }
     sLog.Cyan("   MissionDataMgr", "%lu(%lu) Unsorted Mission Data Sets loaded in %.3fms.", m_missions.size(), m_missionsImp.size(), (GetTimeMSeconds() - start));
+
+    uint32 level1EncounterCount = 0;
+    for (const auto& entry : m_missions)
+        if (entry.first == 1 && entry.second.typeID == Mission::Type::Encounter && !entry.second.storyline)
+            ++level1EncounterCount;
+    for (const auto& entry : m_missionsImp)
+        if (entry.first == 1 && entry.second.typeID == Mission::Type::Encounter && !entry.second.storyline)
+            ++level1EncounterCount;
+    sLog.Cyan("   MissionDataMgr", "%u Level 1 Security encounter templates available.", level1EncounterCount);
 
     //res->Reset();
     start = GetTimeMSeconds();
@@ -424,7 +435,7 @@ void MissionDataMgr::LoadMissionOffers(uint32 charID, std::vector<MissionOffer>&
     }
 }
 
-void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data)
+void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data, uint32 characterID)
 {
     // variable mission data based on agent, init to 0 here.
     data.stateID                = Mission::State::Allocated;
@@ -526,22 +537,40 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
             // Level 0 is an RMR beginner tier. It borrows a real Level 1
             // Encounter template so the existing client localization remains valid.
             const uint8 templateLevel = (level == 0 ? 1 : level);
+            std::vector<uint16> completedStarterMissionIDs;
+            if (level == 0 && characterID != 0)
+                MissionDB::GetCompletedStarterMissionIDs(characterID, completedStarterMissionIDs);
+
             std::vector<MissionData> candidates;
             auto selectedRange = (important
                 ? m_missionsImp.equal_range(templateLevel)
                 : m_missions.equal_range(templateLevel));
-            for (auto it = selectedRange.first; it != selectedRange.second; ++it)
-                if (it->second.typeID == Mission::Type::Encounter)
-                    candidates.push_back(it->second);
+            for (auto it = selectedRange.first; it != selectedRange.second; ++it) {
+                const MissionData& mission = it->second;
+                const bool raceMatches = (mission.raceID == 0) || ((mission.raceID & raceID) == raceID);
+                const bool notStoryline = !mission.storyline;
+                const bool notCompletedStarter = (level != 0)
+                    || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
+                        == completedStarterMissionIDs.end());
+                if (mission.typeID == Mission::Type::Encounter && raceMatches && notStoryline && notCompletedStarter)
+                    candidates.push_back(mission);
+            }
 
             // Some agent templates are in the opposite important/non-important pool.
             if (candidates.empty()) {
                 auto fallbackRange = (important
                     ? m_missions.equal_range(templateLevel)
                     : m_missionsImp.equal_range(templateLevel));
-                for (auto it = fallbackRange.first; it != fallbackRange.second; ++it)
-                    if (it->second.typeID == Mission::Type::Encounter)
-                        candidates.push_back(it->second);
+                for (auto it = fallbackRange.first; it != fallbackRange.second; ++it) {
+                    const MissionData& mission = it->second;
+                    const bool raceMatches = (mission.raceID == 0) || ((mission.raceID & raceID) == raceID);
+                    const bool notStoryline = !mission.storyline;
+                    const bool notCompletedStarter = (level != 0)
+                        || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
+                            == completedStarterMissionIDs.end());
+                    if (mission.typeID == Mission::Type::Encounter && raceMatches && notStoryline && notCompletedStarter)
+                        candidates.push_back(mission);
+                }
             }
 
             if (candidates.empty()) {

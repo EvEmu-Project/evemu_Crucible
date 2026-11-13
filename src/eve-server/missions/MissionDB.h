@@ -30,6 +30,7 @@ public:
 
     static void UpdateMissionOffer(MissionOffer& data);
     static uint32 GetCompletedStarterMissionCount(uint32 characterID);
+    static void GetCompletedStarterMissionIDs(uint32 characterID, std::vector<uint16>& missionIDs);
     static bool HasActiveStarterMission(uint32 characterID);
 
     static void DeleteOffer(MissionOffer& data);

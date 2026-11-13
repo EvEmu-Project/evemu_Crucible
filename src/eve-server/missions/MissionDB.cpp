@@ -94,9 +94,9 @@ uint32 MissionDB::GetCompletedStarterMissionCount(uint32 characterID)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT COUNT(*) FROM agtOffers WHERE characterID = %u AND typeID = %u "
+        "SELECT COUNT(DISTINCT missionID) FROM agtOffers WHERE characterID = %u AND typeID = %u "
         "AND stateID = %u AND name LIKE 'Level 0 - %%'",
-        characterID, Mission::Type::Encounter, Mission::State::Offered, Mission::State::Accepted))
+        characterID, Mission::Type::Encounter, Mission::State::Completed))
     {
         codelog(DATABASE__ERROR, "Failed to load Level 0 mission progress: %s", res.error.c_str());
         return 0;
@@ -106,13 +106,31 @@ uint32 MissionDB::GetCompletedStarterMissionCount(uint32 characterID)
     return (res.GetRow(row) ? row.GetUInt(0) : 0);
 }
 
+void MissionDB::GetCompletedStarterMissionIDs(uint32 characterID, std::vector<uint16>& missionIDs)
+{
+    missionIDs.clear();
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT DISTINCT missionID FROM agtOffers WHERE characterID = %u AND typeID = %u "
+        "AND stateID = %u AND name LIKE 'Level 0 - %%'",
+        characterID, Mission::Type::Encounter, Mission::State::Completed))
+    {
+        codelog(DATABASE__ERROR, "Failed to load completed Level 0 mission IDs: %s", res.error.c_str());
+        return;
+    }
+
+    DBResultRow row;
+    while (res.GetRow(row))
+        missionIDs.push_back(static_cast<uint16>(row.GetUInt(0)));
+}
+
 bool MissionDB::HasActiveStarterMission(uint32 characterID)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT offerID FROM agtOffers WHERE characterID = %u AND typeID = %u "
         "AND stateID IN (%u, %u) AND name LIKE 'Level 0 - %%' LIMIT 1",
-        characterID, Mission::Type::Encounter, Mission::State::Completed))
+        characterID, Mission::Type::Encounter, Mission::State::Offered, Mission::State::Accepted))
     {
         codelog(DATABASE__ERROR, "Failed to check active Level 0 mission: %s", res.error.c_str());
         return false;

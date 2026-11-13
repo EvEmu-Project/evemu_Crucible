@@ -95,7 +95,7 @@ bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     if (starterMission && MissionDB::HasActiveStarterMission(charID))
         return false;
 
-    sMissionDataMgr.CreateMissionOffer(missionType, missionLevel, m_agentData.raceID, m_important, offer);
+    sMissionDataMgr.CreateMissionOffer(missionType, missionLevel, m_agentData.raceID, m_important, offer, charID);
     if (offer.typeID == 0)
         return false;
 
