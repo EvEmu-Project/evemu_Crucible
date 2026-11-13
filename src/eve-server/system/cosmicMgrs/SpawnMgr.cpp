@@ -495,10 +495,23 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
 
             uint16 spawnNumber = 0;
             for (const Dungeon::RoomObject& object : firstRoom.objects) {
-                Inv::TypeData objectType;
-                Inv::GrpData objectGroup;
+                // Static-data lookups are void-returning and leave the output
+                // untouched when an ID is missing. Zero-initialize both records
+                // so malformed dungeon references cannot expose uninitialized IDs.
+                Inv::TypeData objectType = {};
+                Inv::GrpData objectGroup = {};
                 sDataMgr.GetType(object.typeID, objectType);
+                if (objectType.id == 0) {
+                    _log(SPAWN__WARNING, "Mission %u dungeon %u references missing type %u.",
+                            offerID, dungeonID, object.typeID);
+                    continue;
+                }
                 sDataMgr.GetGroup(objectType.groupID, objectGroup);
+                if (objectGroup.id == 0) {
+                    _log(SPAWN__WARNING, "Mission %u dungeon %u type %u references missing group %u.",
+                            offerID, dungeonID, object.typeID, objectType.groupID);
+                    continue;
+                }
 
                 if (objectGroup.catID != EVEDB::invCategories::Ship
                     && objectGroup.catID != EVEDB::invCategories::Drone)
