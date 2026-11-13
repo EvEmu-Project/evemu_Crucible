@@ -468,18 +468,95 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
     }
 
     // Mission dungeon metadata is more authoritative than the agent's faction:
-    // the dungeon template identifies the actual opposing NPC faction.
+    // the dungeon template identifies the actual opposing NPC faction and its
+    // first-room NPC type IDs. Later room/gate progression is handled separately.
+    bool spawnedFromTemplate = false;
     if (dungeonID != 0) {
         Dungeon::Dungeon missionDungeon = {};
         sDunDataMgr.GetDungeon(missionDungeon, dungeonID);
         if (missionDungeon.factionID != 0)
             factionID = missionDungeon.factionID;
+
         _log(SPAWN__MESSAGE, "Mission %u uses dungeon template %u and faction %u.",
                 offerID, dungeonID, factionID);
+
+        if (!missionDungeon.rooms.empty()) {
+            const Dungeon::Room& firstRoom = missionDungeon.rooms.begin()->second;
+            const uint32 corpID = sDataMgr.GetFactionCorp(factionID);
+            FactionData factionData = FactionData();
+            factionData.allianceID = factionID;
+            factionData.corporationID = corpID;
+            factionData.factionID = (factionID == factionRogueDrones ? 0 : factionID);
+            factionData.ownerID = corpID;
+
+            uint16 spawnNumber = 0;
+            for (const Dungeon::RoomObject& object : firstRoom.objects) {
+                Inv::TypeData objectType;
+                Inv::GrpData objectGroup;
+                if (!sDataMgr.GetType(object.typeID, objectType)
+                    || !sDataMgr.GetGroup(objectType.groupID, objectGroup))
+                    continue;
+
+                if (objectGroup.catID != EVEDB::invCategories::Ship
+                    && objectGroup.catID != EVEDB::invCategories::Drone)
+                    continue;
+
+                GPoint spawnPosition = pBubble->GetCenter();
+                spawnPosition.x += object.x;
+                spawnPosition.y += object.y;
+                spawnPosition.z += object.z;
+
+                ItemData itemData(object.typeID, corpID, m_system->GetID(), flagNone,
+                                  "", spawnPosition, objectType.name.c_str());
+                InventoryItemRef item = sItemFactory.SpawnItem(itemData);
+                if (item.get() == nullptr) {
+                    _log(SPAWN__ERROR, "Mission %u failed to create template NPC type %u.",
+                            offerID, object.typeID);
+                    continue;
+                }
+
+                NPC* pNPC = new NPC(item, m_services, m_system, factionData, this);
+                if (pNPC == nullptr)
+                    continue;
+                if (!pNPC->Load()) {
+                    _log(SPAWN__ERROR, "Mission %u failed to load template NPC %u (type %u).",
+                            offerID, pNPC->GetID(), object.typeID);
+                    pNPC->Delete();
+                    continue;
+                }
+
+                m_system->AddNPC(pNPC);
+                pNPC->DestinyMgr()->SetPosition(spawnPosition);
+
+                SpawnEntry entry = SpawnEntry();
+                entry.enabled = false;
+                entry.groupID = item->type().groupID();
+                entry.itemID = item->itemID();
+                entry.total = 1;
+                entry.number = ++spawnNumber;
+                entry.typeID = object.typeID;
+                entry.spawnID = m_spawnID;
+                entry.corpID = corpID;
+                entry.factionID = factionID;
+                entry.spawnClass = spawnClass;
+                entry.spawnGroup = GetSpawnGroup(spawnClass);
+                entry.level = missionLevel;
+                entry.stamp = 0;
+                m_spawns.emplace(pBubble->GetID(), entry);
+            }
+
+            if (spawnNumber > 0) {
+                ++m_spawnID;
+                m_bubbles.push_back(pBubble);
+                spawnedFromTemplate = true;
+                _log(SPAWN__MESSAGE, "Mission %u spawned %u NPCs from dungeon %u room %u.",
+                        offerID, spawnNumber, dungeonID, firstRoom.roomID);
+            }
+        }
     }
 
     pBubble->SetMission();
-    if (!PrepSpawn(pBubble, spawnClass, 0, factionID)) {
+    if (!spawnedFromTemplate && !PrepSpawn(pBubble, spawnClass, 0, factionID)) {
         pBubble->SetMission(false);
         return false;
     }
