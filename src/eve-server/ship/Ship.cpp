@@ -2830,11 +2830,25 @@ bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
 }
 
 void ShipSE::ScoopDrone(SystemEntity* pSE) {
+    if (pSE == nullptr || !pSE->IsDroneSE())
+        return;
+
+    DroneSE* drone = pSE->GetDroneSE();
+    const bool usedBandwidth = drone->IsEnabled();
+    const double bandwidthUsed = usedBandwidth
+        ? pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed).get_double()
+        : 0.0;
+
     m_drones.erase(pSE->GetID());
-    pSE->GetDroneSE()->Offline();
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    load -= pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed);
-    m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
+    drone->Offline();
+
+    if (bandwidthUsed > 0.0 && m_shipRef.get() != nullptr) {
+        EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
+        const EvilNumber reserved(bandwidthUsed);
+        load = (load < reserved) ? EvilZero : load - reserved;
+        m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false);
+    }
+    drone->ClearShipControl();
 }
 
 void ShipSE::UpdateDrones(std::map<int16, int8> &attribs) {
@@ -2848,16 +2862,14 @@ void ShipSE::UpdateDrones(std::map<int16, int8> &attribs) {
 }
 
 void ShipSE::AbandonDrones() {
-    SystemEntity* pSE(nullptr);
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    for (auto cur : m_drones) {
-        pSE = m_system->GetSE(cur.first);
-        if (pSE != nullptr)
-            if (pSE->IsDroneSE()) {
-                pSE->GetDroneSE()->Abandon();
-                load -= pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed);
-            }
+    for (const auto& entry : m_drones) {
+        SystemEntity* entity = (m_system != nullptr) ? m_system->GetSE(entry.first) : nullptr;
+        if (entity != nullptr && entity->IsDroneSE())
+            entity->GetDroneSE()->Abandon();
     }
-    m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
+
+    m_drones.clear();
+    if (m_shipRef.get() != nullptr)
+        m_shipRef->SetAttribute(AttrDroneBandwidthLoad, EvilZero, false);
 }
 //AttrDroneControlDistance

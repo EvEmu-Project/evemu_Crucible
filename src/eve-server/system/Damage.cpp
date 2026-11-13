@@ -366,6 +366,7 @@ void ShipSE::Killed(Damage &fatal_blow) {
         return; // make error here?
 
     m_shipRef->SetPopped(true);
+    AbandonDrones();
 
     /* {'messageKey': 'ShipExploded', 'dataID': 17881627, 'suppressable': True, 'bodyID': 258841, 'messageType': 'info', 'urlAudio': '', 'urlIcon': '', 'titleID': 258840, 'messageID': 1558}
      * u'ShipExplodedBody'}(u'Your ship has been destroyed by {[character]charID.name}.', None, {u'{[character]charID.name}': {'conditionalValues': [], 'variableType': 0, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'charID'}})
@@ -498,7 +499,6 @@ void ShipSE::Killed(Damage &fatal_blow) {
         blob << "<items><i t=" << data.victimShipTypeID << " f=0 s=1 d=0 x=1/></items>";
     } else {
         AbortCycle();
-        AbandonDrones();
 
         // remove all charges (per packet data)  ...why???
         //GetShipItemRef()->UnloadAllModules();

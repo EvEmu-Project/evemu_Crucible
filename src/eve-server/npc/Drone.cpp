@@ -30,6 +30,7 @@
 #include "EntityList.h"
 #include "inventory/AttributeEnum.h"
 #include "npc/Drone.h"
+#include "ship/Ship.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/DestinyManager.h"
@@ -39,7 +40,9 @@
 
 DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemManager* pSystem, const FactionData& data)
 : DynamicSystemEntity(drone, services, pSystem),
+  m_pClient(nullptr),
   m_AI(new DroneAIMgr(this)),
+  m_pShipSE(nullptr),
   m_system(pSystem)
   {
       assert (m_AI != nullptr);
@@ -185,6 +188,8 @@ void DroneSE::IdleOrbit(ShipSE* pShipSE/*nullptr*/) {
 void DroneSE::Abandon() {
     SystemEntity::Abandon();
     Offline();
+    m_pClient = nullptr;
+    ClearShipControl();
 }
 
 /*   when drone is scooped up....
@@ -331,4 +336,115 @@ void DroneSE::EncodeDestiny( Buffer& into )
             _log(DRONE__ERROR, "DroneSE::EncodeDestiny - Unknown destiny mode %u for %s", mode, m_self->name());
         }  break;
     }
+}
+
+
+void DroneSE::MakeDamageState(DoDestinyDamageState& into) {
+    const auto clamp01 = [](double value) -> double {
+        if (value < 0.0) return 0.0;
+        if (value > 1.0) return 1.0;
+        return value;
+    };
+    const double shieldCapacity = m_self->GetAttribute(AttrShieldCapacity).get_double();
+    const double armorCapacity = m_self->GetAttribute(AttrArmorHP).get_double();
+    const double hullCapacity = m_self->GetAttribute(AttrHP).get_double();
+    into.shield = (shieldCapacity > 0.0)
+        ? clamp01(m_self->GetAttribute(AttrShieldCharge).get_double() / shieldCapacity) : 0.0;
+    into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double() + 5.0;
+    into.timestamp = GetFileTimeNow();
+    into.armor = (armorCapacity > 0.0)
+        ? clamp01(1.0 - m_self->GetAttribute(AttrArmorDamage).get_double() / armorCapacity) : 0.0;
+    into.structure = (hullCapacity > 0.0)
+        ? clamp01(1.0 - m_self->GetAttribute(AttrDamage).get_double() / hullCapacity) : 0.0;
+}
+
+void DroneSE::SetResists() {
+    // Some legacy drone types are missing resistance attributes in static data.
+    // Add defaults only where an attribute is absent.
+    if (!m_self->HasAttribute(AttrShieldEmDamageResonance)) m_self->SetAttribute(AttrShieldEmDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrShieldExplosiveDamageResonance)) m_self->SetAttribute(AttrShieldExplosiveDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrShieldKineticDamageResonance)) m_self->SetAttribute(AttrShieldKineticDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrShieldThermalDamageResonance)) m_self->SetAttribute(AttrShieldThermalDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrArmorEmDamageResonance)) m_self->SetAttribute(AttrArmorEmDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrArmorExplosiveDamageResonance)) m_self->SetAttribute(AttrArmorExplosiveDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrArmorKineticDamageResonance)) m_self->SetAttribute(AttrArmorKineticDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrArmorThermalDamageResonance)) m_self->SetAttribute(AttrArmorThermalDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrEmDamageResonance)) m_self->SetAttribute(AttrEmDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrExplosiveDamageResonance)) m_self->SetAttribute(AttrExplosiveDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrKineticDamageResonance)) m_self->SetAttribute(AttrKineticDamageResonance, EvilOne, false);
+    if (!m_self->HasAttribute(AttrThermalDamageResonance)) m_self->SetAttribute(AttrThermalDamageResonance, EvilOne, false);
+}
+
+void DroneSE::Killed(Damage& damage) {
+    // Unregister from the controlling ship before the item is deleted.
+    if (m_pShipSE != nullptr)
+        m_pShipSE->ScoopDrone(this);
+
+    if (m_bubble == nullptr || m_destiny == nullptr || m_system == nullptr || m_self.get() == nullptr) {
+        sLog.Error("DroneSE::Killed()", "Cannot create drone wreck: required state unavailable for drone %u", GetID());
+        return;
+    }
+
+    SystemEntity* killer = damage.srcSE;
+    Client* pClient = nullptr;
+    uint32 killerID = 0;
+    if (killer != nullptr) {
+        if (killer->HasPilot()) {
+            pClient = killer->GetPilot();
+            if (pClient != nullptr) killerID = pClient->GetCharacterID();
+        } else if (killer->IsDroneSE()) {
+            pClient = killer->GetDroneSE()->GetOwner();
+            if (pClient != nullptr) killerID = pClient->GetCharacterID();
+        } else {
+            killerID = killer->GetID();
+        }
+    }
+
+    if (pClient != nullptr) {
+        AwardBounty(pClient);
+        if (m_system->GetSystemSecurityRating() > 0.0)
+            AwardSecurityStatus(m_self, pClient->GetChar().get());
+    }
+
+    const GPoint wreckPosition = m_destiny->GetPosition();
+    if (wreckPosition.isNaN()) {
+        sLog.Error("DroneSE::Killed()", "Wreck position is invalid for drone %u", GetID());
+        return;
+    }
+
+    const uint32 wreckTypeID = 26972; // Faction drone wreck.
+    const std::string wreckName = m_self->itemName() + " Wreck";
+    ItemData wreckItemData(wreckTypeID, killerID, m_system->GetID(), flagNone,
+                           wreckName.c_str(), wreckPosition, itoa(m_allyID));
+    WreckContainerRef wreckItemRef = sItemFactory.SpawnWreckContainer(wreckItemData);
+    if (wreckItemRef.get() == nullptr) {
+        sLog.Error("DroneSE::Killed()", "Creating wreck failed for drone %s(%u)", m_self->name(), m_self->itemID());
+        return;
+    }
+
+    if (is_log_enabled(PHYSICS__TRACE)) {
+        _log(PHYSICS__TRACE,
+             "DroneSE::Killed() - Drone %s(%u) Position: %.2f,%.2f,%.2f. Wreck %s(%u) Position: %.2f,%.2f,%.2f.",
+             GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(),
+             wreckPosition.x, wreckPosition.y, wreckPosition.z);
+    }
+
+    DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
+    wreckEntity.allianceID = (killer != nullptr && killer->GetAllianceID() != 0) ? killer->GetAllianceID() : m_allyID;
+    wreckEntity.categoryID = EVEDB::invCategories::Celestial;
+    wreckEntity.corporationID = (killer != nullptr) ? killer->GetCorporationID() : m_corpID;
+    wreckEntity.factionID = (killer != nullptr && killer->GetWarFactionID() != 0) ? killer->GetWarFactionID() : m_warID;
+    wreckEntity.groupID = EVEDB::invGroups::Wreck;
+    wreckEntity.itemID = wreckItemRef->itemID();
+    wreckEntity.itemName = wreckName;
+    wreckEntity.ownerID = killerID;
+    wreckEntity.typeID = wreckTypeID;
+    wreckEntity.position = wreckPosition;
+
+    if (!m_system->BuildDynamicEntity(wreckEntity, m_self->itemID())) {
+        sLog.Error("DroneSE::Killed()", "Spawning wreck failed for drone typeID %u", m_self->typeID());
+        wreckItemRef->Delete();
+        return;
+    }
+    m_destiny->SendJettisonPacket();
 }
