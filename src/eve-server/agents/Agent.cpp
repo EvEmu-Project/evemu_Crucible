@@ -766,7 +766,6 @@ bool Agent::CanUseAgent(Client* pClient)
         if (m_agentData.typeID != Agents::Type::Research)
             return true;
 
-    Character* pChar = pClient->GetChar().get();
     uint32 charID = pChar->itemID();
     uint8 sConn = pChar->GetSkillLevel(EvESkill::Connections);
     uint8 sDiplo = pChar->GetSkillLevel(EvESkill::Diplomacy);

@@ -96,7 +96,7 @@ uint32 MissionDB::GetCompletedStarterMissionCount(uint32 characterID)
     if (!sDatabase.RunQuery(res,
         "SELECT COUNT(*) FROM agtOffers WHERE characterID = %u AND typeID = %u "
         "AND stateID = %u AND name LIKE 'Level 0 - %%'",
-        characterID, Mission::Type::Encounter, Mission::State::Completed))
+        characterID, Mission::Type::Encounter, Mission::State::Offered, Mission::State::Accepted))
     {
         codelog(DATABASE__ERROR, "Failed to load Level 0 mission progress: %s", res.error.c_str());
         return 0;
@@ -111,7 +111,7 @@ bool MissionDB::HasActiveStarterMission(uint32 characterID)
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT offerID FROM agtOffers WHERE characterID = %u AND typeID = %u "
-        "AND stateID < %u AND name LIKE 'Level 0 - %%' LIMIT 1",
+        "AND stateID IN (%u, %u) AND name LIKE 'Level 0 - %%' LIMIT 1",
         characterID, Mission::Type::Encounter, Mission::State::Completed))
     {
         codelog(DATABASE__ERROR, "Failed to check active Level 0 mission: %s", res.error.c_str());
