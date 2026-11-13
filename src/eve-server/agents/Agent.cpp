@@ -134,7 +134,7 @@ bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     offer.rewardLP = LPService::GetLPReward(offer.missionID, m_agentData.solarSystemID,
             (missionLevel == 0 ? 1 : missionLevel));
     offer.acceptFee = 0;
-    offer.bookmarks = new PyList();
+    // CreateMissionOffer already initializes bookmarks for every mission type.
     offer.stateID = Mission::State::Offered;
 
     if (offer.typeID == Mission::Type::Courier
