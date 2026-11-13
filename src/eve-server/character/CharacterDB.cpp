@@ -1586,7 +1586,7 @@ bool CharacterDB::SaveSkillQueue(uint32 characterID, SkillQueue &data) {
     for (uint8 i = 0; i < data.size(); ++i) {
         const QueuedSkill &qs = data[i];
         char buf[80];
-        snprintf(buf, sizeof(buf), "(%u, %u, %u, %u, %lli, %lli)", characterID, i, qs.typeID, qs.level, qs.startTime, qs.endTime );
+        snprintf(buf, sizeof(buf), "(%u, %u, %u, %u, %lld, %lld)", characterID, i, qs.typeID, qs.level, static_cast<long long>(qs.startTime), static_cast<long long>(qs.endTime));
 
         if (i > 0)
             query += ',';

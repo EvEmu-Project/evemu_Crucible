@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Install dependencies
@@ -33,7 +33,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential ccache cmake ninja-build zlib1g-dev libmariadb-dev libboost-all-dev libtinyxml-dev libutfcpp-dev
       - name: Cache compiler outputs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ccache
           key: ccache-linux-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}
@@ -65,7 +65,7 @@ jobs:
           printf 'Commit: %s\nBranch: %s\nPlatform: Linux x86_64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
           tar -czf evemu-crucible-linux-x86_64.tar.gz -C stage .
           sha256sum evemu-crucible-linux-x86_64.tar.gz > evemu-crucible-linux-x86_64.tar.gz.sha256
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: evemu-crucible-linux-x86_64
           path: |
@@ -79,7 +79,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set up MSYS2 UCRT64
@@ -99,7 +99,7 @@ jobs:
             mingw-w64-ucrt-x86_64-utf8cpp
             mingw-w64-ucrt-x86_64-zlib
       - name: Cache compiler outputs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ccache
           key: ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ github.sha }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '.github/workflows/build-release.yml') }}
@@ -187,7 +187,7 @@ jobs:
           Compress-Archive -Path stage\* -DestinationPath evemu-crucible-windows-x86_64.zip -Force
           $hash = (Get-FileHash evemu-crucible-windows-x86_64.zip -Algorithm SHA256).Hash.ToLower()
           "$hash  evemu-crucible-windows-x86_64.zip" | Set-Content evemu-crucible-windows-x86_64.zip.sha256
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: evemu-crucible-windows-x86_64
           path: |
@@ -201,7 +201,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build Docker image
         run: docker build --pull -t evemu-crucible:ci .
 
@@ -214,12 +214,12 @@ jobs:
       contents: write
     steps:
       - name: Download Linux build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: evemu-crucible-linux-x86_64
           path: dist
       - name: Download Windows build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: evemu-crucible-windows-x86_64
           path: dist

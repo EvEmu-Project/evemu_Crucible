@@ -298,12 +298,13 @@ CustomError::CustomError(const char *fmt, ...)
     va_start (va, fmt);
 
     char* str = nullptr;
-    vasprintf (&str, fmt, va);
-    assert (str);
-
-    va_end (va);
-
-    this->AddFormatValue ("error", new PyString (str));
+    const int formatResult = vasprintf(&str, fmt, va);
+    va_end(va);
+    if (formatResult < 0 || str == nullptr) {
+        this->AddFormatValue("error", new PyString("Unable to format error message"));
+        return;
+    }
+    this->AddFormatValue("error", new PyString(str));
 
     SafeFree (str);
 }

@@ -124,27 +124,22 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     FILE * fp = fopen(path.c_str(), "rb");
     if (fp == NULL)
         return std::shared_ptr<std::vector<char> >();
-    fseek(fp, 0, SEEK_END);
-    size_t length = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        fclose(fp);
+        return std::shared_ptr<std::vector<char>>();
+    }
+    const long fileLength = ftell(fp);
+    if (fileLength < 0 || fseek(fp, 0, SEEK_SET) != 0) {
+        fclose(fp);
+        return std::shared_ptr<std::vector<char>>();
+    }
 
-    //stream.open(path, std::ios::binary | std::ios::in);
-    // not found or other error
-    //if (stream.fail())
-    //    return std::shared_ptr<std::vector<char> >();
-
-    // get length
-    //stream.seekg(0, std::ios::end);
-    //int length = stream.tellg();
-    //stream.seekg(0, std::ios::beg);
-
-    std::shared_ptr<std::vector<char> > ret = std::shared_ptr<std::vector<char> >(new std::vector<char>());
-    ret->resize(length);
-
-    // HACK
-    //stream.read(&((*ret)[0]), length);
-    fread(&((*ret)[0]), 1, length, fp);
-
+    const size_t length = static_cast<size_t>(fileLength);
+    std::shared_ptr<std::vector<char>> ret = std::make_shared<std::vector<char>>(length);
+    const size_t bytesRead = (length > 0) ? fread(ret->data(), 1, length, fp) : 0;
+    fclose(fp);
+    if (bytesRead != length)
+        return std::shared_ptr<std::vector<char>>();
     return ret;
 }
 

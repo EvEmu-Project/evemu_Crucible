@@ -2810,9 +2810,10 @@ void Client::SendErrorMsg(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
@@ -2827,8 +2828,9 @@ void Client::SendErrorMsg(const char* fmt, ...)
 void Client::SendErrorMsg(const char* fmt, va_list args)
 {
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
@@ -2846,9 +2848,10 @@ void Client::SendInfoModalMsg(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "ServerMessage";
@@ -2866,9 +2869,10 @@ void Client::SendNotifyMsg(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomNotify";
@@ -2883,8 +2887,9 @@ void Client::SendNotifyMsg(const char* fmt, ...)
 void Client::SendNotifyMsg(const char* fmt, va_list args)
 {
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomNotify";
@@ -2902,9 +2907,10 @@ void Client::SelfChatMessage(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     if (m_channels.empty()) {
         if (m_char.get() != nullptr)
