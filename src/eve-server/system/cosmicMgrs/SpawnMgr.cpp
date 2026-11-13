@@ -489,6 +489,11 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
     if (pBubble == nullptr)
         return false;
     float secRating = m_system->GetSecValue();
+
+    // GetSecValue() is stored as 1.1 - true security rating. Convert it
+    // back to the -1.0..1.0 scale used by the spawn-class thresholds below.
+    secRating = 1.0f - secRating;
+
     bool anomaly = false;
     // get faction for this region
     uint32 factionID = factionRogueDrones;  // default to rogue drones.  this is my internal rogue drone factionID.
