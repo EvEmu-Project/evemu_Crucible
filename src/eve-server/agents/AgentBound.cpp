@@ -166,7 +166,7 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
             case RequestMission: {  //2
                 MissionOffer offer = MissionOffer();
                 if (!m_agent->MakeOffer(pchar->itemID(), offer)) {
-                    agentSays->SetItem(0, new PyString("You already have an active Level 0 mission, or no suitable mission is available."));
+                    agentSays->SetItem(0, new PyString("No suitable security mission is available from this agent right now. You may already have an offer from this agent, or its mission templates may be unavailable."));
                     agentSays->SetItem(1, PyStatic.NewNone());
                     break;
                 }
