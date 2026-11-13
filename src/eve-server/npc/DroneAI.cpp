@@ -94,6 +94,13 @@ void DroneAIMgr::Process() {
         } break;
 
         case DroneAI::State::Departing: { // return to ship.  when close enough, set lazy orbit
+            // The owning ship may have been destroyed or the drone may have been orphaned.
+            if (m_assignedShip == nullptr) {
+                _log(DRONE__AI_TRACE, "Drone %s(%u): Return target is unavailable; stopping return state.",
+                     m_pDrone->GetName(), m_pDrone->GetID());
+                SetIdle();
+                break;
+            }
             if (m_pDrone->GetPosition().distance(m_assignedShip->GetPosition()) < m_entityOrbitRange)
                 SetIdle();
         } break;
@@ -134,6 +141,16 @@ int8 DroneAIMgr::GetState() {
 
 void DroneAIMgr::Return() {
     m_assignedShip = m_pDrone->GetHomeShip();
+    if (m_assignedShip == nullptr || m_pDrone->DestinyMgr() == nullptr) {
+        _log(DRONE__AI_TRACE, "Drone %s(%u): Cannot return; home ship or destiny manager is unavailable.",
+             m_pDrone->GetName(), m_pDrone->GetID());
+        m_state = DroneAI::State::Idle;
+        m_mainAttackTimer.Disable();
+        m_beginFindTarget.Disable();
+        m_webifierTimer.Disable();
+        m_warpScramblerTimer.Disable();
+        return;
+    }
     m_pDrone->DestinyMgr()->SetMaxVelocity(m_chaseSpeed);
     m_pDrone->DestinyMgr()->Follow(m_assignedShip, m_entityOrbitRange);
     m_state = DroneAI::State::Departing;
@@ -153,11 +170,14 @@ void DroneAIMgr::SetIdle() {
     m_mainAttackTimer.Disable();
     m_warpScramblerTimer.Disable();
 
-    // orbit assigned ship
-    m_pDrone->IdleOrbit(m_assignedShip);
+    // Orbit only while the owning ship still exists. An orphaned drone remains idle.
+    if (m_assignedShip != nullptr)
+        m_pDrone->IdleOrbit(m_assignedShip);
 }
 
 void DroneAIMgr::SetEngaged(SystemEntity* pTarget) {
+    if (pTarget == nullptr || m_pDrone->DestinyMgr() == nullptr)
+        return;
     if (m_state == DroneAI::State::Engaged)
         return;
     _log(DRONE__AI_TRACE, "Drone %s(%u): SetEngaged: %s(%u) begin engaging.",
@@ -173,6 +193,13 @@ void DroneAIMgr::SetEngaged(SystemEntity* pTarget) {
 
 void DroneAIMgr::CheckDistance(SystemEntity* pSE)
 {
+    if (pSE == nullptr || m_pDrone->SysBubble() == nullptr) {
+        if (pSE != nullptr)
+            ClearTarget(pSE);
+        else
+            SetIdle();
+        return;
+    }
     //rewrote distance checks for correct logic this time
     double dist = m_pDrone->GetPosition().distance(pSE->GetPosition());
     if (dist > m_entityAttackRange) {
@@ -209,6 +236,10 @@ void DroneAIMgr::ClearAllTargets() {
 }
 
 void DroneAIMgr::Target(SystemEntity* pTarget) {
+    if (pTarget == nullptr || m_pDrone->TargetMgr() == nullptr) {
+        SetIdle();
+        return;
+    }
     bool chase = false;
     if (!m_pDrone->TargetMgr()->StartTargeting(pTarget, m_pDrone->GetSelf()->GetAttribute(AttrScanSpeed).get_uint32(), (uint8)m_pDrone->GetSelf()->GetAttribute(AttrMaxAttackTargets).get_int(), m_entityAttackRange, chase)) {
         _log(DRONE__AI_TRACE, "Drone %s(%u): Targeting of %s(%u) failed.  Clear Target and Return to Idle.",
@@ -229,6 +260,10 @@ void DroneAIMgr::Target(SystemEntity* pTarget) {
 }
 
 void DroneAIMgr::Targeted(SystemEntity* pAgressor) {
+    if (m_pDrone == nullptr || pAgressor == nullptr) {
+        _log(DRONE__AI_TRACE, "Drone AI received a target notification without a valid drone or aggressor.");
+        return;
+    }
     _log(DRONE__AI_TRACE, "Drone %s(%u): Targeted by %s(%u) while %s.",
                 m_pDrone->GetName(), m_pDrone->GetID(), pAgressor->GetName(), pAgressor->GetID(), GetStateName(m_state).c_str());
     switch(m_state) {
@@ -264,15 +299,20 @@ void DroneAIMgr::Targeted(SystemEntity* pAgressor) {
 }
 
 void DroneAIMgr::TargetLost(SystemEntity* pTarget) {
+    if (m_pDrone == nullptr || m_pDrone->TargetMgr() == nullptr)
+        return;
+
+    const char* targetName = (pTarget != nullptr) ? pTarget->GetName() : "<unknown>";
+    const uint32 targetID = (pTarget != nullptr) ? pTarget->GetID() : 0;
     switch(m_state) {
         case DroneAI::State::Engaged: {
             if (m_pDrone->TargetMgr()->HasNoTargets()) {
                 _log(DRONE__AI_TRACE, "Drone %s(%u): Target %s(%u) lost. No targets remain.  Return to Idle.",
-                     m_pDrone->GetName(), m_pDrone->GetID(), pTarget->GetName(), pTarget->GetID());
+                     m_pDrone->GetName(), m_pDrone->GetID(), targetName, targetID);
                 SetIdle();
             } else {
                 _log(DRONE__AI_TRACE, "Drone %s(%u): Target %s(%u) lost, but more targets remain.",
-                     m_pDrone->GetName(), m_pDrone->GetID(), pTarget->GetName(), pTarget->GetID());
+                     m_pDrone->GetName(), m_pDrone->GetID(), targetName, targetID);
             }
 
         } break;
@@ -285,6 +325,10 @@ void DroneAIMgr::TargetLost(SystemEntity* pTarget) {
 void DroneAIMgr::Attack(SystemEntity* pSE)
 {
     if (m_mainAttackTimer.Check()) {
+        if (m_pDrone->SysBubble() == nullptr) {
+            SetIdle();
+            return;
+        }
         if (pSE == nullptr)
             return;
         // Check to see if the target still in the bubble (Client warped out)
@@ -310,7 +354,7 @@ void DroneAIMgr::Attack(SystemEntity* pSE)
             return;
         }
 
-        if (m_pDrone->TargetMgr()->CanAttack())
+        if (m_pDrone->TargetMgr() != nullptr && m_pDrone->TargetMgr()->CanAttack())
             AttackTarget(pSE);
     }
 }
@@ -328,6 +372,9 @@ void DroneAIMgr::ClearTarget(SystemEntity* pSE) {
 //entityWarpScrambleChance
 
 void DroneAIMgr::AttackTarget(SystemEntity* pTarget) {
+    if (pTarget == nullptr || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr ||
+        m_pDrone->DestinyMgr() == nullptr)
+        return;
     /** @todo  not all drones use lazors...fix this */
     //  woot!! --> group:1010        cat:8       Compact Citadel Torpedo         Citadel torpedoes for fighter-bombers
 

@@ -48,9 +48,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <windows.h>
 #include <imagehlp.h>
 #if defined(__MINGW32__)
-#define PACKAGE         1 // Supress cmake error.
-#define PACKAGE_VERSION 1 // Supress cmake error.
-#include <bfd.h>
 #include <cxxabi.h>
 #endif
 #else
@@ -115,92 +112,7 @@ public:
 private:
     CRITICAL_SECTION cs;
 } cs;
-#if defined(__MINGW32__)
-class bfd_usage : noncopyable
-{
-public:
-    bfd_usage(void) : abfd(NULL), sec(NULL), symbol_table(NULL)
-    {
-        char procname[MAX_PATH];
-        GetModuleFileName(NULL, procname, sizeof(procname));
-        
-        bfd_init();
-        abfd = bfd_openr(procname, NULL); // Obtain the bfd pointer.
-        if(abfd == NULL)
-        {
-            fprintf(stderr, "Error: Failed to parse the executable format.\n");
-            return;
-        }
-        
-        char** matching = NULL;
-        if(!(bfd_check_format(abfd, bfd_object) && // Whether the executable format is supported.
-                    bfd_check_format_matches(abfd, bfd_object, &matching) && // Whether the executable format is supported.
-                    (bfd_get_file_flags(abfd) & HAS_SYMS))) // Whether BFD has symbols
-        {
-            bfd_close(abfd);
-            free(matching);
-            fprintf(stderr, "Error: Failed to parse the executable format.\n");            
-            return;
-        }
-        free(matching);
 
-        // Obtain the symbol table.
-        unsigned int dummy = 0;
-        if(bfd_read_minisymbols(abfd, FALSE, reinterpret_cast<void**>(&symbol_table), &dummy) == 0 &&
-                bfd_read_minisymbols(abfd, TRUE, reinterpret_cast<void**>(&symbol_table), &dummy) < 0)
-        {
-            free(symbol_table);
-            bfd_close(abfd);
-            fprintf(stderr, "Error: Failed to obtain the symbol table from the executable.\n");
-            return;
-        }
-    }
-    
-    ~bfd_usage(void)
-    {
-        free(symbol_table);
-        bfd_close(abfd);
-    }
-    
-    string get_function_name(DWORD offset)
-    {
-        fnis_para para;
-        para.symbol_table = symbol_table;
-        para.counter = offset;        
-        bfd_map_over_sections(abfd, &find_function_name_in_section, &para); // Call the corresponding functions.
-        return para.function;
-    }
-
-private:
-    bfd* abfd;
-    asection* sec;
-    asymbol** symbol_table;
-
-    class fnis_para
-    {
-    public:
-        string function;
-        asymbol** symbol_table;
-        bfd_vma counter;
-    };
-    static void find_function_name_in_section(bfd* tabfd, asection* tsec, void* tpara)
-    {
-        fnis_para& para = *static_cast<fnis_para*>(tpara);
-        if(!para.function.empty()) return; // We have got the name. 
-        if(!(bfd_get_section_flags(tabfd, tsec) & SEC_ALLOC)) return; // Allocate space for this section.
-        bfd_vma vma = bfd_get_section_vma(tabfd, tsec);
-        if(para.counter < vma || vma+bfd_get_section_size(tsec) <= para.counter) return;        
-        const char* function = NULL;
-        const char* file = NULL;
-        unsigned int line = 0;
-        // Get corresponding file and function name, and line number.
-        if(bfd_find_nearest_line(tabfd, tsec, para.symbol_table, para.counter-vma, &file, &function, &line) && function)
-        {
-            para.function = CallStack::Demangle(function);
-        }
-    }
-};
-#endif // __MINGW32__
 #endif // _WIN32
 
 void CallStack::GetCalls(vector<CallStack::CallInfo>& calls)
@@ -212,12 +124,9 @@ void CallStack::GetCalls(vector<CallStack::CallInfo>& calls)
     if(!SymInitialize(GetCurrentProcess(), 0, TRUE))
     {
         fprintf(stderr, "Error: Failed to initialize symbol context.\n");
+        cs.unlock();
         return;
     }
-#ifdef __MINGW32__
-    bfd_usage bfdu;
-#endif
-
     // Prepare variables.
 #if defined(_M_AMD64)
     const DWORD machine = IMAGE_FILE_MACHINE_AMD64;
@@ -268,24 +177,13 @@ void CallStack::GetCalls(vector<CallStack::CallInfo>& calls)
         string module_name = Unknown_Module;
         if(module_base && GetModuleFileNameA(reinterpret_cast<HINSTANCE>(module_base), module_name_raw, MAX_PATH)) module_name = module_name_raw;
 
-#if defined(__MINGW32__)
-        string function = bfdu.get_function_name(frame.AddrPC.Offset);
-        if(function.empty())
-        {
-            DWORD64 dummy = 0;
-            const bool got_symbol = SymGetSymFromAddr(process, frame.AddrPC.Offset, &dummy, symbol);
-            function= (got_symbol) ? (symbol->Name) : Unknown_Function;
-        }
-#else
-#if defined(_WIN64)        
+#if defined(_WIN64)
         DWORD64 dummy = 0;
 #else
         DWORD dummy = 0;
 #endif
         const bool got_symbol = SymGetSymFromAddr(process, frame.AddrPC.Offset, &dummy, symbol);
         const string function = (got_symbol) ? symbol->Name : Unknown_Function;
-
-#endif
 
         calls.push_back(CallInfo(frame.AddrPC.Offset, function, module_name));
     }

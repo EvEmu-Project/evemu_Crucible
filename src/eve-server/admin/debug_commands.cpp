@@ -810,7 +810,7 @@ PyResult Command_bubbletrack(Client* pClient, CommandDB* db, EVEServiceManager &
             str << "'system' and 'universe' are used to show bubbles using solarsystem map from scan window (using '.showall').<br>";  //110
             int size = 520;
             char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-            snprintf(reply, size, str.str().c_str());
+            snprintf(reply, size, "%s", str.str().c_str());
             pClient->SendInfoModalMsg(reply);
             return nullptr;
         } else if (strcmp(args.arg(1).c_str(), "bubble") == 0) {
@@ -957,7 +957,7 @@ PyResult Command_getposition(Client* pClient, CommandDB* db, EVEServiceManager &
     str << "Az: " << azimuth << " Ele: " << elevation;
     int size = 70;
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-    snprintf(reply, size, str.str().c_str());
+    snprintf(reply, size, "%s", str.str().c_str());
 
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);
@@ -983,7 +983,7 @@ PyResult Command_players(Client* pClient, CommandDB* db, EVEServiceManager &serv
     int size = cVec.size() * 100;
     size += 80;
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-    snprintf(reply, size, str.str().c_str());
+    snprintf(reply, size, "%s", str.str().c_str());
 
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);

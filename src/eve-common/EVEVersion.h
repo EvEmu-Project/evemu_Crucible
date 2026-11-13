@@ -47,7 +47,10 @@ static const char* const EVEProjectCodename = "EVE-EVE-TRANQUILITY";
 static const int32 EVEBirthday = 170472;
 
 /*  Version Definitions */
-static std::string GIT_SHORT_HASH = std::string(GIT_COMMIT_HASH).erase(7, std::string::npos);
+static const std::string GIT_COMMIT_HASH_STRING(GIT_COMMIT_HASH);
+static std::string GIT_SHORT_HASH = GIT_COMMIT_HASH_STRING.empty()
+    ? std::string("unknown")
+    : GIT_COMMIT_HASH_STRING.substr(0, 7);
 static std::string REVISION_STRING = std::string("0.8.6-") + std::string(GIT_BRANCH) + std::string("-") + GIT_SHORT_HASH;
 
 static const char* const EVEMU_REVISION = REVISION_STRING.c_str();

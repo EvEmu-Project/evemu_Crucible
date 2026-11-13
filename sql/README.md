@@ -1,62 +1,72 @@
-# DATABASE SETUP:
-Author: James
+# EVEmu database tools
 
-EVEDBTool manages the EVEmu database including installing, updating and reverting schema changes.
+The `sql/` directory is included in the Windows and Linux release packages. It contains the base database data, ordered schema migrations, and the matching EVEDBTool executable.
 
-## Obtaining EVEDBTool
+## Included tools
 
-To download the latest release of EVEDBTool, simply run ./get_evedbtool.sh (Linux x64)
+- Windows: `evedbtool.exe`
+- Linux x86_64: `evedbtool`
+- Configuration template: `evedb.yaml.example`
+- Schema changes: `migrations/`
+- Base database files: `base/`
 
-## Installing the DB
+The release workflow downloads EVEDBTool 0.0.6 from the official [EVEDBTool release](https://github.com/EvEmu-Project/EVEDBTool/releases/tag/0.0.6). The tool is not built from this repository's C++ sources.
 
-To install the EVEmu database, run './evedbtool install'
+## Configure the database tool
 
-## EVEDBTool Usage
-```
-Usage: evedbtool [--version] [--help] <command> [<args>]
+1. Stop the EVEmu server before changing the schema.
+2. Make a backup of your database.
+3. Open a terminal in this `sql` directory.
+4. Copy `evedb.yaml.example` to `evedb.yaml`.
+5. Edit the local `evedb.yaml` with your MariaDB/MySQL host, port, username, password, and database name. The example uses database name `EvE`; change it if your database has a different name.
+6. Keep `evedb.yaml` private. It is ignored by Git and should never be committed.
 
-Available commands are:
-    down       Undo a database migration
-    install    Installs the base database and migrates to the most recent version available.
-    new        Create a new migration
-    redo       Reapply the last migration
-    skip       Sets the database level to the most recent version available, without running the migrations
-    status     Show migration status
-    up         Migrates the database to the most recent version available
+Windows PowerShell:
 
-```
-
-## Configuration
-
-EVEDBTool is configured from the `evedb.yaml` file. This file must be in your current working directory for the tool to work. The tool will create a new default configuration file for you on first run if it is not already present.
-
-## Other Architectures / Building Manually
-
-If the default binary does not work for you due to having a different system architecture or OS, you may want to build EVEDBTool manually. This can be done with the following command: (golang is required)
-```
-go get github.com/evemu-project/evedbtool
+```powershell
+Copy-Item .\evedb.yaml.example .\evedb.yaml
+.\evedbtool.exe --version
+.\evedbtool.exe status
 ```
 
-## Adding new schema changes
+Linux:
 
-All schema changes MUST be made using migrations. This will avoid breaking the DB.
-
-To create a new migration file:
+```sh
+cp evedb.yaml.example evedb.yaml
+chmod +x ./evedbtool
+./evedbtool --version
+./evedbtool status
 ```
-./evedbtool new <name of migration>
+
+Run `status` first. It reports which migration files are recorded in the database migration table. Do not run `install` against an existing server database.
+
+## Applying migrations manually with a SQL client
+
+Manual SQL application is supported as an operator-managed process:
+
+1. Stop the server and take a verified database backup.
+2. Run `evedbtool status` and save the output so you know which migrations are pending.
+3. Open each pending file in `migrations/` in filename order (oldest first).
+4. Execute only the SQL under its `-- +migrate Up` section. Do not execute the `-- +migrate Down` section; those statements are rollback instructions.
+5. Check the SQL client result after every file. Stop immediately if any statement fails; do not continue to later migrations.
+6. After, and only after, every pending migration has been successfully applied and verified, run `evedbtool skip` once to record the migration versions in EVEDBTool's `migrations` tracking table. **This command does not execute SQL**; it only advances the recorded migration level. Never use it to bypass migrations that have not been applied.
+7. Run `evedbtool status` again and confirm all listed migrations show as applied before restarting the server.
+
+If a migration partially fails, restore the backup or resolve the partial changes deliberately before proceeding. Do not use `skip` to hide a failed or incomplete migration.
+
+> Important: Some migrations make destructive schema changes (for example, dropping obsolete columns). Review each pending migration and confirm it matches your database before executing it. The tool's `status` output is a version check, not a database compatibility assessment.
+
+## EVEDBTool commands
+
+```
+evedbtool status       # Show migration status
+evedbtool up -dryrun  # Print pending SQL without applying it
+evedbtool up          # Apply pending migrations automatically (not required for manual workflow)
+evedbtool skip        # Record migrations as applied WITHOUT executing SQL
 ```
 
-When editing the migration file, ensure that the sql queries for up and down are both created so the schema change is reversable. Please see existing examples of how this is done in the `migrations` directory.
+Use `up` only if you intentionally want EVEDBTool to execute the migrations itself. For the manual workflow above, use your SQL client for the SQL and `skip` only after successful completion.
 
-## new directory structure
-sql/
-    contains this README and the tool
+## Adding schema changes
 
-sql/seed_and_clean/
-    contains market seeding sql scripts and scripts to clean the db
-
-sql/base/
-    contains all the base db tables for the server emulator for EVEmu stored in GZipped format. These should NEVER be updated/modified.
-
-sql/migrations/
-    contains versioned migrations scripts in plaintext (for easier versioning). We will apply them in order.
+All schema changes must be added as reversible, timestamped files in `migrations/`, with both `-- +migrate Up` and `-- +migrate Down` sections. Never edit the compressed files in `base/` for ordinary schema changes.

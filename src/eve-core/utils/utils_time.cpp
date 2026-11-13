@@ -25,6 +25,7 @@
 */
 
 #include "eve-core.h"
+#include <boost/date_time/gregorian/gregorian.hpp>
 // #include "date.h"
 
 #include "utils/utils_time.h"

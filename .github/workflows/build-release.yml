@@ -1,0 +1,233 @@
+name: EVEmu Build and Release
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [master, evemu-crucible-modernization]
+    tags: ["v*"]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BUILD_TYPE: Release
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+jobs:
+  linux:
+    name: Linux GCC build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache cmake ninja-build zlib1g-dev libmariadb-dev libboost-all-dev libtinyxml-dev libutfcpp-dev
+      - name: Cache compiler outputs
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-linux-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}
+          restore-keys: |
+            ccache-linux-${{ runner.arch }}-
+      - name: Configure
+        run: |
+          ccache --max-size=1G
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_INSTALL_PREFIX=stage -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build
+        run: |
+          cmake --build build --parallel 2
+          ccache --show-stats
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: cmake --install build --prefix stage
+      - name: Download matching EVEDBTool Linux x86_64 binary
+        run: |
+          curl --fail --location --retry 3 --output sql/evedbtool https://github.com/EvEmu-Project/EVEDBTool/releases/download/0.0.6/evedbtool
+          test -s sql/evedbtool
+          chmod +x sql/evedbtool
+      - name: Add runtime files and package
+        run: |
+          mkdir -p stage/share/evemu
+          cp -a sql stage/share/evemu/
+          cp -a utils stage/share/evemu/
+          cp -a config stage/share/evemu/ 2>/dev/null || true
+          printf 'Commit: %s\nBranch: %s\nPlatform: Linux x86_64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
+          tar -czf evemu-crucible-linux-x86_64.tar.gz -C stage .
+          sha256sum evemu-crucible-linux-x86_64.tar.gz > evemu-crucible-linux-x86_64.tar.gz.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evemu-crucible-linux-x86_64
+          path: |
+            evemu-crucible-linux-x86_64.tar.gz
+            evemu-crucible-linux-x86_64.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    name: Windows 64-bit UCRT64 GCC build
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up MSYS2 UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-binutils
+            mingw-w64-ucrt-x86_64-ccache
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-libmariadbclient
+            mingw-w64-ucrt-x86_64-tinyxml
+            mingw-w64-ucrt-x86_64-utf8cpp
+            mingw-w64-ucrt-x86_64-zlib
+      - name: Cache compiler outputs
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}
+          restore-keys: |
+            ccache-windows-${{ runner.arch }}-
+      - name: Configure
+        shell: msys2 {0}
+        run: |
+          ccache --max-size=1G
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=stage -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build
+        shell: msys2 {0}
+        run: cmake --build build --parallel 2
+      - name: Test
+        shell: msys2 {0}
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        shell: msys2 {0}
+        run: cmake --install build --prefix stage
+      - name: Download matching EVEDBTool Windows x86_64 binary
+        shell: pwsh
+        run: |
+          $url = "https://github.com/EvEmu-Project/EVEDBTool/releases/download/0.0.6/evedbtool.exe"
+          Invoke-WebRequest -Uri $url -OutFile "sql/evedbtool.exe"
+          if (!(Test-Path "sql/evedbtool.exe") -or (Get-Item "sql/evedbtool.exe").Length -lt 1000000) {
+            throw "EVEDBTool download is missing or unexpectedly small."
+          }
+          Get-FileHash "sql/evedbtool.exe" -Algorithm SHA256 | Format-List
+      - name: Bundle UCRT64 runtime DLLs beside executables
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          mkdir -p stage/share/evemu
+          cp -a sql stage/share/evemu/
+          cp -a utils stage/share/evemu/
+          if [[ -d config ]]; then cp -a config stage/share/evemu/; fi
+          printf 'Commit: %s\nBranch: %s\nPlatform: Windows x86_64 UCRT64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
+
+          # Use the active UCRT64 prefix explicitly. Do not resolve objdump
+          # from the Windows PATH, which can select an unrelated MINGW64 tool.
+          objdump=/ucrt64/bin/objdump.exe
+          test -x "$objdump"
+          mapfile -t exe_dirs < <(find stage -type f -iname '*.exe' ! -path '*/share/evemu/sql/evedbtool.exe' -printf '%h\n' | sort -u)
+          (("${#exe_dirs[@]}" > 0)) || { echo "No staged Windows executable found" >&2; exit 1; }
+
+          for exe_dir in "${exe_dirs[@]}"; do
+            declare -A copied=()
+            queue=()
+            while IFS= read -r -d '' binary; do queue+=("$binary"); done < <(find "$exe_dir" -maxdepth 1 -type f \( -iname '*.exe' -o -iname '*.dll' \) -print0)
+            index=0
+            while (( index < ${#queue[@]} )); do
+              binary="${queue[$index]}"
+              ((index+=1))
+              while IFS= read -r name; do
+                [[ -n "$name" ]] || continue
+                key="${name,,}"
+                [[ -z "${copied[$key]+x}" ]] || continue
+                copied[$key]=1
+                candidate="/ucrt64/bin/$name"
+                if [[ -f "$candidate" ]]; then
+                  destination="$exe_dir/$name"
+                  if [[ ! -f "$destination" ]]; then cp -f "$candidate" "$destination"; fi
+                  queue+=("$destination")
+                fi
+              done < <("$objdump" -p "$binary" 2>/dev/null | awk '/DLL Name:/ {print $3}')
+            done
+          done
+
+          # Verify the exact UCRT64 package filenames in the Windows loader
+          # search directory. TinyXML's UCRT64 package ships libtinyxml-0.dll.
+          for exe_dir in "${exe_dirs[@]}"; do
+            for name in libtinyxml-0.dll libmariadb.dll libz-1.dll; do
+              if [[ ! -f "$exe_dir/$name" ]]; then
+                echo "Required runtime DLL $name missing beside executable in $exe_dir" >&2
+                echo "Available UCRT64 DLLs:" >&2
+                find /ucrt64/bin -maxdepth 1 -type f -iname '*.dll' -printf '%f\n' | sort >&2
+                exit 1
+              fi
+            done
+          done
+      - name: Create Windows ZIP and checksum
+        shell: pwsh
+        run: |
+          Compress-Archive -Path stage\* -DestinationPath evemu-crucible-windows-x86_64.zip -Force
+          $hash = (Get-FileHash evemu-crucible-windows-x86_64.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  evemu-crucible-windows-x86_64.zip" | Set-Content evemu-crucible-windows-x86_64.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evemu-crucible-windows-x86_64
+          path: |
+            evemu-crucible-windows-x86_64.zip
+            evemu-crucible-windows-x86_64.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build --pull -t evemu-crucible:ci .
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows, docker]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: evemu-crucible-linux-x86_64
+          path: dist
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: evemu-crucible-windows-x86_64
+          path: dist
+      - name: Publish release with both platforms and checksums
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/evemu-crucible-linux-x86_64.tar.gz
+            dist/evemu-crucible-linux-x86_64.tar.gz.sha256
+            dist/evemu-crucible-windows-x86_64.zip
+            dist/evemu-crucible-windows-x86_64.zip.sha256
