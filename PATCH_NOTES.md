@@ -10,8 +10,8 @@ This PR proposes the current fork work against `EvEmu-Project/evemu_Crucible:mas
 ### Mission system — implemented foundation; combat encounter work in progress
 
 - Added encounter mission offer loading, lookup and persistence support using the existing `agtMissions` data, including briefing and reward metadata.
-- Added security-agent mission selection and Level 0 progression, including a global starter security-mission tier and checks that prevent duplicate active starter offers.
-- Added expiry-aware active-offer checks so expired Level 0 offers do not block new starter missions.
+- Added security-agent mission selection and Level 0 progression, including a global starter security-mission tier and checks that prevent repeating completed starter templates.
+- Fixed a global active-offer lock that incorrectly blocked a character from requesting missions from every other security agent while holding an offer from just one agent. Offer checks now remain scoped to the current agent, matching its per-character offer tracking. Expired offers are ignored, and the failure dialogue no longer conflates an active starter mission with missing templates.
 - Added Level 1 agent access/standing display adjustments.
 - Added the first playable encounter mission lifecycle: accepting an encounter creates a warpable mission beacon in a reserved pocket, associates the pocket with the character/agent/offer, and starts NPC spawning.
 - Added mission-pocket kill progress reporting back to the accepted offer and mission update notification to the client.
