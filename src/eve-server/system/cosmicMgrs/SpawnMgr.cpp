@@ -467,6 +467,8 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
         default: spawnClass = Spawn::Class::Crazy; break;
     }
 
+    pBubble->SetMission();
+
     // Mission dungeon metadata is more authoritative than the agent's faction:
     // the dungeon template identifies the actual opposing NPC faction and its
     // first-room NPC type IDs. Later room/gate progression is handled separately.
@@ -476,6 +478,8 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
         sDunDataMgr.GetDungeon(missionDungeon, dungeonID);
         if (missionDungeon.factionID != 0)
             factionID = missionDungeon.factionID;
+        if (factionID == 0)
+            factionID = sDataMgr.GetRegionRatFaction(m_system->GetRegionID());
 
         _log(SPAWN__MESSAGE, "Mission %u uses dungeon template %u and faction %u.",
                 offerID, dungeonID, factionID);
@@ -555,7 +559,6 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
         }
     }
 
-    pBubble->SetMission();
     if (!spawnedFromTemplate && !PrepSpawn(pBubble, spawnClass, 0, factionID)) {
         pBubble->SetMission(false);
         return false;
