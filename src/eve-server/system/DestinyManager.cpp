@@ -153,9 +153,10 @@ void DestinyManager::Process() {
 void DestinyManager::EncodeWarpState(Buffer& into) const {
     WARP_Struct warp = {};
     warp.formationID = 0xFF;
-    warp.targX = m_targetPoint.x;
-    warp.targY = m_targetPoint.y;
-    warp.targZ = m_targetPoint.z;
+    const GPoint& warpTarget = (m_warpState != nullptr) ? m_targetPoint : m_warpDestination;
+    warp.targX = warpTarget.x;
+    warp.targY = warpTarget.y;
+    warp.targZ = warpTarget.z;
     warp.effectStamp = (m_warpState != nullptr)
         ? static_cast<int32>(m_warpState->start_time)
         : -1;
@@ -2036,6 +2037,7 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
      * pick destination -> align/accel -> aura "warp drive active" -> cap drain -> accel
      *      -> enter warp -> warp -> decel -> leave warp -> coast -> stop
      */
+    m_warpDestination = where;
     SafeDelete(m_warpState);
 
     // check for autopilot.  it has 'special' checks in client for auto-disable by destiny update
