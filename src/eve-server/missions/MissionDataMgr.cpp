@@ -493,7 +493,12 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
-            cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
+            if (cVec.empty()) {
+                _log(AGENT__WARNING, "No Courier mission templates available for level %u.", level);
+                data.typeID = 0;
+                return;
+            }
+            cData = cVec[MakeRandomInt(0, static_cast<uint32>(cVec.size() - 1))];
             // verify mission race acceptable
             if ((cData.raceID) and ((cData.raceID & raceID) != raceID)) {
                 for (auto cur :cVec) {
@@ -530,7 +535,12 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
-            cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
+            if (cVec.empty()) {
+                _log(AGENT__WARNING, "No Mining mission templates available for level %u.", level);
+                data.typeID = 0;
+                return;
+            }
+            cData = cVec[MakeRandomInt(0, static_cast<uint32>(cVec.size() - 1))];
 
             data.name               = cData.name;
             data.typeID             = cData.typeID;
