@@ -193,7 +193,7 @@ public:
 
     //  functions to return protected variables for SystemBubble exclusive WarpTo updates and other methods that need Destiny Variables
     int32 GetDistance()                                 { return m_stopDistance; }
-    int32 GetWarpSpeed()                                { return static_cast<int32>(m_shipWarpSpeed * 10); }
+    int32 GetWarpSpeed() const                          { return static_cast<int32>(m_shipWarpSpeed * 10); }
     uint32 GetTargetID()                                { return m_targetEntity.first; }
     SystemEntity* GetTargetEntity()                     { return m_targetEntity.second; }
     GPoint GetTargetPoint()                             { return m_targetPoint; }

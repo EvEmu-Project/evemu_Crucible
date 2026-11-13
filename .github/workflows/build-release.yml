@@ -102,14 +102,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .ccache
-          key: ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}
+          key: ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ github.sha }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '.github/workflows/build-release.yml') }}
           restore-keys: |
+            ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-
             ccache-windows-${{ runner.arch }}-
       - name: Configure
         shell: msys2 {0}
         run: |
           ccache --max-size=1G
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=stage -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_INSTALL_PREFIX=stage -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       - name: Build
         shell: msys2 {0}
         run: cmake --build build --parallel 2

@@ -151,7 +151,7 @@ void DestinyManager::Process() {
 }
 
 void DestinyManager::EncodeWarpState(Buffer& into) const {
-    WARP_Struct warp = {};
+    Destiny::WARP_Struct warp = {};
     warp.formationID = 0xFF;
     const GPoint& warpTarget = (m_warpState != nullptr) ? m_targetPoint : m_warpDestination;
     warp.targX = warpTarget.x;
