@@ -35,6 +35,7 @@ The search-result projection mismatch, defensive DB result conversion, and DB ro
 ## Upstream pull requests worth reviewing
 
 - [PR #327 — belt rat spawn class and warp-in](https://github.com/EvEmu-Project/evemu_Crucible/pull/327): the relevant code changes have been adapted to this fork and are recorded above.
+- [PR #332 — client-aligned warp/travel movement](https://github.com/EvEmu-Project/evemu_Crucible/pull/332): closed without merging and changes 75 files. A narrow WARP ball-state serialization correction has been adapted to this fork; the full Destiny physics rewrite remains unported pending review and gameplay tests.
 - [PR #326 — broad gameplay fixes](https://github.com/EvEmu-Project/evemu_Crucible/pull/326): touches many unrelated systems. Review individual subsystems and test each change; do not merge the entire PR blindly.
 - [PR #323 — persist ship position on logout](https://github.com/EvEmu-Project/evemu_Crucible/pull/323): review save timing, session changes and login warp semantics before adoption.
 - [Issue #328 — ship physics claim](https://github.com/EvEmu-Project/evemu_Crucible/issues/328): reporter claims a fix but has not supplied a patch in the issue; no code has been adopted from it.
