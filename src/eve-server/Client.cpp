@@ -1409,10 +1409,15 @@ PyRep *Client::GetAggressors() const {
 
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
-        sLog.Error("Client","%s: StargateJump called when a move is already pending. Ignoring.", m_char->name());
-        /** @todo  send error to client here */
+        _log(CLIENT__WARNING, "%s: StargateJump rejected; client state is %s and state timer is %s.",
+                m_char->name(), GetStateName(m_clientState).c_str(),
+                (m_stateTimer.Enabled() ? "active" : "inactive"));
+        SendNotifyMsg("Your stargate jump is waiting for another movement or session change to finish. Please wait and try again.");
         return;
     }
+
+    _log(AUTOPILOT__MESSAGE, "%s: StargateJump accepted from gate %u to gate %u.",
+            m_char->name(), fromGate, toGate);
 
     // add jump to mapDynamicData for showing in StarMap (F10)    -allan 06Mar14
     MapDB::AddJump(m_systemData.systemID);
