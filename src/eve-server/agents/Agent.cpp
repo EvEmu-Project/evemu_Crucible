@@ -454,7 +454,7 @@ std::string Agent::GetMinReqStanding(uint8 level)
 {
     switch(level) {
         // these are agentCorp -> char
-        case 1:     return "-2.0";
+        case 1:     return "-10.0";
         case 2:     return "1.0";
         case 3:     return "3.0";
         case 4:     return "5.0";
