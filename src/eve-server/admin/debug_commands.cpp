@@ -1028,8 +1028,7 @@ PyResult Command_cargo(Client* pClient, CommandDB* db, EVEServiceManager &servic
 
     // check for pod...no cargo
     if (pClient->GetShip()->typeID() == itemTypeCapsule) {
-        char reply[21];
-        snprintf(reply, 21, "Your Pod's current cargo is you.<br>There is no room for anything else.");
+        const char* reply = "Your Pod's current cargo is you.<br>There is no room for anything else.";
         pClient->SendInfoModalMsg(reply);
         return nullptr;
     }
