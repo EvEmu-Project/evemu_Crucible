@@ -149,6 +149,23 @@ void DestinyManager::Process() {
         sProfiler.AddTime(Profile::destiny, GetTimeUSeconds() - profileStartTime);
 }
 
+void DestinyManager::EncodeWarpState(Buffer& into) const {
+    WARP_Struct warp = {};
+    warp.formationID = 0xFF;
+    warp.targX = m_targetPoint.x;
+    warp.targY = m_targetPoint.y;
+    warp.targZ = m_targetPoint.z;
+    warp.effectStamp = (m_warpState != nullptr)
+        ? static_cast<int32>(m_warpState->start_time)
+        : -1;
+    warp.totalDistance = (m_warpState != nullptr)
+        ? m_warpState->total_distance
+        : -1.0;
+    warp.minRange = static_cast<double>(m_stopDistance);
+    warp.warpFactor = static_cast<int64>(GetWarpSpeed());
+    into.Append(warp);
+}
+
 void DestinyManager::ProcessState() {
     using namespace Destiny;
     switch(m_ballMode) {
