@@ -10,7 +10,12 @@
 ###############
 # We need a target-specific property INCLUDE_DIRECTORIES which
 # is part of CMake 2.8.8 and later.
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.8 FATAL_ERROR )
+CMAKE_MINIMUM_REQUIRED( VERSION 3.16 FATAL_ERROR )
+
+# Prefer Boost's package-provided CMake config on newer CMake versions.
+IF( POLICY CMP0167 )
+  CMAKE_POLICY( SET CMP0167 NEW )
+ENDIF()
 
 PROJECT( "evemu" )
 SET( PROJECT_DESCRIPTION_SUMMARY "A server emulator for EVE Online" )
@@ -62,12 +67,20 @@ INCLUDE( "DetectScm" )
 # override the setup.
 #
 # Switch to the C++11 standard (required)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_CXX_EXTENSIONS ON)
 IF (WIN32)
-  set (CMAKE_CXX_STANDARD 17)
-  SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
-  link_libraries(DbgHelp.lib)
+  # Windows socket and symbol APIs are used by all Windows toolchains.
+  link_libraries(ws2_32 mswsock)
+  IF (MSVC)
+    SET( CMAKE_CXX_FLAGS "/permissive- -DHAVE_WINDOWS_H -DHAVE_WINSOCK2_H /DEBUG /Zi ${CMAKE_CXX_FLAGS}" )
+    link_libraries(DbgHelp.lib)
+  ELSE()
+    link_libraries(dbghelp)
+  ENDIF()
 ELSE()
-  SET( CMAKE_CXX_FLAGS "-std=gnu++17 -march=native -Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
+  SET( CMAKE_CXX_FLAGS "-Werror=return-type -fabi-version=14 ${CMAKE_CXX_FLAGS}" )
 ENDIF()
 # -Wall -Wextra -Weffc++ -Wconversion -Wdouble-promotion
 # -pg -ggdb -pedantic
@@ -120,8 +133,10 @@ INCLUDE( "CheckCXXSymbolExists" )
 INCLUDE( "CheckIncludeFileCXX" )
 
 # Headers
-CHECK_INCLUDE_FILE_CXX( "crtdbg.h"   HAVE_CRTDBG_H )
-CHECK_INCLUDE_FILE_CXX( "inttypes.h" HAVE_INTTYPES_H )
+CHECK_INCLUDE_FILE_CXX( "crtdbg.h"    HAVE_CRTDBG_H )
+CHECK_INCLUDE_FILE_CXX( "inttypes.h"  HAVE_INTTYPES_H )
+CHECK_INCLUDE_FILE_CXX( "windows.h"   HAVE_WINDOWS_H )
+CHECK_INCLUDE_FILE_CXX( "winsock2.h"  HAVE_WINSOCK2_H )
 CHECK_INCLUDE_FILE_CXX( "sys/stat.h" HAVE_SYS_STAT_H )
 CHECK_INCLUDE_FILE_CXX( "sys/time.h" HAVE_SYS_TIME_H )
 CHECK_INCLUDE_FILE_CXX( "vld.h"      HAVE_VLD_H )

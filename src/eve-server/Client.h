@@ -224,6 +224,8 @@ public:
 
     //destiny stuff...
     void SetDockStationID(uint32 stationID)             { m_dockStationID = stationID; };
+    void SetPendingDock(bool pending=true)               { m_pendingDock = pending; }
+    void ClearPendingSpaceActions()                      { m_pendingDock = false; m_pendingGateFrom = 0; m_pendingGateTo = 0; }
     void SetDockPoint(GPoint &pt)                       { m_dockPoint = pt; }
     uint32 GetDockStationID()                           { return m_dockStationID; };
     GPoint GetDockPoint()                               { return m_dockPoint; }
@@ -306,6 +308,8 @@ public:
     void RemoveMissionItem(uint16 typeID, uint32 qty);
     bool ContainsTypeQty(uint16 typeID, uint32 qty) const;
     bool IsMissionComplete(MissionOffer& data);
+    bool StartEncounterMission(MissionOffer& offer);
+    void RemoveEncounterMissionSite(const MissionOffer& offer);
 
     //  scan
     Scan* scan()                                        { return m_scan; }
@@ -357,6 +361,8 @@ protected:
     void ExecuteJump();
     void ExecuteDriveJump();
     void ExecuteWormholeJump();
+    void ProcessPendingSpaceActions();
+    void BeginStargateJump(uint32 fromGate, uint32 toGate);
     void DestroyShipSE();
 
     //void _AwardBounty(SystemEntity *who);
@@ -375,6 +381,7 @@ protected:
     bool m_autoPilot;       // set true for using autopilot.
     bool m_scanProbe;       // scanning with probes
     bool m_bubbleWait;
+    bool m_pendingDock;
     bool m_setStateSent;
     bool m_sessionChangeActive; // used to delay actions requiring destiny updates
 
@@ -387,6 +394,8 @@ protected:
     uint32 m_locationID;
     uint32 m_moveSystemID;  // holder for jumping to 'systemID'.    timer based.
     uint32 m_dockStationID; // holder for docking to 'stationID'.  timer based.
+    uint32 m_pendingGateFrom;
+    uint32 m_pendingGateTo;
 
     Timer m_stateTimer;      // state timer to consolidate timers
     Timer m_pingTimer;

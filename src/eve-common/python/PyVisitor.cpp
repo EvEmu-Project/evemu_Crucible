@@ -150,10 +150,11 @@ void PyPfxVisitor::_pfxExtend(const char* fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    char* res;
-    vasprintf(&res, fmt, ap);
-
+    char* res = nullptr;
+    const int formatResult = vasprintf(&res, fmt, ap);
     va_end(ap);
+    if (formatResult < 0 || res == nullptr)
+        return;
 
     std::string p(_pfx());
     p += res;

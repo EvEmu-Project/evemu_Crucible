@@ -18,6 +18,7 @@
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
+#include "agents/Agent.h"
 
 /** @todo  this can be updated to spawn mission, anomaly and deadspace rats.
  *   change all *roidRat* to *somethingelse* to better explain/describe the maps and how they're used.
@@ -220,7 +221,7 @@ void SpawnMgr::StartRatGroupTimer()
             m_system->GetName(), m_system->GetID(), m_groupTimerSetTime);
 }
 
-void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
+void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID, uint32 killerID)
 {
     if (pBubble == nullptr)
         return;
@@ -282,15 +283,33 @@ void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
          * 5- more/others?
          */
     } else if (pBubble->IsMission()) {
-        _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Mission - called by %u.", itemID);
-        // placeholder - not coded yet.
-        /*  this needs to deal with multiple things.
-         * 1- unlocking warp gates when needed per wave
-         * 2- dropping loot according to (wave/mission/template)?
-         * 3- setting mission completion status
-         * 4- spawn next wave, if applicable
-         * 5- more/others?
-         */
+        _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Mission - NPC %u killed by character %u.", itemID, killerID);
+        RemoveSpawn(pBubble->GetID(), itemID);
+
+        if (pBubble->RecordMissionKill(killerID)) {
+            Agent* pAgent = sEntityList.GetAgent(pBubble->GetMissionAgentID());
+            MissionOffer offer = MissionOffer();
+            if (pAgent != nullptr
+                && pAgent->HasMission(pBubble->GetMissionCharacterID(), offer)
+                && offer.offerID == pBubble->GetMissionOfferID()
+                && offer.stateID == Mission::State::Accepted) {
+                offer.courierTypeID = pBubble->GetMissionKills();
+                pAgent->UpdateOffer(pBubble->GetMissionCharacterID(), offer);
+                Client* pClient = sEntityList.FindClientByCharID(pBubble->GetMissionCharacterID());
+                if (pClient != nullptr)
+                    pAgent->SendMissionUpdate(pClient, "modified");
+                _log(SPAWN__MESSAGE, "Mission offer %u progress: %u/%u hostile ships destroyed.",
+                        offer.offerID, offer.courierTypeID, offer.courierAmount);
+            }
+        }
+
+        if (m_spawns.count(pBubble->GetID()) == 0) {
+            auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+            if (bubbleItr != m_bubbles.end())
+                m_bubbles.erase(bubbleItr);
+            pBubble->SetSpawned(false);
+            _log(SPAWN__MESSAGE, "Mission pocket %u has no remaining NPC spawn entries.", pBubble->GetID());
+        }
     } else if (pBubble->IsIncursion()) {
         _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Incursion - called by %u.", itemID);
         // placeholder - not coded yet.
@@ -430,21 +449,149 @@ void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)
     // unknown parameters at this time
 }
 
-void SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID)
+bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 missionLevel,
+                                  uint32 characterID, uint32 agentID, uint32 offerID, uint32 beaconID,
+                                  uint32 factionID, uint32 dungeonID)
 {
-    if (pBubble == nullptr)
-        return;
-    if (!IsRegionID(regionID))
-        return;
-    pBubble->SetMission();
-    // unknown parameters at this time
+    if (pBubble == nullptr || !IsRegionID(regionID)
+        || characterID == 0 || agentID == 0 || offerID == 0)
+        return false;
 
-    /*  this needs to deal with multiple things.
-     * 1- npc types per template
-     * 2- faction per template
-     * 3- waves per template.
-     * 4- more/others?
-     */
+    uint8 spawnClass = Spawn::Class::Easy;
+    switch (missionLevel) {
+        case 0: spawnClass = Spawn::Class::Easy; break;
+        case 1: spawnClass = Spawn::Class::Fair; break;
+        case 2: spawnClass = Spawn::Class::Average; break;
+        case 3: spawnClass = Spawn::Class::Medium; break;
+        case 4: spawnClass = Spawn::Class::Hard; break;
+        default: spawnClass = Spawn::Class::Crazy; break;
+    }
+
+    pBubble->SetMission();
+
+    // Mission dungeon metadata is more authoritative than the agent's faction:
+    // the dungeon template identifies the actual opposing NPC faction and its
+    // first-room NPC type IDs. Later room/gate progression is handled separately.
+    bool spawnedFromTemplate = false;
+    if (dungeonID != 0) {
+        Dungeon::Dungeon missionDungeon = {};
+        sDunDataMgr.GetDungeon(missionDungeon, dungeonID);
+        if (missionDungeon.factionID != 0)
+            factionID = missionDungeon.factionID;
+        if (factionID == 0)
+            factionID = sDataMgr.GetRegionRatFaction(m_system->GetRegionID());
+
+        _log(SPAWN__MESSAGE, "Mission %u uses dungeon template %u and faction %u.",
+                offerID, dungeonID, factionID);
+
+        if (!missionDungeon.rooms.empty()) {
+            const Dungeon::Room& firstRoom = missionDungeon.rooms.begin()->second;
+            const uint32 corpID = sDataMgr.GetFactionCorp(factionID);
+            FactionData factionData = FactionData();
+            factionData.allianceID = factionID;
+            factionData.corporationID = corpID;
+            factionData.factionID = (factionID == factionRogueDrones ? 0 : factionID);
+            factionData.ownerID = corpID;
+
+            uint16 spawnNumber = 0;
+            for (const Dungeon::RoomObject& object : firstRoom.objects) {
+                // Static-data lookups are void-returning and leave the output
+                // untouched when an ID is missing. Zero-initialize both records
+                // so malformed dungeon references cannot expose uninitialized IDs.
+                Inv::TypeData objectType = {};
+                Inv::GrpData objectGroup = {};
+                sDataMgr.GetType(object.typeID, objectType);
+                if (objectType.id == 0) {
+                    _log(SPAWN__WARNING, "Mission %u dungeon %u references missing type %u.",
+                            offerID, dungeonID, object.typeID);
+                    continue;
+                }
+                sDataMgr.GetGroup(objectType.groupID, objectGroup);
+                if (objectGroup.id == 0) {
+                    _log(SPAWN__WARNING, "Mission %u dungeon %u type %u references missing group %u.",
+                            offerID, dungeonID, object.typeID, objectType.groupID);
+                    continue;
+                }
+
+                if (objectGroup.catID != EVEDB::invCategories::Ship
+                    && objectGroup.catID != EVEDB::invCategories::Drone)
+                    continue;
+
+                GPoint spawnPosition = pBubble->GetCenter();
+                spawnPosition.x += object.x;
+                spawnPosition.y += object.y;
+                spawnPosition.z += object.z;
+
+                ItemData itemData(object.typeID, corpID, m_system->GetID(), flagNone,
+                                  "", spawnPosition, objectType.name.c_str());
+                InventoryItemRef item = sItemFactory.SpawnItem(itemData);
+                if (item.get() == nullptr) {
+                    _log(SPAWN__ERROR, "Mission %u failed to create template NPC type %u.",
+                            offerID, object.typeID);
+                    continue;
+                }
+
+                NPC* pNPC = new NPC(item, m_services, m_system, factionData, this);
+                if (pNPC == nullptr)
+                    continue;
+                if (!pNPC->Load()) {
+                    _log(SPAWN__ERROR, "Mission %u failed to load template NPC %u (type %u).",
+                            offerID, pNPC->GetID(), object.typeID);
+                    pNPC->Delete();
+                    continue;
+                }
+
+                m_system->AddNPC(pNPC);
+                pNPC->DestinyMgr()->SetPosition(spawnPosition);
+
+                SpawnEntry entry = SpawnEntry();
+                entry.enabled = false;
+                entry.groupID = item->type().groupID();
+                entry.itemID = item->itemID();
+                entry.total = 1;
+                entry.number = ++spawnNumber;
+                entry.typeID = object.typeID;
+                entry.spawnID = m_spawnID;
+                entry.corpID = corpID;
+                entry.factionID = factionID;
+                entry.spawnClass = spawnClass;
+                entry.spawnGroup = GetSpawnGroup(spawnClass);
+                entry.level = missionLevel;
+                entry.stamp = 0;
+                m_spawns.emplace(pBubble->GetID(), entry);
+            }
+
+            if (spawnNumber > 0) {
+                ++m_spawnID;
+                m_bubbles.push_back(pBubble);
+                spawnedFromTemplate = true;
+                _log(SPAWN__MESSAGE, "Mission %u spawned %u NPCs from dungeon %u room %u.",
+                        offerID, spawnNumber, dungeonID, firstRoom.roomID);
+            }
+        }
+    }
+
+    if (!spawnedFromTemplate && !PrepSpawn(pBubble, spawnClass, 0, factionID)) {
+        pBubble->SetMission(false);
+        return false;
+    }
+
+    const uint32 npcCount = pBubble->CountNPCs();
+    if (npcCount == 0 || npcCount > 65535) {
+        m_spawns.erase(pBubble->GetID());
+        auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+        if (bubbleItr != m_bubbles.end())
+            m_bubbles.erase(bubbleItr);
+        pBubble->SetMission(false);
+        pBubble->SetSpawned(false);
+        return false;
+    }
+
+    pBubble->SetMissionData(characterID, agentID, offerID, beaconID, static_cast<uint16>(npcCount));
+    pBubble->SetSpawned(true);
+    _log(SPAWN__MESSAGE, "Created Level %u mission pocket %u for character %u with %u NPCs.",
+            missionLevel, pBubble->GetID(), characterID, npcCount);
+    return true;
 }
 
 bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
@@ -484,17 +631,25 @@ bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
     return true;
 }
 
-bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None*/, uint8 level/*0*/)
+bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None*/, uint8 level/*0*/, uint32 factionOverride)
 {
     if (pBubble == nullptr)
         return false;
     float secRating = m_system->GetSecValue();
+
+    // GetSecValue() is stored as 1.1 - true security rating. Convert it
+    // back to the -1.0..1.0 scale used by the spawn-class thresholds below.
+    secRating = 1.0f - secRating;
+
     bool anomaly = false;
     // get faction for this region
     uint32 factionID = factionRogueDrones;  // default to rogue drones.  this is my internal rogue drone factionID.
-    if (sConfig.npc.RatFaction) {            // is RatFaction set in config?
+    if (factionOverride != 0) {
+        // Mission encounters are tied to the issuing agent, not regional rat RNG.
+        factionID = factionOverride;
+    } else if (sConfig.npc.RatFaction) {        // is RatFaction set in config?
         factionID = sConfig.npc.RatFaction;
-    } else if (MakeRandomFloat() > 0.05) {      // 5% chance for ANY spawn to be rogue drone.
+    } else if (MakeRandomFloat() > 0.05) {      // 5% chance for ANY ordinary spawn to be rogue drone.
         factionID = sDataMgr.GetRegionRatFaction(m_system->GetRegionID());
     }
 
@@ -588,7 +743,7 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
         // anomaly, incursion or mission
         ++level;    // increment wave
         // check wave # vs possible waves.  (oob check)
-        if (spawnEntry.size() < level) {
+        if (spawnEntry.size() <= level) {
             _log(SPAWN__ERROR, "SpawnMgr::PrepSpawn() - spawnEntry.size (%u) < level (%u) for anomaly class %s.  Cancelling spawn.", spawnEntry.size(), level, GetSpawnClassName(sClass).c_str());
             return false;
         }

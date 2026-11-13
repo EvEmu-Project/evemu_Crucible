@@ -295,6 +295,10 @@ PyDict* DBResultToIntRowDict(DBQueryResult &result, uint32 key_index, const char
 
 PyDict* DBResultToIntIntDict(DBQueryResult &result) {
     PyDict* res = new PyDict();
+    if (result.ColumnCount() < 2) {
+        sLog.Error("EVEDBUtils", "DBResultToIntIntDict | Expected at least 2 columns, received %u", result.ColumnCount());
+        return res;
+    }
     int32 k(0);
     //add a line entry for each result row:
     DBResultRow row;

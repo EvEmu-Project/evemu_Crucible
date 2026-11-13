@@ -16,6 +16,7 @@
 #include "database/EVEDBUtils.h"
 #include "missions/MissionDataMgr.h"
 #include "inventory/ItemFactory.h"
+#include <algorithm>
 
 MissionDataMgr::MissionDataMgr()
 {
@@ -75,7 +76,7 @@ void MissionDataMgr::Process()
                 if (itr->second.stateID == Mission::State::Accepted) {
                     pAgent->SendMissionUpdate(pClient, "failed");
                     itr->second.stateID = Mission::State::Failed;
-                    if (itr->second.courierTypeID) {
+                    if (itr->second.typeID != Mission::Type::Encounter && itr->second.courierTypeID) {
                         // remove item from player's possession
                         if (pClient != nullptr) {
                             pClient->RemoveMissionItem(itr->second.courierTypeID, itr->second.courierAmount);
@@ -230,10 +231,17 @@ void MissionDataMgr::Populate()
         data.name = row.GetText(2);
         data.level = row.GetInt(3);
         data.typeID = row.GetInt(4);
+        data.raceID = row.GetUInt(7);
         data.important = row.GetBool(5);
+        data.storyline = row.GetBool(6);
         data.constellationID = row.GetInt(8);
         data.corporationID = row.GetInt(9);
         data.dungeonID = row.GetInt(10);
+        data.rewardISK = row.GetUInt(11);
+        data.rewardItemID = row.GetUInt(12);
+        data.rewardItemQty = row.GetUInt(13);
+        data.bonusISK = row.GetUInt(14);
+        data.bonusTime = row.GetUInt(15);
         if (data.important) {
             m_missionsImp.emplace(row.GetInt(3), data);
         } else {
@@ -241,6 +249,15 @@ void MissionDataMgr::Populate()
         }
     }
     sLog.Cyan("   MissionDataMgr", "%lu(%lu) Unsorted Mission Data Sets loaded in %.3fms.", m_missions.size(), m_missionsImp.size(), (GetTimeMSeconds() - start));
+
+    uint32 level1EncounterCount = 0;
+    for (const auto& entry : m_missions)
+        if (entry.first == 1 && entry.second.typeID == Mission::Type::Encounter && !entry.second.storyline)
+            ++level1EncounterCount;
+    for (const auto& entry : m_missionsImp)
+        if (entry.first == 1 && entry.second.typeID == Mission::Type::Encounter && !entry.second.storyline)
+            ++level1EncounterCount;
+    sLog.Cyan("   MissionDataMgr", "%u Level 1 Security encounter templates available.", level1EncounterCount);
 
     //res->Reset();
     start = GetTimeMSeconds();
@@ -418,7 +435,24 @@ void MissionDataMgr::LoadMissionOffers(uint32 charID, std::vector<MissionOffer>&
     }
 }
 
-void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data)
+bool MissionDataMgr::GetMissionData(uint16 missionID, MissionData& data) const
+{
+    for (const auto& entry : m_missions) {
+        if (entry.second.missionID == missionID) {
+            data = entry.second;
+            return true;
+        }
+    }
+    for (const auto& entry : m_missionsImp) {
+        if (entry.second.missionID == missionID) {
+            data = entry.second;
+            return true;
+        }
+    }
+    return false;
+}
+
+void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data, uint32 characterID)
 {
     // variable mission data based on agent, init to 0 here.
     data.stateID                = Mission::State::Allocated;
@@ -443,7 +477,6 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
     data.destinationSystemID    = 0;
     data.dungeonLocationID      = 0;
     data.dungeonSolarSystemID   = 0;
-    data.bookmarks              = new PyList();
 
     /** @todo  this will need to be adjusted for raceID eventually */
     switch (typeID) {
@@ -459,7 +492,12 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
-            cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
+            if (cVec.empty()) {
+                _log(AGENT__WARNING, "No Courier mission templates available for level %u.", level);
+                data.typeID = 0;
+                return;
+            }
+            cData = cVec[MakeRandomInt(0, static_cast<uint32>(cVec.size() - 1))];
             // verify mission race acceptable
             if ((cData.raceID) and ((cData.raceID & raceID) != raceID)) {
                 for (auto cur :cVec) {
@@ -496,7 +534,12 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
-            cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
+            if (cVec.empty()) {
+                _log(AGENT__WARNING, "No Mining mission templates available for level %u.", level);
+                data.typeID = 0;
+                return;
+            }
+            cData = cVec[MakeRandomInt(0, static_cast<uint32>(cVec.size() - 1))];
 
             data.name               = cData.name;
             data.typeID             = cData.typeID;
@@ -517,6 +560,70 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         case Mission::Type::Tutorial: {
         } break;
         case Mission::Type::Encounter: {
+            // Level 0 is an RMR beginner tier. It borrows a real Level 1
+            // Encounter template so the existing client localization remains valid.
+            const uint8 templateLevel = (level == 0 ? 1 : level);
+            std::vector<uint16> completedStarterMissionIDs;
+            if (level == 0 && characterID != 0)
+                MissionDB::GetCompletedStarterMissionIDs(characterID, completedStarterMissionIDs);
+
+            std::vector<MissionData> candidates;
+            auto selectedRange = (important
+                ? m_missionsImp.equal_range(templateLevel)
+                : m_missions.equal_range(templateLevel));
+            for (auto it = selectedRange.first; it != selectedRange.second; ++it) {
+                const MissionData& mission = it->second;
+                const bool raceMatches = (mission.raceID == 0) || ((mission.raceID & raceID) == raceID);
+                const bool notStoryline = !mission.storyline;
+                const bool notCompletedStarter = (level != 0)
+                    || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
+                        == completedStarterMissionIDs.end());
+                if (mission.typeID == Mission::Type::Encounter && raceMatches && notStoryline && notCompletedStarter)
+                    candidates.push_back(mission);
+            }
+
+            // Some agent templates are in the opposite important/non-important pool.
+            if (candidates.empty()) {
+                auto fallbackRange = (important
+                    ? m_missions.equal_range(templateLevel)
+                    : m_missionsImp.equal_range(templateLevel));
+                for (auto it = fallbackRange.first; it != fallbackRange.second; ++it) {
+                    const MissionData& mission = it->second;
+                    const bool raceMatches = (mission.raceID == 0) || ((mission.raceID & raceID) == raceID);
+                    const bool notStoryline = !mission.storyline;
+                    const bool notCompletedStarter = (level != 0)
+                        || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
+                            == completedStarterMissionIDs.end());
+                    if (mission.typeID == Mission::Type::Encounter && raceMatches && notStoryline && notCompletedStarter)
+                        candidates.push_back(mission);
+                }
+            }
+
+            if (candidates.empty()) {
+                _log(AGENT__WARNING, "No Encounter mission templates for level %u (template level %u).",
+                        level, templateLevel);
+                data.typeID = 0;
+                return;
+            }
+
+            const MissionData& mission = candidates[MakeRandomInt(0, static_cast<uint32>(candidates.size() - 1))];
+            data.typeID = Mission::Type::Encounter;
+            data.name = mission.name;
+            if (level == 0)
+                data.name = "Level 0 - " + data.name;
+            data.missionID = mission.missionID;
+            data.briefingID = mission.briefingID;
+            data.important = mission.important;
+            data.storyline = mission.storyline;
+            data.rewardISK = mission.rewardISK;
+            data.rewardItemID = mission.rewardItemID;
+            data.rewardItemQty = mission.rewardItemQty;
+            data.bonusISK = mission.bonusISK;
+            data.bonusTime = mission.bonusTime;
+            data.courierTypeID = 0;
+            data.courierAmount = 0;
+            data.courierItemVolume = 0.0f;
+            data.range = level;
         } break;
         case Mission::Type::Trade: {
         } break;
@@ -534,6 +641,9 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         } break;
     }
 
+    // Allocate bookmarks only after a valid offer has been selected. Empty
+    // template pools return above and must not leave an orphaned PyList.
+    data.bookmarks = new PyList();
     _log(AGENT__DEBUG, "Created %s level %u %s offer - '%s'", (important?"an important":"a"), level, GetTypeName(data.typeID).c_str(), data.name.c_str());
 }
 

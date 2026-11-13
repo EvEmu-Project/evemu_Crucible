@@ -55,17 +55,19 @@ void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
     const Buffer::iterator<uint32> bufLen = pBuffer->end<uint32>();
     pBuffer->ResizeAt( bufLen, 1 );
 
-    if (PACKET_SIZE_LIMIT < pBuffer->size()) {
-        sLog.Error( "Network", "Packet length %u exceeds hardcoded packet length limit %lu.", pBuffer->size(), PACKET_SIZE_LIMIT );
-        SafeDelete( pBuffer );
-        return;
-    }
-
     bool success(false);
     if (compress) {
         success = MarshalDeflate(rep, *pBuffer);
     } else {
         success = MarshalDeflate(rep, *pBuffer, PACKET_SIZE_LIMIT);
+    }
+
+    bool packetTooLarge(false);
+    if (success && pBuffer->size() - sizeof(uint32) > PACKET_SIZE_LIMIT) {
+        sLog.Error("Network", "Outbound packet length %u exceeds hardcoded packet length limit %u.",
+                   static_cast<uint32>(pBuffer->size() - sizeof(uint32)), PACKET_SIZE_LIMIT);
+        packetTooLarge = true;
+        success = false;
     }
 
     if (success) {
@@ -74,7 +76,7 @@ void EVETCPConnection::QueueRep( const PyRep* rep, bool compress/*true*/ )
         // write length
         *bufLen = ( pBuffer->size() - sizeof( uint32 ) );
         Send( &pBuffer );
-    } else {
+    } else if (!packetTooLarge) {
         sLog.Error( "Network", "Failed to marshal new packet." );
     }
 
@@ -172,6 +174,10 @@ void EVETCPConnection::DumpBuffer( Buffer* buf, packet_direction packet_directio
         path += "_server_";
     path += ".txt";
     logpacket = fopen(path.c_str(), "w");
+    if (logpacket == nullptr) {
+        sLog.Error("Network", "Unable to open packet log file: %s", path.c_str());
+        return;
+    }
 
     Buffer::iterator<uint8> cur = buf->begin<uint8>();
     for (; cur != buf->end<uint8>(); ++cur) {

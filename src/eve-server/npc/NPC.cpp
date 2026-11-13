@@ -151,18 +151,10 @@ void NPC::EncodeDestiny( Buffer& into )
     into.Append( data );
     switch (mode) {
         case Ball::Mode::WARP: {
-            GPoint target = m_destiny->GetTargetPoint();
-            WARP_Struct warp;
-                warp.formationID = 0xFF;
-                warp.targX = target.x;
-                warp.targY = target.y;
-                warp.targZ = target.z;
-                warp.speed = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
-                // warp timing.  see Ship::EncodeDestiny() for notes/updates
-                warp.effectStamp = -1; //m_destiny->GetStateStamp();   //timestamp when warp started
-                warp.followRange = 0;   //this isnt right
-                warp.followID = 0;  //this isnt right
-            into.Append( warp );
+            // Keep NPC warp serialization aligned with ships and drones. The
+            // legacy WARP_Struct fields (speed/followRange/followID) were
+            // removed when the Crucible client packet layout was corrected.
+            m_destiny->EncodeWarpState(into);
         }  break;
         case Ball::Mode::FOLLOW: {
             FOLLOW_Struct follow;
@@ -300,10 +292,6 @@ void NPC::Killed(Damage &damage) {
     if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
         return; // make error here?
 
-    //notify our spawn manager that we are gone.
-    if ((m_spawnMgr != nullptr) and (m_self.get() != nullptr))
-        m_spawnMgr->SpawnKilled(m_bubble, m_self->itemID());
-
     uint32 killerID = 0;
     Client* pClient(nullptr);
     SystemEntity *killer(damage.srcSE);
@@ -321,6 +309,9 @@ void NPC::Killed(Damage &damage) {
     } else {
         killerID = killer->GetID();
     }
+
+    if ((m_spawnMgr != nullptr) && (m_self.get() != nullptr))
+        m_spawnMgr->SpawnKilled(m_bubble, m_self->itemID(), (pClient != nullptr ? killerID : 0));
 
     uint32 locationID = GetLocationID();
     //  log faction kill in dynamic data   -allan

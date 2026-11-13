@@ -138,7 +138,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, EVEServiceManager &services,
             str << "<br>As there are too many options to explain in this msg, a full usage list can be found on our forums.<br>";  //105
             int size = 500;
             char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-            snprintf(reply, size, str.str().c_str());
+            snprintf(reply, size, "%s", str.str().c_str());
             pClient->SendInfoModalMsg(reply);
             return nullptr;
         } else {

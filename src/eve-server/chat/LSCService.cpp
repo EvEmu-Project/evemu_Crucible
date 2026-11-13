@@ -1184,10 +1184,10 @@ void Client::SelfEveMail(const char* subject, const char* fmt, ...)
     va_start(args, fmt);
 
     char* str = nullptr;
-    vasprintf(&str, fmt, args);
-    assert(str);
-
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     this->m_lsc->SendMail(GetCharacterID(), GetCharacterID(), subject, str);
     SafeFree(str);

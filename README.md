@@ -9,6 +9,22 @@
 	<a href="https://github.com/EvEmu-Project/evemu_Crucible/issues"><img src="https://img.shields.io/github/issues-raw/EvEmu-Project/evemu_Crucible" /></a>
 </p>
 
+## Fork maintenance status
+
+This fork is maintained on the `master` branch. It includes additional compatibility, stability and bug-fix work on top of the upstream EVEmu Crucible project.
+
+- **Live patch history:** [PATCH_NOTES.md](PATCH_NOTES.md)
+- **Upstream bug triage:** [ISSUE_TRIAGE.md](ISSUE_TRIAGE.md)
+- **Upstream issue tracker:** [EvEmu-Project/evemu_Crucible issues](https://github.com/EvEmu-Project/evemu_Crucible/issues)
+- **This fork's source and build history:** [xrizonx/evemu_Crucible](https://github.com/xrizonx/evemu_Crucible)
+- **Automated builds:** [GitHub Actions](https://github.com/xrizonx/evemu_Crucible/actions)
+
+### Current maintenance focus
+
+The current work prioritizes crash prevention, safe database access, iterator/container lifetime issues, build compatibility, and gameplay regressions. Fixes are recorded in the patch notes with their related upstream issue (where applicable) and verification status.
+
+**Testing note:** A successful compile is not the same as a verified gameplay fix. Build results and in-game test results are tracked separately. Back up your database before applying any future database migrations; the source-only fixes listed in the current patch notes do not require a migration.
+
 ## Introduction
 EVEmu is a work-in-progress server emulator for the space MMO EVE Online. This is an educational project. Please see the disclaimer below for details.
 

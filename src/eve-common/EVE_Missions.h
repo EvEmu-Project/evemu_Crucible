@@ -10,14 +10,21 @@
 
 struct MissionData {
         bool important;
+        bool storyline;
         uint8 level;
         uint8 typeID;
+        uint8 raceID;
         uint8 range;
         uint16 missionID;
         uint32 briefingID;
         uint32 constellationID;
         uint32 corporationID;
         uint32 dungeonID;
+        uint32 rewardISK;
+        uint32 bonusISK;
+        uint16 rewardItemID;
+        uint16 rewardItemQty;
+        uint16 bonusTime;
         std::string name;
 };
 

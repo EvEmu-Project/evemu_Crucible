@@ -85,6 +85,7 @@ public:
     void RemoveDrone();
     void SetResists();
     void SetOwner(Client* pClient);
+    void ClearShipControl()                          { m_pShipSE = nullptr; m_controllerID = 0; m_controllerOwnerID = 0; }
 
     uint32 GetBounty() const                            { return (m_pClient == nullptr ? 0 : m_pClient->GetChar()->bounty()); }
 

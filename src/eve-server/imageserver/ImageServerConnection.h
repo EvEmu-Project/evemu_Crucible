@@ -67,10 +67,10 @@ private:
     boost::asio::ip::tcp::socket _socket;
     std::shared_ptr<std::vector<char> > _imageData;
 
-    static boost::asio::const_buffers_1 _responseOK;
-    static boost::asio::const_buffers_1 _responseNotFound;
-    static boost::asio::const_buffers_1 _responseRedirectBegin;
-    static boost::asio::const_buffers_1 _responseRedirectEnd;
+    static boost::asio::const_buffer _responseOK;
+    static boost::asio::const_buffer _responseNotFound;
+    static boost::asio::const_buffer _responseRedirectBegin;
+    static boost::asio::const_buffer _responseRedirectEnd;
 };
 
 #endif // __IMAGESERVERCONNECTION__H__INCL__

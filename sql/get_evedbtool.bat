@@ -1,25 +1,32 @@
-@@:: This prolog allows a PowerShell script to be embedded in a .CMD file.
-@@:: Any non-PowerShell content must be preceeded by "@@"
-@@setlocal
-@@set POWERSHELL_BAT_ARGS=%*
-@@if defined POWERSHELL_BAT_ARGS set POWERSHELL_BAT_ARGS=%POWERSHELL_BAT_ARGS:"=\"%
-@@PowerShell -Command Invoke-Expression $('$args=@(^&{$args} %POWERSHELL_BAT_ARGS%);'+[String]::Join([char]10,$((Get-Content '%~f0') -notmatch '^^@@'))) & goto :EOF
+@echo off
+setlocal
 
-# Download latest dotnet/codeformatter release from github
+rem Download the pinned EVEDBTool Windows x86_64 release.
+set "URL=https://github.com/EvEmu-Project/EVEDBTool/releases/download/0.0.6/evedbtool.exe"
+set "OUT=%~dp0evedbtool.exe"
 
-$repo = "EvEmu-Project/evedbtool"
-$file = "evedbtool.exe"
+echo Downloading EVEDBTool 0.0.6 for Windows...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -UseBasicParsing -Uri '%URL%' -OutFile '%OUT%'"
 
-$releases = "https://api.github.com/repos/$repo/releases"
+if errorlevel 1 (
+    echo ERROR: EVEDBTool download failed.
+    exit /b 1
+)
 
-Write-Host Determining latest release
-$tag = (Invoke-WebRequest $releases | ConvertFrom-Json)[0].tag_name
+if not exist "%OUT%" (
+    echo ERROR: Download did not create evedbtool.exe.
+    exit /b 1
+)
 
-$download = "https://github.com/$repo/releases/download/$tag/$file"
-$name = $file.Split(".")[0]
-$zip = "$name.exe"
-$dir = "$name-$tag"
+for %%F in ("%OUT%") do if %%~zF LSS 1000000 (
+    echo ERROR: Downloaded file is unexpectedly small.
+    del "%OUT%"
+    exit /b 1
+)
 
-Write-Host Dowloading latest release
-Invoke-WebRequest $download -Out $zip
-
+echo EVEDBTool downloaded to:
+echo %OUT%
+echo.
+echo Run it from the sql folder so it can find evedb.yaml and migrations.
+exit /b 0

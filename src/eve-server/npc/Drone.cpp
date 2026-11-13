@@ -30,6 +30,7 @@
 #include "EntityList.h"
 #include "inventory/AttributeEnum.h"
 #include "npc/Drone.h"
+#include "ship/Ship.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/DestinyManager.h"
@@ -39,7 +40,9 @@
 
 DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemManager* pSystem, const FactionData& data)
 : DynamicSystemEntity(drone, services, pSystem),
+  m_pClient(nullptr),
   m_AI(new DroneAIMgr(this)),
+  m_pShipSE(nullptr),
   m_system(pSystem)
   {
       assert (m_AI != nullptr);
@@ -185,6 +188,8 @@ void DroneSE::IdleOrbit(ShipSE* pShipSE/*nullptr*/) {
 void DroneSE::Abandon() {
     SystemEntity::Abandon();
     Offline();
+    m_pClient = nullptr;
+    ClearShipControl();
 }
 
 /*   when drone is scooped up....
@@ -298,18 +303,7 @@ void DroneSE::EncodeDestiny( Buffer& into )
     into.Append( data );
     switch (mode) {
         case Ball::Mode::WARP: {
-            GPoint target = m_destiny->GetTargetPoint();
-            WARP_Struct warp;
-                warp.formationID = 0xFF;
-                warp.targX = target.x;
-                warp.targY = target.y;
-                warp.targZ = target.z;
-                warp.speed = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
-                // warp timing.  see Ship::EncodeDestiny() for notes/updates
-                warp.effectStamp = -1; //m_destiny->GetStateStamp();   //timestamp when warp started
-                warp.followRange = 0;   //this isnt right
-                warp.followID = 0;  //this isnt right
-            into.Append( warp );
+            m_destiny->EncodeWarpState(into);
         }  break;
         case Ball::Mode::FOLLOW: {
             FOLLOW_Struct follow;
@@ -326,34 +320,47 @@ void DroneSE::EncodeDestiny( Buffer& into )
             into.Append( orbit );
         }  break;
         case Ball::Mode::GOTO: {
-            GPoint target = m_destiny->GetTargetPoint();
-            GOTO_Struct go;
-                go.formationID = 0xFF;
-                go.x = target.x;
-                go.y = target.y;
-                go.z = target.z;
-            into.Append( go );
+            GOTO_Struct goto_; 
+                goto_.formationID = 0xFF;
+                goto_.x = m_destiny->GetTargetPoint().x;
+                goto_.y = m_destiny->GetTargetPoint().y;
+                goto_.z = m_destiny->GetTargetPoint().z;
+            into.Append( goto_ );
+        }  break;
+        case Ball::Mode::STOP: {
+            STOP_Struct stop;
+                stop.formationID = 0xFF;
+            into.Append( stop );
         }  break;
         default: {
-            STOP_Struct main;
-                main.formationID = 0xFF;
-            into.Append( main );
-        } break;
+            _log(DRONE__ERROR, "DroneSE::EncodeDestiny - Unknown destiny mode %u for %s", mode, m_self->name());
+        }  break;
     }
-    _log(SE__DESTINY, "DroneSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
-void DroneSE::MakeDamageState(DoDestinyDamageState &into)
-{
-    into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
-    into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_float() + 5;
+
+void DroneSE::MakeDamageState(DoDestinyDamageState& into) {
+    const auto clamp01 = [](double value) -> double {
+        if (value < 0.0) return 0.0;
+        if (value > 1.0) return 1.0;
+        return value;
+    };
+    const double shieldCapacity = m_self->GetAttribute(AttrShieldCapacity).get_double();
+    const double armorCapacity = m_self->GetAttribute(AttrArmorHP).get_double();
+    const double hullCapacity = m_self->GetAttribute(AttrHP).get_double();
+    into.shield = (shieldCapacity > 0.0)
+        ? clamp01(m_self->GetAttribute(AttrShieldCharge).get_double() / shieldCapacity) : 0.0;
+    into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double() + 5.0;
     into.timestamp = GetFileTimeNow();
-    into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
-    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHP).get_float());
+    into.armor = (armorCapacity > 0.0)
+        ? clamp01(1.0 - m_self->GetAttribute(AttrArmorDamage).get_double() / armorCapacity) : 0.0;
+    into.structure = (hullCapacity > 0.0)
+        ? clamp01(1.0 - m_self->GetAttribute(AttrDamage).get_double() / hullCapacity) : 0.0;
 }
 
 void DroneSE::SetResists() {
-    /* fix for missing resist attribs -allan 18April16  */
+    // Some legacy drone types are missing resistance attributes in static data.
+    // Add defaults only where an attribute is absent.
     if (!m_self->HasAttribute(AttrShieldEmDamageResonance)) m_self->SetAttribute(AttrShieldEmDamageResonance, EvilOne, false);
     if (!m_self->HasAttribute(AttrShieldExplosiveDamageResonance)) m_self->SetAttribute(AttrShieldExplosiveDamageResonance, EvilOne, false);
     if (!m_self->HasAttribute(AttrShieldKineticDamageResonance)) m_self->SetAttribute(AttrShieldKineticDamageResonance, EvilOne, false);
@@ -368,152 +375,76 @@ void DroneSE::SetResists() {
     if (!m_self->HasAttribute(AttrThermalDamageResonance)) m_self->SetAttribute(AttrThermalDamageResonance, EvilOne, false);
 }
 
-void DroneSE::Killed(Damage &damage) {
-    if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
-        return; // make error here?
+void DroneSE::Killed(Damage& damage) {
+    // Unregister from the controlling ship before the item is deleted.
+    if (m_pShipSE != nullptr)
+        m_pShipSE->ScoopDrone(this);
 
+    if (m_bubble == nullptr || m_destiny == nullptr || m_system == nullptr || m_self.get() == nullptr) {
+        sLog.Error("DroneSE::Killed()", "Cannot create drone wreck: required state unavailable for drone %u", GetID());
+        return;
+    }
+
+    SystemEntity* killer = damage.srcSE;
+    Client* pClient = nullptr;
     uint32 killerID = 0;
-    Client* pClient(nullptr);
-    SystemEntity *killer(damage.srcSE);
-
-    if (killer->HasPilot()) {
-        pClient = killer->GetPilot();
-        killerID = pClient->GetCharacterID();
-    } else if (killer->IsDroneSE()) {
-        pClient = sEntityList.FindClientByCharID( killer->GetSelf()->ownerID() );
-        if (pClient == nullptr) {
-            sLog.Error("DroneSE::Killed()", "killer == IsDrone and pPlayer == nullptr");
+    if (killer != nullptr) {
+        if (killer->HasPilot()) {
+            pClient = killer->GetPilot();
+            if (pClient != nullptr) killerID = pClient->GetCharacterID();
+        } else if (killer->IsDroneSE()) {
+            pClient = killer->GetDroneSE()->GetOwner();
+            if (pClient != nullptr) killerID = pClient->GetCharacterID();
         } else {
-            killerID = pClient->GetCharacterID();
+            killerID = killer->GetID();
         }
-    } else {
-        killerID = killer->GetID();
     }
 
     if (pClient != nullptr) {
-        //award kill bounty.
-        AwardBounty( pClient );
-        if (m_system->GetSystemSecurityRating() > 0)
-            AwardSecurityStatus(m_self, pClient->GetChar().get());  // this awards secStatusChange for npcs in empire space
+        AwardBounty(pClient);
+        if (m_system->GetSystemSecurityRating() > 0.0)
+            AwardSecurityStatus(m_self, pClient->GetChar().get());
     }
 
-    GPoint wreckPosition = m_destiny->GetPosition();
+    const GPoint wreckPosition = m_destiny->GetPosition();
     if (wreckPosition.isNaN()) {
-        sLog.Error("DroneSE::Killed()", "Wreck Position is NaN");
+        sLog.Error("DroneSE::Killed()", "Wreck position is invalid for drone %u", GetID());
         return;
     }
 
-    uint32 wreckTypeID = 26972;   //Faction Drone Wreck -- best i can find.
-
-    std::string wreck_name = m_self->itemName();
-    wreck_name += " Wreck";
-    ItemData wreckItemData(wreckTypeID, killerID, m_system->GetID(), flagNone, wreck_name.c_str(), wreckPosition, itoa(m_allyID));
-    WreckContainerRef wreckItemRef = sItemFactory.SpawnWreckContainer( wreckItemData );
+    const uint32 wreckTypeID = 26972; // Faction drone wreck.
+    const std::string wreckName = m_self->itemName() + " Wreck";
+    ItemData wreckItemData(wreckTypeID, killerID, m_system->GetID(), flagNone,
+                           wreckName.c_str(), wreckPosition, itoa(m_allyID));
+    WreckContainerRef wreckItemRef = sItemFactory.SpawnWreckContainer(wreckItemData);
     if (wreckItemRef.get() == nullptr) {
-        sLog.Error("DroneSE::Killed()", "Creating Wreck Item Failed for %s of type %u", wreck_name.c_str(), wreckTypeID);
+        sLog.Error("DroneSE::Killed()", "Creating wreck failed for drone %s(%u)", m_self->name(), m_self->itemID());
         return;
     }
 
-    if (is_log_enabled(PHYSICS__TRACE))
-        _log(PHYSICS__TRACE, "DroneSE::Killed() - Drone %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.", \
-        GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
+    if (is_log_enabled(PHYSICS__TRACE)) {
+        _log(PHYSICS__TRACE,
+             "DroneSE::Killed() - Drone %s(%u) Position: %.2f,%.2f,%.2f. Wreck %s(%u) Position: %.2f,%.2f,%.2f.",
+             GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(),
+             wreckPosition.x, wreckPosition.y, wreckPosition.z);
+    }
 
     DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
-        wreckEntity.allianceID = (killer->GetAllianceID() == 0 ? m_allyID : killer->GetAllianceID());
-        wreckEntity.categoryID = EVEDB::invCategories::Celestial;
-        wreckEntity.corporationID = killer->GetCorporationID();
-        wreckEntity.factionID = (killer->GetWarFactionID() == 0 ? m_warID : killer->GetWarFactionID());
-        wreckEntity.groupID = EVEDB::invGroups::Wreck;
-        wreckEntity.itemID = wreckItemRef->itemID();
-        wreckEntity.itemName = wreck_name;
-        wreckEntity.ownerID = killerID;
-        wreckEntity.typeID = wreckTypeID;
-        wreckEntity.position = wreckPosition;
+    wreckEntity.allianceID = (killer != nullptr && killer->GetAllianceID() != 0) ? killer->GetAllianceID() : m_allyID;
+    wreckEntity.categoryID = EVEDB::invCategories::Celestial;
+    wreckEntity.corporationID = (killer != nullptr) ? killer->GetCorporationID() : m_corpID;
+    wreckEntity.factionID = (killer != nullptr && killer->GetWarFactionID() != 0) ? killer->GetWarFactionID() : m_warID;
+    wreckEntity.groupID = EVEDB::invGroups::Wreck;
+    wreckEntity.itemID = wreckItemRef->itemID();
+    wreckEntity.itemName = wreckName;
+    wreckEntity.ownerID = killerID;
+    wreckEntity.typeID = wreckTypeID;
+    wreckEntity.position = wreckPosition;
 
     if (!m_system->BuildDynamicEntity(wreckEntity, m_self->itemID())) {
-        sLog.Error("DroneSE::Killed()", "Spawning Wreck Failed for typeID %u", wreckTypeID);
+        sLog.Error("DroneSE::Killed()", "Spawning wreck failed for drone typeID %u", m_self->typeID());
         wreckItemRef->Delete();
         return;
     }
     m_destiny->SendJettisonPacket();
 }
-
-/*
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 3 items]
-        [PyInt 8]
-        [PyString "entity"]
-        [PyNone]
-    [PyInt 5654387]
-    [PyTuple 1 items]
-      [PyTuple 2 items]
-        [PyInt 0]
-        [PySubStream 40 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "MachoResolveObject"]
-            [PyTuple 2 items]
-              [PyInt 30000302]
-              [PyInt 0]
-            [PyDict 1 kvp]
-              [PyString "machoVersion"]
-              [PyInt 1]
-
-
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 4 items]
-        [PyInt 1]
-        [PyInt 790408]
-        [PyString "entity"]
-        [PyNone]
-    [PyInt 5654387]
-    [PyTuple 1 items]
-      [PyTuple 2 items]
-        [PyInt 0]
-        [PySubStream 88 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "MachoBindObject"]
-            [PyTuple 2 items]
-              [PyInt 30000302]
-              [PyTuple 3 items]
-                [PyString "CmdEngage"]
-                [PyTuple 2 items]
-                  [PyList 3 items]
-                    [PyIntegerVar 1005909240632]
-                    [PyIntegerVar 1005909240642]
-                    [PyIntegerVar 1005902745093]
-                  [PyIntegerVar 9000000000001190094]
-                [PyDict 0 kvp]
-            [PyDict 1 kvp]
-              [PyString "machoVersion"]
-              [PyInt 1]
-
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 4 items]
-        [PyInt 1]
-        [PyInt 790408]
-        [PyString "entity"]
-        [PyNone]
-    [PyInt 5654387]
-    [PyTuple 1 items]
-      [PyTuple 2 items]
-        [PyInt 0]
-        [PySubStream 81 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "MachoBindObject"]
-            [PyTuple 2 items]
-              [PyInt 30000302]
-              [PyTuple 3 items]
-                [PyString "CmdReturnBay"]
-                [PyTuple 1 items]
-                  [PyList 3 items]
-                    [PyIntegerVar 1005909240632]
-                    [PyIntegerVar 1005909240642]
-                    [PyIntegerVar 1005902745093]
-                [PyDict 0 kvp]
-            [PyDict 1 kvp]
-              [PyString "machoVersion"]
-              [PyInt 1]
-        */

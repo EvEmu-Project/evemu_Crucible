@@ -57,6 +57,7 @@ namespace Destiny {
     }
 }
 
+class Buffer;
 class InventoryItem;
 class Missile;
 class PyRep;
@@ -100,6 +101,8 @@ public:
     ~DestinyManager();
 
     void Process();
+    // Encode the mode-specific warp sector used when a moving ball is added to a client bubble.
+    void EncodeWarpState(Buffer& into) const;
 
     void SendSingleDestinyEvent(PyTuple** ev, bool self_only=false) const;
     void SendSingleDestinyUpdate(PyTuple** up, bool self_only=false) const;
@@ -190,7 +193,7 @@ public:
 
     //  functions to return protected variables for SystemBubble exclusive WarpTo updates and other methods that need Destiny Variables
     int32 GetDistance()                                 { return m_stopDistance; }
-    int32 GetWarpSpeed()                                { return static_cast<int32>(m_shipWarpSpeed * 10); }
+    int32 GetWarpSpeed() const                          { return static_cast<int32>(m_shipWarpSpeed * 10); }
     uint32 GetTargetID()                                { return m_targetEntity.first; }
     SystemEntity* GetTargetEntity()                     { return m_targetEntity.second; }
     GPoint GetTargetPoint()                             { return m_targetPoint; }
@@ -301,6 +304,7 @@ protected:
     double m_callTime;                  //in ms       - time client call was processed.  this is to coordinate tic calculations
 
     GPoint m_targetPoint;               //vector      - point in space used as current destination
+    GPoint m_warpDestination;            // original client warp-to destination before applying stop range
     GVector m_shipHeading;              //direction ship is facing
     GVector m_targetHeading;            //direction to target from current heading
     std::pair<uint32, SystemEntity*> m_targetEntity;   //we do not own the SystemEntity*

@@ -42,13 +42,15 @@ public:
 
     bool DoSpawnForBubble(SystemBubble* pBubble);
     void DoSpawnForAnomaly(SystemBubble* pBubble, GPoint pos, uint8 level, uint16 typeID);
-    void DoSpawnForMission(SystemBubble* pBubble, uint32 regionID);
+    bool DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 missionLevel,
+                            uint32 characterID, uint32 agentID, uint32 offerID, uint32 beaconID,
+                            uint32 factionID, uint32 dungeonID = 0);
     void DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID);
 
     // primitive test for chained spawns
     bool IsChaining(uint16 bubbleID);
     // this will be used for all spawn types
-    void SpawnKilled(SystemBubble* pBubble, uint32 itemID);    // this DOES NOT remove entity from system or bubble.  user must do this BEFORE calling.
+    void SpawnKilled(SystemBubble* pBubble, uint32 itemID, uint32 killerID);    // this DOES NOT remove the entity.
 
     void StartRatTimer();
     void StopRatTimer()                                 { m_ratTimer.Disable(); }
@@ -61,7 +63,7 @@ public:
 
 protected:
     bool FindSpawnForBubble(uint16 bubbleID);
-    bool PrepSpawn(SystemBubble* pBubble, uint8 sClass = Spawn::Class::None, uint8 level = 0);
+    bool PrepSpawn(SystemBubble* pBubble, uint8 sClass = Spawn::Class::None, uint8 level = 0, uint32 factionOverride = 0);
     void MakeSpawn(SystemBubble* pBubble, uint32 factionID, uint8 sClass, uint8 level, bool anomaly=false);
     void ReSpawn(SystemBubble* pBubble, SpawnEntry& spawnEntry);
     void RemoveSpawn(uint16 bubbleID, uint32 itemID);

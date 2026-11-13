@@ -169,9 +169,24 @@ void MiningLaser::DeactivateCycle(bool abort/*false*/)
 /** @todo verify for ice and gas */
 void MiningLaser::ProcessCycle(bool abort/*false*/)
 {
+    // A target can disappear between the module timer firing and the cycle callback.
+    // Do not dereference a stale SystemEntity when an asteroid is depleted or removed.
+    if (m_targetSE == nullptr || m_shipRef.get() == nullptr || m_shipRef->GetPilot() == nullptr) {
+        _log(MINING__WARNING, "ProcessCycle() - Mining module %s(%u) has no valid target, ship, or pilot; aborting.",
+             m_modRef->name(), m_modRef->itemID());
+        ActiveModule::DeactivateCycle(true);
+        return;
+    }
+
     float cycleVol(GetMiningVolume());
 
     InventoryItemRef roidRef(m_targetSE->GetSelf());
+    if (roidRef.get() == nullptr) {
+        _log(MINING__WARNING, "ProcessCycle() - Mining target for %s(%u) no longer has an inventory item; aborting.",
+             m_modRef->name(), m_modRef->itemID());
+        ActiveModule::DeactivateCycle(true);
+        return;
+    }
     // verify gas clouds have volume attr.
     float oreVolume(roidRef->GetAttribute(AttrVolume).get_float());
 
@@ -235,7 +250,14 @@ void MiningLaser::ProcessCycle(bool abort/*false*/)
             roidRef->SetAttribute(AttrRadius, radius);
         }
     } else {
-        //rock is depleted.
+        // Rock is depleted. TargetMgr may already have been detached during entity teardown.
+        // In that case, stop this module without attempting a second depletion callback.
+        if (m_targetSE == nullptr || m_targetSE->TargetMgr() == nullptr) {
+            _log(MINING__WARNING, "ProcessCycle() - Depleted asteroid target for %s(%u) is no longer registered.",
+                 m_modRef->name(), m_modRef->itemID());
+            ActiveModule::DeactivateCycle(true);
+            return;
+        }
         // this will get all active miners on depleted rock and set mined amount accordingly for each.
         m_targetSE->TargetMgr()->Depleted(this);
         SystemEntity* pSE(m_targetSE);
@@ -263,9 +285,10 @@ void MiningLaser::ProcessCycle(bool abort/*false*/)
         float unitVolume = oRef->GetAttribute(AttrVolume).get_float();
         float shipVolume = m_shipRef->GetMyInventory()->GetRemainingCapacity(m_holdFlag);
         float newQuantity = shipVolume / unitVolume;
-        if (newQuantity > 1) { // Catch situations where less than a whole unit would be added.
+        if (newQuantity >= 1) { // At least one complete unit fits in the remaining hold capacity.
             oRef->SetQuantity(newQuantity, false);
             oRef->MergeTypesInCargo(m_shipRef.get(), m_holdFlag);
+            oreError = false;
         }
     }
 

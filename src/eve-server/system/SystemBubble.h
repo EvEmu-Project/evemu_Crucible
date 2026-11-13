@@ -71,6 +71,29 @@ public:
     // these are set in spawnMgr.
     void SetAnomaly(bool set=true)                      { m_anomaly = set; }
     void SetMission(bool set=true)                      { m_mission = set; }
+    void SetMissionData(uint32 characterID, uint32 agentID, uint32 offerID,
+                        uint32 beaconID, uint16 killsRequired) {
+        m_missionCharacterID = characterID;
+        m_missionAgentID = agentID;
+        m_missionOfferID = offerID;
+        m_missionBeaconID = beaconID;
+        m_missionKills = 0;
+        m_missionKillsRequired = killsRequired;
+        m_mission = true;
+    }
+    bool RecordMissionKill(uint32 killerID) {
+        // Any player or player-controlled drone can assist in a mission pocket.
+        if (!m_mission || killerID == 0 || m_missionKills >= m_missionKillsRequired)
+            return false;
+        ++m_missionKills;
+        return true;
+    }
+    uint32 GetMissionCharacterID() const                { return m_missionCharacterID; }
+    uint32 GetMissionAgentID() const                    { return m_missionAgentID; }
+    uint32 GetMissionOfferID() const                    { return m_missionOfferID; }
+    uint32 GetMissionBeaconID() const                   { return m_missionBeaconID; }
+    uint16 GetMissionKills() const                      { return m_missionKills; }
+    uint16 GetMissionKillsRequired() const              { return m_missionKillsRequired; }
     void SetIncursion(bool set=true)                    { m_incursion = set; }
     void SetSpawned(bool set=true)                      { m_spawned = set; }
     void SetSpawnTimer(bool isBelt=false);
@@ -196,6 +219,12 @@ private:
 
     uint16 m_bubbleID;
     uint32 m_systemID;
+    uint32 m_missionCharacterID;
+    uint32 m_missionAgentID;
+    uint32 m_missionOfferID;
+    uint32 m_missionBeaconID;
+    uint16 m_missionKills;
+    uint16 m_missionKillsRequired;
 
     std::map<uint32, Client*> m_players;                // testing with bubble player list (in std::map)
     std::map<uint32, SystemEntity*> m_markers;          // bubble marker cans.  we do own these.

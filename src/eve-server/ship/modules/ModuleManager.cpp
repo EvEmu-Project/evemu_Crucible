@@ -809,7 +809,7 @@ void ModuleManager::RepairModule(uint32 itemID, EvilNumber amount)
 
 void ModuleManager::RepairModule(GenericModule* pMod, EvilNumber amount)
 {
-    if (pMod != nullptr){
+    if (pMod == nullptr) {
         _log(MODULE__ERROR, "MM::RepairModule() - Called on module that is not loaded.");
         return;
     }

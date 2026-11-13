@@ -45,7 +45,7 @@ public:
     bool HasMission(uint32 charID);
     bool HasMission(uint32 charID, MissionOffer& offer);
 
-    void MakeOffer(uint32 charID, MissionOffer& offer);
+    bool MakeOffer(uint32 charID, MissionOffer& offer);
     void GetOffer(uint32 charID, MissionOffer& offer);
     void UpdateOffer(uint32 charID, MissionOffer& offer);
     void DeleteOffer(uint32 charID);    // completely deletes offer from agent data, missionMgr data, and db

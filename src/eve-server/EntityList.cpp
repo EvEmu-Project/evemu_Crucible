@@ -209,10 +209,18 @@ void EntityList::Process() {
         }
         std::map<uint32, ProbeSE*>::iterator pitr = m_probes.begin();
         while (pitr != m_probes.end()) {
-            if (pitr->second->ProcessTic()) {
-                ++pitr;
-            } else {
-                pitr = m_probes.erase(pitr);
+            // ProcessTic() may remove the probe from m_probes itself (via
+            // ProbeSE::RemoveProbe). Advance before calling it so we never
+            // increment an iterator that the probe has invalidated.
+            std::map<uint32, ProbeSE*>::iterator current = pitr++;
+            const uint32 probeID = current->first;
+            ProbeSE* probe = current->second;
+
+            if (!probe->ProcessTic()) {
+                // Remove it here only if ProcessTic() did not already do so.
+                std::map<uint32, ProbeSE*>::iterator remaining = m_probes.find(probeID);
+                if (remaining != m_probes.end() && remaining->second == probe)
+                    m_probes.erase(remaining);
             }
         }
     }

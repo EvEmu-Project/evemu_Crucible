@@ -25,11 +25,25 @@
 
 float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEntity* pTarget)
 {
-    if (pTarget == nullptr)
+    // Turret targets and their owning ship can be removed during a session change.
+    // Validate every object used below before dereferencing it.
+    if (shipRef.get() == nullptr || pMod == nullptr || pTarget == nullptr)
         return 0;
+
+    Client* pilot = shipRef->GetPilot();
+    ShipSE* sourceSE = (pilot != nullptr) ? pilot->GetShipSE() : nullptr;
+    DestinyManager* targetDestiny = pTarget->DestinyMgr();
+    InventoryItemRef targetSelf = pTarget->GetSelf();
+    if (sourceSE == nullptr || targetDestiny == nullptr || targetSelf.get() == nullptr) {
+        _log(DAMAGE__ERROR, "TurretFormulas::GetToHit() - invalid source or target state; treating shot as a miss.");
+        return 0;
+    }
+
     uint32 falloff = pMod->GetAttribute(AttrFalloff).get_uint32();
     uint32 range = pMod->GetAttribute(AttrMaxRange).get_uint32();
-    float distance = shipRef->position().distance(pTarget->DestinyMgr()->GetPosition());
+    float distance = shipRef->position().distance(targetDestiny->GetPosition());
+    if (distance <= 0.001f)
+        return 0;
     _log(DAMAGE__TRACE, "Turret::GetToHit - distance:%.2f, range:%u, falloff:%u", distance, range, falloff);
 
     // calculate transversal from other data
@@ -38,14 +52,16 @@ float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEn
      * The transversal velocity is computed by subtracting the two velocity vectors from one another, and then finding the length of the vector.
      * angular velocity = transversal velocity / distance
      */
-    GVector vector = pTarget->GetVelocity() - shipRef->GetPilot()->GetShipSE()->GetVelocity();
+    GVector vector = pTarget->GetVelocity() - sourceSE->GetVelocity();
     float transversalV = vector.length();
     float angularVel = transversalV / distance;
-    float targSig = pTarget->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();
+    float targSig = targetSelf->GetAttribute(AttrSignatureRadius).get_float();
     if (targSig < 0.01f)
-        targSig = pTarget->GetSelf()->GetAttribute(AttrRadius).get_uint32() / 10;
+        targSig = targetSelf->GetAttribute(AttrRadius).get_uint32() / 10.0f;
     float sigRes = pMod->GetAttribute(AttrOptimalSigRadius).get_float();
     float trackSpeed = pMod->GetAttribute(AttrTrackingSpeed).get_float();
+    if (targSig <= 0.0f || sigRes <= 0.0f || trackSpeed <= 0.0f)
+        return 0;
     _log(DAMAGE__TRACE, "Turret::GetToHit - transversalV:%.3f, angularV:%.3f, tracking:%.3f, targetSig:%.1f, sigRes:%.1f", \
                 transversalV, angularVel, trackSpeed, targSig, sigRes);
     //  calculations for chance to hit  --UD 29May17
@@ -72,7 +88,9 @@ float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEn
     }
     float c = pow((a * b), 2);
     float d = EvE::max(distance - range);
-    float e = pow((d / falloff), 2);
+    if (d > 0.0f && falloff == 0)
+        return 0;
+    float e = (d > 0.0f) ? pow((d / falloff), 2) : 0.0f;
     float x = pow(0.5, c);
     float y = pow(0.5, e);
     float ChanceToHit = x * y;
