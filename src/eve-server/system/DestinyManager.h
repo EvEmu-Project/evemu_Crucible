@@ -101,6 +101,8 @@ public:
     ~DestinyManager();
 
     void Process();
+    // Encode the mode-specific warp sector used when a moving ball is added to a client bubble.
+    void EncodeWarpState(Buffer& into) const;
 
     void SendSingleDestinyEvent(PyTuple** ev, bool self_only=false) const;
     void SendSingleDestinyUpdate(PyTuple** up, bool self_only=false) const;
