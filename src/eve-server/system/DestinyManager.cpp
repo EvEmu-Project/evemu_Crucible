@@ -241,7 +241,10 @@ void DestinyManager::ProcessState() {
             // Updated warp alignment and speed check.  -allan  17nov15
             GVector toVec(m_position, m_targetPoint);
             toVec.normalize();
-            m_shipHeading.normalize();
+            if (m_shipHeading.isZero())
+                m_shipHeading = toVec;
+            else
+                m_shipHeading.normalize();
             float dot = toVec.dotProduct(m_shipHeading);
             if (dot > 1.0f)
                 dot = 1.0f;
