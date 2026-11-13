@@ -57,6 +57,7 @@ namespace Destiny {
     }
 }
 
+class Buffer;
 class InventoryItem;
 class Missile;
 class PyRep;
