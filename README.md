@@ -14,6 +14,7 @@
 This fork is maintained on the `master` branch. It includes additional compatibility, stability and bug-fix work on top of the upstream EVEmu Crucible project.
 
 - **Live patch history:** [PATCH_NOTES.md](PATCH_NOTES.md)
+- **Upstream bug triage:** [ISSUE_TRIAGE.md](ISSUE_TRIAGE.md)
 - **Upstream issue tracker:** [EvEmu-Project/evemu_Crucible issues](https://github.com/EvEmu-Project/evemu_Crucible/issues)
 - **This fork's source and build history:** [xrizonx/evemu_Crucible](https://github.com/xrizonx/evemu_Crucible)
 - **Automated builds:** [GitHub Actions](https://github.com/xrizonx/evemu_Crucible/actions)
