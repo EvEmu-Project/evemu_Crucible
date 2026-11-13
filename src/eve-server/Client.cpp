@@ -1713,7 +1713,30 @@ bool Client::IsHangarLoaded(uint32 hangarID) {
 void Client::LoadStationHangar(uint32 stationID) {
     _log(PLAYER__INFO, "Client::LoadStationHangar() is loading personal hangar for %s(%u) in stationID %u",  m_char->name(), m_char->itemID(), stationID);
     sItemFactory.SetUsingClient(this);
-    m_system->GetStationFromInventory(stationID)->GetMyInventory()->LoadContents();
+
+    if (m_system == nullptr) {
+        _log(CLIENT__ERROR, "Client::LoadStationHangar() - no active system while loading station %u for %s(%u).", stationID, m_char->name(), m_char->itemID());
+        sItemFactory.UnsetUsingClient();
+        SendErrorMsg("Unable to load station hangar %u. Please relog and report this error.", stationID);
+        return;
+    }
+
+    StationItemRef stationRef = m_system->GetStationFromInventory(stationID);
+    if (stationRef.get() == nullptr) {
+        _log(CLIENT__ERROR, "Client::LoadStationHangar() - station %u is missing from system %u inventory for %s(%u).", stationID, m_system->GetID(), m_char->name(), m_char->itemID());
+        sItemFactory.UnsetUsingClient();
+        SendErrorMsg("Unable to load station hangar %u. Please relog and report this error.", stationID);
+        return;
+    }
+
+    Inventory* inventory = stationRef->GetMyInventory();
+    if (inventory == nullptr || !inventory->LoadContents()) {
+        _log(CLIENT__ERROR, "Client::LoadStationHangar() - station %u has no loadable inventory for %s(%u).", stationID, m_char->name(), m_char->itemID());
+        sItemFactory.UnsetUsingClient();
+        SendErrorMsg("Unable to load station hangar %u. Please relog and report this error.", stationID);
+        return;
+    }
+
     sItemFactory.UnsetUsingClient();
 }
 
