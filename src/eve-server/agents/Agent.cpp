@@ -90,9 +90,10 @@ bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     const uint8 missionType = (securityAgent ? Mission::Type::Encounter : Mission::Type::Courier);
     const uint8 missionLevel = (starterMission ? 0 : m_agentData.level);
 
-    // A character can only have one active Level 0 starter offer globally, even
-    // when moving between security agents in different corporations or regions.
-    if (starterMission && MissionDB::HasActiveStarterMission(charID))
+    // Offers are tracked per agent. Do not block every other security agent
+    // just because this character has an active Level 0 offer from a different
+    // agent; the player may run missions for multiple agents concurrently.
+    if (HasMission(charID))
         return false;
 
     sMissionDataMgr.CreateMissionOffer(missionType, missionLevel, m_agentData.raceID, m_important, offer, charID);
