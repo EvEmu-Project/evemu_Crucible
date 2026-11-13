@@ -497,9 +497,8 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
             for (const Dungeon::RoomObject& object : firstRoom.objects) {
                 Inv::TypeData objectType;
                 Inv::GrpData objectGroup;
-                if (!sDataMgr.GetType(object.typeID, objectType)
-                    || !sDataMgr.GetGroup(objectType.groupID, objectGroup))
-                    continue;
+                sDataMgr.GetType(object.typeID, objectType);
+                sDataMgr.GetGroup(objectType.groupID, objectGroup);
 
                 if (objectGroup.catID != EVEDB::invCategories::Ship
                     && objectGroup.catID != EVEDB::invCategories::Drone)
