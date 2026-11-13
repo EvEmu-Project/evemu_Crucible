@@ -725,7 +725,9 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into )
     using namespace Destiny;
     BallHeader head = BallHeader();
         head.entityID = m_self->itemID();
-        head.mode = Ball::Mode::STOP;
+        head.mode = (m_destiny->GetState() == Ball::Mode::WARP)
+            ? Ball::Mode::WARP
+            : Ball::Mode::STOP;
         head.radius = m_radius;
         head.posX = x();
         head.posY = y();
