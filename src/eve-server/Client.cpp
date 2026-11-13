@@ -2008,16 +2008,20 @@ bool Client::StartEncounterMission(MissionOffer& offer)
     }
     m_system->AddEntity(pBeacon);
 
-    // Use the issuing agent faction so the encounter contains the correct pirate group,
-    // rather than the random regional faction used by ordinary belt/anomaly spawns.
+    // Prefer the faction attached to the selected mission's dungeon template.
+    // The issuing agent faction is a fallback for templates without faction metadata.
     Agent* pAgent = sEntityList.GetAgent(offer.agentID);
-    const uint32 missionFactionID = (pAgent != nullptr ? pAgent->GetFactionID() : 0);
+    const uint32 agentFactionID = (pAgent != nullptr ? pAgent->GetFactionID() : 0);
+    MissionData missionTemplate = {};
+    uint32 missionDungeonID = 0;
+    if (sMissionDataMgr.GetMissionData(offer.missionID, missionTemplate))
+        missionDungeonID = missionTemplate.dungeonID;
 
     // Use the beacon's actual bubble so the warpable signal and NPC wave are co-located.
     pBubble = pBeacon->SysBubble();
     if (pBubble == nullptr || !m_system->GetSpawnMgr()->DoSpawnForMission(
             pBubble, m_system->GetRegionID(), offer.range, m_char->itemID(),
-            offer.agentID, offer.offerID, beacon->itemID(), missionFactionID)) {
+            offer.agentID, offer.offerID, beacon->itemID(), agentFactionID, missionDungeonID)) {
         m_system->RemoveEntity(pBeacon);
         beacon->Delete();
         SafeDelete(pBeacon);
