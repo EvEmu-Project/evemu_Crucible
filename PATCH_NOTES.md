@@ -2,6 +2,63 @@
 
 This file tracks fixes and maintenance changes made on this fork's `master` branch. Entries describe code changes, not a guarantee that every gameplay path has been manually tested.
 
+
+## Upstream contribution summary — 2026-11-13
+
+This PR proposes the current fork work against `EvEmu-Project/evemu_Crucible:master`. The fork is 58 commits ahead of the upstream merge base at preparation time. This is a grouped summary of the complete proposed change set, not a claim that all gameplay features are finished.
+
+### Mission system — implemented foundation; combat encounter work in progress
+
+- Added encounter mission offer loading, lookup and persistence support using the existing `agtMissions` data, including briefing and reward metadata.
+- Added security-agent mission selection and Level 0 progression, including a global starter security-mission tier and checks that prevent duplicate active starter offers.
+- Added expiry-aware active-offer checks so expired Level 0 offers do not block new starter missions.
+- Added Level 1 agent access/standing display adjustments.
+- Added the first playable encounter mission lifecycle: accepting an encounter creates a warpable mission beacon in a reserved pocket, associates the pocket with the character/agent/offer, and starts NPC spawning.
+- Added mission-pocket kill progress reporting back to the accepted offer and mission update notification to the client.
+- Added encounter-site cleanup and mission completion handling in the existing client/agent flow.
+- **Latest in-progress work:** mission NPC spawns now receive the issuing agent's faction ID, rather than selecting a random regional pirate faction. Ordinary belt/anomaly faction selection is unchanged.
+- The current encounter spawn implementation still uses the existing generic faction/class spawn data. It is **not yet** a complete library of EVE Level 1 mission-specific templates, named wave compositions, gate unlocks, objective triggers, or per-mission reward/loot tuning. Those are follow-up implementation tasks.
+- Existing NPC death, bounty, wreck and loot behaviour remains the shared game-system path; this PR does not claim a newly implemented per-template loot/bounty table or verified Level 1 reward balance.
+
+### Space movement and warp/docking
+
+- Added server-side pending dock and stargate approach actions so dock/jump requests can remain active while a ship approaches the required range.
+- Added cancellation/clearing of pending space actions when a new manual movement command supersedes them.
+- Corrected Crucible client warp-state serialization for player ships, NPCs and drones, including warp sector encoding and dynamic entity snapshots.
+- Added diagnostics and client-visible feedback for rejected stargate jump requests.
+
+### NPCs, drones and combat stability
+
+- Added drone damage-state encoding and defensive defaults for missing resistance attributes.
+- Improved drone scoop, abandon and ship-destruction cleanup, including controller references and bandwidth accounting.
+- Corrected NPC belt spawn security-class calculation and allowed off-grid NPCs to enter warp before normal culling can remove them.
+- Added defensive validation to turret hit calculations to avoid invalid entity-state and zero-distance crash paths.
+
+### Server stability and compatibility
+
+- Fixed mutable iterator traits in the core Buffer implementation.
+- Hardened DevTools loader file handling and temporary-buffer lifetime.
+- Added defensive checks to database result conversion and row text access; corrected search queries that returned too few columns.
+- Fixed probe-processing iterator invalidation when a probe removes itself during processing.
+- Updated the MariaDB/MySQL reconnect option to use the current boolean type.
+- Added guards around station inventory loading during pod respawn and corrected station inventory reload after system unload.
+- Corrected the dungeon editor AddObject binding to accept the full client argument layout and nullable transform/radius values.
+
+### Build, packaging and documentation
+
+- Updated CMake/build configuration, Docker build inputs and ignore rules.
+- Added a Windows/Linux/Docker build-and-release GitHub Actions workflow and updated compiler/runtime compatibility fixes.
+- Added SQL setup documentation and example database configuration.
+- Added issue triage and stability worklog documentation.
+
+### Verification and known limitations
+
+- The existing CI workflow has successful Windows, Linux and Docker build history for earlier commits in this change set. The latest mission-faction commit's workflow run was still in progress when this note was prepared; check the linked Actions run before treating it as green.
+- Some earlier workflow runs were cancelled as newer commits superseded them; a previous full build run succeeded, but that does not substitute for a successful build of the final PR head.
+- The repository's CTest configuration previously reported no tests found. Manual in-game verification is still needed for mission acceptance, warp to beacon, NPC combat, progress updates, mission completion/rewards, NPC bounties and loot.
+- No database reset is part of this work. Existing MariaDB data must be preserved. Any future mission-template schema/data migration should be additive and separately reviewed.
+- No full upstream merge has been performed by this patch-note update. The change set is submitted for upstream review through the PR.
+
 ## 2026-11-13
 
 ### Fixed
