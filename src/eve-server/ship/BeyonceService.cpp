@@ -119,6 +119,7 @@ BeyonceBound::BeyonceBound(EVEServiceManager& mgr, BeyonceService& parent, Clien
 }
 
 PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* distance) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called Follow. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
 
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
@@ -186,6 +187,7 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
 }
 
 PyResult BeyonceBound::CmdAlignTo(PyCallArgs &call, PyInt* entityID) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called Align. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
@@ -221,6 +223,7 @@ PyResult BeyonceBound::CmdAlignTo(PyCallArgs &call, PyInt* entityID) {
 }
 
 PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y, PyFloat* z) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called GotoDirection. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
@@ -248,6 +251,7 @@ PyResult BeyonceBound::CmdGotoDirection(PyCallArgs &call, PyFloat* x, PyFloat* y
 }
 
 PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called GotoBookmark. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
@@ -300,6 +304,7 @@ PyResult BeyonceBound::CmdGotoBookmark(PyCallArgs &call, PyInt* bookmarkID) {
 }
 
 PyResult BeyonceBound::CmdOrbit(PyCallArgs &call, PyInt* entityID, PyRep* rangeValue) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called Orbit. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     call.client->SetAutoPilot(false);
 
@@ -343,6 +348,7 @@ PyResult BeyonceBound::CmdOrbit(PyCallArgs &call, PyInt* entityID, PyRep* rangeV
 }
 
 PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* id) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuff. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     //call.client->SetAutoPilot(false);
 
@@ -581,6 +587,7 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
 }
 
 PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called WarpToStuffAutopilot. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
@@ -624,6 +631,7 @@ PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) 
 }
 
 PyResult BeyonceBound::CmdStop(PyCallArgs &call) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called Stop. AP: %s, Invul: %s", call.client->GetName(), \
             (call.client->IsAutoPilot() ? "true" : "false"), call.client->IsInvul()?"true":"false");
 
@@ -654,6 +662,7 @@ PyResult BeyonceBound::CmdStop(PyCallArgs &call) {
 
 // CmdTurboDock (in client code)
 PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* shipID, std::optional<PyRep*> paymentRequired) {
+    call.client->ClearPendingSpaceActions();
     _log(AUTOPILOT__MESSAGE, "%s called Dock. AP: %s", call.client->GetName(), (call.client->IsAutoPilot() ? "true" : "false"));
     if (call.client->IsSessionChange()) {
         call.client->SendNotifyMsg("Session Change currently active.");

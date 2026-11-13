@@ -113,6 +113,7 @@ Client::Client(EVEServiceManager& services, EVETCPConnection** con)
     m_portrait = false;
     m_autoPilot = false;
     m_bubbleWait = false;     // allow client processing of subsquent destiny msgs
+    m_pendingDock = false;
     m_charCreation = false;
     m_setStateSent = false;
     m_validSession = false;
@@ -123,6 +124,8 @@ Client::Client(EVEServiceManager& services, EVETCPConnection** con)
     m_moveSystemID = 0;
     m_skillTimer = 0;
     m_dockStationID = 0;
+    m_pendingGateFrom = 0;
+    m_pendingGateTo = 0;
 
     m_lpMap.clear();
     m_channels.clear();
@@ -413,6 +416,8 @@ void Client::ProcessClient() {
         sLog.Error("ProcessClient()","%s: InSpace with no shipSE.  LocationID %u", m_char->name(), m_locationID);
         return;
     }
+
+    ProcessPendingSpaceActions();
 
     if (m_invulTimer.Enabled()/*m_invul*/)
         if (m_invulTimer.Check(false)) {
@@ -1408,8 +1413,58 @@ PyRep *Client::GetAggressors() const {
 }
 
 void Client::StargateJump(uint32 fromGate, uint32 toGate) {
+    ClearPendingSpaceActions();
+
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
         _log(CLIENT__WARNING, "%s: StargateJump rejected; client state is %s and state timer is %s.",
+                m_char->name(), GetStateName(m_clientState).c_str(),
+                (m_stateTimer.Enabled() ? "active" : "inactive"));
+        SendNotifyMsg("Your stargate jump is waiting for another movement or session change to finish. Please wait and try again.");
+        return;
+    }
+
+    if (pShipSE == nullptr || pShipSE->DestinyMgr() == nullptr || m_system == nullptr) {
+        SendErrorMsg("Unable to initiate stargate jump: ship or solar system is unavailable.");
+        return;
+    }
+
+    SystemEntity* gate = m_system->GetSE(fromGate);
+    if (gate == nullptr || !gate->IsGateSE()) {
+        SendErrorMsg("The stargate you selected is not available in this solar system.");
+        _log(CLIENT__WARNING, "%s: StargateJump rejected; source gate %u is not present in system %u.",
+                m_char->name(), fromGate, m_locationID);
+        return;
+    }
+
+    StaticData toData = StaticData();
+    if (!sDataMgr.GetStaticInfo(toGate, toData)) {
+        _log(DATA__ERROR, "Failed to retrieve destination data for stargate %u", toGate);
+        SendErrorMsg("The destination stargate is unavailable.");
+        return;
+    }
+
+    const double rangeToGatePerimeter =
+        pShipSE->GetPosition().distance(gate->GetPosition())
+        - pShipSE->GetRadius()
+        - gate->GetRadius();
+
+    SetAutoPilot(false);
+    if (rangeToGatePerimeter > 2500.0) {
+        m_pendingGateFrom = fromGate;
+        m_pendingGateTo = toGate;
+        const uint32 followDistance = static_cast<uint32>(gate->GetRadius() + 2500.0);
+        pShipSE->DestinyMgr()->Follow(gate, followDistance);
+        _log(AUTOPILOT__MESSAGE, "%s: Approaching stargate %u before jumping; perimeter range %.2fm.",
+                m_char->name(), fromGate, rangeToGatePerimeter);
+        return;
+    }
+
+    BeginStargateJump(fromGate, toGate);
+}
+
+void Client::BeginStargateJump(uint32 fromGate, uint32 toGate) {
+    if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
+        _log(CLIENT__WARNING, "%s: Stargate jump could not start; client state is %s and state timer is %s.",
                 m_char->name(), GetStateName(m_clientState).c_str(),
                 (m_stateTimer.Enabled() ? "active" : "inactive"));
         SendNotifyMsg("Your stargate jump is waiting for another movement or session change to finish. Please wait and try again.");
@@ -1419,41 +1474,86 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     _log(AUTOPILOT__MESSAGE, "%s: StargateJump accepted from gate %u to gate %u.",
             m_char->name(), fromGate, toGate);
 
-    // add jump to mapDynamicData for showing in StarMap (F10)    -allan 06Mar14
     MapDB::AddJump(m_systemData.systemID);
-
-    // call Stop() per packet sniff - shuts off AP.  Halt() does also.  try not calling any movement updates
-    //pShipSE->DestinyMgr()->Halt();  // Stop() disables ap.  try Halt() to reset ship movement to null
     pShipSE->DestinyMgr()->SendJumpOut(fromGate);
-    //  show gate animation in from gate.   -working -allan 15Nov15
     pShipSE->DestinyMgr()->SendGateActivity(fromGate);
 
-    //m_toGate = toGate;
     StaticData toData = StaticData();
     if (!sDataMgr.GetStaticInfo(toGate, toData)) {
         _log(DATA__ERROR, "Failed to retrieve data for stargate %u", toGate);
-        /** @todo  send error to client here */
+        SendErrorMsg("The destination stargate is unavailable.");
         return;
     }
 
-    // this is where we can put the msgs about system closed or w/e
-
-    // add jump to mapDynamicData for showing in StarMap (F10)    -allan 06Mar14
     MapDB::AddJump(toData.systemID);
-    // used for showing Visited Systems in StarMap(F10)  -allan 30Jan14
     m_char->VisitSystem(toData.systemID);
 
     m_movePoint = toData.position;
-    // Make Jump-In point a random spot on ~10km radius sphere about the stargate radius
     m_movePoint.MakeRandomPointOnSphereLayer(toData.radius + 6500, toData.radius + 9500);
     m_moveSystemID = toData.systemID;
-/*
-    char ci[25];
-    snprintf(ci, sizeof(ci), "Jumping:%u", toGate);
-    m_ship->SetCustomInfo(ci);
-*/
-    //delay the move 4sec so they can see the JumpOut animation
+
     SetStateTimer(Player::State::Jump, Player::Timer::Jumping);
+}
+
+void Client::ProcessPendingSpaceActions() {
+    if ((!m_pendingDock && m_pendingGateFrom == 0)
+        || m_clientState != Player::State::Idle
+        || m_stateTimer.Enabled()
+        || m_sessionChangeActive
+        || pShipSE == nullptr
+        || pShipSE->DestinyMgr() == nullptr
+        || m_system == nullptr)
+        return;
+
+    if (m_pendingDock) {
+        SystemEntity* station = m_system->GetSE(m_dockStationID);
+        if (station == nullptr || !station->IsStationSE()) {
+            _log(CLIENT__WARNING, "%s: Cancelling auto-dock; station %u is no longer present.",
+                    m_char->name(), m_dockStationID);
+            m_pendingDock = false;
+            SendNotifyMsg("Docking cancelled because the station is no longer available.");
+            return;
+        }
+
+        const double rangeToStationPerimeter =
+            pShipSE->GetPosition().distance(station->GetPosition())
+            - pShipSE->GetRadius()
+            - station->GetRadius();
+        if (rangeToStationPerimeter > 2500.0)
+            return;
+
+        m_pendingDock = false;
+        _log(AUTOPILOT__MESSAGE, "%s: Auto-dock approach reached station %u perimeter (%.2fm).",
+                m_char->name(), m_dockStationID, rangeToStationPerimeter);
+        pShipSE->DestinyMgr()->AttemptDockOperation();
+        return;
+    }
+
+    if (m_pendingGateFrom != 0) {
+        const uint32 fromGate = m_pendingGateFrom;
+        const uint32 toGate = m_pendingGateTo;
+        SystemEntity* gate = m_system->GetSE(fromGate);
+        if (gate == nullptr || !gate->IsGateSE()) {
+            ClearPendingSpaceActions();
+            _log(CLIENT__WARNING, "%s: Cancelling auto-jump; source gate %u is no longer present.",
+                    m_char->name(), fromGate);
+            SendNotifyMsg("Stargate approach cancelled because the gate is no longer available.");
+            return;
+        }
+
+        const double rangeToGatePerimeter =
+            pShipSE->GetPosition().distance(gate->GetPosition())
+            - pShipSE->GetRadius()
+            - gate->GetRadius();
+        if (rangeToGatePerimeter > 2500.0)
+            return;
+
+        m_pendingGateFrom = 0;
+        m_pendingGateTo = 0;
+        _log(AUTOPILOT__MESSAGE, "%s: Auto-jump approach reached stargate %u perimeter (%.2fm).",
+                m_char->name(), fromGate, rangeToGatePerimeter);
+        BeginStargateJump(fromGate, toGate);
+    }
 }
 
 void Client::CynoJump(InventoryItemRef beacon) {

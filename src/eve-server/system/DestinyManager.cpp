@@ -2418,11 +2418,18 @@ PyResult DestinyManager::AttemptDockOperation() {
     // Verify range to station is within docking perimeter of 2500 meters:
     _log(DESTINY__TRACE, "Destiny::AttemptDockOperation() rangeToStationPerimiter is %.2fm", rangeToStationPerimiter);
     if (rangeToStationPerimiter > 2500.0) {
-        AlignTo( station );   // Turn ship and move toward docking point - client will usually call Dock() automatically...sometimes
-        if (mySE->HasPilot() and mySE->GetPilot()->CanThrow())
-            throw UserError ("DockingApproach");
+        // Keep the dock request server-side while the ship approaches. The client
+        // does not reliably resend CmdDock when AlignTo/Follow reaches the station.
+        pClient->SetPendingDock(true);
+        pClient->SetAutoPilot(false);
+        const uint32 approachDistance = static_cast<uint32>(station->GetRadius() + 2500.0);
+        Follow(station, approachDistance);
+        _log(DESTINY__MESSAGE, "AttemptDockOperation() - %s(%u) approaching station %u; perimeter range %.2fm.",
+                mySE->GetName(), mySE->GetID(), stationID, rangeToStationPerimiter);
+        return new PyLong(GetFileTimeNow());
     }
 
+    pClient->SetPendingDock(false);
     pClient->SetStateTimer(Player::State::Dock, sConfig.world.StationDockDelay *1000); // default @ 4sec();
     pClient->SetAutoPilot(false);
 
