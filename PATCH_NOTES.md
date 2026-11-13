@@ -16,13 +16,15 @@ This PR proposes the current fork work against `EvEmu-Project/evemu_Crucible:mas
 - Added the first playable encounter mission lifecycle: accepting an encounter creates a warpable mission beacon in a reserved pocket, associates the pocket with the character/agent/offer, and starts NPC spawning.
 - Added mission-pocket kill progress reporting back to the accepted offer and mission update notification to the client.
 - Added encounter-site cleanup and mission completion handling in the existing client/agent flow.
-- **Latest in-progress work:** mission NPC spawns now receive the issuing agent's faction ID, rather than selecting a random regional pirate faction. Ordinary belt/anomaly faction selection is unchanged.
-- The current encounter spawn implementation still uses the existing generic faction/class spawn data. It is **not yet** a complete library of EVE Level 1 mission-specific templates, named wave compositions, gate unlocks, objective triggers, or per-mission reward/loot tuning. Those are follow-up implementation tasks.
+- **Latest in-progress work:** encounter offers continue to be selected from the loaded `agtMissions` security templates. The selected mission's `dungeonID` is now resolved and its dungeon-template faction is preferred for NPC spawning; the issuing agent faction is retained as a fallback. Ordinary belt/anomaly faction selection is unchanged.
+- The current encounter spawn implementation still uses the existing generic faction/class spawn composition after resolving the template faction. It is **not yet** a complete library of EVE Level 1 mission-specific NPC type lists, named wave compositions, acceleration-gate unlocks, objective triggers, or per-mission reward/loot tuning. It is **not yet** a complete library of EVE Level 1 mission-specific templates, named wave compositions, gate unlocks, objective triggers, or per-mission reward/loot tuning. Those are follow-up implementation tasks.
 - Existing NPC death, bounty, wreck and loot behaviour remains the shared game-system path; this PR does not claim a newly implemented per-template loot/bounty table or verified Level 1 reward balance.
 
 ### Space movement and warp/docking
 
 - Added server-side pending dock and stargate approach actions so dock/jump requests can remain active while a ship approaches the required range.
+- Dock and stargate jump requests selected during an active warp are now queued until the warp tunnel completes, then resumed through the normal approach/perimeter checks.
+- Normalized ship heading vectors after each turn interpolation and clamped dot products before `acos`, preventing vector-length drift and invalid angle calculations during alignment.
 - Added cancellation/clearing of pending space actions when a new manual movement command supersedes them.
 - Corrected Crucible client warp-state serialization for player ships, NPCs and drones, including warp sector encoding and dynamic entity snapshots.
 - Added diagnostics and client-visible feedback for rejected stargate jump requests.
