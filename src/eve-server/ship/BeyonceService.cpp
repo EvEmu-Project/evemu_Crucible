@@ -194,16 +194,9 @@ PyResult BeyonceBound::CmdAlignTo(PyCallArgs &call, PyInt* entityID) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
     } else if (pDestiny->IsWarping()) {
-        // Dock can be selected while the ship is warping to the station.
-        // Queue the destination; Client::ProcessPendingSpaceActions will
-        // approach and dock once the warp tunnel has completed.
-        call.client->SetDockStationID(celestialID->value());
-        call.client->SetPendingDock(true);
-        call.client->SetAutoPilot(false);
-        _log(AUTOPILOT__MESSAGE, "%s: Queued docking at station %u until current warp completes.",
-                call.client->GetName(), celestialID->value());
+        call.client->SendNotifyMsg("You can't do this while warping");
         return PyStatic.NewNone();
-    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+    } else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
