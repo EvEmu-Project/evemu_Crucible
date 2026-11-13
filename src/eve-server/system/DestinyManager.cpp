@@ -45,6 +45,7 @@
 #include "system/BubbleManager.h"
 #include "system/Container.h"
 #include "system/DestinyManager.h"
+#include "utils/Buffer.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
 #include <cstdlib>
