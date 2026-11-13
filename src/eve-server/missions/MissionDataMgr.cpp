@@ -435,6 +435,23 @@ void MissionDataMgr::LoadMissionOffers(uint32 charID, std::vector<MissionOffer>&
     }
 }
 
+bool MissionDataMgr::GetMissionData(uint16 missionID, MissionData& data) const
+{
+    for (const auto& entry : m_missions) {
+        if (entry.second.missionID == missionID) {
+            data = entry.second;
+            return true;
+        }
+    }
+    for (const auto& entry : m_missionsImp) {
+        if (entry.second.missionID == missionID) {
+            data = entry.second;
+            return true;
+        }
+    }
+    return false;
+}
+
 void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data, uint32 characterID)
 {
     // variable mission data based on agent, init to 0 here.
