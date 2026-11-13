@@ -1447,6 +1447,18 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         return;
     }
 
+    // A gate can be selected while the ship is already in warp (for example,
+    // after warping to the gate from the overview). Preserve that request and
+    // process it once the current warp has completed.
+    if (pShipSE->DestinyMgr()->IsWarping()) {
+        m_pendingGateFrom = fromGate;
+        m_pendingGateTo = toGate;
+        SetAutoPilot(false);
+        _log(AUTOPILOT__MESSAGE, "%s: Queued stargate jump %u -> %u until current warp completes.",
+                m_char->name(), fromGate, toGate);
+        return;
+    }
+
     const double rangeToGatePerimeter =
         pShipSE->GetPosition().distance(gate->GetPosition())
         - pShipSE->GetRadius()
@@ -1506,7 +1518,8 @@ void Client::ProcessPendingSpaceActions() {
         || m_sessionChangeActive
         || pShipSE == nullptr
         || pShipSE->DestinyMgr() == nullptr
-        || m_system == nullptr)
+        || m_system == nullptr
+        || pShipSE->DestinyMgr()->IsWarping())
         return;
 
     if (m_pendingDock) {
@@ -1523,8 +1536,13 @@ void Client::ProcessPendingSpaceActions() {
             pShipSE->GetPosition().distance(station->GetPosition())
             - pShipSE->GetRadius()
             - station->GetRadius();
-        if (rangeToStationPerimeter > 2500.0)
+        if (rangeToStationPerimeter > 2500.0) {
+            // Start the approach after warp, but do not reset Follow every tick.
+            if (!pShipSE->DestinyMgr()->IsFollowing()
+                || pShipSE->DestinyMgr()->GetTargetID() != m_dockStationID)
+                pShipSE->DestinyMgr()->AttemptDockOperation();
             return;
+        }
 
         m_pendingDock = false;
         _log(AUTOPILOT__MESSAGE, "%s: Auto-dock approach reached station %u perimeter (%.2fm).",
@@ -1549,8 +1567,17 @@ void Client::ProcessPendingSpaceActions() {
             pShipSE->GetPosition().distance(gate->GetPosition())
             - pShipSE->GetRadius()
             - gate->GetRadius();
-        if (rangeToGatePerimeter > 2500.0)
+        if (rangeToGatePerimeter > 2500.0) {
+            // A jump queued during warp still needs a normal gate approach.
+            if (!pShipSE->DestinyMgr()->IsFollowing()
+                || pShipSE->DestinyMgr()->GetTargetID() != fromGate) {
+                const uint32 followDistance = static_cast<uint32>(gate->GetRadius() + 2500.0);
+                pShipSE->DestinyMgr()->Follow(gate, followDistance);
+                _log(AUTOPILOT__MESSAGE, "%s: Approaching stargate %u after warp before jumping.",
+                        m_char->name(), fromGate);
+            }
             return;
+        }
 
         m_pendingGateFrom = 0;
         m_pendingGateTo = 0;
