@@ -304,6 +304,7 @@ protected:
     double m_callTime;                  //in ms       - time client call was processed.  this is to coordinate tic calculations
 
     GPoint m_targetPoint;               //vector      - point in space used as current destination
+    GPoint m_warpDestination;            // original client warp-to destination before applying stop range
     GVector m_shipHeading;              //direction ship is facing
     GVector m_targetHeading;            //direction to target from current heading
     std::pair<uint32, SystemEntity*> m_targetEntity;   //we do not own the SystemEntity*
