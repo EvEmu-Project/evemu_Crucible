@@ -32,6 +32,7 @@
 //#include "../../eve-common/EVE_Skills.h"
 
 #include "Client.h"
+#include "agents/Agent.h"
 #include "ConsoleCommands.h"
 #include "EVEServerConfig.h"
 #include "LiveUpdateDB.h"
@@ -1980,11 +1981,16 @@ bool Client::StartEncounterMission(MissionOffer& offer)
     }
     m_system->AddEntity(pBeacon);
 
+    // Use the issuing agent faction so the encounter contains the correct pirate group,
+    // rather than the random regional faction used by ordinary belt/anomaly spawns.
+    Agent* pAgent = sEntityList.GetAgent(offer.agentID);
+    const uint32 missionFactionID = (pAgent != nullptr ? pAgent->GetFactionID() : 0);
+
     // Use the beacon's actual bubble so the warpable signal and NPC wave are co-located.
     pBubble = pBeacon->SysBubble();
     if (pBubble == nullptr || !m_system->GetSpawnMgr()->DoSpawnForMission(
             pBubble, m_system->GetRegionID(), offer.range, m_char->itemID(),
-            offer.agentID, offer.offerID, beacon->itemID())) {
+            offer.agentID, offer.offerID, beacon->itemID(), missionFactionID)) {
         m_system->RemoveEntity(pBeacon);
         beacon->Delete();
         SafeDelete(pBeacon);

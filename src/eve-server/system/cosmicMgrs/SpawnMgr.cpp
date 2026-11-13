@@ -450,7 +450,7 @@ void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)
 }
 
 bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 missionLevel,
-                                  uint32 characterID, uint32 agentID, uint32 offerID, uint32 beaconID)
+                                  uint32 characterID, uint32 agentID, uint32 offerID, uint32 beaconID, uint32 factionID)
 {
     if (pBubble == nullptr || !IsRegionID(regionID)
         || characterID == 0 || agentID == 0 || offerID == 0)
@@ -467,7 +467,7 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
     }
 
     pBubble->SetMission();
-    if (!PrepSpawn(pBubble, spawnClass, 0)) {
+    if (!PrepSpawn(pBubble, spawnClass, 0, factionID)) {
         pBubble->SetMission(false);
         return false;
     }
@@ -527,7 +527,7 @@ bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
     return true;
 }
 
-bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None*/, uint8 level/*0*/)
+bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None*/, uint8 level/*0*/, uint32 factionOverride)
 {
     if (pBubble == nullptr)
         return false;
@@ -540,9 +540,12 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
     bool anomaly = false;
     // get faction for this region
     uint32 factionID = factionRogueDrones;  // default to rogue drones.  this is my internal rogue drone factionID.
-    if (sConfig.npc.RatFaction) {            // is RatFaction set in config?
+    if (factionOverride != 0) {
+        // Mission encounters are tied to the issuing agent, not regional rat RNG.
+        factionID = factionOverride;
+    } else if (sConfig.npc.RatFaction) {        // is RatFaction set in config?
         factionID = sConfig.npc.RatFaction;
-    } else if (MakeRandomFloat() > 0.05) {      // 5% chance for ANY spawn to be rogue drone.
+    } else if (MakeRandomFloat() > 0.05) {      // 5% chance for ANY ordinary spawn to be rogue drone.
         factionID = sDataMgr.GetRegionRatFaction(m_system->GetRegionID());
     }
 
