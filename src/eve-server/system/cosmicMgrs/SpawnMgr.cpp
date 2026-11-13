@@ -450,7 +450,8 @@ void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)
 }
 
 bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 missionLevel,
-                                  uint32 characterID, uint32 agentID, uint32 offerID, uint32 beaconID, uint32 factionID)
+                                  uint32 characterID, uint32 agentID, uint32 offerID, uint32 beaconID,
+                                  uint32 factionID, uint32 dungeonID)
 {
     if (pBubble == nullptr || !IsRegionID(regionID)
         || characterID == 0 || agentID == 0 || offerID == 0)
@@ -464,6 +465,17 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
         case 3: spawnClass = Spawn::Class::Medium; break;
         case 4: spawnClass = Spawn::Class::Hard; break;
         default: spawnClass = Spawn::Class::Crazy; break;
+    }
+
+    // Mission dungeon metadata is more authoritative than the agent's faction:
+    // the dungeon template identifies the actual opposing NPC faction.
+    if (dungeonID != 0) {
+        Dungeon::Dungeon missionDungeon = {};
+        sDunDataMgr.GetDungeon(missionDungeon, dungeonID);
+        if (missionDungeon.factionID != 0)
+            factionID = missionDungeon.factionID;
+        _log(SPAWN__MESSAGE, "Mission %u uses dungeon template %u and faction %u.",
+                offerID, dungeonID, factionID);
     }
 
     pBubble->SetMission();
