@@ -129,8 +129,9 @@ bool MissionDB::HasActiveStarterMission(uint32 characterID)
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT offerID FROM agtOffers WHERE characterID = %u AND typeID = %u "
-        "AND stateID IN (%u, %u) AND name LIKE 'Level 0 - %%' LIMIT 1",
-        characterID, Mission::Type::Encounter, Mission::State::Offered, Mission::State::Accepted))
+        "AND stateID IN (%u, %u) AND expiryTime > %f "
+        "AND name LIKE 'Level 0 - %%' LIMIT 1",
+        characterID, Mission::Type::Encounter, Mission::State::Offered, Mission::State::Accepted, GetFileTimeNow()))
     {
         codelog(DATABASE__ERROR, "Failed to check active Level 0 mission: %s", res.error.c_str());
         return false;
