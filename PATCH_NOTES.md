@@ -28,8 +28,8 @@ This file tracks fixes and maintenance changes made on this fork's `master` bran
 ### Verification
 
 - GitHub Actions build workflow: [run #107](https://github.com/xrizonx/evemu_Crucible/actions/runs/43454803533).
-- At the time this entry was written, Docker, Windows UCRT64 GCC and Linux GCC jobs were still running. Check the workflow for the final result.
-- These changes have not yet been confirmed by a full in-game regression test. The repository's current CTest configuration previously reported no tests found.
+- The initial run #107 above covered the first five fixes. Additional commits later on 13 November triggered newer workflow runs; use the Actions page for the latest result.
+- The code changes are not yet confirmed by a full in-game regression test. The repository's current CTest configuration previously reported no tests found.
 - No database migration is required for these source fixes.
 
 ## Patch-note policy
