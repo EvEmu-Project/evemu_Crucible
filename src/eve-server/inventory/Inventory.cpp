@@ -122,7 +122,9 @@ bool Inventory::LoadContents() {
         if (pClient->IsCharCreation())
             return true;
         if (sDataMgr.IsStation(m_myID)) {
-            if (pClient->IsHangarLoaded(m_myID))
+            // A client marker can outlive a system unload. Only skip loading when
+            // the station inventory itself is still populated in memory.
+            if (pClient->IsHangarLoaded(m_myID) && mContentsLoaded)
                 return true;
             pClient->AddStationHangar(m_myID);
             mContentsLoaded = false;
