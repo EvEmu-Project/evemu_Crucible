@@ -749,9 +749,13 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into )
         data.velZ = m_destiny->GetVelocity().z;
         data.speedfraction = m_destiny->GetSpeedFraction();
     into.Append( data );
-    STOP_Struct main;
-        main.formationID = 0xFF;
-    into.Append( main );
+    if (head.mode == Ball::Mode::WARP) {
+        m_destiny->EncodeWarpState(into);
+    } else {
+        STOP_Struct main;
+            main.formationID = 0xFF;
+        into.Append(main);
+    }
 
     _log(SE__DESTINY, "DSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
