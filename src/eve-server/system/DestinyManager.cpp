@@ -225,6 +225,15 @@ void DestinyManager::ProcessState() {
             float dot = toVec.dotProduct(m_shipHeading);
             float degrees = EvE::Trig::Rad2Deg(std::acos(dot));
 
+            // NPCs spawned off-grid in an empty bubble must warp immediately.
+            // Otherwise the spawn manager can cull them before they enter warp.
+            SystemBubble* bubble = mySE->SysBubble();
+            if (mySE->IsNPCSE() && bubble != nullptr && bubble->CountPlayers() <= 0) {
+                m_shipHeading = toVec;
+                InitWarp();
+                return;
+            }
+
             if ((degrees < WARP_ALIGNMENT) and (m_timeFraction > 0.749)) {
                 m_shipHeading = toVec;
                 InitWarp();
