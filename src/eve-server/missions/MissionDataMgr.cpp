@@ -477,7 +477,6 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
     data.destinationSystemID    = 0;
     data.dungeonLocationID      = 0;
     data.dungeonSolarSystemID   = 0;
-    data.bookmarks              = new PyList();
 
     /** @todo  this will need to be adjusted for raceID eventually */
     switch (typeID) {
@@ -642,6 +641,9 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         } break;
     }
 
+    // Allocate bookmarks only after a valid offer has been selected. Empty
+    // template pools return above and must not leave an orphaned PyList.
+    data.bookmarks = new PyList();
     _log(AGENT__DEBUG, "Created %s level %u %s offer - '%s'", (important?"an important":"a"), level, GetTypeName(data.typeID).c_str(), data.name.c_str());
 }
 
