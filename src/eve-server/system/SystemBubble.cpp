@@ -70,6 +70,12 @@ m_spawnTimer(0)
 
     m_systemID = pSystem->GetID();
     m_bubbleID = sBubbleMgr.GetBubbleID();
+    m_missionCharacterID = 0;
+    m_missionAgentID = 0;
+    m_missionOfferID = 0;
+    m_missionBeaconID = 0;
+    m_missionKills = 0;
+    m_missionKillsRequired = 0;
 
     _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Constructor - Created new bubble %u(%p) at (%.2f,%.2f,%.2f)[%.1f].",\
 	     m_bubbleID, this, m_center.x, m_center.y, m_center.z, m_radius);

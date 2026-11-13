@@ -292,10 +292,6 @@ void NPC::Killed(Damage &damage) {
     if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
         return; // make error here?
 
-    //notify our spawn manager that we are gone.
-    if ((m_spawnMgr != nullptr) and (m_self.get() != nullptr))
-        m_spawnMgr->SpawnKilled(m_bubble, m_self->itemID());
-
     uint32 killerID = 0;
     Client* pClient(nullptr);
     SystemEntity *killer(damage.srcSE);
@@ -313,6 +309,9 @@ void NPC::Killed(Damage &damage) {
     } else {
         killerID = killer->GetID();
     }
+
+    if ((m_spawnMgr != nullptr) && (m_self.get() != nullptr))
+        m_spawnMgr->SpawnKilled(m_bubble, m_self->itemID(), (pClient != nullptr ? killerID : 0));
 
     uint32 locationID = GetLocationID();
     //  log faction kill in dynamic data   -allan

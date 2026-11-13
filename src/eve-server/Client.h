@@ -308,6 +308,8 @@ public:
     void RemoveMissionItem(uint16 typeID, uint32 qty);
     bool ContainsTypeQty(uint16 typeID, uint32 qty) const;
     bool IsMissionComplete(MissionOffer& data);
+    bool StartEncounterMission(MissionOffer& offer);
+    void RemoveEncounterMissionSite(const MissionOffer& offer);
 
     //  scan
     Scan* scan()                                        { return m_scan; }

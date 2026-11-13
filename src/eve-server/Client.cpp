@@ -54,7 +54,10 @@
 #include "system/DestinyManager.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
+#include "system/BubbleManager.h"
+#include "system/Celestial.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
+#include "system/cosmicMgrs/SpawnMgr.h"
 #include "exploration/Scan.h"
 #include "station/Station.h"
 #include "station/TradeService.h"
@@ -1935,6 +1938,87 @@ bool Client::ContainsTypeQty(uint16 typeID, uint32 qty) const
     return false;
 }
 
+bool Client::StartEncounterMission(MissionOffer& offer)
+{
+    if (m_system == nullptr || m_char.get() == nullptr || !sDataMgr.IsStation(m_locationID)
+        || m_clientState != Player::State::Idle || offer.typeID != Mission::Type::Encounter
+        || offer.agentID == 0 || offer.offerID == 0)
+        return false;
+
+    // Pick an unused pocket away from belts, gates, existing anomalies and pilots.
+    SystemBubble* pBubble = nullptr;
+    GPoint sitePoint;
+    for (uint8 attempt = 0; attempt < 12; ++attempt) {
+        sitePoint = sMapData.GetAnomalyPoint(m_system);
+        SystemBubble* candidate = sBubbleMgr.GetBubble(m_system, sitePoint);
+        if (candidate == nullptr || candidate->IsBelt() || candidate->IsGate()
+            || candidate->IsAnomaly() || candidate->IsMission()
+            || candidate->CountNPCs() != 0 || candidate->CountPlayers() != 0
+            || candidate->CountDynamics() != 0)
+            continue;
+        pBubble = candidate;
+        break;
+    }
+    if (pBubble == nullptr || m_system->GetSpawnMgr() == nullptr)
+        return false;
+
+    const std::string beaconName = "Mission Site - " + offer.name;
+    ItemData beaconData(EVEDB::invTypes::CosmicAnomaly, m_char->itemID(), m_system->GetID(),
+                        flagNone, beaconName.c_str(), sitePoint);
+    sItemFactory.SetUsingClient(this);
+    InventoryItemRef beacon = sItemFactory.SpawnItem(beaconData);
+    sItemFactory.UnsetUsingClient();
+    if (beacon.get() == nullptr)
+        return false;
+
+    beacon->SetCustomInfo("mission");
+    beacon->SaveItem();
+    CelestialSE* pBeacon = new CelestialSE(beacon, m_system->GetServiceMgr(), m_system);
+    if (pBeacon == nullptr) {
+        beacon->Delete();
+        return false;
+    }
+    m_system->AddEntity(pBeacon);
+
+    // Use the beacon's actual bubble so the warpable signal and NPC wave are co-located.
+    pBubble = pBeacon->SysBubble();
+    if (pBubble == nullptr || !m_system->GetSpawnMgr()->DoSpawnForMission(
+            pBubble, m_system->GetRegionID(), offer.range, m_char->itemID(),
+            offer.agentID, offer.offerID, beacon->itemID())) {
+        m_system->RemoveEntity(pBeacon);
+        beacon->Delete();
+        SafeDelete(pBeacon);
+        return false;
+    }
+
+    offer.destinationID = beacon->itemID();
+    offer.destinationTypeID = EVEDB::invTypes::CosmicAnomaly;
+    offer.destinationOwnerID = m_char->itemID();
+    offer.destinationSystemID = m_system->GetID();
+    offer.dungeonLocationID = pBubble->GetID();
+    offer.dungeonSolarSystemID = m_system->GetID();
+    offer.courierTypeID = 0;
+    offer.courierAmount = static_cast<uint16>(pBubble->CountNPCs());
+    return offer.courierAmount > 0;
+}
+
+void Client::RemoveEncounterMissionSite(const MissionOffer& offer)
+{
+    if (m_system == nullptr || offer.destinationID == 0
+        || offer.destinationSystemID != m_system->GetID())
+        return;
+
+    SystemEntity* pSite = m_system->GetSE(offer.destinationID);
+    if (pSite == nullptr)
+        return;
+
+    InventoryItemRef siteItem = pSite->GetSelf();
+    m_system->RemoveEntity(pSite);
+    if (siteItem.get() != nullptr)
+        siteItem->Delete();
+    SafeDelete(pSite);
+}
+
 bool Client::IsMissionComplete(MissionOffer& data)
 {
     // dont know all the stipulations of "completion" yet, but skeleton code for starters...
@@ -1942,6 +2026,7 @@ bool Client::IsMissionComplete(MissionOffer& data)
         case Mission::Type::Tutorial: {
         } break;
         case Mission::Type::Encounter: {
+            return (data.courierAmount > 0 && data.courierTypeID >= data.courierAmount);
         } break;
         case Mission::Type::Courier: {
             if (m_locationID == data.destinationID)

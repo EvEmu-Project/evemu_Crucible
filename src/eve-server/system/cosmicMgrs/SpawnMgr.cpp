@@ -18,6 +18,7 @@
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
+#include "agents/Agent.h"
 
 /** @todo  this can be updated to spawn mission, anomaly and deadspace rats.
  *   change all *roidRat* to *somethingelse* to better explain/describe the maps and how they're used.
@@ -220,7 +221,7 @@ void SpawnMgr::StartRatGroupTimer()
             m_system->GetName(), m_system->GetID(), m_groupTimerSetTime);
 }
 
-void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
+void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID, uint32 killerID)
 {
     if (pBubble == nullptr)
         return;
@@ -282,15 +283,33 @@ void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
          * 5- more/others?
          */
     } else if (pBubble->IsMission()) {
-        _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Mission - called by %u.", itemID);
-        // placeholder - not coded yet.
-        /*  this needs to deal with multiple things.
-         * 1- unlocking warp gates when needed per wave
-         * 2- dropping loot according to (wave/mission/template)?
-         * 3- setting mission completion status
-         * 4- spawn next wave, if applicable
-         * 5- more/others?
-         */
+        _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Mission - NPC %u killed by character %u.", itemID, killerID);
+        RemoveSpawn(pBubble->GetID(), itemID);
+
+        if (pBubble->RecordMissionKill(killerID)) {
+            Agent* pAgent = sEntityList.GetAgent(pBubble->GetMissionAgentID());
+            MissionOffer offer = MissionOffer();
+            if (pAgent != nullptr
+                && pAgent->HasMission(pBubble->GetMissionCharacterID(), offer)
+                && offer.offerID == pBubble->GetMissionOfferID()
+                && offer.stateID == Mission::State::Accepted) {
+                offer.courierTypeID = pBubble->GetMissionKills();
+                pAgent->UpdateOffer(pBubble->GetMissionCharacterID(), offer);
+                Client* pClient = sEntityList.FindClientByCharID(pBubble->GetMissionCharacterID());
+                if (pClient != nullptr)
+                    pAgent->SendMissionUpdate(pClient, "modified");
+                _log(SPAWN__MESSAGE, "Mission offer %u progress: %u/%u hostile ships destroyed.",
+                        offer.offerID, offer.courierTypeID, offer.courierAmount);
+            }
+        }
+
+        if (m_spawns.count(pBubble->GetID()) == 0) {
+            auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+            if (bubbleItr != m_bubbles.end())
+                m_bubbles.erase(bubbleItr);
+            pBubble->SetSpawned(false);
+            _log(SPAWN__MESSAGE, "Mission pocket %u has no remaining NPC spawn entries.", pBubble->GetID());
+        }
     } else if (pBubble->IsIncursion()) {
         _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Incursion - called by %u.", itemID);
         // placeholder - not coded yet.
@@ -430,21 +449,45 @@ void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)
     // unknown parameters at this time
 }
 
-void SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID)
+bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 missionLevel,
+                                  uint32 characterID, uint32 agentID, uint32 offerID, uint32 beaconID)
 {
-    if (pBubble == nullptr)
-        return;
-    if (!IsRegionID(regionID))
-        return;
-    pBubble->SetMission();
-    // unknown parameters at this time
+    if (pBubble == nullptr || !IsRegionID(regionID)
+        || characterID == 0 || agentID == 0 || offerID == 0)
+        return false;
 
-    /*  this needs to deal with multiple things.
-     * 1- npc types per template
-     * 2- faction per template
-     * 3- waves per template.
-     * 4- more/others?
-     */
+    uint8 spawnClass = Spawn::Class::Easy;
+    switch (missionLevel) {
+        case 0: spawnClass = Spawn::Class::Easy; break;
+        case 1: spawnClass = Spawn::Class::Fair; break;
+        case 2: spawnClass = Spawn::Class::Average; break;
+        case 3: spawnClass = Spawn::Class::Medium; break;
+        case 4: spawnClass = Spawn::Class::Hard; break;
+        default: spawnClass = Spawn::Class::Crazy; break;
+    }
+
+    pBubble->SetMission();
+    if (!PrepSpawn(pBubble, spawnClass, 0)) {
+        pBubble->SetMission(false);
+        return false;
+    }
+
+    const uint32 npcCount = pBubble->CountNPCs();
+    if (npcCount == 0 || npcCount > 65535) {
+        m_spawns.erase(pBubble->GetID());
+        auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+        if (bubbleItr != m_bubbles.end())
+            m_bubbles.erase(bubbleItr);
+        pBubble->SetMission(false);
+        pBubble->SetSpawned(false);
+        return false;
+    }
+
+    pBubble->SetMissionData(characterID, agentID, offerID, beaconID, static_cast<uint16>(npcCount));
+    pBubble->SetSpawned(true);
+    _log(SPAWN__MESSAGE, "Created Level %u mission pocket %u for character %u with %u NPCs.",
+            missionLevel, pBubble->GetID(), characterID, npcCount);
+    return true;
 }
 
 bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
@@ -593,7 +636,7 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
         // anomaly, incursion or mission
         ++level;    // increment wave
         // check wave # vs possible waves.  (oob check)
-        if (spawnEntry.size() < level) {
+        if (spawnEntry.size() <= level) {
             _log(SPAWN__ERROR, "SpawnMgr::PrepSpawn() - spawnEntry.size (%u) < level (%u) for anomaly class %s.  Cancelling spawn.", spawnEntry.size(), level, GetSpawnClassName(sClass).c_str());
             return false;
         }
