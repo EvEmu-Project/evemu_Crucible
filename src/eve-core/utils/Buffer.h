@@ -56,8 +56,8 @@ public:
         typedef std::random_access_iterator_tag iterator_category;
         typedef T                               value_type;
         typedef std::ptrdiff_t                  difference_type;
-        typedef const T*                        pointer;
-        typedef const T&                        reference;
+        typedef T*                              pointer;
+        typedef T&                              reference;
 
         /// Typedef for const pointer.
         typedef const T* const_pointer;
