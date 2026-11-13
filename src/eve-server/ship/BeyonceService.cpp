@@ -669,10 +669,7 @@ PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* ship
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
-    } else if (pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
-        return PyStatic.NewNone();
-    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+    } else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
@@ -684,8 +681,17 @@ PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* ship
         return PyStatic.NewNone();
     }
 
-    //  this sets m_dockStationID for radius checks and other things
-    call.client->SetDockStationID( celestialID->value() );
+    // This is used by both immediate docking and the post-warp approach.
+    call.client->SetDockStationID(celestialID->value());
+    if (pDestiny->IsWarping()) {
+        // Keep the dock request until the current warp has finished. The
+        // pending-action processor will approach and dock at the station.
+        call.client->SetPendingDock(true);
+        call.client->SetAutoPilot(false);
+        _log(AUTOPILOT__MESSAGE, "%s: Queued docking at station %u until current warp completes.",
+                call.client->GetName(), celestialID->value());
+        return PyStatic.NewNone();
+    }
 
     /* return error msg from this call, if applicable, else nodeid and timestamp */
     return pDestiny->AttemptDockOperation();
@@ -726,16 +732,14 @@ PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, 
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
-    } else if (pDestiny->IsWarping()) {
-        call.client->SendNotifyMsg( "You can't do this while warping");
-        return PyStatic.NewNone();
-    }  else if (pDestiny->AbortIfLoginWarping(true)) {
+    } else if (pDestiny->AbortIfLoginWarping(true)) {
         return PyStatic.NewNone();
     } else if (pDestiny->IsFrozen()) {
         call.client->SendNotifyMsg( "Your ship is frozen and cannot move");
         return PyStatic.NewNone();
     }
 
+    // Client::StargateJump queues the request when a normal warp is active.
     /** @todo  check distance from ship to gate */
     call.client->StargateJump(fromStargateID->value(), toStargateID->value());
 
