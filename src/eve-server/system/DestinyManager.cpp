@@ -241,7 +241,12 @@ void DestinyManager::ProcessState() {
             // Updated warp alignment and speed check.  -allan  17nov15
             GVector toVec(m_position, m_targetPoint);
             toVec.normalize();
+            m_shipHeading.normalize();
             float dot = toVec.dotProduct(m_shipHeading);
+            if (dot > 1.0f)
+                dot = 1.0f;
+            else if (dot < -1.0f)
+                dot = -1.0f;
             float degrees = EvE::Trig::Rad2Deg(std::acos(dot));
 
             // NPCs spawned off-grid in an empty bubble must warp immediately.
@@ -954,24 +959,21 @@ bool DestinyManager::IsTurn() {    //this is working.  dont change
     /** @todo revisit this to verify angle calcs */
     GVector toVec(m_position, m_targetPoint);
     toVec.normalize();
+
+    // Turn() blends heading vectors incrementally. Keep the stored heading unit
+    // length before using its dot product; the old component-wise "repair" could
+    // add 1.0 to valid negative/positive components and send the ship off course.
+    if (m_shipHeading.isZero())
+        m_shipHeading = toVec;
+    else
+        m_shipHeading.normalize();
+
     float dot(toVec.dotProduct(m_shipHeading));
-    if ((dot > 1.0f) or (dot < -1.0f)) {
-        sLog.Error("Destiny::IsTurn()", "%s(%u) - shipHeading has screwed up.  dot is %.5f", mySE->GetName(), mySE->GetID(), dot);
-        _log(DESTINY__ERROR, "Destiny::IsTurn() m_shipHeading: %.3f,%.3f,%.3f.  m_targetHeading: %.3f,%.3f,%.3f, toVec:%.3f,%.3f,%.3f", \
-                m_shipHeading.x, m_shipHeading.y, m_shipHeading.z, m_targetHeading.x, m_targetHeading.y, m_targetHeading.z, toVec.x, toVec.y, toVec.z);
-        // try to correct for bad heading vector and retest...
-             if (m_shipHeading.x > 1.0f)  { m_shipHeading.x -= 1; }
-        else if (m_shipHeading.x < 1.0f)  { m_shipHeading.x += 1; }
-             if (m_shipHeading.y > 1.0f)  { m_shipHeading.y -= 1; }
-        else if (m_shipHeading.y < 1.0f)  { m_shipHeading.y += 1; }
-             if (m_shipHeading.z > 1.0f)  { m_shipHeading.z -= 1; }
-        else if (m_shipHeading.z < 1.0f)  { m_shipHeading.z += 1; }
-        dot = toVec.dotProduct(m_shipHeading);
-        if ((dot > 1.0f) or (dot < -1.0f)) {
-            sLog.Error("Destiny::IsTurn()", "%s(%u) - shipHeading has screwed up AGAIN.  dot is %.5f", mySE->GetName(), mySE->GetID(), dot);
-            return false;
-        }
-    }
+    // Floating-point rounding can put a normalized-vector dot just outside acos' domain.
+    if (dot > 1.0f)
+        dot = 1.0f;
+    else if (dot < -1.0f)
+        dot = -1.0f;
     m_radians = std::acos(dot);
     float degrees(EvE::Trig::Rad2Deg(m_radians));
     if (degrees < TURN_ALIGNMENT/*4*/) {
@@ -1104,6 +1106,9 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
     }
     deltaHeading *= turnPercent;
     m_shipHeading += deltaHeading;
+    // Linear interpolation shortens the vector between different headings.
+    // Renormalize each tic so subsequent alignment calculations remain valid.
+    m_shipHeading.normalize();
     if (is_log_enabled(DESTINY__TURN_TRACE))
         _log(DESTINY__TURN_TRACE, "Destiny::Turn() - tf:%.3f, turnTic:%u, degRemain:%.3f  (deltaHeading:%.5f, %.5f, %.5f * turnPercent:%.2f) = shipHeading:%.3f, %.3f, %.3f", \
             m_timeFraction, m_turnTic, degrees, deltaHeading.x, deltaHeading.y, deltaHeading.z, turnPercent, m_shipHeading.x, m_shipHeading.y, m_shipHeading.z);
@@ -2346,7 +2351,12 @@ bool DestinyManager::IsAligned(GPoint& targetPoint)
     }
     GVector toVec(m_position, targetPoint);
     toVec.normalize();
+    m_shipHeading.normalize();
     float dot = toVec.dotProduct(m_shipHeading);
+    if (dot > 1.0f)
+        dot = 1.0f;
+    else if (dot < -1.0f)
+        dot = -1.0f;
     float degrees = EvE::Trig::Rad2Deg(std::acos(dot));
     if (degrees < TURN_ALIGNMENT)
         return true;
