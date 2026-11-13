@@ -231,9 +231,15 @@ void MissionDataMgr::Populate()
         data.level = row.GetInt(3);
         data.typeID = row.GetInt(4);
         data.important = row.GetBool(5);
+        data.storyline = row.GetBool(6);
         data.constellationID = row.GetInt(8);
         data.corporationID = row.GetInt(9);
         data.dungeonID = row.GetInt(10);
+        data.rewardISK = row.GetUInt(11);
+        data.rewardItemID = row.GetUInt(12);
+        data.rewardItemQty = row.GetUInt(13);
+        data.bonusISK = row.GetUInt(14);
+        data.bonusTime = row.GetUInt(15);
         if (data.important) {
             m_missionsImp.emplace(row.GetInt(3), data);
         } else {
@@ -517,6 +523,52 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         case Mission::Type::Tutorial: {
         } break;
         case Mission::Type::Encounter: {
+            // Level 0 is an RMR beginner tier. It borrows a real Level 1
+            // Encounter template so the existing client localization remains valid.
+            const uint8 templateLevel = (level == 0 ? 1 : level);
+            std::vector<MissionData> candidates;
+            auto selectedRange = (important
+                ? m_missionsImp.equal_range(templateLevel)
+                : m_missions.equal_range(templateLevel));
+            for (auto it = selectedRange.first; it != selectedRange.second; ++it)
+                if (it->second.typeID == Mission::Type::Encounter)
+                    candidates.push_back(it->second);
+
+            // Some agent templates are in the opposite important/non-important pool.
+            if (candidates.empty()) {
+                auto fallbackRange = (important
+                    ? m_missions.equal_range(templateLevel)
+                    : m_missionsImp.equal_range(templateLevel));
+                for (auto it = fallbackRange.first; it != fallbackRange.second; ++it)
+                    if (it->second.typeID == Mission::Type::Encounter)
+                        candidates.push_back(it->second);
+            }
+
+            if (candidates.empty()) {
+                _log(AGENT__WARNING, "No Encounter mission templates for level %u (template level %u).",
+                        level, templateLevel);
+                data.typeID = 0;
+                return;
+            }
+
+            const MissionData& mission = candidates[MakeRandomInt(0, static_cast<uint32>(candidates.size() - 1))];
+            data.typeID = Mission::Type::Encounter;
+            data.name = mission.name;
+            if (level == 0)
+                data.name = "Level 0 - " + data.name;
+            data.missionID = mission.missionID;
+            data.briefingID = mission.briefingID;
+            data.important = mission.important;
+            data.storyline = mission.storyline;
+            data.rewardISK = mission.rewardISK;
+            data.rewardItemID = mission.rewardItemID;
+            data.rewardItemQty = mission.rewardItemQty;
+            data.bonusISK = mission.bonusISK;
+            data.bonusTime = mission.bonusTime;
+            data.courierTypeID = 0;
+            data.courierAmount = 0;
+            data.courierItemVolume = 0.0f;
+            data.range = level;
         } break;
         case Mission::Type::Trade: {
         } break;

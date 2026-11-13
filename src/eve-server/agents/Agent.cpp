@@ -36,7 +36,25 @@
 #include "../system/SystemManager.h"
 #include "../standing/StandingMgr.h"
 #include "corporation/LPService.h"
+#include "missions/MissionDB.h"
 
+
+static bool IsSecurityMissionDivision(uint32 divisionID)
+{
+    switch (divisionID) {
+        case 2:  // Administration
+        case 6:  // Command
+        case 9:  // Intelligence
+        case 10: // Internal Security
+        case 11: // Legal
+        case 19: // Security
+        case 21: // Surveillance
+        case 24: // SecurityNew
+            return true;
+        default:
+            return false;
+    }
+}
 
 Agent::Agent(uint32 id)
 : m_agentID(id)
@@ -63,91 +81,75 @@ bool Agent::Load() {
     return true;
 }
 
-void Agent::MakeOffer(uint32 charID, MissionOffer& offer)
+bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
 {
-    // this will be based on agent type eventually
-    uint8 misionType = Mission::Type::Courier;
+    const bool securityAgent = IsSecurityMissionDivision(m_agentData.divisionID);
+    const uint32 completedLevel0 = (securityAgent
+        ? MissionDB::GetCompletedStarterMissionCount(charID) : 3);
+    const bool starterMission = securityAgent && completedLevel0 < 3;
+    const uint8 missionType = (securityAgent ? Mission::Type::Encounter : Mission::Type::Courier);
+    const uint8 missionLevel = (starterMission ? 0 : m_agentData.level);
 
-    sMissionDataMgr.CreateMissionOffer(misionType, m_agentData.level, m_agentData.raceID, m_important, offer);
+    // A character can only have one active Level 0 starter offer globally, even
+    // when moving between security agents in different corporations or regions.
+    if (starterMission && MissionDB::HasActiveStarterMission(charID))
+        return false;
 
-    /*  static mission data from db
-    offer.name               = cData.name;
-    offer.typeID             = cData.typeID;
-    offer.bonusISK           = cData.bonusISK;
-    offer.rewardISK          = cData.rewardISK;
-    offer.bonusTime          = cData.bonusTime;
-    offer.important          = cData.important;
-    offer.storyline          = cData.storyline;
-    offer.missionID          = cData.missionID;
-    offer.briefingID         = cData.briefingID;
-    offer.rewardItemID       = cData.rewardItemID;
-    offer.rewardItemQty      = cData.rewardItemQty;
-    offer.courierTypeID      = cData.itemTypeID;
-    offer.courierAmount      = cData.itemQty;
+    sMissionDataMgr.CreateMissionOffer(missionType, missionLevel, m_agentData.raceID, m_important, offer);
+    if (offer.typeID == 0)
+        return false;
 
-    offer.stateID            = Mission::State::Allocated;
-    offer.dateIssued         = GetFileTimeNow();
-    */
+    offer.characterID = charID;
+    offer.agentID = m_agentID;
+    offer.originID = m_agentData.stationID;
+    offer.originOwnerID = m_agentData.corporationID;
+    offer.originSystemID = m_agentData.solarSystemID;
+    offer.expiryTime = GetFileTimeNow() + EvE::Time::Day;
 
-    offer.characterID        = charID;
-
-    // variable mission data based on agent
-    offer.agentID            = m_agentID;
-    offer.originID           = m_agentData.stationID;
-    offer.originOwnerID      = m_agentData.corporationID;
-    offer.originSystemID     = m_agentData.solarSystemID;
-    offer.expiryTime         = GetFileTimeNow() + EvE::Time::Day;
-
-    // make function to determine destination based on mission type, agent level, agent location, and some other shit.
-    //offer.destinationID      = 0;
-    //offer.destinationOwnerID      = 0;
-    //offer.destinationSystemID = 0;
-    //offer.destinationTypeID = 0;
-    //offer.dungeonLocationID      = 0;
-    //offer.dungeonSolarSystemID   = 0;
-    sMapData.GetMissionDestination(this, misionType, offer);
-    if (offer.destinationID == 0) {
-        // make error here and reset
-        sEntityList.FindClientByCharID(charID)->SendErrorMsg("Internal Server Error. Ref: ServerError 07208.");
-        //return;
-    }
-
-    // not sure how this is checked/set
-    offer.remoteOfferable    = false;
-    offer.remoteCompletable  = false;
-    // LP Reward
-    offer.rewardLP           = LPService::GetLPReward(offer.missionID, m_agentData.solarSystemID, m_agentData.level);   // LP reward = (1.6288 - System security) × Base LP
-    // same with these
-    offer.acceptFee          = 0;
-
-    // create and save bookmarks for this offer.... not sure how yet.
-    offer.bookmarks          = new PyList();
-
-    //offer.dateAccepted       = 0;     //not set here
-    //offer.dateCompleted      = 0;     //not set here
-
-    offer.stateID            = Mission::State::Offered;
-    //offer.offerID            = 0;     //created when saving offer in db
-
-    // update mission data as needed....
-    if (offer.typeID == Mission::Type::Courier) {
-        if ((offer.briefingID == 145156) or (offer.briefingID == 14515)) {
-            // the destination and origin need to be reversed on this mission.
-            offer.originID            = offer.destinationID;
-            offer.originOwnerID       = offer.destinationOwnerID;
-            offer.originSystemID      = offer.destinationSystemID;
-
-            offer.destinationID       = m_agentData.stationID;
-            offer.destinationOwnerID  = m_agentData.corporationID;
-            offer.destinationSystemID = m_agentData.solarSystemID;
+    if (missionType == Mission::Type::Encounter) {
+        // The beacon and NPC pocket are assigned atomically on acceptance.
+        offer.range = missionLevel;
+        offer.destinationID = 0;
+        offer.destinationTypeID = 0;
+        offer.destinationOwnerID = 0;
+        offer.destinationSystemID = m_agentData.solarSystemID;
+        offer.dungeonLocationID = 0;
+        offer.dungeonSolarSystemID = m_agentData.solarSystemID;
+        offer.courierTypeID = 0;
+        offer.courierAmount = 0;
+        offer.courierItemVolume = 0.0f;
+    } else {
+        sMapData.GetMissionDestination(this, missionType, offer);
+        if (offer.destinationID == 0) {
+            Client* pClient = sEntityList.FindClientByCharID(charID);
+            if (pClient != nullptr)
+                pClient->SendErrorMsg("Internal Server Error. Ref: ServerError 07208.");
+            return false;
         }
     }
 
-    MissionDB::CreateOfferID(offer);
+    offer.remoteOfferable = false;
+    offer.remoteCompletable = false;
+    offer.rewardLP = LPService::GetLPReward(offer.missionID, m_agentData.solarSystemID,
+            (missionLevel == 0 ? 1 : missionLevel));
+    offer.acceptFee = 0;
+    offer.bookmarks = new PyList();
+    offer.stateID = Mission::State::Offered;
 
-    // keep local copy and also add to mission data mgr
+    if (offer.typeID == Mission::Type::Courier
+        && ((offer.briefingID == 145156) || (offer.briefingID == 14515))) {
+        offer.originID = offer.destinationID;
+        offer.originOwnerID = offer.destinationOwnerID;
+        offer.originSystemID = offer.destinationSystemID;
+        offer.destinationID = m_agentData.stationID;
+        offer.destinationOwnerID = m_agentData.corporationID;
+        offer.destinationSystemID = m_agentData.solarSystemID;
+    }
+
+    MissionDB::CreateOfferID(offer);
     m_offers.emplace(charID, offer);
     sMissionDataMgr.AddMissionOffer(charID, offer);
+    return true;
 }
 
 bool Agent::HasMission(uint32 charID)
@@ -749,6 +751,17 @@ bool Agent::CanUseAgent(Client* pClient)
     /** @todo this needs work!!  */
     if (m_agentData.typeID == Agents::Type::Aura)
         return true;
+
+    Character* pChar = (pClient != nullptr ? pClient->GetChar().get() : nullptr);
+    if (pChar == nullptr)
+        return false;
+
+    // Level 0 beginner missions deliberately ignore every standing value,
+    // including negative personal, corporation or faction standings.
+    if (IsSecurityMissionDivision(m_agentData.divisionID)
+        && MissionDB::GetCompletedStarterMissionCount(pChar->itemID()) < 3)
+        return true;
+
     if (m_agentData.level == 1)
         if (m_agentData.typeID != Agents::Type::Research)
             return true;

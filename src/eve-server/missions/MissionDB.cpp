@@ -17,7 +17,7 @@ void MissionDB::LoadMissionData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
         "SELECT id, briefingID, name, level, typeID, important, storyline, raceID, constellationID, corporationID, dungeonID,"
-        " rewardISK, rewardItemID, rewardISK, rewardItemQty, bonusISK, bonusTime FROM agtMissions WHERE briefingID > 0 AND rewardISK > 0"))
+        " rewardISK, rewardItemID, rewardItemQty, bonusISK, bonusTime FROM agtMissions WHERE briefingID > 0 AND rewardISK > 0"))
         codelog(DATABASE__ERROR, "Error in LoadMissionData query: %s", res.error.c_str());
 }
 
@@ -76,11 +76,50 @@ void MissionDB::DeleteOffer(MissionOffer& data)
 void MissionDB::UpdateMissionOffer(MissionOffer& data)
 {
     DBerror err;
-    if (!sDatabase.RunQuery(err, "UPDATE agtOffers SET stateID = %u, dateAccepted = %f, dateCompleted = %f, expiryTime = %f WHERE offerID = %u",
-        data.stateID, data.dateAccepted, data.dateCompleted, data.expiryTime, data.offerID))
+    if (!sDatabase.RunQuery(err,
+        "UPDATE agtOffers SET stateID = %u, dateAccepted = %f, dateCompleted = %f, expiryTime = %f, "
+        "courierTypeID = %u, courierAmount = %u, destinationID = %u, destinationTypeID = %u, "
+        "destinationOwnerID = %u, destinationSystemID = %u, dungeonLocationID = %u, dungeonSolarSystemID = %u "
+        "WHERE offerID = %u",
+        data.stateID, data.dateAccepted, data.dateCompleted, data.expiryTime,
+        data.courierTypeID, data.courierAmount, data.destinationID, data.destinationTypeID,
+        data.destinationOwnerID, data.destinationSystemID, data.dungeonLocationID,
+        data.dungeonSolarSystemID, data.offerID))
     {
         codelog(DATABASE__ERROR, "Failed to update MissionOffer: %s", err.c_str());
     }
+}
+
+uint32 MissionDB::GetCompletedStarterMissionCount(uint32 characterID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT COUNT(*) FROM agtOffers WHERE characterID = %u AND typeID = %u "
+        "AND stateID = %u AND name LIKE 'Level 0 - %%'",
+        characterID, Mission::Type::Encounter, Mission::State::Completed))
+    {
+        codelog(DATABASE__ERROR, "Failed to load Level 0 mission progress: %s", res.error.c_str());
+        return 0;
+    }
+
+    DBResultRow row;
+    return (res.GetRow(row) ? row.GetUInt(0) : 0);
+}
+
+bool MissionDB::HasActiveStarterMission(uint32 characterID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT offerID FROM agtOffers WHERE characterID = %u AND typeID = %u "
+        "AND stateID < %u AND name LIKE 'Level 0 - %%' LIMIT 1",
+        characterID, Mission::Type::Encounter, Mission::State::Completed))
+    {
+        codelog(DATABASE__ERROR, "Failed to check active Level 0 mission: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    return res.GetRow(row);
 }
 
 void MissionDB::LoadOpenOffers(DBQueryResult& res)
