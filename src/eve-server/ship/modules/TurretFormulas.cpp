@@ -173,13 +173,13 @@ float TurretFormulas::GetSentryToHit(Sentry* pSentry, SystemEntity* pTarget)
 {
     if (pSentry == nullptr || pTarget == nullptr
         || pSentry->GetSelf().get() == nullptr || pTarget->GetSelf().get() == nullptr
-        || pSentry->DestinyMgr() == nullptr || pTarget->DestinyMgr() == nullptr)
+        || pTarget->DestinyMgr() == nullptr)
         return 0.0f;
 
     InventoryItemRef sentry = pSentry->GetSelf();
     InventoryItemRef target = pTarget->GetSelf();
     const float distance = static_cast<float>(
-        pSentry->DestinyMgr()->GetPosition().distance(pTarget->DestinyMgr()->GetPosition()));
+        pSentry->GetPosition().distance(pTarget->DestinyMgr()->GetPosition()));
     if (distance <= 0.001f)
         return 0.0f;
 
