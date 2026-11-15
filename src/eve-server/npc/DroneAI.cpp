@@ -105,6 +105,8 @@ DroneAIMgr::DroneAIMgr(DroneSE* who)
         const double maxRange = who->GetSelf()->GetAttribute(AttrMaxRange).get_double();
         const double falloff = who->GetSelf()->GetAttribute(AttrFalloff).get_double();
         m_entityOrbitRange = (maxRange < falloff) ? maxRange : falloff;
+        if (m_entityOrbitRange > 2500.0)
+            m_entityOrbitRange = 2500.0;
     }
     if (m_entityOrbitRange <= 0.0)
         m_entityOrbitRange = 500.0;
