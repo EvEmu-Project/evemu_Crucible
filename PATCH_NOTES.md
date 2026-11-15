@@ -255,3 +255,21 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 - Aligned the weapon-fire gate with NPC AI: a drone now fires only after TargetManager reports that target locking has completed (`CanAttack()`), while the AI continues to select a fully locked target.
 - Added a trace message for the lock-wait path. The existing firing log and zero-base-damage warning remain the evidence needed to distinguish a failed lock from missing static damage attributes.
 - Validation: previous PR #13 head passed Linux GCC, Windows UCRT64 GCC and Docker builds. This follow-up commit requires a fresh CI run. In-game confirmation of the Combat label and actual NPC shield/armor/hull reduction is still required; no gameplay success is claimed yet.
+
+
+## 2026-11-15 follow-up — drone range, combat envelope and stale target locks
+
+**Reported symptoms**
+- Combat drones oscillated between Approach and Fighting, did not visibly damage NPCs, and sometimes travelled far from the engagement.
+- Player targeting reported the maximum of eight targets despite fewer visible active locks.
+
+**Code findings and changes**
+- Automatic drone acquisition scanned every NPC in the current system bubble without checking the pilot's drone control range. It could therefore select distant NPCs in another part of the system. Automatic acquisition is now restricted to NPCs within the character's `droneControlDistance`; a 20 km fallback is used only when old character data lacks that attribute. Explicit engage commands outside control range are rejected with a notification. A valid manual order can still be pursued after the target moves away, matching normal drone behaviour.
+- The AI used the inner `EntityFlyRange + MaxRange` threshold to switch between Approach and Combat even though it already cached the outer `EntityAttackRange`. This created a gap where a drone could oscillate around the threshold. Combat now starts at the outer attack envelope, and approach uses the drone's orbit distance as its follow stop range.
+- TargetManager counted every stored entry toward the player target cap, but did not proactively prune entries whose target had died, left the system, or moved to another bubble. Target entries now retain their entity IDs; stale entries are pruned safely before processing/new lock requests, lock state is recalculated, and the client receives target-lost updates. Drone target IDs are also cleared on loss.
+- The player target limit calculation now uses the EVE base of two plus Targeting and Multitasking skill levels, still capped by the ship's `MaxLockedTargets` attribute. Cap diagnostics report tracked, locked, and currently-locking counts separately.
+- Added per-shot drone damage-component and post-`ApplyDamage` shield/armor/hull delta diagnostics. These distinguish a failure to enter the weapon loop, missing static damage values, and a failure inside the common damage application path.
+
+**Validation status**
+- This is source-level implementation only. The new branch head requires Windows, Linux and Docker CI.
+- In-game validation must confirm that the combat light drone's logged thermal/kinetic/etc. base damage is nonzero and that the post-ApplyDamage delta is positive; also verify no distant auto-acquisition and that the visible target list agrees with server lock counts. No in-game damage success is claimed yet.
