@@ -41,6 +41,24 @@
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "services/ServiceManager.h"
 
+namespace {
+bool ReadDroneEntityID(const PyRep* value, uint32& entityID) {
+    int64 rawID = 0;
+    if (value == nullptr)
+        return false;
+    if (value->IsInt())
+        rawID = value->AsInt()->value();
+    else if (value->IsLong())
+        rawID = value->AsLong()->value();
+    else
+        return false;
+    if (rawID <= 0 || rawID > 0xFFFFFFFFLL)
+        return false;
+    entityID = static_cast<uint32>(rawID);
+    return true;
+}
+}
+
 ShipService::ShipService(EVEServiceManager& mgr) :
     BindableService("ship", mgr)
 {
@@ -779,61 +797,60 @@ PyResult ShipBound::Scoop(PyCallArgs &call, PyInt* itemID) {
 }
 
 PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
-    std::vector <int32> ints;
+    Client* pClient = call.client;
+    if (pClient == nullptr || itemIDs == nullptr)
+        return PyStatic.mtDict();
 
-    PyList::const_iterator list_2_cur = itemIDs->begin();
-    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
-        if (!(*list_2_cur)->IsInt()) {
-            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
-            return nullptr;
-        }
-
-        const PyInt* t = (*list_2_cur)->AsInt();
-        ints.push_back(t->value());
+    SystemManager* pSysMgr = pClient->SystemMgr();
+    ShipSE* pShipSE = pClient->GetShipSE();
+    if (pSysMgr == nullptr || pShipSE == nullptr
+        || pShipSE->SysBubble() == nullptr || pClient->SystemMgr() != pSysMgr) {
+        _log(SERVICE__ERROR, "ShipBound::ScoopDrone(): client ship or solar-system context is unavailable.");
+        return PyStatic.mtDict();
     }
-    // per patch notes, if ship is too far to scoop, it will automagically travel closer till drone is within range, then scoop and stop
 
-    Client* pClient(call.client);
-    SystemEntity* pDroneSE(nullptr);
-    InventoryItemRef iRef(nullptr);
-    SystemManager* pSysMgr(pClient->SystemMgr());
-    std::vector<int32>::const_iterator cur = ints.begin();
-    for(; cur != ints.end(); ++cur) {
-        pDroneSE = pSysMgr->GetSE(*cur);
-        if (pDroneSE == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneSE %i to scoop.", pClient->GetName(), *cur);
+    for (PyRep* rep : itemIDs->items) {
+        uint32 droneID = 0;
+        if (!ReadDroneEntityID(rep, droneID)) {
+            _log(XMLP__DECODE_ERROR, "ShipBound::ScoopDrone(): invalid drone ID argument.");
             continue;
         }
 
-        iRef = pDroneSE->GetSelf();
-        if (iRef.get() == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneItem %i to scoop.", pClient->GetName(), *cur);
+        SystemEntity* pDroneSE = pSysMgr->GetSE(droneID);
+        if (pDroneSE == nullptr || !pDroneSE->IsDroneSE()) {
+            _log(SERVICE__ERROR, "%s: Unable to find drone entity %u to scoop.", pClient->GetName(), droneID);
             continue;
         }
 
-        //AttrDroneBaySlotsLeft??
-        // Check to see that this is really a drone:
+        DroneSE* drone = pDroneSE->GetDroneSE();
+        InventoryItemRef iRef = pDroneSE->GetSelf();
+        if (drone == nullptr || iRef.get() == nullptr
+            || pDroneSE->SysBubble() == nullptr
+            || pDroneSE->SysBubble() != pShipSE->SysBubble()) {
+            _log(SERVICE__ERROR, "%s: Drone %u is not available in the current space.", pClient->GetName(), droneID);
+            continue;
+        }
+
+        // Abandoned drones use the system owner. Otherwise only their owner
+        // may scoop them; an active drone must also belong to this ship.
+        if (drone->GetOwnerID() != pClient->GetCharacterID() && drone->GetOwnerID() != 1)
+            throw CustomError("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
+        if (drone->IsEnabled()
+            && (drone->GetOwnerID() != pClient->GetCharacterID()
+                || drone->GetHomeShip() != pShipSE))
+            throw CustomError("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
+
         pClient->GetShip()->VerifyHoldType(flagDroneBay, iRef, pClient);
 
-        // check ownership/control
-        if (pDroneSE->GetDroneSE()->IsEnabled())
-            if (pDroneSE->GetDroneSE()->GetOwner() != pClient)
-                throw CustomError ("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
-
-        // Check drone bay capacity:
-        if (pClient->GetShip()->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {  // this will throw if it fails
-            // We have enough Drone bay capacity to hold the drone,
-            // so take ownership of it and move it into the Drone bay:
+        if (pClient->GetShip()->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {
             iRef->ChangeOwner(pClient->GetCharacterID(), true);
             pClient->MoveItem(iRef->itemID(), pClient->GetShipID(), flagDroneBay);
-            pClient->GetShipSE()->ScoopDrone(pDroneSE);
+            pShipSE->ScoopDrone(pDroneSE);
             pSysMgr->RemoveEntity(pDroneSE);
             SafeDelete(pDroneSE);
         }
     }
 
-    /** @todo complete error msgs here */
-    // returns error on error else mtDict
     return PyStatic.mtDict();
 }
 
