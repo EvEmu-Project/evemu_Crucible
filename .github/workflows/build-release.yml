@@ -59,6 +59,8 @@ jobs:
           ctest --test-dir build --output-on-failure
       - name: Install
         run: cmake --install build --prefix stage
+      - name: Verify bundled offline agent portrait
+        run: test -s stage/share/evemu/agent_portraits/agent_missing_512.jpg
       - name: Set up Go for EVEDBTool
         uses: actions/setup-go@v6
         with:
@@ -162,6 +164,11 @@ jobs:
       - name: Install
         shell: msys2 {0}
         run: cmake --install build --prefix stage
+      - name: Verify bundled offline agent portrait
+        shell: pwsh
+        run: |
+          if (!(Test-Path "stage/share/evemu/agent_portraits/agent_missing_512.jpg")) { throw "Bundled agent fallback is missing" }
+          if ((Get-Item "stage/share/evemu/agent_portraits/agent_missing_512.jpg").Length -lt 100) { throw "Agent fallback is empty" }
       - name: Set up Go for EVEDBTool
         uses: actions/setup-go@v6
         with:
