@@ -1,4 +1,18 @@
 # Complete upstream review dossier — EVEmu Crucible maintenance and gameplay fork
+
+## UPDATE — agent services and station portrait fixes (15 November 2026)
+
+This contribution branch now includes **the agent patches added after the original 410-commit comparison** by merging source commit `6de04d1df5640122b691365029eb5e5c26f197c5`. The newer direct comparison against upstream `master` is **412 commits ahead, 0 behind, 143 changed paths, approximately +9,572/−1,786 lines** on the fork's `master` before the present contribution-branch merge. The original 137-file inventory below remains a historical baseline, not an exhaustive list of newly added agent files.
+
+New work:
+- `ManagerDB::GetAgents` and `AgentDB` now recover station/system metadata when optional `chrNPCCharacters`/bloodline entries are missing; missing real agent records fail cleanly.
+- `ImageServerConnection` preserves Crucible-style image requests but redirects missing NPC portraits to CCP's supported `images.evetech.net` URLs (legacy 50px requests map to 64px), with local JPEG precedence and correct PNG MIME for non-character images.
+- `AgentBound` now validates offers before accepting/completing/declining/quitting, uses correct FILETIME bonus deadlines and actual bonus ISK preview, and sends the completion flag. `Agent::CanUseAgent` reuses the already-loaded standing instead of querying twice.
+- Added deterministic `AgentHelpersTest`, [agent/portrait audit](AGENT_STATION_IMAGE_AUDIT_2026-11-15.md) and updated patch notes. **Outstanding:** legacy client HTTPS redirects and availability of each historical NPC portrait must be tested in-game; remote URLs cannot resurrect removed CCP artwork.
+- The earlier full-green build [43742655629](https://github.com/xrizonx/evemu_Crucible/actions/runs/43742655629) predates these agent patches. The new [CI run 43747566528](https://github.com/xrizonx/evemu_Crucible/actions/runs/43747566528) must be checked before reporting these patches as passing.
+
+---
+
 **Prepared:** 15 November 2026  
 **Upstream target:** [EvEmu-Project/evemu_Crucible](https://github.com/EvEmu-Project/evemu_Crucible) `master` (`f55b488a006e3090470d3b481aee47a1d7a0dade`)  
 **Contributing code:** [xrizonx/evemu_Crucible](https://github.com/xrizonx/evemu_Crucible) `master` (`96450674fae13954e52009f88517a006d1c68a3b`)  

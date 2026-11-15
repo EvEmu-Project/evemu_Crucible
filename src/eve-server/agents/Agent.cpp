@@ -78,7 +78,7 @@ static bool IsSecurityMissionDivision(uint32 divisionID)
 }
 
 Agent::Agent(uint32 id)
-: m_agentID(id)
+: m_agentID(id), m_agentData{}
 {
     m_important = false;
     m_buttonID = 1;
@@ -91,7 +91,8 @@ Agent::Agent(uint32 id)
 
 
 bool Agent::Load() {
-    AgentDB::LoadAgentData(m_agentID, m_agentData);
+    if (!AgentDB::LoadAgentData(m_agentID, m_agentData))
+        return false;
     sMissionDataMgr.LoadAgentOffers(m_agentID, m_offers);
 
     if (m_agentData.research)
@@ -818,7 +819,8 @@ bool Agent::CanUseAgent(Client* pClient)
 
     float facChr = StandingDB::GetStanding(m_agentData.factionID, charID);
     float corpChr = StandingDB::GetStanding(m_agentData.corporationID, charID);
-    float charChr = StandingDB::GetStanding(m_agentID, charID);
+    // Agent standing was already loaded above; avoid a duplicate SQL lookup.
+    float charChr = charStanding;
     float facBonus = EvEMath::Agent::GetStandingBonus(facChr, m_agentData.factionID, sConn, sDiplo, sCrim);
     float corpBonus = EvEMath::Agent::GetStandingBonus(corpChr, m_agentData.factionID, sConn, sDiplo, sCrim);
     float charBonus = EvEMath::Agent::GetStandingBonus(charChr, m_agentData.factionID, sConn, sDiplo, sCrim);

@@ -30,6 +30,7 @@
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
 #include "corporation/LPService.h"
+#include "EVE_AgentHelpers.h"
 #include "agents/AgentBound.h"
 #include "agents/AgentMgrService.h"
 #include "station/Station.h"
@@ -318,7 +319,14 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
             case Accept:            //3
             case AcceptRemotely: {  //5
                 MissionOffer offer = MissionOffer();
-                m_agent->GetOffer(pchar->itemID(), offer);
+                if (!m_agent->HasMission(pchar->itemID(), offer)
+                    || (offer.stateID != Mission::State::Offered
+                        && offer.stateID != Mission::State::Allocated)
+                    || (offer.expiryTime > 0 && offer.expiryTime <= GetFileTimeNow())) {
+                    agentSays->SetItem(0, new PyString("This mission offer is no longer available."));
+                    agentSays->SetItem(1, PyStatic.NewNone());
+                    break;
+                }
                 if (offer.typeID == Mission::Type::Encounter && !call.client->StartEncounterMission(offer)) {
                     call.client->SendErrorMsg("Unable to create the encounter site in this solar system. The mission was not accepted.");
                     agentSays->SetItem(0, new PyString("I cannot establish the encounter site right now. Please try again."));
@@ -352,7 +360,13 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
             case Complete:              //6
             case CompleteRemotely: {    //7
                 MissionOffer offer = MissionOffer();
-                m_agent->GetOffer(pchar->itemID(), offer);
+                if (!m_agent->HasMission(pchar->itemID(), offer)
+                    || offer.stateID != Mission::State::Accepted
+                    || (offer.expiryTime > 0 && offer.expiryTime <= GetFileTimeNow())) {
+                    agentSays->SetItem(0, new PyString("There is no active mission available for completion."));
+                    agentSays->SetItem(1, PyStatic.NewNone());
+                    break;
+                }
                 if (offer.typeID == Mission::Type::Encounter && !call.client->IsMissionComplete(offer)) {
                     call.client->SendErrorMsg("The encounter objectives have not been completed.");
                     agentSays->SetItem(0, new PyString("Destroy all of the required hostile ships before claiming this reward."));
@@ -380,7 +394,8 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 if (offer.rewardISK)
                     AccountService::TransferFunds(m_agent->GetID(), pchar->itemID(), offer.rewardISK,
                             "Mission Reward", Journal::EntryType::AgentMissionReward, m_agent->GetID());
-                if ((offer.bonusTime > 0) && (offer.bonusTime < (offer.dateAccepted - GetFileTimeNow())))
+                if (EvEAgent::BonusWithinDeadline(offer.dateAccepted, offer.bonusTime,
+                                                    GetFileTimeNow(), offer.bonusISK))
                     AccountService::TransferFunds(m_agent->GetID(), pchar->itemID(), offer.bonusISK,
                             "Mission Bonus Reward", Journal::EntryType::AgentMissionTimeBonusReward, m_agent->GetID());
                 if (offer.rewardLP)
@@ -391,11 +406,16 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
 
                 m_agent->UpdateStandings(call.client, Standings::MissionCompleted, offer.important);
                 m_agent->RemoveOffer(pchar->itemID());
+                // Tell the Crucible client that this conversation completed
+                // its mission (the existing response flag was always false).
+                missionCompleted = true;
             } break;
             case Defer: {   //10
                 // extend expiry time and close
                 MissionOffer offer = MissionOffer();
-                if (m_agent->HasMission(pchar->itemID(), offer)) {
+                if (m_agent->HasMission(pchar->itemID(), offer)
+                    && offer.stateID == Mission::State::Offered
+                    && offer.expiryTime > GetFileTimeNow()) {
                     offer.stateID = Mission::State::Allocated; //Defered
                     offer.expiryTime += EvE::Time::Day;
                     m_agent->UpdateOffer(pchar->itemID(), offer);
@@ -405,6 +425,14 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 }
             } break;
             case Decline: { //9
+                MissionOffer offer = MissionOffer();
+                if (!m_agent->HasMission(pchar->itemID(), offer)
+                    || (offer.stateID != Mission::State::Offered
+                        && offer.stateID != Mission::State::Allocated)) {
+                    agentSays->SetItem(0, new PyString("There is no mission offer to decline."));
+                    agentSays->SetItem(1, PyStatic.NewNone());
+                    break;
+                }
                 missionDeclined = true;
                 m_agent->DeleteOffer(pchar->itemID());
                 m_agent->SendMissionUpdate(call.client, "offer_declined");
@@ -414,9 +442,14 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 m_agent->UpdateStandings(call.client, Standings::MissionDeclined);
             } break;
             case Quit: {    //11
-                missionQuit = true;
                 MissionOffer offer = MissionOffer();
-                m_agent->GetOffer(pchar->itemID(), offer);
+                if (!m_agent->HasMission(pchar->itemID(), offer)
+                    || offer.stateID != Mission::State::Accepted) {
+                    agentSays->SetItem(0, new PyString("There is no active mission to quit."));
+                    agentSays->SetItem(1, PyStatic.NewNone());
+                    break;
+                }
+                missionQuit = true;
                 if (offer.typeID != Mission::Type::Encounter && offer.courierTypeID)
                     call.client->RemoveMissionItem(offer.courierTypeID, offer.courierAmount);
                 if (offer.typeID == Mission::Type::Encounter)
@@ -868,12 +901,14 @@ PyDict* AgentBound::GetMissionObjectiveInfo(Client* pClient, MissionOffer& offer
             //extra->SetItemString("blueprintInfo", PyStatic.NewNone());
         PyTuple* bonusRewards = new PyTuple(4);
         if (offer.dateAccepted > 0) {
-            bonusRewards->SetItem(0, new PyLong(offer.bonusTime - (offer.dateAccepted - offer.dateIssued) * EvE::Time::Minute));  // bonus time - elapsed time * minutes
+            bonusRewards->SetItem(0, new PyLong(EvEAgent::BonusTimeRemaining(
+                offer.dateAccepted, offer.bonusTime, GetFileTimeNow())));
         } else {
-            bonusRewards->SetItem(0, new PyLong(offer.bonusTime * EvE::Time::Minute));  // bonus time * minutes
+            bonusRewards->SetItem(0, new PyLong(EvEAgent::BonusTimeRemaining(
+                0, offer.bonusTime, GetFileTimeNow())));
         }
             bonusRewards->SetItem(1, new PyInt(itemTypeCredits));   // bonus is *usually* isk.  for now, we'll keep it as isk (easier)
-            bonusRewards->SetItem(2, new PyInt(offer.rewardISK *2));
+            bonusRewards->SetItem(2, new PyInt(offer.bonusISK));
             bonusRewards->SetItem(3, extra);
         bonusList->AddItem(bonusRewards);
     }

@@ -17,7 +17,7 @@
 #include "StaticDataMgr.h"
 
 
-void AgentDB::LoadAgentData(uint32 agentID, AgentData& data)
+bool AgentDB::LoadAgentData(uint32 agentID, AgentData& data)
 {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
@@ -29,33 +29,31 @@ void AgentDB::LoadAgentData(uint32 agentID, AgentData& data)
         "   agt.corporationID,"
         "   agt.locationID, "   //5
         "   agt.isLocator,"
-        "   chr.solarSystemID,"
-        "   chr.stationID,"
-        "   chr.gender,"
-        "   bl.bloodlineID,"    //10
-        "   itm.typeID, "
+        "   COALESCE(NULLIF(chr.solarSystemID,0), st.solarSystemID, itm.solarSystemID, 0) AS solarSystemID,"
+        "   COALESCE(NULLIF(chr.stationID,0), st.stationID, 0) AS stationID,"
+        "   COALESCE(chr.gender,0) AS gender,"
+        "   COALESCE(bl.bloodlineID,0) AS bloodlineID,"    //10
+        "   COALESCE(itm.typeID,0) AS typeID, "
         "   crp.friendID, "
         "   crp.enemyID, "
         "   crp.factionID, "
         "   chr.characterName " //15
         " FROM agtAgents AS agt"
         " LEFT JOIN chrNPCCharacters AS chr ON chr.characterID = agt.agentID"
+        " LEFT JOIN staStations AS st ON st.stationID = agt.locationID"
         " LEFT JOIN crpNPCCorporations AS crp ON crp.corporationID = agt.corporationID"
         " LEFT JOIN bloodlineTypes AS bl ON bl.typeID = chr.typeID"
         " LEFT JOIN mapDenormalize AS itm ON itm.itemID = agt.locationID"
         " WHERE agt.agentID = %u", agentID))
     {
-        codelog(DATABASE__ERROR, "Error in GetAgents query: %s", res.error.c_str());
-        return;
+        codelog(DATABASE__ERROR, "Error in LoadAgentData query: %s", res.error.c_str());
+        return false;
     }
 
-    /** @todo  there may be some errors here with agents in space or NOT in stations....will have to test and fix as they come up.  */
     DBResultRow row;
     if (res.GetRow(row)) {
-        if (row.GetUInt(10) == 0) {
-            _log(DATABASE__MESSAGE, "No charTypeID for Agent %u", agentID);
-            return;
-        }
+        // Optional NPC portrait/bloodline metadata must not prevent an
+        // agent's core agtAgents identity from loading successfully.
         data.typeID         = row.GetUInt(0);
         data.divisionID     = row.GetUInt(1);
         data.level          = row.GetUInt(2);
@@ -72,17 +70,25 @@ void AgentDB::LoadAgentData(uint32 agentID, AgentData& data)
         data.enemyCorp      = (row.IsNull(13) ? 0 : row.GetInt(13));
         data.factionID      = row.GetInt(14);
         data.raceID         = sDataMgr.GetFactionRace(data.factionID);
-        data.name           = row.GetText(15);
+        data.name           = row.IsNull(15)
+            ? ("Agent " + std::to_string(agentID)) : row.GetText(15);
         data.research       = (data.typeID == Agents::Type::Research);
+        if (data.stationID == 0 && IsStationID(data.locationID))
+            data.stationID = data.locationID;
+        return true;
     }
+    _log(AGENT__WARNING, "LoadAgentData: agent %u is not present in agtAgents.", agentID);
+    return false;
 }
 
 void AgentDB::LoadAgentSkills(uint32 agentID, std::map< uint16, uint8 >& data)
 {
     // SELECT typeID, level FROM agtSkillLevel WHERE agentID = %u
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT typeID, level FROM agtSkillLevel WHERE agentID = %u", agentID))
+    if (!sDatabase.RunQuery(res, "SELECT typeID, level FROM agtSkillLevel WHERE agentID = %u", agentID)) {
         codelog(DATABASE__ERROR, "Error in LoadAgentSkills query: %s", res.error.c_str());
+        return;
+    }
 
     DBResultRow row;
     while (res.GetRow(row))
