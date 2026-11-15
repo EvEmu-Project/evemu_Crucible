@@ -42,7 +42,13 @@ To use a custom image root (when `etc/eve-server.xml` overrides `<imageDir>`), s
 py -3 .\share\evemu\tools\agent_portraits\sync_portraits.py --output "D:\EVE\image_cache\Character"
 ```
 
-Keep any original 2012 portraits you already own as `<agentID>_50.jpg` or `<agentID>_512.jpg`; the importer will not overwrite them. In the public image service, some historic agents will return HTTP 404 or a default portrait. These agents intentionally display the locally shipped silhouette instead.
+To import an existing local historic portrait ZIP or folder **without any Internet request**, run:
+
+```powershell
+py -3 .\share\evemu\tools\agent_portraits\sync_portraits.py --local-import "D:\EVE\old_portraits.zip" --offline-only
+```
+
+The archive importer accepts JPEGs named `<agentID>_<size>.jpg`, checks that each agent ID is present in the Crucible agent dump, and ignores malformed images. CCP's [official community toolkit](https://community.eveonline.com/community/content-creation/toolkit/) mentions old character portraits, but older pre-Incursion archives will not necessarily contain every Crucible-era NPC agent. Keep any original 2012 portraits you already own as `<agentID>_50.jpg` or `<agentID>_512.jpg`; the importer will not overwrite them. In the public image service, some historic agents will return HTTP 404 or a default portrait. These agents intentionally display the locally shipped silhouette instead.
 
 ## Linux source checkout
 
