@@ -291,3 +291,26 @@ The run must be checked again after the documentation commit, because a new bran
 - Fresh CI for this commit must pass.
 - In game, check that combat light drones show Combat rather than Repair/Engaged, then confirm NPC shield/armor/hull values decrease.
 - If there is still no damage, capture the new drone trace plus `DRONE__MESSAGE` / `DRONE__WARNING` output. The firing log confirms whether the attack loop is reached; the zero-base-damage warning identifies missing static damage attributes; the TargetManager lock trace identifies lock completion. This code inspection does not establish which runtime branch the user's current server is taking.
+
+
+## 2026-11-15 follow-up — drones chase distant NPCs, no visible damage, and target cap appears stale
+
+**Confirmed code findings**
+- Idle auto-engage scanned the entire current system bubble and selected the nearest hostile NPC without considering the pilot's drone control distance. This could send drones across the system to NPCs that were not in the pilot's control area.
+- The combat transition used the inner fly-range threshold while the AI also cached a larger attack envelope. The gap could cause repeated Approach/Combat transitions around the threshold.
+- TargetManager's player cap used `m_targets.size()` without first pruning target entries whose entity had died, left the system, or changed bubble. The stored list could therefore disagree with the client's visible target list until the normal loss path ran.
+- TargetManager's target-loss callback handled NPCs but not DroneSE, leaving the drone's client-visible target ID stale after a loss.
+
+**Fix pushed to PR #13 branch**
+- Restrict automatic NPC acquisition to the character's `droneControlDistance`; use a conservative 20 km fallback only when that character attribute is missing/zero. Reject explicit engage commands when the target is outside that control range. Once a valid order is issued, drones may continue pursuing if the target later moves away.
+- Use the outer drone attack envelope to enter Combat and orbit at the configured drone orbit distance rather than repeatedly crossing the inner approach threshold.
+- Store target IDs alongside target pointers, prune stale locks safely before target processing and new lock requests, recalculate the lock-complete flag, and notify the client when an orphaned lock is removed.
+- Clear DroneSE's target ID on target loss and invoke the drone target-loss callback from TargetManager.
+- Correct player target capacity to base two plus Targeting/Multitasking levels, capped by the ship's maximum; log tracked/locked/locking counts when the cap is reached.
+- Add logs for raw drone damage attributes and before/after shield, armor and hull values around the common ApplyDamage call.
+
+**Validation required**
+- CI must pass on Windows UCRT64, Linux GCC and Docker.
+- Test a light combat drone at close range and at a target within control range. Confirm the drone's damage-component log is nonzero and the post-ApplyDamage delta is positive. If components are zero, the remaining fault is the imported static attributes; if components are nonzero but deltas remain zero, inspect the common damage application logs/config.
+- Test auto-engage with NPCs both nearby and far away in the same system. Drones should select only targets inside control range; a manually designated target may continue to be pursued after leaving control range.
+- Lock/unlock/destroy/warp several targets repeatedly. Confirm the cap is based on live server locks and the target list stays synchronized; check the new cap diagnostic if the limit is still reported incorrectly.
