@@ -10,6 +10,7 @@
 #include "eve-server.h"
 
 #include "Client.h"
+#include "character/Character.h"
 #include "inventory/AttributeEnum.h"
 #include "system/DestinyManager.h"
 #include "npc/Drone.h"
@@ -17,6 +18,30 @@
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
+
+namespace {
+// Drone control range is a character attribute (skills/modules may modify it).
+// Keep a conservative 20 km baseline only for old characters whose imported
+// static attributes do not contain the value.
+double GetDroneControlRange(DroneSE* drone) {
+    if (drone != nullptr && drone->GetOwner() != nullptr) {
+        Character* character = drone->GetOwner()->GetChar().get();
+        if (character != nullptr) {
+            const double range = character->GetAttribute(AttrDroneControlDistance).get_double();
+            if (range > 0.0)
+                return range;
+        }
+    }
+    return 20000.0;
+}
+
+bool IsTargetWithinDroneControlRange(DroneSE* drone, SystemEntity* target) {
+    if (drone == nullptr || target == nullptr || drone->GetHomeShip() == nullptr)
+        return false;
+    return drone->GetHomeShip()->GetPosition().distance(target->GetPosition())
+        <= GetDroneControlRange(drone);
+}
+}
 
 DroneAIMgr::DroneAIMgr(DroneSE* who)
 : m_state(DroneAI::State::Idle),
@@ -151,6 +176,11 @@ void DroneAIMgr::Process() {
                     const int32 npcFaction = candidate->GetWarFactionID();
                     const int32 droneFaction = m_pDrone->GetWarFactionID();
                     if (npcFaction != 0 && droneFaction != 0 && npcFaction == droneFaction)
+                        continue;
+                    // Automatic acquisition must stay inside the pilot's drone
+                    // control range. Scanning every NPC in the bubble caused
+                    // drones to select distant pockets and fly across the system.
+                    if (!IsTargetWithinDroneControlRange(m_pDrone, candidate))
                         continue;
                     const double distance = m_pDrone->GetPosition().distance(candidate->GetPosition());
                     if (distance < nearestDistance) {
@@ -335,14 +365,19 @@ void DroneAIMgr::CheckDistance(SystemEntity* pSE)
         return;
     }
 
-    if (dist <= m_entityFlyRange) {
+    // EntityAttackRange is the outer combat envelope; EntityFlyRange plus
+    // MaxRange is the older inner approach threshold. Using only the latter
+    // made light drones oscillate between Approach and Combat near the boundary.
+    const double engageRange = (m_entityAttackRange > m_entityFlyRange)
+        ? m_entityAttackRange : m_entityFlyRange;
+    if (dist <= engageRange) {
         SetEngaged(pSE); // inside the weapon envelope: orbit and attack
     } else {
         // Keep pursuing a valid, player-designated target until it enters the
-        // weapon envelope instead of dropping it at EntityAttackRange.
+        // combat envelope instead of dropping it at the inner fly threshold.
         if (m_state != DroneAI::State::Approaching || !m_pDrone->DestinyMgr()->IsFollowing()) {
             m_pDrone->DestinyMgr()->SetMaxVelocity(m_chaseSpeed);
-            m_pDrone->DestinyMgr()->Follow(pSE, m_entityFlyRange);
+            m_pDrone->DestinyMgr()->Follow(pSE, static_cast<uint32>(m_entityOrbitRange));
             m_state = DroneAI::State::Approaching;
             m_mainAttackTimer.Disable();
             m_pDrone->StateChange();
@@ -378,6 +413,14 @@ void DroneAIMgr::Target(SystemEntity* pTarget) {
         || pTarget->DestinyMgr() == nullptr || pTarget->SysBubble() == nullptr
         || pTarget->SysBubble() != m_pDrone->SysBubble()) {
         SetIdle();
+        return;
+    }
+    if (!IsTargetWithinDroneControlRange(m_pDrone, pTarget)) {
+        if (m_pDrone->GetOwner() != nullptr)
+            m_pDrone->GetOwner()->SendNotifyMsg("That target is outside your drone control range.");
+        _log(DRONE__AI_TRACE, "Drone %s(%u): Rejecting target %s(%u), outside %.0f m control range of its home ship.",
+             m_pDrone->GetName(), m_pDrone->GetID(), pTarget->GetName(), pTarget->GetID(),
+             GetDroneControlRange(m_pDrone));
         return;
     }
     // An explicit engage order replaces the previous target rather than
@@ -575,6 +618,10 @@ void DroneAIMgr::AttackTarget(SystemEntity* pTarget) {
                                              0,guid,1,1,1,m_attackSpeed,0,gfxID);
 
     const float hitQuality = m_formula.GetDroneToHit(m_pDrone, pTarget);
+    const float baseEM = m_pDrone->GetSelf()->GetAttribute(AttrEmDamage).get_float();
+    const float baseKinetic = m_pDrone->GetSelf()->GetAttribute(AttrKineticDamage).get_float();
+    const float baseThermal = m_pDrone->GetSelf()->GetAttribute(AttrThermalDamage).get_float();
+    const float baseExplosive = m_pDrone->GetSelf()->GetAttribute(AttrExplosiveDamage).get_float();
     Damage d(m_pDrone,
              m_pDrone->GetSelf(),
              m_pDrone->GetKinetic(),
@@ -596,12 +643,22 @@ void DroneAIMgr::AttackTarget(SystemEntity* pTarget) {
     }
 
     d *= damageMultiplier;
-    _log(DRONE__MESSAGE, "Drone %s(%u): Firing on %s(%u), base %.2f, multiplier %.2f, hit quality %.2f.",
+    _log(DRONE__MESSAGE, "Drone %s(%u): Firing on %s(%u), EM %.2f K %.2f T %.2f EX %.2f, base %.2f, multiplier %.2f, hit quality %.2f.",
          m_pDrone->GetName(), m_pDrone->GetID(), pTarget->GetName(), pTarget->GetID(),
-         d.GetTotal(), damageMultiplier, hitQuality);
+         baseEM, baseKinetic, baseThermal, baseExplosive, d.GetTotal(), damageMultiplier, hitQuality);
+    const double shieldBefore = pTarget->GetSelf()->GetAttribute(AttrShieldCharge).get_double();
+    const double armorBefore = pTarget->GetSelf()->GetAttribute(AttrArmorDamage).get_double();
+    const double hullBefore = pTarget->GetSelf()->GetAttribute(AttrDamage).get_double();
     // ApplyDamage() applies the global damageRate to every damage source.
     // Applying it here as well squared the configured rate for drone attacks.
-    pTarget->ApplyDamage(d);
+    const bool killed = pTarget->ApplyDamage(d);
+    if (!killed && pTarget->GetSelf().get() != nullptr) {
+        _log(DRONE__MESSAGE, "Drone %s(%u): Damage result on %s(%u): shield %.3f, armor +%.3f, hull +%.3f.",
+             m_pDrone->GetName(), m_pDrone->GetID(), pTarget->GetName(), pTarget->GetID(),
+             shieldBefore - pTarget->GetSelf()->GetAttribute(AttrShieldCharge).get_double(),
+             pTarget->GetSelf()->GetAttribute(AttrArmorDamage).get_double() - armorBefore,
+             pTarget->GetSelf()->GetAttribute(AttrDamage).get_double() - hullBefore);
+    }
 }
 
 
