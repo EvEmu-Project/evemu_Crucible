@@ -345,6 +345,11 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
     bool dropped = false, shipDrop = false;
 
     Client* pClient = call.client;
+    ShipSE* pShipSE = pClient->GetShipSE();
+    if (pShipSE == nullptr || pShipSE->DestinyMgr() == nullptr) {
+        _log(SHIP__ERROR, "ShipBound::Drop() - %s has no active ship or Destiny manager.", pClient->GetName());
+        return nullptr;
+    }
     SystemManager* pSystem = pClient->SystemMgr();
     if (pSystem == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
@@ -673,11 +678,10 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
                     list->AddItem(new PyInt(entity.itemID));
                 }
                 if (iRef->groupID() == EVEDB::invGroups::Secure_Cargo_Container or
-                    EVEDB::invGroups::Secure_Cargo_Container or
-                    EVEDB::invGroups::Cargo_Container or
-                    EVEDB::invGroups::Freight_Container or
-                    EVEDB::invGroups::Audit_Log_Secure_Container or
-                    EVEDB::invGroups::Mission_Container) 
+                    iRef->groupID() == EVEDB::invGroups::Cargo_Container or
+                    iRef->groupID() == EVEDB::invGroups::Freight_Container or
+                    iRef->groupID() == EVEDB::invGroups::Audit_Log_Secure_Container or
+                    iRef->groupID() == EVEDB::invGroups::Mission_Container) 
                 {
                     DBSystemDynamicEntity entity = DBSystemDynamicEntity();
                     entity.ownerID = ownerID;
@@ -736,7 +740,7 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
     //  missing launch error throw msgs.... LaunchCPWarning, LaunchUpgradePlatformWarning
     //   - these are thrown before item is launched and will negate entire launch group until warning is approved, then entire group is reprocessed
 
-    if (shipDrop)
+    if (shipDrop && pShipSE->DestinyMgr() != nullptr)
         pShipSE->DestinyMgr()->SendJettisonPacket();
 
     return dict;
