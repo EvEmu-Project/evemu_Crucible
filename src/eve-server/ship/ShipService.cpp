@@ -803,7 +803,8 @@ PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
 
     SystemManager* pSysMgr = pClient->SystemMgr();
     ShipSE* pShipSE = pClient->GetShipSE();
-    if (pSysMgr == nullptr || pShipSE == nullptr
+    ShipItemRef ship = pClient->GetShip();
+    if (pSysMgr == nullptr || pShipSE == nullptr || ship.get() == nullptr
         || pShipSE->SysBubble() == nullptr || pClient->SystemMgr() != pSysMgr) {
         _log(SERVICE__ERROR, "ShipBound::ScoopDrone(): client ship or solar-system context is unavailable.");
         return PyStatic.mtDict();
@@ -840,9 +841,9 @@ PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
                 || drone->GetHomeShip() != pShipSE))
             throw CustomError("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
 
-        pClient->GetShip()->VerifyHoldType(flagDroneBay, iRef, pClient);
+        ship->VerifyHoldType(flagDroneBay, iRef, pClient);
 
-        if (pClient->GetShip()->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {
+        if (ship->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef))
             iRef->ChangeOwner(pClient->GetCharacterID(), true);
             pClient->MoveItem(iRef->itemID(), pClient->GetShipID(), flagDroneBay);
             pShipSE->ScoopDrone(pDroneSE);
