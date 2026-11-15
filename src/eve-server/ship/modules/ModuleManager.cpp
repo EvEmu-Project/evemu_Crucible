@@ -612,9 +612,8 @@ void ModuleManager::Offline(uint32 itemID)
     // Reconcile the internal state even when AttrOnline is already false.
     // Otherwise an Activated/Deactivating module can retain effects and timers
     // while the inventory attribute incorrectly reports it as offline.
-    _log(MODULE__MESSAGE, "MM::Offline(itemID) - %s going Offline (state: %s, online attribute: %s).",
-         pMod->GetSelf()->name(), pMod->GetModuleStateName(pMod->GetModuleState()),
-         pMod->isOnline() ? "true" : "false");
+    _log(MODULE__MESSAGE, "MM::Offline(itemID) - %s going Offline (state: %d, online attribute: %s).",
+         pMod->GetSelf()->name(), pMod->GetModuleState(), pMod->isOnline() ? "true" : "false");
     pMod->Offline();
 }
 
@@ -634,9 +633,8 @@ void ModuleManager::Offline(EVEItemFlags flag)
     }
 
     // Keep the slot-based path consistent with the itemID path above.
-    _log(MODULE__MESSAGE, "MM::Offline(flag) - %s going Offline (state: %s, online attribute: %s).",
-         pMod->GetSelf()->name(), pMod->GetModuleStateName(pMod->GetModuleState()),
-         pMod->isOnline() ? "true" : "false");
+    _log(MODULE__MESSAGE, "MM::Offline(flag) - %s going Offline (state: %d, online attribute: %s).",
+         pMod->GetSelf()->name(), pMod->GetModuleState(), pMod->isOnline() ? "true" : "false");
     pMod->Offline();
 }
 
