@@ -48,10 +48,10 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
   m_fromSE(pSE),
   m_hitTimer(0),
   m_lifeTimer(0),
-  m_damageMod(1),
   m_alive(true),
   m_orbitingID(tSE != nullptr ? tSE->GetID() : 0),
   m_launcherID(pSE != nullptr ? pSE->GetID() : 0),
+  m_damageMod(1),
   m_speed(0),
   m_hullHP(self->GetAttribute(AttrHP).get_int())
 {
