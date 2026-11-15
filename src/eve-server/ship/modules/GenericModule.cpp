@@ -80,6 +80,8 @@ void GenericModule::Online()
     }
 
     if (GetAttribute(AttrDamage) >= GetAttribute(AttrHP)) {
+        // Do not leave a persisted online flag set when the module cannot online.
+        SetAttribute(AttrOnline, EvilZero, !m_shipRef->IsUndocking());
         m_shipRef->GetPilot()->SendNotifyMsg("Your %s is too damaged to be put online.", m_modRef->name());
         return;
         /*{'messageKey': 'ModuleTooDamagedToBeOnlined', 'dataID': 17878773, 'suppressable': False, 'bodyID': 257752, 'messageType': 'notify', 'urlAudio': '', 'urlIcon': '', 'titleID': None, 'messageID': 2303}
