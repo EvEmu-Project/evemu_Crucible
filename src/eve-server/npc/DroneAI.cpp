@@ -72,7 +72,7 @@ DroneAIMgr::DroneAIMgr(DroneSE* who)
   m_chaseSpeed(who->GetSelf()->GetAttribute(AttrMaxVelocity).get_int()),
   m_entityFlyRange(who->GetSelf()->GetAttribute(AttrEntityFlyRange).get_float() + who->GetSelf()->GetAttribute(AttrMaxRange).get_float()),
   m_entityChaseRange(who->GetSelf()->GetAttribute(AttrEntityChaseMaxDistance).get_float() *2),
-  m_entityOrbitRange(who->GetSelf()->GetAttribute(AttrMaxRange).get_float()),
+  m_entityOrbitRange(who->GetSelf()->GetAttribute(AttrOrbitRange).get_float()),
   m_entityAttackRange(who->GetSelf()->GetAttribute(AttrEntityAttackRange).get_float() *2),
   m_shieldBoosterDuration(who->GetSelf()->GetAttribute(AttrEntityShieldBoostDuration).get_int()),
   m_armorRepairDuration(who->GetSelf()->GetAttribute(AttrEntityArmorRepairDuration).get_int())
@@ -99,6 +99,13 @@ DroneAIMgr::DroneAIMgr(DroneSE* who)
     if (m_entityChaseRange <= 0.0)
         m_entityChaseRange = (m_entityAttackRange > 60000.0)
             ? m_entityAttackRange : 60000.0;
+    if (m_entityOrbitRange <= 0.0) {
+        // Match DroneSE's orbit fallback: use the smaller of weapon range and
+        // falloff when static data omits orbitRange, not maxRange by itself.
+        const double maxRange = who->GetSelf()->GetAttribute(AttrMaxRange).get_double();
+        const double falloff = who->GetSelf()->GetAttribute(AttrFalloff).get_double();
+        m_entityOrbitRange = (maxRange < falloff) ? maxRange : falloff;
+    }
     if (m_entityOrbitRange <= 0.0)
         m_entityOrbitRange = 500.0;
 }
@@ -229,6 +236,7 @@ void DroneAIMgr::Process() {
 
         case DroneAI::State::Departing: { // return to ship.  when close enough, set lazy orbit
             // The owning ship may have been destroyed or the drone may have been orphaned.
+            m_assignedShip = m_pDrone->GetHomeShip();
             if (m_assignedShip == nullptr) {
                 _log(DRONE__AI_TRACE, "Drone %s(%u): Return target is unavailable; stopping return state.",
                      m_pDrone->GetName(), m_pDrone->GetID());
@@ -321,6 +329,7 @@ void DroneAIMgr::SetIdle() {
     m_warpScramblerTimer.Disable();
 
     // Orbit only while the owning ship still exists. An orphaned drone remains idle.
+    m_assignedShip = m_pDrone->GetHomeShip();
     if (m_assignedShip != nullptr)
         m_pDrone->IdleOrbit(m_assignedShip);
     m_pDrone->StateChange();
