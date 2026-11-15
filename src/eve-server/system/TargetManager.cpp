@@ -97,6 +97,8 @@ void TargetManager::PruneStaleTargets() {
                 continue;
             SafeDelete(itr->second);
             m_targets.erase(itr);
+            if (mySE->IsDroneSE())
+                mySE->GetDroneSE()->TargetLost(nullptr);
             if (mySE->HasPilot()) {
                 Notify_OnTarget notification;
                 notification.mode = "lost";
