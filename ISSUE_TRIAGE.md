@@ -314,3 +314,21 @@ The run must be checked again after the documentation commit, because a new bran
 - Test a light combat drone at close range and at a target within control range. Confirm the drone's damage-component log is nonzero and the post-ApplyDamage delta is positive. If components are zero, the remaining fault is the imported static attributes; if components are nonzero but deltas remain zero, inspect the common damage application logs/config.
 - Test auto-engage with NPCs both nearby and far away in the same system. Drones should select only targets inside control range; a manually designated target may continue to be pursued after leaving control range.
 - Lock/unlock/destroy/warp several targets repeatedly. Confirm the cap is based on live server locks and the target list stays synchronized; check the new cap diagnostic if the limit is still reported incorrectly.
+
+
+### 2026-11-15 follow-up: target-lock dispatch and crash hardening
+
+**Findings**
+- `TargetManager::Process()` prunes stale entries. Pruning can unregister the current manager from `EntityList::m_targMgrs`; direct iteration of that map could then continue with an invalidated iterator.
+- Lock completion previously sent the target notification but did not invoke a callback on the entity that owns the target manager. DroneSE already implements `TargetAdded`, but the base interface did not declare it and the lock completion path never dispatched it.
+- The supplied stack trace is printed intentionally by `Client::SetInvulTimer()` via `EvE::traceStack()` when a timer remains enabled at 0 ms. The log continues after this trace, so it should not be labelled as the confirmed fatal crash.
+
+**Changes**
+- EntityList now processes a snapshot of target managers and revalidates entries after each callback before erasing.
+- Added a virtual target-lock-completion callback to SystemEntity and dispatch it from TargetManager; DroneSE's existing callback is now explicitly marked `override`.
+- An expired 0 ms invulnerability timer is disabled/replaced when a new timer is requested; a timer with positive time remaining is preserved.
+
+**Validation still required**
+- Windows/Linux/Docker CI for this head.
+- In-game test that drones leave Approach after reaching the attack envelope, publish a target on lock completion, and apply actual shield/armor/hull damage.
+- If the server still terminates, obtain the final fatal log lines and a symbolized stack trace or matching PDB/map file. The provided excerpt does not identify the terminating fault.
