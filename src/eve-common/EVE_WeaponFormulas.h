@@ -112,4 +112,31 @@ inline double CalculateRemainingMissileHP(double currentHP, double incomingDamag
     return std::max(0.0, currentHP - incomingDamage);
 }
 
+// Movement in the missile destiny mode is a discrete one-second step.
+// Cap it at the remaining distance to prevent overshoot/oscillation.
+inline double CalculateMissileTravelStep(double remainingDistance, double velocity)
+{
+    if (!std::isfinite(remainingDistance) || !std::isfinite(velocity)
+        || remainingDistance <= 0.0 || velocity <= 0.0)
+        return 0.0;
+    return std::min(remainingDistance, velocity);
+}
+
+inline bool IsMissileWithinImpactRange(double distance, double missileRadius,
+                                      double targetRadius)
+{
+    if (!std::isfinite(distance) || !std::isfinite(missileRadius)
+        || !std::isfinite(targetRadius) || distance < 0.0)
+        return false;
+    return distance <= std::max(0.0, missileRadius)
+        + std::max(0.0, targetRadius);
+}
+
+// The initial activation consumes its first shot; subsequent repeats
+// are decremented once per actual DoCycle, never each server tick.
+inline int WeaponCyclesRemainingAfterShot(int remaining)
+{
+    return (remaining > 0 && remaining < 999) ? remaining - 1 : remaining;
+}
+
 #endif

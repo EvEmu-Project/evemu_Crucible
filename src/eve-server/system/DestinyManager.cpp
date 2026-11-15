@@ -28,6 +28,7 @@
 
 #include "EVEServerConfig.h"
 #include "EVE_MovementFormulas.h"
+#include "EVE_WeaponFormulas.h"
 
 #include "Client.h"
 #include "EntityList.h"
@@ -183,13 +184,28 @@ void DestinyManager::ProcessState() {
             MoveObject();
         } break;
         case Ball::Mode::MISSILE: {
-            // if target was removed, continue movement and wait for Missile::EndOfLife() call to do cleanup
-            //set current direction based on position and targetPoint.  this will keep missile aligned properly
-            GVector moveVector(m_position, m_targetPoint);
-            moveVector.normalize();
-            //set position and direction for this round of movement
-            m_shipHeading = moveVector;
-            m_velocity = (moveVector * m_maxSpeed);
+            // Legacy missiles are homing, not straight-line projectiles aimed
+            // at the target's position at launch. Resolve its live ID before
+            // touching the cached pointer; update the destination each tick.
+            SystemManager* system = (mySE != nullptr) ? mySE->SystemMgr() : nullptr;
+            SystemEntity* target = (system != nullptr && m_targetEntity.first != 0)
+                ? system->GetSE(m_targetEntity.first) : nullptr;
+            if (target != nullptr && target == m_targetEntity.second
+                && !target->IsDead() && target->SysBubble() == mySE->SysBubble())
+                m_targetPoint = target->GetPosition();
+
+            GVector direction(m_position, m_targetPoint);
+            const double remaining = direction.length();
+            const double step = CalculateMissileTravelStep(remaining, m_maxSpeed);
+            if (step <= 0.0 || remaining <= 0.0) {
+                m_velocity = NULL_ORIGIN_V;
+                break;
+            }
+            direction.normalize();
+            m_shipHeading = direction;
+            m_velocity = direction * step;
+            // Never overshoot and oscillate around a moving target during
+            // discrete one-second missile simulation ticks.
             SetPosition(m_position + m_velocity);
         } break;
         case Ball::Mode::ORBIT: {

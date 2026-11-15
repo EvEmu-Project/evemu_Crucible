@@ -39,6 +39,15 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
     const double invalidDefenderHit = CalculateRemainingMissileHP(
         200.0, std::numeric_limits<double>::quiet_NaN());
 
+    const double missileStep = CalculateMissileTravelStep(5000.0, 1500.0);
+    const double cappedStep = CalculateMissileTravelStep(500.0, 1500.0);
+    const double invalidStep = CalculateMissileTravelStep(500.0, -1.0);
+    const bool impact = IsMissileWithinImpactRange(150.0, 25.0, 125.0);
+    const bool noRemoteHit = IsMissileWithinImpactRange(150.01, 25.0, 125.0);
+    const int repeatAfterOneCycle = WeaponCyclesRemainingAfterShot(2);
+    const int repeatAfterTwoCycles = WeaponCyclesRemainingAfterShot(repeatAfterOneCycle);
+    const int continuousRepeat = WeaponCyclesRemainingAfterShot(999);
+
     const bool passed =
         std::fabs(fullDamage - 1.0) < 0.000001 &&
         std::fabs(signatureLimited - 0.5) < 0.000001 &&
@@ -54,7 +63,11 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
         noResistance == 1.0f && immune == 0.0f && halfDamage == 0.5f &&
         fiveSecondRange == 7500.0 && invalidRange == 0.0 &&
         defenderFirstHit == 125.0 && defenderSecondHit == 0.0 &&
-        invalidDefenderHit == 200.0;
+        invalidDefenderHit == 200.0 &&
+        missileStep == 1500.0 && cappedStep == 500.0 && invalidStep == 0.0 &&
+        impact && !noRemoteHit &&
+        repeatAfterOneCycle == 1 && repeatAfterTwoCycles == 0 &&
+        continuousRepeat == 999;
 
     if (!passed) {
         ::printf("Weapon formula test failed: full=%.6f signature=%.6f velocity=%.6f capped=%.6f invalid=%.6f\n",

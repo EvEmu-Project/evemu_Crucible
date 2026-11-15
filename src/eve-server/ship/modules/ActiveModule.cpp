@@ -297,11 +297,10 @@ void ActiveModule::Process()
         return;
     }
 
-    // decrement repeat and check for single activation.
-    if (m_repeat < 999) // do not decrement as default allowing active modules to stay active for extended periods
-        --m_repeat;
-    if (m_repeat < 1)
-        m_Stop = true;
+    // Only advance remaining repeat count when a cycle actually fires.
+    // Decrementing on every Process() tick exhausted weapon repeats long
+    // before a slow (e.g. artillery) module completed its second shot.
+    // The initial DoCycle() in Activate() accounts for the first cycle.
 
     // check for module cycle timer.  if module is stopped, this will process the deactivation and set stop
     if (m_timer.Check()) {
@@ -857,6 +856,12 @@ void ActiveModule::ProcessActiveCycle() {
     }
 
     SetTimer(DoCycle());
+    // Consume ONE repeat for the completed activation, not one per tick.
+    // 999 is the existing "continuous repeat" sentinel after Activate()
+    // converts the client-side 1000 into 999.
+    m_repeat = WeaponCyclesRemainingAfterShot(m_repeat);
+    if (m_repeat < 1)
+        m_Stop = true;
 }
 
 void ActiveModule::SetTimer(uint32 time) {

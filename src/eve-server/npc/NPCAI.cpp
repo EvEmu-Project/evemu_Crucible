@@ -73,6 +73,10 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     /* set npc ship data */
     m_sigResolution = m_self->GetAttribute(AttrOptimalSigRadius).get_uint32();
     m_attackSpeed = m_self->GetAttribute(AttrSpeed).get_uint32();
+    // Some imported Crucible NPC variants have no attack speed in static
+    // data. Never run a 0ms attack/target-scan loop.
+    if (m_attackSpeed < 100)
+        m_attackSpeed = 2000;
     m_sigRadius = m_self->GetAttribute(AttrSignatureRadius).get_uint32();
     m_launcherCycleTime = m_self->GetAttribute(AttrMissileLaunchDuration).get_uint32();
     if (m_launcherCycleTime > 100)

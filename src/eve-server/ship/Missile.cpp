@@ -182,7 +182,19 @@ void Missile::Process() {
     /*  Enable base call to Process Targeting and Movement  */
     SystemEntity::Process();
 
-    if (m_hitTimer.Check(false)) {
+    // The old fixed launch-time timer applied damage remotely even if the
+    // target had moved far away from the missile. Destiny now homes in on
+    // the target each tick; damage requires physical arrival, within the
+    // two ball radii, while the flight lifetime still limits pursuit.
+    SystemManager* system = SystemMgr();
+    SystemEntity* target = (system != nullptr && m_orbitingID != 0)
+        ? system->GetSE(m_orbitingID) : nullptr;
+    if (target == nullptr || target != m_targetSE || target->IsDead()
+        || target->SysBubble() == nullptr || target->SysBubble() != SysBubble()) {
+        m_alive = false;
+    } else if (IsMissileWithinImpactRange(
+                   GetPosition().distance(target->GetPosition()),
+                   GetRadius(), target->GetRadius())) {
         m_hitTimer.Disable();
         HitTarget();
     }

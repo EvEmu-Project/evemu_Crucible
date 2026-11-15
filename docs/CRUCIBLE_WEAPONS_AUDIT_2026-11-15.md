@@ -90,3 +90,36 @@ and [drone/motion audit](DRONE_AND_MOTION_AUDIT.md).
   missile damage rate, even though their weaponRef is an NPC entity.
 - The smartbomb's interception check now uses live remaining missile HP
   after defender hits rather than static inventory HP.
+
+
+## Continued audit: repeat timing and homing missiles
+
+- `ActiveModule::Process()` previously reduced the remaining shot count every
+  general server tick instead of every completed weapon cycle, so slow guns
+  could stop before the second requested shot. Repeat counts now advance only
+  after `DoCycle()`; the existing continuous-repeat sentinel remains unchanged.
+- `DestinyManager` previously steered missiles toward a snapshot of the
+  target's position at launch, never updating their destination. Homing
+  projectiles now re-resolve the live target ID and update their aim point
+  every tick without changing warp or ordinary ship movement.
+- The original missile hit timer assumed travel time `initialDistance / speed`
+  and would apply damage at that time even if the missile was nowhere near
+  a moving target. `Missile::Process()` now requires physical arrival based on
+  both entity radii, and projectile expiration still prevents indefinite
+  pursuit. This is a discrete 1-second movement approximation; client-side
+  missile trails and fast/intermittent targets need gameplay verification.
+- Projectile movement is capped at its remaining distance per tick to avoid
+  overshoot and oscillation; invalid movement values become safe zero steps.
+- Missing/zero NPC turret cycle times are given a safe 2-second fallback,
+  preventing invalid 0ms attack loops.
+- `WeaponFormulaTest` now covers missile step bounds, impact boundaries and
+  exactly-once cycle decrementing.
+
+### Remaining limitations
+
+- A complete physics-based continuous missile interception simulation
+  (sub-tick target velocity prediction, splash and network interpolation) is
+  **not** implemented here. Confirm flight paths and ranges in-game.
+- The all-weapon list is an audit of relevant implemented source paths,
+  not proof every ship, item and legacy effect in the Crucible database
+  matches retail performance.
