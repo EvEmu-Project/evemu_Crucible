@@ -1766,9 +1766,18 @@ void Client::SetInvulTimer(uint32 time/*Player::Timer::Default*/)
     }
 
     if (m_invulTimer.Enabled()) {
-        _log(CLIENT__ERROR, "%s: Invul Timer called but timer already enabled with %ums remaining.", m_char->name(), m_invulTimer.GetRemainingTime());
-        EvE::traceStack();
-        return;
+        const uint32 remaining = m_invulTimer.GetRemainingTime();
+        if (remaining > 0) {
+            _log(CLIENT__ERROR, "%s: Invul Timer called but timer already enabled with %ums remaining.", m_char->name(), remaining);
+            EvE::traceStack();
+            return;
+        }
+
+        // The timer has elapsed but ProcessClient() has not yet consumed the
+        // expiry. Replace that stale enabled timer rather than dropping a new
+        // warp/jump/undock invulnerability request.
+        _log(CLIENT__TIMER, "%s: Replacing expired invulnerability timer with %ums.", m_char->name(), time);
+        m_invulTimer.Disable();
     }
 
     _log(CLIENT__TIMER, "%s: Invul Timer set at %ums.   current state time is %ums", m_char->name(), time, m_invulTimer.GetCurrentTime());
