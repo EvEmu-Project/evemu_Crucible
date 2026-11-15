@@ -116,7 +116,7 @@ float TurretFormulas::GetNPCToHit(NPC* pNPC, SystemEntity* pTarget)
         return 0;
 
     uint16 sigRes = pNPC->GetAIMgr()->GetSigRes();
-    uint16 range = pNPC->GetAIMgr()->GetOptimalRange();
+    uint32 range = pNPC->GetAIMgr()->GetOptimalRange();
     uint32 falloff = pNPC->GetAIMgr()->GetFalloff();
 
     float distance = pNPC->DestinyMgr()->GetPosition().distance(pTarget->DestinyMgr()->GetPosition());
