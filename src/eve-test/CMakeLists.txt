@@ -65,3 +65,5 @@ ADD_TEST( NAME "EVEMarshalTest"
           COMMAND "${TARGET_NAME}" "marshal/EVEMarshalTest" )
 ADD_TEST( NAME "EvilNumberTest"
           COMMAND "${TARGET_NAME}" "utils/EvilNumberTest" )
+ADD_TEST( NAME "WeaponFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/WeaponFormulaTest" )
