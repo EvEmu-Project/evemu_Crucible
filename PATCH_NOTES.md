@@ -286,3 +286,14 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 **Log interpretation and validation**
 - The attached log's stack trace is emitted by `EvE::traceStack()` in `Client::SetInvulTimer()` after the 0 ms remaining-timer warning. The log continues afterward, so that trace alone is not proof of a fatal server crash.
 - The excerpt still does not contain a symbolized fatal crash report or drone fire/damage output. Runtime drone damage and any later process termination must be checked separately after this build.
+
+
+## 2026-11-15 — combat crash, drone orbit and partial flight command hardening
+
+- Hardened target-manager teardown against stale raw entity pointers. Targeter records now retain the targeter's entity ID; incoming targeter cleanup resolves that ID through the live solar-system registry before dereferencing the pointer. Outgoing target cleanup and target-list queries also use retained IDs rather than dereferencing potentially stale keys.
+- Hardened target lookup used by drone AI: `GetFirstTarget()` and `GetTarget()` now verify that the retained ID still resolves to the same live entity before returning a pointer.
+- Added null/dependency checks to target registration and lock completion. The entity death path now relies on `TargetManager::Destroyed()` / `ClearAllTargets()` to clear both outgoing and incoming target references before the manager is deleted.
+- Changed drone combat orbit selection to use `AttrOrbitRange`, not `AttrMaxRange`. If old static data omits `orbitRange`, the weapon-range/falloff fallback is capped at 2,500 m (500 m if no useful value exists), preventing a missing orbit attribute from turning a weapon range into a very large idle/engagement orbit.
+- Drone home-ship access now resolves the controller ID against the live system registry. Return, idle orbit, control-range checks and scoop no longer blindly trust a potentially stale non-owning ship pointer.
+- Fixed partial `CmdEngage` selection recovery: if only some client-supplied drone IDs resolve, the handler now finds and commands the remaining eligible drones controlled by the current character and ship, without issuing duplicate orders to drones already handled.
+- Validation: current head requires fresh Windows/Linux/Docker CI and in-game tests. The supplied log does not include a fatal crash stack; the turn-percent diagnostic is clamped in `DestinyManager::Turn()`, and the FX ID 0 warning is a missing weapon effect mapping rather than evidence of a server crash.
