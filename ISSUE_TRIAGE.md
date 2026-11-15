@@ -275,3 +275,19 @@ The run must be checked again after the documentation commit, because a new bran
 - Use owner character ID plus controlling ship/home-ship identity for authorization; do not rely solely on cached Client pointer identity.
 - When no supplied drone ID resolves and passes validation, enumerate current-system entities and issue the engage command to all active drones owned and controlled by the calling character/ship.
 - Added rejection/fallback logs. Verify actual client command arguments and in-game drone damage after CI passes.
+
+
+## 2026-11-15 follow-up — combat drones show Approach/Repair and deal no damage
+
+**Code review finding**
+- The drone AI used activity state `Engaged` (10) when it entered weapon range. The local enum describes `Combat` (1) as the fighting state and `Engaged` (10) as non-combat. This is a protocol/state-reporting mismatch and can explain an incorrect client activity label.
+- The drone weapon loop used a per-target lookup as its fire gate, whereas the NPC AI uses TargetManager's explicit `CanAttack()` flag, set only after lock completion.
+
+**Fix pushed to PR #13 branch**
+- Enter `Combat` while actively attacking, keep `Combat`/legacy `Engaged` in the active AI processing path, and avoid reissuing orbit every process tick for an unchanged target.
+- Gate weapon fire on TargetManager's completed-lock flag and log when the drone is still waiting for lock.
+
+**What remains to verify**
+- Fresh CI for this commit must pass.
+- In game, check that combat light drones show Combat rather than Repair/Engaged, then confirm NPC shield/armor/hull values decrease.
+- If there is still no damage, capture the new drone trace plus `DRONE__MESSAGE` / `DRONE__WARNING` output. The firing log confirms whether the attack loop is reached; the zero-base-damage warning identifies missing static damage attributes; the TargetManager lock trace identifies lock completion. This code inspection does not establish which runtime branch the user's current server is taking.
