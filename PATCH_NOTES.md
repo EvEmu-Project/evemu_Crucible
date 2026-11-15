@@ -275,3 +275,14 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 - In-game validation must confirm that the combat light drone's logged thermal/kinetic/etc. base damage is nonzero and that the post-ApplyDamage delta is positive; also verify no distant auto-acquisition and that the visible target list agrees with server lock counts. No in-game damage success is claimed yet.
 
 - Follow-up hardening: null target-map keys/entries are now removed before capacity checks as well, so malformed empty map records cannot consume one of the player's target slots.
+
+
+### 2026-11-15 — Drone lock callback and target-manager stability follow-up
+
+- Fixed target-manager processing invalidation: the global entity list now iterates a snapshot and revalidates each manager after processing, so stale-target pruning cannot invalidate the active iterator when a manager unregisters itself.
+- Target-lock completion now calls the owning entity's virtual `TargetAdded` callback. Drones therefore receive the actual lock-complete event, update their client-visible target ID, and re-evaluate approach/combat distance at the correct point in the lock lifecycle.
+- Restart an invulnerability timer that is still marked enabled but has already reached 0 ms. The expired timer is replaced; a timer with positive remaining time is left intact.
+
+**Log interpretation and validation**
+- The attached log's stack trace is emitted by `EvE::traceStack()` in `Client::SetInvulTimer()` after the 0 ms remaining-timer warning. The log continues afterward, so that trace alone is not proof of a fatal server crash.
+- The excerpt still does not contain a symbolized fatal crash report or drone fire/damage output. Runtime drone damage and any later process termination must be checked separately after this build.
