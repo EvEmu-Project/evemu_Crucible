@@ -445,7 +445,7 @@ void DroneAIMgr::CheckDistance(SystemEntity* pSE)
         SetIdle();
         return;
     }
-    if (pSE == nullptr || m_pDrone->SysBubble() == nullptr) {
+    if (pSE == nullptr || pSE->IsDead() || m_pDrone->SysBubble() == nullptr) {
         if (pSE != nullptr)
             ClearTarget(pSE);
         else
@@ -663,6 +663,10 @@ void DroneAIMgr::Attack(SystemEntity* pSE)
         }
         if (pSE == nullptr)
             return;
+        if (pSE->IsDead()) {
+            ClearTarget(pSE);
+            return;
+        }
         // Check to see if the target still in the bubble (Client warped out)
         // fighters/bombers are able to follow.
         if (!m_pDrone->SysBubble()->InBubble(pSE->GetPosition())) {
