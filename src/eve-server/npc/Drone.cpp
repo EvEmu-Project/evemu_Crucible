@@ -214,7 +214,12 @@ void DroneSE::Online(ShipSE* pShipSE/*nullptr*/) {
     StateChange();
 
     if (pShipSE == nullptr)
-        pShipSE = m_pShipSE;
+        pShipSE = GetHomeShip();
+    if (pShipSE == nullptr) {
+        m_online = false;
+        StateChange();
+        return;
+    }
 
     m_AI->AssignShip(pShipSE);
 }
