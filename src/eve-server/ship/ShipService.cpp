@@ -148,13 +148,19 @@ PyResult ShipBound::Board(PyCallArgs &call, PyInt* newShipID, std::optional<PyIn
         return nullptr;
     }
 
-    // this will segfault if newShipID is invalid or not in system inventory
-    pShipSE = pSystem->GetSE(newShipID->value())->GetShipSE();
-
-    if (pShipSE == nullptr) {
-        _log(SHIP__ERROR, "Handle_Board() - Failed to get new ship %u for %s.", newShipID->value(), pClient->GetName());
-        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 25107.");
+    if (newShipID == nullptr) {
+        _log(SHIP__ERROR, "Handle_Board() - Missing target ship ID for %s.", pClient->GetName());
+        throw CustomError("The selected ship is not available to board.");
     }
+
+    SystemEntity* newShipEntity = pSystem->GetSE(newShipID->value());
+    if (newShipEntity == nullptr || !newShipEntity->IsShipSE()
+        || newShipEntity->GetShipSE() == nullptr) {
+        _log(SHIP__ERROR, "Handle_Board() - Failed to resolve ship %u in system %u for %s.",
+             newShipID->value(), pSystem->GetID(), pClient->GetName());
+        throw CustomError("The selected ship is not available to board.");
+    }
+    pShipSE = newShipEntity->GetShipSE();
 
     if (pShipSE->GetTypeID() == itemTypeCapsule) {
         codelog(ITEM__ERROR, "Empty Pod %u in space.  SystemID %u.", newShipID->value(), pSystem->GetID());
@@ -916,7 +922,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
             case EVEDB::invCategories::StructureUpgrade: {
                 sRef = sItemFactory.GetStructureRef(*itr);
                 if (sRef.get() == nullptr)
-                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
+                    throw CustomError("Unable to load Structure item %u for jettison.", *itr);
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 StructureSE* sSE = new StructureSE(sRef, this->GetServiceManager(), pSysMgr, data);
@@ -944,7 +950,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
             case EVEDB::invCategories::Deployable: {
                 cRef = sItemFactory.GetItemRef(*itr);
                 if (cRef.get() == nullptr)
-                    throw CustomError ("Unable to spawn Deployable item of type %u.", cRef->typeID());
+                    throw CustomError("Unable to load Deployable item %u for jettison.", *itr);
 
                 cRef->Move(pClient->GetLocationID(), flagNone, true);
                 //flagUnanchored: for some DUMB reason, this flag, 1023 yields a PyNone when notifications
