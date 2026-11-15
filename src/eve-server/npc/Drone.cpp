@@ -297,7 +297,7 @@ void DroneSE::TargetAdded(SystemEntity* who) {
 }
 
 void DroneSE::TargetLost(SystemEntity *who) {
-    if (who != nullptr && m_targetID == who->GetID())
+    if (who == nullptr || m_targetID == who->GetID())
         SetTarget();
 
     m_AI->TargetLost(who);
