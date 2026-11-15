@@ -437,9 +437,10 @@ PyResult EntityBound::CmdReturnHome(PyCallArgs &call, PyList* droneIDs) {
 
     uint32 returned = 0;
     for (PyRep* rep : droneIDs->items) {
-        if (rep == nullptr || !rep->IsInt())
+        uint32 droneID = 0;
+        if (!ReadEntityID(rep, droneID))
             continue;
-        SystemEntity* entity = m_sysMgr->GetSE(rep->AsInt()->value());
+        SystemEntity* entity = m_sysMgr->GetSE(droneID);
         if (entity == nullptr || !entity->IsDroneSE())
             continue;
         DroneSE* drone = entity->GetDroneSE();
@@ -496,9 +497,10 @@ PyResult EntityBound::CmdReturnBay(PyCallArgs &call, PyList* droneIDs) {
 
     uint32 returning = 0;
     for (PyRep* rep : droneIDs->items) {
-        if (rep == nullptr || !rep->IsInt())
+        uint32 droneID = 0;
+        if (!ReadEntityID(rep, droneID))
             continue;
-        SystemEntity* entity = m_sysMgr->GetSE(rep->AsInt()->value());
+        SystemEntity* entity = m_sysMgr->GetSE(droneID);
         if (entity == nullptr || !entity->IsDroneSE())
             continue;
         DroneSE* drone = entity->GetDroneSE();
@@ -527,21 +529,26 @@ PyResult EntityBound::CmdAbandonDrone(PyCallArgs &call, PyList* droneIDs) {
     call.Dump(DRONE__DUMP);
 
     Client* pClient = call.client;
-    if (pClient == nullptr || m_sysMgr == nullptr || pClient->SystemMgr() != m_sysMgr)
+    ShipSE* pShipSE = (pClient != nullptr) ? pClient->GetShipSE() : nullptr;
+    if (pClient == nullptr || pShipSE == nullptr || m_sysMgr == nullptr
+        || pClient->SystemMgr() != m_sysMgr || m_sysMgr->GetID() != m_systemID)
         return PyStatic.mtDict();
 
     uint32 abandoned = 0;
     for (PyRep* rep : droneIDs->items) {
-        if (rep == nullptr || !rep->IsInt())
+        uint32 droneID = 0;
+        if (!ReadEntityID(rep, droneID))
             continue;
-        SystemEntity* entity = m_sysMgr->GetSE(rep->AsInt()->value());
+        SystemEntity* entity = m_sysMgr->GetSE(droneID);
         if (entity == nullptr || !entity->IsDroneSE())
             continue;
         DroneSE* drone = entity->GetDroneSE();
-        if (drone == nullptr || !drone->IsEnabled() || drone->GetOwner() != pClient)
+        if (drone == nullptr || !drone->IsEnabled()
+            || drone->GetOwnerID() != pClient->GetCharacterID()
+            || drone->GetControllerID() != pShipSE->GetID()
+            || drone->GetHomeShip() != pShipSE)
             continue;
-        if (drone->GetHomeShip() != nullptr)
-            drone->GetHomeShip()->ScoopDrone(drone);
+        pShipSE->ScoopDrone(drone);
         drone->Abandon();
         ++abandoned;
     }
