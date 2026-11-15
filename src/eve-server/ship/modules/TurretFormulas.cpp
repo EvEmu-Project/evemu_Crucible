@@ -14,6 +14,7 @@
   *  Concord  - 5%
   */
 
+#include "EVE_WeaponFormulas.h"
 #include "character/Character.h" // this sets compat includes for this file
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
@@ -75,37 +76,12 @@ float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEn
      *     e =  (d / falloff) ^ 2
      * tohit =  0.5 ^ (c + e)
      */
-    float a = (angularVel / trackSpeed);
-    float b = (sigRes / targSig);
-    float modifier(0.0f);
-    if ((a < 1) and (b > 1)) {
-        /* in cases where weapon can track target, but sigRes > targSig, the weapon would not hit on live but *should* hit with reduced damage
-         * modify formula to remove Signature variable from equation, test toHit against tracking,
-         * then use Signature variables to determine amount of damage reduction (i.e. large gun vs. small ship)
-         */
-        b = 1;
-        modifier = (targSig / sigRes);
-    }
-    float c = pow((a * b), 2);
-    float d = EvE::max(distance - range);
-    if (d > 0.0f && falloff == 0)
-        return 0;
-    float e = (d > 0.0f) ? pow((d / falloff), 2) : 0.0f;
-    float x = pow(0.5, c);
-    float y = pow(0.5, e);
-    float ChanceToHit = x * y;
-    _log(DAMAGE__TRACE, "Turret::GetToHit - (%.3f * %.3f)^2 = c:%.5f : (%.3f / %u)^2 = e:%.5f", a, b, c, d, falloff, e);
-    float rNum = MakeRandomFloat();
-    _log(DAMAGE__TRACE, "Turret::GetToHit - %f * %f = %.5f  - Rand:%.3f  - %s", \
-            x, y, ChanceToHit, rNum, ((rNum <= sConfig.rates.PlayerCritChance) ? "Crit" : (rNum < ChanceToHit ? "Hit" : "Miss")));
-    if (rNum <= sConfig.rates.PlayerCritChance)
-        return 3.0f;
-    if (rNum < ChanceToHit) {
-        if (modifier)
-            return modifier;
-        return (rNum + 0.49);
-    }
-    return 0;
+    const double chance = CalculateTurretHitChance(
+        angularVel, trackSpeed, sigRes, targSig, distance, range, falloff);
+    const float result = CalculateTurretHitQuality(
+        chance, MakeRandomFloat(0.0f, 1.0f), sConfig.rates.PlayerCritChance);
+    _log(DAMAGE__TRACE, "Turret: chance %.5f, quality %.3f", chance, result);
+    return result;
 }
 
 float TurretFormulas::GetNPCToHit(NPC* pNPC, SystemEntity* pTarget)
@@ -138,33 +114,10 @@ float TurretFormulas::GetNPCToHit(NPC* pNPC, SystemEntity* pTarget)
     _log(DAMAGE__TRACE_NPC, "NPC::GetToHit - transversalV:%.3f, angularVel:%.3f tracking:%.3f, targetSig:%.1f, sigRes:%u", \
                 transversalV, angularVel, trackSpeed, targSig, sigRes);
 
-    float a = (angularVel / trackSpeed);
-    float b = (sigRes / targSig);
-    float modifier(0.0f);
-    if ((a < 1) and (b > 1)) {
-        b = 1;
-        modifier = (targSig / sigRes);
-    }
-    float c = pow((a * b), 2);
-    float d = EvE::max(distance - range);
-    if (d > 0.0f && falloff == 0)
-        return 0;
-    float e = (d > 0.0f) ? pow((d / falloff), 2) : 0.0f;
-    float x = pow(0.5, c);
-    float y = pow(0.5, e);
-    float ChanceToHit = x * y;
-    _log(DAMAGE__TRACE_NPC, "NPC::GetToHit - (%.3f * %.3f)^2 = c:%.5f : (%.3f / %u)^2 = e:%.5f", a, b, c, d, falloff, e);
-    _log(DAMAGE__TRACE_NPC, "NPC::GetToHit - %f * %f = %.5f", x, y, ChanceToHit);
-    float rNum = MakeRandomFloat(0.0, 1.0);
-    _log(DAMAGE__TRACE_NPC, "NPC::GetToHit - ChanceToHit:%f, Rand:%.3f - %s", ChanceToHit, rNum, ((rNum <= sConfig.rates.NpcCritChance) ? "Crit" : (rNum < ChanceToHit ? "Hit" : "Miss")));
-    if (rNum <= sConfig.rates.NpcCritChance)
-        return 3.0f;
-    if (rNum < ChanceToHit) {
-        if (modifier)
-            return modifier;
-        return (rNum + 0.49);
-    }
-    return 0;
+    const double chance = CalculateTurretHitChance(
+        angularVel, trackSpeed, sigRes, targSig, distance, range, falloff);
+    return CalculateTurretHitQuality(
+        chance, MakeRandomFloat(0.0f, 1.0f), sConfig.rates.NpcCritChance);
 }
 
 float TurretFormulas::GetDroneToHit(DroneSE* pDrone, SystemEntity* pTarget)
@@ -179,7 +132,7 @@ float TurretFormulas::GetDroneToHit(DroneSE* pDrone, SystemEntity* pTarget)
     const float distance = static_cast<float>(
         pDrone->DestinyMgr()->GetPosition().distance(pTarget->DestinyMgr()->GetPosition()));
     if (distance <= 0.001f)
-        return 0.1f;
+        return 0.0f;
 
     float tracking = drone->GetAttribute(AttrTrackingSpeed).get_float();
     if (tracking <= 0.0f)
@@ -202,9 +155,6 @@ float TurretFormulas::GetDroneToHit(DroneSE* pDrone, SystemEntity* pTarget)
     const GVector relativeVelocity = pTarget->GetVelocity() - pDrone->GetVelocity();
     const float transversalVelocity = relativeVelocity.crossProduct(lineOfSight).length();
     const float angularVelocity = transversalVelocity / distance;
-    const float trackingTerm = (angularVelocity / tracking)
-        * (signatureResolution / targetSignature);
-
     float optimalRange = drone->GetAttribute(AttrEntityAttackRange).get_float();
     if (optimalRange <= 0.0f)
         optimalRange = drone->GetAttribute(AttrMaxRange).get_float();
@@ -212,19 +162,11 @@ float TurretFormulas::GetDroneToHit(DroneSE* pDrone, SystemEntity* pTarget)
     if (falloff <= 0.0f)
         falloff = (optimalRange > 0.0f) ? optimalRange : 1.0f;
 
-    const float rangeExcess = EvE::max(distance - optimalRange);
-    const float trackingPenalty = trackingTerm * trackingTerm;
-    const float falloffPenalty = (rangeExcess / falloff) * (rangeExcess / falloff);
-    const float chanceToHit = static_cast<float>(pow(0.5, trackingPenalty + falloffPenalty));
-    const float roll = MakeRandomFloat(0.0f, 1.0f);
-
-    if (roll <= sConfig.rates.DroneCritChance)
-        return 3.0f;
-    if (roll < chanceToHit)
-        return roll + 0.49f;
-
-    // Preserve the emulator's minimum-damage rule for combat drones.
-    return 0.1f;
+    const double chance = CalculateTurretHitChance(
+        angularVelocity, tracking, signatureResolution, targetSignature,
+        distance, optimalRange, falloff);
+    return CalculateTurretHitQuality(
+        chance, MakeRandomFloat(0.0f, 1.0f), sConfig.rates.DroneCritChance);
 }
 
 float TurretFormulas::GetSentryToHit(Sentry* pSentry, SystemEntity* pTarget)
@@ -256,24 +198,11 @@ float TurretFormulas::GetSentryToHit(Sentry* pSentry, SystemEntity* pTarget)
     const GVector relativeVelocity = pTarget->GetVelocity() - pSentry->GetVelocity();
     const float transversalVelocity = relativeVelocity.crossProduct(lineOfSight).length();
     const float angularVelocity = transversalVelocity / distance;
-    const float trackingTerm = (angularVelocity / tracking)
-        * (signatureResolution / targetSignature);
-
     const float optimalRange = sentry->GetAttribute(AttrEntityAttackRange).get_float();
     const float falloff = sentry->GetAttribute(AttrFalloff).get_float();
-    const float rangeExcess = EvE::max(distance - optimalRange);
-    if (rangeExcess > 0.0f && falloff <= 0.0f)
-        return 0.0f;
-
-    const float trackingPenalty = trackingTerm * trackingTerm;
-    const float falloffRatio = (rangeExcess > 0.0f) ? (rangeExcess / falloff) : 0.0f;
-    const float chanceToHit = static_cast<float>(
-        pow(0.5, trackingPenalty + (falloffRatio * falloffRatio)));
-    const float roll = MakeRandomFloat(0.0f, 1.0f);
-
-    if (roll <= sConfig.rates.SentryCritChance)
-        return 3.0f;
-    if (roll < chanceToHit)
-        return roll + 0.49f;
-    return 0.0f;
+    const double chance = CalculateTurretHitChance(
+        angularVelocity, tracking, signatureResolution, targetSignature,
+        distance, optimalRange, falloff);
+    return CalculateTurretHitQuality(
+        chance, MakeRandomFloat(0.0f, 1.0f), sConfig.rates.SentryCritChance);
 }

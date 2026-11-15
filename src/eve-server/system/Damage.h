@@ -27,6 +27,8 @@
 #define __DAMAGE_H_INCL__
 
 
+#include <cmath>
+
 #include "inventory/InventoryItem.h"
 #include "system/SystemManager.h"
 
@@ -55,13 +57,13 @@ public:
                             // added checks here for > 95% resists, and < 1% to avoid crazy damage shit.
                             // also added checks for missing resists (some npcs have no hull resist in db which = 100% resist)
                             if (kinetic_multiplier > 1.0) kinetic_multiplier = 1.0;
-                            if (kinetic_multiplier < 0.01) kinetic_multiplier = 0.01;
+                            if (!std::isfinite(kinetic_multiplier) || kinetic_multiplier < 0.0f) kinetic_multiplier = 0.0f;
                             if (thermal_multiplier > 1.0) thermal_multiplier = 1.0;
-                            if (thermal_multiplier < 0.01) thermal_multiplier = 0.01;
+                            if (!std::isfinite(thermal_multiplier) || thermal_multiplier < 0.0f) thermal_multiplier = 0.0f;
                             if (em_multiplier > 1.0) em_multiplier = 1.0;
-                            if (em_multiplier < 0.01) em_multiplier = 0.01;
+                            if (!std::isfinite(em_multiplier) || em_multiplier < 0.0f) em_multiplier = 0.0f;
                             if (explosive_multiplier > 1.0) explosive_multiplier = 1.0;
-                            if (explosive_multiplier < 0.01) explosive_multiplier = 0.01;
+                            if (!std::isfinite(explosive_multiplier) || explosive_multiplier < 0.0f) explosive_multiplier = 0.0f;
                             return Damage( srcSE, weaponRef,
                                            kinetic   * kinetic_multiplier,
                                            thermal   * thermal_multiplier,

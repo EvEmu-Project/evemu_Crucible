@@ -106,11 +106,11 @@ boolean can use either 0/1 OR true/false.
         <!-- min amount to be taxed.  received amounts less than this will not be taxed. -->
         <TaxedAmount>200000</TaxedAmount><!-- live uses 100000.  default is 175000 -->
         <!-- critical hit chances -->
-        <NpcCritChance>0.015</NpcCritChance><!-- default: 1.5% -->
-        <PlayerCritChance>0.02</PlayerCritChance><!-- default: 2% -->
-        <SentryCritChance>0.02</SentryCritChance><!-- default: 2% -->
-        <DroneCritChance>0.03</DroneCritChance><!-- default: 3% -->
-        <ConcordCritChance>0.05</ConcordCritChance><!-- default: 5% -->
+        <NpcCritChance>0.01</NpcCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <PlayerCritChance>0.01</PlayerCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <SentryCritChance>0.01</SentryCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <DroneCritChance>0.01</DroneCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <ConcordCritChance>0.01</ConcordCritChance><!-- Crucible 1% wrecking hits; configurable -->
         <!-- don't modify either of the next 2 settings - they are not fully debugged -->
         <ShipRepairModifier>0.000275</ShipRepairModifier><!-- (basePrice)*7.5e-10 on live.  needs to be less here. -->
         <ModuleRepairModifier>0.0022</ModuleRepairModifier><!-- (basePrice)*1.25e-6 -->

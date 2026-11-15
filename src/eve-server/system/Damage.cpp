@@ -28,6 +28,17 @@
 #include "system/Damage.h"
 
 #include "../../eve-common/EVE_Damage.h"
+#include "EVE_WeaponFormulas.h"
+
+namespace {
+float EffectiveResonance(const InventoryItemRef& item, uint16 attribute) {
+    if (item.get() == nullptr)
+        return 1.0f;
+    return NormalizeDamageResonance(item->GetAttribute(attribute).get_double(),
+                                    item->HasAttribute(attribute));
+}
+}
+
 
 #include "Client.h"
 #include "EntityList.h"
@@ -169,10 +180,10 @@ bool SystemEntity::ApplyDamage(Damage &d) {
 
     // this is calculated and created on every call...
     Damage DamageToShield = d.MultiplyDup(
-        m_self->GetAttribute(AttrShieldKineticDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldThermalDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldEmDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldExplosiveDamageResonance).get_float() );
+        EffectiveResonance(m_self, AttrShieldKineticDamageResonance),
+        EffectiveResonance(m_self, AttrShieldThermalDamageResonance),
+        EffectiveResonance(m_self, AttrShieldEmDamageResonance),
+        EffectiveResonance(m_self, AttrShieldExplosiveDamageResonance) );
 
     bool killed(false);
     float total_damage(0.0f);
@@ -211,10 +222,10 @@ bool SystemEntity::ApplyDamage(Damage &d) {
         //Armor:
         float available_armor = m_self->GetAttribute(AttrArmorHP).get_float() - m_self->GetAttribute(AttrArmorDamage).get_float();
         Damage DamageToArmor = d.MultiplyDup(
-            m_self->GetAttribute(AttrArmorKineticDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorThermalDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorEmDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorExplosiveDamageResonance).get_float() );
+            EffectiveResonance(m_self, AttrArmorKineticDamageResonance),
+            EffectiveResonance(m_self, AttrArmorThermalDamageResonance),
+            EffectiveResonance(m_self, AttrArmorEmDamageResonance),
+            EffectiveResonance(m_self, AttrArmorExplosiveDamageResonance) );
 
         float armor_damage = DamageToArmor.GetTotal();
         if (armor_damage <= available_armor) {
@@ -248,10 +259,10 @@ bool SystemEntity::ApplyDamage(Damage &d) {
             //The base hp and damage attributes represent structure.
             float available_hull = m_self->GetAttribute(AttrHP).get_float() - m_self->GetAttribute(AttrDamage).get_float();
             Damage DamageToHull = d.MultiplyDup(
-                m_self->GetAttribute(AttrKineticDamageResonance).get_float(),
-                m_self->GetAttribute(AttrThermalDamageResonance).get_float(),
-                m_self->GetAttribute(AttrEmDamageResonance).get_float(),
-                m_self->GetAttribute(AttrExplosiveDamageResonance).get_float() );
+                EffectiveResonance(m_self, AttrKineticDamageResonance),
+                EffectiveResonance(m_self, AttrThermalDamageResonance),
+                EffectiveResonance(m_self, AttrEmDamageResonance),
+                EffectiveResonance(m_self, AttrExplosiveDamageResonance) );
 
             float hull_damage = DamageToHull.GetTotal();
             if (hull_damage < available_hull) {
