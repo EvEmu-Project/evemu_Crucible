@@ -24,24 +24,25 @@ namespace {
 // Keep a conservative 20 km baseline only for old characters whose imported
 // static attributes do not contain the value.
 double GetDroneControlRange(DroneSE* drone) {
+    double effectiveRange = 0.0;
     if (drone != nullptr && drone->GetHomeShip() != nullptr
         && drone->GetHomeShip()->GetSelf().get() != nullptr) {
-        // The ship attribute includes any active drone-link range bonuses.
-        const double shipRange = drone->GetHomeShip()->GetSelf()
+        // The ship value may include fitted drone-link range bonuses.
+        effectiveRange = drone->GetHomeShip()->GetSelf()
             ->GetAttribute(AttrDroneControlDistance).get_double();
-        if (shipRange > 0.0)
-            return shipRange;
     }
     if (drone != nullptr && drone->GetOwner() != nullptr) {
         Character* character = drone->GetOwner()->GetChar().get();
         if (character != nullptr) {
+            // Character skills may be reflected on the character rather than
+            // copied into the ship attribute in older database imports.
             const double characterRange = character
                 ->GetAttribute(AttrDroneControlDistance).get_double();
-            if (characterRange > 0.0)
-                return characterRange;
+            if (characterRange > effectiveRange)
+                effectiveRange = characterRange;
         }
     }
-    return 20000.0;
+    return (effectiveRange > 0.0) ? effectiveRange : 20000.0;
 }
 
 bool IsTargetWithinDroneControlRange(DroneSE* drone, SystemEntity* target) {
