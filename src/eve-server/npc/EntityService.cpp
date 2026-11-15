@@ -260,11 +260,14 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targe
     };
 
     uint32 commanded = 0;
+    bool unresolvedSelection = requestedDroneIDs.size() != droneIDs->size();
+    std::vector<uint32> commandedDroneIDs;
     for (const uint32 droneID : requestedDroneIDs) {
         SystemEntity* pDroneEntity = m_sysMgr->GetSE(droneID);
         if (pDroneEntity == nullptr || !pDroneEntity->IsDroneSE()) {
             _log(DRONE__WARNING, "CmdEngage: selected drone ID %u is not present as a drone in system %u.",
                  droneID, m_systemID);
+            unresolvedSelection = true;
             continue;
         }
 
@@ -277,20 +280,22 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targe
                  pDrone->GetHomeShip() != nullptr ? pDrone->GetHomeShip()->GetID() : 0,
                  pDrone->IsEnabled() ? 1 : 0,
                  (pDrone->SysBubble() != nullptr && pDrone->SysBubble() == pShipSE->SysBubble()) ? 1 : 0);
+            unresolvedSelection = true;
             continue;
         }
 
         pDrone->GetAI()->Target(pTarget);
         ++commanded;
+        commandedDroneIDs.push_back(pDrone->GetID());
         _log(DRONE__MESSAGE, "CmdEngage: ordered drone %s(%u) to engage %s(%u).",
              pDrone->GetName(), pDrone->GetID(), pTarget->GetName(), pTarget->GetID());
     }
 
-    // Some client builds submit a drone-list itemID that is not the server's
-    // 32-bit SystemEntity ID. If none of the submitted IDs resolved, recover
-    // from the system registry using the owning character and controlling ship
-    // instead of leaving every launched drone uncontrollable.
-    if (commanded == 0) {
+    // Some client builds submit IDs that do not resolve to server drone
+    // entities. If any part of the selected flight failed to resolve, recover
+    // the remaining controlled drones from the system registry. Do not issue
+    // a duplicate order to drones already handled above.
+    if (commanded == 0 || unresolvedSelection) {
         const std::map<uint32, SystemEntity*> entities = m_sysMgr->GetEntities();
         for (const auto& entry : entities) {
             SystemEntity* entity = entry.second;
@@ -300,9 +305,13 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targe
             DroneSE* drone = entity->GetDroneSE();
             if (!canControlDrone(drone))
                 continue;
+            if (std::find(commandedDroneIDs.begin(), commandedDroneIDs.end(), drone->GetID())
+                != commandedDroneIDs.end())
+                continue;
 
             drone->GetAI()->Target(pTarget);
             ++commanded;
+            commandedDroneIDs.push_back(drone->GetID());
             _log(DRONE__MESSAGE,
                  "CmdEngage: fallback ordered owned drone %s(%u) to engage %s(%u).",
                  drone->GetName(), drone->GetID(), pTarget->GetName(), pTarget->GetID());
