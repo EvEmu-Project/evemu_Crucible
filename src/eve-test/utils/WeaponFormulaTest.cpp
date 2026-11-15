@@ -34,6 +34,11 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
     const double invalidRange = CalculateMissileMaximumRange(
         std::numeric_limits<double>::infinity(), 1000.0);
 
+    const double defenderFirstHit = CalculateRemainingMissileHP(200.0, 75.0);
+    const double defenderSecondHit = CalculateRemainingMissileHP(defenderFirstHit, 150.0);
+    const double invalidDefenderHit = CalculateRemainingMissileHP(
+        200.0, std::numeric_limits<double>::quiet_NaN());
+
     const bool passed =
         std::fabs(fullDamage - 1.0) < 0.000001 &&
         std::fabs(signatureLimited - 0.5) < 0.000001 &&
@@ -47,7 +52,9 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
         noFalloff == 0.0 && std::fabs(normalHit - 0.69) < 0.000001 &&
         miss == 0.0f && wreck == 3.0f && noImpossibleWreck == 0.0f &&
         noResistance == 1.0f && immune == 0.0f && halfDamage == 0.5f &&
-        fiveSecondRange == 7500.0 && invalidRange == 0.0;
+        fiveSecondRange == 7500.0 && invalidRange == 0.0 &&
+        defenderFirstHit == 125.0 && defenderSecondHit == 0.0 &&
+        invalidDefenderHit == 200.0;
 
     if (!passed) {
         ::printf("Weapon formula test failed: full=%.6f signature=%.6f velocity=%.6f capped=%.6f invalid=%.6f\n",

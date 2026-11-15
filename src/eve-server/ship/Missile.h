@@ -58,6 +58,9 @@ public:
     uint32 GetTargetID()                                { return m_orbitingID; }
     SystemEntity* GetTargetSE()                         { return m_targetSE; }
     void Intercept()                                    { m_alive = false; }
+    // Defender damage reduces missile hull HP. Large warheads can survive
+    // an interception and require additional defender rounds.
+    bool ApplyDefenderDamage(double damage);
 
     void SetHitTimer(uint32 setTime)                    { m_hitTimer.Start(setTime); }
     void SetSpeed(double speed)                         { m_speed = speed; }

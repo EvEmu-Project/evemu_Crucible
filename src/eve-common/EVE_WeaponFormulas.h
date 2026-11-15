@@ -101,4 +101,15 @@ inline double CalculateMissileMaximumRange(double velocity, double lifetimeMs)
     return std::isfinite(range) ? range : 0.0;
 }
 
+// A defender subtracts its warhead damage from incoming missile HP.
+// Do not treat every interception as a guaranteed one-hit kill.
+inline double CalculateRemainingMissileHP(double currentHP, double incomingDamage)
+{
+    if (!std::isfinite(currentHP) || currentHP <= 0.0)
+        return 0.0;
+    if (!std::isfinite(incomingDamage) || incomingDamage <= 0.0)
+        return currentHP;
+    return std::max(0.0, currentHP - incomingDamage);
+}
+
 #endif

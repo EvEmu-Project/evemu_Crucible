@@ -258,6 +258,17 @@ void Missile::MakeDamageState(DoDestinyDamageState &into) {
     into.structure = 1.0f - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHP).get_float());
 }
 
+bool Missile::ApplyDefenderDamage(double damage) {
+    if (!m_alive || !std::isfinite(damage) || damage <= 0.0)
+        return false;
+    m_hullHP = CalculateRemainingMissileHP(m_hullHP, damage);
+    if (m_hullHP <= 0.0) {
+        m_alive = false;
+        return true;
+    }
+    return false;
+}
+
 void Missile::HitTarget() {
     // Resolve both endpoints through the live system registry. Cached raw
     // pointers may have been invalidated while the missile was in flight.
@@ -282,8 +293,19 @@ void Missile::HitTarget() {
     if (m_modRef->groupID() == EVEDB::invGroups::Missile_Launcher_Defender
         && liveTarget->IsMissileSE()) {
         Missile* intercepted = liveTarget->GetMissileSE();
-        if (intercepted != nullptr && intercepted->IsAlive())
-            intercepted->Intercept();
+        if (intercepted != nullptr && intercepted->IsAlive()) {
+            const double defenderDamage =
+                m_self->GetAttribute(AttrKineticDamage).get_double()
+                + m_self->GetAttribute(AttrThermalDamage).get_double()
+                + m_self->GetAttribute(AttrEmDamage).get_double()
+                + m_self->GetAttribute(AttrExplosiveDamage).get_double();
+            const bool destroyed = intercepted->ApplyDefenderDamage(
+                defenderDamage * m_damageMod * sConfig.rates.missileDamage
+                * sConfig.rates.damageRate);
+            _log(DAMAGE__TRACE,
+                 "Defender missile %u hit incoming missile %u for %.1f raw damage; destroyed=%u.",
+                 GetID(), intercepted->GetID(), defenderDamage * m_damageMod, destroyed ? 1 : 0);
+        }
         m_alive = false;
         return;
     }
