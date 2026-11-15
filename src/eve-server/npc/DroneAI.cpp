@@ -635,7 +635,9 @@ void DroneAIMgr::TargetLost(SystemEntity* pTarget) {
         m_pendingTargetID = 0;
     if (pTarget == nullptr || m_assignedTargetID == (pTarget != nullptr ? pTarget->GetID() : 0)) {
         m_assignedTargetID = 0;
-        SystemEntity* nextTarget = m_pDrone->TargetMgr()->GetFirstTarget(false);
+        // Do not assign a still-locking target as the active combat target. Its
+        // lock-complete callback will assign it when it is actually ready.
+        SystemEntity* nextTarget = m_pDrone->TargetMgr()->GetFirstTarget(true);
         if (nextTarget != nullptr)
             m_assignedTargetID = nextTarget->GetID();
     }
