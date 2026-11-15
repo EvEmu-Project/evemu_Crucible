@@ -182,6 +182,9 @@ bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     }
 
     MissionDB::CreateOfferID(offer);
+    // Reject a failed database INSERT rather than caching an ephemeral offer.
+    if (offer.offerID == 0)
+        return false;
     m_offers.emplace(charID, offer);
     sMissionDataMgr.AddMissionOffer(charID, offer);
     return true;
