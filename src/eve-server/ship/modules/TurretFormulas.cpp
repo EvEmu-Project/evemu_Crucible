@@ -229,30 +229,51 @@ float TurretFormulas::GetDroneToHit(DroneSE* pDrone, SystemEntity* pTarget)
 
 float TurretFormulas::GetSentryToHit(Sentry* pSentry, SystemEntity* pTarget)
 {
-    if (pTarget == nullptr)
-        return 0;
-    float sigRes = pSentry->GetSelf()->GetAttribute(AttrOptimalSigRadius).get_float();
-    float falloff = pSentry->GetSelf()->GetAttribute(AttrFalloff).get_float();
-    float distance = pSentry->GetPosition().distance(pTarget->DestinyMgr()->GetPosition());
-    float targSig = pTarget->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();
-    float a = (pTarget->GetVelocity().length() / (distance * pSentry->GetSelf()->GetAttribute(AttrTrackingSpeed).get_float()));
-    float b = (sigRes / targSig);
-    float modifier = 0.0f;
-    if ((a < 1) and (b > 1)) {
-        b = 1;
-        modifier = (targSig / sigRes);
-    }
-    float c = pow((a * b), 2);
-    float d = EvE::max(distance - pSentry->GetSelf()->GetAttribute(AttrEntityAttackRange).get_float());
-    float e = pow((d / falloff), 2);
-    float ChanceToHit = pow(0.5, c + e);
-    float rNum = MakeRandomFloat(0.0, 1.0);
-    if (rNum <= sConfig.rates.SentryCritChance)
+    if (pSentry == nullptr || pTarget == nullptr
+        || pSentry->GetSelf().get() == nullptr || pTarget->GetSelf().get() == nullptr
+        || pSentry->DestinyMgr() == nullptr || pTarget->DestinyMgr() == nullptr)
+        return 0.0f;
+
+    InventoryItemRef sentry = pSentry->GetSelf();
+    InventoryItemRef target = pTarget->GetSelf();
+    const float distance = static_cast<float>(
+        pSentry->DestinyMgr()->GetPosition().distance(pTarget->DestinyMgr()->GetPosition()));
+    if (distance <= 0.001f)
+        return 0.0f;
+
+    const float signatureResolution = sentry->GetAttribute(AttrOptimalSigRadius).get_float();
+    const float tracking = sentry->GetAttribute(AttrTrackingSpeed).get_float();
+    float targetSignature = target->GetAttribute(AttrSignatureRadius).get_float();
+    if (targetSignature < 0.01f)
+        targetSignature = target->GetAttribute(AttrRadius).get_float() / 10.0f;
+    if (signatureResolution <= 0.0f || tracking <= 0.0f || targetSignature <= 0.0f)
+        return 0.0f;
+
+    // Use transversal velocity (angular velocity), not total target speed.
+    // Radial movement toward or away from the sentry must not penalize tracking.
+    GVector lineOfSight(pSentry->GetPosition(), pTarget->GetPosition());
+    lineOfSight.normalize();
+    const GVector relativeVelocity = pTarget->GetVelocity() - pSentry->GetVelocity();
+    const float transversalVelocity = relativeVelocity.crossProduct(lineOfSight).length();
+    const float angularVelocity = transversalVelocity / distance;
+    const float trackingTerm = (angularVelocity / tracking)
+        * (signatureResolution / targetSignature);
+
+    const float optimalRange = sentry->GetAttribute(AttrEntityAttackRange).get_float();
+    const float falloff = sentry->GetAttribute(AttrFalloff).get_float();
+    const float rangeExcess = EvE::max(distance - optimalRange);
+    if (rangeExcess > 0.0f && falloff <= 0.0f)
+        return 0.0f;
+
+    const float trackingPenalty = trackingTerm * trackingTerm;
+    const float falloffRatio = (rangeExcess > 0.0f) ? (rangeExcess / falloff) : 0.0f;
+    const float chanceToHit = static_cast<float>(
+        pow(0.5, trackingPenalty + (falloffRatio * falloffRatio)));
+    const float roll = MakeRandomFloat(0.0f, 1.0f);
+
+    if (roll <= sConfig.rates.SentryCritChance)
         return 3.0f;
-    if (rNum < ChanceToHit) {
-        if (modifier)
-            return modifier;
-        return (rNum + 0.49);
-    }
-    return 0;
+    if (roll < chanceToHit)
+        return roll + 0.49f;
+    return 0.0f;
 }
