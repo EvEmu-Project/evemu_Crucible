@@ -24,12 +24,21 @@ namespace {
 // Keep a conservative 20 km baseline only for old characters whose imported
 // static attributes do not contain the value.
 double GetDroneControlRange(DroneSE* drone) {
+    if (drone != nullptr && drone->GetHomeShip() != nullptr
+        && drone->GetHomeShip()->GetSelf().get() != nullptr) {
+        // The ship attribute includes any active drone-link range bonuses.
+        const double shipRange = drone->GetHomeShip()->GetSelf()
+            ->GetAttribute(AttrDroneControlDistance).get_double();
+        if (shipRange > 0.0)
+            return shipRange;
+    }
     if (drone != nullptr && drone->GetOwner() != nullptr) {
         Character* character = drone->GetOwner()->GetChar().get();
         if (character != nullptr) {
-            const double range = character->GetAttribute(AttrDroneControlDistance).get_double();
-            if (range > 0.0)
-                return range;
+            const double characterRange = character
+                ->GetAttribute(AttrDroneControlDistance).get_double();
+            if (characterRange > 0.0)
+                return characterRange;
         }
     }
     return 20000.0;
