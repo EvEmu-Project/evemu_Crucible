@@ -391,7 +391,11 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
     const bool tracked = m_entities.find(pseId) != m_entities.end()
         || m_dynamicEntities.find(pseId) != m_dynamicEntities.end()
         || m_drones.find(pseId) != m_drones.end();
-    if (!tracked)
+    // ProcessWander() may already have erased the entity from the dynamic
+    // map while it is still owned by this bubble. We must still send the
+    // removal notification and clear its pilot/drone bookkeeping in that case.
+    // Only suppress untracking when this bubble neither owns NOR tracks it.
+    if (!tracked && pSE->m_bubble != this)
         return;
 
     if (pSE->m_bubble != this) {
