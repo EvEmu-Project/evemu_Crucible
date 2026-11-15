@@ -585,17 +585,21 @@ bool TargetManager::IsTargetedBy(SystemEntity* pSE)
 }
 
 SystemEntity* TargetManager::GetFirstTarget(bool need_locked/*false*/) {
-    if (m_targets.empty())
+    if (m_targets.empty() || mySE == nullptr || mySE->SystemMgr() == nullptr)
         return nullptr;
 
-    if (!need_locked)
-        return m_targets.begin()->first;
-
-    std::map<SystemEntity *, TargetEntry *>::iterator itr = m_targets.begin();
-    for (; itr != m_targets.end(); ++itr)
-        if (itr->second->state == TargMgr::State::Locked)
-            return itr->first;
-
+    // Drone AI can query targets every entity tick, before the global target
+    // manager timer runs. Only return pointers that still resolve to the same
+    // live entity in this solar system.
+    for (auto itr = m_targets.begin(); itr != m_targets.end(); ++itr) {
+        if (itr->first == nullptr || itr->second == nullptr)
+            continue;
+        if (mySE->SystemMgr()->GetSE(itr->second->targetID) != itr->first)
+            continue;
+        if (need_locked && itr->second->state != TargMgr::State::Locked)
+            continue;
+        return itr->first;
+    }
     return nullptr;
 }
 
@@ -606,7 +610,8 @@ PyList* TargetManager::GetTargets() const {
 
     std::map<SystemEntity *, TargetEntry *>::const_iterator itr = m_targets.begin();
     for (; itr != m_targets.end(); ++itr)
-        result->AddItemInt( itr->first->GetID() );
+        if (itr->second != nullptr)
+            result->AddItemInt(itr->second->targetID);
 
     return result;
 }
@@ -618,7 +623,8 @@ PyList* TargetManager::GetTargeters() const {
 
     std::map<SystemEntity*, TargetedByEntry*>::const_iterator itr = m_targetedBy.begin();
     for(; itr != m_targetedBy.end(); ++itr)
-        result->AddItemInt( itr->first->GetID() );
+        if (itr->second != nullptr)
+            result->AddItemInt(itr->second->targetID);
 
     return result;
 }
@@ -626,19 +632,20 @@ PyList* TargetManager::GetTargeters() const {
 // no longer used.  1Feb18
 // will be used by advanced NPCs....eventually
 SystemEntity* TargetManager::GetTarget(uint32 targetID, bool need_locked/*true*/) const {
-    if (m_targets.empty())
+    if (m_targets.empty() || mySE == nullptr || mySE->SystemMgr() == nullptr)
         return nullptr;
 
     std::map<SystemEntity*, TargetEntry*>::const_iterator itr = m_targets.begin();
     for (; itr != m_targets.end(); ++itr) {
-        if (itr->first->GetID() != targetID)
+        if (itr->second == nullptr || itr->second->targetID != targetID)
             continue;
-        //found it...
-        if (need_locked and (itr->second->state != TargMgr::State::Locked)) {
+        if (mySE->SystemMgr()->GetSE(targetID) != itr->first)
+            continue;
+        if (need_locked && itr->second->state != TargMgr::State::Locked) {
             _log(TARGET__INFO, "Found target %u, but it is not locked.", targetID);
             continue;
         }
-        _log(TARGET__INFO, "Found target %u: %s (nl? %s)", targetID, itr->first->GetName(), need_locked?"yes":"no");
+        _log(TARGET__INFO, "Found target %u (nl? %s)", targetID, need_locked?"yes":"no");
         return itr->first;
     }
     _log(TARGET__INFO, "Unable to find target %u (nl? %s)", targetID, need_locked?"yes":"no");
