@@ -237,3 +237,12 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 - Added automatic hostile-NPC acquisition for online combat drones. Idle drones scan their current bubble, select the nearest living NPC that is not owned by the pilot or of the same non-zero faction, engage it, and reacquire the next NPC after the current target is destroyed/lost.
 - Explicit return orders suppress automatic reacquisition. Relaunching/online or issuing a new engage order enables combat acquisition again.
 - Validation pending: CI and in-game tests of command decoding, automatic NPC acquisition, sequential target switching, faction filtering and return suppression.
+
+
+## Drone engage ownership and client-ID recovery — 2026-11-15
+
+- Explicitly bind the launching pilot to each newly created DroneSE instead of relying only on a second global client lookup by character ID.
+- Validate drone command ownership using the drone's authoritative owner character ID, controlling ship ID, home-ship pointer, enabled state, and current bubble.
+- If the client-supplied selected drone IDs do not resolve to any active drone entity, recover by scanning the current system registry for drones controlled by the calling character and ship, then issue the engage order.
+- Added per-drone rejection diagnostics and fallback-order logs to distinguish stale client IDs from ownership, ship, enabled-state, or bubble mismatches.
+- Requires Windows/Linux CI and in-game validation; no runtime success is claimed by this patch.
