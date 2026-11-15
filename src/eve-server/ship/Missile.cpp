@@ -285,7 +285,11 @@ void Missile::HitTarget() {
             velocityFactor = 0.0;
     }
 
-    const double damageFactor = EvE::max(0.0, EvE::min1(signatureFactor, velocityFactor));
+    double damageFactor = (signatureFactor < velocityFactor) ? signatureFactor : velocityFactor;
+    if (damageFactor > 1.0)
+        damageFactor = 1.0;
+    if (damageFactor < 0.0)
+        damageFactor = 0.0;
 
     // Create and apply damage only after the impact inputs have been validated.
     Damage d(m_fromSE, m_modRef, m_self, EVEEffectID::missileLaunching);
