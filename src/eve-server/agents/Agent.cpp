@@ -819,7 +819,8 @@ bool Agent::CanUseAgent(Client* pClient)
 
     float facChr = StandingDB::GetStanding(m_agentData.factionID, charID);
     float corpChr = StandingDB::GetStanding(m_agentData.corporationID, charID);
-    float charChr = StandingDB::GetStanding(m_agentID, charID);
+    // Agent standing was already loaded above; avoid a duplicate SQL lookup.
+    float charChr = charStanding;
     float facBonus = EvEMath::Agent::GetStandingBonus(facChr, m_agentData.factionID, sConn, sDiplo, sCrim);
     float corpBonus = EvEMath::Agent::GetStandingBonus(corpChr, m_agentData.factionID, sConn, sDiplo, sCrim);
     float charBonus = EvEMath::Agent::GetStandingBonus(charChr, m_agentData.factionID, sConn, sDiplo, sCrim);

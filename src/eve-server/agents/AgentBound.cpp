@@ -406,6 +406,9 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
 
                 m_agent->UpdateStandings(call.client, Standings::MissionCompleted, offer.important);
                 m_agent->RemoveOffer(pchar->itemID());
+                // Tell the Crucible client that this conversation completed
+                // its mission (the existing response flag was always false).
+                missionCompleted = true;
             } break;
             case Defer: {   //10
                 // extend expiry time and close
@@ -439,7 +442,6 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 m_agent->UpdateStandings(call.client, Standings::MissionDeclined);
             } break;
             case Quit: {    //11
-                missionQuit = true;
                 MissionOffer offer = MissionOffer();
                 if (!m_agent->HasMission(pchar->itemID(), offer)
                     || offer.stateID != Mission::State::Accepted) {
@@ -447,6 +449,7 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                     agentSays->SetItem(1, PyStatic.NewNone());
                     break;
                 }
+                missionQuit = true;
                 if (offer.typeID != Mission::Type::Encounter && offer.courierTypeID)
                     call.client->RemoveMissionItem(offer.courierTypeID, offer.courierAmount);
                 if (offer.typeID == Mission::Type::Encounter)

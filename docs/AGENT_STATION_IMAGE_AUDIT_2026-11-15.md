@@ -30,3 +30,9 @@ The user reported missing portraits for agents in stations. The audit reviewed `
 This patch does not synthesize authentic NPC portraits or change NPC portrait identifiers. Some historical portraits may not exist on CCP's current image service. HTTPS following by a 2012 Crucible client needs direct testing, and multi-room mission logic, research agents and storyline systems remain incomplete. No database migration or live database update is part of the source changes.
 
 References: [Current EVE image server](https://docs.esi.evetech.net/docs/image_server.html), [fork patch notes](../PATCH_NOTES.md).
+
+## Further agent UI and lookup optimization
+
+- The Crucible agent conversation now sets `missionCompleted=true` in its out-of-band response only after an actual completion. Previously this field remained false on every successful completion.
+- The Quit response flag is set only after a valid accepted mission is found; invalid quits no longer signal success.
+- `Agent::CanUseAgent()` reuses the agent standing already fetched earlier in the same function, eliminating a duplicate standing query per agent access check.
