@@ -356,3 +356,25 @@ The run must be checked again after the documentation commit, because a new bran
 - Test a drone whose `orbitRange` attribute is absent and one with it populated; verify orbit distance is sensible and no drone selects NPCs outside the logged control distance.
 - Kill NPCs while several drones and NPCs are targeting them; repeat across several waves to stress target-manager teardown.
 - If the process still exits, provide the final 50–100 lines after the last normal event plus a Windows crash dump or symbolized stack. The excerpt supplied so far ends before any fatal termination record.
+
+
+## 2026-11-15 — combat log review follow-up
+
+**Confirmed code issues addressed**
+- AttrDroneIsAgressive was only used for retaliation; idle drones auto-acquired NPCs regardless of the Aggressive setting. Auto-acquisition is now gated by that setting.
+- AttrDroneFocusFire was written by the ship's drone settings handler but was never read by DroneAI. Focus Fire now coordinates a shared assigned target across the controlled flight.
+- Drone combat selected the first locked target from a pointer-keyed map. It now resolves the AI's assigned target ID before firing.
+- FxProc::ApplyEffects() dereferenced GetModule(...)->GetSelf() without checking whether the module lookup succeeded. The charge-to-module path now checks the source item, manager and module before use.
+
+**Log findings / not proven as crash causes**
+- The supplied log ends at 12:17:13 and contains no fatal exception or actual process crash record. Its stack traces following the flagNone effect messages are emitted by the effect processor's own EvE::traceStack() diagnostic.
+- fxID = 0 / empty GUID for 250mm Railgun II is a missing visual effect mapping.
+- MM::UnloadCharge() reports the railguns were already unloaded; this is a module/ammo state issue to investigate separately if the client did not request unloading.
+- Destiny::Turn() reports turn percentages above 1.0; these diagnostics indicate turn-step clamping/overshoot, not by themselves a crash.
+- ClearBoundObject() warnings indicate stale service bound-object release attempts, but the log does not connect them to the process termination.
+
+**Required validation**
+- Fresh Windows and Linux CI on this commit.
+- In-game test with Aggressive off/on and Focus Fire off/on.
+- Confirm all selected drones keep one assigned target, fire only after their own lock completes, and switch together only after the target dies or is lost.
+- Capture a Windows crash dump with matching symbols if the server still terminates. The supplied text log cannot symbolicate the unknown function addresses.
