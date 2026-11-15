@@ -20,9 +20,19 @@ while a character/system session loads Maurasi (30000140).
 The exact 12-frame call stack cannot be located reliably in source without
 the **matching executable and symbols**, module load base, or a symbolized
 minidump. The duplicated trace may be a debug stack dump rather than an actual
-crash; attributing it to one function would be speculative.
+crash. A **strong source-level candidate** is `DynamicEntityFactory::BuildEntity()`:
+right after cosmic manager initialization, `LoadSystemDynamics()` loads the
+database rows. The factory previously called `EvE::traceStack()` unconditionally
+for each unsupported dynamic entity. Sixteen unsupported items could therefore
+emit sixteen identical stacks. This fits the log timing and repetition but is
+not confirmed without matching debug symbols or a complete unfiltered log.
 
 ## Source-level defects fixed during this pass
+
+**Additional startup-log fix:** `DynamicEntityFactory::BuildEntity()` now
+logs the skipped item's ID, type, group, category and system instead of printing
+an unconditional, unsymbolized stack for every unsupported row. This provides
+actionable data without hiding the underlying database incompatibility.
 
 1. `BubbleManager::Remove()` previously called `Untrack()` on **all** bubbles,
    even when they did not own the entity, and called `Remove()` again on its
