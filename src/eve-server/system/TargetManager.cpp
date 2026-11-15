@@ -521,7 +521,7 @@ void TargetManager::ClearTargets(bool notify/*true*/) {
     for (const auto& target : targets) {
         const uint32 targetID = target.first;
         SystemEntity* liveTarget = (system != nullptr) ? system->GetSE(targetID) : nullptr;
-        if (liveTarget == target.second && liveTarget->TargetMgr() != nullptr)
+        if (liveTarget != nullptr && liveTarget == target.second && liveTarget->TargetMgr() != nullptr)
             liveTarget->TargetMgr()->TargetedByLost(mySE);
 
         _log(TARGET__TRACE, "ClearTargets() - %s(%u) has cleared target ID %u.",
@@ -548,7 +548,7 @@ void TargetManager::ClearFromTargets() {
     // remove another entity, so never retain raw entity pointers across them.
     for (const auto& targeterEntry : targeters) {
         SystemEntity* targeter = (system != nullptr) ? system->GetSE(targeterEntry.first) : nullptr;
-        if (targeter == targeterEntry.second && targeter->TargetMgr() != nullptr)
+        if (targeter != nullptr && targeter == targeterEntry.second && targeter->TargetMgr() != nullptr)
             targeter->TargetMgr()->TargetLost(mySE);
     }
 }
