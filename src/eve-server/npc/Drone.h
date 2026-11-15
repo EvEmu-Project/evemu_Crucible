@@ -71,7 +71,7 @@ public:
     virtual void TargetedLost(SystemEntity *who);
 
     /* specific functions handled here. */
-    Client* GetOwner()                                  { return m_pClient; }
+    Client* GetOwner() const; // resolves the currently connected owner by character ID
     DroneAIMgr* GetAI()                                 { return m_AI; }
 
     void Launch(ShipSE* pShipSE);           //add drone entity to system
@@ -88,13 +88,13 @@ public:
     void SetOwner(Client* pClient);
     void ClearShipControl()                          { m_pShipSE = nullptr; m_controllerID = 0; m_controllerOwnerID = 0; }
 
-    uint32 GetBounty() const                            { return (m_pClient == nullptr ? 0 : m_pClient->GetChar()->bounty()); }
+    uint32 GetBounty() const;
 
     float GetThermal()                                  { return m_therDamage; }
     float GetEM()                                       { return m_emDamage; }
     float GetKinetic()                                  { return m_kinDamage; }
     float GetExplosive()                                { return m_expDamage; }
-    float GetSecurityRating() const                     { return (m_pClient == nullptr ? 0.0 : m_pClient->GetChar()->GetSecurityRating()); }
+    float GetSecurityRating() const;
 
     double GetOrbitRange()                              { return m_orbitRange; }
 
@@ -116,7 +116,6 @@ public:
     SystemManager* GetSystemManager()                    { return m_system; }
 
 protected:
-    Client* m_pClient;          //we do not own this
     DroneAIMgr* m_AI;           //we do own this
     ShipSE* m_pShipSE;            //we do not own this
     SystemManager* m_system;    //we do not own this
