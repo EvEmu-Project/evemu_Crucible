@@ -60,6 +60,7 @@ public:
 
     void SetIdle();
     void Return(bool returnToBay=false);
+    void SetAutoEngage(bool enabled)                   { m_autoEngageEnabled = enabled; }
     bool IsScoopRequested() const                       { return m_scoopRequested; }
     void AssignShip(ShipSE* pSE)                        { m_assignedShip = pSE; }
 
@@ -93,6 +94,7 @@ private:
     uint32 m_pendingTargetID;
     bool m_returnToBay;
     bool m_scoopRequested;
+    bool m_autoEngageEnabled;
 
     TurretFormulas m_formula;
 
