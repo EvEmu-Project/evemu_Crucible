@@ -174,6 +174,19 @@ void DroneAIMgr::Process() {
      *   Incapacitated     = 13  // out of control range, but online
      */
 
+    // Focus-fire is a flight-level decision. Keep every controlled drone on
+    // the same valid assigned target, including while that target is locking.
+    if (m_autoEngageEnabled && m_state != DroneAI::State::Departing
+        && m_pDrone->GetSelf().get() != nullptr
+        && m_pDrone->GetSelf()->GetAttribute(AttrDroneFocusFire).get_bool()) {
+        SystemEntity* sharedTarget = FindSharedDroneTarget(m_pDrone);
+        if (sharedTarget != nullptr && sharedTarget->GetID() != m_assignedTargetID) {
+            _log(DRONE__AI_TRACE, "Drone %s(%u): Focus Fire joining flight target %s(%u).",
+                 m_pDrone->GetName(), m_pDrone->GetID(), sharedTarget->GetName(), sharedTarget->GetID());
+            Target(sharedTarget);
+        }
+    }
+
     // A target outside immediate lock range is retained while the drone
     // approaches. Without this pending-target path, StartTargeting() returns
     // false and the drone silently abandons otherwise valid engage commands.
@@ -203,19 +216,6 @@ void DroneAIMgr::Process() {
                 m_pDrone->StateChange();
             }
             return;
-        }
-    }
-
-    // Focus-fire is a flight-level decision. Keep every controlled drone on
-    // the same valid assigned target, including while that target is locking.
-    if (m_autoEngageEnabled && m_state != DroneAI::State::Departing
-        && m_pDrone->GetSelf().get() != nullptr
-        && m_pDrone->GetSelf()->GetAttribute(AttrDroneFocusFire).get_bool()) {
-        SystemEntity* sharedTarget = FindSharedDroneTarget(m_pDrone);
-        if (sharedTarget != nullptr && sharedTarget->GetID() != m_assignedTargetID) {
-            _log(DRONE__AI_TRACE, "Drone %s(%u): Focus Fire joining flight target %s(%u).",
-                 m_pDrone->GetName(), m_pDrone->GetID(), sharedTarget->GetName(), sharedTarget->GetID());
-            Target(sharedTarget);
         }
     }
 
@@ -517,6 +517,7 @@ void DroneAIMgr::Target(SystemEntity* pTarget) {
         m_pDrone->TargetMgr()->ClearAllTargets();
 
     bool chase = false;
+    m_assignedTargetID = pTarget->GetID();
     const double commandRange = (m_entityChaseRange > m_entityAttackRange)
         ? m_entityChaseRange : m_entityAttackRange;
     const double distance = m_pDrone->GetPosition().distance(pTarget->GetPosition());
@@ -532,7 +533,6 @@ void DroneAIMgr::Target(SystemEntity* pTarget) {
         return;
     }
     m_pendingTargetID = 0;
-    m_assignedTargetID = pTarget->GetID();
     uint32 maxTargets = m_pDrone->GetSelf()->GetAttribute(AttrMaxAttackTargets).get_uint32();
     if (maxTargets == 0)
         maxTargets = 1; // many combat drone types omit this NPC targeting attribute
