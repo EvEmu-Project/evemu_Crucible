@@ -1,5 +1,11 @@
 # Complete upstream review dossier — EVEmu Crucible maintenance and gameplay fork
 
+### Review coordination (15 November 2026)
+
+- Upstream PR #335 remains open and unmerged. The automated reviewer reported that its cumulative diff exceeds the 150,000-character review limit, so subsystem-level human review or smaller cherry-picked PRs is needed.
+- A separate follow-up [fork PR #15](https://github.com/xrizonx/evemu_Crucible/pull/15) proposes additional mission lifecycle fixes. **It is not part of upstream PR #335** and must pass its own tests and game verification before contributing upstream.
+- Current Crucible client runtime validation remains outstanding; do not treat a successful CI build as proof of correct missions, drones, weapons, portraits or warp animation.
+
 ## UPDATE — agent services and station portrait fixes (15 November 2026)
 
 This contribution branch now includes **the agent patches added after the original 410-commit comparison** by merging source commit `6de04d1df5640122b691365029eb5e5c26f197c5`. The newer direct comparison against upstream `master` is **412 commits ahead, 0 behind, 143 changed paths, approximately +9,572/−1,786 lines** on the fork's `master` before the present contribution-branch merge. The original 137-file inventory below remains a historical baseline, not an exhaustive list of newly added agent files.
@@ -9,7 +15,7 @@ New work:
 - `ImageServerConnection` preserves Crucible-style image requests but redirects missing NPC portraits to CCP's supported `images.evetech.net` URLs (legacy 50px requests map to 64px), with local JPEG precedence and correct PNG MIME for non-character images.
 - `AgentBound` now validates offers before accepting/completing/declining/quitting, uses correct FILETIME bonus deadlines and actual bonus ISK preview, and sends the completion flag. `Agent::CanUseAgent` reuses the already-loaded standing instead of querying twice.
 - Added deterministic `AgentHelpersTest`, [agent/portrait audit](AGENT_STATION_IMAGE_AUDIT_2026-11-15.md) and updated patch notes. **Outstanding:** legacy client HTTPS redirects and availability of each historical NPC portrait must be tested in-game; remote URLs cannot resurrect removed CCP artwork.
-- The earlier full-green build [43742655629](https://github.com/xrizonx/evemu_Crucible/actions/runs/43742655629) predates these agent patches. The new [CI run 43747566528](https://github.com/xrizonx/evemu_Crucible/actions/runs/43747566528) must be checked before reporting these patches as passing.
+- **Verified post-agent-patch CI:** [run 43747566528](https://github.com/xrizonx/evemu_Crucible/actions/runs/43747566528) on `master` commit `6de04d1df5640122b691365029eb5e5c26f197c5` finished successfully (Windows UCRT64 GCC build, CTest, EVEDBTool packaging, Linux GCC build and CTest, Docker image build). This verifies compilation and automated tests only, not historical portraits or in-game mission behavior.
 
 ---
 
