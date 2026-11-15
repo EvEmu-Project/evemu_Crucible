@@ -183,11 +183,12 @@ protected:
 
     class TargetedByEntry {
     public:
-        TargetedByEntry()
-        : state(TargMgr::State::Idle) {}
+        explicit TargetedByEntry(uint32 id = 0)
+        : targetID(id), state(TargMgr::State::Idle) {}
 
         void Dump(SystemEntity* pSE) const;
 
+        uint32 targetID; // retained so stale targeter pointers are never dereferenced
         uint8 state;
     };
 
