@@ -233,8 +233,15 @@ void Missile::MakeDamageState(DoDestinyDamageState &into) {
 }
 
 void Missile::HitTarget() {
-    // Create Damage object:
-    Damage d(m_fromSE, m_modRef, m_self, EVEEffectID::missileLaunching);
+    // The target may have been removed or lost its inventory item before the
+    // missile's impact timer expires. Never construct damage from invalid refs.
+    if (m_targetSE == nullptr || m_targetSE->GetSelf().get() == nullptr
+        || m_self.get() == nullptr || m_fromSE == nullptr || m_modRef.get() == nullptr) {
+        _log(DAMAGE__WARNING, "Missile::HitTarget() - missile %u lost a valid source, module, or target; discarding impact.",
+             GetID());
+        m_alive = false;
+        return;
+    }
 
     /*  this is damage formula for missiles
      * Damage = D * MIN(1, Sr/Er, (Ev/V * Sr/Er)^(ln(DRF) / ln(DRS)) )
@@ -249,24 +256,41 @@ void Missile::HitTarget() {
      * MIN being a function that chooses the lower of the given vaules,
      * ln is natural logarithm.
      */
-    double Sr = m_targetSE->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();    // this is a default number, based on itemtype
-    double Er = m_self->GetAttribute(AttrAoeCloudSize).get_float(); // Explosion Radius
-    double Ev = m_self->GetAttribute(AttrAoeVelocity).get_float(); // Explosion Velocity
-    double DRF = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float(); // Damage Reduction Factor
-    double DRS = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float(); // Damage Reduction Sensitivity
+    InventoryItemRef targetItem = m_targetSE->GetSelf();
+    double Sr = targetItem->GetAttribute(AttrSignatureRadius).get_float();
+    if (Sr <= 0.0)
+        Sr = targetItem->GetAttribute(AttrRadius).get_float() / 10.0;
 
-    GPoint Vel = m_targetSE->GetVelocity();
-    double V = Vel.length();
-    if (V <= 0)
-        V = 1;
+    const double Er = m_self->GetAttribute(AttrAoeCloudSize).get_float();
+    const double Ev = m_self->GetAttribute(AttrAoeVelocity).get_float();
+    const double DRF = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float();
+    const double DRS = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float();
 
-    double v1 = Sr/Er;
-    double v2 = pow(((Ev/V) * v1), (log(DRF) / log(DRS)));
+    const double targetSpeed = m_targetSE->GetVelocity().length();
+    const double V = (targetSpeed > 0.0) ? targetSpeed : 1.0;
 
-    // apply damage modifier from char skills, if applicable
+    // Guard malformed/missing static attributes against division by zero and
+    // log-domain errors. Valid missile data follows the normal EVE formula.
+    double signatureFactor = 1.0;
+    double velocityFactor = 1.0;
+    if (Er > 0.0 && Sr >= 0.0)
+        signatureFactor = Sr / Er;
+
+    if (signatureFactor > 0.0 && Ev >= 0.0
+        && DRF > 0.0 && DRS > 0.0 && std::fabs(DRS - 1.0) > 0.000001) {
+        const double velocityTerm = (Ev / V) * signatureFactor;
+        if (velocityTerm > 0.0)
+            velocityFactor = pow(velocityTerm, log(DRF) / log(DRS));
+        else
+            velocityFactor = 0.0;
+    }
+
+    const double damageFactor = EvE::max(0.0, EvE::min1(signatureFactor, velocityFactor));
+
+    // Create and apply damage only after the impact inputs have been validated.
+    Damage d(m_fromSE, m_modRef, m_self, EVEEffectID::missileLaunching);
     d *= m_damageMod;
-    // apply missile damage formula to computed total damage
-    d *= EvE::min1(v1, v2);
+    d *= damageFactor;
 
     m_targetSE->ApplyDamage(d);
     m_alive = false;
