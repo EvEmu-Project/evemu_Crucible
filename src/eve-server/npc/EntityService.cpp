@@ -245,17 +245,40 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targe
         requestedDroneIDs.push_back(droneID);
     }
 
+    // Validate control using the authoritative character/ship IDs.  The
+    // cached Client* stored on a DroneSE can be null or stale after a client
+    // reconnect, even while the drone entity is still correctly registered.
+    auto canControlDrone = [pClient, pShipSE](DroneSE* drone) -> bool {
+        return drone != nullptr
+            && drone->IsEnabled()
+            && drone->GetOwnerID() == pClient->GetCharacterID()
+            && drone->GetControllerID() == pShipSE->GetID()
+            && drone->GetHomeShip() == pShipSE
+            && drone->SysBubble() != nullptr
+            && drone->SysBubble() == pShipSE->SysBubble()
+            && drone->GetAI() != nullptr;
+    };
+
     uint32 commanded = 0;
     for (const uint32 droneID : requestedDroneIDs) {
         SystemEntity* pDroneEntity = m_sysMgr->GetSE(droneID);
-        if (pDroneEntity == nullptr || !pDroneEntity->IsDroneSE())
+        if (pDroneEntity == nullptr || !pDroneEntity->IsDroneSE()) {
+            _log(DRONE__WARNING, "CmdEngage: selected drone ID %u is not present as a drone in system %u.",
+                 droneID, m_systemID);
             continue;
+        }
 
         DroneSE* pDrone = pDroneEntity->GetDroneSE();
-        if (pDrone == nullptr || !pDrone->IsEnabled()
-            || pDrone->GetOwner() != pClient || pDrone->GetHomeShip() != pShipSE
-            || pDrone->SysBubble() != pShipSE->SysBubble() || pDrone->GetAI() == nullptr)
+        if (!canControlDrone(pDrone)) {
+            _log(DRONE__WARNING,
+                 "CmdEngage: rejected drone %s(%u): ownerID=%u controllerID=%u homeShip=%u enabled=%u bubbleMatch=%u.",
+                 pDrone->GetName(), pDrone->GetID(), pDrone->GetOwnerID(),
+                 pDrone->GetControllerID(),
+                 pDrone->GetHomeShip() != nullptr ? pDrone->GetHomeShip()->GetID() : 0,
+                 pDrone->IsEnabled() ? 1 : 0,
+                 (pDrone->SysBubble() != nullptr && pDrone->SysBubble() == pShipSE->SysBubble()) ? 1 : 0);
             continue;
+        }
 
         pDrone->GetAI()->Target(pTarget);
         ++commanded;
@@ -263,8 +286,31 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targe
              pDrone->GetName(), pDrone->GetID(), pTarget->GetName(), pTarget->GetID());
     }
 
+    // Some client builds submit a drone-list itemID that is not the server's
+    // 32-bit SystemEntity ID. If none of the submitted IDs resolved, recover
+    // from the system registry using the owning character and controlling ship
+    // instead of leaving every launched drone uncontrollable.
+    if (commanded == 0) {
+        const std::map<uint32, SystemEntity*> entities = m_sysMgr->GetEntities();
+        for (const auto& entry : entities) {
+            SystemEntity* entity = entry.second;
+            if (entity == nullptr || !entity->IsDroneSE())
+                continue;
+
+            DroneSE* drone = entity->GetDroneSE();
+            if (!canControlDrone(drone))
+                continue;
+
+            drone->GetAI()->Target(pTarget);
+            ++commanded;
+            _log(DRONE__MESSAGE,
+                 "CmdEngage: fallback ordered owned drone %s(%u) to engage %s(%u).",
+                 drone->GetName(), drone->GetID(), pTarget->GetName(), pTarget->GetID());
+        }
+    }
+
     if (commanded == 0)
-        pClient->SendNotifyMsg("No active drones under your control were selected.");
+        pClient->SendNotifyMsg("No active drones assigned to your current ship could be found.");
     return PyStatic.mtDict();
 }
 
