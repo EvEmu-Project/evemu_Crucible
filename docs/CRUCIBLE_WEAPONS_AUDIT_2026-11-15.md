@@ -74,3 +74,19 @@ the full client/server combat simulation.
 
 See previous [drone range regression](DRONE_RANGE_AND_SUSTAINED_COMBAT_2026-11-15.md)
 and [drone/motion audit](DRONE_AND_MOTION_AUDIT.md).
+
+
+## Additional NPC, sentry and projectile checks
+
+- Stationary sentries do not always have a DestinyManager. Sentry tracking
+  now works with their authoritative SystemEntity position instead of
+  returning a miss for every shot when DestinyManager is absent.
+- Sentry damage multipliers now retain fractional values (no truncating
+  integer cast); missing speed defaults to a safe attack cadence.
+  Null-bubble and deleted-target callbacks are also guarded.
+- NPC missile launch now checks target registration, missile velocity and
+  DestinyManager before dividing by speed or scheduling a hit. NPC missiles
+  are recognized by their charge/effect when applying the configured
+  missile damage rate, even though their weaponRef is an NPC entity.
+- The smartbomb's interception check now uses live remaining missile HP
+  after defender hits rather than static inventory HP.

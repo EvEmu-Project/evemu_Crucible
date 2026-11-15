@@ -69,6 +69,7 @@ public:
     bool IsOverloaded()                                 { return false; }
 
     double GetSpeed()                                   { return m_speed; }
+    double GetRemainingHullHP() const                   { return m_hullHP; }
 
 protected:
     SystemEntity* m_targetSE;

@@ -1537,8 +1537,10 @@ void ActiveModule::ApplySmartBombDamage()
         // stored as a separate destructible target attribute.
         if (target->IsMissileSE()) {
             Missile* incoming = target->GetMissileSE();
-            const double missileHP = targetItem->GetAttribute(AttrHP).get_double()
-                - targetItem->GetAttribute(AttrDamage).get_double();
+            // Defender impacts modify the missile's live HP, not its
+            // static item attributes. Honor partially intercepted missiles.
+            const double missileHP = (incoming != nullptr)
+                ? incoming->GetRemainingHullHP() : 0.0;
             if (incoming != nullptr && incoming->IsAlive() && missileHP > 0.0
                 && damage.GetTotal() * sConfig.rates.damageRate >= missileHP)
                 incoming->Intercept();
