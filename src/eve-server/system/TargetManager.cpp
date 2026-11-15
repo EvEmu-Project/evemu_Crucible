@@ -402,7 +402,8 @@ void TargetManager::ClearTargets(bool notify/*true*/) {
         // safe if a target was removed before its normal loss notification.
         SystemEntity* liveTarget = (system != nullptr && cur.second != nullptr)
             ? system->GetSE(cur.second->targetID) : nullptr;
-        if (liveTarget == cur.first && liveTarget->TargetMgr() != nullptr)
+        if (liveTarget != nullptr && liveTarget == cur.first
+            && liveTarget->TargetMgr() != nullptr)
             liveTarget->TargetMgr()->TargetedByLost(mySE);
 
         const uint32 targetID = (cur.second != nullptr) ? cur.second->targetID : 0;
