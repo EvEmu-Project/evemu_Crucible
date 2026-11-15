@@ -1,6 +1,9 @@
 #include "eve-test.h"
 #include "EVE_WeaponFormulas.h"
 
+#include <cmath>
+#include <cstdlib>
+
 int utils_WeaponFormulaTest(int argc, char* argv[])
 {
     (void)argc;
