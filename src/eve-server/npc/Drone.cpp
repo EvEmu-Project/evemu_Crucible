@@ -164,6 +164,8 @@ void DroneSE::Launch(ShipSE* pShipSE) {
 
 void DroneSE::Online(ShipSE* pShipSE/*nullptr*/) {
     m_online = true;
+    if (m_AI != nullptr)
+        m_AI->SetAutoEngage(true);
     StateChange();
 
     if (pShipSE == nullptr)
