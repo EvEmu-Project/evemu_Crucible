@@ -224,36 +224,47 @@ bool SystemManager::LoadCosmicMgrs()
 bool SystemManager::ProcessTic() {
     double profileStartTime(GetTimeUSeconds());
 
-    /* the idea here is entities map NEVER has invalid items in it, but our iterator may become invalid
-     *      when SE->Process() returns because Process() will add/remove from the map as needed
-     *      (new objects, destroyed objects, moved objects, etc)
-     *  std::map internally orders items by key(itemID here), so use an int var to hold last-processed itemID (mLast).
-     *  when iteration starts over, increment until cur > mLast and continue from there to end of list.
+    /*
+     * Entity Process() callbacks can add or remove entities from the system
+     * maps.  Never keep a std::map iterator alive across one of those callbacks:
+     * erasing the current or another entry invalidates an iterator that a later
+     * ++itr would otherwise dereference inside std::_Rb_tree_increment.
+     *
+     * Snapshot IDs first, then re-resolve each entry immediately before calling
+     * it.  This gives newly-added entities their first tic on the next pass and
+     * safely skips entities removed earlier in this pass.
      */
-    std::map<uint32, SystemEntity*>::iterator itr = m_ticEntities.begin();
-    uint32 mLast(0);
-    while (itr != m_ticEntities.end()) {
-        if (mLast >= itr->first) {
-            ++itr;
-            continue;
-        }
+    std::vector<uint32> ticEntityIDs;
+    ticEntityIDs.reserve(m_ticEntities.size());
+    for (const auto& entry : m_ticEntities)
+        ticEntityIDs.push_back(entry.first);
 
-         /* main process call. */
-        mLast = itr->first;     // not sure if this will slow this down or not.  check profile
-        itr->second->Process();
-
-        if (m_entityChanged) {
-            m_entityChanged = false;
-            itr = m_ticEntities.begin();
+    for (uint32 entityID : ticEntityIDs) {
+        auto itr = m_ticEntities.find(entityID);
+        if (itr == m_ticEntities.end() || itr->second == nullptr)
             continue;
-        }
-        ++itr;
+
+        SystemEntity* pSE = itr->second;
+        pSE->Process();
     }
 
-    // tic for sov structures (as they aren't in ticEntities)
-    for (auto cur : m_opStaticEntities)
-        if (cur.second->IsOperSE())
-            cur.second->GetPOSSE()->Process();
+    // Tic sov structures (not present in ticEntities).  Process from an ID
+    // snapshot as these callbacks can also change the operational-entity map.
+    std::vector<uint32> operationalEntityIDs;
+    operationalEntityIDs.reserve(m_opStaticEntities.size());
+    for (const auto& entry : m_opStaticEntities)
+        operationalEntityIDs.push_back(entry.first);
+
+    for (uint32 entityID : operationalEntityIDs) {
+        auto itr = m_opStaticEntities.find(entityID);
+        if (itr == m_opStaticEntities.end() || itr->second == nullptr)
+            continue;
+
+        SystemEntity* pSE = itr->second;
+        if (pSE->IsOperSE())
+            pSE->GetPOSSE()->Process();
+    }
+
     // check bounty timer
     if (m_bountyTimer.Check(sConfig.server.BountyPayoutDelayed))
         PayBounties();
@@ -266,9 +277,16 @@ bool SystemManager::ProcessTic() {
 
     // process planets for PI
     if (m_minutetimer.Check()) {
-        //++m_minutes;  // not used at this time
-        for (auto cur : m_planetMap)
-            cur.second->Process();
+        std::vector<uint32> planetIDs;
+        planetIDs.reserve(m_planetMap.size());
+        for (const auto& entry : m_planetMap)
+            planetIDs.push_back(entry.first);
+
+        for (uint32 entityID : planetIDs) {
+            auto itr = m_planetMap.find(entityID);
+            if (itr != m_planetMap.end() && itr->second != nullptr)
+                itr->second->Process();
+        }
     }
 
     if (sConfig.debug.UseProfiling)
