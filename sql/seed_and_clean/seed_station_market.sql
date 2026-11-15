@@ -17,7 +17,12 @@ minVolume, duration, solarSystemID, jumps)
          132478179209572976, 1, 250, solarSystemID, 1
   FROM tStations, invTypes inner join invGroups on invTypes.groupID=invGroups.groupID
   WHERE invTypes.published = 1
-  AND categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 20, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46);
+  AND (
+      invGroups.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 20, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46)
+      -- Published, market-listed Celestial cargo/secure/audit/freight containers.
+      OR (invGroups.groupID IN (12, 340, 448, 649)
+          AND invTypes.marketGroupID IS NOT NULL)
+  );
 UPDATE mktOrders SET price = 100 WHERE price = 0;
 -- 11004 orders per station
 
