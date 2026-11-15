@@ -1,5 +1,15 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-15 — Complete upstream submission review snapshot
+
+- Source: `xrizonx/evemu_Crucible:master`, commit `96450674fae13954e52009f88517a006d1c68a3b`, versus `EvEmu-Project/evemu_Crucible:master` `f55b488a006e3090470d3b481aee47a1d7a0dade`.
+- **410 commits ahead, 0 behind, 137 changed paths, +9,316/−1,748 textual lines.** Earlier patch-note counts (e.g. 183) and pending CI notes were historical snapshots.
+- [CI run 43742655629](https://github.com/xrizonx/evemu_Crucible/actions/runs/43742655629): **all passed** — Linux GCC + CTest + packaging, Windows UCRT64 GCC + CTest + portable ZIP, Docker image.
+- New upstream-review inventory: [`docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md`](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md). This contains detailed changes by subsystem, current test evidence, full file inventory and a reviewer acceptance matrix.
+- Updates through the source head: missions/Blockade, NPC spawning, ship warp/approach and orbit/collision fixes, drone targeting/control range/return, turret and missile Crucible-era mechanics, defender/smartbomb, image server, null/data safeguards, CI packaging and EVEDBTool market seeding.
+- **Still unverified or incomplete:** in-game 24/24 mission completion and payout; mining drone harvesting; full bomb and doomsday systems; continuous physical collision resolution; individual ship/module historical balance. Reviewers should not treat a green CI result as full gameplay verification.
+- This is an upstream submission **for maintainer review** only; it does not merge the upstream branch or execute/approve database changes.
+
 This file tracks fixes and maintenance changes made on this fork's `master` branch. Entries describe code changes, not a guarantee that every gameplay path has been manually tested.
 
 
