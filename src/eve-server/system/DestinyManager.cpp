@@ -1154,7 +1154,10 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
     }
 
     if (turnPercent > 0.9f) {
-        _log(DESTINY__ERROR, "Destiny::Turn() - turnTic:%u, degRemain:%.3f, turnPercent:%.2f", m_turnTic, degrees, turnPercent);
+        // This is an expected safety clamp for the current turn interpolation,
+        // not a fatal destiny error. Keep the diagnostic available at trace level.
+        _log(DESTINY__TURN_TRACE, "Destiny::Turn() - clamped turnTic:%u, degRemain:%.3f, turnPercent:%.2f",
+             m_turnTic, degrees, turnPercent);
         turnPercent = 0.9;
     }
     deltaHeading *= turnPercent;
