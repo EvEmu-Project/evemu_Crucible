@@ -61,12 +61,16 @@ DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemMana
 
     m_orbitRange = m_self->GetAttribute(AttrOrbitRange).get_float();
     if (m_orbitRange < 1) {
-        if (m_self->GetAttribute(AttrMaxRange) < m_self->GetAttribute(AttrFalloff)) {
-            m_orbitRange = m_self->GetAttribute(AttrMaxRange).get_float();
-        } else {
-            m_orbitRange = m_self->GetAttribute(AttrFalloff).get_float();
-        }
+        const double maxRange = m_self->GetAttribute(AttrMaxRange).get_double();
+        const double falloff = m_self->GetAttribute(AttrFalloff).get_double();
+        m_orbitRange = (maxRange < falloff) ? maxRange : falloff;
+        // Old drone imports often omit orbitRange and carry very large weapon
+        // ranges. Never use those values as the idle orbit radius around ship.
+        if (m_orbitRange > 2500.0)
+            m_orbitRange = 2500.0;
     }
+    if (m_orbitRange < 1.0)
+        m_orbitRange = 500.0;
 
     // Create default dynamic attributes in the AttributeMap:
     m_self->SetAttribute(AttrInertia,             EvilOne, false);
