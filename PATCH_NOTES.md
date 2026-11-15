@@ -246,3 +246,12 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 - If the client-supplied selected drone IDs do not resolve to any active drone entity, recover by scanning the current system registry for drones controlled by the calling character and ship, then issue the engage order.
 - Added per-drone rejection diagnostics and fallback-order logs to distinguish stale client IDs from ownership, ship, enabled-state, or bubble mismatches.
 - Requires Windows/Linux CI and in-game validation; no runtime success is claimed by this patch.
+
+
+## 2026-11-15 follow-up — drone combat activity state and weapon gate
+
+- Code review found the drone AI entered client activity state `Engaged` (10) for weapon combat, even though the source enum explicitly defines `Combat` (1) as the fighting state and describes `Engaged` as non-combat. This can produce an incorrect client activity label and makes the state machine inconsistent with the protocol's combat state.
+- Changed the active attack state to `Combat`, retained processing of legacy `Engaged` states, and made combat-state transitions idempotent so the drone does not repeatedly reissue orbit commands while remaining on the same target.
+- Aligned the weapon-fire gate with NPC AI: a drone now fires only after TargetManager reports that target locking has completed (`CanAttack()`), while the AI continues to select a fully locked target.
+- Added a trace message for the lock-wait path. The existing firing log and zero-base-damage warning remain the evidence needed to distinguish a failed lock from missing static damage attributes.
+- Validation: previous PR #13 head passed Linux GCC, Windows UCRT64 GCC and Docker builds. This follow-up commit requires a fresh CI run. In-game confirmation of the Combat label and actual NPC shield/armor/hull reduction is still required; no gameplay success is claimed yet.
