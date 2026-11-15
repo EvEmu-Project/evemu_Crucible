@@ -64,7 +64,7 @@ public:
     SystemEntity*       GetTargetSE()           { return m_targetSE; }
 
     void                LaunchProbe();
-    void                LaunchMissile();
+    void                LaunchMissile(SystemEntity* targetSE=nullptr);
     void                LaunchSnowBall();
 
     /* new effects processing code and updates */
@@ -82,6 +82,8 @@ protected:
 
     void                Clear();
     void                ProcessActiveCycle();           // checks and sets cap use
+    void                ApplySmartBombDamage();
+    void                LaunchDefenderMissile();
     void                UpdateCharge(uint16 attrID, uint16 testAttrID, uint16 srcAttrID, InventoryItemRef iRef);
     void                UpdateDamage(uint16 attrID, uint16 srcAttrID, InventoryItemRef iRef);
 
