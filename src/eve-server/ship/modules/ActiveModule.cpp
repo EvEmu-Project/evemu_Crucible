@@ -17,6 +17,8 @@
 #include "ship/modules/ModuleItem.h"
 #include "ship/modules/Prospector.h"
 #include "system/Container.h"
+#include "system/Damage.h"
+#include "ship/Ship.h"
 #include "system/cosmicMgrs/BeltMgr.h"
 
 
@@ -577,7 +579,7 @@ uint32 ActiveModule::DoCycle() {
             ApplyDamage();
         } break;
         case EVEDB::invGroups::Missile_Launcher_Assault:
-        case EVEDB::invGroups::Missile_Launcher_Bomb:   // not sure here
+        case EVEDB::invGroups::Missile_Launcher_Bomb:
         case EVEDB::invGroups::Missile_Launcher_Citadel:
         case EVEDB::invGroups::Missile_Launcher_Cruise:
         case EVEDB::invGroups::Missile_Launcher_Heavy:
@@ -641,8 +643,11 @@ uint32 ActiveModule::DoCycle() {
         } break;
         case EVEDB::invGroups::Artifacts_and_Prototypes: {
         } break;
+        // Defender launchers automatically engage hostile missiles targeting this ship.
+        case EVEDB::invGroups::Missile_Launcher_Defender: {
+            LaunchDefenderMissile();
+        } break;
         // these passive modules will need specific code
-        case EVEDB::invGroups::Missile_Launcher_Defender:
         case EVEDB::invGroups::Countermeasure_Launcher:
         case EVEDB::invGroups::Passive_Targeting_System: {
         } break;
@@ -661,8 +666,10 @@ uint32 ActiveModule::DoCycle() {
         case EVEDB::invGroups::Interdiction_Sphere_Launcher:    // launch a sphere (like missile and probe)
         case EVEDB::invGroups::Jump_Portal_Generator:
         case EVEDB::invGroups::Remote_ECM_Burst:
+        case EVEDB::invGroups::Smart_Bomb: {
+            ApplySmartBombDamage();
+        } break;
         case EVEDB::invGroups::Warp_Disrupt_Field_Generator:
-        case EVEDB::invGroups::Smart_Bomb:
         case EVEDB::invGroups::ECM_Burst: {
         } break;
     }
@@ -1386,55 +1393,180 @@ void ActiveModule::ShowEffect(bool active/*false*/, bool abort/*false*/)
                           [PyInt 3530]
                           */
 
-void ActiveModule::LaunchMissile()
+void ActiveModule::LaunchMissile(SystemEntity* targetSE)
 {
-    // must not throw here...
-    //throw UserError ("TargetingMissileToSelf");
-    //throw UserError ("NoCharges");
+    // A null argument preserves the ordinary launcher behaviour. Defender
+    // launchers pass the hostile missile they are attempting to intercept.
+    if (targetSE == nullptr)
+        targetSE = m_targetSE;
 
-    //{'FullPath': u'UI/Messages', 'messageID': 259200, 'label': u'NoChargesBody'}(u'{launcher} has run out of charges', None, {u'{launcher}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'launcher'}})
-
-    // AttrAimedLaunch ?  what is this used for?
-
-    // Launch a missile, creating a new Destiny object for it
-    Client* pClient = m_shipRef->GetPilot();
-    if (pClient == nullptr)
-        return;
-    ItemData idata(m_chargeRef->typeID(), pClient->GetCharacterID(), pClient->GetLocationID(), flagMissile, m_chargeRef->name(), m_shipRef->position() );
-    InventoryItemRef missileRef = sItemFactory.SpawnItem(idata);
-    if (missileRef.get() == nullptr) {
-        _log(ITEM__ERROR ,"Unable to spawn item #%u:'%s' of type %u.", m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID());
-        pClient->SendErrorMsg("Your %s in %s experienced a loading error and was disabled.", m_chargeRef->name(), m_modRef->name());
-        AbortCycle();
+    Client* pClient = (m_shipRef.get() != nullptr) ? m_shipRef->GetPilot() : nullptr;
+    if (pClient == nullptr || targetSE == nullptr || m_chargeRef.get() == nullptr) {
+        _log(MODULE__WARNING, "ActiveModule::LaunchMissile - missing pilot, target, or loaded charge for %s.",
+             (m_modRef.get() != nullptr) ? m_modRef->name() : "(unknown module)");
         return;
     }
 
     SystemManager* pSystem = pClient->SystemMgr();
-    Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(), pSystem, m_modRef, m_targetSE, m_shipRef->GetPilot()->GetShipSE(), this);
-    if (pMissile == nullptr) {
-        _log(ITEM__ERROR ,"Unable to create SE #%u:'%s' of type %u.", m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID());
-        pClient->SendErrorMsg("Your %s in %s experienced a launching error and was disabled.", m_chargeRef->name(), m_modRef->name());
+    ShipSE* sourceShip = pClient->GetShipSE();
+    if (pSystem == nullptr || sourceShip == nullptr
+        || pSystem->GetSE(targetSE->GetID()) != targetSE || targetSE->IsDead()) {
+        _log(MODULE__WARNING, "ActiveModule::LaunchMissile - source or target is no longer in the system.");
+        return;
+    }
+
+    ItemData idata(m_chargeRef->typeID(), pClient->GetCharacterID(), pClient->GetLocationID(),
+                   flagMissile, m_chargeRef->name(), m_shipRef->position());
+    InventoryItemRef missileRef = sItemFactory.SpawnItem(idata);
+    if (missileRef.get() == nullptr) {
+        _log(ITEM__ERROR, "Unable to spawn missile item from charge %u.", m_chargeRef->itemID());
+        pClient->SendErrorMsg("Your %s in %s experienced a loading error and was disabled.",
+                              m_chargeRef->name(), m_modRef->name());
         AbortCycle();
         return;
     }
 
-    float distance = pMissile->GetSelf()->position().distance(m_targetSE->GetPosition());
-    float missileSpeed = pMissile->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
-    float travelTime = (distance/missileSpeed);
-    if (travelTime < 1)
-        travelTime = 1;
+    Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(), pSystem,
+                                    m_modRef, targetSE, sourceShip, this);
+    if (pMissile == nullptr) {
+        missileRef->Delete();
+        pClient->SendErrorMsg("Your %s in %s experienced a launching error and was disabled.",
+                              m_chargeRef->name(), m_modRef->name());
+        AbortCycle();
+        return;
+    }
+
+    const double distance = pMissile->GetSelf()->position().distance(targetSE->GetPosition());
+    const double missileSpeed = pMissile->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
+    if (missileSpeed <= 0.0 || !std::isfinite(missileSpeed)) {
+        _log(MODULE__ERROR, "ActiveModule::LaunchMissile - invalid missile velocity %.3f for charge %u.",
+             missileSpeed, m_chargeRef->itemID());
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        AbortCycle();
+        return;
+    }
+
+    double travelTime = distance / missileSpeed;
+    if (travelTime < 1.0)
+        travelTime = 1.0;
+
     pMissile->SetSpeed(missileSpeed);
-    pMissile->SetHitTimer(travelTime *1000);
+    pMissile->SetHitTimer(static_cast<uint32>(travelTime * 1000.0));
+    if (pMissile->DestinyMgr() == nullptr) {
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        AbortCycle();
+        return;
+    }
     pMissile->DestinyMgr()->MakeMissile(pMissile);
 
-    // Reduce ammo charge by 1 unit:
     ConsumeCharge();
-
-    // tell target a missile has been launched at them.. (defender missile trigger for ship, tower, pos, npc, others?)
-    m_targetSE->MissileLaunched(pMissile);
-
-    // add data to StatisticMgr
+    targetSE->MissileLaunched(pMissile);
     sStatMgr.Increment(Stat::pcMissiles);
+}
+
+void ActiveModule::ApplySmartBombDamage()
+{
+    if (m_bubble == nullptr || m_sysMgr == nullptr || m_shipRef.get() == nullptr
+        || m_shipRef->GetPilot() == nullptr) {
+        _log(MODULE__WARNING, "Smartbomb cycle aborted: ship, pilot, or system bubble is unavailable.");
+        return;
+    }
+
+    ShipSE* source = m_shipRef->GetPilot()->GetShipSE();
+    if (source == nullptr || m_sysMgr->GetSE(source->GetID()) != source)
+        return;
+
+    const double radius = GetAttribute(AttrAoeCloudSize).get_float();
+    if (!std::isfinite(radius) || radius <= 0.0) {
+        _log(MODULE__ERROR, "Smartbomb %s(%u) has invalid AoE radius %.3f.",
+             m_modRef->name(), m_modRef->itemID(), radius);
+        return;
+    }
+
+    // Copy IDs/pointers first, then resolve each entity again immediately
+    // before damage. ApplyDamage can destroy entities and mutate the bubble.
+    std::map<uint32, SystemEntity*> entities;
+    m_bubble->GetAllEntities(entities);
+    for (const auto& entry : entities) {
+        if (entry.first == source->GetID())
+            continue;
+
+        SystemEntity* target = m_sysMgr->GetSE(entry.first);
+        if (target == nullptr || target != entry.second || target->IsDead())
+            continue;
+        if (!(target->IsShipSE() || target->IsNPCSE() || target->IsDroneSE()
+              || target->IsPOSSE() || target->IsDeployableSE() || target->IsSentrySE()
+              || target->IsWeaponSE() || target->IsBatterySE() || target->IsTowerSE()))
+            continue;
+
+        InventoryItemRef targetItem = target->GetSelf();
+        if (targetItem.get() == nullptr)
+            continue;
+        if (source->GetPosition().distance(target->GetPosition()) > radius)
+            continue;
+
+        Damage damage(source, m_modRef,
+                      GetAttribute(AttrKineticDamage).get_float(),
+                      GetAttribute(AttrThermalDamage).get_float(),
+                      GetAttribute(AttrEmDamage).get_float(),
+                      GetAttribute(AttrExplosiveDamage).get_float(),
+                      1.0f, EVEEffectID::targetAttack);
+        target->ApplyDamage(damage);
+    }
+}
+
+void ActiveModule::LaunchDefenderMissile()
+{
+    if (m_bubble == nullptr || m_sysMgr == nullptr || m_shipRef.get() == nullptr
+        || m_shipRef->GetPilot() == nullptr || m_chargeRef.get() == nullptr)
+        return;
+
+    ShipSE* defendingShip = m_shipRef->GetPilot()->GetShipSE();
+    if (defendingShip == nullptr || m_sysMgr->GetSE(defendingShip->GetID()) != defendingShip)
+        return;
+
+    double defenderRange = GetAttribute(AttrMaxRange).get_float();
+    const double missileRange =
+        m_chargeRef->GetAttribute(AttrMaxVelocity).get_float()
+        * m_chargeRef->GetAttribute(AttrExplosionDelay).get_float();
+    if (missileRange > 0.0)
+        defenderRange = (defenderRange > 0.0) ? std::min(defenderRange, missileRange) : missileRange;
+    if (!std::isfinite(defenderRange) || defenderRange <= 0.0)
+        return;
+
+    std::map<uint32, SystemEntity*> entities;
+    m_bubble->GetAllEntities(entities);
+
+    Missile* bestTarget = nullptr;
+    uint32 bestTargetID = 0;
+    double bestDistance = defenderRange;
+    for (const auto& entry : entities) {
+        SystemEntity* entity = m_sysMgr->GetSE(entry.first);
+        if (entity == nullptr || entity != entry.second || !entity->IsMissileSE())
+            continue;
+
+        Missile* incoming = entity->GetMissileSE();
+        if (incoming == nullptr || !incoming->IsAlive()
+            || incoming->GetTargetID() != defendingShip->GetID()
+            || incoming->GetLauncherID() == defendingShip->GetID())
+            continue;
+
+        SystemEntity* launcher = m_sysMgr->GetSE(incoming->GetLauncherID());
+        if (launcher == nullptr || launcher->IsDead())
+            continue;
+
+        const double distance = defendingShip->GetPosition().distance(incoming->GetPosition());
+        if (distance <= bestDistance) {
+            bestDistance = distance;
+            bestTarget = incoming;
+            bestTargetID = entry.first;
+        }
+    }
+
+    if (bestTarget != nullptr && m_sysMgr->GetSE(bestTargetID) == bestTarget)
+        LaunchMissile(bestTarget);
 }
 
 void ActiveModule::LaunchProbe()
