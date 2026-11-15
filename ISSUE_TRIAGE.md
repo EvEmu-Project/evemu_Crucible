@@ -251,3 +251,18 @@ The run must be checked again after the documentation commit, because a new bran
 - Test return-home and verify drones orbit the ship without disappearing.
 - Test return-to-bay at close and long range; verify automatic travel, scoop, inventory transfer, drone count and bandwidth reduction.
 - Test a full drone bay, bandwidth overrun, abandoned drones and offline/foreign drones. No runtime success is claimed until these tests are performed.
+
+## 2026-11-15 follow-up — drone engage command and auto-acquisition
+
+**New command blocker identified**
+- The bound-service dispatcher validates argument types exactly. `CmdEngage` was registered with `PyInt*` for the target ID, but EVE can send item IDs as `PyLong`/`PyIntegerVar`. That caused the method signature not to match, so the handler could fail before any drone logic ran. Within the handler, drone IDs were also checked with `IsInt()` only, silently rejecting long-form IDs.
+
+**Fix pushed to a new branch**
+- Accept the target argument as `PyRep*` and safely decode either `PyInt` or `PyLong`, rejecting invalid/out-of-range IDs instead of truncating them.
+- Decode drone IDs using the same helper, accepting both wire integer forms and logging invalid values.
+- Add autonomous acquisition: idle online drones scan their current bubble and engage the nearest living NPC, excluding NPCs owned by the pilot and same-faction NPCs where both faction IDs are known. Drones then reacquire another NPC after the current target is lost/destroyed.
+- Manual return disables automatic reacquisition until the drone is launched/online again or receives a new engage order.
+
+**Validation still required**
+- Compile the new branch on Windows, Linux and Docker CI.
+- In game, confirm the CmdEngage handler is reached and accepts the client's actual target/drone ID encodings; then verify drones acquire NPCs without a manual order, apply damage, switch targets after kills and remain idle after a return command.
