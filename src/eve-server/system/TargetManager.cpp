@@ -411,19 +411,23 @@ void TargetManager::ClearFromTargets() {
         return;
 
     std::vector<SystemEntity *> ToNotify;
+    SystemManager* system = mySE->SystemMgr();
     for (auto cur : m_targetedBy) {
+        // Resolve the targeter by retained ID before touching its raw pointer.
+        SystemEntity* liveTargeter = (system != nullptr)
+            ? system->GetSE(cur.second->targetID) : nullptr;
+        if (liveTargeter == cur.first)
+            ToNotify.push_back(liveTargeter);
         SafeDelete(cur.second);
-        //do not notify until we clear our target list! otherwise Bad Things happen. (invalidate iterator here)
-        ToNotify.push_back(cur.first);
-        _log(TARGET__TRACE, "ClearFrom() - %s(%u) has added %s(%u) to delete list.", \
-                mySE->GetName(), mySE->GetID(), cur.first->GetName(), cur.first->GetID());
     }
 
     m_targetedBy.clear();
 
-    for (auto cur : ToNotify)
-        if (cur->TargetMgr() != nullptr)
-            cur->TargetMgr()->TargetLost(mySE);
+    // Do not notify until the map is clear: TargetLost() may re-enter cleanup.
+    for (SystemEntity* targeter : ToNotify) {
+        if (targeter != nullptr && targeter->TargetMgr() != nullptr)
+            targeter->TargetMgr()->TargetLost(mySE);
+    }
 }
 
 void TargetManager::TargetLost(SystemEntity *tSE) {
@@ -526,7 +530,7 @@ void TargetManager::TargetedAdd(SystemEntity *tSE) {
         //new entry.
         _log(TARGET__TRACE, "%s(%u) - %s(%u) has started target lock on me.", \
                 mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
-        TargetedByEntry *te = new TargetedByEntry();
+        TargetedByEntry *te = new TargetedByEntry(tSE->GetID());
         te->state = TargMgr::State::Locking;
         m_targetedBy[tSE] = te;
     }
