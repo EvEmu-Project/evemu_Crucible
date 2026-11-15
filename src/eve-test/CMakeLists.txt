@@ -37,7 +37,7 @@ SET( test_SUPPORT_SOURCE
 SOURCE_GROUP( "src"      ${INCLUDE} )
 SOURCE_GROUP( "src\\auth"    ${auth_SOURCE} )
 SOURCE_GROUP( "src\\marshal" ${marshal_SOURCE} )
-SOURCE_GROUP( "src\\utils"   ${utils_SOURCE} )
+SOURCE_GROUP( "src\\utils" FILES ${utils_SOURCE} )
 
 CREATE_TEST_SOURCELIST( TARGET_SOURCELIST "eve-test.cpp"
                         ${auth_SOURCE}
