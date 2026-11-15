@@ -357,17 +357,62 @@ void TargetManager::RemoveTarget(SystemEntity* tSE) {
 }
 
 void TargetManager::ClearTarget(SystemEntity *tSE) {
-    //let the other entity know they are no longer targeted.
-    tSE->TargetMgr()->TargetedByLost(mySE);
-    //clear it from our own state
-    TargetLost(tSE);
+    if (tSE == nullptr || mySE == nullptr)
+        return;
+
+    // The map key is non-owning. Resolve the retained target ID before
+    // dereferencing the entity or its TargetManager.
+    auto itr = m_targets.find(tSE);
+    if (itr == m_targets.end())
+        return;
+
+    const uint32 targetID = (itr->second != nullptr) ? itr->second->targetID : 0;
+    SystemManager* system = mySE->SystemMgr();
+    SystemEntity* liveTarget = (system != nullptr && targetID != 0)
+        ? system->GetSE(targetID) : nullptr;
+
+    if (liveTarget == tSE) {
+        if (liveTarget->TargetMgr() != nullptr)
+            liveTarget->TargetMgr()->TargetedByLost(mySE);
+        TargetLost(liveTarget);
+    } else {
+        // The entity has already left the system registry. Remove our local
+        // pointer-keyed entry without calling methods on the stale map key.
+        TargetEntry* entry = itr->second;
+        m_targets.erase(itr);
+        SafeDelete(entry);
+        if (m_targets.empty()) {
+            m_canAttack = false;
+            sEntityList.DeleteTargMgr(mySE);
+        }
+
+        // EntityRemoved only compares the stored pointer; it does not
+        // dereference the removed entity.
+        if (mySE->DestinyMgr() != nullptr)
+            mySE->DestinyMgr()->EntityRemoved(tSE);
+        if (mySE->IsDroneSE())
+            mySE->GetDroneSE()->TargetLost(nullptr);
+        else if (mySE->IsNPCSE())
+            mySE->GetNPCSE()->TargetLost(nullptr);
+
+        if (mySE->HasPilot()) {
+            Notify_OnTarget event;
+            event.mode = "lost";
+            event.targetID = targetID;
+            Notify_OnMultiEvent multi;
+            multi.events = new PyList();
+            multi.events->AddItem(event.Encode());
+            PyTuple* update = multi.Encode();
+            mySE->GetPilot()->SendNotification("OnMultiEvent", "clientID", &update);
+        }
+    }
+
     if (m_targets.empty()) {
         m_canAttack = false;
-        // no targets to process.  remove from proc map
         sEntityList.DeleteTargMgr(mySE);
     }
-    _log(TARGET__TRACE, "ClearTarget:  %s(%u) has cleared target %s(%u).", \
-            mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+    _log(TARGET__TRACE, "ClearTarget: %s(%u) has cleared target ID %u.",
+         mySE->GetName(), mySE->GetID(), targetID);
 }
 
 void TargetManager::ClearModules() {
