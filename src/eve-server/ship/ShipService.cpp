@@ -737,7 +737,7 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
     //   - these are thrown before item is launched and will negate entire launch group until warning is approved, then entire group is reprocessed
 
     if (shipDrop)
-        pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+        pShipSE->DestinyMgr()->SendJettisonPacket();
 
     return dict;
 }
@@ -873,6 +873,9 @@ PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
 }
 
 PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
+    if (call.client == nullptr || itemIDs == nullptr)
+        return PyStatic.mtDict();
+
     std::vector <int32> ints;
 
     PyList::const_iterator list_2_cur = itemIDs->begin();
@@ -886,14 +889,16 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
         ints.push_back(t->value());
     }
     Client* pClient(call.client);
-    if (!pClient->IsInSpace()) {
-        _log(SERVICE__ERROR, "%s: Trying to jettison items when not in space!", pClient->GetName());
+    SystemManager* pSysMgr(pClient->SystemMgr());
+    ShipSE* pShipSE = pClient->GetShipSE();
+    if (!pClient->IsInSpace() || pSysMgr == nullptr || pShipSE == nullptr
+        || pShipSE->DestinyMgr() == nullptr) {
+        _log(SERVICE__ERROR, "%s: Cannot jettison items without a valid in-space ship and system.", pClient->GetName());
         return nullptr;
     }
 
-    SystemManager* pSysMgr(pClient->SystemMgr());
-    //Get location of our ship
-    GPoint location(pClient->GetShipSE()->GetPosition());
+    // Get location of our ship only after validating the live space context.
+    GPoint location(pShipSE->GetPosition());
 
     InventoryItemRef cRef(nullptr), iRef(nullptr);
     CargoContainerRef jcRef(nullptr), ccRef(nullptr);
