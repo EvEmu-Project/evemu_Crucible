@@ -26,7 +26,8 @@ SET( auth_SOURCE
 SET( marshal_SOURCE
      "marshal/EVEMarshalTest.cpp" )
 SET( utils_SOURCE
-     "utils/EvilNumberTest.cpp" )
+     "utils/EvilNumberTest.cpp"
+     "utils/WeaponFormulaTest.cpp" )
 
 ########################
 # Setup the executable #
