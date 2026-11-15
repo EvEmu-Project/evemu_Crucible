@@ -332,3 +332,27 @@ The run must be checked again after the documentation commit, because a new bran
 - Windows/Linux/Docker CI for this head.
 - In-game test that drones leave Approach after reaching the attack envelope, publish a target on lock completion, and apply actual shield/armor/hull damage.
 - If the server still terminates, obtain the final fatal log lines and a symbolized stack trace or matching PDB/map file. The provided excerpt does not identify the terminating fault.
+
+
+### 2026-11-15 follow-up: combat crash risk, drone range and incomplete flight orders
+
+**Additional source-level findings**
+- Target-manager maps retained non-owning entity pointers. Some cleanup and query paths dereferenced those keys directly, even though entities can be removed during combat. Targeter entries now retain entity IDs, and cleanup/query code validates the ID against the live system registry before dereferencing a pointer.
+- Drone AI queries its target manager on each entity tick, faster than the global target-manager timer. `GetFirstTarget()` now validates target identity before returning a pointer, preventing a recently removed NPC from being handed to drone combat logic.
+- The drone AI used `AttrMaxRange` as its orbit distance. This is not the drone's `AttrOrbitRange`; when the latter was missing, large weapon range/falloff values could become an excessive orbit radius. The fallback is now capped at 2.5 km.
+- Home-ship access used a non-owning pointer. Drone control-range, return and scoop code now resolve the controller ID through the current system registry before use.
+- `CmdEngage` recovered from bad client drone IDs only when zero IDs resolved. A partially valid selection left the unresolved drones uncommanded. Recovery now fills in remaining controlled drones and avoids duplicate commands.
+
+**Log interpretation**
+- `Destiny::Turn()` logs when the calculated turn fraction exceeds 0.9, then clamps it to 0.9. The supplied values (1.08 and 0.99) show the clamp path, not a crash report.
+- `Damage:C'tor` lines for Angel NPC missile volleys are emitted by the missile damage constructor and are not, by themselves, damage failures.
+- `fxID = 0` / empty GUID for 250mm Railgun II indicates a missing/invalid client effect mapping. It is a visual-effect issue unless a separate fatal trace links it to process termination.
+- Mission kill forwarding lines show counters advancing from 3/24 to 4/24; they are not evidence of mission death handling failing.
+- `TargetWarn AddTarget() - TargMgr.StartTargeting() failed` needs the surrounding NPC AI trace to determine whether it is an expected range/cap rejection or an invalid target request.
+
+**Validation required**
+- Fresh Windows UCRT64, Linux GCC and Docker CI for the new head.
+- In-game test with all five drones: issue one engage order, verify five `CmdEngage` order lines or auto-acquisition lines, then verify each drone has its own firing and positive damage-result line.
+- Test a drone whose `orbitRange` attribute is absent and one with it populated; verify orbit distance is sensible and no drone selects NPCs outside the logged control distance.
+- Kill NPCs while several drones and NPCs are targeting them; repeat across several waves to stress target-manager teardown.
+- If the process still exits, provide the final 50–100 lines after the last normal event plus a Windows crash dump or symbolized stack. The excerpt supplied so far ends before any fatal termination record.
