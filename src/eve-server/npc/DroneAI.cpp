@@ -91,6 +91,7 @@ SystemEntity* FindSharedDroneTarget(DroneSE* drone) {
     return nullptr;
 }
 
+}
 
 DroneAIMgr::DroneAIMgr(DroneSE* who)
 : m_state(DroneAI::State::Idle),
