@@ -65,7 +65,7 @@ public:
     virtual void Killed(Damage &damage);
     virtual void Abandon();     // reset all owner info and bubblecast new data
 
-    virtual void TargetAdded(SystemEntity *who);
+    void TargetAdded(SystemEntity *who) override;
     virtual void TargetLost(SystemEntity *who);
     virtual void TargetedAdd(SystemEntity *who);
     virtual void TargetedLost(SystemEntity *who);
