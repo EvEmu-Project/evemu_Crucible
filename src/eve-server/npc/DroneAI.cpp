@@ -25,6 +25,7 @@ DroneAIMgr::DroneAIMgr(DroneSE* who)
   m_pendingTargetID(0),
   m_returnToBay(false),
   m_scoopRequested(false),
+  m_autoEngageEnabled(true),
   m_mainAttackTimer(0),// dont start timer until we have a target
   m_processTimer(0),
   m_beginFindTarget(0),
@@ -128,7 +129,41 @@ void DroneAIMgr::Process() {
             // check everything in this state.   return to ship?
         } break;
         case DroneAI::State::Idle: {
-            // orbiting controlling ship
+            // Combat drones automatically acquire the nearest hostile NPC in
+            // their current bubble. After a target dies/losses lock, the next
+            // idle tick selects the next NPC, so a flight clears the pocket.
+            if (m_autoEngageEnabled && m_pDrone->GetHomeShip() != nullptr
+                && m_pDrone->GetSystemManager() != nullptr
+                && m_pDrone->SysBubble() != nullptr) {
+                SystemEntity* nearestNPC = nullptr;
+                double nearestDistance = 1.0e100;
+                const std::map<uint32, SystemEntity*> entities = m_pDrone->GetSystemManager()->GetEntities();
+                for (const auto& entry : entities) {
+                    SystemEntity* candidate = entry.second;
+                    if (candidate == nullptr || candidate == m_pDrone || !candidate->IsNPCSE()
+                        || candidate->IsDead() || candidate->SysBubble() != m_pDrone->SysBubble()
+                        || candidate->DestinyMgr() == nullptr || candidate->DestinyMgr()->IsCloaked())
+                        continue;
+                    // Do not attack NPCs explicitly owned by the drone's pilot,
+                    // or NPCs belonging to the same non-zero faction.
+                    if (candidate->GetOwnerID() == m_pDrone->GetOwnerID())
+                        continue;
+                    const int32 npcFaction = candidate->GetWarFactionID();
+                    const int32 droneFaction = m_pDrone->GetWarFactionID();
+                    if (npcFaction != 0 && droneFaction != 0 && npcFaction == droneFaction)
+                        continue;
+                    const double distance = m_pDrone->GetPosition().distance(candidate->GetPosition());
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestNPC = candidate;
+                    }
+                }
+                if (nearestNPC != nullptr) {
+                    _log(DRONE__AI_TRACE, "Drone %s(%u): Auto-acquiring hostile NPC %s(%u) at %.0f m.",
+                         m_pDrone->GetName(), m_pDrone->GetID(), nearestNPC->GetName(), nearestNPC->GetID(), nearestDistance);
+                    Target(nearestNPC);
+                }
+            }
         } break;
         case DroneAI::State::Engaged:
         case DroneAI::State::Approaching:
@@ -199,6 +234,9 @@ int8 DroneAIMgr::GetState() {
 }
 
 void DroneAIMgr::Return(bool returnToBay) {
+    // A deliberate return order suppresses automatic reacquisition until the
+    // drone is launched/online again or receives another engage order.
+    m_autoEngageEnabled = false;
     m_assignedShip = m_pDrone->GetHomeShip();
     if (m_assignedShip == nullptr || m_pDrone->DestinyMgr() == nullptr) {
         _log(DRONE__AI_TRACE, "Drone %s(%u): Cannot return; home ship or destiny manager is unavailable.",
@@ -329,6 +367,7 @@ void DroneAIMgr::TargetAcquired(SystemEntity* pTarget) {
 }
 
 void DroneAIMgr::Target(SystemEntity* pTarget) {
+    m_autoEngageEnabled = true;
     if (pTarget == nullptr || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr
         || m_pDrone->TargetMgr() == nullptr || m_pDrone->DestinyMgr() == nullptr
         || pTarget->DestinyMgr() == nullptr || pTarget->SysBubble() == nullptr
