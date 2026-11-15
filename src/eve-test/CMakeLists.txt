@@ -27,6 +27,8 @@ SET( marshal_SOURCE
      "marshal/EVEMarshalTest.cpp" )
 SET( utils_SOURCE
      "utils/EvilNumberTest.cpp" )
+SET( test_SUPPORT_SOURCE
+     "ProfilerTestStub.cpp" )
 
 ########################
 # Setup the executable #
@@ -42,7 +44,8 @@ CREATE_TEST_SOURCELIST( TARGET_SOURCELIST "eve-test.cpp"
                         ${utils_SOURCE}
                         EXTRA_INCLUDE "eve-test.h" )
 ADD_EXECUTABLE( "${TARGET_NAME}"
-                ${TARGET_SOURCELIST} )
+                ${TARGET_SOURCELIST}
+                ${test_SUPPORT_SOURCE} )
 
 #TARGET_BUILD_PCH( "${TARGET_NAME}"
 #                  "${TARGET_INCLUDE_DIR}/eve-test.h"
@@ -51,7 +54,8 @@ target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-test.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${eve-common_INCLUDE_DIRS}
-                            "${TARGET_INCLUDE_DIR}" )
+                            "${TARGET_INCLUDE_DIR}"
+                            "${PROJECT_SOURCE_DIR}/src/eve-server" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common" )
 

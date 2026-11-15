@@ -6,7 +6,7 @@ concurrency:
 
 on:
   push:
-    branches: [master, evemu-crucible-modernization, mission-data-restoration]
+    branches: [master]
     tags: ["v*", "stable-rizonx"]
   pull_request:
     branches: [master]
@@ -36,8 +36,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .ccache
-          key: ccache-linux-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}
+          key: ccache-linux-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-${{ github.run_id }}
           restore-keys: |
+            ccache-linux-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-
             ccache-linux-${{ runner.arch }}-
       - name: Configure
         run: |
@@ -48,7 +49,10 @@ jobs:
           cmake --build build --parallel 2
           ccache --show-stats
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: |
+          ctest --test-dir build -N | tee test-list.txt
+          grep -qE '^  Test #[0-9]+' test-list.txt || { echo "No CTest tests were registered" >&2; exit 1; }
+          ctest --test-dir build --output-on-failure
       - name: Install
         run: cmake --install build --prefix stage
       - name: Set up Go for EVEDBTool
@@ -123,8 +127,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .ccache
-          key: ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ github.sha }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', '.github/workflows/build-release.yml') }}
+          key: ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-${{ github.run_id }}
           restore-keys: |
+            ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-
             ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-
             ccache-windows-${{ runner.arch }}-
       - name: Configure
@@ -134,10 +139,15 @@ jobs:
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_INSTALL_PREFIX=stage -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       - name: Build
         shell: msys2 {0}
-        run: cmake --build build --parallel 2
+        run: |
+          cmake --build build --parallel 2
+          ccache --show-stats
       - name: Test
         shell: msys2 {0}
-        run: ctest --test-dir build --output-on-failure
+        run: |
+          ctest --test-dir build -N | tee test-list.txt
+          grep -qE '^  Test #[0-9]+' test-list.txt || { echo "No CTest tests were registered" >&2; exit 1; }
+          ctest --test-dir build --output-on-failure
       - name: Install
         shell: msys2 {0}
         run: cmake --install build --prefix stage
@@ -251,8 +261,16 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
       - name: Build Docker image
-        run: docker build --pull -t evemu-crucible:ci .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          pull: true
+          push: false
+          tags: evemu-crucible:ci
+          cache-from: type=gha,scope=evemu-docker
+          cache-to: type=gha,mode=max,scope=evemu-docker
 
   release:
     name: Publish GitHub release
