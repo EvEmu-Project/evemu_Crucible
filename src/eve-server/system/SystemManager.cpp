@@ -75,7 +75,6 @@ m_beltMgr(new BeltMgr(this, svc)),
 m_dungMgr(new DungeonMgr(this, svc)),
 m_spawnMgr(new SpawnMgr(this, svc)),
 m_loaded(false),
-m_entityChanged(false),
 m_docked(0),
 m_players(0),
 m_beltCount(0),
@@ -1088,7 +1087,6 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
             sEntityList.AddProbe(itemID, pSE->GetProbeSE());
         } else if (!IsStaticItem(itemID)) {
             // *most* dynamic items need proc tics.  add to proc list
-            m_entityChanged = true;
             m_ticEntities[itemID] = pSE;
         } else {
             addSignal = false;
@@ -1112,7 +1110,6 @@ void SystemManager::RemoveEntity(SystemEntity* pSE) {
     RemoveItemFromInventory(pSE->GetSelf());
     // remove entity from our maps
     uint32 itemID(pSE->GetID());
-    m_entityChanged = true;
     m_ticEntities.erase(itemID);
     m_staticEntities.erase(itemID);
     m_opStaticEntities.erase(itemID);
