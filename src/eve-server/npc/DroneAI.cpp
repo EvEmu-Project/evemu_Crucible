@@ -608,8 +608,9 @@ void DroneAIMgr::ClearTarget(SystemEntity* pSE) {
 //entityWarpScrambleChance
 
 void DroneAIMgr::AttackTarget(SystemEntity* pTarget) {
-    if (pTarget == nullptr || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr ||
-        m_pDrone->DestinyMgr() == nullptr)
+    if (pTarget == nullptr || pTarget->GetSelf().get() == nullptr
+        || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr
+        || m_pDrone->DestinyMgr() == nullptr)
         return;
     /** @todo  not all drones use lazors...fix this */
     //  woot!! --> group:1010        cat:8       Compact Citadel Torpedo         Citadel torpedoes for fighter-bombers
