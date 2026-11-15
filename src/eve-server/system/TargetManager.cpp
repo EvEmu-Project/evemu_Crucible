@@ -165,7 +165,8 @@ bool TargetManager::Process() {
                     _log(TARGET__TRACE, "%s(%u) has finished locking %s(%u)", \
                             mySE->GetName(), mySE->GetID(), itr->first->GetName(), itr->first->GetID());
                     TargetAdded(itr->first);
-                    itr->first->TargetMgr()->TargetedByLocked(mySE);
+                    if (itr->first->TargetMgr() != nullptr)
+                        itr->first->TargetMgr()->TargetedByLocked(mySE);
                     m_canAttack = true;
                     // Notify the entity that owns this TargetManager as well.
                     // DroneSE uses this callback to publish its locked target ID
@@ -195,6 +196,8 @@ void TargetManager::Unload() {
 bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
 {       // NOTE this is for players and CAN throw (client calls this inside try/catch block)
     PruneStaleTargets();
+    if (tSE == nullptr || mySE == nullptr || tSE->TargetMgr() == nullptr)
+        return false;
     if (!mySE->HasPilot()) {
         codelog(TARGET__ERROR, "StartTargeting() called by pilot-less ship %s(%u) to target %s(%u)", \
         mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
@@ -300,6 +303,8 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
 bool TargetManager::StartTargeting(SystemEntity *tSE, float lockTime, uint8 maxLockedTargets, double maxTargetLockRange, bool &chase)
 {       // NOTE  this is for npcs
     PruneStaleTargets();
+    if (tSE == nullptr || mySE == nullptr || tSE->TargetMgr() == nullptr)
+        return false;
     //first make sure they are not already in the list
     if (m_targets.find(tSE) != m_targets.end()) {
         _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but we are already targeting them. Ignoring request.", \
@@ -390,14 +395,20 @@ void TargetManager::ClearAllTargets(bool notify/*true*/) {
 
 void TargetManager::ClearTargets(bool notify/*true*/) {
     m_canAttack = false;
+    SystemManager* system = (mySE != nullptr) ? mySE->SystemMgr() : nullptr;
 
     for (auto cur : m_targets) {
-        // failsafe   still chance this code is incomplete
-        if (cur.first->TargetMgr() != nullptr)
-            cur.first->TargetMgr()->TargetedByLost(mySE);
+        // Resolve by ID before touching the non-owning pointer. This remains
+        // safe if a target was removed before its normal loss notification.
+        SystemEntity* liveTarget = (system != nullptr && cur.second != nullptr)
+            ? system->GetSE(cur.second->targetID) : nullptr;
+        if (liveTarget == cur.first && liveTarget->TargetMgr() != nullptr)
+            liveTarget->TargetMgr()->TargetedByLost(mySE);
+
+        const uint32 targetID = (cur.second != nullptr) ? cur.second->targetID : 0;
         SafeDelete(cur.second);
-        _log(TARGET__TRACE, "ClearTargets() - %s(%u) has cleared target %s(%u).",
-                mySE->GetName(), mySE->GetID(), cur.first->GetName(), cur.first->GetID());
+        _log(TARGET__TRACE, "ClearTargets() - %s(%u) has cleared target ID %u.",
+                mySE->GetName(), mySE->GetID(), targetID);
     }
 
     m_targets.clear();
@@ -414,7 +425,7 @@ void TargetManager::ClearFromTargets() {
     SystemManager* system = mySE->SystemMgr();
     for (auto cur : m_targetedBy) {
         // Resolve the targeter by retained ID before touching its raw pointer.
-        SystemEntity* liveTargeter = (system != nullptr)
+        SystemEntity* liveTargeter = (system != nullptr && cur.second != nullptr)
             ? system->GetSE(cur.second->targetID) : nullptr;
         if (liveTargeter == cur.first)
             ToNotify.push_back(liveTargeter);
