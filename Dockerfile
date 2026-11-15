@@ -39,7 +39,7 @@ RUN mkdir -p /src/build /app /app/logs /app/server_cache /app/image_cache
 WORKDIR /src/build
 
 # Configure and build the project
-RUN cmake -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Debug .. 
+RUN cmake -DEVEMU_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_BUILD_TYPE=Debug .. 
 RUN make -j$(nproc)
 RUN make install
 
