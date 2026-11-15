@@ -38,6 +38,7 @@
 #include "inventory/AttributeEnum.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
+#include "npc/Drone.h"
 #include "pos/Structure.h"
 #include "pos/Tower.h"
 #include "pos/sovStructures/TCU.h"
@@ -49,6 +50,7 @@
 #include "system/TargetManager.h"
 #include "system/SystemEntity.h"
 #include "system/SystemBubble.h"
+#include "system/SystemManager.h"
 
 TargetManager::TargetManager(SystemEntity *self)
 : mySE(self)
@@ -60,9 +62,72 @@ TargetManager::TargetManager(SystemEntity *self)
     m_targetedBy.clear();
 }
 
+void TargetManager::PruneStaleTargets() {
+    if (mySE == nullptr || mySE->SystemMgr() == nullptr)
+        return;
+
+    std::vector<SystemEntity*> liveStaleTargets;
+    std::vector<uint32> missingTargetIDs;
+    for (const auto& entry : m_targets) {
+        if (entry.second == nullptr)
+            continue;
+        SystemEntity* liveTarget = mySE->SystemMgr()->GetSE(entry.second->targetID);
+        if (liveTarget == entry.first && !liveTarget->IsDead()
+            && liveTarget->SysBubble() == mySE->SysBubble())
+            continue;
+        if (liveTarget == entry.first)
+            liveStaleTargets.push_back(liveTarget);
+        else
+            missingTargetIDs.push_back(entry.second->targetID);
+    }
+
+    // Use the normal loss path whenever the entity is still alive. This clears
+    // its incoming targeter record, destiny follow reference and client lock.
+    for (SystemEntity* target : liveStaleTargets) {
+        if (target->TargetMgr() != nullptr)
+            target->TargetMgr()->TargetedByLost(mySE);
+        TargetLost(target);
+    }
+
+    // The entity has already left the system. Its pointer may no longer be
+    // dereferenceable, so remove by the ID retained in TargetEntry only.
+    for (uint32 targetID : missingTargetIDs) {
+        for (auto itr = m_targets.begin(); itr != m_targets.end(); ++itr) {
+            if (itr->second == nullptr || itr->second->targetID != targetID)
+                continue;
+            SafeDelete(itr->second);
+            m_targets.erase(itr);
+            if (mySE->HasPilot()) {
+                Notify_OnTarget notification;
+                notification.mode = "lost";
+                notification.targetID = targetID;
+                Notify_OnMultiEvent multi;
+                multi.events = new PyList();
+                multi.events->AddItem(notification.Encode());
+                PyTuple* tuple = multi.Encode();
+                mySE->GetPilot()->SendNotification("OnMultiEvent", "clientID", &tuple);
+            }
+            break;
+        }
+    }
+
+    // m_canAttack must reflect the remaining locked entries, not a stale lock
+    // that was removed while another target was still locking.
+    m_canAttack = false;
+    for (const auto& entry : m_targets) {
+        if (entry.second != nullptr && entry.second->state == TargMgr::State::Locked) {
+            m_canAttack = true;
+            break;
+        }
+    }
+    if (m_targets.empty())
+        sEntityList.DeleteTargMgr(mySE);
+}
+
 bool TargetManager::Process() {
     double profileStartTime(GetTimeUSeconds());
 
+    PruneStaleTargets();
     if (m_targets.empty())
         return false;
 
@@ -110,6 +175,7 @@ void TargetManager::Unload() {
 
 bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
 {       // NOTE this is for players and CAN throw (client calls this inside try/catch block)
+    PruneStaleTargets();
     if (!mySE->HasPilot()) {
         codelog(TARGET__ERROR, "StartTargeting() called by pilot-less ship %s(%u) to target %s(%u)", \
         mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
@@ -122,10 +188,12 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
         mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
         return false;
     }
-    // get lower of ship and char target skills, with minimum of 1
-    uint8 maxLockedTargets = 1;
-    uint8 maxCharTargets = mySE->GetPilot()->GetChar()->GetSkillLevel(EvESkill::Targeting);
-    maxCharTargets += mySE->GetPilot()->GetChar()->GetSkillLevel(EvESkill::Multitasking);
+    // EVE's base target limit is two, plus Targeting and Multitasking levels.
+    // The ship's MaxLockedTargets attribute below remains the hard upper cap.
+    uint8 maxLockedTargets = 2;
+    uint8 maxCharTargets = static_cast<uint8>(2
+        + mySE->GetPilot()->GetChar()->GetSkillLevel(EvESkill::Targeting)
+        + mySE->GetPilot()->GetChar()->GetSkillLevel(EvESkill::Multitasking));
     if (maxCharTargets > 0)
         if (maxLockedTargets < maxCharTargets)
             maxLockedTargets = maxCharTargets;
@@ -136,6 +204,17 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
             maxLockedTargets = maxShipTargets;
 
     if (m_targets.size() >= maxLockedTargets) {
+        uint32 lockedCount = 0;
+        uint32 lockingCount = 0;
+        for (const auto& entry : m_targets) {
+            if (entry.second != nullptr && entry.second->state == TargMgr::State::Locked)
+                ++lockedCount;
+            else
+                ++lockingCount;
+        }
+        _log(TARGET__INFO, "%s(%u): Target cap reached: tracked=%u, locked=%u, locking=%u, maximum=%u.",
+             mySE->GetName(), mySE->GetID(), static_cast<uint32>(m_targets.size()),
+             lockedCount, lockingCount, maxLockedTargets);
         mySE->GetPilot()->SendNotifyMsg("Your ship and skills combination can only handle %u targets at a time.", maxLockedTargets);
         _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but we already have max targets of %u.  Ignoring request.", \
                 mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID(), maxLockedTargets);
@@ -182,7 +261,7 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
     // Calculate Time to Lock target:
     float lockTime = TimeToLock(sRef, tSE);
 
-    TargetEntry *te = new TargetEntry();
+    TargetEntry *te = new TargetEntry(tSE->GetID());
         te->state = TargMgr::State::Locking;
         te->timer.Start(lockTime *1000);      //timer has ms resolution
     m_targets[tSE] = te;
@@ -201,6 +280,7 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, ShipItemRef sRef)
 
 bool TargetManager::StartTargeting(SystemEntity *tSE, float lockTime, uint8 maxLockedTargets, double maxTargetLockRange, bool &chase)
 {       // NOTE  this is for npcs
+    PruneStaleTargets();
     //first make sure they are not already in the list
     if (m_targets.find(tSE) != m_targets.end()) {
         _log(TARGET__DEBUG, " %s(%u): Told to target %s(%u), but we are already targeting them. Ignoring request.", \
@@ -221,7 +301,7 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, float lockTime, uint8 maxL
         return false;
     }
 
-    TargetEntry *te = new TargetEntry();
+    TargetEntry *te = new TargetEntry(tSE->GetID());
         te->state = TargMgr::State::Locking;
         te->timer.Start(lockTime);
     m_targets[tSE] = te;
@@ -348,6 +428,8 @@ void TargetManager::TargetLost(SystemEntity *tSE) {
     mySE->DestinyMgr()->EntityRemoved(tSE);
     if (mySE->IsNPCSE())
         mySE->GetNPCSE()->TargetLost(tSE);
+    if (mySE->IsDroneSE())
+        mySE->GetDroneSE()->TargetLost(tSE);
     if (!mySE->HasPilot())
         return;
     Notify_OnTarget te;
