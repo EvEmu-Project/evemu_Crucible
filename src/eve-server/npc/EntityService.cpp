@@ -20,6 +20,27 @@
 #include "system/SystemManager.h"
 #include "services/ServiceManager.h"
 
+namespace {
+// EVE sends item IDs as Python ints or longs depending on the value and client.
+// The world entity registry in this server uses uint32 IDs, so reject values
+// which cannot be represented rather than silently truncating them.
+bool ReadEntityID(const PyRep* value, uint32& entityID) {
+    int64 rawID = 0;
+    if (value == nullptr)
+        return false;
+    if (value->IsInt())
+        rawID = value->AsInt()->value();
+    else if (value->IsLong())
+        rawID = value->AsLong()->value();
+    else
+        return false;
+    if (rawID <= 0 || rawID > 0xFFFFFFFFLL)
+        return false;
+    entityID = static_cast<uint32>(rawID);
+    return true;
+}
+}
+
 EntityService::EntityService(EVEServiceManager& mgr) :
     BindableService("entity", mgr)
 {
@@ -116,7 +137,7 @@ EntityBound::EntityBound(EVEServiceManager &mgr, EntityService& parent, SystemMa
     this->Add("CmdReconnectToDrones", &EntityBound::CmdReconnectToDrones);
 }
 
-PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
+PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targetID) {
  // ret = entity.CmdEngage(droneIDs, targetID)
     /*
         [PySubStream 104 bytes]
@@ -191,7 +212,12 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyInt* targe
         return PyStatic.mtDict();
     }
 
-    const uint32 targetEntityID = targetID->value();
+    uint32 targetEntityID = 0;
+    if (!ReadEntityID(targetID, targetEntityID)) {
+        pClient->SendNotifyMsg("Your drones could not read the selected target ID.");
+        _log(DRONE__WARNING, "CmdEngage: invalid target ID argument type/value.");
+        return PyStatic.mtDict();
+    }
     SystemEntity* pTarget = m_sysMgr->GetSE(targetEntityID);
     if (pTarget == nullptr || pTarget->SysBubble() == nullptr
         || pTarget->SysBubble() != pShipSE->SysBubble()
@@ -210,12 +236,13 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyInt* targe
     std::vector<uint32> requestedDroneIDs;
     PyList::const_iterator droneItr = droneIDs->begin();
     for (size_t index = 0; droneItr != droneIDs->end(); ++droneItr, ++index) {
-        if (!(*droneItr)->IsInt()) {
-            _log(DRONE__WARNING, "CmdEngage: drone ID at index %u is not an integer (%s).",
+        uint32 droneID = 0;
+        if (!ReadEntityID(*droneItr, droneID)) {
+            _log(DRONE__WARNING, "CmdEngage: drone ID at index %u has an unsupported type/value (%s).",
                  static_cast<uint32>(index), (*droneItr)->TypeString());
-            return nullptr;
+            continue;
         }
-        requestedDroneIDs.push_back((*droneItr)->AsInt()->value());
+        requestedDroneIDs.push_back(droneID);
     }
 
     uint32 commanded = 0;
