@@ -51,13 +51,53 @@ bool IsTargetWithinDroneControlRange(DroneSE* drone, SystemEntity* target) {
     return drone->GetHomeShip()->GetPosition().distance(target->GetPosition())
         <= GetDroneControlRange(drone);
 }
+
+// When Focus Fire is enabled, all drones controlled by the same ship use the
+// first valid target already assigned to any member of that flight. The AI
+// stores the assignment before lock completion so the other drones can join
+// immediately instead of independently selecting different NPCs.
+SystemEntity* FindSharedDroneTarget(DroneSE* drone) {
+    if (drone == nullptr || drone->GetSystemManager() == nullptr
+        || drone->GetHomeShip() == nullptr || drone->SysBubble() == nullptr)
+        return nullptr;
+
+    SystemManager* system = drone->GetSystemManager();
+    const uint32 controllerID = drone->GetHomeShip()->GetID();
+    const std::map<uint32, SystemEntity*> entities = system->GetEntities();
+    for (const auto& entry : entities) {
+        SystemEntity* entity = entry.second;
+        if (entity == nullptr || !entity->IsDroneSE())
+            continue;
+
+        DroneSE* wingDrone = entity->GetDroneSE();
+        if (wingDrone == nullptr || !wingDrone->IsEnabled()
+            || wingDrone->GetControllerID() != controllerID
+            || wingDrone->GetAI() == nullptr)
+            continue;
+
+        const uint32 targetID = wingDrone->GetAI()->GetAssignedTargetID();
+        if (targetID == 0)
+            continue;
+
+        SystemEntity* target = system->GetSE(targetID);
+        if (target == nullptr || target->IsDead()
+            || target->SysBubble() != drone->SysBubble()
+            || target->DestinyMgr() == nullptr || target->DestinyMgr()->IsCloaked()
+            || !IsTargetWithinDroneControlRange(drone, target))
+            continue;
+
+        return target;
+    }
+    return nullptr;
 }
+
 
 DroneAIMgr::DroneAIMgr(DroneSE* who)
 : m_state(DroneAI::State::Idle),
   m_pDrone(who),
   m_assignedShip(nullptr),
   m_pendingTargetID(0),
+  m_assignedTargetID(0),
   m_returnToBay(false),
   m_scoopRequested(false),
   m_autoEngageEnabled(true),
@@ -166,6 +206,19 @@ void DroneAIMgr::Process() {
         }
     }
 
+    // Focus-fire is a flight-level decision. Keep every controlled drone on
+    // the same valid assigned target, including while that target is locking.
+    if (m_autoEngageEnabled && m_state != DroneAI::State::Departing
+        && m_pDrone->GetSelf().get() != nullptr
+        && m_pDrone->GetSelf()->GetAttribute(AttrDroneFocusFire).get_bool()) {
+        SystemEntity* sharedTarget = FindSharedDroneTarget(m_pDrone);
+        if (sharedTarget != nullptr && sharedTarget->GetID() != m_assignedTargetID) {
+            _log(DRONE__AI_TRACE, "Drone %s(%u): Focus Fire joining flight target %s(%u).",
+                 m_pDrone->GetName(), m_pDrone->GetID(), sharedTarget->GetName(), sharedTarget->GetID());
+            Target(sharedTarget);
+        }
+    }
+
     // test for drone attributes here - aggressive, focus fire, attack/follow
     // test for control distance here also.  offline drones outside this  (AttrDroneControlDistance)
     switch(m_state) {
@@ -176,7 +229,9 @@ void DroneAIMgr::Process() {
             // Combat drones automatically acquire the nearest hostile NPC in
             // their current bubble. After a target dies/losses lock, the next
             // idle tick selects the next NPC, so a flight clears the pocket.
-            if (m_autoEngageEnabled && m_pDrone->GetHomeShip() != nullptr
+            if (m_autoEngageEnabled && m_pDrone->GetSelf().get() != nullptr
+                && m_pDrone->GetSelf()->GetAttribute(AttrDroneIsAgressive).get_bool()
+                && m_pDrone->GetHomeShip() != nullptr
                 && m_pDrone->GetSystemManager() != nullptr
                 && m_pDrone->SysBubble() != nullptr) {
                 SystemEntity* nearestNPC = nullptr;
@@ -221,7 +276,12 @@ void DroneAIMgr::Process() {
         case DroneAI::State::Approaching:
         case DroneAI::State::Pursuit: {
             // Only process a fully locked target. Pending locks must not be treated as active combat.
-            SystemEntity* pTarget = m_pDrone->TargetMgr()->GetFirstTarget(true);
+            SystemEntity* pTarget = (m_assignedTargetID != 0)
+                ? m_pDrone->TargetMgr()->GetTarget(m_assignedTargetID, true) : nullptr;
+            if (pTarget == nullptr && m_assignedTargetID == 0)
+                pTarget = m_pDrone->TargetMgr()->GetFirstTarget(true);
+            if (pTarget != nullptr && m_assignedTargetID == 0)
+                m_assignedTargetID = pTarget->GetID();
             if (pTarget == nullptr) {
                 if (m_pDrone->TargetMgr()->HasNoTargets()) {
                     _log(DRONE__AI_TRACE, "Drone %s(%u): Stopped engagement, GetFirstTarget() returned NULL.", m_pDrone->GetName(), m_pDrone->GetID());
@@ -286,6 +346,7 @@ int8 DroneAIMgr::GetState() {
 }
 
 void DroneAIMgr::Return(bool returnToBay) {
+    m_assignedTargetID = 0;
     // A deliberate return order suppresses automatic reacquisition until the
     // drone is launched/online again or receives another engage order.
     m_autoEngageEnabled = false;
@@ -314,13 +375,17 @@ void DroneAIMgr::Return(bool returnToBay) {
 }
 
 void DroneAIMgr::SetIdle() {
-    if (m_state == DroneAI::State::Idle)
+    if (m_state == DroneAI::State::Idle) {
+        m_pendingTargetID = 0;
+        m_assignedTargetID = 0;
         return;
+    }
     // not doing anything....idle.
     _log(DRONE__AI_TRACE, "Drone %s(%u): SetIdle: returning to idle.",
          m_pDrone->GetName(), m_pDrone->GetID());
     m_state = DroneAI::State::Idle;
     m_pendingTargetID = 0;
+    m_assignedTargetID = 0;
     m_returnToBay = false;
     m_scoopRequested = false;
 
@@ -424,6 +489,8 @@ void DroneAIMgr::ClearAllTargets() {
 void DroneAIMgr::TargetAcquired(SystemEntity* pTarget) {
     if (pTarget == nullptr || m_pDrone == nullptr)
         return;
+    if (m_assignedTargetID == 0)
+        m_assignedTargetID = pTarget->GetID();
     CheckDistance(pTarget);
 }
 
@@ -465,6 +532,7 @@ void DroneAIMgr::Target(SystemEntity* pTarget) {
         return;
     }
     m_pendingTargetID = 0;
+    m_assignedTargetID = pTarget->GetID();
     uint32 maxTargets = m_pDrone->GetSelf()->GetAttribute(AttrMaxAttackTargets).get_uint32();
     if (maxTargets == 0)
         maxTargets = 1; // many combat drone types omit this NPC targeting attribute
@@ -547,6 +615,12 @@ void DroneAIMgr::TargetLost(SystemEntity* pTarget) {
 
     if (pTarget != nullptr && m_pendingTargetID == pTarget->GetID())
         m_pendingTargetID = 0;
+    if (pTarget == nullptr || m_assignedTargetID == (pTarget != nullptr ? pTarget->GetID() : 0)) {
+        m_assignedTargetID = 0;
+        SystemEntity* nextTarget = m_pDrone->TargetMgr()->GetFirstTarget(false);
+        if (nextTarget != nullptr)
+            m_assignedTargetID = nextTarget->GetID();
+    }
     const char* targetName = (pTarget != nullptr) ? pTarget->GetName() : "<unknown>";
     const uint32 targetID = (pTarget != nullptr) ? pTarget->GetID() : 0;
     if (m_pDrone->TargetMgr()->HasNoTargets()) {
