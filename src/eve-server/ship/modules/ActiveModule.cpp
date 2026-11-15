@@ -21,6 +21,9 @@
 #include "ship/Ship.h"
 #include "system/cosmicMgrs/BeltMgr.h"
 
+#include <algorithm>
+#include <cmath>
+
 
 ActiveModule::ActiveModule(ModuleItemRef mRef, ShipItemRef sRef)
 : GenericModule(mRef, sRef),
@@ -656,21 +659,21 @@ uint32 ActiveModule::DoCycle() {
         case EVEDB::invGroups::Covert_Cynosural_Field_Generator:
         case EVEDB::invGroups::Automated_Targeting_System: {
         } break;
-        // these im not sure about yet
+        // these active modules still need dedicated cycle implementations
         case EVEDB::invGroups::ECM:
         case EVEDB::invGroups::ECCM:
         case EVEDB::invGroups::Gang_Coordinator:
         case EVEDB::invGroups::Cloaking_Device:
         case EVEDB::invGroups::Siege_Module:
         case EVEDB::invGroups::Super_Weapon:
-        case EVEDB::invGroups::Interdiction_Sphere_Launcher:    // launch a sphere (like missile and probe)
+        case EVEDB::invGroups::Interdiction_Sphere_Launcher:
         case EVEDB::invGroups::Jump_Portal_Generator:
         case EVEDB::invGroups::Remote_ECM_Burst:
-        case EVEDB::invGroups::Smart_Bomb: {
-            ApplySmartBombDamage();
-        } break;
         case EVEDB::invGroups::Warp_Disrupt_Field_Generator:
         case EVEDB::invGroups::ECM_Burst: {
+        } break;
+        case EVEDB::invGroups::Smart_Bomb: {
+            ApplySmartBombDamage();
         } break;
     }
 
