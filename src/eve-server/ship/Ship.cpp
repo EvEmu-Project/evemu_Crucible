@@ -2818,6 +2818,11 @@ bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
         data.ownerID = pChar->itemID();
     DroneSE* pDrone = new DroneSE(dRef, m_services, m_system, data);
 
+    // Bind the live pilot explicitly. Looking the client up again by character
+    // ID can fail during session transitions, leaving a launched drone with a
+    // null cached owner pointer even though its ship/controller IDs are valid.
+    pDrone->SetOwner(GetPilot());
+
     // tell new drone it's being launched.
     pDrone->Launch(this);
     // add drone to launched drone map (whether onlined or not)
