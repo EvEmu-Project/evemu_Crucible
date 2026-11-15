@@ -843,7 +843,7 @@ PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
 
         ship->VerifyHoldType(flagDroneBay, iRef, pClient);
 
-        if (ship->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef))
+        if (ship->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {
             iRef->ChangeOwner(pClient->GetCharacterID(), true);
             pClient->MoveItem(iRef->itemID(), pClient->GetShipID(), flagDroneBay);
             pShipSE->ScoopDrone(pDroneSE);
