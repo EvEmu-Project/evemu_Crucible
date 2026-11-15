@@ -2,11 +2,12 @@
 import gzip
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 from sync_portraits import (
     OfficialCDNOnly, agent_ids_from_dump, agent_ids_from_text,
-    cached_portrait, is_jpeg, source_and_cache_roots,
+    cached_portrait, is_jpeg, source_and_cache_roots, import_offline_portraits,
 )
 
 
@@ -39,6 +40,25 @@ class AgentPortraitCacheTest(unittest.TestCase):
             self.assertTrue(is_jpeg(b"\xff\xd8" + b"x" * 200 + b"\xff\xd9"))
             (cache / "3010819_256.jpg").write_bytes(b"\xff\xd8" + b"x" * 200 + b"\xff\xd9")
             self.assertEqual(cached_portrait(cache, 3010819).name, "3010819_256.jpg")
+
+    def test_import_owned_historical_jpeg_from_zip_offline(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            archive = root / "portraits.zip"
+            jpeg = b"\xff\xd8" + b"original portrait bytes" * 10 + b"\xff\xd9"
+            with zipfile.ZipFile(archive, "w") as z:
+                z.writestr("portraits/3010819_256.jpg", jpeg)
+                z.writestr("portraits/3999999_512.jpg", jpeg)
+                z.writestr("../90000000_512.jpg", jpeg)
+                z.writestr("../3010820_512.jpg", b"this is not JPEG")
+            target = root / "cache"
+            self.assertEqual(
+                import_offline_portraits(archive, [3010819, 3999999, 3010820], target), 2)
+            self.assertEqual((target / "3010819_256.jpg").read_bytes(), jpeg)
+            self.assertTrue((target / "3999999_512.jpg").exists())
+            self.assertFalse((target / "3010820_512.jpg").exists())
+            self.assertEqual(
+                import_offline_portraits(archive, [3010819, 3999999], target), 0)
 
     def test_bundled_fallback_is_a_real_jpeg(self):
         root = Path(__file__).resolve().parents[2]
