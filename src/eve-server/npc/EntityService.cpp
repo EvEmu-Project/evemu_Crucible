@@ -9,6 +9,8 @@
 
 #include "eve-server.h"
 
+#include <algorithm>
+
 
 
 
