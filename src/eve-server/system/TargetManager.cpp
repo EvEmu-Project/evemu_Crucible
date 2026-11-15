@@ -66,9 +66,10 @@ void TargetManager::PruneStaleTargets() {
     if (mySE == nullptr || mySE->SystemMgr() == nullptr)
         return;
 
-    std::vector<SystemEntity*> liveStaleTargets;
+    std::vector<uint32> liveStaleTargetIDs;
     std::vector<SystemEntity*> nullEntries;
     std::vector<uint32> missingTargetIDs;
+    SystemManager* system = mySE->SystemMgr();
     for (const auto& entry : m_targets) {
         // Null map keys/values cannot represent a live lock and must not count
         // against the player's target capacity.
@@ -76,12 +77,12 @@ void TargetManager::PruneStaleTargets() {
             nullEntries.push_back(entry.first);
             continue;
         }
-        SystemEntity* liveTarget = mySE->SystemMgr()->GetSE(entry.second->targetID);
+        SystemEntity* liveTarget = system->GetSE(entry.second->targetID);
         if (liveTarget == entry.first && !liveTarget->IsDead()
             && liveTarget->SysBubble() == mySE->SysBubble())
             continue;
         if (liveTarget == entry.first)
-            liveStaleTargets.push_back(liveTarget);
+            liveStaleTargetIDs.push_back(entry.second->targetID);
         else
             missingTargetIDs.push_back(entry.second->targetID);
     }
@@ -93,12 +94,31 @@ void TargetManager::PruneStaleTargets() {
         }
     }
 
-    // Use the normal loss path whenever the entity is still alive. This clears
-    // its incoming targeter record, destiny follow reference and client lock.
-    for (SystemEntity* target : liveStaleTargets) {
+    // Use the normal loss path whenever the entity is still alive. Keep only
+    // IDs across callbacks: TargetedByLost() can trigger AI/state changes that
+    // remove other entities, so a previously collected raw pointer may no
+    // longer be valid by the time its turn is processed.
+    for (uint32 targetID : liveStaleTargetIDs) {
+        SystemEntity* target = system->GetSE(targetID);
+        if (target == nullptr)
+            continue;
+
+        auto current = m_targets.find(target);
+        if (current == m_targets.end() || current->second == nullptr
+            || current->second->targetID != targetID)
+            continue;
+
         if (target->TargetMgr() != nullptr)
             target->TargetMgr()->TargetedByLost(mySE);
-        TargetLost(target);
+
+        // Re-resolve after the callback before invoking the normal loss path.
+        target = system->GetSE(targetID);
+        if (target == nullptr)
+            continue;
+        current = m_targets.find(target);
+        if (current != m_targets.end() && current->second != nullptr
+            && current->second->targetID == targetID)
+            TargetLost(target);
     }
 
     // The entity has already left the system. Its pointer may no longer be
