@@ -26,9 +26,9 @@ SET( PROJECT_REPOSITORY          "https://github.com/EvEmu-Project/evemu_Crucibl
 # Append our module path
 LIST( APPEND CMAKE_MODULE_PATH
       "${PROJECT_SOURCE_DIR}/cmake" )
-# Enable testing with CTest. Unit-test targets can be disabled for
-# production/container builds that only need the server binaries.
-ENABLE_TESTING()
+# Enable CTest and register the existing unit-test target. Unit tests can be
+# disabled for production/container builds that only need server binaries.
+INCLUDE( CTest )
 OPTION( EVEMU_BUILD_TESTS "Build EVEmu unit tests" ON )
 
 ###########
