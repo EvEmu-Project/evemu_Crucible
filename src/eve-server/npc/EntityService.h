@@ -40,7 +40,7 @@ public:
 
     uint32 GetSystemID() { return this->m_systemID; }
 protected:
-    PyResult CmdEngage(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdEngage(PyCallArgs& call, PyList* droneIDs, PyRep* targetID);
     PyResult CmdRelinquishControl(PyCallArgs& call, PyList* IDs);
     PyResult CmdDelegateControl(PyCallArgs& call, PyList* droneIDs, PyInt* controllerID);
     PyResult CmdAssist(PyCallArgs& call, PyInt* assistID, PyList* droneIDs);
