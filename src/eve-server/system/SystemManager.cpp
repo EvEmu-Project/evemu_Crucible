@@ -932,8 +932,14 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             }
         } break;
     }
-    sLog.Warning("BuildEntity", "Unhandled dynamic entity category %u for item %u of type %u", entity.categoryID, entity.itemID, entity.typeID);
-    EvE::traceStack();
+    // Unsupported legacy database rows are data-validation failures, not
+    // necessarily fatal C++ errors. An unconditional traceStack() here printed
+    // the same unsymbolized Windows call stack once for EVERY skipped row
+    // during system loading, obscuring the useful IDs from the log.
+    sLog.Warning("DynamicEntityFactory::BuildEntity",
+                 "Skipping unsupported dynamic entity %u: category=%u group=%u type=%u system=%u.",
+                 entity.itemID, entity.categoryID, entity.groupID,
+                 entity.typeID, sysMgr.GetID());
     return nullptr;
 }
 
