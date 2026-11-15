@@ -15,6 +15,7 @@ import json
 import re
 import sys
 import time
+import zipfile
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
@@ -26,6 +27,7 @@ ALLOWED_SIZES = (64, 128, 256, 512)
 BASE_URL = "https://images.evetech.net"
 ROW_ID_PATTERN = re.compile(r"\(\s*(3\d{6})\s*,")
 LOOSE_ID_PATTERN = re.compile(r"(?<!\d)(3\d{6})(?!\d)")
+ARCHIVE_IMAGE_PATTERN = re.compile(r"^(3\d{6})_(32|40|50|64|128|256|512|1024)\.jpe?g$", re.I)
 
 
 def source_and_cache_roots(script_file: Path) -> tuple[Path, Path]:
@@ -109,6 +111,43 @@ def save_atomic(path: Path, data: bytes):
             temp.unlink()
 
 
+def import_offline_portraits(source: Path, ids: list[int], target: Path) -> int:
+    """Import licensed local JPEGs from a directory or ZIP without network."""
+    permitted = set(ids)
+    copied = 0
+
+    def consider(filename: str, data: bytes):
+        nonlocal copied
+        match = ARCHIVE_IMAGE_PATTERN.fullmatch(Path(filename).name)
+        if not match or int(match.group(1)) not in permitted or not is_jpeg(data):
+            return
+        agent_id = int(match.group(1))
+        if cached_portrait(target, agent_id):
+            return
+        save_atomic(target / (str(agent_id) + "_" + match.group(2) + ".jpg"), data)
+        copied += 1
+
+    if source.is_dir():
+        for candidate in sorted(source.rglob("*")):
+            if not candidate.is_file() or candidate.stat().st_size > 2_000_000:
+                continue
+            if ARCHIVE_IMAGE_PATTERN.fullmatch(candidate.name):
+                consider(candidate.name, candidate.read_bytes())
+    elif source.is_file() and zipfile.is_zipfile(source):
+        with zipfile.ZipFile(source) as archive:
+            for entry in archive.infolist():
+                if (entry.is_dir() or entry.file_size > 2_000_000
+                        or not ARCHIVE_IMAGE_PATTERN.fullmatch(Path(entry.filename).name)):
+                    continue
+                with archive.open(entry) as file:
+                    data = file.read(2_000_001)
+                if len(data) <= 2_000_000:
+                    consider(entry.filename, data)
+    else:
+        raise ValueError("Local import must be a portrait directory or ZIP: " + str(source))
+    return copied
+
+
 def main(argv: list[str] | None = None) -> int:
     source_root, install_root = source_and_cache_roots(Path(__file__))
     parser = argparse.ArgumentParser(description=__doc__)
@@ -131,6 +170,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="Stop after this many network/invalid-image errors")
     parser.add_argument("--verify-only", action="store_true",
                         help="Count cached portraits without making network requests")
+    parser.add_argument("--local-import", type=Path,
+                        help="Import already-owned historical JPEGs from a local ZIP or directory")
+    parser.add_argument("--offline-only", action="store_true",
+                        help="Do not contact the CDN; only import available local portraits")
     args = parser.parse_args(argv)
     if args.limit < 0 or args.delay < 0 or args.timeout <= 0 or args.max_errors < 1:
         parser.error("Invalid limit, delay, timeout, or max-errors")
@@ -141,11 +184,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.limit:
         ids = ids[:args.limit]
     args.output.mkdir(parents=True, exist_ok=True)
-    report = {"total_agents": len(ids), "local_existing": 0, "downloaded": 0,
-              "unavailable": 0, "errors": 0, "no_network_runtime": True}
+    report = {"total_agents": len(ids), "local_existing": 0, "local_imported": 0,
+              "downloaded": 0, "unavailable": 0, "errors": 0,
+              "no_network_runtime": True}
+    if args.local_import and not args.verify_only:
+        try:
+            report["local_imported"] = import_offline_portraits(args.local_import, ids, args.output)
+        except (OSError, ValueError, zipfile.BadZipFile) as exc:
+            parser.error(str(exc))
     opener = build_opener(OfficialCDNOnly)
     generic_digest = None
-    if not args.verify_only:
+    if not args.verify_only and not args.offline_only:
         try:
             generic = fetch_portrait(opener, 1, args.size, args.timeout)
             generic_digest = hashlib.sha256(generic).digest()
@@ -157,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
         if cached_portrait(args.output, agent_id):
             report["local_existing"] += 1
             continue
-        if args.verify_only:
+        if args.verify_only or args.offline_only:
             report["unavailable"] += 1
             continue
         try:
