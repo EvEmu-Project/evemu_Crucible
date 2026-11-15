@@ -67,10 +67,15 @@ void TargetManager::PruneStaleTargets() {
         return;
 
     std::vector<SystemEntity*> liveStaleTargets;
+    std::vector<SystemEntity*> nullEntries;
     std::vector<uint32> missingTargetIDs;
     for (const auto& entry : m_targets) {
-        if (entry.second == nullptr)
+        // Null map keys/values cannot represent a live lock and must not count
+        // against the player's target capacity.
+        if (entry.first == nullptr || entry.second == nullptr) {
+            nullEntries.push_back(entry.first);
             continue;
+        }
         SystemEntity* liveTarget = mySE->SystemMgr()->GetSE(entry.second->targetID);
         if (liveTarget == entry.first && !liveTarget->IsDead()
             && liveTarget->SysBubble() == mySE->SysBubble())
@@ -79,6 +84,13 @@ void TargetManager::PruneStaleTargets() {
             liveStaleTargets.push_back(liveTarget);
         else
             missingTargetIDs.push_back(entry.second->targetID);
+    }
+    for (SystemEntity* key : nullEntries) {
+        auto itr = m_targets.find(key);
+        if (itr != m_targets.end()) {
+            SafeDelete(itr->second);
+            m_targets.erase(itr);
+        }
     }
 
     // Use the normal loss path whenever the entity is still alive. This clears
@@ -137,6 +149,7 @@ bool TargetManager::Process() {
     std::map<SystemEntity*, TargetEntry*>::iterator itr = m_targets.begin();
     while (itr != m_targets.end()) {
         if ((itr->first == nullptr) or (itr->second == nullptr)) {
+            SafeDelete(itr->second);
             itr = m_targets.erase(itr);
             continue;
         }
