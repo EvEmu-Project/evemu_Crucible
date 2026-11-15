@@ -165,6 +165,9 @@ void DroneAIMgr::Process() {
                 }
             }
         } break;
+        // Combat (state 1) is the client-defined active weapon state. Engaged
+        // (state 10) is retained for compatibility with drones already in that state.
+        case DroneAI::State::Combat:
         case DroneAI::State::Engaged:
         case DroneAI::State::Approaching:
         case DroneAI::State::Pursuit: {
@@ -207,7 +210,6 @@ void DroneAIMgr::Process() {
         case DroneAI::State::Incapacitated:
         case DroneAI::State::Guarding:
         case DroneAI::State::Assisting:
-        case DroneAI::State::Combat:
         case DroneAI::State::Mining:
         case DroneAI::State::Departing2: {
            // do nothing here yet
@@ -287,7 +289,7 @@ void DroneAIMgr::SetIdle() {
 void DroneAIMgr::SetEngaged(SystemEntity* pTarget) {
     if (pTarget == nullptr || m_pDrone->DestinyMgr() == nullptr)
         return;
-    if (m_state == DroneAI::State::Engaged
+    if ((m_state == DroneAI::State::Combat || m_state == DroneAI::State::Engaged)
         && m_pDrone->DestinyMgr()->GetTargetID() == pTarget->GetID())
         return;
     _log(DRONE__AI_TRACE, "Drone %s(%u): SetEngaged: %s(%u) begin engaging.",
@@ -303,7 +305,10 @@ void DroneAIMgr::SetEngaged(SystemEntity* pTarget) {
         ? m_cruiseSpeed : orbitSpeedQuarter;
     m_pDrone->DestinyMgr()->SetMaxVelocity(MakeRandomFloat(orbitSpeedMin, orbitSpeedMax));
     m_pDrone->DestinyMgr()->Orbit(pTarget, m_entityOrbitRange);  //try to get inside orbit range
-    m_state = DroneAI::State::Engaged;
+    // Combat is the actual client activity state for weapon engagement.
+    // State 10 (Engaged) is not the combat state and can be rendered as a
+    // non-combat activity by the client.
+    m_state = DroneAI::State::Combat;
     m_pDrone->StateChange();
 }
 
@@ -484,7 +489,8 @@ void DroneAIMgr::TargetLost(SystemEntity* pTarget) {
         _log(DRONE__AI_TRACE, "Drone %s(%u): Target %s(%u) lost. No targets remain; returning to idle.",
              m_pDrone->GetName(), m_pDrone->GetID(), targetName, targetID);
         SetIdle();
-    } else if (m_state == DroneAI::State::Engaged ||
+    } else if (m_state == DroneAI::State::Combat ||
+               m_state == DroneAI::State::Engaged ||
                m_state == DroneAI::State::Approaching ||
                m_state == DroneAI::State::Pursuit) {
         // Process() will select the next fully locked target and recalculate movement.
@@ -525,9 +531,14 @@ void DroneAIMgr::Attack(SystemEntity* pSE)
             return;
         }
 
-        if (m_pDrone->TargetMgr() != nullptr
-            && m_pDrone->TargetMgr()->GetTarget(pSE->GetID(), true) != nullptr)
+        // Match the NPC combat path: TargetManager only permits weapon fire
+        // after its lock-completion process has enabled attacks. pSE is already
+        // the first fully locked target selected by Process().
+        if (m_pDrone->TargetMgr() != nullptr && m_pDrone->TargetMgr()->CanAttack())
             AttackTarget(pSE);
+        else
+            _log(DRONE__AI_TRACE, "Drone %s(%u): Waiting for target lock before firing on %s(%u).",
+                 m_pDrone->GetName(), m_pDrone->GetID(), pSE->GetName(), pSE->GetID());
     }
 }
 
