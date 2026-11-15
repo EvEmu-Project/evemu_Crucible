@@ -1,5 +1,11 @@
 # EVEmu database tools
 
+<p align="center">
+  <img src="../docs/assets/readme/database-tools-banner.jpg" alt="Database and Tools — MariaDB, EVEDBTool and migrations" width="100%" />
+</p>
+
+[Windows setup and server installation](../README.md#windows-11-and-windows-10-x64-setup) · [Main project README](../README.md)
+
 The `sql/` directory is included in the Windows and Linux release packages. It contains the base database data, ordered schema migrations, and the matching EVEDBTool executable.
 
 ## Included tools

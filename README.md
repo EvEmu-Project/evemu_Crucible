@@ -1,12 +1,23 @@
 # EVEmu Crucible — maintained Windows, Linux and Docker fork
 
+<p align="center">
+  <img src="docs/assets/readme/hero-banner.jpg" alt="EVEmu Crucible — maintained open-source server emulator, Windows, Linux and Docker" width="100%" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/xrizonx/evemu_Crucible/actions/workflows/build-release.yml"><img alt="master CI" src="https://github.com/xrizonx/evemu_Crucible/actions/workflows/build-release.yml/badge.svg?branch=master" /></a>
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-UCRT64-0078D6?logo=windows&logoColor=white" />
+  <img alt="Linux" src="https://img.shields.io/badge/Linux-GCC-FCC624?logo=linux&logoColor=black" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-Build-2496ED?logo=docker&logoColor=white" />
+</p>
+
 [Source](https://github.com/xrizonx/evemu_Crucible) · [CI builds](https://github.com/xrizonx/evemu_Crucible/actions/workflows/build-release.yml) · [Full patch notes](PATCH_NOTES.md) · [Stability worklog](STABILITY_WORKLOG.md) · [Database guide](sql/README.md)
 
 EVEmu is an educational, work-in-progress EVE Online server emulator based on [upstream EVEmu Crucible](https://github.com/EvEmu-Project/evemu_Crucible). It is intended for local development and testing, not public or production hosting.
 
 **Active development and builds: `master`.** The Windows instructions below match this fork's GitHub Actions **Windows x86_64/UCRT64** package. If you already have an EVEmu installation, **back up its database and settings before upgrading**.
 
-## Contents
+## Quick navigation
 
 - [What has changed](#changes-in-this-fork)
 - [Download and install on Windows](#windows-11-and-windows-10-x64-setup)
@@ -33,6 +44,10 @@ For the complete chronological changes, see [PATCH_NOTES.md](PATCH_NOTES.md), [S
 **Test limitation:** passing Linux, Windows and Docker CI builds does not prove drone/weapon/mission mechanics are bug-free in a running game. New smartbomb, bomb, defender missile and drone behavior require in-game tests. Report runtime faults with the exact build SHA, logs, reproduction and crash dump.
 
 # Windows 11 and Windows 10 x64 setup
+
+<p align="center">
+  <img src="docs/assets/readme/windows-setup-banner.jpg" alt="Windows Setup — Install, Configure, Run" width="100%" />
+</p>
 
 You do **not** need Git, Go, a compiler or Docker to run the prebuilt Windows ZIP. You **do** need a Windows MariaDB server and the packaged SQL assets.
 
@@ -92,6 +107,10 @@ These copy commands **replace existing config files**. Do not run them on an upg
 The server's default compiled root is `..`, so it expects `..\etc\eve-server.xml` **relative to the working directory**. Run the executable **from `C:\EVEmu\bin`**. Running it from the package root can make its XML and log paths fail.
 
 ## 3. Install and configure MariaDB
+
+<p align="center">
+  <img src="docs/assets/readme/database-tools-banner.jpg" alt="Database and Tools — MariaDB, EVEDBTool and migrations" width="100%" />
+</p>
 
 1. Install 64-bit MariaDB Server for Windows from [mariadb.org/download](https://mariadb.org/download/). The Docker image uses MariaDB 11.8; your Windows MariaDB installation is separate.
 2. During installation, create a strong **root password**, enable the **MariaDB Windows service**, and use TCP/IP on `3306` (or use your chosen port consistently everywhere).
