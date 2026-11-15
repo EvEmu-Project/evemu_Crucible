@@ -10,6 +10,13 @@
 
 namespace EvEAgent {
 
+// In the Crucible SDE, NPC agent character IDs occupy the 3m range.
+// Keep missing player portraits and other image types on their own paths.
+inline bool IsStationAgentPortraitRequest(const std::string& category, uint32_t id) {
+    return category == "Character" && id >= 3000000u && id <= 3999999u;
+}
+
+
 // EVE FILETIME uses 10,000,000 ticks/second. Mission bonusTime is minutes,
 // and its deadline is counted from acceptance, not the initial offer date.
 inline int64_t BonusTimeRemaining(double acceptedAt, uint16_t bonusMinutes, double now) {
