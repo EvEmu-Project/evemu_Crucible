@@ -26,6 +26,8 @@
 
 #include "eve-server.h"
 
+#include <utility>
+
 #include "EVE_Mail.h"
 
 #include "Client.h"
