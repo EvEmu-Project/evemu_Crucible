@@ -768,7 +768,8 @@ void NPCAIMgr::AttackTarget(SystemEntity* pSE) {
 
 void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
 {
-    if (typeID == 0)
+    if (typeID == 0 || pSE == nullptr || m_npc == nullptr
+        || m_npc->SystemMgr() == nullptr || m_npc->SystemMgr()->GetSE(pSE->GetID()) != pSE)
         return;
     // Actually Launch a missile, creating a new Destiny object for it
     // ItemData( uint32 _typeID, uint32 _ownerID, uint32 _locationID, EVEItemFlags _flag, const char *_name = "", \
@@ -797,11 +798,23 @@ void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
         return; // make error here
     double distance = pMissile->GetPosition().distance(pSE->GetPosition());
     double missileSpeed = missileRef->GetAttribute(AttrMaxVelocity).get_float();
-    double travelTime = (distance/missileSpeed);
-    if (travelTime < 1)
-        travelTime = 1;
+    if (!std::isfinite(missileSpeed) || missileSpeed <= 0.0) {
+        _log(NPC__AI_TRACE, "NPC missile launcher %u has invalid velocity %.3f for type %u.",
+             m_npc->GetID(), missileSpeed, typeID);
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        return;
+    }
+    double travelTime = distance / missileSpeed;
+    if (travelTime < 1.0)
+        travelTime = 1.0;
     pMissile->SetSpeed(missileSpeed);
     pMissile->SetHitTimer(travelTime *1000);
+    if (pMissile->DestinyMgr() == nullptr) {
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        return;
+    }
     pMissile->DestinyMgr()->MakeMissile(pMissile);
 
     // tell target a missile has been launched at them.. (defender missile trigger for ship, tower, pos, npc, others?)

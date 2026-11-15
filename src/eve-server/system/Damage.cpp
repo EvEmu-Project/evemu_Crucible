@@ -160,6 +160,15 @@ bool SystemEntity::ApplyDamage(Damage &d) {
             damageID = MakeRandomInt(0,8);
         } break;
         default: {
+            // NPCs pass their NPC item rather than a launcher module as the
+            // weaponRef. Their missile charge/effect must still use the
+            // configured missileDamage scaling, not the turret hit path.
+            if (d.chargeRef.get() != nullptr
+                && d.effectID == EVEEffectID::missileLaunching) {
+                d *= sConfig.rates.missileDamage;
+                damageID = 6;
+                break;
+            }
             float modifier = d.GetModifier();
             d *= modifier;
                  if (modifier == 3.0f)   { damageID = 8; }  //strikes perfectly, wrecking
