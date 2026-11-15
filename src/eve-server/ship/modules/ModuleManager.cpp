@@ -601,13 +601,20 @@ void ModuleManager::Offline(uint32 itemID)
         _log(MODULE__ERROR, "MM::Offline(itemID) -  Module %u not found", itemID);
         return;
     }
-    if (!pMod->isOnline()) {
-        _log(MODULE__WARNING, "MM::Offline(itemID) -  %s not Online", pMod->GetSelf()->name());
+    if (!pMod->isOnline()
+        && (pMod->GetModuleState() == Module::State::Offline
+            || pMod->GetModuleState() == Module::State::Unfitted)) {
+        _log(MODULE__WARNING, "MM::Offline(itemID) - %s is already offline.", pMod->GetSelf()->name());
         pMod->SetModuleState(Module::State::Offline);
         return;
     }
 
-    _log(MODULE__MESSAGE, "MM::Offline(itemID) -  %s going Offline", pMod->GetSelf()->name());
+    // Reconcile the internal state even when AttrOnline is already false.
+    // Otherwise an Activated/Deactivating module can retain effects and timers
+    // while the inventory attribute incorrectly reports it as offline.
+    _log(MODULE__MESSAGE, "MM::Offline(itemID) - %s going Offline (state: %s, online attribute: %s).",
+         pMod->GetSelf()->name(), pMod->GetModuleStateName(pMod->GetModuleState()),
+         pMod->isOnline() ? "true" : "false");
     pMod->Offline();
 }
 
@@ -618,12 +625,18 @@ void ModuleManager::Offline(EVEItemFlags flag)
         _log(MODULE__ERROR, "MM::Offline(flag) -  Module not found in %s", sDataMgr.GetFlagName(flag));
         return;
     }
-    if (!pMod->isOnline()) {
-        _log(MODULE__WARNING, "MM::Offline(flag) -  %s not Online", pMod->GetSelf()->name());
+    if (!pMod->isOnline()
+        && (pMod->GetModuleState() == Module::State::Offline
+            || pMod->GetModuleState() == Module::State::Unfitted)) {
+        _log(MODULE__WARNING, "MM::Offline(flag) - %s is already offline.", pMod->GetSelf()->name());
         pMod->SetModuleState(Module::State::Offline);
         return;
     }
-    _log(MODULE__MESSAGE, "MM::Offline(flag) -  %s going Offline", pMod->GetSelf()->name());
+
+    // Keep the slot-based path consistent with the itemID path above.
+    _log(MODULE__MESSAGE, "MM::Offline(flag) - %s going Offline (state: %s, online attribute: %s).",
+         pMod->GetSelf()->name(), pMod->GetModuleStateName(pMod->GetModuleState()),
+         pMod->isOnline() ? "true" : "false");
     pMod->Offline();
 }
 
