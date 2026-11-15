@@ -765,13 +765,13 @@ SystemEntity* TargetManager::GetTarget(uint32 targetID, bool need_locked/*true*/
         if (mySE->SystemMgr()->GetSE(targetID) != itr->first)
             continue;
         if (need_locked && itr->second->state != TargMgr::State::Locked) {
-            _log(TARGET__INFO, "Found target %u, but it is not locked.", targetID);
+            _log(TARGET__TRACE, "Found target %u, but it is not locked.", targetID);
             continue;
         }
-        _log(TARGET__INFO, "Found target %u (nl? %s)", targetID, need_locked?"yes":"no");
+        _log(TARGET__TRACE, "Found target %u (nl? %s)", targetID, need_locked?"yes":"no");
         return itr->first;
     }
-    _log(TARGET__INFO, "Unable to find target %u (nl? %s)", targetID, need_locked?"yes":"no");
+    _log(TARGET__TRACE, "Unable to find target %u (nl? %s)", targetID, need_locked?"yes":"no");
     return nullptr;    //not found.
 }
 

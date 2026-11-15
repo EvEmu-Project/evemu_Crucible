@@ -28,7 +28,8 @@ SET( marshal_SOURCE
 SET( utils_SOURCE
      "utils/EvilNumberTest.cpp"
      "utils/WeaponFormulaTest.cpp"
-     "utils/MovementFormulaTest.cpp" )
+     "utils/MovementFormulaTest.cpp"
+     "utils/DroneControlRangeTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -74,3 +75,5 @@ ADD_TEST( NAME "WeaponFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/WeaponFormulaTest" )
 ADD_TEST( NAME "MovementFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
+ADD_TEST( NAME "DroneControlRangeTest"
+          COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )

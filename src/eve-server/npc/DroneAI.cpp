@@ -8,6 +8,8 @@
 */
 
 #include "eve-server.h"
+#include "EVE_DroneControlRange.h"
+#include "EVE_Skills.h"
 
 #include "Client.h"
 #include "character/Character.h"
@@ -28,29 +30,34 @@ bool IsMiningDrone(DroneSE* drone) {
         && drone->GetSelf()->groupID() == EVEDB::invGroups::Mining_Drone;
 }
 
-// Drone control range is a character attribute (skills/modules may modify it).
-// Keep a conservative 20 km baseline only for old characters whose imported
-// static attributes do not contain the value.
+// A command uses the distance from the owning ship to its target. Existing
+// attacks may continue beyond the command boundary without losing their lock.
 double GetDroneControlRange(DroneSE* drone) {
-    double effectiveRange = 0.0;
-    if (drone != nullptr && drone->GetHomeShip() != nullptr
-        && drone->GetHomeShip()->GetSelf().get() != nullptr) {
-        // The ship value may include fitted drone-link range bonuses.
-        effectiveRange = drone->GetHomeShip()->GetSelf()
-            ->GetAttribute(AttrDroneControlDistance).get_double();
-    }
-    if (drone != nullptr && drone->GetOwner() != nullptr) {
-        Character* character = drone->GetOwner()->GetChar().get();
+    if (drone == nullptr)
+        return 20000.0;
+
+    int scoutLevel = 0, ewarLevel = 0;
+    double charRange = 0.0;
+    Client* owner = drone->GetOwner();
+    if (owner != nullptr) {
+        Character* character = owner->GetChar().get();
         if (character != nullptr) {
-            // Character skills may be reflected on the character rather than
-            // copied into the ship attribute in older database imports.
-            const double characterRange = character
-                ->GetAttribute(AttrDroneControlDistance).get_double();
-            if (characterRange > effectiveRange)
-                effectiveRange = characterRange;
+            scoutLevel = character->GetSkillLevel(EvESkill::ScoutDroneOperation);
+            ewarLevel = character->GetSkillLevel(EvESkill::ElectronicWarfareDroneInterfacing);
+            charRange = character->GetAttribute(AttrDroneControlDistance).get_double();
         }
     }
-    return (effectiveRange > 0.0) ? effectiveRange : 20000.0;
+
+    double shipRange = 0.0, flatBonus = 0.0;
+    ShipSE* ship = drone->GetHomeShip();
+    if (ship != nullptr && ship->GetSelf().get() != nullptr) {
+        const auto shipItem = ship->GetSelf();
+        shipRange = shipItem->GetAttribute(AttrDroneControlDistance).get_double();
+        flatBonus = shipItem->GetAttribute(AttrDroneRangeBonus).get_double();
+    }
+
+    // Prefer stronger already-computed ship/character values when available.
+    return EvEDrone::ControlRange(scoutLevel, ewarLevel, shipRange, charRange, flatBonus);
 }
 
 bool IsTargetWithinDroneControlRange(DroneSE* drone, SystemEntity* target) {
@@ -132,7 +139,7 @@ DroneAIMgr::DroneAIMgr(DroneSE* who)
     // Drone static data is inconsistent between legacy and newer types.
     // Apply safe combat defaults when an attribute is absent/zero so a drone
     // never gets a zero pursuit range, zero orbit radius or zero weapon cycle.
-    if (m_attackSpeed <= 0.0)
+    if (!std::isfinite(m_attackSpeed) || m_attackSpeed <= 0.0)
         m_attackSpeed = 2000.0; // milliseconds
     if (m_chaseSpeed == 0)
         m_chaseSpeed = 2000;
@@ -300,8 +307,17 @@ void DroneAIMgr::Process() {
             // must not be treated as active combat.
             SystemEntity* pTarget = (m_assignedTargetID != 0)
                 ? targetMgr->GetTarget(m_assignedTargetID, true) : nullptr;
-            if (pTarget == nullptr && m_assignedTargetID == 0)
-                pTarget = targetMgr->GetFirstTarget(true);
+            if (pTarget == nullptr) {
+                // Recover another completed lock if the assigned ID vanished.
+                SystemEntity* ready = targetMgr->GetFirstTarget(true);
+                if (ready != nullptr) {
+                    pTarget = ready;
+                    m_assignedTargetID = ready->GetID();
+                } else if (m_assignedTargetID != 0
+                           && targetMgr->GetTarget(m_assignedTargetID, false) == nullptr) {
+                    m_assignedTargetID = 0;
+                }
+            }
             if (pTarget != nullptr && m_assignedTargetID == 0)
                 m_assignedTargetID = pTarget->GetID();
             if (pTarget == nullptr) {
@@ -457,7 +473,10 @@ void DroneAIMgr::CheckDistance(SystemEntity* pSE)
         SetIdle();
         return;
     }
-    if (pSE == nullptr || pSE->IsDead() || m_pDrone->SysBubble() == nullptr) {
+    if (pSE == nullptr || pSE->IsDead() || m_pDrone->SysBubble() == nullptr
+        || pSE->SysBubble() == nullptr
+        || pSE->SysBubble() != m_pDrone->SysBubble()
+        || pSE->DestinyMgr() == nullptr || pSE->DestinyMgr()->IsCloaked()) {
         if (pSE != nullptr)
             ClearTarget(pSE);
         else
@@ -470,12 +489,14 @@ void DroneAIMgr::CheckDistance(SystemEntity* pSE)
     // remains a fallback for drone types with incomplete static attributes.
     const double maxChaseRange = (m_entityChaseRange > m_entityAttackRange)
         ? m_entityChaseRange : m_entityAttackRange;
-    if (dist > maxChaseRange) {
-        _log(DRONE__AI_TRACE, "Drone %s(%u): CheckDistance: %s(%u) is outside chase range (%.0f m > %.0f m).",
-             m_pDrone->GetName(), m_pDrone->GetID(), pSE->GetName(), pSE->GetID(), dist, maxChaseRange);
-        if (m_state != DroneAI::State::Idle)
-            ClearTarget(pSE);
-        return;
+    // The chase limit is an acquisition range, not an expiry condition for
+    // an assigned, already-locked target. A retreating NPC must not cause
+    // the drone to abandon the only target after its first shots.
+    if (dist > maxChaseRange && m_state != DroneAI::State::Approaching) {
+        _log(DRONE__AI_TRACE,
+             "Drone %s(%u): Retaining lock on %s(%u) at %.0f m beyond chase range %.0f m.",
+             m_pDrone->GetName(), m_pDrone->GetID(), pSE->GetName(), pSE->GetID(),
+             dist, maxChaseRange);
     }
 
     // EntityAttackRange is the outer combat envelope; EntityFlyRange plus
@@ -492,7 +513,8 @@ void DroneAIMgr::CheckDistance(SystemEntity* pSE)
             m_pDrone->DestinyMgr()->SetMaxVelocity(m_chaseSpeed);
             m_pDrone->DestinyMgr()->Follow(pSE, static_cast<uint32>(m_entityOrbitRange));
             m_state = DroneAI::State::Approaching;
-            m_mainAttackTimer.Disable();
+            // Preserve the elapsed weapon cooldown through brief range
+            // changes; disabling it here can starve repeated shots.
             m_pDrone->StateChange();
         }
         return;
@@ -531,7 +553,6 @@ void DroneAIMgr::Target(SystemEntity* pTarget) {
              m_pDrone->GetID());
         return;
     }
-    m_autoEngageEnabled = true;
     if (pTarget == nullptr || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr
         || m_pDrone->TargetMgr() == nullptr || m_pDrone->DestinyMgr() == nullptr
         || pTarget->DestinyMgr() == nullptr || pTarget->SysBubble() == nullptr
@@ -547,6 +568,10 @@ void DroneAIMgr::Target(SystemEntity* pTarget) {
              GetDroneControlRange(m_pDrone));
         return;
     }
+    // Invalid/out-of-range commands must not interrupt return-to-bay.
+    m_autoEngageEnabled = true;
+    m_returnToBay = false;
+    m_scoopRequested = false;
     // An explicit engage order replaces the previous target rather than
     // leaving the drone with a full/stale target list and an idle AI state.
     if (m_pDrone->TargetMgr()->GetTarget(pTarget->GetID(), false) == nullptr)
@@ -712,13 +737,13 @@ void DroneAIMgr::Attack(SystemEntity* pSE)
             return;
         }
 
-        // Match the NPC combat path: TargetManager only permits weapon fire
-        // after its lock-completion process has enabled attacks. pSE is already
-        // the first fully locked target selected by Process().
-        if (m_pDrone->TargetMgr() != nullptr && m_pDrone->TargetMgr()->CanAttack())
+        // A fully locked entry for THIS target is authoritative; the
+        // aggregate CanAttack flag may lag target callbacks.
+        TargetManager* manager = m_pDrone->TargetMgr();
+        if (manager != nullptr && manager->GetTarget(pSE->GetID(), true) == pSE)
             AttackTarget(pSE);
         else
-            _log(DRONE__AI_TRACE, "Drone %s(%u): Waiting for target lock before firing on %s(%u).",
+            _log(DRONE__AI_TRACE, "Drone %s(%u): Waiting for target lock on %s(%u).",
                  m_pDrone->GetName(), m_pDrone->GetID(), pSE->GetName(), pSE->GetID());
     }
 }

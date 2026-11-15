@@ -2810,6 +2810,14 @@ bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
     position.MakeRandomPointOnSphere(500.0);
     dRef->SetPosition(position);
 
+    // Reapply the pilot's current settings when launching a fresh drone.
+    for (const uint16 attribute : {static_cast<uint16>(AttrDroneFocusFire),
+                                   static_cast<uint16>(AttrDroneIsAgressive),
+                                   static_cast<uint16>(AttrFightersAttackAndFollow)}) {
+        if (m_shipRef->HasAttribute(attribute))
+            dRef->SetAttribute(attribute, m_shipRef->GetAttribute(attribute));
+    }
+
     //now we create an SE to represent it.
     FactionData data = FactionData();
         data.allianceID = pChar->allianceID();
@@ -2859,12 +2867,21 @@ void ShipSE::ScoopDrone(SystemEntity* pSE) {
 }
 
 void ShipSE::UpdateDrones(std::map<int16, int8> &attribs) {
-    // update drones in space with new attrib settings
-    for (auto cur : m_drones) {
-        cur.second->SetAttribute(AttrDroneFocusFire, attribs[AttrDroneFocusFire]);
-        cur.second->SetAttribute(AttrDroneIsAgressive, attribs[AttrDroneIsAgressive]);
-        cur.second->SetAttribute(AttrFightersAttackAndFollow, attribs[AttrFightersAttackAndFollow]);
-        //cur.second->SetAttribute(AttrDroneIsChaotic, attribs[AttrDroneIsChaotic]);    // no longer used?
+    // Only apply keys actually present in the RPC: operator[] on a missing
+    // key inserts zero, silently disabling focus fire or aggression.
+    for (const auto& setting : attribs) {
+        if (setting.first != AttrDroneFocusFire
+            && setting.first != AttrDroneIsAgressive
+            && setting.first != AttrFightersAttackAndFollow)
+            continue;
+
+        // A newly launched drone must inherit the latest pilot configuration.
+        if (m_shipRef.get() != nullptr)
+            m_shipRef->SetAttribute(setting.first, static_cast<int>(setting.second));
+        for (const auto& entry : m_drones) {
+            if (entry.second != nullptr)
+                entry.second->SetAttribute(setting.first, static_cast<int>(setting.second));
+        }
     }
 }
 

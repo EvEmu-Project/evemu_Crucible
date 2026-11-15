@@ -298,7 +298,7 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targe
     // the remaining controlled drones from the system registry. Do not issue
     // a duplicate order to drones already handled above.
     if (commanded == 0 || unresolvedSelection) {
-        const std::map<uint32, SystemEntity*> entities = m_sysMgr->GetEntities();
+        const auto& entities = m_sysMgr->GetEntitiesView();
         for (const auto& entry : entities) {
             SystemEntity* entity = entry.second;
             if (entity == nullptr || !entity->IsDroneSE())
