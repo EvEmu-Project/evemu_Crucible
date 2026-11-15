@@ -832,6 +832,17 @@ PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
             continue;
         }
 
+        // Enforce the server-side scoop interaction range. The client may hide
+        // the command when a drone is distant, but a forged service call must
+        // not move a drone into the bay from anywhere in the same bubble.
+        const double scoopDistance = pDroneSE->GetPosition().distance(pShipSE->GetPosition());
+        if (scoopDistance > 2500.0) {
+            pClient->SendNotifyMsg("You are too far away to scoop that drone.");
+            _log(DRONE__WARNING, "%s: Rejected scoop of drone %u at %.0f m (maximum 2500 m).",
+                 pClient->GetName(), droneID, scoopDistance);
+            continue;
+        }
+
         // Abandoned drones use the system owner. Otherwise only their owner
         // may scoop them; an active drone must also belong to this ship.
         if (drone->GetOwnerID() != pClient->GetCharacterID() && drone->GetOwnerID() != 1)
