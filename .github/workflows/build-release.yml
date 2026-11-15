@@ -266,6 +266,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          pull: true
           push: false
           tags: evemu-crucible:ci
           cache-from: type=gha,scope=evemu-docker
