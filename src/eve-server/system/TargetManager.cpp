@@ -167,6 +167,10 @@ bool TargetManager::Process() {
                     TargetAdded(itr->first);
                     itr->first->TargetMgr()->TargetedByLocked(mySE);
                     m_canAttack = true;
+                    // Notify the entity that owns this TargetManager as well.
+                    // DroneSE uses this callback to publish its locked target ID
+                    // and transition its AI after the lock actually completes.
+                    mySE->TargetAdded(itr->first);
                 }
             } break;
         }
