@@ -35,6 +35,11 @@
 #include "ship/Ship.h"
 #include "ship/modules/GenericModule.h"
 #include "system/Damage.h"
+#include "system/SystemBubble.h"
+#include "EVE_WeaponFormulas.h"
+
+#include <algorithm>
+#include <cmath>
 
 Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemManager* pSystem, InventoryItemRef modRef, SystemEntity* tSE, SystemEntity* pSE, GenericModule* pMod)
 : DynamicSystemEntity(self, services, pSystem),
@@ -43,9 +48,10 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
   m_fromSE(pSE),
   m_hitTimer(0),
   m_lifeTimer(0),
-  m_damageMod(1),
   m_alive(true),
-  m_orbitingID(0),
+  m_orbitingID(tSE != nullptr ? tSE->GetID() : 0),
+  m_launcherID(pSE != nullptr ? pSE->GetID() : 0),
+  m_damageMod(1),
   m_speed(0),
   m_hullHP(self->GetAttribute(AttrHP).get_int())
 {
@@ -233,42 +239,110 @@ void Missile::MakeDamageState(DoDestinyDamageState &into) {
 }
 
 void Missile::HitTarget() {
-    // Create Damage object:
-    Damage d(m_fromSE, m_modRef, m_self, EVEEffectID::missileLaunching);
+    // Resolve both endpoints through the live system registry. Cached raw
+    // pointers may have been invalidated while the missile was in flight.
+    SystemManager* system = SystemMgr();
+    SystemEntity* liveTarget = (system != nullptr && m_orbitingID != 0)
+        ? system->GetSE(m_orbitingID) : nullptr;
+    SystemEntity* liveSource = (system != nullptr && m_launcherID != 0)
+        ? system->GetSE(m_launcherID) : nullptr;
 
-    /*  this is damage formula for missiles
+    if (liveTarget == nullptr || liveTarget != m_targetSE
+        || liveSource == nullptr || liveSource != m_fromSE
+        || liveTarget->GetSelf().get() == nullptr
+        || m_self.get() == nullptr || m_modRef.get() == nullptr) {
+        _log(DAMAGE__WARNING, "Missile::HitTarget() - missile %u lost a valid source, module, or target; discarding impact.",
+             GetID());
+        m_alive = false;
+        return;
+    }
+
+    // Defender missiles are interception projectiles, not ordinary warheads.
+    // They remove the hostile missile on impact instead of applying ship damage.
+    if (m_modRef->groupID() == EVEDB::invGroups::Missile_Launcher_Defender
+        && liveTarget->IsMissileSE()) {
+        Missile* intercepted = liveTarget->GetMissileSE();
+        if (intercepted != nullptr && intercepted->IsAlive())
+            intercepted->Intercept();
+        m_alive = false;
+        return;
+    }
+
+    const double explosionRadius = m_self->GetAttribute(AttrAoeCloudSize).get_float();
+    const double explosionVelocity = m_self->GetAttribute(AttrAoeVelocity).get_float();
+    const double reductionFactor = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float();
+    const double reductionSensitivity = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float();
+
+    // Bomb launchers detonate at the impact point and damage every eligible
+    // dynamic entity inside the bomb's data-driven blast radius.
+    if (m_modRef->groupID() == EVEDB::invGroups::Missile_Launcher_Bomb) {
+        SystemBubble* bubble = SysBubble();
+        if (bubble == nullptr || system == nullptr
+            || !std::isfinite(explosionRadius) || explosionRadius <= 0.0) {
+            _log(DAMAGE__WARNING, "Bomb missile %u has no valid bubble or AoE radius; discarding detonation.",
+                 GetID());
+            m_alive = false;
+            return;
+        }
+
+        const GPoint impactPosition(liveTarget->GetPosition());
+        std::map<uint32, SystemEntity*> entities;
+        bubble->GetAllEntities(entities);
+
+        for (const auto& entry : entities) {
+            if (entry.first == GetID())
+                continue;
+
+            SystemEntity* areaTarget = system->GetSE(entry.first);
+            if (areaTarget == nullptr || areaTarget != entry.second || areaTarget->IsDead())
+                continue;
+            if (!(areaTarget->IsShipSE() || areaTarget->IsNPCSE() || areaTarget->IsDroneSE()
+                  || areaTarget->IsPOSSE() || areaTarget->IsDeployableSE() || areaTarget->IsSentrySE()
+                  || areaTarget->IsWeaponSE() || areaTarget->IsBatterySE() || areaTarget->IsTowerSE()))
+                continue;
+
+            InventoryItemRef targetItem = areaTarget->GetSelf();
+            if (targetItem.get() == nullptr
+                || impactPosition.distance(areaTarget->GetPosition()) > explosionRadius)
+                continue;
+
+            double signatureRadius = targetItem->GetAttribute(AttrSignatureRadius).get_float();
+            if (signatureRadius <= 0.0)
+                signatureRadius = targetItem->GetAttribute(AttrRadius).get_float() / 10.0;
+
+            const double damageFactor = CalculateMissileDamageFactor(
+                signatureRadius, explosionRadius, explosionVelocity,
+                areaTarget->GetVelocity().length(), reductionFactor, reductionSensitivity);
+            if (damageFactor <= 0.0)
+                continue;
+
+            Damage damage(liveSource, m_modRef, m_self, EVEEffectID::missileLaunching);
+            damage *= m_damageMod;
+            damage *= static_cast<float>(damageFactor);
+            areaTarget->ApplyDamage(damage);
+        }
+
+        m_alive = false;
+        return;
+    }
+
+    /* Standard missile damage formula:
      * Damage = D * MIN(1, Sr/Er, (Ev/V * Sr/Er)^(ln(DRF) / ln(DRS)) )
-     *
-     * D = base damage of the missile,
-     * Sr = signature radius of the target,
-     * Er = Explosion radius of the missile,
-     * Ev = Explosion Velocity of the missile,
-     * V = velocity of the target ship,
-     * DRF = damage reduction factor of the missile.
-     * DRS = damage reduction sensitivity of the missile.
-     * MIN being a function that chooses the lower of the given vaules,
-     * ln is natural logarithm.
      */
-    double Sr = m_targetSE->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();    // this is a default number, based on itemtype
-    double Er = m_self->GetAttribute(AttrAoeCloudSize).get_float(); // Explosion Radius
-    double Ev = m_self->GetAttribute(AttrAoeVelocity).get_float(); // Explosion Velocity
-    double DRF = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float(); // Damage Reduction Factor
-    double DRS = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float(); // Damage Reduction Sensitivity
+    InventoryItemRef targetItem = liveTarget->GetSelf();
+    double signatureRadius = targetItem->GetAttribute(AttrSignatureRadius).get_float();
+    if (signatureRadius <= 0.0)
+        signatureRadius = targetItem->GetAttribute(AttrRadius).get_float() / 10.0;
 
-    GPoint Vel = m_targetSE->GetVelocity();
-    double V = Vel.length();
-    if (V <= 0)
-        V = 1;
+    const double damageFactor = CalculateMissileDamageFactor(
+        signatureRadius, explosionRadius, explosionVelocity,
+        liveTarget->GetVelocity().length(), reductionFactor, reductionSensitivity);
 
-    double v1 = Sr/Er;
-    double v2 = pow(((Ev/V) * v1), (log(DRF) / log(DRS)));
+    Damage damage(liveSource, m_modRef, m_self, EVEEffectID::missileLaunching);
+    damage *= m_damageMod;
+    damage *= static_cast<float>(damageFactor);
 
-    // apply damage modifier from char skills, if applicable
-    d *= m_damageMod;
-    // apply missile damage formula to computed total damage
-    d *= EvE::min1(v1, v2);
-
-    m_targetSE->ApplyDamage(d);
+    liveTarget->ApplyDamage(damage);
     m_alive = false;
 }
 

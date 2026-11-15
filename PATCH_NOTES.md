@@ -230,3 +230,79 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 - Fixed launch bandwidth validation to happen before moving the item or creating the space entity. Previously an over-bandwidth launch could leave an inert drone in space after the command failed.
 - Pending engage targets are stored as entity IDs and re-resolved through the current solar-system manager each tick, avoiding stale entity pointers when an NPC dies or leaves the system. A new explicit engage order now clears a different stale/locked target before acquiring the new target. Added guards for invalid target state and a valid min/max orbit-speed interval.
 - Validation pending on the latest branch head: Windows/Linux/Docker CI and in-game tests for light/medium/heavy drones, target lock, approach, orbit, damage, target death, return-home, return-to-bay, bay-full failure, abandon and bandwidth rejection.
+
+## 2026-11-15 — Drone command decoding and automatic NPC engagement
+
+- Fixed `entity.CmdEngage` argument decoding: the client can encode item IDs as Python `PyLong` values, while the handler previously required `PyInt` for the target and rejected non-`PyInt` drone IDs. The command now accepts both integer wire types and validates the server's 32-bit entity-ID range before lookup.
+- Added automatic hostile-NPC acquisition for online combat drones. Idle drones scan their current bubble, select the nearest living NPC that is not owned by the pilot or of the same non-zero faction, engage it, and reacquire the next NPC after the current target is destroyed/lost.
+- Explicit return orders suppress automatic reacquisition. Relaunching/online or issuing a new engage order enables combat acquisition again.
+- Validation pending: CI and in-game tests of command decoding, automatic NPC acquisition, sequential target switching, faction filtering and return suppression.
+
+
+## Drone engage ownership and client-ID recovery — 2026-11-15
+
+- Explicitly bind the launching pilot to each newly created DroneSE instead of relying only on a second global client lookup by character ID.
+- Validate drone command ownership using the drone's authoritative owner character ID, controlling ship ID, home-ship pointer, enabled state, and current bubble.
+- If the client-supplied selected drone IDs do not resolve to any active drone entity, recover by scanning the current system registry for drones controlled by the calling character and ship, then issue the engage order.
+- Added per-drone rejection diagnostics and fallback-order logs to distinguish stale client IDs from ownership, ship, enabled-state, or bubble mismatches.
+- Requires Windows/Linux CI and in-game validation; no runtime success is claimed by this patch.
+
+
+## 2026-11-15 follow-up — drone combat activity state and weapon gate
+
+- Code review found the drone AI entered client activity state `Engaged` (10) for weapon combat, even though the source enum explicitly defines `Combat` (1) as the fighting state and describes `Engaged` as non-combat. This can produce an incorrect client activity label and makes the state machine inconsistent with the protocol's combat state.
+- Changed the active attack state to `Combat`, retained processing of legacy `Engaged` states, and made combat-state transitions idempotent so the drone does not repeatedly reissue orbit commands while remaining on the same target.
+- Aligned the weapon-fire gate with NPC AI: a drone now fires only after TargetManager reports that target locking has completed (`CanAttack()`), while the AI continues to select a fully locked target.
+- Added a trace message for the lock-wait path. The existing firing log and zero-base-damage warning remain the evidence needed to distinguish a failed lock from missing static damage attributes.
+- Validation: previous PR #13 head passed Linux GCC, Windows UCRT64 GCC and Docker builds. This follow-up commit requires a fresh CI run. In-game confirmation of the Combat label and actual NPC shield/armor/hull reduction is still required; no gameplay success is claimed yet.
+
+
+## 2026-11-15 follow-up — drone range, combat envelope and stale target locks
+
+**Reported symptoms**
+- Combat drones oscillated between Approach and Fighting, did not visibly damage NPCs, and sometimes travelled far from the engagement.
+- Player targeting reported the maximum of eight targets despite fewer visible active locks.
+
+**Code findings and changes**
+- Automatic drone acquisition scanned every NPC in the current system bubble without checking the pilot's drone control range. It could therefore select distant NPCs in another part of the system. Automatic acquisition is now restricted to NPCs within the effective ship/character `droneControlDistance`; a 20 km fallback is used only when old character data lacks that attribute. Explicit engage commands outside control range are rejected with a notification. A valid manual order can still be pursued after the target moves away, matching normal drone behaviour.
+- The AI used the inner `EntityFlyRange + MaxRange` threshold to switch between Approach and Combat even though it already cached the outer `EntityAttackRange`. This created a gap where a drone could oscillate around the threshold. Combat now starts at the outer attack envelope, and approach uses the drone's orbit distance as its follow stop range.
+- TargetManager counted every stored entry toward the player target cap, but did not proactively prune entries whose target had died, left the system, or moved to another bubble. Target entries now retain their entity IDs; stale entries are pruned safely before processing/new lock requests, lock state is recalculated, and the client receives target-lost updates. Drone target IDs are also cleared on loss.
+- The player target limit calculation now uses the EVE base of two plus Targeting and Multitasking skill levels, still capped by the ship's `MaxLockedTargets` attribute. Cap diagnostics report tracked, locked, and currently-locking counts separately.
+- Added per-shot drone damage-component and post-`ApplyDamage` shield/armor/hull delta diagnostics. These distinguish a failure to enter the weapon loop, missing static damage values, and a failure inside the common damage application path.
+
+**Validation status**
+- This is source-level implementation only. The new branch head requires Windows, Linux and Docker CI.
+- In-game validation must confirm that the combat light drone's logged thermal/kinetic/etc. base damage is nonzero and that the post-ApplyDamage delta is positive; also verify no distant auto-acquisition and that the visible target list agrees with server lock counts. No in-game damage success is claimed yet.
+
+- Follow-up hardening: null target-map keys/entries are now removed before capacity checks as well, so malformed empty map records cannot consume one of the player's target slots.
+
+
+### 2026-11-15 — Drone lock callback and target-manager stability follow-up
+
+- Fixed target-manager processing invalidation: the global entity list now iterates a snapshot and revalidates each manager after processing, so stale-target pruning cannot invalidate the active iterator when a manager unregisters itself.
+- Target-lock completion now calls the owning entity's virtual `TargetAdded` callback. Drones therefore receive the actual lock-complete event, update their client-visible target ID, and re-evaluate approach/combat distance at the correct point in the lock lifecycle.
+- Restart an invulnerability timer that is still marked enabled but has already reached 0 ms. The expired timer is replaced; a timer with positive remaining time is left intact.
+
+**Log interpretation and validation**
+- The attached log's stack trace is emitted by `EvE::traceStack()` in `Client::SetInvulTimer()` after the 0 ms remaining-timer warning. The log continues afterward, so that trace alone is not proof of a fatal server crash.
+- The excerpt still does not contain a symbolized fatal crash report or drone fire/damage output. Runtime drone damage and any later process termination must be checked separately after this build.
+
+
+## 2026-11-15 — combat crash, drone orbit and partial flight command hardening
+
+- Hardened target-manager teardown against stale raw entity pointers. Targeter records now retain the targeter's entity ID; incoming targeter cleanup resolves that ID through the live solar-system registry before dereferencing the pointer. Outgoing target cleanup and target-list queries also use retained IDs rather than dereferencing potentially stale keys.
+- Hardened target lookup used by drone AI: `GetFirstTarget()` and `GetTarget()` now verify that the retained ID still resolves to the same live entity before returning a pointer.
+- Added null/dependency checks to target registration and lock completion. The entity death path now relies on `TargetManager::Destroyed()` / `ClearAllTargets()` to clear both outgoing and incoming target references before the manager is deleted.
+- Changed drone combat orbit selection to use `AttrOrbitRange`, not `AttrMaxRange`. If old static data omits `orbitRange`, the weapon-range/falloff fallback is capped at 2,500 m (500 m if no useful value exists), preventing a missing orbit attribute from turning a weapon range into a very large idle/engagement orbit.
+- Drone home-ship access now resolves the controller ID against the live system registry. Return, idle orbit, control-range checks and scoop no longer blindly trust a potentially stale non-owning ship pointer.
+- Fixed partial `CmdEngage` selection recovery: if only some client-supplied drone IDs resolve, the handler now finds and commands the remaining eligible drones controlled by the current character and ship, without issuing duplicate orders to drones already handled.
+- Validation: current head requires fresh Windows/Linux/Docker CI and in-game tests. The supplied log does not include a fatal crash stack; the turn-percent diagnostic is clamped in `DestinyManager::Turn()`, and the FX ID 0 warning is a missing weapon effect mapping rather than evidence of a server crash.
+
+## 2026-11-15 — drone focus-fire and combat effect safety follow-up
+
+- Drone auto-acquisition now respects the ship's Aggressive setting. Passive drones no longer independently acquire and attack nearby NPCs without an explicit engage order.
+- When Focus Fire is enabled, drones controlled by the same ship share the first valid assigned target. The target assignment is recorded before lock completion, so other drones can join while the first drone is still locking.
+- Drone attack processing now resolves the assigned target ID specifically instead of taking whichever locked target happens to be first in the target-manager pointer map. This avoids firing at an unintended target when stale or multiple target entries exist.
+- Hardened FxProc::ApplyEffects() against missing source item references and missing fitted modules. A charge whose inventory flag is flagNone is skipped as an invalid/unfitted charge modifier; the processor no longer emits a full stack trace for every such data condition.
+- The supplied 934-line log ends at 12:17:13 with no fatal exception, access violation, process-exit record or crash dump. The stack traces adjacent to FxProc::ApplyEffects() are generated by EvE::traceStack() in the flagNone diagnostic, not proof of the fatal crash site. The log also shows repeated destiny turn diagnostics, missing weapon effect mappings and unload attempts for unloaded railguns; these are separate issues and are not sufficient to identify the crash root cause.
+- Runtime validation remains required. The log does not contain a drone firing/damage trace, nor a symbolized fatal crash stack. CI and in-game testing are required before calling the crash fixed.

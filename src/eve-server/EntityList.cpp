@@ -26,6 +26,8 @@
 
 #include "eve-server.h"
 
+#include <utility>
+
 #include "EVE_Mail.h"
 
 #include "Client.h"
@@ -199,12 +201,24 @@ void EntityList::Process() {
     }
 
     if (m_targTimer.Check()) {
-        std::unordered_map<SystemEntity*, TargetManager*>::iterator titr = m_targMgrs.begin();
-        while (titr != m_targMgrs.end()) {
-            if (titr->second->Process()) {
-                ++titr;
-            } else {
-                titr = m_targMgrs.erase(titr);
+        // TargetManager::Process() may unregister itself (for example while
+        // pruning a stale target). Iterating m_targMgrs directly would then
+        // leave titr invalid and the loop could erase/increment it again.
+        // Process a snapshot and revalidate each entry after the callback.
+        std::vector<std::pair<SystemEntity*, TargetManager*>> targetManagers;
+        targetManagers.reserve(m_targMgrs.size());
+        for (const auto& entry : m_targMgrs)
+            targetManagers.emplace_back(entry.first, entry.second);
+
+        for (const auto& entry : targetManagers) {
+            auto current = m_targMgrs.find(entry.first);
+            if (current == m_targMgrs.end() || current->second != entry.second)
+                continue;
+
+            if (!entry.second->Process()) {
+                current = m_targMgrs.find(entry.first);
+                if (current != m_targMgrs.end() && current->second == entry.second)
+                    m_targMgrs.erase(current);
             }
         }
         std::map<uint32, ProbeSE*>::iterator pitr = m_probes.begin();

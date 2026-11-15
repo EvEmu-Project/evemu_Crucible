@@ -2818,6 +2818,11 @@ bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
         data.ownerID = pChar->itemID();
     DroneSE* pDrone = new DroneSE(dRef, m_services, m_system, data);
 
+    // Bind the live pilot explicitly. Looking the client up again by character
+    // ID can fail during session transitions, leaving a launched drone with a
+    // null cached owner pointer even though its ship/controller IDs are valid.
+    pDrone->SetOwner(GetPilot());
+
     // tell new drone it's being launched.
     pDrone->Launch(this);
     // add drone to launched drone map (whether onlined or not)
@@ -2836,8 +2841,9 @@ void ShipSE::ScoopDrone(SystemEntity* pSE) {
 
     DroneSE* drone = pSE->GetDroneSE();
     const bool usedBandwidth = drone->IsEnabled();
-    const double bandwidthUsed = usedBandwidth
-        ? pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed).get_double()
+    InventoryItemRef droneItem = pSE->GetSelf();
+    const double bandwidthUsed = (usedBandwidth && droneItem.get() != nullptr)
+        ? droneItem->GetAttribute(AttrDroneBandwidthUsed).get_double()
         : 0.0;
 
     m_drones.erase(pSE->GetID());

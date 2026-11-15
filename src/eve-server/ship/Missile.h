@@ -54,8 +54,10 @@ public:
     virtual PyDict *MakeSlimItem();
 
     /* specific functions handled here. */
-    uint32 GetLauncherID()                              { return m_fromSE->GetID(); }
+    uint32 GetLauncherID()                              { return m_launcherID; }
+    uint32 GetTargetID()                                { return m_orbitingID; }
     SystemEntity* GetTargetSE()                         { return m_targetSE; }
+    void Intercept()                                    { m_alive = false; }
 
     void SetHitTimer(uint32 setTime)                    { m_hitTimer.Start(setTime); }
     void SetSpeed(double speed)                         { m_speed = speed; }
@@ -79,6 +81,7 @@ protected:
     bool m_alive;
 
     uint32 m_orbitingID;
+    uint32 m_launcherID;
 
     float m_damageMod;
 

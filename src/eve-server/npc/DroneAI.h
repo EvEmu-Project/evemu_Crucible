@@ -60,6 +60,8 @@ public:
 
     void SetIdle();
     void Return(bool returnToBay=false);
+    void SetAutoEngage(bool enabled)                   { m_autoEngageEnabled = enabled; }
+    uint32 GetAssignedTargetID() const                  { return m_assignedTargetID; }
     bool IsScoopRequested() const                       { return m_scoopRequested; }
     void AssignShip(ShipSE* pSE)                        { m_assignedShip = pSE; }
 
@@ -91,8 +93,10 @@ private:
     DroneSE* m_pDrone;
     ShipSE* m_assignedShip;
     uint32 m_pendingTargetID;
+    uint32 m_assignedTargetID; // selected target shared by the controlled drone flight
     bool m_returnToBay;
     bool m_scoopRequested;
+    bool m_autoEngageEnabled;
 
     TurretFormulas m_formula;
 

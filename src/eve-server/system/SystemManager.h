@@ -221,7 +221,6 @@ private:
     uint32 m_activityTime;
 
     // system entity lists:
-    bool m_entityChanged :1;
     std::map<uint32, NPC*> m_npcs;
     std::map<uint32, Client*> m_clients;
     std::map<uint32, SystemEntity*> m_entities;         // this list is all entities in this system.  we own these.

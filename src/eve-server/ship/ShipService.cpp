@@ -41,6 +41,24 @@
 #include "system/cosmicMgrs/AnomalyMgr.h"
 #include "services/ServiceManager.h"
 
+namespace {
+bool ReadDroneEntityID(const PyRep* value, uint32& entityID) {
+    int64 rawID = 0;
+    if (value == nullptr)
+        return false;
+    if (value->IsInt())
+        rawID = value->AsInt()->value();
+    else if (value->IsLong())
+        rawID = value->AsLong()->value();
+    else
+        return false;
+    if (rawID <= 0 || rawID > 0xFFFFFFFFLL)
+        return false;
+    entityID = static_cast<uint32>(rawID);
+    return true;
+}
+}
+
 ShipService::ShipService(EVEServiceManager& mgr) :
     BindableService("ship", mgr)
 {
@@ -130,13 +148,19 @@ PyResult ShipBound::Board(PyCallArgs &call, PyInt* newShipID, std::optional<PyIn
         return nullptr;
     }
 
-    // this will segfault if newShipID is invalid or not in system inventory
-    pShipSE = pSystem->GetSE(newShipID->value())->GetShipSE();
-
-    if (pShipSE == nullptr) {
-        _log(SHIP__ERROR, "Handle_Board() - Failed to get new ship %u for %s.", newShipID->value(), pClient->GetName());
-        throw CustomError ("Something bad happened as you prepared to board the ship.  Ref: ServerError 25107.");
+    if (newShipID == nullptr) {
+        _log(SHIP__ERROR, "Handle_Board() - Missing target ship ID for %s.", pClient->GetName());
+        throw CustomError("The selected ship is not available to board.");
     }
+
+    SystemEntity* newShipEntity = pSystem->GetSE(newShipID->value());
+    if (newShipEntity == nullptr || !newShipEntity->IsShipSE()
+        || newShipEntity->GetShipSE() == nullptr) {
+        _log(SHIP__ERROR, "Handle_Board() - Failed to resolve ship %u in system %u for %s.",
+             newShipID->value(), pSystem->GetID(), pClient->GetName());
+        throw CustomError("The selected ship is not available to board.");
+    }
+    pShipSE = newShipEntity->GetShipSE();
 
     if (pShipSE->GetTypeID() == itemTypeCapsule) {
         codelog(ITEM__ERROR, "Empty Pod %u in space.  SystemID %u.", newShipID->value(), pSystem->GetID());
@@ -321,6 +345,11 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
     bool dropped = false, shipDrop = false;
 
     Client* pClient = call.client;
+    ShipSE* pShipSE = pClient->GetShipSE();
+    if (pShipSE == nullptr || pShipSE->DestinyMgr() == nullptr) {
+        _log(SHIP__ERROR, "ShipBound::Drop() - %s has no active ship or Destiny manager.", pClient->GetName());
+        return nullptr;
+    }
     SystemManager* pSystem = pClient->SystemMgr();
     if (pSystem == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no system manager!", call.client->GetName());
@@ -649,11 +678,10 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
                     list->AddItem(new PyInt(entity.itemID));
                 }
                 if (iRef->groupID() == EVEDB::invGroups::Secure_Cargo_Container or
-                    EVEDB::invGroups::Secure_Cargo_Container or
-                    EVEDB::invGroups::Cargo_Container or
-                    EVEDB::invGroups::Freight_Container or
-                    EVEDB::invGroups::Audit_Log_Secure_Container or
-                    EVEDB::invGroups::Mission_Container) 
+                    iRef->groupID() == EVEDB::invGroups::Cargo_Container or
+                    iRef->groupID() == EVEDB::invGroups::Freight_Container or
+                    iRef->groupID() == EVEDB::invGroups::Audit_Log_Secure_Container or
+                    iRef->groupID() == EVEDB::invGroups::Mission_Container) 
                 {
                     DBSystemDynamicEntity entity = DBSystemDynamicEntity();
                     entity.ownerID = ownerID;
@@ -712,8 +740,8 @@ PyResult ShipBound::Drop(PyCallArgs &call, PyList* PyToDropList, std::optional <
     //  missing launch error throw msgs.... LaunchCPWarning, LaunchUpgradePlatformWarning
     //   - these are thrown before item is launched and will negate entire launch group until warning is approved, then entire group is reprocessed
 
-    if (shipDrop)
-        pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+    if (shipDrop && pShipSE->DestinyMgr() != nullptr)
+        pShipSE->DestinyMgr()->SendJettisonPacket();
 
     return dict;
 }
@@ -779,65 +807,79 @@ PyResult ShipBound::Scoop(PyCallArgs &call, PyInt* itemID) {
 }
 
 PyResult ShipBound::ScoopDrone(PyCallArgs &call, PyList* itemIDs) {
-    std::vector <int32> ints;
+    Client* pClient = call.client;
+    if (pClient == nullptr || itemIDs == nullptr)
+        return PyStatic.mtDict();
 
-    PyList::const_iterator list_2_cur = itemIDs->begin();
-    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
-        if (!(*list_2_cur)->IsInt()) {
-            _log(XMLP__DECODE_ERROR, "Decode Call_SingleIntList failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
-            return nullptr;
-        }
-
-        const PyInt* t = (*list_2_cur)->AsInt();
-        ints.push_back(t->value());
+    SystemManager* pSysMgr = pClient->SystemMgr();
+    ShipSE* pShipSE = pClient->GetShipSE();
+    ShipItemRef ship = pClient->GetShip();
+    if (pSysMgr == nullptr || pShipSE == nullptr || ship.get() == nullptr
+        || pShipSE->SysBubble() == nullptr || pClient->SystemMgr() != pSysMgr) {
+        _log(SERVICE__ERROR, "ShipBound::ScoopDrone(): client ship or solar-system context is unavailable.");
+        return PyStatic.mtDict();
     }
-    // per patch notes, if ship is too far to scoop, it will automagically travel closer till drone is within range, then scoop and stop
 
-    Client* pClient(call.client);
-    SystemEntity* pDroneSE(nullptr);
-    InventoryItemRef iRef(nullptr);
-    SystemManager* pSysMgr(pClient->SystemMgr());
-    std::vector<int32>::const_iterator cur = ints.begin();
-    for(; cur != ints.end(); ++cur) {
-        pDroneSE = pSysMgr->GetSE(*cur);
-        if (pDroneSE == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneSE %i to scoop.", pClient->GetName(), *cur);
+    for (PyRep* rep : itemIDs->items) {
+        uint32 droneID = 0;
+        if (!ReadDroneEntityID(rep, droneID)) {
+            _log(XMLP__DECODE_ERROR, "ShipBound::ScoopDrone(): invalid drone ID argument.");
             continue;
         }
 
-        iRef = pDroneSE->GetSelf();
-        if (iRef.get() == nullptr) {
-            _log(SERVICE__ERROR, "%s: Unable to find droneItem %i to scoop.", pClient->GetName(), *cur);
+        SystemEntity* pDroneSE = pSysMgr->GetSE(droneID);
+        if (pDroneSE == nullptr || !pDroneSE->IsDroneSE()) {
+            _log(SERVICE__ERROR, "%s: Unable to find drone entity %u to scoop.", pClient->GetName(), droneID);
             continue;
         }
 
-        //AttrDroneBaySlotsLeft??
-        // Check to see that this is really a drone:
-        pClient->GetShip()->VerifyHoldType(flagDroneBay, iRef, pClient);
+        DroneSE* drone = pDroneSE->GetDroneSE();
+        InventoryItemRef iRef = pDroneSE->GetSelf();
+        if (drone == nullptr || iRef.get() == nullptr
+            || pDroneSE->SysBubble() == nullptr
+            || pDroneSE->SysBubble() != pShipSE->SysBubble()) {
+            _log(SERVICE__ERROR, "%s: Drone %u is not available in the current space.", pClient->GetName(), droneID);
+            continue;
+        }
 
-        // check ownership/control
-        if (pDroneSE->GetDroneSE()->IsEnabled())
-            if (pDroneSE->GetDroneSE()->GetOwner() != pClient)
-                throw CustomError ("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
+        // Enforce the server-side scoop interaction range. The client may hide
+        // the command when a drone is distant, but a forged service call must
+        // not move a drone into the bay from anywhere in the same bubble.
+        const double scoopDistance = pDroneSE->GetPosition().distance(pShipSE->GetPosition());
+        if (scoopDistance > 2500.0) {
+            pClient->SendNotifyMsg("You are too far away to scoop that drone.");
+            _log(DRONE__WARNING, "%s: Rejected scoop of drone %u at %.0f m (maximum 2500 m).",
+                 pClient->GetName(), droneID, scoopDistance);
+            continue;
+        }
 
-        // Check drone bay capacity:
-        if (pClient->GetShip()->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {  // this will throw if it fails
-            // We have enough Drone bay capacity to hold the drone,
-            // so take ownership of it and move it into the Drone bay:
+        // Abandoned drones use the system owner. Otherwise only their owner
+        // may scoop them; an active drone must also belong to this ship.
+        if (drone->GetOwnerID() != pClient->GetCharacterID() && drone->GetOwnerID() != 1)
+            throw CustomError("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
+        if (drone->IsEnabled()
+            && (drone->GetOwnerID() != pClient->GetCharacterID()
+                || drone->GetHomeShip() != pShipSE))
+            throw CustomError("The %s is under another pilot's control.  Cannot scoop.", pDroneSE->GetName());
+
+        ship->VerifyHoldType(flagDroneBay, iRef, pClient);
+
+        if (ship->GetMyInventory()->ValidateAddItem(flagDroneBay, iRef)) {
             iRef->ChangeOwner(pClient->GetCharacterID(), true);
             pClient->MoveItem(iRef->itemID(), pClient->GetShipID(), flagDroneBay);
-            pClient->GetShipSE()->ScoopDrone(pDroneSE);
+            pShipSE->ScoopDrone(pDroneSE);
             pSysMgr->RemoveEntity(pDroneSE);
             SafeDelete(pDroneSE);
         }
     }
 
-    /** @todo complete error msgs here */
-    // returns error on error else mtDict
     return PyStatic.mtDict();
 }
 
 PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
+    if (call.client == nullptr || itemIDs == nullptr)
+        return PyStatic.mtDict();
+
     std::vector <int32> ints;
 
     PyList::const_iterator list_2_cur = itemIDs->begin();
@@ -851,14 +893,16 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
         ints.push_back(t->value());
     }
     Client* pClient(call.client);
-    if (!pClient->IsInSpace()) {
-        _log(SERVICE__ERROR, "%s: Trying to jettison items when not in space!", pClient->GetName());
+    SystemManager* pSysMgr(pClient->SystemMgr());
+    ShipSE* pShipSE = pClient->GetShipSE();
+    if (!pClient->IsInSpace() || pSysMgr == nullptr || pShipSE == nullptr
+        || pShipSE->DestinyMgr() == nullptr) {
+        _log(SERVICE__ERROR, "%s: Cannot jettison items without a valid in-space ship and system.", pClient->GetName());
         return nullptr;
     }
 
-    SystemManager* pSysMgr(pClient->SystemMgr());
-    //Get location of our ship
-    GPoint location(pClient->GetShipSE()->GetPosition());
+    // Get location of our ship only after validating the live space context.
+    GPoint location(pShipSE->GetPosition());
 
     InventoryItemRef cRef(nullptr), iRef(nullptr);
     CargoContainerRef jcRef(nullptr), ccRef(nullptr);
@@ -887,7 +931,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
             case EVEDB::invCategories::StructureUpgrade: {
                 sRef = sItemFactory.GetStructureRef(*itr);
                 if (sRef.get() == nullptr)
-                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
+                    throw CustomError("Unable to load Structure item %u for jettison.", *itr);
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 StructureSE* sSE = new StructureSE(sRef, this->GetServiceManager(), pSysMgr, data);
@@ -895,13 +939,13 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                 sSE->SetPosition(location);
                 sRef->SaveItem();
                 pSysMgr->AddEntity(sSE);
-                pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                pShipSE->DestinyMgr()->SendJettisonPacket();
                 itr = ints.erase(itr);
             } break;
             case EVEDB::invCategories::Orbitals: {
                 sRef = sItemFactory.GetStructureRef(*itr);
                 if (sRef.get() == nullptr)
-                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
+                    throw CustomError("Unable to load Orbital structure item %u for jettison.", *itr);
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 CustomsSE* sSE = new CustomsSE(sRef, this->GetServiceManager(), pSysMgr, data);
@@ -909,13 +953,13 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                 sSE->SetPosition(location);
                 sRef->SaveItem();
                 pSysMgr->AddEntity(sSE);
-                pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                pShipSE->DestinyMgr()->SendJettisonPacket();
                 itr = ints.erase(itr);
             } break;
             case EVEDB::invCategories::Deployable: {
                 cRef = sItemFactory.GetItemRef(*itr);
                 if (cRef.get() == nullptr)
-                    throw CustomError ("Unable to spawn Deployable item of type %u.", cRef->typeID());
+                    throw CustomError("Unable to load Deployable item %u for jettison.", *itr);
 
                 cRef->Move(pClient->GetLocationID(), flagNone, true);
                 //flagUnanchored: for some DUMB reason, this flag, 1023 yields a PyNone when notifications
@@ -925,7 +969,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                 dSE->SetPosition(location);
                 cRef->SaveItem();
                 pSysMgr->AddEntity(dSE);
-                pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                pShipSE->DestinyMgr()->SendJettisonPacket();
                 itr = ints.erase(itr);
             } break;
             /** @todo  Handle other cargo */
@@ -941,7 +985,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                         /** @todo (allan)  *****  there are stipulations on placement of these items.  *****  */
                         ccRef = sItemFactory.GetCargoRef(*itr);
                         if (ccRef.get() == nullptr)
-                            throw CustomError ("Unable to spawn item of type %u.", ccRef->typeID());
+                            throw CustomError("Unable to load cargo container item %u for jettison.", *itr);
 
                         ccRef->Move(pClient->GetLocationID(), flagNone, true);
                         ContainerSE* cSE = new ContainerSE(ccRef, this->GetServiceManager(), pSysMgr, data);
@@ -950,7 +994,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                         cSE->SetPosition(location);
                         ccRef->SaveItem();
                         pSysMgr->AddEntity(cSE);
-                        pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                        pShipSE->DestinyMgr()->SendJettisonPacket();
 
                         // container found.  remove this item from list, then break out of here and use to contain all other non-pos items
                         ints.erase(itr);
@@ -1008,7 +1052,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
             // set anchored to avoid deletion when empty
             jcRef->SetAnchor(true);
             pSysMgr->AddEntity(cSE);
-            pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+            pShipSE->DestinyMgr()->SendJettisonPacket();
             pClient->StartJetcanTimer();
         }
         // check current can for capacity limits.

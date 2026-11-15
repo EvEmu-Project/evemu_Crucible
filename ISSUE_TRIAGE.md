@@ -251,3 +251,130 @@ The run must be checked again after the documentation commit, because a new bran
 - Test return-home and verify drones orbit the ship without disappearing.
 - Test return-to-bay at close and long range; verify automatic travel, scoop, inventory transfer, drone count and bandwidth reduction.
 - Test a full drone bay, bandwidth overrun, abandoned drones and offline/foreign drones. No runtime success is claimed until these tests are performed.
+
+## 2026-11-15 follow-up — drone engage command and auto-acquisition
+
+**New command blocker identified**
+- The bound-service dispatcher validates argument types exactly. `CmdEngage` was registered with `PyInt*` for the target ID, but EVE can send item IDs as `PyLong`/`PyIntegerVar`. That caused the method signature not to match, so the handler could fail before any drone logic ran. Within the handler, drone IDs were also checked with `IsInt()` only, silently rejecting long-form IDs.
+
+**Fix pushed to a new branch**
+- Accept the target argument as `PyRep*` and safely decode either `PyInt` or `PyLong`, rejecting invalid/out-of-range IDs instead of truncating them.
+- Decode drone IDs using the same helper, accepting both wire integer forms and logging invalid values.
+- Add autonomous acquisition: idle online drones scan their current bubble and engage the nearest living NPC, excluding NPCs owned by the pilot and same-faction NPCs where both faction IDs are known. Drones then reacquire another NPC after the current target is lost/destroyed.
+- Manual return disables automatic reacquisition until the drone is launched/online again or receives a new engage order.
+
+**Validation still required**
+- Compile the new branch on Windows, Linux and Docker CI.
+- In game, confirm the CmdEngage handler is reached and accepts the client's actual target/drone ID encodings; then verify drones acquire NPCs without a manual order, apply damage, switch targets after kills and remain idle after a return command.
+
+
+## 2026-11-15 — Drone engage reports no active drones
+
+- **Root-cause candidates:** the engage handler could reject every selected drone when client-supplied IDs do not resolve to the server's 32-bit system entity IDs; it also depended on a cached DroneSE Client pointer being identical to the current session pointer.
+- Explicitly assign the live pilot to DroneSE at launch.
+- Use owner character ID plus controlling ship/home-ship identity for authorization; do not rely solely on cached Client pointer identity.
+- When no supplied drone ID resolves and passes validation, enumerate current-system entities and issue the engage command to all active drones owned and controlled by the calling character/ship.
+- Added rejection/fallback logs. Verify actual client command arguments and in-game drone damage after CI passes.
+
+
+## 2026-11-15 follow-up — combat drones show Approach/Repair and deal no damage
+
+**Code review finding**
+- The drone AI used activity state `Engaged` (10) when it entered weapon range. The local enum describes `Combat` (1) as the fighting state and `Engaged` (10) as non-combat. This is a protocol/state-reporting mismatch and can explain an incorrect client activity label.
+- The drone weapon loop used a per-target lookup as its fire gate, whereas the NPC AI uses TargetManager's explicit `CanAttack()` flag, set only after lock completion.
+
+**Fix pushed to PR #13 branch**
+- Enter `Combat` while actively attacking, keep `Combat`/legacy `Engaged` in the active AI processing path, and avoid reissuing orbit every process tick for an unchanged target.
+- Gate weapon fire on TargetManager's completed-lock flag and log when the drone is still waiting for lock.
+
+**What remains to verify**
+- Fresh CI for this commit must pass.
+- In game, check that combat light drones show Combat rather than Repair/Engaged, then confirm NPC shield/armor/hull values decrease.
+- If there is still no damage, capture the new drone trace plus `DRONE__MESSAGE` / `DRONE__WARNING` output. The firing log confirms whether the attack loop is reached; the zero-base-damage warning identifies missing static damage attributes; the TargetManager lock trace identifies lock completion. This code inspection does not establish which runtime branch the user's current server is taking.
+
+
+## 2026-11-15 follow-up — drones chase distant NPCs, no visible damage, and target cap appears stale
+
+**Confirmed code findings**
+- Idle auto-engage scanned the entire current system bubble and selected the nearest hostile NPC without considering the pilot's drone control distance. This could send drones across the system to NPCs that were not in the pilot's control area.
+- The combat transition used the inner fly-range threshold while the AI also cached a larger attack envelope. The gap could cause repeated Approach/Combat transitions around the threshold.
+- TargetManager's player cap used `m_targets.size()` without first pruning target entries whose entity had died, left the system, or changed bubble. The stored list could therefore disagree with the client's visible target list until the normal loss path ran.
+- TargetManager's target-loss callback handled NPCs but not DroneSE, leaving the drone's client-visible target ID stale after a loss.
+
+**Fix pushed to PR #13 branch**
+- Restrict automatic NPC acquisition to the effective ship/character `droneControlDistance`; use a conservative 20 km fallback only when both ship and character attributes are missing/zero. Reject explicit engage commands when the target is outside that control range. Once a valid order is issued, drones may continue pursuing if the target later moves away.
+- Use the outer drone attack envelope to enter Combat and orbit at the configured drone orbit distance rather than repeatedly crossing the inner approach threshold.
+- Store target IDs alongside target pointers, prune stale locks safely before target processing and new lock requests, recalculate the lock-complete flag, and notify the client when an orphaned lock is removed.
+- Clear DroneSE's target ID on target loss and invoke the drone target-loss callback from TargetManager.
+- Correct player target capacity to base two plus Targeting/Multitasking levels, capped by the ship's maximum; log tracked/locked/locking counts when the cap is reached.
+- Add logs for raw drone damage attributes and before/after shield, armor and hull values around the common ApplyDamage call.
+
+**Validation required**
+- CI must pass on Windows UCRT64, Linux GCC and Docker.
+- Test a light combat drone at close range and at a target within control range. Confirm the drone's damage-component log is nonzero and the post-ApplyDamage delta is positive. If components are zero, the remaining fault is the imported static attributes; if components are nonzero but deltas remain zero, inspect the common damage application logs/config.
+- Test auto-engage with NPCs both nearby and far away in the same system. Drones should select only targets inside control range; a manually designated target may continue to be pursued after leaving control range.
+- Lock/unlock/destroy/warp several targets repeatedly. Confirm the cap is based on live server locks and the target list stays synchronized; check the new cap diagnostic if the limit is still reported incorrectly.
+
+
+### 2026-11-15 follow-up: target-lock dispatch and crash hardening
+
+**Findings**
+- `TargetManager::Process()` prunes stale entries. Pruning can unregister the current manager from `EntityList::m_targMgrs`; direct iteration of that map could then continue with an invalidated iterator.
+- Lock completion previously sent the target notification but did not invoke a callback on the entity that owns the target manager. DroneSE already implements `TargetAdded`, but the base interface did not declare it and the lock completion path never dispatched it.
+- The supplied stack trace is printed intentionally by `Client::SetInvulTimer()` via `EvE::traceStack()` when a timer remains enabled at 0 ms. The log continues after this trace, so it should not be labelled as the confirmed fatal crash.
+
+**Changes**
+- EntityList now processes a snapshot of target managers and revalidates entries after each callback before erasing.
+- Added a virtual target-lock-completion callback to SystemEntity and dispatch it from TargetManager; DroneSE's existing callback is now explicitly marked `override`.
+- An expired 0 ms invulnerability timer is disabled/replaced when a new timer is requested; a timer with positive time remaining is preserved.
+
+**Validation still required**
+- Windows/Linux/Docker CI for this head.
+- In-game test that drones leave Approach after reaching the attack envelope, publish a target on lock completion, and apply actual shield/armor/hull damage.
+- If the server still terminates, obtain the final fatal log lines and a symbolized stack trace or matching PDB/map file. The provided excerpt does not identify the terminating fault.
+
+
+### 2026-11-15 follow-up: combat crash risk, drone range and incomplete flight orders
+
+**Additional source-level findings**
+- Target-manager maps retained non-owning entity pointers. Some cleanup and query paths dereferenced those keys directly, even though entities can be removed during combat. Targeter entries now retain entity IDs, and cleanup/query code validates the ID against the live system registry before dereferencing a pointer.
+- Drone AI queries its target manager on each entity tick, faster than the global target-manager timer. `GetFirstTarget()` now validates target identity before returning a pointer, preventing a recently removed NPC from being handed to drone combat logic.
+- The drone AI used `AttrMaxRange` as its orbit distance. This is not the drone's `AttrOrbitRange`; when the latter was missing, large weapon range/falloff values could become an excessive orbit radius. The fallback is now capped at 2.5 km.
+- Home-ship access used a non-owning pointer. Drone control-range, return and scoop code now resolve the controller ID through the current system registry before use.
+- `CmdEngage` recovered from bad client drone IDs only when zero IDs resolved. A partially valid selection left the unresolved drones uncommanded. Recovery now fills in remaining controlled drones and avoids duplicate commands.
+
+**Log interpretation**
+- `Destiny::Turn()` logs when the calculated turn fraction exceeds 0.9, then clamps it to 0.9. The supplied values (1.08 and 0.99) show the clamp path, not a crash report.
+- `Damage:C'tor` lines for Angel NPC missile volleys are emitted by the missile damage constructor and are not, by themselves, damage failures.
+- `fxID = 0` / empty GUID for 250mm Railgun II indicates a missing/invalid client effect mapping. It is a visual-effect issue unless a separate fatal trace links it to process termination.
+- Mission kill forwarding lines show counters advancing from 3/24 to 4/24; they are not evidence of mission death handling failing.
+- `TargetWarn AddTarget() - TargMgr.StartTargeting() failed` needs the surrounding NPC AI trace to determine whether it is an expected range/cap rejection or an invalid target request.
+
+**Validation required**
+- Fresh Windows UCRT64, Linux GCC and Docker CI for the new head.
+- In-game test with all five drones: issue one engage order, verify five `CmdEngage` order lines or auto-acquisition lines, then verify each drone has its own firing and positive damage-result line.
+- Test a drone whose `orbitRange` attribute is absent and one with it populated; verify orbit distance is sensible and no drone selects NPCs outside the logged control distance.
+- Kill NPCs while several drones and NPCs are targeting them; repeat across several waves to stress target-manager teardown.
+- If the process still exits, provide the final 50–100 lines after the last normal event plus a Windows crash dump or symbolized stack. The excerpt supplied so far ends before any fatal termination record.
+
+
+## 2026-11-15 — combat log review follow-up
+
+**Confirmed code issues addressed**
+- AttrDroneIsAgressive was only used for retaliation; idle drones auto-acquired NPCs regardless of the Aggressive setting. Auto-acquisition is now gated by that setting.
+- AttrDroneFocusFire was written by the ship's drone settings handler but was never read by DroneAI. Focus Fire now coordinates a shared assigned target across the controlled flight.
+- Drone combat selected the first locked target from a pointer-keyed map. It now resolves the AI's assigned target ID before firing.
+- FxProc::ApplyEffects() dereferenced GetModule(...)->GetSelf() without checking whether the module lookup succeeded. The charge-to-module path now checks the source item, manager and module before use.
+
+**Log findings / not proven as crash causes**
+- The supplied log ends at 12:17:13 and contains no fatal exception or actual process crash record. Its stack traces following the flagNone effect messages are emitted by the effect processor's own EvE::traceStack() diagnostic.
+- fxID = 0 / empty GUID for 250mm Railgun II is a missing visual effect mapping.
+- MM::UnloadCharge() reports the railguns were already unloaded; this is a module/ammo state issue to investigate separately if the client did not request unloading.
+- Destiny::Turn() reports turn percentages above 1.0; these diagnostics indicate turn-step clamping/overshoot, not by themselves a crash.
+- ClearBoundObject() warnings indicate stale service bound-object release attempts, but the log does not connect them to the process termination.
+
+**Required validation**
+- Fresh Windows and Linux CI on this commit.
+- In-game test with Aggressive off/on and Focus Fire off/on.
+- Confirm all selected drones keep one assigned target, fire only after their own lock completes, and switch together only after the target dies or is lost.
+- Capture a Windows crash dump with matching symbols if the server still terminates. The supplied text log cannot symbolicate the unknown function addresses.

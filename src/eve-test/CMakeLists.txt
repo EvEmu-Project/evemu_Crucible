@@ -26,7 +26,8 @@ SET( auth_SOURCE
 SET( marshal_SOURCE
      "marshal/EVEMarshalTest.cpp" )
 SET( utils_SOURCE
-     "utils/EvilNumberTest.cpp" )
+     "utils/EvilNumberTest.cpp"
+     "utils/WeaponFormulaTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -36,7 +37,7 @@ SET( test_SUPPORT_SOURCE
 SOURCE_GROUP( "src"      ${INCLUDE} )
 SOURCE_GROUP( "src\\auth"    ${auth_SOURCE} )
 SOURCE_GROUP( "src\\marshal" ${marshal_SOURCE} )
-SOURCE_GROUP( "src\\utils"   ${utils_SOURCE} )
+SOURCE_GROUP( "src\\utils" FILES ${utils_SOURCE} )
 
 CREATE_TEST_SOURCELIST( TARGET_SOURCELIST "eve-test.cpp"
                         ${auth_SOURCE}
@@ -68,3 +69,5 @@ ADD_TEST( NAME "EVEMarshalTest"
           COMMAND "${TARGET_NAME}" "marshal/EVEMarshalTest" )
 ADD_TEST( NAME "EvilNumberTest"
           COMMAND "${TARGET_NAME}" "utils/EvilNumberTest" )
+ADD_TEST( NAME "WeaponFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/WeaponFormulaTest" )

@@ -285,7 +285,12 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
             action = cur.second.action;
             continue;
         } */
-        //InventoryItemRef srcItemRef = cur.second.srcRef;
+        // A malformed or already-removed source item must never be
+        // dereferenced while resolving the effect's source/target pair.
+        if (cur.second.srcRef.get() == nullptr) {
+            _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Modifier %i has no live source item; skipping.", cur.first);
+            continue;
+        }
 
         std::vector<InventoryItemRef> itemRefVec;
         // affected target depends on source.  get source and target(s) here.
@@ -378,26 +383,40 @@ void FxProc::ApplyEffects(InventoryItem* pItem, Character* pChar, ShipItem* pShi
                     case Target::Charge: {
                         // ... charge on src item (from module)
                         if (cur.second.srcRef->flag() == flagNone) {
-                            _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): SourceItem.flag is flagNone but need actual flag to acquire module.");
-                            _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Item Data for %s(%u) - src(%s:%u)  targ(%s:%u) .", \
-                                    cur.second.srcRef->name(), cur.second.srcRef->itemID(), GetSourceName(cur.second.fxSrc), cur.second.srcAttr,  \
-                                    GetTargLocName(cur.second.targLoc), cur.second.targAttr);
-                            EvE::traceStack();
+                            _log(EFFECTS__WARNING, "FxProc::ApplyEffects(): Charge %s(%u) has no fitted module flag; skipping its charge modifier.",
+                                 cur.second.srcRef->name(), cur.second.srcRef->itemID());
                             continue;
                         }
-                        itemRefVec.push_back(pShip->GetModuleManager()->GetLoadedChargeOnModule(cur.second.srcRef->flag()));
+                        if (pShip == nullptr || pShip->GetModuleManager() == nullptr) {
+                            _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Cannot resolve charge modifier for %s(%u); ship module manager is unavailable.",
+                                 cur.second.srcRef->name(), cur.second.srcRef->itemID());
+                            continue;
+                        }
+                        InventoryItemRef loadedCharge =
+                            pShip->GetModuleManager()->GetLoadedChargeOnModule(cur.second.srcRef->flag());
+                        if (loadedCharge.get() != nullptr)
+                            itemRefVec.push_back(loadedCharge);
                     } break;
                     case Target::Other: {
                         // ... module containing the src item (from charge)
                         if (cur.second.srcRef->flag() == flagNone) {
-                            _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): SourceItem.flag is flagNone but need actual flag to acquire module.");
-                            _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Item Data for %s(%u) - src(%s:%u)  targ(%s:%u) .", \
-                                    cur.second.srcRef->name(), cur.second.srcRef->itemID(), GetSourceName(cur.second.fxSrc), cur.second.srcAttr,  \
-                                    GetTargLocName(cur.second.targLoc), cur.second.targAttr);
-                            EvE::traceStack();
+                            _log(EFFECTS__WARNING, "FxProc::ApplyEffects(): Charge %s(%u) has no fitted module flag; skipping its module modifier.",
+                                 cur.second.srcRef->name(), cur.second.srcRef->itemID());
                             continue;
                         }
-                        itemRefVec.push_back(pShip->GetModuleManager()->GetModule(cur.second.srcRef->flag())->GetSelf());
+                        if (pShip == nullptr || pShip->GetModuleManager() == nullptr) {
+                            _log(EFFECTS__ERROR, "FxProc::ApplyEffects(): Cannot resolve source module for %s(%u); ship module manager is unavailable.",
+                                 cur.second.srcRef->name(), cur.second.srcRef->itemID());
+                            continue;
+                        }
+                        GenericModule* sourceModule = pShip->GetModuleManager()->GetModule(cur.second.srcRef->flag());
+                        if (sourceModule == nullptr || sourceModule->GetSelf().get() == nullptr) {
+                            _log(EFFECTS__WARNING, "FxProc::ApplyEffects(): No fitted module found for charge %s(%u) at flag %u; skipping its module modifier.",
+                                 cur.second.srcRef->name(), cur.second.srcRef->itemID(),
+                                 static_cast<uint32>(cur.second.srcRef->flag()));
+                            continue;
+                        }
+                        itemRefVec.push_back(sourceModule->GetSelf());
                     } break;
                     case Target::Target: {
                         // ... current target (focused, volatile...removed on 'invalid target')

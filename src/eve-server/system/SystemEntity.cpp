@@ -146,9 +146,10 @@ void SystemEntity::EncodeDestiny( Buffer& into )
 void SystemEntity::Killed(Damage& damage)
 {
     if (m_targMgr != nullptr) {
-        // loop thru list of all modules targeting this entity and let them know it has been killed.
+        // Destroyed() aborts target-dependent modules and calls
+        // ClearAllTargets(), which clears both outgoing locks and incoming
+        // targeters while this entity is still registered and valid.
         m_targMgr->Destroyed();
-        // remove TargMgr here to avoid redundant calls upon object deletion
         SafeDelete(m_targMgr);
     }
     Delete();

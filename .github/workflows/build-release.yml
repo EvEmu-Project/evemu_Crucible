@@ -6,7 +6,7 @@ concurrency:
 
 on:
   push:
-    branches: [master]
+    branches: [master, drone-auto-target-engage-fix]
     tags: ["v*", "stable-rizonx"]
   pull_request:
     branches: [master]
