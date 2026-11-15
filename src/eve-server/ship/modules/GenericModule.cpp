@@ -91,6 +91,8 @@ void GenericModule::Online()
     if (cpuNeed  > m_shipRef->GetAttribute(AttrCpuOutput)) {
         _log(MODULE__TRACE, "GenericModule::Online() %u(%s) - not enough CPU. (%.1f/%.1f)", \
                 itemID(), m_modRef->name(), cpuNeed.get_float(), m_shipRef->GetAttribute(AttrCpuOutput).get_float());
+        // Keep the persisted state truthful even when login suppresses UI notifications.
+        SetAttribute(AttrOnline, EvilZero, !m_shipRef->IsUndocking());
         if (!m_shipRef->GetPilot()->IsLogin()) {
             m_modRef->SetOnline(false, isRig());
             float require(GetAttribute(AttrCpu).get_float());
@@ -106,6 +108,8 @@ void GenericModule::Online()
     if (pgNeed > m_shipRef->GetAttribute(AttrPowerOutput)) {
         _log(MODULE__TRACE, "GenericModule::Online() %u(%s) - not enough PG. (%.1f/%.1f)", \
                 itemID(), m_modRef->name(), pgNeed.get_float(), m_shipRef->GetAttribute(AttrPowerOutput).get_float());
+        // Keep the persisted state truthful even when login suppresses UI notifications.
+        SetAttribute(AttrOnline, EvilZero, !m_shipRef->IsUndocking());
         if (!m_shipRef->GetPilot()->IsLogin()) {
             m_modRef->SetOnline(false, isRig());
             float require(GetAttribute(AttrPower).get_float());
