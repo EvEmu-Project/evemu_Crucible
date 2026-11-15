@@ -935,13 +935,13 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                 sSE->SetPosition(location);
                 sRef->SaveItem();
                 pSysMgr->AddEntity(sSE);
-                pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                pShipSE->DestinyMgr()->SendJettisonPacket();
                 itr = ints.erase(itr);
             } break;
             case EVEDB::invCategories::Orbitals: {
                 sRef = sItemFactory.GetStructureRef(*itr);
                 if (sRef.get() == nullptr)
-                    throw CustomError ("Unable to spawn Structure item of type %u.", sRef->typeID());
+                    throw CustomError("Unable to load Orbital structure item %u for jettison.", *itr);
 
                 sRef->Move(pClient->GetLocationID(), flagNone, true);
                 CustomsSE* sSE = new CustomsSE(sRef, this->GetServiceManager(), pSysMgr, data);
@@ -949,7 +949,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                 sSE->SetPosition(location);
                 sRef->SaveItem();
                 pSysMgr->AddEntity(sSE);
-                pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                pShipSE->DestinyMgr()->SendJettisonPacket();
                 itr = ints.erase(itr);
             } break;
             case EVEDB::invCategories::Deployable: {
@@ -965,7 +965,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                 dSE->SetPosition(location);
                 cRef->SaveItem();
                 pSysMgr->AddEntity(dSE);
-                pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                pShipSE->DestinyMgr()->SendJettisonPacket();
                 itr = ints.erase(itr);
             } break;
             /** @todo  Handle other cargo */
@@ -981,7 +981,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                         /** @todo (allan)  *****  there are stipulations on placement of these items.  *****  */
                         ccRef = sItemFactory.GetCargoRef(*itr);
                         if (ccRef.get() == nullptr)
-                            throw CustomError ("Unable to spawn item of type %u.", ccRef->typeID());
+                            throw CustomError("Unable to load cargo container item %u for jettison.", *itr);
 
                         ccRef->Move(pClient->GetLocationID(), flagNone, true);
                         ContainerSE* cSE = new ContainerSE(ccRef, this->GetServiceManager(), pSysMgr, data);
@@ -990,7 +990,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
                         cSE->SetPosition(location);
                         ccRef->SaveItem();
                         pSysMgr->AddEntity(cSE);
-                        pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+                        pShipSE->DestinyMgr()->SendJettisonPacket();
 
                         // container found.  remove this item from list, then break out of here and use to contain all other non-pos items
                         ints.erase(itr);
@@ -1048,7 +1048,7 @@ PyResult ShipBound::Jettison(PyCallArgs &call, PyList* itemIDs) {
             // set anchored to avoid deletion when empty
             jcRef->SetAnchor(true);
             pSysMgr->AddEntity(cSE);
-            pClient->GetShipSE()->DestinyMgr()->SendJettisonPacket();
+            pShipSE->DestinyMgr()->SendJettisonPacket();
             pClient->StartJetcanTimer();
         }
         // check current can for capacity limits.
