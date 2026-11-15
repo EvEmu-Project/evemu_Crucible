@@ -45,7 +45,7 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
   m_lifeTimer(0),
   m_damageMod(1),
   m_alive(true),
-  m_orbitingID(0),
+  m_orbitingID(tSE != nullptr ? tSE->GetID() : 0),
   m_speed(0),
   m_hullHP(self->GetAttribute(AttrHP).get_int())
 {
@@ -235,7 +235,14 @@ void Missile::MakeDamageState(DoDestinyDamageState &into) {
 void Missile::HitTarget() {
     // The target may have been removed or lost its inventory item before the
     // missile's impact timer expires. Never construct damage from invalid refs.
-    if (m_targetSE == nullptr || m_targetSE->GetSelf().get() == nullptr
+    // Resolve the target through the live system registry. Comparing the
+    // resolved pointer against the cached pointer avoids dereferencing a target
+    // that was destroyed while this missile was in flight.
+    SystemManager* system = SystemMgr();
+    SystemEntity* liveTarget = (system != nullptr && m_orbitingID != 0)
+        ? system->GetSE(m_orbitingID) : nullptr;
+    if (liveTarget == nullptr || liveTarget != m_targetSE
+        || liveTarget->GetSelf().get() == nullptr
         || m_self.get() == nullptr || m_fromSE == nullptr || m_modRef.get() == nullptr) {
         _log(DAMAGE__WARNING, "Missile::HitTarget() - missile %u lost a valid source, module, or target; discarding impact.",
              GetID());
@@ -256,7 +263,7 @@ void Missile::HitTarget() {
      * MIN being a function that chooses the lower of the given vaules,
      * ln is natural logarithm.
      */
-    InventoryItemRef targetItem = m_targetSE->GetSelf();
+    InventoryItemRef targetItem = liveTarget->GetSelf();
     double Sr = targetItem->GetAttribute(AttrSignatureRadius).get_float();
     if (Sr <= 0.0)
         Sr = targetItem->GetAttribute(AttrRadius).get_float() / 10.0;
@@ -266,7 +273,7 @@ void Missile::HitTarget() {
     const double DRF = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float();
     const double DRS = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float();
 
-    const double targetSpeed = m_targetSE->GetVelocity().length();
+    const double targetSpeed = liveTarget->GetVelocity().length();
     const double V = (targetSpeed > 0.0) ? targetSpeed : 1.0;
 
     // Guard malformed/missing static attributes against division by zero and
@@ -296,7 +303,7 @@ void Missile::HitTarget() {
     d *= m_damageMod;
     d *= damageFactor;
 
-    m_targetSE->ApplyDamage(d);
+    liveTarget->ApplyDamage(d);
     m_alive = false;
 }
 
