@@ -6,7 +6,7 @@ concurrency:
 
 on:
   push:
-    branches: [master, evemu-crucible-modernization, mission-data-restoration]
+    branches: [master, evemu-crucible-modernization, mission-data-restoration, drone-auto-target-engage-fix]
     tags: ["v*", "stable-rizonx"]
   pull_request:
     branches: [master]
