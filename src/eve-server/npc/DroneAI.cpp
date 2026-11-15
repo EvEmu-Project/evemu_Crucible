@@ -11,6 +11,7 @@
 
 #include "Client.h"
 #include "character/Character.h"
+#include "tables/invGroups.h"
 #include "inventory/AttributeEnum.h"
 #include "system/DestinyManager.h"
 #include "npc/Drone.h"
@@ -20,6 +21,13 @@
 #include "system/SystemManager.h"
 
 namespace {
+// Mining drones currently have no implemented ore extraction/return-to-hold
+// cycle. Never treat them as gun drones while that path remains unimplemented.
+bool IsMiningDrone(DroneSE* drone) {
+    return drone != nullptr && drone->GetSelf().get() != nullptr
+        && drone->GetSelf()->groupID() == EVEDB::invGroups::Mining_Drone;
+}
+
 // Drone control range is a character attribute (skills/modules may modify it).
 // Keep a conservative 20 km baseline only for old characters whose imported
 // static attributes do not contain the value.
@@ -63,7 +71,8 @@ SystemEntity* FindSharedDroneTarget(DroneSE* drone) {
 
     SystemManager* system = drone->GetSystemManager();
     const uint32 controllerID = drone->GetHomeShip()->GetID();
-    const std::map<uint32, SystemEntity*> entities = system->GetEntities();
+    // A read-only view avoids copying the entire solar-system map per drone tick.
+    const auto& entities = system->GetEntitiesView();
     for (const auto& entry : entities) {
         SystemEntity* entity = entry.second;
         if (entity == nullptr || !entity->IsDroneSE())
@@ -178,6 +187,7 @@ void DroneAIMgr::Process() {
     // Focus-fire is a flight-level decision. Keep every controlled drone on
     // the same valid assigned target, including while that target is locking.
     if (m_autoEngageEnabled && m_state != DroneAI::State::Departing
+        && !IsMiningDrone(m_pDrone)
         && m_pDrone->GetSelf().get() != nullptr
         && m_pDrone->GetSelf()->GetAttribute(AttrDroneFocusFire).get_bool()) {
         SystemEntity* sharedTarget = FindSharedDroneTarget(m_pDrone);
@@ -230,14 +240,15 @@ void DroneAIMgr::Process() {
             // Combat drones automatically acquire the nearest hostile NPC in
             // their current bubble. After a target dies/losses lock, the next
             // idle tick selects the next NPC, so a flight clears the pocket.
-            if (m_autoEngageEnabled && m_pDrone->GetSelf().get() != nullptr
+            if (m_autoEngageEnabled && !IsMiningDrone(m_pDrone)
+                && m_pDrone->GetSelf().get() != nullptr
                 && m_pDrone->GetSelf()->GetAttribute(AttrDroneIsAgressive).get_bool()
                 && m_pDrone->GetHomeShip() != nullptr
                 && m_pDrone->GetSystemManager() != nullptr
                 && m_pDrone->SysBubble() != nullptr) {
                 SystemEntity* nearestNPC = nullptr;
                 double nearestDistance = 1.0e100;
-                const std::map<uint32, SystemEntity*> entities = m_pDrone->GetSystemManager()->GetEntities();
+                const auto& entities = m_pDrone->GetSystemManager()->GetEntitiesView();
                 for (const auto& entry : entities) {
                     SystemEntity* candidate = entry.second;
                     if (candidate == nullptr || candidate == m_pDrone || !candidate->IsNPCSE()
@@ -513,6 +524,13 @@ void DroneAIMgr::TargetAcquired(SystemEntity* pTarget) {
 }
 
 void DroneAIMgr::Target(SystemEntity* pTarget) {
+    if (IsMiningDrone(m_pDrone)) {
+        // The mining cycle is not implemented; do not emit fake laser combat or
+        // deplete combat targets with this non-weapon group.
+        _log(DRONE__WARNING, "Drone %u: Mining drone extraction is not implemented; target order ignored.",
+             m_pDrone->GetID());
+        return;
+    }
     m_autoEngageEnabled = true;
     if (pTarget == nullptr || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr
         || m_pDrone->TargetMgr() == nullptr || m_pDrone->DestinyMgr() == nullptr
@@ -588,7 +606,8 @@ void DroneAIMgr::Targeted(SystemEntity* pAgressor) {
 
     // Aggressive drones retaliate against NPCs that actively target them.
     // Passive drones remain under explicit player command.
-    if (m_state == DroneAI::State::Idle && pAgressor->IsNPCSE()
+    if (m_autoEngageEnabled && !IsMiningDrone(m_pDrone)
+        && m_state == DroneAI::State::Idle && pAgressor->IsNPCSE()
         && m_pDrone->GetSelf().get() != nullptr
         && m_pDrone->GetSelf()->GetAttribute(AttrDroneIsAgressive).get_bool()) {
         Target(pAgressor);
@@ -722,7 +741,7 @@ void DroneAIMgr::ClearTarget(SystemEntity* pSE) {
 void DroneAIMgr::AttackTarget(SystemEntity* pTarget) {
     if (pTarget == nullptr || pTarget->GetSelf().get() == nullptr
         || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr
-        || m_pDrone->DestinyMgr() == nullptr)
+        || m_pDrone->DestinyMgr() == nullptr || IsMiningDrone(m_pDrone))
         return;
     /** @todo  not all drones use lazors...fix this */
     //  woot!! --> group:1010        cat:8       Compact Citadel Torpedo         Citadel torpedoes for fighter-bombers

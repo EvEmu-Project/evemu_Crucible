@@ -27,6 +27,7 @@
 // this class is for objects that move
 
 #include "EVEServerConfig.h"
+#include "EVE_MovementFormulas.h"
 
 #include "Client.h"
 #include "EntityList.h"
@@ -629,6 +630,8 @@ void DestinyManager::Eject()
 void DestinyManager::CheckBump()
 {
     double profileStartTime(GetTimeUSeconds());
+    if (mySE == nullptr || mySE->SysBubble() == nullptr || !mySE->HasPilot())
+        return;
 
     //  collision detection code here
     /*  in this case, we are ONLY interested in objects
@@ -643,20 +646,29 @@ void DestinyManager::CheckBump()
     std::vector<Client*> vPlayers;
     mySE->SysBubble()->GetPlayers(vPlayers);
     Client* pClient = mySE->GetPilot();
-    GPoint pos(GetPosition());
-    float distance = 0.0f;
-    for (auto cur : vPlayers) {
-        if (cur == pClient)
+    const GPoint pos(GetPosition());
+    bool touching = false;
+    for (Client* cur : vPlayers) {
+        if (cur == nullptr || cur == pClient || cur->GetShipSE() == nullptr)
             continue;
-        distance = pos.distance(cur->GetShipSE()->GetPosition());
-        distance -= (mySE->GetRadius() - cur->GetShipSE()->GetRadius());
-        if (distance < BUMP_DISTANCE) {
-            Bump(cur->GetShipSE());
-            m_bump = true;
-        } else {
-            m_bump = false;
+        ShipSE* other = cur->GetShipSE();
+        if (other == mySE || other->SysBubble() != mySE->SysBubble())
+            continue;
+
+        // Previous code subtracted (our radius - their radius), which could
+        // report a collision while ships were far apart, especially when the
+        // other ship was larger. Measure the gap between the two hulls.
+        const double gap = EVEmuMovement::SurfaceSeparation(
+            pos.distance(other->GetPosition()), mySE->GetRadius(), other->GetRadius());
+        if (gap < BUMP_DISTANCE) {
+            if (!m_bump)
+                Bump(other);
+            touching = true;
         }
     }
+    // Keep the contact state until *all* contacts separate. Resetting it for
+    // each non-touching ship caused repeated false bump notifications.
+    m_bump = touching;
     /** @todo  add data and checks for each ship bumped
      * to give single bump msg for each ship combo
      * without spamming their overview
@@ -1183,7 +1195,12 @@ void DestinyManager::Follow() {
     //  Follow is also used by client as AlignTo.
     const GPoint& target_point = m_targetEntity.second->GetPosition();
     GVector heading(m_position, target_point);
-    m_targetDistance = (uint32)(heading.length() - m_radius);
+    const double centerDistance = heading.length();
+    // A nearby/overlapping target used to wrap this negative floating-point
+    // value through uint32, yielding a huge follow distance and a violent
+    // approach correction. Include BOTH hull radii and clamp at zero.
+    m_targetDistance = EVEmuMovement::SurfaceSeparation(
+        centerDistance, m_radius, m_targetEntity.second->GetRadius());
 
     if (m_targetDistance < m_followDistance) {
         if (mySE->HasPilot())
@@ -1240,8 +1257,16 @@ void DestinyManager::Follow() {
         }
     }
 
-    heading.normalize();
-    m_targetPoint = target_point + (heading * m_targetDistance);
+    // Aim for the near-side stand-off point, not beyond the target's center.
+    // This reduces client/server overshoot when approaching large objects.
+    if (centerDistance > 0.0001) {
+        heading.normalize();
+        const double travel = (m_targetDistance > m_followDistance)
+            ? (m_targetDistance - m_followDistance) : 0.0;
+        m_targetPoint = m_position + (heading * travel);
+    } else {
+        m_targetPoint = m_position;
+    }
 
     MoveObject();
 }
@@ -1377,45 +1402,28 @@ void DestinyManager::Orbit() {
 
     #define LogMacro(v) _log(DESTINY__ORBIT_TRACE, "m - " #v ": (%.3f, %.3f, %.3f)   len=%.3f", v.x, v.y, v.z, v.length())
 
-    // new orbit code
-    float radius = m_followDistance + mPosAdj;// fudge a bit as using targetDistance is a hair too close
-    // angle around y axis (from +x) - horizontal movement  - ccw from +x using ships orbit in rad/tic
-    float theta = EvE::Trig::Pi2 - EvE::Trig::Deg2Rad(360) - (m_orbitRadTic * timeStamp);
-    // angle around xz axis (from 0) - vertical movement
-    //GVector target(m_position, Tp);
-    //LogMacro(target);
-    //float hyp = sqrt(pow(target.z, 2) + pow(target.x, 2));
-    float inclination = 45; //atan(hyp / target.y);
-    // fractional value of orbit period (0 < x < 1)
-    float period = fmod(timeStamp, m_orbitTime) / m_orbitTime;
-    // calculate a pendulum value here to adjust elevation (+/-y) where +x is 1, 0x is 0, -x is -1
-    float c = cos(EvE::Trig::Deg2Rad(360 * period));
-    // get elevation modifier based on orbit period
-    float phi = EvE::Trig::Deg2Rad(inclination * c);
-    // set xz plane modifier from elevation
-    float s = sin(EvE::Trig::Deg2Rad(360 * period));
-    float mu = EvE::Trig::Deg2Rad(inclination * s);
-    // here we will adjust orbit plane by adding OrbitRotation angle to theta
-    // calculate position
-    mPos.x = radius /* mu */* cos( theta );
-    mPos.z = radius /* mu */* sin( theta );
-    mPos.y = radius * phi;
-    _log(DESTINY__ORBIT_TRACE, "4 - theta:%.5f, phi:%.3f, mu:%.2f period:%.5f, radius:%.3f, inc:%.5f", theta,phi,mu,period,radius,inclination);
-    LogMacro(mPos);
-    // apply origin to our calculated position
-    mPos += Tp;
-    // set position for this tic
-    m_position = mPos;
-
-    // set heading for this tic
+    // Follow an orbit waypoint from the CURRENT position; do not teleport to
+    // an absolute timestamp-based position before MoveObject(). That jump
+    // looked like a high-speed collision/bounce, especially around large
+    // stations. The regular sub-warp movement step performs the translation.
+    const double radius = m_followDistance + mPosAdj;
+    if (!std::isfinite(radius) || radius < (m_radius + Tr) || m_orbitTime <= 0.0f) {
+        Stop();
+        return;
+    }
+    const double theta = atan2(m_position.z - Tp.z, m_position.x - Tp.x)
+        + m_orbitRadTic;
+    const double yOffset = m_position.y - Tp.y;
+    // Preserve a tilted plane but limit its vertical excursion so the orbit
+    // waypoint remains outside the target's spherical collision envelope.
+    const double maxYOffset = radius * 0.7;
+    const double nextYOffset = (yOffset > maxYOffset) ? maxYOffset
+        : ((yOffset < -maxYOffset) ? -maxYOffset : yOffset);
+    const double xzRadius = sqrt(radius * radius - nextYOffset * nextYOffset);
     GPoint mPosNext(NULL_ORIGIN);
-    theta += m_orbitRadTic;
-    period = fmod(timeStamp + 1, m_orbitTime) / m_orbitTime;
-    c = cos(EvE::Trig::Deg2Rad(360 * period));
-    phi = EvE::Trig::Deg2Rad(inclination * c);
-    mPosNext.x = radius * cos( theta );
-    mPosNext.z = radius * sin( theta );
-    mPosNext.y = radius * phi;
+    mPosNext.x = xzRadius * cos(theta);
+    mPosNext.z = xzRadius * sin(theta);
+    mPosNext.y = nextYOffset;
     LogMacro(mPosNext);
     // determine where our target should be next tic, and figure that into our heading calculation
     float Tv = (m_targetEntity.second->DestinyMgr() != nullptr ? m_targetEntity.second->DestinyMgr()->GetSpeed() : 0);
@@ -2328,8 +2336,12 @@ void DestinyManager::Orbit(SystemEntity *pSE, uint32 distance/*0*/) {
         _log(DESTINY__ORBIT_TRACE, "%s(%u) - Target Data - mass:%.3f, speed:%.2f, radius:%.2f", \
             mySE->GetName(), mySE->GetID(), Tm, (pSE->DestinyMgr() ? pSE->DestinyMgr()->GetSpeed() : 0 ), Tr);
 
-    // fudge distance to work 'close enough' with all targets...this was trial-n-error
-    double Rc = ((distance + 150 + m_radius - (pSE->GetRadius() /12)) * 1.2);
+    // Keep the orbit outside both physical hulls. Subtracting a fraction of
+    // the target radius previously made large stations/objects produce an
+    // invalid or inside-the-object orbit radius.
+    const double safeOrbitRadius = EVEmuMovement::MinimumOrbitRadius(
+        distance, m_radius, Tr);
+    double Rc = (safeOrbitRadius + 150.0) * 1.2;
     double Rc2 =  std::pow(Rc,2);
     double Vm2 =  std::pow(m_maxShipSpeed,2);
     double t2 =  std::pow(m_shipAgility,2);
@@ -2348,11 +2360,30 @@ void DestinyManager::Orbit(SystemEntity *pSE, uint32 distance/*0*/) {
     double six = (one + (8 * Rc2) + (12 * five));
     m_followDistance =  std::sqrt(four + (24 *  std::pow(Rc, 4) / six) + 12 * Rc2) / 6;
 
-    double velocity = m_maxShipSpeed * ((distance / m_followDistance) + 0.065); // dunno where i got this from but seems to work very well.
+    // A zero/nonfinite speed, invalid radius or orbital period must never
+    // feed division by zero, NaN or infinite movement into the client.
+    if (!std::isfinite(m_followDistance) || !std::isfinite(m_maxShipSpeed)
+        || m_followDistance < safeOrbitRadius || m_followDistance > BUBBLE_RADIUS_METERS
+        || m_maxShipSpeed <= 0.0) {
+        _log(DESTINY__ERROR, "Destiny::Orbit() - Invalid orbit geometry/speed for %s(%u).",
+             mySE->GetName(), mySE->GetID());
+        Stop();
+        return;
+    }
+
+    const double velocity = m_maxShipSpeed * ((distance / m_followDistance) + 0.065);
+    if (!std::isfinite(velocity) || velocity <= 0.0) {
+        Stop();
+        return;
+    }
     m_maxOrbitSpeedFraction = velocity / m_maxShipSpeed;
 
-    double circ = EvE::Trig::Pi2 * m_followDistance;
+    const double circ = EvE::Trig::Pi2 * m_followDistance;
     m_orbitTime = circ / velocity;
+    if (!std::isfinite(m_orbitTime) || m_orbitTime <= 0.0) {
+        Stop();
+        return;
+    }
     m_orbitRadTic = EvE::Trig::Pi2 / m_orbitTime;
 
     if (is_log_enabled(DESTINY__ORBIT_TRACE))

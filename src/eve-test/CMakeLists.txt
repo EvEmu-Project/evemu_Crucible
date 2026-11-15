@@ -27,7 +27,8 @@ SET( marshal_SOURCE
      "marshal/EVEMarshalTest.cpp" )
 SET( utils_SOURCE
      "utils/EvilNumberTest.cpp"
-     "utils/WeaponFormulaTest.cpp" )
+     "utils/WeaponFormulaTest.cpp"
+     "utils/MovementFormulaTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -71,3 +72,5 @@ ADD_TEST( NAME "EvilNumberTest"
           COMMAND "${TARGET_NAME}" "utils/EvilNumberTest" )
 ADD_TEST( NAME "WeaponFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/WeaponFormulaTest" )
+ADD_TEST( NAME "MovementFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
