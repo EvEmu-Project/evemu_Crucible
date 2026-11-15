@@ -145,43 +145,83 @@ bool TargetManager::Process() {
     if (m_targets.empty())
         return false;
 
-    //process outgoing targeting (outgoing will call incoming as needed)
-    std::map<SystemEntity*, TargetEntry*>::iterator itr = m_targets.begin();
-    while (itr != m_targets.end()) {
-        if ((itr->first == nullptr) or (itr->second == nullptr)) {
-            SafeDelete(itr->second);
-            itr = m_targets.erase(itr);
-            continue;
+    // Lock-completion callbacks can clear targets. In particular, DroneSE's
+    // TargetAdded() callback calls DroneAIMgr::TargetAcquired(), which may
+    // immediately clear a dead/out-of-bubble target. Iterating m_targets while
+    // invoking those callbacks can invalidate itr and crash on ++itr inside
+    // std::_Rb_tree_increment. Snapshot IDs and re-resolve each entry instead.
+    std::vector<uint32> targetIDs;
+    targetIDs.reserve(m_targets.size());
+    for (const auto& entry : m_targets) {
+        if (entry.second != nullptr)
+            targetIDs.push_back(entry.second->targetID);
+    }
+
+    SystemManager* system = (mySE != nullptr) ? mySE->SystemMgr() : nullptr;
+    if (system == nullptr)
+        return false;
+
+    for (uint32 targetID : targetIDs) {
+        auto itr = m_targets.begin();
+        while (itr != m_targets.end()) {
+            if (itr->second != nullptr && itr->second->targetID == targetID)
+                break;
+            ++itr;
         }
-        switch (itr->second->state) {
+        if (itr == m_targets.end() || itr->first == nullptr || itr->second == nullptr)
+            continue;
+
+        SystemEntity* target = itr->first;
+        TargetEntry* targetEntry = itr->second;
+        if (system->GetSE(targetID) != target)
+            continue;
+
+        switch (targetEntry->state) {
             case TargMgr::State::Idle:
-            case TargMgr::State::Locked:{          //do nothing
+            case TargMgr::State::Locked: {
+                // Nothing to do.
             } break;
-            case TargMgr::State::Passive:   // this will be used with stealth modules (which, ofc, are not written yet)
+            case TargMgr::State::Passive:
             case TargMgr::State::Locking: {
-                if (itr->second->timer.Check(false)) {
-                    itr->second->timer.Disable();
-                    itr->second->state = TargMgr::State::Locked;
-                    _log(TARGET__TRACE, "%s(%u) has finished locking %s(%u)", \
-                            mySE->GetName(), mySE->GetID(), itr->first->GetName(), itr->first->GetID());
-                    TargetAdded(itr->first);
-                    if (itr->first->TargetMgr() != nullptr)
-                        itr->first->TargetMgr()->TargetedByLocked(mySE);
-                    m_canAttack = true;
-                    // Notify the entity that owns this TargetManager as well.
-                    // DroneSE uses this callback to publish its locked target ID
-                    // and transition its AI after the lock actually completes.
-                    mySE->TargetAdded(itr->first);
+                if (targetEntry->timer.Check(false)) {
+                    targetEntry->timer.Disable();
+                    targetEntry->state = TargMgr::State::Locked;
+                    _log(TARGET__TRACE, "%s(%u) has finished locking %s(%u)",
+                         mySE->GetName(), mySE->GetID(), target->GetName(), target->GetID());
+
+                    TargetAdded(target);
+
+                    // Re-resolve after the callback. It may have removed this
+                    // target or cleared the owning drone's target manager.
+                    SystemEntity* liveTarget = system->GetSE(targetID);
+                    if (liveTarget != target)
+                        continue;
+                    if (liveTarget->TargetMgr() != nullptr)
+                        liveTarget->TargetMgr()->TargetedByLocked(mySE);
+
+                    // This virtual callback may erase the just-locked entry.
+                    // No map iterator or TargetEntry pointer is used after it.
+                    if (system->GetSE(mySE->GetID()) == mySE)
+                        mySE->TargetAdded(liveTarget);
                 }
             } break;
         }
-        ++itr;
+    }
+
+    // Recalculate rather than setting this true during a callback which may
+    // have cleared the final lock.
+    m_canAttack = false;
+    for (const auto& entry : m_targets) {
+        if (entry.second != nullptr && entry.second->state == TargMgr::State::Locked) {
+            m_canAttack = true;
+            break;
+        }
     }
 
     if (sConfig.debug.UseProfiling)
         sProfiler.AddTime(Profile::targets, GetTimeUSeconds() - profileStartTime);
 
-    return true;
+    return !m_targets.empty();
 }
 
 void TargetManager::Unload() {
