@@ -25,6 +25,7 @@
 
 /** @todo  boost is the only system in this code that does NOT leak */
 
+#include "EVE_AgentHelpers.h"
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
 
@@ -120,14 +121,32 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     if (!ValidateCategory(category) || !ValidateSize(category, size))
         return std::shared_ptr<std::vector<char> >();
 
-    //std::ifstream stream;
+    // Only disk files are used for station NPC agents. Exact-size historical
+    // portraits take priority, followed by whatever other local JPEG size is
+    // available. An importer's 256px JPEG is valid for Crucible's 50px URL.
     std::string path(GetFilePath(category, id, size));
     FILE * fp = fopen(path.c_str(), "rb");
-    // Existing characters have only a 512px image. Serve that local file
-    // when a client requests a smaller portrait; new exact-size images win.
-    if (fp == NULL && category == "Character" && size != 512) {
-        path = GetFilePath(category, id, 512);
+    if (fp == NULL && category == "Character") {
+        for (uint32 cachedSize : {512u, 256u, 128u, 64u, 50u, 40u, 32u, 1024u}) {
+            if (cachedSize == size)
+                continue;
+            path = GetFilePath(category, id, cachedSize);
+            fp = fopen(path.c_str(), "rb");
+            if (fp != NULL)
+                break;
+        }
+    }
+
+    if (fp == NULL && EvEAgent::IsStationAgentPortraitRequest(category, id)) {
+        // First allow a custom local replacement; the portable package also
+        // carries an original neutral fallback in its unmounted share folder.
+        // This works even when Docker uses a persistent image_cache volume.
+        path = _basePath + "Character/agent_missing_512.jpg";
         fp = fopen(path.c_str(), "rb");
+        if (fp == NULL) {
+            path = "../share/evemu/agent_portraits/agent_missing_512.jpg";
+            fp = fopen(path.c_str(), "rb");
+        }
     }
     if (fp == NULL)
         return std::shared_ptr<std::vector<char> >();
