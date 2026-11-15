@@ -275,16 +275,27 @@ void DroneAIMgr::Process() {
         case DroneAI::State::Engaged:
         case DroneAI::State::Approaching:
         case DroneAI::State::Pursuit: {
-            // Only process a fully locked target. Pending locks must not be treated as active combat.
+            // TargetManager can be removed after its final target is pruned.
+            // Never assume it still exists just because the AI was previously
+            // in a combat state.
+            TargetManager* targetMgr = m_pDrone->TargetMgr();
+            if (targetMgr == nullptr) {
+                SetIdle();
+                return;
+            }
+
+            // Only process the assigned, fully locked target. Pending locks
+            // must not be treated as active combat.
             SystemEntity* pTarget = (m_assignedTargetID != 0)
-                ? m_pDrone->TargetMgr()->GetTarget(m_assignedTargetID, true) : nullptr;
+                ? targetMgr->GetTarget(m_assignedTargetID, true) : nullptr;
             if (pTarget == nullptr && m_assignedTargetID == 0)
-                pTarget = m_pDrone->TargetMgr()->GetFirstTarget(true);
+                pTarget = targetMgr->GetFirstTarget(true);
             if (pTarget != nullptr && m_assignedTargetID == 0)
                 m_assignedTargetID = pTarget->GetID();
             if (pTarget == nullptr) {
-                if (m_pDrone->TargetMgr()->HasNoTargets()) {
-                    _log(DRONE__AI_TRACE, "Drone %s(%u): Stopped engagement, GetFirstTarget() returned NULL.", m_pDrone->GetName(), m_pDrone->GetID());
+                if (targetMgr->HasNoTargets()) {
+                    _log(DRONE__AI_TRACE, "Drone %s(%u): Stopped engagement, assigned target is not locked.",
+                         m_pDrone->GetName(), m_pDrone->GetID());
                     SetIdle();
                 }
                 return;
@@ -430,6 +441,10 @@ void DroneAIMgr::SetEngaged(SystemEntity* pTarget) {
 
 void DroneAIMgr::CheckDistance(SystemEntity* pSE)
 {
+    if (m_pDrone == nullptr || m_pDrone->DestinyMgr() == nullptr) {
+        SetIdle();
+        return;
+    }
     if (pSE == nullptr || m_pDrone->SysBubble() == nullptr) {
         if (pSE != nullptr)
             ClearTarget(pSE);
@@ -478,11 +493,13 @@ void DroneAIMgr::CheckDistance(SystemEntity* pSE)
 }
 
 void DroneAIMgr::ClearTargets() {
-    m_pDrone->TargetMgr()->ClearTargets();
+    if (m_pDrone != nullptr && m_pDrone->TargetMgr() != nullptr)
+        m_pDrone->TargetMgr()->ClearTargets();
 }
 
 void DroneAIMgr::ClearAllTargets() {
-    m_pDrone->TargetMgr()->ClearAllTargets();
+    if (m_pDrone != nullptr && m_pDrone->TargetMgr() != nullptr)
+        m_pDrone->TargetMgr()->ClearAllTargets();
     //m_pDrone->TargetMgr()->OnTarget(nullptr, TargMgr::Mode::Clear, TargMgr::Msg::ClientReq);
 }
 
@@ -681,10 +698,13 @@ void DroneAIMgr::Attack(SystemEntity* pSE)
 }
 
 void DroneAIMgr::ClearTarget(SystemEntity* pSE) {
+    if (m_pDrone == nullptr || m_pDrone->TargetMgr() == nullptr || pSE == nullptr) {
+        SetIdle();
+        return;
+    }
     m_pDrone->TargetMgr()->ClearTarget(pSE);
-    //m_pDrone->TargetMgr()->OnTarget(pSE, TargMgr::Mode::Lost);
 
-    if (m_pDrone->TargetMgr()->HasNoTargets())
+    if (m_pDrone->TargetMgr() == nullptr || m_pDrone->TargetMgr()->HasNoTargets())
         SetIdle();
 }
 
