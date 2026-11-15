@@ -146,17 +146,10 @@ void SystemEntity::EncodeDestiny( Buffer& into )
 void SystemEntity::Killed(Damage& damage)
 {
     if (m_targMgr != nullptr) {
-        // Stop modules and clear this entity's outgoing target locks first.
+        // Destroyed() aborts target-dependent modules and calls
+        // ClearAllTargets(), which clears both outgoing locks and incoming
+        // targeters while this entity is still registered and valid.
         m_targMgr->Destroyed();
-
-        // Destroyed() clears our outgoing targets, but it does not clear the
-        // incoming targeter list. Notify every live targeter while this entity
-        // is still registered and valid. Otherwise drones/NPCs can retain a
-        // raw pointer to this entity after it is removed from the system and
-        // dereference it on their next combat tick.
-        m_targMgr->ClearFromTargets();
-
-        // Remove TargMgr here to avoid redundant calls upon object deletion.
         SafeDelete(m_targMgr);
     }
     Delete();
