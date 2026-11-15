@@ -1,5 +1,6 @@
 #include "eve-test.h"
 #include "EVE_AgentHelpers.h"
+#include "EVE_Missions.h"
 
 #include <cstdio>
 #include <cstdlib>
