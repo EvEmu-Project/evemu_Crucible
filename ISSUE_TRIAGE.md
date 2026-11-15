@@ -302,7 +302,7 @@ The run must be checked again after the documentation commit, because a new bran
 - TargetManager's target-loss callback handled NPCs but not DroneSE, leaving the drone's client-visible target ID stale after a loss.
 
 **Fix pushed to PR #13 branch**
-- Restrict automatic NPC acquisition to the character's `droneControlDistance`; use a conservative 20 km fallback only when that character attribute is missing/zero. Reject explicit engage commands when the target is outside that control range. Once a valid order is issued, drones may continue pursuing if the target later moves away.
+- Restrict automatic NPC acquisition to the effective ship/character `droneControlDistance`; use a conservative 20 km fallback only when both ship and character attributes are missing/zero. Reject explicit engage commands when the target is outside that control range. Once a valid order is issued, drones may continue pursuing if the target later moves away.
 - Use the outer drone attack envelope to enter Combat and orbit at the configured drone orbit distance rather than repeatedly crossing the inner approach threshold.
 - Store target IDs alongside target pointers, prune stale locks safely before target processing and new lock requests, recalculate the lock-complete flag, and notify the client when an orphaned lock is removed.
 - Clear DroneSE's target ID on target loss and invoke the drone target-loss callback from TargetManager.
