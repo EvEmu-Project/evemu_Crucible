@@ -273,3 +273,5 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 **Validation status**
 - This is source-level implementation only. The new branch head requires Windows, Linux and Docker CI.
 - In-game validation must confirm that the combat light drone's logged thermal/kinetic/etc. base damage is nonzero and that the post-ApplyDamage delta is positive; also verify no distant auto-acquisition and that the visible target list agrees with server lock counts. No in-game damage success is claimed yet.
+
+- Follow-up hardening: null target-map keys/entries are now removed before capacity checks as well, so malformed empty map records cannot consume one of the player's target slots.
