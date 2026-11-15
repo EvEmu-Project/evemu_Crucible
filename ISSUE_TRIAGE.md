@@ -266,3 +266,12 @@ The run must be checked again after the documentation commit, because a new bran
 **Validation still required**
 - Compile the new branch on Windows, Linux and Docker CI.
 - In game, confirm the CmdEngage handler is reached and accepts the client's actual target/drone ID encodings; then verify drones acquire NPCs without a manual order, apply damage, switch targets after kills and remain idle after a return command.
+
+
+## 2026-11-15 — Drone engage reports no active drones
+
+- **Root-cause candidates:** the engage handler could reject every selected drone when client-supplied IDs do not resolve to the server's 32-bit system entity IDs; it also depended on a cached DroneSE Client pointer being identical to the current session pointer.
+- Explicitly assign the live pilot to DroneSE at launch.
+- Use owner character ID plus controlling ship/home-ship identity for authorization; do not rely solely on cached Client pointer identity.
+- When no supplied drone ID resolves and passes validation, enumerate current-system entities and issue the engage command to all active drones owned and controlled by the calling character/ship.
+- Added rejection/fallback logs. Verify actual client command arguments and in-game drone damage after CI passes.
