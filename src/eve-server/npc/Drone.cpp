@@ -40,7 +40,6 @@
 
 DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemManager* pSystem, const FactionData& data)
 : DynamicSystemEntity(drone, services, pSystem),
-  m_pClient(nullptr),
   m_AI(new DroneAIMgr(this)),
   m_pShipSE(nullptr),
   m_system(pSystem)
@@ -54,7 +53,6 @@ DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemMana
     m_allyID = data.allianceID;
     m_corpID = data.corporationID;
     m_ownerID = data.ownerID;
-    m_pClient = sEntityList.FindClientByCharID(data.ownerID);
     m_targetID = 0;
     m_controllerID = 0;
     m_controllerOwnerID = 0;
@@ -108,12 +106,34 @@ DroneSE::~DroneSE() {
     SafeDelete(m_AI);
 }
 
+Client* DroneSE::GetOwner() const {
+    // Client objects are session-owned and may be destroyed on disconnect.
+    // Resolve the owner through the live player registry instead of retaining
+    // a raw Client pointer for the lifetime of a space drone.
+    return (m_ownerID != 0) ? sEntityList.FindClientByCharID(m_ownerID) : nullptr;
+}
+
+uint32 DroneSE::GetBounty() const {
+    Client* owner = GetOwner();
+    if (owner == nullptr)
+        return 0;
+    auto character = owner->GetChar();
+    return (character.get() != nullptr) ? character->bounty() : 0;
+}
+
+float DroneSE::GetSecurityRating() const {
+    Client* owner = GetOwner();
+    if (owner == nullptr)
+        return 0.0f;
+    auto character = owner->GetChar();
+    return (character.get() != nullptr) ? character->GetSecurityRating() : 0.0f;
+}
+
 void DroneSE::SetOwner(Client* pClient) {
     if (pClient == nullptr)
         return;
 
     m_self->ChangeOwner(pClient->GetCharacterID());
-    m_pClient = pClient;
     m_ownerID = pClient->GetCharacterID();
     m_corpID = pClient->GetCorporationID();
     m_allyID = pClient->GetAllianceID();
@@ -155,8 +175,9 @@ void DroneSE::Process() {
         if (m_AI->IsScoopRequested()) {
             if (ScoopToBay())
                 return; // this entity has been removed and deleted
-            if (m_pClient != nullptr)
-                m_pClient->SendNotifyMsg("The drone could not be returned to the drone bay. Check your drone bay capacity.");
+            Client* owner = GetOwner();
+            if (owner != nullptr)
+                owner->SendNotifyMsg("The drone could not be returned to the drone bay. Check your drone bay capacity.");
             m_AI->Return(false);
         }
     }
@@ -213,7 +234,8 @@ void DroneSE::Offline() {
 
 bool DroneSE::ScoopToBay() {
     ShipSE* homeShip = GetHomeShip();
-    if (!m_online || m_pClient == nullptr || homeShip == nullptr
+    Client* owner = GetOwner();
+    if (!m_online || owner == nullptr || homeShip == nullptr
         || m_system == nullptr || m_self.get() == nullptr)
         return false;
 
@@ -221,7 +243,7 @@ bool DroneSE::ScoopToBay() {
     if (GetPosition().distance(homeShip->GetPosition()) > 2500.0)
         return false;
 
-    ShipItemRef ship = m_pClient->GetShip();
+    ShipItemRef ship = owner->GetShip();
     if (ship.get() == nullptr || ship->itemID() != homeShip->GetID())
         return false;
 
@@ -229,8 +251,8 @@ bool DroneSE::ScoopToBay() {
         if (!ship->GetMyInventory()->ValidateAddItem(flagDroneBay, m_self))
             return false;
 
-        m_self->ChangeOwner(m_pClient->GetCharacterID(), true);
-        m_pClient->MoveItem(m_self->itemID(), ship->itemID(), flagDroneBay);
+        m_self->ChangeOwner(owner->GetCharacterID(), true);
+        owner->MoveItem(m_self->itemID(), ship->itemID(), flagDroneBay);
     } catch (...) {
         // Capacity or inventory errors must not escape the system process loop.
         return false;
@@ -259,7 +281,6 @@ void DroneSE::IdleOrbit(ShipSE* pShipSE/*nullptr*/) {
 void DroneSE::Abandon() {
     SystemEntity::Abandon();
     Offline();
-    m_pClient = nullptr;
     ClearShipControl();
 }
 
@@ -471,8 +492,11 @@ void DroneSE::SetResists() {
 
 void DroneSE::Killed(Damage& damage) {
     // Unregister from the controlling ship before the item is deleted.
-    if (m_pShipSE != nullptr)
-        m_pShipSE->ScoopDrone(this);
+    // Resolve the controller ID first; m_pShipSE is a non-owning cached pointer
+    // and may have become stale if the ship was removed before this drone died.
+    ShipSE* homeShip = GetHomeShip();
+    if (homeShip != nullptr)
+        homeShip->ScoopDrone(this);
 
     if (m_bubble == nullptr || m_destiny == nullptr || m_system == nullptr || m_self.get() == nullptr) {
         sLog.Error("DroneSE::Killed()", "Cannot create drone wreck: required state unavailable for drone %u", GetID());
