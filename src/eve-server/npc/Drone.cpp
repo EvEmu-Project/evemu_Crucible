@@ -105,6 +105,9 @@ DroneSE::~DroneSE() {
 }
 
 void DroneSE::SetOwner(Client* pClient) {
+    if (pClient == nullptr)
+        return;
+
     m_self->ChangeOwner(pClient->GetCharacterID());
     m_pClient = pClient;
     m_ownerID = pClient->GetCharacterID();
@@ -112,8 +115,25 @@ void DroneSE::SetOwner(Client* pClient) {
     m_allyID = pClient->GetAllianceID();
     m_warID = pClient->GetWarFactionID();
     m_pShipSE = pClient->GetShipSE();
-    m_controllerID = pClient->GetShipID();
-    m_controllerOwnerID = m_pShipSE->GetOwnerID();
+    m_controllerID = (m_pShipSE != nullptr) ? m_pShipSE->GetID() : 0;
+    m_controllerOwnerID = (m_pShipSE != nullptr) ? m_pShipSE->GetOwnerID() : 0;
+}
+
+ShipSE* DroneSE::GetHomeShip() {
+    // m_pShipSE is a non-owning pointer and can become stale if the controlling
+    // ship is destroyed or replaced. Resolve the controller ID before exposing
+    // the pointer to drone AI or scoop/return code.
+    if (m_system == nullptr || m_controllerID == 0)
+        return nullptr;
+
+    SystemEntity* controller = m_system->GetSE(m_controllerID);
+    if (controller == nullptr || !controller->IsShipSE())
+        return nullptr;
+
+    ShipSE* liveShip = controller->GetShipSE();
+    if (liveShip != m_pShipSE)
+        m_pShipSE = liveShip;
+    return liveShip;
 }
 
 void DroneSE::Process() {
@@ -188,16 +208,17 @@ void DroneSE::Offline() {
 }
 
 bool DroneSE::ScoopToBay() {
-    if (!m_online || m_pClient == nullptr || m_pShipSE == nullptr
+    ShipSE* homeShip = GetHomeShip();
+    if (!m_online || m_pClient == nullptr || homeShip == nullptr
         || m_system == nullptr || m_self.get() == nullptr)
         return false;
 
     // EVE's normal drone scoop interaction range is 2,500 metres.
-    if (GetPosition().distance(m_pShipSE->GetPosition()) > 2500.0)
+    if (GetPosition().distance(homeShip->GetPosition()) > 2500.0)
         return false;
 
     ShipItemRef ship = m_pClient->GetShip();
-    if (ship.get() == nullptr || ship->itemID() != m_pShipSE->GetID())
+    if (ship.get() == nullptr || ship->itemID() != homeShip->GetID())
         return false;
 
     try {
@@ -211,7 +232,6 @@ bool DroneSE::ScoopToBay() {
         return false;
     }
 
-    ShipSE* homeShip = m_pShipSE;
     homeShip->ScoopDrone(this);
     m_system->RemoveEntity(this);
     delete this;
